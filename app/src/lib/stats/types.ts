@@ -256,3 +256,43 @@ export type ReplayPresenter = {
     snapshot: ReplaySnapshot,
   ): ReplaySessionLine;
 };
+
+/** Why the replay page shows no session: the route's `NOT_FOUND` gate (a missing id included), or any other failure. */
+export type ReplayLoadError = "NOT_FOUND" | "FAILED";
+
+/** One stored dart as a replay row labels it (`T20`, `25`, `MISS`). */
+export type ReplayDartView = { dartNumber: number; label: string };
+
+/**
+ * One loaded turn as the replay page shows it: its seat, its stored darts
+ * and visit total, and the presenter's cells -- none when the fold was
+ * skipped or the game has no presenter.
+ */
+export type ReplayTurnView = {
+  index: number;
+  seat: string;
+  darts: readonly ReplayDartView[];
+  total: number;
+  cells: readonly ReplayCell[];
+};
+
+/** The loaded turns of one stage, under its heading (`Leg 2`, `Set 1 · Leg 3`). */
+export type ReplayStageGroup = {
+  stageId: string;
+  heading: string;
+  rows: readonly ReplayTurnView[];
+};
+
+/** One point of a replay score curve, its bar width a percent of the highest score drawn. */
+export type ReplayCurvePoint = {
+  visit: number;
+  score: number;
+  widthPercent: number;
+};
+
+/** One seat's replay score curve, as the replay page draws it. */
+export type ReplayCurveRow = {
+  participantId: string;
+  seat: string;
+  points: readonly ReplayCurvePoint[];
+};

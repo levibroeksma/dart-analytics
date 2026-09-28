@@ -1,0 +1,332 @@
+---
+export const prerender = true;
+import AppLayout from "@layouts/AppLayout.astro";
+import Badge from "@components/ui/Badge.astro";
+import DartBoard from "@components/ui/DartBoard.astro";
+import ErrorAlert from "@components/ui/ErrorAlert.astro";
+import Link from "@components/ui/Link.astro";
+import { GAME_TYPE_BY_RULESET } from "@lib/game/rulesets/capabilities";
+import { GAME_CARDS } from "@lib/game/rulesets/games-visibility";
+
+const scope = JSON.stringify({
+  titles: Object.fromEntries(
+    GAME_CARDS.map((game) => [
+      GAME_TYPE_BY_RULESET[game.rulesetVersionKey],
+      game.title,
+    ]),
+  ),
+});
+---
+
+<AppLayout title="Replay">
+  <div
+    class="space-y-4 p-4"
+    x-data={scope}
+  >
+    <Link
+      href="/statistics"
+      variant="ghost"
+      title="Back to statistics"
+    />
+    <h1 class="text-xl font-semibold text-foreground">Replay</h1>
+    <ErrorAlert
+      showExpr="$store.replay.error"
+      textExpr="$store.replay.errorMessage"
+    />
+    <p
+      class="text-sm text-muted-foreground"
+      x-show="$store.replay.loading && !$store.replay.header"
+      x-cloak
+    >
+      Loading replay…
+    </p>
+
+    <template x-if="$store.replay.header">
+      <div class="space-y-4">
+        <div class="gradient-card space-y-2 p-4">
+          <div class="flex items-center justify-between gap-2">
+            <h2
+              class="text-sm font-semibold text-foreground"
+              x-text="titles[$store.replay.header.gameTypeKey] ?? $store.replay.header.gameTypeKey"
+            >
+            </h2>
+            <span
+              class="text-xs text-muted-foreground"
+              x-text="$store.replay.header.rulesetVersionKey"
+            >
+            </span>
+          </div>
+          <p
+            class="text-xs text-muted-foreground"
+            x-text="`${new Date($store.replay.header.startedAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })} · ${Math.round($store.replay.header.durationSeconds / 60)} min · ${$store.replay.header.turnCount} turns · ${$store.replay.header.dartCount} darts`"
+          >
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <Badge
+              class="text-xs"
+              x-text="$store.replay.header.statusKey"
+            />
+            <Badge
+              variant="neutral"
+              class="text-xs"
+              x-text="$store.replay.header.contextKey"
+            />
+            <Badge
+              variant="neutral"
+              class="text-xs"
+              x-show="$store.replay.header.routineStepSequenceNumber !== null"
+              x-cloak
+              x-text="`Step ${$store.replay.header.routineStepSequenceNumber}`"
+            />
+            <Badge
+              variant="neutral"
+              class="text-xs"
+              x-text="$store.replay.header.inputModeKey"
+            />
+          </div>
+          <template
+            x-for="participant in $store.replay.header.participants"
+            :key="participant.participantId"
+          >
+            <div class="flex items-center justify-between gap-2 text-sm">
+              <span
+                class="text-foreground"
+                x-text="participant.displayName"
+              >
+              </span>
+              <span
+                class="text-xs text-muted-foreground"
+                x-text="participant.participantTypeKey"
+              >
+              </span>
+            </div>
+          </template>
+        </div>
+
+        <p
+          class="text-sm text-muted-foreground"
+          x-show="!$store.replay.derivedAvailable"
+          x-cloak
+        >
+          Derived values unavailable for this session
+        </p>
+
+        <div
+          class="gradient-card space-y-2 p-4"
+          x-show="$store.replay.sessionLine?.entries.length"
+          x-cloak
+        >
+          <h2 class="text-sm font-semibold text-foreground">Result</h2>
+          <template
+            x-for="(entry, entryIndex) in $store.replay.sessionLine?.entries ?? []"
+            :key="entryIndex"
+          >
+            <div class="flex items-center justify-between gap-2 text-sm">
+              <span
+                class="text-foreground"
+                x-text="$store.replay.participantName(entry.participantId)"
+              >
+              </span>
+              <span
+                class="text-muted-foreground"
+                x-text="`${entry.label}: ${entry.value}`"
+              >
+              </span>
+            </div>
+          </template>
+        </div>
+
+        <div
+          class="gradient-card space-y-2 p-4"
+          x-show="$store.replay.curveRows.length"
+          x-cloak
+        >
+          <h2 class="text-sm font-semibold text-foreground">Score curve</h2>
+          <template
+            x-for="curve in $store.replay.curveRows"
+            :key="curve.participantId"
+          >
+            <div class="space-y-1">
+              <p
+                class="text-xs text-muted-foreground"
+                x-show="$store.replay.curveRows.length > 1"
+                x-cloak
+                x-text="curve.seat"
+              >
+              </p>
+              <template
+                x-for="point in curve.points"
+                :key="point.visit"
+              >
+                <div class="flex items-center gap-2 text-sm">
+                  <span
+                    class="w-16 shrink-0 text-muted-foreground"
+                    x-text="`Visit ${point.visit}`"
+                  ></span>
+                  <div
+                    class="h-2 flex-1 overflow-hidden rounded-sm bg-surface-overlay"
+                  >
+                    <div
+                      class="h-full bg-accent"
+                      :style="{ width: point.widthPercent + '%' }"
+                    >
+                    </div>
+                  </div>
+                  <span
+                    class="w-12 shrink-0 text-right text-foreground"
+                    x-text="point.score"
+                  ></span>
+                </div>
+              </template>
+            </div>
+          </template>
+        </div>
+
+        <div class="gradient-card space-y-2 p-4">
+          <DartBoard class="mx-auto w-full max-w-xs touch-auto">
+            <div
+              class="pointer-events-none absolute inset-0"
+              aria-hidden="true"
+            >
+              <template
+                x-for="marker in $store.replay.selectedMarkers"
+                :key="marker.sequence"
+              >
+                <span
+                  class="absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-surface bg-accent"
+                  :style="`left: ${marker.leftPercent}%; top: ${marker.topPercent}%`"
+                >
+                </span>
+              </template>
+            </div>
+          </DartBoard>
+          <p
+            class="text-center text-xs text-muted-foreground"
+            x-text="$store.replay.selectedIndex === null ? 'Pick a turn to mark its darts on the board.' : ($store.replay.selectedMarkers.length ? `Turn ${$store.replay.selectedIndex + 1}` : `Turn ${$store.replay.selectedIndex + 1}: no dart positions`)"
+          >
+          </p>
+        </div>
+
+        <template
+          x-for="group in $store.replay.stageGroups"
+          :key="group.stageId"
+        >
+          <section class="space-y-2">
+            <h2
+              class="text-sm font-semibold text-foreground"
+              x-text="group.heading"
+            >
+            </h2>
+            <template
+              x-for="row in group.rows"
+              :key="row.index"
+            >
+              <button
+                type="button"
+                class="flex w-full flex-col gap-2 rounded-lg border p-3 text-left text-sm"
+                :class="$store.replay.selectedIndex === row.index ? 'border-accent' : 'border-border'"
+                :aria-pressed="$store.replay.selectedIndex === row.index"
+                @click="$store.replay.select(row.index)"
+              >
+                <span class="flex items-center justify-between gap-2">
+                  <span
+                    class="text-foreground"
+                    x-text="row.seat"
+                  >
+                  </span>
+                  <span
+                    class="font-semibold tabular-nums text-foreground"
+                    x-text="row.total"
+                  >
+                  </span>
+                </span>
+                <span class="flex flex-wrap items-center gap-2">
+                  <template
+                    x-for="dart in row.darts"
+                    :key="dart.dartNumber"
+                  >
+                    <Badge
+                      variant="neutral"
+                      class="text-xs"
+                      x-text="dart.label"
+                    />
+                  </template>
+                  <span
+                    class="text-xs text-muted-foreground"
+                    x-show="!row.darts.length"
+                    x-cloak
+                  >
+                    Visit total only
+                  </span>
+                </span>
+                <span
+                  class="flex flex-wrap items-center gap-3 text-xs"
+                  x-show="row.cells.length"
+                  x-cloak
+                >
+                  <template
+                    x-for="cell in row.cells"
+                    :key="cell.label"
+                  >
+                    <span class="flex items-center gap-1">
+                      <span
+                        class="text-muted-foreground"
+                        x-show="cell.kind !== 'flag'"
+                        x-cloak
+                        x-text="cell.label"
+                      >
+                      </span>
+                      <span
+                        class="text-foreground"
+                        x-show="cell.kind === 'value'"
+                        x-cloak
+                        x-text="cell.value ?? ''"
+                      >
+                      </span>
+                      <Badge
+                        variant="error"
+                        class="text-xs"
+                        x-show="cell.kind === 'flag'"
+                        x-cloak
+                        x-text="cell.label"
+                      />
+                      <span
+                        class="flex items-center gap-1"
+                        role="img"
+                        x-show="cell.kind === 'marks'"
+                        x-cloak
+                        :aria-label="(cell.marks ?? []).join(', ')"
+                      >
+                        <template
+                          x-for="(mark, markIndex) in cell.marks ?? []"
+                          :key="markIndex"
+                        >
+                          <span
+                            class="size-2 rounded-full"
+                            :class="mark === 'hit' ? 'bg-accent' : 'bg-surface-overlay'"
+                          >
+                          </span>
+                        </template>
+                      </span>
+                    </span>
+                  </template>
+                </span>
+              </button>
+            </template>
+          </section>
+        </template>
+
+        <button
+          type="button"
+          class="btn btn-ghost w-full"
+          x-show="$store.replay.nextCursor"
+          x-cloak
+          :disabled="$store.replay.loading"
+          @click="$store.replay.loadNext()"
+        >
+          Load more
+        </button>
+      </div>
+    </template>
+  </div>
+</AppLayout>

@@ -7,6 +7,7 @@ import {
 } from "@lib/stats/section-registry";
 import { MIN_TARGET_SAMPLE } from "@lib/stats/constants";
 import { formatTargetKey, parseTargetKey } from "@lib/stats/target-key";
+import { replayPath } from "@lib/stats/replay-route";
 import { doublesPath, targetAt } from "@modules/game/board-progression.module";
 import { checkoutPathFor } from "@modules/game/checkout-path.module";
 import { doubleTargetIntent } from "@modules/game/turn-log.module";
@@ -360,6 +361,11 @@ export function gameStatsStore() {
       );
       this.sessions = [...this.sessions, ...page.items];
       this.nextCursor = page.nextCursor;
+    },
+
+    /** A session's replay page, for a session-list row or the PB line's `sessionId` (D371 decision 12). */
+    replayHref(sessionId: string): string {
+      return replayPath(sessionId);
     },
 
     /** Completion totals across every loaded bucket, or `null` before the section has loaded. */

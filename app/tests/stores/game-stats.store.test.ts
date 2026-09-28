@@ -810,6 +810,41 @@ describe("gameStatsStore", () => {
     expect(store.pointsPerRound).toBeCloseTo(300 / 40);
   });
 
+  it("links a session and the session-result PB to their replay pages", async () => {
+    readSection.mockImplementation((_player, _game, meta) => {
+      if (meta.id === "session-result") {
+        return Promise.resolve(
+          series(
+            {
+              SHANGHAI_V2: {
+                sessions: 2,
+                countedScoreSum: 300,
+                dartSum: 120,
+                turnSum: 40,
+                countedScoreMin: 100,
+                countedScoreMax: 200,
+                bestLowSessionId: "11111111-1111-1111-1111-111111111111",
+                bestHighSessionId: "22222222-2222-2222-2222-222222222222",
+              },
+            },
+            2,
+          ),
+        );
+      }
+      return Promise.resolve(series({}, 0));
+    });
+
+    const store = gameStatsStore();
+    store.gameTypeKey = "SHANGHAI";
+    await store.load();
+
+    expect(store.replayHref("a b")).toBe("/statistics/replay?session=a%20b");
+    const best = store.sessionResultRows[0]!.personalBest!;
+    expect(store.replayHref(best.sessionId)).toBe(
+      "/statistics/replay?session=22222222-2222-2222-2222-222222222222",
+    );
+  });
+
   it("skippedSessionsFor reads a server section's skippedSessions, 0 before load", async () => {
     const store = gameStatsStore();
     expect(store.skippedSessionsFor("shanghai-count")).toBe(0);

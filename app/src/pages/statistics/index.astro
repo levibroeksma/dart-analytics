@@ -954,13 +954,14 @@ const scope = JSON.stringify({
                   x-text="`avg ${Math.round(row.averageCountedScore)}`"
                 >
                 </span>
-                <span
-                  class="text-accent"
+                <a
+                  class="text-accent no-underline hover:text-accent-hover"
                   x-show="row.personalBest"
                   x-cloak
+                  :href="row.personalBest ? $store.gameStats.replayHref(row.personalBest.sessionId) : undefined"
                   x-text="row.personalBest ? `PB ${row.personalBest.value}` : ''"
                 >
-                </span>
+                </a>
               </div>
             </template>
           </div>
@@ -971,8 +972,9 @@ const scope = JSON.stringify({
               x-for="item in $store.gameStats.sessions"
               :key="item.sessionId"
             >
-              <div
-                class="flex items-center justify-between gap-2 rounded-lg border border-border p-3 text-sm"
+              <a
+                class="flex items-center justify-between gap-2 rounded-lg border border-border p-3 text-sm no-underline"
+                :href="$store.gameStats.replayHref(item.sessionId)"
               >
                 <div class="flex flex-col gap-1">
                   <span
@@ -997,7 +999,7 @@ const scope = JSON.stringify({
                     x-text="item.statusKey"
                   />
                 </div>
-              </div>
+              </a>
             </template>
             <p
               class="text-sm text-muted-foreground"
