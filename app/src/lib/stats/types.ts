@@ -12,8 +12,9 @@ import type {
   MissDirectionMetrics,
   ShanghaiCountMetrics,
   TargetAccuracyMetrics,
+  TurnFact,
 } from "@modules/types";
-import type { GameTypeKey, StatsTag } from "@lib/types";
+import type { GameTypeKey, SeatFact, StatsTag } from "@lib/types";
 
 /** Phase-1 through phase-4 insight sections (`10-Statistics/01-Section-Catalog.md` §1). */
 export type SectionId =
@@ -177,3 +178,81 @@ export interface FormattedStatisticsOverview {
   highestCheckoutValue: string;
   highestCheckoutHint: string;
 }
+
+/**
+ * A replay's decoded snapshot (`snapshotOf`), seated: a seatless snapshot of
+ * a one-participant session carries the one seat `foldReplay` synthesized
+ * for it (D371 decision 8).
+ */
+export type ReplaySnapshot = Record<string, unknown> & {
+  seats: readonly SeatFact[];
+};
+
+/** Why a replay shows its stored facts only (D371 decision 8). */
+export type ReplaySkipReason =
+  "NO_SNAPSHOT" | "NO_ENGINE" | "SEATLESS_MULTI" | "ENGINE_THREW";
+
+/**
+ * One loaded turn as a presenter reads it: the turn as its engine folded
+ * it, the session state after the turn before it (`before`, the state
+ * before any turn for the first), and the state after it (`after`).
+ */
+export type ReplayStep = {
+  turn: TurnFact;
+  before: unknown;
+  after: unknown;
+};
+
+/**
+ * A session's replayed states (`foldReplay`). `stateAfter(k)` is the state
+ * after turn `k`, `-1` the state before any turn; `steps[k]` pairs turn `k`
+ * with the states either side of it. A skipped fold says why instead.
+ */
+export type ReplayFold =
+  | {
+      ok: true;
+      snapshot: ReplaySnapshot;
+      steps: readonly ReplayStep[];
+      stateAfter: (turnIndex: number) => unknown;
+    }
+  | { ok: false; reason: ReplaySkipReason };
+
+/** Whether one dart of a turn hit the target it was thrown at. */
+export type ReplayMark = "hit" | "miss";
+
+/** One derived value a replay turn row shows beside its stored darts. */
+export type ReplayCell =
+  | { kind: "value"; label: string; value: string }
+  | { kind: "flag"; label: string }
+  | { kind: "marks"; label: string; marks: readonly ReplayMark[] };
+
+/** One seat's value in a replay's session line. */
+export type ReplaySessionEntry = {
+  participantId: string;
+  label: string;
+  value: string;
+};
+
+/** One seat's score after each visit it threw, in play order. */
+export type ReplayCurve = {
+  participantId: string;
+  points: readonly number[];
+};
+
+/** What a replay shows for the whole session (D371 decision 8's table). */
+export type ReplaySessionLine = {
+  entries: readonly ReplaySessionEntry[];
+  curves: readonly ReplayCurve[];
+};
+
+/**
+ * One game's view of its replayed states, reading each state the way that
+ * game's play page does (D371 decision 8).
+ */
+export type ReplayPresenter = {
+  turn(step: ReplayStep, snapshot: ReplaySnapshot): ReplayCell[];
+  session(
+    steps: readonly ReplayStep[],
+    snapshot: ReplaySnapshot,
+  ): ReplaySessionLine;
+};
