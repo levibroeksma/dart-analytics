@@ -95,6 +95,38 @@ describe("gameStatsStore", () => {
     );
   });
 
+  it.each(["501", "SINGLES_TRAINING"] as const)(
+    "%s: every non-bucketable section reads and fetches un-bucketed, every bucketable one by month",
+    async (gameTypeKey) => {
+      const store = gameStatsStore();
+      store.gameTypeKey = gameTypeKey;
+
+      await store.load();
+      await store.loadHeatmap();
+
+      const span = {
+        from: "2026-01-01T00:00:00.000Z",
+        to: "2026-02-01T00:00:00.000Z",
+      };
+      for (const [, , meta, query, fetcher] of readSection.mock.calls) {
+        fetchGameSection.mockClear();
+        await fetcher(span);
+        const params = fetchGameSection.mock.calls[0][2];
+        if (meta.bucketable) {
+          expect(query.bucket, meta.id).toBe("month");
+          expect(params.bucket, meta.id).toBe("month");
+        } else {
+          expect(query.bucket, meta.id).toBe("none");
+          expect(query.tz, meta.id).toBeUndefined();
+          expect(params.bucket, meta.id).toBe("none");
+          expect(params.tz, meta.id).toBeUndefined();
+        }
+      }
+      const ids = readSection.mock.calls.map((call) => call[2].id);
+      expect(ids).toContain("heatmap");
+    },
+  );
+
   it("selectGame(SINGLES_V1) resolves to SINGLES_TRAINING", async () => {
     const store = gameStatsStore();
 

@@ -41,6 +41,30 @@ function fakeSelect(rows: unknown[]) {
   return { chain, fromCalls };
 }
 
+/**
+ * Postgres pairs a SELECT expression with its GROUP BY twin structurally, and
+ * two bind parameters never compare equal even when they carry the same value,
+ * so a bucket expression that binds tz fails with 42803 against a real
+ * database. The GROUP BY must carry the tz as the same literal the SELECT does.
+ */
+function expectLiteralTzGroupBy(sql: string, unit: string) {
+  const groupBys = sql.split(/\bgroup by\b/i).slice(1);
+  expect(groupBys.length).toBeGreaterThan(0);
+  expect(groupBys.join(" ")).toMatch(
+    new RegExp(`date_trunc\\('${unit}', .*AT TIME ZONE 'Europe/Amsterdam'`),
+  );
+  expect(sql).not.toMatch(/AT TIME ZONE \$/);
+}
+
+/**
+ * Bucket bounds and the widened floor reach the client as range and bucket
+ * `start`/`end`, which it sends back as `from`; they must be the same
+ * `z.string().datetime()` UTC ISO form the request contract accepts, not
+ * Postgres' own `timestamptz` text.
+ */
+const ISO_UTC_TEXT =
+  /to_char\(\(.*\) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS\.MS"Z"'\)/;
+
 describe("findSessionSummaries", () => {
   it("reads from v_session_overview", async () => {
     const row = {
@@ -399,6 +423,21 @@ describe("findBucketFloor", () => {
   });
 });
 
+describe("findBucketFloor (ISO text)", () => {
+  it("renders the floor as UTC ISO text", async () => {
+    const { db, statements } = renderingDb([
+      { floor: "2026-01-01T00:00:00.000Z" },
+    ]);
+    await findBucketFloor(
+      db,
+      "2026-01-15T00:00:00.000Z",
+      "month",
+      "Europe/Amsterdam",
+    );
+    expect(onlyStatement(statements)).toMatch(ISO_UTC_TEXT);
+  });
+});
+
 describe("findBucketedSessionAggregates", () => {
   const baseQuery = {
     playerId: "p1",
@@ -418,11 +457,40 @@ describe("findBucketedSessionAggregates", () => {
     expect(sql).toContain('"v_stats_session_facts"');
   });
 
-  it("renders date_trunc('month', … AT TIME ZONE $n) for the bucket expression", async () => {
+  it("renders date_trunc('month', … AT TIME ZONE '<tz>') for the bucket expression", async () => {
     const { db, statements } = renderingDb([]);
     await findBucketedSessionAggregates(db, baseQuery);
     const sql = onlyStatement(statements);
-    expect(sql).toMatch(/date_trunc\('month', .*AT TIME ZONE \$/);
+    expect(sql).toMatch(
+      /date_trunc\('month', .*AT TIME ZONE 'Europe\/Amsterdam'/,
+    );
+  });
+
+  it("groups by the bucket expression with the tz as a literal, not a bind param", async () => {
+    const { db, statements } = renderingDb([]);
+    await findBucketedSessionAggregates(db, baseQuery);
+    expectLiteralTzGroupBy(onlyStatement(statements), "month");
+  });
+
+  it("selects both bucket bounds as UTC ISO text", async () => {
+    const { db, statements } = renderingDb([]);
+    await findBucketedSessionAggregates(db, baseQuery);
+    const [select = ""] = onlyStatement(statements).split(/ from /i);
+    expect(select).toMatch(ISO_UTC_TEXT);
+    expect(
+      select.split(`AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')`),
+    ).toHaveLength(3);
+  });
+
+  it("rejects a tz outside the IANA name alphabet before rendering it as a literal", async () => {
+    const { db, statements } = renderingDb([]);
+    await expect(
+      findBucketedSessionAggregates(db, {
+        ...baseQuery,
+        tz: "UTC') AT TIME ZONE ('UTC",
+      }),
+    ).rejects.toThrow(/tz/);
+    expect(statements).toHaveLength(0);
   });
 
   it("adds context_key = 'ROUTINE' when context=routine", async () => {
@@ -552,7 +620,19 @@ describe("findIntentCells", () => {
       tz: "Europe/Amsterdam",
     });
     const sql = onlyStatement(statements);
-    expect(sql).toMatch(/date_trunc\('month', .*AT TIME ZONE \$/);
+    expect(sql).toMatch(
+      /date_trunc\('month', .*AT TIME ZONE 'Europe\/Amsterdam'/,
+    );
+  });
+
+  it("groups by the bucket expression with the tz as a literal, not a bind param", async () => {
+    const { db, statements } = renderingDb([]);
+    await findIntentCells(db, {
+      ...dartScope,
+      bucket: "month",
+      tz: "Europe/Amsterdam",
+    });
+    expectLiteralTzGroupBy(onlyStatement(statements), "month");
   });
 
   it("parses darts from a string count", async () => {
@@ -619,6 +699,16 @@ describe("findIntentMoments", () => {
     expect(sql).toContain('"intended_zone_key" is not null');
   });
 
+  it("groups by the bucket expression with the tz as a literal, not a bind param", async () => {
+    const { db, statements } = renderingDb([]);
+    await findIntentMoments(db, {
+      ...dartScope,
+      bucket: "month",
+      tz: "Europe/Amsterdam",
+    });
+    expectLiteralTzGroupBy(onlyStatement(statements), "month");
+  });
+
   it("parses the moment sums from strings", async () => {
     const chain = {
       from: vi.fn().mockReturnThis(),
@@ -683,6 +773,24 @@ describe("findMissSectors", () => {
     expect(sql).not.toContain("162");
     expect(statements[0].params).toContain(162);
     expect(statements[0].params).toContain(170);
+  });
+
+  it("casts every bound VALUES column, so Postgres never infers text for a smallint or numeric", async () => {
+    const { db, statements } = renderingDb([]);
+    await findMissSectors(db, { ...dartScope, refs });
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(
+      /\(\$\d+::smallint, \$\d+::text, \$\d+::numeric, \$\d+::numeric, \$\d+::numeric, \$\d+::numeric\)/,
+    );
+  });
+
+  it("casts the degree angle to numeric before MOD, which has no double precision overload", async () => {
+    const { db, statements } = renderingDb([]);
+    await findMissSectors(db, { ...dartScope, refs });
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(
+      /MOD\(\(DEGREES\(ATAN2\(.*\)\) \+ 360 \+ 22\.5\)::numeric, 360\)/,
+    );
   });
 
   it("excludes darts that hit the intended target", async () => {
@@ -780,7 +888,9 @@ describe("findX01FoldRows", () => {
       tz: "Europe/Amsterdam",
     });
     const sql = onlyStatement(statements);
-    expect(sql).toMatch(/date_trunc\('month', .*AT TIME ZONE \$/);
+    expect(sql).toMatch(
+      /date_trunc\('month', .*AT TIME ZONE 'Europe\/Amsterdam'/,
+    );
   });
 
   it("returns rows carrying every v_x01_checkout_darts column plus the bucket bounds", async () => {
@@ -861,7 +971,9 @@ describe("findDartFoldRows", () => {
       tz: "Europe/Amsterdam",
     });
     const sql = onlyStatement(statements);
-    expect(sql).toMatch(/date_trunc\('month', .*AT TIME ZONE \$/);
+    expect(sql).toMatch(
+      /date_trunc\('month', .*AT TIME ZONE 'Europe\/Amsterdam'/,
+    );
   });
 
   it("maps configuration untouched", async () => {
@@ -985,6 +1097,17 @@ describe("findVisitScoring", () => {
     const sql = onlyStatement(statements);
     expect(sql).toContain('"v_player_visit_facts"');
     expect(sql).toContain('"v_stats_session_facts"');
+  });
+
+  it("groups by the bucket expression with the tz as a literal, not a bind param", async () => {
+    const { db, statements } = renderingDb([]);
+    await findVisitScoring(db, {
+      ...sessionScope,
+      bucket: "month",
+      tz: "Europe/Amsterdam",
+      bands,
+    });
+    expectLiteralTzGroupBy(onlyStatement(statements), "month");
   });
 
   it("coalesces points and darts to 0 so an empty bucket=none scope does not yield null sums", async () => {
@@ -1119,7 +1242,19 @@ describe("findHitNumberCells", () => {
       tz: "Europe/Amsterdam",
     });
     const sql = onlyStatement(statements);
-    expect(sql).toMatch(/date_trunc\('week', .*AT TIME ZONE \$/);
+    expect(sql).toMatch(
+      /date_trunc\('week', .*AT TIME ZONE 'Europe\/Amsterdam'/,
+    );
+  });
+
+  it("groups by the bucket expression with the tz as a literal, not a bind param", async () => {
+    const { db, statements } = renderingDb([]);
+    await findHitNumberCells(db, {
+      ...dartScope,
+      bucket: "week",
+      tz: "Europe/Amsterdam",
+    });
+    expectLiteralTzGroupBy(onlyStatement(statements), "week");
   });
 
   it("parses darts and trebles from string counts", async () => {
@@ -1183,6 +1318,13 @@ describe("findHeatmapCells", () => {
     await findHeatmapCells(db, { ...dartScope, cellMm: 5, target: null });
     const sql = onlyStatement(statements);
     expect(sql).not.toContain("intended_target_number");
+  });
+
+  it("groups by the selected cell columns' positions, never a re-bound cellMm", async () => {
+    const { db, statements } = renderingDb([]);
+    await findHeatmapCells(db, { ...dartScope, cellMm: 5, target: null });
+    const [, groupBy = ""] = onlyStatement(statements).split(/ group by /i);
+    expect(groupBy.trim()).toBe("1, 2");
   });
 });
 
@@ -2329,12 +2471,14 @@ describe("findRoutineRunBuckets", () => {
       tz: "Europe/Amsterdam",
     });
     const sql = onlyStatement(statements);
-    expect(sql).toMatch(/date_trunc\('month', .*AT TIME ZONE \$/);
     expect(sql).toMatch(
-      /date_trunc\('month', .*\) \+ interval '1 month'\) AT TIME ZONE \$/,
+      /date_trunc\('month', .*AT TIME ZONE 'Europe\/Amsterdam'/,
+    );
+    expect(sql).toMatch(
+      /date_trunc\('month', .*\) \+ interval '1 month'\) AT TIME ZONE 'Europe\/Amsterdam'/,
     );
     expect(sql).not.toMatch(
-      /AT TIME ZONE \$\d+\) AT TIME ZONE \$\d+\) \+ interval '1 month'/,
+      /AT TIME ZONE 'Europe\/Amsterdam'\) AT TIME ZONE 'Europe\/Amsterdam'\) \+ interval '1 month'/,
     );
   });
 
@@ -2546,10 +2690,22 @@ describe("findStepBuckets", () => {
       tz: "Europe/Amsterdam",
     });
     const sql = onlyStatement(statements);
-    expect(sql).toMatch(/date_trunc\('week', .*AT TIME ZONE \$/);
     expect(sql).toMatch(
-      /date_trunc\('week', .*\) \+ interval '1 week'\) AT TIME ZONE \$/,
+      /date_trunc\('week', .*AT TIME ZONE 'Europe\/Amsterdam'/,
     );
+    expect(sql).toMatch(
+      /date_trunc\('week', .*\) \+ interval '1 week'\) AT TIME ZONE 'Europe\/Amsterdam'/,
+    );
+  });
+
+  it("groups by the bucket expression with the tz as a literal, not a bind param", async () => {
+    const { db, statements } = renderingDb([]);
+    await findStepBuckets(db, {
+      ...baseQuery,
+      bucket: "week",
+      tz: "Europe/Amsterdam",
+    });
+    expectLiteralTzGroupBy(onlyStatement(statements), "week");
   });
 
   it("parses the sum strings to numbers", async () => {
@@ -2720,7 +2876,9 @@ describe("findStepFoldRows", () => {
       tz: "Europe/Amsterdam",
     });
     const sql = onlyStatement(statements);
-    expect(sql).toMatch(/date_trunc\('month', .*AT TIME ZONE \$/);
+    expect(sql).toMatch(
+      /date_trunc\('month', .*AT TIME ZONE 'Europe\/Amsterdam'/,
+    );
   });
 
   it("carries sessionId, completedAt, exerciseRulesetVersionKey, configuration, the stage columns and the bucket bounds alongside the replay row", async () => {

@@ -40,10 +40,12 @@ import type {
 } from "@modules/types";
 import type { GameSessionListResponseData } from "@client/api/types";
 import type {
+  Bucket,
   GameTypeKey,
   IntentZoneKey,
   RulesetVersionKey,
   SectionId,
+  SectionMeta,
   SeriesBucket,
   TargetKey,
 } from "@lib/types";
@@ -207,6 +209,18 @@ export function defaultRange() {
 }
 
 /**
+ * The range a section reads under: the page range, except a section that is
+ * not bucketable, which reads as one un-bucketed request over the whole range.
+ */
+function sectionRange(
+  meta: SectionMeta,
+  range: ReturnType<typeof defaultRange>,
+): { from: string; to: string; bucket: Bucket; tz?: string } {
+  if (meta.bucketable) return { ...range };
+  return { from: range.from, to: range.to, bucket: "none" };
+}
+
+/**
  * Game statistics page state: the completion, volume and session-result
  * sections plus the session list, all read through the IndexedDB cache
  * (`10-Statistics/00-Overview.md` §7). Registered through
@@ -251,19 +265,20 @@ export function gameStatsStore() {
         const allIds = sectionsForGame(gameTypeKey);
         const ids = allIds.filter((id) => id !== "checkout-path");
         const results = await Promise.all(
-          ids.map((id) =>
-            readSection<unknown>(
+          ids.map((id) => {
+            const range = sectionRange(SECTIONS[id], this.range);
+            return readSection<unknown>(
               CACHE_PLAYER_ID,
               { key: gameScopeKey(gameTypeKey), gameTypeKey },
               SECTIONS[id],
-              query,
+              { ...query, ...range, tz: range.tz },
               (span) =>
                 fetchGameSection(gameTypeKey, id, {
-                  ...this.range,
+                  ...range,
                   ...span,
                 }) as Promise<CachedSeries<unknown>>,
-            ),
-          ),
+            );
+          }),
         );
         const sections: Partial<Record<SectionId, SectionView>> = {};
         ids.forEach((id, index) => {
@@ -325,8 +340,9 @@ export function gameStatsStore() {
     async loadHeatmap() {
       const gameTypeKey = this.gameTypeKey;
       const target = this.heatmapTarget ?? undefined;
+      const range = sectionRange(SECTIONS.heatmap, this.range);
       const query = {
-        ...this.range,
+        ...range,
         context: "all" as const,
         inputMode: "VISUAL_BOARD",
         target,
@@ -338,7 +354,7 @@ export function gameStatsStore() {
         query,
         (span) =>
           fetchGameSection(gameTypeKey, "heatmap", {
-            ...this.range,
+            ...range,
             ...span,
             target,
           }) as Promise<CachedSeries<HeatmapMetrics>>,

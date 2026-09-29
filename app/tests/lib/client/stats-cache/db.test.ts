@@ -113,43 +113,56 @@ describe("openStatsDb", () => {
     db!.close();
   });
 
-  it("wipes replayPages and sectionResults records from a v2 database, landing at version 3", async () => {
-    const v2 = await new Promise<IDBDatabase>((resolve, reject) => {
-      const request = indexedDB.open(STATS_DB_NAME, 2);
+  it("wipes coverage, replayPages and sectionResults records from a v3 database, landing at version 4", async () => {
+    const v3 = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open(STATS_DB_NAME, 3);
       request.onupgradeneeded = () => {
         const db = request.result;
         for (const name of Array.from(db.objectStoreNames)) {
           db.deleteObjectStore(name);
         }
         db.createObjectStore("sectionResults");
+        db.createObjectStore("coverage");
         db.createObjectStore("replayPages");
       };
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
     });
     await new Promise<void>((resolve, reject) => {
-      const tx = v2.transaction(["sectionResults", "replayPages"], "readwrite");
+      const tx = v3.transaction(
+        ["sectionResults", "coverage", "replayPages"],
+        "readwrite",
+      );
       tx.objectStore("sectionResults").put("value", "key");
+      tx.objectStore("coverage").put("value", "key");
       tx.objectStore("replayPages").put("value", "key");
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
     });
-    v2.close();
+    v3.close();
 
     const db = await openStatsDb();
 
-    expect(db!.version).toBe(3);
-    const [sectionResultsValue, replayPagesValue] = await new Promise<
-      [unknown, unknown]
-    >((resolve, reject) => {
-      const tx = db!.transaction(["sectionResults", "replayPages"], "readonly");
-      const sectionResultsReq = tx.objectStore("sectionResults").get("key");
-      const replayPagesReq = tx.objectStore("replayPages").get("key");
-      tx.oncomplete = () =>
-        resolve([sectionResultsReq.result, replayPagesReq.result]);
-      tx.onerror = () => reject(tx.error);
-    });
+    expect(db!.version).toBe(4);
+    const [sectionResultsValue, coverageValue, replayPagesValue] =
+      await new Promise<[unknown, unknown, unknown]>((resolve, reject) => {
+        const tx = db!.transaction(
+          ["sectionResults", "coverage", "replayPages"],
+          "readonly",
+        );
+        const sectionResultsReq = tx.objectStore("sectionResults").get("key");
+        const coverageReq = tx.objectStore("coverage").get("key");
+        const replayPagesReq = tx.objectStore("replayPages").get("key");
+        tx.oncomplete = () =>
+          resolve([
+            sectionResultsReq.result,
+            coverageReq.result,
+            replayPagesReq.result,
+          ]);
+        tx.onerror = () => reject(tx.error);
+      });
     expect(sectionResultsValue).toBeUndefined();
+    expect(coverageValue).toBeUndefined();
     expect(replayPagesValue).toBeUndefined();
     db!.close();
   });

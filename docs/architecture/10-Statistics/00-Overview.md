@@ -283,6 +283,12 @@ behind one module; Alpine stores read through it.
   `STATS_SCHEMA_VERSION` 2 → 3, which wipes every store, `replayPages`
   included — and so also covers the replay header's phase 6 contract change
   (`02-Replay.md` §2).
+- **Timestamp form (2026-09-29):** `range.from` and every bucket's
+  `start`/`end` are UTC ISO text (`2026-01-01T00:00:00.000Z`) — the form the
+  request's `from`/`to` accept, since the cache sends a stored coverage bound
+  back as the next `from`. `STATS_SCHEMA_VERSION` 3 → 4 wipes caches that had
+  stored Postgres' own `timestamptz` text (`2026-01-01 00:00:00+00`), which
+  failed request validation on every later load.
 - **Fetch rule:** a request is made only for keys absent from the cache or stale
   under the table above. Splitting a series request into its open bucket only is
   the main cost saving for Neon and Workers.

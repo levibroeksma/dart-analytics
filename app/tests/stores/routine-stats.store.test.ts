@@ -363,6 +363,44 @@ describe("routineStatsStore selectStep", () => {
     expect(volume?.[3]).toMatchObject({ bucket: "month" });
   });
 
+  it("reads every non-bucketable game-step section un-bucketed, not only checkout-path", async () => {
+    const doublesGameKey = `4-${FP}`;
+    fetchRoutineHeader.mockResolvedValue({
+      ...HEADER,
+      steps: [
+        step({
+          stepKey: doublesGameKey,
+          sequenceNumber: 4,
+          exerciseTypeKey: "GAME",
+          gameTypeKey: "DOUBLES_TRAINING",
+          rulesetVersionKey: "DOUBLES_TRAINING_V1",
+        }),
+      ],
+    });
+    const store = routineStatsStore();
+
+    await store.selectRoutine(ROUTINE_KEY);
+
+    const unbucketed = readSection.mock.calls.filter(
+      (call) => !call[2].bucketable,
+    );
+    expect(unbucketed.map((call) => call[2].id)).toEqual(
+      expect.arrayContaining(["heatmap", "confusion", "miss-direction"]),
+    );
+    for (const call of unbucketed) {
+      expect(call[3], call[2].id).toMatchObject({ bucket: "none" });
+      expect(call[3].tz, call[2].id).toBeUndefined();
+      fetchRoutineStepSection.mockClear();
+      await call[4]({ from: "a", to: "b" });
+      expect(fetchRoutineStepSection).toHaveBeenCalledWith(
+        ROUTINE_KEY,
+        doublesGameKey,
+        call[2].id,
+        { from: "a", to: "b", bucket: "none" },
+      );
+    }
+  });
+
   it("on Warm-Up requests step-volume only", async () => {
     const store = routineStatsStore();
     await store.selectRoutine(ROUTINE_KEY);
