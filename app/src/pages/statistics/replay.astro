@@ -7,7 +7,6 @@ import ErrorAlert from "@components/ui/ErrorAlert.astro";
 import Link from "@components/ui/Link.astro";
 import { GAME_TYPE_BY_RULESET } from "@lib/game/rulesets/capabilities";
 import { GAME_CARDS } from "@lib/game/rulesets/games-visibility";
-import { STEP_ADAPTERS } from "@lib/training/routines/adapters/step-adapter.registry";
 
 const scope = JSON.stringify({
   titles: Object.fromEntries(
@@ -15,14 +14,6 @@ const scope = JSON.stringify({
       GAME_TYPE_BY_RULESET[game.rulesetVersionKey],
       game.title,
     ]),
-  ),
-  exerciseLabels: Object.fromEntries(
-    Object.entries(STEP_ADAPTERS)
-      .filter(([key]) => !key.startsWith("GAME:"))
-      .map(([key, { headerLabel }]) => [
-        key,
-        headerLabel.charAt(0).toUpperCase() + headerLabel.slice(1),
-      ]),
   ),
 });
 ---
@@ -66,7 +57,7 @@ const scope = JSON.stringify({
           <div class="flex items-center justify-between gap-2">
             <h2
               class="text-sm font-semibold text-foreground"
-              x-text="titles[$store.replay.header.gameTypeKey] ?? $store.replay.header.gameTypeKey ?? (exerciseLabels[$store.replay.header.exerciseTypeKey] ?? $store.replay.header.exerciseTypeKey)"
+              x-text="titles[$store.replay.header.gameTypeKey] ?? $store.replay.header.gameTypeKey ?? $store.replay.exerciseTitle"
             >
             </h2>
             <span

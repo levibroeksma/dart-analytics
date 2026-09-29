@@ -7,6 +7,10 @@ import {
 } from "@lib/stats/replay-presenters";
 import { replaySessionIdFromLocation } from "@lib/stats/replay-route";
 import { isDartExerciseKind } from "@lib/stats/section-registry";
+import {
+  resolveStepAdapter,
+  stepAdapterKey,
+} from "@lib/training/routines/adapters/step-adapter.registry";
 import { replayFacts } from "@modules/stats/replay.module";
 import { dartLabel } from "@modules/stats/sections/checkout-path.module";
 import { fetchSessionReplay, StatisticsApiError } from "@client/api/statistics";
@@ -196,6 +200,27 @@ export function replayStore() {
       return isDartExerciseKind(header.exerciseTypeKey)
         ? STEP_REPLAY_PRESENTERS[header.exerciseTypeKey]
         : null;
+    },
+
+    /**
+     * A step replay's title: its adapter's `headerLabel`, capitalized; the
+     * raw exercise type when no adapter matches. Resolved here, not in the
+     * prerendered page's frontmatter, because the adapter registry imports
+     * the play controllers, whose auth client draws a random id at module
+     * scope — which the Workers prerenderer rejects.
+     */
+    get exerciseTitle(): string | null {
+      const header = this.header;
+      if (header === null) return null;
+      const label = resolveStepAdapter(
+        stepAdapterKey({
+          exerciseTypeKey: header.exerciseTypeKey,
+          gameRulesetVersionKey: header.rulesetVersionKey,
+        }),
+      )?.headerLabel;
+      return label === undefined
+        ? header.exerciseTypeKey
+        : label.charAt(0).toUpperCase() + label.slice(1);
     },
 
     /** Whether the page can show derived values: the fold ran and the game has a presenter. */
