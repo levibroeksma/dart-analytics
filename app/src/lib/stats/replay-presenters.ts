@@ -391,12 +391,24 @@ function metricLabel(key: string): string {
   return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 }
 
-/** The metrics key that counts darts thrown, for a kind whose spec calls it something else (Bull Up's own attempts are still one dart each). */
-function dartsMetricKey(kind: DartExerciseKind): string {
-  return Object.hasOwn(STEP_METRIC_SPECS[kind].metrics, "darts")
-    ? "darts"
-    : "throws";
-}
+/**
+ * The metrics key that counts darts thrown, one entry per dart exercise
+ * kind (R21 fix round: named explicitly rather than derived from whether
+ * `"darts"` happens to be a key of the kind's own spec, so a future kind
+ * naming it something else besides `"darts"`/`"throws"` fails this
+ * `Record`'s own exhaustiveness check at compile time instead of silently
+ * reading `undefined`). Bull Up's own attempts are still one dart each,
+ * hence `"throws"`.
+ */
+const DARTS_METRIC_KEY: Record<DartExerciseKind, string> = {
+  SWITCHING: "darts",
+  DOUBLE_PATTERN: "darts",
+  TARGET_SCORING: "darts",
+  SWITCHING_TARGET_SCORING: "darts",
+  SCORE_THRESHOLD: "darts",
+  BULLSEYE_CHECKOUT: "darts",
+  BULL_UP: "throws",
+};
 
 /** One dart exercise kind's `EngineFacts`, rebuilt from its own replayed turns -- real facts, unlike the per-turn cell's `NO_FACTS` shortcut, since the session line's "hits" (Switching) must be the true count. */
 function stepFactsOf(steps: readonly ReplayStep[]): EngineFacts {
@@ -414,7 +426,7 @@ function stepFactsOf(steps: readonly ReplayStep[]): EngineFacts {
  */
 function buildStepPresenter(kind: DartExerciseKind): ReplayPresenter {
   const spec = STEP_METRIC_SPECS[kind];
-  const dartsKey = dartsMetricKey(kind);
+  const dartsKey = DARTS_METRIC_KEY[kind];
   return {
     turn({ after }) {
       const metrics = stepMetrics(kind, after, NO_FACTS);

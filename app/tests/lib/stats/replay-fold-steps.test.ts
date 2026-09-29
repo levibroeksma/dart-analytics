@@ -29,6 +29,17 @@ describe("foldReplay (non-game routine steps)", () => {
     expect(fold).toEqual({ ok: false, reason: "NO_EXERCISE_ENGINE" });
   });
 
+  it("skips with NO_EXERCISE_ENGINE when the step's own exerciseRulesetVersionKey is null (R21)", () => {
+    const { header, turns } = playSwitching();
+
+    const fold = foldReplay(
+      { ...header, exerciseRulesetVersionKey: null },
+      turns,
+    );
+
+    expect(fold).toEqual({ ok: false, reason: "NO_EXERCISE_ENGINE" });
+  });
+
   it("skips with NO_SNAPSHOT when the step session stored no configuration", () => {
     const { header, turns } = playSwitching();
 
@@ -37,7 +48,18 @@ describe("foldReplay (non-game routine steps)", () => {
     expect(fold).toEqual({ ok: false, reason: "NO_SNAPSHOT" });
   });
 
-  it("skips with ENGINE_THREW when the stored configuration fails the exercise's own schema", () => {
+  it("skips with NO_SNAPSHOT when the stored configuration is not an object (R21)", () => {
+    const { header, turns } = playSwitching();
+
+    const fold = foldReplay(
+      { ...header, configuration: "not-an-object" as never },
+      turns,
+    );
+
+    expect(fold).toEqual({ ok: false, reason: "NO_SNAPSHOT" });
+  });
+
+  it("skips with ENGINE_THREW when the stored configuration fails the exercise's own schema (R21: an exercise engine parses its own config inside create())", () => {
     const { header, turns } = playSwitching();
 
     const fold = foldReplay(

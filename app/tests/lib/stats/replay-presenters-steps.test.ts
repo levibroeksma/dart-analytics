@@ -1,8 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { foldReplay } from "@lib/stats/replay-fold";
 import { STEP_REPLAY_PRESENTERS } from "@lib/stats/replay-presenters";
+import {
+  STEP_METRIC_SPECS,
+  stepMetrics,
+} from "@modules/stats/step-metrics.module";
 import type { ReplayFold } from "@lib/types";
-import { playSwitching } from "./replay-step-games";
+import type { DartExerciseKind, EngineFacts } from "@modules/types";
+import { playExerciseKind, playSwitching } from "./replay-step-games";
 
 /**
  * `STEP_REPLAY_PRESENTERS`' generic dart exercise builder (phase 6b plan
@@ -60,4 +65,43 @@ describe("STEP_REPLAY_PRESENTERS", () => {
       { entries: [], curves: [] },
     );
   });
+});
+
+/**
+ * Item 5 (fix round 1): every `STEP_METRIC_SPECS` kind, not just Switching
+ * -- proves the `NO_FACTS` shortcut `buildStepPresenter`'s `turn()` takes
+ * (`replay-presenters.ts` ~386/420) never changes the headline or darts
+ * value a real per-turn fact log would give, for all seven kinds,
+ * `BULL_UP`'s `"throws"` branch included.
+ */
+describe("STEP_REPLAY_PRESENTERS (all seven kinds, real engine runs)", () => {
+  const KINDS = Object.keys(STEP_METRIC_SPECS) as DartExerciseKind[];
+
+  it.each(KINDS)(
+    "%s: the turn cell's headline and darts value equal stepMetrics over the real replayed facts",
+    (kind) => {
+      const { header, turns } = playExerciseKind(kind);
+      const fold = foldReplay(header, turns);
+      if (!fold.ok) throw new Error(`fold skipped: ${fold.reason}`);
+      const presenter = STEP_REPLAY_PRESENTERS[kind];
+      const spec = STEP_METRIC_SPECS[kind];
+
+      fold.steps.forEach((step, index) => {
+        const realFacts: EngineFacts = {
+          stages: [],
+          turns: fold.steps.slice(0, index + 1).map((s) => s.turn),
+        };
+        const expected = stepMetrics(kind, step.after, realFacts);
+        const dartsKey = "darts" in expected ? "darts" : "throws";
+        const [headlineCell, dartsCell] = presenter.turn(step, fold.snapshot);
+
+        expect(headlineCell?.kind === "value" ? headlineCell.value : null).toBe(
+          String(expected[spec.headline]),
+        );
+        expect(dartsCell?.kind === "value" ? dartsCell.value : null).toBe(
+          String(expected[dartsKey]),
+        );
+      });
+    },
+  );
 });

@@ -1,5 +1,16 @@
+import { bullUpEngineFactory } from "@modules/training/exercises/bull-up.engine.module";
+import { bullseyeCheckoutEngineFactory } from "@modules/training/exercises/bullseye-checkout.engine.module";
+import { doublePatternEngineFactory } from "@modules/training/exercises/double-pattern.engine.module";
+import { scoreThresholdEngineFactory } from "@modules/training/exercises/score-threshold.engine.module";
+import { switchingTargetScoringEngineFactory } from "@modules/training/exercises/switching-target-scoring.engine.module";
 import { switchingEngineFactory } from "@modules/training/exercises/switching.engine.module";
-import type { SwitchingConfigData } from "@lib/types";
+import { targetScoringEngineFactory } from "@modules/training/exercises/target-scoring.engine.module";
+import type {
+  ExerciseRulesetVersionKey,
+  SwitchingConfigData,
+} from "@lib/types";
+import type { DartExerciseEngineFactory } from "@modules/interfaces";
+import type { DartExerciseKind, DartObservation } from "@modules/types";
 import type {
   ReplayHeaderSchemaData,
   ReplayTurnSchemaData,
@@ -100,6 +111,158 @@ export function playSwitching() {
     configuration: SWITCHING_CONFIG,
     turnCount: turns.length,
     dartCount: observations.length,
+  });
+
+  return { header, turns, finalState };
+}
+
+/** One dart, as `routine-summary-engines.module.test.ts` builds it -- board coordinates never matter to a dart exercise engine's own scoring. */
+function dart(
+  hitTargetNumber: number | null,
+  hitZoneKey: DartObservation["hitZoneKey"],
+): DartObservation {
+  return { hitTargetNumber, hitZoneKey, locationX: null, locationY: null };
+}
+
+type AnyDartExerciseEngineFactory = DartExerciseEngineFactory<unknown, unknown>;
+
+/**
+ * Every `STEP_METRIC_SPECS` kind's own scripted run: the same
+ * config/darts pairs `routine-summary-engines.module.test.ts` plays
+ * through the real engine (a proven-correct fixture, reused here rather
+ * than invented afresh), so a coupling test can drive all seven kinds
+ * through the real engine without hand-picking new darts per kind.
+ */
+const EXERCISE_FIXTURES: Record<
+  DartExerciseKind,
+  {
+    rulesetKey: ExerciseRulesetVersionKey;
+    factory: AnyDartExerciseEngineFactory;
+    config: Record<string, unknown>;
+    darts: DartObservation[];
+  }
+> = {
+  SWITCHING: {
+    rulesetKey: "SWITCHING_V1",
+    factory: switchingEngineFactory,
+    config: {
+      targets: [20, 19, 18],
+      scoring: { single: 1, double: 2, treble: 3 },
+    },
+    darts: [
+      dart(20, "TREBLE"),
+      dart(19, "SINGLE"),
+      dart(5, "SINGLE"),
+      dart(20, "DOUBLE"),
+    ],
+  },
+  DOUBLE_PATTERN: {
+    rulesetKey: "DOUBLE_PATTERN_V1",
+    factory: doublePatternEngineFactory,
+    config: {
+      patterns: [
+        [20, 10, 5],
+        [16, 8, 4],
+      ],
+    },
+    darts: [
+      dart(20, "DOUBLE"),
+      dart(10, "SINGLE"),
+      dart(5, "DOUBLE"),
+      dart(16, "DOUBLE"),
+      dart(8, "SINGLE"),
+      dart(4, "DOUBLE"),
+    ],
+  },
+  TARGET_SCORING: {
+    rulesetKey: "TARGET_SCORING_V1",
+    factory: targetScoringEngineFactory,
+    config: { targets: [20, 19, 18, 25] },
+    darts: [
+      dart(20, "TREBLE"),
+      dart(20, "SINGLE"),
+      dart(5, "SINGLE"),
+      dart(19, "TREBLE"),
+      dart(1, "SINGLE"),
+    ],
+  },
+  SWITCHING_TARGET_SCORING: {
+    rulesetKey: "SWITCHING_TARGET_SCORING_V1",
+    factory: switchingTargetScoringEngineFactory,
+    config: { targets: [20, 19, 18] },
+    darts: [
+      dart(20, "TREBLE"),
+      dart(19, "TREBLE"),
+      dart(18, "TREBLE"),
+      dart(5, "SINGLE"),
+      dart(20, "TREBLE"),
+    ],
+  },
+  SCORE_THRESHOLD: {
+    rulesetKey: "SCORE_THRESHOLD_V1",
+    factory: scoreThresholdEngineFactory,
+    config: { threshold: 65 },
+    darts: [
+      dart(20, "TREBLE"),
+      dart(20, "TREBLE"),
+      dart(20, "TREBLE"),
+      dart(5, "SINGLE"),
+      dart(5, "SINGLE"),
+      dart(5, "SINGLE"),
+      dart(10, "SINGLE"),
+    ],
+  },
+  BULLSEYE_CHECKOUT: {
+    rulesetKey: "BULLSEYE_CHECKOUT_V1",
+    factory: bullseyeCheckoutEngineFactory,
+    config: { startScore: 81 },
+    darts: [
+      dart(19, "SINGLE"),
+      dart(12, "SINGLE"),
+      dart(25, "INNER_BULL"),
+      dart(20, "TREBLE"),
+      dart(5, "SINGLE"),
+      dart(25, "INNER_BULL"),
+      dart(5, "SINGLE"),
+    ],
+  },
+  BULL_UP: {
+    rulesetKey: "BULL_UP_V1",
+    factory: bullUpEngineFactory,
+    config: {},
+    darts: [dart(25, "INNER_BULL"), dart(25, "OUTER_BULL"), dart(5, "SINGLE")],
+  },
+};
+
+/**
+ * `kind`'s own scripted run, played through its real engine and converted
+ * to the wire shape the replay route would have served for it (mirrors
+ * `playSwitching`, generalized over all seven `STEP_METRIC_SPECS` kinds).
+ */
+export function playExerciseKind(kind: DartExerciseKind) {
+  const fixture = EXERCISE_FIXTURES[kind];
+  const engine = fixture.factory.create(fixture.config);
+  fixture.darts.forEach((observation) => engine.record(observation));
+  const finalState = engine.state();
+  const facts = engine.facts();
+
+  const turns: ReplayTurnSchemaData[] = facts.turns.map((turn) => ({
+    stageId: STEP_STAGE_ID,
+    turnSequence: turn.sequence,
+    participantId: turn.participantRef,
+    turnTotalScore: turn.totalScore,
+    darts: turn.darts.map(({ sequence, ...rest }) => ({
+      dartNumber: sequence,
+      ...rest,
+    })),
+  }));
+
+  const header = stepHeader({
+    exerciseTypeKey: kind,
+    exerciseRulesetVersionKey: fixture.rulesetKey,
+    configuration: fixture.config,
+    turnCount: turns.length,
+    dartCount: fixture.darts.length,
   });
 
   return { header, turns, finalState };

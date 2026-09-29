@@ -1198,20 +1198,12 @@ function fakeSelectDistinct(rows: unknown[]) {
   return { chain, fromCalls };
 }
 
-function fakeLimitedQuery(rows: unknown[]) {
-  return {
-    from: vi.fn().mockReturnThis(),
-    where: vi.fn().mockReturnThis(),
-    limit: vi.fn().mockResolvedValue(rows),
-  };
-}
-
 /**
- * `findReplaySession`'s query chain (R6): a `leftJoin` on top of
- * `fakeLimitedQuery`'s `from`/`where`/`limit`, since the primary query joins
- * `v_stats_routine_step_facts`. `resolutions` queues each call's `limit()`
- * result in order, so a test can serve the join query's rows, then the
- * fallback step-view query's, off the one chain `db.select` keeps returning.
+ * `findReplaySession`'s query chain (R6): `from`/`where`/`limit` plus a
+ * `leftJoin`, since the primary query joins `v_stats_routine_step_facts`.
+ * `resolutions` queues each call's `limit()` result in order, so a test can
+ * serve the join query's rows, then the fallback step-view query's, off
+ * the one chain `db.select` keeps returning.
  */
 function fakeReplayQuery(...resolutions: unknown[][]) {
   const limit = vi.fn();

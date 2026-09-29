@@ -1270,9 +1270,12 @@ function mapReplaySessionJoinRow(row: {
 
 /**
  * `findReplaySession`'s fallback (step-view-only) query row shape.
- * `contextKey` is always `"ROUTINE"`: `v_stats_routine_step_facts` requires
- * `routine_step_sequence_number IS NOT NULL`, so a row read through it is
- * always part of a routine.
+ * `contextKey` is always `"ROUTINE"`: `0043`'s context rule is `ROUTINE`
+ * when the session's activity has an `activity_configurations` snapshot,
+ * and `v_stats_routine_step_facts` (`0045`) inner-joins that same table, so
+ * every row it can produce already has one -- it does not follow from
+ * `routine_step_sequence_number IS NOT NULL` (that condition only rules out
+ * a session with no step at all, not its context).
  */
 function mapReplayStepFactsRow(row: {
   sessionId: string | null;

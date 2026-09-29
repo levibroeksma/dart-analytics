@@ -231,14 +231,23 @@ function foldGameReplay(
  * there is no seatless-snapshot concern here, and the snapshot carried on
  * the fold is the step's own configuration with an empty `seats: []` filler
  * only to satisfy `ReplaySnapshot`'s shape; no exercise presenter reads it.
- * Skipped, never guessed: no stored configuration, no registered engine for
- * `exerciseRulesetVersionKey`, or an engine that throws on any turn.
+ * Skipped, never guessed (R21): no stored configuration or one that is not
+ * an object is `NO_SNAPSHOT`; no registered engine for
+ * `exerciseRulesetVersionKey` is `NO_EXERCISE_ENGINE`; an engine that
+ * throws building or replaying (its own config parse included -- an
+ * exercise engine decodes its own config inside `create`) is
+ * `ENGINE_THREW`.
  */
 function foldExerciseReplay(
   header: ReplayHeaderSchemaData,
   turns: readonly ReplayTurnSchemaData[],
 ): ReplayFold {
-  if (header.configuration === null) return skipped("NO_SNAPSHOT");
+  if (
+    header.configuration === null ||
+    typeof header.configuration !== "object"
+  ) {
+    return skipped("NO_SNAPSHOT");
+  }
   if (header.exerciseRulesetVersionKey === null) {
     return skipped("NO_EXERCISE_ENGINE");
   }

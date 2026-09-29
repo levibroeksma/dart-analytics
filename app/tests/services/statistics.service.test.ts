@@ -1658,6 +1658,18 @@ describe("getSessionReplay", () => {
     expect(repo.findReplayParticipants).not.toHaveBeenCalled();
   });
 
+  it("returns NOT_FOUND for an ACTIVE step session (fix round 1, item 1): v_stats_routine_step_facts is terminal-only (migration 0045:188, WHERE gs.implementation_key IN ('COMPLETED', 'ABANDONED')), so findReplaySession's fallback query can never return an ACTIVE session's row", async () => {
+    vi.mocked(repo.findReplaySession).mockResolvedValue(null);
+
+    const result = await getSessionReplay(playerId, "session-1", {
+      cursor: null,
+      limit: 30,
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.code).toBe("NOT_FOUND");
+  });
+
   it("returns VALIDATION_FAILED for a malformed cursor, without paging turns", async () => {
     vi.mocked(repo.findReplaySession).mockResolvedValue(makeReplaySessionRow());
     vi.mocked(repo.findReplayStages).mockResolvedValue([makeReplayStage()]);
