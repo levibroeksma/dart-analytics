@@ -147,7 +147,7 @@ function throwBotDart(
 
 /**
  * QUICK_SCORE thrower: `state` is the scratch engine's own live state
- * (Task 4's widened `playFoldBotQuickScoreVisit`), never the real engine's —
+ * (`playFoldBotQuickScoreVisit`), never the real engine's —
  * the real engine is never told about darts mid-visit under QUICK_SCORE.
  */
 function throwBotQuickScoreDart(

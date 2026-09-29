@@ -202,3 +202,13 @@ if fail:
 
 print(f"OK: no inline // or non-JSDoc /* */ comments inside function/method bodies across {len(files)} file(s) under app/src.")
 PY
+
+# Plan/task/review-history citations in doc comments (app/CLAUDE.md, D255):
+# JSDoc explains the code's why, not the plan step or review round that
+# produced it. Applies to .ts and .astro under app/src.
+history_re='ruling R|controller ruling|plan decision|Task [0-9]|fix-round|reviewer finding'
+if hits=$(grep -rnE --include='*.ts' --include='*.astro' "$history_re" app/src); then
+  echo "$hits" | sed 's/^/FAIL: plan\/review-history citation in comment (D255): /' >&2
+  exit 1
+fi
+echo "OK: no plan/review-history citations under app/src."

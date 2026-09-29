@@ -188,7 +188,7 @@ export type SessionListCursor = {
 
 /**
  * The shared filter every dart-level reader applies to `v_stats_dart_facts`
- * (phase-2 Task 3). `routineStep`, when set, narrows to one GAME routine
+ * `routineStep`, when set, narrows to one GAME routine
  * step's sessions (D372 decision 5) — optional, so a game page's reader,
  * which leaves it unset, reads the whole game scope.
  */
@@ -203,10 +203,9 @@ export type DartScope = {
 };
 
 /**
- * The shared filter every Task 3 fold/scoring reader applies to
+ * The shared filter every fold/scoring reader applies to
  * `v_stats_session_facts`: player, game type and status in range, restricted
- * to `input_mode_key = 'VISUAL_BOARD'` (`00-Overview.md` §10, phase-3 plan
- * "Shared session scope"). `routineStep` narrows the same way as `DartScope`
+ * to `input_mode_key = 'VISUAL_BOARD'` (`00-Overview.md` §10). `routineStep` narrows the same way as `DartScope`
  * (D372 decision 5).
  */
 export type SessionScope = {
@@ -536,7 +535,7 @@ export type HeatmapMetrics = {
 
 /**
  * One `SessionCheckoutVisits` session, tagged with the bucket its own
- * `completed_at` falls in (phase-3 Task 8) — identical on every one of a
+ * `completed_at` falls in — identical on every one of a
  * session's visits, since a session belongs to exactly one bucket.
  */
 export type BucketedSession = SessionCheckoutVisits & {
@@ -593,8 +592,7 @@ export type TrebleRateMetrics = Record<
 
 /**
  * One `findDartFoldRows` row: a `v_stats_dart_facts` dart joined to its
- * session's `v_stats_session_facts` snapshot, dart count and bucket (phase-4
- * Task 5) — the input `sessionSteps` (`derived-aims.module.ts`) groups by
+ * session's `v_stats_session_facts` snapshot, dart count and bucket — the input `sessionSteps` (`derived-aims.module.ts`) groups by
  * session and folds through the session's own engine reducer.
  * `intendedTargetNumber`/`intendedZoneKey` are null for every derived-intent
  * game (Singles/Shanghai/Around the Clock never store one), carried here only
@@ -636,9 +634,9 @@ export type AimedDart = {
 
 /**
  * One session's darts walked through its own engine reducer, one step per
- * dart (`sessionSteps`, `derived-aims.module.ts`, phase-4 decision 3).
+ * dart (`sessionSteps`, `derived-aims.module.ts`).
  * `configuration` is the session's raw stored snapshot, kept alongside the
- * walk so a caller (`aimedDarts`, or a Task 7 game-specific fold) can decode
+ * walk so a caller (`aimedDarts`, or a game-specific fold) can decode
  * it again for whatever the reducer's own config carries beyond seat state.
  */
 export type SessionSteps<TSeat> = {

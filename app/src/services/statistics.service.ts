@@ -243,7 +243,7 @@ type ShapeContext = {
  * fold could not replay (phase-4 decision 4) — set only by a `server`
  * section built on `stepsLoad`, and threaded straight into the response by
  * `getGameSection`. Absent for every `sql`-site section, matching the
- * `skippedSessions` field's optional zod schema (Task 2).
+ * `skippedSessions` field's optional zod schema.
  */
 type SectionLoadResult = {
   rows: readonly unknown[];
@@ -271,7 +271,7 @@ function handler<TRow>(
 
 /**
  * Adapts a `SessionSteps` shape function — every derived-intent and
- * game-specific section (phase-4 Task 8) — into a `SectionHandler` sharing
+ * game-specific section — into a `SectionHandler` sharing
  * `stepsLoad`, so its own `skippedSessions` count always reaches
  * `SectionLoadResult`.
  */
@@ -395,8 +395,7 @@ function loadHitNumberCells(
 
 /**
  * One session's checkout visits, tagged with the bucket its own
- * `completed_at` falls in — identical across every row of that session
- * (phase-3 Task 8 step 3).
+ * `completed_at` falls in — identical across every row of that session.
  */
 function bucketedSessionsFromFoldRows(
   rows: readonly X01FoldRow[],
@@ -420,8 +419,7 @@ function bucketedSessionsFromFoldRows(
 }
 
 /**
- * The shared load for every server-folded section (phase-3 decision 1,
- * Task 8): every `v_x01_checkout_darts` dart the scope covers, folded per
+ * The shared load for every server-folded section: every `v_x01_checkout_darts` dart the scope covers, folded per
  * session and tagged with its bucket. The `MAX_FOLD_DARTS` gate runs earlier
  * in `getGameSection`, before this is ever called.
  */
@@ -438,9 +436,8 @@ async function foldLoad(
 }
 
 /**
- * The shared load for every derived-intent and game-specific server section
- * (phase-4 decisions 1, 3-4, Task 8): every `v_stats_dart_facts` dart the
- * scope covers (`findDartFoldRows`, Task 5), folded per session through its
+ * The shared load for every derived-intent and game-specific server section: every `v_stats_dart_facts` dart the scope covers
+ * (`findDartFoldRows`), folded per session through its
  * own engine reducer (`sessionSteps`, `derived-aims.module.ts`) — mirroring
  * `foldLoad`'s phase-3 shape. The `MAX_FOLD_DARTS` gate runs earlier in
  * `getGameSection`, before this is ever called.
@@ -540,7 +537,7 @@ const HANDLERS: Record<
  * Resolves one `(section, game)` pair's handler via `sectionSite` — the
  * single dispatch point `getGameSection` uses, exported so a registry-
  * coverage test can assert every `sectionsForGame` pair actually resolves
- * one without reaching into `HANDLERS` itself (phase-4 Task 8).
+ * one without reaching into `HANDLERS` itself.
  */
 export function resolveSectionHandler(
   sectionId: SectionId,
@@ -727,7 +724,7 @@ async function resolveGameSectionRequest(
 }
 
 /**
- * The `MAX_FOLD_DARTS` gate (phase-3 decision 1, phase-4 decision 5, Task 8):
+ * The `MAX_FOLD_DARTS` gate:
  * above the cap, the `VALIDATION_FAILED` reason naming it; `null` when a
  * `server`-site scope is within it, or the site this game resolves the
  * section to is not `server` at all. Takes the resolved `site`, not

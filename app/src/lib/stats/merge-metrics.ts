@@ -382,7 +382,7 @@ function mergeLadderProgress(
 /**
  * One merger per server section — a `Record` over every `ServerSectionId`,
  * so a new server section that skips a merger is a type error rather than a
- * silent gap (phase-3 Task 9).
+ * silent gap.
  */
 const MERGERS: {
   [K in ServerSectionId]: (

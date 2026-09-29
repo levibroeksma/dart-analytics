@@ -247,9 +247,8 @@ function aimPairFor(
 }
 
 /**
- * The aim key for one Around the Clock seat step's `before` state (phase-4
- * decision 1), shared with `aimedDarts` so `atc-darts-per-target.module.ts`
- * (Task 7) never rebuilds the NUMBER/OUTER_SINGLE/BULL mapping on its own.
+ * The aim key for one Around the Clock seat step's `before` state, shared
+ * with `aimedDarts` so `atc-darts-per-target.module.ts` never rebuilds the NUMBER/OUTER_SINGLE/BULL mapping on its own.
  */
 export function aroundTheClockAimKey(
   before: AroundTheClockSeatState,

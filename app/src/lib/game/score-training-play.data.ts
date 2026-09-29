@@ -76,8 +76,7 @@ const BOT_PRE_THROW_MS = 900;
 const BOT_POST_THROW_MS = 250;
 const DARTS_PER_VISIT = 3;
 
-/** No `remaining`/checkout view — `chooseTarget()` always fires treble 20
- * (Task 1, D-G). */
+/** No `remaining`/checkout view — `chooseTarget()` always fires treble 20. */
 function throwOneDart(
   botSeat: DartbotSeat,
   dartIndex: number,
