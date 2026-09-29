@@ -265,7 +265,7 @@ function routineStepCondition(
   return sql`${sessionIdColumn} IN (SELECT ${vStatsRoutineStepFacts.sessionId} FROM ${vStatsRoutineStepFacts} WHERE ${vStatsRoutineStepFacts.playerId} = ${playerId} AND ${vStatsRoutineStepFacts.routineKey} = ${scope.routineKey} AND ${vStatsRoutineStepFacts.stepKey} = ${scope.stepKey})`;
 }
 
-/** The shared filter every dart-level reader applies to `v_stats_dart_facts` (Task 3). */
+/** The shared filter every dart-level reader applies to `v_stats_dart_facts`. */
 function dartScopeWhere(scope: DartScope) {
   const conditions = [
     eq(vStatsDartFacts.playerId, scope.playerId),
@@ -288,9 +288,9 @@ function dartScopeWhere(scope: DartScope) {
 }
 
 /**
- * The shared filter every Task 3 fold/scoring reader applies to
+ * The shared filter every fold/scoring reader applies to
  * `v_stats_session_facts`: player, game type and status in range, restricted
- * to `input_mode_key = 'VISUAL_BOARD'` (phase-3 plan "Shared session scope").
+ * to `input_mode_key = 'VISUAL_BOARD'` .
  */
 function sessionScopeWhere(scope: SessionScope) {
   const conditions = [
@@ -356,7 +356,7 @@ const X01_FOLD_COLUMNS = {
  * `v_stats_session_facts` under `sessionScopeWhere`, each row carrying the
  * bucket its session's `completed_at` falls in. Ordered exactly as
  * `findX01CheckoutDarts` pins (session, stage, turn, dart), the order every
- * checkout-visit fold requires (phase-3 Task 3).
+ * checkout-visit fold requires.
  */
 export async function findX01FoldRows(
   db: Db,
@@ -470,8 +470,8 @@ function mapDartFoldRow(row: {
 /**
  * Reads every `v_stats_dart_facts` dart the scope covers, inner-joined to
  * `v_stats_session_facts` under `sessionScopeWhere`, each row carrying its
- * session's dart count and the bucket its `completed_at` falls in (phase-4
- * Task 5). `sessionSteps` (`derived-aims.module.ts`) groups the result by
+ * session's dart count and the bucket its `completed_at` falls in.
+ * `sessionSteps` (`derived-aims.module.ts`) groups the result by
  * session and folds each one through its own engine reducer. Ordered by
  * session, then `(turn_sequence, dart_number)` -- the order every fold
  * replays a session's darts in.

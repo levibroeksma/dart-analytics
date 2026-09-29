@@ -288,7 +288,7 @@ export class ScoreTrainingEngine implements GameEngine<
   /**
    * Answers whether recording `input` would end the WHOLE session — the
    * active seat's last round, and every other seat already at a terminal
-   * status. Mirrors Task 11's `TuodEngine.wouldComplete`. Once a 1v1 match's
+   * status. Mirrors `TuodEngine.wouldComplete`. Once a 1v1 match's
    * outcome is already decided there is nothing left for `input` to
    * complete, so this answers false rather than throwing — mirrors
    * `TuodEngine.wouldCompleteDart` — leaving `record()` as the sole throwing

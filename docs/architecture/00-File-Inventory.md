@@ -418,7 +418,7 @@ Guards not specific to the game-engine contract, registered here for discoverabi
 | ---- | ------- | ------ |
 | `scripts/check-alias-sync.sh` | Guard: `tsconfig.json` compilerOptions.paths, `vitest.config.ts` resolve.alias and `07-Frontend/02-Folder-Structure.md`'s alias table never diverge (D113; doc as third source D302, 2026-09-17); `@styles` allowlisted as TS-only for the vitest comparison | canonical |
 | `scripts/check-constraint-mirror.sh` | Guard: every live CHECK constraint on `exercise_stages`/`turns`/`darts` has a `// MIRRORS: chk_x` anchor in `app/src/pages/api/sessions/types.ts` (D149); bound agreement executed in `constraint-mirror.test.ts`, not by this script | canonical |
-| `scripts/check-no-inline-comments.sh` | Guard: no `//` or non-JSDoc `/* */` comment inside a function/method body under `app/src/**/*.ts`; JSDoc `/** */` above a declaration stays exempt | canonical |
+| `scripts/check-no-inline-comments.sh` | Guard: no `//` or non-JSDoc `/* */` comment inside a function/method body under `app/src/**/*.ts`, and no plan/task/review-history citation (`Task N`, `plan decision`, ...) in `app/src` `.ts`/`.astro` (D255); JSDoc `/** */` above a declaration stays exempt | canonical |
 | `scripts/check-style-tokens.sh` | Guard: no `font-medium`, `{...rest}`, raw `bg-bg*`/`text-fg*`, Tailwind prefix-important (`!utility`), or leading-dash arbitrary (`-prop-[…]`) under `app/src/**/*.{astro,css}` | canonical |
 | `scripts/check-file-locations.sh` | Guard: no `.ts` files directly under `components/`/`pages/` except `pages/api/**` | canonical |
 | `scripts/check-agent-mirrors.sh` | Guard: every `CLAUDE.md` has an `AGENT.md` sibling holding the fixed pointer stub (D213) | canonical |

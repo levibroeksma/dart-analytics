@@ -18,7 +18,7 @@ const STRIPPED_REQUEST_HEADERS = [
  * the app's hostname there, and Neon Auth treats that as the auth host —
  * rejecting with `INVALID_HOSTNAME` when it is `localhost` or a Worker
  * origin. `origin` is deliberately forwarded unchanged: Better Auth
- * origin-checks it against its trustedOrigins list (Task 0), and rewriting
+ * origin-checks it against its trustedOrigins list, and rewriting
  * it here would defeat that CSRF protection.
  */
 function buildForwardHeaders(request: Request): Headers {
