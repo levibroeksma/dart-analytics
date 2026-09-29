@@ -45,7 +45,7 @@ Classes are permitted **only** under `src/modules/`.
 1. Construction via `new ModuleClass(options)` happens in Alpine factory `init()` — never in Astro frontmatter.
 2. Constructor receives plain config and callbacks — no Alpine proxies, no `fetch`, no store imports inside `modules/ui/`.
 3. Modules with timers/listeners expose `start()` / `stop()` / `destroy()`.
-4. Alpine teardown must call `destroy()` to prevent leaks.
+4. Alpine calls a factory's own `destroy()` automatically when its `x-data` element is removed from the DOM (Alpine 3 `x-data` cleanup) — no page or Astro hook wires it. The factory's `destroy()` must call each owned module's `destroy()`.
 
 ### Timer example (sketch)
 
