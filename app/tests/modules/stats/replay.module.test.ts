@@ -11,35 +11,9 @@ import { toBase64Url } from "@modules/stats/sections/series.module";
 import type { ReplayRow, ReplayStageRow } from "@modules/types";
 import {
   PLAYER_ONE,
-  playAroundTheClock,
-  playBobs27,
-  playDoubles,
   playFiveOhOne,
-  playOneTwentyOne,
-  playScoreTraining,
-  playShanghai,
-  playSingles,
-  playTuod,
-  type ScriptedGame,
+  SCRIPTED_GAMES,
 } from "../../lib/stats/replay-games";
-
-/**
- * Every scripted game `replayFacts` must rebuild identically (moved here
- * verbatim from `tests/lib/stats/replay-fold.test.ts`'s own copy, phase 6b
- * Task 4 Step 2, R7 — `foldReplay`'s own copy of this list stays in that
- * file since `foldReplay` did not move).
- */
-const SCRIPTED_GAMES: [string, () => ScriptedGame][] = [
-  ["501", playFiveOhOne],
-  ["121", playOneTwentyOne],
-  ["TUOD", playTuod],
-  ["Score Training", playScoreTraining],
-  ["Singles", playSingles],
-  ["Doubles", playDoubles],
-  ["Bob's 27", playBobs27],
-  ["Shanghai", playShanghai],
-  ["Around the Clock", playAroundTheClock],
-];
 
 describe("replayFacts", () => {
   it.each(SCRIPTED_GAMES)(

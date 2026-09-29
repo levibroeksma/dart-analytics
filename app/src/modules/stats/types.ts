@@ -796,29 +796,53 @@ export type ReplayCursor = {
  * plan decision 8) — `configuration` is the session's own snapshot, passed
  * to the exercise engine exactly as the routine play adapter's `open()`
  * passes it; `completedAt` is the input the fold buckets a session's merged
- * metrics by, after folding.
+ * metrics by, after folding. `stageSequence`/`stageTypeKey`/`parentStageId`
+ * are `v_game_replay`'s own stage columns (migration `0044`) — carried here
+ * rather than assumed, so the fold rebuilds each session's real stage tree
+ * through `stageOrder` instead of inventing one.
  */
 export type StepFoldRow = ReplayRow & {
   sessionId: string;
   completedAt: string;
   exerciseRulesetVersionKey: string | null;
   configuration: Record<string, unknown> | null;
+  stageSequence: number;
+  stageTypeKey: string;
+  parentStageId: string | null;
 };
 
 /**
- * `foldStepResult`'s own row alias for `StepFoldRow` (phase 6b Task 4): the
- * flat, session-mixed rows a `step-result` request scopes, named at the
- * `sections` module boundary for what the fold does with them — group by
- * `sessionId`, one `EngineFacts` rebuild per group.
+ * `findStepFoldRows`' actual return row: `StepFoldRow` plus the bucket its
+ * own session's `completedAt` falls in (phase 6b plan decision 6), computed
+ * in SQL via `bucketExprs`, mirroring `X01FoldRow`. `step-result`'s shape
+ * function groups by `bucketStart` before folding each bucket's sessions.
+ */
+export type StepFoldBucketRow = StepFoldRow & {
+  bucketStart: string;
+  bucketEnd: string;
+};
+
+/**
+ * `foldStepResult`'s own row alias for `StepFoldRow`: the flat,
+ * session-mixed rows one bucket's worth of `step-result` scopes, named at
+ * the `sections` module boundary for what the fold does with them — group
+ * by `sessionId`, one `EngineFacts` rebuild per group.
  */
 export type StepFoldSession = StepFoldRow;
 
-/** `routine-volume` section metrics — one bucket (phase 6b plan decision 6). `minutes`/`minMinutes`/`maxMinutes` convert `findRoutineRunBuckets`' seconds columns; the division is exact-preserving under `mergeStepMetrics`-style re-aggregation, so a chunked sum never drifts from an unchunked one. */
+/**
+ * `routine-volume` section metrics — one bucket (phase 6b plan decision 6).
+ * `durationSeconds`/`minDurationSeconds`/`maxDurationSeconds` carry
+ * `findRoutineRunBuckets`' seconds columns through unconverted, matching
+ * phase 1's `VolumeMetrics.durationSeconds` — a `seconds / 60` float does
+ * not re-add exactly across chunks (`1/60 + 5/60 !== 6/60`), so the client
+ * converts to minutes for display, never this module.
+ */
 export type RoutineVolumeMetrics = {
   runs: number;
-  minutes: number;
-  minMinutes: number;
-  maxMinutes: number;
+  durationSeconds: number;
+  minDurationSeconds: number;
+  maxDurationSeconds: number;
   darts: number;
 };
 
@@ -830,10 +854,16 @@ export type RoutineCompletionMetrics = {
   stepsCompletedAtAbandon: Record<string, number>;
 };
 
-/** `step-volume` section metrics — one bucket, over any routine step (phase 6b plan decision 6). */
+/**
+ * `step-volume` section metrics — one bucket, over any non-game routine
+ * step (phase 6b plan decision 6; a GAME step's own `volume` section covers
+ * it instead, controller ruling R1). `durationSeconds` carries
+ * `findStepBuckets`' seconds column through unconverted, for the same
+ * exact-re-aggregation reason as `RoutineVolumeMetrics`.
+ */
 export type StepVolumeMetrics = {
   sessions: number;
-  minutes: number;
+  durationSeconds: number;
   darts: number;
 };
 

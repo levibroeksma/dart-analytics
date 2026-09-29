@@ -12,30 +12,12 @@ import {
   PLAYER_ONE,
   PLAYER_TWO,
   SOLO_SEATS,
-  playAroundTheClock,
+  SCRIPTED_GAMES,
   playBobs27,
-  playDoubles,
   playFiveOhOne,
-  playOneTwentyOne,
   playScoreTraining,
-  playShanghai,
-  playSingles,
-  playTuod,
   replayHeader,
-  type ScriptedGame,
 } from "./replay-games";
-
-const SCRIPTED_GAMES: [string, () => ScriptedGame][] = [
-  ["501", playFiveOhOne],
-  ["121", playOneTwentyOne],
-  ["TUOD", playTuod],
-  ["Score Training", playScoreTraining],
-  ["Singles", playSingles],
-  ["Doubles", playDoubles],
-  ["Bob's 27", playBobs27],
-  ["Shanghai", playShanghai],
-  ["Around the Clock", playAroundTheClock],
-];
 
 const STAGE_ID = "01900000-0000-7000-9000-000000000001";
 

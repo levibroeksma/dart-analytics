@@ -22,7 +22,7 @@ function row(
 }
 
 describe("routineVolumeBuckets", () => {
-  it("converts one bucket's duration columns from seconds to minutes", () => {
+  it("carries one bucket's duration columns through in whole seconds, unconverted", () => {
     const [bucket] = routineVolumeBuckets(
       [
         row({
@@ -41,9 +41,9 @@ describe("routineVolumeBuckets", () => {
 
     expect(bucket.metrics).toEqual({
       runs: 3,
-      minutes: 15,
-      minMinutes: 2,
-      maxMinutes: 8,
+      durationSeconds: 900,
+      minDurationSeconds: 120,
+      maxDurationSeconds: 480,
       darts: 90,
     });
     expect(bucket.sampleSize).toBe(3);

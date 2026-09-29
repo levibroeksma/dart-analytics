@@ -14,7 +14,7 @@ function row(overrides: Partial<StepBucketRow> = {}): StepBucketRow {
 }
 
 describe("stepVolumeBuckets", () => {
-  it("converts one bucket's duration column from seconds to minutes", () => {
+  it("carries one bucket's duration column through in whole seconds, unconverted", () => {
     const [bucket] = stepVolumeBuckets(
       [row({ sessions: 4, durationSum: 480, darts: 120 })],
       {
@@ -23,7 +23,11 @@ describe("stepVolumeBuckets", () => {
       },
     );
 
-    expect(bucket.metrics).toEqual({ sessions: 4, minutes: 8, darts: 120 });
+    expect(bucket.metrics).toEqual({
+      sessions: 4,
+      durationSeconds: 480,
+      darts: 120,
+    });
     expect(bucket.sampleSize).toBe(4);
   });
 

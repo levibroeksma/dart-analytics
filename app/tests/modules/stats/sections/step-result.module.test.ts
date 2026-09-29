@@ -1,13 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
   foldStepResult,
-  mergeStepResult,
+  stepResultBuckets,
 } from "@modules/stats/sections/step-result.module";
-import { STEP_METRIC_SPECS } from "@modules/stats/step-metrics.module";
 import type {
   DartZoneKey,
+  StepFoldBucketRow,
   StepFoldSession,
-  StepResultMetric,
 } from "@modules/types";
 
 const STAGE_ID = "01900000-0000-7000-9000-000000000001";
@@ -22,6 +21,9 @@ function dartRow(overrides: Partial<StepFoldSession> = {}): StepFoldSession {
       scoring: { single: 1, double: 2, treble: 3 },
     },
     stageId: STAGE_ID,
+    stageSequence: 1,
+    stageTypeKey: "EXERCISE_BLOCK",
+    parentStageId: null,
     turnSequence: 1,
     participantId: "solo",
     participantName: "Solo",
@@ -37,6 +39,15 @@ function dartRow(overrides: Partial<StepFoldSession> = {}): StepFoldSession {
     locationY: null,
     ...overrides,
   };
+}
+
+/** `dartRow`'s bucket rows for `stepResultBuckets`, one bucket tag applied to every row. */
+function bucketRow(
+  bucketStart: string,
+  bucketEnd: string,
+  overrides: Partial<StepFoldSession> = {},
+): StepFoldBucketRow {
+  return { ...dartRow(overrides), bucketStart, bucketEnd };
 }
 
 /**
@@ -146,6 +157,80 @@ describe("foldStepResult", () => {
     });
   });
 
+  it("skips a session with no exerciseRulesetVersionKey, without throwing", () => {
+    const rows = switchingSession("session-a", "2026-01-05T00:00:00.000Z", [
+      { target: 20, hitTargetNumber: 20, hitZoneKey: "TREBLE" as DartZoneKey },
+    ]).map((row) => ({
+      ...row,
+      exerciseRulesetVersionKey: null,
+    }));
+
+    const result = foldStepResult("SWITCHING", rows);
+
+    expect(result).toEqual({
+      metrics: { points: 0, darts: 0, hits: 0 },
+      headlineMin: null,
+      headlineMax: null,
+      sessions: 0,
+      skippedSessions: 1,
+    });
+  });
+
+  it("skips a session whose stored configuration fails the ruleset's own schema, without throwing", () => {
+    const rows = switchingSession("session-a", "2026-01-05T00:00:00.000Z", [
+      { target: 20, hitTargetNumber: 20, hitZoneKey: "TREBLE" as DartZoneKey },
+    ]).map((row) => ({ ...row, configuration: null }));
+
+    const result = foldStepResult("SWITCHING", rows);
+
+    expect(result).toEqual({
+      metrics: { points: 0, darts: 0, hits: 0 },
+      headlineMin: null,
+      headlineMax: null,
+      sessions: 0,
+      skippedSessions: 1,
+    });
+  });
+
+  it("skips a session whose replayed engine state doesn't match the requested kind's metrics, without throwing", () => {
+    // A real Switching session replayed as if it were BULL_UP: the engine
+    // state that comes back has no `throws`/`bullseyes`/`bulls` fields, so
+    // `stepMetrics` throws -- proving that throw is caught, not just the
+    // engine-create one.
+    const rows = switchingSession("session-a", "2026-01-05T00:00:00.000Z", [
+      { target: 20, hitTargetNumber: 20, hitZoneKey: "TREBLE" as DartZoneKey },
+    ]);
+
+    const result = foldStepResult("BULL_UP", rows);
+
+    expect(result).toEqual({
+      metrics: { throws: 0, bullseyes: 0, bulls: 0 },
+      headlineMin: null,
+      headlineMax: null,
+      sessions: 0,
+      skippedSessions: 1,
+    });
+  });
+
+  it("folds one session and skips another in the same scope", () => {
+    // Cycling starts at targets[0] every fresh session: dart 1 intends 20
+    // (TREBLE hit, scoring.treble = 3), dart 2 intends 19 (SINGLE hit,
+    // scoring.single = 1) -- 4 points, 2 darts, 2 hits.
+    const folded = switchingSession("session-a", "2026-01-05T00:00:00.000Z", [
+      { target: 20, hitTargetNumber: 20, hitZoneKey: "TREBLE" as DartZoneKey },
+      { target: 19, hitTargetNumber: 19, hitZoneKey: "SINGLE" as DartZoneKey },
+    ]);
+    const skipped = switchingSession("session-b", "2026-01-06T00:00:00.000Z", [
+      { target: 20, hitTargetNumber: 20, hitZoneKey: "TREBLE" as DartZoneKey },
+    ]).map((row) => ({ ...row, exerciseRulesetVersionKey: "MADE_UP_V1" }));
+
+    const result = foldStepResult("SWITCHING", [...folded, ...skipped]);
+
+    expect(result.metrics).toEqual({ points: 4, darts: 2, hits: 2 });
+    expect(result.sessions).toBe(1);
+    expect(result.skippedSessions).toBe(1);
+  });
+
   it("returns a zeroed result for no sessions in scope", () => {
     expect(foldStepResult("SWITCHING", [])).toEqual({
       metrics: { points: 0, darts: 0, hits: 0 },
@@ -157,55 +242,74 @@ describe("foldStepResult", () => {
   });
 });
 
-describe("mergeStepResult", () => {
-  const spec = STEP_METRIC_SPECS.SWITCHING;
-
-  function metric(overrides: Partial<StepResultMetric>): StepResultMetric {
-    return {
-      metrics: { points: 0, darts: 0, hits: 0 },
-      headlineMin: null,
-      headlineMax: null,
-      sessions: 0,
-      skippedSessions: 0,
-      ...overrides,
-    };
+describe("stepResultBuckets", () => {
+  /** One dart hitting cycling target 20 on the treble -- 3 points, 1 dart, 1 hit. */
+  function onePointSession(sessionId: string, completedAt: string) {
+    return switchingSession(sessionId, completedAt, [
+      { target: 20, hitTargetNumber: 20, hitZoneKey: "TREBLE" as DartZoneKey },
+    ]);
   }
 
-  it("sums metrics, sessions and skippedSessions, and takes the tighter/wider headline extreme", () => {
-    const a = metric({
-      metrics: { points: 6, darts: 3, hits: 3 },
-      headlineMin: 6,
-      headlineMax: 6,
-      sessions: 1,
-      skippedSessions: 1,
-    });
-    const b = metric({
-      metrics: { points: 4, darts: 3, hits: 2 },
-      headlineMin: 4,
-      headlineMax: 4,
-      sessions: 1,
-      skippedSessions: 0,
+  it("groups rows by bucket and folds each bucket's own sessions independently", () => {
+    const bucketA = onePointSession(
+      "session-a",
+      "2026-01-05T00:00:00.000Z",
+    ).map((row) => ({
+      ...row,
+      bucketStart: "2026-01-01T00:00:00.000Z",
+      bucketEnd: "2026-02-01T00:00:00.000Z",
+    }));
+    const bucketB = [
+      ...onePointSession("session-b", "2026-02-10T00:00:00.000Z"),
+      ...onePointSession("session-c", "2026-02-12T00:00:00.000Z"),
+    ].map((row) => ({
+      ...row,
+      bucketStart: "2026-02-01T00:00:00.000Z",
+      bucketEnd: "2026-03-01T00:00:00.000Z",
+    }));
+
+    const buckets = stepResultBuckets("SWITCHING", [...bucketA, ...bucketB], {
+      to: "2026-03-01T00:00:00.000Z",
+      now: new Date("2026-03-15T00:00:00.000Z"),
     });
 
-    expect(mergeStepResult(spec, a, b)).toEqual({
-      metrics: { points: 10, darts: 6, hits: 5 },
-      headlineMin: 4,
-      headlineMax: 6,
-      sessions: 2,
-      skippedSessions: 1,
+    expect(buckets).toHaveLength(2);
+    expect(buckets[0]).toMatchObject({
+      start: "2026-01-01T00:00:00.000Z",
+      end: "2026-02-01T00:00:00.000Z",
+      closed: true,
+      sampleSize: 1,
+      metrics: { metrics: { points: 3, darts: 1, hits: 1 }, sessions: 1 },
+    });
+    expect(buckets[1]).toMatchObject({
+      start: "2026-02-01T00:00:00.000Z",
+      end: "2026-03-01T00:00:00.000Z",
+      closed: true,
+      sampleSize: 2,
+      metrics: { metrics: { points: 6, darts: 2, hits: 2 }, sessions: 2 },
     });
   });
 
-  it("treats a null headline as the merge identity", () => {
-    const empty = metric({});
-    const some = metric({
-      metrics: { points: 6, darts: 3, hits: 3 },
-      headlineMin: 6,
-      headlineMax: 6,
-      sessions: 1,
+  it("returns no buckets for no rows in scope", () => {
+    expect(
+      stepResultBuckets("SWITCHING", [], {
+        to: "2026-03-01T00:00:00.000Z",
+        now: new Date("2026-03-15T00:00:00.000Z"),
+      }),
+    ).toEqual([]);
+  });
+
+  it("marks a still-open bucket unclosed", () => {
+    const row = bucketRow(
+      "2026-03-01T00:00:00.000Z",
+      "2026-04-01T00:00:00.000Z",
+    );
+
+    const [bucket] = stepResultBuckets("SWITCHING", [row], {
+      to: "2026-04-01T00:00:00.000Z",
+      now: new Date("2026-03-15T00:00:00.000Z"),
     });
 
-    expect(mergeStepResult(spec, empty, some)).toEqual(some);
-    expect(mergeStepResult(spec, some, empty)).toEqual(some);
+    expect(bucket!.closed).toBe(false);
   });
 });

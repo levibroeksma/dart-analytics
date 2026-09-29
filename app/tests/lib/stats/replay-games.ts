@@ -381,3 +381,20 @@ export function playAroundTheClock(): ScriptedGame {
     [dart(5, "OUTER_SINGLE"), MISS, MISS],
   ]);
 }
+
+/**
+ * Every scripted game, named for `it.each` tables: shared by
+ * `replay-fold.test.ts` and `replay.module.test.ts` so the two suites that
+ * exercise the same replay rebuild never carry their own diverging copies.
+ */
+export const SCRIPTED_GAMES: [string, () => ScriptedGame][] = [
+  ["501", playFiveOhOne],
+  ["121", playOneTwentyOne],
+  ["TUOD", playTuod],
+  ["Score Training", playScoreTraining],
+  ["Singles", playSingles],
+  ["Doubles", playDoubles],
+  ["Bob's 27", playBobs27],
+  ["Shanghai", playShanghai],
+  ["Around the Clock", playAroundTheClock],
+];

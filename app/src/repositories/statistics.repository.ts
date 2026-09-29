@@ -51,7 +51,7 @@ import type {
   StatsBucketRow,
   StatsSessionRow,
   StepBucketRow,
-  StepFoldRow,
+  StepFoldBucketRow,
   StepScope,
   StepSessionRow,
   TrainedRoutineRow,
@@ -1992,6 +1992,9 @@ function mapStepFoldRow(row: {
   exerciseRulesetVersionKey: string | null;
   configuration: unknown;
   stageId: string | null;
+  stageSequence: number | null;
+  stageTypeKey: string | null;
+  parentStageId: string | null;
   turnSequence: number | null;
   participantId: string | null;
   participantName: string | null;
@@ -2005,13 +2008,18 @@ function mapStepFoldRow(row: {
   score: number | null;
   locationX: string | number | null;
   locationY: string | number | null;
-}): StepFoldRow {
+  bucketStart: string | null;
+  bucketEnd: string | null;
+}): StepFoldBucketRow {
   return {
     sessionId: nonNull(row.sessionId, "session_id"),
     completedAt: nonNull(row.completedAt, "completed_at"),
     exerciseRulesetVersionKey: row.exerciseRulesetVersionKey,
     configuration: row.configuration as Record<string, unknown> | null,
     stageId: nonNull(row.stageId, "stage_id"),
+    stageSequence: nonNull(row.stageSequence, "stage_sequence"),
+    stageTypeKey: nonNull(row.stageTypeKey, "stage_type_key"),
+    parentStageId: row.parentStageId,
     turnSequence: nonNull(row.turnSequence, "turn_sequence"),
     participantId: nonNull(row.participantId, "participant_id"),
     participantName: nonNull(row.participantName, "participant_name"),
@@ -2025,66 +2033,102 @@ function mapStepFoldRow(row: {
     score: row.score,
     locationX: row.locationX === null ? null : Number(row.locationX),
     locationY: row.locationY === null ? null : Number(row.locationY),
+    bucketStart: nonNull(row.bucketStart, "bucket_start"),
+    bucketEnd: nonNull(row.bucketEnd, "bucket_end"),
   };
 }
+
+const STEP_FOLD_COLUMNS = {
+  sessionId: vGameReplay.sessionId,
+  completedAt: vStatsRoutineStepFacts.completedAt,
+  exerciseRulesetVersionKey: vStatsRoutineStepFacts.exerciseRulesetVersionKey,
+  configuration: vStatsRoutineStepFacts.configuration,
+  stageId: vGameReplay.stageId,
+  stageSequence: vGameReplay.stageSequence,
+  stageTypeKey: vGameReplay.stageTypeKey,
+  parentStageId: vGameReplay.parentStageId,
+  turnSequence: vGameReplay.turnSequence,
+  participantId: vGameReplay.participantId,
+  participantName: vGameReplay.participantName,
+  participantTypeKey: vGameReplay.participantTypeKey,
+  turnTotalScore: vGameReplay.turnTotalScore,
+  dartNumber: vGameReplay.dartNumber,
+  intendedTargetNumber: vGameReplay.intendedTargetNumber,
+  intendedZoneKey: vGameReplay.intendedZoneKey,
+  hitTargetNumber: vGameReplay.hitTargetNumber,
+  hitZoneKey: vGameReplay.hitZoneKey,
+  score: vGameReplay.score,
+  locationX: vGameReplay.locationX,
+  locationY: vGameReplay.locationY,
+};
 
 /**
  * `v_game_replay` joined to `v_stats_routine_step_facts` on `session_id`,
  * scoped to one step (phase 6b plan decision 8) -- the input to the
  * server-side `step-result` fold, which rebuilds each session's exercise
- * engine from these facts. Unbucketed: bucket assignment happens after the
- * fold, keyed by each row's own `completedAt` (its session's, not the
- * dart's). Ordered by session, stage, turn and dart -- the order every
- * replay fold requires (matching `findX01FoldRows`).
+ * engine from these facts (`stageSequence`/`stageTypeKey`/`parentStageId`
+ * carry `v_game_replay`'s own stage columns, so the fold replays each
+ * session's real stage tree rather than inventing one), each row carrying
+ * the bucket its own session's `completed_at` falls in, exactly like
+ * `findX01FoldRows`. Ordered by session, stage, turn and dart -- the order
+ * every replay fold requires.
  */
 export async function findStepFoldRows(
   db: Db,
-  q: StepScope,
-): Promise<StepFoldRow[]> {
+  q: StepScope & { bucket: Bucket; tz: string | undefined },
+): Promise<StepFoldBucketRow[]> {
+  const whereClause = and(
+    eq(vStatsRoutineStepFacts.playerId, q.playerId),
+    eq(vStatsRoutineStepFacts.routineKey, q.routineKey),
+    eq(vStatsRoutineStepFacts.stepKey, q.stepKey),
+    gte(vStatsRoutineStepFacts.completedAt, q.from),
+    lt(vStatsRoutineStepFacts.completedAt, q.to),
+    inArray(vStatsRoutineStepFacts.statusKey, q.statuses),
+  );
+  const order = [
+    vGameReplay.sessionId,
+    vGameReplay.stageSequence,
+    vGameReplay.turnSequence,
+    vGameReplay.dartNumber,
+  ] as const;
+
+  if (q.bucket === "none") {
+    const rows = await db
+      .select({
+        ...STEP_FOLD_COLUMNS,
+        bucketStart: sql<string>`${q.from}::timestamptz`,
+        bucketEnd: sql<string>`${q.to}::timestamptz`,
+      })
+      .from(vGameReplay)
+      .innerJoin(
+        vStatsRoutineStepFacts,
+        eq(vGameReplay.sessionId, vStatsRoutineStepFacts.sessionId),
+      )
+      .where(whereClause)
+      .orderBy(...order);
+    return rows.map(mapStepFoldRow);
+  }
+
+  const tz = nonNull(q.tz ?? null, "tz");
+  const { bucketStartExpr, bucketEndExpr } = bucketExprs(
+    vStatsRoutineStepFacts.completedAt,
+    q.bucket,
+    tz,
+  );
+
   const rows = await db
     .select({
-      sessionId: vGameReplay.sessionId,
-      completedAt: vStatsRoutineStepFacts.completedAt,
-      exerciseRulesetVersionKey:
-        vStatsRoutineStepFacts.exerciseRulesetVersionKey,
-      configuration: vStatsRoutineStepFacts.configuration,
-      stageId: vGameReplay.stageId,
-      turnSequence: vGameReplay.turnSequence,
-      participantId: vGameReplay.participantId,
-      participantName: vGameReplay.participantName,
-      participantTypeKey: vGameReplay.participantTypeKey,
-      turnTotalScore: vGameReplay.turnTotalScore,
-      dartNumber: vGameReplay.dartNumber,
-      intendedTargetNumber: vGameReplay.intendedTargetNumber,
-      intendedZoneKey: vGameReplay.intendedZoneKey,
-      hitTargetNumber: vGameReplay.hitTargetNumber,
-      hitZoneKey: vGameReplay.hitZoneKey,
-      score: vGameReplay.score,
-      locationX: vGameReplay.locationX,
-      locationY: vGameReplay.locationY,
+      ...STEP_FOLD_COLUMNS,
+      bucketStart: bucketStartExpr,
+      bucketEnd: bucketEndExpr,
     })
     .from(vGameReplay)
     .innerJoin(
       vStatsRoutineStepFacts,
       eq(vGameReplay.sessionId, vStatsRoutineStepFacts.sessionId),
     )
-    .where(
-      and(
-        eq(vStatsRoutineStepFacts.playerId, q.playerId),
-        eq(vStatsRoutineStepFacts.routineKey, q.routineKey),
-        eq(vStatsRoutineStepFacts.stepKey, q.stepKey),
-        gte(vStatsRoutineStepFacts.completedAt, q.from),
-        lt(vStatsRoutineStepFacts.completedAt, q.to),
-        inArray(vStatsRoutineStepFacts.statusKey, q.statuses),
-      ),
-    )
-    .orderBy(
-      vGameReplay.sessionId,
-      vGameReplay.stageSequence,
-      vGameReplay.turnSequence,
-      vGameReplay.dartNumber,
-    );
-
+    .where(whereClause)
+    .orderBy(...order);
   return rows.map(mapStepFoldRow);
 }
 

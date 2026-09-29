@@ -1,5 +1,9 @@
 import type { EngineFacts } from "@modules/types";
-import type { DartExerciseKind, StepMetricSpec } from "./types";
+import type {
+  DartExerciseKind,
+  StepMetricSpec,
+  StepResultMetric,
+} from "./types";
 
 /**
  * Each dart exercise kind's step-metric contract (phase 6b plan decision 7),
@@ -178,4 +182,38 @@ export function mergeStepMetrics(
       spec.metrics[key] === "max" ? Math.max(a[key], b[key]) : a[key] + b[key];
   }
   return merged;
+}
+
+/** `null` is the identity for either side of an extreme merge — the bucket that folded no session contributes nothing. */
+function mergeExtreme(
+  a: number | null,
+  b: number | null,
+  pick: (a: number, b: number) => number,
+): number | null {
+  if (a === null) return b;
+  if (b === null) return a;
+  return pick(a, b);
+}
+
+/**
+ * Merges two `step-result` results across chunk windows (controller ruling
+ * R14; the client cache wires this in): `metrics` via `mergeStepMetrics`,
+ * `headlineMin`/`Max` by the tighter/wider extreme with `null` as identity
+ * (`null` only when neither side folded a session), `sessions`/
+ * `skippedSessions` sum. Lives here, not beside `foldStepResult`, so a
+ * client-side cache merge never pulls the engine-registering imports
+ * `step-result.module.ts` carries into the bundle.
+ */
+export function mergeStepResult(
+  spec: StepMetricSpec,
+  a: StepResultMetric,
+  b: StepResultMetric,
+): StepResultMetric {
+  return {
+    metrics: mergeStepMetrics(spec, a.metrics, b.metrics),
+    headlineMin: mergeExtreme(a.headlineMin, b.headlineMin, Math.min),
+    headlineMax: mergeExtreme(a.headlineMax, b.headlineMax, Math.max),
+    sessions: a.sessions + b.sessions,
+    skippedSessions: a.skippedSessions + b.skippedSessions,
+  };
 }

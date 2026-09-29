@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   mergeStepMetrics,
+  mergeStepResult,
   stepMetrics,
   STEP_METRIC_SPECS,
 } from "@modules/stats/step-metrics.module";
@@ -15,6 +16,7 @@ import type {
   DartExerciseKind,
   DartObservation,
   EngineFacts,
+  StepResultMetric,
 } from "@modules/types";
 
 function dart(
@@ -209,5 +211,58 @@ describe("mergeStepMetrics", () => {
       darts: 13,
       hits: 10,
     });
+  });
+});
+
+describe("mergeStepResult", () => {
+  const spec = STEP_METRIC_SPECS.SWITCHING;
+
+  function metric(overrides: Partial<StepResultMetric>): StepResultMetric {
+    return {
+      metrics: { points: 0, darts: 0, hits: 0 },
+      headlineMin: null,
+      headlineMax: null,
+      sessions: 0,
+      skippedSessions: 0,
+      ...overrides,
+    };
+  }
+
+  it("sums metrics, sessions and skippedSessions, and takes the tighter/wider headline extreme", () => {
+    const a = metric({
+      metrics: { points: 6, darts: 3, hits: 3 },
+      headlineMin: 6,
+      headlineMax: 6,
+      sessions: 1,
+      skippedSessions: 1,
+    });
+    const b = metric({
+      metrics: { points: 4, darts: 3, hits: 2 },
+      headlineMin: 4,
+      headlineMax: 4,
+      sessions: 1,
+      skippedSessions: 0,
+    });
+
+    expect(mergeStepResult(spec, a, b)).toEqual({
+      metrics: { points: 10, darts: 6, hits: 5 },
+      headlineMin: 4,
+      headlineMax: 6,
+      sessions: 2,
+      skippedSessions: 1,
+    });
+  });
+
+  it("treats a null headline as the merge identity", () => {
+    const empty = metric({});
+    const some = metric({
+      metrics: { points: 6, darts: 3, hits: 3 },
+      headlineMin: 6,
+      headlineMax: 6,
+      sessions: 1,
+    });
+
+    expect(mergeStepResult(spec, empty, some)).toEqual(some);
+    expect(mergeStepResult(spec, some, empty)).toEqual(some);
   });
 });

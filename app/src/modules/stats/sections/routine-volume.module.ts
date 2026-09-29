@@ -5,10 +5,12 @@ import type { SeriesBucket } from "@lib/types";
 /**
  * Folds `findRoutineRunBuckets` rows into `routine-volume` buckets (phase 6b
  * plan decision 6). One row already is one bucket — `findRoutineRunBuckets`
- * groups in SQL — so this only converts units and shape, never merges rows.
- * `minutes`/`minMinutes`/`maxMinutes` divide the row's own second columns by
- * 60; the division commutes with the reader's sums, so re-aggregating two
- * chunks' minutes never drifts from converting an unchunked sum once.
+ * groups in SQL — so this only reshapes it, never merges rows.
+ * `durationSeconds`/`minDurationSeconds`/`maxDurationSeconds` carry the
+ * row's own second columns through unconverted (ruling R16): a
+ * `seconds / 60` float does not re-add exactly across chunks
+ * (`1/60 + 5/60 !== 6/60`), so minutes is a client-side display conversion,
+ * never this module's.
  */
 export function routineVolumeBuckets(
   rows: readonly RoutineRunBucketRow[],
@@ -24,9 +26,9 @@ export function routineVolumeBuckets(
       sampleSize: row.runs,
       metrics: {
         runs: row.runs,
-        minutes: row.durationSum / 60,
-        minMinutes: row.durationMin / 60,
-        maxMinutes: row.durationMax / 60,
+        durationSeconds: row.durationSum,
+        minDurationSeconds: row.durationMin,
+        maxDurationSeconds: row.durationMax,
         darts: row.darts,
       },
     }));

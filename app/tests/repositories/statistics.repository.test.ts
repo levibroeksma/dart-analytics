@@ -2493,7 +2493,7 @@ describe("findStepFoldRows", () => {
 
   it("reads v_game_replay joined to v_stats_routine_step_facts, scoped to player, routine_key and step_key", async () => {
     const { db, statements } = renderingDb([]);
-    await findStepFoldRows(db, stepScope);
+    await findStepFoldRows(db, { ...stepScope, bucket: "none", tz: undefined });
     const sql = onlyStatement(statements);
     expect(sql).toContain('"v_game_replay"');
     expect(sql).toContain('"v_stats_routine_step_facts"');
@@ -2504,7 +2504,7 @@ describe("findStepFoldRows", () => {
 
   it("orders by session_id, stage_sequence, turn_sequence, dart_number", async () => {
     const { db, statements } = renderingDb([]);
-    await findStepFoldRows(db, stepScope);
+    await findStepFoldRows(db, { ...stepScope, bucket: "none", tz: undefined });
     const sql = onlyStatement(statements);
     const orderIndex = sql.toLowerCase().indexOf("order by");
     expect(orderIndex).toBeGreaterThan(-1);
@@ -2514,7 +2514,18 @@ describe("findStepFoldRows", () => {
     );
   });
 
-  it("carries sessionId, completedAt, exerciseRulesetVersionKey and configuration alongside the replay row", async () => {
+  it("renders the bucket expression on bucket=month", async () => {
+    const { db, statements } = renderingDb([]);
+    await findStepFoldRows(db, {
+      ...stepScope,
+      bucket: "month",
+      tz: "Europe/Amsterdam",
+    });
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(/date_trunc\('month', .*AT TIME ZONE \$/);
+  });
+
+  it("carries sessionId, completedAt, exerciseRulesetVersionKey, configuration, the stage columns and the bucket bounds alongside the replay row", async () => {
     const configuration = { targetSequence: [20, 19, 18] };
     const chain = {
       from: vi.fn().mockReturnThis(),
@@ -2527,6 +2538,9 @@ describe("findStepFoldRows", () => {
           exerciseRulesetVersionKey: "SWITCHING_V1",
           configuration,
           stageId: "stage-1",
+          stageSequence: 1,
+          stageTypeKey: "EXERCISE_BLOCK",
+          parentStageId: null,
           turnSequence: 1,
           participantId: "participant-1",
           participantName: "Alex",
@@ -2540,12 +2554,18 @@ describe("findStepFoldRows", () => {
           score: 60,
           locationX: "1.50",
           locationY: "-2.25",
+          bucketStart: "2026-01-01T00:00:00.000Z",
+          bucketEnd: "2026-02-01T00:00:00.000Z",
         },
       ]),
     };
     const db = { select: vi.fn(() => chain) } as any;
 
-    const result = await findStepFoldRows(db, stepScope);
+    const result = await findStepFoldRows(db, {
+      ...stepScope,
+      bucket: "none",
+      tz: undefined,
+    });
 
     expect(result).toEqual([
       {
@@ -2554,6 +2574,9 @@ describe("findStepFoldRows", () => {
         exerciseRulesetVersionKey: "SWITCHING_V1",
         configuration,
         stageId: "stage-1",
+        stageSequence: 1,
+        stageTypeKey: "EXERCISE_BLOCK",
+        parentStageId: null,
         turnSequence: 1,
         participantId: "participant-1",
         participantName: "Alex",
@@ -2567,6 +2590,8 @@ describe("findStepFoldRows", () => {
         score: 60,
         locationX: 1.5,
         locationY: -2.25,
+        bucketStart: "2026-01-01T00:00:00.000Z",
+        bucketEnd: "2026-02-01T00:00:00.000Z",
       },
     ]);
   });
@@ -2583,6 +2608,9 @@ describe("findStepFoldRows", () => {
           exerciseRulesetVersionKey: "SWITCHING_V1",
           configuration: null,
           stageId: "stage-1",
+          stageSequence: 1,
+          stageTypeKey: "EXERCISE_BLOCK",
+          parentStageId: null,
           turnSequence: 1,
           participantId: "participant-1",
           participantName: "Alex",
@@ -2596,12 +2624,16 @@ describe("findStepFoldRows", () => {
           score: null,
           locationX: null,
           locationY: null,
+          bucketStart: "2026-01-01T00:00:00.000Z",
+          bucketEnd: "2026-02-01T00:00:00.000Z",
         },
       ]),
     };
     const db = { select: vi.fn(() => chain) } as any;
 
-    await expect(findStepFoldRows(db, stepScope)).rejects.toThrow(/session_id/);
+    await expect(
+      findStepFoldRows(db, { ...stepScope, bucket: "none", tz: undefined }),
+    ).rejects.toThrow(/session_id/);
   });
 });
 
