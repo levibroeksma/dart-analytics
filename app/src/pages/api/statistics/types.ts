@@ -541,11 +541,16 @@ const ReplayStage = z.object({
   sequence: z.number().int(),
 });
 
-/** Mirrors `ReplayHeader` (`@services/types`, D371 decision 5). */
+/**
+ * Mirrors `ReplayHeader` (`@services/types`, D371 decision 5; phase 6b plan
+ * decision 11): `gameTypeKey`/`rulesetVersionKey` are `null` for a non-game
+ * routine step, and `exerciseTypeKey`/`exerciseRulesetVersionKey`/
+ * `routineKey`/`stepKey` are the fields R6 adds.
+ */
 export const ReplayHeaderSchema = z.object({
   sessionId: z.string().uuid(),
-  gameTypeKey: z.string(),
-  rulesetVersionKey: z.string(),
+  gameTypeKey: z.string().nullable(),
+  rulesetVersionKey: z.string().nullable(),
   inputModeKey: z.string(),
   statusKey: z.string(),
   contextKey: z.string(),
@@ -557,6 +562,10 @@ export const ReplayHeaderSchema = z.object({
   durationSeconds: z.number().int(),
   turnCount: z.number().int(),
   dartCount: z.number().int(),
+  exerciseTypeKey: z.string(),
+  exerciseRulesetVersionKey: z.string().nullable(),
+  routineKey: z.string().nullable(),
+  stepKey: z.string().nullable(),
   participants: z.array(ReplayParticipant),
   stages: z.array(ReplayStage),
 });

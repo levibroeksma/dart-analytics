@@ -1206,27 +1206,85 @@ function fakeLimitedQuery(rows: unknown[]) {
   };
 }
 
+/**
+ * `findReplaySession`'s query chain (R6): a `leftJoin` on top of
+ * `fakeLimitedQuery`'s `from`/`where`/`limit`, since the primary query joins
+ * `v_stats_routine_step_facts`. `resolutions` queues each call's `limit()`
+ * result in order, so a test can serve the join query's rows, then the
+ * fallback step-view query's, off the one chain `db.select` keeps returning.
+ */
+function fakeReplayQuery(...resolutions: unknown[][]) {
+  const limit = vi.fn();
+  resolutions.forEach((rows) => limit.mockResolvedValueOnce(rows));
+  return {
+    from: vi.fn().mockReturnThis(),
+    leftJoin: vi.fn().mockReturnThis(),
+    where: vi.fn().mockReturnThis(),
+    limit,
+  };
+}
+
+const GAME_JOIN_ROW = {
+  sessionId: "s1",
+  gameTypeKey: "501",
+  rulesetVersionKey: "501_V1",
+  inputModeKey: "VISUAL_BOARD",
+  statusKey: "COMPLETED",
+  contextKey: "STANDALONE",
+  activityId: "activity-1",
+  routineStepSequenceNumber: null,
+  configuration: null,
+  startedAt: "2026-09-19T10:00:00.000Z",
+  completedAt: "2026-09-19T10:05:00.000Z",
+  durationSeconds: 300,
+  turnCount: 9,
+  dartCount: 27,
+  exerciseTypeKey: null,
+  exerciseRulesetVersionKey: null,
+  routineKey: null,
+  stepKey: null,
+};
+
 describe("findReplaySession", () => {
-  it("selects from v_stats_session_facts filtered by player and session", async () => {
+  it("selects from v_stats_session_facts, left-joined to v_stats_routine_step_facts, filtered by player and session", async () => {
     const { db, statements } = renderingDb([]);
     await findReplaySession(db, "p1", "s1");
-    const sql = onlyStatement(statements);
+    const sql = statements[0]!.sql;
     expect(sql).toContain('"v_stats_session_facts"');
+    expect(sql).toContain('"v_stats_routine_step_facts"');
     expect(sql).toMatch(/"player_id" = \$/);
     expect(sql).toMatch(/"session_id" = \$/);
   });
 
-  it("returns null when no row matches", async () => {
-    const db = { select: vi.fn(() => fakeLimitedQuery([])) } as any;
+  it("falls back to v_stats_routine_step_facts, filtered by player, session and a non-null input mode, when the join misses", async () => {
+    const { db, statements } = renderingDb([]);
+    const result = await findReplaySession(db, "p1", "s1");
+    expect(statements).toHaveLength(2);
+    const sql = statements[1]!.sql;
+    expect(sql).toContain('"v_stats_routine_step_facts"');
+    expect(sql).toMatch(/"player_id" = \$/);
+    expect(sql).toMatch(/"session_id" = \$/);
+    expect(sql.toLowerCase()).toMatch(/"input_mode_key" is not null/);
+    expect(result).toBeNull();
+  });
+
+  it("returns null when neither query matches", async () => {
+    const chain = fakeReplayQuery([], []);
+    const db = { select: vi.fn(() => chain) } as any;
 
     const result = await findReplaySession(db, "p1", "s1");
 
     expect(result).toBeNull();
   });
 
-  it("maps the decision 5 fields, passing configuration through untouched", async () => {
+  it("maps the decision 5 fields for a standalone game, defaulting exerciseTypeKey to GAME (R6) when the join finds no step", async () => {
     const configuration = { starting_score: 501 };
-    const row = {
+    const row = { ...GAME_JOIN_ROW, configuration };
+    const db = { select: vi.fn(() => fakeReplayQuery([row])) } as any;
+
+    const result = await findReplaySession(db, "p1", "s1");
+
+    expect(result).toEqual({
       sessionId: "s1",
       gameTypeKey: "501",
       rulesetVersionKey: "501_V1",
@@ -1241,60 +1299,116 @@ describe("findReplaySession", () => {
       durationSeconds: 300,
       turnCount: 9,
       dartCount: 27,
-    };
-    const db = { select: vi.fn(() => fakeLimitedQuery([row])) } as any;
-
-    const result = await findReplaySession(db, "p1", "s1");
-
-    expect(result).toEqual(row);
+      exerciseTypeKey: "GAME",
+      exerciseRulesetVersionKey: null,
+      routineKey: null,
+      stepKey: null,
+    });
     expect(result?.configuration).toBe(configuration);
   });
 
-  it("passes a non-null routineStepSequenceNumber through for a routine step", async () => {
+  it("carries routineKey, stepKey, exerciseTypeKey and exerciseRulesetVersionKey through for a GAME routine step (R6)", async () => {
     const row = {
-      sessionId: "s1",
-      gameTypeKey: "501",
-      rulesetVersionKey: "501_V1",
-      inputModeKey: "VISUAL_BOARD",
-      statusKey: "COMPLETED",
-      contextKey: "ROUTINE",
-      activityId: "activity-1",
+      ...GAME_JOIN_ROW,
       routineStepSequenceNumber: 2,
-      configuration: null,
-      startedAt: "2026-09-19T10:00:00.000Z",
-      completedAt: "2026-09-19T10:05:00.000Z",
-      durationSeconds: 300,
-      turnCount: 9,
-      dartCount: 27,
+      contextKey: "ROUTINE",
+      exerciseTypeKey: "GAME",
+      exerciseRulesetVersionKey: null,
+      routineKey: "name-abc123",
+      stepKey: "1-def456",
     };
-    const db = { select: vi.fn(() => fakeLimitedQuery([row])) } as any;
+    const db = { select: vi.fn(() => fakeReplayQuery([row])) } as any;
 
     const result = await findReplaySession(db, "p1", "s1");
 
+    expect(result?.routineKey).toBe("name-abc123");
+    expect(result?.stepKey).toBe("1-def456");
+    expect(result?.exerciseTypeKey).toBe("GAME");
     expect(result?.routineStepSequenceNumber).toBe(2);
   });
 
   it("nonNull throws on a null activityId column", async () => {
-    const row = {
-      sessionId: "s1",
-      gameTypeKey: "501",
-      rulesetVersionKey: "501_V1",
+    const row = { ...GAME_JOIN_ROW, activityId: null };
+    const db = { select: vi.fn(() => fakeReplayQuery([row])) } as any;
+
+    await expect(findReplaySession(db, "p1", "s1")).rejects.toThrow(
+      /activity_id/,
+    );
+  });
+
+  it("falls back to the step view and maps decision 11 fields for a non-game step (Switching)", async () => {
+    const configuration = { targets: [20, 19] };
+    const stepRow = {
+      sessionId: "s2",
+      activityId: "activity-2",
+      routineKey: "name-abc123",
+      stepKey: "1-def456",
+      sequenceNumber: 1,
+      exerciseTypeKey: "SWITCHING",
+      exerciseRulesetVersionKey: "SWITCHING_V1",
+      gameTypeKey: null,
+      rulesetVersionKey: null,
       inputModeKey: "VISUAL_BOARD",
       statusKey: "COMPLETED",
-      contextKey: "STANDALONE",
-      activityId: null,
-      routineStepSequenceNumber: null,
+      configuration,
+      startedAt: "2026-09-19T10:00:00.000Z",
+      completedAt: "2026-09-19T10:05:00.000Z",
+      durationSeconds: 300,
+      turnCount: 5,
+      dartCount: 15,
+    };
+    const chain = fakeReplayQuery([], [stepRow]);
+    const db = { select: vi.fn(() => chain) } as any;
+
+    const result = await findReplaySession(db, "p1", "s2");
+
+    expect(result).toEqual({
+      sessionId: "s2",
+      gameTypeKey: null,
+      rulesetVersionKey: null,
+      inputModeKey: "VISUAL_BOARD",
+      statusKey: "COMPLETED",
+      contextKey: "ROUTINE",
+      activityId: "activity-2",
+      routineStepSequenceNumber: 1,
+      configuration,
+      startedAt: "2026-09-19T10:00:00.000Z",
+      completedAt: "2026-09-19T10:05:00.000Z",
+      durationSeconds: 300,
+      turnCount: 5,
+      dartCount: 15,
+      exerciseTypeKey: "SWITCHING",
+      exerciseRulesetVersionKey: "SWITCHING_V1",
+      routineKey: "name-abc123",
+      stepKey: "1-def456",
+    });
+  });
+
+  it("nonNull throws on a null statusKey column from the step-view fallback", async () => {
+    const stepRow = {
+      sessionId: "s2",
+      activityId: "activity-2",
+      routineKey: "name-abc123",
+      stepKey: "1-def456",
+      sequenceNumber: 1,
+      exerciseTypeKey: "SWITCHING",
+      exerciseRulesetVersionKey: "SWITCHING_V1",
+      gameTypeKey: null,
+      rulesetVersionKey: null,
+      inputModeKey: "VISUAL_BOARD",
+      statusKey: null,
       configuration: null,
       startedAt: "2026-09-19T10:00:00.000Z",
       completedAt: "2026-09-19T10:05:00.000Z",
       durationSeconds: 300,
-      turnCount: 9,
-      dartCount: 27,
+      turnCount: 5,
+      dartCount: 15,
     };
-    const db = { select: vi.fn(() => fakeLimitedQuery([row])) } as any;
+    const chain = fakeReplayQuery([], [stepRow]);
+    const db = { select: vi.fn(() => chain) } as any;
 
-    await expect(findReplaySession(db, "p1", "s1")).rejects.toThrow(
-      /activity_id/,
+    await expect(findReplaySession(db, "p1", "s2")).rejects.toThrow(
+      /status_key/,
     );
   });
 });

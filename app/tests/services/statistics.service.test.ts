@@ -1589,6 +1589,10 @@ function makeReplaySessionRow(
     durationSeconds: 600,
     turnCount: 4,
     dartCount: 12,
+    exerciseTypeKey: "GAME",
+    exerciseRulesetVersionKey: null,
+    routineKey: null,
+    stepKey: null,
     ...overrides,
   };
 }
@@ -1803,6 +1807,35 @@ describe("getSessionReplay", () => {
       "session-1",
       ["leg-1", "leg-2"],
     );
+  });
+
+  it("carries routineKey and stepKey through for a GAME routine step, resolved through v_stats_session_facts (phase 6b decision 11, R6)", async () => {
+    vi.mocked(repo.findReplaySession).mockResolvedValue(
+      makeReplaySessionRow({
+        sessionId: "session-1",
+        contextKey: "ROUTINE",
+        routineStepSequenceNumber: 2,
+        exerciseTypeKey: "GAME",
+        routineKey: "name-abc123",
+        stepKey: "2-def456",
+      }),
+    );
+    vi.mocked(repo.findReplayStages).mockResolvedValue([]);
+    vi.mocked(repo.findReplayParticipants).mockResolvedValue([]);
+    vi.mocked(repo.findReplayTurnPage).mockResolvedValue([]);
+
+    const result = await getSessionReplay(playerId, "session-1", {
+      cursor: null,
+      limit: 30,
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.header?.gameTypeKey).toBe("501");
+      expect(result.data.header?.routineKey).toBe("name-abc123");
+      expect(result.data.header?.stepKey).toBe("2-def456");
+      expect(result.data.header?.exerciseTypeKey).toBe("GAME");
+    }
   });
 
   it("returns an empty header, no turns, and no cursor for a session with no stages (never started)", async () => {

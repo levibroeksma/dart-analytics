@@ -687,15 +687,22 @@ export type Bobs27SurvivalMetrics = Record<string, Bobs27SurvivalGroupMetrics>;
 
 /**
  * One row of `v_stats_session_facts`, restricted to a replay page's header
- * fields (D371 decision 5): the session's own identity plus the stored facts
- * a replay never re-derives. `configuration` and `routineStepSequenceNumber`
- * are the view's own nullable columns, passed through untouched --
- * `routineStepSequenceNumber` is `null` for a standalone session.
+ * fields (D371 decision 5, phase 6b plan decision 11, R6): the session's own
+ * identity plus the stored facts a replay never re-derives. `configuration`
+ * and `routineStepSequenceNumber` are the view's own nullable columns, passed
+ * through untouched -- `routineStepSequenceNumber` is `null` for a
+ * standalone session. `gameTypeKey`/`rulesetVersionKey` are `null` for a
+ * non-game routine step, which `v_stats_session_facts` never carries at all
+ * (its `game_types`/`ruleset_versions` joins are inner) -- the same pairing
+ * `RoutineStepDescriptorRow` already establishes. `exerciseTypeKey` is
+ * `"GAME"` for a row with no `v_stats_routine_step_facts` match (a
+ * standalone game, R6); `exerciseRulesetVersionKey`, `routineKey` and
+ * `stepKey` are `null` for one too.
  */
 export type ReplaySessionRow = {
   sessionId: string;
-  gameTypeKey: GameTypeKey;
-  rulesetVersionKey: string;
+  gameTypeKey: GameTypeKey | null;
+  rulesetVersionKey: string | null;
   inputModeKey: string;
   statusKey: string;
   contextKey: string;
@@ -707,6 +714,10 @@ export type ReplaySessionRow = {
   durationSeconds: number;
   turnCount: number;
   dartCount: number;
+  exerciseTypeKey: string;
+  exerciseRulesetVersionKey: string | null;
+  routineKey: string | null;
+  stepKey: string | null;
 };
 
 /**

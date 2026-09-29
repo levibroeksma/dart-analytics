@@ -1220,13 +1220,122 @@ function mapBucketRow(row: {
 }
 
 /**
- * The replay gate (D371 decision 2): one `v_stats_session_facts` row scoped
- * to `player_id` and `session_id`, carrying the header's decision-5 fields.
- * `null` when the session is missing, belongs to another player, is still
- * active, or is a training session — `v_stats_session_facts` excludes all
- * four alike, so a replay page cannot tell them apart. `configuration` and
- * `routineStepSequenceNumber` are the view's own nullable columns, passed
- * through untouched.
+ * `findReplaySession`'s primary (session-facts-joined-to-step) query row
+ * shape. R6: a session-facts row with no `v_stats_routine_step_facts` match
+ * is a standalone game (`session.service.ts`'s
+ * `findExerciseTypeId(db, "GAME")`), so it defaults `exerciseTypeKey` to
+ * `"GAME"`.
+ */
+function mapReplaySessionJoinRow(row: {
+  sessionId: string | null;
+  gameTypeKey: string | null;
+  rulesetVersionKey: string | null;
+  inputModeKey: string | null;
+  statusKey: string | null;
+  contextKey: string | null;
+  activityId: string | null;
+  routineStepSequenceNumber: number | null;
+  configuration: unknown;
+  startedAt: string | null;
+  completedAt: string | null;
+  durationSeconds: number | null;
+  turnCount: number | null;
+  dartCount: number | null;
+  exerciseTypeKey: string | null;
+  exerciseRulesetVersionKey: string | null;
+  routineKey: string | null;
+  stepKey: string | null;
+}): ReplaySessionRow {
+  return {
+    sessionId: nonNull(row.sessionId, "session_id"),
+    gameTypeKey: nonNull(row.gameTypeKey, "game_type_key") as GameTypeKey,
+    rulesetVersionKey: nonNull(row.rulesetVersionKey, "ruleset_version_key"),
+    inputModeKey: nonNull(row.inputModeKey, "input_mode_key"),
+    statusKey: nonNull(row.statusKey, "status_key"),
+    contextKey: nonNull(row.contextKey, "context_key"),
+    activityId: nonNull(row.activityId, "activity_id"),
+    routineStepSequenceNumber: row.routineStepSequenceNumber,
+    configuration: row.configuration as Record<string, unknown> | null,
+    startedAt: nonNull(row.startedAt, "started_at"),
+    completedAt: nonNull(row.completedAt, "completed_at"),
+    durationSeconds: nonNull(row.durationSeconds, "duration_seconds"),
+    turnCount: nonNull(row.turnCount, "turn_count"),
+    dartCount: nonNull(row.dartCount, "dart_count"),
+    exerciseTypeKey: row.exerciseTypeKey ?? "GAME",
+    exerciseRulesetVersionKey: row.exerciseRulesetVersionKey,
+    routineKey: row.routineKey,
+    stepKey: row.stepKey,
+  };
+}
+
+/**
+ * `findReplaySession`'s fallback (step-view-only) query row shape.
+ * `contextKey` is always `"ROUTINE"`: `v_stats_routine_step_facts` requires
+ * `routine_step_sequence_number IS NOT NULL`, so a row read through it is
+ * always part of a routine.
+ */
+function mapReplayStepFactsRow(row: {
+  sessionId: string | null;
+  activityId: string | null;
+  routineKey: string | null;
+  stepKey: string | null;
+  sequenceNumber: number | null;
+  exerciseTypeKey: string | null;
+  exerciseRulesetVersionKey: string | null;
+  gameTypeKey: string | null;
+  rulesetVersionKey: string | null;
+  inputModeKey: string | null;
+  statusKey: string | null;
+  configuration: unknown;
+  startedAt: string | null;
+  completedAt: string | null;
+  durationSeconds: number | null;
+  turnCount: number | null;
+  dartCount: number | null;
+}): ReplaySessionRow {
+  return {
+    sessionId: nonNull(row.sessionId, "session_id"),
+    gameTypeKey: row.gameTypeKey as GameTypeKey | null,
+    rulesetVersionKey: row.rulesetVersionKey,
+    inputModeKey: nonNull(row.inputModeKey, "input_mode_key"),
+    statusKey: nonNull(row.statusKey, "status_key"),
+    contextKey: "ROUTINE",
+    activityId: nonNull(row.activityId, "activity_id"),
+    routineStepSequenceNumber: nonNull(row.sequenceNumber, "sequence_number"),
+    configuration: row.configuration as Record<string, unknown> | null,
+    startedAt: nonNull(row.startedAt, "started_at"),
+    completedAt: nonNull(row.completedAt, "completed_at"),
+    durationSeconds: nonNull(row.durationSeconds, "duration_seconds"),
+    turnCount: nonNull(row.turnCount, "turn_count"),
+    dartCount: nonNull(row.dartCount, "dart_count"),
+    exerciseTypeKey: nonNull(row.exerciseTypeKey, "exercise_type_key"),
+    exerciseRulesetVersionKey: row.exerciseRulesetVersionKey,
+    routineKey: nonNull(row.routineKey, "routine_key"),
+    stepKey: nonNull(row.stepKey, "step_key"),
+  };
+}
+
+/**
+ * The replay gate (D371 decision 2, phase 6b plan decision 11, R6): one row
+ * scoped to `player_id`/`session_id`, carrying the header's decision-5
+ * fields plus the routine step fields R6 adds. `null` when the session is
+ * missing, belongs to another player, is still active, or is a Warm-Up
+ * step (which captures no darts and has nothing to replay) — no reader here
+ * tells those apart, so a replay page cannot either.
+ *
+ * `v_stats_session_facts` is left-joined to `v_stats_routine_step_facts` on
+ * `session_id` (the player filter runs once, on the outer view, since a
+ * matching `session_id` is already scoped to that player): a GAME step's row
+ * carries its `routineKey`/`stepKey` this way, and a row with no step match
+ * is a standalone game, so it gets `exerciseTypeKey: "GAME"` (R6).
+ *
+ * When `v_stats_session_facts` has no row for this session — the session is
+ * either missing, another player's, still active, or a non-game routine
+ * step, since that view's `game_types`/`ruleset_versions` joins are inner —
+ * the step view is tried next, restricted to `input_mode_key IS NOT NULL` so
+ * a Warm-Up session reads back `null` same as a missing id. `configuration`
+ * and `routineStepSequenceNumber` are passed through untouched from
+ * whichever view answered.
  */
 export async function findReplaySession(
   db: Db,
@@ -1249,8 +1358,17 @@ export async function findReplaySession(
       durationSeconds: vStatsSessionFacts.durationSeconds,
       turnCount: vStatsSessionFacts.turnCount,
       dartCount: vStatsSessionFacts.dartCount,
+      exerciseTypeKey: vStatsRoutineStepFacts.exerciseTypeKey,
+      exerciseRulesetVersionKey:
+        vStatsRoutineStepFacts.exerciseRulesetVersionKey,
+      routineKey: vStatsRoutineStepFacts.routineKey,
+      stepKey: vStatsRoutineStepFacts.stepKey,
     })
     .from(vStatsSessionFacts)
+    .leftJoin(
+      vStatsRoutineStepFacts,
+      eq(vStatsRoutineStepFacts.sessionId, vStatsSessionFacts.sessionId),
+    )
     .where(
       and(
         eq(vStatsSessionFacts.playerId, playerId),
@@ -1260,24 +1378,41 @@ export async function findReplaySession(
     .limit(1);
 
   const row = rows[0];
-  if (row === undefined) return null;
+  if (row !== undefined) return mapReplaySessionJoinRow(row);
 
-  return {
-    sessionId: nonNull(row.sessionId, "session_id"),
-    gameTypeKey: nonNull(row.gameTypeKey, "game_type_key") as GameTypeKey,
-    rulesetVersionKey: nonNull(row.rulesetVersionKey, "ruleset_version_key"),
-    inputModeKey: nonNull(row.inputModeKey, "input_mode_key"),
-    statusKey: nonNull(row.statusKey, "status_key"),
-    contextKey: nonNull(row.contextKey, "context_key"),
-    activityId: nonNull(row.activityId, "activity_id"),
-    routineStepSequenceNumber: row.routineStepSequenceNumber,
-    configuration: row.configuration as Record<string, unknown> | null,
-    startedAt: nonNull(row.startedAt, "started_at"),
-    completedAt: nonNull(row.completedAt, "completed_at"),
-    durationSeconds: nonNull(row.durationSeconds, "duration_seconds"),
-    turnCount: nonNull(row.turnCount, "turn_count"),
-    dartCount: nonNull(row.dartCount, "dart_count"),
-  };
+  const stepRows = await db
+    .select({
+      sessionId: vStatsRoutineStepFacts.sessionId,
+      activityId: vStatsRoutineStepFacts.activityId,
+      routineKey: vStatsRoutineStepFacts.routineKey,
+      stepKey: vStatsRoutineStepFacts.stepKey,
+      sequenceNumber: vStatsRoutineStepFacts.sequenceNumber,
+      exerciseTypeKey: vStatsRoutineStepFacts.exerciseTypeKey,
+      exerciseRulesetVersionKey:
+        vStatsRoutineStepFacts.exerciseRulesetVersionKey,
+      gameTypeKey: vStatsRoutineStepFacts.gameTypeKey,
+      rulesetVersionKey: vStatsRoutineStepFacts.rulesetVersionKey,
+      inputModeKey: vStatsRoutineStepFacts.inputModeKey,
+      statusKey: vStatsRoutineStepFacts.statusKey,
+      configuration: vStatsRoutineStepFacts.configuration,
+      startedAt: vStatsRoutineStepFacts.startedAt,
+      completedAt: vStatsRoutineStepFacts.completedAt,
+      durationSeconds: vStatsRoutineStepFacts.durationSeconds,
+      turnCount: vStatsRoutineStepFacts.turnCount,
+      dartCount: vStatsRoutineStepFacts.dartCount,
+    })
+    .from(vStatsRoutineStepFacts)
+    .where(
+      and(
+        eq(vStatsRoutineStepFacts.playerId, playerId),
+        eq(vStatsRoutineStepFacts.sessionId, sessionId),
+        isNotNull(vStatsRoutineStepFacts.inputModeKey),
+      ),
+    )
+    .limit(1);
+
+  const stepRow = stepRows[0];
+  return stepRow === undefined ? null : mapReplayStepFactsRow(stepRow);
 }
 
 /**

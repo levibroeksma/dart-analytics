@@ -219,9 +219,17 @@ export type ReplaySnapshot = Record<string, unknown> & {
   seats: readonly SeatFact[];
 };
 
-/** Why a replay shows its stored facts only (D371 decision 8). */
+/**
+ * Why a replay shows its stored facts only (D371 decision 8; phase 6b plan
+ * decision 11 adds `NO_EXERCISE_ENGINE` for a non-game step whose
+ * `exerciseRulesetVersionKey` names no registered dart exercise engine).
+ */
 export type ReplaySkipReason =
-  "NO_SNAPSHOT" | "NO_ENGINE" | "SEATLESS_MULTI" | "ENGINE_THREW";
+  | "NO_SNAPSHOT"
+  | "NO_ENGINE"
+  | "SEATLESS_MULTI"
+  | "ENGINE_THREW"
+  | "NO_EXERCISE_ENGINE";
 
 /**
  * One loaded turn as a presenter reads it: the turn as its engine folded

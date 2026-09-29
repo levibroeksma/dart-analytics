@@ -57,12 +57,12 @@ const scope = JSON.stringify({
           <div class="flex items-center justify-between gap-2">
             <h2
               class="text-sm font-semibold text-foreground"
-              x-text="titles[$store.replay.header.gameTypeKey] ?? $store.replay.header.gameTypeKey"
+              x-text="titles[$store.replay.header.gameTypeKey] ?? $store.replay.header.exerciseTypeKey"
             >
             </h2>
             <span
               class="text-xs text-muted-foreground"
-              x-text="$store.replay.header.rulesetVersionKey"
+              x-text="$store.replay.header.rulesetVersionKey ?? $store.replay.header.exerciseRulesetVersionKey"
             >
             </span>
           </div>

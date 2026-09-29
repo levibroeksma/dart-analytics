@@ -1,5 +1,9 @@
 import { doublesPathTargetLabel } from "@lib/game/doubles-path-play";
 import {
+  STEP_METRIC_SPECS,
+  stepMetrics,
+} from "@modules/stats/step-metrics.module";
+import {
   activeTargetOf as clockTargetOf,
   applyAroundTheClockDart,
   isClockHit,
@@ -22,8 +26,10 @@ import type {
   AroundTheClockSeatState,
   BoardTarget,
   Bobs27SeatState,
+  DartExerciseKind,
   DartObservation,
   DoublesTrainingSeatState,
+  EngineFacts,
   FiveOhOneSeatState,
   FiveOhOneState,
   MultiSeatState,
@@ -375,3 +381,74 @@ export const REPLAY_PRESENTERS: Record<GameTypeKey, ReplayPresenter> = {
   SHANGHAI,
   AROUND_THE_CLOCK,
 };
+
+/** No facts to fold: every dart exercise kind's per-turn headline and darts count read off `state` alone (`stepMetrics`'s `numberField` reads), never off `facts` -- only Switching's own "hits" key uses `facts`, and a turn cell never shows it (session() does, over the real facts). */
+const NO_FACTS: EngineFacts = { stages: [], turns: [] };
+
+/** Turns a `stepMetrics` key into the label its cell shows ("bestChain" -> "Best Chain"). */
+function metricLabel(key: string): string {
+  const spaced = key.replace(/([A-Z])/g, " $1");
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+}
+
+/** The metrics key that counts darts thrown, for a kind whose spec calls it something else (Bull Up's own attempts are still one dart each). */
+function dartsMetricKey(kind: DartExerciseKind): string {
+  return Object.hasOwn(STEP_METRIC_SPECS[kind].metrics, "darts")
+    ? "darts"
+    : "throws";
+}
+
+/** One dart exercise kind's `EngineFacts`, rebuilt from its own replayed turns -- real facts, unlike the per-turn cell's `NO_FACTS` shortcut, since the session line's "hits" (Switching) must be the true count. */
+function stepFactsOf(steps: readonly ReplayStep[]): EngineFacts {
+  return { stages: [], turns: steps.map((step) => step.turn) };
+}
+
+/**
+ * One dart exercise kind's replay presenter (phase 6b plan decision 11),
+ * shared across all seven kinds rather than written per kind: a turn cell
+ * shows the running headline and darts thrown, both read straight off
+ * `state` after that turn (`stepMetrics` over `NO_FACTS` -- correct because
+ * neither field depends on `facts`); the session line shows every one of
+ * `stepMetrics`' final metrics, `facts` rebuilt from the real replayed
+ * turns so Switching's "hits" is the true count.
+ */
+function buildStepPresenter(kind: DartExerciseKind): ReplayPresenter {
+  const spec = STEP_METRIC_SPECS[kind];
+  const dartsKey = dartsMetricKey(kind);
+  return {
+    turn({ after }) {
+      const metrics = stepMetrics(kind, after, NO_FACTS);
+      return [
+        valueCell(metricLabel(spec.headline), metrics[spec.headline]),
+        valueCell(metricLabel(dartsKey), metrics[dartsKey]),
+      ];
+    },
+    session(steps) {
+      const last = steps.at(-1);
+      if (!last) return EMPTY_LINE;
+      const metrics = stepMetrics(kind, last.after, stepFactsOf(steps));
+      const participantId = last.turn.participantRef;
+      return {
+        entries: Object.keys(spec.metrics).map((key) => ({
+          participantId,
+          label: metricLabel(key),
+          value: String(metrics[key]),
+        })),
+        curves: [],
+      };
+    },
+  };
+}
+
+/**
+ * Each dart exercise kind's replay presenter (phase 6b plan decision 11),
+ * built once from `STEP_METRIC_SPECS` and `stepMetrics` rather than seven
+ * hand-written copies.
+ */
+export const STEP_REPLAY_PRESENTERS: Record<DartExerciseKind, ReplayPresenter> =
+  Object.fromEntries(
+    (Object.keys(STEP_METRIC_SPECS) as DartExerciseKind[]).map((kind) => [
+      kind,
+      buildStepPresenter(kind),
+    ]),
+  ) as Record<DartExerciseKind, ReplayPresenter>;
