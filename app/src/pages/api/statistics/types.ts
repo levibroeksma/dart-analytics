@@ -54,14 +54,77 @@ function isValidTimeZone(tz: string): boolean {
   }
 }
 
+/**
+ * The `from`/`to`/`tz`/`bucket`/`status` fields every range-and-bucket query
+ * shares — reused as-is by `StatisticsRangeQuery` and, unwidened, by the
+ * routine section query (phase 6b plan decision 4), so the two contracts
+ * cannot drift on what a valid range or bucket looks like.
+ */
+const RANGE_FIELDS = {
+  from: z.string().datetime({ offset: true }),
+  to: z.string().datetime({ offset: true }),
+  tz: z.string().optional(),
+  bucket: z.enum(["none", "day", "week", "month", "year"]).default("none"),
+  status: z.enum(["completed", "abandoned", "all"]).optional(),
+};
+
+/**
+ * `RANGE_FIELDS`' own cross-field rules, factored out so a query built from
+ * a subset of those fields (the routine section query) runs the exact same
+ * `from < to`, tz-validity and bucket-count-cap checks as
+ * `StatisticsRangeQuery`.
+ */
+function refineRangeAndBucket(
+  val: {
+    from: string;
+    to: string;
+    tz?: string;
+    bucket: "none" | "day" | "week" | "month" | "year";
+  },
+  ctx: z.RefinementCtx,
+): void {
+  const fromMs = Date.parse(val.from);
+  const toMs = Date.parse(val.to);
+  if (!(fromMs < toMs)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["to"],
+      message: "to must be after from",
+    });
+    return;
+  }
+  if (val.tz !== undefined && !isValidTimeZone(val.tz)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["tz"],
+      message: "tz must be a valid IANA time zone",
+    });
+    return;
+  }
+  if (val.bucket === "none") return;
+  if (val.tz === undefined) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["tz"],
+      message: "tz is required when bucket is not none",
+    });
+    return;
+  }
+  const spanSeconds = (toMs - fromMs) / 1000;
+  const estimate = Math.ceil(spanSeconds / BUCKET_UNIT_SECONDS[val.bucket]) + 1;
+  if (estimate > MAX_BUCKETS) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["bucket"],
+      message: `range spans too many ${val.bucket} buckets (max ${MAX_BUCKETS})`,
+    });
+  }
+}
+
 /** Contract: docs/architecture/06-API/04-Endpoint-Contracts.md §Statistics Games. */
 export const StatisticsRangeQuery = z
   .object({
-    from: z.string().datetime({ offset: true }),
-    to: z.string().datetime({ offset: true }),
-    tz: z.string().optional(),
-    bucket: z.enum(["none", "day", "week", "month", "year"]).default("none"),
-    status: z.enum(["completed", "abandoned", "all"]).optional(),
+    ...RANGE_FIELDS,
     context: z.enum(["all", "standalone", "routine"]).default("all"),
     inputMode: z.literal("VISUAL_BOARD").default("VISUAL_BOARD"),
     target: z
@@ -74,53 +137,18 @@ export const StatisticsRangeQuery = z
         },
       ),
   })
-  .superRefine((val, ctx) => {
-    const fromMs = Date.parse(val.from);
-    const toMs = Date.parse(val.to);
-    if (!(fromMs < toMs)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["to"],
-        message: "to must be after from",
-      });
-      return;
-    }
-    if (val.tz !== undefined && !isValidTimeZone(val.tz)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["tz"],
-        message: "tz must be a valid IANA time zone",
-      });
-      return;
-    }
-    if (val.bucket === "none") return;
-    if (val.tz === undefined) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["tz"],
-        message: "tz is required when bucket is not none",
-      });
-      return;
-    }
-    const spanSeconds = (toMs - fromMs) / 1000;
-    const estimate =
-      Math.ceil(spanSeconds / BUCKET_UNIT_SECONDS[val.bucket]) + 1;
-    if (estimate > MAX_BUCKETS) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["bucket"],
-        message: `range spans too many ${val.bucket} buckets (max ${MAX_BUCKETS})`,
-      });
-    }
-  });
+  .superRefine(refineRangeAndBucket);
 export type StatisticsRangeQueryData = z.infer<typeof StatisticsRangeQuery>;
+
+/** The `limit`/`cursor` fields a paginated session list adds on top of a range query — reused as-is by the routine step session query (phase 6b plan decision 10). */
+const SESSION_LIST_FIELDS = {
+  limit: z.coerce.number().int().min(1).max(100).default(25),
+  cursor: z.string().optional(),
+};
 
 export const SessionListQuery = z.intersection(
   StatisticsRangeQuery,
-  z.object({
-    limit: z.coerce.number().int().min(1).max(100).default(25),
-    cursor: z.string().optional(),
-  }),
+  z.object(SESSION_LIST_FIELDS),
 );
 export type SessionListQueryData = z.infer<typeof SessionListQuery>;
 
@@ -584,4 +612,202 @@ export const GameSessionListResponse = z.object({
 });
 export type GameSessionListResponseData = z.infer<
   typeof GameSessionListResponse
+>;
+
+/**
+ * A routine or routine-step section query (phase 6b plan decision 4):
+ * `from`, `to`, `tz`, `bucket` and `status` only, built from `RANGE_FIELDS`
+ * so it shares `StatisticsRangeQuery`'s own range/bucket rules exactly.
+ * `.strict()` fails `context`, `inputMode`, `target` or anything else --
+ * `context` is fixed to `"routine"` by the route itself (a GAME step
+ * inherits it from the server-set `routineStep` scope), so accepting the
+ * caller's own value would let a request widen a scope the server already
+ * decided (`00-Overview.md` §5 "never silently ignored").
+ */
+export const RoutineStatsQuery = z
+  .object({ ...RANGE_FIELDS })
+  .strict()
+  .superRefine(refineRangeAndBucket);
+export type RoutineStatsQueryData = z.infer<typeof RoutineStatsQuery>;
+
+/**
+ * A routine step's session-list query (phase 6b plan decision 10):
+ * `SessionListQuery`'s own `from`, `to`, `status`, `limit` and `cursor`
+ * fields, minus `context` and `inputMode` -- a step's sessions are always
+ * routine context by definition (`v_stats_routine_step_facts` has no
+ * `context_key` column), so accepting either would only ever be silently
+ * ignored, which `.strict()` refuses instead. `z.intersection` does not
+ * compose with `.strict()` (an intersected object's own unknown-keys mode is
+ * lost), so this is a flat object built from the same field schemas rather
+ * than `SessionListQuery` itself.
+ */
+export const RoutineSessionsQuery = z
+  .object({
+    from: RANGE_FIELDS.from,
+    to: RANGE_FIELDS.to,
+    status: RANGE_FIELDS.status,
+    ...SESSION_LIST_FIELDS,
+  })
+  .strict()
+  .superRefine((val, ctx) => {
+    if (!(Date.parse(val.from) < Date.parse(val.to))) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["to"],
+        message: "to must be after from",
+      });
+    }
+  });
+export type RoutineSessionsQueryData = z.infer<typeof RoutineSessionsQuery>;
+
+/** No routine-list or routine-header parameter is accepted; any key at all fails `.strict()` (plan decision 9, "any parameter -> VALIDATION_FAILED"). */
+export const RoutineNoQuery = z.object({}).strict();
+
+/** Mirrors `TrainedRoutine` (`@services/types`, phase 6b plan decision 9). */
+export const TrainedRoutineSchema = z.object({
+  routineKey: z.string(),
+  routineTemplateId: z.string().uuid().nullable(),
+  routineName: z.string(),
+  runCount: z.number().int(),
+  completedRunCount: z.number().int(),
+  lastRunAt: z.string().datetime({ offset: true }),
+});
+export type TrainedRoutineSchemaData = z.infer<typeof TrainedRoutineSchema>;
+
+/**
+ * `GET /api/statistics/routines`' response body (phase 6b plan decision 9):
+ * every routine the caller has trained, unpaginated. Named
+ * `TrainedRoutineListResponse` rather than `RoutineListResponse` --
+ * `src/pages/api/routines/types.ts` already owns that name for the
+ * unrelated `/api/routines` CRUD listing, and both flow through the same
+ * `@routes/types` barrel.
+ */
+export const TrainedRoutineListResponse = z.object({
+  items: z.array(TrainedRoutineSchema),
+});
+export type TrainedRoutineListResponseData = z.infer<
+  typeof TrainedRoutineListResponse
+>;
+
+/** Mirrors `RoutineStepDescriptor` (`@services/types`, phase 6b plan decision 9). */
+export const RoutineStepDescriptorSchema = z.object({
+  stepKey: z.string(),
+  sequenceNumber: z.number().int(),
+  exerciseTypeKey: z.string(),
+  exerciseRulesetVersionKey: z.string().nullable(),
+  gameTypeKey: z.string().nullable(),
+  rulesetVersionKey: z.string().nullable(),
+  durationSeconds: z.number().int().nullable(),
+  sessionCount: z.number().int(),
+  firstSeenAt: z.string().datetime({ offset: true }),
+  lastSeenAt: z.string().datetime({ offset: true }),
+  current: z.boolean(),
+});
+export type RoutineStepDescriptorSchemaData = z.infer<
+  typeof RoutineStepDescriptorSchema
+>;
+
+/** `GET /api/statistics/routines/:routineKey`'s response body (phase 6b plan decision 9); mirrors `RoutineHeader` (`@services/types`). */
+export const RoutineHeaderSchema = z.object({
+  routineKey: z.string(),
+  routineName: z.string(),
+  runCount: z.number().int(),
+  firstRunAt: z.string().datetime({ offset: true }),
+  lastRunAt: z.string().datetime({ offset: true }),
+  dataVersion: z.string(),
+  steps: z.array(RoutineStepDescriptorSchema),
+});
+export type RoutineHeaderSchemaData = z.infer<typeof RoutineHeaderSchema>;
+
+/** `routine-volume` section metrics (phase 6b plan decision 6): `durationSeconds`/`minDurationSeconds`/`maxDurationSeconds` are whole seconds, matching `RoutineVolumeMetrics` (`@modules/types`) -- the client converts to minutes, never the wire shape. */
+const RoutineVolumeMetrics = z.object({
+  runs: z.number().int(),
+  durationSeconds: z.number().int(),
+  minDurationSeconds: z.number().int(),
+  maxDurationSeconds: z.number().int(),
+  darts: z.number().int(),
+});
+
+/** `routine-completion` section metrics (phase 6b plan decision 6). */
+const RoutineCompletionMetrics = z.object({
+  completed: z.number().int(),
+  abandoned: z.number().int(),
+  neverStarted: z.number().int(),
+  stepsCompletedAtAbandon: z.record(z.string(), z.number().int()),
+});
+
+/** `step-volume` section metrics (phase 6b plan decision 6). */
+const StepVolumeMetrics = z.object({
+  sessions: z.number().int(),
+  durationSeconds: z.number().int(),
+  darts: z.number().int(),
+});
+
+/** `step-result` section metrics (phase 6b plan decisions 6-8): one bucket's merged per-kind metrics plus the headline's extremes and the fold's own session counts. */
+const StepResultMetrics = z.object({
+  metrics: z.record(z.string(), z.number()),
+  headlineMin: z.number().nullable(),
+  headlineMax: z.number().nullable(),
+  sessions: z.number().int(),
+  skippedSessions: z.number().int(),
+});
+
+/** Mirrors `RoutineSeries<RoutineVolumeMetrics>` (`@lib/stats/types`). */
+export const RoutineVolumeSeriesResponse = SeriesBase.extend({
+  sectionId: z.literal("routine-volume"),
+  buckets: z.array(BucketBase.extend({ metrics: RoutineVolumeMetrics })),
+});
+export type RoutineVolumeSeriesResponseData = z.infer<
+  typeof RoutineVolumeSeriesResponse
+>;
+
+/** Mirrors `RoutineSeries<RoutineCompletionMetrics>` (`@lib/stats/types`). */
+export const RoutineCompletionSeriesResponse = SeriesBase.extend({
+  sectionId: z.literal("routine-completion"),
+  buckets: z.array(BucketBase.extend({ metrics: RoutineCompletionMetrics })),
+});
+export type RoutineCompletionSeriesResponseData = z.infer<
+  typeof RoutineCompletionSeriesResponse
+>;
+
+/** Mirrors `RoutineSeries<StepVolumeMetrics>` (`@lib/stats/types`). */
+export const StepVolumeSeriesResponse = SeriesBase.extend({
+  sectionId: z.literal("step-volume"),
+  buckets: z.array(BucketBase.extend({ metrics: StepVolumeMetrics })),
+});
+export type StepVolumeSeriesResponseData = z.infer<
+  typeof StepVolumeSeriesResponse
+>;
+
+/** Mirrors `RoutineSeries<StepResultMetric>` (`@lib/stats/types`). */
+export const StepResultSeriesResponse = SeriesBase.extend({
+  sectionId: z.literal("step-result"),
+  buckets: z.array(BucketBase.extend({ metrics: StepResultMetrics })),
+});
+export type StepResultSeriesResponseData = z.infer<
+  typeof StepResultSeriesResponse
+>;
+
+const StepSessionListItem = z.object({
+  sessionId: z.string().uuid(),
+  rulesetVersionKey: z.string().nullable(),
+  exerciseRulesetVersionKey: z.string().nullable(),
+  statusKey: z.string(),
+  neverStarted: z.boolean(),
+  startedAt: z.string().datetime({ offset: true }),
+  completedAt: z.string().datetime({ offset: true }),
+  durationSeconds: z.number().int(),
+  turnCount: z.number().int(),
+  dartCount: z.number().int(),
+  countedScore: z.number().int(),
+});
+
+/** `GET .../steps/:stepKey/sessions`' response body (phase 6b plan decision 10); mirrors `SessionList` (`@services/types`). */
+export const RoutineStepSessionListResponse = z.object({
+  items: z.array(StepSessionListItem),
+  nextCursor: z.string().nullable(),
+  dataVersion: z.string(),
+});
+export type RoutineStepSessionListResponseData = z.infer<
+  typeof RoutineStepSessionListResponse
 >;

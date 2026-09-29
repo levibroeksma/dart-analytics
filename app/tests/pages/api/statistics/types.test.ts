@@ -30,6 +30,18 @@ import {
   ReplayHeaderSchema,
   ReplayTurnSchema,
   ReplayPageSchema,
+  RoutineStatsQuery,
+  RoutineSessionsQuery,
+  RoutineNoQuery,
+  TrainedRoutineSchema,
+  TrainedRoutineListResponse,
+  RoutineStepDescriptorSchema,
+  RoutineHeaderSchema,
+  RoutineVolumeSeriesResponse,
+  RoutineCompletionSeriesResponse,
+  StepVolumeSeriesResponse,
+  StepResultSeriesResponse,
+  RoutineStepSessionListResponse,
 } from "@routes/types";
 
 describe("StatisticsOverviewResponse", () => {
@@ -1093,5 +1105,343 @@ describe("replay page schemas", () => {
       darts: [{ ...turn.darts[0], hitZoneKey: null }],
     });
     expect(result.success).toBe(false);
+  });
+});
+
+const routineRange = {
+  from: "2026-01-01T00:00:00+01:00",
+  to: "2026-02-01T00:00:00+01:00",
+};
+
+describe("RoutineStatsQuery", () => {
+  it("accepts from/to/tz/bucket/status", () => {
+    const result = RoutineStatsQuery.safeParse({
+      ...routineRange,
+      tz: "Europe/Amsterdam",
+      bucket: "month",
+      status: "completed",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("defaults bucket to none and omits tz", () => {
+    const result = RoutineStatsQuery.safeParse(routineRange);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.bucket).toBe("none");
+      expect(result.data.tz).toBeUndefined();
+    }
+  });
+
+  it("rejects a missing from", () => {
+    expect(RoutineStatsQuery.safeParse({ to: routineRange.to }).success).toBe(
+      false,
+    );
+  });
+
+  it("rejects from >= to", () => {
+    const result = RoutineStatsQuery.safeParse({
+      from: routineRange.to,
+      to: routineRange.from,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects bucket=month with no tz", () => {
+    const result = RoutineStatsQuery.safeParse({
+      ...routineRange,
+      bucket: "month",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it.each([
+    ["context", "routine"],
+    ["context", "all"],
+    ["inputMode", "VISUAL_BOARD"],
+    ["target", "DOUBLE:16"],
+    ["foo", "1"],
+  ])("rejects an unexpected %s key", (key, value) => {
+    const result = RoutineStatsQuery.safeParse({
+      ...routineRange,
+      [key]: value,
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("RoutineSessionsQuery", () => {
+  it("accepts from/to/status/limit/cursor", () => {
+    const result = RoutineSessionsQuery.safeParse({
+      ...routineRange,
+      status: "completed",
+      limit: 10,
+      cursor: "v1:018f1e2a-0000-7000-8000-000000000000",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("defaults limit to 25", () => {
+    const result = RoutineSessionsQuery.safeParse(routineRange);
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.limit).toBe(25);
+  });
+
+  it("rejects limit=0", () => {
+    const result = RoutineSessionsQuery.safeParse({
+      ...routineRange,
+      limit: 0,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects from >= to", () => {
+    const result = RoutineSessionsQuery.safeParse({
+      from: routineRange.to,
+      to: routineRange.from,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it.each([
+    ["context", "routine"],
+    ["context", "all"],
+    ["inputMode", "VISUAL_BOARD"],
+    ["bucket", "day"],
+    ["tz", "Europe/Amsterdam"],
+    ["foo", "1"],
+  ])("rejects an unexpected %s key", (key, value) => {
+    const result = RoutineSessionsQuery.safeParse({
+      ...routineRange,
+      [key]: value,
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("RoutineNoQuery", () => {
+  it("accepts an empty object", () => {
+    expect(RoutineNoQuery.safeParse({}).success).toBe(true);
+  });
+
+  it("rejects any key at all", () => {
+    expect(RoutineNoQuery.safeParse({ foo: "1" }).success).toBe(false);
+  });
+});
+
+describe("TrainedRoutineSchema / TrainedRoutineListResponse", () => {
+  const trainedRoutine = {
+    routineKey: "0198f200-0000-7000-8000-000000000099",
+    routineTemplateId: "0198f200-0000-7000-8000-000000000099",
+    routineName: "Evening Practice",
+    runCount: 5,
+    completedRunCount: 4,
+    lastRunAt: "2026-01-10T00:00:00.000Z",
+  };
+
+  it("parses a routine with a template id", () => {
+    expect(TrainedRoutineSchema.safeParse(trainedRoutine).success).toBe(true);
+  });
+
+  it("parses a legacy routine with a null template id", () => {
+    expect(
+      TrainedRoutineSchema.safeParse({
+        ...trainedRoutine,
+        routineTemplateId: null,
+      }).success,
+    ).toBe(true);
+  });
+
+  it("parses a list response", () => {
+    const result = TrainedRoutineListResponse.safeParse({
+      items: [trainedRoutine],
+    });
+    expect(result.success).toBe(true);
+  });
+});
+
+describe("RoutineStepDescriptorSchema / RoutineHeaderSchema", () => {
+  const gameStep = {
+    stepKey: `1-${"a".repeat(32)}`,
+    sequenceNumber: 1,
+    exerciseTypeKey: "GAME",
+    exerciseRulesetVersionKey: null,
+    gameTypeKey: "501",
+    rulesetVersionKey: "501_V1",
+    durationSeconds: 300,
+    sessionCount: 3,
+    firstSeenAt: "2026-01-01T00:00:00.000Z",
+    lastSeenAt: "2026-01-10T00:00:00.000Z",
+    current: true,
+  };
+
+  const exerciseStep = {
+    stepKey: `2-${"c".repeat(32)}`,
+    sequenceNumber: 2,
+    exerciseTypeKey: "SWITCHING",
+    exerciseRulesetVersionKey: "SWITCHING_V1",
+    gameTypeKey: null,
+    rulesetVersionKey: null,
+    durationSeconds: 180,
+    sessionCount: 4,
+    firstSeenAt: "2026-01-01T00:00:00.000Z",
+    lastSeenAt: "2026-01-10T00:00:00.000Z",
+    current: true,
+  };
+
+  it("parses a GAME step descriptor", () => {
+    expect(RoutineStepDescriptorSchema.safeParse(gameStep).success).toBe(true);
+  });
+
+  it("parses a non-game step descriptor", () => {
+    expect(RoutineStepDescriptorSchema.safeParse(exerciseStep).success).toBe(
+      true,
+    );
+  });
+
+  it("parses a routine header carrying both step shapes", () => {
+    const result = RoutineHeaderSchema.safeParse({
+      routineKey: "0198f200-0000-7000-8000-000000000099",
+      routineName: "Evening Practice",
+      runCount: 5,
+      firstRunAt: "2026-01-01T00:00:00.000Z",
+      lastRunAt: "2026-01-10T00:00:00.000Z",
+      dataVersion: "v1:5:1736467200000",
+      steps: [gameStep, exerciseStep],
+    });
+    expect(result.success).toBe(true);
+  });
+});
+
+describe("routine and step section series schemas", () => {
+  const seriesBase = {
+    sectionVersion: 1,
+    dataVersion: "v1:5:1736467200000",
+    bucket: "none" as const,
+    tz: null,
+    range: routineRange,
+  };
+
+  it("parses a routine-volume series", () => {
+    const result = RoutineVolumeSeriesResponse.safeParse({
+      ...seriesBase,
+      sectionId: "routine-volume",
+      buckets: [
+        {
+          start: routineRange.from,
+          end: routineRange.to,
+          closed: true,
+          sampleSize: 3,
+          metrics: {
+            runs: 3,
+            durationSeconds: 900,
+            minDurationSeconds: 200,
+            maxDurationSeconds: 400,
+            darts: 90,
+          },
+        },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("parses a routine-completion series", () => {
+    const result = RoutineCompletionSeriesResponse.safeParse({
+      ...seriesBase,
+      sectionId: "routine-completion",
+      buckets: [
+        {
+          start: routineRange.from,
+          end: routineRange.to,
+          closed: true,
+          sampleSize: 3,
+          metrics: {
+            completed: 2,
+            abandoned: 1,
+            neverStarted: 0,
+            stepsCompletedAtAbandon: { "1": 1 },
+          },
+        },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("parses a step-volume series", () => {
+    const result = StepVolumeSeriesResponse.safeParse({
+      ...seriesBase,
+      sectionId: "step-volume",
+      buckets: [
+        {
+          start: routineRange.from,
+          end: routineRange.to,
+          closed: true,
+          sampleSize: 4,
+          metrics: { sessions: 4, durationSeconds: 600, darts: 40 },
+        },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("parses a step-result series, including a bucket with no folded sessions", () => {
+    const result = StepResultSeriesResponse.safeParse({
+      ...seriesBase,
+      sectionId: "step-result",
+      buckets: [
+        {
+          start: routineRange.from,
+          end: routineRange.to,
+          closed: true,
+          sampleSize: 4,
+          metrics: {
+            metrics: { points: 30, darts: 12, hits: 9 },
+            headlineMin: 5,
+            headlineMax: 15,
+            sessions: 4,
+            skippedSessions: 0,
+          },
+        },
+        {
+          start: routineRange.to,
+          end: routineRange.to,
+          closed: false,
+          sampleSize: 2,
+          metrics: {
+            metrics: { points: 0, darts: 0, hits: 0 },
+            headlineMin: null,
+            headlineMax: null,
+            sessions: 0,
+            skippedSessions: 2,
+          },
+        },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+});
+
+describe("RoutineStepSessionListResponse", () => {
+  it("parses a page of step sessions", () => {
+    const result = RoutineStepSessionListResponse.safeParse({
+      items: [
+        {
+          sessionId: "018f1e2a-0000-7000-8000-000000000000",
+          rulesetVersionKey: null,
+          exerciseRulesetVersionKey: "SWITCHING_V1",
+          statusKey: "COMPLETED",
+          neverStarted: false,
+          startedAt: "2026-01-01T00:00:00.000Z",
+          completedAt: "2026-01-01T00:05:00.000Z",
+          durationSeconds: 300,
+          turnCount: 5,
+          dartCount: 15,
+          countedScore: 40,
+        },
+      ],
+      nextCursor: null,
+      dataVersion: "v1:5:1736467200000",
+    });
+    expect(result.success).toBe(true);
   });
 });
