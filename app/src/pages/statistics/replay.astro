@@ -53,10 +53,10 @@ const scope = JSON.stringify({
 
     <template x-if="$store.replay.header">
       <div class="space-y-4">
-        <div class="gradient-card space-y-2 p-4">
+        <div class="glass space-y-2 rounded-2xl p-4">
           <div class="flex items-center justify-between gap-2">
             <h2
-              class="text-sm font-semibold text-foreground"
+              class="text-sm text-foreground"
               x-text="titles[$store.replay.header.gameTypeKey] ?? $store.replay.header.gameTypeKey ?? $store.replay.exerciseTitle"
             >
             </h2>
@@ -130,11 +130,11 @@ const scope = JSON.stringify({
         </p>
 
         <div
-          class="gradient-card space-y-2 p-4"
+          class="glass space-y-2 rounded-2xl p-4"
           x-show="$store.replay.sessionLine?.entries.length"
           x-cloak
         >
-          <h2 class="text-sm font-semibold text-foreground">Result</h2>
+          <h2 class="text-sm text-foreground">Result</h2>
           <template
             x-for="(entry, entryIndex) in $store.replay.sessionLine?.entries ?? []"
             :key="entryIndex"
@@ -155,11 +155,11 @@ const scope = JSON.stringify({
         </div>
 
         <div
-          class="gradient-card space-y-2 p-4"
+          class="glass space-y-2 rounded-2xl p-4"
           x-show="$store.replay.curveRows.length"
           x-cloak
         >
-          <h2 class="text-sm font-semibold text-foreground">Score curve</h2>
+          <h2 class="text-sm text-foreground">Score curve</h2>
           <template
             x-for="curve in $store.replay.curveRows"
             :key="curve.participantId"
@@ -200,7 +200,7 @@ const scope = JSON.stringify({
           </template>
         </div>
 
-        <div class="gradient-card space-y-2 p-4">
+        <div class="glass space-y-2 rounded-2xl p-4">
           <DartBoard class="mx-auto w-full max-w-xs touch-auto">
             <div
               class="pointer-events-none absolute inset-0"
@@ -231,7 +231,7 @@ const scope = JSON.stringify({
         >
           <section class="space-y-2">
             <h2
-              class="text-sm font-semibold text-foreground"
+              class="text-sm text-foreground"
               x-show="group.heading !== null"
               x-cloak
               x-text="group.heading"
@@ -243,8 +243,8 @@ const scope = JSON.stringify({
             >
               <button
                 type="button"
-                class="flex w-full flex-col gap-2 rounded-lg border p-3 text-left text-sm"
-                :class="$store.replay.selectedIndex === row.index ? 'border-accent' : 'border-border'"
+                class="glass flex w-full flex-col gap-2 rounded-2xl p-3 text-left text-sm"
+                :class="$store.replay.selectedIndex === row.index ? 'border-accent' : ''"
                 :aria-pressed="$store.replay.selectedIndex === row.index"
                 @click="$store.replay.select(row.index)"
               >

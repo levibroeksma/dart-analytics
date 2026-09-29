@@ -67,13 +67,13 @@ const scope = JSON.stringify({
           />
 
           <div class="space-y-2">
-            <h2 class="text-sm font-semibold text-foreground">Sessions</h2>
+            <h2 class="text-sm text-foreground">Sessions</h2>
             <template
               x-for="item in $store.gameStats.sessions"
               :key="item.sessionId"
             >
               <a
-                class="flex items-center justify-between gap-2 rounded-lg border border-border p-3 text-sm no-underline"
+                class="flex items-center justify-between gap-2 glass rounded-2xl p-3 text-sm no-underline"
                 :href="$store.gameStats.replayHref(item.sessionId)"
               >
                 <div class="flex flex-col gap-1">
@@ -153,8 +153,8 @@ const scope = JSON.stringify({
           x-show="$store.routineStats.header"
           x-cloak
         >
-          <div class="gradient-card space-y-2 p-4">
-            <h2 class="text-sm font-semibold text-foreground">Runs</h2>
+          <div class="glass space-y-2 rounded-2xl p-4">
+            <h2 class="text-sm text-foreground">Runs</h2>
             <div
               class="grid grid-cols-3 gap-2 text-center text-sm text-muted-foreground"
             >
@@ -192,8 +192,8 @@ const scope = JSON.stringify({
             </p>
           </div>
 
-          <div class="gradient-card space-y-2 p-4">
-            <h2 class="text-sm font-semibold text-foreground">Completion</h2>
+          <div class="glass space-y-2 rounded-2xl p-4">
+            <h2 class="text-sm text-foreground">Completion</h2>
             <div
               class="grid grid-cols-3 gap-2 text-center text-sm text-muted-foreground"
             >
@@ -241,7 +241,7 @@ const scope = JSON.stringify({
             </template>
           </div>
           <div class="space-y-2">
-            <h2 class="text-sm font-semibold text-foreground">Steps</h2>
+            <h2 class="text-sm text-foreground">Steps</h2>
             <template
               x-for="step in $store.routineStats.currentSteps"
               :key="step.stepKey"
@@ -275,11 +275,11 @@ const scope = JSON.stringify({
           </template>
 
           <div
-            class="gradient-card space-y-2 p-4"
+            class="glass space-y-2 rounded-2xl p-4"
             x-show="$store.routineStats.stepHeadline"
             x-cloak
           >
-            <h2 class="text-sm font-semibold text-foreground">Step result</h2>
+            <h2 class="text-sm text-foreground">Step result</h2>
             <div
               class="grid grid-cols-2 gap-2 text-center text-sm text-muted-foreground"
             >
@@ -330,11 +330,11 @@ const scope = JSON.stringify({
           </div>
 
           <div
-            class="gradient-card space-y-2 p-4"
+            class="glass space-y-2 rounded-2xl p-4"
             x-show="$store.routineStats.stepVolumeTotals"
             x-cloak
           >
-            <h2 class="text-sm font-semibold text-foreground">Volume</h2>
+            <h2 class="text-sm text-foreground">Volume</h2>
             <div
               class="grid grid-cols-3 gap-2 text-center text-sm text-muted-foreground"
             >
@@ -369,13 +369,13 @@ const scope = JSON.stringify({
             x-show="$store.routineStats.stepKey"
             x-cloak
           >
-            <h2 class="text-sm font-semibold text-foreground">Sessions</h2>
+            <h2 class="text-sm text-foreground">Sessions</h2>
             <template
               x-for="item in $store.routineStats.stepSessions"
               :key="item.sessionId"
             >
               <a
-                class="flex items-center justify-between gap-2 rounded-lg border border-border p-3 text-sm no-underline"
+                class="flex items-center justify-between gap-2 glass rounded-2xl p-3 text-sm no-underline"
                 :href="$store.routineStats.sessionHref(item.sessionId)"
               >
                 <div class="flex flex-col gap-1">

@@ -48,11 +48,11 @@ const wrapperClass = cn("space-y-4", classNameProp);
   {...props}
 >
   <div
-    class="gradient-card space-y-2 p-4"
+    class="glass space-y-2 rounded-2xl p-4"
     x-show="gameView.sections['target-accuracy']"
     x-cloak
   >
-    <h2 class="text-sm font-semibold text-foreground">Target accuracy</h2>
+    <h2 class="text-sm text-foreground">Target accuracy</h2>
     <template
       x-for="row in gameView.accuracyRows"
       :key="row.targetKey"
@@ -128,13 +128,13 @@ const wrapperClass = cn("space-y-4", classNameProp);
   </div>
 
   <div
-    class="gradient-card space-y-2 p-4"
+    class="glass space-y-2 rounded-2xl p-4"
     x-data="{ atcGroup: '' }"
     x-effect="atcGroup = atcGroup || (gameView.atcConfigGroups[0] ?? '')"
     x-show="gameView.sections['atc-darts-per-target']"
     x-cloak
   >
-    <h2 class="text-sm font-semibold text-foreground">Darts per target</h2>
+    <h2 class="text-sm text-foreground">Darts per target</h2>
     <div
       x-show="gameView.atcConfigGroups.length > 1"
       x-cloak
@@ -192,13 +192,13 @@ const wrapperClass = cn("space-y-4", classNameProp);
   </div>
 
   <div
-    class="gradient-card space-y-2 p-4"
+    class="glass space-y-2 rounded-2xl p-4"
     x-data="{ bobsGroup: '' }"
     x-effect="bobsGroup = bobsGroup || (gameView.bobs27ConfigGroups[0] ?? '')"
     x-show="gameView.sections['bobs27-survival']"
     x-cloak
   >
-    <h2 class="text-sm font-semibold text-foreground">Survival</h2>
+    <h2 class="text-sm text-foreground">Survival</h2>
     <div
       x-show="gameView.bobs27ConfigGroups.length > 1"
       x-cloak
@@ -255,11 +255,11 @@ const wrapperClass = cn("space-y-4", classNameProp);
   </div>
 
   <div
-    class="gradient-card space-y-2 p-4"
+    class="glass space-y-2 rounded-2xl p-4"
     x-show="gameView.sections['shanghai-count']"
     x-cloak
   >
-    <h2 class="text-sm font-semibold text-foreground">Shanghais</h2>
+    <h2 class="text-sm text-foreground">Shanghais</h2>
     <template
       x-for="point in gameView.shanghaiRateTrend"
       :key="point.start"
@@ -308,13 +308,13 @@ const wrapperClass = cn("space-y-4", classNameProp);
   </div>
 
   <div
-    class="gradient-card space-y-2 p-4"
+    class="glass space-y-2 rounded-2xl p-4"
     x-data="{ confusionTarget: '' }"
     x-effect="confusionTarget = confusionTarget || (gameView.accuracyRows[0]?.targetKey ?? '')"
     x-show="gameView.sections.confusion"
     x-cloak
   >
-    <h2 class="text-sm font-semibold text-foreground">Confusion</h2>
+    <h2 class="text-sm text-foreground">Confusion</h2>
     <Select
       optionsExpr="gameView.accuracyRows.map((row) => ({ value: row.targetKey, label: row.targetKey }))"
       model="confusionTarget"
@@ -345,11 +345,11 @@ const wrapperClass = cn("space-y-4", classNameProp);
   </div>
 
   <div
-    class="gradient-card space-y-2 p-4"
+    class="glass space-y-2 rounded-2xl p-4"
     x-show="gameView.sections.grouping"
     x-cloak
   >
-    <h2 class="text-sm font-semibold text-foreground">Grouping</h2>
+    <h2 class="text-sm text-foreground">Grouping</h2>
     <template
       x-for="row in gameView.groupingRows"
       :key="row.targetKey"
@@ -377,13 +377,13 @@ const wrapperClass = cn("space-y-4", classNameProp);
   </div>
 
   <div
-    class="gradient-card space-y-2 p-4"
+    class="glass space-y-2 rounded-2xl p-4"
     x-data="{ missTarget: '' }"
     x-effect="missTarget = missTarget || (gameView.accuracyRows[0]?.targetKey ?? '')"
     x-show="gameView.sections['miss-direction']"
     x-cloak
   >
-    <h2 class="text-sm font-semibold text-foreground">Miss direction</h2>
+    <h2 class="text-sm text-foreground">Miss direction</h2>
     <Select
       optionsExpr="gameView.accuracyRows.map((row) => ({ value: row.targetKey, label: row.targetKey }))"
       model="missTarget"
@@ -416,11 +416,11 @@ const wrapperClass = cn("space-y-4", classNameProp);
   </div>
 
   <div
-    class="gradient-card space-y-2 p-4"
+    class="glass space-y-2 rounded-2xl p-4"
     x-show="gameView.sections['loose-darts']"
     x-cloak
   >
-    <h2 class="text-sm font-semibold text-foreground">Loose darts</h2>
+    <h2 class="text-sm text-foreground">Loose darts</h2>
     <template
       x-for="bucket in gameView.looseDartsTrend"
       :key="bucket.start"
@@ -446,11 +446,11 @@ const wrapperClass = cn("space-y-4", classNameProp);
   </div>
 
   <div
-    class="gradient-card space-y-2 p-4"
+    class="glass space-y-2 rounded-2xl p-4"
     x-show="gameView.sections['scoring-trend']"
     x-cloak
   >
-    <h2 class="text-sm font-semibold text-foreground">Scoring trend</h2>
+    <h2 class="text-sm text-foreground">Scoring trend</h2>
     <div
       class="grid grid-cols-2 gap-2 text-center text-sm text-muted-foreground"
     >
@@ -495,11 +495,11 @@ const wrapperClass = cn("space-y-4", classNameProp);
   </div>
 
   <div
-    class="gradient-card space-y-2 p-4"
+    class="glass space-y-2 rounded-2xl p-4"
     x-show="gameView.sections['ladder-progress']"
     x-cloak
   >
-    <h2 class="text-sm font-semibold text-foreground">Ladder progress</h2>
+    <h2 class="text-sm text-foreground">Ladder progress</h2>
     <p
       class="text-sm text-muted-foreground"
       x-show="gameView.ladderSummary"
@@ -539,11 +539,11 @@ const wrapperClass = cn("space-y-4", classNameProp);
   </div>
 
   <div
-    class="gradient-card space-y-2 p-4"
+    class="glass space-y-2 rounded-2xl p-4"
     x-show="gameView.sections['checkout-rate']"
     x-cloak
   >
-    <h2 class="text-sm font-semibold text-foreground">Checkout rate</h2>
+    <h2 class="text-sm text-foreground">Checkout rate</h2>
     <template
       x-for="band in gameView.checkoutRateBands"
       :key="band.label"
@@ -584,11 +584,11 @@ const wrapperClass = cn("space-y-4", classNameProp);
   </div>
 
   <div
-    class="gradient-card space-y-2 p-4"
+    class="glass space-y-2 rounded-2xl p-4"
     x-show="gameView.sections['double-performance']"
     x-cloak
   >
-    <h2 class="text-sm font-semibold text-foreground">Double performance</h2>
+    <h2 class="text-sm text-foreground">Double performance</h2>
     <template
       x-for="row in gameView.doubleRows"
       :key="row.targetKey"
@@ -628,13 +628,13 @@ const wrapperClass = cn("space-y-4", classNameProp);
   </div>
 
   <div
-    class="gradient-card space-y-2 p-4"
+    class="glass space-y-2 rounded-2xl p-4"
     x-data="{ pathRemaining: '' }"
     x-effect="pathRemaining = pathRemaining || String(gameView.checkoutPathRemainings[0] ?? '')"
     x-show="gameView.sections['checkout-path']"
     x-cloak
   >
-    <h2 class="text-sm font-semibold text-foreground">Checkout path</h2>
+    <h2 class="text-sm text-foreground">Checkout path</h2>
     <Select
       optionsExpr="gameView.checkoutPathRemainings.map((r) => ({ value: String(r), label: String(r) }))"
       model="pathRemaining"
@@ -665,11 +665,11 @@ const wrapperClass = cn("space-y-4", classNameProp);
   </div>
 
   <div
-    class="gradient-card space-y-2 p-4"
+    class="glass space-y-2 rounded-2xl p-4"
     x-show="gameView.sections['bust-rate']"
     x-cloak
   >
-    <h2 class="text-sm font-semibold text-foreground">Bust rate</h2>
+    <h2 class="text-sm text-foreground">Bust rate</h2>
     <template
       x-for="band in gameView.bustRateBands"
       :key="band.label"
@@ -710,11 +710,11 @@ const wrapperClass = cn("space-y-4", classNameProp);
   </div>
 
   <div
-    class="gradient-card space-y-2 p-4"
+    class="glass space-y-2 rounded-2xl p-4"
     x-show="gameView.sections['leg-stats']"
     x-cloak
   >
-    <h2 class="text-sm font-semibold text-foreground">Leg stats</h2>
+    <h2 class="text-sm text-foreground">Leg stats</h2>
     <div
       class="grid grid-cols-2 gap-2 text-center text-sm text-muted-foreground"
     >
@@ -753,11 +753,11 @@ const wrapperClass = cn("space-y-4", classNameProp);
   </div>
 
   <div
-    class="gradient-card space-y-2 p-4"
+    class="glass space-y-2 rounded-2xl p-4"
     x-show="gameView.sections['treble-rate']"
     x-cloak
   >
-    <h2 class="text-sm font-semibold text-foreground">Treble rate</h2>
+    <h2 class="text-sm text-foreground">Treble rate</h2>
     <div
       class="grid grid-cols-3 gap-2 text-center text-sm text-muted-foreground"
     >
@@ -804,13 +804,13 @@ const wrapperClass = cn("space-y-4", classNameProp);
   </div>
 
   <div
-    class="gradient-card space-y-2 p-4"
+    class="glass space-y-2 rounded-2xl p-4"
     x-data="{ heatmapTarget: '' }"
     x-effect={heatmapEffect}
     x-show="gameView.sections.heatmap"
     x-cloak
   >
-    <h2 class="text-sm font-semibold text-foreground">Heatmap</h2>
+    <h2 class="text-sm text-foreground">Heatmap</h2>
     {
       heatmapTargets && (
         <div
@@ -831,8 +831,8 @@ const wrapperClass = cn("space-y-4", classNameProp);
     />
   </div>
 
-  <div class="gradient-card space-y-2 p-4">
-    <h2 class="text-sm font-semibold text-foreground">Completion</h2>
+  <div class="glass space-y-2 rounded-2xl p-4">
+    <h2 class="text-sm text-foreground">Completion</h2>
     <div
       class="grid grid-cols-3 gap-2 text-center text-sm text-muted-foreground"
     >
@@ -870,8 +870,8 @@ const wrapperClass = cn("space-y-4", classNameProp);
     </p>
   </div>
 
-  <div class="gradient-card space-y-2 p-4">
-    <h2 class="text-sm font-semibold text-foreground">Volume</h2>
+  <div class="glass space-y-2 rounded-2xl p-4">
+    <h2 class="text-sm text-foreground">Volume</h2>
     <div
       class="grid grid-cols-3 gap-2 text-center text-sm text-muted-foreground"
     >
@@ -903,11 +903,11 @@ const wrapperClass = cn("space-y-4", classNameProp);
   </div>
 
   <div
-    class="gradient-card space-y-2 p-4"
+    class="glass space-y-2 rounded-2xl p-4"
     x-show="gameView.sessionResultRows.length"
     x-cloak
   >
-    <h2 class="text-sm font-semibold text-foreground">Session result</h2>
+    <h2 class="text-sm text-foreground">Session result</h2>
     <template
       x-for="row in gameView.sessionResultRows"
       :key="row.rulesetVersionKey"
