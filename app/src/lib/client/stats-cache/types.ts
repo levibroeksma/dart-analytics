@@ -18,18 +18,24 @@ export type StatsCacheParams = {
 
 /**
  * The scope `readSection`/`readSessionPage` key and resolve compute-site
- * against (controller rulings R4/R22): `key` partitions the cache (a game
- * page's `gameScopeKey`, a routine or step page's `routineScopeKey`/
+ * against (controller rulings R4/R22/R23): `key` partitions the cache (a
+ * game page's `gameScopeKey`, a routine or step page's `routineScopeKey`/
  * `stepScopeKey`), while `gameTypeKey` — `null` for a routine/step scope
  * outside a GAME step — is what `sectionSite` resolves against, since a
  * scope's own `key` is never itself a real `GameTypeKey`. `exerciseKind` is
  * set only for a non-game step's `step-result` read, whose chunk merge
- * needs its own dart exercise kind's spec.
+ * needs its own dart exercise kind's spec. `versionKey` defaults to `key`;
+ * a routine or step scope sets it to `routineScopeKey(routineKey)` so every
+ * surface of one routine shares the single `dataVersion` token migration
+ * `0045`'s views compute for it (plan decision 12) — a step's own results
+ * go stale the moment the routine's token changes, even though the step
+ * was never fetched directly.
  */
 export type CacheScope = {
   key: string;
   gameTypeKey: GameTypeKey | null;
   exerciseKind?: DartExerciseKind;
+  versionKey?: string;
 };
 
 /** A section request the cache reads through — the range plus `StatsCacheParams`. */

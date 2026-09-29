@@ -127,9 +127,20 @@ function sectionKey(
  * cached forever, keyed by its own `bucket_start`; only the still-uncovered
  * span (at most two: before and after the stored coverage) is ever fetched.
  * `bucket = none` has no partial coverage — the whole result is cached
- * together and served only while `scope`'s last-known `dataVersion` (a game,
- * routine or step, controller ruling R4) still matches the cached
- * response's own.
+ * together and served only while `scope`'s last-known `dataVersion` at its
+ * `versionKey` (a game, routine or step, controller rulings R4/R23) still
+ * matches the cached response's own. The compute-site resolution and, for a
+ * server section, `mergerFor`'s `exerciseKind` contract check both run
+ * before the IndexedDB-unavailable branch below, so a malformed `step-result`
+ * scope throws every time, not only when IndexedDB happens to be available
+ * (controller ruling R23 item 5). The `meta as SectionMeta` cast below is a
+ * narrowing assertion, not a type escape: `scope.gameTypeKey` and `meta`'s
+ * own type are two independent parameters TypeScript cannot correlate, so
+ * only a caller contract (never a `RoutineSectionMeta` alongside a non-null
+ * `gameTypeKey`) makes it safe; an overload pair on `readSection` would
+ * check that contract at the call site but could not remove the cast here,
+ * since the implementation body only ever sees the widened union regardless
+ * of which overload a caller matched (fix-round 1 item 8).
  */
 export async function readSection<M>(
   playerId: string,
@@ -139,31 +150,26 @@ export async function readSection<M>(
   fetcher: SeriesFetcher<M>,
   now: Date = new Date(),
 ): Promise<CachedSeries<M>> {
+  const site =
+    scope.gameTypeKey !== null
+      ? sectionSite(meta as SectionMeta, scope.gameTypeKey)
+      : meta.computeSite;
+  const merge =
+    site === "server" ? mergerFor(meta.id, scope.exerciseKind) : null;
+
   const db = await openStatsDb();
   if (db === null) return fetcher({ from: q.from, to: q.to });
 
   try {
     const key = sectionKey(playerId, scope.key, meta, paramsKey(q));
-    const site =
-      scope.gameTypeKey !== null
-        ? sectionSite(meta as SectionMeta, scope.gameTypeKey)
-        : meta.computeSite;
     if (site === "server") {
-      return await readServerSection(
-        db,
-        meta,
-        key,
-        q,
-        fetcher,
-        now,
-        scope.exerciseKind,
-      );
+      return await readServerSection(db, meta, key, q, fetcher, now, merge!);
     }
     if (q.bucket === "none") {
       return await readNoneBucketSection(
         db,
         playerId,
-        scope.key,
+        scope.versionKey ?? scope.key,
         key,
         q,
         fetcher,
@@ -178,13 +184,13 @@ export async function readSection<M>(
 async function readNoneBucketSection<M>(
   db: IDBDatabase,
   playerId: string,
-  scopeKey: string,
+  versionKey: string,
   key: string,
   q: StatsCacheQuery,
   fetcher: SeriesFetcher<M>,
 ): Promise<CachedSeries<M>> {
   const resultKey = `${key}:${q.from}:${q.to}`;
-  const dataVersionKey = `dataVersion:${playerId}:${scopeKey}`;
+  const dataVersionKey = `dataVersion:${playerId}:${versionKey}`;
 
   const [cached, latestDataVersion] = await Promise.all([
     getRecord<CachedSeries<M>>(db, SECTION_RESULTS, resultKey),
@@ -484,9 +490,8 @@ async function readServerSection<M>(
   q: StatsCacheQuery,
   fetcher: SeriesFetcher<M>,
   now: Date,
-  exerciseKind: DartExerciseKind | undefined,
+  merge: (a: unknown, b: unknown) => unknown,
 ): Promise<CachedSeries<M>> {
-  const merge = mergerFor(meta.id, exerciseKind);
   const tz = q.tz ?? "UTC";
   const windows = chunkWindows(q.from, q.to, q.bucket, tz);
   const requestBucket: Bucket = q.bucket === "year" ? "month" : q.bucket;
@@ -554,19 +559,25 @@ async function readServerSection<M>(
   };
 }
 
-/** One session-list page, keyed by `(player, scope, paramsKey, from, to, cursor)`; dropped when `dataVersion` changes. */
+/**
+ * One session-list page, keyed by `(player, scope, paramsKey, from, to,
+ * cursor)`; dropped when `dataVersion` changes. `versionKey` defaults to
+ * `scopeKey` (controller ruling R23) — a routine or step caller passes the
+ * routine's own `routineScopeKey`, matching `readSection`'s `CacheScope`.
+ */
 export async function readSessionPage<T>(
   playerId: string,
   scopeKey: string,
   q: StatsCacheQuery & { cursor?: string },
   fetcher: () => Promise<CachedSessionPage<T>>,
+  versionKey: string = scopeKey,
 ): Promise<CachedSessionPage<T>> {
   const db = await openStatsDb();
   if (db === null) return fetcher();
 
   try {
     const key = `${playerId}:${scopeKey}:${paramsKey(q)}:${q.from}:${q.to}:${q.cursor ?? ""}`;
-    const dataVersionKey = `dataVersion:${playerId}:${scopeKey}`;
+    const dataVersionKey = `dataVersion:${playerId}:${versionKey}`;
 
     const [cached, latestDataVersion] = await Promise.all([
       getRecord<CachedSessionPage<T>>(db, SESSION_LISTS, key),
@@ -586,6 +597,35 @@ export async function readSessionPage<T>(
       putRecord(db, META, dataVersionKey, response.dataVersion),
     ]);
     return response;
+  } finally {
+    db.close();
+  }
+}
+
+/**
+ * Records a fresh `dataVersion` token for `versionKey` without a section
+ * fetch of its own, invalidating every cached entry that reads that same
+ * meta row exactly as a fetched response would (controller ruling R23) —
+ * the Task 9 routine store calls this once per routine header load, so a
+ * step scope sharing the routine's `versionKey` goes stale the moment the
+ * routine's own token changes, even though the step was never fetched
+ * directly. Degrades to a no-op without IndexedDB, matching every other
+ * cache write.
+ */
+export async function noteDataVersion(
+  playerId: string,
+  versionKey: string,
+  dataVersion: string,
+): Promise<void> {
+  const db = await openStatsDb();
+  if (db === null) return;
+  try {
+    await putRecord(
+      db,
+      META,
+      `dataVersion:${playerId}:${versionKey}`,
+      dataVersion,
+    );
   } finally {
     db.close();
   }

@@ -501,6 +501,8 @@ describe("fetchRoutineStepSessions", () => {
     expect(path).toContain("limit=10");
     expect(path).not.toContain("context");
     expect(path).not.toContain("bucket");
+    expect(path).not.toContain("inputMode");
+    expect(path).not.toContain("target");
   });
 
   it("throws StatisticsApiError on failure", async () => {
