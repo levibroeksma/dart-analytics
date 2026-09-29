@@ -134,6 +134,17 @@ export interface Series<M> {
 }
 
 /**
+ * `Series<M>`'s shape for the Routines tab: everything is identical except
+ * `sectionId`, which names one of the routine's own sections rather than a
+ * game's. Kept as its own type instead of widening `Series.sectionId`'s
+ * union, so a game route can never be handed a routine section id by
+ * mistake and vice versa.
+ */
+export type RoutineSeries<M> = Omit<Series<M>, "sectionId"> & {
+  sectionId: RoutineSectionId;
+};
+
+/**
  * The section ids whose metrics can fold server-side (`00-Overview.md` §4,
  * phase-3 decision 1): phase 3's checkout family, always server, plus the
  * four phase-4 derived-intent sections (server only on a game whose

@@ -446,7 +446,6 @@ describe("routine section registry (phase 6b plan decision 6)", () => {
     const result = sectionsForStep({
       exerciseTypeKey: "GAME",
       gameTypeKey: "SCORE_TRAINING",
-      inputModeKey: "VISUAL_BOARD",
     });
 
     expect(result.kind).toBe("game");
@@ -461,7 +460,6 @@ describe("routine section registry (phase 6b plan decision 6)", () => {
     const result = sectionsForStep({
       exerciseTypeKey: "SWITCHING",
       gameTypeKey: null,
-      inputModeKey: "VISUAL_BOARD",
     });
 
     expect(result.kind).toBe("exercise");
@@ -475,7 +473,6 @@ describe("routine section registry (phase 6b plan decision 6)", () => {
     const result = sectionsForStep({
       exerciseTypeKey: "WARM_UP",
       gameTypeKey: null,
-      inputModeKey: "VISUAL_BOARD",
     });
 
     expect(result.kind).toBe("exercise");

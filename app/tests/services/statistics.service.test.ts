@@ -51,6 +51,7 @@ import {
   decodeReplayCursor,
   encodeReplayCursor,
 } from "@modules/stats/replay.module";
+import { encodeDataVersion } from "@modules/stats/sections/series.module";
 import type {
   DartZoneKey,
   ReplayParticipantRow,
@@ -66,6 +67,7 @@ import {
 } from "@lib/stats/section-registry";
 import { SCORE_BANDS } from "@modules/stats/sections/scoring-trend.module";
 import type { GameTypeKey } from "@lib/types";
+import type { RoutineSectionQuery } from "@services/types";
 
 const playerId = "0198f200-0000-7000-8000-000000000001";
 
@@ -2245,6 +2247,45 @@ describe("getRoutineSection", () => {
     if (!result.ok) expect(result.code).toBe("VALIDATION_FAILED");
   });
 
+  it("rejects status=all on routine-volume, which does not include abandoned runs", async () => {
+    vi.mocked(repo.findRoutineHeader).mockResolvedValue(makeRoutineHeaderRow());
+
+    const result = await getRoutineSection(
+      playerId,
+      routineKey,
+      "routine-volume",
+      {
+        ...routineRangeQuery,
+        status: "all",
+      },
+    );
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.code).toBe("VALIDATION_FAILED");
+    expect(repo.findRoutineRunBuckets).not.toHaveBeenCalled();
+  });
+
+  it("passes routine-completion's default statuses (both COMPLETED and ABANDONED) to findRoutineRunBuckets", async () => {
+    vi.mocked(repo.findRoutineHeader).mockResolvedValue(makeRoutineHeaderRow());
+    vi.mocked(repo.findRoutineDataVersion).mockResolvedValue({
+      runCount: 5,
+      maxCompletedAt: "2026-01-10T00:00:00.000Z",
+    });
+    vi.mocked(repo.findRoutineRunBuckets).mockResolvedValue([]);
+
+    await getRoutineSection(
+      playerId,
+      routineKey,
+      "routine-completion",
+      routineRangeQuery,
+    );
+
+    expect(repo.findRoutineRunBuckets).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ statuses: ["COMPLETED", "ABANDONED"] }),
+    );
+  });
+
   it("floors from to the bucket start when bucketed, and echoes it in range", async () => {
     vi.mocked(repo.findRoutineHeader).mockResolvedValue(makeRoutineHeaderRow());
     vi.mocked(repo.findBucketFloor).mockResolvedValue(
@@ -2303,7 +2344,12 @@ describe("getRoutineSection", () => {
       expect((result.data.buckets[0]!.metrics as { runs: number }).runs).toBe(
         3,
       );
-      expect(result.data.dataVersion).toEqual(expect.any(String));
+      expect(result.data.dataVersion).toBe(
+        encodeDataVersion({
+          count: 5,
+          maxCompletedAt: "2026-01-10T00:00:00.000Z",
+        }),
+      );
     }
   });
 
@@ -2463,6 +2509,44 @@ describe("getRoutineStepSection", () => {
     expect(repo.findStepFoldRows).not.toHaveBeenCalled();
   });
 
+  it("floors from to the bucket start when bucketed, and echoes it in range", async () => {
+    vi.mocked(repo.findRoutineHeader).mockResolvedValue(makeRoutineHeaderRow());
+    vi.mocked(repo.findRoutineStepDescriptors).mockResolvedValue([
+      makeExerciseStepDescriptorRow(),
+    ]);
+    vi.mocked(repo.findBucketFloor).mockResolvedValue(
+      "2026-01-01T00:00:00.000Z",
+    );
+    vi.mocked(repo.findRoutineDataVersion).mockResolvedValue({
+      runCount: 5,
+      maxCompletedAt: "2026-01-10T00:00:00.000Z",
+    });
+    vi.mocked(repo.findStepBuckets).mockResolvedValue([]);
+
+    const result = await getRoutineStepSection(
+      playerId,
+      routineKey,
+      exerciseStepKey,
+      "step-volume",
+      {
+        ...routineRangeQuery,
+        from: "2026-01-15T00:00:00.000Z",
+        bucket: "month",
+        tz: "Europe/Amsterdam",
+      },
+    );
+
+    expect(repo.findBucketFloor).toHaveBeenCalledWith(
+      expect.anything(),
+      "2026-01-15T00:00:00.000Z",
+      "month",
+      "Europe/Amsterdam",
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok)
+      expect(result.data.range.from).toBe("2026-01-01T00:00:00.000Z");
+  });
+
   it("dispatches step-volume through findStepBuckets", async () => {
     vi.mocked(repo.findRoutineHeader).mockResolvedValue(makeRoutineHeaderRow());
     vi.mocked(repo.findRoutineStepDescriptors).mockResolvedValue([
@@ -2574,7 +2658,15 @@ describe("getRoutineStepSection", () => {
     );
 
     expect(result.ok).toBe(true);
-    if (result.ok) expect(result.data.sectionId).toBe("volume");
+    if (result.ok) {
+      expect(result.data.sectionId).toBe("volume");
+      expect(result.data.dataVersion).toBe(
+        encodeDataVersion({
+          count: 9,
+          maxCompletedAt: "2026-01-09T00:00:00.000Z",
+        }),
+      );
+    }
     expect(repo.findGameDataVersion).not.toHaveBeenCalled();
     expect(repo.findRoutineDataVersion).toHaveBeenCalledWith(
       expect.anything(),
@@ -2589,6 +2681,103 @@ describe("getRoutineStepSection", () => {
       }),
     );
   });
+
+  it("ignores a smuggled context and target on a GAME step's query, whatever the query held", async () => {
+    vi.mocked(repo.findRoutineHeader).mockResolvedValue(makeRoutineHeaderRow());
+    vi.mocked(repo.findRoutineStepDescriptors).mockResolvedValue([
+      makeGameStepDescriptorRow(),
+    ]);
+    vi.mocked(repo.findRoutineDataVersion).mockResolvedValue({
+      runCount: 9,
+      maxCompletedAt: "2026-01-09T00:00:00.000Z",
+    });
+    vi.mocked(repo.findHeatmapCells).mockResolvedValue([]);
+
+    const smuggledQuery = {
+      ...routineRangeQuery,
+      context: "standalone",
+      target: "DOUBLE:16",
+    } as unknown as RoutineSectionQuery;
+
+    const result = await getRoutineStepSection(
+      playerId,
+      routineKey,
+      gameStepKey,
+      "heatmap",
+      smuggledQuery,
+    );
+
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.data.sectionId).toBe("heatmap");
+    expect(repo.findHeatmapCells).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        context: "routine",
+        target: null,
+        routineStep: { routineKey, stepKey: gameStepKey },
+      }),
+    );
+  });
+
+  it.each([
+    {
+      name: "a phase 2 sql-site dart section (heatmap)",
+      sectionId: "heatmap",
+      setup: () => {
+        vi.mocked(repo.findHeatmapCells).mockResolvedValue([]);
+      },
+      assertReader: () => {
+        expect(repo.findHeatmapCells).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.objectContaining({
+            routineStep: { routineKey, stepKey: gameStepKey },
+          }),
+        );
+      },
+    },
+    {
+      name: "a server-folded section (checkout-rate)",
+      sectionId: "checkout-rate",
+      setup: () => {
+        vi.mocked(repo.findScopeDartCount).mockResolvedValue(1);
+        vi.mocked(repo.findX01FoldRows).mockResolvedValue([] as never);
+      },
+      assertReader: () => {
+        expect(repo.findScopeDartCount).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.objectContaining({
+            routineStep: { routineKey, stepKey: gameStepKey },
+          }),
+        );
+      },
+    },
+  ])(
+    "threads routineStep into $name's own reader for a GAME step",
+    async ({ sectionId, setup, assertReader }) => {
+      vi.mocked(repo.findRoutineHeader).mockResolvedValue(
+        makeRoutineHeaderRow(),
+      );
+      vi.mocked(repo.findRoutineStepDescriptors).mockResolvedValue([
+        makeGameStepDescriptorRow(),
+      ]);
+      vi.mocked(repo.findRoutineDataVersion).mockResolvedValue({
+        runCount: 1,
+        maxCompletedAt: null,
+      });
+      setup();
+
+      const result = await getRoutineStepSection(
+        playerId,
+        routineKey,
+        gameStepKey,
+        sectionId,
+        { ...routineRangeQuery, status: "completed" },
+      );
+
+      expect(result.ok).toBe(true);
+      assertReader();
+    },
+  );
 });
 
 describe("listRoutineStepSessions", () => {

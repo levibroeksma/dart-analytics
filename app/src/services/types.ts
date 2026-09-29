@@ -11,13 +11,15 @@ import type {
   TargetAccuracySeriesResponseData,
   VolumeSeriesResponseData,
 } from "@routes/types";
-import type { Bucket, GameTypeKey, StatusFilter } from "@lib/types";
+import type { Bucket, StatusFilter } from "@lib/types";
 import type {
   ReplayParticipantRow,
   ReplaySessionRow,
   ReplayStageRow,
   ReplayTurn,
+  RoutineStepDescriptorRow,
   StepSessionRow,
+  TrainedRoutineRow,
 } from "@modules/types";
 
 export * from "./exercise-rulesets/types";
@@ -254,39 +256,18 @@ export type ScheduleWriteInput = {
 
 /**
  * One `listTrainedRoutines` item: a routine the player has trained, named
- * for its latest run (phase 6b plan decision 9). `routineTemplateId` is
- * `null` for a legacy snapshot keyed by `routineName` alone.
+ * for its latest run. Identical to the repository's own row shape, so it is
+ * aliased rather than copied.
  */
-export type TrainedRoutine = {
-  routineKey: string;
-  routineTemplateId: string | null;
-  routineName: string;
-  runCount: number;
-  completedRunCount: number;
-  lastRunAt: string;
-};
+export type TrainedRoutine = TrainedRoutineRow;
 
 /**
- * One `getRoutineHeader` step descriptor (phase 6b plan decision 9):
- * `current` is set only for the step key most recently seen at its own
- * `sequenceNumber`, and only while that `sequenceNumber` is still within the
- * routine's current shape (controller ruling R11).
+ * One `getRoutineHeader` step descriptor. Identical to the repository's own
+ * row shape, so it is aliased rather than copied.
  */
-export type RoutineStepDescriptor = {
-  stepKey: string;
-  sequenceNumber: number;
-  exerciseTypeKey: string;
-  exerciseRulesetVersionKey: string | null;
-  gameTypeKey: GameTypeKey | null;
-  rulesetVersionKey: string | null;
-  durationSeconds: number | null;
-  sessionCount: number;
-  firstSeenAt: string;
-  lastSeenAt: string;
-  current: boolean;
-};
+export type RoutineStepDescriptor = RoutineStepDescriptorRow;
 
-/** `getRoutineHeader`'s response (phase 6b plan decision 9). */
+/** `getRoutineHeader`'s response: the routine's own identity and run counts, its `dataVersion`, and every step it has ever run. */
 export type RoutineHeader = {
   routineKey: string;
   routineName: string;
@@ -298,10 +279,11 @@ export type RoutineHeader = {
 };
 
 /**
- * `getRoutineSection`/`getRoutineStepSection`'s query (phase 6b plan
- * decision 4): a routine route accepts `from`, `to`, `tz`, `bucket` and
- * `status` only -- never `context`, `inputMode` or `target`, which the
- * service fixes itself (decision 4, controller ruling R2).
+ * `getRoutineSection`/`getRoutineStepSection`'s query: a routine section
+ * takes a plain date range, timezone, bucket and status — never a `context`,
+ * `inputMode` or `target`, since a routine's own sections have nothing to
+ * filter by context (every row is routine context already) and no game
+ * declares a `target` param a routine step could accept.
  */
 export type RoutineSectionQuery = {
   from: string;
@@ -311,7 +293,7 @@ export type RoutineSectionQuery = {
   status?: StatusFilter;
 };
 
-/** `listRoutineStepSessions`'s query (phase 6b plan decision 10, mirroring `SessionListQueryData`). */
+/** `listRoutineStepSessions`'s query, mirroring `SessionListQueryData`'s shape at the step grain. */
 export type RoutineSessionListQuery = {
   from: string;
   to: string;
@@ -320,7 +302,7 @@ export type RoutineSessionListQuery = {
   cursor?: string;
 };
 
-/** `listRoutineStepSessions`'s response (phase 6b plan decision 10, mirroring `GameSessionList`). */
+/** `listRoutineStepSessions`'s response, mirroring `GameSessionList`'s shape at the step grain. */
 export type SessionList = {
   items: StepSessionRow[];
   nextCursor: string | null;

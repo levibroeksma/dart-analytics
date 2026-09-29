@@ -429,8 +429,8 @@ export const ROUTINE_SECTIONS: Readonly<
   },
 };
 
-/** Whether `key` is one of `STEP_METRIC_SPECS`' seven dart exercise kinds (phase 6b plan decision 7), the only non-game steps `step-result` covers. */
-function isDartExerciseKind(key: string): key is DartExerciseKind {
+/** Whether `key` is one of `STEP_METRIC_SPECS`' seven dart exercise kinds (phase 6b plan decision 7), the only non-game steps `step-result` covers. Exported so a caller resolving one step's own kind (e.g. dispatching `step-result`) can narrow it the same way, instead of an unchecked cast. */
+export function isDartExerciseKind(key: string): key is DartExerciseKind {
   return Object.hasOwn(STEP_METRIC_SPECS, key);
 }
 
@@ -455,7 +455,6 @@ export function sectionsForRoutine(): RoutineSectionMeta[] {
 export function sectionsForStep(step: {
   exerciseTypeKey: string;
   gameTypeKey: GameTypeKey | null;
-  inputModeKey: string;
 }):
   | { kind: "game"; gameTypeKey: GameTypeKey; sections: SectionMeta[] }
   | { kind: "exercise"; sections: RoutineSectionMeta[] } {

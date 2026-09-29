@@ -1,5 +1,6 @@
 import { getDb } from "@db/client";
 import {
+  isDartExerciseKind,
   MAX_FOLD_DARTS,
   SECTIONS,
   sectionSite,
@@ -123,6 +124,8 @@ import type {
   ContextFilter,
   GameTypeKey,
   IntentZoneKey,
+  RoutineSectionMeta,
+  RoutineSeries,
   SectionId,
   SectionMeta,
   Series,
@@ -136,7 +139,6 @@ import type {
 } from "@routes/types";
 import type {
   BucketedSession,
-  DartExerciseKind,
   DartScope,
   HeatmapCellRow,
   HitNumberCellRow,
@@ -224,7 +226,7 @@ type SectionContext = {
   statuses: string[];
   context: ContextFilter;
   target: { number: number; zone: IntentZoneKey } | null;
-  /** Narrows every reader this context feeds to one GAME routine step's own sessions (phase 6b plan decision 5); `undefined` for a standalone game page. */
+  /** Narrows every reader this context feeds to one GAME routine step's own sessions; `undefined` for a standalone game page. */
   routineStep?: RoutineStepScope;
 };
 
@@ -288,7 +290,7 @@ function stepsHandler(
   };
 }
 
-/** The shared dart scope every phase 2-4 dart-level reader filters by, taken off a resolved `SectionContext` — narrowed by `routineStep` the same way `sectionScope` is (phase 6b plan decision 5, controller ruling R2). */
+/** The shared dart scope every phase 2-4 dart-level reader filters by, taken off a resolved `SectionContext` — narrowed by `routineStep` the same way `sectionScope` is, so a GAME step's own darts read the same way a standalone game's do. */
 function dartScope(ctx: SectionContext): DartScope {
   return {
     playerId: ctx.playerId,
@@ -355,7 +357,7 @@ function loadHeatmapCells(
   });
 }
 
-/** The shared session scope every phase-3 reader filters by, taken off a resolved `SectionContext`; narrowed by `routineStep` the same way `dartScope` is (phase 6b plan decision 5). */
+/** The shared session scope every phase-3 reader filters by, taken off a resolved `SectionContext`; narrowed by `routineStep` the same way `dartScope` is. */
 function sectionScope(ctx: SectionContext): SessionScope {
   return {
     playerId: ctx.playerId,
@@ -575,23 +577,56 @@ function listStatuses(status: StatusFilter | undefined): string[] {
   return ["COMPLETED", "ABANDONED"];
 }
 
+/** A row every paginated session list can page on: the two fields `encodeCursor`/`decodeCursor` key by. */
+type SessionListRow = { completedAt: string; sessionId: string };
+
+/** Decodes a session list's own `cursor` param, shared by every paginated session list; `data: undefined` means no cursor was given. */
+function decodeSessionCursor(
+  cursor: string | undefined,
+):
+  | { ok: true; data: SessionListRow | undefined }
+  | { ok: false; reason: string } {
+  if (cursor === undefined) return { ok: true, data: undefined };
+  const decoded = decodeCursor(cursor);
+  if (decoded === null) return { ok: false, reason: "cursor is malformed" };
+  return { ok: true, data: decoded };
+}
+
+/**
+ * Pages `rows` at `limit`, given the caller fetched `limit + 1` deep: the
+ * extra row proves a further page exists and becomes `nextCursor`, dropped
+ * from `items`. Shared by every paginated session list.
+ */
+function pageSessions<T extends SessionListRow>(
+  rows: T[],
+  limit: number,
+): { items: T[]; nextCursor: string | null } {
+  const hasMore = rows.length > limit;
+  const items = hasMore ? rows.slice(0, limit) : rows;
+  const last = items[items.length - 1];
+  const nextCursor =
+    hasMore && last
+      ? encodeCursor({
+          completedAt: last.completedAt,
+          sessionId: last.sessionId,
+        })
+      : null;
+  return { items, nextCursor };
+}
+
 /** A game's paginated session list (`00-Overview.md` §6), newest first. */
 export async function listGameSessions(
   playerId: string,
   gameTypeKey: GameTypeKey,
   q: SessionListQueryData,
 ): Promise<ServiceResult<GameSessionList>> {
-  let after: { completedAt: string; sessionId: string } | undefined;
-  if (q.cursor !== undefined) {
-    const decoded = decodeCursor(q.cursor);
-    if (decoded === null) {
-      return {
-        ok: false,
-        code: "VALIDATION_FAILED",
-        details: { reason: "cursor is malformed" },
-      };
-    }
-    after = decoded;
+  const cursor = decodeSessionCursor(q.cursor);
+  if (!cursor.ok) {
+    return {
+      ok: false,
+      code: "VALIDATION_FAILED",
+      details: { reason: cursor.reason },
+    };
   }
 
   const db = getDb();
@@ -604,21 +639,12 @@ export async function listGameSessions(
       statuses: listStatuses(q.status),
       context: q.context,
       limit: q.limit,
-      after,
+      after: cursor.data,
     }),
     findGameDataVersion(db, playerId, gameTypeKey),
   ]);
 
-  const hasMore = rows.length > q.limit;
-  const items = hasMore ? rows.slice(0, q.limit) : rows;
-  const last = items[items.length - 1];
-  const nextCursor =
-    hasMore && last
-      ? encodeCursor({
-          completedAt: last.completedAt,
-          sessionId: last.sessionId,
-        })
-      : null;
+  const { items, nextCursor } = pageSessions(rows, q.limit);
 
   return {
     ok: true,
@@ -672,17 +698,34 @@ async function foldBoundReason(
   return foldBoundMessage(dartCount);
 }
 
-/** The `MAX_FOLD_DARTS` gate's own `VALIDATION_FAILED` reason, shared by every server-folded section — game or routine step (phase 6b plan decision 8). */
+/** The `MAX_FOLD_DARTS` gate's own `VALIDATION_FAILED` reason, shared by every server-folded section — game or routine step. */
 function foldBoundMessage(dartCount: number): string {
   return `range holds ${dartCount} darts; server sections fold at most ${MAX_FOLD_DARTS} — request a shorter range`;
 }
 
 /**
+ * The routine's own `dataVersion` token -- its terminal-run population,
+ * encoded the same way a game's is. Every routine and step entry point
+ * shares this, including `loadDataVersion` when a GAME step delegates here.
+ */
+async function routineDataVersion(
+  db: Db,
+  playerId: string,
+  routineKey: string,
+): Promise<string> {
+  const { runCount, maxCompletedAt } = await findRoutineDataVersion(
+    db,
+    playerId,
+    routineKey,
+  );
+  return encodeDataVersion({ count: runCount, maxCompletedAt });
+}
+
+/**
  * The `dataVersion` a section dispatch encodes: the game's own terminal
  * population, or -- when scoped to one routine step (`routineStep` set) --
- * the owning routine's own population instead (phase 6b plan decision 12),
- * so the client keys a step scope's cache under the routine's own version,
- * never the game's.
+ * the owning routine's own population instead, so the client keys a step
+ * scope's cache under the routine's own version, never the game's.
  */
 async function loadDataVersion(
   db: Db,
@@ -695,12 +738,65 @@ async function loadDataVersion(
       await findGameDataVersion(db, playerId, gameTypeKey),
     );
   }
-  const { runCount, maxCompletedAt } = await findRoutineDataVersion(
-    db,
-    playerId,
-    routineStep.routineKey,
-  );
-  return encodeDataVersion({ count: runCount, maxCompletedAt });
+  return routineDataVersion(db, playerId, routineStep.routineKey);
+}
+
+/**
+ * Resolves the three checks every section dispatch repeats before it can
+ * read anything: whether `bucket` is allowed on this section, which
+ * `status` values the request accepts, and the request's own `from`
+ * (floored to the bucket start once bucketed, so the `range` a caller gets
+ * back matches what was actually queried). Shared by the game dispatch and
+ * both routine section dispatch paths.
+ */
+async function resolveSectionRange(
+  db: Db,
+  meta: { bucketable: boolean; includesAbandoned: boolean },
+  q: {
+    from: string;
+    bucket: Bucket;
+    tz?: string;
+    status?: StatusFilter;
+  },
+): Promise<{ from: string; statuses: string[] } | { error: string }> {
+  if (q.bucket !== "none" && !meta.bucketable) {
+    return { error: "this section does not support bucket" };
+  }
+
+  const resolvedStatus = sectionStatuses(meta.includesAbandoned, q.status);
+  if ("error" in resolvedStatus) {
+    return { error: resolvedStatus.error };
+  }
+
+  const from =
+    q.bucket === "none"
+      ? q.from
+      : await findBucketFloor(db, q.from, q.bucket, q.tz!);
+
+  return { from, statuses: resolvedStatus.statuses };
+}
+
+/**
+ * Assembles a routine-tab section's response envelope: the same six fields
+ * every routine or step section returns, whatever its own reader and shape
+ * function produced.
+ */
+function buildRoutineSeries(
+  meta: RoutineSectionMeta,
+  dataVersion: string,
+  q: { bucket: Bucket; tz?: string; to: string },
+  from: string,
+  buckets: SeriesBucket<unknown>[],
+): RoutineSeries<unknown> {
+  return {
+    sectionId: meta.id,
+    sectionVersion: meta.version,
+    dataVersion,
+    bucket: q.bucket,
+    tz: q.bucket === "none" ? null : (q.tz ?? null),
+    range: { from, to: q.to },
+    buckets,
+  };
 }
 
 /**
@@ -708,9 +804,8 @@ async function loadDataVersion(
  * `now` is injected so the closed-bucket boundary is deterministic in tests.
  * `routineStep`, when set, scopes every reader to one GAME routine step's own
  * sessions, forces `context` to `"routine"` regardless of `q.context`, and
- * swaps the returned `dataVersion` for the routine's own (phase 6b plan
- * decisions 4-5, 12; controller ruling R2) -- the exported `getGameSection`
- * never sets it, so its own behaviour is unchanged.
+ * swaps the returned `dataVersion` for the routine's own -- the exported
+ * `getGameSection` never sets it, so its own behaviour is unchanged.
  */
 async function dispatchGameSection(
   playerId: string,
@@ -725,13 +820,16 @@ async function dispatchGameSection(
   }
   const meta = SECTIONS[sectionId];
 
-  if (q.bucket !== "none" && !meta.bucketable) {
+  const db = getDb();
+  const resolvedRange = await resolveSectionRange(db, meta, q);
+  if ("error" in resolvedRange) {
     return {
       ok: false,
       code: "VALIDATION_FAILED",
-      details: { reason: "this section does not support bucket" },
+      details: { reason: resolvedRange.error },
     };
   }
+  const { from, statuses } = resolvedRange;
 
   const resolvedTarget = sectionTarget(meta, gameTypeKey, q.target);
   if ("error" in resolvedTarget) {
@@ -743,21 +841,6 @@ async function dispatchGameSection(
   }
   const { target } = resolvedTarget;
 
-  const resolved = sectionStatuses(meta.includesAbandoned, q.status);
-  if ("error" in resolved) {
-    return {
-      ok: false,
-      code: "VALIDATION_FAILED",
-      details: { reason: resolved.error },
-    };
-  }
-
-  const db = getDb();
-  const from =
-    q.bucket === "none"
-      ? q.from
-      : await findBucketFloor(db, q.from, q.bucket, q.tz!);
-
   const sectionContext: SectionContext = {
     playerId,
     gameTypeKey,
@@ -765,7 +848,7 @@ async function dispatchGameSection(
     to: q.to,
     bucket: q.bucket,
     tz: q.bucket === "none" ? undefined : q.tz,
-    statuses: resolved.statuses,
+    statuses,
     context: routineStep === undefined ? q.context : "routine",
     target,
     routineStep,
@@ -917,7 +1000,7 @@ export async function getSessionReplay(
   return { ok: true, data: { header, turns, nextCursor } };
 }
 
-/** `VALIDATION_FAILED` for a `routineKey` that fails `isRoutineKey` -- shared by every routine-scoped entry point (phase 6b plan decision 9 behaviour 1). */
+/** `VALIDATION_FAILED` for a `routineKey` that fails `isRoutineKey` -- shared by every routine-scoped entry point, so a malformed key never even reaches the database. */
 function malformedRoutineKey(): ServiceResult<never> {
   return {
     ok: false,
@@ -926,7 +1009,7 @@ function malformedRoutineKey(): ServiceResult<never> {
   };
 }
 
-/** The routine-ownership gate every routine-scoped entry point runs first: `NOT_FOUND` for a routine the player has never trained, so no further reader ever runs against it (phase 6b plan decision 9 behaviour 1). */
+/** The routine-ownership gate every routine-scoped entry point runs first: `NOT_FOUND` for a routine the player has never trained, so no further reader ever runs against it. */
 async function requireRoutineHeader(
   db: Db,
   playerId: string,
@@ -939,7 +1022,7 @@ async function requireRoutineHeader(
   return { ok: true, data: header };
 }
 
-/** Every routine the player has trained (phase 6b plan decision 9), unpaginated -- bounded by routines trained, not by runs. */
+/** Every routine the player has trained, unpaginated -- bounded by routines trained, not by runs. */
 export async function listTrainedRoutines(
   playerId: string,
 ): Promise<ServiceResult<{ items: TrainedRoutine[] }>> {
@@ -949,11 +1032,11 @@ export async function listTrainedRoutines(
 }
 
 /**
- * One routine's header and step descriptors (phase 6b plan decision 9):
- * `latestStepCount` off `findRoutineHeader` bounds `findRoutineStepDescriptors`'s
- * `current` flag (controller ruling R11); `dataVersion` is encoded here from
- * `findRoutineDataVersion`'s raw population (controller ruling R13),
- * mirroring how `getGameSection` encodes the game's own.
+ * One routine's header and step descriptors: `latestStepCount` off
+ * `findRoutineHeader` bounds `findRoutineStepDescriptors`'s `current` flag --
+ * a step index the routine no longer has can never read as current, however
+ * recently it last ran. `dataVersion` is encoded from the routine's own
+ * terminal-run population, mirroring how a game's is encoded.
  */
 export async function getRoutineHeader(
   playerId: string,
@@ -966,14 +1049,14 @@ export async function getRoutineHeader(
   if (!headerResult.ok) return headerResult;
   const header = headerResult.data;
 
-  const [steps, dataVersionInput] = await Promise.all([
+  const [steps, dataVersion] = await Promise.all([
     findRoutineStepDescriptors(
       db,
       playerId,
       routineKey,
       header.latestStepCount,
     ),
-    findRoutineDataVersion(db, playerId, routineKey),
+    routineDataVersion(db, playerId, routineKey),
   ]);
 
   return {
@@ -984,21 +1067,17 @@ export async function getRoutineHeader(
       runCount: header.runCount,
       firstRunAt: header.firstRunAt,
       lastRunAt: header.lastRunAt,
-      dataVersion: encodeDataVersion({
-        count: dataVersionInput.runCount,
-        maxCompletedAt: dataVersionInput.maxCompletedAt,
-      }),
+      dataVersion,
       steps,
     },
   };
 }
 
 /**
- * One routine's run-level section (`routine-volume`/`routine-completion`,
- * phase 6b plan decision 6): both share `findRoutineRunBuckets`'s one
- * aggregate query, differing only in their shape function. Status/bucket
- * rules mirror `dispatchGameSection`'s (phase 1 decision 5); `dataVersion`
- * is the routine's own (decision 12).
+ * One routine's run-level section (`routine-volume`/`routine-completion`):
+ * both share `findRoutineRunBuckets`'s one aggregate query, differing only
+ * in their shape function. Status/bucket rules mirror the game dispatch's
+ * own; `dataVersion` is the routine's own.
  */
 export async function getRoutineSection(
   playerId: string,
@@ -1006,7 +1085,7 @@ export async function getRoutineSection(
   sectionId: string,
   q: RoutineSectionQuery,
   now: Date = new Date(),
-): Promise<ServiceResult<Series<unknown>>> {
+): Promise<ServiceResult<RoutineSeries<unknown>>> {
   if (!isRoutineKey(routineKey)) return malformedRoutineKey();
 
   const db = getDb();
@@ -1018,72 +1097,63 @@ export async function getRoutineSection(
     return { ok: false, code: "NOT_FOUND" };
   }
 
-  if (q.bucket !== "none" && !meta.bucketable) {
+  const resolvedRange = await resolveSectionRange(db, meta, q);
+  if ("error" in resolvedRange) {
     return {
       ok: false,
       code: "VALIDATION_FAILED",
-      details: { reason: "this section does not support bucket" },
+      details: { reason: resolvedRange.error },
     };
   }
+  const { from, statuses } = resolvedRange;
 
-  const resolvedStatus = sectionStatuses(meta.includesAbandoned, q.status);
-  if ("error" in resolvedStatus) {
-    return {
-      ok: false,
-      code: "VALIDATION_FAILED",
-      details: { reason: resolvedStatus.error },
-    };
-  }
-
-  const from =
-    q.bucket === "none"
-      ? q.from
-      : await findBucketFloor(db, q.from, q.bucket, q.tz!);
-
-  const [dataVersionInput, rows] = await Promise.all([
-    findRoutineDataVersion(db, playerId, routineKey),
+  const [dataVersion, rows] = await Promise.all([
+    routineDataVersion(db, playerId, routineKey),
     findRoutineRunBuckets(db, {
       playerId,
       routineKey,
       from,
       to: q.to,
-      statuses: resolvedStatus.statuses,
+      statuses,
       bucket: q.bucket,
       tz: q.bucket === "none" ? undefined : q.tz,
     }),
   ]);
 
   const shapeCtx = { to: q.to, now };
-  const buckets =
-    meta.id === "routine-volume"
-      ? routineVolumeBuckets(rows, shapeCtx)
-      : routineCompletionBuckets(rows, shapeCtx);
+  let buckets: SeriesBucket<unknown>[];
+  switch (meta.id) {
+    case "routine-volume":
+      buckets = routineVolumeBuckets(rows, shapeCtx);
+      break;
+    case "routine-completion":
+      buckets = routineCompletionBuckets(rows, shapeCtx);
+      break;
+    case "step-volume":
+    case "step-result":
+      throw new Error(
+        `sectionsForRoutine() returned a step-surface section "${meta.id}"`,
+      );
+    default: {
+      const exhaustive: never = meta.id;
+      throw new Error(`unhandled routine section "${String(exhaustive)}"`);
+    }
+  }
 
   return {
     ok: true,
-    data: {
-      sectionId: meta.id,
-      sectionVersion: meta.version,
-      dataVersion: encodeDataVersion({
-        count: dataVersionInput.runCount,
-        maxCompletedAt: dataVersionInput.maxCompletedAt,
-      }),
-      bucket: q.bucket,
-      tz: q.bucket === "none" ? null : (q.tz ?? null),
-      range: { from, to: q.to },
-      buckets,
-    } as unknown as Series<unknown>,
+    data: buildRoutineSeries(meta, dataVersion, q, from, buckets),
   };
 }
 
 /**
  * Resolves and validates one routine step, shared by `getRoutineStepSection`
- * and `listRoutineStepSessions` (phase 6b plan decision 9): a malformed
- * `routineKey`/`stepKey` is `VALIDATION_FAILED` before any repository call;
- * an unowned routine or a `stepKey` absent from its descriptors is
- * `NOT_FOUND`. A step's `sequenceNumber` failing `Number.isSafeInteger` is
- * treated as malformed here, not in `parseStepKey` itself (the codec stays
- * unedited).
+ * and `listRoutineStepSessions`: a malformed `routineKey`/`stepKey` is
+ * `VALIDATION_FAILED` before any repository call; an unowned routine or a
+ * `stepKey` absent from its descriptors is `NOT_FOUND`. A step's
+ * `sequenceNumber` failing `Number.isSafeInteger` is treated as malformed
+ * here rather than in `parseStepKey` itself, so the codec's own regex stays
+ * the only place that shape is defined.
  */
 async function resolveRoutineStep(
   db: Db,
@@ -1126,14 +1196,13 @@ async function resolveRoutineStep(
 }
 
 /**
- * One routine step's section (phase 6b plan decisions 4-8; controller
- * rulings R1-R2): a GAME step delegates to `dispatchGameSection` with
- * `context: "routine"` and `routineStep` set server-side (decision 4) --
- * `dispatchGameSection` validates the section against `sectionsForGame`
- * itself, so no membership check is duplicated here. A non-game step
- * dispatches `step-volume`/`step-result` directly; `step-result` checks
- * `findStepScopeDartCount` against `MAX_FOLD_DARTS` before ever reading
- * `findStepFoldRows` (decision 8).
+ * One routine step's section: a GAME step delegates to `dispatchGameSection`
+ * with `context: "routine"` and `routineStep` set server-side, ignoring
+ * whatever the caller's own query held for those two -- `dispatchGameSection`
+ * validates the section against `sectionsForGame` itself, so no membership
+ * check is duplicated here. A non-game step dispatches `step-volume`/
+ * `step-result` directly; `step-result` checks `findStepScopeDartCount`
+ * against `MAX_FOLD_DARTS` before ever reading `findStepFoldRows`.
  */
 export async function getRoutineStepSection(
   playerId: string,
@@ -1142,20 +1211,17 @@ export async function getRoutineStepSection(
   sectionId: string,
   q: RoutineSectionQuery,
   now: Date = new Date(),
-): Promise<ServiceResult<Series<unknown>>> {
+): Promise<
+  ServiceResult<
+    (Series<unknown> & { skippedSessions?: number }) | RoutineSeries<unknown>
+  >
+> {
   const db = getDb();
   const resolved = await resolveRoutineStep(db, playerId, routineKey, stepKey);
   if (!resolved.ok) return resolved;
   const { step } = resolved.data;
 
-  /**
-   * `sectionsForStep`'s parameter type carries `inputModeKey`, but its own
-   * body never reads it, and `RoutineStepDescriptorRow` (Task 3) does not
-   * carry one either -- nothing downstream ever observes this value, so an
-   * empty placeholder satisfies the contract without inventing step data
-   * (discovered work, reported rather than fixed at either source).
-   */
-  const classification = sectionsForStep({ ...step, inputModeKey: "" });
+  const classification = sectionsForStep(step);
 
   if (classification.kind === "game") {
     const gameQuery: StatisticsRangeQueryData = {
@@ -1168,7 +1234,7 @@ export async function getRoutineStepSection(
       inputMode: "VISUAL_BOARD",
       target: undefined,
     };
-    const result = await dispatchGameSection(
+    return dispatchGameSection(
       playerId,
       classification.gameTypeKey,
       sectionId as SectionId,
@@ -1176,7 +1242,6 @@ export async function getRoutineStepSection(
       now,
       { routineKey, stepKey },
     );
-    return result as ServiceResult<Series<unknown>>;
   }
 
   const routineSectionMeta = classification.sections.find(
@@ -1186,30 +1251,15 @@ export async function getRoutineStepSection(
     return { ok: false, code: "NOT_FOUND" };
   }
 
-  if (q.bucket !== "none" && !routineSectionMeta.bucketable) {
+  const resolvedRange = await resolveSectionRange(db, routineSectionMeta, q);
+  if ("error" in resolvedRange) {
     return {
       ok: false,
       code: "VALIDATION_FAILED",
-      details: { reason: "this section does not support bucket" },
+      details: { reason: resolvedRange.error },
     };
   }
-
-  const resolvedStatus = sectionStatuses(
-    routineSectionMeta.includesAbandoned,
-    q.status,
-  );
-  if ("error" in resolvedStatus) {
-    return {
-      ok: false,
-      code: "VALIDATION_FAILED",
-      details: { reason: resolvedStatus.error },
-    };
-  }
-
-  const from =
-    q.bucket === "none"
-      ? q.from
-      : await findBucketFloor(db, q.from, q.bucket, q.tz!);
+  const { from, statuses } = resolvedRange;
 
   const stepScope: StepScope = {
     playerId,
@@ -1217,65 +1267,71 @@ export async function getRoutineStepSection(
     stepKey,
     from,
     to: q.to,
-    statuses: resolvedStatus.statuses,
+    statuses,
   };
   const bucketArgs = {
     bucket: q.bucket,
     tz: q.bucket === "none" ? undefined : q.tz,
   };
 
-  const dataVersionInput = await findRoutineDataVersion(
-    db,
-    playerId,
-    routineKey,
-  );
-  const dataVersion = encodeDataVersion({
-    count: dataVersionInput.runCount,
-    maxCompletedAt: dataVersionInput.maxCompletedAt,
-  });
-
   let buckets: SeriesBucket<unknown>[];
-  if (sectionId === "step-volume") {
-    const rows = await findStepBuckets(db, { ...stepScope, ...bucketArgs });
-    buckets = stepVolumeBuckets(rows, { to: q.to, now });
-  } else {
-    const dartCount = await findStepScopeDartCount(db, stepScope);
-    if (dartCount > MAX_FOLD_DARTS) {
-      return {
-        ok: false,
-        code: "VALIDATION_FAILED",
-        details: { reason: foldBoundMessage(dartCount) },
-      };
+  let dataVersion: string;
+  switch (routineSectionMeta.id) {
+    case "step-volume": {
+      const [rows, version] = await Promise.all([
+        findStepBuckets(db, { ...stepScope, ...bucketArgs }),
+        routineDataVersion(db, playerId, routineKey),
+      ]);
+      buckets = stepVolumeBuckets(rows, { to: q.to, now });
+      dataVersion = version;
+      break;
     }
-    const rows = await findStepFoldRows(db, { ...stepScope, ...bucketArgs });
-    buckets = stepResultBuckets(
-      step.exerciseTypeKey as DartExerciseKind,
-      rows,
-      {
+    case "step-result": {
+      const dartCount = await findStepScopeDartCount(db, stepScope);
+      if (dartCount > MAX_FOLD_DARTS) {
+        return {
+          ok: false,
+          code: "VALIDATION_FAILED",
+          details: { reason: foldBoundMessage(dartCount) },
+        };
+      }
+      if (!isDartExerciseKind(step.exerciseTypeKey)) {
+        throw new Error(
+          `step-result dispatched for a step whose exerciseTypeKey "${step.exerciseTypeKey}" is not a dart exercise kind`,
+        );
+      }
+      const [rows, version] = await Promise.all([
+        findStepFoldRows(db, { ...stepScope, ...bucketArgs }),
+        routineDataVersion(db, playerId, routineKey),
+      ]);
+      buckets = stepResultBuckets(step.exerciseTypeKey, rows, {
         to: q.to,
         now,
-      },
-    );
+      });
+      dataVersion = version;
+      break;
+    }
+    case "routine-volume":
+    case "routine-completion":
+      throw new Error(
+        `sectionsForStep() returned a run-surface section "${routineSectionMeta.id}"`,
+      );
+    default: {
+      const exhaustive: never = routineSectionMeta.id;
+      throw new Error(`unhandled routine section "${String(exhaustive)}"`);
+    }
   }
 
   return {
     ok: true,
-    data: {
-      sectionId: routineSectionMeta.id,
-      sectionVersion: routineSectionMeta.version,
-      dataVersion,
-      bucket: q.bucket,
-      tz: q.bucket === "none" ? null : (q.tz ?? null),
-      range: { from, to: q.to },
-      buckets,
-    } as unknown as Series<unknown>,
+    data: buildRoutineSeries(routineSectionMeta, dataVersion, q, from, buckets),
   };
 }
 
 /**
- * One step's paginated session list (phase 6b plan decision 10), newest
- * first over `v_stats_routine_step_facts` -- mirroring `listGameSessions`'s
- * cursor and `dataVersion` handling, but keyed to the owning routine.
+ * One step's paginated session list, newest first over
+ * `v_stats_routine_step_facts` -- mirroring `listGameSessions`'s cursor and
+ * `dataVersion` handling, but keyed to the owning routine.
  */
 export async function listRoutineStepSessions(
   playerId: string,
@@ -1287,20 +1343,16 @@ export async function listRoutineStepSessions(
   const resolved = await resolveRoutineStep(db, playerId, routineKey, stepKey);
   if (!resolved.ok) return resolved;
 
-  let after: { completedAt: string; sessionId: string } | undefined;
-  if (q.cursor !== undefined) {
-    const decoded = decodeCursor(q.cursor);
-    if (decoded === null) {
-      return {
-        ok: false,
-        code: "VALIDATION_FAILED",
-        details: { reason: "cursor is malformed" },
-      };
-    }
-    after = decoded;
+  const cursor = decodeSessionCursor(q.cursor);
+  if (!cursor.ok) {
+    return {
+      ok: false,
+      code: "VALIDATION_FAILED",
+      details: { reason: cursor.reason },
+    };
   }
 
-  const [rows, dataVersionInput] = await Promise.all([
+  const [rows, dataVersion] = await Promise.all([
     findStepSessionPage(db, {
       playerId,
       routineKey,
@@ -1309,31 +1361,15 @@ export async function listRoutineStepSessions(
       to: q.to,
       statuses: listStatuses(q.status),
       limit: q.limit,
-      after,
+      after: cursor.data,
     }),
-    findRoutineDataVersion(db, playerId, routineKey),
+    routineDataVersion(db, playerId, routineKey),
   ]);
 
-  const hasMore = rows.length > q.limit;
-  const items = hasMore ? rows.slice(0, q.limit) : rows;
-  const last = items[items.length - 1];
-  const nextCursor =
-    hasMore && last
-      ? encodeCursor({
-          completedAt: last.completedAt,
-          sessionId: last.sessionId,
-        })
-      : null;
+  const { items, nextCursor } = pageSessions(rows, q.limit);
 
   return {
     ok: true,
-    data: {
-      items,
-      nextCursor,
-      dataVersion: encodeDataVersion({
-        count: dataVersionInput.runCount,
-        maxCompletedAt: dataVersionInput.maxCompletedAt,
-      }),
-    },
+    data: { items, nextCursor, dataVersion },
   };
 }
