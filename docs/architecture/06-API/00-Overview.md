@@ -214,8 +214,8 @@ Reads are view-backed and player-scoped.
 | `GET /api/statistics/routines` | `v_stats_routine_run_facts` |
 | `GET /api/statistics/routines/:routineKey` | `v_stats_routine_run_facts`, `v_stats_routine_step_facts` |
 | `GET /api/statistics/routines/:routineKey/sections/:sectionId` | `v_stats_routine_run_facts` |
-| `GET /api/statistics/routines/:routineKey/steps/:stepKey/sections/:sectionId` | `v_stats_routine_step_facts`, `v_game_replay` (`step-result`); a GAME step also `v_stats_session_facts`, `v_stats_dart_facts` |
-| `GET /api/statistics/routines/:routineKey/steps/:stepKey/sessions` | `v_stats_routine_step_facts` |
+| `GET /api/statistics/routines/:routineKey/steps/:stepKey/sections/:sectionId` | `v_stats_routine_run_facts`, `v_stats_routine_step_facts`, `v_game_replay` (`step-result`); a GAME step also `v_stats_session_facts`, `v_stats_dart_facts`, `v_x01_checkout_darts` |
+| `GET /api/statistics/routines/:routineKey/steps/:stepKey/sessions` | `v_stats_routine_run_facts`, `v_stats_routine_step_facts` |
 
 Policy:
 

@@ -5,7 +5,7 @@ import { RoutineNoQuery } from "@routes/types";
 
 /**
  * Every routine the caller has trained, newest run first
- * (`10-Statistics/00-Overview.md` §9, phase 6b plan decision 9).
+ * (`10-Statistics/00-Overview.md` §6, D372 decision 9).
  * Unpaginated -- bounded by routines trained, not by runs. Takes no query
  * parameters: any key at all fails `RoutineNoQuery`'s `.strict()`.
  */

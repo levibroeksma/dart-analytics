@@ -6,10 +6,10 @@ import type {
 } from "./types";
 
 /**
- * Each dart exercise kind's step-metric contract (phase 6b plan decision 7),
- * read from the same engine state `routine-summary.module.ts`'s
- * `summarise*` functions read, so the routine summary modal and the future
- * `/statistics` Routines tab can never disagree.
+ * Each dart exercise kind's step-metric contract (D372 decision 7), read
+ * from the same engine state `routine-summary.module.ts`'s `summarise*`
+ * functions read, so the routine summary modal and the `/statistics`
+ * Routines tab can never disagree.
  */
 export const STEP_METRIC_SPECS: Readonly<
   Record<DartExerciseKind, StepMetricSpec>
@@ -96,8 +96,7 @@ function numberField(
  * target, so a non-hit dart can still score under a lenient scoring config
  * (`docs/game-rules/training/exercises/switching.md`). The hit count the
  * summary modal shows is therefore not `state.totalPoints` but a replay of
- * every dart's own intended/hit pair — the same walk
- * `routine-summary.module.ts`'s `summariseSwitching` used to perform inline.
+ * every dart's own intended/hit pair.
  */
 function switchingHits(facts: EngineFacts): number {
   return facts.turns
@@ -110,8 +109,8 @@ function switchingHits(facts: EngineFacts): number {
 }
 
 /**
- * One definition of each dart exercise kind's step metrics (phase 6b plan
- * decision 7), read from its engine state exactly as
+ * One definition of each dart exercise kind's step metrics (D372 decision
+ * 7), read from its engine state exactly as
  * `routine-summary.module.ts` reads it today. Returns exactly the keys
  * `STEP_METRIC_SPECS[kind].metrics` declares.
  */
@@ -169,7 +168,7 @@ export function stepMetrics(
 /**
  * Merges two buckets' worth of one kind's step metrics per its own spec —
  * `"sum"` keys add, `"max"` keys take the larger — the same re-aggregation
- * rule `step-result` (phase 6b Task 4) applies across chunk windows.
+ * rule `step-result` applies across chunk windows.
  */
 export function mergeStepMetrics(
   spec: StepMetricSpec,
@@ -196,8 +195,8 @@ function mergeExtreme(
 }
 
 /**
- * Merges two `step-result` results across chunk windows (controller ruling
- * R14; the client cache wires this in): `metrics` via `mergeStepMetrics`,
+ * Merges two `step-result` results across chunk windows (the client cache
+ * wires this in): `metrics` via `mergeStepMetrics`,
  * `headlineMin`/`Max` by the tighter/wider extreme with `null` as identity
  * (`null` only when neither side folded a session), `sessions`/
  * `skippedSessions` sum. Lives here, not beside `foldStepResult`, so a

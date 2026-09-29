@@ -81,13 +81,13 @@ export type GameSectionResponseData =
   | LegStatsSeriesResponseData
   | TrebleRateSeriesResponseData;
 
-/** The range/bucket/status parameters a routine or routine-step section request builds — `GameStatsRangeParams` minus `context`, `inputMode` and `target`, which `RoutineStatsQuery`'s `.strict()` never accepts (plan decision 4), so the two shapes cannot drift apart. */
+/** The range/bucket/status parameters a routine or routine-step section request builds — `GameStatsRangeParams` minus `context`, `inputMode` and `target`, which `RoutineStatsQuery`'s `.strict()` never accepts (D372 decision 4), so the two shapes cannot drift apart. */
 export type RoutineSectionParams = Omit<
   GameStatsRangeParams,
   "context" | "inputMode" | "target"
 >;
 
-/** `fetchRoutineStepSessions`'s params: `RoutineSessionsQuery`'s own fields — no `bucket`/`tz`/`context`/`inputMode` (plan decision 10). */
+/** `fetchRoutineStepSessions`'s params: `RoutineSessionsQuery`'s own fields — no `bucket`/`tz`/`context`/`inputMode` (D372 decision 4). */
 export type RoutineStepSessionsParams = {
   from: string;
   to: string;

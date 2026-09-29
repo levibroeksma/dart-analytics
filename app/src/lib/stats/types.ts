@@ -94,8 +94,8 @@ export interface SectionMeta {
 }
 
 /**
- * Run- or step-surface routine section ids (phase 6b plan decision 6) —
- * disjoint from `SectionId`, which stays game-only (controller ruling R3).
+ * Run- or step-surface routine section ids (D372 decision 6) — disjoint
+ * from `SectionId`, which stays game-only so no game page can list one.
  */
 export type RoutineSectionId =
   "routine-volume" | "routine-completion" | "step-volume" | "step-result";
@@ -103,9 +103,8 @@ export type RoutineSectionId =
 /**
  * One routine-tab section's registry entry: `SectionMeta`'s fields with
  * `id` narrowed to `RoutineSectionId`, `requires` fixed to `[]` (no game
- * ever gates a routine section — decision 6's table names no `requires`),
- * plus `surface`, which page the section appears on (phase 6b plan
- * decision 6, controller ruling R3).
+ * ever gates a routine section), plus `surface`, which page the section
+ * appears on (D372 decision 6).
  */
 export type RoutineSectionMeta = Omit<SectionMeta, "id" | "requires"> & {
   id: RoutineSectionId;
@@ -220,9 +219,9 @@ export type ReplaySnapshot = Record<string, unknown> & {
 };
 
 /**
- * Why a replay shows its stored facts only (D371 decision 8; phase 6b plan
- * decision 11 adds `NO_EXERCISE_ENGINE` for a non-game step whose
- * `exerciseRulesetVersionKey` names no registered dart exercise engine).
+ * Why a replay shows its stored facts only (D371 decision 8, D372 decision
+ * 11). `NO_EXERCISE_ENGINE` is a non-game step whose
+ * `exerciseRulesetVersionKey` names no registered dart exercise engine.
  */
 export type ReplaySkipReason =
   | "NO_SNAPSHOT"

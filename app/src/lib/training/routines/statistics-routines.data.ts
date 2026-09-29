@@ -3,10 +3,10 @@ import type { SelectOption, StatisticsRoutinesContext } from "./types";
 /**
  * `/statistics` Routines tab picker. Its `Select` model reads and writes the
  * `routineStats` store's selected routine, so the picker is seeded with the
- * store's first trained routine (`routineStats.init()`) and a pick reloads
- * the tab through `selectRoutine`. The options are routines that were
- * trained (`GET /api/statistics/routines`), never the `GET /api/routines`
- * catalogue of routines that exist today (phase 6b plan decision 9).
+ * store's first trained routine (`routineStats.activate()`) and a pick
+ * reloads the tab through `selectRoutine`. The options are routines that
+ * were trained (`GET /api/statistics/routines`), never the `GET /api/routines`
+ * catalogue of routines that exist today (D372 decision 9).
  */
 export function statisticsRoutines(): Omit<
   StatisticsRoutinesContext,

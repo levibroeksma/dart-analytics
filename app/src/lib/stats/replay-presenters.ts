@@ -393,8 +393,8 @@ function metricLabel(key: string): string {
 
 /**
  * The metrics key that counts darts thrown, one entry per dart exercise
- * kind (R21 fix round: named explicitly rather than derived from whether
- * `"darts"` happens to be a key of the kind's own spec, so a future kind
+ * kind (named explicitly rather than derived from whether `"darts"`
+ * happens to be a key of the kind's own spec, so a future kind
  * naming it something else besides `"darts"`/`"throws"` fails this
  * `Record`'s own exhaustiveness check at compile time instead of silently
  * reading `undefined`). Bull Up's own attempts are still one dart each,
@@ -416,7 +416,7 @@ function stepFactsOf(steps: readonly ReplayStep[]): EngineFacts {
 }
 
 /**
- * One dart exercise kind's replay presenter (phase 6b plan decision 11),
+ * One dart exercise kind's replay presenter (D372 decision 11),
  * shared across all seven kinds rather than written per kind: a turn cell
  * shows the running headline and darts thrown, both read straight off
  * `state` after that turn (`stepMetrics` over `NO_FACTS` -- correct because
@@ -453,7 +453,7 @@ function buildStepPresenter(kind: DartExerciseKind): ReplayPresenter {
 }
 
 /**
- * Each dart exercise kind's replay presenter (phase 6b plan decision 11),
+ * Each dart exercise kind's replay presenter (D372 decision 11),
  * built once from `STEP_METRIC_SPECS` and `stepMetrics` rather than seven
  * hand-written copies.
  */

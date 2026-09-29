@@ -97,7 +97,7 @@ export async function fetchSessionReplay(
   return result.data;
 }
 
-/** `RoutineStatsQuery`'s own fields, built into a query string — no `context`, `inputMode` or `target` (plan decision 4): the route fixes context server-side and never accepts either of the other two. */
+/** `RoutineStatsQuery`'s own fields, built into a query string — no `context`, `inputMode` or `target` (D372 decision 4): the route fixes context server-side and never accepts either of the other two. */
 function routineSectionSearchParams(q: RoutineSectionParams): URLSearchParams {
   const params = new URLSearchParams();
   params.set("from", q.from);
@@ -108,7 +108,7 @@ function routineSectionSearchParams(q: RoutineSectionParams): URLSearchParams {
   return params;
 }
 
-/** Every routine the caller has trained (`10-Statistics/00-Overview.md` §9). Takes no parameters — the route's `RoutineNoQuery` accepts none. */
+/** Every routine the caller has trained (`10-Statistics/00-Overview.md` §6). Takes no parameters — the route's `RoutineNoQuery` accepts none. */
 export async function fetchTrainedRoutines(): Promise<TrainedRoutineListResponseData> {
   const result = await apiRequest<TrainedRoutineListResponseData>(
     "/api/statistics/routines",

@@ -31,17 +31,17 @@ export function parseStepKey(
   return { sequenceNumber: Number(match[1]), fingerprint: match[2] };
 }
 
-/** The routine-level cache/read scope key for `routineKey` (decision 12). */
+/** The routine-level cache/read scope key for `routineKey` (D372 decision 12). */
 export function routineScopeKey(routineKey: string): string {
   return `routine:${routineKey}`;
 }
 
-/** The step-level cache/read scope key for `stepKey` within `routineKey` (decision 12). */
+/** The step-level cache/read scope key for `stepKey` within `routineKey` (D372 decision 12). */
 export function stepScopeKey(routineKey: string, stepKey: string): string {
   return `routine:${routineKey}:step:${stepKey}`;
 }
 
-/** The game-level cache/read scope key for `gameTypeKey` (decision 12). */
+/** The game-level cache/read scope key for `gameTypeKey` (D372 decision 12). */
 export function gameScopeKey(gameTypeKey: GameTypeKey): string {
   return `game:${gameTypeKey}`;
 }

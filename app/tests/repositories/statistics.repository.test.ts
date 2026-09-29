@@ -1862,6 +1862,29 @@ describe("findTrainedRoutines", () => {
     expect(result[0].routineTemplateId).toBeNull();
   });
 
+  it("labels a routine whose latest run has no routineName as an unnamed routine", async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      groupBy: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockResolvedValue([
+        {
+          routineKey: "name-d41d8cd98f00b204e9800998ecf8427e",
+          routineTemplateId: null,
+          routineName: null,
+          runCount: "1",
+          completedRunCount: "1",
+          lastRunAt: "2026-09-20T10:00:00.000Z",
+        },
+      ]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+
+    const result = await findTrainedRoutines(db, "p1");
+
+    expect(result[0].routineName).toBe("Unnamed routine");
+  });
+
   it("nonNull throws on a null routine_key column", async () => {
     const chain = {
       from: vi.fn().mockReturnThis(),
@@ -1958,7 +1981,7 @@ describe("findRoutineHeader", () => {
     expect(result?.latestStepCount).toBeNull();
   });
 
-  it("nonNull throws on a null routine_name column", async () => {
+  it("labels a latest run with no routineName in its snapshot as an unnamed routine", async () => {
     const chain = {
       from: vi.fn().mockReturnThis(),
       where: vi.fn().mockReturnThis(),
@@ -1975,9 +1998,9 @@ describe("findRoutineHeader", () => {
     };
     const db = { select: vi.fn(() => chain) } as any;
 
-    await expect(findRoutineHeader(db, "p1", "routine-1")).rejects.toThrow(
-      /routine_name/,
-    );
+    const result = await findRoutineHeader(db, "p1", "routine-1");
+
+    expect(result?.routineName).toBe("Unnamed routine");
   });
 });
 
@@ -2375,6 +2398,21 @@ describe("findRoutineRunBuckets", () => {
     expect(sql.toLowerCase()).toMatch(/left join "?hist"?/);
   });
 
+  it("excludes never-started runs from the abandon histogram on bucket=month", async () => {
+    const { db, statements } = renderingDb([]);
+    await findRoutineRunBuckets(db, {
+      ...baseQuery,
+      bucket: "month",
+      tz: "Europe/Amsterdam",
+    });
+    const sql = onlyStatement(statements);
+    const histCte = sql.match(/hist AS \(([\s\S]*?)\)\s*SELECT\s+scoped\./);
+    expect(histCte).not.toBeNull();
+    expect(histCte![1]).toMatch(
+      /WHERE status_key = 'ABANDONED' AND steps_started > 0/,
+    );
+  });
+
   it("maps a bucket row, parsing every count/sum to a number and passing the histogram through", async () => {
     const db = {
       execute: vi.fn().mockResolvedValue({
@@ -2417,6 +2455,36 @@ describe("findRoutineRunBuckets", () => {
         stepsCompletedAtAbandon: { "1": 1, "2": 1 },
       },
     ]);
+  });
+
+  it("returns no bucket on bucket=none when no run is in scope, like the game readers", async () => {
+    const db = {
+      execute: vi.fn().mockResolvedValue({
+        rows: [
+          {
+            bucket_start: "2026-01-01T00:00:00.000Z",
+            bucket_end: "2026-02-01T00:00:00.000Z",
+            runs: 0,
+            duration_sum: 0,
+            duration_min: 0,
+            duration_max: 0,
+            darts: 0,
+            completed: 0,
+            abandoned: 0,
+            never_started: 0,
+            steps_completed_at_abandon: {},
+          },
+        ],
+      }),
+    } as any;
+
+    const result = await findRoutineRunBuckets(db, {
+      ...baseQuery,
+      bucket: "none",
+      tz: undefined,
+    });
+
+    expect(result).toEqual([]);
   });
 
   it("nonNull throws on a null bucket_start column", async () => {
@@ -2514,6 +2582,30 @@ describe("findStepBuckets", () => {
         darts: 120,
       },
     ]);
+  });
+
+  it("returns no bucket on bucket=none when no session is in scope, like the game readers", async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockResolvedValue([
+        {
+          bucketStart: "2026-01-01T00:00:00.000Z",
+          bucketEnd: "2026-02-01T00:00:00.000Z",
+          sessions: "0",
+          durationSum: "0",
+          darts: "0",
+        },
+      ]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+
+    const result = await findStepBuckets(db, {
+      ...baseQuery,
+      bucket: "none",
+      tz: undefined,
+    });
+
+    expect(result).toEqual([]);
   });
 });
 

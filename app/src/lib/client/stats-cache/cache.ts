@@ -128,19 +128,20 @@ function sectionKey(
  * span (at most two: before and after the stored coverage) is ever fetched.
  * `bucket = none` has no partial coverage — the whole result is cached
  * together and served only while `scope`'s last-known `dataVersion` at its
- * `versionKey` (a game, routine or step, controller rulings R4/R23) still
- * matches the cached response's own. The compute-site resolution and, for a
- * server section, `mergerFor`'s `exerciseKind` contract check both run
- * before the IndexedDB-unavailable branch below, so a malformed `step-result`
- * scope throws every time, not only when IndexedDB happens to be available
- * (controller ruling R23 item 5). The `meta as SectionMeta` cast below is a
- * narrowing assertion, not a type escape: `scope.gameTypeKey` and `meta`'s
- * own type are two independent parameters TypeScript cannot correlate, so
- * only a caller contract (never a `RoutineSectionMeta` alongside a non-null
- * `gameTypeKey`) makes it safe; an overload pair on `readSection` would
+ * `versionKey` (the game's, or the routine's for a routine or step scope,
+ * D372 decision 12) still matches the cached response's own. The
+ * compute-site resolution and, for a server section, `mergerFor`'s
+ * `exerciseKind` contract check both run before the IndexedDB-unavailable
+ * branch below, so a malformed `step-result` scope throws every time, not
+ * only when IndexedDB happens to be available. The `meta as SectionMeta`
+ * cast below is a narrowing assertion, not a type escape: `scope.gameTypeKey`
+ * and `meta`'s own type are two independent parameters TypeScript cannot
+ * correlate, so only a caller contract (never a `RoutineSectionMeta`
+ * alongside a non-null `gameTypeKey`) makes it safe; an overload pair on
+ * `readSection` would
  * check that contract at the call site but could not remove the cast here,
  * since the implementation body only ever sees the widened union regardless
- * of which overload a caller matched (fix-round 1 item 8).
+ * of which overload a caller matched.
  */
 export async function readSection<M>(
   playerId: string,
@@ -355,7 +356,7 @@ async function readBucketedSection<M>(
 /**
  * The chunk merger for one server-computed section's own id: `step-result`
  * (the one server-site `RoutineSectionId`) merges via `mergeStepResult` and
- * its own dart exercise kind's spec (controller ruling R22) — a chunk read
+ * its own dart exercise kind's spec (D372 decision 12) — a chunk read
  * with no `exerciseKind` is a caller contract break, not a fetch failure, so
  * this throws rather than silently skipping the merge. Every other id is a
  * `ServerSectionId`, merged as today via `mergeMetrics`, whose own `Record`
@@ -562,8 +563,8 @@ async function readServerSection<M>(
 /**
  * One session-list page, keyed by `(player, scope, paramsKey, from, to,
  * cursor)`; dropped when `dataVersion` changes. `versionKey` defaults to
- * `scopeKey` (controller ruling R23) — a routine or step caller passes the
- * routine's own `routineScopeKey`, matching `readSection`'s `CacheScope`.
+ * `scopeKey` — a routine or step caller passes the routine's own
+ * `routineScopeKey`, matching `readSection`'s `CacheScope`.
  */
 export async function readSessionPage<T>(
   playerId: string,
@@ -605,8 +606,8 @@ export async function readSessionPage<T>(
 /**
  * Records a fresh `dataVersion` token for `versionKey` without a section
  * fetch of its own, invalidating every cached entry that reads that same
- * meta row exactly as a fetched response would (controller ruling R23) —
- * the Task 9 routine store calls this once per routine header load, so a
+ * meta row exactly as a fetched response would (D372 decision 12) — the
+ * `routineStats` store calls this once per routine header load, so a
  * step scope sharing the routine's `versionKey` goes stale the moment the
  * routine's own token changes, even though the step was never fetched
  * directly. Degrades to a no-op without IndexedDB, matching every other

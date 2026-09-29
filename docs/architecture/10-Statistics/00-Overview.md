@@ -327,7 +327,8 @@ never stored:
 FK, so a deleted routine keeps its statistics. A snapshot written before
 that field existed (D321) keys as `name-<md5(routineName)>`, so one legacy
 name is one routine; the two forms cannot collide. The display name is the
-latest run's `routineName`, so a renamed routine keeps its history.
+latest run's `routineName`, so a renamed routine keeps its history; a latest
+run whose snapshot has none reads as "Unnamed routine" rather than failing.
 
 **Step identity (decision 2):** `step_key = <sequenceNumber>-<md5>`, the md5
 of the step's snapshot element without `sequenceNumber` (`jsonb` text output

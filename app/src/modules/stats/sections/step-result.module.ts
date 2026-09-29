@@ -61,6 +61,29 @@ function groupBySession(
 }
 
 /**
+ * One session's `rows` in play order: by each stage's index in `stages`
+ * (`stageOrder`'s pre-order), then turn sequence, then dart number.
+ * `findStepFoldRows` orders by `stageSequence`, which a root and its first
+ * child share, so without this their turns would interleave in the replay.
+ */
+function inPlayOrder(
+  rows: readonly StepFoldSession[],
+  stages: readonly ReplayStageRow[],
+): StepFoldSession[] {
+  const stageIndex = new Map(
+    stages.map((stage, index) => [stage.stageId, index]),
+  );
+  return rows
+    .slice()
+    .sort(
+      (a, b) =>
+        stageIndex.get(a.stageId)! - stageIndex.get(b.stageId)! ||
+        a.turnSequence - b.turnSequence ||
+        (a.dartNumber ?? 0) - (b.dartNumber ?? 0),
+    );
+}
+
+/**
  * One session's own `stepMetrics`, replayed from its rows through its
  * registered engine factory, or `null` when the session's own
  * `exerciseRulesetVersionKey` names no registered factory, the factory
@@ -84,7 +107,7 @@ function foldOneSession(
 
   try {
     const stages = stageOrder(stagesOf(rows));
-    const turns = rowsToTurns(rows);
+    const turns = rowsToTurns(inPlayOrder(rows, stages));
     const facts = replayFacts(stages, turns);
     const state = factory.create(first.configuration, facts).state();
     return stepMetrics(kind, state, facts);
@@ -102,13 +125,13 @@ function zeroMetrics(spec: StepMetricSpec): Record<string, number> {
 
 /**
  * Rebuilds and folds every session of one non-game routine step's dart
- * exercise (phase 6b plan decision 8): groups `sessions`' flat rows by
+ * exercise (D372 decision 8): groups `sessions`' flat rows by
  * `sessionId`, rebuilds each session's `EngineFacts` (`stageOrder`,
- * `rowsToTurns`, `replayFacts` — phase 5b), replays it through its own
- * registered engine factory, and reads `stepMetrics`. A session with no
- * registered factory, whose engine throws, or whose replayed state does not
- * match `kind`'s own metrics is skipped, counted in `skippedSessions`, never
- * guessed. `headlineMin`/`Max` are the spec's headline metric's extremes
+ * `rowsToTurns` over the rows in stage pre-order, `replayFacts`), replays
+ * it through its own registered engine factory, and reads `stepMetrics`. A
+ * session with no registered factory, whose engine throws, or whose
+ * replayed state does not match `kind`'s own metrics is skipped, counted in
+ * `skippedSessions`, never guessed. `headlineMin`/`Max` are the spec's headline metric's extremes
  * across the sessions that did fold.
  */
 export function foldStepResult(
@@ -151,8 +174,8 @@ export function foldStepResult(
 
 /**
  * Groups `findStepFoldRows`' flat, bucket-tagged rows by the bucket their
- * own session's `completedAt` falls in (controller ruling R15, mirroring
- * `findX01FoldRows`' `bucketStart`/`bucketEnd` precedent), and folds each
+ * own session's `completedAt` falls in (mirroring `findX01FoldRows`'
+ * `bucketStart`/`bucketEnd` precedent), and folds each
  * bucket's own sessions through `foldStepResult`. `sampleSize` is the
  * bucket's own scoped session count — folded plus skipped, since a skip is
  * still a session that happened.

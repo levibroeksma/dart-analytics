@@ -7,7 +7,7 @@ import type { SeriesBucket } from "@lib/types";
 
 /**
  * Folds `findRoutineRunBuckets` rows into `routine-completion` buckets
- * (phase 6b plan decision 6). One row already is one bucket, so this only
+ * (D372 decision 6). One row already is one bucket, so this only
  * reshapes it — `completed`/`abandoned`/`neverStarted` partition the
  * bucket's runs, matching `completionBuckets`' game-grain partition (D367
  * decision 5), so `sampleSize` is `row.runs`.

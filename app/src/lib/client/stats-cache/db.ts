@@ -13,7 +13,7 @@ const STORES = [
  * Opens the statistics cache database, wiping and recreating every store on
  * a version bump (`10-Statistics/00-Overview.md` §7: "schema bump wipes all
  * stores"). `replayPages` joined `STORES` in phase 5b (D371 decision 7);
- * `STATS_SCHEMA_VERSION` 3 (phase 6b plan decision 12) wipes every store
+ * `STATS_SCHEMA_VERSION` 3 (D372 decision 12) wipes every store
  * again for the cache key's move from a bare `gameTypeKey` to a general
  * scope key, without changing `STORES` itself; `facts` joins in its own
  * future phase, each bumping `STATS_SCHEMA_VERSION`.

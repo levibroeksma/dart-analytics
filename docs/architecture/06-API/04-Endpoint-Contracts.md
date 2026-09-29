@@ -830,7 +830,7 @@ const RoutineSessionsQuery = z
 const TrainedRoutine = z.object({
   routineKey: z.string(),
   routineTemplateId: z.string().uuid().nullable(), // null for a name- key
-  routineName: z.string(),                         // the latest run's
+  routineName: z.string(),                         // the latest run's, else "Unnamed routine"
   runCount: z.number().int(), completedRunCount: z.number().int(),
   lastRunAt: z.string().datetime({ offset: true }),
 });
@@ -944,8 +944,8 @@ All read endpoints are view-backed and player-scoped. Thin response contracts st
 | `GET /api/statistics/routines` | `v_stats_routine_run_facts` | `TrainedRoutineListResponse` | 2026-09-29 (D372) |
 | `GET /api/statistics/routines/:routineKey` | `v_stats_routine_run_facts` + `v_stats_routine_step_facts` | `RoutineHeader` | 2026-09-29 (D372) |
 | `GET /api/statistics/routines/:routineKey/sections/:sectionId` | `v_stats_routine_run_facts` | `SeriesEnvelope<RoutineVolumeMetrics \| RoutineCompletionMetrics>` | 2026-09-29 (D372) |
-| `GET /api/statistics/routines/:routineKey/steps/:stepKey/sections/:sectionId` | `v_stats_routine_step_facts` (+ `v_game_replay` for `step-result`; a GAME step: the game section's views) | `SeriesEnvelope<StepVolumeMetrics \| StepResultMetrics>`, or a GAME step's game section shape | 2026-09-29 (D372) |
-| `GET /api/statistics/routines/:routineKey/steps/:stepKey/sessions` | `v_stats_routine_step_facts` | `RoutineStepSessionListResponse` | 2026-09-29 (D372) |
+| `GET /api/statistics/routines/:routineKey/steps/:stepKey/sections/:sectionId` | `v_stats_routine_run_facts` + `v_stats_routine_step_facts` (+ `v_game_replay` for `step-result`; a GAME step: `v_stats_session_facts` / `v_stats_dart_facts` / `v_x01_checkout_darts`) | `SeriesEnvelope<StepVolumeMetrics \| StepResultMetrics>`, or a GAME step's game section shape | 2026-09-29 (D372) |
+| `GET /api/statistics/routines/:routineKey/steps/:stepKey/sessions` | `v_stats_routine_run_facts` + `v_stats_routine_step_facts` | `RoutineStepSessionListResponse` | 2026-09-29 (D372) |
 
 The frozen `GET /api/sessions/:sessionId/replay` row above (`ReplayEntry[]`) stays documented but unbuilt: statistics phase 5 (D371) builds the statistics replay route instead and neither builds nor drops this one — issue #636 tracks retiring it or pointing it at the same service. <!-- 2026-09-28 -->
 

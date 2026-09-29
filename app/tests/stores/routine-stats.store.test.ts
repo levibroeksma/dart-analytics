@@ -493,6 +493,39 @@ describe("routineStatsStore getters", () => {
     ).toBe("Step 5 · FUTURE_DRILL");
   });
 
+  it("details a step with its session count, configured minutes and last run date", () => {
+    const store = routineStatsStore();
+    const lastRun = new Date("2026-02-01T00:00:00.000Z").toLocaleDateString();
+
+    expect(store.stepDetail(HEADER.steps[3])).toBe(
+      `2 sessions · 5 min · last run ${lastRun}`,
+    );
+  });
+
+  it("tells two versions of one step number apart by their last run date", () => {
+    const store = routineStatsStore();
+    const older = step({
+      stepKey: OLD_SWITCHING_KEY,
+      sequenceNumber: 3,
+      exerciseTypeKey: "SWITCHING",
+      lastSeenAt: "2026-01-10T12:00:00.000Z",
+      current: false,
+    });
+    const newer = { ...older, lastSeenAt: "2026-01-20T12:00:00.000Z" };
+
+    expect(store.stepLabel(older)).toBe(store.stepLabel(newer));
+    expect(store.stepDetail(older)).not.toBe(store.stepDetail(newer));
+  });
+
+  it("omits the configured minutes when the step's snapshot sets no duration", () => {
+    const store = routineStatsStore();
+    const lastRun = new Date("2026-02-01T00:00:00.000Z").toLocaleDateString();
+
+    expect(
+      store.stepDetail({ ...HEADER.steps[1], durationSeconds: null }),
+    ).toBe(`2 sessions · last run ${lastRun}`);
+  });
+
   it("has a display label for every STEP_METRIC_SPECS metric key", () => {
     const store = routineStatsStore();
     const keys = Object.values(STEP_METRIC_SPECS).flatMap((spec) =>

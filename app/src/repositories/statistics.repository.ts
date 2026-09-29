@@ -227,10 +227,10 @@ function bucketExprs(
 }
 
 /**
- * A GAME routine step's session_id sub-select (phase 6b plan decision 5):
+ * A GAME routine step's session_id sub-select (D372 decision 5):
  * `dartScopeWhere`/`sessionScopeWhere` add this only when the caller's scope
- * carries a `routineStep`, so every phase 2-4 handler and its tests are
- * unaffected — the field is optional and no existing caller sets it.
+ * carries a `routineStep`, so a game page's reader, which leaves the
+ * optional field unset, reads the whole game scope.
  */
 function routineStepCondition(
   sessionIdColumn: Column,
@@ -1072,8 +1072,8 @@ export async function findBucketFloor(
  * same index scan and projects only what it needs (`00-Overview.md` §5.2).
  * `bucket = none` groups with no bucket expression at all; the caller's
  * `from`/`to` become the single bucket's bounds. `routineStep`, when set,
- * adds the same sub-select `dartScopeWhere`/`sessionScopeWhere` add (phase
- * 6b plan decision 5, controller ruling R12) — this reader builds its own
+ * adds the same sub-select `dartScopeWhere`/`sessionScopeWhere` add (D372
+ * decision 5) — this reader builds its own
  * `WHERE` inline rather than through either shared predicate, so it needs
  * its own wiring.
  */
@@ -1221,7 +1221,7 @@ function mapBucketRow(row: {
 
 /**
  * `findReplaySession`'s primary (session-facts-joined-to-step) query row
- * shape. R6: a session-facts row with no `v_stats_routine_step_facts` match
+ * shape. A session-facts row with no `v_stats_routine_step_facts` match
  * is a standalone game (`session.service.ts`'s
  * `findExerciseTypeId(db, "GAME")`), so it defaults `exerciseTypeKey` to
  * `"GAME"`.
@@ -1319,18 +1319,18 @@ function mapReplayStepFactsRow(row: {
 }
 
 /**
- * The replay gate (D371 decision 2, phase 6b plan decision 11, R6): one row
- * scoped to `player_id`/`session_id`, carrying the header's decision-5
- * fields plus the routine step fields R6 adds. `null` when the session is
- * missing, belongs to another player, is still active, or is a Warm-Up
- * step (which captures no darts and has nothing to replay) — no reader here
- * tells those apart, so a replay page cannot either.
+ * The replay gate (D371 decision 2, D372 decision 11): one row scoped to
+ * `player_id`/`session_id`, carrying the header's decision-5 fields plus
+ * the routine step fields that name the step a session ran as. `null` when
+ * the session is missing, belongs to another player, is still active, or is
+ * a Warm-Up step (which captures no darts and has nothing to replay) — no
+ * reader here tells those apart, so a replay page cannot either.
  *
  * `v_stats_session_facts` is left-joined to `v_stats_routine_step_facts` on
  * `session_id` (the player filter runs once, on the outer view, since a
  * matching `session_id` is already scoped to that player): a GAME step's row
  * carries its `routineKey`/`stepKey` this way, and a row with no step match
- * is a standalone game, so it gets `exerciseTypeKey: "GAME"` (R6).
+ * is a standalone game, so it gets `exerciseTypeKey: "GAME"`.
  *
  * When `v_stats_session_facts` has no row for this session — the session is
  * either missing, another player's, still active, or a non-game routine
@@ -1607,15 +1607,24 @@ export async function findReplayTurnPage(
 }
 
 /**
+ * The name a routine reads as when its latest run's snapshot carries no
+ * `routineName`: `v_stats_routine_run_facts` still keys such a run (by its
+ * template id, or the hash of an empty name), so it lists rather than fails.
+ */
+const UNNAMED_ROUTINE_NAME = "Unnamed routine";
+
+/**
  * Every routine the player has trained, grouped by `routine_key` over
- * `v_stats_routine_run_facts` (phase 6b plan decision 9): `routineName` is
- * the latest run's own name (a rename keeps history), ordered newest-first.
+ * `v_stats_routine_run_facts` (D372 decision 9): `routineName` is the latest
+ * run's own name (a rename keeps history), ordered newest-first.
  */
 export async function findTrainedRoutines(
   db: Db,
   playerId: string,
 ): Promise<TrainedRoutineRow[]> {
-  const routineNameExpr = sql<string>`(array_agg(${vStatsRoutineRunFacts.routineName} order by ${vStatsRoutineRunFacts.completedAt} desc))[1]`;
+  const routineNameExpr = sql<
+    string | null
+  >`(array_agg(${vStatsRoutineRunFacts.routineName} order by ${vStatsRoutineRunFacts.completedAt} desc))[1]`;
   const routineTemplateIdExpr = sql<
     string | null
   >`min(${vStatsRoutineRunFacts.routineTemplateId})`;
@@ -1639,7 +1648,7 @@ export async function findTrainedRoutines(
   return rows.map((row) => ({
     routineKey: nonNull(row.routineKey, "routine_key"),
     routineTemplateId: row.routineTemplateId,
-    routineName: nonNull(row.routineName, "routine_name"),
+    routineName: row.routineName ?? UNNAMED_ROUTINE_NAME,
     runCount: Number(nonNull(row.runCount, "run_count")),
     completedRunCount: Number(
       nonNull(row.completedRunCount as string | null, "completed_run_count"),
@@ -1650,9 +1659,10 @@ export async function findTrainedRoutines(
 
 /**
  * One routine's run counts, its earliest and latest run, and the latest
- * run's own `step_count` over `v_stats_routine_run_facts` (phase 6b plan
- * decision 9, controller ruling R11) — `null` when the player has never
- * trained this routine. `latestStepCount` is `findRoutineStepDescriptors`'s
+ * run's own `step_count` over `v_stats_routine_run_facts` (D372 decision 9)
+ * — `null` when the player has never trained this routine; a latest run
+ * with no `routineName` reads as `UNNAMED_ROUTINE_NAME`, the same as in
+ * `findTrainedRoutines`. `latestStepCount` is `findRoutineStepDescriptors`'s
  * bound for its `current` flag: an index beyond it no longer exists in the
  * routine's current shape.
  */
@@ -1661,7 +1671,9 @@ export async function findRoutineHeader(
   playerId: string,
   routineKey: string,
 ): Promise<RoutineHeaderRow | null> {
-  const routineNameExpr = sql<string>`(array_agg(${vStatsRoutineRunFacts.routineName} order by ${vStatsRoutineRunFacts.completedAt} desc))[1]`;
+  const routineNameExpr = sql<
+    string | null
+  >`(array_agg(${vStatsRoutineRunFacts.routineName} order by ${vStatsRoutineRunFacts.completedAt} desc))[1]`;
   const latestStepCountExpr = sql<
     number | null
   >`(array_agg(${vStatsRoutineRunFacts.stepCount} order by ${vStatsRoutineRunFacts.completedAt} desc))[1]`;
@@ -1691,7 +1703,7 @@ export async function findRoutineHeader(
 
   return {
     routineKey: nonNull(row.routineKey, "routine_key"),
-    routineName: nonNull(row.routineName, "routine_name"),
+    routineName: row.routineName ?? UNNAMED_ROUTINE_NAME,
     runCount: Number(nonNull(row.runCount, "run_count")),
     firstRunAt: nonNull(row.firstRunAt, "first_run_at"),
     lastRunAt: nonNull(row.lastRunAt, "last_run_at"),
@@ -1701,17 +1713,16 @@ export async function findRoutineHeader(
 
 /**
  * Every step index the routine has ever run, grouped by `step_key` over
- * `v_stats_routine_step_facts` (phase 6b plan decisions 2, 9) — a step's
+ * `v_stats_routine_step_facts` (D372 decisions 2, 9) — a step's
  * identity, exercise/game type are constant within one `step_key` (the
  * fingerprint half of the key is derived from exactly those fields, plus
  * configuration), so `min` picks a group's shared value rather than
  * re-deriving it. `durationSeconds` reads the snapshot element's own
  * configured length (`step ->> 'durationSeconds'`,
  * `TrainingStepResolved.durationSeconds`) — not `v_stats_routine_step_facts`'s
- * own `duration_seconds` column, which is the session's elapsed real time
- * (reviewer finding item 1).
+ * own `duration_seconds` column, which is the session's elapsed real time.
  *
- * `current` (controller ruling R11) is set when this step key is the most
+ * `current` is set when this step key is the most
  * recently seen key at its `sequenceNumber` — `max(completed_at)` compared
  * against a window `max` of that same aggregate partitioned by
  * `sequenceNumber`, so a superseded key at a reused index reads `false` even
@@ -1797,13 +1808,13 @@ export async function findRoutineStepDescriptors(
 }
 
 /**
- * The `dataVersion` inputs for one routine (phase 6b plan decision 12,
- * controller ruling R13): the routine's terminal-run population size and
- * its most recent completion, over `v_stats_routine_run_facts` (already
- * terminal runs only, so no status filter is needed here) — mirroring
- * `findGameDataVersion`'s own raw shape. The repository layer never imports
- * `@modules/`; Task 5's service encodes this the same way it encodes the
- * game `dataVersion`.
+ * The `dataVersion` inputs for one routine (D372 decision 12): the
+ * routine's terminal-run population size and its most recent completion,
+ * over `v_stats_routine_run_facts` (already terminal runs only, so no status
+ * filter is needed here) — mirroring `findGameDataVersion`'s own raw shape.
+ * The repository layer never imports `@modules/`; the service
+ * (`routineDataVersion`) encodes this the same way it encodes the game
+ * `dataVersion`.
  */
 export async function findRoutineDataVersion(
   db: Db,
@@ -1870,25 +1881,23 @@ function mapRoutineRunBucketRow(row: {
 
 /**
  * One shared aggregate query for `routine-volume` and `routine-completion`
- * over `v_stats_routine_run_facts` (phase 6b plan decision 6): one row per
- * bucket, with `completed`/`abandoned`/`never_started` as `FILTER`-restricted
- * counts that partition the bucket's runs -- `never_started` is an
- * `ABANDONED` run with zero step sessions, so `abandoned` excludes it the
- * same way `completionBuckets` partitions the game session equivalent (D367
- * decision 5). `steps_completed_at_abandon` is a grouped sub-select over
- * only the *started* abandons (`steps_started > 0`) -- a never-started run
- * has no step to have completed, so it is excluded from the histogram the
- * same way it is excluded from `abandoned` (reviewer finding item 3).
- * `bucket = none` groups the whole scope as one bucket, so the histogram is
- * one plain scalar subquery; the bucketed branch pre-groups the histogram
- * into a `hist` CTE (one row per `bucket_start`) and `LEFT JOIN`s it back --
- * a per-bucket grouped join, not a per-row correlated `LATERAL`, since the
- * histogram is identical for every row of one bucket (reviewer finding item
- * 3's preferred fix). Bucket boundaries reuse the shared `bucketExprs` (the
- * same date-math every other bucketed reader shares) rather than
- * re-deriving them -- an earlier hand-rolled form here computed `bucketEnd`
- * with the DST-unsafe ordering `bucketExprs` was written to avoid (reviewer
- * finding item 2).
+ * over `v_stats_routine_run_facts` (D372 decision 6): one row per bucket, with
+ * `completed`/`abandoned`/`never_started` as `FILTER`-restricted counts that
+ * partition the bucket's runs -- `never_started` is an `ABANDONED` run with
+ * zero step sessions, so `abandoned` excludes it the same way
+ * `completionBuckets` partitions the game session equivalent (D367 decision
+ * 5). `steps_completed_at_abandon` is a grouped sub-select over only the
+ * *started* abandons (`steps_started > 0`) -- a never-started run has no
+ * step to have completed, so it is excluded from the histogram the same way
+ * it is excluded from `abandoned`. `bucket = none` groups the whole scope as
+ * one bucket, so the histogram is one plain scalar subquery; that ungrouped
+ * aggregate returns a row even over no runs, so a zero-run row is dropped
+ * and an empty scope yields no bucket, as the grouped game readers do. The
+ * bucketed branch pre-groups the histogram into a `hist` CTE (one row per
+ * `bucket_start`) and `LEFT JOIN`s it back -- a per-bucket grouped join, not
+ * a per-row correlated `LATERAL`, since the histogram is identical for every
+ * row of one bucket. Bucket boundaries come from the shared `bucketExprs`,
+ * so `bucketEnd` keeps its DST-safe interval-inside-the-zone ordering.
  */
 export async function findRoutineRunBuckets(
   db: Db,
@@ -1930,9 +1939,9 @@ export async function findRoutineRunBuckets(
       FROM scoped
     `;
     const result = await db.execute(statement);
-    return executedRows<Parameters<typeof mapRoutineRunBucketRow>[0]>(
-      result,
-    ).map(mapRoutineRunBucketRow);
+    return executedRows<Parameters<typeof mapRoutineRunBucketRow>[0]>(result)
+      .map(mapRoutineRunBucketRow)
+      .filter((row) => row.runs > 0);
   }
 
   const tz = nonNull(q.tz ?? null, "tz");
@@ -2006,9 +2015,12 @@ function mapStepBucketRow(row: {
 }
 
 /**
- * One bucket's session volume over `v_stats_routine_step_facts` (phase 6b
- * plan decision 6): `sessions`/`durationSum`/`darts`, using the same
- * whitelisted `bucketExprs` every other bucketed reader shares.
+ * One bucket's session volume over `v_stats_routine_step_facts` (D372
+ * decision 6):
+ * `sessions`/`durationSum`/`darts`, using the same whitelisted `bucketExprs`
+ * every other bucketed reader shares. `bucket = none`'s ungrouped aggregate
+ * returns a row even over no sessions, so a zero-session row is dropped and
+ * an empty scope yields no bucket, as the grouped game readers do.
  */
 export async function findStepBuckets(
   db: Db,
@@ -2034,7 +2046,7 @@ export async function findStepBuckets(
       })
       .from(vStatsRoutineStepFacts)
       .where(whereClause);
-    return rows.map(mapStepBucketRow);
+    return rows.map(mapStepBucketRow).filter((row) => row.sessions > 0);
   }
 
   const tz = nonNull(q.tz ?? null, "tz");
@@ -2060,7 +2072,7 @@ export async function findStepBuckets(
 
 /**
  * One page of one step's terminal sessions through
- * `v_stats_routine_step_facts`, newest first (phase 6b plan decision 10,
+ * `v_stats_routine_step_facts`, newest first (D372 decision 10,
  * mirroring `findGameSessionsPage`, D367 decision 4). Fetches `limit + 1`
  * rows so the service can detect a further page without a second query.
  */
@@ -2202,14 +2214,15 @@ const STEP_FOLD_COLUMNS = {
 
 /**
  * `v_game_replay` joined to `v_stats_routine_step_facts` on `session_id`,
- * scoped to one step (phase 6b plan decision 8) -- the input to the
+ * scoped to one step (D372 decision 8) -- the input to the
  * server-side `step-result` fold, which rebuilds each session's exercise
  * engine from these facts (`stageSequence`/`stageTypeKey`/`parentStageId`
  * carry `v_game_replay`'s own stage columns, so the fold replays each
  * session's real stage tree rather than inventing one), each row carrying
  * the bucket its own session's `completed_at` falls in, exactly like
- * `findX01FoldRows`. Ordered by session, stage, turn and dart -- the order
- * every replay fold requires.
+ * `findX01FoldRows`. Ordered by session, stage sequence, turn and dart;
+ * `foldStepResult` re-sorts each session into stage pre-order, since a root
+ * and its first child share a stage sequence.
  */
 export async function findStepFoldRows(
   db: Db,
@@ -2272,7 +2285,7 @@ export async function findStepFoldRows(
 
 /**
  * The `dart_count` sum over `v_stats_routine_step_facts` for one step scope
- * (phase 6b plan decision 8, mirroring `findScopeDartCount`): the fold bound
+ * (D372 decision 8, mirroring `findScopeDartCount`): the fold bound
  * `MAX_FOLD_DARTS` gates against this before the `step-result` section reads
  * `findStepFoldRows`.
  */

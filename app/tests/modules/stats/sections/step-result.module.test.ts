@@ -138,6 +138,44 @@ describe("foldStepResult", () => {
     expect(result.skippedSessions).toBe(0);
   });
 
+  it("replays a two-stage session in stage pre-order, never interleaving the stages' turns", () => {
+    const ROOT = "01900000-0000-7000-9000-0000000000a1";
+    const CHILD = "01900000-0000-7000-9000-0000000000a2";
+    const dart = (
+      stageId: string,
+      turnSequence: number,
+      dartNumber: number,
+      hit: boolean,
+    ) =>
+      dartRow({
+        sessionId: "ts-staged",
+        exerciseRulesetVersionKey: "TARGET_SCORING_V1",
+        configuration: { targets: [20] },
+        stageId,
+        stageSequence: 1,
+        parentStageId: stageId === CHILD ? ROOT : null,
+        turnSequence,
+        dartNumber,
+        intendedTargetNumber: 20,
+        intendedZoneKey: "TREBLE" as DartZoneKey,
+        hitTargetNumber: hit ? 20 : 5,
+        hitZoneKey: "SINGLE" as DartZoneKey,
+        score: hit ? 1 : 0,
+      });
+    const rowsInQueryOrder = [
+      dart(ROOT, 1, 1, true),
+      dart(CHILD, 1, 1, true),
+      dart(ROOT, 1, 2, true),
+      dart(ROOT, 2, 1, false),
+      dart(CHILD, 2, 1, true),
+    ];
+
+    const result = foldStepResult("TARGET_SCORING", rowsInQueryOrder);
+
+    expect(result.metrics).toEqual({ bestChain: 2, darts: 5, hits: 4 });
+    expect(result.sessions).toBe(1);
+  });
+
   it("skips a session whose ruleset has no registered engine, without throwing", () => {
     const rows = switchingSession("session-a", "2026-01-05T00:00:00.000Z", [
       { target: 20, hitTargetNumber: 20, hitZoneKey: "TREBLE" as DartZoneKey },

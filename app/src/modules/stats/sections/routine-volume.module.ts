@@ -3,11 +3,11 @@ import type { RoutineRunBucketRow, RoutineVolumeMetrics } from "@modules/types";
 import type { SeriesBucket } from "@lib/types";
 
 /**
- * Folds `findRoutineRunBuckets` rows into `routine-volume` buckets (phase 6b
- * plan decision 6). One row already is one bucket — `findRoutineRunBuckets`
+ * Folds `findRoutineRunBuckets` rows into `routine-volume` buckets (D372
+ * decision 6). One row already is one bucket — `findRoutineRunBuckets`
  * groups in SQL — so this only reshapes it, never merges rows.
  * `durationSeconds`/`minDurationSeconds`/`maxDurationSeconds` carry the
- * row's own second columns through unconverted (ruling R16): a
+ * row's own second columns through unconverted: a
  * `seconds / 60` float does not re-add exactly across chunks
  * (`1/60 + 5/60 !== 6/60`), so minutes is a client-side display conversion,
  * never this module's.

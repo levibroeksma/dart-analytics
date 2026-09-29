@@ -290,7 +290,7 @@ function stepsHandler(
   };
 }
 
-/** The shared dart scope every phase 2-4 dart-level reader filters by, taken off a resolved `SectionContext` — narrowed by `routineStep` the same way `sectionScope` is, so a GAME step's own darts read the same way a standalone game's do. */
+/** The shared dart scope every dart-level game reader filters by, taken off a resolved `SectionContext` — narrowed by `routineStep` the same way `sectionScope` is, so a GAME step's own darts read the same way a standalone game's do. */
 function dartScope(ctx: SectionContext): DartScope {
   return {
     playerId: ctx.playerId,
@@ -936,7 +936,7 @@ async function loadGameSectionResponse(
  * scopes every reader to one GAME routine step's own sessions, forces
  * `context` to `"routine"` regardless of `q.context`, and swaps the returned
  * `dataVersion` for the routine's own -- the exported `getGameSection` never
- * sets it, so its own behaviour is unchanged.
+ * sets it, so a game page reads its whole game scope.
  */
 async function dispatchGameSection(
   playerId: string,
@@ -1013,9 +1013,9 @@ async function dispatchGameSection(
 
 /**
  * A game's own section dispatch (`00-Overview.md` §2, §6): the public entry
- * point every game page route calls, unchanged from phase 1-4 — it never
- * sets `routineStep`, so `dispatchGameSection` computes `context` and
- * `dataVersion` exactly as before.
+ * point every game page route calls — it never sets `routineStep`, so
+ * `dispatchGameSection` takes `context` from the query and `dataVersion`
+ * from the game's own sessions.
  */
 export async function getGameSection(
   playerId: string,

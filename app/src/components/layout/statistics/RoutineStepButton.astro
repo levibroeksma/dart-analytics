@@ -1,9 +1,10 @@
 ---
 /**
- * One row of the Routines tab's step list: the step's label and session
- * count, marked while it is the `routineStats` store's selected step; a
- * click selects it. Renders inside an `x-for` whose item is named `step`
- * (a `RoutineStepDescriptor`), for both the current steps and the
+ * One row of the Routines tab's step list: the step's label and its detail
+ * (session count, configured minutes, last run date), marked while it is
+ * the `routineStats` store's selected step; a click selects it. Renders
+ * inside an `x-for` whose item is named `step` (a `RoutineStepDescriptor`),
+ * for both the current steps and the
  * "Earlier versions" group.
  */
 
@@ -27,7 +28,7 @@ import Button from "@components/forms/Button.astro";
   <span
     slot="iconAfter"
     class="text-xs text-muted-foreground"
-    x-text="`${step.sessionCount} sessions`"
+    x-text="$store.routineStats.stepDetail(step)"
   >
   </span>
 </Button>

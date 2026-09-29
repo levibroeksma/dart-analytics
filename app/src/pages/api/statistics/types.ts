@@ -57,7 +57,7 @@ function isValidTimeZone(tz: string): boolean {
 /**
  * The `from`/`to`/`tz`/`bucket`/`status` fields every range-and-bucket query
  * shares — reused as-is by `StatisticsRangeQuery` and, unwidened, by the
- * routine section query (phase 6b plan decision 4), so the two contracts
+ * routine section query (D372 decision 4), so the two contracts
  * cannot drift on what a valid range or bucket looks like.
  */
 const RANGE_FIELDS = {
@@ -140,7 +140,7 @@ export const StatisticsRangeQuery = z
   .superRefine(refineRangeAndBucket);
 export type StatisticsRangeQueryData = z.infer<typeof StatisticsRangeQuery>;
 
-/** The `limit`/`cursor` fields a paginated session list adds on top of a range query — reused as-is by the routine step session query (phase 6b plan decision 10). */
+/** The `limit`/`cursor` fields a paginated session list adds on top of a range query — reused as-is by the routine step session query (D372 decision 10). */
 const SESSION_LIST_FIELDS = {
   limit: z.coerce.number().int().min(1).max(100).default(25),
   cursor: z.string().optional(),
@@ -542,10 +542,10 @@ const ReplayStage = z.object({
 });
 
 /**
- * Mirrors `ReplayHeader` (`@services/types`, D371 decision 5; phase 6b plan
+ * Mirrors `ReplayHeader` (`@services/types`, D371 decision 5; D372
  * decision 11): `gameTypeKey`/`rulesetVersionKey` are `null` for a non-game
  * routine step, and `exerciseTypeKey`/`exerciseRulesetVersionKey`/
- * `routineKey`/`stepKey` are the fields R6 adds.
+ * `routineKey`/`stepKey` name the routine step a session ran as.
  */
 export const ReplayHeaderSchema = z.object({
   sessionId: z.string().uuid(),
@@ -624,7 +624,7 @@ export type GameSessionListResponseData = z.infer<
 >;
 
 /**
- * A routine or routine-step section query (phase 6b plan decision 4):
+ * A routine or routine-step section query (D372 decision 4):
  * `from`, `to`, `tz`, `bucket` and `status` only, built from `RANGE_FIELDS`
  * so it shares `StatisticsRangeQuery`'s own range/bucket rules exactly.
  * `.strict()` fails `context`, `inputMode`, `target` or anything else --
@@ -640,7 +640,7 @@ export const RoutineStatsQuery = z
 export type RoutineStatsQueryData = z.infer<typeof RoutineStatsQuery>;
 
 /**
- * A routine step's session-list query (phase 6b plan decision 10):
+ * A routine step's session-list query (D372 decision 10):
  * `SessionListQuery`'s own `from`, `to`, `status`, `limit` and `cursor`
  * fields, minus `context` and `inputMode` -- a step's sessions are always
  * routine context by definition (`v_stats_routine_step_facts` has no
@@ -669,10 +669,10 @@ export const RoutineSessionsQuery = z
   });
 export type RoutineSessionsQueryData = z.infer<typeof RoutineSessionsQuery>;
 
-/** No routine-list or routine-header parameter is accepted; any key at all fails `.strict()` (plan decision 9, "any parameter -> VALIDATION_FAILED"). */
+/** No routine-list or routine-header parameter is accepted; any key at all fails `.strict()` (D372 decision 4). */
 export const RoutineNoQuery = z.object({}).strict();
 
-/** Mirrors `TrainedRoutine` (`@services/types`, phase 6b plan decision 9). */
+/** Mirrors `TrainedRoutine` (`@services/types`, D372 decision 9). */
 export const TrainedRoutineSchema = z.object({
   routineKey: z.string(),
   routineTemplateId: z.string().uuid().nullable(),
@@ -684,7 +684,7 @@ export const TrainedRoutineSchema = z.object({
 export type TrainedRoutineSchemaData = z.infer<typeof TrainedRoutineSchema>;
 
 /**
- * `GET /api/statistics/routines`' response body (phase 6b plan decision 9):
+ * `GET /api/statistics/routines`' response body (D372 decision 9):
  * every routine the caller has trained, unpaginated. Named
  * `TrainedRoutineListResponse` rather than `RoutineListResponse` --
  * `src/pages/api/routines/types.ts` already owns that name for the
@@ -698,7 +698,7 @@ export type TrainedRoutineListResponseData = z.infer<
   typeof TrainedRoutineListResponse
 >;
 
-/** Mirrors `RoutineStepDescriptor` (`@services/types`, phase 6b plan decision 9). */
+/** Mirrors `RoutineStepDescriptor` (`@services/types`, D372 decision 9). */
 export const RoutineStepDescriptorSchema = z.object({
   stepKey: z.string(),
   sequenceNumber: z.number().int(),
@@ -716,7 +716,7 @@ export type RoutineStepDescriptorSchemaData = z.infer<
   typeof RoutineStepDescriptorSchema
 >;
 
-/** `GET /api/statistics/routines/:routineKey`'s response body (phase 6b plan decision 9); mirrors `RoutineHeader` (`@services/types`). */
+/** `GET /api/statistics/routines/:routineKey`'s response body (D372 decision 9); mirrors `RoutineHeader` (`@services/types`). */
 export const RoutineHeaderSchema = z.object({
   routineKey: z.string(),
   routineName: z.string(),
@@ -728,7 +728,7 @@ export const RoutineHeaderSchema = z.object({
 });
 export type RoutineHeaderSchemaData = z.infer<typeof RoutineHeaderSchema>;
 
-/** `routine-volume` section metrics (phase 6b plan decision 6): `durationSeconds`/`minDurationSeconds`/`maxDurationSeconds` are whole seconds, matching `RoutineVolumeMetrics` (`@modules/types`) -- the client converts to minutes, never the wire shape. */
+/** `routine-volume` section metrics (D372 decision 6): `durationSeconds`/`minDurationSeconds`/`maxDurationSeconds` are whole seconds, matching `RoutineVolumeMetrics` (`@modules/types`) -- the client converts to minutes, never the wire shape. */
 const RoutineVolumeMetrics = z.object({
   runs: z.number().int(),
   durationSeconds: z.number().int(),
@@ -737,7 +737,7 @@ const RoutineVolumeMetrics = z.object({
   darts: z.number().int(),
 });
 
-/** `routine-completion` section metrics (phase 6b plan decision 6). */
+/** `routine-completion` section metrics (D372 decision 6). */
 const RoutineCompletionMetrics = z.object({
   completed: z.number().int(),
   abandoned: z.number().int(),
@@ -745,14 +745,14 @@ const RoutineCompletionMetrics = z.object({
   stepsCompletedAtAbandon: z.record(z.string(), z.number().int()),
 });
 
-/** `step-volume` section metrics (phase 6b plan decision 6). */
+/** `step-volume` section metrics (D372 decision 6). */
 const StepVolumeMetrics = z.object({
   sessions: z.number().int(),
   durationSeconds: z.number().int(),
   darts: z.number().int(),
 });
 
-/** `step-result` section metrics (phase 6b plan decisions 6-8): one bucket's merged per-kind metrics plus the headline's extremes and the fold's own session counts. */
+/** `step-result` section metrics (D372 decisions 6-8): one bucket's merged per-kind metrics plus the headline's extremes and the fold's own session counts. */
 const StepResultMetrics = z.object({
   metrics: z.record(z.string(), z.number()),
   headlineMin: z.number().nullable(),
@@ -811,7 +811,7 @@ const StepSessionListItem = z.object({
   countedScore: z.number().int(),
 });
 
-/** `GET .../steps/:stepKey/sessions`' response body (phase 6b plan decision 10); mirrors `SessionList` (`@services/types`). */
+/** `GET .../steps/:stepKey/sessions`' response body (D372 decision 10); mirrors `SessionList` (`@services/types`). */
 export const RoutineStepSessionListResponse = z.object({
   items: z.array(StepSessionListItem),
   nextCursor: z.string().nullable(),

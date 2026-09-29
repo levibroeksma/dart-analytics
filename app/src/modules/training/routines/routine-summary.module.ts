@@ -25,9 +25,9 @@ const NO_VALUE = "—";
 /**
  * Stands in for `facts` on every kind but Switching, whose hit count is the
  * only one `stepMetrics` derives by replaying dart facts rather than
- * reading engine state alone (`stepMetrics`'s `switchingHits`). These
- * `summarise*` signatures predate `stepMetrics` and are held fixed by their
- * own unedited tests, so nothing here can thread real facts through.
+ * reading engine state alone (`stepMetrics`'s `switchingHits`). Every other
+ * `summarise*` function takes its engine state only, so it has no real
+ * facts to pass and none of its metrics needs them.
  */
 const NO_FACTS: EngineFacts = { stages: [], turns: [] };
 

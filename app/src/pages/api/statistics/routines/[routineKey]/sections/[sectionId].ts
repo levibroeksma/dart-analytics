@@ -5,13 +5,14 @@ import { RoutineStatsQuery } from "@routes/types";
 
 /**
  * One routine's run-level section result (`routine-volume`/
- * `routine-completion`, `10-Statistics/00-Overview.md` §6, phase 6b plan
- * decision 6). One route serves both sections; `routineKey` and `sectionId`
- * are validated by the service (`isRoutineKey`, `sectionsForRoutine`), so a
- * malformed key or an unknown section surface as `VALIDATION_FAILED`/
- * `NOT_FOUND` without a repository call. `context`, `inputMode` and `target`
- * are never accepted here -- `RoutineStatsQuery.strict()` fails them (plan
- * decision 4).
+ * `routine-completion`, `10-Statistics/00-Overview.md` §6, D372 decision
+ * 6). One route serves both sections; `routineKey` and `sectionId` are
+ * validated by the service (`isRoutineKey`, `sectionsForRoutine`): a
+ * malformed key is `VALIDATION_FAILED` without a repository call, while a
+ * routine the caller never trained or an unknown section is `NOT_FOUND`
+ * once `findRoutineHeader` has read the routine. `context`, `inputMode` and
+ * `target` are never accepted here -- `RoutineStatsQuery.strict()` fails
+ * them (D372 decision 4).
  */
 export const GET: APIRoute = async ({ locals, params, url }) => {
   const auth = locals.auth!;

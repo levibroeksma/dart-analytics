@@ -376,8 +376,8 @@ export const RESULT_DIRECTION: Readonly<Record<GameTypeKey, ResultDirection>> =
   };
 
 /**
- * The Routines tab's own registry, parallel to `SECTIONS` (phase 6b plan
- * decision 6). Declared in page order: the two run-level sections
+ * The Routines tab's own registry, parallel to `SECTIONS` (D372 decision
+ * 6). Declared in page order: the two run-level sections
  * (`sectionsForRoutine`'s own order), then the two step-level ones.
  */
 export const ROUTINE_SECTIONS: Readonly<
@@ -429,12 +429,12 @@ export const ROUTINE_SECTIONS: Readonly<
   },
 };
 
-/** Whether `key` is one of `STEP_METRIC_SPECS`' seven dart exercise kinds (phase 6b plan decision 7), the only non-game steps `step-result` covers. Exported so a caller resolving one step's own kind (e.g. dispatching `step-result`) can narrow it the same way, instead of an unchecked cast. */
+/** Whether `key` is one of `STEP_METRIC_SPECS`' seven dart exercise kinds (D372 decision 7), the only non-game steps `step-result` covers. Exported so a caller resolving one step's own kind (e.g. dispatching `step-result`) can narrow it the same way, instead of an unchecked cast. */
 export function isDartExerciseKind(key: string): key is DartExerciseKind {
   return Object.hasOwn(STEP_METRIC_SPECS, key);
 }
 
-/** The routine picker's run-level sections, in page order (phase 6b plan decision 6). */
+/** The routine picker's run-level sections, in page order (D372 decision 6). */
 export function sectionsForRoutine(): RoutineSectionMeta[] {
   return [
     ROUTINE_SECTIONS["routine-volume"],
@@ -443,8 +443,8 @@ export function sectionsForRoutine(): RoutineSectionMeta[] {
 }
 
 /**
- * One routine step's sections (phase 6b plan decisions 5, 6; controller
- * ruling R1): a GAME step (`gameTypeKey` set) gets exactly its game's own
+ * One routine step's sections (D372 decisions 5, 6): a GAME step
+ * (`gameTypeKey` set) gets exactly its game's own
  * page, `sectionsForGame(gameTypeKey)` resolved to their `SECTIONS` metas —
  * `step-volume` is never added alongside it, since the game's own `volume`
  * section already covers that step's darts. A non-game step whose

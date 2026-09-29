@@ -179,7 +179,7 @@ export function replayStore() {
     },
 
     /**
-     * The session's own presenter (phase 6b plan decision 11): a game
+     * The session's own presenter (D372 decision 11): a game
      * session (`gameTypeKey` set) picks `REPLAY_PRESENTERS`, a non-game
      * routine step picks `STEP_REPLAY_PRESENTERS` off its
      * `exerciseTypeKey`. `null` for a game type or exercise kind this

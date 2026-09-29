@@ -225,13 +225,13 @@ function foldGameReplay(
 
 /**
  * Replays a non-game routine step's loaded turns through its exercise
- * ruleset's dart exercise engine (phase 6b plan decision 11). A dart
+ * ruleset's dart exercise engine (D372 decision 11). A dart
  * exercise engine reads no seat off its config -- `foldSwitchingState` and
  * its siblings fold every turn's darts regardless of `participantRef` -- so
  * there is no seatless-snapshot concern here, and the snapshot carried on
  * the fold is the step's own configuration with an empty `seats: []` filler
  * only to satisfy `ReplaySnapshot`'s shape; no exercise presenter reads it.
- * Skipped, never guessed (R21): no stored configuration or one that is not
+ * Skipped, never guessed: no stored configuration or one that is not
  * an object is `NO_SNAPSHOT`; no registered engine for
  * `exerciseRulesetVersionKey` is `NO_EXERCISE_ENGINE`; an engine that
  * throws building or replaying (its own config parse included -- an
@@ -264,7 +264,7 @@ function foldExerciseReplay(
 
 /**
  * Replays a session's loaded turns through its own engine (D371 decision 8;
- * phase 6b plan decision 11): a game session (`gameTypeKey` set) folds
+ * D372 decision 11): a game session (`gameTypeKey` set) folds
  * through `getEngineFactory`, a non-game routine step through
  * `getDartExerciseEngineFactory`.
  */

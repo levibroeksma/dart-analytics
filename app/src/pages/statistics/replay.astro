@@ -19,7 +19,10 @@ const scope = JSON.stringify({
   exerciseLabels: Object.fromEntries(
     Object.entries(STEP_ADAPTERS)
       .filter(([key]) => !key.startsWith("GAME:"))
-      .map(([key, adapter]) => [key, adapter.headerLabel]),
+      .map(([key, { headerLabel }]) => [
+        key,
+        headerLabel.charAt(0).toUpperCase() + headerLabel.slice(1),
+      ]),
   ),
 });
 ---

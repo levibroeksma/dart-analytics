@@ -222,8 +222,8 @@ An entry is a `RoutineSectionMeta`: `SectionMeta`'s fields, with `id` a
 | ------- | ------- | ---- | --------------- | ---------- | ------------------- | ------- |
 | `routine-volume` | routine | sql | counts, duration sums and extremes per bucket | yes | no | `runs`, `durationSeconds`, `minDurationSeconds`, `maxDurationSeconds`, `darts` |
 | `routine-completion` | routine | sql | status counts per bucket | yes | yes | `completed`, `abandoned`, `neverStarted`, `stepsCompletedAtAbandon: Record<n, runs>` |
-| `step-volume` | non-game step | sql | counts and durations | yes | no | `sessions`, `durationSeconds`, `darts` |
-| `step-result` | non-game dart step | server | per-kind metrics need the exercise engine's fold (§3.1) | yes | no | `metrics`, `headlineMin`, `headlineMax`, `sessions`, `skippedSessions` |
+| `step-volume` | step | sql | counts and durations; non-game steps only (a GAME step's own `volume` covers it) | yes | no | `sessions`, `durationSeconds`, `darts` |
+| `step-result` | step | server | per-kind metrics need the exercise engine's fold (§3.1); non-game dart steps only | yes | no | `metrics`, `headlineMin`, `headlineMax`, `sessions`, `skippedSessions` |
 
 - Runs bucket by the activity's `completed_at`, step sections by the
   session's.

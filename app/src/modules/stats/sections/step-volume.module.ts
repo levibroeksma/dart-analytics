@@ -3,11 +3,11 @@ import type { StepBucketRow, StepVolumeMetrics } from "@modules/types";
 import type { SeriesBucket } from "@lib/types";
 
 /**
- * Folds `findStepBuckets` rows into `step-volume` buckets (phase 6b plan
- * decision 6), over any non-game routine step (a GAME step's own `volume`
- * section covers it instead, controller ruling R1). One row already is one
- * bucket, so this only reshapes it: `durationSeconds` carries the row's own
- * `durationSum` seconds column through unconverted (ruling R16) — a
+ * Folds `findStepBuckets` rows into `step-volume` buckets (D372 decision
+ * 6), over any non-game routine step (a GAME step's own `volume` section
+ * covers it instead). One row already is one bucket, so this only reshapes
+ * it: `durationSeconds` carries the row's own `durationSum` seconds column
+ * through unconverted — a
  * `seconds / 60` float does not re-add exactly across chunks, so minutes is
  * a client-side display conversion, never this module's.
  */

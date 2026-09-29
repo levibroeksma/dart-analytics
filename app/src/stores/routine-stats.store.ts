@@ -59,7 +59,7 @@ const CACHE_PLAYER_ID = "me";
 /**
  * `StatsCacheParams`' `context`/`inputMode`, fixed for every routine read.
  * `paramsKey` hashes them, but no routine fetcher ever sends either: the
- * routine routes fix context server-side and accept no input mode (plan
+ * routine routes fix context server-side and accept no input mode (D372
  * decision 4).
  */
 const ROUTINE_CACHE_PARAMS = {
@@ -237,9 +237,9 @@ function stepResultTotals(
 
 /**
  * The `/statistics` Routines tab's state (`10-Statistics/00-Overview.md`
- * §9): the trained-routine picker, the routine's run cards, its step list
+ * §8): the trained-routine picker, the routine's run cards, its step list
  * and the selected step's cards and session list, all read through the
- * IndexedDB cache under the routine's and step's own scope keys (plan
+ * IndexedDB cache under the routine's and step's own scope keys (D372
  * decision 12). Registered through `Alpine.store("routineStats",
  * routineStatsStore())` on every page, so nothing loads at registration:
  * the Routines tab starts loading through `activate()` the first time it
@@ -513,6 +513,16 @@ export function routineStatsStore() {
       return `Step ${step.sequenceNumber} · ${adapter?.headerLabel ?? step.exerciseTypeKey}`;
     },
 
+    /** A step row's detail: its session count, configured minutes when the snapshot sets a duration, and last run date — what tells two versions sharing one `stepLabel` apart. */
+    stepDetail(step: StepDescriptor): string {
+      const parts = [`${step.sessionCount} sessions`];
+      if (step.durationSeconds !== null) {
+        parts.push(`${minutes(step.durationSeconds)} min`);
+      }
+      parts.push(`last run ${new Date(step.lastSeenAt).toLocaleDateString()}`);
+      return parts.join(" · ");
+    },
+
     metricLabel(key: string): string {
       return STEP_METRIC_LABELS[key] ?? key;
     },
@@ -593,7 +603,7 @@ export function routineStatsStore() {
       };
     },
 
-    /** A step session row's replay page, or `null` for a dartless step (Warm-Up has no capture pair to replay, plan decision 11). */
+    /** A step session row's replay page, or `null` for a dartless step (Warm-Up has no capture pair to replay, D372 decision 11). */
     sessionHref(sessionId: string): string | null {
       return this.stepKind === "dartless" || this.stepKind === null
         ? null
