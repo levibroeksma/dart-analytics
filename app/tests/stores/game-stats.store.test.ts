@@ -82,6 +82,17 @@ describe("gameStatsStore", () => {
       "treble-rate",
       "volume",
     ]);
+    // Controller ruling R4: every call passes a `{ key, gameTypeKey }` scope,
+    // not the bare `gameTypeKey` string phase 1 used.
+    for (const call of readSection.mock.calls) {
+      expect(call[1]).toEqual({ key: "game:501", gameTypeKey: "501" });
+    }
+    expect(readSessionPage).toHaveBeenCalledWith(
+      "me",
+      "game:501",
+      expect.anything(),
+      expect.anything(),
+    );
   });
 
   it("selectGame(SINGLES_V1) resolves to SINGLES_TRAINING", async () => {

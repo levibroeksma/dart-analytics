@@ -14,6 +14,7 @@ import { doubleTargetIntent } from "@modules/game/turn-log.module";
 import { groupingSummary } from "@modules/stats/sections/grouping.module";
 import { fetchGameSection, fetchGameSessions } from "@client/api/statistics";
 import { readSection, readSessionPage } from "@client/stats-cache/cache";
+import { gameScopeKey } from "@modules/stats/routine-scope.module";
 import type {
   AtcDartsPerTargetMetrics,
   Bobs27SurvivalMetrics,
@@ -252,7 +253,7 @@ export function gameStatsStore() {
           ids.map((id) =>
             readSection<unknown>(
               CACHE_PLAYER_ID,
-              gameTypeKey,
+              { key: gameScopeKey(gameTypeKey), gameTypeKey },
               SECTIONS[id],
               query,
               (span) =>
@@ -274,7 +275,7 @@ export function gameStatsStore() {
 
         const page = await readSessionPage<
           GameSessionListResponseData["items"][number]
-        >(CACHE_PLAYER_ID, gameTypeKey, query, () =>
+        >(CACHE_PLAYER_ID, gameScopeKey(gameTypeKey), query, () =>
           fetchGameSessions(gameTypeKey, { ...this.range, limit: 25 }),
         );
         this.sessions = page.items;
@@ -303,7 +304,7 @@ export function gameStatsStore() {
       };
       return readSection<CheckoutPathMetrics>(
         CACHE_PLAYER_ID,
-        gameTypeKey,
+        { key: gameScopeKey(gameTypeKey), gameTypeKey },
         SECTIONS["checkout-path"],
         query,
         (span) =>
@@ -331,7 +332,7 @@ export function gameStatsStore() {
       };
       const result = await readSection<HeatmapMetrics>(
         CACHE_PLAYER_ID,
-        gameTypeKey,
+        { key: gameScopeKey(gameTypeKey), gameTypeKey },
         SECTIONS.heatmap,
         query,
         (span) =>
@@ -356,7 +357,7 @@ export function gameStatsStore() {
       };
       const page = await readSessionPage<
         GameSessionListResponseData["items"][number]
-      >(CACHE_PLAYER_ID, gameTypeKey, query, () =>
+      >(CACHE_PLAYER_ID, gameScopeKey(gameTypeKey), query, () =>
         fetchGameSessions(gameTypeKey, { ...this.range, limit: 25, cursor }),
       );
       this.sessions = [...this.sessions, ...page.items];

@@ -4,17 +4,25 @@ import {
   zonedYearWindow,
 } from "@lib/stats/merge-metrics";
 import { sectionSite } from "@lib/stats/section-registry";
+import {
+  mergeStepResult,
+  STEP_METRIC_SPECS,
+} from "@modules/stats/step-metrics.module";
 import { openStatsDb } from "./db";
 import { paramsKey } from "./keys";
 import type {
   Bucket,
-  GameTypeKey,
+  RoutineSectionId,
+  RoutineSectionMeta,
+  SectionId,
   SectionMeta,
   ServerSectionId,
 } from "@lib/types";
+import type { DartExerciseKind, StepResultMetric } from "@modules/types";
 import type {
   CachedSeries,
   CachedSessionPage,
+  CacheScope,
   SeriesFetcher,
   StatsCacheQuery,
 } from "./types";
@@ -107,11 +115,11 @@ export async function clearStatsCache(): Promise<void> {
 
 function sectionKey(
   playerId: string,
-  gameTypeKey: string,
-  meta: SectionMeta,
+  scopeKey: string,
+  meta: SectionMeta | RoutineSectionMeta,
   key: string,
 ): string {
-  return `${playerId}:${gameTypeKey}:${meta.id}:${meta.version}:${key}`;
+  return `${playerId}:${scopeKey}:${meta.id}:${meta.version}:${key}`;
 }
 
 /**
@@ -119,13 +127,14 @@ function sectionKey(
  * cached forever, keyed by its own `bucket_start`; only the still-uncovered
  * span (at most two: before and after the stored coverage) is ever fetched.
  * `bucket = none` has no partial coverage — the whole result is cached
- * together and served only while `meta`'s last-known `dataVersion` for the
- * game still matches the cached response's own.
+ * together and served only while `scope`'s last-known `dataVersion` (a game,
+ * routine or step, controller ruling R4) still matches the cached
+ * response's own.
  */
 export async function readSection<M>(
   playerId: string,
-  gameTypeKey: string,
-  meta: SectionMeta,
+  scope: CacheScope,
+  meta: SectionMeta | RoutineSectionMeta,
   q: StatsCacheQuery,
   fetcher: SeriesFetcher<M>,
   now: Date = new Date(),
@@ -134,15 +143,27 @@ export async function readSection<M>(
   if (db === null) return fetcher({ from: q.from, to: q.to });
 
   try {
-    const key = sectionKey(playerId, gameTypeKey, meta, paramsKey(q));
-    if (sectionSite(meta, gameTypeKey as GameTypeKey) === "server") {
-      return await readServerSection(db, meta, key, q, fetcher, now);
+    const key = sectionKey(playerId, scope.key, meta, paramsKey(q));
+    const site =
+      scope.gameTypeKey !== null
+        ? sectionSite(meta as SectionMeta, scope.gameTypeKey)
+        : meta.computeSite;
+    if (site === "server") {
+      return await readServerSection(
+        db,
+        meta,
+        key,
+        q,
+        fetcher,
+        now,
+        scope.exerciseKind,
+      );
     }
     if (q.bucket === "none") {
       return await readNoneBucketSection(
         db,
         playerId,
-        gameTypeKey,
+        scope.key,
         key,
         q,
         fetcher,
@@ -157,13 +178,13 @@ export async function readSection<M>(
 async function readNoneBucketSection<M>(
   db: IDBDatabase,
   playerId: string,
-  gameTypeKey: string,
+  scopeKey: string,
   key: string,
   q: StatsCacheQuery,
   fetcher: SeriesFetcher<M>,
 ): Promise<CachedSeries<M>> {
   const resultKey = `${key}:${q.from}:${q.to}`;
-  const dataVersionKey = `dataVersion:${playerId}:${gameTypeKey}`;
+  const dataVersionKey = `dataVersion:${playerId}:${scopeKey}`;
 
   const [cached, latestDataVersion] = await Promise.all([
     getRecord<CachedSeries<M>>(db, SECTION_RESULTS, resultKey),
@@ -291,7 +312,7 @@ async function assembleBuckets<M>(
 
 async function readBucketedSection<M>(
   db: IDBDatabase,
-  meta: SectionMeta,
+  meta: SectionMeta | RoutineSectionMeta,
   key: string,
   q: StatsCacheQuery,
   fetcher: SeriesFetcher<M>,
@@ -325,9 +346,31 @@ async function readBucketedSection<M>(
   };
 }
 
-/** Merges two chunks of one server section's metrics, dispatching on its own id (phase-3 Task 9's `mergeMetrics`). */
-function combineMetrics(sectionId: string, a: unknown, b: unknown): unknown {
-  return mergeMetrics(sectionId as ServerSectionId, a as never, b as never);
+/**
+ * The chunk merger for one server-computed section's own id: `step-result`
+ * (the one server-site `RoutineSectionId`) merges via `mergeStepResult` and
+ * its own dart exercise kind's spec (controller ruling R22) — a chunk read
+ * with no `exerciseKind` is a caller contract break, not a fetch failure, so
+ * this throws rather than silently skipping the merge. Every other id is a
+ * `ServerSectionId`, merged as today via `mergeMetrics`, whose own `Record`
+ * stays game-only.
+ */
+function mergerFor(
+  sectionId: SectionId | RoutineSectionId,
+  exerciseKind: DartExerciseKind | undefined,
+): (a: unknown, b: unknown) => unknown {
+  if (sectionId === "step-result") {
+    if (exerciseKind === undefined) {
+      throw new Error(
+        "readSection: a step-result chunk merge needs its scope's exerciseKind",
+      );
+    }
+    const spec = STEP_METRIC_SPECS[exerciseKind];
+    return (a, b) =>
+      mergeStepResult(spec, a as StepResultMetric, b as StepResultMetric);
+  }
+  return (a, b) =>
+    mergeMetrics(sectionId as ServerSectionId, a as never, b as never);
 }
 
 /** The chunk-cache key for one server section's request bucket and window start. */
@@ -347,7 +390,7 @@ function chunkKey(
  * emitted" convention (`00-Overview.md` §5.2).
  */
 function mergeNoneChunks<M>(
-  sectionId: string,
+  merge: (a: unknown, b: unknown) => unknown,
   chunks: readonly CachedSeries<M>[],
 ): CachedSeries<M>["buckets"] {
   const withData = chunks.filter((chunk) => chunk.buckets.length > 0);
@@ -361,7 +404,7 @@ function mergeNoneChunks<M>(
 
   for (const chunk of withData.slice(1)) {
     const bucket = chunk.buckets[0]!;
-    metrics = combineMetrics(sectionId, metrics, bucket.metrics);
+    metrics = merge(metrics, bucket.metrics);
     sampleSize += bucket.sampleSize;
     closed = closed && bucket.closed;
     if (bucket.end > end) end = bucket.end;
@@ -380,7 +423,7 @@ function mergeNoneChunks<M>(
  * "empty buckets are not emitted" rule.
  */
 function regroupMonthsIntoYears<M>(
-  sectionId: string,
+  merge: (a: unknown, b: unknown) => unknown,
   windows: readonly { from: string; to: string }[],
   chunks: readonly CachedSeries<M>[],
   tz: string,
@@ -407,11 +450,7 @@ function regroupMonthsIntoYears<M>(
     }
     existing.sampleSize += bucket.sampleSize;
     existing.closed = existing.closed && bucket.closed;
-    existing.metrics = combineMetrics(
-      sectionId,
-      existing.metrics,
-      bucket.metrics,
-    );
+    existing.metrics = merge(existing.metrics, bucket.metrics);
   });
 
   return Array.from(groups.entries())
@@ -440,12 +479,14 @@ function regroupMonthsIntoYears<M>(
  */
 async function readServerSection<M>(
   db: IDBDatabase,
-  meta: SectionMeta,
+  meta: SectionMeta | RoutineSectionMeta,
   key: string,
   q: StatsCacheQuery,
   fetcher: SeriesFetcher<M>,
   now: Date,
+  exerciseKind: DartExerciseKind | undefined,
 ): Promise<CachedSeries<M>> {
+  const merge = mergerFor(meta.id, exerciseKind);
   const tz = q.tz ?? "UTC";
   const windows = chunkWindows(q.from, q.to, q.bucket, tz);
   const requestBucket: Bucket = q.bucket === "year" ? "month" : q.bucket;
@@ -489,9 +530,9 @@ async function readServerSection<M>(
 
   const buckets =
     q.bucket === "none"
-      ? mergeNoneChunks(meta.id, chunks)
+      ? mergeNoneChunks(merge, chunks)
       : q.bucket === "year"
-        ? regroupMonthsIntoYears(meta.id, windows, chunks, tz)
+        ? regroupMonthsIntoYears(merge, windows, chunks, tz)
         : chunks
             .flatMap((chunk) => chunk.buckets)
             .sort((a, b) => a.start.localeCompare(b.start));
@@ -513,10 +554,10 @@ async function readServerSection<M>(
   };
 }
 
-/** One session-list page, keyed by `(player, game, paramsKey, from, to, cursor)`; dropped when `dataVersion` changes. */
+/** One session-list page, keyed by `(player, scope, paramsKey, from, to, cursor)`; dropped when `dataVersion` changes. */
 export async function readSessionPage<T>(
   playerId: string,
-  gameTypeKey: string,
+  scopeKey: string,
   q: StatsCacheQuery & { cursor?: string },
   fetcher: () => Promise<CachedSessionPage<T>>,
 ): Promise<CachedSessionPage<T>> {
@@ -524,8 +565,8 @@ export async function readSessionPage<T>(
   if (db === null) return fetcher();
 
   try {
-    const key = `${playerId}:${gameTypeKey}:${paramsKey(q)}:${q.from}:${q.to}:${q.cursor ?? ""}`;
-    const dataVersionKey = `dataVersion:${playerId}:${gameTypeKey}`;
+    const key = `${playerId}:${scopeKey}:${paramsKey(q)}:${q.from}:${q.to}:${q.cursor ?? ""}`;
+    const dataVersionKey = `dataVersion:${playerId}:${scopeKey}`;
 
     const [cached, latestDataVersion] = await Promise.all([
       getRecord<CachedSessionPage<T>>(db, SESSION_LISTS, key),
