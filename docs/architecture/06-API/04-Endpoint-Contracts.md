@@ -2,12 +2,12 @@
 status: canonical
 scope: api/endpoint-contracts
 read-when: adding or changing endpoint contracts
-updated: 2026-09-28
+updated: 2026-09-29
 -->
 
 # API Endpoint Contracts
 
-> **Version:** 1.15.0 (statistics phase 5 shipped: new "Statistics Replay" section — `GET /api/statistics/sessions/:sessionId/replay`'s gate, turn-count pages (default 30, cap 120), `v1:<stageId>:<turnSequence>` cursor, first-page `ReplayHeader`, rejected parameters, `private, no-store` `Cache-Control` and errors; the frozen `ReplayEntry` route noted as unbuilt, tracked by issue #636; D371, 2026-09-28; prior 1.14.0 statistics phase 3 shipped: `checkout-rate`/`double-performance`/`checkout-path`/`bust-rate`/`ladder-progress`/`leg-stats` (`server` folds, bounded by `MAX_FOLD_DARTS = 5_000`) and `scoring-trend`/`treble-rate` (`sql`) added to `GET .../sections/:sectionId` for 501/121/TUOD/Score Training; a `server` section over the cap answers `VALIDATION_FAILED` naming it; D369, 2026-09-26; prior 1.13.0 statistics phase 2 shipped: `heatmap`/`target-accuracy`/`confusion`/`grouping`/`miss-direction`/`loose-darts` added to `GET .../sections/:sectionId`, backed by `v_stats_dart_facts` (`0043`); the shared query gains an optional `target` parameter gated by registry `params` and the `intent-stored` tag; D368, 2026-09-26; prior 1.12.0 statistics phase 1 shipped: `GET /api/statistics/games/:gameTypeKey/sessions` and `/sections/:sectionId` added, backed by `v_stats_session_facts` (`0043`), D367, 2026-09-26; prior 1.11.0 `GET /api/training-sessions/completed` added, D353, 2026-09-22; prior 1.10.0 Participants (v1) note restated as shipped — guest/DartBot seats are no longer deferred, D350, supersedes D61, 2026-09-21; prior 1.9.0 weekly training schedules shipped, closing Task 3 of `docs/superpowers/plans/2026-09-18-weekly-training-schedules.md`: new "Training Schedules" section for `/api/schedules` — list, get, active, create, replace, activate, deactivate, delete — against `v_training_schedules`/`v_training_schedule_days`; `DELETE /api/routines/:routineId` documented gaining the `"routine in use"` rejection; the list's `name`/`scheduleId` order and activate's ownership-first transaction added from code review before merge; D342/D343, 2026-09-20; prior 1.8.0 `StatisticsOverviewResponse.doubleAccuracy` renamed `checkoutPercentage`, backed by `v_x01_checkout_darts` — doc-only bump under the freeze-semantics rule, 2026-09-19; prior 1.7.0 custom-routine-builder shipped, closing issue #483: the three `GET /api/routines*`/`/exercise-templates` reads and the Custom Routine Write Contracts section drop their "(not implemented)"/"(planned, unbuilt)" tags, `v_routine_execution`'s list/detail paragraph restated as built, `CreateRoutineRequest`/`UpdateRoutineRequest`/`ExerciseTemplateCatalogEntry` marked shipped, and a note added that a real-but-not-offerable `exerciseTemplateId` answers with the same "unknown exerciseTemplateId" reason as a genuinely unknown one, 2026-09-19; prior 1.6.0 `VISUAL_BOARD` added to the `inputModeKey` contract and the capability pairing corrected, issue #341; activity grouping restated as shipped — D301, 2026-09-17; prior 1.5.0 Statistics Overview, 2026-09-06)
+> **Version:** 1.16.0 (statistics phase 6 shipped: new "Statistics Routines" section — the five `GET /api/statistics/routines*` routes' path keys, `.strict()` queries, `TrainedRoutine`/`RoutineHeader`/`RoutineStepDescriptor`, the four routine section metric shapes and the step session list, `private, no-store` and errors; "Statistics Replay" widened to non-game training step sessions — the gate's `v_stats_routine_step_facts` fallback, `ReplayHeader`'s nullable `gameTypeKey`/`rulesetVersionKey` and its four new step fields; D372, 2026-09-29; prior 1.15.0 statistics phase 5 shipped: new "Statistics Replay" section — `GET /api/statistics/sessions/:sessionId/replay`'s gate, turn-count pages (default 30, cap 120), `v1:<stageId>:<turnSequence>` cursor, first-page `ReplayHeader`, rejected parameters, `private, no-store` `Cache-Control` and errors; the frozen `ReplayEntry` route noted as unbuilt, tracked by issue #636; D371, 2026-09-28; prior 1.14.0 statistics phase 3 shipped: `checkout-rate`/`double-performance`/`checkout-path`/`bust-rate`/`ladder-progress`/`leg-stats` (`server` folds, bounded by `MAX_FOLD_DARTS = 5_000`) and `scoring-trend`/`treble-rate` (`sql`) added to `GET .../sections/:sectionId` for 501/121/TUOD/Score Training; a `server` section over the cap answers `VALIDATION_FAILED` naming it; D369, 2026-09-26; prior 1.13.0 statistics phase 2 shipped: `heatmap`/`target-accuracy`/`confusion`/`grouping`/`miss-direction`/`loose-darts` added to `GET .../sections/:sectionId`, backed by `v_stats_dart_facts` (`0043`); the shared query gains an optional `target` parameter gated by registry `params` and the `intent-stored` tag; D368, 2026-09-26; prior 1.12.0 statistics phase 1 shipped: `GET /api/statistics/games/:gameTypeKey/sessions` and `/sections/:sectionId` added, backed by `v_stats_session_facts` (`0043`), D367, 2026-09-26; prior 1.11.0 `GET /api/training-sessions/completed` added, D353, 2026-09-22; prior 1.10.0 Participants (v1) note restated as shipped — guest/DartBot seats are no longer deferred, D350, supersedes D61, 2026-09-21; prior 1.9.0 weekly training schedules shipped, closing Task 3 of `docs/superpowers/plans/2026-09-18-weekly-training-schedules.md`: new "Training Schedules" section for `/api/schedules` — list, get, active, create, replace, activate, deactivate, delete — against `v_training_schedules`/`v_training_schedule_days`; `DELETE /api/routines/:routineId` documented gaining the `"routine in use"` rejection; the list's `name`/`scheduleId` order and activate's ownership-first transaction added from code review before merge; D342/D343, 2026-09-20; prior 1.8.0 `StatisticsOverviewResponse.doubleAccuracy` renamed `checkoutPercentage`, backed by `v_x01_checkout_darts` — doc-only bump under the freeze-semantics rule, 2026-09-19; prior 1.7.0 custom-routine-builder shipped, closing issue #483: the three `GET /api/routines*`/`/exercise-templates` reads and the Custom Routine Write Contracts section drop their "(not implemented)"/"(planned, unbuilt)" tags, `v_routine_execution`'s list/detail paragraph restated as built, `CreateRoutineRequest`/`UpdateRoutineRequest`/`ExerciseTemplateCatalogEntry` marked shipped, and a note added that a real-but-not-offerable `exerciseTemplateId` answers with the same "unknown exerciseTemplateId" reason as a genuinely unknown one, 2026-09-19; prior 1.6.0 `VISUAL_BOARD` added to the `inputModeKey` contract and the capability pairing corrected, issue #341; activity grouping restated as shipped — D301, 2026-09-17; prior 1.5.0 Statistics Overview, 2026-09-06)
 >
 > Per-domain request/response contracts for the v1 API surface.
 > Subordinate to the frozen contract in `00-Overview.md`. Shared conventions (envelope, headers,
@@ -693,14 +693,18 @@ misapplied `target`), plus the standard protected-route failures.
 ## Statistics Replay — `GET /api/statistics/sessions/:sessionId/replay`
 
 Phase 5 of the detailed statistics pages (`10-Statistics/02-Replay.md`, D371):
-one page of a terminal game session's replay, whole turns in play order.
-Read-only, through `v_stats_session_facts` (`0043`, the gate and header) and
-`v_game_replay` (`0044`, stages, participants and turns).
+one page of a terminal game session's replay, whole turns in play order —
+widened in phase 6 (D372) to non-game training step sessions.
+Read-only, through `v_stats_session_facts` (`0043`, the gate and header),
+`v_stats_routine_step_facts` (`0045`, the step fields and the gate's
+fallback) and `v_game_replay` (`0044`, stages, participants and turns).
 
 **Auth:** standard protected route class; the session player is always the
 caller. **Gate:** every page first needs the caller's own
-`v_stats_session_facts` row for `sessionId` — another player's session, an
-active session, a training session and an unknown id are all `NOT_FOUND`.
+`v_stats_session_facts` row for `sessionId`, or else its own
+`v_stats_routine_step_facts` row with a non-null `input_mode_key` (D372
+decision 11) — another player's session, an active session, a Warm-Up step
+and an unknown id are all `NOT_FOUND`.
 
 **Query:** only these two; any other parameter (`from`, `to`, `tz`, `bucket`,
 `status`, `context`, `inputMode`, …) is `VALIDATION_FAILED`.
@@ -723,7 +727,7 @@ children, any depth), turns by `turnSequence`, darts by `dartNumber`.
 ```typescript
 const ReplayHeader = z.object({            // first page only
   sessionId: z.string().uuid(),
-  gameTypeKey: z.string(), rulesetVersionKey: z.string(),
+  gameTypeKey: z.string().nullable(), rulesetVersionKey: z.string().nullable(), // null for a non-game step (D372)
   inputModeKey: z.string(), statusKey: z.string(), contextKey: z.string(),
   activityId: z.string().uuid(),
   routineStepSequenceNumber: z.number().int().nullable(),
@@ -731,6 +735,9 @@ const ReplayHeader = z.object({            // first page only
   startedAt: z.string().datetime({ offset: true }),
   completedAt: z.string().datetime({ offset: true }),
   durationSeconds: z.number().int(), turnCount: z.number().int(), dartCount: z.number().int(),
+  exerciseTypeKey: z.string(),                     // "GAME" for a standalone game (D372)
+  exerciseRulesetVersionKey: z.string().nullable(),
+  routineKey: z.string().nullable(), stepKey: z.string().nullable(), // null for a standalone game
   participants: z.array(z.object({                 // each with a stored turn, by first turn
     participantId: z.string().uuid(), displayName: z.string(), participantTypeKey: z.string(),
   })),
@@ -776,6 +783,138 @@ protected-route failures.
 
 ---
 
+## Statistics Routines — `GET /api/statistics/routines` and `/routines/:routineKey/…`
+
+Phase 6 of the detailed statistics pages (`10-Statistics/00-Overview.md`
+§6/§8, `01-Section-Catalog.md` §3, D372): the Routines tab's five read-only
+routes, through `v_stats_routine_run_facts`/`v_stats_routine_step_facts`
+(`0045`); a GAME step's sections also read the game views of §Statistics
+Games, and `step-result` reads `v_game_replay` (`0044`). Every successful
+response is sent `Cache-Control: private, no-store`, as on §Statistics Games —
+the client cache, not HTTP, owns reuse.
+
+**Auth:** standard protected route class; the session player is always the
+caller.
+
+**Path keys:** `:routineKey` is a snapshot `routineTemplateId` UUID or
+`name-` plus 32 hex digits (`isRoutineKey`); `:stepKey` is
+`<sequenceNumber>-` plus 32 hex digits, the number a positive integer with no
+leading zero (`parseStepKey`). A malformed key is `VALIDATION_FAILED`
+(`"routineKey is malformed"`, `"stepKey is malformed"`) before any read. A
+routine the caller never trained is `NOT_FOUND`, and so is a step key the
+routine never ran.
+
+| Route | Query | Response |
+| ----- | ----- | -------- |
+| `GET /api/statistics/routines` | none | `TrainedRoutineListResponse`, `lastRunAt` DESC, unpaginated |
+| `GET /api/statistics/routines/:routineKey` | none | `RoutineHeader` |
+| `GET .../routines/:routineKey/sections/:sectionId` | `RoutineStatsQuery` | `routine-volume` \| `routine-completion` series |
+| `GET .../routines/:routineKey/steps/:stepKey/sections/:sectionId` | `RoutineStatsQuery` | a GAME step: its game section's series (§Statistics Games); else `step-volume` \| `step-result` series |
+| `GET .../routines/:routineKey/steps/:stepKey/sessions` | `RoutineSessionsQuery` | `RoutineStepSessionListResponse` |
+
+```typescript
+const RoutineNoQuery = z.object({}).strict(); // list and header: any parameter -> VALIDATION_FAILED
+
+const RoutineStatsQuery = z
+  .object({ from, to, tz, bucket, status }) // StatisticsRangeQuery's own fields and range/bucket rules
+  .strict();                                // context, inputMode, target, ... -> VALIDATION_FAILED
+
+const RoutineSessionsQuery = z
+  .object({
+    from, to, status,                       // as above; from < to
+    limit: z.coerce.number().int().min(1).max(100).default(25),
+    cursor: z.string().optional(),
+  })
+  .strict();                                // tz, bucket, context, inputMode, ... -> VALIDATION_FAILED
+
+const TrainedRoutine = z.object({
+  routineKey: z.string(),
+  routineTemplateId: z.string().uuid().nullable(), // null for a name- key
+  routineName: z.string(),                         // the latest run's
+  runCount: z.number().int(), completedRunCount: z.number().int(),
+  lastRunAt: z.string().datetime({ offset: true }),
+});
+const TrainedRoutineListResponse = z.object({ items: z.array(TrainedRoutine) });
+
+const RoutineStepDescriptor = z.object({
+  stepKey: z.string(), sequenceNumber: z.number().int(),
+  exerciseTypeKey: z.string(), exerciseRulesetVersionKey: z.string().nullable(),
+  gameTypeKey: z.string().nullable(), rulesetVersionKey: z.string().nullable(), // null for a non-game step
+  durationSeconds: z.number().int().nullable(), // the step's configured length, read from the snapshot
+  sessionCount: z.number().int(),
+  firstSeenAt: z.string().datetime({ offset: true }), lastSeenAt: z.string().datetime({ offset: true }),
+  current: z.boolean(), // latest key at its sequenceNumber, index within the latest run's step count
+});
+const RoutineHeader = z.object({
+  routineKey: z.string(), routineName: z.string(), runCount: z.number().int(),
+  firstRunAt: z.string().datetime({ offset: true }), lastRunAt: z.string().datetime({ offset: true }),
+  dataVersion: z.string(),               // the routine's; shared by every step scope
+  steps: z.array(RoutineStepDescriptor), // sequenceNumber, then lastSeenAt DESC
+});
+```
+
+Section results ride `SeriesEnvelope` (§Statistics Games) with `sectionId`
+the routine section's literal id. `metrics` per section:
+
+```typescript
+const RoutineVolumeMetrics = z.object({    // whole seconds; the client converts to minutes
+  runs: z.number().int(), durationSeconds: z.number().int(),
+  minDurationSeconds: z.number().int(), maxDurationSeconds: z.number().int(),
+  darts: z.number().int(),
+});
+const RoutineCompletionMetrics = z.object({
+  completed: z.number().int(), abandoned: z.number().int(), neverStarted: z.number().int(),
+  stepsCompletedAtAbandon: z.record(z.string(), z.number().int()), // steps completed -> started abandoned runs
+});
+const StepVolumeMetrics = z.object({
+  sessions: z.number().int(), durationSeconds: z.number().int(), darts: z.number().int(),
+});
+const StepResultMetrics = z.object({
+  metrics: z.record(z.string(), z.number()), // the step kind's STEP_METRIC_SPECS keys
+  headlineMin: z.number().nullable(), headlineMax: z.number().nullable(),
+  sessions: z.number().int(), skippedSessions: z.number().int(),
+});
+
+const RoutineStepSessionListResponse = z.object({
+  items: z.array(z.object({
+    sessionId: z.string().uuid(),
+    rulesetVersionKey: z.string().nullable(), exerciseRulesetVersionKey: z.string().nullable(),
+    statusKey: z.string(), neverStarted: z.boolean(),
+    startedAt: z.string().datetime({ offset: true }), completedAt: z.string().datetime({ offset: true }),
+    durationSeconds: z.number().int(), turnCount: z.number().int(),
+    dartCount: z.number().int(), countedScore: z.number().int(),
+  })),
+  nextCursor: z.string().nullable(),
+  dataVersion: z.string(),                 // the routine's
+});
+```
+
+**Sections:** the routine route serves `routine-volume` and
+`routine-completion`. On a step, a GAME step accepts exactly
+`sectionsForGame(gameTypeKey)` and runs the game dispatch with
+`context: "routine"` and the step's scope set server-side, returning the
+routine's `dataVersion`; a dart exercise step accepts `step-result` and
+`step-volume`; any other non-game step (Warm-Up) `step-volume` only. Any other
+`:sectionId` is `NOT_FOUND`. `status` and `bucket` follow §Statistics Games:
+`routine-completion` accepts only `all`, every other routine section only
+`completed`; a GAME step's section keeps its game section's own rules.
+`step-result` is a `server` section: over `MAX_FOLD_DARTS` darts in the
+step's scope, it answers `VALIDATION_FAILED` naming the cap before any fold
+row is read.
+
+**Step session list:** `(completed_at DESC, session_id DESC)` over
+`v_stats_routine_step_facts`, the same cursor codec as the game list;
+`status` accepts and defaults to all three.
+
+**Errors:** `NOT_FOUND` (HTTP 404) for an untrained or unowned routine, a step
+key the routine never ran, or a section the routine or step does not offer;
+`VALIDATION_FAILED` (HTTP 422) for a malformed key, any rejected or invalid
+query parameter, a bucket on a non-bucketable section, a status the section
+does not accept, a malformed cursor, or a `step-result` scope over the cap;
+plus the standard protected-route failures.
+
+---
+
 ## Read Contracts
 
 All read endpoints are view-backed and player-scoped. Thin response contracts stay close to 1:1 view structure; list endpoints wrap view output in the standard `ListResult<T>` shape defined in `03-Shared-Conventions.md`.
@@ -801,7 +940,12 @@ All read endpoints are view-backed and player-scoped. Thin response contracts st
 | `GET /api/statistics/overview` | `v_session_overview` + `v_player_visit_facts` + `v_player_leg_facts` + `v_x01_checkout_darts` | `StatisticsOverviewResponse` | 2026-09-06 |
 | `GET /api/statistics/games/:gameTypeKey/sessions` | `v_stats_session_facts` | `GameSessionListResponse` | 2026-09-26 (D367) |
 | `GET /api/statistics/games/:gameTypeKey/sections/:sectionId` | `v_stats_session_facts` / `v_stats_dart_facts` | `SeriesEnvelope<CompletionMetrics \| VolumeMetrics \| SessionResultMetrics \| TargetAccuracyMetrics \| ConfusionMetrics \| GroupingMetrics \| MissDirectionMetrics \| LooseDartsMetrics \| HeatmapMetrics \| CheckoutRateMetrics \| DoublePerformanceMetrics \| CheckoutPathMetrics \| BustRateMetrics \| LadderProgressMetrics \| LegStatsMetrics \| ScoringTrendMetrics \| TrebleRateMetrics>` | 2026-09-26 (D367 phase 1; D368 phase 2; D369 phase 3) |
-| `GET /api/statistics/sessions/:sessionId/replay?cursor=&limit=` | `v_stats_session_facts` + `v_game_replay` | `ReplayPage` | 2026-09-28 (D371) |
+| `GET /api/statistics/sessions/:sessionId/replay?cursor=&limit=` | `v_stats_session_facts` + `v_stats_routine_step_facts` + `v_game_replay` | `ReplayPage` | 2026-09-28 (D371); training steps 2026-09-29 (D372) |
+| `GET /api/statistics/routines` | `v_stats_routine_run_facts` | `TrainedRoutineListResponse` | 2026-09-29 (D372) |
+| `GET /api/statistics/routines/:routineKey` | `v_stats_routine_run_facts` + `v_stats_routine_step_facts` | `RoutineHeader` | 2026-09-29 (D372) |
+| `GET /api/statistics/routines/:routineKey/sections/:sectionId` | `v_stats_routine_run_facts` | `SeriesEnvelope<RoutineVolumeMetrics \| RoutineCompletionMetrics>` | 2026-09-29 (D372) |
+| `GET /api/statistics/routines/:routineKey/steps/:stepKey/sections/:sectionId` | `v_stats_routine_step_facts` (+ `v_game_replay` for `step-result`; a GAME step: the game section's views) | `SeriesEnvelope<StepVolumeMetrics \| StepResultMetrics>`, or a GAME step's game section shape | 2026-09-29 (D372) |
+| `GET /api/statistics/routines/:routineKey/steps/:stepKey/sessions` | `v_stats_routine_step_facts` | `RoutineStepSessionListResponse` | 2026-09-29 (D372) |
 
 The frozen `GET /api/sessions/:sessionId/replay` row above (`ReplayEntry[]`) stays documented but unbuilt: statistics phase 5 (D371) builds the statistics replay route instead and neither builds nor drops this one — issue #636 tracks retiring it or pointing it at the same service. <!-- 2026-09-28 -->
 
