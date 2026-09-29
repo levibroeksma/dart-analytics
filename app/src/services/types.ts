@@ -11,11 +11,13 @@ import type {
   TargetAccuracySeriesResponseData,
   VolumeSeriesResponseData,
 } from "@routes/types";
+import type { Bucket, GameTypeKey, StatusFilter } from "@lib/types";
 import type {
   ReplayParticipantRow,
   ReplaySessionRow,
   ReplayStageRow,
   ReplayTurn,
+  StepSessionRow,
 } from "@modules/types";
 
 export * from "./exercise-rulesets/types";
@@ -248,4 +250,79 @@ export type ScheduleSummary = {
 export type ScheduleWriteInput = {
   name: string;
   days: { dayOfWeek: number; routineTemplateId: string }[];
+};
+
+/**
+ * One `listTrainedRoutines` item: a routine the player has trained, named
+ * for its latest run (phase 6b plan decision 9). `routineTemplateId` is
+ * `null` for a legacy snapshot keyed by `routineName` alone.
+ */
+export type TrainedRoutine = {
+  routineKey: string;
+  routineTemplateId: string | null;
+  routineName: string;
+  runCount: number;
+  completedRunCount: number;
+  lastRunAt: string;
+};
+
+/**
+ * One `getRoutineHeader` step descriptor (phase 6b plan decision 9):
+ * `current` is set only for the step key most recently seen at its own
+ * `sequenceNumber`, and only while that `sequenceNumber` is still within the
+ * routine's current shape (controller ruling R11).
+ */
+export type RoutineStepDescriptor = {
+  stepKey: string;
+  sequenceNumber: number;
+  exerciseTypeKey: string;
+  exerciseRulesetVersionKey: string | null;
+  gameTypeKey: GameTypeKey | null;
+  rulesetVersionKey: string | null;
+  durationSeconds: number | null;
+  sessionCount: number;
+  firstSeenAt: string;
+  lastSeenAt: string;
+  current: boolean;
+};
+
+/** `getRoutineHeader`'s response (phase 6b plan decision 9). */
+export type RoutineHeader = {
+  routineKey: string;
+  routineName: string;
+  runCount: number;
+  firstRunAt: string;
+  lastRunAt: string;
+  dataVersion: string;
+  steps: RoutineStepDescriptor[];
+};
+
+/**
+ * `getRoutineSection`/`getRoutineStepSection`'s query (phase 6b plan
+ * decision 4): a routine route accepts `from`, `to`, `tz`, `bucket` and
+ * `status` only -- never `context`, `inputMode` or `target`, which the
+ * service fixes itself (decision 4, controller ruling R2).
+ */
+export type RoutineSectionQuery = {
+  from: string;
+  to: string;
+  tz?: string;
+  bucket: Bucket;
+  status?: StatusFilter;
+};
+
+/** `listRoutineStepSessions`'s query (phase 6b plan decision 10, mirroring `SessionListQueryData`). */
+export type RoutineSessionListQuery = {
+  from: string;
+  to: string;
+  status?: StatusFilter;
+  limit: number;
+  cursor?: string;
+};
+
+/** `listRoutineStepSessions`'s response (phase 6b plan decision 10, mirroring `GameSessionList`). */
+export type SessionList = {
+  items: StepSessionRow[];
+  nextCursor: string | null;
+  dataVersion: string;
 };

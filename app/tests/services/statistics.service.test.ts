@@ -23,6 +23,15 @@ vi.mock("@repositories/statistics.repository", () => ({
   findReplayStages: vi.fn(),
   findReplayParticipants: vi.fn(),
   findReplayTurnPage: vi.fn(),
+  findTrainedRoutines: vi.fn(),
+  findRoutineHeader: vi.fn(),
+  findRoutineStepDescriptors: vi.fn(),
+  findRoutineDataVersion: vi.fn(),
+  findRoutineRunBuckets: vi.fn(),
+  findStepBuckets: vi.fn(),
+  findStepSessionPage: vi.fn(),
+  findStepFoldRows: vi.fn(),
+  findStepScopeDartCount: vi.fn(),
 }));
 
 import * as repo from "@repositories/statistics.repository";
@@ -32,12 +41,18 @@ import {
   getGameSection,
   getSessionReplay,
   resolveSectionHandler,
+  listTrainedRoutines,
+  getRoutineHeader,
+  getRoutineSection,
+  getRoutineStepSection,
+  listRoutineStepSessions,
 } from "@services/statistics.service";
 import {
   decodeReplayCursor,
   encodeReplayCursor,
 } from "@modules/stats/replay.module";
 import type {
+  DartZoneKey,
   ReplayParticipantRow,
   ReplayRow,
   ReplaySessionRow,
@@ -1898,5 +1913,811 @@ describe("getSessionReplay", () => {
     ).toEqual(["leg-2:2"]);
     expect(page2.data.nextCursor).toBeNull();
     expect(page2.data.header).toBeNull();
+  });
+});
+
+const routineKey = "0198f200-0000-7000-8000-000000000099";
+const legacyRoutineKey = `name-${"b".repeat(32)}`;
+const gameStepKey = `1-${"a".repeat(32)}`;
+const exerciseStepKey = `2-${"c".repeat(32)}`;
+const warmUpStepKey = `3-${"d".repeat(32)}`;
+
+function makeRoutineHeaderRow(overrides: Record<string, unknown> = {}) {
+  return {
+    routineKey,
+    routineName: "Evening Practice",
+    runCount: 5,
+    firstRunAt: "2026-01-01T00:00:00.000Z",
+    lastRunAt: "2026-01-10T00:00:00.000Z",
+    latestStepCount: 2,
+    ...overrides,
+  };
+}
+
+function makeGameStepDescriptorRow(overrides: Record<string, unknown> = {}) {
+  return {
+    stepKey: gameStepKey,
+    sequenceNumber: 1,
+    exerciseTypeKey: "GAME",
+    exerciseRulesetVersionKey: null,
+    gameTypeKey: "501" as GameTypeKey,
+    rulesetVersionKey: "501_V1",
+    durationSeconds: 300,
+    sessionCount: 3,
+    firstSeenAt: "2026-01-01T00:00:00.000Z",
+    lastSeenAt: "2026-01-10T00:00:00.000Z",
+    current: true,
+    ...overrides,
+  };
+}
+
+function makeExerciseStepDescriptorRow(
+  overrides: Record<string, unknown> = {},
+) {
+  return {
+    stepKey: exerciseStepKey,
+    sequenceNumber: 2,
+    exerciseTypeKey: "SWITCHING",
+    exerciseRulesetVersionKey: "SWITCHING_V1",
+    gameTypeKey: null,
+    rulesetVersionKey: null,
+    durationSeconds: 180,
+    sessionCount: 4,
+    firstSeenAt: "2026-01-01T00:00:00.000Z",
+    lastSeenAt: "2026-01-10T00:00:00.000Z",
+    current: true,
+    ...overrides,
+  };
+}
+
+function makeWarmUpStepDescriptorRow(overrides: Record<string, unknown> = {}) {
+  return {
+    stepKey: warmUpStepKey,
+    sequenceNumber: 3,
+    exerciseTypeKey: "WARM_UP",
+    exerciseRulesetVersionKey: null,
+    gameTypeKey: null,
+    rulesetVersionKey: null,
+    durationSeconds: 60,
+    sessionCount: 2,
+    firstSeenAt: "2026-01-01T00:00:00.000Z",
+    lastSeenAt: "2026-01-10T00:00:00.000Z",
+    current: true,
+    ...overrides,
+  };
+}
+
+function makeRoutineRunBucketRow(overrides: Record<string, unknown> = {}) {
+  return {
+    bucketStart: "2026-01-01T00:00:00.000Z",
+    bucketEnd: "2026-02-01T00:00:00.000Z",
+    runs: 3,
+    durationSum: 900,
+    durationMin: 200,
+    durationMax: 400,
+    darts: 90,
+    completed: 2,
+    abandoned: 1,
+    neverStarted: 0,
+    stepsCompletedAtAbandon: { "1": 1 },
+    ...overrides,
+  };
+}
+
+function makeStepBucketRow(overrides: Record<string, unknown> = {}) {
+  return {
+    bucketStart: "2026-01-01T00:00:00.000Z",
+    bucketEnd: "2026-02-01T00:00:00.000Z",
+    sessions: 4,
+    durationSum: 600,
+    darts: 40,
+    ...overrides,
+  };
+}
+
+function makeStepSessionRow(overrides: Record<string, unknown> = {}) {
+  return {
+    sessionId: "step-session-1",
+    rulesetVersionKey: null,
+    exerciseRulesetVersionKey: "SWITCHING_V1",
+    statusKey: "COMPLETED",
+    neverStarted: false,
+    startedAt: "2026-01-01T00:00:00.000Z",
+    completedAt: "2026-01-01T00:05:00.000Z",
+    durationSeconds: 300,
+    turnCount: 5,
+    dartCount: 15,
+    countedScore: 40,
+    ...overrides,
+  };
+}
+
+const STEP_FOLD_STAGE_ID = "01900000-0000-7000-9000-000000000001";
+
+/** One Switching dart hitting cycling target 20 on the treble -- 3 points, 1 dart, 1 hit (mirrors `step-result.module.test.ts`'s fixture). */
+function makeSwitchingFoldRow(overrides: Record<string, unknown> = {}) {
+  return {
+    sessionId: "fold-session-1",
+    completedAt: "2026-01-05T00:00:00.000Z",
+    exerciseRulesetVersionKey: "SWITCHING_V1",
+    configuration: {
+      targets: [20, 19, 18],
+      scoring: { single: 1, double: 2, treble: 3 },
+    },
+    stageId: STEP_FOLD_STAGE_ID,
+    stageSequence: 1,
+    stageTypeKey: "EXERCISE_BLOCK",
+    parentStageId: null,
+    turnSequence: 1,
+    participantId: "solo",
+    participantName: "Solo",
+    participantTypeKey: "PLAYER",
+    turnTotalScore: 3,
+    dartNumber: 1,
+    intendedTargetNumber: 20,
+    intendedZoneKey: "TREBLE" as DartZoneKey,
+    hitTargetNumber: 20,
+    hitZoneKey: "TREBLE" as DartZoneKey,
+    score: 3,
+    locationX: null,
+    locationY: null,
+    bucketStart: "2026-01-01T00:00:00.000Z",
+    bucketEnd: "2026-02-01T00:00:00.000Z",
+    ...overrides,
+  };
+}
+
+const routineRangeQuery = {
+  from: "2026-01-01T00:00:00.000Z",
+  to: "2026-02-01T00:00:00.000Z",
+  tz: undefined,
+  bucket: "none" as const,
+  status: undefined,
+};
+
+describe("listTrainedRoutines", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns every trained routine as-is, newest first", async () => {
+    const rows = [
+      {
+        routineKey,
+        routineTemplateId: null,
+        routineName: "Evening Practice",
+        runCount: 5,
+        completedRunCount: 4,
+        lastRunAt: "2026-01-10T00:00:00.000Z",
+      },
+    ];
+    vi.mocked(repo.findTrainedRoutines).mockResolvedValue(rows);
+
+    const result = await listTrainedRoutines(playerId);
+
+    expect(result).toEqual({ ok: true, data: { items: rows } });
+    expect(repo.findTrainedRoutines).toHaveBeenCalledWith(
+      expect.anything(),
+      playerId,
+    );
+  });
+
+  it("returns an empty list for a player who has trained nothing", async () => {
+    vi.mocked(repo.findTrainedRoutines).mockResolvedValue([]);
+
+    const result = await listTrainedRoutines(playerId);
+
+    expect(result).toEqual({ ok: true, data: { items: [] } });
+  });
+});
+
+describe("getRoutineHeader", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("rejects a malformed routineKey without calling the repository", async () => {
+    const result = await getRoutineHeader(playerId, "not-a-routine-key");
+
+    expect(result).toEqual({
+      ok: false,
+      code: "VALIDATION_FAILED",
+      details: { reason: "routineKey is malformed" },
+    });
+    expect(repo.findRoutineHeader).not.toHaveBeenCalled();
+  });
+
+  it("returns NOT_FOUND for another player's routine, with no further reader called", async () => {
+    vi.mocked(repo.findRoutineHeader).mockResolvedValue(null);
+
+    const result = await getRoutineHeader(playerId, routineKey);
+
+    expect(result).toEqual({ ok: false, code: "NOT_FOUND" });
+    expect(repo.findRoutineStepDescriptors).not.toHaveBeenCalled();
+    expect(repo.findRoutineDataVersion).not.toHaveBeenCalled();
+  });
+
+  it("resolves a legacy name- routine key", async () => {
+    vi.mocked(repo.findRoutineHeader).mockResolvedValue(
+      makeRoutineHeaderRow({ routineKey: legacyRoutineKey }),
+    );
+    vi.mocked(repo.findRoutineStepDescriptors).mockResolvedValue([]);
+    vi.mocked(repo.findRoutineDataVersion).mockResolvedValue({
+      runCount: 5,
+      maxCompletedAt: "2026-01-10T00:00:00.000Z",
+    });
+
+    const result = await getRoutineHeader(playerId, legacyRoutineKey);
+
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.data.routineKey).toBe(legacyRoutineKey);
+  });
+
+  it("assembles the header from findRoutineHeader, its step descriptors and the encoded dataVersion", async () => {
+    vi.mocked(repo.findRoutineHeader).mockResolvedValue(makeRoutineHeaderRow());
+    const steps = [
+      makeGameStepDescriptorRow(),
+      makeExerciseStepDescriptorRow(),
+    ];
+    vi.mocked(repo.findRoutineStepDescriptors).mockResolvedValue(steps);
+    vi.mocked(repo.findRoutineDataVersion).mockResolvedValue({
+      runCount: 5,
+      maxCompletedAt: "2026-01-10T00:00:00.000Z",
+    });
+
+    const result = await getRoutineHeader(playerId, routineKey);
+
+    expect(repo.findRoutineStepDescriptors).toHaveBeenCalledWith(
+      expect.anything(),
+      playerId,
+      routineKey,
+      2,
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data).toEqual({
+        routineKey,
+        routineName: "Evening Practice",
+        runCount: 5,
+        firstRunAt: "2026-01-01T00:00:00.000Z",
+        lastRunAt: "2026-01-10T00:00:00.000Z",
+        dataVersion: expect.any(String),
+        steps,
+      });
+    }
+  });
+});
+
+describe("getRoutineSection", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("rejects a malformed routineKey without calling the repository", async () => {
+    const result = await getRoutineSection(
+      playerId,
+      "not-a-routine-key",
+      "routine-volume",
+      routineRangeQuery,
+    );
+
+    expect(result).toEqual({
+      ok: false,
+      code: "VALIDATION_FAILED",
+      details: { reason: "routineKey is malformed" },
+    });
+    expect(repo.findRoutineHeader).not.toHaveBeenCalled();
+  });
+
+  it("returns NOT_FOUND for another player's routine, with no section reader called", async () => {
+    vi.mocked(repo.findRoutineHeader).mockResolvedValue(null);
+
+    const result = await getRoutineSection(
+      playerId,
+      routineKey,
+      "routine-volume",
+      routineRangeQuery,
+    );
+
+    expect(result).toEqual({ ok: false, code: "NOT_FOUND" });
+    expect(repo.findRoutineRunBuckets).not.toHaveBeenCalled();
+  });
+
+  it("returns NOT_FOUND for a section outside sectionsForRoutine()", async () => {
+    vi.mocked(repo.findRoutineHeader).mockResolvedValue(makeRoutineHeaderRow());
+
+    const result = await getRoutineSection(
+      playerId,
+      routineKey,
+      "step-volume",
+      routineRangeQuery,
+    );
+
+    expect(result).toEqual({ ok: false, code: "NOT_FOUND" });
+    expect(repo.findRoutineRunBuckets).not.toHaveBeenCalled();
+  });
+
+  it("rejects a status other than all on routine-completion (includesAbandoned)", async () => {
+    vi.mocked(repo.findRoutineHeader).mockResolvedValue(makeRoutineHeaderRow());
+
+    const result = await getRoutineSection(
+      playerId,
+      routineKey,
+      "routine-completion",
+      { ...routineRangeQuery, status: "completed" },
+    );
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.code).toBe("VALIDATION_FAILED");
+  });
+
+  it("floors from to the bucket start when bucketed, and echoes it in range", async () => {
+    vi.mocked(repo.findRoutineHeader).mockResolvedValue(makeRoutineHeaderRow());
+    vi.mocked(repo.findBucketFloor).mockResolvedValue(
+      "2026-01-01T00:00:00.000Z",
+    );
+    vi.mocked(repo.findRoutineDataVersion).mockResolvedValue({
+      runCount: 5,
+      maxCompletedAt: "2026-01-10T00:00:00.000Z",
+    });
+    vi.mocked(repo.findRoutineRunBuckets).mockResolvedValue([]);
+
+    const result = await getRoutineSection(
+      playerId,
+      routineKey,
+      "routine-volume",
+      {
+        ...routineRangeQuery,
+        from: "2026-01-15T00:00:00.000Z",
+        bucket: "month",
+        tz: "Europe/Amsterdam",
+      },
+    );
+
+    expect(repo.findBucketFloor).toHaveBeenCalledWith(
+      expect.anything(),
+      "2026-01-15T00:00:00.000Z",
+      "month",
+      "Europe/Amsterdam",
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok)
+      expect(result.data.range.from).toBe("2026-01-01T00:00:00.000Z");
+  });
+
+  it("dispatches routine-volume through findRoutineRunBuckets, with an encoded dataVersion", async () => {
+    vi.mocked(repo.findRoutineHeader).mockResolvedValue(makeRoutineHeaderRow());
+    vi.mocked(repo.findRoutineDataVersion).mockResolvedValue({
+      runCount: 5,
+      maxCompletedAt: "2026-01-10T00:00:00.000Z",
+    });
+    vi.mocked(repo.findRoutineRunBuckets).mockResolvedValue([
+      makeRoutineRunBucketRow(),
+    ]);
+
+    const result = await getRoutineSection(
+      playerId,
+      routineKey,
+      "routine-volume",
+      routineRangeQuery,
+    );
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.sectionId).toBe("routine-volume");
+      expect(result.data.buckets).toHaveLength(1);
+      expect((result.data.buckets[0]!.metrics as { runs: number }).runs).toBe(
+        3,
+      );
+      expect(result.data.dataVersion).toEqual(expect.any(String));
+    }
+  });
+
+  it("dispatches routine-completion through the same findRoutineRunBuckets reader", async () => {
+    vi.mocked(repo.findRoutineHeader).mockResolvedValue(makeRoutineHeaderRow());
+    vi.mocked(repo.findRoutineDataVersion).mockResolvedValue({
+      runCount: 5,
+      maxCompletedAt: "2026-01-10T00:00:00.000Z",
+    });
+    vi.mocked(repo.findRoutineRunBuckets).mockResolvedValue([
+      makeRoutineRunBucketRow(),
+    ]);
+
+    const result = await getRoutineSection(
+      playerId,
+      routineKey,
+      "routine-completion",
+      { ...routineRangeQuery, status: "all" },
+    );
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.sectionId).toBe("routine-completion");
+      expect(
+        (
+          result.data.buckets[0]!.metrics as {
+            completed: number;
+            abandoned: number;
+            neverStarted: number;
+          }
+        ).completed,
+      ).toBe(2);
+    }
+  });
+});
+
+describe("getRoutineStepSection", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("rejects a malformed routineKey without calling the repository", async () => {
+    const result = await getRoutineStepSection(
+      playerId,
+      "not-a-routine-key",
+      exerciseStepKey,
+      "step-volume",
+      routineRangeQuery,
+    );
+
+    expect(result).toEqual({
+      ok: false,
+      code: "VALIDATION_FAILED",
+      details: { reason: "routineKey is malformed" },
+    });
+    expect(repo.findRoutineHeader).not.toHaveBeenCalled();
+  });
+
+  it("rejects a malformed stepKey without calling the repository", async () => {
+    const result = await getRoutineStepSection(
+      playerId,
+      routineKey,
+      "not-a-step-key",
+      "step-volume",
+      routineRangeQuery,
+    );
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.code).toBe("VALIDATION_FAILED");
+    expect(repo.findRoutineHeader).not.toHaveBeenCalled();
+  });
+
+  it("treats a stepKey whose sequence number is not a safe integer as malformed", async () => {
+    const unsafeStepKey = `99999999999999999999999-${"a".repeat(32)}`;
+
+    const result = await getRoutineStepSection(
+      playerId,
+      routineKey,
+      unsafeStepKey,
+      "step-volume",
+      routineRangeQuery,
+    );
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.code).toBe("VALIDATION_FAILED");
+    expect(repo.findRoutineHeader).not.toHaveBeenCalled();
+  });
+
+  it("returns NOT_FOUND for another player's routine, with no descriptor reader called", async () => {
+    vi.mocked(repo.findRoutineHeader).mockResolvedValue(null);
+
+    const result = await getRoutineStepSection(
+      playerId,
+      routineKey,
+      exerciseStepKey,
+      "step-volume",
+      routineRangeQuery,
+    );
+
+    expect(result).toEqual({ ok: false, code: "NOT_FOUND" });
+    expect(repo.findRoutineStepDescriptors).not.toHaveBeenCalled();
+  });
+
+  it("returns NOT_FOUND for a stepKey absent from the routine's descriptors", async () => {
+    vi.mocked(repo.findRoutineHeader).mockResolvedValue(makeRoutineHeaderRow());
+    vi.mocked(repo.findRoutineStepDescriptors).mockResolvedValue([
+      makeGameStepDescriptorRow(),
+    ]);
+
+    const result = await getRoutineStepSection(
+      playerId,
+      routineKey,
+      exerciseStepKey,
+      "step-volume",
+      routineRangeQuery,
+    );
+
+    expect(result).toEqual({ ok: false, code: "NOT_FOUND" });
+  });
+
+  it("resolves an earlier, non-current step key", async () => {
+    vi.mocked(repo.findRoutineHeader).mockResolvedValue(makeRoutineHeaderRow());
+    vi.mocked(repo.findRoutineStepDescriptors).mockResolvedValue([
+      makeExerciseStepDescriptorRow({ current: false }),
+    ]);
+    vi.mocked(repo.findRoutineDataVersion).mockResolvedValue({
+      runCount: 5,
+      maxCompletedAt: "2026-01-10T00:00:00.000Z",
+    });
+    vi.mocked(repo.findStepBuckets).mockResolvedValue([makeStepBucketRow()]);
+
+    const result = await getRoutineStepSection(
+      playerId,
+      routineKey,
+      exerciseStepKey,
+      "step-volume",
+      routineRangeQuery,
+    );
+
+    expect(result.ok).toBe(true);
+  });
+
+  it("returns NOT_FOUND for a section outside sectionsForStep(step) (step-result on Warm-Up)", async () => {
+    vi.mocked(repo.findRoutineHeader).mockResolvedValue(makeRoutineHeaderRow());
+    vi.mocked(repo.findRoutineStepDescriptors).mockResolvedValue([
+      makeWarmUpStepDescriptorRow(),
+    ]);
+
+    const result = await getRoutineStepSection(
+      playerId,
+      routineKey,
+      warmUpStepKey,
+      "step-result",
+      routineRangeQuery,
+    );
+
+    expect(result).toEqual({ ok: false, code: "NOT_FOUND" });
+    expect(repo.findStepScopeDartCount).not.toHaveBeenCalled();
+    expect(repo.findStepFoldRows).not.toHaveBeenCalled();
+  });
+
+  it("dispatches step-volume through findStepBuckets", async () => {
+    vi.mocked(repo.findRoutineHeader).mockResolvedValue(makeRoutineHeaderRow());
+    vi.mocked(repo.findRoutineStepDescriptors).mockResolvedValue([
+      makeExerciseStepDescriptorRow(),
+    ]);
+    vi.mocked(repo.findRoutineDataVersion).mockResolvedValue({
+      runCount: 5,
+      maxCompletedAt: "2026-01-10T00:00:00.000Z",
+    });
+    vi.mocked(repo.findStepBuckets).mockResolvedValue([makeStepBucketRow()]);
+
+    const result = await getRoutineStepSection(
+      playerId,
+      routineKey,
+      exerciseStepKey,
+      "step-volume",
+      routineRangeQuery,
+    );
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.sectionId).toBe("step-volume");
+      expect(
+        (result.data.buckets[0]!.metrics as { sessions: number }).sessions,
+      ).toBe(4);
+    }
+  });
+
+  it("returns VALIDATION_FAILED above MAX_FOLD_DARTS on step-result, and never calls findStepFoldRows", async () => {
+    vi.mocked(repo.findRoutineHeader).mockResolvedValue(makeRoutineHeaderRow());
+    vi.mocked(repo.findRoutineStepDescriptors).mockResolvedValue([
+      makeExerciseStepDescriptorRow(),
+    ]);
+    vi.mocked(repo.findRoutineDataVersion).mockResolvedValue({
+      runCount: 5,
+      maxCompletedAt: "2026-01-10T00:00:00.000Z",
+    });
+    const dartCount = MAX_FOLD_DARTS + 1;
+    vi.mocked(repo.findStepScopeDartCount).mockResolvedValue(dartCount);
+
+    const result = await getRoutineStepSection(
+      playerId,
+      routineKey,
+      exerciseStepKey,
+      "step-result",
+      routineRangeQuery,
+    );
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.code).toBe("VALIDATION_FAILED");
+      expect(result.details?.reason).toBe(
+        `range holds ${dartCount} darts; server sections fold at most ${MAX_FOLD_DARTS} — request a shorter range`,
+      );
+    }
+    expect(repo.findStepFoldRows).not.toHaveBeenCalled();
+  });
+
+  it("dispatches step-result through findStepFoldRows and stepResultBuckets", async () => {
+    vi.mocked(repo.findRoutineHeader).mockResolvedValue(makeRoutineHeaderRow());
+    vi.mocked(repo.findRoutineStepDescriptors).mockResolvedValue([
+      makeExerciseStepDescriptorRow(),
+    ]);
+    vi.mocked(repo.findRoutineDataVersion).mockResolvedValue({
+      runCount: 5,
+      maxCompletedAt: "2026-01-10T00:00:00.000Z",
+    });
+    vi.mocked(repo.findStepScopeDartCount).mockResolvedValue(1);
+    vi.mocked(repo.findStepFoldRows).mockResolvedValue([
+      makeSwitchingFoldRow(),
+    ] as never);
+
+    const result = await getRoutineStepSection(
+      playerId,
+      routineKey,
+      exerciseStepKey,
+      "step-result",
+      routineRangeQuery,
+    );
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.sectionId).toBe("step-result");
+      expect(result.data.buckets[0]!.metrics).toMatchObject({
+        metrics: { points: 3, darts: 1, hits: 1 },
+        sessions: 1,
+        skippedSessions: 0,
+      });
+    }
+  });
+
+  it("delegates a GAME step to the game section path with context 'routine' and the exact routineStep, and keys dataVersion under the routine", async () => {
+    vi.mocked(repo.findRoutineHeader).mockResolvedValue(makeRoutineHeaderRow());
+    vi.mocked(repo.findRoutineStepDescriptors).mockResolvedValue([
+      makeGameStepDescriptorRow(),
+    ]);
+    vi.mocked(repo.findRoutineDataVersion).mockResolvedValue({
+      runCount: 9,
+      maxCompletedAt: "2026-01-09T00:00:00.000Z",
+    });
+    vi.mocked(repo.findBucketedSessionAggregates).mockResolvedValue([]);
+
+    const result = await getRoutineStepSection(
+      playerId,
+      routineKey,
+      gameStepKey,
+      "volume",
+      routineRangeQuery,
+    );
+
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.data.sectionId).toBe("volume");
+    expect(repo.findGameDataVersion).not.toHaveBeenCalled();
+    expect(repo.findRoutineDataVersion).toHaveBeenCalledWith(
+      expect.anything(),
+      playerId,
+      routineKey,
+    );
+    expect(repo.findBucketedSessionAggregates).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        context: "routine",
+        routineStep: { routineKey, stepKey: gameStepKey },
+      }),
+    );
+  });
+});
+
+describe("listRoutineStepSessions", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  const stepSessionListQuery = {
+    from: "2026-01-01T00:00:00.000Z",
+    to: "2026-02-01T00:00:00.000Z",
+    status: undefined,
+    limit: 25,
+  };
+
+  it("rejects a malformed routineKey without calling the repository", async () => {
+    const result = await listRoutineStepSessions(
+      playerId,
+      "not-a-routine-key",
+      exerciseStepKey,
+      stepSessionListQuery,
+    );
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.code).toBe("VALIDATION_FAILED");
+    expect(repo.findRoutineHeader).not.toHaveBeenCalled();
+  });
+
+  it("returns NOT_FOUND for another player's routine", async () => {
+    vi.mocked(repo.findRoutineHeader).mockResolvedValue(null);
+
+    const result = await listRoutineStepSessions(
+      playerId,
+      routineKey,
+      exerciseStepKey,
+      stepSessionListQuery,
+    );
+
+    expect(result).toEqual({ ok: false, code: "NOT_FOUND" });
+    expect(repo.findStepSessionPage).not.toHaveBeenCalled();
+  });
+
+  it("returns NOT_FOUND for a stepKey absent from the routine's descriptors", async () => {
+    vi.mocked(repo.findRoutineHeader).mockResolvedValue(makeRoutineHeaderRow());
+    vi.mocked(repo.findRoutineStepDescriptors).mockResolvedValue([
+      makeGameStepDescriptorRow(),
+    ]);
+
+    const result = await listRoutineStepSessions(
+      playerId,
+      routineKey,
+      exerciseStepKey,
+      stepSessionListQuery,
+    );
+
+    expect(result).toEqual({ ok: false, code: "NOT_FOUND" });
+  });
+
+  it("rejects a malformed cursor", async () => {
+    vi.mocked(repo.findRoutineHeader).mockResolvedValue(makeRoutineHeaderRow());
+    vi.mocked(repo.findRoutineStepDescriptors).mockResolvedValue([
+      makeExerciseStepDescriptorRow(),
+    ]);
+
+    const result = await listRoutineStepSessions(
+      playerId,
+      routineKey,
+      exerciseStepKey,
+      { ...stepSessionListQuery, cursor: "%%%" },
+    );
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.code).toBe("VALIDATION_FAILED");
+    expect(repo.findStepSessionPage).not.toHaveBeenCalled();
+  });
+
+  it("sets nextCursor when a further page exists (limit + 1 rows)", async () => {
+    vi.mocked(repo.findRoutineHeader).mockResolvedValue(makeRoutineHeaderRow());
+    vi.mocked(repo.findRoutineStepDescriptors).mockResolvedValue([
+      makeExerciseStepDescriptorRow(),
+    ]);
+    vi.mocked(repo.findRoutineDataVersion).mockResolvedValue({
+      runCount: 5,
+      maxCompletedAt: "2026-01-10T00:00:00.000Z",
+    });
+    vi.mocked(repo.findStepSessionPage).mockResolvedValue([
+      makeStepSessionRow({
+        sessionId: "s1",
+        completedAt: "2026-01-03T00:00:00.000Z",
+      }),
+      makeStepSessionRow({
+        sessionId: "s2",
+        completedAt: "2026-01-02T00:00:00.000Z",
+      }),
+    ]);
+
+    const result = await listRoutineStepSessions(
+      playerId,
+      routineKey,
+      exerciseStepKey,
+      { ...stepSessionListQuery, limit: 1 },
+    );
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.items).toHaveLength(1);
+      expect(result.data.nextCursor).not.toBeNull();
+      expect(result.data.dataVersion).toEqual(expect.any(String));
+    }
+  });
+
+  it("returns nextCursor null when exactly limit rows come back", async () => {
+    vi.mocked(repo.findRoutineHeader).mockResolvedValue(makeRoutineHeaderRow());
+    vi.mocked(repo.findRoutineStepDescriptors).mockResolvedValue([
+      makeExerciseStepDescriptorRow(),
+    ]);
+    vi.mocked(repo.findRoutineDataVersion).mockResolvedValue({
+      runCount: 5,
+      maxCompletedAt: "2026-01-10T00:00:00.000Z",
+    });
+    vi.mocked(repo.findStepSessionPage).mockResolvedValue([
+      makeStepSessionRow({}),
+    ]);
+
+    const result = await listRoutineStepSessions(
+      playerId,
+      routineKey,
+      exerciseStepKey,
+      { ...stepSessionListQuery, limit: 1 },
+    );
+
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.data.nextCursor).toBeNull();
   });
 });
