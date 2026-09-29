@@ -1,5 +1,5 @@
 export const STATS_DB_NAME = "dart-stats";
-export const STATS_SCHEMA_VERSION = 3;
+export const STATS_SCHEMA_VERSION = 4;
 
 const STORES = [
   "sectionResults",
