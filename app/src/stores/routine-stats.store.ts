@@ -100,9 +100,9 @@ function minutes(seconds: number): number {
   return Math.round(seconds / 60);
 }
 
-function messageOf(cause: unknown): string {
-  return cause instanceof Error ? cause.message : "load failed";
-}
+/** The one error line every routine-store failure shows: a raw `StatisticsApiError` message is written for developers, not players. */
+const LOAD_ERROR =
+  "Could not load your routine statistics. Check your connection and try again.";
 
 /** A descriptor's `gameTypeKey`, narrowed to a known `GameTypeKey`; `null` for a non-game step or a game type this client does not know. */
 function stepGameType(step: StepDescriptor): GameTypeKey | null {
@@ -241,8 +241,9 @@ function stepResultTotals(
  * and the selected step's cards and session list, all read through the
  * IndexedDB cache under the routine's and step's own scope keys (plan
  * decision 12). Registered through `Alpine.store("routineStats",
- * routineStatsStore())`, so `init()` is the sanctioned hydration hook —
- * `x-init` is forbidden repo-wide.
+ * routineStatsStore())` on every page, so nothing loads at registration:
+ * the Routines tab starts loading through `activate()` the first time it
+ * is shown (`x-init` is forbidden repo-wide).
  */
 export function routineStatsStore() {
   return {
@@ -256,30 +257,52 @@ export function routineStatsStore() {
     stepSections: {} as Record<string, SeriesView>,
     /**
      * The Games tab's own section view, fed from `stepSections`, that a GAME
-     * step's cards render through (`GameSectionCards.astro`): `selectStep`
-     * sets its `sections` and `gameTypeKey`, and its getters do the rest.
-     * Its loaders are never called — the step's cards render without the
-     * heatmap target picker, the one card that would reload through them.
+     * step's cards render through (`GameSectionCards.astro`): its getters
+     * do the rest. `selectStep` names the step's `gameTypeKey` the moment a
+     * GAME step is selected, before any await, and the cards exist only
+     * while a GAME step is (`x-if`), so the factory's own `"501"` default
+     * is never rendered. Its loaders are never called: the step's cards
+     * render without the heatmap target picker, the one card that would
+     * reload through them.
      */
     stepGame: gameStatsStore(),
     stepSessions: [] as StepSession[],
     nextCursor: null as string | null,
     loading: false,
     error: null as string | null,
+    activated: false,
 
-    async init() {
+    /** Alpine calls this at registration, on every page — so it fetches nothing; the Routines tab loads through `activate()`. */
+    init(): void {},
+
+    /**
+     * Loads the trained-routine list and selects the first routine, once:
+     * the Routines tab calls this each time it is shown (`index.astro`'s
+     * `x-effect` on the tab), and every call after the first is a no-op.
+     */
+    async activate() {
+      if (this.activated) return;
+      this.activated = true;
       this.loading = true;
       this.error = null;
       try {
         this.routines = (await fetchTrainedRoutines()).items;
-      } catch (cause) {
-        this.error = messageOf(cause);
+      } catch {
+        this.error = LOAD_ERROR;
         return;
       } finally {
         this.loading = false;
       }
       const first = this.routines[0];
       if (first !== undefined) await this.selectRoutine(first.routineKey);
+    },
+
+    /** Whether a load begun for `routineKey` (and `stepKey`, for a step load) still matches the selection. A `stepKey` is only unique within its own routine, so a step load checks both. */
+    isSelected(routineKey: string, stepKey?: string): boolean {
+      return (
+        this.routineKey === routineKey &&
+        (stepKey === undefined || this.stepKey === stepKey)
+      );
     },
 
     /**
@@ -303,16 +326,16 @@ export function routineStatsStore() {
           header.dataVersion,
         );
         const sections = await this.readRoutineSections(routineKey);
-        if (this.routineKey !== routineKey) return;
+        if (!this.isSelected(routineKey)) return;
         this.header = header;
         this.routineSections = sections;
         const first =
           header.steps.find((step) => step.current) ?? header.steps[0];
         if (first !== undefined) await this.selectStep(first.stepKey);
-      } catch (cause) {
-        this.error = messageOf(cause);
+      } catch {
+        if (this.isSelected(routineKey)) this.error = LOAD_ERROR;
       } finally {
-        this.loading = false;
+        if (this.isSelected(routineKey)) this.loading = false;
       }
     },
 
@@ -360,6 +383,8 @@ export function routineStatsStore() {
       if (routineKey === null || step === undefined) return;
       this.resetStep();
       this.stepKey = stepKey;
+      const gameTypeKey = stepGameType(step);
+      if (gameTypeKey !== null) this.stepGame.gameTypeKey = gameTypeKey;
       this.loading = true;
       this.error = null;
       try {
@@ -367,17 +392,15 @@ export function routineStatsStore() {
           this.readStepSections(routineKey, step),
           this.readStepSessionPage(routineKey, stepKey, undefined),
         ]);
-        if (this.stepKey !== stepKey) return;
+        if (!this.isSelected(routineKey, stepKey)) return;
         this.stepSections = sections;
-        const gameTypeKey = stepGameType(step);
         this.stepGame.sections = gameTypeKey === null ? {} : sections;
-        if (gameTypeKey !== null) this.stepGame.gameTypeKey = gameTypeKey;
         this.stepSessions = page.items;
         this.nextCursor = page.nextCursor;
-      } catch (cause) {
-        this.error = messageOf(cause);
+      } catch {
+        if (this.isSelected(routineKey, stepKey)) this.error = LOAD_ERROR;
       } finally {
-        this.loading = false;
+        if (this.isSelected(routineKey, stepKey)) this.loading = false;
       }
     },
 
@@ -436,14 +459,18 @@ export function routineStatsStore() {
       if (routineKey === null || stepKey === null || nextCursor === null) {
         return;
       }
-      const page = await this.readStepSessionPage(
-        routineKey,
-        stepKey,
-        nextCursor,
-      );
-      if (this.stepKey !== stepKey) return;
-      this.stepSessions = [...this.stepSessions, ...page.items];
-      this.nextCursor = page.nextCursor;
+      try {
+        const page = await this.readStepSessionPage(
+          routineKey,
+          stepKey,
+          nextCursor,
+        );
+        if (!this.isSelected(routineKey, stepKey)) return;
+        this.stepSessions = [...this.stepSessions, ...page.items];
+        this.nextCursor = page.nextCursor;
+      } catch {
+        if (this.isSelected(routineKey, stepKey)) this.error = LOAD_ERROR;
+      }
     },
 
     /** Steps the latest run's snapshot holds (the descriptor's server-computed `current`), in header order. */

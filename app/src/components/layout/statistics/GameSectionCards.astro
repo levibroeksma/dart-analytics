@@ -7,7 +7,7 @@
  * cards its game's own page does, fed from that step's sections. Each card
  * shows only once its section has loaded.
  * @param {string} view Alpine expression yielding the section view, exposed to the cards as `gameView`
- * @param {boolean} [heatmapTargets] Offer the heatmap's target picker, which reloads `heatmap` through `view.selectHeatmapTarget`; off for a view whose route takes no `target`
+ * @param {boolean} [heatmapTargets] Offer the heatmap's target picker, which reloads `heatmap` through `view.selectHeatmapTarget`. Off by default, so a view whose route takes no `target` can never trigger a game-route reload; only the Games tab turns it on
  * @param {string} [class] Extra wrapper classes
  */
 interface Props {
@@ -20,7 +20,7 @@ interface Props {
 // Props
 const {
   view,
-  heatmapTargets = true,
+  heatmapTargets = false,
   class: classNameProp,
   ...props
 }: Props = Astro.props;

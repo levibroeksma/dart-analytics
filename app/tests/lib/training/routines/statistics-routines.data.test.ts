@@ -49,11 +49,11 @@ beforeEach(() => {
   fetchRoutineHeader.mockRejectedValue(new Error("header not under test"));
 });
 
-/** The picker as Alpine mounts it: the data factory with its `$store` magic bound to a live `routineStats` store. */
+/** The picker as Alpine mounts it once the Routines tab has activated: the data factory with its `$store` magic bound to a live `routineStats` store. */
 async function mountPicker(items: unknown[]) {
   fetchTrainedRoutines.mockResolvedValue({ items });
   const store = routineStatsStore();
-  await store.init();
+  await store.activate();
   const data = Object.assign(statisticsRoutines(), {
     $store: { routineStats: store },
   });

@@ -61,7 +61,10 @@ const scope = JSON.stringify({
           x-show="!$store.gameStats.loading"
           x-cloak
         >
-          <GameSectionCards view="$store.gameStats" />
+          <GameSectionCards
+            view="$store.gameStats"
+            heatmapTargets={true}
+          />
 
           <div class="space-y-2">
             <h2 class="text-sm font-semibold text-foreground">Sessions</h2>
@@ -122,6 +125,7 @@ const scope = JSON.stringify({
         x-data="statisticsRoutines()"
         x-show="tab === 'routines'"
         x-cloak
+        x-effect="tab === 'routines' && $store.routineStats.activate()"
       >
         <div
           x-show="$store.routineStats.routines.length"
@@ -266,12 +270,9 @@ const scope = JSON.stringify({
               <RoutineStepButton />
             </template>
           </div>
-          <GameSectionCards
-            view="$store.routineStats.stepGame"
-            heatmapTargets={false}
-            x-show="$store.routineStats.stepKind === 'game'"
-            x-cloak
-          />
+          <template x-if="$store.routineStats.stepKind === 'game'">
+            <GameSectionCards view="$store.routineStats.stepGame" />
+          </template>
 
           <div
             class="gradient-card space-y-2 p-4"

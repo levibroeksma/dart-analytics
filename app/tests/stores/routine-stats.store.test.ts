@@ -17,6 +17,8 @@ const fetchRoutineHeader = vi.fn();
 const fetchRoutineSection = vi.fn();
 const fetchRoutineStepSection = vi.fn();
 const fetchRoutineStepSessions = vi.fn();
+const fetchGameSection = vi.fn();
+const fetchGameSessions = vi.fn();
 
 vi.mock("@client/stats-cache/cache", () => ({
   readSection: (...args: unknown[]) => readSection(...args),
@@ -24,8 +26,8 @@ vi.mock("@client/stats-cache/cache", () => ({
   noteDataVersion: (...args: unknown[]) => noteDataVersion(...args),
 }));
 vi.mock("@client/api/statistics", () => ({
-  fetchGameSection: vi.fn(),
-  fetchGameSessions: vi.fn(),
+  fetchGameSection: (...args: unknown[]) => fetchGameSection(...args),
+  fetchGameSessions: (...args: unknown[]) => fetchGameSessions(...args),
   fetchTrainedRoutines: (...args: unknown[]) => fetchTrainedRoutines(...args),
   fetchRoutineHeader: (...args: unknown[]) => fetchRoutineHeader(...args),
   fetchRoutineSection: (...args: unknown[]) => fetchRoutineSection(...args),
@@ -44,6 +46,20 @@ const WARM_UP_KEY = `1-${FP}`;
 const GAME_KEY = `2-${FP}`;
 const DOUBLES_KEY = `3-${FP}`;
 const OLD_SWITCHING_KEY = `3-${"f".repeat(32)}`;
+const OTHER_ROUTINE_KEY = `name-${"a".repeat(32)}`;
+const LOAD_ERROR =
+  "Could not load your routine statistics. Check your connection and try again.";
+
+/** A promise the test settles by hand, to land a response after a later selection. */
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  let reject!: (cause: unknown) => void;
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { promise, resolve, reject };
+}
 
 type Descriptor = RoutineHeaderSchemaData["steps"][number];
 
@@ -131,7 +147,7 @@ function series(sectionId: string, metrics: unknown[]) {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   fetchTrainedRoutines.mockResolvedValue({ items: [TRAINED] });
   fetchRoutineHeader.mockResolvedValue(HEADER);
   readSection.mockImplementation((_player, _scope, meta) =>
@@ -154,11 +170,23 @@ describe("routineStatsStore loading", () => {
     expect(store.range.tz).toBe(expected.tz);
   });
 
-  it("init with no trained routines leaves the empty state and never asks for a header", async () => {
+  it("init fetches nothing: Alpine calls it on every page, and the tab loads lazily", async () => {
+    const store = routineStatsStore();
+
+    store.init();
+    await Promise.resolve();
+
+    expect(fetchTrainedRoutines).not.toHaveBeenCalled();
+    expect(fetchRoutineHeader).not.toHaveBeenCalled();
+    expect(readSection).not.toHaveBeenCalled();
+    expect(readSessionPage).not.toHaveBeenCalled();
+  });
+
+  it("activate with no trained routines leaves the empty state and never asks for a header", async () => {
     fetchTrainedRoutines.mockResolvedValue({ items: [] });
     const store = routineStatsStore();
 
-    await store.init();
+    await store.activate();
 
     expect(store.routines).toEqual([]);
     expect(store.routineKey).toBeNull();
@@ -169,23 +197,33 @@ describe("routineStatsStore loading", () => {
     expect(readSection).not.toHaveBeenCalled();
   });
 
-  it("init loads the trained routines and selects the first", async () => {
+  it("activate loads the trained routines and selects the first", async () => {
     const store = routineStatsStore();
 
-    await store.init();
+    await store.activate();
 
     expect(store.routines).toEqual([TRAINED]);
     expect(store.routineKey).toBe(ROUTINE_KEY);
     expect(fetchRoutineHeader).toHaveBeenCalledWith(ROUTINE_KEY);
   });
 
-  it("init surfaces a failed routine list as error text", async () => {
+  it("activate loads once: activating the tab again does not reload", async () => {
+    const store = routineStatsStore();
+
+    await store.activate();
+    await store.activate();
+
+    expect(fetchTrainedRoutines).toHaveBeenCalledTimes(1);
+    expect(fetchRoutineHeader).toHaveBeenCalledTimes(1);
+  });
+
+  it("activate surfaces a failed routine list as friendly error text, never the raw cause", async () => {
     fetchTrainedRoutines.mockRejectedValue(new Error("offline"));
     const store = routineStatsStore();
 
-    await store.init();
+    await store.activate();
 
-    expect(store.error).toBe("offline");
+    expect(store.error).toBe(LOAD_ERROR);
     expect(store.loading).toBe(false);
   });
 
@@ -230,15 +268,42 @@ describe("routineStatsStore loading", () => {
     expect(store.stepKey).toBe(WARM_UP_KEY);
   });
 
-  it("selectRoutine surfaces a failed header as error text", async () => {
+  it("selectRoutine falls back to the first step when none is current", async () => {
+    fetchRoutineHeader.mockResolvedValue({
+      ...HEADER,
+      steps: HEADER.steps.map((s) => ({ ...s, current: false })),
+    });
+    const store = routineStatsStore();
+
+    await store.selectRoutine(ROUTINE_KEY);
+
+    expect(store.stepKey).toBe(HEADER.steps[0]?.stepKey);
+  });
+
+  it("selectRoutine surfaces a failed header as friendly error text", async () => {
     fetchRoutineHeader.mockRejectedValue(new Error("not found"));
     const store = routineStatsStore();
 
     await store.selectRoutine(ROUTINE_KEY);
 
-    expect(store.error).toBe("not found");
+    expect(store.error).toBe(LOAD_ERROR);
     expect(store.header).toBeNull();
     expect(store.loading).toBe(false);
+  });
+
+  it("drops a stale routine's late failure instead of writing it into the new routine's view", async () => {
+    const stale = deferred<typeof HEADER>();
+    fetchRoutineHeader.mockReturnValueOnce(stale.promise);
+    const store = routineStatsStore();
+
+    const first = store.selectRoutine(ROUTINE_KEY);
+    await store.selectRoutine(OTHER_ROUTINE_KEY);
+    stale.reject(new Error("late failure"));
+    await first;
+
+    expect(store.routineKey).toBe(OTHER_ROUTINE_KEY);
+    expect(store.error).toBeNull();
+    expect(store.header).toEqual(HEADER);
   });
 });
 
@@ -412,6 +477,20 @@ describe("routineStatsStore getters", () => {
 
     expect(store.stepLabel(HEADER.steps[1])).toBe("Step 2 · finishing");
     expect(store.stepLabel(HEADER.steps[2])).toBe("Step 3 · doubles");
+  });
+
+  it("falls back to the raw exercise type when no step adapter matches", () => {
+    const store = routineStatsStore();
+
+    expect(
+      store.stepLabel(
+        step({
+          stepKey: `5-${FP}`,
+          sequenceNumber: 5,
+          exerciseTypeKey: "FUTURE_DRILL",
+        }),
+      ),
+    ).toBe("Step 5 · FUTURE_DRILL");
   });
 
   it("has a display label for every STEP_METRIC_SPECS metric key", () => {
@@ -592,5 +671,129 @@ describe("routineStatsStore getters", () => {
 
     await store.selectStep(WARM_UP_KEY);
     expect(store.sessionHref("s1")).toBeNull();
+  });
+});
+
+function page(sessionIds: string[], nextCursor: string | null) {
+  return {
+    items: sessionIds.map((sessionId) => ({ sessionId })),
+    nextCursor,
+    dataVersion: HEADER.dataVersion,
+  };
+}
+
+describe("routineStatsStore stale responses and failures", () => {
+  it("drops a step load from routine A that lands after routine B selected the same step key", async () => {
+    const store = routineStatsStore();
+    await store.selectRoutine(ROUTINE_KEY);
+    const staleA = deferred<ReturnType<typeof page>>();
+    readSessionPage.mockReturnValueOnce(staleA.promise);
+    readSessionPage.mockResolvedValueOnce(page(["b1"], null));
+
+    const pendingA = store.selectStep(WARM_UP_KEY);
+    await store.selectRoutine(OTHER_ROUTINE_KEY);
+    staleA.resolve(page(["a1"], "a-cursor"));
+    await pendingA;
+
+    expect(store.routineKey).toBe(OTHER_ROUTINE_KEY);
+    expect(store.stepKey).toBe(WARM_UP_KEY);
+    expect(store.stepSessions).toEqual([{ sessionId: "b1" }]);
+    expect(store.nextCursor).toBeNull();
+  });
+
+  it("drops a stale step failure instead of writing it into the new routine's view", async () => {
+    const store = routineStatsStore();
+    await store.selectRoutine(ROUTINE_KEY);
+    const staleA = deferred<ReturnType<typeof page>>();
+    readSessionPage.mockReturnValueOnce(staleA.promise);
+
+    const pendingA = store.selectStep(WARM_UP_KEY);
+    await store.selectRoutine(OTHER_ROUTINE_KEY);
+    staleA.reject(new Error("late failure"));
+    await pendingA;
+
+    expect(store.error).toBeNull();
+  });
+
+  it("drops a loadMoreStepSessions page from routine A that lands after routine B is selected", async () => {
+    readSessionPage.mockResolvedValueOnce(page(["a1"], "a-cursor"));
+    const store = routineStatsStore();
+    await store.selectRoutine(ROUTINE_KEY);
+    const staleMore = deferred<ReturnType<typeof page>>();
+    readSessionPage.mockReturnValueOnce(staleMore.promise);
+    readSessionPage.mockResolvedValueOnce(page(["b1"], null));
+
+    const pendingMore = store.loadMoreStepSessions();
+    await store.selectRoutine(OTHER_ROUTINE_KEY);
+    staleMore.resolve(page(["a2"], "a-cursor-2"));
+    await pendingMore;
+
+    expect(store.stepSessions).toEqual([{ sessionId: "b1" }]);
+    expect(store.nextCursor).toBeNull();
+  });
+
+  it("loadMoreStepSessions surfaces a failed page as friendly error text and keeps the loaded rows", async () => {
+    readSessionPage.mockResolvedValueOnce(page(["a1"], "a-cursor"));
+    const store = routineStatsStore();
+    await store.selectRoutine(ROUTINE_KEY);
+    readSessionPage.mockRejectedValueOnce(new Error("offline"));
+
+    await expect(store.loadMoreStepSessions()).resolves.toBeUndefined();
+
+    expect(store.error).toBe(LOAD_ERROR);
+    expect(store.stepSessions).toEqual([{ sessionId: "a1" }]);
+    expect(store.nextCursor).toBe("a-cursor");
+  });
+
+  it("selectStep surfaces a failed section read as friendly error text", async () => {
+    const store = routineStatsStore();
+    await store.selectRoutine(ROUTINE_KEY);
+    readSection.mockRejectedValueOnce(new Error("VALIDATION_FAILED"));
+
+    await store.selectStep(DOUBLES_KEY);
+
+    expect(store.error).toBe(LOAD_ERROR);
+    expect(store.loading).toBe(false);
+  });
+});
+
+describe("routineStatsStore GAME step view", () => {
+  it("names the selected GAME step's type on stepGame as soon as it is selected, before its sections land", async () => {
+    const store = routineStatsStore();
+    await store.selectRoutine(ROUTINE_KEY);
+    const pendingSection = deferred<ReturnType<typeof series>>();
+    readSection.mockReturnValue(pendingSection.promise);
+
+    const pending = store.selectStep(GAME_KEY);
+
+    expect(store.stepGame.gameTypeKey).toBe("TUOD");
+    expect(store.stepGame.sections).toEqual({});
+    pendingSection.resolve(series("volume", []));
+    await pending;
+  });
+
+  it("reads a GAME step only through the routine step route, never the game route", async () => {
+    readSection.mockImplementation((_player, _scope, _meta, _query, fetcher) =>
+      fetcher({ from: "a", to: "b" }),
+    );
+    fetchRoutineSection.mockImplementation((_key, id) =>
+      Promise.resolve(series(id, [])),
+    );
+    fetchRoutineStepSection.mockImplementation((_key, _step, id) =>
+      Promise.resolve(series(id, [])),
+    );
+    const store = routineStatsStore();
+    await store.selectRoutine(ROUTINE_KEY);
+
+    await store.selectStep(GAME_KEY);
+
+    expect(fetchGameSection).not.toHaveBeenCalled();
+    expect(fetchGameSessions).not.toHaveBeenCalled();
+    expect(
+      fetchRoutineStepSection.mock.calls
+        .filter((call) => call[1] === GAME_KEY)
+        .map((call) => call[2])
+        .sort(),
+    ).toEqual(sectionsForGame("TUOD").slice().sort());
   });
 });
