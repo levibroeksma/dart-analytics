@@ -10,7 +10,7 @@ import {
   max,
   sql,
 } from "drizzle-orm";
-import type { Column } from "drizzle-orm";
+import type { Column, SQL } from "drizzle-orm";
 import {
   vGameReplay,
   vPlayerLegFacts,
@@ -208,21 +208,46 @@ function contextCondition(context: ContextFilter) {
     : eq(vStatsSessionFacts.contextKey, context.toUpperCase());
 }
 
+const TZ_NAME = /^[A-Za-z0-9_+\-/:]+$/;
+
+const ISO_UTC_FORMAT = sql.raw(`'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'`);
+
+/**
+ * A `timestamptz` expression as UTC ISO text (`2026-01-01T00:00:00.000Z`),
+ * the form the request contract's `z.string().datetime()` accepts back as a
+ * `from`; the driver's own `timestamptz` text (`2026-01-01 00:00:00+00`) does
+ * not parse there.
+ */
+function isoUtcText(timestamp: SQL) {
+  return sql<string>`to_char((${timestamp}) AT TIME ZONE 'UTC', ${ISO_UTC_FORMAT})`;
+}
+
 /**
  * The shared bucket-start/bucket-end expression pair (`00-Overview.md` §5):
  * a whitelisted `date_trunc(unit, … AT TIME ZONE tz)` pair applied to
  * whichever view's `completedAt` column the caller passes.
+ *
+ * `tz` renders as a literal, not a bind parameter: Postgres cannot match a
+ * SELECT expression to its GROUP BY twin when each carries its own `$n`, even
+ * with equal values (42803). A `tz` outside the IANA name alphabet throws
+ * rather than reaching the literal.
  */
 function bucketExprs(
   completedAt: Column,
   unit: Exclude<Bucket, "none">,
   tz: string,
 ) {
+  if (!TZ_NAME.test(tz)) throw new Error(`invalid tz: ${JSON.stringify(tz)}`);
   const unitLiteral = sql.raw(`'${BUCKET_UNIT[unit]}'`);
   const intervalLiteral = sql.raw(`interval '1 ${BUCKET_UNIT[unit]}'`);
+  const tzLiteral = sql.raw(`'${tz}'`);
   return {
-    bucketStartExpr: sql<string>`(date_trunc(${unitLiteral}, ${completedAt} AT TIME ZONE ${tz}) AT TIME ZONE ${tz})`,
-    bucketEndExpr: sql<string>`((date_trunc(${unitLiteral}, ${completedAt} AT TIME ZONE ${tz}) + ${intervalLiteral}) AT TIME ZONE ${tz})`,
+    bucketStartExpr: isoUtcText(
+      sql`(date_trunc(${unitLiteral}, ${completedAt} AT TIME ZONE ${tzLiteral}) AT TIME ZONE ${tzLiteral})`,
+    ),
+    bucketEndExpr: isoUtcText(
+      sql`((date_trunc(${unitLiteral}, ${completedAt} AT TIME ZONE ${tzLiteral}) + ${intervalLiteral}) AT TIME ZONE ${tzLiteral})`,
+    ),
   };
 }
 
@@ -865,7 +890,8 @@ export async function findIntentMoments(
 /**
  * Missed-dart counts by 45°-sector and radial band, joined against a bound
  * `VALUES` table of reference points — feeds `miss-direction` (phase-2
- * decision 4). Only darts that missed the intended pair count.
+ * decision 4). Only darts that missed the intended pair count. Every bound
+ * `VALUES` column is cast: an uncast parameter there types as `text`.
  */
 export async function findMissSectors(
   db: Db,
@@ -876,11 +902,11 @@ export async function findMissSectors(
   const valuesRows = sql.join(
     q.refs.map(
       (ref) =>
-        sql`(${ref.targetNumber}, ${ref.zoneKey}, ${ref.cx}, ${ref.cy}, ${ref.rInner}, ${ref.rOuter})`,
+        sql`(${ref.targetNumber}::smallint, ${ref.zoneKey}::text, ${ref.cx}::numeric, ${ref.cy}::numeric, ${ref.rInner}::numeric, ${ref.rOuter}::numeric)`,
     ),
     sql`, `,
   );
-  const sectorExpr = sql`MOD(FLOOR(MOD(DEGREES(ATAN2(${vStatsDartFacts.locationX} - ref.cx, -(${vStatsDartFacts.locationY} - ref.cy))) + 360 + 22.5, 360) / 45)::integer, 8)`;
+  const sectorExpr = sql`MOD(FLOOR(MOD((DEGREES(ATAN2(${vStatsDartFacts.locationX} - ref.cx, -(${vStatsDartFacts.locationY} - ref.cy))) + 360 + 22.5)::numeric, 360) / 45)::integer, 8)`;
   const radialExpr = sql`CASE WHEN SQRT(${vStatsDartFacts.locationX} * ${vStatsDartFacts.locationX} + ${vStatsDartFacts.locationY} * ${vStatsDartFacts.locationY}) < ref.r_inner THEN 'INSIDE' WHEN SQRT(${vStatsDartFacts.locationX} * ${vStatsDartFacts.locationX} + ${vStatsDartFacts.locationY} * ${vStatsDartFacts.locationY}) >= ref.r_outer THEN 'OUTSIDE' ELSE 'WITHIN' END`;
 
   const statement = sql`
@@ -914,7 +940,9 @@ export async function findMissSectors(
 /**
  * Non-empty `HEATMAP_CELL_MM` grid cells over `v_stats_dart_facts` — feeds
  * `heatmap` (phase-2 decision 6). `target` narrows to darts aimed at one
- * target when the section's optional `target` parameter is set.
+ * target when the section's optional `target` parameter is set. Groups by
+ * select position: re-binding `cellMm` in the GROUP BY would not match the
+ * SELECT's own parameter (42803).
  */
 export async function findHeatmapCells(
   db: Db,
@@ -939,7 +967,7 @@ export async function findHeatmapCells(
     })
     .from(vStatsDartFacts)
     .where(and(...conditions))
-    .groupBy(ixExpr, iyExpr);
+    .groupBy(sql`1`, sql`2`);
 
   return rows.map((row) => ({
     ix: Number(nonNull(row.ix, "ix")),
@@ -1059,7 +1087,7 @@ export async function findBucketFloor(
 ): Promise<string> {
   const unitLiteral = sql.raw(`'${BUCKET_UNIT[unit]}'`);
   const result = await db.execute(
-    sql`SELECT (date_trunc(${unitLiteral}, ${from}::timestamptz AT TIME ZONE ${tz}) AT TIME ZONE ${tz}) AS floor`,
+    sql`SELECT ${isoUtcText(sql`(date_trunc(${unitLiteral}, ${from}::timestamptz AT TIME ZONE ${tz}) AT TIME ZONE ${tz})`)} AS floor`,
   );
   const rows = executedRows<{ floor: string | null }>(result);
   return nonNull(rows[0]?.floor ?? null, "floor");
