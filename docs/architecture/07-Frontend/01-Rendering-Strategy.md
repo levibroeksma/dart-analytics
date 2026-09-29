@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/rendering
 read-when: new routes, prerender vs SSR decisions
-updated: 2026-09-28
+updated: 2026-09-29
 -->
 
 # Frontend Rendering Strategy
 
-> **Version:** 0.3.2 (`/statistics/replay` added to the `/statistics` protected-prefix row — session id via `?session=`, `prerender = true`, D371, 2026-09-28; prior 0.3.1 `/training` protected-prefix row corrected to the shipped, data-driven routine routes — `/training/routines/{new,detail,edit,play}` — replacing the retired static `/training/balanced-training` pair, 2026-09-19; prior 0.3.0 `/training` route class classified; `/statistics` restated as shipped, D258; issue #350, 2026-09-17; prior 0.2.0 same-origin auth client via `/api/auth` proxy, D172, 2026-07-29)
+> **Version:** 0.3.3 (prerendered frontmatter imports: nothing that reaches `@client/**`, 2026-09-29; prior 0.3.2 `/statistics/replay` added to the `/statistics` protected-prefix row — session id via `?session=`, `prerender = true`, D371, 2026-09-28; prior 0.3.1 `/training` protected-prefix row corrected to the shipped, data-driven routine routes — `/training/routines/{new,detail,edit,play}` — replacing the retired static `/training/balanced-training` pair, 2026-09-19; prior 0.3.0 `/training` route class classified; `/statistics` restated as shipped, D258; issue #350, 2026-09-17; prior 0.2.0 same-origin auth client via `/api/auth` proxy, D172, 2026-07-29)
 >
 > Prerender-default rendering on Cloudflare Workers.
 >
@@ -38,6 +38,8 @@ The project uses **`output: 'server'`** with the `@astrojs/cloudflare` adapter. 
 | API routes (`pages/api/**`) | On-demand only — never prerender |
 
 Do not set global `output: 'static'`. The handbook term is **prerender-default**, not static-default.
+
+A prerendered page's frontmatter runs inside the Workers runtime at build time, where module-scope random values, timers and I/O throw `Disallowed operation called within global scope`. Frontmatter therefore imports only pure data — never a module that transitively reaches `@client/**`, whose auth client calls `crypto.randomUUID()` at load. Values that need such a module (e.g. the routine step adapters' `headerLabel`) are resolved client-side in a store instead. `npm run build` is the only check that catches a violation. <!-- 2026-09-29 -->
 
 **Target Astro config (documented; app migration is separate):**
 

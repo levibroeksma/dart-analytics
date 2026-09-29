@@ -57,4 +57,30 @@ describe("replayStore (non-game routine steps)", () => {
     expect(store.derivedAvailable).toBe(false);
     expect(store.turnView(0).cells).toEqual([]);
   });
+
+  it("titles a step replay with its adapter's capitalized header label", async () => {
+    const { header, turns } = playSwitching();
+    readReplayPage.mockResolvedValue({ header, turns, nextCursor: null });
+    history.replaceState(null, "", replayPath(header.sessionId));
+    const store = replayStore();
+
+    await store.init();
+
+    expect(store.exerciseTitle).toBe("Switching");
+  });
+
+  it("titles an unrecognized exercise kind with its raw key", async () => {
+    const { header, turns } = playSwitching();
+    readReplayPage.mockResolvedValue({
+      header: { ...header, exerciseTypeKey: "SOME_FUTURE_KIND" },
+      turns,
+      nextCursor: null,
+    });
+    history.replaceState(null, "", replayPath(header.sessionId));
+    const store = replayStore();
+
+    await store.init();
+
+    expect(store.exerciseTitle).toBe("SOME_FUTURE_KIND");
+  });
 });
