@@ -678,6 +678,54 @@ function sectionTarget(
   return { target: parseTargetKey(targetParam) };
 }
 
+/** `resolveGameSectionRequest`'s success shape: everything `dispatchGameSection` needs to build its `SectionContext` once every check has passed. */
+type ResolvedGameSectionRequest = {
+  from: string;
+  statuses: string[];
+  target: { number: number; zone: IntentZoneKey } | null;
+};
+
+/**
+ * Every check a game section dispatch runs before it can read anything, in
+ * the original order (`00-Overview.md` §5): whether `bucket` is allowed on
+ * this section, then whether `target` is valid, then whether `status` is
+ * valid, then the request's own `from` (floored to the bucket start once
+ * bucketed). This order matters when more than one check would fail --
+ * `target` is named over `status` when both are invalid, matching the
+ * dispatch's behaviour before the routine-step refactor.
+ */
+async function resolveGameSectionRequest(
+  db: Db,
+  meta: SectionMeta,
+  gameTypeKey: GameTypeKey,
+  q: StatisticsRangeQueryData,
+): Promise<ResolvedGameSectionRequest | { error: string }> {
+  if (q.bucket !== "none" && !meta.bucketable) {
+    return { error: "this section does not support bucket" };
+  }
+
+  const resolvedTarget = sectionTarget(meta, gameTypeKey, q.target);
+  if ("error" in resolvedTarget) {
+    return { error: resolvedTarget.error };
+  }
+
+  const resolvedStatus = sectionStatuses(meta.includesAbandoned, q.status);
+  if ("error" in resolvedStatus) {
+    return { error: resolvedStatus.error };
+  }
+
+  const from =
+    q.bucket === "none"
+      ? q.from
+      : await findBucketFloor(db, q.from, q.bucket, q.tz!);
+
+  return {
+    from,
+    statuses: resolvedStatus.statuses,
+    target: resolvedTarget.target,
+  };
+}
+
 /**
  * The `MAX_FOLD_DARTS` gate (phase-3 decision 1, phase-4 decision 5, Task 8):
  * above the cap, the `VALIDATION_FAILED` reason naming it; `null` when a
@@ -742,12 +790,15 @@ async function loadDataVersion(
 }
 
 /**
- * Resolves the three checks every section dispatch repeats before it can
- * read anything: whether `bucket` is allowed on this section, which
- * `status` values the request accepts, and the request's own `from`
+ * Resolves the three checks a routine or step section dispatch repeats
+ * before it can read anything: whether `bucket` is allowed on this section,
+ * which `status` values the request accepts, and the request's own `from`
  * (floored to the bucket start once bucketed, so the `range` a caller gets
- * back matches what was actually queried). Shared by the game dispatch and
- * both routine section dispatch paths.
+ * back matches what was actually queried). Shared by both routine section
+ * dispatch paths; the game dispatch runs the equivalent checks itself in
+ * `resolveGameSectionRequest`, interleaved with its own `target` check
+ * (`00-Overview.md` §5's original bucket-then-target-then-status order,
+ * which a routine section never needs since it has no `target`).
  */
 async function resolveSectionRange(
   db: Db,
@@ -800,12 +851,92 @@ function buildRoutineSeries(
 }
 
 /**
- * Dispatches one section result through the registry (`00-Overview.md` §2, §6).
- * `now` is injected so the closed-bucket boundary is deterministic in tests.
- * `routineStep`, when set, scopes every reader to one GAME routine step's own
- * sessions, forces `context` to `"routine"` regardless of `q.context`, and
- * swaps the returned `dataVersion` for the routine's own -- the exported
- * `getGameSection` never sets it, so its own behaviour is unchanged.
+ * The site a game section resolves to, its registered handler, and the
+ * `MAX_FOLD_DARTS` fold-bound check against that site -- the second of
+ * `dispatchGameSection`'s three phases (request resolution, site
+ * resolution, load+shape). A missing handler is a registry bug, never a
+ * caller error, so it throws rather than returning `{ error }`.
+ */
+async function resolveGameSectionSite(
+  db: Db,
+  sectionId: SectionId,
+  gameTypeKey: GameTypeKey,
+  meta: SectionMeta,
+  ctx: SectionContext,
+): Promise<{ handler: SectionHandler } | { error: string }> {
+  const site = sectionSite(meta, gameTypeKey);
+  const sectionHandler = resolveSectionHandler(sectionId, gameTypeKey);
+  if (sectionHandler === undefined) {
+    throw new Error(`no ${site} handler registered for section "${sectionId}"`);
+  }
+
+  const foldError = await foldBoundReason(db, site, ctx);
+  if (foldError !== null) {
+    return { error: foldError };
+  }
+
+  return { handler: sectionHandler };
+}
+
+/**
+ * A game section's load+shape+envelope phase -- `dispatchGameSection`'s
+ * third and last phase, run once request and site resolution have both
+ * passed. `dataVersion` and the section's own rows load in parallel, since
+ * neither depends on the other.
+ */
+async function loadGameSectionResponse(
+  db: Db,
+  playerId: string,
+  gameTypeKey: GameTypeKey,
+  sectionId: SectionId,
+  meta: SectionMeta,
+  handler: SectionHandler,
+  ctx: SectionContext,
+  routineStep: RoutineStepScope | undefined,
+  q: { bucket: Bucket; to: string; tz?: string },
+  now: Date,
+): Promise<SeriesResponse> {
+  const [dataVersion, loadResult] = await Promise.all([
+    loadDataVersion(db, playerId, gameTypeKey, routineStep),
+    handler.load(db, ctx),
+  ]);
+
+  const targetKey: TargetKey | null =
+    ctx.target === null
+      ? null
+      : formatTargetKey(ctx.target.number, ctx.target.zone);
+
+  const buckets = handler.shape(loadResult.rows, {
+    from: ctx.from,
+    to: q.to,
+    now,
+    target: targetKey,
+  });
+
+  return {
+    sectionId,
+    sectionVersion: meta.version,
+    dataVersion,
+    bucket: q.bucket,
+    tz: q.bucket === "none" ? null : (q.tz ?? null),
+    range: { from: ctx.from, to: q.to },
+    buckets,
+    ...(loadResult.skippedSessions === undefined
+      ? {}
+      : { skippedSessions: loadResult.skippedSessions }),
+  } as SeriesResponse;
+}
+
+/**
+ * Dispatches one section result through the registry (`00-Overview.md` §2, §6),
+ * in three phases: resolve the request (`resolveGameSectionRequest`), resolve
+ * the site and fold bound (`resolveGameSectionSite`), then load, shape and
+ * envelope the result (`loadGameSectionResponse`). `now` is injected so the
+ * closed-bucket boundary is deterministic in tests. `routineStep`, when set,
+ * scopes every reader to one GAME routine step's own sessions, forces
+ * `context` to `"routine"` regardless of `q.context`, and swaps the returned
+ * `dataVersion` for the routine's own -- the exported `getGameSection` never
+ * sets it, so its own behaviour is unchanged.
  */
 async function dispatchGameSection(
   playerId: string,
@@ -819,27 +950,22 @@ async function dispatchGameSection(
     return { ok: false, code: "NOT_FOUND" };
   }
   const meta = SECTIONS[sectionId];
-
   const db = getDb();
-  const resolvedRange = await resolveSectionRange(db, meta, q);
-  if ("error" in resolvedRange) {
-    return {
-      ok: false,
-      code: "VALIDATION_FAILED",
-      details: { reason: resolvedRange.error },
-    };
-  }
-  const { from, statuses } = resolvedRange;
 
-  const resolvedTarget = sectionTarget(meta, gameTypeKey, q.target);
-  if ("error" in resolvedTarget) {
+  const resolvedRequest = await resolveGameSectionRequest(
+    db,
+    meta,
+    gameTypeKey,
+    q,
+  );
+  if ("error" in resolvedRequest) {
     return {
       ok: false,
       code: "VALIDATION_FAILED",
-      details: { reason: resolvedTarget.error },
+      details: { reason: resolvedRequest.error },
     };
   }
-  const { target } = resolvedTarget;
+  const { from, statuses, target } = resolvedRequest;
 
   const sectionContext: SectionContext = {
     playerId,
@@ -854,48 +980,33 @@ async function dispatchGameSection(
     routineStep,
   };
 
-  const site = sectionSite(meta, gameTypeKey);
-  const sectionHandler = resolveSectionHandler(sectionId, gameTypeKey);
-  if (sectionHandler === undefined) {
-    throw new Error(`no ${site} handler registered for section "${sectionId}"`);
-  }
-
-  const foldError = await foldBoundReason(db, site, sectionContext);
-  if (foldError !== null) {
+  const resolvedSite = await resolveGameSectionSite(
+    db,
+    sectionId,
+    gameTypeKey,
+    meta,
+    sectionContext,
+  );
+  if ("error" in resolvedSite) {
     return {
       ok: false,
       code: "VALIDATION_FAILED",
-      details: { reason: foldError },
+      details: { reason: resolvedSite.error },
     };
   }
 
-  const [dataVersion, loadResult] = await Promise.all([
-    loadDataVersion(db, playerId, gameTypeKey, routineStep),
-    sectionHandler.load(db, sectionContext),
-  ]);
-
-  const targetKey: TargetKey | null =
-    target === null ? null : formatTargetKey(target.number, target.zone);
-
-  const buckets = sectionHandler.shape(loadResult.rows, {
-    from,
-    to: q.to,
-    now,
-    target: targetKey,
-  });
-
-  const response = {
+  const response = await loadGameSectionResponse(
+    db,
+    playerId,
+    gameTypeKey,
     sectionId,
-    sectionVersion: meta.version,
-    dataVersion,
-    bucket: q.bucket,
-    tz: q.bucket === "none" ? null : (q.tz ?? null),
-    range: { from, to: q.to },
-    buckets,
-    ...(loadResult.skippedSessions === undefined
-      ? {}
-      : { skippedSessions: loadResult.skippedSessions }),
-  } as SeriesResponse;
+    meta,
+    resolvedSite.handler,
+    sectionContext,
+    routineStep,
+    q,
+    now,
+  );
 
   return { ok: true, data: response };
 }

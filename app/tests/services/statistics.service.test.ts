@@ -2780,6 +2780,26 @@ describe("getRoutineStepSection", () => {
   );
 });
 
+describe("getGameSection validation order", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("checks target before status when both are invalid, naming the target error", async () => {
+    const result = await getGameSection(playerId, "501", "heatmap", {
+      ...baseRangeQuery,
+      target: "DOUBLE:16",
+      status: "abandoned",
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.code).toBe("VALIDATION_FAILED");
+      expect(result.details?.reason).toBe(
+        "target requires an intent-stored game",
+      );
+    }
+  });
+});
+
 describe("listRoutineStepSessions", () => {
   beforeEach(() => vi.clearAllMocks());
 

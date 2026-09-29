@@ -1209,6 +1209,7 @@ describe("RoutineSessionsQuery", () => {
     ["inputMode", "VISUAL_BOARD"],
     ["bucket", "day"],
     ["tz", "Europe/Amsterdam"],
+    ["target", "DOUBLE:16"],
     ["foo", "1"],
   ])("rejects an unexpected %s key", (key, value) => {
     const result = RoutineSessionsQuery.safeParse({
@@ -1224,8 +1225,11 @@ describe("RoutineNoQuery", () => {
     expect(RoutineNoQuery.safeParse({}).success).toBe(true);
   });
 
-  it("rejects any key at all", () => {
-    expect(RoutineNoQuery.safeParse({ foo: "1" }).success).toBe(false);
+  it.each([
+    ["foo", "1"],
+    ["target", "DOUBLE:16"],
+  ])("rejects any key at all (%s)", (key, value) => {
+    expect(RoutineNoQuery.safeParse({ [key]: value }).success).toBe(false);
   });
 });
 
