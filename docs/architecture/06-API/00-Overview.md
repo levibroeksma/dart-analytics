@@ -2,12 +2,12 @@
 status: canonical
 scope: api/contract-baseline
 read-when: any API work (frozen v1 baseline)
-updated: 2026-09-28
+updated: 2026-09-29
 -->
 
 # API Overview
 
-> **Version:** 1.15.0 (statistics phase 5 shipped: `GET /api/statistics/sessions/:sessionId/replay` routed against `v_stats_session_facts` + `v_game_replay`, D371, 2026-09-28; prior 1.14.0 statistics phase 1 shipped: `GET /api/statistics/games/:gameTypeKey/sessions` and `/sections/:sectionId` routed against `v_stats_session_facts`, D367, 2026-09-26; prior 1.13.0 `GET /api/training-sessions/completed` added, D353, 2026-09-22; prior 1.12.0 session participants frozen bullet restated as shipped: 1-4 seats via an optional `participants[]` input, exactly one `PLAYER` seat required, `GUEST`/`DARTBOT` seats implemented and capped per ruleset by `SEAT_CAPS` — D350, supersedes D61, 2026-09-21; prior 1.11.0 weekly training schedules shipped: `/api/schedules` route surface — list, get, active, create, replace, activate, deactivate, delete — added against `v_training_schedules`/`v_training_schedule_days`; D342/D343, 2026-09-20; prior 1.10.0 custom-routine-builder shipped: the routine reads, `GET /api/exercise-templates`, and the routine writes all drop their "planned"/"not implemented" tags, 2026-09-19; prior 1.9.0 activity grouping restated as shipped — D301, 2026-09-17; prior 1.8.0 — `GET /api/statistics/overview` routed, 2026-09-06)
+> **Version:** 1.16.0 (statistics phase 6 shipped: the five `GET /api/statistics/routines*` routes routed against `v_stats_routine_run_facts` + `v_stats_routine_step_facts`; the replay route also serves non-game training step sessions, D372, 2026-09-29; prior 1.15.0 statistics phase 5 shipped: `GET /api/statistics/sessions/:sessionId/replay` routed against `v_stats_session_facts` + `v_game_replay`, D371, 2026-09-28; prior 1.14.0 statistics phase 1 shipped: `GET /api/statistics/games/:gameTypeKey/sessions` and `/sections/:sectionId` routed against `v_stats_session_facts`, D367, 2026-09-26; prior 1.13.0 `GET /api/training-sessions/completed` added, D353, 2026-09-22; prior 1.12.0 session participants frozen bullet restated as shipped: 1-4 seats via an optional `participants[]` input, exactly one `PLAYER` seat required, `GUEST`/`DARTBOT` seats implemented and capped per ruleset by `SEAT_CAPS` — D350, supersedes D61, 2026-09-21; prior 1.11.0 weekly training schedules shipped: `/api/schedules` route surface — list, get, active, create, replace, activate, deactivate, delete — added against `v_training_schedules`/`v_training_schedule_days`; D342/D343, 2026-09-20; prior 1.10.0 custom-routine-builder shipped: the routine reads, `GET /api/exercise-templates`, and the routine writes all drop their "planned"/"not implemented" tags, 2026-09-19; prior 1.9.0 activity grouping restated as shipped — D301, 2026-09-17; prior 1.8.0 — `GET /api/statistics/overview` routed, 2026-09-06)
 >
 > Canonical API baseline for Cloudflare Workers deployment in `app/`.
 
@@ -101,6 +101,11 @@ Lists configuration presets (system + the caller's own) for a game type; backed 
 - `GET /api/statistics/games/:gameTypeKey/sessions` <!-- 2026-09-26, D367 -->
 - `GET /api/statistics/games/:gameTypeKey/sections/:sectionId` <!-- 2026-09-26, D367 -->
 - `GET /api/statistics/sessions/:sessionId/replay` <!-- 2026-09-28, D371 -->
+- `GET /api/statistics/routines` <!-- 2026-09-29, D372 -->
+- `GET /api/statistics/routines/:routineKey` <!-- 2026-09-29, D372 -->
+- `GET /api/statistics/routines/:routineKey/sections/:sectionId` <!-- 2026-09-29, D372 -->
+- `GET /api/statistics/routines/:routineKey/steps/:stepKey/sections/:sectionId` <!-- 2026-09-29, D372 -->
+- `GET /api/statistics/routines/:routineKey/steps/:stepKey/sessions` <!-- 2026-09-29, D372 -->
 
 The two `games/:gameTypeKey` routes above shipped phase 1 (D367): the route
 segment is `:gameTypeKey`, not `:rulesetKey` — a game page spans ruleset
@@ -109,9 +114,15 @@ trends are bucketed sections, checkouts the checkout-family sections. Both
 share one query contract (required `from`/`to`, `tz`, `bucket`, `status`,
 `context`). <!-- 2026-09-26 --> The replay route is scoped by its session id
 instead: it accepts only `cursor`/`limit` and rejects every other parameter
-(`10-Statistics/02-Replay.md`, D371). <!-- 2026-09-28 -->
+(`10-Statistics/02-Replay.md`, D371). <!-- 2026-09-28 --> The five
+`routines` routes shipped phase 6 (D372): `:routineKey` is the routine
+snapshot's identity and `:stepKey` a step's index plus fingerprint, never a
+template id. They fix `context = routine` server-side, so they take no
+`context` or `inputMode`: the section routes accept `from`/`to`/`tz`/`bucket`/`status`,
+the step session list `from`/`to`/`status`/`limit`/`cursor`, the list and the
+header nothing (`10-Statistics/00-Overview.md` §6/§8). <!-- 2026-09-29 -->
 
-`GET /api/statistics/overview` reads through `v_session_overview`, `v_player_visit_facts`, `v_player_leg_facts`, and `v_x01_checkout_darts`; aggregation happens in the service layer (`services/statistics.service.ts`), not a single dedicated `v_statistics_overview` view — see `decisions/api.md`. `trends`/`checkouts` remain deferred and, per the original scope note, must each be view-backed when built. <!-- 2026-09-06 --> The detailed-statistics routes above are view-backed too, through `v_stats_session_facts` (`0043`), and the replay also through `v_game_replay` (`0044`). <!-- 2026-09-26; replay 2026-09-28 -->
+`GET /api/statistics/overview` reads through `v_session_overview`, `v_player_visit_facts`, `v_player_leg_facts`, and `v_x01_checkout_darts`; aggregation happens in the service layer (`services/statistics.service.ts`), not a single dedicated `v_statistics_overview` view — see `decisions/api.md`. `trends`/`checkouts` remain deferred and, per the original scope note, must each be view-backed when built. <!-- 2026-09-06 --> The detailed-statistics routes above are view-backed too, through `v_stats_session_facts` (`0043`), and the replay also through `v_game_replay` (`0044`). <!-- 2026-09-26; replay 2026-09-28 --> The routine routes read `v_stats_routine_run_facts`/`v_stats_routine_step_facts` (`0045`); a GAME step's sections also read the game views, and `step-result` reads `v_game_replay`. The replay gate falls back to `v_stats_routine_step_facts` for a non-game step. <!-- 2026-09-29, D372 -->
 
 ### Players
 
@@ -199,7 +210,12 @@ Reads are view-backed and player-scoped.
 | `GET /api/statistics/overview`           | `v_session_overview`, `v_player_visit_facts`, `v_player_leg_facts`, `v_x01_checkout_darts` |
 | `GET /api/statistics/games/:gameTypeKey/sessions` | `v_stats_session_facts` |
 | `GET /api/statistics/games/:gameTypeKey/sections/:sectionId` | `v_stats_session_facts` |
-| `GET /api/statistics/sessions/:sessionId/replay` | `v_stats_session_facts`, `v_game_replay` |
+| `GET /api/statistics/sessions/:sessionId/replay` | `v_stats_session_facts`, `v_stats_routine_step_facts`, `v_game_replay` |
+| `GET /api/statistics/routines` | `v_stats_routine_run_facts` |
+| `GET /api/statistics/routines/:routineKey` | `v_stats_routine_run_facts`, `v_stats_routine_step_facts` |
+| `GET /api/statistics/routines/:routineKey/sections/:sectionId` | `v_stats_routine_run_facts` |
+| `GET /api/statistics/routines/:routineKey/steps/:stepKey/sections/:sectionId` | `v_stats_routine_run_facts`, `v_stats_routine_step_facts`, `v_game_replay` (`step-result`); a GAME step also `v_stats_session_facts`, `v_stats_dart_facts`, `v_x01_checkout_darts` |
+| `GET /api/statistics/routines/:routineKey/steps/:stepKey/sessions` | `v_stats_routine_run_facts`, `v_stats_routine_step_facts` |
 
 Policy:
 

@@ -21,6 +21,8 @@ vi.mock("@client/api/client", () => ({
   apiRequest: (...args: unknown[]) => apiRequest(...args),
 }));
 
+// replay.store.ts's replayFacts import points at @modules/stats/replay.module
+// now; this suite's own assertions are unchanged, only the import path moved.
 const { replayStore } = await import("@stores/replay.store");
 
 type Header = NonNullable<ReplayPageSchemaData["header"]>;

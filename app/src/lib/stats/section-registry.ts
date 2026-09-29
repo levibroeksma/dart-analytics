@@ -3,9 +3,13 @@ import {
   STATS_TAGS,
   rulesetsOfGameType,
 } from "@lib/game/rulesets/capabilities";
+import { STEP_METRIC_SPECS } from "@modules/stats/step-metrics.module";
+import type { DartExerciseKind } from "@modules/types";
 import type {
   ComputeSite,
   ResultDirection,
+  RoutineSectionId,
+  RoutineSectionMeta,
   SectionId,
   SectionMeta,
 } from "./types";
@@ -370,3 +374,105 @@ export const RESULT_DIRECTION: Readonly<Record<GameTypeKey, ResultDirection>> =
     SHANGHAI: "higher",
     AROUND_THE_CLOCK: null,
   };
+
+/**
+ * The Routines tab's own registry, parallel to `SECTIONS` (D372 decision
+ * 6). Declared in page order: the two run-level sections
+ * (`sectionsForRoutine`'s own order), then the two step-level ones.
+ */
+export const ROUTINE_SECTIONS: Readonly<
+  Record<RoutineSectionId, RoutineSectionMeta>
+> = {
+  "routine-volume": {
+    id: "routine-volume",
+    version: 1,
+    requires: [],
+    computeSite: "sql",
+    bucketable: true,
+    includesAbandoned: false,
+    configSensitive: [],
+    params: [],
+    surface: "routine",
+  },
+  "routine-completion": {
+    id: "routine-completion",
+    version: 1,
+    requires: [],
+    computeSite: "sql",
+    bucketable: true,
+    includesAbandoned: true,
+    configSensitive: [],
+    params: [],
+    surface: "routine",
+  },
+  "step-volume": {
+    id: "step-volume",
+    version: 1,
+    requires: [],
+    computeSite: "sql",
+    bucketable: true,
+    includesAbandoned: false,
+    configSensitive: [],
+    params: [],
+    surface: "step",
+  },
+  "step-result": {
+    id: "step-result",
+    version: 1,
+    requires: [],
+    computeSite: "server",
+    bucketable: true,
+    includesAbandoned: false,
+    configSensitive: [],
+    params: [],
+    surface: "step",
+  },
+};
+
+/** Whether `key` is one of `STEP_METRIC_SPECS`' seven dart exercise kinds (D372 decision 7), the only non-game steps `step-result` covers. Exported so a caller resolving one step's own kind (e.g. dispatching `step-result`) can narrow it the same way, instead of an unchecked cast. */
+export function isDartExerciseKind(key: string): key is DartExerciseKind {
+  return Object.hasOwn(STEP_METRIC_SPECS, key);
+}
+
+/** The routine picker's run-level sections, in page order (D372 decision 6). */
+export function sectionsForRoutine(): RoutineSectionMeta[] {
+  return [
+    ROUTINE_SECTIONS["routine-volume"],
+    ROUTINE_SECTIONS["routine-completion"],
+  ];
+}
+
+/**
+ * One routine step's sections (D372 decisions 5, 6): a GAME step
+ * (`gameTypeKey` set) gets exactly its game's own
+ * page, `sectionsForGame(gameTypeKey)` resolved to their `SECTIONS` metas —
+ * `step-volume` is never added alongside it, since the game's own `volume`
+ * section already covers that step's darts. A non-game step whose
+ * `exerciseTypeKey` is one of `STEP_METRIC_SPECS`' seven dart exercise kinds
+ * gets `step-result` and `step-volume`; every other non-game step
+ * (Warm-Up, or a future non-dart exercise) gets `step-volume` alone.
+ */
+export function sectionsForStep(step: {
+  exerciseTypeKey: string;
+  gameTypeKey: GameTypeKey | null;
+}):
+  | { kind: "game"; gameTypeKey: GameTypeKey; sections: SectionMeta[] }
+  | { kind: "exercise"; sections: RoutineSectionMeta[] } {
+  if (step.gameTypeKey !== null) {
+    return {
+      kind: "game",
+      gameTypeKey: step.gameTypeKey,
+      sections: sectionsForGame(step.gameTypeKey).map((id) => SECTIONS[id]),
+    };
+  }
+  if (isDartExerciseKind(step.exerciseTypeKey)) {
+    return {
+      kind: "exercise",
+      sections: [
+        ROUTINE_SECTIONS["step-result"],
+        ROUTINE_SECTIONS["step-volume"],
+      ],
+    };
+  }
+  return { kind: "exercise", sections: [ROUTINE_SECTIONS["step-volume"]] };
+}

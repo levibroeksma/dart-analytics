@@ -186,7 +186,12 @@ export type SessionListCursor = {
   sessionId: string;
 };
 
-/** The shared filter every dart-level reader applies to `v_stats_dart_facts` (phase-2 Task 3). */
+/**
+ * The shared filter every dart-level reader applies to `v_stats_dart_facts`
+ * (phase-2 Task 3). `routineStep`, when set, narrows to one GAME routine
+ * step's sessions (D372 decision 5) — optional, so a game page's reader,
+ * which leaves it unset, reads the whole game scope.
+ */
 export type DartScope = {
   playerId: string;
   gameTypeKey: GameTypeKey;
@@ -194,13 +199,15 @@ export type DartScope = {
   to: string;
   statuses: string[];
   context: ContextFilter;
+  routineStep?: RoutineStepScope;
 };
 
 /**
  * The shared filter every Task 3 fold/scoring reader applies to
  * `v_stats_session_facts`: player, game type and status in range, restricted
  * to `input_mode_key = 'VISUAL_BOARD'` (`00-Overview.md` §10, phase-3 plan
- * "Shared session scope").
+ * "Shared session scope"). `routineStep` narrows the same way as `DartScope`
+ * (D372 decision 5).
  */
 export type SessionScope = {
   playerId: string;
@@ -209,6 +216,186 @@ export type SessionScope = {
   to: string;
   statuses: string[];
   context: ContextFilter;
+  routineStep?: RoutineStepScope;
+};
+
+/**
+ * Identifies one step of one routine, by the `routine_key`/`step_key` pair
+ * `v_stats_routine_step_facts` derives from the activity's snapshot
+ * (migration `0045` header). Narrows `DartScope`/`SessionScope` to a single
+ * step's sessions.
+ */
+export type RoutineStepScope = {
+  routineKey: string;
+  stepKey: string;
+};
+
+/**
+ * The shared filter every routine-run reader applies to
+ * `v_stats_routine_run_facts`: owning player, routine identity and terminal
+ * status in range (D372 decision 1).
+ */
+export type RoutineScope = {
+  playerId: string;
+  routineKey: string;
+  from: string;
+  to: string;
+  statuses: string[];
+};
+
+/**
+ * `RoutineScope` narrowed to one step's sessions, applied to
+ * `v_stats_routine_step_facts` (D372 decision 2).
+ */
+export type StepScope = RoutineScope & {
+  stepKey: string;
+};
+
+/**
+ * One `findTrainedRoutines` row: a routine the player has trained, named for
+ * its latest run (D372 decision 9). `routineTemplateId` is `null`
+ * for a legacy snapshot keyed by `routineName` alone (migration `0045`
+ * header rule 1).
+ */
+export type TrainedRoutineRow = {
+  routineKey: string;
+  routineTemplateId: string | null;
+  routineName: string;
+  runCount: number;
+  completedRunCount: number;
+  lastRunAt: string;
+};
+
+/**
+ * One `findRoutineHeader` row: one routine's run counts and its earliest and
+ * latest run, plus the latest run's own `stepCount` —
+ * `findRoutineStepDescriptors`'s `current` flag input (D372 decision 9): a
+ * step index beyond `latestStepCount`
+ * no longer exists in the routine's current shape, so nothing at that index
+ * can be current. `null` when the latest run's snapshot has no readable
+ * `steps` array (migration `0045` header rule 2).
+ */
+export type RoutineHeaderRow = {
+  routineKey: string;
+  routineName: string;
+  runCount: number;
+  firstRunAt: string;
+  lastRunAt: string;
+  latestStepCount: number | null;
+};
+
+/**
+ * One `findRoutineStepDescriptors` row: one step index's trained history.
+ * `current` is set when this step key is the most recently seen key at its
+ * `sequenceNumber` (the latest of the index's possibly-several historical
+ * configurations) *and* `sequenceNumber` is still within the latest run's
+ * `stepCount` — a superseded key, or an index the routine no longer
+ * has, is never current. `gameTypeKey`/`rulesetVersionKey` are `null` for a
+ * non-game step; `exerciseRulesetVersionKey` is `null` for a GAME step
+ * (which has no exercise ruleset at all, `training-session.service.ts`'s
+ * `GAME_EXERCISE_TYPE_KEY` doc) as well as for a legacy session predating
+ * exercise rulesets. `durationSeconds` is the snapshot element's own
+ * configured step length (`TrainingStepResolved.durationSeconds`), not the
+ * session's elapsed time — `null` when the snapshot element has no readable
+ * value.
+ */
+export type RoutineStepDescriptorRow = {
+  stepKey: string;
+  sequenceNumber: number;
+  exerciseTypeKey: string;
+  exerciseRulesetVersionKey: string | null;
+  gameTypeKey: GameTypeKey | null;
+  rulesetVersionKey: string | null;
+  durationSeconds: number | null;
+  sessionCount: number;
+  firstSeenAt: string;
+  lastSeenAt: string;
+  current: boolean;
+};
+
+/**
+ * One `findRoutineRunBuckets` row: a bucket's run volume and completion over
+ * `v_stats_routine_run_facts` (D372 decision 6). `neverStarted`
+ * counts abandoned runs with zero step sessions. `stepsCompletedAtAbandon`
+ * keys the number of steps completed at abandonment (as a string, `Record`
+ * keys are always strings) to how many of the bucket's abandoned runs
+ * abandoned at that count.
+ */
+export type RoutineRunBucketRow = {
+  bucketStart: string;
+  bucketEnd: string;
+  runs: number;
+  durationSum: number;
+  durationMin: number;
+  durationMax: number;
+  darts: number;
+  completed: number;
+  abandoned: number;
+  neverStarted: number;
+  stepsCompletedAtAbandon: Record<string, number>;
+};
+
+/** One `findStepBuckets` row: a bucket's session volume over `v_stats_routine_step_facts` (D372 decision 6). */
+export type StepBucketRow = {
+  bucketStart: string;
+  bucketEnd: string;
+  sessions: number;
+  durationSum: number;
+  darts: number;
+};
+
+/**
+ * One `findStepSessionPage` row: one step session, listed newest-first
+ * (D372 decision 10). `v_stats_routine_step_facts` has no
+ * `context_key` column — every row is routine context by definition —
+ * unlike `StatsSessionRow`. `rulesetVersionKey`/`exerciseRulesetVersionKey`
+ * are mutually exclusive: a GAME step sets the former, a non-game step the
+ * latter.
+ */
+export type StepSessionRow = {
+  sessionId: string;
+  rulesetVersionKey: string | null;
+  exerciseRulesetVersionKey: string | null;
+  statusKey: string;
+  neverStarted: boolean;
+  startedAt: string;
+  completedAt: string;
+  durationSeconds: number;
+  turnCount: number;
+  dartCount: number;
+  countedScore: number;
+};
+
+/**
+ * The seven non-game dart exercise kinds `step-metrics.module.ts` defines
+ * metrics for (D372 decision 7) — `RoutineStepSummary.stepKey`'s
+ * non-`"GAME:…"` values. Warm-Up throws no darts and is excluded: it gets
+ * `step-volume` only, never `step-result` (D372 decision 6).
+ */
+export type DartExerciseKind =
+  | "SWITCHING"
+  | "DOUBLE_PATTERN"
+  | "TARGET_SCORING"
+  | "SWITCHING_TARGET_SCORING"
+  | "SCORE_THRESHOLD"
+  | "BULLSEYE_CHECKOUT"
+  | "BULL_UP";
+
+/**
+ * One dart exercise kind's step-metric contract (D372 decision 7):
+ * which keys `stepMetrics` returns and how `mergeStepMetrics` combines two
+ * buckets' worth of them (`"sum"` adds, `"max"` takes the larger), which key
+ * is the headline stat shown for a bucket, and which key pairs the client
+ * divides into a displayed rate — e.g. `["hits", "darts"]` for a hit rate.
+ * `direction` is always `"higher"` today (every headline here reads better
+ * bigger); the field exists so a future kind can read the other way without
+ * a shape change.
+ */
+export type StepMetricSpec = {
+  metrics: Readonly<Record<string, "sum" | "max">>;
+  headline: string;
+  direction: "higher";
+  rates: readonly (readonly [string, string])[];
 };
 
 /**
@@ -499,15 +686,22 @@ export type Bobs27SurvivalMetrics = Record<string, Bobs27SurvivalGroupMetrics>;
 
 /**
  * One row of `v_stats_session_facts`, restricted to a replay page's header
- * fields (D371 decision 5): the session's own identity plus the stored facts
- * a replay never re-derives. `configuration` and `routineStepSequenceNumber`
- * are the view's own nullable columns, passed through untouched --
- * `routineStepSequenceNumber` is `null` for a standalone session.
+ * fields (D371 decision 5, D372 decision 11): the session's own
+ * identity plus the stored facts a replay never re-derives. `configuration`
+ * and `routineStepSequenceNumber` are the view's own nullable columns, passed
+ * through untouched -- `routineStepSequenceNumber` is `null` for a
+ * standalone session. `gameTypeKey`/`rulesetVersionKey` are `null` for a
+ * non-game routine step, which `v_stats_session_facts` never carries at all
+ * (its `game_types`/`ruleset_versions` joins are inner) -- the same pairing
+ * `RoutineStepDescriptorRow` already establishes. `exerciseTypeKey` is
+ * `"GAME"` for a row with no `v_stats_routine_step_facts` match (a
+ * standalone game); `exerciseRulesetVersionKey`, `routineKey` and
+ * `stepKey` are `null` for one too.
  */
 export type ReplaySessionRow = {
   sessionId: string;
-  gameTypeKey: GameTypeKey;
-  rulesetVersionKey: string;
+  gameTypeKey: GameTypeKey | null;
+  rulesetVersionKey: string | null;
   inputModeKey: string;
   statusKey: string;
   contextKey: string;
@@ -519,6 +713,10 @@ export type ReplaySessionRow = {
   durationSeconds: number;
   turnCount: number;
   dartCount: number;
+  exerciseTypeKey: string;
+  exerciseRulesetVersionKey: string | null;
+  routineKey: string | null;
+  stepKey: string | null;
 };
 
 /**
@@ -600,4 +798,98 @@ export type ReplayTurn = {
 export type ReplayCursor = {
   stageId: string;
   turnSequence: number;
+};
+
+/**
+ * One `findStepFoldRows` row: a `v_game_replay` dart/turn joined to its own
+ * step session's identity, for the server-side `step-result` fold (D372
+ * decision 8) — `configuration` is the session's own snapshot, passed
+ * to the exercise engine exactly as the routine play adapter's `open()`
+ * passes it; `completedAt` is the input the fold buckets a session's merged
+ * metrics by, after folding. `stageSequence`/`stageTypeKey`/`parentStageId`
+ * are `v_game_replay`'s own stage columns (migration `0044`) — carried here
+ * rather than assumed, so the fold rebuilds each session's real stage tree
+ * through `stageOrder` instead of inventing one.
+ */
+export type StepFoldRow = ReplayRow & {
+  sessionId: string;
+  completedAt: string;
+  exerciseRulesetVersionKey: string | null;
+  configuration: Record<string, unknown> | null;
+  stageSequence: number;
+  stageTypeKey: string;
+  parentStageId: string | null;
+};
+
+/**
+ * `findStepFoldRows`' actual return row: `StepFoldRow` plus the bucket its
+ * own session's `completedAt` falls in (D372 decision 6), computed
+ * in SQL via `bucketExprs`, mirroring `X01FoldRow`. `step-result`'s shape
+ * function groups by `bucketStart` before folding each bucket's sessions.
+ */
+export type StepFoldBucketRow = StepFoldRow & {
+  bucketStart: string;
+  bucketEnd: string;
+};
+
+/**
+ * `foldStepResult`'s own row alias for `StepFoldRow`: the flat,
+ * session-mixed rows one bucket's worth of `step-result` scopes, named at
+ * the `sections` module boundary for what the fold does with them — group
+ * by `sessionId`, one `EngineFacts` rebuild per group.
+ */
+export type StepFoldSession = StepFoldRow;
+
+/**
+ * `routine-volume` section metrics — one bucket (D372 decision 6).
+ * `durationSeconds`/`minDurationSeconds`/`maxDurationSeconds` carry
+ * `findRoutineRunBuckets`' seconds columns through unconverted, matching
+ * `VolumeMetrics.durationSeconds` — a `seconds / 60` float does
+ * not re-add exactly across chunks (`1/60 + 5/60 !== 6/60`), so the client
+ * converts to minutes for display, never this module.
+ */
+export type RoutineVolumeMetrics = {
+  runs: number;
+  durationSeconds: number;
+  minDurationSeconds: number;
+  maxDurationSeconds: number;
+  darts: number;
+};
+
+/** `routine-completion` section metrics — one bucket (D372 decision 6); the three counts partition a bucket's runs, matching `CompletionMetrics`' shape at the routine grain. */
+export type RoutineCompletionMetrics = {
+  completed: number;
+  abandoned: number;
+  neverStarted: number;
+  stepsCompletedAtAbandon: Record<string, number>;
+};
+
+/**
+ * `step-volume` section metrics — one bucket, over any non-game routine
+ * step (D372 decision 6; a GAME step's own `volume` section covers
+ * it instead). `durationSeconds` carries
+ * `findStepBuckets`' seconds column through unconverted, for the same
+ * exact-re-aggregation reason as `RoutineVolumeMetrics`.
+ */
+export type StepVolumeMetrics = {
+  sessions: number;
+  durationSeconds: number;
+  darts: number;
+};
+
+/**
+ * `step-result` section metrics — one bucket (D372 decisions 6, 7):
+ * `metrics` are `STEP_METRIC_SPECS[kind]`'s own keys, merged across every
+ * successfully folded session (`mergeStepMetrics`); `headlineMin`/`Max` are
+ * the spec's headline key's extremes across those same sessions, `null`
+ * when none folded; `sessions` counts folded sessions, `skippedSessions`
+ * counts a missing engine factory or an engine that threw (D372 decision 8) —
+ * the two counts partition the bucket's scoped session population.
+ */
+export type StepResultMetric = {
+  metrics: Record<string, number>;
+  headlineMin: number | null;
+  headlineMax: number | null;
+  sessions: number;
+  skippedSessions: number;
 };

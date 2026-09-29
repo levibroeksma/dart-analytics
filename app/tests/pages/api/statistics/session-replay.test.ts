@@ -40,6 +40,10 @@ const pageResponse = {
     durationSeconds: 300,
     turnCount: 1,
     dartCount: 1,
+    exerciseTypeKey: "GAME",
+    exerciseRulesetVersionKey: null,
+    routineKey: null,
+    stepKey: null,
     participants: [
       {
         participantId: "018f1e2a-0000-7000-8000-000000000002",

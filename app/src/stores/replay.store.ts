@@ -1,8 +1,13 @@
 import { isGameTypeKey } from "@lib/game/rulesets/capabilities";
 import { markersForTurns } from "@lib/game/board-input.data";
-import { foldReplay, replayFacts } from "@lib/stats/replay-fold";
-import { REPLAY_PRESENTERS } from "@lib/stats/replay-presenters";
+import { foldReplay } from "@lib/stats/replay-fold";
+import {
+  REPLAY_PRESENTERS,
+  STEP_REPLAY_PRESENTERS,
+} from "@lib/stats/replay-presenters";
 import { replaySessionIdFromLocation } from "@lib/stats/replay-route";
+import { isDartExerciseKind } from "@lib/stats/section-registry";
+import { replayFacts } from "@modules/stats/replay.module";
 import { dartLabel } from "@modules/stats/sections/checkout-path.module";
 import { fetchSessionReplay, StatisticsApiError } from "@client/api/statistics";
 import { readReplayPage } from "@client/stats-cache/cache";
@@ -173,11 +178,23 @@ export function replayStore() {
       this.selectedIndex = index;
     },
 
-    /** The session's game presenter, or `null` for a game type this client does not know. */
+    /**
+     * The session's own presenter (D372 decision 11): a game
+     * session (`gameTypeKey` set) picks `REPLAY_PRESENTERS`, a non-game
+     * routine step picks `STEP_REPLAY_PRESENTERS` off its
+     * `exerciseTypeKey`. `null` for a game type or exercise kind this
+     * client does not know.
+     */
     get presenter(): ReplayPresenter | null {
-      const gameTypeKey = this.header?.gameTypeKey;
-      return gameTypeKey !== undefined && isGameTypeKey(gameTypeKey)
-        ? REPLAY_PRESENTERS[gameTypeKey]
+      const header = this.header;
+      if (header === null) return null;
+      if (header.gameTypeKey !== null) {
+        return isGameTypeKey(header.gameTypeKey)
+          ? REPLAY_PRESENTERS[header.gameTypeKey]
+          : null;
+      }
+      return isDartExerciseKind(header.exerciseTypeKey)
+        ? STEP_REPLAY_PRESENTERS[header.exerciseTypeKey]
         : null;
     },
 

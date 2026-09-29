@@ -2,7 +2,7 @@
 status: canonical
 scope: architecture/training-routines
 read-when: training routines, exercises, exercise engines, configurable/adaptive training
-updated: 2026-09-24
+updated: 2026-09-29
 -->
 
 # Training, Exercise and Exercise Engine Architecture
@@ -921,6 +921,8 @@ For runtime correctness, the actual configuration used during a training must be
 A completed training must not depend on a mutable routine or exercise definition.
 
 This follows the existing architecture's Template → Snapshot lifecycle.
+
+Routine statistics read the same snapshot's identity, never the mutable routine: a routine is keyed by the snapshot's `routineTemplateId` and a step by its `sequenceNumber` plus a fingerprint of its snapshot element, so a deleted routine keeps its statistics and an edited step starts a new key (`10-Statistics/00-Overview.md` §8, D372). <!-- 2026-09-29 -->
 
 ---
 

@@ -85,6 +85,10 @@ export function replayHeader(
     activityId: "01900000-0000-7000-8000-00000000b001",
     routineStepSequenceNumber: null,
     configuration: null,
+    exerciseTypeKey: "GAME",
+    exerciseRulesetVersionKey: null,
+    routineKey: null,
+    stepKey: null,
     startedAt: "2026-09-20T10:00:00.000Z",
     completedAt: "2026-09-20T10:20:00.000Z",
     durationSeconds: 1200,
@@ -381,3 +385,20 @@ export function playAroundTheClock(): ScriptedGame {
     [dart(5, "OUTER_SINGLE"), MISS, MISS],
   ]);
 }
+
+/**
+ * Every scripted game, named for `it.each` tables: shared by
+ * `replay-fold.test.ts` and `replay.module.test.ts` so the two suites that
+ * exercise the same replay rebuild never carry their own diverging copies.
+ */
+export const SCRIPTED_GAMES: [string, () => ScriptedGame][] = [
+  ["501", playFiveOhOne],
+  ["121", playOneTwentyOne],
+  ["TUOD", playTuod],
+  ["Score Training", playScoreTraining],
+  ["Singles", playSingles],
+  ["Doubles", playDoubles],
+  ["Bob's 27", playBobs27],
+  ["Shanghai", playShanghai],
+  ["Around the Clock", playAroundTheClock],
+];

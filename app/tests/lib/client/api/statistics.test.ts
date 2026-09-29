@@ -8,6 +8,11 @@ import {
   fetchGameSessions,
   fetchGameSection,
   fetchSessionReplay,
+  fetchTrainedRoutines,
+  fetchRoutineHeader,
+  fetchRoutineSection,
+  fetchRoutineStepSection,
+  fetchRoutineStepSessions,
   StatisticsApiError,
 } from "@client/api/statistics";
 
@@ -255,6 +260,263 @@ describe("fetchSessionReplay", () => {
 
     await expect(
       fetchSessionReplay("11111111-1111-1111-1111-111111111111"),
+    ).rejects.toBeInstanceOf(StatisticsApiError);
+  });
+});
+
+describe("fetchTrainedRoutines", () => {
+  beforeEach(() => vi.resetAllMocks());
+
+  it("fetches the routine list with no query string", async () => {
+    const listResponse = { items: [] };
+    vi.mocked(apiRequest).mockResolvedValue({
+      ok: true,
+      requestId: "r1",
+      data: listResponse,
+    });
+
+    const result = await fetchTrainedRoutines();
+
+    expect(result).toEqual(listResponse);
+    expect(apiRequest).toHaveBeenCalledWith("/api/statistics/routines");
+  });
+
+  it("throws StatisticsApiError on failure", async () => {
+    vi.mocked(apiRequest).mockResolvedValue({
+      ok: false,
+      requestId: "r1",
+      error: { code: "UNAUTHORIZED", message: "nope", retryable: false },
+    });
+
+    await expect(fetchTrainedRoutines()).rejects.toBeInstanceOf(
+      StatisticsApiError,
+    );
+  });
+});
+
+describe("fetchRoutineHeader", () => {
+  beforeEach(() => vi.resetAllMocks());
+
+  const header = {
+    routineKey: "R1",
+    routineName: "Leg Day",
+    runCount: 4,
+    firstRunAt: "2026-01-01T00:00:00.000Z",
+    lastRunAt: "2026-02-01T00:00:00.000Z",
+    dataVersion: "v1:4:0",
+    steps: [],
+  };
+
+  it("fetches one routine's header with no query string", async () => {
+    vi.mocked(apiRequest).mockResolvedValue({
+      ok: true,
+      requestId: "r1",
+      data: header,
+    });
+
+    const result = await fetchRoutineHeader("R1");
+
+    expect(result).toEqual(header);
+    expect(apiRequest).toHaveBeenCalledWith("/api/statistics/routines/R1");
+  });
+
+  it("encodes the routine key into its own path segment, so a ../ key cannot leave the route", async () => {
+    vi.mocked(apiRequest).mockResolvedValue({
+      ok: true,
+      requestId: "r1",
+      data: header,
+    });
+
+    await fetchRoutineHeader("../../profile#");
+
+    const [path] = vi.mocked(apiRequest).mock.calls[0];
+    expect(new URL(path as string, "https://app.test").pathname).toBe(
+      "/api/statistics/routines/..%2F..%2Fprofile%23",
+    );
+  });
+
+  it("throws StatisticsApiError on failure", async () => {
+    vi.mocked(apiRequest).mockResolvedValue({
+      ok: false,
+      requestId: "r1",
+      error: { code: "NOT_FOUND", message: "not found", retryable: false },
+    });
+
+    await expect(fetchRoutineHeader("R1")).rejects.toBeInstanceOf(
+      StatisticsApiError,
+    );
+  });
+});
+
+describe("fetchRoutineSection", () => {
+  beforeEach(() => vi.resetAllMocks());
+
+  const seriesResponse = {
+    sectionId: "routine-volume",
+    sectionVersion: 1,
+    dataVersion: "v1:1:0",
+    bucket: "month",
+    tz: "Europe/Amsterdam",
+    range: {
+      from: "2026-01-01T00:00:00.000Z",
+      to: "2026-02-01T00:00:00.000Z",
+    },
+    buckets: [],
+  };
+
+  it("builds the path and query with no context, inputMode or target", async () => {
+    vi.mocked(apiRequest).mockResolvedValue({
+      ok: true,
+      requestId: "r1",
+      data: seriesResponse,
+    });
+
+    const result = await fetchRoutineSection("R1", "routine-volume", {
+      from: "2026-01-01T00:00:00.000Z",
+      to: "2026-02-01T00:00:00.000Z",
+      bucket: "month",
+      tz: "Europe/Amsterdam",
+    });
+
+    expect(result).toEqual(seriesResponse);
+    const [path] = vi.mocked(apiRequest).mock.calls[0];
+    expect(path).toContain(
+      "/api/statistics/routines/R1/sections/routine-volume?",
+    );
+    expect(path).toContain("bucket=month");
+    expect(path).toContain("tz=Europe%2FAmsterdam");
+    expect(path).not.toContain("context");
+    expect(path).not.toContain("inputMode");
+    expect(path).not.toContain("target");
+  });
+
+  it("throws StatisticsApiError on failure", async () => {
+    vi.mocked(apiRequest).mockResolvedValue({
+      ok: false,
+      requestId: "r1",
+      error: { code: "NOT_FOUND", message: "not found", retryable: false },
+    });
+
+    await expect(
+      fetchRoutineSection("R1", "routine-volume", {
+        from: "2026-01-01T00:00:00.000Z",
+        to: "2026-02-01T00:00:00.000Z",
+      }),
+    ).rejects.toBeInstanceOf(StatisticsApiError);
+  });
+});
+
+describe("fetchRoutineStepSection", () => {
+  beforeEach(() => vi.resetAllMocks());
+
+  const seriesResponse = {
+    sectionId: "step-result",
+    sectionVersion: 1,
+    dataVersion: "v1:1:0",
+    bucket: "none",
+    tz: null,
+    range: {
+      from: "2026-01-01T00:00:00.000Z",
+      to: "2026-02-01T00:00:00.000Z",
+    },
+    buckets: [],
+  };
+
+  it("builds the path and query with no context, inputMode or target", async () => {
+    vi.mocked(apiRequest).mockResolvedValue({
+      ok: true,
+      requestId: "r1",
+      data: seriesResponse,
+    });
+
+    const result = await fetchRoutineStepSection("R1", "1-abc", "step-result", {
+      from: "2026-01-01T00:00:00.000Z",
+      to: "2026-02-01T00:00:00.000Z",
+    });
+
+    expect(result).toEqual(seriesResponse);
+    const [path] = vi.mocked(apiRequest).mock.calls[0];
+    expect(path).toContain(
+      "/api/statistics/routines/R1/steps/1-abc/sections/step-result?",
+    );
+    expect(path).not.toContain("context");
+    expect(path).not.toContain("inputMode");
+    expect(path).not.toContain("target");
+  });
+
+  it("encodes the routine key and step key into their own path segments", async () => {
+    vi.mocked(apiRequest).mockResolvedValue({
+      ok: true,
+      requestId: "r1",
+      data: seriesResponse,
+    });
+
+    await fetchRoutineStepSection("../x", "../y", "step-result", {
+      from: "2026-01-01T00:00:00.000Z",
+      to: "2026-02-01T00:00:00.000Z",
+    });
+
+    const [path] = vi.mocked(apiRequest).mock.calls[0];
+    expect(new URL(path as string, "https://app.test").pathname).toBe(
+      "/api/statistics/routines/..%2Fx/steps/..%2Fy/sections/step-result",
+    );
+  });
+
+  it("throws StatisticsApiError on failure", async () => {
+    vi.mocked(apiRequest).mockResolvedValue({
+      ok: false,
+      requestId: "r1",
+      error: { code: "NOT_FOUND", message: "not found", retryable: false },
+    });
+
+    await expect(
+      fetchRoutineStepSection("R1", "1-abc", "step-result", {
+        from: "2026-01-01T00:00:00.000Z",
+        to: "2026-02-01T00:00:00.000Z",
+      }),
+    ).rejects.toBeInstanceOf(StatisticsApiError);
+  });
+});
+
+describe("fetchRoutineStepSessions", () => {
+  beforeEach(() => vi.resetAllMocks());
+
+  it("builds the path and query for a step's session list", async () => {
+    const listResponse = { items: [], nextCursor: null, dataVersion: "v1:0:0" };
+    vi.mocked(apiRequest).mockResolvedValue({
+      ok: true,
+      requestId: "r1",
+      data: listResponse,
+    });
+
+    const result = await fetchRoutineStepSessions("R1", "1-abc", {
+      from: "2026-01-01T00:00:00.000Z",
+      to: "2026-02-01T00:00:00.000Z",
+      limit: 10,
+    });
+
+    expect(result).toEqual(listResponse);
+    const [path] = vi.mocked(apiRequest).mock.calls[0];
+    expect(path).toContain("/api/statistics/routines/R1/steps/1-abc/sessions?");
+    expect(path).toContain("limit=10");
+    expect(path).not.toContain("context");
+    expect(path).not.toContain("bucket");
+    expect(path).not.toContain("inputMode");
+    expect(path).not.toContain("target");
+  });
+
+  it("throws StatisticsApiError on failure", async () => {
+    vi.mocked(apiRequest).mockResolvedValue({
+      ok: false,
+      requestId: "r1",
+      error: { code: "NOT_FOUND", message: "not found", retryable: false },
+    });
+
+    await expect(
+      fetchRoutineStepSessions("R1", "1-abc", {
+        from: "2026-01-01T00:00:00.000Z",
+        to: "2026-02-01T00:00:00.000Z",
+      }),
     ).rejects.toBeInstanceOf(StatisticsApiError);
   });
 });

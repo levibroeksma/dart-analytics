@@ -5,37 +5,19 @@ import {
   registerEngineFactory,
   resetEngineRegistry,
 } from "@modules/game/engine.registry";
-import { foldReplay, replayFacts } from "@lib/stats/replay-fold";
+import { foldReplay } from "@lib/stats/replay-fold";
 import type { RulesetVersionKey } from "@lib/types";
 import type { ReplayTurnSchemaData } from "@routes/types";
 import {
   PLAYER_ONE,
   PLAYER_TWO,
   SOLO_SEATS,
-  playAroundTheClock,
+  SCRIPTED_GAMES,
   playBobs27,
-  playDoubles,
   playFiveOhOne,
-  playOneTwentyOne,
   playScoreTraining,
-  playShanghai,
-  playSingles,
-  playTuod,
   replayHeader,
-  type ScriptedGame,
 } from "./replay-games";
-
-const SCRIPTED_GAMES: [string, () => ScriptedGame][] = [
-  ["501", playFiveOhOne],
-  ["121", playOneTwentyOne],
-  ["TUOD", playTuod],
-  ["Score Training", playScoreTraining],
-  ["Singles", playSingles],
-  ["Doubles", playDoubles],
-  ["Bob's 27", playBobs27],
-  ["Shanghai", playShanghai],
-  ["Around the Clock", playAroundTheClock],
-];
 
 const STAGE_ID = "01900000-0000-7000-9000-000000000001";
 
@@ -72,46 +54,6 @@ const SCORE_TRAINING_WIRE = {
   max_darts_per_turn: 3,
   max_visit_score: 180,
 };
-
-describe("replayFacts", () => {
-  it.each(SCRIPTED_GAMES)(
-    "rebuilds a %s engine whose state equals the one that played it",
-    (_name, play) => {
-      const game = play();
-      const facts = replayFacts(game.header.stages, game.turns);
-      const factory = getEngineFactory(game.rulesetVersionKey)!;
-
-      expect(factory.create(game.config, facts).state()).toEqual(
-        game.finalState,
-      );
-    },
-  );
-
-  it("keys stages by id and turns by stage and sequence, darts by dart number", () => {
-    const game = playFiveOhOne();
-    const facts = replayFacts(game.header.stages, game.turns);
-    const first = game.turns[0]!;
-
-    expect(facts.stages[0]).toEqual({
-      clientKey: game.header.stages[0]!.stageId,
-      stageTypeKey: "LEG",
-      parentClientKey: null,
-      sequence: 1,
-    });
-    expect(facts.turns[0]).toMatchObject({
-      clientKey: `${first.stageId}:${first.turnSequence}`,
-      stageClientKey: first.stageId,
-      participantRef: PLAYER_ONE.participantId,
-      sequence: first.turnSequence,
-      totalScore: 81,
-    });
-    expect(facts.turns[0]!.darts.map((dart) => dart.sequence)).toEqual([
-      1, 2, 3,
-    ]);
-    expect(facts.turns[0]!.darts).toEqual(game.facts.turns[0]!.darts);
-    expect(facts.turns[0]!.darts[0]!.locationX).not.toBeNull();
-  });
-});
 
 describe("foldReplay", () => {
   it.each(SCRIPTED_GAMES)(

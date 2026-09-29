@@ -93,6 +93,25 @@ export interface SectionMeta {
   games?: readonly GameTypeKey[];
 }
 
+/**
+ * Run- or step-surface routine section ids (D372 decision 6) — disjoint
+ * from `SectionId`, which stays game-only so no game page can list one.
+ */
+export type RoutineSectionId =
+  "routine-volume" | "routine-completion" | "step-volume" | "step-result";
+
+/**
+ * One routine-tab section's registry entry: `SectionMeta`'s fields with
+ * `id` narrowed to `RoutineSectionId`, `requires` fixed to `[]` (no game
+ * ever gates a routine section), plus `surface`, which page the section
+ * appears on (D372 decision 6).
+ */
+export type RoutineSectionMeta = Omit<SectionMeta, "id" | "requires"> & {
+  id: RoutineSectionId;
+  requires: readonly [];
+  surface: "routine" | "step";
+};
+
 /** One bucket of a `Series<M>` result (`00-Overview.md` §5.2). */
 export interface SeriesBucket<M> {
   start: string;
@@ -112,6 +131,17 @@ export interface Series<M> {
   range: { from: string; to: string };
   buckets: SeriesBucket<M>[];
 }
+
+/**
+ * `Series<M>`'s shape for the Routines tab: everything is identical except
+ * `sectionId`, which names one of the routine's own sections rather than a
+ * game's. Kept as its own type instead of widening `Series.sectionId`'s
+ * union, so a game route can never be handed a routine section id by
+ * mistake and vice versa.
+ */
+export type RoutineSeries<M> = Omit<Series<M>, "sectionId"> & {
+  sectionId: RoutineSectionId;
+};
 
 /**
  * The section ids whose metrics can fold server-side (`00-Overview.md` §4,
@@ -188,9 +218,17 @@ export type ReplaySnapshot = Record<string, unknown> & {
   seats: readonly SeatFact[];
 };
 
-/** Why a replay shows its stored facts only (D371 decision 8). */
+/**
+ * Why a replay shows its stored facts only (D371 decision 8, D372 decision
+ * 11). `NO_EXERCISE_ENGINE` is a non-game step whose
+ * `exerciseRulesetVersionKey` names no registered dart exercise engine.
+ */
 export type ReplaySkipReason =
-  "NO_SNAPSHOT" | "NO_ENGINE" | "SEATLESS_MULTI" | "ENGINE_THREW";
+  | "NO_SNAPSHOT"
+  | "NO_ENGINE"
+  | "SEATLESS_MULTI"
+  | "ENGINE_THREW"
+  | "NO_EXERCISE_ENGINE";
 
 /**
  * One loaded turn as a presenter reads it: the turn as its engine folded

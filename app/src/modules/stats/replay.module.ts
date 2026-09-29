@@ -1,15 +1,23 @@
 import { fromBase64Url, toBase64Url } from "./sections/series.module";
 import type {
+  DartFact,
+  DartZoneKey,
+  EngineFacts,
   ReplayCursor,
   ReplayDart,
   ReplayRow,
   ReplayStageRow,
   ReplayTurn,
+  StageTypeKey,
+  TurnFact,
 } from "@modules/types";
 
 /**
  * Pure helpers a replay page is built from: stage play order, the cursor
- * codec (R2), and rows-to-turns grouping. No I/O; isomorphic.
+ * codec (R2), rows-to-turns grouping, and the loaded-replay-to-engine-facts
+ * conversion (`replayFacts`, which the server-side `step-result` fold reuses
+ * directly, so it lives beside the other replay-rebuilding helpers rather
+ * than in `lib/`). No I/O; isomorphic.
  */
 
 const REPLAY_CURSOR_VERSION = "v1";
@@ -160,4 +168,90 @@ export function rowsToTurns(rows: readonly ReplayRow[]): ReplayTurn[] {
   }
 
   return turns;
+}
+
+/**
+ * Every replayed turn's `completedAt`. A replay page carries no per-turn
+ * completion time, and the engines read `completedAt` only as open (`null`)
+ * or closed, never its value: 121, TUOD and Score Training fold closed
+ * visits only, and the seat rota hands an open visit back to its thrower.
+ * So every loaded turn replays as a closed visit, an abandoned session's
+ * unfinished last visit included.
+ */
+const REPLAYED_TURN_CLOSED_AT = new Date(0).toISOString();
+
+/**
+ * One dart as `replayFacts`' callers hold it before it is known to be a
+ * fully-typed `ReplayDart`: a route decodes its wire JSON with plain
+ * `string` zone keys (nothing upstream of a network boundary can promise a
+ * `DartZoneKey` literal), while `rowsToTurns`' own `ReplayDart` output is
+ * already narrow and assignable here too. Declared locally, not imported
+ * from a route's schema — `modules/stats` never depends on `pages/api`,
+ * the dependency runs the other way.
+ */
+type ReplayFactsDart = {
+  dartNumber: number;
+  intendedTargetNumber: number | null;
+  intendedZoneKey: string | null;
+  hitTargetNumber: number | null;
+  hitZoneKey: string;
+  score: number;
+  locationX: number | null;
+  locationY: number | null;
+};
+
+/** One turn as `replayFacts` accepts it — see `ReplayFactsDart`. */
+type ReplayFactsTurn = {
+  stageId: string;
+  turnSequence: number;
+  participantId: string;
+  turnTotalScore: number;
+  darts: readonly ReplayFactsDart[];
+};
+
+function dartFactOf(dart: ReplayFactsDart): DartFact {
+  return {
+    sequence: dart.dartNumber,
+    intendedTargetNumber: dart.intendedTargetNumber,
+    intendedZoneKey: dart.intendedZoneKey as DartZoneKey | null,
+    hitTargetNumber: dart.hitTargetNumber,
+    hitZoneKey: dart.hitZoneKey as DartZoneKey,
+    score: dart.score,
+    locationX: dart.locationX,
+    locationY: dart.locationY,
+  };
+}
+
+function turnFactOf(turn: ReplayFactsTurn): TurnFact {
+  return {
+    clientKey: `${turn.stageId}:${turn.turnSequence}`,
+    stageClientKey: turn.stageId,
+    participantRef: turn.participantId,
+    sequence: turn.turnSequence,
+    completedAt: REPLAYED_TURN_CLOSED_AT,
+    totalScore: turn.turnTotalScore,
+    darts: turn.darts.map(dartFactOf),
+  };
+}
+
+/**
+ * The loaded replay as the engine fact log it was played as (D371 decision
+ * 8): a stage's client key is its id, a turn's is `stageId:turnSequence`,
+ * and a dart's sequence is its dart number. `stages` is typed with this
+ * module's own `ReplayStageRow` (identical shape to a route's wire schema,
+ * no narrowing involved) rather than importing a route's schema type.
+ */
+export function replayFacts(
+  stages: readonly ReplayStageRow[],
+  turns: readonly ReplayFactsTurn[],
+): EngineFacts {
+  return {
+    stages: stages.map((stage) => ({
+      clientKey: stage.stageId,
+      stageTypeKey: stage.stageTypeKey as StageTypeKey,
+      parentClientKey: stage.parentStageId,
+      sequence: stage.sequence,
+    })),
+    turns: turns.map(turnFactOf),
+  };
 }

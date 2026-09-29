@@ -3,10 +3,13 @@ import {
   MAX_FOLD_DARTS,
   PAGE_ORDER_OVERRIDES,
   RESULT_DIRECTION,
+  ROUTINE_SECTIONS,
   SECTIONS,
   isSectionId,
   sectionSite,
   sectionsForGame,
+  sectionsForRoutine,
+  sectionsForStep,
   tagsForGameType,
 } from "@lib/stats/section-registry";
 import { GAME_TYPE_BY_RULESET } from "@lib/game/rulesets/capabilities";
@@ -394,5 +397,91 @@ describe("statistics section registry", () => {
 
   it("exports the server fold dart cap", () => {
     expect(MAX_FOLD_DARTS).toBe(5_000);
+  });
+});
+
+describe("routine section registry (phase 6b plan decision 6)", () => {
+  it("keys every entry by its own id, disjoint from SECTIONS", () => {
+    for (const [key, meta] of Object.entries(ROUTINE_SECTIONS)) {
+      expect(meta.id).toBe(key);
+      expect(isSectionId(key)).toBe(false);
+    }
+  });
+
+  it("matches decision 6's includesAbandoned column", () => {
+    expect(ROUTINE_SECTIONS["routine-volume"].includesAbandoned).toBe(false);
+    expect(ROUTINE_SECTIONS["routine-completion"].includesAbandoned).toBe(true);
+    expect(ROUTINE_SECTIONS["step-volume"].includesAbandoned).toBe(false);
+    expect(ROUTINE_SECTIONS["step-result"].includesAbandoned).toBe(false);
+  });
+
+  it("computes routine-volume/routine-completion/step-volume in sql and step-result on the server, all bucketable", () => {
+    for (const id of [
+      "routine-volume",
+      "routine-completion",
+      "step-volume",
+    ] as const) {
+      expect(ROUTINE_SECTIONS[id].computeSite).toBe("sql");
+      expect(ROUTINE_SECTIONS[id].bucketable).toBe(true);
+    }
+    expect(ROUTINE_SECTIONS["step-result"].computeSite).toBe("server");
+    expect(ROUTINE_SECTIONS["step-result"].bucketable).toBe(true);
+  });
+
+  it("tags run sections routine-surface and step sections step-surface", () => {
+    expect(ROUTINE_SECTIONS["routine-volume"].surface).toBe("routine");
+    expect(ROUTINE_SECTIONS["routine-completion"].surface).toBe("routine");
+    expect(ROUTINE_SECTIONS["step-volume"].surface).toBe("step");
+    expect(ROUTINE_SECTIONS["step-result"].surface).toBe("step");
+  });
+
+  it("sectionsForRoutine returns the two run-level sections in page order", () => {
+    expect(sectionsForRoutine().map((meta) => meta.id)).toEqual([
+      "routine-volume",
+      "routine-completion",
+    ]);
+  });
+
+  it("sectionsForStep gives a GAME step exactly sectionsForGame's metas", () => {
+    const result = sectionsForStep({
+      exerciseTypeKey: "GAME",
+      gameTypeKey: "SCORE_TRAINING",
+    });
+
+    expect(result.kind).toBe("game");
+    if (result.kind !== "game") throw new Error("expected a game step");
+    expect(result.gameTypeKey).toBe("SCORE_TRAINING");
+    expect(result.sections.map((meta) => meta.id)).toEqual(
+      sectionsForGame("SCORE_TRAINING"),
+    );
+  });
+
+  it("sectionsForStep gives a dart exercise step-result and step-volume", () => {
+    const result = sectionsForStep({
+      exerciseTypeKey: "SWITCHING",
+      gameTypeKey: null,
+    });
+
+    expect(result.kind).toBe("exercise");
+    expect(result.sections.map((meta) => meta.id)).toEqual([
+      "step-result",
+      "step-volume",
+    ]);
+  });
+
+  it("sectionsForStep gives Warm-Up step-volume only", () => {
+    const result = sectionsForStep({
+      exerciseTypeKey: "WARM_UP",
+      gameTypeKey: null,
+    });
+
+    expect(result.kind).toBe("exercise");
+    expect(result.sections.map((meta) => meta.id)).toEqual(["step-volume"]);
+  });
+
+  it("fixes requires to [] for every routine section", () => {
+    for (const meta of Object.values(ROUTINE_SECTIONS)) {
+      expect(meta.requires).toEqual([]);
+    }
   });
 });

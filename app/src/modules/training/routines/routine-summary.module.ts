@@ -1,5 +1,6 @@
 import { accuracyDisplay } from "@lib/game/play-visit-stats";
 import { targetScoringTargetLabel } from "@modules/training/exercises/target-scoring.engine.module";
+import { stepMetrics } from "@modules/stats/step-metrics.module";
 import type {
   EngineFacts,
   SwitchingState,
@@ -22,6 +23,15 @@ import type {
 const NO_VALUE = "—";
 
 /**
+ * Stands in for `facts` on every kind but Switching, whose hit count is the
+ * only one `stepMetrics` derives by replaying dart facts rather than
+ * reading engine state alone (`stepMetrics`'s `switchingHits`). Every other
+ * `summarise*` function takes its engine state only, so it has no real
+ * facts to pass and none of its metrics needs them.
+ */
+const NO_FACTS: EngineFacts = { stages: [], turns: [] };
+
+/**
  * A rate over no darts is not 0% — it is nothing to report, so an
  * untouched exercise reads as a dash rather than a failed one.
  */
@@ -41,20 +51,14 @@ export function summariseSwitching(
   state: SwitchingState,
   facts: EngineFacts,
 ): RoutineStepSummary {
-  const hits = facts.turns
-    .flatMap((turn) => turn.darts)
-    .filter(
-      (dart) =>
-        dart.intendedTargetNumber !== null &&
-        dart.hitTargetNumber === dart.intendedTargetNumber,
-    ).length;
+  const { points, darts, hits } = stepMetrics("SWITCHING", state, facts);
   return {
     stepKey: "SWITCHING",
     label: "Switching",
     rows: [
-      { label: "Points", value: String(state.totalPoints) },
-      { label: "Darts", value: String(state.dartsThrown) },
-      hitRateRow(hits, state.dartsThrown),
+      { label: "Points", value: String(points) },
+      { label: "Darts", value: String(darts) },
+      hitRateRow(hits, darts),
     ],
   };
 }
@@ -66,13 +70,14 @@ export function summariseSwitching(
 export function summariseDoublePattern(
   state: DoublePatternState,
 ): RoutineStepSummary {
+  const { hits, darts } = stepMetrics("DOUBLE_PATTERN", state, NO_FACTS);
   return {
     stepKey: "DOUBLE_PATTERN",
     label: "Doubles",
     rows: [
-      { label: "Doubles hit", value: String(state.totalPoints) },
-      { label: "Darts", value: String(state.dartsThrown) },
-      hitRateRow(state.totalPoints, state.dartsThrown),
+      { label: "Doubles hit", value: String(hits) },
+      { label: "Darts", value: String(darts) },
+      hitRateRow(hits, darts),
     ],
   };
 }
@@ -85,17 +90,22 @@ export function summariseDoublePattern(
 export function summariseTargetScoring(
   state: TargetScoringState,
 ): RoutineStepSummary {
+  const { bestChain, darts, hits } = stepMetrics(
+    "TARGET_SCORING",
+    state,
+    NO_FACTS,
+  );
   return {
     stepKey: "TARGET_SCORING",
     label: "Target Scoring",
     rows: [
-      { label: "Best chain", value: String(state.bestChain) },
+      { label: "Best chain", value: String(bestChain) },
       ...state.bestChainByTarget.map(({ targetNumber, bestChain }) => ({
         label: `Best on ${targetScoringTargetLabel(targetNumber)}`,
         value: String(bestChain),
       })),
-      { label: "Darts", value: String(state.dartsThrown) },
-      hitRateRow(state.hits, state.dartsThrown),
+      { label: "Darts", value: String(darts) },
+      hitRateRow(hits, darts),
     ],
   };
 }
@@ -108,14 +118,19 @@ export function summariseTargetScoring(
 export function summariseSwitchingTargetScoring(
   state: SwitchingTargetScoringState,
 ): RoutineStepSummary {
+  const { bestChain, sequences, darts, hits } = stepMetrics(
+    "SWITCHING_TARGET_SCORING",
+    state,
+    NO_FACTS,
+  );
   return {
     stepKey: "SWITCHING_TARGET_SCORING",
     label: "Switching Target Scoring",
     rows: [
-      { label: "Best chain", value: String(state.bestChain) },
-      { label: "Sequences", value: String(state.completedSequences) },
-      { label: "Darts", value: String(state.dartsThrown) },
-      hitRateRow(state.hits, state.dartsThrown),
+      { label: "Best chain", value: String(bestChain) },
+      { label: "Sequences", value: String(sequences) },
+      { label: "Darts", value: String(darts) },
+      hitRateRow(hits, darts),
     ],
   };
 }
@@ -128,20 +143,22 @@ export function summariseSwitchingTargetScoring(
 export function summariseScoreThreshold(
   state: ScoreThresholdState,
 ): RoutineStepSummary {
+  const { beats, visits, darts } = stepMetrics(
+    "SCORE_THRESHOLD",
+    state,
+    NO_FACTS,
+  );
   return {
     stepKey: "SCORE_THRESHOLD",
     label: "65 or More",
     rows: [
-      { label: "Beats", value: String(state.beats) },
-      { label: "Visits", value: String(state.visits) },
+      { label: "Beats", value: String(beats) },
+      { label: "Visits", value: String(visits) },
       {
         label: "Beat rate",
-        value:
-          state.visits === 0
-            ? NO_VALUE
-            : accuracyDisplay(state.beats, state.visits),
+        value: visits === 0 ? NO_VALUE : accuracyDisplay(beats, visits),
       },
-      { label: "Darts", value: String(state.dartsThrown) },
+      { label: "Darts", value: String(darts) },
     ],
   };
 }
@@ -154,20 +171,22 @@ export function summariseScoreThreshold(
 export function summariseBullseyeCheckout(
   state: BullseyeCheckoutState,
 ): RoutineStepSummary {
+  const { checkouts, visits, darts } = stepMetrics(
+    "BULLSEYE_CHECKOUT",
+    state,
+    NO_FACTS,
+  );
   return {
     stepKey: "BULLSEYE_CHECKOUT",
     label: "Bullseye Checkouts",
     rows: [
-      { label: "Checkouts", value: String(state.checkouts) },
-      { label: "Visits", value: String(state.visits) },
+      { label: "Checkouts", value: String(checkouts) },
+      { label: "Visits", value: String(visits) },
       {
         label: "Checkout rate",
-        value:
-          state.visits === 0
-            ? NO_VALUE
-            : accuracyDisplay(state.checkouts, state.visits),
+        value: visits === 0 ? NO_VALUE : accuracyDisplay(checkouts, visits),
       },
-      { label: "Darts", value: String(state.dartsThrown) },
+      { label: "Darts", value: String(darts) },
     ],
   };
 }
@@ -177,17 +196,18 @@ export function summariseBullseyeCheckout(
  * split by ring. Every throw is judged on landing; none is left open.
  */
 export function summariseBullUp(state: BullUpState): RoutineStepSummary {
+  const { throws, bullseyes, bulls } = stepMetrics("BULL_UP", state, NO_FACTS);
   const rate = (hits: number) =>
-    state.throws === 0 ? NO_VALUE : accuracyDisplay(hits, state.throws);
+    throws === 0 ? NO_VALUE : accuracyDisplay(hits, throws);
   return {
     stepKey: "BULL_UP",
     label: "Bull Up Practice",
     rows: [
-      { label: "Throws", value: String(state.throws) },
-      { label: "Bullseyes", value: String(state.bullseyes) },
-      { label: "Bulls", value: String(state.bulls) },
-      { label: "Bullseye rate", value: rate(state.bullseyes) },
-      { label: "Bull rate", value: rate(state.bulls) },
+      { label: "Throws", value: String(throws) },
+      { label: "Bullseyes", value: String(bullseyes) },
+      { label: "Bulls", value: String(bulls) },
+      { label: "Bullseye rate", value: rate(bullseyes) },
+      { label: "Bull rate", value: rate(bulls) },
     ],
   };
 }

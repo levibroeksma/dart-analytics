@@ -2,16 +2,16 @@
 status: canonical
 scope: architecture/statistics
 read-when: designing or building any detailed statistics page, insight section, statistics endpoint, or the statistics client cache
-updated: 2026-09-28
+updated: 2026-09-29
 -->
 
 # Statistics — Overview
 
-> **Version:** 1.5.0 (2026-09-28, D364/D365/D366/D367/D368/D369/D370/D371)
+> **Version:** 1.6.0 (2026-09-29, D364/D365/D366/D367/D368/D369/D370/D371/D372)
 >
 > Architecture for the detailed per-game statistics pages on `/statistics`.
 > Design record: `docs/superpowers/specs/2026-09-26-statistics-pages-architecture-design.md`.
-> Status: **phase 1 + 2 + 3 + 4 + 5 built** (§12) — base views (0043), the session
+> Status: **built** — every phase of §12 has landed (1–6): base views (0043), the session
 > list, the `completion`/`volume`/`session-result` sections, the registry
 > skeleton, the IndexedDB cache, the six board sections (`heatmap`,
 > `target-accuracy`, `confusion`, `grouping`, `miss-direction`,
@@ -24,8 +24,12 @@ updated: 2026-09-28
 > (`target-accuracy`, `confusion`, `miss-direction`, `loose-darts` widened
 > onto Singles Training, Shanghai and Around the Clock via an engine fold) and
 > three game-specific sections (`shanghai-count`, `atc-darts-per-target`,
-> `bobs27-survival`), and phase 5 (D371): the paginated per-session replay
-> (`02-Replay.md`). Everything else is still designed, not built.
+> `bobs27-survival`), phase 5 (D371): the paginated per-session replay
+> (`02-Replay.md`), and phase 6 (D372): the Routines tab — routine and step
+> identity from the snapshot (§8), the run- and step-level sections
+> (`01-Section-Catalog.md` §3), a GAME step's own game sections, and
+> training-step replay. Still designed, not built: thin per-section views
+> (§10) and the `facts` cache store (§7).
 
 | File | Covers |
 | ---- | ------ |
@@ -41,8 +45,9 @@ re-expressed as registry sections, which this design allows but does not require
 
 # 1. Scope
 
-- **Surface:** the Games tab of `/statistics` (game picker already built). The
-  Routines tab is a later consumer of the same layer (§8).
+- **Surface:** the Games and Routines tabs of `/statistics`. The Routines tab
+  (D372) reads the same layer through routine and step scopes (§8); it loads
+  on its first activation, never at page load.
 - **Capture mode:** `ANALYTICS` + `VISUAL_BOARD` only in this version — the only mode
   with per-dart coordinates. The `inputMode` parameter (§5) exists from day one so
   recreational-mode sections are additive later.
@@ -226,14 +231,27 @@ view-backed end to end (D63).
 | ----- | ------- | ------ |
 | `GET games/:gameTypeKey/sessions` | paginated session list for the page (completed + abandoned, with progress-at-end), newest first | built (phase 1) |
 | `GET games/:gameTypeKey/sections/:sectionId` | one section result (`Series` or single value), dispatched through the registry; unknown or non-applicable section → `NOT_FOUND` | built (phase 1: `completion`/`volume`/`session-result`; phase 2: `heatmap`/`target-accuracy`/`confusion`/`grouping`/`miss-direction`/`loose-darts`; phase 3: `checkout-rate`/`double-performance`/`checkout-path`/`bust-rate`/`ladder-progress`/`leg-stats`/`scoring-trend`/`treble-rate`; phase 4: `target-accuracy`/`confusion`/`miss-direction`/`loose-darts` widened onto Singles Training/Shanghai/Around the Clock, plus `shanghai-count`/`atc-darts-per-target`/`bobs27-survival`) |
-| `GET sessions/:sessionId/replay` | paginated replay (`02-Replay.md`) | built (phase 5, D371) |
+| `GET sessions/:sessionId/replay` | paginated replay (`02-Replay.md`) | built (phase 5, D371; training steps, phase 6, D372) |
+| `GET routines` | every routine the caller has trained, newest run first, unpaginated | built (phase 6, D372) |
+| `GET routines/:routineKey` | the routine header: name, run counts, `dataVersion`, and every step key it has run | built (phase 6, D372) |
+| `GET routines/:routineKey/sections/:sectionId` | one run-level section (`routine-volume`, `routine-completion`) | built (phase 6, D372) |
+| `GET routines/:routineKey/steps/:stepKey/sections/:sectionId` | one step section: a GAME step's own game sections, else `step-result`/`step-volume` (`01-Section-Catalog.md` §3) | built (phase 6, D372) |
+| `GET routines/:routineKey/steps/:stepKey/sessions` | the step's paginated session list, newest first, each row linking to its replay | built (phase 6, D372) |
 
 The route segment is `:gameTypeKey` (`game_types.implementation_key`), not
 `:rulesetKey` (D367 decision 1): a game page spans ruleset versions (e.g.
 Singles V1–V3), and `configSensitive` (§2) is what keeps versions from
 blending within it. One generic section route keeps the route count flat as
 insights grow; the registry, not the router, is what grows. Full contracts
-for the three built routes are in `06-API/04-Endpoint-Contracts.md`.
+for every built route are in `06-API/04-Endpoint-Contracts.md`.
+
+The routine routes fix `context = routine` (§8, D372 decision 4). The two
+section routes accept `from`, `to`, `tz`, `bucket` and `status` only; the step
+session list `from`, `to`, `status`, `limit` and `cursor`; the list and the
+header nothing. Anything else is `VALIDATION_FAILED`. A malformed
+`routineKey` or `stepKey` is `VALIDATION_FAILED` before any read; a routine
+the caller never trained, a step key it never ran, or a section the routine
+or step does not offer is `NOT_FOUND`.
 
 ---
 
@@ -245,15 +263,26 @@ behind one module; Alpine stores read through it.
 
 | Store | Key | Invalidation |
 | ----- | --- | ------------ |
-| `sectionResults` | `(playerId, sectionId, sectionVersion, params, bucketStart)` | closed buckets: never. Open bucket and `bucket = none`: when `dataVersion` changes. |
-| `sessionLists` | `(playerId, rulesetKey, params, cursor)` | when `dataVersion` changes |
+| `sectionResults` | `(playerId, scopeKey, sectionId, sectionVersion, params, bucketStart)` | closed buckets: never. Open bucket and `bucket = none`: when `dataVersion` changes. |
+| `sessionLists` | `(playerId, scopeKey, params, cursor)` | when `dataVersion` changes |
 | `replayPages` | `(sessionId, cursor)` | never — completed gameplay is immutable; built (phase 5, D371, `STATS_SCHEMA_VERSION` 2) |
 | `facts` | `(playerId, rulesetKey, month)` | bounded windows only, LRU-evicted under a size budget |
-| `meta` | `schemaVersion`, per-game `dataVersion` | schema bump wipes all stores; logout wipes all stores |
+| `meta` | `schemaVersion`, per-scope `dataVersion` | schema bump wipes all stores; logout wipes all stores |
 
-- **`dataVersion`** is an opaque server token per (player, game), returned on every
+- **`dataVersion`** is an opaque server token per (player, game) — per
+  (player, routine) for a routine and its steps — returned on every
   response. Its definition (today: count + max `completed_at` of the population)
   can widen later — e.g. to cover corrections — without a client change.
+- **Scope key (D372 decision 12):** every key carries a scope, not a game:
+  `game:<gameTypeKey>`, `routine:<routineKey>` or
+  `routine:<routineKey>:step:<stepKey>`. A routine and its steps share one
+  `dataVersion` entry (`versionKey = routine:<routineKey>`), computed over the
+  routine's terminal runs, so a new run is the only thing that stales either
+  scope. The Routines tab records the header's fresh token
+  (`noteDataVersion`) before it reads any section. The move bumped
+  `STATS_SCHEMA_VERSION` 2 → 3, which wipes every store, `replayPages`
+  included — and so also covers the replay header's phase 6 contract change
+  (`02-Replay.md` §2).
 - **Fetch rule:** a request is made only for keys absent from the cache or stale
   under the table above. Splitting a series request into its open bucket only is
   the main cost saving for Neon and Workers.
@@ -268,7 +297,9 @@ behind one module; Alpine stores read through it.
   `Record<ServerSectionId, merger>`, so a new server section with no merger
   entry is a compile error. A `year` view is a client regroup of cached month
   chunks. A `VALIDATION_FAILED` chunk shows the card error state and is never
-  auto-split further.
+  auto-split further. A `step-result` chunk (D372) merges with
+  `mergeStepResult` under its exercise kind's `STEP_METRIC_SPECS` entry, which
+  the step scope carries; `mergeMetrics` stays game-only.
 - Every read and write is wrapped so a blocked or empty IndexedDB (private mode,
   quota) degrades to network-only, never to an error.
 
@@ -288,8 +319,35 @@ never stored:
 
 | Consumer | Population |
 | -------- | ---------- |
-| Game pages (now) | game pair match, both contexts; `context` filter optional |
-| Routine pages (later) | `ROUTINE` only, scoped by routine snapshot identity + step index. The server fixes `context = routine`; the client cannot widen it. |
+| Game pages | game pair match, both contexts; `context` filter optional |
+| Routines tab (built, D372) | `ROUTINE` only, scoped by routine snapshot identity + step key. The server fixes `context = routine`; the client cannot widen it. |
+
+**Routine identity (D372 decision 1):** `routine_key` is the
+`activity_configurations` snapshot's `routineTemplateId`, never a template
+FK, so a deleted routine keeps its statistics. A snapshot written before
+that field existed (D321) keys as `name-<md5(routineName)>`, so one legacy
+name is one routine; the two forms cannot collide. The display name is the
+latest run's `routineName`, so a renamed routine keeps its history; a latest
+run whose snapshot has none reads as "Unnamed routine" rather than failing.
+
+**Step identity (decision 2):** `step_key = <sequenceNumber>-<md5>`, the md5
+of the step's snapshot element without `sequenceNumber` (`jsonb` text output
+is canonical). The element is found by `sequenceNumber`, never by array
+position. Any change to a step's exercise, ruleset, duration or
+configuration starts a new key; earlier keys stay listed as earlier versions
+of that index. A key never mixes configurations, so no step section needs
+`configGroupKey`. A step key is `current` when it is the latest key seen at
+its `sequenceNumber` and that index is within the latest run's step count —
+so a step edited in the latest run but not yet reached shows its old key as
+current until it is reached.
+
+**Fixed context (decision 4):** the routine routes take no `context` or
+`inputMode` (§6). A GAME step's section runs the game path with
+`context: "routine"` and `routineStep: { routineKey, stepKey }` set
+server-side. `routineStep` adds one predicate to every session and dart
+scope — `session_id IN (SELECT session_id FROM v_stats_routine_step_facts
+WHERE player_id = $p AND routine_key = $r AND step_key = $s)` — phase 1's own
+readers included, so each of the game's sections is scoped to that step.
 
 A routine step may pin a different configuration than the player's usual
 standalone setup, so sections whose result depends on configuration declare it
@@ -321,8 +379,8 @@ per-section views are still planned.
 | ---- | ----- | ------ | ------ |
 | `v_stats_session_facts` | one row per completed or abandoned session, owner-scoped | session lists, `completion`, `volume`, `session-result`; carries `context_key`, `activity_id`, status, ruleset version, input mode, configuration snapshot, turn count | built (0043) |
 | `v_stats_dart_facts` | one row per `VISUAL_BOARD` dart, owner-scoped | the base for every `board`/`intent-*` section; `v_dart_locations` columns plus `completed_at`, status, `ruleset_version_key`, `context_key` | built (0043) |
-| `v_stats_routine_run_facts` | one row per completed or abandoned training activity, owner-scoped | routine statistics (§12 item 6, later); routine identity resolved from the `activity_configurations` snapshot, step counts, owner-scoped dart count | built (0045) |
-| `v_stats_routine_step_facts` | one row per completed or abandoned routine step session, owner-scoped | routine statistics (§12 item 6, later); step identity resolved by `sequenceNumber` (never array position), owner-scoped turn/dart/score counts | built (0045) |
+| `v_stats_routine_run_facts` | one row per completed or abandoned training activity, owner-scoped | routine statistics (§8, §12 item 6); routine identity resolved from the `activity_configurations` snapshot, step counts, owner-scoped dart count | built (0045) |
+| `v_stats_routine_step_facts` | one row per completed or abandoned routine step session, owner-scoped | routine statistics (§8, §12 item 6); step identity resolved by `sequenceNumber` (never array position), owner-scoped turn/dart/score counts | built (0045) |
 | thin per-section views (`v_stats_<section>`) | reduced rows | only where SQL is the compute site; each reads the two base views (dependency depth ≤ 2) | planned |
 
 - Replay reads `v_game_replay`, widened with participant identity
@@ -382,4 +440,9 @@ Each phase is its own spec, plan, and migration.
    (turn pages, first-page header, a forever client cache) and the
    `/statistics/replay?session=` page, whose per-turn values come from a
    client-side engine fold and per-game presenters (`02-Replay.md`).
-6. Routine statistics (later; `context = routine`).
+6. **Done** (routine statistics; 6a: routine fact views, 0045, 2026-09-28;
+   6b: 2026-09-29, D372): the Routines tab — the trained-routine picker,
+   `routine-volume`/`routine-completion`, a step list with earlier versions,
+   a GAME step's own game sections, `step-result`/`step-volume` for a
+   non-game step, the step session list, and training-step replay, all under
+   a fixed `context = routine` (§8).

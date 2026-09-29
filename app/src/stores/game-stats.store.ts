@@ -14,6 +14,7 @@ import { doubleTargetIntent } from "@modules/game/turn-log.module";
 import { groupingSummary } from "@modules/stats/sections/grouping.module";
 import { fetchGameSection, fetchGameSessions } from "@client/api/statistics";
 import { readSection, readSessionPage } from "@client/stats-cache/cache";
+import { gameScopeKey } from "@modules/stats/routine-scope.module";
 import type {
   AtcDartsPerTargetMetrics,
   Bobs27SurvivalMetrics,
@@ -191,7 +192,8 @@ function bandLadderTargets(totals: ReadonlyMap<string, LadderTargetTotal>): {
     }));
 }
 
-function defaultRange() {
+/** A statistics page's opening range: the last twelve months to a minute from now, bucketed by month in the browser's own time zone. Shared with `routine-stats.store.ts`, so both tabs open on the same window. */
+export function defaultRange() {
   const now = new Date();
   const from = new Date(now);
   from.setUTCMonth(from.getUTCMonth() - 12);
@@ -252,7 +254,7 @@ export function gameStatsStore() {
           ids.map((id) =>
             readSection<unknown>(
               CACHE_PLAYER_ID,
-              gameTypeKey,
+              { key: gameScopeKey(gameTypeKey), gameTypeKey },
               SECTIONS[id],
               query,
               (span) =>
@@ -274,7 +276,7 @@ export function gameStatsStore() {
 
         const page = await readSessionPage<
           GameSessionListResponseData["items"][number]
-        >(CACHE_PLAYER_ID, gameTypeKey, query, () =>
+        >(CACHE_PLAYER_ID, gameScopeKey(gameTypeKey), query, () =>
           fetchGameSessions(gameTypeKey, { ...this.range, limit: 25 }),
         );
         this.sessions = page.items;
@@ -303,7 +305,7 @@ export function gameStatsStore() {
       };
       return readSection<CheckoutPathMetrics>(
         CACHE_PLAYER_ID,
-        gameTypeKey,
+        { key: gameScopeKey(gameTypeKey), gameTypeKey },
         SECTIONS["checkout-path"],
         query,
         (span) =>
@@ -331,7 +333,7 @@ export function gameStatsStore() {
       };
       const result = await readSection<HeatmapMetrics>(
         CACHE_PLAYER_ID,
-        gameTypeKey,
+        { key: gameScopeKey(gameTypeKey), gameTypeKey },
         SECTIONS.heatmap,
         query,
         (span) =>
@@ -356,7 +358,7 @@ export function gameStatsStore() {
       };
       const page = await readSessionPage<
         GameSessionListResponseData["items"][number]
-      >(CACHE_PLAYER_ID, gameTypeKey, query, () =>
+      >(CACHE_PLAYER_ID, gameScopeKey(gameTypeKey), query, () =>
         fetchGameSessions(gameTypeKey, { ...this.range, limit: 25, cursor }),
       );
       this.sessions = [...this.sessions, ...page.items];

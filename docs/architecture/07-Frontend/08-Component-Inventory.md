@@ -2,7 +2,7 @@
 status: canonical
 scope: shared Astro component inventory
 read-when: before writing markup for any recurring UI shape
-updated: 2026-09-26
+updated: 2026-09-29
 -->
 
 # Component Inventory
@@ -36,7 +36,7 @@ evaluated in the page's own Alpine scope.
 | `Link.astro` | Anchor styled as text link or button | `href`, `variant` (`inline`/`primary`/`secondary`/`ghost`), `external`, `icon`, `ariaLabel` |
 | `LogoutButton.astro` | Sign-out action wired to the auth flow | none |
 | `Modal.astro` | Base dialog shell; `ConfirmDialog` builds on it | `titleId`, `descriptionId`, `dismissible`, `onDismiss` |
-| `StatsHeatmap.astro` | The `heatmap` statistics section: `DartBoard.astro`'s SVG plus a cell overlay, geometry and intensity read from `$store.gameStats.heatmapCells` (2026-09-26) | `class` |
+| `StatsHeatmap.astro` | The `heatmap` statistics section: `DartBoard.astro`'s SVG plus a cell overlay, geometry and intensity read from a section view's `heatmapCells` getter — `$store.gameStats` on the Games tab, a GAME step's view on the Routines tab (2026-09-26; `cellsExpr` 2026-09-29, D372) | `cellsExpr`, `class` |
 
 ## `components/forms/`
 
@@ -137,3 +137,10 @@ that split (2026-09-19, closes issue #423).
 | --------- | ------- | --------- |
 | `WeekdayStrip.astro` | Homepage row of seven day-initial circles, one flex line (`justify-between`), below the intro text. An inline `:class` ternary on `homeWeek()`'s `isToday(index)`/`hasRoutine(index)`: today at `scale-110` in accent (filled `bg-accent` when it has a routine, border only when not); other days muted (filled `bg-muted` when they have a routine, border only when not). Letters come from `weekdayNames()` (build time) (2026-09-22) | none — reads `homeWeek()` from the parent scope |
 | `TodayRoutineCard.astro` | Homepage card for today's scheduled routine, below `WeekdayStrip`: while not completed today, "Today · <schedule name>" with a Schedules link, routine name, minutes badge and a `Start` button (`start()`), or "Rest day" with no button on a day without a routine; once done, a "You're on fire" state with a flame icon; nothing with no active schedule. Replaces the former `/training` `TodayCard` (2026-09-23) | none — reads `homeWeek()` from the parent scope |
+
+## `components/layout/statistics/`
+
+| Component | Purpose | Key props |
+| --------- | ------- | --------- |
+| `GameSectionCards.astro` | A game's insight section cards, rendered against one section view (`game-stats.store.ts`'s getters over a `sections` record); each card shows once its section has loaded. The Games tab passes `$store.gameStats`, the Routines tab `$store.routineStats.stepGame`, so a GAME step shows the exact cards its game's own page does (2026-09-29, D372) | `view`, `heatmapTargets` (off by default; only the Games tab turns on the heatmap's target picker), `class` |
+| `RoutineStepButton.astro` | One row of the Routines tab's step list: the step's label and its detail (session count, configured minutes, last run date), marked while it is the selected step; a click selects it. Renders inside an `x-for` whose item is `step`, for both the current steps and "Earlier versions" (2026-09-29, D372) | none — reads `step` from the enclosing `x-for` and `$store.routineStats` |

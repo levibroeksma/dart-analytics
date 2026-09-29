@@ -2,15 +2,16 @@
 status: canonical
 scope: architecture/statistics/replay
 read-when: building or changing the per-session game replay route or its endpoint
-updated: 2026-09-28
+updated: 2026-09-29
 -->
 
 # Statistics — Game Replay
 
-> **Version:** 1.1.0 (2026-09-28, D371; prior 1.0.0 2026-09-26, D365)
+> **Version:** 1.2.0 (2026-09-29, D372; prior 1.1.0 2026-09-28, D371; prior 1.0.0 2026-09-26, D365)
 >
 > Full, paginated replay of one session. Shared query rules and caching:
-> `00-Overview.md` §5/§7. Status: **built** (phase 5, D371).
+> `00-Overview.md` §5/§7. Status: **built** (phase 5, D371; training step
+> sessions, phase 6, D372).
 
 ---
 
@@ -22,7 +23,8 @@ following the `?routine=` precedent. A dynamic segment would force on-demand
 rendering for a shell that carries no data. A missing or non-UUID `?session=`
 shows the not-found state and sends no request.
 
-Links (decision 12): every session-list row on a game page, and the
+Links (decision 12): every session-list row on a game page, every step
+session row on the Routines tab except a Warm-Up step's (D372), and the
 `session-result` PB line (its `bestLowSessionId`/`bestHighSessionId`). No
 phase 2–4 metric carries a session id, so no section links yet; a section
 that wants one (best leg, highest checkout) needs a new field first.
@@ -35,9 +37,12 @@ that wants one (best leg, highest checkout) needs a new field first.
 (full contract: `06-API/04-Endpoint-Contracts.md` §Statistics Replay)
 
 - **One gate, every page (decision 2):** the caller's `v_stats_session_facts`
-  row for `(player_id, session_id)` must exist, else `NOT_FOUND`. Another
-  player's session, an active session, a training (non-game) session and an
-  unknown id all read the same; none reveals whether the id exists. The gate
+  row for `(player_id, session_id)` must exist — or, failing that, the
+  caller's `v_stats_routine_step_facts` row with a non-null
+  `input_mode_key` (D372 decision 11) — else `NOT_FOUND`. Another player's
+  session, an active session, a Warm-Up step (no capture pair, nothing to
+  replay) and an unknown id all read the same; none reveals whether the id
+  exists. The gate
   runs on every page, since a cursor is not a credential. A non-UUID
   `sessionId` is `VALIDATION_FAILED` before the gate.
 - **Play order (decision 3):** stages in pre-order — roots by
@@ -60,7 +65,16 @@ that wants one (best leg, highest checkout) needs a new field first.
     `rulesetVersionKey`, `inputModeKey`, `statusKey`, `contextKey`,
     `activityId` (links a routine-step game to its training run),
     `routineStepSequenceNumber`, `configuration` (the snapshot),
-    `startedAt`, `completedAt`, `durationSeconds`, `turnCount`, `dartCount`
+    `startedAt`, `completedAt`, `durationSeconds`, `turnCount`, `dartCount`;
+    a non-game step reads the same fields from `v_stats_routine_step_facts`
+    instead (`contextKey` `ROUTINE`), with `gameTypeKey` **and**
+    `rulesetVersionKey` `null` — `chk_exercise_sessions_game_pair` (`0029`)
+    nulls the ruleset whenever the game type is null
+  - from `v_stats_routine_step_facts` — left-joined on `session_id` for a
+    game session, the fallback row itself for a non-game step (D372
+    decision 11): `exerciseTypeKey`, `exerciseRulesetVersionKey`,
+    `routineKey`, `stepKey`. A standalone game has no step row: its
+    `exerciseTypeKey` is `GAME` and the other three are `null`
   - `participants`: `{ participantId, displayName, participantTypeKey }[]`,
     every participant with at least one stored turn (guests and DartBot
     included), in first-turn order
@@ -79,8 +93,9 @@ that wants one (best leg, highest checkout) needs a new field first.
   parameter is `VALIDATION_FAILED` (`00-Overview.md` §5, never silently
   ignored); the session id is the scope.
 - **Scope (decision 10):** every terminal (completed or abandoned) game
-  session, any input mode. Training sessions are absent from
-  `v_stats_session_facts` (`NOT_FOUND`); routine replay is phase 6.
+  session, any input mode, and — since phase 6 (D372) — every terminal
+  non-game routine step session with an input mode. A Warm-Up step has
+  none, so it stays `NOT_FOUND`.
 
 Replay reproduces the stored facts and the stored snapshot — never current
 templates or rulesets (`05-Views/00-Overview.md` §Runtime Replay Rules).
@@ -96,7 +111,10 @@ The server applies no game rule; derived per-turn values are the client's
   `replayPages` IndexedDB store, keyed `(sessionId, cursor ?? "")`, with no
   `dataVersion` and no invalidation — wiped only with the rest of the cache
   on sign-out or a schema bump. Adding the store bumped
-  `STATS_SCHEMA_VERSION` 1 → 2. Every response, page or error, is
+  `STATS_SCHEMA_VERSION` 1 → 2. The header's phase 6 change is a contract
+  change, so it rides the scope-key bump 2 → 3 (`00-Overview.md` §7, D372),
+  which wipes `replayPages` too: no page cached under the old header shape
+  survives. Every response, page or error, is
   `Cache-Control: private, no-store`: the browser's HTTP cache is keyed by
   URL alone and sign-out cannot wipe it, so a cached page could reach the
   next user of a shared browser (`00-Overview.md` §7).
@@ -123,7 +141,9 @@ rebuilding the ruleset's engine over the loaded facts (decision 8).
 
 - **Facts:** `foldReplay(header, turns)` (`lib/stats/replay-fold.ts`) decodes
   the snapshot with `snapshotOf` (`modules/stats/x01-checkout-sessions.module.ts`,
-  reused in place) and maps the pages to `EngineFacts`: stage `clientKey` =
+  reused in place) and maps the pages to `EngineFacts` through `replayFacts`
+  — moved to `modules/stats/replay.module.ts` in phase 6 so the server's
+  `step-result` fold reuses it (D372): stage `clientKey` =
   `stageId`, turn `clientKey` = `stageId:turnSequence`, `participantRef` =
   `participantId`, dart `sequence` = `dartNumber`. The view carries no turn
   completion time, so every turn gets one fixed non-null `completedAt`
@@ -139,6 +159,10 @@ rebuilding the ruleset's engine over the loaded facts (decision 8).
   Cost is quadratic in the session's turns, bounded by one session; a test
   pins a 600-turn Score Training session under one second. The store refolds
   from page 1 each time a page loads, so every earlier turn is always loaded.
+  A non-game step (`gameTypeKey` `null`) folds through its dart exercise
+  engine instead, `getDartExerciseEngineFactory(exerciseRulesetVersionKey)`,
+  over its own configuration (D372 decision 11). That engine reads no seat,
+  so no seat is synthesized.
 - **Presenters** (`REPLAY_PRESENTERS`, `lib/stats/replay-presenters.ts`), one
   per game type: `turn(step, snapshot)` gives a row's cells and
   `session(steps, snapshot)` the session line, where `step = { turn, before,
@@ -154,6 +178,13 @@ rebuilding the ruleset's engine over the loaded facts (decision 8).
   | Bob's 27 | running score | final score, score curve per visit (phase 4 deferral) |
 
   The session line shows only once every page is loaded.
+- **Step presenters** (`STEP_REPLAY_PRESENTERS`, D372 decision 11), one per
+  dart exercise kind, are built from `STEP_METRIC_SPECS` and `stepMetrics`
+  (`01-Section-Catalog.md` §3.1), not hand-written: a turn shows the kind's
+  running headline and darts thrown; the session line shows every final
+  metric. The store picks `REPLAY_PRESENTERS` by `gameTypeKey`, else
+  `STEP_REPLAY_PRESENTERS` by `exerciseTypeKey`; the page heading falls back
+  to the step's exercise label and exercise ruleset.
 - **501 bust flag, limitation:** a bust is a visit its engine counted as zero
   though its darts scored (`checkoutAttemptCount`), so only board-captured
   turns are flagged. A keypad bust stores no darts and cannot be told from a
@@ -166,6 +197,14 @@ rebuilding the ruleset's engine over the loaded facts (decision 8).
     than one participant
   - `ENGINE_THREW`: `create` throws, or a turn's participant holds no seat or
     names a stage outside the session
+  - `NO_EXERCISE_ENGINE` (D372): a non-game step whose
+    `exerciseRulesetVersionKey` is `null` or names no registered dart
+    exercise engine
+
+  For a non-game step, `NO_SNAPSHOT` means a `null` or non-object
+  configuration. An exercise engine decodes its own configuration inside
+  `create`, so a configuration that fails that decode is `ENGINE_THREW`, not
+  `NO_SNAPSHOT`. `SEATLESS_MULTI` applies to game sessions only.
 
   A game type with no presenter also shows stored facts only, and a turn its
   presenter throws on shows no cells while every other row keeps its own. A seatless

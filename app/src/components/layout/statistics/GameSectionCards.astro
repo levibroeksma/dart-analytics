@@ -1,0 +1,939 @@
+---
+/**
+ * The Games tab's insight section cards, rendered against one section view
+ * — `game-stats.store.ts`'s getters over a `sections` record and its
+ * `gameTypeKey`. The Games tab passes `$store.gameStats`; the Routines tab
+ * passes `$store.routineStats.stepGame`, so a GAME step shows the exact
+ * cards its game's own page does, fed from that step's sections. Each card
+ * shows only once its section has loaded.
+ * @param {string} view Alpine expression yielding the section view, exposed to the cards as `gameView`
+ * @param {boolean} [heatmapTargets] Offer the heatmap's target picker, which reloads `heatmap` through `view.selectHeatmapTarget`. Off by default, so a view whose route takes no `target` can never trigger a game-route reload; only the Games tab turns it on
+ * @param {string} [class] Extra wrapper classes
+ */
+interface Props {
+  view: string;
+  heatmapTargets?: boolean;
+  class?: string;
+  [key: string]: unknown;
+}
+
+// Props
+const {
+  view,
+  heatmapTargets = false,
+  class: classNameProp,
+  ...props
+}: Props = Astro.props;
+
+// Components
+import Select from "@components/forms/Select.astro";
+import StatsHeatmap from "@components/ui/StatsHeatmap.astro";
+
+// Lib
+import { cn } from "@client/cn";
+
+// Data
+const scope = `{ get gameView() { return ${view} } }`;
+const heatmapEffect = heatmapTargets
+  ? "gameView.selectHeatmapTarget(heatmapTarget || null)"
+  : undefined;
+
+// Styles
+const wrapperClass = cn("space-y-4", classNameProp);
+---
+
+<div
+  class={wrapperClass}
+  x-data={scope}
+  {...props}
+>
+  <div
+    class="gradient-card space-y-2 p-4"
+    x-show="gameView.sections['target-accuracy']"
+    x-cloak
+  >
+    <h2 class="text-sm font-semibold text-foreground">Target accuracy</h2>
+    <template
+      x-for="row in gameView.accuracyRows"
+      :key="row.targetKey"
+    >
+      <div class="flex items-center gap-2 text-sm">
+        <span
+          class="w-20 shrink-0 text-foreground"
+          x-text="row.targetKey"
+        ></span>
+        <div class="h-2 flex-1 overflow-hidden rounded-sm bg-surface-overlay">
+          <div
+            class="h-full bg-accent"
+            :style="{ width: (row.rate * 100) + '%' }"
+          >
+          </div>
+        </div>
+        <span
+          class="w-16 shrink-0 text-right text-muted-foreground"
+          x-text="row.attempts >= 30 ? Math.round(row.rate * 100) + '%' : 'not enough darts yet'"
+        ></span>
+      </div>
+    </template>
+    <p
+      class="text-xs text-accent"
+      x-show="gameView.favoriteTarget"
+      x-cloak
+      x-text="gameView.favoriteTarget ? `Favourite: ${gameView.favoriteTarget.targetKey}` : ''"
+    >
+    </p>
+    <p
+      class="text-xs text-muted-foreground"
+      x-show="gameView.weakestTarget"
+      x-cloak
+      x-text="gameView.weakestTarget ? `Weakest: ${gameView.weakestTarget.targetKey}` : ''"
+    >
+    </p>
+    <div
+      class="space-y-1"
+      x-data="{ ringTarget: '' }"
+      x-effect="ringTarget = ringTarget || (gameView.accuracyRows[0]?.targetKey ?? '')"
+      x-show="(gameView.gameTypeKey === 'SINGLES_TRAINING' || gameView.gameTypeKey === 'SHANGHAI') && gameView.accuracyRows.length"
+      x-cloak
+    >
+      <p class="text-xs text-muted-foreground">Ring split:</p>
+      <Select
+        optionsExpr="gameView.accuracyRows.map((row) => ({ value: row.targetKey, label: row.targetKey }))"
+        model="ringTarget"
+        ariaLabel="Ring split target"
+      />
+      <template
+        x-for="ring in gameView.ringSplit(ringTarget)"
+        :key="ring.ring"
+      >
+        <div class="flex items-center justify-between text-sm">
+          <span
+            class="text-foreground"
+            x-text="ring.ring"
+          ></span>
+          <span
+            class="text-muted-foreground"
+            x-text="ring.count"
+          ></span>
+        </div>
+      </template>
+    </div>
+    <p
+      class="text-xs text-muted-foreground"
+      x-show="gameView.skippedSessionsFor('target-accuracy') > 0"
+      x-cloak
+      x-text="`${gameView.skippedSessionsFor('target-accuracy')} sessions could not be replayed`"
+    >
+    </p>
+  </div>
+
+  <div
+    class="gradient-card space-y-2 p-4"
+    x-data="{ atcGroup: '' }"
+    x-effect="atcGroup = atcGroup || (gameView.atcConfigGroups[0] ?? '')"
+    x-show="gameView.sections['atc-darts-per-target']"
+    x-cloak
+  >
+    <h2 class="text-sm font-semibold text-foreground">Darts per target</h2>
+    <div
+      x-show="gameView.atcConfigGroups.length > 1"
+      x-cloak
+    >
+      <Select
+        optionsExpr="gameView.atcConfigGroups.map((g) => ({ value: g, label: g }))"
+        model="atcGroup"
+        ariaLabel="Around the Clock configuration"
+      />
+    </div>
+    <template
+      x-for="row in gameView.dartsPerTargetForGroup(atcGroup)"
+      :key="row.targetKey"
+    >
+      <div class="flex items-center justify-between text-sm">
+        <span
+          class="text-foreground"
+          x-text="row.targetKey"
+        ></span>
+        <span
+          class="text-muted-foreground"
+          x-text="row.dartsPerTarget !== null ? row.dartsPerTarget.toFixed(1) + ' darts' : 'not enough data yet'"
+        ></span>
+      </div>
+    </template>
+    <div
+      class="space-y-1"
+      x-show="gameView.slowestTargets(atcGroup, 3).length"
+      x-cloak
+    >
+      <p class="text-xs text-muted-foreground">Slowest targets:</p>
+      <template
+        x-for="row in gameView.slowestTargets(atcGroup, 3)"
+        :key="row.targetKey"
+      >
+        <div class="flex items-center justify-between text-sm">
+          <span
+            class="text-foreground"
+            x-text="row.targetKey"
+          ></span>
+          <span
+            class="text-accent"
+            x-text="row.dartsPerTarget.toFixed(1) + ' darts'"
+          ></span>
+        </div>
+      </template>
+    </div>
+    <p
+      class="text-xs text-muted-foreground"
+      x-show="gameView.skippedSessionsFor('atc-darts-per-target') > 0"
+      x-cloak
+      x-text="`${gameView.skippedSessionsFor('atc-darts-per-target')} sessions could not be replayed`"
+    >
+    </p>
+  </div>
+
+  <div
+    class="gradient-card space-y-2 p-4"
+    x-data="{ bobsGroup: '' }"
+    x-effect="bobsGroup = bobsGroup || (gameView.bobs27ConfigGroups[0] ?? '')"
+    x-show="gameView.sections['bobs27-survival']"
+    x-cloak
+  >
+    <h2 class="text-sm font-semibold text-foreground">Survival</h2>
+    <div
+      x-show="gameView.bobs27ConfigGroups.length > 1"
+      x-cloak
+    >
+      <Select
+        optionsExpr="gameView.bobs27ConfigGroups.map((g) => ({ value: g, label: g }))"
+        model="bobsGroup"
+        ariaLabel="Bob's 27 configuration"
+      />
+    </div>
+    <template
+      x-for="row in gameView.survivalCurve(bobsGroup)"
+      :key="row.targetKey"
+    >
+      <div class="flex items-center gap-2 text-sm">
+        <span
+          class="w-20 shrink-0 text-foreground"
+          x-text="row.targetKey"
+        ></span>
+        <div class="h-2 flex-1 overflow-hidden rounded-sm bg-surface-overlay">
+          <div
+            class="h-full bg-accent"
+            :style="{ width: (row.reached / Math.max(1, gameView.survivalCurve(bobsGroup)[0]?.reached ?? 1) * 100) + '%' }"
+          >
+          </div>
+        </div>
+        <span
+          class="w-20 shrink-0 text-right text-muted-foreground"
+          x-text="`${row.reached} runs`"
+        ></span>
+      </div>
+    </template>
+    <p
+      class="text-xs text-accent"
+      x-show="gameView.bobs27DeadliestTarget(bobsGroup)"
+      x-cloak
+      x-text="gameView.bobs27DeadliestTarget(bobsGroup) ? `Dies most at: ${gameView.bobs27DeadliestTarget(bobsGroup).targetKey}` : ''"
+    >
+    </p>
+    <p
+      class="text-xs text-muted-foreground"
+      x-show="gameView.bobs27AverageScore(bobsGroup) !== null"
+      x-cloak
+      x-text="`Average running score: ${gameView.bobs27AverageScore(bobsGroup) !== null ? Math.round(gameView.bobs27AverageScore(bobsGroup)) : ''}`"
+    >
+    </p>
+    <p
+      class="text-xs text-muted-foreground"
+      x-show="gameView.skippedSessionsFor('bobs27-survival') > 0"
+      x-cloak
+      x-text="`${gameView.skippedSessionsFor('bobs27-survival')} sessions could not be replayed`"
+    >
+    </p>
+  </div>
+
+  <div
+    class="gradient-card space-y-2 p-4"
+    x-show="gameView.sections['shanghai-count']"
+    x-cloak
+  >
+    <h2 class="text-sm font-semibold text-foreground">Shanghais</h2>
+    <template
+      x-for="point in gameView.shanghaiRateTrend"
+      :key="point.start"
+    >
+      <div class="flex items-center justify-between text-sm">
+        <span
+          class="text-muted-foreground"
+          x-text="new Date(point.start).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })"
+        ></span>
+        <span
+          class="text-foreground"
+          x-text="point.rate !== null ? Math.round(point.rate * 100) + '%' : 'not enough data yet'"
+        ></span>
+      </div>
+    </template>
+    <p class="text-xs text-muted-foreground">Rounds where they land:</p>
+    <template
+      x-for="row in gameView.shanghaiByRound"
+      :key="row.round"
+    >
+      <div class="flex items-center justify-between text-sm">
+        <span
+          class="text-foreground"
+          x-text="`Round ${row.round}`"
+        ></span>
+        <span
+          class="text-muted-foreground"
+          x-text="row.count"
+        ></span>
+      </div>
+    </template>
+    <p
+      class="text-xs text-muted-foreground"
+      x-show="gameView.pointsPerRound !== null"
+      x-cloak
+      x-text="`Points per round (before Hard-mode halving): ${gameView.pointsPerRound !== null ? gameView.pointsPerRound.toFixed(1) : ''}`"
+    >
+    </p>
+    <p
+      class="text-xs text-muted-foreground"
+      x-show="gameView.skippedSessionsFor('shanghai-count') > 0"
+      x-cloak
+      x-text="`${gameView.skippedSessionsFor('shanghai-count')} sessions could not be replayed`"
+    >
+    </p>
+  </div>
+
+  <div
+    class="gradient-card space-y-2 p-4"
+    x-data="{ confusionTarget: '' }"
+    x-effect="confusionTarget = confusionTarget || (gameView.accuracyRows[0]?.targetKey ?? '')"
+    x-show="gameView.sections.confusion"
+    x-cloak
+  >
+    <h2 class="text-sm font-semibold text-foreground">Confusion</h2>
+    <Select
+      optionsExpr="gameView.accuracyRows.map((row) => ({ value: row.targetKey, label: row.targetKey }))"
+      model="confusionTarget"
+      ariaLabel="Confusion target"
+    />
+    <template
+      x-for="landing in gameView.confusionTop(confusionTarget, 3)"
+      :key="landing.hitKey"
+    >
+      <div class="flex items-center justify-between text-sm">
+        <span
+          class="text-foreground"
+          x-text="landing.hitKey"
+        ></span>
+        <span
+          class="text-muted-foreground"
+          x-text="landing.count"
+        ></span>
+      </div>
+    </template>
+    <p
+      class="text-xs text-muted-foreground"
+      x-show="gameView.skippedSessionsFor('confusion') > 0"
+      x-cloak
+      x-text="`${gameView.skippedSessionsFor('confusion')} sessions could not be replayed`"
+    >
+    </p>
+  </div>
+
+  <div
+    class="gradient-card space-y-2 p-4"
+    x-show="gameView.sections.grouping"
+    x-cloak
+  >
+    <h2 class="text-sm font-semibold text-foreground">Grouping</h2>
+    <template
+      x-for="row in gameView.groupingRows"
+      :key="row.targetKey"
+    >
+      <div class="flex items-center justify-between text-sm">
+        <span
+          class="text-foreground"
+          x-text="row.targetKey"
+        ></span>
+        <span
+          class="text-muted-foreground"
+          x-show="row.summary"
+          x-cloak
+          x-text="row.summary ? `${Math.round(row.summary.spreadMm)} mm spread` : ''"
+        ></span>
+        <span
+          class="text-muted-foreground"
+          x-show="!row.summary"
+          x-cloak
+        >
+          not enough darts yet
+        </span>
+      </div>
+    </template>
+  </div>
+
+  <div
+    class="gradient-card space-y-2 p-4"
+    x-data="{ missTarget: '' }"
+    x-effect="missTarget = missTarget || (gameView.accuracyRows[0]?.targetKey ?? '')"
+    x-show="gameView.sections['miss-direction']"
+    x-cloak
+  >
+    <h2 class="text-sm font-semibold text-foreground">Miss direction</h2>
+    <Select
+      optionsExpr="gameView.accuracyRows.map((row) => ({ value: row.targetKey, label: row.targetKey }))"
+      model="missTarget"
+      ariaLabel="Miss direction target"
+    />
+    <div class="grid grid-cols-8 gap-1">
+      <template
+        x-for="sector in gameView.missRose(missTarget)"
+        :key="sector.sector"
+      >
+        <div
+          class="flex flex-col items-center gap-1 text-xs text-muted-foreground"
+        >
+          <div
+            class="h-8 w-2 rounded-sm bg-accent"
+            :style="{ opacity: 0.15 + Math.min(1, (sector.inside + sector.within + sector.outside) / 10) * 0.85 }"
+          >
+          </div>
+          <span x-text="sector.sector"></span>
+        </div>
+      </template>
+    </div>
+    <p
+      class="text-xs text-muted-foreground"
+      x-show="gameView.skippedSessionsFor('miss-direction') > 0"
+      x-cloak
+      x-text="`${gameView.skippedSessionsFor('miss-direction')} sessions could not be replayed`"
+    >
+    </p>
+  </div>
+
+  <div
+    class="gradient-card space-y-2 p-4"
+    x-show="gameView.sections['loose-darts']"
+    x-cloak
+  >
+    <h2 class="text-sm font-semibold text-foreground">Loose darts</h2>
+    <template
+      x-for="bucket in gameView.looseDartsTrend"
+      :key="bucket.start"
+    >
+      <div class="flex items-center justify-between text-sm">
+        <span
+          class="text-muted-foreground"
+          x-text="new Date(bucket.start).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })"
+        ></span>
+        <span
+          class="text-foreground"
+          x-text="`${bucket.onTarget} on · ${bucket.nearMiss} near · ${bucket.loose} loose`"
+        ></span>
+      </div>
+    </template>
+    <p
+      class="text-xs text-muted-foreground"
+      x-show="gameView.skippedSessionsFor('loose-darts') > 0"
+      x-cloak
+      x-text="`${gameView.skippedSessionsFor('loose-darts')} sessions could not be replayed`"
+    >
+    </p>
+  </div>
+
+  <div
+    class="gradient-card space-y-2 p-4"
+    x-show="gameView.sections['scoring-trend']"
+    x-cloak
+  >
+    <h2 class="text-sm font-semibold text-foreground">Scoring trend</h2>
+    <div
+      class="grid grid-cols-2 gap-2 text-center text-sm text-muted-foreground"
+    >
+      <div>
+        <span
+          class="block text-lg text-foreground"
+          x-text="gameView.threeDartAverage !== null ? gameView.threeDartAverage.toFixed(1) : '—'"
+        >
+        </span>
+        3-dart average
+      </div>
+      <div>
+        <span
+          class="block text-lg text-foreground"
+          x-text="gameView.firstNineAverage !== null ? gameView.firstNineAverage.toFixed(1) : '—'"
+        >
+        </span>
+        First nine
+      </div>
+    </div>
+    <template
+      x-for="row in gameView.scoringTrendRows"
+      :key="row.start"
+    >
+      <div class="flex items-center justify-between text-sm">
+        <span
+          class="text-muted-foreground"
+          x-text="new Date(row.start).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })"
+        ></span>
+        <span
+          class="text-foreground"
+          x-text="row.threeDartAverage !== null ? row.threeDartAverage.toFixed(1) + ' avg' : 'not enough data yet'"
+        ></span>
+      </div>
+    </template>
+    <p class="text-xs text-muted-foreground">
+      <span x-text="gameView.bandCounts.ton"></span> 100+ ·
+      <span x-text="gameView.bandCounts.tonForty"></span> 140+ · <span
+        x-text="gameView.bandCounts.oneEighty"></span>
+      180s
+    </p>
+  </div>
+
+  <div
+    class="gradient-card space-y-2 p-4"
+    x-show="gameView.sections['ladder-progress']"
+    x-cloak
+  >
+    <h2 class="text-sm font-semibold text-foreground">Ladder progress</h2>
+    <p
+      class="text-sm text-muted-foreground"
+      x-show="gameView.ladderSummary"
+      x-cloak
+      x-text="gameView.ladderSummary ? `Highest target: ${gameView.ladderSummary.maxTarget ?? '—'}` : ''"
+    >
+    </p>
+    <template
+      x-for="band in (gameView.ladderSummary?.bands ?? [])"
+      :key="band.start"
+    >
+      <div class="flex items-center gap-2 text-sm">
+        <span
+          class="w-16 shrink-0 text-foreground"
+          x-text="`${band.start}-${band.end}`"
+        ></span>
+        <div class="h-2 flex-1 overflow-hidden rounded-sm bg-surface-overlay">
+          <div
+            class="h-full bg-accent"
+            :style="{ width: (band.rate !== null ? band.rate * 100 : 0) + '%' }"
+          >
+          </div>
+        </div>
+        <span
+          class="w-28 shrink-0 text-right text-muted-foreground"
+          x-text="band.rate !== null ? Math.round(band.rate * 100) + '%' : 'not enough data yet'"
+        ></span>
+      </div>
+    </template>
+    <p
+      class="text-xs text-muted-foreground"
+      x-show="gameView.ladderSummary?.recoveryRate !== null"
+      x-cloak
+      x-text="gameView.ladderSummary?.recoveryRate !== null ? `Recovery after a miss: ${Math.round(gameView.ladderSummary.recoveryRate * 100)}%` : ''"
+    >
+    </p>
+  </div>
+
+  <div
+    class="gradient-card space-y-2 p-4"
+    x-show="gameView.sections['checkout-rate']"
+    x-cloak
+  >
+    <h2 class="text-sm font-semibold text-foreground">Checkout rate</h2>
+    <template
+      x-for="band in gameView.checkoutRateBands"
+      :key="band.label"
+    >
+      <div class="flex items-center gap-2 text-sm">
+        <span
+          class="w-20 shrink-0 text-foreground"
+          x-text="band.label"
+        ></span>
+        <div class="h-2 flex-1 overflow-hidden rounded-sm bg-surface-overlay">
+          <div
+            class="h-full bg-accent"
+            :style="{ width: (band.rate !== null ? band.rate * 100 : 0) + '%' }"
+          >
+          </div>
+        </div>
+        <span
+          class="w-28 shrink-0 text-right text-muted-foreground"
+          x-text="band.rate !== null ? Math.round(band.rate * 100) + '%' : 'not enough data yet'"
+        ></span>
+      </div>
+    </template>
+    <template
+      x-for="point in gameView.checkoutRateTrend"
+      :key="point.start"
+    >
+      <div class="flex items-center justify-between text-sm">
+        <span
+          class="text-muted-foreground"
+          x-text="new Date(point.start).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })"
+        ></span>
+        <span
+          class="text-foreground"
+          x-text="point.rate !== null ? Math.round(point.rate * 100) + '%' : 'not enough data yet'"
+        ></span>
+      </div>
+    </template>
+  </div>
+
+  <div
+    class="gradient-card space-y-2 p-4"
+    x-show="gameView.sections['double-performance']"
+    x-cloak
+  >
+    <h2 class="text-sm font-semibold text-foreground">Double performance</h2>
+    <template
+      x-for="row in gameView.doubleRows"
+      :key="row.targetKey"
+    >
+      <div class="flex items-center gap-2 text-sm">
+        <span
+          class="w-20 shrink-0 text-foreground"
+          x-text="row.targetKey"
+        ></span>
+        <div class="h-2 flex-1 overflow-hidden rounded-sm bg-surface-overlay">
+          <div
+            class="h-full bg-accent"
+            :style="{ width: (row.rate * 100) + '%' }"
+          >
+          </div>
+        </div>
+        <span
+          class="w-28 shrink-0 text-right text-muted-foreground"
+          x-text="row.attempts >= 30 ? Math.round(row.rate * 100) + '%' : 'not enough data yet'"
+        ></span>
+      </div>
+    </template>
+    <p
+      class="text-xs text-accent"
+      x-show="gameView.favoriteDouble"
+      x-cloak
+      x-text="gameView.favoriteDouble ? `Favourite: ${gameView.favoriteDouble.targetKey}` : ''"
+    >
+    </p>
+    <p
+      class="text-xs text-muted-foreground"
+      x-show="gameView.weakestDouble"
+      x-cloak
+      x-text="gameView.weakestDouble ? `Weakest: ${gameView.weakestDouble.targetKey}` : ''"
+    >
+    </p>
+  </div>
+
+  <div
+    class="gradient-card space-y-2 p-4"
+    x-data="{ pathRemaining: '' }"
+    x-effect="pathRemaining = pathRemaining || String(gameView.checkoutPathRemainings[0] ?? '')"
+    x-show="gameView.sections['checkout-path']"
+    x-cloak
+  >
+    <h2 class="text-sm font-semibold text-foreground">Checkout path</h2>
+    <Select
+      optionsExpr="gameView.checkoutPathRemainings.map((r) => ({ value: String(r), label: String(r) }))"
+      model="pathRemaining"
+      ariaLabel="Checkout path remaining"
+    />
+    <p
+      class="text-xs text-muted-foreground"
+      x-show="gameView.chartRouteFor(Number(pathRemaining))"
+      x-cloak
+      x-text="gameView.chartRouteFor(Number(pathRemaining)) ? `Chart route: ${gameView.chartRouteFor(Number(pathRemaining)).join(' ')}` : ''"
+    >
+    </p>
+    <template
+      x-for="path in gameView.pathsFor(Number(pathRemaining))"
+      :key="path.route"
+    >
+      <div class="flex items-center justify-between text-sm">
+        <span
+          class="text-foreground"
+          x-text="path.route"
+        ></span>
+        <span
+          class="text-muted-foreground"
+          x-text="`${path.visits} visits · ${Math.round(path.finishRate * 100)}% finished`"
+        ></span>
+      </div>
+    </template>
+  </div>
+
+  <div
+    class="gradient-card space-y-2 p-4"
+    x-show="gameView.sections['bust-rate']"
+    x-cloak
+  >
+    <h2 class="text-sm font-semibold text-foreground">Bust rate</h2>
+    <template
+      x-for="band in gameView.bustRateBands"
+      :key="band.label"
+    >
+      <div class="flex items-center gap-2 text-sm">
+        <span
+          class="w-20 shrink-0 text-foreground"
+          x-text="band.label"
+        ></span>
+        <div class="h-2 flex-1 overflow-hidden rounded-sm bg-surface-overlay">
+          <div
+            class="h-full bg-error"
+            :style="{ width: (band.rate !== null ? band.rate * 100 : 0) + '%' }"
+          >
+          </div>
+        </div>
+        <span
+          class="w-28 shrink-0 text-right text-muted-foreground"
+          x-text="band.rate !== null ? Math.round(band.rate * 100) + '%' : 'not enough data yet'"
+        ></span>
+      </div>
+    </template>
+    <template
+      x-for="point in gameView.bustRateTrend"
+      :key="point.start"
+    >
+      <div class="flex items-center justify-between text-sm">
+        <span
+          class="text-muted-foreground"
+          x-text="new Date(point.start).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })"
+        ></span>
+        <span
+          class="text-foreground"
+          x-text="point.rate !== null ? Math.round(point.rate * 100) + '%' : 'not enough data yet'"
+        ></span>
+      </div>
+    </template>
+  </div>
+
+  <div
+    class="gradient-card space-y-2 p-4"
+    x-show="gameView.sections['leg-stats']"
+    x-cloak
+  >
+    <h2 class="text-sm font-semibold text-foreground">Leg stats</h2>
+    <div
+      class="grid grid-cols-2 gap-2 text-center text-sm text-muted-foreground"
+    >
+      <div>
+        <span
+          class="block text-lg text-foreground"
+          x-text="gameView.bestLeg ?? '—'"
+        >
+        </span>
+        Best leg
+      </div>
+      <div>
+        <span
+          class="block text-lg text-foreground"
+          x-text="gameView.averageLegDarts !== null ? gameView.averageLegDarts.toFixed(1) : '—'"
+        >
+        </span>
+        Average darts
+      </div>
+    </div>
+    <template
+      x-for="row in gameView.legHistogram"
+      :key="row.darts"
+    >
+      <div class="flex items-center justify-between text-sm">
+        <span
+          class="text-foreground"
+          x-text="`${row.darts} darts`"
+        ></span>
+        <span
+          class="text-muted-foreground"
+          x-text="`${row.legs} legs`"
+        ></span>
+      </div>
+    </template>
+  </div>
+
+  <div
+    class="gradient-card space-y-2 p-4"
+    x-show="gameView.sections['treble-rate']"
+    x-cloak
+  >
+    <h2 class="text-sm font-semibold text-foreground">Treble rate</h2>
+    <div
+      class="grid grid-cols-3 gap-2 text-center text-sm text-muted-foreground"
+    >
+      <div>
+        <span
+          class="block text-lg text-foreground"
+          x-text="gameView.trebleRate('20') !== null ? Math.round(gameView.trebleRate('20') * 100) + '%' : '—'"
+        >
+        </span>
+        T20
+      </div>
+      <div>
+        <span
+          class="block text-lg text-foreground"
+          x-text="gameView.trebleRate('19') !== null ? Math.round(gameView.trebleRate('19') * 100) + '%' : '—'"
+        >
+        </span>
+        T19
+      </div>
+      <div>
+        <span
+          class="block text-lg text-foreground"
+          x-text="gameView.trebleRateAll !== null ? Math.round(gameView.trebleRateAll * 100) + '%' : '—'"
+        >
+        </span>
+        Overall
+      </div>
+    </div>
+    <template
+      x-for="point in gameView.trebleRateTrend"
+      :key="point.start"
+    >
+      <div class="flex items-center justify-between text-sm">
+        <span
+          class="text-muted-foreground"
+          x-text="new Date(point.start).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })"
+        ></span>
+        <span
+          class="text-foreground"
+          x-text="point.rate !== null ? Math.round(point.rate * 100) + '%' : 'not enough data yet'"
+        ></span>
+      </div>
+    </template>
+  </div>
+
+  <div
+    class="gradient-card space-y-2 p-4"
+    x-data="{ heatmapTarget: '' }"
+    x-effect={heatmapEffect}
+    x-show="gameView.sections.heatmap"
+    x-cloak
+  >
+    <h2 class="text-sm font-semibold text-foreground">Heatmap</h2>
+    {
+      heatmapTargets && (
+        <div
+          x-show="gameView.accuracyRows.length"
+          x-cloak
+        >
+          <Select
+            optionsExpr="[{ value: '', label: 'Whole board' }, ...gameView.accuracyRows.map((row) => ({ value: row.targetKey, label: row.targetKey }))]"
+            model="heatmapTarget"
+            ariaLabel="Heatmap target"
+          />
+        </div>
+      )
+    }
+    <StatsHeatmap
+      cellsExpr="gameView.heatmapCells"
+      class="mx-auto max-w-56"
+    />
+  </div>
+
+  <div class="gradient-card space-y-2 p-4">
+    <h2 class="text-sm font-semibold text-foreground">Completion</h2>
+    <div
+      class="grid grid-cols-3 gap-2 text-center text-sm text-muted-foreground"
+    >
+      <div>
+        <span
+          class="block text-lg text-foreground"
+          x-text="gameView.completionTotals?.completed ?? 0"
+        >
+        </span>
+        Completed
+      </div>
+      <div>
+        <span
+          class="block text-lg text-foreground"
+          x-text="gameView.completionTotals?.abandoned ?? 0"
+        >
+        </span>
+        Abandoned
+      </div>
+      <div>
+        <span
+          class="block text-lg text-foreground"
+          x-text="gameView.completionTotals?.neverStarted ?? 0"
+        >
+        </span>
+        Never started
+      </div>
+    </div>
+    <p
+      class="text-xs text-muted-foreground"
+      x-show="gameView.abandonRate !== null"
+      x-cloak
+      x-text="`Abandon rate: ${Math.round(gameView.abandonRate * 100)}%`"
+    >
+    </p>
+  </div>
+
+  <div class="gradient-card space-y-2 p-4">
+    <h2 class="text-sm font-semibold text-foreground">Volume</h2>
+    <div
+      class="grid grid-cols-3 gap-2 text-center text-sm text-muted-foreground"
+    >
+      <div>
+        <span
+          class="block text-lg text-foreground"
+          x-text="(gameView.volumeTotals?.sessions.standalone ?? 0) + (gameView.volumeTotals?.sessions.routine ?? 0)"
+        >
+        </span>
+        Sessions
+      </div>
+      <div>
+        <span
+          class="block text-lg text-foreground"
+          x-text="(gameView.volumeTotals?.darts.standalone ?? 0) + (gameView.volumeTotals?.darts.routine ?? 0)"
+        >
+        </span>
+        Darts
+      </div>
+      <div>
+        <span
+          class="block text-lg text-foreground"
+          x-text="Math.round(((gameView.volumeTotals?.durationSeconds.standalone ?? 0) + (gameView.volumeTotals?.durationSeconds.routine ?? 0)) / 60)"
+        >
+        </span>
+        Minutes
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="gradient-card space-y-2 p-4"
+    x-show="gameView.sessionResultRows.length"
+    x-cloak
+  >
+    <h2 class="text-sm font-semibold text-foreground">Session result</h2>
+    <template
+      x-for="row in gameView.sessionResultRows"
+      :key="row.rulesetVersionKey"
+    >
+      <div class="flex items-center justify-between gap-2 text-sm">
+        <span
+          class="text-foreground"
+          x-text="row.rulesetVersionKey"
+        >
+        </span>
+        <span
+          class="text-muted-foreground"
+          x-show="row.averageCountedScore !== null"
+          x-cloak
+          x-text="`avg ${Math.round(row.averageCountedScore)}`"
+        >
+        </span>
+        <a
+          class="text-accent no-underline hover:text-accent-hover"
+          x-show="row.personalBest"
+          x-cloak
+          :href="row.personalBest ? gameView.replayHref(row.personalBest.sessionId) : undefined"
+          x-text="row.personalBest ? `PB ${row.personalBest.value}` : ''"
+        >
+        </a>
+      </div>
+    </template>
+  </div>
+</div>

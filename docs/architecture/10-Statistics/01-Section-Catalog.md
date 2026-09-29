@@ -2,12 +2,12 @@
 status: canonical
 scope: architecture/statistics/sections
 read-when: adding, changing, or choosing insight sections for a statistics game page
-updated: 2026-09-27
+updated: 2026-09-29
 -->
 
 # Statistics — Section Catalog
 
-> **Version:** 1.4.0 (2026-09-27, D370)
+> **Version:** 1.5.0 (2026-09-29, D372; prior 1.4.0 2026-09-27, D370)
 >
 > The shared insight-section library and the section list of each game page.
 > Registry fields, tags, compute sites and the query contract are defined once in
@@ -21,7 +21,8 @@ updated: 2026-09-27
 > (D370) also widens `target-accuracy`, `confusion`, `miss-direction` and
 > `loose-darts` onto the `intent-derived` family (Singles Training, Shanghai,
 > Around the Clock) — those four were already built in phase 2 for
-> `intent-stored`.
+> `intent-stored`. Phase 6 (D372) adds the Routines tab's four sections
+> (§3), all built.
 
 ---
 
@@ -208,9 +209,86 @@ decision 9).
 
 ---
 
-# 3. Deferred
+# 3. Routine Sections
+
+The Routines tab's own registry, `ROUTINE_SECTIONS`
+(`lib/stats/section-registry.ts`, D372 decision 6), sits beside `SECTIONS`.
+An entry is a `RoutineSectionMeta`: `SectionMeta`'s fields, with `id` a
+`RoutineSectionId` (disjoint from the game-only `SectionId`), `requires: []`
+(no tag gates one) and `surface` (`routine` or `step`). A response is a
+`RoutineSeries<M>`: `Series<M>` with that `sectionId`.
+
+| Section | Surface | Site | Reason for site | Bucketable | `includesAbandoned` | Metrics |
+| ------- | ------- | ---- | --------------- | ---------- | ------------------- | ------- |
+| `routine-volume` | routine | sql | counts, duration sums and extremes per bucket | yes | no | `runs`, `durationSeconds`, `minDurationSeconds`, `maxDurationSeconds`, `darts` |
+| `routine-completion` | routine | sql | status counts per bucket | yes | yes | `completed`, `abandoned`, `neverStarted`, `stepsCompletedAtAbandon: Record<n, runs>` |
+| `step-volume` | step | sql | counts and durations; non-game steps only (a GAME step's own `volume` covers it) | yes | no | `sessions`, `durationSeconds`, `darts` |
+| `step-result` | step | server | per-kind metrics need the exercise engine's fold (§3.1); non-game dart steps only | yes | no | `metrics`, `headlineMin`, `headlineMax`, `sessions`, `skippedSessions` |
+
+- Runs bucket by the activity's `completed_at`, step sections by the
+  session's.
+- A run with no step session is "never started" (`00-Overview.md` §9): it
+  counts in `neverStarted`, not `abandoned`, and stays out of
+  `stepsCompletedAtAbandon`, which counts started abandons only.
+- Durations are whole seconds on the wire: a minutes float does not re-add
+  exactly across chunks (`00-Overview.md` §5.1). The client converts.
+- **Page lists:** a routine shows `routine-volume`, `routine-completion`
+  (`sectionsForRoutine()`). A step's list is `sectionsForStep(step)`: a GAME
+  step shows exactly `sectionsForGame(gameTypeKey)` — its game's own
+  `volume` covers the step, so `step-volume` is not added; a non-game step
+  whose exercise type is a dart exercise kind shows `step-result`,
+  `step-volume`; any other non-game step shows `step-volume` only. Warm-Up
+  throws no darts, so it gets `step-volume` only; it is told apart by its
+  exercise type, not its input mode.
+
+## 3.1 Step result
+
+`STEP_METRIC_SPECS: Record<DartExerciseKind, StepMetricSpec>`
+(`modules/stats/step-metrics.module.ts`, D372 decision 7) is the one
+definition of each kind's metrics: their keys, their merge (`sum` or `max`),
+the headline and its direction, and the rate pairs the client divides.
+
+| Kind | Metrics (merge) | Headline | Rates |
+| ---- | --------------- | -------- | ----- |
+| SWITCHING | points, darts, hits (sum) | points ↑ | hits/darts |
+| DOUBLE_PATTERN | hits, darts (sum) | hits ↑ | hits/darts |
+| TARGET_SCORING | bestChain (max); darts, hits (sum) | bestChain ↑ | hits/darts |
+| SWITCHING_TARGET_SCORING | bestChain (max); sequences, darts, hits (sum) | bestChain ↑ | hits/darts |
+| SCORE_THRESHOLD | beats, visits, darts (sum) | beats ↑ | beats/visits |
+| BULLSEYE_CHECKOUT | checkouts, visits, darts (sum) | checkouts ↑ | checkouts/visits |
+| BULL_UP | throws, bullseyes, bulls (sum) | bullseyes ↑ | bullseyes/throws, bulls/throws |
+
+- `stepMetrics(kind, state, facts)` reads engine state the way the routine
+  summary modal does: `routine-summary.module.ts`'s `summarise*` functions
+  run on it, so the modal and the statistics page cannot disagree.
+  Switching's hits come from the same fact walk.
+- The fold runs on the server (`step-result.module.ts`). `findStepFoldRows`
+  reads `v_game_replay` joined to the step's sessions, each row tagged with
+  the bucket its session's `completed_at` falls in. Per session:
+  `stageOrder`, `rowsToTurns` and `replayFacts`
+  (`modules/stats/replay.module.ts`), then the engine from
+  `getDartExerciseEngineFactory(exerciseRulesetVersionKey)`, built with
+  `create(configuration, facts)` over the session's own snapshot, its
+  `state()` read by `stepMetrics`.
+- It is bounded like any `server` section: `MAX_FOLD_DARTS` over the step's
+  scoped `dart_count` (`findStepScopeDartCount`) before any fold row is read,
+  fetched in client chunk windows (`00-Overview.md` §4).
+- A session with no registered engine, whose engine throws (its own
+  configuration decode included), or whose state lacks the kind's fields is
+  skipped and counted in `skippedSessions`, never guessed.
+- Per bucket: the merged metrics, plus `headlineMin`/`headlineMax` of the
+  headline per session. Chunks re-aggregate exactly through
+  `mergeStepResult`: metrics by their spec, extremes by `min`/`max` with
+  `null` as the identity, session counts summed.
+
+---
+
+# 4. Deferred
 
 - **Career-wide doubles:** Doubles Training, Bob's 27 and X01 checkout darts
   measure one skill; a combined career section is additive later.
 - **Recreational-mode sections** (`QUICK_SCORE`, `DETAILED_DARTS`).
-- **Routine pages** (`00-Overview.md` §8).
+- **Dart-level sections for non-game steps** (heat map, per-target
+  accuracy): they need a non-game dart fact view, which is additive later
+  (D372 decision 13). Comparisons across routines and adaptive-training
+  statistics are deferred too.

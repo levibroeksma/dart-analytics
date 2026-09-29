@@ -11,8 +11,12 @@ import type {
   LegStatsSeriesResponseData,
   LooseDartsSeriesResponseData,
   MissDirectionSeriesResponseData,
+  RoutineCompletionSeriesResponseData,
+  RoutineVolumeSeriesResponseData,
   ScoringTrendSeriesResponseData,
   SessionResultSeriesResponseData,
+  StepResultSeriesResponseData,
+  StepVolumeSeriesResponseData,
   TargetAccuracySeriesResponseData,
   TrebleRateSeriesResponseData,
   VolumeSeriesResponseData,
@@ -77,6 +81,31 @@ export type GameSectionResponseData =
   | LegStatsSeriesResponseData
   | TrebleRateSeriesResponseData;
 
+/** The range/bucket/status parameters a routine or routine-step section request builds — `GameStatsRangeParams` minus `context`, `inputMode` and `target`, which `RoutineStatsQuery`'s `.strict()` never accepts (D372 decision 4), so the two shapes cannot drift apart. */
+export type RoutineSectionParams = Omit<
+  GameStatsRangeParams,
+  "context" | "inputMode" | "target"
+>;
+
+/** `fetchRoutineStepSessions`'s params: `RoutineSessionsQuery`'s own fields — no `bucket`/`tz`/`context`/`inputMode` (D372 decision 4). */
+export type RoutineStepSessionsParams = {
+  from: string;
+  to: string;
+  status?: string;
+  limit?: number;
+  cursor?: string;
+};
+
+/** The response `fetchRoutineSection` returns: one of the routine's own two run-level sections. */
+export type RoutineSectionResponseData =
+  RoutineVolumeSeriesResponseData | RoutineCompletionSeriesResponseData;
+
+/** The response `fetchRoutineStepSection` returns: a GAME step's own game section, scoped server-side, or a non-game step's `step-volume`/`step-result`. */
+export type RoutineStepSectionResponseData =
+  | GameSectionResponseData
+  | StepVolumeSeriesResponseData
+  | StepResultSeriesResponseData;
+
 export {
   ProvisionPlayerRequest,
   type ProvisionPlayerRequestInput,
@@ -104,6 +133,9 @@ export {
   type CompletionSeriesResponseData,
   type VolumeSeriesResponseData,
   type SessionResultSeriesResponseData,
+  type TrainedRoutineListResponseData,
+  type RoutineHeaderSchemaData,
+  type RoutineStepSessionListResponseData,
   StartTrainingRequest,
   type StartTrainingRequestInput,
   type StartTrainingResponseData,

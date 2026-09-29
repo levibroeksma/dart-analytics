@@ -11,11 +11,15 @@ import type {
   TargetAccuracySeriesResponseData,
   VolumeSeriesResponseData,
 } from "@routes/types";
+import type { Bucket, StatusFilter } from "@lib/types";
 import type {
   ReplayParticipantRow,
   ReplaySessionRow,
   ReplayStageRow,
   ReplayTurn,
+  RoutineStepDescriptorRow,
+  StepSessionRow,
+  TrainedRoutineRow,
 } from "@modules/types";
 
 export * from "./exercise-rulesets/types";
@@ -248,4 +252,59 @@ export type ScheduleSummary = {
 export type ScheduleWriteInput = {
   name: string;
   days: { dayOfWeek: number; routineTemplateId: string }[];
+};
+
+/**
+ * One `listTrainedRoutines` item: a routine the player has trained, named
+ * for its latest run. Identical to the repository's own row shape, so it is
+ * aliased rather than copied.
+ */
+export type TrainedRoutine = TrainedRoutineRow;
+
+/**
+ * One `getRoutineHeader` step descriptor. Identical to the repository's own
+ * row shape, so it is aliased rather than copied.
+ */
+export type RoutineStepDescriptor = RoutineStepDescriptorRow;
+
+/** `getRoutineHeader`'s response: the routine's own identity and run counts, its `dataVersion`, and every step it has ever run. */
+export type RoutineHeader = {
+  routineKey: string;
+  routineName: string;
+  runCount: number;
+  firstRunAt: string;
+  lastRunAt: string;
+  dataVersion: string;
+  steps: RoutineStepDescriptor[];
+};
+
+/**
+ * `getRoutineSection`/`getRoutineStepSection`'s query: a routine section
+ * takes a plain date range, timezone, bucket and status — never a `context`,
+ * `inputMode` or `target`, since a routine's own sections have nothing to
+ * filter by context (every row is routine context already) and no game
+ * declares a `target` param a routine step could accept.
+ */
+export type RoutineSectionQuery = {
+  from: string;
+  to: string;
+  tz?: string;
+  bucket: Bucket;
+  status?: StatusFilter;
+};
+
+/** `listRoutineStepSessions`'s query, mirroring `SessionListQueryData`'s shape at the step grain. */
+export type RoutineSessionListQuery = {
+  from: string;
+  to: string;
+  status?: StatusFilter;
+  limit: number;
+  cursor?: string;
+};
+
+/** `listRoutineStepSessions`'s response, mirroring `GameSessionList`'s shape at the step grain. */
+export type SessionList = {
+  items: StepSessionRow[];
+  nextCursor: string | null;
+  dataVersion: string;
 };

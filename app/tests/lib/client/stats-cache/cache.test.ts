@@ -6,11 +6,23 @@ import {
   readReplayPage,
   clearStatsCache,
   missingSpans,
+  noteDataVersion,
 } from "@client/stats-cache/cache";
 import { STATS_DB_NAME } from "@client/stats-cache/db";
-import { SECTIONS } from "@lib/stats/section-registry";
-import type { SectionMeta } from "@lib/types";
-import type { CachedSeries } from "@client/types";
+import { ROUTINE_SECTIONS, SECTIONS } from "@lib/stats/section-registry";
+import {
+  gameScopeKey,
+  routineScopeKey,
+  stepScopeKey,
+} from "@modules/stats/routine-scope.module";
+import type { GameTypeKey, RoutineSectionMeta, SectionMeta } from "@lib/types";
+import type { CachedSeries, CacheScope } from "@client/types";
+
+/** A game page's scope for `gameTypeKey`, as `game-stats.store.ts` builds it (controller ruling R4). */
+function gameScope(gameTypeKey: string): CacheScope {
+  const key = gameTypeKey as GameTypeKey;
+  return { key: gameScopeKey(key), gameTypeKey: key };
+}
 
 function deleteStatsDb(): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -77,7 +89,13 @@ describe("readSection (bucketed)", () => {
         ]),
       );
 
-    const result = await readSection("p1", "501", meta, baseQuery, fetcher);
+    const result = await readSection(
+      "p1",
+      gameScope("501"),
+      meta,
+      baseQuery,
+      fetcher,
+    );
 
     expect(fetcher).toHaveBeenCalledTimes(1);
     expect(fetcher).toHaveBeenCalledWith({
@@ -98,7 +116,7 @@ describe("readSection (bucketed)", () => {
         ]),
       );
 
-    await readSection("p1", "501", meta, baseQuery, fetcher);
+    await readSection("p1", gameScope("501"), meta, baseQuery, fetcher);
     fetcher.mockClear();
     fetcher.mockResolvedValue(
       response("2026-03-01T00:00:00.000Z", "2026-04-01T00:00:00.000Z", [
@@ -106,7 +124,13 @@ describe("readSection (bucketed)", () => {
       ]),
     );
 
-    const result = await readSection("p1", "501", meta, baseQuery, fetcher);
+    const result = await readSection(
+      "p1",
+      gameScope("501"),
+      meta,
+      baseQuery,
+      fetcher,
+    );
 
     expect(fetcher).toHaveBeenCalledTimes(1);
     expect(fetcher).toHaveBeenCalledWith({
@@ -128,7 +152,7 @@ describe("readSection (bucketed)", () => {
       );
     await readSection(
       "p1",
-      "501",
+      gameScope("501"),
       meta,
       { ...baseQuery, from: "2026-02-01T00:00:00.000Z" },
       fetcher,
@@ -140,7 +164,13 @@ describe("readSection (bucketed)", () => {
       ]),
     );
 
-    const result = await readSection("p1", "501", meta, baseQuery, fetcher);
+    const result = await readSection(
+      "p1",
+      gameScope("501"),
+      meta,
+      baseQuery,
+      fetcher,
+    );
 
     expect(fetcher).toHaveBeenCalledTimes(1);
     expect(fetcher).toHaveBeenCalledWith({
@@ -158,7 +188,7 @@ describe("readSection (bucketed)", () => {
           bucket("2026-01-01T00:00:00.000Z", "2026-02-01T00:00:00.000Z", true),
         ]),
       );
-    await readSection("p1", "501", meta, baseQuery, fetcher);
+    await readSection("p1", gameScope("501"), meta, baseQuery, fetcher);
     fetcher.mockClear();
     fetcher.mockResolvedValue(
       response(baseQuery.from, baseQuery.to, [
@@ -166,7 +196,13 @@ describe("readSection (bucketed)", () => {
       ]),
     );
 
-    await readSection("p1", "501", { ...meta, version: 2 }, baseQuery, fetcher);
+    await readSection(
+      "p1",
+      gameScope("501"),
+      { ...meta, version: 2 },
+      baseQuery,
+      fetcher,
+    );
 
     expect(fetcher).toHaveBeenCalledTimes(1);
   });
@@ -183,8 +219,14 @@ describe("readSection (bucketed)", () => {
         ]),
       );
 
-    await readSection("p1", "501", meta, baseQuery, fetcher);
-    const result = await readSection("p1", "501", meta, baseQuery, fetcher);
+    await readSection("p1", gameScope("501"), meta, baseQuery, fetcher);
+    const result = await readSection(
+      "p1",
+      gameScope("501"),
+      meta,
+      baseQuery,
+      fetcher,
+    );
 
     expect(fetcher).toHaveBeenCalledTimes(2);
     expect(result.buckets).toHaveLength(1);
@@ -212,8 +254,14 @@ describe("readSection (bucket=none)", () => {
         ]),
       );
 
-    await readSection("p1", "501", meta, noneQuery, fetcher);
-    const second = await readSection("p1", "501", meta, noneQuery, fetcher);
+    await readSection("p1", gameScope("501"), meta, noneQuery, fetcher);
+    const second = await readSection(
+      "p1",
+      gameScope("501"),
+      meta,
+      noneQuery,
+      fetcher,
+    );
 
     expect(fetcher).toHaveBeenCalledTimes(1);
     expect(second.dataVersion).toBe("v1:1:0");
@@ -236,9 +284,15 @@ describe("readSection (bucket=none)", () => {
         ),
       );
 
-    await readSection("p1", "501", meta, noneQuery, fetcher);
-    await readSection("p1", "other-game", meta, noneQuery, fetcher);
-    const third = await readSection("p1", "501", meta, noneQuery, fetcher);
+    await readSection("p1", gameScope("501"), meta, noneQuery, fetcher);
+    await readSection("p1", gameScope("other-game"), meta, noneQuery, fetcher);
+    const third = await readSection(
+      "p1",
+      gameScope("501"),
+      meta,
+      noneQuery,
+      fetcher,
+    );
 
     expect(fetcher).toHaveBeenCalledTimes(2);
     expect(third.dataVersion).toBe("v1:1:0");
@@ -281,7 +335,7 @@ describe("readSection (server)", () => {
 
     const first = await readSection(
       "p1",
-      "501",
+      gameScope("501"),
       serverMeta,
       query,
       fetcher,
@@ -298,7 +352,7 @@ describe("readSection (server)", () => {
     fetcher.mockClear();
     const second = await readSection(
       "p1",
-      "501",
+      gameScope("501"),
       serverMeta,
       query,
       fetcher,
@@ -347,7 +401,7 @@ describe("readSection (server)", () => {
 
     const result = await readSection(
       "p1",
-      "501",
+      gameScope("501"),
       serverMeta,
       query,
       fetcher,
@@ -400,7 +454,7 @@ describe("readSection (server)", () => {
 
     const result = await readSection(
       "p1",
-      "501",
+      gameScope("501"),
       serverMeta,
       query,
       fetcher,
@@ -439,7 +493,7 @@ describe("readSection (server)", () => {
 
     const result = await readSection(
       "p1",
-      "501",
+      gameScope("501"),
       serverMeta,
       query,
       fetcher,
@@ -475,7 +529,7 @@ describe("readSection (server)", () => {
     await expect(
       readSection(
         "p1",
-        "501",
+        gameScope("501"),
         serverMeta,
         query,
         fetcher,
@@ -508,7 +562,7 @@ describe("readSection (site resolved per game, phase-4 decision 5)", () => {
 
     const result = await readSection(
       "p1",
-      "SHANGHAI",
+      gameScope("SHANGHAI"),
       SECTIONS["target-accuracy"],
       query,
       fetcher,
@@ -544,7 +598,7 @@ describe("readSection (site resolved per game, phase-4 decision 5)", () => {
 
     const result = await readSection(
       "p1",
-      "DOUBLES_TRAINING",
+      gameScope("DOUBLES_TRAINING"),
       SECTIONS["target-accuracy"],
       query,
       fetcher,
@@ -554,6 +608,415 @@ describe("readSection (site resolved per game, phase-4 decision 5)", () => {
     expect(fetcher).toHaveBeenCalledTimes(1);
     expect(fetcher).toHaveBeenCalledWith({ from: query.from, to: query.to });
     expect(result.buckets).toHaveLength(2);
+  });
+});
+
+const routineVolumeMeta: RoutineSectionMeta = {
+  id: "routine-volume",
+  version: 1,
+  requires: [],
+  computeSite: "sql",
+  bucketable: true,
+  includesAbandoned: false,
+  configSensitive: [],
+  params: [],
+  surface: "routine",
+};
+
+const stepVolumeMeta: RoutineSectionMeta = {
+  ...routineVolumeMeta,
+  id: "step-volume",
+  surface: "step",
+};
+
+describe("readSection (scope key partitions the cache, controller ruling R4)", () => {
+  beforeEach(() => deleteStatsDb());
+
+  it("a game scope and a routine step scope for the same game do not share entries", async () => {
+    const query = { ...baseQuery };
+    const fetcherGame = vi
+      .fn()
+      .mockResolvedValue(
+        response(query.from, query.to, [bucket(query.from, query.to, true, 1)]),
+      );
+    const fetcherStep = vi
+      .fn()
+      .mockResolvedValue(
+        response(query.from, query.to, [bucket(query.from, query.to, true, 1)]),
+      );
+
+    await readSection(
+      "p1",
+      gameScope("501"),
+      SECTIONS.volume,
+      query,
+      fetcherGame,
+    );
+    await readSection(
+      "p1",
+      {
+        key: stepScopeKey("routine-1", "1-abc"),
+        gameTypeKey: "501" as GameTypeKey,
+      },
+      SECTIONS.volume,
+      query,
+      fetcherStep,
+    );
+
+    expect(fetcherGame).toHaveBeenCalledTimes(1);
+    expect(fetcherStep).toHaveBeenCalledTimes(1);
+  });
+
+  it("two steps of one routine do not share entries", async () => {
+    const query = { ...baseQuery };
+    const fetcher1 = vi
+      .fn()
+      .mockResolvedValue(
+        response(query.from, query.to, [bucket(query.from, query.to, true, 1)]),
+      );
+    const fetcher2 = vi
+      .fn()
+      .mockResolvedValue(
+        response(query.from, query.to, [bucket(query.from, query.to, true, 1)]),
+      );
+
+    const step1: CacheScope = {
+      key: stepScopeKey("routine-1", "1-abc"),
+      gameTypeKey: null,
+    };
+    const step2: CacheScope = {
+      key: stepScopeKey("routine-1", "2-def"),
+      gameTypeKey: null,
+    };
+
+    await readSection("p1", step1, stepVolumeMeta, query, fetcher1);
+    await readSection("p1", step2, stepVolumeMeta, query, fetcher2);
+
+    expect(fetcher1).toHaveBeenCalledTimes(1);
+    expect(fetcher2).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("readSection (bucket=none, routine dataVersion propagation, controller ruling R23)", () => {
+  beforeEach(() => deleteStatsDb());
+
+  const noneQuery = {
+    bucket: "none" as const,
+    context: "all" as const,
+    inputMode: "VISUAL_BOARD",
+    from: "2026-01-01T00:00:00.000Z",
+    to: "2026-04-01T00:00:00.000Z",
+  };
+  const widerQuery = { ...noneQuery, to: "2026-05-01T00:00:00.000Z" };
+
+  /** A routine scope and one of its step scopes, both sharing `versionKey` (R23): the routine's own token, never the step's own key. */
+  function routineAndStepScope(
+    routineKey: string,
+    stepKey: string,
+  ): { routineScope: CacheScope; stepScope: CacheScope } {
+    const versionKey = routineScopeKey(routineKey);
+    return {
+      routineScope: { key: versionKey, gameTypeKey: null, versionKey },
+      stepScope: {
+        key: stepScopeKey(routineKey, stepKey),
+        gameTypeKey: null,
+        versionKey,
+      },
+    };
+  }
+
+  it("a routine section fetch that returns a new token refetches the routine and its steps, leaving a game scope untouched", async () => {
+    const { routineScope, stepScope } = routineAndStepScope(
+      "routine-1",
+      "1-abc",
+    );
+    const game = gameScope("501");
+
+    const routineFetcher = vi
+      .fn()
+      .mockResolvedValueOnce(
+        response(
+          noneQuery.from,
+          noneQuery.to,
+          [bucket(noneQuery.from, noneQuery.to, true, 1)],
+          "v1:1:100",
+        ),
+      )
+      .mockResolvedValueOnce(
+        response(
+          widerQuery.from,
+          widerQuery.to,
+          [bucket(widerQuery.from, widerQuery.to, true, 1)],
+          "v1:2:200",
+        ),
+      );
+    const stepFetcher = vi
+      .fn()
+      .mockResolvedValue(
+        response(
+          noneQuery.from,
+          noneQuery.to,
+          [bucket(noneQuery.from, noneQuery.to, true, 1)],
+          "v1:1:100",
+        ),
+      );
+    const gameFetcher = vi
+      .fn()
+      .mockResolvedValue(
+        response(
+          noneQuery.from,
+          noneQuery.to,
+          [bucket(noneQuery.from, noneQuery.to, true, 1)],
+          "g1:9:9",
+        ),
+      );
+
+    await readSection(
+      "p1",
+      routineScope,
+      routineVolumeMeta,
+      noneQuery,
+      routineFetcher,
+    );
+    await readSection("p1", stepScope, stepVolumeMeta, noneQuery, stepFetcher);
+    await readSection("p1", game, SECTIONS.volume, noneQuery, gameFetcher);
+    stepFetcher.mockClear();
+    gameFetcher.mockClear();
+
+    // A wider routine-level read is a genuine cache miss on its own entry
+    // (bucket=none keys by from/to too) and returns a fresh token, which the
+    // step scope shares via `versionKey` (R23) even though it was never
+    // fetched directly.
+    await readSection(
+      "p1",
+      routineScope,
+      routineVolumeMeta,
+      widerQuery,
+      routineFetcher,
+    );
+
+    await readSection("p1", stepScope, stepVolumeMeta, noneQuery, stepFetcher);
+    await readSection("p1", game, SECTIONS.volume, noneQuery, gameFetcher);
+
+    expect(routineFetcher).toHaveBeenCalledTimes(2);
+    expect(stepFetcher).toHaveBeenCalledTimes(1);
+    expect(gameFetcher).toHaveBeenCalledTimes(0);
+  });
+
+  it("noteDataVersion refetches the routine and its steps, leaving a game scope untouched", async () => {
+    const { routineScope, stepScope } = routineAndStepScope(
+      "routine-1",
+      "1-abc",
+    );
+    const game = gameScope("501");
+
+    const routineFetcher = vi
+      .fn()
+      .mockResolvedValueOnce(
+        response(
+          noneQuery.from,
+          noneQuery.to,
+          [bucket(noneQuery.from, noneQuery.to, true, 1)],
+          "v1:1:100",
+        ),
+      )
+      .mockResolvedValueOnce(
+        response(
+          noneQuery.from,
+          noneQuery.to,
+          [bucket(noneQuery.from, noneQuery.to, true, 1)],
+          "v1:2:200",
+        ),
+      );
+    const stepFetcher = vi
+      .fn()
+      .mockResolvedValueOnce(
+        response(
+          noneQuery.from,
+          noneQuery.to,
+          [bucket(noneQuery.from, noneQuery.to, true, 1)],
+          "v1:1:100",
+        ),
+      )
+      .mockResolvedValueOnce(
+        response(
+          noneQuery.from,
+          noneQuery.to,
+          [bucket(noneQuery.from, noneQuery.to, true, 1)],
+          "v1:2:200",
+        ),
+      );
+    const gameFetcher = vi
+      .fn()
+      .mockResolvedValue(
+        response(
+          noneQuery.from,
+          noneQuery.to,
+          [bucket(noneQuery.from, noneQuery.to, true, 1)],
+          "g1:9:9",
+        ),
+      );
+
+    await readSection(
+      "p1",
+      routineScope,
+      routineVolumeMeta,
+      noneQuery,
+      routineFetcher,
+    );
+    await readSection("p1", stepScope, stepVolumeMeta, noneQuery, stepFetcher);
+    await readSection("p1", game, SECTIONS.volume, noneQuery, gameFetcher);
+    routineFetcher.mockClear();
+    stepFetcher.mockClear();
+    gameFetcher.mockClear();
+
+    // A direct dataVersion note (e.g. Task 9's routine store recording a
+    // freshly-fetched header token) needs no section fetch of its own to
+    // invalidate every scope sharing its `versionKey`.
+    await noteDataVersion("p1", routineScopeKey("routine-1"), "v1:2:200");
+
+    await readSection(
+      "p1",
+      routineScope,
+      routineVolumeMeta,
+      noneQuery,
+      routineFetcher,
+    );
+    await readSection("p1", stepScope, stepVolumeMeta, noneQuery, stepFetcher);
+    await readSection("p1", game, SECTIONS.volume, noneQuery, gameFetcher);
+
+    expect(routineFetcher).toHaveBeenCalledTimes(1);
+    expect(stepFetcher).toHaveBeenCalledTimes(1);
+    expect(gameFetcher).toHaveBeenCalledTimes(0);
+  });
+});
+
+type StepResultLike = {
+  metrics: Record<string, number>;
+  headlineMin: number | null;
+  headlineMax: number | null;
+  sessions: number;
+  skippedSessions: number;
+};
+
+describe("readSection (server, step-result chunk merge, controller ruling R22)", () => {
+  beforeEach(() => deleteStatsDb());
+
+  it("merges step-result chunks with the exercise kind's own spec, proving a `max` metric does not sum", async () => {
+    const query = {
+      bucket: "none" as const,
+      context: "all" as const,
+      inputMode: "VISUAL_BOARD",
+      from: "2026-01-01T00:00:00.000Z",
+      to: "2026-03-01T00:00:00.000Z",
+    };
+    const scope: CacheScope = {
+      key: stepScopeKey("routine-1", "1-abc"),
+      gameTypeKey: null,
+      exerciseKind: "TARGET_SCORING",
+    };
+    const fetcher = vi
+      .fn()
+      .mockImplementation((span: { from: string; to: string }) =>
+        Promise.resolve({
+          sectionId: "step-result",
+          sectionVersion: 1,
+          dataVersion: "v1:1:0",
+          bucket: "none" as const,
+          tz: null,
+          range: { from: span.from, to: span.to },
+          buckets: [
+            {
+              start: span.from,
+              end: span.to,
+              closed: true,
+              sampleSize: 1,
+              metrics: (span.from === "2026-01-01T00:00:00.000Z"
+                ? {
+                    metrics: { bestChain: 10, darts: 9, hits: 3 },
+                    headlineMin: 10,
+                    headlineMax: 10,
+                    sessions: 1,
+                    skippedSessions: 0,
+                  }
+                : {
+                    metrics: { bestChain: 15, darts: 3, hits: 1 },
+                    headlineMin: 8,
+                    headlineMax: 12,
+                    sessions: 1,
+                    skippedSessions: 1,
+                  }) as StepResultLike,
+            },
+          ],
+        }),
+      );
+
+    const result = await readSection(
+      "p1",
+      scope,
+      ROUTINE_SECTIONS["step-result"],
+      query,
+      fetcher,
+      new Date("2026-04-01T00:00:00.000Z"),
+    );
+
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(result.buckets).toHaveLength(1);
+    // bestChain is TARGET_SCORING's own "max" metric (STEP_METRIC_SPECS): the
+    // merge takes 15 (the larger chunk), never 25 (10 + 15) — proof the
+    // merge reads its kind's spec rather than summing everything.
+    expect(result.buckets[0]!.metrics).toEqual({
+      metrics: { bestChain: 15, darts: 12, hits: 4 },
+      headlineMin: 8,
+      headlineMax: 12,
+      sessions: 2,
+      skippedSessions: 1,
+    });
+  });
+
+  it("throws when a step-result chunk read has no exerciseKind (programming error)", async () => {
+    const query = {
+      bucket: "none" as const,
+      context: "all" as const,
+      inputMode: "VISUAL_BOARD",
+      from: "2026-01-01T00:00:00.000Z",
+      to: "2026-02-01T00:00:00.000Z",
+    };
+    const scope: CacheScope = {
+      key: stepScopeKey("routine-1", "1-abc"),
+      gameTypeKey: null,
+    };
+    const fetcher = vi.fn();
+
+    await expect(
+      readSection("p1", scope, ROUTINE_SECTIONS["step-result"], query, fetcher),
+    ).rejects.toThrow();
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it("throws the same contract check even when IndexedDB is unavailable (controller ruling R23 item 5)", async () => {
+    const original = globalThis.indexedDB;
+    // @ts-expect-error simulating an environment without IndexedDB
+    delete globalThis.indexedDB;
+    const query = {
+      bucket: "none" as const,
+      context: "all" as const,
+      inputMode: "VISUAL_BOARD",
+      from: "2026-01-01T00:00:00.000Z",
+      to: "2026-02-01T00:00:00.000Z",
+    };
+    const scope: CacheScope = {
+      key: stepScopeKey("routine-1", "1-abc"),
+      gameTypeKey: null,
+    };
+    const fetcher = vi.fn();
+
+    await expect(
+      readSection("p1", scope, ROUTINE_SECTIONS["step-result"], query, fetcher),
+    ).rejects.toThrow();
+    expect(fetcher).not.toHaveBeenCalled();
+
+    globalThis.indexedDB = original;
   });
 });
 
@@ -569,7 +1032,7 @@ describe("readSessionPage", () => {
 
     const first = await readSessionPage(
       "p1",
-      "501",
+      gameScopeKey("501" as GameTypeKey),
       {
         bucket: "none",
         context: "all",
@@ -581,7 +1044,7 @@ describe("readSessionPage", () => {
     );
     const second = await readSessionPage(
       "p1",
-      "501",
+      gameScopeKey("501" as GameTypeKey),
       {
         bucket: "none",
         context: "all",
@@ -677,11 +1140,11 @@ describe("clearStatsCache", () => {
           bucket("2026-01-01T00:00:00.000Z", "2026-02-01T00:00:00.000Z", true),
         ]),
       );
-    await readSection("p1", "501", meta, baseQuery, fetcher);
+    await readSection("p1", gameScope("501"), meta, baseQuery, fetcher);
 
     await clearStatsCache();
     fetcher.mockClear();
-    await readSection("p1", "501", meta, baseQuery, fetcher);
+    await readSection("p1", gameScope("501"), meta, baseQuery, fetcher);
 
     expect(fetcher).toHaveBeenCalledTimes(1);
     expect(fetcher).toHaveBeenCalledWith({
