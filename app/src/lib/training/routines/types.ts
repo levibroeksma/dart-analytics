@@ -25,6 +25,7 @@ import type { BoardMarker, PreviewSegment } from "@lib/types";
 import type { gameStep } from "./game-step.data";
 import type { StepAdapter } from "./adapters/interfaces";
 import type { trainingSessionStore } from "@stores/training-session.store";
+import type { routineStatsStore } from "@stores/routine-stats.store";
 
 export * from "./adapters/types";
 
@@ -214,16 +215,16 @@ export type TrainingIndexContext = {
 };
 
 export type StatisticsRoutinesContext = {
-  loading: boolean;
-  error: string;
-  routines: RoutineSummaryData[];
-  /** The picked routine id; seeded to the first option. */
+  $store: {
+    routineStats: Pick<
+      ReturnType<typeof routineStatsStore>,
+      "routines" | "routineKey" | "selectRoutine"
+    >;
+  };
+  /** The picked routine's `routineKey`, read from and written to the `routineStats` store; seeded to the first option, "" when none. */
   routine: string;
-  init(this: StatisticsRoutinesContext): Promise<void>;
-  /** Every routine as a `Select` option: default routines first, then the user's own. */
-  routineOptions(this: StatisticsRoutinesContext): SelectOption[];
-  /** Name of the picked routine, "" when none. */
-  routineName(this: StatisticsRoutinesContext): string;
+  /** Every trained routine as a `Select` option, most recently trained first. */
+  routineOptions(): SelectOption[];
 };
 
 export type RoutineDetailContext = {

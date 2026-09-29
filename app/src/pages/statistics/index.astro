@@ -4,8 +4,10 @@ import AppLayout from "@layouts/AppLayout.astro";
 import Select from "@components/forms/Select.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
 import Badge from "@components/ui/Badge.astro";
-import StatsHeatmap from "@components/ui/StatsHeatmap.astro";
+import Button from "@components/forms/Button.astro";
 import Toggle from "@components/layout/games/setup/Toggle.astro";
+import GameSectionCards from "@components/layout/statistics/GameSectionCards.astro";
+import RoutineStepButton from "@components/layout/statistics/RoutineStepButton.astro";
 import { GAME_CARDS } from "@lib/game/rulesets/games-visibility";
 
 const tabOptions = [
@@ -59,912 +61,7 @@ const scope = JSON.stringify({
           x-show="!$store.gameStats.loading"
           x-cloak
         >
-          <div
-            class="gradient-card space-y-2 p-4"
-            x-show="$store.gameStats.sections['target-accuracy']"
-            x-cloak
-          >
-            <h2 class="text-sm font-semibold text-foreground">
-              Target accuracy
-            </h2>
-            <template
-              x-for="row in $store.gameStats.accuracyRows"
-              :key="row.targetKey"
-            >
-              <div class="flex items-center gap-2 text-sm">
-                <span
-                  class="w-20 shrink-0 text-foreground"
-                  x-text="row.targetKey"
-                ></span>
-                <div
-                  class="h-2 flex-1 overflow-hidden rounded-sm bg-surface-overlay"
-                >
-                  <div
-                    class="h-full bg-accent"
-                    :style="{ width: (row.rate * 100) + '%' }"
-                  >
-                  </div>
-                </div>
-                <span
-                  class="w-16 shrink-0 text-right text-muted-foreground"
-                  x-text="row.attempts >= 30 ? Math.round(row.rate * 100) + '%' : 'not enough darts yet'"
-                ></span>
-              </div>
-            </template>
-            <p
-              class="text-xs text-accent"
-              x-show="$store.gameStats.favoriteTarget"
-              x-cloak
-              x-text="$store.gameStats.favoriteTarget ? `Favourite: ${$store.gameStats.favoriteTarget.targetKey}` : ''"
-            >
-            </p>
-            <p
-              class="text-xs text-muted-foreground"
-              x-show="$store.gameStats.weakestTarget"
-              x-cloak
-              x-text="$store.gameStats.weakestTarget ? `Weakest: ${$store.gameStats.weakestTarget.targetKey}` : ''"
-            >
-            </p>
-            <div
-              class="space-y-1"
-              x-data="{ ringTarget: '' }"
-              x-effect="ringTarget = ringTarget || ($store.gameStats.accuracyRows[0]?.targetKey ?? '')"
-              x-show="($store.gameStats.gameTypeKey === 'SINGLES_TRAINING' || $store.gameStats.gameTypeKey === 'SHANGHAI') && $store.gameStats.accuracyRows.length"
-              x-cloak
-            >
-              <p class="text-xs text-muted-foreground">Ring split:</p>
-              <Select
-                optionsExpr="$store.gameStats.accuracyRows.map((row) => ({ value: row.targetKey, label: row.targetKey }))"
-                model="ringTarget"
-                ariaLabel="Ring split target"
-              />
-              <template
-                x-for="ring in $store.gameStats.ringSplit(ringTarget)"
-                :key="ring.ring"
-              >
-                <div class="flex items-center justify-between text-sm">
-                  <span
-                    class="text-foreground"
-                    x-text="ring.ring"
-                  ></span>
-                  <span
-                    class="text-muted-foreground"
-                    x-text="ring.count"
-                  ></span>
-                </div>
-              </template>
-            </div>
-            <p
-              class="text-xs text-muted-foreground"
-              x-show="$store.gameStats.skippedSessionsFor('target-accuracy') > 0"
-              x-cloak
-              x-text="`${$store.gameStats.skippedSessionsFor('target-accuracy')} sessions could not be replayed`"
-            >
-            </p>
-          </div>
-
-          <div
-            class="gradient-card space-y-2 p-4"
-            x-data="{ atcGroup: '' }"
-            x-effect="atcGroup = atcGroup || ($store.gameStats.atcConfigGroups[0] ?? '')"
-            x-show="$store.gameStats.sections['atc-darts-per-target']"
-            x-cloak
-          >
-            <h2 class="text-sm font-semibold text-foreground">
-              Darts per target
-            </h2>
-            <div
-              x-show="$store.gameStats.atcConfigGroups.length > 1"
-              x-cloak
-            >
-              <Select
-                optionsExpr="$store.gameStats.atcConfigGroups.map((g) => ({ value: g, label: g }))"
-                model="atcGroup"
-                ariaLabel="Around the Clock configuration"
-              />
-            </div>
-            <template
-              x-for="row in $store.gameStats.dartsPerTargetForGroup(atcGroup)"
-              :key="row.targetKey"
-            >
-              <div class="flex items-center justify-between text-sm">
-                <span
-                  class="text-foreground"
-                  x-text="row.targetKey"
-                ></span>
-                <span
-                  class="text-muted-foreground"
-                  x-text="row.dartsPerTarget !== null ? row.dartsPerTarget.toFixed(1) + ' darts' : 'not enough data yet'"
-                ></span>
-              </div>
-            </template>
-            <div
-              class="space-y-1"
-              x-show="$store.gameStats.slowestTargets(atcGroup, 3).length"
-              x-cloak
-            >
-              <p class="text-xs text-muted-foreground">Slowest targets:</p>
-              <template
-                x-for="row in $store.gameStats.slowestTargets(atcGroup, 3)"
-                :key="row.targetKey"
-              >
-                <div class="flex items-center justify-between text-sm">
-                  <span
-                    class="text-foreground"
-                    x-text="row.targetKey"
-                  ></span>
-                  <span
-                    class="text-accent"
-                    x-text="row.dartsPerTarget.toFixed(1) + ' darts'"
-                  ></span>
-                </div>
-              </template>
-            </div>
-            <p
-              class="text-xs text-muted-foreground"
-              x-show="$store.gameStats.skippedSessionsFor('atc-darts-per-target') > 0"
-              x-cloak
-              x-text="`${$store.gameStats.skippedSessionsFor('atc-darts-per-target')} sessions could not be replayed`"
-            >
-            </p>
-          </div>
-
-          <div
-            class="gradient-card space-y-2 p-4"
-            x-data="{ bobsGroup: '' }"
-            x-effect="bobsGroup = bobsGroup || ($store.gameStats.bobs27ConfigGroups[0] ?? '')"
-            x-show="$store.gameStats.sections['bobs27-survival']"
-            x-cloak
-          >
-            <h2 class="text-sm font-semibold text-foreground">Survival</h2>
-            <div
-              x-show="$store.gameStats.bobs27ConfigGroups.length > 1"
-              x-cloak
-            >
-              <Select
-                optionsExpr="$store.gameStats.bobs27ConfigGroups.map((g) => ({ value: g, label: g }))"
-                model="bobsGroup"
-                ariaLabel="Bob's 27 configuration"
-              />
-            </div>
-            <template
-              x-for="row in $store.gameStats.survivalCurve(bobsGroup)"
-              :key="row.targetKey"
-            >
-              <div class="flex items-center gap-2 text-sm">
-                <span
-                  class="w-20 shrink-0 text-foreground"
-                  x-text="row.targetKey"
-                ></span>
-                <div
-                  class="h-2 flex-1 overflow-hidden rounded-sm bg-surface-overlay"
-                >
-                  <div
-                    class="h-full bg-accent"
-                    :style="{ width: (row.reached / Math.max(1, $store.gameStats.survivalCurve(bobsGroup)[0]?.reached ?? 1) * 100) + '%' }"
-                  >
-                  </div>
-                </div>
-                <span
-                  class="w-20 shrink-0 text-right text-muted-foreground"
-                  x-text="`${row.reached} runs`"
-                ></span>
-              </div>
-            </template>
-            <p
-              class="text-xs text-accent"
-              x-show="$store.gameStats.bobs27DeadliestTarget(bobsGroup)"
-              x-cloak
-              x-text="$store.gameStats.bobs27DeadliestTarget(bobsGroup) ? `Dies most at: ${$store.gameStats.bobs27DeadliestTarget(bobsGroup).targetKey}` : ''"
-            >
-            </p>
-            <p
-              class="text-xs text-muted-foreground"
-              x-show="$store.gameStats.bobs27AverageScore(bobsGroup) !== null"
-              x-cloak
-              x-text="`Average running score: ${$store.gameStats.bobs27AverageScore(bobsGroup) !== null ? Math.round($store.gameStats.bobs27AverageScore(bobsGroup)) : ''}`"
-            >
-            </p>
-            <p
-              class="text-xs text-muted-foreground"
-              x-show="$store.gameStats.skippedSessionsFor('bobs27-survival') > 0"
-              x-cloak
-              x-text="`${$store.gameStats.skippedSessionsFor('bobs27-survival')} sessions could not be replayed`"
-            >
-            </p>
-          </div>
-
-          <div
-            class="gradient-card space-y-2 p-4"
-            x-show="$store.gameStats.sections['shanghai-count']"
-            x-cloak
-          >
-            <h2 class="text-sm font-semibold text-foreground">Shanghais</h2>
-            <template
-              x-for="point in $store.gameStats.shanghaiRateTrend"
-              :key="point.start"
-            >
-              <div class="flex items-center justify-between text-sm">
-                <span
-                  class="text-muted-foreground"
-                  x-text="new Date(point.start).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })"
-                ></span>
-                <span
-                  class="text-foreground"
-                  x-text="point.rate !== null ? Math.round(point.rate * 100) + '%' : 'not enough data yet'"
-                ></span>
-              </div>
-            </template>
-            <p class="text-xs text-muted-foreground">Rounds where they land:</p>
-            <template
-              x-for="row in $store.gameStats.shanghaiByRound"
-              :key="row.round"
-            >
-              <div class="flex items-center justify-between text-sm">
-                <span
-                  class="text-foreground"
-                  x-text="`Round ${row.round}`"
-                ></span>
-                <span
-                  class="text-muted-foreground"
-                  x-text="row.count"
-                ></span>
-              </div>
-            </template>
-            <p
-              class="text-xs text-muted-foreground"
-              x-show="$store.gameStats.pointsPerRound !== null"
-              x-cloak
-              x-text="`Points per round (before Hard-mode halving): ${$store.gameStats.pointsPerRound !== null ? $store.gameStats.pointsPerRound.toFixed(1) : ''}`"
-            >
-            </p>
-            <p
-              class="text-xs text-muted-foreground"
-              x-show="$store.gameStats.skippedSessionsFor('shanghai-count') > 0"
-              x-cloak
-              x-text="`${$store.gameStats.skippedSessionsFor('shanghai-count')} sessions could not be replayed`"
-            >
-            </p>
-          </div>
-
-          <div
-            class="gradient-card space-y-2 p-4"
-            x-data="{ confusionTarget: '' }"
-            x-effect="confusionTarget = confusionTarget || ($store.gameStats.accuracyRows[0]?.targetKey ?? '')"
-            x-show="$store.gameStats.sections.confusion"
-            x-cloak
-          >
-            <h2 class="text-sm font-semibold text-foreground">Confusion</h2>
-            <Select
-              optionsExpr="$store.gameStats.accuracyRows.map((row) => ({ value: row.targetKey, label: row.targetKey }))"
-              model="confusionTarget"
-              ariaLabel="Confusion target"
-            />
-            <template
-              x-for="landing in $store.gameStats.confusionTop(confusionTarget, 3)"
-              :key="landing.hitKey"
-            >
-              <div class="flex items-center justify-between text-sm">
-                <span
-                  class="text-foreground"
-                  x-text="landing.hitKey"
-                ></span>
-                <span
-                  class="text-muted-foreground"
-                  x-text="landing.count"
-                ></span>
-              </div>
-            </template>
-            <p
-              class="text-xs text-muted-foreground"
-              x-show="$store.gameStats.skippedSessionsFor('confusion') > 0"
-              x-cloak
-              x-text="`${$store.gameStats.skippedSessionsFor('confusion')} sessions could not be replayed`"
-            >
-            </p>
-          </div>
-
-          <div
-            class="gradient-card space-y-2 p-4"
-            x-show="$store.gameStats.sections.grouping"
-            x-cloak
-          >
-            <h2 class="text-sm font-semibold text-foreground">Grouping</h2>
-            <template
-              x-for="row in $store.gameStats.groupingRows"
-              :key="row.targetKey"
-            >
-              <div class="flex items-center justify-between text-sm">
-                <span
-                  class="text-foreground"
-                  x-text="row.targetKey"
-                ></span>
-                <span
-                  class="text-muted-foreground"
-                  x-show="row.summary"
-                  x-cloak
-                  x-text="row.summary ? `${Math.round(row.summary.spreadMm)} mm spread` : ''"
-                ></span>
-                <span
-                  class="text-muted-foreground"
-                  x-show="!row.summary"
-                  x-cloak
-                >
-                  not enough darts yet
-                </span>
-              </div>
-            </template>
-          </div>
-
-          <div
-            class="gradient-card space-y-2 p-4"
-            x-data="{ missTarget: '' }"
-            x-effect="missTarget = missTarget || ($store.gameStats.accuracyRows[0]?.targetKey ?? '')"
-            x-show="$store.gameStats.sections['miss-direction']"
-            x-cloak
-          >
-            <h2 class="text-sm font-semibold text-foreground">
-              Miss direction
-            </h2>
-            <Select
-              optionsExpr="$store.gameStats.accuracyRows.map((row) => ({ value: row.targetKey, label: row.targetKey }))"
-              model="missTarget"
-              ariaLabel="Miss direction target"
-            />
-            <div class="grid grid-cols-8 gap-1">
-              <template
-                x-for="sector in $store.gameStats.missRose(missTarget)"
-                :key="sector.sector"
-              >
-                <div
-                  class="flex flex-col items-center gap-1 text-xs text-muted-foreground"
-                >
-                  <div
-                    class="h-8 w-2 rounded-sm bg-accent"
-                    :style="{ opacity: 0.15 + Math.min(1, (sector.inside + sector.within + sector.outside) / 10) * 0.85 }"
-                  >
-                  </div>
-                  <span x-text="sector.sector"></span>
-                </div>
-              </template>
-            </div>
-            <p
-              class="text-xs text-muted-foreground"
-              x-show="$store.gameStats.skippedSessionsFor('miss-direction') > 0"
-              x-cloak
-              x-text="`${$store.gameStats.skippedSessionsFor('miss-direction')} sessions could not be replayed`"
-            >
-            </p>
-          </div>
-
-          <div
-            class="gradient-card space-y-2 p-4"
-            x-show="$store.gameStats.sections['loose-darts']"
-            x-cloak
-          >
-            <h2 class="text-sm font-semibold text-foreground">Loose darts</h2>
-            <template
-              x-for="bucket in $store.gameStats.looseDartsTrend"
-              :key="bucket.start"
-            >
-              <div class="flex items-center justify-between text-sm">
-                <span
-                  class="text-muted-foreground"
-                  x-text="new Date(bucket.start).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })"
-                ></span>
-                <span
-                  class="text-foreground"
-                  x-text="`${bucket.onTarget} on · ${bucket.nearMiss} near · ${bucket.loose} loose`"
-                ></span>
-              </div>
-            </template>
-            <p
-              class="text-xs text-muted-foreground"
-              x-show="$store.gameStats.skippedSessionsFor('loose-darts') > 0"
-              x-cloak
-              x-text="`${$store.gameStats.skippedSessionsFor('loose-darts')} sessions could not be replayed`"
-            >
-            </p>
-          </div>
-
-          <div
-            class="gradient-card space-y-2 p-4"
-            x-show="$store.gameStats.sections['scoring-trend']"
-            x-cloak
-          >
-            <h2 class="text-sm font-semibold text-foreground">Scoring trend</h2>
-            <div
-              class="grid grid-cols-2 gap-2 text-center text-sm text-muted-foreground"
-            >
-              <div>
-                <span
-                  class="block text-lg text-foreground"
-                  x-text="$store.gameStats.threeDartAverage !== null ? $store.gameStats.threeDartAverage.toFixed(1) : '—'"
-                >
-                </span>
-                3-dart average
-              </div>
-              <div>
-                <span
-                  class="block text-lg text-foreground"
-                  x-text="$store.gameStats.firstNineAverage !== null ? $store.gameStats.firstNineAverage.toFixed(1) : '—'"
-                >
-                </span>
-                First nine
-              </div>
-            </div>
-            <template
-              x-for="row in $store.gameStats.scoringTrendRows"
-              :key="row.start"
-            >
-              <div class="flex items-center justify-between text-sm">
-                <span
-                  class="text-muted-foreground"
-                  x-text="new Date(row.start).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })"
-                ></span>
-                <span
-                  class="text-foreground"
-                  x-text="row.threeDartAverage !== null ? row.threeDartAverage.toFixed(1) + ' avg' : 'not enough data yet'"
-                ></span>
-              </div>
-            </template>
-            <p class="text-xs text-muted-foreground">
-              <span x-text="$store.gameStats.bandCounts.ton"></span> 100+ ·
-              <span x-text="$store.gameStats.bandCounts.tonForty"></span> 140+ · <span
-                x-text="$store.gameStats.bandCounts.oneEighty"></span>
-              180s
-            </p>
-          </div>
-
-          <div
-            class="gradient-card space-y-2 p-4"
-            x-show="$store.gameStats.sections['ladder-progress']"
-            x-cloak
-          >
-            <h2 class="text-sm font-semibold text-foreground">
-              Ladder progress
-            </h2>
-            <p
-              class="text-sm text-muted-foreground"
-              x-show="$store.gameStats.ladderSummary"
-              x-cloak
-              x-text="$store.gameStats.ladderSummary ? `Highest target: ${$store.gameStats.ladderSummary.maxTarget ?? '—'}` : ''"
-            >
-            </p>
-            <template
-              x-for="band in ($store.gameStats.ladderSummary?.bands ?? [])"
-              :key="band.start"
-            >
-              <div class="flex items-center gap-2 text-sm">
-                <span
-                  class="w-16 shrink-0 text-foreground"
-                  x-text="`${band.start}-${band.end}`"
-                ></span>
-                <div
-                  class="h-2 flex-1 overflow-hidden rounded-sm bg-surface-overlay"
-                >
-                  <div
-                    class="h-full bg-accent"
-                    :style="{ width: (band.rate !== null ? band.rate * 100 : 0) + '%' }"
-                  >
-                  </div>
-                </div>
-                <span
-                  class="w-28 shrink-0 text-right text-muted-foreground"
-                  x-text="band.rate !== null ? Math.round(band.rate * 100) + '%' : 'not enough data yet'"
-                ></span>
-              </div>
-            </template>
-            <p
-              class="text-xs text-muted-foreground"
-              x-show="$store.gameStats.ladderSummary?.recoveryRate !== null"
-              x-cloak
-              x-text="$store.gameStats.ladderSummary?.recoveryRate !== null ? `Recovery after a miss: ${Math.round($store.gameStats.ladderSummary.recoveryRate * 100)}%` : ''"
-            >
-            </p>
-          </div>
-
-          <div
-            class="gradient-card space-y-2 p-4"
-            x-show="$store.gameStats.sections['checkout-rate']"
-            x-cloak
-          >
-            <h2 class="text-sm font-semibold text-foreground">Checkout rate</h2>
-            <template
-              x-for="band in $store.gameStats.checkoutRateBands"
-              :key="band.label"
-            >
-              <div class="flex items-center gap-2 text-sm">
-                <span
-                  class="w-20 shrink-0 text-foreground"
-                  x-text="band.label"
-                ></span>
-                <div
-                  class="h-2 flex-1 overflow-hidden rounded-sm bg-surface-overlay"
-                >
-                  <div
-                    class="h-full bg-accent"
-                    :style="{ width: (band.rate !== null ? band.rate * 100 : 0) + '%' }"
-                  >
-                  </div>
-                </div>
-                <span
-                  class="w-28 shrink-0 text-right text-muted-foreground"
-                  x-text="band.rate !== null ? Math.round(band.rate * 100) + '%' : 'not enough data yet'"
-                ></span>
-              </div>
-            </template>
-            <template
-              x-for="point in $store.gameStats.checkoutRateTrend"
-              :key="point.start"
-            >
-              <div class="flex items-center justify-between text-sm">
-                <span
-                  class="text-muted-foreground"
-                  x-text="new Date(point.start).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })"
-                ></span>
-                <span
-                  class="text-foreground"
-                  x-text="point.rate !== null ? Math.round(point.rate * 100) + '%' : 'not enough data yet'"
-                ></span>
-              </div>
-            </template>
-          </div>
-
-          <div
-            class="gradient-card space-y-2 p-4"
-            x-show="$store.gameStats.sections['double-performance']"
-            x-cloak
-          >
-            <h2 class="text-sm font-semibold text-foreground">
-              Double performance
-            </h2>
-            <template
-              x-for="row in $store.gameStats.doubleRows"
-              :key="row.targetKey"
-            >
-              <div class="flex items-center gap-2 text-sm">
-                <span
-                  class="w-20 shrink-0 text-foreground"
-                  x-text="row.targetKey"
-                ></span>
-                <div
-                  class="h-2 flex-1 overflow-hidden rounded-sm bg-surface-overlay"
-                >
-                  <div
-                    class="h-full bg-accent"
-                    :style="{ width: (row.rate * 100) + '%' }"
-                  >
-                  </div>
-                </div>
-                <span
-                  class="w-28 shrink-0 text-right text-muted-foreground"
-                  x-text="row.attempts >= 30 ? Math.round(row.rate * 100) + '%' : 'not enough data yet'"
-                ></span>
-              </div>
-            </template>
-            <p
-              class="text-xs text-accent"
-              x-show="$store.gameStats.favoriteDouble"
-              x-cloak
-              x-text="$store.gameStats.favoriteDouble ? `Favourite: ${$store.gameStats.favoriteDouble.targetKey}` : ''"
-            >
-            </p>
-            <p
-              class="text-xs text-muted-foreground"
-              x-show="$store.gameStats.weakestDouble"
-              x-cloak
-              x-text="$store.gameStats.weakestDouble ? `Weakest: ${$store.gameStats.weakestDouble.targetKey}` : ''"
-            >
-            </p>
-          </div>
-
-          <div
-            class="gradient-card space-y-2 p-4"
-            x-data="{ pathRemaining: '' }"
-            x-effect="pathRemaining = pathRemaining || String($store.gameStats.checkoutPathRemainings[0] ?? '')"
-            x-show="$store.gameStats.sections['checkout-path']"
-            x-cloak
-          >
-            <h2 class="text-sm font-semibold text-foreground">Checkout path</h2>
-            <Select
-              optionsExpr="$store.gameStats.checkoutPathRemainings.map((r) => ({ value: String(r), label: String(r) }))"
-              model="pathRemaining"
-              ariaLabel="Checkout path remaining"
-            />
-            <p
-              class="text-xs text-muted-foreground"
-              x-show="$store.gameStats.chartRouteFor(Number(pathRemaining))"
-              x-cloak
-              x-text="$store.gameStats.chartRouteFor(Number(pathRemaining)) ? `Chart route: ${$store.gameStats.chartRouteFor(Number(pathRemaining)).join(' ')}` : ''"
-            >
-            </p>
-            <template
-              x-for="path in $store.gameStats.pathsFor(Number(pathRemaining))"
-              :key="path.route"
-            >
-              <div class="flex items-center justify-between text-sm">
-                <span
-                  class="text-foreground"
-                  x-text="path.route"
-                ></span>
-                <span
-                  class="text-muted-foreground"
-                  x-text="`${path.visits} visits · ${Math.round(path.finishRate * 100)}% finished`"
-                ></span>
-              </div>
-            </template>
-          </div>
-
-          <div
-            class="gradient-card space-y-2 p-4"
-            x-show="$store.gameStats.sections['bust-rate']"
-            x-cloak
-          >
-            <h2 class="text-sm font-semibold text-foreground">Bust rate</h2>
-            <template
-              x-for="band in $store.gameStats.bustRateBands"
-              :key="band.label"
-            >
-              <div class="flex items-center gap-2 text-sm">
-                <span
-                  class="w-20 shrink-0 text-foreground"
-                  x-text="band.label"
-                ></span>
-                <div
-                  class="h-2 flex-1 overflow-hidden rounded-sm bg-surface-overlay"
-                >
-                  <div
-                    class="h-full bg-error"
-                    :style="{ width: (band.rate !== null ? band.rate * 100 : 0) + '%' }"
-                  >
-                  </div>
-                </div>
-                <span
-                  class="w-28 shrink-0 text-right text-muted-foreground"
-                  x-text="band.rate !== null ? Math.round(band.rate * 100) + '%' : 'not enough data yet'"
-                ></span>
-              </div>
-            </template>
-            <template
-              x-for="point in $store.gameStats.bustRateTrend"
-              :key="point.start"
-            >
-              <div class="flex items-center justify-between text-sm">
-                <span
-                  class="text-muted-foreground"
-                  x-text="new Date(point.start).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })"
-                ></span>
-                <span
-                  class="text-foreground"
-                  x-text="point.rate !== null ? Math.round(point.rate * 100) + '%' : 'not enough data yet'"
-                ></span>
-              </div>
-            </template>
-          </div>
-
-          <div
-            class="gradient-card space-y-2 p-4"
-            x-show="$store.gameStats.sections['leg-stats']"
-            x-cloak
-          >
-            <h2 class="text-sm font-semibold text-foreground">Leg stats</h2>
-            <div
-              class="grid grid-cols-2 gap-2 text-center text-sm text-muted-foreground"
-            >
-              <div>
-                <span
-                  class="block text-lg text-foreground"
-                  x-text="$store.gameStats.bestLeg ?? '—'"
-                >
-                </span>
-                Best leg
-              </div>
-              <div>
-                <span
-                  class="block text-lg text-foreground"
-                  x-text="$store.gameStats.averageLegDarts !== null ? $store.gameStats.averageLegDarts.toFixed(1) : '—'"
-                >
-                </span>
-                Average darts
-              </div>
-            </div>
-            <template
-              x-for="row in $store.gameStats.legHistogram"
-              :key="row.darts"
-            >
-              <div class="flex items-center justify-between text-sm">
-                <span
-                  class="text-foreground"
-                  x-text="`${row.darts} darts`"
-                ></span>
-                <span
-                  class="text-muted-foreground"
-                  x-text="`${row.legs} legs`"
-                ></span>
-              </div>
-            </template>
-          </div>
-
-          <div
-            class="gradient-card space-y-2 p-4"
-            x-show="$store.gameStats.sections['treble-rate']"
-            x-cloak
-          >
-            <h2 class="text-sm font-semibold text-foreground">Treble rate</h2>
-            <div
-              class="grid grid-cols-3 gap-2 text-center text-sm text-muted-foreground"
-            >
-              <div>
-                <span
-                  class="block text-lg text-foreground"
-                  x-text="$store.gameStats.trebleRate('20') !== null ? Math.round($store.gameStats.trebleRate('20') * 100) + '%' : '—'"
-                >
-                </span>
-                T20
-              </div>
-              <div>
-                <span
-                  class="block text-lg text-foreground"
-                  x-text="$store.gameStats.trebleRate('19') !== null ? Math.round($store.gameStats.trebleRate('19') * 100) + '%' : '—'"
-                >
-                </span>
-                T19
-              </div>
-              <div>
-                <span
-                  class="block text-lg text-foreground"
-                  x-text="$store.gameStats.trebleRateAll !== null ? Math.round($store.gameStats.trebleRateAll * 100) + '%' : '—'"
-                >
-                </span>
-                Overall
-              </div>
-            </div>
-            <template
-              x-for="point in $store.gameStats.trebleRateTrend"
-              :key="point.start"
-            >
-              <div class="flex items-center justify-between text-sm">
-                <span
-                  class="text-muted-foreground"
-                  x-text="new Date(point.start).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })"
-                ></span>
-                <span
-                  class="text-foreground"
-                  x-text="point.rate !== null ? Math.round(point.rate * 100) + '%' : 'not enough data yet'"
-                ></span>
-              </div>
-            </template>
-          </div>
-
-          <div
-            class="gradient-card space-y-2 p-4"
-            x-data="{ heatmapTarget: '' }"
-            x-effect="$store.gameStats.selectHeatmapTarget(heatmapTarget || null)"
-            x-show="$store.gameStats.sections.heatmap"
-            x-cloak
-          >
-            <h2 class="text-sm font-semibold text-foreground">Heatmap</h2>
-            <div
-              x-show="$store.gameStats.accuracyRows.length"
-              x-cloak
-            >
-              <Select
-                optionsExpr="[{ value: '', label: 'Whole board' }, ...$store.gameStats.accuracyRows.map((row) => ({ value: row.targetKey, label: row.targetKey }))]"
-                model="heatmapTarget"
-                ariaLabel="Heatmap target"
-              />
-            </div>
-            <StatsHeatmap class="mx-auto max-w-56" />
-          </div>
-
-          <div class="gradient-card space-y-2 p-4">
-            <h2 class="text-sm font-semibold text-foreground">Completion</h2>
-            <div
-              class="grid grid-cols-3 gap-2 text-center text-sm text-muted-foreground"
-            >
-              <div>
-                <span
-                  class="block text-lg text-foreground"
-                  x-text="$store.gameStats.completionTotals?.completed ?? 0"
-                >
-                </span>
-                Completed
-              </div>
-              <div>
-                <span
-                  class="block text-lg text-foreground"
-                  x-text="$store.gameStats.completionTotals?.abandoned ?? 0"
-                >
-                </span>
-                Abandoned
-              </div>
-              <div>
-                <span
-                  class="block text-lg text-foreground"
-                  x-text="$store.gameStats.completionTotals?.neverStarted ?? 0"
-                >
-                </span>
-                Never started
-              </div>
-            </div>
-            <p
-              class="text-xs text-muted-foreground"
-              x-show="$store.gameStats.abandonRate !== null"
-              x-cloak
-              x-text="`Abandon rate: ${Math.round($store.gameStats.abandonRate * 100)}%`"
-            >
-            </p>
-          </div>
-
-          <div class="gradient-card space-y-2 p-4">
-            <h2 class="text-sm font-semibold text-foreground">Volume</h2>
-            <div
-              class="grid grid-cols-3 gap-2 text-center text-sm text-muted-foreground"
-            >
-              <div>
-                <span
-                  class="block text-lg text-foreground"
-                  x-text="($store.gameStats.volumeTotals?.sessions.standalone ?? 0) + ($store.gameStats.volumeTotals?.sessions.routine ?? 0)"
-                >
-                </span>
-                Sessions
-              </div>
-              <div>
-                <span
-                  class="block text-lg text-foreground"
-                  x-text="($store.gameStats.volumeTotals?.darts.standalone ?? 0) + ($store.gameStats.volumeTotals?.darts.routine ?? 0)"
-                >
-                </span>
-                Darts
-              </div>
-              <div>
-                <span
-                  class="block text-lg text-foreground"
-                  x-text="Math.round((($store.gameStats.volumeTotals?.durationSeconds.standalone ?? 0) + ($store.gameStats.volumeTotals?.durationSeconds.routine ?? 0)) / 60)"
-                >
-                </span>
-                Minutes
-              </div>
-            </div>
-          </div>
-
-          <div
-            class="gradient-card space-y-2 p-4"
-            x-show="$store.gameStats.sessionResultRows.length"
-            x-cloak
-          >
-            <h2 class="text-sm font-semibold text-foreground">
-              Session result
-            </h2>
-            <template
-              x-for="row in $store.gameStats.sessionResultRows"
-              :key="row.rulesetVersionKey"
-            >
-              <div class="flex items-center justify-between gap-2 text-sm">
-                <span
-                  class="text-foreground"
-                  x-text="row.rulesetVersionKey"
-                >
-                </span>
-                <span
-                  class="text-muted-foreground"
-                  x-show="row.averageCountedScore !== null"
-                  x-cloak
-                  x-text="`avg ${Math.round(row.averageCountedScore)}`"
-                >
-                </span>
-                <a
-                  class="text-accent no-underline hover:text-accent-hover"
-                  x-show="row.personalBest"
-                  x-cloak
-                  :href="row.personalBest ? $store.gameStats.replayHref(row.personalBest.sessionId) : undefined"
-                  x-text="row.personalBest ? `PB ${row.personalBest.value}` : ''"
-                >
-                </a>
-              </div>
-            </template>
-          </div>
+          <GameSectionCards view="$store.gameStats" />
 
           <div class="space-y-2">
             <h2 class="text-sm font-semibold text-foreground">Sessions</h2>
@@ -1027,7 +124,7 @@ const scope = JSON.stringify({
         x-cloak
       >
         <div
-          x-show="routines.length"
+          x-show="$store.routineStats.routines.length"
           x-cloak
         >
           <Select
@@ -1036,14 +133,286 @@ const scope = JSON.stringify({
             ariaLabel="Routine"
           />
         </div>
+        <ErrorAlert
+          showExpr="$store.routineStats.error"
+          textExpr="$store.routineStats.error"
+        />
         <p
           class="text-sm text-muted-foreground"
-          x-show="!loading && !error"
+          x-show="!$store.routineStats.loading && !$store.routineStats.error && !$store.routineStats.routines.length"
           x-cloak
-          x-text="routines.length ? `${routineName()} statistics coming soon.` : 'No routines available'"
         >
+          No routines trained yet.
         </p>
-        <ErrorAlert />
+        <div
+          class="space-y-4"
+          x-show="$store.routineStats.header"
+          x-cloak
+        >
+          <div class="gradient-card space-y-2 p-4">
+            <h2 class="text-sm font-semibold text-foreground">Runs</h2>
+            <div
+              class="grid grid-cols-3 gap-2 text-center text-sm text-muted-foreground"
+            >
+              <div>
+                <span
+                  class="block text-lg text-foreground"
+                  x-text="$store.routineStats.routineVolumeTotals?.runs ?? 0"
+                >
+                </span>
+                Runs
+              </div>
+              <div>
+                <span
+                  class="block text-lg text-foreground"
+                  x-text="$store.routineStats.routineVolumeTotals?.minutes ?? 0"
+                >
+                </span>
+                Minutes
+              </div>
+              <div>
+                <span
+                  class="block text-lg text-foreground"
+                  x-text="$store.routineStats.routineVolumeTotals?.darts ?? 0"
+                >
+                </span>
+                Darts
+              </div>
+            </div>
+            <p
+              class="text-xs text-muted-foreground"
+              x-show="($store.routineStats.routineVolumeTotals?.shortestMinutes ?? null) !== null"
+              x-cloak
+              x-text="`Shortest ${$store.routineStats.routineVolumeTotals?.shortestMinutes} min · longest ${$store.routineStats.routineVolumeTotals?.longestMinutes} min`"
+            >
+            </p>
+          </div>
+
+          <div class="gradient-card space-y-2 p-4">
+            <h2 class="text-sm font-semibold text-foreground">Completion</h2>
+            <div
+              class="grid grid-cols-3 gap-2 text-center text-sm text-muted-foreground"
+            >
+              <div>
+                <span
+                  class="block text-lg text-foreground"
+                  x-text="$store.routineStats.routineCompletionTotals?.completed ?? 0"
+                >
+                </span>
+                Completed
+              </div>
+              <div>
+                <span
+                  class="block text-lg text-foreground"
+                  x-text="$store.routineStats.routineCompletionTotals?.abandoned ?? 0"
+                >
+                </span>
+                Abandoned
+              </div>
+              <div>
+                <span
+                  class="block text-lg text-foreground"
+                  x-text="$store.routineStats.routineCompletionTotals?.neverStarted ?? 0"
+                >
+                </span>
+                Never started
+              </div>
+            </div>
+            <template
+              x-for="row in $store.routineStats.abandonPoints"
+              :key="row.steps"
+            >
+              <div class="flex items-center justify-between gap-2 text-sm">
+                <span
+                  class="text-muted-foreground"
+                  x-text="`Abandoned after ${row.steps} ${row.steps === 1 ? 'step' : 'steps'}`"
+                >
+                </span>
+                <span
+                  class="text-foreground"
+                  x-text="row.runs"
+                >
+                </span>
+              </div>
+            </template>
+          </div>
+          <div class="space-y-2">
+            <h2 class="text-sm font-semibold text-foreground">Steps</h2>
+            <template
+              x-for="step in $store.routineStats.currentSteps"
+              :key="step.stepKey"
+            >
+              <RoutineStepButton />
+            </template>
+            <Button
+              variant="ghost"
+              loadingExpr="false"
+              class="w-full justify-between font-normal"
+              x-show="$store.routineStats.earlierSteps.length"
+              x-cloak
+              :aria-expanded="$store.routineStats.showEarlierSteps"
+              @click="$store.routineStats.showEarlierSteps = !$store.routineStats.showEarlierSteps"
+            >
+              <span
+                slot="iconBefore"
+                x-text="`Earlier versions (${$store.routineStats.earlierSteps.length})`"
+              >
+              </span>
+            </Button>
+            <template
+              x-for="step in $store.routineStats.shownEarlierSteps"
+              :key="step.stepKey"
+            >
+              <RoutineStepButton />
+            </template>
+          </div>
+          <GameSectionCards
+            view="$store.routineStats.stepGame"
+            heatmapTargets={false}
+            x-show="$store.routineStats.stepKind === 'game'"
+            x-cloak
+          />
+
+          <div
+            class="gradient-card space-y-2 p-4"
+            x-show="$store.routineStats.stepHeadline"
+            x-cloak
+          >
+            <h2 class="text-sm font-semibold text-foreground">Step result</h2>
+            <div
+              class="grid grid-cols-2 gap-2 text-center text-sm text-muted-foreground"
+            >
+              <div>
+                <span
+                  class="block text-lg text-foreground"
+                  x-text="$store.routineStats.stepHeadline?.total ?? 0"
+                >
+                </span>
+                <span
+                  x-text="$store.routineStats.metricLabel($store.routineStats.stepHeadline?.key ?? '')"
+                >
+                </span>
+              </div>
+              <div>
+                <span
+                  class="block text-lg text-foreground"
+                  x-text="$store.routineStats.stepHeadline?.personalBest ?? '–'"
+                >
+                </span>
+                Best session
+              </div>
+            </div>
+            <template
+              x-for="row in $store.routineStats.stepRates"
+              :key="`${row.numerator}/${row.denominator}`"
+            >
+              <div class="flex items-center justify-between gap-2 text-sm">
+                <span
+                  class="text-muted-foreground"
+                  x-text="`${$store.routineStats.metricLabel(row.numerator)} / ${$store.routineStats.metricLabel(row.denominator)}`"
+                >
+                </span>
+                <span
+                  class="text-foreground"
+                  x-text="row.rate === null ? 'no data yet' : `${Math.round(row.rate * 100)}%`"
+                >
+                </span>
+              </div>
+            </template>
+            <p
+              class="text-xs text-muted-foreground"
+              x-show="($store.routineStats.stepResultTotals?.skippedSessions ?? 0) > 0"
+              x-cloak
+              x-text="`${$store.routineStats.stepResultTotals?.skippedSessions} sessions could not be replayed`"
+            >
+            </p>
+          </div>
+
+          <div
+            class="gradient-card space-y-2 p-4"
+            x-show="$store.routineStats.stepVolumeTotals"
+            x-cloak
+          >
+            <h2 class="text-sm font-semibold text-foreground">Volume</h2>
+            <div
+              class="grid grid-cols-3 gap-2 text-center text-sm text-muted-foreground"
+            >
+              <div>
+                <span
+                  class="block text-lg text-foreground"
+                  x-text="$store.routineStats.stepVolumeTotals?.sessions ?? 0"
+                >
+                </span>
+                Sessions
+              </div>
+              <div>
+                <span
+                  class="block text-lg text-foreground"
+                  x-text="$store.routineStats.stepVolumeTotals?.darts ?? 0"
+                >
+                </span>
+                Darts
+              </div>
+              <div>
+                <span
+                  class="block text-lg text-foreground"
+                  x-text="$store.routineStats.stepVolumeTotals?.minutes ?? 0"
+                >
+                </span>
+                Minutes
+              </div>
+            </div>
+          </div>
+          <div
+            class="space-y-2"
+            x-show="$store.routineStats.stepKey"
+            x-cloak
+          >
+            <h2 class="text-sm font-semibold text-foreground">Sessions</h2>
+            <template
+              x-for="item in $store.routineStats.stepSessions"
+              :key="item.sessionId"
+            >
+              <a
+                class="flex items-center justify-between gap-2 rounded-lg border border-border p-3 text-sm no-underline"
+                :href="$store.routineStats.sessionHref(item.sessionId)"
+              >
+                <div class="flex flex-col gap-1">
+                  <span
+                    class="text-foreground"
+                    x-text="new Date(item.completedAt).toLocaleDateString()"
+                  >
+                  </span>
+                  <span
+                    class="text-xs text-muted-foreground"
+                    x-text="`${Math.round(item.durationSeconds / 60)} min · ${item.dartCount} darts`"
+                  >
+                  </span>
+                </div>
+                <Badge
+                  class="shrink-0 text-xs"
+                  x-text="item.statusKey"
+                />
+              </a>
+            </template>
+            <p
+              class="text-sm text-muted-foreground"
+              x-show="!$store.routineStats.stepSessions.length"
+              x-cloak
+            >
+              No sessions in range.
+            </p>
+            <Button
+              variant="ghost"
+              loadingExpr="false"
+              title="Load more"
+              class="w-full"
+              x-show="$store.routineStats.nextCursor"
+              x-cloak
+              @click="$store.routineStats.loadMoreStepSessions()"
+            />
+          </div>
+        </div>
       </div>
     </div>
   </div>

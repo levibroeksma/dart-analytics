@@ -7,6 +7,7 @@ import { gameStatsStore } from "@stores/game-stats.store";
 import { gameStore } from "@stores/game.store";
 import { profileStore } from "@stores/profile.store";
 import { replayStore } from "@stores/replay.store";
+import { routineStatsStore } from "@stores/routine-stats.store";
 import { settingsStore } from "@stores/settings.store";
 import { statsStore } from "@stores/stats.store";
 import { trainingSessionStore } from "@stores/training-session.store";
@@ -17,6 +18,7 @@ export function registerStores(Alpine: Alpine) {
   Alpine.store("profile", profileStore());
   Alpine.store("stats", statsStore());
   Alpine.store("gameStats", gameStatsStore());
+  Alpine.store("routineStats", routineStatsStore());
   Alpine.store("replay", replayStore());
   Alpine.store("trainingSession", trainingSessionStore());
   /**

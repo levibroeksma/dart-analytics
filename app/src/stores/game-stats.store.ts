@@ -192,7 +192,8 @@ function bandLadderTargets(totals: ReadonlyMap<string, LadderTargetTotal>): {
     }));
 }
 
-function defaultRange() {
+/** A statistics page's opening range: the last twelve months to a minute from now, bucketed by month in the browser's own time zone. Shared with `routine-stats.store.ts`, so both tabs open on the same window. */
+export function defaultRange() {
   const now = new Date();
   const from = new Date(now);
   from.setUTCMonth(from.getUTCMonth() - 12);

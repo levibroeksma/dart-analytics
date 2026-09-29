@@ -1,39 +1,33 @@
-import { listRoutines } from "@client/api/routines";
-import { routineSelectOptions } from "./routine-options";
-import type { RoutineSummaryData } from "@client/api/types";
 import type { SelectOption, StatisticsRoutinesContext } from "./types";
 
-/** `/statistics` Routines tab: loads every routine for its `Select`, seeded to the first option. */
-export function statisticsRoutines() {
+/**
+ * `/statistics` Routines tab picker. Its `Select` model reads and writes the
+ * `routineStats` store's selected routine, so the picker is seeded with the
+ * store's first trained routine (`routineStats.init()`) and a pick reloads
+ * the tab through `selectRoutine`. The options are routines that were
+ * trained (`GET /api/statistics/routines`), never the `GET /api/routines`
+ * catalogue of routines that exist today (phase 6b plan decision 9).
+ */
+export function statisticsRoutines(): Omit<
+  StatisticsRoutinesContext,
+  "$store"
+> &
+  ThisType<StatisticsRoutinesContext> {
   return {
-    loading: true,
-    error: "",
-    routines: [] as RoutineSummaryData[],
-    routine: "",
-
-    async init(this: StatisticsRoutinesContext) {
-      this.loading = true;
-      this.error = "";
-      try {
-        this.routines = (await listRoutines()).items;
-        this.routine = this.routineOptions()[0]?.value ?? "";
-      } catch {
-        this.error =
-          "Could not load your routines. Check your connection and reload.";
-      } finally {
-        this.loading = false;
-      }
+    get routine(): string {
+      return this.$store.routineStats.routineKey ?? "";
     },
 
-    routineOptions(this: StatisticsRoutinesContext): SelectOption[] {
-      return routineSelectOptions(this.routines);
+    set routine(routineKey: string) {
+      if (routineKey === this.$store.routineStats.routineKey) return;
+      void this.$store.routineStats.selectRoutine(routineKey);
     },
 
-    routineName(this: StatisticsRoutinesContext): string {
-      return (
-        this.routines.find((routine) => routine.routineId === this.routine)
-          ?.routineName ?? ""
-      );
+    routineOptions(): SelectOption[] {
+      return this.$store.routineStats.routines.map((routine) => ({
+        value: routine.routineKey,
+        label: routine.routineName,
+      }));
     },
   };
 }

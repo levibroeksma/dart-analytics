@@ -1,0 +1,33 @@
+---
+/**
+ * One row of the Routines tab's step list: the step's label and session
+ * count, marked while it is the `routineStats` store's selected step; a
+ * click selects it. Renders inside an `x-for` whose item is named `step`
+ * (a `RoutineStepDescriptor`), for both the current steps and the
+ * "Earlier versions" group.
+ */
+
+// Components
+import Button from "@components/forms/Button.astro";
+---
+
+<Button
+  variant="secondary"
+  loadingExpr="false"
+  class="w-full justify-between font-normal"
+  :class="step.stepKey === $store.routineStats.stepKey ? 'border-accent' : ''"
+  :aria-pressed="step.stepKey === $store.routineStats.stepKey"
+  @click="$store.routineStats.selectStep(step.stepKey)"
+>
+  <span
+    slot="iconBefore"
+    x-text="$store.routineStats.stepLabel(step)"
+  >
+  </span>
+  <span
+    slot="iconAfter"
+    class="text-xs text-muted-foreground"
+    x-text="`${step.sessionCount} sessions`"
+  >
+  </span>
+</Button>

@@ -1,70 +1,105 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from "vitest";
-vi.mock("@client/api/routines", () => ({ listRoutines: vi.fn() }));
-import { listRoutines } from "@client/api/routines";
-import { statisticsRoutines } from "@lib/training/routines/statistics-routines.data";
-import type { StatisticsRoutinesContext } from "@lib/types";
 
-const SYS = {
-  routineId: "s",
+const fetchTrainedRoutines = vi.fn();
+const fetchRoutineHeader = vi.fn();
+const listRoutines = vi.fn();
+
+vi.mock("@client/api/routines", () => ({
+  listRoutines: (...args: unknown[]) => listRoutines(...args),
+}));
+vi.mock("@client/api/statistics", () => ({
+  fetchGameSection: vi.fn(),
+  fetchGameSessions: vi.fn(),
+  fetchTrainedRoutines: (...args: unknown[]) => fetchTrainedRoutines(...args),
+  fetchRoutineHeader: (...args: unknown[]) => fetchRoutineHeader(...args),
+  fetchRoutineSection: vi.fn(),
+  fetchRoutineStepSection: vi.fn(),
+  fetchRoutineStepSessions: vi.fn(),
+}));
+vi.mock("@client/stats-cache/cache", () => ({
+  readSection: vi.fn(),
+  readSessionPage: vi.fn(),
+  noteDataVersion: vi.fn(),
+}));
+
+const { statisticsRoutines } =
+  await import("@lib/training/routines/statistics-routines.data");
+const { routineStatsStore } = await import("@stores/routine-stats.store");
+
+const RECENT = {
+  routineKey: "0190a1b2-c3d4-7e5f-8a9b-0c1d2e3f4a5b",
+  routineTemplateId: "0190a1b2-c3d4-7e5f-8a9b-0c1d2e3f4a5b",
   routineName: "Balanced Training",
-  description: null,
-  isSystemTemplate: true,
-  stepCount: 4,
-  totalMinutes: 30,
+  runCount: 4,
+  completedRunCount: 3,
+  lastRunAt: "2026-02-01T00:00:00.000Z",
 };
-const OWN = {
-  routineId: "o",
+const OLDER = {
+  routineKey: "name-0123456789abcdef0123456789abcdef",
+  routineTemplateId: null,
   routineName: "Mine",
-  description: null,
-  isSystemTemplate: false,
-  stepCount: 2,
-  totalMinutes: 45,
+  runCount: 1,
+  completedRunCount: 1,
+  lastRunAt: "2026-01-01T00:00:00.000Z",
 };
 
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => {
+  vi.clearAllMocks();
+  fetchRoutineHeader.mockRejectedValue(new Error("header not under test"));
+});
+
+/** The picker as Alpine mounts it: the data factory with its `$store` magic bound to a live `routineStats` store. */
+async function mountPicker(items: unknown[]) {
+  fetchTrainedRoutines.mockResolvedValue({ items });
+  const store = routineStatsStore();
+  await store.init();
+  const data = Object.assign(statisticsRoutines(), {
+    $store: { routineStats: store },
+  });
+  return { data, store };
+}
 
 describe("statisticsRoutines", () => {
-  it("loads routines as options, default first, and selects the first", async () => {
-    vi.mocked(listRoutines).mockResolvedValue({
-      items: [OWN, SYS],
-      nextCursor: null,
-    });
-    const data: StatisticsRoutinesContext = statisticsRoutines();
-    await data.init();
-    expect(data.loading).toBe(false);
+  it("seeds the picker with the first trained routine, in the order the list arrives", async () => {
+    const { data } = await mountPicker([RECENT, OLDER]);
+
     expect(data.routineOptions()).toEqual([
-      { value: "s", label: "Balanced Training" },
-      { value: "o", label: "Mine" },
+      { value: RECENT.routineKey, label: "Balanced Training" },
+      { value: OLDER.routineKey, label: "Mine" },
     ]);
-    expect(data.routine).toBe("s");
-    expect(data.routineName()).toBe("Balanced Training");
+    expect(data.routine).toBe(data.routineOptions()[0]?.value);
   });
 
-  it("names the picked routine", async () => {
-    vi.mocked(listRoutines).mockResolvedValue({
-      items: [SYS, OWN],
-      nextCursor: null,
-    });
-    const data: StatisticsRoutinesContext = statisticsRoutines();
-    await data.init();
-    data.routine = "o";
-    expect(data.routineName()).toBe("Mine");
+  it("lists trained routines, never the GET /api/routines catalogue", async () => {
+    await mountPicker([RECENT]);
+
+    expect(fetchTrainedRoutines).toHaveBeenCalledTimes(1);
+    expect(listRoutines).not.toHaveBeenCalled();
   });
 
-  it("selects nothing when no routines load", async () => {
-    vi.mocked(listRoutines).mockResolvedValue({ items: [], nextCursor: null });
-    const data: StatisticsRoutinesContext = statisticsRoutines();
-    await data.init();
+  it("selects a picked routine through the store", async () => {
+    const { data, store } = await mountPicker([RECENT, OLDER]);
+    const selectRoutine = vi.spyOn(store, "selectRoutine");
+
+    data.routine = OLDER.routineKey;
+
+    expect(selectRoutine).toHaveBeenCalledWith(OLDER.routineKey);
+  });
+
+  it("does not reload when the already-selected routine is picked again", async () => {
+    const { data, store } = await mountPicker([RECENT, OLDER]);
+    const selectRoutine = vi.spyOn(store, "selectRoutine");
+
+    data.routine = RECENT.routineKey;
+
+    expect(selectRoutine).not.toHaveBeenCalled();
+  });
+
+  it("selects nothing when no routine was ever trained", async () => {
+    const { data } = await mountPicker([]);
+
+    expect(data.routineOptions()).toEqual([]);
     expect(data.routine).toBe("");
-    expect(data.routineName()).toBe("");
-  });
-
-  it("surfaces a load failure as error text", async () => {
-    vi.mocked(listRoutines).mockRejectedValue(new Error("boom"));
-    const data: StatisticsRoutinesContext = statisticsRoutines();
-    await data.init();
-    expect(data.loading).toBe(false);
-    expect(data.error).toContain("Could not load");
   });
 });
