@@ -133,15 +133,15 @@ function stepScope(routineKey: string, step: StepDescriptor): CacheScope {
 }
 
 /**
- * A section's fetch parameters: the page range, except `checkout-path`,
- * which is not bucketable and always reads as one un-bucketed request over
- * the whole range, exactly as `game-stats.store.ts` reads it.
+ * A section's fetch parameters: the page range, except a section that is not
+ * bucketable, which always reads as one un-bucketed request over the whole
+ * range, exactly as `game-stats.store.ts` reads it.
  */
 function sectionParams(
   meta: SectionMeta | RoutineSectionMeta,
   range: StatsRange,
 ): StatsRange {
-  if (meta.id === "checkout-path") {
+  if (!meta.bucketable) {
     return { from: range.from, to: range.to, bucket: "none" };
   }
   return { ...range };
