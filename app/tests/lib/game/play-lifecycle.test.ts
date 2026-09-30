@@ -476,6 +476,69 @@ describe("playCommitDart", () => {
     expect(context.uploadAndCompleteSession).toHaveBeenCalledTimes(1);
   });
 
+  it("ends the session off wouldComplete alone, without reading isComplete", async () => {
+    const context = makeContext();
+    await playInit(context, GAME_TYPE_KEY, resumeEngine);
+    const isComplete = vi.spyOn(context.engine!, "isComplete");
+
+    await playCommitDart(
+      context,
+      {
+        hitTargetNumber: 1,
+        hitZoneKey: "DOUBLE",
+        locationX: null,
+        locationY: null,
+      },
+      () => true,
+    );
+
+    expect(isComplete).not.toHaveBeenCalled();
+    expect(context.finished).toBe(true);
+    expect(context.uploadAndCompleteSession).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not end the session when wouldComplete is false, even if isComplete reads true", async () => {
+    const context = makeContext();
+    await playInit(context, GAME_TYPE_KEY, resumeEngine);
+
+    await playCommitDart(
+      context,
+      {
+        hitTargetNumber: 99,
+        hitZoneKey: "DOUBLE",
+        locationX: null,
+        locationY: null,
+      },
+      () => false,
+    );
+
+    expect(context.engine!.isComplete()).toBe(true);
+    expect(context.finished).toBe(false);
+    expect(context.uploadAndCompleteSession).not.toHaveBeenCalled();
+  });
+
+  it("asks wouldComplete before the dart is recorded", async () => {
+    const context = makeContext();
+    await playInit(context, GAME_TYPE_KEY, resumeEngine);
+    const turnsSeen: number[] = [];
+
+    await playCommitDart(
+      context,
+      {
+        hitTargetNumber: 1,
+        hitZoneKey: "DOUBLE",
+        locationX: null,
+        locationY: null,
+      },
+      () => {
+        turnsSeen.push(context.engine!.facts().turns.length);
+        return false;
+      },
+    );
+
+    expect(turnsSeen).toEqual([0]);
+  });
+
   it("does nothing when there is no engine", async () => {
     const context = makeContext();
     await playCommitDart(context, {
@@ -1035,6 +1098,24 @@ describe("playRunBotVisualBoardVisit", () => {
 
     expect(engine.facts().turns).toHaveLength(1);
     expect(wait).not.toHaveBeenCalled();
+  });
+
+  it("forwards wouldComplete so the bot's completing dart ends the session", async () => {
+    const engine = new BotFakeEngine(TWO_BOT_SEATS);
+    engine.record(dartAt(20));
+    const context = makeBotContext(engine, TWO_BOT_SEATS);
+    const wait = vi.fn().mockResolvedValue(undefined);
+
+    await playRunBotVisualBoardVisit(
+      context,
+      BOT_REF,
+      stubThrower([19]),
+      wait,
+      () => true,
+    );
+
+    expect(context.finished).toBe(true);
+    expect(context.uploadAndCompleteSession).toHaveBeenCalledTimes(1);
   });
 
   it("stops throwing mid-visit once the session is paused during the pre-throw delay", async () => {

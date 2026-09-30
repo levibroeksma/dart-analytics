@@ -205,6 +205,14 @@ export function clearHiddenTimer(context: {
   context.hiddenTurnKey = null;
 }
 
+/**
+ * Records one dart, mirrors it into the store and arms the reveal timer.
+ * Completion defaults to a post-record `engine.isComplete()` read. A caller
+ * whose `isComplete()` can already read true before the dart resolves its
+ * visit (TUOD's MINUTES mode, see `tuod-play.data.ts`'s `commitDart`) passes
+ * `wouldComplete`: it is asked before recording, and its answer alone decides
+ * whether the session ends, so `isComplete()` is never consulted.
+ */
 export async function playCommitDart<
   TConfig,
   TEngine extends GameEngine<DartObservation, unknown>,
@@ -212,8 +220,10 @@ export async function playCommitDart<
 >(
   context: PlayLifecycleContext<TConfig, TEngine, TResults>,
   observation: DartObservation,
+  wouldComplete?: (observation: DartObservation) => boolean,
 ): Promise<void> {
   if (!context.engine || context.$store.game.timerPaused) return;
+  const completes = wouldComplete?.(observation);
   try {
     context.engine.record(observation);
   } catch (err: unknown) {
@@ -225,7 +235,7 @@ export async function playCommitDart<
   context.$store.game.recordFacts(facts);
   armHiddenTimer(context, facts.turns);
 
-  if (context.engine.isComplete()) {
+  if (completes ?? context.engine.isComplete()) {
     context.finished = true;
     context.completionStatus = "pending";
     await context.uploadAndCompleteSession();
@@ -294,6 +304,8 @@ function defaultBotWait(ms: number): Promise<void> {
  * `undoToActiveSeat`) moved the active seat away from the bot during the
  * delay. Guard 2 is load-bearing on its own; guard 1 only prevents two
  * *overlapping* loops from both reaching guard 2's window at once.
+ *
+ * `wouldComplete` is forwarded to each `playCommitDart`; see there.
  */
 export async function playRunBotVisualBoardVisit<
   TConfig,
@@ -306,6 +318,7 @@ export async function playRunBotVisualBoardVisit<
   botParticipantRef: string,
   throwDart: BotDartThrower,
   wait: (ms: number) => Promise<void> = defaultBotWait,
+  wouldComplete?: (observation: DartObservation) => boolean,
 ): Promise<void> {
   if (context.botThrowing || !context.engine) return;
   if (context.$store.game.timerPaused) return;
@@ -327,7 +340,7 @@ export async function playRunBotVisualBoardVisit<
       ) {
         return;
       }
-      await playCommitDart(context, observation);
+      await playCommitDart(context, observation, wouldComplete);
       await wait(pacing.postThrowMs);
     }
   } finally {
