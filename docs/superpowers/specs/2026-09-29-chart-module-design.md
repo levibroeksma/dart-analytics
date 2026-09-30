@@ -12,12 +12,14 @@ card on Score Training.
 ## Scope
 
 In:
+
 - Line and bar charts.
 - Portable-kit layout (`04-Modules-And-OOP.md` §Portable UI Kit).
 - Chart tokens in `global.css`, validated with the dataviz validator.
 - `scoring-trend` card: monthly text rows replaced by a line chart.
 
 Out (deferred):
+
 - Pie/donut, `chartjs-plugin-datalabels`.
 - Heatmap changes (own cycle).
 - Any other section's chart; choosing which sections show per game.
@@ -28,16 +30,16 @@ glass, its containers are.
 
 ## Files
 
-| File | Role |
-| ---- | ---- |
-| `app/src/modules/ui/chart.module.ts` | `ChartView` + pure `buildConfig`. No Alpine, stores or tokens. |
-| `app/src/modules/ui/types.ts` (or `interfaces.ts`) | `ChartSpec`, `ChartSeries`, `ChartTheme`. |
-| `app/src/components/ui/Chart.astro` | Glass container, canvas, HTML legend, table view. Paired with the module. |
-| `app/src/lib/ui/chart.data.ts` | Alpine factory `chartData`. Registered in `register-ui-data.ts`. |
-| `app/src/lib/ui/chart-theme.ts` | App adapter: tokens → `ChartTheme`. |
-| `app/src/styles/global.css` | `--chart-<name>` per `CardWrapper` color name, chart grid token. |
-| `app/src/stores/game-stats.store.ts` | `scoringTrendChart` getter. |
-| `app/src/components/layout/statistics/GameSectionCards.astro` | Scoring trend card swaps rows for `<Chart>`. |
+| File                                                          | Role                                                                      |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `app/src/modules/ui/chart.module.ts`                          | `ChartView` + pure `buildConfig`. No Alpine, stores or tokens.            |
+| `app/src/modules/ui/types.ts` (or `interfaces.ts`)            | `ChartSpec`, `ChartSeries`, `ChartTheme`.                                 |
+| `app/src/components/ui/Chart.astro`                           | Glass container, canvas, HTML legend, table view. Paired with the module. |
+| `app/src/lib/ui/chart.data.ts`                                | Alpine factory `chartData`. Registered in `register-ui-data.ts`.          |
+| `app/src/lib/ui/chart-theme.ts`                               | App adapter: tokens → `ChartTheme`.                                       |
+| `app/src/styles/global.css`                                   | `--chart-<name>` per `CardWrapper` color name, chart grid token.          |
+| `app/src/stores/game-stats.store.ts`                          | `scoringTrendChart` getter.                                               |
+| `app/src/components/layout/statistics/GameSectionCards.astro` | Scoring trend card swaps rows for `<Chart>`.                              |
 
 New dependency: `chart.js` only.
 
@@ -47,31 +49,39 @@ New dependency: `chart.js` only.
 type ChartKind = "line" | "bar";
 
 interface ChartSeries {
-  key: string;                 // stable identity; color follows it
+  key: string; // stable identity; color follows it
   label: string;
-  data: (number | null)[];     // null = gap
-  color?: TintName;            // named color; default = DEFAULT_ORDER[position in `series`]
+  data: (number | null)[]; // null = gap
+  color?: TintName; // named color; default = DEFAULT_ORDER[position in `series`]
 }
 
-type TintName =                // the names `CardWrapper.astro`'s `color` prop accepts
-  | "sky" | "violet" | "rose" | "teal" | "emerald"
-  | "amber" | "orange" | "fuchsia" | "blue";
+type TintName = // the names `CardWrapper.astro`'s `color` prop accepts
+  | "sky"
+  | "violet"
+  | "rose"
+  | "teal"
+  | "emerald"
+  | "amber"
+  | "orange"
+  | "fuchsia"
+  | "blue";
 
 interface ChartSpec {
   kind: ChartKind;
   labels: string[];
   series: ChartSeries[];
   ariaLabel: string;
-  format?: (n: number) => string;   // axis + tooltip value text
+  format?: (n: number) => string; // axis + tooltip value text
 }
 
 interface ChartTheme {
-  palette: Record<TintName, string>;  // canvas-safe color per name
-  order: TintName[];           // fixed default assignment order, validator-checked
+  palette: Record<TintName, string>; // canvas-safe color per name
+  order: TintName[]; // fixed default assignment order, validator-checked
+  surface: string; // page surface: bar gaps and marker rings
   text: string;
   grid: string;
   font: string;
-  tooltipClass: string;        // injected class string for the HTML tooltip
+  tooltipClass: string; // injected class string for the HTML tooltip
   reducedMotion: boolean;
 }
 
@@ -137,8 +147,10 @@ class ChartView {
   `CardWrapper`'s `tintPresets`: those are wash tints, and some fail the
   dataviz lightness band as marks (e.g. `violet` at 45% lightness). The hue
   stays recognizably the card's hue.
-- `DEFAULT_ORDER` (sky first) is chosen so adjacent pairs pass the validator's
-  CVD separation; the other names stay available by explicit `color`.
+- `DEFAULT_ORDER` is `sky, orange, emerald, violet, rose, amber`: adjacent
+  pairs pass the validator's CVD separation. `teal`, `fuchsia` and `blue` are
+  near-twins of `emerald`, `rose` and `sky`; they stay available by explicit
+  `color` only, and all nine together fail adjacent-pair CVD by design.
 - All nine names run through the dataviz validator against `--surface`
   (`--mode dark`) before merge; a FAIL blocks. A name pair too close to use
   together is noted in `07-Style-Guide.md` rather than silently allowed.
@@ -151,10 +163,12 @@ class ChartView {
 
 ## Component and Alpine wiring
 
-`Chart.astro` props: `title`, `kind`, `specExpr`, `heightClass` (default
-`h-48`), `class`. Markup:
+`Chart.astro` props: `title?`, `specExpr`, `formatter?`, `heightClass`
+(default `h-48`), `flat` (default `false`), `class`. The chart kind travels in
+the spec (`ChartSpec.kind`), not as a prop. Markup:
 
-1. `glass rounded-2xl p-4` wrapper, `h2` title (`text-sm text-foreground`).
+1. Wrapper: `glass rounded-2xl p-4` (or plain when `flat`); optional `h2` title
+   (`text-sm text-foreground`).
 2. Fixed-height canvas box with `role="img"` and `:aria-label`.
 3. HTML legend, `x-show` only when `spec.series.length >= 2`: colored swatch +
    label in `text-muted-foreground`.
@@ -185,17 +199,16 @@ pattern as `StatsHeatmap`'s `cellsExpr`). `chartData`:
   `toLocaleDateString(undefined, { month: "short", year: "numeric" })` the
   card uses today.
 - Series `three-dart-average` (`color: "sky"`) always; `first-nine-average`
-  (`color` from the default order) only when at least one bucket has first-nine darts. Buckets below
-  the existing sample rule stay `null` (gap), not zero.
+  (`color: "orange"`, named explicitly) only when at least one bucket has
+  first-nine darts. A bucket with no darts is `null` (gap), not zero.
 - `ariaLabel`: "3-dart average per month".
 - Returns a fresh plain object every read.
 
 `GameSectionCards.astro`: inside the `scoring-trend` card, the
 `x-for="row in gameView.scoringTrendRows"` block is replaced by the chart. The
-two stat tiles and the 100+/140+/180 line stay. Card wrapper: the chart's own
-glass container replaces the outer card only if that keeps one glass level
-(no glass-in-glass); otherwise the chart renders with a `flat` prop that omits
-its wrapper. Decided in the plan.
+two stat tiles and the 100+/140+/180 line stay. The card keeps its own glass;
+the chart renders with `flat` so there is one glass level (no glass-in-glass).
+A standalone chart keeps the default glass wrapper.
 
 Also applies to the Routines tab's GAME steps: the shared component feeds it.
 
@@ -214,7 +227,7 @@ Vitest runs in `node`, no DOM, so DOM edges are injected.
 - `chartData`: closure-held instance, failure swallowed (fake view).
 - Store getter: labels, series presence rule, nulls, plain-object identity.
 - Style/gate scripts: `scripts/check-style-tokens.sh`, fallow gate, `astro
-  check` per `run-all-gates`.
+check` per `run-all-gates`.
 
 ## Docs and decisions (same PR)
 
@@ -243,9 +256,7 @@ Vitest runs in `node`, no DOM, so DOM edges are injected.
 
 ## Open items for the plan (not blocking the design)
 
-- Exact `--chart-<name>` oklch values and `DEFAULT_ORDER` (validator output
-  decides).
-- Scoring trend series colors: `three-dart-average` `sky`, `first-nine-average`
-  the next validated name (default order).
-- Where `ChartSpec`/`ChartTheme` live (`types.ts` vs `interfaces.ts`).
-- `flat` prop vs replacing the outer card.
+Resolved in the plan
+(`docs/superpowers/plans/2026-09-30-chart-module.md`): token values and
+`DEFAULT_ORDER` (validator-checked), chart types live in `modules/ui/types.ts`,
+and the `flat` prop.
