@@ -2,7 +2,7 @@
 status: canonical
 scope: canonical file inventory — what each document answers
 read-when: a context pack demonstrably lacks the answer
-updated: 2026-09-29
+updated: 2026-09-30
 -->
 
 > Escalation target for `00-Context-Map.md`. Packs come first; open this
@@ -330,6 +330,17 @@ Registered for discoverability — the design lives in `10-Statistics/00-Overvie
 | `app/src/components/layout/statistics/RoutineStepButton.astro` | One step-list row: label, detail (sessions, minutes, last run), selected mark; see `07-Frontend/08-Component-Inventory.md` | canonical | ~0.2k |
 
 `app/src/modules/stats/replay.module.ts` (gains `replayFacts()`), `app/src/lib/stats/replay-fold.ts`/`replay-presenters.ts` (the exercise fold, `NO_EXERCISE_ENGINE`, `STEP_REPLAY_PRESENTERS`), `app/src/stores/replay.store.ts`, `app/src/lib/stats/section-registry.ts` (`ROUTINE_SECTIONS`, `sectionsForRoutine()`, `sectionsForStep()`, `isDartExerciseKind()`), `app/src/lib/client/stats-cache/db.ts`/`cache.ts` (`STATS_SCHEMA_VERSION` 3, the `CacheScope` scope/`versionKey`, `noteDataVersion()`, the `step-result` merger), `app/src/lib/client/api/statistics.ts` (the five routine fetchers), `app/src/stores/game-stats.store.ts` (`gameScopeKey` cache keys), `app/src/components/ui/StatsHeatmap.astro` (`cellsExpr`) and `app/src/lib/training/routines/statistics-routines.data.ts` (reads `routineStats`) already have rows above and are modified, not added, by phase 6. The former `routine-options.ts` (`routineSelectOptions()`, 2026-09-25) was deleted with its test: the tab no longer lists `GET /api/routines`. `app/src/repositories/statistics.repository.ts` (the routine/step readers, the `routineStep` scope condition, the replay gate's step-view fallback), `app/src/services/statistics.service.ts` (the five routine entry points), `app/src/modules/stats/types.ts`, `app/src/lib/stats/types.ts` (`RoutineSectionMeta`, `RoutineSeries`), `app/src/pages/api/statistics/types.ts` (the routine schemas, the widened `ReplayHeaderSchema`), `app/src/modules/training/routines/routine-summary.module.ts` (`summarise*` on `stepMetrics`), the `types.ts` barrels and `app/src/pages/statistics/index.astro`/`replay.astro` are likewise pre-existing files modified by phase 6; they stay unregistered, consistent with this table's scope.
+
+## Chart module (2026-09-30)
+
+Design in `docs/superpowers/specs/2026-09-29-chart-module-design.md`; rules in `07-Frontend/07-Style-Guide.md` §Charts and `04-Modules-And-OOP.md` §Chart peer dependency (D374).
+
+| File | Answers | Status |
+| ---- | ------- | ------ |
+| `app/src/modules/ui/chart.module.ts` | How a plain `ChartSpec` becomes a Chart.js config and a mounted chart: `buildConfig`, `createTooltip` (HTML glass tooltip), `ChartView` (lazy `import()`, never throws from `mount`/`update`/`destroy`); takes an injected `ChartTheme`, imports no store, token or Alpine (2026-09-30, D374) | canonical |
+| `app/src/lib/ui/chart-theme.ts` | The app adapter that builds a `ChartTheme` from the `--chart-<name>` and `--chart-grid` tokens by pixel readback; owns `CHART_ORDER`, `TINT_NAMES`, `TOOLTIP_CLASS` (2026-09-30, D374) | canonical |
+| `app/src/lib/ui/chart.data.ts` | The `chartData({ formatter })` Alpine factory: holds the `ChartView` in a closure, hands Chart.js a JSON-plain copy of the spec, exposes `setSpec`/`swatch`/`cell`/`destroy` for the legend and table view (2026-09-30, D374) | canonical |
+| `app/src/components/ui/Chart.astro` | Glass container for a line/bar chart: plain canvas, legend for two or more series, table view fallback; `flat` inside an existing glass card (2026-09-30, D374) | canonical |
 
 ## Custom routine builder (2026-09-19)
 

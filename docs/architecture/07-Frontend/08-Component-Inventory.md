@@ -2,7 +2,7 @@
 status: canonical
 scope: shared Astro component inventory
 read-when: before writing markup for any recurring UI shape
-updated: 2026-09-29
+updated: 2026-09-30
 -->
 
 # Component Inventory
@@ -27,6 +27,7 @@ evaluated in the page's own Alpine scope.
 | `Badge.astro` | Small inline status pill | `variant` (`accent`/`error`/`neutral`) |
 | `BoardMagnifier.astro` | Zoomed board detail follows the pointer during visual capture | `zoom` |
 | `CardWrapper.astro` | Bordered card, optionally a link; `color` takes a tint preset (`sky`, `violet`, `rose`, `teal` — added 2026-09-22, `emerald`, `amber`, `orange`, `fuchsia`, `blue`) or any CSS color | `href`, `title`, `description`, `color`, `external` |
+| `Chart.astro` | Line/bar chart from a plain `ChartSpec`: glass container, canvas, legend for ≥ 2 series, table view fallback; `flat` inside an existing glass card (2026-09-30, D374) | `specExpr`, `title`, `formatter`, `heightClass`, `flat`, `class` |
 | `ConfirmDialog.astro` | Modal with cancel/confirm actions | `title`, `titleId`, `description`, `onCancel`, `onConfirm`, `confirmVariant`, `loadingExpr`, `dismissible` |
 | `DartBoard.astro` | Dartboard SVG plus an overlay slot for markers | `boardRef` |
 | `ExpandingModal.astro` | Corner disclosure dialog: a 48px glass toggle that expands in place into a full-frame panel and collapses back. Contents are laid out at the expanded size for the whole transition (content frame sized in `100cqw`/`100cqh` against the fixed layer), so nothing reflows while the panel grows. Caller owns the open flag (2026-09-21). `detached` hides the collapsed corner toggle so the caller opens it from its own control (2026-09-22) | `openExpr`, `onToggle`, `onClose`, `title`, `titleId`, `toggleLabelClosed`, `toggleLabelOpen`, `detached` |
