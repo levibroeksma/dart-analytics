@@ -51,7 +51,11 @@ async function attempt<T>(
     return serviceUnavailable();
   }
   if (response.status === 204) {
-    return { ok: true, data: null as T, requestId: "" };
+    return {
+      ok: true,
+      data: null as T,
+      requestId: response.headers.get("X-Request-Id") ?? "",
+    };
   }
   let body: unknown;
   try {
