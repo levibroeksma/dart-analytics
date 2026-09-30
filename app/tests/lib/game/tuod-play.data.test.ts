@@ -1964,6 +1964,33 @@ describe("tuodPlay — DartBot opponent", () => {
     expect(play.state()!.activeParticipantRef).toBe(HUMAN_REF);
   });
 
+  it("under VISUAL_BOARD, the bot's session-ending dart completes the session", async () => {
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      {
+        ...ACTIVE_SESSION,
+        sessionId: "session-1",
+        captureModeKey: "ANALYTICS",
+        inputModeKey: "VISUAL_BOARD",
+      },
+    ]);
+    vi.mocked(appendBatch).mockResolvedValue({
+      accepted: 1,
+      skipped: 0,
+    } as never);
+    vi.mocked(completeSession).mockResolvedValue({
+      status: "COMPLETED",
+    } as never);
+    const play = makePlay({
+      configSnapshot: { ...rounds(1), seats: seatsWithBot() },
+    });
+    await play.init.call(play);
+
+    await play.recordAttempt.call(play, { checkedOut: false });
+
+    expect(play.finished).toBe(true);
+    expect(completeSession).toHaveBeenCalledWith("session-1", "COMPLETED");
+  });
+
   it("under QUICK_SCORE, the bot's attempt uploads as one turn with darts: []", async () => {
     const play = makePlay();
     await play.init.call(play);

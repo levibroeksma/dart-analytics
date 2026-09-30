@@ -83,6 +83,15 @@ All six shipped 2026-09-19 (D306, refined by D321) against `v_routine_execution`
 
 Shipped 2026-09-20 (D342, refined by D343) against `v_training_schedules`/`v_training_schedule_days`, backed by migration `0041`. There is no `/today` route: "today" is resolved client-side (D343) — `players` carries no timezone column and the API sets no cookie a server could read one from. `GET /api/schedules/active` is a convenience read returning the active `Schedule | null` in one call, so the `/training` Today card does not need the list. Full contract in `04-Endpoint-Contracts.md`. <!-- 2026-09-20 -->
 
+### Training Sessions
+
+- `POST /api/training-sessions`
+- `POST /api/training-sessions/:activityId/steps/:sequenceNumber`
+- `PATCH /api/training-sessions/:activityId/complete`
+- `PATCH /api/training-sessions/:activityId/abandon`
+
+Routine-run writes (D301). `POST /api/training-sessions` starts a routine's activity and snapshots its resolved steps; each step's session is then started under that activity, and the activity is closed as `COMPLETED` or `ABANDONED`. Full contract in `04-Endpoint-Contracts.md`. <!-- 2026-09-30 -->
+
 ### Training Completions
 
 - `GET /api/training-sessions/completed?since=<ISO instant>`
