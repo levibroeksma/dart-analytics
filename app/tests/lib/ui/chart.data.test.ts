@@ -70,6 +70,19 @@ describe("chartData.setSpec", () => {
     expect(views[0].update).toHaveBeenCalledTimes(1);
   });
 
+  it("skips the view update when the spec is unchanged", () => {
+    const ctx = context();
+    ctx.setSpec(spec());
+    ctx.setSpec(spec());
+    expect(views[0].update).not.toHaveBeenCalled();
+
+    ctx.setSpec(spec({ labels: ["Mar"] }));
+    expect(views[0].update).toHaveBeenCalledTimes(1);
+
+    ctx.setSpec(spec({ labels: ["Mar"] }));
+    expect(views[0].update).toHaveBeenCalledTimes(1);
+  });
+
   it("keeps a plain mirror for the legend and table, apart from what Chart.js gets", () => {
     const ctx = context();
     const input = spec();

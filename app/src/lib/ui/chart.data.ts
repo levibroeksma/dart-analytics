@@ -9,7 +9,7 @@ type ChartDataContext = {
   $refs: { canvas?: HTMLCanvasElement };
 };
 
-export const CHART_FORMATTERS: Record<string, ChartFormatter> = {
+const CHART_FORMATTERS: Record<string, ChartFormatter> = {
   plain: (value) => String(value),
   integer: (value) => String(Math.round(value)),
   "one-decimal": (value) => value.toFixed(1),
@@ -28,6 +28,7 @@ function toPlainSpec(spec: ChartSpec): ChartSpec {
  */
 export function chartData(config: ChartDataConfig = {}) {
   let view: ChartView | null = null;
+  let lastSpec: string | null = null;
   const format =
     CHART_FORMATTERS[config.formatter ?? "plain"] ?? CHART_FORMATTERS.plain;
 
@@ -37,6 +38,9 @@ export function chartData(config: ChartDataConfig = {}) {
     setSpec(this: ChartDataContext, next?: ChartSpec | null) {
       if (!next) return;
       this.spec = toPlainSpec(next);
+      const serialized = JSON.stringify(next);
+      if (view && serialized === lastSpec) return;
+      lastSpec = serialized;
       const forChart: ChartSpec = { ...toPlainSpec(next), format };
       if (view) {
         view.update(forChart);
@@ -60,6 +64,7 @@ export function chartData(config: ChartDataConfig = {}) {
     destroy() {
       view?.destroy();
       view = null;
+      lastSpec = null;
     },
   };
 }

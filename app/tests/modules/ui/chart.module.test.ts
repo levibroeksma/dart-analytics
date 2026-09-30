@@ -247,6 +247,8 @@ type FakeEl = {
   textContent: string;
   style: Record<string, string>;
   children: FakeEl[];
+  offsetWidth?: number;
+  clientWidth?: number;
   appendChild(child: FakeEl): FakeEl;
   replaceChildren(...children: FakeEl[]): void;
   setAttribute: ReturnType<typeof vi.fn>;
@@ -310,6 +312,7 @@ describe("createTooltip", () => {
     const el = host.children[0];
     expect(el.className).toContain("glass-strong");
     expect(el.className).toContain("pointer-events-none");
+    expect(el.className).toContain("w-max");
     expect(el.setAttribute).toHaveBeenCalledWith("aria-hidden", "true");
     expect(el.style.left).toBe("10px");
     expect(el.style.top).toBe("20px");
@@ -340,6 +343,52 @@ describe("createTooltip", () => {
     expect(host.children[0].children[1].children[0].style.backgroundColor).toBe(
       "rgb(9, 9, 9)",
     );
+  });
+
+  describe("horizontal clamp", () => {
+    const show = (caretX: number, hostWidth?: number, nodeWidth?: number) => {
+      const host = fakeHost();
+      host.clientWidth = hostWidth;
+      host.ownerDocument.createElement = () => {
+        const node = fakeEl();
+        node.offsetWidth = nodeWidth;
+        return node;
+      };
+      const { external } = createTooltip(
+        host as unknown as HTMLElement,
+        theme,
+        () => String,
+      );
+      external({
+        tooltip: {
+          opacity: 1,
+          caretX,
+          caretY: 0,
+          title: ["Jan"],
+          dataPoints: [],
+        },
+      });
+      return host.children[0].style.left;
+    };
+
+    it("keeps the tooltip inside the right edge", () => {
+      expect(show(290, 300, 100)).toBe("250px");
+    });
+
+    it("keeps the tooltip inside the left edge", () => {
+      expect(show(10, 300, 100)).toBe("50px");
+    });
+
+    it("leaves a caret that already fits alone", () => {
+      expect(show(150, 300, 100)).toBe("150px");
+    });
+
+    it("does not clamp when a width is missing or zero", () => {
+      expect(show(290, undefined, 100)).toBe("290px");
+      expect(show(290, 300, undefined)).toBe("290px");
+      expect(show(290, 0, 100)).toBe("290px");
+      expect(show(290, 300, 0)).toBe("290px");
+    });
   });
 
   it("hides at zero opacity and removes itself on dispose", () => {
@@ -440,6 +489,36 @@ describe("ChartView", () => {
     view.destroy();
 
     expect(FakeChart.instances[0].destroy).toHaveBeenCalledTimes(1);
+  });
+
+  it("destroy never throws and still disposes the tooltip when the chart throws", async () => {
+    FakeChart.instances = [];
+    const canvas = fakeCanvas();
+    const view = new ChartView(canvas, theme, { loadChartJs: loaded() });
+    await view.mount(spec());
+    const { external } = (
+      FakeChart.instances[0].options as {
+        plugins: { tooltip: { external: (context: unknown) => void } };
+      }
+    ).plugins.tooltip;
+    external({
+      tooltip: {
+        opacity: 1,
+        caretX: 0,
+        caretY: 0,
+        title: [],
+        dataPoints: [],
+      },
+    });
+    const tooltipEl = (canvas.parentElement as unknown as FakeEl).children[0];
+    FakeChart.instances[0].destroy.mockImplementation(() => {
+      throw new Error("boom");
+    });
+
+    expect(() => view.destroy()).not.toThrow();
+    expect(tooltipEl.remove).toHaveBeenCalled();
+    expect(() => view.update(spec())).not.toThrow();
+    expect(FakeChart.instances[0].update).not.toHaveBeenCalled();
   });
 
   it("creates nothing when destroyed before Chart.js loaded", async () => {

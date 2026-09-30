@@ -213,6 +213,16 @@ function swatchColor(dataset: {
 }
 
 /**
+ * The tooltip's `left` so a node of `width` centered on it stays inside a
+ * host of `hostWidth`. A missing or zero width leaves `caretX` as is.
+ */
+function clampLeft(caretX: number, width?: number, hostWidth?: number): number {
+  if (!width || !hostWidth) return caretX;
+  const half = width / 2;
+  return Math.max(half, Math.min(caretX, hostWidth - half));
+}
+
+/**
  * An HTML tooltip for Chart.js's `external` hook: one absolutely positioned
  * element inside `host`, carrying the theme's tooltip class. Text only, set
  * through `textContent`. `host` must be a positioned element.
@@ -227,7 +237,7 @@ export function createTooltip(
   const element = (): HTMLElement => {
     if (el) return el;
     const created = host.ownerDocument.createElement("div");
-    created.className = `${theme.tooltipClass} pointer-events-none absolute z-10`;
+    created.className = `${theme.tooltipClass} pointer-events-none absolute z-10 w-max`;
     created.setAttribute("aria-hidden", "true");
     host.appendChild(created);
     el = created;
@@ -266,7 +276,7 @@ export function createTooltip(
         ),
       );
     node.replaceChildren(row(tooltip.title.join(" ")), ...rows);
-    node.style.left = `${tooltip.caretX}px`;
+    node.style.left = `${clampLeft(tooltip.caretX, node.offsetWidth, host.clientWidth)}px`;
     node.style.top = `${tooltip.caretY}px`;
     node.style.transform = "translate(-50%, calc(-100% - 8px))";
     node.style.opacity = "1";
@@ -332,9 +342,14 @@ export class ChartView {
 
   destroy(): void {
     this.destroyed = true;
-    this.chart?.destroy();
-    this.chart = null;
-    this.tooltip?.dispose();
-    this.tooltip = null;
+    try {
+      this.chart?.destroy();
+    } catch {
+      return;
+    } finally {
+      this.chart = null;
+      this.tooltip?.dispose();
+      this.tooltip = null;
+    }
   }
 }
