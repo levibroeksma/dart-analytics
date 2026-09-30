@@ -54,6 +54,46 @@ beforeEach(() => {
   });
 });
 
+function trendMetrics(
+  points: number,
+  darts: number,
+  firstNinePoints = 0,
+  firstNineDarts = 0,
+) {
+  return {
+    points,
+    darts,
+    firstNinePoints,
+    firstNineDarts,
+    bands: { ton: 0, tonForty: 0, oneEighty: 0 },
+  };
+}
+
+function trendSeries(buckets: { start: string; metrics: unknown }[]) {
+  return {
+    ...series({}, 1),
+    buckets: buckets.map((b) => ({
+      start: b.start,
+      end: b.start,
+      closed: true,
+      sampleSize: 1,
+      metrics: b.metrics,
+    })),
+  };
+}
+
+async function loadTrend(buckets: { start: string; metrics: unknown }[]) {
+  readSection.mockImplementation((_player, _game, meta) =>
+    Promise.resolve(
+      meta.id === "scoring-trend" ? trendSeries(buckets) : series({}, 0),
+    ),
+  );
+  const store = gameStatsStore();
+  store.gameTypeKey = "501";
+  await store.load();
+  return store;
+}
+
 describe("gameStatsStore", () => {
   it("loads 501's sections via the cache", async () => {
     const store = gameStatsStore();
@@ -931,5 +971,88 @@ describe("gameStatsStore", () => {
     expect(store.trebleRate("20")).toBeCloseTo(10 / 40);
     expect(store.trebleRate("19")).toBeNull();
     expect(store.trebleRateAll).toBeCloseTo(12 / 55);
+  });
+
+  describe("scoringTrendChart", () => {
+    const jan = "2026-01-15T12:00:00.000Z";
+    const feb = "2026-02-15T12:00:00.000Z";
+    const monthLabel = (start: string) =>
+      new Date(start).toLocaleDateString(undefined, {
+        month: "short",
+        year: "numeric",
+      });
+
+    it("charts the 3-dart and first-nine averages per month", async () => {
+      const store = await loadTrend([
+        { start: jan, metrics: trendMetrics(300, 30, 180, 18) },
+        { start: feb, metrics: trendMetrics(360, 30, 0, 0) },
+      ]);
+
+      expect(store.scoringTrendChart).toEqual({
+        kind: "line",
+        labels: [monthLabel(jan), monthLabel(feb)],
+        series: [
+          {
+            key: "three-dart-average",
+            label: "3-dart average",
+            data: [30, 36],
+            color: "sky",
+          },
+          {
+            key: "first-nine-average",
+            label: "First nine",
+            data: [30, null],
+            color: "orange",
+          },
+        ],
+        ariaLabel: "3-dart average per month",
+      });
+    });
+
+    it("omits first nine when no bucket has first-nine darts", async () => {
+      const store = await loadTrend([
+        { start: jan, metrics: trendMetrics(300, 30) },
+      ]);
+
+      expect(
+        store.scoringTrendChart.series.map((s: { key: string }) => s.key),
+      ).toEqual(["three-dart-average"]);
+    });
+
+    it("leaves a gap, not zero, for a bucket with no darts", async () => {
+      const store = await loadTrend([
+        { start: jan, metrics: trendMetrics(0, 0) },
+      ]);
+
+      expect(store.scoringTrendChart.series[0].data).toEqual([null]);
+    });
+
+    it("is an empty line chart before the section has loaded", () => {
+      const store = gameStatsStore();
+
+      expect(store.scoringTrendChart).toEqual({
+        kind: "line",
+        labels: [],
+        series: [
+          {
+            key: "three-dart-average",
+            label: "3-dart average",
+            data: [],
+            color: "sky",
+          },
+        ],
+        ariaLabel: "3-dart average per month",
+      });
+    });
+
+    it("returns a fresh plain object on every read", async () => {
+      const store = await loadTrend([
+        { start: jan, metrics: trendMetrics(300, 30) },
+      ]);
+
+      const first = store.scoringTrendChart;
+      expect(store.scoringTrendChart).not.toBe(first);
+      expect(JSON.parse(JSON.stringify(first))).toEqual(first);
+    });
   });
 });
