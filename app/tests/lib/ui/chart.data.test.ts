@@ -84,14 +84,25 @@ describe("chartData.setSpec", () => {
 
   it("never hands Chart.js a proxy", () => {
     const ctx = context();
-    const proxied = new Proxy(spec(), {});
+    const wrap = <T extends object>(target: T): T =>
+      new Proxy(target, {
+        get(obj, key, receiver) {
+          const value = Reflect.get(obj, key, receiver);
+          const nested = typeof value === "object" && value !== null;
+          return nested || typeof value === "function" ? wrap(value) : value;
+        },
+      });
+    const proxied = wrap(spec());
 
     ctx.setSpec(proxied);
 
-    const mounted = views[0].mount.mock.calls[0][0];
+    const mounted = views[0].mount.mock.calls[0][0] as unknown as ChartSpec;
     expect(types.isProxy(mounted)).toBe(false);
+    expect(types.isProxy(mounted.labels)).toBe(false);
+    expect(types.isProxy(mounted.series)).toBe(false);
+    expect(types.isProxy(mounted.series[0])).toBe(false);
+    expect(types.isProxy(mounted.series[0].data)).toBe(false);
     expect(types.isProxy(mounted.format)).toBe(false);
-    expect(types.isProxy((mounted as unknown as ChartSpec).series)).toBe(false);
   });
 
   it("ignores a missing spec", () => {
