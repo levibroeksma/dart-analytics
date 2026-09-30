@@ -353,3 +353,10 @@ Decision: `BULL_UP` / `BULL_UP_V1` is a new exercise type (seed `0030`, template
 Reason: the rules (`docs/game-rules/training/exercises/bull-up-practice.md`) judge a single cold dart, and every shipped exercise judges three-dart visits. Target Scoring accepts the bull as a target but builds a chain across visits, so it is not a bull-up configuration.
 Consequences: the first exercise whose turns hold one dart; `undoLastDart` removes the emptied turn, so no new turn shape is needed. Board preview marks either bull a hit. A distance-from-centre readout and standalone play stay deferred (V2+).
 Supersedes: none.
+
+### D376 — A resolved Shanghai visit persists its counted total; Hard halving is a negative visit total
+Status: Accepted · Date: 2026-09-30
+Decision: when `ShanghaiEngine.record` resolves a visit it sets `turns.total_score` to the change that visit made to the seat's running total: round-restricted points on a normal visit, `round(running / 2) - running` (negative) on a Hard visit with no target hit. Dart rows keep the raw board score. A seat's turn totals therefore sum to its score, so every stats read that sums `turns.total_score` reports the counted score. `applyShanghaiDart` and the fold are unchanged and stay the source of match decisions.
+Reason: issue #624. The persisted visit total was the raw dart sum, so `session-result` and the Statistics "points per round" card showed a score the match never used. X01 already stores the counted total for a bust (0039), so a counted `total_score` is the existing convention, and halving cannot be derived from the column at read time without re-folding darts.
+Consequences: Shanghai visit totals can be negative; `turns.total_score` has no CHECK against it. Sessions recorded before this change keep raw totals. An open visit still shows the raw dart sum until its third dart. Supersedes the "Hard-mode halving … never stored" line in `docs/game-rules/rulesets/shanghai.md`, edited to match.
+Supersedes: none.

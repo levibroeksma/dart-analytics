@@ -138,9 +138,12 @@ Available under both Recreational and Analytical capture modes, same as V1.
 - **Stage type:** one `EXERCISE_BLOCK` per seat for the whole session — stage
   ownership is `PER_SEAT`, so a 1v1 match holds one block per seat. A round is a
   turn inside that block, not a stage of its own.
-- **Derived, never stored:** the running total, the per-round scores, whether a
-  visit was a Shanghai, and the Hard-mode halving — all folded from the dart
-  facts against the round's own number.
+- **Derived, never stored:** the running total, the per-round scores and whether
+  a visit was a Shanghai — folded from the dart facts against the round's own
+  number.
+- **Stored at visit end:** `turns.total_score` holds the visit's counted change
+  to the running total, so a Hard-mode halving is a negative visit total and a
+  seat's turn totals sum to its score (D376).
 
 ## Open questions
 
