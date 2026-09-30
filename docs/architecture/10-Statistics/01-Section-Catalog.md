@@ -125,7 +125,10 @@ carries only the owner's own darts, so the walker (`foldSeatSteps`,
 `derived-aims.module.ts`) builds a one-seat config off the decoded snapshot
 with a synthetic seat and never reads the session's stored `seats` — a
 seatless historical snapshot folds exactly the same as one that named real
-seats.
+seats. The synthetic seat has the shape of a real solo
+seat — `sideKey` `"A"`, as `session.service.ts` seats a solo participant —
+so no `sideKey` exists in the fold that a stored seat cannot have (2026-09-30,
+issue #633).
 
 A session the fold cannot honestly replay contributes nothing, rather than
 being guessed at (D370 decision 4): it is skipped when it has no snapshot, the

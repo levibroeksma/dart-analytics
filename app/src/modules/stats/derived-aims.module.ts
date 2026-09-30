@@ -49,7 +49,7 @@ import type { AimedDart, DartFoldRow, SessionSteps } from "./types";
 const SYNTHETIC_SEAT: SeatFact = {
   participantRef: "derived-aims-seat",
   displayName: "",
-  sideKey: "SOLO",
+  sideKey: "A",
   participantTypeKey: "PLAYER",
 };
 

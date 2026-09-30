@@ -356,6 +356,42 @@ describe("isAimHit parity with each engine's own hit rule", () => {
   });
 });
 
+describe("sessionSteps — synthetic seat (phase-4 decision 3)", () => {
+  const darts = [
+    hit(7, "OUTER_SINGLE"),
+    hit(7, "OUTER_SINGLE"),
+    hit(7, "OUTER_SINGLE"),
+  ];
+
+  it("folds a session the same whatever side key its stored seat carries", () => {
+    const storedSeat = (sideKey: string) => [
+      {
+        participantRef: "participant-1",
+        displayName: "Levi",
+        sideKey,
+        participantTypeKey: "PLAYER",
+      },
+    ];
+    const folded = (sideKey: string) =>
+      sessionSteps(
+        rowsFor(
+          {
+            sessionId: "session-seat",
+            configuration: singlesConfig({ seats: storedSeat(sideKey) }),
+          },
+          darts,
+        ),
+      );
+
+    const home = folded("HOME");
+    const solo = folded("A");
+
+    expect(home.skippedSessions).toBe(0);
+    expect(home.sessions).toHaveLength(1);
+    expect(solo.sessions[0].steps).toEqual(home.sessions[0].steps);
+  });
+});
+
 describe("sessionSteps — skip rules (phase-4 decision 4)", () => {
   it("skips a session whose sessionDartCount is one greater than its actual rows", () => {
     const rows = rowsFor({ sessionId: "session-count-mismatch" }, [
