@@ -2,7 +2,7 @@
 status: historical
 scope: context-map version history and point-in-time task records
 read-when: never during a task — provenance only
-updated: 2026-09-29
+updated: 2026-09-30
 -->
 
 # Context Map History
@@ -17,7 +17,7 @@ updated: 2026-09-29
 
 # Version History
 
-> **Version:** 1.140.0 (2026-09-30 — chart-module: Chart.js line/bar module with glass containers, `--chart-<name>` tokens named after `CardWrapper` colors, `scoring-trend` as first consumer; new **D374** (`decisions/frontend/style.md`); spec `docs/superpowers/specs/2026-09-29-chart-module-design.md`, plan `docs/superpowers/plans/2026-09-30-chart-module.md`)
+> **Version:** 1.140.0 (2026-09-30 — chart-module: Chart.js line/bar module with glass containers, `--chart-<name>` tokens named after `CardWrapper` colors, `scoring-trend` as first consumer; new **D374** (`decisions/frontend/style.md`); spec `docs/superpowers/specs/2026-09-29-chart-module-design.md`, plan `docs/superpowers/plans/2026-09-30-chart-module.md`). `07-Frontend/07-Style-Guide.md` → 0.2.6 (`--chart-<name>` tokens, new Charts section), `07-Frontend/04-Modules-And-OOP.md` (§Chart peer dependency), `07-Frontend/08-Component-Inventory.md` (`Chart.astro` row). File Inventory: new "Chart module" table (4 rows: `chart.module.ts`, `chart-theme.ts`, `chart.data.ts`, `Chart.astro`); the three handbook rows noted; the spec and plan listed here.)
 >
 > **Version:** 1.139.0 (2026-09-29 — statistics-phase-6b-routine-statistics: the `/statistics` Routines tab and its five `GET /api/statistics/routines*` routes built, plus training-step replay; new **D372** (`decisions/api.md`, thirteen decisions recorded as built, incl. review rulings: `step-volume` on non-game steps only, `current` bounded by the latest run's step count, phase 1 readers step-scoped, whole-second volume metrics, `RoutineSeries`, nullable replay `rulesetVersionKey`, the `NO_SNAPSHOT`/`ENGINE_THREW` split, a shared routine `versionKey` with `noteDataVersion`, lazy tab load). `10-Statistics/00-Overview.md` → 1.6.0 (status **built**, §1/§6/§7/§8/§10/§12), `01-Section-Catalog.md` → 1.5.0 (new §3 Routine Sections, Deferred → §4), `02-Replay.md` → 1.2.0, `06-API/04-Endpoint-Contracts.md` → 1.16.0 (new "Statistics Routines" section), `06-API/00-Overview.md` → 1.16.0, `09-Training/01-Routines.md` §18 one line, `07-Frontend/08-Component-Inventory.md` (`StatsHeatmap` `cellsExpr`, new `components/layout/statistics/` section). Root `CLAUDE.md`'s never-modify range extended to `0045` (PR #641, a07b472f, green `deploy` run 36467604857). File Inventory: new "Routine statistics, phase 6" table (14 rows: the five routes, `routine-stats.store.ts`, `routine-scope`/`step-metrics` and the four section modules, `GameSectionCards.astro`, `RoutineStepButton.astro`); the deleted `routine-options.ts` row removed; `statistics-routines.data.ts` and `StatsHeatmap.astro` rows rewritten; token claims re-measured for `replay.module.ts` (~1.3k → ~2.1k), `replay-fold.ts` (~1.9k → ~2.4k), `replay-presenters.ts` (~3.0k → ~3.9k), `replay.store.ts` (~2.7k → ~2.8k) and every doc row touched; the detailed-statistics pack budget re-measured ~19.5k → ~23.0k. No migration, no index (`04-Indexes.md`/`03-Migrations.md` untouched; the step readers' `EXPLAIN` is an owner-run pre-merge item). Plan `docs/superpowers/plans/2026-09-26-statistics-phase-6b-routine-statistics.md`.)
 
