@@ -389,7 +389,9 @@ per-section views are still planned.
 | `v_stats_routine_step_facts` | one row per completed or abandoned routine step session, owner-scoped | routine statistics (§8, §12 item 6); step identity resolved by `sequenceNumber` (never array position), owner-scoped turn/dart/score counts | built (0045) |
 | thin per-section views (`v_stats_<section>`) | reduced rows | only where SQL is the compute site; each reads the two base views (dependency depth ≤ 2) | planned |
 
-- Replay reads `v_game_replay`, widened with participant identity
+- Replay reads its stage tree from `v_replay_stages` (migration `0046`, D377:
+  one row per stage, turns or not) and its turns and darts from
+  `v_game_replay`, widened with participant identity
   (`participant_id`, `participant_type_key`) and dart coordinates
   (`location_x`/`location_y`) in place (migration `0044`) — no per-row
   `context_key`; that is a session fact, already exposed once by

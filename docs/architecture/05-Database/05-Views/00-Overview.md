@@ -138,13 +138,14 @@ The name should describe the returned data, not the underlying tables.
 
 ---
 
-# Implemented Views (migrations 0009–0045)
+# Implemented Views (migrations 0009–0046)
 
 | View | Category | Purpose |
 | ---- | -------- | ------- |
 | `v_active_sessions` | API Read Model | Resume interrupted games |
 | `v_session_overview` | API Read Model | History list |
 | `v_game_replay` | Replay | Chronological reconstruction |
+| `v_replay_stages` | Replay | One row per exercise stage of a session, turns or not; the replay stage tree, owner-scoped by `player_id` (0046, 2026-09-30) |
 | `v_dart_analytics` | Analytics | Intention-complete dart dataset, scoped to the session's owning participant (2026-08-21) |
 | `v_routine_execution` | API Read Model | Ordered routine steps, carrying everything a step resolves from since `0036`; `player_id`, `routine_description` and `exercise_description` since `0038`; `game_ruleset_version_key` (LEFT JOIN, NULL for a non-game step) since `0040` — the game ruleset version a GAME step's template pins, so `training-session.service.ts` resolves the step's routine-eligibility hook from the view instead of a hardcoded ruleset (2026-09-19; 2026-09-20) |
 | `v_exercise_template_catalog` | API Read Model | System exercise templates a routine step can be built from, with `has_default_configuration` marking one the builder must not offer (`0038`, 2026-09-19); `game_ruleset_version_key` (LEFT JOIN, NULL for a non-game template) since `0040` (2026-09-20) |

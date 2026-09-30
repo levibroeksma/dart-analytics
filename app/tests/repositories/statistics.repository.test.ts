@@ -1328,18 +1328,6 @@ describe("findHeatmapCells", () => {
   });
 });
 
-function fakeSelectDistinct(rows: unknown[]) {
-  const fromCalls: unknown[] = [];
-  const chain = {
-    from: vi.fn((table: unknown) => {
-      fromCalls.push(table);
-      return chain;
-    }),
-    where: vi.fn().mockResolvedValue(rows),
-  };
-  return { chain, fromCalls };
-}
-
 /**
  * `findReplaySession`'s query chain (R6): `from`/`where`/`limit` plus a
  * `leftJoin`, since the primary query joins `v_stats_routine_step_facts`.
@@ -1548,12 +1536,12 @@ describe("findReplaySession", () => {
 });
 
 describe("findReplayStages", () => {
-  it("selects distinct stage columns from v_game_replay filtered by player and session", async () => {
+  it("selects stage columns from v_replay_stages, never the turn-joined v_game_replay, filtered by player and session", async () => {
     const { db, statements } = renderingDb([]);
     await findReplayStages(db, "p1", "s1");
     const sql = onlyStatement(statements);
-    expect(sql.toLowerCase()).toContain("distinct");
-    expect(sql).toContain('"v_game_replay"');
+    expect(sql).toContain('"v_replay_stages"');
+    expect(sql).not.toContain('"v_game_replay"');
     expect(sql).toMatch(/"player_id" = \$/);
     expect(sql).toMatch(/"session_id" = \$/);
   });
@@ -1565,18 +1553,18 @@ describe("findReplayStages", () => {
       stageTypeKey: "LEG",
       sequence: 1,
     };
-    const { chain, fromCalls } = fakeSelectDistinct([row]);
-    const db = { selectDistinct: vi.fn(() => chain) } as any;
-    const { vGameReplay } = await import("@db/schema");
+    const { chain, fromCalls } = fakeSelect([row]);
+    const db = { select: vi.fn(() => chain) } as any;
+    const { vReplayStages } = await import("@db/schema");
 
     const result = await findReplayStages(db, "p1", "s1");
 
     expect(result).toEqual([row]);
-    expect(fromCalls).toEqual([vGameReplay]);
+    expect(fromCalls).toEqual([vReplayStages]);
   });
 
   it("nonNull throws on a null stage_id column", async () => {
-    const { chain } = fakeSelectDistinct([
+    const { chain } = fakeSelect([
       {
         stageId: null,
         parentStageId: null,
@@ -1584,7 +1572,7 @@ describe("findReplayStages", () => {
         sequence: 1,
       },
     ]);
-    const db = { selectDistinct: vi.fn(() => chain) } as any;
+    const db = { select: vi.fn(() => chain) } as any;
 
     await expect(findReplayStages(db, "p1", "s1")).rejects.toThrow(/stage_id/);
   });
