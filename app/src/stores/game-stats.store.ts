@@ -19,6 +19,8 @@ import type {
   AtcDartsPerTargetMetrics,
   Bobs27SurvivalMetrics,
   BustRateMetrics,
+  ChartSeries,
+  ChartSpec,
   CheckoutPathMetrics,
   CheckoutRateMetrics,
   CompletionMetrics,
@@ -1004,26 +1006,43 @@ export function gameStatsStore() {
       return this.scoringTrendTotals.bands;
     },
 
-    /** `scoring-trend`'s per-bucket averages, for the trend line. */
-    get scoringTrendRows(): {
-      start: string;
-      threeDartAverage: number | null;
-      firstNineAverage: number | null;
-    }[] {
+    /** `scoring-trend`'s monthly 3-dart and first-nine averages as a line chart; an empty-darts bucket is a gap. */
+    get scoringTrendChart(): ChartSpec {
       const series = this.sections["scoring-trend"] as
         CachedSeries<ScoringTrendMetrics> | undefined;
-      if (!series) return [];
-      return series.buckets.map((b) => ({
-        start: b.start,
-        threeDartAverage:
-          b.metrics.darts === 0
-            ? null
-            : (b.metrics.points / b.metrics.darts) * 3,
-        firstNineAverage:
-          b.metrics.firstNineDarts === 0
-            ? null
-            : (b.metrics.firstNinePoints / b.metrics.firstNineDarts) * 3,
-      }));
+      const buckets = series?.buckets ?? [];
+      const average = (points: number, darts: number) =>
+        darts === 0 ? null : (points / darts) * 3;
+      const firstNine = buckets.map((b) =>
+        average(b.metrics.firstNinePoints, b.metrics.firstNineDarts),
+      );
+      const chartSeries: ChartSeries[] = [
+        {
+          key: "three-dart-average",
+          label: "3-dart average",
+          data: buckets.map((b) => average(b.metrics.points, b.metrics.darts)),
+          color: "sky",
+        },
+      ];
+      if (firstNine.some((value) => value !== null)) {
+        chartSeries.push({
+          key: "first-nine-average",
+          label: "First nine",
+          data: firstNine,
+          color: "orange",
+        });
+      }
+      return {
+        kind: "line",
+        labels: buckets.map((b) =>
+          new Date(b.start).toLocaleDateString(undefined, {
+            month: "short",
+            year: "numeric",
+          }),
+        ),
+        series: chartSeries,
+        ariaLabel: "3-dart average per month",
+      };
     },
 
     /** `treble-rate` totals per hit number, summed across every loaded bucket. */

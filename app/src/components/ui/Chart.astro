@@ -1,0 +1,126 @@
+---
+/**
+ * A Chart.js chart drawn from a plain `ChartSpec`: canvas, a legend for two
+ * or more series, and a table view that also stands in when Chart.js cannot
+ * load. `x-effect` sits on the canvas so its `x-ref` exists before the first
+ * run. Paired with `modules/ui/chart.module.ts`.
+ * @param {string} specExpr Alpine expression yielding the `ChartSpec`; re-read whenever its dependencies change
+ * @param {string} [title] Heading above the chart
+ * @param {string} [formatter] `CHART_FORMATTERS` key for axis, tooltip and table values
+ * @param {string} [heightClass] Height of the canvas box
+ * @param {boolean} [flat] Drop the glass wrapper, for a chart already inside a glass card
+ * @param {string} [class] Extra wrapper classes
+ */
+interface Props {
+  specExpr: string;
+  title?: string;
+  formatter?: "plain" | "integer" | "one-decimal" | "percent";
+  heightClass?: string;
+  flat?: boolean;
+  class?: string;
+  [key: string]: unknown;
+}
+
+// Props
+const {
+  specExpr,
+  title,
+  formatter = "plain",
+  heightClass = "h-48",
+  flat = false,
+  class: classNameProp,
+  ...props
+}: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+
+// Data
+const scope = `chartData({ formatter: "${formatter}" })`;
+const effect = `setSpec(${specExpr})`;
+
+// Styles
+const wrapperClass = cn(
+  "space-y-2",
+  !flat && "glass rounded-2xl p-4",
+  classNameProp,
+);
+const boxClass = cn("relative", heightClass);
+---
+
+<div
+  class={wrapperClass}
+  x-data={scope}
+  {...props}
+>
+  {title && <h2 class="text-sm text-foreground">{title}</h2>}
+  <div class={boxClass}>
+    <canvas
+      x-ref="canvas"
+      x-effect={effect}
+      role="img"
+      :aria-label="spec ? spec.ariaLabel : ''"
+    >
+    </canvas>
+  </div>
+  <ul
+    class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground"
+    x-show="spec && spec.series.length >= 2"
+    x-cloak
+  >
+    <template
+      x-for="(entry, index) in (spec ? spec.series : [])"
+      :key="entry.key"
+    >
+      <li class="flex items-center gap-1.5">
+        <span
+          class="size-2 rounded-full"
+          :style="{ backgroundColor: swatch(entry, index) }"
+        >
+        </span>
+        <span x-text="entry.label"></span>
+      </li>
+    </template>
+  </ul>
+  <details class="text-xs text-muted-foreground">
+    <summary class="cursor-pointer">Table view</summary>
+    <table class="mt-2 w-full text-left">
+      <thead>
+        <tr>
+          <th class="font-semibold"><span class="sr-only">Period</span></th>
+          <template
+            x-for="entry in (spec ? spec.series : [])"
+            :key="entry.key"
+          >
+            <th
+              class="font-semibold"
+              x-text="entry.label"
+            >
+            </th>
+          </template>
+        </tr>
+      </thead>
+      <tbody>
+        <template
+          x-for="(label, row) in (spec ? spec.labels : [])"
+          :key="row"
+        >
+          <tr>
+            <th
+              class="font-normal"
+              scope="row"
+              x-text="label"
+            >
+            </th>
+            <template
+              x-for="entry in spec.series"
+              :key="entry.key"
+            >
+              <td x-text="cell(entry, row)"></td>
+            </template>
+          </tr>
+        </template>
+      </tbody>
+    </table>
+  </details>
+</div>

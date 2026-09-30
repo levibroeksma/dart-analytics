@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/style-guide
 read-when: any UI/component work — tokens, primitives, typography, motion, accessibility
-updated: 2026-09-19
+updated: 2026-09-30
 -->
 
 # Frontend Style Guide
 
-> **Version:** 0.2.5 (2026-09-19 — no `height` beside `flex-1`; the 40% scoreboard band; prior 0.2.3 was Tailwind v4 container queries, 2026-09-09)
+> **Version:** 0.2.6 (2026-09-30 — `--chart-<name>` tokens and the Charts section, D374; prior 0.2.5 was no `height` beside `flex-1`; the 40% scoreboard band; prior 0.2.3 was Tailwind v4 container queries, 2026-09-09)
 >
 > Dark-only, mobile-first UI conventions: sky accent, glass/surface tokens, primitive class contracts, typography, spacing, motion, accessibility.
 >
@@ -48,6 +48,7 @@ Use semantic tokens only. Never raw Tailwind palette utilities (`bg-sky-500`, `t
 | Radius | `rounded-sm` … `rounded-2xl` per `@theme` |
 | Fonts | `font-sans` (Montserrat), `font-display` (Michroma), `font-mono` (JetBrains Mono) |
 | Motion | `--ease-out`; keep UI ≤ ~300ms; transform/opacity only |
+| Chart marks | `--chart-<name>` for the nine `CardWrapper` color names (`sky, violet, rose, teal, emerald, amber, orange, fuchsia, blue`) and `--chart-grid`; read by `lib/ui/chart-theme.ts`, never used as utility classes (2026-09-30, D374) |
 
 Radius scale (from `@theme`):
 
@@ -60,6 +61,19 @@ Radius scale (from `@theme`):
 | `rounded-2xl` | 20px | Cards |
 
 Accent is Tailwind sky (`sky-400` / `sky-500` / `sky-600` mapped into `--accent*` OKLCH values). Selection uses `accent-muted` background.
+
+---
+
+# Charts
+
+Chart.js line/bar charts via `components/ui/Chart.astro` and `modules/ui/chart.module.ts` (2026-09-30, D374).
+
+- Containers are `glass` (`Chart.astro`); the canvas is plain — no fill or blur behind the marks.
+- One glass level: pass `flat` when the chart sits inside an existing glass card (see Surfaces & nesting).
+- A series color is a `CardWrapper` color name; it resolves to `--chart-<name>`. Never a raw palette class or CSS color.
+- Default order: `sky, orange, emerald, violet, rose, amber`; never cycled, and a repeated or missing color is a `RangeError`.
+- `teal`, `fuchsia` and `blue` are explicit-only: they are near-twins of `emerald`, `rose` and `sky` under CVD.
+- The tokens are validated with the dataviz validator against `--surface`; re-run it when a value changes.
 
 ---
 

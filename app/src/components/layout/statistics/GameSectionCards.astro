@@ -28,6 +28,7 @@ const {
 // Components
 import Select from "@components/forms/Select.astro";
 import StatsHeatmap from "@components/ui/StatsHeatmap.astro";
+import Chart from "@components/ui/Chart.astro";
 
 // Lib
 import { cn } from "@client/cn";
@@ -471,21 +472,11 @@ const wrapperClass = cn("space-y-4", classNameProp);
         First nine
       </div>
     </div>
-    <template
-      x-for="row in gameView.scoringTrendRows"
-      :key="row.start"
-    >
-      <div class="flex items-center justify-between text-sm">
-        <span
-          class="text-muted-foreground"
-          x-text="new Date(row.start).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })"
-        ></span>
-        <span
-          class="text-foreground"
-          x-text="row.threeDartAverage !== null ? row.threeDartAverage.toFixed(1) + ' avg' : 'not enough data yet'"
-        ></span>
-      </div>
-    </template>
+    <Chart
+      flat
+      specExpr="gameView.scoringTrendChart"
+      formatter="one-decimal"
+    />
     <p class="text-xs text-muted-foreground">
       <span x-text="gameView.bandCounts.ton"></span> 100+ ·
       <span x-text="gameView.bandCounts.tonForty"></span> 140+ · <span
