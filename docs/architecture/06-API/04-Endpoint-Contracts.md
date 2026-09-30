@@ -996,6 +996,34 @@ write confirm the existence of a system template the read side never exposes
 
 ---
 
+## Training Sessions — routine-run writes
+
+Per D301. Player-scoped through `training-session.service.ts`; every success uses the standard `ok()` envelope.
+
+### `POST /api/training-sessions`
+
+Request `StartTrainingRequest`: `routineTemplateId` (string, non-empty; a system routine or the caller's own). Success → `201` with `StartTrainingResponse`: `activityId`, `routineTemplateId`, `routineName`, `steps[]` (`sequenceNumber`, `exerciseTypeKey`, `exerciseRulesetVersionKey`, `gameTypeKey`, `gameRulesetVersionKey`, `durationSeconds`, `configuration`). Every step's configuration is validated once before the activity's snapshot is written.
+
+- Unknown `routineTemplateId`, an invalid step configuration, or a non-routine-eligible game → `VALIDATION_FAILED`; no activity is created.
+- The caller already has an active activity → `SESSION_ALREADY_ACTIVE`.
+- Missing reference data → `INTERNAL_ERROR`.
+
+### `POST /api/training-sessions/:activityId/steps/:sequenceNumber`
+
+No body (`StartTrainingStepRequest` is an empty strict object). Starts the session for one step of the activity's snapshot. Success → `201` with `StartTrainingStepResponse`: `sessionId`, `exerciseTypeKey`, `configuration`, `participant` (`ref`, `displayName`), and for game steps `gameTypeKey`, `rulesetVersionKey`, `captureModeKey`, `inputModeKey`.
+
+- Non-integer `sequenceNumber`, or one not in the snapshot → `VALIDATION_FAILED`.
+- Activity missing or not the caller's → `SESSION_OWNERSHIP_MISMATCH`.
+
+### `PATCH /api/training-sessions/:activityId/complete` and `/abandon`
+
+No body. Move an `ACTIVE` activity to `COMPLETED` or `ABANDONED`. Success → `200` with `{ activityId, completedAt }` (`CompleteTrainingResponse` / `AbandonTrainingResponse`; `completedAt` is the close instant for both).
+
+- Activity missing or not the caller's → `NOT_FOUND`.
+- Activity already closed → `SESSION_ALREADY_COMPLETED`. <!-- 2026-09-30 -->
+
+---
+
 ## Training Completions — `GET /api/training-sessions/completed`
 
 Per D353. Read-only, backed by `v_training_completions` (migration `0042`), player-scoped
