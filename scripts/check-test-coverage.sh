@@ -58,6 +58,13 @@
 # when a commit is in progress (pre-commit), otherwise the diff against the
 # merge base with $TEST_COVERAGE_BASE_REF (default origin/main) for CI. CI
 # must check out with fetch-depth: 0 or that merge base does not exist locally.
+#
+# PER-COMMIT WINDOW (#301): the staged form judges one commit alone. A plan
+# that lands a shared schema/fixture change and its test fixups in one commit,
+# then the last consumer's source fix in a later commit, fails the later
+# commit locally: its covering test already matches HEAD, so it shows no diff.
+# CI's merge-base window passes the same branch. Keep a schema change and every
+# consumer's source fix in one commit, or make each commit touch its covering test.
 
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
