@@ -6,7 +6,7 @@ This tree holds **non-canonical, pre-spec, human-authored** descriptions of dart
 | --- | --- | --- |
 | `rulesets/` | One file per dartboard game, in the `templates/GAME_RULESET_TEMPLATE.md` shape | `docs/architecture/05-Database/10-Database-Agent-Guide.md` § "Add a new game type" |
 | `training/exercises/` | One file per exercise type (`WARM_UP`, `SWITCHING`, …), in the `templates/EXERCISE_TEMPLATE.md` shape | `docs/architecture/09-Training/01-Routines.md` §Exercise Type / the `ExerciseEngine` contract |
-| `training/routines/` | Training-routine outlines, in the `templates/ROUTINE_TEMPLATE.md` shape — compositions only, no rules of their own | The deferred `ROUTINE_RUN` entity / routine-run write path (D64, `decisions/api.md`) |
+| `training/routines/` | Training-routine outlines, in the `templates/ROUTINE_TEMPLATE.md` shape — compositions only, no rules of their own | `docs/architecture/09-Training/01-Routines.md` §8 (Training Orchestration), §20 and the routine phase specs dated 2026-09-18 |
 | `training/trivia/` | Standalone practice-tool descriptions (e.g. checkout trivia), in the `templates/TRIVIA_TEMPLATE.md` shape | **No pipeline yet** — open question, resolved via the normal engineering workflow (`docs/architecture/03-Engineering-Workflow.md`) when first implemented, not predetermined here |
 | `templates/` | The four authoring templates — game ruleset, exercise type, routine, trivia tool | N/A — meta-docs, stay in place |
 

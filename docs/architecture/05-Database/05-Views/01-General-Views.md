@@ -11,9 +11,11 @@ updated: 2026-09-16
 > categories, naming, and anti-patterns — this file only documents the views
 > themselves. Design: `docs/superpowers/specs/2026-09-06-general-statistics-views-design.md`.
 >
-> These views expose row-level facts only. No application code consumes
-> them yet — the stat-card computations (approximation rules, exclusions,
-> aggregation) are separate work, designed elsewhere.
+> These views expose row-level facts only. Their one consumer is
+> `app/src/repositories/statistics.repository.ts` (`GET /api/statistics/overview`
+> and the detailed statistics routes): editing a view here changes those
+> reads. The stat-card computations (approximation rules, exclusions,
+> aggregation) live in the application, not in the views.
 
 ---
 

@@ -62,7 +62,7 @@ re-expressed as registry sections, which this design allows but does not require
 
 A game page is an ordered list of **insight sections** (heat map, average trend,
 favorite double, …). Each section is one entry in a typed registry
-(planned: *lib/stats/section-registry.ts*):
+(*lib/stats/section-registry.ts*):
 
 | Field | Meaning | Why it scales |
 | ----- | ------- | ------------- |
@@ -258,7 +258,7 @@ or step does not offer is `NOT_FOUND`.
 # 7. Client Cache (IndexedDB)
 
 `/statistics` is a multi-page Astro app; an Alpine store dies on navigation. The
-stats cache therefore lives in IndexedDB (planned: *lib/client/stats-cache/*),
+stats cache therefore lives in IndexedDB (*lib/client/stats-cache/*),
 behind one module; Alpine stores read through it.
 
 | Store | Key | Invalidation |

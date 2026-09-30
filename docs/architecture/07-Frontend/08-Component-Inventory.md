@@ -53,6 +53,13 @@ evaluated in the page's own Alpine scope.
 | `Switch.astro` | Boolean switch (track + thumb), not a checkbox glyph | `label`, `hint`, rest props forward onto the native `<input type="checkbox">` |
 | `SettingRow.astro` | Label plus inline-editable value with a save action | `id`, `label`, `valueExpr`, `modelExpr`, `saveExpr`, `emptyText`, `numeric`, `inputmode`, `required`, `disabledExpr` |
 
+## `components/layout/`
+
+| Component | Purpose | Key props |
+| --------- | ------- | --------- |
+| `BottomNav.astro` | The five-tab main navigation bar (Home, Games, Training, Stats, Profile), one `NavBtn` per page | none |
+| `NavBtn.astro` | One bottom-nav tab: icon slot plus label; `aria-current="page"` and the accent colour when `isNavActive()` matches the current path | `href`, `label`, `matchPrefix` (defaults to `href + "/"`, none for `/`), `class` |
+
 ## `components/layout/games/` (shared across rulesets)
 
 | Component | Purpose | Key props |
@@ -79,6 +86,7 @@ evaluated in the page's own Alpine scope.
 | `StatRow.astro` | Label/value row inside a progress or results list | `label`, `value` |
 | `StatRowComparison.astro` | 1v1 comparison row: label centered, one seat's value on each side (2026-08-28) | `label`, `leftValue`, `rightValue` |
 | `StatRowSkeleton.astro` | Loading-state placeholder for a `StatRow`, shown while `completionStatus` is `pending`/`saving` | `label` |
+| `StatRowComparisonSkeleton.astro` | Loading-state placeholder for a `StatRowComparison`: a pulsing value bar either side of the label, shown while a 1v1 results modal's `completionStatus` is `pending`/`saving` | `label` |
 | `VisitPreview.astro` | Three-dart preview strip for the open visit; every adopter builds its `previewSegments()` via the shared `playPreviewSegments()` (Pattern 19) | none |
 
 ## `components/layout/games/setup/` (shared shells)
@@ -88,6 +96,7 @@ evaluated in the page's own Alpine scope.
 | `AddGuestButton.astro` | Dashed circle add-guest control; hides once `guests.length` hits 1 (1v1 cap) | none (reads `guests`/`showAddGuestModal` from the page scope) |
 | `GuestNameModal.astro` | Name-entry modal for a new guest | none (reads `newGuestName`/`showAddGuestModal`, calls `addGuest()` on the page scope) |
 | `GuestSection.astro` | Runtime guest list (avatar + remove badge per guest) plus `AddGuestButton`/`GuestNameModal` | none (reads `guests`, calls `removeGuest(i)` on the page scope) |
+| `OpponentChooserModal.astro` | Guest/DartBot opponent chooser in a `Modal`; choosing DartBot swaps the body to a level step (1–15 slider bound to `pendingBotLevel`, simulated average/checkout stat bands from `allLevelSelectStats()`, a persistent level pill) and `addBot()` seats at that level | none (reads `showOpponentChooser`/`showBotLevelPicker`/`pendingBotLevel` from the page scope) |
 | `SettingSectionShell.astro` | Bordered section wrapper inside a setup form | none |
 | `SetupShell.astro` | Page shell for every game setup screen; owns the form's error alert | `title` |
 | `Toggle.astro` | Segmented option control bound via `x-modelable` | `options`, `orientation` (`horizontal`/`vertical`), `initial`, `hint` |
@@ -117,6 +126,14 @@ that split (2026-09-19, closes issue #423).
 | --------- | ------- | --------- |
 | `BlockedStepModal.astro` | Resolution overlay when an unfinished Ten Up One Down game blocks the routine's Finishing step: names that game and its start date, `Abandon & continue` (`resolveBlockingSession()`) or `Leave routine` (`abandonAndExit()`) | none — reads the play page's `x-data` scope (2026-09-16) |
 | `ExerciseBoardInputPanel.astro` | Visual-board capture surface plus undo/bounce-out row for a non-game exercise session (Switching, Double Pattern) — mirrors `BoardInputPanel.astro` minus the `$store.game` gate, since an exercise session has no game store, is always `VISUAL_BOARD`, and has no clock (2026-09-12) | none (reads `board`, pointer handlers, `recordUnseen`, `visitMarkers`, `finished`, `undoVisit()` from the page scope) |
+| `WarmUpPanel.astro` | Warm-Up play surface: an "Are you ready?" gate (`confirmWarmUpReady()`), then the board with the current section's aim | none (reads `warmUpReady` from the page scope) |
+| `SwitchingPanel.astro` | Switching play surface: `SinglePlayerDisplay` scored by `switchingPoints()`, `StatRow`s for the target and progress, `VisitPreview`, and `ExerciseBoardInputPanel` | none (reads the Switching page scope) |
+| `DoublePatternPanel.astro` | Double Pattern play surface: `SinglePlayerDisplay` scored by `doublePatternPoints()`, `StatRow`s for the current double and progress, `VisitPreview`, and `ExerciseBoardInputPanel` | none (reads the Double Pattern page scope) |
+| `BullUpPanel.astro` | Bull Up Practice play surface: `SinglePlayerDisplay` scored by `bullUpBullseyes()`, `StatRow`s for the last visit and progress, `VisitPreview`, and `ExerciseBoardInputPanel` | none (reads the Bull Up page scope) |
+| `BullseyeCheckoutPanel.astro` | Bullseye Checkouts play surface: `SinglePlayerDisplay` scored by `bullseyeCheckoutCheckouts()`, `StatRow`s for the score left and progress, `VisitPreview`, and `ExerciseBoardInputPanel` | none (reads the Bullseye Checkout page scope) |
+| `ScoreThresholdPanel.astro` | Score Threshold (65 or More) play surface: `SinglePlayerDisplay` scored by `scoreThresholdBeats()`, `StatRow`s for the current visit and progress, `VisitPreview`, and `ExerciseBoardInputPanel` | none (reads the Score Threshold page scope) |
+| `SwitchingTargetScoringPanel.astro` | Switching Target Scoring play surface: `SinglePlayerDisplay` scored by `switchingTargetScoringChain()`, `StatRow`s for the target and progress, `VisitPreview`, and `ExerciseBoardInputPanel` | none (reads the Switching Target Scoring page scope) |
+| `TargetScoringPanel.astro` | Target Scoring play surface: `SinglePlayerDisplay` scored by `targetScoringChain()`, `StatRow`s for the target and progress, `VisitPreview`, and `ExerciseBoardInputPanel` | none (reads the Target Scoring page scope) |
 
 ## `components/layout/training/trivia/`
 

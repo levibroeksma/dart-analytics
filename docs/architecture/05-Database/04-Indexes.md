@@ -2,7 +2,7 @@
 status: canonical
 scope: database/indexes
 read-when: adding or reviewing indexes
-updated: 2026-09-26
+updated: 2026-09-30
 -->
 
 # Database Index Strategy
@@ -104,12 +104,7 @@ FROM darts
 WHERE turn_id = ?
 ```
 
-Requires:
-
-```sql
-CREATE INDEX idx_darts_turn_id
-ON darts(turn_id);
-```
+Served by the unique ordering index `uq_darts_turn_number` on `darts(turn_id, dart_number)` (see "Darts" below) — no separate `turn_id` index exists or is needed.
 
 ---
 
@@ -159,11 +154,11 @@ idx_<table>_<columns>
 Examples:
 
 ```text
-idx_darts_turn_id
-
-idx_sessions_player_created_at
+idx_sessions_player_created
 
 idx_turns_stage_sequence
+
+idx_stages_session_sequence
 ```
 
 Partial indexes describe their condition:
@@ -332,16 +327,20 @@ Common analytics queries:
 Retrieve darts by player
 ```
 
-Recommended only if required by workload:
+`darts` has no `player_id`; ownership is reached through `turns.participant_id` and `participants`. Statistics are derived through joins, and the three analytics indexes the dart table ships (migration `0008`) cover the aim and accuracy access paths:
 
 ```sql
-CREATE INDEX idx_darts_player_created
-ON darts(player_id, created_at);
+CREATE INDEX idx_darts_intended_target
+ON darts(intended_target_number, intended_zone_id);
+
+CREATE INDEX idx_darts_hit_target
+ON darts(hit_target_number, hit_zone_id);
+
+CREATE INDEX idx_darts_zone_accuracy
+ON darts(intended_zone_id, hit_zone_id);
 ```
 
-Do not add this automatically.
-
-Statistics should initially be derived through joins.
+Do not add a per-player dart index automatically.
 
 ---
 
@@ -412,14 +411,17 @@ Templates are queried by:
 
 ---
 
-Example:
-
-User templates:
+Shipped (migrations `0008`, `0041`):
 
 ```sql
-CREATE INDEX idx_routine_templates_player
-ON routine_templates(player_id);
+CREATE INDEX idx_exercise_templates_game_type
+ON exercise_templates(game_type_id);
+
+CREATE INDEX idx_training_schedule_days_routine_template
+ON training_schedule_days(routine_template_id);
 ```
+
+`routine_templates` carries no `player_id` index: the table is small and read through `v_routine_execution`; add one only when measurement shows a need.
 
 ---
 
@@ -534,6 +536,42 @@ Applied in `0011`:
 
 - `idx_routine_steps_template_sequence` (covered by `uq_routine_steps_sequence`)
 - `idx_darts_turn_number` (covered by `uq_darts_turn_number`)
+
+---
+
+# Shipped Index Inventory (migrations `0008`–`0043`)
+
+Every non-primary-key, non-implementation-key index the chain creates, by table. A unique constraint declared inline on a `CREATE TABLE` also owns an index and is not repeated here.
+
+| Table | Index | Columns | Migration |
+| ----- | ----- | ------- | --------- |
+| `game_types` | `idx_game_types_published` | `is_published` (partial: `is_published = TRUE`) | `0008` |
+| `game_type_features` | `idx_game_type_features_game_type` | `game_type_id` | `0008` |
+| `exercise_templates` | `idx_exercise_templates_game_type` | `game_type_id` | `0008` |
+| `activities` | `idx_activities_player_status` | `player_id, status_id` | `0008` |
+| `exercise_sessions` | `idx_sessions_player_created` | `player_id, created_at DESC` | `0008` |
+| `exercise_sessions` | `idx_sessions_player_completed` | `player_id, completed_at DESC` (partial: `completed_at IS NOT NULL`) | `0008` |
+| `exercise_sessions` | `idx_sessions_active` | `player_id, status_id` (partial: `completed_at IS NULL`) | `0008` |
+| `exercise_sessions` | `idx_sessions_activity` | `activity_id` | `0008` |
+| `exercise_sessions` | `uq_sessions_single_active` (unique) | `player_id, COALESCE(game_type_id, exercise_type_id)` (partial: `completed_at IS NULL`) | `0011`, rewritten `0034` |
+| `exercise_sessions` | `idx_exercise_sessions_player_game_completed` | `player_id, game_type_id, completed_at DESC` | `0043` |
+| `exercise_configurations` | `idx_configuration_session` | `exercise_session_id` | `0008` |
+| `participants` | `idx_participants_session` | `exercise_session_id` | `0008` |
+| `exercise_stages` | `idx_stages_session_sequence` | `exercise_session_id, sequence_number` | `0008` |
+| `exercise_stages` | `idx_stages_parent` | `parent_stage_id` | `0008` |
+| `exercise_stages` | `uq_stages_sibling_sequence` (unique) | `exercise_session_id, parent_stage_id, sequence_number` (partial: `parent_stage_id IS NOT NULL`) | `0011` |
+| `exercise_stages` | `uq_stages_root_sequence` (unique) | `exercise_session_id, sequence_number` (partial: `parent_stage_id IS NULL`) | `0011` |
+| `turns` | `idx_turns_stage_sequence` | `exercise_stage_id, sequence_number` | `0008` |
+| `turns` | `idx_turns_participant` | `participant_id` | `0008` |
+| `darts` | `idx_darts_intended_target` | `intended_target_number, intended_zone_id` | `0008` |
+| `darts` | `idx_darts_hit_target` | `hit_target_number, hit_zone_id` | `0008` |
+| `darts` | `idx_darts_zone_accuracy` | `intended_zone_id, hit_zone_id` | `0008` |
+| `configuration_templates` | `idx_configuration_templates_game_type` | `game_type_id` | `0010` |
+| `configuration_templates` | `idx_configuration_templates_player` | `player_id` (partial: `player_id IS NOT NULL`) | `0010` |
+| `training_schedules` | `uq_training_schedules_player_active` (unique) | `player_id` (partial: `is_active`) | `0041` |
+| `training_schedule_days` | `idx_training_schedule_days_routine_template` | `routine_template_id` | `0041` |
+
+The ordering uniqueness constraints `uq_routine_steps_sequence`, `uq_turns_stage_participant_sequence` and `uq_darts_turn_number` (migration `0011`) are listed under "Unique Index Strategy".
 
 ---
 

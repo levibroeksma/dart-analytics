@@ -245,7 +245,7 @@ landing = aim
         + rare wild draw          probability outlierRate, much wider Σ
 ```
 
-A rotatable covariance is what separates a strong player from a weak one in the way the brief requires: a strong player's scatter narrows along a fixed, per-player technique axis, a weak player's stays circular. `covarianceRotationDegrees` (`SkillProfile`) is that fixed per-player bias — it does not (yet) rotate to the aim point's own polar angle, so it cannot yet reproduce a wire-relative pattern for an arbitrary target; `LEVEL_SKILL_TABLE` seeds it `0` for every level pending D-E's population fit (`FINDINGS.md` F57). A shrinking circle cannot express the per-player difference; an ellipse can.
+A rotatable covariance is what separates a strong player from a weak one in the way the brief requires: a strong player's scatter narrows along a fixed, per-player technique axis, a weak player's stays circular. `covarianceRotationDegrees` (`SkillProfile`) is that fixed per-player bias — it does not (yet) rotate to the aim point's own polar angle, so it cannot yet reproduce a wire-relative pattern for an arbitrary target; `LEVEL_SKILL_TABLE` seeds it `0` for every level pending D-E's population fit. A shrinking circle cannot express the per-player difference; an ellipse can.
 
 The outlier component is separate so the core σ stays honest — the occasional wild dart must not be produced by inflating normal scatter.
 
@@ -495,7 +495,7 @@ The prerequisite the 0.1.0 version of this document called blocking is therefore
 
 Only the third needs new work, and it is genuinely a feature request rather than a prerequisite: a ghost is a live pace-setter, and both live paths are already served. A labelled view would not re-open the calibration hole either, provided `fitProfile()` keeps reading the owner-scoped views — the anti-pattern is a view that projects `es.player_id` *without* joining `turns.participant_id`, which a labelled view by definition does not.
 
-The verification gap 0.2.0 logged here — `FINDINGS.md` F13, neither dart view having a `database/verification/*.sql` script — is **closed**. `database/verification/0023_owner_scoped_dart_view_checks.sql` exists and F13 is no longer in `FINDINGS.md`; the participant filter is proved against a real database.
+The verification gap 0.2.0 logged here — neither dart view having a `database/verification/*.sql` script — is **closed**. `database/verification/0023_owner_scoped_dart_view_checks.sql` exists; the participant filter is proved against a real database.
 
 ## What each ruleset contributes
 

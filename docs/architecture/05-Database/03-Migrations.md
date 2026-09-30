@@ -137,7 +137,31 @@ database/
     ├── 0004_score_training_minutes_preset.sql
     ├── 0005_visual_board_input_mode.sql
     ├── 0006_single_band_dart_zones.sql
-    └── 0007_ruleset_version_capabilities.sql
+    ├── 0007_ruleset_version_capabilities.sql
+    ├── 0008_shanghai_game_engine_reference.sql
+    ├── 0009_121_game_engine_reference.sql
+    ├── 0010_around_the_clock_game_engine_reference.sql
+    ├── 0011_one_twenty_one_v2_game_engine_reference.sql
+    ├── 0012_shanghai_v2_game_engine_reference.sql
+    ├── 0013_singles_training_v2_game_engine_reference.sql
+    ├── 0014_exercise_types.sql
+    ├── 0015_warm_up_routine.sql
+    ├── 0016_switching_double_pattern_exercise_types.sql
+    ├── 0017_balanced_training_routine.sql
+    ├── 0018_singles_training_v3_game_engine_reference.sql
+    ├── 0019_exercise_template_ruleset_versions.sql
+    ├── 0020_finishing_default_configuration.sql
+    ├── 0021_exercise_template_game_rulesets.sql
+    ├── 0022_routine_game_templates.sql
+    ├── 0023_target_scoring_exercise_type.sql
+    ├── 0024_switching_target_scoring_exercise_type.sql
+    ├── 0025_score_threshold_exercise_type.sql
+    ├── 0026_warm_up_advanced_template.sql
+    ├── 0027_around_the_clock_v2_game_engine_reference.sql
+    ├── 0028_around_the_clock_routine_templates.sql
+    ├── 0029_bullseye_checkout_exercise_type.sql
+    ├── 0030_bull_up_exercise_type.sql
+    └── 0031_remove_default_routines.sql
 ```
 
 ---
@@ -918,6 +942,25 @@ Never edits `0004`/`0011`/`0036`.
 
 ---
 
+## 0039_x01_checkout_darts_view.sql
+
+Purpose:
+
+Swap `v_double_out_checkout_darts` for `v_x01_checkout_darts`: per-dart facts for the three X01 ladders (501, TUOD, 121) under `VISUAL_BOARD` capture, with no running totals (D338). <!-- 2026-09-19 -->
+
+Contains:
+
+- `v_double_out_checkout_darts` dropped
+- new `v_x01_checkout_darts` — the counted turn total, the dart, the stage tree, the session's configuration snapshot and its ruleset version; scoped to the session's owning participant, mirroring `0023`; the configuration join is `LEFT` and cannot fan out
+
+The replaced view projected a running `SUM(d.score)` as the leg's prior score. A busted visit stores `turns.total_score = 0` while keeping its darts' real board scores — deliberate, it is what makes bust rate computable — so the sum overstated the leg's counted score and moved every later dart onto a remaining the player was never on. The new view exposes facts only; the application read layer folds them through the same checkout-visits builder the live result modals use, so remaining-before-dart has one definition. TUOD's and 121's ladders (`finishBonus`/`missPenalty` escalation) are game-engine logic a view must not hold, which is why they could not join 501 until the fold moved into the app.
+
+`migrate:down` drops the new view and recreates `0036`'s definition of the old one. `database/verification/0039_x01_checkout_darts_view_checks.sql` (9 checks) proves it.
+
+Never edits `0024`/`0036`.
+
+---
+
 ## 0040_exercise_template_game_ruleset.sql
 
 Purpose:
@@ -977,9 +1020,29 @@ Contains:
 
 The routine id and name are read from the snapshot JSON, never a template FK, so editing or deleting a routine never rewrites history. The view is day-agnostic: "today" is the player's local day, so the caller filters `completed_at` by an instant (`GET /api/training-sessions/completed?since=`).
 
-View-only; no table, column or constraint changes. Not yet applied: `database/verification/0042_training_completions_view_checks.sql` runs once it is. <!-- 2026-09-22 -->
+View-only; no table, column or constraint changes. Applied; `database/verification/0042_training_completions_view_checks.sql` proves it. <!-- 2026-09-22 -->
 
 Never edits `0005`/`0030`.
+
+---
+
+## 0043_stats_base_views.sql
+
+Purpose:
+
+Base fact views for the detailed statistics pages (`10-Statistics/00-Overview.md` §10, D364). <!-- 2026-09-26 -->
+
+Contains:
+
+- new `v_stats_session_facts` — one row per `COMPLETED` or `ABANDONED` game session, owner-scoped; turn, dart and score counts are rule-free reductions over the owning participant's turns and darts, in separate `LATERAL` subqueries so neither fans the other out; `context_key` is derived (`ROUTINE` when the session's activity has an `activity_configurations` row, else `STANDALONE`), never stored
+- new `v_stats_dart_facts` — one row per `VISUAL_BOARD` dart with coordinates, owner-scoped, carrying the session columns every board and intent section filters on
+- `idx_exercise_sessions_player_game_completed` — the date-range entry point every statistics query takes
+
+`COUNT`/`SUM` are cast to `integer` so node-postgres does not deliver `NUMERIC` strings. A training exercise session (`NULL` `game_type_id`) and an `ACTIVE` session appear in neither view.
+
+Applied to production by the green `deploy` run on the merge to `main`, 2026-09-26 (D367). `database/verification/0043_stats_base_views_checks.sql` proves the owner-scoping, the `context_key` derivation and the absent rows.
+
+Never edits `0023`/`0033`/`0039`.
 
 ---
 
@@ -997,7 +1060,7 @@ Widened in place rather than adding a sibling view: nothing in `app/` reads `v_g
 
 `CREATE OR REPLACE VIEW` cannot drop columns, so the four new columns land after the existing 15 and none is dropped or reordered; `migrate:down` instead drops the view and recreates `0016`'s definition verbatim.
 
-View-only; no table, column or constraint changes. Not yet applied: `database/verification/0044_replay_view_coordinates_checks.sql` runs once it is. <!-- 2026-09-27 -->
+View-only; no table, column or constraint changes. Applied; `database/verification/0044_replay_view_coordinates_checks.sql` proves it. <!-- 2026-09-27 -->
 
 Never edits `0009`/`0013`/`0016`.
 
@@ -1016,7 +1079,7 @@ Contains:
 
 The snapshot element is matched with a `LEFT JOIN LATERAL` requiring `jsonb_typeof(e -> 'sequenceNumber') = 'number'` in addition to the text-equal match on `routine_step_sequence_number` — a missing, string (`"2"`), or non-integer (`2.5`) `sequenceNumber` therefore never matches, even when it would otherwise line up by array position (verified live: `database/verification/0045_stats_routine_views_checks.sql` check 10). `step_fingerprint` excludes `sequenceNumber` from its hash, so identical step content at two different positions shares one fingerprint but gets two different `step_key` values; two runs whose step differs only in configuration get two distinct `step_key` values, and two identical runs collapse to one.
 
-View-only; no table, column or constraint changes. Not yet applied: `database/verification/0045_stats_routine_views_checks.sql` runs once it is. <!-- 2026-09-28 -->
+View-only; no table, column or constraint changes. Applied; `database/verification/0045_stats_routine_views_checks.sql` proves it. <!-- 2026-09-28 -->
 
 Never edits `0002`/`0005`/`0006`/`0027`/`0030`.
 
@@ -1191,6 +1254,22 @@ System-owned default templates:
 - one pre-configured training routine with ordered steps
 
 All seed rows supply explicit fixed identifiers.
+
+## 0007_ruleset_version_capabilities.sql
+
+Declares which capture/input mode combination each ruleset version supports, mirroring `app/src/lib/game/rulesets/capabilities.ts`; a parity test and `database/verification/0007_capability_seed_checks.sql` prove the two agree. Must run before migration `0020` adds the composite foreign key from `exercise_sessions`.
+
+## 0014_exercise_types.sql
+
+The exercise-type catalog, the warm-up exercise ruleset and the `EXERCISE_SECTION` stage type; backfills `exercise_templates.exercise_type_id` and `exercise_sessions.exercise_type_id` for rows that predate the discriminator. Migrations `0031`/`0032` depend on the backfill, so the apply order is `db:migrate` → `db:seed` → `db:migrate`.
+
+## 0016_switching_double_pattern_exercise_types.sql
+
+The `SWITCHING` and `DOUBLE_PATTERN` exercise types and their v1 rulesets. Catalog rows only; the routine that uses them is `0017_balanced_training_routine.sql`, the same split `0014`/`0015` make for `WARM_UP`.
+
+## 0019_exercise_template_ruleset_versions.sql
+
+Backfills `exercise_templates.exercise_ruleset_version_id` (migration `0035`) for the three non-game system templates, so `findRoutineTemplateSteps` joins on the version rather than on the exercise type alone (issue #338). An `UPDATE`, not an insert; versions resolve by `implementation_key`. The Finishing template is absent: it is a `GAME` template and pins a game ruleset version instead.
 
 ---
 

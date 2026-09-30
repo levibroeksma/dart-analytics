@@ -86,7 +86,7 @@ No `multiplier` column (derived from zone). Recreational capture may omit dart r
 - Prefix: `v_*` (not `vw_*`)
 - API reads views, never raw runtime tables
 - Expose `implementation_key`s (as `*_key`), not internal lookup ids; keep only entity UUIDs (see `01-Naming-Conventions.md` §"View Column Key And Label Naming")
-- Nine implemented views (`0009` originals normalized by `0013`/`0014`; `0016` adds `v_configuration_presets` and rebuilds replay/overview; `0018` adds `v_dart_locations`; `0021` adds `v_player_settings`; `0022` adds `v_player_profile`; `0023` scopes `v_dart_analytics`/`v_dart_locations` to the owning participant); new views = new migration
+- Implemented views are listed in `05-Views/00-Overview.md`'s "Implemented Views" table, the one place kept current; new views = new migration
 
 ## 6. Migrations
 
@@ -259,7 +259,7 @@ Activity → Exercise Session → Participant
 configuration_templates → exercise_configurations → exercise_session
 ```
 
-**Six views:** `v_active_sessions`, `v_session_overview`, `v_game_replay`, `v_dart_analytics`, `v_routine_execution`, `v_configuration_presets`
+**Views:** see `05-Views/00-Overview.md`'s "Implemented Views" table.
 
 ---
 
