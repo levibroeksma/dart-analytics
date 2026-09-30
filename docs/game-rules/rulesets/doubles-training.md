@@ -101,10 +101,6 @@ Same three darts per target and early end on hit, but the player **stays on the 
 
 Same as hard for hits, but if the player **misses with all three darts**, they **move back** one double. On **D1**, missing all three is **game over**.
 
-### Config
-
-- Order (v1): low → high, high → low (bull leads), randomized (bull shuffled in with the 20 doubles)
-
 ### Other — Tracks
 
 - Overall hit/miss ratio

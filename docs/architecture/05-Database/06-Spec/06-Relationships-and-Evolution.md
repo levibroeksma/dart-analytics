@@ -15,30 +15,37 @@ updated: 2026-07-11
 
 | Table | References | Referenced by |
 | ----- | ---------- | ------------- |
-| game_types | — | game_type_features, ruleset_versions, exercise_templates, exercise_sessions, configuration_templates |
+| game_types | — | game_type_features, ruleset_versions, exercise_templates, configuration_templates, exercise_sessions |
 | game_features | — | game_type_features |
 | game_type_features | game_types, game_features | — |
 | game_statuses | — | activities, exercise_sessions |
-| capture_modes | — | player_settings, exercise_sessions |
-| input_modes | — | player_settings, exercise_sessions |
+| capture_modes | — | ruleset_version_capabilities, player_settings, exercise_sessions |
+| input_modes | — | ruleset_version_capabilities, player_settings, exercise_sessions |
 | duration_types | — | routine_steps |
 | participant_types | — | participants |
 | stage_types | — | exercise_stages |
 | dart_zones | — | darts (intended + hit) |
-| ruleset_versions | game_types | exercise_sessions |
-| players | — | player_settings, activities, exercise_sessions, participants, routine_templates, configuration_templates |
+| ruleset_versions | game_types | ruleset_version_capabilities, exercise_templates, exercise_sessions |
+| players | — | player_settings, routine_templates, configuration_templates, training_schedules, activities, exercise_sessions, participants |
 | player_settings | players, capture_modes, input_modes | — |
-| exercise_templates | game_types, exercise_types, exercise_ruleset_versions | routine_steps |
-| routine_templates | players | routine_steps |
+| exercise_templates | game_types, ruleset_versions, exercise_types, exercise_ruleset_versions | routine_steps |
+| routine_templates | players | routine_steps, training_schedule_days |
 | routine_steps | routine_templates, exercise_templates, duration_types | — |
 | configuration_templates | game_types, players | — |
-| activities | players, game_statuses | exercise_sessions |
-| exercise_sessions | activities, players, game_types, capture_modes, input_modes, game_statuses, ruleset_versions | exercise_configurations, participants, exercise_stages |
+| activities | players, game_statuses | activity_configurations, exercise_sessions |
+| exercise_sessions | activities, players, game_types, exercise_types, exercise_ruleset_versions, capture_modes, input_modes, game_statuses, ruleset_versions, ruleset_version_capabilities | exercise_configurations, session_write_idempotency, participants, exercise_stages |
 | exercise_configurations | exercise_sessions | — |
 | participants | exercise_sessions, participant_types, players | turns |
 | exercise_stages | exercise_sessions, exercise_stages (self), stage_types | turns |
 | turns | exercise_stages, participants | darts |
 | darts | turns, dart_zones (×2) | — |
+| exercise_types | — | exercise_ruleset_versions, exercise_templates, exercise_sessions |
+| exercise_ruleset_versions | exercise_types | exercise_templates, exercise_sessions |
+| ruleset_version_capabilities | ruleset_versions, capture_modes, input_modes | exercise_sessions |
+| training_schedules | players | training_schedule_days |
+| training_schedule_days | training_schedules, routine_templates | — |
+| activity_configurations | activities | — |
+| session_write_idempotency | exercise_sessions | — |
 
 Deliberate absences:
 

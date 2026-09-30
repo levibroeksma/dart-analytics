@@ -205,3 +205,10 @@ Decision: the detailed statistics pages are built from insight sections declared
 Reason: the overview endpoint's app-layer-over-raw-facts shape loads a player's full history per request, which does not survive time series over years or Worker CPU limits; a per-game SQL aggregate view would pull engine rules into SQL, which the view rules forbid, and duplicate TS engine logic; a persisted per-session snapshot breaks "statistics live in views only". Additive components make month buckets re-aggregate exactly, make year-over-year a client regrouping instead of an endpoint, and let a future rollup slot in behind the same contract.
 Consequences: nothing is built yet — each rollout phase in `10-Statistics/00-Overview.md` §12 gets its own spec, plan and migration. X01 and Score Training get no intent-based sections, because their engines store no intended target; Shanghai and Around the Clock recover intent by engine fold on the server. The shipped `GET /api/statistics/overview` is unchanged.
 Supersedes: none.
+
+### D375 — D333's three `0038` references mean `0039`, the X01 checkout-darts view swap
+Status: Accepted · Date: 2026-09-30
+Decision: in D333, every bare `0038` names the migration now numbered `0039` (`0039_x01_checkout_darts_view.sql`, the `v_double_out_checkout_darts` → `v_x01_checkout_darts` swap), not `0038_custom_routines.sql`. D333's text stays as written; read its `0038` as `0039`.
+Reason: issue #528. D333 was written on branch `fix/x01-checkout-percentage` while that branch's migration was still numbered `0038`. `main` then landed `0038_custom_routines.sql` and the branch's migration was renumbered `0039`; D333 is append-only, so its old number stayed and now reads as a reference to custom routines.
+Consequences: none for the schema or `db:drift`. A reader of D333 resolves `0038` through this block; `03-Migrations.md` carries the `0039` section.
+Supersedes: none.
