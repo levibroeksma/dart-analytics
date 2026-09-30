@@ -31,6 +31,16 @@
 
   --success: oklch(72% 0.16 155);
   --success-muted: oklch(72% 0.16 155 / 0.14);
+  --chart-sky: oklch(66% 0.127 240.5);
+  --chart-violet: oklch(67% 0.145 286.8);
+  --chart-rose: oklch(63.8% 0.175 12.4);
+  --chart-teal: oklch(64.7% 0.108 187.7);
+  --chart-emerald: oklch(65.7% 0.139 157.5);
+  --chart-amber: oklch(67% 0.143 73.2);
+  --chart-orange: oklch(62.2% 0.173 40.1);
+  --chart-fuchsia: oklch(64.9% 0.2 325.2);
+  --chart-blue: oklch(57.5% 0.177 267.1);
+  --chart-grid: oklch(100% 0 0 / 0.06);
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --radius: 0.5rem;

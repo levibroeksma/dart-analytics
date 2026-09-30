@@ -2,7 +2,7 @@
 status: canonical
 scope: frontend/modules-oop
 read-when: game engine, portable UI kit, payload builders
-updated: 2026-09-20
+updated: 2026-09-30
 -->
 
 # Frontend Modules And OOP
@@ -89,6 +89,8 @@ Every `components/ui/<Name>.astro` has exactly one `modules/ui/<name>.module.ts`
 ### Chart peer dependency
 
 The portable kit is **behaviour + markup contract**. `chart.module.ts` may wrap a declared **peer dependency** (e.g. Chart.js). Copy-paste includes noting the peer dep in `package.json` — not zero-dependency.
+
+`chart.module.ts` exports `buildConfig`, `createTooltip` and `ChartView`. It takes a `ChartTheme` from its caller, loads Chart.js with a dynamic `import()` through an injectable `loadChartJs`, and never throws from `mount`/`update`/`destroy`. The app adapter `lib/ui/chart-theme.ts` supplies the theme (D374) (2026-09-30).
 
 Alpine wiring for UI components is registered in `register-ui-data.ts`. Modules remain pure TypeScript — no Alpine import.
 
