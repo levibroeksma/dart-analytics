@@ -35,7 +35,7 @@ glass, its containers are.
 | `app/src/components/ui/Chart.astro` | Glass container, canvas, HTML legend, table view. Paired with the module. |
 | `app/src/lib/ui/chart.data.ts` | Alpine factory `chartData`. Registered in `register-ui-data.ts`. |
 | `app/src/lib/ui/chart-theme.ts` | App adapter: tokens → `ChartTheme`. |
-| `app/src/styles/global.css` | `--chart-1..4`, chart grid/text tokens. |
+| `app/src/styles/global.css` | `--chart-<name>` per `CardWrapper` color name, chart grid token. |
 | `app/src/stores/game-stats.store.ts` | `scoringTrendChart` getter. |
 | `app/src/components/layout/statistics/GameSectionCards.astro` | Scoring trend card swaps rows for `<Chart>`. |
 
@@ -50,8 +50,12 @@ interface ChartSeries {
   key: string;                 // stable identity; color follows it
   label: string;
   data: (number | null)[];     // null = gap
-  slot?: number;               // palette slot; default = position in `series`
+  color?: TintName;            // named color; default = DEFAULT_ORDER[position in `series`]
 }
+
+type TintName =                // the names `CardWrapper.astro`'s `color` prop accepts
+  | "sky" | "violet" | "rose" | "teal" | "emerald"
+  | "amber" | "orange" | "fuchsia" | "blue";
 
 interface ChartSpec {
   kind: ChartKind;
@@ -62,7 +66,8 @@ interface ChartSpec {
 }
 
 interface ChartTheme {
-  palette: string[];           // canvas-safe colors, fixed order
+  palette: Record<TintName, string>;  // canvas-safe color per name
+  order: TintName[];           // fixed default assignment order, validator-checked
   text: string;
   grid: string;
   font: string;
@@ -85,8 +90,15 @@ class ChartView {
 - Only line/bar pieces are registered (`LineController`, `BarController`,
   `LineElement`, `PointElement`, `BarElement`, `CategoryScale`, `LinearScale`,
   `Tooltip`, `Filler`). The Chart.js legend and title plugins stay off.
-- Colors: series color = `theme.palette[slot ?? index]`, never cycled. More
-  series than palette slots is a `RangeError` at `buildConfig`.
+- Colors: series color = `theme.palette[series.color ?? theme.order[index]]`,
+  never cycled. A series with no `color` past the end of `order`, or two series
+  resolving to the same name, is a `RangeError` at `buildConfig`. A series
+  names its color explicitly to keep it when a filter drops sibling series
+  (color follows the entity, never its rank).
+- The color names are the `CardWrapper.astro` `color` names, so a card and
+  the chart inside it can share one name (`<CardWrapper color="teal">` +
+  `color: "teal"`). `CardWrapper`'s "any CSS color" escape hatch is not part of
+  the chart contract: a free color cannot be validated.
 
 ### Marks (dataviz specs)
 
@@ -117,10 +129,25 @@ class ChartView {
 
 ### Tokens
 
-`global.css` gains `--chart-1..4` (sky first, fixed order) plus a grid token.
-Before merge the palette runs through the dataviz validator against the
-`--surface` black (`--mode dark`); a FAIL blocks. Style rules: semantic tokens
-only, no raw palette utilities (`07-Style-Guide.md`).
+`global.css` gains one token per `TintName`: `--chart-sky`, `--chart-violet`,
+`--chart-rose`, `--chart-teal`, `--chart-emerald`, `--chart-amber`,
+`--chart-orange`, `--chart-fuchsia`, `--chart-blue`, plus a grid token.
+
+- Values are tuned for marks on the `--surface` black, not copied from
+  `CardWrapper`'s `tintPresets`: those are wash tints, and some fail the
+  dataviz lightness band as marks (e.g. `violet` at 45% lightness). The hue
+  stays recognizably the card's hue.
+- `DEFAULT_ORDER` (sky first) is chosen so adjacent pairs pass the validator's
+  CVD separation; the other names stay available by explicit `color`.
+- All nine names run through the dataviz validator against `--surface`
+  (`--mode dark`) before merge; a FAIL blocks. A name pair too close to use
+  together is noted in `07-Style-Guide.md` rather than silently allowed.
+- Style rules: semantic tokens only, no raw palette utilities
+  (`07-Style-Guide.md`).
+- `CardWrapper.astro` is not modified; it keeps its inline `tintPresets`. The
+  name list exists in two places (presets, chart tokens); a unit test asserts
+  the chart token names equal the `tintPresets` keys parsed from the
+  component source, so they cannot drift.
 
 ## Component and Alpine wiring
 
@@ -157,8 +184,8 @@ pattern as `StatsHeatmap`'s `cellsExpr`). `chartData`:
 - `labels`: month labels from `series.buckets[].start`, same
   `toLocaleDateString(undefined, { month: "short", year: "numeric" })` the
   card uses today.
-- Series `three-dart-average` (`slot 0`) always; `first-nine-average`
-  (`slot 1`) only when at least one bucket has first-nine darts. Buckets below
+- Series `three-dart-average` (`color: "sky"`) always; `first-nine-average`
+  (`color` from the default order) only when at least one bucket has first-nine darts. Buckets below
   the existing sample rule stay `null` (gap), not zero.
 - `ariaLabel`: "3-dart average per month".
 - Returns a fresh plain object every read.
@@ -176,9 +203,11 @@ Also applies to the Routines tab's GAME steps: the shared component feeds it.
 
 Vitest runs in `node`, no DOM, so DOM edges are injected.
 
-- `buildConfig`: line vs bar options, slot/color mapping, gap handling, marker
-  rule at 12 points, single-series area vs multi-series none, palette
-  exhaustion `RangeError`, reduced-motion animation off.
+- `buildConfig`: line vs bar options, named/default color mapping, duplicate
+  and exhausted color `RangeError`, gap handling, marker rule at 12 points,
+  single-series area vs multi-series none, reduced-motion animation off.
+- Token-name parity: `--chart-<name>` tokens in `global.css` equal
+  `CardWrapper.astro`'s `tintPresets` keys.
 - Theme color normalization: parser cases with an injected readback.
 - `ChartView`: lifecycle with a fake Chart constructor (mount, update calls
   `update()`, destroy destroys, load failure resolves without throwing).
@@ -214,6 +243,9 @@ Vitest runs in `node`, no DOM, so DOM edges are injected.
 
 ## Open items for the plan (not blocking the design)
 
-- Exact `--chart-1..4` oklch values (validator output decides).
+- Exact `--chart-<name>` oklch values and `DEFAULT_ORDER` (validator output
+  decides).
+- Scoring trend series colors: `three-dart-average` `sky`, `first-nine-average`
+  the next validated name (default order).
 - Where `ChartSpec`/`ChartTheme` live (`types.ts` vs `interfaces.ts`).
 - `flat` prop vs replacing the outer card.
