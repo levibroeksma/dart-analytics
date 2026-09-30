@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { TINT_NAMES } from "@lib/ui/chart-theme";
 
 const css = readFileSync(
   new URL("../../../src/styles/global.css", import.meta.url),
@@ -27,5 +28,11 @@ describe("chart color tokens", () => {
 
   it("has a grid token", () => {
     expect(css).toMatch(/^\s*--chart-grid:/m);
+  });
+});
+
+describe("TINT_NAMES", () => {
+  it("equals the chart token names", () => {
+    expect([...TINT_NAMES].sort()).toEqual(chartTokenNames().sort());
   });
 });
