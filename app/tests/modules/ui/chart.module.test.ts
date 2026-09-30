@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
-import { buildConfig } from "@modules/ui/chart.module";
-import type { ChartSpec, ChartTheme } from "@modules/types";
+import {
+  ChartView,
+  buildConfig,
+  createTooltip,
+} from "@modules/ui/chart.module";
+import type { ChartCtor, ChartSpec, ChartTheme } from "@modules/types";
 
 const theme: ChartTheme = {
   palette: {
@@ -235,5 +239,251 @@ describe("buildConfig options", () => {
     );
     expect(plain.scales.y.ticks.callback(3)).toBe("3");
     expect(custom.scales.y.ticks.callback(3)).toBe("3.0");
+  });
+});
+
+type FakeEl = {
+  className: string;
+  textContent: string;
+  style: Record<string, string>;
+  children: FakeEl[];
+  appendChild(child: FakeEl): FakeEl;
+  replaceChildren(...children: FakeEl[]): void;
+  setAttribute: ReturnType<typeof vi.fn>;
+  remove: ReturnType<typeof vi.fn>;
+};
+
+function fakeEl(): FakeEl {
+  const el: FakeEl = {
+    className: "",
+    textContent: "",
+    style: {},
+    children: [],
+    appendChild(child) {
+      el.children.push(child);
+      return child;
+    },
+    replaceChildren(...children) {
+      el.children = children;
+    },
+    setAttribute: vi.fn(),
+    remove: vi.fn(),
+  };
+  return el;
+}
+
+function fakeHost() {
+  const host = fakeEl() as FakeEl & {
+    ownerDocument: { createElement: () => FakeEl };
+  };
+  host.ownerDocument = { createElement: () => fakeEl() };
+  return host;
+}
+
+const point = (label: string, color: unknown, y: number | null) => ({
+  dataset: { label, backgroundColor: color, borderColor: "rgb(9, 9, 9)" },
+  parsed: { y },
+});
+
+describe("createTooltip", () => {
+  it("renders a glass tooltip with a title and one row per non-null point", () => {
+    const host = fakeHost();
+    const { external } = createTooltip(
+      host as unknown as HTMLElement,
+      theme,
+      () => (n) => n.toFixed(1),
+    );
+
+    external({
+      tooltip: {
+        opacity: 1,
+        caretX: 10,
+        caretY: 20,
+        title: ["Jan"],
+        dataPoints: [
+          point("A", "rgb(1, 2, 3)", 1.234),
+          point("B", "rgb(4, 5, 6)", null),
+        ],
+      },
+    });
+
+    const el = host.children[0];
+    expect(el.className).toContain("glass-strong");
+    expect(el.className).toContain("pointer-events-none");
+    expect(el.setAttribute).toHaveBeenCalledWith("aria-hidden", "true");
+    expect(el.style.left).toBe("10px");
+    expect(el.style.top).toBe("20px");
+    expect(el.style.opacity).toBe("1");
+    expect(el.children).toHaveLength(2);
+    expect(el.children[0].children[0].textContent).toBe("Jan");
+    const row = el.children[1];
+    expect(row.children[0].style.backgroundColor).toBe("rgb(1, 2, 3)");
+    expect(row.children[1].textContent).toBe("A: 1.2");
+  });
+
+  it("falls back to the border color when the fill is not a string", () => {
+    const host = fakeHost();
+    const { external } = createTooltip(
+      host as unknown as HTMLElement,
+      theme,
+      () => String,
+    );
+    external({
+      tooltip: {
+        opacity: 1,
+        caretX: 0,
+        caretY: 0,
+        title: [""],
+        dataPoints: [point("A", () => "gradient", 1)],
+      },
+    });
+    expect(host.children[0].children[1].children[0].style.backgroundColor).toBe(
+      "rgb(9, 9, 9)",
+    );
+  });
+
+  it("hides at zero opacity and removes itself on dispose", () => {
+    const host = fakeHost();
+    const { external, dispose } = createTooltip(
+      host as unknown as HTMLElement,
+      theme,
+      () => String,
+    );
+    external({
+      tooltip: {
+        opacity: 0,
+        caretX: 0,
+        caretY: 0,
+        title: [],
+        dataPoints: [],
+      },
+    });
+    const el = host.children[0];
+    expect(el.style.opacity).toBe("0");
+    dispose();
+    expect(el.remove).toHaveBeenCalled();
+  });
+});
+
+class FakeChart {
+  static instances: FakeChart[] = [];
+  data: { labels?: unknown; datasets: unknown[] };
+  options: unknown;
+  update = vi.fn();
+  destroy = vi.fn();
+  constructor(
+    public canvas: unknown,
+    public config: { type: string; data: FakeChart["data"]; options: unknown },
+  ) {
+    this.data = config.data;
+    this.options = config.options;
+    FakeChart.instances.push(this);
+  }
+}
+
+function fakeCanvas() {
+  return { parentElement: fakeHost() } as unknown as HTMLCanvasElement;
+}
+
+function loaded(): () => Promise<ChartCtor> {
+  return () => Promise.resolve(FakeChart as unknown as ChartCtor);
+}
+
+describe("ChartView", () => {
+  it("mounts a chart built from the spec", async () => {
+    FakeChart.instances = [];
+    const canvas = fakeCanvas();
+    const view = new ChartView(canvas, theme, { loadChartJs: loaded() });
+
+    await view.mount(spec({ labels: ["Jan", "Feb"] }));
+
+    expect(FakeChart.instances).toHaveLength(1);
+    expect(FakeChart.instances[0].canvas).toBe(canvas);
+    expect(FakeChart.instances[0].config.type).toBe("line");
+    expect(FakeChart.instances[0].data.labels).toEqual(["Jan", "Feb"]);
+  });
+
+  it("update replaces data and options in place, then redraws", async () => {
+    FakeChart.instances = [];
+    const view = new ChartView(fakeCanvas(), theme, { loadChartJs: loaded() });
+    await view.mount(spec());
+    const chart = FakeChart.instances[0];
+
+    view.update(spec({ labels: ["Mar"], series: seriesOf(1) }));
+
+    expect(FakeChart.instances).toHaveLength(1);
+    expect(chart.data.labels).toEqual(["Mar"]);
+    expect(chart.update).toHaveBeenCalledTimes(1);
+  });
+
+  it("an update that lands before Chart.js has loaded is what gets drawn", async () => {
+    FakeChart.instances = [];
+    let release: (ctor: ChartCtor) => void = () => {};
+    const view = new ChartView(fakeCanvas(), theme, {
+      loadChartJs: () =>
+        new Promise<ChartCtor>((resolve) => (release = resolve)),
+    });
+    const mounting = view.mount(spec({ labels: ["old"] }));
+
+    view.update(spec({ labels: ["new"] }));
+    release(FakeChart as unknown as ChartCtor);
+    await mounting;
+
+    expect(FakeChart.instances[0].data.labels).toEqual(["new"]);
+  });
+
+  it("destroy tears down the chart and its tooltip", async () => {
+    FakeChart.instances = [];
+    const view = new ChartView(fakeCanvas(), theme, { loadChartJs: loaded() });
+    await view.mount(spec());
+
+    view.destroy();
+
+    expect(FakeChart.instances[0].destroy).toHaveBeenCalledTimes(1);
+  });
+
+  it("creates nothing when destroyed before Chart.js loaded", async () => {
+    FakeChart.instances = [];
+    let release: (ctor: ChartCtor) => void = () => {};
+    const view = new ChartView(fakeCanvas(), theme, {
+      loadChartJs: () =>
+        new Promise<ChartCtor>((resolve) => (release = resolve)),
+    });
+    const mounting = view.mount(spec());
+
+    view.destroy();
+    release(FakeChart as unknown as ChartCtor);
+    await mounting;
+
+    expect(FakeChart.instances).toHaveLength(0);
+  });
+
+  it("swallows a load failure; update and destroy stay no-ops", async () => {
+    const view = new ChartView(fakeCanvas(), theme, {
+      loadChartJs: () => Promise.reject(new Error("offline")),
+    });
+
+    await expect(view.mount(spec())).resolves.toBeUndefined();
+    expect(() => view.update(spec())).not.toThrow();
+    expect(() => view.destroy()).not.toThrow();
+  });
+
+  it("swallows a mount whose spec cannot be colored", async () => {
+    FakeChart.instances = [];
+    const view = new ChartView(fakeCanvas(), theme, { loadChartJs: loaded() });
+
+    await expect(
+      view.mount(spec({ series: seriesOf(7) })),
+    ).resolves.toBeUndefined();
+    expect(FakeChart.instances).toHaveLength(0);
+  });
+
+  it("swallows an update whose spec cannot be colored", async () => {
+    FakeChart.instances = [];
+    const view = new ChartView(fakeCanvas(), theme, { loadChartJs: loaded() });
+    await view.mount(spec());
+
+    expect(() => view.update(spec({ series: seriesOf(7) }))).not.toThrow();
+    expect(FakeChart.instances[0].update).not.toHaveBeenCalled();
   });
 });

@@ -1,6 +1,9 @@
 import type { ChartConfiguration } from "chart.js";
 import type {
+  ChartCtor,
+  ChartDeps,
   ChartFormatter,
+  ChartInstance,
   ChartSeries,
   ChartSpec,
   ChartTheme,
@@ -175,4 +178,163 @@ export function buildConfig(
       },
     },
   } as unknown as ChartConfiguration;
+}
+
+/**
+ * Loads Chart.js and registers only the pieces a line or bar chart uses, so
+ * the statistics chunk carries nothing else.
+ */
+async function loadDefaultChartJs(): Promise<ChartCtor> {
+  const lib = await import("chart.js");
+  lib.Chart.register(
+    lib.LineController,
+    lib.BarController,
+    lib.LineElement,
+    lib.PointElement,
+    lib.BarElement,
+    lib.CategoryScale,
+    lib.LinearScale,
+    lib.Tooltip,
+    lib.Filler,
+  );
+  return lib.Chart as unknown as ChartCtor;
+}
+
+function swatchColor(dataset: {
+  backgroundColor?: unknown;
+  borderColor?: unknown;
+}): string | undefined {
+  if (typeof dataset.backgroundColor === "string") {
+    return dataset.backgroundColor;
+  }
+  return typeof dataset.borderColor === "string"
+    ? dataset.borderColor
+    : undefined;
+}
+
+/**
+ * An HTML tooltip for Chart.js's `external` hook: one absolutely positioned
+ * element inside `host`, carrying the theme's tooltip class. Text only, set
+ * through `textContent`. `host` must be a positioned element.
+ */
+export function createTooltip(
+  host: HTMLElement,
+  theme: ChartTheme,
+  getFormat: () => ChartFormatter,
+): { external: ChartTooltipHandler; dispose(): void } {
+  let el: HTMLElement | null = null;
+
+  const element = (): HTMLElement => {
+    if (el) return el;
+    const created = host.ownerDocument.createElement("div");
+    created.className = `${theme.tooltipClass} pointer-events-none absolute z-10`;
+    created.setAttribute("aria-hidden", "true");
+    host.appendChild(created);
+    el = created;
+    return created;
+  };
+
+  const row = (text: string, color?: string): HTMLElement => {
+    const doc = host.ownerDocument;
+    const line = doc.createElement("div");
+    line.className = "flex items-center gap-1.5";
+    if (color) {
+      const dot = doc.createElement("span");
+      dot.className = "size-2 rounded-full";
+      dot.style.backgroundColor = color;
+      line.appendChild(dot);
+    }
+    const label = doc.createElement("span");
+    label.textContent = text;
+    line.appendChild(label);
+    return line;
+  };
+
+  const external: ChartTooltipHandler = ({ tooltip }) => {
+    const node = element();
+    if (tooltip.opacity === 0) {
+      node.style.opacity = "0";
+      return;
+    }
+    const format = getFormat();
+    const rows = tooltip.dataPoints
+      .filter((point) => point.parsed.y !== null)
+      .map((point) =>
+        row(
+          `${point.dataset.label ?? ""}: ${format(point.parsed.y as number)}`,
+          swatchColor(point.dataset),
+        ),
+      );
+    node.replaceChildren(row(tooltip.title.join(" ")), ...rows);
+    node.style.left = `${tooltip.caretX}px`;
+    node.style.top = `${tooltip.caretY}px`;
+    node.style.transform = "translate(-50%, calc(-100% - 8px))";
+    node.style.opacity = "1";
+  };
+
+  const dispose = (): void => {
+    el?.remove();
+    el = null;
+  };
+
+  return { external, dispose };
+}
+
+/**
+ * One chart on one canvas. Chart.js loads on `mount`; a failed load leaves
+ * the canvas empty and every method a no-op. Hold it outside Alpine's
+ * reactive proxy.
+ */
+export class ChartView {
+  private chart: ChartInstance | null = null;
+  private spec: ChartSpec | null = null;
+  private destroyed = false;
+  private tooltip: ReturnType<typeof createTooltip> | null = null;
+
+  constructor(
+    private readonly canvas: HTMLCanvasElement,
+    private readonly theme: ChartTheme,
+    private readonly deps: ChartDeps = { loadChartJs: loadDefaultChartJs },
+  ) {}
+
+  async mount(spec: ChartSpec): Promise<void> {
+    this.spec = spec;
+    try {
+      const Chart = await this.deps.loadChartJs();
+      if (this.destroyed || !this.spec) return;
+      this.tooltip = createTooltip(
+        this.canvas.parentElement ?? this.canvas,
+        this.theme,
+        () => this.spec?.format ?? String,
+      );
+      this.chart = new Chart(
+        this.canvas,
+        buildConfig(this.spec, this.theme, this.tooltip.external),
+      );
+    } catch {
+      this.chart = null;
+    }
+  }
+
+  update(spec: ChartSpec): void {
+    this.spec = spec;
+    if (!this.chart) return;
+    try {
+      const config = buildConfig(spec, this.theme, this.tooltip?.external);
+      this.chart.data.labels = config.data.labels;
+      this.chart.data.datasets = config.data.datasets;
+      this.chart.options = config.options;
+      this.chart.update();
+    } catch {
+      return;
+    }
+  }
+
+  destroy(): void {
+    this.destroyed = true;
+    this.chart?.destroy();
+    this.chart = null;
+    this.tooltip?.dispose();
+    this.tooltip = null;
+  }
 }
