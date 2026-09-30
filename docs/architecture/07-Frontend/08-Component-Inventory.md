@@ -129,6 +129,11 @@ that split (2026-09-19, closes issue #423).
 | `WarmUpPanel.astro` | Warm-Up play surface: an "Are you ready?" gate (`confirmWarmUpReady()`), then the board with the current section's aim | none (reads `warmUpReady` from the page scope) |
 | `SwitchingPanel.astro` | Switching play surface: `SinglePlayerDisplay` scored by `switchingPoints()`, `StatRow`s for the target and progress, `VisitPreview`, and `ExerciseBoardInputPanel` | none (reads the Switching page scope) |
 | `DoublePatternPanel.astro` | Double Pattern play surface: `SinglePlayerDisplay` scored by `doublePatternPoints()`, `StatRow`s for the current double and progress, `VisitPreview`, and `ExerciseBoardInputPanel` | none (reads the Double Pattern page scope) |
+| `BullUpPanel.astro` | Bull Up Practice play surface: `SinglePlayerDisplay` scored by `bullUpBullseyes()`, `StatRow`s for the last visit and progress, `VisitPreview`, and `ExerciseBoardInputPanel` | none (reads the Bull Up page scope) |
+| `BullseyeCheckoutPanel.astro` | Bullseye Checkouts play surface: `SinglePlayerDisplay` scored by `bullseyeCheckoutCheckouts()`, `StatRow`s for the score left and progress, `VisitPreview`, and `ExerciseBoardInputPanel` | none (reads the Bullseye Checkout page scope) |
+| `ScoreThresholdPanel.astro` | Score Threshold (65 or More) play surface: `SinglePlayerDisplay` scored by `scoreThresholdBeats()`, `StatRow`s for the current visit and progress, `VisitPreview`, and `ExerciseBoardInputPanel` | none (reads the Score Threshold page scope) |
+| `SwitchingTargetScoringPanel.astro` | Switching Target Scoring play surface: `SinglePlayerDisplay` scored by `switchingTargetScoringChain()`, `StatRow`s for the target and progress, `VisitPreview`, and `ExerciseBoardInputPanel` | none (reads the Switching Target Scoring page scope) |
+| `TargetScoringPanel.astro` | Target Scoring play surface: `SinglePlayerDisplay` scored by `targetScoringChain()`, `StatRow`s for the target and progress, `VisitPreview`, and `ExerciseBoardInputPanel` | none (reads the Target Scoring page scope) |
 
 ## `components/layout/training/trivia/`
 
