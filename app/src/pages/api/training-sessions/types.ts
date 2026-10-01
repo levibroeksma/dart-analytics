@@ -33,6 +33,11 @@ export const StartTrainingResponse = z.object({
 });
 export type StartTrainingResponseData = z.infer<typeof StartTrainingResponse>;
 
+export const ResumeTrainingResponse = StartTrainingResponse.extend({
+  completedStepCount: z.number().int().nonnegative(),
+});
+export type ResumeTrainingResponseData = z.infer<typeof ResumeTrainingResponse>;
+
 export const StartTrainingStepRequest = z.object({}).strict();
 export type StartTrainingStepRequestInput = z.infer<
   typeof StartTrainingStepRequest

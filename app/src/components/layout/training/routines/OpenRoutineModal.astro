@@ -1,0 +1,71 @@
+---
+/**
+ * Presentational — the routine's play page owns `openRoutine` (x-if).
+ * Shown when the player starts a routine while another is still open: only one
+ * routine runs at a time, so the open one is resumed at its first unfinished
+ * step or abandoned before the requested one starts (issue #358).
+ */
+
+// Components
+import Modal from "@components/ui/Modal.astro";
+import Button from "@components/forms/Button.astro";
+---
+
+<Modal
+  titleId="open-routine-title"
+  descriptionId="open-routine-desc"
+  dismissible={false}
+>
+  <h2
+    id="open-routine-title"
+    class="font-display text-lg font-semibold text-foreground"
+  >
+    Unfinished routine
+  </h2>
+  <p
+    id="open-routine-desc"
+    class="mt-2 text-sm text-muted-foreground"
+  >
+    <span x-text="openRoutine.routineName || 'A routine'"></span>
+    <span
+      x-show="openRoutineStartedLabel()"
+      x-cloak
+      >from <span x-text="openRoutineStartedLabel()"></span></span
+    > is still open. Resume it at your first unfinished step, or abandon it to start
+    this one.
+  </p>
+  <p
+    class="mt-3 text-sm text-error"
+    x-show="openRoutineError"
+    x-text="openRoutineError"
+    x-cloak
+  >
+  </p>
+
+  <div
+    slot="footer"
+    class="mt-6 flex flex-col gap-3"
+  >
+    <Button
+      type="button"
+      title="Resume"
+      @click="resumeOpenRoutine()"
+      loadingExpr="resolvingOpenRoutine"
+      :disabled="resolvingOpenRoutine"
+    />
+    <Button
+      type="button"
+      variant="secondary"
+      title="Abandon & start new"
+      @click="abandonOpenRoutine()"
+      :disabled="resolvingOpenRoutine"
+    />
+    <Button
+      type="button"
+      variant="ghost"
+      title="Leave"
+      @click="window.location.assign('/training')"
+      :disabled="resolvingOpenRoutine"
+    />
+  </div>
+</Modal>

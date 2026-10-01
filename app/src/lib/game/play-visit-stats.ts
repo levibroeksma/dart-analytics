@@ -70,7 +70,7 @@ export function perVisitAverageDisplay(turns: VisitLike[]): string {
 
 /**
  * Classic 3-dart average as a one-decimal display string, over resolved visits
- * only. An open visit contributes neither its running total nor its darts:
+ * only, divided by the darts actually thrown (same rule as `dartsThrownCount`). An open visit contributes neither its running total nor its darts:
  * counting a 60 thrown with one dart against a whole visit's worth of darts
  * reports a third of the real average.
  */
@@ -79,7 +79,7 @@ export function threeDartAverageDisplay(
   maxDartsPerTurn: number,
 ): string {
   const completed = completedVisits(turns);
-  const dartsThrown = completed.length * maxDartsPerTurn;
+  const dartsThrown = dartsThrownCount(completed, maxDartsPerTurn);
   if (dartsThrown === 0) return "0.0";
   const total = completed.reduce((sum, turn) => sum + turn.totalScore, 0);
   return ((total / dartsThrown) * 3).toFixed(1);

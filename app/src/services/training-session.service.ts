@@ -14,9 +14,11 @@ import {
   insertExerciseSessionRecord,
 } from "@repositories/session.repository";
 import {
-  abandonActiveTrainingActivities,
+  closeOpenStepSessions,
   findActivityConfiguration,
   findActivityStatus,
+  findCompletedStepSequenceNumbers,
+  findOpenTrainingActivity,
   findRoutineTemplateSteps,
   findTrainingCompletions,
   insertTrainingActivity,
@@ -34,6 +36,7 @@ import {
 } from "./routines/game-step";
 import type {
   RoutineGameStepHook,
+  ResumeTrainingResult,
   ServiceResult,
   StartTrainingResult,
   StartTrainingStepResult,
@@ -169,6 +172,13 @@ function invalidReason(
     : "invalid step configuration";
 }
 
+/**
+ * Starts a routine unless the player already has one open, in which case the
+ * answer is `SESSION_ALREADY_ACTIVE` naming it so the player can resume or
+ * abandon it. The check and the insert share a transaction, but nothing at
+ * the database enforces the rule, so two simultaneous starts can still both
+ * pass.
+ */
 export async function startTraining(
   playerId: string,
   routineTemplateId: string,
@@ -188,8 +198,7 @@ export async function startTraining(
   }
 
   const activeStatusId = await findGameStatusId(db, "ACTIVE");
-  const abandonedStatusId = await findGameStatusId(db, "ABANDONED");
-  if (!activeStatusId || !abandonedStatusId) {
+  if (!activeStatusId) {
     return {
       ok: false,
       code: "INTERNAL_ERROR",
@@ -215,8 +224,9 @@ export async function startTraining(
   }
 
   const activityId = generateId();
-  await withTransaction(async (tx) => {
-    await abandonActiveTrainingActivities(tx, { playerId, abandonedStatusId });
+  const open = await withTransaction(async (tx) => {
+    const existing = await findOpenTrainingActivity(tx, playerId);
+    if (existing) return existing;
     await insertTrainingActivity(tx, {
       activityId,
       playerId,
@@ -228,7 +238,19 @@ export async function startTraining(
         steps,
       },
     });
+    return undefined;
   });
+  if (open) {
+    return {
+      ok: false,
+      code: "SESSION_ALREADY_ACTIVE",
+      details: {
+        activityId: open.activityId,
+        startedAt: open.startedAt,
+        routineName: open.routineName,
+      },
+    };
+  }
 
   return {
     ok: true,
@@ -579,6 +601,8 @@ export async function startTrainingStep(
  * Terminal transition for a training activity. The UPDATE itself carries the
  * "still ACTIVE" predicate, so a completed routine can never be re-transitioned
  * and lose its original `completed_at` (root `CLAUDE.md` § Hard Invariants).
+ * Abandoning also closes the step sessions still open under the activity, in
+ * the same transaction, so none is left to block the player's next start.
  */
 async function transitionTrainingActivity(
   playerId: string,
@@ -595,11 +619,20 @@ async function transitionTrainingActivity(
       details: { reason: "reference data missing" },
     };
   }
-  const updated = await updateActivityStatusRecord(db, {
-    activityId,
-    playerId,
-    statusId,
-    expectedStatusId: activeStatusId,
+  const updated = await withTransaction(async (tx) => {
+    const row = await updateActivityStatusRecord(tx, {
+      activityId,
+      playerId,
+      statusId,
+      expectedStatusId: activeStatusId,
+    });
+    if (row && statusKey === "ABANDONED") {
+      await closeOpenStepSessions(tx, {
+        activityId,
+        abandonedStatusId: statusId,
+      });
+    }
+    return row;
   });
   if (updated) return { ok: true, data: updated };
 
@@ -626,6 +659,77 @@ export async function abandonTraining(
   activityId: string,
 ): Promise<ServiceResult<{ activityId: string; completedAt: string }>> {
   return transitionTrainingActivity(playerId, activityId, "ABANDONED");
+}
+
+/**
+ * Reopens the caller's open routine at its first unfinished step. The step
+ * session left half-played is abandoned, so that step starts fresh; the
+ * steps already finished stay recorded. A routine whose every step already
+ * finished is completed instead and reported fully done.
+ */
+export async function resumeTraining(
+  playerId: string,
+  activityId: string,
+): Promise<ServiceResult<ResumeTrainingResult>> {
+  const db = getDb();
+  const snapshot = await findActivityConfiguration(db, activityId, playerId);
+  if (!snapshot) {
+    return {
+      ok: false,
+      code: "SESSION_OWNERSHIP_MISMATCH",
+      details: { activityId },
+    };
+  }
+
+  const activeStatusId = await findGameStatusId(db, "ACTIVE");
+  const completedStatusId = await findGameStatusId(db, "COMPLETED");
+  const abandonedStatusId = await findGameStatusId(db, "ABANDONED");
+  if (!activeStatusId || !completedStatusId || !abandonedStatusId) {
+    return {
+      ok: false,
+      code: "INTERNAL_ERROR",
+      details: { reason: "reference data missing" },
+    };
+  }
+
+  const current = await findActivityStatus(db, activityId, playerId);
+  if (current?.statusId !== activeStatusId) {
+    return {
+      ok: false,
+      code: "SESSION_ALREADY_COMPLETED",
+      details: { activityId },
+    };
+  }
+
+  await withTransaction((tx) =>
+    closeOpenStepSessions(tx, { activityId, abandonedStatusId }),
+  );
+  const finished = new Set(
+    await findCompletedStepSequenceNumbers(db, {
+      activityId,
+      completedStatusId,
+    }),
+  );
+  const steps = snapshot.steps as TrainingStepResolved[];
+  const firstUnfinished = steps.findIndex(
+    (step) => !finished.has(step.sequenceNumber),
+  );
+  const completedStepCount =
+    firstUnfinished === -1 ? steps.length : firstUnfinished;
+  if (completedStepCount === steps.length) {
+    await transitionTrainingActivity(playerId, activityId, "COMPLETED");
+  }
+
+  return {
+    ok: true,
+    data: {
+      activityId,
+      routineTemplateId: snapshot.routineTemplateId,
+      routineName: snapshot.routineName,
+      steps,
+      completedStepCount,
+    },
+  };
 }
 
 /**

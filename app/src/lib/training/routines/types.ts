@@ -36,6 +36,12 @@ export type BlockingSession = {
   startedAt: string | null;
 };
 
+export type OpenRoutine = {
+  activityId: string;
+  startedAt: string | null;
+  routineName: string;
+};
+
 /**
  * What `gameStep()` needs from whichever game's own play store it wraps —
  * the record → mirror → complete cycle's completion status, the countdown
@@ -79,6 +85,9 @@ export type RoutinePlayContext = {
   blockingSession: BlockingSession | null;
   blockingError: string;
   resolvingBlockingSession: boolean;
+  openRoutine: OpenRoutine | null;
+  openRoutineError: string;
+  resolvingOpenRoutine: boolean;
   stepSummaries: RoutineStepSummary[];
   routineFinished: boolean;
   completionStatus: "pending" | "saving" | "succeeded" | "failed";
@@ -101,6 +110,15 @@ export type RoutinePlayContext = {
   ): void;
   resolveBlockingSession(this: RoutinePlayContext): Promise<void>;
   blockingStartedLabel(this: RoutinePlayContext): string;
+  beginRoutine(
+    this: RoutinePlayContext,
+    result: StartTrainingResponseData,
+    completedStepCount?: number,
+  ): Promise<void>;
+  startRequestedRoutine(this: RoutinePlayContext): Promise<void>;
+  resumeOpenRoutine(this: RoutinePlayContext): Promise<void>;
+  abandonOpenRoutine(this: RoutinePlayContext): Promise<void>;
+  openRoutineStartedLabel(this: RoutinePlayContext): string;
   startSessionClock(this: RoutinePlayContext): void;
   stopSessionClock(this: RoutinePlayContext): void;
   confirmWarmUpReady(this: RoutinePlayContext): void;

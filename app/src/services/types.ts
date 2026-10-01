@@ -83,6 +83,11 @@ export type StartTrainingResult = {
   steps: TrainingStepResolved[];
 };
 
+/** `StartTrainingResult` for a reopened routine, plus how far it had got. */
+export type ResumeTrainingResult = StartTrainingResult & {
+  completedStepCount: number;
+};
+
 /** A completed training and the routine it ran. */
 export type TrainingCompletion = {
   activityId: string;

@@ -111,6 +111,14 @@ describe("threeDartAverageDisplay", () => {
       perVisitAverageDisplay(turns),
     );
   });
+
+  it("divides by the darts actually thrown when a visit resolves early", () => {
+    const turns = [
+      { totalScore: 60, completedAt: "t", darts: [{}, {}, {}] },
+      { totalScore: 40, completedAt: "t", darts: [{}] },
+    ];
+    expect(threeDartAverageDisplay(turns, 3)).toBe("75.0");
+  });
 });
 
 /**

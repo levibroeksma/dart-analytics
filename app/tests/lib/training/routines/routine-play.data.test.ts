@@ -10,6 +10,7 @@ vi.mock("@client/api/training-sessions", () => ({
   startTrainingStep: vi.fn(),
   completeTraining: vi.fn(),
   abandonTraining: vi.fn(),
+  resumeTraining: vi.fn(),
 }));
 vi.mock("@client/api/sessions", () => ({
   completeSession: vi.fn(),
@@ -1795,6 +1796,227 @@ describe("routinePlay — Finishing", () => {
     });
     expect(store.error).toBe("");
     expect(store.currentStep()?.exerciseTypeKey).toBe("GAME");
+  });
+
+  describe("an open routine already exists", () => {
+    const OPEN_CONFLICT = Object.assign(new Error("Session already active"), {
+      code: "SESSION_ALREADY_ACTIVE",
+      requestId: "req-7",
+      details: {
+        activityId: "act-old",
+        startedAt: "2026-09-30T10:00:00.000Z",
+        routineName: "Balanced Training",
+      },
+    });
+    const TWO_STEPS = [STEPS[0], { ...STEPS[0], sequenceNumber: 2 }];
+
+    function warmUpSession(sessionId: string) {
+      return {
+        sessionId,
+        exerciseTypeKey: "WARM_UP" as const,
+        configuration: STEPS[0].configuration,
+        participant: { ref: "pt1", displayName: "Levi" },
+      };
+    }
+
+    it("init() offers resume or abandon instead of failing or starting a second routine", async () => {
+      vi.mocked(trainingApi.startTraining).mockRejectedValue(OPEN_CONFLICT);
+      const store = makeStore();
+      await store.init();
+      expect(store.openRoutine).toEqual({
+        activityId: "act-old",
+        startedAt: "2026-09-30T10:00:00.000Z",
+        routineName: "Balanced Training",
+      });
+      expect(store.error).toBe("");
+      expect(store.loading).toBe(false);
+      expect(store.training).toBeNull();
+      expect(trainingApi.startTrainingStep).not.toHaveBeenCalled();
+    });
+
+    it("openRoutineStartedLabel() dates the open routine, and is empty without a usable start time", async () => {
+      const store = makeStore();
+      store.openRoutine = {
+        activityId: "act-old",
+        startedAt: "2026-09-30T10:00:00.000Z",
+        routineName: "Balanced Training",
+      };
+      expect(store.openRoutineStartedLabel()).toBe(
+        new Date("2026-09-30T10:00:00.000Z").toLocaleDateString(undefined, {
+          day: "numeric",
+          month: "short",
+        }),
+      );
+      store.openRoutine = {
+        activityId: "act-old",
+        startedAt: "nonsense",
+        routineName: "Balanced Training",
+      };
+      expect(store.openRoutineStartedLabel()).toBe("");
+      store.openRoutine = null;
+      expect(store.openRoutineStartedLabel()).toBe("");
+    });
+
+    it("resumeOpenRoutine() continues the open routine at its first unfinished step", async () => {
+      vi.mocked(trainingApi.startTraining).mockRejectedValue(OPEN_CONFLICT);
+      vi.mocked(trainingApi.resumeTraining).mockResolvedValue({
+        activityId: "act-old",
+        routineTemplateId: "rt-1",
+        routineName: "Balanced Training",
+        steps: TWO_STEPS as never,
+        completedStepCount: 1,
+      });
+      vi.mocked(trainingApi.startTrainingStep).mockResolvedValue(
+        warmUpSession("s2"),
+      );
+      const store = makeStore();
+      await store.init();
+      await store.resumeOpenRoutine();
+      expect(trainingApi.resumeTraining).toHaveBeenCalledWith("act-old");
+      expect(store.openRoutine).toBeNull();
+      expect(store.activityId).toBe("act-old");
+      expect(store.currentStep()?.sequenceNumber).toBe(2);
+      expect(trainingApi.startTrainingStep).toHaveBeenCalledWith("act-old", 2);
+      expect(store.resolvingOpenRoutine).toBe(false);
+    });
+
+    it("resumeOpenRoutine() starts a fresh routine when every step had already finished", async () => {
+      vi.mocked(trainingApi.startTraining)
+        .mockRejectedValueOnce(OPEN_CONFLICT)
+        .mockResolvedValueOnce({
+          activityId: "act-new",
+          routineTemplateId: "rt-1",
+          routineName: "Balanced Training",
+          steps: STEPS as never,
+        });
+      vi.mocked(trainingApi.resumeTraining).mockResolvedValue({
+        activityId: "act-old",
+        routineTemplateId: "rt-1",
+        routineName: "Balanced Training",
+        steps: TWO_STEPS as never,
+        completedStepCount: 2,
+      });
+      vi.mocked(trainingApi.startTrainingStep).mockResolvedValue(
+        warmUpSession("s1"),
+      );
+      const store = makeStore();
+      await store.init();
+      await store.resumeOpenRoutine();
+      expect(trainingApi.startTraining).toHaveBeenCalledTimes(2);
+      expect(store.activityId).toBe("act-new");
+      expect(store.openRoutine).toBeNull();
+    });
+
+    it("resumeOpenRoutine() keeps the offer and says so when the resume fails", async () => {
+      vi.mocked(trainingApi.startTraining).mockRejectedValue(OPEN_CONFLICT);
+      vi.mocked(trainingApi.resumeTraining).mockRejectedValue(
+        new Error("offline"),
+      );
+      const store = makeStore();
+      await store.init();
+      await store.resumeOpenRoutine();
+      expect(store.openRoutine).not.toBeNull();
+      expect(store.openRoutineError).toBe(
+        "Could not resume that routine. Check your connection and try again.",
+      );
+      expect(store.resolvingOpenRoutine).toBe(false);
+    });
+
+    it("abandonOpenRoutine() abandons the open routine, then starts the requested one", async () => {
+      vi.mocked(trainingApi.startTraining)
+        .mockRejectedValueOnce(OPEN_CONFLICT)
+        .mockResolvedValueOnce({
+          activityId: "act-new",
+          routineTemplateId: "rt-1",
+          routineName: "Balanced Training",
+          steps: STEPS as never,
+        });
+      vi.mocked(trainingApi.abandonTraining).mockResolvedValue({
+        activityId: "act-old",
+        completedAt: "2026-09-30T12:00:00.000Z",
+      });
+      vi.mocked(trainingApi.startTrainingStep).mockResolvedValue(
+        warmUpSession("s1"),
+      );
+      const store = makeStore();
+      await store.init();
+      await store.abandonOpenRoutine();
+      expect(trainingApi.abandonTraining).toHaveBeenCalledWith("act-old");
+      expect(store.openRoutine).toBeNull();
+      expect(store.activityId).toBe("act-new");
+      expect(trainingApi.startTrainingStep).toHaveBeenCalledWith("act-new", 1);
+    });
+
+    it("abandonOpenRoutine() keeps the offer and says so when the abandon fails", async () => {
+      vi.mocked(trainingApi.startTraining).mockRejectedValue(OPEN_CONFLICT);
+      vi.mocked(trainingApi.abandonTraining).mockRejectedValue(
+        new Error("offline"),
+      );
+      const store = makeStore();
+      await store.init();
+      await store.abandonOpenRoutine();
+      expect(trainingApi.startTraining).toHaveBeenCalledTimes(1);
+      expect(store.openRoutine).not.toBeNull();
+      expect(store.openRoutineError).toBe(
+        "Could not abandon that routine. Check your connection and try again.",
+      );
+    });
+
+    it("resumeOpenRoutine() starts the requested routine when the open one already ended elsewhere", async () => {
+      vi.mocked(trainingApi.startTraining)
+        .mockRejectedValueOnce(OPEN_CONFLICT)
+        .mockResolvedValueOnce({
+          activityId: "act-new",
+          routineTemplateId: "rt-1",
+          routineName: "Balanced Training",
+          steps: STEPS as never,
+        });
+      vi.mocked(trainingApi.resumeTraining).mockRejectedValue(
+        Object.assign(new Error("done"), { code: "SESSION_ALREADY_COMPLETED" }),
+      );
+      vi.mocked(trainingApi.startTrainingStep).mockResolvedValue(
+        warmUpSession("s1"),
+      );
+      const store = makeStore();
+      await store.init();
+      await store.resumeOpenRoutine();
+      expect(store.openRoutine).toBeNull();
+      expect(store.openRoutineError).toBe("");
+      expect(store.activityId).toBe("act-new");
+    });
+
+    it("abandonOpenRoutine() carries on when the open routine already ended elsewhere", async () => {
+      vi.mocked(trainingApi.startTraining)
+        .mockRejectedValueOnce(OPEN_CONFLICT)
+        .mockResolvedValueOnce({
+          activityId: "act-new",
+          routineTemplateId: "rt-1",
+          routineName: "Balanced Training",
+          steps: STEPS as never,
+        });
+      vi.mocked(trainingApi.abandonTraining).mockRejectedValue(
+        Object.assign(new Error("done"), { code: "SESSION_ALREADY_COMPLETED" }),
+      );
+      vi.mocked(trainingApi.startTrainingStep).mockResolvedValue(
+        warmUpSession("s1"),
+      );
+      const store = makeStore();
+      await store.init();
+      await store.abandonOpenRoutine();
+      expect(store.openRoutine).toBeNull();
+      expect(store.activityId).toBe("act-new");
+    });
+
+    it("ignores a second resolve while one is in flight", async () => {
+      vi.mocked(trainingApi.startTraining).mockRejectedValue(OPEN_CONFLICT);
+      const store = makeStore();
+      await store.init();
+      store.resolvingOpenRoutine = true;
+      await store.resumeOpenRoutine();
+      await store.abandonOpenRoutine();
+      expect(trainingApi.resumeTraining).not.toHaveBeenCalled();
+      expect(trainingApi.abandonTraining).not.toHaveBeenCalled();
+    });
   });
 
   it("blockingStartedLabel() dates the blocking game, and is empty when the server named no start time", async () => {

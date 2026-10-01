@@ -3,6 +3,7 @@ import {
   StartTrainingRequest,
   type StartTrainingRequestInput,
   type StartTrainingResponseData,
+  type ResumeTrainingResponseData,
   type StartTrainingStepResponseData,
   type CompleteTrainingResponseData,
   type AbandonTrainingResponseData,
@@ -18,6 +19,28 @@ export async function startTraining(
   const result = await apiRequest<StartTrainingResponseData>(
     "/api/training-sessions",
     { method: "POST", body: JSON.stringify(payload) },
+  );
+  if (!result.ok)
+    throw new SessionApiError(
+      result.error.code,
+      result.error.message,
+      result.requestId,
+      result.error.details,
+    );
+  return result.data;
+}
+
+/**
+ * Reopens the player's open routine at its first unfinished step. A
+ * `completedStepCount` equal to the step count means every step had already
+ * finished and the server has closed the routine.
+ */
+export async function resumeTraining(
+  activityId: string,
+): Promise<ResumeTrainingResponseData> {
+  const result = await apiRequest<ResumeTrainingResponseData>(
+    `/api/training-sessions/${activityId}/resume`,
+    { method: "POST", body: "{}" },
   );
   if (!result.ok)
     throw new SessionApiError(

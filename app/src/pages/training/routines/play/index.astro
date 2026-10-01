@@ -19,6 +19,7 @@ import ErrorAlert from "@components/ui/ErrorAlert.astro";
 import Button from "@components/forms/Button.astro";
 import RoutineSummaryModal from "@components/layout/training/routines/RoutineSummaryModal.astro";
 import BlockedStepModal from "@components/layout/training/exercises/BlockedStepModal.astro";
+import OpenRoutineModal from "@components/layout/training/routines/OpenRoutineModal.astro";
 ---
 
 <GameLayout
@@ -279,6 +280,10 @@ import BlockedStepModal from "@components/layout/training/exercises/BlockedStepM
 
     <template x-if="blockingSession">
       <BlockedStepModal />
+    </template>
+
+    <template x-if="openRoutine">
+      <OpenRoutineModal />
     </template>
 
     <RoutineSummaryModal />

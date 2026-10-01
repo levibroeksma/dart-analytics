@@ -114,4 +114,21 @@ describe("apiRequest", () => {
     expect(result).toMatchObject({ ok: true, data: null });
     vi.unstubAllGlobals();
   });
+
+  it("surfaces X-Request-Id from a 204 response", async () => {
+    vi.mocked(getAccessToken).mockResolvedValue("test-jwt");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        async () =>
+          new Response(null, {
+            status: 204,
+            headers: { "X-Request-Id": "req-123" },
+          }),
+      ),
+    );
+    const result = await apiRequest("/api/routines/x", { method: "DELETE" });
+    expect(result).toMatchObject({ ok: true, requestId: "req-123" });
+    vi.unstubAllGlobals();
+  });
 });

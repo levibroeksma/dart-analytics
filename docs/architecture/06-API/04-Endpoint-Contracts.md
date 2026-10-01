@@ -1005,8 +1005,15 @@ Per D301. Player-scoped through `training-session.service.ts`; every success use
 Request `StartTrainingRequest`: `routineTemplateId` (string, non-empty; a system routine or the caller's own). Success → `201` with `StartTrainingResponse`: `activityId`, `routineTemplateId`, `routineName`, `steps[]` (`sequenceNumber`, `exerciseTypeKey`, `exerciseRulesetVersionKey`, `gameTypeKey`, `gameRulesetVersionKey`, `durationSeconds`, `configuration`). Every step's configuration is validated once before the activity's snapshot is written.
 
 - Unknown `routineTemplateId`, an invalid step configuration, or a non-routine-eligible game → `VALIDATION_FAILED`; no activity is created.
-- The caller already has an active activity → `SESSION_ALREADY_ACTIVE`.
+- The caller already has an open routine → `SESSION_ALREADY_ACTIVE` (`409`) with `details: { activityId, startedAt, routineName }`; nothing is created or closed (D378). The client offers resume or abandon.
 - Missing reference data → `INTERNAL_ERROR`.
+
+### `POST /api/training-sessions/:activityId/resume`
+
+No body. Reopens the caller's open routine at its first unfinished step (D378). Any step session still open under the activity is abandoned first, so the half-played step starts fresh; finished steps stay recorded. Success → `200` with `ResumeTrainingResponse`: `StartTrainingResponse` plus `completedStepCount`, the number of leading snapshot steps already `COMPLETED`. A `completedStepCount` equal to `steps.length` means every step had finished; the server has closed the activity as `COMPLETED` and the client starts the routine afresh.
+
+- Activity missing or not the caller's → `SESSION_OWNERSHIP_MISMATCH`.
+- Activity already closed → `SESSION_ALREADY_COMPLETED`.
 
 ### `POST /api/training-sessions/:activityId/steps/:sequenceNumber`
 
@@ -1020,7 +1027,8 @@ No body (`StartTrainingStepRequest` is an empty strict object). Starts the sessi
 No body. Move an `ACTIVE` activity to `COMPLETED` or `ABANDONED`. Success → `200` with `{ activityId, completedAt }` (`CompleteTrainingResponse` / `AbandonTrainingResponse`; `completedAt` is the close instant for both).
 
 - Activity missing or not the caller's → `NOT_FOUND`.
-- Activity already closed → `SESSION_ALREADY_COMPLETED`. <!-- 2026-09-30 -->
+- Activity already closed → `SESSION_ALREADY_COMPLETED`.
+- `/abandon` also abandons every step session still open under the activity, in the same transaction (D378). <!-- 2026-09-30 -->
 
 ---
 
