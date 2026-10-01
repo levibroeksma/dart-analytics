@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, inArray, isNull, or, sql } from "drizzle-orm";
+import { and, desc, eq, gte, isNull, or } from "drizzle-orm";
 import { getDb, withTransaction } from "@db/client";
 import {
   activities,
@@ -91,7 +91,10 @@ export async function findActivityConfiguration(
   db: Db,
   activityId: string,
   playerId: string,
-): Promise<{ routineName: string; steps: unknown[] } | undefined> {
+): Promise<
+  | { routineTemplateId: string; routineName: string; steps: unknown[] }
+  | undefined
+> {
   const [row] = await db
     .select({ configuration: activityConfigurations.configuration })
     .from(activityConfigurations)
@@ -104,7 +107,8 @@ export async function findActivityConfiguration(
     )
     .limit(1);
   return row?.configuration as
-    { routineName: string; steps: unknown[] } | undefined;
+    | { routineTemplateId: string; routineName: string; steps: unknown[] }
+    | undefined;
 }
 
 /** The activity's current status, scoped to the player who owns it. */
@@ -130,7 +134,7 @@ export async function findActivityStatus(
  * or no longer in the expected status".
  */
 export async function updateActivityStatusRecord(
-  db: Db,
+  db: Db | Tx,
   input: {
     activityId: string;
     playerId: string;
@@ -138,8 +142,9 @@ export async function updateActivityStatusRecord(
     expectedStatusId: number;
   },
 ): Promise<{ activityId: string; completedAt: string } | undefined> {
+  const executor = db as Db;
   const now = new Date().toISOString();
-  const [row] = await db
+  const [row] = await executor
     .update(activities)
     .set({ statusId: input.statusId, completedAt: now })
     .where(
@@ -157,47 +162,78 @@ export async function updateActivityStatusRecord(
 }
 
 /**
- * Closes every training activity the player still has open, and with it any
- * step session left running under one. A training activity is the one carrying
- * an `activity_configurations` snapshot, which is what separates it from the
- * activity a standalone game creates. Returns the closed activity ids.
- *
- * The snapshot predicate is a raw `sql` EXISTS rather than drizzle's `exists()`
- * helper: that helper parenthesises a subquery builder but emits a raw chunk
- * verbatim, which Postgres rejects as a syntax error.
+ * The player's newest training activity that is still open. A training
+ * activity is the one carrying an `activity_configurations` snapshot, which is
+ * what separates it from the activity a standalone game creates.
  */
-export async function abandonActiveTrainingActivities(
-  tx: Tx,
-  input: { playerId: string; abandonedStatusId: number },
-): Promise<string[]> {
-  const now = new Date().toISOString();
-  const closed = await tx
-    .update(activities)
-    .set({ statusId: input.abandonedStatusId, completedAt: now })
-    .where(
-      and(
-        eq(activities.playerId, input.playerId),
-        isNull(activities.completedAt),
-        sql`exists (select 1 from ${activityConfigurations} where ${activityConfigurations.activityId} = ${activities.id})`,
-      ),
+export async function findOpenTrainingActivity(
+  db: Db | Tx,
+  playerId: string,
+): Promise<
+  { activityId: string; startedAt: string; routineName: string } | undefined
+> {
+  const [row] = await (db as Db)
+    .select({
+      activityId: activities.id,
+      startedAt: activities.startedAt,
+      configuration: activityConfigurations.configuration,
+    })
+    .from(activities)
+    .innerJoin(
+      activityConfigurations,
+      eq(activityConfigurations.activityId, activities.id),
     )
-    .returning({ activityId: activities.id });
+    .where(
+      and(eq(activities.playerId, playerId), isNull(activities.completedAt)),
+    )
+    .orderBy(desc(activities.startedAt))
+    .limit(1);
+  if (!row) return undefined;
+  const snapshot = row.configuration as { routineName?: string } | null;
+  return {
+    activityId: row.activityId as string,
+    startedAt: row.startedAt as string,
+    routineName: snapshot?.routineName ?? "",
+  };
+}
 
-  const activityIds = closed.map((row) => row.activityId as string);
-  if (activityIds.length === 0) return [];
-
+/** Abandons every step session still open under the activity. */
+export async function closeOpenStepSessions(
+  tx: Tx,
+  input: { activityId: string; abandonedStatusId: number },
+): Promise<void> {
   await tx
     .update(exerciseSessions)
-    .set({ statusId: input.abandonedStatusId, completedAt: now })
+    .set({
+      statusId: input.abandonedStatusId,
+      completedAt: new Date().toISOString(),
+    })
     .where(
       and(
-        inArray(exerciseSessions.activityId, activityIds),
+        eq(exerciseSessions.activityId, input.activityId),
         isNull(exerciseSessions.completedAt),
       ),
     )
     .returning({ sessionId: exerciseSessions.id });
+}
 
-  return activityIds;
+/** The routine step sequence numbers whose session finished `COMPLETED`. */
+export async function findCompletedStepSequenceNumbers(
+  db: Db,
+  input: { activityId: string; completedStatusId: number },
+): Promise<number[]> {
+  const rows = await db
+    .select({ sequenceNumber: exerciseSessions.routineStepSequenceNumber })
+    .from(exerciseSessions)
+    .where(
+      and(
+        eq(exerciseSessions.activityId, input.activityId),
+        eq(exerciseSessions.statusId, input.completedStatusId),
+      ),
+    );
+  return rows.flatMap((row) =>
+    row.sequenceNumber === null ? [] : [row.sequenceNumber],
+  );
 }
 
 export async function insertTrainingActivity(

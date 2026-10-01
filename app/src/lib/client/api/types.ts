@@ -139,6 +139,7 @@ export {
   StartTrainingRequest,
   type StartTrainingRequestInput,
   type StartTrainingResponseData,
+  type ResumeTrainingResponseData,
   type StartTrainingStepResponseData,
   type CompleteTrainingResponseData,
   type AbandonTrainingResponseData,

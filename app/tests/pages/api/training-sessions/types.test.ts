@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   StartTrainingRequest,
   StartTrainingResponse,
+  ResumeTrainingResponse,
   StartTrainingStepRequest,
   StartTrainingStepResponse,
   CompleteTrainingResponse,
@@ -284,5 +285,25 @@ describe("TrainingCompletionListResponse", () => {
         nextCursor: null,
       }).success,
     ).toBe(true);
+  });
+});
+
+describe("ResumeTrainingResponse", () => {
+  const base = {
+    activityId: "act-1",
+    routineTemplateId: "rt-1",
+    routineName: "Balanced Training",
+    steps: [],
+  };
+
+  it("extends the start response with how many leading steps finished", () => {
+    expect(
+      ResumeTrainingResponse.safeParse({ ...base, completedStepCount: 2 })
+        .success,
+    ).toBe(true);
+  });
+
+  it("rejects a response without completedStepCount", () => {
+    expect(ResumeTrainingResponse.safeParse(base).success).toBe(false);
   });
 });

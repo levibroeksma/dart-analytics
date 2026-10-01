@@ -86,6 +86,7 @@ Shipped 2026-09-20 (D342, refined by D343) against `v_training_schedules`/`v_tra
 ### Training Sessions
 
 - `POST /api/training-sessions`
+- `POST /api/training-sessions/:activityId/resume`
 - `POST /api/training-sessions/:activityId/steps/:sequenceNumber`
 - `PATCH /api/training-sessions/:activityId/complete`
 - `PATCH /api/training-sessions/:activityId/abandon`

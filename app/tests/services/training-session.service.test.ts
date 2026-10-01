@@ -11,7 +11,9 @@ vi.mock("@repositories/training-session.repository", () => ({
   findActivityConfiguration: vi.fn(),
   findActivityStatus: vi.fn(),
   updateActivityStatusRecord: vi.fn(),
-  abandonActiveTrainingActivities: vi.fn(),
+  findOpenTrainingActivity: vi.fn(),
+  closeOpenStepSessions: vi.fn(),
+  findCompletedStepSequenceNumbers: vi.fn(),
   findTrainingCompletions: vi.fn(),
 }));
 vi.mock("@repositories/session.repository", async (importOriginal) => {
@@ -41,6 +43,7 @@ import {
   startTrainingStep,
   completeTraining,
   abandonTraining,
+  resumeTraining,
   listTrainingCompletions,
 } from "@services/training-session.service";
 
@@ -108,6 +111,9 @@ describe("startTraining", () => {
       RESOLVED as any,
     );
     vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(1);
+    vi.mocked(trainingRepo.findOpenTrainingActivity).mockResolvedValue(
+      undefined,
+    );
     const result = await startTraining("p1", "rt-1");
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -146,39 +152,59 @@ describe("startTraining", () => {
     );
   });
 
-  it("abandons the player's open training activity before inserting the new one", async () => {
+  it("refuses to start while the player has an open routine, naming it and inserting nothing", async () => {
     vi.mocked(trainingRepo.findRoutineTemplateSteps).mockResolvedValue(
       RESOLVED as any,
     );
-    vi.mocked(sessionRepo.findGameStatusId).mockImplementation(
-      async (_db: unknown, key: string) =>
-        ({ ACTIVE: 1, COMPLETED: 2, ABANDONED: 3 })[key],
+    mockStatusIds();
+    vi.mocked(trainingRepo.findOpenTrainingActivity).mockResolvedValue({
+      activityId: "act-old",
+      startedAt: "2026-09-30T10:00:00.000Z",
+      routineName: "Balanced Training",
+    });
+
+    const result = await startTraining("p1", "rt-1");
+
+    expect(result).toEqual({
+      ok: false,
+      code: "SESSION_ALREADY_ACTIVE",
+      details: {
+        activityId: "act-old",
+        startedAt: "2026-09-30T10:00:00.000Z",
+        routineName: "Balanced Training",
+      },
+    });
+    expect(trainingRepo.findOpenTrainingActivity).toHaveBeenCalledWith(
+      expect.anything(),
+      "p1",
     );
-    vi.mocked(trainingRepo.abandonActiveTrainingActivities).mockResolvedValue([
-      "act-old",
-    ]);
+    expect(trainingRepo.insertTrainingActivity).not.toHaveBeenCalled();
+  });
+
+  it("checks for an open routine before inserting the new one", async () => {
+    vi.mocked(trainingRepo.findRoutineTemplateSteps).mockResolvedValue(
+      RESOLVED as any,
+    );
+    mockStatusIds();
+    vi.mocked(trainingRepo.findOpenTrainingActivity).mockResolvedValue(
+      undefined,
+    );
 
     const result = await startTraining("p1", "rt-1");
 
     expect(result.ok).toBe(true);
-    expect(trainingRepo.abandonActiveTrainingActivities).toHaveBeenCalledWith(
-      expect.anything(),
-      { playerId: "p1", abandonedStatusId: 3 },
-    );
-    const abandonOrder = vi.mocked(trainingRepo.abandonActiveTrainingActivities)
-      .mock.invocationCallOrder[0];
+    const checkOrder = vi.mocked(trainingRepo.findOpenTrainingActivity).mock
+      .invocationCallOrder[0];
     const insertOrder = vi.mocked(trainingRepo.insertTrainingActivity).mock
       .invocationCallOrder[0];
-    expect(abandonOrder).toBeLessThan(insertOrder);
+    expect(checkOrder).toBeLessThan(insertOrder);
   });
 
-  it("returns INTERNAL_ERROR when the ABANDONED status is missing", async () => {
+  it("returns INTERNAL_ERROR when the ACTIVE status is missing", async () => {
     vi.mocked(trainingRepo.findRoutineTemplateSteps).mockResolvedValue(
       RESOLVED as any,
     );
-    vi.mocked(sessionRepo.findGameStatusId).mockImplementation(
-      async (_db: unknown, key: string) => (key === "ACTIVE" ? 1 : undefined),
-    );
+    vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(undefined);
 
     const result = await startTraining("p1", "rt-1");
 
@@ -951,6 +977,7 @@ describe("completeTraining", () => {
         expectedStatusId: ACTIVE_STATUS_ID,
       },
     );
+    expect(trainingRepo.closeOpenStepSessions).not.toHaveBeenCalled();
   });
 
   it("returns NOT_FOUND when the activity does not belong to the player", async () => {
@@ -997,6 +1024,31 @@ describe("abandonTraining", () => {
     );
   });
 
+  it("closes the activity's open step sessions with it", async () => {
+    mockStatusIds();
+    vi.mocked(trainingRepo.updateActivityStatusRecord).mockResolvedValue({
+      activityId: "act-1",
+      completedAt: "2026-09-13T12:00:00.000Z",
+    });
+    await abandonTraining("p1", "act-1");
+    expect(trainingRepo.closeOpenStepSessions).toHaveBeenCalledWith(
+      expect.anything(),
+      { activityId: "act-1", abandonedStatusId: ABANDONED_STATUS_ID },
+    );
+  });
+
+  it("leaves step sessions alone when the activity was not abandoned", async () => {
+    mockStatusIds();
+    vi.mocked(trainingRepo.updateActivityStatusRecord).mockResolvedValue(
+      undefined,
+    );
+    vi.mocked(trainingRepo.findActivityStatus).mockResolvedValue({
+      statusId: COMPLETED_STATUS_ID,
+    });
+    await abandonTraining("p1", "act-1");
+    expect(trainingRepo.closeOpenStepSessions).not.toHaveBeenCalled();
+  });
+
   it("returns SESSION_ALREADY_COMPLETED when the activity already reached a terminal status", async () => {
     mockStatusIds();
     vi.mocked(trainingRepo.updateActivityStatusRecord).mockResolvedValue(
@@ -1030,6 +1082,128 @@ describe("abandonTraining", () => {
   it("returns INTERNAL_ERROR when the ABANDONED status lookup is missing", async () => {
     vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(undefined);
     const result = await abandonTraining("p1", "act-1");
+    expect(result).toEqual({
+      ok: false,
+      code: "INTERNAL_ERROR",
+      details: { reason: "reference data missing" },
+    });
+  });
+});
+
+describe("resumeTraining", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  const SNAPSHOT = {
+    routineTemplateId: "rt-1",
+    routineName: "Balanced Training",
+    steps: [
+      { sequenceNumber: 1, exerciseTypeKey: "WARM_UP" },
+      { sequenceNumber: 2, exerciseTypeKey: "SWITCHING" },
+      { sequenceNumber: 4, exerciseTypeKey: "GAME" },
+    ],
+  };
+
+  function openActivity(completed: number[]) {
+    mockStatusIds();
+    vi.mocked(trainingRepo.findActivityConfiguration).mockResolvedValue(
+      SNAPSHOT as any,
+    );
+    vi.mocked(trainingRepo.findActivityStatus).mockResolvedValue({
+      statusId: ACTIVE_STATUS_ID,
+    });
+    vi.mocked(trainingRepo.findCompletedStepSequenceNumbers).mockResolvedValue(
+      completed,
+    );
+  }
+
+  it("returns SESSION_OWNERSHIP_MISMATCH when the activity is not the caller's", async () => {
+    mockStatusIds();
+    vi.mocked(trainingRepo.findActivityConfiguration).mockResolvedValue(
+      undefined,
+    );
+    const result = await resumeTraining("p1", "act-1");
+    expect(result).toEqual({
+      ok: false,
+      code: "SESSION_OWNERSHIP_MISMATCH",
+      details: { activityId: "act-1" },
+    });
+    expect(trainingRepo.closeOpenStepSessions).not.toHaveBeenCalled();
+  });
+
+  it("returns SESSION_ALREADY_COMPLETED for an activity that already ended", async () => {
+    openActivity([]);
+    vi.mocked(trainingRepo.findActivityStatus).mockResolvedValue({
+      statusId: COMPLETED_STATUS_ID,
+    });
+    const result = await resumeTraining("p1", "act-1");
+    expect(result).toEqual({
+      ok: false,
+      code: "SESSION_ALREADY_COMPLETED",
+      details: { activityId: "act-1" },
+    });
+    expect(trainingRepo.closeOpenStepSessions).not.toHaveBeenCalled();
+  });
+
+  it("abandons the half-played step session and resumes at the first unfinished step", async () => {
+    openActivity([1, 2]);
+    const result = await resumeTraining("p1", "act-1");
+    expect(result).toEqual({
+      ok: true,
+      data: {
+        activityId: "act-1",
+        routineTemplateId: "rt-1",
+        routineName: "Balanced Training",
+        steps: SNAPSHOT.steps,
+        completedStepCount: 2,
+      },
+    });
+    expect(trainingRepo.closeOpenStepSessions).toHaveBeenCalledWith(
+      expect.anything(),
+      { activityId: "act-1", abandonedStatusId: ABANDONED_STATUS_ID },
+    );
+    expect(trainingRepo.findCompletedStepSequenceNumbers).toHaveBeenCalledWith(
+      expect.anything(),
+      { activityId: "act-1", completedStatusId: COMPLETED_STATUS_ID },
+    );
+  });
+
+  it("counts only the leading run of completed steps", async () => {
+    openActivity([2]);
+    const result = await resumeTraining("p1", "act-1");
+    expect(result.ok && result.data.completedStepCount).toBe(0);
+  });
+
+  it("restarts at step one when no step finished", async () => {
+    openActivity([]);
+    const result = await resumeTraining("p1", "act-1");
+    expect(result.ok && result.data.completedStepCount).toBe(0);
+  });
+
+  it("completes an activity whose every step already finished and reports it fully done", async () => {
+    openActivity([1, 2, 4]);
+    vi.mocked(trainingRepo.updateActivityStatusRecord).mockResolvedValue({
+      activityId: "act-1",
+      completedAt: "2026-09-30T12:00:00.000Z",
+    });
+    const result = await resumeTraining("p1", "act-1");
+    expect(result.ok && result.data.completedStepCount).toBe(3);
+    expect(trainingRepo.updateActivityStatusRecord).toHaveBeenCalledWith(
+      expect.anything(),
+      {
+        activityId: "act-1",
+        playerId: "p1",
+        statusId: COMPLETED_STATUS_ID,
+        expectedStatusId: ACTIVE_STATUS_ID,
+      },
+    );
+  });
+
+  it("returns INTERNAL_ERROR when reference data is missing", async () => {
+    vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(undefined);
+    vi.mocked(trainingRepo.findActivityConfiguration).mockResolvedValue(
+      SNAPSHOT as any,
+    );
+    const result = await resumeTraining("p1", "act-1");
     expect(result).toEqual({
       ok: false,
       code: "INTERNAL_ERROR",
