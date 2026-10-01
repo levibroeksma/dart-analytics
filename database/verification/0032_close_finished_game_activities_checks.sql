@@ -70,6 +70,18 @@ WHERE a.completed_at IS NOT NULL
         SELECT 1 FROM activity_configurations ac WHERE ac.activity_id = a.id
     );
 
+INSERT INTO verification_results
+SELECT '4',
+    'a standalone game activity is ACTIVE exactly when completed_at is NULL',
+    CASE WHEN count(*) = 0 THEN 'PASS' ELSE 'FAIL' END,
+    format('found %s incoherent activit(ies)', count(*))
+FROM activities a
+JOIN game_statuses gs ON gs.id = a.status_id
+WHERE NOT EXISTS (
+        SELECT 1 FROM activity_configurations ac WHERE ac.activity_id = a.id
+    )
+    AND ((gs.implementation_key = 'ACTIVE') <> (a.completed_at IS NULL));
+
 SELECT step, result, check_name, detail
 FROM verification_results
 ORDER BY step, check_name;
