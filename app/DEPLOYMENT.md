@@ -69,6 +69,8 @@ npm run db:migrate     # 0020 and 0021 now apply
 
 **The first `db:migrate` failing at `0020` is expected on a populated database.** `db:migrate` is `dbmate up`, which takes no target version and applies everything pending in one run: it commits `0019`, then stops at `0020` because the capability table is not yet seeded. Seed, then re-run to apply `0020` and `0021`. Against an empty `exercise_sessions` the first run goes straight through, so the stop is data-dependent — production will hit it, a fresh environment will not.
 
+CI (`deploy.yml` `migrate`, `db-rehearsal.yml`) runs the same migrate → seed → migrate order, tolerating the first pass's failure (D381, #378).
+
 Before the second `db:migrate`, run `npm run db:verify 0007` and read check 3's `undeclared` / `total` detail rather than the summary line: it is the precondition `0020` validates against, and it passes trivially when `exercise_sessions` is empty.
 
 Verify:

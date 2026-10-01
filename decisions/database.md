@@ -219,3 +219,10 @@ Decision: migration `0046` adds `v_replay_stages`, one owner-scoped row per `exe
 Reason: issue #639. `v_game_replay` inner-joins `turns`, so a parent stage with no turns of its own has no row and `stageOrder` throws "unknown parent" on its children, turning the replay into a 500. The alternative, treating a missing parent as a root, weakens corrupt-input detection. D371 decision 3 recorded the gap as a known limitation.
 Consequences: nested-stage engines (SET → LEG with turns only on legs) replay without a further change. A stage with no turns now reaches `stageOrder` and contributes no events. Amends D371 decision 3's source for stages only.
 Supersedes: none.
+
+### D381 — Deploy and rehearsal apply migrate → seed → migrate (#378)
+Status: Accepted · Date: 2026-10-01
+Decision: `deploy.yml`'s `migrate` job and `db-rehearsal.yml` run `db:migrate:ci` (failure tolerated, warning emitted), `db:seed:ci`, then `db:migrate:ci` again. The second pass is authoritative: its failure fails the job. `db:status:ci` still confirms nothing is pending.
+Reason: issue #378. `0020` needs seed `0007` before it can apply on a populated database (`app/DEPLOYMENT.md` §1.3); a single migrate-then-seed pass deadlocks any migration of that shape. The two-pass order is what a human already runs by hand, and what `seed.ts` does internally.
+Consequences: a real first-pass failure is retried once after seeding, then fails on the second pass with the same error. Seeds may run against a partially migrated chain; every seed is `ON CONFLICT DO NOTHING` and `seed.ts` already orders its own passes. The alternative (split seed-dependent migrations across two PRs) is not adopted.
+Supersedes: none.

@@ -56,10 +56,15 @@ jobs:
             npm run --silent db:status:ci
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-      - name: Apply migrations
-        run: npm run db:migrate:ci
+      # Migrate -> seed -> migrate, as app/DEPLOYMENT.md §1.3 tells a human to
+      # (#378): a migration like 0020 cannot apply until a seed has run. The
+      # first pass may stop early; the second is authoritative and fails the job.
+      - name: Apply migrations (first pass, may stop early)
+        run: npm run db:migrate:ci || echo "::warning::first migrate pass stopped; seeding, then retrying"
       - name: Apply seeds
         run: npm run db:seed:ci
+      - name: Apply migrations (authoritative pass)
+        run: npm run db:migrate:ci
       - name: Confirm nothing is left pending
         run: npm run db:status:ci
 
