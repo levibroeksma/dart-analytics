@@ -17,6 +17,11 @@ on:
       - 'database/verification/**'
       - 'app/scripts/seed.ts'
       - 'app/scripts/verify-db.ts'
+      - 'app/src/repositories/**'
+      - 'app/src/services/statistics.service.ts'
+      - 'app/src/lib/stats/**'
+      - 'app/tests/integration/**'
+      - 'app/vitest.integration.config.ts'
       - 'app/package.json'
       - '.github/workflows/db-rehearsal.yml'
   workflow_call:
@@ -84,6 +89,13 @@ jobs:
 
       - name: Apply seeds
         run: npm run db:seed:ci
+
+      # Executes every statistics section, list and routine read against the
+      # migrated branch: render-only unit tests cannot see grouping or type
+      # errors Postgres raises (#653). Needs a seeded player with data to
+      # cover routines; the game sections run against an absent player too.
+      - name: Statistics SQL executes
+        run: npm run test:integration
 
       # `db:verify` is deliberately NOT run here. Its scripts assert on live
       # data ("no exercise_sessions row is undeclared") as well as on fixtures
