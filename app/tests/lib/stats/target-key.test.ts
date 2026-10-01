@@ -130,6 +130,11 @@ describe("targetLabel", () => {
     expect(targetLabel(key)).toBe(label);
   });
 
+  it("keeps the DOUBLE and TREBLE prefixes distinct for the same number", () => {
+    expect(targetLabel("DOUBLE:20")).toBe("D20");
+    expect(targetLabel("TREBLE:20")).toBe("T20");
+  });
+
   it("returns an unparsable key unchanged", () => {
     expect(targetLabel("MISS")).toBe("MISS");
   });

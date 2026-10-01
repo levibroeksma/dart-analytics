@@ -41,11 +41,6 @@ export function parseTargetKey(
   return null;
 }
 
-const ZONE_PREFIX: Partial<Record<IntentZoneKey, string>> = {
-  DOUBLE: "D",
-  TREBLE: "T",
-};
-
 /** Display label for a `TargetKey` (`DOUBLE:16` -> `D16`); an unparsable key comes back unchanged. */
 export function targetLabel(value: string): string {
   const parsed = parseTargetKey(value);
@@ -53,8 +48,9 @@ export function targetLabel(value: string): string {
   const { number, zone } = parsed;
   switch (zone) {
     case "DOUBLE":
+      return `D${number}`;
     case "TREBLE":
-      return `${ZONE_PREFIX[zone]}${number}`;
+      return `T${number}`;
     case "INNER_SINGLE":
       return `${number} inner`;
     case "OUTER_SINGLE":
