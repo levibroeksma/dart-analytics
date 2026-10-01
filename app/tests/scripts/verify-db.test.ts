@@ -68,6 +68,16 @@ describe("verification runner", () => {
     expect(runnerSource).toContain("process.exit(1)");
   });
 
+  it("records a per-file error as FAIL and continues to the next file", () => {
+    expect(runnerSource).toMatch(
+      /catch \(err\)[\s\S]*\[FAIL\] script error[\s\S]*return true;/,
+    );
+    expect(runnerSource).toContain('sql.unsafe("ROLLBACK")');
+    expect(runnerSource).toContain(
+      "if (await runFile(sql, name)) failed = true;",
+    );
+  });
+
   it("does not open a transaction that would swallow a script's ROLLBACK", () => {
     expect(runnerSource).not.toMatch(/\bBEGIN\b/);
     expect(runnerSource).not.toMatch(/sql\.begin\(/);
@@ -84,6 +94,18 @@ describe("verification runner", () => {
     expect(sql).toMatch(/^BEGIN;$/m);
     expect(sql).not.toMatch(/^COMMIT;$/m);
   });
+
+  it.each(verificationFiles)(
+    "%s supplies exercise_type_id on every exercise_sessions insert",
+    (name) => {
+      const sql = readFileSync(`${verificationDir}/${name}`, "utf8");
+      const inserts =
+        sql.match(/INSERT INTO exercise_sessions\s*\([^)]*\)/g) ?? [];
+      for (const insert of inserts) {
+        expect(insert).toContain("exercise_type_id");
+      }
+    },
+  );
 
   it.each(fixtureBasedVerificationFiles)(
     "%s resolves seeded lookups by implementation_key",

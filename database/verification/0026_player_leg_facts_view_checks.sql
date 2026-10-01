@@ -41,12 +41,13 @@ VALUES (
     );
 
 INSERT INTO exercise_sessions (
-        id, activity_id, player_id, game_type_id, capture_mode_id,
+        id, activity_id, player_id, exercise_type_id, game_type_id, capture_mode_id,
         input_mode_id, status_id, ruleset_version_id, started_at, created_at
     )
 SELECT '01990000-0000-7000-8000-000000002603',
     '01990000-0000-7000-8000-000000002602',
     '01990000-0000-7000-8000-000000002601',
+    (SELECT id FROM exercise_types WHERE implementation_key = 'GAME'),
     rv.game_type_id,
     (SELECT id FROM capture_modes WHERE implementation_key = 'ANALYTICS'),
     (SELECT id FROM input_modes WHERE implementation_key = 'VISUAL_BOARD'),
