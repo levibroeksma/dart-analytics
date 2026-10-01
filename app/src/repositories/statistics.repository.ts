@@ -182,7 +182,25 @@ export async function findX01CheckoutDarts(
       vX01CheckoutDarts.dartNumber,
     );
 
-  return rows as X01CheckoutDartRow[];
+  return rows.map((row) => ({
+    sessionId: nonNull(row.sessionId, "session_id"),
+    gameTypeKey: nonNull(row.gameTypeKey, "game_type_key"),
+    rulesetVersionKey: nonNull(row.rulesetVersionKey, "ruleset_version_key"),
+    configuration: row.configuration as X01CheckoutDartRow["configuration"],
+    stageId: nonNull(row.stageId, "stage_id"),
+    stageSequence: nonNull(row.stageSequence, "stage_sequence"),
+    stageTypeKey: nonNull(row.stageTypeKey, "stage_type_key"),
+    parentStageId: row.parentStageId,
+    turnId: nonNull(row.turnId, "turn_id"),
+    turnSequence: nonNull(row.turnSequence, "turn_sequence"),
+    turnTotalScore: nonNull(row.turnTotalScore, "turn_total_score"),
+    turnCompletedAt: row.turnCompletedAt,
+    participantId: nonNull(row.participantId, "participant_id"),
+    dartNumber: nonNull(row.dartNumber, "dart_number"),
+    hitTargetNumber: row.hitTargetNumber,
+    hitZoneKey: row.hitZoneKey as X01CheckoutDartRow["hitZoneKey"],
+    score: nonNull(row.score, "score"),
+  }));
 }
 
 const BUCKET_UNIT: Readonly<Record<Exclude<Bucket, "none">, string>> = {
@@ -460,7 +478,7 @@ function mapDartFoldRow(row: {
     turnSequence: nonNull(row.turnSequence, "turn_sequence"),
     dartNumber: nonNull(row.dartNumber, "dart_number"),
     hitTargetNumber: row.hitTargetNumber,
-    hitZoneKey: nonNull(row.hitZoneKey, "hit_zone_key") as DartZoneKey,
+    hitZoneKey: row.hitZoneKey as X01CheckoutDartRow["hitZoneKey"],
     intendedTargetNumber: row.intendedTargetNumber,
     intendedZoneKey: row.intendedZoneKey as DartZoneKey | null,
     locationX: row.locationX === null ? null : Number(row.locationX),

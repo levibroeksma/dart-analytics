@@ -255,6 +255,33 @@ describe("findX01CheckoutDarts", () => {
     expect(query.orderBy).toHaveBeenCalledTimes(1);
   });
 
+  it("throws when a column the row type declares non-null arrives null", async () => {
+    const row = {
+      sessionId: "s1",
+      gameTypeKey: "501",
+      rulesetVersionKey: "501_V1",
+      configuration: null,
+      stageId: "stage-1",
+      stageSequence: 1,
+      stageTypeKey: "LEG",
+      parentStageId: null,
+      turnId: null,
+      turnSequence: 1,
+      turnTotalScore: 60,
+      turnCompletedAt: null,
+      participantId: "participant-1",
+      dartNumber: 1,
+      hitTargetNumber: 20,
+      hitZoneKey: "TREBLE",
+      score: 60,
+    };
+    const db = { select: vi.fn(() => fakeOrderedQuery([row])) } as any;
+    const { findX01CheckoutDarts } =
+      await import("@repositories/statistics.repository");
+
+    await expect(findX01CheckoutDarts(db, "p1")).rejects.toThrow(/turn_id/);
+  });
+
   /**
    * The SQL order is load-bearing, not cosmetic: `checkoutVisitsFromRows`
    * groups by session and folds each session's ladder in the order the rows

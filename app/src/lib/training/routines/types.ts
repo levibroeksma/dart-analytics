@@ -300,6 +300,8 @@ export type RoutineBuilderContext = {
   stepMinMinutes: number;
   stepMaxMinutes: number;
   maxNameLength: number;
+  maxDescriptionLength: number;
+  clearServerIssues(): void;
   navigate(path: string): void;
   init(this: RoutineBuilderContext): Promise<void>;
   loadExisting(this: RoutineBuilderContext): Promise<void>;

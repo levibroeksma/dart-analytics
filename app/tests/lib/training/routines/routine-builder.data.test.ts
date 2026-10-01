@@ -91,6 +91,15 @@ describe("routineBuilder (create)", () => {
     expect(b.stepMinMinutes).toBe(1);
     expect(b.stepMaxMinutes).toBe(60);
     expect(b.maxNameLength).toBe(60);
+    expect(b.maxDescriptionLength).toBe(280);
+  });
+
+  it("clearServerIssues drops stale server errors", async () => {
+    const b: RoutineBuilderContext = routineBuilder("create");
+    await b.init();
+    b.serverIssues = ["stale"];
+    b.clearServerIssues();
+    expect(b.serverIssues).toEqual([]);
   });
 
   it("adds a step with the 5-minute default and tracks the total", async () => {
