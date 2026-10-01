@@ -386,6 +386,61 @@ describe("oneTwentyOnePlay", () => {
       const [seat] = play.resultsSnapshot!.seats;
       expect(seat.checkoutPercentage).toBe("—");
     });
+
+    it("reports a checkout rate from a VISUAL_BOARD sequence with genuine missed checkout attempts", async () => {
+      vi.mocked(sessionsApi.appendBatch).mockResolvedValue(undefined as any);
+      vi.mocked(sessionsApi.completeSession).mockResolvedValue({
+        sessionId: "session-1",
+        statusKey: "COMPLETED",
+        completedAt: "2026-09-05T10:00:00Z",
+      });
+      store.game.inputModeKey = "VISUAL_BOARD";
+      const play = createPlay();
+      play.engine = oneTwentyOneEngineFactory.create(config) as any;
+
+      // Board landmarks, as in five-oh-one-play.data.test.ts: (0, -102) is
+      // treble 20, (0, -50) inner single 20; (15.45, -47.55) is inner
+      // single 1 (sector 1 sits 18 degrees clockwise of 20).
+      const T20 = {
+        hitTargetNumber: 20,
+        hitZoneKey: "TREBLE" as const,
+        locationX: 0,
+        locationY: -102,
+      };
+      const S20 = {
+        hitTargetNumber: 20,
+        hitZoneKey: "INNER_SINGLE" as const,
+        locationX: 0,
+        locationY: -50,
+      };
+      const S1 = {
+        hitTargetNumber: 1,
+        hitZoneKey: "INNER_SINGLE" as const,
+        locationX: 15.45,
+        locationY: -47.55,
+      };
+
+      // Visit 1: T20 (121 -> 61), S1 (-> 60), S20 (-> 40). None of the
+      // three is thrown at a directly-finishable remaining (121, 61, 60),
+      // so none is an attempt. The next visit opens at 40, which D20
+      // finishes.
+      await play.recordDart.call(play, T20);
+      await play.recordDart.call(play, S1);
+      await play.recordDart.call(play, S20);
+      // Visit 2: S20 at 40 -> 20 is a genuine attempt at D20 that lands on
+      // sector 20 without doubling: a miss. S20 at 20 -> 0 is an attempt
+      // at D10 with no double: a miss, and it busts the visit.
+      await play.recordDart.call(play, S20);
+      await play.recordDart.call(play, S20);
+      store.game.recordFacts(play.engine!.facts());
+
+      await play.uploadAndCompleteSession();
+
+      const [seat] = play.resultsSnapshot!.seats;
+      // Two attempts, zero hits -- a rate, not the dash the no-attempt
+      // sequence above resolves to.
+      expect(seat.checkoutPercentage).toBe("0.00%");
+    });
   });
 
   describe("checkoutHint", () => {
