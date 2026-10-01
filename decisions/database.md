@@ -226,3 +226,17 @@ Decision: `deploy.yml`'s `migrate` job and `db-rehearsal.yml` run `db:migrate:ci
 Reason: issue #378. `0020` needs seed `0007` before it can apply on a populated database (`app/DEPLOYMENT.md` §1.3); a single migrate-then-seed pass deadlocks any migration of that shape. The two-pass order is what a human already runs by hand, and what `seed.ts` does internally.
 Consequences: a real first-pass failure is retried once after seeding, then fails on the second pass with the same error. Seeds may run against a partially migrated chain; every seed is `ON CONFLICT DO NOTHING` and `seed.ts` already orders its own passes. The alternative (split seed-dependent migrations across two PRs) is not adopted.
 Supersedes: none.
+
+### D382 — A standalone game's activity closes with its session (#380)
+Status: Accepted · Date: 2026-10-01
+Decision: `updateSessionStatus` calls `finishSessionRecords`, one transaction that writes the session's terminal status and `completed_at`, then sets the same status and instant on its `activities` row when that row has no `activity_configurations` snapshot and is still open. Training activities close only through `completeTraining`/`abandonTraining`.
+Reason: issue #380. `04-Runtime-Layer.md` already gives an activity the lifecycle ACTIVE -> COMPLETED/ABANDONED with `completed_at` on terminal transitions, but the game path never wrote it, so every game left a permanent ACTIVE activity: wrong history under "store what happened", and a block on #358's activities-level unique index. A game activity holds exactly one session; a training activity holds one per routine step, so the snapshot row is the existing discriminator and no new column is needed.
+Consequences: games finished from now on close their activity. Existing game activities stay open: no backfill is made here, and #358's index stays blocked until one is (new migration or seed, its own task). An abandoned session abandons its activity.
+Supersedes: none.
+
+### D383 — Seed 0032 backfills closed state onto finished game activities (#380)
+Status: Accepted · Date: 2026-10-01
+Decision: seed `0032_close_finished_game_activities.sql` copies a finished session's `status_id` and `completed_at` onto its `activities` row when that row is still open, has no `activity_configurations` snapshot, and its only session has a non-NULL `completed_at`. A session still in progress leaves its activity open.
+Reason: D382 closes game activities going forward; the history before it still reads ACTIVE, which is wrong under "store what happened" and keeps #358's activities-level unique index uncreatable. A seed, not a migration, carries it: migrations are schema-only and seeds own controlled data (`database/CLAUDE.md`), D363 being the precedent. The seed runs on every deploy, in two passes; the `completed_at IS NULL` guard makes it a no-op once applied.
+Consequences: the backfill is derived from existing rows and never invents a status or instant. Activities of abandoned sessions become ABANDONED. #358's index is now creatable once production has applied the seed. A game session left ACTIVE forever (never finished) keeps its open activity, correctly.
+Supersedes: none.

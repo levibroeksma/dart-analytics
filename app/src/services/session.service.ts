@@ -28,7 +28,7 @@ import {
   findStageTypeIdMap,
   insertBatchRecords,
   insertSessionRecords,
-  updateSessionStatusRecord,
+  finishSessionRecords,
 } from "@repositories/session.repository";
 import type {
   CreateSessionRequestInput,
@@ -805,7 +805,7 @@ export async function updateSessionStatus(
   if (!targetStatusId) return { ok: false, code: "INTERNAL_ERROR" };
 
   const completedAt = input.completedAt ?? new Date().toISOString();
-  await updateSessionStatusRecord(db, sessionId, targetStatusId, completedAt);
+  await finishSessionRecords(sessionId, targetStatusId, completedAt);
 
   return {
     ok: true,

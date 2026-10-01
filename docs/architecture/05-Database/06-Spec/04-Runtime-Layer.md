@@ -87,6 +87,8 @@ ACTIVE → COMPLETED or ABANDONED.
 
 Terminal transitions (COMPLETED/ABANDONED) set completed_at. In-progress recovery is client-local (persisted frontend state); the abandon flow is client-driven. <!-- 2026-07-13 -->
 
+A standalone game's activity holds exactly one session and closes in the same transaction as it, with the same status and `completed_at`. A training activity (one with an `activity_configurations` snapshot) holds one session per routine step and closes only through `completeTraining`/`abandonTraining`. <!-- 2026-10-01, D382 -->
+
 ## Primary Key
 
 UUIDv7

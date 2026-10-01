@@ -30,7 +30,7 @@ vi.mock("@repositories/session.repository", async (importOriginal) => {
     findActiveSessions: vi.fn(),
     findActiveSessionForGameType: vi.fn(),
     findConfigurationPresets: vi.fn(),
-    updateSessionStatusRecord: vi.fn(),
+    finishSessionRecords: vi.fn(),
   };
 });
 vi.mock("@services/rulesets/registry", async (importOriginal) => {
@@ -1048,7 +1048,7 @@ describe("updateSessionStatus", () => {
     vi.mocked(repo.findGameStatusId).mockImplementation(
       async (_db, key) => ({ ACTIVE: 1, COMPLETED: 2, ABANDONED: 3 })[key],
     );
-    vi.mocked(repo.updateSessionStatusRecord).mockResolvedValue(undefined);
+    vi.mocked(repo.finishSessionRecords).mockResolvedValue(undefined);
   });
 
   it("completes an active session", async () => {
@@ -1056,8 +1056,7 @@ describe("updateSessionStatus", () => {
       status: "COMPLETED",
     });
     expect(result.ok).toBe(true);
-    expect(repo.updateSessionStatusRecord).toHaveBeenCalledWith(
-      expect.anything(),
+    expect(repo.finishSessionRecords).toHaveBeenCalledWith(
       "session-1",
       2,
       expect.any(String),
@@ -1078,8 +1077,7 @@ describe("updateSessionStatus", () => {
       status: "ABANDONED",
     });
     expect(result.ok).toBe(true);
-    expect(repo.updateSessionStatusRecord).toHaveBeenCalledWith(
-      expect.anything(),
+    expect(repo.finishSessionRecords).toHaveBeenCalledWith(
       "session-1",
       3,
       expect.any(String),
