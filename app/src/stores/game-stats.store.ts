@@ -222,12 +222,16 @@ function sectionRange(
   return { from: range.from, to: range.to, bucket: "none" };
 }
 
+function errorMessage(cause: unknown): string {
+  return cause instanceof Error ? cause.message : "load failed";
+}
+
 /**
  * Game statistics page state: the completion, volume and session-result
  * sections plus the session list, all read through the IndexedDB cache
  * (`10-Statistics/00-Overview.md` §7). Registered through
- * `Alpine.store("gameStats", gameStatsStore())`, so `init()` is the
- * sanctioned hydration hook — `x-init` is forbidden repo-wide.
+ * `Alpine.store("gameStats", gameStatsStore())`; `x-init` is forbidden
+ * repo-wide.
  */
 export function gameStatsStore() {
   return {
@@ -238,11 +242,11 @@ export function gameStatsStore() {
     nextCursor: null as string | null,
     loading: false,
     error: null as string | null,
+    sectionErrors: {} as Partial<Record<SectionId, string>>,
     heatmapTarget: null as TargetKey | null,
 
-    async init() {
-      await this.load();
-    },
+    /** Registered on every page, so it fetches nothing; `/statistics` loads through `selectGame`. */
+    init(): void {},
 
     /** Resolves the picked ruleset version to its game type, then reloads. */
     selectGame(rulesetVersionKey: string) {
@@ -253,44 +257,60 @@ export function gameStatsStore() {
       void this.load();
     },
 
+    /** One line naming the sections that failed to load, or `null` when none did. */
+    get failedSectionsMessage(): string | null {
+      const failed = Object.keys(this.sectionErrors);
+      return failed.length === 0
+        ? null
+        : `Could not load: ${failed.join(", ")}`;
+    },
+
+    /**
+     * Reads every section independently: a rejected section lands in
+     * `sectionErrors` and leaves the others, and the session list, intact.
+     */
     async load() {
       this.loading = true;
       this.error = null;
-      try {
-        const gameTypeKey = this.gameTypeKey;
-        const query = {
-          ...this.range,
-          context: "all" as const,
-          inputMode: "VISUAL_BOARD",
-        };
-
-        const allIds = sectionsForGame(gameTypeKey);
-        const ids = allIds.filter((id) => id !== "checkout-path");
-        const results = await Promise.all(
-          ids.map((id) => {
-            const range = sectionRange(SECTIONS[id], this.range);
-            return readSection<unknown>(
-              CACHE_PLAYER_ID,
-              { key: gameScopeKey(gameTypeKey), gameTypeKey },
-              SECTIONS[id],
-              { ...query, ...range, tz: range.tz },
-              (span) =>
-                fetchGameSection(gameTypeKey, id, {
-                  ...range,
-                  ...span,
-                }) as Promise<CachedSeries<unknown>>,
-            );
-          }),
-        );
-        const sections: Partial<Record<SectionId, SectionView>> = {};
-        ids.forEach((id, index) => {
-          sections[id] = results[index];
-        });
-        if (allIds.includes("checkout-path")) {
-          sections["checkout-path"] = await this.fetchCheckoutPath(gameTypeKey);
+      const gameTypeKey = this.gameTypeKey;
+      const query = {
+        ...this.range,
+        context: "all" as const,
+        inputMode: "VISUAL_BOARD",
+      };
+      const ids = sectionsForGame(gameTypeKey);
+      const settled = await Promise.allSettled(
+        ids.map((id): Promise<SectionView> => {
+          if (id === "checkout-path")
+            return this.fetchCheckoutPath(gameTypeKey);
+          const range = sectionRange(SECTIONS[id], this.range);
+          return readSection<unknown>(
+            CACHE_PLAYER_ID,
+            { key: gameScopeKey(gameTypeKey), gameTypeKey },
+            SECTIONS[id],
+            { ...query, ...range, tz: range.tz },
+            (span) =>
+              fetchGameSection(gameTypeKey, id, {
+                ...range,
+                ...span,
+              }) as Promise<CachedSeries<unknown>>,
+          );
+        }),
+      );
+      const sections: Partial<Record<SectionId, SectionView>> = {};
+      const sectionErrors: Partial<Record<SectionId, string>> = {};
+      settled.forEach((result, index) => {
+        const id = ids[index];
+        if (result.status === "fulfilled") {
+          sections[id] = result.value;
+          return;
         }
-        this.sections = sections;
+        sectionErrors[id] = errorMessage(result.reason);
+      });
+      this.sections = sections;
+      this.sectionErrors = sectionErrors;
 
+      try {
         const page = await readSessionPage<
           GameSessionListResponseData["items"][number]
         >(CACHE_PLAYER_ID, gameScopeKey(gameTypeKey), query, () =>
@@ -299,7 +319,7 @@ export function gameStatsStore() {
         this.sessions = page.items;
         this.nextCursor = page.nextCursor;
       } catch (cause) {
-        this.error = cause instanceof Error ? cause.message : "load failed";
+        this.error = errorMessage(cause);
       } finally {
         this.loading = false;
       }

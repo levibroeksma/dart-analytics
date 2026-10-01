@@ -135,6 +135,52 @@ describe("gameStatsStore", () => {
     );
   });
 
+  it("init() fetches nothing; statistics load only on selectGame/load", async () => {
+    const store = gameStatsStore();
+
+    store.init();
+
+    expect(readSection).not.toHaveBeenCalled();
+    expect(readSessionPage).not.toHaveBeenCalled();
+  });
+
+  it("one failing section keeps the other sections and the session list", async () => {
+    readSection.mockImplementation((_player, _game, meta) =>
+      meta.id === "volume"
+        ? Promise.reject(new Error("over cap"))
+        : Promise.resolve(series({}, 0)),
+    );
+    readSessionPage.mockResolvedValue({
+      items: [{ sessionId: "s1" }],
+      nextCursor: null,
+      dataVersion: "v1",
+    });
+    const store = gameStatsStore();
+    store.gameTypeKey = "501";
+
+    await store.load();
+
+    expect(store.sections.completion).toBeDefined();
+    expect(store.sections.volume).toBeUndefined();
+    expect(store.sessions).toHaveLength(1);
+    expect(store.sectionErrors.volume).toBe("over cap");
+    expect(store.failedSectionsMessage).toBe("Could not load: volume");
+    expect(store.error).toBeNull();
+    expect(store.loading).toBe(false);
+  });
+
+  it("a failing session list sets error without dropping the sections", async () => {
+    readSessionPage.mockRejectedValue(new Error("sessions down"));
+    const store = gameStatsStore();
+    store.gameTypeKey = "501";
+
+    await store.load();
+
+    expect(store.sections.completion).toBeDefined();
+    expect(store.error).toBe("sessions down");
+    expect(store.failedSectionsMessage).toBeNull();
+  });
+
   it.each(["501", "SINGLES_TRAINING"] as const)(
     "%s: every non-bucketable section reads and fetches un-bucketed, every bucketable one by month",
     async (gameTypeKey) => {

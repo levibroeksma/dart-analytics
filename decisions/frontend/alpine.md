@@ -149,3 +149,10 @@ Decision: detailed-statistics data is cached in IndexedDB behind one module (pla
 Reason: the app is multi-page, so an Alpine store dies on every navigation; sessionStorage is too small for coordinate facts over months. A session's `completed_at` is always stamped "now", so no completed session can ever enter a past bucket — which makes past buckets safe to keep and leaves only the current bucket to refetch, the main saving on Neon and Worker cost. An opaque `dataVersion` lets its definition widen later (e.g. to corrections) without a client change.
 Consequences: the outbox rule that localStorage backs gameplay persistence is unchanged; IndexedDB here is a read cache, never a source of truth. Alpine stores read through the cache module rather than calling the API client directly.
 Supersedes: none.
+
+### D379 — `gameStats` fetches nothing at registration; sections settle independently
+Status: Accepted · Date: 2026-10-01
+Decision: `gameStatsStore().init()` is a no-op, so no page but `/statistics` reads statistics. `/statistics` loads through `selectGame`, called from the Games tab's `x-effect` only while `tab === 'games'`, matching `routineStats.activate()`. `load()` reads sections with `Promise.allSettled`: a rejected section is recorded in `sectionErrors` (surfaced by `failedSectionsMessage`) and the other sections and the session list still render; `error` now reports only a session-list failure.
+Reason: the store is registered on every page, so its `init()` spent Neon and Worker calls on gameplay, login and settings pages against the cache's fetch rule (`10-Statistics/00-Overview.md` §7). `Promise.all` let one over-cap section blank every card as zeros, reading as "no data".
+Consequences: re-selecting the Games tab reloads through the cache, not the network, for closed buckets. A failed section shows no card plus one line naming it; there is no per-card retry.
+Supersedes: none.
