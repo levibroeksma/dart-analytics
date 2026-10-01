@@ -57,6 +57,7 @@ INSERT INTO exercise_sessions (
         id,
         activity_id,
         player_id,
+        exercise_type_id,
         game_type_id,
         capture_mode_id,
         input_mode_id,
@@ -69,6 +70,7 @@ VALUES (
         '01990000-0000-7000-8000-00000000f003',
         '01990000-0000-7000-8000-00000000f002',
         '01990000-0000-7000-8000-00000000f001',
+        (SELECT id FROM exercise_types WHERE implementation_key = 'GAME'),
         (
             SELECT id
             FROM game_types

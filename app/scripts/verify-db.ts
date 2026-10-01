@@ -58,7 +58,17 @@ async function run(): Promise<void> {
       const query = readFileSync(resolve(verificationDir, name), "utf8");
       console.log(`\n${name}`);
 
-      const results = await sql.unsafe(query).simple();
+      let results: unknown;
+      try {
+        results = await sql.unsafe(query).simple();
+      } catch (err) {
+        // One broken script must not mask every file sorted after it. A throw
+        // leaves the script's transaction open and aborted, so clear it.
+        console.log(`  [FAIL] script error: ${(err as Error).message}`);
+        failed = true;
+        await sql.unsafe("ROLLBACK").simple();
+        continue;
+      }
       const rows = (results as unknown[])
         .flatMap((result) => (Array.isArray(result) ? result : [result]))
         .filter(
