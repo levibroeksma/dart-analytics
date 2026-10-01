@@ -6,6 +6,7 @@ Scope: the Vitest suite. Load the "New test / test-strategy question" context pa
 
 - Mirror `app/src/`'s (and `app/scripts/`'s) directory structure. `app/src/lib/game/board-input.data.ts` is tested by `app/tests/lib/game/board-input.data.test.ts`. Never colocate a test beside the module under test.
 - Test pure functions, stores, clients and utilities with Vitest mocks. **No real network or Neon calls in unit tests.**
+- Suites that must run SQL against Postgres live in `app/tests/integration/*.itest.ts`, run only by `npm run test:integration` (`vitest.integration.config.ts`; needs `DATABASE_URL`) — in CI, by `db-rehearsal.yml` against the migrated branch. `npm test` never picks them up. (#653)
 - `.astro` markup is not unit-tested — there is no Astro-component test runner in this project. Keep variant/branching logic inline in the component's frontmatter and do **not** extract a helper file solely to make it testable (D101).
 - A changed source file needs a changed covering test: `scripts/check-test-coverage.sh` fails any change set touching a runtime `.ts` under `app/src/` or `app/scripts/` without also touching a test that imports it. There is no per-file silencer — if a file has no covering test, write one (D224).
 - Shared-mock promotion threshold and the full-suite-always-runs policy: `docs/architecture/07-Frontend/06-Test-Strategy.md`.

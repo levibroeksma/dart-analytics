@@ -12,6 +12,8 @@
     // kept reachable even though nothing currently imports @services/types directly.
     "src/services/types.ts",
     "vitest.config.ts",
+    "vitest.integration.config.ts",
+    "tests/integration/**/*.itest.ts",
   ],
   "ignoreDependencies": [
     "@astrojs/alpinejs",

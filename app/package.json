@@ -34,6 +34,7 @@
     "logo:generate": "tsx scripts/generate-logo-lockup.ts",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "validate:app": "npm run db:status && npm run db:migrate && npm run db:drift && npm run db:introspect && bash ../scripts/fallow-gate.sh && npm test && npm run check && bash ../scripts/refresh-graph.sh",
