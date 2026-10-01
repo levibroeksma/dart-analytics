@@ -205,6 +205,18 @@ export function routineBuilder(mode: "create" | "edit") {
       return this.steps.reduce((sum, step) => sum + step.durationValue, 0);
     },
 
+    stepMinFor(this: RoutineBuilderContext, step: BuilderStep): number {
+      return step.exerciseTypeKey === "GAME"
+        ? tuodDurationBounds("MINUTES").min
+        : this.stepMinMinutes;
+    },
+
+    stepMaxFor(this: RoutineBuilderContext, step: BuilderStep): number {
+      return step.exerciseTypeKey === "GAME"
+        ? tuodDurationBounds("MINUTES").max
+        : this.stepMaxMinutes;
+    },
+
     gameStepIssues(this: RoutineBuilderContext): string[] {
       const { min, max } = tuodDurationBounds("MINUTES");
       return this.steps.flatMap((step, index) =>

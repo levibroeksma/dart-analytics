@@ -428,3 +428,17 @@ describe("routineBuilder (edit)", () => {
     expect(nav).not.toHaveBeenCalled();
   });
 });
+
+describe("routineBuilder step bounds", () => {
+  it("narrows a GAME step to the TUOD minute bounds and leaves others on the builder bounds", () => {
+    const b: RoutineBuilderContext = routineBuilder("create");
+    b.addStep(CATALOG[0]!);
+    b.addStep(CATALOG[1]!);
+    const [warmUp, game] = b.steps;
+
+    expect(b.stepMinFor(warmUp!)).toBe(b.stepMinMinutes);
+    expect(b.stepMaxFor(warmUp!)).toBe(b.stepMaxMinutes);
+    expect(b.stepMinFor(game!)).toBe(3);
+    expect(b.stepMaxFor(game!)).toBe(30);
+  });
+});

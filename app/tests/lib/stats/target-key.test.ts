@@ -3,6 +3,7 @@ import {
   formatTargetKey,
   isAimHit,
   parseTargetKey,
+  targetLabel,
 } from "@lib/stats/target-key";
 
 describe("target key", () => {
@@ -112,5 +113,24 @@ describe("isAimHit", () => {
         { number: 16, zone: "OUTER_SINGLE" },
       ),
     ).toBe(false);
+  });
+});
+
+describe("targetLabel", () => {
+  it.each([
+    ["DOUBLE:16", "D16"],
+    ["TREBLE:20", "T20"],
+    ["NUMBER:5", "5"],
+    ["INNER_SINGLE:20", "20 inner"],
+    ["OUTER_SINGLE:20", "20 outer"],
+    ["INNER_BULL:25", "BULL"],
+    ["OUTER_BULL:25", "25"],
+    ["BULL:25", "Bull"],
+  ])("labels %s as %s", (key, label) => {
+    expect(targetLabel(key)).toBe(label);
+  });
+
+  it("returns an unparsable key unchanged", () => {
+    expect(targetLabel("MISS")).toBe("MISS");
   });
 });

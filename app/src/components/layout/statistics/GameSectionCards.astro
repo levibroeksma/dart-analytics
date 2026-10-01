@@ -61,7 +61,7 @@ const wrapperClass = cn("space-y-4", classNameProp);
       <div class="flex items-center gap-2 text-sm">
         <span
           class="w-20 shrink-0 text-foreground"
-          x-text="row.targetKey"
+          x-text="gameView.targetLabel(row.targetKey)"
         ></span>
         <div class="h-2 flex-1 overflow-hidden rounded-sm bg-surface-overlay">
           <div
@@ -80,14 +80,14 @@ const wrapperClass = cn("space-y-4", classNameProp);
       class="text-xs text-accent"
       x-show="gameView.favoriteTarget"
       x-cloak
-      x-text="gameView.favoriteTarget ? `Favourite: ${gameView.favoriteTarget.targetKey}` : ''"
+      x-text="gameView.favoriteTarget ? `Favourite: ${gameView.targetLabel(gameView.favoriteTarget.targetKey)}` : ''"
     >
     </p>
     <p
       class="text-xs text-muted-foreground"
       x-show="gameView.weakestTarget"
       x-cloak
-      x-text="gameView.weakestTarget ? `Weakest: ${gameView.weakestTarget.targetKey}` : ''"
+      x-text="gameView.weakestTarget ? `Weakest: ${gameView.targetLabel(gameView.weakestTarget.targetKey)}` : ''"
     >
     </p>
     <div
@@ -99,7 +99,7 @@ const wrapperClass = cn("space-y-4", classNameProp);
     >
       <p class="text-xs text-muted-foreground">Ring split:</p>
       <Select
-        optionsExpr="gameView.accuracyRows.map((row) => ({ value: row.targetKey, label: row.targetKey }))"
+        optionsExpr="gameView.accuracyRows.map((row) => ({ value: row.targetKey, label: gameView.targetLabel(row.targetKey) }))"
         model="ringTarget"
         ariaLabel="Ring split target"
       />
@@ -153,7 +153,7 @@ const wrapperClass = cn("space-y-4", classNameProp);
       <div class="flex items-center justify-between text-sm">
         <span
           class="text-foreground"
-          x-text="row.targetKey"
+          x-text="gameView.targetLabel(row.targetKey)"
         ></span>
         <span
           class="text-muted-foreground"
@@ -174,7 +174,7 @@ const wrapperClass = cn("space-y-4", classNameProp);
         <div class="flex items-center justify-between text-sm">
           <span
             class="text-foreground"
-            x-text="row.targetKey"
+            x-text="gameView.targetLabel(row.targetKey)"
           ></span>
           <span
             class="text-accent"
@@ -217,7 +217,7 @@ const wrapperClass = cn("space-y-4", classNameProp);
       <div class="flex items-center gap-2 text-sm">
         <span
           class="w-20 shrink-0 text-foreground"
-          x-text="row.targetKey"
+          x-text="gameView.targetLabel(row.targetKey)"
         ></span>
         <div class="h-2 flex-1 overflow-hidden rounded-sm bg-surface-overlay">
           <div
@@ -236,7 +236,7 @@ const wrapperClass = cn("space-y-4", classNameProp);
       class="text-xs text-accent"
       x-show="gameView.bobs27DeadliestTarget(bobsGroup)"
       x-cloak
-      x-text="gameView.bobs27DeadliestTarget(bobsGroup) ? `Dies most at: ${gameView.bobs27DeadliestTarget(bobsGroup).targetKey}` : ''"
+      x-text="gameView.bobs27DeadliestTarget(bobsGroup) ? `Dies most at: ${gameView.targetLabel(gameView.bobs27DeadliestTarget(bobsGroup).targetKey)}` : ''"
     >
     </p>
     <p
@@ -317,7 +317,7 @@ const wrapperClass = cn("space-y-4", classNameProp);
   >
     <h2 class="text-sm text-foreground">Confusion</h2>
     <Select
-      optionsExpr="gameView.accuracyRows.map((row) => ({ value: row.targetKey, label: row.targetKey }))"
+      optionsExpr="gameView.accuracyRows.map((row) => ({ value: row.targetKey, label: gameView.targetLabel(row.targetKey) }))"
       model="confusionTarget"
       ariaLabel="Confusion target"
     />
@@ -328,7 +328,7 @@ const wrapperClass = cn("space-y-4", classNameProp);
       <div class="flex items-center justify-between text-sm">
         <span
           class="text-foreground"
-          x-text="landing.hitKey"
+          x-text="gameView.targetLabel(landing.hitKey)"
         ></span>
         <span
           class="text-muted-foreground"
@@ -358,7 +358,7 @@ const wrapperClass = cn("space-y-4", classNameProp);
       <div class="flex items-center justify-between text-sm">
         <span
           class="text-foreground"
-          x-text="row.targetKey"
+          x-text="gameView.targetLabel(row.targetKey)"
         ></span>
         <span
           class="text-muted-foreground"
@@ -386,7 +386,7 @@ const wrapperClass = cn("space-y-4", classNameProp);
   >
     <h2 class="text-sm text-foreground">Miss direction</h2>
     <Select
-      optionsExpr="gameView.accuracyRows.map((row) => ({ value: row.targetKey, label: row.targetKey }))"
+      optionsExpr="gameView.accuracyRows.map((row) => ({ value: row.targetKey, label: gameView.targetLabel(row.targetKey) }))"
       model="missTarget"
       ariaLabel="Miss direction target"
     />
@@ -587,7 +587,7 @@ const wrapperClass = cn("space-y-4", classNameProp);
       <div class="flex items-center gap-2 text-sm">
         <span
           class="w-20 shrink-0 text-foreground"
-          x-text="row.targetKey"
+          x-text="gameView.targetLabel(row.targetKey)"
         ></span>
         <div class="h-2 flex-1 overflow-hidden rounded-sm bg-surface-overlay">
           <div
@@ -606,14 +606,14 @@ const wrapperClass = cn("space-y-4", classNameProp);
       class="text-xs text-accent"
       x-show="gameView.favoriteDouble"
       x-cloak
-      x-text="gameView.favoriteDouble ? `Favourite: ${gameView.favoriteDouble.targetKey}` : ''"
+      x-text="gameView.favoriteDouble ? `Favourite: ${gameView.targetLabel(gameView.favoriteDouble.targetKey)}` : ''"
     >
     </p>
     <p
       class="text-xs text-muted-foreground"
       x-show="gameView.weakestDouble"
       x-cloak
-      x-text="gameView.weakestDouble ? `Weakest: ${gameView.weakestDouble.targetKey}` : ''"
+      x-text="gameView.weakestDouble ? `Weakest: ${gameView.targetLabel(gameView.weakestDouble.targetKey)}` : ''"
     >
     </p>
   </div>
@@ -809,7 +809,7 @@ const wrapperClass = cn("space-y-4", classNameProp);
           x-cloak
         >
           <Select
-            optionsExpr="[{ value: '', label: 'Whole board' }, ...gameView.accuracyRows.map((row) => ({ value: row.targetKey, label: row.targetKey }))]"
+            optionsExpr="[{ value: '', label: 'Whole board' }, ...gameView.accuracyRows.map((row) => ({ value: row.targetKey, label: gameView.targetLabel(row.targetKey) }))]"
             model="heatmapTarget"
             ariaLabel="Heatmap target"
           />

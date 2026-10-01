@@ -6,7 +6,11 @@ import {
   sectionsForGame,
 } from "@lib/stats/section-registry";
 import { MIN_TARGET_SAMPLE } from "@lib/stats/constants";
-import { formatTargetKey, parseTargetKey } from "@lib/stats/target-key";
+import {
+  formatTargetKey,
+  parseTargetKey,
+  targetLabel,
+} from "@lib/stats/target-key";
 import { replayPath } from "@lib/stats/replay-route";
 import { doublesPath, targetAt } from "@modules/game/board-progression.module";
 import { checkoutPathFor } from "@modules/game/checkout-path.module";
@@ -533,6 +537,9 @@ export function gameStatsStore() {
               },
       }));
     },
+
+    /** Display label for a `TargetKey` (`DOUBLE:16` -> `D16`). */
+    targetLabel,
 
     /** Per-target hit rate across every loaded bucket, weakest first. */
     get accuracyRows(): {

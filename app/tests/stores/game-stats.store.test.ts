@@ -95,6 +95,13 @@ async function loadTrend(buckets: { start: string; metrics: unknown }[]) {
 }
 
 describe("gameStatsStore", () => {
+  it("exposes targetLabel for statistics cards", () => {
+    const store = gameStatsStore();
+
+    expect(store.targetLabel("TREBLE:20")).toBe("T20");
+    expect(store.targetLabel("DOUBLE:16")).toBe("D16");
+  });
+
   it("loads 501's sections via the cache", async () => {
     const store = gameStatsStore();
     store.gameTypeKey = "501";
