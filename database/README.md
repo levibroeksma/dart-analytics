@@ -79,6 +79,7 @@ astro check
 29. `seeds/0029_bullseye_checkout_exercise_type.sql`
 30. `seeds/0030_bull_up_exercise_type.sql`
 31. `seeds/0031_remove_default_routines.sql`
+32. `seeds/0032_close_finished_game_activities.sql`
 
 `npm run db:seed` runs this list twice per invocation (2026-08-29, D248). `0007` is a running ledger that a later-numbered seed's ruleset can be appended to before that ruleset's own `ruleset_versions` row exists yet in the same run — the first pass's join then matches nothing and silently inserts zero rows. The second pass re-runs `0007` after every file has committed, so the join now matches. All seeds are `ON CONFLICT DO NOTHING`, so running the full list twice is safe.
 
@@ -127,6 +128,7 @@ These are not a substitute for the Vitest suite: they cover the SQL layer, which
 | `verification/0029_bullseye_checkout_seed_checks.sql` | seed `0029`: the `BULLSEYE_CHECKOUT` type is published, `BULLSEYE_CHECKOUT_V1` is its version 1, the system template "Bullseye Checkouts" pins it with `{"startScore":81}`, and `v_exercise_template_catalog` offers it (4 checks) (2026-09-24) |
 | `verification/0030_bull_up_seed_checks.sql` | seed `0030`: the `BULL_UP` type is published, `BULL_UP_V1` is its version 1, the system template "Bull Up Practice" pins it with `{}`, and `v_exercise_template_catalog` offers it (4 checks) (2026-09-24) |
 | `verification/0031_remove_default_routines_checks.sql` | seed `0031`: the "Standard Practice" and standalone "Warm-Up" system routines are gone, none of their steps remain, the Warm-Up exercise template is kept (3 checks) (2026-09-25, D363) |
+| `verification/0032_close_finished_game_activities_checks.sql` | seed `0032`: no finished standalone game has an open activity, closed ones match their session's status and instant, none is closed while its session is open (3 checks) (2026-10-01, D383) |
 | `verification/0034_single_active_session_checks.sql` | `uq_sessions_single_active` after migration `0034`: a second open session of the same exercise type is rejected, a different exercise type stays startable, closing the first frees the key (4 checks) |
 | `verification/0017_balanced_training_checks.sql` | seeds `0016`/`0017` resolve end to end: both new exercise types and their v1 rulesets, seed `0017`'s in-place Warm-Up JSONB update landed (five phases, all weighted, no `durationSeconds` left), the four-step Balanced Training routine sums to 30 MINUTES across distinct templates, the Finishing step holds exactly `TuodConfig`'s six keys on a TUOD-bound template, anti-vacuity guard (11 checks) |
 | `verification/0035_exercise_template_ruleset_version_checks.sql` | migration `0035` + seed `0019`: the pin column and its composite FK exist, a ruleset version of another exercise type is rejected and the template's own is accepted, an unpinned template is still allowed, RESTRICT blocks deleting a pinned version, all three non-game system templates were backfilled to their own v1, the GAME template stays unpinned, anti-vacuity guard (11 checks) |
