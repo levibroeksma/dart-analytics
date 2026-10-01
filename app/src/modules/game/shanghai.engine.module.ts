@@ -295,6 +295,9 @@ export class ShanghaiEngine implements GameEngine<
    * alone would let a caller keep recording its turns after the match is
    * already decided. The seat-level guard also stays, for the ordinary
    * single-seat-terminal case a solo session hits directly.
+   * A resolved visit persists its counted total — the change it made to the
+   * seat's running total — so a Hard-mode halving is a negative visit total
+   * and the seat's turn totals always sum to its score.
    * @throws when the match has already ended (a Shanghai, or score-compare
    *   once both seats are `COMPLETE`/`TIE`), or the active seat has already
    *   ended its own session; the fact log is left untouched in either case.
@@ -317,6 +320,18 @@ export class ShanghaiEngine implements GameEngine<
     appendObservedDart(openTurn, observation);
     if (openTurn.darts.length === 3) {
       openTurn.completedAt = new Date().toISOString();
+      const seatTotal = (turns: TurnFact[]): number | undefined =>
+        foldShanghaiState(
+          { stages: [{ ...STAGE }], turns },
+          this.config,
+        ).seats.find(
+          (seat) => seat.participantRef === seatBefore.participantRef,
+        )?.totalScore;
+      const visitStart = seatTotal(this.turns.slice(0, -1));
+      const visitEnd = seatTotal(this.turns);
+      if (visitStart !== undefined && visitEnd !== undefined) {
+        openTurn.totalScore = visitEnd - visitStart;
+      }
     }
 
     return this.deriveState();

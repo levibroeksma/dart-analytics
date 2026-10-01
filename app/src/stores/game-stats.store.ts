@@ -1281,11 +1281,9 @@ export function gameStatsStore() {
     /**
      * Shanghai's points-per-round headline (`01-Section-Catalog.md` §2.1):
      * `session-result`'s `countedScoreSum / turnSum` across every loaded
-     * ruleset version. Reads the value `turns.total_score` actually stores —
-     * the raw per-dart board score. Hard mode's swindle halving
-     * (`applyShanghaiDart`) only ever touches the engine's own ephemeral seat
-     * state, never the persisted turn total, so this is the pre-halving
-     * total (`discovered-work` issue #624). `null` without any turns.
+     * ruleset version. Reads `turns.total_score`, which a resolved Shanghai
+     * visit stores as its counted change to the running total, Hard-mode
+     * halving included (D376). `null` without any turns.
      */
     get pointsPerRound(): number | null {
       const series = this.sections["session-result"] as

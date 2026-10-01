@@ -411,6 +411,33 @@ describe("shanghaiV2EngineFactory", () => {
     expect(engine.state().seats[0].totalScore).toBe(5);
   });
 
+  it("persists the counted visit total, so the turn totals sum to the seat total after a Hard halving", () => {
+    const engine = shanghaiV2EngineFactory.create({
+      seats: SEATS,
+      difficulty: "HARD",
+    });
+    for (let round = 0; round < 2; round++) {
+      for (let dart = 0; dart < 3; dart++) {
+        engine.record(hitObservationFor(engine.state().seats[0], "SINGLE"));
+      }
+    }
+    for (let dart = 0; dart < 3; dart++) engine.record(missObservation());
+
+    const turns = engine.facts().turns;
+    expect(turns.map((turn) => turn.totalScore)).toEqual([3, 6, -4]);
+    expect(turns.reduce((sum, turn) => sum + turn.totalScore, 0)).toBe(
+      engine.state().seats[0].totalScore,
+    );
+  });
+
+  it("persists 0, not the raw board score, for a visit of off-target darts", () => {
+    const engine = shanghaiEngineFactory.create(config);
+    for (let dart = 0; dart < 3; dart++) {
+      engine.record(offTargetObservationFor(engine.state().seats[0]));
+    }
+    expect(engine.facts().turns[0].totalScore).toBe(0);
+  });
+
   it("a SHANGHAI_V2 engine with NORMAL difficulty behaves exactly like V1", () => {
     const normalConfig: Seated<ShanghaiV2Snapshot> = {
       seats: SEATS,
