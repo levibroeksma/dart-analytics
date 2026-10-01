@@ -41,6 +41,35 @@ export function parseTargetKey(
   return null;
 }
 
+const ZONE_PREFIX: Partial<Record<IntentZoneKey, string>> = {
+  DOUBLE: "D",
+  TREBLE: "T",
+};
+
+/** Display label for a `TargetKey` (`DOUBLE:16` -> `D16`); an unparsable key comes back unchanged. */
+export function targetLabel(value: string): string {
+  const parsed = parseTargetKey(value);
+  if (parsed === null) return value;
+  const { number, zone } = parsed;
+  switch (zone) {
+    case "DOUBLE":
+    case "TREBLE":
+      return `${ZONE_PREFIX[zone]}${number}`;
+    case "INNER_SINGLE":
+      return `${number} inner`;
+    case "OUTER_SINGLE":
+      return `${number} outer`;
+    case "NUMBER":
+      return String(number);
+    case "INNER_BULL":
+      return "BULL";
+    case "OUTER_BULL":
+      return "25";
+    default:
+      return "Bull";
+  }
+}
+
 /**
  * Whether an observed dart counts as a hit on `aim` (phase-4 decision 2).
  * `NUMBER:n` is hit by any ring of `n` except a `MISS`; `BULL:25` is hit by
