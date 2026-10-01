@@ -1184,6 +1184,17 @@ export const vGameReplay = pgView("v_game_replay", {
   sql`SELECT es.id AS session_id, es.player_id, st.id AS stage_id, st.parent_stage_id, st.sequence_number AS stage_sequence, stg.implementation_key AS stage_type_key, t.sequence_number AS turn_sequence, p.display_name AS participant_name, t.total_score AS turn_total_score, d.dart_number, d.intended_target_number, dz1.implementation_key AS intended_zone_key, d.hit_target_number, dz2.implementation_key AS hit_zone_key, d.score, p.id AS participant_id, pt.implementation_key AS participant_type_key, d.location_x, d.location_y FROM exercise_sessions es JOIN exercise_stages st ON st.exercise_session_id = es.id JOIN stage_types stg ON stg.id = st.stage_type_id JOIN turns t ON t.exercise_stage_id = st.id JOIN participants p ON p.id = t.participant_id JOIN participant_types pt ON pt.id = p.participant_type_id LEFT JOIN darts d ON d.turn_id = t.id LEFT JOIN dart_zones dz1 ON dz1.id = d.intended_zone_id LEFT JOIN dart_zones dz2 ON dz2.id = d.hit_zone_id`,
 );
 
+export const vReplayStages = pgView("v_replay_stages", {
+  sessionId: uuid("session_id"),
+  playerId: uuid("player_id"),
+  stageId: uuid("stage_id"),
+  parentStageId: uuid("parent_stage_id"),
+  stageSequence: integer("stage_sequence"),
+  stageTypeKey: text("stage_type_key"),
+}).as(
+  sql`SELECT es.id AS session_id, es.player_id, st.id AS stage_id, st.parent_stage_id, st.sequence_number AS stage_sequence, stg.implementation_key AS stage_type_key FROM exercise_sessions es JOIN exercise_stages st ON st.exercise_session_id = es.id JOIN stage_types stg ON stg.id = st.stage_type_id`,
+);
+
 export const vConfigurationPresets = pgView("v_configuration_presets", {
   configurationTemplateId: uuid("configuration_template_id"),
   playerId: uuid("player_id"),

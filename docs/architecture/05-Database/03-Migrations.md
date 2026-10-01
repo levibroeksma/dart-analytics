@@ -1475,3 +1475,21 @@ Migrations are the historical record of database evolution.
 They must be treated as permanent architectural documentation.
 
 A future developer or AI agent should be able to understand how the database evolved by reading the migration history alone.
+
+---
+
+## 0046_replay_stages_view.sql
+
+Purpose:
+
+Stage-grain read model for the replay's stage tree, so a parent stage holding no turn of its own is not dropped (issue #639, D377).
+
+Contains:
+
+- new `v_replay_stages` — one row per exercise stage of a session (`session_id`, `player_id`, `stage_id`, `parent_stage_id`, `stage_sequence`, `stage_type_key`), owner-scoped by `player_id`; no turn or dart columns.
+
+`v_game_replay` inner-joins `turns`, so a stage with no turns had no row there and `stageOrder` threw on its children's `parentStageId`. `findReplayStages` now reads this view; `v_game_replay` still serves turn and dart rows unchanged.
+
+View-only; no table, column or constraint changes. `database/verification/0046_replay_stages_view_checks.sql` proves it. <!-- 2026-09-30 -->
+
+Never edits `0016`/`0044`.

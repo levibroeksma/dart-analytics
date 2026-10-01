@@ -13,6 +13,7 @@ import {
 import type { Column, SQL } from "drizzle-orm";
 import {
   vGameReplay,
+  vReplayStages,
   vPlayerLegFacts,
   vPlayerVisitFacts,
   vSessionOverview,
@@ -1448,9 +1449,9 @@ export async function findReplaySession(
 
 /**
  * `exercise_stages` restricted to one session's own play tree, read through
- * `v_game_replay` (D371 decision 3): every dart/turn row carries its own
- * stage, so `DISTINCT` collapses the result back to one row per stage.
- * Unordered — `stageOrder` (`replay.module.ts`) rebuilds play order from
+ * `v_replay_stages` (0046): one row per stage, turns or not, so a parent
+ * stage with no turns of its own still appears for its children to name
+ * (issue #639). Unordered — `stageOrder` (`replay.module.ts`) rebuilds play order from
  * `parentStageId`/`sequence`.
  */
 export async function findReplayStages(
@@ -1459,17 +1460,17 @@ export async function findReplayStages(
   sessionId: string,
 ): Promise<ReplayStageRow[]> {
   const rows = await db
-    .selectDistinct({
-      stageId: vGameReplay.stageId,
-      parentStageId: vGameReplay.parentStageId,
-      stageTypeKey: vGameReplay.stageTypeKey,
-      sequence: vGameReplay.stageSequence,
+    .select({
+      stageId: vReplayStages.stageId,
+      parentStageId: vReplayStages.parentStageId,
+      stageTypeKey: vReplayStages.stageTypeKey,
+      sequence: vReplayStages.stageSequence,
     })
-    .from(vGameReplay)
+    .from(vReplayStages)
     .where(
       and(
-        eq(vGameReplay.playerId, playerId),
-        eq(vGameReplay.sessionId, sessionId),
+        eq(vReplayStages.playerId, playerId),
+        eq(vReplayStages.sessionId, sessionId),
       ),
     );
 

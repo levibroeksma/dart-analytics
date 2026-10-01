@@ -212,3 +212,10 @@ Decision: in D333, every bare `0038` names the migration now numbered `0039` (`0
 Reason: issue #528. D333 was written on branch `fix/x01-checkout-percentage` while that branch's migration was still numbered `0038`. `main` then landed `0038_custom_routines.sql` and the branch's migration was renumbered `0039`; D333 is append-only, so its old number stayed and now reads as a reference to custom routines.
 Consequences: none for the schema or `db:drift`. A reader of D333 resolves `0038` through this block; `03-Migrations.md` carries the `0039` section.
 Supersedes: none.
+
+### D377 — The replay stage tree reads a stage-grain view, `v_replay_stages` (0046)
+Status: Accepted · Date: 2026-09-30
+Decision: migration `0046` adds `v_replay_stages`, one owner-scoped row per `exercise_stages` row (`session_id`, `player_id`, `stage_id`, `parent_stage_id`, `stage_sequence`, `stage_type_key`). `findReplayStages` reads it instead of `SELECT DISTINCT` over `v_game_replay`. `v_game_replay` is unchanged and still serves turn and dart rows.
+Reason: issue #639. `v_game_replay` inner-joins `turns`, so a parent stage with no turns of its own has no row and `stageOrder` throws "unknown parent" on its children, turning the replay into a 500. The alternative, treating a missing parent as a root, weakens corrupt-input detection. D371 decision 3 recorded the gap as a known limitation.
+Consequences: nested-stage engines (SET → LEG with turns only on legs) replay without a further change. A stage with no turns now reaches `stageOrder` and contributes no events. Amends D371 decision 3's source for stages only.
+Supersedes: none.
