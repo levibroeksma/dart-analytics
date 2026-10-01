@@ -70,9 +70,12 @@ describe("verification runner", () => {
 
   it("records a per-file error as FAIL and continues to the next file", () => {
     expect(runnerSource).toMatch(
-      /catch \(err\)[\s\S]*failed = true;[\s\S]*continue;/,
+      /catch \(err\)[\s\S]*\[FAIL\] script error[\s\S]*return true;/,
     );
     expect(runnerSource).toContain('sql.unsafe("ROLLBACK")');
+    expect(runnerSource).toContain(
+      "if (await runFile(sql, name)) failed = true;",
+    );
   });
 
   it("does not open a transaction that would swallow a script's ROLLBACK", () => {

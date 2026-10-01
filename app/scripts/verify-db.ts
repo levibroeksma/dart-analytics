@@ -38,6 +38,54 @@ function formatRow(row: Record<string, unknown>): string {
   return `  [${String(result).padEnd(4)}] step ${step}: ${name}${detail}`;
 }
 
+type Sql = ReturnType<typeof postgres>;
+
+/** Prints one result set and reports whether any row failed. */
+function reportRows(rows: Record<string, unknown>[]): boolean {
+  let failed = false;
+
+  for (const row of rows.filter((row) => !isSummary(row))) {
+    console.log(formatRow(row));
+    if (row.result === "FAIL") failed = true;
+  }
+
+  for (const row of rows.filter(isSummary)) {
+    console.log(`  ${row.summary}`);
+    if (String(row.summary).includes("FAILED")) failed = true;
+  }
+
+  return failed;
+}
+
+/**
+ * Runs one script and reports whether it failed. A throw is recorded as a FAIL
+ * rather than propagated, so one broken script cannot mask every file sorted
+ * after it; the throw leaves the script's transaction open and aborted, so it
+ * is cleared with a ROLLBACK.
+ */
+async function runFile(sql: Sql, name: string): Promise<boolean> {
+  const query = readFileSync(resolve(verificationDir, name), "utf8");
+  console.log(`\n${name}`);
+
+  let results: unknown;
+  try {
+    results = await sql.unsafe(query).simple();
+  } catch (err) {
+    console.log(`  [FAIL] script error: ${(err as Error).message}`);
+    await sql.unsafe("ROLLBACK").simple();
+    return true;
+  }
+
+  const rows = (results as unknown[])
+    .flatMap((result) => (Array.isArray(result) ? result : [result]))
+    .filter(
+      (row): row is Record<string, unknown> =>
+        typeof row === "object" && row !== null,
+    );
+
+  return reportRows(rows);
+}
+
 async function run(): Promise<void> {
   const filter = process.argv[2];
   const files = verificationFiles(filter);
@@ -55,36 +103,7 @@ async function run(): Promise<void> {
 
   try {
     for (const name of files) {
-      const query = readFileSync(resolve(verificationDir, name), "utf8");
-      console.log(`\n${name}`);
-
-      let results: unknown;
-      try {
-        results = await sql.unsafe(query).simple();
-      } catch (err) {
-        // One broken script must not mask every file sorted after it. A throw
-        // leaves the script's transaction open and aborted, so clear it.
-        console.log(`  [FAIL] script error: ${(err as Error).message}`);
-        failed = true;
-        await sql.unsafe("ROLLBACK").simple();
-        continue;
-      }
-      const rows = (results as unknown[])
-        .flatMap((result) => (Array.isArray(result) ? result : [result]))
-        .filter(
-          (row): row is Record<string, unknown> =>
-            typeof row === "object" && row !== null,
-        );
-
-      for (const row of rows.filter((row) => !isSummary(row))) {
-        console.log(formatRow(row));
-        if (row.result === "FAIL") failed = true;
-      }
-
-      for (const row of rows.filter(isSummary)) {
-        console.log(`  ${row.summary}`);
-        if (String(row.summary).includes("FAILED")) failed = true;
-      }
+      if (await runFile(sql, name)) failed = true;
     }
   } finally {
     await sql.end();
