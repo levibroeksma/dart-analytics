@@ -4,6 +4,7 @@ import {
   MAX_ROUTINE_STEP_MINUTES,
   MAX_ROUTINE_STEPS,
   MAX_ROUTINE_NAME_LENGTH,
+  MAX_ROUTINE_DESCRIPTION_LENGTH,
   RoutineStep,
 } from "@routes/routines/types";
 
@@ -18,6 +19,7 @@ describe("MAX_ROUTINE_STEP_MINUTES / MAX_ROUTINE_STEPS / MAX_ROUTINE_NAME_LENGTH
     expect(MAX_ROUTINE_STEP_MINUTES).toBe(60);
     expect(MAX_ROUTINE_STEPS).toBe(12);
     expect(MAX_ROUTINE_NAME_LENGTH).toBe(60);
+    expect(MAX_ROUTINE_DESCRIPTION_LENGTH).toBe(280);
   });
 });
 
@@ -31,6 +33,17 @@ describe("CreateRoutineRequest", () => {
     if (!parsed.success) return;
     expect(parsed.data.name).toBe("A");
     expect(parsed.data.description).toBeNull();
+  });
+
+  it("enforces the shared description cap", () => {
+    const at = (n: number) =>
+      CreateRoutineRequest.safeParse({
+        name: "A",
+        description: "x".repeat(n),
+        steps: [step],
+      }).success;
+    expect(at(MAX_ROUTINE_DESCRIPTION_LENGTH)).toBe(true);
+    expect(at(MAX_ROUTINE_DESCRIPTION_LENGTH + 1)).toBe(false);
   });
 
   it("rejects ROUNDS steps, empty steps, more than 12 steps, and minutes outside 1..60", () => {

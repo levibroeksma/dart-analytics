@@ -6,6 +6,7 @@ import {
 } from "@lib/game/rulesets/capabilities";
 import { getRulesetValidator } from "./rulesets/registry";
 import { exerciseRulesetWritesDarts } from "./exercise-rulesets/registry";
+import { matchesConstraintError } from "./db-errors";
 import { composeSeatFacts, rejectSeatRequest } from "./session-seats.service";
 import {
   countTurnsForSession,
@@ -44,9 +45,6 @@ import type {
   ServiceResult,
 } from "./types";
 
-/** How many `cause` links to follow before giving up, so a cyclic chain cannot hang the request. */
-const MAX_CAUSE_DEPTH = 8;
-
 /**
  * True when the error is the uq_sessions_single_active unique violation
  * (Postgres 23505 on that partial index), i.e. an active session for this
@@ -60,25 +58,10 @@ const MAX_CAUSE_DEPTH = 8;
  * instead of SESSION_ALREADY_ACTIVE (issue #355).
  */
 export function isActiveSessionConflict(error: unknown): boolean {
-  let current: unknown = error;
-  for (let depth = 0; depth < MAX_CAUSE_DEPTH && current; depth++) {
-    const e = current as {
-      code?: string;
-      constraint?: string;
-      message?: string;
-      cause?: unknown;
-    };
-    if (
-      e.code === "23505" &&
-      (e.constraint === "uq_sessions_single_active" ||
-        (e.message?.includes("uq_sessions_single_active") ?? false))
-    ) {
-      return true;
-    }
-    if (e.cause === current) return false;
-    current = e.cause;
-  }
-  return false;
+  return matchesConstraintError(error, {
+    code: "23505",
+    constraint: "uq_sessions_single_active",
+  });
 }
 
 /** Loads lookup ids and player display metadata required to create a session. */

@@ -14,6 +14,7 @@ import {
   MAX_ROUTINE_STEP_MINUTES,
   MAX_ROUTINE_STEPS,
   MAX_ROUTINE_NAME_LENGTH,
+  MAX_ROUTINE_DESCRIPTION_LENGTH,
 } from "@routes/routines/types";
 import { tuodDurationBounds } from "@lib/game/tuod-duration";
 import { routineDetailPath, routineIdFromLocation } from "./routine-route";
@@ -28,6 +29,8 @@ const MIN_STEP_MINUTES = 1;
 const MAX_STEP_MINUTES = MAX_ROUTINE_STEP_MINUTES;
 /** Mirrors the server's routine-name length cap (`pages/api/routines/types.ts`). */
 const MAX_NAME_LENGTH = MAX_ROUTINE_NAME_LENGTH;
+/** Mirrors the server's routine-description length cap (`pages/api/routines/types.ts`). */
+const MAX_DESCRIPTION_LENGTH = MAX_ROUTINE_DESCRIPTION_LENGTH;
 
 function clampMinutes(value: number): number {
   if (!Number.isFinite(value)) return MIN_STEP_MINUTES;
@@ -91,6 +94,11 @@ export function routineBuilder(mode: "create" | "edit") {
     stepMinMinutes: MIN_STEP_MINUTES,
     stepMaxMinutes: MAX_STEP_MINUTES,
     maxNameLength: MAX_NAME_LENGTH,
+    maxDescriptionLength: MAX_DESCRIPTION_LENGTH,
+
+    clearServerIssues() {
+      this.serverIssues = [];
+    },
 
     navigate(path: string) {
       globalThis.location.href = path;

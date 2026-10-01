@@ -1185,6 +1185,18 @@ describe("isActiveSessionConflict", () => {
     expect(isActiveSessionConflict(wrapped)).toBe(true);
   });
 
+  it("returns false for a 23505 on a different constraint", () => {
+    expect(
+      isActiveSessionConflict({ code: "23505", constraint: "uq_other" }),
+    ).toBe(false);
+  });
+
+  it("returns false for a self-referencing cause chain", () => {
+    const looping = new Error("loop") as Error & { cause?: unknown };
+    looping.cause = looping;
+    expect(isActiveSessionConflict(looping)).toBe(false);
+  });
+
   it("returns false for an unrelated error", () => {
     expect(isActiveSessionConflict(new Error("boom"))).toBe(false);
   });
