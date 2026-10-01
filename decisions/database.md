@@ -219,3 +219,10 @@ Decision: migration `0046` adds `v_replay_stages`, one owner-scoped row per `exe
 Reason: issue #639. `v_game_replay` inner-joins `turns`, so a parent stage with no turns of its own has no row and `stageOrder` throws "unknown parent" on its children, turning the replay into a 500. The alternative, treating a missing parent as a root, weakens corrupt-input detection. D371 decision 3 recorded the gap as a known limitation.
 Consequences: nested-stage engines (SET → LEG with turns only on legs) replay without a further change. A stage with no turns now reaches `stageOrder` and contributes no events. Amends D371 decision 3's source for stages only.
 Supersedes: none.
+
+### D382 — A standalone game's activity closes with its session (#380)
+Status: Accepted · Date: 2026-10-01
+Decision: `updateSessionStatus` calls `finishSessionRecords`, one transaction that writes the session's terminal status and `completed_at`, then sets the same status and instant on its `activities` row when that row has no `activity_configurations` snapshot and is still open. Training activities close only through `completeTraining`/`abandonTraining`.
+Reason: issue #380. `04-Runtime-Layer.md` already gives an activity the lifecycle ACTIVE -> COMPLETED/ABANDONED with `completed_at` on terminal transitions, but the game path never wrote it, so every game left a permanent ACTIVE activity: wrong history under "store what happened", and a block on #358's activities-level unique index. A game activity holds exactly one session; a training activity holds one per routine step, so the snapshot row is the existing discriminator and no new column is needed.
+Consequences: games finished from now on close their activity. Existing game activities stay open: no backfill is made here, and #358's index stays blocked until one is (new migration or seed, its own task). An abandoned session abandons its activity.
+Supersedes: none.

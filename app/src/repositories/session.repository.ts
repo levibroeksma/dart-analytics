@@ -1,6 +1,7 @@
 import { and, eq, isNull, or, sql } from "drizzle-orm";
 import {
   activities,
+  activityConfigurations,
   captureModes,
   configurationTemplates,
   dartZones,
@@ -520,13 +521,49 @@ export async function insertBatchRecords(
 }
 
 export async function updateSessionStatusRecord(
-  db: Db,
+  db: Db | Tx,
   sessionId: string,
   statusId: number,
   completedAt: string,
 ): Promise<void> {
-  await db
+  await (db as Db)
     .update(exerciseSessions)
     .set({ statusId, completedAt })
     .where(eq(exerciseSessions.id, sessionId));
+}
+
+/**
+ * Closes a standalone game's activity with its session's terminal status and
+ * instant. A training activity (one with an `activity_configurations`
+ * snapshot) holds several step sessions and closes through
+ * `completeTraining`/`abandonTraining`, so it is left open here.
+ */
+async function closeStandaloneActivityRecord(
+  db: Db | Tx,
+  sessionId: string,
+  statusId: number,
+  completedAt: string,
+): Promise<void> {
+  await (db as Db)
+    .update(activities)
+    .set({ statusId, completedAt })
+    .where(
+      and(
+        isNull(activities.completedAt),
+        sql`${activities.id} = (select ${exerciseSessions.activityId} from ${exerciseSessions} where ${exerciseSessions.id} = ${sessionId})`,
+        sql`not exists (select 1 from ${activityConfigurations} where ${activityConfigurations.activityId} = ${activities.id})`,
+      ),
+    );
+}
+
+/** Terminal session transition plus its standalone activity close, atomically. */
+export async function finishSessionRecords(
+  sessionId: string,
+  statusId: number,
+  completedAt: string,
+): Promise<void> {
+  await withTransaction(async (tx) => {
+    await updateSessionStatusRecord(tx, sessionId, statusId, completedAt);
+    await closeStandaloneActivityRecord(tx, sessionId, statusId, completedAt);
+  });
 }

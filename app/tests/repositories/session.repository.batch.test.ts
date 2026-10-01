@@ -62,3 +62,25 @@ describe("insertBatchRecords rendered SQL", () => {
     ]);
   });
 });
+
+describe("finishSessionRecords rendered SQL", () => {
+  it("updates the session, then closes only a standalone activity with the same status and instant", async () => {
+    rendered.statements.length = 0;
+    const { finishSessionRecords } =
+      await import("@repositories/session.repository");
+    await finishSessionRecords("s1", 2, "2026-01-01T00:00:00.000Z");
+
+    const [sessionUpdate, activityUpdate] = rendered.statements;
+    expect(rendered.statements).toHaveLength(2);
+    expect(sessionUpdate.sql).toBe(
+      'update "exercise_sessions" set "status_id" = $1, "completed_at" = $2 where "exercise_sessions"."id" = $3',
+    );
+    expect(activityUpdate.sql).toContain('update "activities"');
+    expect(activityUpdate.sql).toContain('"completed_at" is null');
+    expect(activityUpdate.sql).toContain('"activity_configurations"');
+    expect(activityUpdate.sql).toContain("not exists");
+    expect(activityUpdate.params).toEqual(
+      expect.arrayContaining([2, "2026-01-01T00:00:00.000Z", "s1"]),
+    );
+  });
+});
