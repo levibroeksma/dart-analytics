@@ -1,6 +1,7 @@
 import {
   startTraining,
   startTrainingStep,
+  resumeTraining,
   completeTraining as apiCompleteTraining,
   abandonTraining,
 } from "@client/api/training-sessions";
@@ -22,7 +23,10 @@ import {
 import { routineIdFromLocation } from "./routine-route";
 import { routineStartErrorMessage } from "./routine-start-error";
 import { stepAdvanceErrorMessage } from "./step-advance-error";
-import { activeSessionConflict } from "./step-session-conflict";
+import {
+  activeRoutineConflict,
+  activeSessionConflict,
+} from "./step-session-conflict";
 import type { TrainingEngine } from "@modules/interfaces";
 import type { DartObservation } from "@modules/types";
 import type {
@@ -31,7 +35,11 @@ import type {
   PreviewSegment,
   WarmUpEngineInput,
 } from "@lib/types";
-import type { StartTrainingStepResponseData } from "@client/api/types";
+import type {
+  ResumeTrainingResponseData,
+  StartTrainingResponseData,
+  StartTrainingStepResponseData,
+} from "@client/api/types";
 import type { StepAdapter } from "@lib/interfaces";
 import type { RoutinePlayContext, TrainingStepResolved } from "./types";
 import type { SwitchingEngine } from "@modules/training/exercises/switching.engine.module";
@@ -47,6 +55,16 @@ import type { BullseyeCheckoutEngine } from "@modules/training/exercises/bullsey
 import type { BullUpEngine } from "@modules/training/exercises/bull-up.engine.module";
 import { accuracyDisplay } from "@lib/game/play-visit-stats";
 import type { DartFact } from "@modules/types";
+
+const SESSION_ALREADY_COMPLETED = "SESSION_ALREADY_COMPLETED";
+
+function startedDateLabel(startedAt: string | null | undefined): string {
+  if (!startedAt) return "";
+  const started = new Date(startedAt);
+  return Number.isNaN(started.getTime())
+    ? ""
+    : started.toLocaleDateString(undefined, { day: "numeric", month: "short" });
+}
 
 const STEP_CHANGE_CUE_HZ = 660;
 const STEP_CHANGE_CUE_SECONDS = 0.25;
@@ -107,6 +125,9 @@ export function routinePlay() {
     blockingSession: null,
     blockingError: "",
     resolvingBlockingSession: false,
+    openRoutine: null,
+    openRoutineError: "",
+    resolvingOpenRoutine: false,
     stepSummaries: [],
     routineFinished: false,
     completionStatus: "pending" as
@@ -197,17 +218,52 @@ export function routinePlay() {
       self = this;
       this.loading = true;
       this.error = "";
+      try {
+        await this.startRequestedRoutine();
+      } catch (err) {
+        this.error = routineStartErrorMessage(err);
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    /**
+     * Starts the routine the URL names. A routine the player already has open
+     * is not an error: it is held in `openRoutine` for the modal, which offers
+     * to resume or abandon it before anything new starts.
+     */
+    async startRequestedRoutine(this: RoutinePlayContext) {
       const routineTemplateId = routineIdFromLocation();
       if (!routineTemplateId) {
         this.error = "No routine selected.";
-        this.loading = false;
         return;
       }
+      let result: StartTrainingResponseData;
       try {
-        const result = await startTraining({ routineTemplateId });
-        this.activityId = result.activityId;
-        this.steps = result.steps;
-        this.training = trainingEngine.create({
+        result = await startTraining({ routineTemplateId });
+      } catch (err: unknown) {
+        const open = activeRoutineConflict(err);
+        if (!open) throw err;
+        this.openRoutine = open;
+        return;
+      }
+      await this.beginRoutine(result);
+    },
+
+    /**
+     * Builds the routine engine from a started or reopened routine and starts
+     * the step it stands on; `completedStepCount` is how many leading steps
+     * already finished.
+     */
+    async beginRoutine(
+      this: RoutinePlayContext,
+      result: StartTrainingResponseData,
+      completedStepCount = 0,
+    ) {
+      this.activityId = result.activityId;
+      this.steps = result.steps;
+      this.training = trainingEngine.create(
+        {
           routineName: result.routineName,
           steps: this.steps.map((step) => ({
             sequenceNumber: step.sequenceNumber,
@@ -218,12 +274,83 @@ export function routinePlay() {
                 : (step.exerciseRulesetVersionKey as ExerciseRulesetVersionKey),
             configuration: step.configuration,
           })),
-        });
-        await this.startCurrentStep();
-      } catch (err) {
+        },
+        completedStepCount,
+      );
+      await this.startCurrentStep();
+    },
+
+    /**
+     * When the open routine started, for the modal's own copy. Empty when the
+     * server named no usable start time, so the sentence reads without it.
+     */
+    openRoutineStartedLabel(this: RoutinePlayContext): string {
+      return startedDateLabel(this.openRoutine?.startedAt);
+    },
+
+    /**
+     * Continues the open routine at its first unfinished step; the step that
+     * was half played starts again. A routine whose steps had all finished is
+     * closed by the server, so the requested one starts fresh instead. A
+     * failed resume keeps the offer on screen for a retry.
+     */
+    async resumeOpenRoutine(this: RoutinePlayContext) {
+      const open = this.openRoutine;
+      if (!open || this.resolvingOpenRoutine) return;
+      this.resolvingOpenRoutine = true;
+      this.openRoutineError = "";
+      let result: ResumeTrainingResponseData | null = null;
+      try {
+        result = await resumeTraining(open.activityId);
+      } catch (err: unknown) {
+        if ((err as { code?: string }).code !== SESSION_ALREADY_COMPLETED) {
+          this.openRoutineError =
+            "Could not resume that routine. Check your connection and try again.";
+          this.resolvingOpenRoutine = false;
+          return;
+        }
+      }
+      this.openRoutine = null;
+      try {
+        if (result && result.completedStepCount < result.steps.length) {
+          await this.beginRoutine(result, result.completedStepCount);
+        } else {
+          await this.startRequestedRoutine();
+        }
+      } catch (err: unknown) {
         this.error = routineStartErrorMessage(err);
       } finally {
-        this.loading = false;
+        this.resolvingOpenRoutine = false;
+      }
+    },
+
+    /**
+     * Abandons the open routine and starts the requested one. Only the player
+     * may end it — it can hold real darts — so nothing here runs on its own.
+     * A failed abandon keeps the offer on screen for a retry.
+     */
+    async abandonOpenRoutine(this: RoutinePlayContext) {
+      const open = this.openRoutine;
+      if (!open || this.resolvingOpenRoutine) return;
+      this.resolvingOpenRoutine = true;
+      this.openRoutineError = "";
+      try {
+        await abandonTraining(open.activityId);
+      } catch (err: unknown) {
+        if ((err as { code?: string }).code !== SESSION_ALREADY_COMPLETED) {
+          this.openRoutineError =
+            "Could not abandon that routine. Check your connection and try again.";
+          this.resolvingOpenRoutine = false;
+          return;
+        }
+      }
+      this.openRoutine = null;
+      try {
+        await this.startRequestedRoutine();
+      } catch (err: unknown) {
+        this.error = routineStartErrorMessage(err);
+      } finally {
+        this.resolvingOpenRoutine = false;
       }
     },
 
@@ -287,15 +414,7 @@ export function routinePlay() {
      * the server named no start time, so the sentence reads without it.
      */
     blockingStartedLabel(this: RoutinePlayContext): string {
-      const startedAt = this.blockingSession?.startedAt;
-      if (!startedAt) return "";
-      const started = new Date(startedAt);
-      return Number.isNaN(started.getTime())
-        ? ""
-        : started.toLocaleDateString(undefined, {
-            day: "numeric",
-            month: "short",
-          });
+      return startedDateLabel(this.blockingSession?.startedAt);
     },
 
     /**

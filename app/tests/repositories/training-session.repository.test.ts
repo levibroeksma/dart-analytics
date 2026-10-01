@@ -412,46 +412,107 @@ describe("updateActivityStatusRecord", () => {
   });
 });
 
-describe("abandonActiveTrainingActivities", () => {
-  beforeEach(() => vi.clearAllMocks());
+describe("findOpenTrainingActivity", () => {
+  const load = () => import("@repositories/training-session.repository");
 
-  it("closes the player's open training activities and their open sessions", async () => {
-    const activityUpdate = fakeUpdate([{ activityId: "act-old" }]);
-    const sessionUpdate = fakeUpdate([{ sessionId: "sess-old" }]);
-    let call = 0;
-    const tx = {
-      update: vi.fn(() => (call++ === 0 ? activityUpdate : sessionUpdate)),
-    } as any;
-    const { abandonActiveTrainingActivities } =
-      await import("@repositories/training-session.repository");
-    const result = await abandonActiveTrainingActivities(tx, {
-      playerId: "p1",
-      abandonedStatusId: 3,
+  it("reads the newest open training activity with its routine name", async () => {
+    const chain = {
+      ...fakeSelect([]),
+      orderBy: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue([
+        {
+          activityId: "act-1",
+          startedAt: "2026-09-30T10:00:00.000Z",
+          configuration: { routineName: "Balanced Training", steps: [] },
+        },
+      ]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+    expect(await (await load()).findOpenTrainingActivity(db, "p1")).toEqual({
+      activityId: "act-1",
+      startedAt: "2026-09-30T10:00:00.000Z",
+      routineName: "Balanced Training",
     });
-    expect(result).toEqual(["act-old"]);
-    expect(activityUpdate.set).toHaveBeenCalledWith(
-      expect.objectContaining({ statusId: 3 }),
-    );
-    expect(sessionUpdate.set).toHaveBeenCalledWith(
-      expect.objectContaining({ statusId: 3 }),
-    );
   });
 
-  it("leaves sessions untouched when the player has no open training activity", async () => {
-    const activityUpdate = fakeUpdate([]);
-    const sessionUpdate = fakeUpdate([]);
-    let call = 0;
-    const tx = {
-      update: vi.fn(() => (call++ === 0 ? activityUpdate : sessionUpdate)),
-    } as any;
-    const { abandonActiveTrainingActivities } =
+  it("reads as undefined when the player has no open training activity", async () => {
+    const chain = {
+      ...fakeSelect([]),
+      orderBy: vi.fn().mockReturnThis(),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+    expect(
+      await (await load()).findOpenTrainingActivity(db, "p1"),
+    ).toBeUndefined();
+  });
+
+  it("renders owner scope, the open predicate and the snapshot join, newest first", async () => {
+    const { db, statements } = renderingDb([]);
+    await (await load()).findOpenTrainingActivity(db, "p1");
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('inner join "activity_configurations"');
+    expect(sql).toMatch(
+      /"activities"\."player_id" = \$1 and "activities"\."completed_at" is null/,
+    );
+    expect(sql).toMatch(/order by "activities"\."started_at" desc limit \$2/);
+  });
+});
+
+describe("closeOpenStepSessions", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("abandons only the activity's still-open step sessions", async () => {
+    const update = fakeUpdate([{ sessionId: "sess-1" }]);
+    const tx = { update: vi.fn(() => update) } as any;
+    const { closeOpenStepSessions } =
       await import("@repositories/training-session.repository");
-    const result = await abandonActiveTrainingActivities(tx, {
-      playerId: "p1",
+    await closeOpenStepSessions(tx, {
+      activityId: "act-1",
       abandonedStatusId: 3,
     });
-    expect(result).toEqual([]);
-    expect(sessionUpdate.set).not.toHaveBeenCalled();
+    expect(update.set).toHaveBeenCalledWith(
+      expect.objectContaining({ statusId: 3 }),
+    );
+    const columns = predicateColumns(update.where.mock.calls[0]![0]);
+    expect(columns).toContain("activity_id");
+    expect(columns).toContain("completed_at");
+  });
+});
+
+describe("findCompletedStepSequenceNumbers", () => {
+  it("returns the sequence numbers of the activity's completed step sessions", async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi
+        .fn()
+        .mockResolvedValue([
+          { sequenceNumber: 1 },
+          { sequenceNumber: 2 },
+          { sequenceNumber: null },
+        ]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+    const { findCompletedStepSequenceNumbers } =
+      await import("@repositories/training-session.repository");
+    expect(
+      await findCompletedStepSequenceNumbers(db, {
+        activityId: "act-1",
+        completedStatusId: 2,
+      }),
+    ).toEqual([1, 2]);
+  });
+
+  it("renders the activity and completed-status predicate", async () => {
+    const { db, statements } = renderingDb([]);
+    const { findCompletedStepSequenceNumbers } =
+      await import("@repositories/training-session.repository");
+    await findCompletedStepSequenceNumbers(db, {
+      activityId: "act-1",
+      completedStatusId: 2,
+    });
+    expect(onlyStatement(statements)).toMatch(
+      /from "exercise_sessions" where \("exercise_sessions"\."activity_id" = \$1 and "exercise_sessions"\."status_id" = \$2\)/,
+    );
   });
 });
 
@@ -463,19 +524,6 @@ describe("abandonActiveTrainingActivities", () => {
  * production (#400). `renderingDb` runs the real builder (issue #397).
  */
 describe("training-session.repository rendered SQL", () => {
-  it("parenthesises the activity_configurations EXISTS subquery", async () => {
-    const { db, statements } = renderingDb();
-    const { abandonActiveTrainingActivities } =
-      await import("@repositories/training-session.repository");
-    await abandonActiveTrainingActivities(db, {
-      playerId: "p1",
-      abandonedStatusId: 3,
-    });
-    expect(onlyStatement(statements)).toBe(
-      'update "activities" set "status_id" = $1, "completed_at" = $2 where ("activities"."player_id" = $3 and "activities"."completed_at" is null and exists (select 1 from "activity_configurations" where "activity_configurations"."activity_id" = "activities"."id")) returning "id"',
-    );
-  });
-
   it("renders the activity status update scoped to owner and expected status", async () => {
     const { db, statements } = renderingDb([
       ["a1", "2026-01-01T00:00:00.000Z"],

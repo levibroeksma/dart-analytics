@@ -5,6 +5,7 @@ vi.mock("@services/training-session.service", () => ({
   startTrainingStep: vi.fn(),
   completeTraining: vi.fn(),
   abandonTraining: vi.fn(),
+  resumeTraining: vi.fn(),
   listTrainingCompletions: vi.fn(),
 }));
 
@@ -36,6 +37,30 @@ describe("POST /api/training-sessions", () => {
     } as any);
     expect(response.status).toBe(201);
     expect(service.startTraining).toHaveBeenCalledWith("p1", "rt-1");
+  });
+
+  it("returns a 409 envelope naming the open routine when one is already active", async () => {
+    vi.mocked(service.startTraining).mockResolvedValue({
+      ok: false,
+      code: "SESSION_ALREADY_ACTIVE",
+      details: {
+        activityId: "act-old",
+        startedAt: "2026-09-30T10:00:00.000Z",
+        routineName: "Balanced Training",
+      },
+    });
+    const { POST } = await import("@pages/api/training-sessions/index");
+    const response = await POST({
+      locals: { auth: { playerId: "p1" }, requestId: "req-1" },
+      request: request({ routineTemplateId: "rt-1" }),
+    } as any);
+    expect(response.status).toBe(409);
+    const body = await response.json();
+    expect(body.error.details).toEqual({
+      activityId: "act-old",
+      startedAt: "2026-09-30T10:00:00.000Z",
+      routineName: "Balanced Training",
+    });
   });
 
   it("returns a VALIDATION_FAILED envelope when the body is malformed", async () => {
@@ -101,6 +126,44 @@ describe("PATCH /api/training-sessions/[activityId]/complete", () => {
     } as any);
     expect(response.status).toBe(200);
     expect(service.completeTraining).toHaveBeenCalledWith("p1", "act-1");
+  });
+});
+
+describe("POST /api/training-sessions/[activityId]/resume", () => {
+  it("delegates to resumeTraining and returns 200", async () => {
+    vi.mocked(service.resumeTraining).mockResolvedValue({
+      ok: true,
+      data: {
+        activityId: "act-1",
+        routineTemplateId: "rt-1",
+        routineName: "Balanced Training",
+        steps: [],
+        completedStepCount: 1,
+      },
+    });
+    const { POST } =
+      await import("@pages/api/training-sessions/[activityId]/resume");
+    const response = await POST({
+      locals: { auth: { playerId: "p1" }, requestId: "req-1" },
+      params: { activityId: "act-1" },
+    } as any);
+    expect(response.status).toBe(200);
+    expect(service.resumeTraining).toHaveBeenCalledWith("p1", "act-1");
+  });
+
+  it("returns a 403 envelope when the activity is not the caller's", async () => {
+    vi.mocked(service.resumeTraining).mockResolvedValue({
+      ok: false,
+      code: "SESSION_OWNERSHIP_MISMATCH",
+      details: { activityId: "act-1" },
+    });
+    const { POST } =
+      await import("@pages/api/training-sessions/[activityId]/resume");
+    const response = await POST({
+      locals: { auth: { playerId: "p1" }, requestId: "req-1" },
+      params: { activityId: "act-1" },
+    } as any);
+    expect(response.status).toBe(403);
   });
 });
 

@@ -1,4 +1,4 @@
-import type { BlockingSession } from "./types";
+import type { BlockingSession, OpenRoutine } from "./types";
 
 /**
  * The blocking game behind a rejected step start, or `null` when the failure
@@ -21,5 +21,32 @@ export function activeSessionConflict(error: unknown): BlockingSession | null {
   return {
     sessionId,
     startedAt: typeof startedAt === "string" ? startedAt : null,
+  };
+}
+
+/**
+ * The routine the player already has open behind a rejected routine start, or
+ * `null` when the failure is something else. The server answers
+ * `SESSION_ALREADY_ACTIVE` for both a blocked step and a blocked routine; the
+ * routine's details name an `activityId` where the step's name a `sessionId`.
+ */
+export function activeRoutineConflict(error: unknown): OpenRoutine | null {
+  const { code, details } = (error ?? {}) as {
+    code?: string;
+    details?: {
+      activityId?: unknown;
+      startedAt?: unknown;
+      routineName?: unknown;
+    };
+  };
+  if (code !== "SESSION_ALREADY_ACTIVE") return null;
+  const activityId = details?.activityId;
+  if (typeof activityId !== "string") return null;
+  return {
+    activityId,
+    startedAt:
+      typeof details?.startedAt === "string" ? details.startedAt : null,
+    routineName:
+      typeof details?.routineName === "string" ? details.routineName : "",
   };
 }

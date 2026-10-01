@@ -9,6 +9,7 @@ import {
   completeTraining,
   abandonTraining,
   listTrainingCompletions,
+  resumeTraining,
 } from "@client/api/training-sessions";
 import { SessionApiError } from "@client/api/sessions";
 
@@ -180,6 +181,45 @@ describe("listTrainingCompletions", () => {
       error: { code: "VALIDATION_FAILED", message: "bad", retryable: false },
     });
     await expect(listTrainingCompletions("x")).rejects.toBeInstanceOf(
+      SessionApiError,
+    );
+  });
+});
+
+describe("resumeTraining", () => {
+  beforeEach(() => vi.resetAllMocks());
+
+  it("posts to the resume endpoint and returns the steps and progress", async () => {
+    vi.mocked(apiRequest).mockResolvedValue({
+      ok: true,
+      requestId: "r1",
+      data: {
+        activityId: "act-1",
+        routineTemplateId: "rt-1",
+        routineName: "Balanced Training",
+        steps: [],
+        completedStepCount: 2,
+      },
+    });
+    const result = await resumeTraining("act-1");
+    expect(result.completedStepCount).toBe(2);
+    expect(apiRequest).toHaveBeenCalledWith(
+      "/api/training-sessions/act-1/resume",
+      expect.objectContaining({ method: "POST" }),
+    );
+  });
+
+  it("throws SessionApiError on failure", async () => {
+    vi.mocked(apiRequest).mockResolvedValue({
+      ok: false,
+      requestId: "r1",
+      error: {
+        code: "SESSION_ALREADY_COMPLETED",
+        message: "done",
+        retryable: false,
+      },
+    });
+    await expect(resumeTraining("act-1")).rejects.toBeInstanceOf(
       SessionApiError,
     );
   });
