@@ -2,7 +2,7 @@
 status: canonical
 scope: shared Astro component inventory
 read-when: before writing markup for any recurring UI shape
-updated: 2026-09-30
+updated: 2026-10-01
 -->
 
 # Component Inventory
@@ -116,7 +116,7 @@ that split (2026-09-19, closes issue #423).
 | `RoutineDetail.astro` | Routine-detail shell for a data-driven routine: title + duration pill, ordered step list, `Start` (wired to `routineDetail().start()`, navigates to the play route), and — for the caller's own routine only (`canEdit()`) — `Edit`/`Delete`, the latter behind a `ConfirmDialog` | none — reads `routineDetail()` from the parent scope (`routine-detail.data.ts`) (2026-09-11; rewritten data-driven, Edit/Delete added, 2026-09-19) |
 | `RoutineCard.astro` | One routine in the `/training` list; renders inside `x-for`, links to the detail route; carries no ownership badge — the page separates default from personal routines by card (2026-09-21) | none — reads `routine` (`RoutineSummaryData`) and `trainingIndex()`'s `detailHref`/`durationLabel` from the parent scope (2026-09-19) |
 | `RoutineBuilder.astro` | Builder body for create and edit: name/description inputs, the ordered step list, `ExercisePicker`, duration total, and Cancel/Save | `onCancel` (Alpine expression; defaults to the page flow's `cancel()`, which navigates — a modal host passes a reset-and-close expression instead) — otherwise reads `routineBuilder(mode)` from the host's `x-data` (`routine-builder.data.ts`) (2026-09-19; `onCancel` 2026-09-21) |
-| `RoutineStepRow.astro` | One builder step: six-dot drag grip (`x-sort:handle`), exercise name, minutes input (bound `:min`/`:max`) and remove. Reorder is drag-only — the move-up/move-down buttons are gone, freeing their width for the name (D351, supersedes D337) | reads `step`/`index` from the enclosing `x-for` plus the builder's helpers (2026-09-19; drag grip 2026-09-21) |
+| `RoutineStepRow.astro` | One builder step: six-dot grip button (`x-sort:handle`, focusable, ArrowUp/ArrowDown reorder), exercise name, minutes input (bound `:min`/`:max`) and remove. Reorder is drag or keyboard — the move-up/move-down buttons are gone, freeing their width for the name (D351, supersedes D337; keyboard path D380) | reads `step`/`index` from the enclosing `x-for` plus the builder's helpers (2026-09-19; drag grip 2026-09-21; keyboard reorder 2026-10-01) |
 | `ExercisePicker.astro` | Exercise catalog as tappable tiles; tapping appends a step, disabled once the builder is at its step cap | none — reads `catalog`/`steps`/`maxSteps` from the parent scope (2026-09-19) |
 | `RoutineSummaryModal.astro` | End-of-routine results overlay: one card per completed exercise (`stepSummaries`), total session time, `completeTraining` save status with Retry, and a `Done` button that resets the header store and leaves for `/training` | none — reads the play page's `x-data` scope (2026-09-14) |
 

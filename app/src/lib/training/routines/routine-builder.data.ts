@@ -78,6 +78,7 @@ export function routineBuilder(mode: "create" | "edit") {
     loading: true,
     saving: false,
     attemptedSave: false,
+    moveAnnouncement: "",
     error: "",
     serverIssues: [] as string[],
     name: "",
@@ -171,6 +172,13 @@ export function routineBuilder(mode: "create" | "edit") {
       const next = [...this.steps];
       next.splice(to, 0, ...next.splice(from, 1));
       this.steps = next;
+      this.moveAnnouncement = `${next[to].name}, position ${to + 1} of ${next.length}`;
+    },
+
+    nudgeStep(this: RoutineBuilderContext, key: string, delta: number) {
+      const from = this.steps.findIndex((step) => step.key === key);
+      if (from === -1) return;
+      this.moveStep(key, from + delta);
     },
 
     setMinutes(this: RoutineBuilderContext, index: number, value: number) {

@@ -156,3 +156,10 @@ Decision: `gameStatsStore().init()` is a no-op, so no page but `/statistics` rea
 Reason: the store is registered on every page, so its `init()` spent Neon and Worker calls on gameplay, login and settings pages against the cache's fetch rule (`10-Statistics/00-Overview.md` §7). `Promise.all` let one over-cap section blank every card as zeros, reading as "no data".
 Consequences: re-selecting the Games tab reloads through the cache, not the network, for closed buckets. A failed section shows no card plus one line naming it; there is no per-card retry.
 Supersedes: none.
+
+### D380 — Routine step reorder gains a keyboard path on the drag grip
+Status: Accepted · Date: 2026-10-01
+Decision: `RoutineStepRow.astro`'s grip becomes a focusable `IconBtn` that keeps `x-sort:handle`. ArrowUp/ArrowDown call `routineBuilder().nudgeStep(key, ±1)`, which delegates to `moveStep`, then refocus the grip. `moveStep` sets `moveAnnouncement` (`<name>, position N of M`), rendered in an `aria-live="polite"` `sr-only` paragraph in `RoutineBuilder.astro`. The grip is no longer `aria-hidden`.
+Reason: D351 left pointer drag as the only reorder affordance, stranding keyboard and screen-reader users on a meaningful order (D337's own argument). Restoring the move-button pair would undo D351's layout gain; a keyboard handler on the existing handle is additive.
+Consequences: drag reorders are announced too. The key handler refocuses after `$nextTick` because the keyed row is moved in the DOM. No new dependency; `.astro` markup is untested (D101), coverage is `routine-builder.data.test.ts` on `nudgeStep` and `moveAnnouncement`.
+Supersedes: none.
