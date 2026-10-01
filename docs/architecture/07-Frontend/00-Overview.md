@@ -31,9 +31,9 @@ A player-authored routine builder ships as Phase 1 of
 `docs/superpowers/specs/2026-09-17-configurable-training-routines-roadmap-design.md`
 (migration `0038`, D336), against the `/api/routines` write contract in
 `06-API/04-Endpoint-Contracts.md`. `RoutineBuilder.astro`/`RoutineStepRow.astro`
-reorder a step list by move-up/move-down buttons, not drag — `@alpinejs/sort`
-was considered and declined for now (D337); it stays a deferred option, not
-added to `app/package.json`. <!-- 2026-09-19 -->
+reorder a step list by drag (`@alpinejs/sort`, D351) or by keyboard on the
+focusable grip button (ArrowUp/ArrowDown, with an `aria-live` announcement,
+D380). <!-- 2026-10-01 -->
 
 ---
 

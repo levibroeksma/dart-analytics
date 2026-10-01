@@ -7,10 +7,12 @@
  * this boundary as a directive-string read, never a frontmatter import, of
  * the browser-only `routine-builder.data.ts`).
  *
- * Ordering is drag-only: `x-sort:item` publishes the step's draft key to the
- * `x-sort` handler on the parent `<ol>`, and `x-sort:handle` confines the
- * drag to the grip so the minutes input stays usable. The key is the step's
- * own, not `index`, because a routine may hold the same exercise twice.
+ * Ordering is by drag or keyboard: `x-sort:item` publishes the step's draft
+ * key to the `x-sort` handler on the parent `<ol>`, and `x-sort:handle`
+ * confines the drag to the grip so the minutes input stays usable. The grip
+ * is a focusable button; ArrowUp/ArrowDown call `nudgeStep` and refocus it,
+ * since the keyed row is moved in the DOM. The key is the step's own, not
+ * `index`, because a routine may hold the same exercise twice.
  *
  * A GAME step (`step.exerciseTypeKey === 'GAME'`) additionally shows a
  * "3–30 min" hint: every routine-eligible ruleset's own MINUTES bound
@@ -31,13 +33,16 @@ import CrossIcon from "@icons/cross.svg";
   class="flex items-center gap-2 rounded-md border border-border p-2"
   x-sort:item="step.key"
 >
-  <span
-    class="shrink-0 cursor-grab text-muted-foreground active:cursor-grabbing"
-    x-sort:handle
-    aria-hidden="true"
+  <IconBtn
+    variant="ghost"
+    class="shrink-0 cursor-grab p-1.5 active:cursor-grabbing"
+    ariaLabel="Reorder step, drag or use arrow up and down"
+    x-sort:handle=""
+    @keydown.up.prevent="nudgeStep(step.key, -1); $nextTick(() => $el.focus())"
+    @keydown.down.prevent="nudgeStep(step.key, 1); $nextTick(() => $el.focus())"
   >
     <GripIcon />
-  </span>
+  </IconBtn>
   <span class="min-w-0 flex-1">
     <span
       class="block truncate text-sm text-foreground"

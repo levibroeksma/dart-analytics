@@ -130,6 +130,35 @@ describe("routineBuilder (create)", () => {
     expect(b.steps.map((s) => s.exerciseTemplateId)).toEqual(["et-f"]);
   });
 
+  it("announces a reorder by step name and 1-based position", async () => {
+    const b: RoutineBuilderContext = routineBuilder("create");
+    await b.init();
+    b.addStep(CATALOG[0]);
+    b.addStep(CATALOG[1]);
+    expect(b.moveAnnouncement).toBe("");
+    const [first] = b.steps.map((s) => s.key);
+    b.moveStep(first!, 1);
+    expect(b.moveAnnouncement).toBe(`${CATALOG[0].name}, position 2 of 2`);
+  });
+
+  it("nudgeStep moves one place and stops at the ends without announcing", async () => {
+    const b: RoutineBuilderContext = routineBuilder("create");
+    await b.init();
+    b.addStep(CATALOG[0]);
+    b.addStep(CATALOG[1]);
+    const [first, second] = b.steps.map((s) => s.key);
+    b.nudgeStep(first!, 1);
+    expect(b.steps.map((s) => s.key)).toEqual([second, first]);
+    b.moveAnnouncement = "";
+    b.nudgeStep(first!, 1);
+    expect(b.steps.map((s) => s.key)).toEqual([second, first]);
+    expect(b.moveAnnouncement).toBe("");
+    b.nudgeStep(first!, -1);
+    expect(b.steps.map((s) => s.key)).toEqual([first, second]);
+    b.nudgeStep("no-such-key", 1);
+    expect(b.steps.map((s) => s.key)).toEqual([first, second]);
+  });
+
   it("gives every step a distinct key, so duplicates of one exercise reorder independently", async () => {
     const b: RoutineBuilderContext = routineBuilder("create");
     await b.init();

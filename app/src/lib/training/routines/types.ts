@@ -286,6 +286,8 @@ export type RoutineBuilderContext = {
   loading: boolean;
   saving: boolean;
   attemptedSave: boolean;
+  /** Live-region text for the last reorder, read out by assistive tech. */
+  moveAnnouncement: string;
   error: string;
   serverIssues: string[];
   name: string;
@@ -309,6 +311,8 @@ export type RoutineBuilderContext = {
   ): void;
   removeStep(this: RoutineBuilderContext, index: number): void;
   moveStep(this: RoutineBuilderContext, key: string, position: number): void;
+  /** Moves a step `delta` places; the keyboard path to `moveStep`. */
+  nudgeStep(this: RoutineBuilderContext, key: string, delta: number): void;
   setMinutes(this: RoutineBuilderContext, index: number, value: number): void;
   durationResult(this: RoutineBuilderContext): RoutineDurationResult;
   totalMinutes(this: RoutineBuilderContext): number;
