@@ -45,7 +45,7 @@ const scope = JSON.stringify({
         class="space-y-4"
         x-show="tab === 'games'"
         x-cloak
-        x-effect="$store.gameStats.selectGame(game)"
+        x-effect="tab === 'games' && $store.gameStats.selectGame(game)"
       >
         <Select
           options={gameOptions}
@@ -55,6 +55,10 @@ const scope = JSON.stringify({
         <ErrorAlert
           showExpr="$store.gameStats.error"
           textExpr="$store.gameStats.error"
+        />
+        <ErrorAlert
+          showExpr="$store.gameStats.failedSectionsMessage"
+          textExpr="$store.gameStats.failedSectionsMessage"
         />
         <div
           class="space-y-4"
