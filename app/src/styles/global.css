@@ -149,6 +149,17 @@
   body {
     @apply relative h-dvh max-h-dvh overflow-hidden bg-surface font-sans text-foreground antialiased;
     padding-top: env(safe-area-inset-top);
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  input,
+  textarea,
+  [contenteditable],
+  .select-text {
+    -webkit-user-select: text;
+    user-select: text;
   }
 
   @media (prefers-color-scheme: light) {
