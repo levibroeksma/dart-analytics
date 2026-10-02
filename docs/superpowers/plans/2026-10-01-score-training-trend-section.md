@@ -1565,7 +1565,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 After the per-game table in `01-Section-Catalog.md`, add this paragraph:
 
 ```markdown
-Score Training renders a dedicated layout on `/statistics` (`ScoreTrainingStatsOverview.astro`) instead of the generic cards: an ordered list of self-fetching section components. Built so far: `scoring-trend` as the score-trend section (range picker Last 30 Days / Last 90 Days / Last Year / All Time; period 3-dart and first-nine averages with delta vs the preceding equal period; no band counts). First nine is the owner's first three visits of each `LEG` or `EXERCISE_BLOCK` stage. The remaining listed sections are not yet rendered for Score Training (D380).
+Score Training renders a dedicated layout on `/statistics` (`ScoreTrainingStatsOverview.astro`) instead of the generic cards: an ordered list of self-fetching section components. Built so far: `scoring-trend` as the score-trend section (range picker Last 30 Days / Last 90 Days / Last Year / All Time; period 3-dart and first-nine averages with delta vs the preceding equal period; no band counts). First nine is the owner's first three visits of each `LEG` or `EXERCISE_BLOCK` stage. The remaining listed sections are not yet rendered for Score Training (D385).
 ```
 
 - [ ] **Step 2: Overview §7**
@@ -1573,15 +1573,15 @@ Score Training renders a dedicated layout on `/statistics` (`ScoreTrainingStatsO
 Append to §7 of `00-Overview.md`:
 
 ```markdown
-**Dedicated layouts.** A game in `DEDICATED_STATS_LAYOUTS` (`lib/stats/constants.ts`) is not loaded by the `gameStats` store. Its layout is mounted with `x-if` only while selected, and each section's own Alpine factory (`lib/stats/sections/*.data.ts`) fetches in `init()` through `loadGameSection` (`lib/stats/load-game-section.ts`), which is the same cached read path the store uses. A section owns its range, loading and error state, so a failure stays in its card (D380).
+**Dedicated layouts.** A game in `DEDICATED_STATS_LAYOUTS` (`lib/stats/constants.ts`) is not loaded by the `gameStats` store. Its layout is mounted with `x-if` only while selected, and each section's own Alpine factory (`lib/stats/sections/*.data.ts`) fetches in `init()` through `loadGameSection` (`lib/stats/load-game-section.ts`), which is the same cached read path the store uses. A section owns its range, loading and error state, so a failure stays in its card (D385).
 ```
 
 - [ ] **Step 3: Decision**
 
-Before writing, confirm the id is free: `grep -rn "D380" decisions DECISIONS.md`. If it's taken, use the next free id and update Steps 1–2. Then append to `decisions/frontend/alpine.md`:
+Before writing, confirm the id is free: `grep -rn "D385" decisions DECISIONS.md`. If it's taken, use the next free id and update Steps 1–2. Then append to `decisions/frontend/alpine.md`:
 
 ```markdown
-### D380 — Dedicated statistics layouts: one self-fetching Alpine factory per section
+### D385 — Dedicated statistics layouts: one self-fetching Alpine factory per section
 Status: Accepted · Date: 2026-10-01
 Decision: A game listed in `DEDICATED_STATS_LAYOUTS` renders its own layout on `/statistics`, mounted by `x-if` only while selected; `gameStats.selectGame` returns without fetching for it. Each section is its own component with its own `*.data.ts` factory that fetches in `init()` and on its own range change through the shared cached `loadGameSection`. Score Training is first, with the score-trend section.
 Reason: one store loading every section couples unrelated cards and fetches cards that aren't shown; per-section factories keep fetch, state and failure local and let sections be added one at a time.
@@ -1611,7 +1611,7 @@ Load the `context-maintenance` skill and do every step it lists: CLAUDE.md sync,
 
 ```bash
 git add docs/architecture/10-Statistics decisions/frontend/alpine.md
-git commit -m "docs(stats): dedicated score training layout and D380
+git commit -m "docs(stats): dedicated score training layout and D385
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
