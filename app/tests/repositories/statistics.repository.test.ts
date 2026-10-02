@@ -1147,10 +1147,10 @@ describe("findVisitScoring", () => {
     });
     const sql = onlyStatement(statements);
     expect(sql).toMatch(
-      /coalesce\(sum\("v_player_visit_facts"\."total_score"\), 0\)/,
+      /coalesce\(sum\(("scoped_visits"\.)?"total_score"\), 0\)/,
     );
     expect(sql).toMatch(
-      /coalesce\(sum\("v_player_visit_facts"\."dart_count"\), 0\)/,
+      /coalesce\(sum\(("scoped_visits"\.)?"dart_count"\), 0\)/,
     );
   });
 
@@ -1169,7 +1169,7 @@ describe("findVisitScoring", () => {
     );
   });
 
-  it("filters the first-nine sums to LEG stages at turn_sequence <= 3", async () => {
+  it("ranks the owner's visits per stage inside the scoped subquery", async () => {
     const { db, statements } = renderingDb([]);
     await findVisitScoring(db, {
       ...sessionScope,
@@ -1178,28 +1178,55 @@ describe("findVisitScoring", () => {
       bands,
     });
     const sql = onlyStatement(statements);
-    expect(sql).toMatch(/filter \(where .*'LEG'.*<= 3\)/i);
+    expect(sql).toMatch(
+      /row_number\(\) over \(partition by "v_player_visit_facts"\."stage_id" order by "v_player_visit_facts"\."turn_sequence"\)/i,
+    );
+    expect(sql).toMatch(/\) "scoped_visits"/);
+  });
+
+  it("filters the first-nine sums to the first 3 ranked visits of LEG or EXERCISE_BLOCK stages", async () => {
+    const { db, statements } = renderingDb([]);
+    await findVisitScoring(db, {
+      ...sessionScope,
+      bucket: "month",
+      tz: "Europe/Amsterdam",
+      bands,
+    });
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(
+      /filter \(where ("scoped_visits"\.)?"stage_type_key" in \('LEG', 'EXERCISE_BLOCK'\) and ("scoped_visits"\.)?"visit_rank" <= 3\)/i,
+    );
+    expect(sql).not.toMatch(/"turn_sequence" <= 3/);
   });
 
   it("parses every sum from a string", async () => {
-    const chain = {
+    const row = {
+      bucketStart: sessionScope.from,
+      bucketEnd: sessionScope.to,
+      points: "180",
+      darts: "9",
+      firstNinePoints: "180",
+      firstNineDarts: "9",
+      ton: "1",
+      tonForty: "0",
+      oneEighty: "1",
+    };
+    const inner = {
       from: vi.fn().mockReturnThis(),
       innerJoin: vi.fn().mockReturnThis(),
-      where: vi.fn().mockResolvedValue([
-        {
-          bucketStart: sessionScope.from,
-          bucketEnd: sessionScope.to,
-          points: "180",
-          darts: "9",
-          firstNinePoints: "180",
-          firstNineDarts: "9",
-          ton: "1",
-          tonForty: "0",
-          oneEighty: "1",
-        },
-      ]),
+      where: vi.fn().mockReturnThis(),
+      as: vi.fn(() => ({
+        completedAt: {},
+        totalScore: {},
+        dartCount: {},
+        stageTypeKey: {},
+        visitRank: {},
+      })),
     };
-    const db = { select: vi.fn(() => chain) } as any;
+    const outer = { from: vi.fn().mockResolvedValue([row]) };
+    const db = {
+      select: vi.fn().mockReturnValueOnce(inner).mockReturnValueOnce(outer),
+    } as any;
 
     const result = await findVisitScoring(db, {
       ...sessionScope,
