@@ -13,7 +13,9 @@ import type {
 
 const SPARSE_POINT_LIMIT = 12;
 const ANIMATION_MS = 240;
-const AREA_TOP_ALPHA = 0.28;
+const AREA_TOP_ALPHA = 0.2;
+const AREA_BOTTOM_ALPHA = 0.04;
+const AREA_WASH_ALPHA = 0.12;
 const FONT_SIZE = 11;
 
 const defaultFormat: ChartFormatter = (value) => String(value);
@@ -66,15 +68,15 @@ function seriesColorNames(
 /**
  * Area fill function that creates a linear gradient when chart area is known,
  * or a flat color before layout. The gradient starts at the series' own
- * highest point, clamped to the chart area, and fades to transparent at the
- * bottom, so overlapping series blend as little as possible.
+ * highest point, clamped to the chart area, and eases to a faint tint of the
+ * series' own color at the bottom.
  */
 function areaFill(color: string, data: readonly (number | null)[]) {
   const values = data.filter((value): value is number => value !== null);
   const peak = values.length > 0 ? Math.max(...values) : null;
   return (context: AreaContext) => {
     const area = context.chart.chartArea;
-    if (!area) return withAlpha(color, AREA_TOP_ALPHA / 2);
+    if (!area) return withAlpha(color, AREA_WASH_ALPHA);
     const scale = context.chart.scales?.y;
     const top =
       peak !== null && scale
@@ -90,7 +92,7 @@ function areaFill(color: string, data: readonly (number | null)[]) {
       area.bottom,
     );
     gradient.addColorStop(0, withAlpha(color, AREA_TOP_ALPHA));
-    gradient.addColorStop(1, withAlpha(color, 0));
+    gradient.addColorStop(1, withAlpha(color, AREA_BOTTOM_ALPHA));
     return gradient;
   };
 }

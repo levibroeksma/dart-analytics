@@ -124,7 +124,7 @@ describe("buildConfig line", () => {
     }
   });
 
-  it("paints the area as a fading gradient, or a flat wash before layout", () => {
+  it("paints the area as a gradient that stays tinted to the bottom, or a flat wash before layout", () => {
     const fill = dataset(buildConfig(spec(), theme), 0).backgroundColor as (
       context: unknown,
     ) => unknown;
@@ -139,10 +139,10 @@ describe("buildConfig line", () => {
     );
     expect(ctx.createLinearGradient).toHaveBeenCalledWith(0, 0, 0, 100);
     expect(stops).toEqual([
-      [0, "rgba(58, 155, 216, 0.28)"],
-      [1, "rgba(58, 155, 216, 0)"],
+      [0, "rgba(58, 155, 216, 0.2)"],
+      [1, "rgba(58, 155, 216, 0.04)"],
     ]);
-    expect(fill({ chart: { ctx } })).toBe("rgba(58, 155, 216, 0.14)");
+    expect(fill({ chart: { ctx } })).toBe("rgba(58, 155, 216, 0.12)");
   });
 
   it("anchors each series' fade at its own highest point", () => {
@@ -170,8 +170,8 @@ describe("buildConfig line", () => {
     );
     expect(ctx.createLinearGradient).toHaveBeenCalledWith(0, 40, 0, 100);
     expect(stops).toEqual([
-      [0, "rgba(217, 89, 38, 0.28)"],
-      [1, "rgba(217, 89, 38, 0)"],
+      [0, "rgba(217, 89, 38, 0.2)"],
+      [1, "rgba(217, 89, 38, 0.04)"],
     ]);
   });
 
