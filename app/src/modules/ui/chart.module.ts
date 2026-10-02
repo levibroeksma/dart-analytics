@@ -136,7 +136,7 @@ export function buildConfig(
   const names = seriesColorNames(spec, theme.order);
   const format = spec.format ?? defaultFormat;
   const sparse = spec.labels.length <= SPARSE_POINT_LIMIT;
-  const area = spec.kind === "line" && spec.series.length === 1;
+  const area = spec.kind === "line";
   const datasets = spec.series.map((series, index) => {
     const color = theme.palette[names[index]];
     return spec.kind === "line"

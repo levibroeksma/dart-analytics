@@ -116,13 +116,12 @@ describe("buildConfig line", () => {
     expect(line.data).toEqual([1, null, 3]);
   });
 
-  it("fills an area under a single series only", () => {
-    const one = buildConfig(spec(), theme);
+  it("fills an area under every line series", () => {
     const two = buildConfig(spec({ series: seriesOf(2) }), theme);
-    expect(dataset(one, 0).fill).toBe(true);
-    expect(typeof dataset(one, 0).backgroundColor).toBe("function");
-    expect(dataset(two, 0).fill).toBe(false);
-    expect(dataset(two, 0).backgroundColor).toBe(theme.palette.sky);
+    for (const index of [0, 1]) {
+      expect(dataset(two, index).fill).toBe(true);
+      expect(typeof dataset(two, index).backgroundColor).toBe("function");
+    }
   });
 
   it("paints the area as a fading gradient, or a flat wash before layout", () => {
