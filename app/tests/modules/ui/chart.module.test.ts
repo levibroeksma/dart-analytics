@@ -443,6 +443,19 @@ describe("ChartView", () => {
     expect(chart.update).toHaveBeenCalledTimes(1);
   });
 
+  it("update rebuilds the chart when the kind changes", async () => {
+    FakeChart.instances = [];
+    const view = new ChartView(fakeCanvas(), theme, { loadChartJs: loaded() });
+    await view.mount(spec({ kind: "line" }));
+    const first = FakeChart.instances[0];
+
+    view.update(spec({ kind: "bar" }));
+
+    expect(first.destroy).toHaveBeenCalledTimes(1);
+    expect(FakeChart.instances).toHaveLength(2);
+    expect(FakeChart.instances[1].config.type).toBe("bar");
+  });
+
   it("an update that lands before Chart.js has loaded is what gets drawn", async () => {
     FakeChart.instances = [];
     let release: (ctor: ChartCtor) => void = () => {};

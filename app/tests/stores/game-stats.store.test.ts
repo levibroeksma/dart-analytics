@@ -1101,6 +1101,19 @@ describe("gameStatsStore", () => {
       expect(store.scoringTrendChart.series[0].data).toEqual([null]);
     });
 
+    it("reports no trend data when every 3-dart value is a gap", async () => {
+      const empty = await loadTrend([
+        { start: jan, metrics: trendMetrics(0, 0) },
+      ]);
+      const filled = await loadTrend([
+        { start: jan, metrics: trendMetrics(300, 30) },
+      ]);
+
+      expect(empty.scoringTrendHasData).toBe(false);
+      expect(filled.scoringTrendHasData).toBe(true);
+      expect(gameStatsStore().scoringTrendHasData).toBe(false);
+    });
+
     it("is an empty line chart before the section has loaded", () => {
       const store = gameStatsStore();
 
