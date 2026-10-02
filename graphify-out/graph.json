@@ -14264,7 +14264,7 @@
       "file_type": "code",
       "norm_label": ".constructor()",
       "source_file": "app/src/modules/ui/chart.module.ts",
-      "source_location": "L277"
+      "source_location": "L278"
     },
     {
       "id": "app_src_modules_ui_chart_module_chartview_destroy",
@@ -14276,7 +14276,7 @@
       "file_type": "code",
       "norm_label": ".destroy()",
       "source_file": "app/src/modules/ui/chart.module.ts",
-      "source_location": "L316"
+      "source_location": "L324"
     },
     {
       "id": "app_src_modules_ui_chart_module_chartview_mount",
@@ -14288,7 +14288,7 @@
       "file_type": "code",
       "norm_label": ".mount()",
       "source_file": "app/src/modules/ui/chart.module.ts",
-      "source_location": "L283"
+      "source_location": "L284"
     },
     {
       "id": "app_src_modules_ui_chart_module_chartview_update",
@@ -14300,7 +14300,7 @@
       "file_type": "code",
       "norm_label": ".update()",
       "source_file": "app/src/modules/ui/chart.module.ts",
-      "source_location": "L302"
+      "source_location": "L304"
     },
     {
       "id": "app_src_modules_ui_chart_module_clampleft",
@@ -117863,7 +117863,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "app/src/modules/ui/chart.module.ts",
-      "source_location": "L288",
+      "source_location": "L289",
       "weight": 1.0
     },
     {
@@ -117875,7 +117875,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "app/src/modules/ui/chart.module.ts",
-      "source_location": "L295",
+      "source_location": "L297",
       "weight": 1.0
     },
     {
@@ -117887,7 +117887,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "app/src/modules/ui/chart.module.ts",
-      "source_location": "L306",
+      "source_location": "L309",
       "weight": 1.0
     },
     {
@@ -138140,6 +138140,18 @@
       "context": "field",
       "source_file": "app/src/modules/ui/chart.module.ts",
       "source_location": "L273",
+      "weight": 1.0
+    },
+    {
+      "source": "app_src_modules_ui_chart_module_chartview",
+      "target": "app_src_modules_ui_types_chartctor",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "app/src/modules/ui/chart.module.ts",
+      "source_location": "L274",
       "weight": 1.0
     },
     {
@@ -252845,7 +252857,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "app/src/modules/ui/chart.module.ts",
-      "source_location": "L277",
+      "source_location": "L278",
       "weight": 1.0
     },
     {
@@ -252857,7 +252869,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "app/src/modules/ui/chart.module.ts",
-      "source_location": "L277",
+      "source_location": "L278",
       "weight": 1.0
     },
     {
@@ -252869,7 +252881,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "app/src/modules/ui/chart.module.ts",
-      "source_location": "L283",
+      "source_location": "L284",
       "weight": 1.0
     },
     {
@@ -252881,7 +252893,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "app/src/modules/ui/chart.module.ts",
-      "source_location": "L302",
+      "source_location": "L304",
       "weight": 1.0
     },
     {
@@ -323069,7 +323081,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/ui/chart.module.ts",
-      "source_location": "L277",
+      "source_location": "L278",
       "weight": 1.0
     },
     {
@@ -323080,7 +323092,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/ui/chart.module.ts",
-      "source_location": "L283",
+      "source_location": "L284",
       "weight": 1.0
     },
     {
@@ -323091,7 +323103,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/ui/chart.module.ts",
-      "source_location": "L302",
+      "source_location": "L304",
       "weight": 1.0
     },
     {
@@ -323102,7 +323114,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/ui/chart.module.ts",
-      "source_location": "L316",
+      "source_location": "L324",
       "weight": 1.0
     },
     {
@@ -353069,5 +353081,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "fda45708657a25f0a752ff0e9fb9d941ef1f7106"
+  "built_at_commit": "5ec7947e5d616bd233fe14a210ce686d81b7bfa7"
 }
