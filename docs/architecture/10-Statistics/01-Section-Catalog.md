@@ -158,6 +158,8 @@ replay route (`02-Replay.md`).
 | **Shanghai** | target-accuracy (per number and ring), `shanghai-count`, points-per-round via session-result, confusion, miss-direction, loose-darts, heatmap, completion, volume |
 | **Around the Clock** | `atc-darts-per-target`, target-accuracy, confusion, miss-direction, loose-darts, heatmap, session-result, completion, volume |
 
+Score Training renders a dedicated layout on `/statistics` (`ScoreTrainingStatsOverview.astro`) instead of the generic cards: an ordered list of self-fetching section components. Built so far: `scoring-trend` as the score-trend section (range picker Last 30 Days / Last 90 Days / Last Year / All Time; period 3-dart and first-nine averages with delta vs the preceding equal period; no band counts). First nine is the owner's first three visits of each `LEG` or `EXERCISE_BLOCK` stage. The remaining listed sections are not yet rendered for Score Training (D385).
+
 X01 and Score Training carry no `grouping`/`miss-direction`/`loose-darts`: they
 store no intent (`00-Overview.md` §3). Singles Training, Shanghai and Around
 the Clock carry `miss-direction`/`loose-darts`/`target-accuracy`/`confusion`
