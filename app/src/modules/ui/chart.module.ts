@@ -13,20 +13,10 @@ import type {
 
 const SPARSE_POINT_LIMIT = 12;
 const ANIMATION_MS = 240;
-const AREA_TOP_ALPHA = 0.2;
-const AREA_BOTTOM_ALPHA = 0.04;
-const AREA_WASH_ALPHA = 0.12;
+const AREA_ALPHA = 0.18;
 const FONT_SIZE = 11;
 
 const defaultFormat: ChartFormatter = (value) => String(value);
-
-type AreaContext = {
-  chart: {
-    ctx: CanvasRenderingContext2D;
-    chartArea?: { top: number; bottom: number };
-    scales?: { y?: { getPixelForValue(value: number): number } };
-  };
-};
 
 /**
  * `rgb(r, g, b)` or `rgba(r, g, b, a)` at the given alpha; any other color
@@ -66,38 +56,6 @@ function seriesColorNames(
 }
 
 /**
- * Area fill function that creates a linear gradient when chart area is known,
- * or a flat color before layout. The gradient starts at the series' own
- * highest point, clamped to the chart area, and eases to a faint tint of the
- * series' own color at the bottom.
- */
-function areaFill(color: string, data: readonly (number | null)[]) {
-  const values = data.filter((value): value is number => value !== null);
-  const peak = values.length > 0 ? Math.max(...values) : null;
-  return (context: AreaContext) => {
-    const area = context.chart.chartArea;
-    if (!area) return withAlpha(color, AREA_WASH_ALPHA);
-    const scale = context.chart.scales?.y;
-    const top =
-      peak !== null && scale
-        ? Math.min(
-            Math.max(scale.getPixelForValue(peak), area.top),
-            area.bottom,
-          )
-        : area.top;
-    const gradient = context.chart.ctx.createLinearGradient(
-      0,
-      top,
-      0,
-      area.bottom,
-    );
-    gradient.addColorStop(0, withAlpha(color, AREA_TOP_ALPHA));
-    gradient.addColorStop(1, withAlpha(color, AREA_BOTTOM_ALPHA));
-    return gradient;
-  };
-}
-
-/**
  * Line chart dataset configuration.
  */
 function lineDataset(
@@ -111,7 +69,7 @@ function lineDataset(
     label: series.label,
     data: series.data,
     borderColor: color,
-    backgroundColor: area ? areaFill(color, series.data) : color,
+    backgroundColor: area ? withAlpha(color, AREA_ALPHA) : color,
     fill: area,
     borderWidth: 2,
     tension: 0.3,

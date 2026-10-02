@@ -116,96 +116,17 @@ describe("buildConfig line", () => {
     expect(line.data).toEqual([1, null, 3]);
   });
 
-  it("fills an area under every line series", () => {
+  it("fills under every line series with its own line color at a fixed opacity", () => {
     const two = buildConfig(spec({ series: seriesOf(2) }), theme);
-    for (const index of [0, 1]) {
-      expect(dataset(two, index).fill).toBe(true);
-      expect(typeof dataset(two, index).backgroundColor).toBe("function");
-    }
+    expect(dataset(two, 0).fill).toBe(true);
+    expect(dataset(two, 0).backgroundColor).toBe("rgba(58, 155, 216, 0.18)");
+    expect(dataset(two, 1).fill).toBe(true);
+    expect(dataset(two, 1).backgroundColor).toBe("rgba(217, 89, 38, 0.18)");
   });
 
-  it("paints the area as a gradient that stays tinted to the bottom, or a flat wash before layout", () => {
-    const fill = dataset(buildConfig(spec(), theme), 0).backgroundColor as (
-      context: unknown,
-    ) => unknown;
-    const stops: [number, string][] = [];
-    const gradient = {
-      addColorStop: (at: number, c: string) => stops.push([at, c]),
-    };
-    const ctx = { createLinearGradient: vi.fn(() => gradient) };
-
-    expect(fill({ chart: { ctx, chartArea: { top: 0, bottom: 100 } } })).toBe(
-      gradient,
-    );
-    expect(ctx.createLinearGradient).toHaveBeenCalledWith(0, 0, 0, 100);
-    expect(stops).toEqual([
-      [0, "rgba(58, 155, 216, 0.2)"],
-      [1, "rgba(58, 155, 216, 0.04)"],
-    ]);
-    expect(fill({ chart: { ctx } })).toBe("rgba(58, 155, 216, 0.12)");
-  });
-
-  it("anchors each series' fade at its own highest point", () => {
-    const config = buildConfig(spec({ series: seriesOf(2) }), theme);
-    const fill = dataset(config, 1).backgroundColor as (
-      context: unknown,
-    ) => unknown;
-    const stops: [number, string][] = [];
-    const gradient = {
-      addColorStop: (at: number, c: string) => stops.push([at, c]),
-    };
-    const ctx = { createLinearGradient: vi.fn(() => gradient) };
-    const getPixelForValue = vi.fn(() => 40);
-
-    fill({
-      chart: {
-        ctx,
-        chartArea: { top: 0, bottom: 100 },
-        scales: { y: { getPixelForValue } },
-      },
-    });
-
-    expect(getPixelForValue).toHaveBeenCalledWith(
-      Math.max(...(dataset(config, 1).data as number[])),
-    );
-    expect(ctx.createLinearGradient).toHaveBeenCalledWith(0, 40, 0, 100);
-    expect(stops).toEqual([
-      [0, "rgba(217, 89, 38, 0.2)"],
-      [1, "rgba(217, 89, 38, 0.04)"],
-    ]);
-  });
-
-  it("keeps the fade inside the chart area and falls back to its top without data or scale", () => {
-    const fill = dataset(buildConfig(spec(), theme), 0).backgroundColor as (
-      context: unknown,
-    ) => unknown;
-    const gradient = { addColorStop: vi.fn() };
-    const ctx = { createLinearGradient: vi.fn(() => gradient) };
-
-    fill({
-      chart: {
-        ctx,
-        chartArea: { top: 10, bottom: 100 },
-        scales: { y: { getPixelForValue: () => -50 } },
-      },
-    });
-    expect(ctx.createLinearGradient).toHaveBeenLastCalledWith(0, 10, 0, 100);
-
-    const empty = dataset(
-      buildConfig(
-        spec({ series: [{ key: "a", label: "A", data: [null, null] }] }),
-        theme,
-      ),
-      0,
-    ).backgroundColor as (context: unknown) => unknown;
-    empty({
-      chart: {
-        ctx,
-        chartArea: { top: 10, bottom: 100 },
-        scales: { y: { getPixelForValue: () => 40 } },
-      },
-    });
-    expect(ctx.createLinearGradient).toHaveBeenLastCalledWith(0, 10, 0, 100);
+  it("never fills bars with an area", () => {
+    const bars = buildConfig(spec({ kind: "bar" }), theme);
+    expect(dataset(bars, 0).fill).toBeUndefined();
   });
 
   it("shows 8px markers up to 12 labels and hides them beyond", () => {
