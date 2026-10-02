@@ -55,10 +55,10 @@ ids_from_main() {
   git grep -ohE '^\| D[0-9]+ \||^### D[0-9]+' origin/main -- 'decisions/**.md' 2>/dev/null || true
 }
 
-# Both historical spellings: `- Decision id: **D123**` and `**Decision id:** D317
-# (reserved; ...)`. The asterisks are tolerated on either side of the colon, and
+# Historical spellings: `- Decision id: **D123**`, `**Decision id:** D317
+# (reserved; ...)`, `under decision **D371**` and `D371 is recorded in 5b`. The asterisks are tolerated on either side of the colon, and
 # the id taken is the first D<digits> after it.
-RESERVED_RE='Decision id\*{0,2}:\*{0,2}[[:space:]]*\*{0,2}D[0-9]+'
+RESERVED_RE='Decision id\*{0,2}:\*{0,2}[[:space:]]*\*{0,2}D[0-9]+|under decision[[:space:]]+\*{0,2}D[0-9]+|D[0-9]+ is recorded in'
 
 reserved_from_tree() {
   git grep -ohE "$RESERVED_RE" -- 'docs/superpowers/plans/**.md' 2>/dev/null || true
