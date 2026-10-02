@@ -1,12 +1,13 @@
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { foldOneTwentyOneState } from "@modules/game/one-twenty-one.engine.module";
-import { SegmentTimer } from "@modules/ui/segment-timer.module";
+import type { SegmentTimer } from "@modules/ui/segment-timer.module";
 import {
   checkoutPathFor,
   checkoutPathWithin,
 } from "@modules/game/checkout-path.module";
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
+import { formatRemaining, startCountdown } from "@lib/game/play-countdown";
 import { boardInputData } from "@lib/game/board-input.data";
 import { fetchActiveSessions } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
@@ -190,48 +191,6 @@ function durationValueOf(
     return config.durationValue ?? null;
   }
   return null;
-}
-
-function formatRemaining(ms: number | null | undefined): string {
-  const totalSeconds = Math.max(0, Math.floor((ms ?? 0) / 1000));
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-}
-
-/**
- * Starts the MINUTES countdown, resuming from the persisted remaining time
- * when a prior session left one and starting a fresh segment otherwise.
- * Mirrors `score-training-play.data.ts`'s own `startCountdown`.
- */
-function startCountdown(
-  game: OneTwentyOnePlayContext["$store"]["game"],
-  durationValue: number,
-  engine: OneTwentyOneEngine,
-): SegmentTimer {
-  const resumedRemainingMs = game.timerRemainingMs;
-  const durationMinutes =
-    resumedRemainingMs != null ? resumedRemainingMs / 60000 : durationValue;
-
-  game.timerRemainingMs = durationMinutes * 60000;
-  if (resumedRemainingMs == null) {
-    game.timerStartedAt = new Date().toISOString();
-  }
-
-  const timer = new SegmentTimer({
-    totalMinutes: durationMinutes,
-    intervalMinutes: durationMinutes,
-    onTick: (secondsRemaining) => {
-      game.timerRemainingMs = secondsRemaining * 1000;
-    },
-    onComplete: () => {
-      game.timerExpired = true;
-      engine.expireTimer();
-    },
-  });
-  timer.unlockAudio();
-  timer.start();
-  return timer;
 }
 
 /**

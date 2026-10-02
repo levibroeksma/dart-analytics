@@ -465,7 +465,13 @@ export function scoreTrainingPlay() {
       }
 
       const thrower: BotDartThrower = () => throwBotDart(this, botSeat);
-      await playRunBotVisualBoardVisit(this, botSeat.participantRef, thrower);
+      await playRunBotVisualBoardVisit(
+        this,
+        botSeat.participantRef,
+        thrower,
+        undefined,
+        (observation) => this.engine!.wouldComplete(observation),
+      );
     },
 
     /**

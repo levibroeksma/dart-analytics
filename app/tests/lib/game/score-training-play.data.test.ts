@@ -2377,6 +2377,31 @@ describe("scoreTrainingPlay — DartBot opponent", () => {
     expect(play.state()!.activeParticipantRef).toBe(HUMAN_REF);
   });
 
+  it("under VISUAL_BOARD, the bot's visit asks the engine's pre-record wouldComplete rather than a post-record read", async () => {
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      {
+        ...ACTIVE_SESSION,
+        sessionId: "session-1",
+        captureModeKey: "ANALYTICS",
+        inputModeKey: "VISUAL_BOARD",
+      },
+    ]);
+    const play = makePlay();
+    await play.init.call(play);
+    const wouldComplete = vi.spyOn(play.engine!, "wouldComplete");
+    play.scoreInput.setValue("26");
+
+    await play.submitVisit.call(play);
+
+    // The human's keypad visit calls wouldComplete once; the bot's darts add
+    // their own calls only if the predicate is forwarded.
+    const botTurns = play.$store.game.turns.filter(
+      (turn) => turn.participantRef === BOT_REF,
+    );
+    expect(botTurns.length).toBeGreaterThan(0);
+    expect(wouldComplete.mock.calls.length).toBeGreaterThan(1);
+  });
+
   it("under QUICK_SCORE, the bot's visit uploads as one turn with darts: []", async () => {
     const play = makePlay();
     await play.init.call(play);
