@@ -616,6 +616,10 @@ describe("getGameSection", () => {
         scoreMax: 600,
         minSessionId: "s1",
         maxSessionId: "s2",
+        bestAvgSessionId: "s2",
+        bestAvgPoints: 600,
+        bestAvgDarts: 30,
+        bestAvgCompletedAt: "2026-01-15T10:00:00.000Z",
       },
     ]);
 

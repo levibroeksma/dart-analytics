@@ -334,6 +334,57 @@ describe("statistics response schemas", () => {
     expect(result.success).toBe(true);
   });
 
+  it("session-result requires bestAverage, nullable, as a points/darts pair with a date", () => {
+    const slice = {
+      sessions: 1,
+      countedScoreSum: 300,
+      dartSum: 15,
+      turnSum: 5,
+      countedScoreMin: 300,
+      countedScoreMax: 300,
+      bestLowSessionId: "018f1e2a-0000-7000-8000-000000000001",
+      bestHighSessionId: "018f1e2a-0000-7000-8000-000000000001",
+    };
+    const response = (metrics: unknown) => ({
+      sectionId: "session-result",
+      sectionVersion: 2,
+      dataVersion: "v1:1:0",
+      bucket: "none",
+      tz: null,
+      range: { from: "2026-01-01T00:00:00Z", to: "2026-02-01T00:00:00Z" },
+      buckets: [
+        {
+          start: "2026-01-01T00:00:00Z",
+          end: "2026-02-01T00:00:00Z",
+          closed: true,
+          sampleSize: 1,
+          metrics: { "501_V1": metrics },
+        },
+      ],
+    });
+    expect(SessionResultSeriesResponse.safeParse(response(slice)).success).toBe(
+      false,
+    );
+    expect(
+      SessionResultSeriesResponse.safeParse(
+        response({ ...slice, bestAverage: null }),
+      ).success,
+    ).toBe(true);
+    expect(
+      SessionResultSeriesResponse.safeParse(
+        response({
+          ...slice,
+          bestAverage: {
+            sessionId: "018f1e2a-0000-7000-8000-000000000001",
+            points: 300,
+            darts: 15,
+            completedAt: "2026-01-15T10:00:00Z",
+          },
+        }),
+      ).success,
+    ).toBe(true);
+  });
+
   it("parses a session-result series response", () => {
     const result = SessionResultSeriesResponse.safeParse({
       sectionId: "session-result",
@@ -358,6 +409,12 @@ describe("statistics response schemas", () => {
               countedScoreMax: 601,
               bestLowSessionId: "018f1e2a-0000-7000-8000-000000000001",
               bestHighSessionId: "018f1e2a-0000-7000-8000-000000000002",
+              bestAverage: {
+                sessionId: "018f1e2a-0000-7000-8000-000000000002",
+                points: 601,
+                darts: 30,
+                completedAt: "2026-01-15T10:00:00Z",
+              },
             },
           },
         },

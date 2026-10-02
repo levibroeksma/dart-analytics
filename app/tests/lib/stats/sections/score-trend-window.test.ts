@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  bestSessionAverage,
+  formatShortDate,
+  personalBestWindow,
+} from "@lib/stats/sections/score-trend-window";
+import {
   TREND_RANGE_OPTIONS,
   averageDeltaPercent,
   bucketLabel,
@@ -290,5 +295,77 @@ describe("trendChart", () => {
       "en-GB",
     );
     expect(spec.series.map((s) => s.key)).toEqual(["three-dart-average"]);
+  });
+});
+
+describe("personalBestWindow", () => {
+  it("spans all time, un-bucketed, up to now", () => {
+    const window = personalBestWindow(NOW);
+    expect(window.from).toBe("2016-11-01T10:00:00.000Z");
+    expect(window.to).toBe("2026-10-01T10:01:00.000Z");
+    expect(window.bucket).toBe("none");
+  });
+});
+
+describe("formatShortDate", () => {
+  it("renders day, lowercase short month with a dot and a two-digit year in the zone", () => {
+    expect(formatShortDate("2026-09-29T23:30:00.000Z", TZ)).toBe(
+      "30 sept. '26",
+    );
+    expect(formatShortDate("2024-01-01T10:00:00.000Z", TZ)).toBe("1 jan. '24");
+  });
+
+  it("uses sept. for September and three letters otherwise", () => {
+    expect(formatShortDate("2025-05-04T10:00:00.000Z", TZ)).toBe("4 may '25");
+    expect(formatShortDate("2025-12-24T10:00:00.000Z", TZ)).toBe("24 dec. '25");
+  });
+});
+
+describe("bestSessionAverage", () => {
+  const best = (sessionId: string, points: number, darts: number) => ({
+    sessionId,
+    points,
+    darts,
+    completedAt: `2026-01-0${sessionId.length}T10:00:00.000Z`,
+  });
+  const srBucket = (
+    slices: Record<string, ReturnType<typeof best> | null>,
+  ) => ({
+    start: "2026-01-01T00:00:00.000Z",
+    end: "2026-02-01T00:00:00.000Z",
+    closed: true,
+    sampleSize: 1,
+    metrics: Object.fromEntries(
+      Object.entries(slices).map(([key, bestAverage]) => [
+        key,
+        {
+          sessions: 1,
+          countedScoreSum: 0,
+          dartSum: 0,
+          turnSum: 0,
+          countedScoreMin: 0,
+          countedScoreMax: 0,
+          bestLowSessionId: "x",
+          bestHighSessionId: "x",
+          bestAverage,
+        },
+      ]),
+    ),
+  });
+
+  it("picks the highest 3-dart average across buckets and ruleset slices", () => {
+    const result = bestSessionAverage([
+      srBucket({ ST_V1: best("a", 540, 27), ST_V2: best("bb", 300, 12) }),
+      srBucket({ ST_V1: best("ccc", 1200, 60) }),
+    ]);
+    expect(result).toEqual({
+      average: 75,
+      completedAt: "2026-01-02T10:00:00.000Z",
+    });
+  });
+
+  it("is null when no slice carries a best average", () => {
+    expect(bestSessionAverage([srBucket({ ST_V1: null })])).toBeNull();
+    expect(bestSessionAverage([])).toBeNull();
   });
 });

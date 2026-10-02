@@ -48,6 +48,10 @@ describe("statistics section registry", () => {
     expect(SECTIONS["session-result"].includesAbandoned).toBe(false);
   });
 
+  it("session-result is at version 2: the bestAverage pair joined its metrics", () => {
+    expect(SECTIONS["session-result"].version).toBe(2);
+  });
+
   it("declares session-result as config-sensitive to the ruleset version", () => {
     expect(SECTIONS["session-result"].configSensitive).toEqual([
       "ruleset_version_key",

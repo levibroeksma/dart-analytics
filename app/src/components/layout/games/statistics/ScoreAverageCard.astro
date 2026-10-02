@@ -1,28 +1,49 @@
 ---
 /**
- * Sky stat card: one average with its percent change against the preceding period.
- * Reads from the enclosing `scoreTrendSection()` scope.
+ * Sky stat card: one average with a caption line under it — the percent
+ * change against the preceding period, or a plain subtext such as the date a
+ * personal best was set. Reads from the enclosing `scoreTrendSection()` scope.
  * @param {string} label Card caption
  * @param {string} averageExpr Alpine expression yielding the average or `null`
- * @param {string} deltaExpr Alpine expression yielding the percent delta or `null`
+ * @param {string} [deltaExpr] Alpine expression yielding the percent delta or `null`
+ * @param {string} [subtextExpr] Alpine expression yielding a caption string or `null`; shown instead of the delta
+ * @param {string} [loadingExpr] Alpine expression for this card's loading flag (defaults to the section's `loading`)
  */
 interface Props {
   label: string;
   averageExpr: string;
-  deltaExpr: string;
+  deltaExpr?: string;
+  subtextExpr?: string;
+  loadingExpr?: string;
 }
 
 // Props
-const { label, averageExpr, deltaExpr }: Props = Astro.props;
+const {
+  label,
+  averageExpr,
+  deltaExpr,
+  subtextExpr,
+  loadingExpr = "loading",
+}: Props = Astro.props;
 
 // Components
 import CardWrapper from "@components/ui/CardWrapper.astro";
 
 // Data
-const value = `loading || ${averageExpr} === null ? '—' : ${averageExpr}.toFixed(1)`;
-const showDelta = `!loading && ${deltaExpr} !== null`;
-const deltaClass = `${deltaExpr} >= 0 ? 'text-success' : 'text-error'`;
-const deltaText = `${deltaExpr} === null ? '' : (${deltaExpr} >= 0 ? '+' : '') + ${deltaExpr}.toFixed(1) + '%'`;
+const value = `${loadingExpr} || ${averageExpr} === null ? '—' : ${averageExpr}.toFixed(1)`;
+const showDelta = deltaExpr
+  ? `!${loadingExpr} && ${deltaExpr} !== null`
+  : "false";
+const deltaClass = deltaExpr
+  ? `${deltaExpr} >= 0 ? 'text-success' : 'text-error'`
+  : "";
+const deltaText = deltaExpr
+  ? `${deltaExpr} === null ? '' : (${deltaExpr} >= 0 ? '+' : '') + ${deltaExpr}.toFixed(1) + '%'`
+  : "''";
+const showSubtext = subtextExpr
+  ? `!${loadingExpr} && ${subtextExpr} !== null`
+  : "false";
+const subtext = subtextExpr ? `${subtextExpr} ?? ''` : "''";
 ---
 
 <CardWrapper
@@ -35,12 +56,24 @@ const deltaText = `${deltaExpr} === null ? '' : (${deltaExpr} >= 0 ? '+' : '') +
   >
   </span>
   <span class="text-sm text-muted-foreground">{label}</span>
-  <span
-    class="text-xs"
-    x-show={showDelta}
-    x-cloak
-    :class={deltaClass}
-    x-text={deltaText}
-  >
-  </span>
+  {
+    deltaExpr && (
+      <span
+        class="text-xs"
+        x-show={showDelta}
+        x-cloak:class={deltaClass}
+        x-text={deltaText}
+      />
+    )
+  }
+  {
+    subtextExpr && (
+      <span
+        class="text-xs text-muted-foreground"
+        x-show={showSubtext}
+        x-cloak
+        x-text={subtext}
+      />
+    )
+  }
 </CardWrapper>

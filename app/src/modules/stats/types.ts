@@ -142,6 +142,10 @@ export type StatsBucketRow = {
   scoreMax: number;
   minSessionId: string;
   maxSessionId: string;
+  bestAvgSessionId: string | null;
+  bestAvgPoints: number | null;
+  bestAvgDarts: number | null;
+  bestAvgCompletedAt: string | null;
 };
 
 /** A count split by play context (`10-Statistics/00-Overview.md` §8). */
@@ -165,6 +169,19 @@ export type VolumeMetrics = {
   durationSeconds: ContextSplit;
 };
 
+/**
+ * The session with the highest per-session average (`points / darts`) in a
+ * `session-result` slice, as a ratio pair with the session date; `null` when
+ * no session in the slice has darts. The client picks the max ratio across
+ * buckets and slices (a max of maxes is exact), unlike a sum-based average.
+ */
+export type SessionBestAverage = {
+  sessionId: string;
+  points: number;
+  darts: number;
+  completedAt: string;
+};
+
 /** One ruleset version's slice of a `session-result` bucket (D367 decision 3). */
 export type SessionResultRulesetMetrics = {
   sessions: number;
@@ -175,6 +192,7 @@ export type SessionResultRulesetMetrics = {
   countedScoreMax: number;
   bestLowSessionId: string;
   bestHighSessionId: string;
+  bestAverage: SessionBestAverage | null;
 };
 
 /** `session-result` section metrics — one bucket, keyed by `ruleset_version_key`. */

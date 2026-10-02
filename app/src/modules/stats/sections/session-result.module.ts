@@ -1,6 +1,38 @@
 import { isClosed } from "./series.module";
-import type { SessionResultMetrics, StatsBucketRow } from "@modules/types";
+import type {
+  SessionBestAverage,
+  SessionResultMetrics,
+  StatsBucketRow,
+} from "@modules/types";
 import type { SeriesBucket } from "@lib/types";
+
+function bestAverageOf(row: StatsBucketRow): SessionBestAverage | null {
+  if (
+    row.bestAvgSessionId === null ||
+    row.bestAvgPoints === null ||
+    row.bestAvgDarts === null ||
+    row.bestAvgCompletedAt === null ||
+    row.bestAvgDarts === 0
+  ) {
+    return null;
+  }
+  return {
+    sessionId: row.bestAvgSessionId,
+    points: row.bestAvgPoints,
+    darts: row.bestAvgDarts,
+    completedAt: row.bestAvgCompletedAt,
+  };
+}
+
+/** The higher of two per-session averages; a `null` side never wins. */
+function higherAverage(
+  a: SessionBestAverage | null,
+  b: SessionBestAverage | null,
+): SessionBestAverage | null {
+  if (a === null) return b;
+  if (b === null) return a;
+  return b.points / b.darts > a.points / a.darts ? b : a;
+}
 
 /**
  * Folds `findBucketedSessionAggregates` rows into `session-result` buckets,
@@ -8,7 +40,8 @@ import type { SeriesBucket } from "@lib/types";
  * Merging two groups within the same bucket and ruleset version sums the
  * additive components but never averages the extremes: `countedScoreMin`/
  * `Max` and their session ids come from whichever group actually holds
- * that extreme.
+ * that extreme, and `bestAverage` from whichever group's best session has
+ * the higher `points / darts` ratio.
  */
 export function sessionResultBuckets(
   rows: readonly StatsBucketRow[],
@@ -38,6 +71,7 @@ export function sessionResultBuckets(
         countedScoreMax: row.scoreMax,
         bestLowSessionId: row.minSessionId,
         bestHighSessionId: row.maxSessionId,
+        bestAverage: bestAverageOf(row),
       };
     } else {
       existing.sessions += row.sessions;
@@ -52,6 +86,10 @@ export function sessionResultBuckets(
         existing.countedScoreMax = row.scoreMax;
         existing.bestHighSessionId = row.maxSessionId;
       }
+      existing.bestAverage = higherAverage(
+        existing.bestAverage,
+        bestAverageOf(row),
+      );
     }
     buckets.set(row.bucketStart, bucket);
   }

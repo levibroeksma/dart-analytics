@@ -188,6 +188,14 @@ const SessionResultMetrics = z.record(
     countedScoreMax: z.number().int(),
     bestLowSessionId: z.string().uuid(),
     bestHighSessionId: z.string().uuid(),
+    bestAverage: z
+      .object({
+        sessionId: z.string().uuid(),
+        points: z.number().int(),
+        darts: z.number().int(),
+        completedAt: z.string().datetime({ offset: true }),
+      })
+      .nullable(),
   }),
 );
 

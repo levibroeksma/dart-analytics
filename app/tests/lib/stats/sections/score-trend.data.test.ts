@@ -31,6 +31,9 @@ function series(buckets: unknown[]) {
   return { buckets };
 }
 
+const trendCalls = () =>
+  loadGameSection.mock.calls.filter(([, id]) => id === "scoring-trend");
+
 function section() {
   const watchers: Record<string, () => void> = {};
   const page = { rangeKey: "30d" as "30d" | "90d" | "1y" | "all" };
@@ -67,8 +70,8 @@ describe("scoreTrendSection", () => {
     const { s } = section();
     s.init();
     await vi.waitFor(() => expect(s.loading).toBe(false));
-    expect(loadGameSection).toHaveBeenCalledTimes(1);
-    const [game, id, range] = loadGameSection.mock.calls[0];
+    expect(trendCalls()).toHaveLength(1);
+    const [game, id, range] = trendCalls()[0];
     expect(game).toBe("SCORE_TRAINING");
     expect(id).toBe("scoring-trend");
     expect(range.bucket).toBe("day");
@@ -81,8 +84,8 @@ describe("scoreTrendSection", () => {
     await vi.waitFor(() => expect(s.loading).toBe(false));
     page.rangeKey = "90d";
     watchers.rangeKey();
-    await vi.waitFor(() => expect(loadGameSection).toHaveBeenCalledTimes(2));
-    expect(loadGameSection.mock.calls[1][2].bucket).toBe("week");
+    await vi.waitFor(() => expect(trendCalls()).toHaveLength(2));
+    expect(trendCalls()[1][2].bucket).toBe("week");
   });
 
   it("splits current and previous and derives averages and deltas", async () => {
@@ -190,5 +193,96 @@ describe("scoreTrendSection", () => {
     expect(s.averages.threeDart).toBe(60);
     expect(s.bucket).toBe("week");
     expect(s.loading).toBe(false);
+  });
+});
+
+describe("scoreTrendSection personal best", () => {
+  function bySection(trend: unknown[], sessionResult: unknown[]) {
+    loadGameSection.mockImplementation((_game: string, id: string) =>
+      Promise.resolve(series(id === "session-result" ? sessionResult : trend)),
+    );
+  }
+
+  const pbBucket = (
+    sessionId: string,
+    points: number,
+    darts: number,
+    completedAt: string,
+  ) => ({
+    start: "2016-11-01T10:00:00.000Z",
+    end: "2026-10-01T10:01:00.000Z",
+    closed: false,
+    sampleSize: 1,
+    metrics: {
+      SCORE_TRAINING_V1: {
+        sessions: 1,
+        countedScoreSum: points,
+        dartSum: darts,
+        turnSum: darts / 3,
+        countedScoreMin: points,
+        countedScoreMax: points,
+        bestLowSessionId: sessionId,
+        bestHighSessionId: sessionId,
+        bestAverage: { sessionId, points, darts, completedAt },
+      },
+    },
+  });
+
+  it("init fetches session-result once, all time and un-bucketed, beside the trend", async () => {
+    bySection([], []);
+    const { s } = section();
+    s.init();
+    await vi.waitFor(() => expect(s.loading).toBe(false));
+    await vi.waitFor(() => expect(loadGameSection).toHaveBeenCalledTimes(2));
+    const pbCall = loadGameSection.mock.calls.find(
+      ([, id]) => id === "session-result",
+    );
+    expect(pbCall?.[0]).toBe("SCORE_TRAINING");
+    expect(pbCall?.[2].bucket).toBe("none");
+    expect(pbCall?.[2]).not.toHaveProperty("tz");
+  });
+
+  it("does not refetch the personal best when rangeKey changes", async () => {
+    bySection([], []);
+    const { s, watchers, page } = section();
+    s.init();
+    await vi.waitFor(() => expect(loadGameSection).toHaveBeenCalledTimes(2));
+    page.rangeKey = "90d";
+    watchers.rangeKey();
+    await vi.waitFor(() => expect(loadGameSection).toHaveBeenCalledTimes(3));
+    expect(
+      loadGameSection.mock.calls.filter(([, id]) => id === "session-result"),
+    ).toHaveLength(1);
+  });
+
+  it("exposes the best single-session 3-dart average and its date", async () => {
+    bySection([], [pbBucket("s1", 1350, 45, "2026-09-29T23:30:00.000Z")]);
+    const { s } = section();
+    s.tz = "Europe/Amsterdam";
+    await s.loadPersonalBest(NOW);
+    expect(s.personalBestAverage).toBe(90);
+    expect(s.personalBestDate).toBe("30 sept. '26");
+    expect(s.personalBestLoading).toBe(false);
+  });
+
+  it("is empty before any session has darts", async () => {
+    bySection([], []);
+    const { s } = section();
+    await s.loadPersonalBest(NOW);
+    expect(s.personalBestAverage).toBeNull();
+    expect(s.personalBestDate).toBeNull();
+  });
+
+  it("a personal-best failure does not poison the trend", async () => {
+    loadGameSection.mockImplementation((_game: string, id: string) =>
+      id === "session-result"
+        ? Promise.reject(new Error("pb down"))
+        : Promise.resolve(series([])),
+    );
+    const { s } = section();
+    s.init();
+    await vi.waitFor(() => expect(s.personalBestLoading).toBe(false));
+    expect(s.error).toBeNull();
+    expect(s.personalBestAverage).toBeNull();
   });
 });
