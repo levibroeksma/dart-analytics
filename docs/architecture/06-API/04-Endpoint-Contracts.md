@@ -529,7 +529,7 @@ whose headline is not a pure function of these components (D367 decision 3;
 `RESULT_DIRECTION` is `null` for 501, TUOD, 121, Singles Training, Doubles
 Training, Bob's 27 and Around the Clock in phase 1 — issue #615).
 
-`bestAverage` (section version 2, D389, 2026-10-02) is the slice's session with
+`bestAverage` (section version 2, D390, 2026-10-02) is the slice's session with
 the highest `counted_score / dart_count`, picked in SQL under one ordering so
 the id, the `points`/`darts` pair and `completedAt` name the same session;
 `null` when no session in the slice has darts. It is a ratio pair, never a

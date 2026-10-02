@@ -26,7 +26,7 @@ shows the not-found state and sends no request.
 Links (decision 12): every session-list row on a game page, every step
 session row on the Routines tab except a Warm-Up step's (D372), and the
 `session-result` PB line (its `bestLowSessionId`/`bestHighSessionId`;
-`bestAverage.sessionId` is available too but not yet linked, D389). No
+`bestAverage.sessionId` is available too but not yet linked, D390). No
 phase 2–4 metric carries a session id, so no section links yet; a section
 that wants one (best leg, highest checkout) needs a new field first.
 

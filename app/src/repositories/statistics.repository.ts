@@ -1131,7 +1131,7 @@ export async function findBucketFloor(
  * `WHERE` inline rather than through either shared predicate, so it needs
  * its own wiring.
  * The `bestAvg*` columns name the session with the highest per-session
- * average (`counted_score / dart_count`, D389): dartless sessions sort last so
+ * average (`counted_score / dart_count`, D390): dartless sessions sort last so
  * they never win while a session with darts exists, and all four picks share
  * one ordering so the id, the ratio pair and the date name the same session.
  */
