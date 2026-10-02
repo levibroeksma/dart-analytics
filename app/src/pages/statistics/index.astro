@@ -6,6 +6,7 @@ import ErrorAlert from "@components/ui/ErrorAlert.astro";
 import Badge from "@components/ui/Badge.astro";
 import Button from "@components/forms/Button.astro";
 import Toggle from "@components/layout/games/setup/Toggle.astro";
+import ScoreTrainingStatsOverview from "@components/layout/games/statistics/ScoreTrainingStatsOverview.astro";
 import GameSectionCards from "@components/layout/statistics/GameSectionCards.astro";
 import RoutineStepButton from "@components/layout/statistics/RoutineStepButton.astro";
 import { GAME_CARDS } from "@lib/game/rulesets/games-visibility";
@@ -52,77 +53,84 @@ const scope = JSON.stringify({
           model="game"
           ariaLabel="Game"
         />
-        <ErrorAlert
-          showExpr="$store.gameStats.error"
-          textExpr="$store.gameStats.error"
-        />
-        <ErrorAlert
-          showExpr="$store.gameStats.failedSectionsMessage"
-          textExpr="$store.gameStats.failedSectionsMessage"
-        />
-        <div
-          class="space-y-4"
-          x-show="!$store.gameStats.loading"
-          x-cloak
-        >
-          <GameSectionCards
-            view="$store.gameStats"
-            heatmapTargets={true}
-          />
+        <template x-if="game === 'SCORE_TRAINING_V1'">
+          <ScoreTrainingStatsOverview />
+        </template>
+        <template x-if="game !== 'SCORE_TRAINING_V1'">
+          <div class="space-y-4">
+            <ErrorAlert
+              showExpr="$store.gameStats.error"
+              textExpr="$store.gameStats.error"
+            />
+            <ErrorAlert
+              showExpr="$store.gameStats.failedSectionsMessage"
+              textExpr="$store.gameStats.failedSectionsMessage"
+            />
+            <div
+              class="space-y-4"
+              x-show="!$store.gameStats.loading"
+              x-cloak
+            >
+              <GameSectionCards
+                view="$store.gameStats"
+                heatmapTargets={true}
+              />
 
-          <div class="space-y-2">
-            <h2 class="text-sm text-foreground">Sessions</h2>
-            <template
-              x-for="item in $store.gameStats.sessions"
-              :key="item.sessionId"
-            >
-              <a
-                class="flex items-center justify-between gap-2 glass rounded-2xl p-3 text-sm no-underline"
-                :href="$store.gameStats.replayHref(item.sessionId)"
-              >
-                <div class="flex flex-col gap-1">
-                  <span
-                    class="text-foreground"
-                    x-text="new Date(item.completedAt).toLocaleDateString()"
+              <div class="space-y-2">
+                <h2 class="text-sm text-foreground">Sessions</h2>
+                <template
+                  x-for="item in $store.gameStats.sessions"
+                  :key="item.sessionId"
+                >
+                  <a
+                    class="flex items-center justify-between gap-2 glass rounded-2xl p-3 text-sm no-underline"
+                    :href="$store.gameStats.replayHref(item.sessionId)"
                   >
-                  </span>
-                  <span
-                    class="text-xs text-muted-foreground"
-                    x-text="`${item.turnCount} turns · ${item.dartCount} darts · ${item.countedScore} pts`"
-                  >
-                  </span>
-                </div>
-                <div class="flex shrink-0 items-center gap-2">
-                  <Badge
-                    variant="neutral"
-                    class="text-xs"
-                    x-text="item.contextKey"
-                  />
-                  <Badge
-                    class="text-xs"
-                    x-text="item.statusKey"
-                  />
-                </div>
-              </a>
-            </template>
-            <p
-              class="text-sm text-muted-foreground"
-              x-show="!$store.gameStats.sessions.length"
-              x-cloak
-            >
-              No sessions in range.
-            </p>
-            <button
-              type="button"
-              class="btn btn-ghost w-full"
-              x-show="$store.gameStats.nextCursor"
-              x-cloak
-              @click="$store.gameStats.loadMoreSessions()"
-            >
-              Load more
-            </button>
+                    <div class="flex flex-col gap-1">
+                      <span
+                        class="text-foreground"
+                        x-text="new Date(item.completedAt).toLocaleDateString()"
+                      >
+                      </span>
+                      <span
+                        class="text-xs text-muted-foreground"
+                        x-text="`${item.turnCount} turns · ${item.dartCount} darts · ${item.countedScore} pts`"
+                      >
+                      </span>
+                    </div>
+                    <div class="flex shrink-0 items-center gap-2">
+                      <Badge
+                        variant="neutral"
+                        class="text-xs"
+                        x-text="item.contextKey"
+                      />
+                      <Badge
+                        class="text-xs"
+                        x-text="item.statusKey"
+                      />
+                    </div>
+                  </a>
+                </template>
+                <p
+                  class="text-sm text-muted-foreground"
+                  x-show="!$store.gameStats.sessions.length"
+                  x-cloak
+                >
+                  No sessions in range.
+                </p>
+                <button
+                  type="button"
+                  class="btn btn-ghost w-full"
+                  x-show="$store.gameStats.nextCursor"
+                  x-cloak
+                  @click="$store.gameStats.loadMoreSessions()"
+                >
+                  Load more
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        </template>
       </div>
       <div
         class="space-y-4"
