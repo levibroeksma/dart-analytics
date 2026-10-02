@@ -170,3 +170,10 @@ Decision: A game listed in `DEDICATED_STATS_LAYOUTS` renders its own layout on `
 Reason: one store loading every section couples unrelated cards and fetches cards that aren't shown; per-section factories keep fetch, state and failure local and let sections be added one at a time.
 Consequences: the default `/statistics` state fetches only the score-trend section; Score Training has no session list or other cards until they are built as sections. Remounting refetches through the IndexedDB cache. Until the remaining sections are rebuilt, `/statistics` shows a placeholder for every other game and for the Routines tab: the generic cards, `gameStats` loading and `routineStats` activation are unwired from the page, while their stores and components stay in the tree.
 Supersedes: none (refines D379).
+
+### D386 — Statistics period is page-level state, shared by every section
+Status: Accepted · Date: 2026-10-02
+Decision: `/statistics` owns one `rangeKey` in its page `x-data` scope, picked by a "Period" `Select` beside the game `Select` (two half-width columns). Section factories do not own a range: they read the inherited `rangeKey` (`this.$data.rangeKey`) and reload on `$watch("rangeKey")`.
+Reason: the period applies to every card on the page, so per-section pickers would drift apart and repeat the control; the page scope is already the shared parent.
+Consequences: a new section reads the same `rangeKey` and needs no picker. The period persists across game switches. The score-trend section loses its own picker; its previous-period delta logic is unchanged.
+Supersedes: none (refines D385).

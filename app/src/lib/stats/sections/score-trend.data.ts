@@ -1,6 +1,6 @@
 import { loadGameSection } from "@lib/stats/load-game-section";
 import {
-  averageDelta,
+  averageDeltaPercent,
   foldAverages,
   splitPeriods,
   trendChart,
@@ -18,6 +18,8 @@ import type { ChartSpec, ScoringTrendMetrics } from "@modules/types";
 
 type TrendSeriesBucket = SeriesBucket<ScoringTrendMetrics>;
 
+type PageScope = { $data: { rangeKey: TrendRangeKey } };
+
 type WatchesRange = {
   $watch(key: "rangeKey", callback: () => void): void;
   load(): Promise<void>;
@@ -33,13 +35,13 @@ function fetchTrend(window: TrendWindow) {
 
 /**
  * Score Training's score-trend section: fetches `scoring-trend` on mount and
- * on every range change, through the IndexedDB cache, and derives the period
- * averages, deltas and chart (`2026-10-01-score-training-trend-section-design.md`).
+ * on every change of the page-level `rangeKey` it inherits from the statistics
+ * page scope, through the IndexedDB cache, and derives the period averages,
+ * deltas and chart (`2026-10-01-score-training-trend-section-design.md`).
  */
 export function scoreTrendSection() {
   let ticket = 0;
   return {
-    rangeKey: "30d" as TrendRangeKey,
     loading: true,
     error: null as string | null,
     bucket: "day" as TrendBucket,
@@ -47,6 +49,10 @@ export function scoreTrendSection() {
     current: [] as TrendSeriesBucket[],
     previous: [] as TrendSeriesBucket[],
     hasPrevious: false,
+
+    get period(): TrendRangeKey {
+      return (this as unknown as PageScope).$data.rangeKey;
+    },
 
     init(this: WatchesRange) {
       this.$watch("rangeKey", () => void this.load());
@@ -59,7 +65,7 @@ export function scoreTrendSection() {
       this.error = null;
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
       try {
-        let window = trendWindow(this.rangeKey, now, tz);
+        let window = trendWindow(this.period, now, tz);
         let series = await fetchTrend(window);
         const fallback =
           window.bucket === "month"
@@ -92,15 +98,15 @@ export function scoreTrendSection() {
       return this.hasPrevious ? foldAverages(this.previous) : null;
     },
 
-    get threeDartDelta(): number | null {
-      return averageDelta(
+    get threeDartDeltaPercent(): number | null {
+      return averageDeltaPercent(
         this.averages.threeDart,
         this.previousAverages?.threeDart ?? null,
       );
     },
 
-    get firstNineDelta(): number | null {
-      return averageDelta(
+    get firstNineDeltaPercent(): number | null {
+      return averageDeltaPercent(
         this.averages.firstNine,
         this.previousAverages?.firstNine ?? null,
       );

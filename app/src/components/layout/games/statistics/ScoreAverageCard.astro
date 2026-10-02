@@ -1,0 +1,46 @@
+---
+/**
+ * Sky stat card: one average with its percent change against the preceding period.
+ * Reads from the enclosing `scoreTrendSection()` scope.
+ * @param {string} label Card caption
+ * @param {string} averageExpr Alpine expression yielding the average or `null`
+ * @param {string} deltaExpr Alpine expression yielding the percent delta or `null`
+ */
+interface Props {
+  label: string;
+  averageExpr: string;
+  deltaExpr: string;
+}
+
+// Props
+const { label, averageExpr, deltaExpr }: Props = Astro.props;
+
+// Components
+import CardWrapper from "@components/ui/CardWrapper.astro";
+
+// Data
+const value = `loading || ${averageExpr} === null ? '—' : ${averageExpr}.toFixed(1)`;
+const showDelta = `!loading && ${deltaExpr} !== null`;
+const deltaClass = `${deltaExpr} >= 0 ? 'text-success' : 'text-error'`;
+const deltaText = `${deltaExpr} === null ? '' : (${deltaExpr} >= 0 ? '+' : '') + ${deltaExpr}.toFixed(1) + '%'`;
+---
+
+<CardWrapper
+  color="sky"
+  class="gap-1 text-center"
+>
+  <span
+    class="font-mono text-3xl font-bold text-accent"
+    x-text={value}
+  >
+  </span>
+  <span class="text-sm text-muted-foreground">{label}</span>
+  <span
+    class="text-xs"
+    x-show={showDelta}
+    x-cloak
+    :class={deltaClass}
+    x-text={deltaText}
+  >
+  </span>
+</CardWrapper>

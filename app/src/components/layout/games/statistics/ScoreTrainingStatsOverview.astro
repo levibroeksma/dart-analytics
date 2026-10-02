@@ -1,7 +1,23 @@
 ---
+import ScoreAverageCard from "./ScoreAverageCard.astro";
 import ScoreTrendSection from "./ScoreTrendSection.astro";
 ---
 
-<div class="flex flex-col gap-2">
+<div
+  class="flex flex-col gap-2"
+  x-data="scoreTrendSection()"
+>
+  <div class="grid grid-cols-2 gap-2">
+    <ScoreAverageCard
+      label="3-dart average"
+      averageExpr="averages.threeDart"
+      deltaExpr="threeDartDeltaPercent"
+    />
+    <ScoreAverageCard
+      label="First nine"
+      averageExpr="averages.firstNine"
+      deltaExpr="firstNineDeltaPercent"
+    />
+  </div>
   <ScoreTrendSection />
 </div>
