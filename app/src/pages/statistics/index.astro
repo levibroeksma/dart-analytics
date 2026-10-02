@@ -5,6 +5,7 @@ import Select from "@components/forms/Select.astro";
 import Toggle from "@components/layout/games/setup/Toggle.astro";
 import ScoreTrainingStatsOverview from "@components/layout/games/statistics/ScoreTrainingStatsOverview.astro";
 import { GAME_CARDS } from "@lib/game/rulesets/games-visibility";
+import { TREND_RANGE_OPTIONS } from "@lib/stats/sections/score-trend-window";
 
 const tabOptions = [
   { value: "games", label: "Games" },
@@ -17,6 +18,7 @@ const gameOptions = GAME_CARDS.map((game) => ({
 const scope = JSON.stringify({
   tab: "games",
   game: gameOptions[0]?.value ?? "",
+  rangeKey: "30d",
 });
 ---
 
@@ -39,11 +41,18 @@ const scope = JSON.stringify({
         x-show="tab === 'games'"
         x-cloak
       >
-        <Select
-          options={gameOptions}
-          model="game"
-          ariaLabel="Game"
-        />
+        <div class="grid grid-cols-2 gap-2">
+          <Select
+            options={gameOptions}
+            model="game"
+            ariaLabel="Game"
+          />
+          <Select
+            options={TREND_RANGE_OPTIONS}
+            model="rangeKey"
+            ariaLabel="Period"
+          />
+        </div>
         <template x-if="game === 'SCORE_TRAINING_V1'">
           <ScoreTrainingStatsOverview />
         </template>

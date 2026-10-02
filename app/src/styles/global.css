@@ -520,6 +520,8 @@
       0 0 20px 3px color-mix(in oklch, var(--card-tint) 12%, transparent),
       0 0 40px 20px color-mix(in oklch, var(--card-tint) 8%, transparent),
       inset 0 0 0 1px oklch(100% 0 0 / 0.06);
+    backdrop-filter: blur(var(--blur-glass));
+    -webkit-backdrop-filter: blur(var(--blur-glass));
     transition:
       transform 150ms var(--ease-out),
       box-shadow 150ms var(--ease-out);

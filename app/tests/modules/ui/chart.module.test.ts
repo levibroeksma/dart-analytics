@@ -129,25 +129,20 @@ describe("buildConfig line", () => {
     expect(dataset(bars, 0).fill).toBeUndefined();
   });
 
-  it("shows 8px markers up to 12 labels and hides them beyond", () => {
+  it("draws straight lines with no point markers at any length", () => {
     const labels = (n: number) => Array.from({ length: n }, (_, i) => `${i}`);
     const data = (n: number) => Array.from({ length: n }, (_, i) => i);
-    const at12 = buildConfig(
-      spec({
-        labels: labels(12),
-        series: [{ key: "a", label: "A", data: data(12) }],
-      }),
-      theme,
-    );
-    const at13 = buildConfig(
-      spec({
-        labels: labels(13),
-        series: [{ key: "a", label: "A", data: data(13) }],
-      }),
-      theme,
-    );
-    expect(dataset(at12, 0).pointRadius).toBe(4);
-    expect(dataset(at13, 0).pointRadius).toBe(0);
+    for (const n of [2, 12, 13]) {
+      const config = buildConfig(
+        spec({
+          labels: labels(n),
+          series: [{ key: "a", label: "A", data: data(n) }],
+        }),
+        theme,
+      );
+      expect(dataset(config, 0).pointRadius).toBe(0);
+      expect(dataset(config, 0).tension).toBe(0);
+    }
   });
 
   it("keeps a visible marker for a single bucket", () => {

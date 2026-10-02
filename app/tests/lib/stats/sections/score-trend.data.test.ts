@@ -33,12 +33,20 @@ function series(buckets: unknown[]) {
 
 function section() {
   const watchers: Record<string, () => void> = {};
-  const s = Object.assign(scoreTrendSection(), {
+  const page = { rangeKey: "30d" as "30d" | "90d" | "1y" | "all" };
+  const own = scoreTrendSection();
+  const scope = new Proxy(page, {
+    get: (target, key) =>
+      key in own ? Reflect.get(own, key) : target[key as "rangeKey"],
+    set: (target, key, value) => Reflect.set(target, key, value),
+  });
+  const s = Object.assign(own, {
+    $data: scope,
     $watch: (key: "rangeKey", cb: () => void) => {
       watchers[key] = cb;
     },
   });
-  return { s, watchers };
+  return { s, watchers, page };
 }
 
 beforeEach(() => {
@@ -47,9 +55,11 @@ beforeEach(() => {
 });
 
 describe("scoreTrendSection", () => {
-  it("starts on Last 30 Days and loading", () => {
-    const { s } = section();
-    expect(s.rangeKey).toBe("30d");
+  it("starts loading and reads the page period", () => {
+    const { s, page } = section();
+    expect(s.period).toBe("30d");
+    page.rangeKey = "1y";
+    expect(s.period).toBe("1y");
     expect(s.loading).toBe(true);
   });
 
@@ -66,10 +76,10 @@ describe("scoreTrendSection", () => {
   });
 
   it("reloads when rangeKey changes", async () => {
-    const { s, watchers } = section();
+    const { s, watchers, page } = section();
     s.init();
     await vi.waitFor(() => expect(s.loading).toBe(false));
-    s.rangeKey = "90d";
+    page.rangeKey = "90d";
     watchers.rangeKey();
     await vi.waitFor(() => expect(loadGameSection).toHaveBeenCalledTimes(2));
     expect(loadGameSection.mock.calls[1][2].bucket).toBe("week");
@@ -85,14 +95,14 @@ describe("scoreTrendSection", () => {
     const { s } = section();
     await s.load(NOW);
     expect(s.averages).toEqual({ threeDart: 60, firstNine: 60 });
-    expect(s.threeDartDelta).toBe(10);
-    expect(s.firstNineDelta).toBe(10);
+    expect(s.threeDartDeltaPercent).toBeCloseTo(20);
+    expect(s.firstNineDeltaPercent).toBeCloseTo(20);
     expect(s.isEmpty).toBe(false);
   });
 
   it("shows empty state when no data", async () => {
-    const { s } = section();
-    s.rangeKey = "all";
+    const { s, page } = section();
+    page.rangeKey = "all";
     await s.load(NOW);
     expect(loadGameSection).toHaveBeenCalledTimes(1);
     expect(s.isEmpty).toBe(true);
@@ -121,8 +131,8 @@ describe("scoreTrendSection", () => {
           ),
         ]),
       );
-    const { s } = section();
-    s.rangeKey = "all";
+    const { s, page } = section();
+    page.rangeKey = "all";
     await s.load(NOW);
     expect(loadGameSection).toHaveBeenCalledTimes(2);
     expect(loadGameSection.mock.calls[1][2]).toMatchObject({
@@ -131,7 +141,7 @@ describe("scoreTrendSection", () => {
     });
     expect(s.bucket).toBe("week");
     expect(s.hasPrevious).toBe(false);
-    expect(s.threeDartDelta).toBeNull();
+    expect(s.threeDartDeltaPercent).toBeNull();
   });
 
   it("does not refetch for Last 30 Days", async () => {
@@ -167,9 +177,9 @@ describe("scoreTrendSection", () => {
           ),
         ]),
       );
-    const { s } = section();
+    const { s, page } = section();
     const slow = s.load(NOW);
-    s.rangeKey = "90d";
+    page.rangeKey = "90d";
     await s.load(NOW);
     resolveSlow(
       series([

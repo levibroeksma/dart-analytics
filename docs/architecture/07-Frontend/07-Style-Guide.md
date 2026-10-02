@@ -91,7 +91,7 @@ Implement a reusable class contract once in `global.css` (`@utility` / `@layer c
 | `.nav-pill` | Compact nav / filter chips (`NavPill.astro`) |
 | `.gradient-card` | Elevated solid card with soft top light |
 | `.link-card` | Community / outbound link cards |
-| `.card-wrapper` | Tintable tool/extension cards (`--card-tint`, default accent) |
+| `.card-wrapper` | Tintable tool/extension cards (`--card-tint`, default accent); translucent, so blurs its backdrop like `.glass` (2026-10-02) |
 | `@utility glass` / `glass-strong` | Frosted panels — blur, inset highlight, border |
 
 **Dialogs** are component contracts, not CSS class primitives: use `Modal.astro` and `ConfirmDialog.astro`. Panels typically combine `bg-surface-raised` + `glass` + `rounded-lg border border-border`.

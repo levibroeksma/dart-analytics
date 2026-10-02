@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   TREND_RANGE_OPTIONS,
-  averageDelta,
+  averageDeltaPercent,
   bucketLabel,
   foldAverages,
   splitPeriods,
@@ -176,15 +176,19 @@ describe("foldAverages", () => {
   });
 });
 
-describe("averageDelta", () => {
-  it("is current minus previous", () => {
-    expect(averageDelta(52.4, 50)).toBeCloseTo(2.4);
-    expect(averageDelta(48, 50)).toBe(-2);
+describe("averageDeltaPercent", () => {
+  it("is the change relative to previous, in percent", () => {
+    expect(averageDeltaPercent(52.5, 50)).toBeCloseTo(5);
+    expect(averageDeltaPercent(40, 50)).toBeCloseTo(-20);
+  });
+
+  it("is null when previous is zero", () => {
+    expect(averageDeltaPercent(10, 0)).toBeNull();
   });
 
   it("is null when either side is null", () => {
-    expect(averageDelta(null, 50)).toBeNull();
-    expect(averageDelta(50, null)).toBeNull();
+    expect(averageDeltaPercent(null, 50)).toBeNull();
+    expect(averageDeltaPercent(50, null)).toBeNull();
   });
 });
 

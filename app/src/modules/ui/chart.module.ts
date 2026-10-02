@@ -11,7 +11,6 @@ import type {
   TintName,
 } from "./types";
 
-const SPARSE_POINT_LIMIT = 12;
 const ANIMATION_MS = 240;
 const AREA_ALPHA = 0.18;
 const FONT_SIZE = 11;
@@ -56,12 +55,13 @@ function seriesColorNames(
 }
 
 /**
- * Line chart dataset configuration.
+ * Line chart dataset configuration: straight segments, no point markers
+ * except for a lone point, which would otherwise draw nothing.
  */
 function lineDataset(
   series: ChartSeries,
   color: string,
-  sparse: boolean,
+  lone: boolean,
   area: boolean,
   theme: ChartTheme,
 ) {
@@ -72,9 +72,9 @@ function lineDataset(
     backgroundColor: area ? withAlpha(color, AREA_ALPHA) : color,
     fill: area,
     borderWidth: 2,
-    tension: 0.3,
+    tension: 0,
     spanGaps: false,
-    pointRadius: sparse ? 4 : 0,
+    pointRadius: lone ? 4 : 0,
     pointHoverRadius: 5,
     pointBackgroundColor: color,
     pointBorderColor: theme.surface,
@@ -108,12 +108,12 @@ export function buildConfig(
 ): ChartConfiguration {
   const names = seriesColorNames(spec, theme.order);
   const format = spec.format ?? defaultFormat;
-  const sparse = spec.labels.length <= SPARSE_POINT_LIMIT;
+  const lone = spec.labels.length === 1;
   const area = spec.kind === "line";
   const datasets = spec.series.map((series, index) => {
     const color = theme.palette[names[index]];
     return spec.kind === "line"
-      ? lineDataset(series, color, sparse, area, theme)
+      ? lineDataset(series, color, lone, area, theme)
       : barDataset(series, color, theme);
   });
   const tick = {

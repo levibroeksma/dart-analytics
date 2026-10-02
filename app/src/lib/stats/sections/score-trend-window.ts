@@ -161,11 +161,13 @@ export function foldAverages(
   };
 }
 
-export function averageDelta(
+/** Change from `previous` to `current` as a percent of `previous`; `null` when either is missing or `previous` is zero. */
+export function averageDeltaPercent(
   current: number | null,
   previous: number | null,
 ): number | null {
-  return current === null || previous === null ? null : current - previous;
+  if (current === null || previous === null || previous === 0) return null;
+  return ((current - previous) / previous) * 100;
 }
 
 function isoWeek(year: number, month: number, day: number): number {
