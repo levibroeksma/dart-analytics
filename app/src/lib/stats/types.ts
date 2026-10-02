@@ -334,3 +334,12 @@ export type ReplayCurveRow = {
   seat: string;
   points: readonly ReplayCurvePoint[];
 };
+
+/** The range part of a game section request; `target` only for `heatmap`. */
+export type GameSectionRange = {
+  from: string;
+  to: string;
+  bucket: Bucket;
+  tz?: string;
+  target?: string;
+};

@@ -6,6 +6,7 @@ import {
   sectionsForGame,
 } from "@lib/stats/section-registry";
 import { MIN_TARGET_SAMPLE } from "@lib/stats/constants";
+import { CACHE_PLAYER_ID, loadGameSection } from "@lib/stats/load-game-section";
 import {
   formatTargetKey,
   parseTargetKey,
@@ -56,15 +57,6 @@ import type {
   TargetKey,
 } from "@lib/types";
 import type { CachedSeries } from "@client/types";
-
-/**
- * A synthetic, browser-scoped player identity for the IndexedDB cache's
- * keys. The client never learns its own DB `player_id` — every request is
- * scoped server-side to `auth.playerId` — and the cache is wiped wholesale
- * on sign-out (`auth.store.ts`), so a constant key is safe: it never needs
- * to distinguish accounts sharing a browser.
- */
-const CACHE_PLAYER_ID = "me";
 
 type SectionView = CachedSeries<unknown> | null;
 
@@ -288,17 +280,7 @@ export function gameStatsStore() {
           if (id === "checkout-path")
             return this.fetchCheckoutPath(gameTypeKey);
           const range = sectionRange(SECTIONS[id], this.range);
-          return readSection<unknown>(
-            CACHE_PLAYER_ID,
-            { key: gameScopeKey(gameTypeKey), gameTypeKey },
-            SECTIONS[id],
-            { ...query, ...range, tz: range.tz },
-            (span) =>
-              fetchGameSection(gameTypeKey, id, {
-                ...range,
-                ...span,
-              }) as Promise<CachedSeries<unknown>>,
-          );
+          return loadGameSection<unknown>(gameTypeKey, id, range);
         }),
       );
       const sections: Partial<Record<SectionId, SectionView>> = {};
@@ -367,23 +349,10 @@ export function gameStatsStore() {
       const gameTypeKey = this.gameTypeKey;
       const target = this.heatmapTarget ?? undefined;
       const range = sectionRange(SECTIONS.heatmap, this.range);
-      const query = {
-        ...range,
-        context: "all" as const,
-        inputMode: "VISUAL_BOARD",
-        target,
-      };
-      const result = await readSection<HeatmapMetrics>(
-        CACHE_PLAYER_ID,
-        { key: gameScopeKey(gameTypeKey), gameTypeKey },
-        SECTIONS.heatmap,
-        query,
-        (span) =>
-          fetchGameSection(gameTypeKey, "heatmap", {
-            ...range,
-            ...span,
-            target,
-          }) as Promise<CachedSeries<HeatmapMetrics>>,
+      const result = await loadGameSection<HeatmapMetrics>(
+        gameTypeKey,
+        "heatmap",
+        { ...range, target },
       );
       this.sections = { ...this.sections, heatmap: result };
     },

@@ -340,6 +340,27 @@ describe("gameStatsStore", () => {
     expect(store.heatmapTarget).toBe("DOUBLE:16");
   });
 
+  it("passes the heatmap target in the cache query and the section fetch", async () => {
+    const store = gameStatsStore();
+    store.gameTypeKey = "DOUBLES_TRAINING";
+    readSection.mockClear();
+
+    await store.selectHeatmapTarget("DOUBLE:16");
+
+    const [, , , query, fetcher] = readSection.mock.calls[0];
+    expect(query).toMatchObject({
+      target: "DOUBLE:16",
+      context: "all",
+      inputMode: "VISUAL_BOARD",
+    });
+    fetcher({ from: query.from, to: query.to });
+    expect(fetchGameSection).toHaveBeenCalledWith(
+      "DOUBLES_TRAINING",
+      "heatmap",
+      expect.objectContaining({ target: "DOUBLE:16" }),
+    );
+  });
+
   it("missRose returns 8 entries", async () => {
     const store = gameStatsStore();
     expect(store.missRose("DOUBLE:16")).toHaveLength(8);
