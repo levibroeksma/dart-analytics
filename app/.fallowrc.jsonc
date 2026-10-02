@@ -11,6 +11,11 @@
     // services/ area-root types.ts barrel (type-raising convention, docs/architecture/06-API/03-Shared-Conventions.md);
     // kept reachable even though nothing currently imports @services/types directly.
     "src/services/types.ts",
+    // Generic statistics cards, temporarily unwired from /statistics while Score Training's dedicated layout is built (D385);
+    // kept reachable until they are rewired or removed.
+    "src/components/layout/statistics/GameSectionCards.astro",
+    "src/components/layout/statistics/RoutineStepButton.astro",
+    "src/components/ui/StatsHeatmap.astro",
     "vitest.config.ts",
     "vitest.integration.config.ts",
     "tests/integration/**/*.itest.ts",
