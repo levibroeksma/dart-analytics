@@ -2,12 +2,8 @@
 export const prerender = true;
 import AppLayout from "@layouts/AppLayout.astro";
 import Select from "@components/forms/Select.astro";
-import ErrorAlert from "@components/ui/ErrorAlert.astro";
-import Badge from "@components/ui/Badge.astro";
-import Button from "@components/forms/Button.astro";
 import Toggle from "@components/layout/games/setup/Toggle.astro";
-import GameSectionCards from "@components/layout/statistics/GameSectionCards.astro";
-import RoutineStepButton from "@components/layout/statistics/RoutineStepButton.astro";
+import ScoreTrainingStatsOverview from "@components/layout/games/statistics/ScoreTrainingStatsOverview.astro";
 import { GAME_CARDS } from "@lib/game/rulesets/games-visibility";
 
 const tabOptions = [
@@ -21,9 +17,6 @@ const gameOptions = GAME_CARDS.map((game) => ({
 const scope = JSON.stringify({
   tab: "games",
   game: gameOptions[0]?.value ?? "",
-  titles: Object.fromEntries(
-    gameOptions.map((option) => [option.value, option.label]),
-  ),
 });
 ---
 
@@ -45,380 +38,28 @@ const scope = JSON.stringify({
         class="space-y-4"
         x-show="tab === 'games'"
         x-cloak
-        x-effect="tab === 'games' && $store.gameStats.selectGame(game)"
       >
         <Select
           options={gameOptions}
           model="game"
           ariaLabel="Game"
         />
-        <ErrorAlert
-          showExpr="$store.gameStats.error"
-          textExpr="$store.gameStats.error"
-        />
-        <ErrorAlert
-          showExpr="$store.gameStats.failedSectionsMessage"
-          textExpr="$store.gameStats.failedSectionsMessage"
-        />
-        <div
-          class="space-y-4"
-          x-show="!$store.gameStats.loading"
-          x-cloak
-        >
-          <GameSectionCards
-            view="$store.gameStats"
-            heatmapTargets={true}
-          />
-
-          <div class="space-y-2">
-            <h2 class="text-sm text-foreground">Sessions</h2>
-            <template
-              x-for="item in $store.gameStats.sessions"
-              :key="item.sessionId"
-            >
-              <a
-                class="flex items-center justify-between gap-2 glass rounded-2xl p-3 text-sm no-underline"
-                :href="$store.gameStats.replayHref(item.sessionId)"
-              >
-                <div class="flex flex-col gap-1">
-                  <span
-                    class="text-foreground"
-                    x-text="new Date(item.completedAt).toLocaleDateString()"
-                  >
-                  </span>
-                  <span
-                    class="text-xs text-muted-foreground"
-                    x-text="`${item.turnCount} turns · ${item.dartCount} darts · ${item.countedScore} pts`"
-                  >
-                  </span>
-                </div>
-                <div class="flex shrink-0 items-center gap-2">
-                  <Badge
-                    variant="neutral"
-                    class="text-xs"
-                    x-text="item.contextKey"
-                  />
-                  <Badge
-                    class="text-xs"
-                    x-text="item.statusKey"
-                  />
-                </div>
-              </a>
-            </template>
-            <p
-              class="text-sm text-muted-foreground"
-              x-show="!$store.gameStats.sessions.length"
-              x-cloak
-            >
-              No sessions in range.
-            </p>
-            <button
-              type="button"
-              class="btn btn-ghost w-full"
-              x-show="$store.gameStats.nextCursor"
-              x-cloak
-              @click="$store.gameStats.loadMoreSessions()"
-            >
-              Load more
-            </button>
-          </div>
-        </div>
+        <template x-if="game === 'SCORE_TRAINING_V1'">
+          <ScoreTrainingStatsOverview />
+        </template>
+        <template x-if="game !== 'SCORE_TRAINING_V1'">
+          <p class="glass rounded-2xl p-4 text-sm text-muted-foreground">
+            Statistics for this game are being rebuilt.
+          </p>
+        </template>
       </div>
-      <div
-        class="space-y-4"
-        x-data="statisticsRoutines()"
+      <p
+        class="glass rounded-2xl p-4 text-sm text-muted-foreground"
         x-show="tab === 'routines'"
         x-cloak
-        x-effect="tab === 'routines' && $store.routineStats.activate()"
       >
-        <div
-          x-show="$store.routineStats.routines.length"
-          x-cloak
-        >
-          <Select
-            optionsExpr="routineOptions()"
-            model="routine"
-            ariaLabel="Routine"
-          />
-        </div>
-        <ErrorAlert
-          showExpr="$store.routineStats.error"
-          textExpr="$store.routineStats.error"
-        />
-        <p
-          class="text-sm text-muted-foreground"
-          x-show="!$store.routineStats.loading && !$store.routineStats.error && !$store.routineStats.routines.length"
-          x-cloak
-        >
-          No routines trained yet.
-        </p>
-        <div
-          class="space-y-4"
-          x-show="$store.routineStats.header"
-          x-cloak
-        >
-          <div class="glass space-y-2 rounded-2xl p-4">
-            <h2 class="text-sm text-foreground">Runs</h2>
-            <div
-              class="grid grid-cols-3 gap-2 text-center text-sm text-muted-foreground"
-            >
-              <div>
-                <span
-                  class="block text-lg text-foreground"
-                  x-text="$store.routineStats.routineVolumeTotals?.runs ?? 0"
-                >
-                </span>
-                Runs
-              </div>
-              <div>
-                <span
-                  class="block text-lg text-foreground"
-                  x-text="$store.routineStats.routineVolumeTotals?.minutes ?? 0"
-                >
-                </span>
-                Minutes
-              </div>
-              <div>
-                <span
-                  class="block text-lg text-foreground"
-                  x-text="$store.routineStats.routineVolumeTotals?.darts ?? 0"
-                >
-                </span>
-                Darts
-              </div>
-            </div>
-            <p
-              class="text-xs text-muted-foreground"
-              x-show="($store.routineStats.routineVolumeTotals?.shortestMinutes ?? null) !== null"
-              x-cloak
-              x-text="`Shortest ${$store.routineStats.routineVolumeTotals?.shortestMinutes} min · longest ${$store.routineStats.routineVolumeTotals?.longestMinutes} min`"
-            >
-            </p>
-          </div>
-
-          <div class="glass space-y-2 rounded-2xl p-4">
-            <h2 class="text-sm text-foreground">Completion</h2>
-            <div
-              class="grid grid-cols-3 gap-2 text-center text-sm text-muted-foreground"
-            >
-              <div>
-                <span
-                  class="block text-lg text-foreground"
-                  x-text="$store.routineStats.routineCompletionTotals?.completed ?? 0"
-                >
-                </span>
-                Completed
-              </div>
-              <div>
-                <span
-                  class="block text-lg text-foreground"
-                  x-text="$store.routineStats.routineCompletionTotals?.abandoned ?? 0"
-                >
-                </span>
-                Abandoned
-              </div>
-              <div>
-                <span
-                  class="block text-lg text-foreground"
-                  x-text="$store.routineStats.routineCompletionTotals?.neverStarted ?? 0"
-                >
-                </span>
-                Never started
-              </div>
-            </div>
-            <template
-              x-for="row in $store.routineStats.abandonPoints"
-              :key="row.steps"
-            >
-              <div class="flex items-center justify-between gap-2 text-sm">
-                <span
-                  class="text-muted-foreground"
-                  x-text="`Abandoned after ${row.steps} ${row.steps === 1 ? 'step' : 'steps'}`"
-                >
-                </span>
-                <span
-                  class="text-foreground"
-                  x-text="row.runs"
-                >
-                </span>
-              </div>
-            </template>
-          </div>
-          <div class="space-y-2">
-            <h2 class="text-sm text-foreground">Steps</h2>
-            <template
-              x-for="step in $store.routineStats.currentSteps"
-              :key="step.stepKey"
-            >
-              <RoutineStepButton />
-            </template>
-            <Button
-              variant="ghost"
-              loadingExpr="false"
-              class="w-full justify-between font-normal"
-              x-show="$store.routineStats.earlierSteps.length"
-              x-cloak
-              :aria-expanded="$store.routineStats.showEarlierSteps"
-              @click="$store.routineStats.showEarlierSteps = !$store.routineStats.showEarlierSteps"
-            >
-              <span
-                slot="iconBefore"
-                x-text="`Earlier versions (${$store.routineStats.earlierSteps.length})`"
-              >
-              </span>
-            </Button>
-            <template
-              x-for="step in $store.routineStats.shownEarlierSteps"
-              :key="step.stepKey"
-            >
-              <RoutineStepButton />
-            </template>
-          </div>
-          <template x-if="$store.routineStats.stepKind === 'game'">
-            <GameSectionCards view="$store.routineStats.stepGame" />
-          </template>
-
-          <div
-            class="glass space-y-2 rounded-2xl p-4"
-            x-show="$store.routineStats.stepHeadline"
-            x-cloak
-          >
-            <h2 class="text-sm text-foreground">Step result</h2>
-            <div
-              class="grid grid-cols-2 gap-2 text-center text-sm text-muted-foreground"
-            >
-              <div>
-                <span
-                  class="block text-lg text-foreground"
-                  x-text="$store.routineStats.stepHeadline?.total ?? 0"
-                >
-                </span>
-                <span
-                  x-text="$store.routineStats.metricLabel($store.routineStats.stepHeadline?.key ?? '')"
-                >
-                </span>
-              </div>
-              <div>
-                <span
-                  class="block text-lg text-foreground"
-                  x-text="$store.routineStats.stepHeadline?.personalBest ?? '–'"
-                >
-                </span>
-                Best session
-              </div>
-            </div>
-            <template
-              x-for="row in $store.routineStats.stepRates"
-              :key="`${row.numerator}/${row.denominator}`"
-            >
-              <div class="flex items-center justify-between gap-2 text-sm">
-                <span
-                  class="text-muted-foreground"
-                  x-text="`${$store.routineStats.metricLabel(row.numerator)} / ${$store.routineStats.metricLabel(row.denominator)}`"
-                >
-                </span>
-                <span
-                  class="text-foreground"
-                  x-text="row.rate === null ? 'no data yet' : `${Math.round(row.rate * 100)}%`"
-                >
-                </span>
-              </div>
-            </template>
-            <p
-              class="text-xs text-muted-foreground"
-              x-show="($store.routineStats.stepResultTotals?.skippedSessions ?? 0) > 0"
-              x-cloak
-              x-text="`${$store.routineStats.stepResultTotals?.skippedSessions} sessions could not be replayed`"
-            >
-            </p>
-          </div>
-
-          <div
-            class="glass space-y-2 rounded-2xl p-4"
-            x-show="$store.routineStats.stepVolumeTotals"
-            x-cloak
-          >
-            <h2 class="text-sm text-foreground">Volume</h2>
-            <div
-              class="grid grid-cols-3 gap-2 text-center text-sm text-muted-foreground"
-            >
-              <div>
-                <span
-                  class="block text-lg text-foreground"
-                  x-text="$store.routineStats.stepVolumeTotals?.sessions ?? 0"
-                >
-                </span>
-                Sessions
-              </div>
-              <div>
-                <span
-                  class="block text-lg text-foreground"
-                  x-text="$store.routineStats.stepVolumeTotals?.darts ?? 0"
-                >
-                </span>
-                Darts
-              </div>
-              <div>
-                <span
-                  class="block text-lg text-foreground"
-                  x-text="$store.routineStats.stepVolumeTotals?.minutes ?? 0"
-                >
-                </span>
-                Minutes
-              </div>
-            </div>
-          </div>
-          <div
-            class="space-y-2"
-            x-show="$store.routineStats.stepKey"
-            x-cloak
-          >
-            <h2 class="text-sm text-foreground">Sessions</h2>
-            <template
-              x-for="item in $store.routineStats.stepSessions"
-              :key="item.sessionId"
-            >
-              <a
-                class="flex items-center justify-between gap-2 glass rounded-2xl p-3 text-sm no-underline"
-                :href="$store.routineStats.sessionHref(item.sessionId)"
-              >
-                <div class="flex flex-col gap-1">
-                  <span
-                    class="text-foreground"
-                    x-text="new Date(item.completedAt).toLocaleDateString()"
-                  >
-                  </span>
-                  <span
-                    class="text-xs text-muted-foreground"
-                    x-text="`${Math.round(item.durationSeconds / 60)} min · ${item.dartCount} darts`"
-                  >
-                  </span>
-                </div>
-                <Badge
-                  class="shrink-0 text-xs"
-                  x-text="item.statusKey"
-                />
-              </a>
-            </template>
-            <p
-              class="text-sm text-muted-foreground"
-              x-show="!$store.routineStats.stepSessions.length"
-              x-cloak
-            >
-              No sessions in range.
-            </p>
-            <Button
-              variant="ghost"
-              loadingExpr="false"
-              title="Load more"
-              class="w-full"
-              x-show="$store.routineStats.nextCursor"
-              x-cloak
-              @click="$store.routineStats.loadMoreStepSessions()"
-            />
-          </div>
-        </div>
-      </div>
+        Routine statistics are being rebuilt.
+      </p>
     </div>
   </div>
 </AppLayout>

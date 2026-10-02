@@ -39,7 +39,7 @@ Sections are reusable across games; a page picks them by capability tag
 | `loose-darts` | `board` + `intent-*` (stored: sql; derived: server) | sql (stored) / server (derived) | SQL counts intended × hit cells; TS classifies each aggregated cell with board geometry, so geometry stays single-sourced (D368) | yes | loose-dart rate per target and its trend |
 | `target-accuracy` | `intent-*` | sql (stored) / server (derived) | hit counts per target and ring | yes | hit rate per target/ring; strongest and weakest targets |
 | `confusion` | `intent-*` | sql (stored) / server (derived) | intended × hit counts | no | where aims at a target actually land (e.g. D16 → D8/D7) |
-| `scoring-trend` | `scoring` | sql | sums and counts per bucket; first-nine is a turn-sequence filter; score bands are exclusive bins, not cumulative thresholds (D369) | yes | 3-dart average, first-nine average, score bands (100+/140+/180) |
+| `scoring-trend` | `scoring` | sql | sums and counts per bucket; first-nine is the owner's first three visits per `LEG` or `EXERCISE_BLOCK` stage (section version 2, D385); score bands are exclusive bins, not cumulative thresholds (D369) | yes | 3-dart average, first-nine average, score bands (100+/140+/180) |
 | `treble-rate` | `scoring` + `board` | sql | ring counts inside the scoring beds; counted per landed segment, not per aimed target — X01 and Score Training store no intent (D369) | yes | treble share of darts thrown at the scoring beds |
 | `checkout-rate` | `checkout` | server | remaining score is a ladder fold (`checkout-visits.module.ts`); a chance is counted per visit, not per dart (D369) | yes | checkout % overall and by remaining-score band |
 | `double-performance` | `checkout` | server | double attempts need remaining-before-dart (`double-attempt.module.ts`); counted per dart, keyed per double the remaining requires (D369) | yes | darts at double, hit rate per double, **favorite double** (best rate above a minimum sample) |
@@ -157,6 +157,8 @@ replay route (`02-Replay.md`).
 | **Bob's 27** | target-accuracy (per double), `bobs27-survival`, confusion, grouping, miss-direction, loose-darts, heatmap, session-result, completion, volume |
 | **Shanghai** | target-accuracy (per number and ring), `shanghai-count`, points-per-round via session-result, confusion, miss-direction, loose-darts, heatmap, completion, volume |
 | **Around the Clock** | `atc-darts-per-target`, target-accuracy, confusion, miss-direction, loose-darts, heatmap, session-result, completion, volume |
+
+Score Training renders a dedicated layout on `/statistics` (`ScoreTrainingStatsOverview.astro`) instead of the generic cards: an ordered list of self-fetching section components. Built so far: `scoring-trend` as the score-trend section (range picker Last 30 Days / Last 90 Days / Last Year / All Time; period 3-dart and first-nine averages with delta vs the preceding equal period; no band counts). First nine is the owner's first three visits of each `LEG` or `EXERCISE_BLOCK` stage. The remaining listed sections are not yet rendered for Score Training (D385). Temporarily, every other game and the Routines tab show a placeholder on `/statistics` (D385).
 
 X01 and Score Training carry no `grouping`/`miss-direction`/`loose-darts`: they
 store no intent (`00-Overview.md` §3). Singles Training, Shanghai and Around

@@ -267,7 +267,12 @@ Registered for discoverability — the design lives in `10-Statistics/00-Overvie
 | ---- | ------- | ------ |
 | `app/src/lib/stats/section-registry.ts` | `SECTIONS`, `sectionsForGame()`, `isSectionId()`, `tagsForGameType()`, `RESULT_DIRECTION` per game type — the section registry in catalog order | canonical |
 | `app/src/lib/stats/target-key.ts` | `formatTargetKey()`/`parseTargetKey()` — the `<ZONE_KEY>:<number>` `TargetKey` codec every intent-cell metric is keyed by (D368 decision 5) | canonical |
-| `app/src/lib/stats/constants.ts` | `MIN_TARGET_SAMPLE` — the minimum attempt count before a target's rate is shown | canonical |
+| `app/src/lib/stats/constants.ts` | `MIN_TARGET_SAMPLE` — the minimum attempt count before a target's rate is shown; `DEDICATED_STATS_LAYOUTS` — ruleset versions rendered by a dedicated section layout, skipped by `gameStats.selectGame` (D385, 2026-10-02) | canonical |
+| `app/src/lib/stats/load-game-section.ts` | `loadGameSection()` and `CACHE_PLAYER_ID` — one game section read through the IndexedDB cache; shared by `gameStats` and the dedicated-layout sections (D385, 2026-10-02) | canonical |
+| `app/src/lib/stats/sections/score-trend-window.ts` | Pure score-trend range math: `trendWindow()`, `weekFallbackWindow()`, `splitPeriods()`, `foldAverages()`, `averageDelta()`, `bucketLabel()`, `trendChart()` (D385, 2026-10-02) | canonical |
+| `app/src/lib/stats/sections/score-trend.data.ts` | `scoreTrendSection()` Alpine factory: fetches `scoring-trend` on mount and on range change, derives averages, deltas and chart (D385, 2026-10-02) | canonical |
+| `app/src/components/layout/games/statistics/ScoreTrainingStatsOverview.astro` | Score Training's dedicated `/statistics` layout: the ordered list of self-fetching section components (D385, 2026-10-02) | canonical |
+| `app/src/components/layout/games/statistics/ScoreTrendSection.astro` | Score Training's score-trend section: range picker, 3-dart and first-nine averages with deltas, trend chart (D385, 2026-10-02) | canonical |
 | `app/src/modules/stats/sections/series.module.ts` | Shared pure helpers: `isClosed()`, the session-list cursor codec, the `dataVersion` codec | canonical |
 | `app/src/modules/stats/sections/completion.module.ts`, `volume.module.ts`, `session-result.module.ts` | Pure row → bucket folds for the three phase-1 sections | canonical |
 | `app/src/modules/stats/sections/intent-cells.module.ts` | `intendedKey()`/`hitKey()`/`isHit()` — the shared intended×hit key/parity helpers `target-accuracy`, `confusion` and `loose-darts` fold over (D368 decision 2) | canonical |

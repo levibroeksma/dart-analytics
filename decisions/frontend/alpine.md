@@ -163,3 +163,10 @@ Decision: `RoutineStepRow.astro`'s grip becomes a focusable `IconBtn` that keeps
 Reason: D351 left pointer drag as the only reorder affordance, stranding keyboard and screen-reader users on a meaningful order (D337's own argument). Restoring the move-button pair would undo D351's layout gain; a keyboard handler on the existing handle is additive.
 Consequences: drag reorders are announced too. The key handler refocuses after `$nextTick` because the keyed row is moved in the DOM. No new dependency; `.astro` markup is untested (D101), coverage is `routine-builder.data.test.ts` on `nudgeStep` and `moveAnnouncement`.
 Supersedes: none.
+
+### D385 — Dedicated statistics layouts: one self-fetching Alpine factory per section
+Status: Accepted · Date: 2026-10-02
+Decision: A game listed in `DEDICATED_STATS_LAYOUTS` renders its own layout on `/statistics`, mounted by `x-if` only while selected; `gameStats.selectGame` returns without fetching for it. Each section is its own component with its own `*.data.ts` factory that fetches in `init()` and on its own range change through the shared cached `loadGameSection`. Score Training is first, with the score-trend section.
+Reason: one store loading every section couples unrelated cards and fetches cards that aren't shown; per-section factories keep fetch, state and failure local and let sections be added one at a time.
+Consequences: the default `/statistics` state fetches only the score-trend section; Score Training has no session list or other cards until they are built as sections. Remounting refetches through the IndexedDB cache. Until the remaining sections are rebuilt, `/statistics` shows a placeholder for every other game and for the Routines tab: the generic cards, `gameStats` loading and `routineStats` activation are unwired from the page, while their stores and components stay in the tree.
+Supersedes: none (refines D379).

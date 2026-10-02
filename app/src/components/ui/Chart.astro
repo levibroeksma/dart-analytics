@@ -9,6 +9,7 @@
  * @param {string} [formatter] `CHART_FORMATTERS` key for axis, tooltip and table values
  * @param {string} [heightClass] Height of the canvas box
  * @param {boolean} [flat] Drop the glass wrapper, for a chart already inside a glass card
+ * @param {boolean} [table] Show the "Table view" disclosure (default true); `false` hides it and the fallback it provides
  * @param {string} [class] Extra wrapper classes
  */
 interface Props {
@@ -17,6 +18,7 @@ interface Props {
   formatter?: "plain" | "integer" | "one-decimal" | "percent";
   heightClass?: string;
   flat?: boolean;
+  table?: boolean;
   class?: string;
   [key: string]: unknown;
 }
@@ -28,6 +30,7 @@ const {
   formatter = "plain",
   heightClass = "h-48",
   flat = false,
+  table = true,
   class: classNameProp,
   ...props
 }: Props = Astro.props;
@@ -64,7 +67,7 @@ const boxClass = cn("relative", heightClass);
     </canvas>
   </div>
   <ul
-    class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground"
+    class="flex flex-wrap justify-center gap-x-3 gap-y-1 text-xs text-muted-foreground"
     x-show="spec && spec.series.length >= 2"
     x-cloak
   >
@@ -82,7 +85,10 @@ const boxClass = cn("relative", heightClass);
       </li>
     </template>
   </ul>
-  <details class="text-xs text-muted-foreground">
+  <details
+    class="text-xs text-muted-foreground"
+    hidden={!table}
+  >
     <summary class="cursor-pointer">Table view</summary>
     <table class="mt-2 w-full text-left">
       <thead>

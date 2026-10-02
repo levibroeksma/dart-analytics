@@ -70,7 +70,7 @@ const wrapperClass = cn("relative h-12", classNameProp);
   @keydown.escape.window="open = false"
 >
   <div
-    class="glass group absolute inset-x-0 top-0 z-40 overflow-hidden rounded-3xl"
+    class="glass group absolute inset-x-0 top-0 z-40 overflow-hidden rounded-3xl data-open:z-50"
     :data-open="open"
   >
     <Button

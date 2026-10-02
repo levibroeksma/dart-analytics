@@ -34,7 +34,7 @@ const DERIVED_ON_SERVER: Partial<Record<StatsTag, ComputeSite>> = {
 export const SECTIONS: Readonly<Record<SectionId, SectionMeta>> = {
   "scoring-trend": {
     id: "scoring-trend",
-    version: 1,
+    version: 2,
     requires: ["scoring"],
     computeSite: "sql",
     bucketable: true,

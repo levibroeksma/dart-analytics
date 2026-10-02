@@ -309,6 +309,8 @@ behind one module; Alpine stores read through it.
 - Every read and write is wrapped so a blocked or empty IndexedDB (private mode,
   quota) degrades to network-only, never to an error.
 
+**Dedicated layouts.** A game in `DEDICATED_STATS_LAYOUTS` (`lib/stats/constants.ts`) is not loaded by the `gameStats` store. Its layout is mounted with `x-if` only while selected, and each section's own Alpine factory (`lib/stats/sections/*.data.ts`) fetches in `init()` through `loadGameSection` (`lib/stats/load-game-section.ts`), which is the same cached read path the store uses. A section owns its range, loading and error state, so a failure stays in its card (D385).
+
 ---
 
 # 8. Play Context

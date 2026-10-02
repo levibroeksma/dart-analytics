@@ -116,34 +116,17 @@ describe("buildConfig line", () => {
     expect(line.data).toEqual([1, null, 3]);
   });
 
-  it("fills an area under a single series only", () => {
-    const one = buildConfig(spec(), theme);
+  it("fills under every line series with its own line color at a fixed opacity", () => {
     const two = buildConfig(spec({ series: seriesOf(2) }), theme);
-    expect(dataset(one, 0).fill).toBe(true);
-    expect(typeof dataset(one, 0).backgroundColor).toBe("function");
-    expect(dataset(two, 0).fill).toBe(false);
-    expect(dataset(two, 0).backgroundColor).toBe(theme.palette.sky);
+    expect(dataset(two, 0).fill).toBe(true);
+    expect(dataset(two, 0).backgroundColor).toBe("rgba(58, 155, 216, 0.18)");
+    expect(dataset(two, 1).fill).toBe(true);
+    expect(dataset(two, 1).backgroundColor).toBe("rgba(217, 89, 38, 0.18)");
   });
 
-  it("paints the area as a fading gradient, or a flat wash before layout", () => {
-    const fill = dataset(buildConfig(spec(), theme), 0).backgroundColor as (
-      context: unknown,
-    ) => unknown;
-    const stops: [number, string][] = [];
-    const gradient = {
-      addColorStop: (at: number, c: string) => stops.push([at, c]),
-    };
-    const ctx = { createLinearGradient: vi.fn(() => gradient) };
-
-    expect(fill({ chart: { ctx, chartArea: { top: 0, bottom: 100 } } })).toBe(
-      gradient,
-    );
-    expect(ctx.createLinearGradient).toHaveBeenCalledWith(0, 0, 0, 100);
-    expect(stops).toEqual([
-      [0, "rgba(58, 155, 216, 0.28)"],
-      [1, "rgba(58, 155, 216, 0)"],
-    ]);
-    expect(fill({ chart: { ctx } })).toBe("rgba(58, 155, 216, 0.14)");
+  it("never fills bars with an area", () => {
+    const bars = buildConfig(spec({ kind: "bar" }), theme);
+    expect(dataset(bars, 0).fill).toBeUndefined();
   });
 
   it("shows 8px markers up to 12 labels and hides them beyond", () => {

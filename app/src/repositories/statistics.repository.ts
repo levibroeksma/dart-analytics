@@ -578,7 +578,9 @@ function mapVisitScoringRow(row: {
  * Additive turn-score sums for `scoring-trend` over `v_player_visit_facts`
  * joined to `v_stats_session_facts` under `sessionScopeWhere` (phase-3
  * decision 10). `bands` are the three `SCORE_BANDS` edges, bound as
- * parameters so no band edge ever reaches SQL as a literal.
+ * parameters so no band edge ever reaches SQL as a literal. First-nine sums
+ * take the owner's first three visits of each LEG or EXERCISE_BLOCK stage,
+ * ranked by turn_sequence.
  */
 export async function findVisitScoring(
   db: Db,
@@ -589,40 +591,56 @@ export async function findVisitScoring(
   },
 ): Promise<VisitScoringRow[]> {
   const whereClause = sessionScopeWhere(q);
-  const firstNineClause = sql`${vPlayerVisitFacts.stageTypeKey} = 'LEG' and ${vPlayerVisitFacts.turnSequence} <= 3`;
-  const pointsExpr = sql<string>`coalesce(sum(${vPlayerVisitFacts.totalScore}), 0)`;
-  const dartsExpr = sql<string>`coalesce(sum(${vPlayerVisitFacts.dartCount}), 0)`;
-  const firstNinePointsExpr = sql<string>`coalesce(sum(${vPlayerVisitFacts.totalScore}) filter (where ${firstNineClause}), 0)`;
-  const firstNineDartsExpr = sql<string>`coalesce(sum(${vPlayerVisitFacts.dartCount}) filter (where ${firstNineClause}), 0)`;
-  const tonExpr = sql<string>`count(*) filter (where ${vPlayerVisitFacts.totalScore} >= ${q.bands[0]} and ${vPlayerVisitFacts.totalScore} < ${q.bands[1]})`;
-  const tonFortyExpr = sql<string>`count(*) filter (where ${vPlayerVisitFacts.totalScore} >= ${q.bands[1]} and ${vPlayerVisitFacts.totalScore} < ${q.bands[2]})`;
-  const oneEightyExpr = sql<string>`count(*) filter (where ${vPlayerVisitFacts.totalScore} >= ${q.bands[2]})`;
+  const scoped = db
+    .select({
+      completedAt: vStatsSessionFacts.completedAt,
+      totalScore: vPlayerVisitFacts.totalScore,
+      dartCount: vPlayerVisitFacts.dartCount,
+      stageTypeKey: vPlayerVisitFacts.stageTypeKey,
+      visitRank:
+        sql<number>`row_number() over (partition by ${vPlayerVisitFacts.stageId} order by ${vPlayerVisitFacts.turnSequence})`.as(
+          "visit_rank",
+        ),
+    })
+    .from(vPlayerVisitFacts)
+    .innerJoin(
+      vStatsSessionFacts,
+      eq(vPlayerVisitFacts.sessionId, vStatsSessionFacts.sessionId),
+    )
+    .where(whereClause)
+    .as("scoped_visits");
+  const firstNineClause = sql`${scoped.stageTypeKey} in ('LEG', 'EXERCISE_BLOCK') and ${scoped.visitRank} <= 3`;
+  const pointsExpr = sql<string>`coalesce(sum(${scoped.totalScore}), 0)`;
+  const dartsExpr = sql<string>`coalesce(sum(${scoped.dartCount}), 0)`;
+  const firstNinePointsExpr = sql<string>`coalesce(sum(${scoped.totalScore}) filter (where ${firstNineClause}), 0)`;
+  const firstNineDartsExpr = sql<string>`coalesce(sum(${scoped.dartCount}) filter (where ${firstNineClause}), 0)`;
+  const tonExpr = sql<string>`count(*) filter (where ${scoped.totalScore} >= ${q.bands[0]} and ${scoped.totalScore} < ${q.bands[1]})`;
+  const tonFortyExpr = sql<string>`count(*) filter (where ${scoped.totalScore} >= ${q.bands[1]} and ${scoped.totalScore} < ${q.bands[2]})`;
+  const oneEightyExpr = sql<string>`count(*) filter (where ${scoped.totalScore} >= ${q.bands[2]})`;
+  const sums = {
+    points: pointsExpr,
+    darts: dartsExpr,
+    firstNinePoints: firstNinePointsExpr,
+    firstNineDarts: firstNineDartsExpr,
+    ton: tonExpr,
+    tonForty: tonFortyExpr,
+    oneEighty: oneEightyExpr,
+  };
 
   if (q.bucket === "none") {
     const rows = await db
       .select({
         bucketStart: sql<string>`${q.from}::timestamptz`,
         bucketEnd: sql<string>`${q.to}::timestamptz`,
-        points: pointsExpr,
-        darts: dartsExpr,
-        firstNinePoints: firstNinePointsExpr,
-        firstNineDarts: firstNineDartsExpr,
-        ton: tonExpr,
-        tonForty: tonFortyExpr,
-        oneEighty: oneEightyExpr,
+        ...sums,
       })
-      .from(vPlayerVisitFacts)
-      .innerJoin(
-        vStatsSessionFacts,
-        eq(vPlayerVisitFacts.sessionId, vStatsSessionFacts.sessionId),
-      )
-      .where(whereClause);
+      .from(scoped);
     return rows.map(mapVisitScoringRow);
   }
 
   const tz = nonNull(q.tz ?? null, "tz");
   const { bucketStartExpr, bucketEndExpr } = bucketExprs(
-    vStatsSessionFacts.completedAt,
+    scoped.completedAt,
     q.bucket,
     tz,
   );
@@ -631,20 +649,9 @@ export async function findVisitScoring(
     .select({
       bucketStart: bucketStartExpr,
       bucketEnd: bucketEndExpr,
-      points: pointsExpr,
-      darts: dartsExpr,
-      firstNinePoints: firstNinePointsExpr,
-      firstNineDarts: firstNineDartsExpr,
-      ton: tonExpr,
-      tonForty: tonFortyExpr,
-      oneEighty: oneEightyExpr,
+      ...sums,
     })
-    .from(vPlayerVisitFacts)
-    .innerJoin(
-      vStatsSessionFacts,
-      eq(vPlayerVisitFacts.sessionId, vStatsSessionFacts.sessionId),
-    )
-    .where(whereClause)
+    .from(scoped)
     .groupBy(bucketStartExpr, bucketEndExpr);
   return rows.map(mapVisitScoringRow);
 }
