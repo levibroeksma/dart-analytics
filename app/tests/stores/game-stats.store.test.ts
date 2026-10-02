@@ -1130,3 +1130,14 @@ describe("gameStatsStore", () => {
     });
   });
 });
+
+describe("selectGame with a dedicated layout", () => {
+  it("fetches no section and no session list for SCORE_TRAINING_V1", async () => {
+    const store = gameStatsStore();
+    store.selectGame("SCORE_TRAINING_V1");
+    await Promise.resolve();
+    expect(readSection).not.toHaveBeenCalled();
+    expect(readSessionPage).not.toHaveBeenCalled();
+    expect(store.loading).toBe(false);
+  });
+});

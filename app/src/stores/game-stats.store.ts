@@ -5,7 +5,10 @@ import {
   SECTIONS,
   sectionsForGame,
 } from "@lib/stats/section-registry";
-import { MIN_TARGET_SAMPLE } from "@lib/stats/constants";
+import {
+  DEDICATED_STATS_LAYOUTS,
+  MIN_TARGET_SAMPLE,
+} from "@lib/stats/constants";
 import { CACHE_PLAYER_ID, loadGameSection } from "@lib/stats/load-game-section";
 import {
   formatTargetKey,
@@ -244,8 +247,9 @@ export function gameStatsStore() {
     /** Registered on every page, so it fetches nothing; `/statistics` loads through `selectGame`. */
     init(): void {},
 
-    /** Resolves the picked ruleset version to its game type, then reloads. */
+    /** Resolves the picked ruleset version to its game type, then reloads; a dedicated-layout game loads its own sections. */
     selectGame(rulesetVersionKey: string) {
+      if (DEDICATED_STATS_LAYOUTS.has(rulesetVersionKey)) return;
       const gameTypeKey =
         GAME_TYPE_BY_RULESET[rulesetVersionKey as RulesetVersionKey];
       if (gameTypeKey === undefined) return;
