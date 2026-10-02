@@ -1,0 +1,59 @@
+---
+/**
+ * Score Training heatmap section: where darts landed over the page-level
+ * period, drawn as a density layer on the board. Owns its fetch through
+ * `scoreHeatmapSection()`. The glass surface is a sibling layer, not an
+ * ancestor, for the same reason as `ScoreTrendSection.astro`.
+ */
+import ErrorAlert from "@components/ui/ErrorAlert.astro";
+import StatsDensityHeatmap from "@components/ui/StatsDensityHeatmap.astro";
+---
+
+<section
+  class="relative"
+  x-data="scoreHeatmapSection()"
+>
+  <div
+    class="glass absolute inset-0 rounded-2xl"
+    aria-hidden="true"
+  >
+  </div>
+  <div class="relative space-y-3 p-4">
+    <h2 class="text-sm text-foreground">Heatmap</h2>
+    <ErrorAlert
+      showExpr="error"
+      textExpr="error"
+    />
+    <div
+      x-show="loading"
+      x-cloak
+    >
+      <div
+        class="mx-auto aspect-square max-w-64 animate-pulse rounded-full bg-muted-foreground/80"
+      >
+      </div>
+    </div>
+    <div
+      class="space-y-3"
+      x-show="!loading && !error"
+      x-cloak
+    >
+      <p
+        class="text-sm text-muted-foreground"
+        x-show="isEmpty"
+        x-cloak
+      >
+        No darts in range.
+      </p>
+      <div
+        x-show="!isEmpty"
+        x-cloak
+      >
+        <StatsDensityHeatmap
+          stampsExpr="stamps"
+          class="mx-auto max-w-64"
+        />
+      </div>
+    </div>
+  </div>
+</section>

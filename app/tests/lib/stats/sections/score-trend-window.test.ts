@@ -4,6 +4,7 @@ import {
   averageDeltaPercent,
   bucketLabel,
   foldAverages,
+  heatmapWindow,
   splitPeriods,
   trendChart,
   trendWindow,
@@ -45,6 +46,30 @@ describe("TREND_RANGE_OPTIONS", () => {
       { value: "1y", label: "Last Year" },
       { value: "all", label: "All Time" },
     ]);
+  });
+});
+
+describe("heatmapWindow", () => {
+  it("30d spans the current 30 days only, with the trend's `to`", () => {
+    const w = heatmapWindow("30d", NOW);
+    expect(w.from).toBe(new Date(NOW.getTime() - 30 * DAY).toISOString());
+    expect(w.to).toBe(new Date(NOW.getTime() + 60_000).toISOString());
+  });
+
+  it("90d starts at the trend's 91-day boundary", () => {
+    expect(heatmapWindow("90d", NOW).from).toBe(
+      new Date(NOW.getTime() - 91 * DAY).toISOString(),
+    );
+  });
+
+  it("1y starts 12 months back", () => {
+    expect(heatmapWindow("1y", NOW).from).toBe("2025-10-01T10:00:00.000Z");
+  });
+
+  it("all starts where the all-time trend request starts", () => {
+    expect(heatmapWindow("all", NOW).from).toBe(
+      trendWindow("all", NOW, TZ).from,
+    );
   });
 });
 
