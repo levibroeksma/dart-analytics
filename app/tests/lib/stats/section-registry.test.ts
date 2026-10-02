@@ -219,6 +219,10 @@ describe("statistics section registry", () => {
     }
   });
 
+  it("versions scoring-trend at 2 so closed buckets cached under the old first-nine clause are not reused", () => {
+    expect(SECTIONS["scoring-trend"].version).toBe(2);
+  });
+
   it("declares the three game-specific sections with their registry shape (decision 10, 13)", () => {
     expect(SECTIONS["atc-darts-per-target"]).toMatchObject({
       requires: ["intent-derived"],
@@ -391,7 +395,7 @@ describe("statistics section registry", () => {
     ] as const) {
       expect(SECTIONS[id].includesAbandoned).toBe(false);
       expect(SECTIONS[id].params).toEqual([]);
-      expect(SECTIONS[id].version).toBe(1);
+      expect(SECTIONS[id].version).toBe(id === "scoring-trend" ? 2 : 1);
     }
   });
 
