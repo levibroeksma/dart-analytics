@@ -7,7 +7,7 @@ updated: 2026-09-30
 
 # Frontend Modules And OOP
 
-> **Version:** 0.4.0 (`lib/training/routines/adapters/*.adapter.ts` registry pattern added to the OOP boundary table, 2026-09-20; prior 0.3.0 exercise, training and stats module families added, issue #347, 2026-09-17; prior 0.2.2 derived-value returns + undo depth on the contract table, 2026-07-26; prior 0.2.0 GameEngine contract replaces the engine/payload split, 2026-07-26; 0.1.2 inline export type/interface anti-pattern, 2026-07-17; 0.2.2 Non-Game Client Tools exception (Trivia), 2026-09-09)
+> **Version:** 0.4.1 (`chart.module.ts` peer-dependency paragraph added, D374, 2026-09-30; prior 0.4.0 `lib/training/routines/adapters/*.adapter.ts` registry pattern added to the OOP boundary table, 2026-09-20; prior 0.3.0 exercise, training and stats module families added, issue #347, 2026-09-17; prior 0.2.2 derived-value returns + undo depth on the contract table, 2026-07-26; prior 0.2.0 GameEngine contract replaces the engine/payload split, 2026-07-26; 0.1.2 inline export type/interface anti-pattern, 2026-07-17; 0.2.2 Non-Game Client Tools exception (Trivia), 2026-09-09)
 >
 > OOP boundaries, portable UI kit, engine vs payload modules, validation split.
 >

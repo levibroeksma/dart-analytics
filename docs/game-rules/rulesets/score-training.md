@@ -112,8 +112,8 @@ seat beside both seats' totals, or a tie.
 
 ## Capture
 
-- **Capture / input mode:** RECREATIONAL + QUICK_SCORE — one visit total per turn, **no dart rows**.
-- **One dart's fact:** none. Score Training does not record individual darts in V1; the unit of capture is the visit.
+- **Capture / input mode:** RECREATIONAL + QUICK_SCORE (typed visit total, **no dart rows**) or VISUAL_BOARD (tapped darts, one dart row each). `capabilities.ts` offers both.
+- **One dart's fact:** QUICK_SCORE: none; the unit of capture is the visit. VISUAL_BOARD: the dart's board position, segment and multiplier. Board-based statistics (heatmap, treble rate, personal best) populate only from VISUAL_BOARD sessions.
 - **Stage type:** one `EXERCISE_BLOCK` for the whole session.
 - **Derived, never stored:** the running total and three-dart average.
 
