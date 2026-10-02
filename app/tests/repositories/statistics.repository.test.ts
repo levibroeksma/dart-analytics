@@ -1959,7 +1959,7 @@ describe("findReplayTurnPage", () => {
 
 const routineStep = { routineKey: "routine-1", stepKey: "3-abc123" };
 
-describe("dartScopeWhere / sessionScopeWhere routineStep predicate (decision 5)", () => {
+describe("dartScopeWhere / sessionScopeWhere routineStep predicate", () => {
   it("findIntentCells renders no session_id sub-select when routineStep is unset", async () => {
     const { db, statements } = renderingDb([]);
     await findIntentCells(db, { ...dartScope, bucket: "none", tz: undefined });
@@ -2580,7 +2580,7 @@ describe("findRoutineRunBuckets", () => {
     expect(sql).toMatch(/routine_key/);
   });
 
-  it("renders the exact bucketExprs form for bucket_end (item 2: interval added inside the single AT TIME ZONE wrap, not outside it)", async () => {
+  it("renders the exact bucketExprs form for bucket_end (interval added inside the single AT TIME ZONE wrap, not outside it)", async () => {
     const { db, statements } = renderingDb([]);
     await findRoutineRunBuckets(db, {
       ...baseQuery,
@@ -2599,7 +2599,7 @@ describe("findRoutineRunBuckets", () => {
     );
   });
 
-  it("filters the abandoned/never-started counts by steps_started (item 3: partition, mirroring completionBuckets)", async () => {
+  it("filters the abandoned/never-started counts by steps_started (partition, mirroring completionBuckets)", async () => {
     const { db, statements } = renderingDb([]);
     await findRoutineRunBuckets(db, {
       ...baseQuery,
@@ -2631,7 +2631,7 @@ describe("findRoutineRunBuckets", () => {
     );
   });
 
-  it("excludes never-started runs from the abandon histogram (item 3)", async () => {
+  it("excludes never-started runs from the abandon histogram on bucket=none", async () => {
     const { db, statements } = renderingDb([]);
     await findRoutineRunBuckets(db, {
       ...baseQuery,
@@ -2639,10 +2639,11 @@ describe("findRoutineRunBuckets", () => {
       tz: undefined,
     });
     const sql = onlyStatement(statements);
-    const histogramIndex = sql.indexOf("steps_completed_at_abandon");
-    expect(histogramIndex).toBeGreaterThan(-1);
-    const histogramClause = sql.slice(0, histogramIndex);
-    expect(histogramClause).toMatch(
+    const histogram = sql.match(
+      /SELECT steps_completed, count\(\*\)::integer AS cnt\s+FROM scoped\s+WHERE ([^)]*?)\s+GROUP BY steps_completed/,
+    );
+    expect(histogram).not.toBeNull();
+    expect(histogram![1]).toMatch(
       /status_key = 'ABANDONED' AND steps_started > 0/,
     );
   });
