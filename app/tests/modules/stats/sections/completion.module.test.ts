@@ -19,6 +19,10 @@ function row(overrides: Partial<StatsBucketRow>): StatsBucketRow {
     scoreMax: 0,
     minSessionId: "s1",
     maxSessionId: "s1",
+    bestAvgSessionId: null,
+    bestAvgPoints: null,
+    bestAvgDarts: null,
+    bestAvgCompletedAt: null,
     ...overrides,
   };
 }

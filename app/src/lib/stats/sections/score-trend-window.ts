@@ -2,17 +2,20 @@ import type {
   ChartSeries,
   ChartSpec,
   ScoringTrendMetrics,
+  SessionResultMetrics,
 } from "@modules/types";
 import type {
   SeriesBucket,
   TrendAverages,
   TrendBucket,
   TrendPeriods,
+  TrendPersonalBest,
   TrendRangeKey,
   TrendWindow,
 } from "@lib/types";
 
 type TrendSeriesBucket = SeriesBucket<ScoringTrendMetrics>;
+type SessionResultBucket = SeriesBucket<SessionResultMetrics>;
 
 export const TREND_RANGE_OPTIONS: readonly {
   value: TrendRangeKey;
@@ -107,6 +110,45 @@ export function heatmapWindow(
   }
 }
 
+/**
+ * The personal-best request window: all time (the all-time trend request's
+ * start) up to now, un-bucketed — one `session-result` row set whose
+ * `bestAverage` picks the client reduces to a single maximum.
+ */
+export function personalBestWindow(now: Date): {
+  from: string;
+  to: string;
+  bucket: "none";
+} {
+  return {
+    from: monthsBack(now, ALL_TIME_MONTHS),
+    to: upTo(now),
+    bucket: "none",
+  };
+}
+
+const SHORT_MONTHS = [
+  "jan.",
+  "feb.",
+  "mar.",
+  "apr.",
+  "may",
+  "jun.",
+  "jul.",
+  "aug.",
+  "sept.",
+  "oct.",
+  "nov.",
+  "dec.",
+];
+
+/** A session date as `30 sept. '26` in the zone: day, lowercase short month (dotted when abbreviated), two-digit year. */
+export function formatShortDate(iso: string, tz: string): string {
+  const { year, month, day } = zonedParts(iso, tz);
+  const yy = String(year % 100).padStart(2, "0");
+  return `${day} ${SHORT_MONTHS[month - 1]} '${yy}`;
+}
+
 function zonedParts(
   iso: string,
   tz: string,
@@ -181,6 +223,30 @@ export function foldAverages(
     threeDart: threeDartAverage(sum.points, sum.darts),
     firstNine: threeDartAverage(sum.firstNinePoints, sum.firstNineDarts),
   };
+}
+
+/**
+ * The highest per-session 3-dart average across every `session-result`
+ * bucket and ruleset slice, with that session's date; `null` when no slice
+ * carries a `bestAverage`. A max of per-slice maxima is exact, so the
+ * buckets can be read in any order.
+ */
+export function bestSessionAverage(
+  buckets: readonly SessionResultBucket[],
+): TrendPersonalBest | null {
+  let best: TrendPersonalBest | null = null;
+  for (const bucket of buckets) {
+    for (const slice of Object.values(bucket.metrics)) {
+      const candidate = slice.bestAverage;
+      if (candidate === null) continue;
+      const average = threeDartAverage(candidate.points, candidate.darts);
+      if (average === null) continue;
+      if (best === null || average > best.average) {
+        best = { average, completedAt: candidate.completedAt };
+      }
+    }
+  }
+  return best;
 }
 
 /** Change from `previous` to `current` as a percent of `previous`; `null` when either is missing or `previous` is zero. */

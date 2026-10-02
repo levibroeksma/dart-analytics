@@ -8,7 +8,7 @@ import ScoreHeatmapSection from "./ScoreHeatmapSection.astro";
   class="flex flex-col gap-2"
   x-data="scoreTrendSection()"
 >
-  <div class="grid grid-cols-2 gap-2">
+  <div class="grid grid-cols-3 gap-2">
     <ScoreAverageCard
       label="3-dart average"
       averageExpr="averages.threeDart"
@@ -18,6 +18,12 @@ import ScoreHeatmapSection from "./ScoreHeatmapSection.astro";
       label="First nine"
       averageExpr="averages.firstNine"
       deltaExpr="firstNineDeltaPercent"
+    />
+    <ScoreAverageCard
+      label="Personal best"
+      averageExpr="personalBestAverage"
+      subtextExpr="personalBestDate"
+      loadingExpr="personalBestLoading"
     />
   </div>
   <ScoreTrendSection />

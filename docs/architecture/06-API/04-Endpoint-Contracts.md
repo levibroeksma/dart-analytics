@@ -510,6 +510,14 @@ const SessionResultMetrics = z.record(
     countedScoreMax: z.number().int(),
     bestLowSessionId: z.string().uuid(),
     bestHighSessionId: z.string().uuid(),
+    bestAverage: z
+      .object({
+        sessionId: z.string().uuid(),
+        points: z.number().int(),
+        darts: z.number().int(),
+        completedAt: z.string().datetime({ offset: true }),
+      })
+      .nullable(),
   }),
 );
 ```
@@ -520,6 +528,13 @@ against the per-game-type `RESULT_DIRECTION` registry value, `null` for a game
 whose headline is not a pure function of these components (D367 decision 3;
 `RESULT_DIRECTION` is `null` for 501, TUOD, 121, Singles Training, Doubles
 Training, Bob's 27 and Around the Clock in phase 1 — issue #615).
+
+`bestAverage` (section version 2, D389, 2026-10-02) is the slice's session with
+the highest `counted_score / dart_count`, picked in SQL under one ordering so
+the id, the `points`/`darts` pair and `completedAt` name the same session;
+`null` when no session in the slice has darts. It is a ratio pair, never a
+float, and a client reduces slices by taking the higher ratio — a max of maxima
+is exact, unlike the summed components.
 
 **Phase 2 (board sections, D368)** — every intent-cell metric is keyed by
 `TargetKey` (`<ZONE_KEY>:<number>`, e.g. `DOUBLE:16`):

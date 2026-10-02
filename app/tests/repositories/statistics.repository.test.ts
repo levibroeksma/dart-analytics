@@ -506,7 +506,7 @@ describe("findBucketedSessionAggregates", () => {
     expect(select).toMatch(ISO_UTC_TEXT);
     expect(
       select.split(`AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')`),
-    ).toHaveLength(3);
+    ).toHaveLength(4);
   });
 
   it("rejects a tz outside the IANA name alphabet before rendering it as a literal", async () => {
@@ -570,6 +570,81 @@ describe("findBucketedSessionAggregates", () => {
     expect(result[0].bucketStart).toBe(baseQuery.from);
     expect(result[0].bucketEnd).toBe(baseQuery.to);
     expect(result[0].sessions).toBe(3);
+  });
+
+  it("selects the best per-session average as a points/darts pair ordered by counted_score / dart_count", async () => {
+    const { db, statements } = renderingDb([]);
+    await findBucketedSessionAggregates(db, baseQuery);
+    const sql = onlyStatement(statements);
+    const q = '"v_stats_session_facts".';
+    const order = `order by ${q}"counted_score"::numeric / nullif(${q}"dart_count", 0) desc nulls last, ${q}"completed_at" desc`;
+    for (const column of [
+      "session_id",
+      "counted_score",
+      "dart_count",
+      "completed_at",
+    ]) {
+      expect(sql).toContain(
+        `case when max("dart_count") > 0 then ${column === "completed_at" ? "to_char((" : ""}(array_agg(${q}"${column}" ${order}))[1]`,
+      );
+    }
+  });
+
+  it("maps the best-average columns, numbers for the pair and null when absent", async () => {
+    const base = {
+      bucketStart: baseQuery.from,
+      bucketEnd: baseQuery.to,
+      statusKey: "COMPLETED",
+      contextKey: "STANDALONE",
+      rulesetVersionKey: "501_V1",
+      neverStarted: false,
+      sessions: "1",
+      turnSum: "10",
+      dartSum: "30",
+      durationSum: "300",
+      scoreSum: "500",
+      scoreMin: "500",
+      scoreMax: "500",
+      minSessionId: "s1",
+      maxSessionId: "s1",
+    };
+    const chain = fakeGroupedSelect([
+      {
+        ...base,
+        bestAvgSessionId: "s1",
+        bestAvgPoints: "500",
+        bestAvgDarts: "30",
+        bestAvgCompletedAt: "2026-01-15T10:00:00.000Z",
+      },
+      {
+        ...base,
+        contextKey: "ROUTINE",
+        bestAvgSessionId: null,
+        bestAvgPoints: null,
+        bestAvgDarts: null,
+        bestAvgCompletedAt: null,
+      },
+    ]);
+    const db = { select: vi.fn(() => chain) } as any;
+
+    const [withBest, without] = await findBucketedSessionAggregates(db, {
+      ...baseQuery,
+      bucket: "none",
+      tz: undefined,
+    });
+
+    expect(withBest).toMatchObject({
+      bestAvgSessionId: "s1",
+      bestAvgPoints: 500,
+      bestAvgDarts: 30,
+      bestAvgCompletedAt: "2026-01-15T10:00:00.000Z",
+    });
+    expect(without).toMatchObject({
+      bestAvgSessionId: null,
+      bestAvgPoints: null,
+      bestAvgDarts: null,
+      bestAvgCompletedAt: null,
+    });
   });
 
   it("nonNull throws on a null status_key", async () => {

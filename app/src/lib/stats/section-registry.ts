@@ -216,7 +216,7 @@ export const SECTIONS: Readonly<Record<SectionId, SectionMeta>> = {
   },
   "session-result": {
     id: "session-result",
-    version: 1,
+    version: 2,
     requires: [],
     computeSite: "sql",
     bucketable: true,

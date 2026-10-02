@@ -19,6 +19,10 @@ function row(overrides: Partial<StatsBucketRow>): StatsBucketRow {
     scoreMax: 500,
     minSessionId: "s1",
     maxSessionId: "s1",
+    bestAvgSessionId: "s1",
+    bestAvgPoints: 500,
+    bestAvgDarts: 30,
+    bestAvgCompletedAt: "2026-01-15T10:00:00.000Z",
     ...overrides,
   };
 }
@@ -72,5 +76,93 @@ describe("sessionResultBuckets", () => {
     expect(metrics.bestLowSessionId).toBe("low");
     expect(metrics.countedScoreMax).toBe(600);
     expect(metrics.bestHighSessionId).toBe("high");
+  });
+});
+
+describe("sessionResultBuckets bestAverage", () => {
+  const ctx = {
+    to: "2026-02-01T00:00:00.000Z",
+    now: new Date("2026-03-01T00:00:00.000Z"),
+  };
+
+  it("carries the group's best per-session average as a points/darts pair with its date", () => {
+    const [bucket] = sessionResultBuckets(
+      [
+        row({
+          bestAvgSessionId: "pb",
+          bestAvgPoints: 540,
+          bestAvgDarts: 27,
+          bestAvgCompletedAt: "2026-01-15T10:00:00.000Z",
+        }),
+      ],
+      ctx,
+    );
+    expect(bucket.metrics["501_V1"].bestAverage).toEqual({
+      sessionId: "pb",
+      points: 540,
+      darts: 27,
+      completedAt: "2026-01-15T10:00:00.000Z",
+    });
+  });
+
+  it("is null when no session in the group has darts", () => {
+    const [bucket] = sessionResultBuckets(
+      [
+        row({
+          bestAvgSessionId: null,
+          bestAvgPoints: null,
+          bestAvgDarts: null,
+          bestAvgCompletedAt: null,
+        }),
+      ],
+      ctx,
+    );
+    expect(bucket.metrics["501_V1"].bestAverage).toBeNull();
+  });
+
+  it("merging two groups keeps the higher ratio, not the higher total", () => {
+    const [bucket] = sessionResultBuckets(
+      [
+        row({
+          contextKey: "STANDALONE",
+          bestAvgSessionId: "long",
+          bestAvgPoints: 900,
+          bestAvgDarts: 60,
+          bestAvgCompletedAt: "2026-01-10T10:00:00.000Z",
+        }),
+        row({
+          contextKey: "ROUTINE",
+          bestAvgSessionId: "short",
+          bestAvgPoints: 300,
+          bestAvgDarts: 15,
+          bestAvgCompletedAt: "2026-01-20T10:00:00.000Z",
+        }),
+      ],
+      ctx,
+    );
+    expect(bucket.metrics["501_V1"].bestAverage?.sessionId).toBe("short");
+  });
+
+  it("merging a null group onto a real one keeps the real one", () => {
+    const [bucket] = sessionResultBuckets(
+      [
+        row({
+          contextKey: "STANDALONE",
+          bestAvgSessionId: "pb",
+          bestAvgPoints: 300,
+          bestAvgDarts: 15,
+          bestAvgCompletedAt: "2026-01-20T10:00:00.000Z",
+        }),
+        row({
+          contextKey: "ROUTINE",
+          bestAvgSessionId: null,
+          bestAvgPoints: null,
+          bestAvgDarts: null,
+          bestAvgCompletedAt: null,
+        }),
+      ],
+      ctx,
+    );
+    expect(bucket.metrics["501_V1"].bestAverage?.sessionId).toBe("pb");
   });
 });

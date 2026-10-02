@@ -362,6 +362,12 @@ export type TrendAverages = {
   firstNine: number | null;
 };
 
+/** The Score Training personal best: the highest single-session 3-dart average and when it was set. */
+export type TrendPersonalBest = {
+  average: number;
+  completedAt: string;
+};
+
 export type TrendPeriods = {
   previous: SeriesBucket<ScoringTrendMetrics>[];
   current: SeriesBucket<ScoringTrendMetrics>[];

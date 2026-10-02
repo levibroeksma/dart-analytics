@@ -1130,6 +1130,10 @@ export async function findBucketFloor(
  * decision 5) — this reader builds its own
  * `WHERE` inline rather than through either shared predicate, so it needs
  * its own wiring.
+ * The `bestAvg*` columns name the session with the highest per-session
+ * average (`counted_score / dart_count`, D389): dartless sessions sort last so
+ * they never win while a session with darts exists, and all four picks share
+ * one ordering so the id, the ratio pair and the date name the same session.
  */
 export async function findBucketedSessionAggregates(
   db: Db,
@@ -1164,6 +1168,21 @@ export async function findBucketedSessionAggregates(
   const neverStartedExpr = sql<boolean>`(${vStatsSessionFacts.turnCount} = 0)`;
   const minSessionIdExpr = sql<string>`(array_agg(${vStatsSessionFacts.sessionId} order by ${vStatsSessionFacts.countedScore} asc, ${vStatsSessionFacts.completedAt} asc))[1]`;
   const maxSessionIdExpr = sql<string>`(array_agg(${vStatsSessionFacts.sessionId} order by ${vStatsSessionFacts.countedScore} desc, ${vStatsSessionFacts.completedAt} desc))[1]`;
+  const bestAvgOrder = sql`${vStatsSessionFacts.countedScore}::numeric / nullif(${vStatsSessionFacts.dartCount}, 0) desc nulls last, ${vStatsSessionFacts.completedAt} desc`;
+  const bestAvgPick = (column: Column) =>
+    sql`(array_agg(${column} order by ${bestAvgOrder}))[1]`;
+  const bestAvgSessionIdExpr = sql<
+    string | null
+  >`case when max(${vStatsSessionFacts.dartCount}) > 0 then ${bestAvgPick(vStatsSessionFacts.sessionId)} end`;
+  const bestAvgPointsExpr = sql<
+    string | null
+  >`case when max(${vStatsSessionFacts.dartCount}) > 0 then ${bestAvgPick(vStatsSessionFacts.countedScore)} end`;
+  const bestAvgDartsExpr = sql<
+    string | null
+  >`case when max(${vStatsSessionFacts.dartCount}) > 0 then ${bestAvgPick(vStatsSessionFacts.dartCount)} end`;
+  const bestAvgCompletedAtExpr = sql<
+    string | null
+  >`case when max(${vStatsSessionFacts.dartCount}) > 0 then ${isoUtcText(bestAvgPick(vStatsSessionFacts.completedAt))} end`;
 
   if (q.bucket === "none") {
     const rows = await db
@@ -1183,6 +1202,10 @@ export async function findBucketedSessionAggregates(
         scoreMax: sql<string>`max(${vStatsSessionFacts.countedScore})`,
         minSessionId: minSessionIdExpr,
         maxSessionId: maxSessionIdExpr,
+        bestAvgSessionId: bestAvgSessionIdExpr,
+        bestAvgPoints: bestAvgPointsExpr,
+        bestAvgDarts: bestAvgDartsExpr,
+        bestAvgCompletedAt: bestAvgCompletedAtExpr,
       })
       .from(vStatsSessionFacts)
       .where(and(...conditions))
@@ -1220,6 +1243,10 @@ export async function findBucketedSessionAggregates(
       scoreMax: sql<string>`max(${vStatsSessionFacts.countedScore})`,
       minSessionId: minSessionIdExpr,
       maxSessionId: maxSessionIdExpr,
+      bestAvgSessionId: bestAvgSessionIdExpr,
+      bestAvgPoints: bestAvgPointsExpr,
+      bestAvgDarts: bestAvgDartsExpr,
+      bestAvgCompletedAt: bestAvgCompletedAtExpr,
     })
     .from(vStatsSessionFacts)
     .where(and(...conditions))
@@ -1233,6 +1260,11 @@ export async function findBucketedSessionAggregates(
     );
 
   return rows.map(mapBucketRow);
+}
+
+/** A nullable numeric aggregate: Postgres returns it as text, or `null` for an empty pick. */
+function optionalNumber(value: unknown): number | null {
+  return value === null || value === undefined ? null : Number(value);
 }
 
 function mapBucketRow(row: {
@@ -1251,6 +1283,10 @@ function mapBucketRow(row: {
   scoreMax: unknown;
   minSessionId: string | null;
   maxSessionId: string | null;
+  bestAvgSessionId?: string | null;
+  bestAvgPoints?: unknown;
+  bestAvgDarts?: unknown;
+  bestAvgCompletedAt?: string | null;
 }): StatsBucketRow {
   return {
     bucketStart: nonNull(row.bucketStart, "bucket_start"),
@@ -1270,6 +1306,10 @@ function mapBucketRow(row: {
     scoreMax: Number(nonNull(row.scoreMax as string | null, "score_max")),
     minSessionId: nonNull(row.minSessionId, "min_session_id"),
     maxSessionId: nonNull(row.maxSessionId, "max_session_id"),
+    bestAvgSessionId: row.bestAvgSessionId ?? null,
+    bestAvgPoints: optionalNumber(row.bestAvgPoints),
+    bestAvgDarts: optionalNumber(row.bestAvgDarts),
+    bestAvgCompletedAt: row.bestAvgCompletedAt ?? null,
   };
 }
 
