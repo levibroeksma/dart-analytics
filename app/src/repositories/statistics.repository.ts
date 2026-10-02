@@ -2179,7 +2179,10 @@ export async function findStepSessionPage(
       rulesetVersionKey: row.rulesetVersionKey,
       exerciseRulesetVersionKey: row.exerciseRulesetVersionKey,
       statusKey,
-      neverStarted: statusKey === "ABANDONED" && turnCount === 0,
+      neverStarted:
+        row.exerciseRulesetVersionKey === "WARM_UP_V1"
+          ? null
+          : statusKey === "ABANDONED" && turnCount === 0,
       startedAt: nonNull(row.startedAt, "started_at"),
       completedAt: nonNull(row.completedAt, "completed_at"),
       durationSeconds: nonNull(row.durationSeconds, "duration_seconds"),

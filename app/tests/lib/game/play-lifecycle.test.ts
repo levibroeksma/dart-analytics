@@ -1579,6 +1579,25 @@ describe("runPlayAgain", () => {
     expect(context.finished).toBe(true);
   });
 
+  it("names the error code when session creation is rejected with one", async () => {
+    const context = makeContext({
+      finished: true,
+      completionStatus: "succeeded",
+    });
+    vi.mocked(createSession).mockRejectedValue(
+      Object.assign(new Error("active"), { code: "SESSION_ALREADY_ACTIVE" }),
+    );
+
+    await runPlayAgain(context, GAME_TYPE_KEY, RULESET_VERSION_KEY, (engine) =>
+      engine instanceof FakeEngine ? engine : null,
+    );
+
+    expect(context.playAgainError).toBe(
+      "Could not start a new session (SESSION_ALREADY_ACTIVE). Try again.",
+    );
+    expect(context.finished).toBe(true);
+  });
+
   it("sends overrides and adopts the new snapshot when buildOverrides is supplied", async () => {
     const context = makeContext({
       finished: true,

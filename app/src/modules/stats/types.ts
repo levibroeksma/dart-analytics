@@ -349,14 +349,15 @@ export type StepBucketRow = {
  * `context_key` column — every row is routine context by definition —
  * unlike `StatsSessionRow`. `rulesetVersionKey`/`exerciseRulesetVersionKey`
  * are mutually exclusive: a GAME step sets the former, a non-game step the
- * latter.
+ * latter. `neverStarted` is `null` for a Warm-Up step, which records no
+ * turns, so turn-free says nothing about whether it was started.
  */
 export type StepSessionRow = {
   sessionId: string;
   rulesetVersionKey: string | null;
   exerciseRulesetVersionKey: string | null;
   statusKey: string;
-  neverStarted: boolean;
+  neverStarted: boolean | null;
   startedAt: string;
   completedAt: string;
   durationSeconds: number;
