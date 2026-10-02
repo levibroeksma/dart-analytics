@@ -2666,7 +2666,7 @@
       "file_type": "code",
       "norm_label": "replaycursor",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L807"
+      "source_location": "L808"
     },
     {
       "id": "app_src_modules_stats_types_replaydart",
@@ -2679,7 +2679,7 @@
       "file_type": "code",
       "norm_label": "replaydart",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L780"
+      "source_location": "L781"
     },
     {
       "id": "app_src_modules_stats_types_replayparticipantrow",
@@ -2692,7 +2692,7 @@
       "file_type": "code",
       "norm_label": "replayparticipantrow",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L748"
+      "source_location": "L749"
     },
     {
       "id": "app_src_modules_stats_types_replayrow",
@@ -2705,7 +2705,7 @@
       "file_type": "code",
       "norm_label": "replayrow",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L759"
+      "source_location": "L760"
     },
     {
       "id": "app_src_modules_stats_types_replaysessionrow",
@@ -2718,7 +2718,7 @@
       "file_type": "code",
       "norm_label": "replaysessionrow",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L710"
+      "source_location": "L711"
     },
     {
       "id": "app_src_modules_stats_types_replaystagerow",
@@ -2731,7 +2731,7 @@
       "file_type": "code",
       "norm_label": "replaystagerow",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L736"
+      "source_location": "L737"
     },
     {
       "id": "app_src_modules_stats_types_replayturn",
@@ -2744,7 +2744,7 @@
       "file_type": "code",
       "norm_label": "replayturn",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L795"
+      "source_location": "L796"
     },
     {
       "id": "app_src_modules_stats_types_stepfoldbucketrow",
@@ -2757,7 +2757,7 @@
       "file_type": "code",
       "norm_label": "stepfoldbucketrow",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L839"
+      "source_location": "L840"
     },
     {
       "id": "app_src_modules_stats_types_stepfoldsession",
@@ -2770,7 +2770,7 @@
       "file_type": "code",
       "norm_label": "stepfoldsession",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L850"
+      "source_location": "L851"
     },
     {
       "id": "app_src_services_types_routinesectionquery",
@@ -3134,7 +3134,7 @@
       "file_type": "code",
       "norm_label": "missdirectionmetrics",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L527"
+      "source_location": "L528"
     },
     {
       "id": "app_src_modules_stats_types_missreference",
@@ -3147,7 +3147,7 @@
       "file_type": "code",
       "norm_label": "missreference",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L466"
+      "source_location": "L467"
     },
     {
       "id": "app_src_pages_api_sessions_types_eventsbatchrequestinput",
@@ -3355,7 +3355,7 @@
       "file_type": "code",
       "norm_label": "heatmapcellrow",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L485"
+      "source_location": "L486"
     },
     {
       "id": "app_src_modules_stats_types_visitscoringrow",
@@ -3368,7 +3368,7 @@
       "file_type": "code",
       "norm_label": "visitscoringrow",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L415"
+      "source_location": "L416"
     },
     {
       "id": "app_src_repositories_statistics_repository_db",
@@ -3524,7 +3524,7 @@
       "file_type": "code",
       "norm_label": "heatmapmetrics",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L530"
+      "source_location": "L531"
     },
     {
       "id": "app_src_modules_stats_types_heatrampstop",
@@ -3537,7 +3537,7 @@
       "file_type": "code",
       "norm_label": "heatrampstop",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L545"
+      "source_location": "L546"
     },
     {
       "id": "app_src_modules_stats_types_heatstamp",
@@ -3550,7 +3550,7 @@
       "file_type": "code",
       "norm_label": "heatstamp",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L537"
+      "source_location": "L538"
     },
     {
       "id": "app_src_modules_ui_types_heatcanvascontext",
@@ -4382,7 +4382,7 @@
       "file_type": "code",
       "norm_label": "aimeddart",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L637"
+      "source_location": "L638"
     },
     {
       "id": "app_src_modules_stats_types_bobs27survivalmetrics",
@@ -4395,7 +4395,7 @@
       "file_type": "code",
       "norm_label": "bobs27survivalmetrics",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L694"
+      "source_location": "L695"
     },
     {
       "id": "app_src_modules_stats_types_dartfoldrow",
@@ -4408,7 +4408,7 @@
       "file_type": "code",
       "norm_label": "dartfoldrow",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L612"
+      "source_location": "L613"
     },
     {
       "id": "app_src_modules_stats_types_sessionsteps",
@@ -4421,7 +4421,7 @@
       "file_type": "code",
       "norm_label": "sessionsteps",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L653"
+      "source_location": "L654"
     },
     {
       "id": "app_src_modules_stats_types_shanghaicountmetrics",
@@ -4434,7 +4434,7 @@
       "file_type": "code",
       "norm_label": "shanghaicountmetrics",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L663"
+      "source_location": "L664"
     },
     {
       "id": "app_src_repositories_interfaces_playerprofileinput",
@@ -5643,7 +5643,7 @@
       "file_type": "code",
       "norm_label": "scoringtrendmetrics",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L590"
+      "source_location": "L591"
     },
     {
       "id": "app_scripts_dartbot_population_prior_extractrow",
@@ -6748,7 +6748,7 @@
       "file_type": "code",
       "norm_label": "atcdartspertargetmetrics",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L673"
+      "source_location": "L674"
     },
     {
       "id": "app_src_modules_stats_types_bustratemetrics",
@@ -6761,7 +6761,7 @@
       "file_type": "code",
       "norm_label": "bustratemetrics",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L576"
+      "source_location": "L577"
     },
     {
       "id": "app_src_modules_stats_types_checkoutpathmetrics",
@@ -6774,7 +6774,7 @@
       "file_type": "code",
       "norm_label": "checkoutpathmetrics",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L570"
+      "source_location": "L571"
     },
     {
       "id": "app_src_modules_stats_types_checkoutratemetrics",
@@ -6787,7 +6787,7 @@
       "file_type": "code",
       "norm_label": "checkoutratemetrics",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L558"
+      "source_location": "L559"
     },
     {
       "id": "app_src_modules_stats_types_confusionmetrics",
@@ -6800,7 +6800,7 @@
       "file_type": "code",
       "norm_label": "confusionmetrics",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L498"
+      "source_location": "L499"
     },
     {
       "id": "app_src_modules_stats_types_dartscope",
@@ -6826,7 +6826,7 @@
       "file_type": "code",
       "norm_label": "doubleperformancemetrics",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L564"
+      "source_location": "L565"
     },
     {
       "id": "app_src_modules_stats_types_groupingmetrics",
@@ -6839,7 +6839,7 @@
       "file_type": "code",
       "norm_label": "groupingmetrics",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L517"
+      "source_location": "L518"
     },
     {
       "id": "app_src_modules_stats_types_groupingmoment",
@@ -6852,7 +6852,7 @@
       "file_type": "code",
       "norm_label": "groupingmoment",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L507"
+      "source_location": "L508"
     },
     {
       "id": "app_src_modules_stats_types_intentmomentrow",
@@ -6865,7 +6865,7 @@
       "file_type": "code",
       "norm_label": "intentmomentrow",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L452"
+      "source_location": "L453"
     },
     {
       "id": "app_src_modules_stats_types_ladderprogressmetrics",
@@ -6878,7 +6878,7 @@
       "file_type": "code",
       "norm_label": "ladderprogressmetrics",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L582"
+      "source_location": "L583"
     },
     {
       "id": "app_src_modules_stats_types_legstatsmetrics",
@@ -6891,7 +6891,7 @@
       "file_type": "code",
       "norm_label": "legstatsmetrics",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L579"
+      "source_location": "L580"
     },
     {
       "id": "app_src_modules_stats_types_routineheaderrow",
@@ -6995,7 +6995,7 @@
       "file_type": "code",
       "norm_label": "stepfoldrow",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L823"
+      "source_location": "L824"
     },
     {
       "id": "app_src_modules_stats_types_stepscope",
@@ -7021,7 +7021,7 @@
       "file_type": "code",
       "norm_label": "stepsessionrow",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L354"
+      "source_location": "L355"
     },
     {
       "id": "app_src_modules_stats_types_targetaccuracymetrics",
@@ -7034,7 +7034,7 @@
       "file_type": "code",
       "norm_label": "targetaccuracymetrics",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L492"
+      "source_location": "L493"
     },
     {
       "id": "app_src_modules_stats_types_trainedroutinerow",
@@ -7060,7 +7060,7 @@
       "file_type": "code",
       "norm_label": "x01foldrow",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L405"
+      "source_location": "L406"
     },
     {
       "id": "app_src_stores_game_stats_store_laddertargettotal",
@@ -7580,7 +7580,7 @@
       "file_type": "code",
       "norm_label": "bucketedsession",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L552"
+      "source_location": "L553"
     },
     {
       "id": "app_src_modules_stats_types_sessioncheckoutvisits",
@@ -7619,7 +7619,7 @@
       "file_type": "code",
       "norm_label": "stepmetricspec",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L393"
+      "source_location": "L394"
     },
     {
       "id": "app_src_modules_stats_types_stepresultmetric",
@@ -7632,7 +7632,7 @@
       "file_type": "code",
       "norm_label": "stepresultmetric",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L898"
+      "source_location": "L899"
     },
     {
       "id": "app_tests_modules_stats_step_metrics_module_test_fixture",
@@ -9426,7 +9426,7 @@
       "file_type": "code",
       "norm_label": "bobs27survivalgroupmetrics",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L679"
+      "source_location": "L680"
     },
     {
       "id": "app_src_modules_stats_types_missdirectionentry",
@@ -9439,7 +9439,7 @@
       "file_type": "code",
       "norm_label": "missdirectionentry",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L520"
+      "source_location": "L521"
     },
     {
       "id": "app_src_components_forms_iconbtn_props",
@@ -9699,7 +9699,7 @@
       "file_type": "code",
       "norm_label": "hitnumbercellrow",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L432"
+      "source_location": "L433"
     },
     {
       "id": "app_src_modules_stats_types_trebleratemetrics",
@@ -9712,7 +9712,7 @@
       "file_type": "code",
       "norm_label": "trebleratemetrics",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L599"
+      "source_location": "L600"
     },
     {
       "id": "app_src_components_layout_navbtn_props",
@@ -9816,7 +9816,7 @@
       "file_type": "code",
       "norm_label": "intentcellrow",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L441"
+      "source_location": "L442"
     },
     {
       "id": "app_src_modules_stats_types_loosedartsmetrics",
@@ -9829,7 +9829,7 @@
       "file_type": "code",
       "norm_label": "loosedartsmetrics",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L501"
+      "source_location": "L502"
     },
     {
       "id": "app_src_modules_stats_types_misssectorrow",
@@ -9842,7 +9842,7 @@
       "file_type": "code",
       "norm_label": "misssectorrow",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L476"
+      "source_location": "L477"
     },
     {
       "id": "app_scripts_dartbot_level_select_stats_levelselectband",
@@ -9985,7 +9985,7 @@
       "file_type": "code",
       "norm_label": "routinecompletionmetrics",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L869"
+      "source_location": "L870"
     },
     {
       "id": "app_src_modules_stats_types_routinevolumemetrics",
@@ -9998,7 +9998,7 @@
       "file_type": "code",
       "norm_label": "routinevolumemetrics",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L860"
+      "source_location": "L861"
     },
     {
       "id": "app_src_modules_stats_types_stepvolumemetrics",
@@ -10011,7 +10011,7 @@
       "file_type": "code",
       "norm_label": "stepvolumemetrics",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L883"
+      "source_location": "L884"
     },
     {
       "id": "app_src_pages_api_statistics_types_routinestepsessionlistresponsedata",
@@ -10999,7 +10999,7 @@
       "file_type": "code",
       "norm_label": "dartexercisekind",
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L374"
+      "source_location": "L375"
     },
     {
       "id": "app_src_pages_api_routines_types_routinesummarydata",
@@ -14084,7 +14084,7 @@
       "file_type": "code",
       "norm_label": "mocktwoseatsession()",
       "source_file": "app/tests/lib/game/play-lifecycle.test.ts",
-      "source_location": "L1680"
+      "source_location": "L1699"
     },
     {
       "id": "app_tests_lib_game_session_recovery_test_activesession",
@@ -15548,7 +15548,7 @@
       "file_type": "code",
       "norm_label": "findstepfoldrows()",
       "source_file": "app/src/repositories/statistics.repository.ts",
-      "source_location": "L2281"
+      "source_location": "L2284"
     },
     {
       "id": "app_src_services_statistics_service_getsessionreplay",
@@ -17888,7 +17888,7 @@
       "file_type": "code",
       "norm_label": "findstepscopedartcount()",
       "source_file": "app/src/repositories/statistics.repository.ts",
-      "source_location": "L2346"
+      "source_location": "L2349"
     },
     {
       "id": "app_src_repositories_statistics_repository_findstepsessionpage",
@@ -18104,7 +18104,7 @@
       "file_type": "code",
       "norm_label": "mapstepfoldrow()",
       "source_file": "app/src/repositories/statistics.repository.ts",
-      "source_location": "L2193"
+      "source_location": "L2196"
     },
     {
       "id": "app_src_repositories_statistics_repository_mapvisitscoringrow",
@@ -19484,7 +19484,7 @@
       "file_type": "code",
       "norm_label": "turnwithdarts()",
       "source_file": "app/tests/lib/game/play-lifecycle.test.ts",
-      "source_location": "L1919"
+      "source_location": "L1938"
     },
     {
       "id": "app_tests_lib_game_play_lifecycle_test_twoseatcontext",
@@ -19496,7 +19496,7 @@
       "file_type": "code",
       "norm_label": "twoseatcontext()",
       "source_file": "app/tests/lib/game/play-lifecycle.test.ts",
-      "source_location": "L1671"
+      "source_location": "L1690"
     },
     {
       "id": "app_tests_modules_game_seat_rota_module_test_closedturn",
@@ -55193,7 +55193,7 @@
       "file_type": "code",
       "norm_label": "step_fold_columns",
       "source_file": "app/src/repositories/statistics.repository.ts",
-      "source_location": "L2245"
+      "source_location": "L2248"
     },
     {
       "id": "app_src_repositories_statistics_repository_x01_fold_columns",
@@ -104507,7 +104507,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "app/src/lib/game/play-lifecycle.ts",
-      "source_location": "L589",
+      "source_location": "L593",
       "weight": 1.0
     },
     {
@@ -104519,7 +104519,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "app/src/lib/game/play-lifecycle.ts",
-      "source_location": "L603",
+      "source_location": "L607",
       "weight": 1.0
     },
     {
@@ -120659,7 +120659,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "app/src/repositories/statistics.repository.ts",
-      "source_location": "L2317",
+      "source_location": "L2320",
       "weight": 1.0
     },
     {
@@ -120671,7 +120671,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "app/src/repositories/statistics.repository.ts",
-      "source_location": "L2318",
+      "source_location": "L2321",
       "weight": 1.0
     },
     {
@@ -120683,7 +120683,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "app/src/repositories/statistics.repository.ts",
-      "source_location": "L2366",
+      "source_location": "L2369",
       "weight": 1.0
     },
     {
@@ -120935,7 +120935,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "app/src/repositories/statistics.repository.ts",
-      "source_location": "L2219",
+      "source_location": "L2222",
       "weight": 1.0
     },
     {
@@ -127139,7 +127139,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "app/tests/lib/game/play-lifecycle.test.ts",
-      "source_location": "L1672",
+      "source_location": "L1691",
       "weight": 1.0
     },
     {
@@ -131675,7 +131675,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "app/tests/lib/game/play-lifecycle.test.ts",
-      "source_location": "L1671",
+      "source_location": "L1690",
       "weight": 1.0
     },
     {
@@ -131687,7 +131687,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "app/tests/lib/game/play-lifecycle.test.ts",
-      "source_location": "L1680",
+      "source_location": "L1699",
       "weight": 1.0
     },
     {
@@ -131699,7 +131699,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "app/tests/lib/game/play-lifecycle.test.ts",
-      "source_location": "L1919",
+      "source_location": "L1938",
       "weight": 1.0
     },
     {
@@ -275203,7 +275203,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L354",
+      "source_location": "L355",
       "weight": 1.0
     },
     {
@@ -275214,7 +275214,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L374",
+      "source_location": "L375",
       "weight": 1.0
     },
     {
@@ -275225,7 +275225,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L393",
+      "source_location": "L394",
       "weight": 1.0
     },
     {
@@ -275247,7 +275247,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L405",
+      "source_location": "L406",
       "weight": 1.0
     },
     {
@@ -275258,7 +275258,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L415",
+      "source_location": "L416",
       "weight": 1.0
     },
     {
@@ -275269,7 +275269,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L432",
+      "source_location": "L433",
       "weight": 1.0
     },
     {
@@ -275280,7 +275280,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L441",
+      "source_location": "L442",
       "weight": 1.0
     },
     {
@@ -275291,7 +275291,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L452",
+      "source_location": "L453",
       "weight": 1.0
     },
     {
@@ -275302,7 +275302,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L466",
+      "source_location": "L467",
       "weight": 1.0
     },
     {
@@ -275313,7 +275313,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L476",
+      "source_location": "L477",
       "weight": 1.0
     },
     {
@@ -275335,7 +275335,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L485",
+      "source_location": "L486",
       "weight": 1.0
     },
     {
@@ -275346,7 +275346,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L492",
+      "source_location": "L493",
       "weight": 1.0
     },
     {
@@ -275357,7 +275357,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L498",
+      "source_location": "L499",
       "weight": 1.0
     },
     {
@@ -275368,7 +275368,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L501",
+      "source_location": "L502",
       "weight": 1.0
     },
     {
@@ -275379,7 +275379,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L507",
+      "source_location": "L508",
       "weight": 1.0
     },
     {
@@ -275390,7 +275390,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L517",
+      "source_location": "L518",
       "weight": 1.0
     },
     {
@@ -275401,7 +275401,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L520",
+      "source_location": "L521",
       "weight": 1.0
     },
     {
@@ -275412,7 +275412,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L527",
+      "source_location": "L528",
       "weight": 1.0
     },
     {
@@ -275423,7 +275423,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L530",
+      "source_location": "L531",
       "weight": 1.0
     },
     {
@@ -275434,7 +275434,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L537",
+      "source_location": "L538",
       "weight": 1.0
     },
     {
@@ -275445,7 +275445,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L545",
+      "source_location": "L546",
       "weight": 1.0
     },
     {
@@ -275456,7 +275456,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L552",
+      "source_location": "L553",
       "weight": 1.0
     },
     {
@@ -275467,7 +275467,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L558",
+      "source_location": "L559",
       "weight": 1.0
     },
     {
@@ -275478,7 +275478,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L564",
+      "source_location": "L565",
       "weight": 1.0
     },
     {
@@ -275489,7 +275489,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L570",
+      "source_location": "L571",
       "weight": 1.0
     },
     {
@@ -275500,7 +275500,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L576",
+      "source_location": "L577",
       "weight": 1.0
     },
     {
@@ -275511,7 +275511,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L579",
+      "source_location": "L580",
       "weight": 1.0
     },
     {
@@ -275522,7 +275522,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L582",
+      "source_location": "L583",
       "weight": 1.0
     },
     {
@@ -275533,7 +275533,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L590",
+      "source_location": "L591",
       "weight": 1.0
     },
     {
@@ -275544,7 +275544,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L599",
+      "source_location": "L600",
       "weight": 1.0
     },
     {
@@ -275555,7 +275555,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L612",
+      "source_location": "L613",
       "weight": 1.0
     },
     {
@@ -275577,7 +275577,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L637",
+      "source_location": "L638",
       "weight": 1.0
     },
     {
@@ -275588,7 +275588,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L653",
+      "source_location": "L654",
       "weight": 1.0
     },
     {
@@ -275599,7 +275599,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L663",
+      "source_location": "L664",
       "weight": 1.0
     },
     {
@@ -275610,7 +275610,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L673",
+      "source_location": "L674",
       "weight": 1.0
     },
     {
@@ -275621,7 +275621,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L679",
+      "source_location": "L680",
       "weight": 1.0
     },
     {
@@ -275632,7 +275632,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L694",
+      "source_location": "L695",
       "weight": 1.0
     },
     {
@@ -275643,7 +275643,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L710",
+      "source_location": "L711",
       "weight": 1.0
     },
     {
@@ -275654,7 +275654,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L736",
+      "source_location": "L737",
       "weight": 1.0
     },
     {
@@ -275665,7 +275665,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L748",
+      "source_location": "L749",
       "weight": 1.0
     },
     {
@@ -275676,7 +275676,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L759",
+      "source_location": "L760",
       "weight": 1.0
     },
     {
@@ -275687,7 +275687,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L780",
+      "source_location": "L781",
       "weight": 1.0
     },
     {
@@ -275698,7 +275698,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L795",
+      "source_location": "L796",
       "weight": 1.0
     },
     {
@@ -275709,7 +275709,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L807",
+      "source_location": "L808",
       "weight": 1.0
     },
     {
@@ -275720,7 +275720,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L823",
+      "source_location": "L824",
       "weight": 1.0
     },
     {
@@ -275731,7 +275731,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L839",
+      "source_location": "L840",
       "weight": 1.0
     },
     {
@@ -275742,7 +275742,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L850",
+      "source_location": "L851",
       "weight": 1.0
     },
     {
@@ -275753,7 +275753,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L860",
+      "source_location": "L861",
       "weight": 1.0
     },
     {
@@ -275764,7 +275764,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L869",
+      "source_location": "L870",
       "weight": 1.0
     },
     {
@@ -275775,7 +275775,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L883",
+      "source_location": "L884",
       "weight": 1.0
     },
     {
@@ -275797,7 +275797,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/modules/stats/types.ts",
-      "source_location": "L898",
+      "source_location": "L899",
       "weight": 1.0
     },
     {
@@ -282540,7 +282540,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/repositories/statistics.repository.ts",
-      "source_location": "L2193",
+      "source_location": "L2196",
       "weight": 1.0
     },
     {
@@ -282562,7 +282562,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/repositories/statistics.repository.ts",
-      "source_location": "L2245",
+      "source_location": "L2248",
       "weight": 1.0
     },
     {
@@ -282573,7 +282573,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/repositories/statistics.repository.ts",
-      "source_location": "L2281",
+      "source_location": "L2284",
       "weight": 1.0
     },
     {
@@ -282595,7 +282595,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/repositories/statistics.repository.ts",
-      "source_location": "L2346",
+      "source_location": "L2349",
       "weight": 1.0
     },
     {
@@ -329118,7 +329118,7 @@
       "confidence_score": 0.85,
       "context": "argument",
       "source_file": "app/src/repositories/statistics.repository.ts",
-      "source_location": "L2314",
+      "source_location": "L2317",
       "weight": 1.0
     },
     {
@@ -330234,7 +330234,7 @@
       "confidence_score": 0.85,
       "context": "argument",
       "source_file": "app/tests/lib/game/play-lifecycle.test.ts",
-      "source_location": "L1681",
+      "source_location": "L1700",
       "weight": 1.0
     },
     {
@@ -331158,7 +331158,7 @@
       "confidence_score": 0.85,
       "context": "argument",
       "source_file": "app/tests/repositories/statistics.repository.test.ts",
-      "source_location": "L3050",
+      "source_location": "L3077",
       "weight": 1.0
     },
     {
@@ -353069,5 +353069,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "8ef737ffa2b89482fa4aaf54fd8dfa730711a30c"
+  "built_at_commit": "fda45708657a25f0a752ff0e9fb9d941ef1f7106"
 }
