@@ -22,6 +22,7 @@ type AreaContext = {
   chart: {
     ctx: CanvasRenderingContext2D;
     chartArea?: { top: number; bottom: number };
+    scales?: { y?: { getPixelForValue(value: number): number } };
   };
 };
 
@@ -64,15 +65,27 @@ function seriesColorNames(
 
 /**
  * Area fill function that creates a linear gradient when chart area is known,
- * or a flat color before layout.
+ * or a flat color before layout. The gradient starts at the series' own
+ * highest point, clamped to the chart area, and fades to transparent at the
+ * bottom, so overlapping series blend as little as possible.
  */
-function areaFill(color: string) {
+function areaFill(color: string, data: readonly (number | null)[]) {
+  const values = data.filter((value): value is number => value !== null);
+  const peak = values.length > 0 ? Math.max(...values) : null;
   return (context: AreaContext) => {
     const area = context.chart.chartArea;
     if (!area) return withAlpha(color, AREA_TOP_ALPHA / 2);
+    const scale = context.chart.scales?.y;
+    const top =
+      peak !== null && scale
+        ? Math.min(
+            Math.max(scale.getPixelForValue(peak), area.top),
+            area.bottom,
+          )
+        : area.top;
     const gradient = context.chart.ctx.createLinearGradient(
       0,
-      area.top,
+      top,
       0,
       area.bottom,
     );
@@ -96,7 +109,7 @@ function lineDataset(
     label: series.label,
     data: series.data,
     borderColor: color,
-    backgroundColor: area ? areaFill(color) : color,
+    backgroundColor: area ? areaFill(color, series.data) : color,
     fill: area,
     borderWidth: 2,
     tension: 0.3,
