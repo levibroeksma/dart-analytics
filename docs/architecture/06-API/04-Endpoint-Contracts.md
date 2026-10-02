@@ -879,7 +879,7 @@ const RoutineStepSessionListResponse = z.object({
   items: z.array(z.object({
     sessionId: z.string().uuid(),
     rulesetVersionKey: z.string().nullable(), exerciseRulesetVersionKey: z.string().nullable(),
-    statusKey: z.string(), neverStarted: z.boolean(),
+    statusKey: z.string(), neverStarted: z.boolean().nullable(), // null for Warm-Up (records no turns)
     startedAt: z.string().datetime({ offset: true }), completedAt: z.string().datetime({ offset: true }),
     durationSeconds: z.number().int(), turnCount: z.number().int(),
     dartCount: z.number().int(), countedScore: z.number().int(),

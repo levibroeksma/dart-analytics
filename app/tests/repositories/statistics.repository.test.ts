@@ -2875,6 +2875,33 @@ describe("findStepSessionPage", () => {
 
     expect(result[0].neverStarted).toBe(true);
   });
+
+  it("reports neverStarted as null for a Warm-Up step, which records no turns", async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue([
+        {
+          sessionId: "s1",
+          rulesetVersionKey: null,
+          exerciseRulesetVersionKey: "WARM_UP_V1",
+          statusKey: "ABANDONED",
+          startedAt: "2026-01-01T00:00:00.000Z",
+          completedAt: "2026-01-01T00:01:00.000Z",
+          durationSeconds: 60,
+          turnCount: 0,
+          dartCount: 0,
+          countedScore: 0,
+        },
+      ]),
+    };
+    const db = { select: vi.fn(() => chain) } as any;
+
+    const result = await findStepSessionPage(db, baseQuery);
+
+    expect(result[0].neverStarted).toBeNull();
+  });
 });
 
 describe("findStepFoldRows", () => {

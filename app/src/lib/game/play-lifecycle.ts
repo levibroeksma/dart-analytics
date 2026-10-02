@@ -581,8 +581,12 @@ export async function runPlayAgain<
           : { source: "template", templateRef },
         participants: participantsFromSeats(config.seats),
       });
-    } catch {
-      context.playAgainError = "Could not start a new session. Try again.";
+    } catch (err: unknown) {
+      const code = (err as { code?: unknown }).code;
+      context.playAgainError =
+        typeof code === "string"
+          ? `Could not start a new session (${code}). Try again.`
+          : "Could not start a new session. Try again.";
       return;
     }
 

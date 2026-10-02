@@ -1164,3 +1164,59 @@ describe("shanghaiPlay — DartBot opponent", () => {
     expect(play.engine!.state().activeParticipantRef).toBe("participant-1");
   });
 });
+
+describe("playAgain — DartBot opponent", () => {
+  it("replays with the bot seat and re-seats the snapshot onto the new participants", async () => {
+    const play = makePlay({ configSnapshot: botConfig() });
+    play.completionStatus = "succeeded";
+    play.finished = true;
+    vi.mocked(createSession).mockResolvedValue({
+      sessionId: "new-session",
+      participants: [
+        {
+          ref: "p-new",
+          displayName: "Levi",
+          participantTypeKey: "PLAYER",
+        },
+        {
+          ref: "bot-new",
+          displayName: "DartBot",
+          participantTypeKey: "DARTBOT",
+          dartbot: { level: 8, seed: 7, levelSource: "MANUAL" },
+        },
+      ],
+    } as any);
+
+    await play.playAgain.call(play);
+
+    expect(createSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        participants: [
+          { participantTypeKey: "PLAYER", sideKey: "A" },
+          { participantTypeKey: "DARTBOT", level: 8, sideKey: "B" },
+        ],
+      }),
+    );
+    expect(play.playAgainError).toBe("");
+    expect(play.$store.game.sessionId).toBe("new-session");
+    expect(
+      play.$store.game.configSnapshot?.seats.map((s) => s.participantRef),
+    ).toEqual(["p-new", "bot-new"]);
+  });
+
+  it("names the server's error code when session creation is rejected", async () => {
+    const play = makePlay({ configSnapshot: botConfig() });
+    play.completionStatus = "succeeded";
+    play.finished = true;
+    vi.mocked(createSession).mockRejectedValue(
+      Object.assign(new Error("active"), { code: "SESSION_ALREADY_ACTIVE" }),
+    );
+
+    await play.playAgain.call(play);
+
+    expect(play.playAgainError).toBe(
+      "Could not start a new session (SESSION_ALREADY_ACTIVE). Try again.",
+    );
+    expect(play.finished).toBe(true);
+  });
+});
