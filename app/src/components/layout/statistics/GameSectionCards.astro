@@ -477,6 +477,13 @@ const wrapperClass = cn("space-y-4", classNameProp);
       specExpr="gameView.scoringTrendChart"
       formatter="one-decimal"
     />
+    <p
+      class="text-xs text-muted-foreground"
+      x-show="!gameView.scoringTrendHasData"
+      x-cloak
+    >
+      Not enough data yet.
+    </p>
     <p class="text-xs text-muted-foreground">
       <span x-text="gameView.bandCounts.ton"></span> 100+ ·
       <span x-text="gameView.bandCounts.tonForty"></span> 140+ · <span

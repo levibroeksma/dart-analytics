@@ -1006,6 +1006,13 @@ export function gameStatsStore() {
       return this.scoringTrendTotals.bands;
     },
 
+    /** True when at least one month has a 3-dart average to plot. */
+    get scoringTrendHasData(): boolean {
+      return this.scoringTrendChart.series[0].data.some(
+        (value) => value !== null,
+      );
+    },
+
     /** `scoring-trend`'s monthly 3-dart and first-nine averages as a line chart; an empty-darts bucket is a gap. */
     get scoringTrendChart(): ChartSpec {
       const series = this.sections["scoring-trend"] as

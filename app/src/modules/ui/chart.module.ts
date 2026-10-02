@@ -271,6 +271,7 @@ export function createTooltip(
 export class ChartView {
   private chart: ChartInstance | null = null;
   private spec: ChartSpec | null = null;
+  private ctor: ChartCtor | null = null;
   private destroyed = false;
   private tooltip: ReturnType<typeof createTooltip> | null = null;
 
@@ -290,6 +291,7 @@ export class ChartView {
         this.theme,
         () => this.spec?.format ?? String,
       );
+      this.ctor = Chart;
       this.chart = new Chart(
         this.canvas,
         buildConfig(this.spec, this.theme, this.tooltip.external),
@@ -300,10 +302,16 @@ export class ChartView {
   }
 
   update(spec: ChartSpec): void {
+    const kindChanged = this.spec !== null && this.spec.kind !== spec.kind;
     this.spec = spec;
     if (!this.chart) return;
     try {
       const config = buildConfig(spec, this.theme, this.tooltip?.external);
+      if (kindChanged && this.ctor) {
+        this.chart.destroy();
+        this.chart = new this.ctor(this.canvas, config);
+        return;
+      }
       this.chart.data.labels = config.data.labels;
       this.chart.data.datasets = config.data.datasets;
       this.chart.options = config.options;
