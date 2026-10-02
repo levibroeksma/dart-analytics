@@ -38,6 +38,7 @@ evaluated in the page's own Alpine scope.
 | `LogoutButton.astro` | Sign-out action wired to the auth flow | none |
 | `Modal.astro` | Base dialog shell; `ConfirmDialog` builds on it | `titleId`, `descriptionId`, `dismissible`, `onDismiss` |
 | `StatsHeatmap.astro` | The `heatmap` statistics section: `DartBoard.astro`'s SVG plus a cell overlay, geometry and intensity read from a section view's `heatmapCells` getter — `$store.gameStats` on the Games tab, a GAME step's view on the Routines tab (2026-09-26; `cellsExpr` 2026-09-29, D372) | `cellsExpr`, `class` |
+| `StatsDensityHeatmap.astro` | Density heatmap on the board: `DartBoard.astro`'s SVG under a `<canvas>` that `heatmapCanvas()` repaints whenever the `stampsExpr` stamps change — smooth blue→red blobs, not per-cell squares; Score Training's dedicated layout uses it (2026-10-02, D387) | `stampsExpr`, `class` |
 
 ## `components/forms/`
 

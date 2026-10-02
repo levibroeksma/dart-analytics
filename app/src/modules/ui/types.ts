@@ -99,3 +99,16 @@ export type ChartThemeEnv = {
   readPixel(css: string): readonly number[];
   prefersReducedMotion(): boolean;
 };
+
+/** The slice of `CanvasRenderingContext2D` the heatmap drawer touches; a test fakes exactly this. */
+export type HeatCanvasContext = Pick<
+  CanvasRenderingContext2D,
+  | "fillStyle"
+  | "clearRect"
+  | "createRadialGradient"
+  | "beginPath"
+  | "arc"
+  | "fill"
+  | "getImageData"
+  | "putImageData"
+>;

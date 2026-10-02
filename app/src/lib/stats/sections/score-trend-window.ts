@@ -85,6 +85,28 @@ export function trendWindow(
   }
 }
 
+/**
+ * The heatmap's request window: the score trend's *current* period only —
+ * from the range's boundary (its full span for all time) up to now. Not
+ * bucketed; `heatmap` is not bucketable.
+ */
+export function heatmapWindow(
+  key: TrendRangeKey,
+  now: Date,
+): { from: string; to: string } {
+  const to = upTo(now);
+  switch (key) {
+    case "30d":
+      return { from: daysBack(now, 30), to };
+    case "90d":
+      return { from: daysBack(now, 91), to };
+    case "1y":
+      return { from: monthsBack(now, 12), to };
+    case "all":
+      return { from: monthsBack(now, ALL_TIME_MONTHS), to };
+  }
+}
+
 function zonedParts(
   iso: string,
   tz: string,

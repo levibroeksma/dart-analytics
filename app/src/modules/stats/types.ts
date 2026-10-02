@@ -533,6 +533,17 @@ export type HeatmapMetrics = {
   cells: [number, number, number][];
 };
 
+/** One density stamp for the heatmap canvas: centre, radius and peak alpha as fractions of the canvas size / of the busiest cell. */
+export type HeatStamp = {
+  x: number;
+  y: number;
+  radius: number;
+  alpha: number;
+};
+
+/** One colour stop of the heatmap ramp: position in [0, 1] and an rgb triple. */
+export type HeatRampStop = { t: number; rgb: [number, number, number] };
+
 /**
  * One `SessionCheckoutVisits` session, tagged with the bucket its own
  * `completed_at` falls in — identical on every one of a

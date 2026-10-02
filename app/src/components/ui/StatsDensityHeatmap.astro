@@ -1,0 +1,39 @@
+---
+/**
+ * A board with a density overlay: `DartBoard.astro`'s SVG under a canvas
+ * that `heatmapCanvas()` repaints whenever the stamps expression changes.
+ * Smooth blobs rather than per-cell squares; the companion of
+ * `StatsHeatmap.astro`, which keeps the cell grid for the generic cards.
+ * @param {string} stampsExpr Alpine expression yielding `HeatStamp[]` (`heatStamps`)
+ * @param {string} [class] Extra wrapper classes
+ */
+interface Props {
+  stampsExpr: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+// Props
+const { stampsExpr, class: classNameProp, ...props }: Props = Astro.props;
+
+// Lib
+import DartBoard from "./DartBoard.astro";
+import { cn } from "@client/cn";
+
+// Data
+const effect = `draw(${stampsExpr})`;
+---
+
+<DartBoard
+  class={cn("relative touch-auto", classNameProp)}
+  x-data="heatmapCanvas()"
+  {...props}
+>
+  <canvas
+    x-ref="canvas"
+    x-effect={effect}
+    class="pointer-events-none absolute inset-0 size-full"
+    aria-hidden="true"
+  >
+  </canvas>
+</DartBoard>
