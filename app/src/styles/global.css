@@ -270,7 +270,6 @@
     inset 0 1px 0 0 var(--glass-highlight),
     0 0 0 1px oklch(0% 0 0 / 0.4);
   backdrop-filter: blur(var(--blur-glass));
-  -webkit-backdrop-filter: blur(var(--blur-glass));
 }
 
 @utility glass-strong {
@@ -280,7 +279,6 @@
     inset 0 1px 0 0 oklch(100% 0 0 / 0.12),
     0 8px 32px oklch(0% 0 0 / 0.45);
   backdrop-filter: blur(var(--blur-glass-strong));
-  -webkit-backdrop-filter: blur(var(--blur-glass-strong));
 }
 
 @layer components {
@@ -468,7 +466,6 @@
       inset 0 1px 0 0 var(--glass-highlight),
       0 0 0 1px oklch(0% 0 0 / 0.4);
     backdrop-filter: blur(var(--blur-glass));
-    -webkit-backdrop-filter: blur(var(--blur-glass));
   }
 
   /* Elevated card — soft top light, no diagonal slash */
@@ -532,7 +529,6 @@
       0 0 40px 20px color-mix(in oklch, var(--card-tint) 8%, transparent),
       inset 0 0 0 1px oklch(100% 0 0 / 0.06);
     backdrop-filter: blur(var(--blur-glass));
-    -webkit-backdrop-filter: blur(var(--blur-glass));
     transition:
       transform 150ms var(--ease-out),
       box-shadow 150ms var(--ease-out);
