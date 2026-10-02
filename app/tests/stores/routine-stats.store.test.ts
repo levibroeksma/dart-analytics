@@ -555,6 +555,14 @@ describe("routineStatsStore getters", () => {
     expect(store.stepDetail(older)).not.toBe(store.stepDetail(newer));
   });
 
+  it("uses the singular for a step with one session", () => {
+    const store = routineStatsStore();
+
+    expect(store.stepDetail({ ...HEADER.steps[1], sessionCount: 1 })).toMatch(
+      /^1 session · /,
+    );
+  });
+
   it("omits the configured minutes when the step's snapshot sets no duration", () => {
     const store = routineStatsStore();
     const lastRun = new Date("2026-02-01T00:00:00.000Z").toLocaleDateString();

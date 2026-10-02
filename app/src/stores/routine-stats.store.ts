@@ -515,7 +515,9 @@ export function routineStatsStore() {
 
     /** A step row's detail: its session count, configured minutes when the snapshot sets a duration, and last run date — what tells two versions sharing one `stepLabel` apart. */
     stepDetail(step: StepDescriptor): string {
-      const parts = [`${step.sessionCount} sessions`];
+      const parts = [
+        `${step.sessionCount} ${step.sessionCount === 1 ? "session" : "sessions"}`,
+      ];
       if (step.durationSeconds !== null) {
         parts.push(`${minutes(step.durationSeconds)} min`);
       }
