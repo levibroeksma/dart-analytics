@@ -2,7 +2,8 @@
 /**
  * Score Training score-trend section: range picker, period 3-dart and
  * first-nine averages with deltas, and the trend chart. Self-fetching via
- * `scoreTrendSection()`.
+ * `scoreTrendSection()`. The glass surface is a sibling layer, not an
+ * ancestor: a `backdrop-filter` nested inside another one blurs nothing.
  */
 import Select from "@components/forms/Select.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
@@ -11,85 +12,92 @@ import { TREND_RANGE_OPTIONS } from "@lib/stats/sections/score-trend-window";
 ---
 
 <section
-  class="glass space-y-3 rounded-2xl p-4"
+  class="relative"
   x-data="scoreTrendSection()"
 >
-  <h2 class="text-sm text-foreground">Score trend</h2>
-  <Select
-    options={TREND_RANGE_OPTIONS}
-    model="rangeKey"
-    ariaLabel="Range"
-  />
-  <ErrorAlert
-    showExpr="error"
-    textExpr="error"
-  />
   <div
-    class="space-y-2"
-    x-show="loading"
-    x-cloak
+    class="glass absolute inset-0 rounded-2xl"
+    aria-hidden="true"
   >
-    <div class="h-12 animate-pulse rounded bg-muted-foreground/80"></div>
-    <div class="h-48 animate-pulse rounded bg-muted-foreground/80"></div>
   </div>
-  <div
-    class="space-y-3"
-    x-show="!loading && !error"
-    x-cloak
-  >
+  <div class="relative space-y-3 p-4">
+    <h2 class="text-sm text-foreground">Score trend</h2>
+    <Select
+      options={TREND_RANGE_OPTIONS}
+      model="rangeKey"
+      ariaLabel="Range"
+    />
+    <ErrorAlert
+      showExpr="error"
+      textExpr="error"
+    />
     <div
-      class="grid grid-cols-2 gap-2 text-center text-sm text-muted-foreground"
+      class="space-y-2"
+      x-show="loading"
+      x-cloak
     >
-      <div>
-        <span
-          class="block text-lg text-foreground"
-          x-text="averages.threeDart !== null ? averages.threeDart.toFixed(1) : '—'"
-        >
-        </span>
-        <span
-          class="block text-xs"
-          x-show="threeDartDelta !== null"
-          x-cloak
-          :class="threeDartDelta >= 0 ? 'text-success' : 'text-error'"
-          x-text="threeDartDelta !== null ? (threeDartDelta >= 0 ? '+' : '') + threeDartDelta.toFixed(1) : ''"
-        >
-        </span>
-        3-dart average
-      </div>
-      <div>
-        <span
-          class="block text-lg text-foreground"
-          x-text="averages.firstNine !== null ? averages.firstNine.toFixed(1) : '—'"
-        >
-        </span>
-        <span
-          class="block text-xs"
-          x-show="firstNineDelta !== null"
-          x-cloak
-          :class="firstNineDelta >= 0 ? 'text-success' : 'text-error'"
-          x-text="firstNineDelta !== null ? (firstNineDelta >= 0 ? '+' : '') + firstNineDelta.toFixed(1) : ''"
-        >
-        </span>
-        First nine
-      </div>
+      <div class="h-12 animate-pulse rounded bg-muted-foreground/80"></div>
+      <div class="h-48 animate-pulse rounded bg-muted-foreground/80"></div>
     </div>
-    <p
-      class="text-sm text-muted-foreground"
-      x-show="isEmpty"
-      x-cloak
-    >
-      No sessions in range.
-    </p>
     <div
-      x-show="!isEmpty"
+      class="space-y-3"
+      x-show="!loading && !error"
       x-cloak
     >
-      <Chart
-        flat
-        table={false}
-        specExpr="chart"
-        formatter="one-decimal"
-      />
+      <div
+        class="grid grid-cols-2 gap-2 text-center text-sm text-muted-foreground"
+      >
+        <div>
+          <span
+            class="block text-lg text-foreground"
+            x-text="averages.threeDart !== null ? averages.threeDart.toFixed(1) : '—'"
+          >
+          </span>
+          <span
+            class="block text-xs"
+            x-show="threeDartDelta !== null"
+            x-cloak
+            :class="threeDartDelta >= 0 ? 'text-success' : 'text-error'"
+            x-text="threeDartDelta !== null ? (threeDartDelta >= 0 ? '+' : '') + threeDartDelta.toFixed(1) : ''"
+          >
+          </span>
+          3-dart average
+        </div>
+        <div>
+          <span
+            class="block text-lg text-foreground"
+            x-text="averages.firstNine !== null ? averages.firstNine.toFixed(1) : '—'"
+          >
+          </span>
+          <span
+            class="block text-xs"
+            x-show="firstNineDelta !== null"
+            x-cloak
+            :class="firstNineDelta >= 0 ? 'text-success' : 'text-error'"
+            x-text="firstNineDelta !== null ? (firstNineDelta >= 0 ? '+' : '') + firstNineDelta.toFixed(1) : ''"
+          >
+          </span>
+          First nine
+        </div>
+      </div>
+      <p
+        class="text-sm text-muted-foreground"
+        x-show="isEmpty"
+        x-cloak
+      >
+        No sessions in range.
+      </p>
+      <div
+        x-show="!isEmpty"
+        x-cloak
+      >
+        <Chart
+          flat
+          table={false}
+          specExpr="chart"
+          formatter="one-decimal"
+        />
+      </div>
     </div>
   </div>
 </section>
