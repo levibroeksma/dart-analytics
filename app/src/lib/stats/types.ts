@@ -10,6 +10,7 @@ import type {
   LegStatsMetrics,
   LooseDartsMetrics,
   MissDirectionMetrics,
+  ScoringTrendMetrics,
   ShanghaiCountMetrics,
   TargetAccuracyMetrics,
   TurnFact,
@@ -342,4 +343,26 @@ export type GameSectionRange = {
   bucket: Bucket;
   tz?: string;
   target?: string;
+};
+
+export type TrendRangeKey = "30d" | "90d" | "1y" | "all";
+export type TrendBucket = Exclude<Bucket, "none">;
+
+/** A score-trend request; `boundary` starts the current period, `null` when there is no previous period. */
+export type TrendWindow = {
+  from: string;
+  to: string;
+  bucket: TrendBucket;
+  tz: string;
+  boundary: string | null;
+};
+
+export type TrendAverages = {
+  threeDart: number | null;
+  firstNine: number | null;
+};
+
+export type TrendPeriods = {
+  previous: SeriesBucket<ScoringTrendMetrics>[];
+  current: SeriesBucket<ScoringTrendMetrics>[];
 };
