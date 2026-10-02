@@ -10,6 +10,7 @@ Scope: Astro components — `ui/`, `forms/`, `layout/`. Load the "Frontend page 
 - Build-time class composition via `cn()` only — never `class:list` (enforced by `scripts/check-astro-class-composition.sh`)
 - Forward leftover attributes as `{...props}` — never `{...rest}`
 - Never `font-medium` — use `font-normal` / `font-semibold` / `font-bold`
+- Text is non-selectable app-wide (`body` in `global.css` `@layer base`); add `select-text` to anything a player may want to copy, never `select-none` to the rest (D388, 2026-10-02)
 - Tailwind v4 utilities only — no important modifier at all, neither prefix (`!utility`) nor suffix (`utility!`); compose overrides through `cn()`'s merge ordering, or extend the primitive's own variant/prop surface when its defaults conflict; arbitrary negatives as `left-[-45%]`, never `-left-[45%]`
 - Full rules: `docs/architecture/07-Frontend/07-Style-Guide.md` (visual) and `07-Frontend/05-Astro-Components.md` (class composition / props); `font-medium`/`{...rest}`/raw palette utilities/Tailwind important modifier (either form) + `-prop-[…]` mechanically enforced by `scripts/check-style-tokens.sh` (2026-07-31; important-modifier ban widened to suffix form 2026-08-21)
 

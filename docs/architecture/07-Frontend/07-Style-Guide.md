@@ -31,6 +31,7 @@ Class *composition* (`cn()`, frontmatter `// Styles`, prop/`class` placement) li
 - **Ambient backdrop.** `body::before` paints fixed radial gradients (soft top wash + sky `--accent-glow` corner bloom) over `--surface`. `body::after` adds a bottom vignette. Both layers are `pointer-events: none` and sit behind content (`z-index: -2` / `-1`).
 - **Mobile-first shell.** Content column capped at `max-w-lg` (`AppLayout`, `GameLayout`, bottom nav). Full viewport height via `h-dvh max-h-dvh overflow-hidden` on `html`/`body`; `body` also pads `env(safe-area-inset-top)` so content clears the iOS status bar in a standalone-launched web app (D174, 2026-07-29).
 - **Touch ergonomics.** `-webkit-tap-highlight-color: transparent` and `touch-action: manipulation` on `html`.
+- **Text is not selectable by default.** `body` sets `user-select: none` and `-webkit-touch-callout: none` in `@layer base`, so a long press never opens the iOS copy/share sheet or highlights a label. `input`, `textarea` and `[contenteditable]` stay selectable, and anything a player may want to copy (a code, an error message) opts in with the `select-text` utility — a utility outranks the base layer, so it needs no override. Per-element `select-none` is now redundant and should not be added (D388, 2026-10-02).
 
 ---
 
