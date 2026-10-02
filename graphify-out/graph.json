@@ -25667,7 +25667,7 @@
       "file_type": "code",
       "norm_label": "page()",
       "source_file": "app/tests/stores/routine-stats.store.test.ts",
-      "source_location": "L748"
+      "source_location": "L756"
     },
     {
       "id": "app_tests_stores_routine_stats_store_test_series",
@@ -96543,6 +96543,18 @@
       "type": "external"
     },
     {
+      "id": "app_src_lib_types_trendpersonalbest",
+      "label": "app_src_lib_types_trendpersonalbest",
+      "_origin": "semantic",
+      "community": 26,
+      "community_name": "score-trend-window.ts",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "app_src_lib_types_trendpersonalbest",
+      "source_file": "",
+      "type": "external"
+    },
+    {
       "id": "app_src_lib_types_trendrangekey",
       "label": "app_src_lib_types_trendrangekey",
       "_origin": "semantic",
@@ -97703,6 +97715,18 @@
       "external": true,
       "file_type": "concept",
       "norm_label": "app_src_modules_types_routinerunbucketrow",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "app_src_modules_types_sessionbestaverage",
+      "label": "app_src_modules_types_sessionbestaverage",
+      "_origin": "semantic",
+      "community": 314,
+      "community_name": "modules/types.ts",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "app_src_modules_types_sessionbestaverage",
       "source_file": "",
       "type": "external"
     },
@@ -99695,28 +99719,6 @@
       "external": true,
       "file_type": "concept",
       "norm_label": "app_src_lib_types_trainingindexcontext",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "app_src_lib_types_trendpersonalbest",
-      "label": "app_src_lib_types_trendpersonalbest",
-      "community": 26,
-      "community_name": "score-trend-window.ts",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "app_src_lib_types_trendpersonalbest",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "app_src_modules_types_sessionbestaverage",
-      "label": "app_src_modules_types_sessionbestaverage",
-      "community": 314,
-      "community_name": "modules/types.ts",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "app_src_modules_types_sessionbestaverage",
       "source_file": "",
       "type": "external"
     }
@@ -126623,7 +126625,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "app/src/stores/routine-stats.store.ts",
-      "source_location": "L610",
+      "source_location": "L612",
       "weight": 1.0
     },
     {
@@ -137279,7 +137281,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "app/tests/stores/routine-stats.store.test.ts",
-      "source_location": "L748",
+      "source_location": "L756",
       "weight": 1.0
     },
     {
@@ -331889,7 +331891,7 @@
       "confidence_score": 0.85,
       "context": "argument",
       "source_file": "app/tests/repositories/statistics.repository.test.ts",
-      "source_location": "L3152",
+      "source_location": "L3153",
       "weight": 1.0
     },
     {
@@ -353908,5 +353910,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "40f8ad9f9e2cea2c95168b184b8653fb41a4103f"
+  "built_at_commit": "242b114925a74cf656f0680b0e127b571ff9ee59"
 }
