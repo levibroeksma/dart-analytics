@@ -127,7 +127,10 @@ describe("legStatsBuckets", () => {
 
     const [bucket] = legStatsBuckets([s], CTX);
 
-    expect(bucket.metrics).toEqual({ "18": 1, "15": 1 });
+    expect(bucket.metrics).toEqual({
+      legs: { "18": 1, "15": 1 },
+      bestLeg: { darts: 15, sessionId: "session-1" },
+    });
     expect(bucket.sampleSize).toBe(2);
   });
 
@@ -143,7 +146,25 @@ describe("legStatsBuckets", () => {
 
     const [bucket] = legStatsBuckets([a, b], CTX);
 
-    expect(bucket.metrics).toEqual({ "18": 2 });
+    expect(bucket.metrics).toEqual({
+      legs: { "18": 2 },
+      bestLeg: { darts: 18, sessionId: "a" },
+    });
+  });
+
+  it("names the session of the fewest-darts leg across sessions", () => {
+    const a = bucketedSession({
+      sessionId: "a",
+      visits: [visit("leg-1", 21, true)],
+    });
+    const b = bucketedSession({
+      sessionId: "b",
+      visits: [visit("leg-1", 12, true)],
+    });
+
+    const [bucket] = legStatsBuckets([a, b], CTX);
+
+    expect(bucket.metrics.bestLeg).toEqual({ darts: 12, sessionId: "b" });
   });
 
   it("gives no buckets for no finished legs", () => {

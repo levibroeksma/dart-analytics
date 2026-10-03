@@ -365,7 +365,12 @@ const BustRateMetrics = ValueRecord(
   z.object({ visits: z.number().int(), busts: z.number().int() }),
 );
 
-const LegStatsMetrics = ValueRecord(z.number().int());
+const LegStatsMetrics = z.object({
+  legs: ValueRecord(z.number().int()),
+  bestLeg: z
+    .object({ darts: z.number().int(), sessionId: z.string().uuid() })
+    .nullable(),
+});
 
 const LadderProgressMetrics = z.object({
   targets: ValueRecord(

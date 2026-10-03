@@ -751,7 +751,18 @@ describe("gameStatsStore", () => {
   it("legHistogram/bestLeg/averageLegDarts derive from the darts-per-leg counts", async () => {
     readSection.mockImplementation((_player, _game, meta) => {
       if (meta.id === "leg-stats") {
-        return Promise.resolve(series({ "21": 2, "18": 1 }, 3));
+        return Promise.resolve(
+          series(
+            {
+              legs: { "21": 2, "18": 1 },
+              bestLeg: {
+                darts: 18,
+                sessionId: "0190a000-0000-7000-8000-000000000001",
+              },
+            },
+            3,
+          ),
+        );
       }
       return Promise.resolve(series({}, 0));
     });
@@ -765,6 +776,7 @@ describe("gameStatsStore", () => {
       { darts: 21, legs: 2 },
     ]);
     expect(store.bestLeg).toBe(18);
+    expect(store.bestLegSessionId).toBe("0190a000-0000-7000-8000-000000000001");
     expect(store.averageLegDarts).toBeCloseTo((18 * 1 + 21 * 2) / 3);
   });
 

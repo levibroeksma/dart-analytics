@@ -94,7 +94,7 @@ export const SECTIONS: Readonly<Record<SectionId, SectionMeta>> = {
   },
   "leg-stats": {
     id: "leg-stats",
-    version: 1,
+    version: 2,
     requires: ["leg"],
     computeSite: "server",
     bucketable: true,

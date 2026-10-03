@@ -143,13 +143,55 @@ describe("mergeMetrics", () => {
     expect(merged).toEqual({ "40": { visits: 5, busts: 3 } });
   });
 
-  it("sums the leg-stats histogram", () => {
+  it("sums the leg-stats histogram and keeps the fewest-darts best leg", () => {
     const merged = mergeMetrics(
       "leg-stats",
-      { "18": 2, "21": 1 },
-      { "18": 1, "24": 3 },
+      {
+        legs: { "18": 2, "21": 1 },
+        bestLeg: {
+          darts: 18,
+          sessionId: "0190a000-0000-7000-8000-000000000001",
+        },
+      },
+      {
+        legs: { "18": 1, "15": 3 },
+        bestLeg: {
+          darts: 15,
+          sessionId: "0190a000-0000-7000-8000-000000000002",
+        },
+      },
     );
-    expect(merged).toEqual({ "18": 3, "21": 1, "24": 3 });
+    expect(merged).toEqual({
+      legs: { "18": 3, "21": 1, "15": 3 },
+      bestLeg: { darts: 15, sessionId: "0190a000-0000-7000-8000-000000000002" },
+    });
+  });
+
+  it("keeps the first best leg on a tie and tolerates a null side", () => {
+    const first = {
+      darts: 18,
+      sessionId: "0190a000-0000-7000-8000-000000000001",
+    };
+    expect(
+      mergeMetrics(
+        "leg-stats",
+        { legs: { "18": 1 }, bestLeg: first },
+        {
+          legs: { "18": 1 },
+          bestLeg: {
+            darts: 18,
+            sessionId: "0190a000-0000-7000-8000-000000000002",
+          },
+        },
+      ).bestLeg,
+    ).toEqual(first);
+    expect(
+      mergeMetrics(
+        "leg-stats",
+        { legs: {}, bestLeg: null },
+        { legs: { "18": 1 }, bestLeg: first },
+      ).bestLeg,
+    ).toEqual(first);
   });
 
   it("merges checkout-path two levels deep", () => {

@@ -751,11 +751,13 @@ const wrapperClass = cn("space-y-4", classNameProp);
       class="grid grid-cols-2 gap-2 text-center text-sm text-muted-foreground"
     >
       <div>
-        <span
-          class="block text-lg text-foreground"
+        <a
+          class="block text-lg"
+          :class="gameView.bestLegSessionId ? 'text-accent no-underline hover:text-accent-hover' : 'text-foreground'"
+          :href="gameView.bestLegSessionId ? gameView.replayHref(gameView.bestLegSessionId) : undefined"
           x-text="gameView.bestLeg ?? '—'"
         >
-        </span>
+        </a>
         Best leg
       </div>
       <div>

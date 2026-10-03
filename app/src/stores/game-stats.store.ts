@@ -25,6 +25,7 @@ import { readSection, readSessionPage } from "@client/stats-cache/cache";
 import { gameScopeKey } from "@modules/stats/routine-scope.module";
 import type {
   AtcDartsPerTargetMetrics,
+  BestLeg,
   Bobs27SurvivalMetrics,
   BustRateMetrics,
   ChartSeries,
@@ -933,7 +934,7 @@ export function gameStatsStore() {
 
       const totals = new Map<number, number>();
       for (const b of series.buckets) {
-        for (const [key, legs] of Object.entries(b.metrics)) {
+        for (const [key, legs] of Object.entries(b.metrics.legs)) {
           const darts = Number(key);
           totals.set(darts, (totals.get(darts) ?? 0) + legs);
         }
@@ -946,6 +947,20 @@ export function gameStatsStore() {
     /** The fewest darts a loaded leg was won in, or `null` without one. */
     get bestLeg(): number | null {
       return this.legHistogram[0]?.darts ?? null;
+    },
+
+    /** The session behind `bestLeg` (fewest darts across loaded buckets; earliest bucket keeps a tie), or `null`. */
+    get bestLegSessionId(): string | null {
+      const series = this.sections["leg-stats"] as
+        CachedSeries<LegStatsMetrics> | undefined;
+      let best: BestLeg | null = null;
+      for (const b of series?.buckets ?? []) {
+        const leg = b.metrics.bestLeg;
+        if (leg !== null && (best === null || leg.darts < best.darts)) {
+          best = leg;
+        }
+      }
+      return best?.sessionId ?? null;
     },
 
     /** The average darts per leg across every loaded, finished leg, or `null` without one. */

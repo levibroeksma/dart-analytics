@@ -398,6 +398,19 @@ function mergeLadderProgress(
   };
 }
 
+/** `leg-stats`: histograms summed, best leg the fewest darts (`a` keeps a tie). */
+function mergeLegStats(
+  a: ServerSectionMetrics["leg-stats"],
+  b: ServerSectionMetrics["leg-stats"],
+): ServerSectionMetrics["leg-stats"] {
+  const bestLeg =
+    a.bestLeg !== null &&
+    (b.bestLeg === null || a.bestLeg.darts <= b.bestLeg.darts)
+      ? a.bestLeg
+      : b.bestLeg;
+  return { legs: mergeCounts(a.legs, b.legs), bestLeg };
+}
+
 /**
  * One merger per server section — a `Record` over every `ServerSectionId`,
  * so a new server section that skips a merger is a type error rather than a
@@ -412,7 +425,7 @@ const MERGERS: {
   "checkout-rate": mergeCountRecord,
   "double-performance": mergeCountRecord,
   "bust-rate": mergeCountRecord,
-  "leg-stats": mergeCounts,
+  "leg-stats": mergeLegStats,
   "checkout-path": mergeCheckoutPath,
   "ladder-progress": mergeLadderProgress,
   "target-accuracy": mergeCountRecord,

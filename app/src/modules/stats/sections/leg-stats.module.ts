@@ -2,6 +2,7 @@ import { checkoutDarts } from "@modules/game/double-attempt.module";
 import { isFinishingDart } from "@modules/game/highest-checkout.module";
 import { isClosed } from "./series.module";
 import type {
+  BestLeg,
   BucketedSession,
   LegStatsMetrics,
   SessionCheckoutVisits,
@@ -42,13 +43,16 @@ export function legDarts(session: SessionCheckoutVisits): number[] {
 
 type BucketAccumulator = {
   end: string;
-  metrics: LegStatsMetrics;
+  legs: Record<string, number>;
+  bestLeg: BestLeg | null;
   sampleSize: number;
 };
 
 /**
  * Folds session checkout visits into `leg-stats` buckets (phase-3 decision
- * 7): a darts-per-leg histogram. `sampleSize` is the number of finished
+ * 7): a darts-per-leg histogram plus the
+ * fewest-darts leg and its session (version 2, #638; the first session in
+ * input order keeps a tie). `sampleSize` is the number of finished
  * legs counted; a bucket with none is not emitted.
  */
 export function legStatsBuckets(
@@ -60,13 +64,17 @@ export function legStatsBuckets(
   for (const session of sessions) {
     const bucket = buckets.get(session.bucketStart) ?? {
       end: session.bucketEnd,
-      metrics: {},
+      legs: {},
+      bestLeg: null,
       sampleSize: 0,
     };
     for (const darts of legDarts(session)) {
       const key = String(darts);
-      bucket.metrics[key] = (bucket.metrics[key] ?? 0) + 1;
+      bucket.legs[key] = (bucket.legs[key] ?? 0) + 1;
       bucket.sampleSize += 1;
+      if (bucket.bestLeg === null || darts < bucket.bestLeg.darts) {
+        bucket.bestLeg = { darts, sessionId: session.sessionId };
+      }
     }
     buckets.set(session.bucketStart, bucket);
   }
@@ -79,6 +87,6 @@ export function legStatsBuckets(
       end: bucket.end,
       closed: isClosed(bucket.end, ctx.to, ctx.now),
       sampleSize: bucket.sampleSize,
-      metrics: bucket.metrics,
+      metrics: { legs: bucket.legs, bestLeg: bucket.bestLeg },
     }));
 }

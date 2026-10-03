@@ -1090,7 +1090,10 @@ describe("getGameSection dispatches the checkout family", () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.data.sectionId).toBe("leg-stats");
-      expect(result.data.buckets[0]!.metrics).toEqual({ "1": 1 });
+      expect(result.data.buckets[0]!.metrics).toEqual({
+        legs: { "1": 1 },
+        bestLeg: { darts: 1, sessionId: expect.any(String) },
+      });
     }
   });
 
