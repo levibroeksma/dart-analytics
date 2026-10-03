@@ -184,6 +184,77 @@ describe("buildConfig bar", () => {
   });
 });
 
+describe("buildConfig doughnut", () => {
+  const doughnut = (over: Partial<ChartSpec["series"][number]> = {}) =>
+    spec({
+      kind: "doughnut",
+      labels: ["Completed", "Abandoned"],
+      series: [
+        {
+          key: "games",
+          label: "Games",
+          data: [3, 1],
+          sliceColors: ["emerald", "rose"],
+          ...over,
+        },
+      ],
+    });
+
+  it("draws one dataset with a color per slice, a cutout and no axes", () => {
+    const config = buildConfig(doughnut(), theme);
+    expect(config.type).toBe("doughnut");
+    expect(config.data.labels).toEqual(["Completed", "Abandoned"]);
+    expect(dataset(config, 0).data).toEqual([3, 1]);
+    expect(dataset(config, 0).backgroundColor).toEqual([
+      theme.palette.emerald,
+      theme.palette.rose,
+    ]);
+    expect(dataset(config, 0).borderColor).toBe(theme.surface);
+    const opts = config.options as unknown as Record<string, unknown>;
+    expect(opts.cutout).toBe("68%");
+    expect(opts.scales).toBeUndefined();
+  });
+
+  it("falls back to the default order for slices without a color", () => {
+    const config = buildConfig(doughnut({ sliceColors: undefined }), theme);
+    expect(dataset(config, 0).backgroundColor).toEqual([
+      theme.palette.sky,
+      theme.palette.orange,
+    ]);
+  });
+
+  it("rejects two slices resolving to one color", () => {
+    expect(() =>
+      buildConfig(doughnut({ sliceColors: ["rose", "rose"] }), theme),
+    ).toThrow(RangeError);
+  });
+
+  it("rejects more slices than the default order holds", () => {
+    expect(() =>
+      buildConfig(
+        doughnut({ data: [1, 1, 1, 1, 1, 1, 1], sliceColors: undefined }),
+        theme,
+      ),
+    ).toThrow(RangeError);
+  });
+
+  it("builds an empty doughnut with no series", () => {
+    const config = buildConfig(doughnut(), theme);
+    expect(
+      buildConfig(spec({ kind: "doughnut", series: [] }), theme).data.datasets,
+    ).toEqual([]);
+    expect(config.data.datasets).toHaveLength(1);
+  });
+
+  it("turns off the Chart.js legend and canvas tooltip", () => {
+    const external = vi.fn();
+    const config = buildConfig(doughnut(), theme, external);
+    const plugins = (config.options as unknown as Options).plugins;
+    expect(plugins.legend.display).toBe(false);
+    expect(plugins.tooltip).toEqual({ enabled: false, external });
+  });
+});
+
 describe("buildConfig options", () => {
   it("turns off Chart.js legend, title and canvas tooltip, and passes the external handler", () => {
     const external = vi.fn();
@@ -300,6 +371,41 @@ describe("createTooltip", () => {
     const row = el.children[1];
     expect(row.children[0].style.backgroundColor).toBe("rgb(1, 2, 3)");
     expect(row.children[1].textContent).toBe("A: 1.2");
+  });
+
+  it("labels a doughnut slice by its own label and color, with no title row", () => {
+    const host = fakeHost();
+    const { external } = createTooltip(
+      host as unknown as HTMLElement,
+      theme,
+      () => (n) => String(n),
+    );
+
+    external({
+      tooltip: {
+        opacity: 1,
+        caretX: 10,
+        caretY: 20,
+        title: [],
+        dataPoints: [
+          {
+            label: "Abandoned",
+            dataIndex: 1,
+            dataset: {
+              label: "Games",
+              backgroundColor: ["rgb(1, 1, 1)", "rgb(2, 2, 2)"],
+            },
+            parsed: 4,
+          },
+        ],
+      },
+    });
+
+    const el = host.children[0];
+    expect(el.children).toHaveLength(1);
+    const row = el.children[0];
+    expect(row.children[0].style.backgroundColor).toBe("rgb(2, 2, 2)");
+    expect(row.children[1].textContent).toBe("Abandoned: 4");
   });
 
   it("falls back to the border color when the fill is not a string", () => {

@@ -14,6 +14,7 @@ import type {
 const ANIMATION_MS = 240;
 const AREA_ALPHA = 0.18;
 const FONT_SIZE = 11;
+const DOUGHNUT_CUTOUT = "68%";
 
 const defaultFormat: ChartFormatter = (value) => String(value);
 
@@ -98,6 +99,78 @@ function barDataset(series: ChartSeries, color: string, theme: ChartTheme) {
 }
 
 /**
+ * The palette name of each doughnut slice: the series' `sliceColors`, else
+ * the default order by position. Throws `RangeError` when none is left or a
+ * name repeats.
+ */
+function sliceColorNames(
+  series: ChartSeries,
+  order: readonly TintName[],
+): TintName[] {
+  const seen = new Set<TintName>();
+  return series.data.map((_, index) => {
+    const name = series.sliceColors?.[index] ?? order[index];
+    if (!name) {
+      throw new RangeError(
+        `chart slice ${index} of "${series.key}" has no color: default order exhausted`,
+      );
+    }
+    if (seen.has(name)) {
+      throw new RangeError(
+        `chart slice ${index} of "${series.key}" repeats color "${name}"`,
+      );
+    }
+    seen.add(name);
+    return name;
+  });
+}
+
+/**
+ * The Chart.js configuration of a doughnut: the first series is the slices,
+ * one per label, each in its own color; no axes.
+ */
+function buildDoughnutConfig(
+  spec: ChartSpec,
+  theme: ChartTheme,
+  external?: ChartTooltipHandler,
+): ChartConfiguration {
+  const series = spec.series[0];
+  const colors = series
+    ? sliceColorNames(series, theme.order).map((name) => theme.palette[name])
+    : [];
+  return {
+    type: "doughnut",
+    data: {
+      labels: spec.labels,
+      datasets: series
+        ? [
+            {
+              label: series.label,
+              data: series.data,
+              backgroundColor: colors,
+              borderColor: theme.surface,
+              borderWidth: 2,
+            },
+          ]
+        : [],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: DOUGHNUT_CUTOUT,
+      animation: theme.reducedMotion
+        ? false
+        : { duration: ANIMATION_MS, easing: "easeOutQuart" },
+      plugins: {
+        legend: { display: false },
+        title: { display: false },
+        tooltip: { enabled: false, external },
+      },
+    },
+  } as unknown as ChartConfiguration;
+}
+
+/**
  * The Chart.js configuration for a spec under a theme. Pure: no DOM, no
  * Chart.js import. `external` draws the tooltip; the canvas one stays off.
  */
@@ -106,6 +179,8 @@ export function buildConfig(
   theme: ChartTheme,
   external?: ChartTooltipHandler,
 ): ChartConfiguration {
+  if (spec.kind === "doughnut")
+    return buildDoughnutConfig(spec, theme, external);
   const names = seriesColorNames(spec, theme.order);
   const format = spec.format ?? defaultFormat;
   const lone = spec.labels.length === 1;
@@ -154,7 +229,7 @@ export function buildConfig(
 }
 
 /**
- * Loads Chart.js and registers only the pieces a line or bar chart uses, so
+ * Loads Chart.js and registers only the pieces a line, bar or doughnut chart uses, so
  * the statistics chunk carries nothing else.
  */
 async function loadDefaultChartJs(): Promise<ChartCtor> {
@@ -162,6 +237,8 @@ async function loadDefaultChartJs(): Promise<ChartCtor> {
   lib.Chart.register(
     lib.LineController,
     lib.BarController,
+    lib.DoughnutController,
+    lib.ArcElement,
     lib.LineElement,
     lib.PointElement,
     lib.BarElement,
@@ -240,15 +317,22 @@ export function createTooltip(
       return;
     }
     const format = getFormat();
-    const rows = tooltip.dataPoints
-      .filter((point) => point.parsed.y !== null)
-      .map((point) =>
-        row(
-          `${point.dataset.label ?? ""}: ${format(point.parsed.y as number)}`,
-          swatchColor(point.dataset),
-        ),
-      );
-    node.replaceChildren(row(tooltip.title.join(" ")), ...rows);
+    const rows = tooltip.dataPoints.flatMap((point) => {
+      const value =
+        typeof point.parsed === "number" ? point.parsed : point.parsed.y;
+      if (value === null) return [];
+      const label =
+        typeof point.parsed === "number"
+          ? (point.label ?? "")
+          : (point.dataset.label ?? "");
+      const color = Array.isArray(point.dataset.backgroundColor)
+        ? point.dataset.backgroundColor[point.dataIndex ?? 0]
+        : swatchColor(point.dataset);
+      return [row(`${label}: ${format(value)}`, color)];
+    });
+    const titleRow =
+      tooltip.title.length > 0 ? [row(tooltip.title.join(" "))] : [];
+    node.replaceChildren(...titleRow, ...rows);
     node.style.left = `${clampLeft(tooltip.caretX, node.offsetWidth, host.clientWidth)}px`;
     node.style.top = `${tooltip.caretY}px`;
     node.style.transform = "translate(-50%, calc(-100% - 8px))";

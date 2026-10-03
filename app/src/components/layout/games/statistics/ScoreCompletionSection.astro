@@ -1,92 +1,59 @@
 ---
 /**
- * Score Training session-result section: a square donut card of completed
+ * Score Training session-result section: a square doughnut card of completed
  * (green) against abandoned (red) games over the page-level period, at most
  * half the page wide. Owns its fetch through `scoreCompletionSection()`.
- * Never-started sessions are not shown. The glass surface is a sibling layer,
- * not an ancestor, for the same reason as `ScoreTrendSection.astro`.
+ * Never-started sessions are not shown. The chart is the glass card itself,
+ * so no sibling glass layer is needed.
  */
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
+import Chart from "@components/ui/Chart.astro";
 ---
 
 <section
-  class="relative aspect-square w-full max-w-1/2"
+  class="w-full max-w-1/2"
   x-data="scoreCompletionSection()"
 >
   <div
-    class="glass absolute inset-0 rounded-2xl"
-    aria-hidden="true"
+    class="space-y-2"
+    x-show="loading || error"
+    x-cloak
   >
-  </div>
-  <div class="relative flex h-full flex-col gap-2 p-4">
     <h2 class="text-sm text-foreground">Session result</h2>
     <ErrorAlert
       showExpr="error"
       textExpr="error"
     />
-    <div class="relative mx-auto min-h-0 w-full max-w-40 flex-1">
-      <svg
-        class="size-full -rotate-90"
-        viewBox="0 0 100 100"
-        role="img"
-        :aria-label="`${summary.completed} completed, ${summary.abandoned} abandoned`"
-      >
-        <circle
-          class="stroke-muted-foreground/30"
-          cx="50"
-          cy="50"
-          :r="radius"
-          fill="none"
-          stroke-width="14"
-        >
-        </circle>
-        <circle
-          class="stroke-success"
-          cx="50"
-          cy="50"
-          :r="radius"
-          fill="none"
-          stroke-width="14"
-          :stroke-dasharray="completedArc"
-        >
-        </circle>
-        <circle
-          class="stroke-error"
-          cx="50"
-          cy="50"
-          :r="radius"
-          fill="none"
-          stroke-width="14"
-          :stroke-dasharray="abandonedArc"
-          :stroke-dashoffset="abandonedOffset"
-        >
-        </circle>
-      </svg>
-      <span
-        class="absolute inset-0 flex items-center justify-center text-lg text-foreground"
-        x-text="loading || error || total === 0 ? '—' : total"
-      >
-      </span>
+    <div
+      class="aspect-square animate-pulse rounded-2xl bg-muted-foreground/80"
+      x-show="loading"
+      x-cloak
+    >
     </div>
-    <div class="flex justify-center gap-4 text-xs text-muted-foreground">
-      <span>
-        <span class="text-success">●</span>
-        Completed
-        <span
-          class="text-foreground"
-          x-text="loading || error ? '—' : summary.completed"
-        >
-        </span>
-      </span>
-      <span>
-        <span class="text-error">●</span>
-        Abandoned
-        <span
-          class="text-foreground"
-          x-text="loading || error ? '—' : summary.abandoned"
-        >
-        </span>
-      </span>
+  </div>
+  <div
+    x-show="!loading && !error"
+    x-cloak
+  >
+    <p
+      class="text-sm text-muted-foreground"
+      x-show="isEmpty"
+      x-cloak
+    >
+      No finished games in range.
+    </p>
+    <div
+      x-show="!isEmpty"
+      x-cloak
+    >
+      <Chart
+        class="flex aspect-square flex-col"
+        heightClass="min-h-0 flex-1"
+        table={false}
+        specExpr="chart"
+        title="Session result"
+        formatter="integer"
+      />
     </div>
   </div>
 </section>

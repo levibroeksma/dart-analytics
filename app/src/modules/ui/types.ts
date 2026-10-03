@@ -30,7 +30,7 @@ export type TintName =
   | "fuchsia"
   | "blue";
 
-export type ChartKind = "line" | "bar";
+export type ChartKind = "line" | "bar" | "doughnut";
 
 export type ChartFormatter = (value: number) => string;
 
@@ -39,6 +39,7 @@ export type ChartSeries = {
   label: string;
   data: (number | null)[];
   color?: TintName;
+  sliceColors?: TintName[];
 };
 
 export type ChartSpec = {
@@ -80,12 +81,14 @@ export type ChartTooltipModel = {
   caretY: number;
   title: string[];
   dataPoints: {
+    label?: string;
+    dataIndex?: number;
     dataset: {
       label?: string;
       backgroundColor?: unknown;
       borderColor?: unknown;
     };
-    parsed: { y: number | null };
+    parsed: { y: number | null } | number;
   }[];
 };
 
