@@ -352,8 +352,8 @@ export const exerciseSessions = pgTable(
   (table) => [
     index("idx_exercise_sessions_player_game_completed").using(
       "btree",
-      table.playerId.asc().nullsLast().op("uuid_ops"),
-      table.gameTypeId.asc().nullsLast().op("timestamptz_ops"),
+      table.playerId.asc().nullsLast().op("timestamptz_ops"),
+      table.gameTypeId.asc().nullsLast().op("uuid_ops"),
       table.completedAt.desc().nullsFirst().op("uuid_ops"),
     ),
     index("idx_sessions_active")
@@ -370,13 +370,13 @@ export const exerciseSessions = pgTable(
     index("idx_sessions_player_completed")
       .using(
         "btree",
-        table.playerId.asc().nullsLast().op("uuid_ops"),
-        table.completedAt.desc().nullsFirst().op("uuid_ops"),
+        table.playerId.asc().nullsLast().op("timestamptz_ops"),
+        table.completedAt.desc().nullsFirst().op("timestamptz_ops"),
       )
       .where(sql`(completed_at IS NOT NULL)`),
     index("idx_sessions_player_created").using(
       "btree",
-      table.playerId.asc().nullsLast().op("uuid_ops"),
+      table.playerId.asc().nullsLast().op("timestamptz_ops"),
       table.createdAt.desc().nullsFirst().op("uuid_ops"),
     ),
     uniqueIndex("uq_sessions_single_active")
@@ -476,21 +476,21 @@ export const exerciseStages = pgTable(
     index("idx_stages_session_sequence").using(
       "btree",
       table.exerciseSessionId.asc().nullsLast().op("int4_ops"),
-      table.sequenceNumber.asc().nullsLast().op("uuid_ops"),
+      table.sequenceNumber.asc().nullsLast().op("int4_ops"),
     ),
     uniqueIndex("uq_stages_root_sequence")
       .using(
         "btree",
-        table.exerciseSessionId.asc().nullsLast().op("int4_ops"),
-        table.sequenceNumber.asc().nullsLast().op("int4_ops"),
+        table.exerciseSessionId.asc().nullsLast().op("uuid_ops"),
+        table.sequenceNumber.asc().nullsLast().op("uuid_ops"),
       )
       .where(sql`(parent_stage_id IS NULL)`),
     uniqueIndex("uq_stages_sibling_sequence")
       .using(
         "btree",
-        table.exerciseSessionId.asc().nullsLast().op("uuid_ops"),
-        table.parentStageId.asc().nullsLast().op("int4_ops"),
-        table.sequenceNumber.asc().nullsLast().op("int4_ops"),
+        table.exerciseSessionId.asc().nullsLast().op("int4_ops"),
+        table.parentStageId.asc().nullsLast().op("uuid_ops"),
+        table.sequenceNumber.asc().nullsLast().op("uuid_ops"),
       )
       .where(sql`(parent_stage_id IS NOT NULL)`),
     foreignKey({
@@ -1140,7 +1140,7 @@ export const turns = pgTable(
     index("idx_turns_stage_sequence").using(
       "btree",
       table.exerciseStageId.asc().nullsLast().op("int4_ops"),
-      table.sequenceNumber.asc().nullsLast().op("uuid_ops"),
+      table.sequenceNumber.asc().nullsLast().op("int4_ops"),
     ),
     foreignKey({
       columns: [table.exerciseStageId],
