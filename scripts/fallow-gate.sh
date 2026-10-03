@@ -35,7 +35,7 @@
 set -u
 cd "$(git rev-parse --show-toplevel 2>/dev/null || echo .)/app" || exit 1
 
-TMP="$(mktemp -t fallow-gate)"
+TMP="$(mktemp "${TMPDIR:-/tmp}/fallow-gate.XXXXXX")"
 trap 'rm -f "$TMP" "$TMP.json"' EXIT
 
 npx fallow 2>&1 | tee "$TMP"
