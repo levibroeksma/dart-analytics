@@ -10,8 +10,6 @@ const { scoreTrebleSection } =
   await import("@lib/stats/sections/score-treble.data");
 const { scoreCompletionSection } =
   await import("@lib/stats/sections/score-completion.data");
-const { scoreResultSection } =
-  await import("@lib/stats/sections/score-result.data");
 
 function mounted<T extends { init(): void }>(factory: T) {
   return Object.assign(factory, {
@@ -67,26 +65,5 @@ describe("score section factories", () => {
     const s = mounted(scoreCompletionSection());
     await s.load();
     expect(s.isEmpty).toBe(true);
-  });
-
-  it("scoreResultSection requests session-result and summarises it", async () => {
-    respond({
-      SCORE_TRAINING_V1: {
-        sessions: 1,
-        countedScoreSum: 120,
-        dartSum: 30,
-        turnSum: 10,
-        countedScoreMin: 120,
-        countedScoreMax: 120,
-        bestLowSessionId: "s",
-        bestHighSessionId: "s",
-        bestAverage: null,
-      },
-    });
-    const s = mounted(scoreResultSection());
-    await s.load();
-    expect(loadGameSection.mock.calls[0][1]).toBe("session-result");
-    expect(s.summary.best).toEqual({ value: 120, sessionId: "s" });
-    expect(s.replayHref("s")).toBe("/statistics/replay?session=s");
   });
 });

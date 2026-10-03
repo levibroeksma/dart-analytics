@@ -40,30 +40,6 @@ import ScoreSessionList from "./ScoreSessionList.astro";
     ]}
   />
   <ScoreHeatmapSection />
-  <ScoreStatsSection
-    factory="scoreResultSection"
-    title="Session result"
-    stats={[
-      { label: "Sessions", expr: "summary.sessions" },
-      {
-        label: "Average",
-        expr: "summary.average === null ? '—' : Math.round(summary.average)",
-      },
-      {
-        label: "Best",
-        expr: "summary.best === null ? '—' : summary.best.value",
-      },
-    ]}
-  >
-    <a
-      class="text-xs text-accent no-underline hover:text-accent-hover"
-      x-show="summary.best !== null"
-      x-cloak
-      :href="summary.best ? replayHref(summary.best.sessionId) : undefined"
-    >
-      Replay best session
-    </a>
-  </ScoreStatsSection>
   <ScoreCompletionSection />
   <ScoreSessionList />
 </div>

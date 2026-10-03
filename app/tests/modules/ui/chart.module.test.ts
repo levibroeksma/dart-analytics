@@ -211,7 +211,7 @@ describe("buildConfig doughnut", () => {
     ]);
     expect(dataset(config, 0).borderColor).toBe(theme.surface);
     const opts = config.options as unknown as Record<string, unknown>;
-    expect(opts.cutout).toBe("68%");
+    expect(opts.cutout).toBe("34%");
     expect(opts.scales).toBeUndefined();
   });
 

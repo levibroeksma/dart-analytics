@@ -3,18 +3,9 @@ import { replayPath } from "@lib/stats/replay-route";
 import { formatShortDate } from "@lib/stats/sections/score-trend-window";
 import type { GameSessionListResponseData } from "@client/api/types";
 import type { SeriesBucket } from "@lib/types";
-import type {
-  CompletionMetrics,
-  SessionResultMetrics,
-  TrebleRateMetrics,
-} from "@modules/types";
+import type { CompletionMetrics, TrebleRateMetrics } from "@modules/types";
 
-import type {
-  CompletionSummary,
-  ScoreResultSummary,
-  SessionRow,
-  TrebleSummary,
-} from "./types";
+import type { CompletionSummary, SessionRow, TrebleSummary } from "./types";
 
 type SessionListItem = GameSessionListResponseData["items"][number];
 
@@ -66,32 +57,6 @@ export function completionSummary(
     completed,
     abandoned,
     abandonRate: sample === 0 ? null : abandoned / sample,
-  };
-}
-
-/** Mean counted score and the highest-scoring session across every bucket and ruleset slice. */
-export function scoreResultSummary(
-  buckets: readonly SeriesBucket<SessionResultMetrics>[],
-): ScoreResultSummary {
-  let sessions = 0;
-  let scoreSum = 0;
-  let best: ScoreResultSummary["best"] = null;
-  for (const { metrics } of buckets) {
-    for (const slice of Object.values(metrics)) {
-      sessions += slice.sessions;
-      scoreSum += slice.countedScoreSum;
-      if (best === null || slice.countedScoreMax > best.value) {
-        best = {
-          value: slice.countedScoreMax,
-          sessionId: slice.bestHighSessionId,
-        };
-      }
-    }
-  }
-  return {
-    sessions,
-    average: sessions === 0 ? null : scoreSum / sessions,
-    best,
   };
 }
 

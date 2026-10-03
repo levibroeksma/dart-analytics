@@ -17,6 +17,8 @@ updated: 2026-10-03
 
 # Version History
 
+> **Version:** 1.154.0 (2026-10-03 — score-stats-replay-glass: Score Training drops the session-result section, thickens the donut (cutout 34%) and wraps the replay list in a glass container. D402. Section Catalog 1.6.4 and File Inventory updated.)
+>
 > **Version:** 1.153.0 (2026-10-03 — score-stats-session-result-replay: Score Training's `/statistics` layout drops the volume section, shows completion as a completed-vs-abandoned donut that ignores never-started sessions, and turns the session list into a completed-only replay list of play-icon cards, 10 per page. D401. Section Catalog 1.6.3 and File Inventory updated.)
 >
 > **Version:** 1.152.0 (2026-10-03 — score-training-stats-sections (#695, #696): Score Training's `/statistics` layout gains treble-rate, session-result, completion and volume sections and a session list, on a shared `periodSection()` fetch helper. D399. Section Catalog 1.6.2 and File Inventory updated.)

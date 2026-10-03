@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   completionSummary,
-  scoreResultSummary,
   sessionRow,
   trebleSummary,
 } from "@lib/stats/sections/score-summaries";
@@ -70,46 +69,6 @@ describe("completionSummary", () => {
       }),
     ]);
     expect(out.abandonRate).toBeNull();
-  });
-});
-
-describe("scoreResultSummary", () => {
-  const slice = (over: Record<string, unknown>) => ({
-    sessions: 2,
-    countedScoreSum: 400,
-    dartSum: 60,
-    turnSum: 20,
-    countedScoreMin: 150,
-    countedScoreMax: 250,
-    bestLowSessionId: "low",
-    bestHighSessionId: "high",
-    bestAverage: null,
-    ...over,
-  });
-
-  it("is empty without slices", () => {
-    expect(scoreResultSummary([bucket({})])).toEqual({
-      sessions: 0,
-      average: null,
-      best: null,
-    });
-  });
-
-  it("averages counted score and keeps the best session across slices", () => {
-    const out = scoreResultSummary([
-      bucket({ SCORE_TRAINING_V1: slice({}) }),
-      bucket({
-        SCORE_TRAINING_V1: slice({
-          sessions: 1,
-          countedScoreSum: 300,
-          countedScoreMax: 300,
-          bestHighSessionId: "top",
-        }),
-      }),
-    ]);
-    expect(out.sessions).toBe(3);
-    expect(out.average).toBeCloseTo(700 / 3);
-    expect(out.best).toEqual({ value: 300, sessionId: "top" });
   });
 });
 
