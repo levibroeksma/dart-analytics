@@ -86,6 +86,24 @@ if [ -n "$ACTUAL_MAX" ]; then
   done
 fi
 
+# --- 2b. Migration sections ------------------------------------------------
+# 03-Migrations.md must carry one `## NNNN_name.sql` section per file in
+# database/migrations/, and none for a file that is not there. Only the
+# "Migration Execution Order" part is read: "Seed Files" reuses the same
+# numbers for database/seeds/.
+MIG_DOC=docs/architecture/05-Database/03-Migrations.md
+if [ -f "$MIG_DOC" ]; then
+  DOC_MIGS=$(awk '/^# Migration Execution Order/{on=1;next} /^# /{on=0} on' "$MIG_DOC" \
+    | grep -oE '^## [0-9]{4}_[a-z0-9_]+\.sql' | sed 's/^## //' | sort -u)
+  DISK_MIGS=$(ls database/migrations/ | grep -E '^[0-9]{4}_.*\.sql$' | sort -u)
+  for m in $(comm -13 <(echo "$DOC_MIGS") <(echo "$DISK_MIGS")); do
+    err "$MIG_DOC has no section for database/migrations/$m"
+  done
+  for m in $(comm -23 <(echo "$DOC_MIGS") <(echo "$DISK_MIGS")); do
+    err "$MIG_DOC documents $m but database/migrations/ has no such file"
+  done
+fi
+
 # --- 3. Front-matter headers -----------------------------------------------
 for f in $(git ls-files 'docs/architecture/*.md' 'database/*.md' 'decisions/**.md' | grep -v -e 'CLAUDE.md' -e 'AGENT.md'); do
   head -1 "$f" | grep -q '^<!--' && head -6 "$f" | grep -q '^status:' \

@@ -2,7 +2,7 @@
 status: canonical
 scope: database/migrations
 read-when: adding migrations, understanding the chain
-updated: 2026-09-28
+updated: 2026-10-03
 -->
 
 # Database Migration Strategy
@@ -1082,6 +1082,22 @@ The snapshot element is matched with a `LEFT JOIN LATERAL` requiring `jsonb_type
 View-only; no table, column or constraint changes. Applied; `database/verification/0045_stats_routine_views_checks.sql` proves it. <!-- 2026-09-28 -->
 
 Never edits `0002`/`0005`/`0006`/`0027`/`0030`.
+
+---
+
+## 0046_replay_stages_view.sql
+
+Purpose:
+
+Stage-grain read model for the replay's stage tree, so a parent stage with no turns of its own (SET -> LEG, turns only on legs) still has a row and its children never name a parent missing from the list (#639). <!-- 2026-10-03 -->
+
+Contains:
+
+- new `v_replay_stages` — one row per exercise stage of a session, turns or not: `session_id`, `player_id`, `stage_id`, `parent_stage_id`, `stage_sequence`, `stage_type_key`; owner-scoped through `exercise_sessions`, callers filter by `player_id` and `session_id`
+
+`v_game_replay` is unchanged and keeps serving turn and dart rows.
+
+View-only; no table, column or constraint changes. Applied. <!-- 2026-10-03 -->
 
 ---
 
