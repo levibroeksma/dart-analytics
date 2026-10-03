@@ -8,7 +8,6 @@ import {
   replayPath,
   routinesLocationFromLocation,
 } from "@lib/stats/replay-route";
-import type { RoutinesLocation } from "@lib/stats/types";
 import {
   resolveStepAdapter,
   stepAdapterKey,
@@ -45,6 +44,7 @@ import type {
   GameTypeKey,
   RoutineSectionId,
   RoutineSectionMeta,
+  RoutinesLocation,
   SectionMeta,
   SeriesBucket,
 } from "@lib/types";
