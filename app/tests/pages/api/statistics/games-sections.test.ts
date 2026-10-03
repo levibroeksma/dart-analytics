@@ -49,6 +49,7 @@ describe("GET /api/statistics/games/:gameTypeKey/sections/:sectionId", () => {
     } as never);
 
     expect(response.status).toBe(404);
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store");
     expect(getGameSection).not.toHaveBeenCalled();
   });
 

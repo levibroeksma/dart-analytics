@@ -47,6 +47,7 @@ describe("GET /api/statistics/routines/:routineKey/sections/:sectionId", () => {
     } as never);
 
     expect(response.status).toBe(422);
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store");
     const body = await response.json();
     expect(body.error.code).toBe("VALIDATION_FAILED");
     expect(getRoutineSection).not.toHaveBeenCalled();
