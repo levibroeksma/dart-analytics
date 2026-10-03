@@ -57,7 +57,11 @@ describe("formatStatisticsOverview", () => {
       bestLegDarts: 15,
       averageDartsPerLeg: 18.5,
       checkoutPercentage: 0.4,
-      highestCheckout: { value: 100, timesHit: 2 },
+      highestCheckout: {
+        value: 100,
+        timesHit: 2,
+        sessionId: "0190a000-0000-7000-8000-000000000001",
+      },
     };
     const result = formatStatisticsOverview(data);
     expect(result.totalGamesPlayed).toBe("12");
@@ -79,6 +83,9 @@ describe("formatStatisticsOverview", () => {
     expect(result.checkoutPercentage).toBe("40.00%");
     expect(result.highestCheckoutValue).toBe("100");
     expect(result.highestCheckoutHint).toBe("Hit 2×");
+    expect(result.highestCheckoutSessionId).toBe(
+      "0190a000-0000-7000-8000-000000000001",
+    );
   });
 
   it("renders Checkout % to two decimals, the same precision the result modals use", () => {
@@ -116,7 +123,11 @@ describe("formatStatisticsOverview", () => {
   it("reports a single checkout hit without pluralizing oddly", () => {
     const result = formatStatisticsOverview({
       ...ZERO,
-      highestCheckout: { value: 40, timesHit: 1 },
+      highestCheckout: {
+        value: 40,
+        timesHit: 1,
+        sessionId: "0190a000-0000-7000-8000-000000000001",
+      },
     });
     expect(result.highestCheckoutHint).toBe("Hit 1×");
   });

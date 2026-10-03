@@ -31,6 +31,7 @@ export function statsStore() {
     checkoutPercentage: "",
     highestCheckoutValue: "",
     highestCheckoutHint: "",
+    highestCheckoutSessionId: null as string | null,
     loading: false,
     error: null as string | null,
 
@@ -65,6 +66,7 @@ export function statsStore() {
         this.checkoutPercentage = formatted.checkoutPercentage;
         this.highestCheckoutValue = formatted.highestCheckoutValue;
         this.highestCheckoutHint = formatted.highestCheckoutHint;
+        this.highestCheckoutSessionId = formatted.highestCheckoutSessionId;
       } catch (cause) {
         this.error = cause instanceof Error ? cause.message : "load failed";
       } finally {

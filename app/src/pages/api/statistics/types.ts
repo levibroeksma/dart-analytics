@@ -21,7 +21,11 @@ export const StatisticsOverviewResponse = z.object({
   averageDartsPerLeg: z.number().nullable(),
   checkoutPercentage: z.number().min(0).max(1).nullable(),
   highestCheckout: z
-    .object({ value: z.number().int(), timesHit: z.number().int() })
+    .object({
+      value: z.number().int(),
+      timesHit: z.number().int(),
+      sessionId: z.string().uuid().nullable(),
+    })
     .nullable(),
 });
 

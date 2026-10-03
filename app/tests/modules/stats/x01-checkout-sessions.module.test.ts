@@ -5,6 +5,7 @@ import {
 } from "@modules/game/checkout-visits.module";
 import {
   checkoutVisitsFromRows,
+  checkoutVisitsWithSession,
   sessionCheckoutVisits,
   snapshotOf,
 } from "@modules/stats/x01-checkout-sessions.module";
@@ -55,6 +56,17 @@ function row(overrides: Partial<X01CheckoutDartRow>): X01CheckoutDartRow {
     ...overrides,
   };
 }
+
+describe("checkoutVisitsWithSession", () => {
+  it("tags each visit with its session id", () => {
+    const visits = checkoutVisitsWithSession([row({})]);
+    expect(visits).toHaveLength(1);
+    expect(visits[0]).toMatchObject({
+      sessionId: row({}).sessionId,
+      startingRemaining: 501,
+    });
+  });
+});
 
 describe("checkoutVisitsFromRows", () => {
   it("returns nothing for no rows", () => {

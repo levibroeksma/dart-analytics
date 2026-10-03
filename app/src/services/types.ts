@@ -144,7 +144,11 @@ export type StatisticsOverview = {
   bestLegDarts: number | null;
   averageDartsPerLeg: number | null;
   checkoutPercentage: number | null;
-  highestCheckout: { value: number; timesHit: number } | null;
+  highestCheckout: {
+    value: number;
+    timesHit: number;
+    sessionId: string | null;
+  } | null;
 };
 
 export type GameSessionList = GameSessionListResponseData;

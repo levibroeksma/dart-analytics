@@ -20,24 +20,28 @@ export function isFinishingDart(remaining: number, dart: DartFact): boolean {
  * dart alone closed). Walks the same `CheckoutVisitDarts` shape
  * `double-attempt.module.ts` classifies, independently -- this measures the
  * finish value itself, not a hit/miss tally, so it does not share that
- * module's classifier.
+ * module's classifier. `sessionId` is the session of the first visit, in
+ * input order, that finished at the highest value (#638).
  */
 export function highestCheckout(
-  visits: readonly CheckoutVisitDarts[],
+  visits: readonly (CheckoutVisitDarts & { sessionId?: string })[],
 ): HighestCheckout | null {
-  const finishes: number[] = [];
+  const finishes: { value: number; sessionId: string | null }[] = [];
   for (const visit of visits) {
     let remaining = visit.startingRemaining;
     for (const dart of visit.darts) {
       if (isFinishingDart(remaining, dart)) {
-        finishes.push(visit.startingRemaining);
+        finishes.push({
+          value: visit.startingRemaining,
+          sessionId: visit.sessionId ?? null,
+        });
         break;
       }
       remaining -= dart.score;
     }
   }
   if (finishes.length === 0) return null;
-  const value = Math.max(...finishes);
-  const timesHit = finishes.filter((finish) => finish === value).length;
-  return { value, timesHit };
+  const value = Math.max(...finishes.map((finish) => finish.value));
+  const top = finishes.filter((finish) => finish.value === value);
+  return { value, timesHit: top.length, sessionId: top[0]!.sessionId };
 }

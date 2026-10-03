@@ -34,7 +34,11 @@ describe("GET /api/statistics/overview", () => {
       bestLegDarts: 15,
       averageDartsPerLeg: 18.5,
       checkoutPercentage: 0.4,
-      highestCheckout: { value: 100, timesHit: 2 },
+      highestCheckout: {
+        value: 100,
+        timesHit: 2,
+        sessionId: "0190a000-0000-7000-8000-000000000001",
+      },
     };
     vi.mocked(getStatisticsOverview).mockResolvedValue(overview);
 

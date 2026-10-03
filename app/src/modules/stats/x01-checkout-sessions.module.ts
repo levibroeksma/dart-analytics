@@ -289,3 +289,18 @@ export function checkoutVisitsFromRows(
     .flatMap((session) => session.visits)
     .map(toCheckoutVisitTotals);
 }
+
+/**
+ * `checkoutVisitsFromRows`, each visit tagged with the session it was played
+ * in, for a reader that must name the session behind a figure (#638).
+ */
+export function checkoutVisitsWithSession(
+  rows: readonly X01CheckoutDartRow[],
+): (CheckoutVisitTotals & { sessionId: string })[] {
+  return sessionCheckoutVisits(rows).flatMap((session) =>
+    session.visits.map((visit) => ({
+      ...toCheckoutVisitTotals(visit),
+      sessionId: session.sessionId,
+    })),
+  );
+}

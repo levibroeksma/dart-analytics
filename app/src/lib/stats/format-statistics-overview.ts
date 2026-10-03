@@ -69,5 +69,6 @@ export function formatStatisticsOverview(
       data.highestCheckout === null
         ? ""
         : `Hit ${data.highestCheckout.timesHit}×`,
+    highestCheckoutSessionId: data.highestCheckout?.sessionId ?? null,
   };
 }

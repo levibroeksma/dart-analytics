@@ -330,3 +330,10 @@ Decision: `leg-stats` moves to section version 2. Its metrics become `{ legs: Re
 Reason: the owner chose the narrowest slice of #638. Highest checkout is not a phase 2–4 section metric (it comes from the career overview), and per-key ids on the checkout family would change every bucket's shape. A wrapper object is needed because the histogram's `Record<string, number>` has no slot for a non-count field; the version bump makes cached v1 buckets refresh instead of failing to parse.
 Consequences: `leg-stats` is no longer additive on the wire, so the version bump is load-bearing. Highest checkout and the other record-style metrics remain unlinked; #638 stays open for them. `.astro` markup is untested (D101).
 Supersedes: none (extends D369, D371).
+
+### D398 — `highestCheckout` carries the session id of its first hit (#638)
+Status: Accepted · Date: 2026-10-03
+Decision: `StatisticsOverviewResponse.highestCheckout` gains `sessionId: string | null` (UUID): the session of the first visit, in `v_x01_checkout_darts` row order, that finished at the highest value. `highestCheckout()` accepts visits with an optional `sessionId` and returns `null` there when none carries one; the overview builds its visits with the new `checkoutVisitsWithSession()`, which tags each visit with its session. The `stats` store exposes `highestCheckoutSessionId`.
+Reason: completes #638 after D397 covered best leg. The overview is not a versioned section, so no section version bump applies; the field is additive and nullable. First hit wins a tie to match D397's tie rule.
+Consequences: no card renders the career overview's highest checkout today, so nothing links to replay yet; the store field is ready for one. Other record-style metrics have no session id and none is added here.
+Supersedes: none (extends D397).
