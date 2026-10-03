@@ -531,9 +531,10 @@ export async function playAbandonAndExit<
 }
 
 /**
- * Replays the same configuration template the first session used, with no
- * overrides — every current adopter of this module has zero editable
- * settings. `narrowEngine` supplies the `instanceof` check each ruleset's
+ * Replays the same configuration template the first session used. With no
+ * `buildOverrides` the replay sends no overrides, so a ruleset whose setup
+ * sends `configOverrides` must pass `buildOverrides`, or its replay drops
+ * (or fails validation on) those settings. `narrowEngine` supplies the `instanceof` check each ruleset's
  * own engine class needs, since the registry hands back a type-erased
  * `GameEngine<unknown, unknown>`.
  */
