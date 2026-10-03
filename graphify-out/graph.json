@@ -49181,7 +49181,7 @@
       "node_kind": "heading",
       "norm_label": "current implementation state",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L335"
+      "source_location": "L337"
     },
     {
       "id": "app_src_lib_stats_replay_presenters",
@@ -55261,7 +55261,7 @@
       "file_type": "code",
       "norm_label": "classname",
       "source_file": "app/src/components/ui/CardWrapper.astro",
-      "source_location": "L49"
+      "source_location": "L50"
     },
     {
       "id": "app_src_components_ui_cardwrapper_tintpresets",
@@ -55272,7 +55272,7 @@
       "file_type": "code",
       "norm_label": "tintpresets",
       "source_file": "app/src/components/ui/CardWrapper.astro",
-      "source_location": "L34"
+      "source_location": "L35"
     },
     {
       "id": "app_src_components_ui_expandingmodal",
@@ -60580,7 +60580,7 @@
       "node_kind": "heading",
       "norm_label": "task records",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L360"
+      "source_location": "L362"
     },
     {
       "id": "docs_architecture_05_database_05_views_00_overview_implemented_views_migrations_0009_0046",
@@ -140806,6 +140806,18 @@
       "weight": 1.0
     },
     {
+      "source": "app_src_components_ui_cardwrapper",
+      "target": "app_src_modules_types_tintname",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "app/src/components/ui/CardWrapper.astro",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
       "source": "app_src_components_ui_chart",
       "target": "app_src_lib_client_cn_cn",
       "relation": "imports",
@@ -216722,6 +216734,19 @@
       "weight": 1.0
     },
     {
+      "source": "app_src_components_ui_cardwrapper",
+      "target": "app_src_modules_types",
+      "relation": "imports_from",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "app/src/components/ui/CardWrapper.astro",
+      "source_location": "L32",
+      "type_only": true,
+      "weight": 1.0
+    },
+    {
       "source": "app_src_components_ui_chart",
       "target": "app_src_lib_client_cn",
       "relation": "imports_from",
@@ -261578,7 +261603,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/components/ui/CardWrapper.astro",
-      "source_location": "L34",
+      "source_location": "L35",
       "weight": 1.0
     },
     {
@@ -261589,7 +261614,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/components/ui/CardWrapper.astro",
-      "source_location": "L49",
+      "source_location": "L50",
       "weight": 1.0
     },
     {
@@ -299495,7 +299520,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L335",
+      "source_location": "L337",
       "weight": 1.0
     },
     {
@@ -299506,7 +299531,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L360",
+      "source_location": "L362",
       "weight": 1.0
     },
     {
@@ -334240,7 +334265,7 @@
       "confidence_score": 0.95,
       "context": "AroundTheClockEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L420",
+      "source_location": "L422",
       "weight": 1.0
     },
     {
@@ -334252,7 +334277,7 @@
       "confidence_score": 0.95,
       "context": "AroundTheClockEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -334264,7 +334289,7 @@
       "confidence_score": 0.95,
       "context": "AroundTheClockPlayContext",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L184",
+      "source_location": "L186",
       "weight": 1.0
     },
     {
@@ -334288,7 +334313,7 @@
       "confidence_score": 0.95,
       "context": "AroundTheClockSnapshot",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -334312,7 +334337,7 @@
       "confidence_score": 0.95,
       "context": "BoardPoint",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L283",
+      "source_location": "L285",
       "weight": 1.0
     },
     {
@@ -334324,7 +334349,7 @@
       "confidence_score": 0.95,
       "context": "BoardTarget",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L86",
+      "source_location": "L88",
       "weight": 1.0
     },
     {
@@ -334360,7 +334385,7 @@
       "confidence_score": 0.95,
       "context": "Bobs27Engine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L279",
+      "source_location": "L281",
       "weight": 1.0
     },
     {
@@ -334372,7 +334397,7 @@
       "confidence_score": 0.95,
       "context": "Bobs27Engine.deriveState()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L271",
+      "source_location": "L273",
       "weight": 1.0
     },
     {
@@ -334384,7 +334409,7 @@
       "confidence_score": 0.95,
       "context": "Bobs27Engine.record()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L346",
+      "source_location": "L348",
       "weight": 1.0
     },
     {
@@ -334396,7 +334421,7 @@
       "confidence_score": 0.95,
       "context": "Bobs27Engine.record()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L401",
+      "source_location": "L403",
       "weight": 1.0
     },
     {
@@ -334408,7 +334433,7 @@
       "confidence_score": 0.95,
       "context": "Bobs27Engine.record()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -334420,7 +334445,7 @@
       "confidence_score": 0.95,
       "context": "Bobs27PlayContext",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L277",
+      "source_location": "L279",
       "weight": 1.0
     },
     {
@@ -334432,7 +334457,7 @@
       "confidence_score": 0.95,
       "context": "Bobs27SetupContext",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -334456,7 +334481,7 @@
       "confidence_score": 0.95,
       "context": "BotDartThrower",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L277",
+      "source_location": "L279",
       "weight": 1.0
     },
     {
@@ -334468,7 +334493,7 @@
       "confidence_score": 0.95,
       "context": "BotQuickScoreFold",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L277",
+      "source_location": "L279",
       "weight": 1.0
     },
     {
@@ -334480,7 +334505,7 @@
       "confidence_score": 0.95,
       "context": "BotThrow",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L283",
+      "source_location": "L285",
       "weight": 1.0
     },
     {
@@ -334504,7 +334529,7 @@
       "confidence_score": 0.95,
       "context": "BullUpEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L74",
+      "source_location": "L76",
       "weight": 1.0
     },
     {
@@ -334528,7 +334553,7 @@
       "confidence_score": 0.95,
       "context": "BullseyeCheckoutEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L76",
+      "source_location": "L78",
       "weight": 1.0
     },
     {
@@ -334684,7 +334709,7 @@
       "confidence_score": 0.95,
       "context": "ConfigurationPresetData",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -334708,7 +334733,7 @@
       "confidence_score": 0.95,
       "context": "CountdownConfig",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L170",
+      "source_location": "L172",
       "weight": 1.0
     },
     {
@@ -334732,7 +334757,7 @@
       "confidence_score": 0.95,
       "context": "CountdownGame",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L170",
+      "source_location": "L172",
       "weight": 1.0
     },
     {
@@ -334756,7 +334781,7 @@
       "confidence_score": 0.95,
       "context": "CreateSessionRecordsInput",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L225",
+      "source_location": "L227",
       "weight": 1.0
     },
     {
@@ -334780,7 +334805,7 @@
       "confidence_score": 0.95,
       "context": "CreateSessionResult",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L281",
+      "source_location": "L283",
       "weight": 1.0
     },
     {
@@ -334864,7 +334889,7 @@
       "confidence_score": 0.95,
       "context": "DartExerciseEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L225",
+      "source_location": "L227",
       "weight": 1.0
     },
     {
@@ -335020,7 +335045,7 @@
       "confidence_score": 0.95,
       "context": "DartObservation",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L446",
+      "source_location": "L448",
       "weight": 1.0
     },
     {
@@ -335032,7 +335057,7 @@
       "confidence_score": 0.95,
       "context": "DartObservation",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -335164,7 +335189,7 @@
       "confidence_score": 0.95,
       "context": "DartZoneKey",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L408",
+      "source_location": "L410",
       "weight": 1.0
     },
     {
@@ -335176,7 +335201,7 @@
       "confidence_score": 0.95,
       "context": "DartZoneKey",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -335296,7 +335321,7 @@
       "confidence_score": 0.95,
       "context": "DoublePatternEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L211",
+      "source_location": "L213",
       "weight": 1.0
     },
     {
@@ -335320,7 +335345,7 @@
       "confidence_score": 0.95,
       "context": "DoublePatternEngine.record()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L192",
+      "source_location": "L194",
       "weight": 1.0
     },
     {
@@ -335356,7 +335381,7 @@
       "confidence_score": 0.95,
       "context": "DoublesTrainingEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -335368,7 +335393,7 @@
       "confidence_score": 0.95,
       "context": "DoublesTrainingEngine.record()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -335380,7 +335405,7 @@
       "confidence_score": 0.95,
       "context": "DoublesTrainingPlayContext",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L184",
+      "source_location": "L186",
       "weight": 1.0
     },
     {
@@ -335452,7 +335477,7 @@
       "confidence_score": 0.95,
       "context": "EngineFacts",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L225",
+      "source_location": "L227",
       "weight": 1.0
     },
     {
@@ -335596,7 +335621,7 @@
       "confidence_score": 0.95,
       "context": "ExerciseEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L453",
+      "source_location": "L455",
       "weight": 1.0
     },
     {
@@ -335608,7 +335633,7 @@
       "confidence_score": 0.95,
       "context": "ExerciseEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L229",
+      "source_location": "L231",
       "weight": 1.0
     },
     {
@@ -335848,7 +335873,7 @@
       "confidence_score": 0.95,
       "context": "ExerciseEngineFactory",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L194",
+      "source_location": "L196",
       "weight": 1.0
     },
     {
@@ -335896,7 +335921,7 @@
       "confidence_score": 0.95,
       "context": "ExerciseRulesetValidator",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L229",
+      "source_location": "L231",
       "weight": 1.0
     },
     {
@@ -335932,7 +335957,7 @@
       "confidence_score": 0.95,
       "context": "ExerciseRulesetVersionKey",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L229",
+      "source_location": "L231",
       "weight": 1.0
     },
     {
@@ -335968,7 +335993,7 @@
       "confidence_score": 0.95,
       "context": "ExerciseTemplateCatalogEntry",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L114",
+      "source_location": "L116",
       "weight": 1.0
     },
     {
@@ -336028,7 +336053,7 @@
       "confidence_score": 0.95,
       "context": "ExpirableEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L170",
+      "source_location": "L172",
       "weight": 1.0
     },
     {
@@ -336064,7 +336089,7 @@
       "confidence_score": 0.95,
       "context": "FiveOhOneEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L423",
+      "source_location": "L425",
       "weight": 1.0
     },
     {
@@ -336076,7 +336101,7 @@
       "confidence_score": 0.95,
       "context": "FiveOhOneEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -336088,7 +336113,7 @@
       "confidence_score": 0.95,
       "context": "FiveOhOneEngine.settleVisit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L291",
+      "source_location": "L293",
       "weight": 1.0
     },
     {
@@ -336100,7 +336125,7 @@
       "confidence_score": 0.95,
       "context": "FiveOhOneGameEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L446",
+      "source_location": "L448",
       "weight": 1.0
     },
     {
@@ -336112,7 +336137,7 @@
       "confidence_score": 0.95,
       "context": "FiveOhOneInput",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L275",
+      "source_location": "L277",
       "weight": 1.0
     },
     {
@@ -336136,7 +336161,7 @@
       "confidence_score": 0.95,
       "context": "FiveOhOnePlayContext",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L170",
+      "source_location": "L172",
       "weight": 1.0
     },
     {
@@ -336148,7 +336173,7 @@
       "confidence_score": 0.95,
       "context": "FiveOhOneSetupContext",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L253",
+      "source_location": "L255",
       "weight": 1.0
     },
     {
@@ -336160,7 +336185,7 @@
       "confidence_score": 0.95,
       "context": "FiveOhOneSnapshot",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L275",
+      "source_location": "L277",
       "weight": 1.0
     },
     {
@@ -336196,7 +336221,7 @@
       "confidence_score": 0.95,
       "context": "FiveOhOneState",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L275",
+      "source_location": "L277",
       "weight": 1.0
     },
     {
@@ -336244,7 +336269,7 @@
       "confidence_score": 0.95,
       "context": "FiveOhOneVisitInput",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L446",
+      "source_location": "L448",
       "weight": 1.0
     },
     {
@@ -336400,7 +336425,7 @@
       "confidence_score": 0.95,
       "context": "GameEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L346",
+      "source_location": "L348",
       "weight": 1.0
     },
     {
@@ -336412,7 +336437,7 @@
       "confidence_score": 0.95,
       "context": "GameEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L100",
+      "source_location": "L102",
       "weight": 1.0
     },
     {
@@ -336736,7 +336761,7 @@
       "confidence_score": 0.95,
       "context": "GameEngineFactory",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L287",
+      "source_location": "L289",
       "weight": 1.0
     },
     {
@@ -336796,7 +336821,7 @@
       "confidence_score": 0.95,
       "context": "GameEngineFactory.create",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -336808,7 +336833,7 @@
       "confidence_score": 0.95,
       "context": "GameTypeKey",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L462",
+      "source_location": "L464",
       "weight": 1.0
     },
     {
@@ -336820,7 +336845,7 @@
       "confidence_score": 0.95,
       "context": "GuestListContext",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L253",
+      "source_location": "L255",
       "weight": 1.0
     },
     {
@@ -336892,7 +336917,7 @@
       "confidence_score": 0.95,
       "context": "LevelSelectStats",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L241",
+      "source_location": "L243",
       "weight": 1.0
     },
     {
@@ -336928,7 +336953,7 @@
       "confidence_score": 0.95,
       "context": "MagnifierSide",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -336964,7 +336989,7 @@
       "confidence_score": 0.95,
       "context": "ModePair",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L186",
+      "source_location": "L188",
       "weight": 1.0
     },
     {
@@ -337072,7 +337097,7 @@
       "confidence_score": 0.95,
       "context": "OneTwentyOneEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L418",
+      "source_location": "L420",
       "weight": 1.0
     },
     {
@@ -337084,7 +337109,7 @@
       "confidence_score": 0.95,
       "context": "OneTwentyOneEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -337096,7 +337121,7 @@
       "confidence_score": 0.95,
       "context": "OneTwentyOneEngine.settleVisit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L291",
+      "source_location": "L293",
       "weight": 1.0
     },
     {
@@ -337132,7 +337157,7 @@
       "confidence_score": 0.95,
       "context": "OneTwentyOnePlayContext",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L170",
+      "source_location": "L172",
       "weight": 1.0
     },
     {
@@ -337168,7 +337193,7 @@
       "confidence_score": 0.95,
       "context": "OneTwentyOneState",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L418",
+      "source_location": "L420",
       "weight": 1.0
     },
     {
@@ -337180,7 +337205,7 @@
       "confidence_score": 0.95,
       "context": "OneTwentyOneState",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -337216,7 +337241,7 @@
       "confidence_score": 0.95,
       "context": "OrderedTraining",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L229",
+      "source_location": "L231",
       "weight": 1.0
     },
     {
@@ -337336,7 +337361,7 @@
       "confidence_score": 0.95,
       "context": "PlayLifecycleContext",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -337396,7 +337421,7 @@
       "confidence_score": 0.95,
       "context": "PlayerLegFactRow",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L186",
+      "source_location": "L188",
       "weight": 1.0
     },
     {
@@ -337420,7 +337445,7 @@
       "confidence_score": 0.95,
       "context": "PlayerSessionSummaryRow",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L186",
+      "source_location": "L188",
       "weight": 1.0
     },
     {
@@ -337444,7 +337469,7 @@
       "confidence_score": 0.95,
       "context": "PlayerVisitFactRow",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L186",
+      "source_location": "L188",
       "weight": 1.0
     },
     {
@@ -337456,7 +337481,7 @@
       "confidence_score": 0.95,
       "context": "PopulationPrior",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L245",
+      "source_location": "L247",
       "weight": 1.0
     },
     {
@@ -337480,7 +337505,7 @@
       "confidence_score": 0.95,
       "context": "PresetSetupContext",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L253",
+      "source_location": "L255",
       "weight": 1.0
     },
     {
@@ -337516,7 +337541,7 @@
       "confidence_score": 0.95,
       "context": "QuickSubtractGame",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L232",
+      "source_location": "L234",
       "weight": 1.0
     },
     {
@@ -337528,7 +337553,7 @@
       "confidence_score": 0.95,
       "context": "QuickSubtractGame.answer()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L232",
+      "source_location": "L234",
       "weight": 1.0
     },
     {
@@ -337636,7 +337661,7 @@
       "confidence_score": 0.95,
       "context": "Requirement",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L465",
+      "source_location": "L467",
       "weight": 1.0
     },
     {
@@ -337768,7 +337793,7 @@
       "confidence_score": 0.95,
       "context": "RoutineSeries",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L42",
+      "source_location": "L44",
       "weight": 1.0
     },
     {
@@ -337816,7 +337841,7 @@
       "confidence_score": 0.95,
       "context": "RoutineStepSnapshot",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L225",
+      "source_location": "L227",
       "weight": 1.0
     },
     {
@@ -337852,7 +337877,7 @@
       "confidence_score": 0.95,
       "context": "RoutineSummaryData",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L110",
+      "source_location": "L112",
       "weight": 1.0
     },
     {
@@ -337888,7 +337913,7 @@
       "confidence_score": 0.95,
       "context": "RulesetValidator",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L215",
+      "source_location": "L217",
       "weight": 1.0
     },
     {
@@ -337960,7 +337985,7 @@
       "confidence_score": 0.95,
       "context": "RulesetVersionKey",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L229",
+      "source_location": "L231",
       "weight": 1.0
     },
     {
@@ -338212,7 +338237,7 @@
       "confidence_score": 0.95,
       "context": "ScoreInputBuffer",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L232",
+      "source_location": "L234",
       "weight": 1.0
     },
     {
@@ -338224,7 +338249,7 @@
       "confidence_score": 0.95,
       "context": "ScoreThresholdEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L84",
+      "source_location": "L86",
       "weight": 1.0
     },
     {
@@ -338308,7 +338333,7 @@
       "confidence_score": 0.95,
       "context": "ScoreTrainingEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L263",
+      "source_location": "L265",
       "weight": 1.0
     },
     {
@@ -338332,7 +338357,7 @@
       "confidence_score": 0.95,
       "context": "ScoreTrainingEngine.isMatchDecided()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L263",
+      "source_location": "L265",
       "weight": 1.0
     },
     {
@@ -338392,7 +338417,7 @@
       "confidence_score": 0.95,
       "context": "ScoreTrainingPlayContext",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L247",
+      "source_location": "L249",
       "weight": 1.0
     },
     {
@@ -338404,7 +338429,7 @@
       "confidence_score": 0.95,
       "context": "ScoreTrainingResultsSnapshot",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L261",
+      "source_location": "L263",
       "weight": 1.0
     },
     {
@@ -338428,7 +338453,7 @@
       "confidence_score": 0.95,
       "context": "SeatFact",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L170",
+      "source_location": "L172",
       "weight": 1.0
     },
     {
@@ -338512,7 +338537,7 @@
       "confidence_score": 0.95,
       "context": "SeatPlan",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L281",
+      "source_location": "L283",
       "weight": 1.0
     },
     {
@@ -338668,7 +338693,7 @@
       "confidence_score": 0.95,
       "context": "SegmentTimer",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L453",
+      "source_location": "L455",
       "weight": 1.0
     },
     {
@@ -338680,7 +338705,7 @@
       "confidence_score": 0.95,
       "context": "SegmentTimer",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L196",
+      "source_location": "L198",
       "weight": 1.0
     },
     {
@@ -338716,7 +338741,7 @@
       "confidence_score": 0.95,
       "context": "SegmentTimer.start()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L232",
+      "source_location": "L234",
       "weight": 1.0
     },
     {
@@ -338800,7 +338825,7 @@
       "confidence_score": 0.95,
       "context": "ServiceResult",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L396",
+      "source_location": "L398",
       "weight": 1.0
     },
     {
@@ -338824,7 +338849,7 @@
       "confidence_score": 0.95,
       "context": "SessionActiveData",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -338860,7 +338885,7 @@
       "confidence_score": 0.95,
       "context": "SessionApiError",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L211",
+      "source_location": "L213",
       "weight": 1.0
     },
     {
@@ -338920,7 +338945,7 @@
       "confidence_score": 0.95,
       "context": "SessionModePair",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L186",
+      "source_location": "L188",
       "weight": 1.0
     },
     {
@@ -338992,7 +339017,7 @@
       "confidence_score": 0.95,
       "context": "ShanghaiEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L287",
+      "source_location": "L289",
       "weight": 1.0
     },
     {
@@ -339016,7 +339041,7 @@
       "confidence_score": 0.95,
       "context": "ShanghaiPlayContext",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L251",
+      "source_location": "L253",
       "weight": 1.0
     },
     {
@@ -339028,7 +339053,7 @@
       "confidence_score": 0.95,
       "context": "ShanghaiSnapshot",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -339064,7 +339089,7 @@
       "confidence_score": 0.95,
       "context": "SinglesConfig",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L249",
+      "source_location": "L251",
       "weight": 1.0
     },
     {
@@ -339136,7 +339161,7 @@
       "confidence_score": 0.95,
       "context": "SinglesTrainingEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -339148,7 +339173,7 @@
       "confidence_score": 0.95,
       "context": "SinglesTrainingPlayContext",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L249",
+      "source_location": "L251",
       "weight": 1.0
     },
     {
@@ -339172,7 +339197,7 @@
       "confidence_score": 0.95,
       "context": "SkillProfile",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L275",
+      "source_location": "L277",
       "weight": 1.0
     },
     {
@@ -339244,7 +339269,7 @@
       "confidence_score": 0.95,
       "context": "StageFact",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L448",
+      "source_location": "L450",
       "weight": 1.0
     },
     {
@@ -339256,7 +339281,7 @@
       "confidence_score": 0.95,
       "context": "StageFact",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L289",
+      "source_location": "L291",
       "weight": 1.0
     },
     {
@@ -339268,7 +339293,7 @@
       "confidence_score": 0.95,
       "context": "StageTypeKey",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L418",
+      "source_location": "L420",
       "weight": 1.0
     },
     {
@@ -339280,7 +339305,7 @@
       "confidence_score": 0.95,
       "context": "StageTypeKey",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L229",
+      "source_location": "L231",
       "weight": 1.0
     },
     {
@@ -339304,7 +339329,7 @@
       "confidence_score": 0.95,
       "context": "StartTrainingResult",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L225",
+      "source_location": "L227",
       "weight": 1.0
     },
     {
@@ -339316,7 +339341,7 @@
       "confidence_score": 0.95,
       "context": "StartTrainingStepResult",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L225",
+      "source_location": "L227",
       "weight": 1.0
     },
     {
@@ -339352,7 +339377,7 @@
       "confidence_score": 0.95,
       "context": "StepAdapter",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L106",
+      "source_location": "L108",
       "weight": 1.0
     },
     {
@@ -339448,7 +339473,7 @@
       "confidence_score": 0.95,
       "context": "SwitchingEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L453",
+      "source_location": "L455",
       "weight": 1.0
     },
     {
@@ -339496,7 +339521,7 @@
       "confidence_score": 0.95,
       "context": "SwitchingTargetScoringEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L86",
+      "source_location": "L88",
       "weight": 1.0
     },
     {
@@ -339556,7 +339581,7 @@
       "confidence_score": 0.95,
       "context": "TargetKey",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L465",
+      "source_location": "L467",
       "weight": 1.0
     },
     {
@@ -339616,7 +339641,7 @@
       "confidence_score": 0.95,
       "context": "TargetOrderMode",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L412",
+      "source_location": "L414",
       "weight": 1.0
     },
     {
@@ -339628,7 +339653,7 @@
       "confidence_score": 0.95,
       "context": "TargetOrderMode",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -339652,7 +339677,7 @@
       "confidence_score": 0.95,
       "context": "TargetScoringEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L88",
+      "source_location": "L90",
       "weight": 1.0
     },
     {
@@ -339676,7 +339701,7 @@
       "confidence_score": 0.95,
       "context": "ThrowIntent",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L283",
+      "source_location": "L285",
       "weight": 1.0
     },
     {
@@ -339688,7 +339713,7 @@
       "confidence_score": 0.95,
       "context": "Toggle",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -339784,7 +339809,7 @@
       "confidence_score": 0.95,
       "context": "TrainingEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L229",
+      "source_location": "L231",
       "weight": 1.0
     },
     {
@@ -339904,7 +339929,7 @@
       "confidence_score": 0.95,
       "context": "TuodEngine.isMatchDecided()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L263",
+      "source_location": "L265",
       "weight": 1.0
     },
     {
@@ -339952,7 +339977,7 @@
       "confidence_score": 0.95,
       "context": "TuodPlayContext",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L170",
+      "source_location": "L172",
       "weight": 1.0
     },
     {
@@ -340084,7 +340109,7 @@
       "confidence_score": 0.95,
       "context": "WakeLockEvent",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L217",
+      "source_location": "L219",
       "weight": 1.0
     },
     {
@@ -340096,7 +340121,7 @@
       "confidence_score": 0.95,
       "context": "WakeLockStatus",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L217",
+      "source_location": "L219",
       "weight": 1.0
     },
     {
@@ -340132,7 +340157,7 @@
       "confidence_score": 0.95,
       "context": "WarmUpEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L229",
+      "source_location": "L231",
       "weight": 1.0
     },
     {
@@ -340168,7 +340193,7 @@
       "confidence_score": 0.95,
       "context": "WarmUpEngine.advance()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L213",
+      "source_location": "L215",
       "weight": 1.0
     },
     {
@@ -340192,7 +340217,7 @@
       "confidence_score": 0.95,
       "context": "WarmUpEngine.facts()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L213",
+      "source_location": "L215",
       "weight": 1.0
     },
     {
@@ -340240,7 +340265,7 @@
       "confidence_score": 0.95,
       "context": "X01CheckoutDartRow",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L102",
+      "source_location": "L104",
       "weight": 1.0
     },
     {
@@ -340252,7 +340277,7 @@
       "confidence_score": 0.95,
       "context": "X01View",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L275",
+      "source_location": "L277",
       "weight": 1.0
     },
     {
@@ -340312,7 +340337,7 @@
       "confidence_score": 0.95,
       "context": "accuracyDisplay()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L108",
+      "source_location": "L110",
       "weight": 1.0
     },
     {
@@ -340384,7 +340409,7 @@
       "confidence_score": 0.95,
       "context": "activeSeat",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L269",
+      "source_location": "L271",
       "weight": 1.0
     },
     {
@@ -340444,7 +340469,7 @@
       "confidence_score": 0.95,
       "context": "activeSeat()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L443",
+      "source_location": "L445",
       "weight": 1.0
     },
     {
@@ -340624,7 +340649,7 @@
       "confidence_score": 0.95,
       "context": "activeSessionConflict",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L204",
+      "source_location": "L206",
       "weight": 1.0
     },
     {
@@ -340636,7 +340661,7 @@
       "confidence_score": 0.95,
       "context": "addBotOpponent",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L253",
+      "source_location": "L255",
       "weight": 1.0
     },
     {
@@ -340684,7 +340709,7 @@
       "confidence_score": 0.95,
       "context": "addTypedGuest()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L281",
+      "source_location": "L283",
       "weight": 1.0
     },
     {
@@ -340744,7 +340769,7 @@
       "confidence_score": 0.95,
       "context": "advanceAfterStepCompletion",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L211",
+      "source_location": "L213",
       "weight": 1.0
     },
     {
@@ -340756,7 +340781,7 @@
       "confidence_score": 0.95,
       "context": "aggregateTierStats()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L241",
+      "source_location": "L243",
       "weight": 1.0
     },
     {
@@ -340804,7 +340829,7 @@
       "confidence_score": 0.95,
       "context": "aimMissRows()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L465",
+      "source_location": "L467",
       "weight": 1.0
     },
     {
@@ -340828,7 +340853,7 @@
       "confidence_score": 0.95,
       "context": "aimedDarts()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L465",
+      "source_location": "L467",
       "weight": 1.0
     },
     {
@@ -340852,7 +340877,7 @@
       "confidence_score": 0.95,
       "context": "allLevelSelectStats()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L241",
+      "source_location": "L243",
       "weight": 1.0
     },
     {
@@ -341080,7 +341105,7 @@
       "confidence_score": 0.95,
       "context": "applyAroundTheClockDart",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -341104,7 +341129,7 @@
       "confidence_score": 0.95,
       "context": "applyDoublesTrainingDart",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -341128,7 +341153,7 @@
       "confidence_score": 0.95,
       "context": "applyOneTwentyOneVisit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -341200,7 +341225,7 @@
       "confidence_score": 0.95,
       "context": "applyTuodAttempt",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L263",
+      "source_location": "L265",
       "weight": 1.0
     },
     {
@@ -341260,7 +341285,7 @@
       "confidence_score": 0.95,
       "context": "aroundTheClockPlay",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L420",
+      "source_location": "L422",
       "weight": 1.0
     },
     {
@@ -341272,7 +341297,7 @@
       "confidence_score": 0.95,
       "context": "aroundTheClockPlay",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -341308,7 +341333,7 @@
       "confidence_score": 0.95,
       "context": "aroundTheClockSetup",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L420",
+      "source_location": "L422",
       "weight": 1.0
     },
     {
@@ -341320,7 +341345,7 @@
       "confidence_score": 0.95,
       "context": "aroundTheClockSetup",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -341380,7 +341405,7 @@
       "confidence_score": 0.95,
       "context": "boardInput",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -341428,7 +341453,7 @@
       "confidence_score": 0.95,
       "context": "boardInputData",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L422",
+      "source_location": "L424",
       "weight": 1.0
     },
     {
@@ -341440,7 +341465,7 @@
       "confidence_score": 0.95,
       "context": "boardInputData",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L247",
+      "source_location": "L249",
       "weight": 1.0
     },
     {
@@ -341536,7 +341561,7 @@
       "confidence_score": 0.95,
       "context": "bobs27",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L325",
+      "source_location": "L327",
       "weight": 1.0
     },
     {
@@ -341560,7 +341585,7 @@
       "confidence_score": 0.95,
       "context": "bobs27Play()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -341596,7 +341621,7 @@
       "confidence_score": 0.95,
       "context": "bobs27Setup",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L402",
+      "source_location": "L404",
       "weight": 1.0
     },
     {
@@ -341620,7 +341645,7 @@
       "confidence_score": 0.95,
       "context": "bucketExprs",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L463",
+      "source_location": "L465",
       "weight": 1.0
     },
     {
@@ -341692,7 +341717,7 @@
       "confidence_score": 0.95,
       "context": "buildEventsBatch",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L213",
+      "source_location": "L215",
       "weight": 1.0
     },
     {
@@ -341776,7 +341801,7 @@
       "confidence_score": 0.95,
       "context": "buildResultsSnapshot",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L257",
+      "source_location": "L259",
       "weight": 1.0
     },
     {
@@ -341800,7 +341825,7 @@
       "confidence_score": 0.95,
       "context": "buildSeatPlan",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L259",
+      "source_location": "L261",
       "weight": 1.0
     },
     {
@@ -341872,7 +341897,7 @@
       "confidence_score": 0.95,
       "context": "capableRulesets",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L424",
+      "source_location": "L426",
       "weight": 1.0
     },
     {
@@ -341884,7 +341909,7 @@
       "confidence_score": 0.95,
       "context": "capableRulesets",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -342040,7 +342065,7 @@
       "confidence_score": 0.95,
       "context": "checkoutDarts",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L464",
+      "source_location": "L466",
       "weight": 1.0
     },
     {
@@ -342064,7 +342089,7 @@
       "confidence_score": 0.95,
       "context": "checkoutDartsRejection",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L263",
+      "source_location": "L265",
       "weight": 1.0
     },
     {
@@ -342112,7 +342137,7 @@
       "confidence_score": 0.95,
       "context": "checkoutPathFor",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L133",
+      "source_location": "L135",
       "weight": 1.0
     },
     {
@@ -342196,7 +342221,7 @@
       "confidence_score": 0.95,
       "context": "checkoutPathWithin",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L131",
+      "source_location": "L133",
       "weight": 1.0
     },
     {
@@ -342232,7 +342257,7 @@
       "confidence_score": 0.95,
       "context": "checkoutPercentageDisplay()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L461",
+      "source_location": "L463",
       "weight": 1.0
     },
     {
@@ -342244,7 +342269,7 @@
       "confidence_score": 0.95,
       "context": "checkoutPercentageDisplay()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L108",
+      "source_location": "L110",
       "weight": 1.0
     },
     {
@@ -342292,7 +342317,7 @@
       "confidence_score": 0.95,
       "context": "checkoutVisitsFromRows",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L108",
+      "source_location": "L110",
       "weight": 1.0
     },
     {
@@ -342316,7 +342341,7 @@
       "confidence_score": 0.95,
       "context": "clampFiveOhOneStartingScore",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -342340,7 +342365,7 @@
       "confidence_score": 0.95,
       "context": "clampMagnifierPlacement",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -342424,7 +342449,7 @@
       "confidence_score": 0.95,
       "context": "classify()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L453",
+      "source_location": "L455",
       "weight": 1.0
     },
     {
@@ -342436,7 +342461,7 @@
       "confidence_score": 0.95,
       "context": "classify()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L283",
+      "source_location": "L285",
       "weight": 1.0
     },
     {
@@ -342532,7 +342557,7 @@
       "confidence_score": 0.95,
       "context": "classifyDart",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L108",
+      "source_location": "L110",
       "weight": 1.0
     },
     {
@@ -342580,7 +342605,7 @@
       "confidence_score": 0.95,
       "context": "classifyLanding()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L465",
+      "source_location": "L467",
       "weight": 1.0
     },
     {
@@ -342784,7 +342809,7 @@
       "confidence_score": 0.95,
       "context": "cn()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L255",
+      "source_location": "L257",
       "weight": 1.0
     },
     {
@@ -342964,7 +342989,7 @@
       "confidence_score": 0.95,
       "context": "completeSession",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L188",
+      "source_location": "L190",
       "weight": 1.0
     },
     {
@@ -342988,7 +343013,7 @@
       "confidence_score": 0.95,
       "context": "completeTimer",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L232",
+      "source_location": "L234",
       "weight": 1.0
     },
     {
@@ -343048,7 +343073,7 @@
       "confidence_score": 0.95,
       "context": "completedVisits",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L261",
+      "source_location": "L263",
       "weight": 1.0
     },
     {
@@ -343060,7 +343085,7 @@
       "confidence_score": 0.95,
       "context": "composeSeatFacts",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L273",
+      "source_location": "L275",
       "weight": 1.0
     },
     {
@@ -343168,7 +343193,7 @@
       "confidence_score": 0.95,
       "context": "configGroupKey()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L465",
+      "source_location": "L467",
       "weight": 1.0
     },
     {
@@ -343204,7 +343229,7 @@
       "confidence_score": 0.95,
       "context": "createDartRng",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L277",
+      "source_location": "L279",
       "weight": 1.0
     },
     {
@@ -343276,7 +343301,7 @@
       "confidence_score": 0.95,
       "context": "createPresetSetupController",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L172",
+      "source_location": "L174",
       "weight": 1.0
     },
     {
@@ -343360,7 +343385,7 @@
       "confidence_score": 0.95,
       "context": "createThreeDartValidator",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L325",
+      "source_location": "L327",
       "weight": 1.0
     },
     {
@@ -343432,7 +343457,7 @@
       "confidence_score": 0.95,
       "context": "currentFacts",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L257",
+      "source_location": "L259",
       "weight": 1.0
     },
     {
@@ -343444,7 +343469,7 @@
       "confidence_score": 0.95,
       "context": "currentPlayStreakDays",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L234",
+      "source_location": "L236",
       "weight": 1.0
     },
     {
@@ -343468,7 +343493,7 @@
       "confidence_score": 0.95,
       "context": "dartChecksOutFinalLeg",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L265",
+      "source_location": "L267",
       "weight": 1.0
     },
     {
@@ -343516,7 +343541,7 @@
       "confidence_score": 0.95,
       "context": "dartScopeWhere",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L463",
+      "source_location": "L465",
       "weight": 1.0
     },
     {
@@ -343564,7 +343589,7 @@
       "confidence_score": 0.95,
       "context": "dartsLeftForSeat",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L131",
+      "source_location": "L133",
       "weight": 1.0
     },
     {
@@ -343672,7 +343697,7 @@
       "confidence_score": 0.95,
       "context": "deleteRoutineTemplateRecord",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L120",
+      "source_location": "L122",
       "weight": 1.0
     },
     {
@@ -343708,7 +343733,7 @@
       "confidence_score": 0.95,
       "context": "deriveFlatSpotValues()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L178",
+      "source_location": "L180",
       "weight": 1.0
     },
     {
@@ -343756,7 +343781,7 @@
       "confidence_score": 0.95,
       "context": "difficultyOf()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L287",
+      "source_location": "L289",
       "weight": 1.0
     },
     {
@@ -343876,7 +343901,7 @@
       "confidence_score": 0.95,
       "context": "doublesPath",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L412",
+      "source_location": "L414",
       "weight": 1.0
     },
     {
@@ -343888,7 +343913,7 @@
       "confidence_score": 0.95,
       "context": "doublesPath()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L251",
+      "source_location": "L253",
       "weight": 1.0
     },
     {
@@ -343924,7 +343949,7 @@
       "confidence_score": 0.95,
       "context": "doublesPathObservation",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -343960,7 +343985,7 @@
       "confidence_score": 0.95,
       "context": "doublesPathPreviewSegments",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -343984,7 +344009,7 @@
       "confidence_score": 0.95,
       "context": "doublesPathTargetLabel",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -344104,7 +344129,7 @@
       "confidence_score": 0.95,
       "context": "durationSeatComplete",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L196",
+      "source_location": "L198",
       "weight": 1.0
     },
     {
@@ -344248,7 +344273,7 @@
       "confidence_score": 0.95,
       "context": "ensureHeld()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L217",
+      "source_location": "L219",
       "weight": 1.0
     },
     {
@@ -344284,7 +344309,7 @@
       "confidence_score": 0.95,
       "context": "exerciseBlockStage()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L447",
+      "source_location": "L449",
       "weight": 1.0
     },
     {
@@ -344392,7 +344417,7 @@
       "confidence_score": 0.95,
       "context": "fail()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L198",
+      "source_location": "L200",
       "weight": 1.0
     },
     {
@@ -344452,7 +344477,7 @@
       "confidence_score": 0.95,
       "context": "favoriteGameTypeKey",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L186",
+      "source_location": "L188",
       "weight": 1.0
     },
     {
@@ -344476,7 +344501,7 @@
       "confidence_score": 0.95,
       "context": "fetchActiveSessions",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L422",
+      "source_location": "L424",
       "weight": 1.0
     },
     {
@@ -344488,7 +344513,7 @@
       "confidence_score": 0.95,
       "context": "fetchActiveSessions",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L204",
+      "source_location": "L206",
       "weight": 1.0
     },
     {
@@ -344524,7 +344549,7 @@
       "confidence_score": 0.95,
       "context": "fetchStatisticsOverview()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L234",
+      "source_location": "L236",
       "weight": 1.0
     },
     {
@@ -344560,7 +344585,7 @@
       "confidence_score": 0.95,
       "context": "findActiveSessionForExerciseType",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L190",
+      "source_location": "L192",
       "weight": 1.0
     },
     {
@@ -344596,7 +344621,7 @@
       "confidence_score": 0.95,
       "context": "findActivityConfiguration",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L182",
+      "source_location": "L184",
       "weight": 1.0
     },
     {
@@ -344620,7 +344645,7 @@
       "confidence_score": 0.95,
       "context": "findActivityStatus",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L182",
+      "source_location": "L184",
       "weight": 1.0
     },
     {
@@ -344656,7 +344681,7 @@
       "confidence_score": 0.95,
       "context": "findBucketedSessionAggregates",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L462",
+      "source_location": "L464",
       "weight": 1.0
     },
     {
@@ -344668,7 +344693,7 @@
       "confidence_score": 0.95,
       "context": "findDartFoldRows",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L465",
+      "source_location": "L467",
       "weight": 1.0
     },
     {
@@ -344704,7 +344729,7 @@
       "confidence_score": 0.95,
       "context": "findExerciseRulesetVersionId",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L225",
+      "source_location": "L227",
       "weight": 1.0
     },
     {
@@ -344728,7 +344753,7 @@
       "confidence_score": 0.95,
       "context": "findExerciseTemplateCatalog",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L102",
+      "source_location": "L104",
       "weight": 1.0
     },
     {
@@ -344752,7 +344777,7 @@
       "confidence_score": 0.95,
       "context": "findHeatmapCells",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L463",
+      "source_location": "L465",
       "weight": 1.0
     },
     {
@@ -344764,7 +344789,7 @@
       "confidence_score": 0.95,
       "context": "findHitNumberCells",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L464",
+      "source_location": "L466",
       "weight": 1.0
     },
     {
@@ -344800,7 +344825,7 @@
       "confidence_score": 0.95,
       "context": "findIntentCells",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L463",
+      "source_location": "L465",
       "weight": 1.0
     },
     {
@@ -344824,7 +344849,7 @@
       "confidence_score": 0.95,
       "context": "findIntentMoments",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L463",
+      "source_location": "L465",
       "weight": 1.0
     },
     {
@@ -344848,7 +344873,7 @@
       "confidence_score": 0.95,
       "context": "findLegFacts",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L102",
+      "source_location": "L104",
       "weight": 1.0
     },
     {
@@ -344872,7 +344897,7 @@
       "confidence_score": 0.95,
       "context": "findMissSectors",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L463",
+      "source_location": "L465",
       "weight": 1.0
     },
     {
@@ -344908,7 +344933,7 @@
       "confidence_score": 0.95,
       "context": "findReplaySession",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L466",
+      "source_location": "L468",
       "weight": 1.0
     },
     {
@@ -345040,7 +345065,7 @@
       "confidence_score": 0.95,
       "context": "findRoutineExecutionRows",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L102",
+      "source_location": "L104",
       "weight": 1.0
     },
     {
@@ -345172,7 +345197,7 @@
       "confidence_score": 0.95,
       "context": "findRoutineTemplateSteps",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L102",
+      "source_location": "L104",
       "weight": 1.0
     },
     {
@@ -345244,7 +345269,7 @@
       "confidence_score": 0.95,
       "context": "findScheduleDayRows",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L102",
+      "source_location": "L104",
       "weight": 1.0
     },
     {
@@ -345292,7 +345317,7 @@
       "confidence_score": 0.95,
       "context": "findScheduleIdsUsingRoutine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L102",
+      "source_location": "L104",
       "weight": 1.0
     },
     {
@@ -345352,7 +345377,7 @@
       "confidence_score": 0.95,
       "context": "findScheduleRows",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L102",
+      "source_location": "L104",
       "weight": 1.0
     },
     {
@@ -345388,7 +345413,7 @@
       "confidence_score": 0.95,
       "context": "findScopeDartCount",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L464",
+      "source_location": "L466",
       "weight": 1.0
     },
     {
@@ -345448,7 +345473,7 @@
       "confidence_score": 0.95,
       "context": "findSessionRow",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L215",
+      "source_location": "L217",
       "weight": 1.0
     },
     {
@@ -345472,7 +345497,7 @@
       "confidence_score": 0.95,
       "context": "findSessionSummaries",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L102",
+      "source_location": "L104",
       "weight": 1.0
     },
     {
@@ -345616,7 +345641,7 @@
       "confidence_score": 0.95,
       "context": "findVisitFacts",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L102",
+      "source_location": "L104",
       "weight": 1.0
     },
     {
@@ -345628,7 +345653,7 @@
       "confidence_score": 0.95,
       "context": "findVisitScoring",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L464",
+      "source_location": "L466",
       "weight": 1.0
     },
     {
@@ -345664,7 +345689,7 @@
       "confidence_score": 0.95,
       "context": "findX01CheckoutDarts",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L102",
+      "source_location": "L104",
       "weight": 1.0
     },
     {
@@ -345688,7 +345713,7 @@
       "confidence_score": 0.95,
       "context": "findX01FoldRows",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L464",
+      "source_location": "L466",
       "weight": 1.0
     },
     {
@@ -345736,7 +345761,7 @@
       "confidence_score": 0.95,
       "context": "fiveOhOneSetup()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L273",
+      "source_location": "L275",
       "weight": 1.0
     },
     {
@@ -345748,7 +345773,7 @@
       "confidence_score": 0.95,
       "context": "foldAroundTheClockState",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L444",
+      "source_location": "L446",
       "weight": 1.0
     },
     {
@@ -345760,7 +345785,7 @@
       "confidence_score": 0.95,
       "context": "foldAroundTheClockState",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L303",
+      "source_location": "L305",
       "weight": 1.0
     },
     {
@@ -345784,7 +345809,7 @@
       "confidence_score": 0.95,
       "context": "foldBobs27State",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L271",
+      "source_location": "L273",
       "weight": 1.0
     },
     {
@@ -345820,7 +345845,7 @@
       "confidence_score": 0.95,
       "context": "foldFiveOhOneState",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L323",
+      "source_location": "L325",
       "weight": 1.0
     },
     {
@@ -345832,7 +345857,7 @@
       "confidence_score": 0.95,
       "context": "foldLeg",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L323",
+      "source_location": "L325",
       "weight": 1.0
     },
     {
@@ -345880,7 +345905,7 @@
       "confidence_score": 0.95,
       "context": "foldOneTwentyOneState",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L261",
+      "source_location": "L263",
       "weight": 1.0
     },
     {
@@ -345904,7 +345929,7 @@
       "confidence_score": 0.95,
       "context": "foldPopulationPrior()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L245",
+      "source_location": "L247",
       "weight": 1.0
     },
     {
@@ -345952,7 +345977,7 @@
       "confidence_score": 0.95,
       "context": "foldReplay",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L466",
+      "source_location": "L468",
       "weight": 1.0
     },
     {
@@ -345988,7 +346013,7 @@
       "confidence_score": 0.95,
       "context": "foldScoreTrainingState",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L303",
+      "source_location": "L305",
       "weight": 1.0
     },
     {
@@ -346108,7 +346133,7 @@
       "confidence_score": 0.95,
       "context": "foldSeatSteps()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L465",
+      "source_location": "L467",
       "weight": 1.0
     },
     {
@@ -346144,7 +346169,7 @@
       "confidence_score": 0.95,
       "context": "foldShanghaiState",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L261",
+      "source_location": "L263",
       "weight": 1.0
     },
     {
@@ -346252,7 +346277,7 @@
       "confidence_score": 0.95,
       "context": "foldTuodState",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L303",
+      "source_location": "L305",
       "weight": 1.0
     },
     {
@@ -346288,7 +346313,7 @@
       "confidence_score": 0.95,
       "context": "formatRemaining",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L170",
+      "source_location": "L172",
       "weight": 1.0
     },
     {
@@ -346348,7 +346373,7 @@
       "confidence_score": 0.95,
       "context": "formatStatisticsOverview()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L234",
+      "source_location": "L236",
       "weight": 1.0
     },
     {
@@ -346396,7 +346421,7 @@
       "confidence_score": 0.95,
       "context": "freshController",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -346456,7 +346481,7 @@
       "confidence_score": 0.95,
       "context": "gameLayoutData()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L217",
+      "source_location": "L219",
       "weight": 1.0
     },
     {
@@ -346492,7 +346517,7 @@
       "confidence_score": 0.95,
       "context": "gameStep()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L106",
+      "source_location": "L108",
       "weight": 1.0
     },
     {
@@ -346528,7 +346553,7 @@
       "confidence_score": 0.95,
       "context": "gamesIndex",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L186",
+      "source_location": "L188",
       "weight": 1.0
     },
     {
@@ -346540,7 +346565,7 @@
       "confidence_score": 0.95,
       "context": "generateBotSeed()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L281",
+      "source_location": "L283",
       "weight": 1.0
     },
     {
@@ -346564,7 +346589,7 @@
       "confidence_score": 0.95,
       "context": "generateId()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L281",
+      "source_location": "L283",
       "weight": 1.0
     },
     {
@@ -346648,7 +346673,7 @@
       "confidence_score": 0.95,
       "context": "getElapsed()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L232",
+      "source_location": "L234",
       "weight": 1.0
     },
     {
@@ -346684,7 +346709,7 @@
       "confidence_score": 0.95,
       "context": "getEngineFactory",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L275",
+      "source_location": "L277",
       "weight": 1.0
     },
     {
@@ -346720,7 +346745,7 @@
       "confidence_score": 0.95,
       "context": "getSessionReplay",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L466",
+      "source_location": "L468",
       "weight": 1.0
     },
     {
@@ -346912,7 +346937,7 @@
       "confidence_score": 0.95,
       "context": "highestVisitScore",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L261",
+      "source_location": "L263",
       "weight": 1.0
     },
     {
@@ -346936,7 +346961,7 @@
       "confidence_score": 0.95,
       "context": "homeWeek()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L90",
+      "source_location": "L92",
       "weight": 1.0
     },
     {
@@ -346972,7 +346997,7 @@
       "confidence_score": 0.95,
       "context": "initialOneTwentyOneState()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -346984,7 +347009,7 @@
       "confidence_score": 0.95,
       "context": "insertActivityRecord",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L225",
+      "source_location": "L227",
       "weight": 1.0
     },
     {
@@ -347020,7 +347045,7 @@
       "confidence_score": 0.95,
       "context": "insertBatchRecords",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L279",
+      "source_location": "L281",
       "weight": 1.0
     },
     {
@@ -347056,7 +347081,7 @@
       "confidence_score": 0.95,
       "context": "insertExerciseSessionRecord",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L190",
+      "source_location": "L192",
       "weight": 1.0
     },
     {
@@ -347116,7 +347141,7 @@
       "confidence_score": 0.95,
       "context": "insertSessionRecords",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L190",
+      "source_location": "L192",
       "weight": 1.0
     },
     {
@@ -347152,7 +347177,7 @@
       "confidence_score": 0.95,
       "context": "insertTrainingActivity",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L190",
+      "source_location": "L192",
       "weight": 1.0
     },
     {
@@ -347176,7 +347201,7 @@
       "confidence_score": 0.95,
       "context": "interiorPoints()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L178",
+      "source_location": "L180",
       "weight": 1.0
     },
     {
@@ -347188,7 +347213,7 @@
       "confidence_score": 0.95,
       "context": "invalidAnswerResult",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L232",
+      "source_location": "L234",
       "weight": 1.0
     },
     {
@@ -347212,7 +347237,7 @@
       "confidence_score": 0.95,
       "context": "isActiveSessionConflict",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L120",
+      "source_location": "L122",
       "weight": 1.0
     },
     {
@@ -347272,7 +347297,7 @@
       "confidence_score": 0.95,
       "context": "isAimHit()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L465",
+      "source_location": "L467",
       "weight": 1.0
     },
     {
@@ -347296,7 +347321,7 @@
       "confidence_score": 0.95,
       "context": "isAroundTheClockHit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -347344,7 +347369,7 @@
       "confidence_score": 0.95,
       "context": "isCheckoutReachable",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L133",
+      "source_location": "L135",
       "weight": 1.0
     },
     {
@@ -347416,7 +347441,7 @@
       "confidence_score": 0.95,
       "context": "isDartObservation",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L445",
+      "source_location": "L447",
       "weight": 1.0
     },
     {
@@ -347428,7 +347453,7 @@
       "confidence_score": 0.95,
       "context": "isDartObservation",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L291",
+      "source_location": "L293",
       "weight": 1.0
     },
     {
@@ -347452,7 +347477,7 @@
       "confidence_score": 0.95,
       "context": "isDartObservationInput",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L447",
+      "source_location": "L449",
       "weight": 1.0
     },
     {
@@ -347488,7 +347513,7 @@
       "confidence_score": 0.95,
       "context": "isDetailedDartsOrVisualBoardCapture",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -347512,7 +347537,7 @@
       "confidence_score": 0.95,
       "context": "isFinishingDart",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L464",
+      "source_location": "L466",
       "weight": 1.0
     },
     {
@@ -347584,7 +347609,7 @@
       "confidence_score": 0.95,
       "context": "isHitOn()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -347644,7 +347669,7 @@
       "confidence_score": 0.95,
       "context": "isQuickScoreOrVisualBoardCapture",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -347692,7 +347717,7 @@
       "confidence_score": 0.95,
       "context": "isRoutineDurationViolation",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L112",
+      "source_location": "L114",
       "weight": 1.0
     },
     {
@@ -347788,7 +347813,7 @@
       "confidence_score": 0.95,
       "context": "isValidTargetOrder",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L412",
+      "source_location": "L414",
       "weight": 1.0
     },
     {
@@ -347824,7 +347849,7 @@
       "confidence_score": 0.95,
       "context": "jsonHeaders",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L198",
+      "source_location": "L200",
       "weight": 1.0
     },
     {
@@ -347908,7 +347933,7 @@
       "confidence_score": 0.95,
       "context": "legVisitsOf",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L323",
+      "source_location": "L325",
       "weight": 1.0
     },
     {
@@ -347920,7 +347945,7 @@
       "confidence_score": 0.95,
       "context": "levelSelectStatsForLevel()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L241",
+      "source_location": "L243",
       "weight": 1.0
     },
     {
@@ -347944,7 +347969,7 @@
       "confidence_score": 0.95,
       "context": "load()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L234",
+      "source_location": "L236",
       "weight": 1.0
     },
     {
@@ -347968,7 +347993,7 @@
       "confidence_score": 0.95,
       "context": "loadCreateSessionLookups",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L281",
+      "source_location": "L283",
       "weight": 1.0
     },
     {
@@ -348028,7 +348053,7 @@
       "confidence_score": 0.95,
       "context": "longestPlayStreakDays",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L234",
+      "source_location": "L236",
       "weight": 1.0
     },
     {
@@ -348052,7 +348077,7 @@
       "confidence_score": 0.95,
       "context": "magnifierAnchorStyle",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -348076,7 +348101,7 @@
       "confidence_score": 0.95,
       "context": "magnifierBoardStyle",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -348100,7 +348125,7 @@
       "confidence_score": 0.95,
       "context": "magnifierLabelStyle()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -348412,7 +348437,7 @@
       "confidence_score": 0.95,
       "context": "missMargin()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L245",
+      "source_location": "L247",
       "weight": 1.0
     },
     {
@@ -348520,7 +348545,7 @@
       "confidence_score": 0.95,
       "context": "mulberry32",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L283",
+      "source_location": "L285",
       "weight": 1.0
     },
     {
@@ -348532,7 +348557,7 @@
       "confidence_score": 0.95,
       "context": "myScheduleForm()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L96",
+      "source_location": "L98",
       "weight": 1.0
     },
     {
@@ -348592,7 +348617,7 @@
       "confidence_score": 0.95,
       "context": "nonNull",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L102",
+      "source_location": "L104",
       "weight": 1.0
     },
     {
@@ -348640,7 +348665,7 @@
       "confidence_score": 0.95,
       "context": "normalize",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L104",
+      "source_location": "L106",
       "weight": 1.0
     },
     {
@@ -348664,7 +348689,7 @@
       "confidence_score": 0.95,
       "context": "noteDataVersion",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L42",
+      "source_location": "L44",
       "weight": 1.0
     },
     {
@@ -348712,7 +348737,7 @@
       "confidence_score": 0.95,
       "context": "numbersPath",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L412",
+      "source_location": "L414",
       "weight": 1.0
     },
     {
@@ -348724,7 +348749,7 @@
       "confidence_score": 0.95,
       "context": "numbersPath()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L251",
+      "source_location": "L253",
       "weight": 1.0
     },
     {
@@ -348796,7 +348821,7 @@
       "confidence_score": 0.95,
       "context": "ok()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L198",
+      "source_location": "L200",
       "weight": 1.0
     },
     {
@@ -349048,7 +349073,7 @@
       "confidence_score": 0.95,
       "context": "oneTwentyOnePlay",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L418",
+      "source_location": "L420",
       "weight": 1.0
     },
     {
@@ -349060,7 +349085,7 @@
       "confidence_score": 0.95,
       "context": "oneTwentyOnePlay",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L232",
+      "source_location": "L234",
       "weight": 1.0
     },
     {
@@ -349096,7 +349121,7 @@
       "confidence_score": 0.95,
       "context": "oneTwentyOneSetup",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L418",
+      "source_location": "L420",
       "weight": 1.0
     },
     {
@@ -349108,7 +349133,7 @@
       "confidence_score": 0.95,
       "context": "oneTwentyOneSetup",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -349156,7 +349181,7 @@
       "confidence_score": 0.95,
       "context": "otherSeatsComplete",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L445",
+      "source_location": "L447",
       "weight": 1.0
     },
     {
@@ -349168,7 +349193,7 @@
       "confidence_score": 0.95,
       "context": "otherSeatsComplete",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L259",
+      "source_location": "L261",
       "weight": 1.0
     },
     {
@@ -349276,7 +349301,7 @@
       "confidence_score": 0.95,
       "context": "parseAnswerValue",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L232",
+      "source_location": "L234",
       "weight": 1.0
     },
     {
@@ -349336,7 +349361,7 @@
       "confidence_score": 0.95,
       "context": "participantsFromGuests",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L281",
+      "source_location": "L283",
       "weight": 1.0
     },
     {
@@ -349372,7 +349397,7 @@
       "confidence_score": 0.95,
       "context": "participantsFromSeats",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L267",
+      "source_location": "L269",
       "weight": 1.0
     },
     {
@@ -349480,7 +349505,7 @@
       "confidence_score": 0.95,
       "context": "playAbandonAndExit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L221",
+      "source_location": "L223",
       "weight": 1.0
     },
     {
@@ -349528,7 +349553,7 @@
       "confidence_score": 0.95,
       "context": "playBack",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -349576,7 +349601,7 @@
       "confidence_score": 0.95,
       "context": "playBeep()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L223",
+      "source_location": "L225",
       "weight": 1.0
     },
     {
@@ -349636,7 +349661,7 @@
       "confidence_score": 0.95,
       "context": "playCommitDart",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L184",
+      "source_location": "L186",
       "weight": 1.0
     },
     {
@@ -349696,7 +349721,7 @@
       "confidence_score": 0.95,
       "context": "playFoldBotQuickScoreVisit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L451",
+      "source_location": "L453",
       "weight": 1.0
     },
     {
@@ -349708,7 +349733,7 @@
       "confidence_score": 0.95,
       "context": "playFoldBotQuickScoreVisit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L273",
+      "source_location": "L275",
       "weight": 1.0
     },
     {
@@ -349744,7 +349769,7 @@
       "confidence_score": 0.95,
       "context": "playInit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L422",
+      "source_location": "L424",
       "weight": 1.0
     },
     {
@@ -349756,7 +349781,7 @@
       "confidence_score": 0.95,
       "context": "playInit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -349828,7 +349853,7 @@
       "confidence_score": 0.95,
       "context": "playRetryReconciliation",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -349864,7 +349889,7 @@
       "confidence_score": 0.95,
       "context": "playRunBotVisualBoardVisit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L451",
+      "source_location": "L453",
       "weight": 1.0
     },
     {
@@ -349876,7 +349901,7 @@
       "confidence_score": 0.95,
       "context": "playRunBotVisualBoardVisit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L275",
+      "source_location": "L277",
       "weight": 1.0
     },
     {
@@ -349924,7 +349949,7 @@
       "confidence_score": 0.95,
       "context": "playUndoVisit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L184",
+      "source_location": "L186",
       "weight": 1.0
     },
     {
@@ -349972,7 +349997,7 @@
       "confidence_score": 0.95,
       "context": "playUploadAndCompleteSession",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L257",
+      "source_location": "L259",
       "weight": 1.0
     },
     {
@@ -350020,7 +350045,7 @@
       "confidence_score": 0.95,
       "context": "playVisitMarkers",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L422",
+      "source_location": "L424",
       "weight": 1.0
     },
     {
@@ -350032,7 +350057,7 @@
       "confidence_score": 0.95,
       "context": "playVisitMarkers",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -350080,7 +350105,7 @@
       "confidence_score": 0.95,
       "context": "pointValueOf",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L400",
+      "source_location": "L402",
       "weight": 1.0
     },
     {
@@ -350092,7 +350117,7 @@
       "confidence_score": 0.95,
       "context": "pointValueOf",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -350116,7 +350141,7 @@
       "confidence_score": 0.95,
       "context": "pointsFor",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L192",
+      "source_location": "L194",
       "weight": 1.0
     },
     {
@@ -350140,7 +350165,7 @@
       "confidence_score": 0.95,
       "context": "queriesDomainData",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L176",
+      "source_location": "L178",
       "weight": 1.0
     },
     {
@@ -350152,7 +350177,7 @@
       "confidence_score": 0.95,
       "context": "quickSubtractPlay()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L232",
+      "source_location": "L234",
       "weight": 1.0
     },
     {
@@ -350284,7 +350309,7 @@
       "confidence_score": 0.95,
       "context": "reconcileActiveSession",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L204",
+      "source_location": "L206",
       "weight": 1.0
     },
     {
@@ -350344,7 +350369,7 @@
       "confidence_score": 0.95,
       "context": "recordAttempt",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L232",
+      "source_location": "L234",
       "weight": 1.0
     },
     {
@@ -350404,7 +350429,7 @@
       "confidence_score": 0.95,
       "context": "rejectSeatRequest",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L281",
+      "source_location": "L283",
       "weight": 1.0
     },
     {
@@ -350428,7 +350453,7 @@
       "confidence_score": 0.95,
       "context": "rejectionReason",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L263",
+      "source_location": "L265",
       "weight": 1.0
     },
     {
@@ -350464,7 +350489,7 @@
       "confidence_score": 0.95,
       "context": "release",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L217",
+      "source_location": "L219",
       "weight": 1.0
     },
     {
@@ -350488,7 +350513,7 @@
       "confidence_score": 0.95,
       "context": "remainingBeforeVisit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L447",
+      "source_location": "L449",
       "weight": 1.0
     },
     {
@@ -350500,7 +350525,7 @@
       "confidence_score": 0.95,
       "context": "remainingBeforeVisit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L289",
+      "source_location": "L291",
       "weight": 1.0
     },
     {
@@ -350524,7 +350549,7 @@
       "confidence_score": 0.95,
       "context": "renderingDb",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L102",
+      "source_location": "L104",
       "weight": 1.0
     },
     {
@@ -350548,7 +350573,7 @@
       "confidence_score": 0.95,
       "context": "replaceRoutine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L110",
+      "source_location": "L112",
       "weight": 1.0
     },
     {
@@ -350656,7 +350681,7 @@
       "confidence_score": 0.95,
       "context": "replayHits()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L172",
+      "source_location": "L174",
       "weight": 1.0
     },
     {
@@ -350704,7 +350729,7 @@
       "confidence_score": 0.95,
       "context": "rescaleLevel",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L243",
+      "source_location": "L245",
       "weight": 1.0
     },
     {
@@ -350728,7 +350753,7 @@
       "confidence_score": 0.95,
       "context": "reseatSnapshot",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L281",
+      "source_location": "L283",
       "weight": 1.0
     },
     {
@@ -350764,7 +350789,7 @@
       "confidence_score": 0.95,
       "context": "resolveActiveExerciseConflict",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L190",
+      "source_location": "L192",
       "weight": 1.0
     },
     {
@@ -350776,7 +350801,7 @@
       "confidence_score": 0.95,
       "context": "resolveActiveSessionConflict",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L204",
+      "source_location": "L206",
       "weight": 1.0
     },
     {
@@ -350788,7 +350813,7 @@
       "confidence_score": 0.95,
       "context": "resolveBatchStructure",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L279",
+      "source_location": "L281",
       "weight": 1.0
     },
     {
@@ -350824,7 +350849,7 @@
       "confidence_score": 0.95,
       "context": "resolveCheckoutAttempt",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L373",
+      "source_location": "L375",
       "weight": 1.0
     },
     {
@@ -350836,7 +350861,7 @@
       "confidence_score": 0.95,
       "context": "resolveCheckoutAttempt",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L265",
+      "source_location": "L267",
       "weight": 1.0
     },
     {
@@ -350872,7 +350897,7 @@
       "confidence_score": 0.95,
       "context": "resolveFiveOhOneVisit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L291",
+      "source_location": "L293",
       "weight": 1.0
     },
     {
@@ -350884,7 +350909,7 @@
       "confidence_score": 0.95,
       "context": "resolveMagnifierSide",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -350908,7 +350933,7 @@
       "confidence_score": 0.95,
       "context": "resolveNonGameReferences",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L190",
+      "source_location": "L192",
       "weight": 1.0
     },
     {
@@ -350956,7 +350981,7 @@
       "confidence_score": 0.95,
       "context": "resolveOneTwentyOneVisit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L291",
+      "source_location": "L293",
       "weight": 1.0
     },
     {
@@ -350980,7 +351005,7 @@
       "confidence_score": 0.95,
       "context": "resolveSessionModePair",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L401",
+      "source_location": "L403",
       "weight": 1.0
     },
     {
@@ -350992,7 +351017,7 @@
       "confidence_score": 0.95,
       "context": "resolveSessionModePair",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -351028,7 +351053,7 @@
       "confidence_score": 0.95,
       "context": "resolveSoloParticipantRef",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L213",
+      "source_location": "L215",
       "weight": 1.0
     },
     {
@@ -351040,7 +351065,7 @@
       "confidence_score": 0.95,
       "context": "resolveStartOverrides",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L273",
+      "source_location": "L275",
       "weight": 1.0
     },
     {
@@ -351052,7 +351077,7 @@
       "confidence_score": 0.95,
       "context": "resolveStartPreset",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L273",
+      "source_location": "L275",
       "weight": 1.0
     },
     {
@@ -351076,7 +351101,7 @@
       "confidence_score": 0.95,
       "context": "resolveStep",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L202",
+      "source_location": "L204",
       "weight": 1.0
     },
     {
@@ -351100,7 +351125,7 @@
       "confidence_score": 0.95,
       "context": "resolveStepAdapter",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L106",
+      "source_location": "L108",
       "weight": 1.0
     },
     {
@@ -351172,7 +351197,7 @@
       "confidence_score": 0.95,
       "context": "resumeGameEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L170",
+      "source_location": "L172",
       "weight": 1.0
     },
     {
@@ -351232,7 +351257,7 @@
       "confidence_score": 0.95,
       "context": "routineBuilder()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L116",
+      "source_location": "L118",
       "weight": 1.0
     },
     {
@@ -351352,7 +351377,7 @@
       "confidence_score": 0.95,
       "context": "routineGameStepHook()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L106",
+      "source_location": "L108",
       "weight": 1.0
     },
     {
@@ -351436,7 +351461,7 @@
       "confidence_score": 0.95,
       "context": "rowsToTurns",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L466",
+      "source_location": "L468",
       "weight": 1.0
     },
     {
@@ -351520,7 +351545,7 @@
       "confidence_score": 0.95,
       "context": "runPlayAgain",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L412",
+      "source_location": "L414",
       "weight": 1.0
     },
     {
@@ -351532,7 +351557,7 @@
       "confidence_score": 0.95,
       "context": "runPlayAgain",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L257",
+      "source_location": "L259",
       "weight": 1.0
     },
     {
@@ -351556,7 +351581,7 @@
       "confidence_score": 0.95,
       "context": "runtime_shape()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L168",
+      "source_location": "L170",
       "weight": 1.0
     },
     {
@@ -351712,7 +351737,7 @@
       "confidence_score": 0.95,
       "context": "scoreTrainingPlay",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L232",
+      "source_location": "L234",
       "weight": 1.0
     },
     {
@@ -351760,7 +351785,7 @@
       "confidence_score": 0.95,
       "context": "scoreTrainingSetup",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L392",
+      "source_location": "L394",
       "weight": 1.0
     },
     {
@@ -351844,7 +351869,7 @@
       "confidence_score": 0.95,
       "context": "seatBeforeVisit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L289",
+      "source_location": "L291",
       "weight": 1.0
     },
     {
@@ -351904,7 +351929,7 @@
       "confidence_score": 0.95,
       "context": "seatStatesOf",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L323",
+      "source_location": "L325",
       "weight": 1.0
     },
     {
@@ -351976,7 +352001,7 @@
       "confidence_score": 0.95,
       "context": "seats",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L440",
+      "source_location": "L442",
       "weight": 1.0
     },
     {
@@ -352084,7 +352109,7 @@
       "confidence_score": 0.95,
       "context": "sectionsForGame",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L463",
+      "source_location": "L465",
       "weight": 1.0
     },
     {
@@ -352168,7 +352193,7 @@
       "confidence_score": 0.95,
       "context": "sessionCheckoutVisits",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L464",
+      "source_location": "L466",
       "weight": 1.0
     },
     {
@@ -352228,7 +352253,7 @@
       "confidence_score": 0.95,
       "context": "sessionSteps()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L465",
+      "source_location": "L467",
       "weight": 1.0
     },
     {
@@ -352312,7 +352337,7 @@
       "confidence_score": 0.95,
       "context": "simulateCheckoutOutcomes",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L241",
+      "source_location": "L243",
       "weight": 1.0
     },
     {
@@ -352324,7 +352349,7 @@
       "confidence_score": 0.95,
       "context": "simulateTierStats",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L241",
+      "source_location": "L243",
       "weight": 1.0
     },
     {
@@ -352348,7 +352373,7 @@
       "confidence_score": 0.95,
       "context": "simulateTierStatsDetailed()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L241",
+      "source_location": "L243",
       "weight": 1.0
     },
     {
@@ -352456,7 +352481,7 @@
       "confidence_score": 0.95,
       "context": "singlesTrainingSetup()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L249",
+      "source_location": "L251",
       "weight": 1.0
     },
     {
@@ -352480,7 +352505,7 @@
       "confidence_score": 0.95,
       "context": "skillProfileForLevel",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L239",
+      "source_location": "L241",
       "weight": 1.0
     },
     {
@@ -352624,7 +352649,7 @@
       "confidence_score": 0.95,
       "context": "stageOrder",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L466",
+      "source_location": "L468",
       "weight": 1.0
     },
     {
@@ -352696,7 +352721,7 @@
       "confidence_score": 0.95,
       "context": "startCountdown",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L170",
+      "source_location": "L172",
       "weight": 1.0
     },
     {
@@ -352732,7 +352757,7 @@
       "confidence_score": 0.95,
       "context": "startFinishingStep",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L225",
+      "source_location": "L227",
       "weight": 1.0
     },
     {
@@ -352828,7 +352853,7 @@
       "confidence_score": 0.95,
       "context": "startGameStep",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L147",
+      "source_location": "L149",
       "weight": 1.0
     },
     {
@@ -352864,7 +352889,7 @@
       "confidence_score": 0.95,
       "context": "startNonGameStep",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L190",
+      "source_location": "L192",
       "weight": 1.0
     },
     {
@@ -352888,7 +352913,7 @@
       "confidence_score": 0.95,
       "context": "startSessionInput",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L281",
+      "source_location": "L283",
       "weight": 1.0
     },
     {
@@ -352936,7 +352961,7 @@
       "confidence_score": 0.95,
       "context": "statisticsRoutines()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L58",
+      "source_location": "L60",
       "weight": 1.0
     },
     {
@@ -352960,7 +352985,7 @@
       "confidence_score": 0.95,
       "context": "stats",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L72",
+      "source_location": "L74",
       "weight": 1.0
     },
     {
@@ -353116,7 +353141,7 @@
       "confidence_score": 0.95,
       "context": "status",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L462",
+      "source_location": "L464",
       "weight": 1.0
     },
     {
@@ -353128,7 +353153,7 @@
       "confidence_score": 0.95,
       "context": "status",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L261",
+      "source_location": "L263",
       "weight": 1.0
     },
     {
@@ -353320,7 +353345,7 @@
       "confidence_score": 0.95,
       "context": "stepAdapterKey",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L106",
+      "source_location": "L108",
       "weight": 1.0
     },
     {
@@ -353356,7 +353381,7 @@
       "confidence_score": 0.95,
       "context": "stepAdvanceErrorMessage",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L188",
+      "source_location": "L190",
       "weight": 1.0
     },
     {
@@ -353380,7 +353405,7 @@
       "confidence_score": 0.95,
       "context": "stepConfigurationIssues",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L120",
+      "source_location": "L122",
       "weight": 1.0
     },
     {
@@ -353536,7 +353561,7 @@
       "confidence_score": 0.95,
       "context": "stepsLoad",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L465",
+      "source_location": "L467",
       "weight": 1.0
     },
     {
@@ -353596,7 +353621,7 @@
       "confidence_score": 0.95,
       "context": "summariseAroundTheClock",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L78",
+      "source_location": "L80",
       "weight": 1.0
     },
     {
@@ -353608,7 +353633,7 @@
       "confidence_score": 0.95,
       "context": "summariseBullUp",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L74",
+      "source_location": "L76",
       "weight": 1.0
     },
     {
@@ -353620,7 +353645,7 @@
       "confidence_score": 0.95,
       "context": "summariseBullseyeCheckout",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L76",
+      "source_location": "L78",
       "weight": 1.0
     },
     {
@@ -353656,7 +353681,7 @@
       "confidence_score": 0.95,
       "context": "summariseScoreThreshold",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L84",
+      "source_location": "L86",
       "weight": 1.0
     },
     {
@@ -353692,7 +353717,7 @@
       "confidence_score": 0.95,
       "context": "summariseSwitchingTargetScoring",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L86",
+      "source_location": "L88",
       "weight": 1.0
     },
     {
@@ -353704,7 +353729,7 @@
       "confidence_score": 0.95,
       "context": "summariseTargetScoring",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L88",
+      "source_location": "L90",
       "weight": 1.0
     },
     {
@@ -353728,7 +353753,7 @@
       "confidence_score": 0.95,
       "context": "supportsCaptureMode",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L402",
+      "source_location": "L404",
       "weight": 1.0
     },
     {
@@ -353740,7 +353765,7 @@
       "confidence_score": 0.95,
       "context": "supportsCaptureMode",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -353764,7 +353789,7 @@
       "confidence_score": 0.95,
       "context": "supportsDartbot",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L247",
+      "source_location": "L249",
       "weight": 1.0
     },
     {
@@ -353812,7 +353837,7 @@
       "confidence_score": 0.95,
       "context": "supportsMode",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -353848,7 +353873,7 @@
       "confidence_score": 0.95,
       "context": "targetAt()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -353884,7 +353909,7 @@
       "confidence_score": 0.95,
       "context": "targetBeforeVisit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L289",
+      "source_location": "L291",
       "weight": 1.0
     },
     {
@@ -353920,7 +353945,7 @@
       "confidence_score": 0.95,
       "context": "targetScoringPoints",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L86",
+      "source_location": "L88",
       "weight": 1.0
     },
     {
@@ -353968,7 +353993,7 @@
       "confidence_score": 0.95,
       "context": "threeDartAverage",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L241",
+      "source_location": "L243",
       "weight": 1.0
     },
     {
@@ -354004,7 +354029,7 @@
       "confidence_score": 0.95,
       "context": "throwDart",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L239",
+      "source_location": "L241",
       "weight": 1.0
     },
     {
@@ -354052,7 +354077,7 @@
       "confidence_score": 0.95,
       "context": "tick",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L232",
+      "source_location": "L234",
       "weight": 1.0
     },
     {
@@ -354076,7 +354101,7 @@
       "confidence_score": 0.95,
       "context": "tickCountdown",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L232",
+      "source_location": "L234",
       "weight": 1.0
     },
     {
@@ -354088,7 +354113,7 @@
       "confidence_score": 0.95,
       "context": "tickCountup",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L232",
+      "source_location": "L234",
       "weight": 1.0
     },
     {
@@ -354124,7 +354149,7 @@
       "confidence_score": 0.95,
       "context": "toSeatFacts",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L267",
+      "source_location": "L269",
       "weight": 1.0
     },
     {
@@ -354244,7 +354269,7 @@
       "confidence_score": 0.95,
       "context": "trainingIndex()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L56",
+      "source_location": "L58",
       "weight": 1.0
     },
     {
@@ -354304,7 +354329,7 @@
       "confidence_score": 0.95,
       "context": "transitionTrainingActivity",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L182",
+      "source_location": "L184",
       "weight": 1.0
     },
     {
@@ -354364,7 +354389,7 @@
       "confidence_score": 0.95,
       "context": "tuodCheckoutVisits",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L170",
+      "source_location": "L172",
       "weight": 1.0
     },
     {
@@ -354424,7 +354449,7 @@
       "confidence_score": 0.95,
       "context": "tuodPlay",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L196",
+      "source_location": "L198",
       "weight": 1.0
     },
     {
@@ -354520,7 +354545,7 @@
       "confidence_score": 0.95,
       "context": "turnsBeforeVisit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L447",
+      "source_location": "L449",
       "weight": 1.0
     },
     {
@@ -354580,7 +354605,7 @@
       "confidence_score": 0.95,
       "context": "undoLastDart",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L192",
+      "source_location": "L194",
       "weight": 1.0
     },
     {
@@ -354688,7 +354713,7 @@
       "confidence_score": 0.95,
       "context": "undoToActiveSeat",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L451",
+      "source_location": "L453",
       "weight": 1.0
     },
     {
@@ -354700,7 +354725,7 @@
       "confidence_score": 0.95,
       "context": "undoToActiveSeat",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L184",
+      "source_location": "L186",
       "weight": 1.0
     },
     {
@@ -354796,7 +354821,7 @@
       "confidence_score": 0.95,
       "context": "unlockAudio()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L223",
+      "source_location": "L225",
       "weight": 1.0
     },
     {
@@ -354832,7 +354857,7 @@
       "confidence_score": 0.95,
       "context": "unwrapOrThrow",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L104",
+      "source_location": "L106",
       "weight": 1.0
     },
     {
@@ -354880,7 +354905,7 @@
       "confidence_score": 0.95,
       "context": "updateActivityStatusRecord",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L182",
+      "source_location": "L184",
       "weight": 1.0
     },
     {
@@ -354964,7 +354989,7 @@
       "confidence_score": 0.95,
       "context": "updateSessionStatus",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L182",
+      "source_location": "L184",
       "weight": 1.0
     },
     {
@@ -355048,7 +355073,7 @@
       "confidence_score": 0.95,
       "context": "validateBatch",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -355096,7 +355121,7 @@
       "confidence_score": 0.95,
       "context": "validateBatchAgainstRuleset",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L211",
+      "source_location": "L213",
       "weight": 1.0
     },
     {
@@ -355132,7 +355157,7 @@
       "confidence_score": 0.95,
       "context": "validateBatchReferences",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L279",
+      "source_location": "L281",
       "weight": 1.0
     },
     {
@@ -355192,7 +355217,7 @@
       "confidence_score": 0.95,
       "context": "validateQuickScoreTurns",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -355204,7 +355229,7 @@
       "confidence_score": 0.95,
       "context": "validateRoutineDuration()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L229",
+      "source_location": "L231",
       "weight": 1.0
     },
     {
@@ -355240,7 +355265,7 @@
       "confidence_score": 0.95,
       "context": "validateVisualBoardTurns",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -355264,7 +355289,7 @@
       "confidence_score": 0.95,
       "context": "value",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L26",
+      "source_location": "L28",
       "weight": 1.0
     },
     {
@@ -355312,7 +355337,7 @@
       "confidence_score": 0.95,
       "context": "visibleGames",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L402",
+      "source_location": "L404",
       "weight": 1.0
     },
     {
@@ -355324,7 +355349,7 @@
       "confidence_score": 0.95,
       "context": "visibleGames",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -355348,7 +355373,7 @@
       "confidence_score": 0.95,
       "context": "visitScoreBandCounts",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L261",
+      "source_location": "L263",
       "weight": 1.0
     },
     {
@@ -355408,7 +355433,7 @@
       "confidence_score": 0.95,
       "context": "wedgeNearestPoint()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L465",
+      "source_location": "L467",
       "weight": 1.0
     },
     {
@@ -355468,7 +355493,7 @@
       "confidence_score": 0.95,
       "context": "withTransaction",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L225",
+      "source_location": "L227",
       "weight": 1.0
     },
     {
@@ -355600,7 +355625,7 @@
       "confidence_score": 0.95,
       "context": "zoneCentroid()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L245",
+      "source_location": "L247",
       "weight": 1.0
     },
     {
@@ -355707,5 +355732,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "d2cda72e93546e025f2df8dbcb7891c29ca68425"
+  "built_at_commit": "26be649da18b256095738c156bf9542d97e22ef4"
 }
