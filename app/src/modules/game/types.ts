@@ -449,10 +449,11 @@ export type CheckoutVisitTotals = CheckoutVisitDarts & {
   countedTotal: number;
 };
 
-/** The largest successful checkout finish, and how many times it was hit. */
+/** The largest successful checkout finish, how many times it was hit, and the session of the first such finish (`null` when the visits carry no session id). */
 export type HighestCheckout = {
   value: number;
   timesHit: number;
+  sessionId: string | null;
 };
 
 /** One dart's classification against the remaining score it was thrown at. */

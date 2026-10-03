@@ -31,7 +31,11 @@ describe("highestCheckout", () => {
     const visits: CheckoutVisitDarts[] = [
       { startingRemaining: 40, darts: [dart("DOUBLE", 40)] },
     ];
-    expect(highestCheckout(visits)).toEqual({ value: 40, timesHit: 1 });
+    expect(highestCheckout(visits)).toEqual({
+      value: 40,
+      timesHit: 1,
+      sessionId: null,
+    });
   });
 
   it("returns the highest finish across visits, ignoring lower ones", () => {
@@ -39,7 +43,11 @@ describe("highestCheckout", () => {
       { startingRemaining: 40, darts: [dart("DOUBLE", 40)] },
       { startingRemaining: 50, darts: [dart("INNER_BULL", 50)] },
     ];
-    expect(highestCheckout(visits)).toEqual({ value: 50, timesHit: 1 });
+    expect(highestCheckout(visits)).toEqual({
+      value: 50,
+      timesHit: 1,
+      sessionId: null,
+    });
   });
 
   it("counts repeats of the same highest finish value", () => {
@@ -48,7 +56,11 @@ describe("highestCheckout", () => {
       { startingRemaining: 40, darts: [dart("DOUBLE", 40)] },
       { startingRemaining: 32, darts: [dart("DOUBLE", 32)] },
     ];
-    expect(highestCheckout(visits)).toEqual({ value: 40, timesHit: 2 });
+    expect(highestCheckout(visits)).toEqual({
+      value: 40,
+      timesHit: 2,
+      sessionId: null,
+    });
   });
 
   it("only counts a dart that lands exactly on the remaining score's double or inner bull", () => {
@@ -66,7 +78,11 @@ describe("highestCheckout", () => {
         darts: [dart("TREBLE", 60), dart("DOUBLE", 40), dart("SINGLE", 5)],
       },
     ];
-    expect(highestCheckout(visits)).toEqual({ value: 100, timesHit: 1 });
+    expect(highestCheckout(visits)).toEqual({
+      value: 100,
+      timesHit: 1,
+      sessionId: null,
+    });
   });
 
   it("values a multi-dart finish at the visit's starting remaining, not the last dart's local remaining", () => {
@@ -77,7 +93,11 @@ describe("highestCheckout", () => {
         darts: [dart("TREBLE", 60), dart("TREBLE", 60), dart("INNER_BULL", 50)],
       },
     ];
-    expect(highestCheckout(visits)).toEqual({ value: 170, timesHit: 1 });
+    expect(highestCheckout(visits)).toEqual({
+      value: 170,
+      timesHit: 1,
+      sessionId: null,
+    });
   });
 });
 
@@ -93,5 +113,18 @@ describe("FINISHING_ZONES", () => {
     expect(FINISHING_ZONES.has("DOUBLE")).toBe(true);
     expect(FINISHING_ZONES.has("INNER_BULL")).toBe(true);
     expect(FINISHING_ZONES.has("OUTER_BULL")).toBe(false);
+  });
+
+  it("names the session of the first visit at the highest value", () => {
+    const visits = [
+      { startingRemaining: 40, darts: [dart("DOUBLE", 40)], sessionId: "a" },
+      { startingRemaining: 100, darts: [dart("DOUBLE", 100)], sessionId: "b" },
+      { startingRemaining: 100, darts: [dart("DOUBLE", 100)], sessionId: "c" },
+    ];
+    expect(highestCheckout(visits)).toEqual({
+      value: 100,
+      timesHit: 2,
+      sessionId: "b",
+    });
   });
 });

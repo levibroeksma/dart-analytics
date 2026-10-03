@@ -212,6 +212,7 @@ export interface FormattedStatisticsOverview {
   checkoutPercentage: string;
   highestCheckoutValue: string;
   highestCheckoutHint: string;
+  highestCheckoutSessionId: string | null;
 }
 
 /**

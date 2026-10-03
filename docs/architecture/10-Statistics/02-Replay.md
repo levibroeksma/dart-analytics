@@ -7,7 +7,7 @@ updated: 2026-09-29
 
 # Statistics — Game Replay
 
-> **Version:** 1.2.1 (2026-10-03, D397; prior 1.2.0 2026-09-29, D372; prior 1.1.0 2026-09-28, D371; prior 1.0.0 2026-09-26, D365)
+> **Version:** 1.2.2 (2026-10-03, D398; prior 1.2.1 2026-10-03, D397; prior 1.2.0 2026-09-29, D372; prior 1.1.0 2026-09-28, D371; prior 1.0.0 2026-09-26, D365)
 >
 > Full, paginated replay of one session. Shared query rules and caching:
 > `00-Overview.md` §5/§7. Status: **built** (phase 5, D371; training step
@@ -27,9 +27,10 @@ Links (decision 12): every session-list row on a game page, every step
 session row on the Routines tab except a Warm-Up step's (D372), and the
 `session-result` PB line (its `bestLowSessionId`/`bestHighSessionId`;
 `bestAverage.sessionId` is available too but not yet linked, D390), and the
-501 `leg-stats` Best leg card (`bestLeg.sessionId`, D397). No other phase 2–4
-metric carries a session id, so no other section links yet; a section that
-wants one (highest checkout) needs a new field first.
+501 `leg-stats` Best leg card (`bestLeg.sessionId`, D397). The overview's
+`highestCheckout.sessionId` (D398) is exposed on the `stats` store as
+`highestCheckoutSessionId`; no card renders it yet. No other phase 2–4 metric
+carries a session id, so no other section links yet.
 
 ---
 

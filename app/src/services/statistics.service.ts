@@ -36,7 +36,7 @@ import {
 } from "@modules/stats/routine-scope.module";
 import { scoringAverageExcludingDoubles } from "@modules/stats/scoring-average.module";
 import {
-  checkoutVisitsFromRows,
+  checkoutVisitsWithSession,
   sessionCheckoutVisits,
 } from "@modules/stats/x01-checkout-sessions.module";
 import {
@@ -183,7 +183,7 @@ export async function getStatisticsOverview(
   ]);
 
   const bands = scoreBandCounts(visits);
-  const checkoutVisits = checkoutVisitsFromRows(checkoutDarts);
+  const checkoutVisits = checkoutVisitsWithSession(checkoutDarts);
   const { hits, misses } = classifyDoubleAttempts(checkoutVisits);
 
   return {

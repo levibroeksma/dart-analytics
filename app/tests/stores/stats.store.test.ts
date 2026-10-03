@@ -26,7 +26,11 @@ const SAMPLE = {
   bestLegDarts: 15,
   averageDartsPerLeg: 18.5,
   checkoutPercentage: 0.4,
-  highestCheckout: { value: 100, timesHit: 2 },
+  highestCheckout: {
+    value: 100,
+    timesHit: 2,
+    sessionId: "0190a000-0000-7000-8000-000000000001",
+  },
 };
 
 beforeEach(() => {
@@ -47,6 +51,9 @@ describe("statsStore", () => {
     expect(store.longestStreakHint).toBe("Longest: 3 days");
     expect(store.highestCheckoutValue).toBe("100");
     expect(store.highestCheckoutHint).toBe("Hit 2×");
+    expect(store.highestCheckoutSessionId).toBe(
+      "0190a000-0000-7000-8000-000000000001",
+    );
     expect(store.loading).toBe(false);
     expect(store.error).toBeNull();
   });

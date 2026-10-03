@@ -191,7 +191,11 @@ describe("getStatisticsOverview", () => {
     const result = await getStatisticsOverview(playerId);
 
     expect(result.checkoutPercentage).toBe(1);
-    expect(result.highestCheckout).toEqual({ value: 40, timesHit: 1 });
+    expect(result.highestCheckout).toEqual({
+      value: 40,
+      timesHit: 1,
+      sessionId: "s1",
+    });
   });
 
   /**
@@ -445,7 +449,11 @@ describe("getStatisticsOverview", () => {
     const result = await getStatisticsOverview(playerId);
 
     expect(result.checkoutPercentage).toBe(1);
-    expect(result.highestCheckout).toEqual({ value: 40, timesHit: 1 });
+    expect(result.highestCheckout).toEqual({
+      value: 40,
+      timesHit: 1,
+      sessionId: "s-good",
+    });
   });
 });
 
