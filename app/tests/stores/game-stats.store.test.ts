@@ -936,6 +936,29 @@ describe("gameStatsStore", () => {
     ]);
   });
 
+  it("trainingResultRows sums sessions and totals and takes the max best per config group", async () => {
+    readSection.mockImplementation((_player, _game, meta) => {
+      if (meta.id === "training-result") {
+        return Promise.resolve(
+          series({ g: { sessions: 2, total: 50, best: 30 } }, 2),
+        );
+      }
+      return Promise.resolve(series({}, 0));
+    });
+
+    const store = gameStatsStore();
+    store.gameTypeKey = "SINGLES_TRAINING";
+    await store.load();
+
+    expect(store.trainingResultRows).toEqual([
+      { group: "g", sessions: 2, average: 25, best: 30 },
+    ]);
+    expect(store.trainingResultUnit).toBe("training points");
+
+    store.gameTypeKey = "DOUBLES_TRAINING";
+    expect(store.trainingResultUnit).toBe("doubles hit");
+  });
+
   it("pointsPerRound reads session-result's countedScoreSum/turnSum across rulesets", async () => {
     readSection.mockImplementation((_player, _game, meta) => {
       if (meta.id === "session-result") {

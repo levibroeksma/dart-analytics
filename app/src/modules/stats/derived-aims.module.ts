@@ -9,6 +9,10 @@ import {
   applyBobs27Dart,
   initialBobs27State,
 } from "@modules/game/bobs27.engine.module";
+import {
+  applyDoublesTrainingDart,
+  initialDoublesTrainingState,
+} from "@modules/game/doubles-training.engine.module";
 import { foldSeatSteps } from "@modules/game/seat-state.module";
 import {
   activeTargetOf as activeTargetOfShanghai,
@@ -94,6 +98,18 @@ const WALKERS: Partial<Record<GameTypeKey, Walker>> = {
     const initial = initialSinglesTrainingState(singlesConfig).seats[0]!;
     return foldSeatSteps(darts, initial, (state, observation) =>
       applySinglesTrainingDart(singlesConfig, state, observation),
+    );
+  },
+  DOUBLES_TRAINING(config, darts) {
+    const doublesConfig = config as unknown as Parameters<
+      typeof applyDoublesTrainingDart
+    >[0];
+    const seatedConfig = config as unknown as Parameters<
+      typeof initialDoublesTrainingState
+    >[0];
+    const initial = initialDoublesTrainingState(seatedConfig).seats[0]!;
+    return foldSeatSteps(darts, initial, (state, observation) =>
+      applyDoublesTrainingDart(doublesConfig, state, observation),
     );
   },
   SHANGHAI(config, darts) {

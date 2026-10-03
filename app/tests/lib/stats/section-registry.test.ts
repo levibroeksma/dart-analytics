@@ -103,6 +103,7 @@ describe("statistics section registry", () => {
 
   it("orders Doubles Training's sections per the catalog", () => {
     expect(sectionsForGame("DOUBLES_TRAINING")).toEqual([
+      "training-result",
       "target-accuracy",
       "confusion",
       "grouping",
@@ -132,6 +133,7 @@ describe("statistics section registry", () => {
 
   it("gives Singles Training the derived-intent sections but not grouping (decision 6)", () => {
     expect(sectionsForGame("SINGLES_TRAINING")).toEqual([
+      "training-result",
       "target-accuracy",
       "confusion",
       "miss-direction",
@@ -251,6 +253,14 @@ describe("statistics section registry", () => {
         "bull_hit_value",
       ],
       params: [],
+      version: 1,
+    });
+    expect(SECTIONS["training-result"]).toMatchObject({
+      games: ["SINGLES_TRAINING", "DOUBLES_TRAINING"],
+      computeSite: "server",
+      bucketable: true,
+      includesAbandoned: false,
+      configSensitive: ["ruleset_version_key", "difficulty", "scoring_mode"],
       version: 1,
     });
     expect(SECTIONS["shanghai-count"]).toMatchObject({

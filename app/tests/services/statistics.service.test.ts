@@ -1559,6 +1559,48 @@ describe("getGameSection dispatches derived-intent and game-specific sections (p
     }
   });
 
+  it("dispatches training-result through the fold on SINGLES_TRAINING", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 1,
+      maxCompletedAt: null,
+    });
+    vi.mocked(repo.findScopeDartCount).mockResolvedValue(1);
+    vi.mocked(repo.findDartFoldRows).mockResolvedValue([
+      makeShanghaiFoldRow({
+        sessionId: "s-singles",
+        gameTypeKey: "SINGLES_TRAINING",
+        rulesetVersionKey: "SINGLES_V3",
+        configuration: {
+          seats: SEATS,
+          order_mode: "LOW_TO_HIGH",
+          target_order: [...Array.from({ length: 20 }, (_, i) => i + 1), 25],
+          difficulty: "EASY",
+          scoring_mode: "STANDARD",
+        },
+        hitZoneKey: "TREBLE",
+      }),
+    ] as never);
+
+    const result = await getGameSection(
+      playerId,
+      "SINGLES_TRAINING",
+      "training-result",
+      { ...baseRangeQuery, status: "completed" },
+    );
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.sectionId).toBe("training-result");
+      expect(result.data.buckets[0]!.metrics).toEqual({
+        "SINGLES_V3|difficulty=EASY|scoring_mode=STANDARD": {
+          sessions: 1,
+          total: 3,
+          best: 3,
+        },
+      });
+    }
+  });
+
   it("returns VALIDATION_FAILED for heatmap+target on SHANGHAI (decision 16: derived games get no heatmap target filter)", async () => {
     const result = await getGameSection(playerId, "SHANGHAI", "heatmap", {
       ...baseRangeQuery,

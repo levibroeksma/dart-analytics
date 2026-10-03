@@ -2,7 +2,7 @@
 status: canonical
 scope: api/endpoint-contracts
 read-when: adding or changing endpoint contracts
-updated: 2026-09-29
+updated: 2026-10-03
 -->
 
 # API Endpoint Contracts
@@ -433,7 +433,8 @@ const GameSessionListResponse = z.object({
 `loose-darts` (phase 2), `checkout-rate` | `double-performance` |
 `checkout-path` | `bust-rate` | `ladder-progress` | `leg-stats` |
 `scoring-trend` | `treble-rate` (phase 3, D369), or `shanghai-count` |
-`atc-darts-per-target` | `bobs27-survival` (phase 4, D370)
+`atc-darts-per-target` | `bobs27-survival` (phase 4, D370), or
+`training-result` (Singles and Doubles Training, D396)
 (`10-Statistics/01-Section-Catalog.md` §1); any other value, or a section not
 returned by `sectionsForGame(gameTypeKey)`, is `NOT_FOUND`. `target-accuracy`,
 `confusion`, `miss-direction` and `loose-darts` also widen onto Singles
@@ -527,7 +528,8 @@ extreme (`countedScoreMin`/`Max`) is the personal best is a client-side lookup
 against the per-game-type `RESULT_DIRECTION` registry value, `null` for a game
 whose headline is not a pure function of these components (D367 decision 3;
 `RESULT_DIRECTION` is `null` for 501, TUOD, 121, Singles Training, Doubles
-Training, Bob's 27 and Around the Clock in phase 1 — issue #615).
+Training, Bob's 27 and Around the Clock in phase 1 — issue #615; Singles and
+Doubles Training get their headline from `training-result` instead, D396).
 
 `bestAverage` (section version 2, D390, 2026-10-02) is the slice's session with
 the highest `counted_score / dart_count`, picked in SQL under one ordering so
@@ -693,7 +695,9 @@ const ShanghaiCountMetrics = z.object({
 "difficulty", "segment_rule"]`); `bobs27-survival` to Bob's 27
 (`configSensitive: ["ruleset_version_key", "start_score",
 "miss_penalty_multiplier", "bull_hit_value"]`); `shanghai-count` to Shanghai
-(no `configSensitive` — V1/V2 pool). All three are `server`-site, bucketable,
+(no `configSensitive` — V1/V2 pool); `training-result` to Singles and Doubles
+Training (`configSensitive: ["ruleset_version_key", "difficulty",
+"scoring_mode"]`, metrics `GroupRecord<{ sessions, total, best }>`, D396). All four are `server`-site, bucketable,
 and gated by `MAX_FOLD_DARTS` the same way as the phase-3 folds.
 `skippedSessions` (added to `SeriesEnvelope` above) is set on every
 server-site response in phase 4 and later, optional so phase 1-3 results

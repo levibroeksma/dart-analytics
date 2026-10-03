@@ -25,6 +25,7 @@ import {
   AtcDartsPerTargetSeriesResponse,
   Bobs27SurvivalSeriesResponse,
   ShanghaiCountSeriesResponse,
+  TrainingResultSeriesResponse,
   ReplayQuery,
   ReplaySessionIdParam,
   ReplayHeaderSchema,
@@ -1506,6 +1507,33 @@ describe("RoutineStepSessionListResponse", () => {
       ],
       nextCursor: null,
       dataVersion: "v1:5:1736467200000",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("parses a training-result series response", () => {
+    const result = TrainingResultSeriesResponse.safeParse({
+      sectionId: "training-result",
+      sectionVersion: 1,
+      dataVersion: "v1:1:0",
+      bucket: "none",
+      tz: null,
+      range: { from: "2026-01-01T00:00:00Z", to: "2026-02-01T00:00:00Z" },
+      buckets: [
+        {
+          start: "2026-01-01T00:00:00Z",
+          end: "2026-02-01T00:00:00Z",
+          closed: true,
+          sampleSize: 3,
+          metrics: {
+            "SINGLES_V3|difficulty=EASY|scoring_mode=STANDARD": {
+              sessions: 3,
+              total: 90,
+              best: 41,
+            },
+          },
+        },
+      ],
     });
     expect(result.success).toBe(true);
   });

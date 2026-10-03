@@ -81,6 +81,7 @@ import {
 } from "@modules/stats/sections/series.module";
 import { sessionResultBuckets } from "@modules/stats/sections/session-result.module";
 import { shanghaiCountBuckets } from "@modules/stats/sections/shanghai-count.module";
+import { trainingResultBuckets } from "@modules/stats/sections/training-result.module";
 import { stepResultBuckets } from "@modules/stats/sections/step-result.module";
 import { stepVolumeBuckets } from "@modules/stats/sections/step-volume.module";
 import { targetAccuracyBuckets } from "@modules/stats/sections/target-accuracy.module";
@@ -531,6 +532,7 @@ const HANDLERS: Record<
   "atc-darts-per-target": { server: stepsHandler(atcDartsPerTargetBuckets) },
   "bobs27-survival": { server: stepsHandler(bobs27SurvivalBuckets) },
   "shanghai-count": { server: stepsHandler(shanghaiCountBuckets) },
+  "training-result": { server: stepsHandler(trainingResultBuckets) },
 };
 
 /**

@@ -2,7 +2,7 @@
 status: canonical
 scope: canonical file inventory — what each document answers
 read-when: a context pack demonstrably lacks the answer
-updated: 2026-09-30
+updated: 2026-10-03
 -->
 
 > Escalation target for `00-Context-Map.md`. Packs come first; open this
@@ -318,6 +318,7 @@ Registered for discoverability — the design lives in `10-Statistics/00-Overvie
 | ---- | ------- | ------ | ------- |
 | `app/src/modules/stats/derived-aims.module.ts` | `sessionSteps()` — groups `DartFoldRow`s by session, decodes the snapshot, walks the right engine's reducer via `foldSeatSteps` into a one-seat config (D370 decision 3), and applies the skip rules (decision 4, `skippedSessions`); `aimedDarts()` — per-dart aim + hit for the three derived games; `aroundTheClockAimKey()` — the aim-key mapping (decision 1) reused by `atc-darts-per-target` | canonical | ~2.6k |
 | `app/src/lib/stats/config-group.ts` | `configGroupKey()` — the game-specific sections' stable grouping key: `ruleset_version_key` plus named snapshot fields as `field=value`, a missing field rendering as `field=` (D370 decision 13) | canonical | ~0.2k |
+| `app/src/modules/stats/sections/training-result.module.ts` | `trainingResultBuckets()` — per-config-group session count, total and best of the headline (Singles training points, Doubles hit visits) read off the fold's last step (D396, #738) | canonical | ~0.7k |
 | `app/src/modules/stats/sections/shanghai-count.module.ts` | `shanghaiCountBuckets()` — per-session Shanghai frequency and round histogram, read off the fold's own `SHANGHAI` seat status (D370 decision 12) | canonical | ~0.5k |
 | `app/src/modules/stats/sections/atc-darts-per-target.module.ts` | `atcDartsPerTargetBuckets()` — darts-per-target fold keyed by `configGroupKey`, clear on next index/lap/`COMPLETE` (D370 decision 14) | canonical | ~0.8k |
 | `app/src/modules/stats/sections/bobs27-survival.module.ts` | `bobs27SurvivalBuckets()` — resolved-visit survival fold keyed by `configGroupKey`: `runs`/`completed`/`reached`/`died`/`scoreAfter` (D370 decision 15) | canonical | ~1.0k |

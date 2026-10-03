@@ -123,6 +123,17 @@ export const SECTIONS: Readonly<Record<SectionId, SectionMeta>> = {
     configSensitive: ["ruleset_version_key", "difficulty", "segment_rule"],
     params: [],
   },
+  "training-result": {
+    id: "training-result",
+    version: 1,
+    requires: [INTENT_ANY_OF],
+    games: ["SINGLES_TRAINING", "DOUBLES_TRAINING"],
+    computeSite: "server",
+    bucketable: true,
+    includesAbandoned: false,
+    configSensitive: ["ruleset_version_key", "difficulty", "scoring_mode"],
+    params: [],
+  },
   "target-accuracy": {
     id: "target-accuracy",
     version: 1,
@@ -359,7 +370,9 @@ export function sectionsForGame(gameTypeKey: GameTypeKey): SectionId[] {
  * | Around the Clock | the dart's board score; the match is decided by fewest darts to finish the circuit (`around-the-clock.engine.module.ts`) | no |
  *
  * Every `null` here is filed as `discovered-work` (D367): a game-specific
- * session-result headline is phase-4 scope, not invented in phase 1.
+ * session-result headline is phase-4 scope, not invented in phase 1. Singles
+ * and Doubles Training stay `null` too: their headline and PB live in
+ * `training-result` (D396), not in the rule-free `session-result`.
  */
 export const RESULT_DIRECTION: Readonly<Record<GameTypeKey, ResultDirection>> =
   {

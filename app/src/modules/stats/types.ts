@@ -686,6 +686,17 @@ export type ShanghaiCountMetrics = {
 };
 
 /**
+ * `training-result` section metrics — one bucket, keyed by `configGroupKey`
+ * (#738). `total` and `sessions` sum and `best` takes the max, so two
+ * buckets re-aggregate exactly. The headline is training points for Singles
+ * Training and doubles hit for Doubles Training; higher is better for both.
+ */
+export type TrainingResultMetrics = Record<
+  string,
+  { sessions: number; total: number; best: number }
+>;
+
+/**
  * `atc-darts-per-target` section metrics — one bucket, keyed by
  * `configGroupKey` then by the aim's `TargetKey` (phase-4 decisions 13, 14).
  */
