@@ -151,6 +151,41 @@ describe("chartData helpers", () => {
     expect(ctx.swatch(plain, 9)).toBe("var(--chart-sky)");
   });
 
+  it("legend lists the series of a line chart and the slices of a doughnut", () => {
+    const ctx = context();
+    expect(ctx.legend).toEqual([]);
+    ctx.setSpec(
+      spec({
+        series: [
+          { key: "a", label: "A", data: [1], color: "rose" },
+          { key: "b", label: "B", data: [2] },
+        ],
+      }),
+    );
+    expect(ctx.legend).toEqual([
+      { key: "a", label: "A", swatch: "var(--chart-rose)" },
+      { key: "b", label: "B", swatch: "var(--chart-orange)" },
+    ]);
+    ctx.setSpec(
+      spec({
+        kind: "doughnut",
+        labels: ["Completed", "Abandoned"],
+        series: [
+          {
+            key: "g",
+            label: "G",
+            data: [3, 1],
+            sliceColors: ["emerald", "rose"],
+          },
+        ],
+      }),
+    );
+    expect(ctx.legend).toEqual([
+      { key: "0", label: "Completed", swatch: "var(--chart-emerald)" },
+      { key: "1", label: "Abandoned", swatch: "var(--chart-rose)" },
+    ]);
+  });
+
   it("cell formats a value and dashes a gap", () => {
     const ctx = context({ formatter: "one-decimal" });
     const series = { key: "a", label: "A", data: [1.234, null] };

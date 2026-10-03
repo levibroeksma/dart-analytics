@@ -50,25 +50,23 @@ describe("score section factories", () => {
     expect(s.summary.abandonRate).toBe(0.25);
   });
 
-  it("scoreCompletionSection ignores never-started sessions and splits the donut", async () => {
+  it("scoreCompletionSection ignores never-started sessions and builds a doughnut", async () => {
     respond({ completed: 3, abandoned: 1, neverStarted: 9, abandonedTurns: 2 });
     const s = mounted(scoreCompletionSection());
     await s.load();
-    expect(s.total).toBe(4);
+    expect(s.isEmpty).toBe(false);
     expect(s.summary.abandonRate).toBe(0.25);
-    const c = s.circumference;
-    expect(s.completedArc).toBe(`${c * 0.75} ${c}`);
-    expect(s.abandonedArc).toBe(`${c * 0.25} ${c}`);
-    expect(s.abandonedOffset).toBe(-c * 0.75);
+    expect(s.chart.kind).toBe("doughnut");
+    expect(s.chart.labels).toEqual(["Completed · 3", "Abandoned · 1"]);
+    expect(s.chart.series[0].data).toEqual([3, 1]);
+    expect(s.chart.series[0].sliceColors).toEqual(["emerald", "rose"]);
   });
 
-  it("scoreCompletionSection draws an empty ring without started sessions", async () => {
+  it("scoreCompletionSection is empty with only never-started sessions", async () => {
     respond({ completed: 0, abandoned: 0, neverStarted: 2, abandonedTurns: 0 });
     const s = mounted(scoreCompletionSection());
     await s.load();
-    expect(s.total).toBe(0);
-    expect(s.completedArc).toBe(`0 ${s.circumference}`);
-    expect(s.abandonedArc).toBe(`0 ${s.circumference}`);
+    expect(s.isEmpty).toBe(true);
   });
 
   it("scoreResultSection requests session-result and summarises it", async () => {

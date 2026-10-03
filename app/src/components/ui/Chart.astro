@@ -1,7 +1,7 @@
 ---
 /**
- * A Chart.js chart drawn from a plain `ChartSpec`: canvas, a legend for two
- * or more series, and a table view that also stands in when Chart.js cannot
+ * A Chart.js line, bar or doughnut chart drawn from a plain `ChartSpec`: canvas, a legend for two
+ * or more series (or doughnut slices), and a table view that also stands in when Chart.js cannot
  * load. `x-effect` sits on the canvas so its `x-ref` exists before the first
  * run. Paired with `modules/ui/chart.module.ts`.
  * @param {string} specExpr Alpine expression yielding the `ChartSpec`; re-read whenever its dependencies change
@@ -68,17 +68,17 @@ const boxClass = cn("relative", heightClass);
   </div>
   <ul
     class="flex flex-wrap justify-center gap-x-3 gap-y-1 text-xs text-muted-foreground"
-    x-show="spec && spec.series.length >= 2"
+    x-show="legend.length >= 2"
     x-cloak
   >
     <template
-      x-for="(entry, index) in (spec ? spec.series : [])"
+      x-for="entry in legend"
       :key="entry.key"
     >
       <li class="flex items-center gap-1.5">
         <span
           class="size-2 rounded-full"
-          :style="{ backgroundColor: swatch(entry, index) }"
+          :style="{ backgroundColor: entry.swatch }"
         >
         </span>
         <span x-text="entry.label"></span>

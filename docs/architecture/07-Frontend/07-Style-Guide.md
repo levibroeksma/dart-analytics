@@ -67,11 +67,12 @@ Accent is Tailwind sky (`sky-400` / `sky-500` / `sky-600` mapped into `--accent*
 
 # Charts
 
-Chart.js line/bar charts via `components/ui/Chart.astro` and `modules/ui/chart.module.ts` (2026-09-30, D374).
+Chart.js line/bar/doughnut charts via `components/ui/Chart.astro` and `modules/ui/chart.module.ts` (2026-09-30, D374).
 
 - Containers are `glass` (`Chart.astro`); the canvas is plain — no fill or blur behind the marks.
 - One glass level: pass `flat` when the chart sits inside an existing glass card (see Surfaces & nesting).
 - A series color is a `CardWrapper` color name; it resolves to `--chart-<name>`. Never a raw palette class or CSS color.
+- A doughnut's slices take `sliceColors` (same names, same rules) from its one series (2026-10-03, D401).
 - Default order: `sky, orange, emerald, violet, rose, amber`; never cycled, and a repeated or missing color is a `RangeError`.
 - `teal`, `fuchsia` and `blue` are explicit-only: they are near-twins of `emerald`, `rose` and `sky` under CVD.
 - The tokens are validated with the dataviz validator against `--surface`; re-run it when a value changes.

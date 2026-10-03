@@ -383,7 +383,7 @@ Design in `docs/superpowers/specs/2026-09-29-chart-module-design.md`; rules in `
 | `app/src/lib/ui/chart.data.ts` | The `chartData({ formatter })` Alpine factory: holds the `ChartView` in a closure, hands Chart.js a JSON-plain copy of the spec, exposes `setSpec`/`swatch`/`cell`/`destroy` for the legend and table view (2026-09-30, D374) | canonical |
 | `app/src/lib/ui/heatmap-canvas.data.ts` | The `heatmapCanvas()` Alpine factory: `HEATMAP_CANVAS_PX`, `draw(stamps)` sizes the `canvas` ref and calls `drawHeatmap` (D387, 2026-10-02) | canonical |
 | `app/src/modules/ui/heatmap-canvas.module.ts` | `drawHeatmap(ctx, size, stamps)`: radial alpha stamps accumulated on a canvas, then recoloured through the heat ramp (D387, 2026-10-02) | canonical |
-| `app/src/components/ui/Chart.astro` | Glass container for a line/bar chart: plain canvas, legend for two or more series, table view fallback; `flat` inside an existing glass card (2026-09-30, D374) | canonical |
+| `app/src/components/ui/Chart.astro` | Glass container for a line/bar/doughnut chart: plain canvas, legend for two or more series, table view fallback; `flat` inside an existing glass card (2026-09-30, D374) | canonical |
 
 ## Custom routine builder (2026-09-19)
 

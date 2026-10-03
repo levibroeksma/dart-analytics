@@ -2,6 +2,8 @@ import { ChartView } from "@modules/ui/chart.module";
 import { CHART_ORDER, readChartTheme } from "@lib/ui/chart-theme";
 import type { ChartFormatter, ChartSeries, ChartSpec } from "@modules/types";
 
+type LegendEntry = { key: string; label: string; swatch: string };
+
 type ChartDataConfig = { formatter?: string };
 
 type ChartDataContext = {
@@ -54,6 +56,24 @@ export function chartData(config: ChartDataConfig = {}) {
 
     swatch(series: ChartSeries, index: number): string {
       return `var(--chart-${series.color ?? CHART_ORDER[index] ?? "sky"})`;
+    },
+
+    get legend(): LegendEntry[] {
+      const spec = this.spec;
+      if (!spec) return [];
+      if (spec.kind === "doughnut") {
+        const first = spec.series[0];
+        return spec.labels.map((label, index) => ({
+          key: String(index),
+          label,
+          swatch: `var(--chart-${first?.sliceColors?.[index] ?? CHART_ORDER[index] ?? "sky"})`,
+        }));
+      }
+      return spec.series.map((series, index) => ({
+        key: series.key,
+        label: series.label,
+        swatch: this.swatch(series, index),
+      }));
     },
 
     cell(series: ChartSeries, row: number): string {
