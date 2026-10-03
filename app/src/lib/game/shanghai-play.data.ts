@@ -16,12 +16,18 @@ import {
   undoToActiveSeat,
 } from "@lib/game/play-lifecycle";
 import { boardInputData } from "@lib/game/board-input.data";
+import { toWireConfig } from "@lib/game/rulesets/config-codec";
 import { accuracyDisplay } from "@lib/game/play-visit-stats";
 import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
 import { createDartRng } from "@modules/dartbot/rng.module";
 import { throwDart as botThrowDart } from "@modules/dartbot/throw-engine.module";
 import { chooseTarget } from "@modules/dartbot/strategy/dictated.strategy.module";
-import type { RulesetVersionKey, SeatFact } from "@lib/types";
+import type {
+  RulesetVersionKey,
+  Seated,
+  SeatFact,
+  ShanghaiV2Snapshot,
+} from "@lib/types";
 import type {
   DartObservation,
   ShanghaiSeatState,
@@ -412,8 +418,21 @@ export function shanghaiPlay() {
         !RESUMABLE_RULESET_VERSIONS.has(rulesetVersionKey)
       )
         return;
-      return runPlayAgain(this, GAME_TYPE_KEY, rulesetVersionKey, (engine) =>
-        engine instanceof ShanghaiEngine ? engine : null,
+      return runPlayAgain(
+        this,
+        GAME_TYPE_KEY,
+        rulesetVersionKey,
+        (engine) => (engine instanceof ShanghaiEngine ? engine : null),
+        rulesetVersionKey === "SHANGHAI_V2"
+          ? (prior) => {
+              const { seats: _seats, ...variants } =
+                prior as Seated<ShanghaiV2Snapshot>;
+              return {
+                snapshot: variants,
+                wire: toWireConfig("SHANGHAI_V2", variants),
+              };
+            }
+          : undefined,
       );
     },
   };
