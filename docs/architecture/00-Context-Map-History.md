@@ -17,6 +17,8 @@ updated: 2026-10-03
 
 # Version History
 
+> **Version:** 1.149.0 (2026-10-03 — dartboard-unique-ids (#645): `DartBoard.astro` drops its 22 hard-coded segment ids (`twenty` … `bullseye`). A page mounts several boards (`/statistics` Games tab plus a GAME routine step; the input panel plus `BoardMagnifier`), so the ids duplicated; nothing referenced them (no `getElementById`, no `url(#…)`, no CSS id selector), and the segment classes carry all styling and hit-testing. `dartboard-component-parity.test.ts` now asserts the component carries no id instead of matching `dartboard.svg`'s. `stepGame` getters-only follow-up from the issue stays out of scope. No schema, API or doc-contract change.)
+
 > **Version:** 1.148.0 (2026-10-03 — training-empty-states: `/training` skeleton shows only while loading; empty Personal routines card gains a Create button opening `RoutineFormModal`; closes #518. No doc rows changed.)
 >
 > **Version:** 1.148.0 (2026-10-03 — training-result: new `server` section giving Singles and Doubles Training a headline and personal best; Doubles Training gains a fold walker. D396; closes #738. Section Catalog 1.6.0, Endpoint Contracts, Statistics Overview and File Inventory updated.)
