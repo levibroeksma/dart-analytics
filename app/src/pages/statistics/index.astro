@@ -15,11 +15,7 @@ const gameOptions = GAME_CARDS.map((game) => ({
   value: game.rulesetVersionKey,
   label: game.title,
 }));
-const scope = JSON.stringify({
-  tab: "games",
-  game: gameOptions[0]?.value ?? "",
-  rangeKey: "30d",
-});
+const scope = `{ tab: $store.routineStats.initialTab, game: ${JSON.stringify(gameOptions[0]?.value ?? "")}, rangeKey: "30d" }`;
 ---
 
 <AppLayout title="Statistics">

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { sectionsForGame } from "@lib/stats/section-registry";
-import { replayPath } from "@lib/stats/replay-route";
+import { replayPath, statisticsPath } from "@lib/stats/replay-route";
 import { STEP_METRIC_SPECS } from "@modules/stats/step-metrics.module";
 import {
   routineScopeKey,
@@ -147,6 +147,7 @@ function series(sectionId: string, metrics: unknown[]) {
 }
 
 beforeEach(() => {
+  history.replaceState(null, "", "/statistics");
   vi.resetAllMocks();
   fetchTrainedRoutines.mockResolvedValue({ items: [TRAINED] });
   fetchRoutineHeader.mockResolvedValue(HEADER);
@@ -195,6 +196,61 @@ describe("routineStatsStore loading", () => {
     expect(store.error).toBeNull();
     expect(fetchRoutineHeader).not.toHaveBeenCalled();
     expect(readSection).not.toHaveBeenCalled();
+  });
+
+  it("init stays on the Games tab with no routines location", () => {
+    history.replaceState(null, "", "/statistics");
+    const store = routineStatsStore();
+
+    store.init();
+
+    expect(store.initialTab).toBe("games");
+  });
+
+  it("init reads a routines location and opens the Routines tab", () => {
+    history.replaceState(null, "", statisticsPath(ROUTINE_KEY, DOUBLES_KEY));
+    const store = routineStatsStore();
+
+    store.init();
+
+    expect(store.initialTab).toBe("routines");
+    expect(fetchTrainedRoutines).not.toHaveBeenCalled();
+  });
+
+  it("activate restores the routine and step named by the location", async () => {
+    fetchTrainedRoutines.mockResolvedValue({
+      items: [{ ...TRAINED, routineKey: OTHER_ROUTINE_KEY }, TRAINED],
+    });
+    history.replaceState(null, "", statisticsPath(ROUTINE_KEY, DOUBLES_KEY));
+    const store = routineStatsStore();
+    store.init();
+
+    await store.activate();
+
+    expect(store.routineKey).toBe(ROUTINE_KEY);
+    expect(store.stepKey).toBe(DOUBLES_KEY);
+  });
+
+  it("activate falls back to the first routine and step when the location names none that exist", async () => {
+    history.replaceState(null, "", statisticsPath("gone", "gone"));
+    const store = routineStatsStore();
+    store.init();
+
+    await store.activate();
+
+    expect(store.routineKey).toBe(ROUTINE_KEY);
+    expect(store.stepKey).toBe(WARM_UP_KEY);
+  });
+
+  it("activate falls back to the first step when only the step is unknown", async () => {
+    history.replaceState(null, "", statisticsPath(ROUTINE_KEY, "gone"));
+    const store = routineStatsStore();
+    store.init();
+
+    await store.activate();
+
+    expect(store.routineKey).toBe(ROUTINE_KEY);
+    expect(store.stepKey).toBe(WARM_UP_KEY);
   });
 
   it("activate loads the trained routines and selects the first", async () => {

@@ -82,6 +82,29 @@ beforeEach(() => {
 });
 
 describe("replayStore", () => {
+  it("backs to the Games tab for a session with no routine step", async () => {
+    const store = await opened(playFiveOhOne(), []);
+
+    expect(store.backHref).toBe("/statistics");
+  });
+
+  it("backs to the routine and step the session ran under", async () => {
+    const game = playFiveOhOne();
+    const store = await opened(game, [], {
+      ...game.header,
+      routineKey: "r 1",
+      stepKey: "s/2",
+    });
+
+    expect(store.backHref).toBe(
+      "/statistics?tab=routines&routine=r%201&step=s%2F2",
+    );
+  });
+
+  it("backs to the Games tab before the header loads", () => {
+    expect(replayStore().backHref).toBe("/statistics");
+  });
+
   it("reads the session id and loads the header plus the first page", async () => {
     const game = playFiveOhOne();
     const store = await opened(game, [3, 5]);
