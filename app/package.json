@@ -17,6 +17,7 @@
     "env:prod": "neon env pull --branch main --file .env.production && npm run env:mirror -- --file .env.production",
     "db:status": "dbmate --migrations-dir ../database/migrations status",
     "db:drift": "tsx --env-file=.env scripts/check-migration-drift.ts",
+    "db:drift:ci": "tsx scripts/check-migration-drift.ts",
     "db:migrate": "dbmate --migrations-dir ../database/migrations up",
     "db:status:prod": "dbmate --env-file .env.production --migrations-dir ../database/migrations status",
     "db:migrate:prod": "dbmate --env-file .env.production --migrations-dir ../database/migrations up",

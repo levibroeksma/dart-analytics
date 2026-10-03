@@ -2,7 +2,7 @@
 status: canonical
 scope: database/platform
 read-when: Neon environment and tooling work
-updated: 2026-09-28
+updated: 2026-10-03
 -->
 
 # Neon Integration Guide
@@ -177,7 +177,7 @@ Merging to `main` applies the pending chain to production before the Worker ship
 
 `db-rehearsal.yml` also runs on its own on any PR touching `database/migrations/**`, `database/seeds/**`, `database/verification/**`, the seed/verify runners, or `app/package.json`, so a faulty migration surfaces at review time rather than at merge time.
 
-The `:ci` script variants (`db:status:ci`, `db:migrate:ci`, `db:seed:ci`, `db:verify:ci`) read `DATABASE_URL` straight from the environment instead of an `.env` file, which is what makes them runnable headless; dbmate is invoked with `--no-dump-schema` there because CI has no `pg_dump`. The `:prod` variants stay as they are for local, deliberate use.
+The `:ci` script variants (`db:status:ci`, `db:migrate:ci`, `db:seed:ci`, `db:verify:ci`, `db:drift:ci`) read `DATABASE_URL` straight from the environment instead of an `.env` file, which is what makes them runnable headless; dbmate is invoked with `--no-dump-schema` there because CI has no `pg_dump`. The `:prod` variants stay as they are for local, deliberate use.
 
 Required secrets (values are set in GitHub's UI, never in a file, a log, or a PR):
 

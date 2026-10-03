@@ -17,6 +17,8 @@ updated: 2026-09-30
 
 # Version History
 
+> **Version:** 1.146.0 (2026-10-03 — fallow-drift-ci: `fallow-gate.sh` notes that the `dupes` clause cannot fail the gate; `db:drift:ci` script for env-only databases. D395; closes #504, #721. File Inventory and Neon guide updated.)
+>
 > **Version:** 1.145.0 (2026-10-03 — button-slot: `Button.astro` gains a default slot for runtime labels and documents its ambient `loadingExpr` default. D394; closes #502, #516. Component Inventory row updated.)
 >
 > **Version:** 1.144.0 (2026-10-03 — migration-section-gate: `check-context-map.sh` §2b fails when `03-Migrations.md` lacks a `## NNNN_name.sql` section for a `database/migrations/` file, or documents one that is absent. D393; closes #491. `03-Migrations.md` gains the missing `0046` section.)
