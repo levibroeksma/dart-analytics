@@ -3,6 +3,12 @@ name: deploy
 on:
   push:
     branches: [main]
+    paths:
+      - 'app/**'
+      - 'database/**'
+      - '.github/workflows/deploy.yml'
+      - '.github/workflows/quality.yml'
+      - '.github/workflows/db-rehearsal.yml'
 
 concurrency:
   group: deploy-production

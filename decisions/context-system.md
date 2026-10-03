@@ -5,7 +5,7 @@ read-when: why a docs/context-map/CLAUDE.md/skill/gate choice was made
 load-when: docs, context map, CLAUDE.md, skill, gate, check script, knowledge graph, CI, deploy, Prettier, format, husky, pre-commit, branch, PR, workflow, AGENT.md
 depends-on: none
 related: decisions/architecture.md
-updated: 2026-09-19
+updated: 2026-10-03
 -->
 
 | # | Source | Decision | Rationale |
@@ -200,4 +200,11 @@ Status: Accepted · Date: 2026-09-29
 Decision: `scripts/check-no-inline-comments.sh` also greps `app/src/**/*.{ts,astro}` for `ruling R|controller ruling|plan decision|Task [0-9]|fix-round|reviewer finding` and fails on any match. The 26 phase 1–5 statistics comments that carried such citations were rewritten to state the reason plainly (#647).
 Reason: D255 barred decision-history in doc comments but was prose-only; plan/task numbers point into `docs/superpowers/plans/` or a gitignored ledger that readers cannot resolve, and they went stale.
 Consequences: a comment may still cite a recorded decision id (`D372`); it may not cite a plan step, task number or review round. Detail that needs a home goes in `decisions/**` or `docs/architecture/**`.
+Supersedes: none
+
+### D392 — `deploy.yml` runs only when `app/**`, `database/**` or the deploy workflows change
+Status: Accepted · Date: 2026-10-03
+Decision: `deploy.yml`'s `push` trigger gains a `paths` filter: `app/**`, `database/**`, `.github/workflows/deploy.yml`, `quality.yml`, `db-rehearsal.yml`. A merge touching only docs, decisions, root scripts, `graphify-out/**` or other workflows does not start `quality -> rehearse -> migrate -> deploy`. Closes #438.
+Reason: every merge ran the full chain, including a Neon branch cut, the production migration runner and a Worker redeploy, for changes that cannot alter the Worker or schema. `deploy` is push-only and not a required PR check, so a path filter cannot leave a required status pending.
+Consequences: a root `scripts/**` or doc-only merge gets no post-merge `quality` run; PR-time `checks.yml` still gates it. A new top-level directory the Worker build reads must be added to the filter. Manual redeploy still goes through `app/DEPLOYMENT.md`. Dropping `quality` from the deploy path, and splitting schema steps from the Worker deploy, were considered and left out as separate decisions.
 Supersedes: none
