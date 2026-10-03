@@ -60,7 +60,7 @@ import Button from "@components/forms/Button.astro";
 
       <div
         class="space-y-4"
-        x-show="!routines.length"
+        x-show="loading"
         x-cloak
         aria-hidden="true"
       >
@@ -92,13 +92,20 @@ import Button from "@components/forms/Button.astro";
       >
         <RoutineCard />
       </template>
-      <p
-        class="text-xs text-muted-foreground"
+      <div
+        class="flex items-center justify-between gap-4"
         x-show="!loading && !personalRoutines().length"
         x-cloak
       >
-        No custom routines available
-      </p>
+        <p class="text-xs text-muted-foreground">No custom routines yet</p>
+        <Button
+          title="Create"
+          variant="secondary"
+          class="shrink-0"
+          loadingExpr="false"
+          @click="showModal = true"
+        />
+      </div>
     </CardWrapper>
     <CardWrapper
       color="violet"
