@@ -215,3 +215,11 @@ Decision: `scripts/check-context-map.sh` §2b compares the `## NNNN_name.sql` he
 Reason: the gate only checked the quoted `0001`–NNNN range, so the section list fell 12 behind (#288) with every gate green. The first run of the new check found `0046` undocumented; its section is added in the same change.
 Consequences: a new migration now needs its `03-Migrations.md` section in the same PR or the structure job fails. Seeds are not covered; that is #490's subject.
 Supersedes: none
+
+### D395 — `fallow-gate.sh` annotates the `dupes` clause; `db:drift:ci` reads `DATABASE_URL` from the environment
+
+Status: Accepted · Date: 2026-10-03
+Decision: when fallow's `Failed:` line names `dupes (N clone groups)` and `app/.fallowrc.jsonc` sets no `duplicates.threshold` (or 0), `scripts/fallow-gate.sh` prints one line saying the clause is informational. `app/package.json` gains `db:drift:ci` (`tsx scripts/check-migration-drift.ts`, no `--env-file`), the sibling of `db:status:ci`.
+Reason: issues #504 and #721. A clean run reports ~80+ clone groups and exits 0, yet the count sat under "Failed:" and sent a session deduplicating unrelated code (#292). `db:drift` loaded `.env` unconditionally, so a container with only `DATABASE_URL` stopped there.
+Consequences: the threshold is read from the config, so the note drops out if a limit is ever set. fallow's own output is unchanged. `validate:app` still calls `db:drift`; a headless run uses `db:drift:ci` for that step. Closes #504, #721.
+Supersedes: none

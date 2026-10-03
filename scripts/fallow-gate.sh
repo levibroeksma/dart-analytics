@@ -22,6 +22,12 @@
 # violator is on screen next to the misleading line rather than behind a
 # second command nobody knows to run.
 #
+# The same line also lists `dupes (N clone groups)`. With no
+# `duplicates.threshold` in app/.fallowrc.jsonc (0 = no limit) duplication
+# can never fail the gate, yet the count sits under "Failed:" (#504). The
+# wrapper prints one note saying so; the threshold is read from the config,
+# so the note disappears if a limit is ever turned on.
+#
 # The wrapper never changes the verdict: fallow's own stdout/stderr is
 # passed through unmodified and its exit code is the script's exit code.
 # The extra `health` run happens only on failure, and its own non-zero
@@ -36,6 +42,22 @@ npx fallow 2>&1 | tee "$TMP"
 STATUS="${PIPESTATUS[0]}"
 
 [ "$STATUS" = "0" ] && exit 0
+
+if grep -Eq '^Failed:.*dupes \(' "$TMP"; then
+  node - .fallowrc.jsonc <<'NODE'
+const fs = require('node:fs');
+let threshold = 0;
+try {
+  const text = fs.readFileSync(process.argv[2], 'utf8').replace(/^\s*\/\/.*$/gm, '');
+  threshold = Number(JSON.parse(text.replace(/,(\s*[}\]])/g, '$1')).duplicates?.threshold ?? 0);
+} catch {
+  process.exit(0);
+}
+if (threshold === 0) {
+  console.error('\nfallow-gate: the `dupes (N clone groups)` clause above is informational — duplicates.threshold is 0 (no limit), so duplication cannot fail this gate (#504).');
+}
+NODE
+fi
 
 npx fallow health --format json >"$TMP.json" 2>/dev/null || true
 
