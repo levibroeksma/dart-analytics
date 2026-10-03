@@ -377,3 +377,4 @@ export type TrendPeriods = {
   previous: SeriesBucket<ScoringTrendMetrics>[];
   current: SeriesBucket<ScoringTrendMetrics>[];
 };
+export * from "./sections/types";
