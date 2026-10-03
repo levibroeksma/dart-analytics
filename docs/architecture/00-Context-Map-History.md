@@ -17,6 +17,8 @@ updated: 2026-09-30
 
 # Version History
 
+> **Version:** 1.147.0 (2026-10-03 — day-row-select: `ScheduleDayRow.astro` moves onto `forms/Select.astro`; `scheduleEditor().routineOptions()` added; `Select` option `value` may be `null`; `fallow-gate.sh` temp file uses a GNU-safe `mktemp` template. Closes #593, #729. Component Inventory and File Inventory updated.)
+>
 > **Version:** 1.146.0 (2026-10-03 — fallow-drift-ci: `fallow-gate.sh` notes that the `dupes` clause cannot fail the gate; `db:drift:ci` script for env-only databases. D395; closes #504, #721. File Inventory and Neon guide updated.)
 >
 > **Version:** 1.145.0 (2026-10-03 — button-slot: `Button.astro` gains a default slot for runtime labels and documents its ambient `loadingExpr` default. D394; closes #502, #516. Component Inventory row updated.)

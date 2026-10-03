@@ -10,7 +10,11 @@ import { scheduleIdFromLocation } from "./schedule-route";
 import { weekdayNames } from "./today";
 import { formatScheduleIssues } from "./schedule-issues";
 import type { RoutineSummaryData } from "@client/api/types";
-import type { ScheduleEditorContext, ScheduleEditorRow } from "./types";
+import type {
+  ScheduleEditorContext,
+  ScheduleEditorRow,
+  ScheduleRoutineOption,
+} from "./types";
 
 const DAY_COUNT = 7;
 const WEEKDAY_LABELS = weekdayNames();
@@ -84,6 +88,16 @@ export function scheduleEditor(mode: "create" | "edit") {
       return `${routine.routineName} (${routine.totalMinutes} min)`;
     },
 
+    routineOptions(this: ScheduleEditorContext): ScheduleRoutineOption[] {
+      return [
+        { value: null, label: "Rest" },
+        ...this.routines.map((routine) => ({
+          value: routine.routineId,
+          label: this.routineLabel(routine),
+        })),
+      ];
+    },
+
     weekdayLabel(index: number): string {
       return WEEKDAY_LABELS[index] ?? "";
     },
@@ -100,9 +114,8 @@ export function scheduleEditor(mode: "create" | "edit") {
     },
 
     /**
-     * The Rest `<select>` option's value is `""` (native selects can't carry
-     * a real `null`) — treats any falsy `routineTemplateId` as rest, not only
-     * `null`, so a row the user set back to Rest is dropped too.
+     * Treats any falsy `routineTemplateId` as rest, not only `null`, so a
+     * row the user set back to Rest is dropped too.
      */
     payload(this: ScheduleEditorContext) {
       return {

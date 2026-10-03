@@ -33,6 +33,12 @@ export type ScheduleEditorRow = {
   routineTemplateId: string | null;
 };
 
+/** A picker option for an editor row; `value` is `null` for Rest. */
+export type ScheduleRoutineOption = {
+  value: string | null;
+  label: string;
+};
+
 export type ScheduleEditorContext = {
   mode: "create" | "edit";
   scheduleId: string | null;
@@ -48,6 +54,7 @@ export type ScheduleEditorContext = {
   init(this: ScheduleEditorContext): Promise<void>;
   loadExisting(this: ScheduleEditorContext): Promise<void>;
   routineLabel(routine: RoutineSummaryData): string;
+  routineOptions(this: ScheduleEditorContext): ScheduleRoutineOption[];
   weekdayLabel(index: number): string;
   nameValid(this: ScheduleEditorContext): boolean;
   canSave(this: ScheduleEditorContext): boolean;

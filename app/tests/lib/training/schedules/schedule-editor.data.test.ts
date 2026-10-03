@@ -71,6 +71,16 @@ describe("scheduleEditor (create)", () => {
     expect(e.routineLabel(ROUTINES.items[1])).toBe("Mine (45 min)");
   });
 
+  it("offers Rest (null) first, then each routine as a picker option", async () => {
+    const e: ScheduleEditorContext = scheduleEditor("create");
+    await e.init();
+    expect(e.routineOptions()).toEqual([
+      { value: null, label: "Rest" },
+      { value: "r1", label: "Warm-Up (30 min)" },
+      { value: "r2", label: "Mine (45 min)" },
+    ]);
+  });
+
   it("labels each row's weekday Monday..Sunday by row index", async () => {
     const e: ScheduleEditorContext = scheduleEditor("create");
     await e.init();

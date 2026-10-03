@@ -13,6 +13,7 @@
  * expression there; the caller seeds it (no placeholder state).
  * Options are either fixed at build time (`options`) or read at runtime from
  * the caller's scope (`optionsExpr`, e.g. data fetched in `init()`); pass one.
+ * An option's `value` may be `null` for a model that holds `null` as its empty state.
  * @param {SelectOption[]} [options] Build-time options
  * @param {string} [optionsExpr] Alpine expression yielding `SelectOption[]`
  * @param {string} model Writable Alpine expression holding the picked value
@@ -20,7 +21,7 @@
  * @param {string} [class] Extra wrapper classes
  */
 interface SelectOption {
-  value: string;
+  value: string | null;
   label: string;
 }
 
