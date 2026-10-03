@@ -208,3 +208,10 @@ Decision: `deploy.yml`'s `push` trigger gains a `paths` filter: `app/**`, `datab
 Reason: every merge ran the full chain, including a Neon branch cut, the production migration runner and a Worker redeploy, for changes that cannot alter the Worker or schema. `deploy` is push-only and not a required PR check, so a path filter cannot leave a required status pending.
 Consequences: a root `scripts/**` or doc-only merge gets no post-merge `quality` run; PR-time `checks.yml` still gates it. A new top-level directory the Worker build reads must be added to the filter. Manual redeploy still goes through `app/DEPLOYMENT.md`. Dropping `quality` from the deploy path, and splitting schema steps from the Worker deploy, were considered and left out as separate decisions.
 Supersedes: none
+
+### D393 — `check-context-map.sh` requires one `03-Migrations.md` section per migration file
+Status: Accepted · Date: 2026-10-03
+Decision: `scripts/check-context-map.sh` §2b compares the `## NNNN_name.sql` headings in `03-Migrations.md`'s "Migration Execution Order" part with `database/migrations/` and fails on a file with no section and on a section with no file. The "Seed Files" part is not read. Closes #491.
+Reason: the gate only checked the quoted `0001`–NNNN range, so the section list fell 12 behind (#288) with every gate green. The first run of the new check found `0046` undocumented; its section is added in the same change.
+Consequences: a new migration now needs its `03-Migrations.md` section in the same PR or the structure job fails. Seeds are not covered; that is #490's subject.
+Supersedes: none
