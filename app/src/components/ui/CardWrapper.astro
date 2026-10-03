@@ -7,6 +7,7 @@
  * @param {string} [color] CSS color for the tint (named Tailwind-like or any CSS color)
  * @param {boolean} [external]
  * @param {string} [class] Extra classes
+ * Leftover attributes (e.g. an Alpine `:href`) are forwarded to the root element.
  */
 interface Props {
   href?: string;
@@ -15,6 +16,7 @@ interface Props {
   color?: string;
   external?: boolean;
   class?: string;
+  [key: string]: unknown;
 }
 
 // Props
@@ -25,6 +27,7 @@ const {
   color = "sky",
   external = false,
   class: classNameProp = "",
+  ...props
 }: Props = Astro.props;
 
 // Lib
@@ -60,6 +63,7 @@ const className = cn(
   rel={href && external ? "noopener noreferrer" : undefined}
   style={`--card-tint: ${tint}`}
   class={className}
+  {...props}
 >
   {
     Astro.slots.has("media") && (

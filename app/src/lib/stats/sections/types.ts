@@ -7,14 +7,7 @@ export type TrebleSummary = {
 export type CompletionSummary = {
   completed: number;
   abandoned: number;
-  neverStarted: number;
   abandonRate: number | null;
-};
-
-export type VolumeSummary = {
-  sessions: number;
-  darts: number;
-  minutes: number;
 };
 
 export type ScoreResultSummary = {
@@ -30,5 +23,4 @@ export type SessionRow = {
   average: number | null;
   darts: number;
   minutes: number;
-  abandoned: boolean;
 };

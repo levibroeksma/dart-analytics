@@ -7,7 +7,6 @@ import type {
   CompletionMetrics,
   SessionResultMetrics,
   TrebleRateMetrics,
-  VolumeMetrics,
 } from "@modules/types";
 
 import type {
@@ -15,7 +14,6 @@ import type {
   ScoreResultSummary,
   SessionRow,
   TrebleSummary,
-  VolumeSummary,
 } from "./types";
 
 type SessionListItem = GameSessionListResponseData["items"][number];
@@ -53,41 +51,22 @@ export function trebleSummary(
   };
 }
 
-/** Status counts summed across buckets; the abandon rate counts never-started sessions as abandoned. */
+/** Completed and abandoned counts summed across buckets; never-started sessions are left out, so the abandon rate is abandoned over started. */
 export function completionSummary(
   buckets: readonly SeriesBucket<CompletionMetrics>[],
 ): CompletionSummary {
   let completed = 0;
   let abandoned = 0;
-  let neverStarted = 0;
   for (const { metrics } of buckets) {
     completed += metrics.completed;
     abandoned += metrics.abandoned;
-    neverStarted += metrics.neverStarted;
   }
-  const sample = completed + abandoned + neverStarted;
+  const sample = completed + abandoned;
   return {
     completed,
     abandoned,
-    neverStarted,
-    abandonRate: sample === 0 ? null : (abandoned + neverStarted) / sample,
+    abandonRate: sample === 0 ? null : abandoned / sample,
   };
-}
-
-/** Sessions, darts and whole minutes summed across buckets and both play contexts. */
-export function volumeSummary(
-  buckets: readonly SeriesBucket<VolumeMetrics>[],
-): VolumeSummary {
-  let sessions = 0;
-  let darts = 0;
-  let seconds = 0;
-  for (const { metrics } of buckets) {
-    sessions += metrics.sessions.standalone + metrics.sessions.routine;
-    darts += metrics.darts.standalone + metrics.darts.routine;
-    seconds +=
-      metrics.durationSeconds.standalone + metrics.durationSeconds.routine;
-  }
-  return { sessions, darts, minutes: Math.round(seconds / 60) };
 }
 
 /** Mean counted score and the highest-scoring session across every bucket and ruleset slice. */
@@ -126,6 +105,5 @@ export function sessionRow(item: SessionListItem, tz: string): SessionRow {
       item.dartCount === 0 ? null : (item.countedScore / item.dartCount) * 3,
     darts: item.dartCount,
     minutes: Math.round(item.durationSeconds / 60),
-    abandoned: item.statusKey !== "COMPLETED",
   };
 }

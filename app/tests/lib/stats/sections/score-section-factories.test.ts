@@ -10,8 +10,6 @@ const { scoreTrebleSection } =
   await import("@lib/stats/sections/score-treble.data");
 const { scoreCompletionSection } =
   await import("@lib/stats/sections/score-completion.data");
-const { scoreVolumeSection } =
-  await import("@lib/stats/sections/score-volume.data");
 const { scoreResultSection } =
   await import("@lib/stats/sections/score-result.data");
 
@@ -52,16 +50,25 @@ describe("score section factories", () => {
     expect(s.summary.abandonRate).toBe(0.25);
   });
 
-  it("scoreVolumeSection requests volume and summarises it", async () => {
-    respond({
-      sessions: { standalone: 1, routine: 0 },
-      darts: { standalone: 9, routine: 0 },
-      durationSeconds: { standalone: 120, routine: 0 },
-    });
-    const s = mounted(scoreVolumeSection());
+  it("scoreCompletionSection ignores never-started sessions and splits the donut", async () => {
+    respond({ completed: 3, abandoned: 1, neverStarted: 9, abandonedTurns: 2 });
+    const s = mounted(scoreCompletionSection());
     await s.load();
-    expect(loadGameSection.mock.calls[0][1]).toBe("volume");
-    expect(s.summary).toEqual({ sessions: 1, darts: 9, minutes: 2 });
+    expect(s.total).toBe(4);
+    expect(s.summary.abandonRate).toBe(0.25);
+    const c = s.circumference;
+    expect(s.completedArc).toBe(`${c * 0.75} ${c}`);
+    expect(s.abandonedArc).toBe(`${c * 0.25} ${c}`);
+    expect(s.abandonedOffset).toBe(-c * 0.75);
+  });
+
+  it("scoreCompletionSection draws an empty ring without started sessions", async () => {
+    respond({ completed: 0, abandoned: 0, neverStarted: 2, abandonedTurns: 0 });
+    const s = mounted(scoreCompletionSection());
+    await s.load();
+    expect(s.total).toBe(0);
+    expect(s.completedArc).toBe(`0 ${s.circumference}`);
+    expect(s.abandonedArc).toBe(`0 ${s.circumference}`);
   });
 
   it("scoreResultSection requests session-result and summarises it", async () => {

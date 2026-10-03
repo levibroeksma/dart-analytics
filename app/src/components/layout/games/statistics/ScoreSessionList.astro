@@ -1,83 +1,71 @@
 ---
 /**
- * Score Training session-list section: the sessions of the page-level period,
- * newest first, each linking to its replay. Owns its fetch through
- * `scoreSessionList()`. The glass surface is a sibling layer, not an
- * ancestor, for the same reason as `ScoreTrendSection.astro`.
+ * Score Training replay section: the completed sessions of the page-level
+ * period, newest first, 10 per page, each a card linking to its replay. Owns
+ * its fetch through `scoreSessionList()`.
  */
 import Button from "@components/forms/Button.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
+import ScoreReplayCard from "./ScoreReplayCard.astro";
 ---
 
 <section
-  class="relative"
+  class="space-y-2"
   x-data="scoreSessionList()"
 >
+  <h2 class="text-sm text-foreground">Replay</h2>
+  <ErrorAlert
+    showExpr="error"
+    textExpr="error"
+  />
   <div
-    class="glass absolute inset-0 rounded-2xl"
-    aria-hidden="true"
+    class="space-y-2"
+    x-show="loading"
+    x-cloak
   >
+    <div class="h-16 animate-pulse rounded-2xl bg-muted-foreground/80"></div>
+    <div class="h-16 animate-pulse rounded-2xl bg-muted-foreground/80"></div>
   </div>
-  <div class="relative space-y-3 p-4">
-    <h2 class="text-sm text-foreground">Sessions</h2>
-    <ErrorAlert
-      showExpr="error"
-      textExpr="error"
-    />
-    <div
-      class="space-y-2"
-      x-show="loading"
+  <div
+    class="space-y-2"
+    x-show="!loading"
+    x-cloak
+  >
+    <p
+      class="text-sm text-muted-foreground"
+      x-show="isEmpty && !error"
       x-cloak
     >
-      <div class="h-10 animate-pulse rounded bg-muted-foreground/80"></div>
-      <div class="h-10 animate-pulse rounded bg-muted-foreground/80"></div>
-    </div>
+      No completed games in range.
+    </p>
+    <template
+      x-for="row in rows"
+      :key="row.id"
+    >
+      <ScoreReplayCard />
+    </template>
     <div
-      class="space-y-2"
-      x-show="!loading"
+      class="flex items-center justify-between gap-2"
+      x-show="hasPrevious || hasNext"
       x-cloak
     >
-      <p
-        class="text-sm text-muted-foreground"
-        x-show="isEmpty && !error"
-        x-cloak
+      <Button
+        variant="secondary"
+        title="Previous"
+        :disabled="!hasPrevious"
+        @click="previous()"
+      />
+      <span
+        class="text-xs text-muted-foreground"
+        x-text="pageLabel"
       >
-        No sessions in range.
-      </p>
-      <template
-        x-for="row in rows"
-        :key="row.id"
-      >
-        <a
-          class="flex items-center justify-between gap-2 text-sm text-foreground no-underline hover:text-accent-hover"
-          :href="row.href"
-        >
-          <span x-text="row.date"></span>
-          <span
-            class="text-muted-foreground"
-            x-text="`${row.average === null ? '—' : row.average.toFixed(1)} avg · ${row.darts} darts · ${row.minutes} min`"
-          >
-          </span>
-          <span
-            class="text-xs text-error"
-            x-show="row.abandoned"
-            x-cloak
-          >
-            Abandoned
-          </span>
-        </a>
-      </template>
-      <div
-        x-show="hasMore"
-        x-cloak
-      >
-        <Button
-          variant="secondary"
-          title="Load more"
-          loadingExpr="loadingMore"
-          @click="loadMore()"
-        />
-      </div>
+      </span>
+      <Button
+        variant="secondary"
+        title="Next"
+        :disabled="!hasNext"
+        @click="next()"
+      />
     </div>
   </div>
 </section>

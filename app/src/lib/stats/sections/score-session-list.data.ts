@@ -16,26 +16,28 @@ type WatchesRange = {
   load(): Promise<void>;
 };
 
-const PAGE_SIZE = 25;
+const PAGE_SIZE = 10;
 
 function localTz(): string {
   return Intl.DateTimeFormat().resolvedOptions().timeZone;
 }
 
 /**
- * Score Training's session-list section: the sessions of the page-level
- * period, newest first, 25 per page through the IndexedDB cache, each linking
- * to its replay. Reloads from the first page on every `rangeKey` change.
+ * Score Training's replay section: the completed sessions of the page-level
+ * period, newest first, 10 per page through the IndexedDB cache, each linking
+ * to its replay. Pages are walked with `next()` and `previous()`; a change of
+ * `rangeKey` reloads from the first page.
  */
 export function scoreSessionList() {
   let ticket = 0;
   let span = { from: "", to: "" };
   return {
     loading: true,
-    loadingMore: false,
     error: null as string | null,
     items: [] as SessionListItem[],
     nextCursor: null as string | null,
+    pageIndex: 0,
+    cursors: [undefined] as (string | undefined)[],
 
     get period(): TrendRangeKey {
       return (this as unknown as PageScope).$data.rangeKey;
@@ -47,7 +49,11 @@ export function scoreSessionList() {
     },
 
     async fetchPage(cursor?: string) {
-      const params = { ...span, limit: PAGE_SIZE };
+      const params = {
+        ...span,
+        status: "completed" as const,
+        limit: PAGE_SIZE,
+      };
       return readSessionPage<SessionListItem>(
         CACHE_PLAYER_ID,
         gameScopeKey("SCORE_TRAINING"),
@@ -55,6 +61,7 @@ export function scoreSessionList() {
           ...span,
           bucket: "none",
           context: "all",
+          status: "completed",
           inputMode: "VISUAL_BOARD",
           cursor,
         },
@@ -67,15 +74,22 @@ export function scoreSessionList() {
     },
 
     async load(now: Date = new Date()) {
+      span = heatmapWindow(this.period, now);
+      this.cursors = [undefined];
+      await this.goTo(0);
+    },
+
+    async goTo(index: number) {
       const mine = ++ticket;
       this.loading = true;
       this.error = null;
-      span = heatmapWindow(this.period, now);
       try {
-        const page = await this.fetchPage();
+        const page = await this.fetchPage(this.cursors[index]);
         if (mine !== ticket) return;
         this.items = page.items;
         this.nextCursor = page.nextCursor;
+        this.pageIndex = index;
+        if (page.nextCursor !== null) this.cursors[index + 1] = page.nextCursor;
       } catch (cause) {
         if (mine !== ticket) return;
         this.error = cause instanceof Error ? cause.message : "load failed";
@@ -84,22 +98,13 @@ export function scoreSessionList() {
       }
     },
 
-    async loadMore() {
-      const cursor = this.nextCursor;
-      if (cursor === null || this.loadingMore) return;
-      const mine = ticket;
-      this.loadingMore = true;
-      try {
-        const page = await this.fetchPage(cursor);
-        if (mine !== ticket) return;
-        this.items = [...this.items, ...page.items];
-        this.nextCursor = page.nextCursor;
-      } catch (cause) {
-        if (mine !== ticket) return;
-        this.error = cause instanceof Error ? cause.message : "load failed";
-      } finally {
-        this.loadingMore = false;
-      }
+    async next() {
+      if (this.hasNext && !this.loading) await this.goTo(this.pageIndex + 1);
+    },
+
+    async previous() {
+      if (this.hasPrevious && !this.loading)
+        await this.goTo(this.pageIndex - 1);
     },
 
     get rows() {
@@ -107,8 +112,16 @@ export function scoreSessionList() {
       return this.items.map((item) => sessionRow(item, tz));
     },
 
-    get hasMore(): boolean {
+    get hasNext(): boolean {
       return this.nextCursor !== null;
+    },
+
+    get hasPrevious(): boolean {
+      return this.pageIndex > 0;
+    },
+
+    get pageLabel(): string {
+      return `Page ${this.pageIndex + 1}`;
     },
 
     get isEmpty(): boolean {

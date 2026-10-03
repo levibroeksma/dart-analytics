@@ -1,0 +1,30 @@
+---
+/**
+ * Score Training replay card: a session row styled like `GameCard.astro`, with
+ * a play icon where the dart sits. Reads `row` (a `SessionRow`) from the
+ * enclosing Alpine scope and links to that session's replay.
+ */
+import CardWrapper from "@components/ui/CardWrapper.astro";
+
+// Icons
+import PlayIcon from "@icons/play-solid.svg";
+---
+
+<CardWrapper
+  class="flex-row justify-between items-center gap-4 glass"
+  :href="row.href"
+>
+  <div class="flex flex-col gap-0.5">
+    <h3
+      class="font-semibold text-base text-accent"
+      x-text="row.date"
+    >
+    </h3>
+    <p
+      class="text-xs text-muted-foreground"
+      x-text="`${row.average === null ? '—' : row.average.toFixed(1)} avg · ${row.darts} darts · ${row.minutes} min`"
+    >
+    </p>
+  </div>
+  <PlayIcon class="size-8 text-accent" />
+</CardWrapper>
