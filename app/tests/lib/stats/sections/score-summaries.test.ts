@@ -4,7 +4,6 @@ import {
   scoreResultSummary,
   sessionRow,
   trebleSummary,
-  volumeSummary,
 } from "@lib/stats/sections/score-summaries";
 
 function bucket<M>(metrics: M) {
@@ -39,45 +38,38 @@ describe("completionSummary", () => {
     expect(completionSummary([])).toEqual({
       completed: 0,
       abandoned: 0,
-      neverStarted: 0,
       abandonRate: null,
     });
   });
 
-  it("sums counts and counts never-started towards the abandon rate", () => {
+  it("sums counts and leaves never-started sessions out of the abandon rate", () => {
     const out = completionSummary([
       bucket({
         completed: 6,
-        abandoned: 1,
-        neverStarted: 1,
+        abandoned: 2,
+        neverStarted: 5,
         abandonedTurns: 3,
       }),
       bucket({
         completed: 2,
         abandoned: 0,
-        neverStarted: 0,
+        neverStarted: 4,
         abandonedTurns: 0,
       }),
     ]);
-    expect(out).toEqual({
-      completed: 8,
-      abandoned: 1,
-      neverStarted: 1,
-      abandonRate: 0.2,
-    });
+    expect(out).toEqual({ completed: 8, abandoned: 2, abandonRate: 0.2 });
   });
-});
 
-describe("volumeSummary", () => {
-  it("adds the context split and converts seconds to minutes", () => {
-    const out = volumeSummary([
+  it("has no rate when only never-started sessions exist", () => {
+    const out = completionSummary([
       bucket({
-        sessions: { standalone: 2, routine: 1 },
-        darts: { standalone: 30, routine: 9 },
-        durationSeconds: { standalone: 600, routine: 90 },
+        completed: 0,
+        abandoned: 0,
+        neverStarted: 3,
+        abandonedTurns: 0,
       }),
     ]);
-    expect(out).toEqual({ sessions: 3, darts: 39, minutes: 12 });
+    expect(out.abandonRate).toBeNull();
   });
 });
 
@@ -141,17 +133,12 @@ describe("sessionRow", () => {
     expect(row.average).toBe(15);
     expect(row.minutes).toBe(30);
     expect(row.darts).toBe(30);
-    expect(row.abandoned).toBe(false);
     expect(row.href).toBe("/statistics/replay?session=s1");
     expect(row.date).toBe("1 oct. '26");
   });
 
-  it("has no average without darts and flags a non-completed session", () => {
-    const row = sessionRow(
-      { ...item, dartCount: 0, statusKey: "ABANDONED" },
-      "UTC",
-    );
+  it("has no average without darts", () => {
+    const row = sessionRow({ ...item, dartCount: 0 }, "UTC");
     expect(row.average).toBeNull();
-    expect(row.abandoned).toBe(true);
   });
 });

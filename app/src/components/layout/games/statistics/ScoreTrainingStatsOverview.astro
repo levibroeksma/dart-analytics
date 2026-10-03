@@ -3,6 +3,7 @@ import ScoreAverageCard from "./ScoreAverageCard.astro";
 import ScoreTrendSection from "./ScoreTrendSection.astro";
 import ScoreHeatmapSection from "./ScoreHeatmapSection.astro";
 import ScoreStatsSection from "./ScoreStatsSection.astro";
+import ScoreCompletionSection from "./ScoreCompletionSection.astro";
 import ScoreSessionList from "./ScoreSessionList.astro";
 ---
 
@@ -63,31 +64,6 @@ import ScoreSessionList from "./ScoreSessionList.astro";
       Replay best session
     </a>
   </ScoreStatsSection>
-  <ScoreStatsSection
-    factory="scoreCompletionSection"
-    title="Completion"
-    stats={[
-      { label: "Completed", expr: "summary.completed" },
-      { label: "Abandoned", expr: "summary.abandoned" },
-      { label: "Never started", expr: "summary.neverStarted" },
-    ]}
-  >
-    <p
-      class="text-xs text-muted-foreground"
-      x-show="summary.abandonRate !== null"
-      x-cloak
-      x-text="`Abandon rate: ${Math.round(summary.abandonRate * 100)}%`"
-    >
-    </p>
-  </ScoreStatsSection>
-  <ScoreStatsSection
-    factory="scoreVolumeSection"
-    title="Volume"
-    stats={[
-      { label: "Sessions", expr: "summary.sessions" },
-      { label: "Darts", expr: "summary.darts" },
-      { label: "Minutes", expr: "summary.minutes" },
-    ]}
-  />
+  <ScoreCompletionSection />
   <ScoreSessionList />
 </div>

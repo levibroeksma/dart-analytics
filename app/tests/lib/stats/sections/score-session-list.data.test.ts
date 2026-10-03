@@ -66,34 +66,44 @@ describe("scoreSessionList", () => {
     expect(fetchGameSessions).toHaveBeenCalledWith("SCORE_TRAINING", {
       from: new Date(NOW.getTime() - 30 * DAY).toISOString(),
       to: new Date(NOW.getTime() + 60_000).toISOString(),
-      limit: 25,
+      status: "completed",
+      limit: 10,
     });
     expect(s.rows.map((r) => r.href)).toEqual([
       "/statistics/replay?session=a",
       "/statistics/replay?session=b",
     ]);
-    expect(s.hasMore).toBe(true);
+    expect(s.hasNext).toBe(true);
+    expect(s.hasPrevious).toBe(false);
     expect(s.loading).toBe(false);
   });
 
-  it("appends the next page with the cursor", async () => {
+  it("walks to the next page and back by cursor", async () => {
     fetchGameSessions.mockResolvedValueOnce(page(["a"], "c1"));
     fetchGameSessions.mockResolvedValueOnce(page(["b"], null));
     const { s } = section();
     await s.load(NOW);
-    await s.loadMore();
+    await s.next();
     expect(fetchGameSessions).toHaveBeenLastCalledWith(
       "SCORE_TRAINING",
-      expect.objectContaining({ cursor: "c1", limit: 25 }),
+      expect.objectContaining({ cursor: "c1", limit: 10 }),
     );
-    expect(s.rows).toHaveLength(2);
-    expect(s.hasMore).toBe(false);
+    expect(s.rows.map((r) => r.id)).toEqual(["b"]);
+    expect(s.hasNext).toBe(false);
+    expect(s.hasPrevious).toBe(true);
+    expect(s.pageLabel).toBe("Page 2");
+    fetchGameSessions.mockResolvedValueOnce(page(["a"], "c1"));
+    await s.previous();
+    expect(fetchGameSessions.mock.calls[2][1]).not.toHaveProperty("cursor");
+    expect(s.rows.map((r) => r.id)).toEqual(["a"]);
+    expect(s.pageLabel).toBe("Page 1");
   });
 
-  it("ignores loadMore without a cursor", async () => {
+  it("ignores next without a cursor", async () => {
     const { s } = section();
     await s.load(NOW);
-    await s.loadMore();
+    await s.next();
+    await s.previous();
     expect(fetchGameSessions).toHaveBeenCalledTimes(1);
   });
 

@@ -10,7 +10,6 @@ import { scoreTrendSection } from "@lib/stats/sections/score-trend.data";
 import { scoreHeatmapSection } from "@lib/stats/sections/score-heatmap.data";
 import { scoreTrebleSection } from "@lib/stats/sections/score-treble.data";
 import { scoreCompletionSection } from "@lib/stats/sections/score-completion.data";
-import { scoreVolumeSection } from "@lib/stats/sections/score-volume.data";
 import { scoreResultSection } from "@lib/stats/sections/score-result.data";
 import { scoreSessionList } from "@lib/stats/sections/score-session-list.data";
 import { routineBuilder } from "@lib/training/routines/routine-builder.data";
@@ -62,7 +61,6 @@ describe("registerRouteData", () => {
   it.each([
     ["scoreTrebleSection", scoreTrebleSection],
     ["scoreCompletionSection", scoreCompletionSection],
-    ["scoreVolumeSection", scoreVolumeSection],
     ["scoreResultSection", scoreResultSection],
     ["scoreSessionList", scoreSessionList],
   ])("registers %s as an Alpine data factory", (name, factory) => {
