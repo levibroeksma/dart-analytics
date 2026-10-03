@@ -24,21 +24,23 @@ import CardWrapper from "@components/ui/CardWrapper.astro";
 import PlayIcon from "@icons/play-solid.svg";
 ---
 
-<CardWrapper
-  class="flex-row justify-between items-center gap-4 glass"
+<a
   :href={hrefExpr}
+  class="block"
 >
-  <div class="flex flex-col gap-0.5">
-    <h3
-      class="font-semibold text-base text-accent"
-      x-text={titleExpr}
-    >
-    </h3>
-    <p
-      class="text-xs text-muted-foreground"
-      x-text={captionExpr}
-    >
-    </p>
-  </div>
-  <PlayIcon class="size-8 text-accent" />
-</CardWrapper>
+  <CardWrapper class="flex-row justify-between items-center gap-4 glass">
+    <div class="flex flex-col gap-0.5">
+      <h3
+        class="font-semibold text-base text-accent"
+        x-text={titleExpr}
+      >
+      </h3>
+      <p
+        class="text-xs text-muted-foreground"
+        x-text={captionExpr}
+      >
+      </p>
+    </div>
+    <PlayIcon class="size-8 text-accent" />
+  </CardWrapper>
+</a>
