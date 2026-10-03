@@ -77,6 +77,9 @@ FROM (
                     )
             ) AS undeclared
         FROM exercise_sessions es
+        WHERE es.ruleset_version_id IS NOT NULL
+            AND es.capture_mode_id IS NOT NULL
+            AND es.input_mode_id IS NOT NULL
     ) counts;
 
 -- ------------------------------------------------------------
