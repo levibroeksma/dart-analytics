@@ -1,0 +1,44 @@
+---
+/**
+ * Replay card for any statistics page: a session row styled like
+ * `GameCard.astro`, with a play icon where the dart sits, linking to that
+ * session's replay. Meant to sit inside an Alpine `x-for`; each expression
+ * is read from the enclosing scope.
+ * @param {string} hrefExpr Alpine expression yielding the replay URL
+ * @param {string} titleExpr Alpine expression yielding the title text
+ * @param {string} captionExpr Alpine expression yielding the caption text
+ */
+interface Props {
+  hrefExpr: string;
+  titleExpr: string;
+  captionExpr: string;
+}
+
+// Props
+const { hrefExpr, titleExpr, captionExpr }: Props = Astro.props;
+
+// Components
+import CardWrapper from "@components/ui/CardWrapper.astro";
+
+// Icons
+import PlayIcon from "@icons/play-solid.svg";
+---
+
+<CardWrapper
+  class="flex-row justify-between items-center gap-4 glass"
+  :href={hrefExpr}
+>
+  <div class="flex flex-col gap-0.5">
+    <h3
+      class="font-semibold text-base text-accent"
+      x-text={titleExpr}
+    >
+    </h3>
+    <p
+      class="text-xs text-muted-foreground"
+      x-text={captionExpr}
+    >
+    </p>
+  </div>
+  <PlayIcon class="size-8 text-accent" />
+</CardWrapper>
