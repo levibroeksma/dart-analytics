@@ -130,6 +130,40 @@ const wrapperClass = cn("space-y-4", classNameProp);
 
   <div
     class="glass space-y-2 rounded-2xl p-4"
+    x-show="gameView.sections['training-result']"
+    x-cloak
+  >
+    <h2
+      class="text-sm text-foreground"
+      x-text="`Best ${gameView.trainingResultUnit}`"
+    >
+    </h2>
+    <template
+      x-for="row in gameView.trainingResultRows"
+      :key="row.group"
+    >
+      <div class="flex items-center justify-between text-sm">
+        <span
+          class="text-foreground"
+          x-text="row.group"
+        ></span>
+        <span
+          class="text-muted-foreground"
+          x-text="`best ${row.best} · avg ${row.average.toFixed(1)} · ${row.sessions} sessions`"
+        ></span>
+      </div>
+    </template>
+    <p
+      class="text-xs text-muted-foreground"
+      x-show="gameView.skippedSessionsFor('training-result') > 0"
+      x-cloak
+      x-text="`${gameView.skippedSessionsFor('training-result')} sessions could not be replayed`"
+    >
+    </p>
+  </div>
+
+  <div
+    class="glass space-y-2 rounded-2xl p-4"
     x-data="{ atcGroup: '' }"
     x-effect="atcGroup = atcGroup || (gameView.atcConfigGroups[0] ?? '')"
     x-show="gameView.sections['atc-darts-per-target']"

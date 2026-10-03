@@ -2,12 +2,12 @@
 status: canonical
 scope: architecture/statistics/sections
 read-when: adding, changing, or choosing insight sections for a statistics game page
-updated: 2026-09-29
+updated: 2026-10-03
 -->
 
 # Statistics — Section Catalog
 
-> **Version:** 1.5.0 (2026-09-29, D372; prior 1.4.0 2026-09-27, D370)
+> **Version:** 1.6.0 (2026-10-03, D396; prior 1.5.0 2026-09-29, D372)
 >
 > The shared insight-section library and the section list of each game page.
 > Registry fields, tags, compute sites and the query contract are defined once in
@@ -16,8 +16,8 @@ updated: 2026-09-29
 > `grouping`, `miss-direction`, `loose-darts`, `checkout-rate`,
 > `double-performance`, `checkout-path`, `bust-rate`, `leg-stats`,
 > `ladder-progress`, `scoring-trend`, `treble-rate`, `shanghai-count`,
-> `atc-darts-per-target` and `bobs27-survival` are **built** (phase 1 + 2 + 3 +
-> 4); every other section below is still designed, not built. Phase 4
+> `atc-darts-per-target`, `bobs27-survival` and `training-result` are **built**
+> (phase 1 + 2 + 3 + 4, #738); every other section below is still designed, not built. Phase 4
 > (D370) also widens `target-accuracy`, `confusion`, `miss-direction` and
 > `loose-darts` onto the `intent-derived` family (Singles Training, Shanghai,
 > Around the Clock) — those four were already built in phase 2 for
@@ -152,8 +152,8 @@ replay route (`02-Replay.md`).
 | **121** | ladder-progress, checkout-rate, double-performance, checkout-path, bust-rate, heatmap, session-result, completion, volume |
 | **Ten Up One Down** | ladder-progress, checkout-rate, double-performance, checkout-path, bust-rate, heatmap, session-result, completion, volume |
 | **Score Training** | scoring-trend, treble-rate, heatmap, session-result, completion, volume |
-| **Singles Training** | target-accuracy (per ring), confusion, miss-direction, loose-darts, heatmap, session-result, completion, volume |
-| **Doubles Training** | target-accuracy (per double; favorite and weakest double), confusion, grouping, miss-direction (inside vs outside the wire), loose-darts, heatmap, session-result, completion, volume |
+| **Singles Training** | `training-result`, target-accuracy (per ring), confusion, miss-direction, loose-darts, heatmap, session-result, completion, volume |
+| **Doubles Training** | `training-result`, target-accuracy (per double; favorite and weakest double), confusion, grouping, miss-direction (inside vs outside the wire), loose-darts, heatmap, session-result, completion, volume |
 | **Bob's 27** | target-accuracy (per double), `bobs27-survival`, confusion, grouping, miss-direction, loose-darts, heatmap, session-result, completion, volume |
 | **Shanghai** | target-accuracy (per number and ring), `shanghai-count`, points-per-round via session-result, confusion, miss-direction, loose-darts, heatmap, completion, volume |
 | **Around the Clock** | `atc-darts-per-target`, target-accuracy, confusion, miss-direction, loose-darts, heatmap, session-result, completion, volume |
@@ -178,12 +178,20 @@ and `session-result` in Shanghai's page order (decision 11).
 | `bobs27-survival` | Bob's 27 | server | resolved-visit fold over `doublesPath()`, grouped by config | the double where runs die; running-score curve per session |
 | `shanghai-count` | Shanghai | server | a Shanghai is S+D+T of the *active* number in one visit, and the active number is itself a fold — a SQL pattern over three darts would risk counting the wrong number (D370 decision 12) | Shanghai (S+D+T in one round) frequency per bucket |
 | `atc-darts-per-target` | Around the Clock | server | darts-per-target needs the fold's own clear/lap/`COMPLETE` transitions | darts needed per target; slowest targets |
+| `training-result` | Singles Training, Doubles Training | server | the headline (training points, doubles hit) is a fold outcome, not a sum of `turns.total_score`; board-captured sessions only, as for every dart fold (D396) | best, mean and session count per config group; the personal best |
 
 Metrics (all additive; grouped by `configGroupKey`, D370 decision 13):
 
 - **`shanghai-count`**: `{ sessions, shanghais, byRound: Record<round, count> }`
   per bucket. `configSensitive: []` — Shanghai V1/V2 pool (Hard mode changes
   scoring, not the Shanghai rule).
+- **`training-result`**: `Record<configGroupKey, { sessions, total, best }>`.
+  The headline is the last fold step's `totalPoints` (Singles Training) or the
+  count of hit visits (Doubles Training); `sessions`/`total` sum and `best`
+  takes the max, so the mean (`total / sessions`) is derived client-side and
+  higher is better for both games. `configSensitive: ["ruleset_version_key",
+  "difficulty", "scoring_mode"]` — Hard/Extreme and Accuracy runs never blend
+  into one personal best (D396).
 - **`atc-darts-per-target`**: `Record<configGroupKey, Record<TargetKey, {
   darts, cleared }>>`. A dart counts against the aim before it; a target
   *clears* when the fold moves past it (next path index, a lap, or

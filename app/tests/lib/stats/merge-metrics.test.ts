@@ -296,6 +296,21 @@ describe("mergeMetrics", () => {
     });
   });
 
+  it("sums training-result sessions and totals but takes the max best", () => {
+    const merged = mergeMetrics(
+      "training-result",
+      {
+        g: { sessions: 2, total: 10, best: 7 },
+        h: { sessions: 1, total: 4, best: 4 },
+      },
+      { g: { sessions: 1, total: 9, best: 9 } },
+    );
+    expect(merged).toEqual({
+      g: { sessions: 3, total: 19, best: 9 },
+      h: { sessions: 1, total: 4, best: 4 },
+    });
+  });
+
   it("sums atc-darts-per-target two levels deep, grouped by config key", () => {
     const merged = mergeMetrics(
       "atc-darts-per-target",

@@ -2,7 +2,7 @@
 status: canonical
 scope: architecture/statistics
 read-when: designing or building any detailed statistics page, insight section, statistics endpoint, or the statistics client cache
-updated: 2026-09-29
+updated: 2026-10-03
 -->
 
 # Statistics — Overview
@@ -445,7 +445,8 @@ Each phase is its own spec, plan, and migration.
    `RESULT_DIRECTION` (issue #615) is untouched by this phase: it stays
    `null` for Bob's 27 and Around the Clock, and the new game-specific
    sections give each a headline of their own shape (a survival curve, a
-   darts-per-target list) rather than a `session-result` PB line.
+   darts-per-target list) rather than a `session-result` PB line. Singles and
+   Doubles Training likewise get `training-result` (#738, D396).
 5. **Done** (replay, 2026-09-28, D371): `GET sessions/:sessionId/replay`
    (turn pages, first-page header, a forever client cache) and the
    `/statistics/replay?session=` page, whose per-turn values come from a

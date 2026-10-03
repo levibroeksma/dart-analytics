@@ -367,6 +367,25 @@ function mergeShanghaiCount(
   };
 }
 
+/** `training-result`'s per-group `sessions`/`total` sum and `best` takes the max (#738). */
+function mergeTrainingResult(
+  a: ServerSectionMetrics["training-result"],
+  b: ServerSectionMetrics["training-result"],
+): ServerSectionMetrics["training-result"] {
+  const result: ServerSectionMetrics["training-result"] = { ...a };
+  for (const [group, entry] of Object.entries(b)) {
+    const existing = result[group];
+    result[group] = existing
+      ? {
+          sessions: existing.sessions + entry.sessions,
+          total: existing.total + entry.total,
+          best: Math.max(existing.best, entry.best),
+        }
+      : entry;
+  }
+  return result;
+}
+
 function mergeLadderProgress(
   a: ServerSectionMetrics["ladder-progress"],
   b: ServerSectionMetrics["ladder-progress"],
@@ -403,6 +422,7 @@ const MERGERS: {
   "atc-darts-per-target": mergeAtcDartsPerTarget,
   "bobs27-survival": mergeBobs27Survival,
   "shanghai-count": mergeShanghaiCount,
+  "training-result": mergeTrainingResult,
 };
 
 /**

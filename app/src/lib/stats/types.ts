@@ -12,6 +12,7 @@ import type {
   MissDirectionMetrics,
   ScoringTrendMetrics,
   ShanghaiCountMetrics,
+  TrainingResultMetrics,
   TargetAccuracyMetrics,
   TurnFact,
 } from "@modules/types";
@@ -38,7 +39,8 @@ export type SectionId =
   | "treble-rate"
   | "atc-darts-per-target"
   | "bobs27-survival"
-  | "shanghai-count";
+  | "shanghai-count"
+  | "training-result";
 
 /**
  * The declared-intent zones a target key can name (`01-Section-Catalog.md`
@@ -166,7 +168,8 @@ export type ServerSectionId =
   | "loose-darts"
   | "atc-darts-per-target"
   | "bobs27-survival"
-  | "shanghai-count";
+  | "shanghai-count"
+  | "training-result";
 
 /** Each server section's own metrics shape, keyed by its id — what `mergeMetrics` (`lib/stats/merge-metrics.ts`) folds over. */
 export type ServerSectionMetrics = {
@@ -183,6 +186,7 @@ export type ServerSectionMetrics = {
   "atc-darts-per-target": AtcDartsPerTargetMetrics;
   "bobs27-survival": Bobs27SurvivalMetrics;
   "shanghai-count": ShanghaiCountMetrics;
+  "training-result": TrainingResultMetrics;
 };
 
 /** One chunked request's span (`00-Overview.md` §4, phase-3 decision 2). */

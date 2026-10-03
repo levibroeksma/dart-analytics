@@ -493,6 +493,23 @@ const ShanghaiCountMetrics = z.object({
   byRound: ValueRecord(z.number().int()),
 });
 
+const TrainingResultMetrics = GroupRecord(
+  z.object({
+    sessions: z.number().int(),
+    total: z.number().int(),
+    best: z.number().int(),
+  }),
+);
+
+export const TrainingResultSeriesResponse = SeriesBase.extend({
+  sectionId: z.literal("training-result"),
+  buckets: z.array(BucketBase.extend({ metrics: TrainingResultMetrics })),
+  ...SkippedSessions,
+});
+export type TrainingResultSeriesResponseData = z.infer<
+  typeof TrainingResultSeriesResponse
+>;
+
 export const AtcDartsPerTargetSeriesResponse = SeriesBase.extend({
   sectionId: z.literal("atc-darts-per-target"),
   buckets: z.array(BucketBase.extend({ metrics: AtcDartsPerTargetMetrics })),

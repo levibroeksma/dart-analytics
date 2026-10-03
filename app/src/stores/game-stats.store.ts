@@ -44,6 +44,7 @@ import type {
   ScoringTrendMetrics,
   SessionResultMetrics,
   ShanghaiCountMetrics,
+  TrainingResultMetrics,
   TargetAccuracyMetrics,
   TrebleRateMetrics,
   VolumeMetrics,
@@ -1107,6 +1108,55 @@ export function gameStatsStore() {
       const series = this.sections[sectionId] as
         CachedSeries<unknown> | undefined;
       return series?.skippedSessions ?? 0;
+    },
+
+    /**
+     * `training-result`'s headline per config group, summed across every
+     * loaded bucket (#738): sessions, the mean and the personal best, higher
+     * being better for both games. Empty until the section loads.
+     */
+    get trainingResultRows(): {
+      group: string;
+      sessions: number;
+      average: number;
+      best: number;
+    }[] {
+      const series = this.sections["training-result"] as
+        CachedSeries<TrainingResultMetrics> | undefined;
+      const totals = new Map<
+        string,
+        { sessions: number; total: number; best: number }
+      >();
+      for (const b of series?.buckets ?? []) {
+        for (const [group, m] of Object.entries(b.metrics)) {
+          const existing = totals.get(group);
+          totals.set(
+            group,
+            existing
+              ? {
+                  sessions: existing.sessions + m.sessions,
+                  total: existing.total + m.total,
+                  best: Math.max(existing.best, m.best),
+                }
+              : { ...m },
+          );
+        }
+      }
+      return Array.from(totals.entries())
+        .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+        .map(([group, t]) => ({
+          group,
+          sessions: t.sessions,
+          average: t.total / t.sessions,
+          best: t.best,
+        }));
+    },
+
+    /** What `training-result` counts for this page: training points (Singles) or doubles hit (Doubles). */
+    get trainingResultUnit(): string {
+      return this.gameTypeKey === "DOUBLES_TRAINING"
+        ? "doubles hit"
+        : "training points";
     },
 
     /** The config groups `atc-darts-per-target` has data for, across every loaded bucket. */

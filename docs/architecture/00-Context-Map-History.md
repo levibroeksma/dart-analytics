@@ -2,7 +2,7 @@
 status: historical
 scope: context-map version history and point-in-time task records
 read-when: never during a task — provenance only
-updated: 2026-09-30
+updated: 2026-10-03
 -->
 
 # Context Map History
@@ -18,6 +18,8 @@ updated: 2026-09-30
 # Version History
 
 > **Version:** 1.148.0 (2026-10-03 — training-empty-states: `/training` skeleton shows only while loading; empty Personal routines card gains a Create button opening `RoutineFormModal`; closes #518. No doc rows changed.)
+>
+> **Version:** 1.148.0 (2026-10-03 — training-result: new `server` section giving Singles and Doubles Training a headline and personal best; Doubles Training gains a fold walker. D396; closes #738. Section Catalog 1.6.0, Endpoint Contracts, Statistics Overview and File Inventory updated.)
 >
 > **Version:** 1.147.0 (2026-10-03 — day-row-select: `ScheduleDayRow.astro` moves onto `forms/Select.astro`; `scheduleEditor().routineOptions()` added; `Select` option `value` may be `null`; `fallow-gate.sh` temp file uses a GNU-safe `mktemp` template. Closes #593, #729. Component Inventory and File Inventory updated.)
 >

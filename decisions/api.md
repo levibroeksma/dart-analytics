@@ -5,7 +5,7 @@ read-when: why an endpoint/contract/auth/envelope choice was made
 load-when: endpoint, contract, envelope, auth, middleware, idempotency, batch, Worker, session, status, error code, validation, JWT
 depends-on: decisions/architecture.md
 related: decisions/database.md, decisions/frontend/architecture.md
-updated: 2026-09-29
+updated: 2026-10-03
 -->
 
 | # | Source | Decision | Rationale |
@@ -316,3 +316,10 @@ Decision: `session-result` moves to section version 2. Each ruleset slice gains 
 Reason: the owner asked for a personal best beside the period averages. A total-score PB (`countedScoreMax`) is unfair across Score Training's modes — a 100-visit session always beats a 5-minute one — so the PB is the best single-session 3-dart average, which no sum-based component can yield: a max of a ratio is not derivable from `countedScoreSum`/`dartSum`, so it has to be picked per session in SQL. Extending `session-result` keeps one shared aggregate scan (`00-Overview.md` §5.2) rather than adding a section; the field stays rule-free and a ratio pair per the "never ship an average" rule. The request is all-time because a personal best is a career fact, not a period one.
 Consequences: a version bump invalidates cached `session-result` entries once. The field is in every game's `session-result` response but only Score Training renders it. The date uses a fixed English month table, not `Intl`, because the owner's format (`sept.`, dotted abbreviations) matches no locale's `short` month output. The card grid becomes three columns. `.astro` markup is untested (D101); the SQL ordering, the merge, the fold, the format and the Alpine getters each have tests.
 Supersedes: none (extends D367, D385).
+
+### D396 — `training-result` gives Singles and Doubles Training their own headline and personal best (#738)
+Status: Accepted · Date: 2026-10-03
+Decision: a new `server` section `training-result` (version 1, `games: ["SINGLES_TRAINING", "DOUBLES_TRAINING"]`, `bucketable`, `configSensitive: ["ruleset_version_key", "difficulty", "scoring_mode"]`) folds each board-captured session through its engine reducer and reads the last step: Singles Training's `totalPoints`, Doubles Training's count of hit visits (`outcomes`). Metrics are `Record<configGroupKey, { sessions, total, best }>`: `sessions`/`total` sum and `best` takes the max, so two buckets and two chunks re-aggregate exactly (`mergeMetrics`). Higher is better for both, so the personal best is `best`; the mean is `total / sessions`, derived client-side. Doubles Training gains a `WALKERS` entry in `derived-aims.module.ts`; `derivedGameOf` is untouched, so its aim-recovery and its `sql`-site stored-intent sections are unchanged. `RESULT_DIRECTION` stays `null` for both games: `session-result` is still rule-free and the PB lives in the new section.
+Reason: #615 found the rule-free `session-result` cannot express either game's headline (`turns.total_score` is board value, not the training point or the hit that decides the match) and was closed because the other five null games already had dedicated sections. The author chose a dedicated server-fold section over extending `session-result`, and splitting each config group so Hard/Extreme and Accuracy runs never blend into one PB.
+Consequences: only VISUAL_BOARD sessions are counted — the dart fold reads `v_stats_dart_facts`, which holds board-captured darts with coordinates; keypad (`DETAILED_DARTS`) sessions of either game are not in the headline, as they are not in any other fold-based Singles section. Covering them needs a coordinate-independent dart view, a new migration, and is not done here. The new section leads both pages. Singles V1/V2 sessions that lack the V3 `scoring_mode` field group with an empty value.
+Supersedes: none (resolves #615's remaining gap; extends D370).
