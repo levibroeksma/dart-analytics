@@ -29,9 +29,10 @@ const {
 
 // Lib
 import { cn } from "@client/cn";
+import type { TintName } from "@modules/types";
 
 // Styles
-const tintPresets: Record<string, string> = {
+const tintPresets: Record<TintName, string> = {
   sky: "oklch(68.5% 0.169 237.323)",
   violet: "oklch(45% 0.18 280)",
   rose: "oklch(55% 0.2 15)",
@@ -43,7 +44,7 @@ const tintPresets: Record<string, string> = {
   blue: "oklch(55% 0.2 255)",
 };
 
-const tint = tintPresets[color] ?? color;
+const tint = tintPresets[color as TintName] ?? color;
 const Tag = href ? "a" : "div";
 
 const className = cn(

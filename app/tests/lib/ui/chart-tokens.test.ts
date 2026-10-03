@@ -26,6 +26,10 @@ describe("chart color tokens", () => {
     expect(chartTokenNames().sort()).toEqual(cardTintNames().sort());
   });
 
+  it("types CardWrapper tintPresets by TintName, so the compiler owns the names (#661)", () => {
+    expect(card).toMatch(/const tintPresets: Record<TintName, string>/);
+  });
+
   it("has a grid token", () => {
     expect(css).toMatch(/^\s*--chart-grid:/m);
   });
