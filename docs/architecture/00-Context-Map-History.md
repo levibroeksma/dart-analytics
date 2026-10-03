@@ -17,6 +17,8 @@ updated: 2026-10-03
 
 # Version History
 
+> **Version:** 1.152.0 (2026-10-03 — score-training-stats-sections (#695, #696): Score Training's `/statistics` layout gains treble-rate, session-result, completion and volume sections and a session list, on a shared `periodSection()` fetch helper. D399. Section Catalog 1.6.2 and File Inventory updated.)
+>
 > **Version:** 1.151.0 (2026-10-03 — visit-scoring-first-nine-itest (#697): new `app/tests/integration/visit-scoring.itest.ts` pins `findVisitScoring`'s first-nine ranking against Postgres. It seeds an interleaved 1v1 session (X01 LEG) and a Score Training EXERCISE_BLOCK inside a transaction that always rolls back, and asserts first-nine points/darts count only the owner's first three visits. Not run in this container (no `DATABASE_URL`); `db-rehearsal.yml` runs it. No schema, API or doc-contract change.)
 
 > **Version:** 1.149.0 (2026-10-03 — dartboard-unique-ids (#645): `DartBoard.astro` drops its 22 hard-coded segment ids (`twenty` … `bullseye`). A page mounts several boards (`/statistics` Games tab plus a GAME routine step; the input panel plus `BoardMagnifier`), so the ids duplicated; nothing referenced them (no `getElementById`, no `url(#…)`, no CSS id selector), and the segment classes carry all styling and hit-testing. `dartboard-component-parity.test.ts` now asserts the component carries no id instead of matching `dartboard.svg`'s. `stepGame` getters-only follow-up from the issue stays out of scope. No schema, API or doc-contract change.)

@@ -2,6 +2,8 @@
 import ScoreAverageCard from "./ScoreAverageCard.astro";
 import ScoreTrendSection from "./ScoreTrendSection.astro";
 import ScoreHeatmapSection from "./ScoreHeatmapSection.astro";
+import ScoreStatsSection from "./ScoreStatsSection.astro";
+import ScoreSessionList from "./ScoreSessionList.astro";
 ---
 
 <div
@@ -27,5 +29,65 @@ import ScoreHeatmapSection from "./ScoreHeatmapSection.astro";
     />
   </div>
   <ScoreTrendSection />
+  <ScoreStatsSection
+    factory="scoreTrebleSection"
+    title="Treble rate"
+    stats={[
+      { label: "T20", expr: "fmtRate(summary.t20)" },
+      { label: "T19", expr: "fmtRate(summary.t19)" },
+      { label: "Overall", expr: "fmtRate(summary.overall)" },
+    ]}
+  />
   <ScoreHeatmapSection />
+  <ScoreStatsSection
+    factory="scoreResultSection"
+    title="Session result"
+    stats={[
+      { label: "Sessions", expr: "summary.sessions" },
+      {
+        label: "Average",
+        expr: "summary.average === null ? '—' : Math.round(summary.average)",
+      },
+      {
+        label: "Best",
+        expr: "summary.best === null ? '—' : summary.best.value",
+      },
+    ]}
+  >
+    <a
+      class="text-xs text-accent no-underline hover:text-accent-hover"
+      x-show="summary.best !== null"
+      x-cloak
+      :href="summary.best ? replayHref(summary.best.sessionId) : undefined"
+    >
+      Replay best session
+    </a>
+  </ScoreStatsSection>
+  <ScoreStatsSection
+    factory="scoreCompletionSection"
+    title="Completion"
+    stats={[
+      { label: "Completed", expr: "summary.completed" },
+      { label: "Abandoned", expr: "summary.abandoned" },
+      { label: "Never started", expr: "summary.neverStarted" },
+    ]}
+  >
+    <p
+      class="text-xs text-muted-foreground"
+      x-show="summary.abandonRate !== null"
+      x-cloak
+      x-text="`Abandon rate: ${Math.round(summary.abandonRate * 100)}%`"
+    >
+    </p>
+  </ScoreStatsSection>
+  <ScoreStatsSection
+    factory="scoreVolumeSection"
+    title="Volume"
+    stats={[
+      { label: "Sessions", expr: "summary.sessions" },
+      { label: "Darts", expr: "summary.darts" },
+      { label: "Minutes", expr: "summary.minutes" },
+    ]}
+  />
+  <ScoreSessionList />
 </div>
