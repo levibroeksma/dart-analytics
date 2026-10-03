@@ -78,10 +78,8 @@ describe("DartBoard.astro matches dartboard.svg", () => {
     expect(viewBox).toBe("-220,-220,440,440");
   });
 
-  it("draws every id in the same order", () => {
-    expect(attrValuesIn(astroGroup, "id")).toEqual(
-      attrValuesIn(svgGroup, "id"),
-    );
+  it("carries no id, so a page can mount several boards (#645)", () => {
+    expect(attrValuesIn(astroGroup, "id")).toEqual([]);
   });
 
   it("draws every class in the same order", () => {
