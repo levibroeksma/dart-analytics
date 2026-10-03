@@ -6,7 +6,7 @@
  */
 import Button from "@components/forms/Button.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
-import ScoreReplayCard from "./ScoreReplayCard.astro";
+import ReplayCard from "@components/layout/statistics/ReplayCard.astro";
 ---
 
 <section
@@ -42,7 +42,11 @@ import ScoreReplayCard from "./ScoreReplayCard.astro";
       x-for="row in rows"
       :key="row.id"
     >
-      <ScoreReplayCard />
+      <ReplayCard
+        hrefExpr="row.href"
+        titleExpr="row.date"
+        captionExpr="`${row.average === null ? '—' : row.average.toFixed(1)} avg · ${row.darts} darts · ${row.minutes} min`"
+      />
     </template>
     <div
       class="flex items-center justify-between gap-2"
