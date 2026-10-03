@@ -4,7 +4,10 @@ import {
   sectionsForRoutine,
   sectionsForStep,
 } from "@lib/stats/section-registry";
-import { replayPath } from "@lib/stats/replay-route";
+import {
+  replayPath,
+  routinesLocationFromLocation,
+} from "@lib/stats/replay-route";
 import {
   resolveStepAdapter,
   stepAdapterKey,
@@ -41,6 +44,7 @@ import type {
   GameTypeKey,
   RoutineSectionId,
   RoutineSectionMeta,
+  RoutinesLocation,
   SectionMeta,
   SeriesBucket,
 } from "@lib/types";
@@ -271,9 +275,14 @@ export function routineStatsStore() {
     loading: false,
     error: null as string | null,
     activated: false,
+    initialTab: "games" as "games" | "routines",
+    restore: null as RoutinesLocation | null,
 
-    /** Alpine calls this at registration, on every page — so it fetches nothing; the Routines tab loads through `activate()`. */
-    init(): void {},
+    /** Alpine calls this at registration, on every page — so it fetches nothing; it only reads a `?tab=routines&routine=&step=` location into `initialTab`/`restore`, which `activate()` applies. */
+    init(): void {
+      this.restore = routinesLocationFromLocation();
+      this.initialTab = this.restore === null ? "games" : "routines";
+    },
 
     /**
      * Loads the trained-routine list and selects the first routine, once:
@@ -293,8 +302,15 @@ export function routineStatsStore() {
       } finally {
         this.loading = false;
       }
-      const first = this.routines[0];
-      if (first !== undefined) await this.selectRoutine(first.routineKey);
+      const restored = this.routines.find(
+        (r) => r.routineKey === this.restore?.routineKey,
+      );
+      const chosen = restored ?? this.routines[0];
+      if (chosen === undefined) return;
+      await this.selectRoutine(
+        chosen.routineKey,
+        restored === undefined ? undefined : this.restore?.stepKey,
+      );
     },
 
     /** Whether a load begun for `routineKey` (and `stepKey`, for a step load) still matches the selection. A `stepKey` is only unique within its own routine, so a step load checks both. */
@@ -309,9 +325,9 @@ export function routineStatsStore() {
      * Loads `routineKey`'s header, records its fresh `dataVersion` before
      * any section read (`noteDataVersion`, so a step cached under the same
      * routine goes stale with it), reads both run-level sections, then
-     * selects the first current step.
+     * selects `stepKey` when the routine has it, else the first current step.
      */
-    async selectRoutine(routineKey: string) {
+    async selectRoutine(routineKey: string, stepKey?: string | null) {
       this.routineKey = routineKey;
       this.header = null;
       this.routineSections = {};
@@ -330,7 +346,9 @@ export function routineStatsStore() {
         this.header = header;
         this.routineSections = sections;
         const first =
-          header.steps.find((step) => step.current) ?? header.steps[0];
+          header.steps.find((step) => step.stepKey === stepKey) ??
+          header.steps.find((step) => step.current) ??
+          header.steps[0];
         if (first !== undefined) await this.selectStep(first.stepKey);
       } catch {
         if (this.isSelected(routineKey)) this.error = LOAD_ERROR;

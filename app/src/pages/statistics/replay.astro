@@ -4,7 +4,6 @@ import AppLayout from "@layouts/AppLayout.astro";
 import Badge from "@components/ui/Badge.astro";
 import DartBoard from "@components/ui/DartBoard.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
-import Link from "@components/ui/Link.astro";
 import { GAME_TYPE_BY_RULESET } from "@lib/game/rulesets/capabilities";
 import { GAME_CARDS } from "@lib/game/rulesets/games-visibility";
 
@@ -23,11 +22,13 @@ const scope = JSON.stringify({
     class="space-y-4 p-4"
     x-data={scope}
   >
-    <Link
+    <a
       href="/statistics"
-      variant="ghost"
-      title="Back to statistics"
-    />
+      :href="$store.replay.backHref"
+      class="inline-flex items-center justify-center gap-2 text-sm font-semibold text-muted-foreground no-underline transition-colors duration-150 hover:text-foreground"
+    >
+      Back to statistics
+    </a>
     <h1 class="text-xl font-semibold text-foreground">Replay</h1>
     <ErrorAlert
       showExpr="$store.replay.error"

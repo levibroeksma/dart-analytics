@@ -23,6 +23,12 @@ following the `?routine=` precedent. A dynamic segment would force on-demand
 rendering for a shell that carries no data. A missing or non-UUID `?session=`
 shows the not-found state and sends no request.
 
+Back link: `/statistics`, or, when the header carries `routineKey`, the
+Routines tab at that routine and step
+(`/statistics?tab=routines&routine=<key>&step=<key>`). `/statistics` reads that
+location client-side, opens the Routines tab and restores the selection; an
+unknown routine or step falls back to the first.
+
 Links (decision 12): every session-list row on a game page, every step
 session row on the Routines tab except a Warm-Up step's (D372), and the
 `session-result` PB line (its `bestLowSessionId`/`bestHighSessionId`;

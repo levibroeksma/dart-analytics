@@ -5,7 +5,10 @@ import {
   REPLAY_PRESENTERS,
   STEP_REPLAY_PRESENTERS,
 } from "@lib/stats/replay-presenters";
-import { replaySessionIdFromLocation } from "@lib/stats/replay-route";
+import {
+  replaySessionIdFromLocation,
+  statisticsPath,
+} from "@lib/stats/replay-route";
 import { isDartExerciseKind } from "@lib/stats/section-registry";
 import {
   resolveStepAdapter,
@@ -112,6 +115,14 @@ export function replayStore() {
     loading: false,
     error: null as ReplayLoadError | null,
     selectedIndex: null as number | null,
+
+    /** The back link: the Routines tab at the session's routine and step when it ran as one, else `/statistics`. */
+    get backHref(): string {
+      return statisticsPath(
+        this.header?.routineKey ?? null,
+        this.header?.stepKey ?? null,
+      );
+    },
 
     /**
      * Reads `?session=` and loads the first page. No id, or one the replay
