@@ -14,7 +14,7 @@ import type {
 const ANIMATION_MS = 240;
 const AREA_ALPHA = 0.18;
 const FONT_SIZE = 11;
-const DOUGHNUT_CUTOUT = "68%";
+const DOUGHNUT_CUTOUT = "34%";
 
 const defaultFormat: ChartFormatter = (value) => String(value);
 

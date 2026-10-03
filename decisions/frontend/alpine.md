@@ -198,3 +198,10 @@ Decision: Score Training's `/statistics` layout drops the `volume` section (`sco
 Reason: never-started sessions carry no play, so counting them as abandoned misstated the rate; volume was unwanted and is not to return as it was; unfinished games have nothing worth replaying and a 25-row list buried the cards.
 Consequences: the API `volume` and `completion` sections are unchanged (other games' pages still read them; `neverStarted` stays in the `completion` metrics). Covered by the summaries, factory and session-list tests; `.astro` markup is untested (D101).
 Supersedes: D399 in part (the `volume` section, the completion tiles and the session list's page size and Load more).
+
+### D402 — Score Training: no session-result section, thicker donut, replay in glass
+Status: Accepted · Date: 2026-10-03
+Decision: Score Training's `/statistics` layout drops the `session-result` section (`scoreResultSection`, `scoreResultSummary`, `ScoreResultSummary`, `score-result.data.ts`). The doughnut cutout goes from 68% to 34%, a ring about twice as thick. The replay section sits in a glass container (sibling glass layer, as `ScoreStatsSection.astro`); its `ReplayCard` rows stay link cards. Page order: trend, treble rate, heatmap, completion, replay.
+Reason: sessions differ in length and mode, so a mean counted score or a best score across them is not comparable.
+Consequences: the API `session-result` section is unchanged (the personal-best card and other games still read it). Tests for the removed factory and summary are deleted with their subject.
+Supersedes: D399 in part (the session-result section); D401 in part (page order, donut cutout).

@@ -10,12 +10,6 @@ export type CompletionSummary = {
   abandonRate: number | null;
 };
 
-export type ScoreResultSummary = {
-  sessions: number;
-  average: number | null;
-  best: { value: number; sessionId: string } | null;
-};
-
 export type SessionRow = {
   id: string;
   href: string;
