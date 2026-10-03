@@ -175,7 +175,7 @@ Browser auth traffic now goes through the same-origin `/api/auth` proxy (D172): 
 
 ## Phase 4: Deploy
 
-Deploys are automatic: every push to `main` triggers `.github/workflows/deploy.yml`, which runs quality checks, rehearses the schema change on a throwaway Neon branch, applies migrations and seeds to production, then builds and deploys via `wrangler deploy` (no `--env` flag — targets the single Worker). The whole run is inside the `deploy-production` concurrency group, so two merges cannot race the same migration.
+Deploys are automatic: every push to `main` that touches `app/**`, `database/**` or the deploy workflows triggers `.github/workflows/deploy.yml` (doc-only merges skip it, D392), which runs quality checks, rehearses the schema change on a throwaway Neon branch, applies migrations and seeds to production, then builds and deploys via `wrangler deploy` (no `--env` flag — targets the single Worker). The whole run is inside the `deploy-production` concurrency group, so two merges cannot race the same migration.
 
 **Manual deploy (optional, e.g. for local testing):**
 
