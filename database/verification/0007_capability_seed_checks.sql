@@ -141,6 +141,11 @@ WHERE step = '2';
 -- ------------------------------------------------------------
 -- Step 3: no live exercise_sessions row is left undeclared.
 --
+-- Population: rows with the whole triple set, the rows migration
+-- 0020's MATCH SIMPLE FK constrains. Migration 0029 made the triple
+-- nullable for non-GAME sessions; a NULL never matches a capability
+-- row, so counting those would fail on a healthy database (#384).
+--
 -- This is the exact query from task-2-brief.md Step 4 and the
 -- precondition migration 0020's composite FK depends on. The
 -- inner SELECT reports the total sessions considered alongside
@@ -167,6 +172,9 @@ FROM (
                     )
             ) AS undeclared
         FROM exercise_sessions es
+        WHERE es.ruleset_version_id IS NOT NULL
+            AND es.capture_mode_id IS NOT NULL
+            AND es.input_mode_id IS NOT NULL
     ) counts;
 
 -- ------------------------------------------------------------
