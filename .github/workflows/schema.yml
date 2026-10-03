@@ -1,0 +1,225 @@
+name: schema
+
+# Regenerates app/src/db/schema.ts from a Postgres 16 built by running
+# database/migrations/ from empty, so the committed file is real drizzle-kit
+# output rather than a hand-edited copy (#404). Opens a PR when it differs.
+# Like graph.yml, the commit is unsigned, so landing it is one human merge (D289).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "database/migrations/**"
+      - "database/seeds/**"
+      - "app/package.json"
+      - "app/package-lock.json"
+      - "app/scripts/normalize-schema.ts"
+      - "scripts/refresh-schema.sh"
+      - ".github/workflows/schema.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: schema-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: schema
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgres://postgres:ci@localhost:5432/schema?sslmode=disable
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install
+        working-directory: app
+        run: npm ci
+
+      # Migrate -> seed -> migrate, as db-rehearsal.yml does: a migration like
+      # 0020 cannot apply until a seed has run, so the first pass may stop early.
+      - name: Build the database from the migration chain
+        working-directory: app
+        run: |
+          npm run db:migrate:ci || echo "::warning::first migrate pass stopped; seeding, then retrying"
+          npm run db:seed:ci
+          npm run db:migrate:ci
+          npm run db:status:ci
+
+      - name: Regenerate schema.ts
+        run: bash scripts/refresh-schema.sh
+
+      - name: Check for changes
+        id: check
+        run: |
+          if git diff --quiet -- app/src/db/schema.ts; then
+            echo "schema.ts already current"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            git diff --stat -- app/src/db/schema.ts
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Write PR body
+        if: steps.check.outputs.changed == 'true'
+        env:
+          MAIN_SHA: ${{ github.sha }}
+        run: |
+          {
+            echo "\`app/src/db/schema.ts\` regenerated from \`main\` @ ${MAIN_SHA} on a Postgres 16 built from \`database/migrations/\`."
+            echo
+            echo "Merge this by hand: the commit is authored by \`github-actions[bot]\` and is unsigned, and \`main\`'s ruleset requires verified signatures, so only a bypass actor can land it (D289)."
+            echo
+            echo '```'
+            git diff --stat -- app/src/db/schema.ts
+            echo '```'
+          } > /tmp/schema-pr-body.md
+
+      - name: Commit regenerated schema onto the reused branch
+        if: steps.check.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -C chore/schema-refresh
+          git add app/src/db/schema.ts
+          git commit -m "chore(db): regenerate schema.ts from the migration chain"
+          git push --force origin chore/schema-refresh
+
+      - name: Open or update the refresh PR
+        if: steps.check.outputs.changed == 'true'
+        env:
+          MAIN_SHA: ${{ github.sha }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+            const body = fs.readFileSync("/tmp/schema-pr-body.md", "utf8");
+            const title = "chore(db): regenerate schema.ts from the migration chain";
+            const branch = "chore/schema-refresh";
+            const { owner, repo } = context.repo;
+            const compare = `https://github.com/${owner}/${repo}/compare/main...${branch}?expand=1`;
+
+            const MARKER = "<!-- schema-refresh-blocked -->";
+            const BLOCKED_TITLE = "schema: refresh PR could not be opened";
+            const BLOCKED_LABELS = ["discovered-work", "type:infrastructure", "severity:medium"];
+
+            async function findBlockedIssue() {
+              const issues = await github.paginate(github.rest.issues.listForRepo, {
+                owner,
+                repo,
+                state: "open",
+                labels: "discovered-work",
+                per_page: 100,
+              });
+              return issues.find(
+                (i) =>
+                  !i.pull_request &&
+                  i.user &&
+                  i.user.login === "github-actions[bot]" &&
+                  i.body &&
+                  i.body.includes(MARKER)
+              );
+            }
+
+            const { data: existing } = await github.rest.pulls.list({
+              owner,
+              repo,
+              state: "open",
+              head: `${owner}:${branch}`,
+              base: "main",
+            });
+
+            let pr;
+            if (existing.length > 0) {
+              pr = existing[0];
+              await github.rest.pulls.update({ owner, repo, pull_number: pr.number, title, body });
+              core.notice(`Updated existing schema refresh PR #${pr.number}`);
+            } else {
+              try {
+                const { data: created } = await github.rest.pulls.create({
+                  owner,
+                  repo,
+                  title,
+                  head: branch,
+                  base: "main",
+                  body,
+                });
+                pr = created;
+                core.notice(`Opened schema refresh PR #${pr.number}`);
+              } catch (err) {
+                const forbidden =
+                  err.status === 403 &&
+                  /not permitted to create or approve pull requests/i.test(err.message);
+                if (!forbidden) throw err;
+
+                const issueBody = [
+                  MARKER,
+                  `\`app/src/db/schema.ts\` was regenerated from \`main\` @ ${process.env.MAIN_SHA} and ` +
+                    `pushed to \`${branch}\`, but GitHub Actions is not permitted to open pull ` +
+                    `requests in this repository, so no refresh PR was created.`,
+                  "",
+                  `**Land it now:** [compare main...${branch}](${compare})`,
+                  "",
+                  `**Stop this recurring:** enable *Settings -> Actions -> General -> Workflow ` +
+                    `permissions -> "Allow GitHub Actions to create and approve pull requests"*.`,
+                  "",
+                  `Opened and updated automatically by \`.github/workflows/schema.yml\`; closes itself once a refresh PR opens.`,
+                  "",
+                  body,
+                ].join("\n");
+
+                const blocked = await findBlockedIssue();
+                if (blocked) {
+                  await github.rest.issues.update({
+                    owner,
+                    repo,
+                    issue_number: blocked.number,
+                    body: issueBody,
+                  });
+                  core.warning(`Schema pushed to ${branch}; PR creation still blocked. Updated issue #${blocked.number}.`);
+                } else {
+                  const { data: opened } = await github.rest.issues.create({
+                    owner,
+                    repo,
+                    title: BLOCKED_TITLE,
+                    body: issueBody,
+                    labels: BLOCKED_LABELS,
+                  });
+                  core.warning(`Schema pushed to ${branch}, but Actions cannot open PRs. Filed issue #${opened.number}.`);
+                }
+                return;
+              }
+            }
+
+            const blocked = await findBlockedIssue();
+            if (blocked) {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: blocked.number,
+                body: `Refresh PR #${pr.number} opened successfully — closing.`,
+              });
+              await github.rest.issues.update({ owner, repo, issue_number: blocked.number, state: "closed" });
+            }
+            core.notice(`Refresh PR #${pr.number} is ready: approve and merge it to land schema.ts.`);
