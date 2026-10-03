@@ -225,6 +225,10 @@ describe("statistics section registry", () => {
     }
   });
 
+  it("versions leg-stats at 2 so buckets cached before bestLeg joined the metrics are not reused", () => {
+    expect(SECTIONS["leg-stats"].version).toBe(2);
+  });
+
   it("versions scoring-trend at 2 so closed buckets cached under the old first-nine clause are not reused", () => {
     expect(SECTIONS["scoring-trend"].version).toBe(2);
   });
@@ -409,7 +413,9 @@ describe("statistics section registry", () => {
     ] as const) {
       expect(SECTIONS[id].includesAbandoned).toBe(false);
       expect(SECTIONS[id].params).toEqual([]);
-      expect(SECTIONS[id].version).toBe(id === "scoring-trend" ? 2 : 1);
+      expect(SECTIONS[id].version).toBe(
+        id === "scoring-trend" || id === "leg-stats" ? 2 : 1,
+      );
     }
   });
 

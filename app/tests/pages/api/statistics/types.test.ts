@@ -780,7 +780,7 @@ describe("checkout family series responses", () => {
   it("parses a leg-stats series response", () => {
     const result = LegStatsSeriesResponse.safeParse({
       sectionId: "leg-stats",
-      sectionVersion: 1,
+      sectionVersion: 2,
       dataVersion: "v1:1:0",
       bucket: "none",
       tz: null,
@@ -791,7 +791,13 @@ describe("checkout family series responses", () => {
           end: "2026-02-01T00:00:00Z",
           closed: true,
           sampleSize: 1,
-          metrics: { "18": 1 },
+          metrics: {
+            legs: { "18": 1 },
+            bestLeg: {
+              darts: 18,
+              sessionId: "0190a000-0000-7000-8000-000000000001",
+            },
+          },
         },
       ],
     });
@@ -801,7 +807,7 @@ describe("checkout family series responses", () => {
   it("rejects a leg-stats metrics key that is not a plain integer", () => {
     const result = LegStatsSeriesResponse.safeParse({
       sectionId: "leg-stats",
-      sectionVersion: 1,
+      sectionVersion: 2,
       dataVersion: "v1:1:0",
       bucket: "none",
       tz: null,
@@ -812,7 +818,7 @@ describe("checkout family series responses", () => {
           end: "2026-02-01T00:00:00Z",
           closed: true,
           sampleSize: 1,
-          metrics: { abc: 1 },
+          metrics: { legs: { abc: 1 }, bestLeg: null },
         },
       ],
     });

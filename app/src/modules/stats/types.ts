@@ -594,8 +594,14 @@ export type CheckoutPathMetrics = Record<
 /** `bust-rate` section metrics — one bucket, keyed by the exact `startingRemaining` (phase-3 decision 6). */
 export type BustRateMetrics = Record<string, { visits: number; busts: number }>;
 
-/** `leg-stats` section metrics — one bucket: a darts-per-leg histogram (phase-3 decision 7). */
-export type LegStatsMetrics = Record<string, number>;
+/** The fewest-darts finished leg in a `leg-stats` bucket and the session it was thrown in (section version 2, #638). */
+export type BestLeg = { darts: number; sessionId: string };
+
+/** `leg-stats` section metrics — one bucket: a darts-per-leg histogram (phase-3 decision 7) and the bucket's best leg (version 2). */
+export type LegStatsMetrics = {
+  legs: Record<string, number>;
+  bestLeg: BestLeg | null;
+};
 
 /** `ladder-progress` section metrics — one bucket, keyed by target (phase-3 decision 8). */
 export type LadderProgressMetrics = {

@@ -7,7 +7,7 @@ updated: 2026-10-03
 
 # Statistics — Section Catalog
 
-> **Version:** 1.6.0 (2026-10-03, D396; prior 1.5.0 2026-09-29, D372)
+> **Version:** 1.6.1 (2026-10-03, D397; prior 1.6.0 2026-10-03, D396; prior 1.5.0 2026-09-29, D372)
 >
 > The shared insight-section library and the section list of each game page.
 > Registry fields, tags, compute sites and the query contract are defined once in
@@ -45,7 +45,7 @@ Sections are reusable across games; a page picks them by capability tag
 | `double-performance` | `checkout` | server | double attempts need remaining-before-dart (`double-attempt.module.ts`); counted per dart, keyed per double the remaining requires (D369) | yes | darts at double, hit rate per double, **favorite double** (best rate above a minimum sample) |
 | `checkout-path` | `checkout` | server | route per remaining needs the fold | no | **preferred path by setup shot**: from remaining X, the route taken and how often it finished |
 | `bust-rate` | `checkout` | server | bust is a fold outcome; the shared double-out rule only — a ruleset's early-bust forfeit (121's final-visit rule, TUOD's one-dart rule) is not counted (D369) | yes | busts per remaining-score band |
-| `leg-stats` | `leg` | server | finished legs need the checkout fold; `v_player_leg_facts` has no winner column and counts lost 1v1 legs and the abandoned final leg as legs, which breaks "darts per leg"/"best leg" (D369) | yes | darts per leg, best leg, distribution |
+| `leg-stats` | `leg` | server | finished legs need the checkout fold; `v_player_leg_facts` has no winner column and counts lost 1v1 legs and the abandoned final leg as legs, which breaks "darts per leg"/"best leg" (D369) | yes | darts per leg, best leg (with its session, version 2, D397), distribution |
 | `ladder-progress` | `ladder` | server | target per attempt is a ladder fold | yes | highest target reached, success rate per target band, recovery after a miss |
 | `session-result` | any | sql | rule-free components (`counted_score`, `dart_count`, `turn_count`, min/max per bucket); PB direction per game (`RESULT_DIRECTION`, D367); the best per-session average as a `points`/`darts` pair with its date (`bestAverage`, section version 2, D390) | yes | the session's game-specific result with the personal-best line, where the game's headline is a pure function of the rule-free components |
 | `completion` | any | sql | status counts per bucket | yes | abandon rate; where the player quits (progress and score state at quit); "never started" separated |
