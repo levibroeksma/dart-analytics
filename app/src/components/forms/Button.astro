@@ -6,6 +6,7 @@
  * @param {boolean} [icon] Equal padding on all sides (icon-only / square hit area)
  * @param {boolean} [disabled]
  * @param {string} [ariaLabel] Accessible name (required for icon-only)
+ * @slot default Visible label for text only known at runtime (e.g. an Alpine `x-text` inside `x-for`); replaces `title` when present
  * @param {string} [class] Extra classes
  */
 interface Props {
@@ -17,7 +18,12 @@ interface Props {
   disabled?: boolean;
   ariaLabel?: string;
   class?: string;
-  /** Alpine expression evaluating to a boolean; controls the built-in spinner. */
+  /**
+   * Alpine expression evaluating to a boolean; controls the built-in spinner.
+   * Omitted, it reads `loading` from the enclosing Alpine scope when one is
+   * defined, so a button outside any `loading` scope never spins. A button
+   * whose scope defines an unrelated `loading` must pass `"false"`.
+   */
   loadingExpr?: string;
   [key: string]: unknown;
 }
@@ -41,6 +47,9 @@ import { cn } from "@client/cn";
 
 // Icons
 import LoadingIcon from "@icons/loading.svg";
+
+// Slots
+const hasLabelSlot = Astro.slots.has("default");
 
 // Styles
 const variantClasses = {
@@ -72,7 +81,7 @@ const className = cn(
     x-show={`!(${loadingExpr})`}
     x-cloak
   >
-    {title}
+    {hasLabelSlot ? <slot /> : title}
   </span>
   <LoadingIcon
     x-show={loadingExpr}

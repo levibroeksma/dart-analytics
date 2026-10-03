@@ -2,7 +2,7 @@
 status: canonical
 scope: shared Astro component inventory
 read-when: before writing markup for any recurring UI shape
-updated: 2026-10-01
+updated: 2026-10-03
 -->
 
 # Component Inventory
@@ -45,7 +45,7 @@ evaluated in the page's own Alpine scope.
 | Component | Purpose | Key props |
 | --------- | ------- | --------- |
 | `AppModeForm.astro` | Analytics/recreational app-mode radio picker | none (reads the settings store) |
-| `Button.astro` | **The** standalone action element — never hand-roll a `<button>` | `type`, `variant` (`primary`/`secondary`/`ghost`/`error`/`dashed`), `icon`, `disabled`, `ariaLabel`, `loadingExpr` |
+| `Button.astro` | **The** standalone action element — never hand-roll a `<button>` | `type`, `variant` (`primary`/`secondary`/`ghost`/`error`/`dashed`), `icon`, `disabled`, `ariaLabel`, `loadingExpr` (omitted: reads `loading` from the Alpine scope if defined; pass `"false"` when that scope's `loading` is unrelated), default slot (runtime label such as `x-text`; replaces `title`, D394) |
 | `IconBtn.astro` | Icon-only button, always a perfect circle (`aspect-square` + `rounded-full`); no built-in padding, no text | `type`, `variant` (`primary`/`secondary`/`ghost`/`error`/`dashed`), `disabled`, `ariaLabel` (required) |
 | `HandednessForm.astro` | Left/right-handed radio picker | none (reads the settings store) |
 | `Input.astro` | Styled text/number/email input | `id`, `type`, `name`, `value`, `placeholder`, `error`, `required`, `disabled` |
