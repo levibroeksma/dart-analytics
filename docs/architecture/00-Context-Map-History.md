@@ -17,6 +17,8 @@ updated: 2026-09-30
 
 # Version History
 
+> **Version:** 1.145.0 (2026-10-03 — button-slot: `Button.astro` gains a default slot for runtime labels and documents its ambient `loadingExpr` default. D394; closes #502, #516. Component Inventory row updated.)
+>
 > **Version:** 1.144.0 (2026-10-03 — migration-section-gate: `check-context-map.sh` §2b fails when `03-Migrations.md` lacks a `## NNNN_name.sql` section for a `database/migrations/` file, or documents one that is absent. D393; closes #491. `03-Migrations.md` gains the missing `0046` section.)
 >
 > **Version:** 1.143.0 (2026-10-03 — deploy-path-filter: `deploy.yml` push trigger gains `paths` (`app/**`, `database/**`, the three deploy/quality/rehearsal workflows), so doc-only merges no longer run quality, rehearsal, migration and Worker deploy. D392; closes #438. `app/DEPLOYMENT.md` Phase 4 updated.)

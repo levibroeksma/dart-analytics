@@ -5,7 +5,7 @@ read-when: why an .astro component/routing/prerender choice was made
 load-when: .astro, component, prerender, routing, layout, cn(), props, frontmatter, PWA, manifest, icon, safe-area, nav, page, slot, class composition
 depends-on: decisions/frontend/architecture.md
 related: decisions/frontend/style.md
-updated: 2026-09-17
+updated: 2026-10-03
 -->
 
 | # | Source | Decision | Rationale |
@@ -87,4 +87,11 @@ Status: Accepted · Date: 2026-09-14
 Decision: `SwitchingPanel.astro` and `DoublePatternPanel.astro` render the skeleton every board-input game already uses — `SinglePlayerDisplay` (`isTarget={false}`, total points as the big number) with target/darts/remaining-time `StatRow`s in its `progress` slot, `VisitPreview` beneath it, then the existing `ExerciseBoardInputPanel`. Neither passes `DartBoard`'s `highlightPathExpr`: that overlay stays Warm-Up-only. The step's hidden `setTimeout` deadline is replaced by one countdown `SegmentTimer` (`segmentDurationsSeconds: [durationSeconds]`, `direction: "countdown"`) whose `onTick` publishes `stepRemainingSeconds` and whose `onComplete` runs the engine's `expireTimer()` then `completeCurrentStep()` — the same expiry the `setTimeout` performed. The countdown is read-only; no pause/resume, no `timerPaused` for exercises.
 Reason: the reported "the second game's scoring on 20's doesn't have an input" was not a capture defect — `classify()` resolves the 20 sector correctly and `SwitchingEngine` scores it like any other target. What the screen lacked was every confirmation a game gives: no score in the familiar shape, no per-dart hit/miss mark, no sense of how long the step had left. Reusing the game components rather than inventing panel-specific markup makes the exercise read as what it is. One clock rather than a timer plus a deadline removes the possibility of the display and the expiry disagreeing.
 Consequences: the step now ends with `SegmentTimer`'s completion beep (440 Hz, 0.6 s), where it previously ended silently mid-visit; no interim beeps fire, since `intervalMinutes` is not passed and `tickCountdown`'s `remaining % 0` never matches. `playPreviewSegments` renders exactly three slots, which matches a Switching visit (one pass through `config.targets`) and a Double Pattern visit (one pattern) in the seeded Balanced Training configuration — a future four-target configuration would show only its first three darts. `SwitchingEngine` and `DoublePatternEngine` remain `ExerciseEngine`s (D264): no `RulesetVersionKey`, no seats, no `game_types` row. D101 applies to both panels — markup only, no component test.
+Supersedes: none.
+
+### D394 — `Button.astro` takes a default slot for runtime labels; its ambient `loading` default stays
+Status: Accepted · Date: 2026-10-03
+Decision: `Button.astro` gains an unnamed `<slot />`. When the caller passes default-slot content (`Astro.slots.has("default")`) it renders inside the label `<span>` in place of `title`, under the same `x-show="!(loadingExpr)"` guard, so the spinner swap and `iconBefore`/`iconAfter` slots behave as before. `title` and the slot are mutually exclusive: the slot wins. `loadingExpr`'s default (`typeof loading !== 'undefined' && loading`) is kept and now documented on the prop and in the Component Inventory row.
+Reason: a label known only at runtime (an `x-for` item's name) could not be expressed: `title` resolves at build time and the HTML `title` attribute is a tooltip, so `ExercisePicker.astro` hand-rolled a `<button>` (#502). Changing the `loadingExpr` default to `"false"` (#516) would break every caller that relies on a page scope's `loading` flag without passing the prop, and nothing can list those callers mechanically; documenting the default removes the surprise without that risk.
+Consequences: no existing call site changes. `ExercisePicker.astro`'s tile is a multi-part control (name plus description with its own tile styling) and stays under the CLAUDE.md exemption; the slot is for the next single-label case. `.astro` carries no unit test (D101).
 Supersedes: none.
