@@ -63,6 +63,19 @@ describe("matchesConstraintError", () => {
     expect(matchesConstraintError(looping, MATCH)).toBe(false);
   });
 
+  it("stops on a self-referencing cause after one step, not at the depth cap", () => {
+    let causeReads = 0;
+    const looping = new Error("loop");
+    Object.defineProperty(looping, "cause", {
+      get() {
+        causeReads++;
+        return looping;
+      },
+    });
+    expect(matchesConstraintError(looping, MATCH)).toBe(false);
+    expect(causeReads).toBe(1);
+  });
+
   it("gives up after MAX_CAUSE_DEPTH wrapper layers", () => {
     let current: Error & { cause?: unknown } = Object.assign(
       new Error("bound"),
