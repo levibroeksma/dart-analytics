@@ -255,9 +255,9 @@ Registered for discoverability, not as reading material — the API contract liv
 
 | File | Answers | Status |
 | ---- | ------- | ------ |
-| `app/src/lib/stats/format-statistics-overview.ts` | Pure `formatStatisticsOverview()` — turns `StatisticsOverviewResponseData` into the 19 display strings `StatCard` binds to; owns the `game_type_key` → title lookup table (2026-09-08) | canonical |
+| `app/src/lib/stats/format-statistics-overview.ts` | Pure `formatStatisticsOverview()` — turns `StatisticsOverviewResponseData` into the 19 display strings the (deleted) `StatCard`s bound to — deferred, no consumer while the Statistics page is redesigned (#590); owns the `game_type_key` → title lookup table (2026-09-08) | canonical |
 | `app/src/lib/client/api/statistics.ts` | `fetchStatisticsOverview()` browser client, mirrors `profile.ts`'s `apiRequest`/`*ApiError` shape (2026-09-08) | canonical |
-| `app/src/stores/stats.store.ts` | `stats` Alpine store: loads + formats once via `init()`/`load()`, exposes plain formatted-string fields read by the Statistics page as `$store.stats.*`, registered in `register-stores.ts` (2026-09-08) | canonical |
+| `app/src/stores/stats.store.ts` | `stats` Alpine store: loads + formats once via `init()`/`load()`, exposes plain formatted-string fields as `$store.stats.*` — deferred, built but no page reads it while the Statistics page is redesigned; still fetches `/api/statistics/overview` on every page load (#590); registered in `register-stores.ts` (2026-09-08) | canonical |
 
 ## Detailed statistics pages, phase 1 + 2 (2026-09-26)
 
