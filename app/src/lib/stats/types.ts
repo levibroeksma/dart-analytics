@@ -41,8 +41,7 @@ export type SectionId =
   | "atc-darts-per-target"
   | "bobs27-survival"
   | "shanghai-count"
-  | "training-result"
-  | "heatmap";
+  | "training-result";
 
 /**
  * The declared-intent zones a target key can name (`01-Section-Catalog.md`
@@ -173,7 +172,8 @@ export type ServerSectionId =
   | "atc-darts-per-target"
   | "bobs27-survival"
   | "shanghai-count"
-  | "training-result";
+  | "training-result"
+  | "heatmap";
 
 /** Each server section's own metrics shape, keyed by its id — what `mergeMetrics` (`lib/stats/merge-metrics.ts`) folds over. */
 export type ServerSectionMetrics = {
