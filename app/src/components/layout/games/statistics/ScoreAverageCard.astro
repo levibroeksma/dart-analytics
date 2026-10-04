@@ -1,6 +1,6 @@
 ---
 /**
- * Sky stat card: one average with a caption line under it — the percent
+ * Square glass stat card: one average with a caption line under it — the percent
  * change against the preceding period, or a plain subtext such as the date a
  * personal best was set. Reads from the enclosing `scoreTrendSection()` scope.
  * @param {string} label Card caption
@@ -26,9 +26,6 @@ const {
   loadingExpr = "loading",
 }: Props = Astro.props;
 
-// Components
-import CardWrapper from "@components/ui/CardWrapper.astro";
-
 // Data
 const value = `${loadingExpr} || ${averageExpr} === null ? '—' : ${averageExpr}.toFixed(1)`;
 const showDelta = deltaExpr
@@ -46,9 +43,8 @@ const showSubtext = subtextExpr
 const subtext = subtextExpr ? `${subtextExpr} ?? ''` : "''";
 ---
 
-<CardWrapper
-  color="sky"
-  class="gap-1 text-center"
+<div
+  class="glass flex aspect-square flex-col items-center justify-center gap-1 rounded-2xl p-3.5 text-center"
 >
   <span
     class="font-mono text-3xl font-bold text-accent"
@@ -76,4 +72,4 @@ const subtext = subtextExpr ? `${subtextExpr} ?? ''` : "''";
       />
     )
   }
-</CardWrapper>
+</div>

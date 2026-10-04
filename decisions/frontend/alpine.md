@@ -205,3 +205,10 @@ Decision: Score Training's `/statistics` layout drops the `session-result` secti
 Reason: sessions differ in length and mode, so a mean counted score or a best score across them is not comparable.
 Consequences: the API `session-result` section is unchanged (the personal-best card and other games still read it). Tests for the removed factory and summary are deleted with their subject.
 Supersedes: D399 in part (the session-result section); D401 in part (page order, donut cutout).
+
+### D404 — Score Training: no treble rate, square glass 2x2 stat grid
+Status: Accepted · Date: 2026-10-04
+Decision: Score Training's `/statistics` layout drops the `treble-rate` section. `ScoreAverageCard.astro` renders a square `glass` card instead of a sky `CardWrapper`. The overview groups the 3-dart average, first nine, personal best and the session-result donut (`ScoreCompletionSection.astro`, no longer half-width) in a two-column grid, in that reading order. Page order: stat grid, trend, heatmap, replay.
+Reason: treble rate was not wanted; the tinted cards no longer matched the glass surfaces; the abandon rate belongs beside the averages.
+Consequences: `ScoreStatsSection.astro`, `scoreTrebleSection()` and `trebleSummary()` have no page caller left. The API `treble-rate` section is unchanged.
+Supersedes: D399 in part (treble-rate section); D401, D402 in part (page order, donut width).

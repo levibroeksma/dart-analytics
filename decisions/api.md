@@ -344,3 +344,10 @@ Decision: The frozen `GET /api/sessions/:sessionId/replay` (`ReplayEntry[]`, bac
 Reason: the route was never built and has no caller. The statistics replay reads the same view, and it is paginated, owner-gated and carries a header. Two documented contracts for one view invite a future task to build the wrong one. Aliasing would add a second, unpaginated shape to maintain with no consumer. This follows D321's drop of the unbuilt `/execution` route: the freeze covers what is routed, and a decision is the recorded way to change it.
 Consequences: `06-API/00-Overview.md` drops the route from the Sessions list and the Read Contract table, and keeps a dropped-unbuilt note (version 1.16.1). `06-API/04-Endpoint-Contracts.md` marks the row dropped and removes `ReplayEntry` (version 1.16.3). No code, test, view or migration changes: `v_game_replay` keeps its statistics readers.
 Supersedes: none (settles D371 decision 11).
+
+### D405 — Session list leaves out sessions with no darts
+Status: Accepted · Date: 2026-10-04
+Decision: `GET /api/statistics/games/:gameTypeKey/sessions` (`findGameSessionsPage`) filters `v_stats_session_facts.dart_count > 0` in the query. No migration: the view is unchanged.
+Reason: a session with no darts has nothing to replay and no insight.
+Consequences: never-started abandoned sessions no longer appear in the list; section aggregates (`completion`, `volume`) are unchanged.
+Supersedes: none (narrows D367 decision 4's list population).

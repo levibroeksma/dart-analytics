@@ -348,6 +348,13 @@ describe("findGameSessionsPage", () => {
     expect(statements[0].params).toContain(26);
   });
 
+  it("excludes sessions with no darts", async () => {
+    const { db, statements } = renderingDb([]);
+    await findGameSessionsPage(db, baseQuery);
+    expect(onlyStatement(statements)).toMatch(/"dart_count" > \$/);
+    expect(statements[0].params).toContain(0);
+  });
+
   it("adds context_key = 'ROUTINE' when context=routine", async () => {
     const { db, statements } = renderingDb([]);
     await findGameSessionsPage(db, { ...baseQuery, context: "routine" });
