@@ -358,3 +358,10 @@ Decision: `GameSessionListResponse` gains `totalCount` (non-negative integer): t
 Reason: a pager that shows "4 / 56" needs the page count, and a keyset cursor cannot give one. A server count is exact and costs one extra aggregate query; walking cursors client-side would cost N sequential requests.
 Consequences: the list route runs a second query. The Score Training list caches under its own scope key (`:counted`) while sharing the game's `dataVersion` key, so pages cached without a total are not reused. The routine step session list is unchanged.
 Supersedes: none (extends D367 decision 4, D405).
+
+### D413 — Seatless 121 and TUOD sessions fold with a synthetic solo seat
+Status: Accepted · Date: 2026-10-04
+Decision: `visitsForSession` (`x01-checkout-sessions.module.ts`) no longer skips a 121 or TUOD session whose stored snapshot names no `seats`. It folds with one synthetic solo seat for the owner (`participantRef` = the owner's participant, `sideKey` `"A"`), the same stand-in `derived-aims.module.ts` uses (D370). A missing or undecodable snapshot still skips the session.
+Reason: a routine GAME step stores its step configuration with no `seats` (`startGameStep`), so every routine 121 and TUOD session was dropped from every server fold (`ladder-progress`, `checkout-rate`, `double-performance`, `bust-rate`, `checkout-path`). The 121 personal best finish read 123 while a routine game had reached target 125. The fold is per seat over the owner's own turns, so no other seat can change it.
+Consequences: no schema change. Historical seatless sessions now count too; an already-cached closed bucket of a bucketed server section keeps its old figure until its section `version` is bumped; the all-time personal best request is never closed, so it refetches. Existing tests that pinned the skip now pin the fold.
+Supersedes: none (extends D370).

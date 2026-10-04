@@ -17,6 +17,8 @@ updated: 2026-10-04
 
 # Version History
 
+> **Version:** 1.163.0 (2026-10-04 — stats-seatless-fold: seatless 121/TUOD sessions (routine GAME steps) fold with a synthetic solo seat instead of being skipped. D413. Section Catalog 1.6.11.)
+>
 > **Version:** 1.162.0 (2026-10-04 — stats-121-personal-best-finish: 121's `/statistics` page gets a personal best finish card (highest `ladder-progress` target minus one). D412. Section Catalog 1.6.10 and File Inventory updated.)
 >
 > **Version:** 1.161.0 (2026-10-04 — stats-completion-all-games: the session-result donut becomes game-agnostic (`gameCompletionSection()`, `GameCompletionSection.astro`; `periodSection()` resolves the page-level `game`) and mounts on every `HEATMAP_ONLY_LAYOUTS` page. D411. Section Catalog 1.6.9 and File Inventory updated.)
