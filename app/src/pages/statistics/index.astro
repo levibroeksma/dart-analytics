@@ -4,6 +4,8 @@ import AppLayout from "@layouts/AppLayout.astro";
 import Select from "@components/forms/Select.astro";
 import Toggle from "@components/layout/games/setup/Toggle.astro";
 import ScoreTrainingStatsOverview from "@components/layout/games/statistics/ScoreTrainingStatsOverview.astro";
+import HeatmapStatsOverview from "@components/layout/games/statistics/HeatmapStatsOverview.astro";
+import { HEATMAP_ONLY_LAYOUTS } from "@lib/stats/constants";
 import { GAME_CARDS } from "@lib/game/rulesets/games-visibility";
 import { TREND_RANGE_OPTIONS } from "@lib/stats/sections/score-trend-window";
 
@@ -15,6 +17,7 @@ const gameOptions = GAME_CARDS.map((game) => ({
   value: game.rulesetVersionKey,
   label: game.title,
 }));
+const heatmapOnly = JSON.stringify([...HEATMAP_ONLY_LAYOUTS]);
 const scope = `{ tab: $store.routineStats.initialTab, game: ${JSON.stringify(gameOptions[0]?.value ?? "")}, rangeKey: "30d" }`;
 ---
 
@@ -52,7 +55,12 @@ const scope = `{ tab: $store.routineStats.initialTab, game: ${JSON.stringify(gam
         <template x-if="game === 'SCORE_TRAINING_V1'">
           <ScoreTrainingStatsOverview />
         </template>
-        <template x-if="game !== 'SCORE_TRAINING_V1'">
+        <template x-if={`${heatmapOnly}.includes(game)`}>
+          <HeatmapStatsOverview />
+        </template>
+        <template
+          x-if={`game !== 'SCORE_TRAINING_V1' && !${heatmapOnly}.includes(game)`}
+        >
           <p class="glass rounded-2xl p-4 text-sm text-muted-foreground">
             Statistics for this game are being rebuilt.
           </p>

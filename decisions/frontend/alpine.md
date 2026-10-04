@@ -5,7 +5,7 @@ read-when: why an Alpine store/persist/recovery choice was made
 load-when: Alpine, stores, state, persist, recovery, x-data, x-show, outbox, x-init, idempotency, auth gate, session recovery
 depends-on: decisions/architecture.md, decisions/frontend/architecture.md
 related: decisions/frontend/astro.md, decisions/api.md
-updated: 2026-09-17
+updated: 2026-10-04
 -->
 
 | # | Source | Decision | Rationale |
@@ -212,3 +212,10 @@ Decision: Score Training's `/statistics` layout drops the `treble-rate` section.
 Reason: treble rate was not wanted; the tinted cards no longer matched the glass surfaces; the abandon rate belongs beside the averages.
 Consequences: `ScoreStatsSection.astro` is deleted (fallow dead-code gate). `scoreTrebleSection()` and `trebleSummary()` have no page caller left (#765). The API `treble-rate` section is unchanged.
 Supersedes: D399 in part (treble-rate section); D401, D402 in part (page order, donut width).
+
+### D406 — Heatmap on every plain board game's `/statistics` page
+Status: Accepted · Date: 2026-10-04
+Decision: `scoreHeatmapSection()` becomes `gameHeatmapSection()` and `ScoreHeatmapSection.astro` becomes `GameHeatmapSection.astro`. The factory reads the page-level `game` (a ruleset version key) and resolves it through `GAME_TYPE_BY_RULESET`, reloading on `game` as well as `rangeKey`; an unknown key loads nothing. `HEATMAP_ONLY_LAYOUTS` (`lib/stats/constants.ts`) names 501, 121, Ten Up One Down, Singles Training, Shanghai and Around the Clock; `/statistics` mounts `HeatmapStatsOverview.astro` (the heatmap alone) for them. Requests carry no `target`.
+Reason: the `heatmap` section is already served for every `board` game, so the page was the only gap. One game-agnostic factory keeps Score Training a caller, not a special case, and avoids a second heatmap renderer.
+Consequences: Doubles Training and Bob's 27 (`intent-stored`) keep the placeholder until a target picker is designed. Singles, Shanghai and Around the Clock get no per-target heatmap: their intent is derived and `target` is rejected there. `.astro` markup is untested (D101); the factory, constants and registration are covered.
+Supersedes: none (extends D387).

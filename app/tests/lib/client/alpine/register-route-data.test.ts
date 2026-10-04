@@ -7,7 +7,7 @@ import { routineDetail } from "@lib/training/routines/routine-detail.data";
 import { trainingIndex } from "@lib/training/routines/training-index.data";
 import { statisticsRoutines } from "@lib/training/routines/statistics-routines.data";
 import { scoreTrendSection } from "@lib/stats/sections/score-trend.data";
-import { scoreHeatmapSection } from "@lib/stats/sections/score-heatmap.data";
+import { gameHeatmapSection } from "@lib/stats/sections/game-heatmap.data";
 import { scoreTrebleSection } from "@lib/stats/sections/score-treble.data";
 import { scoreCompletionSection } from "@lib/stats/sections/score-completion.data";
 import { scoreSessionList } from "@lib/stats/sections/score-session-list.data";
@@ -48,13 +48,10 @@ describe("registerRouteData", () => {
     expect(data).toHaveBeenCalledWith("scoreTrendSection", scoreTrendSection);
   });
 
-  it("registers scoreHeatmapSection as an Alpine data factory", () => {
+  it("registers gameHeatmapSection as an Alpine data factory", () => {
     const data = vi.fn();
     registerRouteData({ data } as unknown as Alpine);
-    expect(data).toHaveBeenCalledWith(
-      "scoreHeatmapSection",
-      scoreHeatmapSection,
-    );
+    expect(data).toHaveBeenCalledWith("gameHeatmapSection", gameHeatmapSection);
   });
 
   it.each([
