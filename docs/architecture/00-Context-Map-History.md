@@ -17,6 +17,8 @@ updated: 2026-10-04
 
 # Version History
 
+> **Version:** 1.162.0 (2026-10-04 — stats-121-personal-best-finish: 121's `/statistics` page gets a personal best finish card (highest `ladder-progress` target minus one). D412. Section Catalog 1.6.10 and File Inventory updated.)
+>
 > **Version:** 1.161.0 (2026-10-04 — stats-completion-all-games: the session-result donut becomes game-agnostic (`gameCompletionSection()`, `GameCompletionSection.astro`; `periodSection()` resolves the page-level `game`) and mounts on every `HEATMAP_ONLY_LAYOUTS` page. D411. Section Catalog 1.6.9 and File Inventory updated.)
 >
 > **Version:** 1.160.0 (2026-10-04 — game-replay-sections: every plain board game's `/statistics` page gets the replay list; `scoreSessionList()` becomes `gameSessionList()` (`GameSessionList.astro`), reloading on `game`. D410. Section Catalog 1.6.8 and File Inventory updated.)

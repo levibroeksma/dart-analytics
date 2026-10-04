@@ -247,3 +247,10 @@ Decision: `scoreCompletionSection()` becomes `gameCompletionSection()` (`GameCom
 Reason: the `completion` section is `any`-tag and already served for every game; only the client hard-coded Score Training.
 Consequences: no API or schema change. The donut fills the left cell only; the right cell is empty until another stat card lands there.
 Supersedes: none (extends D401, D402, D410).
+
+### D412 — Personal best finish card on 121's `/statistics` page
+Status: Accepted · Date: 2026-10-04
+Decision: `PersonalBestFinishCard.astro` (`personalBestFinishSection()`) mounts in the right cell beside the donut in `HeatmapStatsOverview.astro` when `game === '121_V1'`. One all-time un-bucketed `ladder-progress` request on mount only (`personalBestWindow()`), reduced by `personalBestFinish()` to the highest `maxTarget` minus one; `null` (shown `—`) with no attempt.
+Reason: the ladder's highest target reached is already a stored-fact fold in `ladder-progress`; the best finish is that minus one, so no new section, view or schema is needed.
+Consequences: no API or schema change. No date subtext: `maxTarget` carries none. Abandoned sessions are excluded (`includesAbandoned: false`). Not browser-checked.
+Supersedes: none (extends D411).

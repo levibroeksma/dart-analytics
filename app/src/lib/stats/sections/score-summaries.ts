@@ -3,7 +3,11 @@ import { replayPath } from "@lib/stats/replay-route";
 import { formatShortDate } from "@lib/stats/sections/score-trend-window";
 import type { GameSessionListResponseData } from "@client/api/types";
 import type { SeriesBucket } from "@lib/types";
-import type { CompletionMetrics, TrebleRateMetrics } from "@modules/types";
+import type {
+  CompletionMetrics,
+  LadderProgressMetrics,
+  TrebleRateMetrics,
+} from "@modules/types";
 
 import type { CompletionSummary, SessionRow, TrebleSummary } from "./types";
 
@@ -71,4 +75,16 @@ export function sessionRow(item: SessionListItem, tz: string): SessionRow {
     darts: item.dartCount,
     minutes: Math.round(item.durationSeconds / 60),
   };
+}
+
+/** 121's personal best finish: the highest target ever reached, minus one (the last target cleared); `null` with no attempt. */
+export function personalBestFinish(
+  buckets: readonly SeriesBucket<LadderProgressMetrics>[],
+): number | null {
+  let max: number | null = null;
+  for (const { metrics } of buckets) {
+    if (metrics.maxTarget === null) continue;
+    max = max === null ? metrics.maxTarget : Math.max(max, metrics.maxTarget);
+  }
+  return max === null || max < 2 ? null : max - 1;
 }
