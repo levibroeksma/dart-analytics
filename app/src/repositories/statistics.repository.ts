@@ -1003,6 +1003,40 @@ export async function findHeatmapCells(
   }));
 }
 
+type GameSessionsFilter = {
+  playerId: string;
+  gameTypeKey: GameTypeKey;
+  from: string;
+  to: string;
+  statuses: string[];
+  context: ContextFilter;
+};
+
+/** The population a game's session list pages over: terminal sessions with darts, before any cursor. */
+function gameSessionConditions(q: GameSessionsFilter) {
+  return [
+    eq(vStatsSessionFacts.playerId, q.playerId),
+    eq(vStatsSessionFacts.gameTypeKey, q.gameTypeKey),
+    gte(vStatsSessionFacts.completedAt, q.from),
+    lt(vStatsSessionFacts.completedAt, q.to),
+    inArray(vStatsSessionFacts.statusKey, q.statuses),
+    gt(vStatsSessionFacts.dartCount, 0),
+    contextCondition(q.context),
+  ];
+}
+
+/** Counts the sessions `findGameSessionsPage` pages over, ignoring any cursor. */
+export async function countGameSessions(
+  db: Db,
+  q: GameSessionsFilter,
+): Promise<number> {
+  const [row] = await db
+    .select({ total: count() })
+    .from(vStatsSessionFacts)
+    .where(and(...gameSessionConditions(q)));
+  return Number(row?.total ?? 0);
+}
+
 /**
  * Reads one page of a game's terminal sessions through
  * `v_stats_session_facts`, newest first (`completed_at DESC, session_id
@@ -1012,25 +1046,13 @@ export async function findHeatmapCells(
  */
 export async function findGameSessionsPage(
   db: Db,
-  q: {
-    playerId: string;
-    gameTypeKey: GameTypeKey;
-    from: string;
-    to: string;
-    statuses: string[];
-    context: ContextFilter;
+  q: GameSessionsFilter & {
     limit: number;
     after?: { completedAt: string; sessionId: string };
   },
 ): Promise<StatsSessionRow[]> {
   const conditions = [
-    eq(vStatsSessionFacts.playerId, q.playerId),
-    eq(vStatsSessionFacts.gameTypeKey, q.gameTypeKey),
-    gte(vStatsSessionFacts.completedAt, q.from),
-    lt(vStatsSessionFacts.completedAt, q.to),
-    inArray(vStatsSessionFacts.statusKey, q.statuses),
-    gt(vStatsSessionFacts.dartCount, 0),
-    contextCondition(q.context),
+    ...gameSessionConditions(q),
     q.after
       ? sql`(${vStatsSessionFacts.completedAt}, ${vStatsSessionFacts.sessionId}) < (${q.after.completedAt}, ${q.after.sessionId})`
       : undefined,

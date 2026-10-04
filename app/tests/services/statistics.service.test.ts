@@ -7,6 +7,7 @@ vi.mock("@repositories/statistics.repository", () => ({
   findLegFacts: vi.fn(),
   findX01CheckoutDarts: vi.fn(),
   findGameSessionsPage: vi.fn(),
+  countGameSessions: vi.fn(),
   findGameDataVersion: vi.fn(),
   findBucketFloor: vi.fn(),
   findBucketedSessionAggregates: vi.fn(),
@@ -498,6 +499,7 @@ describe("listGameSessions", () => {
         completedAt: "2026-01-02T00:00:00.000Z",
       }),
     ]);
+    vi.mocked(repo.countGameSessions).mockResolvedValue(56);
     vi.mocked(repo.findGameDataVersion).mockResolvedValue({
       count: 2,
       maxCompletedAt: "2026-01-03T00:00:00.000Z",
@@ -513,6 +515,7 @@ describe("listGameSessions", () => {
     if (result.ok) {
       expect(result.data.items).toHaveLength(1);
       expect(result.data.nextCursor).not.toBeNull();
+      expect(result.data.totalCount).toBe(56);
     }
   });
 
@@ -520,6 +523,7 @@ describe("listGameSessions", () => {
     vi.mocked(repo.findGameSessionsPage).mockResolvedValue([
       makeSessionRow({}),
     ]);
+    vi.mocked(repo.countGameSessions).mockResolvedValue(1);
     vi.mocked(repo.findGameDataVersion).mockResolvedValue({
       count: 1,
       maxCompletedAt: "2026-01-01T00:00:00.000Z",

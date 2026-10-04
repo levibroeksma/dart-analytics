@@ -32,8 +32,8 @@ function item(id: string) {
   };
 }
 
-function page(ids: string[], nextCursor: string | null) {
-  return { items: ids.map(item), nextCursor, dataVersion: "v1" };
+function page(ids: string[], nextCursor: string | null, totalCount?: number) {
+  return { items: ids.map(item), nextCursor, totalCount, dataVersion: "v1" };
 }
 
 function section() {
@@ -97,6 +97,23 @@ describe("scoreSessionList", () => {
     expect(fetchGameSessions.mock.calls[2][1]).not.toHaveProperty("cursor");
     expect(s.rows.map((r) => r.id)).toEqual(["a"]);
     expect(s.pageNumber).toBe(1);
+  });
+
+  it("derives the page count from the server total", async () => {
+    fetchGameSessions.mockResolvedValue(page(["a"], "c1", 56));
+    const { s } = section();
+    await s.load(NOW);
+    expect(s.totalPages).toBe(6);
+    fetchGameSessions.mockResolvedValue(page(["a"], null, 10));
+    await s.load(NOW);
+    expect(s.totalPages).toBe(1);
+  });
+
+  it("has no page count when the page carries no total", async () => {
+    fetchGameSessions.mockResolvedValue(page(["a"], null));
+    const { s } = section();
+    await s.load(NOW);
+    expect(s.totalPages).toBeNull();
   });
 
   it("ignores next without a cursor", async () => {

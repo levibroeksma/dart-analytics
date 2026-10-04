@@ -351,3 +351,10 @@ Decision: `GET /api/statistics/games/:gameTypeKey/sessions` (`findGameSessionsPa
 Reason: a session with no darts has nothing to replay and no insight.
 Consequences: never-started abandoned sessions no longer appear in the list; section aggregates (`completion`, `volume`) are unchanged.
 Supersedes: none (narrows D367 decision 4's list population).
+
+### D409 — Game session list returns `totalCount`
+Status: Accepted · Date: 2026-10-04
+Decision: `GameSessionListResponse` gains `totalCount` (non-negative integer): the number of sessions the filters match, ignoring `cursor` and `limit`. `countGameSessions` counts over the same conditions as `findGameSessionsPage`, now shared through `gameSessionConditions`. Cursor paging is unchanged. `CachedSessionPage.totalCount` is optional, since the routine step list does not carry it. Score Training's replay pager reads it to show the last page.
+Reason: a pager that shows "4 / 56" needs the page count, and a keyset cursor cannot give one. A server count is exact and costs one extra aggregate query; walking cursors client-side would cost N sequential requests.
+Consequences: the list route runs a second query. The Score Training list caches under its own scope key (`:counted`) while sharing the game's `dataVersion` key, so pages cached without a total are not reused. The routine step session list is unchanged.
+Supersedes: none (extends D367 decision 4, D405).

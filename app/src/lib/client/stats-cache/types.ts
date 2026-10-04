@@ -79,5 +79,6 @@ export type SeriesFetcher<M> = (range: {
 export type CachedSessionPage<T> = {
   items: T[];
   nextCursor: string | null;
+  totalCount?: number;
   dataVersion: string;
 };
