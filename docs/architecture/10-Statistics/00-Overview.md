@@ -178,7 +178,7 @@ silently ignored.
 | `context` | `all` (default for game pages) \| `standalone` \| `routine` | §8 |
 | `inputMode` | `VISUAL_BOARD` (only value in this version) | reserved for recreational sections |
 | `limit`, `cursor` | per `06-API/03-Shared-Conventions.md` §Pagination | every list or raw-row endpoint. The session list orders by `(completed_at DESC, session_id DESC)`; the opaque cursor encodes both (D367 decision 4). |
-| `target` | `<ZONE_KEY>:<number>` (a `TargetKey`, e.g. `DOUBLE:16`) | Only a section that declares `params: ["target"]` accepts it, and only on a game with the `intent-stored` tag (D368 decision 5); joins the client cache's `paramsKey`. Anything else is `VALIDATION_FAILED`. In phase 2 only `heatmap` declares it. |
+| `target` | `<ZONE_KEY>:<number>` (a `TargetKey`, e.g. `DOUBLE:16`) | Only a section that declares `params: ["target"]` accepts it, on a game with the `intent-stored` tag (D368 decision 5), or on an `intent-derived` game with `NUMBER:n` / `BULL:25` only (D408, resolved by the server fold); joins the client cache's `paramsKey`. Anything else is `VALIDATION_FAILED`. Only `heatmap` declares it. |
 
 **Bucket widening (D367 decision 2):** a bucketed request's `from` is floored
 to the start of its own bucket in `tz` before the query runs, and the server
