@@ -6,8 +6,8 @@ vi.mock("@lib/stats/load-game-section", () => ({
   loadGameSection: (...args: unknown[]) => loadGameSection(...args),
 }));
 
-const { scoreHeatmapSection } =
-  await import("@lib/stats/sections/score-heatmap.data");
+const { gameHeatmapSection } =
+  await import("@lib/stats/sections/game-heatmap.data");
 const { HEAT_PEAK_ALPHA } =
   await import("@modules/stats/sections/heatmap-density.module");
 
@@ -33,8 +33,11 @@ function series(cells: [number, number, number][]) {
 
 function section() {
   const watchers: Record<string, () => void> = {};
-  const page = { rangeKey: "30d" as "30d" | "90d" | "1y" | "all" };
-  const own = scoreHeatmapSection();
+  const page = {
+    rangeKey: "30d" as "30d" | "90d" | "1y" | "all",
+    game: "SCORE_TRAINING_V1",
+  };
+  const own = gameHeatmapSection();
   const scope = new Proxy(page, {
     get: (target, key) =>
       key in own ? Reflect.get(own, key) : target[key as "rangeKey"],
@@ -42,7 +45,7 @@ function section() {
   });
   const s = Object.assign(own, {
     $data: scope,
-    $watch: (key: "rangeKey", cb: () => void) => {
+    $watch: (key: "rangeKey" | "game", cb: () => void) => {
       watchers[key] = cb;
     },
   });
@@ -54,7 +57,7 @@ beforeEach(() => {
   loadGameSection.mockResolvedValue(series([]));
 });
 
-describe("scoreHeatmapSection", () => {
+describe("gameHeatmapSection", () => {
   it("starts loading and reads the page period", () => {
     const { s, page } = section();
     expect(s.period).toBe("30d");
@@ -63,7 +66,7 @@ describe("scoreHeatmapSection", () => {
     expect(s.loading).toBe(true);
   });
 
-  it("init loads heatmap for SCORE_TRAINING un-bucketed over the current period", async () => {
+  it("init loads heatmap for the page game un-bucketed over the current period", async () => {
     const { s } = section();
     s.init();
     await vi.waitFor(() => expect(s.loading).toBe(false));
@@ -74,6 +77,32 @@ describe("scoreHeatmapSection", () => {
     expect(range.bucket).toBe("none");
     expect(range).not.toHaveProperty("tz");
     expect(range).not.toHaveProperty("target");
+  });
+
+  it("maps the page's ruleset version to its game type", async () => {
+    const { s, page } = section();
+    page.game = "121_V1";
+    await s.load(NOW);
+    expect(loadGameSection.mock.calls[0][0]).toBe("ONE_TWENTY_ONE");
+  });
+
+  it("loads nothing for an unknown ruleset version", async () => {
+    const { s, page } = section();
+    page.game = "NOPE_V1";
+    await s.load(NOW);
+    expect(loadGameSection).not.toHaveBeenCalled();
+    expect(s.loading).toBe(false);
+    expect(s.isEmpty).toBe(true);
+  });
+
+  it("reloads when the game changes", async () => {
+    const { s, watchers, page } = section();
+    s.init();
+    await vi.waitFor(() => expect(s.loading).toBe(false));
+    page.game = "501_V1";
+    watchers.game();
+    await vi.waitFor(() => expect(loadGameSection).toHaveBeenCalledTimes(2));
+    expect(loadGameSection.mock.calls[1][0]).toBe("501");
   });
 
   it("requests only the current period, not the doubled trend window", async () => {

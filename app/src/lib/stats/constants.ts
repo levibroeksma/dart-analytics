@@ -5,3 +5,13 @@ export const MIN_TARGET_SAMPLE = 30;
 export const DEDICATED_STATS_LAYOUTS: ReadonlySet<string> = new Set([
   "SCORE_TRAINING_V1",
 ]);
+
+/** Ruleset versions whose `/statistics` view is the plain heatmap alone (`HeatmapStatsOverview.astro`): board games with no target picker yet. */
+export const HEATMAP_ONLY_LAYOUTS: ReadonlySet<string> = new Set([
+  "501_V1",
+  "121_V1",
+  "TUOD_V1",
+  "SINGLES_V1",
+  "SHANGHAI_V1",
+  "AROUND_THE_CLOCK_V1",
+]);

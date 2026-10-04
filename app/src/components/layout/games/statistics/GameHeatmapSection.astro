@@ -1,8 +1,8 @@
 ---
 /**
- * Score Training heatmap section: where darts landed over the page-level
- * period, drawn as a density layer on the board. Owns its fetch through
- * `scoreHeatmapSection()`. The glass surface is a sibling layer, not an
+ * Heatmap section: where darts landed over the page-level game and period,
+ * drawn as a density layer on the board. Owns its fetch through
+ * `gameHeatmapSection()`. The glass surface is a sibling layer, not an
  * ancestor, for the same reason as `ScoreTrendSection.astro`.
  */
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
@@ -11,7 +11,7 @@ import StatsDensityHeatmap from "@components/ui/StatsDensityHeatmap.astro";
 
 <section
   class="relative"
-  x-data="scoreHeatmapSection()"
+  x-data="gameHeatmapSection()"
 >
   <div
     class="glass absolute inset-0 rounded-2xl"
