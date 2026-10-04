@@ -6,6 +6,7 @@ import type {
   CheckoutRateMetrics,
   ConfusionMetrics,
   DoublePerformanceMetrics,
+  HeatmapMetrics,
   LadderProgressMetrics,
   LegStatsMetrics,
   LooseDartsMetrics,
@@ -40,7 +41,8 @@ export type SectionId =
   | "atc-darts-per-target"
   | "bobs27-survival"
   | "shanghai-count"
-  | "training-result";
+  | "training-result"
+  | "heatmap";
 
 /**
  * The declared-intent zones a target key can name (`01-Section-Catalog.md`
@@ -189,6 +191,7 @@ export type ServerSectionMetrics = {
   "bobs27-survival": Bobs27SurvivalMetrics;
   "shanghai-count": ShanghaiCountMetrics;
   "training-result": TrainingResultMetrics;
+  heatmap: HeatmapMetrics;
 };
 
 /** One chunked request's span (`00-Overview.md` §4, phase-3 decision 2). */

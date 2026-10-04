@@ -254,6 +254,37 @@ describe("mergeMetrics", () => {
     expect(merged.maxTarget).toBe(121);
   });
 
+  it("sums heatmap cells by ix,iy and keeps cellMm and target", () => {
+    const merged = mergeMetrics(
+      "heatmap",
+      {
+        cellMm: 5,
+        target: "NUMBER:7",
+        cells: [
+          [0, 0, 2],
+          [1, -1, 1],
+        ],
+      },
+      {
+        cellMm: 5,
+        target: "NUMBER:7",
+        cells: [
+          [0, 0, 3],
+          [2, 2, 4],
+        ],
+      },
+    );
+    expect(merged).toEqual({
+      cellMm: 5,
+      target: "NUMBER:7",
+      cells: [
+        [0, 0, 5],
+        [1, -1, 1],
+        [2, 2, 4],
+      ],
+    });
+  });
+
   it("sums target-accuracy leaves", () => {
     const merged = mergeMetrics(
       "target-accuracy",
