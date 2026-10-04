@@ -7,7 +7,7 @@ updated: 2026-10-04
 
 # Statistics — Section Catalog
 
-> **Version:** 1.6.6 (2026-10-04, D407; prior 1.6.5 2026-10-04, D406; prior 1.6.4 2026-10-03, D402; prior 1.6.3 2026-10-03, D401; prior 1.6.2 2026-10-03, D399; prior 1.6.1 2026-10-03, D397; prior 1.6.0 2026-10-03, D396)
+> **Version:** 1.6.7 (2026-10-04, D408; prior 1.6.6 2026-10-04, D407; prior 1.6.5 2026-10-04, D406; prior 1.6.4 2026-10-03, D402; prior 1.6.3 2026-10-03, D401; prior 1.6.2 2026-10-03, D399; prior 1.6.1 2026-10-03, D397; prior 1.6.0 2026-10-03, D396)
 >
 > The shared insight-section library and the section list of each game page.
 > Registry fields, tags, compute sites and the query contract are defined once in
@@ -33,7 +33,7 @@ Sections are reusable across games; a page picks them by capability tag
 
 | Section | Requires | Site | Reason for site | Bucketable | Insight |
 | ------- | -------- | ---- | --------------- | ---------- | ------- |
-| `heatmap` | `board` | sql | grid binning of coordinates collapses months of darts to a fixed grid | no | where darts land in the range; filter by target where intent exists |
+| `heatmap` | `board` | sql | grid binning of coordinates collapses months of darts to a fixed grid | no | where darts land in the range; filter by target where intent exists; on Singles, Shanghai and Around the Clock a filtered request folds server-side (D408) |
 | `grouping` | `board` + `intent-stored` | sql | position moment sums (Σx, Σy, Σx², Σy², Σxy) re-aggregate exactly across buckets; mean/spread/bias are derived isomorphically against `zoneCentroid` (D368) | yes | spread size and bias per target ("pulls low-left on D16") |
 | `miss-direction` | `board` + `intent-*` | sql (stored) / server (derived) | angle sectors are arithmetic against reference points TS binds as parameters (D368); derived intent needs the engine fold | no | direction of misses per target, inside/within/outside the intended ring band |
 | `loose-darts` | `board` + `intent-*` (stored: sql; derived: server) | sql (stored) / server (derived) | SQL counts intended × hit cells; TS classifies each aggregated cell with board geometry, so geometry stays single-sourced (D368) | yes | loose-dart rate per target and its trend |
