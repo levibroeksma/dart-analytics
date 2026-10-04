@@ -84,3 +84,20 @@ export function isAimHit(
   }
   return hit.number === aim.number && hit.zone === aim.zone;
 }
+
+/**
+ * Whether a derived aim key belongs to a picker `target` (`NUMBER:n` or
+ * `BULL:25`): `NUMBER:n` also covers ATC V2's `OUTER_SINGLE:n` aim, since the
+ * picker's key space ignores the ring; any other target is an exact key match.
+ */
+export function aimMatchesTarget(
+  aimKey: string,
+  target: { number: number; zone: IntentZoneKey },
+): boolean {
+  const aim = parseTargetKey(aimKey);
+  if (aim === null || aim.number !== target.number) return false;
+  if (target.zone === "NUMBER") {
+    return aim.zone === "NUMBER" || aim.zone === "OUTER_SINGLE";
+  }
+  return aim.zone === target.zone;
+}

@@ -1,6 +1,12 @@
+import { aimMatchesTarget } from "@lib/stats/target-key";
+import { aimedDarts } from "../derived-aims.module";
 import { isClosed } from "./series.module";
-import type { SeriesBucket, TargetKey } from "@lib/types";
-import type { HeatmapCellRow, HeatmapMetrics } from "@modules/types";
+import type { IntentZoneKey, SeriesBucket, TargetKey } from "@lib/types";
+import type {
+  HeatmapCellRow,
+  HeatmapMetrics,
+  SessionSteps,
+} from "@modules/types";
 
 /** Square heatmap cell size in board millimetres (phase-2 decision 6); changing it bumps the section `version`. */
 export const HEATMAP_CELL_MM = 5;
@@ -28,4 +34,33 @@ export function heatmapBuckets(
       metrics: { cellMm: HEATMAP_CELL_MM, target: ctx.target, cells },
     },
   ];
+}
+
+/**
+ * `findHeatmapCells`'s fold-side twin for a derived game (Group C): every
+ * dart whose recovered aim matches `target`, binned with the same
+ * `floor(x / cellMm)` as the SQL `FLOOR`.
+ */
+export function heatmapCellRowsFromAims(
+  sessions: readonly SessionSteps<unknown>[],
+  target: { number: number; zone: IntentZoneKey },
+): HeatmapCellRow[] {
+  const cells = new Map<string, HeatmapCellRow>();
+
+  for (const session of sessions) {
+    for (const dart of aimedDarts(session)) {
+      if (!aimMatchesTarget(dart.aim, target)) continue;
+      const ix = Math.floor(dart.x / HEATMAP_CELL_MM);
+      const iy = Math.floor(dart.y / HEATMAP_CELL_MM);
+      const key = `${ix},${iy}`;
+      const existing = cells.get(key);
+      if (existing) {
+        existing.darts += 1;
+        continue;
+      }
+      cells.set(key, { ix, iy, darts: 1 });
+    }
+  }
+
+  return [...cells.values()];
 }
