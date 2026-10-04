@@ -3,6 +3,7 @@ import {
   count,
   desc,
   eq,
+  gt,
   gte,
   inArray,
   isNotNull,
@@ -1005,8 +1006,9 @@ export async function findHeatmapCells(
 /**
  * Reads one page of a game's terminal sessions through
  * `v_stats_session_facts`, newest first (`completed_at DESC, session_id
- * DESC` — D367 decision 4). Fetches `limit + 1` rows so the service can
- * detect a further page without a second query.
+ * DESC` — D367 decision 4), leaving out sessions with no darts. Fetches
+ * `limit + 1` rows so the service can detect a further page without a second
+ * query.
  */
 export async function findGameSessionsPage(
   db: Db,
@@ -1027,6 +1029,7 @@ export async function findGameSessionsPage(
     gte(vStatsSessionFacts.completedAt, q.from),
     lt(vStatsSessionFacts.completedAt, q.to),
     inArray(vStatsSessionFacts.statusKey, q.statuses),
+    gt(vStatsSessionFacts.dartCount, 0),
     contextCondition(q.context),
     q.after
       ? sql`(${vStatsSessionFacts.completedAt}, ${vStatsSessionFacts.sessionId}) < (${q.after.completedAt}, ${q.after.sessionId})`

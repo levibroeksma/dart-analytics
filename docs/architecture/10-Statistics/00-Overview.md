@@ -229,7 +229,7 @@ view-backed end to end (D63).
 
 | Route | Returns | Status |
 | ----- | ------- | ------ |
-| `GET games/:gameTypeKey/sessions` | paginated session list for the page (completed + abandoned, with progress-at-end), newest first | built (phase 1) |
+| `GET games/:gameTypeKey/sessions` | paginated session list for the page (completed + abandoned, with progress-at-end; sessions with no darts left out, D405), newest first | built (phase 1) |
 | `GET games/:gameTypeKey/sections/:sectionId` | one section result (`Series` or single value), dispatched through the registry; unknown or non-applicable section → `NOT_FOUND` | built (phase 1: `completion`/`volume`/`session-result`; phase 2: `heatmap`/`target-accuracy`/`confusion`/`grouping`/`miss-direction`/`loose-darts`; phase 3: `checkout-rate`/`double-performance`/`checkout-path`/`bust-rate`/`ladder-progress`/`leg-stats`/`scoring-trend`/`treble-rate`; phase 4: `target-accuracy`/`confusion`/`miss-direction`/`loose-darts` widened onto Singles Training/Shanghai/Around the Clock, plus `shanghai-count`/`atc-darts-per-target`/`bobs27-survival`) |
 | `GET sessions/:sessionId/replay` | paginated replay (`02-Replay.md`) | built (phase 5, D371; training steps, phase 6, D372) |
 | `GET routines` | every routine the caller has trained, newest run first, unpaginated | built (phase 6, D372) |

@@ -2,7 +2,6 @@
 import ScoreAverageCard from "./ScoreAverageCard.astro";
 import ScoreTrendSection from "./ScoreTrendSection.astro";
 import ScoreHeatmapSection from "./ScoreHeatmapSection.astro";
-import ScoreStatsSection from "./ScoreStatsSection.astro";
 import ScoreCompletionSection from "./ScoreCompletionSection.astro";
 import ScoreSessionList from "./ScoreSessionList.astro";
 ---
@@ -11,7 +10,7 @@ import ScoreSessionList from "./ScoreSessionList.astro";
   class="flex flex-col gap-2"
   x-data="scoreTrendSection()"
 >
-  <div class="grid grid-cols-3 gap-2">
+  <div class="grid grid-cols-2 gap-2">
     <ScoreAverageCard
       label="3-dart average"
       averageExpr="averages.threeDart"
@@ -28,18 +27,9 @@ import ScoreSessionList from "./ScoreSessionList.astro";
       subtextExpr="personalBestDate"
       loadingExpr="personalBestLoading"
     />
+    <ScoreCompletionSection />
   </div>
   <ScoreTrendSection />
-  <ScoreStatsSection
-    factory="scoreTrebleSection"
-    title="Treble rate"
-    stats={[
-      { label: "T20", expr: "fmtRate(summary.t20)" },
-      { label: "T19", expr: "fmtRate(summary.t19)" },
-      { label: "Overall", expr: "fmtRate(summary.overall)" },
-    ]}
-  />
   <ScoreHeatmapSection />
-  <ScoreCompletionSection />
   <ScoreSessionList />
 </div>

@@ -17,6 +17,8 @@ updated: 2026-10-04
 
 # Version History
 
+> **Version:** 1.156.0 (2026-10-04 — score-stats-grid-replay-filter: Score Training drops treble rate, shows the averages, personal best and session result as a square glass 2x2 grid (D404); the game session list leaves out dartless sessions (D405). Section Catalog, Statistics Overview and File Inventory rows updated.)
+>
 > **Version:** 1.155.0 (2026-10-04 — retire-frozen-replay (#636): the frozen, never-built `GET /api/sessions/:sessionId/replay` and its `ReplayEntry` schema are dropped; the statistics replay (D371) is the only replay route. D403. API Overview 1.16.1, Endpoint Contracts 1.16.3; File Inventory rows updated.)
 >
 > **Version:** 1.154.0 (2026-10-03 — score-stats-replay-glass: Score Training drops the session-result section, thickens the donut (cutout 34%) and wraps the replay list in a glass container. D402. Section Catalog 1.6.4 and File Inventory updated.)
