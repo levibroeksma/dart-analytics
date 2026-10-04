@@ -2,7 +2,7 @@
 status: historical
 scope: context-map version history and point-in-time task records
 read-when: never during a task — provenance only
-updated: 2026-10-03
+updated: 2026-10-04
 -->
 
 # Context Map History
@@ -17,6 +17,8 @@ updated: 2026-10-03
 
 # Version History
 
+> **Version:** 1.155.0 (2026-10-04 — retire-frozen-replay (#636): the frozen, never-built `GET /api/sessions/:sessionId/replay` and its `ReplayEntry` schema are dropped; the statistics replay (D371) is the only replay route. D403. API Overview 1.16.1, Endpoint Contracts 1.16.3; File Inventory rows updated.)
+>
 > **Version:** 1.154.0 (2026-10-03 — score-stats-replay-glass: Score Training drops the session-result section, thickens the donut (cutout 34%) and wraps the replay list in a glass container. D402. Section Catalog 1.6.4 and File Inventory updated.)
 >
 > **Version:** 1.153.0 (2026-10-03 — score-stats-session-result-replay: Score Training's `/statistics` layout drops the volume section, shows completion as a completed-vs-abandoned donut that ignores never-started sessions, and turns the session list into a completed-only replay list of play-icon cards, 10 per page. D401. Section Catalog 1.6.3 and File Inventory updated.)
