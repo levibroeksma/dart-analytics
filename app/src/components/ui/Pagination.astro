@@ -1,0 +1,111 @@
+---
+/**
+ * Segmented pager: previous chevron, current page, next chevron, in one glass
+ * pill. Every prop but `ariaLabel` is an Alpine expression read from the
+ * enclosing scope. Without `totalExpr` only the current page shows, for a
+ * cursor-paged list whose page count is unknown.
+ * @param {string} pageExpr Alpine expression yielding the 1-based current page
+ * @param {string} [totalExpr] Alpine expression yielding the page count
+ * @param {string} hasPreviousExpr Alpine expression: a previous page exists
+ * @param {string} hasNextExpr Alpine expression: a next page exists
+ * @param {string} onPrevious Alpine expression run on Previous
+ * @param {string} onNext Alpine expression run on Next
+ * @param {string} [disabledExpr] Alpine expression: disable both buttons, e.g. while loading
+ * @param {string} [ariaLabel] Accessible name of the pager
+ * @param {string} [class] Extra classes
+ */
+interface Props {
+  pageExpr: string;
+  totalExpr?: string;
+  hasPreviousExpr: string;
+  hasNextExpr: string;
+  onPrevious: string;
+  onNext: string;
+  disabledExpr?: string;
+  ariaLabel?: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+// Props
+const {
+  pageExpr,
+  totalExpr,
+  hasPreviousExpr,
+  hasNextExpr,
+  onPrevious,
+  onNext,
+  disabledExpr = "false",
+  ariaLabel = "Pagination",
+  class: classNameProp,
+  ...props
+}: Props = Astro.props;
+
+// Components
+import Button from "@components/forms/Button.astro";
+
+// Lib
+import { cn } from "@client/cn";
+
+// Icons
+import ChevronDownIcon from "@icons/chevron-down.svg";
+
+// Styles
+const wrapperClass = cn(
+  "glass mx-auto flex w-fit items-stretch overflow-hidden rounded-xl",
+  classNameProp,
+);
+const stepClass = "h-11 w-14 rounded-none px-0";
+---
+
+<nav
+  class={wrapperClass}
+  aria-label={ariaLabel}
+  {...props}
+>
+  <Button
+    variant="ghost"
+    class={stepClass}
+    loadingExpr="false"
+    ariaLabel="Previous page"
+    :disabled={`!(${hasPreviousExpr}) || (${disabledExpr})`}
+    @click={onPrevious}
+  >
+    <ChevronDownIcon
+      slot="iconBefore"
+      class="size-5 rotate-90"
+      aria-hidden="true"
+    />
+  </Button>
+  <p
+    class="flex min-w-24 items-center justify-center gap-1 border-x border-border px-4 text-sm tabular-nums"
+    aria-live="polite"
+  >
+    <span
+      class="font-semibold text-foreground"
+      x-text={pageExpr}
+    >
+    </span>
+    {
+      totalExpr && (
+        <span class="text-muted-foreground">
+          / <span x-text={totalExpr} />
+        </span>
+      )
+    }
+  </p>
+  <Button
+    variant="ghost"
+    class={stepClass}
+    loadingExpr="false"
+    ariaLabel="Next page"
+    :disabled={`!(${hasNextExpr}) || (${disabledExpr})`}
+    @click={onNext}
+  >
+    <ChevronDownIcon
+      slot="iconBefore"
+      class="size-5 -rotate-90"
+      aria-hidden="true"
+    />
+  </Button>
+</nav>

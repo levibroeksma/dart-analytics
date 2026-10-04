@@ -120,8 +120,8 @@ export function scoreSessionList() {
       return this.pageIndex > 0;
     },
 
-    get pageLabel(): string {
-      return `Page ${this.pageIndex + 1}`;
+    get pageNumber(): number {
+      return this.pageIndex + 1;
     },
 
     get isEmpty(): boolean {
