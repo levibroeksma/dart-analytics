@@ -578,6 +578,67 @@ describe("readSection (site resolved per game, phase-4 decision 5)", () => {
     expect(result.buckets).toHaveLength(2);
   });
 
+  it("chunks a filtered heatmap on SHANGHAI by month and merges the cells, but not an unfiltered one", async () => {
+    const query = {
+      bucket: "none" as const,
+      tz: "UTC",
+      context: "all" as const,
+      inputMode: "VISUAL_BOARD",
+      from: "2026-01-01T00:00:00.000Z",
+      to: "2026-03-01T00:00:00.000Z",
+    };
+    const heat = (from: string, to: string) => ({
+      sectionId: "heatmap",
+      sectionVersion: 2,
+      dataVersion: "v1:1:0",
+      bucket: "none" as const,
+      tz: null,
+      range: { from, to },
+      buckets: [
+        {
+          start: from,
+          end: to,
+          closed: true,
+          sampleSize: 1,
+          metrics: { cellMm: 5, target: "NUMBER:7", cells: [[0, 0, 1]] },
+        },
+      ],
+    });
+    const fetcher = vi
+      .fn()
+      .mockImplementation((span: { from: string; to: string }) =>
+        Promise.resolve(heat(span.from, span.to)),
+      );
+
+    const filtered = await readSection(
+      "p1",
+      gameScope("SHANGHAI"),
+      SECTIONS.heatmap,
+      { ...query, target: "NUMBER:7" },
+      fetcher as never,
+      new Date("2026-04-01T00:00:00.000Z"),
+    );
+
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(filtered.buckets[0]!.metrics).toEqual({
+      cellMm: 5,
+      target: "NUMBER:7",
+      cells: [[0, 0, 2]],
+    });
+    expect(filtered.buckets[0]!.sampleSize).toBe(2);
+
+    fetcher.mockClear();
+    await readSection(
+      "p1",
+      gameScope("SHANGHAI"),
+      SECTIONS.heatmap,
+      query,
+      fetcher as never,
+      new Date("2026-04-01T00:00:00.000Z"),
+    );
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
   it("does not chunk target-accuracy on DOUBLES_TRAINING, whose only intent tag resolves it to sql", async () => {
     const query = {
       bucket: "month" as const,
