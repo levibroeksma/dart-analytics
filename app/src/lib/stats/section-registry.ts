@@ -217,9 +217,10 @@ export const SECTIONS: Readonly<Record<SectionId, SectionMeta>> = {
   },
   heatmap: {
     id: "heatmap",
-    version: 1,
+    version: 2,
     requires: ["board"],
     computeSite: "sql",
+    siteByTagWhenFiltered: DERIVED_ON_SERVER,
     bucketable: false,
     includesAbandoned: false,
     configSensitive: [],
@@ -325,12 +326,20 @@ export const PAGE_ORDER_OVERRIDES: Partial<
   ],
 };
 
-/** Where a section's numbers are computed for a game: the first `siteByTag` entry whose tag the game carries, else `computeSite` (phase-4 decision 5). */
+/** Where a section's numbers are computed for a game: the first `siteByTag` entry whose tag the game carries, else `computeSite` (phase-4 decision 5); with `hasTarget`, `siteByTagWhenFiltered` is consulted first. */
 export function sectionSite(
   meta: SectionMeta,
   gameTypeKey: GameTypeKey,
+  hasTarget = false,
 ): ComputeSite {
   const tags = tagsForGameType(gameTypeKey);
+  if (hasTarget) {
+    for (const [tag, site] of Object.entries(
+      meta.siteByTagWhenFiltered ?? {},
+    )) {
+      if (tags.has(tag as StatsTag)) return site as ComputeSite;
+    }
+  }
   for (const [tag, site] of Object.entries(meta.siteByTag ?? {})) {
     if (tags.has(tag as StatsTag)) return site as ComputeSite;
   }
