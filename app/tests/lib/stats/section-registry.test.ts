@@ -221,7 +221,7 @@ describe("statistics section registry", () => {
       expect(SECTIONS[id].computeSite).toBe("sql");
       expect(SECTIONS[id].includesAbandoned).toBe(false);
       expect(SECTIONS[id].configSensitive).toEqual([]);
-      expect(SECTIONS[id].version).toBe(1);
+      expect(SECTIONS[id].version).toBe(id === "heatmap" ? 2 : 1);
     }
   });
 
@@ -299,6 +299,27 @@ describe("statistics section registry", () => {
       expect(sectionSite(SECTIONS[id], "DOUBLES_TRAINING")).toBe("sql");
       expect(sectionSite(SECTIONS[id], "BOBS27")).toBe("sql");
     }
+  });
+
+  it("resolves heatmap to server only for a derived game with a target", () => {
+    const meta = SECTIONS.heatmap;
+    for (const game of [
+      "SHANGHAI",
+      "SINGLES_TRAINING",
+      "AROUND_THE_CLOCK",
+    ] as const) {
+      expect(sectionSite(meta, game)).toBe("sql");
+      expect(sectionSite(meta, game, true)).toBe("server");
+    }
+    expect(sectionSite(meta, "DOUBLES_TRAINING", true)).toBe("sql");
+    expect(sectionSite(meta, "BOBS27", true)).toBe("sql");
+    expect(sectionSite(SECTIONS["target-accuracy"], "SHANGHAI", true)).toBe(
+      "server",
+    );
+  });
+
+  it("versions heatmap at 2 so cached heatmaps are not reused after the derived-target change", () => {
+    expect(SECTIONS.heatmap.version).toBe(2);
   });
 
   it("falls back to computeSite when a section declares no siteByTag", () => {
