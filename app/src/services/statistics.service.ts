@@ -58,6 +58,7 @@ import { groupingBuckets } from "@modules/stats/sections/grouping.module";
 import {
   HEATMAP_CELL_MM,
   heatmapBuckets,
+  heatmapCellRowsFromAims,
 } from "@modules/stats/sections/heatmap.module";
 import { aimCellRows } from "@modules/stats/sections/intent-cells.module";
 import { ladderProgressBuckets } from "@modules/stats/sections/ladder-progress.module";
@@ -463,6 +464,16 @@ function targetAccuracyFromSessions(
   return targetAccuracyBuckets(aimCellRows(sessions), ctx);
 }
 
+/** `heatmap`'s `server`-site shape (Group C): a derived game's darts aimed at the requested target, binned like the SQL cells. */
+function heatmapFromSessions(
+  sessions: readonly SessionSteps<unknown>[],
+  ctx: ShapeContext,
+): SeriesBucket<unknown>[] {
+  const target = ctx.target === null ? null : parseTargetKey(ctx.target);
+  if (target === null) return [];
+  return heatmapBuckets(heatmapCellRowsFromAims(sessions, target), ctx);
+}
+
 /** `confusion`'s `server`-site shape (phase-4 decision 1): the fold's recovered aims, fed through phase-2's own bucket function. */
 function confusionFromSessions(
   sessions: readonly SessionSteps<unknown>[],
@@ -520,7 +531,10 @@ const HANDLERS: Record<
     sql: handler(loadMissSectors, missDirectionBuckets),
     server: stepsHandler(missDirectionFromSessions),
   },
-  heatmap: { sql: handler(loadHeatmapCells, heatmapBuckets) },
+  heatmap: {
+    sql: handler(loadHeatmapCells, heatmapBuckets),
+    server: stepsHandler(heatmapFromSessions),
+  },
   "scoring-trend": { sql: handler(loadVisitScoring, scoringTrendBuckets) },
   "treble-rate": { sql: handler(loadHitNumberCells, trebleRateBuckets) },
   "ladder-progress": { server: handler(foldLoad, ladderProgressBuckets) },
@@ -544,8 +558,11 @@ const HANDLERS: Record<
 export function resolveSectionHandler(
   sectionId: SectionId,
   gameTypeKey: GameTypeKey,
+  hasTarget = false,
 ): SectionHandler | undefined {
-  return HANDLERS[sectionId][sectionSite(SECTIONS[sectionId], gameTypeKey)];
+  return HANDLERS[sectionId][
+    sectionSite(SECTIONS[sectionId], gameTypeKey, hasTarget)
+  ];
 }
 
 /**
@@ -671,10 +688,18 @@ function sectionTarget(
   if (!meta.params.includes("target")) {
     return { error: "this section does not accept target" };
   }
-  if (!tagsForGameType(gameTypeKey).has("intent-stored")) {
+  const tags = tagsForGameType(gameTypeKey);
+  if (tags.has("intent-stored")) {
+    return { target: parseTargetKey(targetParam) };
+  }
+  if (!tags.has("intent-derived")) {
     return { error: "target requires an intent-stored game" };
   }
-  return { target: parseTargetKey(targetParam) };
+  const parsed = parseTargetKey(targetParam);
+  if (parsed === null || (parsed.zone !== "NUMBER" && parsed.zone !== "BULL")) {
+    return { error: "target must be NUMBER:n or BULL:25 on this game" };
+  }
+  return { target: parsed };
 }
 
 /** `resolveGameSectionRequest`'s success shape: everything `dispatchGameSection` needs to build its `SectionContext` once every check has passed. */
@@ -863,8 +888,13 @@ async function resolveGameSectionSite(
   meta: SectionMeta,
   ctx: SectionContext,
 ): Promise<{ handler: SectionHandler } | { error: string }> {
-  const site = sectionSite(meta, gameTypeKey);
-  const sectionHandler = resolveSectionHandler(sectionId, gameTypeKey);
+  const hasTarget = ctx.target !== null;
+  const site = sectionSite(meta, gameTypeKey, hasTarget);
+  const sectionHandler = resolveSectionHandler(
+    sectionId,
+    gameTypeKey,
+    hasTarget,
+  );
   if (sectionHandler === undefined) {
     throw new Error(`no ${site} handler registered for section "${sectionId}"`);
   }

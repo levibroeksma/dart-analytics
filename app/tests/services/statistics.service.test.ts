@@ -1612,19 +1612,77 @@ describe("getGameSection dispatches derived-intent and game-specific sections (p
     }
   });
 
-  it("returns VALIDATION_FAILED for heatmap+target on SHANGHAI (decision 16: derived games get no heatmap target filter)", async () => {
+  it("rejects a non-NUMBER/BULL heatmap target on SHANGHAI", async () => {
+    for (const target of ["DOUBLE:16", "BULL:20", "NUMBER:21"]) {
+      const result = await getGameSection(playerId, "SHANGHAI", "heatmap", {
+        ...baseRangeQuery,
+        status: "completed",
+        target,
+      });
+
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.code).toBe("VALIDATION_FAILED");
+        expect(result.details?.reason).toContain("target");
+      }
+    }
+    expect(repo.findHeatmapCells).not.toHaveBeenCalled();
+    expect(repo.findDartFoldRows).not.toHaveBeenCalled();
+  });
+
+  it("folds a NUMBER target heatmap on SHANGHAI through findDartFoldRows", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 1,
+      maxCompletedAt: null,
+    });
+    vi.mocked(repo.findScopeDartCount).mockResolvedValue(1);
+    vi.mocked(repo.findDartFoldRows).mockResolvedValue([
+      makeShanghaiFoldRow({ locationX: -2.5, locationY: 5 }),
+    ] as never);
+
     const result = await getGameSection(playerId, "SHANGHAI", "heatmap", {
       ...baseRangeQuery,
       status: "completed",
-      target: "NUMBER:20",
+      target: "NUMBER:1",
     });
 
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.code).toBe("VALIDATION_FAILED");
-      expect(result.details?.reason).toContain("target");
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.buckets[0]!.metrics).toEqual({
+        cellMm: 5,
+        target: "NUMBER:1",
+        cells: [[-1, 1, 1]],
+      });
+      expect(
+        (result.data as { skippedSessions?: number }).skippedSessions,
+      ).toBe(0);
     }
+    expect(repo.findDartFoldRows).toHaveBeenCalled();
     expect(repo.findHeatmapCells).not.toHaveBeenCalled();
+  });
+
+  it("keeps the unfiltered heatmap on SHANGHAI in SQL", async () => {
+    vi.mocked(repo.findHeatmapCells).mockResolvedValue([]);
+
+    const result = await getGameSection(playerId, "SHANGHAI", "heatmap", {
+      ...baseRangeQuery,
+      status: "completed",
+    });
+
+    expect(result.ok).toBe(true);
+    expect(repo.findHeatmapCells).toHaveBeenCalled();
+    expect(repo.findDartFoldRows).not.toHaveBeenCalled();
+  });
+
+  it("resolves a heatmap handler on every derived game with and without a target", () => {
+    for (const game of [
+      "SHANGHAI",
+      "SINGLES_TRAINING",
+      "AROUND_THE_CLOCK",
+    ] as const) {
+      expect(resolveSectionHandler("heatmap", game)).toBeDefined();
+      expect(resolveSectionHandler("heatmap", game, true)).toBeDefined();
+    }
   });
 });
 
