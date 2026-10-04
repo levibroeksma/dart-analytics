@@ -2,12 +2,12 @@
 status: canonical
 scope: api/contract-baseline
 read-when: any API work (frozen v1 baseline)
-updated: 2026-09-29
+updated: 2026-10-04
 -->
 
 # API Overview
 
-> **Version:** 1.16.0 (statistics phase 6 shipped: the five `GET /api/statistics/routines*` routes routed against `v_stats_routine_run_facts` + `v_stats_routine_step_facts`; the replay route also serves non-game training step sessions, D372, 2026-09-29; prior 1.15.0 statistics phase 5 shipped: `GET /api/statistics/sessions/:sessionId/replay` routed against `v_stats_session_facts` + `v_game_replay`, D371, 2026-09-28; prior 1.14.0 statistics phase 1 shipped: `GET /api/statistics/games/:gameTypeKey/sessions` and `/sections/:sectionId` routed against `v_stats_session_facts`, D367, 2026-09-26; prior 1.13.0 `GET /api/training-sessions/completed` added, D353, 2026-09-22; prior 1.12.0 session participants frozen bullet restated as shipped: 1-4 seats via an optional `participants[]` input, exactly one `PLAYER` seat required, `GUEST`/`DARTBOT` seats implemented and capped per ruleset by `SEAT_CAPS` — D350, supersedes D61, 2026-09-21; prior 1.11.0 weekly training schedules shipped: `/api/schedules` route surface — list, get, active, create, replace, activate, deactivate, delete — added against `v_training_schedules`/`v_training_schedule_days`; D342/D343, 2026-09-20; prior 1.10.0 custom-routine-builder shipped: the routine reads, `GET /api/exercise-templates`, and the routine writes all drop their "planned"/"not implemented" tags, 2026-09-19; prior 1.9.0 activity grouping restated as shipped — D301, 2026-09-17; prior 1.8.0 — `GET /api/statistics/overview` routed, 2026-09-06)
+> **Version:** 1.16.1 (frozen `GET /api/sessions/:sessionId/replay` dropped unbuilt — the statistics replay serves it; D403, 2026-10-04; prior 1.16.0 statistics phase 6 shipped: the five `GET /api/statistics/routines*` routes routed against `v_stats_routine_run_facts` + `v_stats_routine_step_facts`; the replay route also serves non-game training step sessions, D372, 2026-09-29; prior 1.15.0 statistics phase 5 shipped: `GET /api/statistics/sessions/:sessionId/replay` routed against `v_stats_session_facts` + `v_game_replay`, D371, 2026-09-28; prior 1.14.0 statistics phase 1 shipped: `GET /api/statistics/games/:gameTypeKey/sessions` and `/sections/:sectionId` routed against `v_stats_session_facts`, D367, 2026-09-26; prior 1.13.0 `GET /api/training-sessions/completed` added, D353, 2026-09-22; prior 1.12.0 session participants frozen bullet restated as shipped: 1-4 seats via an optional `participants[]` input, exactly one `PLAYER` seat required, `GUEST`/`DARTBOT` seats implemented and capped per ruleset by `SEAT_CAPS` — D350, supersedes D61, 2026-09-21; prior 1.11.0 weekly training schedules shipped: `/api/schedules` route surface — list, get, active, create, replace, activate, deactivate, delete — added against `v_training_schedules`/`v_training_schedule_days`; D342/D343, 2026-09-20; prior 1.10.0 custom-routine-builder shipped: the routine reads, `GET /api/exercise-templates`, and the routine writes all drop their "planned"/"not implemented" tags, 2026-09-19; prior 1.9.0 activity grouping restated as shipped — D301, 2026-09-17; prior 1.8.0 — `GET /api/statistics/overview` routed, 2026-09-06)
 >
 > Canonical API baseline for Cloudflare Workers deployment in `app/`.
 
@@ -58,10 +58,11 @@ Resource-first REST by domain.
 - `GET /api/sessions/:sessionId`
 - `PATCH /api/sessions/:sessionId`
 - `POST /api/sessions/:sessionId/events/batch`
-- `GET /api/sessions/:sessionId/replay`
 - `GET /api/sessions/:sessionId/darts`
 
 `POST /api/sessions` requires `captureModeKey` and `inputModeKey` and creates a single `PLAYER` participant; full request/response shape in `04-Endpoint-Contracts.md`. <!-- 2026-07-12 -->
+
+`GET /api/sessions/:sessionId/replay` was listed here until 2026-10-04; it was never built, and `GET /api/statistics/sessions/:sessionId/replay` (D371) serves the same view, paginated and owner-gated, so it was dropped unbuilt (D403). <!-- 2026-10-04 -->
 
 ### Routines
 
@@ -204,7 +205,6 @@ Reads are view-backed and player-scoped.
 | `GET /api/sessions/active`               | `v_active_sessions`   |
 | `GET /api/sessions?limit=&cursor=`       | `v_session_overview`  |
 | `GET /api/sessions/:sessionId`           | `v_session_overview`  |
-| `GET /api/sessions/:sessionId/replay`    | `v_game_replay`       |
 | `GET /api/sessions/:sessionId/darts`     | `v_dart_analytics`    |
 | `GET /api/routines`                      | `v_routine_execution` |
 | `GET /api/routines/:routineId`           | `v_routine_execution` |
@@ -238,7 +238,7 @@ Policy:
 - `GET /api/statistics/overview` is view-backed end to end: `v_x01_checkout_darts` (`0039`) replaced `v_double_out_checkout_darts` and its `SUM(d.score)` running total — wrong after a bust, which zeroes `turns.total_score` but keeps the darts' real board scores — with facts only; it projects the session's whole `configuration` snapshot rather than a single `starting_score` column, and the read layer decodes that snapshot and folds it through the same checkout-visit builders the live result modals use (D298 lineage, issue #342) <!-- 2026-09-19 -->
 - `v_x01_checkout_darts` LEFT JOINs `exercise_configurations`, so a session can legitimately carry a NULL `configuration`; the read layer skips such a session (it contributes no checkout visits) rather than substituting a default or reconstructing a snapshot, and every other session in the same batch still folds normally — there is no starting score or ladder configuration to replay it from, so skipping is the only honest option <!-- 2026-09-19 -->
 
-> **v1 implementation status (2026-07-22):** the Score Training first-deploy implements `POST /api/sessions`, `GET /api/sessions/active`, `PATCH /api/sessions/:id`, `POST /api/sessions/:id/events/batch`, `GET /api/configuration-templates`, and `POST /api/players/provision`; `GET`/`PATCH /api/players/me/settings` were added 2026-08-08; `GET`/`PATCH /api/players/me` were added 2026-08-15. The remaining frozen read endpoints (`GET /api/sessions` list, `GET /api/sessions/:id`, `/replay`, `/darts`) are contract-defined but implemented after the first engine — not a contract change. (S1)
+> **v1 implementation status (2026-07-22):** the Score Training first-deploy implements `POST /api/sessions`, `GET /api/sessions/active`, `PATCH /api/sessions/:id`, `POST /api/sessions/:id/events/batch`, `GET /api/configuration-templates`, and `POST /api/players/provision`; `GET`/`PATCH /api/players/me/settings` were added 2026-08-08; `GET`/`PATCH /api/players/me` were added 2026-08-15. The remaining frozen read endpoints (`GET /api/sessions` list, `GET /api/sessions/:id`, `/darts`) are contract-defined but implemented after the first engine — not a contract change. (S1)
 
 ---
 
@@ -302,7 +302,7 @@ Policy:
 - Statistics scope: `overview` shipped 2026-09-06, composing 4 views in the service layer (no dedicated aggregate view); `trends` and `checkouts` are replaced by the planned section route (D365) and must be view-backed when built. <!-- 2026-07-12; overview shipped 2026-09-06; replaced 2026-09-26 -->
 - Session participants (v1): a session admits 1-4 seats via an optional ordered `participants[]` input (array order is seat order); exactly one `PLAYER` seat is required, server-derived. `GUEST` and `DARTBOT` seats are implemented, capped per ruleset by `SEAT_CAPS`; guest/DartBot play is no longer deferred (D350, supersedes D61). <!-- 2026-07-12; restated as shipped 2026-09-21 -->
 - Activity grouping (v1): activities are server-managed. A standalone game session gets one activity; a training routine's activity spans every step session started under it. Multi-session activities and routine-run writes shipped with Balanced Training and are no longer deferred (D301, supersedes D64). <!-- 2026-07-12; restated as shipped 2026-09-17 -->
-- Response contracts (v1): every endpoint's response DTO is defined in `04-Endpoint-Contracts.md`; `03-Shared-Conventions.md` and `04` carry doc-version bumps under the freeze-semantics rule above. `GET /sessions/active`, `/sessions/:id/replay`, and `/sessions/:id/darts` return arrays. <!-- 2026-07-12 -->
+- Response contracts (v1): every endpoint's response DTO is defined in `04-Endpoint-Contracts.md`; `03-Shared-Conventions.md` and `04` carry doc-version bumps under the freeze-semantics rule above. `GET /sessions/active` and `/sessions/:id/darts` return arrays. <!-- 2026-07-12; `/replay` dropped 2026-10-04, D403 -->
 - Freeze semantics: the route surface and behavioral semantics are frozen; documents may take doc-only version bumps without violating the freeze. <!-- 2026-07-13 -->
 - Session lifecycle (v1): every terminal transition (`COMPLETED`, `ABANDONED`) sets `completed_at` (server default `now()`); `ACTIVE` ⇔ `completed_at IS NULL` is a service-enforced invariant. <!-- 2026-07-13 -->
 - Recovery model (v1): in-progress gameplay state is client-local (persisted Alpine stores); the server holds no mid-session gameplay. `GET /api/sessions/active` exists to resume-from-local or abandon. <!-- 2026-07-13 -->

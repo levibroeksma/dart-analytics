@@ -5,7 +5,7 @@ read-when: why an endpoint/contract/auth/envelope choice was made
 load-when: endpoint, contract, envelope, auth, middleware, idempotency, batch, Worker, session, status, error code, validation, JWT
 depends-on: decisions/architecture.md
 related: decisions/database.md, decisions/frontend/architecture.md
-updated: 2026-10-03
+updated: 2026-10-04
 -->
 
 | # | Source | Decision | Rationale |
@@ -337,3 +337,10 @@ Decision: `StatisticsOverviewResponse.highestCheckout` gains `sessionId: string 
 Reason: completes #638 after D397 covered best leg. The overview is not a versioned section, so no section version bump applies; the field is additive and nullable. First hit wins a tie to match D397's tie rule.
 Consequences: no card renders the career overview's highest checkout today, so nothing links to replay yet; the store field is ready for one. Other record-style metrics have no session id and none is added here.
 Supersedes: none (extends D397).
+
+### D403 — Drop the frozen `GET /api/sessions/:sessionId/replay` unbuilt (#636)
+Status: Accepted · Date: 2026-10-04
+Decision: The frozen `GET /api/sessions/:sessionId/replay` (`ReplayEntry[]`, backed by `v_game_replay`) is dropped from the v1 route surface without being built, along with its `ReplayEntry` schema. Session replay is served only by `GET /api/statistics/sessions/:sessionId/replay` (D371, widened by D372). This settles D371 decision 11.
+Reason: the route was never built and has no caller. The statistics replay reads the same view, and it is paginated, owner-gated and carries a header. Two documented contracts for one view invite a future task to build the wrong one. Aliasing would add a second, unpaginated shape to maintain with no consumer. This follows D321's drop of the unbuilt `/execution` route: the freeze covers what is routed, and a decision is the recorded way to change it.
+Consequences: `06-API/00-Overview.md` drops the route from the Sessions list and the Read Contract table, and keeps a dropped-unbuilt note (version 1.16.1). `06-API/04-Endpoint-Contracts.md` marks the row dropped and removes `ReplayEntry` (version 1.16.3). No code, test, view or migration changes: `v_game_replay` keeps its statistics readers.
+Supersedes: none (settles D371 decision 11).
