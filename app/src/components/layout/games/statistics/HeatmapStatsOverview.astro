@@ -2,11 +2,15 @@
 import GameCompletionSection from "./GameCompletionSection.astro";
 import GameHeatmapSection from "./GameHeatmapSection.astro";
 import GameSessionList from "./GameSessionList.astro";
+import PersonalBestFinishCard from "./PersonalBestFinishCard.astro";
 ---
 
 <div class="flex flex-col gap-2">
   <div class="grid grid-cols-2 gap-2">
     <GameCompletionSection />
+    <template x-if="game === '121_V1'">
+      <PersonalBestFinishCard />
+    </template>
   </div>
   <GameHeatmapSection />
   <GameSessionList />

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   completionSummary,
+  personalBestFinish,
   sessionRow,
   trebleSummary,
 } from "@lib/stats/sections/score-summaries";
@@ -99,5 +100,21 @@ describe("sessionRow", () => {
   it("has no average without darts", () => {
     const row = sessionRow({ ...item, dartCount: 0 }, "UTC");
     expect(row.average).toBeNull();
+  });
+});
+
+describe("personalBestFinish", () => {
+  const ladder = (maxTarget: number | null) =>
+    bucket({ targets: {}, maxTarget, afterMiss: 0, recovered: 0 });
+
+  it("is the highest target reached across buckets minus one", () => {
+    expect(personalBestFinish([ladder(125), ladder(140), ladder(130)])).toBe(
+      139,
+    );
+  });
+
+  it("is null without an attempt", () => {
+    expect(personalBestFinish([])).toBeNull();
+    expect(personalBestFinish([ladder(null)])).toBeNull();
   });
 });

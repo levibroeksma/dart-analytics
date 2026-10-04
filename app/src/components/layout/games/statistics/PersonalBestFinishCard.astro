@@ -1,0 +1,18 @@
+---
+/**
+ * Square glass stat card for 121: the personal best finish, the highest target
+ * ever reached minus one. Owns its all-time fetch through `personalBestFinishSection()`.
+ */
+---
+
+<div
+  class="glass flex aspect-square flex-col items-center justify-center gap-1 rounded-2xl p-3.5 text-center"
+  x-data="personalBestFinishSection()"
+>
+  <span
+    class="font-mono text-3xl font-bold text-accent"
+    x-text="loading || finish === null ? '—' : finish"
+  >
+  </span>
+  <span class="text-sm text-muted-foreground">Personal best finish</span>
+</div>
