@@ -226,3 +226,10 @@ Decision: `gameHeatmapSection()` gains `target` state, a `targetOptions` getter 
 Reason: both games store their intent, so the server already serves `heatmap?target=`; only the page lacked a control. The per-target cache key (`paramsKey`) already isolates each target.
 Consequences: Singles, Shanghai and Around the Clock still show the pooled heatmap with no filter (`intent-derived`; `target` is rejected there) until a server-fold variant is designed. `.astro` markup is untested (D101); the factory and options are covered.
 Supersedes: none (extends D406).
+
+### D408 — Heatmap target filter for Singles, Shanghai and Around the Clock
+Status: Accepted · Date: 2026-10-04
+Decision: `HEATMAP_TARGET_GAMES` gains Singles Training, Shanghai and Around the Clock; options are `NUMBER:1..20` plus `BULL:25` (no bull on Shanghai). `sectionTarget` accepts a `target` on `intent-derived` games, only `NUMBER:n` or `BULL:25`. `sectionSite` takes `hasTarget`; `SectionMeta.siteByTagWhenFiltered` (heatmap: `DERIVED_ON_SERVER`) routes a derived game with a target to the `server` site, so `HANDLERS.heatmap` gains `server: stepsHandler(heatmapFromSessions)`: `aimedDarts` filtered by `aimMatchesTarget`, binned with `floor(x / HEATMAP_CELL_MM)` like the SQL `FLOOR`. `NUMBER:n` also matches `OUTER_SINGLE:n` aims (ATC V2). The unfiltered heatmap stays `sql`. `heatmap` joins `ServerSectionId` with `mergeHeatmap` (sum by `ix,iy`); `readSection` passes the query target to `sectionSite`. Heatmap `version` 2.
+Reason: these games store no intent (`intent-derived`); the aim is recoverable only by the engine fold. Option A keeps the schema unchanged. The client fetches `server` sections in chunk windows, so `MAX_FOLD_DARTS` bounds each window, and a merger is required for long ranges (corrects the Group C spec).
+Consequences: a filtered heatmap costs a fold per chunk; the pooled view is unaffected. Cached heatmaps drop once (`version` bump). The picker is not browser-checked.
+Supersedes: none (extends D407).

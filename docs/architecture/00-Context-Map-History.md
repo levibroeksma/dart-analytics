@@ -17,6 +17,8 @@ updated: 2026-10-04
 
 # Version History
 
+> **Version:** 1.159.0 (2026-10-04 — stats-heatmap-derived-target: Singles, Shanghai and Around the Clock get the heatmap target picker; a filtered request folds server-side (`heatmapCellRowsFromAims`, `siteByTagWhenFiltered`, `mergeHeatmap`). D408. Section Catalog 1.6.7, Overview §5 and File Inventory updated.)
+
 > **Version:** 1.158.0 (2026-10-04 — stats-heatmap-target-picker: Doubles Training and Bob's 27 render the heatmap with a target picker (`heatmap-targets.ts`, `target` state in `gameHeatmapSection()`). D407. Section Catalog 1.6.6 and File Inventory updated.)
 
 > **Version:** 1.157.0 (2026-10-04 — stats-heatmap-all-games: the heatmap section becomes game-agnostic (`gameHeatmapSection()`, `GameHeatmapSection.astro`) and mounts alone for 501, 121, Ten Up One Down, Singles, Shanghai and Around the Clock via `HEATMAP_ONLY_LAYOUTS`. D406. Section Catalog 1.6.5 and File Inventory updated.)
