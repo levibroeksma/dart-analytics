@@ -426,6 +426,7 @@ const GameSessionListResponse = z.object({
     }),
   ),
   nextCursor: z.string().nullable(),
+  totalCount: z.number().int().nonnegative(), // all matching sessions, ignoring cursor and limit
   dataVersion: z.string(),
 });
 ```

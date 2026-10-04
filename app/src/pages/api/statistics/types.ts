@@ -651,6 +651,7 @@ const GameSessionListItem = z.object({
 export const GameSessionListResponse = z.object({
   items: z.array(GameSessionListItem),
   nextCursor: z.string().nullable(),
+  totalCount: z.number().int().nonnegative(),
   dataVersion: z.string(),
 });
 export type GameSessionListResponseData = z.infer<

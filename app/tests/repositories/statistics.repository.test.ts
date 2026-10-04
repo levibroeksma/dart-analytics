@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { renderingDb, onlyStatement } from "./render-sql";
 import {
+  countGameSessions,
   findGameSessionsPage,
   findGameDataVersion,
   findBucketedSessionAggregates,
@@ -408,6 +409,29 @@ describe("findGameSessionsPage", () => {
 
     expect(fromCalls).toEqual([vStatsSessionFacts]);
     expect(result[0].neverStarted).toBe(true);
+  });
+});
+
+describe("countGameSessions", () => {
+  const baseQuery = {
+    playerId: "p1",
+    gameTypeKey: "501" as const,
+    from: "2026-01-01T00:00:00.000Z",
+    to: "2026-02-01T00:00:00.000Z",
+    statuses: ["COMPLETED"],
+    context: "all" as const,
+  };
+
+  it("counts v_stats_session_facts rows with the page query's filters and no cursor", async () => {
+    const { db, statements } = renderingDb([["56"]]);
+    const total = await countGameSessions(db, baseQuery);
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('"v_stats_session_facts"');
+    expect(sql).toMatch(/count\(/i);
+    expect(sql).toMatch(/"player_id" = \$/);
+    expect(sql).toMatch(/"dart_count" > \$/);
+    expect(sql).not.toMatch(/limit/);
+    expect(total).toBe(56);
   });
 });
 

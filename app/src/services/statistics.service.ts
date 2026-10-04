@@ -93,6 +93,7 @@ import {
   findBucketedSessionAggregates,
   findDartFoldRows,
   findGameDataVersion,
+  countGameSessions,
   findGameSessionsPage,
   findHeatmapCells,
   findHitNumberCells,
@@ -646,17 +647,17 @@ export async function listGameSessions(
   }
 
   const db = getDb();
-  const [rows, dataVersionInput] = await Promise.all([
-    findGameSessionsPage(db, {
-      playerId,
-      gameTypeKey,
-      from: q.from,
-      to: q.to,
-      statuses: listStatuses(q.status),
-      context: q.context,
-      limit: q.limit,
-      after: cursor.data,
-    }),
+  const filter = {
+    playerId,
+    gameTypeKey,
+    from: q.from,
+    to: q.to,
+    statuses: listStatuses(q.status),
+    context: q.context,
+  };
+  const [rows, totalCount, dataVersionInput] = await Promise.all([
+    findGameSessionsPage(db, { ...filter, limit: q.limit, after: cursor.data }),
+    countGameSessions(db, filter),
     findGameDataVersion(db, playerId, gameTypeKey),
   ]);
 
@@ -667,6 +668,7 @@ export async function listGameSessions(
     data: {
       items,
       nextCursor,
+      totalCount,
       dataVersion: encodeDataVersion(dataVersionInput),
     },
   };

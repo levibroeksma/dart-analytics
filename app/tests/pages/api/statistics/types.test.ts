@@ -283,9 +283,19 @@ describe("statistics response schemas", () => {
         },
       ],
       nextCursor: null,
+      totalCount: 1,
       dataVersion: "v1:1:0",
     });
     expect(result.success).toBe(true);
+  });
+
+  it("rejects a session list response without totalCount", () => {
+    const result = GameSessionListResponse.safeParse({
+      items: [],
+      nextCursor: null,
+      dataVersion: "v1:0:0",
+    });
+    expect(result.success).toBe(false);
   });
 
   it("parses a completion series response", () => {

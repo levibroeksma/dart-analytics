@@ -70,6 +70,7 @@ describe("GET /api/statistics/games/:gameTypeKey/sessions", () => {
         },
       ],
       nextCursor: null,
+      totalCount: 1,
       dataVersion: "v1:1:0",
     };
     vi.mocked(listGameSessions).mockResolvedValue({

@@ -36,6 +36,7 @@ export function scoreSessionList() {
     error: null as string | null,
     items: [] as SessionListItem[],
     nextCursor: null as string | null,
+    totalCount: null as number | null,
     pageIndex: 0,
     cursors: [undefined] as (string | undefined)[],
 
@@ -56,7 +57,7 @@ export function scoreSessionList() {
       };
       return readSessionPage<SessionListItem>(
         CACHE_PLAYER_ID,
-        gameScopeKey("SCORE_TRAINING"),
+        `${gameScopeKey("SCORE_TRAINING")}:counted`,
         {
           ...span,
           bucket: "none",
@@ -70,6 +71,7 @@ export function scoreSessionList() {
             "SCORE_TRAINING",
             cursor === undefined ? params : { ...params, cursor },
           ),
+        gameScopeKey("SCORE_TRAINING"),
       );
     },
 
@@ -88,6 +90,7 @@ export function scoreSessionList() {
         if (mine !== ticket) return;
         this.items = page.items;
         this.nextCursor = page.nextCursor;
+        this.totalCount = page.totalCount ?? null;
         this.pageIndex = index;
         if (page.nextCursor !== null) this.cursors[index + 1] = page.nextCursor;
       } catch (cause) {
@@ -122,6 +125,12 @@ export function scoreSessionList() {
 
     get pageNumber(): number {
       return this.pageIndex + 1;
+    },
+
+    get totalPages(): number | null {
+      return this.totalCount === null
+        ? null
+        : Math.max(1, Math.ceil(this.totalCount / PAGE_SIZE));
     },
 
     get isEmpty(): boolean {
