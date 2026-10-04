@@ -233,3 +233,10 @@ Decision: `HEATMAP_TARGET_GAMES` gains Singles Training, Shanghai and Around the
 Reason: these games store no intent (`intent-derived`); the aim is recoverable only by the engine fold. Option A keeps the schema unchanged. The client fetches `server` sections in chunk windows, so `MAX_FOLD_DARTS` bounds each window, and a merger is required for long ranges (corrects the Group C spec).
 Consequences: a filtered heatmap costs a fold per chunk; the pooled view is unaffected. Cached heatmaps drop once (`version` bump). The picker is not browser-checked.
 Supersedes: none (extends D407).
+
+### D410 — Replay section on every plain board game's `/statistics` page
+Status: Accepted · Date: 2026-10-04
+Decision: `scoreSessionList()` becomes `gameSessionList()` (`GameSessionList.astro`): it resolves the page-level `game` to its game type, reloads on `game` and `rangeKey`, and scopes the cache per game. `HeatmapStatsOverview.astro` mounts it under the heatmap, so every `HEATMAP_ONLY_LAYOUTS` game gets a replay list. Only Score Training's caption shows a 3-dart average; other games show darts and minutes.
+Reason: the session list endpoint, replay route and replay card already work for every game; a per-game list is a client change only. Sessions with no darts are left out by the endpoint (D405), so every game shares that rule.
+Consequences: no API or schema change. A counted-score average is not comparable across sessions of other games, so it is not shown.
+Supersedes: none (extends D399, D401, D405, D406).

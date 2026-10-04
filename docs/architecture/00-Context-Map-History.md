@@ -17,6 +17,8 @@ updated: 2026-10-04
 
 # Version History
 
+> **Version:** 1.160.0 (2026-10-04 — game-replay-sections: every plain board game's `/statistics` page gets the replay list; `scoreSessionList()` becomes `gameSessionList()` (`GameSessionList.astro`), reloading on `game`. D410. Section Catalog 1.6.8 and File Inventory updated.)
+>
 > **Version:** 1.159.0 (2026-10-04 — stats-heatmap-derived-target: Singles, Shanghai and Around the Clock get the heatmap target picker; a filtered request folds server-side (`heatmapCellRowsFromAims`, `siteByTagWhenFiltered`, `mergeHeatmap`). D408. Section Catalog 1.6.7, Overview §5 and File Inventory updated.)
 
 > **Version:** 1.158.0 (2026-10-04 — stats-heatmap-target-picker: Doubles Training and Bob's 27 render the heatmap with a target picker (`heatmap-targets.ts`, `target` state in `gameHeatmapSection()`). D407. Section Catalog 1.6.6 and File Inventory updated.)
