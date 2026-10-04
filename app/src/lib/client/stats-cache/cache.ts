@@ -153,7 +153,11 @@ export async function readSection<M>(
 ): Promise<CachedSeries<M>> {
   const site =
     scope.gameTypeKey !== null
-      ? sectionSite(meta as SectionMeta, scope.gameTypeKey)
+      ? sectionSite(
+          meta as SectionMeta,
+          scope.gameTypeKey,
+          q.target !== undefined,
+        )
       : meta.computeSite;
   const merge =
     site === "server" ? mergerFor(meta.id, scope.exerciseKind) : null;

@@ -411,6 +411,24 @@ function mergeLegStats(
   return { legs: mergeCounts(a.legs, b.legs), bestLeg };
 }
 
+/** `heatmap` (filtered, derived game): cells summed by `ix,iy`; `cellMm` and `target` are the same on every chunk. */
+function mergeHeatmap(
+  a: ServerSectionMetrics["heatmap"],
+  b: ServerSectionMetrics["heatmap"],
+): ServerSectionMetrics["heatmap"] {
+  const cells = new Map<string, [number, number, number]>();
+  for (const [ix, iy, darts] of [...a.cells, ...b.cells]) {
+    const key = `${ix},${iy}`;
+    const existing = cells.get(key);
+    if (existing) {
+      existing[2] += darts;
+      continue;
+    }
+    cells.set(key, [ix, iy, darts]);
+  }
+  return { cellMm: a.cellMm, target: a.target, cells: [...cells.values()] };
+}
+
 /**
  * One merger per server section — a `Record` over every `ServerSectionId`,
  * so a new server section that skips a merger is a type error rather than a
@@ -436,6 +454,7 @@ const MERGERS: {
   "bobs27-survival": mergeBobs27Survival,
   "shanghai-count": mergeShanghaiCount,
   "training-result": mergeTrainingResult,
+  heatmap: mergeHeatmap,
 };
 
 /**
