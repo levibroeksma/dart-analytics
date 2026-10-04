@@ -5,8 +5,8 @@
  * its fetch through `scoreSessionList()`. The glass surface is a sibling
  * layer, not an ancestor; the cards keep their own glass.
  */
-import Button from "@components/forms/Button.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
+import Pagination from "@components/ui/Pagination.astro";
 import ReplayCard from "@components/layout/statistics/ReplayCard.astro";
 ---
 
@@ -55,29 +55,16 @@ import ReplayCard from "@components/layout/statistics/ReplayCard.astro";
           captionExpr="`${row.average === null ? '—' : row.average.toFixed(1)} avg · ${row.darts} darts · ${row.minutes} min`"
         />
       </template>
-      <div
-        class="flex items-center justify-between gap-2"
+      <Pagination
         x-show="hasPrevious || hasNext"
         x-cloak
-      >
-        <Button
-          variant="secondary"
-          title="Previous"
-          :disabled="!hasPrevious"
-          @click="previous()"
-        />
-        <span
-          class="text-xs text-muted-foreground"
-          x-text="pageLabel"
-        >
-        </span>
-        <Button
-          variant="secondary"
-          title="Next"
-          :disabled="!hasNext"
-          @click="next()"
-        />
-      </div>
+        pageExpr="pageNumber"
+        hasPreviousExpr="hasPrevious"
+        hasNextExpr="hasNext"
+        onPrevious="previous()"
+        onNext="next()"
+        disabledExpr="loading"
+      />
     </div>
   </div>
 </section>

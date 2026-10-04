@@ -91,12 +91,12 @@ describe("scoreSessionList", () => {
     expect(s.rows.map((r) => r.id)).toEqual(["b"]);
     expect(s.hasNext).toBe(false);
     expect(s.hasPrevious).toBe(true);
-    expect(s.pageLabel).toBe("Page 2");
+    expect(s.pageNumber).toBe(2);
     fetchGameSessions.mockResolvedValueOnce(page(["a"], "c1"));
     await s.previous();
     expect(fetchGameSessions.mock.calls[2][1]).not.toHaveProperty("cursor");
     expect(s.rows.map((r) => r.id)).toEqual(["a"]);
-    expect(s.pageLabel).toBe("Page 1");
+    expect(s.pageNumber).toBe(1);
   });
 
   it("ignores next without a cursor", async () => {
