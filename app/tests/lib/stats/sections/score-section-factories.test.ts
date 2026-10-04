@@ -8,12 +8,12 @@ vi.mock("@lib/stats/load-game-section", () => ({
 
 const { scoreTrebleSection } =
   await import("@lib/stats/sections/score-treble.data");
-const { scoreCompletionSection } =
-  await import("@lib/stats/sections/score-completion.data");
+const { gameCompletionSection } =
+  await import("@lib/stats/sections/game-completion.data");
 
 function mounted<T extends { init(): void }>(factory: T) {
   return Object.assign(factory, {
-    $data: { rangeKey: "30d" },
+    $data: { rangeKey: "30d", game: "SCORE_TRAINING_V1" },
     $watch: () => {},
   });
 }
@@ -40,17 +40,17 @@ describe("score section factories", () => {
     expect(s.fmtRate(null)).toBe("—");
   });
 
-  it("scoreCompletionSection requests completion and summarises it", async () => {
+  it("gameCompletionSection requests completion and summarises it", async () => {
     respond({ completed: 3, abandoned: 1, neverStarted: 0, abandonedTurns: 2 });
-    const s = mounted(scoreCompletionSection());
+    const s = mounted(gameCompletionSection());
     await s.load();
     expect(loadGameSection.mock.calls[0][1]).toBe("completion");
     expect(s.summary.abandonRate).toBe(0.25);
   });
 
-  it("scoreCompletionSection ignores never-started sessions and builds a doughnut", async () => {
+  it("gameCompletionSection ignores never-started sessions and builds a doughnut", async () => {
     respond({ completed: 3, abandoned: 1, neverStarted: 9, abandonedTurns: 2 });
-    const s = mounted(scoreCompletionSection());
+    const s = mounted(gameCompletionSection());
     await s.load();
     expect(s.isEmpty).toBe(false);
     expect(s.summary.abandonRate).toBe(0.25);
@@ -60,9 +60,9 @@ describe("score section factories", () => {
     expect(s.chart.series[0].sliceColors).toEqual(["emerald", "rose"]);
   });
 
-  it("scoreCompletionSection is empty with only never-started sessions", async () => {
+  it("gameCompletionSection is empty with only never-started sessions", async () => {
     respond({ completed: 0, abandoned: 0, neverStarted: 2, abandonedTurns: 0 });
-    const s = mounted(scoreCompletionSection());
+    const s = mounted(gameCompletionSection());
     await s.load();
     expect(s.isEmpty).toBe(true);
   });

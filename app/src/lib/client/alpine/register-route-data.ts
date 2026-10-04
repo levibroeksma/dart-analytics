@@ -27,7 +27,7 @@ import { statisticsRoutines } from "@lib/training/routines/statistics-routines.d
 import { scoreTrendSection } from "@lib/stats/sections/score-trend.data";
 import { gameHeatmapSection } from "@lib/stats/sections/game-heatmap.data";
 import { scoreTrebleSection } from "@lib/stats/sections/score-treble.data";
-import { scoreCompletionSection } from "@lib/stats/sections/score-completion.data";
+import { gameCompletionSection } from "@lib/stats/sections/game-completion.data";
 import { gameSessionList } from "@lib/stats/sections/game-session-list.data";
 import { routineBuilder } from "@lib/training/routines/routine-builder.data";
 import { schedulesIndex } from "@lib/training/schedules/schedules-index.data";
@@ -64,7 +64,7 @@ export function registerRouteData(Alpine: Alpine) {
   Alpine.data("scoreTrendSection", scoreTrendSection);
   Alpine.data("gameHeatmapSection", gameHeatmapSection);
   Alpine.data("scoreTrebleSection", scoreTrebleSection);
-  Alpine.data("scoreCompletionSection", scoreCompletionSection);
+  Alpine.data("gameCompletionSection", gameCompletionSection);
   Alpine.data("gameSessionList", gameSessionList);
   Alpine.data("routineBuilder", routineBuilder);
   Alpine.data("schedulesIndex", schedulesIndex);

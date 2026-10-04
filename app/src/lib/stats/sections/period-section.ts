@@ -1,18 +1,26 @@
+import { GAME_TYPE_BY_RULESET } from "@lib/game/rulesets/capabilities";
 import { loadGameSection } from "@lib/stats/load-game-section";
 import { heatmapWindow } from "@lib/stats/sections/score-trend-window";
-import type { SectionId, SeriesBucket, TrendRangeKey } from "@lib/types";
+import type {
+  GameTypeKey,
+  RulesetVersionKey,
+  SectionId,
+  SeriesBucket,
+  TrendRangeKey,
+} from "@lib/types";
 
-type PageScope = { $data: { rangeKey: TrendRangeKey } };
+type PageScope = { $data: { rangeKey: TrendRangeKey; game: string } };
 
 type WatchesRange = {
-  $watch(key: "rangeKey", callback: () => void): void;
+  $watch(key: "rangeKey" | "game", callback: () => void): void;
   load(): Promise<void>;
 };
 
 /**
- * The shared fetch half of a Score Training section over the page-level
- * period: one un-bucketed `sectionId` request over the current period on
- * mount and on every `rangeKey` change, with a ticket that drops a stale
+ * The shared fetch half of a game-page section over the page-level period:
+ * one un-bucketed `sectionId` request for the page-level `game` (a ruleset
+ * version key, resolved to its game type) over the current period on mount
+ * and on every `rangeKey` or `game` change, with a ticket that drops a stale
  * response. A section factory spreads it and adds its derived getters.
  */
 export function periodSection<M>(sectionId: SectionId) {
@@ -26,8 +34,14 @@ export function periodSection<M>(sectionId: SectionId) {
       return (this as unknown as PageScope).$data.rangeKey;
     },
 
+    gameTypeKey(): GameTypeKey | undefined {
+      const key = (this as unknown as PageScope).$data.game;
+      return GAME_TYPE_BY_RULESET[key as RulesetVersionKey];
+    },
+
     init(this: WatchesRange) {
       this.$watch("rangeKey", () => void this.load());
+      this.$watch("game", () => void this.load());
       void this.load();
     },
 
@@ -35,9 +49,15 @@ export function periodSection<M>(sectionId: SectionId) {
       const mine = ++ticket;
       this.loading = true;
       this.error = null;
+      this.buckets = [];
+      const gameTypeKey = this.gameTypeKey();
+      if (gameTypeKey === undefined) {
+        this.loading = false;
+        return;
+      }
       try {
         const window = heatmapWindow(this.period(), now);
-        const series = await loadGameSection<M>("SCORE_TRAINING", sectionId, {
+        const series = await loadGameSection<M>(gameTypeKey, sectionId, {
           from: window.from,
           to: window.to,
           bucket: "none",

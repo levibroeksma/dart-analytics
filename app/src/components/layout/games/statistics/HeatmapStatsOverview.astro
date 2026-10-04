@@ -1,9 +1,13 @@
 ---
+import GameCompletionSection from "./GameCompletionSection.astro";
 import GameHeatmapSection from "./GameHeatmapSection.astro";
 import GameSessionList from "./GameSessionList.astro";
 ---
 
 <div class="flex flex-col gap-2">
+  <div class="grid grid-cols-2 gap-2">
+    <GameCompletionSection />
+  </div>
   <GameHeatmapSection />
   <GameSessionList />
 </div>

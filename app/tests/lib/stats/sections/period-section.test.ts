@@ -13,11 +13,14 @@ const DAY = 86_400_000;
 
 function section() {
   const watchers: Record<string, () => void> = {};
-  const page = { rangeKey: "30d" as "30d" | "90d" | "1y" | "all" };
+  const page = {
+    rangeKey: "30d" as "30d" | "90d" | "1y" | "all",
+    game: "SCORE_TRAINING_V1",
+  };
   const own = periodSection<{ n: number }>("completion");
   const s = Object.assign(own, {
     $data: page,
-    $watch: (key: "rangeKey", cb: () => void) => {
+    $watch: (key: "rangeKey" | "game", cb: () => void) => {
       watchers[key] = cb;
     },
   });
@@ -48,6 +51,35 @@ describe("periodSection", () => {
         bucket: "none",
       },
     );
+  });
+
+  it("requests the page-level game's type", async () => {
+    const { s, page } = section();
+    page.game = "501_V1";
+    await s.load(NOW);
+    expect(loadGameSection.mock.calls[0].slice(0, 2)).toEqual([
+      "501",
+      "completion",
+    ]);
+  });
+
+  it("makes no request for an unknown game", async () => {
+    const { s, page } = section();
+    page.game = "NOPE";
+    await s.load(NOW);
+    expect(loadGameSection).not.toHaveBeenCalled();
+    expect(s.loading).toBe(false);
+    expect(s.buckets).toEqual([]);
+  });
+
+  it("reloads when the page game changes", async () => {
+    const { s, watchers, page } = section();
+    s.init();
+    await vi.waitFor(() => expect(s.loading).toBe(false));
+    page.game = "TUOD_V1";
+    watchers.game();
+    await vi.waitFor(() => expect(loadGameSection).toHaveBeenCalledTimes(2));
+    expect(loadGameSection.mock.calls[1][0]).toBe("TUOD");
   });
 
   it("stores the buckets and stops loading", async () => {

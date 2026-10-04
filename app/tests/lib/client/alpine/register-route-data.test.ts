@@ -9,7 +9,7 @@ import { statisticsRoutines } from "@lib/training/routines/statistics-routines.d
 import { scoreTrendSection } from "@lib/stats/sections/score-trend.data";
 import { gameHeatmapSection } from "@lib/stats/sections/game-heatmap.data";
 import { scoreTrebleSection } from "@lib/stats/sections/score-treble.data";
-import { scoreCompletionSection } from "@lib/stats/sections/score-completion.data";
+import { gameCompletionSection } from "@lib/stats/sections/game-completion.data";
 import { gameSessionList } from "@lib/stats/sections/game-session-list.data";
 import { routineBuilder } from "@lib/training/routines/routine-builder.data";
 import { schedulesIndex } from "@lib/training/schedules/schedules-index.data";
@@ -56,7 +56,7 @@ describe("registerRouteData", () => {
 
   it.each([
     ["scoreTrebleSection", scoreTrebleSection],
-    ["scoreCompletionSection", scoreCompletionSection],
+    ["gameCompletionSection", gameCompletionSection],
     ["gameSessionList", gameSessionList],
   ])("registers %s as an Alpine data factory", (name, factory) => {
     const data = vi.fn();

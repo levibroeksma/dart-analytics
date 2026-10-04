@@ -3,8 +3,8 @@ import { completionSummary } from "@lib/stats/sections/score-summaries";
 import type { CompletionSummary } from "./types";
 import type { CompletionMetrics, ChartSpec } from "@modules/types";
 
-/** Score Training's session-result section: completed against abandoned games over the page-level period, as a doughnut spec. */
-export function scoreCompletionSection() {
+/** The session-result section of a game page: completed against abandoned games for the page-level game over the page-level period, as a doughnut spec. */
+export function gameCompletionSection() {
   return {
     ...periodSection<CompletionMetrics>("completion"),
 
