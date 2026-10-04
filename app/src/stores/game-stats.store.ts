@@ -10,15 +10,10 @@ import {
   MIN_TARGET_SAMPLE,
 } from "@lib/stats/constants";
 import { CACHE_PLAYER_ID, loadGameSection } from "@lib/stats/load-game-section";
-import {
-  formatTargetKey,
-  parseTargetKey,
-  targetLabel,
-} from "@lib/stats/target-key";
+import { parseTargetKey, targetLabel } from "@lib/stats/target-key";
+import { DOUBLES_PATH_KEYS } from "@lib/stats/heatmap-targets";
 import { replayPath } from "@lib/stats/replay-route";
-import { doublesPath, targetAt } from "@modules/game/board-progression.module";
 import { checkoutPathFor } from "@modules/game/checkout-path.module";
-import { doubleTargetIntent } from "@modules/game/turn-log.module";
 import { groupingSummary } from "@modules/stats/sections/grouping.module";
 import { fetchGameSection, fetchGameSessions } from "@client/api/statistics";
 import { readSection, readSessionPage } from "@client/stats-cache/cache";
@@ -54,7 +49,6 @@ import type { GameSessionListResponseData } from "@client/api/types";
 import type {
   Bucket,
   GameTypeKey,
-  IntentZoneKey,
   RulesetVersionKey,
   SectionId,
   SectionMeta,
@@ -98,19 +92,7 @@ const NUMBER_AIM_RINGS = [
   "TREBLE",
 ] as const;
 
-/**
- * Bob's 27's own doubles path (D1..D20, BULL), each entry mapped to its
- * stored-intent `TargetKey` (`doubleTargetIntent`, `turn-log.module.ts`) —
- * shared with `bobs27-survival.module.ts`'s own `targetKeyAt` so
- * `survivalCurve` walks the exact same 21 keys the server folded.
- */
-const BOBS27_PATH_KEYS: readonly TargetKey[] = doublesPath().map((_, index) => {
-  const intent = doubleTargetIntent(targetAt(doublesPath(), index));
-  return formatTargetKey(
-    intent.intendedTargetNumber!,
-    intent.intendedZoneKey as IntentZoneKey,
-  );
-});
+const BOBS27_PATH_KEYS = DOUBLES_PATH_KEYS;
 
 /** `atc-darts-per-target` totals for one config group, folded across every loaded bucket. */
 function sumAtcTargets(
