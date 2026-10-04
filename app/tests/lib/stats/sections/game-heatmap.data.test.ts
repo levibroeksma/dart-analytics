@@ -116,6 +116,15 @@ describe("gameHeatmapSection", () => {
     expect(s.targetOptions).toHaveLength(22);
   });
 
+  it("offers NUMBER target options on a derived-intent game", () => {
+    const { s, page } = section();
+    page.game = "SHANGHAI_V1";
+    expect(s.targetOptions).toHaveLength(21);
+    expect(s.targetOptions[1]).toEqual({ value: "NUMBER:1", label: "1" });
+    page.game = "SINGLES_V3";
+    expect(s.targetOptions).toHaveLength(22);
+  });
+
   it("sends the picked target and reloads when it changes", async () => {
     const { s, watchers, page } = section();
     page.game = "BOBS27_V1";
