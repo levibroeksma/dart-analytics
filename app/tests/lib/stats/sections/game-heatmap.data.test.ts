@@ -45,7 +45,7 @@ function section() {
   });
   const s = Object.assign(own, {
     $data: scope,
-    $watch: (key: "rangeKey" | "game", cb: () => void) => {
+    $watch: (key: "rangeKey" | "game" | "target", cb: () => void) => {
       watchers[key] = cb;
     },
   });
@@ -103,6 +103,39 @@ describe("gameHeatmapSection", () => {
     watchers.game();
     await vi.waitFor(() => expect(loadGameSection).toHaveBeenCalledTimes(2));
     expect(loadGameSection.mock.calls[1][0]).toBe("501");
+  });
+
+  it("offers target options only for stored-intent games", () => {
+    const { s, page } = section();
+    expect(s.targetOptions).toEqual([]);
+    page.game = "BOBS27_V1";
+    expect(s.targetOptions[0]).toEqual({ value: null, label: "All targets" });
+    expect(s.targetOptions).toHaveLength(22);
+    expect(s.targetOptions[1]).toEqual({ value: "DOUBLE:1", label: "D1" });
+    page.game = "DOUBLES_TRAINING_V1";
+    expect(s.targetOptions).toHaveLength(22);
+  });
+
+  it("sends the picked target and reloads when it changes", async () => {
+    const { s, watchers, page } = section();
+    page.game = "BOBS27_V1";
+    s.init();
+    await vi.waitFor(() => expect(s.loading).toBe(false));
+    s.target = "DOUBLE:16";
+    watchers.target();
+    await vi.waitFor(() => expect(loadGameSection).toHaveBeenCalledTimes(2));
+    expect(loadGameSection.mock.calls[1][2].target).toBe("DOUBLE:16");
+  });
+
+  it("clears the target when the game changes", async () => {
+    const { s, watchers, page } = section();
+    page.game = "BOBS27_V1";
+    s.init();
+    await vi.waitFor(() => expect(s.loading).toBe(false));
+    s.target = "DOUBLE:16";
+    page.game = "DOUBLES_TRAINING_V1";
+    watchers.game();
+    expect(s.target).toBeNull();
   });
 
   it("requests only the current period, not the doubled trend window", async () => {

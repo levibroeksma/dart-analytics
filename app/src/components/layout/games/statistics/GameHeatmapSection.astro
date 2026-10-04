@@ -1,10 +1,11 @@
 ---
 /**
- * Heatmap section: where darts landed over the page-level game and period,
+ * Heatmap section: where darts landed over the page-level game and period (optionally for one target),
  * drawn as a density layer on the board. Owns its fetch through
  * `gameHeatmapSection()`. The glass surface is a sibling layer, not an
  * ancestor, for the same reason as `ScoreTrendSection.astro`.
  */
+import Select from "@components/forms/Select.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
 import StatsDensityHeatmap from "@components/ui/StatsDensityHeatmap.astro";
 ---
@@ -20,6 +21,16 @@ import StatsDensityHeatmap from "@components/ui/StatsDensityHeatmap.astro";
   </div>
   <div class="relative space-y-3 p-4">
     <h2 class="text-sm text-foreground">Heatmap</h2>
+    <div
+      x-show="targetOptions.length"
+      x-cloak
+    >
+      <Select
+        optionsExpr="targetOptions"
+        model="target"
+        ariaLabel="Heatmap target"
+      />
+    </div>
     <ErrorAlert
       showExpr="error"
       textExpr="error"

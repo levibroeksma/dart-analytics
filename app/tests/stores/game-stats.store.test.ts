@@ -1,3 +1,4 @@
+import { DOUBLES_PATH_KEYS } from "@lib/stats/heatmap-targets";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const readSection = vi.fn();
@@ -920,6 +921,7 @@ describe("gameStatsStore", () => {
       averageScore: null,
     });
     expect(curve.at(-1)!.targetKey).toBe("INNER_BULL:25");
+    expect(curve.map((point) => point.targetKey)).toEqual(DOUBLES_PATH_KEYS);
   });
 
   it("shanghaiRateTrend gates below MIN_TARGET_SAMPLE and shanghaiByRound sums the round histogram", async () => {

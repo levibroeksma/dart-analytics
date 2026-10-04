@@ -381,3 +381,6 @@ export * from "./sections/types";
 
 /** Where a replay's back link returns on `/statistics`: the Routines tab's routine and, when known, its step. */
 export type RoutinesLocation = { routineKey: string; stepKey: string | null };
+
+/** One entry of the heatmap target picker; `null` is "All targets". */
+export type HeatmapTargetOption = { value: TargetKey | null; label: string };
