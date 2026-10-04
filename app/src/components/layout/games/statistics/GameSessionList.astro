@@ -1,8 +1,8 @@
 ---
 /**
- * Score Training replay section: the completed sessions of the page-level
+ * Replay section: the completed sessions of the page-level game and
  * period, newest first, 10 per page, each a card linking to its replay. Owns
- * its fetch through `scoreSessionList()`. The glass surface is a sibling
+ * its fetch through `gameSessionList()`. The glass surface is a sibling
  * layer, not an ancestor; the cards keep their own glass.
  */
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
@@ -12,7 +12,7 @@ import ReplayCard from "@components/layout/statistics/ReplayCard.astro";
 
 <section
   class="relative"
-  x-data="scoreSessionList()"
+  x-data="gameSessionList()"
 >
   <div
     class="glass absolute inset-0 rounded-2xl"
@@ -52,7 +52,7 @@ import ReplayCard from "@components/layout/statistics/ReplayCard.astro";
         <ReplayCard
           hrefExpr="row.href"
           titleExpr="row.date"
-          captionExpr="`${row.average === null ? '—' : row.average.toFixed(1)} avg · ${row.darts} darts · ${row.minutes} min`"
+          captionExpr="caption(row)"
         />
       </template>
       <Pagination

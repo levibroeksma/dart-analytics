@@ -1,3 +1,4 @@
+import { GAME_TYPE_BY_RULESET } from "@lib/game/rulesets/capabilities";
 import { fetchGameSessions } from "@client/api/statistics";
 import { readSessionPage } from "@client/stats-cache/cache";
 import { CACHE_PLAYER_ID } from "@lib/stats/load-game-section";
@@ -5,14 +6,15 @@ import { gameScopeKey } from "@modules/stats/routine-scope.module";
 import { heatmapWindow } from "@lib/stats/sections/score-trend-window";
 import { sessionRow } from "@lib/stats/sections/score-summaries";
 import type { GameSessionListResponseData } from "@client/api/types";
-import type { TrendRangeKey } from "@lib/types";
+import type { RulesetVersionKey, TrendRangeKey } from "@lib/types";
 
 type SessionListItem = GameSessionListResponseData["items"][number];
+type SessionRow = ReturnType<typeof sessionRow>;
 
-type PageScope = { $data: { rangeKey: TrendRangeKey } };
+type PageScope = { $data: { rangeKey: TrendRangeKey; game: string } };
 
 type WatchesRange = {
-  $watch(key: "rangeKey", callback: () => void): void;
+  $watch(key: "rangeKey" | "game", callback: () => void): void;
   load(): Promise<void>;
 };
 
@@ -23,12 +25,13 @@ function localTz(): string {
 }
 
 /**
- * Score Training's replay section: the completed sessions of the page-level
- * period, newest first, 10 per page through the IndexedDB cache, each linking
- * to its replay. Pages are walked with `next()` and `previous()`; a change of
- * `rangeKey` reloads from the first page.
+ * The replay section of a game's `/statistics` layout: the completed sessions
+ * of the page-level game and period, newest first, 10 per page through the
+ * IndexedDB cache, each linking to its replay. The list endpoint leaves out
+ * sessions with no darts. Pages are walked with `next()` and `previous()`; a
+ * change of `rangeKey` or `game` reloads from the first page.
  */
-export function scoreSessionList() {
+export function gameSessionList() {
   let ticket = 0;
   let span = { from: "", to: "" };
   return {
@@ -46,10 +49,17 @@ export function scoreSessionList() {
 
     init(this: WatchesRange) {
       this.$watch("rangeKey", () => void this.load());
+      this.$watch("game", () => void this.load());
       void this.load();
     },
 
+    get gameTypeKey() {
+      const key = (this as unknown as PageScope).$data.game;
+      return GAME_TYPE_BY_RULESET[key as RulesetVersionKey];
+    },
+
     async fetchPage(cursor?: string) {
+      const gameTypeKey = this.gameTypeKey;
       const params = {
         ...span,
         status: "completed" as const,
@@ -57,7 +67,7 @@ export function scoreSessionList() {
       };
       return readSessionPage<SessionListItem>(
         CACHE_PLAYER_ID,
-        `${gameScopeKey("SCORE_TRAINING")}:counted`,
+        `${gameScopeKey(gameTypeKey)}:counted`,
         {
           ...span,
           bucket: "none",
@@ -68,14 +78,22 @@ export function scoreSessionList() {
         },
         () =>
           fetchGameSessions(
-            "SCORE_TRAINING",
+            gameTypeKey,
             cursor === undefined ? params : { ...params, cursor },
           ),
-        gameScopeKey("SCORE_TRAINING"),
+        gameScopeKey(gameTypeKey),
       );
     },
 
     async load(now: Date = new Date()) {
+      if (this.gameTypeKey === undefined) {
+        this.items = [];
+        this.nextCursor = null;
+        this.totalCount = null;
+        this.pageIndex = 0;
+        this.loading = false;
+        return;
+      }
       span = heatmapWindow(this.period, now);
       this.cursors = [undefined];
       await this.goTo(0);
@@ -113,6 +131,13 @@ export function scoreSessionList() {
     get rows() {
       const tz = localTz();
       return this.items.map((item) => sessionRow(item, tz));
+    },
+
+    /** Score Training rows carry a 3-dart average; other games' counted score is not comparable across sessions. */
+    caption(row: SessionRow): string {
+      const volume = `${row.darts} darts · ${row.minutes} min`;
+      if (this.gameTypeKey !== "SCORE_TRAINING") return volume;
+      return `${row.average === null ? "—" : row.average.toFixed(1)} avg · ${volume}`;
     },
 
     get hasNext(): boolean {

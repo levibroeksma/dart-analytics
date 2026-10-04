@@ -10,8 +10,10 @@ vi.mock("@client/api/statistics", () => ({
   fetchGameSessions: (...args: unknown[]) => fetchGameSessions(...args),
 }));
 
-const { scoreSessionList } =
-  await import("@lib/stats/sections/score-session-list.data");
+const { gameSessionList } =
+  await import("@lib/stats/sections/game-session-list.data");
+
+import { gameScopeKey } from "@modules/stats/routine-scope.module";
 
 const NOW = new Date("2026-10-01T10:00:00.000Z");
 const DAY = 86_400_000;
@@ -36,13 +38,13 @@ function page(ids: string[], nextCursor: string | null, totalCount?: number) {
   return { items: ids.map(item), nextCursor, totalCount, dataVersion: "v1" };
 }
 
-function section() {
+function section(game = "SCORE_TRAINING_V1") {
   const watchers: Record<string, () => void> = {};
-  const data = { rangeKey: "30d" as "30d" | "90d" | "1y" | "all" };
-  const own = scoreSessionList();
+  const data = { rangeKey: "30d" as "30d" | "90d" | "1y" | "all", game };
+  const own = gameSessionList();
   const s = Object.assign(own, {
     $data: data,
-    $watch: (key: "rangeKey", cb: () => void) => {
+    $watch: (key: "rangeKey" | "game", cb: () => void) => {
       watchers[key] = cb;
     },
   });
@@ -58,7 +60,7 @@ beforeEach(() => {
   fetchGameSessions.mockResolvedValue(page([], null));
 });
 
-describe("scoreSessionList", () => {
+describe("gameSessionList", () => {
   it("fetches the first page over the current period", async () => {
     fetchGameSessions.mockResolvedValue(page(["a", "b"], "next"));
     const { s } = section();
@@ -138,6 +140,43 @@ describe("scoreSessionList", () => {
     await vi.waitFor(() => expect(s.loading).toBe(false));
     watchers.rangeKey();
     await vi.waitFor(() => expect(fetchGameSessions).toHaveBeenCalledTimes(2));
+  });
+
+  it("fetches the page-level game's sessions", async () => {
+    const { s } = section("501_V1");
+    await s.load(NOW);
+    expect(fetchGameSessions).toHaveBeenCalledWith(
+      "501",
+      expect.objectContaining({ status: "completed", limit: 10 }),
+    );
+  });
+
+  it("scopes the cache per game", async () => {
+    const { s } = section("BOBS27_V1");
+    await s.load(NOW);
+    expect(readSessionPage.mock.calls[0][1]).toBe(
+      `${gameScopeKey("BOBS27")}:counted`,
+    );
+  });
+
+  it("reloads when the page game changes", async () => {
+    const { s, watchers } = section();
+    s.init();
+    await vi.waitFor(() => expect(s.loading).toBe(false));
+    watchers.game();
+    await vi.waitFor(() => expect(fetchGameSessions).toHaveBeenCalledTimes(2));
+  });
+
+  it("shows the average for Score Training only", async () => {
+    fetchGameSessions.mockResolvedValue(page(["a"], null));
+    const score = section();
+    await score.s.load(NOW);
+    expect(score.s.caption(score.s.rows[0])).toBe(
+      "9.0 avg · 30 darts · 10 min",
+    );
+    const other = section("501_V1");
+    await other.s.load(NOW);
+    expect(other.s.caption(other.s.rows[0])).toBe("30 darts · 10 min");
   });
 
   it("is empty when no sessions returned", async () => {
