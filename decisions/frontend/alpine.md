@@ -219,3 +219,10 @@ Decision: `scoreHeatmapSection()` becomes `gameHeatmapSection()` and `ScoreHeatm
 Reason: the `heatmap` section is already served for every `board` game, so the page was the only gap. One game-agnostic factory keeps Score Training a caller, not a special case, and avoids a second heatmap renderer.
 Consequences: Doubles Training and Bob's 27 (`intent-stored`) keep the placeholder until a target picker is designed. Singles, Shanghai and Around the Clock get no per-target heatmap: their intent is derived and `target` is rejected there. `.astro` markup is untested (D101); the factory, constants and registration are covered.
 Supersedes: none (extends D387).
+
+### D407 — Heatmap target picker for Doubles Training and Bob's 27
+Status: Accepted · Date: 2026-10-04
+Decision: `gameHeatmapSection()` gains `target` state, a `targetOptions` getter and a `target` watcher; `GameHeatmapSection.astro` shows a `Select` when the options are non-empty. Options come from `heatmapTargetOptions()` (`lib/stats/heatmap-targets.ts`): empty unless the game type is in `HEATMAP_TARGET_GAMES` (Doubles Training, Bob's 27), else "All targets" (`null`, sends no `target`) plus the 21 doubles-path keys (D1..D20, bull). A `game` change resets `target` to `null`. `HEATMAP_ONLY_LAYOUTS` gains `DOUBLES_TRAINING_V1` and `BOBS27_V1`. `DOUBLES_PATH_KEYS` is the one source for Bob's 27's survival walk and the picker.
+Reason: both games store their intent, so the server already serves `heatmap?target=`; only the page lacked a control. The per-target cache key (`paramsKey`) already isolates each target.
+Consequences: Singles, Shanghai and Around the Clock still show the pooled heatmap with no filter (`intent-derived`; `target` is rejected there) until a server-fold variant is designed. `.astro` markup is untested (D101); the factory and options are covered.
+Supersedes: none (extends D406).
