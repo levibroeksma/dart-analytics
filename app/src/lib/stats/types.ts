@@ -92,6 +92,8 @@ export interface SectionMeta {
   params: readonly "target"[];
   /** Overrides `computeSite` with the first entry whose tag the game carries (`sectionSite`, phase-4 decision 5); absent tags fall through to `computeSite`. */
   siteByTag?: Partial<Record<StatsTag, ComputeSite>>;
+  /** Like `siteByTag`, consulted first when the request carries a `target` (`sectionSite`'s `hasTarget`). */
+  siteByTagWhenFiltered?: Partial<Record<StatsTag, ComputeSite>>;
   /** Narrows this section to named games on top of `requires` (phase-4 decision 10); absent means every game whose tags satisfy `requires`. */
   games?: readonly GameTypeKey[];
 }
