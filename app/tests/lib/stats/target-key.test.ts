@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  aimMatchesTarget,
   formatTargetKey,
   isAimHit,
   parseTargetKey,
@@ -137,5 +138,26 @@ describe("targetLabel", () => {
 
   it("returns an unparsable key unchanged", () => {
     expect(targetLabel("MISS")).toBe("MISS");
+  });
+});
+
+describe("aimMatchesTarget", () => {
+  const number7 = { number: 7, zone: "NUMBER" } as const;
+
+  it("matches NUMBER and OUTER_SINGLE aims of the number", () => {
+    expect(aimMatchesTarget("NUMBER:7", number7)).toBe(true);
+    expect(aimMatchesTarget("OUTER_SINGLE:7", number7)).toBe(true);
+  });
+
+  it("rejects other numbers and other rings", () => {
+    expect(aimMatchesTarget("NUMBER:8", number7)).toBe(false);
+    expect(aimMatchesTarget("DOUBLE:7", number7)).toBe(false);
+    expect(aimMatchesTarget("garbage", number7)).toBe(false);
+  });
+
+  it("matches BULL:25 exactly", () => {
+    const bull = { number: 25, zone: "BULL" } as const;
+    expect(aimMatchesTarget("BULL:25", bull)).toBe(true);
+    expect(aimMatchesTarget("NUMBER:20", bull)).toBe(false);
   });
 });
