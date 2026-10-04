@@ -2,7 +2,7 @@
 import ScoreAverageCard from "./ScoreAverageCard.astro";
 import ScoreTrendSection from "./ScoreTrendSection.astro";
 import GameHeatmapSection from "./GameHeatmapSection.astro";
-import ScoreCompletionSection from "./ScoreCompletionSection.astro";
+import GameCompletionSection from "./GameCompletionSection.astro";
 import GameSessionList from "./GameSessionList.astro";
 ---
 
@@ -27,7 +27,7 @@ import GameSessionList from "./GameSessionList.astro";
       subtextExpr="personalBestDate"
       loadingExpr="personalBestLoading"
     />
-    <ScoreCompletionSection />
+    <GameCompletionSection />
   </div>
   <ScoreTrendSection />
   <GameHeatmapSection />

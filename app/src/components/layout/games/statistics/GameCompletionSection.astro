@@ -1,8 +1,8 @@
 ---
 /**
- * Score Training session-result section: a square doughnut card of completed
+ * Session-result section of a game's `/statistics` layout: a square doughnut card of completed
  * (green) against abandoned (red) games over the page-level period, filling
- * one cell of the overview's two-column grid. Owns its fetch through `scoreCompletionSection()`.
+ * one cell of the overview's two-column grid. Owns its fetch through `gameCompletionSection()`.
  * Never-started sessions are not shown. The chart is the glass card itself,
  * so no sibling glass layer is needed.
  */
@@ -12,7 +12,7 @@ import Chart from "@components/ui/Chart.astro";
 
 <section
   class="w-full"
-  x-data="scoreCompletionSection()"
+  x-data="gameCompletionSection()"
 >
   <div
     class="space-y-2"

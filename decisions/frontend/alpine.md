@@ -240,3 +240,10 @@ Decision: `scoreSessionList()` becomes `gameSessionList()` (`GameSessionList.ast
 Reason: the session list endpoint, replay route and replay card already work for every game; a per-game list is a client change only. Sessions with no darts are left out by the endpoint (D405), so every game shares that rule.
 Consequences: no API or schema change. A counted-score average is not comparable across sessions of other games, so it is not shown.
 Supersedes: none (extends D399, D401, D405, D406).
+
+### D411 — Session-result donut on every plain board game's `/statistics` page
+Status: Accepted · Date: 2026-10-04
+Decision: `scoreCompletionSection()` becomes `gameCompletionSection()` (`GameCompletionSection.astro`). `periodSection()` resolves the page-level `game` to its game type (`gameTypeKey()`), reloads on `game` and `rangeKey`, and makes no request for an unknown game. `HeatmapStatsOverview.astro` mounts the donut in a two-column grid above the heatmap, so every `HEATMAP_ONLY_LAYOUTS` game gets it. Design and logic are Score Training's: completed against abandoned, never-started left out, abandon rate as abandoned over started.
+Reason: the `completion` section is `any`-tag and already served for every game; only the client hard-coded Score Training.
+Consequences: no API or schema change. The donut fills the left cell only; the right cell is empty until another stat card lands there.
+Supersedes: none (extends D401, D402, D410).
