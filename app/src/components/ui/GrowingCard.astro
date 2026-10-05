@@ -1,0 +1,46 @@
+---
+/**
+ * In-flow glass card that grows from wherever it sits into a modal overlay
+ * covering the viewport inset by 1rem, and shrinks back into its slot.
+ * Toggled by click, Enter or Space; Escape closes. State and geometry live
+ * in the `growingCard` Alpine factory (`@lib/ui/growing-card.data`).
+ * @param {string} [class] Extra card classes
+ */
+interface Props {
+  class?: string;
+}
+
+// Props
+const { class: classNameProp }: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const cardClass = cn(
+  "glass flex cursor-pointer flex-col gap-4 rounded-2xl p-4 transition-[top,left,width,height] duration-300 ease-in-out",
+  classNameProp,
+);
+---
+
+<div
+  x-data="growingCard()"
+  @keydown.escape.window="open && collapse()"
+>
+  <div x-ref="slot">
+    <div
+      x-ref="card"
+      class={cardClass}
+      role="button"
+      tabindex="0"
+      :class="open ? 'text-accent' : 'text-muted'"
+      :aria-expanded="open"
+      @click="toggle()"
+      @keydown.enter.prevent="toggle()"
+      @keydown.space.prevent="toggle()"
+      @transitionend.self="settle($event)"
+    >
+      <slot />
+    </div>
+  </div>
+</div>

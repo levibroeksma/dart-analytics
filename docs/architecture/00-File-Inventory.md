@@ -2,7 +2,7 @@
 status: canonical
 scope: canonical file inventory — what each document answers
 read-when: a context pack demonstrably lacks the answer
-updated: 2026-10-04
+updated: 2026-10-05
 -->
 
 > Escalation target for `00-Context-Map.md`. Packs come first; open this
@@ -76,7 +76,7 @@ Status: **canonical** = current truth · **historical** = preserved record, neve
 | `07-Frontend/05-Astro-Components.md` | `.astro` authoring: frontmatter order, props, class composition, slots; template `{/* */}` comments; Prettier `singleAttributePerLine` (2026-07-21) | canonical | ~2.1k |
 | `07-Frontend/06-Test-Strategy.md` | Shared-mock promotion rule, full-suite-always-runs policy (2026-07-16); fallow duplication-detection known limitation, found investigating F42 (2026-09-02); rendered-SQL convention for repository write paths, D303 (2026-09-17); wrapped-store seam tested through the real store, D304 (2026-09-17) | canonical | ~1.9k |
 | `07-Frontend/07-Style-Guide.md` | Sky/glass/surface visual contract: tokens, primitives, typography, motion, a11y; Tailwind v4 utility syntax section — no important modifier, either form, arbitrary negatives (D226 supersedes D175, 2026-08-21); top safe-area inset noted alongside `h-dvh` (D174, 2026-07-29); container-query sizing for variable-length content (D262, 2026-09-09); no `height` beside `flex-1` (D326, 2026-09-19); the 40% play-screen scoreboard band (D327, 2026-09-19); `--chart-<name>` tokens and the Charts section (D374, 2026-09-30); non-selectable text by default, `select-text` opt-in (D388, 2026-10-02) | canonical | ~4.5k |
-| `07-Frontend/08-Component-Inventory.md` | Every shared `.astro` component, its purpose and key props; check before hand-rolling markup; `IconBtn.astro` added (2026-08-21); `StatCard.astro`/`StatCardSkeleton.astro` added (2026-09-08); `BlockedStepModal.astro` added (2026-09-16); `components/layout/training/` split into its real `routines/`/`exercises/`/`trivia/` subheadings, all three (closes #423), `RoutineCard`/`RoutineBuilder`/`RoutineStepRow`/`ExercisePicker`/`QuickSubtract` rows added, `RoutineDetail.astro` rewritten data-driven (2026-09-19); new `components/layout/home/` subheading, `WeekdayStrip.astro` row added (2026-09-22); `StatCard`/`StatCardSkeleton` rows removed with the Statistics page stat cards (2026-09-24); `StatsHeatmap`'s `cellsExpr` prop and a `components/layout/statistics/` section (D372, 2026-09-29); `Chart.astro` row (D374, 2026-09-30); `StatsDensityHeatmap.astro` row (D387, 2026-10-02); `Button.astro` default slot + ambient `loadingExpr` note (D394, 2026-10-03) | canonical | ~4.7k |
+| `07-Frontend/08-Component-Inventory.md` | Every shared `.astro` component, its purpose and key props; check before hand-rolling markup; `IconBtn.astro` added (2026-08-21); `StatCard.astro`/`StatCardSkeleton.astro` added (2026-09-08); `BlockedStepModal.astro` added (2026-09-16); `components/layout/training/` split into its real `routines/`/`exercises/`/`trivia/` subheadings, all three (closes #423), `RoutineCard`/`RoutineBuilder`/`RoutineStepRow`/`ExercisePicker`/`QuickSubtract` rows added, `RoutineDetail.astro` rewritten data-driven (2026-09-19); new `components/layout/home/` subheading, `WeekdayStrip.astro` row added (2026-09-22); `StatCard`/`StatCardSkeleton` rows removed with the Statistics page stat cards (2026-09-24); `StatsHeatmap`'s `cellsExpr` prop and a `components/layout/statistics/` section (D372, 2026-09-29); `Chart.astro` row (D374, 2026-09-30); `StatsDensityHeatmap.astro` row (D387, 2026-10-02); `Button.astro` default slot + ambient `loadingExpr` note (D394, 2026-10-03); `GrowingCard.astro` row (2026-10-05) | canonical | ~4.7k |
 | `07-Frontend/09-Adding-A-Game.md` | The 26-file fan-out a new game requires, the six shared registries that fail silently, `bobs27` as the reference exemplar, the route-slug/code-slug rule, and the three setup-controller opt-outs (2026-08-20) | canonical | ~2.1k |
 | `07-Frontend/10-Frontend-Agent-Guide.md` | Condensed frontend agent rules; comment/format checklist; TS JSDoc-above convention (2026-07-21) | canonical | ~2.1k |
 
@@ -465,6 +465,13 @@ Registered for discoverability, not as reading material — the view contract li
 | `app/src/lib/training/schedules/schedule-issues.ts` | `formatScheduleIssues(details)` — a schedule `VALIDATION_FAILED` envelope as one user-facing line; shared by `scheduleEditor` and `myScheduleForm` (2026-09-22) | canonical |
 | `app/src/components/layout/training/schedules/ScheduleFormModal.astro`, `app/src/components/layout/home/TodayRoutineCard.astro` | The modal and homepage today card — see `07-Frontend/08-Component-Inventory.md` for props (2026-09-22) | canonical |
 | `app/src/icons/flame.svg` | Flame icon for the "You're on fire" state (2026-09-22) | canonical |
+
+## Growing card (2026-10-05)
+
+| File | Answers | Status |
+| ---- | ------- | ------ |
+| `app/src/components/ui/GrowingCard.astro` | In-flow glass card that grows into an overlay covering the viewport inset by 1rem and shrinks back; see `07-Frontend/08-Component-Inventory.md` for props (2026-10-05) | canonical |
+| `app/src/lib/ui/growing-card.data.ts` | The `growingCard()` Alpine factory: `toggle`/`expand`/`collapse` pin the card `fixed` between its in-flow box and the inset viewport box, the slot holds its height while open, `settle(event)` clears inline styles after the closing `height` transition (2026-10-05) | canonical |
 
 ## Cross-cutting mechanical guards (2026-07-28)
 

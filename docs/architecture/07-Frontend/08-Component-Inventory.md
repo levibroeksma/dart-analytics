@@ -2,7 +2,7 @@
 status: canonical
 scope: shared Astro component inventory
 read-when: before writing markup for any recurring UI shape
-updated: 2026-10-03
+updated: 2026-10-05
 -->
 
 # Component Inventory
@@ -32,6 +32,7 @@ evaluated in the page's own Alpine scope.
 | `DartBoard.astro` | Dartboard SVG plus an overlay slot for markers | `boardRef` |
 | `ExpandingModal.astro` | Corner disclosure dialog: a 48px glass toggle that expands in place into a full-frame panel and collapses back. Contents are laid out at the expanded size for the whole transition (content frame sized in `100cqw`/`100cqh` against the fixed layer), so nothing reflows while the panel grows. Caller owns the open flag (2026-09-21). `detached` hides the collapsed corner toggle so the caller opens it from its own control (2026-09-22) | `openExpr`, `onToggle`, `onClose`, `title`, `titleId`, `toggleLabelClosed`, `toggleLabelOpen`, `detached` |
 | `ErrorAlert.astro` | Alert-styled error message; `alwaysVisible` drops `x-show`/`x-cloak` for a caller whose ancestor already gates visibility | `class`, `showExpr`, `textExpr`, `alwaysVisible` |
+| `GrowingCard.astro` | In-flow glass card that grows from wherever it sits into an overlay covering the viewport inset by 1rem, and shrinks back; its slot holds the card's height while open so the page does not shift. Owns its open flag via `growingCard()`; click, Enter or Space toggles, Escape closes. Contents reflow while it grows, unlike `ExpandingModal` (2026-10-05) | `class` |
 | `InfoSection.astro` | Titled explanatory block | `title`, `description`, `id` |
 | `IsLoading.astro` | Loading skeleton / spinner panel | `title` |
 | `Link.astro` | Anchor styled as text link or button | `href`, `variant` (`inline`/`primary`/`secondary`/`ghost`), `external`, `icon`, `ariaLabel` |
