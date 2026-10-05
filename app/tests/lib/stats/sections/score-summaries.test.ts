@@ -88,12 +88,13 @@ describe("sessionRow", () => {
     countedScore: 150,
   };
 
-  it("derives the 3-dart average, minutes and the replay link", () => {
+  it("derives the 3-dart average, minutes and the session id", () => {
     const row = sessionRow(item, "UTC");
     expect(row.average).toBe(15);
     expect(row.minutes).toBe(30);
     expect(row.darts).toBe(30);
-    expect(row.href).toBe("/statistics/replay?session=s1");
+    expect(row.id).toBe("s1");
+    expect(row).not.toHaveProperty("href");
     expect(row.date).toBe("1 oct. '26");
   });
 

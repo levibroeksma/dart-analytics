@@ -71,10 +71,7 @@ describe("gameSessionList", () => {
       status: "completed",
       limit: 10,
     });
-    expect(s.rows.map((r) => r.href)).toEqual([
-      "/statistics/replay?session=a",
-      "/statistics/replay?session=b",
-    ]);
+    expect(s.rows.map((r) => r.id)).toEqual(["a", "b"]);
     expect(s.hasNext).toBe(true);
     expect(s.hasPrevious).toBe(false);
     expect(s.loading).toBe(false);

@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { sectionsForGame } from "@lib/stats/section-registry";
-import { replayPath, statisticsPath } from "@lib/stats/replay-route";
 import { STEP_METRIC_SPECS } from "@modules/stats/step-metrics.module";
 import {
   routineScopeKey,
@@ -49,6 +48,11 @@ const OLD_SWITCHING_KEY = `3-${"f".repeat(32)}`;
 const OTHER_ROUTINE_KEY = `name-${"a".repeat(32)}`;
 const LOAD_ERROR =
   "Could not load your routine statistics. Check your connection and try again.";
+
+/** `/statistics` opened on the Routines tab at `routineKey`'s `stepKey`. */
+function routinesUrl(routineKey: string, stepKey: string): string {
+  return `/statistics?tab=routines&routine=${encodeURIComponent(routineKey)}&step=${encodeURIComponent(stepKey)}`;
+}
 
 /** A promise the test settles by hand, to land a response after a later selection. */
 function deferred<T>() {
@@ -208,7 +212,7 @@ describe("routineStatsStore loading", () => {
   });
 
   it("init reads a routines location and opens the Routines tab", () => {
-    history.replaceState(null, "", statisticsPath(ROUTINE_KEY, DOUBLES_KEY));
+    history.replaceState(null, "", routinesUrl(ROUTINE_KEY, DOUBLES_KEY));
     const store = routineStatsStore();
 
     store.init();
@@ -221,7 +225,7 @@ describe("routineStatsStore loading", () => {
     fetchTrainedRoutines.mockResolvedValue({
       items: [{ ...TRAINED, routineKey: OTHER_ROUTINE_KEY }, TRAINED],
     });
-    history.replaceState(null, "", statisticsPath(ROUTINE_KEY, DOUBLES_KEY));
+    history.replaceState(null, "", routinesUrl(ROUTINE_KEY, DOUBLES_KEY));
     const store = routineStatsStore();
     store.init();
 
@@ -232,7 +236,7 @@ describe("routineStatsStore loading", () => {
   });
 
   it("activate falls back to the first routine and step when the location names none that exist", async () => {
-    history.replaceState(null, "", statisticsPath("gone", "gone"));
+    history.replaceState(null, "", routinesUrl("gone", "gone"));
     const store = routineStatsStore();
     store.init();
 
@@ -243,7 +247,7 @@ describe("routineStatsStore loading", () => {
   });
 
   it("activate falls back to the first step when only the step is unknown", async () => {
-    history.replaceState(null, "", statisticsPath(ROUTINE_KEY, "gone"));
+    history.replaceState(null, "", routinesUrl(ROUTINE_KEY, "gone"));
     const store = routineStatsStore();
     store.init();
 
@@ -792,20 +796,6 @@ describe("routineStatsStore getters", () => {
       { steps: 2, runs: 2 },
       { steps: 10, runs: 1 },
     ]);
-  });
-
-  it("links a dart step's session rows through replayPath, and none for Warm-Up", async () => {
-    const store = routineStatsStore();
-    await store.selectRoutine(ROUTINE_KEY);
-
-    await store.selectStep(DOUBLES_KEY);
-    expect(store.sessionHref("s1")).toBe(replayPath("s1"));
-
-    await store.selectStep(GAME_KEY);
-    expect(store.sessionHref("s1")).toBe(replayPath("s1"));
-
-    await store.selectStep(WARM_UP_KEY);
-    expect(store.sessionHref("s1")).toBeNull();
   });
 });
 

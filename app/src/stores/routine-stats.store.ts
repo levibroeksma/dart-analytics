@@ -4,10 +4,7 @@ import {
   sectionsForRoutine,
   sectionsForStep,
 } from "@lib/stats/section-registry";
-import {
-  replayPath,
-  routinesLocationFromLocation,
-} from "@lib/stats/replay-route";
+import { routinesLocationFromLocation } from "@lib/stats/replay-route";
 import {
   resolveStepAdapter,
   stepAdapterKey,
@@ -621,13 +618,6 @@ export function routineStatsStore() {
         personalBest:
           spec.direction === "higher" ? totals.headlineMax : totals.headlineMin,
       };
-    },
-
-    /** A step session row's replay page, or `null` for a dartless step (Warm-Up has no capture pair to replay, D372 decision 11). */
-    sessionHref(sessionId: string): string | null {
-      return this.stepKind === "dartless" || this.stepKind === null
-        ? null
-        : replayPath(sessionId);
     },
   };
 }

@@ -3,8 +3,7 @@ type BoxStyle = Pick<CSSStyleDeclaration, "top" | "left" | "width" | "height">;
 type GrowingCardContext = {
   open: boolean;
   $refs: { card: HTMLElement; slot: HTMLElement };
-  expand(this: GrowingCardContext): void;
-  collapse(this: GrowingCardContext): void;
+  $dispatch(name: string): void;
 };
 
 const EXPANDED_BOX: BoxStyle = {
@@ -33,17 +32,15 @@ function pin(card: HTMLElement, box: BoxStyle) {
  * cover the viewport inset by 1rem, and shrinks back. The slot keeps the
  * card's height while it is pinned, so the page beneath does not shift;
  * inline styles are cleared once the closing `height` transition ends.
+ * Expanding dispatches `expand`, so the caller can load what the open card
+ * shows.
  */
 export function growingCard() {
   return {
     open: false,
 
-    toggle(this: GrowingCardContext) {
-      if (this.open) this.collapse();
-      else this.expand();
-    },
-
     expand(this: GrowingCardContext) {
+      if (this.open) return;
       const { card, slot } = this.$refs;
       const origin = boxOf(card);
       slot.style.height = origin.height;
@@ -51,6 +48,7 @@ export function growingCard() {
       void card.offsetWidth;
       pin(card, EXPANDED_BOX);
       this.open = true;
+      this.$dispatch("expand");
     },
 
     collapse(this: GrowingCardContext) {

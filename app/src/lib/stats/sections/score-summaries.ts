@@ -1,5 +1,4 @@
 import { MIN_TARGET_SAMPLE } from "@lib/stats/constants";
-import { replayPath } from "@lib/stats/replay-route";
 import { formatShortDate } from "@lib/stats/sections/score-trend-window";
 import type { GameSessionListResponseData } from "@client/api/types";
 import type { SeriesBucket } from "@lib/types";
@@ -64,11 +63,10 @@ export function completionSummary(
   };
 }
 
-/** One session-list row: the 3-dart average from the stored score and darts, whole minutes, and the replay link. */
+/** One session-list row: the 3-dart average from the stored score and darts, whole minutes, and the session id a replay card opens. */
 export function sessionRow(item: SessionListItem, tz: string): SessionRow {
   return {
     id: item.sessionId,
-    href: replayPath(item.sessionId),
     date: formatShortDate(item.completedAt, tz),
     average:
       item.dartCount === 0 ? null : (item.countedScore / item.dartCount) * 3,

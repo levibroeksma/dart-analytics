@@ -751,13 +751,11 @@ const wrapperClass = cn("space-y-4", classNameProp);
       class="grid grid-cols-2 gap-2 text-center text-sm text-muted-foreground"
     >
       <div>
-        <a
-          class="block text-lg"
-          :class="gameView.bestLegSessionId ? 'text-accent no-underline hover:text-accent-hover' : 'text-foreground'"
-          :href="gameView.bestLegSessionId ? gameView.replayHref(gameView.bestLegSessionId) : undefined"
+        <span
+          class="block text-lg text-foreground"
           x-text="gameView.bestLeg ?? '—'"
         >
-        </a>
+        </span>
         Best leg
       </div>
       <div>
@@ -959,14 +957,13 @@ const wrapperClass = cn("space-y-4", classNameProp);
           x-text="`avg ${Math.round(row.averageCountedScore)}`"
         >
         </span>
-        <a
-          class="text-accent no-underline hover:text-accent-hover"
+        <span
+          class="text-accent"
           x-show="row.personalBest"
           x-cloak
-          :href="row.personalBest ? gameView.replayHref(row.personalBest.sessionId) : undefined"
           x-text="row.personalBest ? `PB ${row.personalBest.value}` : ''"
         >
-        </a>
+        </span>
       </div>
     </template>
   </div>

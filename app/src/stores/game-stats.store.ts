@@ -12,7 +12,6 @@ import {
 import { CACHE_PLAYER_ID, loadGameSection } from "@lib/stats/load-game-section";
 import { parseTargetKey, targetLabel } from "@lib/stats/target-key";
 import { DOUBLES_PATH_KEYS } from "@lib/stats/heatmap-targets";
-import { replayPath } from "@lib/stats/replay-route";
 import { checkoutPathFor } from "@modules/game/checkout-path.module";
 import { groupingSummary } from "@modules/stats/sections/grouping.module";
 import { fetchGameSection, fetchGameSessions } from "@client/api/statistics";
@@ -362,11 +361,6 @@ export function gameStatsStore() {
       );
       this.sessions = [...this.sessions, ...page.items];
       this.nextCursor = page.nextCursor;
-    },
-
-    /** A session's replay page, for a session-list row or the PB line's `sessionId` (D371 decision 12). */
-    replayHref(sessionId: string): string {
-      return replayPath(sessionId);
     },
 
     /** Completion totals across every loaded bucket, or `null` before the section has loaded. */

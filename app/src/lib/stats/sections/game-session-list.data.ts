@@ -27,7 +27,7 @@ function localTz(): string {
 /**
  * The replay section of a game's `/statistics` layout: the completed sessions
  * of the page-level game and period, newest first, 10 per page through the
- * IndexedDB cache, each linking to its replay. The list endpoint leaves out
+ * IndexedDB cache, each a card that grows into its replay. The list endpoint leaves out
  * sessions with no darts. Pages are walked with `next()` and `previous()`; a
  * change of `rangeKey` or `game` reloads from the first page.
  */

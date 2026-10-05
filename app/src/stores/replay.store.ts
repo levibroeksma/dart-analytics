@@ -5,10 +5,6 @@ import {
   REPLAY_PRESENTERS,
   STEP_REPLAY_PRESENTERS,
 } from "@lib/stats/replay-presenters";
-import {
-  replaySessionIdFromLocation,
-  statisticsPath,
-} from "@lib/stats/replay-route";
 import { isDartExerciseKind } from "@lib/stats/section-registry";
 import {
   resolveStepAdapter,
@@ -93,16 +89,18 @@ function turnFactOf(turn: ReplayTurn): TurnFact {
 }
 
 /**
- * Session replay page state (`10-Statistics/02-Replay.md`, D371 decisions
- * 8-9): the header and every loaded turn, read page by page through the
- * `replayPages` cache and folded from page 1 on every load. Registered
- * through `Alpine.store("replay", replayStore())`, so `init()` is the
- * sanctioned hydration hook -- `x-init` is forbidden repo-wide. The loaded
- * header and turns are also held raw in the closure, so the fold never
- * walks Alpine's reactive proxies.
+ * Session replay state (`10-Statistics/02-Replay.md`, D371 decision 8,
+ * D414): the header and every loaded turn of the session a replay card
+ * opened, read page by page through the `replayPages` cache and folded from
+ * page 1 on every load. Registered through
+ * `Alpine.store("replay", replayStore())`. The loaded header and turns are
+ * also held raw in the closure, so the fold never walks Alpine's reactive
+ * proxies. Each `open()` starts a new generation; a page from an earlier
+ * one is dropped.
  */
 export function replayStore() {
   let queue: Promise<void> = Promise.resolve();
+  let generation = 0;
   let loadedHeader: ReplayHeader | null = null;
   let loadedTurns: ReplayTurn[] = [];
 
@@ -116,25 +114,28 @@ export function replayStore() {
     error: null as ReplayLoadError | null,
     selectedIndex: null as number | null,
 
-    /** The back link: the Routines tab at the session's routine and step when it ran as one, else `/statistics`. */
-    get backHref(): string {
-      return statisticsPath(
-        this.header?.routineKey ?? null,
-        this.header?.stepKey ?? null,
-      );
-    },
-
     /**
-     * Reads `?session=` and loads the first page. No id, or one the replay
-     * route's own `ReplaySessionIdParam` would reject, is `NOT_FOUND`, and
-     * nothing is fetched: a malformed id never reaches a request path.
+     * Clears the previous session and loads `sessionId`'s first page. An id
+     * the replay route's own `ReplaySessionIdParam` would reject is
+     * `NOT_FOUND`, and nothing is fetched: a malformed id never reaches a
+     * request path.
      */
-    async init() {
-      const sessionId = replaySessionIdFromLocation();
-      if (
-        sessionId === null ||
-        !ReplaySessionIdParam.safeParse(sessionId).success
-      ) {
+    async open(sessionId: string) {
+      generation += 1;
+      queue = Promise.resolve();
+      loadedHeader = null;
+      loadedTurns = [];
+      Object.assign(this, {
+        sessionId: null,
+        header: null,
+        turns: [],
+        nextCursor: null,
+        fold: null,
+        loading: false,
+        error: null,
+        selectedIndex: null,
+      });
+      if (!ReplaySessionIdParam.safeParse(sessionId).success) {
         this.error = "NOT_FOUND";
         return;
       }
@@ -144,15 +145,16 @@ export function replayStore() {
 
     /** Queues the next page behind any load still running, so each cursor is read once and pages append in order. */
     loadNext(): Promise<void> {
-      const next = queue.then(() => this.loadPage());
+      const mine = generation;
+      const next = queue.then(() => this.loadPage(mine));
       queue = next;
       return next;
     },
 
-    /** Reads the page after the loaded ones (the first when none is); a no-op once `nextCursor` is `null`. Never rejects. */
-    async loadPage(): Promise<void> {
+    /** Reads the page after the loaded ones (the first when none is); a no-op once `nextCursor` is `null` or a newer `open()` has started. Never rejects. */
+    async loadPage(mine: number): Promise<void> {
       const sessionId = this.sessionId;
-      if (sessionId === null) return;
+      if (sessionId === null || mine !== generation) return;
       const cursor = loadedHeader === null ? undefined : this.nextCursor;
       if (cursor === null) return;
       this.loading = true;
@@ -163,11 +165,11 @@ export function replayStore() {
           cursor,
           () => fetchSessionReplay(sessionId, { cursor }),
         );
-        this.append(page);
+        if (mine === generation) this.append(page);
       } catch (cause) {
-        this.error = loadErrorOf(cause);
+        if (mine === generation) this.error = loadErrorOf(cause);
       } finally {
-        this.loading = false;
+        if (mine === generation) this.loading = false;
       }
     },
 

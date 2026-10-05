@@ -2,23 +2,27 @@
 /**
  * In-flow glass card that grows from wherever it sits into a modal overlay
  * covering the viewport inset by 1rem, and shrinks back into its slot.
- * Toggled by click, Enter or Space; Escape closes. State and geometry live
- * in the `growingCard` Alpine factory (`@lib/ui/growing-card.data`).
+ * Click, Enter or Space opens it and dispatches `expand`; Escape, or slot
+ * content calling `collapse()`, closes it. Clicks inside an open card never
+ * close it. State and geometry live in the `growingCard` Alpine factory
+ * (`@lib/ui/growing-card.data`); `open` is in scope for the slot.
  * @param {string} [class] Extra card classes
+ * Leftover attributes (e.g. an Alpine `@expand`) are forwarded to the root element.
  */
 interface Props {
   class?: string;
+  [key: string]: unknown;
 }
 
 // Props
-const { class: classNameProp }: Props = Astro.props;
+const { class: classNameProp, ...props }: Props = Astro.props;
 
 // Lib
 import { cn } from "@client/cn";
 
 // Styles
 const cardClass = cn(
-  "glass flex cursor-pointer flex-col gap-4 rounded-2xl p-4 transition-[top,left,width,height] duration-300 ease-in-out",
+  "glass flex flex-col gap-4 rounded-2xl p-4 transition-[top,left,width,height] duration-300 ease-in-out",
   classNameProp,
 );
 ---
@@ -26,18 +30,19 @@ const cardClass = cn(
 <div
   x-data="growingCard()"
   @keydown.escape.window="open && collapse()"
+  {...props}
 >
   <div x-ref="slot">
     <div
       x-ref="card"
       class={cardClass}
-      role="button"
-      tabindex="0"
-      :class="open ? 'text-accent' : 'text-muted'"
+      :class="open ? 'overflow-y-auto' : 'cursor-pointer overflow-hidden'"
+      :role="open ? null : 'button'"
+      :tabindex="open ? null : 0"
       :aria-expanded="open"
-      @click="toggle()"
-      @keydown.enter.prevent="toggle()"
-      @keydown.space.prevent="toggle()"
+      @click="expand()"
+      @keydown.enter.self.prevent="expand()"
+      @keydown.space.self.prevent="expand()"
       @transitionend.self="settle($event)"
     >
       <slot />

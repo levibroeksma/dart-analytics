@@ -1,6 +1,5 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { replayPath } from "@lib/stats/replay-route";
 import { STEP_REPLAY_PRESENTERS } from "@lib/stats/replay-presenters";
 import { playSwitching } from "../lib/stats/replay-step-games";
 
@@ -30,10 +29,9 @@ describe("replayStore (non-game routine steps)", () => {
   it("picks the step's own STEP_REPLAY_PRESENTERS entry when gameTypeKey is null", async () => {
     const { header, turns } = playSwitching();
     readReplayPage.mockResolvedValue({ header, turns, nextCursor: null });
-    history.replaceState(null, "", replayPath(header.sessionId));
     const store = replayStore();
 
-    await store.init();
+    await store.open(header.sessionId);
 
     expect(store.presenter).toBe(STEP_REPLAY_PRESENTERS.SWITCHING);
     expect(store.derivedAvailable).toBe(true);
@@ -48,10 +46,9 @@ describe("replayStore (non-game routine steps)", () => {
       turns,
       nextCursor: null,
     });
-    history.replaceState(null, "", replayPath(header.sessionId));
     const store = replayStore();
 
-    await store.init();
+    await store.open(header.sessionId);
 
     expect(store.presenter).toBeNull();
     expect(store.derivedAvailable).toBe(false);
@@ -61,10 +58,9 @@ describe("replayStore (non-game routine steps)", () => {
   it("titles a step replay with its adapter's capitalized header label", async () => {
     const { header, turns } = playSwitching();
     readReplayPage.mockResolvedValue({ header, turns, nextCursor: null });
-    history.replaceState(null, "", replayPath(header.sessionId));
     const store = replayStore();
 
-    await store.init();
+    await store.open(header.sessionId);
 
     expect(store.exerciseTitle).toBe("Switching");
   });
@@ -76,10 +72,9 @@ describe("replayStore (non-game routine steps)", () => {
       turns,
       nextCursor: null,
     });
-    history.replaceState(null, "", replayPath(header.sessionId));
     const store = replayStore();
 
-    await store.init();
+    await store.open(header.sessionId);
 
     expect(store.exerciseTitle).toBe("SOME_FUTURE_KIND");
   });

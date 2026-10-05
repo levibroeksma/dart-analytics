@@ -1,6 +1,5 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { replayPath } from "@lib/stats/replay-route";
 import { REPLAY_PRESENTERS } from "@lib/stats/replay-presenters";
 import type { ReplayPageSchemaData } from "@client/api/types";
 import {
@@ -70,9 +69,8 @@ async function opened(
   header?: Header,
 ) {
   serve(pagesOf(game, cuts, header));
-  history.replaceState(null, "", replayPath(game.header.sessionId));
   const store = replayStore();
-  await store.init();
+  await store.open(game.header.sessionId);
   return store;
 }
 
@@ -82,30 +80,51 @@ beforeEach(() => {
 });
 
 describe("replayStore", () => {
-  it("backs to the Games tab for a session with no routine step", async () => {
-    const store = await opened(playFiveOhOne(), []);
+  it("clears the previous session when another one opens", async () => {
+    const store = await opened(playFiveOhOne(), [3]);
+    store.select(1);
+    const second = playBobs27();
+    serve(pagesOf(second, []));
 
-    expect(store.backHref).toBe("/statistics");
+    await store.open(second.header.sessionId);
+
+    expect(store.sessionId).toBe(second.header.sessionId);
+    expect(store.header).toEqual(second.header);
+    expect(store.turns).toEqual(second.turns);
+    expect(store.nextCursor).toBeNull();
+    expect(store.selectedIndex).toBeNull();
   });
 
-  it("backs to the routine and step the session ran under", async () => {
-    const game = playFiveOhOne();
-    const store = await opened(game, [], {
-      ...game.header,
-      routineKey: "r 1",
-      stepKey: "s/2",
-    });
-
-    expect(store.backHref).toBe(
-      "/statistics?tab=routines&routine=r%201&step=s%2F2",
+  it("drops a page that lands after another session opened", async () => {
+    const first = playFiveOhOne();
+    const second = playBobs27();
+    let release!: (page: ReplayPageSchemaData) => void;
+    readReplayPage.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          release = resolve;
+        }),
     );
+    readReplayPage.mockImplementationOnce(() =>
+      Promise.resolve(pagesOf(second, []).get(undefined)),
+    );
+    const store = replayStore();
+
+    const stale = store.open(first.header.sessionId);
+    await vi.waitFor(() => expect(readReplayPage).toHaveBeenCalledTimes(1));
+    const fresh = store.open(second.header.sessionId);
+    await fresh;
+    release(pagesOf(first, []).get(undefined)!);
+    await stale;
+
+    expect(store.sessionId).toBe(second.header.sessionId);
+    expect(store.header).toEqual(second.header);
+    expect(store.turns).toEqual(second.turns);
+    expect(store.loading).toBe(false);
+    expect(store.error).toBeNull();
   });
 
-  it("backs to the Games tab before the header loads", () => {
-    expect(replayStore().backHref).toBe("/statistics");
-  });
-
-  it("reads the session id and loads the header plus the first page", async () => {
+  it("opens a session and loads the header plus the first page", async () => {
     const game = playFiveOhOne();
     const store = await opened(game, [3, 5]);
 
@@ -122,10 +141,9 @@ describe("replayStore", () => {
   });
 
   it("sets NOT_FOUND without a session id and never fetches", async () => {
-    history.replaceState(null, "", "/statistics/replay?session=");
     const store = replayStore();
 
-    await store.init();
+    await store.open("");
 
     expect(store.error).toBe("NOT_FOUND");
     expect(readReplayPage).not.toHaveBeenCalled();
@@ -134,10 +152,9 @@ describe("replayStore", () => {
   it.each(["../../profile#", "not-a-session", "01900000-0000-7000-8000"])(
     "sets NOT_FOUND for a malformed session id %j and never fetches",
     async (sessionId) => {
-      history.replaceState(null, "", replayPath(sessionId));
       const store = replayStore();
 
-      await store.init();
+      await store.open(sessionId);
 
       expect(store.error).toBe("NOT_FOUND");
       expect(store.sessionId).toBeNull();
@@ -184,14 +201,9 @@ describe("replayStore", () => {
       requestId: "r",
       error: { code: "NOT_FOUND", message: "Not found", retryable: false },
     });
-    history.replaceState(
-      null,
-      "",
-      replayPath(playFiveOhOne().header.sessionId),
-    );
     const store = replayStore();
 
-    await store.init();
+    await store.open(playFiveOhOne().header.sessionId);
 
     expect(apiRequest.mock.calls[0]![0]).toContain(
       `/api/statistics/sessions/${playFiveOhOne().header.sessionId}/replay`,
@@ -227,10 +239,9 @@ describe("replayStore", () => {
             },
       );
     });
-    history.replaceState(null, "", replayPath(game.header.sessionId));
     const store = replayStore();
 
-    await store.init();
+    await store.open(game.header.sessionId);
     await store.loadNext();
     await store.loadNext();
 
@@ -245,14 +256,9 @@ describe("replayStore", () => {
 
   it("sets FAILED on any other failure", async () => {
     readReplayPage.mockRejectedValue(new Error("offline"));
-    history.replaceState(
-      null,
-      "",
-      replayPath(playFiveOhOne().header.sessionId),
-    );
     const store = replayStore();
 
-    await store.init();
+    await store.open(playFiveOhOne().header.sessionId);
 
     expect(store.error).toBe("FAILED");
   });
@@ -261,10 +267,9 @@ describe("replayStore", () => {
     const game = playFiveOhOne();
     serve(pagesOf(game, [3]));
     readReplayPage.mockRejectedValueOnce(new Error("offline"));
-    history.replaceState(null, "", replayPath(game.header.sessionId));
     const store = replayStore();
 
-    await store.init();
+    await store.open(game.header.sessionId);
     expect(store.error).toBe("FAILED");
     expect(store.header).toBeNull();
 

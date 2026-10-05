@@ -27,8 +27,12 @@ function setup() {
     width: 300,
     height: 80,
   });
-  const ctx = Object.assign(growingCard(), { $refs: { card, slot } });
-  return { ctx, card, slot };
+  const dispatched: string[] = [];
+  const ctx = Object.assign(growingCard(), {
+    $refs: { card, slot },
+    $dispatch: (name: string) => void dispatched.push(name),
+  });
+  return { ctx, card, slot, dispatched };
 }
 
 function transitionEnd(propertyName: string) {
@@ -39,9 +43,10 @@ describe("growingCard", () => {
   let card: HTMLElement;
   let slot: HTMLElement;
   let ctx: ReturnType<typeof setup>["ctx"];
+  let dispatched: string[];
 
   beforeEach(() => {
-    ({ ctx, card, slot } = setup());
+    ({ ctx, card, slot, dispatched } = setup());
   });
 
   it("starts closed", () => {
@@ -58,7 +63,7 @@ describe("growingCard", () => {
       },
     });
 
-    ctx.toggle();
+    ctx.expand();
 
     expect(pinned).toEqual({
       position: "fixed",
@@ -70,7 +75,7 @@ describe("growingCard", () => {
   });
 
   it("grows the card to the viewport inset by 1rem and opens", () => {
-    ctx.toggle();
+    ctx.expand();
 
     expect(ctx.open).toBe(true);
     expect(card.style.position).toBe("fixed");
@@ -82,14 +87,14 @@ describe("growingCard", () => {
   });
 
   it("locks the slot height so the page does not shift", () => {
-    ctx.toggle();
+    ctx.expand();
 
     expect(slot.style.height).toBe("80px");
   });
 
   it("shrinks the card back to the slot box and closes", () => {
-    ctx.toggle();
-    ctx.toggle();
+    ctx.expand();
+    ctx.collapse();
 
     expect(ctx.open).toBe(false);
     expect(card.style.top).toBe("120px");
@@ -99,8 +104,8 @@ describe("growingCard", () => {
   });
 
   it("returns the card to the flow once the close transition ends", () => {
-    ctx.toggle();
-    ctx.toggle();
+    ctx.expand();
+    ctx.collapse();
     ctx.settle(transitionEnd("height"));
 
     expect(card.getAttribute("style")).toBeNull();
@@ -108,7 +113,7 @@ describe("growingCard", () => {
   });
 
   it("keeps the card pinned when a transition ends while open", () => {
-    ctx.toggle();
+    ctx.expand();
     ctx.settle(transitionEnd("height"));
 
     expect(card.style.position).toBe("fixed");
@@ -116,11 +121,24 @@ describe("growingCard", () => {
   });
 
   it("waits for the height transition before settling", () => {
-    ctx.toggle();
-    ctx.toggle();
+    ctx.expand();
+    ctx.collapse();
     ctx.settle(transitionEnd("top"));
 
     expect(card.style.position).toBe("fixed");
     expect(slot.style.height).toBe("80px");
+  });
+
+  it("announces the expansion with an expand event", () => {
+    ctx.expand();
+
+    expect(dispatched).toEqual(["expand"]);
+  });
+
+  it("ignores expand while already open", () => {
+    ctx.expand();
+    ctx.expand();
+
+    expect(dispatched).toEqual(["expand"]);
   });
 });
