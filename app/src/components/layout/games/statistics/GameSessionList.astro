@@ -1,7 +1,7 @@
 ---
 /**
  * Replay section: the completed sessions of the page-level game and
- * period, newest first, 10 per page, each a card linking to its replay. Owns
+ * period, newest first, 10 per page, each a card that grows into its replay. Owns
  * its fetch through `gameSessionList()`. The glass surface is a sibling
  * layer, not an ancestor; the cards keep their own glass.
  */
@@ -50,7 +50,7 @@ import ReplayCard from "@components/layout/statistics/ReplayCard.astro";
         :key="row.id"
       >
         <ReplayCard
-          hrefExpr="row.href"
+          sessionIdExpr="row.id"
           titleExpr="row.date"
           captionExpr="caption(row)"
         />

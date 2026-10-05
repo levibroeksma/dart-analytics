@@ -1,34 +1,34 @@
 ---
 /**
- * Replay card for any statistics page: a session row styled like
- * `GameCard.astro`, with a play icon where the dart sits, linking to that
- * session's replay. Meant to sit inside an Alpine `x-for`; each expression
- * is read from the enclosing scope.
- * @param {string} hrefExpr Alpine expression yielding the replay URL
+ * Replay card for any statistics page: a session row with a play icon that
+ * grows into a viewport overlay (`GrowingCard.astro`) showing that session's
+ * replay (`SessionReplay.astro`, D414). Opening it opens the session on
+ * `$store.replay`; only the open card renders the replay. Meant to sit
+ * inside an Alpine `x-for`; each expression is read from the enclosing scope.
+ * @param {string} sessionIdExpr Alpine expression yielding the session id
  * @param {string} titleExpr Alpine expression yielding the title text
  * @param {string} captionExpr Alpine expression yielding the caption text
  */
 interface Props {
-  hrefExpr: string;
+  sessionIdExpr: string;
   titleExpr: string;
   captionExpr: string;
 }
 
 // Props
-const { hrefExpr, titleExpr, captionExpr }: Props = Astro.props;
+const { sessionIdExpr, titleExpr, captionExpr }: Props = Astro.props;
 
 // Components
-import CardWrapper from "@components/ui/CardWrapper.astro";
+import Button from "@components/forms/Button.astro";
+import GrowingCard from "@components/ui/GrowingCard.astro";
+import SessionReplay from "@components/layout/statistics/SessionReplay.astro";
 
 // Icons
 import PlayIcon from "@icons/play-solid.svg";
 ---
 
-<a
-  :href={hrefExpr}
-  class="block"
->
-  <CardWrapper class="flex-row justify-between items-center gap-4 glass">
+<GrowingCard @expand={`$store.replay.open(${sessionIdExpr})`}>
+  <div class="flex items-center justify-between gap-4">
     <div class="flex flex-col gap-0.5">
       <h3
         class="font-semibold text-base text-accent"
@@ -41,6 +41,29 @@ import PlayIcon from "@icons/play-solid.svg";
       >
       </p>
     </div>
-    <PlayIcon class="size-8 text-accent" />
-  </CardWrapper>
-</a>
+    <PlayIcon
+      class="size-8 shrink-0 text-accent"
+      x-show="!open"
+      x-cloak
+    />
+    <Button
+      variant="ghost"
+      class="size-10 shrink-0 cursor-pointer gap-0 rounded-full p-0 text-3xl font-normal text-foreground"
+      loadingExpr="false"
+      ariaLabel="Close replay"
+      x-show="open"
+      x-cloak
+      @click.stop="collapse()"
+    >
+      <span
+        slot="iconBefore"
+        class="rotate-45"
+      >
+        +
+      </span>
+    </Button>
+  </div>
+  <template x-if="open">
+    <SessionReplay />
+  </template>
+</GrowingCard>

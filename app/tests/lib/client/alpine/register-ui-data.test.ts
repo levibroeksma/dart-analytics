@@ -6,6 +6,7 @@ import { toggleData } from "@lib/ui/toggle.data";
 import { gameLayoutData } from "@lib/ui/game-layout.data";
 import { chartData } from "@lib/ui/chart.data";
 import { heatmapCanvas } from "@lib/ui/heatmap-canvas.data";
+import { growingCard } from "@lib/ui/growing-card.data";
 
 describe("registerUiData", () => {
   it("registers logoutButton as an Alpine data factory", () => {
@@ -36,5 +37,11 @@ describe("registerUiData", () => {
     const data = vi.fn();
     registerUiData({ data } as unknown as Alpine);
     expect(data).toHaveBeenCalledWith("chartData", chartData);
+  });
+
+  it("registers growingCard as an Alpine data factory", () => {
+    const data = vi.fn();
+    registerUiData({ data } as unknown as Alpine);
+    expect(data).toHaveBeenCalledWith("growingCard", growingCard);
   });
 });

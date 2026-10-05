@@ -1,13 +1,13 @@
 <!--
 status: canonical
 scope: architecture/statistics/replay
-read-when: building or changing the per-session game replay route or its endpoint
-updated: 2026-09-29
+read-when: building or changing the per-session game replay, its card or its endpoint
+updated: 2026-10-05
 -->
 
 # Statistics — Game Replay
 
-> **Version:** 1.2.2 (2026-10-03, D398; prior 1.2.1 2026-10-03, D397; prior 1.2.0 2026-09-29, D372; prior 1.1.0 2026-09-28, D371; prior 1.0.0 2026-09-26, D365)
+> **Version:** 1.3.0 (2026-10-05, D414: no route, the replay opens in a growing card; prior 1.2.2 2026-10-03, D398; prior 1.2.1 2026-10-03, D397; prior 1.2.0 2026-09-29, D372; prior 1.1.0 2026-09-28, D371; prior 1.0.0 2026-09-26, D365)
 >
 > Full, paginated replay of one session. Shared query rules and caching:
 > `00-Overview.md` §5/§7. Status: **built** (phase 5, D371; training step
@@ -15,28 +15,20 @@ updated: 2026-09-29
 
 ---
 
-# 1. Route
+# 1. Entry point
 
-`/statistics/replay?session=<id>` (D371 decision 9): a prerendered shell
-(`07-Frontend/01-Rendering-Strategy.md`, D97) that reads the id client-side,
-following the `?routine=` precedent. A dynamic segment would force on-demand
-rendering for a shell that carries no data. A missing or non-UUID `?session=`
-shows the not-found state and sends no request.
+No route (D414, superseding D371 decisions 9 and 12; 2026-10-05). A replay
+opens in place: each row of a game page's replay section
+(`GameSessionList.astro`) is a `ReplayCard.astro`, a `GrowingCard` that grows
+into an overlay covering the viewport inset by 1rem and renders
+`SessionReplay.astro` while open. Opening calls `$store.replay.open(id)`;
+Escape or the card's close button collapses it. Open state lives in the page
+only — no URL, no history entry. A non-UUID id shows the not-found state and
+sends no request.
 
-Back link: `/statistics`, or, when the header carries `routineKey`, the
-Routines tab at that routine and step
-(`/statistics?tab=routines&routine=<key>&step=<key>`). `/statistics` reads that
-location client-side, opens the Routines tab and restores the selection; an
-unknown routine or step falls back to the first.
-
-Links (decision 12): every session-list row on a game page, every step
-session row on the Routines tab except a Warm-Up step's (D372), and the
-`session-result` PB line (its `bestLowSessionId`/`bestHighSessionId`;
-`bestAverage.sessionId` is available too but not yet linked, D390), and the
-501 `leg-stats` Best leg card (`bestLeg.sessionId`, D397). The overview's
-`highestCheckout.sessionId` (D398) is exposed on the `stats` store as
-`highestCheckoutSessionId`; no card renders it yet. No other phase 2–4 metric
-carries a session id, so no other section links yet.
+That card is the only entry point. Step session rows on the Routines tab,
+the `session-result` PB line, the 501 `leg-stats` Best leg card and the
+overview's `highestCheckoutSessionId` carry session ids but open no replay.
 
 ---
 
@@ -219,7 +211,9 @@ rebuilding the ruleset's engine over the loaded facts (decision 8).
   presenter throws on shows no cells while every other row keeps its own. A seatless
   one-participant snapshot gets one seat synthesized from that participant
   (`participantRef` = its id, `sideKey: "A"`).
-- **Page:** `replay.store.ts` (`$store.replay`) loads pages sequentially
+- **View:** `replay.store.ts` (`$store.replay`) holds one session at a
+  time: `open(id)` clears the previous one and starts a new generation, so a
+  page that lands after a later `open()` is dropped. It loads pages sequentially
   through `readReplayPage`, groups rows under stage headings (`Set 1 · Leg
   2`; none for a session's lone exercise block), and marks the selected
   turn's located darts on the board. Until the last page loads, "Load all

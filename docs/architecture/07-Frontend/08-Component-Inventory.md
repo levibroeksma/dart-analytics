@@ -2,7 +2,7 @@
 status: canonical
 scope: shared Astro component inventory
 read-when: before writing markup for any recurring UI shape
-updated: 2026-10-03
+updated: 2026-10-05
 -->
 
 # Component Inventory
@@ -32,6 +32,7 @@ evaluated in the page's own Alpine scope.
 | `DartBoard.astro` | Dartboard SVG plus an overlay slot for markers | `boardRef` |
 | `ExpandingModal.astro` | Corner disclosure dialog: a 48px glass toggle that expands in place into a full-frame panel and collapses back. Contents are laid out at the expanded size for the whole transition (content frame sized in `100cqw`/`100cqh` against the fixed layer), so nothing reflows while the panel grows. Caller owns the open flag (2026-09-21). `detached` hides the collapsed corner toggle so the caller opens it from its own control (2026-09-22) | `openExpr`, `onToggle`, `onClose`, `title`, `titleId`, `toggleLabelClosed`, `toggleLabelOpen`, `detached` |
 | `ErrorAlert.astro` | Alert-styled error message; `alwaysVisible` drops `x-show`/`x-cloak` for a caller whose ancestor already gates visibility | `class`, `showExpr`, `textExpr`, `alwaysVisible` |
+| `GrowingCard.astro` | In-flow glass card that grows from wherever it sits into an overlay covering the viewport inset by 1rem, and shrinks back; its slot holds the card's height while open so the page does not shift. Owns its open flag via `growingCard()` (`open` and `collapse()` in scope for the slot); click, Enter or Space opens it and dispatches `expand`, clicks inside an open card never close it, Escape or a slot control calling `collapse()` closes it; scrolls inside while open. Contents reflow while it grows, unlike `ExpandingModal` (2026-10-05) | `class`; leftover attributes (e.g. `@expand`) forwarded to the root |
 | `InfoSection.astro` | Titled explanatory block | `title`, `description`, `id` |
 | `IsLoading.astro` | Loading skeleton / spinner panel | `title` |
 | `Link.astro` | Anchor styled as text link or button | `href`, `variant` (`inline`/`primary`/`secondary`/`ghost`), `external`, `icon`, `ariaLabel` |
@@ -164,5 +165,6 @@ that split (2026-09-19, closes issue #423).
 | Component | Purpose | Key props |
 | --------- | ------- | --------- |
 | `GameSectionCards.astro` | A game's insight section cards, rendered against one section view (`game-stats.store.ts`'s getters over a `sections` record); each card shows once its section has loaded. The Games tab passes `$store.gameStats`, the Routines tab `$store.routineStats.stepGame`, so a GAME step shows the exact cards its game's own page does (2026-09-29, D372) | `view`, `heatmapTargets` (off by default; only the Games tab turns on the heatmap's target picker), `class` |
-| `ReplayCard.astro` | Session replay card for any statistics page: `GameCard`'s layout with a play icon, linking to a session's replay; for use inside an Alpine `x-for` (2026-10-03, D401) | `hrefExpr`, `titleExpr`, `captionExpr` |
+| `ReplayCard.astro` | Session replay card for any statistics page: a `GrowingCard` row with a play icon that grows into the session's replay (`SessionReplay.astro`), opening it on `$store.replay`; for use inside an Alpine `x-for` (2026-10-03, D401; grows in place 2026-10-05, D414) | `sessionIdExpr`, `titleExpr`, `captionExpr` |
+| `SessionReplay.astro` | One session's replay read from `$store.replay`: header, result, score curve, board with the selected turn's darts, turns by stage, Load more; rendered inside an open `ReplayCard` (2026-10-05, D414) | — |
 | `RoutineStepButton.astro` | One row of the Routines tab's step list: the step's label and its detail (session count, configured minutes, last run date), marked while it is the selected step; a click selects it. Renders inside an `x-for` whose item is `step`, for both the current steps and "Earlier versions" (2026-09-29, D372) | none — reads `step` from the enclosing `x-for` and `$store.routineStats` |

@@ -12,7 +12,6 @@ export type CompletionSummary = {
 
 export type SessionRow = {
   id: string;
-  href: string;
   date: string;
   average: number | null;
   darts: number;

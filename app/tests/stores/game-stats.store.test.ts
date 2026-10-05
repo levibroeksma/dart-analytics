@@ -1004,7 +1004,7 @@ describe("gameStatsStore", () => {
     expect(store.pointsPerRound).toBeCloseTo(300 / 40);
   });
 
-  it("links a session and the session-result PB to their replay pages", async () => {
+  it("carries the session-result PB's session id", async () => {
     readSection.mockImplementation((_player, _game, meta) => {
       if (meta.id === "session-result") {
         return Promise.resolve(
@@ -1032,11 +1032,8 @@ describe("gameStatsStore", () => {
     store.gameTypeKey = "SHANGHAI";
     await store.load();
 
-    expect(store.replayHref("a b")).toBe("/statistics/replay?session=a%20b");
     const best = store.sessionResultRows[0]!.personalBest!;
-    expect(store.replayHref(best.sessionId)).toBe(
-      "/statistics/replay?session=22222222-2222-2222-2222-222222222222",
-    );
+    expect(best.sessionId).toBe("22222222-2222-2222-2222-222222222222");
   });
 
   it("skippedSessionsFor reads a server section's skippedSessions, 0 before load", async () => {
