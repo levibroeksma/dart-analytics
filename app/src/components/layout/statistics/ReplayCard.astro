@@ -28,7 +28,10 @@ import PlayIcon from "@icons/play-solid.svg";
 ---
 
 <GrowingCard @expand={`$store.replay.open(${sessionIdExpr})`}>
-  <div class="flex items-center justify-between gap-4">
+  <div
+    class="flex items-center justify-between gap-4"
+    :class="open ? 'sticky top-0 z-10 -mx-4 -mt-4 rounded-t-2xl bg-surface p-4 backdrop-blur' : ''"
+  >
     <div class="flex flex-col gap-0.5">
       <h3
         class="font-semibold text-base text-accent"
