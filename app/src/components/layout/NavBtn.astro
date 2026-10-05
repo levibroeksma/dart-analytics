@@ -18,8 +18,8 @@ const effectiveMatchPrefix =
   matchPrefix ?? (href === "/" ? undefined : `${href}/`);
 const active = isNavActive(Astro.url.pathname, href, effectiveMatchPrefix);
 const className = cn(
-  "flex flex-col items-center py-1.5 justify-center text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/25 [&_svg]:size-6",
-  active ? "text-accent" : "text-muted-foreground",
+  "flex min-w-0 flex-1 flex-col items-center justify-center rounded-full py-2 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/25 [&_svg]:size-6",
+  active ? "nav-active text-accent" : "text-foreground",
   classNameProp,
 );
 ---
