@@ -15,7 +15,7 @@ import Chart from "@components/ui/Chart.astro";
   x-data="gameCompletionSection()"
 >
   <div
-    class="space-y-2"
+    class="glass flex aspect-square flex-col space-y-2 rounded-2xl p-4"
     x-show="loading || error"
     x-cloak
   >
@@ -25,7 +25,7 @@ import Chart from "@components/ui/Chart.astro";
       textExpr="error"
     />
     <div
-      class="aspect-square animate-pulse rounded-2xl bg-muted-foreground/80"
+      class="min-h-0 flex-1 animate-pulse rounded-xl bg-muted-foreground/80"
       x-show="loading"
       x-cloak
     >
