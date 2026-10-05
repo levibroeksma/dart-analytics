@@ -87,3 +87,10 @@ Decision: `global.css` `body` uses `fixed inset-0 overflow-hidden` in place of `
 Reason: in an iOS standalone web app `dvh` stopped short of the screen bottom, leaving a dead band under the bottom nav. Pinning `body` to the viewport edges fills it; the top inset is untouched.
 Consequences: bottom nav sits flush with the screen edge, under the home indicator. `.astro`/CSS carry no unit test (D101); the proof is the rule in `global.css`.
 Supersedes: none (amends the sizing clause of D174).
+
+### D416 — Bottom nav is a floating glass pill
+Status: Accepted · Date: 2026-10-05
+Decision: `BottomNav` is `fixed` above the content, a `rounded-full` pill using the new `glass-nav` utility (translucent white fill, blur + saturate, inset highlight, drop shadow). The active tab gets `.nav-active` (dark inner pill) with `text-accent`; inactive tabs use `text-foreground`. `AppLayout`'s `main` pads its bottom so the last content clears the pill.
+Reason: matches the requested hovering-glass reference; content scrolls under the blur.
+Consequences: the nav sits `max(0.5rem, safe-area-inset-bottom - 0.5rem)` above the screen edge. `GameLayout` has no nav and is unaffected. `.astro`/CSS carry no unit test (D101).
+Supersedes: none.

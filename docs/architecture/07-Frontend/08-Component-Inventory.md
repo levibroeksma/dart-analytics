@@ -60,8 +60,8 @@ evaluated in the page's own Alpine scope.
 
 | Component | Purpose | Key props |
 | --------- | ------- | --------- |
-| `BottomNav.astro` | The five-tab main navigation bar (Home, Games, Training, Stats, Profile), one `NavBtn` per page | none |
-| `NavBtn.astro` | One bottom-nav tab: icon slot plus label; `aria-current="page"` and the accent colour when `isNavActive()` matches the current path | `href`, `label`, `matchPrefix` (defaults to `href + "/"`, none for `/`), `class` |
+| `BottomNav.astro` | The floating glass-pill five-tab main navigation (D416) (Home, Games, Training, Stats, Profile), one `NavBtn` per page | none |
+| `NavBtn.astro` | One bottom-nav tab: icon slot plus label; `aria-current="page"`, accent colour and `.nav-active` dark pill when `isNavActive()` matches the current path | `href`, `label`, `matchPrefix` (defaults to `href + "/"`, none for `/`), `class` |
 
 ## `components/layout/games/` (shared across rulesets)
 
