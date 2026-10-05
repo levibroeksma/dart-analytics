@@ -160,6 +160,16 @@ export function snapshotOf(
   }
 }
 
+/** The owner's stand-in seat for a snapshot that names none. */
+function soloSeat(participantRef: string): SeatFact {
+  return {
+    participantRef,
+    displayName: "",
+    sideKey: "A",
+    participantTypeKey: "PLAYER",
+  };
+}
+
 /**
  * A session `v_x01_checkout_darts` left-joins `exercise_configurations` and
  * never filters a miss, so a real session can carry no stored snapshot at
@@ -177,13 +187,13 @@ export function snapshotOf(
  * it stored no longer validates" are different facts about the data, and
  * only the second is a drift to be noticed.
  *
- * A snapshot that decodes but names no seats is a third shape, and unlike
- * the other two it does not apply to every game: `fiveOhOneCheckoutVisits`
- * never reads `seats`, so a seatless 501 session replays exactly as before.
- * 121 and TUOD fold their seat list to derive each visit's opening
- * remaining/target, and an empty one is "nothing to replay" for them too --
- * skip rather than fold. These are historical sessions that predate `seats`
- * being stored in the snapshot at all.
+ * A snapshot that decodes but names no seats is a third shape: a routine
+ * GAME step stores its step configuration with no `seats` (`startGameStep`),
+ * and so do historical sessions. 121 and TUOD fold their seat list to derive
+ * each visit's opening remaining/target, so a solo seat is synthesised for
+ * the owner (`sideKey` `"A"`, as `session.service.ts` seats a solo
+ * participant) -- the fold is per seat over the owner's own turns, so no
+ * other seat can change it, the same stand-in `derived-aims.module.ts` uses.
  *
  * The first row's `participantId` is taken as *the* participant, which is
  * sound for two reasons neither of which is visible from this module:
@@ -199,10 +209,13 @@ function visitsForSession(rows: readonly X01CheckoutDartRow[]): StagedVisit[] {
 
   const config = snapshotOf(first.rulesetVersionKey, first.configuration);
   if (config === null) return [];
-  if (config.seats.length === 0 && first.gameTypeKey !== "501") return [];
 
   const facts: EngineFacts = { stages: stagesOf(rows), turns: turnsOf(rows) };
   const participantRef = first.participantId;
+  const seated = {
+    ...config,
+    seats: config.seats.length > 0 ? config.seats : [soloSeat(participantRef)],
+  };
   const seatTurns = facts.turns.filter(
     (turn) => turn.participantRef === participantRef,
   );
@@ -219,7 +232,7 @@ function visitsForSession(rows: readonly X01CheckoutDartRow[]): StagedVisit[] {
       tuodCheckoutVisits(
         seatTurns,
         facts,
-        config as Parameters<typeof tuodCheckoutVisits>[2],
+        seated as Parameters<typeof tuodCheckoutVisits>[2],
         participantRef,
       ),
       seatTurns,
@@ -231,7 +244,7 @@ function visitsForSession(rows: readonly X01CheckoutDartRow[]): StagedVisit[] {
       seatTurns,
       facts.stages,
       facts.turns,
-      config as Parameters<typeof oneTwentyOneCheckoutVisits>[3],
+      seated as Parameters<typeof oneTwentyOneCheckoutVisits>[3],
       participantRef,
     ),
     seatTurns,

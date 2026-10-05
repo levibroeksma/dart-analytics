@@ -183,7 +183,7 @@ describe("checkoutVisitsFromRows", () => {
     expect(visits.map((visit) => visit.startingRemaining)).toEqual([501]);
   });
 
-  it("contributes no visits for a 121 session whose stored configuration names no seats", () => {
+  it("folds a 121 session whose stored configuration names no seats with a synthetic solo seat", () => {
     const visits = checkoutVisitsFromRows([
       row({
         sessionId: "session-121-noseats",
@@ -194,10 +194,39 @@ describe("checkoutVisitsFromRows", () => {
         stageTypeKey: "ROUND",
       }),
     ]);
-    expect(visits).toEqual([]);
+    expect(visits.map((visit) => visit.startingRemaining)).toEqual([121]);
   });
 
-  it("contributes no visits for a TUOD session whose stored configuration names no seats", () => {
+  it("climbs a seatless routine 121 session's ladder past a checkout", () => {
+    const seatless: Partial<X01CheckoutDartRow> = {
+      sessionId: "session-121-routine",
+      gameTypeKey: "ONE_TWENTY_ONE",
+      rulesetVersionKey: "121_V2",
+      configuration: { duration_type: "MINUTES", duration_value: 5 },
+      stageTypeKey: "ROUND",
+    };
+    const visits = checkoutVisitsFromRows([
+      row({
+        ...seatless,
+        stageId: "round-1",
+        stageSequence: 1,
+        turnId: "turn-1",
+        turnTotalScore: 121,
+        score: 121,
+      }),
+      row({
+        ...seatless,
+        stageId: "round-2",
+        stageSequence: 2,
+        turnId: "turn-2",
+        turnTotalScore: 0,
+        score: 0,
+      }),
+    ]);
+    expect(visits.map((visit) => visit.startingRemaining)).toEqual([121, 122]);
+  });
+
+  it("folds a TUOD session whose stored configuration names no seats with a synthetic solo seat", () => {
     const visits = checkoutVisitsFromRows([
       row({
         sessionId: "session-tuod-noseats",
@@ -215,7 +244,7 @@ describe("checkoutVisitsFromRows", () => {
         stageTypeKey: "EXERCISE_BLOCK",
       }),
     ]);
-    expect(visits).toEqual([]);
+    expect(visits.map((visit) => visit.startingRemaining)).toEqual([121]);
   });
 
   it("still contributes visits for a 501 session whose stored configuration names no seats", () => {

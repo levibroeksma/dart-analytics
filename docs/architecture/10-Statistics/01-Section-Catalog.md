@@ -7,7 +7,7 @@ updated: 2026-10-04
 
 # Statistics — Section Catalog
 
-> **Version:** 1.6.10 (2026-10-04, D412; prior 1.6.9 2026-10-04, D411; prior 1.6.8 2026-10-04, D410; prior 1.6.7 2026-10-04, D408; prior 1.6.6 2026-10-04, D407; prior 1.6.5 2026-10-04, D406; prior 1.6.4 2026-10-03, D402; prior 1.6.3 2026-10-03, D401; prior 1.6.2 2026-10-03, D399; prior 1.6.1 2026-10-03, D397; prior 1.6.0 2026-10-03, D396)
+> **Version:** 1.6.11 (2026-10-04, D413; prior 1.6.10 2026-10-04, D412; prior 1.6.9 2026-10-04, D411; prior 1.6.8 2026-10-04, D410; prior 1.6.7 2026-10-04, D408; prior 1.6.6 2026-10-04, D407; prior 1.6.5 2026-10-04, D406; prior 1.6.4 2026-10-03, D402; prior 1.6.3 2026-10-03, D401; prior 1.6.2 2026-10-03, D399; prior 1.6.1 2026-10-03, D397; prior 1.6.0 2026-10-03, D396)
 >
 > The shared insight-section library and the section list of each game page.
 > Registry fields, tags, compute sites and the query contract are defined once in
@@ -125,7 +125,7 @@ carries only the owner's own darts, so the walker (`foldSeatSteps`,
 `derived-aims.module.ts`) builds a one-seat config off the decoded snapshot
 with a synthetic seat and never reads the session's stored `seats` — a
 seatless historical snapshot folds exactly the same as one that named real
-seats. The synthetic seat has the shape of a real solo
+seats. The checkout-family fold (`x01-checkout-sessions.module.ts`) does the same for 121 and TUOD, so routine game steps, which store no `seats`, are counted (D413). The synthetic seat has the shape of a real solo
 seat — `sideKey` `"A"`, as `session.service.ts` seats a solo participant —
 so no `sideKey` exists in the fold that a stored seat cannot have (2026-09-30,
 issue #633).
