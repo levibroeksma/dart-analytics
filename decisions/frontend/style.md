@@ -94,3 +94,10 @@ Decision: `BottomNav` is `fixed` above the content, a `rounded-full` pill using 
 Reason: matches the requested hovering-glass reference; content scrolls under the blur.
 Consequences: the nav sits `max(0.5rem, safe-area-inset-bottom - 0.5rem)` above the screen edge. `GameLayout` has no nav and is unaffected. `.astro`/CSS carry no unit test (D101).
 Supersedes: none.
+
+### D417 — `html`/`body` sized with `lvh`; `body` is the containing block for fixed descendants
+Status: Accepted · Date: 2026-10-05
+Decision: `html` uses `h-lvh max-h-lvh`; `body` uses `fixed inset-x-0 top-0 h-lvh max-h-lvh transform-gpu`. The transform makes `body` the containing block of every `position: fixed` descendant (bottom nav, modals, backdrop layers), so they span the full-height box. Top inset padding is unchanged.
+Reason: D415's `inset-0` left the gap on device: iOS standalone's fixed containing block still ended above the screen bottom, and the nav sat ~25pt above that edge.
+Consequences: fixed descendants no longer track the dynamic viewport; harmless in standalone, where no browser chrome resizes. `.astro`/CSS carry no unit test (D101).
+Supersedes: D415 (sizing only).
