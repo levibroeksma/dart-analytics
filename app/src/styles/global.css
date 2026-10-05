@@ -133,7 +133,7 @@
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    @apply h-dvh max-h-dvh overflow-hidden;
+    @apply h-lvh max-h-lvh overflow-hidden;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -147,7 +147,7 @@
   }
 
   body {
-    @apply fixed inset-0 overflow-hidden bg-surface font-sans text-foreground antialiased;
+    @apply fixed inset-x-0 top-0 h-lvh max-h-lvh transform-gpu overflow-hidden bg-surface font-sans text-foreground antialiased;
     padding-top: env(safe-area-inset-top);
     -webkit-user-select: none;
     user-select: none;
