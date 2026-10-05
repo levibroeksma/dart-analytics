@@ -28,11 +28,12 @@ import PlayIcon from "@icons/play-solid.svg";
 ---
 
 <GrowingCard @expand={`$store.replay.open(${sessionIdExpr})`}>
-  <div
-    class="flex items-center justify-between gap-4"
-    :class="open ? 'sticky top-0 z-10 -mx-4 -mt-4 rounded-t-2xl bg-surface p-4 backdrop-blur' : ''"
-  >
-    <div class="flex flex-col gap-0.5">
+  <div class="flex items-center justify-between gap-4">
+    <div
+      class="flex flex-col gap-0.5"
+      x-show="!open"
+      x-cloak
+    >
       <h3
         class="font-semibold text-base text-accent"
         x-text={titleExpr}
@@ -51,7 +52,7 @@ import PlayIcon from "@icons/play-solid.svg";
     />
     <Button
       variant="ghost"
-      class="size-10 shrink-0 cursor-pointer gap-0 rounded-full p-0 text-3xl font-normal text-foreground"
+      class="ml-auto size-10 shrink-0 cursor-pointer gap-0 rounded-full p-0 text-3xl font-normal text-foreground"
       loadingExpr="false"
       ariaLabel="Close replay"
       x-show="open"
