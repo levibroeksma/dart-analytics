@@ -7,10 +7,10 @@ type GrowingCardContext = {
 };
 
 const EXPANDED_BOX: BoxStyle = {
-  top: "1rem",
+  top: "calc(env(safe-area-inset-top) + 1rem)",
   left: "1rem",
   width: "calc(100vw - 2rem)",
-  height: "calc(100dvh - 2rem)",
+  height: "calc(100dvh - env(safe-area-inset-top) - 2rem)",
 };
 
 function boxOf(el: HTMLElement): BoxStyle {

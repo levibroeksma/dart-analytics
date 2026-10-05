@@ -74,16 +74,18 @@ describe("growingCard", () => {
     });
   });
 
-  it("grows the card to the viewport inset by 1rem and opens", () => {
+  it("grows the card to the viewport inset by 1rem, clear of the safe area, and opens", () => {
     ctx.expand();
 
     expect(ctx.open).toBe(true);
     expect(card.style.position).toBe("fixed");
     expect(card.style.zIndex).toBe("50");
-    expect(card.style.top).toBe("1rem");
+    expect(card.style.top).toBe("calc(1rem + env(safe-area-inset-top))");
     expect(card.style.left).toBe("1rem");
     expect(card.style.width).toBe("calc(100vw - 2rem)");
-    expect(card.style.height).toBe("calc(100dvh - 2rem)");
+    expect(card.style.height).toBe(
+      "calc((100dvh - 2rem) - env(safe-area-inset-top))",
+    );
   });
 
   it("locks the slot height so the page does not shift", () => {
