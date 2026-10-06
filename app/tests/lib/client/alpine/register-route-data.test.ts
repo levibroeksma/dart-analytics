@@ -19,11 +19,15 @@ import { myScheduleForm } from "@lib/training/schedules/my-schedule.data";
 import { homeWeek } from "@lib/training/schedules/home-week.data";
 import { cricketSetup } from "@lib/game/cricket-setup.data";
 import { cricketPlay } from "@lib/game/cricket-play.data";
+import { tacticsSetup } from "@lib/game/tactics-setup.data";
+import { tacticsPlay } from "@lib/game/tactics-play.data";
 
 describe("registerRouteData", () => {
   it.each([
     ["cricketSetup", cricketSetup],
     ["cricketPlay", cricketPlay],
+    ["tacticsSetup", tacticsSetup],
+    ["tacticsPlay", tacticsPlay],
   ])("registers %s as an Alpine data factory", (name, factory) => {
     const data = vi.fn();
     registerRouteData({ data } as unknown as Alpine);

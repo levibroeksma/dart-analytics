@@ -6,6 +6,7 @@ import type { TuodEngine } from "@modules/game/tuod.engine.module";
 import type { FiveOhOneEngine } from "@modules/game/five-oh-one.engine.module";
 import type { Bobs27Engine } from "@modules/game/bobs27.engine.module";
 import type { CricketEngine } from "@modules/game/cricket.engine.module";
+import type { TacticsEngine } from "@modules/game/tactics.engine.module";
 import type { SinglesTrainingEngine } from "@modules/game/singles-training.engine.module";
 import type { DoublesTrainingEngine } from "@modules/game/doubles-training.engine.module";
 import type { ShanghaiEngine } from "@modules/game/shanghai.engine.module";
@@ -18,6 +19,8 @@ import type {
   Bobs27State,
   CheckoutDartOptions,
   CricketState,
+  TacticsObjective,
+  TacticsState,
   DartCount,
   DartObservation,
   DoublesTrainingState,
@@ -45,6 +48,7 @@ import type {
   FiveOhOneSnapshot,
   Bobs27Snapshot,
   CricketSnapshot,
+  TacticsSnapshot,
   SinglesSnapshot,
   SinglesV2Snapshot,
   DoublesTrainingSnapshot,
@@ -653,6 +657,7 @@ export type PresetSetupControllerOptions<Ctx extends PresetSetupContext> = {
 
 export type Bobs27SetupContext = PresetSetupContext;
 export type CricketSetupContext = PresetSetupContext;
+export type TacticsSetupContext = PresetSetupContext;
 
 export type SinglesTrainingSetupContext = PresetSetupContext & {
   orderMode: TargetOrderMode;
@@ -952,6 +957,67 @@ export type CricketPlayContext = PlayLifecycleContext<
   back(this: CricketPlayContext): Promise<void>;
   playAgain(this: CricketPlayContext): Promise<void>;
   abandonAndExit(this: CricketPlayContext): Promise<void>;
+};
+
+/** The ring the Tactics recreational input applies to the next number tap. */
+export type TacticsRing = "SINGLE" | "DOUBLE" | "TREBLE";
+
+/** One button of the Tactics tap grid: a board number and its label. */
+export type TacticsTapTarget = { number: number; label: string };
+
+/** One row of the Tactics play board. */
+export type TacticsObjectiveRow = {
+  label: string;
+  objective: TacticsObjective;
+  marks: number;
+  closed: boolean;
+};
+
+export type TacticsSeatResult = {
+  participantRef: string;
+  sideKey: string;
+  darts: number;
+  marksPerRound: string;
+  dartsToClose: string;
+};
+
+export type TacticsResultsSnapshot = {
+  status: "COMPLETE";
+  winningSideKey: null;
+  seats: TacticsSeatResult[];
+};
+
+export type TacticsPlayContext = PlayLifecycleContext<
+  TacticsSnapshot,
+  TacticsEngine,
+  TacticsResultsSnapshot
+> & {
+  ring: TacticsRing;
+  visitMarkers(this: TacticsPlayContext): BoardMarker[];
+  state(this: TacticsPlayContext): TacticsState | null;
+  objectiveRows(this: TacticsPlayContext): TacticsObjectiveRow[];
+  dartsThrown(this: TacticsPlayContext): string;
+  previewSegments(this: TacticsPlayContext): Bobs27PreviewSegment[];
+  init(this: TacticsPlayContext): Promise<void>;
+  retryReconciliation(this: TacticsPlayContext): Promise<void>;
+  setRing(this: TacticsPlayContext, ring: TacticsRing): void;
+  recordTarget(this: TacticsPlayContext, number: number): Promise<void>;
+  tapTargets(this: TacticsPlayContext): TacticsTapTarget[];
+  recordMiss(this: TacticsPlayContext): Promise<void>;
+  recordDart(
+    this: TacticsPlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
+  commitDart(
+    this: TacticsPlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
+  undoVisit(this: TacticsPlayContext): Promise<void>;
+  uploadAndCompleteSession(this: TacticsPlayContext): Promise<void>;
+  resultsTitle(this: TacticsPlayContext): string;
+  back(this: TacticsPlayContext): Promise<void>;
+  playAgain(this: TacticsPlayContext): Promise<void>;
+  abandonAndExit(this: TacticsPlayContext): Promise<void>;
 };
 
 /** One dart slot in Singles Training's visit preview — a resolved hit/miss mark (by training points, not board score), or a not-yet-thrown placeholder. */
