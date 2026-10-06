@@ -16,6 +16,8 @@ import { oneTwentyOneSetup } from "@lib/game/one-twenty-one-setup.data";
 import { oneTwentyOnePlay } from "@lib/game/one-twenty-one-play.data";
 import { aroundTheClockSetup } from "@lib/game/around-the-clock-setup.data";
 import { aroundTheClockPlay } from "@lib/game/around-the-clock-play.data";
+import { cricketSetup } from "@lib/game/cricket-setup.data";
+import { cricketPlay } from "@lib/game/cricket-play.data";
 import { tuodSetup } from "@lib/game/tuod-setup.data";
 import { tuodPlay } from "@lib/game/tuod-play.data";
 import { gamesIndex } from "@lib/game/games-index.data";
@@ -55,6 +57,8 @@ export function registerRouteData(Alpine: Alpine) {
   Alpine.data("oneTwentyOnePlay", oneTwentyOnePlay);
   Alpine.data("aroundTheClockSetup", aroundTheClockSetup);
   Alpine.data("aroundTheClockPlay", aroundTheClockPlay);
+  Alpine.data("cricketSetup", cricketSetup);
+  Alpine.data("cricketPlay", cricketPlay);
   Alpine.data("tuodSetup", tuodSetup);
   Alpine.data("tuodPlay", tuodPlay);
   Alpine.data("quickSubtractPlay", quickSubtractPlay);
