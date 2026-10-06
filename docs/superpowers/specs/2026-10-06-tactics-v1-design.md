@@ -118,6 +118,9 @@ close per objective.
   Cricket's: `createThreeDartValidator` (`label: "Tactics"`), wrapped to
   reject non-null intent and >3 darts per turn. Registered in
   `services/rulesets/registry.ts` with the engine.
+- **Stats / replay:** `lib/stats/constants.ts` (`"TACTICS_V1"`),
+  `replay-fold.ts` (engine import), `replay-presenters.ts` (`TACTICS`
+  presenter), `section-registry.ts` (`TACTICS: null` + doc table row).
 - **Slugs:** route `tactics`, code `tactics`, ruleset key `TACTICS_V1`.
 
 ## 5. UI
@@ -130,10 +133,12 @@ list rather than forking them.
   `gameTypeKey: "TACTICS"`). Presets shown locked: Players = 1, Objectives =
   20–15, Bull, Doubles, Triples, D/T rule = Slop.
 - **Play:** nine-row board, mark glyphs as Cricket, closed rows dimmed, darts
-  thrown. Input under DETAILED_DARTS: Cricket's tap row plus a way to enter a
-  double/treble on 1–14 (number pad 1–14 under the Double/Treble modifier,
-  or "Other D" / "Other T" buttons — settled in the plan after checking the
-  Cricket input). `BoardInputPanel` under VISUAL_BOARD. Undo as Cricket.
+  thrown. Tactics gets its own `TacticsRecreationalInput.astro` and
+  `interfaces/Tactics.astro`: Cricket's are bound to `cricket*` names, so
+  generalising them would edit shipped Cricket UI for no gain. Input under
+  DETAILED_DARTS: the D / T modifier reveals 14…1 in the tap grid; with no
+  modifier the grid is 20–15 + Bull (a single on 1–14 is entered as Miss, as
+  Cricket). `BoardInputPanel` under VISUAL_BOARD. Undo as Cricket.
 - **Result:** `result-modals/TacticsResults.astro` — darts thrown, MPR,
   darts to close per objective.
 - **Wiring:** `pages/games/tactics/{setup,play}/index.astro`,
