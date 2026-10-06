@@ -1,0 +1,21 @@
+---
+import ResultsModalShell from "@components/layout/games/ResultsModalShell.astro";
+import SinglePlayerSummary from "@components/layout/games/SinglePlayerSummary.astro";
+
+const STAT_ROWS = [
+  { label: "Darts", key: "darts" },
+  { label: "MPR", key: "marksPerRound" },
+  { label: "Darts to close", key: "dartsToClose" },
+] as const;
+---
+
+<ResultsModalShell showSavedMessage>
+  <h2
+    slot="title"
+    class="font-display text-lg font-semibold text-foreground"
+    x-text="resultsTitle()"
+  >
+  </h2>
+
+  <SinglePlayerSummary statRows={STAT_ROWS} />
+</ResultsModalShell>

@@ -1,0 +1,36 @@
+---
+export const prerender = true;
+import AppLayout from "@layouts/AppLayout.astro";
+import Button from "@components/forms/Button.astro";
+import ContinueSessionModal from "@components/layout/games/ContinueSessionModal.astro";
+import TacticsSetupForm from "@components/layout/games/setup/TacticsSetupForm.astro";
+---
+
+<AppLayout title="Tactics — Setup">
+  <div
+    class="p-4"
+    x-data="tacticsSetup()"
+  >
+    <template x-if="showActiveSessionModal && activeSession">
+      <ContinueSessionModal gameTitle="Tactics" />
+    </template>
+
+    <template x-if="reconciliationFailed && !loadingReconciliation">
+      <div
+        class="alert alert-error mt-2 rounded-md border border-error/40 px-4 py-3 text-center text-sm text-error-foreground"
+        role="alert"
+      >
+        <p>Could not clean up a previous session. Retry to continue.</p>
+        <Button
+          class="mt-4"
+          @click="retryReconciliation()"
+          title="Retry"
+        />
+      </div>
+    </template>
+
+    <template x-if="!showActiveSessionModal && !reconciliationFailed">
+      <TacticsSetupForm />
+    </template>
+  </div>
+</AppLayout>
