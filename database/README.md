@@ -80,6 +80,7 @@ astro check
 30. `seeds/0030_bull_up_exercise_type.sql`
 31. `seeds/0031_remove_default_routines.sql`
 32. `seeds/0032_close_finished_game_activities.sql`
+33. `seeds/0033_cricket_game_engine_reference.sql`
 
 `npm run db:seed` runs this list twice per invocation (2026-08-29, D248). `0007` is a running ledger that a later-numbered seed's ruleset can be appended to before that ruleset's own `ruleset_versions` row exists yet in the same run — the first pass's join then matches nothing and silently inserts zero rows. The second pass re-runs `0007` after every file has committed, so the join now matches. All seeds are `ON CONFLICT DO NOTHING`, so running the full list twice is safe.
 
