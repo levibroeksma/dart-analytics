@@ -26,6 +26,7 @@ describe("HEATMAP_ONLY_LAYOUTS", () => {
         "501_V1",
         "AROUND_THE_CLOCK_V1",
         "BOBS27_V1",
+        "CRICKET_V1",
         "DOUBLES_TRAINING_V1",
         "SHANGHAI_V1",
         "SINGLES_V1",

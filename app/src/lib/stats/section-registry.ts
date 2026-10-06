@@ -377,6 +377,7 @@ export function sectionsForGame(gameTypeKey: GameTypeKey): SectionId[] {
  * | Bob's 27 | the dart's board score; survival progress is a separate running `score` the fact never exposes (`bobs27.engine.module.ts`) | no |
  * | Shanghai | the dart's board score, halved under the swindle rule (`foldShanghaiState`); the catalog's own headline is points-per-round | yes — `countedScore` is exactly that numerator; higher is better |
  * | Around the Clock | the dart's board score; the match is decided by fewest darts to finish the circuit (`around-the-clock.engine.module.ts`) | no |
+ * | Cricket | the dart's board score; the run is measured by fewest darts to close out (`cricket.engine.module.ts`) | no |
  *
  * Every `null` here is filed as `discovered-work` (D367): a game-specific
  * session-result headline is phase-4 scope, not invented in phase 1. Singles
@@ -394,6 +395,7 @@ export const RESULT_DIRECTION: Readonly<Record<GameTypeKey, ResultDirection>> =
     BOBS27: null,
     SHANGHAI: "higher",
     AROUND_THE_CLOCK: null,
+    CRICKET: null,
   };
 
 /**

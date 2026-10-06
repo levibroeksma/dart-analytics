@@ -61,7 +61,9 @@ FROM (
             ('AROUND_THE_CLOCK_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
             ('AROUND_THE_CLOCK_V1', 'ANALYTICS', 'VISUAL_BOARD'),
             ('AROUND_THE_CLOCK_V2', 'RECREATIONAL', 'DETAILED_DARTS'),
-            ('AROUND_THE_CLOCK_V2', 'ANALYTICS', 'VISUAL_BOARD')
+            ('AROUND_THE_CLOCK_V2', 'ANALYTICS', 'VISUAL_BOARD'),
+            ('CRICKET_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
+            ('CRICKET_V1', 'ANALYTICS', 'VISUAL_BOARD')
     ) AS declared(ruleset_key, capture_key, input_key)
     JOIN ruleset_versions rv ON rv.implementation_key = declared.ruleset_key
     JOIN capture_modes cm ON cm.implementation_key = declared.capture_key

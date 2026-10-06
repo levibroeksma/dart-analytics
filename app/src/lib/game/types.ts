@@ -5,6 +5,7 @@ import type { ScoreTrainingEngine } from "@modules/game/score-training.engine.mo
 import type { TuodEngine } from "@modules/game/tuod.engine.module";
 import type { FiveOhOneEngine } from "@modules/game/five-oh-one.engine.module";
 import type { Bobs27Engine } from "@modules/game/bobs27.engine.module";
+import type { CricketEngine } from "@modules/game/cricket.engine.module";
 import type { SinglesTrainingEngine } from "@modules/game/singles-training.engine.module";
 import type { DoublesTrainingEngine } from "@modules/game/doubles-training.engine.module";
 import type { ShanghaiEngine } from "@modules/game/shanghai.engine.module";
@@ -16,6 +17,7 @@ import type {
   BoardCoordinate,
   Bobs27State,
   CheckoutDartOptions,
+  CricketState,
   DartCount,
   DartObservation,
   DoublesTrainingState,
@@ -42,6 +44,7 @@ import type {
   Seated,
   FiveOhOneSnapshot,
   Bobs27Snapshot,
+  CricketSnapshot,
   SinglesSnapshot,
   SinglesV2Snapshot,
   DoublesTrainingSnapshot,
@@ -649,6 +652,7 @@ export type PresetSetupControllerOptions<Ctx extends PresetSetupContext> = {
 };
 
 export type Bobs27SetupContext = PresetSetupContext;
+export type CricketSetupContext = PresetSetupContext;
 
 export type SinglesTrainingSetupContext = PresetSetupContext & {
   orderMode: TargetOrderMode;
@@ -891,6 +895,63 @@ export type Bobs27PlayContext = PlayLifecycleContext<
   back(this: Bobs27PlayContext): Promise<void>;
   playAgain(this: Bobs27PlayContext): Promise<void>;
   abandonAndExit(this: Bobs27PlayContext): Promise<void>;
+};
+
+/** The ring the Cricket recreational input applies to the next objective tap. */
+export type CricketRing = "SINGLE" | "DOUBLE" | "TREBLE";
+
+/** One row of the Cricket play board. */
+export type CricketObjectiveRow = {
+  label: string;
+  objective: number;
+  marks: number;
+  closed: boolean;
+};
+
+export type CricketSeatResult = {
+  participantRef: string;
+  sideKey: string;
+  darts: number;
+  marksPerRound: string;
+  dartsToClose: string;
+};
+
+export type CricketResultsSnapshot = {
+  status: "COMPLETE";
+  winningSideKey: null;
+  seats: CricketSeatResult[];
+};
+
+export type CricketPlayContext = PlayLifecycleContext<
+  CricketSnapshot,
+  CricketEngine,
+  CricketResultsSnapshot
+> & {
+  ring: CricketRing;
+  visitMarkers(this: CricketPlayContext): BoardMarker[];
+  state(this: CricketPlayContext): CricketState | null;
+  objectiveRows(this: CricketPlayContext): CricketObjectiveRow[];
+  dartsThrown(this: CricketPlayContext): string;
+  previewSegments(this: CricketPlayContext): Bobs27PreviewSegment[];
+  init(this: CricketPlayContext): Promise<void>;
+  retryReconciliation(this: CricketPlayContext): Promise<void>;
+  setRing(this: CricketPlayContext, ring: CricketRing): void;
+  recordObjective(this: CricketPlayContext, objective: number): Promise<void>;
+  recordMiss(this: CricketPlayContext): Promise<void>;
+  recordDart(
+    this: CricketPlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
+  commitDart(
+    this: CricketPlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
+  undoVisit(this: CricketPlayContext): Promise<void>;
+  uploadAndCompleteSession(this: CricketPlayContext): Promise<void>;
+  resultsTitle(this: CricketPlayContext): string;
+  back(this: CricketPlayContext): Promise<void>;
+  playAgain(this: CricketPlayContext): Promise<void>;
+  abandonAndExit(this: CricketPlayContext): Promise<void>;
 };
 
 /** One dart slot in Singles Training's visit preview — a resolved hit/miss mark (by training points, not board score), or a not-yet-thrown placeholder. */

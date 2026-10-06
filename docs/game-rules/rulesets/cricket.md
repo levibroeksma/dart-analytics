@@ -22,6 +22,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Cut-throat variant | V2+ | All | Wanted, unscheduled: depends on Multiplayer, and its own win and scoring rules are an open question below |
 | No Doubles/Triples categories (see Tactics) | Dropped | All | Not a feature of this ruleset: Classic Cricket has no Doubles/Triples objectives by definition, and the UK variant that adds them is its own ruleset, `tactics.md` |
 | Visit = up to 3 darts | V1 | All | |
+| Cricket statistics section (MPR, darts-to-close trend) | V2+ | All | Wanted, unscheduled: needs a `v_cricket_*` view and so a new migration; V1 ships the board heatmap only |
 | Standard dartboard scoring (assumed) | V1 | All | |
 
 ## Identity
@@ -121,7 +122,7 @@ opponent.
 Cricket is unbuilt; this is the capture shape its V1 is designed for, not an
 as-built description.
 
-- **Capture / input mode:** RECREATIONAL + DETAILED_DARTS — a mark is read off
+- **Capture / input mode:** RECREATIONAL + DETAILED_DARTS or ANALYTICS + VISUAL_BOARD — a mark is read off
   the dart's number and ring, so the visit total alone cannot express it and
   QUICK_SCORE cannot carry this game.
 - **One dart's fact:** intended = **nothing stored** — both the target number
@@ -138,5 +139,8 @@ as-built description.
 
 ## Open questions
 
-- Exact single-player practice win condition before multiplayer ships.
+- ~~Exact single-player practice win condition before multiplayer ships.~~
+  **Resolved:** none — solo V1 is a close-out efficiency drill; a run ends
+  when all seven objectives are closed and reports darts thrown, MPR and
+  darts to close per objective (D421).
 - Cut-throat win/score rules when that variant is added.
