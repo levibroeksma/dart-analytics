@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 import { foldReplay } from "@lib/stats/replay-fold";
 import { REPLAY_PRESENTERS } from "@lib/stats/replay-presenters";
 import type { GameTypeKey, ReplayCell, ReplayFold } from "@lib/types";
+import {
+  CricketEngine,
+  initialCricketState,
+} from "@modules/game/cricket.engine.module";
 import type { Bobs27State } from "@modules/types";
 import {
   PLAYER_ONE,
@@ -54,6 +58,63 @@ function sessionLine(game: ScriptedGame) {
   const fold = folded(game);
   return presenterFor(game).session(fold.steps, fold.snapshot);
 }
+
+describe("REPLAY_PRESENTERS.CRICKET", () => {
+  const config = {
+    seats: [
+      {
+        participantRef: "p1",
+        displayName: "L",
+        sideKey: "A",
+        participantTypeKey: "PLAYER" as const,
+      },
+    ],
+  };
+  const t20 = {
+    hitTargetNumber: 20,
+    hitZoneKey: "TREBLE" as const,
+    locationX: null,
+    locationY: null,
+  };
+  const miss = {
+    hitTargetNumber: null,
+    hitZoneKey: "MISS" as const,
+    locationX: null,
+    locationY: null,
+  };
+
+  function playedVisit() {
+    const engine = new CricketEngine(config);
+    engine.record(t20);
+    engine.record(t20);
+    engine.record(miss);
+    return engine;
+  }
+
+  it("shows capped marks and closed count after a visit", () => {
+    const engine = playedVisit();
+    const [turn] = engine.facts().turns;
+    const cells = REPLAY_PRESENTERS.CRICKET.turn(
+      { turn, before: initialCricketState(config), after: engine.state() },
+      config,
+    );
+    expect(
+      cells.map((cell) => (cell.kind === "value" ? cell.value : "")),
+    ).toEqual(["3", "1/7"]);
+  });
+
+  it("ends the session line on darts thrown", () => {
+    const engine = playedVisit();
+    const [turn] = engine.facts().turns;
+    const line = REPLAY_PRESENTERS.CRICKET.session(
+      [{ turn, before: initialCricketState(config), after: engine.state() }],
+      config,
+    );
+    expect(line.entries).toEqual([
+      { participantId: "p1", label: "Darts", value: "3" },
+    ]);
+  });
+});
 
 describe("REPLAY_PRESENTERS", () => {
   describe("501", () => {

@@ -1,5 +1,6 @@
 import "@modules/game/around-the-clock.engine.module";
 import "@modules/game/bobs27.engine.module";
+import "@modules/game/cricket.engine.module";
 import "@modules/game/doubles-training.engine.module";
 import "@modules/game/five-oh-one.engine.module";
 import "@modules/game/one-twenty-one.engine.module";
