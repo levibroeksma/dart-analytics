@@ -10,6 +10,7 @@ import {
   marksPerRound,
 } from "@modules/game/cricket.engine.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
+import * as marksClose from "@modules/game/marks-close.module";
 import type { DartObservation, DartZoneKey } from "@modules/types";
 import type { CricketSnapshot, Seated } from "@lib/types";
 
@@ -230,5 +231,12 @@ describe("CricketEngine", () => {
     const replayed = new CricketEngine(config, engine.facts());
     expect(replayed.state()).toEqual(engine.state());
     expect(foldCricketState(engine.facts(), config)).toEqual(engine.state());
+  });
+});
+
+describe("marks-close core re-exports", () => {
+  it("re-exports the core's effectiveMarks and marksPerRound unchanged", () => {
+    expect(effectiveMarks).toBe(marksClose.effectiveMarks);
+    expect(marksPerRound).toBe(marksClose.marksPerRound);
   });
 });
