@@ -297,6 +297,82 @@
     box-shadow: inset 0 1px 0 0 oklch(100% 0 0 / 0.08);
   }
 
+  /* Tab view transitions (D418); the @view-transition opt-in lives in AppLayout */
+  html[data-tab] .vt-page {
+    view-transition-name: page;
+  }
+
+  html[data-tab] .bottom-nav {
+    view-transition-name: bottom-nav;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+
+  ::view-transition-group(nav-indicator) {
+    z-index: 1;
+    animation-duration: --theme(--duration-tab);
+    animation-timing-function: var(--ease-out);
+  }
+
+  ::view-transition-group(bottom-nav) {
+    z-index: 2;
+  }
+
+  ::view-transition-old(page),
+  ::view-transition-new(page) {
+    animation-duration: --theme(--duration-tab);
+    animation-timing-function: var(--ease-out);
+  }
+
+  html:active-view-transition-type(forward) {
+    &::view-transition-old(page) {
+      animation-name: vt-out-left;
+    }
+    &::view-transition-new(page) {
+      animation-name: vt-in-right;
+    }
+  }
+
+  html:active-view-transition-type(back) {
+    &::view-transition-old(page) {
+      animation-name: vt-out-right;
+    }
+    &::view-transition-new(page) {
+      animation-name: vt-in-left;
+    }
+  }
+
+  @keyframes vt-out-left {
+    to {
+      opacity: 0;
+      transform: translateX(-20%);
+    }
+  }
+
+  @keyframes vt-in-right {
+    from {
+      opacity: 0;
+      transform: translateX(20%);
+    }
+  }
+
+  @keyframes vt-out-right {
+    to {
+      opacity: 0;
+      transform: translateX(20%);
+    }
+  }
+
+  @keyframes vt-in-left {
+    from {
+      opacity: 0;
+      transform: translateX(-20%);
+    }
+  }
+
   .nav-pill {
     background: oklch(100% 0 0 / 0.04);
     transition-timing-function: var(--ease-out);
