@@ -178,6 +178,8 @@ One intentional surface level per visual block. Do not stack competing glass/rai
 
 **Modals:** opacity fade 150–200ms `ease-out`. If scaling on enter, start from `scale-95` plus opacity — never `scale(0)`.
 
+**Tab view transitions (D418):** tab-to-tab navigation between `AppLayout` pages uses native cross-document view transitions. `<main class="vt-page">` slides ±20% with a fade (`forward`/`back` by tab order); the nav stays static and its `.nav-indicator` pill glides. Both use `--duration-tab` and `--ease-out`. The opt-in lives in `AppLayout` only, so `GameLayout`, `login`, reload and same-tab navigation stay instant, as do browsers without support (Firefox). `prefers-reduced-motion` sets `navigation: none`. Direction comes from `onTabReveal` (`sessionStorage` key `da:tab`).
+
 ---
 
 # Interactivity
