@@ -108,3 +108,17 @@ Decision: `AppLayout` opts in with `@view-transition { navigation: auto; }` (`na
 Reason: keeps the MPA, Alpine and the auth gate intact. Astro's `ClientRouter` was rejected because it swaps the DOM in one document. Direction uses `sessionStorage`, not the Navigation API, which ships later in Safari. The handler is one self-contained function inlined via `toString()` because bundled module scripts are deferred and can miss `pagereveal`, while the function stays unit-testable.
 Consequences: Firefox navigates instantly. Same-tab, reload, first load, `GameLayout` and `login` never animate. Deferred: Speculation Rules prerender, drill-down push/pop, game-screen transitions. CSS carries no unit test (D101); `onTabReveal` and `navTabIndex` are tested, and the browser behaviour was checked in Chromium (every tab pair both ways, reload, setup pages, history back/forward, reduced motion).
 Supersedes: none.
+
+### D419 — Glass utilities redesigned as four Tailwind compositions
+Status: Accepted · Date: 2026-10-06
+Decision: `global.css` keeps exactly four glass utilities, each an `@apply` of stock Tailwind classes: `glass` (top-lit `bg-radial-[at_50%_0%]` white 5→10% wash, `border-y border-white/25`, `shadow-sm`, `backdrop-blur-sm`), `glass-tinted` (same, black wash), `glass-raised` and `glass-tinted-raised` (`shadow-md`, `backdrop-blur-md`). `glass-strong`, `glass-nav`, the `--glass*`/`--blur-glass*` tokens, `bg-glass*` colours and the unused `.stat-card` are removed. `BottomNav` uses `glass-raised` and its active `NavBtn` `glass-tinted-raised`; chart tooltips and `Select` option hover use `glass-tinted`; `.card-wrapper` blurs with `backdrop-blur-md`.
+Reason: one requested glass look across the app, built from Tailwind's own scale rather than bespoke tokens.
+Consequences: glass panels have top and bottom borders only, no side borders; the nav loses `saturate(180%)`. `.astro`/CSS carry no unit test (D101).
+Supersedes: D416 (`glass-nav` and `.nav-active` styling only).
+
+### D420 — Tab view transitions removed
+Status: Accepted · Date: 2026-10-06
+Decision: the D418 cross-document view transitions are removed in full: the `@view-transition` opt-in in `AppLayout`, `BaseLayout`'s `data-tab` attribute and `pagereveal` script, `onTabReveal` and its types, `navTabIndex`, the `vt-page`/`bottom-nav`/`nav-indicator` transition CSS, its keyframes and `--duration-tab`. `NavBtn` marks the active tab with a class again (`glass-tinted-raised`, D419); `NAV_TABS` and `navTabMatchPrefix` stay.
+Reason: the transitions looked poor and were buggy. Their `view-transition-name`s also made `main` and the nav backdrop roots in Chromium, so glass inside them could not blur the page background.
+Consequences: tab navigation is instant in every browser.
+Supersedes: D418.

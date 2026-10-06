@@ -15,9 +15,6 @@
   --surface: oklch(0% 0 0);
   --surface-raised: oklch(100% 0 0 / 0.04);
   --surface-overlay: oklch(100% 0 0 / 0.06);
-  --glass: oklch(100% 0 0 / 0.03);
-  --glass-strong: oklch(100% 0 0 / 0.055);
-  --glass-highlight: oklch(100% 0 0 / 0.08);
   --border: oklch(100% 0 0 / 0.08);
   --border-strong: oklch(100% 0 0 / 0.14);
   --foreground: oklch(100% 0 0);
@@ -44,8 +41,6 @@
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --radius: 0.5rem;
-  --blur-glass: 20px;
-  --blur-glass-strong: 32px;
 }
 
 @theme inline {
@@ -59,8 +54,6 @@
   --color-surface: var(--surface);
   --color-surface-raised: var(--surface-raised);
   --color-surface-overlay: var(--surface-overlay);
-  --color-glass: var(--glass);
-  --color-glass-strong: var(--glass-strong);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
   --color-foreground: var(--foreground);
@@ -114,7 +107,6 @@
   );
   --radius-tab: 1.9375rem;
   --radius-tab-pill: 2.25rem;
-  --duration-tab: 300ms;
 }
 
 @layer base {
@@ -264,119 +256,22 @@
 }
 
 @utility glass {
-  background: var(--glass-strong);
-  border: 1px solid var(--border);
-  box-shadow:
-    inset 0 1px 0 0 var(--glass-highlight),
-    0 0 0 1px oklch(0% 0 0 / 0.4);
-  backdrop-filter: blur(var(--blur-glass));
+  @apply shadow-sm bg-radial-[at_50%_0%] from-white/5 to-white/10 to-85% border-y border-white/25 backdrop-blur-sm;
 }
 
-@utility glass-strong {
-  background: oklch(100% 0 0 / 0.07);
-  border: 1px solid var(--border-strong);
-  box-shadow:
-    inset 0 1px 0 0 oklch(100% 0 0 / 0.12),
-    0 8px 32px oklch(0% 0 0 / 0.45);
-  backdrop-filter: blur(var(--blur-glass-strong));
+@utility glass-tinted {
+  @apply shadow-sm bg-radial-[at_50%_0%] from-black/5 to-black/10 to-85% border-y border-white/25 backdrop-blur-sm;
 }
 
-@utility glass-nav {
-  background: oklch(100% 0 0 / 0.1);
-  border: 1px solid oklch(100% 0 0 / 0.16);
-  box-shadow:
-    inset 0 1px 0 0 oklch(100% 0 0 / 0.22),
-    inset 0 -1px 0 0 oklch(100% 0 0 / 0.06),
-    0 10px 30px oklch(0% 0 0 / 0.5);
-  backdrop-filter: blur(var(--blur-glass-strong)) saturate(180%);
+@utility glass-raised {
+  @apply shadow-md bg-radial-[at_50%_0%] from-white/5 to-white/10 to-85% border-y border-white/25 backdrop-blur-md;
+}
+
+@utility glass-tinted-raised {
+  @apply shadow-md bg-radial-[at_50%_0%] from-black/5 to-black/10 to-85% border-y border-white/25 backdrop-blur-md;
 }
 
 @layer components {
-  .nav-indicator {
-    background: oklch(0% 0 0 / 0.55);
-    box-shadow: inset 0 1px 0 0 oklch(100% 0 0 / 0.08);
-  }
-
-  /* Tab view transitions (D418); the @view-transition opt-in lives in AppLayout */
-  html[data-tab] .vt-page {
-    view-transition-name: page;
-  }
-
-  html[data-tab] .bottom-nav {
-    view-transition-name: bottom-nav;
-  }
-
-  html[data-tab] .nav-indicator {
-    view-transition-name: nav-indicator;
-  }
-
-  ::view-transition-old(root),
-  ::view-transition-new(root) {
-    animation: none;
-  }
-
-  ::view-transition-group(nav-indicator) {
-    z-index: 1;
-    animation-duration: --theme(--duration-tab);
-    animation-timing-function: var(--ease-out);
-  }
-
-  ::view-transition-group(bottom-nav) {
-    z-index: 2;
-  }
-
-  ::view-transition-old(page),
-  ::view-transition-new(page) {
-    animation-duration: --theme(--duration-tab);
-    animation-timing-function: var(--ease-out);
-  }
-
-  html:active-view-transition-type(forward) {
-    &::view-transition-old(page) {
-      animation-name: vt-out-left;
-    }
-    &::view-transition-new(page) {
-      animation-name: vt-in-right;
-    }
-  }
-
-  html:active-view-transition-type(back) {
-    &::view-transition-old(page) {
-      animation-name: vt-out-right;
-    }
-    &::view-transition-new(page) {
-      animation-name: vt-in-left;
-    }
-  }
-
-  @keyframes vt-out-left {
-    to {
-      opacity: 0;
-      transform: translateX(-20%);
-    }
-  }
-
-  @keyframes vt-in-right {
-    from {
-      opacity: 0;
-      transform: translateX(20%);
-    }
-  }
-
-  @keyframes vt-out-right {
-    to {
-      opacity: 0;
-      transform: translateX(20%);
-    }
-  }
-
-  @keyframes vt-in-left {
-    from {
-      opacity: 0;
-      transform: translateX(-20%);
-    }
-  }
-
   .nav-pill {
     background: oklch(100% 0 0 / 0.04);
     transition-timing-function: var(--ease-out);
@@ -547,22 +442,6 @@
     );
   }
 
-  /* Stat tile — glass surface with a faint accent wash */
-  .stat-card {
-    background:
-      linear-gradient(
-        160deg,
-        color-mix(in oklch, var(--accent) 6%, transparent),
-        transparent 60%
-      ),
-      var(--glass-strong);
-    border: 1px solid var(--border);
-    box-shadow:
-      inset 0 1px 0 0 var(--glass-highlight),
-      0 0 0 1px oklch(0% 0 0 / 0.4);
-    backdrop-filter: blur(var(--blur-glass));
-  }
-
   /* Elevated card — soft top light, no diagonal slash */
   .gradient-card {
     --gradient-card-bg:
@@ -623,7 +502,7 @@
       0 0 20px 3px color-mix(in oklch, var(--card-tint) 12%, transparent),
       0 0 40px 20px color-mix(in oklch, var(--card-tint) 8%, transparent),
       inset 0 0 0 1px oklch(100% 0 0 / 0.06);
-    backdrop-filter: blur(var(--blur-glass));
+    @apply backdrop-blur-md;
     transition:
       transform 150ms var(--ease-out),
       box-shadow 150ms var(--ease-out);

@@ -1,38 +1,21 @@
 ---
 import BaseLayout from "@layouts/BaseLayout.astro";
 import BottomNav from "@components/layout/BottomNav.astro";
-import { navTabIndex } from "@lib/utils/nav-tabs";
 
 interface Props {
   title?: string;
 }
 
 const { title } = Astro.props;
-const tab = navTabIndex(Astro.url.pathname);
 ---
 
-<BaseLayout
-  title={title}
-  tab={tab}
->
+<BaseLayout title={title}>
   <div class="mx-auto flex h-full max-w-lg flex-col">
     <main
-      class="vt-page flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain pb-[calc(env(safe-area-inset-bottom)+5.5rem)]"
+      class="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain pb-[calc(env(safe-area-inset-bottom)+5.5rem)]"
     >
       <slot />
     </main>
     <BottomNav />
   </div>
 </BaseLayout>
-
-<style is:global>
-  @view-transition {
-    navigation: auto;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    @view-transition {
-      navigation: none;
-    }
-  }
-</style>

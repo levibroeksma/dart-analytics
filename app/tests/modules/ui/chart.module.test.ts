@@ -23,7 +23,7 @@ const theme: ChartTheme = {
   text: "rgb(179, 179, 179)",
   grid: "rgba(255, 255, 255, 0.06)",
   font: "Montserrat",
-  tooltipClass: "glass-strong",
+  tooltipClass: "glass-tinted",
   reducedMotion: false,
 };
 
@@ -359,7 +359,7 @@ describe("createTooltip", () => {
     });
 
     const el = host.children[0];
-    expect(el.className).toContain("glass-strong");
+    expect(el.className).toContain("glass-tinted");
     expect(el.className).toContain("pointer-events-none");
     expect(el.className).toContain("w-max");
     expect(el.setAttribute).toHaveBeenCalledWith("aria-hidden", "true");
