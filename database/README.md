@@ -82,6 +82,7 @@ astro check
 32. `seeds/0032_close_finished_game_activities.sql`
 33. `seeds/0033_cricket_game_engine_reference.sql`
 34. `seeds/0034_tactics_game_engine_reference.sql`
+35. `seeds/0035_checkout_sequence_exercise_type.sql`
 
 `npm run db:seed` runs this list twice per invocation (2026-08-29, D248). `0007` is a running ledger that a later-numbered seed's ruleset can be appended to before that ruleset's own `ruleset_versions` row exists yet in the same run — the first pass's join then matches nothing and silently inserts zero rows. The second pass re-runs `0007` after every file has committed, so the join now matches. All seeds are `ON CONFLICT DO NOTHING`, so running the full list twice is safe.
 
@@ -131,6 +132,7 @@ These are not a substitute for the Vitest suite: they cover the SQL layer, which
 | `verification/0028_around_the_clock_routine_template_checks.sql` | seed `0028`: the three Around the Clock routine templates are system GAME templates pinned to `AROUND_THE_CLOCK_V2`, each default holds exactly the six V2 keys, and `v_exercise_template_catalog` offers all three (4 checks) (2026-09-24) |
 | `verification/0029_bullseye_checkout_seed_checks.sql` | seed `0029`: the `BULLSEYE_CHECKOUT` type is published, `BULLSEYE_CHECKOUT_V1` is its version 1, the system template "Bullseye Checkouts" pins it with `{"startScore":81}`, and `v_exercise_template_catalog` offers it (4 checks) (2026-09-24) |
 | `verification/0030_bull_up_seed_checks.sql` | seed `0030`: the `BULL_UP` type is published, `BULL_UP_V1` is its version 1, the system template "Bull Up Practice" pins it with `{}`, and `v_exercise_template_catalog` offers it (4 checks) (2026-09-24) |
+| `verification/0035_checkout_sequence_seed_checks.sql` | seed `0035`: the `CHECKOUT_SEQUENCE` type is published, `CHECKOUT_SEQUENCE_V1` is its version 1, the system template "Catch 40" pins it with `{"firstOutshot":61,"lastOutshot":100,"dartLimit":6}`, and `v_exercise_template_catalog` offers it (4 checks) (2026-10-06) |
 | `verification/0031_remove_default_routines_checks.sql` | seed `0031`: the "Standard Practice" and standalone "Warm-Up" system routines are gone, none of their steps remain, the Warm-Up exercise template is kept (3 checks) (2026-09-25, D363) |
 | `verification/0032_close_finished_game_activities_checks.sql` | seed `0032`: no finished standalone game has an open activity, closed ones match their session's status and instant, none is closed while its session is open, ACTIVE exactly when `completed_at` is NULL (4 checks) (2026-10-01, D383) |
 | `verification/0034_single_active_session_checks.sql` | `uq_sessions_single_active` after migration `0034`: a second open session of the same exercise type is rejected, a different exercise type stays startable, closing the first frees the key (4 checks) |

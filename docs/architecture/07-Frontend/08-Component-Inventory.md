@@ -2,7 +2,7 @@
 status: canonical
 scope: shared Astro component inventory
 read-when: before writing markup for any recurring UI shape
-updated: 2026-10-05
+updated: 2026-10-06
 -->
 
 # Component Inventory
@@ -136,6 +136,7 @@ that split (2026-09-19, closes issue #423).
 | `SwitchingPanel.astro` | Switching play surface: `SinglePlayerDisplay` scored by `switchingPoints()`, `StatRow`s for the target and progress, `VisitPreview`, and `ExerciseBoardInputPanel` | none (reads the Switching page scope) |
 | `DoublePatternPanel.astro` | Double Pattern play surface: `SinglePlayerDisplay` scored by `doublePatternPoints()`, `StatRow`s for the current double and progress, `VisitPreview`, and `ExerciseBoardInputPanel` | none (reads the Double Pattern page scope) |
 | `BullUpPanel.astro` | Bull Up Practice play surface: `SinglePlayerDisplay` scored by `bullUpBullseyes()`, `StatRow`s for the last visit and progress, `VisitPreview`, and `ExerciseBoardInputPanel` | none (reads the Bull Up page scope) |
+| `CheckoutSequencePanel.astro` | Catch 40 play surface: `SinglePlayerDisplay` scored by `checkoutSequencePoints()`, `StatRow`s for outshot, left, dart in attempt, last result, checkouts and time, `VisitPreview`, and `ExerciseBoardInputPanel` (2026-10-06) | none (reads the routine play page scope) |
 | `BullseyeCheckoutPanel.astro` | Bullseye Checkouts play surface: `SinglePlayerDisplay` scored by `bullseyeCheckoutCheckouts()`, `StatRow`s for the score left and progress, `VisitPreview`, and `ExerciseBoardInputPanel` | none (reads the Bullseye Checkout page scope) |
 | `ScoreThresholdPanel.astro` | Score Threshold (65 or More) play surface: `SinglePlayerDisplay` scored by `scoreThresholdBeats()`, `StatRow`s for the current visit and progress, `VisitPreview`, and `ExerciseBoardInputPanel` | none (reads the Score Threshold page scope) |
 | `SwitchingTargetScoringPanel.astro` | Switching Target Scoring play surface: `SinglePlayerDisplay` scored by `switchingTargetScoringChain()`, `StatRow`s for the target and progress, `VisitPreview`, and `ExerciseBoardInputPanel` | none (reads the Switching Target Scoring page scope) |
