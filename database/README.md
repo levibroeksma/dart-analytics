@@ -81,6 +81,7 @@ astro check
 31. `seeds/0031_remove_default_routines.sql`
 32. `seeds/0032_close_finished_game_activities.sql`
 33. `seeds/0033_cricket_game_engine_reference.sql`
+34. `seeds/0034_tactics_game_engine_reference.sql`
 
 `npm run db:seed` runs this list twice per invocation (2026-08-29, D248). `0007` is a running ledger that a later-numbered seed's ruleset can be appended to before that ruleset's own `ruleset_versions` row exists yet in the same run — the first pass's join then matches nothing and silently inserts zero rows. The second pass re-runs `0007` after every file has committed, so the join now matches. All seeds are `ON CONFLICT DO NOTHING`, so running the full list twice is safe.
 
@@ -110,6 +111,7 @@ These are not a substitute for the Vitest suite: they cover the SQL layer, which
 | `verification/0009_121_capability_checks.sql` | `seeds/0009`+`0007` combined: `121_V1`/`RECREATIONAL`/`QUICK_SCORE` resolves, zero undeclared `exercise_sessions` (2 checks) |
 | `verification/0010_around_the_clock_capability_checks.sql` | `seeds/0010`+`0007` combined: `AROUND_THE_CLOCK_V1`/`RECREATIONAL`/`DETAILED_DARTS` resolves, zero undeclared `exercise_sessions` (2 checks) |
 | `verification/0033_cricket_capability_checks.sql` | `seeds/0033`+`0007` combined: `CRICKET_V1`/`RECREATIONAL`/`DETAILED_DARTS` and `CRICKET_V1`/`ANALYTICS`/`VISUAL_BOARD` resolve, zero undeclared `exercise_sessions` (3 checks) |
+| `verification/0034_tactics_capability_checks.sql` | `seeds/0034`+`0007` combined: `TACTICS_V1`/`RECREATIONAL`/`DETAILED_DARTS` and `TACTICS_V1`/`ANALYTICS`/`VISUAL_BOARD` resolve, zero undeclared `exercise_sessions` (3 checks) |
 | `verification/0023_target_scoring_seed_checks.sql` | seed `0023`: the `TARGET_SCORING` type is published, `TARGET_SCORING_V1` is its version 1, the system template pins it with `{"targets":[20,19,18,25]}`, and `v_exercise_template_catalog` offers it (4 checks) (2026-09-23) |
 | `verification/0024_switching_target_scoring_seed_checks.sql` | seed `0024`: the `SWITCHING_TARGET_SCORING` type is published, `SWITCHING_TARGET_SCORING_V1` is its version 1, the system template pins it with `{"targets":[20,19,18]}`, and `v_exercise_template_catalog` offers it (4 checks) (2026-09-23) |
 | `verification/0025_score_threshold_seed_checks.sql` | seed `0025`: the `SCORE_THRESHOLD` type is published, `SCORE_THRESHOLD_V1` is its version 1, the system template "65 or More" pins it with `{"threshold":65}`, and `v_exercise_template_catalog` offers it (4 checks) (2026-09-23) |
