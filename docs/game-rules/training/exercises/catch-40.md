@@ -58,15 +58,15 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 
 | Setting | Preset | On config screen |
 | --- | --- | --- |
-| Duration | 15 minutes | Routine step configuration |
+| Duration | 30 minutes | Routine step configuration |
 | First outshot | 61 | Shown, locked |
 | Last outshot | 100 | Shown, locked |
 | Dart limit | 6 | Shown, locked |
 
 A routine step may override any of these
 (`routine_steps.configuration`); the values here are the exercise type's own
-defaults. The 15-minute preset is a draft value, not sourced — see Open
-questions.
+defaults. The 30-minute preset is not sourced; it was chosen over the
+15-minute draft (see Open questions).
 
 ## How to practise
 
@@ -81,14 +81,16 @@ questions.
 - **Double-out:** the outshot is checked out when remaining reaches exactly 0
   and the last dart hit a double or the bullseye.
 - **Bust:** remaining below 0, exactly 1, or 0 without a double-out. The bust
-  dart and any later darts in that visit are void; remaining returns to its
-  value at the start of the visit.
+  dart is void and ends the visit — its later darts are not thrown, as in 121
+  (`app/src/modules/game/one-twenty-one.engine.module.ts:504`); remaining
+  returns to its value at the start of the visit.
 
 ### Progress
 
 - Each outshot is one **attempt** of at most six darts (two visits).
 - Checked out in 2 darts: 3 points. In 3: 2 points. In 4–6: 1 point.
-  Not checked out in six: 0 points. A void dart still counts toward the six.
+  Not checked out in six: 0 points. A busted visit uses all three of its
+  darts toward the six, thrown or not.
 - **99 in three darts scores 3**, since 99 cannot be finished in two.
 - After a checkout or a failed attempt, the next outshot (+1) starts at full
   value.
@@ -99,6 +101,8 @@ questions.
   overrides the default (`EXERCISE_TEMPLATE.md` §Bound).
 - **Run ends at the end of the sequence** if 100 is attempted before the time
   runs out.
+- Every run starts at the first outshot (61); a run cut by time does not
+  resume in a later run.
 
 ## Later versions
 
@@ -118,7 +122,8 @@ questions.
 - **Capture / input mode:** analytics mode under the `ANALYTICS` +
   `VISUAL_BOARD` capture pair, as the shipped exercises
   (`docs/architecture/09-Training/01-Routines.md` §Bullseye Checkouts).
-- **One dart's fact:** one `darts` row per throw, void darts included. No
+- **One dart's fact:** one `darts` row per throw, the bust dart included; the
+  unthrown darts after a bust have no row. No
   intended target or zone — both null, which `chk_dart_target_consistency`
   allows (`database/migrations/0007_constraints.sql:86`). `score` is the
   dart's **board** score (`appendObservedDart`,
@@ -147,12 +152,17 @@ questions.
 
 ## Open questions
 
-- Default duration: 15 minutes is a draft guess. 40 outshots × up to two
+- ~~Default duration: 15 minutes is a draft guess. 40 outshots × up to two
   visits will often not finish in 15 minutes — is the run meant to finish the
-  sequence (longer default) or be cut by time?
-- Does a run cut by time resume at the next outshot in a later run, or always
-  start at 61?
-- Bust inside the first visit: does the attempt continue into visit two from
-  the restored remaining? Source implies yes; confirm.
-- Merge with Finishing Pyramid (`finishing-pyramid.md`) into one checkout type
-  with configurable step and retry rule, or keep two types?
+  sequence (longer default) or be cut by time?~~ **Resolved (2026-10-06):**
+  30-minute preset, cut by time; the run still ends early at the end of the
+  sequence.
+- ~~Does a run cut by time resume at the next outshot in a later run, or always
+  start at 61?~~ **Resolved (2026-10-06):** always 61; resuming is not V1.
+- ~~Bust inside the first visit: does the attempt continue into visit two from
+  the restored remaining? Source implies yes; confirm.~~ **Resolved
+  (2026-10-06):** yes — the bust ends visit one only.
+- ~~Merge with Finishing Pyramid (`finishing-pyramid.md`) into one checkout type
+  with configurable step and retry rule, or keep two types?~~ **Resolved
+  (2026-10-06):** two types; both reuse the shared X01 rule in
+  `app/src/modules/game/checkout-bust.module.ts`.
