@@ -75,6 +75,7 @@ evaluated in the page's own Alpine scope.
 | `CountdownResumePrompt.astro` | Centered large resume button shown in place of the score/board input while `$store.game.timerPaused` is true, so a paused timer doesn't leave a disabled input on screen (#253, 2026-09-10) | `disabledExpr` (reads `togglePause()` from the page scope) |
 | `DoublesPathRecreationalInput.astro` | Doubles-path tap input row | none |
 | `CricketRecreationalInput.astro` | Cricket's DETAILED_DARTS input: undo, Double/Treble ring modifier (Treble off on Bull), Miss, and the seven objective buttons; one tap records one dart (2026-10-06) | none (reads the Cricket page scope: `ring`, `setRing`, `recordObjective`, `recordMiss`, `objectiveRows`) |
+| `TacticsRecreationalInput.astro` | Tactics' DETAILED_DARTS input: undo, Double/Treble ring modifier (Treble off on Bull), Miss, and a number grid — 20–15 and Bull on a single, 14…1 added under D/T so a double or treble on any number can be entered; one tap records one dart (2026-10-06) | none (reads the Tactics page scope: `ring`, `setRing`, `recordTarget`, `recordMiss`, `tapTargets`) |
 | `ExitModal.astro` | Leave-session confirmation | `description` (defaults to the "recorded as abandoned" copy; override for a tool with nothing to persist, e.g. Trivia) (2026-09-09) |
 | `GameCard.astro` | Games-index entry | `href`, `title`, `caption`, `duration` (optional pill, e.g. "30 min") (2026-09-11) |
 | `InputButton.astro` | Single key in a tap/keypad input row | `type` |
