@@ -68,6 +68,7 @@ export type TrainingStepResolved = {
     | "SCORE_THRESHOLD"
     | "BULLSEYE_CHECKOUT"
     | "BULL_UP"
+    | "CHECKOUT_SEQUENCE"
     | "GAME";
   exerciseRulesetVersionKey: string | null;
   gameTypeKey: string | null;

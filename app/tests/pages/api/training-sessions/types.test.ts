@@ -135,6 +135,27 @@ describe("StartTrainingResponse", () => {
     ).toBe(true);
   });
 
+  it("accepts a CHECKOUT_SEQUENCE step", () => {
+    expect(
+      StartTrainingResponse.safeParse({
+        activityId: "act-1",
+        routineTemplateId: "rt-1",
+        routineName: "Custom",
+        steps: [
+          {
+            sequenceNumber: 1,
+            exerciseTypeKey: "CHECKOUT_SEQUENCE",
+            exerciseRulesetVersionKey: "CHECKOUT_SEQUENCE_V1",
+            gameTypeKey: null,
+            gameRulesetVersionKey: null,
+            durationSeconds: 1800,
+            configuration: { firstOutshot: 61, lastOutshot: 100, dartLimit: 6 },
+          },
+        ],
+      }).success,
+    ).toBe(true);
+  });
+
   it("accepts a BULL_UP step", () => {
     expect(
       StartTrainingResponse.safeParse({
@@ -213,6 +234,19 @@ describe("StartTrainingStepResponse", () => {
         exerciseTypeKey: "WARM_UP",
         configuration: {},
         participant: { ref: "pt1", displayName: "Levi" },
+      }).success,
+    ).toBe(true);
+  });
+
+  it("accepts a CHECKOUT_SEQUENCE step's response", () => {
+    expect(
+      StartTrainingStepResponse.safeParse({
+        sessionId: "s1",
+        exerciseTypeKey: "CHECKOUT_SEQUENCE",
+        configuration: { firstOutshot: 61, lastOutshot: 100, dartLimit: 6 },
+        participant: { ref: "pt1", displayName: "Levi" },
+        captureModeKey: "ANALYTICS",
+        inputModeKey: "VISUAL_BOARD",
       }).success,
     ).toBe(true);
   });

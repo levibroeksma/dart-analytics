@@ -446,6 +446,7 @@ const DART_EXERCISE_TYPE_KEYS = new Set([
   "SCORE_THRESHOLD",
   "BULLSEYE_CHECKOUT",
   "BULL_UP",
+  "CHECKOUT_SEQUENCE",
 ]);
 
 type NonGameReferences = {
