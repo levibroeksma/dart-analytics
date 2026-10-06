@@ -22,7 +22,7 @@ export const CHART_ORDER: readonly TintName[] = [
 ];
 
 export const TOOLTIP_CLASS =
-  "glass-strong rounded-lg px-3 py-2 text-xs text-foreground";
+  "glass-tinted rounded-lg px-3 py-2 text-xs text-foreground";
 
 const OPAQUE = 255;
 

@@ -55,6 +55,10 @@ describe("buildChartTheme", () => {
     expect(theme.reducedMotion).toBe(true);
   });
 
+  it("renders tooltips on the glass-tinted surface", () => {
+    expect(TOOLTIP_CLASS.split(" ")).toContain("glass-tinted");
+  });
+
   it("reads text from --muted-foreground and surface from --surface", () => {
     const seen: string[] = [];
     buildChartTheme(

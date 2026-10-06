@@ -18,8 +18,8 @@ import { navTabMatchPrefix } from "@lib/utils/nav-tabs";
 const effectiveMatchPrefix = matchPrefix ?? navTabMatchPrefix(href);
 const active = isNavActive(Astro.url.pathname, href, effectiveMatchPrefix);
 const className = cn(
-  "relative isolate flex min-w-0 flex-1 flex-col items-center justify-center rounded-full py-2 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/25 [&_svg]:size-6",
-  active ? "text-accent" : "text-foreground",
+  "flex min-w-0 flex-1 flex-col items-center justify-center rounded-full py-2 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/25 [&_svg]:size-6",
+  active ? "glass-tinted-raised text-accent" : "text-foreground",
   classNameProp,
 );
 ---
@@ -29,14 +29,6 @@ const className = cn(
   class={className}
   aria-current={active ? "page" : undefined}
 >
-  {
-    active && (
-      <span
-        class="nav-indicator absolute inset-0 -z-10 rounded-full"
-        aria-hidden="true"
-      />
-    )
-  }
   <slot />
   <span>{label}</span>
 </a>

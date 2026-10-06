@@ -1,15 +1,6 @@
 ---
 import "@styles/global.css";
 import DartboardBg from "../assets/bg-dartboard.svg";
-import { onTabReveal } from "@lib/utils/tab-transition";
-
-interface Props {
-  title?: string;
-  tab?: number | null;
-}
-
-const { tab } = Astro.props;
-const tabRevealScript = `addEventListener("pagereveal",(e)=>(${onTabReveal.toString()})(e,sessionStorage))`;
 
 const url = Astro.url;
 
@@ -19,20 +10,9 @@ const title =
     : `${url.pathname.slice(1)} - Dart Analytics`;
 ---
 
-<html
-  lang="en"
-  data-tab={tab ?? undefined}
->
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    {
-      tab != null && (
-        <script
-          is:inline
-          set:html={tabRevealScript}
-        />
-      )
-    }
     <link
       rel="preconnect"
       href="https://fonts.googleapis.com"

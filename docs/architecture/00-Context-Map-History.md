@@ -17,6 +17,8 @@ updated: 2026-10-05
 
 # Version History
 
+> **Version:** 1.166.0 (2026-10-06 — glass-and-view-transitions: four `@apply` glass utilities (`glass`, `glass-tinted`, `glass-raised`, `glass-tinted-raised`) replace `glass-strong`/`glass-nav` and the `--glass*`/`--blur-glass*` tokens (D419); D418 tab view transitions removed in full, `tab-transition.ts` and `navTabIndex` deleted (D420). Style Guide, Astro Components and Component Inventory updated.)
+
 > **Version:** 1.165.0 (2026-10-05 — replay-in-card: `/statistics/replay` removed; a replay-section row (`ReplayCard.astro`) is a `GrowingCard` that grows into the session's replay (`SessionReplay.astro`), opened through `$store.replay.open(id)`. D414 supersedes D371 decisions 9 and 12. Replay 1.3.0, Section Catalog 1.6.12, Rendering Strategy 0.3.4, Overview, Component Inventory and File Inventory updated.)
 >
 > **Version:** 1.164.0 (2026-10-05 — growing-card: `GrowingCard.astro` + `growingCard()` factory, an in-flow card that grows into a viewport-inset overlay and shrinks back. Component Inventory and File Inventory updated.)

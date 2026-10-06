@@ -41,7 +41,7 @@ Use semantic tokens only. Never raw Tailwind palette utilities (`bg-sky-500`, `t
 
 | Role | Classes / tokens |
 | ---- | ---------------- |
-| Surfaces | `bg-surface`, `bg-surface-raised`, `bg-surface-overlay`, `glass`, `glass-strong` |
+| Surfaces | `bg-surface`, `bg-surface-raised`, `bg-surface-overlay`, `glass`, `glass-tinted`, `glass-raised`, `glass-tinted-raised` |
 | Text | `text-foreground`, `text-muted-foreground`, `text-muted` |
 | Borders | `border-border`, `border-border-strong` |
 | Accent | `accent`, `accent-hover`, `accent-muted`, `accent-foreground`, `accent-glow` (sky) |
@@ -94,7 +94,7 @@ Implement a reusable class contract once in `global.css` (`@utility` / `@layer c
 | `.gradient-card` | Elevated solid card with soft top light |
 | `.link-card` | Community / outbound link cards |
 | `.card-wrapper` | Tintable tool/extension cards (`--card-tint`, default accent); translucent, so blurs its backdrop like `.glass` (2026-10-02) |
-| `@utility glass` / `glass-strong` | Frosted panels — blur, inset highlight, border |
+| `@utility glass` / `glass-tinted` / `glass-raised` / `glass-tinted-raised` | Frosted panels — top-lit radial wash (white, or black when `-tinted`), `border-y`, blur; `-raised` adds `shadow-md` + stronger blur (2026-10-06) |
 
 **Dialogs** are component contracts, not CSS class primitives: use `Modal.astro` and `ConfirmDialog.astro`. Panels typically combine `bg-surface-raised` + `glass` + `rounded-lg border border-border`.
 
@@ -158,7 +158,8 @@ Never set `height` (`h-full`, `h-2/5`) on an element that also has `flex-1`. `fl
 | Page chrome / body | `bg-surface` (default on `body`) |
 | Raised panel / modal shell | `bg-surface-raised` and/or `glass` |
 | Nested well / inset | `bg-surface-overlay` |
-| Stronger frosted panel | `glass-strong` |
+| Darker frosted panel | `glass-tinted` |
+| Floating frosted panel (nav, overlays) | `glass-raised` / `glass-tinted-raised` |
 | Marketing / tinted card | `.gradient-card`, `.link-card`, or `.card-wrapper` |
 
 One intentional surface level per visual block. Do not stack competing glass/raised treatments without a clear hierarchy (e.g. modal over page glass, not glass-in-glass).
@@ -178,7 +179,6 @@ One intentional surface level per visual block. Do not stack competing glass/rai
 
 **Modals:** opacity fade 150–200ms `ease-out`. If scaling on enter, start from `scale-95` plus opacity — never `scale(0)`.
 
-**Tab view transitions (D418):** tab-to-tab navigation between `AppLayout` pages uses native cross-document view transitions. `<main class="vt-page">` slides ±20% with a fade (`forward`/`back` by tab order); the nav stays static and its `.nav-indicator` pill glides. Both use `--duration-tab` and `--ease-out`. The opt-in lives in `AppLayout` only, so `GameLayout`, `login`, reload and same-tab navigation stay instant, as do browsers without support (Firefox). `prefers-reduced-motion` sets `navigation: none`. Direction comes from `onTabReveal` (`sessionStorage` key `da:tab`).
 
 ---
 
