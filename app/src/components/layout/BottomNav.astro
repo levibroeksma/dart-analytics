@@ -9,34 +9,18 @@ import TargetIcon from "@icons/target.svg";
 import UserIcon from "@icons/user.svg";
 import StatsIcon from "@icons/stats.svg";
 
+// Lib
+import { NAV_TABS } from "@lib/utils/nav-tabs";
+
 // Data
-const pages = [
-  {
-    label: "Home",
-    icon: HomeIcon,
-    href: "/",
-  },
-  {
-    label: "Games",
-    icon: DartboardIcon,
-    href: "/games",
-  },
-  {
-    label: "Training",
-    icon: TargetIcon,
-    href: "/training",
-  },
-  {
-    label: "Stats",
-    icon: StatsIcon,
-    href: "/statistics",
-  },
-  {
-    label: "Profile",
-    icon: UserIcon,
-    href: "/profile",
-  },
-];
+const icons: Record<string, typeof HomeIcon> = {
+  "/": HomeIcon,
+  "/games": DartboardIcon,
+  "/training": TargetIcon,
+  "/statistics": StatsIcon,
+  "/profile": UserIcon,
+};
+const pages = NAV_TABS.map((tab) => ({ ...tab, icon: icons[tab.href] }));
 ---
 
 <nav
