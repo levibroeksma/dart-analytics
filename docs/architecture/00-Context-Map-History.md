@@ -17,6 +17,8 @@ updated: 2026-10-06
 
 # Version History
 
+> **Version:** 1.168.0 (2026-10-06 — Tactics V1: seed `0034` and its verification registered in the File Inventory; `TacticsRecreationalInput.astro` in the Component Inventory; D422 in `decisions/game-engine.md`; Cricket's mark/close fold extracted to `marks-close.module.ts`.)
+
 > **Version:** 1.167.0 (2026-10-06 — Cricket V1: seed `0033` and its verification registered in the File Inventory; `CricketRecreationalInput.astro` and `SinglePlayerDisplay`'s new `label` prop in the Component Inventory; D421 in `decisions/game-engine.md`.)
 
 > **Version:** 1.166.0 (2026-10-06 — glass-and-view-transitions: four `@apply` glass utilities (`glass`, `glass-tinted`, `glass-raised`, `glass-tinted-raised`) replace `glass-strong`/`glass-nav` and the `--glass*`/`--blur-glass*` tokens (D419); D418 tab view transitions removed in full, `tab-transition.ts` and `navTabIndex` deleted (D420). Style Guide, Astro Components and Component Inventory updated.)
