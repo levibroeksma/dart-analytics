@@ -15,7 +15,8 @@ export type ExerciseRulesetVersionKey =
   | "SWITCHING_TARGET_SCORING_V1"
   | "SCORE_THRESHOLD_V1"
   | "BULLSEYE_CHECKOUT_V1"
-  | "BULL_UP_V1";
+  | "BULL_UP_V1"
+  | "CHECKOUT_SEQUENCE_V1";
 
 /**
  * One timed section of a warm-up. `targets` are board numbers the player
@@ -217,6 +218,25 @@ export const BullUpV1Config = z.object({}).strict();
 
 export type BullUpConfigData = z.infer<typeof BullUpV1Config>;
 
+/**
+ * Checkout Sequence v1 ("Catch 40"): check out each outshot from
+ * `firstOutshot` to `lastOutshot` within `dartLimit` darts
+ * (`docs/game-rules/training/exercises/catch-40.md`). V1 accepts the Catch
+ * 40 values only; the range lives here so Catch 20/70 widen it later
+ * without a new exercise type.
+ */
+export const CheckoutSequenceV1Config = z
+  .object({
+    firstOutshot: z.literal(61),
+    lastOutshot: z.literal(100),
+    dartLimit: z.literal(6),
+  })
+  .strict();
+
+export type CheckoutSequenceConfigData = z.infer<
+  typeof CheckoutSequenceV1Config
+>;
+
 export const EXERCISE_RULESET_CONFIGS: Record<
   ExerciseRulesetVersionKey,
   z.ZodTypeAny
@@ -229,4 +249,5 @@ export const EXERCISE_RULESET_CONFIGS: Record<
   SCORE_THRESHOLD_V1: ScoreThresholdV1Config,
   BULLSEYE_CHECKOUT_V1: BullseyeCheckoutV1Config,
   BULL_UP_V1: BullUpV1Config,
+  CHECKOUT_SEQUENCE_V1: CheckoutSequenceV1Config,
 };
