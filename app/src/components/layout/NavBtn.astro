@@ -12,10 +12,10 @@ const { href, label, matchPrefix, class: classNameProp }: Props = Astro.props;
 // Lib
 import { cn } from "@client/cn";
 import { isNavActive } from "@lib/utils/is-nav-active";
+import { navTabMatchPrefix } from "@lib/utils/nav-tabs";
 
 // Styles
-const effectiveMatchPrefix =
-  matchPrefix ?? (href === "/" ? undefined : `${href}/`);
+const effectiveMatchPrefix = matchPrefix ?? navTabMatchPrefix(href);
 const active = isNavActive(Astro.url.pathname, href, effectiveMatchPrefix);
 const className = cn(
   "flex min-w-0 flex-1 flex-col items-center justify-center rounded-full py-2 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/25 [&_svg]:size-6",

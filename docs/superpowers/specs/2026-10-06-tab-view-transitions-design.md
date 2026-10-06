@@ -24,21 +24,22 @@ the new tab. MPA model unchanged; no `ClientRouter`.
 
 ### 2. Tab identity
 
-- One shared `TABS` list (`label`, `icon`, `href`, index by order) replaces
-  `BottomNav.astro`'s inline array.
+- One shared `NAV_TABS` list (`label`, `href`, index by order) replaces
+  `BottomNav.astro`'s inline array; icons stay in `BottomNav`.
 - A page's tab = the entry `isNavActive` marks (prefix match, so
   `/games/501/setup` is Games).
 - `AppLayout` writes `<html data-tab="<index>">`; absent when no tab matches.
 
 ### 3. Direction
 
-- Pure `tabDirection(prev, next)` → `"forward" | "back" | null`
-  (`null` when either is missing or they are equal). Unit-tested.
-- `is:inline` script in `<head>` (runs before first render) listens for
-  `pagereveal`:
+- One self-contained exported function `onTabReveal(event, storage)`
+  (no module bindings), unit-tested directly and inlined into a classic
+  render-blocking `<head>` script via `set:html` +
+  `onTabReveal.toString()` — Astro's bundled scripts are deferred modules
+  and can miss `pagereveal`. It:
   - reads previous index from `sessionStorage`, current from `data-tab`;
-  - `forward`/`back` → `event.viewTransition.types.add(dir)`;
-  - `null` → `event.viewTransition.skipTransition()`;
+  - higher → `event.viewTransition.types.add("forward")`, lower → `"back"`;
+  - equal or either missing → `event.viewTransition.skipTransition()`;
   - writes current index to `sessionStorage`.
 - `sessionStorage` access wrapped in try/catch; failure = skip.
 - No Navigation API dependency (Safari ships view transitions earlier than
@@ -48,7 +49,7 @@ the new tab. MPA model unchanged; no `ClientRouter`.
 
 - `<main>`: `view-transition-name: page`.
 - `forward`: old `translateX(0 → -20%)` + fade out; new `translateX(20% → 0)`
-  + fade in. `back` mirrors. ~250ms, `--ease-out`.
+  + fade in. `back` mirrors. `--duration-tab` (300ms), `--ease-out`.
 - Selected via `:active-view-transition-type(forward|back)`.
 - `::view-transition-old/new(root)`: `animation: none` — dartboard
   background stays static.
@@ -76,7 +77,8 @@ None. Pure presentation; no state shape, no `turns`/`darts` mapping.
 
 ## Verification
 
-- Vitest: `tabDirection` (forward, back, equal, missing either side).
+- Vitest: `onTabReveal` (forward, back, equal, missing either side, storage
+  failure, self-contained when stringified); `navTabIndex`.
 - Manual Chromium (Playwright): every tab pair both directions, browser
   back, reload (no animation), setup page → other tab, setup → own tab
   (no animation), reduced motion.
