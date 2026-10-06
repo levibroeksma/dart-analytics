@@ -367,3 +367,10 @@ Decision: `CRICKET` / `CRICKET_V1` (seed `0033`) ships solo only. Objectives 20�
 Reason: with one seat there is no opponent to own a number against, so points, dead numbers and the score-compare win have nothing to act on (`docs/game-rules/rulesets/cricket.md`). Fewest darts to close out is the standard solo Cricket measure and a pure fold of dart facts.
 Consequences: multiplayer, points and Cut-throat are a new ruleset version. A Cricket trend section needs a `v_cricket_*` view and a migration. Rules: `docs/game-rules/rulesets/cricket.md`.
 Supersedes: none.
+
+### D422 — Solo Tactics is a close-out drill; dual-purpose is an auto rule until Multiplayer
+Status: Accepted · Date: 2026-10-06
+Decision: `TACTICS` / `TACTICS_V1` (seed `0034`) ships solo only, with no win condition, as Cricket (D421). Objectives 20–15, Bull, Doubles, Triples are an engine constant. A double/treble on 15–20 marks its number while open, else the Doubles/Triples category; a double/treble on 1–14 marks the category; the bull never feeds D/T. Cap 3 per objective; overflow is discarded. All derived from dart facts — no migration, no stored choice.
+Reason: with no points the player choice never beats the auto rule, so storing it buys nothing until Multiplayer.
+Consequences: the player choice, multiplayer, points and a Tactics stats view are a later version. Rules: `docs/game-rules/rulesets/tactics.md`. Spec: `docs/superpowers/specs/2026-10-06-tactics-v1-design.md`.
+Supersedes: none.
