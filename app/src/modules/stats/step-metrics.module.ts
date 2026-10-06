@@ -64,6 +64,12 @@ export const STEP_METRIC_SPECS: Readonly<
       ["bulls", "throws"],
     ],
   },
+  CHECKOUT_SEQUENCE: {
+    metrics: { points: "sum", checkouts: "sum", attempts: "sum", darts: "sum" },
+    headline: "points",
+    direction: "higher",
+    rates: [["checkouts", "attempts"]],
+  },
 };
 
 /**
@@ -161,6 +167,13 @@ export function stepMetrics(
         throws: numberField(state, "throws", kind),
         bullseyes: numberField(state, "bullseyes", kind),
         bulls: numberField(state, "bulls", kind),
+      };
+    case "CHECKOUT_SEQUENCE":
+      return {
+        points: numberField(state, "points", kind),
+        checkouts: numberField(state, "checkouts", kind),
+        attempts: numberField(state, "attempts", kind),
+        darts: numberField(state, "dartsThrown", kind),
       };
   }
 }

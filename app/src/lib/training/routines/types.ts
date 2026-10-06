@@ -20,6 +20,7 @@ import type { SwitchingTargetScoringEngine } from "@modules/training/exercises/s
 import type { ScoreThresholdEngine } from "@modules/training/exercises/score-threshold.engine.module";
 import type { BullseyeCheckoutEngine } from "@modules/training/exercises/bullseye-checkout.engine.module";
 import type { BullUpEngine } from "@modules/training/exercises/bull-up.engine.module";
+import type { CheckoutSequenceEngine } from "@modules/training/exercises/checkout-sequence.engine.module";
 import type { DartObservation } from "@modules/types";
 import type { BoardMarker, PreviewSegment } from "@lib/types";
 import type { gameStep } from "./game-step.data";
@@ -73,6 +74,7 @@ export type RoutinePlayContext = {
   scoreThresholdEngine: ScoreThresholdEngine | null;
   bullseyeCheckoutEngine: BullseyeCheckoutEngine | null;
   bullUpEngine: BullUpEngine | null;
+  checkoutSequenceEngine: CheckoutSequenceEngine | null;
   stepTimer: SegmentTimer | null;
   stepRemainingSeconds: number;
   warmUpTimer: SegmentTimer | null;
@@ -158,6 +160,12 @@ export type RoutinePlayContext = {
   bullUpLastResult(this: RoutinePlayContext): string;
   bullUpBullseyeRate(this: RoutinePlayContext): string;
   bullUpBullRate(this: RoutinePlayContext): string;
+  checkoutSequencePoints(this: RoutinePlayContext): number;
+  checkoutSequenceOutshot(this: RoutinePlayContext): string;
+  checkoutSequenceLeft(this: RoutinePlayContext): number;
+  checkoutSequenceAttemptDart(this: RoutinePlayContext): number;
+  checkoutSequenceLastResult(this: RoutinePlayContext): string;
+  checkoutSequenceCheckouts(this: RoutinePlayContext): number;
   dartsThrown(this: RoutinePlayContext): number;
   activeDartEngine(
     this: RoutinePlayContext,
@@ -169,6 +177,7 @@ export type RoutinePlayContext = {
     | ScoreThresholdEngine
     | BullseyeCheckoutEngine
     | BullUpEngine
+    | CheckoutSequenceEngine
     | null;
   visitMarkers(this: RoutinePlayContext): BoardMarker[];
   previewSegments(this: RoutinePlayContext): PreviewSegment[];
@@ -197,6 +206,10 @@ export type RoutinePlayContext = {
     observation: DartObservation,
   ): void;
   recordBullUpDart(
+    this: RoutinePlayContext,
+    observation: DartObservation,
+  ): void;
+  recordCheckoutSequenceDart(
     this: RoutinePlayContext,
     observation: DartObservation,
   ): void;

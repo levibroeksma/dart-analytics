@@ -385,7 +385,7 @@ export type StepSessionRow = {
 };
 
 /**
- * The seven non-game dart exercise kinds `step-metrics.module.ts` defines
+ * The eight non-game dart exercise kinds `step-metrics.module.ts` defines
  * metrics for (D372 decision 7) — `RoutineStepSummary.stepKey`'s
  * non-`"GAME:…"` values. Warm-Up throws no darts and is excluded: it gets
  * `step-volume` only, never `step-result` (D372 decision 6).
@@ -397,7 +397,8 @@ export type DartExerciseKind =
   | "SWITCHING_TARGET_SCORING"
   | "SCORE_THRESHOLD"
   | "BULLSEYE_CHECKOUT"
-  | "BULL_UP";
+  | "BULL_UP"
+  | "CHECKOUT_SEQUENCE";
 
 /**
  * One dart exercise kind's step-metric contract (D372 decision 7):

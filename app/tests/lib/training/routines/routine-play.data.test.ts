@@ -1739,6 +1739,162 @@ describe("routinePlay — Bull Up Practice", () => {
   });
 });
 
+const CHECKOUT_SEQUENCE_STEP = {
+  sequenceNumber: 1,
+  exerciseTypeKey: "CHECKOUT_SEQUENCE",
+  exerciseRulesetVersionKey: "CHECKOUT_SEQUENCE_V1",
+  gameTypeKey: null,
+  gameRulesetVersionKey: null,
+  durationSeconds: 1800,
+  configuration: { firstOutshot: 61, lastOutshot: 100, dartLimit: 6 },
+};
+
+describe("routinePlay — Catch 40", () => {
+  const S20 = {
+    hitTargetNumber: 20,
+    hitZoneKey: "SINGLE" as const,
+    locationX: 0,
+    locationY: -100,
+  };
+  const T15 = {
+    hitTargetNumber: 15,
+    hitZoneKey: "TREBLE" as const,
+    locationX: 0,
+    locationY: -100,
+  };
+  const D8 = {
+    hitTargetNumber: 8,
+    hitZoneKey: "DOUBLE" as const,
+    locationX: 0,
+    locationY: -100,
+  };
+  const MISS = {
+    hitTargetNumber: null,
+    hitZoneKey: "MISS" as const,
+    locationX: null,
+    locationY: null,
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+    stubAudioContext();
+    Object.defineProperty(globalThis, "location", {
+      value: { href: "" },
+      writable: true,
+      configurable: true,
+    });
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineTemplateId: "rt-1",
+      routineName: "Custom",
+      steps: [CHECKOUT_SEQUENCE_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "CHECKOUT_SEQUENCE",
+      configuration: CHECKOUT_SEQUENCE_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+  });
+  afterEach(() => {
+    vi.clearAllTimers();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it("startCurrentStep() builds the engine and its readouts start at 61", async () => {
+    const store = makeStore();
+    await store.init();
+
+    expect(store.checkoutSequenceEngine).not.toBeNull();
+    expect(store.checkoutSequencePoints()).toBe(0);
+    expect(store.checkoutSequenceOutshot()).toBe("61");
+    expect(store.checkoutSequenceLeft()).toBe(61);
+    expect(store.checkoutSequenceAttemptDart()).toBe(0);
+    expect(store.checkoutSequenceLastResult()).toBe("—");
+    expect(store.checkoutSequenceCheckouts()).toBe(0);
+    expect(store.stepRemainingSeconds).toBe(1800);
+  });
+
+  it("the readouts follow each dart and each resolved attempt", async () => {
+    const store = makeStore();
+    await store.init();
+
+    store.recordCheckoutSequenceDart(T15);
+    expect(store.checkoutSequenceLeft()).toBe(16);
+    expect(store.checkoutSequenceAttemptDart()).toBe(1);
+
+    store.recordCheckoutSequenceDart(D8);
+    expect(store.checkoutSequencePoints()).toBe(3);
+    expect(store.checkoutSequenceLastResult()).toBe("+3");
+    expect(store.checkoutSequenceCheckouts()).toBe(1);
+    expect(store.checkoutSequenceOutshot()).toBe("62");
+    expect(store.checkoutSequenceLeft()).toBe(62);
+
+    Array.from({ length: 6 }, () => MISS).forEach((d) =>
+      store.recordCheckoutSequenceDart(d),
+    );
+    expect(store.checkoutSequenceLastResult()).toBe("0");
+    expect(store.dartsThrown()).toBe(8);
+  });
+
+  it("previewSegments() marks a dart on the board as hit and off it as miss", async () => {
+    const store = makeStore();
+    await store.init();
+
+    store.recordCheckoutSequenceDart(S20);
+    store.recordCheckoutSequenceDart(MISS);
+    expect(store.previewSegments()).toEqual([
+      { status: "hit" },
+      { status: "miss" },
+      { status: "empty" },
+    ]);
+  });
+
+  it("completes the step once the last outshot is attempted, before the deadline", async () => {
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(sessionApi.appendBatch).mockResolvedValue(undefined as never);
+    vi.mocked(sessionApi.completeSession).mockResolvedValue(undefined as never);
+    vi.mocked(trainingApi.completeTraining).mockResolvedValue({
+      activityId: "act-1",
+      completedAt: "2026-10-06T12:00:00.000Z",
+    });
+    const store = makeStore();
+    await store.init();
+
+    Array.from({ length: 240 }, () => MISS).forEach((d) =>
+      store.recordCheckoutSequenceDart(d),
+    );
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(sessionApi.appendBatch).toHaveBeenCalled();
+    expect(store.stepSummaries[0]).toMatchObject({
+      stepKey: "CHECKOUT_SEQUENCE",
+    });
+  });
+
+  it("the step deadline expires the engine and uploads its darts", async () => {
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(sessionApi.appendBatch).mockResolvedValue(undefined as never);
+    vi.mocked(sessionApi.completeSession).mockResolvedValue(undefined as never);
+    vi.mocked(trainingApi.completeTraining).mockResolvedValue({
+      activityId: "act-1",
+      completedAt: "2026-10-06T12:00:00.000Z",
+    });
+    const store = makeStore();
+    await store.init();
+    store.recordCheckoutSequenceDart(S20);
+
+    await vi.advanceTimersByTimeAsync(1_800_000);
+
+    expect(sessionApi.appendBatch).toHaveBeenCalled();
+    expect(store.stepSummaries[0]).toMatchObject({
+      stepKey: "CHECKOUT_SEQUENCE",
+    });
+  });
+});
+
 describe("routinePlay — Finishing", () => {
   beforeEach(() => {
     vi.clearAllMocks();
