@@ -7,6 +7,7 @@ import "@modules/game/one-twenty-one.engine.module";
 import "@modules/game/score-training.engine.module";
 import "@modules/game/shanghai.engine.module";
 import "@modules/game/singles-training.engine.module";
+import "@modules/game/tactics.engine.module";
 import "@modules/game/tuod.engine.module";
 import "@modules/training/exercises/bull-up.engine.module";
 import "@modules/training/exercises/bullseye-checkout.engine.module";

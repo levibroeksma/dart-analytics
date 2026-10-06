@@ -6,6 +6,10 @@ import {
   CricketEngine,
   initialCricketState,
 } from "@modules/game/cricket.engine.module";
+import {
+  initialTacticsState,
+  TacticsEngine,
+} from "@modules/game/tactics.engine.module";
 import type { Bobs27State } from "@modules/types";
 import {
   PLAYER_ONE,
@@ -108,6 +112,63 @@ describe("REPLAY_PRESENTERS.CRICKET", () => {
     const [turn] = engine.facts().turns;
     const line = REPLAY_PRESENTERS.CRICKET.session(
       [{ turn, before: initialCricketState(config), after: engine.state() }],
+      config,
+    );
+    expect(line.entries).toEqual([
+      { participantId: "p1", label: "Darts", value: "3" },
+    ]);
+  });
+});
+
+describe("REPLAY_PRESENTERS.TACTICS", () => {
+  const config = {
+    seats: [
+      {
+        participantRef: "p1",
+        displayName: "L",
+        sideKey: "A",
+        participantTypeKey: "PLAYER" as const,
+      },
+    ],
+  };
+  const t20 = {
+    hitTargetNumber: 20,
+    hitZoneKey: "TREBLE" as const,
+    locationX: null,
+    locationY: null,
+  };
+  const miss = {
+    hitTargetNumber: null,
+    hitZoneKey: "MISS" as const,
+    locationX: null,
+    locationY: null,
+  };
+
+  function playedVisit() {
+    const engine = new TacticsEngine(config);
+    engine.record(t20);
+    engine.record(t20);
+    engine.record(miss);
+    return engine;
+  }
+
+  it("shows capped marks and closed count after a visit", () => {
+    const engine = playedVisit();
+    const [turn] = engine.facts().turns;
+    const cells = REPLAY_PRESENTERS.TACTICS.turn(
+      { turn, before: initialTacticsState(config), after: engine.state() },
+      config,
+    );
+    expect(
+      cells.map((cell) => (cell.kind === "value" ? cell.value : "")),
+    ).toEqual(["4", "1/9"]);
+  });
+
+  it("ends the session line on darts thrown", () => {
+    const engine = playedVisit();
+    const [turn] = engine.facts().turns;
+    const line = REPLAY_PRESENTERS.TACTICS.session(
+      [{ turn, before: initialTacticsState(config), after: engine.state() }],
       config,
     );
     expect(line.entries).toEqual([
