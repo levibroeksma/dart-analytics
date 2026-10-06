@@ -103,8 +103,8 @@ closes the last open objective. `undo` pops the last dart and clears
 - **Seed `database/seeds/0033_cricket_game_engine_reference.sql`**, shaped on
   `0010`/`0027`: `game_types` row `CRICKET` (next id in the `0198f000-*`
   range), `ruleset_versions` row `CRICKET_V1` (next `0198f100-*`), one empty
-  `configuration_templates` preset (next `0198f300-*`), its
-  `game_type_features` rows. Plus `database/verification/0033_*`.
+  `configuration_templates` preset (next `0198f300-*`), no
+  `game_type_features` rows (single player, nothing to toggle — mirrors `0010`). Plus `database/verification/0033_*`.
 - **Capabilities:** two `CRICKET_V1` rows appended to
   `seeds/0007_ruleset_version_capabilities.sql` (and its verification),
   mirroring `RULESET_CAPABILITIES`; `STATS_TAGS.CRICKET_V1 = ["board"]`;
@@ -114,8 +114,10 @@ closes the last open objective. `undo` pops the last dart and clears
   via `Seated<…>`. A drifted key fails the session.
 - **Validator:** `services/rulesets/cricket/cricket.validator.ts` — a
   `createThreeDartValidator` call (`label: "Cricket"`), composed (wrapped, not
-  forked) to also reject: a dart with a non-null intent field; a visit after
-  the visit that closed the 7th objective, or darts after the closing dart.
+  forked) to also reject a dart with a non-null intent field and a turn
+  holding more than 3 darts. Post-completion darts are not checked
+  server-side: a batch carries no prior state, and no shipped validator
+  replays one; the engine refuses them client-side.
   Registered in `services/rulesets/registry.ts` in the same commit as the
   engine (`scripts/check-game-engines.sh`).
 - **Slugs:** route `cricket`, code `cricket`, ruleset key `CRICKET_V1`.
@@ -131,7 +133,11 @@ before writing markup.
   20–15 + Bull, Variant = Classic.
 - **Play:** `lib/game/cricket-play.data.ts` + `interfaces/Cricket.astro` — a
   seven-row board, mark glyphs `/` `X` `Ⓧ` per objective, closed rows dimmed,
-  darts thrown. Existing DETAILED_DARTS keypad / VISUAL_BOARD input by mode.
+  darts thrown. New `CricketRecreationalInput.astro`
+  under DETAILED_DARTS — seven objective buttons, a Double/Treble modifier
+  (Treble disabled on Bull) and Miss; a dart off the objectives is entered as
+  Miss, as Bob's 27's tap row does (`doublesPathObservation`).
+  `BoardInputPanel` under VISUAL_BOARD.
   Undo as in Bob's 27.
 - **Result:** `result-modals/CricketResults.astro` — darts thrown, MPR, darts
   to close per objective.
