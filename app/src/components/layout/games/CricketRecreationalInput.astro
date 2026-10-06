@@ -1,0 +1,63 @@
+---
+interface Props {
+  [key: string]: unknown;
+}
+
+// Props
+const { ...props }: Props = Astro.props;
+
+// Components
+import InputButton from "./InputButton.astro";
+
+// Icons
+import UndoIcon from "@icons/undo.svg";
+---
+
+<div
+  class="rounded-lg glass border border-border bg-surface-raised flex flex-1 min-h-0 w-full flex-col divide-y divide-border"
+  {...props}
+>
+  <div class="flex flex-1 min-h-0 divide-x divide-border">
+    <InputButton
+      aria-label="Undo last dart"
+      :disabled="!$store.game.turns.length || finished"
+      @click="undoVisit()"
+    >
+      <UndoIcon class="size-6 text-muted" />
+    </InputButton>
+    <InputButton
+      :aria-pressed="ring === 'DOUBLE'"
+      :class="ring === 'DOUBLE' && 'bg-primary/20'"
+      :disabled="finished"
+      @click="setRing('DOUBLE')"
+    >
+      D
+    </InputButton>
+    <InputButton
+      :aria-pressed="ring === 'TREBLE'"
+      :class="ring === 'TREBLE' && 'bg-primary/20'"
+      :disabled="finished"
+      @click="setRing('TREBLE')"
+    >
+      T
+    </InputButton>
+    <InputButton
+      :disabled="finished"
+      @click="recordMiss()"
+    >
+      MIS
+    </InputButton>
+  </div>
+  <div class="grid flex-1 min-h-0 grid-cols-4 divide-x divide-border">
+    <template
+      x-for="row in objectiveRows()"
+      :key="row.objective"
+    >
+      <InputButton
+        :disabled="finished || (row.objective === 25 && ring === 'TREBLE')"
+        @click="recordObjective(row.objective)"
+        x-text="row.label"
+      />
+    </template>
+  </div>
+</div>

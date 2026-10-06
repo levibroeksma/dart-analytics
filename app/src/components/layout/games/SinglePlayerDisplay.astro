@@ -4,6 +4,7 @@
  * @param {string} [score] Alpine expression for score text
  * @param {string} [target] Alpine expression for target text
  * @param {boolean} [isTarget] Show target vs score
+ * @param {string} [label] Caption under the big number; defaults to "Target" or "Score" by `isTarget`
  * @param {"lg" | "sm"} [size] Big-number size; "sm" fits the split scoreboard's narrower, shorter columns
  * @param {boolean} [fluid] Size the big number off the card's own width (Tailwind v4 container query) and keep it on one line, instead of the fixed `size` step — for content whose length varies, e.g. an equation
  * @param {string} [activeExpr] Alpine expr; while true the card's border turns accent-colored instead of the default border color
@@ -15,6 +16,7 @@ interface Props {
   score?: string;
   target?: string;
   isTarget?: boolean;
+  label?: string;
   size?: "lg" | "sm";
   fluid?: boolean;
   activeExpr?: string;
@@ -27,6 +29,7 @@ const {
   score,
   target,
   isTarget = true,
+  label,
   size = "lg",
   fluid = false,
   activeExpr,
@@ -71,7 +74,7 @@ const className = cn(
     >
     </h1>
     <span class="text-sm text-muted-foreground uppercase">
-      {isTarget ? "Target" : "Score"}
+      {label ?? (isTarget ? "Target" : "Score")}
     </span>
     {
       /* Per-game progress region — e.g. 501's checkout route plus its

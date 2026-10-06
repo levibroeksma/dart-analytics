@@ -48,6 +48,40 @@ export type Bobs27State = MultiSeatState<Bobs27SeatState> & {
   winningSideKey: string | null;
 };
 
+/**
+ * One seat's marks-to-close progress, indexed by the game's objective order.
+ * `closedAtDart[i]` is the seat's dart count when objective i took its third
+ * mark, null while open. `dartsThisVisit` is how many darts the open visit
+ * holds, 0 between visits.
+ */
+export type MarksSeatState = SeatState & {
+  marks: readonly number[];
+  closedAtDart: readonly (number | null)[];
+  dartsThrown: number;
+  dartsThisVisit: number;
+  status: "IN_PROGRESS" | "COMPLETE";
+};
+
+/** The objective one dart marks and by how much; null marks nothing. */
+export type MarksHit = { objectiveIndex: number; marks: number } | null;
+
+/** One seat's Cricket progress, indexed by `CRICKET_OBJECTIVES` order. */
+export type CricketSeatState = MarksSeatState;
+
+/** A Tactics objective: a number 15–20, the bull, or a Doubles / Triples category. */
+export type TacticsObjective = number | "DOUBLES" | "TRIPLES";
+
+/** One seat's Tactics progress, indexed by `TACTICS_OBJECTIVES` order. */
+export type TacticsSeatState = MarksSeatState;
+
+export type CricketState = MultiSeatState<CricketSeatState> & {
+  status: "IN_PROGRESS" | "COMPLETE";
+};
+
+export type TacticsState = MultiSeatState<TacticsSeatState> & {
+  status: "IN_PROGRESS" | "COMPLETE";
+};
+
 export type SinglesTrainingSeatState = SeatState & {
   targetIndex: number;
   totalPoints: number;

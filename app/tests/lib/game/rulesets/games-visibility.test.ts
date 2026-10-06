@@ -22,6 +22,8 @@ describe("visibleGames", () => {
       "SHANGHAI_V1",
       "121_V1",
       "AROUND_THE_CLOCK_V1",
+      "CRICKET_V1",
+      "TACTICS_V1",
       "TUOD_V1",
     ]);
   });
@@ -40,6 +42,8 @@ describe("visibleGames", () => {
         "SHANGHAI_V1",
         "121_V1",
         "AROUND_THE_CLOCK_V1",
+        "CRICKET_V1",
+        "TACTICS_V1",
         "TUOD_V1",
       ].sort(),
     );

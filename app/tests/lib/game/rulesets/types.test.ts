@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   AroundTheClockConfig,
+  CricketConfig,
+  TacticsConfig,
   AroundTheClockV2Config,
   FiveOhOneConfig,
   OneTwentyOneV2Config,
@@ -274,6 +276,24 @@ describe("AroundTheClockConfig", () => {
 describe("RULESET_CONFIGS", () => {
   it("registers AROUND_THE_CLOCK_V1", () => {
     expect(RULESET_CONFIGS.AROUND_THE_CLOCK_V1).toBe(AroundTheClockConfig);
+  });
+
+  it("registers CRICKET_V1", () => {
+    expect(RULESET_CONFIGS.CRICKET_V1).toBe(CricketConfig);
+  });
+
+  it("rejects any Cricket config key", () => {
+    expect(CricketConfig.safeParse({ objectives: [20] }).success).toBe(false);
+    expect(CricketConfig.safeParse({}).success).toBe(true);
+  });
+
+  it("registers TACTICS_V1", () => {
+    expect(RULESET_CONFIGS.TACTICS_V1).toBe(TacticsConfig);
+  });
+
+  it("rejects any Tactics config key", () => {
+    expect(TacticsConfig.safeParse({ rule: "STRICT" }).success).toBe(false);
+    expect(TacticsConfig.safeParse({}).success).toBe(true);
   });
 });
 

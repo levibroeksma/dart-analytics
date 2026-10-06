@@ -11,6 +11,11 @@ import {
 } from "@modules/game/around-the-clock.engine.module";
 import { doublesPath, targetAt } from "@modules/game/board-progression.module";
 import { checkoutAttemptCount } from "@modules/game/checkout-bust.module";
+import {
+  CRICKET_OBJECTIVES,
+  effectiveMarks,
+} from "@modules/game/cricket.engine.module";
+import { TACTICS_OBJECTIVES } from "@modules/game/tactics.engine.module";
 import { foldSeatSteps } from "@modules/game/seat-state.module";
 import { activeTargetOf as shanghaiTargetOf } from "@modules/game/shanghai.engine.module";
 import {
@@ -26,6 +31,8 @@ import type {
   AroundTheClockSeatState,
   BoardTarget,
   Bobs27SeatState,
+  CricketSeatState,
+  TacticsSeatState,
   DartExerciseKind,
   DartObservation,
   DoublesTrainingSeatState,
@@ -367,6 +374,50 @@ const AROUND_THE_CLOCK: ReplayPresenter = {
 };
 
 /**
+ * Cricket, read as `cricket-play.data.ts` does: after each visit, the seat's
+ * capped marks and closed objectives; the session line is darts thrown.
+ */
+const CRICKET: ReplayPresenter = {
+  turn({ turn, after }) {
+    const seat = seatIn<CricketSeatState>(after, turn.participantRef);
+    const closed = seat.marks.filter((count) => count === 3).length;
+    return [
+      valueCell("Marks", effectiveMarks(seat)),
+      valueCell("Closed", `${closed}/${CRICKET_OBJECTIVES.length}`),
+    ];
+  },
+  session(steps) {
+    return finalLine<CricketSeatState>(
+      steps,
+      "Darts",
+      (seat) => seat.dartsThrown,
+    );
+  },
+};
+
+/**
+ * Tactics, read as Cricket is: after each visit, the seat's capped marks and
+ * closed objectives; the session line is darts thrown.
+ */
+const TACTICS: ReplayPresenter = {
+  turn({ turn, after }) {
+    const seat = seatIn<TacticsSeatState>(after, turn.participantRef);
+    const closed = seat.marks.filter((count) => count === 3).length;
+    return [
+      valueCell("Marks", effectiveMarks(seat)),
+      valueCell("Closed", `${closed}/${TACTICS_OBJECTIVES.length}`),
+    ];
+  },
+  session(steps) {
+    return finalLine<TacticsSeatState>(
+      steps,
+      "Darts",
+      (seat) => seat.dartsThrown,
+    );
+  },
+};
+
+/**
  * Each game's replay presenter (D371 decision 8): per turn, the values its
  * play page shows after the visit; per session, its outcome line.
  */
@@ -380,6 +431,8 @@ export const REPLAY_PRESENTERS: Record<GameTypeKey, ReplayPresenter> = {
   BOBS27,
   SHANGHAI,
   AROUND_THE_CLOCK,
+  CRICKET,
+  TACTICS,
 };
 
 /** No facts to fold: every dart exercise kind's per-turn headline and darts count read off `state` alone (`stepMetrics`'s `numberField` reads), never off `facts` -- only Switching's own "hits" key uses `facts`, and a turn cell never shows it (session() does, over the real facts). */

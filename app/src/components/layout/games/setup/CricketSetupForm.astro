@@ -1,0 +1,21 @@
+---
+// Components
+import InfoSection from "@components/ui/InfoSection.astro";
+import SetupShell from "./SetupShell.astro";
+import UserSection from "./UserSection.astro";
+
+// Data
+const infoSection = {
+  title: "Cricket rules",
+  description:
+    "Close 20, 19, 18, 17, 16, 15 and the bull — three marks each — in as few darts as you can. A single marks once, a double twice, a treble three times; the outer bull marks once, the bullseye twice. Solo practice, classic objectives.",
+};
+---
+
+<SetupShell title="Cricket">
+  <UserSection />
+  <InfoSection
+    title={infoSection.title}
+    description={infoSection.description}
+  />
+</SetupShell>

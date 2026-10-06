@@ -1,0 +1,21 @@
+---
+// Components
+import InfoSection from "@components/ui/InfoSection.astro";
+import SetupShell from "./SetupShell.astro";
+import UserSection from "./UserSection.astro";
+
+// Data
+const infoSection = {
+  title: "Tactics rules",
+  description:
+    "Close 20, 19, 18, 17, 16, 15, the bull, Doubles and Triples — three marks each — in as few darts as you can. A single marks once, a double twice, a treble three times; the outer bull marks once, the bullseye twice. A double or treble marks its number while it is open, otherwise Doubles or Triples; any double or treble on the board counts. Solo practice, locked rules.",
+};
+---
+
+<SetupShell title="Tactics">
+  <UserSection />
+  <InfoSection
+    title={infoSection.title}
+    description={infoSection.description}
+  />
+</SetupShell>

@@ -18,6 +18,7 @@ describe("RULESET_CAPABILITIES", () => {
       "AROUND_THE_CLOCK_V1",
       "AROUND_THE_CLOCK_V2",
       "BOBS27_V1",
+      "CRICKET_V1",
       "DOUBLES_TRAINING_V1",
       "SCORE_TRAINING_V1",
       "SHANGHAI_V1",
@@ -25,6 +26,7 @@ describe("RULESET_CAPABILITIES", () => {
       "SINGLES_V1",
       "SINGLES_V2",
       "SINGLES_V3",
+      "TACTICS_V1",
       "TUOD_V1",
     ]);
   });
@@ -79,6 +81,8 @@ describe("supportsMode", () => {
     "SHANGHAI_V2",
     "AROUND_THE_CLOCK_V1",
     "AROUND_THE_CLOCK_V2",
+    "CRICKET_V1",
+    "TACTICS_V1",
   ] as const)(
     "gives %s RECREATIONAL + DETAILED_DARTS, not ANALYTICS + DETAILED_DARTS",
     (rulesetVersionKey) => {
@@ -135,6 +139,7 @@ describe("capableRulesets", () => {
       "AROUND_THE_CLOCK_V1",
       "AROUND_THE_CLOCK_V2",
       "BOBS27_V1",
+      "CRICKET_V1",
       "DOUBLES_TRAINING_V1",
       "SCORE_TRAINING_V1",
       "SHANGHAI_V1",
@@ -142,6 +147,7 @@ describe("capableRulesets", () => {
       "SINGLES_V1",
       "SINGLES_V2",
       "SINGLES_V3",
+      "TACTICS_V1",
       "TUOD_V1",
     ]);
   });

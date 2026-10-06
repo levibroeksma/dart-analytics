@@ -360,3 +360,17 @@ Decision: when `ShanghaiEngine.record` resolves a visit it sets `turns.total_sco
 Reason: issue #624. The persisted visit total was the raw dart sum, so `session-result` and the Statistics "points per round" card showed a score the match never used. X01 already stores the counted total for a bust (0039), so a counted `total_score` is the existing convention, and halving cannot be derived from the column at read time without re-folding darts.
 Consequences: Shanghai visit totals can be negative; `turns.total_score` has no CHECK against it. Sessions recorded before this change keep raw totals. An open visit still shows the raw dart sum until its third dart. Supersedes the "Hard-mode halving … never stored" line in `docs/game-rules/rulesets/shanghai.md`, edited to match.
 Supersedes: none.
+
+### D421 — Solo Cricket is a close-out drill with no win condition
+Status: Accepted · Date: 2026-10-06
+Decision: `CRICKET` / `CRICKET_V1` (seed `0033`) ships solo only. Objectives 20–15 + Bull are an engine constant. A dart adds marks (single 1, double 2, treble 3; outer bull 1, inner bull 2), capped at 3 per objective; overflow is discarded. The dart that closes the seventh objective ends the run immediately, mid-visit if need be. The result is darts thrown, MPR (capped marks ÷ darts × 3) and darts to close per objective — all derived, none stored. Darts carry no intent. The engine is seat-aware with one seat, so multiplayer adds seating and points, not a rewrite.
+Reason: with one seat there is no opponent to own a number against, so points, dead numbers and the score-compare win have nothing to act on (`docs/game-rules/rulesets/cricket.md`). Fewest darts to close out is the standard solo Cricket measure and a pure fold of dart facts.
+Consequences: multiplayer, points and Cut-throat are a new ruleset version. A Cricket trend section needs a `v_cricket_*` view and a migration. Rules: `docs/game-rules/rulesets/cricket.md`.
+Supersedes: none.
+
+### D422 — Solo Tactics is a close-out drill; dual-purpose is an auto rule until Multiplayer
+Status: Accepted · Date: 2026-10-06
+Decision: `TACTICS` / `TACTICS_V1` (seed `0034`) ships solo only, with no win condition, as Cricket (D421). Objectives 20–15, Bull, Doubles, Triples are an engine constant. A double/treble on 15–20 marks its number while open, else the Doubles/Triples category; a double/treble on 1–14 marks the category; the bull never feeds D/T. Cap 3 per objective; overflow is discarded. All derived from dart facts — no migration, no stored choice.
+Reason: with no points the player choice never beats the auto rule, so storing it buys nothing until Multiplayer.
+Consequences: the player choice, multiplayer, points and a Tactics stats view are a later version. Rules: `docs/game-rules/rulesets/tactics.md`. Spec: `docs/superpowers/specs/2026-10-06-tactics-v1-design.md`.
+Supersedes: none.

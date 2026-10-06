@@ -61,6 +61,18 @@ export const GAME_CARDS: readonly GameCardDescriptor[] = [
     caption: "A pub classic, and great practice.",
   },
   {
+    rulesetVersionKey: "CRICKET_V1",
+    href: "/games/cricket/setup",
+    title: "Cricket",
+    caption: "Close 20 to 15 and the bull.",
+  },
+  {
+    rulesetVersionKey: "TACTICS_V1",
+    href: "/games/tactics/setup",
+    title: "Tactics",
+    caption: "Close 20 to 15, the bull, doubles and trebles.",
+  },
+  {
     rulesetVersionKey: "TUOD_V1",
     href: "/games/tuod/setup",
     title: "Ten Up One Down",

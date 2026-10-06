@@ -1,11 +1,13 @@
 import "@modules/game/around-the-clock.engine.module";
 import "@modules/game/bobs27.engine.module";
+import "@modules/game/cricket.engine.module";
 import "@modules/game/doubles-training.engine.module";
 import "@modules/game/five-oh-one.engine.module";
 import "@modules/game/one-twenty-one.engine.module";
 import "@modules/game/score-training.engine.module";
 import "@modules/game/shanghai.engine.module";
 import "@modules/game/singles-training.engine.module";
+import "@modules/game/tactics.engine.module";
 import "@modules/game/tuod.engine.module";
 import "@modules/training/exercises/bull-up.engine.module";
 import "@modules/training/exercises/bullseye-checkout.engine.module";

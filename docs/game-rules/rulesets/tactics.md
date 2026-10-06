@@ -19,10 +19,13 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Bull: outer = 1 mark, inner = 2 marks | V1 | All | |
 | Own / score on: points on closed-but-opponent-open numbers | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer — with one seat there is no opponent for a number to stay open against |
 | Dead number when all players have closed it | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer, for the same reason as Own / score on |
-| Win: all objectives closed + score ≥ opponent(s) | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer; the solo practice win condition is still an open question below |
+| Win: all objectives closed + score ≥ opponent(s) | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer; solo has no win condition (resolved below) |
 | Slop: any double/treble counts for D/T categories | V1 | All | |
 | Strict: only doubles/trebles on 15–20 count for D/T | V2+ | All | Wanted, unscheduled: V1 locks the D/T rule to Slop (see Config & presets), so a second rule is a config field that does not exist yet |
-| Dual-purpose choice (apply dart to number vs D/T category) | V1 | All | |
+| Auto rule: dual-purpose (number while open, else D/T category) | V1 | All | |
+| Dual-purpose choice (apply dart to number vs D/T category) | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer — with no points the choice never beats the auto rule |
+| Bull counts toward Doubles | Dropped | All | Bull is its own objective; D/T fed by rings on 1–20 only |
+| Tactics statistics section (MPR, darts-to-close trend) | V2+ | All | Wanted, unscheduled: needs a `v_tactics_*` view and a migration, as Cricket's |
 | Cut-throat / other cricket variants | V2+ | All | Wanted, unscheduled: depends on Multiplayer, and each variant's win and scoring rules are undecided |
 | Visit = up to 3 darts | V1 | All | |
 | Standard dartboard scoring (assumed) | V1 | All | |
@@ -71,7 +74,7 @@ Once you have **closed** a number and an opponent has **not**, further hits on t
 
 Each category also needs **three marks**. Qualifying hits depend on Slop vs Strict (see Glossary).
 
-**Dual-purpose choice:** a double or treble on 15–20 may be applied either toward closing/scoring that **number** or toward the **Doubles/Triples** category (player chooses when it matters).
+**Dual-purpose (V1 auto rule):** a double or treble on 15–20 marks that **number** while it is open; once it is closed it marks the **Doubles/Triples** category. A closing dart's spare marks are discarded. The bull never feeds Doubles/Triples. The player choice is V2+.
 
 ### Finishing
 
@@ -123,14 +126,16 @@ opponent.
 | **Dead**           | V1      | Closed by all players → no further scoring.                              |
 | **Slop**           | V1      | Any double/treble on the board marks the Doubles/Triples category.       |
 | **Strict**         | V2+     | Only doubles/trebles among 15–20 mark those categories.                  |
-| **Dual-purpose**   | V1      | Choose whether a D/T on 15–20 counts for the number or the D/T category. |
+| **Auto rule**      | V1      | A D/T on 15–20 marks its number while open, else the D/T category.       |
+| **Dual-purpose**   | V2+     | Choose whether a D/T on 15–20 counts for the number or the D/T category. |
 
 ## Capture
 
 Tactics is unbuilt; this is the capture shape its V1 is designed for, not an
 as-built description.
 
-- **Capture / input mode:** RECREATIONAL + DETAILED_DARTS — a mark is read off
+- **Capture / input mode:** RECREATIONAL + DETAILED_DARTS and
+  ANALYTICS + VISUAL_BOARD — a mark is read off
   the dart's number and ring, so the visit total alone cannot express it and
   QUICK_SCORE cannot carry this game.
 - **One dart's fact:** intended = **nothing stored** — both the target number
@@ -139,10 +144,9 @@ as-built description.
   stored intent would be invented. Hit = whatever landed; `score` = the
   **board** score of that dart (S20 = 20, T20 = 60, outer bull = 25, miss = 0) —
   never the marks it produced and never the Tactics points it scored.
-- **Dual-purpose is a player choice, not a dart fact.** Which objective a
-  qualifying double or treble was applied to is a decision taken after the dart
-  landed, so it is recorded alongside the visit rather than inferred from the
-  dart; the fact log alone cannot recover it.
+- **Dual-purpose:** V1 applies the auto rule, so which objective a dart marked
+  is folded from the dart facts and the marks before it. The V2+ player choice
+  will need its own storage.
 - **Stage type:** one `EXERCISE_BLOCK` for the whole game. No stage opens per
   objective; the objectives are all live at once.
 - **Derived, never stored:** marks per objective, which objectives are closed or
@@ -151,7 +155,8 @@ as-built description.
 
 ## Open questions
 
-- Exact single-player practice win condition before multiplayer ships.
+- ~~Exact single-player practice win condition before multiplayer ships.~~
+  **Resolved:** none — solo is a close-out drill (D422).
 - ~~Whether V1 ships Slop or Strict as the locked preset.~~ **Resolved:** Slop —
   Config & presets locks the D/T rule to Slop and the Glossary already carries
   Strict as V2+.
