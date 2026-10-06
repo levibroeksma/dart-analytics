@@ -11,7 +11,7 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 | Single player | V1 | Single | |
 | Steps run in order: twenties, cricket numbers, double down | V1 | All | |
 | Step 1: Score Training (timed), 10 minutes | V1 | All | |
-| Step 2: Cricket numbers, 5 minutes | Deferred | All | Blocked on: no exercise type walks 20 → 15 then the bull; Around the Clock walks all of 1–20 (`../../rulesets/around-the-clock.md` §Config & presets), and Switching Target Scoring restarts on a miss (`../exercises/switching-target-scoring.md` §Identity) |
+| Step 2: Cricket numbers, 5 minutes | Deferred | All | Blocked on: no exercise type walks 20 → 15 then the bull; Around the Clock walks all of 1–20 (`../../rulesets/around-the-clock.md` §Config & presets), and Switching Target Scoring restarts on a miss (`../exercises/switching-target-scoring.md` §Identity). Cricket walks those numbers but is standalone only and not routine-eligible (`../../rulesets/cricket.md`, §11) |
 | Step 3: Double down, remaining minutes | Deferred | All | Blocked on: no exercise type repeats one outshot until it is checked out in one visit, and the source gives this step no duration — see Open questions |
 | Training ends when step 3 ends | V1 | All | |
 
