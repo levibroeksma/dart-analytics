@@ -328,6 +328,9 @@ export const AroundTheClockConfig = z.object({}).strict();
 /** Cricket V1 locks every rule (objectives, marks, solo seat) — nothing to configure. */
 export const CricketConfig = z.object({}).strict();
 
+/** Tactics V1 locks every rule (objectives, marks, D/T rule, solo seat) — nothing to configure. */
+export const TacticsConfig = z.object({}).strict();
+
 /**
  * Around the Clock V2: the training variants. A new version rather than a
  * widening of `AroundTheClockConfig` — V1's empty schema is live against real
@@ -384,7 +387,8 @@ export type RulesetVersionKey =
   | "121_V2"
   | "AROUND_THE_CLOCK_V1"
   | "AROUND_THE_CLOCK_V2"
-  | "CRICKET_V1";
+  | "CRICKET_V1"
+  | "TACTICS_V1";
 
 /** A game page's route segment (`10-Statistics/00-Overview.md` §6): one key per game, spanning its ruleset versions. */
 export type GameTypeKey =
@@ -397,7 +401,8 @@ export type GameTypeKey =
   | "BOBS27"
   | "SHANGHAI"
   | "AROUND_THE_CLOCK"
-  | "CRICKET";
+  | "CRICKET"
+  | "TACTICS";
 
 /** A fact tag a ruleset version's engine produces (`10-Statistics/00-Overview.md` §3). */
 export type StatsTag =
@@ -426,6 +431,7 @@ export const RULESET_CONFIGS: Record<RulesetVersionKey, z.ZodTypeAny> = {
   AROUND_THE_CLOCK_V1: AroundTheClockConfig,
   AROUND_THE_CLOCK_V2: AroundTheClockV2Config,
   CRICKET_V1: CricketConfig,
+  TACTICS_V1: TacticsConfig,
 };
 
 export type ScoreTrainingConfigData = z.infer<typeof ScoreTrainingConfig>;
@@ -556,6 +562,9 @@ export type AroundTheClockV2Snapshot = {
 /** Cricket V1 has nothing to configure — no fields to carry. */
 export type CricketSnapshot = Record<string, never>;
 
+/** Tactics V1 has nothing to configure — no fields to carry. */
+export type TacticsSnapshot = Record<string, never>;
+
 export type ConfigSnapshotFor<K extends RulesetVersionKey> =
   K extends "SCORE_TRAINING_V1"
     ? ScoreTrainingSnapshot
@@ -585,7 +594,9 @@ export type ConfigSnapshotFor<K extends RulesetVersionKey> =
                             ? AroundTheClockSnapshot
                             : K extends "AROUND_THE_CLOCK_V2"
                               ? AroundTheClockV2Snapshot
-                              : CricketSnapshot;
+                              : K extends "CRICKET_V1"
+                                ? CricketSnapshot
+                                : TacticsSnapshot;
 
 /**
  * One boundary probe: a complete, parseable config plus the label the contract

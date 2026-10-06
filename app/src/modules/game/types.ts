@@ -68,7 +68,17 @@ export type MarksHit = { objectiveIndex: number; marks: number } | null;
 /** One seat's Cricket progress, indexed by `CRICKET_OBJECTIVES` order. */
 export type CricketSeatState = MarksSeatState;
 
+/** A Tactics objective: a number 15–20, the bull, or a Doubles / Triples category. */
+export type TacticsObjective = number | "DOUBLES" | "TRIPLES";
+
+/** One seat's Tactics progress, indexed by `TACTICS_OBJECTIVES` order. */
+export type TacticsSeatState = MarksSeatState;
+
 export type CricketState = MultiSeatState<CricketSeatState> & {
+  status: "IN_PROGRESS" | "COMPLETE";
+};
+
+export type TacticsState = MultiSeatState<TacticsSeatState> & {
   status: "IN_PROGRESS" | "COMPLETE";
 };
 

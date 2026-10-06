@@ -52,6 +52,7 @@ export const RULESET_CAPABILITIES: Readonly<
   AROUND_THE_CLOCK_V1: [DETAILED_DARTS, VISUAL_BOARD],
   AROUND_THE_CLOCK_V2: [DETAILED_DARTS, VISUAL_BOARD],
   CRICKET_V1: [DETAILED_DARTS, VISUAL_BOARD],
+  TACTICS_V1: [DETAILED_DARTS, VISUAL_BOARD],
 };
 
 /**
@@ -82,6 +83,7 @@ export const STATS_TAGS: Readonly<
   AROUND_THE_CLOCK_V1: ["board", "intent-derived", "target-sequence"],
   AROUND_THE_CLOCK_V2: ["board", "intent-derived", "target-sequence"],
   CRICKET_V1: ["board"],
+  TACTICS_V1: ["board"],
 };
 
 /** Which game page (`10-Statistics/00-Overview.md` §6 `:gameTypeKey`) each ruleset version belongs to. */
@@ -103,6 +105,7 @@ export const GAME_TYPE_BY_RULESET: Readonly<
   AROUND_THE_CLOCK_V1: "AROUND_THE_CLOCK",
   AROUND_THE_CLOCK_V2: "AROUND_THE_CLOCK",
   CRICKET_V1: "CRICKET",
+  TACTICS_V1: "TACTICS",
 };
 
 const GAME_TYPE_KEYS: readonly GameTypeKey[] = Array.from(

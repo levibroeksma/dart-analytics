@@ -26,6 +26,7 @@ describe("RULESET_CAPABILITIES", () => {
       "SINGLES_V1",
       "SINGLES_V2",
       "SINGLES_V3",
+      "TACTICS_V1",
       "TUOD_V1",
     ]);
   });
@@ -81,6 +82,7 @@ describe("supportsMode", () => {
     "AROUND_THE_CLOCK_V1",
     "AROUND_THE_CLOCK_V2",
     "CRICKET_V1",
+    "TACTICS_V1",
   ] as const)(
     "gives %s RECREATIONAL + DETAILED_DARTS, not ANALYTICS + DETAILED_DARTS",
     (rulesetVersionKey) => {
@@ -145,6 +147,7 @@ describe("capableRulesets", () => {
       "SINGLES_V1",
       "SINGLES_V2",
       "SINGLES_V3",
+      "TACTICS_V1",
       "TUOD_V1",
     ]);
   });
