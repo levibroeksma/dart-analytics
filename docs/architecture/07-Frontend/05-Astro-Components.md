@@ -139,7 +139,7 @@ Categories map to the folders in `02-Folder-Structure.md`:
 | Folder | Holds | Example |
 | ------ | ----- | ------- |
 | `components/ui/` | portable, app-agnostic primitives (paired with `modules/ui/`) | `Toast.astro`, `Modal.astro` |
-| `components/layout/` | app chrome and structure | `BottomNav.astro`, `NavBtn.astro` |
+| `components/layout/` | app chrome and structure (`AppLayout` opts tab pages into view transitions, D418) | `BottomNav.astro`, `NavBtn.astro` |
 | `components/game/` | gameplay-specific presentation | `Scoreboard.astro` |
 | `components/forms/` | form field / control components | `TemplateSelect.astro` |
 

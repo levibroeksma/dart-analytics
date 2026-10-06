@@ -1,6 +1,6 @@
 # Tab view transitions — design
 
-**Date:** 2026-10-06 · **Branch:** `feat/tab-view-transitions` · **Decision:** D418 (to be recorded in `decisions/frontend/style.md`)
+**Date:** 2026-10-06 · **Status:** implemented · **Branch:** `feat/tab-view-transitions` · **Decision:** D418 (to be recorded in `decisions/frontend/style.md`)
 
 ## Goal
 
