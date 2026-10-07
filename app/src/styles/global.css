@@ -404,21 +404,6 @@
     @apply backdrop-blur-sm;
   }
 
-  .field-inset {
-    background: oklch(0% 0 0 / 0.35);
-    box-shadow: inset 0 1px 2px oklch(0% 0 0 / 0.4);
-    @apply backdrop-blur-sm;
-  }
-
-  .field-inset:focus {
-    outline: none;
-    caret-color: var(--accent);
-    box-shadow:
-      inset 0 1px 2px oklch(0% 0 0 / 0.4),
-      inset 0 0 0 1px var(--accent),
-      0 0 0 3px color-mix(in oklch, var(--accent) 25%, transparent);
-  }
-
   .tab-container {
     @apply flex max-w-full overflow-x-scroll;
     -ms-overflow-style: none;
@@ -482,6 +467,22 @@
     box-shadow:
       0 0 0 3px var(--error-muted),
       0 0 16px color-mix(in oklch, var(--error) 16%, transparent);
+  }
+
+  .field-inset {
+    background: oklch(0% 0 0 / 0.35);
+    box-shadow: inset 0 1px 2px oklch(0% 0 0 / 0.4);
+    @apply backdrop-blur-sm;
+  }
+
+  .field-inset:focus {
+    outline: none;
+    background: oklch(0% 0 0 / 0.35);
+    caret-color: var(--accent);
+    box-shadow:
+      inset 0 1px 2px oklch(0% 0 0 / 0.4),
+      inset 0 0 0 1px var(--accent),
+      0 0 0 3px color-mix(in oklch, var(--accent) 25%, transparent);
   }
 
   .control {
