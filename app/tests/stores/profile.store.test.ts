@@ -87,4 +87,21 @@ describe("profileStore", () => {
     expect(store.displayName).toBe("Levi");
     expect(store.error).not.toBeNull();
   });
+
+  describe("weightLabel", () => {
+    it("shows grams for a number", () => {
+      const store = profileStore();
+      store.dartsWeightGrams = 23;
+      expect(store.weightLabel).toBe("23 g");
+    });
+
+    it("is empty for null, a cleared field or non-numeric input", () => {
+      const store = profileStore();
+      expect(store.weightLabel).toBe("");
+      for (const value of ["", "abc"]) {
+        (store as { dartsWeightGrams: unknown }).dartsWeightGrams = value;
+        expect(store.weightLabel).toBe("");
+      }
+    });
+  });
 });

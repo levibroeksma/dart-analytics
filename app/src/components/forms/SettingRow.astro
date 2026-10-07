@@ -120,6 +120,7 @@ const openExpr = `editing = true; openValue = ${modelExpr}; $nextTick(() => $ref
     variant="ghost"
     loadingExpr="false"
     ariaLabel={`Edit ${label}`}
+    :aria-label={`${JSON.stringify(`Edit ${label}: `)} + (${displayExpr})`}
     class={cn(fieldClass, "justify-between gap-3 text-foreground")}
     x-show="!editing"
     x-cloak

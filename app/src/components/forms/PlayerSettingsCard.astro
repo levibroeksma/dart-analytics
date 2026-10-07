@@ -60,7 +60,7 @@ const handedLabelClass =
   <SettingRow
     id="dartsWeightGrams"
     label="Weight"
-    valueExpr="$store.profile.dartsWeightGrams == null ? '' : $store.profile.dartsWeightGrams + ' g'"
+    valueExpr="$store.profile.weightLabel"
     modelExpr="$store.profile.dartsWeightGrams"
     saveExpr="$store.profile.save()"
     placeholder="Weight in grams"

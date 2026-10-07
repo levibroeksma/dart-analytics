@@ -17,6 +17,16 @@ export function profileStore() {
     loading: false,
     error: null as string | null,
 
+    /**
+     * Weight as shown in view mode (`23 g`), or `""` when unset. A cleared
+     * or non-numeric field leaves `x-model.number` holding a string, which
+     * must read as unset rather than `" g"`.
+     */
+    get weightLabel(): string {
+      const grams: unknown = this.dartsWeightGrams;
+      return typeof grams === "number" ? `${grams} g` : "";
+    },
+
     async init() {
       await this.load();
     },
