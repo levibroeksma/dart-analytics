@@ -2,7 +2,7 @@
 status: canonical
 scope: architecture/dartbot
 read-when: simulated opponent, bot difficulty, skill model, virtual dart input, the bot as a seat
-updated: 2026-09-18
+updated: 2026-10-07
 -->
 
 # DartBot Architecture
@@ -153,7 +153,7 @@ app/src/modules/dartbot/
 ├── skill-profile.module.ts         # level curve, decision tiers, overrides
 ├── fit-profile.module.ts          # (intent, landing) pairs → SkillProfile
 ├── pressure.module.ts             # situation → spread multipliers + pacing hints
-├── rng.module.ts                  # seeded PRNG
+├── rng.module.ts                  # per-dart RNG over seededUniform (modules/game/seeded-rng.module.ts)
 └── strategy/
     ├── dictated.strategy.module.ts
     ├── scoring.strategy.module.ts      # Score Training only (D-G) — 501/121/TUOD stay on x01.strategy.module.ts
@@ -367,7 +367,7 @@ new DartBot({ level: 8, seed: botSeat.dartbot.seed });
 
 | Requirement               | Mechanism                                                                                             |
 | ------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Identical darts on replay | Seeded PRNG shipped in the module; seed persisted with the session                                    |
+| Identical darts on replay | Seeded PRNG (`seededUniform`, `modules/game/seeded-rng.module.ts`, shared with Random Checkout, D424); seed persisted with the session |
 | Rehydrate after refresh   | Reconstruct from `(seed, facts)` — `dartIndex` is derived by counting the bot's darts in the fact log |
 | Forced outcomes in tests  | `rng` is injectable                                                                                   |
 | Mid-session resume        | The bot's next dart is re-derived from `(seed, dartIndex)`, so a refresh mid-visit resumes the same visit — nothing about the pending throw is stored |

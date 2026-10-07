@@ -5,6 +5,25 @@
 // this file's assertions are unaffected.
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
+const boardCommit = vi.hoisted(() => ({
+  onCommit: null as null | ((observation: unknown) => void),
+}));
+
+vi.mock("@lib/game/board-input.data", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@lib/game/board-input.data")>();
+  return {
+    ...actual,
+    boardInputData: (
+      onCommit: Parameters<typeof actual.boardInputData>[0],
+      getTurns: Parameters<typeof actual.boardInputData>[1],
+    ) => {
+      boardCommit.onCommit = onCommit as (observation: unknown) => void;
+      return actual.boardInputData(onCommit, getTurns);
+    },
+  };
+});
+
 vi.mock("@client/api/training-sessions", () => ({
   startTraining: vi.fn(),
   startTrainingStep: vi.fn(),
@@ -2004,6 +2023,16 @@ describe("routinePlay — Random Checkout", () => {
       { status: "miss" },
       { status: "empty" },
     ]);
+  });
+
+  it("routes a committed board dart to the Random Checkout engine", async () => {
+    const store = makeStore();
+    await store.init();
+
+    boardCommit.onCommit!(S20);
+
+    expect(store.randomCheckoutEngine!.state().dartsThrown).toBe(1);
+    expect(store.randomCheckoutLeft()).toBe(20);
   });
 
   it("never completes the step on a dart, however many attempts", async () => {

@@ -2,7 +2,7 @@
 status: canonical
 scope: architecture/training-routines
 read-when: training routines, exercises, exercise engines, configurable/adaptive training
-updated: 2026-10-06
+updated: 2026-10-07
 -->
 
 # Training, Exercise and Exercise Engine Architecture
@@ -178,6 +178,7 @@ SCORE_THRESHOLD
 BULLSEYE_CHECKOUT
 BULL_UP
 CHECKOUT_SEQUENCE
+RANDOM_CHECKOUT
 GAME
 CHECKOUT
 ACCURACY
@@ -890,6 +891,20 @@ duration: 30m
 Check out 61, then 62, up to 100 — six darts (two visits) each, X01 double-out. Two darts score 3, three score 2 (99 in three scores 3), four to six score 1, a miss scores 0. Rules: `docs/game-rules/training/exercises/catch-40.md`.
 
 **Implemented** (`CHECKOUT_SEQUENCE_V1`, `app/src/modules/training/exercises/checkout-sequence.engine.module.ts`, seed `0035`): configuration `{firstOutshot: 61, lastOutshot: 100, dartLimit: 6}`, each locked. Free aim — no dart carries an intended target; `score` is the board score. One `turns` row per visit; a visit closes on a checkout, a bust or its third dart, read from its darts via `resolveCheckoutAttempt`. A bust ends the visit and counts its unthrown darts toward the six. State carries points, checkouts, attempts, the current outshot, what is left and darts used in the attempt. The run completes itself once 100 is attempted, without waiting for the step timer; an attempt open at expiry is not scored. Every run starts at 61. Capture pair and upload path match 65 or More (D277). Routine step only in V1 (D423).
+
+---
+
+## Random Checkout
+
+Configuration:
+
+```text
+duration: 10m
+```
+
+A random score from 40 to 170, one visit of three darts to check it out under X01 double-out; then the next score, until the time runs out. Rules: `docs/game-rules/training/exercises/random-checkout.md`.
+
+**Implemented** (`RANDOM_CHECKOUT_V1`, `app/src/modules/training/exercises/random-checkout.engine.module.ts`, seed `0036`): configuration `{minStart: 40, maxStart: 170, drawSeed}`; the range is locked and `drawSeed` is minted by the server at training start, overwriting any template or step value, so the immutable configuration snapshot holds it. Attempt *n* starts from a uniform pick over the 124 finishable scores in 40–170 keyed by `(drawSeed, n)` through `seededUniform` — a function of the seed and the attempt index only, so undo and replay reproduce it; the pool and the PRNG are frozen for this ruleset version. Free aim — no dart carries an intended target; `score` is the board score. One `turns` row per attempt, closing on a checkout, a bust or its third dart, read from its darts via `resolveCheckoutAttempt`. State carries the start score, what is left, checkouts, attempts and the last result; the checkout rate is derived at display. Time-bound only: nothing completes the step but its timer, and an attempt open at expiry is not judged. Capture pair and upload path match 65 or More (D277). Routine step only in V1 (D424).
 
 ---
 

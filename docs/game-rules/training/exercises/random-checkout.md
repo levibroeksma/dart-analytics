@@ -1,6 +1,6 @@
 # Random Checkout
 
-Current version: none (V1 in design)
+Current version: V1 (shipped 2026-10-07)
 Entry points: routine step
 
 ## Features

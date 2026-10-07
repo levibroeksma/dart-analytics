@@ -153,8 +153,7 @@ export function routinePlay() {
         else if (self.bullUpEngine) self.recordBullUpDart(observation);
         else if (self.checkoutSequenceEngine)
           self.recordCheckoutSequenceDart(observation);
-        else if (self.randomCheckoutEngine)
-          self.recordRandomCheckoutDart(observation);
+        else self.recordRandomCheckoutDart(observation);
       },
       () => self.activeDartEngine()?.facts().turns ?? [],
     ),
@@ -181,8 +180,7 @@ export function routinePlay() {
         this.bullseyeCheckoutEngine ??
         this.bullUpEngine ??
         this.checkoutSequenceEngine ??
-        this.randomCheckoutEngine ??
-        null
+        this.randomCheckoutEngine
       );
     },
 
