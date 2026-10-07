@@ -1,0 +1,36 @@
+---
+/**
+ * One game row in a `/games` group card: Michroma title, muted caption and
+ * the accent dart, linking to the game's setup route. The divider lives on
+ * the page's per-row wrapper, which owns the row's `x-show`.
+ *
+ * @param {string} href
+ * @param {string} title
+ * @param {string} caption
+ */
+interface Props {
+  href: string;
+  title: string;
+  caption: string;
+}
+
+// Props
+const { href, title, caption }: Props = Astro.props;
+
+// Icons
+import DartIcon from "@icons/dart.svg";
+---
+
+<a
+  href={href}
+  class="flex items-center gap-3.5 py-3.5"
+>
+  <div class="flex min-w-0 flex-1 flex-col gap-1">
+    <span class="font-display text-sm tracking-[0.01em]">{title}</span>
+    <span class="text-xs text-muted">{caption}</span>
+  </div>
+  <DartIcon
+    class="size-6.5 shrink-0 -rotate-45 text-accent"
+    aria-hidden="true"
+  />
+</a>
