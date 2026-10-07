@@ -162,12 +162,12 @@ that split (2026-09-19, closes issue #423).
 | Component | Purpose | Key props |
 | --------- | ------- | --------- |
 | `HomeHero.astro` | Homepage hero stat: mono eyebrow, `font-display text-7xl` value, "Up <delta> in the <window>" with the delta in accent (2026-10-07) | none — reads `homeSnapshot()` from the parent scope |
-| `ResumeGameCard.astro` | Accent-gradient (`home-feature-card`) card for the in-progress game: game, detail, remaining "TO GO", a `glass-raised` Resume `Button` with `play-rounded` calling `resumeGame()`. Always shown in the static pass (2026-10-07) | none — reads `homeSnapshot()` from the parent scope |
+| `ResumeGameCard.astro` | Accent-gradient (`home-feature-card`) card for the in-progress game: game, detail, remaining "TO GO", a `glass-button` Resume `Button` with `play-rounded` calling `resumeGame()`. Always shown in the static pass (2026-10-07) | none — reads `homeSnapshot()` from the parent scope |
 | `CareerTiles.astro` | Three-column grid of `glass` tiles: mono key, display value, muted hint (2026-10-07) | none — reads `homeSnapshot()` from the parent scope |
 | `DailyAverageCard.astro` | `glass` card of seven CSS bars sized by `bars[].height`, peak days in `bg-accent`, others `bg-accent/35`, `PEAK` value in the header; no Chart.js (2026-10-07) | none — reads `homeSnapshot()` from the parent scope |
-| `LandingHeatmapCard.astro` | "Where you land" `glass` card around `StatsDensityHeatmap` fed `landing.stamps` (2026-10-07) | none — reads `homeSnapshot()` from the parent scope |
+| `LandingHeatmapCard.astro` | "Where you land" `glass` card around `StatsDensityHeatmap` fed `landing.stamps`, board in the `dartboard-accent` tone (2026-10-07) | none — reads `homeSnapshot()` from the parent scope |
 | `WeekdayStrip.astro` | Row of seven day-initial circles inside `TodayRoutineCard`. Today `size-10.5` with the `home-day-today` accent glow ring; a day with a routine `border-foreground/50`; a rest day `border-border` muted. Letters from `weekdayNames()` (2026-09-22; restyled 2026-10-07) | none — reads `homeWeek()` from the parent scope |
-| `TodayRoutineCard.astro` | Homepage "Weekly plan" card: while today's routine is not done, the routine name and minutes (or "Rest day") linking to `/training/schedules`, a round `glass-raised` play `Button` (`start()`), then the default slot (`WeekdayStrip`). Once done, a `home-feature-card` "COMPLETED · You're on fire!" state. Nothing with no active schedule (2026-09-23; restyled 2026-10-07) | default slot (weekday strip) — reads `homeWeek()` from the parent scope |
+| `TodayRoutineCard.astro` | Homepage "Weekly plan" card: while today's routine is not done, the routine name and minutes (or "Rest day") linking to `/training/schedules`, a round `glass-button` play `Button` (`start()`), then the default slot (`WeekdayStrip`). Once done, a `home-feature-card` "COMPLETED · You're on fire!" state. Nothing with no active schedule (2026-09-23; restyled 2026-10-07) | default slot (weekday strip) — reads `homeWeek()` from the parent scope |
 
 ## `components/layout/statistics/`
 

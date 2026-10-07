@@ -41,10 +41,10 @@ Use semantic tokens only. Never raw Tailwind palette utilities (`bg-sky-500`, `t
 
 | Role | Classes / tokens |
 | ---- | ---------------- |
-| Surfaces | `bg-surface`, `bg-surface-raised`, `bg-surface-overlay`, `glass`, `glass-tinted`, `glass-raised`, `glass-tinted-raised` |
-| Text | `text-foreground`, `text-muted-foreground`, `text-muted` |
+| Surfaces | `bg-surface`, `bg-surface-raised`, `bg-surface-overlay`, `glass`, `glass-tinted`, `glass-raised`, `glass-tinted-raised`, `glass-button` (frosted button face; home Resume and play buttons, 2026-10-07) |
+| Text | `text-foreground`, `text-soft-foreground` (78%, hero eyebrow), `text-muted-foreground`, `text-muted`, `text-faint-foreground` (50%, rest-day letters) (2026-10-07) |
 | Borders | `border-border`, `border-border-strong` |
-| Accent | `accent`, `accent-hover`, `accent-muted`, `accent-foreground`, `accent-glow` (sky) |
+| Accent | `accent`, `accent-hover`, `accent-muted`, `accent-foreground`, `accent-glow` (sky); `accent-bright` (highlighted figures), `accent-foreground-muted` (secondary text on accent gradients), `accent-deep` (gradient end) (2026-10-07) |
 | States | `error` / `error-muted` / `error-foreground`, `success` / `success-muted` |
 | Radius | `rounded-sm` … `rounded-2xl` per `@theme` |
 | Fonts | `font-sans` (Montserrat), `font-display` (Michroma), `font-mono` (JetBrains Mono) |

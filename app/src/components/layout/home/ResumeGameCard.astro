@@ -16,11 +16,11 @@ import PlayIcon from "@icons/play-rounded.svg";
   class="home-feature-card flex flex-col gap-3.5 rounded-2xl p-4 backdrop-blur-sm"
 >
   <div
-    class="flex items-center justify-between font-mono text-xs font-semibold"
+    class="flex items-center justify-between font-mono text-[11px] font-semibold"
   >
-    <span class="tracking-widest text-foreground">IN PROGRESS</span>
+    <span class="tracking-[0.14em] text-foreground">IN PROGRESS</span>
     <span
-      class="text-foreground/90"
+      class="text-accent-foreground-muted"
       x-text="resume.started"
     ></span>
   </div>
@@ -31,7 +31,7 @@ import PlayIcon from "@icons/play-rounded.svg";
         x-text="resume.game"
       ></span>
       <span
-        class="text-sm font-semibold text-foreground/90"
+        class="text-[13px] font-semibold text-accent-foreground-muted"
         x-text="resume.detail"
       ></span>
     </div>
@@ -41,7 +41,7 @@ import PlayIcon from "@icons/play-rounded.svg";
         x-text="resume.remaining"
       ></span>
       <span
-        class="font-mono text-[10px] font-semibold tracking-widest text-foreground/90"
+        class="font-mono text-[10px] font-semibold tracking-[0.1em] text-accent-foreground-muted"
         >TO GO</span
       >
     </div>
@@ -50,7 +50,7 @@ import PlayIcon from "@icons/play-rounded.svg";
     title="Resume game"
     variant="secondary"
     loadingExpr="false"
-    class="glass-raised h-12 w-full rounded-lg text-base"
+    class="glass-button h-12 w-full rounded-lg text-[15px]"
     @click="resumeGame()"
   >
     <PlayIcon

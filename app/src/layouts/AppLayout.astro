@@ -4,12 +4,16 @@ import BottomNav from "@components/layout/BottomNav.astro";
 
 interface Props {
   title?: string;
+  backdrop?: "default" | "home";
 }
 
-const { title } = Astro.props;
+const { title, backdrop } = Astro.props;
 ---
 
-<BaseLayout title={title}>
+<BaseLayout
+  title={title}
+  backdrop={backdrop}
+>
   <div class="mx-auto flex h-full max-w-lg flex-col">
     <main
       class="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain pb-[calc(env(safe-area-inset-bottom)+5.5rem)]"
