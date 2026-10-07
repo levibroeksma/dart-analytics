@@ -1,4 +1,9 @@
 ---
+/**
+ * Round 44px glass sign-out button for the profile header, wired to
+ * `logoutButton()`; the icon swaps for a spinner while the request runs.
+ */
+
 // Components
 import Button from "@components/forms/Button.astro";
 
@@ -8,9 +13,10 @@ import LogoutIcon from "@icons/logout.svg";
 
 <Button
   type="button"
-  variant="ghost"
+  variant="secondary"
   icon
   ariaLabel="Log out"
+  class="glass-button size-11 shrink-0 rounded-full p-0 text-foreground"
   x-data="logoutButton()"
   @click="submit"
   :disabled="loading"
@@ -19,6 +25,6 @@ import LogoutIcon from "@icons/logout.svg";
     x-show="!loading"
     slot="iconBefore"
     x-cloak
-    class="size-6"
+    class="size-5"
   />
 </Button>
