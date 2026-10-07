@@ -10,6 +10,7 @@ import type {
   ScoreThresholdState,
   BullseyeCheckoutState,
   BullUpState,
+  CheckoutSequenceState,
   RoutineStatRow,
   RoutineStepSummary,
 } from "@modules/types";
@@ -208,6 +209,35 @@ export function summariseBullUp(state: BullUpState): RoutineStepSummary {
       { label: "Bulls", value: String(bulls) },
       { label: "Bullseye rate", value: rate(bullseyes) },
       { label: "Bull rate", value: rate(bulls) },
+    ],
+  };
+}
+
+/**
+ * Catch 40's result is its points total, with how many outshots checked out
+ * of how many were attempted. An attempt open at expiry is not counted, so
+ * its darts count toward Darts but not Attempts.
+ */
+export function summariseCheckoutSequence(
+  state: CheckoutSequenceState,
+): RoutineStepSummary {
+  const { points, checkouts, attempts, darts } = stepMetrics(
+    "CHECKOUT_SEQUENCE",
+    state,
+    NO_FACTS,
+  );
+  return {
+    stepKey: "CHECKOUT_SEQUENCE",
+    label: "Catch 40",
+    rows: [
+      { label: "Points", value: String(points) },
+      { label: "Checkouts", value: String(checkouts) },
+      { label: "Attempts", value: String(attempts) },
+      {
+        label: "Checkout rate",
+        value: attempts === 0 ? NO_VALUE : accuracyDisplay(checkouts, attempts),
+      },
+      { label: "Darts", value: String(darts) },
     ],
   };
 }

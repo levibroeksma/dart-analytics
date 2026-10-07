@@ -139,3 +139,23 @@ export type BullUpState = {
   dartsThrown: number;
   status: "IN_PROGRESS" | "COMPLETE";
 };
+
+/**
+ * Checkout Sequence ("Catch 40") state, derived by replaying `facts()`
+ * (`foldCheckoutSequenceState`). `currentOutshot` is `null` once the last
+ * outshot has been attempted. `remaining` is the open visit's walked score.
+ * `attemptDart` counts darts used in the open attempt — a busted visit uses
+ * all three. `lastAttemptPoints` is `null` until an attempt resolves.
+ */
+export type CheckoutSequenceState = {
+  currentOutshot: number | null;
+  remaining: number;
+  attemptDart: number;
+  points: number;
+  checkouts: number;
+  attempts: number;
+  lastAttemptPoints: number | null;
+  dartsInVisit: number;
+  dartsThrown: number;
+  status: "IN_PROGRESS" | "COMPLETE";
+};

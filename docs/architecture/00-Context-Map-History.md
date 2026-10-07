@@ -17,6 +17,8 @@ updated: 2026-10-06
 
 # Version History
 
+> **Version:** 1.169.0 (2026-10-06 — Catch 40 V1: new `CHECKOUT_SEQUENCE` exercise type, template "Catch 40", routine step only. Rules `docs/game-rules/training/exercises/catch-40.md` (open questions resolved; Finishing Pyramid's merge question struck); spec `docs/superpowers/specs/2026-10-06-catch-40-exercise-design.md`. `CheckoutSequenceEngine` (`CHECKOUT_SEQUENCE_V1`), `CheckoutSequenceV1Config`, `checkoutSequenceValidator`, `checkoutSequenceAdapter` + `CheckoutSequencePanel.astro`, `summariseCheckoutSequence`, eighth `DartExerciseKind`; seed `0035_checkout_sequence_exercise_type.sql` + `verification/0035_checkout_sequence_seed_checks.sql` (4/4 PASS on a local Postgres 16), registered in `00-File-Inventory.md` and `database/README.md`. `09-Training/01-Routines.md` §3.4 and a new "Catch 40" section; Section Catalog and Component Inventory rows; new **D423** (`decisions/game-engine.md`); rules file `Current version: V1`.)
+
 > **Version:** 1.168.0 (2026-10-06 — Tactics V1: seed `0034` and its verification registered in the File Inventory; `TacticsRecreationalInput.astro` in the Component Inventory; D422 in `decisions/game-engine.md`; Cricket's mark/close fold extracted to `marks-close.module.ts`.)
 
 > **Version:** 1.167.0 (2026-10-06 — Cricket V1: seed `0033` and its verification registered in the File Inventory; `CricketRecreationalInput.astro` and `SinglePlayerDisplay`'s new `label` prop in the Component Inventory; D421 in `decisions/game-engine.md`.)

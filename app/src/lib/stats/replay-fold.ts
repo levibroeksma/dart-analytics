@@ -11,6 +11,7 @@ import "@modules/game/tactics.engine.module";
 import "@modules/game/tuod.engine.module";
 import "@modules/training/exercises/bull-up.engine.module";
 import "@modules/training/exercises/bullseye-checkout.engine.module";
+import "@modules/training/exercises/checkout-sequence.engine.module";
 import "@modules/training/exercises/double-pattern.engine.module";
 import "@modules/training/exercises/score-threshold.engine.module";
 import "@modules/training/exercises/switching-target-scoring.engine.module";

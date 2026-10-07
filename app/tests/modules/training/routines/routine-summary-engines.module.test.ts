@@ -7,6 +7,7 @@ import {
   summariseScoreThreshold,
   summariseBullseyeCheckout,
   summariseBullUp,
+  summariseCheckoutSequence,
 } from "@modules/training/routines/routine-summary.module";
 import { switchingEngineFactory } from "@modules/training/exercises/switching.engine.module";
 import { doublePatternEngineFactory } from "@modules/training/exercises/double-pattern.engine.module";
@@ -15,6 +16,7 @@ import { switchingTargetScoringEngineFactory } from "@modules/training/exercises
 import { scoreThresholdEngineFactory } from "@modules/training/exercises/score-threshold.engine.module";
 import { bullseyeCheckoutEngineFactory } from "@modules/training/exercises/bullseye-checkout.engine.module";
 import { bullUpEngineFactory } from "@modules/training/exercises/bull-up.engine.module";
+import { checkoutSequenceEngineFactory } from "@modules/training/exercises/checkout-sequence.engine.module";
 import type { DartObservation } from "@modules/types";
 
 /**
@@ -187,6 +189,48 @@ describe("summarise* over a real engine run", () => {
         { label: "Bullseye rate", value: "33.33%" },
         { label: "Bull rate", value: "66.67%" },
       ],
+    });
+  });
+
+  it("summariseCheckoutSequence reads points, checkouts, attempts, rate and darts off a played run", () => {
+    const engine = checkoutSequenceEngineFactory.create({
+      firstOutshot: 61,
+      lastOutshot: 100,
+      dartLimit: 6,
+    });
+    [
+      dart(15, "TREBLE"),
+      dart(8, "DOUBLE"),
+      dart(20, "SINGLE"),
+      dart(null, "MISS"),
+      dart(null, "MISS"),
+      dart(20, "TREBLE"),
+      dart(20, "SINGLE"),
+    ].forEach((d) => engine.record(d));
+
+    expect(summariseCheckoutSequence(engine.state())).toEqual({
+      stepKey: "CHECKOUT_SEQUENCE",
+      label: "Catch 40",
+      rows: [
+        { label: "Points", value: "3" },
+        { label: "Checkouts", value: "1" },
+        { label: "Attempts", value: "2" },
+        { label: "Checkout rate", value: "50.00%" },
+        { label: "Darts", value: "7" },
+      ],
+    });
+  });
+
+  it("summariseCheckoutSequence shows no rate before an attempt resolves", () => {
+    const engine = checkoutSequenceEngineFactory.create({
+      firstOutshot: 61,
+      lastOutshot: 100,
+      dartLimit: 6,
+    });
+
+    expect(summariseCheckoutSequence(engine.state()).rows[3]).toEqual({
+      label: "Checkout rate",
+      value: "—",
     });
   });
 });

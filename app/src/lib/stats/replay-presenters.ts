@@ -461,6 +461,7 @@ const DARTS_METRIC_KEY: Record<DartExerciseKind, string> = {
   SCORE_THRESHOLD: "darts",
   BULLSEYE_CHECKOUT: "darts",
   BULL_UP: "throws",
+  CHECKOUT_SEQUENCE: "darts",
 };
 
 /** One dart exercise kind's `EngineFacts`, rebuilt from its own replayed turns -- real facts, unlike the per-turn cell's `NO_FACTS` shortcut, since the session line's "hits" (Switching) must be the true count. */
@@ -470,7 +471,7 @@ function stepFactsOf(steps: readonly ReplayStep[]): EngineFacts {
 
 /**
  * One dart exercise kind's replay presenter (D372 decision 11),
- * shared across all seven kinds rather than written per kind: a turn cell
+ * shared across all eight kinds rather than written per kind: a turn cell
  * shows the running headline and darts thrown, both read straight off
  * `state` after that turn (`stepMetrics` over `NO_FACTS` -- correct because
  * neither field depends on `facts`); the session line shows every one of
@@ -507,7 +508,7 @@ function buildStepPresenter(kind: DartExerciseKind): ReplayPresenter {
 
 /**
  * Each dart exercise kind's replay presenter (D372 decision 11),
- * built once from `STEP_METRIC_SPECS` and `stepMetrics` rather than seven
+ * built once from `STEP_METRIC_SPECS` and `stepMetrics` rather than eight
  * hand-written copies.
  */
 export const STEP_REPLAY_PRESENTERS: Record<DartExerciseKind, ReplayPresenter> =

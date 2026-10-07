@@ -726,6 +726,48 @@ describe("startTrainingStep", () => {
     );
   });
 
+  it("inserts CHECKOUT_SEQUENCE under the ANALYTICS/VISUAL_BOARD capture pair", async () => {
+    vi.mocked(trainingRepo.findActivityConfiguration).mockResolvedValue({
+      routineName: "Custom",
+      steps: [
+        {
+          sequenceNumber: 1,
+          exerciseTypeKey: "CHECKOUT_SEQUENCE",
+          exerciseRulesetVersionKey: "CHECKOUT_SEQUENCE_V1",
+          gameTypeKey: null,
+          gameRulesetVersionKey: null,
+          durationSeconds: 1800,
+          configuration: { firstOutshot: 61, lastOutshot: 100, dartLimit: 6 },
+        },
+      ],
+    } as any);
+    vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(1);
+    vi.mocked(sessionRepo.findExerciseTypeId).mockResolvedValue("et-cs");
+    vi.mocked(sessionRepo.findExerciseRulesetVersionId).mockResolvedValue(
+      "erv-cs",
+    );
+    vi.mocked(sessionRepo.findCaptureModeId).mockResolvedValue(3);
+    vi.mocked(sessionRepo.findInputModeId).mockResolvedValue(4);
+    vi.mocked(sessionRepo.findParticipantTypeId).mockResolvedValue(2);
+    vi.mocked(sessionRepo.findPlayerDisplayName).mockResolvedValue("Levi");
+    vi.mocked(sessionRepo.insertExerciseSessionRecord).mockResolvedValue({
+      sessionId: "generated-id",
+    });
+
+    const result = await startTrainingStep("p1", "act-1", 1);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.data.exerciseTypeKey).toBe("CHECKOUT_SEQUENCE");
+    expect(sessionRepo.insertExerciseSessionRecord).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        exerciseRulesetVersionId: "erv-cs",
+        captureModeId: 3,
+        inputModeId: 4,
+      }),
+    );
+  });
+
   it("inserts BULL_UP under the ANALYTICS/VISUAL_BOARD capture pair", async () => {
     vi.mocked(trainingRepo.findActivityConfiguration).mockResolvedValue({
       routineName: "Custom",

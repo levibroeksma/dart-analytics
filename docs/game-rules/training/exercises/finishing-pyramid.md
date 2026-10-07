@@ -130,4 +130,5 @@ defaults. The 10-minute preset is a draft value, not sourced.
   169 are not finishable but are not levels here. Should a fail-streak drop
   the player a level (step-back), or is "stay" the only rule?
 - Does a later run resume at the last level reached, or always start at 60?
-- Keep separate from Catch 40 (`catch-40.md`) or merge into one checkout type?
+- ~~Keep separate from Catch 40 (`catch-40.md`) or merge into one checkout type?~~
+  **Resolved (2026-10-06):** separate types, decided with Catch 40's V1.

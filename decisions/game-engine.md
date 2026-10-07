@@ -374,3 +374,10 @@ Decision: `TACTICS` / `TACTICS_V1` (seed `0034`) ships solo only, with no win co
 Reason: with no points the player choice never beats the auto rule, so storing it buys nothing until Multiplayer.
 Consequences: the player choice, multiplayer, points and a Tactics stats view are a later version. Rules: `docs/game-rules/rulesets/tactics.md`. Spec: `docs/superpowers/specs/2026-10-06-tactics-v1-design.md`.
 Supersedes: none.
+
+### D423 — Catch 40 is a checkout-sequence exercise that ends itself
+Status: Accepted · Date: 2026-10-06
+Decision: `CHECKOUT_SEQUENCE` / `CHECKOUT_SEQUENCE_V1` is a new exercise type (seed `0035`, template "Catch 40") with its own `DartExerciseEngine` (`checkout-sequence.engine.module.ts`). Outshots 61–100 in order, six darts (two visits) each, X01 double-out via the shared `resolveCheckoutAttempt`. A bust ends the visit, as in 121; its unthrown darts count toward the six and get no `darts` row. Attempt points 3/2/1/0 by darts used; 99 in three scores 3. Config `{firstOutshot: 61, lastOutshot: 100, dartLimit: 6}`, each a literal. Every run starts at 61; preset 30 minutes. Routine step only. Finishing Pyramid stays a separate future type.
+Reason: the rules (`docs/game-rules/training/exercises/catch-40.md`) carry a remaining score across two visits with bust and double-out, which no shipped exercise does. Range and limit live in config so Catch 20/70 widen the schema, not the type.
+Consequences: the first dart exercise that completes without its timer — `isComplete()` is true once the timer expired or the fold reports the sequence done, and the controller completes the step on that dart. Visit closure is derived from darts, never from `completedAt`. Stats gain an eighth `DartExerciseKind` (headline points, rate checkouts/attempts).
+Supersedes: none.

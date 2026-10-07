@@ -2,7 +2,7 @@
 status: canonical
 scope: architecture/training-routines
 read-when: training routines, exercises, exercise engines, configurable/adaptive training
-updated: 2026-09-29
+updated: 2026-10-06
 -->
 
 # Training, Exercise and Exercise Engine Architecture
@@ -177,6 +177,7 @@ SWITCHING_TARGET_SCORING
 SCORE_THRESHOLD
 BULLSEYE_CHECKOUT
 BULL_UP
+CHECKOUT_SEQUENCE
 GAME
 CHECKOUT
 ACCURACY
@@ -875,6 +876,20 @@ duration: 5m
 One dart at the bull, retrieve it, throw again: the throw that decides who starts a match. Each throw is a bullseye, an outer bull or a miss. How many bullseyes before the time runs out? Rules: `docs/game-rules/training/exercises/bull-up-practice.md`.
 
 **Implemented** (`BULL_UP_V1`, `app/src/modules/training/exercises/bull-up.engine.module.ts`, seed `0030`): the configuration is the empty object. Each throw is one `turns` row holding one dart, completed when written; every dart carries `25`/`INNER_BULL` and `score` is the board score. State carries throws, bullseyes, bulls (either ring) and the last result; the bullseye and bull rates are derived at display. No throw is left open at expiry. Capture pair and upload path match 65 or More (D277). Routine step only in V1 (D362).
+
+---
+
+## Catch 40 (Checkout Sequence)
+
+Configuration:
+
+```text
+duration: 30m
+```
+
+Check out 61, then 62, up to 100 — six darts (two visits) each, X01 double-out. Two darts score 3, three score 2 (99 in three scores 3), four to six score 1, a miss scores 0. Rules: `docs/game-rules/training/exercises/catch-40.md`.
+
+**Implemented** (`CHECKOUT_SEQUENCE_V1`, `app/src/modules/training/exercises/checkout-sequence.engine.module.ts`, seed `0035`): configuration `{firstOutshot: 61, lastOutshot: 100, dartLimit: 6}`, each locked. Free aim — no dart carries an intended target; `score` is the board score. One `turns` row per visit; a visit closes on a checkout, a bust or its third dart, read from its darts via `resolveCheckoutAttempt`. A bust ends the visit and counts its unthrown darts toward the six. State carries points, checkouts, attempts, the current outshot, what is left and darts used in the attempt. The run completes itself once 100 is attempted, without waiting for the step timer; an attempt open at expiry is not scored. Every run starts at 61. Capture pair and upload path match 65 or More (D277). Routine step only in V1 (D423).
 
 ---
 

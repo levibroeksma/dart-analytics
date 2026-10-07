@@ -3,6 +3,7 @@ import {
   EXERCISE_RULESET_CONFIGS,
   BullseyeCheckoutV1Config,
   BullUpV1Config,
+  CheckoutSequenceV1Config,
   ScoreThresholdV1Config,
   SwitchingTargetScoringV1Config,
   SwitchingV1Config,
@@ -231,5 +232,29 @@ describe("BullUpV1Config", () => {
 
   it("is registered under BULL_UP_V1", () => {
     expect(EXERCISE_RULESET_CONFIGS.BULL_UP_V1).toBe(BullUpV1Config);
+  });
+});
+
+describe("CheckoutSequenceV1Config", () => {
+  const VALID = { firstOutshot: 61, lastOutshot: 100, dartLimit: 6 };
+
+  it("accepts the Catch 40 values", () => {
+    expect(CheckoutSequenceV1Config.safeParse(VALID).success).toBe(true);
+  });
+
+  it("rejects another range or dart limit — V1 is Catch 40 only", () => {
+    for (const config of [
+      { ...VALID, lastOutshot: 80 },
+      { ...VALID, firstOutshot: 60 },
+      { ...VALID, dartLimit: 9 },
+    ]) {
+      expect(CheckoutSequenceV1Config.safeParse(config).success).toBe(false);
+    }
+  });
+
+  it("rejects extra keys", () => {
+    expect(
+      CheckoutSequenceV1Config.safeParse({ ...VALID, retry: true }).success,
+    ).toBe(false);
   });
 });

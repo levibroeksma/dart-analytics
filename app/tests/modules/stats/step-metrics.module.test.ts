@@ -12,6 +12,7 @@ import { switchingTargetScoringEngineFactory } from "@modules/training/exercises
 import { scoreThresholdEngineFactory } from "@modules/training/exercises/score-threshold.engine.module";
 import { bullseyeCheckoutEngineFactory } from "@modules/training/exercises/bullseye-checkout.engine.module";
 import { bullUpEngineFactory } from "@modules/training/exercises/bull-up.engine.module";
+import { checkoutSequenceEngineFactory } from "@modules/training/exercises/checkout-sequence.engine.module";
 import type {
   DartExerciseKind,
   DartObservation,
@@ -106,6 +107,21 @@ function fixtures(): Fixture[] {
   bullUp.record(dart(25, "OUTER_BULL"));
   bullUp.record(dart(5, "SINGLE"));
 
+  const checkoutSequence = checkoutSequenceEngineFactory.create({
+    firstOutshot: 61,
+    lastOutshot: 100,
+    dartLimit: 6,
+  });
+  [
+    dart(15, "TREBLE"),
+    dart(8, "DOUBLE"),
+    dart(20, "SINGLE"),
+    dart(null, "MISS"),
+    dart(null, "MISS"),
+    dart(20, "TREBLE"),
+    dart(20, "SINGLE"),
+  ].forEach((d) => checkoutSequence.record(d));
+
   return [
     {
       kind: "SWITCHING",
@@ -148,6 +164,12 @@ function fixtures(): Fixture[] {
       state: bullUp.state(),
       facts: bullUp.facts(),
       expected: { throws: 3, bullseyes: 1, bulls: 2 },
+    },
+    {
+      kind: "CHECKOUT_SEQUENCE",
+      state: checkoutSequence.state(),
+      facts: checkoutSequence.facts(),
+      expected: { points: 3, checkouts: 1, attempts: 2, darts: 7 },
     },
   ];
 }

@@ -138,6 +138,41 @@ describe("foldStepResult", () => {
     expect(result.skippedSessions).toBe(0);
   });
 
+  it("replays a Catch 40 session's visits into its points, checkouts and attempts", () => {
+    const catch40 = (
+      turnSequence: number,
+      dartNumber: number,
+      hitTargetNumber: number,
+      hitZoneKey: DartZoneKey,
+      score: number,
+    ) =>
+      dartRow({
+        sessionId: "c40",
+        exerciseRulesetVersionKey: "CHECKOUT_SEQUENCE_V1",
+        configuration: { firstOutshot: 61, lastOutshot: 100, dartLimit: 6 },
+        turnSequence,
+        dartNumber,
+        hitTargetNumber,
+        hitZoneKey,
+        score,
+      });
+
+    const result = foldStepResult("CHECKOUT_SEQUENCE", [
+      catch40(1, 1, 15, "TREBLE", 45),
+      catch40(1, 2, 8, "DOUBLE", 16),
+      catch40(2, 1, 20, "SINGLE", 20),
+    ]);
+
+    expect(result.metrics).toEqual({
+      points: 3,
+      checkouts: 1,
+      attempts: 1,
+      darts: 3,
+    });
+    expect(result.sessions).toBe(1);
+    expect(result.skippedSessions).toBe(0);
+  });
+
   it("replays a two-stage session in stage pre-order, never interleaving the stages' turns", () => {
     const ROOT = "01900000-0000-7000-9000-0000000000a1";
     const CHILD = "01900000-0000-7000-9000-0000000000a2";

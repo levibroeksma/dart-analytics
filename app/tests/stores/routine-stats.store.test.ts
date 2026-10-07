@@ -643,6 +643,10 @@ describe("routineStatsStore getters", () => {
     }
   });
 
+  it("labels Catch 40's attempts metric", () => {
+    expect(routineStatsStore().metricLabel("attempts")).toBe("Attempts");
+  });
+
   it("gives a zero-denominator rate as null and a real one as a share", async () => {
     readSection.mockImplementation((_player, _scope, meta) => {
       if (meta.id === "step-result") {
