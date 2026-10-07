@@ -51,7 +51,7 @@ Own engine. Shares the X01 rule `resolveCheckoutAttempt`
   undo cannot change a later draw.
 - **One PRNG:** `hashSeed` + `mulberry32` move out of
   `app/src/modules/dartbot/rng.module.ts` into a shared
-  `app/src/modules/shared/seeded-rng.module.ts` exporting
+  `app/src/modules/game/seeded-rng.module.ts` (no `modules/shared/` exists; `game/` already holds cross-engine rules such as `checkout-bust.module.ts`) exporting
   `seededUniform(seed, index): () => number`. `createDartRng` keeps its
   signature and output, built on it; DartBot callers unchanged. Existing
   DartBot tests prove the move is output-preserving.
