@@ -1,0 +1,55 @@
+---
+/**
+ * `/training` "My schedule" card in its own `trainingWeek()` scope: the
+ * week's done/missed/to-go line (or the intro copy without a schedule), an
+ * edit button opening the parent `trainingIndex()` scope's schedule modal
+ * (`showScheduleModal`), and the status strip.
+ */
+
+// Components
+import ScheduleStrip from "@components/layout/training/schedules/ScheduleStrip.astro";
+
+// Icons
+import PencilIcon from "@icons/pencil.svg";
+---
+
+<section
+  class="glass flex flex-col gap-3.5 rounded-2xl p-4 shadow-none"
+  x-data="trainingWeek()"
+>
+  <div class="flex items-center justify-between gap-3">
+    <div class="flex flex-col gap-1.5">
+      <h2 class="font-display text-[13px] tracking-[0.06em]">My schedule</h2>
+      <p
+        class="text-xs/normal text-pretty text-muted"
+        x-show="hasSchedule()"
+        x-cloak
+      >
+        <span x-text="`${counts().done} done · `"></span><span
+          class="text-missed"
+          x-text="`${counts().missed} missed`"
+        ></span><span x-text="` · ${counts().toGo} to go`"></span>
+      </p>
+      <p
+        class="text-xs/normal text-pretty text-muted"
+        x-show="!hasSchedule()"
+        x-cloak
+      >
+        Plan your weekly routine to get your game to the next level. Don't
+        forget to build in some recovery!
+      </p>
+    </div>
+    <button
+      type="button"
+      class="glass-button flex size-11 shrink-0 items-center justify-center rounded-full text-foreground"
+      aria-label="Edit plan"
+      @click="showScheduleModal = true"
+    >
+      <PencilIcon
+        class="size-4.5"
+        aria-hidden="true"
+      />
+    </button>
+  </div>
+  <ScheduleStrip />
+</section>

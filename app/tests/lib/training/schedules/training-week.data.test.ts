@@ -78,6 +78,22 @@ describe("trainingWeek", () => {
     expect(week.letter(0)).toMatch(/^[a-z]$/);
   });
 
+  it("styles each day by its status", async () => {
+    vi.mocked(getActiveSchedule).mockResolvedValue(SCHEDULE);
+    vi.mocked(listTrainingCompletions).mockResolvedValue({
+      items: [MONDAY_RUN],
+      nextCursor: null,
+    });
+
+    const week = await loadedOn(new Date(2024, 0, 4, 12));
+
+    expect(week.dayClass(0)).toContain("bg-accent");
+    expect(week.dayClass(1)).toContain("border-dashed");
+    expect(week.dayClass(2)).toContain("text-faint-foreground");
+    expect(week.dayClass(3)).toContain("home-day-today");
+    expect(week.dayClass(5)).toContain("border-foreground/50");
+  });
+
   it("falls back to no schedule when a read fails", async () => {
     vi.mocked(getActiveSchedule).mockRejectedValue(new Error("offline"));
     vi.mocked(listTrainingCompletions).mockResolvedValue({

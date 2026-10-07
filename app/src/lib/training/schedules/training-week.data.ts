@@ -11,9 +11,18 @@ import type {
   ScheduleData,
   TrainingCompletionListData,
 } from "@client/api/types";
-import type { TrainingWeekContext } from "./types";
+import type { DayStatus, TrainingWeekContext } from "./types";
 
 const WEEKDAYS = weekdayNames();
+
+const DAY_CLASSES: Record<DayStatus, string> = {
+  done: "size-8.5 bg-accent text-foreground",
+  missed:
+    "size-8.5 border-2 border-dashed border-missed bg-missed-muted text-missed",
+  today: "home-day-today size-10.5 text-[15px] font-bold text-foreground",
+  scheduled: "size-8.5 border-2 border-foreground/50 text-foreground",
+  rest: "size-8.5 border-2 border-border text-faint-foreground",
+};
 
 /**
  * `/training`'s "My schedule" card: the active schedule and this ISO week's
@@ -48,6 +57,10 @@ export function trainingWeek() {
 
     status(this: TrainingWeekContext, index: number) {
       return dayStatus(index, this.today, this.schedule, this.completions);
+    },
+
+    dayClass(this: TrainingWeekContext, index: number) {
+      return DAY_CLASSES[this.status(index)];
     },
 
     counts(this: TrainingWeekContext) {

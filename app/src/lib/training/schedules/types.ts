@@ -113,6 +113,8 @@ export type TrainingWeekContext = {
   today: number;
   init(this: TrainingWeekContext): Promise<void>;
   status(this: TrainingWeekContext, index: number): DayStatus;
+  /** The strip circle's size, fill, border and text classes for the day's status. */
+  dayClass(this: TrainingWeekContext, index: number): string;
   counts(this: TrainingWeekContext): WeekCounts;
   hasSchedule(this: TrainingWeekContext): boolean;
   letter(index: number): string;

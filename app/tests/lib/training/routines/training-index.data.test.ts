@@ -38,6 +38,12 @@ describe("trainingIndex", () => {
     expect(data.detailHref(OWN)).toBe("/training/routines/detail?routine=o");
   });
 
+  it("links a routine's play button to its player", () => {
+    expect(trainingIndex().playHref(OWN)).toBe(
+      "/training/routines/play?routine=o",
+    );
+  });
+
   it("splits loaded routines into default and personal lists", async () => {
     vi.mocked(listRoutines).mockResolvedValue({
       items: [SYS, OWN],
