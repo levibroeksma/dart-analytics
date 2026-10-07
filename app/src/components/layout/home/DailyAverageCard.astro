@@ -20,11 +20,13 @@
       :key="index"
     >
       <div class="flex h-full flex-col items-center justify-end gap-1.5">
-        <div
-          class="w-full rounded-lg"
-          :class="bar.peak ? 'bg-accent' : 'bg-accent/35'"
-          :style="{ height: bar.height }"
-        >
+        <div class="flex min-h-0 w-full flex-1 items-end">
+          <div
+            class="w-full rounded-lg"
+            :class="bar.peak ? 'bg-accent' : 'bg-accent/35'"
+            :style="{ height: bar.height }"
+          >
+          </div>
         </div>
         <span
           class="font-mono text-[11px] text-muted-foreground"
