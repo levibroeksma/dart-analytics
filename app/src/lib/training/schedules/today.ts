@@ -2,7 +2,7 @@ import type {
   ScheduleData,
   TrainingCompletionListData,
 } from "@client/api/types";
-import type { ScheduleDayEntry } from "./types";
+import type { DayStatus, ScheduleDayEntry, WeekCounts } from "./types";
 
 /** JS `Date#getDay()` (0 Sunday..6 Saturday) mapped to ISO weekday (1 Monday..7 Sunday). */
 export function isoWeekday(date: Date): number {
@@ -52,4 +52,58 @@ export function isRoutineCompleted(
   return completions.some(
     (completion) => completion.routineTemplateId === entry.routineId,
   );
+}
+
+/** Local Monday 00:00 of `date`'s ISO week. */
+export function startOfIsoWeek(date: Date): Date {
+  const monday = startOfLocalDay(date);
+  monday.setDate(monday.getDate() - (isoWeekday(date) - 1));
+  return monday;
+}
+
+/**
+ * One weekday's state in the current ISO week (`index` and `today` both 0
+ * Monday..6 Sunday). Done wins on any day; otherwise today stays today; a
+ * scheduled day before today whose routine was not completed that day is
+ * missed. `completions` are this week's.
+ */
+export function dayStatus(
+  index: number,
+  today: number,
+  schedule: ScheduleData | null,
+  completions: TrainingCompletionListData["items"],
+): DayStatus {
+  const entry =
+    schedule?.days.find((day) => day.dayOfWeek === index + 1) ?? null;
+  const completed =
+    entry !== null &&
+    completions.some(
+      (completion) =>
+        completion.routineTemplateId === entry.routineId &&
+        isoWeekday(new Date(completion.completedAt)) - 1 === index,
+    );
+  if (completed) return "done";
+  if (index === today) return "today";
+  if (!entry) return "rest";
+  return index < today ? "missed" : "scheduled";
+}
+
+/** The week's done, missed and to-go totals; a scheduled, not-done today counts to go. */
+export function weekCounts(
+  today: number,
+  schedule: ScheduleData | null,
+  completions: TrainingCompletionListData["items"],
+): WeekCounts {
+  const counts = { done: 0, missed: 0, toGo: 0 };
+  for (let index = 0; index < 7; index++) {
+    const status = dayStatus(index, today, schedule, completions);
+    const scheduled = Boolean(
+      schedule?.days.some((day) => day.dayOfWeek === index + 1),
+    );
+    if (status === "done") counts.done++;
+    if (status === "missed") counts.missed++;
+    if (status === "scheduled" || (status === "today" && scheduled))
+      counts.toGo++;
+  }
+  return counts;
 }

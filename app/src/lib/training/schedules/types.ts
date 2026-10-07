@@ -8,6 +8,12 @@ import type {
 /** One entry of `ScheduleData["days"]` — a weekday's mapped routine. */
 export type ScheduleDayEntry = ScheduleData["days"][number];
 
+/** One weekday's state in the training page's schedule strip. */
+export type DayStatus = "done" | "missed" | "today" | "scheduled" | "rest";
+
+/** The schedule card's summary totals for the current week. */
+export type WeekCounts = { done: number; missed: number; toGo: number };
+
 export type SchedulesIndexContext = {
   loading: boolean;
   error: string;
