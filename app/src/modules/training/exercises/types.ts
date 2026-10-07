@@ -159,3 +159,22 @@ export type CheckoutSequenceState = {
   dartsThrown: number;
   status: "IN_PROGRESS" | "COMPLETE";
 };
+
+/**
+ * Random Checkout state, derived by replaying `facts()`
+ * (`foldRandomCheckoutState`). One attempt is one visit from `startScore`,
+ * drawn from the run's seed; `remaining` is the open visit's walked score.
+ * `attempts` counts judged attempts only — one open at expiry is not judged.
+ * `lastAttempt` is `null` until an attempt resolves. The checkout rate is
+ * derived by consumers, not held here.
+ */
+export type RandomCheckoutState = {
+  startScore: number;
+  remaining: number;
+  dartsInVisit: number;
+  checkouts: number;
+  attempts: number;
+  lastAttempt: "CHECKOUT" | "FAILED" | null;
+  dartsThrown: number;
+  status: "IN_PROGRESS" | "COMPLETE";
+};
