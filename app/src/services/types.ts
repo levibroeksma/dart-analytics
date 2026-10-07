@@ -69,6 +69,7 @@ export type TrainingStepResolved = {
     | "BULLSEYE_CHECKOUT"
     | "BULL_UP"
     | "CHECKOUT_SEQUENCE"
+    | "RANDOM_CHECKOUT"
     | "GAME";
   exerciseRulesetVersionKey: string | null;
   gameTypeKey: string | null;

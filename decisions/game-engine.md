@@ -381,3 +381,10 @@ Decision: `CHECKOUT_SEQUENCE` / `CHECKOUT_SEQUENCE_V1` is a new exercise type (s
 Reason: the rules (`docs/game-rules/training/exercises/catch-40.md`) carry a remaining score across two visits with bust and double-out, which no shipped exercise does. Range and limit live in config so Catch 20/70 widen the schema, not the type.
 Consequences: the first dart exercise that completes without its timer — `isComplete()` is true once the timer expired or the fold reports the sequence done, and the controller completes the step on that dart. Visit closure is derived from darts, never from `completedAt`. Stats gain an eighth `DartExerciseKind` (headline points, rate checkouts/attempts).
 Supersedes: none.
+
+### D424 — Random Checkout stores a draw seed, not drawn scores
+Status: Accepted · Date: 2026-10-07
+Decision: `RANDOM_CHECKOUT` / `RANDOM_CHECKOUT_V1` (seed `0036`, template "Random Checkout") is a time-bound exercise of one-visit attempts from a random start score. The server mints `drawSeed` (uint32, Web Crypto) into the step configuration at training start, overwriting any template or step value; the immutable `exercise_configurations` snapshot holds it. Attempt *n*'s start score is a uniform pick over the 124 three-dart-finishable scores in 40–170, keyed by `(drawSeed, n)` through `seededUniform` (`app/src/modules/game/seeded-rng.module.ts`), the hash + mulberry32 lifted unchanged from DartBot's `rng.module.ts`.
+Reason: the start score is a fact no dart can fold to, and no turn/dart column holds it. A seed is one stored value that makes every draw derivable — store what happened, derive what it means — with no migration. Index-keying makes a draw independent of prior darts, so undo and replay are exact.
+Consequences: the pool and the PRNG are frozen for `RANDOM_CHECKOUT_V1`; changing either is a new ruleset version. DartBot and Random Checkout share one PRNG definition. Configurable range, round bound, average darts per checkout and head-to-head are later versions. Rules: `docs/game-rules/training/exercises/random-checkout.md`. Spec: `docs/superpowers/specs/2026-10-07-random-checkout-exercise-design.md`.
+Supersedes: none.

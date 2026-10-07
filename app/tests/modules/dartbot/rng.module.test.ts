@@ -33,4 +33,14 @@ describe("createDartRng", () => {
     expect(spy).not.toHaveBeenCalled();
     spy.mockRestore();
   });
+
+  it("keeps the pinned stream for seed 42, dart index 3", () => {
+    const rng = createDartRng(42, 3);
+    expect([rng.uniform(), rng.uniform(), rng.uniform()]).toEqual([
+      0.19645014265552163, 0.3891592698637396, 0.07527352776378393,
+    ]);
+    expect(createDartRng(42, 3).gaussianPair()).toEqual([
+      -1.3839710921942254, 1.1572887408043158,
+    ]);
+  });
 });

@@ -71,14 +71,15 @@ describe("STEP_REPLAY_PRESENTERS", () => {
  * Item 5 (fix round 1): every `STEP_METRIC_SPECS` kind, not just Switching
  * -- proves the `NO_FACTS` shortcut `buildStepPresenter`'s `turn()` takes
  * (`replay-presenters.ts` ~386/420) never changes the headline or darts
- * value a real per-turn fact log would give, for all eight kinds,
+ * value a real per-turn fact log would give, for all nine kinds,
  * `BULL_UP`'s `"throws"` branch included.
  */
-describe("STEP_REPLAY_PRESENTERS (all eight kinds, real engine runs)", () => {
+describe("STEP_REPLAY_PRESENTERS (all nine kinds, real engine runs)", () => {
   const KINDS = Object.keys(STEP_METRIC_SPECS) as DartExerciseKind[];
 
-  it("covers Catch 40", () => {
+  it("covers Catch 40 and Random Checkout", () => {
     expect(KINDS).toContain("CHECKOUT_SEQUENCE");
+    expect(KINDS).toContain("RANDOM_CHECKOUT");
   });
 
   it.each(KINDS)(

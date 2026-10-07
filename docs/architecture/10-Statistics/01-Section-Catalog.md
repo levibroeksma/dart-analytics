@@ -2,7 +2,7 @@
 status: canonical
 scope: architecture/statistics/sections
 read-when: adding, changing, or choosing insight sections for a statistics game page
-updated: 2026-10-06
+updated: 2026-10-07
 -->
 
 # Statistics — Section Catalog
@@ -271,6 +271,7 @@ the headline and its direction, and the rate pairs the client divides.
 | BULLSEYE_CHECKOUT | checkouts, visits, darts (sum) | checkouts ↑ | checkouts/visits |
 | BULL_UP | throws, bullseyes, bulls (sum) | bullseyes ↑ | bullseyes/throws, bulls/throws |
 | CHECKOUT_SEQUENCE | points, checkouts, attempts, darts (sum) | points ↑ | checkouts/attempts |
+| RANDOM_CHECKOUT | checkouts, attempts, darts (sum) | checkouts ↑ | checkouts/attempts |
 
 - `stepMetrics(kind, state, facts)` reads engine state the way the routine
   summary modal does: `routine-summary.module.ts`'s `summarise*` functions

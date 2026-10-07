@@ -54,6 +54,7 @@ import type { ScoreThresholdEngine } from "@modules/training/exercises/score-thr
 import type { BullseyeCheckoutEngine } from "@modules/training/exercises/bullseye-checkout.engine.module";
 import type { BullUpEngine } from "@modules/training/exercises/bull-up.engine.module";
 import type { CheckoutSequenceEngine } from "@modules/training/exercises/checkout-sequence.engine.module";
+import type { RandomCheckoutEngine } from "@modules/training/exercises/random-checkout.engine.module";
 import { accuracyDisplay } from "@lib/game/play-visit-stats";
 import type { DartFact } from "@modules/types";
 
@@ -115,6 +116,7 @@ export function routinePlay() {
     bullseyeCheckoutEngine: null,
     bullUpEngine: null,
     checkoutSequenceEngine: null,
+    randomCheckoutEngine: null,
     stepTimer: null,
     stepRemainingSeconds: 0,
     warmUpTimer: null,
@@ -151,6 +153,7 @@ export function routinePlay() {
         else if (self.bullUpEngine) self.recordBullUpDart(observation);
         else if (self.checkoutSequenceEngine)
           self.recordCheckoutSequenceDart(observation);
+        else self.recordRandomCheckoutDart(observation);
       },
       () => self.activeDartEngine()?.facts().turns ?? [],
     ),
@@ -166,6 +169,7 @@ export function routinePlay() {
       | BullseyeCheckoutEngine
       | BullUpEngine
       | CheckoutSequenceEngine
+      | RandomCheckoutEngine
       | null {
       return (
         this.switchingEngine ??
@@ -176,7 +180,7 @@ export function routinePlay() {
         this.bullseyeCheckoutEngine ??
         this.bullUpEngine ??
         this.checkoutSequenceEngine ??
-        null
+        this.randomCheckoutEngine
       );
     },
 
@@ -193,7 +197,7 @@ export function routinePlay() {
      * 65 or More has no target: a dart on the board is a hit, off it a miss.
      * Bullseye Checkouts: setup darts as 65 or More; dart 3 (the one aimed at
      * the bull) is a hit only on the bullseye. Bull Up Practice: either bull
-     * is a hit. Catch 40 is free aim, judged as 65 or More.
+     * is a hit. Catch 40 and Random Checkout are free aim, judged as 65 or More.
      */
     previewSegments(this: RoutinePlayContext): PreviewSegment[] {
       const turns = this.activeDartEngine()?.facts().turns ?? [];
@@ -206,7 +210,9 @@ export function routinePlay() {
               dart.intendedZoneKey === "INNER_BULL"
                 ? dart.hitZoneKey === "INNER_BULL"
                 : dart.hitTargetNumber !== null
-          : this.scoreThresholdEngine || this.checkoutSequenceEngine
+          : this.scoreThresholdEngine ||
+              this.checkoutSequenceEngine ||
+              this.randomCheckoutEngine
             ? (dart: DartFact) => dart.hitTargetNumber !== null
             : this.targetScoringEngine || this.switchingTargetScoringEngine
               ? (dart: DartFact) =>
@@ -546,6 +552,7 @@ export function routinePlay() {
           this.bullseyeCheckoutEngine?.expireTimer();
           this.bullUpEngine?.expireTimer();
           this.checkoutSequenceEngine?.expireTimer();
+          this.randomCheckoutEngine?.expireTimer();
           void this.completeCurrentStep();
         },
       });
@@ -626,6 +633,15 @@ export function routinePlay() {
       if (this.checkoutSequenceEngine.isComplete()) {
         void this.completeCurrentStep();
       }
+    },
+
+    /** Random Checkout never ends on a dart; only the step deadline completes it. */
+    recordRandomCheckoutDart(
+      this: RoutinePlayContext,
+      observation: DartObservation,
+    ) {
+      if (!this.randomCheckoutEngine) return;
+      this.randomCheckoutEngine.record(observation);
     },
 
     switchingPoints(this: RoutinePlayContext): number {
@@ -790,6 +806,35 @@ export function routinePlay() {
 
     checkoutSequenceCheckouts(this: RoutinePlayContext): number {
       return this.checkoutSequenceEngine?.state().checkouts ?? 0;
+    },
+
+    randomCheckoutCheckouts(this: RoutinePlayContext): number {
+      return this.randomCheckoutEngine?.state().checkouts ?? 0;
+    },
+
+    randomCheckoutStart(this: RoutinePlayContext): number {
+      return this.randomCheckoutEngine?.state().startScore ?? 0;
+    },
+
+    randomCheckoutLeft(this: RoutinePlayContext): number {
+      return this.randomCheckoutEngine?.state().remaining ?? 0;
+    },
+
+    randomCheckoutAttemptDart(this: RoutinePlayContext): number {
+      return this.randomCheckoutEngine?.state().dartsInVisit ?? 0;
+    },
+
+    randomCheckoutLastResult(this: RoutinePlayContext): string {
+      const last = this.randomCheckoutEngine?.state().lastAttempt;
+      if (last === undefined || last === null) return "—";
+      return last === "CHECKOUT" ? "✓" : "✗";
+    },
+
+    randomCheckoutRate(this: RoutinePlayContext): string {
+      const state = this.randomCheckoutEngine?.state();
+      return !state || state.attempts === 0
+        ? "—"
+        : accuracyDisplay(state.checkouts, state.attempts);
     },
 
     dartsThrown(this: RoutinePlayContext): number {
