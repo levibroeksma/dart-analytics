@@ -4,13 +4,22 @@ import AppLayout from "@layouts/AppLayout.astro";
 import AppModeForm from "@components/forms/AppModeForm.astro";
 import PlayerSettingsCard from "@components/forms/PlayerSettingsCard.astro";
 import LogoutButton from "@components/ui/LogoutButton.astro";
+import ProfileIdentity from "@components/layout/profile/ProfileIdentity.astro";
 ---
 
-<AppLayout title="Profile">
-  <div class="p-4 space-y-6">
-    <h1 class="text-xl font-semibold text-foreground">Profile</h1>
+<AppLayout
+  title="Profile"
+  backdrop="home"
+>
+  <div class="flex flex-col gap-3 px-4 pt-2">
+    <div class="flex items-center justify-between px-1 pt-5 pb-3">
+      <h1 class="font-display text-[26px]/[normal] tracking-[0.02em]">
+        Profile
+      </h1>
+      <LogoutButton />
+    </div>
+    <ProfileIdentity />
     <PlayerSettingsCard />
     <AppModeForm />
-    <LogoutButton />
   </div>
 </AppLayout>

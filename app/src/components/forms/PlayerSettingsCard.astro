@@ -1,9 +1,7 @@
 ---
 /**
- * Player settings list: display name, darts, weight, and throwing hand in
- * one bordered card. Reuses `InfoSection`'s own card classes directly (not
- * the component) — this card has no collapsible heading of its own, only
- * rows.
+ * Player settings card: display name, darts, weight, and throwing hand as
+ * inset fields in one shadowless glass card.
  * @param {string} [class] Extra classes
  */
 interface Props {
@@ -24,63 +22,64 @@ import { cn } from "@client/cn";
 
 // Styles
 const className = cn(
-  "bg-tab-card border-tab-border rounded-3xl border p-3",
+  "glass flex flex-col gap-4 rounded-2xl p-4 shadow-none",
   classNameProp,
 );
-const handedLabelClass = "text-xs text-muted-foreground italic";
+const handedLabelClass =
+  "px-0.5 font-mono text-[10px]/[normal] font-semibold tracking-[0.12em] text-muted-foreground uppercase";
 ---
 
 <div
   class={className}
   {...props}
 >
-  <h2 class="mb-3 text-lg font-semibold text-foreground">Player settings</h2>
-  <div class="divide-tab-border divide-y">
-    <SettingRow
-      id="displayName"
-      label="Display name"
-      valueExpr="$store.profile.displayName"
-      modelExpr="$store.profile.displayName"
-      saveExpr="$store.profile.save()"
-      placeholder="Display name"
-      required
-      disabledExpr="$store.profile.loading"
-    />
-    <SettingRow
-      id="dartsDescription"
-      label="Darts"
-      valueExpr="$store.profile.dartsDescription"
-      modelExpr="$store.profile.dartsDescription"
-      saveExpr="$store.profile.save()"
-      placeholder="e.g. Winmau Pro-Series 23g"
-      emptyText="Not set"
-      disabledExpr="$store.profile.loading"
-    />
-    <SettingRow
-      id="dartsWeightGrams"
-      label="Weight (g)"
-      valueExpr="$store.profile.dartsWeightGrams"
-      modelExpr="$store.profile.dartsWeightGrams"
-      saveExpr="$store.profile.save()"
-      placeholder="Weight in grams"
-      emptyText="Not set"
-      numeric
-      inputmode="numeric"
-      disabledExpr="$store.profile.loading"
-    />
-    <div class="py-2">
-      <span
-        id="handedness-label"
-        class={handedLabelClass}
-      >
-        Handed
-      </span>
-      <HandednessForm class="mt-1.5" />
-    </div>
+  <h2 class="font-display text-[13px]/[normal] tracking-[0.06em]">
+    Player settings
+  </h2>
+  <SettingRow
+    id="displayName"
+    label="Display name"
+    valueExpr="$store.profile.displayName"
+    modelExpr="$store.profile.displayName"
+    saveExpr="$store.profile.save()"
+    placeholder="Display name"
+    required
+    maxlength={24}
+    disabledExpr="$store.profile.loading"
+  />
+  <SettingRow
+    id="dartsDescription"
+    label="Darts"
+    valueExpr="$store.profile.dartsDescription"
+    modelExpr="$store.profile.dartsDescription"
+    saveExpr="$store.profile.save()"
+    placeholder="e.g. Winmau Pro-Series 23g"
+    emptyText="Not set"
+    disabledExpr="$store.profile.loading"
+  />
+  <SettingRow
+    id="dartsWeightGrams"
+    label="Weight"
+    valueExpr="$store.profile.weightLabel"
+    modelExpr="$store.profile.dartsWeightGrams"
+    saveExpr="$store.profile.save()"
+    placeholder="Weight in grams"
+    emptyText="Not set"
+    numeric
+    inputmode="numeric"
+    disabledExpr="$store.profile.loading"
+  />
+  <div class="flex flex-col gap-2">
+    <span
+      id="handedness-label"
+      class={handedLabelClass}
+    >
+      Handed
+    </span>
+    <HandednessForm />
   </div>
 
   <ErrorAlert
-    class="mt-3"
     showExpr="$store.profile.error"
     textExpr="$store.profile.error"
   />

@@ -1,9 +1,10 @@
 ---
 /**
- * Label + text-or-input row with a pencil edit button. View mode shows
- * `valueExpr` as text (falling back to `emptyText` when empty); clicking the
- * pencil swaps to an input bound to `modelExpr`, which runs `saveExpr` and
- * flips back to view mode on blur or Enter.
+ * Mono eyebrow label over an inset field. View mode is a button showing
+ * `valueExpr` (falling back to `emptyText` when empty) with a pencil;
+ * tapping it swaps to an inset input bound to `modelExpr`, which runs
+ * `saveExpr` and flips back to view mode on blur or Enter. With `maxlength`,
+ * editing shows a `n / max` hint under the input.
  * @param {string} id
  * @param {string} label
  * @param {string} valueExpr Alpine expression for the displayed value
@@ -14,6 +15,7 @@
  * @param {boolean} [numeric] Use `x-model.number` instead of `x-model`
  * @param {"numeric"} [inputmode] Passed through to the input
  * @param {boolean} [required]
+ * @param {number} [maxlength] Input length cap; also enables the counter hint
  * @param {string} [disabledExpr] Alpine expression; defaults to `"false"`
  * @param {string} [class] Extra classes
  */
@@ -28,6 +30,7 @@ interface Props {
   numeric?: boolean;
   inputmode?: "numeric";
   required?: boolean;
+  maxlength?: number;
   disabledExpr?: string;
   class?: string;
   [key: string]: unknown;
@@ -45,6 +48,7 @@ const {
   numeric = false,
   inputmode,
   required = false,
+  maxlength,
   disabledExpr = "false",
   class: classNameProp = "",
   ...props
@@ -61,11 +65,14 @@ import { cn } from "@client/cn";
 import PencilIcon from "@icons/pencil.svg";
 
 // Styles
-const className = cn(
-  "flex items-center justify-between gap-3 py-2",
-  classNameProp,
-);
-const labelClass = "text-xs text-muted-foreground italic";
+const className = cn("flex flex-col gap-2", classNameProp);
+const labelClass =
+  "px-0.5 font-mono text-[10px]/[normal] font-semibold tracking-[0.12em] uppercase";
+const fieldClass = "field-inset h-13 w-full rounded-xl border-0 px-4";
+const hintExpr =
+  maxlength === undefined
+    ? undefined
+    : `String(${modelExpr} ?? "").length + " / ${maxlength} · saves when you leave the field"`;
 const displayExpr = emptyText
   ? `(${valueExpr}) || ${JSON.stringify(emptyText)}`
   : valueExpr;
@@ -102,50 +109,60 @@ const openExpr = `editing = true; openValue = ${modelExpr}; $nextTick(() => $ref
   class={className}
   {...props}
 >
-  <div class="min-w-0 flex-1">
-    <label
-      for={id}
-      class={labelClass}
-    >
-      {label}
-    </label>
-    <div class="mt-1.5">
-      <span
-        x-show="!editing"
-        x-cloak
-        x-text={displayExpr}
-        class="block truncate text-sm text-foreground"
-      ></span>
-      <Input
-        id={id}
-        name={id}
-        type="text"
-        inputmode={inputmode}
-        placeholder={placeholder}
-        required={required}
-        x-show="editing"
-        x-cloak
-        x-ref="input"
-        {...modelDirective}
-        :disabled={disabledExpr}
-        @blur="commit()"
-        @keydown.enter.prevent="commit()"
-      />
-    </div>
-  </div>
+  <label
+    for={id}
+    class={labelClass}
+    :class="editing ? 'text-accent-bright' : 'text-muted-foreground'"
+  >
+    {label}
+  </label>
   <Button
-    icon
     variant="ghost"
+    loadingExpr="false"
     ariaLabel={`Edit ${label}`}
+    :aria-label={`${JSON.stringify(`Edit ${label}: `)} + (${displayExpr})`}
+    class={cn(fieldClass, "justify-between gap-3 text-foreground")}
     x-show="!editing"
     x-cloak
     :disabled={disabledExpr}
     @click={openExpr}
   >
-    <PencilIcon
+    <span
       slot="iconBefore"
-      x-cloak
-      class="size-4"
+      class="min-w-0 truncate text-[15px]/[normal] font-normal"
+      x-text={displayExpr}
+    ></span>
+    <PencilIcon
+      slot="iconAfter"
+      class="size-4 shrink-0 text-muted-foreground"
+      aria-hidden="true"
     />
   </Button>
+  <Input
+    id={id}
+    name={id}
+    type="text"
+    inputmode={inputmode}
+    placeholder={placeholder}
+    required={required}
+    maxlength={maxlength}
+    class={cn(fieldClass, "py-0 text-[15px]")}
+    x-show="editing"
+    x-cloak
+    x-ref="input"
+    {...modelDirective}
+    :disabled={disabledExpr}
+    @blur="commit()"
+    @keydown.enter.prevent="commit()"
+  />
+  {
+    hintExpr && (
+      <span
+        class="px-0.5 text-xs/[normal] text-muted"
+        x-show="editing"
+        x-cloak
+        x-text={hintExpr}
+      />
+    )
+  }
 </div>

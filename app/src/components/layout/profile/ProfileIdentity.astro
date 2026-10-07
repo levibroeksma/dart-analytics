@@ -1,0 +1,28 @@
+---
+/**
+ * Profile identity row in its own `profileSnapshot()` scope: initials
+ * avatar and name from `$store.profile`, fixture stats line beneath.
+ */
+---
+
+<div
+  class="flex items-center gap-3.5 px-1 pt-1 pb-2"
+  x-data="profileSnapshot()"
+>
+  <div
+    class="accent-orb accent-orb-halo flex size-14 shrink-0 items-center justify-center rounded-full font-display text-lg/[normal]"
+    aria-hidden="true"
+    x-text="initials($store.profile.displayName)"
+  >
+  </div>
+  <div class="flex min-w-0 flex-col gap-1">
+    <span
+      class="truncate font-display text-lg/[normal]"
+      x-text="$store.profile.displayName"
+    ></span>
+    <span
+      class="text-[13px]/[normal] text-strong-foreground"
+      x-text="statsLine"
+    ></span>
+  </div>
+</div>

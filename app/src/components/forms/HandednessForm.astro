@@ -5,7 +5,8 @@
  * directly to the `boardInput` Alpine store — a local `$persist` preference,
  * never a `player_settings` round trip, since this is a per-device rendering
  * choice rather than gameplay data. Roving-tabindex radiogroup, mirroring
- * `AppModeForm`'s pattern.
+ * `AppModeForm`'s pattern, drawn as a two-pill segmented track: the selected
+ * pill takes the accent orb fill, alongside `aria-checked`.
  * @param {string} [class] Extra classes
  */
 interface Props {
@@ -19,15 +20,13 @@ const { class: classNameProp, ...props }: Props = Astro.props;
 // Lib
 import { cn } from "@client/cn";
 
-// Icons
-import CheckIcon from "@icons/check.svg";
-
 // Styles
-const className = cn("flex gap-2", classNameProp);
+const className = cn(
+  "field-inset grid grid-cols-2 gap-1 rounded-full p-1",
+  classNameProp,
+);
 const optionClass =
-  "flex-1 rounded-lg border px-4 py-3 text-left transition-colors duration-150";
-const checkClass =
-  "size-5 shrink-0 text-accent transition-opacity duration-150";
+  "flex h-10 items-center justify-center rounded-full text-[13px]/[normal] font-semibold transition-colors duration-150";
 ---
 
 <div
@@ -47,7 +46,7 @@ const checkClass =
     role="radio"
     x-ref="rightOption"
     class={optionClass}
-    :class="$store.boardInput.handedness === 'RIGHT' ? 'border-accent bg-accent-muted' : 'border-border'"
+    :class="$store.boardInput.handedness === 'RIGHT' ? 'accent-orb text-foreground' : 'text-muted-foreground'"
     :aria-checked="$store.boardInput.handedness === 'RIGHT'"
     :tabindex="$store.boardInput.handedness === 'LEFT' ? -1 : 0"
     @click="select('RIGHT', 'rightOption')"
@@ -56,14 +55,7 @@ const checkClass =
     @keydown.arrow-right.prevent="select('LEFT', 'leftOption')"
     @keydown.arrow-down.prevent="select('LEFT', 'leftOption')"
   >
-    <span class="flex items-center justify-between gap-3">
-      <span class="block text-sm font-semibold text-foreground">Right</span>
-      <CheckIcon
-        class={checkClass}
-        :class="$store.boardInput.handedness === 'RIGHT' ? 'opacity-100' : 'opacity-0'"
-        aria-hidden="true"
-      />
-    </span>
+    Right
   </button>
 
   <button
@@ -71,7 +63,7 @@ const checkClass =
     role="radio"
     x-ref="leftOption"
     class={optionClass}
-    :class="$store.boardInput.handedness === 'LEFT' ? 'border-accent bg-accent-muted' : 'border-border'"
+    :class="$store.boardInput.handedness === 'LEFT' ? 'accent-orb text-foreground' : 'text-muted-foreground'"
     :aria-checked="$store.boardInput.handedness === 'LEFT'"
     :tabindex="$store.boardInput.handedness === 'LEFT' ? 0 : -1"
     @click="select('LEFT', 'leftOption')"
@@ -80,13 +72,6 @@ const checkClass =
     @keydown.arrow-right.prevent="select('RIGHT', 'rightOption')"
     @keydown.arrow-down.prevent="select('RIGHT', 'rightOption')"
   >
-    <span class="flex items-center justify-between gap-3">
-      <span class="block text-sm font-semibold text-foreground">Left</span>
-      <CheckIcon
-        class={checkClass}
-        :class="$store.boardInput.handedness === 'LEFT' ? 'opacity-100' : 'opacity-0'"
-        aria-hidden="true"
-      />
-    </span>
+    Left
   </button>
 </div>
