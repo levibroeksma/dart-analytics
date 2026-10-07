@@ -1,0 +1,24 @@
+---
+/**
+ * Homepage hero stat inside the `homeSnapshot()` scope: mono eyebrow,
+ * display-size value, and its change over the window with the delta in
+ * accent.
+ */
+---
+
+<div class="flex flex-col gap-2.5 px-1 pt-9 pb-7">
+  <span
+    class="font-mono text-xs font-semibold tracking-widest text-muted-foreground"
+    x-text="hero.label"
+  ></span>
+  <span
+    class="font-display text-7xl leading-none tracking-tight"
+    x-text="hero.value"
+  ></span>
+  <span class="text-sm text-muted">
+    Up <span
+      class="font-semibold text-accent"
+      x-text="hero.delta"
+    ></span> in the <span x-text="hero.window"></span>
+  </span>
+</div>

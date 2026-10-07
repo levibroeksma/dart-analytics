@@ -1,0 +1,28 @@
+---
+/**
+ * Homepage row of three career tiles inside the `homeSnapshot()` scope:
+ * mono key, display value, muted hint per tile.
+ */
+---
+
+<div class="grid grid-cols-3 gap-2.5">
+  <template
+    x-for="tile in careerTiles"
+    :key="tile.key"
+  >
+    <div class="glass flex flex-col gap-1.5 rounded-xl px-3 py-3.5">
+      <span
+        class="truncate font-mono text-[10px] font-semibold tracking-wider text-muted-foreground"
+        x-text="tile.key"
+      ></span>
+      <span
+        class="font-display text-lg"
+        x-text="tile.value"
+      ></span>
+      <span
+        class="text-[11px] text-muted"
+        x-text="tile.hint"
+      ></span>
+    </div>
+  </template>
+</div>
