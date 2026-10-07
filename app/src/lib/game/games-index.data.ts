@@ -1,8 +1,35 @@
 import { fetchActiveSessions } from "@client/api/sessions";
 import { GAME_CARDS, visibleGames } from "@lib/game/rulesets/games-visibility";
-import type { GamesIndexContext, RulesetVersionKey } from "@lib/types";
+import type { SessionActiveData } from "@client/api/types";
+import type {
+  GameCardDescriptor,
+  GameGroupKey,
+  GamesIndexContext,
+  ResumeTarget,
+  RulesetVersionKey,
+} from "@lib/types";
 
 const ANALYTICS_CAPTURE_MODE_KEY = "ANALYTICS";
+
+/**
+ * The most recently started active session that has a game card, as that
+ * card's title and setup route (the setup page owns the Continue/Abandon
+ * recovery flow); `null` when no active session has a card.
+ */
+export function resumeTarget(
+  sessions: SessionActiveData[],
+  cards: readonly GameCardDescriptor[] = GAME_CARDS,
+): ResumeTarget | null {
+  const card = [...sessions]
+    .sort((a, b) => b.startedAt.localeCompare(a.startedAt))
+    .map((session) =>
+      cards.find(
+        (game) => game.rulesetVersionKey === session.rulesetVersionKey,
+      ),
+    )
+    .find((game) => game !== undefined);
+  return card ? { title: card.title, href: card.href } : null;
+}
 
 /**
  * Games-page state: which cards the player's current app mode leaves visible.
@@ -22,18 +49,25 @@ const ANALYTICS_CAPTURE_MODE_KEY = "ANALYTICS";
  * An active session with no ruleset version — a training exercise step, which
  * `v_active_sessions` returns since migration `0033` — gates no card and is
  * dropped here rather than widening `activeRulesetKeys` to hold NULL.
+ *
+ * `activeSession` is the in-progress card's target (`resumeTarget`); the
+ * group helpers drive the grouped list's section and divider visibility.
  */
 export function gamesIndex() {
   return {
     activeRulesetKeys: [] as string[],
+    activeSession: null as ResumeTarget | null,
 
     async init(this: GamesIndexContext) {
       try {
-        this.activeRulesetKeys = (await fetchActiveSessions())
+        const sessions = await fetchActiveSessions();
+        this.activeRulesetKeys = sessions
           .map((session) => session.rulesetVersionKey)
           .filter((key) => key !== null);
+        this.activeSession = resumeTarget(sessions);
       } catch {
         this.activeRulesetKeys = [];
+        this.activeSession = null;
       }
     },
 
@@ -48,6 +82,25 @@ export function gamesIndex() {
 
     analyticsMode(this: GamesIndexContext) {
       return this.$store.settings.captureModeKey === ANALYTICS_CAPTURE_MODE_KEY;
+    },
+
+    groupVisible(this: GamesIndexContext, groupKey: GameGroupKey) {
+      return GAME_CARDS.some(
+        (game) =>
+          game.group === groupKey && this.isVisible(game.rulesetVersionKey),
+      );
+    },
+
+    isFirstVisible(
+      this: GamesIndexContext,
+      groupKey: GameGroupKey,
+      rulesetVersionKey: RulesetVersionKey,
+    ) {
+      const first = GAME_CARDS.find(
+        (game) =>
+          game.group === groupKey && this.isVisible(game.rulesetVersionKey),
+      );
+      return first?.rulesetVersionKey === rulesetVersionKey;
     },
 
     noneVisible(this: GamesIndexContext) {

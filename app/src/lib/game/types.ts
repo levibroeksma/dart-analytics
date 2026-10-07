@@ -40,6 +40,7 @@ import type { BoardHit } from "./board/types";
 import type { SegmentTimer } from "@modules/ui/segment-timer.module";
 import type { GameEngine } from "@modules/interfaces";
 import type {
+  GameGroupKey,
   SessionModePair,
   RulesetVersionKey,
   ScoreTrainingSnapshot,
@@ -1404,8 +1405,12 @@ export type AroundTheClockPlayContext = PlayLifecycleContext<
  * not one: the single-active-session index keys on `(player_id, game_type_id)`,
  * so one session per game type can be running at the same time.
  */
+/** The games page's in-progress card: the game's title and its setup route. */
+export type ResumeTarget = { title: string; href: string };
+
 export type GamesIndexContext = {
   activeRulesetKeys: string[];
+  activeSession: ResumeTarget | null;
   $store: {
     settings: {
       captureModeKey: string;
@@ -1418,6 +1423,12 @@ export type GamesIndexContext = {
     rulesetVersionKey: RulesetVersionKey,
   ): boolean;
   analyticsMode(this: GamesIndexContext): boolean;
+  groupVisible(this: GamesIndexContext, groupKey: GameGroupKey): boolean;
+  isFirstVisible(
+    this: GamesIndexContext,
+    groupKey: GameGroupKey,
+    rulesetVersionKey: RulesetVersionKey,
+  ): boolean;
   noneVisible(this: GamesIndexContext): boolean;
 };
 

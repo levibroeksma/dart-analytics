@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { gamesIndex } from "@lib/game/games-index.data";
+import { gamesIndex, resumeTarget } from "@lib/game/games-index.data";
 import type { GamesIndexContext } from "@lib/types";
 import * as sessionsApi from "@client/api/sessions";
 
@@ -115,6 +115,50 @@ describe("gamesIndex", () => {
     expect(page.isVisible("SCORE_TRAINING_V1")).toBe(false);
   });
 
+  it("hides a group only when every one of its games is hidden", () => {
+    const page = createPage({
+      isVisible: (key: string) => key !== "501_V1",
+    });
+
+    expect(page.groupVisible("MATCH_PLAY")).toBe(true);
+
+    const none = createPage({ isVisible: () => false });
+    expect(none.groupVisible("CLASSICS")).toBe(false);
+  });
+
+  it("drops the divider on a group's first visible row, skipping hidden rows", () => {
+    const page = createPage({
+      isVisible: (key: string) => key !== "501_V1",
+    });
+
+    expect(page.isFirstVisible("MATCH_PLAY", "121_V1")).toBe(true);
+    expect(page.isFirstVisible("MATCH_PLAY", "501_V1")).toBe(false);
+    expect(page.isFirstVisible("MATCH_PLAY", "CRICKET_V1")).toBe(false);
+  });
+
+  it("sets the resume target from the fetched sessions", async () => {
+    vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([
+      activeSession("501_V1"),
+    ]);
+    const page = createPage();
+    await page.init();
+
+    expect(page.activeSession).toEqual({
+      title: "501",
+      href: "/games/501/setup",
+    });
+  });
+
+  it("clears the resume target when the fetch fails", async () => {
+    vi.mocked(sessionsApi.fetchActiveSessions).mockRejectedValue(
+      new Error("offline"),
+    );
+    const page = createPage();
+    await page.init();
+
+    expect(page.activeSession).toBeNull();
+  });
+
   it("falls back to no active session when the fetch fails", async () => {
     vi.mocked(sessionsApi.fetchActiveSessions).mockRejectedValue(
       new Error("offline"),
@@ -124,5 +168,37 @@ describe("gamesIndex", () => {
 
     expect(page.activeRulesetKeys).toEqual([]);
     expect(page.isVisible("501_V1")).toBe(true);
+  });
+});
+
+describe("resumeTarget", () => {
+  it("picks the most recently started session that has a card", () => {
+    const older = {
+      ...activeSession("501_V1"),
+      startedAt: "2026-08-08T10:00:00.000Z",
+    };
+    const newer = {
+      ...activeSession("CRICKET_V1"),
+      startedAt: "2026-08-09T10:00:00.000Z",
+    };
+
+    expect(resumeTarget([older, newer])).toEqual({
+      title: "Cricket",
+      href: "/games/cricket/setup",
+    });
+  });
+
+  it("skips a newer training step session for an older game", () => {
+    const step = {
+      ...trainingStepSession(),
+      startedAt: "2026-09-20T10:00:00.000Z",
+    };
+
+    expect(resumeTarget([step, activeSession("501_V1")])?.title).toBe("501");
+  });
+
+  it("is null without a game session", () => {
+    expect(resumeTarget([trainingStepSession()])).toBeNull();
+    expect(resumeTarget([])).toBeNull();
   });
 });
