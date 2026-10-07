@@ -55,6 +55,10 @@ export function trainingWeek() {
       }
     },
 
+    applySaved(this: TrainingWeekContext, schedule: ScheduleData) {
+      this.schedule = schedule;
+    },
+
     status(this: TrainingWeekContext, index: number) {
       return dayStatus(index, this.today, this.schedule, this.completions);
     },

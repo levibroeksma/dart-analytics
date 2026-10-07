@@ -94,6 +94,22 @@ describe("trainingWeek", () => {
     expect(week.dayClass(5)).toContain("border-foreground/50");
   });
 
+  it("takes a schedule saved from the edit modal", async () => {
+    vi.mocked(getActiveSchedule).mockResolvedValue(null);
+    vi.mocked(listTrainingCompletions).mockResolvedValue({
+      items: [],
+      nextCursor: null,
+    });
+    const week = await loadedOn(new Date(2024, 0, 4, 12));
+    expect(week.hasSchedule()).toBe(false);
+
+    week.applySaved(SCHEDULE);
+
+    expect(week.hasSchedule()).toBe(true);
+    expect(week.status(5)).toBe("scheduled");
+    expect(week.counts().toGo).toBe(2);
+  });
+
   it("falls back to no schedule when a read fails", async () => {
     vi.mocked(getActiveSchedule).mockRejectedValue(new Error("offline"));
     vi.mocked(listTrainingCompletions).mockResolvedValue({
