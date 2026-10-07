@@ -256,6 +256,8 @@ export type TrainingIndexContext = {
   personalRoutines(this: TrainingIndexContext): RoutineSummaryData[];
   durationLabel(routine: RoutineSummaryData): string;
   detailHref(routine: RoutineSummaryData): string;
+  /** The routine's player, for the row's play button. */
+  playHref(routine: RoutineSummaryData): string;
 };
 
 export type StatisticsRoutinesContext = {

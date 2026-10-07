@@ -1,5 +1,5 @@
 import { listRoutines } from "@client/api/routines";
-import { routineDetailPath } from "./routine-route";
+import { routineDetailPath, routinePlayPath } from "./routine-route";
 import type { RoutineSummaryData } from "@client/api/types";
 import type { TrainingIndexContext } from "./types";
 
@@ -38,6 +38,10 @@ export function trainingIndex() {
 
     detailHref(routine: RoutineSummaryData): string {
       return routineDetailPath(routine.routineId);
+    },
+
+    playHref(routine: RoutineSummaryData): string {
+      return routinePlayPath(routine.routineId);
     },
   };
 }

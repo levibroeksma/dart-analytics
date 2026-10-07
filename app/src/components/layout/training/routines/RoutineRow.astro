@@ -1,0 +1,41 @@
+---
+/**
+ * One routine row in a `/training` routine card. Alpine-bound so it can
+ * render inside `x-for`; expects `routine` (`RoutineSummaryData`) and its
+ * `index` in scope and the `trainingIndex()` helpers on the parent. The name
+ * links to the routine's detail, the play button to its player; a top
+ * divider on every row but the first.
+ */
+
+// Icons
+import PlayIcon from "@icons/play-rounded.svg";
+---
+
+<div
+  class="flex items-center gap-3 py-3.5"
+  :class="index === 0 ? '' : 'border-t border-border'"
+>
+  <div class="flex min-w-0 flex-1 flex-col gap-1.5">
+    <a
+      class="font-display text-sm"
+      :href="detailHref(routine)"
+      x-text="routine.routineName"
+    ></a>
+    <div class="flex flex-wrap gap-1.5">
+      <span
+        class="rounded-md bg-white/7 px-[7px] py-0.5 font-mono text-[10px] font-semibold text-chip-foreground"
+        x-text="durationLabel(routine).toUpperCase()"
+      ></span>
+    </div>
+  </div>
+  <a
+    class="glass-button flex size-10 shrink-0 items-center justify-center rounded-full text-foreground"
+    :href="playHref(routine)"
+    :aria-label="`Start ${routine.routineName}`"
+  >
+    <PlayIcon
+      class="size-4"
+      aria-hidden="true"
+    />
+  </a>
+</div>

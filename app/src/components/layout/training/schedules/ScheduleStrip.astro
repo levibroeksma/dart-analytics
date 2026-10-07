@@ -1,0 +1,44 @@
+---
+/**
+ * `/training` schedule strip: seven weekday circles in one row, styled by
+ * `dayClass(index)` from the enclosing `trainingWeek()` scope — done (accent
+ * fill, check), missed (dashed ring, cross), today (accent glow ring),
+ * scheduled (bright border) or rest (faint border).
+ */
+
+// Icons
+import CheckIcon from "@icons/check-bold.svg";
+import CrossIcon from "@icons/cross-bold.svg";
+---
+
+<div class="flex h-11 items-center justify-between">
+  <template
+    x-for="index in [0, 1, 2, 3, 4, 5, 6]"
+    :key="index"
+  >
+    <span
+      class="flex items-center justify-center rounded-full text-[13px]"
+      :class="dayClass(index)"
+      :aria-label="dayLabel(index)"
+    >
+      <CheckIcon
+        class="size-[15px]"
+        aria-hidden="true"
+        x-show="status(index) === 'done'"
+        x-cloak
+      />
+      <CrossIcon
+        class="size-[13px]"
+        aria-hidden="true"
+        x-show="status(index) === 'missed'"
+        x-cloak
+      />
+      <span
+        aria-hidden="true"
+        x-show="!['done', 'missed'].includes(status(index))"
+        x-cloak
+        x-text="letter(index)"
+      ></span>
+    </span>
+  </template>
+</div>
