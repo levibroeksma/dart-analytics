@@ -34,6 +34,9 @@
 
   --success: oklch(72% 0.16 155);
   --success-muted: oklch(72% 0.16 155 / 0.14);
+  --missed: oklch(68% 0.15 30);
+  --missed-muted: oklch(68% 0.15 30 / 0.12);
+  --chip-foreground: oklch(82% 0 0);
   --chart-sky: oklch(66% 0.127 240.5);
   --chart-violet: oklch(67% 0.145 286.8);
   --chart-rose: oklch(63.8% 0.175 12.4);
@@ -80,6 +83,9 @@
   --color-error-foreground: var(--error-foreground);
   --color-success: var(--success);
   --color-success-muted: var(--success-muted);
+  --color-missed: var(--missed);
+  --color-missed-muted: var(--missed-muted);
+  --color-chip-foreground: var(--chip-foreground);
 
   --font-sans: "Montserrat", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Michroma", ui-sans-serif, system-ui, sans-serif;
@@ -337,6 +343,35 @@
 
   .btn-error {
     box-shadow: 0 0 18px color-mix(in oklch, var(--error) 30%, transparent);
+  }
+
+  .feature-card {
+    background: linear-gradient(
+      138deg,
+      color-mix(in oklch, var(--accent) 45%, transparent) 22%,
+      var(--accent-deep) 82%
+    );
+    box-shadow:
+      inset 0 1px 0 oklch(100% 0 0 / 0.1),
+      0 0 20px 3px color-mix(in oklch, var(--accent) 12%, transparent),
+      inset 0 0 0 1px oklch(100% 0 0 / 0.06);
+    @apply backdrop-blur-sm;
+  }
+
+  .mode-pill {
+    @apply rounded-full px-3 py-1 font-mono text-[11px] font-semibold tracking-[0.08em] backdrop-blur-sm;
+    color: oklch(92% 0.06 237);
+    background: radial-gradient(
+      at 50% 0%,
+      color-mix(in oklch, var(--accent) 35%, transparent),
+      oklch(40% 0.12 240 / 0.55) 85%
+    );
+    border-top: 1px solid oklch(80% 0.12 237 / 0.5);
+    border-bottom: 1px solid color-mix(in oklch, var(--accent) 30%, transparent);
+  }
+
+  .section-eyebrow {
+    @apply px-1 font-mono text-[11px] font-semibold tracking-[0.14em] text-muted-foreground;
   }
 
   .home-feature-card {
