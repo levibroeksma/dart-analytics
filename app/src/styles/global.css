@@ -11,6 +11,7 @@
   --accent-foreground: oklch(100% 0 0);
   --accent-glow: oklch(68.5% 0.169 237.323 / 0.28);
   --accent-secondary: oklch(74.6% 0.16 232.661);
+  --accent-deep: oklch(14% 0.05 245 / 0.9);
 
   --surface: oklch(0% 0 0);
   --surface-raised: oklch(100% 0 0 / 0.04);
@@ -50,6 +51,7 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-accent-glow: var(--accent-glow);
   --color-accent-secondary: var(--accent-secondary);
+  --color-accent-deep: var(--accent-deep);
 
   --color-surface: var(--surface);
   --color-surface-raised: var(--surface-raised);
@@ -309,6 +311,31 @@
 
   .btn-error {
     box-shadow: 0 0 18px color-mix(in oklch, var(--error) 30%, transparent);
+  }
+
+  .home-feature-card {
+    background: linear-gradient(
+      138deg,
+      color-mix(in oklch, var(--accent) 45%, transparent) 22%,
+      var(--accent-deep) 82%
+    );
+    box-shadow:
+      inset 0 1px 0 oklch(100% 0 0 / 0.1),
+      0 0 20px 3px color-mix(in oklch, var(--accent) 12%, transparent),
+      0 0 40px 20px color-mix(in oklch, var(--accent) 8%, transparent),
+      inset 0 0 0 1px oklch(100% 0 0 / 0.06);
+  }
+
+  .home-day-today {
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklch, var(--accent) 45%, transparent),
+      color-mix(in oklch, var(--accent) 12%, transparent)
+    );
+    box-shadow:
+      inset 0 0 0 2px var(--accent),
+      0 0 14px 3px color-mix(in oklch, var(--accent) 60%, transparent),
+      0 0 28px 6px color-mix(in oklch, var(--accent) 25%, transparent);
   }
 
   .tab-container {
