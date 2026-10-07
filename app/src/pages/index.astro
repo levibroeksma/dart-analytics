@@ -29,8 +29,9 @@ import LogoLockup from "../assets/logo-lockup.svg";
       <DailyAverageCard />
     </div>
     <div x-data="homeWeek()">
-      <WeekdayStrip />
-      <TodayRoutineCard />
+      <TodayRoutineCard>
+        <WeekdayStrip />
+      </TodayRoutineCard>
     </div>
     <div x-data="homeSnapshot()">
       <LandingHeatmapCard />
