@@ -19,6 +19,7 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 | Bust fails the attempt | V1 | All | |
 | New score after every attempt | V1 | All | |
 | Time-bound run | V1 | All | |
+| Draw seed | V1 | All | |
 | Checkouts, attempts and Checkout rate readouts | V1 | All | |
 | Configurable range | V2+ | All | Wanted, unscheduled: the source suggests 2–80 for beginners; one fixed range is enough to play |
 | Fixed-round bound (10, 20 or 30 rounds) | V2+ | All | Wanted, unscheduled: the source's own bound; inside a routine the step is time-bound, so a count bound matters only for standalone |
@@ -36,9 +37,7 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 
 ## Exercise type
 
-- Type constant: `RANDOM_CHECKOUT` (proposed; not among the seeded types —
-  checked against `database/seeds/0014`, `0016`, `0023`–`0025`, `0029`,
-  `0030`).
+- Type constant: `RANDOM_CHECKOUT`, seeded in `0036`.
 - Wraps no game.
 - Behaviour no existing type provides: a start score the engine draws per
   attempt. Every seeded type uses a fixed or configured target.
@@ -54,6 +53,7 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 | --- | --- | --- |
 | Duration | 10 minutes | Routine step configuration |
 | Range | 40–170 | Shown, locked |
+| Draw seed | minted per run | Not shown |
 
 A routine step may override any of these
 (`routine_steps.configuration`); the values here are the exercise type's own
@@ -111,10 +111,9 @@ defaults. The 10-minute preset is a draft value, not sourced.
 - **Stage type:** one `EXERCISE_BLOCK` stage per run
   (`app/src/modules/game/turn-log.module.ts:118`); one `turns` row per
   attempt.
-- **The drawn score is a fact, not derived.** It cannot be folded from the
-  darts, so each attempt's start score must be stored. Where it lives (a turn
-  column, a stage, the configuration) is a spec decision — see Open
-  questions. Without it the V1 cut fails: the run cannot be replayed.
+- **The drawn score cannot be folded from the darts.** The run's `drawSeed` in
+  the configuration snapshot is the stored fact; each attempt's start score is
+  derived from it (D424). Without it the run cannot be replayed.
 - **Derived, never stored:** remaining, bust, checked out, checkouts,
   attempts, checkout rate.
 - No conventional score: the result is a count of checkouts.
@@ -123,6 +122,7 @@ defaults. The 10-minute preset is a draft value, not sourced.
 
 | Term | Version | Meaning |
 | --- | --- | --- |
+| **Draw seed** | V1 | The per-run number every start score is derived from |
 | **Random start score** | V1 | The score an attempt starts from, drawn by the engine |
 | **Only finishable scores** | V1 | Draws exclude scores with no three-dart double-out |
 | **Free aim** | V1 | No intended target recorded for any dart |
@@ -138,6 +138,7 @@ defaults. The 10-minute preset is a draft value, not sourced.
 
 ## Open questions
 
-- Where is the drawn start score stored? No existing turn or dart column
-  carries a per-visit start score — this needs a schema check before the spec.
-- Uniform draw over the range, or weighted toward common finishes?
+- ~~Where is the drawn start score stored?~~ **Resolved:** seed in config,
+  start score derived (D424).
+- ~~Uniform draw over the range, or weighted toward common finishes?~~
+  **Resolved:** uniform over the 124 finishable scores.
