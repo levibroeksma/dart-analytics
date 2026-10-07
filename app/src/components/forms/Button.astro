@@ -77,12 +77,16 @@ const className = cn(
   {...props}
 >
   <slot name="iconBefore" />
-  <span
-    x-show={`!(${loadingExpr})`}
-    x-cloak
-  >
-    {hasLabelSlot ? <slot /> : title}
-  </span>
+  {
+    (hasLabelSlot || title) && (
+      <span
+        x-show={`!(${loadingExpr})`}
+        x-cloak
+      >
+        {hasLabelSlot ? <slot /> : title}
+      </span>
+    )
+  }
   <LoadingIcon
     x-show={loadingExpr}
     x-cloak

@@ -12,6 +12,8 @@
   --accent-glow: oklch(68.5% 0.169 237.323 / 0.28);
   --accent-secondary: oklch(74.6% 0.16 232.661);
   --accent-deep: oklch(14% 0.05 245 / 0.9);
+  --accent-bright: oklch(80% 0.13 237);
+  --accent-foreground-muted: oklch(92% 0.01 240);
 
   --surface: oklch(0% 0 0);
   --surface-raised: oklch(100% 0 0 / 0.04);
@@ -21,6 +23,8 @@
   --foreground: oklch(100% 0 0);
   --muted: oklch(55% 0 0);
   --muted-foreground: oklch(70% 0 0);
+  --soft-foreground: oklch(78% 0 0);
+  --faint-foreground: oklch(50% 0 0);
 
   --error: oklch(65% 0.2 25);
   --error-hover: oklch(60% 0.2 25);
@@ -52,6 +56,8 @@
   --color-accent-glow: var(--accent-glow);
   --color-accent-secondary: var(--accent-secondary);
   --color-accent-deep: var(--accent-deep);
+  --color-accent-bright: var(--accent-bright);
+  --color-accent-foreground-muted: var(--accent-foreground-muted);
 
   --color-surface: var(--surface);
   --color-surface-raised: var(--surface-raised);
@@ -61,6 +67,10 @@
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+  --color-soft-foreground: var(--soft-foreground);
+  --color-faint-foreground: var(--faint-foreground);
+
+  --text-shadow-hero: 0 4px 30px oklch(0% 0 0 / 0.6);
 
   --color-error: var(--error);
   --color-error-hover: var(--error-hover);
@@ -273,6 +283,20 @@
   @apply shadow-md bg-radial-[at_50%_0%] from-black/5 to-black/10 to-85% border-y border-white/25 backdrop-blur-md;
 }
 
+@utility glass-button {
+  @apply border-x-0 border-y backdrop-blur-md;
+  background: radial-gradient(
+    at 50% 0%,
+    oklch(100% 0 0 / 0.08),
+    oklch(100% 0 0 / 0.16) 85%
+  );
+  border-top-color: oklch(100% 0 0 / 0.35);
+  border-bottom-color: oklch(100% 0 0 / 0.15);
+  box-shadow:
+    0 2px 8px oklch(0% 0 0 / 0.25),
+    inset 0 1px 0 oklch(100% 0 0 / 0.12);
+}
+
 @layer components {
   .nav-pill {
     background: oklch(100% 0 0 / 0.04);
@@ -324,6 +348,25 @@
       0 0 20px 3px color-mix(in oklch, var(--accent) 12%, transparent),
       0 0 40px 20px color-mix(in oklch, var(--accent) 8%, transparent),
       inset 0 0 0 1px oklch(100% 0 0 / 0.06);
+  }
+
+  .home-backdrop-shade {
+    background: linear-gradient(
+      90deg,
+      oklch(0% 0 0 / 0.55) 0%,
+      transparent 70%
+    );
+  }
+
+  .dartboard-accent {
+    --dartboard-single-dark: oklch(100% 0 0 / 0.04);
+    --dartboard-single-light: color-mix(
+      in oklch,
+      var(--accent) 35%,
+      transparent
+    );
+    --dartboard-wire-red: var(--accent);
+    --dartboard-wire-green: oklch(100% 0 0 / 0.08);
   }
 
   .home-day-today {

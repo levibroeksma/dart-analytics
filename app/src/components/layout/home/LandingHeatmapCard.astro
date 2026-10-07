@@ -10,7 +10,7 @@ import StatsDensityHeatmap from "@components/ui/StatsDensityHeatmap.astro";
 
 <section class="glass flex flex-col gap-1.5 rounded-2xl px-3.5 pt-3.5 pb-1.5">
   <div class="flex items-baseline justify-between">
-    <h2 class="font-display text-[13px] tracking-wide">Where you land</h2>
+    <h2 class="font-display text-[13px] tracking-[0.06em]">Where you land</h2>
     <span
       class="font-mono text-[11px] font-semibold text-muted-foreground"
       x-text="landing.window"
@@ -18,6 +18,6 @@ import StatsDensityHeatmap from "@components/ui/StatsDensityHeatmap.astro";
   </div>
   <StatsDensityHeatmap
     stampsExpr="landing.stamps"
-    class="mx-auto aspect-square w-full max-w-72"
+    class="dartboard-accent mx-auto aspect-square w-full max-w-72"
   />
 </section>
