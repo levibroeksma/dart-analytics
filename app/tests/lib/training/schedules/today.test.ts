@@ -5,6 +5,9 @@ import {
   todayEntry,
   startOfLocalDay,
   isRoutineCompleted,
+  startOfIsoWeek,
+  dayStatus,
+  weekCounts,
 } from "@lib/training/schedules/today";
 
 describe("isoWeekday", () => {
@@ -98,5 +101,91 @@ describe("isRoutineCompleted", () => {
 
   it("is false without an entry", () => {
     expect(isRoutineCompleted(null, [completion("r1")])).toBe(false);
+  });
+});
+
+const weekSchedule = (weekdays: number[]) =>
+  ({
+    scheduleId: "s1",
+    name: "My schedule",
+    days: weekdays.map((dayOfWeek) => ({
+      dayOfWeek,
+      routineId: `r${dayOfWeek}`,
+      routineName: "Routine",
+      routineMinutes: 10,
+    })),
+  }) as any;
+
+const doneOn = (dayOfWeek: number, at: Date) => ({
+  activityId: `a${dayOfWeek}`,
+  routineTemplateId: `r${dayOfWeek}`,
+  routineName: "Routine",
+  completedAt: at.toISOString(),
+});
+
+describe("startOfIsoWeek", () => {
+  it("returns local Monday midnight of the date's week", () => {
+    expect(startOfIsoWeek(new Date(2024, 0, 4, 15))).toEqual(
+      new Date(2024, 0, 1),
+    );
+    expect(startOfIsoWeek(new Date(2024, 0, 7, 23))).toEqual(
+      new Date(2024, 0, 1),
+    );
+    expect(startOfIsoWeek(new Date(2024, 0, 1, 0))).toEqual(
+      new Date(2024, 0, 1),
+    );
+  });
+});
+
+describe("dayStatus / weekCounts", () => {
+  const schedule = weekSchedule([1, 2, 4, 6]);
+  const mondayDone = [doneOn(1, new Date(2024, 0, 1, 19))];
+
+  it("reads every status for a Thursday", () => {
+    expect(
+      [0, 1, 2, 3, 4, 5, 6].map((index) =>
+        dayStatus(index, 3, schedule, mondayDone),
+      ),
+    ).toEqual(["done", "missed", "rest", "today", "rest", "scheduled", "rest"]);
+  });
+
+  it("counts done, missed and to go, today included", () => {
+    expect(weekCounts(3, schedule, mondayDone)).toEqual({
+      done: 1,
+      missed: 1,
+      toGo: 2,
+    });
+  });
+
+  it("marks today done once its routine is completed", () => {
+    const both = [...mondayDone, doneOn(4, new Date(2024, 0, 4, 9))];
+
+    expect(dayStatus(3, 3, schedule, both)).toBe("done");
+    expect(weekCounts(3, schedule, both)).toEqual({
+      done: 2,
+      missed: 1,
+      toGo: 1,
+    });
+  });
+
+  it("keeps a rest-day today as today without counting it to go", () => {
+    expect(dayStatus(2, 2, schedule, [])).toBe("today");
+    expect(weekCounts(2, schedule, [])).toEqual({
+      done: 0,
+      missed: 2,
+      toGo: 2,
+    });
+  });
+
+  it("needs the routine completed on that same day", () => {
+    const tuesdayRun = [doneOn(1, new Date(2024, 0, 2, 9))];
+
+    expect(dayStatus(0, 3, schedule, tuesdayRun)).toBe("missed");
+  });
+
+  it("shows rest everywhere but today without a schedule", () => {
+    expect(dayStatus(0, 3, null, [])).toBe("rest");
+    expect(dayStatus(3, 3, null, [])).toBe("today");
+    expect(weekCounts(3, null, [])).toEqual({ done: 0, missed: 0, toGo: 0 });
   });
 });
