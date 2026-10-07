@@ -2,44 +2,60 @@
 export const prerender = true;
 
 import AppLayout from "@layouts/AppLayout.astro";
-import Badge from "@components/ui/Badge.astro";
-import GameCard from "@components/layout/games/GameCard.astro";
-import { GAME_CARDS } from "@lib/game/rulesets/games-visibility";
+import GameRow from "@components/layout/games/GameRow.astro";
+import ResumeSessionCard from "@components/layout/games/ResumeSessionCard.astro";
+import { groupedGames } from "@lib/game/rulesets/games-visibility";
 import DartIcon from "@icons/dart.svg";
 ---
 
-<AppLayout title="Games">
+<AppLayout
+  title="Games"
+  backdrop="home"
+>
   <div
-    class="p-4 space-y-4"
+    class="flex flex-col gap-3 px-4 pt-2"
     x-data="gamesIndex()"
   >
-    <div class="flex items-center justify-between">
-      <h1 class="text-xl font-semibold text-foreground">Games</h1>
-      <Badge
-        class="text-xs"
+    <div class="flex items-center justify-between px-1 pt-5 pb-3">
+      <h1 class="font-display text-[26px]/[normal] tracking-[0.02em]">Games</h1>
+      <span
+        class="mode-pill"
         x-show="analyticsMode()"
         x-cloak
       >
-        analytics
-      </Badge>
+        ANALYTICS
+      </span>
     </div>
 
+    <ResumeSessionCard />
+
     <div
-      class="space-y-4"
+      class="contents"
       x-show="!$store.settings.loading"
       x-cloak
     >
       {
-        GAME_CARDS.map((game) => (
+        groupedGames().map((group) => (
           <div
-            x-show={`isVisible('${game.rulesetVersionKey}')`}
+            class="flex flex-col gap-2 pt-2.5"
+            x-show={`groupVisible('${group.key}')`}
             x-cloak
           >
-            <GameCard
-              href={game.href}
-              title={game.title}
-              caption={game.caption}
-            />
+            <span class="section-eyebrow">{group.title}</span>
+            <div class="glass flex flex-col rounded-2xl px-4 shadow-none">
+              {group.games.map((game) => (
+                <div
+                  x-show={`isVisible('${game.rulesetVersionKey}')`}
+                  x-cloak:class={`isFirstVisible('${group.key}', '${game.rulesetVersionKey}') ? '' : 'border-t border-border'`}
+                >
+                  <GameRow
+                    href={game.href}
+                    title={game.title}
+                    caption={game.caption}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         ))
       }
@@ -63,22 +79,27 @@ import DartIcon from "@icons/dart.svg";
     </div>
 
     <div
-      class="space-y-4"
+      class="flex flex-col gap-2 pt-2.5"
       x-show="$store.settings.loading"
       x-cloak
       aria-hidden="true"
     >
-      {
-        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(() => (
-          <div class="card-wrapper glass flex flex-row items-center justify-between gap-3 rounded-2xl p-3.5 animate-pulse">
-            <div class="flex flex-col gap-2">
-              <div class="h-4 w-32 rounded bg-surface-raised" />
-              <div class="h-3 w-48 rounded bg-surface-raised" />
+      <div class="h-3.5 w-24 rounded bg-surface-raised animate-pulse"></div>
+      <div
+        class="glass flex flex-col divide-y divide-border rounded-2xl px-4 shadow-none animate-pulse"
+      >
+        {
+          [0, 1, 2, 3, 4].map(() => (
+            <div class="flex items-center gap-3.5 py-3.5">
+              <div class="flex flex-1 flex-col gap-1">
+                <div class="h-4 w-32 rounded bg-surface-raised" />
+                <div class="h-3 w-48 rounded bg-surface-raised" />
+              </div>
+              <DartIcon class="size-6.5 -rotate-45 text-accent" />
             </div>
-            <DartIcon class="-rotate-45 size-8 text-accent" />
-          </div>
-        ))
-      }
+          ))
+        }
+      </div>
     </div>
   </div>
 </AppLayout>
