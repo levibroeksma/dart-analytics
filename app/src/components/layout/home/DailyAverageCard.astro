@@ -1,0 +1,36 @@
+---
+/**
+ * Homepage daily-average card inside the `homeSnapshot()` scope: seven
+ * CSS bars sized by `bars[].height`, every peak day in full accent, the
+ * rest in muted accent, with the peak value in the header.
+ */
+---
+
+<section class="glass flex flex-col gap-3.5 rounded-2xl p-4">
+  <div class="flex items-baseline justify-between">
+    <h2 class="font-display text-[13px] tracking-wide">Daily average</h2>
+    <span
+      class="font-mono text-[11px] text-muted-foreground"
+      x-text="`PEAK ${peak}`"
+    ></span>
+  </div>
+  <div class="grid h-28 grid-cols-7 items-end gap-2">
+    <template
+      x-for="(bar, index) in bars"
+      :key="index"
+    >
+      <div class="flex h-full flex-col items-center justify-end gap-1.5">
+        <div
+          class="w-full rounded-lg"
+          :class="bar.peak ? 'bg-accent' : 'bg-accent/35'"
+          :style="{ height: bar.height }"
+        >
+        </div>
+        <span
+          class="font-mono text-[11px] text-muted-foreground"
+          x-text="bar.day"
+        ></span>
+      </div>
+    </template>
+  </div>
+</section>
