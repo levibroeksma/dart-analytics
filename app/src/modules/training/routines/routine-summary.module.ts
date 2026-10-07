@@ -11,6 +11,7 @@ import type {
   BullseyeCheckoutState,
   BullUpState,
   CheckoutSequenceState,
+  RandomCheckoutState,
   RoutineStatRow,
   RoutineStepSummary,
 } from "@modules/types";
@@ -231,6 +232,34 @@ export function summariseCheckoutSequence(
     label: "Catch 40",
     rows: [
       { label: "Points", value: String(points) },
+      { label: "Checkouts", value: String(checkouts) },
+      { label: "Attempts", value: String(attempts) },
+      {
+        label: "Checkout rate",
+        value: attempts === 0 ? NO_VALUE : accuracyDisplay(checkouts, attempts),
+      },
+      { label: "Darts", value: String(darts) },
+    ],
+  };
+}
+
+/**
+ * Random Checkout's result is its checkout count, with the rate over judged
+ * attempts. An attempt open at expiry is not counted, so its darts count
+ * toward Darts but not Attempts.
+ */
+export function summariseRandomCheckout(
+  state: RandomCheckoutState,
+): RoutineStepSummary {
+  const { checkouts, attempts, darts } = stepMetrics(
+    "RANDOM_CHECKOUT",
+    state,
+    NO_FACTS,
+  );
+  return {
+    stepKey: "RANDOM_CHECKOUT",
+    label: "Random Checkout",
+    rows: [
       { label: "Checkouts", value: String(checkouts) },
       { label: "Attempts", value: String(attempts) },
       {

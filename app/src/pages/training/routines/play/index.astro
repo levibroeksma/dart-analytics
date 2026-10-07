@@ -10,6 +10,7 @@ import ScoreThresholdPanel from "@components/layout/training/exercises/ScoreThre
 import BullseyeCheckoutPanel from "@components/layout/training/exercises/BullseyeCheckoutPanel.astro";
 import BullUpPanel from "@components/layout/training/exercises/BullUpPanel.astro";
 import CheckoutSequencePanel from "@components/layout/training/exercises/CheckoutSequencePanel.astro";
+import RandomCheckoutPanel from "@components/layout/training/exercises/RandomCheckoutPanel.astro";
 import TenUpOneDown from "@components/layout/games/interfaces/TenUpOneDown.astro";
 import ScoreTraining from "@components/layout/games/interfaces/ScoreTraining.astro";
 import OneTwentyOne from "@components/layout/games/interfaces/OneTwentyOne.astro";
@@ -82,6 +83,12 @@ import OpenRoutineModal from "@components/layout/training/routines/OpenRoutineMo
       x-if="!loading && adapter?.panel === 'checkout-sequence' && checkoutSequenceEngine"
     >
       <CheckoutSequencePanel />
+    </template>
+
+    <template
+      x-if="!loading && adapter?.panel === 'random-checkout' && randomCheckoutEngine"
+    >
+      <RandomCheckoutPanel />
     </template>
 
     <template x-if="!loading && adapter?.panel === 'tuod' && game">

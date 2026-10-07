@@ -21,6 +21,7 @@ describe("step adapter registry", () => {
         "BULLSEYE_CHECKOUT",
         "BULL_UP",
         "CHECKOUT_SEQUENCE",
+        "RANDOM_CHECKOUT",
         ...Object.keys(ROUTINE_GAME_STEPS).map((k) => `GAME:${k}`),
       ].sort(),
     );
@@ -45,6 +46,12 @@ describe("step adapter registry", () => {
   it("resolves the Catch 40 step", () => {
     expect(resolveStepAdapter("CHECKOUT_SEQUENCE")?.headerLabel).toBe(
       "Catch 40",
+    );
+  });
+
+  it("resolves the Random Checkout step", () => {
+    expect(resolveStepAdapter("RANDOM_CHECKOUT")?.headerLabel).toBe(
+      "Random Checkout",
     );
   });
 

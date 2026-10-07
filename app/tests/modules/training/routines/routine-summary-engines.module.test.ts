@@ -8,6 +8,7 @@ import {
   summariseBullseyeCheckout,
   summariseBullUp,
   summariseCheckoutSequence,
+  summariseRandomCheckout,
 } from "@modules/training/routines/routine-summary.module";
 import { switchingEngineFactory } from "@modules/training/exercises/switching.engine.module";
 import { doublePatternEngineFactory } from "@modules/training/exercises/double-pattern.engine.module";
@@ -17,6 +18,7 @@ import { scoreThresholdEngineFactory } from "@modules/training/exercises/score-t
 import { bullseyeCheckoutEngineFactory } from "@modules/training/exercises/bullseye-checkout.engine.module";
 import { bullUpEngineFactory } from "@modules/training/exercises/bull-up.engine.module";
 import { checkoutSequenceEngineFactory } from "@modules/training/exercises/checkout-sequence.engine.module";
+import { randomCheckoutEngineFactory } from "@modules/training/exercises/random-checkout.engine.module";
 import type { DartObservation } from "@modules/types";
 
 /**
@@ -229,6 +231,45 @@ describe("summarise* over a real engine run", () => {
     });
 
     expect(summariseCheckoutSequence(engine.state()).rows[3]).toEqual({
+      label: "Checkout rate",
+      value: "—",
+    });
+  });
+
+  it("summariseRandomCheckout reads checkouts, attempts, rate and darts off a played run", () => {
+    const engine = randomCheckoutEngineFactory.create({
+      minStart: 40,
+      maxStart: 170,
+      drawSeed: 774,
+    });
+    [
+      dart(20, "DOUBLE"),
+      dart(null, "MISS"),
+      dart(null, "MISS"),
+      dart(null, "MISS"),
+      dart(20, "SINGLE"),
+    ].forEach((d) => engine.record(d));
+
+    expect(summariseRandomCheckout(engine.state())).toEqual({
+      stepKey: "RANDOM_CHECKOUT",
+      label: "Random Checkout",
+      rows: [
+        { label: "Checkouts", value: "1" },
+        { label: "Attempts", value: "2" },
+        { label: "Checkout rate", value: "50.00%" },
+        { label: "Darts", value: "5" },
+      ],
+    });
+  });
+
+  it("summariseRandomCheckout shows no rate before an attempt resolves", () => {
+    const engine = randomCheckoutEngineFactory.create({
+      minStart: 40,
+      maxStart: 170,
+      drawSeed: 774,
+    });
+
+    expect(summariseRandomCheckout(engine.state()).rows[2]).toEqual({
       label: "Checkout rate",
       value: "—",
     });
