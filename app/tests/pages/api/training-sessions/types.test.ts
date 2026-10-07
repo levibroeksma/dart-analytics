@@ -156,6 +156,27 @@ describe("StartTrainingResponse", () => {
     ).toBe(true);
   });
 
+  it("accepts a RANDOM_CHECKOUT step", () => {
+    expect(
+      StartTrainingResponse.safeParse({
+        activityId: "act-1",
+        routineTemplateId: "rt-1",
+        routineName: "Custom",
+        steps: [
+          {
+            sequenceNumber: 1,
+            exerciseTypeKey: "RANDOM_CHECKOUT",
+            exerciseRulesetVersionKey: "RANDOM_CHECKOUT_V1",
+            gameTypeKey: null,
+            gameRulesetVersionKey: null,
+            durationSeconds: 600,
+            configuration: { minStart: 40, maxStart: 170, drawSeed: 7 },
+          },
+        ],
+      }).success,
+    ).toBe(true);
+  });
+
   it("accepts a BULL_UP step", () => {
     expect(
       StartTrainingResponse.safeParse({
@@ -244,6 +265,19 @@ describe("StartTrainingStepResponse", () => {
         sessionId: "s1",
         exerciseTypeKey: "CHECKOUT_SEQUENCE",
         configuration: { firstOutshot: 61, lastOutshot: 100, dartLimit: 6 },
+        participant: { ref: "pt1", displayName: "Levi" },
+        captureModeKey: "ANALYTICS",
+        inputModeKey: "VISUAL_BOARD",
+      }).success,
+    ).toBe(true);
+  });
+
+  it("accepts a RANDOM_CHECKOUT step's response", () => {
+    expect(
+      StartTrainingStepResponse.safeParse({
+        sessionId: "s1",
+        exerciseTypeKey: "RANDOM_CHECKOUT",
+        configuration: { minStart: 40, maxStart: 170, drawSeed: 7 },
         participant: { ref: "pt1", displayName: "Levi" },
         captureModeKey: "ANALYTICS",
         inputModeKey: "VISUAL_BOARD",

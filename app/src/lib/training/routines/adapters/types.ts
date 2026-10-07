@@ -14,6 +14,7 @@ export type StepAdapterKey =
   | "BULLSEYE_CHECKOUT"
   | "BULL_UP"
   | "CHECKOUT_SEQUENCE"
+  | "RANDOM_CHECKOUT"
   | `GAME:${string}`;
 
 /** The play page's own `x-if` switch — one template block per panel. */
@@ -27,6 +28,7 @@ export type StepPanel =
   | "bullseye-checkout"
   | "bull-up"
   | "checkout-sequence"
+  | "random-checkout"
   | "tuod"
   | "score-training"
   | "one-twenty-one"

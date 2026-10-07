@@ -13,6 +13,7 @@ import { scoreThresholdEngineFactory } from "@modules/training/exercises/score-t
 import { bullseyeCheckoutEngineFactory } from "@modules/training/exercises/bullseye-checkout.engine.module";
 import { bullUpEngineFactory } from "@modules/training/exercises/bull-up.engine.module";
 import { checkoutSequenceEngineFactory } from "@modules/training/exercises/checkout-sequence.engine.module";
+import { randomCheckoutEngineFactory } from "@modules/training/exercises/random-checkout.engine.module";
 import type {
   DartExerciseKind,
   DartObservation,
@@ -122,6 +123,19 @@ function fixtures(): Fixture[] {
     dart(20, "SINGLE"),
   ].forEach((d) => checkoutSequence.record(d));
 
+  const randomCheckout = randomCheckoutEngineFactory.create({
+    minStart: 40,
+    maxStart: 170,
+    drawSeed: 774,
+  });
+  [
+    dart(20, "DOUBLE"),
+    dart(null, "MISS"),
+    dart(null, "MISS"),
+    dart(null, "MISS"),
+    dart(20, "SINGLE"),
+  ].forEach((d) => randomCheckout.record(d));
+
   return [
     {
       kind: "SWITCHING",
@@ -170,6 +184,12 @@ function fixtures(): Fixture[] {
       state: checkoutSequence.state(),
       facts: checkoutSequence.facts(),
       expected: { points: 3, checkouts: 1, attempts: 2, darts: 7 },
+    },
+    {
+      kind: "RANDOM_CHECKOUT",
+      state: randomCheckout.state(),
+      facts: randomCheckout.facts(),
+      expected: { checkouts: 1, attempts: 2, darts: 5 },
     },
   ];
 }

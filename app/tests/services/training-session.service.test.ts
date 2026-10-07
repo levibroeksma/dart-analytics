@@ -4,7 +4,10 @@ vi.mock("@db/client", () => ({
   getDb: vi.fn(() => ({})),
   withTransaction: vi.fn((fn: (tx: unknown) => unknown) => fn({})),
 }));
-vi.mock("@lib/id", () => ({ generateId: vi.fn(() => "generated-id") }));
+vi.mock("@lib/id", () => ({
+  generateId: vi.fn(() => "generated-id"),
+  generateDrawSeed: vi.fn(() => 123),
+}));
 vi.mock("@repositories/training-session.repository", () => ({
   findRoutineTemplateSteps: vi.fn(),
   insertTrainingActivity: vi.fn(),
@@ -338,6 +341,47 @@ describe("startTraining", () => {
       duration_type: "MINUTES",
       duration_value: 15,
     });
+  });
+
+  it("mints a draw seed into a RANDOM_CHECKOUT step, overwriting any supplied one", async () => {
+    vi.mocked(trainingRepo.findRoutineTemplateSteps).mockResolvedValue({
+      ...RESOLVED,
+      steps: [
+        {
+          sequenceNumber: 1,
+          exerciseTypeKey: "RANDOM_CHECKOUT",
+          exerciseRulesetVersionKey: "RANDOM_CHECKOUT_V1",
+          gameTypeKey: null,
+          gameRulesetVersionKey: null,
+          durationTypeKey: "MINUTES",
+          durationValue: 10,
+          defaultConfiguration: { minStart: 40, maxStart: 170 },
+          stepConfiguration: { drawSeed: 7 },
+        },
+      ],
+    } as any);
+    vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(1);
+    const result = await startTraining("p1", "rt-1");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.data.steps[0].configuration).toEqual({
+      minStart: 40,
+      maxStart: 170,
+      drawSeed: 123,
+    });
+  });
+
+  it("adds no draw seed to other step kinds", async () => {
+    vi.mocked(trainingRepo.findRoutineTemplateSteps).mockResolvedValue(
+      RESOLVED as any,
+    );
+    vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(1);
+    const result = await startTraining("p1", "rt-1");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    for (const step of result.data.steps) {
+      expect(step.configuration).not.toHaveProperty("drawSeed");
+    }
   });
 
   it("refuses a GAME step whose ruleset is not routine-eligible", async () => {
@@ -762,6 +806,48 @@ describe("startTrainingStep", () => {
       expect.anything(),
       expect.objectContaining({
         exerciseRulesetVersionId: "erv-cs",
+        captureModeId: 3,
+        inputModeId: 4,
+      }),
+    );
+  });
+
+  it("inserts RANDOM_CHECKOUT under the ANALYTICS/VISUAL_BOARD capture pair", async () => {
+    vi.mocked(trainingRepo.findActivityConfiguration).mockResolvedValue({
+      routineName: "Custom",
+      steps: [
+        {
+          sequenceNumber: 1,
+          exerciseTypeKey: "RANDOM_CHECKOUT",
+          exerciseRulesetVersionKey: "RANDOM_CHECKOUT_V1",
+          gameTypeKey: null,
+          gameRulesetVersionKey: null,
+          durationSeconds: 600,
+          configuration: { minStart: 40, maxStart: 170, drawSeed: 123 },
+        },
+      ],
+    } as any);
+    vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(1);
+    vi.mocked(sessionRepo.findExerciseTypeId).mockResolvedValue("et-rc");
+    vi.mocked(sessionRepo.findExerciseRulesetVersionId).mockResolvedValue(
+      "erv-rc",
+    );
+    vi.mocked(sessionRepo.findCaptureModeId).mockResolvedValue(3);
+    vi.mocked(sessionRepo.findInputModeId).mockResolvedValue(4);
+    vi.mocked(sessionRepo.findParticipantTypeId).mockResolvedValue(2);
+    vi.mocked(sessionRepo.findPlayerDisplayName).mockResolvedValue("Levi");
+    vi.mocked(sessionRepo.insertExerciseSessionRecord).mockResolvedValue({
+      sessionId: "generated-id",
+    });
+
+    const result = await startTrainingStep("p1", "act-1", 1);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.data.exerciseTypeKey).toBe("RANDOM_CHECKOUT");
+    expect(sessionRepo.insertExerciseSessionRecord).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        exerciseRulesetVersionId: "erv-rc",
         captureModeId: 3,
         inputModeId: 4,
       }),

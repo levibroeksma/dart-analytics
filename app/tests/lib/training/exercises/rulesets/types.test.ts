@@ -4,6 +4,7 @@ import {
   BullseyeCheckoutV1Config,
   BullUpV1Config,
   CheckoutSequenceV1Config,
+  RandomCheckoutV1Config,
   ScoreThresholdV1Config,
   SwitchingTargetScoringV1Config,
   SwitchingV1Config,
@@ -256,5 +257,49 @@ describe("CheckoutSequenceV1Config", () => {
     expect(
       CheckoutSequenceV1Config.safeParse({ ...VALID, retry: true }).success,
     ).toBe(false);
+  });
+});
+
+describe("RandomCheckoutV1Config", () => {
+  const VALID = { minStart: 40, maxStart: 170, drawSeed: 42 };
+
+  it("accepts the V1 range with a seed at both bounds", () => {
+    for (const drawSeed of [0, 42, 0xffffffff]) {
+      expect(
+        RandomCheckoutV1Config.safeParse({ ...VALID, drawSeed }).success,
+      ).toBe(true);
+    }
+  });
+
+  it("rejects a missing or malformed seed", () => {
+    for (const config of [
+      { minStart: 40, maxStart: 170 },
+      { ...VALID, drawSeed: -1 },
+      { ...VALID, drawSeed: 2 ** 32 },
+      { ...VALID, drawSeed: 1.5 },
+    ]) {
+      expect(RandomCheckoutV1Config.safeParse(config).success).toBe(false);
+    }
+  });
+
+  it("rejects another range — V1 is 40-170 only", () => {
+    for (const config of [
+      { ...VALID, minStart: 2 },
+      { ...VALID, maxStart: 80 },
+    ]) {
+      expect(RandomCheckoutV1Config.safeParse(config).success).toBe(false);
+    }
+  });
+
+  it("rejects extra keys", () => {
+    expect(
+      RandomCheckoutV1Config.safeParse({ ...VALID, retry: true }).success,
+    ).toBe(false);
+  });
+
+  it("is registered under RANDOM_CHECKOUT_V1", () => {
+    expect(EXERCISE_RULESET_CONFIGS.RANDOM_CHECKOUT_V1).toBe(
+      RandomCheckoutV1Config,
+    );
   });
 });

@@ -16,7 +16,8 @@ export type ExerciseRulesetVersionKey =
   | "SCORE_THRESHOLD_V1"
   | "BULLSEYE_CHECKOUT_V1"
   | "BULL_UP_V1"
-  | "CHECKOUT_SEQUENCE_V1";
+  | "CHECKOUT_SEQUENCE_V1"
+  | "RANDOM_CHECKOUT_V1";
 
 /**
  * One timed section of a warm-up. `targets` are board numbers the player
@@ -237,6 +238,23 @@ export type CheckoutSequenceConfigData = z.infer<
   typeof CheckoutSequenceV1Config
 >;
 
+/**
+ * Random Checkout v1: one-visit checkout attempts from a start score drawn
+ * out of `minStart`..`maxStart`
+ * (`docs/game-rules/training/exercises/random-checkout.md`). `drawSeed` is
+ * minted by the server per run and keys every draw (D424); V1 accepts the
+ * 40-170 range only.
+ */
+export const RandomCheckoutV1Config = z
+  .object({
+    minStart: z.literal(40),
+    maxStart: z.literal(170),
+    drawSeed: z.number().int().min(0).max(0xffffffff),
+  })
+  .strict();
+
+export type RandomCheckoutConfigData = z.infer<typeof RandomCheckoutV1Config>;
+
 export const EXERCISE_RULESET_CONFIGS: Record<
   ExerciseRulesetVersionKey,
   z.ZodTypeAny
@@ -250,4 +268,5 @@ export const EXERCISE_RULESET_CONFIGS: Record<
   BULLSEYE_CHECKOUT_V1: BullseyeCheckoutV1Config,
   BULL_UP_V1: BullUpV1Config,
   CHECKOUT_SEQUENCE_V1: CheckoutSequenceV1Config,
+  RANDOM_CHECKOUT_V1: RandomCheckoutV1Config,
 };

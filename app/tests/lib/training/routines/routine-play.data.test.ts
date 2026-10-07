@@ -5,6 +5,25 @@
 // this file's assertions are unaffected.
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
+const boardCommit = vi.hoisted(() => ({
+  onCommit: null as null | ((observation: unknown) => void),
+}));
+
+vi.mock("@lib/game/board-input.data", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@lib/game/board-input.data")>();
+  return {
+    ...actual,
+    boardInputData: (
+      onCommit: Parameters<typeof actual.boardInputData>[0],
+      getTurns: Parameters<typeof actual.boardInputData>[1],
+    ) => {
+      boardCommit.onCommit = onCommit as (observation: unknown) => void;
+      return actual.boardInputData(onCommit, getTurns);
+    },
+  };
+});
+
 vi.mock("@client/api/training-sessions", () => ({
   startTraining: vi.fn(),
   startTrainingStep: vi.fn(),
@@ -1891,6 +1910,163 @@ describe("routinePlay — Catch 40", () => {
     expect(sessionApi.appendBatch).toHaveBeenCalled();
     expect(store.stepSummaries[0]).toMatchObject({
       stepKey: "CHECKOUT_SEQUENCE",
+    });
+  });
+});
+
+const RANDOM_CHECKOUT_STEP = {
+  sequenceNumber: 1,
+  exerciseTypeKey: "RANDOM_CHECKOUT",
+  exerciseRulesetVersionKey: "RANDOM_CHECKOUT_V1",
+  gameTypeKey: null,
+  gameRulesetVersionKey: null,
+  durationSeconds: 600,
+  configuration: { minStart: 40, maxStart: 170, drawSeed: 774 },
+};
+
+describe("routinePlay — Random Checkout", () => {
+  const S20 = {
+    hitTargetNumber: 20,
+    hitZoneKey: "SINGLE" as const,
+    locationX: 0,
+    locationY: -100,
+  };
+  const D20 = {
+    hitTargetNumber: 20,
+    hitZoneKey: "DOUBLE" as const,
+    locationX: 0,
+    locationY: -100,
+  };
+  const D10 = {
+    hitTargetNumber: 10,
+    hitZoneKey: "DOUBLE" as const,
+    locationX: 0,
+    locationY: -100,
+  };
+  const MISS = {
+    hitTargetNumber: null,
+    hitZoneKey: "MISS" as const,
+    locationX: null,
+    locationY: null,
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+    stubAudioContext();
+    Object.defineProperty(globalThis, "location", {
+      value: { href: "" },
+      writable: true,
+      configurable: true,
+    });
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineTemplateId: "rt-1",
+      routineName: "Custom",
+      steps: [RANDOM_CHECKOUT_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "RANDOM_CHECKOUT",
+      configuration: RANDOM_CHECKOUT_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+  });
+  afterEach(() => {
+    vi.clearAllTimers();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it("startCurrentStep() builds the engine and its readouts start at the first draw", async () => {
+    const store = makeStore();
+    await store.init();
+
+    expect(store.randomCheckoutEngine).not.toBeNull();
+    expect(store.randomCheckoutCheckouts()).toBe(0);
+    expect(store.randomCheckoutStart()).toBe(40);
+    expect(store.randomCheckoutLeft()).toBe(40);
+    expect(store.randomCheckoutAttemptDart()).toBe(0);
+    expect(store.randomCheckoutLastResult()).toBe("—");
+    expect(store.randomCheckoutRate()).toBe("—");
+    expect(store.stepRemainingSeconds).toBe(600);
+  });
+
+  it("the readouts follow each dart and each resolved attempt", async () => {
+    const store = makeStore();
+    await store.init();
+
+    store.recordRandomCheckoutDart(S20);
+    expect(store.randomCheckoutLeft()).toBe(20);
+    expect(store.randomCheckoutAttemptDart()).toBe(1);
+
+    store.recordRandomCheckoutDart(D10);
+    expect(store.randomCheckoutCheckouts()).toBe(1);
+    expect(store.randomCheckoutLastResult()).toBe("✓");
+    expect(store.randomCheckoutStart()).toBe(50);
+    expect(store.randomCheckoutRate()).toBe("100.00%");
+
+    [MISS, MISS, MISS].forEach((d) => store.recordRandomCheckoutDart(d));
+    expect(store.randomCheckoutLastResult()).toBe("✗");
+    expect(store.randomCheckoutRate()).toBe("50.00%");
+    expect(store.dartsThrown()).toBe(5);
+  });
+
+  it("previewSegments() marks a dart on the board as hit and off it as miss", async () => {
+    const store = makeStore();
+    await store.init();
+
+    store.recordRandomCheckoutDart(S20);
+    store.recordRandomCheckoutDart(MISS);
+    expect(store.previewSegments()).toEqual([
+      { status: "hit" },
+      { status: "miss" },
+      { status: "empty" },
+    ]);
+  });
+
+  it("routes a committed board dart to the Random Checkout engine", async () => {
+    const store = makeStore();
+    await store.init();
+
+    boardCommit.onCommit!(S20);
+
+    expect(store.randomCheckoutEngine!.state().dartsThrown).toBe(1);
+    expect(store.randomCheckoutLeft()).toBe(20);
+  });
+
+  it("never completes the step on a dart, however many attempts", async () => {
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(sessionApi.appendBatch).mockReset();
+    const store = makeStore();
+    await store.init();
+
+    Array.from({ length: 60 }, () => D20).forEach((d) =>
+      store.recordRandomCheckoutDart(d),
+    );
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(sessionApi.appendBatch).not.toHaveBeenCalled();
+    expect(store.randomCheckoutEngine!.isComplete()).toBe(false);
+  });
+
+  it("the step deadline expires the engine and uploads its darts", async () => {
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(sessionApi.appendBatch).mockResolvedValue(undefined as never);
+    vi.mocked(sessionApi.completeSession).mockResolvedValue(undefined as never);
+    vi.mocked(trainingApi.completeTraining).mockResolvedValue({
+      activityId: "act-1",
+      completedAt: "2026-10-07T12:00:00.000Z",
+    });
+    const store = makeStore();
+    await store.init();
+    store.recordRandomCheckoutDart(S20);
+
+    await vi.advanceTimersByTimeAsync(600_000);
+
+    expect(sessionApi.appendBatch).toHaveBeenCalled();
+    expect(store.stepSummaries[0]).toMatchObject({
+      stepKey: "RANDOM_CHECKOUT",
     });
   });
 });

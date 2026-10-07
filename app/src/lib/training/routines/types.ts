@@ -21,6 +21,7 @@ import type { ScoreThresholdEngine } from "@modules/training/exercises/score-thr
 import type { BullseyeCheckoutEngine } from "@modules/training/exercises/bullseye-checkout.engine.module";
 import type { BullUpEngine } from "@modules/training/exercises/bull-up.engine.module";
 import type { CheckoutSequenceEngine } from "@modules/training/exercises/checkout-sequence.engine.module";
+import type { RandomCheckoutEngine } from "@modules/training/exercises/random-checkout.engine.module";
 import type { DartObservation } from "@modules/types";
 import type { BoardMarker, PreviewSegment } from "@lib/types";
 import type { gameStep } from "./game-step.data";
@@ -75,6 +76,7 @@ export type RoutinePlayContext = {
   bullseyeCheckoutEngine: BullseyeCheckoutEngine | null;
   bullUpEngine: BullUpEngine | null;
   checkoutSequenceEngine: CheckoutSequenceEngine | null;
+  randomCheckoutEngine: RandomCheckoutEngine | null;
   stepTimer: SegmentTimer | null;
   stepRemainingSeconds: number;
   warmUpTimer: SegmentTimer | null;
@@ -166,6 +168,12 @@ export type RoutinePlayContext = {
   checkoutSequenceAttemptDart(this: RoutinePlayContext): number;
   checkoutSequenceLastResult(this: RoutinePlayContext): string;
   checkoutSequenceCheckouts(this: RoutinePlayContext): number;
+  randomCheckoutCheckouts(this: RoutinePlayContext): number;
+  randomCheckoutStart(this: RoutinePlayContext): number;
+  randomCheckoutLeft(this: RoutinePlayContext): number;
+  randomCheckoutAttemptDart(this: RoutinePlayContext): number;
+  randomCheckoutLastResult(this: RoutinePlayContext): string;
+  randomCheckoutRate(this: RoutinePlayContext): string;
   dartsThrown(this: RoutinePlayContext): number;
   activeDartEngine(
     this: RoutinePlayContext,
@@ -178,6 +186,7 @@ export type RoutinePlayContext = {
     | BullseyeCheckoutEngine
     | BullUpEngine
     | CheckoutSequenceEngine
+    | RandomCheckoutEngine
     | null;
   visitMarkers(this: RoutinePlayContext): BoardMarker[];
   previewSegments(this: RoutinePlayContext): PreviewSegment[];
@@ -210,6 +219,10 @@ export type RoutinePlayContext = {
     observation: DartObservation,
   ): void;
   recordCheckoutSequenceDart(
+    this: RoutinePlayContext,
+    observation: DartObservation,
+  ): void;
+  recordRandomCheckoutDart(
     this: RoutinePlayContext,
     observation: DartObservation,
   ): void;

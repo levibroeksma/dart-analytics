@@ -1,4 +1,4 @@
-import { generateId } from "@lib/id";
+import { generateDrawSeed, generateId } from "@lib/id";
 import { getDb, withTransaction } from "@db/client";
 import {
   findActiveSessionForExerciseType,
@@ -50,6 +50,7 @@ import type {
  * the one step kind `stepConfigurationIssues` has no validator to apply.
  */
 const GAME_EXERCISE_TYPE_KEY = "GAME";
+const RANDOM_CHECKOUT_TYPE_KEY = "RANDOM_CHECKOUT";
 
 function durationSecondsFor(
   durationTypeKey: string,
@@ -86,6 +87,18 @@ function injectGameStepDuration(
     configuration,
     row.durationValue,
   );
+}
+
+/**
+ * A RANDOM_CHECKOUT step's draw seed is minted per run and overwrites any
+ * template or step value, so no saved routine can fix the draws (D424).
+ */
+function injectDrawSeed(
+  row: RoutineStepTemplateRow,
+  configuration: Record<string, unknown>,
+): void {
+  if (row.exerciseTypeKey !== RANDOM_CHECKOUT_TYPE_KEY) return;
+  configuration.drawSeed = generateDrawSeed();
 }
 
 /**
@@ -211,6 +224,7 @@ export async function startTraining(
   for (const row of resolved.steps) {
     const configuration = mergedConfiguration(row);
     injectGameStepDuration(row, configuration);
+    injectDrawSeed(row, configuration);
     const issues = stepConfigurationIssues(row, configuration);
     if (issues) invalid.push({ sequenceNumber: row.sequenceNumber, issues });
     steps.push(resolveStep(row, configuration));
@@ -447,6 +461,7 @@ const DART_EXERCISE_TYPE_KEYS = new Set([
   "BULLSEYE_CHECKOUT",
   "BULL_UP",
   "CHECKOUT_SEQUENCE",
+  "RANDOM_CHECKOUT",
 ]);
 
 type NonGameReferences = {
