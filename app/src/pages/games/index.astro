@@ -46,7 +46,8 @@ import DartIcon from "@icons/dart.svg";
               {group.games.map((game) => (
                 <div
                   x-show={`isVisible('${game.rulesetVersionKey}')`}
-                  x-cloak:class={`isFirstVisible('${group.key}', '${game.rulesetVersionKey}') ? '' : 'border-t border-border'`}
+                  x-cloak
+                  x-bind:class={`isFirstVisible('${group.key}', '${game.rulesetVersionKey}') ? '' : 'border-t border-border'`}
                 >
                   <GameRow
                     href={game.href}
