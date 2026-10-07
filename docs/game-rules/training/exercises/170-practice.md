@@ -111,7 +111,7 @@ questions.
 - **One dart's fact:** one `darts` row per throw. Darts 1 and 2: intended
   target 20, intended zone `TREBLE`. Dart 3: intended target 25, intended
   zone `INNER_BULL`. Both keys exist in `DartZoneKey`
-  (`app/src/modules/game/types.ts:349`); a set target needs a set zone
+  (`app/src/modules/game/types.ts:383`); a set target needs a set zone
   (`chk_dart_target_consistency`, `database/migrations/0007_constraints.sql:86`).
   Hit number and hit zone record where it landed. `score` is the dart's
   **board** score (`appendObservedDart`,
