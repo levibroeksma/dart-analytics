@@ -22,21 +22,19 @@ const { class: classNameProp, ...props }: Props = Astro.props;
 // Components
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
 
-// Icons
-import CheckIcon from "@icons/check.svg";
-
 // Lib
 import { cn } from "@client/cn";
 
 // Styles
 const className = cn(
-  "bg-tab-card border-tab-border rounded-3xl border p-3 space-y-4",
+  "glass flex flex-col gap-4 rounded-2xl p-4 shadow-none",
   classNameProp,
 );
+const eyebrowClass =
+  "px-0.5 font-mono text-[10px]/[normal] font-semibold tracking-[0.12em] text-muted-foreground";
+const trackClass = "field-inset grid grid-cols-2 gap-1 rounded-full p-1";
 const optionClass =
-  "flex-1 rounded-lg border px-4 py-3 text-left transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-40";
-const checkClass =
-  "size-5 shrink-0 text-accent transition-opacity duration-150";
+  "flex h-10 items-center justify-center rounded-full text-[13px]/[normal] font-semibold transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-40";
 ---
 
 <section
@@ -44,25 +42,27 @@ const checkClass =
   aria-labelledby="app-mode-heading"
   {...props}
 >
-  <div>
+  <div class="flex flex-col gap-2">
     <h2
       id="app-mode-heading"
-      class="text-lg font-semibold text-foreground"
+      class="font-display text-[13px]/[normal] tracking-[0.06em]"
     >
       App mode
     </h2>
-    <p class="mt-1.5 text-xs text-muted-foreground italic">
+    <p class="text-xs/[1.5] text-pretty text-muted">
       Analytics tracks every dart for in-depth statistics and focused
       improvements to your game. Recreational just logs a visit total.
     </p>
   </div>
 
   <div
+    class="flex flex-col gap-2"
     x-show="!$store.settings.loading"
     x-cloak
   >
+    <span class={eyebrowClass}>MODE</span>
     <div
-      class="flex gap-2"
+      class={trackClass}
       role="radiogroup"
       aria-labelledby="app-mode-heading"
       x-data="{
@@ -78,7 +78,7 @@ const checkClass =
         role="radio"
         x-ref="quickScoreOption"
         class={optionClass}
-        :class="$store.settings.inputModeKey === 'QUICK_SCORE' ? 'border-accent bg-accent-muted' : 'border-border'"
+        :class="$store.settings.inputModeKey === 'QUICK_SCORE' ? 'accent-orb text-foreground' : 'text-muted-foreground'"
         :aria-checked="$store.settings.inputModeKey === 'QUICK_SCORE'"
         :tabindex="$store.settings.inputModeKey === 'VISUAL_BOARD' ? -1 : 0"
         :disabled="$store.settings.loading"
@@ -88,16 +88,7 @@ const checkClass =
         @keydown.arrow-right.prevent="selectOther('ANALYTICS', 'VISUAL_BOARD', 'analyticsOption')"
         @keydown.arrow-down.prevent="selectOther('ANALYTICS', 'VISUAL_BOARD', 'analyticsOption')"
       >
-        <span class="flex items-center justify-between gap-3">
-          <span class="block text-sm font-semibold text-foreground">
-            Quick score
-          </span>
-          <CheckIcon
-            class={checkClass}
-            :class="$store.settings.inputModeKey === 'QUICK_SCORE' ? 'opacity-100' : 'opacity-0'"
-            aria-hidden="true"
-          />
-        </span>
+        Quick score
       </button>
 
       <button
@@ -105,7 +96,7 @@ const checkClass =
         role="radio"
         x-ref="analyticsOption"
         class={optionClass}
-        :class="$store.settings.inputModeKey === 'VISUAL_BOARD' ? 'border-accent bg-accent-muted' : 'border-border'"
+        :class="$store.settings.inputModeKey === 'VISUAL_BOARD' ? 'accent-orb text-foreground' : 'text-muted-foreground'"
         :aria-checked="$store.settings.inputModeKey === 'VISUAL_BOARD'"
         :tabindex="$store.settings.inputModeKey === 'VISUAL_BOARD' ? 0 : -1"
         :disabled="$store.settings.loading"
@@ -115,31 +106,21 @@ const checkClass =
         @keydown.arrow-right.prevent="selectOther('RECREATIONAL', 'QUICK_SCORE', 'quickScoreOption')"
         @keydown.arrow-down.prevent="selectOther('RECREATIONAL', 'QUICK_SCORE', 'quickScoreOption')"
       >
-        <span class="flex items-center justify-between gap-3">
-          <span class="block text-sm font-semibold text-foreground">
-            Analytics
-          </span>
-          <CheckIcon
-            class={checkClass}
-            :class="$store.settings.inputModeKey === 'VISUAL_BOARD' ? 'opacity-100' : 'opacity-0'"
-            aria-hidden="true"
-          />
-        </span>
+        Analytics
       </button>
     </div>
   </div>
 
   <div
-    class="flex gap-2"
+    class="flex flex-col gap-2"
     x-show="$store.settings.loading"
     x-cloak
     aria-hidden="true"
   >
-    <div class="flex-1 animate-pulse rounded-lg border border-border px-4 py-3">
-      <div class="h-4 w-16 rounded bg-surface-raised"></div>
-    </div>
-    <div class="flex-1 animate-pulse rounded-lg border border-border px-4 py-3">
-      <div class="h-4 w-16 rounded bg-surface-raised"></div>
+    <span class={eyebrowClass}>MODE</span>
+    <div class={trackClass}>
+      <div class="h-10 animate-pulse rounded-full bg-surface-raised"></div>
+      <div class="h-10 animate-pulse rounded-full bg-surface-raised"></div>
     </div>
   </div>
 
