@@ -112,6 +112,8 @@ export type TrainingWeekContext = {
   completions: TrainingCompletionListData["items"];
   today: number;
   init(this: TrainingWeekContext): Promise<void>;
+  /** Adopts the schedule the edit modal just saved (its `schedule-saved` event). */
+  applySaved(this: TrainingWeekContext, schedule: ScheduleData): void;
   status(this: TrainingWeekContext, index: number): DayStatus;
   /** The strip circle's size, fill, border and text classes for the day's status. */
   dayClass(this: TrainingWeekContext, index: number): string;
