@@ -39,6 +39,7 @@ import { schedulesIndex } from "@lib/training/schedules/schedules-index.data";
 import { scheduleEditor } from "@lib/training/schedules/schedule-editor.data";
 import { myScheduleForm } from "@lib/training/schedules/my-schedule.data";
 import { homeWeek } from "@lib/training/schedules/home-week.data";
+import { trainingWeek } from "@lib/training/schedules/training-week.data";
 import { homeSnapshot } from "@lib/home/home-snapshot.data";
 import { profileSnapshot } from "@lib/profile/profile-snapshot.data";
 
@@ -83,6 +84,7 @@ export function registerRouteData(Alpine: Alpine) {
   Alpine.data("scheduleEditor", scheduleEditor);
   Alpine.data("myScheduleForm", myScheduleForm);
   Alpine.data("homeWeek", homeWeek);
+  Alpine.data("trainingWeek", trainingWeek);
   Alpine.data("homeSnapshot", homeSnapshot);
   Alpine.data("profileSnapshot", profileSnapshot);
 }
