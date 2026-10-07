@@ -18,6 +18,7 @@ import { scheduleEditor } from "@lib/training/schedules/schedule-editor.data";
 import { myScheduleForm } from "@lib/training/schedules/my-schedule.data";
 import { homeWeek } from "@lib/training/schedules/home-week.data";
 import { homeSnapshot } from "@lib/home/home-snapshot.data";
+import { profileSnapshot } from "@lib/profile/profile-snapshot.data";
 import { cricketSetup } from "@lib/game/cricket-setup.data";
 import { cricketPlay } from "@lib/game/cricket-play.data";
 import { tacticsSetup } from "@lib/game/tactics-setup.data";
@@ -122,5 +123,11 @@ describe("registerRouteData", () => {
     const data = vi.fn();
     registerRouteData({ data } as unknown as Alpine);
     expect(data).toHaveBeenCalledWith("homeSnapshot", homeSnapshot);
+  });
+
+  it("registers profileSnapshot as an Alpine data factory", () => {
+    const data = vi.fn();
+    registerRouteData({ data } as unknown as Alpine);
+    expect(data).toHaveBeenCalledWith("profileSnapshot", profileSnapshot);
   });
 });
