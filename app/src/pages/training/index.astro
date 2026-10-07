@@ -59,7 +59,7 @@ import PlusIcon from "@icons/plus.svg";
     <span class="section-eyebrow pt-2.5">PERSONAL ROUTINES</span>
     <div
       class="glass flex flex-col rounded-2xl px-4 shadow-none"
-      x-show="personalRoutines().length"
+      x-show="!loading"
       x-cloak
     >
       <template
@@ -68,35 +68,36 @@ import PlusIcon from "@icons/plus.svg";
       >
         <RoutineRow />
       </template>
-    </div>
-    <div
-      class="glass flex items-center justify-between gap-3 rounded-2xl p-4 shadow-none"
-      x-show="!loading && !personalRoutines().length"
-      x-cloak
-    >
-      <p class="text-xs/normal text-pretty text-muted">
-        No custom routines yet. Build one from any game or drill.
-      </p>
-      <button
-        type="button"
-        class="glass-button flex size-11 shrink-0 items-center justify-center rounded-full text-foreground"
-        aria-label="Create routine"
-        @click="showModal = true"
+      <div
+        class="flex items-center justify-between gap-3 py-4"
+        :class="personalRoutines().length ? 'border-t border-border' : ''"
       >
-        <PlusIcon
-          class="size-4"
-          aria-hidden="true"
-        />
-      </button>
+        <p
+          class="text-xs/normal text-pretty text-muted"
+          x-text="personalRoutines().length ? 'Build another from any game or drill.' : 'No custom routines yet. Build one from any game or drill.'"
+        >
+        </p>
+        <button
+          type="button"
+          class="glass-button flex size-11 shrink-0 items-center justify-center rounded-full text-foreground"
+          aria-label="Create routine"
+          @click="showModal = true"
+        >
+          <PlusIcon
+            class="size-4"
+            aria-hidden="true"
+          />
+        </button>
+      </div>
     </div>
 
     <span class="section-eyebrow pt-2.5">TRIVIA</span>
     <a
       href="/training/quick-subtract"
-      class="glass flex items-center gap-3 rounded-2xl p-4 shadow-none"
+      class="glass flex items-center gap-3 rounded-2xl p-4 text-foreground shadow-none"
     >
       <div class="flex min-w-0 flex-1 flex-col gap-1.5">
-        <span class="font-display text-[13px] tracking-[0.06em]">
+        <span class="font-display text-[13px]/[normal] tracking-[0.06em]">
           Quick Subtract
         </span>
         <span class="text-xs/normal text-pretty text-muted">
@@ -112,6 +113,7 @@ import PlusIcon from "@icons/plus.svg";
     <RoutineFormModal
       mode="create"
       openExpr="showModal"
+      detached
     />
     <ScheduleFormModal openExpr="showScheduleModal" />
   </div>

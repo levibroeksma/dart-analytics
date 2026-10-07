@@ -16,19 +16,21 @@ import PlayIcon from "@icons/play-rounded.svg";
   x-cloak
 >
   <div class="flex min-w-0 flex-1 flex-col gap-1">
-    <span class="font-mono text-[10px] font-semibold tracking-[0.14em]">
+    <span
+      class="font-mono text-[10px]/[normal] font-semibold tracking-[0.14em]"
+    >
       IN PROGRESS
     </span>
     <span
-      class="font-display text-base"
+      class="font-display text-base/[normal]"
       x-text="activeSession?.title"
     ></span>
-    <span class="text-xs text-accent-foreground-muted">
+    <span class="text-xs/[normal] text-accent-foreground-muted">
       vs Dartbot · Leg 3 of 5 · 141 to go
     </span>
   </div>
   <a
-    class="glass-button flex h-10 shrink-0 items-center gap-1.5 rounded-xl px-4 text-sm font-semibold"
+    class="glass-button flex h-10 shrink-0 items-center gap-1.5 rounded-xl px-4 text-sm font-semibold text-foreground"
     :href="activeSession?.href"
   >
     <PlayIcon

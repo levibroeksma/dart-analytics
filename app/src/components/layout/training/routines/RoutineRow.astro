@@ -17,13 +17,13 @@ import PlayIcon from "@icons/play-rounded.svg";
 >
   <div class="flex min-w-0 flex-1 flex-col gap-1.5">
     <a
-      class="font-display text-sm"
+      class="font-display text-sm text-foreground"
       :href="detailHref(routine)"
       x-text="routine.routineName"
     ></a>
     <div class="flex flex-wrap gap-1.5">
       <span
-        class="rounded-md bg-white/7 px-[7px] py-0.5 font-mono text-[10px] font-semibold text-chip-foreground"
+        class="rounded-md bg-white/7 px-[7px] py-0.5 font-mono text-[10px]/[normal] font-semibold text-chip-foreground"
         x-text="durationLabel(routine).toUpperCase()"
       ></span>
     </div>
