@@ -1,6 +1,6 @@
 # Home redesign (static pass) — design
 
-**Date:** 2026-10-07 · **Status:** approved · **Branch:** `feat/home-redesign` · **Decision:** to be recorded in `decisions/frontend/` at completion
+**Date:** 2026-10-07 · **Status:** implemented · **Branch:** `feat/home-redesign` · **Decision:** D424 (`decisions/frontend/style.md`)
 
 Source design: Claude Design project `cdea52ee-4746-4efb-b646-81448a40c033`,
 `Darts Home.dc.html`, options 2a (game in progress), 2b (training done),

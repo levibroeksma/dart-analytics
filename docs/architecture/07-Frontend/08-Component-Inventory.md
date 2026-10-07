@@ -160,8 +160,13 @@ that split (2026-09-19, closes issue #423).
 
 | Component | Purpose | Key props |
 | --------- | ------- | --------- |
-| `WeekdayStrip.astro` | Homepage row of seven day-initial circles, one flex line (`justify-between`), below the intro text. An inline `:class` ternary on `homeWeek()`'s `isToday(index)`/`hasRoutine(index)`: today at `scale-110` in accent (filled `bg-accent` when it has a routine, border only when not); other days muted (filled `bg-muted` when they have a routine, border only when not). Letters come from `weekdayNames()` (build time) (2026-09-22) | none — reads `homeWeek()` from the parent scope |
-| `TodayRoutineCard.astro` | Homepage card for today's scheduled routine, below `WeekdayStrip`: while not completed today, "Today · <schedule name>" with a Schedules link, routine name, minutes badge and a `Start` button (`start()`), or "Rest day" with no button on a day without a routine; once done, a "You're on fire" state with a flame icon; nothing with no active schedule. Replaces the former `/training` `TodayCard` (2026-09-23) | none — reads `homeWeek()` from the parent scope |
+| `HomeHero.astro` | Homepage hero stat: mono eyebrow, `font-display text-7xl` value, "Up <delta> in the <window>" with the delta in accent (2026-10-07) | none — reads `homeSnapshot()` from the parent scope |
+| `ResumeGameCard.astro` | Accent-gradient (`home-feature-card`) card for the in-progress game: game, detail, remaining "TO GO", a `glass-raised` Resume `Button` with `play-rounded` calling `resumeGame()`. Always shown in the static pass (2026-10-07) | none — reads `homeSnapshot()` from the parent scope |
+| `CareerTiles.astro` | Three-column grid of `glass` tiles: mono key, display value, muted hint (2026-10-07) | none — reads `homeSnapshot()` from the parent scope |
+| `DailyAverageCard.astro` | `glass` card of seven CSS bars sized by `bars[].height`, peak days in `bg-accent`, others `bg-accent/35`, `PEAK` value in the header; no Chart.js (2026-10-07) | none — reads `homeSnapshot()` from the parent scope |
+| `LandingHeatmapCard.astro` | "Where you land" `glass` card around `StatsDensityHeatmap` fed `landing.stamps` (2026-10-07) | none — reads `homeSnapshot()` from the parent scope |
+| `WeekdayStrip.astro` | Row of seven day-initial circles inside `TodayRoutineCard`. Today `size-10.5` with the `home-day-today` accent glow ring; a day with a routine `border-white/50`; a rest day `border-border` muted. Letters from `weekdayNames()` (2026-09-22; restyled 2026-10-07) | none — reads `homeWeek()` from the parent scope |
+| `TodayRoutineCard.astro` | Homepage "Weekly plan" card: while today's routine is not done, the routine name and minutes (or "Rest day") linking to `/training/schedules`, a round `glass-raised` play `Button` (`start()`), then the default slot (`WeekdayStrip`). Once done, a `home-feature-card` "COMPLETED · You're on fire!" state. Nothing with no active schedule (2026-09-23; restyled 2026-10-07) | default slot (weekday strip) — reads `homeWeek()` from the parent scope |
 
 ## `components/layout/statistics/`
 

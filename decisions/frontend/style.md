@@ -122,3 +122,10 @@ Decision: the D418 cross-document view transitions are removed in full: the `@vi
 Reason: the transitions looked poor and were buggy. Their `view-transition-name`s also made `main` and the nav backdrop roots in Chromium, so glass inside them could not blur the page background.
 Consequences: tab navigation is instant in every browser.
 Supersedes: D418.
+
+### D424 — Homepage redesign, static pass behind `homeSnapshot()`
+Status: Accepted · Date: 2026-10-07
+Decision: the home page follows the Claude Design "Darts Home" mock. It has a hero stat, a resume card, career tiles, a daily-average bar card, the weekly plan and a "Where you land" heatmap. The stat sections bind to `homeSnapshot()` (`lib/home/home-snapshot.data.ts`), a fixture-only Alpine factory whose returned shape is the contract for the later data pass. The weekly plan stays live on `homeWeek()`, restyled. Display values use Michroma (`font-display`), per the design. Bars are plain CSS, not Chart.js. The heatmap reuses `StatsDensityHeatmap` through `heatStamps()`. `LogoutButton` moves to `/profile`. The design's colours that no token covered became `--accent-deep`, `.home-feature-card` and `.home-day-today`.
+Reason: ship the redesign now without blocking on new views. A single factory seam means the data pass swaps internals, not markup.
+Consequences: home shows sample numbers and an always-visible resume card linking to `/games` until the data pass. Per-day done/missed markers and the weekly "2 of 4" ring are deferred, because they need weekly completion history. `.astro`/CSS carry no unit test (D101); `homeSnapshot()` derivations are tested.
+Supersedes: none.
