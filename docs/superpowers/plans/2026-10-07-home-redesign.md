@@ -896,7 +896,7 @@ git commit -m "feat(profile): host logout button"
 
 **Files:**
 - Modify: `docs/architecture/07-Frontend/08-Component-Inventory.md` (`components/layout/home/` table)
-- Modify: `decisions/frontend/style.md` (append D424)
+- Modify: `decisions/frontend/style.md` (append D425)
 - Modify: `docs/superpowers/specs/2026-10-07-home-redesign-design.md` (Status → implemented)
 
 - [ ] **Step 1: Inventory rows**
@@ -913,12 +913,12 @@ Replace the two existing rows and add five, all dated 2026-10-07:
 | `TodayRoutineCard.astro` | Homepage "Weekly plan" card: while today's routine is not done, the routine name and minutes (or "Rest day") linking to `/training/schedules`, a round `glass-raised` play `Button` (`start()`), then the default slot (`WeekdayStrip`). Once done, a `home-feature-card` "COMPLETED · You're on fire!" state. Nothing with no active schedule (2026-09-23; restyled 2026-10-07) | default slot (weekday strip) — reads `homeWeek()` from the parent scope |
 ```
 
-- [ ] **Step 2: Decision D424**
+- [ ] **Step 2: Decision D425**
 
 Append to `decisions/frontend/style.md`:
 
 ```markdown
-### D424 — Homepage redesign, static pass behind `homeSnapshot()`
+### D425 — Homepage redesign, static pass behind `homeSnapshot()`
 Status: Accepted · Date: 2026-10-07
 Decision: the home page follows the Claude Design "Darts Home" mock. It has a hero stat, a resume card, career tiles, a daily-average bar card, the weekly plan and a "Where you land" heatmap. The stat sections bind to `homeSnapshot()` (`lib/home/home-snapshot.data.ts`), a fixture-only Alpine factory whose returned shape is the contract for the later data pass. The weekly plan stays live on `homeWeek()`, restyled. Display values use Michroma (`font-display`), per the design. Bars are plain CSS, not Chart.js. The heatmap reuses `StatsDensityHeatmap` through `heatStamps()`. `LogoutButton` moves to `/profile`. The design's colours that no token covered became `--accent-deep`, `.home-feature-card` and `.home-day-today`.
 Reason: ship the redesign now without blocking on new views. A single factory seam means the data pass swaps internals, not markup.
@@ -928,11 +928,11 @@ Supersedes: none.
 
 - [ ] **Step 3: Spec status**
 
-In the spec header change `**Status:** approved` → `**Status:** implemented` and `to be recorded in decisions/frontend/ at completion` → `D424 (decisions/frontend/style.md)`.
+In the spec header change `**Status:** approved` → `**Status:** implemented` and `to be recorded in decisions/frontend/ at completion` → `D425 (decisions/frontend/style.md)`.
 
 - [ ] **Step 4: Capture deferred work**
 
-Per `capturing-discovered-work`: open one GitHub issue (`discovered-work` label), "Home: wire homeSnapshot to real data + weekly done/missed markers", citing D424.
+Per `capturing-discovered-work`: open one GitHub issue (`discovered-work` label), "Home: wire homeSnapshot to real data + weekly done/missed markers", citing D425.
 
 - [ ] **Step 5: Run context-maintenance and gates**
 
@@ -942,7 +942,7 @@ Run the `context-maintenance` skill (map, CLAUDE.md, graph), then the `run-all-g
 
 ```bash
 git add docs decisions
-git commit -m "docs(home): inventory, D424, spec status"
+git commit -m "docs(home): inventory, D425, spec status"
 ```
 
 - [ ] **Step 7: Finish**
