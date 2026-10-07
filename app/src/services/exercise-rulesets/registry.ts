@@ -8,6 +8,7 @@ import { switchingTargetScoringValidator } from "./switching-target-scoring/swit
 import { bullseyeCheckoutValidator } from "./bullseye-checkout/bullseye-checkout.validator";
 import { bullUpValidator } from "./bull-up/bull-up.validator";
 import { checkoutSequenceValidator } from "./checkout-sequence/checkout-sequence.validator";
+import { randomCheckoutValidator } from "./random-checkout/random-checkout.validator";
 
 const REGISTRY: Record<string, ExerciseRulesetValidator> = {
   WARM_UP_V1: warmUpValidator,
@@ -19,6 +20,7 @@ const REGISTRY: Record<string, ExerciseRulesetValidator> = {
   BULLSEYE_CHECKOUT_V1: bullseyeCheckoutValidator,
   BULL_UP_V1: bullUpValidator,
   CHECKOUT_SEQUENCE_V1: checkoutSequenceValidator,
+  RANDOM_CHECKOUT_V1: randomCheckoutValidator,
 };
 
 export function getExerciseRulesetValidator(
@@ -43,6 +45,7 @@ const DART_WRITING_RULESET_VERSION_KEYS = new Set([
   "BULLSEYE_CHECKOUT_V1",
   "BULL_UP_V1",
   "CHECKOUT_SEQUENCE_V1",
+  "RANDOM_CHECKOUT_V1",
 ]);
 
 export function exerciseRulesetWritesDarts(

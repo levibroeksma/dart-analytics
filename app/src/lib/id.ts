@@ -25,3 +25,11 @@ export function generateId(): string {
 export function generateBotSeed(): number {
   return crypto.getRandomValues(new Uint32Array(1))[0];
 }
+
+/**
+ * Generates a 32-bit unsigned integer seed for a Random Checkout run's start
+ * score draws (D424). Same Web Crypto source as `generateBotSeed()`.
+ */
+export function generateDrawSeed(): number {
+  return crypto.getRandomValues(new Uint32Array(1))[0];
+}

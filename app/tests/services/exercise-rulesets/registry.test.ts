@@ -15,6 +15,7 @@ import { switchingTargetScoringValidator } from "@services/exercise-rulesets/swi
 import { bullseyeCheckoutValidator } from "@services/exercise-rulesets/bullseye-checkout/bullseye-checkout.validator";
 import { bullUpValidator } from "@services/exercise-rulesets/bull-up/bull-up.validator";
 import { checkoutSequenceValidator } from "@services/exercise-rulesets/checkout-sequence/checkout-sequence.validator";
+import { randomCheckoutValidator } from "@services/exercise-rulesets/random-checkout/random-checkout.validator";
 
 describe("getExerciseRulesetValidator", () => {
   it("resolves WARM_UP_V1", () => {
@@ -67,6 +68,12 @@ describe("getExerciseRulesetValidator", () => {
     );
   });
 
+  it("resolves RANDOM_CHECKOUT_V1", () => {
+    expect(getExerciseRulesetValidator("RANDOM_CHECKOUT_V1")).toBe(
+      randomCheckoutValidator,
+    );
+  });
+
   it("returns undefined for a game ruleset key", () => {
     expect(getExerciseRulesetValidator("501_V1")).toBeUndefined();
   });
@@ -84,6 +91,7 @@ describe("exerciseRulesetWritesDarts", () => {
     expect(exerciseRulesetWritesDarts("BULLSEYE_CHECKOUT_V1")).toBe(true);
     expect(exerciseRulesetWritesDarts("BULL_UP_V1")).toBe(true);
     expect(exerciseRulesetWritesDarts("CHECKOUT_SEQUENCE_V1")).toBe(true);
+    expect(exerciseRulesetWritesDarts("RANDOM_CHECKOUT_V1")).toBe(true);
   });
 
   it("is false for Warm-Up, which records no dart", () => {
