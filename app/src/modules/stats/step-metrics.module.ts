@@ -70,6 +70,12 @@ export const STEP_METRIC_SPECS: Readonly<
     direction: "higher",
     rates: [["checkouts", "attempts"]],
   },
+  RANDOM_CHECKOUT: {
+    metrics: { checkouts: "sum", attempts: "sum", darts: "sum" },
+    headline: "checkouts",
+    direction: "higher",
+    rates: [["checkouts", "attempts"]],
+  },
 };
 
 /**
@@ -171,6 +177,12 @@ export function stepMetrics(
     case "CHECKOUT_SEQUENCE":
       return {
         points: numberField(state, "points", kind),
+        checkouts: numberField(state, "checkouts", kind),
+        attempts: numberField(state, "attempts", kind),
+        darts: numberField(state, "dartsThrown", kind),
+      };
+    case "RANDOM_CHECKOUT":
+      return {
         checkouts: numberField(state, "checkouts", kind),
         attempts: numberField(state, "attempts", kind),
         darts: numberField(state, "dartsThrown", kind),

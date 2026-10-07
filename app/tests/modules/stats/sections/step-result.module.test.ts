@@ -173,6 +173,34 @@ describe("foldStepResult", () => {
     expect(result.skippedSessions).toBe(0);
   });
 
+  it("replays a Random Checkout session's attempts from its seeded draws", () => {
+    const randomCheckout = (
+      turnSequence: number,
+      hitTargetNumber: number,
+      hitZoneKey: DartZoneKey,
+      score: number,
+    ) =>
+      dartRow({
+        sessionId: "rc",
+        exerciseRulesetVersionKey: "RANDOM_CHECKOUT_V1",
+        configuration: { minStart: 40, maxStart: 170, drawSeed: 774 },
+        turnSequence,
+        dartNumber: 1,
+        hitTargetNumber,
+        hitZoneKey,
+        score,
+      });
+
+    const result = foldStepResult("RANDOM_CHECKOUT", [
+      randomCheckout(1, 20, "DOUBLE", 40),
+      randomCheckout(2, 20, "SINGLE", 20),
+    ]);
+
+    expect(result.metrics).toEqual({ checkouts: 1, attempts: 1, darts: 2 });
+    expect(result.sessions).toBe(1);
+    expect(result.skippedSessions).toBe(0);
+  });
+
   it("replays a two-stage session in stage pre-order, never interleaving the stages' turns", () => {
     const ROOT = "01900000-0000-7000-9000-0000000000a1";
     const CHILD = "01900000-0000-7000-9000-0000000000a2";

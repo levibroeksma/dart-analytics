@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { foldReplay } from "@lib/stats/replay-fold";
-import { playSwitching } from "./replay-step-games";
+import { playExerciseKind, playSwitching } from "./replay-step-games";
 
 /**
  * `foldReplay`'s non-game step path (phase 6b plan decision 11, R9): a new
@@ -64,6 +64,29 @@ describe("foldReplay (non-game routine steps)", () => {
 
     const fold = foldReplay(
       { ...header, configuration: { targets: [] } },
+      turns,
+    );
+
+    expect(fold).toEqual({ ok: false, reason: "ENGINE_THREW" });
+  });
+
+  it("rebuilds each Random Checkout attempt's start score from the snapshot's draw seed", () => {
+    const { header, turns, finalState } = playExerciseKind("RANDOM_CHECKOUT");
+
+    const fold = foldReplay(header, turns);
+
+    expect(fold.ok).toBe(true);
+    if (!fold.ok) return;
+    expect(fold.stateAfter(0)).toMatchObject({ startScore: 50, checkouts: 1 });
+    expect(fold.stateAfter(1)).toMatchObject({ startScore: 52, attempts: 2 });
+    expect(fold.stateAfter(turns.length - 1)).toEqual(finalState);
+  });
+
+  it("skips a Random Checkout replay whose snapshot has no draw seed", () => {
+    const { header, turns } = playExerciseKind("RANDOM_CHECKOUT");
+
+    const fold = foldReplay(
+      { ...header, configuration: { minStart: 40, maxStart: 170 } },
       turns,
     );
 

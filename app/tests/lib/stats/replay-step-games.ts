@@ -1,5 +1,6 @@
 import { bullUpEngineFactory } from "@modules/training/exercises/bull-up.engine.module";
 import { checkoutSequenceEngineFactory } from "@modules/training/exercises/checkout-sequence.engine.module";
+import { randomCheckoutEngineFactory } from "@modules/training/exercises/random-checkout.engine.module";
 import { bullseyeCheckoutEngineFactory } from "@modules/training/exercises/bullseye-checkout.engine.module";
 import { doublePatternEngineFactory } from "@modules/training/exercises/double-pattern.engine.module";
 import { scoreThresholdEngineFactory } from "@modules/training/exercises/score-threshold.engine.module";
@@ -131,7 +132,7 @@ type AnyDartExerciseEngineFactory = DartExerciseEngineFactory<unknown, unknown>;
  * Every `STEP_METRIC_SPECS` kind's own scripted run: the same
  * config/darts pairs `routine-summary-engines.module.test.ts` plays
  * through the real engine (a proven-correct fixture, reused here rather
- * than invented afresh), so a coupling test can drive all eight kinds
+ * than invented afresh), so a coupling test can drive all nine kinds
  * through the real engine without hand-picking new darts per kind.
  */
 const EXERCISE_FIXTURES: Record<
@@ -247,12 +248,24 @@ const EXERCISE_FIXTURES: Record<
       dart(20, "SINGLE"),
     ],
   },
+  RANDOM_CHECKOUT: {
+    rulesetKey: "RANDOM_CHECKOUT_V1",
+    factory: randomCheckoutEngineFactory,
+    config: { minStart: 40, maxStart: 170, drawSeed: 774 },
+    darts: [
+      dart(20, "DOUBLE"),
+      dart(null, "MISS"),
+      dart(null, "MISS"),
+      dart(null, "MISS"),
+      dart(20, "SINGLE"),
+    ],
+  },
 };
 
 /**
  * `kind`'s own scripted run, played through its real engine and converted
  * to the wire shape the replay route would have served for it (mirrors
- * `playSwitching`, generalized over all eight `STEP_METRIC_SPECS` kinds).
+ * `playSwitching`, generalized over all nine `STEP_METRIC_SPECS` kinds).
  */
 export function playExerciseKind(kind: DartExerciseKind) {
   const fixture = EXERCISE_FIXTURES[kind];
