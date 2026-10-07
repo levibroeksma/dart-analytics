@@ -1,0 +1,69 @@
+import { getActiveSchedule } from "@client/api/schedules";
+import { listTrainingCompletions } from "@client/api/training-sessions";
+import {
+  dayStatus,
+  isoWeekday,
+  startOfIsoWeek,
+  weekCounts,
+  weekdayNames,
+} from "./today";
+import type {
+  ScheduleData,
+  TrainingCompletionListData,
+} from "@client/api/types";
+import type { TrainingWeekContext } from "./types";
+
+const WEEKDAYS = weekdayNames();
+
+/**
+ * `/training`'s "My schedule" card: the active schedule and this ISO week's
+ * completions, read into a per-day status (done, missed, today, scheduled,
+ * rest) and the week's done/missed/to-go totals. A failed read falls back to
+ * no schedule.
+ */
+export function trainingWeek() {
+  const now = new Date();
+  return {
+    loading: true,
+    schedule: null as ScheduleData | null,
+    completions: [] as TrainingCompletionListData["items"],
+    today: isoWeekday(now) - 1,
+
+    async init(this: TrainingWeekContext) {
+      this.loading = true;
+      try {
+        const [schedule, completions] = await Promise.all([
+          getActiveSchedule(),
+          listTrainingCompletions(startOfIsoWeek(now).toISOString()),
+        ]);
+        this.schedule = schedule;
+        this.completions = completions.items;
+      } catch {
+        this.schedule = null;
+        this.completions = [];
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    status(this: TrainingWeekContext, index: number) {
+      return dayStatus(index, this.today, this.schedule, this.completions);
+    },
+
+    counts(this: TrainingWeekContext) {
+      return weekCounts(this.today, this.schedule, this.completions);
+    },
+
+    hasSchedule(this: TrainingWeekContext) {
+      return this.schedule !== null;
+    },
+
+    letter(index: number) {
+      return (WEEKDAYS[index] ?? "").charAt(0).toLowerCase();
+    },
+
+    dayLabel(this: TrainingWeekContext, index: number) {
+      return `${WEEKDAYS[index] ?? ""}, ${this.status(index)}`;
+    },
+  };
+}

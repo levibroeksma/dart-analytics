@@ -106,6 +106,19 @@ export type MyScheduleFormContext = {
   save(this: MyScheduleFormContext): Promise<boolean>;
 };
 
+export type TrainingWeekContext = {
+  loading: boolean;
+  schedule: ScheduleData | null;
+  completions: TrainingCompletionListData["items"];
+  today: number;
+  init(this: TrainingWeekContext): Promise<void>;
+  status(this: TrainingWeekContext, index: number): DayStatus;
+  counts(this: TrainingWeekContext): WeekCounts;
+  hasSchedule(this: TrainingWeekContext): boolean;
+  letter(index: number): string;
+  dayLabel(this: TrainingWeekContext, index: number): string;
+};
+
 export type HomeWeekContext = {
   loading: boolean;
   schedule: ScheduleData | null;
