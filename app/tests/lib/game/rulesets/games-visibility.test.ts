@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { GAME_CARDS, visibleGames } from "@lib/game/rulesets/games-visibility";
+import {
+  GAME_CARDS,
+  GAME_GROUPS,
+  groupedGames,
+  visibleGames,
+} from "@lib/game/rulesets/games-visibility";
 
 // Every card in GAME_CARDS is a ruleset that has a real setup route, so a key
 // asserted here is a card that can actually render. Visibility is keyed on
@@ -14,17 +19,17 @@ describe("visibleGames", () => {
       (game) => game.rulesetVersionKey,
     );
     expect(keys).toEqual([
-      "SCORE_TRAINING_V1",
       "501_V1",
-      "BOBS27_V1",
-      "SINGLES_V1",
-      "DOUBLES_TRAINING_V1",
-      "SHANGHAI_V1",
       "121_V1",
-      "AROUND_THE_CLOCK_V1",
       "CRICKET_V1",
       "TACTICS_V1",
+      "SCORE_TRAINING_V1",
+      "SINGLES_V1",
+      "DOUBLES_TRAINING_V1",
+      "BOBS27_V1",
       "TUOD_V1",
+      "SHANGHAI_V1",
+      "AROUND_THE_CLOCK_V1",
     ]);
   });
 
@@ -81,5 +86,43 @@ describe("visibleGames", () => {
       expect(game.caption.length).toBeGreaterThan(0);
       expect(game.caption).not.toMatch(/\n/);
     }
+  });
+});
+
+describe("groupedGames", () => {
+  it("groups every card in design order", () => {
+    expect(
+      groupedGames().map((group) => [
+        group.title,
+        group.games.map((game) => game.rulesetVersionKey),
+      ]),
+    ).toEqual([
+      ["MATCH PLAY", ["501_V1", "121_V1", "CRICKET_V1", "TACTICS_V1"]],
+      [
+        "TRAINING",
+        [
+          "SCORE_TRAINING_V1",
+          "SINGLES_V1",
+          "DOUBLES_TRAINING_V1",
+          "BOBS27_V1",
+          "TUOD_V1",
+        ],
+      ],
+      ["CLASSICS", ["SHANGHAI_V1", "AROUND_THE_CLOCK_V1"]],
+    ]);
+  });
+
+  it("drops a group with no cards", () => {
+    const only501 = GAME_CARDS.filter(
+      (game) => game.rulesetVersionKey === "501_V1",
+    );
+    expect(groupedGames(only501).map((group) => group.key)).toEqual([
+      "MATCH_PLAY",
+    ]);
+  });
+
+  it("puts every card in a known group", () => {
+    const keys = GAME_GROUPS.map((group) => group.key);
+    for (const card of GAME_CARDS) expect(keys).toContain(card.group);
   });
 });

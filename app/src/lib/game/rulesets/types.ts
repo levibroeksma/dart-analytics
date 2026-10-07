@@ -675,8 +675,12 @@ export type SessionModePair = {
 };
 
 /** One game card on the games page, with the ruleset version that gates it. */
+/** The section a game card sits under on the games page. */
+export type GameGroupKey = "MATCH_PLAY" | "TRAINING" | "CLASSICS";
+
 export type GameCardDescriptor = {
   rulesetVersionKey: RulesetVersionKey;
+  group: GameGroupKey;
   href: string;
   title: string;
   caption: string;

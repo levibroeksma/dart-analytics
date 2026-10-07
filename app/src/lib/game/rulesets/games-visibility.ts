@@ -1,9 +1,10 @@
 import type { RulesetVersionKey } from "@lib/types";
 import { supportsCaptureMode } from "./capabilities";
-import type { GameCardDescriptor } from "./types";
+import type { GameCardDescriptor, GameGroupKey } from "./types";
 
 /**
- * The games the page can offer, in display order, independent of mode. Every
+ * The games the page can offer, in display order (grouped as `GAME_GROUPS`),
+ * independent of mode. Every
  * entry needs a real setup route: a card the filter keeps but the router cannot
  * serve is worse than no card at all, so a ruleset joins this list only once
  * `href` resolves.
@@ -13,70 +14,81 @@ import type { GameCardDescriptor } from "./types";
  */
 export const GAME_CARDS: readonly GameCardDescriptor[] = [
   {
-    rulesetVersionKey: "SCORE_TRAINING_V1",
-    href: "/games/score-training/setup",
-    title: "Score training",
-    caption: "Exercise your scoring abilities.",
-  },
-  {
     rulesetVersionKey: "501_V1",
+    group: "MATCH_PLAY",
     href: "/games/501/setup",
     title: "501",
     caption: "Classic double-out darts.",
   },
   {
-    rulesetVersionKey: "BOBS27_V1",
-    href: "/games/bobs27/setup",
-    title: "Bob's 27",
-    caption: "Running-score doubles training.",
-  },
-  {
-    rulesetVersionKey: "SINGLES_V1",
-    href: "/games/singles-training/setup",
-    title: "Singles training",
-    caption: "Section training, one target at a time.",
-  },
-  {
-    rulesetVersionKey: "DOUBLES_TRAINING_V1",
-    href: "/games/doubles-training/setup",
-    title: "Doubles training",
-    caption: "Trebles for show, doubles for dough!",
-  },
-  {
-    rulesetVersionKey: "SHANGHAI_V1",
-    href: "/games/shanghai/setup",
-    title: "Shanghai",
-    caption: "Single, double, treble, Shanghai!",
-  },
-  {
     rulesetVersionKey: "121_V1",
+    group: "MATCH_PLAY",
     href: "/games/121/setup",
     title: "121",
     caption: "Climb the checkout ladder.",
   },
   {
-    rulesetVersionKey: "AROUND_THE_CLOCK_V1",
-    href: "/games/around-the-clock/setup",
-    title: "Around the Clock",
-    caption: "A pub classic, and great practice.",
-  },
-  {
     rulesetVersionKey: "CRICKET_V1",
+    group: "MATCH_PLAY",
     href: "/games/cricket/setup",
     title: "Cricket",
     caption: "Close 20 to 15 and the bull.",
   },
   {
     rulesetVersionKey: "TACTICS_V1",
+    group: "MATCH_PLAY",
     href: "/games/tactics/setup",
     title: "Tactics",
     caption: "Close 20 to 15, the bull, doubles and trebles.",
   },
   {
+    rulesetVersionKey: "SCORE_TRAINING_V1",
+    group: "TRAINING",
+    href: "/games/score-training/setup",
+    title: "Score training",
+    caption: "Exercise your scoring abilities.",
+  },
+  {
+    rulesetVersionKey: "SINGLES_V1",
+    group: "TRAINING",
+    href: "/games/singles-training/setup",
+    title: "Singles training",
+    caption: "Section training, one target at a time.",
+  },
+  {
+    rulesetVersionKey: "DOUBLES_TRAINING_V1",
+    group: "TRAINING",
+    href: "/games/doubles-training/setup",
+    title: "Doubles training",
+    caption: "Trebles for show, doubles for dough!",
+  },
+  {
+    rulesetVersionKey: "BOBS27_V1",
+    group: "TRAINING",
+    href: "/games/bobs27/setup",
+    title: "Bob's 27",
+    caption: "Running-score doubles training.",
+  },
+  {
     rulesetVersionKey: "TUOD_V1",
+    group: "TRAINING",
     href: "/games/tuod/setup",
     title: "Ten Up One Down",
     caption: "Climb the checkout ladder.",
+  },
+  {
+    rulesetVersionKey: "SHANGHAI_V1",
+    group: "CLASSICS",
+    href: "/games/shanghai/setup",
+    title: "Shanghai",
+    caption: "Single, double, treble, Shanghai!",
+  },
+  {
+    rulesetVersionKey: "AROUND_THE_CLOCK_V1",
+    group: "CLASSICS",
+    href: "/games/around-the-clock/setup",
+    title: "Around the Clock",
+    caption: "A pub classic, and great practice.",
   },
 ];
 
@@ -111,4 +123,21 @@ export function visibleGames(
       supportsCaptureMode(game.rulesetVersionKey, captureModeKey) ||
       game.rulesetVersionKey === activeRulesetKey,
   );
+}
+
+/** The games page's sections, in display order. */
+export const GAME_GROUPS: readonly { key: GameGroupKey; title: string }[] = [
+  { key: "MATCH_PLAY", title: "MATCH PLAY" },
+  { key: "TRAINING", title: "TRAINING" },
+  { key: "CLASSICS", title: "CLASSICS" },
+];
+
+/** `cards` bucketed by `GAME_GROUPS` order, keeping card order; empty groups dropped. */
+export function groupedGames(
+  cards: readonly GameCardDescriptor[] = GAME_CARDS,
+): { key: GameGroupKey; title: string; games: GameCardDescriptor[] }[] {
+  return GAME_GROUPS.map((group) => ({
+    ...group,
+    games: cards.filter((card) => card.group === group.key),
+  })).filter((group) => group.games.length > 0);
 }
