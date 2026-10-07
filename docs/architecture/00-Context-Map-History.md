@@ -17,6 +17,8 @@ updated: 2026-10-07
 
 # Version History
 
+> **Version:** 1.173.0 (2026-10-07 — Games + Training redesign: `GameRow`/`ResumeSessionCard`/`TrainingScheduleCard`/`ScheduleStrip`/`RoutineRow` rows added, `RoutineCard` removed and `RoutineFormModal` `detached` prop in the Component Inventory (budget ~6.9k → ~7.2k); new components and `training-week.data.ts` registered in `00-File-Inventory.md`; D427 in `decisions/frontend/style.md` (~7.3k → ~7.7k); spec `docs/superpowers/specs/2026-10-07-games-training-redesign-design.md`; "Issue-driven UI polish" pack budget ~16.7k → ~17.0k.)
+
 > **Version:** 1.172.0 (2026-10-07 — Profile redesign static pass: `components/layout/profile/ProfileIdentity.astro` row added and `LogoutButton`/`AppModeForm`/`HandednessForm`/`PlayerSettingsCard`/`SettingRow` rows rewritten in the Component Inventory (budget ~6.0k → ~6.9k); D426 in `decisions/frontend/style.md`; `app/src/components/CLAUDE.md` radio-exemption example no longer cites checkmarks; "Issue-driven UI polish" pack budget ~16.3k → ~16.7k.)
 
 > **Version:** 1.171.0 (2026-10-07 — Home redesign static pass: five `components/layout/home/` rows added and `WeekdayStrip`/`TodayRoutineCard` rows rewritten in the Component Inventory; D425 in `decisions/frontend/style.md`; "Issue-driven UI polish" pack budget ~11.4k → ~16.3k to match the grown inventory.)

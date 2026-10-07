@@ -136,3 +136,10 @@ Decision: `/profile` follows the Claude Design `Profile.dc.html` mock. It uses t
 Reason: a design-led phase towards one look; these primitives are meant for later pages.
 Consequences: the profile shows sample career totals until the data pass. A one-word display name gives one initial. `.astro`/CSS carry no unit test (D101); the `profileSnapshot()` helpers are tested.
 Supersedes: none.
+
+### D427 — Games and Training redesign, wired where data exists
+Status: Accepted · Date: 2026-10-07
+Decision: `/games` and `/training` follow the Claude Design `Games.dc.html` / `Training.dc.html` mocks on the home backdrop. Game cards carry a `group` (`MATCH_PLAY`, `TRAINING`, `CLASSICS`; Cricket and Tactics under Match play) and render as `GameRow`s in one glass card per group via `groupedGames()`; a group with no visible game hides, and the divider skips hidden rows (`isFirstVisible`). The in-progress card binds to `resumeTarget()` — the newest active session with a card, linking to its setup route — with a static detail line (#815). Training's schedule card reads `trainingWeek()`: the active schedule plus this ISO week's completions through the pure `startOfIsoWeek`/`dayStatus`/`weekCounts` (done wins, then today, then missed/scheduled/rest; a scheduled, not-done today counts to go). Routine rows show a minutes chip only (#816) and a play link to the player. The create-routine modal is `detached`; creation is the personal-routines plus button. New shared primitives: `.feature-card` (accent gradient without the home halo), `.mode-pill`, `.section-eyebrow`, `--missed`/`--missed-muted`, `--chip-foreground`, `check-bold`/`cross-bold` icons.
+Reason: the same design-led phase as D425/D426; every element that existing reads can back is wired rather than faked.
+Consequences: `RoutineCard.astro` is removed. Weekday letters follow the browser locale. `.astro`/CSS carry no unit test (D101); the grouping, resume pick and week-status helpers are tested.
+Supersedes: none.

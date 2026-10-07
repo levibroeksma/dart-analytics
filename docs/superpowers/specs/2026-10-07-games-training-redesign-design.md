@@ -1,6 +1,6 @@
 # Games + Training redesign — design
 
-**Date:** 2026-10-07 · **Status:** approved · **Branch:** `feat/games-training-redesign` · **Decision:** D427 (`decisions/frontend/style.md`)
+**Date:** 2026-10-07 · **Status:** implemented · **Branch:** `feat/games-training-redesign` · **Decision:** D427 (`decisions/frontend/style.md`)
 
 Source design: Claude Design project `cdea52ee-4746-4efb-b646-81448a40c033`,
 `Games.dc.html` (frame `games`) and `Training.dc.html` (frame `training`,
@@ -183,3 +183,15 @@ already exists.
   (remove if unused).
 - D427 in `decisions/frontend/style.md`.
 - Context-maintenance skill before completion.
+
+## Implementation notes (2026-10-07)
+
+- `GameCard` stays (still used by `/training/schedules`); `RoutineCard` is removed.
+- Strip classes live in `trainingWeek().dayClass(index)`: a multi-line `:class` object breaks the Astro parser.
+- Row dividers use `x-bind:class`. Prettier fuses a bare `:class` onto a preceding `x-cloak` inside a JSX map (the same bug exists in `ScoreAverageCard.astro`, #818).
+- Anchor titles carry `text-foreground` (global `a` is accent). Design text uses `/[normal]` line-height where Tailwind's arbitrary sizes inherit 1.5.
+- `RoutineFormModal` gained a `detached` prop; the corner `+` toggle is hidden on `/training`. With personal routines present, the create row stays below them ("Build another from any game or drill.").
+- Pages use `backdrop="home"`, as the frames show.
+- Check/cross markers use new `check-bold.svg`/`cross-bold.svg` (design paths, stroke 3).
+- Verified in headless Edge at 390×844 against the rendered design frames: measured anchor offsets match within 1px.
+- Issues: #815 (resume detail), #816 (step chips), #817 (home strip markers), #818 (`x-cloak:class`).
