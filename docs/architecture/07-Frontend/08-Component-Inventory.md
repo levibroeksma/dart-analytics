@@ -36,7 +36,7 @@ evaluated in the page's own Alpine scope.
 | `InfoSection.astro` | Titled explanatory block | `title`, `description`, `id` |
 | `IsLoading.astro` | Loading skeleton / spinner panel | `title` |
 | `Link.astro` | Anchor styled as text link or button | `href`, `variant` (`inline`/`primary`/`secondary`/`ghost`), `external`, `icon`, `ariaLabel` |
-| `LogoutButton.astro` | Sign-out action wired to the auth flow | none |
+| `LogoutButton.astro` | Sign-out action wired to the auth flow; round 44px `glass-button` in the `/profile` header, spinner while signing out (restyled 2026-10-07) | none |
 | `Modal.astro` | Base dialog shell; `ConfirmDialog` builds on it | `titleId`, `descriptionId`, `dismissible`, `onDismiss` |
 | `Pagination.astro` | Segmented pager in one glass pill: previous chevron, current page (`/ total` when `totalExpr` is given), next chevron; props are Alpine expressions (2026-10-04) | `pageExpr`, `totalExpr`, `hasPreviousExpr`, `hasNextExpr`, `onPrevious`, `onNext`, `disabledExpr`, `ariaLabel`, `class` |
 | `StatsHeatmap.astro` | The `heatmap` statistics section: `DartBoard.astro`'s SVG plus a cell overlay, geometry and intensity read from a section view's `heatmapCells` getter — `$store.gameStats` on the Games tab, a GAME step's view on the Routines tab (2026-09-26; `cellsExpr` 2026-09-29, D372) | `cellsExpr`, `class` |
@@ -46,15 +46,15 @@ evaluated in the page's own Alpine scope.
 
 | Component | Purpose | Key props |
 | --------- | ------- | --------- |
-| `AppModeForm.astro` | Analytics/recreational app-mode radio picker | none (reads the settings store) |
+| `AppModeForm.astro` | Analytics/recreational app-mode radio picker: shadowless `glass` card, Michroma title, `MODE` eyebrow over a `field-inset` two-pill segmented track, selected pill `accent-orb` (restyled 2026-10-07) | none (reads the settings store) |
 | `Button.astro` | **The** standalone action element — never hand-roll a `<button>` | `type`, `variant` (`primary`/`secondary`/`ghost`/`error`/`dashed`), `icon`, `disabled`, `ariaLabel`, `loadingExpr` (omitted: reads `loading` from the Alpine scope if defined; pass `"false"` when that scope's `loading` is unrelated), default slot (runtime label such as `x-text`; replaces `title`, D394) |
 | `IconBtn.astro` | Icon-only button, always a perfect circle (`aspect-square` + `rounded-full`); no built-in padding, no text | `type`, `variant` (`primary`/`secondary`/`ghost`/`error`/`dashed`), `disabled`, `ariaLabel` (required) |
-| `HandednessForm.astro` | Left/right-handed radio picker | none (reads the settings store) |
+| `HandednessForm.astro` | Left/right-handed radio picker: `field-inset` two-pill segmented track, selected pill `accent-orb` (restyled 2026-10-07) | none (reads the `boardInput` store) |
 | `Input.astro` | Styled text/number/email input | `id`, `type`, `name`, `value`, `placeholder`, `error`, `required`, `disabled` |
-| `PlayerSettingsCard.astro` | Bordered card grouping the player-settings rows | none |
+| `PlayerSettingsCard.astro` | Shadowless `glass` card grouping the player-settings rows and the `HANDED` picker (restyled 2026-10-07) | none |
 | `Select.astro` | Custom glass dropdown (no native `<select>`): full-width 48px glass bar showing the picked label, grows downward into an overlaying option panel on click; closes on pick, outside click, Escape; caller seeds the value (no placeholder) | `options` (`{value,label}[]`, `value` may be `null`, build-time) or `optionsExpr` (Alpine expression yielding them at runtime), `model` (writable Alpine expression in the caller's scope), `ariaLabel`, `class` (2026-09-24; `optionsExpr` 2026-09-25; nullable `value` 2026-10-03) |
 | `Switch.astro` | Boolean switch (track + thumb), not a checkbox glyph | `label`, `hint`, rest props forward onto the native `<input type="checkbox">` |
-| `SettingRow.astro` | Label plus inline-editable value with a save action | `id`, `label`, `valueExpr`, `modelExpr`, `saveExpr`, `emptyText`, `numeric`, `inputmode`, `required`, `disabledExpr` |
+| `SettingRow.astro` | Mono eyebrow label over a `field-inset` field: view mode is a `Button` with value + pencil, edit mode an inset input with accent focus ring; `maxlength` caps the input and shows an `n / max` hint while editing (restyled 2026-10-07) | `id`, `label`, `valueExpr`, `modelExpr`, `saveExpr`, `emptyText`, `numeric`, `inputmode`, `required`, `maxlength`, `disabledExpr` |
 
 ## `components/layout/`
 
@@ -168,6 +168,12 @@ that split (2026-09-19, closes issue #423).
 | `LandingHeatmapCard.astro` | "Where you land" `glass` card around `StatsDensityHeatmap` fed `landing.stamps`, board in the `dartboard-accent` tone (2026-10-07) | none — reads `homeSnapshot()` from the parent scope |
 | `WeekdayStrip.astro` | Row of seven day-initial circles inside `TodayRoutineCard`. Today `size-10.5` with the `home-day-today` accent glow ring; a day with a routine `border-foreground/50`; a rest day `border-border` muted. Letters from `weekdayNames()` (2026-09-22; restyled 2026-10-07) | none — reads `homeWeek()` from the parent scope |
 | `TodayRoutineCard.astro` | Homepage "Weekly plan" card: while today's routine is not done, the routine name and minutes (or "Rest day") linking to `/training/schedules`, a round `glass-button` play `Button` (`start()`), then the default slot (`WeekdayStrip`). Once done, a `home-feature-card` "COMPLETED · You're on fire!" state. Nothing with no active schedule (2026-09-23; restyled 2026-10-07) | default slot (weekday strip) — reads `homeWeek()` from the parent scope |
+
+## `components/layout/profile/`
+
+| Component | Purpose | Key props |
+| --------- | ------- | --------- |
+| `ProfileIdentity.astro` | `/profile` identity row in its own `profileSnapshot()` scope: 56px `accent-orb` avatar with initials and the name from `$store.profile`, fixture stats line (2026-10-07) | none |
 
 ## `components/layout/statistics/`
 

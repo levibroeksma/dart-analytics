@@ -1,6 +1,6 @@
 # Profile redesign (static pass) — design
 
-**Date:** 2026-10-07 · **Status:** approved · **Branch:** `feat/profile-redesign` · **Decision:** D426 (`decisions/frontend/style.md`)
+**Date:** 2026-10-07 · **Status:** implemented · **Branch:** `feat/profile-redesign` · **Decision:** D426 (`decisions/frontend/style.md`)
 
 Source design: Claude Design project `cdea52ee-4746-4efb-b646-81448a40c033`,
 `Profile.dc.html`, frames `profile` (view) and `profile-edit` (display
@@ -113,3 +113,9 @@ existing icon (C2PA metadata stripped, `currentColor`).
 - D426 in `decisions/frontend/style.md`: profile static fixture seam and
   the shared field/segmented/card primitives.
 - Context-maintenance skill run before completion.
+
+## Implementation notes (2026-10-07)
+
+- `.profile-card` and `.eyebrow-label` were not added: cards use `glass shadow-none rounded-2xl p-4`, eyebrows use utilities.
+- Weight-500 text renders at 400 (`font-medium` is banned repo-wide).
+- `LogoutButton` keeps its spinner while signing out.

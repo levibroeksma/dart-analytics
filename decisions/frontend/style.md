@@ -129,3 +129,10 @@ Decision: the home page follows the Claude Design "Darts Home" mock. It has a he
 Reason: ship the redesign now without blocking on new views. A single factory seam means the data pass swaps internals, not markup.
 Consequences: home shows sample numbers and an always-visible resume card linking to `/games` until the data pass. Per-day done/missed markers and the weekly "2 of 4" ring are deferred, because they need weekly completion history. `.astro`/CSS carry no unit test (D101); `homeSnapshot()` derivations are tested.
 Supersedes: none.
+
+### D426 — Profile redesign, static pass behind `profileSnapshot()`
+Status: Accepted · Date: 2026-10-07
+Decision: `/profile` follows the Claude Design `Profile.dc.html` mock. It uses the home backdrop, a Michroma header with a round `glass-button` logout, an identity row, and "Player settings" and "App mode" cards. The stats line binds to `profileSnapshot()` (`lib/profile/profile-snapshot.data.ts`), a fixture-only factory; initials come from the live display name. New shared primitives: `.accent-orb` (gradient + glow, the selected/avatar fill), `.accent-orb-halo`, `.field-inset` (sunken field with an accent focus ring) and `--strong-foreground`. The pickers become two-pill segmented tracks and drop their checkmarks; selection is shown by the fill and `aria-checked`. The display name gets a client-only `maxlength` of 24. The design's weight-500 text renders at 400, because `font-medium` is banned.
+Reason: a design-led phase towards one look; these primitives are meant for later pages.
+Consequences: the profile shows sample career totals until the data pass. A one-word display name gives one initial. `.astro`/CSS carry no unit test (D101); the `profileSnapshot()` helpers are tested.
+Supersedes: none.
