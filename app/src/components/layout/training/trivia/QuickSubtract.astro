@@ -2,6 +2,9 @@
 // Components
 import ScoreInput from "@components/layout/games/ScoreInput.astro";
 import Button from "@components/forms/Button.astro";
+import Modal from "@components/ui/Modal.astro";
+import SheetActions from "@components/ui/SheetActions.astro";
+import StatTile from "@components/layout/games/StatTile.astro";
 import Toggle from "@components/layout/games/setup/Toggle.astro";
 import Input from "@components/forms/Input.astro";
 import SettingSectionShell from "@components/layout/games/setup/SettingSectionShell.astro";
@@ -118,49 +121,55 @@ const modeOptions = [
   </div>
 
   <div
-    class="fixed inset-0 flex items-center justify-center bg-black/50 z-50 w-full p-4"
     x-show="status === 'finished'"
     x-cloak
   >
-    <div
-      class="glass rounded-lg border border-border bg-surface-raised p-6 shadow-lg max-w-sm w-full"
+    <Modal
+      titleId="quick-subtract-results-title"
+      dismissible={false}
+      overline="Trivia"
     >
-      <h2 class="font-display text-lg font-semibold text-foreground">
+      <h2
+        slot="header"
+        id="quick-subtract-results-title"
+        class="text-balance font-display text-xl text-foreground"
+      >
         Session complete
       </h2>
-      <dl class="mt-4 space-y-1 text-sm text-muted-foreground flex flex-col">
-        <StatRow
-          label="Correct"
-          value="correctAnswers"
+      <dl class="grid w-full grid-cols-2 gap-2">
+        <StatTile
+          labelExpr="'Correct'"
+          valueExpr="correctAnswers"
         />
-        <StatRow
-          label="Incorrect"
-          value="incorrectAnswers"
+        <StatTile
+          labelExpr="'Incorrect'"
+          valueExpr="incorrectAnswers"
         />
-        <StatRow
-          label="Attempts"
-          value="attempts"
+        <StatTile
+          labelExpr="'Attempts'"
+          valueExpr="attempts"
         />
-        <StatRow
-          label="Time"
-          value="formattedElapsed()"
+        <StatTile
+          labelExpr="'Time'"
+          valueExpr="formattedElapsed()"
         />
       </dl>
-      <div class="mt-6 flex gap-3">
+      <SheetActions slot="footer">
         <Button
           type="button"
-          variant="secondary"
+          variant="sheet-muted"
           title="Back to Trivia"
           @click="exit()"
           grow
         />
         <Button
           type="button"
+          variant="sheet-raised"
           title="Play again"
           @click="reset()"
           grow
         />
-      </div>
-    </div>
+      </SheetActions>
+    </Modal>
   </div>
 </div>

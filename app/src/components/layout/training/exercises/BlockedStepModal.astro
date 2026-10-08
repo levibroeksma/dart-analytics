@@ -10,22 +10,27 @@
 // Components
 import Modal from "@components/ui/Modal.astro";
 import Button from "@components/forms/Button.astro";
+import SheetActions from "@components/ui/SheetActions.astro";
+import InlayRow from "@components/ui/InlayRow.astro";
 ---
 
 <Modal
   titleId="blocked-step-title"
   descriptionId="blocked-step-desc"
   dismissible={false}
+  overline="Routine"
 >
   <h2
+    slot="header"
     id="blocked-step-title"
-    class="font-display text-lg font-semibold text-foreground"
+    class="text-balance font-display text-xl text-foreground"
   >
     Unfinished game
   </h2>
   <p
+    slot="header"
     id="blocked-step-desc"
-    class="mt-2 text-sm text-muted-foreground"
+    class="text-pretty text-sm text-muted-foreground"
   >
     A Ten Up One Down game
     <span
@@ -35,33 +40,32 @@ import Button from "@components/forms/Button.astro";
     > is still open, so this step cannot start. Abandon it to play your Finishing
     step now.
   </p>
+  <InlayRow parts={["'Ten Up One Down'", "blockingStartedLabel()"]} />
   <p
-    class="mt-3 text-sm text-error"
+    class="text-center text-sm text-error"
     x-show="blockingError"
     x-text="blockingError"
     x-cloak
   >
   </p>
 
-  <div
-    slot="footer"
-    class="mt-6 flex gap-3"
-  >
+  <SheetActions slot="footer">
     <Button
       type="button"
-      variant="secondary"
-      class="flex-1"
-      title="Leave routine"
+      variant="sheet-muted"
+      title="Leave"
       @click="abandonAndExit()"
       :disabled="resolvingBlockingSession"
+      grow
     />
     <Button
       type="button"
-      class="flex-1"
-      title="Abandon & continue"
+      variant="sheet-raised"
+      title="Continue"
       @click="resolveBlockingSession()"
       loadingExpr="resolvingBlockingSession"
       :disabled="resolvingBlockingSession"
+      grow
     />
-  </div>
+  </SheetActions>
 </Modal>

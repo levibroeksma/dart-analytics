@@ -975,7 +975,7 @@ describe("uploadAndCompleteSession", () => {
     expect(play.resultsSnapshot?.winningSideKey).toBeNull();
     expect(play.resultsSnapshot?.seats).toHaveLength(1);
     expect(play.resultsSnapshot?.seats[0].legsWon).toBe(1);
-    expect(play.resultsTitle.call(play)).toBe("Match Summary");
+    expect(play.resultsTitle.call(play)).toBe("Match complete");
   });
 
   it("treats SESSION_ALREADY_COMPLETED as success", async () => {

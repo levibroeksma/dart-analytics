@@ -1,6 +1,6 @@
 # Modal sheets — design
 
-Date: 2026-10-08 · Status: approved in chat · Source: Claude Design `Modals.dc.html` (project cdea52ee-4746-4efb-b646-81448a40c033)
+Date: 2026-10-08 · Status: approved in chat; implemented, not yet checked in a browser — plan-time amendments in `docs/superpowers/plans/2026-10-08-modal-sheets.md` (gate instead of vitest for `.astro`; RoutineSummary/QuickSubtract on Modal; context rows, `InlayRow`, legs bars deferred) · Source: Claude Design `Modals.dc.html` (project cdea52ee-4746-4efb-b646-81448a40c033)
 
 ## Intent
 
@@ -26,7 +26,7 @@ Restyle every modal in the app to the Claude Design "Modals" reference: a bottom
 | muted button `oklch(0 0 0 / .2)` + inset shadow | `inset-well-muted` |
 | raised button (radial 8→16 %, border 35/15, blur 8) | `glass-button` |
 | title Michroma 20 | `font-display text-xl` |
-| overline JetBrains Mono 11, `oklch(80% .13 237)` | `font-mono text-eyebrow text-accent-bright` |
+| overline JetBrains Mono 11, `oklch(80% .13 237)` | `font-mono text-eyebrow-lg text-accent-bright` (plan-time: 12px, not 11) |
 | success pill `oklch(72% .16 155)` | `text-success` / `bg-success` |
 | error text `oklch(68% .15 30)` | `text-error` |
 | accent bar | `bg-accent` |

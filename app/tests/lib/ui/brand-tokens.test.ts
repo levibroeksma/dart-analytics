@@ -120,6 +120,10 @@ describe("brand surfaces", () => {
     expect(b).toMatch(/inset 0 1px 2px oklch\(0% 0 0 \/ 0\.4\)/);
   });
 
+  it("inset-well has no backdrop blur, so it stays dark inside a blurred glass parent", () => {
+    expect(block("@utility inset-well")).not.toMatch(/backdrop-blur/);
+  });
+
   it("inset-well-muted is black 20%", () => {
     expect(block("@utility inset-well-muted")).toMatch(
       /oklch\(0% 0 0 \/ 0\.2\)/,
@@ -187,6 +191,26 @@ describe("solid error fill", () => {
     );
     expect(iconBtn).toMatch(
       /error: "border-transparent bg-error-strong text-error-foreground btn-error"/,
+    );
+  });
+});
+
+describe("sheet motion", () => {
+  it("defines the sheet entrance animation on the ease-out curve", () => {
+    expect(decl("animate-sheet-in")).toBe("sheet-in 200ms var(--ease-out)");
+  });
+
+  it("slides the sheet up from a faded, offset start", () => {
+    expect(css).toMatch(
+      /@keyframes sheet-in\s*\{\s*from\s*\{\s*opacity:\s*0;\s*transform:\s*translateY\(1\.5rem\);\s*\}\s*\}/,
+    );
+  });
+});
+
+describe("hero glow", () => {
+  it("tints the hero text glow with the accent", () => {
+    expect(decl("text-shadow-glow")).toBe(
+      "0 4px 30px oklch(68.5% 0.169 237.323 / 0.35)",
     );
   });
 });

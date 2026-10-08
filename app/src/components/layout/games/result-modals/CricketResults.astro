@@ -4,15 +4,19 @@ import SinglePlayerSummary from "@components/layout/games/SinglePlayerSummary.as
 
 const STAT_ROWS = [
   { label: "Darts", key: "darts" },
-  { label: "MPR", key: "marksPerRound" },
+  { label: "MPR", key: "marksPerRound", hero: true },
   { label: "Darts to close", key: "dartsToClose" },
 ] as const;
 ---
 
-<ResultsModalShell showSavedMessage>
+<ResultsModalShell
+  showSavedMessage
+  overline="Cricket"
+>
   <h2
     slot="title"
-    class="font-display text-lg font-semibold text-foreground"
+    id="results-title"
+    class="text-balance font-display text-xl text-foreground"
     x-text="resultsTitle()"
   >
   </h2>

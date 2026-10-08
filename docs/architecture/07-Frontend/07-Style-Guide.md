@@ -60,14 +60,14 @@ Radius scale (from `@theme`):
 | ----- | ---- | ----------- |
 | `rounded-sm` | 6px | Nav pills / compact chips |
 | `rounded-md` | 8px | Buttons, inputs, tabs track |
-| `rounded-lg` | 12px | Compact panels, modals |
+| `rounded-lg` | 12px | Compact panels |
 | `rounded-xl` | 16px | Nav shell |
 | `rounded-2xl` | 20px | Cards |
 | `rounded-row` | 14px | Select option rows |
 | `rounded-key` | 22px | Keypad / tap-input keys |
 | `rounded-switch` | 26px | Vertical switch track |
 | `rounded-board` | 28px | Board container |
-| `rounded-sheet` | 32px | Bottom sheets (`glass-sheet`) |
+| `rounded-sheet` | 32px | Bottom sheets and every modal (`glass-sheet`) |
 | `rounded-full` | pill | Pills, nav, sliders, icon buttons |
 
 Accent is Tailwind sky (`sky-400` / `sky-500` / `sky-600` mapped into `--accent*` OKLCH values). Selection uses `accent-muted` background.
@@ -105,7 +105,7 @@ Implement a reusable class contract once in `global.css` (`@utility` / `@layer c
 | `.card-wrapper` | Tintable tool/extension cards (`--card-tint`, default accent); translucent, so blurs its backdrop like `.glass` (2026-10-02) |
 | `@utility glass` / `glass-tinted` / `glass-raised` / `glass-tinted-raised` | Frosted panels — top-lit radial wash (white, or black when `-tinted`), `border-y`, blur; `-raised` adds `shadow-md` + stronger blur (2026-10-06); `glass-blue` / `glass-info` / `inset-well` / `inset-well-muted` / `glass-sheet` (2026-10-08, D428) |
 
-**Dialogs** are component contracts, not CSS class primitives: use `Modal.astro` and `ConfirmDialog.astro`. Panels typically combine `bg-surface-raised` + `glass` + `rounded-lg border border-border`.
+**Dialogs** are component contracts, not CSS class primitives. Every dialog renders through `Modal.astro` — a bottom `glass-sheet` over `bg-scrim` with a grabber, a centred `font-display` title and an optional mono overline; actions go in `SheetActions` with `sheet-muted` on the left and `sheet-raised` on the right. `fixed inset-0` and `role="dialog"` are legal only in `app/src/components/ui/Modal.astro` (`scripts/check-style-tokens.sh`, D429).
 
 Press feedback is built into `.btn:active:not(:disabled)` (`transform: scale(0.98)`) — do not add a second press animation elsewhere.
 
@@ -158,7 +158,7 @@ Never set `height` (`h-full`, `h-2/5`) on an element that also has `flex-1`. `fl
 - Disabled: `.btn:disabled` applies `opacity-40` + `cursor-not-allowed`
 - Never `rounded-full` on a primary button — `.btn`'s `rounded-md` is the ceiling
 
-**ConfirmDialog action row:** cancel on the left (`variant="ghost"`), confirm on the right, row `justify-end gap-3`, buttons roughly `w-1/3` each (`ConfirmDialog.astro`).
+**ConfirmDialog action row:** cancel `sheet-muted` left, confirm `sheet-raised` right, via `SheetActions` (`ConfirmDialog.astro`). There is no `confirmVariant`.
 
 ---
 
@@ -167,14 +167,14 @@ Never set `height` (`h-full`, `h-2/5`) on an element that also has `flex-1`. `fl
 | Need | Reach for |
 | ---- | --------- |
 | Page chrome / body | `bg-surface` (default on `body`) |
-| Raised panel / modal shell | `bg-surface-raised` and/or `glass` |
+| Raised panel | `bg-surface-raised` and/or `glass` |
 | Nested well / inset | `bg-surface-overlay` |
 | Darker frosted panel | `glass-tinted` |
 | Floating frosted panel (nav, overlays) | `glass-raised` / `glass-tinted-raised` |
 | Marketing / tinted card | `.gradient-card`, `.link-card`, or `.card-wrapper` |
-| Recessed track / field / key | `inset-well` (`inset-well-muted` for secondary keys) |
+| Recessed track / field / key / sheet tile | `inset-well` (`inset-well-muted` for secondary keys and the sheet secondary action) |
 | Selected pill / avatar | `glass-blue` |
-| Bottom sheet modal | `glass-sheet` over `bg-scrim` |
+| Modal (bottom sheet) | `glass-sheet` over `bg-scrim` — `Modal.astro` |
 | Info / rules card | `glass-info` |
 
 One intentional surface level per visual block. Do not stack competing glass/raised treatments without a clear hierarchy (e.g. modal over page glass, not glass-in-glass).
@@ -192,7 +192,7 @@ One intentional surface level per visual block. Do not stack competing glass/rai
 | Gate hover behind `@media (hover: hover) and (pointer: fine)` (see `.btn-*`, `.nav-pill`, `.tab`, `.link-card`, `.card-wrapper` in `global.css`) | Hover-only critical feedback on a touch target |
 | Respect `prefers-reduced-motion` where the CSS already scopes it | Ignore reduced-motion preference |
 
-**Modals:** opacity fade 150–200ms `ease-out`. If scaling on enter, start from `scale-95` plus opacity — never `scale(0)`.
+**Modals:** `motion-safe:animate-sheet-in` — 200ms fade plus 1.5rem rise on `--ease-out`; no slide under reduced motion. If scaling on enter, start from `scale-95` plus opacity — never `scale(0)`.
 
 
 ---

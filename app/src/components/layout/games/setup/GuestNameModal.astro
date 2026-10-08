@@ -8,17 +8,20 @@
 import Modal from "@components/ui/Modal.astro";
 import Input from "@components/forms/Input.astro";
 import Button from "@components/forms/Button.astro";
+import SheetActions from "@components/ui/SheetActions.astro";
 ---
 
 <Modal
   titleId="guest-name-title"
   onDismiss="showAddGuestModal = false; newGuestName = ''"
+  overline="Game setup"
 >
   <h2
+    slot="header"
     id="guest-name-title"
-    class="text-lg font-semibold text-foreground"
+    class="text-balance font-display text-xl text-foreground"
   >
-    Add Guest
+    Add guest
   </h2>
   <Input
     id="guestName"
@@ -27,26 +30,24 @@ import Button from "@components/forms/Button.astro";
     placeholder="Guest name"
     x-model="newGuestName"
     maxlength="24"
-    class="mt-4"
+    class="field-inset h-13 rounded-2xl border-0"
   />
 
-  <div
-    slot="footer"
-    class="mt-6 flex gap-3"
-  >
+  <SheetActions slot="footer">
     <Button
       type="button"
-      variant="secondary"
-      class="flex-1"
+      variant="sheet-muted"
       title="Cancel"
       @click="showAddGuestModal = false; newGuestName = ''"
+      grow
     />
     <Button
       type="button"
-      class="flex-1"
-      title="Add"
+      variant="sheet-raised"
+      title="Add guest"
       @click="addGuest()"
       :disabled="!newGuestName.trim()"
+      grow
     />
-  </div>
+  </SheetActions>
 </Modal>

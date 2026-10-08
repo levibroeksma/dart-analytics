@@ -4,17 +4,21 @@ import SinglePlayerSummary from "@components/layout/games/SinglePlayerSummary.as
 import ComparisonSummary from "@components/layout/games/ComparisonSummary.astro";
 
 const STAT_ROWS = [
-  { label: "Score", key: "score" },
+  { label: "Score", key: "score", hero: true },
   { label: "Darts", key: "darts" },
   { label: "Accuracy", key: "doubleHitRate" },
   { label: "Highest target", key: "highestNumberReached" },
 ] as const;
 ---
 
-<ResultsModalShell showSavedMessage>
+<ResultsModalShell
+  showSavedMessage
+  overline="Bob's 27"
+>
   <h2
     slot="title"
-    class="font-display text-lg font-semibold text-foreground"
+    id="results-title"
+    class="text-balance font-display text-xl text-foreground"
     x-text="resultsTitle()"
   >
   </h2>

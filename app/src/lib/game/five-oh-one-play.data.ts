@@ -810,7 +810,7 @@ export function fiveOhOnePlay() {
         this.$store.game.seats,
         this.resultsSnapshot?.winningSideKey ?? null,
       );
-      return winner ? `${winner} wins the match!` : "Match Summary";
+      return winner ? `${winner} wins the match!` : "Match complete";
     },
 
     async back(this: FiveOhOnePlayContext) {

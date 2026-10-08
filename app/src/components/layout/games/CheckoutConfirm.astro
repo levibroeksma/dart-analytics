@@ -21,6 +21,7 @@
 // Components
 import Modal from "@components/ui/Modal.astro";
 import Button from "@components/forms/Button.astro";
+import SheetActions from "@components/ui/SheetActions.astro";
 
 // Data
 const groups = [
@@ -40,40 +41,46 @@ const groups = [
 
 // Styles
 const optionClass =
-  "btn btn-secondary w-full rounded-md border px-4 py-3 text-2xl font-bold tabular-nums transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-40";
+  "flex h-10 cursor-pointer items-center justify-center rounded-full text-button font-semibold transition-[color,background-color] duration-150";
 ---
 
 <Modal
   titleId="checkout-confirm-title"
   descriptionId="checkout-confirm-desc"
   dismissible={false}
+  overline="501 · Checkout"
 >
   <h2
+    slot="header"
     id="checkout-confirm-title"
-    class="text-lg font-semibold text-foreground"
+    class="text-balance font-display text-xl text-foreground"
   >
     Finished on a double?
   </h2>
   <p
+    slot="header"
     id="checkout-confirm-desc"
-    class="mt-2 text-sm text-muted-foreground"
+    class="text-pretty text-sm text-muted-foreground"
   >
     Confirm the last dart landed in a double, then say how the visit was thrown.
   </p>
 
   {
     groups.map((group) => (
-      <div class="mt-5">
+      <div class="flex w-full flex-col gap-2">
         <p
           id={`${group.id}-label`}
-          class="text-center text-xs font-bold uppercase tracking-wide text-muted-foreground"
+          class="px-0.5 font-mono text-eyebrow font-semibold uppercase text-muted-foreground"
         >
           {group.label}
         </p>
         <div
-          class="mt-2 flex gap-3"
+          class="inset-well grid gap-1 rounded-full p-1"
           role="radiogroup"
           aria-labelledby={`${group.id}-label`}
+          {...{
+            ":style": `\`grid-template-columns: repeat(\${${group.optionsExpr}.length}, minmax(0, 1fr))\``,
+          }}
         >
           <template x-for={`count in ${group.optionsExpr}`}>
             <button
@@ -81,7 +88,7 @@ const optionClass =
               role="radio"
               class={optionClass}
               {...{
-                ":class": `${group.model} === count ? 'border-accent bg-accent-muted text-foreground' : 'border-border'`,
+                ":class": `${group.model} === count ? 'glass-blue text-foreground' : 'text-muted-foreground'`,
                 ":aria-checked": `${group.model} === count`,
                 ":tabindex": `${group.model} === count ? 0 : -1`,
                 ":aria-label": `count + ' ${group.label.toLowerCase()}'`,
@@ -95,22 +102,19 @@ const optionClass =
     ))
   }
 
-  <div
-    slot="footer"
-    class="mt-6 flex justify-end gap-3"
-  >
+  <SheetActions slot="footer">
     <Button
-      variant="ghost"
-      class="w-1/3"
+      variant="sheet-muted"
       title="Cancel"
       @click="cancelCheckout()"
+      grow
     />
     <Button
-      variant="primary"
-      class="w-1/3"
-      title="Confirm"
+      variant="sheet-raised"
+      title="Confirm checkout"
       @click="confirmDouble()"
       :disabled="dartsAtDouble === null || dartsToFinish === null"
+      grow
     />
-  </div>
+  </SheetActions>
 </Modal>
