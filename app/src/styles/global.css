@@ -394,6 +394,11 @@
   box-shadow: 0 24px 60px oklch(0% 0 0 / 0.5);
 }
 
+@utility setting-badge {
+  @apply rounded-md px-1.5 py-0.5 font-mono text-[9px] font-semibold tracking-[0.08em] text-accent-bright;
+  background: var(--accent-muted);
+}
+
 @layer components {
   .nav-pill {
     background: oklch(100% 0 0 / 0.04);
