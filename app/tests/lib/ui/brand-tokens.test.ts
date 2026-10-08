@@ -214,3 +214,20 @@ describe("hero glow", () => {
     );
   });
 });
+
+describe("login surfaces", () => {
+  it("defines the card drop shadow", () => {
+    expect(decl("shadow-card")).toBe("0 24px 60px oklch(0% 0 0 / 0.4)");
+  });
+
+  it("draws a coral inset ring on an errored inset field", () => {
+    expect(css).toMatch(
+      /\.field-inset-error \{\s*box-shadow:\s*inset 0 1px 2px oklch\(0% 0 0 \/ 0\.4\),\s*inset 0 0 0 1px var\(--error\);\s*\}/,
+    );
+  });
+
+  it("keeps the focus ring above the error ring", () => {
+    expect(css.indexOf(".field-inset-error {")).toBeGreaterThan(-1);
+    expect(css).not.toMatch(/\.field-inset-error:focus/);
+  });
+});

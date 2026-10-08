@@ -1,76 +1,92 @@
 ---
 export const prerender = true;
+
+// Layouts·Components·Icons·Lib
 import BaseLayout from "@layouts/BaseLayout.astro";
 import Input from "@components/forms/Input.astro";
 import Button from "@components/forms/Button.astro";
 import LogoLockup from "../../assets/logo-lockup.svg";
+import { cn } from "@client/cn";
+
+// Styles
+const eyebrowClass = cn(
+  "px-0.5 font-mono text-eyebrow font-semibold uppercase text-muted-foreground transition-colors duration-150 group-has-[:focus]:text-accent-bright",
+);
+const fieldClass = cn(
+  "field-inset h-13 rounded-xl border-0 px-4 text-[15px] font-medium",
+);
 ---
 
-<BaseLayout>
+<BaseLayout backdrop="home">
   <div class="mx-auto flex h-full max-w-lg flex-col">
     <main
-      class="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain justify-center p-6"
+      class="flex min-h-0 flex-1 flex-col justify-center overflow-y-auto overscroll-y-contain px-4 py-6"
     >
       <div
-        class="glass mx-auto rounded-lg border border-border bg-surface-raised w-full max-w-md space-y-12 p-6"
+        class="glass shadow-card flex flex-col gap-2 rounded-board px-5 pt-7 pb-5"
       >
-        <div class="flex items-center justify-center">
+        <div class="flex justify-center">
           <LogoLockup
             role="img"
             aria-label="Darts Analytics"
-            class="size-40"
+            class="h-20 w-57.5"
           />
         </div>
 
         <form
           x-data="loginForm()"
           @submit.prevent="submit"
-          class="flex flex-col gap-4"
+          class="flex flex-col gap-2"
         >
           <label
-            for="e-mail"
-            class="text-xs text-foreground tracking-widest"
+            for="login-email"
+            class="group flex flex-col gap-2"
           >
-            <span class="font-semibold"> Email </span>
+            <span class={eyebrowClass}>Email</span>
             <Input
-              label="Email"
+              id="login-email"
               type="email"
               name="email"
               autocomplete="email"
               placeholder="example@email.com"
               x-model="email"
               required
-              class="mt-2"
+              class={fieldClass}
+              :class="error && 'field-inset-error'"
             />
           </label>
 
           <label
-            for="password"
-            class="text-xs text-foreground tracking-widest"
+            for="login-password"
+            class="group flex flex-col gap-2"
           >
-            <span class="font-semibold">Password</span>
+            <span class={eyebrowClass}>Password</span>
             <Input
-              label="Password"
+              id="login-password"
               type="password"
               name="password"
               autocomplete="current-password"
+              placeholder="••••••••"
               x-model="password"
               required
-              class="mt-2"
+              class={fieldClass}
+              :class="error && 'field-inset-error'"
             />
           </label>
+
           <p
             x-show="error"
-            x-text="error"
             x-cloak
-            class="text-sm text-error"
+            x-text="error"
             role="alert"
+            class="-mt-2 px-0.5 text-[13px] font-medium italic text-error select-text"
           >
           </p>
+
           <Button
             type="submit"
-            variant="primary"
-            class="w-full mt-4"
+            variant="sheet-raised"
+            class="mt-2 w-full rounded-xl"
             :disabled="loading"
             title="Sign in"
           />

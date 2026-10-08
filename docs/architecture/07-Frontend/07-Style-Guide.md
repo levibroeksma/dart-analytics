@@ -7,7 +7,7 @@ updated: 2026-10-08
 
 # Frontend Style Guide
 
-> **Version:** 0.3.0 (2026-10-08 — Brand Style tokens: coral error, type scale, new radii, surfaces, weight 500 allowed, D428; prior 0.2.6 was `--chart-<name>` tokens, D374)
+> **Version:** 0.3.1 (2026-10-08 — login: `shadow-card`, `.field-inset-error`, D431; prior 0.3.0 was Brand Style tokens: coral error, type scale, new radii, surfaces, weight 500 allowed, D428)
 >
 > Dark-only, mobile-first UI conventions: sky accent, glass/surface tokens, primitive class contracts, typography, spacing, motion, accessibility.
 >
@@ -42,7 +42,7 @@ Use semantic tokens only. Never raw Tailwind palette utilities (`bg-sky-500`, `t
 
 | Role | Classes / tokens |
 | ---- | ---------------- |
-| Surfaces | `bg-surface`, `bg-surface-raised`, `bg-surface-overlay`, `glass` (cards; no shadow), `glass-tinted`, `glass-raised`, `glass-tinted-raised`, `glass-button` (raised glass: buttons), `glass-blue` (selected pill, avatar), `glass-info` (rules/info card), `inset-well` (tracks, fields), `inset-well-muted` (undo/delete keys, exit), `glass-sheet` (bottom sheets), `bg-scrim` (modal backdrop) (2026-10-08) |
+| Surfaces | `bg-surface`, `bg-surface-raised`, `bg-surface-overlay`, `glass` (cards; no shadow unless a floating card adds `shadow-card`), `glass-tinted`, `glass-raised`, `glass-tinted-raised`, `glass-button` (raised glass: buttons), `glass-blue` (selected pill, avatar), `glass-info` (rules/info card), `inset-well` (tracks, fields), `inset-well-muted` (undo/delete keys, exit), `glass-sheet` (bottom sheets), `bg-scrim` (modal backdrop) (2026-10-08); `shadow-card` (floating card drop shadow, login, D431) |
 | Text | `text-foreground`, `text-soft-foreground` (78%), `text-muted-foreground` (70%, captions/labels), `text-muted` (55%, body), `text-faint-foreground` (50%), `text-placeholder` (48%, empty fields only) |
 | Borders | `border-border`, `border-border-strong` |
 | Accent | `accent`, `accent-hover`, `accent-muted`, `accent-foreground`, `accent-glow` (sky); `accent-bright` (sky light: accent text on dark), `accent-foreground-muted`, `accent-deep` (gradient end), `accent-deep-blue` (chart bars, vignette), `bg-blue-glass` (2026-10-08) |
@@ -108,6 +108,7 @@ Implement a reusable class contract once in `global.css` (`@utility` / `@layer c
 | `@utility slider-fill` / `slider-thumb` / `slider-bubble` | `RangeSlider` accent fill, white capsule thumb with accent ring, blue-glass value bubble (design 6a, D430, 2026-10-08) |
 | `@utility slide-thumb` / `slide-fill` | `SlideToStart` accent orb thumb and the trail behind it (design 4d, D430, 2026-10-08) |
 | `@utility start-bar-fade` | Bottom fade behind the fixed start bar so content scrolls under it (design 4d, D430, 2026-10-08) |
+| `.field-inset` / `.field-inset-error` | Inset text field with accent focus ring; `-error` adds a coral inset ring, and focus still wins (login, D431, 2026-10-08) |
 
 **Dialogs** are component contracts, not CSS class primitives. Every dialog renders through `Modal.astro` — a bottom `glass-sheet` over `bg-scrim` with a grabber, a centred `font-display` title and an optional mono overline; actions go in `SheetActions` with `sheet-muted` on the left and `sheet-raised` on the right. `fixed inset-0` and `role="dialog"` are legal only in `app/src/components/ui/Modal.astro` (`scripts/check-style-tokens.sh`, D429).
 

@@ -164,3 +164,10 @@ Decision: game setup screens follow Claude Design `Game Setup.dc.html`. Numeric 
 Reason: bounded controls make out-of-range input unreachable, so clamp notices drop from markup while the domain clamps stay as the `start()` guard; a slide guards against accidental starts.
 Consequences: the `Input` clamp notices for legs and duration are gone from markup. `Toggle` restyle also reaches `/statistics` and trivia. `.astro` carries no unit test (D101); pure helpers in `lib/ui/{stepper,range-slider,slide-to-start,initials}` are tested. Deferred (GitHub issues): 501 Best of, 501 Sets, DartBot level slider onto `RangeSlider`.
 Supersedes: none.
+
+### D431 — Login follows the design: inset fields, raised submit
+Status: Accepted · Date: 2026-10-08
+Decision: `/login` follows Claude Design `Login.dc.html`: `BaseLayout backdrop="home"`, a `glass` card at `rounded-board` with the new `shadow-card`, the 230×80 logo lockup, mono eyebrow labels that turn `accent-bright` while their field has focus, `.field-inset` fields, and a `sheet-raised` "Sign in" at `rounded-xl`. Any login error rings both fields with the new `.field-inset-error`, the same condition that shows the error text.
+Reason: one condition for text and rings keeps `login.data.ts` unchanged; the design does not distinguish error kinds.
+Consequences: no logic change and no new icon. `.astro` carries no unit test (D101); CSS is pinned in `brand-tokens.test.ts`. Deferred (GitHub issue): the unused Inter font link in `BaseLayout`.
+Supersedes: none.
