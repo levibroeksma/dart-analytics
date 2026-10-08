@@ -7,6 +7,7 @@ import { heatmapCanvas } from "@lib/ui/heatmap-canvas.data";
 import { growingCard } from "@lib/ui/growing-card.data";
 import { stepperData } from "@lib/ui/stepper.data";
 import { rangeSliderData } from "@lib/ui/range-slider.data";
+import { slideToStartData } from "@lib/ui/slide-to-start.data";
 
 export function registerUiData(Alpine: Alpine) {
   Alpine.data("logoutButton", logoutButton);
@@ -17,4 +18,5 @@ export function registerUiData(Alpine: Alpine) {
   Alpine.data("growingCard", growingCard);
   Alpine.data("stepper", stepperData);
   Alpine.data("rangeSlider", rangeSliderData);
+  Alpine.data("slideToStart", slideToStartData);
 }

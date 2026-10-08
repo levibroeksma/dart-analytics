@@ -9,6 +9,7 @@ import { heatmapCanvas } from "@lib/ui/heatmap-canvas.data";
 import { growingCard } from "@lib/ui/growing-card.data";
 import { stepperData } from "@lib/ui/stepper.data";
 import { rangeSliderData } from "@lib/ui/range-slider.data";
+import { slideToStartData } from "@lib/ui/slide-to-start.data";
 
 describe("registerUiData", () => {
   it("registers logoutButton as an Alpine data factory", () => {
@@ -57,5 +58,11 @@ describe("registerUiData", () => {
     const data = vi.fn();
     registerUiData({ data } as unknown as Alpine);
     expect(data).toHaveBeenCalledWith("rangeSlider", rangeSliderData);
+  });
+
+  it("registers slideToStart as an Alpine data factory", () => {
+    const data = vi.fn();
+    registerUiData({ data } as unknown as Alpine);
+    expect(data).toHaveBeenCalledWith("slideToStart", slideToStartData);
   });
 });
