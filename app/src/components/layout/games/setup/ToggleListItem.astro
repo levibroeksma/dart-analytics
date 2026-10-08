@@ -4,26 +4,38 @@
  * Toggle's Alpine scope.
  * @param {string} value
  * @param {string} label
+ * @param {boolean} [disabled] Dimmed, unclickable, `aria-disabled`
+ * @param {boolean} [tall] Taller row for the vertical orientation
  */
 interface Props {
   value: string;
   label: string;
+  disabled?: boolean;
+  tall?: boolean;
   [key: string]: unknown;
 }
 
 // Props
-const { value, label, ...props }: Props = Astro.props;
+const { value, label, disabled, tall, ...props }: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
 ---
 
 <li
-  class="min-w-0 min-h-10 w-full h-full rounded-full flex items-center justify-center"
+  class={cn(
+    "min-w-0 w-full h-full rounded-full flex items-center justify-center",
+    tall ? "min-h-11" : "min-h-10",
+  )}
   data-toggle-value={value}
-  :class={`activeTab === '${value}' ? 'text-accent' : 'text-muted-foreground'`}
+  :class={`activeTab === '${value}' ? 'text-foreground' : 'text-muted-foreground'`}
   {...props}
 >
   <button
     type="button"
-    class="w-full h-full p-2 font-semibold text-center text-xs whitespace-nowrap cursor-pointer"
+    class="w-full h-full px-2 text-[13px] font-semibold text-center whitespace-nowrap cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+    disabled={disabled}
+    aria-disabled={disabled ? "true" : undefined}
     @click={`select('${value}')`}
   >
     {label}

@@ -1,0 +1,79 @@
+---
+/**
+ * Slide-to-start control (design 4d/4e). Drag the thumb past 85% or press
+ * Enter/Space to submit the enclosing form; an earlier release snaps back.
+ * Fixed just above `BottomNav`.
+ * @param {string} disabledExpr Alpine expression; while true, input is ignored
+ * @param {string} failedExpr Alpine expression, true when the submit failed;
+ *   a fired slide resets only when loading ends with it set
+ * @param {string} [label="Slide to start"]
+ * @param {string} [class] Extra classes
+ */
+interface Props {
+  disabledExpr: string;
+  failedExpr: string;
+  label?: string;
+  class?: string;
+}
+
+// Props
+const {
+  disabledExpr,
+  failedExpr,
+  label = "Slide to start",
+  class: classNameProp,
+}: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+
+// Icons
+import PlayRoundedIcon from "@icons/play-rounded.svg";
+
+// Styles
+const className = cn(
+  "fixed inset-x-4 z-30 mx-auto max-w-lg bottom-[calc(max(0.5rem,calc(env(safe-area-inset-bottom)-0.5rem))+4.875rem)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent-muted rounded-full",
+  classNameProp,
+);
+---
+
+<div
+  class={className}
+  x-data="slideToStart()"
+  x-effect={`disabled = Boolean(${disabledExpr}); failed = Boolean(${failedExpr})`}
+  role="button"
+  tabindex="0"
+  aria-label="Slide to start game"
+  :aria-disabled="disabled ? 'true' : 'false'"
+  @keydown="onKey($event)"
+  @click="onClick($event)"
+>
+  <div
+    x-ref="track"
+    class="glass-button relative flex h-15 items-center justify-center overflow-hidden rounded-full transition-opacity"
+    :class="disabled && !fired ? 'opacity-50' : ''"
+  >
+    <span
+      class="slide-fill absolute inset-y-0 left-0 rounded-full"
+      x-show="fraction > 0"
+      x-cloak
+      :style="`width:calc(${fraction} * (100% - 60px) + 55px)`"
+    ></span>
+    <span
+      class="relative text-sm font-semibold tracking-[0.02em] text-soft-foreground"
+    >
+      {label}
+    </span>
+    <span
+      class="slide-thumb absolute top-[5px] flex size-[50px] touch-none items-center justify-center rounded-full"
+      :class="dragging ? 'scale-[1.06]' : 'motion-safe:transition-[left,scale] motion-safe:duration-200'"
+      :style="`left:calc(5px + (100% - 60px) * ${fraction})`"
+      @pointerdown="begin($event)"
+      @pointermove="move($event)"
+      @pointerup="end()"
+      @pointercancel="end()"
+    >
+      <PlayRoundedIcon class="size-5 text-foreground" />
+    </span>
+  </div>
+</div>

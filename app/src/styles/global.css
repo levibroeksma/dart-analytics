@@ -394,6 +394,61 @@
   box-shadow: 0 24px 60px oklch(0% 0 0 / 0.5);
 }
 
+@utility setting-badge {
+  @apply rounded-md px-1.5 py-0.5 font-mono text-[9px] font-semibold tracking-[0.08em] text-accent-bright;
+  background: var(--accent-muted);
+}
+
+@utility slider-fill {
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklch, var(--accent) 30%, transparent),
+    var(--accent)
+  );
+}
+
+@utility slider-thumb {
+  background: var(--foreground);
+  box-shadow:
+    0 0 0 3px color-mix(in oklch, var(--accent) 35%, transparent),
+    0 2px 8px oklch(0% 0 0 / 0.4);
+}
+
+@utility slider-bubble {
+  @apply border-x-0 border-y backdrop-blur-sm;
+  background: radial-gradient(
+    at 50% 0%,
+    color-mix(in oklch, var(--accent) 35%, transparent),
+    oklch(40% 0.12 240 / 0.55) 85%
+  );
+  border-top-color: color-mix(in oklch, var(--accent-bright) 50%, transparent);
+  border-bottom-color: color-mix(in oklch, var(--accent) 30%, transparent);
+}
+
+@utility slide-thumb {
+  @apply border-t border-white/35;
+  background: linear-gradient(
+    138deg,
+    var(--accent) 10%,
+    oklch(42% 0.13 242) 90%
+  );
+  box-shadow: 0 0 20px 2px color-mix(in oklch, var(--accent) 40%, transparent);
+}
+
+@utility slide-fill {
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklch, var(--accent) 11%, transparent),
+    color-mix(in oklch, var(--accent) 32%, transparent) 55%,
+    color-mix(in oklch, var(--accent) 47%, transparent)
+  );
+  box-shadow: inset 0 1px 0 oklch(100% 0 0 / 0.12);
+}
+
+@utility start-bar-fade {
+  background: linear-gradient(180deg, transparent, oklch(0% 0 0 / 0.85) 45%);
+}
+
 @layer components {
   .nav-pill {
     background: oklch(100% 0 0 / 0.04);

@@ -3,6 +3,7 @@
 import InfoSection from "@components/ui/InfoSection.astro";
 import SetupShell from "./SetupShell.astro";
 import SettingSectionShell from "./SettingSectionShell.astro";
+import SettingLabel from "./SettingLabel.astro";
 import Toggle from "./Toggle.astro";
 import UserSection from "./UserSection.astro";
 import { supportsDartbot } from "@lib/game/rulesets/capabilities";
@@ -30,7 +31,6 @@ const scoringModeOpts = [
   { value: "STANDARD", label: "Standard" },
   { value: "ACCURACY", label: "Accuracy" },
 ];
-const labelClass = "text-xs text-muted-foreground italic ml-2 ";
 ---
 
 <SetupShell title="Singles training">
@@ -43,9 +43,9 @@ const labelClass = "text-xs text-muted-foreground italic ml-2 ";
     description={infoSection.description}
   />
   <SettingSectionShell>
-    <div class="flex flex-col gap-3">
-      <div>
-        <label class={labelClass}>Target order</label>
+    <div class="flex flex-col gap-4">
+      <div class="flex flex-col gap-2">
+        <SettingLabel text="TARGET ORDER" />
         <Toggle
           orientation="horizontal"
           options={orderModeOpts}
@@ -53,8 +53,8 @@ const labelClass = "text-xs text-muted-foreground italic ml-2 ";
           class="w-full"
         />
       </div>
-      <div>
-        <label class={labelClass}>Difficulty</label>
+      <div class="flex flex-col gap-2">
+        <SettingLabel text="DIFFICULTY" />
         <Toggle
           orientation="horizontal"
           options={difficultyOpts}
@@ -63,10 +63,14 @@ const labelClass = "text-xs text-muted-foreground italic ml-2 ";
         />
       </div>
       <div
+        class="flex flex-col gap-2"
         x-show="$store.settings.captureModeKey === 'ANALYTICS'"
         x-cloak
       >
-        <label class={labelClass}>Scoring</label>
+        <SettingLabel
+          text="SCORING"
+          badge="ANALYTICS"
+        />
         <Toggle
           orientation="horizontal"
           options={scoringModeOpts}

@@ -1,31 +1,33 @@
 ---
 /**
- * Circular player avatar with the player's name underneath.
+ * Circular initials avatar with the player's name underneath.
  * @param {string} name Static fallback, rendered until `nameExpr` hydrates
  * @param {string} [nameExpr] Alpine expression overriding `name` once ready
+ * @param {string} [initialsExpr] Alpine expression for the avatar text;
+ *   defaults to `$initials(<nameExpr or name>)`
  */
 interface Props {
   name: string;
   nameExpr?: string;
+  initialsExpr?: string;
 }
 
 // Props
-const { name, nameExpr }: Props = Astro.props;
-
-// Icons
-import UserIcon from "@icons/user.svg";
+const {
+  name,
+  nameExpr,
+  initialsExpr = `$initials(${nameExpr ?? `'${name}'`})`,
+}: Props = Astro.props;
 ---
 
-<div class="flex flex-col gap-1 items-center justify-center">
+<div class="flex flex-col items-center gap-1.5">
   <div
-    class="p-3 border-x border-t w-fit border-sky-500/70 rounded-full bg-tab-active"
+    class="glass-blue flex size-13 items-center justify-center rounded-full font-display text-base text-foreground"
+    x-text={initialsExpr}
   >
-    <UserIcon
-      class="size-8 drop-shadow-lg drop-shadow-sky-700/40 text-sky-500"
-    />
   </div>
   <span
-    class="text-sm text-accent font-semibold"
+    class="text-xs font-semibold text-foreground"
     x-text={nameExpr}
   >
     {name}

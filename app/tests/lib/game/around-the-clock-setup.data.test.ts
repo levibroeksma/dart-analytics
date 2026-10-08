@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { aroundTheClockSetup } from "@lib/game/around-the-clock-setup.data";
+import { AROUND_THE_CLOCK_DEFAULT_MINUTES } from "@lib/game/around-the-clock-duration";
 import type { AroundTheClockSetupContext } from "@lib/types";
 import * as sessionsApi from "@client/api/sessions";
 import * as presetsApi from "@client/api/configuration-templates";
@@ -306,13 +307,16 @@ describe("aroundTheClockSetup", () => {
       expect(setup.clampNotice).toBe("");
     });
 
-    it("defaults an empty timed run to 10 minutes", async () => {
+    it("defaults an empty timed run to AROUND_THE_CLOCK_DEFAULT_MINUTES", async () => {
       mockCreate();
       const setup = createSetup({ presets: [STANDARD_PRESET] });
       setup.durationType = "MINUTES";
       await setup.start();
       expect(sentConfig().config).toMatchObject({
-        overrides: { duration_type: "MINUTES", duration_value: 10 },
+        overrides: {
+          duration_type: "MINUTES",
+          duration_value: AROUND_THE_CLOCK_DEFAULT_MINUTES,
+        },
       });
       expect(setup.clampNotice).toBe("");
     });

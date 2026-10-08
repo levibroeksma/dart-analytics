@@ -2,7 +2,7 @@
 status: canonical
 scope: shared Astro component inventory
 read-when: before writing markup for any recurring UI shape
-updated: 2026-10-07
+updated: 2026-10-08
 -->
 
 # Component Inventory
@@ -33,7 +33,7 @@ evaluated in the page's own Alpine scope.
 | `ExpandingModal.astro` | Corner 44px `sheet-raised` toggle that opens a `Modal` bottom sheet (Escape or backdrop calls `onClose`). Caller owns the open flag (2026-09-21). `detached` hides the corner toggle so the caller opens it from its own control (2026-09-22). Sheet instead of in-place growth (D429, 2026-10-08) | `openExpr`, `onToggle`, `onClose`, `title`, `titleId`, `overline`, `toggleLabelClosed`, `toggleLabelOpen`, `detached` |
 | `ErrorAlert.astro` | Alert-styled error message; `alwaysVisible` drops `x-show`/`x-cloak` for a caller whose ancestor already gates visibility | `class`, `showExpr`, `textExpr`, `alwaysVisible` |
 | `GrowingCard.astro` | In-flow glass card that grows from wherever it sits into an overlay covering the viewport inset by 1rem, and shrinks back; its slot holds the card's height while open so the page does not shift. Owns its open flag via `growingCard()` (`open` and `collapse()` in scope for the slot); click, Enter or Space opens it and dispatches `expand`, clicks inside an open card never close it, Escape or a slot control calling `collapse()` closes it; scrolls inside while open. Contents reflow while it grows, unlike `ExpandingModal` (2026-10-05) | `class`; leftover attributes (e.g. `@expand`) forwarded to the root |
-| `InfoSection.astro` | Titled explanatory block | `title`, `description`, `id` |
+| `InfoSection.astro` | `glass-info` rules card: accent title over a two-line clamp that expands on tap; `open` is always expanded with no chevron (setups without settings) (D430, 2026-10-08) | `title`, `description`, `id`, `open` |
 | `IsLoading.astro` | Loading skeleton / spinner panel | `title` |
 | `Link.astro` | Anchor styled as text link or button | `href`, `variant` (`inline`/`primary`/`secondary`/`ghost`), `external`, `icon`, `ariaLabel` |
 | `LogoutButton.astro` | Sign-out action wired to the auth flow; round 44px `glass-button` in the `/profile` header, spinner while signing out (restyled 2026-10-07) | none |
@@ -55,7 +55,10 @@ evaluated in the page's own Alpine scope.
 | `Input.astro` | Styled text/number/email input | `id`, `type`, `name`, `value`, `placeholder`, `error`, `required`, `disabled` |
 | `PlayerSettingsCard.astro` | Shadowless `glass` card grouping the player-settings rows and the `HANDED` picker (restyled 2026-10-07) | none |
 | `Select.astro` | Custom glass dropdown (no native `<select>`): full-width 48px glass bar showing the picked label, grows downward into an overlaying option panel on click; closes on pick, outside click, Escape; caller seeds the value (no placeholder) | `options` (`{value,label}[]`, `value` may be `null`, build-time) or `optionsExpr` (Alpine expression yielding them at runtime), `model` (writable Alpine expression in the caller's scope), `ariaLabel`, `class` (2026-09-24; `optionsExpr` 2026-09-25; nullable `value` 2026-10-03) |
-| `Switch.astro` | Boolean switch (track + thumb), not a checkbox glyph | `label`, `hint`, rest props forward onto the native `<input type="checkbox">` |
+| `Switch.astro` | Boolean switch (track + thumb), not a checkbox glyph; label left, `hint` as a muted line under it, switch right (D430, 2026-10-08) | `label`, `hint`, rest props forward onto the native `<input type="checkbox">` |
+| `Stepper.astro` | Bounded vertical glass stepper (chevron up, mono value, chevron down); the value is a spinbutton, Arrow Up/Down step (D430, 2026-10-08) | `min`, `max`, `ariaLabel`, `x-model` |
+| `RangeSlider.astro` | Bounded integer slider: value bubble over a capsule thumb, filled `inset-well` track, ticks, min/max labels; a transparent native range input supplies drag, keys and a11y; unusable models are normalised and written back (D430, 2026-10-08) | `min`, `max`, `label`, `ariaLabel`, `fallback`, `hint`, `x-model` |
+| `SlideToStart.astro` | Fixed slide-to-submit above `BottomNav`: release past 85% or Enter/Space submits the enclosing form; a tap does nothing (D430, 2026-10-08) | `disabledExpr`, `label` |
 | `SettingRow.astro` | Mono eyebrow label over a `field-inset` field: view mode is a `Button` with value + pencil, edit mode an inset input with accent focus ring; `maxlength` caps the input and shows an `n / max` hint while editing (restyled 2026-10-07) | `id`, `label`, `valueExpr`, `modelExpr`, `saveExpr`, `emptyText`, `numeric`, `inputmode`, `required`, `maxlength`, `disabledExpr` |
 
 ## `components/layout/`
@@ -104,14 +107,15 @@ evaluated in the page's own Alpine scope.
 | --------- | ------- | --------- |
 | `AddGuestButton.astro` | Dashed circle add-guest control; hides once `guests.length` hits 1 (1v1 cap) | none (reads `guests`/`showAddGuestModal` from the page scope) |
 | `GuestNameModal.astro` | Name-entry modal for a new guest | none (reads `newGuestName`/`showAddGuestModal`, calls `addGuest()` on the page scope) |
-| `GuestSection.astro` | Runtime guest list (avatar + remove badge per guest) plus `AddGuestButton`/`GuestNameModal` | none (reads `guests`, calls `removeGuest(i)` on the page scope) |
+| `GuestSection.astro` | Runtime guest list (avatar + remove badge per guest) plus `AddGuestButton`; `UserSection` renders `GuestNameModal`/`OpponentChooserModal` after its `glass` card so the sheets are not trapped by its backdrop filter (D430, 2026-10-08) | none (reads `guests`, calls `removeGuest(i)` on the page scope) |
 | `OpponentChooserModal.astro` | Guest/DartBot opponent chooser in a `Modal` sheet: two inlay rows, then — for DartBot — a level step (1–15 slider bound to `pendingBotLevel`, two `StatTile`s for the simulated average/checkout range from `allLevelSelectStats()`, a level pill on the thumb, Back/Add DartBot); `addBot()` seats at that level (restyled to the design, D429, 2026-10-08) | none (reads `showOpponentChooser`/`showBotLevelPicker`/`pendingBotLevel` from the page scope) |
-| `SettingSectionShell.astro` | Bordered section wrapper inside a setup form | none |
-| `SetupShell.astro` | Page shell for every game setup screen; owns the form's error alert | `title` |
-| `Toggle.astro` | Segmented option control bound via `x-modelable` | `options`, `orientation` (`horizontal`/`vertical`), `initial`, `hint` |
-| `ToggleListItem.astro` | One option inside a vertical `Toggle` | `value`, `label` |
-| `UserIconDisplay.astro` | Avatar/initial badge | `name`, `nameExpr` |
-| `UserSection.astro` | Player row on the setup screen | `allowGuests` (501 only — renders `GuestSection` beside the owner icon) |
+| `SettingLabel.astro` | Mono caps label above one setup control, optional `setting-badge` chip (e.g. `ANALYTICS`) (D430, 2026-10-08) | `text`, `badge` |
+| `SettingSectionShell.astro` | `glass` settings card with a Michroma title wrapping a setup form's controls (D430, 2026-10-08) | none |
+| `SetupShell.astro` | Page shell for every game setup screen: glass back link + centred Michroma title, owns the form's error alert; start is `SlideToStart` (D430, 2026-10-08) | `title` |
+| `Toggle.astro` | Segmented option control bound via `x-modelable`: `inset-well` track, `glass-blue` pill; `options[].disabled` renders dimmed, unclickable, `aria-disabled` (D430, 2026-10-08) | `options`, `orientation` (`horizontal`/`vertical`), `initial`, `hint` |
+| `ToggleListItem.astro` | One option inside a `Toggle` | `value`, `label`, `disabled`, `tall` |
+| `UserIconDisplay.astro` | `glass-blue` initials avatar (`$initials`) with the name under it (D430, 2026-10-08) | `name`, `nameExpr`, `initialsExpr` |
+| `UserSection.astro` | `glass` Players card with a mono seat count (`$playerCount`) and initials avatars; the guest/opponent sheets render after the card (D430, 2026-10-08) | `allowGuests` (renders `GuestSection` beside the owner icon), `allowDartbot` |
 
 ## `components/layout/training/routines/`
 

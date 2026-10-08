@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  AROUND_THE_CLOCK_DEFAULT_MINUTES,
   aroundTheClockDurationBounds,
   aroundTheClockDurationClampNotice,
   clampAroundTheClockDuration,
@@ -50,5 +51,14 @@ describe("aroundTheClockDurationClampNotice", () => {
     expect(aroundTheClockDurationClampNotice()).toBe(
       "Allowed range: 3–30 minutes",
     );
+  });
+});
+
+describe("ATC default minutes export", () => {
+  it("is 10 and inside the duration bounds", () => {
+    const { min, max } = aroundTheClockDurationBounds();
+    expect(AROUND_THE_CLOCK_DEFAULT_MINUTES).toBe(10);
+    expect(AROUND_THE_CLOCK_DEFAULT_MINUTES).toBeGreaterThanOrEqual(min);
+    expect(AROUND_THE_CLOCK_DEFAULT_MINUTES).toBeLessThanOrEqual(max);
   });
 });

@@ -1,0 +1,103 @@
+---
+/**
+ * Bounded integer slider (design 6a): mono label, value bubble over a
+ * capsule thumb, filled well track, ticks, min/max labels. A transparent
+ * native `input[type=range]` on top supplies drag, keyboard and a11y. Bind
+ * with `x-model`; exposed through `x-modelable="value"`. Non-number models
+ * are normalised and written back on mount.
+ * @param {number} min
+ * @param {number} max
+ * @param {string} label Mono caps label (e.g. "ROUNDS")
+ * @param {string} ariaLabel Accessible name of the range input
+ * @param {number} [fallback] Shown and written when the model is unusable; default `min`
+ * @param {string} [hint] Muted caption under the control
+ * @param {string} [class] Extra classes
+ */
+interface Props {
+  min: number;
+  max: number;
+  label: string;
+  ariaLabel: string;
+  fallback?: number;
+  hint?: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+// Props
+const {
+  min,
+  max,
+  label,
+  ariaLabel,
+  fallback,
+  hint,
+  class: classNameProp,
+  ...props
+}: Props = Astro.props;
+
+// Components
+import SettingLabel from "@components/layout/games/setup/SettingLabel.astro";
+
+// Lib
+import { cn } from "@client/cn";
+
+// Data
+const config = { min, max, fallback: fallback ?? min };
+
+// Styles
+const className = cn("flex flex-col gap-2", classNameProp);
+---
+
+<div
+  class={className}
+  x-data={`rangeSlider(${JSON.stringify(config)})`}
+  x-modelable="value"
+  {...props}
+>
+  <SettingLabel text={label} />
+  <div class="relative h-[30px]">
+    <span
+      class="slider-bubble absolute bottom-0.5 flex h-7 min-w-10 -translate-x-1/2 items-center justify-center rounded-full px-2.5 font-mono text-sm text-foreground"
+      :style="`left:${position()}`"
+      x-text="current()"
+    ></span>
+  </div>
+  <div class="relative flex h-8 items-center">
+    <div class="inset-well absolute inset-x-3 h-2 rounded-full">
+      <div
+        class="slider-fill h-full rounded-full"
+        :style="`width:${fraction() * 100}%`"
+      >
+      </div>
+    </div>
+    <span
+      class="slider-thumb pointer-events-none absolute h-[22px] w-9 -translate-x-1/2 rounded-full"
+      :style="`left:${position()}`"
+    ></span>
+    <input
+      type="range"
+      min={min}
+      max={max}
+      step="1"
+      aria-label={ariaLabel}
+      class="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+      :value="current()"
+      @input="onInput($event.target.value)"
+    />
+  </div>
+  <div class="relative h-3.5 font-mono text-[11px] text-muted">
+    <span class="absolute left-1 top-0">{min}</span>
+    <div class="absolute inset-x-0 top-1 h-1.5">
+      <template x-for="tick in ticks">
+        <span
+          class="absolute w-px -translate-x-1/2"
+          :class="tick.major ? 'h-1.5 bg-foreground/35' : 'h-1 bg-foreground/20'"
+          :style="`left:calc(12px + (100% - 24px) * ${tick.fraction})`"
+        ></span>
+      </template>
+    </div>
+    <span class="absolute right-0 top-0">{max}</span>
+  </div>
+  {hint && <p class="px-0.5 text-xs text-muted">{hint}</p>}
+</div>

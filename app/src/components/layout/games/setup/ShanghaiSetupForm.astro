@@ -3,6 +3,7 @@
 import InfoSection from "@components/ui/InfoSection.astro";
 import SetupShell from "./SetupShell.astro";
 import SettingSectionShell from "./SettingSectionShell.astro";
+import SettingLabel from "./SettingLabel.astro";
 import Toggle from "./Toggle.astro";
 import UserSection from "./UserSection.astro";
 import { supportsDartbot } from "@lib/game/rulesets/capabilities";
@@ -35,12 +36,15 @@ const hints = {
     description={infoSection.description}
   />
   <SettingSectionShell>
-    <Toggle
-      orientation="horizontal"
-      options={difficultyOpts}
-      x-model="difficulty"
-      hint={`difficulty === 'HARD' ? '${hints.HARD}' : '${hints.NORMAL}'`}
-      class="w-full"
-    />
+    <div class="flex flex-col gap-2">
+      <SettingLabel text="DIFFICULTY" />
+      <Toggle
+        orientation="horizontal"
+        options={difficultyOpts}
+        x-model="difficulty"
+        hint={`difficulty === 'HARD' ? '${hints.HARD}' : '${hints.NORMAL}'`}
+        class="w-full"
+      />
+    </div>
   </SettingSectionShell>
 </SetupShell>

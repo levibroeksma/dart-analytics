@@ -3,6 +3,7 @@
 import InfoSection from "@components/ui/InfoSection.astro";
 import SetupShell from "./SetupShell.astro";
 import SettingSectionShell from "./SettingSectionShell.astro";
+import SettingLabel from "./SettingLabel.astro";
 import Toggle from "./Toggle.astro";
 import UserSection from "./UserSection.astro";
 import { supportsDartbot } from "@lib/game/rulesets/capabilities";
@@ -19,8 +20,6 @@ const orderModeOpts = [
   { value: "HIGH_TO_LOW", label: "High → Low" },
   { value: "RANDOM", label: "Random" },
 ];
-
-const labelClass = "text-xs text-muted-foreground italic ml-2 ";
 ---
 
 <SetupShell title="Doubles training">
@@ -33,12 +32,14 @@ const labelClass = "text-xs text-muted-foreground italic ml-2 ";
     description={infoSection.description}
   />
   <SettingSectionShell>
-    <label class={labelClass}>Target order</label>
-    <Toggle
-      orientation="horizontal"
-      options={orderModeOpts}
-      x-model="orderMode"
-      class="w-full"
-    />
+    <div class="flex flex-col gap-2">
+      <SettingLabel text="TARGET ORDER" />
+      <Toggle
+        orientation="horizontal"
+        options={orderModeOpts}
+        x-model="orderMode"
+        class="w-full"
+      />
+    </div>
   </SettingSectionShell>
 </SetupShell>

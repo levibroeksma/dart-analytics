@@ -1,0 +1,32 @@
+---
+/**
+ * Mono caps label above one setup control, with an optional chip
+ * (e.g. `ANALYTICS` for capture-mode-only settings).
+ * @param {string} text Label text, rendered as-is (pass caps)
+ * @param {string} [badge] Chip text after the label
+ * @param {string} [class] Extra classes
+ */
+interface Props {
+  text: string;
+  badge?: string;
+  class?: string;
+}
+
+// Props
+const { text, badge, class: classNameProp }: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const className = cn("flex items-center gap-2 px-0.5", classNameProp);
+---
+
+<div class={className}>
+  <span
+    class="font-mono text-[10px] font-semibold tracking-[0.12em] text-muted-foreground"
+  >
+    {text}
+  </span>
+  {badge && <span class="setting-badge">{badge}</span>}
+</div>

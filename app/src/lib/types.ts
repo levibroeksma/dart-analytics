@@ -5,3 +5,4 @@ export * from "./profile/types";
 export * from "./utils/types";
 export * from "./stats/types";
 export * from "./training/types";
+export * from "./ui/types";

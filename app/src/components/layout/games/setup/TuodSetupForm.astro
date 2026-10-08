@@ -1,19 +1,24 @@
 ---
 // Components
-import Input from "@components/forms/Input.astro";
 import Toggle from "./Toggle.astro";
 import Switch from "@components/forms/Switch.astro";
 import InfoSection from "@components/ui/InfoSection.astro";
 import SetupShell from "./SetupShell.astro";
 import SettingSectionShell from "./SettingSectionShell.astro";
 import UserSection from "./UserSection.astro";
+import SettingLabel from "./SettingLabel.astro";
+import RangeSlider from "@components/forms/RangeSlider.astro";
 import { supportsDartbot } from "@lib/game/rulesets/capabilities";
+import { tuodDurationBounds } from "@lib/game/tuod-duration";
 
 // Data
 const durationOpts = [
   { value: "ROUNDS", label: "Rounds" },
   { value: "MINUTES", label: "Time" },
 ];
+const rounds = tuodDurationBounds("ROUNDS");
+const minutes = tuodDurationBounds("MINUTES");
+const soloHint = "Time is solo only — with a guest or bot, play by rounds.";
 
 const infoSection = {
   title: "Ten Up One Down rules",
@@ -33,64 +38,50 @@ const infoSection = {
   />
   <SettingSectionShell>
     <template x-if="guests.length === 0 && !bot">
-      <div class="contents">
-        <Toggle
-          orientation="horizontal"
-          options={durationOpts}
-          x-model="durationType"
-          class="w-full"
-        />
-        <Input
-          id="durationValue"
-          name="durationValue"
-          type="text"
-          inputmode="numeric"
-          :placeholder="durationType === 'ROUNDS' ? 'Number of rounds' : 'Number of minutes'"
-          x-model.number="durationValue"
-          @input="clampNotice = ''"
-          class="glass border-tab-border rounded-full mt-4"
-        />
-        <label
-          for="durationValue"
-          class="text-xs text-muted-foreground px-4 py-0 italic"
-          x-text="durationType === 'ROUNDS' ? 'Rounds' : 'Minutes'"
-        ></label>
-        <p
-          class="text-sm text-muted-foreground px-4 py-0"
-          role="status"
-          x-show="clampNotice"
-          x-text="clampNotice"
-          x-cloak
-        >
-        </p>
+      <div class="flex flex-col gap-4">
+        <div class="flex flex-col gap-2">
+          <SettingLabel text="FORMAT" />
+          <Toggle
+            orientation="horizontal"
+            options={durationOpts}
+            x-model="durationType"
+            class="w-full"
+          />
+        </div>
+        <template x-if="durationType === 'ROUNDS'">
+          <RangeSlider
+            min={rounds.min}
+            max={rounds.max}
+            label="ROUNDS"
+            ariaLabel="Number of rounds"
+            hint={soloHint}
+            x-model="durationValue"
+          />
+        </template>
+        <template x-if="durationType === 'MINUTES'">
+          <RangeSlider
+            min={minutes.min}
+            max={minutes.max}
+            label="MINUTES"
+            ariaLabel="Number of minutes"
+            hint={soloHint}
+            x-model="durationValue"
+          />
+        </template>
       </div>
     </template>
     <template x-if="guests.length > 0 || bot">
-      <div class="contents">
-        <Input
-          id="durationValue"
-          name="durationValue"
-          type="text"
-          inputmode="numeric"
-          placeholder="Number of rounds"
-          x-model.number="durationValue"
-          @input="clampNotice = ''"
-          class="glass border-tab-border rounded-full mt-4"
-        />
-        <p
-          class="text-sm text-muted-foreground px-4 py-0"
-          role="status"
-          x-show="clampNotice"
-          x-text="clampNotice"
-          x-cloak
-        >
-        </p>
-      </div>
+      <RangeSlider
+        min={rounds.min}
+        max={rounds.max}
+        label="ROUNDS"
+        ariaLabel="Number of rounds"
+        x-model="durationValue"
+      />
     </template>
     <Switch
       label="Show checkout hints"
       x-model="$store.checkoutHints.enabled"
-      class="mt-4"
     />
   </SettingSectionShell>
 </SetupShell>
