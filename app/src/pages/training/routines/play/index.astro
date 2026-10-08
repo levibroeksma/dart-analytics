@@ -15,6 +15,7 @@ import TenUpOneDown from "@components/layout/games/interfaces/TenUpOneDown.astro
 import ScoreTraining from "@components/layout/games/interfaces/ScoreTraining.astro";
 import OneTwentyOne from "@components/layout/games/interfaces/OneTwentyOne.astro";
 import AroundTheClock from "@components/layout/games/interfaces/AroundTheClock.astro";
+import CountdownPauseControl from "@components/layout/games/CountdownPauseControl.astro";
 import CheckoutConfirm from "@components/layout/games/CheckoutConfirm.astro";
 import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
@@ -96,6 +97,11 @@ import OpenRoutineModal from "@components/layout/training/routines/OpenRoutineMo
         x-data="game"
         class="flex min-h-0 flex-1 flex-col"
       >
+        <div class="flex justify-end">
+          <CountdownPauseControl
+            disabledExpr="finished || showDoubleConfirm || showFinishConfirm"
+          />
+        </div>
         <TenUpOneDown
           x-show="!finished"
           x-cloak
@@ -156,6 +162,9 @@ import OpenRoutineModal from "@components/layout/training/routines/OpenRoutineMo
         x-data="game"
         class="flex min-h-0 flex-1 flex-col"
       >
+        <div class="flex justify-end">
+          <CountdownPauseControl disabledExpr="finished || showFinishConfirm" />
+        </div>
         <ScoreTraining
           x-show="!finished"
           x-cloak
@@ -208,6 +217,11 @@ import OpenRoutineModal from "@components/layout/training/routines/OpenRoutineMo
         x-data="game"
         class="flex min-h-0 flex-1 flex-col"
       >
+        <div class="flex justify-end">
+          <CountdownPauseControl
+            disabledExpr="finished || showDoubleConfirm || showSessionFinishConfirm"
+          />
+        </div>
         <OneTwentyOne
           x-show="!finished"
           x-cloak
@@ -264,6 +278,9 @@ import OpenRoutineModal from "@components/layout/training/routines/OpenRoutineMo
         x-data="game"
         class="flex min-h-0 flex-1 flex-col"
       >
+        <div class="flex justify-end">
+          <CountdownPauseControl disabledExpr="finished" />
+        </div>
         <AroundTheClock
           x-show="!finished"
           x-cloak
