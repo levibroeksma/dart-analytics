@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/style-guide
 read-when: any UI/component work — tokens, primitives, typography, motion, accessibility
-updated: 2026-09-30
+updated: 2026-10-08
 -->
 
 # Frontend Style Guide
 
-> **Version:** 0.2.6 (2026-09-30 — `--chart-<name>` tokens and the Charts section, D374; prior 0.2.5 was no `height` beside `flex-1`; the 40% scoreboard band; prior 0.2.3 was Tailwind v4 container queries, 2026-09-09)
+> **Version:** 0.3.0 (2026-10-08 — Brand Style tokens: coral error, type scale, new radii, surfaces, weight 500 allowed, D428; prior 0.2.6 was `--chart-<name>` tokens, D374)
 >
 > Dark-only, mobile-first UI conventions: sky accent, glass/surface tokens, primitive class contracts, typography, spacing, motion, accessibility.
 >
@@ -31,6 +31,7 @@ Class *composition* (`cn()`, frontmatter `// Styles`, prop/`class` placement) li
 - **Ambient backdrop.** `body::before` paints fixed radial gradients (soft top wash + sky `--accent-glow` corner bloom) over `--surface`. `body::after` adds a bottom vignette. Both layers are `pointer-events: none` and sit behind content (`z-index: -2` / `-1`).
 - **Mobile-first shell.** Content column capped at `max-w-lg` (`AppLayout`, `GameLayout`, bottom nav). Full viewport height via `h-lvh max-h-lvh overflow-hidden` on `html` and `fixed inset-x-0 top-0 h-lvh transform-gpu overflow-hidden` on `body` (D417); `body` also pads `env(safe-area-inset-top)` so content clears the iOS status bar in a standalone-launched web app (D174, 2026-07-29).
 - **Touch ergonomics.** `-webkit-tap-highlight-color: transparent` and `touch-action: manipulation` on `html`.
+- **Brand reference.** Token values come from the Claude Design `Brand Style.dc.html` file; a new value enters `global.css` as a token before any component uses it (D428).
 - **Text is not selectable by default.** `body` sets `user-select: none` and `-webkit-touch-callout: none` in `@layer base`, so a long press never opens the iOS copy/share sheet or highlights a label. `input`, `textarea` and `[contenteditable]` stay selectable, and anything a player may want to copy (a code, an error message) opts in with the `select-text` utility — a utility outranks the base layer, so it needs no override. Per-element `select-none` is now redundant and should not be added (D388, 2026-10-02).
 
 ---
@@ -41,12 +42,14 @@ Use semantic tokens only. Never raw Tailwind palette utilities (`bg-sky-500`, `t
 
 | Role | Classes / tokens |
 | ---- | ---------------- |
-| Surfaces | `bg-surface`, `bg-surface-raised`, `bg-surface-overlay`, `glass`, `glass-tinted`, `glass-raised`, `glass-tinted-raised`, `glass-button` (frosted button face; home Resume and play buttons, 2026-10-07) |
-| Text | `text-foreground`, `text-soft-foreground` (78%, hero eyebrow), `text-muted-foreground`, `text-muted`, `text-faint-foreground` (50%, rest-day letters) (2026-10-07) |
+| Surfaces | `bg-surface`, `bg-surface-raised`, `bg-surface-overlay`, `glass` (cards; no shadow), `glass-tinted`, `glass-raised`, `glass-tinted-raised`, `glass-button` (raised glass: buttons), `glass-blue` (selected pill, avatar), `glass-info` (rules/info card), `inset-well` (tracks, fields), `inset-well-muted` (undo/delete keys, exit), `glass-sheet` (bottom sheets), `bg-scrim` (modal backdrop) (2026-10-08) |
+| Text | `text-foreground`, `text-soft-foreground` (78%), `text-muted-foreground` (70%, captions/labels), `text-muted` (55%, body), `text-faint-foreground` (50%), `text-placeholder` (48%, empty fields only) |
 | Borders | `border-border`, `border-border-strong` |
-| Accent | `accent`, `accent-hover`, `accent-muted`, `accent-foreground`, `accent-glow` (sky); `accent-bright` (highlighted figures), `accent-foreground-muted` (secondary text on accent gradients), `accent-deep` (gradient end) (2026-10-07) |
-| States | `error` / `error-muted` / `error-foreground`, `success` / `success-muted` |
-| Radius | `rounded-sm` … `rounded-2xl` per `@theme` |
+| Accent | `accent`, `accent-hover`, `accent-muted`, `accent-foreground`, `accent-glow` (sky); `accent-bright` (sky light: accent text on dark), `accent-foreground-muted`, `accent-deep` (gradient end), `accent-deep-blue` (chart bars, vignette), `bg-blue-glass` (2026-10-08) |
+| States | `error` / `error-hover` / `error-muted` / `error-foreground` (coral); `error-strong` / `error-strong-hover` (solid fill under `error-foreground`, ≥ 4.5:1; `Button`/`IconBtn` error variant); `missed` / `missed-muted` alias error; `success` / `success-muted` |
+| Radius | `rounded-sm` … `rounded-2xl`, `rounded-row`, `rounded-key`, `rounded-switch`, `rounded-board`, `rounded-sheet` per `@theme` |
+| Type scale | `text-hero` 72, `text-title` 26 (screen title), `text-value` 30, `text-tile` 20, `text-card-title` 13, `text-button` 15, `text-eyebrow` 10 / `text-eyebrow-lg` 12 (mono caps); body `text-sm`, caption `text-xs` |
+| Hit target | `size-hit` (44px) minimum for any tap target |
 | Fonts | `font-sans` (Montserrat), `font-display` (Michroma), `font-mono` (JetBrains Mono) |
 | Motion | `--ease-out`; keep UI ≤ ~300ms; transform/opacity only |
 | Chart marks | `--chart-<name>` for the nine `CardWrapper` color names (`sky, violet, rose, teal, emerald, amber, orange, fuchsia, blue`) and `--chart-grid`; read by `lib/ui/chart-theme.ts`, never used as utility classes (2026-09-30, D374) |
@@ -60,6 +63,12 @@ Radius scale (from `@theme`):
 | `rounded-lg` | 12px | Compact panels, modals |
 | `rounded-xl` | 16px | Nav shell |
 | `rounded-2xl` | 20px | Cards |
+| `rounded-row` | 14px | Select option rows |
+| `rounded-key` | 22px | Keypad / tap-input keys |
+| `rounded-switch` | 26px | Vertical switch track |
+| `rounded-board` | 28px | Board container |
+| `rounded-sheet` | 32px | Bottom sheets (`glass-sheet`) |
+| `rounded-full` | pill | Pills, nav, sliders, icon buttons |
 
 Accent is Tailwind sky (`sky-400` / `sky-500` / `sky-600` mapped into `--accent*` OKLCH values). Selection uses `accent-muted` background.
 
@@ -94,7 +103,7 @@ Implement a reusable class contract once in `global.css` (`@utility` / `@layer c
 | `.gradient-card` | Elevated solid card with soft top light |
 | `.link-card` | Community / outbound link cards |
 | `.card-wrapper` | Tintable tool/extension cards (`--card-tint`, default accent); translucent, so blurs its backdrop like `.glass` (2026-10-02) |
-| `@utility glass` / `glass-tinted` / `glass-raised` / `glass-tinted-raised` | Frosted panels — top-lit radial wash (white, or black when `-tinted`), `border-y`, blur; `-raised` adds `shadow-md` + stronger blur (2026-10-06) |
+| `@utility glass` / `glass-tinted` / `glass-raised` / `glass-tinted-raised` | Frosted panels — top-lit radial wash (white, or black when `-tinted`), `border-y`, blur; `-raised` adds `shadow-md` + stronger blur (2026-10-06); `glass-blue` / `glass-info` / `inset-well` / `inset-well-muted` / `glass-sheet` (2026-10-08, D428) |
 
 **Dialogs** are component contracts, not CSS class primitives: use `Modal.astro` and `ConfirmDialog.astro`. Panels typically combine `bg-surface-raised` + `glass` + `rounded-lg border border-border`.
 
@@ -111,7 +120,9 @@ Press feedback is built into `.btn:active:not(:disabled)` (`transform: scale(0.9
 | Body / description / buttons | `font-sans` (Montserrat) — never `font-mono` on body or buttons |
 | Large numeric displays (scores, targets) | `font-mono font-bold tabular-nums`; fixed `text-4xl`/`text-7xl` step, except content of variable length (e.g. an equation) — use `SinglePlayerDisplay`'s `fluid` prop instead (D262) |
 | Case | No `uppercase` on body, description, or button text. Scope `uppercase` to the specific title/eyebrow element only — never a parent wrapping a modal or body region |
-| Weight | `font-normal`, `font-semibold`, `font-bold` only. **Never `font-medium`** — poor cross-browser rendering. Buttons use `font-semibold` |
+| Weight | `font-normal`, `font-medium`, `font-semibold`, `font-bold`. Display (Michroma) 400 only; Montserrat 400/500/600/700; JetBrains Mono 500/600. Buttons use `font-semibold` (D428) |
+| Screen / card titles | Screen title `font-display text-title`; card title `font-display text-card-title` — never bold Montserrat |
+| Eyebrows | `font-mono font-semibold uppercase text-eyebrow` (or `-lg`); tracking is in the token |
 
 When a parent uses `font-mono` or `uppercase`, reset children that should not inherit it (`font-sans`, `normal-case`).
 
@@ -161,6 +172,10 @@ Never set `height` (`h-full`, `h-2/5`) on an element that also has `flex-1`. `fl
 | Darker frosted panel | `glass-tinted` |
 | Floating frosted panel (nav, overlays) | `glass-raised` / `glass-tinted-raised` |
 | Marketing / tinted card | `.gradient-card`, `.link-card`, or `.card-wrapper` |
+| Recessed track / field / key | `inset-well` (`inset-well-muted` for secondary keys) |
+| Selected pill / avatar | `glass-blue` |
+| Bottom sheet modal | `glass-sheet` over `bg-scrim` |
+| Info / rules card | `glass-info` |
 
 One intentional surface level per visual block. Do not stack competing glass/raised treatments without a clear hierarchy (e.g. modal over page glass, not glass-in-glass).
 
@@ -249,7 +264,6 @@ Scale negatives without arbitrary brackets stay fine (`-mt-4`, `-rotate-45`, `-t
 | Legacy text `text-fg`, `text-fg-muted`, `text-fg-subtle`, `text-fg-faint` | `text-foreground`, `text-muted-foreground`, `text-muted` |
 | Old CSS primitives `.surface`, `.surface-elevated`, `.nav-item` / `.nav-item-active`, `.badge` / `.badge-accent` / `.badge-muted` (as formerly documented) | `glass` / raised/overlay tokens; `NavPill` / `.nav-pill`; `Badge.astro` with semantic tokens |
 | Raw palette colors (`sky-*`, `teal-*`, `zinc-*` as paint) | Semantic tokens (`accent*`, `surface*`, `foreground`, `muted*`) |
-| `font-medium` | `font-normal` / `font-semibold` / `font-bold` |
 | `font-mono` on body or buttons | `font-sans` |
 | A parent `uppercase` wrapping a modal or body region | `uppercase` scoped to the title/eyebrow only |
 | Nested competing glass/raised stacks | One surface level + overlay well when needed |
