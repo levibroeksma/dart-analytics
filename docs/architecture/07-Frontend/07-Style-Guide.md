@@ -42,7 +42,7 @@ Use semantic tokens only. Never raw Tailwind palette utilities (`bg-sky-500`, `t
 
 | Role | Classes / tokens |
 | ---- | ---------------- |
-| Surfaces | `bg-surface`, `bg-surface-raised`, `bg-surface-overlay`, `glass` (cards; no shadow unless a floating card adds `shadow-card`), `glass-tinted`, `glass-raised`, `glass-tinted-raised`, `glass-button` (raised glass: buttons), `glass-blue` (selected pill, avatar), `glass-info` (rules/info card), `inset-well` (tracks, fields), `inset-well-muted` (undo/delete keys, exit), `glass-sheet` (bottom sheets), `bg-scrim` (modal backdrop) (2026-10-08); `shadow-card` (floating card drop shadow, login, D431); play (D432): `glass-active-seat` (throwing seat card), `input-well` (input panels), `next-dart-ring` (next dart's bar), `target-key-ring` (doubles target key), `pip-on` (lit mark pip), `board-dim` (board while pressed), `shadow-magnifier` |
+| Surfaces | `bg-surface`, `bg-surface-raised`, `bg-surface-overlay`, `glass` (cards; no shadow unless a floating card adds `shadow-card`), `glass-tinted`, `glass-raised`, `glass-tinted-raised`, `glass-button` (raised glass: buttons), `glass-blue` (selected pill, avatar), `glass-info` (rules/info card), `inset-well` (tracks, fields), `inset-well-muted` (undo/delete keys, exit), `glass-sheet` (bottom sheets), `bg-scrim` (modal backdrop) (2026-10-08); `shadow-card` (floating card drop shadow, login, D431); play (D432, 2026-10-08): `glass-active-seat` (throwing seat card), `input-well` (input panels), `next-dart-ring` (next dart's bar), `target-key-ring` (doubles target key), `pip-on` (lit mark pip), `board-dim` (board while pressed), `shadow-magnifier` |
 | Text | `text-foreground`, `text-soft-foreground` (78%), `text-muted-foreground` (70%, captions/labels), `text-muted` (55%, body), `text-faint-foreground` (50%), `text-placeholder` (48%, empty fields only) |
 | Borders | `border-border`, `border-border-strong` |
 | Accent | `accent`, `accent-hover`, `accent-muted`, `accent-foreground`, `accent-glow` (sky); `accent-bright` (sky light: accent text on dark), `accent-foreground-muted`, `accent-deep` (gradient end), `accent-deep-blue` (chart bars, vignette), `bg-blue-glass` (2026-10-08) |
@@ -113,7 +113,7 @@ Implement a reusable class contract once in `global.css` (`@utility` / `@layer c
 
 **Dialogs** are component contracts, not CSS class primitives. Every dialog renders through `Modal.astro` — a bottom `glass-sheet` over `bg-scrim` with a grabber, a centred `font-display` title and an optional mono overline; actions go in `SheetActions` with `sheet-muted` on the left and `sheet-raised` on the right. `fixed inset-0` and `role="dialog"` are legal only in `app/src/components/ui/Modal.astro` (`scripts/check-style-tokens.sh`, D429).
 
-Press feedback is built into `.btn:active:not(:disabled)` (`transform: scale(0.98)`) — do not add a second press animation elsewhere. Keys (`InputButton`) are the exception: `key-press` draws an accent inset ring on `:active` (120ms box-shadow) instead of the scale (D432).
+Press feedback is built into `.btn:active:not(:disabled)` (`transform: scale(0.98)`) — do not add a second press animation elsewhere. Keys (`InputButton`) are the exception: `key-press` draws an accent inset ring on `:active` (120ms box-shadow) instead of the scale (D432, 2026-10-08).
 
 ---
 
@@ -124,7 +124,7 @@ Press feedback is built into `.btn:active:not(:disabled)` (`transform: scale(0.9
 | Headings (`h1`–`h4`) | `font-display` (Michroma), `font-normal`, wide tracking — set in `@layer base` |
 | Eyebrow / section tag (`h5`) | `font-mono font-semibold uppercase tracking-widest text-muted` |
 | Body / description / buttons | `font-sans` (Montserrat) — never `font-mono` on body or buttons |
-| Large numeric displays (scores, targets) | `font-display` (Michroma) `leading-none tracking-[-0.02em] tabular-nums text-shadow-glow`; size from `bigValueSize` on the solo card (84 / 64 / 46px by length) and `seatValueSize` on the active seat card (64 / 46px) (D432, replaces D262's `fluid`) |
+| Large numeric displays (scores, targets) | `font-display` (Michroma) `leading-none tracking-[-0.02em] tabular-nums text-shadow-glow`; size from `bigValueSize` on the solo card (84 / 64 / 46px by length; 6+ characters use cqw clamps: 6 → 17cqw, 7–8 → 13cqw, 9+ → 11cqw) and `seatValueSize` on the active seat card (64 / 46px, same cqw steps from 6+) (D432, 2026-10-08, replaces D262's `fluid`) |
 | Case | No `uppercase` on body, description, or button text. Scope `uppercase` to the specific title/eyebrow element only — never a parent wrapping a modal or body region |
 | Weight | `font-normal`, `font-medium`, `font-semibold`, `font-bold`. Display (Michroma) 400 only; Montserrat 400/500/600/700; JetBrains Mono 500/600. Buttons use `font-semibold` (D428) |
 | Screen / card titles | Screen title `font-display text-title`; card title `font-display text-card-title` — never bold Montserrat |
@@ -148,9 +148,9 @@ Prefer `flex flex-1` over fixed fractions (`h-1/2`) when siblings share vertical
 
 Never set `height` (`h-full`, `h-2/5`) on an element that also has `flex-1`. `flex-1` sets `flex-basis: 0%`, which supplies the flex item's main size, so its own `height` is never consulted in a column flex container — the declaration is inert, not a fallback. Size such an item with `min-h-*` / `max-h-*`, which do still clamp it (D326).
 
-**Play-screen scoreboard band.** The region at the top of a play screen is `min-h-2/5 max-h-2/5` — 40% of the play area, the same whether one seat or two is showing. It is owned by the two shells, not by call sites: `SinglePlayerDisplay.astro` and `SplitScoreboard.astro` both apply it. `SplitScoreboard` stacks the seats inside it — the throwing seat's `glass-active-seat` card on top, the waiting seat's 64px row under it. A play screen passes no height class of its own (D327, D432).
+**Play-screen scoreboard band.** The region at the top of a play screen is `min-h-2/5 max-h-2/5` — 40% of the play area, the same whether one seat or two is showing. It is owned by the two shells, not by call sites: `SinglePlayerDisplay.astro` and `SplitScoreboard.astro` both apply it. `SplitScoreboard` stacks the seats inside it — the throwing seat's `glass-active-seat` card on top, the waiting seat's 64px row under it. A play screen passes no height class of its own (D327, D432, 2026-10-08).
 
-**Play header.** `GameLayout` renders a 56px `glass` pill (6px padding, `gap-2`): a 44px `inset-well-muted` exit, the `font-display` 14px title with an optional mono `text-eyebrow` subtitle, and the `header-end` slot in a 44px box. The play column below is padded `6px 16px 30px` with `gap-2`. A play page mounts its `x-data` on `<GameLayout>` so header expressions resolve in the play scope (D432).
+**Play header.** `GameLayout` renders a 56px `glass` pill (6px padding, `gap-2`): a 44px `inset-well-muted` exit, the `font-display` 14px title with an optional mono `text-eyebrow` subtitle, and the `header-end` slot in a 44px box. The play column below is padded `6px 16px 30px` with `gap-2`. A play page mounts its `x-data` on `<GameLayout>` so header expressions resolve in the play scope (D432, 2026-10-08).
 
 ---
 
@@ -199,7 +199,7 @@ One intentional surface level per visual block. Do not stack competing glass/rai
 | Rely on `.btn:active`'s press scale, or `key-press` on keys | A second press animation on high-frequency input (e.g. a numeric keypad) |
 | Gate hover behind `@media (hover: hover) and (pointer: fine)` (see `.btn-*`, `.nav-pill`, `.tab`, `.link-card`, `.card-wrapper` in `global.css`) | Hover-only critical feedback on a touch target |
 | Respect `prefers-reduced-motion` where the CSS already scopes it | Ignore reduced-motion preference |
-| `board-dim` may transition `filter` (150ms) — the one non-transform/opacity transition, scoped to the board while a press is live (D432) | Transitioning `filter` elsewhere |
+| `board-dim` may transition `filter` (150ms) — the one non-transform/opacity transition, scoped to the board while a press is live (D432, 2026-10-08) | Transitioning `filter` elsewhere |
 
 **Modals:** `motion-safe:animate-sheet-in` — 200ms fade plus 1.5rem rise on `--ease-out`; no slide under reduced motion. If scaling on enter, start from `scale-95` plus opacity — never `scale(0)`.
 
@@ -227,7 +227,7 @@ An overlay that follows the pointer is positioned **`fixed`**, not `absolute`: t
 - to the side away from the throwing hand (`handedness`), flipping to the opposite side when that overflows;
 - then each axis clamped independently so the box stays in the viewport. When the viewport is smaller than the magnifier itself the clamp pins the box to the near edge rather than letting it hang outside.
 
-**No `filter`, `backdrop-filter` or `transform` ancestor above a `fixed` overlay.** Such an ancestor becomes the overlay's containing block, so `fixed` stops meaning viewport-relative and the magnifier and press ring drift off the finger. `BoardInputPanel`'s root therefore carries no surface: its glass is an `aria-hidden` absolute background layer, a sibling of the content (D432).
+**No `filter`, `backdrop-filter` or `transform` ancestor above a `fixed` overlay.** Such an ancestor becomes the overlay's containing block, so `fixed` stops meaning viewport-relative and the magnifier and press ring drift off the finger. `BoardInputPanel`'s root therefore carries no surface: its glass is an `aria-hidden` absolute background layer, a sibling of the content (D432, 2026-10-08).
 
 An overlay that only duplicates information already announced elsewhere is `aria-hidden` on its outermost element, so a screen reader hears the live read once, not twice.
 
@@ -263,7 +263,7 @@ This repo uses Tailwind CSS v4 utility forms. Agents must not emit v3-era varian
 
 Scale negatives without arbitrary brackets stay fine (`-mt-4`, `-rotate-45`, `-translate-x-1/2`). Mechanically enforced by `scripts/check-style-tokens.sh` (D226, supersedes D175's suffix-form endorsement).
 
-**Container queries.** For an element that must size itself off its own container's width rather than a breakpoint — e.g. a big number whose content length varies and must never wrap — add `@container` to the sizing ancestor and use a `cq*`-unit arbitrary value on the descendant, typically wrapped in `clamp()` to bound both ends: `text-[clamp(1.75rem,13cqw,3rem)]`. A fixed `text-*` step reacts to viewport breakpoints, not to how much text needs to fit; `cqw` scales continuously with the container's own inline size instead. Play-screen big values step by length instead (`bigValueSize`, D432), with `@container` on the `SinglePlayerDisplay` left column and the `SplitScoreboardHalf` active card feeding the 6+ character `cqw` clamp classes (6 → 17cqw, 7–8 → 13cqw, 9+ → 11cqw).
+**Container queries.** For an element that must size itself off its own container's width rather than a breakpoint — e.g. a big number whose content length varies and must never wrap — add `@container` to the sizing ancestor and use a `cq*`-unit arbitrary value on the descendant, typically wrapped in `clamp()` to bound both ends: `text-[clamp(1.75rem,13cqw,3rem)]`. A fixed `text-*` step reacts to viewport breakpoints, not to how much text needs to fit; `cqw` scales continuously with the container's own inline size instead. Play-screen big values step by length instead (`bigValueSize`, D432, 2026-10-08), with `@container` on the `SinglePlayerDisplay` left column and the `SplitScoreboardHalf` active card feeding the 6+ character `cqw` clamp classes (6 → 17cqw, 7–8 → 13cqw, 9+ → 11cqw).
 
 ---
 
