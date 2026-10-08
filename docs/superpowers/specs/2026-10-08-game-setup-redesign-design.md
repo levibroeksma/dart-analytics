@@ -1,6 +1,6 @@
 # Game setup redesign — design
 
-**Date:** 2026-10-08 · **Status:** approved · **Branch:** `feat/game-setup-redesign` · **Decision:** D430 (`decisions/frontend/style.md`)
+**Date:** 2026-10-08 · **Status:** implemented · **Branch:** `feat/game-setup-redesign` · **Decision:** D430 (`decisions/frontend/style.md`)
 
 Source design: Claude Design project `cdea52ee-4746-4efb-b646-81448a40c033`,
 `Game Setup.dc.html`:

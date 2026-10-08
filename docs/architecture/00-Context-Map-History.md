@@ -17,6 +17,8 @@ updated: 2026-10-08
 
 # Version History
 
+> **Version:** 1.176.0 (2026-10-08 — Game setup redesign: D430 in `decisions/frontend/style.md`; `08-Component-Inventory.md` gains `Stepper`/`RangeSlider`/`SlideToStart`/`SettingLabel`, setup shell, `Toggle`, `Switch`, `InfoSection` rows updated; `07-Style-Guide.md` setup utilities; new File Inventory section "Game setup redesign"; spec `docs/superpowers/specs/2026-10-08-game-setup-redesign-design.md`, plan `docs/superpowers/plans/2026-10-08-game-setup-redesign.md`.)
+
 > **Version:** 1.175.0 (2026-10-08 — Modal sheets: `07-Style-Guide.md` dialog/surface/motion rows; D429 in `decisions/frontend/style.md`; `08-Component-Inventory.md` gains `SheetActions`/`StatTile`, loses `StatRowSkeleton`; `check-style-tokens.sh` overlay gate; spec `docs/superpowers/specs/2026-10-08-modal-sheets-design.md`, plan `docs/superpowers/plans/2026-10-08-modal-sheets.md`.)
 
 > **Version:** 1.174.0 (2026-10-08 — Brand Style tokens: `07-Style-Guide.md` 0.3.0 (budget ~4.5k → ~5.6k); D428 in `decisions/frontend/style.md` (~7.7k → ~8.0k); `check-style-tokens.sh` inventory row drops the `font-medium` ban; spec `docs/superpowers/specs/2026-10-08-brand-tokens-design.md`; packs loading the style guide +1.1k: "Frontend page / component work" ~14.5k → ~15.6k, "Frontend gameplay / session features" ~18.5k → ~19.6k, "New portable UI primitive" ~12.7k → ~13.8k, "Issue-driven UI polish" ~17.0k → ~18.1k.)
