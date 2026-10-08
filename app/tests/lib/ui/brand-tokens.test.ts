@@ -83,3 +83,57 @@ describe("brand radius and spacing", () => {
     expect(decl(name)).toBe(value);
   });
 });
+
+function block(selector: string): string {
+  const start = css.indexOf(`${selector} {`);
+  if (start < 0) throw new Error(`${selector} not found`);
+  return css.slice(start, css.indexOf("\n}", start) + 2);
+}
+
+describe("brand surfaces", () => {
+  it("glass has no drop shadow", () => {
+    expect(block("@utility glass")).not.toMatch(/shadow-sm/);
+  });
+
+  it.each([
+    "@utility glass-blue",
+    "@utility glass-info",
+    "@utility inset-well",
+    "@utility inset-well-muted",
+    "@utility glass-sheet",
+  ])("defines %s", (selector) => {
+    expect(() => block(selector)).not.toThrow();
+  });
+
+  it("glass-blue and accent-orb read the gradient token", () => {
+    expect(block("@utility glass-blue")).toMatch(
+      /var\(--gradient-blue-glass\)/,
+    );
+    expect(css).toMatch(
+      /\.accent-orb \{\s*background: var\(--gradient-blue-glass\);/,
+    );
+  });
+
+  it("inset-well is black 35% with inner shadow", () => {
+    const b = block("@utility inset-well");
+    expect(b).toMatch(/background: oklch\(0% 0 0 \/ 0\.35\)/);
+    expect(b).toMatch(/inset 0 1px 2px oklch\(0% 0 0 \/ 0\.4\)/);
+  });
+
+  it("inset-well-muted is black 20%", () => {
+    expect(block("@utility inset-well-muted")).toMatch(
+      /oklch\(0% 0 0 \/ 0\.2\)/,
+    );
+  });
+
+  it("glass-sheet uses the sheet radius and 16px blur", () => {
+    const b = block("@utility glass-sheet");
+    expect(b).toMatch(/rounded-sheet/);
+    expect(b).toMatch(/backdrop-blur-lg/);
+  });
+
+  it("field-inset rests on inset-well and keeps its focus ring", () => {
+    expect(css).toMatch(/\.field-inset \{\s*@apply inset-well;\s*\}/);
+    expect(css).toMatch(/\.field-inset:focus \{/);
+  });
+});
