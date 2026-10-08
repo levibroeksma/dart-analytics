@@ -137,3 +137,56 @@ describe("brand surfaces", () => {
     expect(css).toMatch(/\.field-inset:focus \{/);
   });
 });
+
+function oklchContrast(a: string, b: string): number {
+  const luminance = (value: string): number => {
+    const m = value.match(/oklch\(([\d.]+)% ([\d.]+) ([\d.]+)\)/);
+    if (!m) throw new Error(`not an opaque oklch: ${value}`);
+    const L = Number(m[1]) / 100;
+    const C = Number(m[2]);
+    const h = (Number(m[3]) * Math.PI) / 180;
+    const A = C * Math.cos(h);
+    const B = C * Math.sin(h);
+    const l = (L + 0.3963377774 * A + 0.2158037573 * B) ** 3;
+    const mm = (L - 0.1055613458 * A - 0.0638541728 * B) ** 3;
+    const s = (L - 0.0894841775 * A - 1.291485548 * B) ** 3;
+    const clamp = (x: number) => Math.min(Math.max(x, 0), 1);
+    const r = clamp(4.0767416621 * l - 3.3077115913 * mm + 0.2309699292 * s);
+    const g = clamp(-1.2684380046 * l + 2.6097574011 * mm - 0.3413193965 * s);
+    const bl = clamp(-0.0041960863 * l - 0.7034186147 * mm + 1.707614701 * s);
+    return 0.2126 * r + 0.7152 * g + 0.0722 * bl;
+  };
+  const [lo, hi] = [luminance(a), luminance(b)].sort((x, y) => x - y);
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+describe("solid error fill", () => {
+  const button = readFileSync(
+    new URL("../../../src/components/forms/Button.astro", import.meta.url),
+    "utf8",
+  );
+  const iconBtn = readFileSync(
+    new URL("../../../src/components/forms/IconBtn.astro", import.meta.url),
+    "utf8",
+  );
+
+  it.each(["error-strong", "error-strong-hover"])(
+    "--%s keeps error-foreground at AA (4.5:1)",
+    (name) => {
+      const fill = decl(name);
+      const text = decl("error-foreground");
+      if (!fill || !text)
+        throw new Error(`missing --${name} or --error-foreground`);
+      expect(oklchContrast(fill, text)).toBeGreaterThanOrEqual(4.5);
+    },
+  );
+
+  it("Button and IconBtn error variants fill with error-strong", () => {
+    expect(button).toMatch(
+      /error: "bg-error-strong text-error-foreground btn-error"/,
+    );
+    expect(iconBtn).toMatch(
+      /error: "border-transparent bg-error-strong text-error-foreground btn-error"/,
+    );
+  });
+});

@@ -46,7 +46,7 @@ Use semantic tokens only. Never raw Tailwind palette utilities (`bg-sky-500`, `t
 | Text | `text-foreground`, `text-soft-foreground` (78%), `text-muted-foreground` (70%, captions/labels), `text-muted` (55%, body), `text-faint-foreground` (50%), `text-placeholder` (48%, empty fields only) |
 | Borders | `border-border`, `border-border-strong` |
 | Accent | `accent`, `accent-hover`, `accent-muted`, `accent-foreground`, `accent-glow` (sky); `accent-bright` (sky light: accent text on dark), `accent-foreground-muted`, `accent-deep` (gradient end), `accent-deep-blue` (chart bars, vignette), `bg-blue-glass` (2026-10-08) |
-| States | `error` / `error-hover` / `error-muted` / `error-foreground` (coral); `missed` / `missed-muted` alias error; `success` / `success-muted` |
+| States | `error` / `error-hover` / `error-muted` / `error-foreground` (coral); `error-strong` / `error-strong-hover` (solid fill under `error-foreground`, ≥ 4.5:1; `Button`/`IconBtn` error variant); `missed` / `missed-muted` alias error; `success` / `success-muted` |
 | Radius | `rounded-sm` … `rounded-2xl`, `rounded-row`, `rounded-key`, `rounded-switch`, `rounded-board`, `rounded-sheet` per `@theme` |
 | Type scale | `text-hero` 72, `text-title` 26 (screen title), `text-value` 30, `text-tile` 20, `text-card-title` 13, `text-button` 15, `text-eyebrow` 10 / `text-eyebrow-lg` 12 (mono caps); body `text-sm`, caption `text-xs` |
 | Hit target | `size-hit` (44px) minimum for any tap target |

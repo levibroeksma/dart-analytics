@@ -39,6 +39,8 @@
   --error-hover: oklch(63% 0.15 30);
   --error-muted: oklch(68% 0.15 30 / 0.12);
   --error-foreground: oklch(96% 0.01 30);
+  --error-strong: oklch(54% 0.15 30);
+  --error-strong-hover: oklch(50% 0.15 30);
 
   --success: oklch(72% 0.16 155);
   --success-muted: oklch(72% 0.16 155 / 0.14);
@@ -93,6 +95,8 @@
   --color-error-hover: var(--error-hover);
   --color-error-muted: var(--error-muted);
   --color-error-foreground: var(--error-foreground);
+  --color-error-strong: var(--error-strong);
+  --color-error-strong-hover: var(--error-strong-hover);
   --color-success: var(--success);
   --color-success-muted: var(--success-muted);
   --color-missed: var(--missed);
@@ -547,7 +551,7 @@
     }
 
     .btn-error:hover:not(:disabled) {
-      background-color: var(--error-hover);
+      background-color: var(--error-strong-hover);
     }
   }
 
