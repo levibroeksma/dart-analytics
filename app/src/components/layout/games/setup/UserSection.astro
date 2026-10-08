@@ -1,13 +1,16 @@
 ---
 /**
+ * Players card. The guest-name and opponent-chooser sheets render after
+ * the card, not inside it: the card's `glass` backdrop filter would trap
+ * their `fixed` overlay.
  * @param {boolean} [allowGuests=false] Renders `GuestSection` (add-guest
- * button, guest avatars, name modal) beside the owner icon. Every ruleset
+ * button, guest avatars) beside the owner icon, plus the two sheets. Every ruleset
  * this session's own `session-seats.service.ts` caps at 1 seat still 400s a
  * 2nd participant regardless of what this prop renders — the prop only
  * controls the setup screen's own markup, never the server-side cap.
  * @param {boolean} [allowDartbot=false] Forwarded to `GuestSection` — offers
  * the DartBot branch of its opponent chooser (D-J). Meaningless without
- * `allowGuests`, since the chooser only renders inside `GuestSection`.
+ * `allowGuests`, since the chooser only renders with it.
  */
 interface Props {
   allowGuests?: boolean;
@@ -20,6 +23,8 @@ const { allowGuests = false, allowDartbot = false }: Props = Astro.props;
 // Components
 import UserIconDisplay from "./UserIconDisplay.astro";
 import GuestSection from "./GuestSection.astro";
+import GuestNameModal from "./GuestNameModal.astro";
+import OpponentChooserModal from "./OpponentChooserModal.astro";
 ---
 
 <div class="glass flex flex-col gap-3.5 rounded-2xl p-4">
@@ -38,3 +43,17 @@ import GuestSection from "./GuestSection.astro";
     {allowGuests && <GuestSection allowDartbot={allowDartbot} />}
   </div>
 </div>
+{
+  allowGuests && (
+    <template x-if="showAddGuestModal">
+      <GuestNameModal />
+    </template>
+  )
+}
+{
+  allowGuests && (
+    <template x-if="showOpponentChooser">
+      <OpponentChooserModal />
+    </template>
+  )
+}

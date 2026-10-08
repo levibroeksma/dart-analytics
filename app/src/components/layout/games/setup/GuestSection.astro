@@ -1,8 +1,6 @@
 ---
 // Components
 import AddGuestButton from "./AddGuestButton.astro";
-import GuestNameModal from "./GuestNameModal.astro";
-import OpponentChooserModal from "./OpponentChooserModal.astro";
 import IconBtn from "@components/forms/IconBtn.astro";
 import UserIconDisplay from "./UserIconDisplay.astro";
 
@@ -63,11 +61,3 @@ const { allowDartbot = false }: Props = Astro.props;
 </template>
 
 <AddGuestButton allowDartbot={allowDartbot} />
-
-<template x-if="showAddGuestModal">
-  <GuestNameModal />
-</template>
-
-<template x-if="showOpponentChooser">
-  <OpponentChooserModal />
-</template>

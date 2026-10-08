@@ -107,7 +107,7 @@ evaluated in the page's own Alpine scope.
 | --------- | ------- | --------- |
 | `AddGuestButton.astro` | Dashed circle add-guest control; hides once `guests.length` hits 1 (1v1 cap) | none (reads `guests`/`showAddGuestModal` from the page scope) |
 | `GuestNameModal.astro` | Name-entry modal for a new guest | none (reads `newGuestName`/`showAddGuestModal`, calls `addGuest()` on the page scope) |
-| `GuestSection.astro` | Runtime guest list (avatar + remove badge per guest) plus `AddGuestButton`/`GuestNameModal` | none (reads `guests`, calls `removeGuest(i)` on the page scope) |
+| `GuestSection.astro` | Runtime guest list (avatar + remove badge per guest) plus `AddGuestButton`; `UserSection` renders `GuestNameModal`/`OpponentChooserModal` after its `glass` card so the sheets are not trapped by its backdrop filter (D430, 2026-10-08) | none (reads `guests`, calls `removeGuest(i)` on the page scope) |
 | `OpponentChooserModal.astro` | Guest/DartBot opponent chooser in a `Modal` sheet: two inlay rows, then — for DartBot — a level step (1–15 slider bound to `pendingBotLevel`, two `StatTile`s for the simulated average/checkout range from `allLevelSelectStats()`, a level pill on the thumb, Back/Add DartBot); `addBot()` seats at that level (restyled to the design, D429, 2026-10-08) | none (reads `showOpponentChooser`/`showBotLevelPicker`/`pendingBotLevel` from the page scope) |
 | `SettingLabel.astro` | Mono caps label above one setup control, optional `setting-badge` chip (e.g. `ANALYTICS`) (D430, 2026-10-08) | `text`, `badge` |
 | `SettingSectionShell.astro` | `glass` settings card with a Michroma title wrapping a setup form's controls (D430, 2026-10-08) | none |
@@ -115,7 +115,7 @@ evaluated in the page's own Alpine scope.
 | `Toggle.astro` | Segmented option control bound via `x-modelable`: `inset-well` track, `glass-blue` pill; `options[].disabled` renders dimmed, unclickable, `aria-disabled` (D430, 2026-10-08) | `options`, `orientation` (`horizontal`/`vertical`), `initial`, `hint` |
 | `ToggleListItem.astro` | One option inside a `Toggle` | `value`, `label`, `disabled`, `tall` |
 | `UserIconDisplay.astro` | `glass-blue` initials avatar (`$initials`) with the name under it (D430, 2026-10-08) | `name`, `nameExpr`, `initialsExpr` |
-| `UserSection.astro` | Player row on the setup screen | `allowGuests` (501 only — renders `GuestSection` beside the owner icon) |
+| `UserSection.astro` | `glass` Players card with a mono seat count (`$playerCount`) and initials avatars; the guest/opponent sheets render after the card (D430, 2026-10-08) | `allowGuests` (renders `GuestSection` beside the owner icon), `allowDartbot` |
 
 ## `components/layout/training/routines/`
 

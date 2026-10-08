@@ -129,6 +129,7 @@ describe("slideToStartData", () => {
     ctx.onKey(key("Enter"));
     ctx.disabled = true;
     watchers.disabled(true);
+    ctx.failed = true;
     ctx.disabled = false;
     watchers.disabled(false);
     expect(ctx.fired).toBe(false);
@@ -149,5 +150,37 @@ describe("slideToStartData", () => {
     ctx.disabled = true;
     vi.advanceTimersByTime(SLIDE_RESET_MS);
     expect(ctx.fired).toBe(true);
+  });
+
+  it("stays fired when loading ends without failure (navigating to play)", () => {
+    const { ctx, watchers } = harness();
+    ctx.onKey(key("Enter"));
+    ctx.disabled = true;
+    watchers.disabled(true);
+    ctx.disabled = false;
+    watchers.disabled(false);
+    expect(ctx.fired).toBe(true);
+    expect(ctx.fraction).toBe(1);
+    ctx.onKey(key("Enter"));
+    expect(requestSubmit).toHaveBeenCalledTimes(1);
+  });
+
+  it("a keyboard-less activation click (detail 0) fires, like assistive tech", () => {
+    const { ctx } = harness();
+    ctx.onClick({ detail: 0 });
+    expect(requestSubmit).toHaveBeenCalledTimes(1);
+  });
+
+  it("a pointer click (detail ≥ 1) does not fire", () => {
+    const { ctx } = harness();
+    ctx.onClick({ detail: 1 });
+    expect(requestSubmit).not.toHaveBeenCalled();
+  });
+
+  it("an activation click is ignored while disabled", () => {
+    const { ctx } = harness();
+    ctx.disabled = true;
+    ctx.onClick({ detail: 0 });
+    expect(requestSubmit).not.toHaveBeenCalled();
   });
 });

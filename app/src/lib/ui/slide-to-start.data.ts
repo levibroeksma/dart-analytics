@@ -11,12 +11,14 @@ type SlidePointer = {
   currentTarget: EventTarget | null;
 };
 type SlideKey = Pick<KeyboardEvent, "key" | "preventDefault">;
+type SlideClick = Pick<MouseEvent, "detail">;
 
 type SlideToStartContext = {
   fraction: number;
   dragging: boolean;
   fired: boolean;
   disabled: boolean;
+  failed: boolean;
   $refs: { track?: HTMLElement };
   $root: HTMLElement;
   $watch(key: "disabled", callback: (value: boolean) => void): void;
@@ -37,10 +39,12 @@ export function shouldFire(fraction: number): boolean {
 
 /**
  * Alpine factory for `SlideToStart.astro`. Drag past `SLIDE_THRESHOLD` or
- * press Enter/Space to `requestSubmit()` the enclosing form. `disabled` is
- * driven by the component's `x-effect`. A fired slide resets when
- * `disabled` drops back to false (the submit failed), or after
- * `SLIDE_RESET_MS` if it never became disabled (`start()` returned early).
+ * press Enter/Space (or an assistive-tech click, `detail === 0`) to
+ * `requestSubmit()` the enclosing form. `disabled` and `failed` are driven
+ * by the component's `x-effect`. A fired slide stays at the end while the
+ * play page loads; it resets when `disabled` drops back to false with
+ * `failed` set, or after `SLIDE_RESET_MS` if it never became disabled
+ * (`start()` returned early).
  */
 export function slideToStartData() {
   let startX = 0;
@@ -50,10 +54,11 @@ export function slideToStartData() {
     dragging: false,
     fired: false,
     disabled: false,
+    failed: false,
 
     init(this: SlideToStartContext) {
       this.$watch("disabled", (value) => {
-        if (!value && this.fired) this.reset();
+        if (!value && this.fired && this.failed) this.reset();
       });
     },
 
@@ -86,6 +91,11 @@ export function slideToStartData() {
       if (this.disabled || this.fired) return;
       if (event.key !== "Enter" && event.key !== " ") return;
       event.preventDefault();
+      this.fire();
+    },
+
+    onClick(this: SlideToStartContext, event: SlideClick) {
+      if (this.disabled || this.fired || event.detail !== 0) return;
       this.fire();
     },
 

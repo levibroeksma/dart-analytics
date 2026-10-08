@@ -4,11 +4,14 @@
  * Enter/Space to submit the enclosing form; an earlier release snaps back.
  * Fixed just above `BottomNav`.
  * @param {string} disabledExpr Alpine expression; while true, input is ignored
+ * @param {string} failedExpr Alpine expression, true when the submit failed;
+ *   a fired slide resets only when loading ends with it set
  * @param {string} [label="Slide to start"]
  * @param {string} [class] Extra classes
  */
 interface Props {
   disabledExpr: string;
+  failedExpr: string;
   label?: string;
   class?: string;
 }
@@ -16,6 +19,7 @@ interface Props {
 // Props
 const {
   disabledExpr,
+  failedExpr,
   label = "Slide to start",
   class: classNameProp,
 }: Props = Astro.props;
@@ -36,12 +40,13 @@ const className = cn(
 <div
   class={className}
   x-data="slideToStart()"
-  x-effect={`disabled = Boolean(${disabledExpr})`}
+  x-effect={`disabled = Boolean(${disabledExpr}); failed = Boolean(${failedExpr})`}
   role="button"
   tabindex="0"
   aria-label="Slide to start game"
   :aria-disabled="disabled ? 'true' : 'false'"
   @keydown="onKey($event)"
+  @click="onClick($event)"
 >
   <div
     x-ref="track"
@@ -60,8 +65,8 @@ const className = cn(
       {label}
     </span>
     <span
-      class="slide-thumb absolute top-[5px] flex size-[50px] touch-none items-center justify-center rounded-full motion-safe:transition-[left,transform] motion-safe:duration-200"
-      :class="dragging ? 'transition-none scale-[1.06]' : ''"
+      class="slide-thumb absolute top-[5px] flex size-[50px] touch-none items-center justify-center rounded-full"
+      :class="dragging ? 'scale-[1.06]' : 'motion-safe:transition-[left,scale] motion-safe:duration-200'"
       :style="`left:calc(5px + (100% - 60px) * ${fraction})`"
       @pointerdown="begin($event)"
       @pointermove="move($event)"

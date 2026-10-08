@@ -45,7 +45,7 @@ import ChevronDownIcon from "@icons/chevron-down.svg";
 
   <form
     class="mt-1 flex max-w-sm flex-col gap-3 pb-28"
-    @submit.prevent="start()"
+    @submit.prevent="loading || loadingReconciliation || start()"
   >
     <slot />
 
@@ -56,6 +56,9 @@ import ChevronDownIcon from "@icons/chevron-down.svg";
       class="start-bar-fade pointer-events-none fixed inset-x-0 bottom-0 z-20 h-50"
     >
     </div>
-    <SlideToStart disabledExpr="loading || loadingReconciliation" />
+    <SlideToStart
+      disabledExpr="loading || loadingReconciliation"
+      failedExpr="error || showActiveSessionModal || reconciliationFailed"
+    />
   </form>
 </div>
