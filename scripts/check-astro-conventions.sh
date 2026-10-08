@@ -2,7 +2,8 @@
 # Astro template conventions (05-Astro-Components / 10-Frontend-Agent-Guide):
 # 1) every opening tag with x-show also has x-cloak
 # 2) no HTML comments <!-- --> in the template region (after frontmatter)
-# 3) no fused `x-cloak:<attr>` (Prettier glues a bare `:class` onto x-cloak; use x-bind:)
+# 3) no fused `x-cloak:<attr>` (Prettier glues a bare `:class` onto x-cloak)
+# 4) no long-form `x-bind:` (D100); inside `{}` use a spread: {...{ ":class": expr }}
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
 
@@ -84,7 +85,12 @@ def check_file(path: Path) -> None:
         if re.search(r"\bx-cloak:", tag):
             offset = text.find(template)
             file_line = text.count("\n", 0, offset) + line if offset >= 0 else line
-            print(f"FAIL: {path}:{file_line}: fused x-cloak:<attr>; split into x-cloak and x-bind:<attr>", file=sys.stderr)
+            print(f"FAIL: {path}:{file_line}: fused x-cloak:<attr>; split x-cloak from the binding", file=sys.stderr)
+            fail = 1
+        if re.search(r"\bx-bind:", tag):
+            offset = text.find(template)
+            file_line = text.count("\n", 0, offset) + line if offset >= 0 else line
+            print(f"FAIL: {path}:{file_line}: x-bind: forbidden (D100); use :attr, or {{...{{ \":attr\": expr }}}} inside {{}}", file=sys.stderr)
             fail = 1
 
 
@@ -98,7 +104,7 @@ def main() -> int:
         check_file(path)
     if fail:
         return 1
-    print("OK: Astro x-show/x-cloak pairing, no fused x-cloak:, no template HTML comments.")
+    print("OK: Astro x-show/x-cloak pairing, no fused x-cloak:, no x-bind:, no template HTML comments.")
     return 0
 
 

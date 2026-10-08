@@ -114,9 +114,9 @@ const wrapperClass = cn("relative h-12", classNameProp);
               type="button"
               role="option"
               class="flex w-full items-center justify-between rounded-2xl border border-transparent px-3 py-2.5 text-left text-sm text-foreground transition-colors duration-150 hover:glass-tinted"
-              x-bind:class={pickedClass}
-              x-bind:aria-selected={picked}
-              x-on:click={pick}
+              :class={pickedClass}
+              :aria-selected={picked}
+              @click={pick}
             >
               <span x-text="option.label"></span>
               <CheckIcon

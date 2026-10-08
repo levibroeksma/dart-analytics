@@ -58,7 +58,7 @@ const subtext = subtextExpr ? `${subtextExpr} ?? ''` : "''";
         class="text-xs"
         x-show={showDelta}
         x-cloak
-        x-bind:class={deltaClass}
+        {...{ ":class": deltaClass }}
         x-text={deltaText}
       />
     )
