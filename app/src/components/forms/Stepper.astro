@@ -1,0 +1,81 @@
+---
+/**
+ * Vertical glass stepper: up chevron, mono value, down chevron. Bind the
+ * value from a parent scope with `x-model`; exposed through
+ * `x-modelable="value"`. The value is a spinbutton (Arrow Up/Down step).
+ * @param {number} min
+ * @param {number} max
+ * @param {string} ariaLabel Accessible name of the spinbutton
+ * @param {string} [class] Extra classes
+ */
+interface Props {
+  min: number;
+  max: number;
+  ariaLabel: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+// Props
+const {
+  min,
+  max,
+  ariaLabel,
+  class: classNameProp,
+  ...props
+}: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+
+// Icons
+import ChevronDownIcon from "@icons/chevron-down.svg";
+
+// Data
+const config = { min, max };
+
+// Styles
+const className = cn(
+  "glass-button flex w-16 flex-col items-center gap-0.5 rounded-full py-1.5",
+  classNameProp,
+);
+const buttonClass =
+  "flex h-8 w-11 items-center justify-center rounded-full text-muted-foreground cursor-pointer disabled:cursor-not-allowed disabled:opacity-30";
+---
+
+<div
+  class={className}
+  x-data={`stepper(${JSON.stringify(config)})`}
+  x-modelable="value"
+  {...props}
+>
+  <button
+    type="button"
+    class={buttonClass}
+    aria-label="Increase"
+    :disabled="current() >= max"
+    @click="step(1)"
+  >
+    <ChevronDownIcon class="size-5.5 rotate-180" />
+  </button>
+  <span
+    role="spinbutton"
+    tabindex="0"
+    aria-label={ariaLabel}
+    aria-valuemin={min}
+    aria-valuemax={max}
+    :aria-valuenow="current()"
+    class="py-1 font-mono text-[32px] leading-none text-foreground"
+    x-text="current()"
+    @keydown="onKey($event)"
+  ></span>
+  <button
+    type="button"
+    class={buttonClass}
+    aria-label="Decrease"
+    :disabled="current() <= min"
+    @click="step(-1)"
+  >
+    <ChevronDownIcon class="size-5.5" />
+  </button>
+</div>
