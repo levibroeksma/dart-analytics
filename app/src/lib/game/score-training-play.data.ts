@@ -202,6 +202,19 @@ export function scoreTrainingPlay() {
       return seat?.totalScore ?? 0;
     },
 
+    /** Play-header subtitle: `ROUND 3 OF 10`, or `ROUND 3` under MINUTES; blank before config loads. */
+    subtitle(this: ScoreTrainingPlayContext): string {
+      const config = this.$store.game.configSnapshot;
+      const state = this.state();
+      const seat = state?.seats.find(
+        (candidate) => candidate.participantRef === state.activeParticipantRef,
+      );
+      if (!config || !seat) return "";
+      const round = seat.turnCount + 1;
+      if (config.durationType === "MINUTES") return `ROUND ${round}`;
+      return `ROUND ${Math.min(round, config.durationValue)} OF ${config.durationValue}`;
+    },
+
     threeDartAverageFor(
       this: ScoreTrainingPlayContext,
       seatRef: string,

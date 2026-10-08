@@ -1,5 +1,6 @@
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { matchWinnerName } from "@lib/game/match-result-text";
+import { joinSubtitle } from "@lib/game/play-subtitle";
 import {
   BULL_TARGET_NUMBER,
   targetAt,
@@ -385,6 +386,41 @@ export function aroundTheClockPlay() {
       const { hitsRequired } = rulesOf(config);
       if (hitsRequired === 0) return "";
       return `${seat.hitsThisVisit} / ${hitsRequired} hits`;
+    },
+
+    /**
+     * Play-header subtitle: lap and path ends (`LAP 2 · 1 → 20`). The path
+     * ends in BULL; its last number is the one before it. Blank before
+     * config loads.
+     */
+    subtitle(this: AroundTheClockPlayContext): string {
+      const config = this.$store.game.configSnapshot;
+      if (!config) return "";
+      const numbers = rulesOf(config).path.flatMap((target) =>
+        target.kind === "BULL" ? [] : [target.number],
+      );
+      return joinSubtitle([
+        `LAP ${this.laps() + 1}`,
+        `${numbers[0]} → ${numbers.at(-1)}`,
+      ]);
+    },
+
+    /** Hits the seat still needs in its open visit (`2 to hit`); blank on Easy, where any hit advances. */
+    hitsToGoFor(this: AroundTheClockPlayContext, seatRef: string): string {
+      const config = this.$store.game.configSnapshot;
+      const seat = this.state()?.seats.find(
+        (candidate) => candidate.participantRef === seatRef,
+      );
+      if (!config || !seat) return "";
+      const { hitsRequired } = rulesOf(config);
+      if (hitsRequired === 0) return "";
+      return `${Math.max(hitsRequired - seat.hitsThisVisit, 0)} to hit`;
+    },
+
+    hitsToGo(this: AroundTheClockPlayContext): string {
+      const state = this.state();
+      if (!state) return "";
+      return this.hitsToGoFor(state.activeParticipantRef);
     },
 
     previewSegments(
