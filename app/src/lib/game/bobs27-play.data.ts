@@ -207,6 +207,17 @@ export function bobs27Play() {
       );
     },
 
+    /** Play-header subtitle: `ROUND 4 OF 21` along the doubles path; blank before config loads. */
+    subtitle(this: Bobs27PlayContext): string {
+      const state = this.state();
+      const seat = state?.seats.find(
+        (candidate) => candidate.participantRef === state.activeParticipantRef,
+      );
+      if (!seat) return "";
+      const rounds = doublesPath().length;
+      return `ROUND ${Math.min(seat.targetIndex + 1, rounds)} OF ${rounds}`;
+    },
+
     currentTargetLabelFor(this: Bobs27PlayContext, seatRef: string): string {
       const state = this.state();
       const seat = state?.seats.find(

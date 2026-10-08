@@ -890,6 +890,7 @@ export type Bobs27PlayContext = PlayLifecycleContext<
   botThrowing: boolean;
   visitMarkers(this: Bobs27PlayContext): BoardMarker[];
   state(this: Bobs27PlayContext): Bobs27State | null;
+  subtitle(this: Bobs27PlayContext): string;
   currentTargetLabelFor(this: Bobs27PlayContext, seatRef: string): string;
   currentTargetLabel(this: Bobs27PlayContext): string;
   currentScoreFor(this: Bobs27PlayContext, seatRef: string): string;
@@ -948,6 +949,7 @@ export type CricketPlayContext = PlayLifecycleContext<
   ring: CricketRing;
   visitMarkers(this: CricketPlayContext): BoardMarker[];
   state(this: CricketPlayContext): CricketState | null;
+  subtitle(this: CricketPlayContext): string;
   objectiveRows(this: CricketPlayContext): CricketObjectiveRow[];
   dartsThrown(this: CricketPlayContext): string;
   previewSegments(this: CricketPlayContext): Bobs27PreviewSegment[];
@@ -1008,6 +1010,7 @@ export type TacticsPlayContext = PlayLifecycleContext<
   ring: TacticsRing;
   visitMarkers(this: TacticsPlayContext): BoardMarker[];
   state(this: TacticsPlayContext): TacticsState | null;
+  subtitle(this: TacticsPlayContext): string;
   objectiveRows(this: TacticsPlayContext): TacticsObjectiveRow[];
   dartsThrown(this: TacticsPlayContext): string;
   previewSegments(this: TacticsPlayContext): Bobs27PreviewSegment[];
@@ -1064,6 +1067,7 @@ export type SinglesTrainingPlayContext = PlayLifecycleContext<
 > & {
   botThrowing: boolean;
   state(this: SinglesTrainingPlayContext): SinglesTrainingState | null;
+  subtitle(this: SinglesTrainingPlayContext): string;
   visitMarkers(this: SinglesTrainingPlayContext): BoardMarker[];
   recordDart(
     this: SinglesTrainingPlayContext,
@@ -1218,6 +1222,7 @@ export type DoublesTrainingPlayContext = PlayLifecycleContext<
 > & {
   botThrowing: boolean;
   state(this: DoublesTrainingPlayContext): DoublesTrainingState | null;
+  subtitle(this: DoublesTrainingPlayContext): string;
   visitMarkers(this: DoublesTrainingPlayContext): BoardMarker[];
   recordDart(
     this: DoublesTrainingPlayContext,
@@ -1297,6 +1302,7 @@ export type ShanghaiPlayContext = PlayLifecycleContext<
     observation: DartObservation,
   ): Promise<void>;
   state(this: ShanghaiPlayContext): ShanghaiState | null;
+  subtitle(this: ShanghaiPlayContext): string;
   currentTargetLabelFor(this: ShanghaiPlayContext, seatRef: string): string;
   currentTargetLabel(this: ShanghaiPlayContext): string;
   roundLabelFor(this: ShanghaiPlayContext, seatRef: string): string;

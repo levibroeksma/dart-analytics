@@ -13,6 +13,7 @@ import {
   playVisitMarkers,
   runPlayAgain,
 } from "@lib/game/play-lifecycle";
+import { joinSubtitle } from "@lib/game/play-subtitle";
 import type { RulesetVersionKey } from "@lib/types";
 import type {
   DartObservation,
@@ -168,6 +169,12 @@ export function tacticsPlay() {
         { stages: this.$store.game.stages, turns: this.$store.game.turns },
         config,
       );
+    },
+
+    /** Play-header subtitle: `SOLO · 9 OBJECTIVES`; blank before config loads. */
+    subtitle(this: TacticsPlayContext): string {
+      if (!this.$store.game.configSnapshot) return "";
+      return joinSubtitle(["SOLO", `${TACTICS_OBJECTIVES.length} OBJECTIVES`]);
     },
 
     objectiveRows(this: TacticsPlayContext): TacticsObjectiveRow[] {

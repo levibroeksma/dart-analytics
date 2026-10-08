@@ -54,6 +54,9 @@ import {
 } from "@modules/game/shanghai.engine.module";
 
 const GAME_TYPE_KEY = "SHANGHAI";
+
+/** Shanghai is played over numbers 1–20, one round each. */
+const SHANGHAI_ROUNDS = 20;
 const RESUMABLE_RULESET_VERSIONS = new Set<RulesetVersionKey>([
   "SHANGHAI_V1",
   "SHANGHAI_V2",
@@ -255,6 +258,16 @@ export function shanghaiPlay() {
         { stages: this.$store.game.stages, turns: this.$store.game.turns },
         config,
       );
+    },
+
+    /** Play-header subtitle: `ROUND 7 OF 20`; blank before config loads. */
+    subtitle(this: ShanghaiPlayContext): string {
+      const state = this.state();
+      const seat = state?.seats.find(
+        (candidate) => candidate.participantRef === state.activeParticipantRef,
+      );
+      if (!seat) return "";
+      return `ROUND ${Math.min(seat.targetIndex + 1, SHANGHAI_ROUNDS)} OF ${SHANGHAI_ROUNDS}`;
     },
 
     currentTargetLabelFor(this: ShanghaiPlayContext, seatRef: string): string {

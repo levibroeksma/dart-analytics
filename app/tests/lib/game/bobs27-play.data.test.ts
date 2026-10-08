@@ -1011,3 +1011,20 @@ describe("bobs27Play — DartBot opponent", () => {
     expect(play.engine!.state().activeParticipantRef).toBe("participant-1");
   });
 });
+
+describe("subtitle", () => {
+  it("is blank before config loads", () => {
+    const play = makePlay({ configSnapshot: null });
+    expect(play.subtitle.call(play)).toBe("");
+  });
+
+  it("counts rounds along the 21-target doubles path", () => {
+    const play = makePlay();
+    expect(play.subtitle.call(play)).toBe("ROUND 1 OF 21");
+  });
+
+  it("reads the last round at BULL", () => {
+    const play = makePlay({ turns: priorTurnsThroughBull() });
+    expect(play.subtitle.call(play)).toBe("ROUND 21 OF 21");
+  });
+});

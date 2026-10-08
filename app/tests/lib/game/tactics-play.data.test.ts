@@ -268,3 +268,15 @@ describe("tacticsPlay", () => {
     });
   });
 });
+
+describe("subtitle", () => {
+  it("is blank before config loads", () => {
+    const ctx = makeContext({ configSnapshot: null });
+    expect(ctx.subtitle.call(ctx)).toBe("");
+  });
+
+  it("names solo play and the nine objectives, Doubles and Triples included", () => {
+    const ctx = makeContext();
+    expect(ctx.subtitle.call(ctx)).toBe("SOLO · 9 OBJECTIVES");
+  });
+});
