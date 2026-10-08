@@ -10,36 +10,37 @@ import type { RingKey, TapRing } from "@lib/types";
 
 describe("bigValueSize", () => {
   it.each([
-    ["7", "text-[84px]"],
-    ["20", "text-[84px]"],
-    ["501", "text-[64px]"],
-    ["BULL", "text-[46px]"],
-    ["1,234", "text-[46px]"],
-    ["10,000", "text-[clamp(1.25rem,17cqw,2.875rem)]"],
-    ["12 - 180", "text-[clamp(1.125rem,13cqw,2.875rem)]"],
-    ["501 - 180", "text-[clamp(1rem,11cqw,2.875rem)]"],
+    ["7", "text-[clamp(2.5rem,45cqw,5.25rem)]"],
+    ["20", "text-[clamp(2.5rem,45cqw,5.25rem)]"],
+    ["501", "text-[clamp(2rem,30cqw,4rem)]"],
+    ["D20", "text-[clamp(2rem,30cqw,4rem)]"],
+    ["BULL", "text-[clamp(1.5rem,18cqw,2.875rem)]"],
+    ["1,234", "text-[clamp(1.5rem,18cqw,2.875rem)]"],
+    ["10,000", "text-[clamp(1.25rem,15cqw,2.875rem)]"],
+    ["12 - 180", "text-[clamp(1.125rem,11cqw,2.875rem)]"],
+    ["501 - 180", "text-[clamp(1rem,10cqw,2.875rem)]"],
   ])("sizes %s as %s", (value, expected) => {
     expect(bigValueSize(value)).toBe(expected);
   });
 
   it("measures a number by its digits", () => {
-    expect(bigValueSize(170)).toBe("text-[64px]");
+    expect(bigValueSize(170)).toBe("text-[clamp(2rem,30cqw,4rem)]");
   });
 
   it("treats a missing value as empty", () => {
-    expect(bigValueSize(null)).toBe("text-[84px]");
+    expect(bigValueSize(null)).toBe("text-[clamp(2.5rem,45cqw,5.25rem)]");
   });
 });
 
 describe("seatValueSize", () => {
   it.each([
-    ["7", "text-[64px]"],
-    ["170", "text-[64px]"],
-    ["BULL", "text-[46px]"],
-    ["1,234", "text-[46px]"],
-    ["10,000", "text-[clamp(1.25rem,17cqw,2.875rem)]"],
-    ["12 - 180", "text-[clamp(1.125rem,13cqw,2.875rem)]"],
-    ["501 - 180", "text-[clamp(1rem,11cqw,2.875rem)]"],
+    ["7", "text-[clamp(2rem,30cqw,4rem)]"],
+    ["170", "text-[clamp(2rem,30cqw,4rem)]"],
+    ["BULL", "text-[clamp(1.5rem,18cqw,2.875rem)]"],
+    ["1,234", "text-[clamp(1.5rem,18cqw,2.875rem)]"],
+    ["10,000", "text-[clamp(1.25rem,15cqw,2.875rem)]"],
+    ["12 - 180", "text-[clamp(1.125rem,11cqw,2.875rem)]"],
+    ["501 - 180", "text-[clamp(1rem,10cqw,2.875rem)]"],
   ])("sizes %s as %s", (value, expected) => {
     expect(seatValueSize(value)).toBe(expected);
   });

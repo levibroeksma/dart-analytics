@@ -2104,10 +2104,31 @@ describe("tuodPlay — play header and seat stats", () => {
     expect(makePlay({ configSnapshot: null }).subtitle()).toBe("");
   });
 
-  it("subtitle names the next attempt", () => {
-    expect(makePlay().subtitle()).toBe("ATTEMPT 1");
+  it("subtitle names the next attempt of the ROUNDS budget", () => {
+    expect(makePlay({ configSnapshot: rounds(5) }).subtitle()).toBe(
+      "ATTEMPT 1 OF 5",
+    );
     expect(
       makePlay({
+        configSnapshot: rounds(5),
+        turns: [turnFact("t1", 1, 41), turnFact("t2", 2, 0)],
+      }).subtitle(),
+    ).toBe("ATTEMPT 3 OF 5");
+  });
+
+  it("subtitle holds at the last attempt once the ROUNDS budget is spent", () => {
+    expect(
+      makePlay({
+        configSnapshot: rounds(2),
+        turns: [turnFact("t1", 1, 41), turnFact("t2", 2, 0)],
+      }).subtitle(),
+    ).toBe("ATTEMPT 2 OF 2");
+  });
+
+  it("subtitle names the next attempt without a total in MINUTES mode", () => {
+    expect(
+      makePlay({
+        configSnapshot: minutes(5),
         turns: [turnFact("t1", 1, 41), turnFact("t2", 2, 0)],
       }).subtitle(),
     ).toBe("ATTEMPT 3");
@@ -2127,6 +2148,24 @@ describe("tuodPlay — play header and seat stats", () => {
     const play = makePlay({
       configSnapshot: { ...rounds(3), seats: TWO_SEATS },
     });
+    expect(play.attemptsFor("participant-2")).toBe(0);
+    expect(play.successFailureFor("participant-2")).toBe("0 · 0");
+  });
+
+  it("keeps the other seat at zero while seat 1 has resolved attempts and an open visit", () => {
+    const play = makePlay({
+      configSnapshot: { ...rounds(3), seats: TWO_SEATS },
+      turns: [
+        turnFact("t1", 1, 41),
+        turnFact("t2", 2, 0),
+        {
+          ...turnFact("t3", 3, 0),
+          completedAt: null,
+          darts: [dartFact(1, 20)],
+        },
+      ],
+    });
+    expect(play.attemptsFor("participant-1")).toBe(2);
     expect(play.attemptsFor("participant-2")).toBe(0);
     expect(play.successFailureFor("participant-2")).toBe("0 · 0");
   });

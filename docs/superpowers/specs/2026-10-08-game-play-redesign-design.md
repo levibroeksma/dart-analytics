@@ -63,9 +63,9 @@ Restyle every game play screen (`app/src/pages/games/*/play/`) to match the desi
 ### 2. Timer: `CountdownPauseControl.astro` / `CountdownResumePrompt.astro`
 
 - **Pause control:** it moves into `GameLayout`'s `header-end` slot on the four countdown games (121, Around the Clock, Score training, TUOD).
-  - Look: a 44px pill on `inset-well`, padding 0 12px, holding `pause.svg` at 12px plus `remainingLabel()` in mono 13px medium.
+  - Look: a 44px pill on `Button`'s `sheet-muted` variant (`inset-well-muted`), padding 0 12px, holding `pause.svg` at 12px plus `remainingLabel()` in mono 13px medium.
   - Behaviour: it calls `togglePause()` and keeps `aria-label="Pause timer"`.
-  - The visibility rule is unchanged: `durationType === 'MINUTES'` and not paused.
+  - Visible while `durationType === 'MINUTES'`, paused or not, so the remaining time stays readable. While paused it is disabled with `aria-label="Timer paused"`; resuming stays `CountdownResumePrompt`'s job.
 - **Resume prompt:** unchanged behaviour. Its button is restyled with `glass-button` and an accent play icon.
   - The paused state has no design, so it is filed as discovered work.
 
@@ -149,19 +149,19 @@ Restyle every game play screen (`app/src/pages/games/*/play/`) to match the desi
 
 ### 8. Interfaces: per-game wiring
 
-Each `interfaces/<Game>.astro` passes the title (via its page), `gameSubtitleExpr="subtitle()"`, the big value, any caption or route chips, the tiles (solo), the active rows plus the idle stat (split), and the input panel.
+Each `interfaces/<Game>.astro` passes the title (via its page), `gameSubtitleExpr="hasActiveSession ? subtitle() : ''"` (no stale subtitle over a blocked or missing session), the big value, any caption or route chips, the tiles (solo), the active rows plus the idle stat (split), and the input panel.
 
 | Game | Subtitle (`subtitle()`) | Big value | Tiles (solo) / idle stat |
 |---|---|---|---|
 | 501 | `LEG {stages.length} · FIRST TO {legsToWin}` | `remainingScore()`, route chips from `checkoutHint()` | Avg `average()` · Prev `previousScore()` · Darts `dartsThrownThisLeg()`; idle: Avg |
-| 121 | `ATTEMPT {attemptsCompleted+1} · 9 DARTS` | `remainingInAttempt()`, route chips | Target `currentTargetLabel()` · Visit `n / 3` · Darts `dartsThisAttempt()` (new); idle: Target |
+| 121 | `ATTEMPT {attemptsCompleted+1} · 9 DARTS`; ROUNDS: `ATTEMPT {n} OF {N} · 9 DARTS`, n capped at N | `remainingInAttempt()`, route chips | Target `currentTargetLabel()` · Visit `n / 3` · Darts `dartsThisAttempt()` (new); idle: Target |
 | Around the Clock | `LAP {laps()+1} · {first} → {last}`, where `last` is the target before BULL | `currentTargetLabel()` | Turns · Accuracy · This visit `hitsToGo()` (new, "n to hit", blank on EASY); idle: Turns |
 | Bob's 27 | `ROUND {targetIndex+1} OF {path.length}` | `currentScore()` | Target; idle: Target |
 | Doubles | the order-mode setup label (`LOW → HIGH` / `HIGH → LOW` / `RANDOM`) | `currentTargetLabel()` | Hits · Misses; idle: Hits |
 | Score training | `ROUND {turnCount+1} OF {durationValue}`; MINUTES: `ROUND {n}` | total, `toLocaleString('en-US')` | Avg · Darts · Prev; idle: Avg |
 | Shanghai | `ROUND {targetIndex+1} OF 20` | `currentScore()` | Round · Target; idle: Target |
 | Singles | the order-mode setup label (plus `ORDER` for Random, i.e. `RANDOM ORDER`) | `currentPoints()` | Target · Misses · `S · D · T` (`s · d · t` counts); idle: Target |
-| TUOD | `ATTEMPT {attempts+1}` | `remainingInAttempt()`, route chips | Target · Attempts (`seat.attempts`) · `Successes · Failures` (`seat.successes · seat.failures`); idle: Target |
+| TUOD | `ATTEMPT {attempts+1}`; ROUNDS: `ATTEMPT {n} OF {N}`, n capped at N | `remainingInAttempt()`, route chips | Target · Attempts (`seat.attempts`) · `Successes · Failures` (`seat.successes · seat.failures`); idle: Target |
 | Cricket | `SOLO · {objectives} OBJECTIVES` | `dartsThrown()` + caption "DARTS USED" | mark rows |
 | Tactics | `SOLO · {objectives} OBJECTIVES` | `dartsThrown()` + caption "DARTS USED" | mark rows (incl. Doubles, Triples) |
 

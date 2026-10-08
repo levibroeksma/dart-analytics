@@ -2,10 +2,10 @@
 /**
  * The header's countdown pill for a MINUTES session, placed in
  * `GameLayout`'s `header-end` slot by the four countdown play pages. It
- * shows a pause icon and `remainingLabel()`, and a tap pauses. Resuming is
- * `CountdownResumePrompt`'s job, so the pill hides while paused. Reads
- * `remainingLabel()`, `togglePause()`, `hasActiveSession` and `finished` from
- * the play scope.
+ * shows a pause icon and `remainingLabel()`, and a tap pauses. While paused
+ * it stays visible with the remaining time but is disabled ("Timer paused"):
+ * resuming is `CountdownResumePrompt`'s job. Reads `remainingLabel()`,
+ * `togglePause()`, `hasActiveSession` and `finished` from the play scope.
  */
 interface Props {
   /** Alpine expression evaluating to a boolean; disables the pill. */
@@ -25,12 +25,12 @@ import PauseIcon from "@icons/pause.svg";
 <Button
   type="button"
   variant="sheet-muted"
-  ariaLabel="Pause timer"
   loadingExpr="false"
   class="h-11 shrink-0 gap-1.5 rounded-full px-3 py-0 font-mono text-[13px] font-medium text-foreground"
-  :disabled={disabledExpr}
+  :aria-label="$store.game.timerPaused ? 'Timer paused' : 'Pause timer'"
+  :disabled={`(${disabledExpr}) || $store.game.timerPaused`}
   @click="togglePause()"
-  x-show="hasActiveSession && !finished && $store.game.configSnapshot?.durationType === 'MINUTES' && !$store.game.timerPaused"
+  x-show="hasActiveSession && !finished && $store.game.configSnapshot?.durationType === 'MINUTES'"
   x-cloak
 >
   <PauseIcon
