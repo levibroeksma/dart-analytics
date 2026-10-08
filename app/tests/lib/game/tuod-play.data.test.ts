@@ -2091,3 +2091,43 @@ describe("tuodPlay — live in-visit remaining (#202)", () => {
     expect(component.currentTargetLabel.call(component)).toBe("40");
   });
 });
+
+describe("tuodPlay — play header and seat stats", () => {
+  function makePlay(overrides: Partial<GameStub> = {}) {
+    return {
+      ...tuodPlay(),
+      $store: { game: gameStub(overrides), settings: settingsStub() },
+    } as TuodPlayContext;
+  }
+
+  it("subtitle is blank before config loads", () => {
+    expect(makePlay({ configSnapshot: null }).subtitle()).toBe("");
+  });
+
+  it("subtitle names the next attempt", () => {
+    expect(makePlay().subtitle()).toBe("ATTEMPT 1");
+    expect(
+      makePlay({
+        turns: [turnFact("t1", 1, 41), turnFact("t2", 2, 0)],
+      }).subtitle(),
+    ).toBe("ATTEMPT 3");
+  });
+
+  it("counts attempts, successes and failures", () => {
+    const play = makePlay({
+      turns: [turnFact("t1", 1, 41), turnFact("t2", 2, 0)],
+    });
+    expect(play.attempts()).toBe(2);
+    expect(play.attemptsFor("participant-1")).toBe(2);
+    expect(play.successFailure()).toBe("1 · 1");
+    expect(play.successFailureFor("participant-1")).toBe("1 · 1");
+  });
+
+  it("reads zeros for a seat with no attempts yet", () => {
+    const play = makePlay({
+      configSnapshot: { ...rounds(3), seats: TWO_SEATS },
+    });
+    expect(play.attemptsFor("participant-2")).toBe(0);
+    expect(play.successFailureFor("participant-2")).toBe("0 · 0");
+  });
+});

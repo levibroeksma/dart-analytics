@@ -9,6 +9,7 @@ import {
 import { fetchActiveSessions } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { boardInputData } from "@lib/game/board-input.data";
+import { joinSubtitle } from "@lib/game/play-subtitle";
 import {
   clearHiddenTimer,
   playAbandonAndExit,
@@ -336,6 +337,21 @@ export function fiveOhOnePlay() {
     matchTitle(this: FiveOhOnePlayContext): string {
       const legsToWin = this.$store.game.configSnapshot?.legsToWin;
       return legsToWin ? `First to ${legsToWin} legs` : "501";
+    },
+
+    /** Play-header subtitle: the open leg and the match target (`LEG 2 · FIRST TO 3`); blank before config loads. */
+    subtitle(this: FiveOhOnePlayContext): string {
+      const legsToWin = this.$store.game.configSnapshot?.legsToWin;
+      if (!legsToWin) return "";
+      return joinSubtitle([
+        `LEG ${Math.max(this.$store.game.stages.length, 1)}`,
+        `FIRST TO ${legsToWin}`,
+      ]);
+    },
+
+    /** Legs a side needs to win the match; 0 before config loads. */
+    legsToWin(this: FiveOhOnePlayContext): number {
+      return this.$store.game.configSnapshot?.legsToWin ?? 0;
     },
 
     remainingScoreFor(this: FiveOhOnePlayContext, seatRef: string): number {

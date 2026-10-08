@@ -286,6 +286,40 @@ export function tuodPlay() {
       return this.remainingInAttemptFor(state.activeParticipantRef);
     },
 
+    /** Play-header subtitle: the throwing seat's next attempt (`ATTEMPT 4`); blank before config loads. */
+    subtitle(this: TuodPlayContext): string {
+      const state = this.state();
+      if (!state) return "";
+      return `ATTEMPT ${this.attemptsFor(state.activeParticipantRef) + 1}`;
+    },
+
+    attemptsFor(this: TuodPlayContext, seatRef: string): number {
+      const seat = this.state()?.seats.find(
+        (candidate) => candidate.participantRef === seatRef,
+      );
+      return seat?.attempts ?? 0;
+    },
+
+    attempts(this: TuodPlayContext): number {
+      const state = this.state();
+      if (!state) return 0;
+      return this.attemptsFor(state.activeParticipantRef);
+    },
+
+    /** The seat's resolved attempts as `successes · failures` (`3 · 1`). */
+    successFailureFor(this: TuodPlayContext, seatRef: string): string {
+      const seat = this.state()?.seats.find(
+        (candidate) => candidate.participantRef === seatRef,
+      );
+      return `${seat?.successes ?? 0} · ${seat?.failures ?? 0}`;
+    },
+
+    successFailure(this: TuodPlayContext): string {
+      const state = this.state();
+      if (!state) return "0 · 0";
+      return this.successFailureFor(state.activeParticipantRef);
+    },
+
     /**
      * The finish route for what the seat still has left in the open attempt,
      * blank when no route fits the darts it has left (#291). Reads
