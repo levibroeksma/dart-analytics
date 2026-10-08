@@ -1609,3 +1609,24 @@ describe("singlesTrainingPlay — DartBot opponent", () => {
     expect(play.engine!.state().activeParticipantRef).toBe("participant-1");
   });
 });
+
+describe("subtitle", () => {
+  it("is blank before config loads", () => {
+    const play = makePlay({ configSnapshot: null });
+    expect(play.subtitle.call(play)).toBe("");
+  });
+
+  it.each([
+    ["LOW_TO_HIGH", "LOW → HIGH"],
+    ["HIGH_TO_LOW", "HIGH → LOW"],
+    ["RANDOM", "RANDOM ORDER"],
+  ] as const)(
+    "names the %s order with the setup wording",
+    (orderMode, expected) => {
+      const play = makePlay({
+        configSnapshot: { ...defaultConfig(), orderMode },
+      });
+      expect(play.subtitle.call(play)).toBe(expected);
+    },
+  );
+});

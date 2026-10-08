@@ -13,6 +13,7 @@ import {
   playVisitMarkers,
   runPlayAgain,
 } from "@lib/game/play-lifecycle";
+import { joinSubtitle } from "@lib/game/play-subtitle";
 import type { RulesetVersionKey } from "@lib/types";
 import type {
   CricketSeatState,
@@ -155,6 +156,12 @@ export function cricketPlay() {
         { stages: this.$store.game.stages, turns: this.$store.game.turns },
         config,
       );
+    },
+
+    /** Play-header subtitle: `SOLO · 7 OBJECTIVES`; blank before config loads. */
+    subtitle(this: CricketPlayContext): string {
+      if (!this.$store.game.configSnapshot) return "";
+      return joinSubtitle(["SOLO", `${CRICKET_OBJECTIVES.length} OBJECTIVES`]);
     },
 
     objectiveRows(this: CricketPlayContext): CricketObjectiveRow[] {

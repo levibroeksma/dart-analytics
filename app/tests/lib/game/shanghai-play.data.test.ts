@@ -1256,3 +1256,20 @@ describe("playAgain — DartBot opponent", () => {
     expect(play.finished).toBe(true);
   });
 });
+
+describe("subtitle", () => {
+  it("is blank before config loads", () => {
+    const play = makePlay({ configSnapshot: null });
+    expect(play.subtitle.call(play)).toBe("");
+  });
+
+  it("counts rounds of 20", () => {
+    const play = makePlay();
+    expect(play.subtitle.call(play)).toBe("ROUND 1 OF 20");
+  });
+
+  it("reads the last round", () => {
+    const play = makePlay({ turns: priorRoundsThroughNumber(19) });
+    expect(play.subtitle.call(play)).toBe("ROUND 20 OF 20");
+  });
+});

@@ -26,6 +26,7 @@ import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
 import { createDartRng } from "@modules/dartbot/rng.module";
 import { throwDart as botThrowDart } from "@modules/dartbot/throw-engine.module";
 import { chooseTarget } from "@modules/dartbot/strategy/dictated.strategy.module";
+import { orderModeLabel } from "@lib/game/play-subtitle";
 import type { RulesetVersionKey, SeatFact } from "@lib/types";
 import type {
   DartObservation,
@@ -185,6 +186,12 @@ export function doublesTrainingPlay() {
         { stages: this.$store.game.stages, turns: this.$store.game.turns },
         config,
       );
+    },
+
+    /** Play-header subtitle: the session's target order in setup wording (`LOW → HIGH`); blank before config loads. */
+    subtitle(this: DoublesTrainingPlayContext): string {
+      const config = this.$store.game.configSnapshot;
+      return config ? orderModeLabel(config.orderMode) : "";
     },
 
     currentTargetLabelFor(

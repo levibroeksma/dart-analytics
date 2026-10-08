@@ -26,6 +26,7 @@ import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
 import { createDartRng } from "@modules/dartbot/rng.module";
 import { throwDart as botThrowDart } from "@modules/dartbot/throw-engine.module";
 import { chooseTarget } from "@modules/dartbot/strategy/dictated.strategy.module";
+import { orderModeLabel } from "@lib/game/play-subtitle";
 import type {
   RulesetVersionKey,
   SeatFact,
@@ -408,6 +409,14 @@ export function singlesTrainingPlay() {
         { stages: this.$store.game.stages, turns: this.$store.game.turns },
         config,
       );
+    },
+
+    /** Play-header subtitle: the target order in setup wording, `RANDOM ORDER` for Random; blank before config loads. */
+    subtitle(this: SinglesTrainingPlayContext): string {
+      const config = this.$store.game.configSnapshot;
+      if (!config) return "";
+      const label = orderModeLabel(config.orderMode);
+      return config.orderMode === "RANDOM" ? `${label} ORDER` : label;
     },
 
     currentTargetLabelFor(

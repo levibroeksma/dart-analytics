@@ -197,3 +197,15 @@ describe("cricketPlay", () => {
     });
   });
 });
+
+describe("subtitle", () => {
+  it("is blank before config loads", () => {
+    const ctx = makeContext({ configSnapshot: null });
+    expect(ctx.subtitle.call(ctx)).toBe("");
+  });
+
+  it("names solo play and the seven objectives", () => {
+    const ctx = makeContext();
+    expect(ctx.subtitle.call(ctx)).toBe("SOLO · 7 OBJECTIVES");
+  });
+});
