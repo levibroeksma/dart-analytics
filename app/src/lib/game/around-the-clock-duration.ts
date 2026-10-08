@@ -6,6 +6,9 @@ export function aroundTheClockDurationBounds(): { min: number; max: number } {
   return { min: 3, max: 30 };
 }
 
+/** Minutes used when a timed run has no typed value. */
+export const AROUND_THE_CLOCK_DEFAULT_MINUTES = 10;
+
 /**
  * Floors finite numbers, then clamps into the inclusive minute bounds.
  * Non-finite / non-number inputs clamp to the minimum. Mirrors

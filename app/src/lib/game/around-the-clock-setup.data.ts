@@ -1,12 +1,10 @@
 import { createPresetSetupController } from "@lib/game/setup-controller";
 import {
+  AROUND_THE_CLOCK_DEFAULT_MINUTES,
   aroundTheClockDurationClampNotice,
   clampAroundTheClockDuration,
 } from "@lib/game/around-the-clock-duration";
 import type { AroundTheClockSetupContext } from "./types";
-
-/** A timed run left blank starts at the spec's default length. */
-const DEFAULT_MINUTES = 10;
 
 const V2_DEFAULTS = {
   pathDirection: "LOW_TO_HIGH" as AroundTheClockSetupContext["pathDirection"],
@@ -29,7 +27,7 @@ function v2Overrides(ctx: AroundTheClockSetupContext): Record<string, unknown> {
   if (ctx.durationType === "MINUTES") {
     const typed =
       ctx.durationValue === null || ctx.durationValue === ""
-        ? DEFAULT_MINUTES
+        ? AROUND_THE_CLOCK_DEFAULT_MINUTES
         : ctx.durationValue;
     const clamped = clampAroundTheClockDuration(typed);
     durationValue = clamped.value;

@@ -1,13 +1,18 @@
 ---
 // Components
-import Input from "@components/forms/Input.astro";
 import Switch from "@components/forms/Switch.astro";
 import InfoSection from "@components/ui/InfoSection.astro";
 import SetupShell from "./SetupShell.astro";
 import SettingSectionShell from "./SettingSectionShell.astro";
 import Toggle from "./Toggle.astro";
 import UserSection from "./UserSection.astro";
+import SettingLabel from "./SettingLabel.astro";
+import RangeSlider from "@components/forms/RangeSlider.astro";
 import { supportsDartbot } from "@lib/game/rulesets/capabilities";
+import {
+  aroundTheClockDurationBounds,
+  AROUND_THE_CLOCK_DEFAULT_MINUTES,
+} from "@lib/game/around-the-clock-duration";
 
 // Data
 const infoSection = {
@@ -37,7 +42,7 @@ const durationOpts = [
   { value: "UNTIMED", label: "Untimed" },
   { value: "MINUTES", label: "Timed" },
 ];
-const labelClass = "text-xs text-muted-foreground italic ml-2 ";
+const minutes = aroundTheClockDurationBounds();
 ---
 
 <SetupShell title="Around the Clock">
@@ -51,12 +56,12 @@ const labelClass = "text-xs text-muted-foreground italic ml-2 ";
   />
   <SettingSectionShell>
     <div
-      class="flex flex-col gap-3"
+      class="flex flex-col gap-4"
       x-show="!bot"
       x-cloak
     >
-      <div>
-        <label class={labelClass}>Direction</label>
+      <div class="flex flex-col gap-2">
+        <SettingLabel text="DIRECTION" />
         <Toggle
           orientation="horizontal"
           options={directionOpts}
@@ -66,10 +71,11 @@ const labelClass = "text-xs text-muted-foreground italic ml-2 ";
       </div>
       <Switch
         label="Odds first"
+        hint="Play every odd number before the evens"
         x-model="oddsFirst"
       />
-      <div>
-        <label class={labelClass}>Difficulty</label>
+      <div class="flex flex-col gap-2">
+        <SettingLabel text="DIFFICULTY" />
         <Toggle
           orientation="horizontal"
           options={difficultyOpts}
@@ -78,10 +84,14 @@ const labelClass = "text-xs text-muted-foreground italic ml-2 ";
         />
       </div>
       <div
+        class="flex flex-col gap-2"
         x-show="$store.settings.captureModeKey === 'ANALYTICS'"
         x-cloak
       >
-        <label class={labelClass}>Segment</label>
+        <SettingLabel
+          text="SEGMENT"
+          badge="ANALYTICS"
+        />
         <Toggle
           orientation="horizontal"
           options={segmentOpts}
@@ -90,44 +100,30 @@ const labelClass = "text-xs text-muted-foreground italic ml-2 ";
         />
       </div>
       <div
+        class="flex flex-col gap-4"
         x-show="guests.length === 0"
         x-cloak
       >
-        <label class={labelClass}>Duration</label>
-        <Toggle
-          orientation="horizontal"
-          options={durationOpts}
-          x-model="durationType"
-          class="w-full"
-        />
-        <div
-          x-show="durationType === 'MINUTES'"
-          x-cloak
-        >
-          <Input
-            id="durationValue"
-            name="durationValue"
-            type="text"
-            inputmode="numeric"
-            placeholder="10"
-            x-model.number="durationValue"
-            @input="clampNotice = ''"
-            class="glass border-tab-border rounded-full mt-4"
+        <div class="flex flex-col gap-2">
+          <SettingLabel text="DURATION" />
+          <Toggle
+            orientation="horizontal"
+            options={durationOpts}
+            x-model="durationType"
+            class="w-full"
           />
-          <label
-            for="durationValue"
-            class="text-xs text-muted-foreground px-4 py-0 italic"
-            >Minutes (3–30)</label
-          >
-          <p
-            class="text-sm text-muted-foreground px-4 py-0"
-            role="status"
-            x-show="clampNotice"
-            x-text="clampNotice"
-            x-cloak
-          >
-          </p>
         </div>
+        <template x-if="durationType === 'MINUTES'">
+          <RangeSlider
+            min={minutes.min}
+            max={minutes.max}
+            fallback={AROUND_THE_CLOCK_DEFAULT_MINUTES}
+            label="MINUTES"
+            ariaLabel="Number of minutes"
+            hint={`${minutes.min}–${minutes.max} minutes. Solo only.`}
+            x-model="durationValue"
+          />
+        </template>
       </div>
     </div>
   </SettingSectionShell>
