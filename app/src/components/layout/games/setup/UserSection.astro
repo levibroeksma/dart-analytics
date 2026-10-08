@@ -22,24 +22,19 @@ import UserIconDisplay from "./UserIconDisplay.astro";
 import GuestSection from "./GuestSection.astro";
 ---
 
-<div
-  class="bg-tab-card border-tab-border rounded-3xl p-4 border flex flex-col items-start justify-start gap-4"
->
-  <h2 class="text-base text-center w-full">Players</h2>
-  {
-    allowGuests ? (
-      <div class="flex flex-row items-start gap-4">
-        <UserIconDisplay
-          name="User"
-          nameExpr="$store.profile.displayName || 'User'"
-        />
-        <GuestSection allowDartbot={allowDartbot} />
-      </div>
-    ) : (
-      <UserIconDisplay
-        name="User"
-        nameExpr="$store.profile.displayName || 'User'"
-      />
-    )
-  }
+<div class="glass flex flex-col gap-3.5 rounded-2xl p-4">
+  <div class="flex items-baseline justify-between">
+    <h2 class="font-display text-[13px] tracking-[0.06em]">Players</h2>
+    <span
+      class="font-mono text-[10px] font-semibold tracking-[0.1em] text-muted-foreground"
+      x-text="$playerCount(1 + guests.length + (bot ? 1 : 0))"
+    ></span>
+  </div>
+  <div class="flex flex-row items-start gap-[18px]">
+    <UserIconDisplay
+      name="User"
+      nameExpr="$store.profile.displayName || 'User'"
+    />
+    {allowGuests && <GuestSection allowDartbot={allowDartbot} />}
+  </div>
 </div>

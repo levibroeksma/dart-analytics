@@ -20,7 +20,7 @@ import PlusIcon from "@icons/plus.svg";
 ---
 
 <div
-  class="flex flex-col gap-1 items-center justify-center"
+  class="flex flex-col items-center gap-1.5"
   x-show="guests.length < 1 && !bot"
   x-cloak
 >
@@ -31,14 +31,9 @@ import PlusIcon from "@icons/plus.svg";
     @click={allowDartbot
       ? "showOpponentChooser = true"
       : "showAddGuestModal = true"}
-    class="p-3 border-2"
+    class="flex size-13 items-center justify-center rounded-full border-[1.5px]"
   >
-    <PlusIcon class="size-8" />
+    <PlusIcon class="size-5 opacity-80" />
   </IconBtn>
-  <span
-    class="text-sm invisible"
-    aria-hidden="true"
-  >
-    &nbsp;
-  </span>
+  <span class="text-xs text-muted">Add opponent</span>
 </div>
