@@ -26,7 +26,7 @@ Skipped: Canvas `#0b0c0f` — docs-only backdrop, not app UI.
 | `--error-hover` | `oklch(63% 0.15 30)` | retuned |
 | `--error-muted` | `oklch(68% 0.15 30 / 0.12)` | retuned |
 | `--error-foreground` | `oklch(96% 0.01 30)` | retuned |
-| `--missed` | `var(--error)` | new; missed session |
+| `--missed` / `--missed-muted` | `var(--error)` / `var(--error-muted)` | exist (D427) with the same coral values; repointed as aliases |
 | `--placeholder` | `oklch(48% 0 0)` | new; empty-field text |
 | `--accent-deep-blue` | `oklch(44.3% 0.11 240.79)` | new; chart bars, vignette (`body::after` reads it) |
 | `--scrim` | `oklch(0% 0 0 / 0.6)` | new; modal backdrop |
@@ -73,7 +73,7 @@ No new files. Design `icons/nav/<name>-<accent|white|muted>.svg` are colour vari
 ## Docs
 
 - `docs/architecture/07-Frontend/07-Style-Guide.md`: token table rows, new type-scale + radius rows, surfaces table, typography weight rule, anti-pattern row for `font-medium` removed; version bump.
-- `decisions/frontend/…`: one new decision (D428) — Brand Style as token source; coral = error; weight 500 allowed (supersedes the `font-medium` ban).
+- `decisions/frontend/style.md`: one new decision (D428) — Brand Style as token source; coral = error; weight 500 allowed (supersedes the `font-medium` ban of D108/D126/D161 and D426's 500→400 note).
 - `scripts/check-style-tokens.sh`: drop the `font-medium` ban (gate change follows the decision).
 - Context maintenance per skill.
 
