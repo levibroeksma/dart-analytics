@@ -42,7 +42,7 @@ import ChevronDownIcon from "@icons/chevron-down.svg";
       <button
         type="button"
         x-on:click="expanded = ! expanded"
-        x-bind:aria-expanded="expanded ? 'true' : 'false'"
+        {...{ ":aria-expanded": "expanded ? 'true' : 'false'" }}
         class="flex w-full items-center justify-between"
       >
         <h4
@@ -53,12 +53,12 @@ import ChevronDownIcon from "@icons/chevron-down.svg";
         </h4>
         <ChevronDownIcon
           class="size-[18px] text-muted-foreground transition-transform duration-300"
-          x-bind:class="expanded ? 'rotate-180' : ''"
+          {...{ ":class": "expanded ? 'rotate-180' : ''" }}
         />
       </button>
       <p
         class="text-xs leading-[1.55] text-muted text-pretty"
-        x-bind:class="expanded ? '' : 'line-clamp-2'"
+        {...{ ":class": "expanded ? '' : 'line-clamp-2'" }}
       >
         {description}
       </p>

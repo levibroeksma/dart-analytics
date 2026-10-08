@@ -2,7 +2,7 @@
 status: canonical
 scope: frontend/alpine-patterns
 read-when: Alpine stores, data components, persist
-updated: 2026-09-19
+updated: 2026-10-08
 -->
 
 # Frontend Alpine Patterns
@@ -163,6 +163,8 @@ Use **shorthand** for binds and listeners. Keep structural/behavioral directives
 In `.astro` markup, prefer shorthand on **native HTML elements** (`<form>`, `<button>`, `<input>`, …).
 
 When an Alpine listener must be declared inside a **`{}` Astro expression** (component prop or spread) and the linter rejects `@click`, use `x-on:click` for that attribute only. Do not use `x-on:` elsewhere when shorthand works.
+
+Binds have no such escape: `x-bind:` is never used. Where `:attr` is a syntax error (inside a `{}` expression), bind via a literal spread — `{...{ ":class": expr }}` — so the rendered attribute is still shorthand. `scripts/check-astro-conventions.sh` rejects `x-bind:`. <!-- 2026-10-08 -->
 
 ```astro
 <!-- preferred on native elements -->
