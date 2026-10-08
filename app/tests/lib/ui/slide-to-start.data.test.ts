@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
   SLIDE_RESET_MS,
   SLIDE_THRESHOLD,
+  SLIDE_THUMB_SPAN,
   dragFraction,
   shouldFire,
   slideToStartData,
@@ -60,6 +61,16 @@ describe("slideToStartData", () => {
     expect(requestSubmit).toHaveBeenCalledTimes(1);
     expect(ctx.fraction).toBe(1);
     expect(ctx.fired).toBe(true);
+  });
+
+  it("measures travel as track width minus SLIDE_THUMB_SPAN", () => {
+    const travel = 360 - SLIDE_THUMB_SPAN;
+    const { ctx } = harness();
+    ctx.begin(pointer(0));
+    ctx.move(pointer(travel / 2));
+    expect(ctx.fraction).toBe(0.5);
+    ctx.end();
+    expect(requestSubmit).not.toHaveBeenCalled();
   });
 
   it("a short drag snaps back without firing", () => {
