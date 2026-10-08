@@ -5,7 +5,7 @@ read-when: why a CSS token/primitive/typography/spacing choice was made
 load-when: style, CSS, token, Tailwind, primitive, typography, spacing, glass, surface, PWA, manifest, icon, safe-area, font, colour, dark mode, motion, accessibility
 depends-on: decisions/frontend/architecture.md
 related: decisions/frontend/astro.md
-updated: 2026-09-22
+updated: 2026-10-08
 -->
 
 | # | Source | Decision | Rationale |
@@ -143,3 +143,10 @@ Decision: `/games` and `/training` follow the Claude Design `Games.dc.html` / `T
 Reason: the same design-led phase as D425/D426; every element that existing reads can back is wired rather than faked.
 Consequences: `RoutineCard.astro` is removed. Weekday letters follow the browser locale. `.astro`/CSS carry no unit test (D101); the grouping, resume pick and week-status helpers are tested.
 Supersedes: none.
+
+### D428 — Brand Style is the token source; coral error; weight 500
+Status: Accepted · Date: 2026-10-08
+Decision: `global.css` tokens follow the Claude Design `Brand Style.dc.html` reference. Error hue is coral `oklch(68% 0.15 30)`; `--missed`/`--missed-muted` alias `--error`/`--error-muted`. New tokens: `--placeholder`, `--accent-deep-blue`, `--scrim`, `--gradient-blue-glass`; type scale `text-hero|title|value|tile|card-title|button|eyebrow|eyebrow-lg`; radii `rounded-row|key|switch|board|sheet`; `size-hit` (44px). Surfaces: `glass` drops its shadow; new `glass-blue`, `glass-info`, `inset-well`, `inset-well-muted`, `glass-sheet`. `.accent-orb` and `.field-inset` build on them. Weight 500 (`font-medium`) is allowed; `check-style-tokens.sh` no longer bans it. Names stay semantic; no icon or asset files are added — design colour variants map to `currentColor` icons.
+Reason: phased UI work needs every Brand Style value as a token first; the design uses 500 for values and mono labels, and one warning hue reads clearer than two.
+Consequences: errors, destructive buttons and alerts turn coral; glass cards lose their drop shadow. Components adopt the new tokens in later phases. Token presence is pinned by `tests/lib/ui/brand-tokens.test.ts`.
+Supersedes: D108, D126 and D161 (the `font-medium` ban only); D426 (500→400 rendering note).

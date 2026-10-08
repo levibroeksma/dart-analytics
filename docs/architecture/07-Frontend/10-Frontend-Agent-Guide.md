@@ -115,7 +115,7 @@ Mandatory for all frontend behavior (`app/CLAUDE.md` is the sole command definit
 
 ## 12. Styling
 
-Semantic tokens only (`surface` / `foreground` / `muted*` / `border*` / `accent*` / `error*` / `success*` / `glass*`) — never raw palette utilities and never legacy `bg-bg*` / `text-fg*`. Primitive classes (`.btn` + variants, `.input`, `.control`, `.tab`, `.alert`, `.nav-pill`, `.gradient-card`, `.link-card`, `.card-wrapper`, `glass`) live in `global.css` — reuse, never reinvent. Build-time classes via `cn()` only (`scripts/check-astro-class-composition.sh`). Never `font-medium` — prefer `font-normal` / `font-semibold` / `font-bold`. Full rules: `07-Style-Guide.md`. Tailwind v4: use suffix important (`utility!`) not prefix (`!utility`); arbitrary negatives as `prop-[-…]` not `-prop-[…]` (`scripts/check-style-tokens.sh`).
+Semantic tokens only (`surface` / `foreground` / `muted*` / `border*` / `accent*` / `error*` / `success*` / `glass*`) — never raw palette utilities and never legacy `bg-bg*` / `text-fg*`. Primitive classes (`.btn` + variants, `.input`, `.control`, `.tab`, `.alert`, `.nav-pill`, `.gradient-card`, `.link-card`, `.card-wrapper`, `glass`) live in `global.css` — reuse, never reinvent. Build-time classes via `cn()` only (`scripts/check-astro-class-composition.sh`). Weights: `font-normal` / `font-medium` / `font-semibold` / `font-bold` (D428). Full rules: `07-Style-Guide.md`. Tailwind v4: use suffix important (`utility!`) not prefix (`!utility`); arbitrary negatives as `prop-[-…]` not `-prop-[…]` (`scripts/check-style-tokens.sh`).
 
 ---
 
@@ -144,7 +144,7 @@ Semantic tokens only (`surface` / `foreground` / `muted*` / `border*` / `accent*
 - [ ] File suffix matches role
 - [ ] Component frontmatter follows the `05` order; classes composed via `cn()`
 - [ ] Forward leftover attributes as `{...props}` — never `{...rest}`
-- [ ] Styling uses semantic tokens/primitives only (`surface` / `foreground` / …); build-time classes via `cn()` only; no `font-medium`, no raw palette or legacy `bg-bg*` / `text-fg*`; no prefix `!utility`; no `-prop-[…]` arbitrary negatives
+- [ ] Styling uses semantic tokens/primitives only (`surface` / `foreground` / …); build-time classes via `cn()` only; no raw palette or legacy `bg-bg*` / `text-fg*`; no prefix `!utility`; no `-prop-[…]` arbitrary negatives
 - [ ] No `x-init`; all `x-data` invocations use `()`
 - [ ] Every `x-show` element also has `x-cloak`
 - [ ] Undo renders as `UndoIcon` + `aria-label`, never a titled text button (`07-Style-Guide.md`)
