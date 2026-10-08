@@ -1,6 +1,6 @@
 # Game play redesign — design
 
-**Date:** 2026-10-08 · **Status:** approved · **Branch:** `feat/game-play-redesign` · **Decision:** D432 (`decisions/frontend/style.md`; D431 is reserved by the open login PR #836, so renumber with `scripts/renumber-decision.sh` if that changes)
+**Date:** 2026-10-08 · **Status:** implemented · **Branch:** `feat/game-play-redesign` · **Decision:** D432 (`decisions/frontend/style.md`; D431 is reserved by the open login PR #836, so renumber with `scripts/renumber-decision.sh` if that changes)
 
 Source design: Claude Design project `cdea52ee-4746-4efb-b646-81448a40c033`:
 - `Game Play Recreational.dc.html`: screens `p-501` … `p-tactics`
