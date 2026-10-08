@@ -1,56 +1,67 @@
 ---
 /**
- * Collapsible info panel: a heading that toggles a longer explanation below
- * it. `title` is rendered verbatim — callers own any suffix (e.g. a setup
- * form passes "Scoring Training rules").
+ * Accent rules card: a heading over a two-line clamped explanation that
+ * expands on tap. `title` is rendered verbatim — callers own any suffix
+ * (e.g. a setup form passes "Scoring Training rules").
  * @param {string} title
  * @param {string} description
  * @param {string} [id] Id placed on the heading, for a caller's `aria-labelledby`
+ * @param {boolean} [open=false] Always expanded, no chevron, not interactive
+ *   (setups without settings)
  */
 interface Props {
   title: string;
   description: string;
   id?: string;
+  open?: boolean;
 }
 
 // Props
-const { title, description, id }: Props = Astro.props;
+const { title, description, id, open = false }: Props = Astro.props;
 
 // Icons
-import InfoIcon from "@icons/info.svg";
 import ChevronDownIcon from "@icons/chevron-down.svg";
 ---
 
-<div
-  x-data="{ expanded: false }"
-  class="bg-tab-card border-tab-border rounded-3xl p-3 border"
->
-  <button
-    type="button"
-    @click="expanded = ! expanded"
-    class="flex justify-between items-center w-full"
-  >
-    <div class="flex items-center gap-2">
-      <InfoIcon class="size-4 text-accent" />
+{
+  open ? (
+    <div class="glass-info flex flex-col gap-2 rounded-2xl px-4 py-3.5">
       <h4
         id={id}
-        class="text-center text-sm"
+        class="text-[13px] font-semibold text-accent-bright"
       >
         {title}
       </h4>
+      <p class="text-xs leading-[1.55] text-muted text-pretty">{description}</p>
     </div>
-    <ChevronDownIcon
-      class="size-4 -rotate-90 transition-transform duration-300"
-      :class="expanded ? 'rotate-0' : '-rotate-90'"
-    />
-  </button>
-
-  <p
-    x-show="expanded"
-    x-cloak
-    x-collapse.duration.300ms
-    class="text-xs text-muted-foreground mt-2 italic"
-  >
-    {description}
-  </p>
-</div>
+  ) : (
+    <div
+      x-data="{ expanded: false }"
+      class="glass-info flex flex-col gap-2 rounded-2xl px-4 py-3.5"
+    >
+      <button
+        type="button"
+        x-on:click="expanded = ! expanded"
+        x-bind:aria-expanded="expanded ? 'true' : 'false'"
+        class="flex w-full items-center justify-between"
+      >
+        <h4
+          id={id}
+          class="text-[13px] font-semibold text-accent-bright"
+        >
+          {title}
+        </h4>
+        <ChevronDownIcon
+          class="size-[18px] text-muted-foreground transition-transform duration-300"
+          x-bind:class="expanded ? 'rotate-180' : ''"
+        />
+      </button>
+      <p
+        class="text-xs leading-[1.55] text-muted text-pretty"
+        x-bind:class="expanded ? '' : 'line-clamp-2'"
+      >
+        {description}
+      </p>
+    </div>
+  )
+}
