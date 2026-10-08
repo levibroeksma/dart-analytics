@@ -17,6 +17,8 @@ updated: 2026-10-08
 
 # Version History
 
+> **Version:** 1.177.0 (2026-10-08 — Login redesign: D431 in `decisions/frontend/style.md`; `07-Style-Guide.md` 0.3.1 `shadow-card` token and `.field-inset-error` primitive row; spec `docs/superpowers/specs/2026-10-08-login-redesign-design.md`, plan `docs/superpowers/plans/2026-10-08-login-redesign.md`.)
+
 > **Version:** 1.176.0 (2026-10-08 — Game setup redesign: D430 in `decisions/frontend/style.md`; `08-Component-Inventory.md` gains `Stepper`/`RangeSlider`/`SlideToStart`/`SettingLabel`, setup shell, `Toggle`, `Switch`, `InfoSection` rows updated; `07-Style-Guide.md` setup utilities; new File Inventory section "Game setup redesign"; spec `docs/superpowers/specs/2026-10-08-game-setup-redesign-design.md`, plan `docs/superpowers/plans/2026-10-08-game-setup-redesign.md`.)
 
 > **Version:** 1.175.0 (2026-10-08 — Modal sheets: `07-Style-Guide.md` dialog/surface/motion rows; D429 in `decisions/frontend/style.md`; `08-Component-Inventory.md` gains `SheetActions`/`StatTile`, loses `StatRowSkeleton`; `check-style-tokens.sh` overlay gate; spec `docs/superpowers/specs/2026-10-08-modal-sheets-design.md`, plan `docs/superpowers/plans/2026-10-08-modal-sheets.md`.)
