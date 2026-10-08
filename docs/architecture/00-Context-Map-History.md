@@ -2,7 +2,7 @@
 status: historical
 scope: context-map version history and point-in-time task records
 read-when: never during a task — provenance only
-updated: 2026-10-07
+updated: 2026-10-08
 -->
 
 # Context Map History
@@ -16,6 +16,8 @@ updated: 2026-10-07
 ---
 
 # Version History
+
+> **Version:** 1.174.0 (2026-10-08 — Brand Style tokens: `07-Style-Guide.md` 0.3.0 (budget ~4.5k → ~5.6k); D428 in `decisions/frontend/style.md` (~7.7k → ~8.0k); `check-style-tokens.sh` inventory row drops the `font-medium` ban; spec `docs/superpowers/specs/2026-10-08-brand-tokens-design.md`; packs loading the style guide +1.1k: "Frontend page / component work" ~14.5k → ~15.6k, "Frontend gameplay / session features" ~18.5k → ~19.6k, "New portable UI primitive" ~12.7k → ~13.8k, "Issue-driven UI polish" ~17.0k → ~18.1k.)
 
 > **Version:** 1.173.0 (2026-10-07 — Games + Training redesign: `GameRow`/`ResumeSessionCard`/`TrainingScheduleCard`/`ScheduleStrip`/`RoutineRow` rows added, `RoutineCard` removed and `RoutineFormModal` `detached` prop in the Component Inventory (budget ~6.9k → ~7.2k); new components and `training-week.data.ts` registered in `00-File-Inventory.md`; D427 in `decisions/frontend/style.md` (~7.3k → ~7.7k); spec `docs/superpowers/specs/2026-10-07-games-training-redesign-design.md`; "Issue-driven UI polish" pack budget ~16.7k → ~17.0k.)
 
