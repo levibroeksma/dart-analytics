@@ -18,6 +18,6 @@ Scope: Astro components — `ui/`, `forms/`, `layout/`. Load the "Frontend page 
 
 - Alpine v3 shorthand: `:attr`, `@event` — not `x-bind`/`x-on`, except the Astro `{}` linter escape.
 - No `x-init`. Use `x-data="factory()"`.
-- Every `x-show` needs `x-cloak` (`scripts/check-astro-conventions.sh`); no HTML comments in template regions.
+- Every `x-show` needs `x-cloak` (`scripts/check-astro-conventions.sh`); no HTML comments in template regions. Write `x-bind:class`, not bare `:class`, right after `x-cloak` — Prettier fuses them into `x-cloak:class`, which the same gate rejects. (2026-10-08, #818)
 - Keep variant/branching logic inline in the component's own frontmatter — do not extract a helper file solely to make it testable; there is no Astro-component test runner here (D101).
 - No `.ts` file lives directly under `components/` (`scripts/check-file-locations.sh`). Shared logic goes to `app/src/lib/<domain>/`.
