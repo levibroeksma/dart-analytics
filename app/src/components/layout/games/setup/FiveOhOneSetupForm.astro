@@ -7,7 +7,13 @@ import InfoSection from "@components/ui/InfoSection.astro";
 import SetupShell from "./SetupShell.astro";
 import SettingSectionShell from "./SettingSectionShell.astro";
 import UserSection from "./UserSection.astro";
+import SettingLabel from "./SettingLabel.astro";
+import Stepper from "@components/forms/Stepper.astro";
 import { supportsDartbot } from "@lib/game/rulesets/capabilities";
+import {
+  FIVE_OH_ONE_LEGS_MIN,
+  FIVE_OH_ONE_LEGS_MAX,
+} from "@lib/game/five-oh-one-legs";
 
 // Data
 const startingScoreOpts = [
@@ -15,6 +21,14 @@ const startingScoreOpts = [
   { value: "501", label: "501" },
   { value: "701", label: "701" },
   { value: "CUSTOM", label: "Custom" },
+];
+const matchFormatOpts = [
+  { value: "FIRST_TO", label: "First to" },
+  { value: "BEST_OF", label: "Best of", disabled: true },
+];
+const matchUnitOpts = [
+  { value: "LEGS", label: "Legs" },
+  { value: "SETS", label: "Sets", disabled: true },
 ];
 
 const infoSection = {
@@ -34,68 +48,65 @@ const infoSection = {
     description={infoSection.description}
   />
   <SettingSectionShell>
-    <Toggle
-      orientation="horizontal"
-      options={startingScoreOpts}
-      x-model="startingScoreOption"
-      class="w-full"
-    />
-    <Input
-      id="startingScoreValue"
-      name="startingScoreValue"
-      type="text"
-      inputmode="numeric"
-      placeholder="Starting score"
-      x-model.number="startingScoreValue"
-      @input="scoreClampNotice = ''"
-      x-show="startingScoreOption === 'CUSTOM'"
-      x-cloak
-      class="glass border-tab-border rounded-full mt-4"
-    />
-    <label
-      for="startingScoreValue"
-      class="text-xs text-muted-foreground px-4 py-0 italic"
-      x-show="startingScoreOption === 'CUSTOM'"
-      x-cloak
-    >
-      Starting score
-    </label>
-    <p
-      class="text-sm text-muted-foreground px-4 py-0"
-      role="status"
-      x-show="scoreClampNotice"
-      x-text="scoreClampNotice"
-      x-cloak
-    >
-    </p>
-    <Input
-      id="legsToWin"
-      name="legsToWin"
-      type="text"
-      inputmode="numeric"
-      placeholder="First to"
-      x-model.number="legsToWin"
-      @input="legsClampNotice = ''"
-      class="glass border-tab-border rounded-full mt-4"
-    />
-    <label
-      for="legsToWin"
-      class="text-xs text-muted-foreground px-4 py-0 italic"
-    >
-      Legs
-    </label>
-    <p
-      class="text-sm text-muted-foreground px-4 py-0"
-      role="status"
-      x-show="legsClampNotice"
-      x-text="legsClampNotice"
-      x-cloak
-    >
-    </p>
+    <div class="flex flex-col gap-2">
+      <SettingLabel text="STARTING SCORE" />
+      <Toggle
+        orientation="horizontal"
+        options={startingScoreOpts}
+        x-model="startingScoreOption"
+        class="w-full"
+      />
+      <Input
+        id="startingScoreValue"
+        name="startingScoreValue"
+        type="text"
+        inputmode="numeric"
+        placeholder="Starting score"
+        aria-label="Custom starting score"
+        x-model.number="startingScoreValue"
+        @input="scoreClampNotice = ''"
+        x-show="startingScoreOption === 'CUSTOM'"
+        x-cloak
+        class="glass rounded-full mt-2"
+      />
+      <p
+        class="px-0.5 text-xs text-muted"
+        role="status"
+        x-show="scoreClampNotice"
+        x-text="scoreClampNotice"
+        x-cloak
+      >
+      </p>
+    </div>
+    <div class="flex flex-col gap-2">
+      <SettingLabel text="MATCH FORMAT" />
+      <div
+        class="grid grid-cols-[minmax(0,1fr)_72px_minmax(0,1fr)] items-center gap-2.5"
+      >
+        <Toggle
+          orientation="vertical"
+          options={matchFormatOpts}
+          initial="FIRST_TO"
+          class="w-full"
+        />
+        <Stepper
+          min={FIVE_OH_ONE_LEGS_MIN}
+          max={FIVE_OH_ONE_LEGS_MAX}
+          ariaLabel="Legs to win"
+          x-model="legsToWin"
+          class="justify-self-center"
+        />
+        <Toggle
+          orientation="vertical"
+          options={matchUnitOpts}
+          initial="LEGS"
+          class="w-full"
+        />
+      </div>
+    </div>
     <Switch
       label="Show checkout hints"
       x-model="$store.checkoutHints.enabled"
-      class="mt-4"
     />
   </SettingSectionShell>
 </SetupShell>
