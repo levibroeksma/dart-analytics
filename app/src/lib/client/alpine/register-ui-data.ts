@@ -9,6 +9,13 @@ import { stepperData } from "@lib/ui/stepper.data";
 import { rangeSliderData } from "@lib/ui/range-slider.data";
 import { slideToStartData } from "@lib/ui/slide-to-start.data";
 import { initialsOf, playerCountLabel } from "@lib/ui/initials";
+import {
+  bigValueSize,
+  legBarStates,
+  previewColumnState,
+  ringKeyActive,
+  seatValueSize,
+} from "@lib/ui/play-display";
 
 export function registerUiData(Alpine: Alpine) {
   Alpine.data("logoutButton", logoutButton);
@@ -22,4 +29,9 @@ export function registerUiData(Alpine: Alpine) {
   Alpine.data("slideToStart", slideToStartData);
   Alpine.magic("initials", () => initialsOf);
   Alpine.magic("playerCount", () => playerCountLabel);
+  Alpine.magic("bigValueSize", () => bigValueSize);
+  Alpine.magic("seatValueSize", () => seatValueSize);
+  Alpine.magic("legBarStates", () => legBarStates);
+  Alpine.magic("previewColumnState", () => previewColumnState);
+  Alpine.magic("ringKeyActive", () => ringKeyActive);
 }

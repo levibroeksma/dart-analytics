@@ -11,6 +11,13 @@ import { stepperData } from "@lib/ui/stepper.data";
 import { rangeSliderData } from "@lib/ui/range-slider.data";
 import { slideToStartData } from "@lib/ui/slide-to-start.data";
 import { initialsOf, playerCountLabel } from "@lib/ui/initials";
+import {
+  bigValueSize,
+  legBarStates,
+  previewColumnState,
+  ringKeyActive,
+  seatValueSize,
+} from "@lib/ui/play-display";
 
 describe("registerUiData", () => {
   it("registers logoutButton as an Alpine data factory", () => {
@@ -75,5 +82,18 @@ describe("registerUiData", () => {
     );
     expect(getters.initials).toBe(initialsOf);
     expect(getters.playerCount).toBe(playerCountLabel);
+  });
+
+  it("registers the play display helpers as Alpine magics", () => {
+    const magic = vi.fn();
+    registerUiData({ data: vi.fn(), magic } as unknown as Alpine);
+    const getters = Object.fromEntries(
+      magic.mock.calls.map(([name, getter]) => [name, getter()]),
+    );
+    expect(getters.bigValueSize).toBe(bigValueSize);
+    expect(getters.seatValueSize).toBe(seatValueSize);
+    expect(getters.legBarStates).toBe(legBarStates);
+    expect(getters.previewColumnState).toBe(previewColumnState);
+    expect(getters.ringKeyActive).toBe(ringKeyActive);
   });
 });
