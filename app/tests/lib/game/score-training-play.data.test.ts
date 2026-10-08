@@ -2428,3 +2428,40 @@ describe("scoreTrainingPlay — DartBot opponent", () => {
     expect(play.state()!.activeParticipantRef).toBe(HUMAN_REF);
   });
 });
+
+describe("scoreTrainingPlay — subtitle", () => {
+  function makePlay(overrides: Partial<GameStub> = {}) {
+    return {
+      ...scoreTrainingPlay(),
+      $store: { game: gameStub(overrides), settings: settingsStub() },
+    } as ScoreTrainingPlayContext;
+  }
+
+  it("is blank before config loads", () => {
+    expect(makePlay({ configSnapshot: null }).subtitle()).toBe("");
+  });
+
+  it("counts rounds against the ROUNDS budget", () => {
+    expect(makePlay().subtitle()).toBe("ROUND 1 OF 2");
+    expect(makePlay({ turns: [turnFact("t1", 1, 60)] }).subtitle()).toBe(
+      "ROUND 2 OF 2",
+    );
+  });
+
+  it("holds at the last round once the budget is spent", () => {
+    expect(
+      makePlay({
+        turns: [turnFact("t1", 1, 60), turnFact("t2", 2, 45)],
+      }).subtitle(),
+    ).toBe("ROUND 2 OF 2");
+  });
+
+  it("drops the budget under MINUTES", () => {
+    expect(
+      makePlay({
+        configSnapshot: minutes(10),
+        turns: [turnFact("t1", 1, 60)],
+      }).subtitle(),
+    ).toBe("ROUND 2");
+  });
+});

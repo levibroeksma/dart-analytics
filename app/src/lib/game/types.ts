@@ -363,6 +363,7 @@ export type ScoreTrainingPlayContext = PlayLifecycleContext<
   visitMarkers(this: ScoreTrainingPlayContext): BoardMarker[];
   state(this: ScoreTrainingPlayContext): ScoreTrainingState | null;
   totalScoreFor(this: ScoreTrainingPlayContext, seatRef: string): number;
+  subtitle(this: ScoreTrainingPlayContext): string;
   threeDartAverageFor(this: ScoreTrainingPlayContext, seatRef: string): string;
   dartsThrownThisLegFor(
     this: ScoreTrainingPlayContext,
@@ -1367,6 +1368,9 @@ export type AroundTheClockPlayContext = PlayLifecycleContext<
   laps(this: AroundTheClockPlayContext): number;
   remainingLabel(this: AroundTheClockPlayContext): string;
   hitsNeededLabel(this: AroundTheClockPlayContext): string;
+  subtitle(this: AroundTheClockPlayContext): string;
+  hitsToGoFor(this: AroundTheClockPlayContext, seatRef: string): string;
+  hitsToGo(this: AroundTheClockPlayContext): string;
   finishIfExpired(this: AroundTheClockPlayContext): Promise<void>;
   togglePause(this: AroundTheClockPlayContext): void;
   destroy(this: AroundTheClockPlayContext): void;

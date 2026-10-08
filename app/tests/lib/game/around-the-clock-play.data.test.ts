@@ -237,6 +237,23 @@ describe("currentTargetLabel / turnsSoFar / isBullVisit", () => {
   });
 });
 
+describe("subtitle", () => {
+  it("is blank before config loads", () => {
+    const play = makePlay({ configSnapshot: null });
+    expect(play.subtitle.call(play)).toBe("");
+  });
+
+  it("names lap 1 and the path's ends", () => {
+    const play = makePlay();
+    expect(play.subtitle.call(play)).toBe("LAP 1 · 1 → 20");
+  });
+
+  it("keeps the number before BULL as the path's end once BULL is the target", () => {
+    const play = makePlay({ turns: priorTurnsThroughNumber(20) });
+    expect(play.subtitle.call(play)).toBe("LAP 1 · 1 → 20");
+  });
+});
+
 describe("recordTap", () => {
   it("SINGLE advances the target and records a SINGLE dart", async () => {
     const play = makePlay();
@@ -1004,6 +1021,69 @@ describe("V2", () => {
     const easy = makeV2();
     await easy.init.call(easy);
     expect(easy.hitsNeededLabel.call(easy)).toBe("");
+  });
+
+  it("counts the hits still to go under a 1/2/3-dart difficulty, blank on Easy", async () => {
+    const play = makeV2({ difficulty: "HARD" });
+    await play.init.call(play);
+    expect(play.hitsToGo.call(play)).toBe("2 to hit");
+    await play.recordDart.call(play, board(1, "OUTER_SINGLE"));
+    expect(play.hitsToGo.call(play)).toBe("1 to hit");
+    expect(play.hitsToGoFor.call(play, "participant-1")).toBe("1 to hit");
+
+    const easy = makeV2();
+    await easy.init.call(easy);
+    expect(easy.hitsToGo.call(easy)).toBe("");
+  });
+
+  it("hitsToGoFor reads the waiting seat while the other seat has darts in an open visit", () => {
+    const twoSeats = [
+      SEATS[0],
+      {
+        participantRef: "participant-2",
+        displayName: "Opponent",
+        sideKey: "B" as const,
+        participantTypeKey: "GUEST" as const,
+      },
+    ];
+    const play = makeV2({ difficulty: "HARD" });
+    play.$store.game.configSnapshot = {
+      ...v2({ difficulty: "HARD" }),
+      seats: twoSeats,
+    };
+    play.engine = null;
+    const dart: DartFact = {
+      sequence: 1,
+      intendedTargetNumber: null,
+      intendedZoneKey: null,
+      hitTargetNumber: 1,
+      hitZoneKey: "OUTER_SINGLE",
+      score: 1,
+      locationX: 1,
+      locationY: 1,
+    };
+    play.$store.game.recordFacts({
+      stages: [STAGE],
+      turns: [
+        {
+          clientKey: "t1",
+          stageClientKey: STAGE.clientKey,
+          participantRef: "participant-1",
+          sequence: 1,
+          completedAt: "2026-07-17T10:00:00.000Z",
+          totalScore: 1,
+          darts: [dart],
+        },
+      ],
+    });
+
+    expect(play.hitsToGoFor.call(play, "participant-1")).toBe("1 to hit");
+    expect(play.hitsToGoFor.call(play, "participant-2")).toBe("2 to hit");
+  });
+
+  it("subtitles a high-to-low path from 20 down to 1", () => {
+    const play = makeV2({ pathDirection: "HIGH_TO_LOW" });
+    expect(play.subtitle.call(play)).toBe("LAP 1 · 20 → 1");
   });
 
   describe("timed", () => {
