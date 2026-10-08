@@ -3,19 +3,21 @@ interface Props {
   [key: string]: unknown;
 }
 
+// Props
 const { ...props }: Props = Astro.props;
 
+// Components
 import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
 import SplitScoreboard from "@components/layout/games/SplitScoreboard.astro";
+import PlayStatTile from "@components/layout/games/PlayStatTile.astro";
 import VisitPreview from "@components/layout/games/VisitPreview.astro";
 import SinglesRecreationalInput from "@components/layout/games/SinglesRecreationalInput.astro";
-import StatRow from "@components/layout/games/StatRow.astro";
-import ErrorAlert from "@components/ui/ErrorAlert.astro";
 import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
+import ErrorAlert from "@components/ui/ErrorAlert.astro";
 ---
 
 <div
-  class="flex flex-col flex-1 min-h-0 gap-3"
+  class="flex flex-col flex-1 min-h-0 gap-2"
   {...props}
 >
   <template x-if="(state()?.seats.length ?? 1) < 2">
@@ -23,21 +25,14 @@ import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
       isTarget={false}
       score="currentScore()"
     >
-      <div
-        slot="progress"
-        class="mt-2 flex w-full flex-col items-center gap-2 px-4"
-      >
-        <dl class="w-full space-y-1">
-          <StatRow
-            label="Round"
-            value="roundLabel()"
-          />
-          <StatRow
-            label="Target"
-            value="currentTargetLabel()"
-          />
-        </dl>
-      </div>
+      <PlayStatTile
+        label="Round"
+        valueExpr="roundLabel()"
+      />
+      <PlayStatTile
+        label="Target"
+        valueExpr="currentTargetLabel()"
+      />
     </SinglePlayerDisplay>
   </template>
 
@@ -48,41 +43,43 @@ import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
         activeExpr:
           "state()?.activeParticipantRef === state()?.seats[0]?.participantRef",
         scoreExpr: "currentScoreFor(state()?.seats[0]?.participantRef)",
+        idleStatExpr:
+          "currentTargetLabelFor(state()?.seats[0]?.participantRef)",
       }}
       seatB={{
         nameExpr: "$store.game.seats[1]?.displayName",
         activeExpr:
           "state()?.activeParticipantRef === state()?.seats[1]?.participantRef",
         scoreExpr: "currentScoreFor(state()?.seats[1]?.participantRef)",
+        idleStatExpr:
+          "currentTargetLabelFor(state()?.seats[1]?.participantRef)",
       }}
-      isTarget={false}
+      idleStatLabel="Target"
     >
-      <dl
-        slot="progressA"
-        class="w-full space-y-1"
-      >
-        <StatRow
+      <Fragment slot="progressA">
+        <PlayStatTile
+          compact
           label="Round"
-          value="roundLabelFor(state()?.seats[0]?.participantRef)"
+          valueExpr="roundLabelFor(state()?.seats[0]?.participantRef)"
         />
-        <StatRow
+        <PlayStatTile
+          compact
           label="Target"
-          value="currentTargetLabelFor(state()?.seats[0]?.participantRef)"
+          valueExpr="currentTargetLabelFor(state()?.seats[0]?.participantRef)"
         />
-      </dl>
-      <dl
-        slot="progressB"
-        class="w-full space-y-1"
-      >
-        <StatRow
+      </Fragment>
+      <Fragment slot="progressB">
+        <PlayStatTile
+          compact
           label="Round"
-          value="roundLabelFor(state()?.seats[1]?.participantRef)"
+          valueExpr="roundLabelFor(state()?.seats[1]?.participantRef)"
         />
-        <StatRow
+        <PlayStatTile
+          compact
           label="Target"
-          value="currentTargetLabelFor(state()?.seats[1]?.participantRef)"
+          valueExpr="currentTargetLabelFor(state()?.seats[1]?.participantRef)"
         />
-      </dl>
+      </Fragment>
     </SplitScoreboard>
   </template>
 

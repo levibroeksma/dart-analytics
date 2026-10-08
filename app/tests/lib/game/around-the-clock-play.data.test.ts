@@ -1011,18 +1011,6 @@ describe("V2", () => {
     expect(play.accuracy.call(play)).toBe("50.00%");
   });
 
-  it("shows hits needed under a 1/2/3-dart difficulty", async () => {
-    const play = makeV2({ difficulty: "HARD" });
-    await play.init.call(play);
-    expect(play.hitsNeededLabel.call(play)).toBe("0 / 2 hits");
-    await play.recordDart.call(play, board(1, "OUTER_SINGLE"));
-    expect(play.hitsNeededLabel.call(play)).toBe("1 / 2 hits");
-
-    const easy = makeV2();
-    await easy.init.call(easy);
-    expect(easy.hitsNeededLabel.call(easy)).toBe("");
-  });
-
   it("counts the hits still to go under a 1/2/3-dart difficulty, blank on Easy", async () => {
     const play = makeV2({ difficulty: "HARD" });
     await play.init.call(play);

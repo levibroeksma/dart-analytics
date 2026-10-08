@@ -1,26 +1,24 @@
 ---
 /**
- * Single-player score/target display with Alpine live binding.
- * @param {string} [score] Alpine expression for score text
- * @param {string} [target] Alpine expression for target text
- * @param {boolean} [isTarget] Show target vs score
- * @param {string} [label] Caption under the big number; defaults to "Target" or "Score" by `isTarget`
- * @param {"lg" | "sm"} [size] Big-number size; "sm" fits the split scoreboard's narrower, shorter columns
- * @param {boolean} [fluid] Size the big number off the card's own width (Tailwind v4 container query) and keep it on one line, instead of the fixed `size` step — for content whose length varies, e.g. an equation
- * @param {string} [activeExpr] Alpine expr; while true the card's border turns accent-colored instead of the default border color
- * @param {boolean} [pinnedHeight] Occupy the play screen's standard 40% scoreboard band; pass `false` when the card is nested inside another scoreboard shell rather than being the region itself
+ * Solo play scoreboard: a `glass` card in the play screen's 40% band (D327).
+ * The left column holds the big value, sized by length (`bigValueSize`),
+ * an optional caption and route chips. The right column holds up to three
+ * `PlayStatTile`s or `MarkRows` behind a hairline divider.
+ * @param {string} [score] Alpine expression for the big value when `isTarget` is false
+ * @param {string} [target] Alpine expression for the big value when `isTarget` is true
+ * @param {boolean} [isTarget] Which of `target` / `score` drives the big value
+ * @param {string} [caption] Mono eyebrow under the big value (e.g. "DARTS USED")
  * @param {string} [class] Extra classes
- * @slot above Rendered inside the card, centered, directly above the big number
+ * @slot above Over the big value
+ * @slot route Under the big value — a `RouteChips`
+ * @slot default Right column: stat tiles or mark rows
+ * @slot progress Right column, after the default slot
  */
 interface Props {
   score?: string;
   target?: string;
   isTarget?: boolean;
-  label?: string;
-  size?: "lg" | "sm";
-  fluid?: boolean;
-  activeExpr?: string;
-  pinnedHeight?: boolean;
+  caption?: string;
   class?: string;
 }
 
@@ -29,58 +27,45 @@ const {
   score,
   target,
   isTarget = true,
-  label,
-  size = "lg",
-  fluid = false,
-  activeExpr,
-  pinnedHeight = true,
+  caption,
   class: classNameProp = "",
 }: Props = Astro.props;
 
 // Lib
 import { cn } from "@client/cn";
 
+// Data
+const valueExpr = isTarget ? target : score;
+
 // Styles
 const className = cn(
-  "flex-1 min-h-0 glass rounded-lg",
-  pinnedHeight && "min-h-2/5 max-h-2/5",
+  "glass grid min-h-2/5 max-h-2/5 flex-1 grid-cols-[1.3fr_1fr] grid-rows-1 rounded-3xl p-5",
   classNameProp,
 );
 ---
 
 <div class={className}>
-  <div
-    class={cn(
-      "rounded-lg border bg-surface-raised h-full mx-auto flex flex-col items-center justify-center",
-      size === "sm" ? "p-2" : "p-3",
-      activeExpr ? "" : "border-border",
-      fluid && "@container",
-    )}
-    {...activeExpr
-      ? { ":class": `(${activeExpr}) ? 'border-accent' : 'border-border'` }
-      : {}}
-  >
+  <div class="flex min-w-0 flex-col items-center justify-center gap-2">
     <slot name="above" />
-    <h1
-      class={cn(
-        "font-mono font-bold tabular-nums",
-        fluid
-          ? "whitespace-nowrap leading-none text-[clamp(1.75rem,13cqw,3rem)]"
-          : size === "sm"
-            ? "text-4xl"
-            : "text-7xl",
-      )}
-      x-text={isTarget ? target : score}
+    <p
+      class="whitespace-nowrap font-display leading-none tracking-[-0.02em] tabular-nums text-foreground text-shadow-glow"
+      :class={`$bigValueSize(${valueExpr})`}
+      x-text={valueExpr}
     >
-    </h1>
-    <span class="text-sm text-muted-foreground uppercase">
-      {label ?? (isTarget ? "Target" : "Score")}
-    </span>
+    </p>
     {
-      /* Per-game progress region — e.g. 501's checkout route plus its
-      darts/average/previous stats. Games with nothing to add pass no slot
-      content and the region collapses. */
+      caption && (
+        <span class="font-mono text-eyebrow font-semibold uppercase text-muted-foreground">
+          {caption}
+        </span>
+      )
     }
+    <slot name="route" />
+  </div>
+  <div
+    class="flex min-h-0 min-w-0 flex-col justify-center gap-2 border-l border-white/8 pl-4"
+  >
+    <slot />
     <slot name="progress" />
   </div>
 </div>

@@ -9,15 +9,15 @@ const { ...props }: Props = Astro.props;
 // Components
 import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
 import SplitScoreboard from "@components/layout/games/SplitScoreboard.astro";
+import PlayStatTile from "@components/layout/games/PlayStatTile.astro";
 import VisitPreview from "@components/layout/games/VisitPreview.astro";
 import DoublesPathRecreationalInput from "@components/layout/games/DoublesPathRecreationalInput.astro";
 import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
-import StatRow from "@components/layout/games/StatRow.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
 ---
 
 <div
-  class="flex flex-col flex-1 min-h-0 gap-3"
+  class="flex flex-col flex-1 min-h-0 gap-2"
   {...props}
 >
   <template x-if="(state()?.seats.length ?? 1) < 2">
@@ -25,17 +25,10 @@ import ErrorAlert from "@components/ui/ErrorAlert.astro";
       isTarget={false}
       score="currentScore()"
     >
-      <div
-        slot="progress"
-        class="mt-2 flex w-full flex-col items-center gap-2 px-4"
-      >
-        <dl class="w-full space-y-1">
-          <StatRow
-            label="Target"
-            value="currentTargetLabel()"
-          />
-        </dl>
-      </div>
+      <PlayStatTile
+        label="Target"
+        valueExpr="currentTargetLabel()"
+      />
     </SinglePlayerDisplay>
   </template>
 
@@ -46,33 +39,31 @@ import ErrorAlert from "@components/ui/ErrorAlert.astro";
         activeExpr:
           "state()?.activeParticipantRef === state()?.seats[0]?.participantRef",
         scoreExpr: "currentScoreFor(state()?.seats[0]?.participantRef)",
+        idleStatExpr:
+          "currentTargetLabelFor(state()?.seats[0]?.participantRef)",
       }}
       seatB={{
         nameExpr: "$store.game.seats[1]?.displayName",
         activeExpr:
           "state()?.activeParticipantRef === state()?.seats[1]?.participantRef",
         scoreExpr: "currentScoreFor(state()?.seats[1]?.participantRef)",
+        idleStatExpr:
+          "currentTargetLabelFor(state()?.seats[1]?.participantRef)",
       }}
-      isTarget={false}
+      idleStatLabel="Target"
     >
-      <dl
+      <PlayStatTile
         slot="progressA"
-        class="w-full space-y-1"
-      >
-        <StatRow
-          label="Target"
-          value="currentTargetLabelFor(state()?.seats[0]?.participantRef)"
-        />
-      </dl>
-      <dl
+        compact
+        label="Target"
+        valueExpr="currentTargetLabelFor(state()?.seats[0]?.participantRef)"
+      />
+      <PlayStatTile
         slot="progressB"
-        class="w-full space-y-1"
-      >
-        <StatRow
-          label="Target"
-          value="currentTargetLabelFor(state()?.seats[1]?.participantRef)"
-        />
-      </dl>
+        compact
+        label="Target"
+        valueExpr="currentTargetLabelFor(state()?.seats[1]?.participantRef)"
+      />
     </SplitScoreboard>
   </template>
 

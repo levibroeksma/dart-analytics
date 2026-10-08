@@ -31,7 +31,6 @@ import { chooseTarget } from "@modules/dartbot/strategy/x01.strategy.module";
 import {
   checkoutPercentageDisplay,
   dartsLeftForSeat,
-  dartsThrownCount,
 } from "@lib/game/play-visit-stats";
 import { joinSubtitle } from "@lib/game/play-subtitle";
 import { classifyDoubleAttempts } from "@modules/game/double-attempt.module";
@@ -458,22 +457,6 @@ export function oneTwentyOnePlay() {
         `ATTEMPT ${seat.attemptsCompleted + 1}`,
         `${DARTS_PER_ATTEMPT} DARTS`,
       ]);
-    },
-
-    dartsThrownThisSession(this: OneTwentyOnePlayContext): number {
-      return dartsThrownCount(this.$store.game.turns, DARTS_PER_VISIT);
-    },
-
-    durationType(this: OneTwentyOnePlayContext): OneTwentyOneDurationType {
-      return durationTypeOf(this.$store.game.configSnapshot);
-    },
-
-    attemptLabel(this: OneTwentyOnePlayContext): string {
-      const state = this.state();
-      const durationValue = durationValueOf(this.$store.game.configSnapshot);
-      if (!state || durationValue == null) return "";
-      const attemptsCompleted = state.seats[0].attemptsCompleted;
-      return `${Math.min(attemptsCompleted + 1, durationValue)} of ${durationValue}`;
     },
 
     remainingLabel(this: OneTwentyOnePlayContext): string {

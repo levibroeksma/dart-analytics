@@ -1,0 +1,45 @@
+---
+/**
+ * Inset stat in a play scoreboard. It shows the value over a mono caps
+ * label in a 76px tile. With `compact`, it is one 44px row instead: label
+ * left, value right (the active seat card's rows).
+ * @param {string} label Caps label text
+ * @param {string} valueExpr Alpine expression for the value
+ * @param {boolean} [compact] Row layout for the active seat card
+ */
+interface Props {
+  label: string;
+  valueExpr: string;
+  compact?: boolean;
+}
+
+// Props
+const { label, valueExpr, compact = false }: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const className = cn(
+  "inset-well flex min-w-0",
+  compact
+    ? "h-11 shrink-0 items-center justify-between gap-2 rounded-[14px] px-3"
+    : "h-[76px] flex-col-reverse items-center justify-center gap-1 rounded-xl px-2",
+);
+const labelClass = cn(
+  "font-mono text-[9px] font-semibold uppercase tracking-[0.1em] text-muted",
+  compact ? "min-w-0 truncate" : "text-center leading-tight",
+);
+const valueClass = cn(
+  "shrink-0 font-mono font-medium tabular-nums text-foreground",
+  compact ? "text-sm" : "text-[17px]",
+);
+---
+
+<div class={className}>
+  <span class={labelClass}>{label}</span>
+  <span
+    class={valueClass}
+    x-text={valueExpr}
+  ></span>
+</div>

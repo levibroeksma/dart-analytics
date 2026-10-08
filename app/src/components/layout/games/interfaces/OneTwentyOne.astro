@@ -3,64 +3,42 @@ interface Props {
   [key: string]: unknown;
 }
 
+// Props
 const { ...props }: Props = Astro.props;
 
+// Components
 import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
 import SplitScoreboard from "@components/layout/games/SplitScoreboard.astro";
+import PlayStatTile from "@components/layout/games/PlayStatTile.astro";
+import RouteChips from "@components/layout/games/RouteChips.astro";
 import ScoreInput from "@components/layout/games/ScoreInput.astro";
-import StatRow from "@components/layout/games/StatRow.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
 import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
 import CountdownResumePrompt from "@components/layout/games/CountdownResumePrompt.astro";
 ---
 
 <div
-  class="flex flex-col flex-1 min-h-0 gap-3"
+  class="flex flex-col flex-1 min-h-0 gap-2"
   {...props}
 >
   <template x-if="(state()?.seats.length ?? 1) < 2">
-    <SinglePlayerDisplay
-      isTarget={true}
-      target="remainingInAttempt()"
-    >
-      <div
-        slot="progress"
-        class="mt-2 flex w-full flex-col items-center gap-2 px-4"
-      >
-        <p
-          class="text-sm font-mono font-semibold text-accent"
-          x-show="checkoutHint()"
-          x-text="checkoutHint()"
-          x-cloak
-        >
-        </p>
-        <dl class="w-full space-y-1">
-          <StatRow
-            label="Target"
-            value="currentTargetLabel()"
-          />
-          <StatRow
-            label="Visit"
-            value="(visitsThisAttempt() + 1) + ' / 3'"
-          />
-          <StatRow
-            label="Darts"
-            value="dartsThrownThisSession()"
-          />
-          <template x-if="durationType() === 'ROUNDS'">
-            <StatRow
-              label="Attempt"
-              value="attemptLabel()"
-            />
-          </template>
-          <template x-if="durationType() === 'MINUTES'">
-            <StatRow
-              label="Time"
-              value="remainingLabel()"
-            />
-          </template>
-        </dl>
-      </div>
+    <SinglePlayerDisplay target="remainingInAttempt()">
+      <RouteChips
+        slot="route"
+        routeExpr="checkoutHint()"
+      />
+      <PlayStatTile
+        label="Target"
+        valueExpr="currentTargetLabel()"
+      />
+      <PlayStatTile
+        label="Visit"
+        valueExpr="(visitsThisAttempt() + 1) + ' / 3'"
+      />
+      <PlayStatTile
+        label="Darts"
+        valueExpr="dartsThisAttempt()"
+      />
     </SinglePlayerDisplay>
   </template>
 
@@ -71,41 +49,55 @@ import CountdownResumePrompt from "@components/layout/games/CountdownResumePromp
         activeExpr:
           "state()?.activeParticipantRef === state()?.seats[0]?.participantRef",
         scoreExpr: "remainingInAttemptFor(state()?.seats[0]?.participantRef)",
+        checkoutExpr: "checkoutHintFor(state()?.seats[0]?.participantRef)",
+        idleStatExpr:
+          "currentTargetLabelFor(state()?.seats[0]?.participantRef)",
       }}
       seatB={{
         nameExpr: "$store.game.seats[1]?.displayName",
         activeExpr:
           "state()?.activeParticipantRef === state()?.seats[1]?.participantRef",
         scoreExpr: "remainingInAttemptFor(state()?.seats[1]?.participantRef)",
+        checkoutExpr: "checkoutHintFor(state()?.seats[1]?.participantRef)",
+        idleStatExpr:
+          "currentTargetLabelFor(state()?.seats[1]?.participantRef)",
       }}
-      isTarget={true}
+      idleStatLabel="Target"
     >
-      <dl
-        slot="progressA"
-        class="w-full space-y-1"
-      >
-        <StatRow
+      <Fragment slot="progressA">
+        <PlayStatTile
+          compact
           label="Target"
-          value="currentTargetLabelFor(state()?.seats[0]?.participantRef)"
+          valueExpr="currentTargetLabelFor(state()?.seats[0]?.participantRef)"
         />
-        <StatRow
+        <PlayStatTile
+          compact
           label="Visit"
-          value="(visitsThisAttemptFor(state()?.seats[0]?.participantRef) + 1) + ' / 3'"
+          valueExpr="(visitsThisAttemptFor(state()?.seats[0]?.participantRef) + 1) + ' / 3'"
         />
-      </dl>
-      <dl
-        slot="progressB"
-        class="w-full space-y-1"
-      >
-        <StatRow
+        <PlayStatTile
+          compact
+          label="Darts"
+          valueExpr="dartsThisAttemptFor(state()?.seats[0]?.participantRef)"
+        />
+      </Fragment>
+      <Fragment slot="progressB">
+        <PlayStatTile
+          compact
           label="Target"
-          value="currentTargetLabelFor(state()?.seats[1]?.participantRef)"
+          valueExpr="currentTargetLabelFor(state()?.seats[1]?.participantRef)"
         />
-        <StatRow
+        <PlayStatTile
+          compact
           label="Visit"
-          value="(visitsThisAttemptFor(state()?.seats[1]?.participantRef) + 1) + ' / 3'"
+          valueExpr="(visitsThisAttemptFor(state()?.seats[1]?.participantRef) + 1) + ' / 3'"
         />
-      </dl>
+        <PlayStatTile
+          compact
+          label="Darts"
+          valueExpr="dartsThisAttemptFor(state()?.seats[1]?.participantRef)"
+        />
+      </Fragment>
     </SplitScoreboard>
   </template>
 
@@ -122,7 +114,6 @@ import CountdownResumePrompt from "@components/layout/games/CountdownResumePromp
     undoDisabled="!$store.game.turns.length || showDoubleConfirm || showSessionFinishConfirm || finished || $store.game.timerPaused"
     x-show="$store.game.inputModeKey !== 'VISUAL_BOARD' && !$store.game.timerPaused"
     x-cloak
-    class="px-3"
   />
   {
     /* Visual board — shown instead of the keypad above for an

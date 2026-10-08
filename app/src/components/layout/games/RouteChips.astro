@@ -1,0 +1,37 @@
+---
+/**
+ * Checkout route as a 28px `inset-well` pill: the route's parts in mono,
+ * separated by 3px dots. Hidden while the route is blank.
+ * @param {string} routeExpr Alpine expression for the route string ("T20 9 D16")
+ */
+interface Props {
+  routeExpr: string;
+}
+
+// Props
+const { routeExpr }: Props = Astro.props;
+---
+
+<div
+  class="inset-well flex h-7 items-center gap-2 rounded-full px-3"
+  x-show={routeExpr}
+  x-cloak
+>
+  <template
+    x-for={`(part, index) in (${routeExpr}).split(' ').filter(Boolean)`}
+    :key="index"
+  >
+    <span class="flex items-center gap-2">
+      <span
+        class="size-[3px] rounded-full bg-faint-foreground"
+        aria-hidden="true"
+        x-show="index > 0"
+        x-cloak
+      ></span>
+      <span
+        class="font-mono text-[13px] text-soft-foreground"
+        x-text="part"
+      ></span>
+    </span>
+  </template>
+</div>

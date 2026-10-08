@@ -9,47 +9,35 @@ const { ...props }: Props = Astro.props;
 // Components
 import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
 import SplitScoreboard from "@components/layout/games/SplitScoreboard.astro";
+import PlayStatTile from "@components/layout/games/PlayStatTile.astro";
+import RouteChips from "@components/layout/games/RouteChips.astro";
 import ScoreInput from "@components/layout/games/ScoreInput.astro";
-import StatRow from "@components/layout/games/StatRow.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
 import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
 ---
 
 <div
-  class="flex flex-col flex-1 min-h-0 gap-3"
+  class="flex flex-col flex-1 min-h-0 gap-2"
   {...props}
 >
   <template x-if="(state()?.seats.length ?? 1) < 2">
-    <SinglePlayerDisplay
-      isTarget={true}
-      target="remainingScore()"
-    >
-      <div
-        slot="progress"
-        class="mt-2 flex w-full flex-col items-center gap-2 px-4"
-      >
-        <p
-          class="text-sm font-mono font-semibold text-accent"
-          x-show="checkoutHint()"
-          x-text="checkoutHint()"
-          x-cloak
-        >
-        </p>
-        <dl class="w-full space-y-1">
-          <StatRow
-            label="3 dart avg"
-            value="average()"
-          />
-          <StatRow
-            label="Previous"
-            value="previousScore()"
-          />
-          <StatRow
-            label="Darts"
-            value="dartsThrownThisLeg()"
-          />
-        </dl>
-      </div>
+    <SinglePlayerDisplay target="remainingScore()">
+      <RouteChips
+        slot="route"
+        routeExpr="checkoutHint()"
+      />
+      <PlayStatTile
+        label="Avg"
+        valueExpr="average()"
+      />
+      <PlayStatTile
+        label="Prev"
+        valueExpr="previousScore()"
+      />
+      <PlayStatTile
+        label="Darts"
+        valueExpr="dartsThrownThisLeg()"
+      />
     </SinglePlayerDisplay>
   </template>
 
@@ -62,6 +50,7 @@ import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
         scoreExpr: "remainingScoreFor(state()?.seats[0]?.participantRef)",
         legsExpr: "legsWonFor(state()?.seats[0]?.participantRef)",
         checkoutExpr: "checkoutHintFor(state()?.seats[0]?.participantRef)",
+        idleStatExpr: "averageFor(state()?.seats[0]?.participantRef)",
       }}
       seatB={{
         nameExpr: "$store.game.seats[1]?.displayName",
@@ -70,43 +59,45 @@ import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
         scoreExpr: "remainingScoreFor(state()?.seats[1]?.participantRef)",
         legsExpr: "legsWonFor(state()?.seats[1]?.participantRef)",
         checkoutExpr: "checkoutHintFor(state()?.seats[1]?.participantRef)",
+        idleStatExpr: "averageFor(state()?.seats[1]?.participantRef)",
       }}
-      isTarget={true}
+      legsToWinExpr="legsToWin()"
+      idleStatLabel="Avg"
     >
-      <dl
-        slot="progressA"
-        class="w-full space-y-1"
-      >
-        <StatRow
-          label="3 dart avg"
-          value="averageFor(state()?.seats[0]?.participantRef)"
+      <Fragment slot="progressA">
+        <PlayStatTile
+          compact
+          label="Avg"
+          valueExpr="averageFor(state()?.seats[0]?.participantRef)"
         />
-        <StatRow
-          label="Previous"
-          value="previousScoreFor(state()?.seats[0]?.participantRef)"
+        <PlayStatTile
+          compact
+          label="Prev"
+          valueExpr="previousScoreFor(state()?.seats[0]?.participantRef)"
         />
-        <StatRow
+        <PlayStatTile
+          compact
           label="Darts"
-          value="dartsThrownThisLegFor(state()?.seats[0]?.participantRef)"
+          valueExpr="dartsThrownThisLegFor(state()?.seats[0]?.participantRef)"
         />
-      </dl>
-      <dl
-        slot="progressB"
-        class="w-full space-y-1"
-      >
-        <StatRow
-          label="3 dart avg"
-          value="averageFor(state()?.seats[1]?.participantRef)"
+      </Fragment>
+      <Fragment slot="progressB">
+        <PlayStatTile
+          compact
+          label="Avg"
+          valueExpr="averageFor(state()?.seats[1]?.participantRef)"
         />
-        <StatRow
-          label="Previous"
-          value="previousScoreFor(state()?.seats[1]?.participantRef)"
+        <PlayStatTile
+          compact
+          label="Prev"
+          valueExpr="previousScoreFor(state()?.seats[1]?.participantRef)"
         />
-        <StatRow
+        <PlayStatTile
+          compact
           label="Darts"
-          value="dartsThrownThisLegFor(state()?.seats[1]?.participantRef)"
+          valueExpr="dartsThrownThisLegFor(state()?.seats[1]?.participantRef)"
         />
-      </dl>
+      </Fragment>
     </SplitScoreboard>
   </template>
 

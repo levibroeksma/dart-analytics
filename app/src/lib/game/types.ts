@@ -822,9 +822,6 @@ export type OneTwentyOnePlayContext = PlayLifecycleContext<
   subtitle(this: OneTwentyOnePlayContext): string;
   visitsThisAttemptFor(this: OneTwentyOnePlayContext, seatRef: string): number;
   visitsThisAttempt(this: OneTwentyOnePlayContext): number;
-  dartsThrownThisSession(this: OneTwentyOnePlayContext): number;
-  durationType(this: OneTwentyOnePlayContext): OneTwentyOneDurationType;
-  attemptLabel(this: OneTwentyOnePlayContext): string;
   remainingLabel(this: OneTwentyOnePlayContext): string;
   init(this: OneTwentyOnePlayContext): Promise<void>;
   retryReconciliation(this: OneTwentyOnePlayContext): Promise<void>;
@@ -1372,7 +1369,6 @@ export type AroundTheClockPlayContext = PlayLifecycleContext<
   isTimed(this: AroundTheClockPlayContext): boolean;
   laps(this: AroundTheClockPlayContext): number;
   remainingLabel(this: AroundTheClockPlayContext): string;
-  hitsNeededLabel(this: AroundTheClockPlayContext): string;
   subtitle(this: AroundTheClockPlayContext): string;
   hitsToGoFor(this: AroundTheClockPlayContext, seatRef: string): string;
   hitsToGo(this: AroundTheClockPlayContext): string;
