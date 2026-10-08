@@ -1,51 +1,41 @@
 ---
 /**
- * MINUTES-mode countdown label plus its Pause toggle. Resuming happens via
- * `CountdownResumePrompt`, shown in the input area while paused — this
- * component's own resume affordance is hidden to avoid a duplicate control.
- * Shared by every ruleset that runs a `SegmentTimer` countdown (Score
- * Training, TUOD, 121 `_V2`) — reads
- * `remainingLabel()`/`togglePause()`/`$store.game.timerPaused` from the
- * page's own Alpine scope; `disabledExpr` is the only thing that varies per
- * game (which of its own confirm-dialog flags should also block the toggle
- * while open).
+ * The header's countdown pill for a MINUTES session, placed in
+ * `GameLayout`'s `header-end` slot by the four countdown play pages. It
+ * shows a pause icon and `remainingLabel()`, and a tap pauses. Resuming is
+ * `CountdownResumePrompt`'s job, so the pill hides while paused. Reads
+ * `remainingLabel()`, `togglePause()`, `hasActiveSession` and `finished` from
+ * the play scope.
  */
 interface Props {
-  /** Alpine expression evaluating to a boolean; disables both buttons. */
+  /** Alpine expression evaluating to a boolean; disables the pill. */
   disabledExpr: string;
 }
 
+// Props
 const { disabledExpr }: Props = Astro.props;
 
+// Components
 import Button from "@components/forms/Button.astro";
 
 // Icons
 import PauseIcon from "@icons/pause.svg";
 ---
 
-<div
-  class="flex justify-center items-center gap-2 px-3"
-  x-show="$store.game.configSnapshot?.durationType === 'MINUTES'"
+<Button
+  type="button"
+  variant="sheet-muted"
+  ariaLabel="Pause timer"
+  loadingExpr="false"
+  class="h-11 shrink-0 gap-1.5 rounded-full px-3 py-0 font-mono text-[13px] font-medium text-foreground"
+  :disabled={disabledExpr}
+  @click="togglePause()"
+  x-show="hasActiveSession && !finished && $store.game.configSnapshot?.durationType === 'MINUTES' && !$store.game.timerPaused"
   x-cloak
 >
-  <p
-    class="text-lg font-bold font-mono text-muted-foreground"
-    x-text="remainingLabel()"
-  >
-  </p>
-  <Button
-    type="button"
-    variant="ghost"
-    icon
-    ariaLabel="Pause timer"
-    :disabled={disabledExpr}
-    @click="togglePause()"
-    x-show="!$store.game.timerPaused"
-    x-cloak
-  >
-    <PauseIcon
-      class="size-5 text-accent"
-      slot="iconBefore"
-    />
-  </Button>
-</div>
+  <PauseIcon
+    slot="iconBefore"
+    class="size-3"
+  />
+  <span x-text="remainingLabel()"></span>
+</Button>

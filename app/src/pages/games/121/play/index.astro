@@ -2,6 +2,7 @@
 export const prerender = true;
 import GameLayout from "@layouts/GameLayout.astro";
 import OneTwentyOne from "@components/layout/games/interfaces/OneTwentyOne.astro";
+import CountdownPauseControl from "@components/layout/games/CountdownPauseControl.astro";
 import CheckoutConfirm from "@components/layout/games/CheckoutConfirm.astro";
 import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
 import OneTwentyOneResults from "@components/layout/games/result-modals/OneTwentyOneResults.astro";
@@ -12,12 +13,15 @@ import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocke
 <GameLayout
   title="121 — Play"
   gameTitle="121"
+  gameSubtitleExpr="subtitle()"
+  x-data="oneTwentyOnePlay()"
+  @confirm-exit.window="abandonAndExit()"
 >
-  <div
-    class="flex flex-col flex-1 min-h-0 p-3"
-    x-data="oneTwentyOnePlay()"
-    @confirm-exit.window="abandonAndExit()"
-  >
+  <CountdownPauseControl
+    slot="header-end"
+    disabledExpr="finished || showDoubleConfirm || showSessionFinishConfirm"
+  />
+  <div class="flex flex-col flex-1 min-h-0">
     {/* Loading / reconciliation-blocked */}
     <ReconciliationBlocked />
 

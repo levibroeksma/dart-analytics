@@ -83,7 +83,7 @@ Check `08-Component-Inventory.md` before hand-rolling markup — `SetupShell`,
 | File | What goes in it |
 | ---- | --------------- |
 | `<route-slug>/setup/index.astro` | Mounts `x-data="<codeSlug>Setup()"`. *Engine-only skips.* |
-| `<route-slug>/play/index.astro` | Mounts `x-data="<codeSlug>Play()"`. *Engine-only skips.* |
+| `<route-slug>/play/index.astro` | Mounts `x-data="<codeSlug>Play()"` on `<GameLayout>` with `gameSubtitleExpr="subtitle()"`, so header expressions resolve in the play scope (D432). *Engine-only skips.* |
 
 ### `app/src/lib/client/alpine/`
 

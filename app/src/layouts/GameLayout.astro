@@ -1,21 +1,50 @@
 ---
-import BaseLayout from "@layouts/BaseLayout.astro";
-import ExitModal from "@components/layout/games/ExitModal.astro";
-import Button from "@components/forms/Button.astro";
-import ExitIcon from "@icons/exit.svg";
-
+/**
+ * Play-screen shell: a 56px glass header pill — exit, title with an
+ * optional live subtitle, and the `header-end` slot — over the play column,
+ * plus the exit sheet and the wake-lock debug log. Leftover attributes
+ * (the page's play `x-data` and its `@confirm-exit.window`) land on the
+ * wrapper around header and main, so header expressions resolve in the
+ * play scope (D432).
+ * @param {string} [title] Document title
+ * @param {string} [gameTitle] Static header title
+ * @param {string} [gameTitleExpr] Alpine `x-text` title; wins over `gameTitle`
+ * @param {string} [gameSubtitleExpr] Alpine `x-text` mono line under the title
+ * @param {string} [exitDescription] Overrides ExitModal's default "recorded as abandoned" copy
+ * @slot header-end Right of the title (the countdown pill); the 44px box keeps the title centred when empty
+ */
 interface Props {
   title?: string;
   gameTitle?: string;
-  /** Alpine expression string, evaluated live via x-text; takes
-   * precedence over the static `gameTitle` when both are given. */
   gameTitleExpr?: string;
-  /** Overrides ExitModal's default "recorded as abandoned" copy — for a
-   * tool with nothing to persist (e.g. Trivia). */
+  gameSubtitleExpr?: string;
   exitDescription?: string;
+  [key: string]: unknown;
 }
 
-const { title, gameTitle, gameTitleExpr, exitDescription }: Props = Astro.props;
+// Props
+const {
+  title,
+  gameTitle,
+  gameTitleExpr,
+  gameSubtitleExpr,
+  exitDescription,
+  ...props
+}: Props = Astro.props;
+
+// Layouts
+import BaseLayout from "@layouts/BaseLayout.astro";
+
+// Components
+import ExitModal from "@components/layout/games/ExitModal.astro";
+import Button from "@components/forms/Button.astro";
+
+// Icons
+import ExitIcon from "@icons/exit.svg";
+
+// Styles
+const titleClass =
+  "truncate font-display text-sm leading-tight tracking-[0.06em] text-foreground";
 ---
 
 <BaseLayout title={title}>
@@ -23,43 +52,57 @@ const { title, gameTitle, gameTitleExpr, exitDescription }: Props = Astro.props;
     class="mx-auto flex h-full max-w-lg flex-col"
     x-data="gameLayout()"
   >
-    <header class="relative flex items-center pt-3">
-      <div class="w-1/8">
-        <Button
-          type="button"
-          variant="ghost"
-          icon
-          ariaLabel="Exit game"
-          class="relative z-10"
-          @click="showExitModal = true"
-        >
-          <ExitIcon
-            class="size-6 text-muted"
-            slot="iconBefore"
-          />
-        </Button>
-      </div>
-      <div class="w-6/8">
-        {
-          gameTitleExpr ? (
-            <h1
-              class="pointer-events-none uppercase font-mono  inset-0 flex items-center justify-center text-lg font-semibold text-foreground"
-              x-text={gameTitleExpr}
-            />
-          ) : gameTitle ? (
-            <h1 class="pointer-events-none uppercase font-mono  inset-0 flex items-center justify-center text-lg font-semibold text-foreground">
-              {gameTitle}
-            </h1>
-          ) : null
-        }
-      </div>
-      <div class="w-1/8"></div>
-    </header>
-    <main
-      class="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain"
+    <div
+      class="flex min-h-0 flex-1 flex-col"
+      {...props}
     >
-      <slot />
-    </main>
+      <div class="shrink-0 px-4 pt-2">
+        <header class="glass flex h-14 items-center gap-2 rounded-full p-1.5">
+          <Button
+            type="button"
+            variant="sheet-muted"
+            icon
+            ariaLabel="Exit game"
+            loadingExpr="false"
+            class="size-11 shrink-0 rounded-full p-0"
+            @click="showExitModal = true"
+          >
+            <ExitIcon
+              slot="iconBefore"
+              class="size-[18px] text-muted-foreground"
+            />
+          </Button>
+          <div class="flex min-w-0 flex-1 flex-col items-center text-center">
+            {
+              gameTitleExpr ? (
+                <h1
+                  class={titleClass}
+                  x-text={gameTitleExpr}
+                />
+              ) : gameTitle ? (
+                <h1 class={titleClass}>{gameTitle}</h1>
+              ) : null
+            }
+            {
+              gameSubtitleExpr && (
+                <p
+                  class="truncate font-mono text-eyebrow leading-tight text-muted-foreground"
+                  x-text={gameSubtitleExpr}
+                />
+              )
+            }
+          </div>
+          <div class="flex min-w-11 shrink-0 justify-end">
+            <slot name="header-end" />
+          </div>
+        </header>
+      </div>
+      <main
+        class="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto overscroll-y-contain px-4 pt-1.5 pb-7.5"
+      >
+        <slot />
+      </main>
+    </div>
     <template x-if="showExitModal">
       <ExitModal description={exitDescription} />
     </template>
