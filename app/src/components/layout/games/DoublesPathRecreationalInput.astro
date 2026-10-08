@@ -1,4 +1,9 @@
 ---
+/**
+ * Doubles-path tap row in an `input-well`: undo, MISS, and the current
+ * target ringed in accent (`target-key-ring`). Reads `currentTargetLabel()`,
+ * `recordTap()`, `undoVisit()` and `finished` from the play scope.
+ */
 interface Props {
   [key: string]: unknown;
 }
@@ -14,23 +19,26 @@ import UndoIcon from "@icons/undo.svg";
 ---
 
 <div
-  class="rounded-lg glass border border-border bg-surface-raised flex flex-1 min-h-0 w-full divide-x divide-border"
+  class="input-well grid grid-cols-3"
   {...props}
 >
   <InputButton
+    variant="muted"
     aria-label="Undo last dart"
     :disabled="!$store.game.turns.length || finished"
     @click="undoVisit()"
   >
-    <UndoIcon class="size-6 text-muted" />
+    <UndoIcon class="size-6 text-muted-foreground" />
   </InputButton>
   <InputButton
+    class="text-[22px] tracking-[0.08em] text-soft-foreground"
     :disabled="finished"
     @click="recordTap(false)"
   >
-    MIS
+    MISS
   </InputButton>
   <InputButton
+    variant="target"
     :disabled="finished"
     @click="recordTap(true)"
     x-text="currentTargetLabel()"

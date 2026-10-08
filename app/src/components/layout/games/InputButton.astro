@@ -1,12 +1,19 @@
 ---
 /**
- * Full-width game keypad button.
+ * One key on a play input: mono 26px at `rounded-key`, with the accent
+ * inset ring while pressed (`key-press`) and 35% when disabled. A key has
+ * one surface: `variant` picks the well, or `pressedExpr` swaps
+ * `glass-blue` / `inset-well` for a ring key.
  * @param {"button"|"submit"|"reset"} [type]
+ * @param {"well"|"muted"|"target"} [variant] `muted` for icon keys (undo, delete); `target` rings the doubles-path target
+ * @param {string} [pressedExpr] Alpine expression; while true the key is `glass-blue` and `aria-pressed`
  * @param {string} [class] Extra classes
  */
 interface Props {
   class?: string;
   type?: "button" | "submit" | "reset";
+  variant?: "well" | "muted" | "target";
+  pressedExpr?: string;
   [key: string]: unknown;
 }
 
@@ -14,15 +21,32 @@ interface Props {
 const {
   class: classNameProp = "",
   type = "button",
+  variant = "well",
+  pressedExpr,
   ...props
 }: Props = Astro.props;
 
 // Lib
 import { cn } from "@client/cn";
 
+// Data
+const pressedAttrs = pressedExpr
+  ? {
+      ":class": `(${pressedExpr}) ? 'glass-blue' : 'inset-well'`,
+      ":aria-pressed": pressedExpr,
+    }
+  : {};
+
 // Styles
+const surfaceClass = {
+  well: "inset-well",
+  muted: "inset-well-muted",
+  target: "target-key-ring",
+}[variant];
+
 const className = cn(
-  "min-h-0 text-2xl w-full px-0 font-semibold flex items-center justify-center font-mono",
+  "key-press flex min-h-0 w-full items-center justify-center rounded-key px-0 font-mono text-[26px] font-medium text-foreground disabled:cursor-not-allowed disabled:opacity-35",
+  !pressedExpr && surfaceClass,
   classNameProp,
 );
 ---
@@ -30,6 +54,7 @@ const className = cn(
 <button
   type={type}
   class={className}
+  {...pressedAttrs}
   {...props}
 >
   <slot />
