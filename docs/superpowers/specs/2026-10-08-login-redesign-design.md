@@ -1,6 +1,6 @@
 # Login redesign — design
 
-**Date:** 2026-10-08 · **Status:** approved · **Branch:** `feat/login-redesign` · **Decision:** D431 (`decisions/frontend/style.md`, written at implementation)
+**Date:** 2026-10-08 · **Status:** implemented · **Branch:** `feat/login-redesign` · **Decision:** D431 (`decisions/frontend/style.md`)
 
 Source design: Claude Design project `cdea52ee-4746-4efb-b646-81448a40c033`,
 `Login.dc.html`, screens `login` (default), `login-focus`, `login-error`.
