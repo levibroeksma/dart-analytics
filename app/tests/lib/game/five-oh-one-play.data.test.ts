@@ -1693,3 +1693,38 @@ describe("DartBot opponent", () => {
     expect(play.state()!.activeParticipantRef).toBe(HUMAN_REF);
   });
 });
+
+describe("subtitle", () => {
+  it("is blank before a session's config has loaded", () => {
+    const play = makePlay({ configSnapshot: null });
+    expect(play.subtitle()).toBe("");
+  });
+
+  it("names the open leg and the match target", () => {
+    const play = makePlay();
+    expect(play.subtitle()).toBe("LEG 1 · FIRST TO 1");
+  });
+
+  it("counts legs as stages open", () => {
+    const play = makePlay({
+      configSnapshot: bestOf5Config(),
+      stages: [LEG_1, { ...LEG_1, clientKey: "leg-2", sequence: 2 }],
+    });
+    expect(play.subtitle()).toBe("LEG 2 · FIRST TO 3");
+  });
+
+  it("reads leg 1 before the first stage is written", () => {
+    const play = makePlay({ stages: [] });
+    expect(play.subtitle()).toBe("LEG 1 · FIRST TO 1");
+  });
+});
+
+describe("legsToWin", () => {
+  it("is 0 before config loads", () => {
+    expect(makePlay({ configSnapshot: null }).legsToWin()).toBe(0);
+  });
+
+  it("reads the configured leg target", () => {
+    expect(makePlay({ configSnapshot: bestOf5Config() }).legsToWin()).toBe(3);
+  });
+});

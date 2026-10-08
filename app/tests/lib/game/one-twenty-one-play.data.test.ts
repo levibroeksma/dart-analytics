@@ -22,6 +22,7 @@ import {
   oneTwentyOneV2EngineFactory,
 } from "@modules/game/one-twenty-one.engine.module";
 import type { OneTwentyOnePlayContext } from "@lib/types";
+import type { DartFact, TurnFact } from "@modules/types";
 import * as sessionsApi from "@client/api/sessions";
 
 vi.mock("@client/api/sessions");
@@ -1303,5 +1304,86 @@ describe("oneTwentyOnePlay — DartBot opponent", () => {
     play.undoVisit();
 
     expect(play.state()!.activeParticipantRef).toBe(HUMAN_REF);
+  });
+});
+
+describe("oneTwentyOnePlay — play header and seat stats", () => {
+  let store: OneTwentyOnePlayContext["$store"];
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    store = baseStore();
+  });
+
+  function createPlay(): OneTwentyOnePlayContext {
+    return { ...oneTwentyOnePlay(), $store: store } as OneTwentyOnePlayContext;
+  }
+
+  function missDart(sequence: number): DartFact {
+    return {
+      sequence,
+      intendedTargetNumber: null,
+      intendedZoneKey: null,
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      score: 0,
+      locationX: null,
+      locationY: null,
+    };
+  }
+
+  function visit(
+    sequence: number,
+    totalScore: number,
+    participantRef = "participant-1",
+  ): TurnFact {
+    return {
+      clientKey: `t${sequence}`,
+      stageClientKey: "round-1",
+      participantRef,
+      sequence,
+      completedAt: "2026-10-08T10:00:00.000Z",
+      totalScore,
+      darts: [],
+    };
+  }
+
+  it("subtitle is blank before config loads", () => {
+    store.game.configSnapshot = null;
+    expect(createPlay().subtitle()).toBe("");
+  });
+
+  it("subtitle opens on attempt 1 of nine darts", () => {
+    expect(createPlay().subtitle()).toBe("ATTEMPT 1 · 9 DARTS");
+  });
+
+  it("subtitle moves on once three visits resolve the attempt", () => {
+    store.game.turns = [visit(1, 20), visit(2, 20), visit(3, 20)];
+    expect(createPlay().subtitle()).toBe("ATTEMPT 2 · 9 DARTS");
+  });
+
+  it("dartsThisAttempt counts three per closed visit plus the open visit's darts", () => {
+    store.game.turns = [
+      visit(1, 20),
+      visit(2, 20),
+      { ...visit(3, 0), completedAt: null, darts: [missDart(1)] },
+    ];
+    expect(createPlay().dartsThisAttempt()).toBe(7);
+  });
+
+  it("dartsThisAttemptFor reads 0 for a seat yet to throw", () => {
+    store.game.configSnapshot = { seats: TWO_SEATS };
+    store.game.turns = [visit(1, 20)];
+    expect(createPlay().dartsThisAttemptFor("participant-2")).toBe(0);
+  });
+
+  it("checkoutHintFor gives a waiting seat its full three-dart route", () => {
+    store.game.configSnapshot = { seats: TWO_SEATS };
+    store.game.turns = [
+      { ...visit(1, 0), completedAt: null, darts: [missDart(1), missDart(2)] },
+    ];
+    const play = createPlay();
+    expect(play.checkoutHintFor("participant-1")).toBe("");
+    expect(play.checkoutHintFor("participant-2")).toBe("T20 T11 D14");
   });
 });

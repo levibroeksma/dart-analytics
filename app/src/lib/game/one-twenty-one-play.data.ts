@@ -30,8 +30,10 @@ import { throwDart as botThrowDart } from "@modules/dartbot/throw-engine.module"
 import { chooseTarget } from "@modules/dartbot/strategy/x01.strategy.module";
 import {
   checkoutPercentageDisplay,
+  dartsLeftForSeat,
   dartsThrownCount,
 } from "@lib/game/play-visit-stats";
+import { joinSubtitle } from "@lib/game/play-subtitle";
 import { classifyDoubleAttempts } from "@modules/game/double-attempt.module";
 import { oneTwentyOneCheckoutVisits } from "@modules/game/checkout-visits.module";
 import { matchWinnerName } from "@lib/game/match-result-text";
@@ -66,6 +68,9 @@ import {
 
 const GAME_TYPE_KEY = "ONE_TWENTY_ONE";
 const DARTS_PER_VISIT = 3;
+
+/** Three visits make one 121 attempt, so an attempt is nine darts. */
+const DARTS_PER_ATTEMPT = 3 * DARTS_PER_VISIT;
 
 const BOT_PRE_THROW_MS = 900;
 const BOT_POST_THROW_MS = 250;
@@ -159,17 +164,6 @@ function resumeEngine(
     turns: game.turns,
   });
   return engine instanceof OneTwentyOneEngine ? engine : null;
-}
-
-/**
- * Darts left in the currently open visit — `DARTS_PER_VISIT` when there is
- * no open visit (a fresh visit, or every visit under quick score, which
- * records a whole visit's total in one call and never leaves one open).
- */
-function dartsLeftInOpenVisit(turns: readonly TurnFact[]): number {
-  const open = turns.at(-1);
-  if (!open || open.completedAt !== null) return DARTS_PER_VISIT;
-  return DARTS_PER_VISIT - open.darts.length;
 }
 
 /**
@@ -415,14 +409,55 @@ export function oneTwentyOnePlay() {
     },
 
     /**
-     * The finish route for what is left in the open attempt, blank when no
-     * route fits the darts the visit has left (#291).
+     * The finish route for what is left in the seat's open attempt, blank
+     * when no route fits the darts its visit has left (#291). A seat that
+     * is not throwing reads its full visit.
      */
-    checkoutHint(this: OneTwentyOnePlayContext): string {
+    checkoutHintFor(this: OneTwentyOnePlayContext, seatRef: string): string {
       if (this.$store.checkoutHints?.enabled === false) return "";
-      const remaining = this.remainingInAttempt();
-      const dartsLeft = dartsLeftInOpenVisit(this.$store.game.turns);
+      const remaining = this.remainingInAttemptFor(seatRef);
+      const dartsLeft = dartsLeftForSeat(
+        this.$store.game.turns,
+        seatRef,
+        DARTS_PER_VISIT,
+      );
       return checkoutPathWithin(remaining, dartsLeft)?.join(" ") ?? "";
+    },
+
+    checkoutHint(this: OneTwentyOnePlayContext): string {
+      const state = this.state();
+      if (!state) return "";
+      return this.checkoutHintFor(state.activeParticipantRef);
+    },
+
+    /** Darts the seat has thrown in its open attempt: three per closed visit plus the open visit's own. */
+    dartsThisAttemptFor(
+      this: OneTwentyOnePlayContext,
+      seatRef: string,
+    ): number {
+      const openDarts =
+        DARTS_PER_VISIT -
+        dartsLeftForSeat(this.$store.game.turns, seatRef, DARTS_PER_VISIT);
+      return this.visitsThisAttemptFor(seatRef) * DARTS_PER_VISIT + openDarts;
+    },
+
+    dartsThisAttempt(this: OneTwentyOnePlayContext): number {
+      const state = this.state();
+      if (!state) return 0;
+      return this.dartsThisAttemptFor(state.activeParticipantRef);
+    },
+
+    /** Play-header subtitle: the throwing seat's attempt (`ATTEMPT 3 · 9 DARTS`); blank before config loads. */
+    subtitle(this: OneTwentyOnePlayContext): string {
+      const state = this.state();
+      const seat = state?.seats.find(
+        (candidate) => candidate.participantRef === state.activeParticipantRef,
+      );
+      if (!seat) return "";
+      return joinSubtitle([
+        `ATTEMPT ${seat.attemptsCompleted + 1}`,
+        `${DARTS_PER_ATTEMPT} DARTS`,
+      ]);
     },
 
     dartsThrownThisSession(this: OneTwentyOnePlayContext): number {

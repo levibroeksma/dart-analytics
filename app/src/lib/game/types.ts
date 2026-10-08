@@ -440,6 +440,11 @@ export type TuodPlayContext = PlayLifecycleContext<
   currentTargetLabel(this: TuodPlayContext): string;
   remainingInAttemptFor(this: TuodPlayContext, seatRef: string): number;
   remainingInAttempt(this: TuodPlayContext): number;
+  subtitle(this: TuodPlayContext): string;
+  attemptsFor(this: TuodPlayContext, seatRef: string): number;
+  attempts(this: TuodPlayContext): number;
+  successFailureFor(this: TuodPlayContext, seatRef: string): string;
+  successFailure(this: TuodPlayContext): string;
   checkoutHintFor(this: TuodPlayContext, seatRef: string): string;
   checkoutHint(this: TuodPlayContext): string;
   remainingLabel(this: TuodPlayContext): string;
@@ -729,6 +734,8 @@ export type FiveOhOnePlayContext = PlayLifecycleContext<
   averageFor(this: FiveOhOnePlayContext, seatRef: string): string;
   average(this: FiveOhOnePlayContext): string;
   matchTitle(this: FiveOhOnePlayContext): string;
+  subtitle(this: FiveOhOnePlayContext): string;
+  legsToWin(this: FiveOhOnePlayContext): number;
   previousScoreFor(this: FiveOhOnePlayContext, seatRef: string): string;
   previousScore(this: FiveOhOnePlayContext): string;
   legsWonFor(this: FiveOhOnePlayContext, seatRef: string): number;
@@ -808,7 +815,11 @@ export type OneTwentyOnePlayContext = PlayLifecycleContext<
   remainingInAttempt(this: OneTwentyOnePlayContext): number;
   currentTargetLabelFor(this: OneTwentyOnePlayContext, seatRef: string): string;
   currentTargetLabel(this: OneTwentyOnePlayContext): string;
+  checkoutHintFor(this: OneTwentyOnePlayContext, seatRef: string): string;
   checkoutHint(this: OneTwentyOnePlayContext): string;
+  dartsThisAttemptFor(this: OneTwentyOnePlayContext, seatRef: string): number;
+  dartsThisAttempt(this: OneTwentyOnePlayContext): number;
+  subtitle(this: OneTwentyOnePlayContext): string;
   visitsThisAttemptFor(this: OneTwentyOnePlayContext, seatRef: string): number;
   visitsThisAttempt(this: OneTwentyOnePlayContext): number;
   dartsThrownThisSession(this: OneTwentyOnePlayContext): number;
