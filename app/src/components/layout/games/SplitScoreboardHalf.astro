@@ -1,32 +1,30 @@
 ---
 /**
- * One seat's column inside `SplitScoreboard.astro`: centered name, then
- * (inside the score card, reusing `SinglePlayerDisplay.astro` at
- * `size="sm"`, its border turning accent while this seat is active) a
- * centered optional leg-wins pill directly above the big number, an
- * optional checkout-hint chip row, and an optional leg/round progress dot
- * pager. The whole column dims to 90% opacity while inactive. The default
- * slot renders inside the
- * body's `progress` region, alongside the checkout chips — this is where a
- * caller puts its own per-game `StatRow`s, parameterized to this seat.
- * @param {string} nameExpr Alpine expr resolving to this seat's display name
- * @param {string} activeExpr Alpine expr, true while this seat is throwing
- * @param {string} scoreExpr Alpine expr for the big number
- * @param {boolean} [isTarget] Passed straight through to `SinglePlayerDisplay`
- * @param {string} [legsExpr] Alpine expr for this seat's side's legs won; omit to hide the pill
- * @param {string} [legsToWinExpr] Alpine expr for the leg target; omit to hide the dot pager
- * @param {string} [checkoutExpr] Alpine expr for the checkout-hint string ("T20 9 D16"); omit to hide the chip row
- * @param {string} [class] Extra classes on the outer column
+ * One seat inside `SplitScoreboard`. While `activeExpr` holds, it renders
+ * the `glass-active-seat` card and moves to the top of the band. The card
+ * has the name, `LegBars`, the score (`seatValueSize`) and the route chips
+ * on the left, and compact stat rows right of a hairline. Otherwise it
+ * renders a 64px `glass` row: name over `LegBars`, the muted score, and one
+ * stat tile.
+ * @param {string} nameExpr Alpine expr for the seat's display name
+ * @param {string} activeExpr Alpine expr, true while this seat throws
+ * @param {string} scoreExpr Alpine expr for the score
+ * @param {string} idleStatExpr Alpine expr for the idle row's stat value
+ * @param {string} idleStatLabel The idle row's stat label
+ * @param {string} [legsExpr] Alpine expr for legs won; shown with `legsToWinExpr`
+ * @param {string} [legsToWinExpr] Alpine expr for the leg target; omit to hide `LegBars`
+ * @param {string} [checkoutExpr] Alpine expr for the route ("T20 9 D16"); omit to hide the chips
+ * @slot default The active card's compact `PlayStatTile` rows
  */
 interface Props {
   nameExpr: string;
   activeExpr: string;
   scoreExpr: string;
-  isTarget?: boolean;
+  idleStatExpr: string;
+  idleStatLabel: string;
   legsExpr?: string;
   legsToWinExpr?: string;
   checkoutExpr?: string;
-  class?: string;
 }
 
 // Props
@@ -34,104 +32,89 @@ const {
   nameExpr,
   activeExpr,
   scoreExpr,
-  isTarget = true,
+  idleStatExpr,
+  idleStatLabel,
   legsExpr,
   legsToWinExpr,
   checkoutExpr,
-  class: classNameProp = "",
 }: Props = Astro.props;
 
 // Components
-import SinglePlayerDisplay from "./SinglePlayerDisplay.astro";
-import Badge from "@components/ui/Badge.astro";
-
-// Lib
-import { cn } from "@client/cn";
-
-// Styles
-const className = cn("flex flex-col gap-1 items-center min-h-0", classNameProp);
+import LegBars from "./LegBars.astro";
+import RouteChips from "./RouteChips.astro";
 ---
 
 <div
-  class={className}
-  :class={`{ 'opacity-90': !(${activeExpr}) }`}
+  class="flex min-h-0 flex-col"
+  :class={`(${activeExpr}) ? 'order-first flex-1' : 'shrink-0'`}
 >
-  <div class="flex w-full justify-center">
-    <span
-      class="text-sm text-accent font-semibold"
-      x-text={nameExpr}
-    ></span>
-  </div>
-
-  <SinglePlayerDisplay
-    isTarget={isTarget}
-    target={scoreExpr}
-    score={scoreExpr}
-    size="sm"
-    pinnedHeight={false}
-    activeExpr={activeExpr}
-    class="w-full flex-1 min-h-0"
+  <div
+    class="glass-active-seat grid min-h-0 flex-1 grid-cols-[1.3fr_1fr] grid-rows-1 rounded-[22px] px-[18px] py-4"
+    x-show={activeExpr}
+    x-cloak
   >
-    {
-      legsExpr && (
-        <div
-          slot="above"
-          class="mb-3"
-        >
-          <Badge
-            variant="accent"
-            class="text-xs"
-            x-text={legsExpr}
-          />
-        </div>
-      )
-    }
-    <div
-      slot="progress"
-      class="mt-2 flex w-full flex-col items-center gap-2 px-4"
-    >
+    <div class="flex min-w-0 flex-col justify-center gap-2">
+      <span
+        class="truncate text-sm font-semibold text-accent-bright"
+        x-text={nameExpr}
+      ></span>
       {
-        checkoutExpr && (
-          <div
-            class="flex gap-1"
-            x-show={checkoutExpr}
-            x-cloak
-          >
-            <template
-              x-for={`(part, index) in (${checkoutExpr}).split(' ').filter(Boolean)`}
-              {...{ ":key": "index" }}
-            >
-              <Badge
-                variant="accent"
-                class="text-xs font-mono"
-                x-text="part"
-              />
-            </template>
-          </div>
+        legsExpr && legsToWinExpr && (
+          <LegBars
+            wonExpr={legsExpr}
+            toWinExpr={legsToWinExpr}
+          />
         )
       }
+      <p
+        class="whitespace-nowrap font-display leading-none tracking-[-0.02em] tabular-nums text-foreground text-shadow-glow"
+        :class={`$seatValueSize(${scoreExpr})`}
+        x-text={scoreExpr}
+      >
+      </p>
+      {checkoutExpr && <RouteChips routeExpr={checkoutExpr} />}
+    </div>
+    <div
+      class="flex min-h-0 min-w-0 flex-col justify-center gap-2 border-l border-white/8 pl-3"
+    >
       <slot />
+    </div>
+  </div>
+  <div
+    class="glass flex h-16 items-center gap-3 rounded-[22px] pr-2.5 pl-4"
+    x-show={`!(${activeExpr})`}
+    x-cloak
+  >
+    <div class="flex min-w-0 flex-col gap-1.5">
+      <span
+        class="truncate text-sm font-semibold text-muted"
+        x-text={nameExpr}
+      ></span>
       {
-        legsToWinExpr && (
-          <div
-            class="flex gap-1 mt-3"
-            x-show={legsToWinExpr}
-            x-cloak
-          >
-            <template
-              x-for={`n in Array.from({ length: ${legsToWinExpr} ?? 0 }, (_, i) => i)`}
-              {...{ ":key": "n" }}
-            >
-              <span
-                class="size-1.5 rounded-full bg-muted"
-                {...{
-                  ":class": `{ 'bg-accent': n < (${legsExpr ?? "0"}) }`,
-                }}
-              />
-            </template>
-          </div>
+        legsExpr && legsToWinExpr && (
+          <LegBars
+            wonExpr={legsExpr}
+            toWinExpr={legsToWinExpr}
+          />
         )
       }
     </div>
-  </SinglePlayerDisplay>
+    <span
+      class="ml-auto font-display text-2xl tabular-nums text-muted"
+      x-text={scoreExpr}
+    ></span>
+    <div
+      class="inset-well flex h-11 w-20 shrink-0 flex-col items-center justify-center rounded-[14px]"
+    >
+      <span
+        class="font-mono text-[13px] tabular-nums text-foreground"
+        x-text={idleStatExpr}
+      ></span>
+      <span
+        class="font-mono text-[9px] font-semibold uppercase tracking-[0.1em] text-muted"
+      >
+        {idleStatLabel}
+      </span>
+    </div>
+  </div>
 </div>

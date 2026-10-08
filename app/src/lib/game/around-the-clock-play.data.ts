@@ -378,16 +378,6 @@ export function aroundTheClockPlay() {
       return formatRemaining(this.$store.game.timerRemainingMs);
     },
 
-    /** "hits / needed" in the open visit; empty on Easy (mid-visit advance). */
-    hitsNeededLabel(this: AroundTheClockPlayContext): string {
-      const config = this.$store.game.configSnapshot;
-      const seat = this.activeSeatState();
-      if (!config || !seat) return "";
-      const { hitsRequired } = rulesOf(config);
-      if (hitsRequired === 0) return "";
-      return `${seat.hitsThisVisit} / ${hitsRequired} hits`;
-    },
-
     /**
      * Play-header subtitle: lap and path ends (`LAP 2 · 1 → 20`). The path
      * ends in BULL; its last number is the one before it. Blank before

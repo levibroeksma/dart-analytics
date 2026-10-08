@@ -1,21 +1,22 @@
 ---
 /**
- * Two-seat scoreboard shell: renders when a session has exactly 2 seats,
- * wrapping two `SplitScoreboardHalf.astro` columns side by side with a
- * vertical divider. Each half's dynamic content is driven entirely by the
- * Alpine expression strings the caller passes in — this component is static
- * markup, not itself seat-aware.
- * @param {object} seatA `{ nameExpr, activeExpr, scoreExpr, legsExpr?, checkoutExpr? }`
+ * Two-seat scoreboard in the play screen's 40% band (D327). Seats stack:
+ * the throwing seat's card on top, the waiting seat's 64px row under it.
+ * Each `SplitScoreboardHalf` swaps its own card and row on its `activeExpr`.
+ * The markup is static, driven by the caller's Alpine expressions.
+ * @param {object} seatA `{ nameExpr, activeExpr, scoreExpr, idleStatExpr, legsExpr?, checkoutExpr? }`
  * @param {object} seatB Same shape as `seatA`
- * @param {boolean} [isTarget] Passed through to both halves
- * @param {string} [legsToWinExpr] Passed through to both halves, for the dot pager
- * @param {string} [class] Extra classes on the outer grid
- * @remarks Occupies the play screen's standard 40% scoreboard band, the same as an unnested `SinglePlayerDisplay` — callers pass no height class.
+ * @param {string} idleStatLabel Label of the idle row's stat (the game's first stat)
+ * @param {string} [legsToWinExpr] Alpine expr for the leg target; omit to hide `LegBars`
+ * @param {string} [class] Extra classes
+ * @slot progressA Seat A's compact `PlayStatTile` rows
+ * @slot progressB Seat B's compact `PlayStatTile` rows
  */
 interface SeatDisplay {
   nameExpr: string;
   activeExpr: string;
   scoreExpr: string;
+  idleStatExpr: string;
   legsExpr?: string;
   checkoutExpr?: string;
 }
@@ -23,7 +24,7 @@ interface SeatDisplay {
 interface Props {
   seatA: SeatDisplay;
   seatB: SeatDisplay;
-  isTarget?: boolean;
+  idleStatLabel: string;
   legsToWinExpr?: string;
   class?: string;
 }
@@ -32,7 +33,7 @@ interface Props {
 const {
   seatA,
   seatB,
-  isTarget = true,
+  idleStatLabel,
   legsToWinExpr,
   class: classNameProp = "",
 }: Props = Astro.props;
@@ -45,7 +46,7 @@ import { cn } from "@client/cn";
 
 // Styles
 const className = cn(
-  "grid grid-cols-2 divide-x divide-border flex-1 min-h-2/5 max-h-2/5 rounded-lg",
+  "flex min-h-2/5 max-h-2/5 flex-1 flex-col gap-2",
   classNameProp,
 );
 ---
@@ -55,11 +56,11 @@ const className = cn(
     nameExpr={seatA.nameExpr}
     activeExpr={seatA.activeExpr}
     scoreExpr={seatA.scoreExpr}
-    isTarget={isTarget}
+    idleStatExpr={seatA.idleStatExpr}
+    idleStatLabel={idleStatLabel}
     legsExpr={seatA.legsExpr}
     legsToWinExpr={legsToWinExpr}
     checkoutExpr={seatA.checkoutExpr}
-    class="p-2"
   >
     <slot name="progressA" />
   </SplitScoreboardHalf>
@@ -67,11 +68,11 @@ const className = cn(
     nameExpr={seatB.nameExpr}
     activeExpr={seatB.activeExpr}
     scoreExpr={seatB.scoreExpr}
-    isTarget={isTarget}
+    idleStatExpr={seatB.idleStatExpr}
+    idleStatLabel={idleStatLabel}
     legsExpr={seatB.legsExpr}
     legsToWinExpr={legsToWinExpr}
     checkoutExpr={seatB.checkoutExpr}
-    class="p-2"
   >
     <slot name="progressB" />
   </SplitScoreboardHalf>

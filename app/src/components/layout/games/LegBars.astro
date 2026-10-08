@@ -1,0 +1,46 @@
+---
+/**
+ * One seat's legs: a 4px pill per leg to win on a 56px three-column grid,
+ * accent once won. Above five legs it shows a mono `won/target` counter
+ * instead (`legBarStates`, D432).
+ * @param {string} wonExpr Alpine expression for legs won
+ * @param {string} toWinExpr Alpine expression for legs to win
+ */
+interface Props {
+  wonExpr: string;
+  toWinExpr: string;
+}
+
+// Props
+const { wonExpr, toWinExpr }: Props = Astro.props;
+
+// Data
+const statesExpr = `$legBarStates(${wonExpr}, ${toWinExpr})`;
+const labelExpr = `'Legs won: ' + (${wonExpr}) + ' of ' + (${toWinExpr})`;
+---
+
+<div
+  class="w-14"
+  role="img"
+  :aria-label={labelExpr}
+>
+  <template x-if={`${statesExpr} !== null`}>
+    <div class="grid grid-cols-3 gap-1">
+      <template
+        x-for={`(leg, index) in ${statesExpr}`}
+        :key="index"
+      >
+        <span
+          class="h-1 rounded-full"
+          :class="leg === 'won' ? 'bg-accent' : 'inset-well'"
+        ></span>
+      </template>
+    </div>
+  </template>
+  <template x-if={`${statesExpr} === null`}>
+    <span
+      class="font-mono text-[10px] tabular-nums text-muted-foreground"
+      x-text={`(${wonExpr}) + '/' + (${toWinExpr})`}
+    ></span>
+  </template>
+</div>

@@ -3,51 +3,40 @@ interface Props {
   [key: string]: unknown;
 }
 
+// Props
 const { ...props }: Props = Astro.props;
 
+// Components
 import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
 import SplitScoreboard from "@components/layout/games/SplitScoreboard.astro";
+import PlayStatTile from "@components/layout/games/PlayStatTile.astro";
 import VisitPreview from "@components/layout/games/VisitPreview.astro";
 import SinglesRecreationalInput from "@components/layout/games/SinglesRecreationalInput.astro";
-import StatRow from "@components/layout/games/StatRow.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
 import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
 import CountdownResumePrompt from "@components/layout/games/CountdownResumePrompt.astro";
 ---
 
 <div
-  class="flex flex-col flex-1 min-h-0 gap-3"
+  class="flex flex-col flex-1 min-h-0 gap-2"
   {...props}
 >
   <template x-if="(state()?.seats.length ?? 1) < 2">
     <SinglePlayerDisplay target="currentTargetLabel()">
-      <div
-        slot="progress"
-        class="mt-2 flex w-full flex-col items-center gap-2 px-4"
-      >
-        <dl class="w-full space-y-1">
-          <StatRow
-            label="Turns"
-            value="turnsSoFar()"
-          />
-          <StatRow
-            label="Accuracy"
-            value="accuracy()"
-          />
-          <template x-if="isTimed()">
-            <StatRow
-              label="Lap"
-              value="laps() + 1"
-            />
-          </template>
-          <template x-if="hitsNeededLabel()">
-            <StatRow
-              label="This visit"
-              value="hitsNeededLabel()"
-            />
-          </template>
-        </dl>
-      </div>
+      <PlayStatTile
+        label="Turns"
+        valueExpr="turnsSoFar()"
+      />
+      <PlayStatTile
+        label="Accuracy"
+        valueExpr="accuracy()"
+      />
+      <template x-if="hitsToGo()">
+        <PlayStatTile
+          label="This visit"
+          valueExpr="hitsToGo()"
+        />
+      </template>
     </SinglePlayerDisplay>
   </template>
 
@@ -58,41 +47,55 @@ import CountdownResumePrompt from "@components/layout/games/CountdownResumePromp
         activeExpr:
           "state()?.activeParticipantRef === state()?.seats[0]?.participantRef",
         scoreExpr: "currentTargetLabelFor(state()?.seats[0]?.participantRef)",
+        idleStatExpr: "turnsSoFarFor(state()?.seats[0]?.participantRef)",
       }}
       seatB={{
         nameExpr: "$store.game.seats[1]?.displayName",
         activeExpr:
           "state()?.activeParticipantRef === state()?.seats[1]?.participantRef",
         scoreExpr: "currentTargetLabelFor(state()?.seats[1]?.participantRef)",
+        idleStatExpr: "turnsSoFarFor(state()?.seats[1]?.participantRef)",
       }}
-      isTarget={true}
+      idleStatLabel="Turns"
     >
-      <dl
-        slot="progressA"
-        class="w-full space-y-1"
-      >
-        <StatRow
+      <Fragment slot="progressA">
+        <PlayStatTile
+          compact
           label="Turns"
-          value="turnsSoFarFor(state()?.seats[0]?.participantRef)"
+          valueExpr="turnsSoFarFor(state()?.seats[0]?.participantRef)"
         />
-        <StatRow
+        <PlayStatTile
+          compact
           label="Accuracy"
-          value="accuracyFor(state()?.seats[0]?.participantRef)"
+          valueExpr="accuracyFor(state()?.seats[0]?.participantRef)"
         />
-      </dl>
-      <dl
-        slot="progressB"
-        class="w-full space-y-1"
-      >
-        <StatRow
+        <template x-if="hitsToGoFor(state()?.seats[0]?.participantRef)">
+          <PlayStatTile
+            compact
+            label="This visit"
+            valueExpr="hitsToGoFor(state()?.seats[0]?.participantRef)"
+          />
+        </template>
+      </Fragment>
+      <Fragment slot="progressB">
+        <PlayStatTile
+          compact
           label="Turns"
-          value="turnsSoFarFor(state()?.seats[1]?.participantRef)"
+          valueExpr="turnsSoFarFor(state()?.seats[1]?.participantRef)"
         />
-        <StatRow
+        <PlayStatTile
+          compact
           label="Accuracy"
-          value="accuracyFor(state()?.seats[1]?.participantRef)"
+          valueExpr="accuracyFor(state()?.seats[1]?.participantRef)"
         />
-      </dl>
+        <template x-if="hitsToGoFor(state()?.seats[1]?.participantRef)">
+          <PlayStatTile
+            compact
+            label="This visit"
+            valueExpr="hitsToGoFor(state()?.seats[1]?.participantRef)"
+          />
+        </template>
+      </Fragment>
     </SplitScoreboard>
   </template>
 

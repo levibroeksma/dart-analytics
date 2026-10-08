@@ -1,0 +1,37 @@
+---
+/**
+ * Cricket / Tactics mark rows for the solo scoreboard's right column: the
+ * objective label, then three pips, one lit per mark. A closed row fades
+ * to 50%. Reads `objectiveRows()` from the play page scope.
+ */
+---
+
+<div class="flex min-h-0 flex-col justify-center gap-1">
+  <template
+    x-for="row in objectiveRows()"
+    :key="row.objective"
+  >
+    <div
+      class="flex items-center justify-between gap-2"
+      role="img"
+      :class="row.closed && 'opacity-50'"
+      :aria-label="`${row.label}: ${row.marks} of 3 marks`"
+    >
+      <span
+        class="text-[13px] font-medium text-foreground"
+        x-text="row.label"
+      ></span>
+      <span class="flex gap-1">
+        <template
+          x-for="pip in [1, 2, 3]"
+          :key="pip"
+        >
+          <span
+            class="size-2.5 rounded-full"
+            :class="pip <= row.marks ? 'pip-on' : 'inset-well'"
+          ></span>
+        </template>
+      </span>
+    </div>
+  </template>
+</div>

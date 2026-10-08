@@ -967,37 +967,7 @@ describe("oneTwentyOnePlay — 121_V2 resume/replay and round/time UI", () => {
     });
   });
 
-  describe("durationType / attemptLabel / remainingLabel", () => {
-    it("durationType reads TARGET for a 121_V1 session", () => {
-      const play = createPlay();
-      expect(play.durationType()).toBe("TARGET");
-    });
-
-    it("durationType reads the config for a 121_V2 session", () => {
-      store.game.configSnapshot = {
-        seats: SEATS,
-        durationType: "ROUNDS",
-        durationValue: 10,
-      } as any;
-      const play = createPlay();
-      expect(play.durationType()).toBe("ROUNDS");
-    });
-
-    it("attemptLabel reads attemptsCompleted against duration_value", () => {
-      store.game.configSnapshot = {
-        seats: SEATS,
-        durationType: "ROUNDS",
-        durationValue: 10,
-      } as any;
-      const play = createPlay();
-      play.engine = oneTwentyOneV2EngineFactory.create(
-        store.game.configSnapshot as any,
-      ) as any;
-      play.engine!.record({ scoreAttempted: 121, finishedOnDouble: true });
-      store.game.recordFacts(play.engine!.facts());
-      expect(play.attemptLabel()).toBe("2 of 10");
-    });
-
+  describe("remainingLabel", () => {
     it("remainingLabel formats $store.game.timerRemainingMs as mm:ss", () => {
       store.game.timerRemainingMs = 65000;
       const play = createPlay();

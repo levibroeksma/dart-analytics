@@ -3,41 +3,33 @@ interface Props {
   [key: string]: unknown;
 }
 
+// Props
 const { ...props }: Props = Astro.props;
 
+// Components
 import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
 import SplitScoreboard from "@components/layout/games/SplitScoreboard.astro";
+import PlayStatTile from "@components/layout/games/PlayStatTile.astro";
 import VisitPreview from "@components/layout/games/VisitPreview.astro";
 import DoublesPathRecreationalInput from "@components/layout/games/DoublesPathRecreationalInput.astro";
 import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
-import StatRow from "@components/layout/games/StatRow.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
 ---
 
 <div
-  class="flex flex-col flex-1 min-h-0 gap-3"
+  class="flex flex-col flex-1 min-h-0 gap-2"
   {...props}
 >
   <template x-if="(state()?.seats.length ?? 1) < 2">
-    <SinglePlayerDisplay
-      isTarget={true}
-      target="currentTargetLabel()"
-    >
-      <div
-        slot="progress"
-        class="mt-2 flex w-full flex-col items-center gap-2 px-4"
-      >
-        <dl class="w-full space-y-1">
-          <StatRow
-            label="Hits"
-            value="hitCount()"
-          />
-          <StatRow
-            label="Misses"
-            value="missCount()"
-          />
-        </dl>
-      </div>
+    <SinglePlayerDisplay target="currentTargetLabel()">
+      <PlayStatTile
+        label="Hits"
+        valueExpr="hitCount()"
+      />
+      <PlayStatTile
+        label="Misses"
+        valueExpr="missCount()"
+      />
     </SinglePlayerDisplay>
   </template>
 
@@ -47,42 +39,42 @@ import ErrorAlert from "@components/ui/ErrorAlert.astro";
         nameExpr: "$store.game.seats[0]?.displayName",
         activeExpr:
           "state()?.activeParticipantRef === state()?.seats[0]?.participantRef",
-        scoreExpr: "hitCountFor(state()?.seats[0]?.participantRef)",
+        scoreExpr: "currentTargetLabelFor(state()?.seats[0]?.participantRef)",
+        idleStatExpr: "hitCountFor(state()?.seats[0]?.participantRef)",
       }}
       seatB={{
         nameExpr: "$store.game.seats[1]?.displayName",
         activeExpr:
           "state()?.activeParticipantRef === state()?.seats[1]?.participantRef",
-        scoreExpr: "hitCountFor(state()?.seats[1]?.participantRef)",
+        scoreExpr: "currentTargetLabelFor(state()?.seats[1]?.participantRef)",
+        idleStatExpr: "hitCountFor(state()?.seats[1]?.participantRef)",
       }}
-      isTarget={true}
+      idleStatLabel="Hits"
     >
-      <dl
-        slot="progressA"
-        class="w-full space-y-1"
-      >
-        <StatRow
-          label="Target"
-          value="currentTargetLabelFor(state()?.seats[0]?.participantRef)"
+      <Fragment slot="progressA">
+        <PlayStatTile
+          compact
+          label="Hits"
+          valueExpr="hitCountFor(state()?.seats[0]?.participantRef)"
         />
-        <StatRow
+        <PlayStatTile
+          compact
           label="Misses"
-          value="missCountFor(state()?.seats[0]?.participantRef)"
+          valueExpr="missCountFor(state()?.seats[0]?.participantRef)"
         />
-      </dl>
-      <dl
-        slot="progressB"
-        class="w-full space-y-1"
-      >
-        <StatRow
-          label="Target"
-          value="currentTargetLabelFor(state()?.seats[1]?.participantRef)"
+      </Fragment>
+      <Fragment slot="progressB">
+        <PlayStatTile
+          compact
+          label="Hits"
+          valueExpr="hitCountFor(state()?.seats[1]?.participantRef)"
         />
-        <StatRow
+        <PlayStatTile
+          compact
           label="Misses"
-          value="missCountFor(state()?.seats[1]?.participantRef)"
+          valueExpr="missCountFor(state()?.seats[1]?.participantRef)"
         />
-      </dl>
+      </Fragment>
     </SplitScoreboard>
   </template>
 
