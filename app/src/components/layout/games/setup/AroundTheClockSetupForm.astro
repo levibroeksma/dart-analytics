@@ -9,6 +9,7 @@ import UserSection from "./UserSection.astro";
 import SettingLabel from "./SettingLabel.astro";
 import RangeSlider from "@components/forms/RangeSlider.astro";
 import { supportsDartbot } from "@lib/game/rulesets/capabilities";
+import { ORDER_MODE_LABELS } from "@lib/game/play-subtitle";
 import {
   aroundTheClockDurationBounds,
   AROUND_THE_CLOCK_DEFAULT_MINUTES,
@@ -22,8 +23,8 @@ const infoSection = {
 };
 
 const directionOpts = [
-  { value: "LOW_TO_HIGH", label: "Low → High" },
-  { value: "HIGH_TO_LOW", label: "High → Low" },
+  { value: "LOW_TO_HIGH", label: ORDER_MODE_LABELS.LOW_TO_HIGH },
+  { value: "HIGH_TO_LOW", label: ORDER_MODE_LABELS.HIGH_TO_LOW },
 ];
 
 const segmentOpts = [
