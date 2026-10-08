@@ -88,6 +88,54 @@ describe("profileStore", () => {
     expect(store.error).not.toBeNull();
   });
 
+  describe("save normalisation", () => {
+    const stored = {
+      displayName: "Levi",
+      dartsDescription: null,
+      dartsWeightGrams: null,
+    };
+
+    it("sends a cleared or blank darts description as null", async () => {
+      for (const value of ["", "   "]) {
+        saveProfile.mockReset();
+        saveProfile.mockResolvedValue(stored);
+        const store = profileStore();
+        store.displayName = "Levi";
+        store.dartsDescription = value;
+        await store.save();
+
+        expect(saveProfile).toHaveBeenCalledWith(stored);
+        expect(store.dartsDescription).toBeNull();
+        expect(store.error).toBeNull();
+      }
+    });
+
+    it("sends a cleared weight as null", async () => {
+      saveProfile.mockResolvedValue(stored);
+      const store = profileStore();
+      store.displayName = "Levi";
+      (store as { dartsWeightGrams: unknown }).dartsWeightGrams = "";
+      await store.save();
+
+      expect(saveProfile).toHaveBeenCalledWith(stored);
+      expect(store.dartsWeightGrams).toBeNull();
+    });
+
+    it("rejects non-numeric or out-of-range weight without calling the API", async () => {
+      for (const value of ["abc", "23.5", 0, 101, 23.5]) {
+        saveProfile.mockReset();
+        const store = profileStore();
+        store.displayName = "Levi";
+        (store as { dartsWeightGrams: unknown }).dartsWeightGrams = value;
+        await store.save();
+
+        expect(saveProfile).not.toHaveBeenCalled();
+        expect(store.error).not.toBeNull();
+        expect(store.loading).toBe(false);
+      }
+    });
+  });
+
   describe("weightLabel", () => {
     it("shows grams for a number", () => {
       const store = profileStore();

@@ -1,6 +1,32 @@
 import { fetchProfile, saveProfile } from "@client/api/profile";
 
 /**
+ * A free-text optional field as the API expects it: blank or whitespace
+ * reads as unset (`null`), since the contract rejects `""`.
+ */
+function optionalText(value: string | null): string | null {
+  return value === null || value.trim() === "" ? null : value;
+}
+
+/**
+ * Weight as the API expects it. `x-model.number` leaves a cleared field as
+ * `""` (unset, `null`) and non-numeric input as a string; anything that is
+ * not a whole number 1–100 returns `undefined` so the save is refused
+ * before the request.
+ */
+function optionalWeight(value: unknown): number | null | undefined {
+  if (value === null || (typeof value === "string" && value.trim() === "")) {
+    return null;
+  }
+  return typeof value === "number" &&
+    Number.isInteger(value) &&
+    value >= 1 &&
+    value <= 100
+    ? value
+    : undefined;
+}
+
+/**
  * The player's display name and darts equipment. Empty/null until a load
  * succeeds, so a failed or slow call leaves the form blank rather than
  * showing a stale or wrong value.
@@ -47,13 +73,18 @@ export function profileStore() {
     },
 
     async save() {
+      const dartsWeightGrams = optionalWeight(this.dartsWeightGrams);
+      if (dartsWeightGrams === undefined) {
+        this.error = "Weight must be a whole number from 1 to 100";
+        return;
+      }
       this.loading = true;
       this.error = null;
       try {
         const profile = await saveProfile({
           displayName: this.displayName,
-          dartsDescription: this.dartsDescription,
-          dartsWeightGrams: this.dartsWeightGrams,
+          dartsDescription: optionalText(this.dartsDescription),
+          dartsWeightGrams,
         });
         this.displayName = profile.displayName;
         this.dartsDescription = profile.dartsDescription;
