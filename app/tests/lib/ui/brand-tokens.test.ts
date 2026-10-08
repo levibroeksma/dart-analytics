@@ -231,3 +231,82 @@ describe("login surfaces", () => {
     expect(css).not.toMatch(/\.field-inset-error:focus/);
   });
 });
+
+describe("game play surfaces", () => {
+  it.each([
+    "@utility glass-active-seat",
+    "@utility input-well",
+    "@utility key-press",
+    "@utility next-dart-ring",
+    "@utility target-key-ring",
+    "@utility pip-on",
+    "@utility board-dim",
+  ])("defines %s", (selector) => {
+    expect(() => block(selector)).not.toThrow();
+  });
+
+  it("tints the active seat card accent 18% to 4% over the glass wash, with a glow", () => {
+    const b = block("@utility glass-active-seat");
+    expect(b).toMatch(
+      /color-mix\(in oklch, var\(--accent\) 18%, transparent\)/,
+    );
+    expect(b).toMatch(/color-mix\(in oklch, var\(--accent\) 4%, transparent\)/);
+    expect(b).toMatch(/border-white\/25/);
+    expect(b).toMatch(
+      /box-shadow:\s*0 0 18px 2px color-mix\(in oklch, var\(--accent\) 30%, transparent\)/,
+    );
+  });
+
+  it("input-well is a glass board-radius well that fills the column", () => {
+    expect(block("@utility input-well")).toMatch(
+      /@apply glass rounded-board flex-1 min-h-0 gap-2 p-2\.5;/,
+    );
+  });
+
+  it("key-press rings the key in accent on :active, with no scale", () => {
+    const b = block("@utility key-press");
+    expect(b).toMatch(/transition: box-shadow 120ms var\(--ease-out\)/);
+    expect(b).toMatch(/&:active:not\(:disabled\)/);
+    expect(b).toMatch(
+      /inset 0 0 0 1px color-mix\(in oklch, var\(--accent\) 60%, transparent\)/,
+    );
+    expect(b).not.toMatch(/scale/);
+  });
+
+  it("next-dart-ring is an accent/70 inset ring with an accent/30 glow on a well", () => {
+    const b = block("@utility next-dart-ring");
+    expect(b).toMatch(/background: oklch\(0% 0 0 \/ 0\.35\)/);
+    expect(b).toMatch(
+      /inset 0 0 0 1px color-mix\(in oklch, var\(--accent\) 70%, transparent\)/,
+    );
+    expect(b).toMatch(
+      /0 0 10px color-mix\(in oklch, var\(--accent\) 30%, transparent\)/,
+    );
+  });
+
+  it("target-key-ring keeps the accent ring but drops the glow", () => {
+    const b = block("@utility target-key-ring");
+    expect(b).toMatch(
+      /inset 0 0 0 1px color-mix\(in oklch, var\(--accent\) 70%, transparent\)/,
+    );
+    expect(b).not.toMatch(/0 0 10px/);
+  });
+
+  it("pip-on is accent with an accent/40 glow", () => {
+    const b = block("@utility pip-on");
+    expect(b).toMatch(/background: var\(--accent\)/);
+    expect(b).toMatch(
+      /box-shadow:\s*0 0 6px color-mix\(in oklch, var\(--accent\) 40%, transparent\)/,
+    );
+  });
+
+  it("board-dim desaturates and darkens the board", () => {
+    expect(block("@utility board-dim")).toMatch(
+      /filter: saturate\(0\.55\) brightness\(0\.75\)/,
+    );
+  });
+
+  it("defines the magnifier drop shadow", () => {
+    expect(decl("shadow-magnifier")).toBe("0 8px 24px oklch(0% 0 0 / 0.6)");
+  });
+});
