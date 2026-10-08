@@ -2,6 +2,7 @@
 export const prerender = true;
 import GameLayout from "@layouts/GameLayout.astro";
 import AroundTheClock from "@components/layout/games/interfaces/AroundTheClock.astro";
+import CountdownPauseControl from "@components/layout/games/CountdownPauseControl.astro";
 import AroundTheClockResults from "@components/layout/games/result-modals/AroundTheClockResults.astro";
 import NoSessionPanel from "@components/layout/games/NoSessionPanel.astro";
 import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocked.astro";
@@ -9,13 +10,16 @@ import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocke
 
 <GameLayout
   title="Around the Clock — Play"
-  gameTitle="AROUND_THE_CLOCK"
+  gameTitle="Around the Clock"
+  gameSubtitleExpr="subtitle()"
+  x-data="aroundTheClockPlay()"
+  @confirm-exit.window="abandonAndExit()"
 >
-  <div
-    class="flex flex-col flex-1 min-h-0 p-3"
-    x-data="aroundTheClockPlay()"
-    @confirm-exit.window="abandonAndExit()"
-  >
+  <CountdownPauseControl
+    slot="header-end"
+    disabledExpr="finished"
+  />
+  <div class="flex flex-col flex-1 min-h-0">
     {/* Loading / reconciliation-blocked */}
     <ReconciliationBlocked />
 

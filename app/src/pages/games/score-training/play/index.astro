@@ -2,6 +2,7 @@
 export const prerender = true;
 import GameLayout from "@layouts/GameLayout.astro";
 import ScoreTraining from "@components/layout/games/interfaces/ScoreTraining.astro";
+import CountdownPauseControl from "@components/layout/games/CountdownPauseControl.astro";
 import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
 import ScoreTrainingResults from "@components/layout/games/result-modals/ScoreTrainingResults.astro";
 import NoSessionPanel from "@components/layout/games/NoSessionPanel.astro";
@@ -10,13 +11,16 @@ import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocke
 
 <GameLayout
   title="Score Training — Play"
-  gameTitle="Score Training"
+  gameTitle="Score training"
+  gameSubtitleExpr="subtitle()"
+  x-data="scoreTrainingPlay()"
+  @confirm-exit.window="abandonAndExit()"
 >
-  <div
-    class="flex flex-col flex-1 min-h-0 p-3"
-    x-data="scoreTrainingPlay()"
-    @confirm-exit.window="abandonAndExit()"
-  >
+  <CountdownPauseControl
+    slot="header-end"
+    disabledExpr="finished || showFinishConfirm"
+  />
+  <div class="flex flex-col flex-1 min-h-0">
     {/* Loading / reconciliation-blocked */}
     <ReconciliationBlocked />
 

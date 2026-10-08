@@ -11,13 +11,12 @@ import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocke
 
 <GameLayout
   title="501 — Play"
-  gameTitleExpr="matchTitle()"
+  gameTitle="501"
+  gameSubtitleExpr="subtitle()"
+  x-data="fiveOhOnePlay()"
+  @confirm-exit.window="abandonAndExit()"
 >
-  <div
-    class="flex flex-col flex-1 min-h-0 p-3"
-    x-data="fiveOhOnePlay()"
-    @confirm-exit.window="abandonAndExit()"
-  >
+  <div class="flex flex-col flex-1 min-h-0">
     {/* Loading / reconciliation-blocked */}
     <ReconciliationBlocked />
 
