@@ -14,6 +14,12 @@
   --accent-deep: oklch(14% 0.05 245 / 0.9);
   --accent-bright: oklch(80% 0.13 237);
   --accent-foreground-muted: oklch(92% 0.01 240);
+  --accent-deep-blue: oklch(44.3% 0.11 240.79);
+  --gradient-blue-glass: linear-gradient(
+    138deg,
+    oklch(47% 0.13 238 / 0.95) 22%,
+    oklch(18% 0.06 245 / 0.95) 82%
+  );
 
   --surface: oklch(0% 0 0);
   --surface-raised: oklch(100% 0 0 / 0.04);
@@ -26,16 +32,18 @@
   --soft-foreground: oklch(78% 0 0);
   --strong-foreground: oklch(86% 0 0);
   --faint-foreground: oklch(50% 0 0);
+  --placeholder: oklch(48% 0 0);
+  --scrim: oklch(0% 0 0 / 0.6);
 
-  --error: oklch(65% 0.2 25);
-  --error-hover: oklch(60% 0.2 25);
-  --error-muted: oklch(65% 0.2 25 / 0.14);
-  --error-foreground: oklch(96% 0.01 25);
+  --error: oklch(68% 0.15 30);
+  --error-hover: oklch(63% 0.15 30);
+  --error-muted: oklch(68% 0.15 30 / 0.12);
+  --error-foreground: oklch(96% 0.01 30);
 
   --success: oklch(72% 0.16 155);
   --success-muted: oklch(72% 0.16 155 / 0.14);
-  --missed: oklch(68% 0.15 30);
-  --missed-muted: oklch(68% 0.15 30 / 0.12);
+  --missed: var(--error);
+  --missed-muted: var(--error-muted);
   --chip-foreground: oklch(82% 0 0);
   --chart-sky: oklch(66% 0.127 240.5);
   --chart-violet: oklch(67% 0.145 286.8);
@@ -62,6 +70,8 @@
   --color-accent-deep: var(--accent-deep);
   --color-accent-bright: var(--accent-bright);
   --color-accent-foreground-muted: var(--accent-foreground-muted);
+  --color-accent-deep-blue: var(--accent-deep-blue);
+  --background-image-blue-glass: var(--gradient-blue-glass);
 
   --color-surface: var(--surface);
   --color-surface-raised: var(--surface-raised);
@@ -74,6 +84,8 @@
   --color-soft-foreground: var(--soft-foreground);
   --color-strong-foreground: var(--strong-foreground);
   --color-faint-foreground: var(--faint-foreground);
+  --color-placeholder: var(--placeholder);
+  --color-scrim: var(--scrim);
 
   --text-shadow-hero: 0 4px 30px oklch(0% 0 0 / 0.6);
 
@@ -91,11 +103,43 @@
   --font-display: "Michroma", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
+  --text-hero: 4.5rem;
+  --text-hero--line-height: 1;
+  --text-hero--letter-spacing: -0.02em;
+  --text-title: 1.625rem;
+  --text-title--line-height: 1.2;
+  --text-title--letter-spacing: 0.02em;
+  --text-value: 1.875rem;
+  --text-value--line-height: 1;
+  --text-value--letter-spacing: 0;
+  --text-tile: 1.25rem;
+  --text-tile--line-height: 1.2;
+  --text-tile--letter-spacing: 0;
+  --text-card-title: 0.8125rem;
+  --text-card-title--line-height: 1.3;
+  --text-card-title--letter-spacing: 0.06em;
+  --text-button: 0.9375rem;
+  --text-button--line-height: 1.3;
+  --text-button--letter-spacing: 0;
+  --text-eyebrow: 0.625rem;
+  --text-eyebrow--line-height: 1.2;
+  --text-eyebrow--letter-spacing: 0.12em;
+  --text-eyebrow-lg: 0.75rem;
+  --text-eyebrow-lg--line-height: 1.2;
+  --text-eyebrow-lg--letter-spacing: 0.14em;
+
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
   --radius-xl: 1rem;
   --radius-2xl: 1.25rem;
+  --radius-row: 0.875rem;
+  --radius-key: 1.375rem;
+  --radius-switch: 1.625rem;
+  --radius-board: 1.75rem;
+  --radius-sheet: 2rem;
+
+  --spacing-hit: 2.75rem;
 
   --dartboard-single-dark: oklch(16% 0 0);
   --dartboard-single-light: oklch(90% 0.045 90);
@@ -210,7 +254,7 @@
     background: radial-gradient(
       ellipse 100% 80% at 50% 100%,
       transparent 30%,
-      oklch(44.3% 0.11 240.79 / 0.3)
+      color-mix(in oklch, var(--accent-deep-blue) 30%, transparent)
     );
   }
 

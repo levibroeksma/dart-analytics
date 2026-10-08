@@ -1,0 +1,85 @@
+import { readFileSync } from "node:fs";
+import { describe, expect, it } from "vitest";
+
+const css = readFileSync(
+  new URL("../../../src/styles/global.css", import.meta.url),
+  "utf8",
+);
+
+function decl(name: string): string | undefined {
+  return css.match(new RegExp(`^\\s*--${name}:\\s*([^;]+);`, "m"))?.[1].trim();
+}
+
+describe("brand colour tokens", () => {
+  it("uses coral as the error hue", () => {
+    expect(decl("error")).toBe("oklch(68% 0.15 30)");
+    expect(decl("error-hover")).toBe("oklch(63% 0.15 30)");
+    expect(decl("error-muted")).toBe("oklch(68% 0.15 30 / 0.12)");
+    expect(decl("error-foreground")).toBe("oklch(96% 0.01 30)");
+  });
+
+  it("aliases missed to error", () => {
+    expect(decl("missed")).toBe("var(--error)");
+    expect(decl("missed-muted")).toBe("var(--error-muted)");
+  });
+
+  it.each([
+    ["placeholder", "oklch(48% 0 0)"],
+    ["accent-deep-blue", "oklch(44.3% 0.11 240.79)"],
+    ["scrim", "oklch(0% 0 0 / 0.6)"],
+  ])("defines --%s", (name, value) => {
+    expect(decl(name)).toBe(value);
+  });
+
+  it("defines the blue glass gradient", () => {
+    expect(decl("gradient-blue-glass")).toMatch(
+      /^linear-gradient\(\s*138deg,\s*oklch\(47% 0\.13 238 \/ 0\.95\) 22%,\s*oklch\(18% 0\.06 245 \/ 0\.95\) 82%\s*\)$/,
+    );
+  });
+
+  it.each([
+    ["color-placeholder", "var(--placeholder)"],
+    ["color-accent-deep-blue", "var(--accent-deep-blue)"],
+    ["color-scrim", "var(--scrim)"],
+    ["background-image-blue-glass", "var(--gradient-blue-glass)"],
+  ])("maps --%s in @theme", (name, value) => {
+    expect(decl(name)).toBe(value);
+  });
+
+  it("vignette reads the deep-blue token", () => {
+    expect(css).not.toMatch(/oklch\(44\.3% 0\.11 240\.79 \/ 0\.3\)/);
+    expect(css).toMatch(
+      /color-mix\(in oklch, var\(--accent-deep-blue\) 30%, transparent\)/,
+    );
+  });
+});
+
+describe("brand type scale", () => {
+  it.each([
+    ["hero", "4.5rem", "1", "-0.02em"],
+    ["title", "1.625rem", "1.2", "0.02em"],
+    ["value", "1.875rem", "1", "0"],
+    ["tile", "1.25rem", "1.2", "0"],
+    ["card-title", "0.8125rem", "1.3", "0.06em"],
+    ["button", "0.9375rem", "1.3", "0"],
+    ["eyebrow", "0.625rem", "1.2", "0.12em"],
+    ["eyebrow-lg", "0.75rem", "1.2", "0.14em"],
+  ])("defines text-%s", (name, size, lh, ls) => {
+    expect(decl(`text-${name}`)).toBe(size);
+    expect(decl(`text-${name}--line-height`)).toBe(lh);
+    expect(decl(`text-${name}--letter-spacing`)).toBe(ls);
+  });
+});
+
+describe("brand radius and spacing", () => {
+  it.each([
+    ["radius-row", "0.875rem"],
+    ["radius-key", "1.375rem"],
+    ["radius-switch", "1.625rem"],
+    ["radius-board", "1.75rem"],
+    ["radius-sheet", "2rem"],
+    ["spacing-hit", "2.75rem"],
+  ])("defines --%s", (name, value) => {
+    expect(decl(name)).toBe(value);
+  });
+});
