@@ -1,7 +1,18 @@
 ---
 /**
- * Reusable visit-score keypad shell. Parent supplies Alpine expressions and owns
- * ScoreInputBuffer (or equivalent) + submit/undo game rules.
+ * Visit-score keypad in an `input-well`: the entry row (value, then a raised
+ * Submit), a hairline, then a 3×4 key grid of 1–9, then undo, 0 and delete.
+ * The parent supplies the Alpine expressions and owns the buffer and the
+ * game rules.
+ * @param {string} value Alpine expr for the buffered digits
+ * @param {string} digitHandler Alpine function, called as `handler(digit, $event)`
+ * @param {string} onDelete Alpine expr for delete
+ * @param {string} onSubmit Alpine expr for submit
+ * @param {string} [submitDisabled] Alpine expr; defaults to an empty buffer
+ * @param {string} [padDisabled] Alpine expr disabling the digit and delete keys
+ * @param {string} [undoClick] Alpine expr for undo; omit for an inert key
+ * @param {string} [undoDisabled] Alpine expr disabling undo
+ * @param {string} [class] Extra classes
  */
 interface Props {
   value: string;
@@ -42,94 +53,79 @@ import UndoIcon from "@icons/undo.svg";
 import { cn } from "@client/cn";
 
 // Data
-const numberRows = [
-  [1, 2, 3],
-  [4, 5, 6],
-  [7, 8, 9],
-];
+const digits = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+const padAttrs = padDisabled ? { ":disabled": padDisabled } : {};
 
 // Styles
-const rootClass = cn("flex flex-1 flex-col gap-3", classNameProp);
+const rootClass = cn("input-well flex flex-col", classNameProp);
 ---
 
 <div
   class={rootClass}
   {...props}
 >
-  <div class="flex items-center gap-3">
-    <div
-      class="border border-border bg-surface-overlay flex min-h-11 flex-1 items-center justify-center rounded-lg px-4 w-1/2"
-    >
-      <span
-        class="text-4xl font-mono font-bold tabular-nums py-1.5"
-        :class={`!${value} && 'text-muted-foreground'`}
-        x-text={`${value} || '0'`}
-      ></span>
-    </div>
+  <div
+    class="inset-well flex shrink-0 items-center gap-2 rounded-[22px] py-[5px] pr-[5px] pl-5"
+  >
+    <span
+      class="min-w-0 flex-1 truncate font-mono text-[30px] font-medium tabular-nums"
+      :class={`(!${value} || ${value} === '0') ? 'text-placeholder' : 'text-foreground'`}
+      x-text={`${value} || '0'`}
+    ></span>
     <Button
       type="button"
-      variant="primary"
+      variant="sheet-raised"
       title="Submit"
-      class="w-1/2 h-full"
+      class="h-12 w-[110px] shrink-0 rounded-[17px]"
       {...{ ":disabled": submitDisabled, "x-on:click": onSubmit }}
     />
   </div>
-
   <div
-    class="rounded-lg glass border border-border bg-surface-raised grid h-full w-full divide-y divide-border"
+    class="h-px shrink-0 bg-white/8"
+    aria-hidden="true"
   >
+  </div>
+  <div class="grid min-h-0 flex-1 auto-rows-fr grid-cols-3 gap-2">
     {
-      numberRows.map((row) => (
-        <div class="flex w-full divide-x divide-border">
-          {row.map((digit) => (
-            <InputButton
-              {...{
-                "x-on:click": `${digitHandler}(${digit}, $event)`,
-                ...(padDisabled ? { ":disabled": padDisabled } : {}),
-              }}
-            >
-              {digit}
-            </InputButton>
-          ))}
-        </div>
+      digits.map((digit) => (
+        <InputButton
+          {...{
+            "x-on:click": `${digitHandler}(${digit}, $event)`,
+            ...padAttrs,
+          }}
+        >
+          {digit}
+        </InputButton>
       ))
     }
-    <div class="flex w-full divide-x divide-border">
-      {
-        undoClick ? (
-          <InputButton
-            aria-label="Undo last visit"
-            {...{
-              "x-on:click": undoClick,
-              ":disabled": undoDisabled,
-            }}
-          >
-            <UndoIcon class="size-6 text-muted" />
-          </InputButton>
-        ) : (
-          <InputButton
-            aria-hidden="true"
-            {...{ ":disabled": "true" }}
-          />
-        )
-      }
-      <InputButton
-        {...{
-          "x-on:click": `${digitHandler}(0, $event)`,
-          ...(padDisabled ? { ":disabled": padDisabled } : {}),
-        }}
-      >
-        0
-      </InputButton>
-      <InputButton
-        aria-label="Delete last digit"
-        {...{
-          "x-on:click": onDelete,
-          ...(padDisabled ? { ":disabled": padDisabled } : {}),
-        }}
-      >
-        <DeleteIcon class="size-6 text-muted" />
-      </InputButton>
-    </div>
+    {
+      undoClick ? (
+        <InputButton
+          variant="muted"
+          aria-label="Undo last visit"
+          {...{ "x-on:click": undoClick, ":disabled": undoDisabled }}
+        >
+          <UndoIcon class="size-6 text-muted-foreground" />
+        </InputButton>
+      ) : (
+        <InputButton
+          variant="muted"
+          aria-hidden="true"
+          {...{ ":disabled": "true" }}
+        />
+      )
+    }
+    <InputButton
+      {...{ "x-on:click": `${digitHandler}(0, $event)`, ...padAttrs }}
+    >
+      0
+    </InputButton>
+    <InputButton
+      variant="muted"
+      aria-label="Delete last digit"
+      {...{ "x-on:click": onDelete, ...padAttrs }}
+    >
+      <DeleteIcon class="size-6 text-muted-foreground" />
+    </InputButton>
   </div>
 </div>

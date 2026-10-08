@@ -1,4 +1,10 @@
 ---
+/**
+ * Tap input for a single-number target, in an `input-well`. Row 1 holds the
+ * S/D/T keys for the current number, or BULL / BULLSEYE on the bull. Row 2
+ * holds undo and MISS. Reads `isBullVisit()`, `currentTargetLabel()`,
+ * `recordTap()`, `undoVisit()` and `finished` from the play scope.
+ */
 interface Props {
   [key: string]: unknown;
 }
@@ -14,10 +20,10 @@ import UndoIcon from "@icons/undo.svg";
 ---
 
 <div
-  class="rounded-lg glass border border-border bg-surface-raised flex flex-col flex-1 min-h-0 w-full divide-y divide-border"
+  class="input-well flex flex-col"
   {...props}
 >
-  <div class="flex flex-1 min-h-0 divide-x divide-border">
+  <div class="flex min-h-0 flex-1 gap-2">
     <template x-if="!isBullVisit()">
       <InputButton
         :disabled="finished"
@@ -59,15 +65,17 @@ import UndoIcon from "@icons/undo.svg";
       </InputButton>
     </template>
   </div>
-  <div class="flex flex-1 min-h-0 divide-x divide-border">
+  <div class="flex min-h-0 flex-1 gap-2">
     <InputButton
+      variant="muted"
       aria-label="Undo last dart"
       :disabled="!$store.game.turns.length || finished"
       @click="undoVisit()"
     >
-      <UndoIcon class="size-6 text-muted" />
+      <UndoIcon class="size-6 text-muted-foreground" />
     </InputButton>
     <InputButton
+      class="text-[22px] tracking-[0.08em] text-soft-foreground"
       :disabled="finished"
       @click="recordTap('MISS')"
     >

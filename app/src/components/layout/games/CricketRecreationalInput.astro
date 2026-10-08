@@ -1,4 +1,10 @@
 ---
+/**
+ * Cricket's tap input in an `input-well`. Row 1: undo, then the S/D/T ring
+ * keys. S clears D/T; the armed key is `glass-blue` (`ringKeyActive`).
+ * Row 2: the seven objectives and MISS on a four-column grid. Treble
+ * cannot apply to the bull, so BULL is disabled while T is armed.
+ */
 interface Props {
   [key: string]: unknown;
 }
@@ -14,50 +20,58 @@ import UndoIcon from "@icons/undo.svg";
 ---
 
 <div
-  class="rounded-lg glass border border-border bg-surface-raised flex flex-1 min-h-0 w-full flex-col divide-y divide-border"
+  class="input-well flex flex-col"
   {...props}
 >
-  <div class="flex flex-1 min-h-0 divide-x divide-border">
+  <div class="grid min-h-0 flex-1 grid-cols-4 gap-2">
     <InputButton
+      variant="muted"
       aria-label="Undo last dart"
       :disabled="!$store.game.turns.length || finished"
       @click="undoVisit()"
     >
-      <UndoIcon class="size-6 text-muted" />
+      <UndoIcon class="size-6 text-muted-foreground" />
     </InputButton>
     <InputButton
-      :aria-pressed="ring === 'DOUBLE'"
-      :class="ring === 'DOUBLE' && 'bg-primary/20'"
+      pressedExpr="$ringKeyActive(ring, 'S')"
+      :disabled="finished"
+      @click="setRing('SINGLE')"
+    >
+      S
+    </InputButton>
+    <InputButton
+      pressedExpr="$ringKeyActive(ring, 'D')"
       :disabled="finished"
       @click="setRing('DOUBLE')"
     >
       D
     </InputButton>
     <InputButton
-      :aria-pressed="ring === 'TREBLE'"
-      :class="ring === 'TREBLE' && 'bg-primary/20'"
+      pressedExpr="$ringKeyActive(ring, 'T')"
       :disabled="finished"
       @click="setRing('TREBLE')"
     >
       T
     </InputButton>
-    <InputButton
-      :disabled="finished"
-      @click="recordMiss()"
-    >
-      MIS
-    </InputButton>
   </div>
-  <div class="grid flex-1 min-h-0 grid-cols-4 divide-x divide-border">
+  <div class="grid min-h-0 flex-[2] auto-rows-fr grid-cols-4 gap-2">
     <template
       x-for="row in objectiveRows()"
       :key="row.objective"
     >
       <InputButton
+        class="text-2xl uppercase"
         :disabled="finished || (row.objective === 25 && ring === 'TREBLE')"
         @click="recordObjective(row.objective)"
         x-text="row.label"
       />
     </template>
+    <InputButton
+      class="text-2xl text-soft-foreground"
+      :disabled="finished"
+      @click="recordMiss()"
+    >
+      MISS
+    </InputButton>
   </div>
 </div>

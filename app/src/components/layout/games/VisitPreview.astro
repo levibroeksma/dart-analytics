@@ -1,4 +1,11 @@
 ---
+/**
+ * The open visit's three darts as a `glass` strip. Each column has an 18px
+ * header (HIT with a check, MISS with a cross, or DART n) over a 6px bar:
+ * accent for a hit, white/22 for a miss, a well for an empty dart. The
+ * next dart's bar takes `next-dart-ring` (`previewColumnState`). Reads
+ * `previewSegments()` from the play scope.
+ */
 interface Props {
   [key: string]: unknown;
 }
@@ -12,34 +19,40 @@ import CrossIcon from "@icons/cross.svg";
 ---
 
 <div
-  class="flex flex-col items-center gap-1"
+  class="glass grid shrink-0 grid-cols-3 gap-2 rounded-[22px] px-[18px] py-3"
   {...props}
 >
-  <div
-    class="rounded-lg glass border border-border bg-surface-raised flex w-full divide-x divide-border"
+  <template
+    x-for="(column, index) in $previewColumnState(previewSegments())"
+    :key="index"
   >
-    <template
-      x-for="(segment, index) in previewSegments()"
-      :key="index"
-    >
-      <div class="relative flex h-12 flex-1 items-center justify-center">
-        <span
-          class="pointer-events-none absolute inset-x-0 text-center text-muted-foreground uppercase transition-all duration-150"
-          :class="segment.status === 'empty' ? 'top-1/2 -translate-y-1/2 text-xs' : 'top-1 text-[10px]'"
-          x-text="'Dart ' + (index + 1)"
-        >
-        </span>
-        <CheckIcon
-          class="size-5 text-success"
-          x-show="segment.status === 'hit'"
-          x-cloak
-        />
-        <CrossIcon
-          class="size-5 text-error"
-          x-show="segment.status === 'miss'"
-          x-cloak
-        />
+    <div class="flex min-w-0 flex-col gap-1.5">
+      <div
+        class="flex h-[18px] items-center font-mono text-eyebrow font-semibold uppercase"
+      >
+        <template x-if="column.status === 'hit'">
+          <span class="flex items-center gap-1 text-accent">
+            <CheckIcon class="size-3.5" />
+            HIT
+          </span>
+        </template>
+        <template x-if="column.status === 'miss'">
+          <span class="flex items-center gap-1 text-muted">
+            <CrossIcon class="size-3" />
+            MISS
+          </span>
+        </template>
+        <template x-if="column.status === 'empty'">
+          <span
+            :class="column.next ? 'text-soft-foreground' : 'text-faint-foreground'"
+            x-text="'DART ' + (index + 1)"
+          ></span>
+        </template>
       </div>
-    </template>
-  </div>
+      <span
+        class="h-1.5 rounded-full"
+        :class="column.status === 'hit' ? 'bg-accent' : column.status === 'miss' ? 'bg-white/22' : column.next ? 'next-dart-ring' : 'inset-well'"
+      ></span>
+    </div>
+  </template>
 </div>
