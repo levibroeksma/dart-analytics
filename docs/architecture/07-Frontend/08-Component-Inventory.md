@@ -25,7 +25,7 @@ evaluated in the page's own Alpine scope.
 | Component | Purpose | Key props |
 | --------- | ------- | --------- |
 | `Badge.astro` | Small inline status pill | `variant` (`accent`/`error`/`neutral`) |
-| `BoardMagnifier.astro` | Zoomed board detail follows the pointer during visual capture | `zoom` |
+| `BoardMagnifier.astro` | Zoomed board detail follows the pointer during visual capture; accent rim, `shadow-magnifier`, the read in a pill inside the circle (D432) | `zoom` |
 | `CardWrapper.astro` | Bordered card, optionally a link; `color` takes a tint preset (`sky`, `violet`, `rose`, `teal` — added 2026-09-22, `emerald`, `amber`, `orange`, `fuchsia`, `blue`) or any CSS color | `href`, `title`, `description`, `color`, `external` |
 | `Chart.astro` | Line/bar/doughnut chart from a plain `ChartSpec`: glass container, canvas, legend for ≥ 2 series or doughnut slices, table view fallback; `flat` inside an existing glass card (2026-09-30, D374); `table={false}` hides the table view (2026-10-02, D385) | `specExpr`, `title`, `formatter`, `heightClass`, `flat`, `table`, `class` |
 | `ConfirmDialog.astro` | Modal with a muted cancel and a raised confirm (`SheetActions`) and an optional `context` slot for an `InlayRow`; no `confirmVariant` (D429, 2026-10-08) | `title`, `titleId`, `description`, `onCancel`, `onConfirm`, `loadingExpr`, `dismissible` |
@@ -67,39 +67,44 @@ evaluated in the page's own Alpine scope.
 | --------- | ------- | --------- |
 | `BottomNav.astro` | The floating `glass-raised` pill five-tab main navigation (D416, D419) (Home, Games, Training, Stats, Profile), one `NavBtn` per `NAV_TABS` entry (2026-10-06) | none |
 | `NavBtn.astro` | One bottom-nav tab: icon slot plus label; `aria-current="page"`, accent colour and `glass-tinted-raised` pill (D419, 2026-10-06) when `isNavActive()` matches the current path | `href`, `label`, `matchPrefix` (defaults to `href + "/"`, none for `/`), `class` |
+| `GameLayout.astro` (`app/src/layouts/`) | Play-screen shell: 56px `glass` header pill (exit, display title, live subtitle, `header-end` slot) over the padded play column; leftover attributes (the page's play `x-data`, `@confirm-exit.window`) land on the header+main wrapper (D432) | `title`, `gameTitle`, `gameTitleExpr`, `gameSubtitleExpr`, `exitDescription`, slot `header-end` |
 
 ## `components/layout/games/` (shared across rulesets)
 
 | Component | Purpose | Key props |
 | --------- | ------- | --------- |
-| `BoardInputPanel.astro` | Visual-board capture surface plus undo/bounce-out row; shown instead of the keypad for `ANALYTICS` + `VISUAL_BOARD` | none (reads `boardInputData()` from the page scope) |
+| `BoardInputPanel.astro` | Visual-board capture in an `input-well`: square board that dims while pressed (`board-dim`) under a 44px pointer ring, then an undo / Bounce out key row; shown instead of the keypad for `ANALYTICS` + `VISUAL_BOARD` (D432) | none (reads `boardInputData()` from the page scope) |
 | `CheckoutConfirm.astro` | Double-out confirm (Cancel / Confirm checkout); collects the checkout's darts-to-finish and darts-at-a-double as segmented pill tracks | none (reads `checkoutDartOptions()`, `dartsToFinish`, `dartsAtDouble` from the page scope) |
 | `ComparisonSummary.astro` | 1v1 results-modal stat block: seat names (or, with `legsBars`, the legs score and one bar per leg to win) plus an inlay ledger of `StatRowComparison` rows, winner column tinted via `winnerExpr`, shown only for a 2-seat `resultsSnapshot` (2026-08-30; ledger, D429, 2026-10-08) | `statRows` (`{ label, key, fallback? }[]`), `winnerExpr`, `legsBars` |
 | `ContinueSessionModal.astro` | Resume-or-discard prompt for an unfinished session | `gameTitle` |
-| `CountdownPauseControl.astro` | MINUTES-mode countdown label plus Pause/Resume toggle (2026-09-07) | `disabledExpr` (reads `remainingLabel()`/`togglePause()`/`$store.game.timerPaused` from the page scope) |
-| `CountdownResumePrompt.astro` | Centered large resume button shown in place of the score/board input while `$store.game.timerPaused` is true, so a paused timer doesn't leave a disabled input on screen (#253, 2026-09-10) | `disabledExpr` (reads `togglePause()` from the page scope) |
-| `DoublesPathRecreationalInput.astro` | Doubles-path tap input row | none |
-| `CricketRecreationalInput.astro` | Cricket's DETAILED_DARTS input: undo, Double/Treble ring modifier (Treble off on Bull), Miss, and the seven objective buttons; one tap records one dart (2026-10-06) | none (reads the Cricket page scope: `ring`, `setRing`, `recordObjective`, `recordMiss`, `objectiveRows`) |
-| `TacticsRecreationalInput.astro` | Tactics' DETAILED_DARTS input: undo, Double/Treble ring modifier (Treble off on Bull), Miss, and a number grid — 20–15 and Bull on a single, 14…1 added under D/T so a double or treble on any number can be entered; one tap records one dart (2026-10-06) | none (reads the Tactics page scope: `ring`, `setRing`, `recordTarget`, `recordMiss`, `tapTargets`) |
+| `CountdownPauseControl.astro` | Header countdown pill (`GameLayout` `header-end`): pause icon + `remainingLabel()`; hidden while paused, finished or without a session. Routine play renders its own above each game interface (its header has no play scope) (D432) | `disabledExpr` (reads `remainingLabel()`/`togglePause()`/`hasActiveSession`/`finished` from the play scope) |
+| `CountdownResumePrompt.astro` | Round `glass-button` with an accent play icon, shown in place of the score/board input while `$store.game.timerPaused` (#253; restyled D432) | `disabledExpr` (reads `togglePause()` from the page scope) |
+| `DoublesPathRecreationalInput.astro` | Doubles-path tap row in an `input-well`: undo, MISS, the target key (`target-key-ring`) (D432) | none |
+| `CricketRecreationalInput.astro` | Cricket's DETAILED_DARTS input in an `input-well`: undo and S/D/T ring keys (S clears D/T; the armed key `glass-blue`), then the seven objectives and MISS on a four-column grid; Treble off on Bull; one tap records one dart (2026-10-06; D432) | none (reads the Cricket page scope: `ring`, `setRing`, `recordObjective`, `recordMiss`, `objectiveRows`) |
+| `TacticsRecreationalInput.astro` | Tactics' DETAILED_DARTS input in an `input-well`: undo and S/D/T ring keys, then `tapTargets()` and MISS — four columns on a single (20–15, Bull), seven once D/T adds 14…1; Treble off on Bull (2026-10-06; D432) | none (reads the Tactics page scope: `ring`, `setRing`, `recordTarget`, `recordMiss`, `tapTargets`) |
 | `ExitModal.astro` | Leave-session confirmation | `description` (defaults to the "recorded as abandoned" copy; override for a tool with nothing to persist, e.g. Trivia) (2026-09-09) |
 | `GameCard.astro` | Linked card with title, caption and dart (used by `/training/schedules`; `/games` moved to `GameRow`) | `href`, `title`, `caption`, `duration` (optional pill, e.g. "30 min") (2026-09-11; games index moved off 2026-10-07) |
 | `GameRow.astro` | One row in a `/games` group card: Michroma title, muted caption, accent dart, linking to the setup route; the page's per-row wrapper owns `x-show` and the `isFirstVisible()` divider (2026-10-07) | `href`, `title`, `caption` |
 | `ResumeSessionCard.astro` | `/games` in-progress `feature-card`: most recent active game's title (`activeSession`) and a `glass-button` Resume link to its setup route; static detail line until issue #815 (2026-10-07) | none — reads `gamesIndex()` from the parent scope |
-| `InputButton.astro` | Single key in a tap/keypad input row | `type` |
+| `InputButton.astro` | One play key: `inset-well`, `rounded-key`, mono 26px, `key-press` accent ring, 35% when disabled (D432) | `type`, `variant` (`well`/`muted`/`target`), `pressedExpr` (`glass-blue` + `aria-pressed` while true) |
+| `LegBars.astro` | One seat's legs: a 4px pill per leg to win (accent once won), or a mono `won/target` counter above five legs (`legBarStates`, D432) | `wonExpr`, `toWinExpr` |
+| `MarkRows.astro` | Cricket/Tactics mark rows: label + three pips (`pip-on`), closed rows at 50%, `aria-label` per row (D432) | none (reads `objectiveRows()`) |
 | `NoSessionPanel.astro` | Empty state when no session is active | `href` |
+| `PlayStatTile.astro` | Inset play stat: value over a mono caps label in a 76px tile, or a 44px label/value row with `compact` (D432) | `label`, `valueExpr`, `compact` |
 | `ReconciliationBlocked.astro` | Blocked-upload explanation panel | none |
 | `ResultsModalShell.astro` | Shared results-sheet chrome: `Modal` sheet, save-status region, play-again error, back/play-again buttons; named `title` slot plus a default slot for stat rows | `showSavedMessage`, `overline` |
-| `ScoreInput.astro` | Numeric keypad with submit/delete/undo | `value`, `digitHandler`, `onDelete`, `onSubmit`, `submitDisabled`, `padDisabled`, `undoClick`, `undoDisabled` |
-| `SinglePlayerDisplay.astro` | Score-or-target panel with `above`/`progress` slots | `score`, `target`, `isTarget`, `label` (caption under the big number; defaults to "Target"/"Score" — Cricket passes "Darts", 2026-10-06), `size` (`lg`/`sm`), `fluid` (container-query sizing + no-wrap for variable-length content, e.g. Quick Subtract's equation — 2026-09-09), `activeExpr` (accent border while true), `pinnedHeight` (default `true` — the 40% scoreboard band; `false` only for the card nested inside `SplitScoreboardHalf` — 2026-09-19) |
+| `RouteChips.astro` | Checkout route as a 28px `inset-well` pill of mono parts split by dots; hidden while blank (D432) | `routeExpr` |
+| `ScoreInput.astro` | Numeric keypad in an `input-well`: entry row with a `sheet-raised` Submit, a hairline, a 3×4 key grid (D432) | same props as today |
+| `SinglePlayerDisplay.astro` | Solo play scoreboard: `glass` card in the 40% band; big value sized by `bigValueSize`, optional caption and route chips on the left, stat tiles or mark rows on the right (D432) | `score`, `target`, `isTarget`, `caption`; slots `above`, `route`, default, `progress` |
 | `SinglePlayerSummary.astro` | Solo results-modal stat block: an optional hero stat plus a two-column `StatTile` grid for the single seat, pulse tiles while loading, shown only for a 1-seat `resultsSnapshot` (2026-08-30) | `statRows` (`{ label, key, fallback?, hero? }[]`), `seatIndex` (default `0`) |
-| `SinglesRecreationalInput.astro` | Target-aware S/D/T or Bull tap row | none |
-| `SplitScoreboard.astro` | Two-seat scoreboard shell; two `SplitScoreboardHalf` columns side by side; occupies the same 40% band as an unnested `SinglePlayerDisplay` (2026-09-19) | `seatA`, `seatB` (each `{ nameExpr, activeExpr, scoreExpr, legsExpr?, checkoutExpr? }`), `isTarget`, `legsToWinExpr`, named slots `progressA`/`progressB` |
-| `SplitScoreboardHalf.astro` | One seat's column inside `SplitScoreboard`: centered name, then a compact `SinglePlayerDisplay` (`size="sm"`, accent border while active) with the optional leg-wins pill centered above the big number (`above` slot), optional checkout chips, optional leg dot pager; whole column dims to 90% opacity while inactive | `nameExpr`, `activeExpr`, `scoreExpr`, `isTarget`, `legsExpr`, `legsToWinExpr`, `checkoutExpr`; default slot renders in the progress region |
+| `SinglesRecreationalInput.astro` | Target-aware S/D/T or BULL/BULLSEYE row over undo + MISS, in an `input-well` (D432) | none |
+| `SplitScoreboard.astro` | Two-seat scoreboard in the 40% band: the throwing seat's `glass-active-seat` card on top, the waiting seat's 64px row under it (D432) | `seatA`, `seatB` (each `{ nameExpr, activeExpr, scoreExpr, idleStatExpr, legsExpr?, checkoutExpr? }`), `idleStatLabel`, `legsToWinExpr`, named slots `progressA`/`progressB` |
+| `SplitScoreboardHalf.astro` | One seat in `SplitScoreboard`: the active card (name, `LegBars`, score by `seatValueSize`, `RouteChips`, compact stat rows) or the idle row (name, `LegBars`, muted score, one stat tile), swapped on `activeExpr` (D432) | `nameExpr`, `activeExpr`, `scoreExpr`, `idleStatExpr`, `idleStatLabel`, `legsExpr`, `legsToWinExpr`, `checkoutExpr`; default slot = the active card's rows |
 | `StatRow.astro` | Label/value row inside a progress or results list | `label`, `value` |
 | `StatTile.astro` | Inlay stat tile: value over mono eyebrow label, or a pulse placeholder without `valueExpr` (2026-10-08) | `labelExpr`, `valueExpr` |
 | `StatRowComparison.astro` | 1v1 comparison row: label centered, one seat's value on each side (2026-08-28) | `label`, `leftValue`, `rightValue` |
 | `StatRowComparisonSkeleton.astro` | Loading-state placeholder for a `StatRowComparison`: a pulsing value bar either side of the label, shown while a 1v1 results modal's `completionStatus` is `pending`/`saving` | `label` |
-| `VisitPreview.astro` | Three-dart preview strip for the open visit; every adopter builds its `previewSegments()` via the shared `playPreviewSegments()` (Pattern 19) | none |
+| `VisitPreview.astro` | Three-dart `glass` strip for the open visit: HIT / MISS / DART n header over a 6px bar, the next dart ringed (`previewColumnState`); every adopter builds its `previewSegments()` via the shared `playPreviewSegments()` (Pattern 19; restyled D432) | none |
 
 ## `components/layout/games/setup/` (shared shells)
 
