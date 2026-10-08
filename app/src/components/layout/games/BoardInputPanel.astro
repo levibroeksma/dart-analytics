@@ -20,23 +20,21 @@
  * that is the last turn rather than only an open one. They are rendered into
  * `<DartBoard />`'s slot, which overlays the SVG rather than living inside it.
  *
- * `touch-none` on the pointer surface stops the browser turning a drag across
- * the board into a scroll or a pinch, so `pointermove` keeps arriving for the
- * length of the gesture. The board's own square (`aspect-square`) is a
- * `flex-1 min-h-0` item of this panel's own `flex-1 min-h-0` column, which
- * is itself a flex-grow item of the play screen's column — so the board
- * sizes off the real leftover height the play screen has available,
- * clamped to the container's width by `max-w-full`, with no
- * viewport-relative magic number. On a screen too short to fit both, it
- * shrinks before the score/target section above it, because that
- * section's own min-content size (the big score number) floors its
- * height while the board — pure SVG, no text — has none (#131).
+ * `touch-none` on the pointer surface stops the browser turning a drag into a
+ * scroll or a pinch, so `pointermove` keeps arriving for the whole gesture.
+ * The board area is a `flex-1 min-h-0` row of the panel's `input-well` column.
+ * The pointer surface is `h-full max-w-full aspect-square`, so the board sizes
+ * off the height the play screen leaves it, clamped to the width, with no
+ * viewport-relative number (#131). While a press is live, the board takes
+ * `board-dim` and a 44px ring marks the pointer. Both sit beside the
+ * magnifier, never on its ancestors: a `filter` on an ancestor becomes the
+ * containing block of the `fixed` magnifier and breaks its placement.
  */
 
 // Components
 import DartBoard from "@components/ui/DartBoard.astro";
 import BoardMagnifier from "@components/ui/BoardMagnifier.astro";
-import Button from "@components/forms/Button.astro";
+import InputButton from "@components/layout/games/InputButton.astro";
 
 // Icons
 import UndoIcon from "@icons/undo.svg";
@@ -45,57 +43,62 @@ import UndoIcon from "@icons/undo.svg";
 <div
   x-show="!finished && !$store.game.timerPaused && hasActiveSession && $store.game.inputModeKey === 'VISUAL_BOARD'"
   x-cloak
-  class="mt-3 flex min-h-0 flex-1 flex-col items-center gap-3"
+  class="input-well flex flex-col items-center"
 >
-  <div
-    class="relative min-h-0 max-w-full flex-1 aspect-square touch-none"
-    @pointerdown="onPointerDown($event)"
-    @pointermove="onPointerMove($event)"
-    @pointerup="onPointerUp()"
-    @pointercancel="onPointerCancel()"
-  >
-    <DartBoard boardRef="board">
-      <div
-        class="pointer-events-none absolute inset-0"
-        aria-hidden="true"
+  <div class="flex min-h-0 w-full flex-1 items-center justify-center">
+    <div
+      class="relative aspect-square h-full max-w-full touch-none"
+      @pointerdown="onPointerDown($event)"
+      @pointermove="onPointerMove($event)"
+      @pointerup="onPointerUp()"
+      @pointercancel="onPointerCancel()"
+    >
+      <DartBoard
+        boardRef="board"
+        class="transition-[filter] duration-150 ease-out"
+        :class="board.active && 'board-dim'"
       >
-        <template
-          x-for="marker in visitMarkers()"
-          :key="marker.sequence"
+        <div
+          class="pointer-events-none absolute inset-0"
+          aria-hidden="true"
         >
-          <span
-            class="absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-surface bg-accent"
-            :style="`left: ${marker.leftPercent}%; top: ${marker.topPercent}%`"
+          <template
+            x-for="marker in visitMarkers()"
+            :key="marker.sequence"
           >
-          </span>
-        </template>
-      </div>
-    </DartBoard>
-
-    <BoardMagnifier />
+            <span
+              class="absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-surface bg-accent"
+              :style="`left: ${marker.leftPercent}%; top: ${marker.topPercent}%`"
+            >
+            </span>
+          </template>
+        </div>
+      </DartBoard>
+      <span
+        class="pointer-events-none fixed z-10 size-11 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/12 ring-1 ring-white/25"
+        aria-hidden="true"
+        x-show="board.active"
+        x-cloak
+        :style="{ left: pointerX + 'px', top: pointerY + 'px' }"
+      ></span>
+      <BoardMagnifier />
+    </div>
   </div>
 
-  <div class="flex w-full shrink-0 gap-3">
-    <Button
-      type="button"
-      variant="secondary"
-      icon
-      ariaLabel="Undo dart"
-      class="flex-1"
-      @click="undoVisit()"
+  <div class="grid h-14 w-full shrink-0 grid-cols-2 gap-2">
+    <InputButton
+      variant="muted"
+      aria-label="Undo dart"
       :disabled="!$store.game.turns.length"
+      @click="undoVisit()"
     >
-      <UndoIcon
-        slot="iconBefore"
-        class="size-6 text-muted"
-      />
-    </Button>
-    <Button
-      type="button"
-      variant="ghost"
-      title="Bounce out"
-      class="glass flex-1"
+      <UndoIcon class="size-6 text-muted-foreground" />
+    </InputButton>
+    <InputButton
+      class="font-sans text-[15px] font-medium"
       @click="recordUnseen()"
-    />
+    >
+      Bounce out
+    </InputButton>
   </div>
 </div>

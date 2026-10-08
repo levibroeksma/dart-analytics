@@ -3,8 +3,8 @@
  * Zoomed inset that follows the fingertip while a board press is active, so
  * a 10 mm treble ring stays hittable on a phone. Renders a second, unlabelled
  * `<DartBoard />` inside a clipped circle, transformed so the board point
- * under the finger sits under the crosshair at the configured zoom, plus the
- * resolved read above it.
+ * under the finger sits under the crosshair at the configured zoom, with the
+ * resolved read in a pill inside the circle's bottom edge (D432).
  *
  * Mounts inside an ancestor's `x-data` scope — it declares none of its own.
  * That ancestor (`boardInputData()`) must expose these as plain reactive
@@ -12,7 +12,7 @@
  * DOM:
  * - `board.active: boolean` — whether a press is live
  * - `magnifierAnchor()`, `magnifierBox()`, `magnifierBoard()`,
- *   `magnifierLabel()`, `magnifierRead()` — every style and read this
+ *   `magnifierRead()` — every style and read this
  *   component draws, computed in `board-input.data.ts`
  *
  * The bindings are calls rather than inline expressions on purpose: each one
@@ -90,7 +90,7 @@ import { cn } from "@client/cn";
 
 // Styles
 const circleClass = cn(
-  "absolute left-0 top-0 -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-full border-2 border-accent bg-surface",
+  "absolute left-0 top-0 -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-full border-2 border-accent bg-surface shadow-magnifier",
   classNameProp,
 );
 ---
@@ -125,12 +125,13 @@ const circleClass = cn(
       class="absolute left-1/2 top-1/2 h-px w-4 -translate-x-1/2 -translate-y-1/2 bg-foreground"
     >
     </div>
-  </div>
 
-  <p
-    class="glass absolute left-0 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-md px-2 py-1 text-center text-xs font-semibold text-foreground"
-    :style="magnifierLabel()"
-    x-text="magnifierRead()"
-  >
-  </p>
+    <p
+      class="absolute bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-black/60 px-2 py-0.5 font-mono text-[11px] font-semibold leading-normal text-foreground"
+      x-show="magnifierRead()"
+      x-cloak
+      x-text="magnifierRead()"
+    >
+    </p>
+  </div>
 </div>

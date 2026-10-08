@@ -31,21 +31,6 @@ function idleView(): BoardView {
   };
 }
 
-/** Gap in pixels between the magnifier circle and the read printed above it. */
-const MAGNIFIER_LABEL_GAP = 8;
-
-/**
- * The read's position, `gap` pixels above the magnifier circle's own top
- * edge. The circle is centred on the anchor origin (`magnifierAnchorStyle`'s
- * `left`/`top`), so its top edge sits at `-magnifierSize / 2`; this is that,
- * minus the gap. The view pairs this with a `-translate-y-full` class so the
- * computed `top` lands under the label's BOTTOM edge, not its top — needed
- * because the label's own height (font-size-dependent) is never known here.
- */
-export function magnifierLabelStyle(view: BoardView): string {
-  return `top: -${view.magnifierSize / 2 + MAGNIFIER_LABEL_GAP}px`;
-}
-
 /**
  * The magnifier's own position, in viewport pixels, for one pointer position.
  * The anchor is `clientX`/`clientY` and the placement offsets were clamped
@@ -106,7 +91,6 @@ type BoardInputDataContext = {
   magnifierAnchor(this: BoardInputDataContext): Record<string, string>;
   magnifierBox(this: BoardInputDataContext): Record<string, string>;
   magnifierBoard(this: BoardInputDataContext): string;
-  magnifierLabel(this: BoardInputDataContext): string;
   magnifierRead(this: BoardInputDataContext): string;
   onPointerDown(this: BoardInputDataContext, event: PointerEvent): void;
   onPointerMove(this: BoardInputDataContext, event: PointerEvent): void;
@@ -222,10 +206,6 @@ export function boardInputData(
 
     magnifierBoard(this: BoardInputDataContext): string {
       return magnifierBoardStyle(this.board);
-    },
-
-    magnifierLabel(this: BoardInputDataContext): string {
-      return magnifierLabelStyle(this.board);
     },
 
     magnifierRead(this: BoardInputDataContext): string {
