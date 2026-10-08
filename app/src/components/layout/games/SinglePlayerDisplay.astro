@@ -45,7 +45,9 @@ const className = cn(
 ---
 
 <div class={className}>
-  <div class="flex min-w-0 flex-col items-center justify-center gap-2">
+  <div
+    class="@container flex min-w-0 flex-col items-center justify-center gap-2"
+  >
     <slot name="above" />
     <p
       class="whitespace-nowrap font-display leading-none tracking-[-0.02em] tabular-nums text-foreground text-shadow-glow"

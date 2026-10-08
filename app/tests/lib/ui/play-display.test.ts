@@ -15,6 +15,9 @@ describe("bigValueSize", () => {
     ["501", "text-[64px]"],
     ["BULL", "text-[46px]"],
     ["1,234", "text-[46px]"],
+    ["10,000", "text-[clamp(1.25rem,17cqw,2.875rem)]"],
+    ["12 - 180", "text-[clamp(1.125rem,13cqw,2.875rem)]"],
+    ["501 - 180", "text-[clamp(1rem,11cqw,2.875rem)]"],
   ])("sizes %s as %s", (value, expected) => {
     expect(bigValueSize(value)).toBe(expected);
   });
@@ -34,6 +37,9 @@ describe("seatValueSize", () => {
     ["170", "text-[64px]"],
     ["BULL", "text-[46px]"],
     ["1,234", "text-[46px]"],
+    ["10,000", "text-[clamp(1.25rem,17cqw,2.875rem)]"],
+    ["12 - 180", "text-[clamp(1.125rem,13cqw,2.875rem)]"],
+    ["501 - 180", "text-[clamp(1rem,11cqw,2.875rem)]"],
   ])("sizes %s as %s", (value, expected) => {
     expect(seatValueSize(value)).toBe(expected);
   });
