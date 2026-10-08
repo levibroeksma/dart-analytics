@@ -1,5 +1,5 @@
 import type { ChartConfiguration } from "chart.js";
-export type ToggleOption = { value: string; label: string };
+export type ToggleOption = { value: string; label: string; disabled?: boolean };
 export type Orientation = "horizontal" | "vertical";
 export type Pill = { w: number; h: number; x: number; y: number };
 

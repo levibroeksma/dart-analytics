@@ -2,7 +2,8 @@
 /**
  * Pill-style toggle. Bind the selected value from a parent scope with
  * `x-model`; the value is exposed through `x-modelable="activeTab"`.
- * @param {ToggleOption[]} options
+ * @param {ToggleOption[]} options `options[].disabled` is rendered dimmed,
+ *   unclickable, `aria-disabled`
  * @param {"horizontal"|"vertical"} orientation
  * @param {string} [initial] Only when there is no parent `x-model`
  * @param {string} [hint] Italic caption rendered under the control
@@ -11,6 +12,7 @@
 interface ToggleOption {
   value: string;
   label: string;
+  disabled?: boolean;
 }
 
 interface Props {
@@ -48,9 +50,11 @@ const n = options.length;
 
 // Styles
 const className = cn("tab-container", classNameProp ?? "w-fit");
-const shellClass =
-  "relative grow w-full h-full rounded-tab border-x border-t border-tab-border bg-tab-card tab-wrapper p-2";
-const listClass = "relative z-1 grid h-full w-full items-stretch gap-3";
+const shellClass = cn(
+  "relative grow w-full h-full inset-well p-1",
+  orientation === "horizontal" ? "rounded-full" : "rounded-[26px]",
+);
+const listClass = "relative z-1 grid h-full w-full items-stretch gap-1";
 const listStyle =
   orientation === "horizontal"
     ? `grid-template-columns: repeat(${n}, minmax(0, 1fr));`
@@ -68,7 +72,7 @@ const listStyle =
     class={shellClass}
   >
     <div
-      class="pointer-events-none absolute left-0 top-0 z-0 rounded-tab-pill bg-tab-active backdrop-blur-[2px] transition-transform duration-500 ease-out border"
+      class="pointer-events-none absolute left-0 top-0 z-0 rounded-full glass-blue transition-transform duration-500 ease-out"
       :style="`width:${pill.w}px;height:${pill.h}px;transform:translate(${pill.x}px,${pill.y}px)`"
     >
     </div>
@@ -81,6 +85,8 @@ const listStyle =
           <ToggleListItem
             value={opt.value}
             label={opt.label}
+            disabled={opt.disabled}
+            tall={orientation === "vertical"}
           />
         ))
       }
@@ -89,7 +95,7 @@ const listStyle =
 </div>
 {
   hint && (
-    <div class="text-xs text-muted-foreground px-4 py-0 italic">
+    <div class="px-0.5 text-xs text-muted">
       <span x-text={`${hint}`} />
     </div>
   )

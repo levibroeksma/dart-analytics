@@ -229,4 +229,22 @@ describe("toggleData", () => {
       expect(ctx.activeTab).toBe("time");
     });
   });
+  describe("disabled options", () => {
+    const withLocked: ToggleOption[] = [
+      { value: "FIRST_TO", label: "First to" },
+      { value: "BEST_OF", label: "Best of", disabled: true },
+    ];
+
+    it("ignores select() on a disabled option", () => {
+      const { ctx } = harness({ options: withLocked });
+      ctx.select("BEST_OF");
+      expect(ctx.activeTab).toBe("FIRST_TO");
+    });
+
+    it("still selects an enabled option", () => {
+      const { ctx } = harness({ options: withLocked, initial: "FIRST_TO" });
+      ctx.select("FIRST_TO");
+      expect(ctx.activeTab).toBe("FIRST_TO");
+    });
+  });
 });

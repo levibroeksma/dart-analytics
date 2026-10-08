@@ -67,6 +67,7 @@ export function toggleData(config: ToggleDataConfig = {}) {
     },
 
     select(this: ToggleDataContext, value: string) {
+      if (this.options.find((o) => o.value === value)?.disabled) return;
       this.activeTab = value;
     },
   };
