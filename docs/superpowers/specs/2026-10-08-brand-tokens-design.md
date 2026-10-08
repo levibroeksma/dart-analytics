@@ -74,6 +74,7 @@ No new files. Design `icons/nav/<name>-<accent|white|muted>.svg` are colour vari
 
 - `docs/architecture/07-Frontend/07-Style-Guide.md`: token table rows, new type-scale + radius rows, surfaces table, typography weight rule, anti-pattern row for `font-medium` removed; version bump.
 - `decisions/frontend/…`: one new decision (D428) — Brand Style as token source; coral = error; weight 500 allowed (supersedes the `font-medium` ban).
+- `scripts/check-style-tokens.sh`: drop the `font-medium` ban (gate change follows the decision).
 - Context maintenance per skill.
 
 ## Verification
