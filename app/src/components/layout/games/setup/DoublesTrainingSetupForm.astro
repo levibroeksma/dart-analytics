@@ -7,6 +7,7 @@ import SettingLabel from "./SettingLabel.astro";
 import Toggle from "./Toggle.astro";
 import UserSection from "./UserSection.astro";
 import { supportsDartbot } from "@lib/game/rulesets/capabilities";
+import { ORDER_MODE_LABELS } from "@lib/game/play-subtitle";
 
 // Data
 const infoSection = {
@@ -15,11 +16,9 @@ const infoSection = {
     "Work through every double and the bull, in the order you choose below. Three darts per target — hit the double and move on immediately; miss all three and you still move on. On the bull, only the inner bull (double bull) counts.",
 };
 
-const orderModeOpts = [
-  { value: "LOW_TO_HIGH", label: "Low → High" },
-  { value: "HIGH_TO_LOW", label: "High → Low" },
-  { value: "RANDOM", label: "Random" },
-];
+const orderModeOpts = Object.entries(ORDER_MODE_LABELS).map(
+  ([value, label]) => ({ value, label }),
+);
 ---
 
 <SetupShell title="Doubles training">
