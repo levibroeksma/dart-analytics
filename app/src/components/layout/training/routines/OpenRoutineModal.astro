@@ -9,22 +9,27 @@
 // Components
 import Modal from "@components/ui/Modal.astro";
 import Button from "@components/forms/Button.astro";
+import SheetActions from "@components/ui/SheetActions.astro";
+import InlayRow from "@components/ui/InlayRow.astro";
 ---
 
 <Modal
   titleId="open-routine-title"
   descriptionId="open-routine-desc"
   dismissible={false}
+  overline="Routine"
 >
   <h2
+    slot="header"
     id="open-routine-title"
-    class="font-display text-lg font-semibold text-foreground"
+    class="text-balance font-display text-xl text-foreground"
   >
     Unfinished routine
   </h2>
   <p
+    slot="header"
     id="open-routine-desc"
-    class="mt-2 text-sm text-muted-foreground"
+    class="text-pretty text-sm text-muted-foreground"
   >
     <span x-text="openRoutine.routineName || 'A routine'"></span>
     <span
@@ -34,8 +39,14 @@ import Button from "@components/forms/Button.astro";
     > is still open. Resume it at your first unfinished step, or abandon it to start
     this one.
   </p>
+  <InlayRow
+    parts={[
+      "openRoutine.routineName || 'A routine'",
+      "openRoutineStartedLabel()",
+    ]}
+  />
   <p
-    class="mt-3 text-sm text-error"
+    class="text-center text-sm text-error"
     x-show="openRoutineError"
     x-text="openRoutineError"
     x-cloak
@@ -44,25 +55,31 @@ import Button from "@components/forms/Button.astro";
 
   <div
     slot="footer"
-    class="mt-6 flex flex-col gap-3"
+    class="flex w-full flex-col gap-2.5"
   >
-    <Button
-      type="button"
-      title="Resume"
-      @click="resumeOpenRoutine()"
-      loadingExpr="resolvingOpenRoutine"
-      :disabled="resolvingOpenRoutine"
-    />
-    <Button
-      type="button"
-      variant="secondary"
-      title="Abandon & start new"
-      @click="abandonOpenRoutine()"
-      :disabled="resolvingOpenRoutine"
-    />
+    <SheetActions>
+      <Button
+        type="button"
+        variant="sheet-muted"
+        title="Start new"
+        @click="abandonOpenRoutine()"
+        :disabled="resolvingOpenRoutine"
+        grow
+      />
+      <Button
+        type="button"
+        variant="sheet-raised"
+        title="Resume"
+        @click="resumeOpenRoutine()"
+        loadingExpr="resolvingOpenRoutine"
+        :disabled="resolvingOpenRoutine"
+        grow
+      />
+    </SheetActions>
     <Button
       type="button"
       variant="ghost"
+      class="h-11 w-full text-muted"
       title="Leave"
       @click="window.location.assign('/training')"
       :disabled="resolvingOpenRoutine"

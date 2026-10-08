@@ -70,6 +70,28 @@ if [ -n "$NEG_ARBITRARY" ]; then
   FAIL=1
 fi
 
+# Overlay gate (D429): full-viewport overlays and dialog roles live only in
+# ui/Modal.astro — every modal renders through the sheet shell.
+# OVERLAY_PENDING is the migration ratchet; it must end empty.
+OVERLAY_ALLOW="app/src/components/ui/Modal.astro"
+OVERLAY_PENDING=(
+)
+OVERLAY_FILES=$(grep -rlE 'fixed inset-0|role="dialog"' app/src --include="*.astro" | sort)
+OVERLAY_BAD=""
+for f in $OVERLAY_FILES; do
+  [ "$f" = "$OVERLAY_ALLOW" ] && continue
+  skip=0
+  for p in "${OVERLAY_PENDING[@]+"${OVERLAY_PENDING[@]}"}"; do
+    [ "$f" = "$p" ] && skip=1
+  done
+  [ "$skip" -eq 0 ] && OVERLAY_BAD="$OVERLAY_BAD$f"$'\n'
+done
+if [ -n "$OVERLAY_BAD" ]; then
+  echo "FAIL: overlay outside ui/Modal.astro — render it through Modal (sheet shell):" >&2
+  printf '%s' "$OVERLAY_BAD" >&2
+  FAIL=1
+fi
+
 if [ "$FAIL" -ne 0 ]; then
   exit 1
 fi

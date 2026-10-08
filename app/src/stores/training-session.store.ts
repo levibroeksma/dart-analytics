@@ -28,6 +28,10 @@ export function trainingSessionStore() {
       return this.stepKey ?? "";
     },
 
+    get elapsedLabel(): string {
+      return formatElapsed(this.elapsedSeconds);
+    },
+
     get headerLabel(): string {
       if (!this.stepKey) return "";
       return `${formatElapsed(this.elapsedSeconds)} - ${this.stepLabel}`;

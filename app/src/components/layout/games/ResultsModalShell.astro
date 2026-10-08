@@ -1,64 +1,72 @@
 ---
 /**
- * Shared chrome for every game's results modal: overlay, glass card,
+ * Shared chrome for every game's results sheet: `Modal` shell,
  * save-status region (loading / failed+retry / optional "Saved!"),
  * play-again error, and the back/play-again button row. Each game supplies
- * its own `<h2>` title (`title` slot — win/tie/loss phrasing differs per
- * game) and its own stat rows (default slot).
+ * its own `<h2 id="results-title">` (`title` slot — win/tie/loss phrasing
+ * differs per game) and its own stat rows (default slot).
  * @param {boolean} [showSavedMessage] Show "Saved!" once completionStatus succeeds
+ * @param {string} [overline] Eyebrow above the title
  */
 interface Props {
   showSavedMessage?: boolean;
+  overline?: string;
 }
 
 // Props
-const { showSavedMessage = false }: Props = Astro.props;
+const { showSavedMessage = false, overline }: Props = Astro.props;
 
 // Components
 import Button from "@components/forms/Button.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
+import Modal from "@components/ui/Modal.astro";
+import SheetActions from "@components/ui/SheetActions.astro";
 ---
 
 <div
-  class="fixed inset-0 flex items-center justify-center bg-black/50 z-50 w-full p-4"
   x-show="finished"
   x-cloak
 >
-  <div
-    class="glass rounded-lg border border-border bg-surface-raised p-6 shadow-lg max-w-sm w-full"
+  <Modal
+    titleId="results-title"
+    dismissible={false}
+    overline={overline}
   >
-    <slot name="title" />
+    <slot
+      name="title"
+      slot="header"
+    />
 
     <slot />
 
     {/* Completion status */}
-    <div class="mt-4">
-      <div
-        x-show="completionStatus === 'failed'"
-        x-cloak
-      >
-        <ErrorAlert
-          textExpr="completionError"
-          alwaysVisible
-        />
-        <Button
-          class="mt-2"
-          @click="uploadAndCompleteSession()"
-          title="Retry"
-        />
-      </div>
-      {
-        showSavedMessage && (
-          <p
-            class="text-sm text-success"
-            x-show="completionStatus === 'succeeded'"
-            x-cloak
-          >
-            Saved!
-          </p>
-        )
-      }
+    <div
+      x-show="completionStatus === 'failed'"
+      x-cloak
+    >
+      <ErrorAlert
+        textExpr="completionError"
+        alwaysVisible
+      />
+      <Button
+        variant="sheet-raised"
+        class="mt-2 w-full"
+        @click="uploadAndCompleteSession()"
+        title="Retry"
+      />
     </div>
+    {
+      showSavedMessage && (
+        <span
+          class="inline-flex items-center gap-1.5 self-center font-mono text-eyebrow-lg font-semibold uppercase text-success"
+          x-show="completionStatus === 'succeeded'"
+          x-cloak
+        >
+          <span class="size-1.5 rounded-full bg-success" />
+          Saved
+        </span>
+      )
+    }
 
     {
       /* Play-again failure: separate from completion status, buttons stay enabled */
@@ -66,25 +74,25 @@ import ErrorAlert from "@components/ui/ErrorAlert.astro";
     <ErrorAlert
       showExpr="playAgainError"
       textExpr="playAgainError"
-      class="mt-2"
     />
 
     {/* Action buttons: enabled only when completionStatus === 'succeeded' */}
-    <div class="mt-6 flex gap-3">
+    <SheetActions slot="footer">
       <Button
-        variant="secondary"
+        variant="sheet-muted"
         @click="back()"
         :disabled="completionStatus !== 'succeeded'"
         title="Back to games"
         grow
       />
       <Button
+        variant="sheet-raised"
         @click="playAgain()"
         :disabled="completionStatus !== 'succeeded' || playAgainLoading"
         loadingExpr="playAgainLoading"
         title="Play again"
         grow
       />
-    </div>
-  </div>
+    </SheetActions>
+  </Modal>
 </div>

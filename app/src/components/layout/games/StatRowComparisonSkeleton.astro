@@ -5,12 +5,18 @@ interface Props {
 const { label }: Props = Astro.props;
 ---
 
-<div class="grid grid-cols-[1fr_auto_1fr] items-center font-display-mono">
+<div
+  class="grid h-10 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center border-t border-border first:border-t-0"
+>
   <dd
     class="bg-muted-foreground/80 animate-pulse w-8 h-3.5 rounded justify-self-start"
   >
   </dd>
-  <dt class="text-center text-sm text-muted-foreground">{label}</dt>
+  <dt
+    class="text-center font-mono text-eyebrow font-semibold uppercase text-muted"
+  >
+    {label}
+  </dt>
   <dd
     class="bg-muted-foreground/80 animate-pulse w-8 h-3.5 rounded justify-self-end"
   >

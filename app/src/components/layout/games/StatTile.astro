@@ -1,0 +1,35 @@
+---
+/**
+ * Inlay stat tile — value over eyebrow label. Without `valueExpr` it renders
+ * a pulse placeholder (results still saving).
+ * @param {string} labelExpr Alpine expression for the label
+ * @param {string} [valueExpr] Alpine expression for the value
+ */
+interface Props {
+  labelExpr: string;
+  valueExpr?: string;
+}
+
+// Props
+const { labelExpr, valueExpr }: Props = Astro.props;
+---
+
+<div
+  class="inset-well flex h-16 flex-col-reverse items-center justify-center gap-1.5 rounded-2xl"
+>
+  <dt
+    class="font-mono text-eyebrow font-semibold uppercase text-muted"
+    x-text={labelExpr}
+  >
+  </dt>
+  {
+    valueExpr ? (
+      <dd
+        class="font-display text-lg leading-none tabular-nums text-foreground"
+        x-text={valueExpr}
+      />
+    ) : (
+      <dd class="h-4 w-8 animate-pulse rounded bg-muted-foreground/80" />
+    )
+  }
+</div>

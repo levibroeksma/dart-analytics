@@ -2,8 +2,8 @@
 /**
  * End-of-routine results: one card per completed exercise, the routine's
  * total time, and the save status of the `completeTraining` call. Rows are
- * built at runtime by `routine-summary.module.ts`, so `StatRow.astro` —
- * which takes its label as a build-time prop — cannot render them.
+ * built at runtime by `routine-summary.module.ts`, so each step renders as
+ * an inlay ledger of `x-for` rows.
  *
  * `ResultsModalShell` is deliberately not reused: its button row is bound
  * to a per-game `back()`/`playAgain()` pair and a per-game `finished`
@@ -13,48 +13,60 @@
 // Components
 import Button from "@components/forms/Button.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
+import Modal from "@components/ui/Modal.astro";
+import SheetActions from "@components/ui/SheetActions.astro";
 ---
 
 <div
-  class="fixed inset-0 z-50 flex w-full items-center justify-center bg-black/50 p-4"
   x-show="routineFinished"
   x-cloak
 >
-  <div
-    class="glass w-full max-w-sm rounded-lg border border-border bg-surface-raised p-6 shadow-lg"
+  <Modal
+    titleId="routine-summary-title"
+    dismissible={false}
   >
-    <h2 class="font-display text-lg font-semibold text-foreground">
-      Training complete
-    </h2>
-    <p
-      class="font-mono text-sm tabular-nums text-muted-foreground"
-      x-text="$store.trainingSession.headerLabel"
+    <div
+      slot="header"
+      class="flex flex-col items-center gap-2"
     >
-    </p>
+      <span
+        class="font-mono text-eyebrow-lg font-semibold uppercase text-accent-bright"
+        x-text="`${routineName} · ${$store.trainingSession.elapsedLabel}`"
+      >
+      </span>
+      <h2
+        id="routine-summary-title"
+        class="text-balance font-display text-xl text-foreground"
+      >
+        Training complete
+      </h2>
+    </div>
 
     <template
       x-for="step in stepSummaries"
       :key="step.stepKey"
     >
-      <section class="mt-4">
+      <section class="inset-well flex flex-col rounded-2xl px-4 pt-3 pb-1">
         <h3
-          class="font-display text-sm font-semibold text-foreground"
+          class="pb-1 font-display text-card-title text-foreground"
           x-text="step.label"
         >
         </h3>
-        <dl class="mt-1 space-y-1">
+        <dl>
           <template
             x-for="row in step.rows"
             :key="row.label"
           >
-            <div class="flex items-center justify-between font-display-mono">
+            <div
+              class="flex h-9 items-center justify-between border-t border-border"
+            >
               <dt
-                class="font-mono text-sm text-muted-foreground"
+                class="font-mono text-eyebrow font-semibold uppercase text-muted"
                 x-text="row.label"
               >
               </dt>
               <dd
-                class="font-mono text-sm font-bold tabular-nums text-foreground"
+                class="font-mono text-button tabular-nums text-foreground"
                 x-text="row.value"
               >
               </dd>
@@ -65,7 +77,7 @@ import ErrorAlert from "@components/ui/ErrorAlert.astro";
     </template>
 
     <p
-      class="mt-4 text-sm text-muted-foreground"
+      class="text-center text-sm text-muted-foreground"
       x-show="stepSummaries.length === 0"
       x-cloak
     >
@@ -73,7 +85,6 @@ import ErrorAlert from "@components/ui/ErrorAlert.astro";
     </p>
 
     <div
-      class="mt-4"
       x-show="completionStatus === 'failed'"
       x-cloak
     >
@@ -82,20 +93,31 @@ import ErrorAlert from "@components/ui/ErrorAlert.astro";
         alwaysVisible
       />
       <Button
-        class="mt-2"
+        variant="sheet-raised"
+        class="mt-2 w-full"
         @click="completeRoutine()"
         title="Retry"
       />
     </div>
 
-    <div class="mt-6">
+    <span
+      class="inline-flex items-center gap-1.5 self-center font-mono text-eyebrow-lg font-semibold uppercase text-success"
+      x-show="completionStatus === 'succeeded'"
+      x-cloak
+    >
+      <span class="size-1.5 rounded-full bg-success"></span>
+      Saved
+    </span>
+
+    <SheetActions slot="footer">
       <Button
+        variant="sheet-raised"
         @click="dismissSummary()"
         :disabled="completionStatus !== 'succeeded'"
         loadingExpr="completionStatus === 'saving'"
         title="Done"
         grow
       />
-    </div>
-  </div>
+    </SheetActions>
+  </Modal>
 </div>

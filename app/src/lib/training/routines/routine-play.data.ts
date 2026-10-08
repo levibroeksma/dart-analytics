@@ -103,6 +103,7 @@ export function routinePlay() {
     loading: false,
     error: "",
     activityId: null,
+    routineName: "",
     steps: [],
     currentSessionId: null,
     currentParticipantRef: null,
@@ -273,6 +274,7 @@ export function routinePlay() {
       completedStepCount = 0,
     ) {
       this.activityId = result.activityId;
+      this.routineName = result.routineName;
       this.steps = result.steps;
       this.training = trainingEngine.create(
         {

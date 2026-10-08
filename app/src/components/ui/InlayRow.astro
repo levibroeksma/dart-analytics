@@ -1,0 +1,45 @@
+---
+/**
+ * Inlay context row — dot-separated meta on the left, optional value on the
+ * right. Every part and the value are Alpine expressions.
+ * @param {string[]} parts Alpine expressions rendered left to right, dot-separated
+ * @param {string} [valueExpr] Alpine expression for the right-hand value
+ */
+interface Props {
+  parts: string[];
+  valueExpr?: string;
+}
+
+// Props
+const { parts, valueExpr }: Props = Astro.props;
+---
+
+<div
+  class="inset-well flex h-13 w-full items-center justify-between gap-3 rounded-2xl px-4"
+>
+  <span
+    class="flex min-w-0 items-center gap-2 text-sm font-medium text-soft-foreground"
+  >
+    {
+      parts.map((part, index) => (
+        <>
+          {index > 0 && (
+            <span class="size-[3px] shrink-0 rounded-full bg-muted" />
+          )}
+          <span
+            class="truncate"
+            x-text={part}
+          />
+        </>
+      ))
+    }
+  </span>
+  {
+    valueExpr && (
+      <span
+        class="font-display text-lg leading-none tabular-nums text-foreground"
+        x-text={valueExpr}
+      />
+    )
+  }
+</div>

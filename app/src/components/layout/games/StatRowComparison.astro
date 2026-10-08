@@ -1,22 +1,36 @@
 ---
+/**
+ * One ledger row. Reads `winner` (0, 1 or -1) from the enclosing `ComparisonSummary` scope.
+ */
 interface Props {
   label: string;
   leftValue: string;
   rightValue: string;
 }
 const { label, leftValue, rightValue }: Props = Astro.props;
+
+const tint = (index: 0 | 1) =>
+  `(${leftValue}) === (${rightValue}) || winner < 0 ? 'text-foreground' : winner === ${index} ? 'text-accent-bright' : 'text-muted-foreground'`;
+const leftAttrs = { ":class": tint(0), "x-text": leftValue };
+const rightAttrs = { ":class": tint(1), "x-text": rightValue };
 ---
 
-<div class="grid grid-cols-[1fr_auto_1fr] items-center font-display-mono">
+<div
+  class="grid h-10 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center border-t border-border first:border-t-0"
+>
   <dd
-    class="text-left font-mono text-sm font-bold tabular-nums text-foreground"
-    x-text={leftValue}
+    class="text-left font-mono text-button tabular-nums"
+    {...leftAttrs}
   >
   </dd>
-  <dt class="text-center text-sm text-muted-foreground">{label}</dt>
+  <dt
+    class="text-center font-mono text-eyebrow font-semibold uppercase text-muted"
+  >
+    {label}
+  </dt>
   <dd
-    class="text-right font-mono text-sm font-bold tabular-nums text-foreground"
-    x-text={rightValue}
+    class="text-right font-mono text-button tabular-nums"
+    {...rightAttrs}
   >
   </dd>
 </div>

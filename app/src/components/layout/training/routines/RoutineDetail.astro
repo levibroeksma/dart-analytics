@@ -6,6 +6,7 @@
  */
 import Badge from "@components/ui/Badge.astro";
 import Button from "@components/forms/Button.astro";
+import InlayRow from "@components/ui/InlayRow.astro";
 import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
 ---
@@ -90,11 +91,20 @@ import ErrorAlert from "@components/ui/ErrorAlert.astro";
       titleId="routine-delete-title"
       title="Delete this routine?"
       description="Completed sessions keep their own record. The routine itself is removed."
+      cancelLabel="Keep routine"
       confirmLabel="Delete"
-      confirmVariant="primary"
       onCancel="cancelDelete()"
       onConfirm="confirmDelete()"
       loadingExpr="deleteBusy"
-    />
+    >
+      <InlayRow
+        slot="context"
+        parts={[
+          "routine?.routineName",
+          "`${routine?.steps.length} ${routine?.steps.length === 1 ? 'step' : 'steps'}`",
+        ]}
+        valueExpr="durationLabel()"
+      />
+    </ConfirmDialog>
   </div>
 </div>

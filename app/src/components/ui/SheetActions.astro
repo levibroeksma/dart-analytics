@@ -1,0 +1,23 @@
+---
+/**
+ * Sheet action row — muted action left, raised action right.
+ * @param {string} [class] Extra classes
+ */
+interface Props {
+  class?: string;
+  [key: string]: unknown;
+}
+
+// Props
+const { class: classNameProp, ...props }: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+---
+
+<div
+  class={cn("flex w-full gap-2.5", classNameProp)}
+  {...props}
+>
+  <slot />
+</div>

@@ -2,11 +2,19 @@
 import StatRowComparison from "@components/layout/games/StatRowComparison.astro";
 import StatRowComparisonSkeleton from "@components/layout/games/StatRowComparisonSkeleton.astro";
 
+/**
+ * 1v1 results ledger. `winnerExpr` is an Alpine expression evaluating to the
+ * winning seat's index (0 or 1), or -1 for none; it tints the winner's column
+ * and, with `legsBars`, the score row's bars. `legsBars` shows the legs score
+ * and one bar segment per leg needed to win the match.
+ */
 interface Props {
   statRows: readonly { label: string; key: string; fallback?: string }[];
+  winnerExpr?: string;
+  legsBars?: boolean;
 }
 
-const { statRows }: Props = Astro.props;
+const { statRows, winnerExpr = "-1", legsBars = false }: Props = Astro.props;
 
 function seatValueExpr(
   seatIndex: 0 | 1,
@@ -17,25 +25,90 @@ function seatValueExpr(
     ? `${base} ?? ${row.fallback}`
     : base;
 }
+
+const legsWon = (seatIndex: 0 | 1) =>
+  `(resultsSnapshot?.seats?.[${seatIndex}]?.legsWon ?? 0)`;
+const barTrackAttrs = {
+  ":style":
+    "`grid-template-columns: repeat(${$store.game.configSnapshot?.legsToWin ?? 0}, minmax(0, 1fr))`",
+};
+const legsExpr = "$store.game.configSnapshot?.legsToWin ?? 0";
+const seatSides = ([0, 1] as const).map((index) => {
+  const winnerClass = `winner === ${index}`;
+  return {
+    index,
+    wrapClass:
+      index === 0
+        ? "flex flex-col gap-[7px]"
+        : "flex flex-col items-end gap-[7px]",
+    nameAttrs: {
+      ":class": `${winnerClass} ? 'text-accent-bright' : 'text-muted-foreground'`,
+      "x-text": `$store.game.seats[${index}]?.displayName`,
+    },
+    legAttrs: {
+      ":class": `leg <= ${legsWon(index)} ? (${winnerClass} ? 'bg-accent' : 'bg-muted-foreground') : 'bg-white/15'`,
+    },
+  };
+});
 ---
 
-{/* 1v1: comparison rows — stat label centered, values on either side */}
+{/* 1v1: comparison ledger — stat label centered, values on either side */}
 <div
-  class="mt-4 space-y-2 text-sm"
+  class="flex w-full flex-col gap-4"
+  x-data={`{ get winner() { return ${winnerExpr}; } }`}
   x-show="$store.game.seats.length === 2"
   x-cloak
 >
   {
-    /* Player names, known from the seated config — shown immediately, not gated on results */
+    legsBars ? (
+      <div class="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
+        {seatSides.map((side) => (
+          <>
+            <div class={side.wrapClass}>
+              <span
+                class="text-sm font-semibold"
+                {...side.nameAttrs}
+              />
+              <div
+                class="grid w-16 gap-[3px]"
+                {...barTrackAttrs}
+              >
+                <template x-for={`leg in ${legsExpr}`}>
+                  <span
+                    class="h-1 rounded-full"
+                    {...side.legAttrs}
+                  />
+                </template>
+              </div>
+            </div>
+            {side.index === 0 && (
+              <span class="font-display text-[2.5rem] leading-none tabular-nums text-foreground">
+                <span x-text={legsWon(0)} />
+                <span class="text-muted"> – </span>
+                <span x-text={legsWon(1)} />
+              </span>
+            )}
+          </>
+        ))}
+      </div>
+    ) : (
+      <div class="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
+        <span
+          class="font-display text-sm text-foreground"
+          x-text="$store.game.seats[0]?.displayName"
+        />
+        <span class="font-mono text-eyebrow font-semibold text-muted">VS</span>
+        <span
+          class="text-right font-display text-sm text-foreground"
+          x-text="$store.game.seats[1]?.displayName"
+        />
+      </div>
+    )
   }
-  <div class="flex justify-between font-semibold text-accent">
-    <span x-text="$store.game.seats[0]?.displayName"></span>
-    <span x-text="$store.game.seats[1]?.displayName"></span>
-  </div>
 
   {/* Succeeded: comparison rows with real values */}
   <dl
-    class="space-y-2"
+    class="inset-well rounded-2xl px-4 py-1"
     x-show="completionStatus === 'succeeded'"
     x-cloak
   >
@@ -52,7 +125,7 @@ function seatValueExpr(
 
   {/* Loading: comparison rows with skeleton values, label still centered */}
   <dl
-    class="space-y-2"
+    class="inset-well rounded-2xl px-4 py-1"
     x-show="completionStatus === 'pending' || completionStatus === 'saving'"
     x-cloak
   >

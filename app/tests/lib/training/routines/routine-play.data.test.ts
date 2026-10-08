@@ -142,6 +142,7 @@ describe("routinePlay", () => {
       routineTemplateId: "rt-1",
     });
     expect(store.activityId).toBe("act-1");
+    expect(store.routineName).toBe("Balanced Training");
     expect(store.currentStep()?.exerciseTypeKey).toBe("WARM_UP");
   });
 

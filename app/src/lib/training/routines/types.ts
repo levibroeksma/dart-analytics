@@ -89,6 +89,7 @@ export type RoutinePlayContext = {
   blockingSession: BlockingSession | null;
   blockingError: string;
   resolvingBlockingSession: boolean;
+  routineName: string;
   openRoutine: OpenRoutine | null;
   openRoutineError: string;
   resolvingOpenRoutine: boolean;
