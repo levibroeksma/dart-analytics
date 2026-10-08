@@ -1332,6 +1332,39 @@ describe("oneTwentyOnePlay — play header and seat stats", () => {
     expect(createPlay().subtitle()).toBe("ATTEMPT 2 · 9 DARTS");
   });
 
+  it("subtitle names the attempt of the ROUNDS budget", () => {
+    store.game.rulesetVersionKey = "121_V2";
+    store.game.configSnapshot = {
+      seats: SEATS,
+      durationType: "ROUNDS",
+      durationValue: 5,
+    } as any;
+    store.game.turns = [visit(1, 20), visit(2, 20), visit(3, 20)];
+    expect(createPlay().subtitle()).toBe("ATTEMPT 2 OF 5 · 9 DARTS");
+  });
+
+  it("subtitle holds at the last attempt once the ROUNDS budget is spent", () => {
+    store.game.rulesetVersionKey = "121_V2";
+    store.game.configSnapshot = {
+      seats: SEATS,
+      durationType: "ROUNDS",
+      durationValue: 1,
+    } as any;
+    store.game.turns = [visit(1, 20), visit(2, 20), visit(3, 20)];
+    expect(createPlay().subtitle()).toBe("ATTEMPT 1 OF 1 · 9 DARTS");
+  });
+
+  it("subtitle carries no total in MINUTES mode", () => {
+    store.game.rulesetVersionKey = "121_V2";
+    store.game.configSnapshot = {
+      seats: SEATS,
+      durationType: "MINUTES",
+      durationValue: 5,
+    } as any;
+    store.game.turns = [visit(1, 20), visit(2, 20), visit(3, 20)];
+    expect(createPlay().subtitle()).toBe("ATTEMPT 2 · 9 DARTS");
+  });
+
   it("dartsThisAttempt counts three per closed visit plus the open visit's darts", () => {
     store.game.turns = [
       visit(1, 20),
@@ -1345,6 +1378,16 @@ describe("oneTwentyOnePlay — play header and seat stats", () => {
     store.game.configSnapshot = { seats: TWO_SEATS };
     store.game.turns = [visit(1, 20)];
     expect(createPlay().dartsThisAttemptFor("participant-2")).toBe(0);
+  });
+
+  it("dartsThisAttemptFor reads 0 for the other seat while seat 1 has an open visit with darts", () => {
+    store.game.configSnapshot = { seats: TWO_SEATS };
+    store.game.turns = [
+      { ...visit(1, 0), completedAt: null, darts: [missDart(1), missDart(2)] },
+    ];
+    const play = createPlay();
+    expect(play.dartsThisAttemptFor("participant-1")).toBe(2);
+    expect(play.dartsThisAttemptFor("participant-2")).toBe(0);
   });
 
   it("checkoutHintFor gives a waiting seat its full three-dart route", () => {

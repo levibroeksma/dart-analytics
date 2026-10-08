@@ -12,7 +12,11 @@ export function joinSubtitle(parts: readonly string[]): string {
   return parts.filter((part) => part !== "").join(" · ");
 }
 
-/** A target-order mode's setup label in subtitle case (`LOW → HIGH`). */
-export function orderModeLabel(mode: TargetOrderMode): string {
+/**
+ * A target-order mode's setup label in subtitle case (`LOW → HIGH`); blank
+ * for a missing or unknown mode, since a stored config snapshot may predate it.
+ */
+export function orderModeLabel(mode: TargetOrderMode | undefined): string {
+  if (!mode || !Object.hasOwn(ORDER_MODE_LABELS, mode)) return "";
   return ORDER_MODE_LABELS[mode].toUpperCase();
 }

@@ -27,6 +27,14 @@ describe("orderModeLabel", () => {
   ] as const)("maps %s to %s", (mode, expected) => {
     expect(orderModeLabel(mode)).toBe(expected);
   });
+
+  it("is blank for a missing mode", () => {
+    expect(orderModeLabel(undefined)).toBe("");
+  });
+
+  it("is blank for a mode it does not know", () => {
+    expect(orderModeLabel("SPIRAL" as never)).toBe("");
+  });
 });
 
 describe("ORDER_MODE_LABELS", () => {

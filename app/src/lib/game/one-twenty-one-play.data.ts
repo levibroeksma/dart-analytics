@@ -446,15 +446,25 @@ export function oneTwentyOnePlay() {
       return this.dartsThisAttemptFor(state.activeParticipantRef);
     },
 
-    /** Play-header subtitle: the throwing seat's attempt (`ATTEMPT 3 · 9 DARTS`); blank before config loads. */
+    /**
+     * Play-header subtitle: the throwing seat's attempt (`ATTEMPT 3 · 9 DARTS`),
+     * `ATTEMPT 3 OF 10 · 9 DARTS` against a ROUNDS budget, held at the last
+     * attempt once it is spent; blank before config loads.
+     */
     subtitle(this: OneTwentyOnePlayContext): string {
       const state = this.state();
       const seat = state?.seats.find(
         (candidate) => candidate.participantRef === state.activeParticipantRef,
       );
       if (!seat) return "";
+      const config = this.$store.game.configSnapshot;
+      const attempt = seat.attemptsCompleted + 1;
+      const rounds =
+        durationTypeOf(config) === "ROUNDS" ? durationValueOf(config) : null;
       return joinSubtitle([
-        `ATTEMPT ${seat.attemptsCompleted + 1}`,
+        rounds == null
+          ? `ATTEMPT ${attempt}`
+          : `ATTEMPT ${Math.min(attempt, rounds)} OF ${rounds}`,
         `${DARTS_PER_ATTEMPT} DARTS`,
       ]);
     },

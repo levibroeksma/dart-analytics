@@ -286,11 +286,19 @@ export function tuodPlay() {
       return this.remainingInAttemptFor(state.activeParticipantRef);
     },
 
-    /** Play-header subtitle: the throwing seat's next attempt (`ATTEMPT 4`); blank before config loads. */
+    /**
+     * Play-header subtitle: the throwing seat's next attempt (`ATTEMPT 4`),
+     * `ATTEMPT 4 OF 10` against a ROUNDS budget, held at the last attempt
+     * once it is spent; blank before config loads.
+     */
     subtitle(this: TuodPlayContext): string {
       const state = this.state();
-      if (!state) return "";
-      return `ATTEMPT ${this.attemptsFor(state.activeParticipantRef) + 1}`;
+      const config = this.$store.game.configSnapshot;
+      if (!state || !config) return "";
+      const attempt = this.attemptsFor(state.activeParticipantRef) + 1;
+      if (config.durationType !== "ROUNDS") return `ATTEMPT ${attempt}`;
+      const rounds = config.durationValue;
+      return `ATTEMPT ${Math.min(attempt, rounds)} OF ${rounds}`;
     },
 
     attemptsFor(this: TuodPlayContext, seatRef: string): number {

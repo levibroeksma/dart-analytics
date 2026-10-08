@@ -1616,6 +1616,13 @@ describe("subtitle", () => {
     expect(play.subtitle.call(play)).toBe("");
   });
 
+  it("is blank when the stored config has no order mode", () => {
+    const play = makePlay({
+      configSnapshot: { ...defaultConfig(), orderMode: undefined as never },
+    });
+    expect(play.subtitle.call(play)).toBe("");
+  });
+
   it.each([
     ["LOW_TO_HIGH", "LOW → HIGH"],
     ["HIGH_TO_LOW", "HIGH → LOW"],

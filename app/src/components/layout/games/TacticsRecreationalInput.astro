@@ -3,8 +3,9 @@
  * Tactics' tap input in an `input-well`. Row 1: undo, then the S/D/T ring
  * keys. S clears D/T; the armed key is `glass-blue` (`ringKeyActive`).
  * Row 2: `tapTargets()` and MISS — four columns on a single (20–15, Bull),
- * seven once D or T is armed and 14…1 join. Treble cannot apply to the
- * bull, so BULL is disabled while T is armed.
+ * seven once D or T is armed and 14…1 join. Target labels are 24px on four
+ * columns and 16px on seven, so BULL and MISS fit the narrow keys. Treble
+ * cannot apply to the bull, so BULL is disabled while T is armed.
  */
 interface Props {
   [key: string]: unknown;
@@ -64,18 +65,24 @@ import UndoIcon from "@icons/undo.svg";
       :key="target.number"
     >
       <InputButton
-        class="text-2xl uppercase"
+        class="uppercase"
         :disabled="finished || (target.number === 25 && ring === 'TREBLE')"
         @click="recordTarget(target.number)"
-        x-text="target.label"
-      />
+      >
+        <span
+          :class="$ringKeyActive(ring, 'S') ? 'text-2xl' : 'text-base'"
+          x-text="target.label"
+        ></span>
+      </InputButton>
     </template>
     <InputButton
-      class="text-2xl text-soft-foreground"
+      class="text-soft-foreground"
       :disabled="finished"
       @click="recordMiss()"
     >
-      MISS
+      <span :class="$ringKeyActive(ring, 'S') ? 'text-2xl' : 'text-base'">
+        MISS
+      </span>
     </InputButton>
   </div>
 </div>

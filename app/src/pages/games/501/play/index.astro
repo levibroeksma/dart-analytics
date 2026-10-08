@@ -12,7 +12,7 @@ import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocke
 <GameLayout
   title="501 — Play"
   gameTitle="501"
-  gameSubtitleExpr="subtitle()"
+  gameSubtitleExpr="hasActiveSession ? subtitle() : ''"
   x-data="fiveOhOnePlay()"
   @confirm-exit.window="abandonAndExit()"
 >
