@@ -22,7 +22,11 @@
  *
  * `touch-none` on the pointer surface stops the browser turning a drag into a
  * scroll or a pinch, so `pointermove` keeps arriving for the whole gesture.
- * The board area is a `flex-1 min-h-0` row of the panel's `input-well` column.
+ * The board area is a `flex-1 min-h-0` row of the panel's column. The panel
+ * draws the `input-well` look (`glass`, `rounded-board`) on its own
+ * `-z-10` background layer rather than on the root: `glass` carries
+ * `backdrop-blur-sm`, and a `backdrop-filter` ancestor becomes the containing
+ * block of the `fixed` ring and magnifier, offsetting them from the finger.
  * The pointer surface is `h-full max-w-full aspect-square`, so the board sizes
  * off the height the play screen leaves it, clamped to the width, with no
  * viewport-relative number (#131). While a press is live, the board takes
@@ -43,8 +47,13 @@ import UndoIcon from "@icons/undo.svg";
 <div
   x-show="!finished && !$store.game.timerPaused && hasActiveSession && $store.game.inputModeKey === 'VISUAL_BOARD'"
   x-cloak
-  class="input-well flex flex-col items-center"
+  class="relative isolate flex min-h-0 flex-1 flex-col items-center gap-2 rounded-board p-2.5"
 >
+  <div
+    class="glass pointer-events-none absolute inset-0 -z-10 rounded-board"
+    aria-hidden="true"
+  >
+  </div>
   <div class="flex min-h-0 w-full flex-1 items-center justify-center">
     <div
       class="relative aspect-square h-full max-w-full touch-none"
