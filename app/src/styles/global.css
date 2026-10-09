@@ -26,6 +26,7 @@
   --surface-overlay: oklch(100% 0 0 / 0.06);
   --border: oklch(100% 0 0 / 0.08);
   --border-strong: oklch(100% 0 0 / 0.14);
+  --skeleton: oklch(100% 0 0 / 0.12);
   --foreground: oklch(100% 0 0);
   --muted: oklch(55% 0 0);
   --muted-foreground: oklch(70% 0 0);
@@ -80,6 +81,7 @@
   --color-surface-overlay: var(--surface-overlay);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
+  --color-skeleton: var(--skeleton);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
