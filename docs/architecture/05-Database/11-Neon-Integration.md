@@ -167,13 +167,16 @@ See also [`../../../database/README.md`](../../../database/README.md).
 
 ## Applying Migrations in CI (production)
 
-Merging to `main` applies the pending chain to production before the Worker ships. `.github/workflows/deploy.yml` runs `quality` -> `rehearse` -> `migrate` -> `deploy`, inside the existing `deploy-production` concurrency group, so two merges cannot race the same migration and the Worker never runs ahead of its schema (D288, issue #293). <!-- 2026-09-17 -->
+Merging to `main` applies the pending chain to production before the Worker ships — when there is one. `.github/workflows/deploy.yml` runs `quality` -> `pending` -> `rehearse` -> `migrate` -> `deploy`, inside the existing `deploy-production` concurrency group, so two merges cannot race the same migration and the Worker never runs ahead of its schema (D288, issue #293). `pending` decides whether the two schema jobs run at all; an app-only merge skips them and touches Neon only through `pending`'s two status reads (D434). <!-- 2026-09-17; gate 2026-10-09 -->
 
 | Job | What it does | Against |
 | --- | --- | --- |
-| `rehearse` (`db-rehearsal.yml`) | Creates a throwaway Neon branch from `main`, applies migrations + seeds, confirms nothing is left pending, deletes the branch in an `always()` step | Ephemeral child of production |
-| `migrate` | `db:status:ci` (into the run summary) -> `db:migrate:ci` -> `db:seed:ci` -> `db:status:ci` again | Production |
-| `deploy` | Build + `wrangler deploy`, only after `migrate` succeeds | Production |
+| `pending` | `db:status:ci` (into the run summary; fails closed on a connection error) -> `dbmate status --exit-code` -> diff of `database/migrations/**`, `database/seeds/**`, `app/scripts/seed.ts` from the last successful `deploy` run's `headSha` (`gh run list`, runner token) -> `apply=true\|false` with the reason in the summary (`pending migrations` / `schema files changed` / `nothing to apply`) | Production (two catalog reads) |
+| `rehearse` (`db-rehearsal.yml`) | Only when `apply=true`: creates a throwaway Neon branch from `main`, applies migrations + seeds, confirms nothing is left pending, deletes the branch in an `always()` step | Ephemeral child of production |
+| `migrate` | Only when `apply=true`: `db:status:ci` (into the run summary) -> `db:migrate:ci` -> `db:seed:ci` -> `db:status:ci` again | Production |
+| `deploy` | Build + `wrangler deploy`, after `migrate` succeeds or when `pending` found nothing to apply — never after a failed `rehearse` or `migrate` | Production |
+
+The diff base is the last `deploy` run that succeeded as a whole. When `migrate` succeeds but only the Worker deploy fails, that run is not a success, so the next merge diffs from the older base and runs `rehearse` and `migrate` again: a no-op apply that costs one extra Neon branch. Accepted; a job-level base would need one API call per past run (D434). To avoid it, re-run the failed run's jobs ("Re-run failed jobs") instead of merging again: `pending`'s output is reused, `migrate` is not re-run, and a green re-run becomes the next base. <!-- 2026-10-09 -->
 
 `db-rehearsal.yml` also runs on its own on any PR touching `database/migrations/**`, `database/seeds/**`, `app/scripts/seed.ts` or `app/package.json`, so a faulty migration surfaces at review time rather than at merge time. It is schema-only: the statistics integration suite (`npm run test:integration`) runs in `.github/workflows/integration.yml` against a CI-local `postgres:16` built from the same migration chain, so no test reads leave Neon (D433, 2026-10-09). <!-- 2026-10-09 -->
 
@@ -183,10 +186,10 @@ Required secrets (values are set in GitHub's UI, never in a file, a log, or a PR
 
 | Secret | Scope | Used by |
 | --- | --- | --- |
-| `DATABASE_URL` | `production` environment | `migrate` — the production pooled connection string |
+| `DATABASE_URL` | `production` environment | `pending` and `migrate` — the production pooled connection string |
 | `NEON_API_KEY` | Repository | `rehearse` — `neonctl` branch create/delete |
 
-The Neon project id is not a secret and is read from committed `app/.neon`. Both jobs fail with an explicit message when their credential is missing, rather than failing opaquely further down.
+The Neon project id is not a secret and is read from committed `app/.neon`. Each job fails with an explicit message when their credential is missing, rather than failing opaquely further down.
 
 `db:verify` is not part of the rehearsal. Its scripts assert on live data as well as on their own fixtures, and three open defects (#383, #384, #304) mean the suite cannot pass against production's rows at all; it stays a local, deliberate command until those are resolved (D288).
 
