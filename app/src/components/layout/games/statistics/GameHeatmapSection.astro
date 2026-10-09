@@ -3,11 +3,13 @@
  * Heatmap section: where darts landed over the page-level game and period (optionally for one target),
  * drawn as a density layer on the board. Owns its fetch through
  * `gameHeatmapSection()`. The glass surface is a sibling layer, not an
- * ancestor, for the same reason as `ScoreTrendSection.astro`.
+ * ancestor, for the same reason as `ScoreTrendSection.astro`. While loading,
+ * the bare board pulses in the heatmap's place at the same size.
  */
 import Select from "@components/forms/Select.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
 import StatsDensityHeatmap from "@components/ui/StatsDensityHeatmap.astro";
+import DartBoard from "@components/ui/DartBoard.astro";
 ---
 
 <section
@@ -36,13 +38,12 @@ import StatsDensityHeatmap from "@components/ui/StatsDensityHeatmap.astro";
       textExpr="error"
     />
     <div
+      class="opacity-30"
+      aria-hidden="true"
       x-show="loading"
       x-cloak
     >
-      <div
-        class="mx-auto aspect-square max-w-64 animate-pulse rounded-full bg-muted-foreground/80"
-      >
-      </div>
+      <DartBoard class="mx-auto max-w-64 animate-pulse" />
     </div>
     <div
       class="space-y-3"

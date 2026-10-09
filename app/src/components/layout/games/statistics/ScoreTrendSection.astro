@@ -3,7 +3,9 @@
  * Score Training score-trend section: the trend chart. Reads the enclosing
  * `scoreTrendSection()` scope, which fetches for the page-level `rangeKey`.
  * The glass surface is a sibling layer, not an ancestor: a `backdrop-filter`
- * nested inside another one blurs nothing.
+ * nested inside another one blurs nothing. The loading bar is the chart box's
+ * height plus the `mb-2` the flat `Chart.astro` box carries from its own
+ * `space-y-2`, so the section keeps its height when the chart replaces it.
  */
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
 import Chart from "@components/ui/Chart.astro";
@@ -22,11 +24,10 @@ import Chart from "@components/ui/Chart.astro";
       textExpr="error"
     />
     <div
-      class="space-y-2"
       x-show="loading"
       x-cloak
     >
-      <div class="h-48 animate-pulse rounded bg-muted-foreground/80"></div>
+      <div class="mb-2 h-48 animate-pulse rounded bg-muted-foreground/80"></div>
     </div>
     <div
       class="space-y-3"
