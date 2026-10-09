@@ -28,17 +28,17 @@ import { cn } from "@client/cn";
 ---
 
 <span
-  class={cn("inline-block min-h-[1lh]", classNameProp)}
+  class={cn("inline-block min-h-lh", classNameProp)}
   {...props}
 >
   <span
     x-show={readyExpr}
     x-cloak
-    x-text={valueExpr}
+    x-text={`(${valueExpr}) ?? '–'`}
   ></span>
   <span
     class={cn(
-      "inline-block h-[1lh] animate-pulse rounded-md bg-white/12 align-top",
+      "inline-block h-lh animate-pulse rounded-md bg-white/12 align-top",
       skeletonWidth,
     )}
     x-show={`!(${readyExpr})`}

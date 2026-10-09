@@ -38,7 +38,7 @@ const COLS = { 3: "grid-cols-3", 4: "grid-cols-4" };
           <dt class="font-mono text-eyebrow font-semibold uppercase text-muted">
             {label}
           </dt>
-          <dd>
+          <dd class="leading-none">
             <ResultValue
               class="font-mono text-lg leading-none tabular-nums text-foreground"
               valueExpr={`${valuesExpr}?.[${i}] ?? '–'`}
