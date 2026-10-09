@@ -400,9 +400,10 @@ function loadHitNumberCells(
  * One session's checkout visits, tagged with the bucket its own
  * `completed_at` falls in — identical across every row of that session.
  */
-function bucketedSessionsFromFoldRows(
-  rows: readonly X01FoldRow[],
-): BucketedSession[] {
+function bucketedSessionsFromFoldRows(rows: readonly X01FoldRow[]): {
+  sessions: BucketedSession[];
+  skippedSessions: number;
+} {
   const bucketsBySession = new Map<
     string,
     { bucketStart: string; bucketEnd: string }
@@ -415,10 +416,14 @@ function bucketedSessionsFromFoldRows(
       });
     }
   }
-  return sessionCheckoutVisits(rows).map((session) => ({
+  const sessions = sessionCheckoutVisits(rows).map((session) => ({
     ...session,
     ...bucketsBySession.get(session.sessionId)!,
   }));
+  return {
+    sessions,
+    skippedSessions: sessions.filter((session) => session.undecodable).length,
+  };
 }
 
 /**
@@ -429,13 +434,34 @@ function bucketedSessionsFromFoldRows(
 async function foldLoad(
   db: Db,
   ctx: SectionContext,
-): Promise<BucketedSession[]> {
+): Promise<{ sessions: BucketedSession[]; skippedSessions: number }> {
   const rows = await findX01FoldRows(db, {
     ...sectionScope(ctx),
     bucket: ctx.bucket,
     tz: ctx.tz,
   });
   return bucketedSessionsFromFoldRows(rows);
+}
+
+/**
+ * Adapts a `BucketedSession` shape function — every server-folded checkout
+ * section — into a `SectionHandler` sharing `foldLoad`, so the count of
+ * sessions skipped for an undecodable snapshot always reaches
+ * `SectionLoadResult`.
+ */
+function foldHandler(
+  shape: (
+    sessions: readonly BucketedSession[],
+    ctx: ShapeContext,
+  ) => SeriesBucket<unknown>[],
+): SectionHandler {
+  return {
+    load: async (db, ctx) => {
+      const { sessions, skippedSessions } = await foldLoad(db, ctx);
+      return { rows: sessions, skippedSessions };
+    },
+    shape: (rows, ctx) => shape(rows as BucketedSession[], ctx),
+  };
 }
 
 /**
@@ -538,12 +564,12 @@ const HANDLERS: Record<
   },
   "scoring-trend": { sql: handler(loadVisitScoring, scoringTrendBuckets) },
   "treble-rate": { sql: handler(loadHitNumberCells, trebleRateBuckets) },
-  "ladder-progress": { server: handler(foldLoad, ladderProgressBuckets) },
-  "checkout-rate": { server: handler(foldLoad, checkoutRateBuckets) },
-  "double-performance": { server: handler(foldLoad, doublePerformanceBuckets) },
-  "checkout-path": { server: handler(foldLoad, checkoutPathBuckets) },
-  "bust-rate": { server: handler(foldLoad, bustRateBuckets) },
-  "leg-stats": { server: handler(foldLoad, legStatsBuckets) },
+  "ladder-progress": { server: foldHandler(ladderProgressBuckets) },
+  "checkout-rate": { server: foldHandler(checkoutRateBuckets) },
+  "double-performance": { server: foldHandler(doublePerformanceBuckets) },
+  "checkout-path": { server: foldHandler(checkoutPathBuckets) },
+  "bust-rate": { server: foldHandler(bustRateBuckets) },
+  "leg-stats": { server: foldHandler(legStatsBuckets) },
   "atc-darts-per-target": { server: stepsHandler(atcDartsPerTargetBuckets) },
   "bobs27-survival": { server: stepsHandler(bobs27SurvivalBuckets) },
   "shanghai-count": { server: stepsHandler(shanghaiCountBuckets) },

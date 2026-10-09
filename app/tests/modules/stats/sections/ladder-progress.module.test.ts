@@ -53,6 +53,7 @@ function session(
     sessionId: "session-1",
     gameTypeKey: "TUOD",
     rulesetVersionKey: "TUOD_V1",
+    undecodable: false,
     ...overrides,
   };
 }
@@ -64,6 +65,7 @@ function bucketedSession(
     sessionId: "session-1",
     gameTypeKey: "TUOD",
     rulesetVersionKey: "TUOD_V1",
+    undecodable: false,
     bucketStart: "2026-01-01T00:00:00.000Z",
     bucketEnd: "2026-02-01T00:00:00.000Z",
     ...overrides,

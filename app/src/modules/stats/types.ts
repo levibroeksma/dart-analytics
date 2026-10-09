@@ -96,13 +96,15 @@ export type StagedVisit = CheckoutVisitTotals & {
  * instead of flattened into a career-wide list. `visits` is empty for a
  * session `visitsForSession` skips (no stored snapshot, an undecodable one,
  * or a seatless 121/TUOD session) -- the session still gets an entry, it
- * just contributed nothing.
+ * just contributed nothing. `undecodable` is true when the skip was a stored
+ * snapshot that no longer decodes, so a caller can count it.
  */
 export type SessionCheckoutVisits = {
   sessionId: string;
   gameTypeKey: string;
   rulesetVersionKey: string;
   visits: StagedVisit[];
+  undecodable: boolean;
 };
 
 /** One row of `v_stats_session_facts` (`findGameSessionsPage`); `neverStarted` is derived, not a view column. */

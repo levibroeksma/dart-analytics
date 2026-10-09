@@ -185,7 +185,7 @@ function soloSeat(participantRef: string): SeatFact {
  * and gets the same answer -- see `snapshotOf`. The `configuration === null`
  * check stays separate from it: "the session never stored one" and "the one
  * it stored no longer validates" are different facts about the data, and
- * only the second is a drift to be noticed.
+ * only the second is a drift to be noticed, so only it reports `undecodable`.
  *
  * A snapshot that decodes but names no seats is a third shape: a routine
  * GAME step stores its step configuration with no `seats` (`startGameStep`),
@@ -202,14 +202,26 @@ function soloSeat(participantRef: string): SeatFact {
  * row a session contributes here belongs to its owner. Do not "fix" this
  * into a per-participant grouping without changing one of those two first.
  */
-function visitsForSession(rows: readonly X01CheckoutDartRow[]): StagedVisit[] {
+function visitsForSession(rows: readonly X01CheckoutDartRow[]): {
+  visits: StagedVisit[];
+  undecodable: boolean;
+} {
   const first = rows[0];
-  if (!first) return [];
-  if (first.configuration === null) return [];
+  if (!first || first.configuration === null) {
+    return { visits: [], undecodable: false };
+  }
 
   const config = snapshotOf(first.rulesetVersionKey, first.configuration);
-  if (config === null) return [];
+  if (config === null) return { visits: [], undecodable: true };
 
+  return { visits: foldVisits(rows, first, config), undecodable: false };
+}
+
+function foldVisits(
+  rows: readonly X01CheckoutDartRow[],
+  first: X01CheckoutDartRow,
+  config: NonNullable<ReturnType<typeof snapshotOf>>,
+): StagedVisit[] {
   const facts: EngineFacts = { stages: stagesOf(rows), turns: turnsOf(rows) };
   const participantRef = first.participantId;
   const seated = {
@@ -267,7 +279,8 @@ function toCheckoutVisitTotals(visit: StagedVisit): CheckoutVisitTotals {
  * its first row appears in `rows`, each visit kept with the stage it was
  * played in. A session `visitsForSession` skips still gets an entry, with an
  * empty `visits` list, so a caller folding per session sees it happened
- * rather than losing it silently.
+ * rather than losing it silently; `undecodable` marks the ones skipped for a
+ * drifted snapshot.
  */
 export function sessionCheckoutVisits(
   rows: readonly X01CheckoutDartRow[],
@@ -284,7 +297,7 @@ export function sessionCheckoutVisits(
       sessionId,
       gameTypeKey: first.gameTypeKey,
       rulesetVersionKey: first.rulesetVersionKey,
-      visits: visitsForSession(bucket.rows),
+      ...visitsForSession(bucket.rows),
     };
   });
 }
