@@ -1,6 +1,8 @@
+import { fetchStatisticsOverview } from "@client/api/statistics";
 import { BOARD_RADII_MM } from "@lib/game/board/board-geometry.module";
 import { heatStamps } from "@modules/stats/sections/heatmap-density.module";
 import type { HeatmapMetrics } from "@modules/types";
+import type { StatisticsOverviewResponseData } from "@routes/types";
 import type {
   CareerTile,
   DailyAverage,
@@ -21,12 +23,6 @@ const DAILY: DailyAverage[] = [
   { day: "F", value: 74.1 },
   { day: "S", value: 68.9 },
   { day: "S", value: 71.5 },
-];
-
-const CAREER: CareerTile[] = [
-  { key: "BEST AVG", value: "84.6", hint: "501 · Sep 12" },
-  { key: "TOP OUT", value: "121", hint: "Hit 1×" },
-  { key: "DARTS", value: "18,342", hint: "Career" },
 ];
 
 /** Fixture landing cells (4 mm grid, mm from the bull): T20 heaviest, then S20, S1/S5, bull, a few strays. */
@@ -54,6 +50,37 @@ const LANDING: HeatmapMetrics = {
   ],
 };
 
+/**
+ * The three career tiles. Titles are fixed; `null` (not loaded, or the load
+ * failed) leaves every value a dash. A zero average means no games yet.
+ */
+export function careerTiles(
+  overview: StatisticsOverviewResponseData | null,
+): CareerTile[] {
+  const average = overview?.highestGameAverage ?? 0;
+  const checkout = overview?.highestCheckout ?? null;
+  return [
+    {
+      key: "BEST AVG",
+      value: average > 0 ? average.toFixed(1) : "—",
+      hint: "Career",
+    },
+    {
+      key: "TOP OUT",
+      value: checkout === null ? "—" : String(checkout.value),
+      hint: checkout === null ? "Career" : `Hit ${checkout.timesHit}×`,
+    },
+    {
+      key: "DARTS",
+      value:
+        overview === null
+          ? "—"
+          : overview.totalDartsThrown.toLocaleString("en-US"),
+      hint: "Career",
+    },
+  ];
+}
+
 /** The highest daily average to two decimals, or a dash with no days. */
 export function dailyPeak(days: DailyAverage[]): string {
   if (days.length === 0) return "—";
@@ -77,8 +104,9 @@ export function dailyBars(days: DailyAverage[]): DailyBar[] {
 }
 
 /**
- * Homepage stat sections. Fixture values from the design until the data
- * pass replaces them with reads; the returned shape is the contract.
+ * Homepage stat sections. The career tiles read `GET /api/statistics/overview`
+ * on `init()` and stay dashes if it fails; the other sections are still
+ * design fixtures until their data pass.
  */
 export function homeSnapshot(): HomeSnapshotContext {
   return {
@@ -95,13 +123,21 @@ export function homeSnapshot(): HomeSnapshotContext {
       started: "STARTED 18 MIN AGO",
       href: "/games",
     },
-    careerTiles: CAREER,
+    careerTiles: careerTiles(null),
     dailyAverage: DAILY,
     peak: dailyPeak(DAILY),
     bars: dailyBars(DAILY),
     landing: {
       window: "LAST 30 DAYS",
       stamps: heatStamps(LANDING, BOARD_SPAN_MM),
+    },
+
+    async init(this: HomeSnapshotContext) {
+      try {
+        this.careerTiles = careerTiles(await fetchStatisticsOverview());
+      } catch {
+        this.careerTiles = careerTiles(null);
+      }
     },
 
     navigate(path: string) {
