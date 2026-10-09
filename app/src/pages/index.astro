@@ -6,8 +6,9 @@ import ResumeGameCard from "@components/layout/home/ResumeGameCard.astro";
 import CareerTiles from "@components/layout/home/CareerTiles.astro";
 import DailyAverageCard from "@components/layout/home/DailyAverageCard.astro";
 import LandingHeatmapCard from "@components/layout/home/LandingHeatmapCard.astro";
-import WeekdayStrip from "@components/layout/home/WeekdayStrip.astro";
-import TodayRoutineCard from "@components/layout/home/TodayRoutineCard.astro";
+import Button from "@components/forms/Button.astro";
+import TrainingScheduleCard from "@components/layout/training/schedules/TrainingScheduleCard.astro";
+import PlayIcon from "@icons/play-rounded.svg";
 import LogoLockup from "../assets/logo-lockup.svg";
 ---
 
@@ -30,11 +31,25 @@ import LogoLockup from "../assets/logo-lockup.svg";
       <ResumeGameCard />
       <CareerTiles />
       <DailyAverageCard />
-      <div x-data="homeWeek()">
-        <TodayRoutineCard>
-          <WeekdayStrip />
-        </TodayRoutineCard>
-      </div>
+      <TrainingScheduleCard>
+        <Button
+          slot="action"
+          variant="secondary"
+          icon
+          ariaLabel="Start session"
+          loadingExpr="false"
+          class="glass-button size-11 shrink-0 rounded-full p-0"
+          x-show="canStart()"
+          x-cloak
+          @click="start()"
+        >
+          <PlayIcon
+            slot="iconBefore"
+            class="size-4.5"
+            aria-hidden="true"
+          />
+        </Button>
+      </TrainingScheduleCard>
       <LandingHeatmapCard />
     </div>
   </div>
