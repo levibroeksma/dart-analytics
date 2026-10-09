@@ -109,3 +109,27 @@ describe("effectiveMarks and marksPerRound", () => {
     expect(marksPerRound(state)).toBe(4.5);
   });
 });
+
+describe("hit tallies", () => {
+  it("start at zero", () => {
+    const state = initialMarksSeat(seat, 3);
+    expect(state.objectiveHits).toEqual([0, 0, 0]);
+    expect(state.trebleHits).toBe(0);
+  });
+
+  it("count every hit per objective, even after it closed", () => {
+    let state = initialMarksSeat(seat, 2);
+    state = applyMarksDart(state, { objectiveIndex: 0, marks: 3 });
+    state = applyMarksDart(state, { objectiveIndex: 0, marks: 1 });
+    state = applyMarksDart(state, null);
+    expect(state.objectiveHits).toEqual([2, 0]);
+  });
+
+  it("count 3-mark hits as trebles, even after the target closed", () => {
+    let state = initialMarksSeat(seat, 2);
+    state = applyMarksDart(state, { objectiveIndex: 0, marks: 3 });
+    state = applyMarksDart(state, { objectiveIndex: 0, marks: 3 });
+    state = applyMarksDart(state, { objectiveIndex: 1, marks: 2 });
+    expect(state.trebleHits).toBe(2);
+  });
+});
