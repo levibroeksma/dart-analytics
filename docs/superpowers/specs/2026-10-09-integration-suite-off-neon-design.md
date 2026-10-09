@@ -42,6 +42,11 @@ Each was checked in the repo on 2026-10-09. An implementer re-checks only if the
 | F16 | `pr-gates.yml`'s test-repointing heuristic scans only `app/tests/**/*.test.ts`; `.itest.ts` is invisible to it. | `.github/workflows/pr-gates.yml` |
 | F17 | Nothing in CI runs `db:verify`; `database/verification/**` and `app/scripts/verify-db.ts` trigger a rehearsal that never uses them. | `grep -rn verify .github/workflows` |
 | F18 | `db-rehearsal.yml` reads `app/.neon` (working dir `app`). The untracked root `.neon` is a local neonctl artefact, not read by CI. | `.github/workflows/db-rehearsal.yml`, `git ls-files` |
+| F19 | The `step-result` fold never calls an engine's `record()`: `factory.create(config, facts)` parses the config with the V1 `.strict()` schema and clones the turns, then `stepMetrics` reads the folded state. So darts-per-turn does not matter to the fold (Bull Up's "one dart per turn", Switching's "one dart per target" are write-time rules only), and the engines' "cannot record once complete" throws cannot fire. The only way a dart-kind step session is skipped is a config that fails its schema. | `step-result.module.ts:99-119`; every `*.engine.module.ts` constructor under `app/src/modules/training/exercises/` |
+| F20 | Game walkers exist only for `SINGLES_TRAINING`, `DOUBLES_TRAINING`, `SHANGHAI`, `AROUND_THE_CLOCK`, `BOBS27`, and the server sections that report `skippedSessions` (`atc-darts-per-target`, `training-result`, `bobs27-survival`, `shanghai-count`, plus the intent-derived `target-accuracy`/`confusion`/`miss-direction`) are offered to exactly those games. Each walker throws only after a terminal state. With the §4.3 script no walker reaches one: Bob's 27 opens at 27 and loses 2, 4, 6 over three missed visits (15 left, never ≤ 0); the other four need a hit on target 1 to advance and the script never hits 1. | `derived-aims.module.ts:93-144`; `bobs27.engine.module.ts:80-126`; `section-registry.ts` `games:`/`requires:`; `capabilities.ts:68-87` |
+| F21 | The X01 fold (`ladder-progress`, `checkout-rate`, `double-performance`, `checkout-path`, `bust-rate`, `leg-stats`; games tagged `checkout`/`leg`: `501`, `TUOD`, `ONE_TWENTY_ONE`) drops a session whose config fails `snapshotOf` **silently and without any counter** — `visitsForSession` returns `[]`. Guard 5 cannot see this; guard 6 covers it through `sampleSize`. `bust-rate` counts only visits opening at ≤ 180; `leg-stats` counts finished legs; both emit no bucket when the count is 0. | `x01-checkout-sessions.module.ts:206-215`; `bust-rate.module.ts:66-81`; `leg-stats.module.ts:55-83`; `checkout-visits.module.ts:31-100` |
+| F22 | `chk_configuration_not_empty` is `jsonb_typeof(configuration) = 'object'`, so `{}` is a legal `exercise_configurations.configuration` (`CRICKET`, `TACTICS`, `BULL_UP`). `turns.completed_at >= created_at` and `activities`/`exercise_sessions` `completed_at >= started_at` are CHECKed; `uq_sessions_single_active` is partial on `completed_at IS NULL`, so completed fixtures never collide. `v_game_replay` has no `WHERE`; `v_stats_routine_step_facts` inner-joins `exercise_types` (so `exercise_type_id` must be set) and `activity_configurations`. | `database/migrations/0007_constraints.sql:47`, `0011_ordering_and_uniqueness.sql:37`, `0044_replay_view_coordinates.sql:33-61`, `0045_stats_routine_views.sql:124-186` |
+| F23 | The migration chain on `main` ends at `0046_replay_stages_view.sql` (adds `v_replay_stages`; nothing in the stats folds reads it). The CI database is built from the whole chain, so the fixture must satisfy `0046` too — it adds no constraint. Root `CLAUDE.md` still says the closed chain ends at `0045`; see §7. | `ls database/migrations`, `database/CLAUDE.md` |
 
 ## 1. CI
 
@@ -259,6 +264,24 @@ All ids are UUIDv7-shaped literals `01990000-0000-7000-8000-0000000aXXXX`, hex `
 
 ## 4. Fixture content
 
+### 4.0 Exact column lists (from the migration chain, 2026-10-09)
+
+Every `INSERT` names these columns and no others. Lookup ids are resolved by sub-select on `implementation_key` — never hard-coded.
+
+| Table | Columns to insert |
+| ----- | ----------------- |
+| `players` | `id, auth_user_id, display_name, created_at, updated_at` |
+| `activities` | `id, player_id, status_id, started_at, completed_at, created_at` |
+| `activity_configurations` | `id, activity_id, configuration, created_at` |
+| `exercise_sessions` | `id, activity_id, player_id, exercise_type_id, exercise_ruleset_version_id, game_type_id, ruleset_version_id, capture_mode_id, input_mode_id, status_id, routine_step_sequence_number, started_at, completed_at, created_at` |
+| `exercise_configurations` | `id, exercise_session_id, configuration, created_at` |
+| `exercise_stages` | `id, exercise_session_id, parent_stage_id, stage_type_id, sequence_number, created_at` |
+| `participants` | `id, exercise_session_id, participant_type_id, player_id, display_name, created_at` |
+| `turns` | `id, exercise_stage_id, participant_id, sequence_number, total_score, completed_at, created_at` |
+| `darts` | `id, turn_id, dart_number, intended_target_number, intended_zone_id, hit_target_number, hit_zone_id, score, location_x, location_y, created_at` |
+
+Lookup tables and the keys used: `game_statuses` (`COMPLETED`), `exercise_types` (`GAME`, `WARM_UP`, the nine dart kinds), `exercise_ruleset_versions` (`<KIND>_V1`, `WARM_UP_V1`), `game_types` (the 11 `GameTypeKey`s), `ruleset_versions` (§4.2 column), `capture_modes` (`ANALYTICS`), `input_modes` (`VISUAL_BOARD`), `stage_types` (`LEG`, `ROUND`, `EXERCISE_BLOCK`), `participant_types` (`PLAYER`), `dart_zones` (F14 keys). All carry an `implementation_key` column.
+
 ### 4.1 Player and standalone activity
 
 ```sql
@@ -277,7 +300,7 @@ For each row of `GAME_FIXTURES` (typed `Record<GameTypeKey, GameFixture>`):
 
 | Game | `ruleset` | `stage` | `configuration` (wire, snake_case, F12) |
 | ---- | --------- | ------- | --------------------------------------- |
-| `501` | `501_V1` | `LEG` | `{"starting_score":501,"legs_to_win":1,"check_in":"STRAIGHT_IN","check_out":"DOUBLE_OUT","max_darts_per_turn":3,"max_visit_score":180}` |
+| `501` | `501_V1` | `LEG` | `{"starting_score":170,"legs_to_win":1,"check_in":"STRAIGHT_IN","check_out":"DOUBLE_OUT","max_darts_per_turn":3,"max_visit_score":180}` — `starting_score` is 170, not 501, so the §4.3 501 script finishes the leg (F21: `leg-stats`/`bust-rate` need a finished leg / a visit opening ≤ 180; `FiveOhOneConfig` allows any integer ≥ 2) |
 | `TUOD` | `TUOD_V1` | `EXERCISE_BLOCK` | `{"starting_target":10,"finish_bonus":1,"miss_penalty":1,"duration_type":"ROUNDS","duration_value":10,"max_darts_per_turn":3}` |
 | `ONE_TWENTY_ONE` | `121_V2` | `ROUND` | `{"duration_type":"ROUNDS","duration_value":10}` |
 | `SCORE_TRAINING` | `SCORE_TRAINING_V1` | `EXERCISE_BLOCK` | `{"duration_type":"ROUNDS","duration_value":10,"max_darts_per_turn":3,"max_visit_score":180}` |
@@ -295,11 +318,13 @@ For each row of `GAME_FIXTURES` (typed `Record<GameTypeKey, GameFixture>`):
 - `exercise_configurations`: `configuration = :config::jsonb` (no `seats` key).
 - `exercise_stages`: one stage, `stage_type_id = (… stage_types … = :stage)`, `sequence_number = 1`, `parent_stage_id NULL`.
 - `participants`: **owner seat only** — `participant_type_id = (PLAYER)`, `player_id = :player`, `display_name 'Stats World'`. No guest: every fold here is single-seat (`oneSeatConfig`, `soloSeat`), and a second seat adds engine-validity risk without adding coverage. (This replaces the earlier "guest seat where multi-seat" line.)
-- `turns` + `darts`: the **universal dart script** (§4.3), 3 turns × 3 darts, `turns.total_score` = sum of the turn's dart scores, `turns.completed_at = now()`.
+- `turns` + `darts`: the game's script — `GAME_FIXTURES[game].darts ?? UNIVERSAL_SCRIPT` (§4.3). `turns.total_score` = sum of the turn's dart scores, `turns.sequence_number` = 1-based turn index, `turns.completed_at = now()`, `darts.dart_number` = 1-based within the turn.
 
-### 4.3 Universal dart script
+### 4.3 Dart scripts
 
 Each dart: `(hit_target_number, zone_key, score, location_x, location_y)`. Locations are fixed board-ish coordinates so F5 holds and `miss-direction` has something to bin.
+
+**`UNIVERSAL_SCRIPT`** — 3 turns × 3 darts, used by every game except `501` and by every dart-kind routine step:
 
 | Turn | Dart 1 | Dart 2 | Dart 3 |
 | ---- | ------ | ------ | ------ |
@@ -307,9 +332,15 @@ Each dart: `(hit_target_number, zone_key, score, location_x, location_y)`. Locat
 | 2 | `(19, SINGLE, 19, -40.00, 120.00)` | `(25, OUTER_BULL, 25, 8.00, 6.00)` | `(NULL, MISS, 0, 190.00, 10.00)` |
 | 3 | `(25, INNER_BULL, 50, 1.00, -2.00)` | `(19, TREBLE, 57, -55.00, 90.00)` | `(16, DOUBLE, 32, 90.00, 140.00)` |
 
+**`GAME_FIXTURES["501"].darts`** — 1 turn × 3 darts, a 170 checkout (`starting_score` 170, §4.2), `turns.total_score = 170`:
+
+| Turn | Dart 1 | Dart 2 | Dart 3 |
+| ---- | ------ | ------ | ------ |
+| 1 | `(20, TREBLE, 60, 0.00, -103.00)` | `(20, TREBLE, 60, 1.00, -104.00)` | `(25, INNER_BULL, 50, 1.00, -2.00)` |
+
 - A `MISS` has `hit_zone_id = (MISS)` and `hit_target_number NULL` (allowed by F14). `intended_*` columns stay NULL everywhere.
-- The script is engine-valid for all 11 games (no finished leg, no negative Bob's 27 score, misses allowed everywhere). If a guard in §5.5 reports a skipped session for one game, **fix that game's darts in `GAME_FIXTURES` (a per-game override of the script), never relax the guard.**
-- Coverage: single, double, treble, outer bull, inner bull, miss zones; targets 16, 19, 20, 25.
+- Why these are safe: the dart-kind folds never call `record()` (F19); the five game walkers never reach a terminal state on the universal script (F20); the X01 fold is pure arithmetic over visits (F21). The 501 script finishes its only leg, which is what `leg-stats` and `checkout-path` count. If guard 5 or 6 still fails for one game, **fix that game's darts or config in `GAME_FIXTURES`, never relax the guard.**
+- Coverage: single, double, treble, outer bull, inner bull, miss zones; targets 16, 19, 20, 25; one finished leg; one bust-free, one bust-prone (`TUOD` opens at target 10 and scores 60) visit set.
 
 ### 4.4 Routine run — one completed activity, 11 steps
 
@@ -346,10 +377,10 @@ VALUES (:routineConfig, :routineActivity, :stepsJson::jsonb, now());
 | Steps | `exercise_type_id` | `exercise_ruleset_version_id` | game pair | capture/input | stages/turns/darts |
 | ----- | ------------------ | ----------------------------- | --------- | ------------- | ------------------ |
 | 1 (Warm-Up) | `WARM_UP` | `WARM_UP_V1` | NULL/NULL | NULL/NULL (F9) | none |
-| 2–10 (dart kinds) | the kind | `<KIND>_V1` | NULL/NULL | `ANALYTICS`/`VISUAL_BOARD` | one `EXERCISE_BLOCK` stage, owner seat, universal dart script |
-| 11 (game) | `GAME` | NULL | `501`/`501_V1` | `ANALYTICS`/`VISUAL_BOARD` | one `LEG` stage, owner seat, universal dart script |
+| 2–10 (dart kinds) | the kind | `<KIND>_V1` | NULL/NULL | `ANALYTICS`/`VISUAL_BOARD` | one `EXERCISE_BLOCK` stage, owner seat, `UNIVERSAL_SCRIPT` |
+| 11 (game) | `GAME` | NULL | `501`/`501_V1` | `ANALYTICS`/`VISUAL_BOARD` | one `LEG` stage, owner seat, `GAME_FIXTURES["501"]`'s config **and** darts (§4.2–4.3) |
 
-Every dart-kind session gets its own `exercise_configurations` row (F3: a missing or invalid config is a silent skip).
+Every dart-kind session gets its own `exercise_configurations` row (F3: a missing or invalid config is a silent skip). The Warm-Up session gets one too (its engine-input shape, F8); it has no stage, so it contributes `dart_count = 0` to `step-volume` only.
 
 ## 5. Guards
 
@@ -360,6 +391,15 @@ Each `it` seeds the world inside `inRolledBackTx`, then asserts the guards **bef
 3. **Routine is trained.** `stats.listTrainedRoutines(FIXTURE_PLAYER)` is `ok` and contains `world.routine.routineKey`.
 4. **Every step kind resolves.** `stats.getRoutineHeader(FIXTURE_PLAYER, routineKey)` is `ok` (an `ok: false` here fails the test outright). Mapping each `data.steps[i]` through `sectionsForStep` yields: at least one `kind: "game"`; for every key of `STEP_METRIC_SPECS`, at least one step whose `exerciseTypeKey` equals it; and at least one step with `exerciseTypeKey === "WARM_UP"`.
 5. **No fold skipped a fixture session.** During the sweep for `FIXTURE_PLAYER`, every section response that is `ok` and whose `data` carries a numeric `skippedSessions` must have `skippedSessions === 0`. Collect violations as `"<label>: skippedSessions=<n>"` and assert the list is `[]` alongside `failures`. This is what makes F3's silent skip loud: a config that fails its schema, or darts an engine rejects, now fails CI.
+6. **The X01 fold decoded every checkout game's config** (F21 — this fold has no `skippedSessions`). For each `(game, sectionId)` in the table below, `stats.getGameSection(FIXTURE_PLAYER, game, sectionId, { ...RANGES[0], ...GAME_QUERY })` is `ok` and `data.buckets.reduce((n, b) => n + b.sampleSize, 0) >= 1`. Failure message names the pair.
+
+   | Game | Section | Why ≥ 1 holds with §4.2–4.3 |
+   | ---- | ------- | ---------------------------- |
+   | `501` | `leg-stats` | the 501 script finishes one leg from 170 |
+   | `TUOD` | `bust-rate` | visit 1 opens at target 10 (≤ 180), so it is counted |
+   | `ONE_TWENTY_ONE` | `bust-rate` | visit 1 opens at 121 (≤ 180), so it is counted |
+
+   A `0` here means `snapshotOf` rejected the stored config (or the view hid the session) — fix the fixture, never the guard.
 
 Then the sweep runs as today for both players and `failures` must be `[]`.
 
@@ -378,11 +418,13 @@ Then the sweep runs as today for both players and `failures` must be `[]`.
 1. `isDartExerciseKind` / `sectionsForStep` JSDoc says "seven" dart exercise kinds; `STEP_METRIC_SPECS` has nine (`section-registry.ts:457, 475`).
 2. `pr-gates.yml` test-repointing heuristic ignores `*.itest.ts` (F16).
 3. Root `.neon` (neonctl artefact, `orgId` only) is untracked and not gitignored (F18).
+4. Root `CLAUDE.md` Hard Invariants still say the closed migration chain is `0001`–`0045`; `0046_replay_stages_view.sql` is on `main` and `database/CLAUDE.md` already says `0001`–`0046` (F23). Whether `0046` is applied to production is provable only by `db:status:prod`, which this task does not run.
+5. The X01 fold drops a session whose config no longer decodes without counting it (`visitsForSession` returns `[]`, F21), unlike the derived-aims and step-result folds which report `skippedSessions`. Guard 6 covers the fixture; production has no signal.
 
 ## 8. Execution order for the implementer
 
 1. Write `fixtures/stats-world.ts` (§3–4). Unit-level check: `npx tsc --noEmit` passes with `GAME_FIXTURES: Record<GameTypeKey, …>`.
-2. Rewrite `statistics-sql.itest.ts` (§2, §5). Run `npm run test:integration` against a local migrated + seeded Postgres (e.g. `docker run -e POSTGRES_PASSWORD=ci -p 5432:5432 postgres:16`, then the §1.1 migrate → seed → migrate commands with that `DATABASE_URL`). Iterate on §4 until guards 1–5 pass and `failures` is `[]`.
+2. Rewrite `statistics-sql.itest.ts` (§2, §5). Run `npm run test:integration` against a local migrated + seeded Postgres (e.g. `docker run -e POSTGRES_PASSWORD=ci -p 5432:5432 postgres:16`, then the §1.1 migrate → seed → migrate commands with that `DATABASE_URL`). Iterate on §4 until guards 1–6 pass and `failures` is `[]`.
 3. Add `integration.yml`; edit `db-rehearsal.yml` (§1).
 4. Docs + decision (§6); issues (§7).
 5. `npm run format`, `run-all-gates`, `context-maintenance`, push, PR.
@@ -390,5 +432,5 @@ Then the sweep runs as today for both players and `failures` must be `[]`.
 ## Done when
 
 - `db-rehearsal.yml` runs nothing beyond `neonctl`, dbmate and `scripts/seed.ts`, and its trigger list is the five paths in §1.2.
-- `integration.yml` is green on this PR (it touches `app/tests/integration/**`), with guards 1–5 passing and `skippedSessions === 0` everywhere for `FIXTURE_PLAYER`.
-- The decision is recorded; `run-all-gates` and `context-maintenance` have run; the three §7 issues exist.
+- `integration.yml` is green on this PR (it touches `app/tests/integration/**`), with guards 1–6 passing and `skippedSessions === 0` everywhere for `FIXTURE_PLAYER`.
+- The decision is recorded; `run-all-gates` and `context-maintenance` have run; the five §7 issues exist.
