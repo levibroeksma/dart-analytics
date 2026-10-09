@@ -5,6 +5,9 @@ name: db-rehearsal
 # cleanly to production's real shape once (#354). Runs on every PR that touches
 # the schema, and as the gate in front of `deploy.yml`'s apply job.
 #
+# Schema-only: migrate -> seed -> migrate -> status. The statistics integration
+# suite runs in integration.yml against a CI-local Postgres, never here (D433).
+#
 # The rehearsal branch is deleted in an `always()` step: a leaked branch costs
 # storage and keeps a compute warm, so the delete is not conditional on success.
 
@@ -14,17 +17,17 @@ on:
     paths:
       - 'database/migrations/**'
       - 'database/seeds/**'
-      - 'database/verification/**'
       - 'app/scripts/seed.ts'
-      - 'app/scripts/verify-db.ts'
-      - 'app/src/repositories/**'
-      - 'app/src/services/statistics.service.ts'
-      - 'app/src/lib/stats/**'
-      - 'app/tests/integration/**'
-      - 'app/vitest.integration.config.ts'
       - 'app/package.json'
       - '.github/workflows/db-rehearsal.yml'
   workflow_call:
+
+# PR runs cancel a superseded attempt. `workflow_call` runs inherit deploy.yml's
+# `deploy-production` group and must never be cancelled, so the key is inert
+# for them: a distinct group per event, cancel only on pull_request.
+concurrency:
+  group: rehearsal-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   rehearse:
@@ -93,13 +96,6 @@ jobs:
         run: npm run db:seed:ci
       - name: Apply migrations (authoritative pass)
         run: npm run db:migrate:ci
-
-      # Executes every statistics section, list and routine read against the
-      # migrated branch: render-only unit tests cannot see grouping or type
-      # errors Postgres raises (#653). Needs a seeded player with data to
-      # cover routines; the game sections run against an absent player too.
-      - name: Statistics SQL executes
-        run: npm run test:integration
 
       # `db:verify` is deliberately NOT run here. Its scripts assert on live
       # data ("no exercise_sessions row is undeclared") as well as on fixtures

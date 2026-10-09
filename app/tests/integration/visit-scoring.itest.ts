@@ -1,9 +1,7 @@
-import { drizzle } from "drizzle-orm/postgres-js";
 import { sql } from "drizzle-orm";
-import postgres from "postgres";
 import { describe, expect, it } from "vitest";
-import * as schema from "@db/schema";
 import { findVisitScoring } from "@repositories/statistics.repository";
+import { inRolledBackTx, uuid } from "./fixtures/itest-db";
 
 if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is required");
 
@@ -13,12 +11,6 @@ const OWNER = "01990000-0000-7000-8000-000000069701";
 const ACTIVITY = "01990000-0000-7000-8000-000000069702";
 const RANGE = { from: "2020-01-01T00:00:00Z", to: "2030-01-01T00:00:00Z" };
 const BANDS = [100, 140, 180] as const;
-
-class Rollback extends Error {}
-
-function uuid(n: number): string {
-  return `01990000-0000-7000-8000-${n.toString(16).padStart(12, "0")}`;
-}
 
 type SessionSeed = {
   base: number;
@@ -84,24 +76,6 @@ async function seedSession(db: Db, s: SessionSeed) {
   }
 }
 
-/** Runs `body` in a transaction that always rolls back, so no row survives. */
-async function inRolledBackTx<T>(body: (db: Db) => Promise<T>): Promise<T> {
-  const client = postgres(process.env.DATABASE_URL as string, { max: 1 });
-  const db = drizzle(client, { schema });
-  let result: T | undefined;
-  try {
-    await db.transaction(async (tx) => {
-      result = await body(tx as unknown as Db);
-      throw new Rollback();
-    });
-  } catch (err) {
-    if (!(err instanceof Rollback)) throw err;
-  } finally {
-    await client.end();
-  }
-  return result as T;
-}
-
 async function seedWorld(db: Db) {
   await db.execute(sql`
     INSERT INTO players (id, auth_user_id, display_name, created_at, updated_at)
@@ -127,7 +101,7 @@ function scoring(db: Db, gameTypeKey: "501" | "SCORE_TRAINING") {
 
 describe("findVisitScoring first nine (#697)", () => {
   it("counts the owner's first three visits per LEG, with 1v1 seats interleaved", async () => {
-    const rows = await inRolledBackTx(async (db) => {
+    const rows = await inRolledBackTx(async (db: Db) => {
       await seedWorld(db);
       await seedSession(db, {
         base: 0x69710,
@@ -148,7 +122,7 @@ describe("findVisitScoring first nine (#697)", () => {
   });
 
   it("counts the owner's first three visits per EXERCISE_BLOCK in Score Training", async () => {
-    const rows = await inRolledBackTx(async (db) => {
+    const rows = await inRolledBackTx(async (db: Db) => {
       await seedWorld(db);
       await seedSession(db, {
         base: 0x69720,
