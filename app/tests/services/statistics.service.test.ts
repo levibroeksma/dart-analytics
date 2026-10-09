@@ -1020,6 +1020,54 @@ describe("getGameSection dispatches the checkout family", () => {
     expect(repo.findX01FoldRows).toHaveBeenCalled();
   });
 
+  it("counts a session whose stored config no longer decodes as skipped", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 1,
+      maxCompletedAt: null,
+    });
+    vi.mocked(repo.findScopeDartCount).mockResolvedValue(2);
+    vi.mocked(repo.findX01FoldRows).mockResolvedValue([
+      makeFoldRow(),
+      makeFoldRow({
+        sessionId: "s-drifted",
+        configuration: { starting_score: "bad" },
+      }),
+    ] as never);
+
+    const result = await getGameSection(playerId, "501", "checkout-rate", {
+      ...baseRangeQuery,
+      status: "completed",
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(
+        (result.data as { skippedSessions?: number }).skippedSessions,
+      ).toBe(1);
+    }
+  });
+
+  it("reports zero skipped sessions when every fold session decodes", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 1,
+      maxCompletedAt: null,
+    });
+    vi.mocked(repo.findScopeDartCount).mockResolvedValue(1);
+    vi.mocked(repo.findX01FoldRows).mockResolvedValue([makeFoldRow()] as never);
+
+    const result = await getGameSection(playerId, "501", "checkout-rate", {
+      ...baseRangeQuery,
+      status: "completed",
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(
+        (result.data as { skippedSessions?: number }).skippedSessions,
+      ).toBe(0);
+    }
+  });
+
   it("dispatches double-performance through the fold", async () => {
     vi.mocked(repo.findGameDataVersion).mockResolvedValue({
       count: 1,

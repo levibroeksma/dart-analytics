@@ -576,8 +576,25 @@ describe("sessionCheckoutVisits", () => {
         gameTypeKey: "501",
         rulesetVersionKey: "501_V1",
         visits: [],
+        undecodable: false,
       },
     ]);
+  });
+
+  it("flags a session whose stored configuration no longer decodes", () => {
+    const sessions = sessionCheckoutVisits([
+      row({ configuration: { starting_score: "bad" } }),
+    ]);
+
+    expect(sessions).toHaveLength(1);
+    expect(sessions[0].visits).toEqual([]);
+    expect(sessions[0].undecodable).toBe(true);
+  });
+
+  it("does not flag a decodable session", () => {
+    const sessions = sessionCheckoutVisits([row({})]);
+
+    expect(sessions[0].undecodable).toBe(false);
   });
 
   it("checkoutVisitsFromRows is sessionCheckoutVisits' visits with the stage tag stripped, for every existing fixture", () => {

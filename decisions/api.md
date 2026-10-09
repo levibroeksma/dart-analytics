@@ -372,3 +372,10 @@ Decision: The prerendered `/statistics/replay?session=<id>` page is removed. Eac
 Reason: a replay is a detail of a list row, and opening it in place keeps the list, its page and its period in view instead of navigating away and back.
 Consequences: the replay section's card is the only replay entry point; the Routines tab step rows, the `session-result` PB line and the 501 Best leg value open none. No deep link to a replay exists. Only the open card renders `SessionReplay` (`x-if`), so a page of ten rows builds one board. `.astro` markup is untested (D101); `growingCard()` and `replayStore().open()` are covered.
 Supersedes: D371 decisions 9 and 12.
+
+### D439 — X01 checkout folds count undecodable-snapshot sessions in `skippedSessions`
+Status: Accepted · Date: 2026-10-09
+Decision: `sessionCheckoutVisits` marks each session `undecodable` when its stored snapshot exists but `snapshotOf` cannot decode it. `foldLoad` returns `{ sessions, skippedSessions }`, and a `foldHandler` threads the count into the response for `ladder-progress`, `checkout-rate`, `double-performance`, `checkout-path`, `bust-rate` and `leg-stats`. A session with no stored snapshot is not counted.
+Reason: a ruleset schema change that invalidated stored configs would zero those sections for the affected sessions with no signal, while every `stepsLoad` section already reports the skip (#855).
+Consequences: no schema or contract change; `skippedSessions` was already optional on these responses. `SessionCheckoutVisits` gains a required `undecodable` boolean. The statistics cards for these sections do not yet show a notice.
+Supersedes: none (extends D370).

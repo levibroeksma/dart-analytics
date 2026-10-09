@@ -139,6 +139,11 @@ Skips are counted in the result as `skippedSessions`, an optional field on
 every server-site `Series` response, so a card can say "N sessions could not
 be replayed" rather than silently under-counting.
 
+The X01 checkout folds (`ladder-progress`, `checkout-rate`,
+`double-performance`, `checkout-path`, `bust-rate`, `leg-stats`) count a
+session whose stored snapshot no longer decodes the same way (D439). A session
+that never stored a snapshot is not counted: nothing was lost to drift.
+
 ---
 
 # 2. Game Pages
