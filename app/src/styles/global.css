@@ -504,6 +504,20 @@
   filter: saturate(0.55) brightness(0.75);
 }
 
+@utility glass-pill {
+  @apply border-x-0 border-y backdrop-blur-sm;
+  background:
+    radial-gradient(
+      at 50% 0%,
+      oklch(100% 0 0 / 0.08),
+      oklch(100% 0 0 / 0.16) 85%
+    ),
+    oklch(4% 0.01 245 / 0.6);
+  border-top-color: oklch(100% 0 0 / 0.35);
+  border-bottom-color: oklch(100% 0 0 / 0.15);
+  box-shadow: 0 2px 8px oklch(0% 0 0 / 0.35);
+}
+
 @layer components {
   .nav-pill {
     background: oklch(100% 0 0 / 0.04);

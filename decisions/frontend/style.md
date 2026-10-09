@@ -185,3 +185,10 @@ Decision: a collapsed `InfoSection` shows only its title and a right-pointing ch
 Reason: reported on production after D430 — the two-line clamp still read as an open card, the 384px form sat narrower than the nav and slide, and the slide crowded the nav.
 Consequences: markup only; `.astro` carries no unit test (D101). `open` keeps its always-expanded form.
 Supersedes: D430 (`InfoSection` two-line clamp clause only).
+
+### D436 — Magnifier read sits above the circle in a glass pill
+Status: Accepted · Date: 2026-10-09
+Decision: `BoardMagnifier`'s read pill moves out of the circle to 8px above its top edge, centred, styled by a new `glass-pill` utility — the `glass-button` wash over `oklch(4% 0.01 245 / 0.6)`, top/bottom borders 0.35/0.15, `0 2px 8px` shadow, `backdrop-blur-sm` — per Claude Design `Game Play Analytics.dc.html` §8a. The sized, translated frame now carries `--mag-zoom` and `magnifierBox()`; the clipped circle fills it, so the pill is not clipped.
+Reason: the read inside the circle covered the zoomed board under the crosshair.
+Consequences: markup + CSS; `glass-pill` pinned in `brand-tokens.test.ts`; `.astro` carries no unit test (D101). The placement clamp still sizes the circle only, so near the viewport top the pill may clip.
+Supersedes: D432 (read placement clause only — now above the circle).
