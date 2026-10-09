@@ -1,6 +1,7 @@
 ---
 /**
- * One builder step: drag handle, exercise name, minutes input, remove.
+ * One builder step as a raised glass card: drag handle, exercise name, a
+ * minutes pill (inset well holding the input and its unit), remove.
  * Reads `step`/`index` from the enclosing `x-for` and the builder's helpers,
  * including its `stepMinMinutes`/`stepMaxMinutes` reactive bounds (bound via
  * `:min`/`:max` — see `ExercisePicker.astro`'s note on why a bound crosses
@@ -29,49 +30,53 @@ import CrossIcon from "@icons/cross.svg";
 ---
 
 <li
-  class="inset-well flex items-center gap-2 rounded-2xl p-2"
+  class="glass-button flex h-14 items-center gap-1 rounded-2xl px-1 backdrop-blur-sm"
   x-sort:item="step.key"
 >
   <IconBtn
     variant="ghost"
-    class="shrink-0 cursor-grab p-1.5 active:cursor-grabbing"
+    class="h-11 w-8 shrink-0 cursor-grab border-0 active:cursor-grabbing"
     ariaLabel="Reorder step, drag or use arrow up and down"
     x-sort:handle=""
     @keydown.up.prevent="nudgeStep(step.key, -1); $nextTick(() => $el.focus())"
     @keydown.down.prevent="nudgeStep(step.key, 1); $nextTick(() => $el.focus())"
   >
-    <GripIcon />
+    <GripIcon class="size-4.5 opacity-55" />
   </IconBtn>
-  <span class="min-w-0 flex-1">
+  <span class="flex min-w-0 flex-1 flex-col gap-[3px]">
     <span
-      class="block truncate text-sm text-foreground"
+      class="truncate font-display text-[13px]/[normal] tracking-[0.01em] text-foreground"
       x-text="step.name"
     ></span>
     <span
-      class="block text-xs text-muted-foreground"
+      class="text-[11px]/[normal] text-muted-foreground"
       x-show="step.exerciseTypeKey === 'GAME'"
       x-cloak
     >
       3–30 min
     </span>
   </span>
-  <Input
-    type="number"
-    class="w-16 text-center"
-    :min="stepMinFor(step)"
-    :max="stepMaxFor(step)"
-    inputmode="numeric"
-    :value="step.durationValue"
-    @change="setMinutes(index, $event.target.valueAsNumber)"
-    aria-label="Minutes"
-  />
-  <span class="text-xs text-muted-foreground">min</span>
+  <label
+    class="inset-well flex h-9 w-17 shrink-0 items-center justify-between gap-1 rounded-full px-2.5 focus-within:ring-2 focus-within:ring-accent-muted"
+  >
+    <Input
+      type="number"
+      class="w-5.5 rounded-none border-0 bg-transparent p-0 text-[13px] font-medium shadow-none [appearance:textfield] focus:bg-transparent focus:shadow-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+      :min="stepMinFor(step)"
+      :max="stepMaxFor(step)"
+      inputmode="numeric"
+      :value="step.durationValue"
+      @change="setMinutes(index, $event.target.valueAsNumber)"
+      aria-label="Minutes"
+    />
+    <span class="text-[11px] font-medium text-muted">min</span>
+  </label>
   <IconBtn
     variant="ghost"
-    class="p-1.5"
+    class="h-11 w-9 shrink-0 border-0"
     ariaLabel="Remove step"
     @click="removeStep(index)"
   >
-    <CrossIcon />
+    <CrossIcon class="size-4 opacity-70" />
   </IconBtn>
 </li>

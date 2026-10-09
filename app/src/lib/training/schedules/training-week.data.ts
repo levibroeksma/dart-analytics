@@ -24,6 +24,10 @@ const DAY_CLASSES: Record<DayStatus, string> = {
   rest: "size-8.5 border-2 border-border text-faint-foreground",
 };
 
+/** Every day alike while the week loads — no status is known yet. */
+const LOADING_DAY_CLASS =
+  "size-8.5 animate-pulse border-2 border-white/12 text-faint-foreground";
+
 /**
  * `/training`'s "My schedule" card: the active schedule and this ISO week's
  * completions, read into a per-day status (done, missed, today, scheduled,
@@ -64,6 +68,7 @@ export function trainingWeek() {
     },
 
     dayClass(this: TrainingWeekContext, index: number) {
+      if (this.loading) return LOADING_DAY_CLASS;
       return DAY_CLASSES[this.status(index)];
     },
 
