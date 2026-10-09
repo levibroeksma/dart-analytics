@@ -186,7 +186,14 @@ Reason: reported on production after D430 — the two-line clamp still read as a
 Consequences: markup only; `.astro` carries no unit test (D101). `open` keeps its always-expanded form.
 Supersedes: D430 (`InfoSection` two-line clamp clause only).
 
-### D436 — Result modals render one DOM; values pulse in place while saving
+### D436 — Magnifier read sits above the circle in a glass pill
+Status: Accepted · Date: 2026-10-09
+Decision: `BoardMagnifier`'s read pill moves out of the circle to 8px above its top edge, centred, styled by a new `glass-pill` utility — the `glass-button` wash over `oklch(4% 0.01 245 / 0.6)`, top/bottom borders 0.35/0.15, `0 2px 8px` shadow, `backdrop-blur-sm` — per Claude Design `Game Play Analytics.dc.html` §8a. The sized, translated frame now carries `--mag-zoom` and `magnifierBox()`; the clipped circle fills it, so the pill is not clipped.
+Reason: the read inside the circle covered the zoomed board under the crosshair.
+Consequences: markup + CSS; `glass-pill` pinned in `brand-tokens.test.ts`; `.astro` carries no unit test (D101). The placement clamp still sizes the circle only, so near the viewport top the pill may clip.
+Supersedes: D432 (read placement clause only — now above the circle).
+
+### D437 — Result modals render one DOM; values pulse in place while saving
 Status: Accepted · Date: 2026-10-09
 Decision: every results sheet (12 game modals + routine summary) follows Claude Design `Result Modals.dc.html` and renders one DOM in both the saving and saved states. Each dynamic value goes through `ResultValue`: the value's own line box holds either the text (once `completionStatus === 'succeeded'`) or a one-line pulse bar of a fixed width. Labels, tiles, grids, titles and overlines are static. `SaveStatus` is a fixed-height row in `ResultsModalShell` and `RoutineSummaryModal`: pulsing `SAVING…` (`text-error`) until saved, then `SAVED` (`text-success`); a failed save shows error + Retry instead. `showSavedMessage` is removed; the play-again button reads `Rematch`. Solo summaries use a hero value beside bordered side stats, then an optional tile grid (`heroSize`, `tileCols`). Cricket and Tactics get real modals: Darts used, Marks / round, Trebles (Cricket) or Bulls (Tactics), and a `TargetGrid` of darts to close per objective. Spec: `docs/superpowers/specs/2026-10-09-result-modal-skeletons-design.md`.
 Reason: the old parallel loaded/skeleton blocks had different layouts, and "Saved" appeared from nothing, so the sheet jumped when the save finished; one DOM with values swapped in place keeps the height and label positions the same.

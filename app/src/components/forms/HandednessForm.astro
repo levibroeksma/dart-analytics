@@ -6,16 +6,24 @@
  * never a `player_settings` round trip, since this is a per-device rendering
  * choice rather than gameplay data. Roving-tabindex radiogroup, mirroring
  * `AppModeForm`'s pattern, drawn as a two-pill segmented track: the selected
- * pill takes the accent orb fill, alongside `aria-checked`.
+ * pill takes the accent orb fill, alongside `aria-checked`. While
+ * `skeletonExpr` is true the track pulses with neither pill filled and taps
+ * are ignored, matching the rest of the card's skeleton.
+ * @param {string} [skeletonExpr] Alpine expression; defaults to `"false"`
  * @param {string} [class] Extra classes
  */
 interface Props {
+  skeletonExpr?: string;
   class?: string;
   [key: string]: unknown;
 }
 
 // Props
-const { class: classNameProp, ...props }: Props = Astro.props;
+const {
+  skeletonExpr = "false",
+  class: classNameProp,
+  ...props
+}: Props = Astro.props;
 
 // Lib
 import { cn } from "@client/cn";
@@ -27,18 +35,23 @@ const className = cn(
 );
 const optionClass =
   "flex h-10 items-center justify-center rounded-full text-[13px]/[normal] font-semibold transition-colors duration-150";
+const optionClassExpr = (value: string) =>
+  `!(${skeletonExpr}) && $store.boardInput.handedness === '${value}' ? 'accent-orb text-foreground' : 'text-muted-foreground'`;
 ---
 
 <div
   class={className}
   role="radiogroup"
   aria-label="Throwing hand"
-  x-data="{
+  :class={`(${skeletonExpr}) ? 'animate-pulse' : ''`}
+  :aria-busy={skeletonExpr}
+  x-data={`{
     select(handedness, ref) {
+      if (${skeletonExpr}) return;
       $store.boardInput.handedness = handedness;
       $nextTick(() => $refs[ref].focus());
     },
-  }"
+  }`}
   {...props}
 >
   <button
@@ -46,7 +59,7 @@ const optionClass =
     role="radio"
     x-ref="rightOption"
     class={optionClass}
-    :class="$store.boardInput.handedness === 'RIGHT' ? 'accent-orb text-foreground' : 'text-muted-foreground'"
+    :class={optionClassExpr("RIGHT")}
     :aria-checked="$store.boardInput.handedness === 'RIGHT'"
     :tabindex="$store.boardInput.handedness === 'LEFT' ? -1 : 0"
     @click="select('RIGHT', 'rightOption')"
@@ -63,7 +76,7 @@ const optionClass =
     role="radio"
     x-ref="leftOption"
     class={optionClass}
-    :class="$store.boardInput.handedness === 'LEFT' ? 'accent-orb text-foreground' : 'text-muted-foreground'"
+    :class={optionClassExpr("LEFT")}
     :aria-checked="$store.boardInput.handedness === 'LEFT'"
     :tabindex="$store.boardInput.handedness === 'LEFT' ? 0 : -1"
     @click="select('LEFT', 'leftOption')"

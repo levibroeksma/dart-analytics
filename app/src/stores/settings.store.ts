@@ -14,6 +14,11 @@ export function settingsStore() {
     captureModeKey: "RECREATIONAL",
     inputModeKey: "QUICK_SCORE",
     loading: false,
+    /**
+     * `true` once the first load settles, success or failure. Drives the
+     * skeleton: `loading` also flips during saves, which must not blank the UI.
+     */
+    loaded: false,
     error: null as string | null,
 
     async init() {
@@ -31,6 +36,7 @@ export function settingsStore() {
         this.error = cause instanceof Error ? cause.message : "load failed";
       } finally {
         this.loading = false;
+        this.loaded = true;
       }
     },
 

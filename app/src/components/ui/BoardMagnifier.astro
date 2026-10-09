@@ -42,14 +42,14 @@
  * factor; `board.pxPerMm` supplies the rest, so the two numbers are never
  * duplicated into one.
  *
- * The circle's `:style` binding is an OBJECT — `magnifierBox()` returns one —
+ * The frame's `:style` binding is an OBJECT — `magnifierBox()` returns one —
  * not a template-literal string, and this is load-bearing: Alpine's
  * string-form style binding replaces the whole `style` attribute
  * (`setAttribute("style", value)`), which would wipe the static `--mag-zoom`
  * custom property the instant Alpine mounts. The
  * object form merges individual properties instead (`style.setProperty`) and
  * leaves the rest of the attribute — including `--mag-zoom` — intact, so the
- * child's `var(--mag-zoom)` still resolves. Confirmed with a real browser:
+ * descendant's `var(--mag-zoom)` still resolves. Confirmed with a real browser:
  * the string form silently drops the whole `transform` declaration (invalid
  * `var()`), which a hand-written Alpine stub never exercises.
  *
@@ -90,7 +90,7 @@ import { cn } from "@client/cn";
 
 // Styles
 const circleClass = cn(
-  "absolute left-0 top-0 -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-full border-2 border-accent bg-surface shadow-magnifier",
+  "absolute inset-0 overflow-hidden rounded-full border-2 border-accent bg-surface shadow-magnifier",
   classNameProp,
 );
 ---
@@ -104,34 +104,36 @@ const circleClass = cn(
   {...props}
 >
   <div
-    class={circleClass}
+    class="absolute left-0 top-0 -translate-x-1/2 -translate-y-1/2"
     style={`--mag-zoom: ${zoom}`}
     :style="magnifierBox()"
   >
-    <div class="absolute inset-0 flex items-center justify-center">
-      <div
-        class="h-[440px] w-[440px] shrink-0"
-        :style="magnifierBoard()"
-      >
-        <DartBoard />
-      </div>
-    </div>
-
-    <div
-      class="absolute left-1/2 top-1/2 h-4 w-px -translate-x-1/2 -translate-y-1/2 bg-foreground"
-    >
-    </div>
-    <div
-      class="absolute left-1/2 top-1/2 h-px w-4 -translate-x-1/2 -translate-y-1/2 bg-foreground"
-    >
-    </div>
-
     <p
-      class="absolute bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-black/60 px-2 py-0.5 font-mono text-[11px] font-semibold leading-normal text-foreground"
+      class="glass-pill absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded-full px-2.5 py-1 font-mono text-[11px] font-semibold leading-normal text-foreground"
       x-show="magnifierRead()"
       x-cloak
       x-text="magnifierRead()"
     >
     </p>
+
+    <div class={circleClass}>
+      <div class="absolute inset-0 flex items-center justify-center">
+        <div
+          class="h-[440px] w-[440px] shrink-0"
+          :style="magnifierBoard()"
+        >
+          <DartBoard />
+        </div>
+      </div>
+
+      <div
+        class="absolute left-1/2 top-1/2 h-4 w-px -translate-x-1/2 -translate-y-1/2 bg-foreground"
+      >
+      </div>
+      <div
+        class="absolute left-1/2 top-1/2 h-px w-4 -translate-x-1/2 -translate-y-1/2 bg-foreground"
+      >
+      </div>
+    </div>
   </div>
 </div>
