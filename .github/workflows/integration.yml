@@ -1,0 +1,78 @@
+name: integration
+
+# Executes every statistics section, list and routine read against a Postgres
+# built from the migration chain (#653). Runs here, not in db-rehearsal.yml,
+# so the suite never reads from a Neon branch (D433).
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'database/migrations/**'
+      - 'database/seeds/**'
+      - 'app/scripts/seed.ts'
+      - 'app/src/db/**'
+      - 'app/src/repositories/**'
+      - 'app/src/services/statistics.service.ts'
+      - 'app/src/lib/stats/**'
+      - 'app/src/modules/stats/**'
+      - 'app/src/modules/game/**'
+      - 'app/src/modules/training/**'
+      - 'app/src/modules/types.ts'
+      - 'app/src/lib/game/rulesets/**'
+      - 'app/src/lib/training/exercises/rulesets/**'
+      - 'app/src/lib/types.ts'
+      - 'app/tests/integration/**'
+      - 'app/vitest.integration.config.ts'
+      - 'app/package.json'
+      - 'app/package-lock.json'
+      - '.github/workflows/integration.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: integration-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  statistics-sql:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: integration
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgres://postgres:ci@localhost:5432/integration?sslmode=disable
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - name: Install
+        run: npm ci
+      # Migrate -> seed -> migrate, as schema.yml does (#378).
+      - name: Build the database from the migration chain
+        run: |
+          npm run db:migrate:ci || echo "::warning::first migrate pass stopped; seeding, then retrying"
+          npm run db:seed:ci
+          npm run db:migrate:ci
+          npm run db:status:ci
+      # postgres-js reads `sslmode=<anything>` as "use SSL", so the suite gets
+      # the same database without the query string.
+      - name: Statistics SQL executes
+        env:
+          DATABASE_URL: postgres://postgres:ci@localhost:5432/integration
+        run: npm run test:integration
