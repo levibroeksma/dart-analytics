@@ -1,23 +1,22 @@
 ---
 /**
  * Shared chrome for every game's results sheet: `Modal` shell,
- * save-status region (loading / failed+retry / optional "Saved!"),
- * play-again error, and the back/play-again button row. Each game supplies
- * its own `<h2 id="results-title">` (`title` slot — win/tie/loss phrasing
- * differs per game) and its own stat rows (default slot).
- * @param {boolean} [showSavedMessage] Show "Saved!" once completionStatus succeeds
+ * save-status region (SAVING…/SAVED, failed + retry), play-again error,
+ * and the back/rematch button row. Each game supplies its own
+ * `<h2 id="results-title">` (`title` slot — win/tie/loss phrasing differs
+ * per game) and its own stat rows (default slot).
  * @param {string} [overline] Eyebrow above the title
  */
 interface Props {
-  showSavedMessage?: boolean;
   overline?: string;
 }
 
 // Props
-const { showSavedMessage = false, overline }: Props = Astro.props;
+const { overline }: Props = Astro.props;
 
 // Components
 import Button from "@components/forms/Button.astro";
+import SaveStatus from "@components/layout/games/SaveStatus.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
 import Modal from "@components/ui/Modal.astro";
 import SheetActions from "@components/ui/SheetActions.astro";
@@ -55,18 +54,7 @@ import SheetActions from "@components/ui/SheetActions.astro";
         title="Retry"
       />
     </div>
-    {
-      showSavedMessage && (
-        <span
-          class="inline-flex items-center gap-1.5 self-center font-mono text-eyebrow-lg font-semibold uppercase text-success"
-          x-show="completionStatus === 'succeeded'"
-          x-cloak
-        >
-          <span class="size-1.5 rounded-full bg-success" />
-          Saved
-        </span>
-      )
-    }
+    <SaveStatus />
 
     {
       /* Play-again failure: separate from completion status, buttons stay enabled */
@@ -90,7 +78,7 @@ import SheetActions from "@components/ui/SheetActions.astro";
         @click="playAgain()"
         :disabled="completionStatus !== 'succeeded' || playAgainLoading"
         loadingExpr="playAgainLoading"
-        title="Play again"
+        title="Rematch"
         grow
       />
     </SheetActions>

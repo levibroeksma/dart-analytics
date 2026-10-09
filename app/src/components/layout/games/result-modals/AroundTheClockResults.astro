@@ -15,13 +15,9 @@ const TIMED_ROWS = [
   { label: "Laps", key: "laps" },
   { label: "Reached", key: "targetAtEnd" },
 ] as const;
-// TODO: harden the mandatory showSavedMessage on ResultModalShell for consistancy
 ---
 
-<ResultsModalShell
-  showSavedMessage
-  overline="Around the Clock"
->
+<ResultsModalShell overline="Around the Clock">
   <h2
     slot="title"
     id="results-title"

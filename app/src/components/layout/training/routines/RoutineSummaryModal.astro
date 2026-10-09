@@ -12,6 +12,8 @@
 
 // Components
 import Button from "@components/forms/Button.astro";
+import ResultValue from "@components/layout/games/ResultValue.astro";
+import SaveStatus from "@components/layout/games/SaveStatus.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
 import Modal from "@components/ui/Modal.astro";
 import SheetActions from "@components/ui/SheetActions.astro";
@@ -65,10 +67,12 @@ import SheetActions from "@components/ui/SheetActions.astro";
                 x-text="row.label"
               >
               </dt>
-              <dd
-                class="font-mono text-button tabular-nums text-foreground"
-                x-text="row.value"
-              >
+              <dd>
+                <ResultValue
+                  class="font-mono text-button tabular-nums text-foreground"
+                  valueExpr="row.value"
+                  skeletonWidth="w-9"
+                />
               </dd>
             </div>
           </template>
@@ -100,14 +104,7 @@ import SheetActions from "@components/ui/SheetActions.astro";
       />
     </div>
 
-    <span
-      class="inline-flex items-center gap-1.5 self-center font-mono text-eyebrow-lg font-semibold uppercase text-success"
-      x-show="completionStatus === 'succeeded'"
-      x-cloak
-    >
-      <span class="size-1.5 rounded-full bg-success"></span>
-      Saved
-    </span>
+    <SaveStatus />
 
     <SheetActions slot="footer">
       <Button

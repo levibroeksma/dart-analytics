@@ -1,0 +1,37 @@
+---
+/**
+ * Fixed-height save status for result sheets: `SAVING…` with a pulsing dot
+ * until the save succeeds, then `SAVED`. Hidden when the save failed (the
+ * caller shows its error + retry there).
+ * @param {string} [statusExpr] Alpine expression for the completion status
+ */
+interface Props {
+  statusExpr?: string;
+}
+
+// Props
+const { statusExpr = "completionStatus" }: Props = Astro.props;
+---
+
+<span
+  class="inline-flex h-5 items-center gap-2 self-center font-mono text-eyebrow-lg font-semibold uppercase"
+  x-show={`${statusExpr} !== 'failed'`}
+  x-cloak
+>
+  <span
+    class="inline-flex items-center gap-2 text-error"
+    x-show={`${statusExpr} !== 'succeeded'`}
+    x-cloak
+  >
+    <span class="size-1.5 animate-pulse rounded-full bg-error"></span>
+    Saving…
+  </span>
+  <span
+    class="inline-flex items-center gap-2 text-success"
+    x-show={`${statusExpr} === 'succeeded'`}
+    x-cloak
+  >
+    <span class="size-1.5 rounded-full bg-success"></span>
+    Saved
+  </span>
+</span>

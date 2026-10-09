@@ -32,10 +32,7 @@ const WINNER_EXPR =
   "(resultsSnapshot?.seats?.[0]?.legsWon ?? 0) > (resultsSnapshot?.seats?.[1]?.legsWon ?? 0) ? 0 : (resultsSnapshot?.seats?.[1]?.legsWon ?? 0) > (resultsSnapshot?.seats?.[0]?.legsWon ?? 0) ? 1 : -1";
 ---
 
-<ResultsModalShell
-  showSavedMessage
-  overline="501 · Match summary"
->
+<ResultsModalShell overline="501 · Match summary">
   <h2
     slot="title"
     id="results-title"
