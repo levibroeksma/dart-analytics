@@ -167,11 +167,11 @@ See also [`../../../database/README.md`](../../../database/README.md).
 
 ## Applying Migrations in CI (production)
 
-Merging to `main` applies the pending chain to production before the Worker ships — when there is one. `.github/workflows/deploy.yml` runs `quality` -> `pending` -> `rehearse` -> `migrate` -> `deploy`, inside the existing `deploy-production` concurrency group, so two merges cannot race the same migration and the Worker never runs ahead of its schema (D288, issue #293). `pending` decides whether the two schema jobs run at all; an app-only merge skips them and touches Neon exactly once (D434). <!-- 2026-09-17; gate 2026-10-09 -->
+Merging to `main` applies the pending chain to production before the Worker ships — when there is one. `.github/workflows/deploy.yml` runs `quality` -> `pending` -> `rehearse` -> `migrate` -> `deploy`, inside the existing `deploy-production` concurrency group, so two merges cannot race the same migration and the Worker never runs ahead of its schema (D288, issue #293). `pending` decides whether the two schema jobs run at all; an app-only merge skips them and touches Neon only through `pending`'s two status reads (D434). <!-- 2026-09-17; gate 2026-10-09 -->
 
 | Job | What it does | Against |
 | --- | --- | --- |
-| `pending` | `db:status:ci` (into the run summary; fails closed on a connection error) -> `dbmate status --exit-code` -> diff of `database/migrations/**`, `database/seeds/**`, `app/scripts/seed.ts` from the last successful `deploy` run's `headSha` (`gh run list`, runner token) -> `apply=true\|false` with the reason in the summary (`pending migrations` / `schema files changed` / `nothing to apply`) | Production (one catalog read) |
+| `pending` | `db:status:ci` (into the run summary; fails closed on a connection error) -> `dbmate status --exit-code` -> diff of `database/migrations/**`, `database/seeds/**`, `app/scripts/seed.ts` from the last successful `deploy` run's `headSha` (`gh run list`, runner token) -> `apply=true\|false` with the reason in the summary (`pending migrations` / `schema files changed` / `nothing to apply`) | Production (two catalog reads) |
 | `rehearse` (`db-rehearsal.yml`) | Only when `apply=true`: creates a throwaway Neon branch from `main`, applies migrations + seeds, confirms nothing is left pending, deletes the branch in an `always()` step | Ephemeral child of production |
 | `migrate` | Only when `apply=true`: `db:status:ci` (into the run summary) -> `db:migrate:ci` -> `db:seed:ci` -> `db:status:ci` again | Production |
 | `deploy` | Build + `wrangler deploy`, after `migrate` succeeds or when `pending` found nothing to apply — never after a failed `rehearse` or `migrate` | Production |
@@ -187,7 +187,7 @@ Required secrets (values are set in GitHub's UI, never in a file, a log, or a PR
 | `DATABASE_URL` | `production` environment | `pending` and `migrate` — the production pooled connection string |
 | `NEON_API_KEY` | Repository | `rehearse` — `neonctl` branch create/delete |
 
-The Neon project id is not a secret and is read from committed `app/.neon`. Both jobs fail with an explicit message when their credential is missing, rather than failing opaquely further down.
+The Neon project id is not a secret and is read from committed `app/.neon`. Each job fails with an explicit message when their credential is missing, rather than failing opaquely further down.
 
 `db:verify` is not part of the rehearsal. Its scripts assert on live data as well as on their own fixtures, and three open defects (#383, #384, #304) mean the suite cannot pass against production's rows at all; it stays a local, deliberate command until those are resolved (D288).
 

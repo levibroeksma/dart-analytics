@@ -5,6 +5,12 @@
 > **Branch:** `ci/deploy-skip-idle-schema`
 > **Decision id reserved:** D434 (`decisions/context-system.md`, CI domain)
 
+## Status note (2026-10-09, post-implementation)
+
+- Built on `ci/deploy-pending-gate` (fresh from `main`), not `ci/deploy-skip-idle-schema`.
+- §1 step 4: a failing `gh run list` now applies (`schema=1`) instead of falling back to `github.event.before`; only an empty result falls back. `--jq` gained `// empty`. The snippet's `2>/dev/null || true` broke this spec's own "detector errors never skip the apply" rule.
+- `pending` makes two production reads (`db:status:ci`, then `status --exit-code`), not one. Docs say two; D434's "touches Neon once" / "one production connection" wording is imprecise and stays as written (append-only).
+
 ## Goal
 
 A `deploy` run cuts a Neon rehearsal branch and runs the production migration runner only when production has something to apply. An app-only merge runs `quality → pending → deploy`. A migration or seed merge runs the full chain as today.
