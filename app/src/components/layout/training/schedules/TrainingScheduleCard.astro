@@ -1,16 +1,13 @@
 ---
 /**
- * `/training` "My schedule" card in its own `trainingWeek()` scope: the
- * week's done/missed/to-go line (or the intro copy without a schedule), an
- * edit button opening the parent `trainingIndex()` scope's schedule modal
- * (`showScheduleModal`), and the status strip.
+ * "My schedule" card in its own `trainingWeek()` scope, shared by `/` and
+ * `/training`: the week's done/missed/to-go line (or the intro copy without a
+ * schedule), the status strip, and the page's own round action button in the
+ * `action` slot.
  */
 
 // Components
 import ScheduleStrip from "@components/layout/training/schedules/ScheduleStrip.astro";
-
-// Icons
-import PencilIcon from "@icons/pencil.svg";
 ---
 
 <section
@@ -49,17 +46,7 @@ import PencilIcon from "@icons/pencil.svg";
         forget to build in some recovery!
       </p>
     </div>
-    <button
-      type="button"
-      class="glass-button flex size-11 shrink-0 items-center justify-center rounded-full text-foreground"
-      aria-label="Edit plan"
-      @click="showScheduleModal = true"
-    >
-      <PencilIcon
-        class="size-4.5"
-        aria-hidden="true"
-      />
-    </button>
+    <slot name="action" />
   </div>
   <ScheduleStrip />
 </section>

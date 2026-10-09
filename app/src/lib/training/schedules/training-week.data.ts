@@ -1,5 +1,6 @@
 import { getActiveSchedule } from "@client/api/schedules";
 import { listTrainingCompletions } from "@client/api/training-sessions";
+import { routinePlayPath } from "@lib/training/routines/routine-route";
 import {
   dayStatus,
   isoWeekday,
@@ -11,7 +12,7 @@ import type {
   ScheduleData,
   TrainingCompletionListData,
 } from "@client/api/types";
-import type { DayStatus, TrainingWeekContext } from "./types";
+import type { DayStatus, ScheduleDayEntry, TrainingWeekContext } from "./types";
 
 const WEEKDAYS = weekdayNames();
 
@@ -78,6 +79,30 @@ export function trainingWeek() {
 
     hasSchedule(this: TrainingWeekContext) {
       return this.schedule !== null;
+    },
+
+    navigate(path: string) {
+      globalThis.location.href = path;
+    },
+
+    todayEntry(this: TrainingWeekContext): ScheduleDayEntry | null {
+      return (
+        this.schedule?.days.find((day) => day.dayOfWeek === this.today + 1) ??
+        null
+      );
+    },
+
+    canStart(this: TrainingWeekContext): boolean {
+      return (
+        !this.loading &&
+        this.todayEntry() !== null &&
+        this.status(this.today) !== "done"
+      );
+    },
+
+    start(this: TrainingWeekContext) {
+      const entry = this.todayEntry();
+      if (entry) this.navigate(routinePlayPath(entry.routineId));
     },
 
     letter(index: number) {

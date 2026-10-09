@@ -119,24 +119,13 @@ export type TrainingWeekContext = {
   dayClass(this: TrainingWeekContext, index: number): string;
   counts(this: TrainingWeekContext): WeekCounts;
   hasSchedule(this: TrainingWeekContext): boolean;
+  navigate(path: string): void;
+  /** The schedule's entry for today, or `null` on a rest day or without a schedule. */
+  todayEntry(this: TrainingWeekContext): ScheduleDayEntry | null;
+  /** Whether today has a routine that is not yet done — drives the home play button. */
+  canStart(this: TrainingWeekContext): boolean;
+  /** Opens today's routine; a no-op on a rest day. */
+  start(this: TrainingWeekContext): void;
   letter(index: number): string;
   dayLabel(this: TrainingWeekContext, index: number): string;
-};
-
-export type HomeWeekContext = {
-  loading: boolean;
-  schedule: ScheduleData | null;
-  completions: TrainingCompletionListData["items"];
-  today: number;
-  navigate(path: string): void;
-  init(this: HomeWeekContext): Promise<void>;
-  isToday(this: HomeWeekContext, index: number): boolean;
-  hasRoutine(this: HomeWeekContext, index: number): boolean;
-  todayEntry(this: HomeWeekContext): ScheduleDayEntry | null;
-  doneToday(this: HomeWeekContext): boolean;
-  isRestDay(this: HomeWeekContext): boolean;
-  showStart(this: HomeWeekContext): boolean;
-  showDone(this: HomeWeekContext): boolean;
-  startHref(this: HomeWeekContext): string;
-  start(this: HomeWeekContext): void;
 };

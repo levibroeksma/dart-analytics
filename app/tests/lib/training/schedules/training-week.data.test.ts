@@ -122,6 +122,70 @@ describe("trainingWeek", () => {
     expect(week.counts().toGo).toBe(2);
   });
 
+  it("offers to start today's routine until it is done", async () => {
+    vi.mocked(getActiveSchedule).mockResolvedValue(SCHEDULE);
+    vi.mocked(listTrainingCompletions).mockResolvedValue({
+      items: [MONDAY_RUN],
+      nextCursor: null,
+    });
+
+    const wednesday = await loadedOn(new Date(2024, 0, 3, 12));
+    expect(wednesday.todayEntry()).toBeNull();
+    expect(wednesday.canStart()).toBe(false);
+
+    const saturday = await loadedOn(new Date(2024, 0, 6, 12));
+    expect(saturday.todayEntry()?.routineId).toBe("r6");
+    expect(saturday.canStart()).toBe(true);
+
+    const monday = await loadedOn(new Date(2024, 0, 1, 20));
+    expect(monday.canStart()).toBe(false);
+  });
+
+  it("does not offer a start while loading or without a schedule", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2024, 0, 6, 12));
+    const loading = trainingWeek() as TrainingWeekContext;
+    expect(loading.canStart()).toBe(false);
+
+    vi.mocked(getActiveSchedule).mockResolvedValue(null);
+    vi.mocked(listTrainingCompletions).mockResolvedValue({
+      items: [],
+      nextCursor: null,
+    });
+    const empty = await loadedOn(new Date(2024, 0, 6, 12));
+    expect(empty.canStart()).toBe(false);
+  });
+
+  it("start() navigates to today's routine", async () => {
+    vi.mocked(getActiveSchedule).mockResolvedValue(SCHEDULE);
+    vi.mocked(listTrainingCompletions).mockResolvedValue({
+      items: [],
+      nextCursor: null,
+    });
+    const week = await loadedOn(new Date(2024, 0, 6, 12));
+    const navigate = vi.fn();
+    week.navigate = navigate;
+
+    week.start();
+
+    expect(navigate).toHaveBeenCalledWith("/training/routines/play?routine=r6");
+  });
+
+  it("start() does nothing on a rest day", async () => {
+    vi.mocked(getActiveSchedule).mockResolvedValue(SCHEDULE);
+    vi.mocked(listTrainingCompletions).mockResolvedValue({
+      items: [],
+      nextCursor: null,
+    });
+    const week = await loadedOn(new Date(2024, 0, 3, 12));
+    const navigate = vi.fn();
+    week.navigate = navigate;
+
+    week.start();
+
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
   it("falls back to no schedule when a read fails", async () => {
     vi.mocked(getActiveSchedule).mockRejectedValue(new Error("offline"));
     vi.mocked(listTrainingCompletions).mockResolvedValue({

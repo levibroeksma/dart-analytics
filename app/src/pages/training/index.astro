@@ -8,6 +8,7 @@ import RoutineFormModal from "@components/layout/training/routines/RoutineFormMo
 import ScheduleFormModal from "@components/layout/training/schedules/ScheduleFormModal.astro";
 import TrainingScheduleCard from "@components/layout/training/schedules/TrainingScheduleCard.astro";
 import DartIcon from "@icons/dart.svg";
+import PencilIcon from "@icons/pencil.svg";
 import PlayIcon from "@icons/play-rounded.svg";
 import PlusIcon from "@icons/plus.svg";
 ---
@@ -27,7 +28,20 @@ import PlusIcon from "@icons/plus.svg";
     </div>
     <ErrorAlert />
 
-    <TrainingScheduleCard />
+    <TrainingScheduleCard>
+      <button
+        slot="action"
+        type="button"
+        class="glass-button flex size-11 shrink-0 items-center justify-center rounded-full text-foreground"
+        aria-label="Edit plan"
+        @click="showScheduleModal = true"
+      >
+        <PencilIcon
+          class="size-4.5"
+          aria-hidden="true"
+        />
+      </button>
+    </TrainingScheduleCard>
 
     <span class="section-eyebrow pt-2.5">ROUTINES</span>
     <div class="glass flex flex-col rounded-2xl px-4 shadow-none">
