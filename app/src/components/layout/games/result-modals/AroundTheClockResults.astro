@@ -6,22 +6,23 @@ import ComparisonSummary from "@components/layout/games/ComparisonSummary.astro"
 
 // Data
 const STAT_ROWS = [
-  { label: "Turns", key: "turns", hero: true },
-  { label: "Accuracy", key: "accuracy" },
-  { label: "Darts thrown", key: "totalDarts" },
+  { label: "Turns", key: "turns", hero: true, skeletonWidth: "w-30" },
+  { label: "Accuracy", key: "accuracy", side: true, skeletonWidth: "w-11" },
+  {
+    label: "Darts thrown",
+    key: "totalDarts",
+    side: true,
+    skeletonWidth: "w-7",
+  },
 ] as const;
 const TIMED_ROWS = [
   ...STAT_ROWS,
-  { label: "Laps", key: "laps" },
-  { label: "Reached", key: "targetAtEnd" },
+  { label: "Laps", key: "laps", skeletonWidth: "w-6" },
+  { label: "Reached", key: "targetAtEnd", skeletonWidth: "w-6" },
 ] as const;
-// TODO: harden the mandatory showSavedMessage on ResultModalShell for consistancy
 ---
 
-<ResultsModalShell
-  showSavedMessage
-  overline="Around the Clock"
->
+<ResultsModalShell overline="Around the Clock · Summary">
   <h2
     slot="title"
     id="results-title"

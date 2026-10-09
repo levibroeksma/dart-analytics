@@ -1,6 +1,7 @@
 ---
 /**
- * One ledger row. Reads `winner` (0, 1 or -1) from the enclosing `ComparisonSummary` scope.
+ * One ledger row. Reads `winner` (0, 1 or -1) from the enclosing
+ * `ComparisonSummary` scope. Values pulse until results are saved.
  */
 interface Props {
   label: string;
@@ -9,19 +10,26 @@ interface Props {
 }
 const { label, leftValue, rightValue }: Props = Astro.props;
 
+// Components
+import ResultValue from "@components/layout/games/ResultValue.astro";
+
 const tint = (index: 0 | 1) =>
   `(${leftValue}) === (${rightValue}) || winner < 0 ? 'text-foreground' : winner === ${index} ? 'text-accent-bright' : 'text-muted-foreground'`;
-const leftAttrs = { ":class": tint(0), "x-text": leftValue };
-const rightAttrs = { ":class": tint(1), "x-text": rightValue };
+const leftAttrs = { ":class": tint(0) };
+const rightAttrs = { ":class": tint(1) };
 ---
 
 <div
   class="grid h-10 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center border-t border-border first:border-t-0"
 >
   <dd
-    class="text-left font-mono text-button tabular-nums"
+    class="justify-self-start font-mono text-button tabular-nums"
     {...leftAttrs}
   >
+    <ResultValue
+      valueExpr={leftValue}
+      skeletonWidth="w-9.25"
+    />
   </dd>
   <dt
     class="text-center font-mono text-eyebrow font-semibold uppercase text-muted"
@@ -29,8 +37,12 @@ const rightAttrs = { ":class": tint(1), "x-text": rightValue };
     {label}
   </dt>
   <dd
-    class="text-right font-mono text-button tabular-nums"
+    class="justify-self-end font-mono text-button tabular-nums"
     {...rightAttrs}
   >
+    <ResultValue
+      valueExpr={rightValue}
+      skeletonWidth="w-9.25"
+    />
   </dd>
 </div>

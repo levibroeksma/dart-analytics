@@ -1,0 +1,47 @@
+---
+/**
+ * One results value in its final line box: the value once `readyExpr`
+ * holds, else a one-line pulse bar, so the swap never shifts layout.
+ * @param {string} valueExpr Alpine expression for the value
+ * @param {string} skeletonWidth Width class for the pulse bar
+ * @param {string} [readyExpr] Alpine expression; default `completionStatus === 'succeeded'`
+ * @param {string} [class] Font and colour classes for the line box
+ */
+interface Props {
+  valueExpr: string;
+  skeletonWidth: string;
+  readyExpr?: string;
+  class?: string;
+}
+
+// Props
+const {
+  valueExpr,
+  skeletonWidth,
+  readyExpr = "completionStatus === 'succeeded'",
+  class: classNameProp,
+  ...props
+}: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+---
+
+<span
+  class={cn("inline-block min-h-lh", classNameProp)}
+  {...props}
+>
+  <span
+    x-show={readyExpr}
+    x-cloak
+    x-text={`(${valueExpr}) ?? '–'`}
+  ></span>
+  <span
+    class={cn(
+      "inline-block h-lh animate-pulse rounded-md bg-skeleton align-top",
+      skeletonWidth,
+    )}
+    x-show={`!(${readyExpr})`}
+    x-cloak
+  ></span>
+</span>

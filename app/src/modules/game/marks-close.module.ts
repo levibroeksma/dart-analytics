@@ -30,6 +30,8 @@ export function initialMarksSeat(
     sideKey: seat.sideKey,
     marks: Array.from({ length: objectiveCount }, () => 0),
     closedAtDart: Array.from({ length: objectiveCount }, () => null),
+    objectiveHits: Array.from({ length: objectiveCount }, () => 0),
+    trebleHits: 0,
     dartsThrown: 0,
     dartsThisVisit: 0,
     status: "IN_PROGRESS",
@@ -40,7 +42,8 @@ export function initialMarksSeat(
  * Pure reducer: folds one already-mapped dart onto one seat. Marks add to
  * their objective, capped at 3; overflow is discarded. Every dart counts as
  * thrown. The dart that closes the last open objective completes the seat
- * immediately, on any dart of the visit.
+ * immediately, on any dart of the visit. Hits are tallied per objective and
+ * as trebles (3-mark hits), uncapped.
  * @throws when the seat is already complete; undo first to correct it.
  */
 export function applyMarksDart(
@@ -55,6 +58,8 @@ export function applyMarksDart(
   const dartsThrown = state.dartsThrown + 1;
   const marks = [...state.marks];
   const closedAtDart = [...state.closedAtDart];
+  const objectiveHits = [...state.objectiveHits];
+  if (hit) objectiveHits[hit.objectiveIndex] += 1;
   if (hit && marks[hit.objectiveIndex] < MARKS_TO_CLOSE) {
     marks[hit.objectiveIndex] = Math.min(
       MARKS_TO_CLOSE,
@@ -70,6 +75,8 @@ export function applyMarksDart(
     ...state,
     marks,
     closedAtDart,
+    objectiveHits,
+    trebleHits: state.trebleHits + (hit?.marks === 3 ? 1 : 0),
     dartsThrown,
     dartsThisVisit: complete || visitDarts === DARTS_PER_VISIT ? 0 : visitDarts,
     status: complete ? "COMPLETE" : "IN_PROGRESS",

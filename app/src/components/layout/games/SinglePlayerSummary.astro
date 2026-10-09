@@ -1,52 +1,73 @@
 ---
-import StatTile from "@components/layout/games/StatTile.astro";
-
+/**
+ * Solo results stat block: hero value with side stats, an optional tile
+ * grid, then the default slot. Values pulse until results are saved; the
+ * layout is identical in both states.
+ * @param {readonly object[]} statRows Rows: `hero`, `side`, else tile
+ * @param {"lg" | "sm"} [heroSize] Hero value size
+ * @param {2 | 3 | 4} [tileCols] Tile grid columns
+ * @param {number} [seatIndex] Snapshot seat to read
+ */
 interface Props {
   statRows: readonly {
     label: string;
     key: string;
+    skeletonWidth: string;
     fallback?: string;
     hero?: boolean;
     side?: boolean;
   }[];
+  heroSize?: "lg" | "sm";
+  tileCols?: 2 | 3 | 4;
   seatIndex?: number;
 }
 
-const { statRows, seatIndex = 0 }: Props = Astro.props;
+// Props
+const {
+  statRows,
+  heroSize = "lg",
+  tileCols = 2,
+  seatIndex = 0,
+}: Props = Astro.props;
+
+// Components
+import ResultValue from "@components/layout/games/ResultValue.astro";
+import StatTile from "@components/layout/games/StatTile.astro";
+
+// Lib
+import { cn } from "@client/cn";
+
+const TILE_COLS = { 2: "grid-cols-2", 3: "grid-cols-3", 4: "grid-cols-4" };
+const HERO_SIZE = { lg: "text-[3.25rem]", sm: "text-[2.5rem]" };
 
 function seatValueExpr(row: (typeof statRows)[number]): string {
   const base = `resultsSnapshot?.seats?.[${seatIndex}]?.${row.key}`;
-  return "fallback" in row && row.fallback !== undefined
-    ? `${base} ?? ${row.fallback}`
-    : base;
+  return row.fallback !== undefined ? `${base} ?? ${row.fallback}` : base;
 }
 
-const heroRow = statRows.find((row) => "hero" in row && row.hero);
-const sideRows = statRows.filter((row) => "side" in row && row.side);
+const heroRow = statRows.find((row) => row.hero);
+const sideRows = statRows.filter((row) => row.side);
 const tileRows = statRows.filter(
   (row) => row !== heroRow && !sideRows.includes(row),
 );
 ---
 
-{/* Succeeded: hero stat over a two-column tile grid for this seat */}
 <div
   class="flex w-full flex-col gap-4"
-  x-show="completionStatus === 'succeeded' && resultsSnapshot?.seats?.length === 1"
+  x-show="$store.game.seats.length === 1"
   x-cloak
 >
   {
     heroRow && (
-      <div
-        class={
-          sideRows.length
-            ? "grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] items-center gap-4"
-            : "flex flex-col items-center"
-        }
-      >
+      <div class="grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] items-center gap-4">
         <div class="flex flex-col gap-2">
-          <span
-            class="font-display text-[3.25rem] leading-none tabular-nums text-foreground text-shadow-glow"
-            x-text={seatValueExpr(heroRow)}
+          <ResultValue
+            class={cn(
+              "font-display leading-none tabular-nums text-foreground text-shadow-glow",
+              HERO_SIZE[heroSize],
+            )}
+            valueExpr={seatValueExpr(heroRow)}
+            skeletonWidth={heroRow.skeletonWidth}
           />
           <span class="font-mono text-eyebrow font-semibold uppercase text-muted">
             {heroRow.label}
@@ -59,10 +80,13 @@ const tileRows = statRows.filter(
                 <dt class="font-mono text-eyebrow font-semibold uppercase text-muted">
                   {row.label}
                 </dt>
-                <dd
-                  class="font-display text-xl leading-none tabular-nums text-foreground"
-                  x-text={seatValueExpr(row)}
-                />
+                <dd class="leading-none">
+                  <ResultValue
+                    class="font-display text-xl leading-none tabular-nums text-foreground"
+                    valueExpr={seatValueExpr(row)}
+                    skeletonWidth={row.skeletonWidth}
+                  />
+                </dd>
               </div>
             ))}
           </dl>
@@ -70,28 +94,18 @@ const tileRows = statRows.filter(
       </div>
     )
   }
-  <dl class="grid w-full grid-cols-2 gap-2">
-    {
-      tileRows.map((row) => (
-        <StatTile
-          labelExpr={`'${row.label}'`}
-          valueExpr={seatValueExpr(row)}
-        />
-      ))
-    }
-  </dl>
-</div>
-
-{/* Loading: pulse tiles */}
-<dl
-  class="grid w-full grid-cols-2 gap-2"
-  x-show="(completionStatus === 'pending' || completionStatus === 'saving') && $store.game.seats.length === 1"
-  x-cloak
->
   {
-    heroRow && (
-      <div class="col-span-2 mx-auto mb-2 h-[3.25rem] w-28 animate-pulse rounded bg-muted-foreground/80" />
+    tileRows.length > 0 && (
+      <dl class={cn("grid w-full gap-2", TILE_COLS[tileCols])}>
+        {tileRows.map((row) => (
+          <StatTile
+            labelExpr={`'${row.label}'`}
+            valueExpr={seatValueExpr(row)}
+            skeletonWidth={row.skeletonWidth}
+          />
+        ))}
+      </dl>
     )
   }
-  {tileRows.map((row) => <StatTile labelExpr={`'${row.label}'`} />)}
-</dl>
+  <slot />
+</div>

@@ -4,19 +4,16 @@ import SinglePlayerSummary from "@components/layout/games/SinglePlayerSummary.as
 import ComparisonSummary from "@components/layout/games/ComparisonSummary.astro";
 
 const STAT_ROWS = [
-  { label: "Score", key: "score", hero: true },
-  { label: "Round", key: "round" },
-  { label: "Accuracy", key: "accuracy" },
-  { label: "Trebles", key: "trebles" },
-  { label: "Doubles", key: "doubles" },
-  { label: "Singles", key: "singles" },
+  { label: "Score", key: "score", hero: true, skeletonWidth: "w-30" },
+  { label: "Round", key: "round", side: true, skeletonWidth: "w-6" },
+  { label: "Accuracy", key: "accuracy", side: true, skeletonWidth: "w-11" },
+  { label: "Trebles", key: "trebles", skeletonWidth: "w-6" },
+  { label: "Doubles", key: "doubles", skeletonWidth: "w-6" },
+  { label: "Singles", key: "singles", skeletonWidth: "w-6.5" },
 ] as const;
 ---
 
-<ResultsModalShell
-  showSavedMessage
-  overline="Shanghai"
->
+<ResultsModalShell overline="Shanghai · Summary">
   <h2
     slot="title"
     id="results-title"
@@ -25,6 +22,9 @@ const STAT_ROWS = [
   >
   </h2>
 
-  <SinglePlayerSummary statRows={STAT_ROWS} />
+  <SinglePlayerSummary
+    statRows={STAT_ROWS}
+    tileCols={3}
+  />
   <ComparisonSummary statRows={STAT_ROWS} />
 </ResultsModalShell>

@@ -51,12 +51,15 @@ export type Bobs27State = MultiSeatState<Bobs27SeatState> & {
 /**
  * One seat's marks-to-close progress, indexed by the game's objective order.
  * `closedAtDart[i]` is the seat's dart count when objective i took its third
- * mark, null while open. `dartsThisVisit` is how many darts the open visit
- * holds, 0 between visits.
+ * mark, null while open. `objectiveHits[i]` counts every dart that hit
+ * objective i, including after it closed; `trebleHits` counts 3-mark hits.
+ * `dartsThisVisit` is how many darts the open visit holds, 0 between visits.
  */
 export type MarksSeatState = SeatState & {
   marks: readonly number[];
   closedAtDart: readonly (number | null)[];
+  objectiveHits: readonly number[];
+  trebleHits: number;
   dartsThrown: number;
   dartsThisVisit: number;
   status: "IN_PROGRESS" | "COMPLETE";

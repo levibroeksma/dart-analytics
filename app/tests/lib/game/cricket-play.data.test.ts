@@ -190,11 +190,39 @@ describe("cricketPlay", () => {
       obs(25, "INNER_BULL"),
       obs(25, "OUTER_BULL"),
     ].reduce(applyCricketDart, initialCricketState(config).seats[0]);
-    expect(cricketSeatResult(seat)).toMatchObject({
+    expect(cricketSeatResult(seat)).toEqual({
+      participantRef: "participant-1",
+      sideKey: "A",
       darts: 8,
       marksPerRound: "7.88",
-      dartsToClose: "20: 2 · 19: 3 · 18: 4 · 17: 5 · 16: 6 · 15: 1 · Bull: 8",
+      trebles: 6,
+      dartsToClose: [2, 3, 4, 5, 6, 1, 8],
     });
+  });
+
+  it("counts trebles on closed numbers and leaves unclosed targets null", () => {
+    const obs = (hitTargetNumber: number, hitZoneKey: DartZoneKey) => ({
+      hitTargetNumber,
+      hitZoneKey,
+      locationX: null,
+      locationY: null,
+    });
+    const seat = [
+      obs(20, "TREBLE"),
+      obs(20, "TREBLE"),
+      obs(5, "TREBLE"),
+    ].reduce(applyCricketDart, initialCricketState({ seats: SEATS }).seats[0]);
+    const result = cricketSeatResult(seat);
+    expect(result.trebles).toBe(2);
+    expect(result.dartsToClose).toEqual([
+      1,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+    ]);
   });
 });
 

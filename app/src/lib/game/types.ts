@@ -928,7 +928,8 @@ export type CricketSeatResult = {
   sideKey: string;
   darts: number;
   marksPerRound: string;
-  dartsToClose: string;
+  trebles: number;
+  dartsToClose: (number | null)[];
 };
 
 export type CricketResultsSnapshot = {
@@ -989,7 +990,8 @@ export type TacticsSeatResult = {
   sideKey: string;
   darts: number;
   marksPerRound: string;
-  dartsToClose: string;
+  bulls: number;
+  dartsToClose: (number | null)[];
 };
 
 export type TacticsResultsSnapshot = {

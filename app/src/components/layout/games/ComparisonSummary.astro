@@ -1,12 +1,13 @@
 ---
+import ResultValue from "@components/layout/games/ResultValue.astro";
 import StatRowComparison from "@components/layout/games/StatRowComparison.astro";
-import StatRowComparisonSkeleton from "@components/layout/games/StatRowComparisonSkeleton.astro";
 
 /**
  * 1v1 results ledger. `winnerExpr` is an Alpine expression evaluating to the
  * winning seat's index (0 or 1), or -1 for none; it tints the winner's column
  * and, with `legsBars`, the score row's bars. `legsBars` shows the legs score
- * and one bar segment per leg needed to win the match.
+ * and one bar segment per leg needed to win the match. Names, score and
+ * values pulse in place until results are saved.
  */
 interface Props {
   statRows: readonly { label: string; key: string; fallback?: string }[];
@@ -43,8 +44,8 @@ const seatSides = ([0, 1] as const).map((index) => {
         : "flex flex-col items-end gap-[7px]",
     nameAttrs: {
       ":class": `${winnerClass} ? 'text-accent-bright' : 'text-muted-foreground'`,
-      "x-text": `$store.game.seats[${index}]?.displayName`,
     },
+    nameExpr: `$store.game.seats[${index}]?.displayName`,
     legAttrs: {
       ":class": `leg <= ${legsWon(index)} ? (${winnerClass} ? 'bg-accent' : 'bg-muted-foreground') : 'bg-white/15'`,
     },
@@ -65,10 +66,13 @@ const seatSides = ([0, 1] as const).map((index) => {
         {seatSides.map((side) => (
           <>
             <div class={side.wrapClass}>
-              <span
-                class="text-sm font-semibold"
-                {...side.nameAttrs}
-              />
+              <span {...side.nameAttrs}>
+                <ResultValue
+                  class="text-sm font-semibold"
+                  valueExpr={side.nameExpr}
+                  skeletonWidth="w-12"
+                />
+              </span>
               <div
                 class="grid w-16 gap-[3px]"
                 {...barTrackAttrs}
@@ -82,36 +86,33 @@ const seatSides = ([0, 1] as const).map((index) => {
               </div>
             </div>
             {side.index === 0 && (
-              <span class="font-display text-[2.5rem] leading-none tabular-nums text-foreground">
-                <span x-text={legsWon(0)} />
-                <span class="text-muted"> – </span>
-                <span x-text={legsWon(1)} />
-              </span>
+              <ResultValue
+                class="min-w-26 text-center font-display text-[2.5rem] leading-none tabular-nums text-foreground"
+                valueExpr={`${legsWon(0)} + ' – ' + ${legsWon(1)}`}
+                skeletonWidth="w-26"
+              />
             )}
           </>
         ))}
       </div>
     ) : (
       <div class="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
-        <span
-          class="font-display text-sm text-foreground"
-          x-text="$store.game.seats[0]?.displayName"
+        <ResultValue
+          class="justify-self-start font-display text-sm text-foreground"
+          valueExpr="$store.game.seats[0]?.displayName"
+          skeletonWidth="w-12"
         />
         <span class="font-mono text-eyebrow font-semibold text-muted">VS</span>
-        <span
-          class="text-right font-display text-sm text-foreground"
-          x-text="$store.game.seats[1]?.displayName"
+        <ResultValue
+          class="justify-self-end font-display text-sm text-foreground"
+          valueExpr="$store.game.seats[1]?.displayName"
+          skeletonWidth="w-12"
         />
       </div>
     )
   }
 
-  {/* Succeeded: comparison rows with real values */}
-  <dl
-    class="inset-well rounded-2xl px-4 py-1"
-    x-show="completionStatus === 'succeeded'"
-    x-cloak
-  >
+  <dl class="inset-well rounded-2xl px-4 py-1">
     {
       statRows.map((row) => (
         <StatRowComparison
@@ -121,14 +122,5 @@ const seatSides = ([0, 1] as const).map((index) => {
         />
       ))
     }
-  </dl>
-
-  {/* Loading: comparison rows with skeleton values, label still centered */}
-  <dl
-    class="inset-well rounded-2xl px-4 py-1"
-    x-show="completionStatus === 'pending' || completionStatus === 'saving'"
-    x-cloak
-  >
-    {statRows.map((row) => <StatRowComparisonSkeleton label={row.label} />)}
   </dl>
 </div>

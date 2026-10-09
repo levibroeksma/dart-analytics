@@ -4,19 +4,16 @@ import SinglePlayerSummary from "@components/layout/games/SinglePlayerSummary.as
 import ComparisonSummary from "@components/layout/games/ComparisonSummary.astro";
 
 const STAT_ROWS = [
-  { label: "Hits", key: "hits", hero: true },
-  { label: "On 1st", key: "on1st" },
-  { label: "On 2nd", key: "on2nd" },
-  { label: "On 3rd", key: "on3rd" },
-  { label: "Accuracy", key: "accuracy" },
-  { label: "Misses", key: "misses" },
+  { label: "Hits", key: "hits", hero: true, skeletonWidth: "w-30" },
+  { label: "Accuracy", key: "accuracy", side: true, skeletonWidth: "w-11" },
+  { label: "Misses", key: "misses", side: true, skeletonWidth: "w-7" },
+  { label: "On 1st", key: "on1st", skeletonWidth: "w-6" },
+  { label: "On 2nd", key: "on2nd", skeletonWidth: "w-6" },
+  { label: "On 3rd", key: "on3rd", skeletonWidth: "w-6" },
 ] as const;
 ---
 
-<ResultsModalShell
-  showSavedMessage
-  overline="Doubles training"
->
+<ResultsModalShell overline="Doubles training · Summary">
   <h2
     slot="title"
     id="results-title"
@@ -25,6 +22,9 @@ const STAT_ROWS = [
   >
   </h2>
 
-  <SinglePlayerSummary statRows={STAT_ROWS} />
+  <SinglePlayerSummary
+    statRows={STAT_ROWS}
+    tileCols={3}
+  />
   <ComparisonSummary statRows={STAT_ROWS} />
 </ResultsModalShell>

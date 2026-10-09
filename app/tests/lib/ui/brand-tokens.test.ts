@@ -27,6 +27,8 @@ describe("brand colour tokens", () => {
     ["placeholder", "oklch(48% 0 0)"],
     ["accent-deep-blue", "oklch(44.3% 0.11 240.79)"],
     ["scrim", "oklch(0% 0 0 / 0.6)"],
+    ["skeleton", "oklch(100% 0 0 / 0.12)"],
+    ["color-skeleton", "var(--skeleton)"],
   ])("defines --%s", (name, value) => {
     expect(decl(name)).toBe(value);
   });
