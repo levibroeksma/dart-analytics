@@ -56,6 +56,36 @@ describe("profileStore", () => {
     expect(store.error).not.toBeNull();
   });
 
+  it("is loaded once the first load settles, success or failure", async () => {
+    fetchProfile.mockResolvedValue({
+      displayName: "The Power",
+      dartsDescription: null,
+      dartsWeightGrams: null,
+    });
+    const ok = profileStore();
+    expect(ok.loaded).toBe(false);
+    await ok.load();
+    expect(ok.loaded).toBe(true);
+
+    fetchProfile.mockRejectedValue(new Error("offline"));
+    const failed = profileStore();
+    await failed.load();
+    expect(failed.loaded).toBe(true);
+  });
+
+  it("does not mark itself loaded from a save alone", async () => {
+    saveProfile.mockResolvedValue({
+      displayName: "Levi",
+      dartsDescription: null,
+      dartsWeightGrams: null,
+    });
+    const store = profileStore();
+    store.displayName = "Levi";
+    await store.save();
+
+    expect(store.loaded).toBe(false);
+  });
+
   it("saves the current fields and adopts the stored result", async () => {
     saveProfile.mockResolvedValue({
       displayName: "Levi",

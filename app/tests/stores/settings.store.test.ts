@@ -30,6 +30,33 @@ describe("settingsStore", () => {
     expect(store.loading).toBe(false);
   });
 
+  it("is loaded once the first load settles, success or failure", async () => {
+    fetchSettings.mockResolvedValue({
+      defaultCaptureModeKey: "ANALYTICS",
+      defaultInputModeKey: "VISUAL_BOARD",
+    });
+    const ok = settingsStore();
+    expect(ok.loaded).toBe(false);
+    await ok.load();
+    expect(ok.loaded).toBe(true);
+
+    fetchSettings.mockRejectedValue(new Error("offline"));
+    const failed = settingsStore();
+    await failed.load();
+    expect(failed.loaded).toBe(true);
+  });
+
+  it("does not mark itself loaded from a save alone", async () => {
+    saveSettings.mockResolvedValue({
+      defaultCaptureModeKey: "ANALYTICS",
+      defaultInputModeKey: "VISUAL_BOARD",
+    });
+    const store = settingsStore();
+    await store.save("ANALYTICS", "VISUAL_BOARD");
+
+    expect(store.loaded).toBe(false);
+  });
+
   it("loads on init so a registered store hydrates without x-init", async () => {
     fetchSettings.mockResolvedValue({
       defaultCaptureModeKey: "ANALYTICS",

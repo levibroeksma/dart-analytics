@@ -9,6 +9,9 @@
  * is neither of the two offered here — `PATCH` accepts pairs this form does
  * not show (RECREATIONAL + DETAILED_DARTS), and without the fallback both
  * options would be tabindex -1 and the group unreachable by keyboard.
+ * Until the first settings load settles the same track pulses with neither
+ * pill filled and ignores input — one tree in both states, so nothing
+ * shifts when data arrives; `loading` alone also flips during saves.
  * @param {string} [class] Extra classes
  */
 interface Props {
@@ -55,19 +58,17 @@ const optionClass =
     </p>
   </div>
 
-  <div
-    class="flex flex-col gap-2"
-    x-show="!$store.settings.loading"
-    x-cloak
-  >
+  <div class="flex flex-col gap-2">
     <span class={eyebrowClass}>MODE</span>
     <div
       class={trackClass}
+      :class="$store.settings.loaded ? '' : 'animate-pulse'"
       role="radiogroup"
       aria-labelledby="app-mode-heading"
+      :aria-busy="!$store.settings.loaded"
       x-data="{
         async selectOther(captureModeKey, inputModeKey, ref) {
-          if ($store.settings.loading) return;
+          if (!$store.settings.loaded || $store.settings.loading) return;
           await $store.settings.save(captureModeKey, inputModeKey);
           $nextTick(() => $refs[ref].focus());
         },
@@ -78,11 +79,11 @@ const optionClass =
         role="radio"
         x-ref="quickScoreOption"
         class={optionClass}
-        :class="$store.settings.inputModeKey === 'QUICK_SCORE' ? 'accent-orb text-foreground' : 'text-muted-foreground'"
-        :aria-checked="$store.settings.inputModeKey === 'QUICK_SCORE'"
+        :class="$store.settings.loaded && $store.settings.inputModeKey === 'QUICK_SCORE' ? 'accent-orb text-foreground' : 'text-muted-foreground'"
+        :aria-checked="$store.settings.loaded && $store.settings.inputModeKey === 'QUICK_SCORE'"
         :tabindex="$store.settings.inputModeKey === 'VISUAL_BOARD' ? -1 : 0"
-        :disabled="$store.settings.loading"
-        @click="$store.settings.save('RECREATIONAL', 'QUICK_SCORE')"
+        :disabled="$store.settings.loaded && $store.settings.loading"
+        @click="$store.settings.loaded && $store.settings.save('RECREATIONAL', 'QUICK_SCORE')"
         @keydown.arrow-left.prevent="selectOther('ANALYTICS', 'VISUAL_BOARD', 'analyticsOption')"
         @keydown.arrow-up.prevent="selectOther('ANALYTICS', 'VISUAL_BOARD', 'analyticsOption')"
         @keydown.arrow-right.prevent="selectOther('ANALYTICS', 'VISUAL_BOARD', 'analyticsOption')"
@@ -96,11 +97,11 @@ const optionClass =
         role="radio"
         x-ref="analyticsOption"
         class={optionClass}
-        :class="$store.settings.inputModeKey === 'VISUAL_BOARD' ? 'accent-orb text-foreground' : 'text-muted-foreground'"
-        :aria-checked="$store.settings.inputModeKey === 'VISUAL_BOARD'"
+        :class="$store.settings.loaded && $store.settings.inputModeKey === 'VISUAL_BOARD' ? 'accent-orb text-foreground' : 'text-muted-foreground'"
+        :aria-checked="$store.settings.loaded && $store.settings.inputModeKey === 'VISUAL_BOARD'"
         :tabindex="$store.settings.inputModeKey === 'VISUAL_BOARD' ? 0 : -1"
-        :disabled="$store.settings.loading"
-        @click="$store.settings.save('ANALYTICS', 'VISUAL_BOARD')"
+        :disabled="$store.settings.loaded && $store.settings.loading"
+        @click="$store.settings.loaded && $store.settings.save('ANALYTICS', 'VISUAL_BOARD')"
         @keydown.arrow-left.prevent="selectOther('RECREATIONAL', 'QUICK_SCORE', 'quickScoreOption')"
         @keydown.arrow-up.prevent="selectOther('RECREATIONAL', 'QUICK_SCORE', 'quickScoreOption')"
         @keydown.arrow-right.prevent="selectOther('RECREATIONAL', 'QUICK_SCORE', 'quickScoreOption')"
@@ -108,19 +109,6 @@ const optionClass =
       >
         Analytics
       </button>
-    </div>
-  </div>
-
-  <div
-    class="flex flex-col gap-2"
-    x-show="$store.settings.loading"
-    x-cloak
-    aria-hidden="true"
-  >
-    <span class={eyebrowClass}>MODE</span>
-    <div class={trackClass}>
-      <div class="h-10 animate-pulse rounded-full bg-surface-raised"></div>
-      <div class="h-10 animate-pulse rounded-full bg-surface-raised"></div>
     </div>
   </div>
 
