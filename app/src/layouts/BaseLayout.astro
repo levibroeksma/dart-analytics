@@ -1,15 +1,12 @@
 ---
 /**
- * Document shell: fonts, meta and the fixed page backdrop behind the slot.
- * @param {"default"|"home"} [backdrop] `home` places the board top-right with a left-edge shade, per the homepage design
+ * Document shell: fonts, meta and the page backdrop behind the slot: board top-right with a left-edge shade, on every page.
+ * @param {"home"} [backdrop] Kept for existing callers; there is one backdrop
  */
 interface Props {
   title?: string;
-  backdrop?: "default" | "home";
+  backdrop?: "home";
 }
-
-// Props
-const { backdrop = "default" } = Astro.props;
 
 import "@styles/global.css";
 import DartboardBg from "../assets/bg-dartboard.svg";
@@ -79,29 +76,18 @@ const title =
   </head>
   <body x-data>
     <div class="relative h-full max-h-full overflow-hidden">
-      {
-        backdrop === "home" ? (
-          <>
-            <div
-              class="pointer-events-none absolute inset-0 z-0 mx-auto max-w-lg"
-              aria-hidden="true"
-            >
-              <div class="absolute -top-22.5 -right-75 size-155 opacity-95">
-                <DartboardBg class="size-full" />
-              </div>
-            </div>
-            <div
-              class="home-backdrop-shade pointer-events-none absolute inset-0 z-0"
-              aria-hidden="true"
-            />
-          </>
-        ) : (
-          <DartboardBg
-            aria-hidden="true"
-            class="pointer-events-none absolute bottom-[-17%] left-[-40%] z-0 size-[130vmin] max-w-none opacity-30"
-          />
-        )
-      }
+      <div
+        class="pointer-events-none absolute inset-0 z-0 mx-auto max-w-lg"
+        aria-hidden="true"
+      >
+        <div class="absolute -top-22.5 -right-75 size-155 opacity-95">
+          <DartboardBg class="size-full" />
+        </div>
+      </div>
+      <div
+        class="home-backdrop-shade pointer-events-none absolute inset-0 z-0"
+        aria-hidden="true"
+      />
       <div class="relative z-10 h-full min-h-0">
         <slot />
       </div>
