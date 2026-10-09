@@ -2,10 +2,9 @@ import { sql } from "drizzle-orm";
 import {
   insertSession,
   UNIVERSAL_SCRIPT,
-  uuid,
   type DartScript,
-  type Db,
 } from "./stats-world-sql";
+import { uuid, type Db } from "./itest-db";
 
 const ROUTINE_ACTIVITY_ID = uuid(0xa2000);
 const ROUTINE_CONFIG_ID = uuid(0xa2001);

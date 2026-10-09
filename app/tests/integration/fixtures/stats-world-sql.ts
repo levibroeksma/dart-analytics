@@ -1,14 +1,5 @@
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { sql } from "drizzle-orm";
-import * as schema from "@db/schema";
-
-/** The transaction handle every fixture insert and every statistics read uses. */
-export type Db = PostgresJsDatabase<typeof schema>;
-
-/** UUIDv7-shaped literal; `n` is the low 48 bits (spec §3.2: `0xa0000`–`0xaffff`). */
-export function uuid(n: number): string {
-  return `01990000-0000-7000-8000-${n.toString(16).padStart(12, "0")}`;
-}
+import { uuid, type Db } from "./itest-db";
 
 export type ZoneKey =
   "SINGLE" | "DOUBLE" | "TREBLE" | "OUTER_BULL" | "INNER_BULL" | "MISS";

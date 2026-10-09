@@ -5,10 +5,9 @@ import {
   CHECKOUT_170_SCRIPT,
   insertSession,
   UNIVERSAL_SCRIPT,
-  uuid,
   type DartScript,
-  type Db,
 } from "./stats-world-sql";
+import { uuid, type Db } from "./itest-db";
 
 export const FIXTURE_PLAYER = uuid(0xa0001);
 const STANDALONE_ACTIVITY_ID = uuid(0xa0010);
