@@ -1,7 +1,7 @@
 # Cloudflare Deployment Guide
 
 **For:** Production deployment to Cloudflare (single Worker with Assets — frontend + API combined).
-**Status:** Automated via GitHub Actions (`.github/workflows/deploy.yml`) on push to `main` — schema rehearsal, production migrations + seeds, then the Worker (D288). Worker secrets and the two database credentials are one-time manual setup.
+**Status:** Automated via GitHub Actions (`.github/workflows/deploy.yml`) on push to `main` — a pending check against production, then schema rehearsal and production migrations + seeds only when it found something to apply, then the Worker (D288, D434). Worker secrets and the two database credentials are one-time manual setup.
 **Time:** ~15 minutes first-time secret setup; deploys after that are automatic on merge to `main`.
 
 ---
@@ -80,7 +80,7 @@ npm run db:status
 # Expected: all migrations applied
 ```
 
-**This phase is one-time for a fresh environment.** Since 2026-09-17 (D288, issues #293/#354) every merge to `main` applies the pending chain to production itself: `deploy.yml` runs `quality → rehearse → migrate → deploy`, where `rehearse` replays migrations + seeds + `db:verify` on a throwaway Neon branch cut from production, and `migrate` then applies them to production before the Worker ships. A PR that adds a migration or edits `database/seeds/**` no longer needs a manual production step, and a migration that fails blocks the deploy instead of shipping a Worker onto a schema it does not have.
+**This phase is one-time for a fresh environment.** Since 2026-09-17 (D288, issues #293/#354) every merge to `main` with something pending applies the chain to production itself: `deploy.yml` runs `quality → pending → rehearse → migrate → deploy`, where `pending` asks production (`dbmate status --exit-code`) and diffs migrations, seeds and the seed runner from the last successful deploy, `rehearse` replays migrations + seeds on a throwaway Neon branch cut from production, and `migrate` then applies them to production before the Worker ships. When `pending` finds nothing, `rehearse` and `migrate` are skipped and `deploy` runs straight after `quality` (D434, 2026-10-09). A PR that adds a migration or edits `database/seeds/**` no longer needs a manual production step, and a migration that fails blocks the deploy instead of shipping a Worker onto a schema it does not have.
 
 That path requires the two credentials in Phase 3.2. Until they are set, the `migrate` job fails with an explicit message and nothing deploys.
 
@@ -96,7 +96,7 @@ npm run db:migrate   # only if a migration is pending
 npm run db:seed      # if the PR touched database/seeds/** at all — always safe, idempotent
 ```
 
-Seeds are idempotent (`ON CONFLICT DO NOTHING`), so re-running `db:seed` is cheap insurance even when unsure whether it already ran — which is also why the `migrate` job runs them on every deploy.
+Seeds are idempotent (`ON CONFLICT DO NOTHING`), so re-running `db:seed` is cheap insurance even when unsure whether it already ran — which is also why the `migrate` job runs them whenever `pending` finds a migration pending or a seed changed since the last successful deploy (D434).
 
 ---
 
@@ -175,7 +175,7 @@ Browser auth traffic now goes through the same-origin `/api/auth` proxy (D172): 
 
 ## Phase 4: Deploy
 
-Deploys are automatic: every push to `main` that touches `app/**`, `database/**` or the deploy workflows triggers `.github/workflows/deploy.yml` (doc-only merges skip it, D392), which runs quality checks, rehearses the schema change on a throwaway Neon branch, applies migrations and seeds to production, then builds and deploys via `wrangler deploy` (no `--env` flag — targets the single Worker). The whole run is inside the `deploy-production` concurrency group, so two merges cannot race the same migration.
+Deploys are automatic: every push to `main` that touches `app/**`, `database/**` or the deploy workflows triggers `.github/workflows/deploy.yml` (doc-only merges skip it, D392), which runs quality checks, asks production whether anything is pending, and only then rehearses the schema change on a throwaway Neon branch and applies migrations and seeds to production (an app-only merge skips both, D434), then builds and deploys via `wrangler deploy` (no `--env` flag — targets the single Worker). The whole run is inside the `deploy-production` concurrency group, so two merges cannot race the same migration.
 
 **Manual deploy (optional, e.g. for local testing):**
 
