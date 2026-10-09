@@ -1429,13 +1429,16 @@ export type ResumeTarget = { title: string; href: string };
 export type GamesIndexContext = {
   activeRulesetKeys: string[];
   activeSession: ResumeTarget | null;
+  sessionsLoading: boolean;
   $store: {
     settings: {
       captureModeKey: string;
       inputModeKey: string;
+      loading?: boolean;
     };
   };
   init(this: GamesIndexContext): Promise<void>;
+  loading(this: GamesIndexContext): boolean;
   isVisible(
     this: GamesIndexContext,
     rulesetVersionKey: RulesetVersionKey,

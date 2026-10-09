@@ -94,6 +94,18 @@ describe("trainingWeek", () => {
     expect(week.dayClass(5)).toContain("border-foreground/50");
   });
 
+  it("pulses every day alike while the week is loading", () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2024, 0, 4, 12));
+    const week = trainingWeek() as TrainingWeekContext;
+
+    const classes = [0, 1, 2, 3, 4, 5, 6].map((index) => week.dayClass(index));
+
+    expect(new Set(classes).size).toBe(1);
+    expect(classes[0]).toContain("animate-pulse");
+    expect(classes[3]).not.toContain("home-day-today");
+  });
+
   it("takes a schedule saved from the edit modal", async () => {
     vi.mocked(getActiveSchedule).mockResolvedValue(null);
     vi.mocked(listTrainingCompletions).mockResolvedValue({

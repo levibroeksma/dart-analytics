@@ -17,6 +17,8 @@ updated: 2026-10-09
 
 # Version History
 
+> **Version:** 1.179.0 (2026-10-09 — Training skeletons + step cards: `08-Component-Inventory.md` `RoutineStepRow` row restated as a raised glass card with a minutes pill, `ScheduleStrip` row gains the loading pulse; no decision — styling within D427.)
+
 > **Version:** 1.178.0 (2026-10-08 — Game play redesign: D432 in `decisions/frontend/style.md`; `07-Style-Guide.md` 0.4.0 play surfaces, key press, play header and stacked-seat band; `08-Component-Inventory.md` gains `PlayStatTile`/`RouteChips`/`LegBars`/`MarkRows`/`GameLayout`, play shell and input rows updated; `09-Adding-A-Game.md` play page mounts `x-data` on `GameLayout`; new File Inventory section "Game play redesign"; spec `docs/superpowers/specs/2026-10-08-game-play-redesign-design.md`, plan `docs/superpowers/plans/2026-10-08-game-play-redesign.md`.)
 
 > **Version:** 1.177.0 (2026-10-08 — Login redesign: D431 in `decisions/frontend/style.md`; `07-Style-Guide.md` 0.3.1 `shadow-card` token and `.field-inset-error` primitive row; spec `docs/superpowers/specs/2026-10-08-login-redesign-design.md`, plan `docs/superpowers/plans/2026-10-08-login-redesign.md`.)

@@ -4,18 +4,24 @@
  * the accent dart, linking to the game's setup route. The divider lives on
  * the page's per-row wrapper, which owns the row's `x-show`.
  *
+ * While `loadingExpr` is truthy the title and caption swap for 1lh pulse
+ * bars inside the same `min-h-lh` line boxes, so the row keeps its height
+ * when the text arrives.
+ *
  * @param {string} href
  * @param {string} title
  * @param {string} caption
+ * @param {string} [loadingExpr] Alpine expression; truthy shows the skeleton
  */
 interface Props {
   href: string;
   title: string;
   caption: string;
+  loadingExpr?: string;
 }
 
 // Props
-const { href, title, caption }: Props = Astro.props;
+const { href, title, caption, loadingExpr }: Props = Astro.props;
 
 // Icons
 import DartIcon from "@icons/dart.svg";
@@ -26,8 +32,50 @@ import DartIcon from "@icons/dart.svg";
   class="flex items-center gap-3.5 py-3.5 text-foreground"
 >
   <div class="flex min-w-0 flex-1 flex-col gap-1">
-    <span class="font-display text-sm tracking-[0.01em]">{title}</span>
-    <span class="text-xs/[normal] text-muted">{caption}</span>
+    <span class="min-h-lh font-display text-sm tracking-[0.01em]">
+      {
+        loadingExpr ? (
+          <>
+            <span
+              x-show={`!(${loadingExpr})`}
+              x-cloak
+            >
+              {title}
+            </span>
+            <span
+              class="inline-block h-lh w-30 animate-pulse rounded-md bg-surface-raised align-top"
+              x-show={loadingExpr}
+              x-cloak
+              aria-hidden="true"
+            />
+          </>
+        ) : (
+          title
+        )
+      }
+    </span>
+    <span class="min-h-lh text-xs/[normal] text-muted">
+      {
+        loadingExpr ? (
+          <>
+            <span
+              x-show={`!(${loadingExpr})`}
+              x-cloak
+            >
+              {caption}
+            </span>
+            <span
+              class="inline-block h-lh w-50 max-w-full animate-pulse rounded-md bg-surface-raised align-top"
+              x-show={loadingExpr}
+              x-cloak
+              aria-hidden="true"
+            />
+          </>
+        ) : (
+          caption
+        )
+      }
+    </span>
   </div>
   <DartIcon
     class="size-6.5 shrink-0 -rotate-45 text-accent"

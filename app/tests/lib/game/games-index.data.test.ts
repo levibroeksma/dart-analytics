@@ -169,6 +169,34 @@ describe("gamesIndex", () => {
     expect(page.activeRulesetKeys).toEqual([]);
     expect(page.isVisible("501_V1")).toBe(true);
   });
+
+  it("is loading until the active sessions resolve", async () => {
+    vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([]);
+    const page = createPage();
+
+    expect(page.loading()).toBe(true);
+    await page.init();
+    expect(page.loading()).toBe(false);
+  });
+
+  it("stops loading when the sessions fetch fails", async () => {
+    vi.mocked(sessionsApi.fetchActiveSessions).mockRejectedValue(
+      new Error("offline"),
+    );
+    const page = createPage();
+    await page.init();
+
+    expect(page.loading()).toBe(false);
+  });
+
+  it("stays loading while the settings store is still loading", async () => {
+    vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([]);
+    store.settings.loading = true;
+    const page = createPage();
+    await page.init();
+
+    expect(page.loading()).toBe(true);
+  });
 });
 
 describe("resumeTarget", () => {
