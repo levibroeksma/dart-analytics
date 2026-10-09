@@ -14,7 +14,7 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 | Throw result tiers: Bullseye, Outer bull, Miss | V1 | All | |
 | Time-bound run | V1 | All | |
 | Throws, Bullseyes, Bulls, Bullseye rate and Bull rate readouts | V1 | All | |
-| Distance from centre readout | V2+ | All | Wanted, unscheduled: bull up is decided by closeness, but V1 judges the zone hit only; a dart's board location (`locationX`/`locationY`) is nullable (`app/src/modules/game/types.ts:364`) and the board-input path can record none (`app/src/modules/game/board-input.module.ts:244`), so a distance readout needs its own design |
+| Distance from centre readout | V2+ | All | Wanted, unscheduled: bull up is decided by closeness, but V1 judges the zone hit only; a dart's board location (`locationX`/`locationY`) is nullable (`app/src/modules/game/types.ts:406`) and the board-input path can record none (`app/src/modules/game/board-input.module.ts:244`), so a distance readout needs its own design |
 | Standalone entry | V2+ | All | Wanted, unscheduled: no exercise has a standalone play page — `app/src/pages/training/` holds only `routines/`, `schedules/` and `quick-subtract/`. V1 is routine step only, by the author's choice (2026-09-24) |
 | Fixed-throw bound | Dropped | All | Decided against by the author (2026-09-24): a run is time-bound like every other routine exercise |
 | Bullseye-only hit | Dropped | All | Decided against by the author (2026-09-24): the outer bull is its own tier, not a miss |

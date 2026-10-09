@@ -157,7 +157,7 @@ Never set `height` (`h-full`, `h-2/5`) on an element that also has `flex-1`. `fl
 # Buttons
 
 - Primary action: `btn btn-primary` (white fill + soft glow via `Button.astro` `variant="primary"`)
-- Secondary / keypad keys: `btn btn-secondary`
+- Secondary: `btn btn-secondary`. Keypad keys are `InputButton.astro` (`inset-well`, `key-press`), not `btn` (D432)
 - Text-only / cancel: `btn btn-ghost` (no border)
 - Destructive: `btn btn-error`
 - Always set `type="button"` unless the button submits a form — `Button.astro` defaults `type` to `"button"`
@@ -246,7 +246,7 @@ A template bound to a pointer-tracked controller must read a **plain reactive mi
 - Prefer semantic HTML (`button`, `a`, headings) over `div` + handlers.
 - No hover-only critical affordances on a touch target — anything essential must also work on tap/focus.
 - Focus-visible rings on `.control` use accent outline (`outline: 2px solid var(--accent)`).
-- A pointer-only capture surface is never the sole path to an action. The visual board's keypad stays rendered for every session and can complete a whole visit by keyboard alone; the board is an addition beside it, not a replacement for it (D199).
+- A pointer-only capture surface is never the sole path to an action. In a `VISUAL_BOARD` session the board replaces the keypad (`BoardInputPanel.astro`, D201, which supersedes D199); the lost keyboard-only path is an accepted accessibility cost recorded there.
 - Decorative or duplicating SVG gets `aria-hidden`; an SVG carrying meaning gets `role="img"` and an `aria-label` that says what it depicts (`DartBoard.astro`).
 
 ---

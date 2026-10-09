@@ -17,7 +17,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Clock path: Odds first (1, 3 … 19, then 2, 4 … 20, then bull) | V2 | All | Scheduled for V2 (2026-09-23), with high → low and for the same reason: the fixed 1…20 path cannot express it |
 | Other directions / paths | V2+ | All | Wanted, unscheduled: same fixed-path schema gap as high → low, and no path other than 1…20 + bull has been defined |
 | Any segment counts (single/double/treble of the number) | V1 | All | |
-| Outer single only (segment lock) | V2 | All | Scheduled for V2 (2026-09-23): the training drill counts only the outer single. Needs ANALYTICS + VISUAL_BOARD — keypad capture records an unbanded `SINGLE` (`app/src/modules/game/types.ts:318`) |
+| Outer single only (segment lock) | V2 | All | Scheduled for V2 (2026-09-23): the training drill counts only the outer single. Needs ANALYTICS + VISUAL_BOARD — keypad capture records an unbanded `SINGLE` (`app/src/modules/game/types.ts:382`) |
 | Doubles-only / trebles-only path | V2+ | All | Wanted, unscheduled: a segment lock is a second fixed rule the empty config cannot express |
 | Bull once (single or double bull) | V1 | All | |
 | Easy: advance on any hit in the visit | V1 | All | |

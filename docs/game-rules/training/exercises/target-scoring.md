@@ -1,6 +1,6 @@
 # Target Scoring
 
-Current version: none (V1 in design)
+Current version: V1 (shipped 2026-09-23)
 Entry points: routine step
 
 ## Features
@@ -132,7 +132,7 @@ defaults. Duration preset mirrors the `SWITCHING` example in
 - **One dart's fact:** one `darts` row per throw. Intended target = the
   current target's number (`1`–`20` or `25`); intended zone = `TREBLE` on a
   number, `INNER_BULL` on the bull — both keys exist in `DartZoneKey`
-  (`app/src/modules/game/types.ts:322`), and a set target needs a set zone
+  (`app/src/modules/game/types.ts:386`), and a set target needs a set zone
   (`chk_dart_target_consistency`, `database/migrations/0007_constraints.sql:86`).
   Hit number and hit zone record where it landed. `score` is the dart's
   **board** score (T20 = 60, bullseye = 50), never exercise points.
