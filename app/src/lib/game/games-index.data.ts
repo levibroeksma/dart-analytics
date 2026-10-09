@@ -52,11 +52,14 @@ export function resumeTarget(
  *
  * `activeSession` is the in-progress card's target (`resumeTarget`); the
  * group helpers drive the grouped list's section and divider visibility.
+ * `loading()` holds the rows' skeleton until both the sessions fetch and the
+ * settings store settle, so the page swaps data in once, in place.
  */
 export function gamesIndex() {
   return {
     activeRulesetKeys: [] as string[],
     activeSession: null as ResumeTarget | null,
+    sessionsLoading: true,
 
     async init(this: GamesIndexContext) {
       try {
@@ -68,7 +71,13 @@ export function gamesIndex() {
       } catch {
         this.activeRulesetKeys = [];
         this.activeSession = null;
+      } finally {
+        this.sessionsLoading = false;
       }
+    },
+
+    loading(this: GamesIndexContext) {
+      return this.sessionsLoading || this.$store.settings.loading === true;
     },
 
     isVisible(this: GamesIndexContext, rulesetVersionKey: RulesetVersionKey) {
