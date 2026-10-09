@@ -11,6 +11,7 @@ on:
       - 'database/migrations/**'
       - 'database/seeds/**'
       - 'app/scripts/seed.ts'
+      - 'app/src/db/**'
       - 'app/src/repositories/**'
       - 'app/src/services/statistics.service.ts'
       - 'app/src/lib/stats/**'

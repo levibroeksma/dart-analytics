@@ -2,7 +2,7 @@
 status: historical
 scope: context-map version history and point-in-time task records
 read-when: never during a task — provenance only
-updated: 2026-10-08
+updated: 2026-10-09
 -->
 
 # Context Map History

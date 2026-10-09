@@ -98,6 +98,12 @@ function skippedSessionsOf(result: unknown): number | null {
   return counts.length === 0 ? null : counts.reduce((n, c) => n + c, 0);
 }
 
+/**
+ * Sum of `buckets[].sampleSize`. Proves a fold decoded the config only for
+ * the X01 game sections (guard 6): step sections count skipped sessions in
+ * `sampleSize` too (`step-result.module.ts`), so do not extend `X01_GUARDS`
+ * to them — guard 5 is their check.
+ */
 function totalSampleSize(result: unknown): number {
   const r = result as {
     ok?: boolean;
@@ -129,7 +135,10 @@ async function sweep(db: Db, calls: Call[]): Promise<Sweep> {
         skipped.push(`${call.label}: skippedSessions=${count}`);
       }
     } catch (err) {
+      // ROLLBACK TO keeps the savepoint alive; release it so a failed call
+      // does not leave one nested savepoint per failure for the tx lifetime.
       await db.execute(sql`ROLLBACK TO SAVEPOINT stat_call`);
+      await db.execute(sql`RELEASE SAVEPOINT stat_call`);
       failed.push(`${call.label}: ${(err as Error).message}`);
     }
   }
@@ -209,6 +218,7 @@ async function preRead<T>(
     failed.push(`${label}: ${JSON.stringify(result)}`);
   } catch (err) {
     await db.execute(sql`ROLLBACK TO SAVEPOINT stat_call`);
+    await db.execute(sql`RELEASE SAVEPOINT stat_call`);
     failed.push(`${label}: ${(err as Error).message}`);
   }
   return null;

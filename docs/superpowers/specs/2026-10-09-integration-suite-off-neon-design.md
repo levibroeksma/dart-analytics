@@ -5,6 +5,17 @@
 > **Cites:** #653 (integration step added to `db-rehearsal.yml`), #378 (migrate → seed → migrate)
 > **Branch:** `ci/integration-suite-off-neon`
 
+## Status note (2026-10-09, post-implementation, PR #856)
+
+Built as designed with these deviations, each kept deliberately; the sections below are not rewritten:
+
+1. §1.1 trigger paths were extended with `app/src/db/**`, `app/src/modules/game/**`, `app/src/modules/training/**`, `app/src/modules/types.ts`, `app/src/lib/game/rulesets/**`, `app/src/lib/training/exercises/rulesets/**`, `app/src/lib/types.ts` and `app/package-lock.json` — guards 5 and 6 decode fixture configs with those schemas, so a change there can turn the suite red.
+2. F3 / guard 5: the step-result fold reports its skips per bucket in `buckets[i].metrics.skippedSessions`, not on `data`. Guard 5 sums `data.skippedSessions` and every bucket's count; `sampleSize` on step sections includes skipped sessions, so guard 6 stays X01-only.
+3. "`visit-scoring.itest.ts` is not changed" (Agreed scope) was relaxed: its tests, inputs and assertions are untouched, but `uuid` and `inRolledBackTx` moved to `tests/integration/fixtures/itest-db.ts` and it imports them from there.
+4. §2.3: `listTrainedRoutines` and `getRoutineHeader` pre-reads that return `ok: false` are recorded as failures instead of shrinking the routine sweep to zero calls; the header is read once, not as a sweep call.
+5. §2.3: after `ROLLBACK TO SAVEPOINT stat_call` the savepoint is released, so a failed call does not leave a nested savepoint for the transaction's lifetime.
+6. `db-rehearsal.yml` did run on the PR — it edits its own workflow file, which is in its path list.
+
 ## Goal
 
 `npm run test:integration` runs against a CI-local `postgres:16`, not a Neon branch. The Neon rehearsal keeps only migrate → seed → migrate → status. This removes the ~21 MB of Neon egress per rehearsal branch that `statistics-sql.itest.ts` causes today (~81% of the billing period's network transfer) and stops stats-only PRs from cutting a Neon branch at all.
