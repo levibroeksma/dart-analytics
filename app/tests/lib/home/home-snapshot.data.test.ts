@@ -1,10 +1,74 @@
-import { describe, it, expect, vi } from "vitest";
-import {
-  barHeight,
-  dailyBars,
-  dailyPeak,
-  homeSnapshot,
-} from "@lib/home/home-snapshot.data";
+import { beforeEach, describe, it, expect, vi } from "vitest";
+
+const fetchStatisticsOverview = vi.fn();
+
+vi.mock("@client/api/statistics", () => ({
+  fetchStatisticsOverview: () => fetchStatisticsOverview(),
+}));
+
+const { barHeight, careerTiles, dailyBars, dailyPeak, homeSnapshot } =
+  await import("@lib/home/home-snapshot.data");
+
+const OVERVIEW = {
+  totalGamesPlayed: 12,
+  totalPlayTimeSeconds: 3600,
+  favoriteGameTypeKey: "501",
+  longestPlayStreakDays: 3,
+  currentPlayStreakDays: 1,
+  totalDartsThrown: 18342,
+  hundredPlusCount: 10,
+  oneTwentyPlusCount: 5,
+  oneFortyPlusCount: 2,
+  oneEightiesCount: 1,
+  medianVisitScore: 45,
+  highestGameAverage: 84.64,
+  firstNineCareerAverage: 50.2,
+  scoringAverageExcludingDoubles: 48.1,
+  bestLegDarts: 15,
+  averageDartsPerLeg: 18.5,
+  checkoutPercentage: 0.4,
+  highestCheckout: {
+    value: 121,
+    timesHit: 1,
+    sessionId: "0190a000-0000-7000-8000-000000000001",
+  },
+};
+
+beforeEach(() => {
+  fetchStatisticsOverview.mockReset();
+});
+
+describe("careerTiles", () => {
+  it("keeps the three tile titles in order", () => {
+    expect(careerTiles(null).map((t) => t.key)).toEqual([
+      "BEST AVG",
+      "TOP OUT",
+      "DARTS",
+    ]);
+  });
+
+  it("is dashes with no overview", () => {
+    expect(careerTiles(null).map((t) => t.value)).toEqual(["—", "—", "—"]);
+  });
+
+  it("formats the overview", () => {
+    expect(careerTiles(OVERVIEW)).toEqual([
+      { key: "BEST AVG", value: "84.6", hint: "Career" },
+      { key: "TOP OUT", value: "121", hint: "Hit 1×" },
+      { key: "DARTS", value: "18,342", hint: "Career" },
+    ]);
+  });
+
+  it("dashes a missing checkout and a zero average", () => {
+    const tiles = careerTiles({
+      ...OVERVIEW,
+      highestGameAverage: 0,
+      highestCheckout: null,
+    });
+    expect(tiles[0].value).toBe("—");
+    expect(tiles[1]).toEqual({ key: "TOP OUT", value: "—", hint: "Career" });
+  });
+});
 
 describe("dailyPeak", () => {
   it("formats the max to two decimals", () => {
@@ -54,7 +118,6 @@ describe("homeSnapshot", () => {
   it("carries the design fixture", () => {
     const s = homeSnapshot();
     expect(s.hero.value).toBe("72.4");
-    expect(s.careerTiles).toHaveLength(3);
     expect(s.dailyAverage.map((d) => d.day).join("")).toBe("MTWTFSS");
     expect(s.peak).toBe("74.10");
   });
@@ -85,5 +148,31 @@ describe("homeSnapshot", () => {
     s.navigate = navigate;
     s.resumeGame();
     expect(navigate).toHaveBeenCalledWith("/games");
+  });
+
+  it("starts career tiles as dashes", () => {
+    expect(homeSnapshot().careerTiles.map((t) => t.value)).toEqual([
+      "—",
+      "—",
+      "—",
+    ]);
+  });
+
+  it("fills career tiles from the overview on init", async () => {
+    fetchStatisticsOverview.mockResolvedValue(OVERVIEW);
+    const s = homeSnapshot();
+    await s.init();
+    expect(s.careerTiles.map((t) => t.value)).toEqual([
+      "84.6",
+      "121",
+      "18,342",
+    ]);
+  });
+
+  it("keeps the dashes when the overview fails", async () => {
+    fetchStatisticsOverview.mockRejectedValue(new Error("down"));
+    const s = homeSnapshot();
+    await s.init();
+    expect(s.careerTiles.map((t) => t.value)).toEqual(["—", "—", "—"]);
   });
 });

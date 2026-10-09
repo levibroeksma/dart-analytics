@@ -38,6 +38,7 @@ export type HomeSnapshotContext = {
   peak: string;
   bars: DailyBar[];
   landing: HomeLanding;
+  init(this: HomeSnapshotContext): Promise<void>;
   navigate(path: string): void;
   resumeGame(this: HomeSnapshotContext): void;
 };
