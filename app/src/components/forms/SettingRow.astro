@@ -4,7 +4,9 @@
  * `valueExpr` (falling back to `emptyText` when empty) with a pencil;
  * tapping it swaps to an inset input bound to `modelExpr`, which runs
  * `saveExpr` and flips back to view mode on blur or Enter. With `maxlength`,
- * editing shows a `n / max` hint under the input.
+ * editing shows a `n / max` hint under the input. While `skeletonExpr` is
+ * true the value renders as a pulsing bar of `skeletonWidth`, inside the
+ * same field, so the row keeps its size when data arrives.
  * @param {string} id
  * @param {string} label
  * @param {string} valueExpr Alpine expression for the displayed value
@@ -17,6 +19,8 @@
  * @param {boolean} [required]
  * @param {number} [maxlength] Input length cap; also enables the counter hint
  * @param {string} [disabledExpr] Alpine expression; defaults to `"false"`
+ * @param {string} [skeletonExpr] Alpine expression; defaults to `"false"`
+ * @param {string} [skeletonWidth] Width class for the placeholder bar
  * @param {string} [class] Extra classes
  */
 interface Props {
@@ -32,6 +36,8 @@ interface Props {
   required?: boolean;
   maxlength?: number;
   disabledExpr?: string;
+  skeletonExpr?: string;
+  skeletonWidth?: string;
   class?: string;
   [key: string]: unknown;
 }
@@ -50,6 +56,8 @@ const {
   required = false,
   maxlength,
   disabledExpr = "false",
+  skeletonExpr = "false",
+  skeletonWidth = "w-24",
   class: classNameProp = "",
   ...props
 }: Props = Astro.props;
@@ -69,6 +77,10 @@ const className = cn("flex flex-col gap-2", classNameProp);
 const labelClass =
   "px-0.5 font-mono text-[10px]/[normal] font-semibold tracking-[0.12em] uppercase";
 const fieldClass = "field-inset h-13 w-full rounded-xl border-0 px-4";
+const skeletonClass = cn(
+  "inline-block h-[1lh] animate-pulse rounded-md bg-foreground/12 align-top",
+  skeletonWidth,
+);
 const hintExpr =
   maxlength === undefined
     ? undefined
@@ -101,7 +113,8 @@ const dataExpr = `{
     this.editing = false;
   },
 }`;
-const openExpr = `editing = true; openValue = ${modelExpr}; $nextTick(() => $refs.input.focus())`;
+/** A skeleton row is inert without `disabled`'s dimming, so it keeps the design's full-opacity field. */
+const openExpr = `if (${skeletonExpr}) return; editing = true; openValue = ${modelExpr}; $nextTick(() => $refs.input.focus())`;
 ---
 
 <div
@@ -116,45 +129,59 @@ const openExpr = `editing = true; openValue = ${modelExpr}; $nextTick(() => $ref
   >
     {label}
   </label>
-  <Button
-    variant="ghost"
-    loadingExpr="false"
-    ariaLabel={`Edit ${label}`}
-    :aria-label={`${JSON.stringify(`Edit ${label}: `)} + (${displayExpr})`}
-    class={cn(fieldClass, "justify-between gap-3 text-foreground")}
-    x-show="!editing"
-    x-cloak
-    :disabled={disabledExpr}
-    @click={openExpr}
-  >
-    <span
-      slot="iconBefore"
-      class="min-w-0 truncate text-[15px]/[normal] font-normal"
-      x-text={displayExpr}
-    ></span>
-    <PencilIcon
-      slot="iconAfter"
-      class="size-4 shrink-0 text-muted-foreground"
-      aria-hidden="true"
+  <div class="grid min-h-13">
+    <Button
+      variant="ghost"
+      loadingExpr="false"
+      ariaLabel={`Edit ${label}`}
+      :aria-label={`${JSON.stringify(`Edit ${label}: `)} + (${displayExpr})`}
+      class={cn(fieldClass, "justify-between gap-3 text-foreground")}
+      x-show="!editing"
+      x-cloak
+      :disabled={disabledExpr}
+      :aria-busy={skeletonExpr}
+      @click={openExpr}
+    >
+      <span
+        slot="iconBefore"
+        class="min-w-0 truncate text-[15px]/[normal] font-normal"
+      >
+        <span
+          x-show={`!(${skeletonExpr})`}
+          x-cloak
+          x-text={displayExpr}
+        ></span>
+        <span
+          class={skeletonClass}
+          x-show={skeletonExpr}
+          x-cloak
+          aria-hidden="true"
+        ></span>
+      </span>
+      <PencilIcon
+        slot="iconAfter"
+        class="size-4 shrink-0 text-muted-foreground"
+        aria-hidden="true"
+      />
+    </Button>
+    <Input
+      id={id}
+      name={id}
+      type="text"
+      inputmode={inputmode}
+      placeholder={placeholder}
+      required={required}
+      maxlength={maxlength}
+      class={cn(fieldClass, "py-0 text-[15px]")}
+      x-show="editing"
+      x-cloak
+      x-ref="input"
+      {...modelDirective}
+      :disabled={disabledExpr}
+      @blur="commit()"
+      @keydown.enter.prevent="commit()"
     />
-  </Button>
-  <Input
-    id={id}
-    name={id}
-    type="text"
-    inputmode={inputmode}
-    placeholder={placeholder}
-    required={required}
-    maxlength={maxlength}
-    class={cn(fieldClass, "py-0 text-[15px]")}
-    x-show="editing"
-    x-cloak
-    x-ref="input"
-    {...modelDirective}
-    :disabled={disabledExpr}
-    @blur="commit()"
-    @keydown.enter.prevent="commit()"
-  />
+  </div>
   {
     hintExpr && (
       <span

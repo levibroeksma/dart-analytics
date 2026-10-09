@@ -41,6 +41,11 @@ export function profileStore() {
     dartsDescription: null as string | null,
     dartsWeightGrams: null as number | null,
     loading: false,
+    /**
+     * `true` once the first load settles, success or failure. Drives the
+     * skeleton: `loading` also flips during saves, which must not blank the UI.
+     */
+    loaded: false,
     error: null as string | null,
 
     /**
@@ -69,6 +74,7 @@ export function profileStore() {
         this.error = cause instanceof Error ? cause.message : "load failed";
       } finally {
         this.loading = false;
+        this.loaded = true;
       }
     },
 

@@ -1,7 +1,8 @@
 ---
 /**
  * Player settings card: display name, darts, weight, and throwing hand as
- * inset fields in one shadowless glass card.
+ * inset fields in one shadowless glass card. Every field renders its
+ * skeleton until the profile's first load settles.
  * @param {string} [class] Extra classes
  */
 interface Props {
@@ -43,9 +44,11 @@ const handedLabelClass =
     modelExpr="$store.profile.displayName"
     saveExpr="$store.profile.save()"
     placeholder="Display name"
+    skeletonWidth="w-12"
     required
     maxlength={24}
-    disabledExpr="$store.profile.loading"
+    disabledExpr="$store.profile.loaded && $store.profile.loading"
+    skeletonExpr="!$store.profile.loaded"
   />
   <SettingRow
     id="dartsDescription"
@@ -54,8 +57,10 @@ const handedLabelClass =
     modelExpr="$store.profile.dartsDescription"
     saveExpr="$store.profile.save()"
     placeholder="e.g. Winmau Pro-Series 23g"
+    skeletonWidth="w-44"
     emptyText="Not set"
-    disabledExpr="$store.profile.loading"
+    disabledExpr="$store.profile.loaded && $store.profile.loading"
+    skeletonExpr="!$store.profile.loaded"
   />
   <SettingRow
     id="dartsWeightGrams"
@@ -64,10 +69,12 @@ const handedLabelClass =
     modelExpr="$store.profile.dartsWeightGrams"
     saveExpr="$store.profile.save()"
     placeholder="Weight in grams"
+    skeletonWidth="w-9"
     emptyText="Not set"
     numeric
     inputmode="numeric"
-    disabledExpr="$store.profile.loading"
+    disabledExpr="$store.profile.loaded && $store.profile.loading"
+    skeletonExpr="!$store.profile.loaded"
   />
   <div class="flex flex-col gap-2">
     <span
@@ -76,7 +83,7 @@ const handedLabelClass =
     >
       Handed
     </span>
-    <HandednessForm />
+    <HandednessForm skeletonExpr="!$store.profile.loaded" />
   </div>
 
   <ErrorAlert

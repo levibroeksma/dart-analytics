@@ -1,8 +1,20 @@
 ---
 /**
  * Profile identity row in its own `profileSnapshot()` scope: initials
- * avatar and name from `$store.profile`, fixture stats line beneath.
+ * avatar and name from `$store.profile`, fixture stats line beneath. Until
+ * the profile's first load settles, the avatar, name and stats line render
+ * as same-size pulsing placeholders so nothing shifts when data arrives;
+ * each text line reserves `1lh` so the row holds its height pre-hydration.
  */
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const skeletonBarClass =
+  "inline-block h-[1lh] animate-pulse rounded-md bg-foreground/12 align-top";
+const nameSkeletonClass = cn(skeletonBarClass, "w-16");
+const statsSkeletonClass = cn(skeletonBarClass, "w-52");
 ---
 
 <div
@@ -10,19 +22,38 @@
   x-data="profileSnapshot()"
 >
   <div
-    class="accent-orb accent-orb-halo flex size-14 shrink-0 items-center justify-center rounded-full font-display text-lg/[normal]"
+    class="flex size-14 shrink-0 items-center justify-center rounded-full font-display text-lg/[normal]"
+    :class="$store.profile.loaded ? 'accent-orb accent-orb-halo' : 'animate-pulse bg-foreground/10 inset-ring inset-ring-foreground/12'"
     aria-hidden="true"
-    x-text="initials($store.profile.displayName)"
+    x-text="$store.profile.loaded ? initials($store.profile.displayName) : ''"
   >
   </div>
   <div class="flex min-w-0 flex-col gap-1">
-    <span
-      class="truncate font-display text-lg/[normal]"
-      x-text="$store.profile.displayName"
-    ></span>
-    <span
-      class="text-[13px]/[normal] text-strong-foreground"
-      x-text="statsLine"
-    ></span>
+    <span class="min-h-[1lh] truncate font-display text-lg/[normal]">
+      <span
+        x-show="$store.profile.loaded"
+        x-cloak
+        x-text="$store.profile.displayName"
+      ></span>
+      <span
+        class={nameSkeletonClass}
+        x-show="!$store.profile.loaded"
+        x-cloak
+        aria-hidden="true"
+      ></span>
+    </span>
+    <span class="min-h-[1lh] text-[13px]/[normal] text-strong-foreground">
+      <span
+        x-show="$store.profile.loaded"
+        x-cloak
+        x-text="statsLine"
+      ></span>
+      <span
+        class={statsSkeletonClass}
+        x-show="!$store.profile.loaded"
+        x-cloak
+        aria-hidden="true"
+      ></span>
+    </span>
   </div>
 </div>
