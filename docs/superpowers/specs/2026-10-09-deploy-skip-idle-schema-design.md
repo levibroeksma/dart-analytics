@@ -9,7 +9,8 @@
 
 - Built on `ci/deploy-pending-gate` (fresh from `main`), not `ci/deploy-skip-idle-schema`.
 - §1 step 4: a failing `gh run list` now applies (`schema=1`) instead of falling back to `github.event.before`; only an empty result falls back. `--jq` gained `// empty`. The snippet's `2>/dev/null || true` broke this spec's own "detector errors never skip the apply" rule.
-- `pending` makes two production reads (`db:status:ci`, then `status --exit-code`), not one. Docs say two; D434's "touches Neon once" / "one production connection" wording is imprecise and stays as written (append-only).
+- `pending` makes two production reads (`db:status:ci`, then `status --exit-code`), not one; both land inside the same compute wake. Docs and D434 say two (D434 was corrected while still unmerged).
+- Worker-only deploy failure: the next merge re-rehearses from the older base; `11-Neon-Integration.md` names "Re-run failed jobs" as the way to avoid it.
 
 ## Goal
 
@@ -182,7 +183,7 @@ The status read is kept although the diff from the last successful deploy alread
 - The repository's default `GITHUB_TOKEN` permissions allow `actions: read`; the job declares it explicitly so a restricted default still works.
 - `github.event.before` is set on every `push` event (zero on branch creation).
 
-## Deferred (not this spec; file as issues when `gh` is free)
+## Deferred (not this spec; filed as #859 and #860 on 2026-10-09)
 
 - `db-rehearsal.yml` cuts a Neon branch on every PR push that touches `app/package.json`, so a dependency bump rehearses. Narrowing that trigger (or keying it on the dbmate line) is its own decision.
 - A migration merge rehearses twice: once at PR time, once at merge time. Accepted — production may change between the two.

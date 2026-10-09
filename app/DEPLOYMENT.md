@@ -82,7 +82,7 @@ npm run db:status
 
 **This phase is one-time for a fresh environment.** Since 2026-09-17 (D288, issues #293/#354) every merge to `main` with something pending applies the chain to production itself: `deploy.yml` runs `quality → pending → rehearse → migrate → deploy`, where `pending` asks production (`dbmate status --exit-code`) and diffs migrations, seeds and the seed runner from the last successful deploy, `rehearse` replays migrations + seeds on a throwaway Neon branch cut from production, and `migrate` then applies them to production before the Worker ships. When `pending` finds nothing, `rehearse` and `migrate` are skipped and `deploy` runs straight after `pending` (D434, 2026-10-09). A PR that adds a migration or edits `database/seeds/**` no longer needs a manual production step, and a migration that fails blocks the deploy instead of shipping a Worker onto a schema it does not have.
 
-That path requires the two credentials in Phase 3.2. Until they are set, the `pending` job fails with an explicit message and nothing deploys.
+That path requires the two credentials in Phase 3.2. Without `DATABASE_URL` the `pending` job fails with an explicit message and nothing deploys. Without `NEON_API_KEY` only `rehearse` fails, and only on a run where `pending` found something to apply — an app-only merge still deploys.
 
 The manual commands below remain correct for provisioning a new branch, or for recovering when CI cannot run:
 
