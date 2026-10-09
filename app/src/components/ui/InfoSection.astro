@@ -1,7 +1,7 @@
 ---
 /**
- * Accent rules card: a heading over a two-line clamped explanation that
- * expands on tap. `title` is rendered verbatim — callers own any suffix
+ * Accent rules card: collapsed it shows only the heading with a right-pointing
+ * chevron; tap expands the explanation and turns the chevron down. `title` is rendered verbatim — callers own any suffix
  * (e.g. a setup form passes "Scoring Training rules").
  * @param {string} title
  * @param {string} description
@@ -53,12 +53,13 @@ import ChevronDownIcon from "@icons/chevron-down.svg";
         </h4>
         <ChevronDownIcon
           class="size-[18px] text-muted-foreground transition-transform duration-300"
-          {...{ ":class": "expanded ? 'rotate-180' : ''" }}
+          {...{ ":class": "expanded ? '' : '-rotate-90'" }}
         />
       </button>
       <p
+        x-show="expanded"
+        x-cloak
         class="text-xs leading-[1.55] text-muted text-pretty"
-        {...{ ":class": "expanded ? '' : 'line-clamp-2'" }}
       >
         {description}
       </p>
