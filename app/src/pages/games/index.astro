@@ -5,7 +5,6 @@ import AppLayout from "@layouts/AppLayout.astro";
 import GameRow from "@components/layout/games/GameRow.astro";
 import ResumeSessionCard from "@components/layout/games/ResumeSessionCard.astro";
 import { groupedGames } from "@lib/game/rulesets/games-visibility";
-import DartIcon from "@icons/dart.svg";
 ---
 
 <AppLayout
@@ -29,80 +28,51 @@ import DartIcon from "@icons/dart.svg";
 
     <ResumeSessionCard />
 
-    <div
-      class="contents"
-      x-show="!$store.settings.loading"
-      x-cloak
-    >
-      {
-        groupedGames().map((group) => (
-          <div
-            class="flex flex-col gap-2 pt-2.5"
-            x-show={`groupVisible('${group.key}')`}
-            x-cloak
-          >
-            <span class="section-eyebrow">{group.title}</span>
-            <div class="glass flex flex-col rounded-2xl px-4 shadow-none">
-              {group.games.map((game) => (
-                <div
-                  x-show={`isVisible('${game.rulesetVersionKey}')`}
-                  x-cloak
-                  {...{
-                    ":class": `isFirstVisible('${group.key}', '${game.rulesetVersionKey}') ? '' : 'border-t border-border'`,
-                  }}
-                >
-                  <GameRow
-                    href={game.href}
-                    title={game.title}
-                    caption={game.caption}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        ))
-      }
-
-      <div
-        class="alert rounded-md border border-border px-4 py-3 space-y-2"
-        x-show="noneVisible()"
-        x-cloak
-      >
-        <p class="text-sm text-muted-foreground">
-          No game supports your current app mode, so there is nothing to start
-          here until you pick a mode one of them records.
-        </p>
-        <a
-          class="text-sm text-accent"
-          href="/profile"
+    {
+      groupedGames().map((group) => (
+        <div
+          class="flex flex-col gap-2 pt-2.5"
+          x-show={`groupVisible('${group.key}')`}
+          x-cloak
         >
-          Change your app mode on your profile
-        </a>
-      </div>
-    </div>
+          <span class="section-eyebrow">{group.title}</span>
+          <div class="glass flex flex-col rounded-2xl px-4 shadow-none">
+            {group.games.map((game) => (
+              <div
+                x-show={`isVisible('${game.rulesetVersionKey}')`}
+                x-cloak
+                {...{
+                  ":class": `isFirstVisible('${group.key}', '${game.rulesetVersionKey}') ? '' : 'border-t border-border'`,
+                }}
+              >
+                <GameRow
+                  href={game.href}
+                  title={game.title}
+                  caption={game.caption}
+                  loadingExpr="loading()"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      ))
+    }
 
     <div
-      class="flex flex-col gap-2 pt-2.5"
-      x-show="$store.settings.loading"
+      class="alert rounded-md border border-border px-4 py-3 space-y-2"
+      x-show="!loading() && noneVisible()"
       x-cloak
-      aria-hidden="true"
     >
-      <div class="h-3.5 w-24 rounded bg-surface-raised animate-pulse"></div>
-      <div
-        class="glass flex flex-col divide-y divide-border rounded-2xl px-4 shadow-none animate-pulse"
+      <p class="text-sm text-muted-foreground">
+        No game supports your current app mode, so there is nothing to start
+        here until you pick a mode one of them records.
+      </p>
+      <a
+        class="text-sm text-accent"
+        href="/profile"
       >
-        {
-          [0, 1, 2, 3, 4].map(() => (
-            <div class="flex items-center gap-3.5 py-3.5">
-              <div class="flex flex-1 flex-col gap-1">
-                <div class="h-4 w-32 rounded bg-surface-raised" />
-                <div class="h-3 w-48 rounded bg-surface-raised" />
-              </div>
-              <DartIcon class="size-6.5 -rotate-45 text-accent" />
-            </div>
-          ))
-        }
-      </div>
+        Change your app mode on your profile
+      </a>
     </div>
   </div>
 </AppLayout>
