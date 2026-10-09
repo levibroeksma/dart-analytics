@@ -47,6 +47,7 @@ Each was checked in the repo on 2026-10-09. An implementer re-checks only if the
 | F21 | The X01 fold (`ladder-progress`, `checkout-rate`, `double-performance`, `checkout-path`, `bust-rate`, `leg-stats`; games tagged `checkout`/`leg`: `501`, `TUOD`, `ONE_TWENTY_ONE`) drops a session whose config fails `snapshotOf` **silently and without any counter** — `visitsForSession` returns `[]`. Guard 5 cannot see this; guard 6 covers it through `sampleSize`. `bust-rate` counts only visits opening at ≤ 180; `leg-stats` counts finished legs; both emit no bucket when the count is 0. | `x01-checkout-sessions.module.ts:206-215`; `bust-rate.module.ts:66-81`; `leg-stats.module.ts:55-83`; `checkout-visits.module.ts:31-100` |
 | F22 | `chk_configuration_not_empty` is `jsonb_typeof(configuration) = 'object'`, so `{}` is a legal `exercise_configurations.configuration` (`CRICKET`, `TACTICS`, `BULL_UP`). `turns.completed_at >= created_at` and `activities`/`exercise_sessions` `completed_at >= started_at` are CHECKed; `uq_sessions_single_active` is partial on `completed_at IS NULL`, so completed fixtures never collide. `v_game_replay` has no `WHERE`; `v_stats_routine_step_facts` inner-joins `exercise_types` (so `exercise_type_id` must be set) and `activity_configurations`. | `database/migrations/0007_constraints.sql:47`, `0011_ordering_and_uniqueness.sql:37`, `0044_replay_view_coordinates.sql:33-61`, `0045_stats_routine_views.sql:124-186` |
 | F23 | The migration chain on `main` ends at `0046_replay_stages_view.sql` (adds `v_replay_stages`; nothing in the stats folds reads it). The CI database is built from the whole chain, so the fixture must satisfy `0046` too — it adds no constraint. Root `CLAUDE.md` still says the closed chain ends at `0045`; see §7. | `ls database/migrations`, `database/CLAUDE.md` |
+| F24 | `postgres` (postgres-js) copies a URL's `sslmode` into its `ssl` option and then branches on truthiness (`ssl ? secure() : connected()`), so `sslmode=disable` makes it attempt TLS and a plain `postgres:16` container rejects it. With no `sslmode` in the URL its default is `ssl: false`. dbmate (lib/pq) defaults to `sslmode=require`, so it needs the explicit `disable`. `visit-scoring.itest.ts` reads the same `process.env.DATABASE_URL`, so the test step's URL must suit postgres-js. | `app/node_modules/postgres/src/index.js:443,450`; `src/connection.js:283,346` |
 
 ## 1. CI
 
@@ -117,13 +118,18 @@ jobs:
           npm run db:seed:ci
           npm run db:migrate:ci
           npm run db:status:ci
+      # postgres-js reads `sslmode=<anything>` as "use SSL" (F24), so the
+      # suite gets the same database without the query string.
       - name: Statistics SQL executes
+        env:
+          DATABASE_URL: postgres://postgres:ci@localhost:5432/integration
         run: npm run test:integration
 ```
 
 Notes:
 
 - `app/src/modules/stats/**` is added to the paths: the folds live there (F3) and were missing from the old list.
+- Two `DATABASE_URL` spellings on purpose (F24): dbmate/lib-pq needs `sslmode=disable` or it defaults to SSL; postgres-js needs the parameter absent or it attempts SSL. Locally the same two spellings apply (§8).
 - No secrets, no `neonctl`, no `environment:`.
 - `concurrency` cancels a superseded run on the same PR; there is no deploy caller to protect.
 
@@ -424,7 +430,7 @@ Then the sweep runs as today for both players and `failures` must be `[]`.
 ## 8. Execution order for the implementer
 
 1. Write `fixtures/stats-world.ts` (§3–4). Unit-level check: `npx tsc --noEmit` passes with `GAME_FIXTURES: Record<GameTypeKey, …>`.
-2. Rewrite `statistics-sql.itest.ts` (§2, §5). Run `npm run test:integration` against a local migrated + seeded Postgres (e.g. `docker run -e POSTGRES_PASSWORD=ci -p 5432:5432 postgres:16`, then the §1.1 migrate → seed → migrate commands with that `DATABASE_URL`). Iterate on §4 until guards 1–6 pass and `failures` is `[]`.
+2. Rewrite `statistics-sql.itest.ts` (§2, §5). Run `npm run test:integration` against a local migrated + seeded Postgres: `docker run -d --name itest-pg -e POSTGRES_PASSWORD=ci -e POSTGRES_DB=integration -p 5432:5432 postgres:16`; build it with `DATABASE_URL='postgres://postgres:ci@localhost:5432/integration?sslmode=disable'` for the §1.1 migrate → seed → migrate commands; run the suite with `DATABASE_URL='postgres://postgres:ci@localhost:5432/integration'` (no `sslmode`, F24). Iterate on §4 until guards 1–6 pass and `failures` is `[]`.
 3. Add `integration.yml`; edit `db-rehearsal.yml` (§1).
 4. Docs + decision (§6); issues (§7).
 5. `npm run format`, `run-all-gates`, `context-maintenance`, push, PR.
