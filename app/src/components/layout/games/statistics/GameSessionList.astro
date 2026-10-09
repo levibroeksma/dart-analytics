@@ -3,11 +3,26 @@
  * Replay section: the completed sessions of the page-level game and
  * period, newest first, 10 per page, each a card that grows into its replay. Owns
  * its fetch through `gameSessionList()`. The glass surface is a sibling
- * layer, not an ancestor; the cards keep their own glass.
+ * layer, not an ancestor; the cards keep their own glass. While loading,
+ * placeholder rows built like `ReplayCard.astro`'s closed card stand in, as
+ * many as the page last showed (three on first load), and the pager stays put,
+ * so a page turn or range change does not resize the section.
  */
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
 import Pagination from "@components/ui/Pagination.astro";
 import ReplayCard from "@components/layout/statistics/ReplayCard.astro";
+
+// Icons
+import PlayIcon from "@icons/play-solid.svg";
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const skeletonClass =
+  "inline-block h-lh animate-pulse rounded-md bg-muted-foreground/80 align-top";
+const titleSkeletonClass = cn(skeletonClass, "w-28");
+const captionSkeletonClass = cn(skeletonClass, "w-40");
 ---
 
 <section
@@ -30,8 +45,24 @@ import ReplayCard from "@components/layout/statistics/ReplayCard.astro";
       x-show="loading"
       x-cloak
     >
-      <div class="h-16 animate-pulse rounded-2xl bg-muted-foreground/80"></div>
-      <div class="h-16 animate-pulse rounded-2xl bg-muted-foreground/80"></div>
+      <template x-for="slot in items.length || 3">
+        <div
+          class="glass flex items-center justify-between gap-4 rounded-2xl p-4"
+          aria-hidden="true"
+        >
+          <div class="flex flex-col gap-0.5">
+            <span class="text-base">
+              <span class={titleSkeletonClass}></span>
+            </span>
+            <span class="text-xs">
+              <span class={captionSkeletonClass}></span>
+            </span>
+          </div>
+          <PlayIcon
+            class="size-8 shrink-0 animate-pulse text-muted-foreground"
+          />
+        </div>
+      </template>
     </div>
     <div
       class="space-y-2"
@@ -55,17 +86,17 @@ import ReplayCard from "@components/layout/statistics/ReplayCard.astro";
           captionExpr="caption(row)"
         />
       </template>
-      <Pagination
-        x-show="hasPrevious || hasNext"
-        x-cloak
-        pageExpr="pageNumber"
-        totalExpr="totalPages"
-        hasPreviousExpr="hasPrevious"
-        hasNextExpr="hasNext"
-        onPrevious="previous()"
-        onNext="next()"
-        disabledExpr="loading"
-      />
     </div>
+    <Pagination
+      x-show="hasPrevious || hasNext"
+      x-cloak
+      pageExpr="pageNumber"
+      totalExpr="totalPages"
+      hasPreviousExpr="hasPrevious"
+      hasNextExpr="hasNext"
+      onPrevious="previous()"
+      onNext="next()"
+      disabledExpr="loading"
+    />
   </div>
 </section>

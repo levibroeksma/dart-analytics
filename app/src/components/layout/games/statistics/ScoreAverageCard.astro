@@ -3,6 +3,9 @@
  * Square glass stat card: one average with a caption line under it — the percent
  * change against the preceding period, or a plain subtext such as the date a
  * personal best was set. Reads from the enclosing `scoreTrendSection()` scope.
+ * While loading, pulse bars one line-height tall stand in for the value and
+ * the caption, and the caption line is always reserved, so the centred
+ * content never shifts when the data lands.
  * @param {string} label Card caption
  * @param {string} averageExpr Alpine expression yielding the average or `null`
  * @param {string} [deltaExpr] Alpine expression yielding the percent delta or `null`
@@ -26,8 +29,11 @@ const {
   loadingExpr = "loading",
 }: Props = Astro.props;
 
+// Lib
+import { cn } from "@client/cn";
+
 // Data
-const value = `${loadingExpr} || ${averageExpr} === null ? '—' : ${averageExpr}.toFixed(1)`;
+const value = `${averageExpr} === null ? '—' : ${averageExpr}.toFixed(1)`;
 const showDelta = deltaExpr
   ? `!${loadingExpr} && ${deltaExpr} !== null`
   : "false";
@@ -41,36 +47,56 @@ const showSubtext = subtextExpr
   ? `!${loadingExpr} && ${subtextExpr} !== null`
   : "false";
 const subtext = subtextExpr ? `${subtextExpr} ?? ''` : "''";
+
+// Styles
+const skeletonClass =
+  "inline-block h-lh w-20 animate-pulse rounded-md bg-muted-foreground/80 align-top";
 ---
 
 <div
   class="glass flex aspect-square flex-col items-center justify-center gap-1 rounded-2xl p-3.5 text-center"
 >
-  <span
-    class="font-mono text-3xl font-bold text-accent"
-    x-text={value}
-  >
+  <span class="font-mono text-3xl font-bold text-accent">
+    <span
+      class={skeletonClass}
+      x-show={loadingExpr}
+      x-cloak
+    >
+    </span>
+    <span
+      x-show={`!${loadingExpr}`}
+      x-cloak
+      x-text={value}
+    >
+    </span>
   </span>
   <span class="text-sm text-muted-foreground">{label}</span>
-  {
-    deltaExpr && (
-      <span
-        class="text-xs"
-        x-show={showDelta}
-        x-cloak
-        {...{ ":class": deltaClass }}
-        x-text={deltaText}
-      />
-    )
-  }
-  {
-    subtextExpr && (
-      <span
-        class="text-xs text-muted-foreground"
-        x-show={showSubtext}
-        x-cloak
-        x-text={subtext}
-      />
-    )
-  }
+  <span class="min-h-lh text-xs">
+    <span
+      class={cn(skeletonClass, "w-12")}
+      x-show={loadingExpr}
+      x-cloak
+    >
+    </span>
+    {
+      deltaExpr && (
+        <span
+          x-show={showDelta}
+          x-cloak
+          {...{ ":class": deltaClass }}
+          x-text={deltaText}
+        />
+      )
+    }
+    {
+      subtextExpr && (
+        <span
+          class="text-muted-foreground"
+          x-show={showSubtext}
+          x-cloak
+          x-text={subtext}
+        />
+      )
+    }
+  </span>
 </div>
