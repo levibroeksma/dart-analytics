@@ -1,6 +1,6 @@
 # Switching Target Scoring
 
-Current version: none (V1 in design)
+Current version: V1 (shipped 2026-09-23)
 Entry points: routine step
 
 ## Features
