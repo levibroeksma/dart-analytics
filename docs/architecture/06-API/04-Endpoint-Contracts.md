@@ -1072,8 +1072,8 @@ from the activity's configuration snapshot, not a template.
 
 - `since` is required and must be an ISO 8601 instant (offset allowed); missing or
   malformed → `422 VALIDATION_FAILED` without reaching the service.
-- The server has no player timezone (D343): the client passes its local midnight to ask
-  "done today" (`lib/training/schedules/home-week.data.ts`).
+- The server has no player timezone (D343): the client passes its local ISO-week Monday midnight to ask
+  "done this week" (`lib/training/schedules/training-week.data.ts`).
 - Success → `200` with the standard `ok()` envelope carrying
   `ListResult<TrainingCompletion>` (`nextCursor` always `null`). <!-- 2026-09-22 -->
 
