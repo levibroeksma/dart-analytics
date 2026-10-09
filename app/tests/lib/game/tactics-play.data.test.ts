@@ -260,12 +260,29 @@ describe("tacticsPlay", () => {
       obs(7, "TREBLE"),
       obs(7, "TREBLE"),
     ].reduce(applyTacticsDart, initialTacticsState(config).seats[0]);
-    expect(tacticsSeatResult(seat)).toMatchObject({
+    expect(tacticsSeatResult(seat)).toEqual({
+      participantRef: "participant-1",
+      sideKey: "A",
       darts: 14,
       marksPerRound: "5.79",
-      dartsToClose:
-        "20: 2 · 19: 3 · 18: 4 · 17: 5 · 16: 6 · 15: 1 · Bull: 8 · Doubles: 11 · Triples: 14",
+      bulls: 2,
+      dartsToClose: [2, 3, 4, 5, 6, 1, 8, 11, 14],
     });
+  });
+
+  it("counts bull darts after the bull closed", () => {
+    const obs = (hitTargetNumber: number, hitZoneKey: DartZoneKey) => ({
+      hitTargetNumber,
+      hitZoneKey,
+      locationX: null,
+      locationY: null,
+    });
+    const seat = [
+      obs(25, "INNER_BULL"),
+      obs(25, "OUTER_BULL"),
+      obs(25, "OUTER_BULL"),
+    ].reduce(applyTacticsDart, initialTacticsState({ seats: SEATS }).seats[0]);
+    expect(tacticsSeatResult(seat).bulls).toBe(3);
   });
 });
 

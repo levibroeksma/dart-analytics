@@ -90,18 +90,15 @@ const LOW_TARGETS: TacticsTapTarget[] = Array.from({ length: 14 }, (_, i) => ({
   label: String(14 - i),
 }));
 
-/** One seat's results row: darts, MPR to 2 dp, the dart each objective closed on. */
+/** One seat's results row: darts, MPR to 2 dp, bull hits, the dart each objective closed on. */
 export function tacticsSeatResult(seat: TacticsSeatState): TacticsSeatResult {
-  const dartsToClose = TACTICS_OBJECTIVES.map(
-    (objective, i) =>
-      `${objectiveLabel(objective)}: ${seat.closedAtDart[i] ?? "–"}`,
-  ).join(" · ");
   return {
     participantRef: seat.participantRef,
     sideKey: seat.sideKey,
     darts: seat.dartsThrown,
     marksPerRound: marksPerRound(seat).toFixed(2),
-    dartsToClose,
+    bulls: seat.objectiveHits[TACTICS_OBJECTIVES.indexOf(BULL_TARGET_NUMBER)],
+    dartsToClose: [...seat.closedAtDart],
   };
 }
 

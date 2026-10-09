@@ -77,18 +77,15 @@ function objectiveLabel(objective: number): string {
   return objective === BULL_TARGET_NUMBER ? "Bull" : String(objective);
 }
 
-/** One seat's results row: darts, MPR to 2 dp, the dart each objective closed on. */
+/** One seat's results row: darts, MPR to 2 dp, treble hits, the dart each objective closed on. */
 export function cricketSeatResult(seat: CricketSeatState): CricketSeatResult {
-  const dartsToClose = CRICKET_OBJECTIVES.map(
-    (objective, i) =>
-      `${objectiveLabel(objective)}: ${seat.closedAtDart[i] ?? "–"}`,
-  ).join(" · ");
   return {
     participantRef: seat.participantRef,
     sideKey: seat.sideKey,
     darts: seat.dartsThrown,
     marksPerRound: marksPerRound(seat).toFixed(2),
-    dartsToClose,
+    trebles: seat.trebleHits,
+    dartsToClose: [...seat.closedAtDart],
   };
 }
 
