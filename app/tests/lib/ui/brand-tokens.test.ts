@@ -241,6 +241,7 @@ describe("game play surfaces", () => {
     "@utility target-key-ring",
     "@utility pip-on",
     "@utility board-dim",
+    "@utility glass-pill",
   ])("defines %s", (selector) => {
     expect(() => block(selector)).not.toThrow();
   });
@@ -290,6 +291,17 @@ describe("game play surfaces", () => {
       /inset 0 0 0 1px color-mix\(in oklch, var\(--accent\) 70%, transparent\)/,
     );
     expect(b).not.toMatch(/0 0 10px/);
+  });
+
+  it("glass-pill is the glass-button wash over a dark base, blurred", () => {
+    const b = block("@utility glass-pill");
+    expect(b).toMatch(
+      /oklch\(100% 0 0 \/ 0\.16\) 85%\s*\),\s*oklch\(4% 0\.01 245 \/ 0\.6\)/,
+    );
+    expect(b).toMatch(/border-top-color: oklch\(100% 0 0 \/ 0\.35\)/);
+    expect(b).toMatch(/border-bottom-color: oklch\(100% 0 0 \/ 0\.15\)/);
+    expect(b).toMatch(/box-shadow: 0 2px 8px oklch\(0% 0 0 \/ 0\.35\)/);
+    expect(b).toMatch(/backdrop-blur-sm/);
   });
 
   it("pip-on is accent with an accent/40 glow", () => {
