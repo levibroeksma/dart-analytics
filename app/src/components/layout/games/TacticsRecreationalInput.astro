@@ -1,7 +1,6 @@
 ---
 /**
- * Tactics' tap input in an `input-well`. Row 1: undo, then the S/D/T ring
- * keys. S clears D/T; the armed key is `glass-blue` (`ringKeyActive`).
+ * Tactics' tap input in an `input-well`. Row 1: `RingKeyRow`.
  * Row 2: `tapTargets()` and MISS — four columns on a single (20–15, Bull),
  * seven once D or T is armed and 14…1 join. Target labels are 24px on four
  * columns and 16px on seven, so BULL and MISS fit the narrow keys. Treble
@@ -16,46 +15,14 @@ const { ...props }: Props = Astro.props;
 
 // Components
 import InputButton from "./InputButton.astro";
-
-// Icons
-import UndoIcon from "@icons/undo.svg";
+import RingKeyRow from "./RingKeyRow.astro";
 ---
 
 <div
   class="input-well flex flex-col"
   {...props}
 >
-  <div class="grid min-h-0 flex-1 grid-cols-4 gap-2">
-    <InputButton
-      variant="muted"
-      aria-label="Undo last dart"
-      :disabled="!$store.game.turns.length || finished"
-      @click="undoVisit()"
-    >
-      <UndoIcon class="size-6 text-muted-foreground" />
-    </InputButton>
-    <InputButton
-      pressedExpr="$ringKeyActive(ring, 'S')"
-      :disabled="finished"
-      @click="setRing('SINGLE')"
-    >
-      S
-    </InputButton>
-    <InputButton
-      pressedExpr="$ringKeyActive(ring, 'D')"
-      :disabled="finished"
-      @click="setRing('DOUBLE')"
-    >
-      D
-    </InputButton>
-    <InputButton
-      pressedExpr="$ringKeyActive(ring, 'T')"
-      :disabled="finished"
-      @click="setRing('TREBLE')"
-    >
-      T
-    </InputButton>
-  </div>
+  <RingKeyRow />
   <div
     class="grid min-h-0 flex-[2] auto-rows-fr gap-2"
     :class="$ringKeyActive(ring, 'S') ? 'grid-cols-4' : 'grid-cols-7'"

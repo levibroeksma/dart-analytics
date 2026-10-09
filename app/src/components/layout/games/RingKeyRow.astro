@@ -1,0 +1,54 @@
+---
+/**
+ * Recreational-input key row: undo, then the S/D/T ring keys. S clears D/T;
+ * the armed key is `glass-blue` (`ringKeyActive`). Reads `ring`, `finished`,
+ * `setRing()` and `undoVisit()` from the surrounding play scope.
+ */
+interface Props {
+  [key: string]: unknown;
+}
+
+// Props
+const { ...props }: Props = Astro.props;
+
+// Components
+import InputButton from "./InputButton.astro";
+
+// Icons
+import UndoIcon from "@icons/undo.svg";
+---
+
+<div
+  class="grid min-h-0 flex-1 grid-cols-4 gap-2"
+  {...props}
+>
+  <InputButton
+    variant="muted"
+    aria-label="Undo last dart"
+    :disabled="!$store.game.turns.length || finished"
+    @click="undoVisit()"
+  >
+    <UndoIcon class="size-6 text-muted-foreground" />
+  </InputButton>
+  <InputButton
+    pressedExpr="$ringKeyActive(ring, 'S')"
+    :disabled="finished"
+    @click="setRing('SINGLE')"
+  >
+    S
+  </InputButton>
+  <InputButton
+    pressedExpr="$ringKeyActive(ring, 'D')"
+    :disabled="finished"
+    @click="setRing('DOUBLE')"
+  >
+    D
+  </InputButton>
+  <InputButton
+    pressedExpr="$ringKeyActive(ring, 'T')"
+    :disabled="finished"
+    @click="setRing('TREBLE')"
+  >
+    T
+  </InputButton>
+</div>
