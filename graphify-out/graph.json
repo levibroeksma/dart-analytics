@@ -1203,19 +1203,6 @@
       "source_location": "L249"
     },
     {
-      "id": "app_src_components_layout_games_gamerow_props",
-      "label": "Props",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 140,
-      "community_name": "capabilities.ts",
-      "file_type": "code",
-      "norm_label": "props",
-      "source_file": "app/src/components/layout/games/GameRow.astro",
-      "source_location": "L11"
-    },
-    {
       "id": "app_src_modules_ui_chart_module_chartview",
       "label": "ChartView",
       "_callable": true,
@@ -2659,19 +2646,6 @@
       "source_location": "L11"
     },
     {
-      "id": "app_src_components_layout_games_gamecard_props",
-      "label": "Props",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 190,
-      "community_name": "cn",
-      "file_type": "code",
-      "norm_label": "props",
-      "source_file": "app/src/components/layout/games/GameCard.astro",
-      "source_location": "L8"
-    },
-    {
       "id": "app_src_components_layout_games_setup_togglelistitem_props",
       "label": "Props",
       "_callable": true,
@@ -2724,19 +2698,6 @@
       "source_location": "L12"
     },
     {
-      "id": "app_src_components_ui_badge_props",
-      "label": "Props",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 190,
-      "community_name": "cn",
-      "file_type": "code",
-      "norm_label": "props",
-      "source_file": "app/src/components/ui/Badge.astro",
-      "source_location": "L7"
-    },
-    {
       "id": "app_src_components_ui_boardmagnifier_props",
       "label": "Props",
       "_callable": true,
@@ -2748,19 +2709,6 @@
       "norm_label": "props",
       "source_file": "app/src/components/ui/BoardMagnifier.astro",
       "source_location": "L76"
-    },
-    {
-      "id": "app_src_components_ui_cardwrapper_props",
-      "label": "Props",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 190,
-      "community_name": "cn",
-      "file_type": "code",
-      "norm_label": "props",
-      "source_file": "app/src/components/ui/CardWrapper.astro",
-      "source_location": "L12"
     },
     {
       "id": "app_src_components_ui_chart_props",
@@ -2854,17 +2802,56 @@
       "source_location": "L10"
     },
     {
-      "id": "app_src_layouts_baselayout_props",
+      "id": "app_src_components_layout_games_gamecard_props",
       "label": "Props",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "community": 192,
-      "community_name": "pages/index.astro",
+      "community_name": "CardWrapper.astro",
       "file_type": "code",
       "norm_label": "props",
-      "source_file": "app/src/layouts/BaseLayout.astro",
-      "source_location": "L6"
+      "source_file": "app/src/components/layout/games/GameCard.astro",
+      "source_location": "L8"
+    },
+    {
+      "id": "app_src_components_layout_games_gamerow_props",
+      "label": "Props",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 192,
+      "community_name": "CardWrapper.astro",
+      "file_type": "code",
+      "norm_label": "props",
+      "source_file": "app/src/components/layout/games/GameRow.astro",
+      "source_location": "L16"
+    },
+    {
+      "id": "app_src_components_ui_badge_props",
+      "label": "Props",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 192,
+      "community_name": "CardWrapper.astro",
+      "file_type": "code",
+      "norm_label": "props",
+      "source_file": "app/src/components/ui/Badge.astro",
+      "source_location": "L7"
+    },
+    {
+      "id": "app_src_components_ui_cardwrapper_props",
+      "label": "Props",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 192,
+      "community_name": "CardWrapper.astro",
+      "file_type": "code",
+      "norm_label": "props",
+      "source_file": "app/src/components/ui/CardWrapper.astro",
+      "source_location": "L12"
     },
     {
       "id": "app_src_pages_api_sessions_types_batchwriteresponsedata",
@@ -3374,6 +3361,19 @@
       "source_location": "L107"
     },
     {
+      "id": "app_src_components_forms_input_props",
+      "label": "Props",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 208,
+      "community_name": "SinglePlayerSummary.astro",
+      "file_type": "code",
+      "norm_label": "props",
+      "source_file": "app/src/components/forms/Input.astro",
+      "source_location": "L15"
+    },
+    {
       "id": "app_src_components_layout_games_comparisonsummary_props",
       "label": "Props",
       "_callable": true,
@@ -3437,6 +3437,58 @@
       "norm_label": "props",
       "source_file": "app/src/components/layout/games/StatRowComparisonSkeleton.astro",
       "source_location": "L2"
+    },
+    {
+      "id": "app_src_components_layout_games_stattile_props",
+      "label": "Props",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 208,
+      "community_name": "SinglePlayerSummary.astro",
+      "file_type": "code",
+      "norm_label": "props",
+      "source_file": "app/src/components/layout/games/StatTile.astro",
+      "source_location": "L8"
+    },
+    {
+      "id": "app_src_components_ui_inlayrow_props",
+      "label": "Props",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 208,
+      "community_name": "SinglePlayerSummary.astro",
+      "file_type": "code",
+      "norm_label": "props",
+      "source_file": "app/src/components/ui/InlayRow.astro",
+      "source_location": "L8"
+    },
+    {
+      "id": "app_src_components_ui_modal_props",
+      "label": "Props",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 208,
+      "community_name": "SinglePlayerSummary.astro",
+      "file_type": "code",
+      "norm_label": "props",
+      "source_file": "app/src/components/ui/Modal.astro",
+      "source_location": "L15"
+    },
+    {
+      "id": "app_src_components_ui_sheetactions_props",
+      "label": "Props",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 208,
+      "community_name": "SinglePlayerSummary.astro",
+      "file_type": "code",
+      "norm_label": "props",
+      "source_file": "app/src/components/ui/SheetActions.astro",
+      "source_location": "L6"
     },
     {
       "id": "app_src_lib_ui_chart_data_chartdataconfig",
@@ -8379,6 +8431,19 @@
       "source_location": "L14"
     },
     {
+      "id": "app_src_components_forms_appmodeform_props",
+      "label": "Props",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 321,
+      "community_name": "AppModeForm.astro",
+      "file_type": "code",
+      "norm_label": "props",
+      "source_file": "app/src/components/forms/AppModeForm.astro",
+      "source_location": "L14"
+    },
+    {
       "id": "app_src_modules_ui_interfaces_sessionclockoptions",
       "label": "SessionClockOptions",
       "_callable": true,
@@ -9341,19 +9406,6 @@
       "source_location": "L54"
     },
     {
-      "id": "app_src_components_forms_appmodeform_props",
-      "label": "Props",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 459,
-      "community_name": "Button.astro",
-      "file_type": "code",
-      "norm_label": "props",
-      "source_file": "app/src/components/forms/AppModeForm.astro",
-      "source_location": "L14"
-    },
-    {
       "id": "app_src_components_forms_button_props",
       "label": "Props",
       "_callable": true,
@@ -9391,6 +9443,19 @@
       "norm_label": "props",
       "source_file": "app/src/layouts/AppLayout.astro",
       "source_location": "L5"
+    },
+    {
+      "id": "app_src_layouts_baselayout_props",
+      "label": "Props",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 459,
+      "community_name": "Button.astro",
+      "file_type": "code",
+      "norm_label": "props",
+      "source_file": "app/src/layouts/BaseLayout.astro",
+      "source_location": "L6"
     },
     {
       "id": "app_src_lib_stats_merge_metrics_chunkunit",
@@ -9477,24 +9542,11 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "file_type": "code",
       "norm_label": "props",
       "source_file": "app/src/components/forms/IconBtn.astro",
       "source_location": "L11"
-    },
-    {
-      "id": "app_src_components_forms_input_props",
-      "label": "Props",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 462,
-      "community_name": "Modal.astro",
-      "file_type": "code",
-      "norm_label": "props",
-      "source_file": "app/src/components/forms/Input.astro",
-      "source_location": "L15"
     },
     {
       "id": "app_src_components_layout_games_setup_addguestbutton_props",
@@ -9503,7 +9555,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "file_type": "code",
       "norm_label": "props",
       "source_file": "app/src/components/layout/games/setup/AddGuestButton.astro",
@@ -9516,7 +9568,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "file_type": "code",
       "norm_label": "props",
       "source_file": "app/src/components/layout/games/setup/GuestSection.astro",
@@ -9529,24 +9581,11 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "file_type": "code",
       "norm_label": "props",
       "source_file": "app/src/components/layout/games/setup/UserIconDisplay.astro",
       "source_location": "L9"
-    },
-    {
-      "id": "app_src_components_layout_games_stattile_props",
-      "label": "Props",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 462,
-      "community_name": "Modal.astro",
-      "file_type": "code",
-      "norm_label": "props",
-      "source_file": "app/src/components/layout/games/StatTile.astro",
-      "source_location": "L8"
     },
     {
       "id": "app_src_components_layout_training_routines_routinebuilder_props",
@@ -9555,7 +9594,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "file_type": "code",
       "norm_label": "props",
       "source_file": "app/src/components/layout/training/routines/RoutineBuilder.astro",
@@ -9568,7 +9607,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "file_type": "code",
       "norm_label": "props",
       "source_file": "app/src/components/layout/training/routines/RoutineFormModal.astro",
@@ -9581,7 +9620,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "file_type": "code",
       "norm_label": "props",
       "source_file": "app/src/components/layout/training/schedules/ScheduleFormModal.astro",
@@ -9594,50 +9633,11 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "file_type": "code",
       "norm_label": "props",
       "source_file": "app/src/components/ui/ExpandingModal.astro",
       "source_location": "L16"
-    },
-    {
-      "id": "app_src_components_ui_inlayrow_props",
-      "label": "Props",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 462,
-      "community_name": "Modal.astro",
-      "file_type": "code",
-      "norm_label": "props",
-      "source_file": "app/src/components/ui/InlayRow.astro",
-      "source_location": "L8"
-    },
-    {
-      "id": "app_src_components_ui_modal_props",
-      "label": "Props",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 462,
-      "community_name": "Modal.astro",
-      "file_type": "code",
-      "norm_label": "props",
-      "source_file": "app/src/components/ui/Modal.astro",
-      "source_location": "L15"
-    },
-    {
-      "id": "app_src_components_ui_sheetactions_props",
-      "label": "Props",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 462,
-      "community_name": "Modal.astro",
-      "file_type": "code",
-      "norm_label": "props",
-      "source_file": "app/src/components/ui/SheetActions.astro",
-      "source_location": "L6"
     },
     {
       "id": "app_src_services_types_playersettings",
@@ -9884,7 +9884,7 @@
       "file_type": "code",
       "norm_label": "guestlistcontext",
       "source_file": "app/src/lib/game/types.ts",
-      "source_location": "L1458"
+      "source_location": "L1461"
     },
     {
       "id": "app_src_lib_game_types_onetwentyonesetupcontext",
@@ -12985,7 +12985,7 @@
       "file_type": "code",
       "norm_label": "gamesindex()",
       "source_file": "app/src/lib/game/games-index.data.ts",
-      "source_location": "L56"
+      "source_location": "L58"
     },
     {
       "id": "app_src_lib_game_games_index_data_resumetarget",
@@ -39277,7 +39277,7 @@
       "file_type": "code",
       "norm_label": "trainingweek()",
       "source_file": "app/src/lib/training/schedules/training-week.data.ts",
-      "source_location": "L33"
+      "source_location": "L37"
     },
     {
       "id": "app_tests_lib_training_schedules_home_week_data_test_completion",
@@ -48461,17 +48461,6 @@
       "source_location": "L2"
     },
     {
-      "id": "app_src_components_layout_games_gamerow",
-      "label": "GameRow.astro",
-      "_origin": "ast",
-      "community": 140,
-      "community_name": "capabilities.ts",
-      "file_type": "code",
-      "norm_label": "gamerow.astro",
-      "source_file": "app/src/components/layout/games/GameRow.astro",
-      "source_location": "L1"
-    },
-    {
       "id": "app_src_components_layout_games_resumesessioncard",
       "label": "ResumeSessionCard.astro",
       "_origin": "ast",
@@ -57275,17 +57264,6 @@
       "source_location": "L35"
     },
     {
-      "id": "app_src_components_layout_games_gamecard",
-      "label": "GameCard.astro",
-      "_origin": "ast",
-      "community": 190,
-      "community_name": "cn",
-      "file_type": "code",
-      "norm_label": "gamecard.astro",
-      "source_file": "app/src/components/layout/games/GameCard.astro",
-      "source_location": "L1"
-    },
-    {
       "id": "app_src_components_layout_games_setup_togglelistitem",
       "label": "ToggleListItem.astro",
       "_origin": "ast",
@@ -57407,6 +57385,17 @@
       "source_location": "L1"
     },
     {
+      "id": "app_src_components_layout_home_landingheatmapcard",
+      "label": "LandingHeatmapCard.astro",
+      "_origin": "ast",
+      "community": 190,
+      "community_name": "cn",
+      "file_type": "code",
+      "norm_label": "landingheatmapcard.astro",
+      "source_file": "app/src/components/layout/home/LandingHeatmapCard.astro",
+      "source_location": "L1"
+    },
+    {
       "id": "app_src_components_layout_statistics_gamesectioncards",
       "label": "GameSectionCards.astro",
       "_origin": "ast",
@@ -57451,28 +57440,6 @@
       "source_location": "L1"
     },
     {
-      "id": "app_src_components_ui_badge",
-      "label": "Badge.astro",
-      "_origin": "ast",
-      "community": 190,
-      "community_name": "cn",
-      "file_type": "code",
-      "norm_label": "badge.astro",
-      "source_file": "app/src/components/ui/Badge.astro",
-      "source_location": "L1"
-    },
-    {
-      "id": "app_src_components_ui_badge_classname",
-      "label": "className",
-      "_origin": "ast",
-      "community": 190,
-      "community_name": "cn",
-      "file_type": "code",
-      "norm_label": "classname",
-      "source_file": "app/src/components/ui/Badge.astro",
-      "source_location": "L30"
-    },
-    {
       "id": "app_src_components_ui_boardmagnifier",
       "label": "BoardMagnifier.astro",
       "_origin": "ast",
@@ -57493,39 +57460,6 @@
       "norm_label": "circleclass",
       "source_file": "app/src/components/ui/BoardMagnifier.astro",
       "source_location": "L92"
-    },
-    {
-      "id": "app_src_components_ui_cardwrapper",
-      "label": "CardWrapper.astro",
-      "_origin": "ast",
-      "community": 190,
-      "community_name": "cn",
-      "file_type": "code",
-      "norm_label": "cardwrapper.astro",
-      "source_file": "app/src/components/ui/CardWrapper.astro",
-      "source_location": "L1"
-    },
-    {
-      "id": "app_src_components_ui_cardwrapper_classname",
-      "label": "className",
-      "_origin": "ast",
-      "community": 190,
-      "community_name": "cn",
-      "file_type": "code",
-      "norm_label": "classname",
-      "source_file": "app/src/components/ui/CardWrapper.astro",
-      "source_location": "L53"
-    },
-    {
-      "id": "app_src_components_ui_cardwrapper_tintpresets",
-      "label": "tintPresets",
-      "_origin": "ast",
-      "community": 190,
-      "community_name": "cn",
-      "file_type": "code",
-      "norm_label": "tintpresets",
-      "source_file": "app/src/components/ui/CardWrapper.astro",
-      "source_location": "L38"
     },
     {
       "id": "app_src_components_ui_chart",
@@ -57746,28 +57680,6 @@
       "norm_label": "taboptions",
       "source_file": "app/src/pages/statistics/index.astro",
       "source_location": "L12"
-    },
-    {
-      "id": "app_src_pages_training_schedules_index",
-      "label": "schedules/index.astro",
-      "_origin": "ast",
-      "community": 190,
-      "community_name": "cn",
-      "file_type": "code",
-      "norm_label": "schedules/index.astro",
-      "source_file": "app/src/pages/training/schedules/index.astro",
-      "source_location": "L1"
-    },
-    {
-      "id": "app_src_pages_training_schedules_index_prerender",
-      "label": "prerender",
-      "_origin": "ast",
-      "community": 190,
-      "community_name": "cn",
-      "file_type": "code",
-      "norm_label": "prerender",
-      "source_file": "app/src/pages/training/schedules/index.astro",
-      "source_location": "L2"
     },
     {
       "id": "app_tests_lib_client_cn_test",
@@ -58295,157 +58207,102 @@
       "source_location": "L25"
     },
     {
-      "id": "users_levi_development_dart_analytics_app_src_styles_global_css",
-      "label": "@styles/global.css",
+      "id": "app_src_components_layout_games_gamecard",
+      "label": "GameCard.astro",
       "_origin": "ast",
       "community": 192,
-      "community_name": "pages/index.astro",
-      "confidence": "EXTRACTED",
+      "community_name": "CardWrapper.astro",
       "file_type": "code",
-      "norm_label": "@styles/global.css",
-      "source_file": "app/src/styles/global.css"
-    },
-    {
-      "id": "app_src_components_layout_home_careertiles",
-      "label": "CareerTiles.astro",
-      "_origin": "ast",
-      "community": 192,
-      "community_name": "pages/index.astro",
-      "file_type": "code",
-      "norm_label": "careertiles.astro",
-      "source_file": "app/src/components/layout/home/CareerTiles.astro",
+      "norm_label": "gamecard.astro",
+      "source_file": "app/src/components/layout/games/GameCard.astro",
       "source_location": "L1"
     },
     {
-      "id": "app_src_components_layout_home_dailyaveragecard",
-      "label": "DailyAverageCard.astro",
+      "id": "app_src_components_layout_games_gamerow",
+      "label": "GameRow.astro",
       "_origin": "ast",
       "community": 192,
-      "community_name": "pages/index.astro",
+      "community_name": "CardWrapper.astro",
       "file_type": "code",
-      "norm_label": "dailyaveragecard.astro",
-      "source_file": "app/src/components/layout/home/DailyAverageCard.astro",
+      "norm_label": "gamerow.astro",
+      "source_file": "app/src/components/layout/games/GameRow.astro",
       "source_location": "L1"
     },
     {
-      "id": "app_src_components_layout_home_homehero",
-      "label": "HomeHero.astro",
+      "id": "app_src_components_ui_badge",
+      "label": "Badge.astro",
       "_origin": "ast",
       "community": 192,
-      "community_name": "pages/index.astro",
+      "community_name": "CardWrapper.astro",
       "file_type": "code",
-      "norm_label": "homehero.astro",
-      "source_file": "app/src/components/layout/home/HomeHero.astro",
+      "norm_label": "badge.astro",
+      "source_file": "app/src/components/ui/Badge.astro",
       "source_location": "L1"
     },
     {
-      "id": "app_src_components_layout_home_landingheatmapcard",
-      "label": "LandingHeatmapCard.astro",
+      "id": "app_src_components_ui_badge_classname",
+      "label": "className",
       "_origin": "ast",
       "community": 192,
-      "community_name": "pages/index.astro",
+      "community_name": "CardWrapper.astro",
       "file_type": "code",
-      "norm_label": "landingheatmapcard.astro",
-      "source_file": "app/src/components/layout/home/LandingHeatmapCard.astro",
+      "norm_label": "classname",
+      "source_file": "app/src/components/ui/Badge.astro",
+      "source_location": "L30"
+    },
+    {
+      "id": "app_src_components_ui_cardwrapper",
+      "label": "CardWrapper.astro",
+      "_origin": "ast",
+      "community": 192,
+      "community_name": "CardWrapper.astro",
+      "file_type": "code",
+      "norm_label": "cardwrapper.astro",
+      "source_file": "app/src/components/ui/CardWrapper.astro",
       "source_location": "L1"
     },
     {
-      "id": "app_src_components_layout_home_resumegamecard",
-      "label": "ResumeGameCard.astro",
+      "id": "app_src_components_ui_cardwrapper_classname",
+      "label": "className",
       "_origin": "ast",
       "community": 192,
-      "community_name": "pages/index.astro",
+      "community_name": "CardWrapper.astro",
       "file_type": "code",
-      "norm_label": "resumegamecard.astro",
-      "source_file": "app/src/components/layout/home/ResumeGameCard.astro",
+      "norm_label": "classname",
+      "source_file": "app/src/components/ui/CardWrapper.astro",
+      "source_location": "L53"
+    },
+    {
+      "id": "app_src_components_ui_cardwrapper_tintpresets",
+      "label": "tintPresets",
+      "_origin": "ast",
+      "community": 192,
+      "community_name": "CardWrapper.astro",
+      "file_type": "code",
+      "norm_label": "tintpresets",
+      "source_file": "app/src/components/ui/CardWrapper.astro",
+      "source_location": "L38"
+    },
+    {
+      "id": "app_src_pages_training_schedules_index",
+      "label": "schedules/index.astro",
+      "_origin": "ast",
+      "community": 192,
+      "community_name": "CardWrapper.astro",
+      "file_type": "code",
+      "norm_label": "schedules/index.astro",
+      "source_file": "app/src/pages/training/schedules/index.astro",
       "source_location": "L1"
     },
     {
-      "id": "app_src_components_layout_home_todayroutinecard",
-      "label": "TodayRoutineCard.astro",
-      "_origin": "ast",
-      "community": 192,
-      "community_name": "pages/index.astro",
-      "file_type": "code",
-      "norm_label": "todayroutinecard.astro",
-      "source_file": "app/src/components/layout/home/TodayRoutineCard.astro",
-      "source_location": "L1"
-    },
-    {
-      "id": "app_src_layouts_baselayout",
-      "label": "BaseLayout.astro",
-      "_origin": "ast",
-      "community": 192,
-      "community_name": "pages/index.astro",
-      "file_type": "code",
-      "norm_label": "baselayout.astro",
-      "source_file": "app/src/layouts/BaseLayout.astro",
-      "source_location": "L1"
-    },
-    {
-      "id": "app_src_pages_index",
-      "label": "pages/index.astro",
-      "_origin": "ast",
-      "community": 192,
-      "community_name": "pages/index.astro",
-      "file_type": "code",
-      "norm_label": "pages/index.astro",
-      "source_file": "app/src/pages/index.astro",
-      "source_location": "L1"
-    },
-    {
-      "id": "app_src_pages_index_prerender",
+      "id": "app_src_pages_training_schedules_index_prerender",
       "label": "prerender",
       "_origin": "ast",
       "community": 192,
-      "community_name": "pages/index.astro",
+      "community_name": "CardWrapper.astro",
       "file_type": "code",
       "norm_label": "prerender",
-      "source_file": "app/src/pages/index.astro",
-      "source_location": "L2"
-    },
-    {
-      "id": "app_src_pages_login_index",
-      "label": "login/index.astro",
-      "_origin": "ast",
-      "community": 192,
-      "community_name": "pages/index.astro",
-      "file_type": "code",
-      "norm_label": "login/index.astro",
-      "source_file": "app/src/pages/login/index.astro",
-      "source_location": "L1"
-    },
-    {
-      "id": "app_src_pages_login_index_eyebrowclass",
-      "label": "eyebrowClass",
-      "_origin": "ast",
-      "community": 192,
-      "community_name": "pages/index.astro",
-      "file_type": "code",
-      "norm_label": "eyebrowclass",
-      "source_file": "app/src/pages/login/index.astro",
-      "source_location": "L12"
-    },
-    {
-      "id": "app_src_pages_login_index_fieldclass",
-      "label": "fieldClass",
-      "_origin": "ast",
-      "community": 192,
-      "community_name": "pages/index.astro",
-      "file_type": "code",
-      "norm_label": "fieldclass",
-      "source_file": "app/src/pages/login/index.astro",
-      "source_location": "L15"
-    },
-    {
-      "id": "app_src_pages_login_index_prerender",
-      "label": "prerender",
-      "_origin": "ast",
-      "community": 192,
-      "community_name": "pages/index.astro",
-      "file_type": "code",
-      "norm_label": "prerender",
-      "source_file": "app/src/pages/login/index.astro",
+      "source_file": "app/src/pages/training/schedules/index.astro",
       "source_location": "L2"
     },
     {
@@ -61149,6 +61006,28 @@
       "source_location": "L1"
     },
     {
+      "id": "app_src_components_forms_input",
+      "label": "Input.astro",
+      "_origin": "ast",
+      "community": 208,
+      "community_name": "SinglePlayerSummary.astro",
+      "file_type": "code",
+      "norm_label": "input.astro",
+      "source_file": "app/src/components/forms/Input.astro",
+      "source_location": "L1"
+    },
+    {
+      "id": "app_src_components_forms_input_classname",
+      "label": "className",
+      "_origin": "ast",
+      "community": 208,
+      "community_name": "SinglePlayerSummary.astro",
+      "file_type": "code",
+      "norm_label": "classname",
+      "source_file": "app/src/components/forms/Input.astro",
+      "source_location": "L55"
+    },
+    {
       "id": "app_src_components_layout_games_comparisonsummary",
       "label": "ComparisonSummary.astro",
       "_origin": "ast",
@@ -61457,6 +61336,50 @@
       "source_location": "L1"
     },
     {
+      "id": "app_src_components_layout_games_setup_guestnamemodal",
+      "label": "GuestNameModal.astro",
+      "_origin": "ast",
+      "community": 208,
+      "community_name": "SinglePlayerSummary.astro",
+      "file_type": "code",
+      "norm_label": "guestnamemodal.astro",
+      "source_file": "app/src/components/layout/games/setup/GuestNameModal.astro",
+      "source_location": "L1"
+    },
+    {
+      "id": "app_src_components_layout_games_setup_opponentchoosermodal",
+      "label": "OpponentChooserModal.astro",
+      "_origin": "ast",
+      "community": 208,
+      "community_name": "SinglePlayerSummary.astro",
+      "file_type": "code",
+      "norm_label": "opponentchoosermodal.astro",
+      "source_file": "app/src/components/layout/games/setup/OpponentChooserModal.astro",
+      "source_location": "L1"
+    },
+    {
+      "id": "app_src_components_layout_games_setup_opponentchoosermodal_levelselectstats",
+      "label": "levelSelectStats",
+      "_origin": "ast",
+      "community": 208,
+      "community_name": "SinglePlayerSummary.astro",
+      "file_type": "code",
+      "norm_label": "levelselectstats",
+      "source_file": "app/src/components/layout/games/setup/OpponentChooserModal.astro",
+      "source_location": "L25"
+    },
+    {
+      "id": "app_src_components_layout_games_setup_opponentchoosermodal_options",
+      "label": "options",
+      "_origin": "ast",
+      "community": 208,
+      "community_name": "SinglePlayerSummary.astro",
+      "file_type": "code",
+      "norm_label": "options",
+      "source_file": "app/src/components/layout/games/setup/OpponentChooserModal.astro",
+      "source_location": "L26"
+    },
+    {
       "id": "app_src_components_layout_games_singleplayersummary",
       "label": "SinglePlayerSummary.astro",
       "_origin": "ast",
@@ -61542,6 +61465,116 @@
       "file_type": "code",
       "norm_label": "statrowcomparisonskeleton.astro",
       "source_file": "app/src/components/layout/games/StatRowComparisonSkeleton.astro",
+      "source_location": "L1"
+    },
+    {
+      "id": "app_src_components_layout_games_stattile",
+      "label": "StatTile.astro",
+      "_origin": "ast",
+      "community": 208,
+      "community_name": "SinglePlayerSummary.astro",
+      "file_type": "code",
+      "norm_label": "stattile.astro",
+      "source_file": "app/src/components/layout/games/StatTile.astro",
+      "source_location": "L1"
+    },
+    {
+      "id": "app_src_components_layout_training_exercises_blockedstepmodal",
+      "label": "BlockedStepModal.astro",
+      "_origin": "ast",
+      "community": 208,
+      "community_name": "SinglePlayerSummary.astro",
+      "file_type": "code",
+      "norm_label": "blockedstepmodal.astro",
+      "source_file": "app/src/components/layout/training/exercises/BlockedStepModal.astro",
+      "source_location": "L1"
+    },
+    {
+      "id": "app_src_components_layout_training_routines_openroutinemodal",
+      "label": "OpenRoutineModal.astro",
+      "_origin": "ast",
+      "community": 208,
+      "community_name": "SinglePlayerSummary.astro",
+      "file_type": "code",
+      "norm_label": "openroutinemodal.astro",
+      "source_file": "app/src/components/layout/training/routines/OpenRoutineModal.astro",
+      "source_location": "L1"
+    },
+    {
+      "id": "app_src_components_layout_training_trivia_quicksubtract",
+      "label": "QuickSubtract.astro",
+      "_origin": "ast",
+      "community": 208,
+      "community_name": "SinglePlayerSummary.astro",
+      "file_type": "code",
+      "norm_label": "quicksubtract.astro",
+      "source_file": "app/src/components/layout/training/trivia/QuickSubtract.astro",
+      "source_location": "L1"
+    },
+    {
+      "id": "app_src_components_layout_training_trivia_quicksubtract_modeoptions",
+      "label": "modeOptions",
+      "_origin": "ast",
+      "community": 208,
+      "community_name": "SinglePlayerSummary.astro",
+      "file_type": "code",
+      "norm_label": "modeoptions",
+      "source_file": "app/src/components/layout/training/trivia/QuickSubtract.astro",
+      "source_location": "L15"
+    },
+    {
+      "id": "app_src_components_ui_inlayrow",
+      "label": "InlayRow.astro",
+      "_origin": "ast",
+      "community": 208,
+      "community_name": "SinglePlayerSummary.astro",
+      "file_type": "code",
+      "norm_label": "inlayrow.astro",
+      "source_file": "app/src/components/ui/InlayRow.astro",
+      "source_location": "L1"
+    },
+    {
+      "id": "app_src_components_ui_modal",
+      "label": "Modal.astro",
+      "_origin": "ast",
+      "community": 208,
+      "community_name": "SinglePlayerSummary.astro",
+      "file_type": "code",
+      "norm_label": "modal.astro",
+      "source_file": "app/src/components/ui/Modal.astro",
+      "source_location": "L1"
+    },
+    {
+      "id": "app_src_components_ui_modal_hasbody",
+      "label": "hasBody",
+      "_origin": "ast",
+      "community": 208,
+      "community_name": "SinglePlayerSummary.astro",
+      "file_type": "code",
+      "norm_label": "hasbody",
+      "source_file": "app/src/components/ui/Modal.astro",
+      "source_location": "L43"
+    },
+    {
+      "id": "app_src_components_ui_modal_panelclass",
+      "label": "panelClass",
+      "_origin": "ast",
+      "community": 208,
+      "community_name": "SinglePlayerSummary.astro",
+      "file_type": "code",
+      "norm_label": "panelclass",
+      "source_file": "app/src/components/ui/Modal.astro",
+      "source_location": "L46"
+    },
+    {
+      "id": "app_src_components_ui_sheetactions",
+      "label": "SheetActions.astro",
+      "_origin": "ast",
+      "community": 208,
+      "community_name": "SinglePlayerSummary.astro",
+      "file_type": "code",
+      "norm_label": "sheetactions.astro",
+      "source_file": "app/src/components/ui/SheetActions.astro",
       "source_location": "L1"
     },
     {
@@ -64123,7 +64156,7 @@
       "node_kind": "heading",
       "norm_label": "task records",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L418"
+      "source_location": "L420"
     },
     {
       "id": "docs_architecture_05_database_05_views_00_overview_implemented_views_migrations_0009_0046",
@@ -82246,6 +82279,72 @@
       "source_location": "L999"
     },
     {
+      "id": "app_src_components_forms_appmodeform",
+      "label": "AppModeForm.astro",
+      "_origin": "ast",
+      "community": 321,
+      "community_name": "AppModeForm.astro",
+      "file_type": "code",
+      "norm_label": "appmodeform.astro",
+      "source_file": "app/src/components/forms/AppModeForm.astro",
+      "source_location": "L1"
+    },
+    {
+      "id": "app_src_components_forms_appmodeform_classname",
+      "label": "className",
+      "_origin": "ast",
+      "community": 321,
+      "community_name": "AppModeForm.astro",
+      "file_type": "code",
+      "norm_label": "classname",
+      "source_file": "app/src/components/forms/AppModeForm.astro",
+      "source_location": "L29"
+    },
+    {
+      "id": "app_src_components_layout_profile_profileidentity",
+      "label": "ProfileIdentity.astro",
+      "_origin": "ast",
+      "community": 321,
+      "community_name": "AppModeForm.astro",
+      "file_type": "code",
+      "norm_label": "profileidentity.astro",
+      "source_file": "app/src/components/layout/profile/ProfileIdentity.astro",
+      "source_location": "L1"
+    },
+    {
+      "id": "app_src_components_ui_logoutbutton",
+      "label": "LogoutButton.astro",
+      "_origin": "ast",
+      "community": 321,
+      "community_name": "AppModeForm.astro",
+      "file_type": "code",
+      "norm_label": "logoutbutton.astro",
+      "source_file": "app/src/components/ui/LogoutButton.astro",
+      "source_location": "L1"
+    },
+    {
+      "id": "app_src_pages_profile_index",
+      "label": "profile/index.astro",
+      "_origin": "ast",
+      "community": 321,
+      "community_name": "AppModeForm.astro",
+      "file_type": "code",
+      "norm_label": "profile/index.astro",
+      "source_file": "app/src/pages/profile/index.astro",
+      "source_location": "L1"
+    },
+    {
+      "id": "app_src_pages_profile_index_prerender",
+      "label": "prerender",
+      "_origin": "ast",
+      "community": 321,
+      "community_name": "AppModeForm.astro",
+      "file_type": "code",
+      "norm_label": "prerender",
+      "source_file": "app/src/pages/profile/index.astro",
+      "source_location": "L2"
+    },
+    {
       "id": "docs_architecture_05_database_06_spec_05_read_model_layer_category_206",
       "label": "Category",
       "_origin": "ast",
@@ -93587,26 +93686,15 @@
       "source_location": "L81"
     },
     {
-      "id": "app_src_components_forms_appmodeform",
-      "label": "AppModeForm.astro",
+      "id": "users_levi_development_dart_analytics_app_src_styles_global_css",
+      "label": "@styles/global.css",
       "_origin": "ast",
       "community": 459,
       "community_name": "Button.astro",
+      "confidence": "EXTRACTED",
       "file_type": "code",
-      "norm_label": "appmodeform.astro",
-      "source_file": "app/src/components/forms/AppModeForm.astro",
-      "source_location": "L1"
-    },
-    {
-      "id": "app_src_components_forms_appmodeform_classname",
-      "label": "className",
-      "_origin": "ast",
-      "community": 459,
-      "community_name": "Button.astro",
-      "file_type": "code",
-      "norm_label": "classname",
-      "source_file": "app/src/components/forms/AppModeForm.astro",
-      "source_location": "L29"
+      "norm_label": "@styles/global.css",
+      "source_file": "app/src/styles/global.css"
     },
     {
       "id": "app_src_components_forms_button",
@@ -93653,14 +93741,58 @@
       "source_location": "L1"
     },
     {
-      "id": "app_src_components_layout_profile_profileidentity",
-      "label": "ProfileIdentity.astro",
+      "id": "app_src_components_layout_home_careertiles",
+      "label": "CareerTiles.astro",
       "_origin": "ast",
       "community": 459,
       "community_name": "Button.astro",
       "file_type": "code",
-      "norm_label": "profileidentity.astro",
-      "source_file": "app/src/components/layout/profile/ProfileIdentity.astro",
+      "norm_label": "careertiles.astro",
+      "source_file": "app/src/components/layout/home/CareerTiles.astro",
+      "source_location": "L1"
+    },
+    {
+      "id": "app_src_components_layout_home_dailyaveragecard",
+      "label": "DailyAverageCard.astro",
+      "_origin": "ast",
+      "community": 459,
+      "community_name": "Button.astro",
+      "file_type": "code",
+      "norm_label": "dailyaveragecard.astro",
+      "source_file": "app/src/components/layout/home/DailyAverageCard.astro",
+      "source_location": "L1"
+    },
+    {
+      "id": "app_src_components_layout_home_homehero",
+      "label": "HomeHero.astro",
+      "_origin": "ast",
+      "community": 459,
+      "community_name": "Button.astro",
+      "file_type": "code",
+      "norm_label": "homehero.astro",
+      "source_file": "app/src/components/layout/home/HomeHero.astro",
+      "source_location": "L1"
+    },
+    {
+      "id": "app_src_components_layout_home_resumegamecard",
+      "label": "ResumeGameCard.astro",
+      "_origin": "ast",
+      "community": 459,
+      "community_name": "Button.astro",
+      "file_type": "code",
+      "norm_label": "resumegamecard.astro",
+      "source_file": "app/src/components/layout/home/ResumeGameCard.astro",
+      "source_location": "L1"
+    },
+    {
+      "id": "app_src_components_layout_home_todayroutinecard",
+      "label": "TodayRoutineCard.astro",
+      "_origin": "ast",
+      "community": 459,
+      "community_name": "Button.astro",
+      "file_type": "code",
+      "norm_label": "todayroutinecard.astro",
+      "source_file": "app/src/components/layout/home/TodayRoutineCard.astro",
       "source_location": "L1"
     },
     {
@@ -93708,17 +93840,6 @@
       "source_location": "L1"
     },
     {
-      "id": "app_src_components_ui_logoutbutton",
-      "label": "LogoutButton.astro",
-      "_origin": "ast",
-      "community": 459,
-      "community_name": "Button.astro",
-      "file_type": "code",
-      "norm_label": "logoutbutton.astro",
-      "source_file": "app/src/components/ui/LogoutButton.astro",
-      "source_location": "L1"
-    },
-    {
       "id": "app_src_layouts_applayout",
       "label": "AppLayout.astro",
       "_origin": "ast",
@@ -93727,6 +93848,17 @@
       "file_type": "code",
       "norm_label": "applayout.astro",
       "source_file": "app/src/layouts/AppLayout.astro",
+      "source_location": "L1"
+    },
+    {
+      "id": "app_src_layouts_baselayout",
+      "label": "BaseLayout.astro",
+      "_origin": "ast",
+      "community": 459,
+      "community_name": "Button.astro",
+      "file_type": "code",
+      "norm_label": "baselayout.astro",
+      "source_file": "app/src/layouts/BaseLayout.astro",
       "source_location": "L1"
     },
     {
@@ -93972,25 +94104,69 @@
       "source_location": "L2"
     },
     {
-      "id": "app_src_pages_profile_index",
-      "label": "profile/index.astro",
+      "id": "app_src_pages_index",
+      "label": "pages/index.astro",
       "_origin": "ast",
       "community": 459,
       "community_name": "Button.astro",
       "file_type": "code",
-      "norm_label": "profile/index.astro",
-      "source_file": "app/src/pages/profile/index.astro",
+      "norm_label": "pages/index.astro",
+      "source_file": "app/src/pages/index.astro",
       "source_location": "L1"
     },
     {
-      "id": "app_src_pages_profile_index_prerender",
+      "id": "app_src_pages_index_prerender",
       "label": "prerender",
       "_origin": "ast",
       "community": 459,
       "community_name": "Button.astro",
       "file_type": "code",
       "norm_label": "prerender",
-      "source_file": "app/src/pages/profile/index.astro",
+      "source_file": "app/src/pages/index.astro",
+      "source_location": "L2"
+    },
+    {
+      "id": "app_src_pages_login_index",
+      "label": "login/index.astro",
+      "_origin": "ast",
+      "community": 459,
+      "community_name": "Button.astro",
+      "file_type": "code",
+      "norm_label": "login/index.astro",
+      "source_file": "app/src/pages/login/index.astro",
+      "source_location": "L1"
+    },
+    {
+      "id": "app_src_pages_login_index_eyebrowclass",
+      "label": "eyebrowClass",
+      "_origin": "ast",
+      "community": 459,
+      "community_name": "Button.astro",
+      "file_type": "code",
+      "norm_label": "eyebrowclass",
+      "source_file": "app/src/pages/login/index.astro",
+      "source_location": "L12"
+    },
+    {
+      "id": "app_src_pages_login_index_fieldclass",
+      "label": "fieldClass",
+      "_origin": "ast",
+      "community": 459,
+      "community_name": "Button.astro",
+      "file_type": "code",
+      "norm_label": "fieldclass",
+      "source_file": "app/src/pages/login/index.astro",
+      "source_location": "L15"
+    },
+    {
+      "id": "app_src_pages_login_index_prerender",
+      "label": "prerender",
+      "_origin": "ast",
+      "community": 459,
+      "community_name": "Button.astro",
+      "file_type": "code",
+      "norm_label": "prerender",
+      "source_file": "app/src/pages/login/index.astro",
       "source_location": "L2"
     },
     {
@@ -94130,7 +94306,7 @@
       "label": "IconBtn.astro",
       "_origin": "ast",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "file_type": "code",
       "norm_label": "iconbtn.astro",
       "source_file": "app/src/components/forms/IconBtn.astro",
@@ -94141,54 +94317,21 @@
       "label": "className",
       "_origin": "ast",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "file_type": "code",
       "norm_label": "classname",
       "source_file": "app/src/components/forms/IconBtn.astro",
       "source_location": "L42"
     },
     {
-      "id": "app_src_components_forms_input",
-      "label": "Input.astro",
-      "_origin": "ast",
-      "community": 462,
-      "community_name": "Modal.astro",
-      "file_type": "code",
-      "norm_label": "input.astro",
-      "source_file": "app/src/components/forms/Input.astro",
-      "source_location": "L1"
-    },
-    {
-      "id": "app_src_components_forms_input_classname",
-      "label": "className",
-      "_origin": "ast",
-      "community": 462,
-      "community_name": "Modal.astro",
-      "file_type": "code",
-      "norm_label": "classname",
-      "source_file": "app/src/components/forms/Input.astro",
-      "source_location": "L55"
-    },
-    {
       "id": "app_src_components_layout_games_setup_addguestbutton",
       "label": "AddGuestButton.astro",
       "_origin": "ast",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "file_type": "code",
       "norm_label": "addguestbutton.astro",
       "source_file": "app/src/components/layout/games/setup/AddGuestButton.astro",
-      "source_location": "L1"
-    },
-    {
-      "id": "app_src_components_layout_games_setup_guestnamemodal",
-      "label": "GuestNameModal.astro",
-      "_origin": "ast",
-      "community": 462,
-      "community_name": "Modal.astro",
-      "file_type": "code",
-      "norm_label": "guestnamemodal.astro",
-      "source_file": "app/src/components/layout/games/setup/GuestNameModal.astro",
       "source_location": "L1"
     },
     {
@@ -94196,76 +94339,21 @@
       "label": "GuestSection.astro",
       "_origin": "ast",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "file_type": "code",
       "norm_label": "guestsection.astro",
       "source_file": "app/src/components/layout/games/setup/GuestSection.astro",
       "source_location": "L1"
     },
     {
-      "id": "app_src_components_layout_games_setup_opponentchoosermodal",
-      "label": "OpponentChooserModal.astro",
-      "_origin": "ast",
-      "community": 462,
-      "community_name": "Modal.astro",
-      "file_type": "code",
-      "norm_label": "opponentchoosermodal.astro",
-      "source_file": "app/src/components/layout/games/setup/OpponentChooserModal.astro",
-      "source_location": "L1"
-    },
-    {
-      "id": "app_src_components_layout_games_setup_opponentchoosermodal_levelselectstats",
-      "label": "levelSelectStats",
-      "_origin": "ast",
-      "community": 462,
-      "community_name": "Modal.astro",
-      "file_type": "code",
-      "norm_label": "levelselectstats",
-      "source_file": "app/src/components/layout/games/setup/OpponentChooserModal.astro",
-      "source_location": "L25"
-    },
-    {
-      "id": "app_src_components_layout_games_setup_opponentchoosermodal_options",
-      "label": "options",
-      "_origin": "ast",
-      "community": 462,
-      "community_name": "Modal.astro",
-      "file_type": "code",
-      "norm_label": "options",
-      "source_file": "app/src/components/layout/games/setup/OpponentChooserModal.astro",
-      "source_location": "L26"
-    },
-    {
       "id": "app_src_components_layout_games_setup_usericondisplay",
       "label": "UserIconDisplay.astro",
       "_origin": "ast",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "file_type": "code",
       "norm_label": "usericondisplay.astro",
       "source_file": "app/src/components/layout/games/setup/UserIconDisplay.astro",
-      "source_location": "L1"
-    },
-    {
-      "id": "app_src_components_layout_games_stattile",
-      "label": "StatTile.astro",
-      "_origin": "ast",
-      "community": 462,
-      "community_name": "Modal.astro",
-      "file_type": "code",
-      "norm_label": "stattile.astro",
-      "source_file": "app/src/components/layout/games/StatTile.astro",
-      "source_location": "L1"
-    },
-    {
-      "id": "app_src_components_layout_training_exercises_blockedstepmodal",
-      "label": "BlockedStepModal.astro",
-      "_origin": "ast",
-      "community": 462,
-      "community_name": "Modal.astro",
-      "file_type": "code",
-      "norm_label": "blockedstepmodal.astro",
-      "source_file": "app/src/components/layout/training/exercises/BlockedStepModal.astro",
       "source_location": "L1"
     },
     {
@@ -94273,21 +94361,10 @@
       "label": "ExercisePicker.astro",
       "_origin": "ast",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "file_type": "code",
       "norm_label": "exercisepicker.astro",
       "source_file": "app/src/components/layout/training/routines/ExercisePicker.astro",
-      "source_location": "L1"
-    },
-    {
-      "id": "app_src_components_layout_training_routines_openroutinemodal",
-      "label": "OpenRoutineModal.astro",
-      "_origin": "ast",
-      "community": 462,
-      "community_name": "Modal.astro",
-      "file_type": "code",
-      "norm_label": "openroutinemodal.astro",
-      "source_file": "app/src/components/layout/training/routines/OpenRoutineModal.astro",
       "source_location": "L1"
     },
     {
@@ -94295,7 +94372,7 @@
       "label": "RoutineBuilder.astro",
       "_origin": "ast",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "file_type": "code",
       "norm_label": "routinebuilder.astro",
       "source_file": "app/src/components/layout/training/routines/RoutineBuilder.astro",
@@ -94306,7 +94383,7 @@
       "label": "RoutineFormModal.astro",
       "_origin": "ast",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "file_type": "code",
       "norm_label": "routineformmodal.astro",
       "source_file": "app/src/components/layout/training/routines/RoutineFormModal.astro",
@@ -94317,7 +94394,7 @@
       "label": "RoutineRow.astro",
       "_origin": "ast",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "file_type": "code",
       "norm_label": "routinerow.astro",
       "source_file": "app/src/components/layout/training/routines/RoutineRow.astro",
@@ -94328,7 +94405,7 @@
       "label": "RoutineStepRow.astro",
       "_origin": "ast",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "file_type": "code",
       "norm_label": "routinesteprow.astro",
       "source_file": "app/src/components/layout/training/routines/RoutineStepRow.astro",
@@ -94339,7 +94416,7 @@
       "label": "ScheduleFormModal.astro",
       "_origin": "ast",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "file_type": "code",
       "norm_label": "scheduleformmodal.astro",
       "source_file": "app/src/components/layout/training/schedules/ScheduleFormModal.astro",
@@ -94350,7 +94427,7 @@
       "label": "ScheduleStrip.astro",
       "_origin": "ast",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "file_type": "code",
       "norm_label": "schedulestrip.astro",
       "source_file": "app/src/components/layout/training/schedules/ScheduleStrip.astro",
@@ -94361,40 +94438,18 @@
       "label": "TrainingScheduleCard.astro",
       "_origin": "ast",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "file_type": "code",
       "norm_label": "trainingschedulecard.astro",
       "source_file": "app/src/components/layout/training/schedules/TrainingScheduleCard.astro",
       "source_location": "L1"
     },
     {
-      "id": "app_src_components_layout_training_trivia_quicksubtract",
-      "label": "QuickSubtract.astro",
-      "_origin": "ast",
-      "community": 462,
-      "community_name": "Modal.astro",
-      "file_type": "code",
-      "norm_label": "quicksubtract.astro",
-      "source_file": "app/src/components/layout/training/trivia/QuickSubtract.astro",
-      "source_location": "L1"
-    },
-    {
-      "id": "app_src_components_layout_training_trivia_quicksubtract_modeoptions",
-      "label": "modeOptions",
-      "_origin": "ast",
-      "community": 462,
-      "community_name": "Modal.astro",
-      "file_type": "code",
-      "norm_label": "modeoptions",
-      "source_file": "app/src/components/layout/training/trivia/QuickSubtract.astro",
-      "source_location": "L15"
-    },
-    {
       "id": "app_src_components_ui_expandingmodal",
       "label": "ExpandingModal.astro",
       "_origin": "ast",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "file_type": "code",
       "norm_label": "expandingmodal.astro",
       "source_file": "app/src/components/ui/ExpandingModal.astro",
@@ -94405,7 +94460,7 @@
       "label": "iconAttrs",
       "_origin": "ast",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "file_type": "code",
       "norm_label": "iconattrs",
       "source_file": "app/src/components/ui/ExpandingModal.astro",
@@ -94416,73 +94471,18 @@
       "label": "toggleAttrs",
       "_origin": "ast",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "file_type": "code",
       "norm_label": "toggleattrs",
       "source_file": "app/src/components/ui/ExpandingModal.astro",
       "source_location": "L52"
     },
     {
-      "id": "app_src_components_ui_inlayrow",
-      "label": "InlayRow.astro",
-      "_origin": "ast",
-      "community": 462,
-      "community_name": "Modal.astro",
-      "file_type": "code",
-      "norm_label": "inlayrow.astro",
-      "source_file": "app/src/components/ui/InlayRow.astro",
-      "source_location": "L1"
-    },
-    {
-      "id": "app_src_components_ui_modal",
-      "label": "Modal.astro",
-      "_origin": "ast",
-      "community": 462,
-      "community_name": "Modal.astro",
-      "file_type": "code",
-      "norm_label": "modal.astro",
-      "source_file": "app/src/components/ui/Modal.astro",
-      "source_location": "L1"
-    },
-    {
-      "id": "app_src_components_ui_modal_hasbody",
-      "label": "hasBody",
-      "_origin": "ast",
-      "community": 462,
-      "community_name": "Modal.astro",
-      "file_type": "code",
-      "norm_label": "hasbody",
-      "source_file": "app/src/components/ui/Modal.astro",
-      "source_location": "L43"
-    },
-    {
-      "id": "app_src_components_ui_modal_panelclass",
-      "label": "panelClass",
-      "_origin": "ast",
-      "community": 462,
-      "community_name": "Modal.astro",
-      "file_type": "code",
-      "norm_label": "panelclass",
-      "source_file": "app/src/components/ui/Modal.astro",
-      "source_location": "L46"
-    },
-    {
-      "id": "app_src_components_ui_sheetactions",
-      "label": "SheetActions.astro",
-      "_origin": "ast",
-      "community": 462,
-      "community_name": "Modal.astro",
-      "file_type": "code",
-      "norm_label": "sheetactions.astro",
-      "source_file": "app/src/components/ui/SheetActions.astro",
-      "source_location": "L1"
-    },
-    {
       "id": "app_src_pages_training_index",
       "label": "training/index.astro",
       "_origin": "ast",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "file_type": "code",
       "norm_label": "training/index.astro",
       "source_file": "app/src/pages/training/index.astro",
@@ -94493,32 +94493,10 @@
       "label": "prerender",
       "_origin": "ast",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "file_type": "code",
       "norm_label": "prerender",
       "source_file": "app/src/pages/training/index.astro",
-      "source_location": "L2"
-    },
-    {
-      "id": "app_src_pages_training_quick_subtract_index",
-      "label": "quick-subtract/index.astro",
-      "_origin": "ast",
-      "community": 462,
-      "community_name": "Modal.astro",
-      "file_type": "code",
-      "norm_label": "quick-subtract/index.astro",
-      "source_file": "app/src/pages/training/quick-subtract/index.astro",
-      "source_location": "L1"
-    },
-    {
-      "id": "app_src_pages_training_quick_subtract_index_prerender",
-      "label": "prerender",
-      "_origin": "ast",
-      "community": 462,
-      "community_name": "Modal.astro",
-      "file_type": "code",
-      "norm_label": "prerender",
-      "source_file": "app/src/pages/training/quick-subtract/index.astro",
       "source_location": "L2"
     },
     {
@@ -94526,7 +94504,7 @@
       "label": "routines/edit/index.astro",
       "_origin": "ast",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "file_type": "code",
       "norm_label": "routines/edit/index.astro",
       "source_file": "app/src/pages/training/routines/edit/index.astro",
@@ -94537,7 +94515,7 @@
       "label": "prerender",
       "_origin": "ast",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "file_type": "code",
       "norm_label": "prerender",
       "source_file": "app/src/pages/training/routines/edit/index.astro",
@@ -103127,7 +103105,7 @@
       "node_kind": "heading",
       "norm_label": "current implementation state",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L393"
+      "source_location": "L395"
     },
     {
       "id": "docs_architecture_00_file_inventory_context_history_repo_root_docs",
@@ -104177,6 +104155,28 @@
       "file_type": "code",
       "norm_label": "prerender",
       "source_file": "app/src/pages/games/tuod/play/index.astro",
+      "source_location": "L2"
+    },
+    {
+      "id": "app_src_pages_training_quick_subtract_index",
+      "label": "quick-subtract/index.astro",
+      "_origin": "ast",
+      "community": 67,
+      "community_name": "GameLayout.astro",
+      "file_type": "code",
+      "norm_label": "quick-subtract/index.astro",
+      "source_file": "app/src/pages/training/quick-subtract/index.astro",
+      "source_location": "L1"
+    },
+    {
+      "id": "app_src_pages_training_quick_subtract_index_prerender",
+      "label": "prerender",
+      "_origin": "ast",
+      "community": 67,
+      "community_name": "GameLayout.astro",
+      "file_type": "code",
+      "norm_label": "prerender",
+      "source_file": "app/src/pages/training/quick-subtract/index.astro",
       "source_location": "L2"
     },
     {
@@ -109096,17 +109096,6 @@
       "type": "external"
     },
     {
-      "id": "app_src_icons_dart",
-      "label": "app_src_icons_dart",
-      "community": 140,
-      "community_name": "capabilities.ts",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "app_src_icons_dart",
-      "source_file": "",
-      "type": "external"
-    },
-    {
       "id": "app_src_modules_types_chartctor",
       "label": "app_src_modules_types_chartctor",
       "community": 142,
@@ -109415,57 +109404,24 @@
       "type": "external"
     },
     {
+      "id": "app_src_icons_dart",
+      "label": "app_src_icons_dart",
+      "community": 192,
+      "community_name": "CardWrapper.astro",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "app_src_icons_dart",
+      "source_file": "",
+      "type": "external"
+    },
+    {
       "id": "app_src_modules_types_tintname",
       "label": "app_src_modules_types_tintname",
-      "community": 190,
-      "community_name": "cn",
+      "community": 192,
+      "community_name": "CardWrapper.astro",
       "external": true,
       "file_type": "concept",
       "norm_label": "app_src_modules_types_tintname",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "app_src_assets_bg_dartboard",
-      "label": "app_src_assets_bg_dartboard",
-      "community": 192,
-      "community_name": "pages/index.astro",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "app_src_assets_bg_dartboard",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "app_src_assets_logo_lockup",
-      "label": "app_src_assets_logo_lockup",
-      "community": 192,
-      "community_name": "pages/index.astro",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "app_src_assets_logo_lockup",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "app_src_icons_play_rounded",
-      "label": "app_src_icons_play_rounded",
-      "community": 192,
-      "community_name": "pages/index.astro",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "app_src_icons_play_rounded",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "app_src_styles_global",
-      "label": "app_src_styles_global",
-      "community": 192,
-      "community_name": "pages/index.astro",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "app_src_styles_global",
       "source_file": "",
       "type": "external"
     },
@@ -112022,6 +111978,17 @@
       "type": "external"
     },
     {
+      "id": "app_src_icons_logout",
+      "label": "app_src_icons_logout",
+      "community": 321,
+      "community_name": "AppModeForm.astro",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "app_src_icons_logout",
+      "source_file": "",
+      "type": "external"
+    },
+    {
       "id": "app_src_lib_interfaces_stepadapter",
       "label": "app_src_lib_interfaces_stepadapter",
       "community": 34,
@@ -112407,6 +112374,28 @@
       "type": "external"
     },
     {
+      "id": "app_src_assets_bg_dartboard",
+      "label": "app_src_assets_bg_dartboard",
+      "community": 459,
+      "community_name": "Button.astro",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "app_src_assets_bg_dartboard",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "app_src_assets_logo_lockup",
+      "label": "app_src_assets_logo_lockup",
+      "community": 459,
+      "community_name": "Button.astro",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "app_src_assets_logo_lockup",
+      "source_file": "",
+      "type": "external"
+    },
+    {
       "id": "app_src_icons_loading",
       "label": "app_src_icons_loading",
       "community": 459,
@@ -112418,13 +112407,13 @@
       "type": "external"
     },
     {
-      "id": "app_src_icons_logout",
-      "label": "app_src_icons_logout",
+      "id": "app_src_styles_global",
+      "label": "app_src_styles_global",
       "community": 459,
       "community_name": "Button.astro",
       "external": true,
       "file_type": "concept",
-      "norm_label": "app_src_icons_logout",
+      "norm_label": "app_src_styles_global",
       "source_file": "",
       "type": "external"
     },
@@ -112454,7 +112443,7 @@
       "id": "app_src_icons_check",
       "label": "app_src_icons_check",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "external": true,
       "file_type": "concept",
       "norm_label": "app_src_icons_check",
@@ -112465,7 +112454,7 @@
       "id": "app_src_icons_check_bold",
       "label": "app_src_icons_check_bold",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "external": true,
       "file_type": "concept",
       "norm_label": "app_src_icons_check_bold",
@@ -112476,7 +112465,7 @@
       "id": "app_src_icons_cross",
       "label": "app_src_icons_cross",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "external": true,
       "file_type": "concept",
       "norm_label": "app_src_icons_cross",
@@ -112487,7 +112476,7 @@
       "id": "app_src_icons_cross_bold",
       "label": "app_src_icons_cross_bold",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "external": true,
       "file_type": "concept",
       "norm_label": "app_src_icons_cross_bold",
@@ -112498,7 +112487,7 @@
       "id": "app_src_icons_grip",
       "label": "app_src_icons_grip",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "external": true,
       "file_type": "concept",
       "norm_label": "app_src_icons_grip",
@@ -112509,7 +112498,7 @@
       "id": "app_src_icons_pencil",
       "label": "app_src_icons_pencil",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "external": true,
       "file_type": "concept",
       "norm_label": "app_src_icons_pencil",
@@ -112517,10 +112506,21 @@
       "type": "external"
     },
     {
+      "id": "app_src_icons_play_rounded",
+      "label": "app_src_icons_play_rounded",
+      "community": 462,
+      "community_name": "training/index.astro",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "app_src_icons_play_rounded",
+      "source_file": "",
+      "type": "external"
+    },
+    {
       "id": "app_src_icons_plus",
       "label": "app_src_icons_plus",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "external": true,
       "file_type": "concept",
       "norm_label": "app_src_icons_plus",
@@ -112531,7 +112531,7 @@
       "id": "app_src_icons_target",
       "label": "app_src_icons_target",
       "community": 462,
-      "community_name": "Modal.astro",
+      "community_name": "training/index.astro",
       "external": true,
       "file_type": "concept",
       "norm_label": "app_src_icons_target",
@@ -117968,7 +117968,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "app/src/lib/game/games-index.data.ts",
-      "source_location": "L63",
+      "source_location": "L66",
       "weight": 1.0
     },
     {
@@ -117980,7 +117980,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "app/src/lib/game/games-index.data.ts",
-      "source_location": "L78",
+      "source_location": "L87",
       "weight": 1.0
     },
     {
@@ -124508,7 +124508,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "app/src/lib/training/schedules/training-week.data.ts",
-      "source_location": "L39",
+      "source_location": "L43",
       "weight": 1.0
     },
     {
@@ -124520,7 +124520,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "app/src/lib/training/schedules/training-week.data.ts",
-      "source_location": "L45",
+      "source_location": "L49",
       "weight": 1.0
     },
     {
@@ -124532,7 +124532,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "app/src/lib/training/schedules/training-week.data.ts",
-      "source_location": "L46",
+      "source_location": "L50",
       "weight": 1.0
     },
     {
@@ -124544,7 +124544,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "app/src/lib/training/schedules/training-week.data.ts",
-      "source_location": "L46",
+      "source_location": "L50",
       "weight": 1.0
     },
     {
@@ -124556,7 +124556,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "app/src/lib/training/schedules/training-week.data.ts",
-      "source_location": "L63",
+      "source_location": "L67",
       "weight": 1.0
     },
     {
@@ -124568,7 +124568,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "app/src/lib/training/schedules/training-week.data.ts",
-      "source_location": "L71",
+      "source_location": "L76",
       "weight": 1.0
     },
     {
@@ -238129,7 +238129,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "app/src/components/layout/games/GameRow.astro",
-      "source_location": "L21",
+      "source_location": "L27",
       "weight": 1.0
     },
     {
@@ -242425,7 +242425,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "app/src/components/layout/training/routines/RoutineStepRow.astro",
-      "source_location": "L25",
+      "source_location": "L26",
       "weight": 1.0
     },
     {
@@ -242437,7 +242437,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "app/src/components/layout/training/routines/RoutineStepRow.astro",
-      "source_location": "L26",
+      "source_location": "L27",
       "weight": 1.0
     },
     {
@@ -242449,7 +242449,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "app/src/components/layout/training/routines/RoutineStepRow.astro",
-      "source_location": "L27",
+      "source_location": "L28",
       "weight": 1.0
     },
     {
@@ -242461,7 +242461,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "app/src/components/layout/training/routines/RoutineStepRow.astro",
-      "source_location": "L28",
+      "source_location": "L29",
       "weight": 1.0
     },
     {
@@ -242641,7 +242641,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "app/src/components/layout/training/schedules/ScheduleStrip.astro",
-      "source_location": "L10",
+      "source_location": "L11",
       "weight": 1.0
     },
     {
@@ -242653,7 +242653,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "app/src/components/layout/training/schedules/ScheduleStrip.astro",
-      "source_location": "L11",
+      "source_location": "L12",
       "weight": 1.0
     },
     {
@@ -260844,18 +260844,6 @@
       "weight": 1.0
     },
     {
-      "source": "app_src_pages_games_index",
-      "target": "app_src_icons_dart",
-      "relation": "imports_from",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "app/src/pages/games/index.astro",
-      "source_location": "L8",
-      "weight": 1.0
-    },
-    {
       "source": "app_src_pages_games_score_training_play_index",
       "target": "app_src_layouts_gamelayout",
       "relation": "imports_from",
@@ -261793,7 +261781,7 @@
     },
     {
       "source": "app_src_pages_training_index",
-      "target": "app_src_icons_plus",
+      "target": "app_src_icons_play_rounded",
       "relation": "imports_from",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -261801,6 +261789,18 @@
       "context": "import",
       "source_file": "app/src/pages/training/index.astro",
       "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "app_src_pages_training_index",
+      "target": "app_src_icons_plus",
+      "relation": "imports_from",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "app/src/pages/training/index.astro",
+      "source_location": "L12",
       "weight": 1.0
     },
     {
@@ -291829,7 +291829,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/components/layout/games/GameRow.astro",
-      "source_location": "L11",
+      "source_location": "L16",
       "weight": 1.0
     },
     {
@@ -296768,7 +296768,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/lib/game/games-index.data.ts",
-      "source_location": "L56",
+      "source_location": "L58",
       "weight": 1.0
     },
     {
@@ -300024,7 +300024,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/lib/game/types.ts",
-      "source_location": "L1458",
+      "source_location": "L1461",
       "weight": 1.0
     },
     {
@@ -304512,7 +304512,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/src/lib/training/schedules/training-week.data.ts",
-      "source_location": "L33",
+      "source_location": "L37",
       "weight": 1.0
     },
     {
@@ -335554,7 +335554,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L393",
+      "source_location": "L395",
       "weight": 1.0
     },
     {
@@ -335565,7 +335565,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L418",
+      "source_location": "L420",
       "weight": 1.0
     },
     {
@@ -376599,7 +376599,7 @@
       "confidence_score": 0.95,
       "context": "AroundTheClockEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L478",
+      "source_location": "L480",
       "weight": 1.0
     },
     {
@@ -376611,7 +376611,7 @@
       "confidence_score": 0.95,
       "context": "AroundTheClockEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -376623,7 +376623,7 @@
       "confidence_score": 0.95,
       "context": "AroundTheClockPlayContext",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L242",
+      "source_location": "L244",
       "weight": 1.0
     },
     {
@@ -376647,7 +376647,7 @@
       "confidence_score": 0.95,
       "context": "AroundTheClockSnapshot",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -376671,7 +376671,7 @@
       "confidence_score": 0.95,
       "context": "BoardPoint",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L341",
+      "source_location": "L343",
       "weight": 1.0
     },
     {
@@ -376683,7 +376683,7 @@
       "confidence_score": 0.95,
       "context": "BoardTarget",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L144",
+      "source_location": "L146",
       "weight": 1.0
     },
     {
@@ -376719,7 +376719,7 @@
       "confidence_score": 0.95,
       "context": "Bobs27Engine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L337",
+      "source_location": "L339",
       "weight": 1.0
     },
     {
@@ -376731,7 +376731,7 @@
       "confidence_score": 0.95,
       "context": "Bobs27Engine.deriveState()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L329",
+      "source_location": "L331",
       "weight": 1.0
     },
     {
@@ -376743,7 +376743,7 @@
       "confidence_score": 0.95,
       "context": "Bobs27Engine.record()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L404",
+      "source_location": "L406",
       "weight": 1.0
     },
     {
@@ -376755,7 +376755,7 @@
       "confidence_score": 0.95,
       "context": "Bobs27Engine.record()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L459",
+      "source_location": "L461",
       "weight": 1.0
     },
     {
@@ -376767,7 +376767,7 @@
       "confidence_score": 0.95,
       "context": "Bobs27Engine.record()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -376779,7 +376779,7 @@
       "confidence_score": 0.95,
       "context": "Bobs27PlayContext",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L335",
+      "source_location": "L337",
       "weight": 1.0
     },
     {
@@ -376791,7 +376791,7 @@
       "confidence_score": 0.95,
       "context": "Bobs27SetupContext",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -376815,7 +376815,7 @@
       "confidence_score": 0.95,
       "context": "BotDartThrower",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L335",
+      "source_location": "L337",
       "weight": 1.0
     },
     {
@@ -376827,7 +376827,7 @@
       "confidence_score": 0.95,
       "context": "BotQuickScoreFold",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L335",
+      "source_location": "L337",
       "weight": 1.0
     },
     {
@@ -376839,7 +376839,7 @@
       "confidence_score": 0.95,
       "context": "BotThrow",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L341",
+      "source_location": "L343",
       "weight": 1.0
     },
     {
@@ -376863,7 +376863,7 @@
       "confidence_score": 0.95,
       "context": "BullUpEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L132",
+      "source_location": "L134",
       "weight": 1.0
     },
     {
@@ -376887,7 +376887,7 @@
       "confidence_score": 0.95,
       "context": "BullseyeCheckoutEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L134",
+      "source_location": "L136",
       "weight": 1.0
     },
     {
@@ -377031,7 +377031,7 @@
       "confidence_score": 0.95,
       "context": "CheckoutSequenceEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L38",
+      "source_location": "L40",
       "weight": 1.0
     },
     {
@@ -377079,7 +377079,7 @@
       "confidence_score": 0.95,
       "context": "ConfigurationPresetData",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -377103,7 +377103,7 @@
       "confidence_score": 0.95,
       "context": "CountdownConfig",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L228",
+      "source_location": "L230",
       "weight": 1.0
     },
     {
@@ -377127,7 +377127,7 @@
       "confidence_score": 0.95,
       "context": "CountdownGame",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L228",
+      "source_location": "L230",
       "weight": 1.0
     },
     {
@@ -377151,7 +377151,7 @@
       "confidence_score": 0.95,
       "context": "CreateSessionRecordsInput",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L283",
+      "source_location": "L285",
       "weight": 1.0
     },
     {
@@ -377175,7 +377175,7 @@
       "confidence_score": 0.95,
       "context": "CreateSessionResult",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L339",
+      "source_location": "L341",
       "weight": 1.0
     },
     {
@@ -377283,7 +377283,7 @@
       "confidence_score": 0.95,
       "context": "DartExerciseEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L283",
+      "source_location": "L285",
       "weight": 1.0
     },
     {
@@ -377343,7 +377343,7 @@
       "confidence_score": 0.95,
       "context": "DartExerciseKind",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L36",
+      "source_location": "L38",
       "weight": 1.0
     },
     {
@@ -377463,7 +377463,7 @@
       "confidence_score": 0.95,
       "context": "DartObservation",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L504",
+      "source_location": "L506",
       "weight": 1.0
     },
     {
@@ -377475,7 +377475,7 @@
       "confidence_score": 0.95,
       "context": "DartObservation",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -377607,7 +377607,7 @@
       "confidence_score": 0.95,
       "context": "DartZoneKey",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L466",
+      "source_location": "L468",
       "weight": 1.0
     },
     {
@@ -377619,7 +377619,7 @@
       "confidence_score": 0.95,
       "context": "DartZoneKey",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -377787,7 +377787,7 @@
       "confidence_score": 0.95,
       "context": "DoublePatternEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L269",
+      "source_location": "L271",
       "weight": 1.0
     },
     {
@@ -377811,7 +377811,7 @@
       "confidence_score": 0.95,
       "context": "DoublePatternEngine.record()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L250",
+      "source_location": "L252",
       "weight": 1.0
     },
     {
@@ -377847,7 +377847,7 @@
       "confidence_score": 0.95,
       "context": "DoublesTrainingEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -377859,7 +377859,7 @@
       "confidence_score": 0.95,
       "context": "DoublesTrainingEngine.record()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -377871,7 +377871,7 @@
       "confidence_score": 0.95,
       "context": "DoublesTrainingPlayContext",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L242",
+      "source_location": "L244",
       "weight": 1.0
     },
     {
@@ -377943,7 +377943,7 @@
       "confidence_score": 0.95,
       "context": "EngineFacts",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L283",
+      "source_location": "L285",
       "weight": 1.0
     },
     {
@@ -378087,7 +378087,7 @@
       "confidence_score": 0.95,
       "context": "ExerciseEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L511",
+      "source_location": "L513",
       "weight": 1.0
     },
     {
@@ -378099,7 +378099,7 @@
       "confidence_score": 0.95,
       "context": "ExerciseEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L287",
+      "source_location": "L289",
       "weight": 1.0
     },
     {
@@ -378339,7 +378339,7 @@
       "confidence_score": 0.95,
       "context": "ExerciseEngineFactory",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L252",
+      "source_location": "L254",
       "weight": 1.0
     },
     {
@@ -378387,7 +378387,7 @@
       "confidence_score": 0.95,
       "context": "ExerciseRulesetValidator",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L287",
+      "source_location": "L289",
       "weight": 1.0
     },
     {
@@ -378423,7 +378423,7 @@
       "confidence_score": 0.95,
       "context": "ExerciseRulesetVersionKey",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L287",
+      "source_location": "L289",
       "weight": 1.0
     },
     {
@@ -378459,7 +378459,7 @@
       "confidence_score": 0.95,
       "context": "ExerciseTemplateCatalogEntry",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L172",
+      "source_location": "L174",
       "weight": 1.0
     },
     {
@@ -378519,7 +378519,7 @@
       "confidence_score": 0.95,
       "context": "ExpirableEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L228",
+      "source_location": "L230",
       "weight": 1.0
     },
     {
@@ -378555,7 +378555,7 @@
       "confidence_score": 0.95,
       "context": "FiveOhOneEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L481",
+      "source_location": "L483",
       "weight": 1.0
     },
     {
@@ -378567,7 +378567,7 @@
       "confidence_score": 0.95,
       "context": "FiveOhOneEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -378579,7 +378579,7 @@
       "confidence_score": 0.95,
       "context": "FiveOhOneEngine.settleVisit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L349",
+      "source_location": "L351",
       "weight": 1.0
     },
     {
@@ -378591,7 +378591,7 @@
       "confidence_score": 0.95,
       "context": "FiveOhOneGameEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L504",
+      "source_location": "L506",
       "weight": 1.0
     },
     {
@@ -378603,7 +378603,7 @@
       "confidence_score": 0.95,
       "context": "FiveOhOneInput",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L333",
+      "source_location": "L335",
       "weight": 1.0
     },
     {
@@ -378627,7 +378627,7 @@
       "confidence_score": 0.95,
       "context": "FiveOhOnePlayContext",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L228",
+      "source_location": "L230",
       "weight": 1.0
     },
     {
@@ -378639,7 +378639,7 @@
       "confidence_score": 0.95,
       "context": "FiveOhOneSetupContext",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L311",
+      "source_location": "L313",
       "weight": 1.0
     },
     {
@@ -378651,7 +378651,7 @@
       "confidence_score": 0.95,
       "context": "FiveOhOneSnapshot",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L333",
+      "source_location": "L335",
       "weight": 1.0
     },
     {
@@ -378687,7 +378687,7 @@
       "confidence_score": 0.95,
       "context": "FiveOhOneState",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L333",
+      "source_location": "L335",
       "weight": 1.0
     },
     {
@@ -378735,7 +378735,7 @@
       "confidence_score": 0.95,
       "context": "FiveOhOneVisitInput",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L504",
+      "source_location": "L506",
       "weight": 1.0
     },
     {
@@ -378891,7 +378891,7 @@
       "confidence_score": 0.95,
       "context": "GameEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L404",
+      "source_location": "L406",
       "weight": 1.0
     },
     {
@@ -378903,7 +378903,7 @@
       "confidence_score": 0.95,
       "context": "GameEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L158",
+      "source_location": "L160",
       "weight": 1.0
     },
     {
@@ -379227,7 +379227,7 @@
       "confidence_score": 0.95,
       "context": "GameEngineFactory",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L345",
+      "source_location": "L347",
       "weight": 1.0
     },
     {
@@ -379287,7 +379287,7 @@
       "confidence_score": 0.95,
       "context": "GameEngineFactory.create",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -379323,7 +379323,7 @@
       "confidence_score": 0.95,
       "context": "GameTypeKey",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L520",
+      "source_location": "L522",
       "weight": 1.0
     },
     {
@@ -379347,7 +379347,7 @@
       "confidence_score": 0.95,
       "context": "GuestListContext",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L311",
+      "source_location": "L313",
       "weight": 1.0
     },
     {
@@ -379431,7 +379431,7 @@
       "confidence_score": 0.95,
       "context": "LevelSelectStats",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L299",
+      "source_location": "L301",
       "weight": 1.0
     },
     {
@@ -379467,7 +379467,7 @@
       "confidence_score": 0.95,
       "context": "MagnifierSide",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -379503,7 +379503,7 @@
       "confidence_score": 0.95,
       "context": "ModePair",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L244",
+      "source_location": "L246",
       "weight": 1.0
     },
     {
@@ -379611,7 +379611,7 @@
       "confidence_score": 0.95,
       "context": "OneTwentyOneEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L476",
+      "source_location": "L478",
       "weight": 1.0
     },
     {
@@ -379623,7 +379623,7 @@
       "confidence_score": 0.95,
       "context": "OneTwentyOneEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -379635,7 +379635,7 @@
       "confidence_score": 0.95,
       "context": "OneTwentyOneEngine.settleVisit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L349",
+      "source_location": "L351",
       "weight": 1.0
     },
     {
@@ -379671,7 +379671,7 @@
       "confidence_score": 0.95,
       "context": "OneTwentyOnePlayContext",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L228",
+      "source_location": "L230",
       "weight": 1.0
     },
     {
@@ -379707,7 +379707,7 @@
       "confidence_score": 0.95,
       "context": "OneTwentyOneState",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L476",
+      "source_location": "L478",
       "weight": 1.0
     },
     {
@@ -379719,7 +379719,7 @@
       "confidence_score": 0.95,
       "context": "OneTwentyOneState",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -379755,7 +379755,7 @@
       "confidence_score": 0.95,
       "context": "OrderedTraining",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L287",
+      "source_location": "L289",
       "weight": 1.0
     },
     {
@@ -379875,7 +379875,7 @@
       "confidence_score": 0.95,
       "context": "PlayLifecycleContext",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -379935,7 +379935,7 @@
       "confidence_score": 0.95,
       "context": "PlayerLegFactRow",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L244",
+      "source_location": "L246",
       "weight": 1.0
     },
     {
@@ -379959,7 +379959,7 @@
       "confidence_score": 0.95,
       "context": "PlayerSessionSummaryRow",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L244",
+      "source_location": "L246",
       "weight": 1.0
     },
     {
@@ -379983,7 +379983,7 @@
       "confidence_score": 0.95,
       "context": "PlayerVisitFactRow",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L244",
+      "source_location": "L246",
       "weight": 1.0
     },
     {
@@ -379995,7 +379995,7 @@
       "confidence_score": 0.95,
       "context": "PopulationPrior",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L303",
+      "source_location": "L305",
       "weight": 1.0
     },
     {
@@ -380019,7 +380019,7 @@
       "confidence_score": 0.95,
       "context": "PresetSetupContext",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L311",
+      "source_location": "L313",
       "weight": 1.0
     },
     {
@@ -380079,7 +380079,7 @@
       "confidence_score": 0.95,
       "context": "QuickSubtractGame",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L290",
+      "source_location": "L292",
       "weight": 1.0
     },
     {
@@ -380091,7 +380091,7 @@
       "confidence_score": 0.95,
       "context": "QuickSubtractGame.answer()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L290",
+      "source_location": "L292",
       "weight": 1.0
     },
     {
@@ -380151,7 +380151,7 @@
       "confidence_score": 0.95,
       "context": "RandomCheckoutEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L36",
+      "source_location": "L38",
       "weight": 1.0
     },
     {
@@ -380223,7 +380223,7 @@
       "confidence_score": 0.95,
       "context": "Requirement",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L523",
+      "source_location": "L525",
       "weight": 1.0
     },
     {
@@ -380367,7 +380367,7 @@
       "confidence_score": 0.95,
       "context": "RoutineSeries",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L100",
+      "source_location": "L102",
       "weight": 1.0
     },
     {
@@ -380415,7 +380415,7 @@
       "confidence_score": 0.95,
       "context": "RoutineStepSnapshot",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L283",
+      "source_location": "L285",
       "weight": 1.0
     },
     {
@@ -380451,7 +380451,7 @@
       "confidence_score": 0.95,
       "context": "RoutineSummaryData",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L168",
+      "source_location": "L170",
       "weight": 1.0
     },
     {
@@ -380475,7 +380475,7 @@
       "confidence_score": 0.95,
       "context": "RulesetValidator",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L273",
+      "source_location": "L275",
       "weight": 1.0
     },
     {
@@ -380547,7 +380547,7 @@
       "confidence_score": 0.95,
       "context": "RulesetVersionKey",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L287",
+      "source_location": "L289",
       "weight": 1.0
     },
     {
@@ -380799,7 +380799,7 @@
       "confidence_score": 0.95,
       "context": "ScoreInputBuffer",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L290",
+      "source_location": "L292",
       "weight": 1.0
     },
     {
@@ -380811,7 +380811,7 @@
       "confidence_score": 0.95,
       "context": "ScoreThresholdEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L142",
+      "source_location": "L144",
       "weight": 1.0
     },
     {
@@ -380895,7 +380895,7 @@
       "confidence_score": 0.95,
       "context": "ScoreTrainingEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L321",
+      "source_location": "L323",
       "weight": 1.0
     },
     {
@@ -380919,7 +380919,7 @@
       "confidence_score": 0.95,
       "context": "ScoreTrainingEngine.isMatchDecided()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L321",
+      "source_location": "L323",
       "weight": 1.0
     },
     {
@@ -380979,7 +380979,7 @@
       "confidence_score": 0.95,
       "context": "ScoreTrainingPlayContext",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L305",
+      "source_location": "L307",
       "weight": 1.0
     },
     {
@@ -380991,7 +380991,7 @@
       "confidence_score": 0.95,
       "context": "ScoreTrainingResultsSnapshot",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L319",
+      "source_location": "L321",
       "weight": 1.0
     },
     {
@@ -381015,7 +381015,7 @@
       "confidence_score": 0.95,
       "context": "SeatFact",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L228",
+      "source_location": "L230",
       "weight": 1.0
     },
     {
@@ -381099,7 +381099,7 @@
       "confidence_score": 0.95,
       "context": "SeatPlan",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L339",
+      "source_location": "L341",
       "weight": 1.0
     },
     {
@@ -381255,7 +381255,7 @@
       "confidence_score": 0.95,
       "context": "SegmentTimer",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L511",
+      "source_location": "L513",
       "weight": 1.0
     },
     {
@@ -381267,7 +381267,7 @@
       "confidence_score": 0.95,
       "context": "SegmentTimer",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L254",
+      "source_location": "L256",
       "weight": 1.0
     },
     {
@@ -381303,7 +381303,7 @@
       "confidence_score": 0.95,
       "context": "SegmentTimer.start()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L290",
+      "source_location": "L292",
       "weight": 1.0
     },
     {
@@ -381399,7 +381399,7 @@
       "confidence_score": 0.95,
       "context": "ServiceResult",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L454",
+      "source_location": "L456",
       "weight": 1.0
     },
     {
@@ -381423,7 +381423,7 @@
       "confidence_score": 0.95,
       "context": "SessionActiveData",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -381459,7 +381459,7 @@
       "confidence_score": 0.95,
       "context": "SessionApiError",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L269",
+      "source_location": "L271",
       "weight": 1.0
     },
     {
@@ -381519,7 +381519,7 @@
       "confidence_score": 0.95,
       "context": "SessionModePair",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L244",
+      "source_location": "L246",
       "weight": 1.0
     },
     {
@@ -381579,7 +381579,7 @@
       "confidence_score": 0.95,
       "context": "ShanghaiEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L345",
+      "source_location": "L347",
       "weight": 1.0
     },
     {
@@ -381603,7 +381603,7 @@
       "confidence_score": 0.95,
       "context": "ShanghaiPlayContext",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L309",
+      "source_location": "L311",
       "weight": 1.0
     },
     {
@@ -381615,7 +381615,7 @@
       "confidence_score": 0.95,
       "context": "ShanghaiSnapshot",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -381651,7 +381651,7 @@
       "confidence_score": 0.95,
       "context": "SinglesConfig",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L307",
+      "source_location": "L309",
       "weight": 1.0
     },
     {
@@ -381723,7 +381723,7 @@
       "confidence_score": 0.95,
       "context": "SinglesTrainingEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -381735,7 +381735,7 @@
       "confidence_score": 0.95,
       "context": "SinglesTrainingPlayContext",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L307",
+      "source_location": "L309",
       "weight": 1.0
     },
     {
@@ -381759,7 +381759,7 @@
       "confidence_score": 0.95,
       "context": "SkillProfile",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L333",
+      "source_location": "L335",
       "weight": 1.0
     },
     {
@@ -381843,7 +381843,7 @@
       "confidence_score": 0.95,
       "context": "StageFact",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L506",
+      "source_location": "L508",
       "weight": 1.0
     },
     {
@@ -381855,7 +381855,7 @@
       "confidence_score": 0.95,
       "context": "StageFact",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L347",
+      "source_location": "L349",
       "weight": 1.0
     },
     {
@@ -381879,7 +381879,7 @@
       "confidence_score": 0.95,
       "context": "StageTypeKey",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L476",
+      "source_location": "L478",
       "weight": 1.0
     },
     {
@@ -381891,7 +381891,7 @@
       "confidence_score": 0.95,
       "context": "StageTypeKey",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L287",
+      "source_location": "L289",
       "weight": 1.0
     },
     {
@@ -381915,7 +381915,7 @@
       "confidence_score": 0.95,
       "context": "StartTrainingResult",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L283",
+      "source_location": "L285",
       "weight": 1.0
     },
     {
@@ -381927,7 +381927,7 @@
       "confidence_score": 0.95,
       "context": "StartTrainingStepResult",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L283",
+      "source_location": "L285",
       "weight": 1.0
     },
     {
@@ -381963,7 +381963,7 @@
       "confidence_score": 0.95,
       "context": "StepAdapter",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L164",
+      "source_location": "L166",
       "weight": 1.0
     },
     {
@@ -382059,7 +382059,7 @@
       "confidence_score": 0.95,
       "context": "SwitchingEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L511",
+      "source_location": "L513",
       "weight": 1.0
     },
     {
@@ -382107,7 +382107,7 @@
       "confidence_score": 0.95,
       "context": "SwitchingTargetScoringEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L144",
+      "source_location": "L146",
       "weight": 1.0
     },
     {
@@ -382179,7 +382179,7 @@
       "confidence_score": 0.95,
       "context": "TargetKey",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L523",
+      "source_location": "L525",
       "weight": 1.0
     },
     {
@@ -382239,7 +382239,7 @@
       "confidence_score": 0.95,
       "context": "TargetOrderMode",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L470",
+      "source_location": "L472",
       "weight": 1.0
     },
     {
@@ -382251,7 +382251,7 @@
       "confidence_score": 0.95,
       "context": "TargetOrderMode",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -382275,7 +382275,7 @@
       "confidence_score": 0.95,
       "context": "TargetScoringEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L146",
+      "source_location": "L148",
       "weight": 1.0
     },
     {
@@ -382299,7 +382299,7 @@
       "confidence_score": 0.95,
       "context": "ThrowIntent",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L341",
+      "source_location": "L343",
       "weight": 1.0
     },
     {
@@ -382323,7 +382323,7 @@
       "confidence_score": 0.95,
       "context": "Toggle",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L24",
+      "source_location": "L26",
       "weight": 1.0
     },
     {
@@ -382431,7 +382431,7 @@
       "confidence_score": 0.95,
       "context": "TrainingEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L287",
+      "source_location": "L289",
       "weight": 1.0
     },
     {
@@ -382551,7 +382551,7 @@
       "confidence_score": 0.95,
       "context": "TuodEngine.isMatchDecided()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L321",
+      "source_location": "L323",
       "weight": 1.0
     },
     {
@@ -382599,7 +382599,7 @@
       "confidence_score": 0.95,
       "context": "TuodPlayContext",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L228",
+      "source_location": "L230",
       "weight": 1.0
     },
     {
@@ -382731,7 +382731,7 @@
       "confidence_score": 0.95,
       "context": "WakeLockEvent",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L275",
+      "source_location": "L277",
       "weight": 1.0
     },
     {
@@ -382743,7 +382743,7 @@
       "confidence_score": 0.95,
       "context": "WakeLockStatus",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L275",
+      "source_location": "L277",
       "weight": 1.0
     },
     {
@@ -382779,7 +382779,7 @@
       "confidence_score": 0.95,
       "context": "WarmUpEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L287",
+      "source_location": "L289",
       "weight": 1.0
     },
     {
@@ -382815,7 +382815,7 @@
       "confidence_score": 0.95,
       "context": "WarmUpEngine.advance()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L271",
+      "source_location": "L273",
       "weight": 1.0
     },
     {
@@ -382839,7 +382839,7 @@
       "confidence_score": 0.95,
       "context": "WarmUpEngine.facts()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L271",
+      "source_location": "L273",
       "weight": 1.0
     },
     {
@@ -382887,7 +382887,7 @@
       "confidence_score": 0.95,
       "context": "X01CheckoutDartRow",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L160",
+      "source_location": "L162",
       "weight": 1.0
     },
     {
@@ -382899,7 +382899,7 @@
       "confidence_score": 0.95,
       "context": "X01View",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L333",
+      "source_location": "L335",
       "weight": 1.0
     },
     {
@@ -382959,7 +382959,7 @@
       "confidence_score": 0.95,
       "context": "accuracyDisplay()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L166",
+      "source_location": "L168",
       "weight": 1.0
     },
     {
@@ -383031,7 +383031,7 @@
       "confidence_score": 0.95,
       "context": "activeSeat",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L327",
+      "source_location": "L329",
       "weight": 1.0
     },
     {
@@ -383091,7 +383091,7 @@
       "confidence_score": 0.95,
       "context": "activeSeat()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L501",
+      "source_location": "L503",
       "weight": 1.0
     },
     {
@@ -383271,7 +383271,7 @@
       "confidence_score": 0.95,
       "context": "activeSessionConflict",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L262",
+      "source_location": "L264",
       "weight": 1.0
     },
     {
@@ -383283,7 +383283,7 @@
       "confidence_score": 0.95,
       "context": "addBotOpponent",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L311",
+      "source_location": "L313",
       "weight": 1.0
     },
     {
@@ -383331,7 +383331,7 @@
       "confidence_score": 0.95,
       "context": "addTypedGuest()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L339",
+      "source_location": "L341",
       "weight": 1.0
     },
     {
@@ -383391,7 +383391,7 @@
       "confidence_score": 0.95,
       "context": "advanceAfterStepCompletion",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L269",
+      "source_location": "L271",
       "weight": 1.0
     },
     {
@@ -383403,7 +383403,7 @@
       "confidence_score": 0.95,
       "context": "aggregateTierStats()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L299",
+      "source_location": "L301",
       "weight": 1.0
     },
     {
@@ -383463,7 +383463,7 @@
       "confidence_score": 0.95,
       "context": "aimMissRows()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L523",
+      "source_location": "L525",
       "weight": 1.0
     },
     {
@@ -383499,7 +383499,7 @@
       "confidence_score": 0.95,
       "context": "aimedDarts()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L523",
+      "source_location": "L525",
       "weight": 1.0
     },
     {
@@ -383523,7 +383523,7 @@
       "confidence_score": 0.95,
       "context": "allLevelSelectStats()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L299",
+      "source_location": "L301",
       "weight": 1.0
     },
     {
@@ -383931,7 +383931,7 @@
       "confidence_score": 0.95,
       "context": "applyAroundTheClockDart",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -383955,7 +383955,7 @@
       "confidence_score": 0.95,
       "context": "applyDoublesTrainingDart",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -383979,7 +383979,7 @@
       "confidence_score": 0.95,
       "context": "applyOneTwentyOneVisit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -384051,7 +384051,7 @@
       "confidence_score": 0.95,
       "context": "applyTuodAttempt",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L321",
+      "source_location": "L323",
       "weight": 1.0
     },
     {
@@ -384111,7 +384111,7 @@
       "confidence_score": 0.95,
       "context": "aroundTheClockPlay",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L478",
+      "source_location": "L480",
       "weight": 1.0
     },
     {
@@ -384123,7 +384123,7 @@
       "confidence_score": 0.95,
       "context": "aroundTheClockPlay",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -384159,7 +384159,7 @@
       "confidence_score": 0.95,
       "context": "aroundTheClockSetup",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L478",
+      "source_location": "L480",
       "weight": 1.0
     },
     {
@@ -384171,7 +384171,7 @@
       "confidence_score": 0.95,
       "context": "aroundTheClockSetup",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -384327,7 +384327,7 @@
       "confidence_score": 0.95,
       "context": "block",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L203",
+      "source_location": "L205",
       "weight": 1.0
     },
     {
@@ -384339,7 +384339,7 @@
       "confidence_score": 0.95,
       "context": "boardInput",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -384399,7 +384399,7 @@
       "confidence_score": 0.95,
       "context": "boardInputData",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L480",
+      "source_location": "L482",
       "weight": 1.0
     },
     {
@@ -384411,7 +384411,7 @@
       "confidence_score": 0.95,
       "context": "boardInputData",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L305",
+      "source_location": "L307",
       "weight": 1.0
     },
     {
@@ -384507,7 +384507,7 @@
       "confidence_score": 0.95,
       "context": "bobs27",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L383",
+      "source_location": "L385",
       "weight": 1.0
     },
     {
@@ -384531,7 +384531,7 @@
       "confidence_score": 0.95,
       "context": "bobs27Play()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -384567,7 +384567,7 @@
       "confidence_score": 0.95,
       "context": "bobs27Setup",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L460",
+      "source_location": "L462",
       "weight": 1.0
     },
     {
@@ -384591,7 +384591,7 @@
       "confidence_score": 0.95,
       "context": "bucketExprs",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L521",
+      "source_location": "L523",
       "weight": 1.0
     },
     {
@@ -384663,7 +384663,7 @@
       "confidence_score": 0.95,
       "context": "buildEventsBatch",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L271",
+      "source_location": "L273",
       "weight": 1.0
     },
     {
@@ -384747,7 +384747,7 @@
       "confidence_score": 0.95,
       "context": "buildResultsSnapshot",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L315",
+      "source_location": "L317",
       "weight": 1.0
     },
     {
@@ -384771,7 +384771,7 @@
       "confidence_score": 0.95,
       "context": "buildSeatPlan",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L317",
+      "source_location": "L319",
       "weight": 1.0
     },
     {
@@ -384843,7 +384843,7 @@
       "confidence_score": 0.95,
       "context": "capableRulesets",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L482",
+      "source_location": "L484",
       "weight": 1.0
     },
     {
@@ -384855,7 +384855,7 @@
       "confidence_score": 0.95,
       "context": "capableRulesets",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -385011,7 +385011,7 @@
       "confidence_score": 0.95,
       "context": "checkoutDarts",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L522",
+      "source_location": "L524",
       "weight": 1.0
     },
     {
@@ -385035,7 +385035,7 @@
       "confidence_score": 0.95,
       "context": "checkoutDartsRejection",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L321",
+      "source_location": "L323",
       "weight": 1.0
     },
     {
@@ -385083,7 +385083,7 @@
       "confidence_score": 0.95,
       "context": "checkoutPathFor",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L191",
+      "source_location": "L193",
       "weight": 1.0
     },
     {
@@ -385167,7 +385167,7 @@
       "confidence_score": 0.95,
       "context": "checkoutPathWithin",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L189",
+      "source_location": "L191",
       "weight": 1.0
     },
     {
@@ -385203,7 +385203,7 @@
       "confidence_score": 0.95,
       "context": "checkoutPercentageDisplay()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L519",
+      "source_location": "L521",
       "weight": 1.0
     },
     {
@@ -385215,7 +385215,7 @@
       "confidence_score": 0.95,
       "context": "checkoutPercentageDisplay()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L166",
+      "source_location": "L168",
       "weight": 1.0
     },
     {
@@ -385263,7 +385263,7 @@
       "confidence_score": 0.95,
       "context": "checkoutVisitsFromRows",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L166",
+      "source_location": "L168",
       "weight": 1.0
     },
     {
@@ -385299,7 +385299,7 @@
       "confidence_score": 0.95,
       "context": "clampFiveOhOneStartingScore",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -385323,7 +385323,7 @@
       "confidence_score": 0.95,
       "context": "clampMagnifierPlacement",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -385407,7 +385407,7 @@
       "confidence_score": 0.95,
       "context": "classify()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L511",
+      "source_location": "L513",
       "weight": 1.0
     },
     {
@@ -385419,7 +385419,7 @@
       "confidence_score": 0.95,
       "context": "classify()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L341",
+      "source_location": "L343",
       "weight": 1.0
     },
     {
@@ -385515,7 +385515,7 @@
       "confidence_score": 0.95,
       "context": "classifyDart",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L166",
+      "source_location": "L168",
       "weight": 1.0
     },
     {
@@ -385563,7 +385563,7 @@
       "confidence_score": 0.95,
       "context": "classifyLanding()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L523",
+      "source_location": "L525",
       "weight": 1.0
     },
     {
@@ -385767,7 +385767,7 @@
       "confidence_score": 0.95,
       "context": "cn()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L313",
+      "source_location": "L315",
       "weight": 1.0
     },
     {
@@ -385947,7 +385947,7 @@
       "confidence_score": 0.95,
       "context": "completeSession",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L246",
+      "source_location": "L248",
       "weight": 1.0
     },
     {
@@ -385971,7 +385971,7 @@
       "confidence_score": 0.95,
       "context": "completeTimer",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L290",
+      "source_location": "L292",
       "weight": 1.0
     },
     {
@@ -386031,7 +386031,7 @@
       "confidence_score": 0.95,
       "context": "completedVisits",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L319",
+      "source_location": "L321",
       "weight": 1.0
     },
     {
@@ -386067,7 +386067,7 @@
       "confidence_score": 0.95,
       "context": "composeSeatFacts",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -386187,7 +386187,7 @@
       "confidence_score": 0.95,
       "context": "configGroupKey()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L523",
+      "source_location": "L525",
       "weight": 1.0
     },
     {
@@ -386235,7 +386235,7 @@
       "confidence_score": 0.95,
       "context": "createDartRng",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L335",
+      "source_location": "L337",
       "weight": 1.0
     },
     {
@@ -386307,7 +386307,7 @@
       "confidence_score": 0.95,
       "context": "createPresetSetupController",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L230",
+      "source_location": "L232",
       "weight": 1.0
     },
     {
@@ -386391,7 +386391,7 @@
       "confidence_score": 0.95,
       "context": "createThreeDartValidator",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L383",
+      "source_location": "L385",
       "weight": 1.0
     },
     {
@@ -386463,7 +386463,7 @@
       "confidence_score": 0.95,
       "context": "currentFacts",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L315",
+      "source_location": "L317",
       "weight": 1.0
     },
     {
@@ -386475,7 +386475,7 @@
       "confidence_score": 0.95,
       "context": "currentPlayStreakDays",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L292",
+      "source_location": "L294",
       "weight": 1.0
     },
     {
@@ -386499,7 +386499,7 @@
       "confidence_score": 0.95,
       "context": "dartChecksOutFinalLeg",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L323",
+      "source_location": "L325",
       "weight": 1.0
     },
     {
@@ -386547,7 +386547,7 @@
       "confidence_score": 0.95,
       "context": "dartScopeWhere",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L521",
+      "source_location": "L523",
       "weight": 1.0
     },
     {
@@ -386595,7 +386595,7 @@
       "confidence_score": 0.95,
       "context": "dartsLeftForSeat",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L189",
+      "source_location": "L191",
       "weight": 1.0
     },
     {
@@ -386715,7 +386715,7 @@
       "confidence_score": 0.95,
       "context": "deleteRoutineTemplateRecord",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L178",
+      "source_location": "L180",
       "weight": 1.0
     },
     {
@@ -386751,7 +386751,7 @@
       "confidence_score": 0.95,
       "context": "deriveFlatSpotValues()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L236",
+      "source_location": "L238",
       "weight": 1.0
     },
     {
@@ -386799,7 +386799,7 @@
       "confidence_score": 0.95,
       "context": "difficultyOf()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L345",
+      "source_location": "L347",
       "weight": 1.0
     },
     {
@@ -386979,7 +386979,7 @@
       "confidence_score": 0.95,
       "context": "doublesPath",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L470",
+      "source_location": "L472",
       "weight": 1.0
     },
     {
@@ -386991,7 +386991,7 @@
       "confidence_score": 0.95,
       "context": "doublesPath()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L309",
+      "source_location": "L311",
       "weight": 1.0
     },
     {
@@ -387027,7 +387027,7 @@
       "confidence_score": 0.95,
       "context": "doublesPathObservation",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -387063,7 +387063,7 @@
       "confidence_score": 0.95,
       "context": "doublesPathPreviewSegments",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -387087,7 +387087,7 @@
       "confidence_score": 0.95,
       "context": "doublesPathTargetLabel",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -387219,7 +387219,7 @@
       "confidence_score": 0.95,
       "context": "durationSeatComplete",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L254",
+      "source_location": "L256",
       "weight": 1.0
     },
     {
@@ -387363,7 +387363,7 @@
       "confidence_score": 0.95,
       "context": "ensureHeld()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L275",
+      "source_location": "L277",
       "weight": 1.0
     },
     {
@@ -387399,7 +387399,7 @@
       "confidence_score": 0.95,
       "context": "exerciseBlockStage()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L505",
+      "source_location": "L507",
       "weight": 1.0
     },
     {
@@ -387663,7 +387663,7 @@
       "confidence_score": 0.95,
       "context": "fail()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L256",
+      "source_location": "L258",
       "weight": 1.0
     },
     {
@@ -387699,7 +387699,7 @@
       "confidence_score": 0.95,
       "context": "favoriteGameTypeKey",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L244",
+      "source_location": "L246",
       "weight": 1.0
     },
     {
@@ -387723,7 +387723,7 @@
       "confidence_score": 0.95,
       "context": "fetchActiveSessions",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L480",
+      "source_location": "L482",
       "weight": 1.0
     },
     {
@@ -387735,7 +387735,7 @@
       "confidence_score": 0.95,
       "context": "fetchActiveSessions",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L262",
+      "source_location": "L264",
       "weight": 1.0
     },
     {
@@ -387771,7 +387771,7 @@
       "confidence_score": 0.95,
       "context": "fetchStatisticsOverview()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L292",
+      "source_location": "L294",
       "weight": 1.0
     },
     {
@@ -387807,7 +387807,7 @@
       "confidence_score": 0.95,
       "context": "findActiveSessionForExerciseType",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L248",
+      "source_location": "L250",
       "weight": 1.0
     },
     {
@@ -387843,7 +387843,7 @@
       "confidence_score": 0.95,
       "context": "findActivityConfiguration",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L240",
+      "source_location": "L242",
       "weight": 1.0
     },
     {
@@ -387867,7 +387867,7 @@
       "confidence_score": 0.95,
       "context": "findActivityStatus",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L240",
+      "source_location": "L242",
       "weight": 1.0
     },
     {
@@ -387903,7 +387903,7 @@
       "confidence_score": 0.95,
       "context": "findBucketedSessionAggregates",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L520",
+      "source_location": "L522",
       "weight": 1.0
     },
     {
@@ -387915,7 +387915,7 @@
       "confidence_score": 0.95,
       "context": "findDartFoldRows",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L523",
+      "source_location": "L525",
       "weight": 1.0
     },
     {
@@ -387951,7 +387951,7 @@
       "confidence_score": 0.95,
       "context": "findExerciseRulesetVersionId",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L283",
+      "source_location": "L285",
       "weight": 1.0
     },
     {
@@ -387975,7 +387975,7 @@
       "confidence_score": 0.95,
       "context": "findExerciseTemplateCatalog",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L160",
+      "source_location": "L162",
       "weight": 1.0
     },
     {
@@ -388023,7 +388023,7 @@
       "confidence_score": 0.95,
       "context": "findHeatmapCells",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L521",
+      "source_location": "L523",
       "weight": 1.0
     },
     {
@@ -388035,7 +388035,7 @@
       "confidence_score": 0.95,
       "context": "findHitNumberCells",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L522",
+      "source_location": "L524",
       "weight": 1.0
     },
     {
@@ -388071,7 +388071,7 @@
       "confidence_score": 0.95,
       "context": "findIntentCells",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L521",
+      "source_location": "L523",
       "weight": 1.0
     },
     {
@@ -388095,7 +388095,7 @@
       "confidence_score": 0.95,
       "context": "findIntentMoments",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L521",
+      "source_location": "L523",
       "weight": 1.0
     },
     {
@@ -388119,7 +388119,7 @@
       "confidence_score": 0.95,
       "context": "findLegFacts",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L160",
+      "source_location": "L162",
       "weight": 1.0
     },
     {
@@ -388143,7 +388143,7 @@
       "confidence_score": 0.95,
       "context": "findMissSectors",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L521",
+      "source_location": "L523",
       "weight": 1.0
     },
     {
@@ -388179,7 +388179,7 @@
       "confidence_score": 0.95,
       "context": "findReplaySession",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L524",
+      "source_location": "L526",
       "weight": 1.0
     },
     {
@@ -388311,7 +388311,7 @@
       "confidence_score": 0.95,
       "context": "findRoutineExecutionRows",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L160",
+      "source_location": "L162",
       "weight": 1.0
     },
     {
@@ -388443,7 +388443,7 @@
       "confidence_score": 0.95,
       "context": "findRoutineTemplateSteps",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L160",
+      "source_location": "L162",
       "weight": 1.0
     },
     {
@@ -388515,7 +388515,7 @@
       "confidence_score": 0.95,
       "context": "findScheduleDayRows",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L160",
+      "source_location": "L162",
       "weight": 1.0
     },
     {
@@ -388563,7 +388563,7 @@
       "confidence_score": 0.95,
       "context": "findScheduleIdsUsingRoutine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L160",
+      "source_location": "L162",
       "weight": 1.0
     },
     {
@@ -388623,7 +388623,7 @@
       "confidence_score": 0.95,
       "context": "findScheduleRows",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L160",
+      "source_location": "L162",
       "weight": 1.0
     },
     {
@@ -388659,7 +388659,7 @@
       "confidence_score": 0.95,
       "context": "findScopeDartCount",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L522",
+      "source_location": "L524",
       "weight": 1.0
     },
     {
@@ -388719,7 +388719,7 @@
       "confidence_score": 0.95,
       "context": "findSessionRow",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L273",
+      "source_location": "L275",
       "weight": 1.0
     },
     {
@@ -388743,7 +388743,7 @@
       "confidence_score": 0.95,
       "context": "findSessionSummaries",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L160",
+      "source_location": "L162",
       "weight": 1.0
     },
     {
@@ -388887,7 +388887,7 @@
       "confidence_score": 0.95,
       "context": "findVisitFacts",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L160",
+      "source_location": "L162",
       "weight": 1.0
     },
     {
@@ -388899,7 +388899,7 @@
       "confidence_score": 0.95,
       "context": "findVisitScoring",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L522",
+      "source_location": "L524",
       "weight": 1.0
     },
     {
@@ -388911,7 +388911,7 @@
       "confidence_score": 0.95,
       "context": "findVisitScoring",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L74",
+      "source_location": "L76",
       "weight": 1.0
     },
     {
@@ -388947,7 +388947,7 @@
       "confidence_score": 0.95,
       "context": "findX01CheckoutDarts",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L160",
+      "source_location": "L162",
       "weight": 1.0
     },
     {
@@ -388971,7 +388971,7 @@
       "confidence_score": 0.95,
       "context": "findX01FoldRows",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L522",
+      "source_location": "L524",
       "weight": 1.0
     },
     {
@@ -389019,7 +389019,7 @@
       "confidence_score": 0.95,
       "context": "fiveOhOneSetup()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -389031,7 +389031,7 @@
       "confidence_score": 0.95,
       "context": "foldAroundTheClockState",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L502",
+      "source_location": "L504",
       "weight": 1.0
     },
     {
@@ -389043,7 +389043,7 @@
       "confidence_score": 0.95,
       "context": "foldAroundTheClockState",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L361",
+      "source_location": "L363",
       "weight": 1.0
     },
     {
@@ -389067,7 +389067,7 @@
       "confidence_score": 0.95,
       "context": "foldBobs27State",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L329",
+      "source_location": "L331",
       "weight": 1.0
     },
     {
@@ -389103,7 +389103,7 @@
       "confidence_score": 0.95,
       "context": "foldFiveOhOneState",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L381",
+      "source_location": "L383",
       "weight": 1.0
     },
     {
@@ -389115,7 +389115,7 @@
       "confidence_score": 0.95,
       "context": "foldLeg",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L381",
+      "source_location": "L383",
       "weight": 1.0
     },
     {
@@ -389163,7 +389163,7 @@
       "confidence_score": 0.95,
       "context": "foldOneTwentyOneState",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L319",
+      "source_location": "L321",
       "weight": 1.0
     },
     {
@@ -389187,7 +389187,7 @@
       "confidence_score": 0.95,
       "context": "foldPopulationPrior()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L303",
+      "source_location": "L305",
       "weight": 1.0
     },
     {
@@ -389235,7 +389235,7 @@
       "confidence_score": 0.95,
       "context": "foldReplay",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L524",
+      "source_location": "L526",
       "weight": 1.0
     },
     {
@@ -389271,7 +389271,7 @@
       "confidence_score": 0.95,
       "context": "foldScoreTrainingState",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L361",
+      "source_location": "L363",
       "weight": 1.0
     },
     {
@@ -389391,7 +389391,7 @@
       "confidence_score": 0.95,
       "context": "foldSeatSteps()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L523",
+      "source_location": "L525",
       "weight": 1.0
     },
     {
@@ -389427,7 +389427,7 @@
       "confidence_score": 0.95,
       "context": "foldShanghaiState",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L319",
+      "source_location": "L321",
       "weight": 1.0
     },
     {
@@ -389535,7 +389535,7 @@
       "confidence_score": 0.95,
       "context": "foldTuodState",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L361",
+      "source_location": "L363",
       "weight": 1.0
     },
     {
@@ -389571,7 +389571,7 @@
       "confidence_score": 0.95,
       "context": "formatRemaining",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L228",
+      "source_location": "L230",
       "weight": 1.0
     },
     {
@@ -389631,7 +389631,7 @@
       "confidence_score": 0.95,
       "context": "formatStatisticsOverview()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L292",
+      "source_location": "L294",
       "weight": 1.0
     },
     {
@@ -389679,7 +389679,7 @@
       "confidence_score": 0.95,
       "context": "freshController",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -389739,7 +389739,7 @@
       "confidence_score": 0.95,
       "context": "gameCompletionSection()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L54",
+      "source_location": "L56",
       "weight": 1.0
     },
     {
@@ -389787,7 +389787,7 @@
       "confidence_score": 0.95,
       "context": "gameHeatmapSection()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L60",
+      "source_location": "L62",
       "weight": 1.0
     },
     {
@@ -389823,7 +389823,7 @@
       "confidence_score": 0.95,
       "context": "gameLayoutData()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L275",
+      "source_location": "L277",
       "weight": 1.0
     },
     {
@@ -389871,7 +389871,7 @@
       "confidence_score": 0.95,
       "context": "gameSessionList()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L56",
+      "source_location": "L58",
       "weight": 1.0
     },
     {
@@ -389919,7 +389919,7 @@
       "confidence_score": 0.95,
       "context": "gameStep()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L164",
+      "source_location": "L166",
       "weight": 1.0
     },
     {
@@ -389955,7 +389955,7 @@
       "confidence_score": 0.95,
       "context": "gamesIndex",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L244",
+      "source_location": "L246",
       "weight": 1.0
     },
     {
@@ -389991,7 +389991,7 @@
       "confidence_score": 0.95,
       "context": "generateBotSeed()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L339",
+      "source_location": "L341",
       "weight": 1.0
     },
     {
@@ -390003,7 +390003,7 @@
       "confidence_score": 0.95,
       "context": "generateDrawSeed",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L36",
+      "source_location": "L38",
       "weight": 1.0
     },
     {
@@ -390027,7 +390027,7 @@
       "confidence_score": 0.95,
       "context": "generateId()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L339",
+      "source_location": "L341",
       "weight": 1.0
     },
     {
@@ -390123,7 +390123,7 @@
       "confidence_score": 0.95,
       "context": "getElapsed()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L290",
+      "source_location": "L292",
       "weight": 1.0
     },
     {
@@ -390159,7 +390159,7 @@
       "confidence_score": 0.95,
       "context": "getEngineFactory",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L333",
+      "source_location": "L335",
       "weight": 1.0
     },
     {
@@ -390207,7 +390207,7 @@
       "confidence_score": 0.95,
       "context": "getSessionReplay",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L524",
+      "source_location": "L526",
       "weight": 1.0
     },
     {
@@ -390315,7 +390315,7 @@
       "confidence_score": 0.95,
       "context": "growingCard()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L48",
+      "source_location": "L50",
       "weight": 1.0
     },
     {
@@ -390471,7 +390471,7 @@
       "confidence_score": 0.95,
       "context": "heatmapCellRowsFromAims",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L58",
+      "source_location": "L60",
       "weight": 1.0
     },
     {
@@ -390579,7 +390579,7 @@
       "confidence_score": 0.95,
       "context": "highestVisitScore",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L319",
+      "source_location": "L321",
       "weight": 1.0
     },
     {
@@ -390639,7 +390639,7 @@
       "confidence_score": 0.95,
       "context": "homeWeek()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L148",
+      "source_location": "L150",
       "weight": 1.0
     },
     {
@@ -390687,7 +390687,7 @@
       "confidence_score": 0.95,
       "context": "initialOneTwentyOneState()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -390711,7 +390711,7 @@
       "confidence_score": 0.95,
       "context": "insertActivityRecord",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L283",
+      "source_location": "L285",
       "weight": 1.0
     },
     {
@@ -390747,7 +390747,7 @@
       "confidence_score": 0.95,
       "context": "insertBatchRecords",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L337",
+      "source_location": "L339",
       "weight": 1.0
     },
     {
@@ -390783,7 +390783,7 @@
       "confidence_score": 0.95,
       "context": "insertExerciseSessionRecord",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L248",
+      "source_location": "L250",
       "weight": 1.0
     },
     {
@@ -390843,7 +390843,7 @@
       "confidence_score": 0.95,
       "context": "insertSessionRecords",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L248",
+      "source_location": "L250",
       "weight": 1.0
     },
     {
@@ -390879,7 +390879,7 @@
       "confidence_score": 0.95,
       "context": "insertTrainingActivity",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L248",
+      "source_location": "L250",
       "weight": 1.0
     },
     {
@@ -390903,7 +390903,7 @@
       "confidence_score": 0.95,
       "context": "interiorPoints()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L236",
+      "source_location": "L238",
       "weight": 1.0
     },
     {
@@ -390915,7 +390915,7 @@
       "confidence_score": 0.95,
       "context": "invalidAnswerResult",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L290",
+      "source_location": "L292",
       "weight": 1.0
     },
     {
@@ -390939,7 +390939,7 @@
       "confidence_score": 0.95,
       "context": "isActiveSessionConflict",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L178",
+      "source_location": "L180",
       "weight": 1.0
     },
     {
@@ -390999,7 +390999,7 @@
       "confidence_score": 0.95,
       "context": "isAimHit()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L523",
+      "source_location": "L525",
       "weight": 1.0
     },
     {
@@ -391023,7 +391023,7 @@
       "confidence_score": 0.95,
       "context": "isAroundTheClockHit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -391071,7 +391071,7 @@
       "confidence_score": 0.95,
       "context": "isCheckoutReachable",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L191",
+      "source_location": "L193",
       "weight": 1.0
     },
     {
@@ -391143,7 +391143,7 @@
       "confidence_score": 0.95,
       "context": "isDartObservation",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L503",
+      "source_location": "L505",
       "weight": 1.0
     },
     {
@@ -391155,7 +391155,7 @@
       "confidence_score": 0.95,
       "context": "isDartObservation",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L349",
+      "source_location": "L351",
       "weight": 1.0
     },
     {
@@ -391179,7 +391179,7 @@
       "confidence_score": 0.95,
       "context": "isDartObservationInput",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L505",
+      "source_location": "L507",
       "weight": 1.0
     },
     {
@@ -391215,7 +391215,7 @@
       "confidence_score": 0.95,
       "context": "isDetailedDartsOrVisualBoardCapture",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -391275,7 +391275,7 @@
       "confidence_score": 0.95,
       "context": "isHitOn()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -391335,7 +391335,7 @@
       "confidence_score": 0.95,
       "context": "isQuickScoreOrVisualBoardCapture",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -391383,7 +391383,7 @@
       "confidence_score": 0.95,
       "context": "isRoutineDurationViolation",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L170",
+      "source_location": "L172",
       "weight": 1.0
     },
     {
@@ -391479,7 +391479,7 @@
       "confidence_score": 0.95,
       "context": "isValidTargetOrder",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L470",
+      "source_location": "L472",
       "weight": 1.0
     },
     {
@@ -391527,7 +391527,7 @@
       "confidence_score": 0.95,
       "context": "jsonHeaders",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L256",
+      "source_location": "L258",
       "weight": 1.0
     },
     {
@@ -391635,7 +391635,7 @@
       "confidence_score": 0.95,
       "context": "legVisitsOf",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L381",
+      "source_location": "L383",
       "weight": 1.0
     },
     {
@@ -391671,7 +391671,7 @@
       "confidence_score": 0.95,
       "context": "levelSelectStatsForLevel()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L299",
+      "source_location": "L301",
       "weight": 1.0
     },
     {
@@ -391719,7 +391719,7 @@
       "confidence_score": 0.95,
       "context": "load()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L292",
+      "source_location": "L294",
       "weight": 1.0
     },
     {
@@ -391743,7 +391743,7 @@
       "confidence_score": 0.95,
       "context": "loadCreateSessionLookups",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L339",
+      "source_location": "L341",
       "weight": 1.0
     },
     {
@@ -391803,7 +391803,7 @@
       "confidence_score": 0.95,
       "context": "longestPlayStreakDays",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L292",
+      "source_location": "L294",
       "weight": 1.0
     },
     {
@@ -391827,7 +391827,7 @@
       "confidence_score": 0.95,
       "context": "magnifierAnchorStyle",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -391851,7 +391851,7 @@
       "confidence_score": 0.95,
       "context": "magnifierBoardStyle",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -391959,7 +391959,7 @@
       "confidence_score": 0.95,
       "context": "mergeHeatmap",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L58",
+      "source_location": "L60",
       "weight": 1.0
     },
     {
@@ -392199,7 +392199,7 @@
       "confidence_score": 0.95,
       "context": "missMargin()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L303",
+      "source_location": "L305",
       "weight": 1.0
     },
     {
@@ -392307,7 +392307,7 @@
       "confidence_score": 0.95,
       "context": "mulberry32",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L341",
+      "source_location": "L343",
       "weight": 1.0
     },
     {
@@ -392319,7 +392319,7 @@
       "confidence_score": 0.95,
       "context": "myScheduleForm()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L154",
+      "source_location": "L156",
       "weight": 1.0
     },
     {
@@ -392391,7 +392391,7 @@
       "confidence_score": 0.95,
       "context": "nonNull",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L160",
+      "source_location": "L162",
       "weight": 1.0
     },
     {
@@ -392451,7 +392451,7 @@
       "confidence_score": 0.95,
       "context": "normalize",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L162",
+      "source_location": "L164",
       "weight": 1.0
     },
     {
@@ -392475,7 +392475,7 @@
       "confidence_score": 0.95,
       "context": "noteDataVersion",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L100",
+      "source_location": "L102",
       "weight": 1.0
     },
     {
@@ -392523,7 +392523,7 @@
       "confidence_score": 0.95,
       "context": "numbersPath",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L470",
+      "source_location": "L472",
       "weight": 1.0
     },
     {
@@ -392535,7 +392535,7 @@
       "confidence_score": 0.95,
       "context": "numbersPath()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L309",
+      "source_location": "L311",
       "weight": 1.0
     },
     {
@@ -392607,7 +392607,7 @@
       "confidence_score": 0.95,
       "context": "ok()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L256",
+      "source_location": "L258",
       "weight": 1.0
     },
     {
@@ -392859,7 +392859,7 @@
       "confidence_score": 0.95,
       "context": "oneTwentyOnePlay",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L476",
+      "source_location": "L478",
       "weight": 1.0
     },
     {
@@ -392871,7 +392871,7 @@
       "confidence_score": 0.95,
       "context": "oneTwentyOnePlay",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L290",
+      "source_location": "L292",
       "weight": 1.0
     },
     {
@@ -392907,7 +392907,7 @@
       "confidence_score": 0.95,
       "context": "oneTwentyOneSetup",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L476",
+      "source_location": "L478",
       "weight": 1.0
     },
     {
@@ -392919,7 +392919,7 @@
       "confidence_score": 0.95,
       "context": "oneTwentyOneSetup",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -392979,7 +392979,7 @@
       "confidence_score": 0.95,
       "context": "otherSeatsComplete",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L503",
+      "source_location": "L505",
       "weight": 1.0
     },
     {
@@ -392991,7 +392991,7 @@
       "confidence_score": 0.95,
       "context": "otherSeatsComplete",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L317",
+      "source_location": "L319",
       "weight": 1.0
     },
     {
@@ -393111,7 +393111,7 @@
       "confidence_score": 0.95,
       "context": "parseAnswerValue",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L290",
+      "source_location": "L292",
       "weight": 1.0
     },
     {
@@ -393171,7 +393171,7 @@
       "confidence_score": 0.95,
       "context": "participantsFromGuests",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L339",
+      "source_location": "L341",
       "weight": 1.0
     },
     {
@@ -393207,7 +393207,7 @@
       "confidence_score": 0.95,
       "context": "participantsFromSeats",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L325",
+      "source_location": "L327",
       "weight": 1.0
     },
     {
@@ -393279,7 +393279,7 @@
       "confidence_score": 0.95,
       "context": "periodSection()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L54",
+      "source_location": "L56",
       "weight": 1.0
     },
     {
@@ -393423,7 +393423,7 @@
       "confidence_score": 0.95,
       "context": "playAbandonAndExit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L279",
+      "source_location": "L281",
       "weight": 1.0
     },
     {
@@ -393471,7 +393471,7 @@
       "confidence_score": 0.95,
       "context": "playBack",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -393519,7 +393519,7 @@
       "confidence_score": 0.95,
       "context": "playBeep()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L281",
+      "source_location": "L283",
       "weight": 1.0
     },
     {
@@ -393579,7 +393579,7 @@
       "confidence_score": 0.95,
       "context": "playCommitDart",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L242",
+      "source_location": "L244",
       "weight": 1.0
     },
     {
@@ -393639,7 +393639,7 @@
       "confidence_score": 0.95,
       "context": "playFoldBotQuickScoreVisit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L509",
+      "source_location": "L511",
       "weight": 1.0
     },
     {
@@ -393651,7 +393651,7 @@
       "confidence_score": 0.95,
       "context": "playFoldBotQuickScoreVisit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -393687,7 +393687,7 @@
       "confidence_score": 0.95,
       "context": "playInit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L480",
+      "source_location": "L482",
       "weight": 1.0
     },
     {
@@ -393699,7 +393699,7 @@
       "confidence_score": 0.95,
       "context": "playInit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -393771,7 +393771,7 @@
       "confidence_score": 0.95,
       "context": "playRetryReconciliation",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -393807,7 +393807,7 @@
       "confidence_score": 0.95,
       "context": "playRunBotVisualBoardVisit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L509",
+      "source_location": "L511",
       "weight": 1.0
     },
     {
@@ -393819,7 +393819,7 @@
       "confidence_score": 0.95,
       "context": "playRunBotVisualBoardVisit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L333",
+      "source_location": "L335",
       "weight": 1.0
     },
     {
@@ -393867,7 +393867,7 @@
       "confidence_score": 0.95,
       "context": "playUndoVisit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L242",
+      "source_location": "L244",
       "weight": 1.0
     },
     {
@@ -393915,7 +393915,7 @@
       "confidence_score": 0.95,
       "context": "playUploadAndCompleteSession",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L315",
+      "source_location": "L317",
       "weight": 1.0
     },
     {
@@ -393963,7 +393963,7 @@
       "confidence_score": 0.95,
       "context": "playVisitMarkers",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L480",
+      "source_location": "L482",
       "weight": 1.0
     },
     {
@@ -393975,7 +393975,7 @@
       "confidence_score": 0.95,
       "context": "playVisitMarkers",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -394035,7 +394035,7 @@
       "confidence_score": 0.95,
       "context": "pointValueOf",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L458",
+      "source_location": "L460",
       "weight": 1.0
     },
     {
@@ -394047,7 +394047,7 @@
       "confidence_score": 0.95,
       "context": "pointValueOf",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -394071,7 +394071,7 @@
       "confidence_score": 0.95,
       "context": "pointsFor",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L250",
+      "source_location": "L252",
       "weight": 1.0
     },
     {
@@ -394143,7 +394143,7 @@
       "confidence_score": 0.95,
       "context": "queriesDomainData",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L234",
+      "source_location": "L236",
       "weight": 1.0
     },
     {
@@ -394155,7 +394155,7 @@
       "confidence_score": 0.95,
       "context": "quickSubtractPlay()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L290",
+      "source_location": "L292",
       "weight": 1.0
     },
     {
@@ -394323,7 +394323,7 @@
       "confidence_score": 0.95,
       "context": "reconcileActiveSession",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L262",
+      "source_location": "L264",
       "weight": 1.0
     },
     {
@@ -394383,7 +394383,7 @@
       "confidence_score": 0.95,
       "context": "recordAttempt",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L290",
+      "source_location": "L292",
       "weight": 1.0
     },
     {
@@ -394443,7 +394443,7 @@
       "confidence_score": 0.95,
       "context": "rejectSeatRequest",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L339",
+      "source_location": "L341",
       "weight": 1.0
     },
     {
@@ -394467,7 +394467,7 @@
       "confidence_score": 0.95,
       "context": "rejectionReason",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L321",
+      "source_location": "L323",
       "weight": 1.0
     },
     {
@@ -394503,7 +394503,7 @@
       "confidence_score": 0.95,
       "context": "release",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L275",
+      "source_location": "L277",
       "weight": 1.0
     },
     {
@@ -394527,7 +394527,7 @@
       "confidence_score": 0.95,
       "context": "remainingBeforeVisit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L505",
+      "source_location": "L507",
       "weight": 1.0
     },
     {
@@ -394539,7 +394539,7 @@
       "confidence_score": 0.95,
       "context": "remainingBeforeVisit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L347",
+      "source_location": "L349",
       "weight": 1.0
     },
     {
@@ -394563,7 +394563,7 @@
       "confidence_score": 0.95,
       "context": "renderingDb",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L160",
+      "source_location": "L162",
       "weight": 1.0
     },
     {
@@ -394587,7 +394587,7 @@
       "confidence_score": 0.95,
       "context": "replaceRoutine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L168",
+      "source_location": "L170",
       "weight": 1.0
     },
     {
@@ -394695,7 +394695,7 @@
       "confidence_score": 0.95,
       "context": "replayHits()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L230",
+      "source_location": "L232",
       "weight": 1.0
     },
     {
@@ -394719,7 +394719,7 @@
       "confidence_score": 0.95,
       "context": "rescaleLevel",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L301",
+      "source_location": "L303",
       "weight": 1.0
     },
     {
@@ -394743,7 +394743,7 @@
       "confidence_score": 0.95,
       "context": "reseatSnapshot",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L339",
+      "source_location": "L341",
       "weight": 1.0
     },
     {
@@ -394779,7 +394779,7 @@
       "confidence_score": 0.95,
       "context": "resolveActiveExerciseConflict",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L248",
+      "source_location": "L250",
       "weight": 1.0
     },
     {
@@ -394791,7 +394791,7 @@
       "confidence_score": 0.95,
       "context": "resolveActiveSessionConflict",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L262",
+      "source_location": "L264",
       "weight": 1.0
     },
     {
@@ -394803,7 +394803,7 @@
       "confidence_score": 0.95,
       "context": "resolveBatchStructure",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L337",
+      "source_location": "L339",
       "weight": 1.0
     },
     {
@@ -394851,7 +394851,7 @@
       "confidence_score": 0.95,
       "context": "resolveCheckoutAttempt",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L431",
+      "source_location": "L433",
       "weight": 1.0
     },
     {
@@ -394863,7 +394863,7 @@
       "confidence_score": 0.95,
       "context": "resolveCheckoutAttempt",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L323",
+      "source_location": "L325",
       "weight": 1.0
     },
     {
@@ -394935,7 +394935,7 @@
       "confidence_score": 0.95,
       "context": "resolveFiveOhOneVisit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L349",
+      "source_location": "L351",
       "weight": 1.0
     },
     {
@@ -394947,7 +394947,7 @@
       "confidence_score": 0.95,
       "context": "resolveMagnifierSide",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -394971,7 +394971,7 @@
       "confidence_score": 0.95,
       "context": "resolveNonGameReferences",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L248",
+      "source_location": "L250",
       "weight": 1.0
     },
     {
@@ -395019,7 +395019,7 @@
       "confidence_score": 0.95,
       "context": "resolveOneTwentyOneVisit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L349",
+      "source_location": "L351",
       "weight": 1.0
     },
     {
@@ -395043,7 +395043,7 @@
       "confidence_score": 0.95,
       "context": "resolveSessionModePair",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L459",
+      "source_location": "L461",
       "weight": 1.0
     },
     {
@@ -395055,7 +395055,7 @@
       "confidence_score": 0.95,
       "context": "resolveSessionModePair",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -395091,7 +395091,7 @@
       "confidence_score": 0.95,
       "context": "resolveSoloParticipantRef",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L271",
+      "source_location": "L273",
       "weight": 1.0
     },
     {
@@ -395103,7 +395103,7 @@
       "confidence_score": 0.95,
       "context": "resolveStartOverrides",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -395115,7 +395115,7 @@
       "confidence_score": 0.95,
       "context": "resolveStartPreset",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L331",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -395139,7 +395139,7 @@
       "confidence_score": 0.95,
       "context": "resolveStep",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L260",
+      "source_location": "L262",
       "weight": 1.0
     },
     {
@@ -395163,7 +395163,7 @@
       "confidence_score": 0.95,
       "context": "resolveStepAdapter",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L164",
+      "source_location": "L166",
       "weight": 1.0
     },
     {
@@ -395235,7 +395235,7 @@
       "confidence_score": 0.95,
       "context": "resumeGameEngine",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L228",
+      "source_location": "L230",
       "weight": 1.0
     },
     {
@@ -395331,7 +395331,7 @@
       "confidence_score": 0.95,
       "context": "routineBuilder()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L174",
+      "source_location": "L176",
       "weight": 1.0
     },
     {
@@ -395451,7 +395451,7 @@
       "confidence_score": 0.95,
       "context": "routineGameStepHook()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L164",
+      "source_location": "L166",
       "weight": 1.0
     },
     {
@@ -395547,7 +395547,7 @@
       "confidence_score": 0.95,
       "context": "rowsToTurns",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L524",
+      "source_location": "L526",
       "weight": 1.0
     },
     {
@@ -395631,7 +395631,7 @@
       "confidence_score": 0.95,
       "context": "runPlayAgain",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L470",
+      "source_location": "L472",
       "weight": 1.0
     },
     {
@@ -395643,7 +395643,7 @@
       "confidence_score": 0.95,
       "context": "runPlayAgain",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L315",
+      "source_location": "L317",
       "weight": 1.0
     },
     {
@@ -395667,7 +395667,7 @@
       "confidence_score": 0.95,
       "context": "runtime_shape()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L226",
+      "source_location": "L228",
       "weight": 1.0
     },
     {
@@ -395799,7 +395799,7 @@
       "confidence_score": 0.95,
       "context": "scoreTrainingPlay",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L290",
+      "source_location": "L292",
       "weight": 1.0
     },
     {
@@ -395847,7 +395847,7 @@
       "confidence_score": 0.95,
       "context": "scoreTrainingSetup",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L450",
+      "source_location": "L452",
       "weight": 1.0
     },
     {
@@ -396027,7 +396027,7 @@
       "confidence_score": 0.95,
       "context": "seatBeforeVisit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L347",
+      "source_location": "L349",
       "weight": 1.0
     },
     {
@@ -396087,7 +396087,7 @@
       "confidence_score": 0.95,
       "context": "seatStatesOf",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L381",
+      "source_location": "L383",
       "weight": 1.0
     },
     {
@@ -396231,7 +396231,7 @@
       "confidence_score": 0.95,
       "context": "seats",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L498",
+      "source_location": "L500",
       "weight": 1.0
     },
     {
@@ -396363,7 +396363,7 @@
       "confidence_score": 0.95,
       "context": "sectionsForGame",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L521",
+      "source_location": "L523",
       "weight": 1.0
     },
     {
@@ -396459,7 +396459,7 @@
       "confidence_score": 0.95,
       "context": "seededUniform",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L36",
+      "source_location": "L38",
       "weight": 1.0
     },
     {
@@ -396495,7 +396495,7 @@
       "confidence_score": 0.95,
       "context": "sessionCheckoutVisits",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L522",
+      "source_location": "L524",
       "weight": 1.0
     },
     {
@@ -396567,7 +396567,7 @@
       "confidence_score": 0.95,
       "context": "sessionSteps()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L523",
+      "source_location": "L525",
       "weight": 1.0
     },
     {
@@ -396675,7 +396675,7 @@
       "confidence_score": 0.95,
       "context": "simulateCheckoutOutcomes",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L299",
+      "source_location": "L301",
       "weight": 1.0
     },
     {
@@ -396687,7 +396687,7 @@
       "confidence_score": 0.95,
       "context": "simulateTierStats",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L299",
+      "source_location": "L301",
       "weight": 1.0
     },
     {
@@ -396711,7 +396711,7 @@
       "confidence_score": 0.95,
       "context": "simulateTierStatsDetailed()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L299",
+      "source_location": "L301",
       "weight": 1.0
     },
     {
@@ -396819,7 +396819,7 @@
       "confidence_score": 0.95,
       "context": "singlesTrainingSetup()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L307",
+      "source_location": "L309",
       "weight": 1.0
     },
     {
@@ -396843,7 +396843,7 @@
       "confidence_score": 0.95,
       "context": "skillProfileForLevel",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L297",
+      "source_location": "L299",
       "weight": 1.0
     },
     {
@@ -396999,7 +396999,7 @@
       "confidence_score": 0.95,
       "context": "stageOrder",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L524",
+      "source_location": "L526",
       "weight": 1.0
     },
     {
@@ -397071,7 +397071,7 @@
       "confidence_score": 0.95,
       "context": "startCountdown",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L228",
+      "source_location": "L230",
       "weight": 1.0
     },
     {
@@ -397107,7 +397107,7 @@
       "confidence_score": 0.95,
       "context": "startFinishingStep",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L283",
+      "source_location": "L285",
       "weight": 1.0
     },
     {
@@ -397215,7 +397215,7 @@
       "confidence_score": 0.95,
       "context": "startGameStep",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L205",
+      "source_location": "L207",
       "weight": 1.0
     },
     {
@@ -397251,7 +397251,7 @@
       "confidence_score": 0.95,
       "context": "startNonGameStep",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L248",
+      "source_location": "L250",
       "weight": 1.0
     },
     {
@@ -397299,7 +397299,7 @@
       "confidence_score": 0.95,
       "context": "startSessionInput",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L339",
+      "source_location": "L341",
       "weight": 1.0
     },
     {
@@ -397347,7 +397347,7 @@
       "confidence_score": 0.95,
       "context": "statisticsRoutines()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L116",
+      "source_location": "L118",
       "weight": 1.0
     },
     {
@@ -397383,7 +397383,7 @@
       "confidence_score": 0.95,
       "context": "stats",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L130",
+      "source_location": "L132",
       "weight": 1.0
     },
     {
@@ -397539,7 +397539,7 @@
       "confidence_score": 0.95,
       "context": "status",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L520",
+      "source_location": "L522",
       "weight": 1.0
     },
     {
@@ -397551,7 +397551,7 @@
       "confidence_score": 0.95,
       "context": "status",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L319",
+      "source_location": "L321",
       "weight": 1.0
     },
     {
@@ -397743,7 +397743,7 @@
       "confidence_score": 0.95,
       "context": "stepAdapterKey",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L164",
+      "source_location": "L166",
       "weight": 1.0
     },
     {
@@ -397779,7 +397779,7 @@
       "confidence_score": 0.95,
       "context": "stepAdvanceErrorMessage",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L246",
+      "source_location": "L248",
       "weight": 1.0
     },
     {
@@ -397803,7 +397803,7 @@
       "confidence_score": 0.95,
       "context": "stepConfigurationIssues",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L178",
+      "source_location": "L180",
       "weight": 1.0
     },
     {
@@ -397983,7 +397983,7 @@
       "confidence_score": 0.95,
       "context": "stepsLoad",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L523",
+      "source_location": "L525",
       "weight": 1.0
     },
     {
@@ -398043,7 +398043,7 @@
       "confidence_score": 0.95,
       "context": "summariseAroundTheClock",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L136",
+      "source_location": "L138",
       "weight": 1.0
     },
     {
@@ -398055,7 +398055,7 @@
       "confidence_score": 0.95,
       "context": "summariseBullUp",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L132",
+      "source_location": "L134",
       "weight": 1.0
     },
     {
@@ -398067,7 +398067,7 @@
       "confidence_score": 0.95,
       "context": "summariseBullseyeCheckout",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L134",
+      "source_location": "L136",
       "weight": 1.0
     },
     {
@@ -398079,7 +398079,7 @@
       "confidence_score": 0.95,
       "context": "summariseCheckoutSequence",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L38",
+      "source_location": "L40",
       "weight": 1.0
     },
     {
@@ -398115,7 +398115,7 @@
       "confidence_score": 0.95,
       "context": "summariseRandomCheckout",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L36",
+      "source_location": "L38",
       "weight": 1.0
     },
     {
@@ -398127,7 +398127,7 @@
       "confidence_score": 0.95,
       "context": "summariseScoreThreshold",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L142",
+      "source_location": "L144",
       "weight": 1.0
     },
     {
@@ -398163,7 +398163,7 @@
       "confidence_score": 0.95,
       "context": "summariseSwitchingTargetScoring",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L144",
+      "source_location": "L146",
       "weight": 1.0
     },
     {
@@ -398175,7 +398175,7 @@
       "confidence_score": 0.95,
       "context": "summariseTargetScoring",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L146",
+      "source_location": "L148",
       "weight": 1.0
     },
     {
@@ -398199,7 +398199,7 @@
       "confidence_score": 0.95,
       "context": "supportsCaptureMode",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L460",
+      "source_location": "L462",
       "weight": 1.0
     },
     {
@@ -398211,7 +398211,7 @@
       "confidence_score": 0.95,
       "context": "supportsCaptureMode",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -398235,7 +398235,7 @@
       "confidence_score": 0.95,
       "context": "supportsDartbot",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L305",
+      "source_location": "L307",
       "weight": 1.0
     },
     {
@@ -398283,7 +398283,7 @@
       "confidence_score": 0.95,
       "context": "supportsMode",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -398319,7 +398319,7 @@
       "confidence_score": 0.95,
       "context": "targetAt()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -398355,7 +398355,7 @@
       "confidence_score": 0.95,
       "context": "targetBeforeVisit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L347",
+      "source_location": "L349",
       "weight": 1.0
     },
     {
@@ -398391,7 +398391,7 @@
       "confidence_score": 0.95,
       "context": "targetScoringPoints",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L144",
+      "source_location": "L146",
       "weight": 1.0
     },
     {
@@ -398439,7 +398439,7 @@
       "confidence_score": 0.95,
       "context": "threeDartAverage",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L299",
+      "source_location": "L301",
       "weight": 1.0
     },
     {
@@ -398475,7 +398475,7 @@
       "confidence_score": 0.95,
       "context": "throwDart",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L297",
+      "source_location": "L299",
       "weight": 1.0
     },
     {
@@ -398523,7 +398523,7 @@
       "confidence_score": 0.95,
       "context": "tick",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L290",
+      "source_location": "L292",
       "weight": 1.0
     },
     {
@@ -398547,7 +398547,7 @@
       "confidence_score": 0.95,
       "context": "tickCountdown",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L290",
+      "source_location": "L292",
       "weight": 1.0
     },
     {
@@ -398559,7 +398559,7 @@
       "confidence_score": 0.95,
       "context": "tickCountup",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L290",
+      "source_location": "L292",
       "weight": 1.0
     },
     {
@@ -398607,7 +398607,7 @@
       "confidence_score": 0.95,
       "context": "toSeatFacts",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L325",
+      "source_location": "L327",
       "weight": 1.0
     },
     {
@@ -398727,7 +398727,7 @@
       "confidence_score": 0.95,
       "context": "trainingIndex()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L114",
+      "source_location": "L116",
       "weight": 1.0
     },
     {
@@ -398823,7 +398823,7 @@
       "confidence_score": 0.95,
       "context": "transitionTrainingActivity",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L240",
+      "source_location": "L242",
       "weight": 1.0
     },
     {
@@ -398907,7 +398907,7 @@
       "confidence_score": 0.95,
       "context": "tuodCheckoutVisits",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L228",
+      "source_location": "L230",
       "weight": 1.0
     },
     {
@@ -398967,7 +398967,7 @@
       "confidence_score": 0.95,
       "context": "tuodPlay",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L254",
+      "source_location": "L256",
       "weight": 1.0
     },
     {
@@ -399063,7 +399063,7 @@
       "confidence_score": 0.95,
       "context": "turnsBeforeVisit",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L505",
+      "source_location": "L507",
       "weight": 1.0
     },
     {
@@ -399123,7 +399123,7 @@
       "confidence_score": 0.95,
       "context": "undoLastDart",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L250",
+      "source_location": "L252",
       "weight": 1.0
     },
     {
@@ -399231,7 +399231,7 @@
       "confidence_score": 0.95,
       "context": "undoToActiveSeat",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L509",
+      "source_location": "L511",
       "weight": 1.0
     },
     {
@@ -399243,7 +399243,7 @@
       "confidence_score": 0.95,
       "context": "undoToActiveSeat",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L242",
+      "source_location": "L244",
       "weight": 1.0
     },
     {
@@ -399339,7 +399339,7 @@
       "confidence_score": 0.95,
       "context": "unlockAudio()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L281",
+      "source_location": "L283",
       "weight": 1.0
     },
     {
@@ -399375,7 +399375,7 @@
       "confidence_score": 0.95,
       "context": "unwrapOrThrow",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L162",
+      "source_location": "L164",
       "weight": 1.0
     },
     {
@@ -399423,7 +399423,7 @@
       "confidence_score": 0.95,
       "context": "updateActivityStatusRecord",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L240",
+      "source_location": "L242",
       "weight": 1.0
     },
     {
@@ -399507,7 +399507,7 @@
       "confidence_score": 0.95,
       "context": "updateSessionStatus",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L240",
+      "source_location": "L242",
       "weight": 1.0
     },
     {
@@ -399615,7 +399615,7 @@
       "confidence_score": 0.95,
       "context": "validateBatch",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -399663,7 +399663,7 @@
       "confidence_score": 0.95,
       "context": "validateBatchAgainstRuleset",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L269",
+      "source_location": "L271",
       "weight": 1.0
     },
     {
@@ -399699,7 +399699,7 @@
       "confidence_score": 0.95,
       "context": "validateBatchReferences",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L337",
+      "source_location": "L339",
       "weight": 1.0
     },
     {
@@ -399759,7 +399759,7 @@
       "confidence_score": 0.95,
       "context": "validateQuickScoreTurns",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -399771,7 +399771,7 @@
       "confidence_score": 0.95,
       "context": "validateRoutineDuration()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L287",
+      "source_location": "L289",
       "weight": 1.0
     },
     {
@@ -399807,7 +399807,7 @@
       "confidence_score": 0.95,
       "context": "validateVisualBoardTurns",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -399831,7 +399831,7 @@
       "confidence_score": 0.95,
       "context": "value",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L84",
+      "source_location": "L86",
       "weight": 1.0
     },
     {
@@ -399891,7 +399891,7 @@
       "confidence_score": 0.95,
       "context": "visibleGames",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L460",
+      "source_location": "L462",
       "weight": 1.0
     },
     {
@@ -399903,7 +399903,7 @@
       "confidence_score": 0.95,
       "context": "visibleGames",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -399927,7 +399927,7 @@
       "confidence_score": 0.95,
       "context": "visitScoreBandCounts",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L319",
+      "source_location": "L321",
       "weight": 1.0
     },
     {
@@ -399999,7 +399999,7 @@
       "confidence_score": 0.95,
       "context": "wedgeNearestPoint()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L523",
+      "source_location": "L525",
       "weight": 1.0
     },
     {
@@ -400083,7 +400083,7 @@
       "confidence_score": 0.95,
       "context": "withTransaction",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L283",
+      "source_location": "L285",
       "weight": 1.0
     },
     {
@@ -400215,7 +400215,7 @@
       "confidence_score": 0.95,
       "context": "zoneCentroid()",
       "source_file": "docs/architecture/00-Context-Map-History.md",
-      "source_location": "L303",
+      "source_location": "L305",
       "weight": 1.0
     },
     {
@@ -400322,5 +400322,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "76a67024cad9c1e8fea436d7d9d7cf779ad87e46"
+  "built_at_commit": "09c3e8e03e06a549ec1f16ed6a0691fbb0caf283"
 }
