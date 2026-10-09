@@ -90,14 +90,30 @@ async function inRolledBackTx<T>(body: (db: Db) => Promise<T>): Promise<T> {
   return result as T;
 }
 
+/**
+ * The skip count a response carries: top-level `data.skippedSessions` (game
+ * folds) plus every `buckets[i].metrics.skippedSessions` (routine
+ * `step-result`). `null` when the response carries neither.
+ */
 function skippedSessionsOf(result: unknown): number | null {
   if (typeof result !== "object" || result === null) return null;
-  const r = result as { ok?: boolean; data?: { skippedSessions?: unknown } };
+  const r = result as {
+    ok?: boolean;
+    data?: {
+      skippedSessions?: unknown;
+      buckets?: { metrics?: { skippedSessions?: unknown } }[];
+    };
+  };
   if (r.ok !== true || typeof r.data !== "object" || r.data === null) {
     return null;
   }
-  const value = r.data.skippedSessions;
-  return typeof value === "number" ? value : null;
+  const counts = [
+    r.data.skippedSessions,
+    ...(Array.isArray(r.data.buckets)
+      ? r.data.buckets.map((bucket) => bucket.metrics?.skippedSessions)
+      : []),
+  ].filter((value): value is number => typeof value === "number");
+  return counts.length === 0 ? null : counts.reduce((n, c) => n + c, 0);
 }
 
 function totalSampleSize(result: unknown): number {
