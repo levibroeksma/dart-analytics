@@ -6,7 +6,7 @@ name: db-rehearsal
 # the schema, and as the gate in front of `deploy.yml`'s apply job.
 #
 # Schema-only: migrate -> seed -> migrate -> status. The statistics integration
-# suite runs in integration.yml against a CI-local Postgres, never here (D432).
+# suite runs in integration.yml against a CI-local Postgres, never here (D433).
 #
 # The rehearsal branch is deleted in an `always()` step: a leaked branch costs
 # storage and keeps a compute warm, so the delete is not conditional on success.

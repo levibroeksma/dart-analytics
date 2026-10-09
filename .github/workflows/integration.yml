@@ -2,7 +2,7 @@ name: integration
 
 # Executes every statistics section, list and routine read against a Postgres
 # built from the migration chain (#653). Runs here, not in db-rehearsal.yml,
-# so the suite never reads from a Neon branch (D432).
+# so the suite never reads from a Neon branch (D433).
 
 on:
   pull_request:
