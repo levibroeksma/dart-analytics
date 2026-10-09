@@ -8,6 +8,7 @@ import RoutineFormModal from "@components/layout/training/routines/RoutineFormMo
 import ScheduleFormModal from "@components/layout/training/schedules/ScheduleFormModal.astro";
 import TrainingScheduleCard from "@components/layout/training/schedules/TrainingScheduleCard.astro";
 import DartIcon from "@icons/dart.svg";
+import PlayIcon from "@icons/play-rounded.svg";
 import PlusIcon from "@icons/plus.svg";
 ---
 
@@ -37,7 +38,7 @@ import PlusIcon from "@icons/plus.svg";
         <RoutineRow />
       </template>
       <div
-        class="flex flex-col divide-y divide-border animate-pulse"
+        class="flex flex-col divide-y divide-border"
         x-show="loading"
         x-cloak
         aria-hidden="true"
@@ -46,10 +47,15 @@ import PlusIcon from "@icons/plus.svg";
           [0, 1, 2].map(() => (
             <div class="flex items-center gap-3 py-3.5">
               <div class="flex flex-1 flex-col gap-1.5">
-                <div class="h-4 w-36 rounded bg-surface-raised" />
-                <div class="h-4 w-14 rounded-md bg-surface-raised" />
+                <div class="h-[18px] w-35 animate-pulse rounded bg-white/12" />
+                <div class="flex gap-1.5">
+                  <div class="h-4 w-11 animate-pulse rounded-md bg-white/12" />
+                  <div class="h-4 w-18 animate-pulse rounded-md bg-white/12" />
+                </div>
               </div>
-              <div class="size-10 rounded-full bg-surface-raised" />
+              <div class="glass-button flex size-10 shrink-0 items-center justify-center rounded-full text-foreground">
+                <PlayIcon class="size-4" />
+              </div>
             </div>
           ))
         }
@@ -57,11 +63,7 @@ import PlusIcon from "@icons/plus.svg";
     </div>
 
     <span class="section-eyebrow pt-2.5">PERSONAL ROUTINES</span>
-    <div
-      class="glass flex flex-col rounded-2xl px-4 shadow-none"
-      x-show="!loading"
-      x-cloak
-    >
+    <div class="glass flex flex-col rounded-2xl px-4 shadow-none">
       <template
         x-for="(routine, index) in personalRoutines()"
         :key="routine.routineId"
@@ -72,8 +74,17 @@ import PlusIcon from "@icons/plus.svg";
         class="flex items-center justify-between gap-3 py-4"
         :class="personalRoutines().length ? 'border-t border-border' : ''"
       >
+        <div
+          class="h-9 flex-1 animate-pulse rounded-lg bg-white/12"
+          x-show="loading"
+          x-cloak
+          aria-hidden="true"
+        >
+        </div>
         <p
           class="text-xs/normal text-pretty text-muted"
+          x-show="!loading"
+          x-cloak
           x-text="personalRoutines().length ? 'Build another from any game or drill.' : 'No custom routines yet. Build one from any game or drill.'"
         >
         </p>
