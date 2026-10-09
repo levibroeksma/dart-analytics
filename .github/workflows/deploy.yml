@@ -18,20 +18,131 @@ jobs:
   quality:
     uses: ./.github/workflows/quality.yml
 
+  # Asks production whether there is anything to apply before a Neon branch is
+  # cut or the migration runner starts (D434). Two signals, either one applies:
+  # dbmate's own pending flag, and a diff of migrations, seeds and the seed
+  # runner since the last deploy run that succeeded -- dbmate cannot see seeds,
+  # and a deploy that failed in seeding must not be forgotten by the next
+  # app-only merge (#293). Every failure of the detector falls toward applying;
+  # an unreachable production fails this job and nothing deploys.
+  pending:
+    needs: quality
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      apply: ${{ steps.decide.outputs.apply }}
+    defaults:
+      run:
+        working-directory: app
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Require the production connection string
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::error::DATABASE_URL is not set on the production environment. Add it as a secret (see docs/architecture/05-Database/11-Neon-Integration.md)."
+            exit 1
+          fi
+      # The first call is the plain status: it fails the job on any connection
+      # or auth error, so a blip never cuts a Neon branch. The second call runs
+      # only after the first proved the connection; `--exit-code` is dbmate's
+      # documented "1 if pending" contract, so nothing parses output.
+      - name: Pending migrations
+        id: status
+        run: |
+          {
+            echo "### Pending on production"
+            echo '```'
+            npm run --silent db:status:ci
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          if npx dbmate --no-dump-schema --migrations-dir ../database/migrations status --exit-code >/dev/null; then
+            echo "migrations=0" >> "$GITHUB_OUTPUT"
+          else
+            echo "migrations=1" >> "$GITHUB_OUTPUT"
+          fi
+      # Base = headSha of the last successful deploy run on main (the current
+      # run is in progress, so it is never its own base). Falls back to the
+      # push base, then to applying.
+      - name: Schema files changed since the last successful deploy
+        id: diff
+        env:
+          BEFORE: ${{ github.event.before }}
+          FORCED: ${{ github.event.forced }}
+        run: |
+          set -u
+          base=$(gh run list --workflow deploy.yml --branch main --status success --limit 1 --json headSha --jq '.[0].headSha' 2>/dev/null || true)
+          if [ -z "$base" ]; then
+            base="$BEFORE"
+            echo "::notice::no successful deploy run found; diffing from the push base $base"
+          fi
+          if [ "$base" = "0000000000000000000000000000000000000000" ] || [ "$FORCED" = "true" ]; then
+            echo "schema=1" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          if git fetch --depth=1 origin "$base" \
+             && changed=$(git diff --name-only "$base" "$GITHUB_SHA" -- ../database/migrations ../database/seeds scripts/seed.ts); then
+            if [ -n "$changed" ]; then
+              printf 'Schema files changed since %s:\n%s\n' "$base" "$changed"
+              echo "schema=1" >> "$GITHUB_OUTPUT"
+            else
+              echo "schema=0" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "::warning::could not diff $base..$GITHUB_SHA; applying"
+            echo "schema=1" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Decide
+        id: decide
+        env:
+          MIGRATIONS: ${{ steps.status.outputs.migrations }}
+          SCHEMA: ${{ steps.diff.outputs.schema }}
+        run: |
+          if [ "$MIGRATIONS" = "1" ]; then
+            reason="pending migrations"
+          elif [ "$SCHEMA" = "1" ]; then
+            reason="schema files changed"
+          else
+            reason="nothing to apply"
+          fi
+          if [ "$reason" = "nothing to apply" ]; then
+            echo "apply=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "apply=true" >> "$GITHUB_OUTPUT"
+          fi
+          echo "**Schema gate:** $reason" >> "$GITHUB_STEP_SUMMARY"
+          echo "$reason"
+
   # The schema change is rehearsed on a throwaway Neon branch cut from
   # production before anything touches production itself (#354). A failure
-  # here blocks both the apply and the Worker deploy.
+  # here blocks both the apply and the Worker deploy. Skipped when `pending`
+  # found nothing to apply (D434). `success()` is written out: a failed
+  # `quality` or `pending` must never reach a Neon branch.
   rehearse:
-    needs: quality
+    needs: pending
+    if: success() && needs.pending.outputs.apply == 'true'
     uses: ./.github/workflows/db-rehearsal.yml
     secrets: inherit
 
   # Applies the pending chain to production BEFORE the Worker ships, so the
   # Worker never runs ahead of its schema (#293). Every seed is
   # `ON CONFLICT DO NOTHING` and the runner applies them in two passes by
-  # design, so re-running them on every deploy is a no-op once they are in.
+  # design, so re-running them is a no-op once they are in. Runs only when
+  # `pending` found something (D434).
   migrate:
-    needs: rehearse
+    needs: [pending, rehearse]
+    if: success() && needs.pending.outputs.apply == 'true'
     runs-on: ubuntu-latest
     environment: production
     defaults:
@@ -74,8 +185,15 @@ jobs:
       - name: Confirm nothing is left pending
         run: npm run db:status:ci
 
+  # Two ways in, named explicitly: nothing was pending, or `migrate` succeeded.
+  # A `migrate` skipped because `rehearse` failed is neither, so it cannot
+  # pass as "skipped, so fine" (D434).
   deploy:
-    needs: migrate
+    needs: [pending, migrate]
+    if: >-
+      ${{ !cancelled()
+          && needs.pending.result == 'success'
+          && (needs.pending.outputs.apply == 'false' || needs.migrate.result == 'success') }}
     runs-on: ubuntu-latest
     environment: production
     defaults:
