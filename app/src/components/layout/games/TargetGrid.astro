@@ -1,0 +1,52 @@
+---
+/**
+ * "Darts to close" grid: one inset tile per objective, the dart it closed on
+ * over its static label. Values pulse until results are saved; `–` when the
+ * objective never closed.
+ * @param {readonly string[]} labels Objective labels in display order
+ * @param {string} valuesExpr Alpine expression for the per-objective array
+ * @param {3 | 4} cols Grid columns
+ */
+interface Props {
+  labels: readonly string[];
+  valuesExpr: string;
+  cols: 3 | 4;
+}
+
+// Props
+const { labels, valuesExpr, cols }: Props = Astro.props;
+
+// Components
+import ResultValue from "@components/layout/games/ResultValue.astro";
+
+// Lib
+import { cn } from "@client/cn";
+
+const COLS = { 3: "grid-cols-3", 4: "grid-cols-4" };
+---
+
+<div class="flex w-full flex-col gap-2">
+  <span
+    class="self-start font-mono text-eyebrow font-semibold uppercase text-muted"
+  >
+    Darts to close
+  </span>
+  <dl class={cn("grid w-full gap-2", COLS[cols])}>
+    {
+      labels.map((label, i) => (
+        <div class="inset-well flex h-14 flex-col-reverse items-center justify-center gap-1 rounded-2xl">
+          <dt class="font-mono text-eyebrow font-semibold uppercase text-muted">
+            {label}
+          </dt>
+          <dd>
+            <ResultValue
+              class="font-mono text-lg leading-none tabular-nums text-foreground"
+              valueExpr={`${valuesExpr}?.[${i}] ?? '–'`}
+              skeletonWidth="w-5"
+            />
+          </dd>
+        </div>
+      ))
+    }
+  </dl>
+</div>

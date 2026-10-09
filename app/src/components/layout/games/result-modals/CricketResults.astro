@@ -1,15 +1,23 @@
 ---
 import ResultsModalShell from "@components/layout/games/ResultsModalShell.astro";
 import SinglePlayerSummary from "@components/layout/games/SinglePlayerSummary.astro";
+import TargetGrid from "@components/layout/games/TargetGrid.astro";
 
 const STAT_ROWS = [
-  { label: "Darts", key: "darts" },
-  { label: "MPR", key: "marksPerRound", hero: true },
-  { label: "Darts to close", key: "dartsToClose" },
+  { label: "Darts used", key: "darts", hero: true, skeletonWidth: "w-30" },
+  {
+    label: "Marks / round",
+    key: "marksPerRound",
+    side: true,
+    skeletonWidth: "w-14",
+  },
+  { label: "Trebles", key: "trebles", side: true, skeletonWidth: "w-6" },
 ] as const;
+
+const TARGET_LABELS = ["20", "19", "18", "17", "16", "15", "Bull"] as const;
 ---
 
-<ResultsModalShell overline="Cricket">
+<ResultsModalShell overline="Cricket · Solo summary">
   <h2
     slot="title"
     id="results-title"
@@ -18,5 +26,11 @@ const STAT_ROWS = [
   >
   </h2>
 
-  <SinglePlayerSummary statRows={STAT_ROWS} />
+  <SinglePlayerSummary statRows={STAT_ROWS}>
+    <TargetGrid
+      labels={TARGET_LABELS}
+      valuesExpr="resultsSnapshot?.seats?.[0]?.dartsToClose"
+      cols={4}
+    />
+  </SinglePlayerSummary>
 </ResultsModalShell>

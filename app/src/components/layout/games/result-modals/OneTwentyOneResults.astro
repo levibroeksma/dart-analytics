@@ -4,13 +4,24 @@ import SinglePlayerSummary from "@components/layout/games/SinglePlayerSummary.as
 import ComparisonSummary from "@components/layout/games/ComparisonSummary.astro";
 
 const STAT_ROWS = [
-  { label: "Visits", key: "visits" },
-  { label: "Average", key: "average.toFixed(2)", hero: true },
-  { label: "Checkout %", key: "checkoutPercentage", fallback: "'—'" },
+  {
+    label: "Average",
+    key: "average.toFixed(2)",
+    hero: true,
+    skeletonWidth: "w-28",
+  },
+  { label: "Visits", key: "visits", side: true, skeletonWidth: "w-7" },
+  {
+    label: "Checkout",
+    key: "checkoutPercentage",
+    fallback: "'—'",
+    side: true,
+    skeletonWidth: "w-18",
+  },
 ] as const;
 ---
 
-<ResultsModalShell overline="121">
+<ResultsModalShell overline="121 · Summary">
   <h2
     slot="title"
     id="results-title"
@@ -18,6 +29,9 @@ const STAT_ROWS = [
     x-text="resultsTitle()"
   >
   </h2>
-  <SinglePlayerSummary statRows={STAT_ROWS} />
+  <SinglePlayerSummary
+    statRows={STAT_ROWS}
+    heroSize="sm"
+  />
   <ComparisonSummary statRows={STAT_ROWS} />
 </ResultsModalShell>

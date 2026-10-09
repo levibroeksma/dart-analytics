@@ -4,18 +4,24 @@ import SinglePlayerSummary from "@components/layout/games/SinglePlayerSummary.as
 import ComparisonSummary from "@components/layout/games/ComparisonSummary.astro";
 
 const STAT_ROWS = [
-  { label: "3-dart average", key: "threeDartAverage", hero: true },
-  { label: "Legs won", key: "legsWon", side: true },
+  {
+    label: "3-dart average",
+    key: "threeDartAverage",
+    hero: true,
+    skeletonWidth: "w-30",
+  },
+  { label: "Legs won", key: "legsWon", side: true, skeletonWidth: "w-6" },
   {
     label: "Checkout",
     key: "checkoutPercentage",
     fallback: "'—'",
     side: true,
+    skeletonWidth: "w-18",
   },
-  { label: "Best leg", key: "bestLeg" },
-  { label: "60+", key: "sixtyPlus" },
-  { label: "100+", key: "hundredPlus" },
-  { label: "140+", key: "oneFortyPlus" },
+  { label: "Best leg", key: "bestLeg", skeletonWidth: "w-6.5" },
+  { label: "60+", key: "sixtyPlus", skeletonWidth: "w-6.5" },
+  { label: "100+", key: "hundredPlus", skeletonWidth: "w-6" },
+  { label: "140+", key: "oneFortyPlus", skeletonWidth: "w-6" },
 ] as const;
 
 const COMPARISON_STAT_ROWS = [

@@ -4,18 +4,28 @@ import SinglePlayerSummary from "@components/layout/games/SinglePlayerSummary.as
 import ComparisonSummary from "@components/layout/games/ComparisonSummary.astro";
 
 const STAT_ROWS = [
-  { label: "Total", key: "total", hero: true },
-  { label: "3 dart avg.", key: "threeDartAverage" },
-  { label: "First 9 avg.", key: "firstNineAverage" },
-  { label: "Highest score", key: "highestScore" },
-  { label: "100+", key: "hundredPlus" },
-  { label: "120+", key: "oneTwentyPlus" },
-  { label: "140+", key: "oneFortyPlus" },
-  { label: "180s", key: "oneEighties" },
+  { label: "Total", key: "total", hero: true, skeletonWidth: "w-28" },
+  {
+    label: "3-dart avg",
+    key: "threeDartAverage",
+    side: true,
+    skeletonWidth: "w-18",
+  },
+  {
+    label: "First 9 avg",
+    key: "firstNineAverage",
+    side: true,
+    skeletonWidth: "w-18",
+  },
+  { label: "Highest", key: "highestScore", side: true, skeletonWidth: "w-11" },
+  { label: "100+", key: "hundredPlus", skeletonWidth: "w-6" },
+  { label: "120+", key: "oneTwentyPlus", skeletonWidth: "w-6" },
+  { label: "140+", key: "oneFortyPlus", skeletonWidth: "w-6" },
+  { label: "180s", key: "oneEighties", skeletonWidth: "w-6" },
 ] as const;
 ---
 
-<ResultsModalShell overline="Score training">
+<ResultsModalShell overline="Score training · Summary">
   <h2
     slot="title"
     id="results-title"
@@ -24,6 +34,10 @@ const STAT_ROWS = [
   >
   </h2>
 
-  <SinglePlayerSummary statRows={STAT_ROWS} />
+  <SinglePlayerSummary
+    statRows={STAT_ROWS}
+    heroSize="sm"
+    tileCols={4}
+  />
   <ComparisonSummary statRows={STAT_ROWS} />
 </ResultsModalShell>

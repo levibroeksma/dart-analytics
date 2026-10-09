@@ -1,17 +1,22 @@
 ---
 /**
- * Inlay stat tile — value over eyebrow label. Without `valueExpr` it renders
- * a pulse placeholder (results still saving).
+ * Inlay stat tile — value over eyebrow label. With `skeletonWidth` the value
+ * pulses until results are saved.
  * @param {string} labelExpr Alpine expression for the label
- * @param {string} [valueExpr] Alpine expression for the value
+ * @param {string} valueExpr Alpine expression for the value
+ * @param {string} [skeletonWidth] Width class for the value's pulse bar
  */
 interface Props {
   labelExpr: string;
-  valueExpr?: string;
+  valueExpr: string;
+  skeletonWidth?: string;
 }
 
 // Props
-const { labelExpr, valueExpr }: Props = Astro.props;
+const { labelExpr, valueExpr, skeletonWidth }: Props = Astro.props;
+
+// Components
+import ResultValue from "@components/layout/games/ResultValue.astro";
 ---
 
 <div
@@ -23,13 +28,19 @@ const { labelExpr, valueExpr }: Props = Astro.props;
   >
   </dt>
   {
-    valueExpr ? (
+    skeletonWidth ? (
+      <dd>
+        <ResultValue
+          class="font-display text-lg leading-none tabular-nums text-foreground"
+          valueExpr={valueExpr}
+          skeletonWidth={skeletonWidth}
+        />
+      </dd>
+    ) : (
       <dd
         class="font-display text-lg leading-none tabular-nums text-foreground"
         x-text={valueExpr}
       />
-    ) : (
-      <dd class="h-4 w-8 animate-pulse rounded bg-muted-foreground/80" />
     )
   }
 </div>
