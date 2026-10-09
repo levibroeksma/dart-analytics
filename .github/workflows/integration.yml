@@ -15,9 +15,16 @@ on:
       - 'app/src/services/statistics.service.ts'
       - 'app/src/lib/stats/**'
       - 'app/src/modules/stats/**'
+      - 'app/src/modules/game/**'
+      - 'app/src/modules/training/**'
+      - 'app/src/modules/types.ts'
+      - 'app/src/lib/game/rulesets/**'
+      - 'app/src/lib/training/exercises/rulesets/**'
+      - 'app/src/lib/types.ts'
       - 'app/tests/integration/**'
       - 'app/vitest.integration.config.ts'
       - 'app/package.json'
+      - 'app/package-lock.json'
       - '.github/workflows/integration.yml'
   workflow_dispatch:
 
