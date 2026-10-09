@@ -1,10 +1,7 @@
-import { drizzle } from "drizzle-orm/postgres-js";
 import { sql } from "drizzle-orm";
-import postgres from "postgres";
 import { describe, expect, it, vi } from "vitest";
-import * as schema from "@db/schema";
 import type { GameTypeKey } from "@lib/types";
-import type { Db } from "./fixtures/stats-world-sql";
+import { inRolledBackTx, type Db } from "./fixtures/itest-db";
 import { FIXTURE_PLAYER, seedStatsWorld } from "./fixtures/stats-world";
 
 if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is required");
@@ -65,29 +62,14 @@ const X01_GUARDS = [
   ["ONE_TWENTY_ONE", "bust-rate"],
 ] as const;
 
-class Rollback extends Error {}
-
 /**
- * Runs `body` in a transaction that always rolls back and publishes the
- * transaction handle to the `@db/client` mock for the duration.
+ * Runs `body` in a rolled-back transaction and publishes its handle to the
+ * `@db/client` mock for the duration.
  */
-async function inRolledBackTx<T>(body: (db: Db) => Promise<T>): Promise<T> {
-  const client = postgres(process.env.DATABASE_URL as string, { max: 1 });
-  const db = drizzle(client, { schema });
-  let result: T | undefined;
-  try {
-    await db.transaction(async (tx) => {
-      current = tx as unknown as Db;
-      result = await body(current);
-      throw new Rollback();
-    });
-  } catch (err) {
-    if (!(err instanceof Rollback)) throw err;
-  } finally {
-    current = null;
-    await client.end();
-  }
-  return result as T;
+function inStatsTx<T>(body: (db: Db) => Promise<T>): Promise<T> {
+  return inRolledBackTx(body, (db) => {
+    current = db;
+  });
 }
 
 /**
@@ -208,32 +190,64 @@ function stepCalls(player: string, key: string, step: StepDescriptor): Call[] {
   return [sessions, ...sections];
 }
 
-async function routineCalls(player: string, key: string): Promise<Call[]> {
-  const header: Call = {
-    label: `header ${key}`,
-    player,
-    run: () => stats.getRoutineHeader(player, key),
-  };
+/**
+ * A read the sweep's call list is built from. A throw or an `ok: false`
+ * lands in `failed` instead of quietly shrinking the list; the savepoint
+ * keeps a throw from aborting the transaction.
+ */
+async function preRead<T>(
+  db: Db,
+  failed: string[],
+  label: string,
+  run: () => Promise<{ ok: true; data: T } | { ok: false }>,
+): Promise<T | null> {
+  await db.execute(sql`SAVEPOINT stat_call`);
+  try {
+    const result = await run();
+    await db.execute(sql`RELEASE SAVEPOINT stat_call`);
+    if (result.ok) return result.data;
+    failed.push(`${label}: ${JSON.stringify(result)}`);
+  } catch (err) {
+    await db.execute(sql`ROLLBACK TO SAVEPOINT stat_call`);
+    failed.push(`${label}: ${(err as Error).message}`);
+  }
+  return null;
+}
+
+async function routineCalls(
+  db: Db,
+  failed: string[],
+  player: string,
+  key: string,
+): Promise<Call[]> {
   const sections = sectionsForRoutine().flatMap((section) =>
     perRange(`${key}/${section.id}`, player, (range) =>
       stats.getRoutineSection(player, key, section.id, range),
     ),
   );
-  const described = await stats.getRoutineHeader(player, key);
-  const steps = described.ok
-    ? described.data.steps.flatMap((step) => stepCalls(player, key, step))
-    : [];
-  return [header, ...sections, ...steps];
+  const header = await preRead(db, failed, `header ${key}`, () =>
+    stats.getRoutineHeader(player, key),
+  );
+  const steps = (header?.steps ?? []).flatMap((step) =>
+    stepCalls(player, key, step),
+  );
+  return [...sections, ...steps];
 }
 
-async function routineKeys(player: string): Promise<string[]> {
-  const listed = await stats.listTrainedRoutines(player);
-  return listed.ok ? listed.data.items.map((item) => item.routineKey) : [];
+async function routineKeys(
+  db: Db,
+  failed: string[],
+  player: string,
+): Promise<string[]> {
+  const listed = await preRead(db, failed, `routines ${player}`, () =>
+    stats.listTrainedRoutines(player),
+  );
+  return (listed?.items ?? []).map((item) => item.routineKey);
 }
 
 describe("statistics SQL executes against Postgres", () => {
   it("runs every game section, list and the overview against the stats world and an absent player", async () => {
-    await inRolledBackTx(async (db) => {
+    await inStatsTx(async (db) => {
       const world = await seedStatsWorld(db);
 
       expect(Object.keys(world.gameSessions).sort()).toEqual([...GAMES].sort());
@@ -286,7 +300,7 @@ describe("statistics SQL executes against Postgres", () => {
   });
 
   it("runs every routine and step section for the stats world routine and an absent player", async () => {
-    await inRolledBackTx(async (db) => {
+    await inStatsTx(async (db) => {
       const world = await seedStatsWorld(db);
 
       expect(world.routine.stepKinds).toHaveLength(11);
@@ -314,20 +328,21 @@ describe("statistics SQL executes against Postgres", () => {
       }
       expect(kinds).toContain("WARM_UP");
 
+      const planFailed: string[] = [];
       const calls: Call[] = [];
       for (const player of PLAYERS) {
-        for (const key of await routineKeys(player)) {
-          calls.push(...(await routineCalls(player, key)));
+        for (const key of await routineKeys(db, planFailed, player)) {
+          calls.push(...(await routineCalls(db, planFailed, player, key)));
         }
       }
       const result = await sweep(db, calls);
-      expect(result.failed).toEqual([]);
+      expect([...planFailed, ...result.failed]).toEqual([]);
       expect(result.skipped).toEqual([]);
     });
   });
 
   it("isolates statement errors behind savepoints and refuses getDb() outside the transaction", async () => {
-    const result = await inRolledBackTx(async (db) =>
+    const result = await inStatsTx(async (db) =>
       sweep(db, [
         {
           label: "bad",
