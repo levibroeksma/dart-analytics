@@ -176,6 +176,8 @@ Merging to `main` applies the pending chain to production before the Worker ship
 | `migrate` | Only when `apply=true`: `db:status:ci` (into the run summary) -> `db:migrate:ci` -> `db:seed:ci` -> `db:status:ci` again | Production |
 | `deploy` | Build + `wrangler deploy`, after `migrate` succeeds or when `pending` found nothing to apply — never after a failed `rehearse` or `migrate` | Production |
 
+The diff base is the last `deploy` run that succeeded as a whole. When `migrate` succeeds but only the Worker deploy fails, that run is not a success, so the next merge diffs from the older base and runs `rehearse` and `migrate` again: a no-op apply that costs one extra Neon branch. Accepted; a job-level base would need one API call per past run (D434). <!-- 2026-10-09 -->
+
 `db-rehearsal.yml` also runs on its own on any PR touching `database/migrations/**`, `database/seeds/**`, `app/scripts/seed.ts` or `app/package.json`, so a faulty migration surfaces at review time rather than at merge time. It is schema-only: the statistics integration suite (`npm run test:integration`) runs in `.github/workflows/integration.yml` against a CI-local `postgres:16` built from the same migration chain, so no test reads leave Neon (D433, 2026-10-09). <!-- 2026-10-09 -->
 
 The `:ci` script variants (`db:status:ci`, `db:migrate:ci`, `db:seed:ci`, `db:verify:ci`, `db:drift:ci`) read `DATABASE_URL` straight from the environment instead of an `.env` file, which is what makes them runnable headless; dbmate is invoked with `--no-dump-schema` there because CI has no `pg_dump`. The `:prod` variants stay as they are for local, deliberate use.
