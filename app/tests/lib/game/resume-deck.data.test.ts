@@ -153,6 +153,30 @@ describe("toResumeCards", () => {
     expect(summarizeProgress).not.toHaveBeenCalled();
   });
 
+  it("overlays only the session the store holds when several are listed", () => {
+    vi.mocked(summarizeProgress).mockReturnValue({
+      detail: "local detail",
+      big: null,
+    });
+    const cards = toResumeCards(
+      [
+        session({ sessionId: "s-501", startedAt: "2026-10-10T11:00:00.000Z" }),
+        session({
+          sessionId: "s-121",
+          rulesetVersionKey: "121_V1",
+          startedAt: "2026-10-10T11:30:00.000Z",
+        }),
+      ],
+      localGame({ sessionId: "s-501" }),
+      NOW,
+    );
+    expect(cards.map((card) => [card.sessionId, card.detail])).toEqual([
+      ["s-121", "vs Dartbot · Leg 3"],
+      ["s-501", "local detail"],
+    ]);
+    expect(summarizeProgress).toHaveBeenCalledTimes(1);
+  });
+
   it("keeps server progress when the local summary is null", () => {
     vi.mocked(summarizeProgress).mockReturnValue(null);
     const [card] = toResumeCards([session()], localGame(), NOW);

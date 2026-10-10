@@ -3,6 +3,7 @@ import { GAME_CARDS } from "@lib/game/rulesets/games-visibility";
 import { startedAgo } from "@utils/started-ago";
 import { summarizeProgress } from "@modules/game/session-progress.module";
 import type { SessionActiveData } from "@client/api/types";
+import type { SessionProgress } from "@modules/types";
 import type {
   GameCardDescriptor,
   LocalGame,
@@ -33,6 +34,40 @@ function armSettleFallback(deck: ResumeDeckContext) {
 }
 
 /**
+ * The local `game` store's progress for a session, or null when the store holds
+ * a different session or ruleset (or its fact log summarises to nothing).
+ */
+function localProgress(
+  session: SessionActiveData,
+  local: LocalGame | null,
+): SessionProgress | null {
+  if (!local || session.rulesetVersionKey === null) return null;
+  if (local.sessionId !== session.sessionId) return null;
+  if (local.rulesetVersionKey !== session.rulesetVersionKey) return null;
+  return summarizeProgress(session.rulesetVersionKey, local.configSnapshot, {
+    stages: local.stages,
+    turns: local.turns,
+  });
+}
+
+function toResumeCard(
+  session: SessionActiveData,
+  card: GameCardDescriptor,
+  local: LocalGame | null,
+  now: Date,
+): ResumeCard {
+  const progress = localProgress(session, local) ?? session.progress;
+  return {
+    sessionId: session.sessionId,
+    title: card.title,
+    href: card.href,
+    started: `STARTED ${startedAgo(session.startedAt, now)}`,
+    detail: progress?.detail ?? "",
+    big: progress?.big ?? null,
+  };
+}
+
+/**
  * Turns active sessions into resume cards, newest-started first. Routine steps
  * and sessions whose ruleset has no game card are dropped. Progress comes from
  * the server; when the local `game` store holds that same session (matching id
@@ -53,25 +88,7 @@ export function toResumeCards(
         (game) => game.rulesetVersionKey === session.rulesetVersionKey,
       );
       if (!card || session.rulesetVersionKey === null) return [];
-      const overlay =
-        local?.sessionId === session.sessionId &&
-        local.rulesetVersionKey === session.rulesetVersionKey
-          ? summarizeProgress(session.rulesetVersionKey, local.configSnapshot, {
-              stages: local.stages,
-              turns: local.turns,
-            })
-          : null;
-      const progress = overlay ?? session.progress;
-      return [
-        {
-          sessionId: session.sessionId,
-          title: card.title,
-          href: card.href,
-          started: `STARTED ${startedAgo(session.startedAt, now)}`,
-          detail: progress?.detail ?? "",
-          big: progress?.big ?? null,
-        },
-      ];
+      return [toResumeCard(session, card, local, now)];
     });
 }
 
