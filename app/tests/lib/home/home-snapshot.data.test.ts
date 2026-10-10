@@ -142,12 +142,11 @@ describe("homeSnapshot", () => {
     }
   });
 
-  it("navigates to the resume target", () => {
+  it("leaves resuming to the resume deck", () => {
     const s = homeSnapshot();
-    const navigate = vi.fn();
-    s.navigate = navigate;
-    s.resumeGame();
-    expect(navigate).toHaveBeenCalledWith("/games");
+    expect(s).not.toHaveProperty("resume");
+    expect(s).not.toHaveProperty("resumeGame");
+    expect(s).not.toHaveProperty("navigate");
   });
 
   it("starts career tiles as dashes", () => {

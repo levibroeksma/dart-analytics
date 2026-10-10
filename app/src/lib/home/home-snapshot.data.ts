@@ -116,13 +116,6 @@ export function homeSnapshot(): HomeSnapshotContext {
       delta: "1.8",
       window: "last 30 days",
     },
-    resume: {
-      game: "501",
-      detail: "vs Dartbot · Leg 3 of 5 · 2–0",
-      remaining: "141",
-      started: "STARTED 18 MIN AGO",
-      href: "/games",
-    },
     careerTiles: careerTiles(null),
     dailyAverage: DAILY,
     peak: dailyPeak(DAILY),
@@ -138,14 +131,6 @@ export function homeSnapshot(): HomeSnapshotContext {
       } catch {
         this.careerTiles = careerTiles(null);
       }
-    },
-
-    navigate(path: string) {
-      globalThis.location.href = path;
-    },
-
-    resumeGame(this: HomeSnapshotContext) {
-      this.navigate(this.resume.href);
     },
   };
 }

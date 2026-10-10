@@ -1,0 +1,52 @@
+---
+/**
+ * Stacked-card wrapper: the default slot is the top card, with up to two
+ * slabs peeking out beneath it to show more cards wait behind.
+ * @param {string} layersExpr Alpine expression for the slab count (0, 1 or 2)
+ * @param {string} [class] Extra classes for the wrapper
+ * @slot default The top card; it must be positioned so it paints over the slabs
+ */
+interface Props {
+  layersExpr: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+// Props
+const { layersExpr, class: classNameProp, ...props }: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const slabClass =
+  "absolute h-10 shadow-[inset_0_-1px_0_var(--border-strong)] backdrop-blur-sm";
+const wrapperClass = cn("relative", classNameProp);
+const padExpr = `{ 'pb-2': (${layersExpr}) === 1, 'pb-4': (${layersExpr}) >= 2 }`;
+const frontSlabExpr = `(${layersExpr}) >= 2 ? 'bottom-2' : 'bottom-0'`;
+const backSlabShowExpr = `(${layersExpr}) >= 2`;
+const frontSlabShowExpr = `(${layersExpr}) >= 1`;
+---
+
+<div
+  class={wrapperClass}
+  :class={padExpr}
+  {...props}
+>
+  <div
+    class={cn(slabClass, "inset-x-6 bottom-0 rounded-b-[18px] bg-stack-2")}
+    x-show={backSlabShowExpr}
+    x-cloak
+    aria-hidden="true"
+  >
+  </div>
+  <div
+    class={cn(slabClass, "inset-x-3 rounded-b-[19px] bg-accent-deep-blue/75")}
+    :class={frontSlabExpr}
+    x-show={frontSlabShowExpr}
+    x-cloak
+    aria-hidden="true"
+  >
+  </div>
+  <slot />
+</div>

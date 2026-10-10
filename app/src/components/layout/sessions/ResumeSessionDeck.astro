@@ -1,0 +1,138 @@
+---
+/**
+ * Homepage deck of the player's open games, run by `resumeDeck()`: a pulse
+ * skeleton while loading, then the newest game on top of a card stack with
+ * a pager and swipe to step through the rest. Hidden when there is nothing
+ * to resume or the load failed. The top card is one persistent element so
+ * its phase animation and `animationend` survive an index change.
+ * @param {string} [class] Extra classes for the section
+ */
+interface Props {
+  class?: string;
+  [key: string]: unknown;
+}
+
+// Props
+const { class: classNameProp, ...props }: Props = Astro.props;
+
+// Components
+import Button from "@components/forms/Button.astro";
+import CardStack from "@components/ui/CardStack.astro";
+import DeckPager from "@components/ui/DeckPager.astro";
+
+// Lib
+import { cn } from "@client/cn";
+
+// Icons
+import PlayIcon from "@icons/play-rounded.svg";
+
+// Styles
+const cardClass =
+  "home-feature-card flex flex-col gap-3.5 rounded-2xl p-4 backdrop-blur-sm";
+const skeletonClass =
+  "inline-block h-lh animate-pulse rounded-md bg-skeleton align-top";
+const phaseClassExpr =
+  "{ 'animate-deck-out motion-reduce:animate-deck-fade-out': phase === 'out', 'animate-deck-rise motion-reduce:animate-deck-fade-rise': phase === 'rise', 'animate-deck-in motion-reduce:animate-deck-fade-in': phase === 'in' }";
+---
+
+<section
+  class={cn(classNameProp)}
+  x-data="resumeDeck()"
+  x-show="visible()"
+  x-cloak
+  {...props}
+>
+  <div
+    class={cardClass}
+    aria-busy="true"
+    x-show="loading"
+    x-cloak
+  >
+    <span
+      class="font-mono text-[11px] font-semibold tracking-[0.14em] text-foreground"
+      >IN PROGRESS</span
+    >
+    <div class="flex items-end justify-between gap-3">
+      <div class="flex flex-col gap-1.5">
+        <span class={cn(skeletonClass, "w-24 font-display text-xl")}></span>
+        <span class={cn(skeletonClass, "w-40 text-[13px]")}></span>
+      </div>
+      <span class={cn(skeletonClass, "w-12 font-display text-3xl")}></span>
+    </div>
+    <div class="h-12 rounded-lg bg-skeleton"></div>
+  </div>
+  <CardStack
+    layersExpr="layers()"
+    x-show="!loading"
+    x-cloak
+  >
+    <div
+      class={cn(cardClass, "relative touch-pan-y")}
+      :class={phaseClassExpr}
+      @animationend.self="settle()"
+      @pointerdown="swipeStart($event)"
+      @pointerup="swipeEnd($event)"
+      @pointercancel="swipeX = null"
+    >
+      <div
+        class="flex min-h-7 items-center justify-between font-mono text-[11px] font-semibold"
+      >
+        <span class="tracking-[0.14em] text-foreground">IN PROGRESS</span>
+        <DeckPager
+          positionExpr="position()"
+          prevExpr="prev()"
+          nextExpr="next()"
+          prevLabel="Previous open game"
+          nextLabel="Next open game"
+          x-show="cards.length > 1"
+          x-cloak
+        />
+        <span
+          class="text-accent-foreground-muted"
+          x-show="cards.length <= 1"
+          x-cloak
+          x-text="top()?.started"
+        ></span>
+      </div>
+      <div class="flex items-end justify-between gap-3">
+        <div class="flex min-w-0 flex-col gap-1.5">
+          <span
+            class="font-display text-xl"
+            x-text="top()?.title"
+          ></span>
+          <span
+            class="text-[13px] font-semibold text-accent-foreground-muted"
+            x-text="top()?.detail"
+          ></span>
+        </div>
+        <div
+          class="flex flex-none flex-col items-end gap-0.5"
+          x-show="top()?.big"
+          x-cloak
+        >
+          <span
+            class="font-display text-3xl leading-none"
+            x-text="top()?.big?.value"
+          ></span>
+          <span
+            class="font-mono text-[10px] font-semibold tracking-[0.1em] text-accent-foreground-muted"
+            x-text="top()?.big?.label"
+          ></span>
+        </div>
+      </div>
+      <Button
+        title="Resume game"
+        variant="secondary"
+        loadingExpr="false"
+        class="glass-button h-12 w-full rounded-lg text-[15px]"
+        @click="resume()"
+      >
+        <PlayIcon
+          slot="iconBefore"
+          class="size-4.5"
+          aria-hidden="true"
+        />
+      </Button>
+    </div>
+  </CardStack>
+</section>
