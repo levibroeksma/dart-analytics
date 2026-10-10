@@ -135,9 +135,10 @@ function finalLine<TSeat extends SeatState>(
   };
 }
 
-function legsWonIn(state: unknown): number {
-  return (state as FiveOhOneState).sides.reduce(
-    (sum, side) => sum + side.legsWon,
+/** Legs won across every set so far — rises by one on every leg win, set boundaries included. */
+export function legsWonIn(state: unknown): number {
+  return (state as FiveOhOneState).sets.reduce(
+    (sum, set) => sum + Object.values(set.legsWon).reduce((a, b) => a + b, 0),
     0,
   );
 }
