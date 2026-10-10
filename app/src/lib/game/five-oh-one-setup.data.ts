@@ -55,13 +55,17 @@ type V2WireInput = {
   legsPerSet: number;
   winByTwo: boolean;
   marginScope: "EVERY_SET" | "DECIDING_SET";
-  cap: number;
+  cap: number | null;
 };
 
 /** Best-of counts must be odd; an even count rounds up, except at the 20 cap, which drops to 19. */
 function oddFor(mode: MatchMode, count: number): number {
   if (mode !== "BEST_OF" || count % 2 !== 0) return count;
   return count >= FIVE_OH_ONE_LEGS_MAX ? count - 1 : count + 1;
+}
+
+function legTargetOf(mode: MatchMode, count: number): number {
+  return mode === "FIRST_TO" ? count : (count + 1) / 2;
 }
 
 /**
@@ -82,14 +86,14 @@ export function buildFiveOhOneV2Wire(
         count: oddFor(input.legsPerSetMode, input.legsPerSet),
       }
     : outer;
-  const target = legs.mode === "FIRST_TO" ? legs.count : (legs.count + 1) / 2;
+  const target = legTargetOf(legs.mode, legs.count);
   return {
     starting_score: input.startingScore,
     legs,
     sets: setsOn ? outer : null,
     win_by_two: input.winByTwo
       ? {
-          cap: Math.max(input.cap, target),
+          cap: Math.max(input.cap ?? target + 2, target),
           scope: setsOn ? input.marginScope : "EVERY_SET",
         }
       : null,
@@ -110,7 +114,8 @@ export function fiveOhOneSetup() {
     legsPerSet: 5 as number | string | null,
     winByTwo: false,
     marginScope: "EVERY_SET" as "EVERY_SET" | "DECIDING_SET",
-    cap: 5 as number | string | null,
+    cap: null as number | string | null,
+    autoCap: null as number | null,
     legsClampNotice: "",
     guests: [] as { displayName: string }[],
     showAddGuestModal: false,
@@ -125,6 +130,22 @@ export function fiveOhOneSetup() {
     showActiveSessionModal: false,
     loadingReconciliation: false,
     reconciliationFailed: false,
+
+    /** Legs a side needs per leg race: the cap stepper's floor and the base of its default. */
+    capMin(this: FiveOhOneSetupContext): number {
+      const setsOn = this.matchUnit === "SETS";
+      const mode = setsOn ? this.legsPerSetMode : this.matchMode;
+      const raw = setsOn ? this.legsPerSet : this.legsToWin;
+      return legTargetOf(mode, oddFor(mode, clampFiveOhOneLegs(raw).value));
+    },
+
+    /** Keeps the cap at target + 2 until the player edits it; an edited cap is left alone. */
+    syncCap(this: FiveOhOneSetupContext) {
+      if (this.cap !== null && this.cap !== this.autoCap) return;
+      const next = this.capMin() + 2;
+      this.cap = next;
+      this.autoCap = next;
+    },
 
     async init(this: FiveOhOneSetupContext) {
       this.loadingReconciliation = true;
@@ -264,7 +285,7 @@ export function fiveOhOneSetup() {
           legsPerSet: clampFiveOhOneLegs(this.legsPerSet).value,
           winByTwo: this.winByTwo,
           marginScope: this.marginScope,
-          cap: clampFiveOhOneLegs(this.cap).value,
+          cap: this.cap === null ? null : clampFiveOhOneLegs(this.cap).value,
         });
         const wire = {
           ...(preset.configuration as Record<string, unknown>),

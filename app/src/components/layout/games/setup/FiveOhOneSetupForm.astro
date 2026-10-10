@@ -145,6 +145,7 @@ const infoSection = {
         max={FIVE_OH_ONE_LEGS_MAX}
         ariaLabel="Sudden-death cap"
         x-model="cap"
+        x-effect="syncCap(); min = capMin()"
         class="justify-self-start"
       />
       <Toggle

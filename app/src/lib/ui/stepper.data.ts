@@ -24,19 +24,19 @@ export function stepValue(
 /**
  * Alpine factory for `Stepper.astro`. `value` is the `x-modelable` slot, so
  * it may hold whatever the parent bound (string, null); `current()` is the
- * clamped number the UI shows.
+ * clamped number the UI shows. `min` and `max` are live: a parent may
+ * reassign them.
  */
 export function stepperData(config: StepperConfig) {
-  const { min, max } = config;
   return {
-    value: min as unknown,
-    min,
-    max,
+    value: config.min as unknown,
+    min: config.min,
+    max: config.max,
     current(): number {
-      return stepValue(this.value, 0, min, max);
+      return stepValue(this.value, 0, this.min, this.max);
     },
     step(delta: number) {
-      this.value = stepValue(this.value, delta, min, max);
+      this.value = stepValue(this.value, delta, this.min, this.max);
     },
     onKey(event: StepperKey) {
       if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;

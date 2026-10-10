@@ -61,7 +61,7 @@ const V2_BASE = {
   legsPerSet: 5,
   winByTwo: false,
   marginScope: "EVERY_SET",
-  cap: 5,
+  cap: 5 as number | null,
 } as const;
 
 describe("isV2Preset", () => {
@@ -118,6 +118,33 @@ describe("buildFiveOhOneV2Wire", () => {
     expect(
       buildFiveOhOneV2Wire({ ...V2_BASE, matchMode: "BEST_OF", count: 4 }).legs,
     ).toEqual({ mode: "BEST_OF", count: 5 });
+  });
+  it("an untouched cap defaults to the leg target plus 2", () => {
+    expect(
+      buildFiveOhOneV2Wire({
+        ...V2_BASE,
+        count: 7,
+        winByTwo: true,
+        cap: null,
+      }).win_by_two,
+    ).toEqual({ cap: 9, scope: "EVERY_SET" });
+    expect(
+      buildFiveOhOneV2Wire({
+        ...V2_BASE,
+        count: 1,
+        winByTwo: true,
+        cap: null,
+      }).win_by_two,
+    ).toEqual({ cap: 3, scope: "EVERY_SET" });
+    expect(
+      buildFiveOhOneV2Wire({
+        ...V2_BASE,
+        matchMode: "BEST_OF",
+        count: 7,
+        winByTwo: true,
+        cap: null,
+      }).win_by_two,
+    ).toEqual({ cap: 6, scope: "EVERY_SET" });
   });
   it("cap below the leg target is raised to the target", () => {
     expect(
@@ -788,6 +815,61 @@ describe("fiveOhOneSetup", () => {
             win_by_two: { cap: 5, scope: "DECIDING_SET" },
           },
         },
+      }),
+    );
+  });
+
+  it("syncCap tracks the target while the cap is untouched", () => {
+    const setup = createSetup({ winByTwo: true, legsToWin: 7 });
+    setup.syncCap();
+    expect(setup.cap).toBe(9);
+    setup.legsToWin = 1;
+    setup.syncCap();
+    expect(setup.cap).toBe(3);
+  });
+
+  it("syncCap keeps an edited cap when the target changes", () => {
+    const setup = createSetup({ winByTwo: true, legsToWin: 3 });
+    setup.syncCap();
+    setup.cap = 8;
+    setup.legsToWin = 5;
+    setup.syncCap();
+    expect(setup.cap).toBe(8);
+  });
+
+  it("syncCap reads the legs-per-set target when sets are on", () => {
+    const setup = createSetup({
+      matchUnit: "SETS",
+      legsToWin: 3,
+      legsPerSetMode: "FIRST_TO",
+      legsPerSet: 4,
+    });
+    setup.syncCap();
+    expect(setup.cap).toBe(6);
+    expect(setup.capMin()).toBe(4);
+  });
+
+  it("sends target plus 2 when the cap was never edited", async () => {
+    const setup = createSetup({
+      presets: [V2_PRESET],
+      legsToWin: 7,
+      winByTwo: true,
+    });
+    vi.mocked(sessionsApi.createSession).mockResolvedValue({
+      sessionId: "s",
+      participants: [],
+    } as any);
+    vi.stubGlobal("location", { href: "" });
+
+    await setup.start();
+
+    expect(sessionsApi.createSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        config: expect.objectContaining({
+          overrides: expect.objectContaining({
+            win_by_two: { cap: 9, scope: "EVERY_SET" },
+          }),
+        }),
       }),
     );
   });

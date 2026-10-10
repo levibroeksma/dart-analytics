@@ -548,6 +548,9 @@ export type FiveOhOneSetupContext = {
   winByTwo: boolean;
   marginScope: "EVERY_SET" | "DECIDING_SET";
   cap: number | string | null;
+  autoCap: number | null;
+  capMin(): number;
+  syncCap(): void;
   legsClampNotice: string;
   guests: { displayName: string }[];
   showAddGuestModal: boolean;
@@ -713,6 +716,7 @@ export type FiveOhOneResultsSnapshot = {
   winningSideKey: string | null;
   legBarCount: number;
   setScore: string;
+  setLegScores: string;
   seats: FiveOhOneSeatResult[];
 };
 
@@ -745,6 +749,7 @@ export type FiveOhOnePlayContext = PlayLifecycleContext<
   average(this: FiveOhOnePlayContext): string;
   subtitle(this: FiveOhOnePlayContext): string;
   legsToWin(this: FiveOhOnePlayContext): number;
+  setsTally(this: FiveOhOnePlayContext): string;
   previousScoreFor(this: FiveOhOnePlayContext, seatRef: string): string;
   previousScore(this: FiveOhOnePlayContext): string;
   legsWonFor(this: FiveOhOnePlayContext, seatRef: string): number;
