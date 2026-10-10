@@ -597,3 +597,24 @@ export type MatchOutcome = {
   status: "IN_PROGRESS" | "COMPLETE" | "TIE";
   winningSideKey: string | null;
 };
+
+/** One modal context row: left parts in order, plus the right-hand value. */
+export type SessionContextRow = {
+  title: string | null;
+  stage: string | null;
+  round: string | null;
+  value: string | null;
+};
+
+export type SessionContextInput = {
+  gameTypeKey: string | null;
+  sessionId: string | null;
+  configSnapshot: unknown;
+  facts: EngineFacts;
+  timerExpired: boolean;
+};
+
+export type SessionContextOptions = {
+  expectedSessionId?: string | null;
+  fallbackTitle?: string | null;
+};

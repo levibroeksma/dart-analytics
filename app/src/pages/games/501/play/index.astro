@@ -4,6 +4,7 @@ import GameLayout from "@layouts/GameLayout.astro";
 import FiveOhOne from "@components/layout/games/interfaces/FiveOhOne.astro";
 import CheckoutConfirm from "@components/layout/games/CheckoutConfirm.astro";
 import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
+import InlayRow from "@components/ui/InlayRow.astro";
 import FiveOhOneResults from "@components/layout/games/result-modals/FiveOhOneResults.astro";
 import NoSessionPanel from "@components/layout/games/NoSessionPanel.astro";
 import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocked.astro";
@@ -55,7 +56,12 @@ import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocke
         onCancel="cancelMatchFinish()"
         onConfirm="confirmMatchFinish()"
         dismissible={false}
-      />
+      >
+        <InlayRow
+          slot="context"
+          rowExpr="$store.game.contextRow()"
+        />
+      </ConfirmDialog>
     </div>
 
     {/* Results modal (overlay) */}

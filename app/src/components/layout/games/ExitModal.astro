@@ -11,6 +11,7 @@ const { description = "This session will be recorded as abandoned." }: Props =
 
 // Components
 import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
+import InlayRow from "@components/ui/InlayRow.astro";
 ---
 
 <ConfirmDialog
@@ -22,4 +23,9 @@ import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
   onCancel="showExitModal = false"
   onConfirm="$dispatch('confirm-exit')"
   loadingExpr="$store.game.loading"
-/>
+>
+  <InlayRow
+    slot="context"
+    rowExpr="$store.game.contextRow($store.trainingSession.active ? $store.trainingSession.gameSessionId : undefined)"
+  />
+</ConfirmDialog>

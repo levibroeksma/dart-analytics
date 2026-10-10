@@ -28,7 +28,7 @@ import {
   activeSessionConflict,
 } from "./step-session-conflict";
 import type { TrainingEngine } from "@modules/interfaces";
-import type { DartObservation } from "@modules/types";
+import type { DartObservation, SessionContextRow } from "@modules/types";
 import type {
   BoardMarker,
   ExerciseRulesetVersionKey,
@@ -372,6 +372,23 @@ export function routinePlay() {
       if (!this.training) return null;
       const stepIndex = this.training.state().stepIndex;
       return this.steps[stepIndex] ?? null;
+    },
+
+    /**
+     * The context row a routine finish confirm shows: routine name and step
+     * position, then the step game's round and value.
+     */
+    stepContextRow(this: RoutinePlayContext): SessionContextRow | null {
+      if (!this.training) return null;
+      const gameRow = this.$store.game.contextRow(
+        this.$store.trainingSession.gameSessionId,
+      );
+      return {
+        title: this.routineName || null,
+        stage: `Step ${this.training.state().stepIndex + 1} of ${this.steps.length}`,
+        round: gameRow?.round ?? null,
+        value: gameRow?.value ?? null,
+      };
     },
 
     /**

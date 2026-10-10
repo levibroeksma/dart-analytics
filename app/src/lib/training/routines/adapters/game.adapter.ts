@@ -98,6 +98,7 @@ export function gameAdapter(input: {
         captureModeKey: result.captureModeKey,
         inputModeKey: result.inputModeKey,
       });
+      ctx.$store.trainingSession.setGameSession(result.sessionId);
       ctx.startSessionClock();
       ctx.game = gameStep(
         input.playFactory,
@@ -113,6 +114,7 @@ export function gameAdapter(input: {
     completesOwnSession: true,
     summarise: input.summarise,
     close(ctx) {
+      ctx.$store.trainingSession.setGameSession(null);
       ctx.game = null;
     },
   };

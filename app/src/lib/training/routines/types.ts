@@ -3,6 +3,7 @@ import type {
   WarmUpState,
   RoutineStepSummary,
   RoutineDurationResult,
+  SessionContextRow,
 } from "@modules/types";
 import type { SegmentTimer } from "@modules/ui/segment-timer.module";
 import type { SessionClock } from "@modules/ui/session-clock.module";
@@ -102,11 +103,16 @@ export type RoutinePlayContext = {
       loading: boolean;
       reset(): void;
       startSession(input: unknown): void;
+      contextRow(
+        expectedSessionId?: string | null,
+        fallbackTitle?: string | null,
+      ): SessionContextRow | null;
     };
     trainingSession: TrainingSessionStoreContext;
   };
   init(this: RoutinePlayContext): Promise<void>;
   currentStep(this: RoutinePlayContext): TrainingStepResolved | null;
+  stepContextRow(this: RoutinePlayContext): SessionContextRow | null;
   startCurrentStep(this: RoutinePlayContext): Promise<void>;
   openStep(
     this: RoutinePlayContext,

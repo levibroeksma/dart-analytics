@@ -18,6 +18,7 @@ import AroundTheClock from "@components/layout/games/interfaces/AroundTheClock.a
 import CountdownPauseControl from "@components/layout/games/CountdownPauseControl.astro";
 import CheckoutConfirm from "@components/layout/games/CheckoutConfirm.astro";
 import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
+import InlayRow from "@components/ui/InlayRow.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
 import Button from "@components/forms/Button.astro";
 import RoutineSummaryModal from "@components/layout/training/routines/RoutineSummaryModal.astro";
@@ -135,7 +136,12 @@ import OpenRoutineModal from "@components/layout/training/routines/OpenRoutineMo
             onCancel="cancelFinish()"
             onConfirm="confirmFinish()"
             dismissible={false}
-          />
+          >
+            <InlayRow
+              slot="context"
+              rowExpr="stepContextRow()"
+            />
+          </ConfirmDialog>
         </div>
         <div
           x-show="finished && completionStatus === 'failed'"
@@ -195,7 +201,12 @@ import OpenRoutineModal from "@components/layout/training/routines/OpenRoutineMo
             onCancel="cancelFinish()"
             onConfirm="confirmFinish()"
             dismissible={false}
-          />
+          >
+            <InlayRow
+              slot="context"
+              rowExpr="stepContextRow()"
+            />
+          </ConfirmDialog>
         </div>
         <div
           x-show="finished && completionStatus === 'failed'"
@@ -261,7 +272,12 @@ import OpenRoutineModal from "@components/layout/training/routines/OpenRoutineMo
             onCancel="cancelSessionFinish()"
             onConfirm="confirmSessionFinish()"
             dismissible={false}
-          />
+          >
+            <InlayRow
+              slot="context"
+              rowExpr="stepContextRow()"
+            />
+          </ConfirmDialog>
         </div>
         <div
           x-show="finished && completionStatus === 'failed'"
