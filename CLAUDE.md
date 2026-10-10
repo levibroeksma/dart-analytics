@@ -33,7 +33,7 @@ Personal darts scoring app with long-term progression tracking. Architecture-fir
 
 # Superpowers Skills
 
-Process skills come from the official `superpowers` plugin (`superpowers@claude-plugins-official`, declared in `.claude/settings.json`) and are invoked under their `superpowers:` prefix. They are not vendored into `.claude/skills/` — that directory holds only this repo's own skills. Never copy a plugin skill into the repo to edit it; carry the deviation in the paired file below instead, which is always a *delta* — never a copy of upstream text that can drift. (2026-09-18, D311)
+Process skills come from the official `superpowers` plugin (`superpowers@claude-plugins-official`, declared in `.claude/settings.json`) and are invoked under their `superpowers:` prefix. In cloud sessions the `SessionStart` hook (`.claude/hooks/session-start.sh`) installs the plugin when absent (2026-10-10, D441). They are not vendored into `.claude/skills/` — that directory holds only this repo's own skills. Never copy a plugin skill into the repo to edit it; carry the deviation in the paired file below instead, which is always a *delta* — never a copy of upstream text that can drift. (2026-09-18, D311)
 
 Where a plugin skill and this repo disagree, load both — the plugin skill for the procedure, the pairing for what this repo does differently:
 
