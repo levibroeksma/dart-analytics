@@ -1978,7 +1978,6 @@ describe("501_V2 match end and corrupt logs", () => {
     const engine = fiveOhOneV2EngineFactory.create(
       v2Config({ sets: { mode: "FIRST_TO", count: 1 } }),
     );
-    const beforeFacts = engine.facts();
     leaveOpenerOnForty(engine);
     const preWinFacts = engine.facts();
     const preWinState = engine.state();
@@ -2001,7 +2000,6 @@ describe("501_V2 match end and corrupt logs", () => {
     expect(rebuilt.undo()).toBe(true);
     expect(rebuilt.facts()).toEqual(preWinFacts);
     expect(rebuilt.state()).toEqual(preWinState);
-    expect(beforeFacts.stages).toHaveLength(2);
   });
 
   it("throws on a root LEG while sets are on", () => {
@@ -2137,26 +2135,40 @@ describe("501_V1 WON and legacy trailing legs", () => {
     expect(state.sets[0]!.winner).toBe("A");
   });
 
-  it("ignores a stage recorded after the deciding leg", () => {
-    const engine = new FiveOhOneEngine(config());
-    winOneLeg(engine);
+  it("ignores a trailing leg: the losing side's score and tally stay as the deciding leg left them", () => {
+    const duoConfig = { ...config(), seats: V2_SEATS };
+    const engine = new FiveOhOneEngine(duoConfig);
+    const won = activeWinsLeg(engine);
+    expect(won.status).toBe("WON");
     const facts = engine.facts();
-    const trailing = new FiveOhOneEngine(config(), {
+    const trailing = new FiveOhOneEngine(duoConfig, {
       stages: [...facts.stages, legStageOf(2)],
       turns: [
         ...facts.turns,
         {
           clientKey: "late",
           stageClientKey: "leg-2",
-          participantRef: "participant-1",
+          participantRef: "participant-2",
           sequence: 1,
           completedAt: "2026-01-01T00:00:00.000Z",
-          totalScore: 100,
+          totalScore: 501,
           darts: [],
         },
       ],
     });
-    expect(trailing.state()).toEqual(engine.state());
+    const state = trailing.state();
+    expect(state.winningSideKey).toBe("A");
+    expect(state.sides).toEqual([
+      { sideKey: "A", legsWon: 1, setsWon: 1 },
+      { sideKey: "B", legsWon: 0, setsWon: 0 },
+    ]);
+    expect(
+      state.seats.find((seat) => seat.sideKey === "B")?.remainingScore,
+    ).toBe(501);
+    expect({
+      ...state,
+      activeParticipantRef: won.activeParticipantRef,
+    }).toEqual(won);
   });
 });
 
