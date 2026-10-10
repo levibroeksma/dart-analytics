@@ -37,9 +37,8 @@ import type {
 const DARTS_PER_VISIT = 3;
 
 /**
- * Builds the `LEG` stage for leg `sequence`. Legs are root stages — 501 has no
- * enclosing MATCH or SET stage, so every leg's `parentClientKey` is null and
- * its `sequence` is its position in the match.
+ * Builds the root `LEG` stage for leg `sequence`, used when sets are off: its
+ * `parentClientKey` is null and its `sequence` is its position in the match.
  */
 function legStage(sequence: number): StageFact {
   return {
@@ -50,6 +49,7 @@ function legStage(sequence: number): StageFact {
   };
 }
 
+/** Builds the root `SET` stage for set `sequence`; its legs name it as their parent. */
 function setStage(sequence: number): StageFact {
   return {
     clientKey: `set-${sequence}`,
@@ -59,6 +59,7 @@ function setStage(sequence: number): StageFact {
   };
 }
 
+/** Builds the `LEG` stage numbered `sequence` inside set `setSequence`. */
 function setLegStage(setSequence: number, sequence: number): StageFact {
   return {
     clientKey: `set-${setSequence}-leg-${sequence}`,
@@ -279,9 +280,13 @@ type LegFold = {
 
 /**
  * Folds every LEG in play order, grouping winners by their SET parent (root
- * legs form one group).
+ * legs form one group). A V1 snapshot (flat legacy log) stops folding at the
+ * leg that decides the match and ignores any later stage, leaving the losing
+ * seats' remaining scores as that leg left them. A V2 snapshot treats any LEG
+ * or SET after the deciding leg as corrupt.
  * @throws when the tree contradicts the format: a LEG naming an unknown set,
- *   a SET under a sets-off format, or a root LEG under a sets-on format.
+ *   a SET under a sets-off format, a root LEG under a sets-on format, or a
+ *   stage after the match was decided (V2 only).
  */
 function foldLegs(
   facts: EngineFacts,
@@ -293,8 +298,16 @@ function foldLegs(
   );
   const winnersBySet: string[][] = [];
   const groupOf = new Map<string | null, number>();
+  const legacy = "legsToWin" in config;
+  const format = matchFormatOf(config);
+  const sideKeys = sidesOf(config.seats);
+  let decided = false;
 
   for (const stage of facts.stages) {
+    if (decided) {
+      if (legacy) break;
+      throw new Error("501: stages recorded after the match was won.");
+    }
     if (stage.stageTypeKey === "SET") {
       if (!setsOn) {
         throw new Error(
@@ -320,7 +333,10 @@ function foldLegs(
       groupOf.set(null, group);
     }
     const winner = foldLeg(legVisitsOf(facts, stage), config, remaining);
-    if (winner) winnersBySet[group]!.push(winner.sideKey);
+    if (winner) {
+      winnersBySet[group]!.push(winner.sideKey);
+      decided = foldMatch(format, sideKeys, winnersBySet).winner !== null;
+    }
   }
 
   return { winnersBySet, remaining };
@@ -344,9 +360,6 @@ export function foldFiveOhOneState(
   if (fold.sets.slice(0, -1).some((set) => set.winner === null)) {
     throw new Error("501: a set was opened before the previous set was won.");
   }
-  if (fold.winner !== null && winnersBySet.length > fold.sets.length) {
-    throw new Error("501: stages recorded after the match was won.");
-  }
   const currentSet = fold.sets.at(-1)!;
 
   return {
@@ -368,9 +381,10 @@ export function foldFiveOhOneState(
 
 /**
  * 501: a match in the format `matchFormatOf(config)` names, each leg started
- * at `startingScore` and won by a visit whose final dart lands in a double. The engine owns the fact log —
- * one `LEG` stage per leg (under a `SET` stage when sets are on) and one turn per visit, carrying the visit total
- * with no dart rows because 501 is a quick-score game. Every seat's
+ * at `startingScore` and won by a visit whose final dart lands in a double.
+ * The engine owns the fact log — one `LEG` stage per leg (under a `SET` stage
+ * when sets are on) and one turn per visit, carrying the visit total with no
+ * dart rows because 501 is a quick-score game. Every seat's
  * `remainingScore` and every side's `legsWon` are derived by folding those
  * turns through `foldFiveOhOneState`, never accumulated: a bust turn stores
  * `totalScore: 0`, so replaying the log reproduces the leg exactly.
@@ -433,7 +447,7 @@ export class FiveOhOneEngine implements GameEngine<
       return;
     }
     const openSet = this.stages.filter((s) => s.stageTypeKey === "SET").at(-1)!;
-    if (state.sets.at(-1)?.winner != null) {
+    if ((state.sets.at(-1)?.winner ?? null) !== null) {
       const next = openSet.sequence + 1;
       this.stages.push(setStage(next), setLegStage(next, 1));
       return;
