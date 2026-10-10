@@ -267,6 +267,21 @@ export function undoLastUnit(turns: TurnFact[]): boolean {
   return true;
 }
 
+function popEmptyTrailingSet(stages: StageFact[]): void {
+  const last = stages.at(-1);
+  if (
+    stages.length > 1 &&
+    last?.stageTypeKey === "SET" &&
+    !stages.some((stage) => stage.parentClientKey === last.clientKey)
+  ) {
+    stages.pop();
+  }
+}
+
+/**
+ * Pops the stage `record()` opened after the undone turn, and the `SET` that
+ * opened with it when that leg was its only child.
+ */
 function popStageOpenedBy(stages: StageFact[], stageClientKey: string): void {
   const openStage = stages.at(-1);
   if (
@@ -275,6 +290,7 @@ function popStageOpenedBy(stages: StageFact[], stageClientKey: string): void {
     openStage.clientKey !== stageClientKey
   ) {
     stages.pop();
+    popEmptyTrailingSet(stages);
   }
 }
 

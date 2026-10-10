@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   activeSeat,
   seatOf,
+  startIndexOf,
   startingSeatFor,
 } from "@modules/game/seat-rota.module";
 import type { EngineFacts, StageFact, TurnFact } from "@modules/types";
@@ -264,5 +265,51 @@ describe("activeSeat with a completion predicate", () => {
       turns: [closedTurn("p1", 1)],
     };
     expect(activeSeat(facts, seatList, "PER_SEAT").participantRef).toBe("p2");
+  });
+});
+
+function set(sequence: number): StageFact {
+  return {
+    clientKey: `set-${sequence}`,
+    stageTypeKey: "SET",
+    parentClientKey: null,
+    sequence,
+  };
+}
+function setLeg(setSequence: number, sequence: number): StageFact {
+  return {
+    clientKey: `set-${setSequence}-leg-${sequence}`,
+    stageTypeKey: "LEG",
+    parentClientKey: `set-${setSequence}`,
+    sequence,
+  };
+}
+
+describe("startIndexOf", () => {
+  it("root leg: sequence − 1", () => {
+    expect(startIndexOf(leg(3), [leg(1), leg(2), leg(3)])).toBe(2);
+  });
+  it("nested leg: (set − 1) + (leg − 1)", () => {
+    const stages = [set(1), setLeg(1, 1), set(2), setLeg(2, 1), setLeg(2, 2)];
+    expect(startIndexOf(setLeg(2, 2), stages)).toBe(2);
+  });
+});
+
+describe("activeSeat with sets (SHARED)", () => {
+  it.each([2, 3, 4])("set k opens on seat k with %i seats", (count) => {
+    const roster = seats(count);
+    for (let k = 1; k <= count + 1; k += 1) {
+      const stages = [
+        ...Array.from({ length: k }, (_u, i) => set(i + 1)),
+        setLeg(k, 1),
+      ];
+      const facts: EngineFacts = { stages, turns: [] };
+      expect(activeSeat(facts, roster, "SHARED")).toBe(roster[(k - 1) % count]);
+    }
+  });
+  it("sets off: unchanged leg rotation", () => {
+    const roster = seats(3);
+    const facts: EngineFacts = { stages: [leg(1), leg(2)], turns: [] };
+    expect(activeSeat(facts, roster, "SHARED")).toBe(roster[1]);
   });
 });

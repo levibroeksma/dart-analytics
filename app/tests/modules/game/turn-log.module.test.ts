@@ -425,3 +425,49 @@ describe("turnsBeforeVisit", () => {
     expect(turnsBeforeVisit([first], first)).toEqual([]);
   });
 });
+
+describe("undoStagedTurn across a set boundary", () => {
+  const stage = (
+    clientKey: string,
+    type: "SET" | "LEG",
+    parent: string | null,
+    sequence: number,
+  ): StageFact => ({
+    clientKey,
+    stageTypeKey: type,
+    parentClientKey: parent,
+    sequence,
+  });
+  const visit = (stageClientKey: string, sequence: number): TurnFact => ({
+    clientKey: `t-${stageClientKey}-${sequence}`,
+    stageClientKey,
+    participantRef: "p0",
+    sequence,
+    completedAt: "2026-10-10T00:00:00.000Z",
+    totalScore: 40,
+    darts: [],
+  });
+
+  it("pops the new set and its first leg with the checkout that opened them", () => {
+    const stages = [
+      stage("set-1", "SET", null, 1),
+      stage("set-1-leg-1", "LEG", "set-1", 1),
+      stage("set-2", "SET", null, 2),
+      stage("set-2-leg-1", "LEG", "set-2", 1),
+    ];
+    const turns = [visit("set-1-leg-1", 1)];
+    expect(undoStagedTurn(turns, stages)).toBe(true);
+    expect(stages.map((s) => s.clientKey)).toEqual(["set-1", "set-1-leg-1"]);
+  });
+
+  it("keeps a set that still holds a leg", () => {
+    const stages = [
+      stage("set-1", "SET", null, 1),
+      stage("set-1-leg-1", "LEG", "set-1", 1),
+      stage("set-1-leg-2", "LEG", "set-1", 2),
+    ];
+    const turns = [visit("set-1-leg-1", 1)];
+    undoStagedTurn(turns, stages);
+    expect(stages.map((s) => s.clientKey)).toEqual(["set-1", "set-1-leg-1"]);
+  });
+});

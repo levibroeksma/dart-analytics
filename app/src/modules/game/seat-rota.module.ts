@@ -1,5 +1,5 @@
 import type { SeatFact } from "@lib/types";
-import type { EngineFacts, StageOwnership, TurnFact } from "./types";
+import type { EngineFacts, StageFact, StageOwnership, TurnFact } from "./types";
 
 /**
  * Which seat starts leg `legIndex` (0-based). The starting seat rotates over
@@ -27,6 +27,28 @@ export function seatOf(turn: TurnFact, seats: readonly SeatFact[]): SeatFact {
     );
   }
   return seat;
+}
+
+/**
+ * The 0-based rota index a leg opens on: the sum of `sequence − 1` over the
+ * leg and its ancestors. Root legs keep `leg − 1`; a leg in set k starts at
+ * `(k − 1) + (leg − 1)`, so set k opens on seat k (501.md, Per-set throw rotation).
+ */
+export function startIndexOf(
+  stage: StageFact,
+  stages: readonly StageFact[],
+): number {
+  let index = 0;
+  let cursor: StageFact | undefined = stage;
+  while (cursor) {
+    index += cursor.sequence - 1;
+    const parentKey: string | null = cursor.parentClientKey;
+    cursor =
+      parentKey === null
+        ? undefined
+        : stages.find((candidate) => candidate.clientKey === parentKey);
+  }
+  return index;
 }
 
 /**
@@ -81,6 +103,9 @@ export function activeSeat(
   const thrownInStage = facts.turns.filter(
     (turn) => turn.stageClientKey === openStage.clientKey,
   ).length;
-  const start = startingSeatFor(openStage.sequence - 1, seats.length);
+  const start = startingSeatFor(
+    startIndexOf(openStage, facts.stages),
+    seats.length,
+  );
   return seats[(start + thrownInStage) % seats.length];
 }
