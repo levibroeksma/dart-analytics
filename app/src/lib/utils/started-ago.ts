@@ -11,7 +11,9 @@ const DAY_MS = 24 * HOUR_MS;
  * @returns A label such as "JUST NOW", "18 MIN AGO", "1 H AGO", "YESTERDAY" or "2 D AGO".
  */
 export function startedAgo(startedAt: string, now: Date): string {
-  const elapsed = Math.max(0, now.getTime() - new Date(startedAt).getTime());
+  const startedMs = new Date(startedAt).getTime();
+  if (Number.isNaN(startedMs)) return "JUST NOW";
+  const elapsed = Math.max(0, now.getTime() - startedMs);
   if (elapsed < MINUTE_MS) return "JUST NOW";
   if (elapsed < HOUR_MS) return `${Math.floor(elapsed / MINUTE_MS)} MIN AGO`;
   if (elapsed < DAY_MS) return `${Math.floor(elapsed / HOUR_MS)} H AGO`;
