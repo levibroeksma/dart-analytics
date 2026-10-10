@@ -6,6 +6,7 @@
  * @param {string} nextExpr Alpine statement run by the next button
  * @param {string} prevLabel Accessible name of the previous button
  * @param {string} nextLabel Accessible name of the next button
+ * @param {string} [labelExpr] Alpine expression for a screen-reader-only label announced before the position
  * @param {string} [class] Extra classes for the pill
  */
 interface Props {
@@ -14,6 +15,7 @@ interface Props {
   nextExpr: string;
   prevLabel: string;
   nextLabel: string;
+  labelExpr?: string;
   class?: string;
   [key: string]: unknown;
 }
@@ -25,6 +27,7 @@ const {
   nextExpr,
   prevLabel,
   nextLabel,
+  labelExpr,
   class: classNameProp,
   ...props
 }: Props = Astro.props;
@@ -61,11 +64,20 @@ const stepClass = "size-6 border-0 p-0 text-foreground";
       aria-hidden="true"
     />
   </IconBtn>
-  <span
-    class="tabular-nums"
-    aria-live="polite"
-    x-text={positionExpr}
-  ></span>
+  <span aria-live="polite">
+    {
+      labelExpr && (
+        <span
+          class="sr-only"
+          x-text={`(${labelExpr}) + ', '`}
+        />
+      )
+    }
+    <span
+      class="tabular-nums"
+      x-text={positionExpr}
+    ></span>
+  </span>
   <IconBtn
     variant="ghost"
     ariaLabel={nextLabel}

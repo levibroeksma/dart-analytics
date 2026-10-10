@@ -3,7 +3,10 @@
  * Homepage deck of the player's open games, run by `resumeDeck()`: a pulse
  * skeleton while loading, then the newest game on top of a card stack with
  * a pager and swipe to step through the rest. Hidden when there is nothing
- * to resume or the load failed. The top card is one persistent element so
+ * to resume or the load failed. Only the session this device holds can be
+ * resumed: its button reads "Resume game", any other reads "Start over"
+ * beside a note that its progress is elsewhere (setup abandons it, #897).
+ * The top card is one persistent element so
  * its phase animation and `animationend` survive an index change.
  * @param {string} [class] Extra classes for the section
  */
@@ -85,6 +88,7 @@ const phaseClassExpr =
           nextExpr="next()"
           prevLabel="Previous open game"
           nextLabel="Next open game"
+          labelExpr="top()?.title"
           x-show="cards.length > 1"
           x-cloak
         />
@@ -105,6 +109,12 @@ const phaseClassExpr =
             class="text-[13px] font-semibold text-accent-foreground-muted"
             x-text="top()?.detail"
           ></span>
+          <span
+            class="text-[13px] font-semibold text-accent-foreground-muted"
+            x-show="!top()?.local"
+            x-cloak
+            >Progress is on another device</span
+          >
         </div>
         <div
           class="flex flex-none flex-col items-end gap-0.5"
@@ -122,7 +132,6 @@ const phaseClassExpr =
         </div>
       </div>
       <Button
-        title="Resume game"
         variant="secondary"
         loadingExpr="false"
         class="glass-button h-12 w-full rounded-lg text-[15px]"
@@ -132,7 +141,10 @@ const phaseClassExpr =
           slot="iconBefore"
           class="size-4.5"
           aria-hidden="true"
+          x-show="top()?.local"
+          x-cloak
         />
+        <span x-text="top()?.local ? 'Resume game' : 'Start over'"></span>
       </Button>
     </div>
   </CardStack>

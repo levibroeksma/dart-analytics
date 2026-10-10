@@ -1453,12 +1453,13 @@ export type GamesIndexContext = {
   noneVisible(this: GamesIndexContext): boolean;
 };
 
-/** One card of the home resume deck: a resumable session's title, setup route and progress. */
+/** One card of the home resume deck: a session's title, setup route and progress; `local` is true when this device holds the session and can resume it. */
 export type ResumeCard = {
   sessionId: string;
   title: string;
   href: string;
   started: string;
+  local: boolean;
   detail: string;
   big: { value: string; label: string } | null;
 };

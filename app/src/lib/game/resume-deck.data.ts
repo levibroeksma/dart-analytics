@@ -33,6 +33,18 @@ function armSettleFallback(deck: ResumeDeckContext) {
   }, SETTLE_FALLBACK_MS);
 }
 
+function holdsSession(
+  session: SessionActiveData,
+  local: LocalGame | null,
+): local is LocalGame {
+  return (
+    local !== null &&
+    session.rulesetVersionKey !== null &&
+    local.sessionId === session.sessionId &&
+    local.rulesetVersionKey === session.rulesetVersionKey
+  );
+}
+
 /**
  * The local `game` store's progress for a session, or null when the store holds
  * a different session or ruleset (or its fact log summarises to nothing).
@@ -41,9 +53,9 @@ function localProgress(
   session: SessionActiveData,
   local: LocalGame | null,
 ): SessionProgress | null {
-  if (!local || session.rulesetVersionKey === null) return null;
-  if (local.sessionId !== session.sessionId) return null;
-  if (local.rulesetVersionKey !== session.rulesetVersionKey) return null;
+  if (!holdsSession(session, local) || session.rulesetVersionKey === null) {
+    return null;
+  }
   return summarizeProgress(session.rulesetVersionKey, local.configSnapshot, {
     stages: local.stages,
     turns: local.turns,
@@ -62,6 +74,7 @@ function toResumeCard(
     title: card.title,
     href: card.href,
     started: `STARTED ${startedAgo(session.startedAt, now)}`,
+    local: holdsSession(session, local),
     detail: progress?.detail ?? "",
     big: progress?.big ?? null,
   };
@@ -72,7 +85,8 @@ function toResumeCard(
  * and sessions whose ruleset has no game card are dropped. Progress comes from
  * the server; when the local `game` store holds that same session (matching id
  * and ruleset) its fact log is summarised instead, falling back to the
- * server's progress when it yields none.
+ * server's progress when it yields none. A card's `local` flag marks the
+ * session the store holds, the only one the setup page can resume.
  */
 export function toResumeCards(
   sessions: SessionActiveData[],

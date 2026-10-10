@@ -43,6 +43,7 @@ const cardsOf = (count: number) =>
     title: `Game ${i}`,
     href: `/games/${i}/setup`,
     started: "STARTED JUST NOW",
+    local: false,
     detail: "",
     big: null,
   }));
@@ -111,6 +112,7 @@ describe("toResumeCards", () => {
       title: "501",
       href: "/games/501/setup",
       started: "STARTED 18 MIN AGO",
+      local: false,
       detail: "vs Dartbot · Leg 3",
       big: { value: "170", label: "TO GO" },
     });
@@ -175,6 +177,22 @@ describe("toResumeCards", () => {
       ["s-501", "local detail"],
     ]);
     expect(summarizeProgress).toHaveBeenCalledTimes(1);
+  });
+
+  it("flags local only on an exact session and ruleset match", () => {
+    const [card] = toResumeCards([session()], localGame(), NOW);
+    expect(card.local).toBe(true);
+  });
+
+  it("is not local for a stale store, an empty store or a ruleset mismatch", () => {
+    const flag = (local: LocalGame | null) =>
+      toResumeCards([session()], local, NOW)[0].local;
+    expect(flag(localGame({ sessionId: "other-session" }))).toBe(false);
+    expect(flag(localGame({ sessionId: null, rulesetVersionKey: null }))).toBe(
+      false,
+    );
+    expect(flag(null)).toBe(false);
+    expect(flag(localGame({ rulesetVersionKey: "121_V1" }))).toBe(false);
   });
 
   it("keeps server progress when the local summary is null", () => {

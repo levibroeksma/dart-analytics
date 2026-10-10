@@ -4,7 +4,7 @@ const DAY_MS = 24 * HOUR_MS;
 
 /**
  * Formats how long ago a session started as an uppercase mono label.
- * Future or same-minute start times read as "JUST NOW".
+ * Future or same-minute start times, and an unparseable input, read as "JUST NOW".
  *
  * @param startedAt - ISO 8601 timestamp of the session start.
  * @param now - Reference instant the elapsed time is measured against.
