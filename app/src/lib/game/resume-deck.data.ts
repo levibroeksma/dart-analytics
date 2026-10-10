@@ -16,14 +16,18 @@ const MAX_STACK_LAYERS = 2;
 const SETTLE_FALLBACK_MS = 600;
 
 /**
- * Settles the deck out of its current non-idle phase after
- * `SETTLE_FALLBACK_MS` unless an `animationend` already moved it on, so a
- * swallowed animation event cannot lock the deck.
+ * Re-arms the deck's single fallback timer for its current phase: any pending
+ * timer is cleared first, and none is armed once the deck is idle. When the
+ * timer fires it settles the deck unless an `animationend` already moved it
+ * on, so a swallowed animation event cannot lock the deck.
  */
 function armSettleFallback(deck: ResumeDeckContext) {
+  if (deck.settleTimer !== null) clearTimeout(deck.settleTimer);
+  deck.settleTimer = null;
   const armedPhase = deck.phase;
   if (armedPhase === "idle") return;
-  setTimeout(() => {
+  deck.settleTimer = setTimeout(() => {
+    deck.settleTimer = null;
     if (deck.phase === armedPhase) deck.settle();
   }, SETTLE_FALLBACK_MS);
 }
@@ -91,6 +95,7 @@ export function resumeDeck() {
     failed: false,
     swipeX: null as number | null,
     swipeY: null as number | null,
+    settleTimer: null as ReturnType<typeof setTimeout> | null,
 
     async init(this: ResumeDeckContext) {
       this.loading = true;
@@ -144,6 +149,7 @@ export function resumeDeck() {
         armSettleFallback(this);
       } else if (this.phase === "rise" || this.phase === "in") {
         this.phase = "idle";
+        armSettleFallback(this);
       }
     },
 

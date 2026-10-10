@@ -1484,6 +1484,7 @@ export type ResumeDeckContext = {
   failed: boolean;
   swipeX: number | null;
   swipeY: number | null;
+  settleTimer: ReturnType<typeof setTimeout> | null;
   $store: { game: LocalGame };
   init(this: ResumeDeckContext): Promise<void>;
   top(this: ResumeDeckContext): ResumeCard | null;

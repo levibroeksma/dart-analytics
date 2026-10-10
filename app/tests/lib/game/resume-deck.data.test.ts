@@ -294,6 +294,30 @@ describe("resumeDeck", () => {
       expect(deck.phase).toBe("idle");
     });
 
+    it("a stale fallback timer cannot cut a later in-phase short", () => {
+      const deck = createDeck({ cards: cardsOf(3) });
+      deck.prev();
+      vi.advanceTimersByTime(400);
+      deck.settle();
+      expect(deck.phase).toBe("idle");
+      deck.prev();
+      expect(deck.phase).toBe("in");
+      vi.advanceTimersByTime(300);
+      expect(deck.phase).toBe("in");
+      vi.advanceTimersByTime(300);
+      expect(deck.phase).toBe("idle");
+    });
+
+    it("leaves no timer pending once idle", () => {
+      const deck = createDeck({ cards: cardsOf(3) });
+      deck.next();
+      deck.settle();
+      deck.settle();
+      expect(deck.phase).toBe("idle");
+      expect(deck.settleTimer).toBeNull();
+      expect(vi.getTimerCount()).toBe(0);
+    });
+
     it("wraps from the last card to the first", () => {
       const deck = createDeck({ cards: cardsOf(3), index: 2 });
       deck.next();
