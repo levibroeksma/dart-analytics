@@ -97,11 +97,12 @@ Sessions are created with a ruleset and a configuration source. The configuratio
 - **Participants (v1):** the server derives exactly one participant of type `PLAYER` for the authenticated player, `displayName` copied from `players.display_name`, and returns its `ref`. Guest/DartBot seats are no longer deferred — see **Participants (guests)** below for the shipped `participants[]` input (D350, supersedes D61). <!-- 2026-07-12; restated as shipped 2026-09-21 -->
 - **Participants (guests):** the optional `participants[]` input is now implemented as that decision anticipated. Array ORDER is seat order — it decides who throws first in leg 1. Omitting the field reproduces the single-`PLAYER` session above exactly. The `PLAYER` seat's `displayName` is always copied server-side from `players.display_name`; a client-supplied value is ignored, because migration `0005`'s CHECK requires exactly that. The seats are also written into the configuration snapshot under `seats`, in the same transaction as the participant rows. <!-- 2026-08-21 -->
 - **Seat rejections** (all `VALIDATION_FAILED`, asserted once in `app/src/services/session-seats.service.ts`, and nothing is written): fewer than 1 or more than 4 seats; not exactly one `PLAYER`; a `GUEST` with a blank name; two seats sharing one `sideKey` (2v2 is not implemented); more seats than the requested ruleset's own cap — see `SEAT_CAPS` below. Duplicate guest display names are deliberately allowed — seats are identified by ref, not name. <!-- 2026-08-21; seat cap generalized from a single 501_V1 special case to SEAT_CAPS 2026-08-22 -->
-- **`SEAT_CAPS`** (`app/src/services/session-seats.service.ts`) — the most seats a session may request, keyed by `rulesetVersionKey`. A ruleset with no entry defaults to a cap of **1** (any 2nd seat rejected). `501_V1` alone keeps room for a future 2v2; the other eight rulesets each support exactly one opponent (1v1) per `2026-08-22-single-opponent-seat-remaining-engines-design.md`:
+- **`SEAT_CAPS`** (`app/src/services/session-seats.service.ts`) — the most seats a session may request, keyed by `rulesetVersionKey`. A ruleset with no entry defaults to a cap of **1** (any 2nd seat rejected). `501_V1` and `501_V2` alone keep room for a future 2v2; the other eight rulesets each support exactly one opponent (1v1) per `2026-08-22-single-opponent-seat-remaining-engines-design.md`:
 
   | Ruleset version key   | Seat cap |
   | ---------------------- | -------- |
   | `501_V1`                | 4        |
+  | `501_V2`                | 4        |
   | `BOBS27_V1`              | 2        |
   | `121_V1`                 | 2        |
   | `AROUND_THE_CLOCK_V1`    | 2        |
@@ -112,7 +113,7 @@ Sessions are created with a ruleset and a configuration source. The configuratio
   | `DOUBLES_TRAINING_V1`    | 2        |
   | *(any other ruleset)*   | 1 (default — reject) |
 
-  <!-- 2026-08-22 -->
+  <!-- 2026-08-22; `501_V2` row 2026-10-10 -->
 - The events batch endpoint is unchanged: a turn's `participantRef` may now vary within one batch, which `validateBatchReferences` already allowed. <!-- 2026-08-21 -->
 - **Activity (v1):** the session's activity is created and managed server-side. A standalone game session gets an activity of its own; a training routine's activity spans every step session started under it, so one activity to N sessions is the shipped shape, not a deferred one (D301, issue #339). Routine-run writes ship as `POST /api/training-sessions` and `POST /api/training-sessions/:activityId/steps`. <!-- 2026-07-12; restated as shipped 2026-09-17 -->
 - Config is **always** copied (materialized as an `exercise_configurations` snapshot), never referenced.
