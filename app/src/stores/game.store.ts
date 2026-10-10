@@ -1,6 +1,9 @@
 import type { PersistFactory } from "@alpinejs/persist";
 import type { RulesetVersionKey, SeatFact, SessionModePair } from "@lib/types";
-import { sessionContextRow } from "@modules/game/session-context.module";
+import {
+  contextRowParts,
+  sessionContextRow,
+} from "@modules/game/session-context.module";
 import type {
   EngineFacts,
   SessionContextRow,
@@ -159,6 +162,11 @@ export function gameStore(persist: PersistFactory) {
         },
         { expectedSessionId, fallbackTitle },
       );
+    },
+
+    /** The row's left-hand parts, empty ones dropped; read by `InlayRow`. */
+    contextRowParts(row: SessionContextRow | null): string[] {
+      return contextRowParts(row);
     },
 
     reset() {

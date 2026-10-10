@@ -12,6 +12,7 @@ const { gameTitle = "Score Training" }: Props = Astro.props;
 
 // Components
 import Modal from "@components/ui/Modal.astro";
+import InlayRow from "@components/ui/InlayRow.astro";
 import Button from "@components/forms/Button.astro";
 import SheetActions from "@components/ui/SheetActions.astro";
 ---
@@ -35,6 +36,9 @@ import SheetActions from "@components/ui/SheetActions.astro";
   >
     You have an active {gameTitle} session. Continue playing or start a new one?
   </p>
+  <InlayRow
+    rowExpr="$store.game.contextRow(activeSession?.sessionId ?? null, activeSession?.gameTypeName ?? null)"
+  />
   <p
     class="text-center text-sm text-error"
     x-show="error"

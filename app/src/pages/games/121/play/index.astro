@@ -5,6 +5,7 @@ import OneTwentyOne from "@components/layout/games/interfaces/OneTwentyOne.astro
 import CountdownPauseControl from "@components/layout/games/CountdownPauseControl.astro";
 import CheckoutConfirm from "@components/layout/games/CheckoutConfirm.astro";
 import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
+import InlayRow from "@components/ui/InlayRow.astro";
 import OneTwentyOneResults from "@components/layout/games/result-modals/OneTwentyOneResults.astro";
 import NoSessionPanel from "@components/layout/games/NoSessionPanel.astro";
 import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocked.astro";
@@ -60,7 +61,12 @@ import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocke
         onCancel="cancelSessionFinish()"
         onConfirm="confirmSessionFinish()"
         dismissible={false}
-      />
+      >
+        <InlayRow
+          slot="context"
+          rowExpr="$store.game.contextRow()"
+        />
+      </ConfirmDialog>
     </div>
 
     {/* Results modal (overlay) */}

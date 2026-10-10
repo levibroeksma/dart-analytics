@@ -4,6 +4,7 @@ import GameLayout from "@layouts/GameLayout.astro";
 import TenUpOneDown from "@components/layout/games/interfaces/TenUpOneDown.astro";
 import CountdownPauseControl from "@components/layout/games/CountdownPauseControl.astro";
 import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
+import InlayRow from "@components/ui/InlayRow.astro";
 import CheckoutConfirm from "@components/layout/games/CheckoutConfirm.astro";
 import TenUpOneDownResults from "@components/layout/games/result-modals/TenUpOneDownResults.astro";
 import NoSessionPanel from "@components/layout/games/NoSessionPanel.astro";
@@ -59,7 +60,12 @@ import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocke
         onCancel="cancelFinish()"
         onConfirm="confirmFinish()"
         dismissible={false}
-      />
+      >
+        <InlayRow
+          slot="context"
+          rowExpr="$store.game.contextRow()"
+        />
+      </ConfirmDialog>
     </div>
 
     {/* Results modal (overlay) */}

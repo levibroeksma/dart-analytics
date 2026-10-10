@@ -1,45 +1,81 @@
 ---
 /**
  * Inlay context row — dot-separated meta on the left, optional value on the
- * right. Every part and the value are Alpine expressions.
- * @param {string[]} parts Alpine expressions rendered left to right, dot-separated
+ * right. Every part and the value are Alpine expressions. With `rowExpr` the
+ * row renders from a `SessionContextRow | null`: empty parts drop with their
+ * dot, and the whole row hides when nothing is left.
+ * @param {string[]} [parts] Alpine expressions rendered left to right, dot-separated
  * @param {string} [valueExpr] Alpine expression for the right-hand value
+ * @param {string} [rowExpr] Alpine expression of a `SessionContextRow | null`; replaces `parts`/`valueExpr`
  */
 interface Props {
-  parts: string[];
+  parts?: string[];
   valueExpr?: string;
+  rowExpr?: string;
 }
 
 // Props
-const { parts, valueExpr }: Props = Astro.props;
+const { parts = [], valueExpr, rowExpr }: Props = Astro.props;
+
+// Derived
+const partsExpr = `$store.game.contextRowParts(${rowExpr})`;
+const rowValueExpr = `(${rowExpr})?.value`;
+const rowShowExpr = `${partsExpr}.length > 0 || ${rowValueExpr}`;
 ---
 
-<div
-  class="inset-well flex h-13 w-full items-center justify-between gap-3 rounded-2xl px-4"
->
-  <span
-    class="flex min-w-0 items-center gap-2 text-sm font-medium text-soft-foreground"
-  >
-    {
-      parts.map((part, index) => (
-        <>
-          {index > 0 && (
-            <span class="size-[3px] shrink-0 rounded-full bg-muted" />
-          )}
-          <span
-            class="truncate"
-            x-text={part}
-          />
-        </>
-      ))
-    }
-  </span>
-  {
-    valueExpr && (
+{
+  rowExpr ? (
+    <div
+      class="inset-well flex h-13 w-full items-center justify-between gap-3 rounded-2xl px-4"
+      x-show={rowShowExpr}
+      x-cloak
+    >
+      <span class="flex min-w-0 items-center gap-2 text-sm font-medium text-soft-foreground">
+        <template
+          x-for={`(part, index) in ${partsExpr}`}
+          {...{ ":key": "index" }}
+        >
+          <span class="flex min-w-0 items-center gap-2">
+            <span
+              class="size-[3px] shrink-0 rounded-full bg-muted"
+              x-show="index > 0"
+              x-cloak
+            />
+            <span
+              class="truncate"
+              x-text="part"
+            />
+          </span>
+        </template>
+      </span>
       <span
         class="font-display text-lg leading-none tabular-nums text-foreground"
-        x-text={valueExpr}
+        x-show={rowValueExpr}
+        x-text={rowValueExpr}
+        x-cloak
       />
-    )
-  }
-</div>
+    </div>
+  ) : (
+    <div class="inset-well flex h-13 w-full items-center justify-between gap-3 rounded-2xl px-4">
+      <span class="flex min-w-0 items-center gap-2 text-sm font-medium text-soft-foreground">
+        {parts.map((part, index) => (
+          <>
+            {index > 0 && (
+              <span class="size-[3px] shrink-0 rounded-full bg-muted" />
+            )}
+            <span
+              class="truncate"
+              x-text={part}
+            />
+          </>
+        ))}
+      </span>
+      {valueExpr && (
+        <span
+          class="font-display text-lg leading-none tabular-nums text-foreground"
+          x-text={valueExpr}
+        />
+      )}
+    </div>
+  )
+}

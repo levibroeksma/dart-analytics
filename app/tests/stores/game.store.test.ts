@@ -406,4 +406,18 @@ describe("setSessionModes", () => {
     });
     expect(store.contextRow("other")).toBeNull();
   });
+
+  it("contextRowParts delegates and drops nulls", () => {
+    const store = gameStore(stubPersistFactory());
+
+    expect(
+      store.contextRowParts({
+        title: "501",
+        stage: null,
+        round: "Round 3",
+        value: "141",
+      }),
+    ).toEqual(["501", "Round 3"]);
+    expect(store.contextRowParts(null)).toEqual([]);
+  });
 });
