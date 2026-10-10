@@ -16,7 +16,10 @@ import { doublesTrainingEngineFactory } from "@modules/game/doubles-training.eng
 import { bobs27EngineFactory } from "@modules/game/bobs27.engine.module";
 import { tuodEngineFactory } from "@modules/game/tuod.engine.module";
 import { shanghaiEngineFactory } from "@modules/game/shanghai.engine.module";
-import { aroundTheClockV2EngineFactory } from "@modules/game/around-the-clock.engine.module";
+import {
+  aroundTheClockEngineFactory,
+  aroundTheClockV2EngineFactory,
+} from "@modules/game/around-the-clock.engine.module";
 import type { DartObservation, EngineFacts } from "@modules/types";
 import type {
   AroundTheClockV2Snapshot,
@@ -204,6 +207,30 @@ describe("summarizeProgress — 501_V1", () => {
     });
   });
 
+  it("never lists a teammate after vs", () => {
+    const teammate: SeatFact = {
+      participantRef: "sam",
+      displayName: "Sam",
+      sideKey: "A",
+      participantTypeKey: "GUEST",
+    };
+    const secondBot: SeatFact = {
+      ...DARTBOT,
+      participantRef: "bot-2",
+      displayName: "Dartbot 2",
+    };
+    expect(
+      summarizeProgress(
+        "501_V1",
+        { ...fiveOhOneConfig, seats: [YOU, DARTBOT, teammate, secondBot] },
+        EMPTY_FACTS,
+      ),
+    ).toEqual({
+      detail: "vs Dartbot & Dartbot 2 · Leg 1 · First to 3 · 0–0",
+      big: { value: "501", label: "TO GO" },
+    });
+  });
+
   it("drops the opponents and the score when playing solo", () => {
     expect(
       summarizeProgress(
@@ -219,9 +246,9 @@ describe("summarizeProgress — 501_V1", () => {
 });
 
 describe("summarizeProgress — 121", () => {
-  it("121_V1 has no budget, so the round stands alone", () => {
+  it("121_V1 has no budget, so the attempt stands alone", () => {
     expect(summarizeProgress("121_V1", { seats: DUO }, EMPTY_FACTS)).toEqual({
-      detail: "Round 1",
+      detail: "Attempt 1",
       big: { value: "121", label: "TARGET" },
     });
   });
@@ -232,26 +259,36 @@ describe("summarizeProgress — 121", () => {
       { scoreAttempted: 45 },
     ]);
     expect(summarizeProgress("121_V1", { seats: DUO }, facts)).toEqual({
-      detail: "Round 1",
+      detail: "Attempt 1",
       big: { value: "121", label: "TARGET" },
     });
   });
 
-  it("121_V2 under a ROUNDS budget reads Round n of m", () => {
+  it("121_V1 advances the attempt once three visits close it", () => {
+    const solo = { seats: [YOU] };
+    const facts = factsAfter(oneTwentyOneEngineFactory, solo, [
+      { scoreAttempted: 0 },
+      { scoreAttempted: 0 },
+      { scoreAttempted: 0 },
+    ]);
+    expect(summarizeProgress("121_V1", solo, facts)?.detail).toBe("Attempt 2");
+  });
+
+  it("121_V2 under a ROUNDS budget reads Attempt n of m", () => {
     const config = {
       durationType: "ROUNDS" as const,
       durationValue: 10,
       seats: DUO,
     };
     expect(summarizeProgress("121_V2", config, EMPTY_FACTS)).toEqual({
-      detail: "Round 1 of 10",
+      detail: "Attempt 1 of 10",
       big: { value: "121", label: "TARGET" },
     });
     const facts = factsAfter(oneTwentyOneV2EngineFactory, config, [
       { scoreAttempted: 60 },
     ]);
     expect(summarizeProgress("121_V2", config, facts)?.detail).toBe(
-      "Round 1 of 10",
+      "Attempt 1 of 10",
     );
   });
 });
@@ -356,6 +393,16 @@ describe("summarizeProgress — SINGLES / DOUBLES_TRAINING", () => {
     ).toEqual({ detail: "Low → High", big: { value: "1", label: "TARGET" } });
   });
 
+  it("leaves the detail blank for an order mode it does not know", () => {
+    expect(
+      summarizeProgress(
+        "DOUBLES_TRAINING_V1",
+        { ...doublesConfig, orderMode: "SPIRAL" },
+        EMPTY_FACTS,
+      ),
+    ).toEqual({ detail: "", big: { value: "D20", label: "TARGET" } });
+  });
+
   it("DOUBLES_TRAINING_V1 labels the target as a double", () => {
     expect(
       summarizeProgress("DOUBLES_TRAINING_V1", doublesConfig, EMPTY_FACTS),
@@ -402,9 +449,9 @@ describe("summarizeProgress — BOBS27_V1", () => {
 });
 
 describe("summarizeProgress — TUOD_V1", () => {
-  it("reads Round n of m and the active seat's target", () => {
+  it("reads Attempt n of m and the active seat's target", () => {
     expect(summarizeProgress("TUOD_V1", tuodConfig, EMPTY_FACTS)).toEqual({
-      detail: "Round 1 of 10",
+      detail: "Attempt 1 of 10",
       big: { value: "41", label: "TARGET" },
     });
     const facts = factsAfter(tuodEngineFactory, tuodConfig, [
@@ -412,7 +459,7 @@ describe("summarizeProgress — TUOD_V1", () => {
       { checkedOut: false },
     ]);
     expect(summarizeProgress("TUOD_V1", tuodConfig, facts)).toEqual({
-      detail: "Round 2 of 10",
+      detail: "Attempt 2 of 10",
       big: { value: "40", label: "TARGET" },
     });
   });
@@ -481,5 +528,43 @@ describe("summarizeProgress — AROUND_THE_CLOCK", () => {
       detail: "Lap 1 · 20 → 1",
       big: { value: "19", label: "TARGET" },
     });
+  });
+});
+
+describe("summarizeProgress — the end of a path", () => {
+  it("a finished Around the Clock seat stays on BULL", () => {
+    const solo = { seats: [YOU] };
+    const facts = factsAfter(aroundTheClockEngineFactory, solo, [
+      ...ORDER.slice(0, 20).map(single),
+      { ...single(25), hitZoneKey: "OUTER_BULL" as const },
+    ]);
+    expect(summarizeProgress("AROUND_THE_CLOCK_V1", solo, facts)).toEqual({
+      detail: "Lap 1 · 1 → 20",
+      big: { value: "BULL", label: "TARGET" },
+    });
+  });
+
+  it("a finished Doubles Training seat stays on BULL", () => {
+    const solo = { ...doublesConfig, seats: [YOU] };
+    const hits = solo.targetOrder.map((number): DartObservation =>
+      number === 25
+        ? { ...single(25), hitZoneKey: "INNER_BULL" }
+        : { ...single(number), hitZoneKey: "DOUBLE" },
+    );
+    const facts = factsAfter(doublesTrainingEngineFactory, solo, hits);
+    expect(summarizeProgress("DOUBLES_TRAINING_V1", solo, facts)?.big).toEqual({
+      value: "BULL",
+      label: "TARGET",
+    });
+  });
+
+  it("reads big as null when the seat's index is past its path", () => {
+    expect(
+      summarizeProgress(
+        "SINGLES_V1",
+        { ...singlesConfig, targetOrder: [] },
+        EMPTY_FACTS,
+      ),
+    ).toEqual({ detail: "Low → High", big: null });
   });
 });

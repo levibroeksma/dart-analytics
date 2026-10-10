@@ -24,9 +24,10 @@ import {
 import {
   doublesPath,
   numbersPath,
+  boardTargetLabel,
 } from "@modules/game/board-progression.module";
 import { budgetedRound } from "@modules/game/session-context.module";
-import { ORDER_MODE_LABELS, joinSubtitle } from "@lib/game/play-subtitle";
+import { joinSubtitle, orderModeSentenceLabel } from "@lib/game/play-subtitle";
 import type {
   BoardTarget,
   EngineFacts,
@@ -42,7 +43,6 @@ import type {
   ScoreTrainingSnapshot,
   Seated,
   SeatFact,
-  TargetOrderMode,
   TuodSnapshot,
 } from "@lib/types";
 
@@ -62,15 +62,13 @@ function activeOf<TSeat extends SeatState>(
   );
 }
 
-/** A path target's label (`BULL`, `D16`, `20`); null past the path's end. */
-function targetLabel(
+/** The label of the target at `index` on `path`; null past the path's end. */
+function labelAt(
   path: readonly BoardTarget[],
   index: number | undefined,
 ): string | null {
   const target = index === undefined ? undefined : path[index];
-  if (!target) return null;
-  if (target.kind === "BULL") return "BULL";
-  return target.kind === "DOUBLE" ? `D${target.number}` : String(target.number);
+  return target ? boardTargetLabel(target) : null;
 }
 
 function big(
@@ -80,12 +78,6 @@ function big(
   return value === null || value === undefined
     ? null
     : { value: String(value), label };
-}
-
-function orderLabel(mode: TargetOrderMode | undefined): string {
-  return mode && Object.hasOwn(ORDER_MODE_LABELS, mode)
-    ? ORDER_MODE_LABELS[mode]
-    : "";
 }
 
 /** The owning player's seat: the first PLAYER seat, else the first seat. */
@@ -99,7 +91,7 @@ function fiveOhOne(
 ): SessionProgress {
   const state = foldFiveOhOneState(facts, config);
   const own = ownSeatOf(config.seats);
-  const opponents = config.seats.filter((seat) => seat !== own);
+  const opponents = config.seats.filter((seat) => seat.sideKey !== own.sideKey);
   const legsOf = (sideKey: string) =>
     state.sides.find((side) => side.sideKey === sideKey)?.legsWon ?? 0;
   const others = state.sides.filter((side) => side.sideKey !== own.sideKey);
@@ -127,7 +119,11 @@ function oneTwentyOne(
 ): SessionProgress {
   const seat = activeOf(foldOneTwentyOneState(facts, config, false));
   return {
-    detail: budgetedRound(durationOf(config), seat?.attemptsCompleted ?? 0),
+    detail: budgetedRound(
+      durationOf(config),
+      seat?.attemptsCompleted ?? 0,
+      "Attempt",
+    ),
     big: big(seat?.currentTarget, "TARGET"),
   };
 }
@@ -169,9 +165,9 @@ function singles(
 ): SessionProgress {
   const seat = activeOf(foldSinglesTrainingState(facts, config));
   return {
-    detail: orderLabel(config.orderMode),
+    detail: orderModeSentenceLabel(config.orderMode),
     big: big(
-      targetLabel(numbersPath(config.targetOrder), seat?.targetIndex),
+      labelAt(numbersPath(config.targetOrder), seat?.targetIndex),
       "TARGET",
     ),
   };
@@ -183,9 +179,9 @@ function doublesTraining(
 ): SessionProgress {
   const seat = activeOf(foldDoublesTrainingState(facts, config));
   return {
-    detail: orderLabel(config.orderMode),
+    detail: orderModeSentenceLabel(config.orderMode),
     big: big(
-      targetLabel(doublesPath(config.targetOrder), seat?.targetIndex),
+      labelAt(doublesPath(config.targetOrder), seat?.targetIndex),
       "TARGET",
     ),
   };
@@ -210,7 +206,7 @@ function tuod(
 ): SessionProgress {
   const seat = activeOf(foldTuodState(facts, config, false));
   return {
-    detail: budgetedRound(config, seat?.attempts ?? 0),
+    detail: budgetedRound(config, seat?.attempts ?? 0, "Attempt"),
     big: big(seat?.currentTarget, "TARGET"),
   };
 }
@@ -223,7 +219,7 @@ function shanghai(
   const round = Math.min((seat?.targetIndex ?? 0) + 1, SHANGHAI_ROUNDS);
   return {
     detail: `Round ${round} of ${SHANGHAI_ROUNDS}`,
-    big: big(targetLabel(numbersPath(), seat?.targetIndex), "TARGET"),
+    big: big(labelAt(numbersPath(), seat?.targetIndex), "TARGET"),
   };
 }
 
@@ -241,7 +237,7 @@ function aroundTheClock(
       `Lap ${(seat?.laps ?? 0) + 1}`,
       `${numbers[0]} → ${numbers.at(-1)}`,
     ]),
-    big: big(targetLabel(path, seat?.targetIndex), "TARGET"),
+    big: big(labelAt(path, seat?.targetIndex), "TARGET"),
   };
 }
 

@@ -6,6 +6,7 @@ import {
   isHitOn,
   numbersPath,
   targetAt,
+  boardTargetLabel,
 } from "@modules/game/board-progression.module";
 
 describe("board progression", () => {
@@ -156,5 +157,19 @@ describe("clockPath", () => {
     expect(clockPath("HIGH_TO_LOW", true)).toEqual([
       19, 17, 15, 13, 11, 9, 7, 5, 3, 1, 20, 18, 16, 14, 12, 10, 8, 6, 4, 2, 25,
     ]);
+  });
+});
+
+describe("boardTargetLabel", () => {
+  it("labels a number target with its number", () => {
+    expect(boardTargetLabel({ kind: "NUMBER", number: 20 })).toBe("20");
+  });
+
+  it("labels a double target D<n>", () => {
+    expect(boardTargetLabel({ kind: "DOUBLE", number: 16 })).toBe("D16");
+  });
+
+  it("labels the bull BULL", () => {
+    expect(boardTargetLabel({ kind: "BULL" })).toBe("BULL");
   });
 });

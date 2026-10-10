@@ -276,4 +276,17 @@ describe("budgetedRound", () => {
     ).toBe("Round 1");
     expect(budgetedRound({ durationType: "TARGET" }, 4)).toBe("Round 5");
   });
+
+  it("uses the given word in place of Round", () => {
+    expect(
+      budgetedRound(
+        { durationType: "ROUNDS", durationValue: 10 },
+        3,
+        "Attempt",
+      ),
+    ).toBe("Attempt 4 of 10");
+    expect(budgetedRound({ durationType: "TARGET" }, 0, "Attempt")).toBe(
+      "Attempt 1",
+    );
+  });
 });

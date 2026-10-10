@@ -3,6 +3,7 @@ import {
   ORDER_MODE_LABELS,
   joinSubtitle,
   orderModeLabel,
+  orderModeSentenceLabel,
 } from "@lib/game/play-subtitle";
 
 describe("joinSubtitle", () => {
@@ -34,6 +35,21 @@ describe("orderModeLabel", () => {
 
   it("is blank for a mode it does not know", () => {
     expect(orderModeLabel("SPIRAL" as never)).toBe("");
+  });
+});
+
+describe("orderModeSentenceLabel", () => {
+  it.each([
+    ["LOW_TO_HIGH", "Low → High"],
+    ["HIGH_TO_LOW", "High → Low"],
+    ["RANDOM", "Random"],
+  ] as const)("maps %s to %s", (mode, expected) => {
+    expect(orderModeSentenceLabel(mode)).toBe(expected);
+  });
+
+  it("is blank for a missing or unknown mode", () => {
+    expect(orderModeSentenceLabel(undefined)).toBe("");
+    expect(orderModeSentenceLabel("SPIRAL" as never)).toBe("");
   });
 });
 
