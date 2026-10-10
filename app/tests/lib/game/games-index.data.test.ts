@@ -229,6 +229,13 @@ describe("resumeTarget", () => {
     expect(resumeTarget([step, activeSession("501_V2")])?.title).toBe("501");
   });
 
+  it("resumes a 501_V1 session through the single 501 card", () => {
+    expect(resumeTarget([activeSession("501_V1")])).toEqual({
+      title: "501",
+      href: "/games/501/setup",
+    });
+  });
+
   it("skips a newer routine step for an older standalone session", () => {
     const routineStep = {
       ...activeSession("CRICKET_V1"),

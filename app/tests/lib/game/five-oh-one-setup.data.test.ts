@@ -125,6 +125,20 @@ describe("buildFiveOhOneV2Wire", () => {
         .win_by_two,
     ).toEqual({ cap: 3, scope: "EVERY_SET" });
   });
+  it("best of 20 stays at the 19 ceiling, in legs and legs per set", () => {
+    expect(
+      buildFiveOhOneV2Wire({ ...V2_BASE, matchMode: "BEST_OF", count: 20 })
+        .legs,
+    ).toEqual({ mode: "BEST_OF", count: 19 });
+    expect(
+      buildFiveOhOneV2Wire({
+        ...V2_BASE,
+        matchUnit: "SETS",
+        legsPerSetMode: "BEST_OF",
+        legsPerSet: 20,
+      }).legs,
+    ).toEqual({ mode: "BEST_OF", count: 19 });
+  });
   it("sets with an even legs-per-set best of rounds that up to odd", () => {
     expect(
       buildFiveOhOneV2Wire({
@@ -774,6 +788,34 @@ describe("fiveOhOneSetup", () => {
             win_by_two: { cap: 5, scope: "DECIDING_SET" },
           },
         },
+      }),
+    );
+  });
+
+  it("clamps blank legs-per-set and cap steppers to the minimum", async () => {
+    const setup = createSetup({
+      presets: [V2_PRESET],
+      matchUnit: "SETS",
+      legsPerSet: "abc",
+      winByTwo: true,
+      cap: "abc",
+    });
+    vi.mocked(sessionsApi.createSession).mockResolvedValue({
+      sessionId: "s",
+      participants: [],
+    } as any);
+    vi.stubGlobal("location", { href: "" });
+
+    await setup.start();
+
+    expect(sessionsApi.createSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        config: expect.objectContaining({
+          overrides: expect.objectContaining({
+            legs: { mode: "BEST_OF", count: 1 },
+            win_by_two: { cap: 1, scope: "EVERY_SET" },
+          }),
+        }),
       }),
     );
   });

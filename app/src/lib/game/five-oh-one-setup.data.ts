@@ -18,6 +18,7 @@ import {
 } from "@lib/game/session-mode-resolution";
 import {
   clampFiveOhOneLegs,
+  FIVE_OH_ONE_LEGS_MAX,
   FIVE_OH_ONE_LEGS_MIN,
   FIVE_OH_ONE_LEGS_NOTICE,
 } from "@lib/game/five-oh-one-legs";
@@ -57,9 +58,10 @@ type V2WireInput = {
   cap: number;
 };
 
-/** Best-of counts must be odd; an even count rounds up. */
+/** Best-of counts must be odd; an even count rounds up, except at the 20 cap, which drops to 19. */
 function oddFor(mode: MatchMode, count: number): number {
-  return mode === "BEST_OF" && count % 2 === 0 ? count + 1 : count;
+  if (mode !== "BEST_OF" || count % 2 !== 0) return count;
+  return count >= FIVE_OH_ONE_LEGS_MAX ? count - 1 : count + 1;
 }
 
 /**
@@ -259,10 +261,10 @@ export function fiveOhOneSetup() {
           count: legsValue,
           matchUnit: this.matchUnit,
           legsPerSetMode: this.legsPerSetMode,
-          legsPerSet: Number(this.legsPerSet),
+          legsPerSet: clampFiveOhOneLegs(this.legsPerSet).value,
           winByTwo: this.winByTwo,
           marginScope: this.marginScope,
-          cap: Number(this.cap),
+          cap: clampFiveOhOneLegs(this.cap).value,
         });
         const wire = {
           ...(preset.configuration as Record<string, unknown>),

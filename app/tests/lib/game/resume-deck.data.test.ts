@@ -49,6 +49,16 @@ const cardsOf = (count: number) =>
   }));
 
 describe("toResumeCards", () => {
+  it("gives a 501_V1 session the 501 card", () => {
+    const cards = toResumeCards(
+      [session({ rulesetVersionKey: "501_V1" })],
+      null,
+      NOW,
+    );
+    expect(cards).toHaveLength(1);
+    expect(cards[0].title).toBe("501");
+  });
+
   beforeEach(() => {
     vi.mocked(summarizeProgress).mockReset();
   });

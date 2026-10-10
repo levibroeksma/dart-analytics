@@ -141,3 +141,15 @@ export function groupedGames(
     games: cards.filter((card) => card.group === group.key),
   })).filter((group) => group.games.length > 0);
 }
+
+/**
+ * The card a session's ruleset resumes through: its own, or for a `501_V1`
+ * session the single 501 card (`501_V2`).
+ */
+export function cardForRuleset(
+  cards: readonly GameCardDescriptor[],
+  rulesetVersionKey: string | null,
+): GameCardDescriptor | undefined {
+  const target = rulesetVersionKey === "501_V1" ? "501_V2" : rulesetVersionKey;
+  return cards.find((game) => game.rulesetVersionKey === target);
+}

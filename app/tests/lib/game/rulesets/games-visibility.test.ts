@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   GAME_CARDS,
   GAME_GROUPS,
+  cardForRuleset,
   groupedGames,
   visibleGames,
 } from "@lib/game/rulesets/games-visibility";
@@ -124,5 +125,21 @@ describe("groupedGames", () => {
   it("puts every card in a known group", () => {
     const keys = GAME_GROUPS.map((group) => group.key);
     for (const card of GAME_CARDS) expect(keys).toContain(card.group);
+  });
+});
+
+describe("cardForRuleset", () => {
+  it("maps both 501 ruleset versions to the single 501 card", () => {
+    expect(cardForRuleset(GAME_CARDS, "501_V1")?.rulesetVersionKey).toBe(
+      "501_V2",
+    );
+    expect(cardForRuleset(GAME_CARDS, "501_V2")?.rulesetVersionKey).toBe(
+      "501_V2",
+    );
+  });
+
+  it("returns undefined for null or an uncarded key", () => {
+    expect(cardForRuleset(GAME_CARDS, null)).toBeUndefined();
+    expect(cardForRuleset(GAME_CARDS, "NOPE")).toBeUndefined();
   });
 });
