@@ -4,6 +4,7 @@ import { oneTwentyOneEngineFactory } from "@modules/game/one-twenty-one.engine.m
 import { scoreTrainingEngineFactory } from "@modules/game/score-training.engine.module";
 import { tuodEngineFactory } from "@modules/game/tuod.engine.module";
 import {
+  budgetedRound,
   contextRowParts,
   sessionContextRow,
 } from "@modules/game/session-context.module";
@@ -256,5 +257,36 @@ describe("contextRowParts", () => {
 
   it("returns an empty list for no row", () => {
     expect(contextRowParts(null)).toEqual([]);
+  });
+});
+
+describe("budgetedRound", () => {
+  it("reads Round n of m against a ROUNDS budget, held at the last round", () => {
+    expect(
+      budgetedRound({ durationType: "ROUNDS", durationValue: 10 }, 2),
+    ).toBe("Round 3 of 10");
+    expect(
+      budgetedRound({ durationType: "ROUNDS", durationValue: 10 }, 10),
+    ).toBe("Round 10 of 10");
+  });
+
+  it("drops the budget under any other duration", () => {
+    expect(
+      budgetedRound({ durationType: "MINUTES", durationValue: 5 }, 0),
+    ).toBe("Round 1");
+    expect(budgetedRound({ durationType: "TARGET" }, 4)).toBe("Round 5");
+  });
+
+  it("uses the given word in place of Round", () => {
+    expect(
+      budgetedRound(
+        { durationType: "ROUNDS", durationValue: 10 },
+        3,
+        "Attempt",
+      ),
+    ).toBe("Attempt 4 of 10");
+    expect(budgetedRound({ durationType: "TARGET" }, 0, "Attempt")).toBe(
+      "Attempt 1",
+    );
   });
 });

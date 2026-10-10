@@ -2,7 +2,7 @@
 status: canonical
 scope: shared Astro component inventory
 read-when: before writing markup for any recurring UI shape
-updated: 2026-10-08
+updated: 2026-10-10
 -->
 
 # Component Inventory
@@ -26,10 +26,12 @@ evaluated in the page's own Alpine scope.
 | --------- | ------- | --------- |
 | `Badge.astro` | Small inline status pill | `variant` (`accent`/`error`/`neutral`) |
 | `BoardMagnifier.astro` | Zoomed board detail follows the pointer during visual capture; accent rim, `shadow-magnifier`, the read in a pill inside the circle (D432, 2026-10-08) | `zoom` |
+| `CardStack.astro` | Stacked-card wrapper: the default slot is the top card, with up to two `bg-stack-1`/`bg-stack-2` slabs peeking out beneath it for the cards waiting behind; adds bottom padding to fit them (2026-10-10) | `layersExpr` (slab count 0–2), `class`; default slot — the top card, positioned so it paints over the slabs |
 | `CardWrapper.astro` | Bordered card, optionally a link; `color` takes a tint preset (`sky`, `violet`, `rose`, `teal` — added 2026-09-22, `emerald`, `amber`, `orange`, `fuchsia`, `blue`) or any CSS color | `href`, `title`, `description`, `color`, `external` |
 | `Chart.astro` | Line/bar/doughnut chart from a plain `ChartSpec`: glass container, canvas, legend for ≥ 2 series or doughnut slices, table view fallback; `flat` inside an existing glass card (2026-09-30, D374); `table={false}` hides the table view (2026-10-02, D385) | `specExpr`, `title`, `formatter`, `heightClass`, `flat`, `table`, `class` |
 | `ConfirmDialog.astro` | Modal with a muted cancel and a raised confirm (`SheetActions`) and an optional `context` slot for an `InlayRow`; no `confirmVariant` (D429, 2026-10-08) | `title`, `titleId`, `description`, `onCancel`, `onConfirm`, `loadingExpr`, `dismissible` |
 | `DartBoard.astro` | Dartboard SVG plus an overlay slot for markers | `boardRef` |
+| `DeckPager.astro` | Compact `‹ n / N ›` pill (`bg-foreground/12`) of two ghost `IconBtn` chevrons around a polite live position label, optionally prefixed by a screen-reader-only `labelExpr` so the announcement names the item (2026-10-10) | `positionExpr`, `prevExpr`, `nextExpr` (Alpine statements), `prevLabel`, `nextLabel`, `labelExpr` (optional), `class` |
 | `ExpandingModal.astro` | Corner 44px `sheet-raised` toggle that opens a `Modal` bottom sheet (Escape or backdrop calls `onClose`). Caller owns the open flag (2026-09-21). `detached` hides the corner toggle so the caller opens it from its own control (2026-09-22). Sheet instead of in-place growth (D429, 2026-10-08) | `openExpr`, `onToggle`, `onClose`, `title`, `titleId`, `overline`, `toggleLabelClosed`, `toggleLabelOpen`, `detached` |
 | `ErrorAlert.astro` | Alert-styled error message; `alwaysVisible` drops `x-show`/`x-cloak` for a caller whose ancestor already gates visibility | `class`, `showExpr`, `textExpr`, `alwaysVisible` |
 | `GrowingCard.astro` | In-flow glass card that grows from wherever it sits into an overlay covering the viewport inset by 1rem, and shrinks back; its slot holds the card's height while open so the page does not shift. Owns its open flag via `growingCard()` (`open` and `collapse()` in scope for the slot); click, Enter or Space opens it and dispatches `expand`, clicks inside an open card never close it, Escape or a slot control calling `collapse()` closes it; scrolls inside while open. Contents reflow while it grows, unlike `ExpandingModal` (2026-10-05) | `class`; leftover attributes (e.g. `@expand`) forwarded to the root |
@@ -86,7 +88,7 @@ evaluated in the page's own Alpine scope.
 | `ExitModal.astro` | Leave-session confirmation | `description` (defaults to the "recorded as abandoned" copy; override for a tool with nothing to persist, e.g. Trivia) (2026-09-09) |
 | `GameCard.astro` | Linked card with title, caption and dart (used by `/training/schedules`; `/games` moved to `GameRow`) | `href`, `title`, `caption`, `duration` (optional pill, e.g. "30 min") (2026-09-11; games index moved off 2026-10-07) |
 | `GameRow.astro` | One row in a `/games` group card: Michroma title, muted caption, accent dart, linking to the setup route; the page's per-row wrapper owns `x-show` and the `isFirstVisible()` divider (2026-10-07); while `loadingExpr` is truthy, title and caption swap for 1lh pulse bars in the same `min-h-lh` line boxes, so data lands without a layout shift (2026-10-09) | `href`, `title`, `caption`, `loadingExpr` (optional Alpine expression) |
-| `ResumeSessionCard.astro` | `/games` in-progress `feature-card`: most recent active game's title (`activeSession`) and a `glass-button` Resume link to its setup route; static detail line until issue #815 (2026-10-07) | none — reads `gamesIndex()` from the parent scope |
+| `ResumeSessionCard.astro` | `/games` in-progress `feature-card`: most recent active game's title (`activeSession`) and a `glass-button` Resume link to its setup route; static detail line until issue #815 (2026-10-07); the homepage uses `ResumeSessionDeck` instead, reuse tracked in #892 (2026-10-10) | none — reads `gamesIndex()` from the parent scope |
 | `InputButton.astro` | One play key: `inset-well`, `rounded-key`, mono 26px, `key-press` accent ring, 35% when disabled (D432, 2026-10-08) | `type`, `variant` (`well`/`muted`/`target`), `pressedExpr` (`glass-blue` + `aria-pressed` while true) |
 | `LegBars.astro` | One seat's legs: a 4px pill per leg to win (accent once won), or a mono `won/target` counter above five legs (`legBarStates`, D432, 2026-10-08) | `wonExpr`, `toWinExpr` |
 | `MarkRows.astro` | Cricket/Tactics mark rows: label + three pips (`pip-on`), closed rows at 50%, `aria-label` per row (D432, 2026-10-08) | none (reads `objectiveRows()`) |
@@ -180,10 +182,15 @@ that split (2026-09-19, closes issue #423).
 | Component | Purpose | Key props |
 | --------- | ------- | --------- |
 | `HomeHero.astro` | Homepage hero stat: mono eyebrow, `font-display text-7xl` value, "Up <delta> in the <window>" with the delta in accent (2026-10-07) | none — reads `homeSnapshot()` from the parent scope |
-| `ResumeGameCard.astro` | Accent-gradient (`home-feature-card`) card for the in-progress game: game, detail, remaining "TO GO", a `glass-button` Resume `Button` with `play-rounded` calling `resumeGame()`. Always shown in the static pass (2026-10-07) | none — reads `homeSnapshot()` from the parent scope |
 | `CareerTiles.astro` | Three-column grid of `glass` tiles: mono key, display value, muted hint; values from `GET /api/statistics/overview` via `homeSnapshot().init()`, dashes until loaded (2026-10-07; wired 2026-10-09) | none — reads `homeSnapshot()` from the parent scope |
 | `DailyAverageCard.astro` | `glass` card of seven CSS bars sized by `bars[].height`, peak days in `bg-accent`, others `bg-accent/35`, `PEAK` value in the header; no Chart.js (2026-10-07) | none — reads `homeSnapshot()` from the parent scope |
 | `LandingHeatmapCard.astro` | "Where you land" `glass` card around `StatsDensityHeatmap` fed `landing.stamps`, board in the `dartboard-accent` tone (2026-10-07) | none — reads `homeSnapshot()` from the parent scope |
+
+## `components/layout/sessions/`
+
+| Component | Purpose | Key props |
+| --------- | ------- | --------- |
+| `ResumeSessionDeck.astro` | Homepage deck of open games in its own `resumeDeck()` scope: a pulse skeleton while loading, then the newest non-routine session on a `CardStack` (persistent `deck-top-card`, gradient) with title, config-derived detail, big number, a `DeckPager` (two or more sessions, else the "started" age) and a `glass-button` `Button` to the game's setup route: "Resume game" with a play icon for the session this device holds, otherwise "Start over" with a "Progress is on another device" note, since setup abandons any other session (#897); swipe steps through the deck; hidden with no sessions or on a load error; reduced motion fades instead of sliding. Replaces `home/ResumeGameCard` (D442, 2026-10-10) | `class`; owns its `x-data` |
 
 ## `components/layout/profile/`
 

@@ -15,6 +15,10 @@
   --accent-bright: oklch(80% 0.13 237);
   --accent-foreground-muted: oklch(92% 0.01 240);
   --accent-deep-blue: oklch(44.3% 0.11 240.79);
+  --stack-1: oklch(40% 0.09 238 / 0.75);
+  --stack-2: oklch(30% 0.06 240 / 0.6);
+  --deck-top-from: oklch(52% 0.14 237);
+  --deck-top-to: oklch(16% 0.05 245);
   --gradient-blue-glass: linear-gradient(
     138deg,
     oklch(47% 0.13 238 / 0.95) 22%,
@@ -74,6 +78,8 @@
   --color-accent-bright: var(--accent-bright);
   --color-accent-foreground-muted: var(--accent-foreground-muted);
   --color-accent-deep-blue: var(--accent-deep-blue);
+  --color-stack-1: var(--stack-1);
+  --color-stack-2: var(--stack-2);
   --background-image-blue-glass: var(--gradient-blue-glass);
 
   --color-surface: var(--surface);
@@ -143,6 +149,52 @@
     from {
       opacity: 0;
       transform: translateY(1.5rem);
+    }
+  }
+
+  --animate-deck-out: deck-out 240ms ease-in forwards;
+  --animate-deck-rise: deck-rise 220ms var(--ease-out);
+  --animate-deck-in: deck-in 240ms var(--ease-out);
+  --animate-deck-fade-out: deck-fade-out 150ms linear forwards;
+  --animate-deck-fade-rise: deck-fade-rise 150ms linear;
+  --animate-deck-fade-in: deck-fade-in 150ms linear;
+
+  @keyframes deck-out {
+    to {
+      opacity: 0;
+      transform: translateX(-110%) rotate(-6deg);
+    }
+  }
+
+  @keyframes deck-rise {
+    from {
+      opacity: 0.6;
+      transform: translateY(8px) scale(0.94);
+    }
+  }
+
+  @keyframes deck-in {
+    from {
+      opacity: 0;
+      transform: translateX(-110%) rotate(-6deg);
+    }
+  }
+
+  @keyframes deck-fade-out {
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes deck-fade-rise {
+    from {
+      opacity: 0.4;
+    }
+  }
+
+  @keyframes deck-fade-in {
+    from {
+      opacity: 0;
     }
   }
 
@@ -598,6 +650,19 @@
     box-shadow:
       inset 0 1px 0 oklch(100% 0 0 / 0.1),
       0 0 20px 3px color-mix(in oklch, var(--accent) 12%, transparent),
+      0 0 40px 20px color-mix(in oklch, var(--accent) 8%, transparent),
+      inset 0 0 0 1px oklch(100% 0 0 / 0.06);
+  }
+
+  .deck-top-card {
+    background: linear-gradient(
+      138deg,
+      var(--deck-top-from) 22%,
+      var(--deck-top-to) 82%
+    );
+    box-shadow:
+      inset 0 1px 0 oklch(100% 0 0 / 0.1),
+      0 8px 20px oklch(0% 0 0 / 0.4),
       0 0 40px 20px color-mix(in oklch, var(--accent) 8%, transparent),
       inset 0 0 0 1px oklch(100% 0 0 / 0.06);
   }

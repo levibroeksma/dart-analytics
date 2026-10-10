@@ -69,6 +69,12 @@ export function targetAt(
   return target;
 }
 
+/** A path target's display label: `BULL`, `D16` for a double, the bare number otherwise. */
+export function boardTargetLabel(target: BoardTarget): string {
+  if (target.kind === "BULL") return "BULL";
+  return target.kind === "DOUBLE" ? `D${target.number}` : String(target.number);
+}
+
 export function boardScore(
   targetNumber: number | null,
   zone: DartZoneKey,

@@ -610,14 +610,34 @@ describe("findActiveSessions projection", () => {
     expect(Object.keys(projection).sort()).toEqual(
       [
         "captureModeKey",
+        "configuration",
         "gameTypeKey",
         "gameTypeName",
         "inputModeKey",
+        "isRoutineStep",
         "rulesetVersionKey",
         "sessionId",
         "startedAt",
       ].sort(),
     );
+  });
+
+  it("inner-joins exercise_sessions and left-joins exercise_configurations on the session id", async () => {
+    const { db, statements } = renderingDb();
+    const { findActiveSessions } =
+      await import("@repositories/session.repository");
+    await findActiveSessions(db, "p1");
+    const rendered = onlyStatement(statements);
+    expect(rendered).toContain(
+      'inner join "exercise_sessions" on "exercise_sessions"."id" = "v_active_sessions"."session_id"',
+    );
+    expect(rendered).toContain(
+      'left join "exercise_configurations" on "exercise_configurations"."exercise_session_id" = "v_active_sessions"."session_id"',
+    );
+    expect(rendered).toContain(
+      '"exercise_sessions"."routine_step_sequence_number" IS NOT NULL',
+    );
+    expect(rendered).toContain('where "v_active_sessions"."player_id" = $1');
   });
 });
 

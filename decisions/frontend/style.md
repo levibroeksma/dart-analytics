@@ -5,7 +5,7 @@ read-when: why a CSS token/primitive/typography/spacing choice was made
 load-when: style, CSS, token, Tailwind, primitive, typography, spacing, glass, surface, PWA, manifest, icon, safe-area, font, colour, dark mode, motion, accessibility
 depends-on: decisions/frontend/architecture.md
 related: decisions/frontend/astro.md
-updated: 2026-10-08
+updated: 2026-10-10
 -->
 
 | # | Source | Decision | Rationale |
@@ -206,3 +206,10 @@ Decision: the Exit sheet, the four finish confirms (501, 121, TUOD, Score traini
 Reason: the design's context row had no data source on the sheets that need it; deriving it from the log keeps facts stored and meaning derived, and needs no server or store-shape change.
 Consequences: no API, `SessionActive` or migration change. Games outside the four mapped get no Exit row. TUOD's play header reads `ATTEMPT n OF N` while the row reads `Round n of N`. `.astro` carries no unit test (D101); the module, store method, adapter guard and `stepContextRow` are tested.
 Supersedes: none.
+
+### D442 — Homepage resume deck replaces the static resume card
+Status: Accepted · Date: 2026-10-10
+Decision: the homepage lists every active non-routine game session, newest first, in a stacked `ResumeSessionDeck` (`CardStack` + `DeckPager`, factory `resumeDeck()`). Progress is hybrid. `GET /api/sessions/active` returns a config-derived `progress` summary for every session, built by `summarizeProgress()` (`modules/game/session-progress.module.ts`). The client recomputes it from `$store.game` for the one session held locally. Game turns upload only at session end, so a server fold of an active session sees none. The API flags `isRoutineStep` and the deck filters those out, while `resumeTarget` skips them; routine steps are resumed from their routine (`resumeOpenRoutine`), not from the deck. `findActiveSessions` reads the routine flag and configuration by joining `exercise_sessions` and `exercise_configurations` onto `v_active_sessions` at runtime, because `v_active_sessions` is not changed and `schema.ts` is not editable in this workspace. Resume always links to the game card's setup route.
+Reason: the static card of D425 showed sample data and a hard-coded link, and the design's multi-session frame needs one card per game. Config alone gives a useful summary for any session; live turns only exist on the device that holds the session.
+Consequences: supersedes only the always-visible static resume card of D425; the rest of D425 stands. No migration. A session started on another device shows its config summary, not live progress, until incremental fact upload exists (#815 stays open). Cards for sessions not held on this device read "Start over" with a "Progress is on another device" note, because opening setup abandons them (#897); live cross-device progress depends on #815. `/games` `ResumeSessionCard` still has its own static card. The runtime join stays until `is_routine_step` and configuration are folded into the view. New tokens `--stack-1`, `--stack-2`, `--deck-top-from`, `--deck-top-to`, class `.deck-top-card`, keyframes `deck-out`/`deck-rise`/`deck-in` plus `deck-fade-*` for reduced motion. `.astro`/CSS carry no unit test (D101); the factory, summary and sort/filter helpers are tested. Spec `docs/superpowers/specs/2026-10-10-home-resume-deck-design.md`.
+Supersedes: D425 (static resume card only).

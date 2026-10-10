@@ -65,12 +65,21 @@ function oneTwentyOneRow(
   };
 }
 
-function budgetedRound(config: DurationConfig, completed: number): string {
+/**
+ * The `word` (`Round`, `Attempt`) after `completed` closed ones in sentence
+ * case: `Round 3 of 10` against a ROUNDS budget (held at the last one once it
+ * is spent), plain `Round 3` under any other duration.
+ */
+export function budgetedRound(
+  config: DurationConfig,
+  completed: number,
+  word = "Round",
+): string {
   const next = completed + 1;
   if (config.durationType === "ROUNDS" && config.durationValue) {
-    return `Round ${Math.min(next, config.durationValue)} of ${config.durationValue}`;
+    return `${word} ${Math.min(next, config.durationValue)} of ${config.durationValue}`;
   }
-  return `Round ${next}`;
+  return `${word} ${next}`;
 }
 
 function tuodRow(

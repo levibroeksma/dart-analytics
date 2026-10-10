@@ -2,7 +2,7 @@
 export const prerender = true;
 import AppLayout from "@layouts/AppLayout.astro";
 import HomeHero from "@components/layout/home/HomeHero.astro";
-import ResumeGameCard from "@components/layout/home/ResumeGameCard.astro";
+import ResumeSessionDeck from "@components/layout/sessions/ResumeSessionDeck.astro";
 import CareerTiles from "@components/layout/home/CareerTiles.astro";
 import DailyAverageCard from "@components/layout/home/DailyAverageCard.astro";
 import LandingHeatmapCard from "@components/layout/home/LandingHeatmapCard.astro";
@@ -28,7 +28,7 @@ import LogoLockup from "../assets/logo-lockup.svg";
       x-data="homeSnapshot()"
     >
       <HomeHero />
-      <ResumeGameCard />
+      <ResumeSessionDeck />
       <CareerTiles />
       <DailyAverageCard />
       <TrainingScheduleCard>

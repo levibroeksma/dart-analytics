@@ -2,7 +2,7 @@
 status: canonical
 scope: repository-wide context routing
 read-when: start of every task (via root CLAUDE.md protocol)
-updated: 2026-10-08
+updated: 2026-10-10
 -->
 # Context Map
 
@@ -46,7 +46,7 @@ Load exactly the pack for your task type. Do not preload anything else. Escalate
 | "Why was X decided?" | `DECISIONS.md` (router — Source key, routing table, Deferred list, how-to-add-a-decision); then load only the domain file(s) your task needs from its routing table, e.g. `decisions/database.md`; deeper lineage: git history. Per-task total varies with domain: each decision file's size is its `~Tokens` figure in the File Inventory; the single figure in the last column below prices only the router + the one example file named above. | ~20k |
 | Bug in migration chain | `05-Database/03-Migrations.md`, full chain `database/migrations/0001`–`0046`; never patch applied files | ~9.9k |
 | Issue-driven UI polish | `07-Frontend/10-Frontend-Agent-Guide.md`, `07-Frontend/07-Style-Guide.md`, `07-Frontend/08-Component-Inventory.md`, `app/CLAUDE.md` | ~18.1k |
-| New game (full stack) | `07-Frontend/09-Adding-A-Game.md` (the touch list, the two shapes to reuse, the two opt-outs), `05-Database/10-Database-Agent-Guide.md` §"Add a new game type", `04-Architecture-patterns.md` §Pattern 18, `07-Frontend/08-Component-Inventory.md`, `app/CLAUDE.md` | ~17.1k |
+| New game (full stack) | `07-Frontend/09-Adding-A-Game.md` (the touch list, the two shapes to reuse, the two opt-outs), `05-Database/10-Database-Agent-Guide.md` §"Add a new game type", `04-Architecture-patterns.md` §Pattern 18, `07-Frontend/08-Component-Inventory.md`, `app/CLAUDE.md` | ~24.5k |
 | Authoring or amending game / exercise / routine / trivia rules | `authoring-game-rules` skill (its own `references/` file for the shape), the matching `docs/game-rules/templates/` template, and the existing rules file if there is one; `09-Training/01-Routines.md` for exercise and routine shapes | ~10.3k |
 | New non-game client tool (Trivia) | `09-Training/00-Overview.md`, `09-Training/02-Trivia.md`, `07-Frontend/04-Modules-And-OOP.md` §Non-Game Client Tools, `07-Frontend/02-Folder-Structure.md`, `07-Frontend/00-Overview.md`, `07-Frontend/03-Alpine-Patterns.md`, `app/CLAUDE.md`, `docs/game-rules/training/trivia/README.md` | ~18.1k |
 

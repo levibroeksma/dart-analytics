@@ -43,6 +43,8 @@ const ACTIVE_SESSION = {
   captureModeKey: "RECREATIONAL",
   inputModeKey: "DETAILED_DARTS",
   rulesetVersionKey: "DOUBLES_TRAINING_V1",
+  isRoutineStep: false,
+  progress: null,
   startedAt: "now",
 } as const;
 

@@ -14,6 +14,8 @@ const trainingStepSession = () =>
     captureModeKey: null,
     inputModeKey: null,
     rulesetVersionKey: null,
+    isRoutineStep: false,
+    progress: null,
     startedAt: "2026-09-16T10:00:00.000Z",
   }) as any;
 
@@ -25,6 +27,8 @@ const activeSession = (rulesetVersionKey: string) =>
     captureModeKey: "RECREATIONAL",
     inputModeKey: "QUICK_SCORE",
     rulesetVersionKey,
+    isRoutineStep: false,
+    progress: null,
     startedAt: "2026-08-08T10:00:00.000Z",
   }) as any;
 
@@ -223,6 +227,21 @@ describe("resumeTarget", () => {
     };
 
     expect(resumeTarget([step, activeSession("501_V1")])?.title).toBe("501");
+  });
+
+  it("skips a newer routine step for an older standalone session", () => {
+    const routineStep = {
+      ...activeSession("CRICKET_V1"),
+      isRoutineStep: true,
+      startedAt: "2026-08-09T10:00:00.000Z",
+    };
+    const standalone = {
+      ...activeSession("501_V1"),
+      startedAt: "2026-08-08T10:00:00.000Z",
+    };
+
+    expect(resumeTarget([routineStep, standalone])?.title).toBe("501");
+    expect(resumeTarget([routineStep])).toBeNull();
   });
 
   it("is null without a game session", () => {

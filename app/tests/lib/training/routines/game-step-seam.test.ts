@@ -140,6 +140,8 @@ const ACTIVE_SESSION = {
   captureModeKey: "RECREATIONAL",
   inputModeKey: "VISUAL_BOARD",
   rulesetVersionKey: "TUOD_V1",
+  isRoutineStep: false,
+  progress: null,
   startedAt: "now",
 } as const;
 

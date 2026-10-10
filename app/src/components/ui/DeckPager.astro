@@ -1,0 +1,92 @@
+---
+/**
+ * Compact `‹ n / N ›` pill for stepping through a deck of cards.
+ * @param {string} positionExpr Alpine expression for the position label
+ * @param {string} prevExpr Alpine statement run by the previous button
+ * @param {string} nextExpr Alpine statement run by the next button
+ * @param {string} prevLabel Accessible name of the previous button
+ * @param {string} nextLabel Accessible name of the next button
+ * @param {string} [labelExpr] Alpine expression for a screen-reader-only label announced before the position
+ * @param {string} [class] Extra classes for the pill
+ */
+interface Props {
+  positionExpr: string;
+  prevExpr: string;
+  nextExpr: string;
+  prevLabel: string;
+  nextLabel: string;
+  labelExpr?: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+// Props
+const {
+  positionExpr,
+  prevExpr,
+  nextExpr,
+  prevLabel,
+  nextLabel,
+  labelExpr,
+  class: classNameProp,
+  ...props
+}: Props = Astro.props;
+
+// Components
+import IconBtn from "@components/forms/IconBtn.astro";
+
+// Lib
+import { cn } from "@client/cn";
+
+// Icons
+import ChevronDownIcon from "@icons/chevron-down.svg";
+
+// Styles
+const pillClass = cn(
+  "flex h-7 items-center gap-1 rounded-full bg-foreground/12 px-0.5 font-mono text-[11px] font-semibold text-foreground",
+  classNameProp,
+);
+const stepClass = "size-6 border-0 p-0 text-foreground";
+---
+
+<div
+  class={pillClass}
+  {...props}
+>
+  <IconBtn
+    variant="ghost"
+    ariaLabel={prevLabel}
+    class={stepClass}
+    @click={prevExpr}
+  >
+    <ChevronDownIcon
+      class="size-3.5 rotate-90"
+      aria-hidden="true"
+    />
+  </IconBtn>
+  <span aria-live="polite">
+    {
+      labelExpr && (
+        <span
+          class="sr-only"
+          x-text={`(${labelExpr}) + ', '`}
+        />
+      )
+    }
+    <span
+      class="tabular-nums"
+      x-text={positionExpr}
+    ></span>
+  </span>
+  <IconBtn
+    variant="ghost"
+    ariaLabel={nextLabel}
+    class={stepClass}
+    @click={nextExpr}
+  >
+    <ChevronDownIcon
+      class="size-3.5 -rotate-90"
+      aria-hidden="true"
+    />
+  </IconBtn>
+</div>

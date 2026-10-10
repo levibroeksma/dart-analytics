@@ -8,15 +8,6 @@ export type HomeHero = {
   window: string;
 };
 
-/** The in-progress game the homepage offers to resume. */
-export type HomeResume = {
-  game: string;
-  detail: string;
-  remaining: string;
-  started: string;
-  href: string;
-};
-
 /** One career tile: mono key, display value, muted hint. */
 export type CareerTile = { key: string; value: string; hint: string };
 
@@ -32,13 +23,10 @@ export type HomeLanding = { window: string; stamps: HeatStamp[] };
 /** The `homeSnapshot()` Alpine scope. */
 export type HomeSnapshotContext = {
   hero: HomeHero;
-  resume: HomeResume;
   careerTiles: CareerTile[];
   dailyAverage: DailyAverage[];
   peak: string;
   bars: DailyBar[];
   landing: HomeLanding;
   init(this: HomeSnapshotContext): Promise<void>;
-  navigate(path: string): void;
-  resumeGame(this: HomeSnapshotContext): void;
 };

@@ -1132,13 +1132,67 @@ describe("updateSessionStatus", () => {
   });
 });
 
+const fiveOhOneWireConfigWithSeats = {
+  starting_score: 501,
+  legs_to_win: 3,
+  check_in: "STRAIGHT_IN",
+  check_out: "DOUBLE_OUT",
+  max_darts_per_turn: 3,
+  max_visit_score: 180,
+  seats: [
+    {
+      participantRef: "you",
+      displayName: "You",
+      sideKey: "A",
+      participantTypeKey: "PLAYER",
+    },
+    {
+      participantRef: "bot",
+      displayName: "Dartbot",
+      sideKey: "B",
+      participantTypeKey: "DARTBOT",
+      dartbot: { level: 5, seed: 1, levelSource: "MANUAL" },
+    },
+  ],
+};
+
 describe("listActiveSessions / listConfigurationPresets", () => {
-  it("returns rows from the repository as-is", async () => {
+  it("adds isRoutineStep and a config-derived progress, dropping configuration", async () => {
     vi.mocked(repo.findActiveSessions).mockResolvedValue([
-      { sessionId: "s1", playerId: "p1" } as never,
+      {
+        sessionId: "s1",
+        rulesetVersionKey: "501_V1",
+        isRoutineStep: false,
+        configuration: fiveOhOneWireConfigWithSeats,
+        startedAt: "2026-10-10T10:00:00.000Z",
+      } as never,
+    ]);
+    const [row] = await listActiveSessions("p1");
+    expect(row).not.toHaveProperty("configuration");
+    expect(row.isRoutineStep).toBe(false);
+    expect(row.progress).toEqual({
+      detail: "vs Dartbot · Leg 1 · First to 3 · 0–0",
+      big: { value: "501", label: "TO GO" },
+    });
+  });
+
+  it("progress is null for a null ruleset or null configuration", async () => {
+    vi.mocked(repo.findActiveSessions).mockResolvedValue([
+      {
+        sessionId: "s2",
+        rulesetVersionKey: null,
+        isRoutineStep: true,
+        configuration: null,
+      } as never,
+      {
+        sessionId: "s3",
+        rulesetVersionKey: "501_V1",
+        isRoutineStep: false,
+        configuration: null,
+      } as never,
     ]);
     const rows = await listActiveSessions("p1");
-    expect(rows).toHaveLength(1);
+    expect(rows.map((row) => row.progress)).toEqual([null, null]);
   });
 
   it("returns preset rows from the repository as-is", async () => {

@@ -13,10 +13,17 @@ export function joinSubtitle(parts: readonly string[]): string {
 }
 
 /**
- * A target-order mode's setup label in subtitle case (`LOW → HIGH`); blank
+ * A target-order mode's setup label in sentence case (`Low → High`); blank
  * for a missing or unknown mode, since a stored config snapshot may predate it.
  */
-export function orderModeLabel(mode: TargetOrderMode | undefined): string {
+export function orderModeSentenceLabel(
+  mode: TargetOrderMode | undefined,
+): string {
   if (!mode || !Object.hasOwn(ORDER_MODE_LABELS, mode)) return "";
-  return ORDER_MODE_LABELS[mode].toUpperCase();
+  return ORDER_MODE_LABELS[mode];
+}
+
+/** `orderModeSentenceLabel` in subtitle case (`LOW → HIGH`); blank for a missing or unknown mode. */
+export function orderModeLabel(mode: TargetOrderMode | undefined): string {
+  return orderModeSentenceLabel(mode).toUpperCase();
 }

@@ -1,0 +1,222 @@
+import { fetchActiveSessions } from "@client/api/sessions";
+import { GAME_CARDS } from "@lib/game/rulesets/games-visibility";
+import { startedAgo } from "@utils/started-ago";
+import { summarizeProgress } from "@modules/game/session-progress.module";
+import type { SessionActiveData } from "@client/api/types";
+import type { SessionProgress } from "@modules/types";
+import type {
+  GameCardDescriptor,
+  LocalGame,
+  ResumeCard,
+  ResumeDeckContext,
+  ResumeDeckPhase,
+} from "@lib/types";
+
+const SWIPE_THRESHOLD_PX = 40;
+const MAX_STACK_LAYERS = 2;
+const SETTLE_FALLBACK_MS = 600;
+
+/**
+ * Re-arms the deck's single fallback timer for its current phase: any pending
+ * timer is cleared first, and none is armed once the deck is idle. When the
+ * timer fires it settles the deck unless an `animationend` already moved it
+ * on, so a swallowed animation event cannot lock the deck.
+ */
+function armSettleFallback(deck: ResumeDeckContext) {
+  if (deck.settleTimer !== null) clearTimeout(deck.settleTimer);
+  deck.settleTimer = null;
+  const armedPhase = deck.phase;
+  if (armedPhase === "idle") return;
+  deck.settleTimer = setTimeout(() => {
+    deck.settleTimer = null;
+    if (deck.phase === armedPhase) deck.settle();
+  }, SETTLE_FALLBACK_MS);
+}
+
+function holdsSession(
+  session: SessionActiveData,
+  local: LocalGame | null,
+): local is LocalGame {
+  return (
+    local !== null &&
+    session.rulesetVersionKey !== null &&
+    local.sessionId === session.sessionId &&
+    local.rulesetVersionKey === session.rulesetVersionKey
+  );
+}
+
+/**
+ * The local `game` store's progress for a session, or null when the store holds
+ * a different session or ruleset (or its fact log summarises to nothing).
+ */
+function localProgress(
+  session: SessionActiveData,
+  local: LocalGame | null,
+): SessionProgress | null {
+  if (!holdsSession(session, local) || session.rulesetVersionKey === null) {
+    return null;
+  }
+  return summarizeProgress(session.rulesetVersionKey, local.configSnapshot, {
+    stages: local.stages,
+    turns: local.turns,
+  });
+}
+
+function toResumeCard(
+  session: SessionActiveData,
+  card: GameCardDescriptor,
+  local: LocalGame | null,
+  now: Date,
+): ResumeCard {
+  const progress = localProgress(session, local) ?? session.progress;
+  return {
+    sessionId: session.sessionId,
+    title: card.title,
+    href: card.href,
+    started: `STARTED ${startedAgo(session.startedAt, now)}`,
+    local: holdsSession(session, local),
+    detail: progress?.detail ?? "",
+    big: progress?.big ?? null,
+  };
+}
+
+/**
+ * Turns active sessions into resume cards, newest-started first. Routine steps
+ * and sessions whose ruleset has no game card are dropped. Progress comes from
+ * the server; when the local `game` store holds that same session (matching id
+ * and ruleset) its fact log is summarised instead, falling back to the
+ * server's progress when it yields none. A card's `local` flag marks the
+ * session the store holds, the only one the setup page can resume.
+ */
+export function toResumeCards(
+  sessions: SessionActiveData[],
+  local: LocalGame | null,
+  now: Date,
+  cards: readonly GameCardDescriptor[] = GAME_CARDS,
+): ResumeCard[] {
+  return sessions
+    .filter((session) => !session.isRoutineStep)
+    .sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt))
+    .flatMap((session) => {
+      const card = cards.find(
+        (game) => game.rulesetVersionKey === session.rulesetVersionKey,
+      );
+      if (!card || session.rulesetVersionKey === null) return [];
+      return [toResumeCard(session, card, local, now)];
+    });
+}
+
+/**
+ * Home resume-deck state: the player's active sessions as a stack of cards
+ * with the top one resumable.
+ *
+ * Cards load once from the server and are overlaid with the local `game`
+ * store's progress for the session it holds. A failed fetch hides the deck.
+ * `phase` drives the swap animation: `next()` sends the top card `out`, and
+ * `settle()` (bound to `animationend`) advances the index, `rise`s the next
+ * card, then returns to `idle`; `prev()` brings the previous card `in`. Input
+ * is ignored outside `idle`, and a drag that starts on a button never swipes.
+ */
+export function resumeDeck() {
+  return {
+    cards: [] as ResumeCard[],
+    index: 0,
+    phase: "idle" as ResumeDeckPhase,
+    loading: true,
+    failed: false,
+    swipeX: null as number | null,
+    swipeY: null as number | null,
+    settleTimer: null as ReturnType<typeof setTimeout> | null,
+
+    async init(this: ResumeDeckContext) {
+      this.loading = true;
+      try {
+        this.cards = toResumeCards(
+          await fetchActiveSessions(),
+          this.$store.game,
+          new Date(),
+        );
+      } catch {
+        this.failed = true;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    top(this: ResumeDeckContext) {
+      return this.cards[this.index] ?? null;
+    },
+
+    position(this: ResumeDeckContext) {
+      return `${this.index + 1} / ${this.cards.length}`;
+    },
+
+    layers(this: ResumeDeckContext) {
+      return Math.min(Math.max(this.cards.length - 1, 0), MAX_STACK_LAYERS);
+    },
+
+    visible(this: ResumeDeckContext) {
+      return !this.failed && (this.loading || this.cards.length > 0);
+    },
+
+    next(this: ResumeDeckContext) {
+      if (this.phase !== "idle" || this.cards.length <= 1) return;
+      this.phase = "out";
+      armSettleFallback(this);
+    },
+
+    prev(this: ResumeDeckContext) {
+      if (this.phase !== "idle" || this.cards.length <= 1) return;
+      const count = this.cards.length;
+      this.index = (this.index - 1 + count) % count;
+      this.phase = "in";
+      armSettleFallback(this);
+    },
+
+    settle(this: ResumeDeckContext) {
+      if (this.phase === "out") {
+        this.index = (this.index + 1) % this.cards.length;
+        this.phase = "rise";
+        armSettleFallback(this);
+      } else if (this.phase === "rise" || this.phase === "in") {
+        this.phase = "idle";
+        armSettleFallback(this);
+      }
+    },
+
+    swipeStart(this: ResumeDeckContext, event: PointerEvent) {
+      if ((event.target as Element | null)?.closest?.("button")) return;
+      this.swipeX = event.clientX;
+      this.swipeY = event.clientY;
+    },
+
+    swipeEnd(this: ResumeDeckContext, event: PointerEvent) {
+      const startX = this.swipeX;
+      const startY = this.swipeY;
+      this.swipeX = null;
+      this.swipeY = null;
+      if (startX === null || startY === null) return;
+      const dx = event.clientX - startX;
+      const dy = event.clientY - startY;
+      if (Math.abs(dx) < SWIPE_THRESHOLD_PX || Math.abs(dx) <= Math.abs(dy)) {
+        return;
+      }
+      if (dx < 0) this.next();
+      else this.prev();
+    },
+
+    swipeCancel(this: ResumeDeckContext) {
+      this.swipeX = null;
+      this.swipeY = null;
+    },
+
+    resume(this: ResumeDeckContext) {
+      const card = this.top();
+      if (card) this.navigate(card.href);
+    },
+
+    navigate(path: string) {
+      globalThis.location.href = path;
+    },
+  };
+}

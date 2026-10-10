@@ -189,6 +189,8 @@ const ACTIVE_SESSION = {
   captureModeKey: "RECREATIONAL",
   inputModeKey: "QUICK_SCORE",
   rulesetVersionKey: "SCORE_TRAINING_V1",
+  isRoutineStep: false,
+  progress: null,
   startedAt: "now",
 } as const;
 
