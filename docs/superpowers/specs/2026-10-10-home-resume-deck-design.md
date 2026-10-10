@@ -38,18 +38,14 @@ out of / into the stack.
 
 ## 1. Server
 
-### Migration `0047_active_sessions_progress_inputs.sql`
+### Repository join (no migration)
 
-`DROP VIEW v_active_sessions; CREATE VIEW …` with the 0033 columns plus:
-
-- `is_routine_step boolean` — `s.routine_step_sequence_number IS NOT NULL`
-- `configuration jsonb` — `LEFT JOIN exercise_configurations` on session id
-
-`COMMENT ON VIEW` updated; `migrate:down` restores the 0033 body. Drizzle
-mirror `vActiveSessions` in `app/src/db/schema.ts` updated via
-`npm run db:introspect`; `db:drift` and `tests/db/schema-view-drift.test.ts`
-pass. Existing view readers select explicit columns, so adding columns is
-non-breaking.
+Revised 2026-10-10: `app/src/db/schema.ts` is off-limits in this workspace,
+so the view is unchanged. `findActiveSessions` keeps reading
+`v_active_sessions` and inner-joins `exercise_sessions` (for
+`routine_step_sequence_number IS NOT NULL` → `isRoutineStep`) and left-joins
+`exercise_configurations` (→ `configuration`). Follow-up issue: fold both
+columns into `v_active_sessions` in a later migration.
 
 ### Module `app/src/modules/game/session-progress.module.ts`
 

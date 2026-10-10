@@ -4,9 +4,9 @@
 
 **Goal:** Replace the static homepage resume card with a reusable, data-backed stacked deck of every active game session (routine steps excluded), with animated prev/next.
 
-**Architecture:** `v_active_sessions` gains `is_routine_step` + `configuration`; a pure isomorphic `summarizeProgress()` (modules/game) produces each card's detail/big number from config (+ live turns on the client for the locally held session). An Alpine factory `resumeDeck()` owns fetch, filtering, overlay, navigation and animation phase; `ResumeSessionDeck.astro` renders it using two new generic UI primitives (`CardStack`, `DeckPager`).
+**Architecture:** `findActiveSessions` joins `exercise_sessions`/`exercise_configurations` onto `v_active_sessions` for a routine flag + configuration (no migration); a pure isomorphic `summarizeProgress()` (modules/game) produces each card's detail/big number from config (+ live turns on the client for the locally held session). An Alpine factory `resumeDeck()` owns fetch, filtering, overlay, navigation and animation phase; `ResumeSessionDeck.astro` renders it using two new generic UI primitives (`CardStack`, `DeckPager`).
 
-**Tech Stack:** Astro 7, Alpine.js 3, Tailwind v4 tokens, Drizzle, Postgres (dbmate), Vitest.
+**Tech Stack:** Astro 7, Alpine.js 3, Tailwind v4 tokens, Drizzle, Vitest.
 
 **Spec:** `docs/superpowers/specs/2026-10-10-home-resume-deck-design.md`
 
@@ -18,7 +18,7 @@
 - No inline `//` comments inside function bodies; JSDoc on exported symbols.
 - Astro: `cn()` for classes, every `x-show` has `x-cloak`, no `x-init`, no `x-bind:`, no template HTML comments, semantic tokens only, no `!` important modifier.
 - Every changed runtime `.ts` ships with a changed test (D224).
-- `app/src/db/schema.ts` is regenerated, not hand-read: use `npm run db:introspect` (reading it may be denied).
+- Never open or edit `app/src/db/schema.ts` (permission-denied); only import from it. No migrations in this plan.
 - Card copy is sentence case (`vs Dartbot · Leg 3 · First to 3 · 2–0`); mono labels uppercase (`TO GO`, `POINTS`, `TARGET`, `DARTS`, `STARTED 18 MIN AGO`).
 - Resume always navigates to the game card's setup route (`GAME_CARDS[].href`).
 - Commit after every task, message `feat(home): …` / `feat(db): …`, ending with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
@@ -33,100 +33,48 @@
 
 ---
 
-### Task 1: View exposes routine flag and configuration
+### Task 1: Active-session rows carry routine flag and configuration
+
+> Ruling (2026-10-10, user): no view/migration change — `app/src/db/schema.ts` is permission-denied and no local DB exists. `findActiveSessions` keeps reading `v_active_sessions` and joins the runtime tables for the two extra columns (precedent: `findActiveSessionForGameType` reads `exerciseSessions` directly). Do **not** open or edit `app/src/db/schema.ts`; import tables from it as other repositories do.
 
 **Files:**
-- Create: `database/migrations/0047_active_sessions_progress_inputs.sql`
-- Modify: `app/src/db/schema.ts` (via `npm run db:introspect`)
-- Modify: `app/src/repositories/session.repository.ts` (`findActiveSessions`, ~:273)
-- Test: `app/tests/db/schema-view-drift.test.ts` (must pass unchanged or with regenerated fixture per its own instructions)
+- Modify: `app/src/repositories/session.repository.ts` (`findActiveSessions`, ~:273; imports)
+- Test: the existing repository test file covering `findActiveSessions` if any (`grep -rln findActiveSessions app/tests`), else `app/tests/repositories/session.repository.test.ts` following the mocked-db style other `tests/repositories/*.test.ts` use
 
 **Interfaces:**
-- Produces: `findActiveSessions(db, playerId)` rows gain `isRoutineStep: boolean`, `configuration: Record<string, unknown> | null`.
+- Produces: `findActiveSessions(db, playerId)` rows gain `isRoutineStep: boolean`, `configuration: Record<string, unknown> | null` (cast if Drizzle types the jsonb column `unknown`).
 
-- [ ] **Step 1: Write the migration**
-
-```sql
--- ============================================================
--- Migration: 0047_active_sessions_progress_inputs.sql
---
--- Purpose:
--- The homepage resume deck lists active game sessions with a
--- progress summary derived from each session's configuration
--- snapshot, and must leave routine step sessions out. Adds
--- is_routine_step (routine_step_sequence_number IS NOT NULL;
--- standalone sessions leave it NULL, migration 0029) and the
--- session's configuration jsonb (exercise_configurations, one
--- row per session, LEFT JOIN so a missing row is NULL, never a
--- dropped session). Columns otherwise unchanged from 0033.
--- ============================================================
-
--- migrate:up
-DROP VIEW IF EXISTS v_active_sessions;
-CREATE VIEW v_active_sessions AS
-SELECT es.id AS session_id,
-    es.player_id,
-    gt.implementation_key AS game_type_key,
-    gt.name               AS game_type_name,
-    cm.implementation_key AS capture_mode_key,
-    im.implementation_key AS input_mode_key,
-    rv.implementation_key AS ruleset_version_key,
-    es.started_at,
-    es.routine_step_sequence_number IS NOT NULL AS is_routine_step,
-    ec.configuration
-FROM exercise_sessions es
-    LEFT JOIN game_types gt              ON gt.id = es.game_type_id
-    LEFT JOIN capture_modes cm           ON cm.id = es.capture_mode_id
-    LEFT JOIN input_modes im             ON im.id = es.input_mode_id
-    LEFT JOIN ruleset_versions rv        ON rv.id = es.ruleset_version_id
-    LEFT JOIN exercise_configurations ec ON ec.exercise_session_id = es.id
-    JOIN game_statuses gs                ON gs.id = es.status_id
-WHERE gs.implementation_key = 'ACTIVE';
-COMMENT ON VIEW v_active_sessions IS 'Active sessions available for resume, game and non-game alike; game_type_key/game_type_name and the capture/input/ruleset keys are NULL for a training exercise session. is_routine_step marks a routine step session; configuration is the session snapshot (NULL if absent).';
-
--- migrate:down
-DROP VIEW IF EXISTS v_active_sessions;
-CREATE VIEW v_active_sessions AS
-SELECT es.id AS session_id,
-    es.player_id,
-    gt.implementation_key AS game_type_key,
-    gt.name               AS game_type_name,
-    cm.implementation_key AS capture_mode_key,
-    im.implementation_key AS input_mode_key,
-    rv.implementation_key AS ruleset_version_key,
-    es.started_at
-FROM exercise_sessions es
-    LEFT JOIN game_types gt       ON gt.id = es.game_type_id
-    LEFT JOIN capture_modes cm    ON cm.id = es.capture_mode_id
-    LEFT JOIN input_modes im      ON im.id = es.input_mode_id
-    LEFT JOIN ruleset_versions rv ON rv.id = es.ruleset_version_id
-    JOIN game_statuses gs         ON gs.id = es.status_id
-WHERE gs.implementation_key = 'ACTIVE';
-COMMENT ON VIEW v_active_sessions IS 'Active sessions available for resume, game and non-game alike; game_type_key/game_type_name and the capture/input/ruleset keys are NULL for a training exercise session.';
-```
-
-Before writing, `grep -rn "v_active_sessions" database/` to confirm no later migration or dependent view references it (a dependent view would block `DROP VIEW`).
-
-- [ ] **Step 2: Apply and regenerate**
-
-Run: `npm run db:status && npm run db:migrate && npm run db:introspect && npm run db:drift`
-Expected: 0047 applied; `vActiveSessions` in `schema.ts` gains `isRoutineStep` and `configuration`; drift OK. If no DB is reachable, stop and report BLOCKED.
-
-- [ ] **Step 3: Extend the repository select**
-
-In `findActiveSessions` add to the select object:
+- [ ] **Step 1: Failing test** asserting the select shape includes `isRoutineStep` and `configuration`, the query inner-joins `exerciseSessions` on `exerciseSessions.id = vActiveSessions.sessionId` and left-joins `exerciseConfigurations` on `exerciseConfigurations.exerciseSessionId = vActiveSessions.sessionId`. Use the chained-mock recording style existing repository tests use.
+- [ ] **Step 2:** Run → FAIL.
+- [ ] **Step 3: Implement**
 
 ```ts
-      isRoutineStep: vActiveSessions.isRoutineStep,
-      configuration: vActiveSessions.configuration,
+export async function findActiveSessions(db: Db, playerId: string) {
+  return db
+    .select({
+      sessionId: vActiveSessions.sessionId,
+      gameTypeKey: vActiveSessions.gameTypeKey,
+      gameTypeName: vActiveSessions.gameTypeName,
+      captureModeKey: vActiveSessions.captureModeKey,
+      inputModeKey: vActiveSessions.inputModeKey,
+      rulesetVersionKey: vActiveSessions.rulesetVersionKey,
+      startedAt: vActiveSessions.startedAt,
+      isRoutineStep: sql<boolean>`${exerciseSessions.routineStepSequenceNumber} IS NOT NULL`,
+      configuration: exerciseConfigurations.configuration,
+    })
+    .from(vActiveSessions)
+    .innerJoin(exerciseSessions, eq(exerciseSessions.id, vActiveSessions.sessionId))
+    .leftJoin(
+      exerciseConfigurations,
+      eq(exerciseConfigurations.exerciseSessionId, vActiveSessions.sessionId),
+    )
+    .where(eq(vActiveSessions.playerId, playerId));
+}
 ```
 
-- [ ] **Step 4: Run tests**
-
-Run: `npx vitest run tests/db tests/repositories tests/services/session.service.test.ts`
-Expected: PASS (update `schema-view-drift` expectations only as its header instructs).
-
-- [ ] **Step 5: Commit** — `feat(db): v_active_sessions exposes routine flag and configuration`
+JSDoc: routine flag = `routine_step_sequence_number IS NOT NULL` (migration 0029; standalone sessions leave it NULL); configuration = session snapshot, NULL if absent.
+- [ ] **Step 4:** `npx vitest run tests/repositories tests/services/session.service.test.ts` → PASS; `npm run check` has no new errors in touched files.
+- [ ] **Step 5: Commit** — `feat(api): active sessions read routine flag and configuration`
 
 ---
 
