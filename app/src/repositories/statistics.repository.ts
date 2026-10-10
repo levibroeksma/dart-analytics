@@ -1573,6 +1573,35 @@ export async function findReplayStages(
 }
 
 /**
+ * Every SET stage's sequence for the player's sessions, from `v_replay_stages`
+ * (0046) — the one ordering fact `v_x01_checkout_darts` lacks for a leg
+ * nested under a set (501_V2).
+ */
+export async function findSetSequences(
+  db: Db,
+  playerId: string,
+): Promise<Map<string, number>> {
+  const rows = await db
+    .select({
+      stageId: vReplayStages.stageId,
+      sequence: vReplayStages.stageSequence,
+    })
+    .from(vReplayStages)
+    .where(
+      and(
+        eq(vReplayStages.playerId, playerId),
+        eq(vReplayStages.stageTypeKey, "SET"),
+      ),
+    );
+  return new Map(
+    rows.map((row) => [
+      nonNull(row.stageId, "stage_id"),
+      nonNull(row.sequence, "stage_sequence"),
+    ]),
+  );
+}
+
+/**
  * `v_game_replay`'s distinct participants for one session, ordered by each
  * participant's own first turn in play order (R4): `array_position` locates
  * a dart row's stage within the caller's own `stageIds` play order (the

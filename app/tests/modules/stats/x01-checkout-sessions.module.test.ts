@@ -664,3 +664,148 @@ describe("snapshotOf", () => {
     expect(snapshotOf("501_V99" as never, { seats: SEATS })).toBeNull();
   });
 });
+
+const V2_CONFIGURATION = {
+  starting_score: 101,
+  check_in: "STRAIGHT_IN",
+  check_out: "DOUBLE_OUT",
+  max_darts_per_turn: 3,
+  max_visit_score: 180,
+  legs: { mode: "FIRST_TO", count: 1 },
+  sets: { mode: "FIRST_TO", count: 2 },
+  win_by_two: null,
+  seats: SEATS,
+};
+
+type DartSpec = [number, "SINGLE" | "DOUBLE" | "TREBLE", number];
+
+function v2Rows(
+  stageId: string,
+  parentStageId: string,
+  turnId: string,
+  turnSequence: number,
+  turnTotalScore: number,
+  darts: DartSpec[],
+): X01CheckoutDartRow[] {
+  return darts.map(([target, zone, score], index) =>
+    row({
+      sessionId: "session-v2",
+      rulesetVersionKey: "501_V2",
+      configuration: V2_CONFIGURATION,
+      stageId,
+      stageSequence: 1,
+      parentStageId,
+      turnId,
+      turnSequence,
+      turnTotalScore,
+      dartNumber: index + 1,
+      hitTargetNumber: target,
+      hitZoneKey: zone,
+      score,
+    }),
+  );
+}
+
+/**
+ * Two sets each holding a leg whose `sequence` is 1, in the SQL's order
+ * (session, stage sequence, turn sequence): L1 and L2 turns interleave.
+ */
+function nestedTwoSetRows(): X01CheckoutDartRow[] {
+  return [
+    ...v2Rows("L1", "S1", "t-l1-1", 1, 41, [
+      [20, "SINGLE", 20],
+      [20, "SINGLE", 20],
+      [1, "SINGLE", 1],
+    ]),
+    ...v2Rows("L2", "S2", "t-l2-1", 1, 60, [
+      [20, "SINGLE", 20],
+      [20, "SINGLE", 20],
+      [20, "SINGLE", 20],
+    ]),
+    ...v2Rows("L1", "S1", "t-l1-2", 2, 60, [
+      [20, "SINGLE", 20],
+      [20, "DOUBLE", 40],
+    ]),
+    ...v2Rows("L2", "S2", "t-l2-2", 2, 41, [
+      [1, "SINGLE", 1],
+      [20, "DOUBLE", 40],
+    ]),
+  ];
+}
+
+describe("nested legs under sets (501_V2)", () => {
+  it("keeps legs from different sets apart when they share a sequence", () => {
+    const [session] = sessionCheckoutVisits(
+      nestedTwoSetRows(),
+      new Map([
+        ["S1", 1],
+        ["S2", 2],
+      ]),
+    );
+    expect(session!.visits.map((visit) => visit.stageId)).toEqual([
+      "L1",
+      "L1",
+      "L2",
+      "L2",
+    ]);
+    expect(session!.visits.map((visit) => visit.startingRemaining)).toEqual([
+      101, 60, 101, 41,
+    ]);
+  });
+
+  it("orders by set sequence, not by the order set ids arrive in", () => {
+    const [session] = sessionCheckoutVisits(
+      nestedTwoSetRows(),
+      new Map([
+        ["S1", 2],
+        ["S2", 1],
+      ]),
+    );
+    expect(session!.visits.map((visit) => visit.stageId)).toEqual([
+      "L2",
+      "L2",
+      "L1",
+      "L1",
+    ]);
+  });
+
+  it("threads the set map through checkoutVisitsFromRows and checkoutVisitsWithSession", () => {
+    const setSequences = new Map([
+      ["S1", 1],
+      ["S2", 2],
+    ]);
+    const rows = nestedTwoSetRows();
+    expect(
+      checkoutVisitsFromRows(rows, setSequences).map(
+        (visit) => visit.startingRemaining,
+      ),
+    ).toEqual([101, 60, 101, 41]);
+    expect(
+      checkoutVisitsWithSession(rows, setSequences).map(
+        (visit) => visit.startingRemaining,
+      ),
+    ).toEqual([101, 60, 101, 41]);
+  });
+
+  it("orders V1 root legs exactly as before without a set map", () => {
+    const rows = rowsFor(twoLegFiveOhOneFacts(), {
+      sessionId: "session-501",
+      gameTypeKey: "501",
+      rulesetVersionKey: "501_V1",
+      configuration: {
+        starting_score: 501,
+        legs_to_win: 2,
+        check_in: "STRAIGHT_IN",
+        check_out: "DOUBLE_OUT",
+        max_darts_per_turn: 3,
+        seats: SEATS,
+      },
+    });
+    expect(sessionCheckoutVisits(rows)).toEqual(
+      sessionCheckoutVisits(rows, new Map()),
+    );
+    expect(
+      sessionCheckoutVisits(rows)[0]!.visits.map((visit) => visit.stageId),
+    ).toEqual(["leg-1", "leg-1", "leg-2", "leg-2"]);
+  });
+});

@@ -17,6 +17,7 @@ import {
   findHitNumberCells,
   findReplaySession,
   findReplayStages,
+  findSetSequences,
   findReplayParticipants,
   findReplayTurnPage,
   findTrainedRoutines,
@@ -1735,6 +1736,43 @@ describe("findReplayStages", () => {
     const db = { select: vi.fn(() => chain) } as any;
 
     await expect(findReplayStages(db, "p1", "s1")).rejects.toThrow(/stage_id/);
+  });
+});
+
+describe("findSetSequences", () => {
+  it("reads SET stages from v_replay_stages filtered by player", async () => {
+    const { db, statements } = renderingDb([]);
+    await findSetSequences(db, "p1");
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('"v_replay_stages"');
+    expect(sql).toMatch(/"player_id" = \$/);
+    expect(sql).toMatch(/"stage_type_key" = \$/);
+  });
+
+  it("maps stage id to stage sequence", async () => {
+    const { chain, fromCalls } = fakeSelect([
+      { stageId: "S1", sequence: 1 },
+      { stageId: "S2", sequence: 2 },
+    ]);
+    const db = { select: vi.fn(() => chain) } as any;
+    const { vReplayStages } = await import("@db/schema");
+
+    const result = await findSetSequences(db, "p1");
+
+    expect(result).toEqual(
+      new Map([
+        ["S1", 1],
+        ["S2", 2],
+      ]),
+    );
+    expect(fromCalls).toEqual([vReplayStages]);
+  });
+
+  it("nonNull throws on a null stage_sequence column", async () => {
+    const { chain } = fakeSelect([{ stageId: "S1", sequence: null }]);
+    const db = { select: vi.fn(() => chain) } as any;
+
+    await expect(findSetSequences(db, "p1")).rejects.toThrow(/stage_sequence/);
   });
 });
 

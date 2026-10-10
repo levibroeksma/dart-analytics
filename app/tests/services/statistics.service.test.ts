@@ -6,6 +6,7 @@ vi.mock("@repositories/statistics.repository", () => ({
   findVisitFacts: vi.fn(),
   findLegFacts: vi.fn(),
   findX01CheckoutDarts: vi.fn(),
+  findSetSequences: vi.fn().mockResolvedValue(new Map()),
   findGameSessionsPage: vi.fn(),
   countGameSessions: vi.fn(),
   findGameDataVersion: vi.fn(),
