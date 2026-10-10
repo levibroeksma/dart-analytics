@@ -648,9 +648,15 @@ export type SetFold = {
   winner: string | null;
 };
 
+/**
+ * A match folded from its leg winners: one `SetFold` per set played (or the
+ * single open set), sets won per side, and the match winner (null while open).
+ * `decidingSet` flags the set that can end the match; `suddenDeath` flags a
+ * leg race where two sides sit at the margin cap with no winner yet.
+ */
 export type MatchFold = {
   sets: SetFold[];
-  setsWon: Record<string, number>;
+  setsWon: Readonly<Record<string, number>>;
   winner: string | null;
   decidingSet: boolean;
   suddenDeath: boolean;

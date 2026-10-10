@@ -11,6 +11,7 @@ import type { MatchFormat, StageFact } from "@modules/types";
 
 const AB = ["A", "B"];
 const ABC = ["A", "B", "C"];
+const ABCD = ["A", "B", "C", "D"];
 const legsOnly = (
   count: number,
   mode: "FIRST_TO" | "BEST_OF" = "FIRST_TO",
@@ -49,6 +50,15 @@ describe("legRaceWinner", () => {
       null,
     ],
     ["3 sides, 2 clear of all", { A: 5, B: 3, C: 1 }, ABC, margin, "A"],
+    [
+      "4 sides, leader 4 vs runner-up 3 plays on",
+      { A: 4, B: 3, C: 2, D: 0 },
+      ABCD,
+      margin,
+      null,
+    ],
+    ["4 sides, 2 clear of all", { A: 4, B: 2, C: 2, D: 0 }, ABCD, margin, "A"],
+    ["3 sides, 5-5-0 at cap plays on", { A: 5, B: 5, C: 0 }, ABC, margin, null],
   ] as const)("%s", (_label, legsWon, sides, m, expected) => {
     expect(legRaceWinner(legsWon, sides, 3, m)).toBe(expected);
   });
@@ -140,6 +150,72 @@ describe("foldMatch", () => {
     expect(foldMatch(format, ABC, [["A"], ["B"], ["C"], []]).decidingSet).toBe(
       true,
     );
+  });
+
+  const winByTwoEvery: MatchFormat = {
+    legs: { mode: "FIRST_TO", count: 3 },
+    sets: null,
+    winByTwo: { cap: 5, scope: "EVERY_SET" },
+  };
+
+  it("3 sides: sudden death when two sides sit at the cap", () => {
+    const fold = foldMatch(winByTwoEvery, ABC, [
+      [...repeat("A", 5), ...repeat("B", 5)],
+    ]);
+    expect(fold.winner).toBeNull();
+    expect(fold.suddenDeath).toBe(true);
+  });
+
+  it("3 sides: no sudden death when only one side sits at the cap", () => {
+    const fold = foldMatch(winByTwoEvery, ABC, [
+      [...repeat("A", 5), ...repeat("B", 4), ...repeat("C", 4)],
+    ]);
+    expect(fold.winner).toBeNull();
+    expect(fold.suddenDeath).toBe(false);
+  });
+
+  it("3 sides: X+1 win once a side reaches cap + 1", () => {
+    const fold = foldMatch(winByTwoEvery, ABC, [
+      [...repeat("A", 6), ...repeat("B", 5), ...repeat("C", 5)],
+    ]);
+    expect(fold.winner).toBe("A");
+    expect(fold.suddenDeath).toBe(false);
+  });
+
+  it("3 sides under deciding-set scope: margin applies only in the deciding set", () => {
+    const format: MatchFormat = {
+      legs: { mode: "FIRST_TO", count: 3 },
+      sets: { mode: "FIRST_TO", count: 2 },
+      winByTwo: { cap: 5, scope: "DECIDING_SET" },
+    };
+    const fold = foldMatch(format, ABC, [
+      repeat("A", 3),
+      repeat("B", 3),
+      repeat("C", 3),
+      ["A", "B", "C", "A", "B", "C", "A", "A"],
+    ]);
+    expect(fold.sets.slice(0, 3).map((set) => set.winner)).toEqual([
+      "A",
+      "B",
+      "C",
+    ]);
+    expect(fold.sets[3]).toEqual({
+      legsWon: { A: 4, B: 2, C: 2 },
+      winner: "A",
+    });
+    expect(fold.decidingSet).toBe(true);
+    expect(fold.winner).toBe("A");
+  });
+
+  it("3 sides under deciding-set scope: a non-deciding set ends at the plain target", () => {
+    const format: MatchFormat = {
+      legs: { mode: "FIRST_TO", count: 3 },
+      sets: { mode: "FIRST_TO", count: 2 },
+      winByTwo: { cap: 5, scope: "DECIDING_SET" },
+    };
+    const fold = foldMatch(format, ABC, [["A", "B", "A", "B", "A"]]);
+    expect(fold.sets[0]!.winner).toBe("A");
+    expect(fold.decidingSet).toBe(false);
   });
 });
 
