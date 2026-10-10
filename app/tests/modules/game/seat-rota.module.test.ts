@@ -295,6 +295,24 @@ describe("startIndexOf", () => {
   });
 });
 
+describe("startIndexOf with a cyclic parent chain", () => {
+  it("terminates instead of walking the cycle forever", () => {
+    const a: StageFact = {
+      clientKey: "a",
+      stageTypeKey: "LEG",
+      parentClientKey: "b",
+      sequence: 1,
+    };
+    const b: StageFact = {
+      clientKey: "b",
+      stageTypeKey: "SET",
+      parentClientKey: "a",
+      sequence: 1,
+    };
+    expect(Number.isFinite(startIndexOf(a, [a, b]))).toBe(true);
+  });
+});
+
 describe("activeSeat with sets (SHARED)", () => {
   it.each([2, 3, 4])("set k opens on seat k with %i seats", (count) => {
     const roster = seats(count);

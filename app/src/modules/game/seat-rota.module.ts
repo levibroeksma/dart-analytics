@@ -33,6 +33,7 @@ export function seatOf(turn: TurnFact, seats: readonly SeatFact[]): SeatFact {
  * The 0-based rota index a leg opens on: the sum of `sequence − 1` over the
  * leg and its ancestors. Root legs keep `leg − 1`; a leg in set k starts at
  * `(k − 1) + (leg − 1)`, so set k opens on seat k (501.md, Per-set throw rotation).
+ * The walk is bounded by `stages.length`, so a cyclic parent chain ends.
  */
 export function startIndexOf(
   stage: StageFact,
@@ -40,7 +41,7 @@ export function startIndexOf(
 ): number {
   let index = 0;
   let cursor: StageFact | undefined = stage;
-  while (cursor) {
+  for (let depth = 0; cursor && depth <= stages.length; depth += 1) {
     index += cursor.sequence - 1;
     const parentKey: string | null = cursor.parentClientKey;
     cursor =

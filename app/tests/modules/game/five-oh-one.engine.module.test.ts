@@ -1894,6 +1894,40 @@ describe("501_V2 sets match", () => {
     expect(rebuilt.state()).toEqual(beforeState);
   });
 
+  it("a dart-by-dart checkout across the set boundary rehydrates and undoes exactly", () => {
+    const engine = fiveOhOneV2EngineFactory.create(
+      v2Config({ startingScore: 40 }),
+    );
+    const beforeFacts = structuredClone(engine.facts());
+    const beforeState = structuredClone(engine.state());
+    const state = engine.record({
+      hitTargetNumber: 20,
+      hitZoneKey: "DOUBLE",
+      locationX: 0,
+      locationY: -166,
+    });
+    expect(engine.facts().stages.map((s) => s.clientKey)).toEqual([
+      "set-1",
+      "set-1-leg-1",
+      "set-2",
+      "set-2-leg-1",
+    ]);
+    expect(state.sets[0]!.winner).toBe("A");
+    expect(state.activeParticipantRef).toBe("participant-2");
+
+    const rebuilt = fiveOhOneV2EngineFactory.create(
+      v2Config({ startingScore: 40 }),
+      structuredClone(engine.facts()),
+    );
+    expect(rebuilt.state()).toEqual(engine.state());
+    expect(rebuilt.state().activeParticipantRef).toBe("participant-2");
+
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts()).toEqual(beforeFacts);
+    expect(engine.state()).toEqual(beforeState);
+    expect(engine.state().activeParticipantRef).toBe("participant-1");
+  });
+
   it("win by 2 plays past the target", () => {
     const engine = fiveOhOneV2EngineFactory.create(
       v2Config({ sets: null, winByTwo: { cap: 3, scope: "EVERY_SET" } }),
