@@ -1,4 +1,5 @@
 import { foldFiveOhOneState } from "@modules/game/five-oh-one.engine.module";
+import { matchFormatOf, raceTarget } from "@modules/game/match-format.module";
 import {
   durationOf,
   foldOneTwentyOneState,
@@ -39,7 +40,7 @@ import type {
   AroundTheClockEngineConfig,
   Bobs27Snapshot,
   DoublesTrainingSnapshot,
-  FiveOhOneSnapshot,
+  FiveOhOneAnySnapshot,
   ScoreTrainingSnapshot,
   Seated,
   SeatFact,
@@ -86,7 +87,7 @@ function ownSeatOf(seats: readonly SeatFact[]): SeatFact {
 }
 
 function fiveOhOne(
-  config: Seated<FiveOhOneSnapshot>,
+  config: Seated<FiveOhOneAnySnapshot>,
   facts: EngineFacts,
 ): SessionProgress {
   const state = foldFiveOhOneState(facts, config);
@@ -102,7 +103,7 @@ function fiveOhOne(
         ? `vs ${opponents.map((seat) => seat.displayName).join(" & ")}`
         : "",
       `Leg ${Math.max(facts.stages.length, 1)}`,
-      `First to ${config.legsToWin}`,
+      `First to ${raceTarget(matchFormatOf(config).legs)}`,
       state.sides.length > 1 ? `${legsOf(own.sideKey)}–${best}` : "",
     ]),
     big: big(
@@ -243,6 +244,7 @@ function aroundTheClock(
 
 const SUMMARIZERS: Readonly<Record<string, Summarizer>> = {
   "501_V1": fiveOhOne,
+  "501_V2": fiveOhOne,
   "121_V1": oneTwentyOne,
   "121_V2": oneTwentyOne,
   CRICKET_V1: cricket,

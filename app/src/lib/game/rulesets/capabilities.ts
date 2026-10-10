@@ -179,7 +179,7 @@ export function capableRulesets(
  * Which ruleset versions currently admit a DartBot opponent seat. `08-DartBot.md`
  * §Delivery Phases names the five rulesets `DictatedStrategy` (phase 3) plays:
  * Around the Clock, Bob's 27, Doubles Training, Shanghai, Singles Training —
- * all five are listed here. `501_V1`, `121_V1` and `TUOD_V1` are on
+ * all five are listed here. `501_V1`, `501_V2`, `121_V1` and `TUOD_V1` are on
  * `X01Strategy` (`x01.strategy.module.ts`, reused unchanged — both are
  * checkout-ladder games with 501's identical `{ remaining, checkoutPath }`
  * decision shape). `SCORE_TRAINING_V1` is on `ScoringStrategy`
@@ -203,6 +203,7 @@ export const RULESET_DARTBOT: Readonly<
   SINGLES_V1: true,
   SINGLES_V3: true,
   "501_V1": true,
+  "501_V2": true,
   "121_V1": true,
   TUOD_V1: true,
   SCORE_TRAINING_V1: true,

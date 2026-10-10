@@ -9,6 +9,7 @@ export const DEDICATED_STATS_LAYOUTS: ReadonlySet<string> = new Set([
 /** Ruleset versions whose `/statistics` view is the plain heatmap alone (`HeatmapStatsOverview.astro`): board games, with a target picker where the heatmap takes a `target` (`heatmap-targets.ts`). */
 export const HEATMAP_ONLY_LAYOUTS: ReadonlySet<string> = new Set([
   "501_V1",
+  "501_V2",
   "121_V1",
   "TUOD_V1",
   "SINGLES_V1",

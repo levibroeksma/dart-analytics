@@ -174,6 +174,26 @@ describe("summarizeProgress — guards", () => {
   });
 });
 
+describe("summarizeProgress — 501_V2", () => {
+  it("reads a V2 first-to-N leg race like the V1 summary", () => {
+    const v2Config = {
+      startingScore: 501,
+      checkIn: "STRAIGHT_IN",
+      checkOut: "DOUBLE_OUT",
+      maxDartsPerTurn: 3,
+      maxVisitScore: 180,
+      legs: { mode: "FIRST_TO", count: 3 },
+      sets: null,
+      winByTwo: null,
+      seats: DUO,
+    };
+    expect(summarizeProgress("501_V2", v2Config, EMPTY_FACTS)).toEqual({
+      detail: "vs Dartbot · Leg 1 · First to 3 · 0–0",
+      big: { value: "501", label: "TO GO" },
+    });
+  });
+});
+
 describe("summarizeProgress — 501_V1", () => {
   it("501 with empty facts against Dartbot", () => {
     expect(summarizeProgress("501_V1", fiveOhOneConfig, EMPTY_FACTS)).toEqual({

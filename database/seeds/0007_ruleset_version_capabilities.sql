@@ -36,6 +36,8 @@ FROM (
         VALUES
             ('501_V1', 'RECREATIONAL', 'QUICK_SCORE'),
             ('501_V1', 'ANALYTICS', 'VISUAL_BOARD'),
+            ('501_V2', 'RECREATIONAL', 'QUICK_SCORE'),
+            ('501_V2', 'ANALYTICS', 'VISUAL_BOARD'),
             ('SCORE_TRAINING_V1', 'RECREATIONAL', 'QUICK_SCORE'),
             ('SCORE_TRAINING_V1', 'ANALYTICS', 'VISUAL_BOARD'),
             ('TUOD_V1', 'RECREATIONAL', 'QUICK_SCORE'),

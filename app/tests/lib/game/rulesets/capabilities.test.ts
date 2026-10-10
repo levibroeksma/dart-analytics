@@ -162,7 +162,7 @@ describe("capableRulesets", () => {
 });
 
 describe("RULESET_DARTBOT", () => {
-  it("admits the eleven rulesets whose bot strategy exists today", () => {
+  it("admits the twelve rulesets whose bot strategy exists today", () => {
     expect(
       (Object.keys(RULESET_DARTBOT) as (keyof typeof RULESET_DARTBOT)[])
         .filter((key) => RULESET_DARTBOT[key])
@@ -170,6 +170,7 @@ describe("RULESET_DARTBOT", () => {
     ).toEqual([
       "121_V1",
       "501_V1",
+      "501_V2",
       "AROUND_THE_CLOCK_V1",
       "BOBS27_V1",
       "DOUBLES_TRAINING_V1",

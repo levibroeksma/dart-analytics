@@ -43,7 +43,10 @@ import {
   registerEngineFactory,
   resetEngineRegistry,
 } from "@modules/game/engine.registry";
-import { fiveOhOneEngineFactory } from "@modules/game/five-oh-one.engine.module";
+import {
+  fiveOhOneEngineFactory,
+  fiveOhOneV2EngineFactory,
+} from "@modules/game/five-oh-one.engine.module";
 import { fiveOhOnePlay } from "@lib/game/five-oh-one-play.data";
 import type { FiveOhOnePlayContext } from "@lib/types";
 import type {
@@ -260,6 +263,43 @@ describe("init", () => {
     await play.init.call(play);
     expect(play.hasActiveSession).toBe(true);
     expect(play.engine).not.toBeNull();
+  });
+
+  it("resumes a 501_V2 session on the V2 engine", async () => {
+    registerEngineFactory(fiveOhOneV2EngineFactory);
+    const play = makePlay({
+      rulesetVersionKey: "501_V2",
+      configSnapshot: {
+        startingScore: 501,
+        checkIn: "STRAIGHT_IN",
+        checkOut: "DOUBLE_OUT",
+        maxDartsPerTurn: 3,
+        maxVisitScore: 180,
+        legs: { mode: "FIRST_TO", count: 1 },
+        sets: { mode: "FIRST_TO", count: 2 },
+        winByTwo: null,
+        seats: SEATS,
+      } as unknown as Seated<FiveOhOneSnapshot>,
+      stages: [
+        {
+          clientKey: "set-1",
+          stageTypeKey: "SET",
+          parentClientKey: null,
+          sequence: 1,
+        },
+        {
+          clientKey: "set-1-leg-1",
+          stageTypeKey: "LEG",
+          parentClientKey: "set-1",
+          sequence: 1,
+        },
+      ],
+    });
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      { ...ACTIVE_SESSION, rulesetVersionKey: "501_V2" },
+    ]);
+    await play.init.call(play);
+    expect(play.engine?.rulesetVersionKey).toBe("501_V2");
   });
 });
 

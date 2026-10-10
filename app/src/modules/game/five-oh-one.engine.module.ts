@@ -1,9 +1,16 @@
-import type { FiveOhOneSnapshot, SeatFact, Seated } from "@lib/types";
+import type {
+  FiveOhOneAnySnapshot,
+  FiveOhOneSnapshot,
+  FiveOhOneV2Snapshot,
+  SeatFact,
+  Seated,
+} from "@lib/types";
 import { newClientKey } from "./client-key.module";
 import { activeSeat, seatOf } from "./seat-rota.module";
 import { checkoutDartsRejection } from "./checkout-darts.module";
 import { resolveCheckoutAttempt } from "./checkout-bust.module";
 import { registerEngineFactory } from "./engine.registry";
+import { foldMatch, matchFormatOf } from "./match-format.module";
 import {
   appendResolvedDart,
   cloneTurns,
@@ -43,6 +50,31 @@ function legStage(sequence: number): StageFact {
   };
 }
 
+function setStage(sequence: number): StageFact {
+  return {
+    clientKey: `set-${sequence}`,
+    stageTypeKey: "SET",
+    parentClientKey: null,
+    sequence,
+  };
+}
+
+function setLegStage(setSequence: number, sequence: number): StageFact {
+  return {
+    clientKey: `set-${setSequence}-leg-${sequence}`,
+    stageTypeKey: "LEG",
+    parentClientKey: `set-${setSequence}`,
+    sequence,
+  };
+}
+
+/** The stages a fresh match opens on: one root leg, or set 1 and its first leg. */
+function openingStages(config: FiveOhOneAnySnapshot): StageFact[] {
+  return matchFormatOf(config).sets === null
+    ? [legStage(1)]
+    : [setStage(1), setLegStage(1, 1)];
+}
+
 /** A visit score is playable only as a whole number in `0..maxVisitScore`. */
 function isPlayableVisitScore(
   scoreAttempted: number,
@@ -56,18 +88,27 @@ function isPlayableVisitScore(
 }
 
 export function initialFiveOhOneState(
-  config: Seated<FiveOhOneSnapshot>,
+  config: Seated<FiveOhOneAnySnapshot>,
 ): FiveOhOneState {
+  const sideKeys = sidesOf(config.seats);
+  const fold = foldMatch(matchFormatOf(config), sideKeys, []);
   return {
     activeParticipantRef: config.seats[0].participantRef,
     status: "IN_PROGRESS",
     winningSideKey: null,
-    sides: sidesOf(config.seats).map((sideKey) => ({ sideKey, legsWon: 0 })),
+    sides: sideKeys.map((sideKey) => ({
+      sideKey,
+      legsWon: 0,
+      setsWon: 0,
+    })),
     seats: config.seats.map((seat) => ({
       participantRef: seat.participantRef,
       sideKey: seat.sideKey,
       remainingScore: config.startingScore,
     })),
+    sets: fold.sets,
+    decidingSet: fold.decidingSet,
+    suddenDeath: fold.suddenDeath,
   };
 }
 
@@ -119,7 +160,7 @@ export function resolveFiveOhOneVisit(
 function checkoutDartsRejectionFor(
   remainingScore: number,
   input: FiveOhOneVisitInput,
-  config: FiveOhOneSnapshot,
+  config: FiveOhOneAnySnapshot,
 ): string | null {
   if (input.finishedOnDouble !== true) return null;
   return checkoutDartsRejection(
@@ -156,7 +197,7 @@ function legVisitsOf(
  */
 function foldLeg(
   visits: readonly TurnFact[],
-  config: Seated<FiveOhOneSnapshot>,
+  config: Seated<FiveOhOneAnySnapshot>,
   remaining: Map<string, number>,
 ): SeatFact | null {
   for (const seat of config.seats) {
@@ -190,12 +231,13 @@ function legDartsFor(
 
 export function legResultsOf(
   facts: EngineFacts,
-  config: Seated<FiveOhOneSnapshot>,
+  config: Seated<FiveOhOneAnySnapshot>,
 ): LegResult[] {
   const remaining = new Map<string, number>();
   const results: LegResult[] = [];
 
   for (const stage of facts.stages) {
+    if (stage.stageTypeKey !== "LEG") continue;
     const visits = legVisitsOf(facts, stage);
     const winner = foldLeg(visits, config, remaining);
     if (winner === null) continue;
@@ -216,7 +258,7 @@ export function legResultsOf(
  * checkout, and the fold stops before any later leg could move it.
  */
 function seatStatesOf(
-  config: Seated<FiveOhOneSnapshot>,
+  config: Seated<FiveOhOneAnySnapshot>,
   remaining: ReadonlyMap<string, number>,
   winningSideKey: string | null,
 ): readonly FiveOhOneSeatState[] {
@@ -230,49 +272,104 @@ function seatStatesOf(
   }));
 }
 
+type LegFold = {
+  winnersBySet: string[][];
+  remaining: Map<string, number>;
+};
+
+/**
+ * Folds every LEG in play order, grouping winners by their SET parent (root
+ * legs form one group).
+ * @throws when the tree contradicts the format: a LEG naming an unknown set,
+ *   a SET under a sets-off format, or a root LEG under a sets-on format.
+ */
+function foldLegs(
+  facts: EngineFacts,
+  config: Seated<FiveOhOneAnySnapshot>,
+): LegFold {
+  const setsOn = matchFormatOf(config).sets !== null;
+  const remaining = new Map(
+    config.seats.map((seat) => [seat.participantRef, config.startingScore]),
+  );
+  const winnersBySet: string[][] = [];
+  const groupOf = new Map<string | null, number>();
+
+  for (const stage of facts.stages) {
+    if (stage.stageTypeKey === "SET") {
+      if (!setsOn) {
+        throw new Error(
+          `501: set ${stage.clientKey} recorded while sets are off.`,
+        );
+      }
+      groupOf.set(stage.clientKey, winnersBySet.push([]) - 1);
+      continue;
+    }
+    if (stage.parentClientKey === null && setsOn) {
+      throw new Error(
+        `501: root leg ${stage.clientKey} recorded while sets are on.`,
+      );
+    }
+    let group = groupOf.get(stage.parentClientKey);
+    if (group === undefined) {
+      if (stage.parentClientKey !== null) {
+        throw new Error(
+          `501: leg ${stage.clientKey} names unknown set ${stage.parentClientKey}.`,
+        );
+      }
+      group = winnersBySet.push([]) - 1;
+      groupOf.set(null, group);
+    }
+    const winner = foldLeg(legVisitsOf(facts, stage), config, remaining);
+    if (winner) winnersBySet[group]!.push(winner.sideKey);
+  }
+
+  return { winnersBySet, remaining };
+}
+
 /**
  * Folds the whole fact log into the session's state.
  *
  * A leg is SHARED: one stage holds every seat's interleaved visits, and the
- * checkout that ends it resets every seat. The session reaches `WON` only
- * when a SIDE reaches `legsToWin`, so legs are counted per side and the fold
- * stops at the leg that decides the match.
+ * checkout that ends it resets every seat. The session reaches `WON` when
+ * `foldMatch` names a winner (match-format.module.ts), so legs are counted per
+ * side and the fold stops at the leg that decides the match.
  */
 export function foldFiveOhOneState(
   facts: EngineFacts,
-  config: Seated<FiveOhOneSnapshot>,
+  config: Seated<FiveOhOneAnySnapshot>,
 ): FiveOhOneState {
-  const legsWon = new Map(sidesOf(config.seats).map((side) => [side, 0]));
-  const remaining = new Map(
-    config.seats.map((seat) => [seat.participantRef, config.startingScore]),
-  );
-  let winningSideKey: string | null = null;
-
-  for (const stage of facts.stages) {
-    if (winningSideKey !== null) break;
-
-    const winner = foldLeg(legVisitsOf(facts, stage), config, remaining);
-    if (winner === null) continue;
-
-    const won = (legsWon.get(winner.sideKey) ?? 0) + 1;
-    legsWon.set(winner.sideKey, won);
-    if (won >= config.legsToWin) winningSideKey = winner.sideKey;
+  const sideKeys = sidesOf(config.seats);
+  const { winnersBySet, remaining } = foldLegs(facts, config);
+  const fold = foldMatch(matchFormatOf(config), sideKeys, winnersBySet);
+  if (fold.sets.slice(0, -1).some((set) => set.winner === null)) {
+    throw new Error("501: a set was opened before the previous set was won.");
   }
+  if (fold.winner !== null && winnersBySet.length > fold.sets.length) {
+    throw new Error("501: stages recorded after the match was won.");
+  }
+  const currentSet = fold.sets.at(-1)!;
 
   return {
     activeParticipantRef: activeSeat(facts, config.seats, "SHARED")
       .participantRef,
-    status: winningSideKey === null ? "IN_PROGRESS" : "WON",
-    winningSideKey,
-    sides: [...legsWon].map(([sideKey, won]) => ({ sideKey, legsWon: won })),
-    seats: seatStatesOf(config, remaining, winningSideKey),
+    status: fold.winner === null ? "IN_PROGRESS" : "WON",
+    winningSideKey: fold.winner,
+    sides: sideKeys.map((sideKey) => ({
+      sideKey,
+      legsWon: currentSet.legsWon[sideKey] ?? 0,
+      setsWon: fold.setsWon[sideKey] ?? 0,
+    })),
+    seats: seatStatesOf(config, remaining, fold.winner),
+    sets: fold.sets,
+    decidingSet: fold.decidingSet,
+    suddenDeath: fold.suddenDeath,
   };
 }
 
 /**
- * 501: a match of `legsToWin` legs, each started at `startingScore` and won by
- * a visit whose final dart lands in a double. The engine owns the fact log —
- * one `LEG` stage per leg and one turn per visit, carrying the visit total
+ * 501: a match in the format `matchFormatOf(config)` names, each leg started
+ * at `startingScore` and won by a visit whose final dart lands in a double. The engine owns the fact log —
+ * one `LEG` stage per leg (under a `SET` stage when sets are on) and one turn per visit, carrying the visit total
  * with no dart rows because 501 is a quick-score game. Every seat's
  * `remainingScore` and every side's `legsWon` are derived by folding those
  * turns through `foldFiveOhOneState`, never accumulated: a bust turn stores
@@ -282,19 +379,19 @@ export class FiveOhOneEngine implements GameEngine<
   FiveOhOneInput,
   FiveOhOneState
 > {
-  readonly rulesetVersionKey = "501_V1";
   readonly stageOwnership = "SHARED" as const;
   private readonly stages: StageFact[];
   private readonly turns: TurnFact[];
 
   constructor(
-    private readonly config: Seated<FiveOhOneSnapshot>,
+    private readonly config: Seated<FiveOhOneAnySnapshot>,
     prior?: EngineFacts,
+    readonly rulesetVersionKey: "501_V1" | "501_V2" = "501_V1",
   ) {
     this.stages =
       prior && prior.stages.length > 0
         ? prior.stages.map((stage) => ({ ...stage }))
-        : [legStage(1)];
+        : openingStages(config);
     this.turns = prior ? cloneTurns(prior.turns) : [];
   }
 
@@ -322,11 +419,48 @@ export class FiveOhOneEngine implements GameEngine<
   }
 
   private openLeg(): StageFact {
-    const stage = this.stages.at(-1);
+    const stage = this.stages.filter((s) => s.stageTypeKey === "LEG").at(-1);
     if (!stage) {
       throw new Error("A 501 engine always has an open leg stage.");
     }
     return stage;
+  }
+
+  /** Opens the next leg after a leg win: a new set when the fold closed the current one. */
+  private openNextLeg(state: FiveOhOneState): void {
+    if (matchFormatOf(this.config).sets === null) {
+      this.stages.push(legStage(this.stages.length + 1));
+      return;
+    }
+    const openSet = this.stages.filter((s) => s.stageTypeKey === "SET").at(-1)!;
+    if (state.sets.at(-1)?.winner != null) {
+      const next = openSet.sequence + 1;
+      this.stages.push(setStage(next), setLegStage(next, 1));
+      return;
+    }
+    const legsInSet = this.stages.filter(
+      (s) => s.parentClientKey === openSet.clientKey,
+    ).length;
+    this.stages.push(setLegStage(openSet.sequence, legsInSet + 1));
+  }
+
+  /** Whether a checkout by the active seat would win the match (`foldMatch`). */
+  private checkoutWinsMatch(before: FiveOhOneState): boolean {
+    const seat = before.seats.find(
+      (candidate) => candidate.participantRef === before.activeParticipantRef,
+    );
+    if (!seat) return false;
+    const { winnersBySet } = foldLegs(
+      { stages: this.stages, turns: this.turns },
+      this.config,
+    );
+    const groups = winnersBySet.map((group) => [...group]);
+    if (groups.length === 0) groups.push([]);
+    groups.at(-1)!.push(seat.sideKey);
+    return (
+      foldMatch(matchFormatOf(this.config), sidesOf(this.config.seats), groups)
+        .winner !== null
+    );
   }
 
   private turnCountIn(stageClientKey: string): number {
@@ -416,7 +550,7 @@ export class FiveOhOneEngine implements GameEngine<
     const settled = this.deriveState();
     if (!outcome.wonLeg || settled.status !== "IN_PROGRESS") return settled;
 
-    this.stages.push(legStage(this.stages.length + 1));
+    this.openNextLeg(settled);
     return this.deriveState();
   }
 
@@ -452,7 +586,7 @@ export class FiveOhOneEngine implements GameEngine<
     const settled = this.deriveState();
     if (!checkedOut || settled.status === "WON") return settled;
 
-    this.stages.push(legStage(this.stages.length + 1));
+    this.openNextLeg(settled);
     return this.deriveState();
   }
 
@@ -549,13 +683,7 @@ export class FiveOhOneEngine implements GameEngine<
     );
     if (!checkedOut) return false;
 
-    const seat = before.seats.find(
-      (candidate) => candidate.participantRef === before.activeParticipantRef,
-    );
-    const side = before.sides.find(
-      (candidate) => candidate.sideKey === seat?.sideKey,
-    );
-    return (side?.legsWon ?? 0) + 1 >= this.config.legsToWin;
+    return this.checkoutWinsMatch(before);
   }
 
   /**
@@ -574,7 +702,7 @@ export class FiveOhOneEngine implements GameEngine<
 
   /**
    * Answers the finish-confirm gate without touching the fact log. Only the
-   * checkout that takes `legsWon` to `legsToWin` completes the session — a
+   * checkout that wins the match (`foldMatch`) completes the session — a
    * checkout that merely wins a leg does not — and a visit `record()` would
    * reject never completes it either, dart counts the checkout chart
    * contradicts included: this predicate answers, it never throws.
@@ -602,13 +730,7 @@ export class FiveOhOneEngine implements GameEngine<
     const outcome = resolveFiveOhOneVisit(remaining, input);
     if (!outcome.wonLeg) return false;
 
-    const seat = before.seats.find(
-      (candidate) => candidate.participantRef === before.activeParticipantRef,
-    );
-    const side = before.sides.find(
-      (candidate) => candidate.sideKey === seat?.sideKey,
-    );
-    return (side?.legsWon ?? 0) + 1 >= this.config.legsToWin;
+    return this.checkoutWinsMatch(before);
   }
 
   isComplete(): boolean {
@@ -635,8 +757,22 @@ export const fiveOhOneEngineFactory: GameEngineFactory<
   rulesetVersionKey: "501_V1",
   stageOwnership: "SHARED",
   create(config: Seated<FiveOhOneSnapshot>, prior?: EngineFacts) {
-    return new FiveOhOneEngine(config, prior);
+    return new FiveOhOneEngine(config, prior, "501_V1");
   },
 };
 
 registerEngineFactory(fiveOhOneEngineFactory);
+
+export const fiveOhOneV2EngineFactory: GameEngineFactory<
+  Seated<FiveOhOneV2Snapshot>,
+  FiveOhOneInput,
+  FiveOhOneState
+> = {
+  rulesetVersionKey: "501_V2",
+  stageOwnership: "SHARED",
+  create(config: Seated<FiveOhOneV2Snapshot>, prior?: EngineFacts) {
+    return new FiveOhOneEngine(config, prior, "501_V2");
+  },
+};
+
+registerEngineFactory(fiveOhOneV2EngineFactory);

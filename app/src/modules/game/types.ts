@@ -210,10 +210,15 @@ export type FiveOhOneSeatState = SeatState & {
   remainingScore: number;
 };
 
-/** One side's completed legs. What wins a leg and the match is the SIDE. */
+/**
+ * One side's score: `legsWon` counts legs in the current set (the whole match
+ * without sets), `setsWon` counts sets in the match. What wins a leg, a set
+ * and the match is the SIDE.
+ */
 export type FiveOhOneSideState = {
   sideKey: string;
   legsWon: number;
+  setsWon: number;
 };
 
 /**
@@ -228,6 +233,9 @@ export type FiveOhOneState = MultiSeatState<FiveOhOneSeatState> & {
   status: "IN_PROGRESS" | "WON";
   winningSideKey: string | null;
   sides: readonly FiveOhOneSideState[];
+  sets: readonly SetFold[];
+  decidingSet: boolean;
+  suddenDeath: boolean;
 };
 
 export type LegResult = {

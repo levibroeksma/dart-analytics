@@ -57,7 +57,7 @@ import type {
 // Value import, not `import type`: the class is the narrowing target below,
 // and importing it also runs the module's side effect, which registers
 // fiveOhOneEngineFactory so the registry can resolve this page's own
-// RULESET_VERSION_KEY. `fiveOhOneEngineFactory` is imported directly (not via
+// RULESET_VERSION_KEYS. `fiveOhOneEngineFactory` is imported directly (not via
 // the type-erased registry) so `playFoldBotQuickScoreVisit`'s `TState` infers
 // as `FiveOhOneState` with no cast at the call site.
 import {
@@ -68,7 +68,7 @@ import {
 import type { LegResult } from "@modules/types";
 
 const GAME_TYPE_KEY = "501";
-const RULESET_VERSION_KEY: RulesetVersionKey = "501_V1";
+const RULESET_VERSION_KEYS: readonly RulesetVersionKey[] = ["501_V1", "501_V2"];
 
 /**
  * Rebuilds the engine for the persisted session, replaying the store's fact
@@ -79,8 +79,9 @@ function resumeEngine(
   game: FiveOhOnePlayContext["$store"]["game"],
 ): FiveOhOneEngine | null {
   const { configSnapshot, rulesetVersionKey } = game;
-  if (!configSnapshot || rulesetVersionKey !== RULESET_VERSION_KEY) return null;
-  const factory = getEngineFactory(RULESET_VERSION_KEY);
+  if (!configSnapshot || !rulesetVersionKey) return null;
+  if (!RULESET_VERSION_KEYS.includes(rulesetVersionKey)) return null;
+  const factory = getEngineFactory(rulesetVersionKey);
   if (!factory) return null;
   const engine = factory.create(configSnapshot, {
     stages: game.stages,
@@ -835,7 +836,7 @@ export function fiveOhOnePlay() {
       await runPlayAgain(
         this,
         GAME_TYPE_KEY,
-        RULESET_VERSION_KEY,
+        this.$store.game.rulesetVersionKey as RulesetVersionKey,
         (engine) => (engine instanceof FiveOhOneEngine ? engine : null),
         (config) => ({
           snapshot: config,
