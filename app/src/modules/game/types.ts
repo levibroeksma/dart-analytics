@@ -628,3 +628,30 @@ export type SessionProgress = {
   detail: string;
   big: { value: string; label: string } | null;
 };
+
+/** A race to a number of legs or sets (`501_V2`); `count` is odd under `BEST_OF`. */
+export type RaceSpec = { mode: "FIRST_TO" | "BEST_OF"; count: number };
+
+/** Win by 2 legs, bounded by sudden death at `cap`-`cap`. */
+export type WinByTwo = { cap: number; scope: "EVERY_SET" | "DECIDING_SET" };
+
+/** A 501 match format, normalised across ruleset versions (`matchFormatOf`). */
+export type MatchFormat = {
+  legs: RaceSpec;
+  sets: RaceSpec | null;
+  winByTwo: WinByTwo | null;
+};
+
+/** One set's leg tally and winner; a match without sets folds as one set. */
+export type SetFold = {
+  legsWon: Readonly<Record<string, number>>;
+  winner: string | null;
+};
+
+export type MatchFold = {
+  sets: SetFold[];
+  setsWon: Record<string, number>;
+  winner: string | null;
+  decidingSet: boolean;
+  suddenDeath: boolean;
+};
