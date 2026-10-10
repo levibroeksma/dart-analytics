@@ -507,7 +507,7 @@ Registered for discoverability, not as reading material — the view contract li
 | `app/src/components/forms/RangeSlider.astro` | Bounded integer slider over a transparent native range input; normalises and writes back unusable models (D430, 2026-10-08) | canonical |
 | `app/src/components/forms/SlideToStart.astro` | Fixed slide-to-submit above `BottomNav`; drag past 85% or Enter/Space submits the enclosing form (D430, 2026-10-08) | canonical |
 | `app/src/components/layout/games/setup/SettingLabel.astro` | Mono caps setup label with an optional `setting-badge` chip (D430, 2026-10-08) | canonical |
-| `app/src/lib/ui/stepper.data.ts` | `stepValue` (coerce, step, clamp) and the `stepperData` Alpine factory (D430, 2026-10-08) | canonical |
+| `app/src/lib/ui/stepper.data.ts` | `stepValue` (coerce, step, clamp) and the `stepperData` Alpine factory; `min`/`max` read live from scope (D430, 2026-10-08; 2026-10-10) | canonical |
 | `app/src/lib/ui/range-slider.data.ts` | `MAX_TICKS`, `valueToFraction`, `normaliseSliderValue`, `tickFractions` and the `rangeSliderData` Alpine factory with its `$nextTick` write-back (D430, 2026-10-08) | canonical |
 | `app/src/lib/ui/slide-to-start.data.ts` | `SLIDE_THRESHOLD`/`SLIDE_THUMB_SPAN`/`SLIDE_RESET_MS`, `dragFraction`, `shouldFire` and the `slideToStartData` factory (fires once, resets on failed or never-started submit) (D430, 2026-10-08) | canonical |
 | `app/src/lib/ui/initials.ts` | `initialsOf` and `playerCountLabel`, exposed as Alpine magics `$initials` / `$playerCount` (D430, 2026-10-08) | canonical |

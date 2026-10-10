@@ -123,6 +123,45 @@ describe("legBarCount", () => {
       ),
     ).toBe(3);
   });
+  it.each([
+    [5, 3],
+    [6, 4],
+    [4, 4],
+  ])("is cap + 1 for %i-%i at target 4, cap 6", (a, b) => {
+    const config = v2({
+      legs: { mode: "FIRST_TO", count: 4 },
+      winByTwo: { cap: 6, scope: "EVERY_SET" },
+    });
+    expect(
+      legBarCount(
+        config,
+        state({
+          status: "FINISHED",
+          sides: [
+            { sideKey: "A", legsWon: a, setsWon: 0 },
+            { sideKey: "B", legsWon: b, setsWon: 0 },
+          ],
+        }),
+      ),
+    ).toBe(7);
+  });
+  it("is the target for a finished 4-2 at target 4", () => {
+    const config = v2({
+      legs: { mode: "FIRST_TO", count: 4 },
+      winByTwo: { cap: 6, scope: "EVERY_SET" },
+    });
+    expect(
+      legBarCount(
+        config,
+        state({
+          sides: [
+            { sideKey: "A", legsWon: 4, setsWon: 0 },
+            { sideKey: "B", legsWon: 2, setsWon: 0 },
+          ],
+        }),
+      ),
+    ).toBe(4);
+  });
   it("is cap + 1 when sudden death is flagged", () => {
     const config = v2({ winByTwo: { cap: 5, scope: "EVERY_SET" } });
     expect(

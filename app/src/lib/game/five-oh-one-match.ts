@@ -35,8 +35,8 @@ export function fiveOhOneSubtitle(
 
 /**
  * Leg bars to draw: the leg target, or `cap + 1` when the margin applies to
- * this set and the sides are contesting it (leader at the target with the
- * runner-up within 1, or sudden death flagged).
+ * this set and the sides are contesting it (leader past the target, or at it
+ * with the runner-up within 1 or sudden death flagged).
  */
 export function legBarCount(
   config: FiveOhOneAnySnapshot,
@@ -51,7 +51,8 @@ export function legBarCount(
   const leader = ranked[0] ?? 0;
   const runnerUp = ranked[1] ?? 0;
   const contested =
-    leader >= target && (state.suddenDeath || leader - runnerUp < 2);
+    leader > target ||
+    (leader >= target && (state.suddenDeath || leader - runnerUp < 2));
   return applies && contested ? margin.cap + 1 : target;
 }
 
