@@ -1,6 +1,6 @@
 # Modal context rows — design
 
-Date: 2026-10-10 · Status: approved in chat · Issue: #822 (last open part; legs bars, copy and accent glow already shipped on `feat/modal-sheets`) · Parent spec: `2026-10-08-modal-sheets-design.md` · Source: Claude Design `Modals.dc.html`
+Date: 2026-10-10 · Status: implemented · Issue: #822 (last open part; legs bars, copy and accent glow already shipped on `feat/modal-sheets`) · Parent spec: `2026-10-08-modal-sheets-design.md` · Source: Claude Design `Modals.dc.html`
 
 ## Intent
 
