@@ -51,7 +51,12 @@ BOUNDARY = r"(?:\A|[;&|]\s*)"
 is_commit = re.search(BOUNDARY + r"git\s+commit\b", command) is not None
 is_merge = re.search(BOUNDARY + r"git\s+merge\b", command) is not None
 is_push = re.search(BOUNDARY + r"git\s+push\b", command) is not None
-pushes_to_main = is_push and re.search(r"(^|[\s:])(main|master)(\s|$)", command) is not None
+# Only the `git push` segment names a push target; `gh pr create --base main`
+# chained after it must not count (#824).
+push_segments = re.findall(BOUNDARY + r"(git\s+push\b[^;&|]*)", command)
+pushes_to_main = any(
+    re.search(r"(^|[\s:])(main|master)(\s|$)", seg) for seg in push_segments
+)
 
 if is_commit and on_main:
     deny(f"Blocked: current branch is '{branch}'. Never commit directly to main "
