@@ -34,3 +34,6 @@ app/src/db/meta/
 # .claude/worktrees/ entry is gone: the last worktree there landed, and
 # scripts/check-worktree-location.sh now fails if the path reappears.
 .worktrees/
+
+# neonctl writes a root context file (orgId); only app/.neon is tracked (#853)
+/.neon

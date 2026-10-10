@@ -110,7 +110,7 @@ the short train.
 - **One dart's fact:** one `darts` row per throw. Intended target = the
   current target's number (`20`, `18`, … or `25`); intended zone = `TREBLE`,
   `DOUBLE` or `INNER_BULL` — all keys in `DartZoneKey`
-  (`app/src/modules/game/types.ts:383`); a set target needs a set zone
+  (`app/src/modules/game/types.ts:386`); a set target needs a set zone
   (`chk_dart_target_consistency`, `database/migrations/0007_constraints.sql:86`).
   Hit number and hit zone record where it landed. `score` is the dart's
   **board** score (`appendObservedDart`,

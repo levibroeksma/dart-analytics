@@ -51,7 +51,7 @@ jobs:
           BASE_REF: ${{ github.event.pull_request.base.ref }}
         run: |
           git fetch origin "$BASE_REF" || true
-          CHANGED_FILES=$(git diff --name-only "origin/$BASE_REF"...HEAD -- 'app/tests/**/*.test.ts' || true)
+          CHANGED_FILES=$(git diff --name-only "origin/$BASE_REF"...HEAD -- 'app/tests/**/*.test.ts' 'app/tests/**/*.itest.ts' || true)
           : > /tmp/flagged.txt
           for f in $CHANGED_FILES; do
             ASSERTION_HUNKS=$(git diff -U0 "origin/$BASE_REF"...HEAD -- "$f" | grep -E '^\+.*(\.toBe\(|\.toEqual\(|\.parse\(|expect\()' || true)
