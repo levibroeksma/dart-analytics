@@ -618,3 +618,13 @@ export type SessionContextOptions = {
   expectedSessionId?: string | null;
   fallbackTitle?: string | null;
 };
+
+/**
+ * One in-progress session's progress line for an active-session card:
+ * sentence-case `detail` (`vs Dartbot · Leg 3 · First to 3 · 2–0`) and an
+ * optional headline value with its uppercase mono label (`TO GO`).
+ */
+export type SessionProgress = {
+  detail: string;
+  big: { value: string; label: string } | null;
+};

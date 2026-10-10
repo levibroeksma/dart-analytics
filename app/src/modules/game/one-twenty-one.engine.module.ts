@@ -55,7 +55,7 @@ type OneTwentyOneEngineConfig =
  * engine always reads `TARGET` here regardless of what config it is handed —
  * behaviour identical to today, byte for byte.
  */
-function durationOf(config: OneTwentyOneEngineConfig): {
+export function durationOf(config: OneTwentyOneEngineConfig): {
   durationType: "TARGET" | "ROUNDS" | "MINUTES";
   durationValue?: number;
 } {
