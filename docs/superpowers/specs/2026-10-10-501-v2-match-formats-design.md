@@ -134,6 +134,7 @@ Only 501 uses SHARED; PER_SEAT engines are untouched.
 
 - New seed `database/seeds/0037_five_oh_one_v2_game_engine_reference.sql`: `ruleset_versions` row `501_V2`, `version_number` 2, same game type as `501_V1`, `ON CONFLICT DO NOTHING`.
 - Capability rows `('501_V2','RECREATIONAL','QUICK_SCORE')`, `('501_V2','ANALYTICS','VISUAL_BOARD')` appended to `0007_ruleset_version_capabilities.sql`, per precedent.
+- Same seed adds a `configuration_templates` row `501 — Match` (game type 501) whose `configuration` is V2-shaped (`legs: { FIRST_TO, 1 }`, `sets: null`, `win_by_two: null`, other fields as the V1 presets). Session creation merges the chosen template with the overrides and validates the merge against the session's ruleset (`session.service.ts:162-186`); the V1 presets carry `legs_to_win`, which the strict V2 schema rejects, so V2 setup must base on a V2-shaped preset — selected by `configuration.legs` being an object, as 121_V2 disambiguates its presets by a field.
 - No migration; no view change.
 
 ## Wiring
@@ -144,14 +145,14 @@ Only 501 uses SHARED; PER_SEAT engines are untouched.
 
 Today it rebuilds facts from `v_x01_checkout_darts`, which has no `SET` rows (it joins darts), and sorts stages by `sequence` (:57) and turns by `(stageSequence, turnSequence)` (:115-119) — nested legs from different sets would collide.
 
-Change: load each session's stage tree from `v_replay_stages`, order stages by the pre-order walk already in `replay.module.ts`, and order turns by their leg's tree position then turn `sequence`. V1 sessions produce the same order as today.
+Change: a new repository read returns every `SET` stage's `sequence` for the player from `v_replay_stages`; the module orders turns by `(parent SET sequence, leg sequence, turn sequence)` for a nested leg and `(leg sequence, 0, turn sequence)` for a root leg. V1 sessions produce the same order as today. (Amended 2026-10-10 from "load the whole tree and pre-order walk": the darts view already carries `parentStageId`, so only the parent's sequence is missing.)
 
 ---
 
 ## UI
 
 - **Setup** (`five-oh-one-setup.data.ts` + setup component): format (first to / best of), sets on/off, sets count, legs per set (best of 3 / best of 5 presets, or custom), win by 2 on/off, margin scope (sets on only), cap (default target + 2). Client validation mirrors the zod refinements. Play again copies the full V2 config.
-- **Play** (`five-oh-one-play.data.ts`): subtitle `SET k · LEG n · FIRST TO S SETS` with sets on, unchanged otherwise; `DECIDING SET` / `SUDDEN DEATH` badge from state; `turnsInCurrentLeg` reads the last `LEG` stage; scoreboard leg bars sized to the current set's leg target (or the cap once past it) with a sets tally.
+- **Play** (`five-oh-one-play.data.ts`): subtitle `SET k · LEG n · FIRST TO S SETS` with sets on, unchanged otherwise; `DECIDING SET` / `SUDDEN DEATH` shown as a trailing subtitle segment from state; `turnsInCurrentLeg` reads the last `LEG` stage; scoreboard leg bars sized to the current set's leg target (or the cap once past it) with a sets tally.
 - **Results** (`FiveOhOneResults.astro`, `ComparisonSummary.astro`): set score first, then per-set leg scores; per-side stats unchanged.
 - **Replay** (`replay-presenters.ts:138-161`): a leg win is detected from a `LEG` stage closing, not by summing `legsWon`.
 - **Resume** (`session-progress.module.ts`): `Set k · Leg n` and the set tally with sets on.
