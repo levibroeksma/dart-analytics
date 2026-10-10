@@ -279,7 +279,7 @@ export async function findIdempotencyRecord(
  * `configuration` is the session's configuration snapshot, NULL if absent.
  */
 export async function findActiveSessions(db: Db, playerId: string) {
-  return db
+  const rows = await db
     .select({
       sessionId: vActiveSessions.sessionId,
       gameTypeKey: vActiveSessions.gameTypeKey,
@@ -301,6 +301,10 @@ export async function findActiveSessions(db: Db, playerId: string) {
       eq(exerciseConfigurations.exerciseSessionId, vActiveSessions.sessionId),
     )
     .where(eq(vActiveSessions.playerId, playerId));
+  return rows.map((row) => ({
+    ...row,
+    configuration: row.configuration as Record<string, unknown> | null,
+  }));
 }
 
 export async function findActiveSessionForGameType(

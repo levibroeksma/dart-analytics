@@ -637,6 +637,7 @@ describe("findActiveSessions projection", () => {
     expect(rendered).toContain(
       '"exercise_sessions"."routine_step_sequence_number" IS NOT NULL',
     );
+    expect(rendered).toContain('where "v_active_sessions"."player_id" = $1');
   });
 });
 
