@@ -181,6 +181,13 @@ export const SessionActive = z.object({
   captureModeKey: z.string().nullable(),
   inputModeKey: z.string().nullable(),
   rulesetVersionKey: z.string().nullable(),
+  isRoutineStep: z.boolean(),
+  progress: z
+    .object({
+      detail: z.string(),
+      big: z.object({ value: z.string(), label: z.string() }).nullable(),
+    })
+    .nullable(),
   startedAt: z.string().datetime(),
 });
 export type SessionActiveData = z.infer<typeof SessionActive>;

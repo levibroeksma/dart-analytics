@@ -6,6 +6,11 @@ import {
 } from "@lib/game/rulesets/capabilities";
 import { getRulesetValidator } from "./rulesets/registry";
 import { exerciseRulesetWritesDarts } from "./exercise-rulesets/registry";
+import {
+  EMPTY_FACTS,
+  summarizeProgress,
+} from "@modules/game/session-progress.module";
+import { snapshotOf } from "@modules/stats/x01-checkout-sessions.module";
 import { matchesConstraintError } from "./db-errors";
 import { composeSeatFacts, rejectSeatRequest } from "./session-seats.service";
 import {
@@ -796,9 +801,28 @@ export async function updateSessionStatus(
   };
 }
 
+/**
+ * The player's active sessions for the resume deck: each repository row keeps
+ * its view columns and routine flag and gains a `progress` summary derived
+ * from the stored configuration with no turn facts (a fresh-start snapshot).
+ * The raw `configuration` is dropped so it never reaches the client; `progress`
+ * is `null` when the session has no ruleset version or its snapshot is absent
+ * or no longer decodes.
+ */
 export async function listActiveSessions(playerId: string) {
   const db = getDb();
-  return findActiveSessions(db, playerId);
+  const rows = await findActiveSessions(db, playerId);
+  return rows.map(({ configuration, ...row }) => ({
+    ...row,
+    progress:
+      row.rulesetVersionKey === null
+        ? null
+        : summarizeProgress(
+            row.rulesetVersionKey,
+            snapshotOf(row.rulesetVersionKey, configuration),
+            EMPTY_FACTS,
+          ),
+  }));
 }
 
 export async function listConfigurationPresets(

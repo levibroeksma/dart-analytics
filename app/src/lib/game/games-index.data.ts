@@ -12,15 +12,17 @@ import type {
 const ANALYTICS_CAPTURE_MODE_KEY = "ANALYTICS";
 
 /**
- * The most recently started active session that has a game card, as that
- * card's title and setup route (the setup page owns the Continue/Abandon
- * recovery flow); `null` when no active session has a card.
+ * The most recently started standalone active session that has a game card,
+ * as that card's title and setup route (the setup page owns the
+ * Continue/Abandon recovery flow); `null` when no such session has a card.
+ * A routine step is skipped: it is resumed from its routine, not from here.
  */
 export function resumeTarget(
   sessions: SessionActiveData[],
   cards: readonly GameCardDescriptor[] = GAME_CARDS,
 ): ResumeTarget | null {
-  const card = [...sessions]
+  const card = sessions
+    .filter((session) => !session.isRoutineStep)
     .sort((a, b) => b.startedAt.localeCompare(a.startedAt))
     .map((session) =>
       cards.find(

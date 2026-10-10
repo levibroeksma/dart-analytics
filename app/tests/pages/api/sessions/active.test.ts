@@ -10,7 +10,11 @@ describe("GET /api/sessions/active", () => {
 
   it("returns the active sessions for the caller", async () => {
     vi.mocked(listActiveSessions).mockResolvedValue([
-      { sessionId: "s1" } as never,
+      {
+        sessionId: "s1",
+        isRoutineStep: false,
+        progress: null,
+      } as never,
     ]);
     const response = await GET({
       locals: {

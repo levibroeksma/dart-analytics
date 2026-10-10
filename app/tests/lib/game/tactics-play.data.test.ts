@@ -41,6 +41,8 @@ const ACTIVE_SESSION = {
   captureModeKey: "RECREATIONAL",
   inputModeKey: "DETAILED_DARTS",
   rulesetVersionKey: "TACTICS_V1",
+  isRoutineStep: false,
+  progress: null,
   startedAt: "now",
 } as const;
 

@@ -188,6 +188,11 @@ describe("SessionActive", () => {
     captureModeKey: "RECREATIONAL",
     inputModeKey: "QUICK_SCORE",
     rulesetVersionKey: "501_V1",
+    isRoutineStep: false,
+    progress: {
+      detail: "vs Dartbot · Leg 1 · First to 3 · 0–0",
+      big: { value: "501", label: "TO GO" },
+    },
     startedAt: "2026-09-16T10:00:00.000Z",
   };
 
@@ -206,6 +211,25 @@ describe("SessionActive", () => {
         rulesetVersionKey: null,
       }).success,
     ).toBe(true);
+  });
+
+  it("accepts a null progress and a progress with no big figure", () => {
+    expect(
+      SessionActive.safeParse({ ...gameSession, progress: null }).success,
+    ).toBe(true);
+    expect(
+      SessionActive.safeParse({
+        ...gameSession,
+        progress: { detail: "Low → High", big: null },
+      }).success,
+    ).toBe(true);
+  });
+
+  it("rejects a session without the routine flag", () => {
+    expect(
+      SessionActive.safeParse({ ...gameSession, isRoutineStep: undefined })
+        .success,
+    ).toBe(false);
   });
 
   it("still rejects a missing sessionId", () => {

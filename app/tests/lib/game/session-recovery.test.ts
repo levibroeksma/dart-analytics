@@ -16,6 +16,8 @@ function activeSession(
     captureModeKey: "RECREATIONAL",
     inputModeKey: "QUICK_SCORE",
     rulesetVersionKey: "SCORE_TRAINING_V1",
+    isRoutineStep: false,
+    progress: null,
     startedAt: "2026-07-17T10:00:00Z",
   };
 }
@@ -34,6 +36,8 @@ function nonGameSession(sessionId: string): SessionActiveData {
     captureModeKey: null,
     inputModeKey: null,
     rulesetVersionKey: null,
+    isRoutineStep: false,
+    progress: null,
     startedAt: "2026-09-16T10:00:00Z",
   };
 }
