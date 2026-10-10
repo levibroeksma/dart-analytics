@@ -94,4 +94,14 @@ describe("trainingSessionStore", () => {
 
     expect(store.headerLabel).toBe("");
   });
+
+  it("setGameSession stores the id and reset clears it", () => {
+    const store = trainingSessionStore();
+
+    store.setGameSession("s1");
+    expect(store.gameSessionId).toBe("s1");
+
+    store.reset();
+    expect(store.gameSessionId).toBeNull();
+  });
 });

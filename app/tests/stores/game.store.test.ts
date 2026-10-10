@@ -376,4 +376,34 @@ describe("setSessionModes", () => {
     expect(store.captureModeKey).toBeNull();
     expect(store.inputModeKey).toBeNull();
   });
+
+  it("contextRow folds the stored log", () => {
+    const store = gameStore(stubPersistFactory());
+    store.startSession({ ...SESSION_INPUT });
+    store.recordFacts({
+      stages: FACTS.stages,
+      turns: [{ ...FACTS.turns[0], participantRef: "p1" }],
+    });
+
+    expect(store.contextRow()).toEqual({
+      title: "Score training",
+      stage: null,
+      round: "Round 2 of 10",
+      value: "60",
+    });
+  });
+
+  it("contextRow with a different expected session returns the fallback title only", () => {
+    const store = gameStore(stubPersistFactory());
+    store.startSession({ ...SESSION_INPUT });
+    store.recordFacts(FACTS);
+
+    expect(store.contextRow("other", "Score training")).toEqual({
+      title: "Score training",
+      stage: null,
+      round: null,
+      value: null,
+    });
+    expect(store.contextRow("other")).toBeNull();
+  });
 });

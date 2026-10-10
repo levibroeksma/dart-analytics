@@ -1,6 +1,12 @@
 import type { PersistFactory } from "@alpinejs/persist";
 import type { RulesetVersionKey, SeatFact, SessionModePair } from "@lib/types";
-import type { EngineFacts, StageFact, TurnFact } from "@modules/types";
+import { sessionContextRow } from "@modules/game/session-context.module";
+import type {
+  EngineFacts,
+  SessionContextRow,
+  StageFact,
+  TurnFact,
+} from "@modules/types";
 import type { ConfigSnapshot } from "./types";
 
 /**
@@ -132,6 +138,27 @@ export function gameStore(persist: PersistFactory) {
     recordFacts(facts: EngineFacts) {
       this.stages = [...facts.stages];
       this.turns = [...facts.turns];
+    },
+
+    /**
+     * The context row a mid-game sheet shows, folded from the stored fact log.
+     * `expectedSessionId` guards a stale persisted log: when given, the fold
+     * runs only for that session, else the fallback title or null.
+     */
+    contextRow(
+      expectedSessionId?: string | null,
+      fallbackTitle?: string | null,
+    ): SessionContextRow | null {
+      return sessionContextRow(
+        {
+          gameTypeKey: this.gameTypeKey,
+          sessionId: this.sessionId,
+          configSnapshot: this.configSnapshot,
+          facts: { stages: this.stages, turns: this.turns },
+          timerExpired: this.timerExpired ?? false,
+        },
+        { expectedSessionId, fallbackTitle },
+      );
     },
 
     reset() {

@@ -72,6 +72,7 @@ function makeContext(): RoutinePlayContext {
         reset: vi.fn(),
         startSession: vi.fn(),
       },
+      trainingSession: { setGameSession: vi.fn() },
     },
   } as unknown as RoutinePlayContext;
 }
@@ -168,6 +169,27 @@ describe("gameAdapter", () => {
 
     expect(completeSession).toHaveBeenCalledWith("gs1", "ABANDONED");
     expect(abandonTraining).toHaveBeenCalledWith("act-1");
+  });
+
+  it("open() records the step session id on trainingSession", () => {
+    const ctx = makeContext();
+
+    adapter.open(ctx, resultStub(), 600);
+
+    expect(ctx.$store.trainingSession.setGameSession).toHaveBeenCalledWith(
+      "s1",
+    );
+  });
+
+  it("close() clears the step session id", () => {
+    const ctx = makeContext();
+    adapter.open(ctx, resultStub(), 600);
+
+    adapter.close(ctx);
+
+    expect(ctx.$store.trainingSession.setGameSession).toHaveBeenLastCalledWith(
+      null,
+    );
   });
 
   it("close() nulls the game slot", () => {

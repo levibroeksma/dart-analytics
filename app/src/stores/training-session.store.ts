@@ -22,6 +22,8 @@ export function trainingSessionStore() {
     elapsedSeconds: 0,
     stepKey: null as string | null,
     complete: false,
+    /** The session id of the game step on screen; a guard flag, not persisted. */
+    gameSessionId: null as string | null,
 
     get stepLabel(): string {
       if (this.complete) return COMPLETE_LABEL;
@@ -47,6 +49,10 @@ export function trainingSessionStore() {
       this.stepKey = stepLabel;
     },
 
+    setGameSession(sessionId: string | null) {
+      this.gameSessionId = sessionId;
+    },
+
     markComplete() {
       this.complete = true;
     },
@@ -60,6 +66,7 @@ export function trainingSessionStore() {
       this.complete = false;
       this.elapsedSeconds = 0;
       this.stepKey = null;
+      this.gameSessionId = null;
     },
   };
 }
