@@ -540,7 +540,14 @@ export type FiveOhOneSetupContext = {
   startingScoreOption: FiveOhOneStartingScoreOption;
   startingScoreValue: number | string | null;
   scoreClampNotice: string;
+  matchMode: "FIRST_TO" | "BEST_OF";
+  matchUnit: "LEGS" | "SETS";
   legsToWin: number | string | null;
+  legsPerSetMode: "FIRST_TO" | "BEST_OF";
+  legsPerSet: number | string | null;
+  winByTwo: boolean;
+  marginScope: "EVERY_SET" | "DECIDING_SET";
+  cap: number | string | null;
   legsClampNotice: string;
   guests: { displayName: string }[];
   showAddGuestModal: boolean;

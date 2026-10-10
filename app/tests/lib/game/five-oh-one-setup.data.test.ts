@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { fiveOhOneSetup } from "@lib/game/five-oh-one-setup.data";
+import {
+  buildFiveOhOneV2Wire,
+  fiveOhOneSetup,
+  isV2Preset,
+} from "@lib/game/five-oh-one-setup.data";
 import type { FiveOhOneSetupContext } from "@lib/types";
 import * as sessionsApi from "@client/api/sessions";
 import * as presetsApi from "@client/api/configuration-templates";
@@ -32,6 +36,106 @@ const BEST_OF_5_PRESET = {
     max_visit_score: 180,
   },
 } as any;
+
+const V2_PRESET = {
+  configurationTemplateId: "tmpl-v2",
+  name: "501 — Match",
+  configuration: {
+    starting_score: 501,
+    check_in: "STRAIGHT_IN",
+    check_out: "DOUBLE_OUT",
+    max_darts_per_turn: 3,
+    max_visit_score: 180,
+    legs: { mode: "FIRST_TO", count: 1 },
+    sets: null,
+    win_by_two: null,
+  },
+} as any;
+
+const V2_BASE = {
+  startingScore: 501,
+  matchMode: "FIRST_TO",
+  count: 3,
+  matchUnit: "LEGS",
+  legsPerSetMode: "BEST_OF",
+  legsPerSet: 5,
+  winByTwo: false,
+  marginScope: "EVERY_SET",
+  cap: 5,
+} as const;
+
+describe("isV2Preset", () => {
+  it("picks the preset whose legs is an object", () => {
+    expect(
+      isV2Preset({
+        configuration: { legs: { mode: "FIRST_TO", count: 1 } },
+      } as never),
+    ).toBe(true);
+    expect(isV2Preset({ configuration: { legs_to_win: 1 } } as never)).toBe(
+      false,
+    );
+    expect(isV2Preset(undefined)).toBe(false);
+    expect(isV2Preset({ configuration: { legs: null } } as never)).toBe(false);
+  });
+});
+
+describe("buildFiveOhOneV2Wire", () => {
+  it("legs only", () => {
+    expect(buildFiveOhOneV2Wire(V2_BASE)).toEqual({
+      starting_score: 501,
+      legs: { mode: "FIRST_TO", count: 3 },
+      sets: null,
+      win_by_two: null,
+    });
+  });
+  it("sets: the count becomes the set race, legs per set the leg race", () => {
+    expect(
+      buildFiveOhOneV2Wire({
+        ...V2_BASE,
+        matchUnit: "SETS",
+        winByTwo: true,
+        marginScope: "DECIDING_SET",
+        cap: 5,
+      }),
+    ).toEqual({
+      starting_score: 501,
+      legs: { mode: "BEST_OF", count: 5 },
+      sets: { mode: "FIRST_TO", count: 3 },
+      win_by_two: { cap: 5, scope: "DECIDING_SET" },
+    });
+  });
+  it("legs only forces EVERY_SET scope", () => {
+    expect(
+      buildFiveOhOneV2Wire({
+        ...V2_BASE,
+        winByTwo: true,
+        marginScope: "DECIDING_SET",
+        cap: 5,
+      }).win_by_two,
+    ).toEqual({ cap: 5, scope: "EVERY_SET" });
+  });
+  it("best of with an even count rounds up to odd", () => {
+    expect(
+      buildFiveOhOneV2Wire({ ...V2_BASE, matchMode: "BEST_OF", count: 4 }).legs,
+    ).toEqual({ mode: "BEST_OF", count: 5 });
+  });
+  it("cap below the leg target is raised to the target", () => {
+    expect(
+      buildFiveOhOneV2Wire({ ...V2_BASE, count: 3, winByTwo: true, cap: 1 })
+        .win_by_two,
+    ).toEqual({ cap: 3, scope: "EVERY_SET" });
+  });
+  it("sets with an even legs-per-set best of rounds that up to odd", () => {
+    expect(
+      buildFiveOhOneV2Wire({
+        ...V2_BASE,
+        matchUnit: "SETS",
+        legsPerSetMode: "BEST_OF",
+        legsPerSet: 4,
+      }).legs,
+    ).toEqual({ mode: "BEST_OF", count: 5 });
+  });
+});
 
 describe("fiveOhOneSetup", () => {
   let store: FiveOhOneSetupContext["$store"];
@@ -141,16 +245,18 @@ describe("fiveOhOneSetup", () => {
     expect(locationSpy.href).toBe("/games/501/play");
   });
 
-  it("basePreset picks the single-leg template as the override base", () => {
+  it("basePreset picks the V2-shaped template, never a V1 one", () => {
     const setup = createSetup({
-      presets: [BEST_OF_5_PRESET, QUICK_PLAY_PRESET],
+      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET, V2_PRESET],
     });
-    expect(setup.basePreset()).toBe(QUICK_PLAY_PRESET);
+    expect(setup.basePreset()).toBe(V2_PRESET);
   });
 
-  it("falls back to the first preset when none declares legs_to_win = 1", () => {
-    const setup = createSetup({ presets: [BEST_OF_5_PRESET] });
-    expect(setup.basePreset()).toBe(BEST_OF_5_PRESET);
+  it("basePreset is undefined when only V1-shaped presets exist", () => {
+    const setup = createSetup({
+      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET],
+    });
+    expect(setup.basePreset()).toBeUndefined();
   });
 
   it("addGuest trims the name, pushes the guest, clears the field, and closes the modal", () => {
@@ -180,7 +286,7 @@ describe("fiveOhOneSetup", () => {
 
   it("never sends a displayName for the owning PLAYER seat", async () => {
     const setup = createSetup({
-      presets: [BEST_OF_5_PRESET],
+      presets: [V2_PRESET],
       guests: [{ displayName: "Alex" }],
     });
 
@@ -224,9 +330,9 @@ describe("fiveOhOneSetup", () => {
     expect(setup.showAddGuestModal).toBe(true);
   });
 
-  it("creates a session overriding legs_to_win and starting_score with the chosen values and redirects", async () => {
+  it("creates a session overriding the V2 match format and starting_score with the chosen values and redirects", async () => {
     const setup = createSetup({
-      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET],
+      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET, V2_PRESET],
       legsToWin: 5,
       startingScoreOption: "301",
     });
@@ -247,24 +353,28 @@ describe("fiveOhOneSetup", () => {
 
     expect(sessionsApi.createSession).toHaveBeenCalledWith({
       gameTypeKey: "501",
-      rulesetVersionKey: "501_V1",
+      rulesetVersionKey: "501_V2",
       captureModeKey: "RECREATIONAL",
       inputModeKey: "QUICK_SCORE",
       config: {
         source: "template",
-        templateRef: "tmpl-quick",
-        overrides: { legs_to_win: 5, starting_score: 301 },
+        templateRef: "tmpl-v2",
+        overrides: buildFiveOhOneV2Wire({
+          ...V2_BASE,
+          startingScore: 301,
+          count: 5,
+        }),
       },
       participants: undefined,
     });
     expect(store.game.startSession).toHaveBeenCalledWith(
       expect.objectContaining({
         gameTypeKey: "501",
-        rulesetVersionKey: "501_V1",
-        templateRef: "tmpl-quick",
+        rulesetVersionKey: "501_V2",
+        templateRef: "tmpl-v2",
         configSnapshot: expect.objectContaining({
           startingScore: 301,
-          legsToWin: 5,
+          legs: { mode: "FIRST_TO", count: 5 },
           checkIn: "STRAIGHT_IN",
           checkOut: "DOUBLE_OUT",
         }),
@@ -275,7 +385,7 @@ describe("fiveOhOneSetup", () => {
 
   it("sends the PLAYER seat plus every guest as participants, sides B/C/D in push order", async () => {
     const setup = createSetup({
-      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET],
+      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET, V2_PRESET],
       legsToWin: 5,
       startingScoreOption: "301",
       guests: [{ displayName: "Alex" }, { displayName: "Sam" }],
@@ -318,7 +428,7 @@ describe("fiveOhOneSetup", () => {
 
   it("uses the custom starting score value when the option is CUSTOM", async () => {
     const setup = createSetup({
-      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET],
+      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET, V2_PRESET],
       legsToWin: 1,
       startingScoreOption: "CUSTOM",
       startingScoreValue: 350,
@@ -340,7 +450,11 @@ describe("fiveOhOneSetup", () => {
     expect(sessionsApi.createSession).toHaveBeenCalledWith(
       expect.objectContaining({
         config: expect.objectContaining({
-          overrides: { legs_to_win: 1, starting_score: 350 },
+          overrides: buildFiveOhOneV2Wire({
+            ...V2_BASE,
+            startingScore: 350,
+            count: 1,
+          }),
         }),
       }),
     );
@@ -349,7 +463,7 @@ describe("fiveOhOneSetup", () => {
 
   it("clamps an out-of-range custom starting score, sets the notice, and still creates", async () => {
     const setup = createSetup({
-      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET],
+      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET, V2_PRESET],
       legsToWin: 1,
       startingScoreOption: "CUSTOM",
       startingScoreValue: 5000,
@@ -373,7 +487,11 @@ describe("fiveOhOneSetup", () => {
     expect(sessionsApi.createSession).toHaveBeenCalledWith(
       expect.objectContaining({
         config: expect.objectContaining({
-          overrides: { legs_to_win: 1, starting_score: 999 },
+          overrides: buildFiveOhOneV2Wire({
+            ...V2_BASE,
+            startingScore: 999,
+            count: 1,
+          }),
         }),
       }),
     );
@@ -381,7 +499,7 @@ describe("fiveOhOneSetup", () => {
 
   it("clamps a blank custom starting score to the default of 101", async () => {
     const setup = createSetup({
-      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET],
+      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET, V2_PRESET],
       legsToWin: 1,
       startingScoreOption: "CUSTOM",
       startingScoreValue: null,
@@ -404,7 +522,11 @@ describe("fiveOhOneSetup", () => {
     expect(sessionsApi.createSession).toHaveBeenCalledWith(
       expect.objectContaining({
         config: expect.objectContaining({
-          overrides: { legs_to_win: 1, starting_score: 101 },
+          overrides: buildFiveOhOneV2Wire({
+            ...V2_BASE,
+            startingScore: 101,
+            count: 1,
+          }),
         }),
       }),
     );
@@ -416,7 +538,7 @@ describe("fiveOhOneSetup", () => {
       inputModeKey: "VISUAL_BOARD",
     };
     const setup = createSetup({
-      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET],
+      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET, V2_PRESET],
       legsToWin: 5,
     });
     vi.mocked(sessionsApi.createSession).mockResolvedValue({
@@ -447,7 +569,7 @@ describe("fiveOhOneSetup", () => {
       inputModeKey: "DETAILED_DARTS",
     };
     const setup = createSetup({
-      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET],
+      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET, V2_PRESET],
       legsToWin: 5,
     });
     vi.mocked(sessionsApi.createSession).mockResolvedValue({
@@ -475,7 +597,7 @@ describe("fiveOhOneSetup", () => {
   it("defaults to quick score when settings has not loaded", async () => {
     store.settings = {} as any;
     const setup = createSetup({
-      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET],
+      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET, V2_PRESET],
       legsToWin: 5,
     });
     vi.mocked(sessionsApi.createSession).mockResolvedValue({
@@ -502,7 +624,7 @@ describe("fiveOhOneSetup", () => {
 
   it("clamps an out-of-range legs value, sets the notice, and still creates", async () => {
     const setup = createSetup({
-      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET],
+      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET, V2_PRESET],
       legsToWin: 99,
     });
     vi.mocked(sessionsApi.createSession).mockResolvedValue({
@@ -524,7 +646,11 @@ describe("fiveOhOneSetup", () => {
     expect(sessionsApi.createSession).toHaveBeenCalledWith(
       expect.objectContaining({
         config: expect.objectContaining({
-          overrides: { legs_to_win: 20, starting_score: 501 },
+          overrides: buildFiveOhOneV2Wire({
+            ...V2_BASE,
+            startingScore: 501,
+            count: 20,
+          }),
         }),
       }),
     );
@@ -532,7 +658,7 @@ describe("fiveOhOneSetup", () => {
 
   it("clamps a blank field to a single leg", async () => {
     const setup = createSetup({
-      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET],
+      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET, V2_PRESET],
       legsToWin: null,
     });
     vi.mocked(sessionsApi.createSession).mockResolvedValue({
@@ -553,7 +679,11 @@ describe("fiveOhOneSetup", () => {
     expect(sessionsApi.createSession).toHaveBeenCalledWith(
       expect.objectContaining({
         config: expect.objectContaining({
-          overrides: { legs_to_win: 1, starting_score: 501 },
+          overrides: buildFiveOhOneV2Wire({
+            ...V2_BASE,
+            startingScore: 501,
+            count: 1,
+          }),
         }),
       }),
     );
@@ -572,7 +702,10 @@ describe("fiveOhOneSetup", () => {
         {
           configurationTemplateId: "template-1",
           name: "Broken",
-          configuration: { starting_score: 501 },
+          configuration: {
+            starting_score: 501,
+            legs: { mode: "FIRST_TO", count: 1 },
+          },
         } as any,
       ],
       legsToWin: 3,
@@ -588,7 +721,7 @@ describe("fiveOhOneSetup", () => {
 
   it("re-reconciles into the active-session modal when create reports SESSION_ALREADY_ACTIVE", async () => {
     const setup = createSetup({
-      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET],
+      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET, V2_PRESET],
       legsToWin: 1,
     });
     vi.mocked(sessionsApi.createSession).mockRejectedValue(
@@ -608,10 +741,47 @@ describe("fiveOhOneSetup", () => {
     expect(setup.loading).toBe(false);
   });
 
+  it("sends the chosen match format as V2 overrides", async () => {
+    const setup = createSetup({
+      presets: [QUICK_PLAY_PRESET, V2_PRESET],
+      matchMode: "BEST_OF",
+      legsToWin: 3,
+      matchUnit: "SETS",
+      legsPerSetMode: "FIRST_TO",
+      legsPerSet: 3,
+      winByTwo: true,
+      marginScope: "DECIDING_SET",
+      cap: 5,
+    });
+    vi.mocked(sessionsApi.createSession).mockResolvedValue({
+      sessionId: "s",
+      participants: [],
+    } as any);
+    vi.stubGlobal("location", { href: "" });
+
+    await setup.start();
+
+    expect(sessionsApi.createSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rulesetVersionKey: "501_V2",
+        config: {
+          source: "template",
+          templateRef: "tmpl-v2",
+          overrides: {
+            starting_score: 501,
+            legs: { mode: "FIRST_TO", count: 3 },
+            sets: { mode: "BEST_OF", count: 3 },
+            win_by_two: { cap: 5, scope: "DECIDING_SET" },
+          },
+        },
+      }),
+    );
+  });
+
   describe("bot wiring", () => {
     it("addBot seats a level-8 DartBot and start() sends a 2-seat DARTBOT participants array", async () => {
       const setup = createSetup();
-      setup.presets = [QUICK_PLAY_PRESET];
+      setup.presets = [V2_PRESET];
       vi.mocked(sessionsApi.createSession).mockResolvedValue({
         sessionId: "new-session-id",
         participants: [

@@ -19,7 +19,7 @@ describe("visibleGames", () => {
       (game) => game.rulesetVersionKey,
     );
     expect(keys).toEqual([
-      "501_V1",
+      "501_V2",
       "121_V1",
       "CRICKET_V1",
       "TACTICS_V1",
@@ -40,7 +40,7 @@ describe("visibleGames", () => {
     expect(keys).toEqual(
       [
         "SCORE_TRAINING_V1",
-        "501_V1",
+        "501_V2",
         "BOBS27_V1",
         "SINGLES_V1",
         "DOUBLES_TRAINING_V1",
@@ -59,17 +59,17 @@ describe("visibleGames", () => {
   });
 
   it("never hides a game with an active session", () => {
-    const keys = visibleGames("UNKNOWN_CAPTURE_MODE", "501_V1").map(
+    const keys = visibleGames("UNKNOWN_CAPTURE_MODE", "501_V2").map(
       (game) => game.rulesetVersionKey,
     );
-    expect(keys).toEqual(["501_V1"]);
+    expect(keys).toEqual(["501_V2"]);
   });
 
   it("does not duplicate a capable game that is also active", () => {
-    const keys = visibleGames("ANALYTICS", "501_V1").map(
+    const keys = visibleGames("ANALYTICS", "501_V2").map(
       (game) => game.rulesetVersionKey,
     );
-    expect(keys.filter((key) => key === "501_V1")).toHaveLength(1);
+    expect(keys.filter((key) => key === "501_V2")).toHaveLength(1);
   });
 
   it("keeps the declared card order rather than the filter order", () => {
@@ -97,7 +97,7 @@ describe("groupedGames", () => {
         group.games.map((game) => game.rulesetVersionKey),
       ]),
     ).toEqual([
-      ["MATCH PLAY", ["501_V1", "121_V1", "CRICKET_V1", "TACTICS_V1"]],
+      ["MATCH PLAY", ["501_V2", "121_V1", "CRICKET_V1", "TACTICS_V1"]],
       [
         "TRAINING",
         [
@@ -114,7 +114,7 @@ describe("groupedGames", () => {
 
   it("drops a group with no cards", () => {
     const only501 = GAME_CARDS.filter(
-      (game) => game.rulesetVersionKey === "501_V1",
+      (game) => game.rulesetVersionKey === "501_V2",
     );
     expect(groupedGames(only501).map((group) => group.key)).toEqual([
       "MATCH_PLAY",

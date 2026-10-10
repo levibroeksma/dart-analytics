@@ -14,7 +14,7 @@ import type { GameCardDescriptor, GameGroupKey } from "./types";
  */
 export const GAME_CARDS: readonly GameCardDescriptor[] = [
   {
-    rulesetVersionKey: "501_V1",
+    rulesetVersionKey: "501_V2",
     group: "MATCH_PLAY",
     href: "/games/501/setup",
     title: "501",

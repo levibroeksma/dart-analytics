@@ -54,7 +54,7 @@ describe("gamesIndex", () => {
     await page.init();
 
     expect(page.isVisible("SCORE_TRAINING_V1")).toBe(true);
-    expect(page.isVisible("501_V1")).toBe(true);
+    expect(page.isVisible("501_V2")).toBe(true);
     expect(page.isVisible("BOBS27_V1")).toBe(true);
     expect(page.noneVisible()).toBe(false);
     expect(page.analyticsMode()).toBe(false);
@@ -74,54 +74,54 @@ describe("gamesIndex", () => {
     await page.init();
 
     expect(page.isVisible("SCORE_TRAINING_V1")).toBe(false);
-    expect(page.isVisible("501_V1")).toBe(false);
+    expect(page.isVisible("501_V2")).toBe(false);
     expect(page.isVisible("BOBS27_V1")).toBe(false);
     expect(page.noneVisible()).toBe(true);
   });
 
   it("keeps a card whose session is active under an unsupported capture mode", async () => {
     vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([
-      activeSession("501_V1"),
+      activeSession("501_V2"),
     ]);
     store.settings.captureModeKey = "UNKNOWN_CAPTURE_MODE";
     const page = createPage();
     await page.init();
 
-    expect(page.isVisible("501_V1")).toBe(true);
+    expect(page.isVisible("501_V2")).toBe(true);
     expect(page.isVisible("SCORE_TRAINING_V1")).toBe(false);
     expect(page.noneVisible()).toBe(false);
   });
 
   it("keeps every active game's card, not only the first", async () => {
     vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([
-      activeSession("501_V1"),
+      activeSession("501_V2"),
       activeSession("SCORE_TRAINING_V1"),
     ]);
     store.settings.captureModeKey = "UNKNOWN_CAPTURE_MODE";
     const page = createPage();
     await page.init();
 
-    expect(page.isVisible("501_V1")).toBe(true);
+    expect(page.isVisible("501_V2")).toBe(true);
     expect(page.isVisible("SCORE_TRAINING_V1")).toBe(true);
   });
 
   it("drops a training step session, which has no ruleset version to gate a card", async () => {
     vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([
       trainingStepSession(),
-      activeSession("501_V1"),
+      activeSession("501_V2"),
     ]);
     store.settings.captureModeKey = "UNKNOWN_CAPTURE_MODE";
     const page = createPage();
     await page.init();
 
-    expect(page.activeRulesetKeys).toEqual(["501_V1"]);
-    expect(page.isVisible("501_V1")).toBe(true);
+    expect(page.activeRulesetKeys).toEqual(["501_V2"]);
+    expect(page.isVisible("501_V2")).toBe(true);
     expect(page.isVisible("SCORE_TRAINING_V1")).toBe(false);
   });
 
   it("hides a group only when every one of its games is hidden", () => {
     const page = createPage({
-      isVisible: (key: string) => key !== "501_V1",
+      isVisible: (key: string) => key !== "501_V2",
     });
 
     expect(page.groupVisible("MATCH_PLAY")).toBe(true);
@@ -132,17 +132,17 @@ describe("gamesIndex", () => {
 
   it("drops the divider on a group's first visible row, skipping hidden rows", () => {
     const page = createPage({
-      isVisible: (key: string) => key !== "501_V1",
+      isVisible: (key: string) => key !== "501_V2",
     });
 
     expect(page.isFirstVisible("MATCH_PLAY", "121_V1")).toBe(true);
-    expect(page.isFirstVisible("MATCH_PLAY", "501_V1")).toBe(false);
+    expect(page.isFirstVisible("MATCH_PLAY", "501_V2")).toBe(false);
     expect(page.isFirstVisible("MATCH_PLAY", "CRICKET_V1")).toBe(false);
   });
 
   it("sets the resume target from the fetched sessions", async () => {
     vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([
-      activeSession("501_V1"),
+      activeSession("501_V2"),
     ]);
     const page = createPage();
     await page.init();
@@ -171,7 +171,7 @@ describe("gamesIndex", () => {
     await page.init();
 
     expect(page.activeRulesetKeys).toEqual([]);
-    expect(page.isVisible("501_V1")).toBe(true);
+    expect(page.isVisible("501_V2")).toBe(true);
   });
 
   it("is loading until the active sessions resolve", async () => {
@@ -206,7 +206,7 @@ describe("gamesIndex", () => {
 describe("resumeTarget", () => {
   it("picks the most recently started session that has a card", () => {
     const older = {
-      ...activeSession("501_V1"),
+      ...activeSession("501_V2"),
       startedAt: "2026-08-08T10:00:00.000Z",
     };
     const newer = {
@@ -226,7 +226,7 @@ describe("resumeTarget", () => {
       startedAt: "2026-09-20T10:00:00.000Z",
     };
 
-    expect(resumeTarget([step, activeSession("501_V1")])?.title).toBe("501");
+    expect(resumeTarget([step, activeSession("501_V2")])?.title).toBe("501");
   });
 
   it("skips a newer routine step for an older standalone session", () => {
@@ -236,7 +236,7 @@ describe("resumeTarget", () => {
       startedAt: "2026-08-09T10:00:00.000Z",
     };
     const standalone = {
-      ...activeSession("501_V1"),
+      ...activeSession("501_V2"),
       startedAt: "2026-08-08T10:00:00.000Z",
     };
 

@@ -18,7 +18,7 @@ const session = (overrides: Record<string, unknown> = {}) =>
     gameTypeName: "X01",
     captureModeKey: "RECREATIONAL",
     inputModeKey: "QUICK_SCORE",
-    rulesetVersionKey: "501_V1",
+    rulesetVersionKey: "501_V2",
     isRoutineStep: false,
     progress: {
       detail: "vs Dartbot · Leg 3",
@@ -30,7 +30,7 @@ const session = (overrides: Record<string, unknown> = {}) =>
 
 const localGame = (overrides: Partial<LocalGame> = {}): LocalGame => ({
   sessionId: "s-501",
-  rulesetVersionKey: "501_V1",
+  rulesetVersionKey: "501_V2",
   configSnapshot: { seats: [] },
   stages: [],
   turns: [],
@@ -132,7 +132,7 @@ describe("toResumeCards", () => {
     const local = localGame({ stages: [{} as any], turns: [{} as any] });
     const [card] = toResumeCards([session()], local, NOW);
     expect(summarizeProgress).toHaveBeenCalledWith(
-      "501_V1",
+      "501_V2",
       local.configSnapshot,
       { stages: local.stages, turns: local.turns },
     );
