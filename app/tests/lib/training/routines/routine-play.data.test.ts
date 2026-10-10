@@ -71,7 +71,12 @@ function makeStore(): RoutinePlayContext {
   return {
     ...routinePlay(),
     $store: {
-      game: { loading: false, reset: vi.fn(), startSession: vi.fn() },
+      game: {
+        loading: false,
+        reset: vi.fn(),
+        startSession: vi.fn(),
+        contextRow: vi.fn(() => null),
+      },
       trainingSession: trainingSessionStore(),
     },
   };
@@ -2928,5 +2933,49 @@ describe("routinePlay — routine summary", () => {
 
     expect(store.$store.trainingSession.headerLabel).toBe("");
     expect(globalThis.location.href).toBe("/training");
+  });
+
+  describe("stepContextRow", () => {
+    function atStep(stepIndex: number) {
+      const store = makeStore();
+      store.routineName = "Evening";
+      store.steps = Array.from({ length: 5 }, () => STEPS[0]) as never;
+      store.training = { state: () => ({ stepIndex }) } as never;
+      return store;
+    }
+
+    it("composes routine name, step and the game round", () => {
+      const store = atStep(1);
+      store.$store.trainingSession.setGameSession("gs-1");
+      vi.mocked(store.$store.game.contextRow).mockReturnValue({
+        title: "TUOD",
+        stage: null,
+        round: "Round 3 of 10",
+        value: "44",
+      });
+
+      expect(store.stepContextRow()).toEqual({
+        title: "Evening",
+        stage: "Step 2 of 5",
+        round: "Round 3 of 10",
+        value: "44",
+      });
+      expect(store.$store.game.contextRow).toHaveBeenCalledWith("gs-1");
+    });
+
+    it("keeps name and step when the game row is null", () => {
+      const store = atStep(0);
+
+      expect(store.stepContextRow()).toEqual({
+        title: "Evening",
+        stage: "Step 1 of 5",
+        round: null,
+        value: null,
+      });
+    });
+
+    it("is null before the routine has started", () => {
+      expect(makeStore().stepContextRow()).toBeNull();
+    });
   });
 });
