@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { resumeDeck, toResumeCards } from "@lib/game/resume-deck.data";
 import { summarizeProgress } from "@modules/game/session-progress.module";
 import type { LocalGame, ResumeDeckContext } from "@lib/types";
@@ -85,6 +85,25 @@ describe("toResumeCards", () => {
     expect(cards.map((card) => card.sessionId)).toEqual(["new", "old"]);
   });
 
+  it("sorts by instant, not by timestamp text, across UTC offsets", () => {
+    const cards = toResumeCards(
+      [
+        session({
+          sessionId: "earlier",
+          startedAt: "2026-10-10T12:30:00.000+02:00",
+        }),
+        session({
+          sessionId: "later",
+          rulesetVersionKey: "CRICKET_V1",
+          startedAt: "2026-10-10T11:45:00.000+00:00",
+        }),
+      ],
+      null,
+      NOW,
+    );
+    expect(cards.map((card) => card.sessionId)).toEqual(["later", "earlier"]);
+  });
+
   it("maps title, href, started label and server progress", () => {
     const [card] = toResumeCards([session()], null, NOW);
     expect(card).toEqual({
@@ -155,6 +174,12 @@ describe("resumeDeck", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
   });
 
   describe("init", () => {
@@ -233,6 +258,39 @@ describe("resumeDeck", () => {
       expect(deck.index).toBe(1);
       expect(deck.phase).toBe("rise");
       deck.settle();
+      expect(deck.phase).toBe("idle");
+    });
+
+    it("settles itself through the fallback timer when animationend never fires", () => {
+      const deck = createDeck({ cards: cardsOf(3) });
+      deck.next();
+      expect(deck.phase).toBe("out");
+      vi.advanceTimersByTime(600);
+      expect(deck.phase).toBe("rise");
+      expect(deck.index).toBe(1);
+      vi.advanceTimersByTime(600);
+      expect(deck.phase).toBe("idle");
+      expect(deck.index).toBe(1);
+    });
+
+    it("settles prev through the fallback timer", () => {
+      const deck = createDeck({ cards: cardsOf(3) });
+      deck.prev();
+      vi.advanceTimersByTime(600);
+      expect(deck.phase).toBe("idle");
+      expect(deck.index).toBe(2);
+    });
+
+    it("a real settle before the timer prevents a double advance", () => {
+      const deck = createDeck({ cards: cardsOf(3) });
+      deck.next();
+      deck.settle();
+      expect(deck.index).toBe(1);
+      vi.advanceTimersByTime(600);
+      expect(deck.index).toBe(1);
+      expect(deck.phase).toBe("idle");
+      vi.advanceTimersByTime(1200);
+      expect(deck.index).toBe(1);
       expect(deck.phase).toBe("idle");
     });
 
@@ -341,7 +399,6 @@ describe("resumeDeck", () => {
       vi.stubGlobal("location", location);
       resumeDeck().navigate("/games/501/setup");
       expect(location.href).toBe("/games/501/setup");
-      vi.unstubAllGlobals();
     });
   });
 });

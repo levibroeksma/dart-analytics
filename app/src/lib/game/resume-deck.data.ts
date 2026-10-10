@@ -13,6 +13,20 @@ import type {
 
 const SWIPE_THRESHOLD_PX = 40;
 const MAX_STACK_LAYERS = 2;
+const SETTLE_FALLBACK_MS = 600;
+
+/**
+ * Settles the deck out of its current non-idle phase after
+ * `SETTLE_FALLBACK_MS` unless an `animationend` already moved it on, so a
+ * swallowed animation event cannot lock the deck.
+ */
+function armSettleFallback(deck: ResumeDeckContext) {
+  const armedPhase = deck.phase;
+  if (armedPhase === "idle") return;
+  setTimeout(() => {
+    if (deck.phase === armedPhase) deck.settle();
+  }, SETTLE_FALLBACK_MS);
+}
 
 /**
  * Turns active sessions into resume cards, newest-started first. Routine steps
@@ -29,7 +43,7 @@ export function toResumeCards(
 ): ResumeCard[] {
   return sessions
     .filter((session) => !session.isRoutineStep)
-    .sort((a, b) => b.startedAt.localeCompare(a.startedAt))
+    .sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt))
     .flatMap((session) => {
       const card = cards.find(
         (game) => game.rulesetVersionKey === session.rulesetVersionKey,
@@ -112,6 +126,7 @@ export function resumeDeck() {
     next(this: ResumeDeckContext) {
       if (this.phase !== "idle" || this.cards.length <= 1) return;
       this.phase = "out";
+      armSettleFallback(this);
     },
 
     prev(this: ResumeDeckContext) {
@@ -119,12 +134,14 @@ export function resumeDeck() {
       const count = this.cards.length;
       this.index = (this.index - 1 + count) % count;
       this.phase = "in";
+      armSettleFallback(this);
     },
 
     settle(this: ResumeDeckContext) {
       if (this.phase === "out") {
         this.index = (this.index + 1) % this.cards.length;
         this.phase = "rise";
+        armSettleFallback(this);
       } else if (this.phase === "rise" || this.phase === "in") {
         this.phase = "idle";
       }

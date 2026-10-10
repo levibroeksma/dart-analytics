@@ -1475,6 +1475,7 @@ export type LocalGame = {
   turns: TurnFact[];
 };
 
+/** Home resume-deck state and methods, as bound to `this` by the `resumeDeck` factory. */
 export type ResumeDeckContext = {
   cards: ResumeCard[];
   index: number;
