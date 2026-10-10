@@ -46,7 +46,7 @@ import type {
   ScoreTrainingSnapshot,
   SeatFact,
   Seated,
-  FiveOhOneSnapshot,
+  FiveOhOneAnySnapshot,
   Bobs27Snapshot,
   CricketSnapshot,
   TacticsSnapshot,
@@ -704,11 +704,13 @@ export type FiveOhOneSeatResult = {
  * configured seat (1 for solo, 2 for 1v1), in `$store.game.seats` order. */
 export type FiveOhOneResultsSnapshot = {
   winningSideKey: string | null;
+  legBarCount: number;
+  setScore: string;
   seats: FiveOhOneSeatResult[];
 };
 
 export type FiveOhOnePlayContext = PlayLifecycleContext<
-  FiveOhOneSnapshot,
+  FiveOhOneAnySnapshot,
   FiveOhOneEngine,
   FiveOhOneResultsSnapshot
 > & {
@@ -720,7 +722,7 @@ export type FiveOhOnePlayContext = PlayLifecycleContext<
   showDoubleConfirm: boolean;
   showMatchFinishConfirm: boolean;
   botThrowing: boolean;
-  $store: PlayStoreContext<FiveOhOneSnapshot> & {
+  $store: PlayStoreContext<FiveOhOneAnySnapshot> & {
     checkoutHints?: CheckoutHintsStoreContext;
   };
   visitMarkers(this: FiveOhOnePlayContext): BoardMarker[];

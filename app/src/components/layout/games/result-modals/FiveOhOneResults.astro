@@ -48,6 +48,13 @@ const WINNER_EXPR =
   </h2>
 
   <SinglePlayerSummary statRows={STAT_ROWS} />
+  <p
+    class="text-center text-sm font-semibold text-foreground"
+    x-show="resultsSnapshot?.setScore"
+    x-cloak
+    x-text="`Sets ${resultsSnapshot?.setScore}`"
+  >
+  </p>
   <ComparisonSummary
     statRows={COMPARISON_STAT_ROWS}
     winnerExpr={WINNER_EXPR}

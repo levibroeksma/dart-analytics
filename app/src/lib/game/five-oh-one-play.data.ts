@@ -9,7 +9,11 @@ import {
 import { fetchActiveSessions } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { boardInputData } from "@lib/game/board-input.data";
-import { joinSubtitle } from "@lib/game/play-subtitle";
+import {
+  fiveOhOneSubtitle,
+  legBarCount,
+  setScoreText,
+} from "@lib/game/five-oh-one-match";
 import {
   clearHiddenTimer,
   playAbandonAndExit,
@@ -37,7 +41,11 @@ import {
 import { classifyDoubleAttempts } from "@modules/game/double-attempt.module";
 import { fiveOhOneCheckoutVisits } from "@modules/game/checkout-visits.module";
 import { matchWinnerName } from "@lib/game/match-result-text";
-import type { RulesetVersionKey, SeatFact } from "@lib/types";
+import type {
+  FiveOhOneAnySnapshot,
+  RulesetVersionKey,
+  SeatFact,
+} from "@lib/types";
 import type {
   CheckoutDartOptions,
   DartCount,
@@ -88,6 +96,19 @@ function resumeEngine(
     turns: game.turns,
   });
   return engine instanceof FiveOhOneEngine ? engine : null;
+}
+
+/**
+ * The play-again override: the V1 leg target, or the V2 match format. Seats
+ * never ride the wire.
+ */
+function playAgainWire(config: FiveOhOneAnySnapshot): Record<string, unknown> {
+  if ("legsToWin" in config) return { legs_to_win: config.legsToWin };
+  return {
+    legs: config.legs,
+    sets: config.sets,
+    win_by_two: config.winByTwo,
+  };
 }
 
 const BOT_PRE_THROW_MS = 900;
@@ -234,6 +255,8 @@ function buildResultsSnapshot(
       )
     : [];
   return {
+    legBarCount: config ? legBarCount(config, context.state()) : 0,
+    setScore: config ? setScoreText(config, context.state(), seats) : "",
     winningSideKey:
       seats.length >= 2 ? (context.state()?.winningSideKey ?? null) : null,
     seats: seats.map((seat) =>
@@ -306,7 +329,9 @@ export function fiveOhOnePlay() {
     },
 
     turnsInCurrentLeg(this: FiveOhOnePlayContext): TurnFact[] {
-      const openLeg = this.$store.game.stages.at(-1);
+      const openLeg = this.$store.game.stages
+        .filter((stage) => stage.stageTypeKey === "LEG")
+        .at(-1);
       if (!openLeg) return [];
       return this.$store.game.turns.filter(
         (turn) => turn.stageClientKey === openLeg.clientKey,
@@ -329,19 +354,17 @@ export function fiveOhOnePlay() {
       );
     },
 
-    /** Play-header subtitle: the open leg and the match target (`LEG 2 · FIRST TO 3`); blank before config loads. */
+    /** Play-header subtitle: the open set and leg and the match target (`SET 1 · LEG 2 · FIRST TO 3 SETS`, or `LEG 2 · FIRST TO 3` without sets); blank before config loads. */
     subtitle(this: FiveOhOnePlayContext): string {
-      const legsToWin = this.$store.game.configSnapshot?.legsToWin;
-      if (!legsToWin) return "";
-      return joinSubtitle([
-        `LEG ${Math.max(this.$store.game.stages.length, 1)}`,
-        `FIRST TO ${legsToWin}`,
-      ]);
+      const config = this.$store.game.configSnapshot;
+      if (!config) return "";
+      return fiveOhOneSubtitle(config, this.$store.game.stages, this.state());
     },
 
-    /** Legs a side needs to win the match; 0 before config loads. */
+    /** Leg bars to draw for the current set; 0 before config loads. */
     legsToWin(this: FiveOhOnePlayContext): number {
-      return this.$store.game.configSnapshot?.legsToWin ?? 0;
+      const config = this.$store.game.configSnapshot;
+      return config ? legBarCount(config, this.state()) : 0;
     },
 
     remainingScoreFor(this: FiveOhOnePlayContext, seatRef: string): number {
@@ -833,14 +856,17 @@ export function fiveOhOnePlay() {
      * `play-lifecycle.ts`'s shared `runPlayAgain`.
      */
     async playAgain(this: FiveOhOnePlayContext) {
+      const rulesetVersionKey = this.$store.game.rulesetVersionKey;
+      if (!rulesetVersionKey) return;
+      if (!RULESET_VERSION_KEYS.includes(rulesetVersionKey)) return;
       await runPlayAgain(
         this,
         GAME_TYPE_KEY,
-        this.$store.game.rulesetVersionKey as RulesetVersionKey,
+        rulesetVersionKey,
         (engine) => (engine instanceof FiveOhOneEngine ? engine : null),
         (config) => ({
           snapshot: config,
-          wire: { legs_to_win: config.legsToWin },
+          wire: playAgainWire(config),
         }),
         () => {
           this.pendingCheckoutScore = null;
