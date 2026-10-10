@@ -1453,6 +1453,51 @@ export type GamesIndexContext = {
   noneVisible(this: GamesIndexContext): boolean;
 };
 
+/** One card of the home resume deck: a resumable session's title, setup route and progress. */
+export type ResumeCard = {
+  sessionId: string;
+  title: string;
+  href: string;
+  started: string;
+  detail: string;
+  big: { value: string; label: string } | null;
+};
+
+/** Animation phase of the resume deck: at rest, top card leaving, next card rising, previous card entering. */
+export type ResumeDeckPhase = "idle" | "out" | "rise" | "in";
+
+/** The slice of the `game` store the resume deck overlays onto its server-fetched cards. */
+export type LocalGame = {
+  sessionId: string | null;
+  rulesetVersionKey: string | null;
+  configSnapshot: unknown;
+  stages: StageFact[];
+  turns: TurnFact[];
+};
+
+export type ResumeDeckContext = {
+  cards: ResumeCard[];
+  index: number;
+  phase: ResumeDeckPhase;
+  loading: boolean;
+  failed: boolean;
+  swipeX: number | null;
+  swipeY: number | null;
+  $store: { game: LocalGame };
+  init(this: ResumeDeckContext): Promise<void>;
+  top(this: ResumeDeckContext): ResumeCard | null;
+  position(this: ResumeDeckContext): string;
+  layers(this: ResumeDeckContext): number;
+  visible(this: ResumeDeckContext): boolean;
+  next(this: ResumeDeckContext): void;
+  prev(this: ResumeDeckContext): void;
+  settle(this: ResumeDeckContext): void;
+  swipeStart(this: ResumeDeckContext, event: PointerEvent): void;
+  swipeEnd(this: ResumeDeckContext, event: PointerEvent): void;
+  resume(this: ResumeDeckContext): void;
+  navigate(this: ResumeDeckContext, path: string): void;
+};
+
 /**
  * The opponent-slot state a setup screen's guest/DartBot modal drives.
  * `bot` and a guest are mutually exclusive. `pendingBotLevel` is the
