@@ -270,6 +270,14 @@ export async function findIdempotencyRecord(
   return row;
 }
 
+/**
+ * Active (unfinished) sessions for a player, read from `v_active_sessions` and
+ * joined to the runtime tables for two extra columns.
+ *
+ * `isRoutineStep` is `routine_step_sequence_number IS NOT NULL` on
+ * `exercise_sessions` (migration 0029; standalone sessions leave it NULL).
+ * `configuration` is the session's configuration snapshot, NULL if absent.
+ */
 export async function findActiveSessions(db: Db, playerId: string) {
   return db
     .select({
@@ -280,8 +288,18 @@ export async function findActiveSessions(db: Db, playerId: string) {
       inputModeKey: vActiveSessions.inputModeKey,
       rulesetVersionKey: vActiveSessions.rulesetVersionKey,
       startedAt: vActiveSessions.startedAt,
+      isRoutineStep: sql<boolean>`${exerciseSessions.routineStepSequenceNumber} IS NOT NULL`,
+      configuration: exerciseConfigurations.configuration,
     })
     .from(vActiveSessions)
+    .innerJoin(
+      exerciseSessions,
+      eq(exerciseSessions.id, vActiveSessions.sessionId),
+    )
+    .leftJoin(
+      exerciseConfigurations,
+      eq(exerciseConfigurations.exerciseSessionId, vActiveSessions.sessionId),
+    )
     .where(eq(vActiveSessions.playerId, playerId));
 }
 
