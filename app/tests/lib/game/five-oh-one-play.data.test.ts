@@ -765,6 +765,7 @@ describe("uploadAndCompleteSession", () => {
     expect(play.resultsSnapshot).toEqual({
       legBarCount: 1,
       setScore: "",
+      setLegScores: "",
       winningSideKey: null,
       seats: [
         {
@@ -818,6 +819,7 @@ describe("uploadAndCompleteSession", () => {
     expect(play.resultsSnapshot).toEqual({
       legBarCount: 1,
       setScore: "",
+      setLegScores: "",
       winningSideKey: null,
       seats: [
         {
@@ -1846,6 +1848,17 @@ describe("501_V2 play", () => {
     expect(play.resultsSnapshot?.setScore).toBe("0–0");
   });
 
+  it("setsTally shows the sets won only when sets are on", () => {
+    const withSets = makePlay({
+      rulesetVersionKey: "501_V2",
+      configSnapshot: v2Config(),
+      stages: SET_STAGES.slice(0, 2),
+    });
+    expect(withSets.setsTally()).toBe("0–0");
+    const legsOnly = makePlay({ configSnapshot: bestOf5Config() });
+    expect(legsOnly.setsTally()).toBe("");
+  });
+
   it("V1 results snapshot has no set score", async () => {
     vi.mocked(appendBatch).mockResolvedValue({
       created: { stages: 1, turns: 0, darts: 0 },
@@ -1886,11 +1899,37 @@ describe("501_V2 play", () => {
           source: "template",
           templateRef: "tpl-1",
           overrides: {
+            starting_score: 501,
             legs: { mode: "FIRST_TO", count: 3 },
             sets: { mode: "FIRST_TO", count: 2 },
             win_by_two: { cap: 5, scope: "DECIDING_SET" },
           },
         },
+      }),
+    );
+  });
+
+  it("playAgain from a 301 V2 match sends starting_score 301", async () => {
+    const play = makePlay({
+      rulesetVersionKey: "501_V2",
+      configSnapshot: v2Config({ startingScore: 301 }),
+      stages: SET_STAGES.slice(0, 2),
+    });
+    play.completionStatus = "succeeded";
+    play.finished = true;
+    vi.mocked(createSession).mockResolvedValue({
+      sessionId: "new-session",
+      participants: [
+        { ref: "p1", displayName: "Levi", participantTypeKey: "PLAYER" },
+        { ref: "p2", displayName: "Guest", participantTypeKey: "GUEST" },
+      ],
+    } as any);
+    await play.playAgain.call(play);
+    expect(createSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        config: expect.objectContaining({
+          overrides: expect.objectContaining({ starting_score: 301 }),
+        }),
       }),
     );
   });

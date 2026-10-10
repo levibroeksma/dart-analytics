@@ -33,17 +33,26 @@ export function fiveOhOneSubtitle(
   ]);
 }
 
-/** Leg bars to draw: the leg target, or `cap + 1` once a side passes it under win by 2. */
+/**
+ * Leg bars to draw: the leg target, or `cap + 1` when the margin applies to
+ * this set and the sides are contesting it (leader at the target with the
+ * runner-up within 1, or sudden death flagged).
+ */
 export function legBarCount(
   config: FiveOhOneAnySnapshot,
   state: FiveOhOneState | null,
 ): number {
   const format = matchFormatOf(config);
   const target = raceTarget(format.legs);
-  const most = Math.max(0, ...(state?.sides ?? []).map((side) => side.legsWon));
-  return format.winByTwo !== null && most >= target
-    ? format.winByTwo.cap + 1
-    : target;
+  const margin = format.winByTwo;
+  if (margin === null || !state) return target;
+  const applies = margin.scope === "EVERY_SET" || state.decidingSet;
+  const ranked = state.sides.map((side) => side.legsWon).sort((a, b) => b - a);
+  const leader = ranked[0] ?? 0;
+  const runnerUp = ranked[1] ?? 0;
+  const contested =
+    leader >= target && (state.suddenDeath || leader - runnerUp < 2);
+  return applies && contested ? margin.cap + 1 : target;
 }
 
 /** Sets won per side in seat order (`"2–1"`); blank without sets. */
@@ -59,4 +68,17 @@ export function setScoreText(
         state.sides.find((side) => side.sideKey === seat.sideKey)?.setsWon ?? 0,
     )
     .join("–");
+}
+
+/** Legs won per side in each played set, seat order (`"3–1 · 2–3"`); blank without sets. */
+export function setLegScoresText(
+  config: FiveOhOneAnySnapshot,
+  state: FiveOhOneState | null,
+  seats: readonly { sideKey: string }[],
+): string {
+  if (matchFormatOf(config).sets === null || !state) return "";
+  return state.sets
+    .filter((set) => Object.values(set.legsWon).some((legs) => legs > 0))
+    .map((set) => seats.map((seat) => set.legsWon[seat.sideKey] ?? 0).join("–"))
+    .join(" · ");
 }

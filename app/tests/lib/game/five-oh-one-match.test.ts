@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   fiveOhOneSubtitle,
   legBarCount,
+  setLegScoresText,
   setScoreText,
 } from "@lib/game/five-oh-one-match";
 
@@ -107,6 +108,45 @@ describe("legBarCount", () => {
       ),
     ).toBe(6);
   });
+  it("is the target for a clean win that leaves a 2-leg gap", () => {
+    const config = v2({ winByTwo: { cap: 5, scope: "EVERY_SET" } });
+    expect(
+      legBarCount(
+        config,
+        state({
+          status: "FINISHED",
+          sides: [
+            { sideKey: "A", legsWon: 3, setsWon: 0 },
+            { sideKey: "B", legsWon: 1, setsWon: 0 },
+          ],
+        }),
+      ),
+    ).toBe(3);
+  });
+  it("is cap + 1 when sudden death is flagged", () => {
+    const config = v2({ winByTwo: { cap: 5, scope: "EVERY_SET" } });
+    expect(
+      legBarCount(
+        config,
+        state({
+          suddenDeath: true,
+          sides: [
+            { sideKey: "A", legsWon: 5, setsWon: 0 },
+            { sideKey: "B", legsWon: 5, setsWon: 0 },
+          ],
+        }),
+      ),
+    ).toBe(6);
+  });
+  it("is the target in a non-deciding set under DECIDING_SET scope", () => {
+    const config = v2({ winByTwo: { cap: 5, scope: "DECIDING_SET" } });
+    const sides = [
+      { sideKey: "A", legsWon: 3, setsWon: 0 },
+      { sideKey: "B", legsWon: 3, setsWon: 0 },
+    ];
+    expect(legBarCount(config, state({ sides }))).toBe(3);
+    expect(legBarCount(config, state({ sides, decidingSet: true }))).toBe(6);
+  });
 });
 
 describe("setScoreText", () => {
@@ -114,5 +154,24 @@ describe("setScoreText", () => {
     const seats = [{ sideKey: "A" }, { sideKey: "B" }];
     expect(setScoreText(v2(), state(), seats)).toBe("2–1");
     expect(setScoreText(v2({ sets: null }), state(), seats)).toBe("");
+  });
+});
+
+describe("setLegScoresText", () => {
+  const seats = [{ sideKey: "A" }, { sideKey: "B" }];
+  const sets = [
+    { legsWon: { A: 3, B: 1 }, winner: "A" },
+    { legsWon: { A: 2, B: 3 }, winner: "B" },
+    { legsWon: { A: 0, B: 0 }, winner: null },
+  ];
+  it("lists each played set's legs in seat order", () => {
+    expect(setLegScoresText(v2(), state({ sets }), seats)).toBe("3–1 · 2–3");
+  });
+  it("is blank without sets or without played sets", () => {
+    expect(setLegScoresText(v2({ sets: null }), state({ sets }), seats)).toBe(
+      "",
+    );
+    expect(setLegScoresText(v2(), state(), seats)).toBe("");
+    expect(setLegScoresText(v2(), null, seats)).toBe("");
   });
 });

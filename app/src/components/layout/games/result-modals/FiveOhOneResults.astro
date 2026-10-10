@@ -55,6 +55,13 @@ const WINNER_EXPR =
     x-text="`Sets ${resultsSnapshot?.setScore}`"
   >
   </p>
+  <p
+    class="text-center font-mono text-xs tabular-nums text-muted"
+    x-show="resultsSnapshot?.setLegScores"
+    x-cloak
+    x-text="`Legs ${resultsSnapshot?.setLegScores}`"
+  >
+  </p>
   <ComparisonSummary
     statRows={COMPARISON_STAT_ROWS}
     winnerExpr={WINNER_EXPR}

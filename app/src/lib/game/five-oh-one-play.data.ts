@@ -12,6 +12,7 @@ import { boardInputData } from "@lib/game/board-input.data";
 import {
   fiveOhOneSubtitle,
   legBarCount,
+  setLegScoresText,
   setScoreText,
 } from "@lib/game/five-oh-one-match";
 import {
@@ -105,6 +106,7 @@ function resumeEngine(
 function playAgainWire(config: FiveOhOneAnySnapshot): Record<string, unknown> {
   if ("legsToWin" in config) return { legs_to_win: config.legsToWin };
   return {
+    starting_score: config.startingScore,
     legs: config.legs,
     sets: config.sets,
     win_by_two: config.winByTwo,
@@ -231,12 +233,28 @@ function statsFor(
   };
 }
 
+/** The results snapshot's match-format fields: leg bars, sets tally, per-set leg scores. */
+function matchSnapshotFields(
+  context: FiveOhOnePlayContext,
+): Pick<FiveOhOneResultsSnapshot, "legBarCount" | "setScore" | "setLegScores"> {
+  const config = context.$store.game.configSnapshot;
+  if (!config) return { legBarCount: 0, setScore: "", setLegScores: "" };
+  const state = context.state();
+  const seats = context.$store.game.seats;
+  return {
+    legBarCount: legBarCount(config, state),
+    setScore: setScoreText(config, state, seats),
+    setLegScores: setLegScoresText(config, state, seats),
+  };
+}
+
 /**
  * The match-summary modal's whole snapshot: every seat's own `statsFor`,
  * plus the winning side — `null` for a solo session (one seat can't have a
  * side to compare against, so there is nothing to declare a winner over)
- * even though the engine's own fold always names a `sideKey` once that
- * seat's side reaches `legsToWin`.
+ * even though the engine's own fold always names a `sideKey` once the match
+ * is won. Also carries the leg bar count (`legBarCount`) and, with sets on,
+ * the sets tally and per-set leg scores.
  */
 function buildResultsSnapshot(
   context: FiveOhOnePlayContext,
@@ -255,8 +273,7 @@ function buildResultsSnapshot(
       )
     : [];
   return {
-    legBarCount: config ? legBarCount(config, context.state()) : 0,
-    setScore: config ? setScoreText(config, context.state(), seats) : "",
+    ...matchSnapshotFields(context),
     winningSideKey:
       seats.length >= 2 ? (context.state()?.winningSideKey ?? null) : null,
     seats: seats.map((seat) =>
@@ -359,6 +376,13 @@ export function fiveOhOnePlay() {
       const config = this.$store.game.configSnapshot;
       if (!config) return "";
       return fiveOhOneSubtitle(config, this.$store.game.stages, this.state());
+    },
+
+    /** Sets won per seat (`"2–1"`) for the scoreboard tally; blank without sets or before config loads. */
+    setsTally(this: FiveOhOnePlayContext): string {
+      const config = this.$store.game.configSnapshot;
+      if (!config) return "";
+      return setScoreText(config, this.state(), this.$store.game.seats);
     },
 
     /** Leg bars to draw for the current set; 0 before config loads. */
