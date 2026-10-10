@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   AroundTheClockV2Config,
   DoublesTrainingConfig,
+  FiveOhOneV2Config,
   OneTwentyOneV2Config,
   ScoreTrainingConfig,
   SinglesConfig,
@@ -552,6 +553,96 @@ const aroundTheClockV2Contract: SchemaRefinementContract<AroundTheClockV2Input> 
     ],
   };
 
+type FiveOhOneV2Input = z.input<typeof FiveOhOneV2Config>;
+
+const fiveOhOneV2Base = {
+  starting_score: 501,
+  check_in: "STRAIGHT_IN",
+  check_out: "DOUBLE_OUT",
+  max_darts_per_turn: 3,
+  max_visit_score: 180,
+  legs: { mode: "FIRST_TO", count: 3 },
+  sets: null,
+  win_by_two: null,
+} satisfies FiveOhOneV2Input;
+
+/**
+ * `FiveOhOneV2Config` refines four cross-field rules in one `superRefine`:
+ * best-of counts are odd, `win_by_two.cap` is at least the leg target, and
+ * deciding-set scope needs sets. Each rejection is blamed on the field it
+ * breaks, so the probes name the field the rule protects.
+ */
+const fiveOhOneV2Contract: SchemaRefinementContract<FiveOhOneV2Input> = {
+  schemaName: "FiveOhOneV2Config",
+  schema: FiveOhOneV2Config,
+  fields: [
+    {
+      field: "legs",
+      accept: [
+        {
+          label: "best of 5 legs",
+          config: { ...fiveOhOneV2Base, legs: { mode: "BEST_OF", count: 5 } },
+        },
+      ],
+      reject: [
+        {
+          label: "best of 4 legs, an even count",
+          config: { ...fiveOhOneV2Base, legs: { mode: "BEST_OF", count: 4 } },
+        },
+      ],
+    },
+    {
+      field: "sets",
+      accept: [
+        {
+          label: "best of 3 sets",
+          config: {
+            ...fiveOhOneV2Base,
+            sets: { mode: "BEST_OF", count: 3 },
+          },
+        },
+      ],
+      reject: [
+        {
+          label: "best of 2 sets, an even count",
+          config: {
+            ...fiveOhOneV2Base,
+            sets: { mode: "BEST_OF", count: 2 },
+          },
+        },
+      ],
+    },
+    {
+      field: "win_by_two",
+      accept: [
+        {
+          label: "cap equal to the first-to-3 leg target",
+          config: {
+            ...fiveOhOneV2Base,
+            win_by_two: { cap: 3, scope: "EVERY_SET" },
+          },
+        },
+      ],
+      reject: [
+        {
+          label: "cap 2 below the first-to-3 leg target",
+          config: {
+            ...fiveOhOneV2Base,
+            win_by_two: { cap: 2, scope: "EVERY_SET" },
+          },
+        },
+        {
+          label: "deciding-set scope without sets",
+          config: {
+            ...fiveOhOneV2Base,
+            win_by_two: { cap: 5, scope: "DECIDING_SET" },
+          },
+        },
+      ],
+    },
+  ],
+};
+
 export const REFINEMENT_CONTRACTS: readonly SchemaRefinementContract[] = [
   scoreTrainingContract,
   singlesTrainingContract,
@@ -561,4 +652,5 @@ export const REFINEMENT_CONTRACTS: readonly SchemaRefinementContract[] = [
   oneTwentyOneV2Contract,
   tuodContract,
   aroundTheClockV2Contract,
+  fiveOhOneV2Contract,
 ];
