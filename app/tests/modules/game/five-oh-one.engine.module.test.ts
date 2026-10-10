@@ -2046,6 +2046,24 @@ describe("501_V2 match end and corrupt logs", () => {
     ).toThrow(/before the previous set was won/);
   });
 
+  it("throws on a SET while sets are off", () => {
+    expect(() =>
+      fiveOhOneV2EngineFactory
+        .create(v2Config({ sets: null }), {
+          stages: [
+            {
+              clientKey: "set-1",
+              stageTypeKey: "SET",
+              parentClientKey: null,
+              sequence: 1,
+            },
+          ],
+          turns: [],
+        })
+        .state(),
+    ).toThrow(/while sets are off/);
+  });
+
   it("throws on stages recorded after the match was won", () => {
     const won = fiveOhOneV2EngineFactory.create(
       v2Config({ sets: { mode: "FIRST_TO", count: 1 } }),

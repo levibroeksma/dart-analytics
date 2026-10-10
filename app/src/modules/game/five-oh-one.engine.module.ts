@@ -279,6 +279,61 @@ type LegFold = {
 };
 
 /**
+ * Resolves the winner-group a LEG belongs to, opening the root group on the
+ * first root leg.
+ * @throws when a root LEG appears under a sets-on format, or a LEG names a
+ *   set that was never recorded.
+ */
+function groupForLeg(
+  stage: StageFact,
+  setsOn: boolean,
+  winnersBySet: string[][],
+  groupOf: Map<string | null, number>,
+): number {
+  if (stage.parentClientKey === null && setsOn) {
+    throw new Error(
+      `501: root leg ${stage.clientKey} recorded while sets are on.`,
+    );
+  }
+  const known = groupOf.get(stage.parentClientKey);
+  if (known !== undefined) return known;
+  if (stage.parentClientKey !== null) {
+    throw new Error(
+      `501: leg ${stage.clientKey} names unknown set ${stage.parentClientKey}.`,
+    );
+  }
+  const opened = winnersBySet.push([]) - 1;
+  groupOf.set(null, opened);
+  return opened;
+}
+
+/**
+ * Opens a new winner-group for a SET stage.
+ * @throws when sets are off.
+ */
+function openSetGroup(
+  stage: StageFact,
+  setsOn: boolean,
+  winnersBySet: string[][],
+  groupOf: Map<string | null, number>,
+): void {
+  if (!setsOn) {
+    throw new Error(`501: set ${stage.clientKey} recorded while sets are off.`);
+  }
+  groupOf.set(stage.clientKey, winnersBySet.push([]) - 1);
+}
+
+/**
+ * Whether the fold must stop at a stage that follows the deciding leg. A V1
+ * legacy log stops silently; V2 treats it as corrupt.
+ * @throws for a V2 snapshot.
+ */
+function stopsAfterDecision(config: FiveOhOneAnySnapshot): true {
+  if ("legsToWin" in config) return true;
+  throw new Error("501: stages recorded after the match was won.");
+}
+
+/**
  * Folds every LEG in play order, grouping winners by their SET parent (root
  * legs form one group). A V1 snapshot (flat legacy log) stops folding at the
  * leg that decides the match and ignores any later stage, leaving the losing
@@ -292,46 +347,23 @@ function foldLegs(
   facts: EngineFacts,
   config: Seated<FiveOhOneAnySnapshot>,
 ): LegFold {
-  const setsOn = matchFormatOf(config).sets !== null;
+  const format = matchFormatOf(config);
+  const setsOn = format.sets !== null;
   const remaining = new Map(
     config.seats.map((seat) => [seat.participantRef, config.startingScore]),
   );
   const winnersBySet: string[][] = [];
   const groupOf = new Map<string | null, number>();
-  const legacy = "legsToWin" in config;
-  const format = matchFormatOf(config);
   const sideKeys = sidesOf(config.seats);
   let decided = false;
 
   for (const stage of facts.stages) {
-    if (decided) {
-      if (legacy) break;
-      throw new Error("501: stages recorded after the match was won.");
-    }
+    if (decided && stopsAfterDecision(config)) break;
     if (stage.stageTypeKey === "SET") {
-      if (!setsOn) {
-        throw new Error(
-          `501: set ${stage.clientKey} recorded while sets are off.`,
-        );
-      }
-      groupOf.set(stage.clientKey, winnersBySet.push([]) - 1);
+      openSetGroup(stage, setsOn, winnersBySet, groupOf);
       continue;
     }
-    if (stage.parentClientKey === null && setsOn) {
-      throw new Error(
-        `501: root leg ${stage.clientKey} recorded while sets are on.`,
-      );
-    }
-    let group = groupOf.get(stage.parentClientKey);
-    if (group === undefined) {
-      if (stage.parentClientKey !== null) {
-        throw new Error(
-          `501: leg ${stage.clientKey} names unknown set ${stage.parentClientKey}.`,
-        );
-      }
-      group = winnersBySet.push([]) - 1;
-      groupOf.set(null, group);
-    }
+    const group = groupForLeg(stage, setsOn, winnersBySet, groupOf);
     const winner = foldLeg(legVisitsOf(facts, stage), config, remaining);
     if (winner) {
       winnersBySet[group]!.push(winner.sideKey);
