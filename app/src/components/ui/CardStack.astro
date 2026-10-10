@@ -19,8 +19,7 @@ const { layersExpr, class: classNameProp, ...props }: Props = Astro.props;
 import { cn } from "@client/cn";
 
 // Styles
-const slabClass =
-  "absolute h-10 shadow-[inset_0_-1px_0_var(--border-strong)] backdrop-blur-sm";
+const slabClass = "absolute h-10 backdrop-blur-sm";
 const wrapperClass = cn("relative", classNameProp);
 const padExpr = `{ 'pb-2': (${layersExpr}) === 1, 'pb-4': (${layersExpr}) >= 2 }`;
 const frontSlabExpr = `(${layersExpr}) >= 2 ? 'bottom-2' : 'bottom-0'`;
@@ -34,14 +33,20 @@ const frontSlabShowExpr = `(${layersExpr}) >= 1`;
   {...props}
 >
   <div
-    class={cn(slabClass, "inset-x-6 bottom-0 rounded-b-[18px] bg-stack-2")}
+    class={cn(
+      slabClass,
+      "inset-x-6 bottom-0 rounded-b-[18px] bg-stack-2 shadow-[inset_0_-1px_0_oklch(100%_0_0/0.12)]",
+    )}
     x-show={backSlabShowExpr}
     x-cloak
     aria-hidden="true"
   >
   </div>
   <div
-    class={cn(slabClass, "inset-x-3 rounded-b-[19px] bg-accent-deep-blue/75")}
+    class={cn(
+      slabClass,
+      "inset-x-3 rounded-b-[19px] bg-stack-1 shadow-[inset_0_-1px_0_oklch(100%_0_0/0.15)]",
+    )}
     :class={frontSlabExpr}
     x-show={frontSlabShowExpr}
     x-cloak

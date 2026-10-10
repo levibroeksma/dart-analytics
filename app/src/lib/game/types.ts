@@ -1496,6 +1496,7 @@ export type ResumeDeckContext = {
   settle(this: ResumeDeckContext): void;
   swipeStart(this: ResumeDeckContext, event: PointerEvent): void;
   swipeEnd(this: ResumeDeckContext, event: PointerEvent): void;
+  swipeCancel(this: ResumeDeckContext): void;
   resume(this: ResumeDeckContext): void;
   navigate(this: ResumeDeckContext, path: string): void;
 };

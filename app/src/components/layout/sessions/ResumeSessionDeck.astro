@@ -27,8 +27,7 @@ import { cn } from "@client/cn";
 import PlayIcon from "@icons/play-rounded.svg";
 
 // Styles
-const cardClass =
-  "home-feature-card flex flex-col gap-3.5 rounded-2xl p-4 backdrop-blur-sm";
+const cardClass = "deck-top-card flex flex-col gap-3.5 rounded-2xl p-4";
 const skeletonClass =
   "inline-block h-lh animate-pulse rounded-md bg-skeleton align-top";
 const phaseClassExpr =
@@ -48,10 +47,12 @@ const phaseClassExpr =
     x-show="loading"
     x-cloak
   >
-    <span
-      class="font-mono text-[11px] font-semibold tracking-[0.14em] text-foreground"
-      >IN PROGRESS</span
-    >
+    <div class="flex min-h-7 items-center">
+      <span
+        class="font-mono text-[11px] font-semibold tracking-[0.14em] text-foreground"
+        >IN PROGRESS</span
+      >
+    </div>
     <div class="flex items-end justify-between gap-3">
       <div class="flex flex-col gap-1.5">
         <span class={cn(skeletonClass, "w-24 font-display text-xl")}></span>
@@ -67,12 +68,12 @@ const phaseClassExpr =
     x-cloak
   >
     <div
-      class={cn(cardClass, "relative touch-pan-y")}
+      class={cn(cardClass, "relative touch-pan-y touch-pinch-zoom")}
       :class={phaseClassExpr}
       @animationend.self="settle()"
       @pointerdown="swipeStart($event)"
       @pointerup="swipeEnd($event)"
-      @pointercancel="swipeX = null"
+      @pointercancel="swipeCancel()"
     >
       <div
         class="flex min-h-7 items-center justify-between font-mono text-[11px] font-semibold"

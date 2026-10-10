@@ -402,6 +402,34 @@ describe("resumeDeck", () => {
       deck.swipeEnd(point(0, 0));
       expect(deck.phase).toBe("idle");
     });
+
+    it("a drag starting on a button does not swipe", () => {
+      const deck = createDeck({ cards: cardsOf(3) });
+      const target = { closest: (selector: string) => selector === "button" };
+      deck.swipeStart({ clientX: 200, clientY: 100, target } as never);
+      expect(deck.swipeX).toBeNull();
+      expect(deck.swipeY).toBeNull();
+      deck.swipeEnd(point(100, 100));
+      expect(deck.phase).toBe("idle");
+    });
+
+    it("a drag starting outside any button is tracked", () => {
+      const deck = createDeck({ cards: cardsOf(3) });
+      const target = { closest: () => null };
+      deck.swipeStart({ clientX: 200, clientY: 100, target } as never);
+      expect(deck.swipeX).toBe(200);
+      expect(deck.swipeY).toBe(100);
+    });
+
+    it("a cancelled pointer clears both coordinates", () => {
+      const deck = createDeck({ cards: cardsOf(3) });
+      deck.swipeStart(point(200, 100));
+      deck.swipeCancel();
+      expect(deck.swipeX).toBeNull();
+      expect(deck.swipeY).toBeNull();
+      deck.swipeEnd(point(100, 100));
+      expect(deck.phase).toBe("idle");
+    });
   });
 
   describe("resume", () => {

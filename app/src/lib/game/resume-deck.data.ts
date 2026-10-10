@@ -84,7 +84,7 @@ export function toResumeCards(
  * `phase` drives the swap animation: `next()` sends the top card `out`, and
  * `settle()` (bound to `animationend`) advances the index, `rise`s the next
  * card, then returns to `idle`; `prev()` brings the previous card `in`. Input
- * is ignored outside `idle`.
+ * is ignored outside `idle`, and a drag that starts on a button never swipes.
  */
 export function resumeDeck() {
   return {
@@ -154,6 +154,7 @@ export function resumeDeck() {
     },
 
     swipeStart(this: ResumeDeckContext, event: PointerEvent) {
+      if ((event.target as Element | null)?.closest?.("button")) return;
       this.swipeX = event.clientX;
       this.swipeY = event.clientY;
     },
@@ -171,6 +172,11 @@ export function resumeDeck() {
       }
       if (dx < 0) this.next();
       else this.prev();
+    },
+
+    swipeCancel(this: ResumeDeckContext) {
+      this.swipeX = null;
+      this.swipeY = null;
     },
 
     resume(this: ResumeDeckContext) {
