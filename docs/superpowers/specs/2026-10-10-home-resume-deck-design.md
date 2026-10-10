@@ -174,7 +174,7 @@ Input during a running animation is ignored.
 
 - `docs/architecture/07-Frontend/08-Component-Inventory.md`: add
   `ResumeSessionDeck`, remove `ResumeGameCard`.
-- `decisions/frontend/style.md` (D441): resume deck, hybrid progress source;
+- `decisions/frontend/style.md` (D442): resume deck, hybrid progress source;
   amends D425 for the resume card.
 - Comment on #815 (partially addressed: config summary; live progress only for
   the locally held session). Capture follow-up issue: `/games`

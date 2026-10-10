@@ -2,7 +2,7 @@
 status: historical
 scope: context-map version history and point-in-time task records
 read-when: never during a task — provenance only
-updated: 2026-10-09
+updated: 2026-10-10
 -->
 
 # Context Map History
@@ -16,6 +16,8 @@ updated: 2026-10-09
 ---
 
 # Version History
+
+> **Version:** 1.180.0 (2026-10-10 — Homepage resume deck: D442 in `decisions/frontend/style.md` (~10.6k → ~11.8k); `08-Component-Inventory.md` gains `CardStack`/`DeckPager` and a `components/layout/sessions/` section with `ResumeSessionDeck`, loses `ResumeGameCard` (budget ~7.2k → ~8.9k); `07-Style-Guide.md` 0.4.1 stack/deck tokens and keyframes (~5.6k → ~6.8k); "New game (full stack)" pack budget ~17.1k → ~24.5k; `06-API/04-Endpoint-Contracts.md` 1.16.4 (`SessionActive` gains `isRoutineStep`, `progress`); new "Home resume deck" section in `00-File-Inventory.md`; spec `docs/superpowers/specs/2026-10-10-home-resume-deck-design.md`.)
 
 > **Version:** 1.179.0 (2026-10-09 — Training skeletons + step cards: `08-Component-Inventory.md` `RoutineStepRow` row restated as a raised glass card with a minutes pill, `ScheduleStrip` row gains the loading pulse; no decision — styling within D427.)
 
@@ -528,3 +530,4 @@ updated: 2026-10-09
 | `docs/superpowers/specs/2026-10-09-deploy-skip-idle-schema-design.md` + `docs/superpowers/plans/2026-10-09-deploy-skip-idle-schema.md` | Handoff 2 of the Neon network-transfer diagnosis: `deploy.yml` gains a `pending` job (`db:status:ci` fails closed, `dbmate status --exit-code`, diff of migrations/seeds/seed runner from the last successful deploy run; a `gh` error applies) and `rehearse`/`migrate` run only when it finds something to apply; `deploy` has two named ways in. D434 in `decisions/context-system.md`; `app/DEPLOYMENT.md`, `11-Neon-Integration.md` and the File Inventory `deploy.yml` row follow (2026-10-09) |
 | `docs/superpowers/specs/2026-10-09-result-modal-skeletons-design.md` + `docs/superpowers/plans/2026-10-09-result-modal-skeletons.md` | Result modals render one DOM: `ResultValue` pulses each value in its own line box, mandatory `SaveStatus` row, `Rematch` button, design parity for all 12 modals + routine summary, real Cricket/Tactics modals with `TargetGrid`, `trebles`/`bulls` derived in the marks fold (D437, 2026-10-09) | historical |
 | `.claude/hooks/session-start.sh` | Registered: `SessionStart` hook installing the superpowers plugin in cloud sessions; `.claude/settings.json` row and root `CLAUDE.md` Superpowers section updated. New **D441** (`decisions/context-system.md`) (2026-10-10) | historical |
+| `docs/superpowers/specs/2026-10-10-home-resume-deck-design.md` + `docs/superpowers/plans/2026-10-10-home-resume-deck.md` | Homepage resume deck: every active non-routine game session newest first in a stacked `ResumeSessionDeck` (`CardStack`, `DeckPager`, `resumeDeck()`); config-derived progress on the server (`summarizeProgress()`, turns upload only at session end) recomputed from `$store.game` for the locally held session; runtime join onto `v_active_sessions`, no migration; supersedes D425's static resume card (D442, 2026-10-10) | historical |

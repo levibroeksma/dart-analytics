@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/style-guide
 read-when: any UI/component work — tokens, primitives, typography, motion, accessibility
-updated: 2026-10-08
+updated: 2026-10-10
 -->
 
 # Frontend Style Guide
 
-> **Version:** 0.4.0 (2026-10-08 — game play: play surfaces, key press, play header, stacked seats, D432; prior 0.3.1 was login, D431)
+> **Version:** 0.4.1 (2026-10-10 — resume deck: stack/deck tokens, `deck-top-card`, deck keyframes, D442; prior 0.4.0 was 2026-10-08 — game play: play surfaces, key press, play header, stacked seats, D432; prior 0.3.1 was login, D431)
 >
 > Dark-only, mobile-first UI conventions: sky accent, glass/surface tokens, primitive class contracts, typography, spacing, motion, accessibility.
 >
@@ -42,7 +42,7 @@ Use semantic tokens only. Never raw Tailwind palette utilities (`bg-sky-500`, `t
 
 | Role | Classes / tokens |
 | ---- | ---------------- |
-| Surfaces | `bg-surface`, `bg-surface-raised`, `bg-surface-overlay`, `glass` (cards; no shadow unless a floating card adds `shadow-card`), `glass-tinted`, `glass-raised`, `glass-tinted-raised`, `glass-button` (raised glass: buttons), `glass-blue` (selected pill, avatar), `glass-info` (rules/info card), `inset-well` (tracks, fields), `inset-well-muted` (undo/delete keys, exit), `glass-sheet` (bottom sheets), `bg-scrim` (modal backdrop) (2026-10-08); `shadow-card` (floating card drop shadow, login, D431); play (D432, 2026-10-08): `glass-active-seat` (throwing seat card), `input-well` (input panels), `next-dart-ring` (next dart's bar), `target-key-ring` (doubles target key), `pip-on` (lit mark pip), `board-dim` (board while pressed), `shadow-magnifier`; `bg-skeleton` (white 12%, results value pulse bar, D437, 2026-10-09) |
+| Surfaces | `bg-surface`, `bg-surface-raised`, `bg-surface-overlay`, `glass` (cards; no shadow unless a floating card adds `shadow-card`), `glass-tinted`, `glass-raised`, `glass-tinted-raised`, `glass-button` (raised glass: buttons), `glass-blue` (selected pill, avatar), `glass-info` (rules/info card), `inset-well` (tracks, fields), `inset-well-muted` (undo/delete keys, exit), `glass-sheet` (bottom sheets), `bg-scrim` (modal backdrop) (2026-10-08); `shadow-card` (floating card drop shadow, login, D431); play (D432, 2026-10-08): `glass-active-seat` (throwing seat card), `input-well` (input panels), `next-dart-ring` (next dart's bar), `target-key-ring` (doubles target key), `pip-on` (lit mark pip), `board-dim` (board while pressed), `shadow-magnifier`; `bg-skeleton` (white 12%, results value pulse bar, D437, 2026-10-09); `bg-stack-1`/`bg-stack-2` (card-stack slabs under a top card), `deck-top-card` (opaque gradient from `--deck-top-from` to `--deck-top-to`, the deck's top card; D442, 2026-10-10) |
 | Text | `text-foreground`, `text-soft-foreground` (78%), `text-muted-foreground` (70%, captions/labels), `text-muted` (55%, body), `text-faint-foreground` (50%), `text-placeholder` (48%, empty fields only) |
 | Borders | `border-border`, `border-border-strong` |
 | Accent | `accent`, `accent-hover`, `accent-muted`, `accent-foreground`, `accent-glow` (sky); `accent-bright` (sky light: accent text on dark), `accent-foreground-muted`, `accent-deep` (gradient end), `accent-deep-blue` (chart bars, vignette), `bg-blue-glass` (2026-10-08) |
@@ -199,6 +199,7 @@ One intentional surface level per visual block. Do not stack competing glass/rai
 | Rely on `.btn:active`'s press scale, or `key-press` on keys | A second press animation on high-frequency input (e.g. a numeric keypad) |
 | Gate hover behind `@media (hover: hover) and (pointer: fine)` (see `.btn-*`, `.nav-pill`, `.tab`, `.link-card`, `.card-wrapper` in `global.css`) | Hover-only critical feedback on a touch target |
 | Respect `prefers-reduced-motion` where the CSS already scopes it | Ignore reduced-motion preference |
+| Deck keyframes `animate-deck-out` (240ms, `ease-in`: the one exiting slide), `animate-deck-rise` (220ms), `animate-deck-in` (240ms), each paired with `motion-reduce:animate-deck-fade-*` (150ms opacity only) (D442, 2026-10-10) | Sliding the deck card under reduced motion |
 | `board-dim` may transition `filter` (150ms) — the one non-transform/opacity transition, scoped to the board while a press is live (D432, 2026-10-08) | Transitioning `filter` elsewhere |
 
 **Modals:** `motion-safe:animate-sheet-in` — 200ms fade plus 1.5rem rise on `--ease-out`; no slide under reduced motion. If scaling on enter, start from `scale-95` plus opacity — never `scale(0)`.
