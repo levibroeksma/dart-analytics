@@ -116,7 +116,7 @@ for.
 - **Stage type:** one shared stage for the game — a claim by one side closes
   that square to the other, so seats share state, as 501's `SHARED` leg
   (`app/src/modules/game/five-oh-one.engine.module.ts:286`; `StageOwnership`,
-  `app/src/modules/game/types.ts:573`).
+  `app/src/modules/game/types.ts:576`).
 - **Derived, never stored:** square owners, the winning line, draw, darts
   thrown.
 
