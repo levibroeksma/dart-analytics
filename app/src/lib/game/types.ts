@@ -114,47 +114,16 @@ export type SetupSessionContext = {
   removeBot(this: SetupSessionContext): void;
 };
 
-export type TuodSetupContext = {
+export type TuodSetupContext = SetupSessionContext & {
   presets: ConfigurationPresetData[];
   durationType: TuodDurationType;
   durationValue: number | string | null;
   clampNotice: string;
-  loading: boolean;
-  error: string;
-  activeSession: SessionActiveData | null;
-  showActiveSessionModal: boolean;
-  loadingReconciliation: boolean;
-  reconciliationFailed: boolean;
-  guests: { displayName: string }[];
-  showAddGuestModal: boolean;
-  newGuestName: string;
-  bot: { level: number } | null;
-  showOpponentChooser: boolean;
-  pendingBotLevel: number;
-  showBotLevelPicker: boolean;
-  $store: {
-    game: {
-      sessionId: string | null;
-      startSession(input: unknown): void;
-      reset(): void;
-    };
-    settings: {
-      captureModeKey: string;
-      inputModeKey: string;
-    };
-  };
   $watch(
     key: "durationType",
     callback: (value: TuodDurationType) => void,
   ): void;
   init(this: TuodSetupContext): Promise<void>;
-  reconcile(
-    this: TuodSetupContext,
-    activeSessions: SessionActiveData[],
-  ): Promise<void>;
-  retryReconciliation(this: TuodSetupContext): Promise<void>;
-  continueSession(this: TuodSetupContext): void;
-  abandonSession(this: TuodSetupContext): Promise<void>;
   selectMode(this: TuodSetupContext, type: TuodDurationType): void;
   presetForMode(
     this: TuodSetupContext,
@@ -162,8 +131,6 @@ export type TuodSetupContext = {
   ): ConfigurationPresetData | undefined;
   addGuest(this: TuodSetupContext): void;
   addBot(this: TuodSetupContext): void;
-  removeGuest(this: TuodSetupContext, index: number): void;
-  removeBot(this: TuodSetupContext): void;
   forceRoundsIfGuested(this: TuodSetupContext): void;
   start(this: TuodSetupContext): Promise<void>;
 };
@@ -519,47 +486,16 @@ export type TuodPlayContext = PlayLifecycleContext<
   destroy(this: TuodPlayContext): void;
 };
 
-export type ScoreTrainingSetupContext = {
+export type ScoreTrainingSetupContext = SetupSessionContext & {
   presets: ConfigurationPresetData[];
   durationType: ScoreTrainingDurationType;
   durationValue: number | string | null;
   clampNotice: string;
-  loading: boolean;
-  error: string;
-  activeSession: SessionActiveData | null;
-  showActiveSessionModal: boolean;
-  loadingReconciliation: boolean;
-  reconciliationFailed: boolean;
-  guests: { displayName: string }[];
-  showAddGuestModal: boolean;
-  newGuestName: string;
-  bot: { level: number } | null;
-  showOpponentChooser: boolean;
-  pendingBotLevel: number;
-  showBotLevelPicker: boolean;
-  $store: {
-    game: {
-      sessionId: string | null;
-      startSession(input: unknown): void;
-      reset(): void;
-    };
-    settings: {
-      captureModeKey: string;
-      inputModeKey: string;
-    };
-  };
   $watch(
     key: "durationType",
     callback: (value: ScoreTrainingDurationType) => void,
   ): void;
   init(this: ScoreTrainingSetupContext): Promise<void>;
-  reconcile(
-    this: ScoreTrainingSetupContext,
-    activeSessions: SessionActiveData[],
-  ): Promise<void>;
-  retryReconciliation(this: ScoreTrainingSetupContext): Promise<void>;
-  continueSession(this: ScoreTrainingSetupContext): void;
-  abandonSession(this: ScoreTrainingSetupContext): Promise<void>;
   selectMode(
     this: ScoreTrainingSetupContext,
     type: ScoreTrainingDurationType,
@@ -570,15 +506,13 @@ export type ScoreTrainingSetupContext = {
   ): ConfigurationPresetData | undefined;
   addGuest(this: ScoreTrainingSetupContext): void;
   addBot(this: ScoreTrainingSetupContext): void;
-  removeGuest(this: ScoreTrainingSetupContext, index: number): void;
-  removeBot(this: ScoreTrainingSetupContext): void;
   forceRoundsIfGuested(this: ScoreTrainingSetupContext): void;
   start(this: ScoreTrainingSetupContext): Promise<void>;
 };
 
 export type FiveOhOneStartingScoreOption = "301" | "501" | "701" | "CUSTOM";
 
-export type FiveOhOneSetupContext = {
+export type FiveOhOneSetupContext = SetupSessionContext & {
   presets: ConfigurationPresetData[];
   startingScoreOption: FiveOhOneStartingScoreOption;
   startingScoreValue: number | string | null;
@@ -595,43 +529,10 @@ export type FiveOhOneSetupContext = {
   capMin(): number;
   syncCap(): void;
   legsClampNotice: string;
-  guests: { displayName: string }[];
-  showAddGuestModal: boolean;
-  newGuestName: string;
-  bot: { level: number } | null;
-  showOpponentChooser: boolean;
-  pendingBotLevel: number;
-  showBotLevelPicker: boolean;
-  loading: boolean;
-  error: string;
-  activeSession: SessionActiveData | null;
-  showActiveSessionModal: boolean;
-  loadingReconciliation: boolean;
-  reconciliationFailed: boolean;
-  $store: {
-    game: {
-      sessionId: string | null;
-      startSession(input: unknown): void;
-      reset(): void;
-    };
-    settings: {
-      captureModeKey: string;
-      inputModeKey: string;
-    };
-  };
   init(this: FiveOhOneSetupContext): Promise<void>;
-  reconcile(
-    this: FiveOhOneSetupContext,
-    activeSessions: SessionActiveData[],
-  ): Promise<void>;
-  retryReconciliation(this: FiveOhOneSetupContext): Promise<void>;
-  continueSession(this: FiveOhOneSetupContext): void;
-  abandonSession(this: FiveOhOneSetupContext): Promise<void>;
   basePreset(this: FiveOhOneSetupContext): ConfigurationPresetData | undefined;
   addGuest(this: FiveOhOneSetupContext): void;
   addBot(this: FiveOhOneSetupContext): void;
-  removeGuest(this: FiveOhOneSetupContext, index: number): void;
-  removeBot(this: FiveOhOneSetupContext): void;
   start(this: FiveOhOneSetupContext): Promise<void>;
 };
 
@@ -654,44 +555,11 @@ export type FiveOhOneSetupContext = {
  * the parallel `interfaces.ts` chain). No method body needs the concrete
  * type; only `configOverrides` does, and it takes it as a generic parameter.
  */
-export type PresetSetupContext = {
+export type PresetSetupContext = SetupSessionContext & {
   presets: ConfigurationPresetData[];
-  loading: boolean;
-  error: string;
-  activeSession: SessionActiveData | null;
-  showActiveSessionModal: boolean;
-  loadingReconciliation: boolean;
-  reconciliationFailed: boolean;
-  guests: { displayName: string }[];
-  showAddGuestModal: boolean;
-  newGuestName: string;
-  bot: { level: number } | null;
-  showOpponentChooser: boolean;
-  pendingBotLevel: number;
-  showBotLevelPicker: boolean;
-  $store: {
-    game: {
-      sessionId: string | null;
-      startSession(input: unknown): void;
-      reset(): void;
-    };
-    settings: {
-      captureModeKey: string;
-      inputModeKey: string;
-    };
-  };
   init(this: PresetSetupContext): Promise<void>;
-  reconcile(
-    this: PresetSetupContext,
-    activeSessions: SessionActiveData[],
-  ): Promise<void>;
-  retryReconciliation(this: PresetSetupContext): Promise<void>;
-  continueSession(this: PresetSetupContext): void;
-  abandonSession(this: PresetSetupContext): Promise<void>;
   addGuest(this: PresetSetupContext): void;
   addBot(this: PresetSetupContext): void;
-  removeGuest(this: PresetSetupContext, index: number): void;
-  removeBot(this: PresetSetupContext): void;
   start(this: PresetSetupContext): Promise<void>;
 };
 
@@ -1181,47 +1049,16 @@ export type ShanghaiSetupContext = PresetSetupContext & {
  * with a clamped `duration_value`, the same shape Score Training's own
  * hand-written context already carries.
  */
-export type OneTwentyOneSetupContext = {
+export type OneTwentyOneSetupContext = SetupSessionContext & {
   presets: ConfigurationPresetData[];
   durationType: OneTwentyOneDurationType;
   durationValue: number | string | null;
   clampNotice: string;
-  loading: boolean;
-  error: string;
-  activeSession: SessionActiveData | null;
-  showActiveSessionModal: boolean;
-  loadingReconciliation: boolean;
-  reconciliationFailed: boolean;
-  guests: { displayName: string }[];
-  showAddGuestModal: boolean;
-  newGuestName: string;
-  bot: { level: number } | null;
-  showOpponentChooser: boolean;
-  pendingBotLevel: number;
-  showBotLevelPicker: boolean;
-  $store: {
-    game: {
-      sessionId: string | null;
-      startSession(input: unknown): void;
-      reset(): void;
-    };
-    settings: {
-      captureModeKey: string;
-      inputModeKey: string;
-    };
-  };
   $watch(
     key: "durationType",
     callback: (value: OneTwentyOneDurationType) => void,
   ): void;
   init(this: OneTwentyOneSetupContext): Promise<void>;
-  reconcile(
-    this: OneTwentyOneSetupContext,
-    activeSessions: SessionActiveData[],
-  ): Promise<void>;
-  retryReconciliation(this: OneTwentyOneSetupContext): Promise<void>;
-  continueSession(this: OneTwentyOneSetupContext): void;
-  abandonSession(this: OneTwentyOneSetupContext): Promise<void>;
   selectMode(
     this: OneTwentyOneSetupContext,
     type: OneTwentyOneDurationType,
@@ -1232,8 +1069,6 @@ export type OneTwentyOneSetupContext = {
   ): ConfigurationPresetData | undefined;
   addGuest(this: OneTwentyOneSetupContext): void;
   addBot(this: OneTwentyOneSetupContext): void;
-  removeGuest(this: OneTwentyOneSetupContext, index: number): void;
-  removeBot(this: OneTwentyOneSetupContext): void;
   forceTargetIfGuested(this: OneTwentyOneSetupContext): void;
   start(this: OneTwentyOneSetupContext): Promise<void>;
 };
