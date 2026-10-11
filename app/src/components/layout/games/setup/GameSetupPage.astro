@@ -1,0 +1,53 @@
+---
+/**
+ * Page shell for every game setup route: layout, the page's `x-data`
+ * scope (passed as a rest attribute, so each page file still declares its
+ * own `x-data="<name>Setup()"`), the continue-session modal, the
+ * reconciliation-failed alert with Retry, and the game's setup form in the
+ * default slot. The scope must expose `showActiveSessionModal`,
+ * `activeSession`, `reconciliationFailed`, `loadingReconciliation` and
+ * `retryReconciliation()`.
+ * @param {string} title Display name; also names the game in the modal
+ */
+interface Props {
+  title: string;
+  [key: string]: unknown;
+}
+
+// Props
+const { title, ...props }: Props = Astro.props;
+
+// Components
+import AppLayout from "@layouts/AppLayout.astro";
+import Button from "@components/forms/Button.astro";
+import ContinueSessionModal from "@components/layout/games/ContinueSessionModal.astro";
+---
+
+<AppLayout title={`${title} — Setup`}>
+  <div
+    class="p-4"
+    {...props}
+  >
+    <template x-if="showActiveSessionModal && activeSession">
+      <ContinueSessionModal gameTitle={title} />
+    </template>
+
+    <template x-if="reconciliationFailed && !loadingReconciliation">
+      <div
+        class="alert alert-error mt-2 rounded-md border border-error/40 px-4 py-3 text-center text-sm text-error-foreground"
+        role="alert"
+      >
+        <p>Could not clean up a previous session. Retry to continue.</p>
+        <Button
+          class="mt-4"
+          @click="retryReconciliation()"
+          title="Retry"
+        />
+      </div>
+    </template>
+
+    <template x-if="!showActiveSessionModal && !reconciliationFailed">
+      <slot />
+    </template>
+  </div>
+</AppLayout>
