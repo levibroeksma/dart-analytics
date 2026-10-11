@@ -212,8 +212,9 @@ export type FiveOhOneSeatState = SeatState & {
 
 /**
  * One side's score: `legsWon` counts legs in the current set (the whole match
- * without sets), `setsWon` counts sets in the match. What wins a leg, a set
- * and the match is the SIDE.
+ * without sets), `setsWon` counts sets in the match. A match without sets is
+ * one implicit set, so its winner reads `setsWon: 1`; consumers read `legsWon`
+ * there. What wins a leg, a set and the match is the SIDE.
  */
 export type FiveOhOneSideState = {
   sideKey: string;
