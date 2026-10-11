@@ -58,6 +58,14 @@ function oddFor(mode: MatchMode, count: number): number {
   return count >= FIVE_OH_ONE_LEGS_MAX ? count - 1 : count + 1;
 }
 
+/** The "Plays best of N" line for a best-of count `oddFor` will change; empty when the count plays as shown. */
+function playedNotice(mode: MatchMode, raw: unknown): string {
+  if (mode !== "BEST_OF") return "";
+  const shown = clampFiveOhOneLegs(raw).value;
+  const played = oddFor(mode, shown);
+  return played === shown ? "" : `Plays best of ${played}`;
+}
+
 function legTargetOf(mode: MatchMode, count: number): number {
   return mode === "FIRST_TO" ? count : (count + 1) / 2;
 }
@@ -115,6 +123,14 @@ export function fiveOhOneSetup() {
     cap: null as number | string | null,
     autoCap: null as number | null,
     legsClampNotice: "",
+
+    legsPlayedNotice(this: FiveOhOneSetupContext): string {
+      return playedNotice(this.matchMode, this.legsToWin);
+    },
+
+    legsPerSetPlayedNotice(this: FiveOhOneSetupContext): string {
+      return playedNotice(this.legsPerSetMode, this.legsPerSet);
+    },
 
     /** Legs a side needs per leg race: the cap stepper's floor and the base of its default. */
     capMin(this: FiveOhOneSetupContext): number {
