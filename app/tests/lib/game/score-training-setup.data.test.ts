@@ -123,6 +123,17 @@ describe("scoreTrainingSetup", () => {
     });
   });
 
+  it("gives each controller its own guest and bot state", () => {
+    const a = createSetup();
+    const b = createSetup();
+
+    a.guests.push({ displayName: "Sam" });
+    a.bot = { level: 3 };
+
+    expect(b.guests).toEqual([]);
+    expect(b.bot).toBeNull();
+  });
+
   describe("continueSession / abandonSession", () => {
     it("continues matched session", async () => {
       const setup = createSetup({

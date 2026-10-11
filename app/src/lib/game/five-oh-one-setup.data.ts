@@ -2,14 +2,9 @@ import {
   fetchConfigurationPresets,
   type ConfigurationPresetData,
 } from "@client/api/configuration-templates";
-import {
-  createSession,
-  fetchActiveSessions,
-  completeSession,
-  type SessionActiveData,
-} from "@client/api/sessions";
+import { createSession, fetchActiveSessions } from "@client/api/sessions";
+import { createSetupSession } from "@lib/game/setup-session";
 import { toSnapshot } from "@lib/game/rulesets/config-codec";
-import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { addBotOpponent, addTypedGuest } from "@lib/game/guest-list";
 import {
   participantsFromGuests,
@@ -27,7 +22,6 @@ import {
   FIVE_OH_ONE_STARTING_SCORE_DEFAULT,
   FIVE_OH_ONE_STARTING_SCORE_NOTICE,
 } from "@lib/game/five-oh-one-starting-score";
-import { DEFAULT_BOT_LEVEL } from "@lib/game/rulesets/capabilities";
 import type {
   FiveOhOneSetupContext,
   FiveOhOneStartingScoreOption,
@@ -102,6 +96,10 @@ export function buildFiveOhOneV2Wire(
 
 export function fiveOhOneSetup() {
   return {
+    ...createSetupSession({
+      gameTypeKey: GAME_TYPE_KEY,
+      playHref: "/games/501/play",
+    }),
     presets: [] as ConfigurationPresetData[],
     startingScoreOption: "501" as FiveOhOneStartingScoreOption,
     startingScoreValue: FIVE_OH_ONE_STARTING_SCORE_DEFAULT as
@@ -117,19 +115,6 @@ export function fiveOhOneSetup() {
     cap: null as number | string | null,
     autoCap: null as number | null,
     legsClampNotice: "",
-    guests: [] as { displayName: string }[],
-    showAddGuestModal: false,
-    newGuestName: "",
-    bot: null as { level: number } | null,
-    showOpponentChooser: false,
-    pendingBotLevel: DEFAULT_BOT_LEVEL as number,
-    showBotLevelPicker: false,
-    loading: false,
-    error: "",
-    activeSession: null as SessionActiveData | null,
-    showActiveSessionModal: false,
-    loadingReconciliation: false,
-    reconciliationFailed: false,
 
     /** Legs a side needs per leg race: the cap stepper's floor and the base of its default. */
     capMin(this: FiveOhOneSetupContext): number {
@@ -182,69 +167,6 @@ export function fiveOhOneSetup() {
 
     addBot(this: FiveOhOneSetupContext) {
       addBotOpponent(this);
-    },
-
-    removeGuest(this: FiveOhOneSetupContext, index: number) {
-      this.guests.splice(index, 1);
-    },
-
-    removeBot(this: FiveOhOneSetupContext) {
-      this.bot = null;
-    },
-
-    async reconcile(
-      this: FiveOhOneSetupContext,
-      activeSessions: SessionActiveData[],
-    ) {
-      const result = await reconcileActiveSession(
-        GAME_TYPE_KEY,
-        this.$store.game.sessionId,
-        activeSessions,
-        this.$store.game,
-      );
-
-      if (result.action === "match") {
-        this.activeSession = result.activeSession;
-        this.showActiveSessionModal = true;
-        this.reconciliationFailed = false;
-      } else if (result.action === "abandon_failed") {
-        this.showActiveSessionModal = false;
-        this.reconciliationFailed = true;
-      } else {
-        this.showActiveSessionModal = false;
-        this.reconciliationFailed = false;
-      }
-    },
-
-    async retryReconciliation(this: FiveOhOneSetupContext) {
-      this.loadingReconciliation = true;
-      try {
-        const activeSessions = await fetchActiveSessions();
-        await this.reconcile(activeSessions);
-      } finally {
-        this.loadingReconciliation = false;
-      }
-    },
-
-    continueSession(this: FiveOhOneSetupContext) {
-      this.showActiveSessionModal = false;
-      globalThis.location.href = "/games/501/play";
-    },
-
-    async abandonSession(this: FiveOhOneSetupContext) {
-      if (!this.activeSession || this.loading) return;
-      this.loading = true;
-      this.error = "";
-      try {
-        await completeSession(this.activeSession.sessionId, "ABANDONED");
-        this.$store.game.reset();
-        this.showActiveSessionModal = false;
-        this.activeSession = null;
-      } catch {
-        this.error = "Could not abandon session. Try again.";
-      } finally {
-        this.loading = false;
-      }
     },
 
     async start(this: FiveOhOneSetupContext) {

@@ -274,6 +274,17 @@ describe("fiveOhOneSetup", () => {
     expect(store.game.reset).not.toHaveBeenCalled();
   });
 
+  it("gives each controller its own guest and bot state", () => {
+    const a = createSetup();
+    const b = createSetup();
+
+    a.guests.push({ displayName: "Sam" });
+    a.bot = { level: 3 };
+
+    expect(b.guests).toEqual([]);
+    expect(b.bot).toBeNull();
+  });
+
   it("continueSession navigates to the play page", () => {
     const setup = createSetup({
       activeSession: { sessionId: "match-id", gameTypeKey: "501" } as any,

@@ -2,20 +2,14 @@ import {
   fetchConfigurationPresets,
   type ConfigurationPresetData,
 } from "@client/api/configuration-templates";
-import {
-  createSession,
-  fetchActiveSessions,
-  completeSession,
-  type SessionActiveData,
-} from "@client/api/sessions";
+import { createSession, fetchActiveSessions } from "@client/api/sessions";
 import {
   clampScoreTrainingDuration,
   scoreTrainingDurationClampNotice,
 } from "@lib/game/score-training-duration";
+import { createSetupSession } from "@lib/game/setup-session";
 import { toSnapshot } from "@lib/game/rulesets/config-codec";
-import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { addBotOpponent, addTypedGuest } from "@lib/game/guest-list";
-import { DEFAULT_BOT_LEVEL } from "@lib/game/rulesets/capabilities";
 import {
   participantsFromGuests,
   resolveSessionModePair,
@@ -51,23 +45,14 @@ function guested(ctx: ScoreTrainingSetupContext): boolean {
 
 export function scoreTrainingSetup() {
   return {
+    ...createSetupSession({
+      gameTypeKey: GAME_TYPE_KEY,
+      playHref: "/games/score-training/play",
+    }),
     presets: [] as ConfigurationPresetData[],
     durationType: "ROUNDS" as ScoreTrainingDurationType,
     durationValue: 10 as number | string | null,
     clampNotice: "",
-    loading: false,
-    error: "",
-    activeSession: null as SessionActiveData | null,
-    showActiveSessionModal: false,
-    loadingReconciliation: false,
-    reconciliationFailed: false,
-    guests: [] as { displayName: string }[],
-    showAddGuestModal: false,
-    newGuestName: "",
-    bot: null as { level: number } | null,
-    showOpponentChooser: false,
-    pendingBotLevel: DEFAULT_BOT_LEVEL as number,
-    showBotLevelPicker: false,
 
     /**
      * On fetch failure, keeps the user on setup with a visible error and the
@@ -130,14 +115,6 @@ export function scoreTrainingSetup() {
       if (addBotOpponent(this)) this.forceRoundsIfGuested();
     },
 
-    removeGuest(this: ScoreTrainingSetupContext, index: number) {
-      this.guests.splice(index, 1);
-    },
-
-    removeBot(this: ScoreTrainingSetupContext) {
-      this.bot = null;
-    },
-
     /**
      * A 1v1 match needs a fixed round count both seats share, not a
      * wall-clock timer running through alternating turns — see
@@ -154,61 +131,6 @@ export function scoreTrainingSetup() {
      * showing the picker would let a new session violate the
      * single-active-session constraint (D118).
      */
-    async reconcile(
-      this: ScoreTrainingSetupContext,
-      activeSessions: SessionActiveData[],
-    ) {
-      const result = await reconcileActiveSession(
-        GAME_TYPE_KEY,
-        this.$store.game.sessionId,
-        activeSessions,
-        this.$store.game,
-      );
-
-      if (result.action === "match") {
-        this.activeSession = result.activeSession;
-        this.showActiveSessionModal = true;
-        this.reconciliationFailed = false;
-      } else if (result.action === "abandon_failed") {
-        this.showActiveSessionModal = false;
-        this.reconciliationFailed = true;
-      } else {
-        this.showActiveSessionModal = false;
-        this.reconciliationFailed = false;
-      }
-    },
-
-    async retryReconciliation(this: ScoreTrainingSetupContext) {
-      this.loadingReconciliation = true;
-      try {
-        const activeSessions = await fetchActiveSessions();
-        await this.reconcile(activeSessions);
-      } finally {
-        this.loadingReconciliation = false;
-      }
-    },
-
-    continueSession(this: ScoreTrainingSetupContext) {
-      this.showActiveSessionModal = false;
-      globalThis.location.href = "/games/score-training/play";
-    },
-
-    async abandonSession(this: ScoreTrainingSetupContext) {
-      if (!this.activeSession || this.loading) return;
-      this.loading = true;
-      this.error = "";
-      try {
-        await completeSession(this.activeSession.sessionId, "ABANDONED");
-        this.$store.game.reset();
-        this.showActiveSessionModal = false;
-        this.activeSession = null;
-      } catch {
-        this.error = "Could not abandon session. Try again.";
-      } finally {
-        this.loading = false;
-      }
-    },
-
     async start(this: ScoreTrainingSetupContext) {
       if (this.loading) return;
       const preset = this.presetForMode(this.durationType);
