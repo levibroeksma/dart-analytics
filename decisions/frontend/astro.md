@@ -102,3 +102,10 @@ Decision: `components/layout/games/setup/GameSetupPage.astro` renders `AppLayout
 Reason: the 11 pages differed in four strings only (Score Training omitted `gameTitle`, equal to its default), and the alert block was copy-pasted in each, so any change to setup chrome had to land eleven times (#914). 121 has a third TARGET format and shows a text note, not a slider, for guest/bot sessions; folding it in would add props only 121 uses.
 Consequences: a new game's setup page is one component call. `.astro` carries no unit test (D101); proof was a byte-for-byte comparison of the built HTML for all 11 setup routes before and after. The alert stays private to `GameSetupPage` (single consumer). `ReconciliationBlocked` (play side) is unchanged.
 Supersedes: none.
+
+### D446 — Remove the unwired generic `GameSectionCards`
+Status: Accepted · Date: 2026-10-11
+Decision: `components/layout/statistics/GameSectionCards.astro` is deleted, with its File Inventory row, Component Inventory row and `.fallowrc.jsonc` entry point. Recover it with `git show e95aa97:app/src/components/layout/statistics/GameSectionCards.astro`.
+Reason: D385 unwired it from `/statistics` while Score Training's dedicated layout was built, and no page has imported it since. Nothing in a build renders it, so its markup cannot be verified, and it kept resurfacing in duplication reviews (#914 task B: 13 repeated stat-figure blocks in 5 grids) as a refactor target with no live consumer.
+Consequences: `routine-stats.store.ts` `stepGame` is no longer read by any component. It is left in place, with its comment updated, as a separate cleanup. A future generic cards component should be built against the dedicated section factories (D385), not restored as-is. Older specs and plans under `docs/superpowers/` that name the file are historical and unchanged.
+Supersedes: none (ends the "temporarily unwired" state of D385 for this component).
