@@ -1,0 +1,69 @@
+---
+/**
+ * Duration controls for setups that offer Rounds or Time: a FORMAT toggle
+ * with a ROUNDS or MINUTES slider for solo play, and a ROUNDS-only slider
+ * once a guest or bot is seated. Reads `guests`, `bot`, `durationType` and
+ * `durationValue` from the setup scope.
+ * @param {{ value: string; label: string }[]} formatOptions Toggle options
+ * @param {{ min: number; max: number }} rounds Rounds slider bounds
+ * @param {{ min: number; max: number }} minutes Minutes slider bounds
+ * @param {string} soloHint Hint under the solo sliders
+ */
+interface Props {
+  formatOptions: { value: string; label: string }[];
+  rounds: { min: number; max: number };
+  minutes: { min: number; max: number };
+  soloHint: string;
+}
+
+// Props
+const { formatOptions, rounds, minutes, soloHint }: Props = Astro.props;
+
+// Components
+import Toggle from "./Toggle.astro";
+import SettingLabel from "./SettingLabel.astro";
+import RangeSlider from "@components/forms/RangeSlider.astro";
+---
+
+<template x-if="guests.length === 0 && !bot">
+  <div class="flex flex-col gap-4">
+    <div class="flex flex-col gap-2">
+      <SettingLabel text="FORMAT" />
+      <Toggle
+        orientation="horizontal"
+        options={formatOptions}
+        x-model="durationType"
+        class="w-full"
+      />
+    </div>
+    <template x-if="durationType === 'ROUNDS'">
+      <RangeSlider
+        min={rounds.min}
+        max={rounds.max}
+        label="ROUNDS"
+        ariaLabel="Number of rounds"
+        hint={soloHint}
+        x-model="durationValue"
+      />
+    </template>
+    <template x-if="durationType === 'MINUTES'">
+      <RangeSlider
+        min={minutes.min}
+        max={minutes.max}
+        label="MINUTES"
+        ariaLabel="Number of minutes"
+        hint={soloHint}
+        x-model="durationValue"
+      />
+    </template>
+  </div>
+</template>
+<template x-if="guests.length > 0 || bot">
+  <RangeSlider
+    min={rounds.min}
+    max={rounds.max}
+    label="ROUNDS"
+    ariaLabel="Number of rounds"
+    x-model="durationValue"
+  />
+</template>
