@@ -8,7 +8,7 @@ import type { FiveOhOneAnySnapshot } from "@lib/types";
 import type { FiveOhOneState, StageFact } from "@modules/types";
 import { joinSubtitle } from "./play-subtitle";
 
-/** Play-header subtitle: `SET k · LEG n · FIRST TO S SETS`, or `LEG n · FIRST TO N` without sets, plus `SUDDEN DEATH` / `DECIDING SET`. */
+/** Play-header subtitle: `SET k · LEG n · FIRST TO S SETS`, or `LEG n · FIRST TO N` without sets, plus `SUDDEN DEATH` / `DECIDING SET` (never for a single-set format). */
 export function fiveOhOneSubtitle(
   config: FiveOhOneAnySnapshot,
   stages: readonly StageFact[],
@@ -20,9 +20,10 @@ export function fiveOhOneSubtitle(
     format.sets === null
       ? raceLabel(format.legs)
       : `${raceLabel(format.sets)} sets`;
+  const singleSet = format.sets !== null && raceTarget(format.sets) === 1;
   const flag = state?.suddenDeath
     ? "SUDDEN DEATH"
-    : state?.decidingSet
+    : state?.decidingSet && !singleSet
       ? "DECIDING SET"
       : "";
   return joinSubtitle([
