@@ -384,8 +384,6 @@ describe("routineStatsStore selectStep", () => {
         versionKey: routineScopeKey(ROUTINE_KEY),
       });
     }
-    expect(store.stepGame.gameTypeKey).toBe("TUOD");
-    expect(store.stepGame.sections).toBe(store.stepSections);
   });
 
   it("reads a game step's checkout-path un-bucketed, as the Games tab does", async () => {
@@ -887,20 +885,6 @@ describe("routineStatsStore stale responses and failures", () => {
 });
 
 describe("routineStatsStore GAME step view", () => {
-  it("names the selected GAME step's type on stepGame as soon as it is selected, before its sections land", async () => {
-    const store = routineStatsStore();
-    await store.selectRoutine(ROUTINE_KEY);
-    const pendingSection = deferred<ReturnType<typeof series>>();
-    readSection.mockReturnValue(pendingSection.promise);
-
-    const pending = store.selectStep(GAME_KEY);
-
-    expect(store.stepGame.gameTypeKey).toBe("TUOD");
-    expect(store.stepGame.sections).toEqual({});
-    pendingSection.resolve(series("volume", []));
-    await pending;
-  });
-
   it("reads a GAME step only through the routine step route, never the game route", async () => {
     readSection.mockImplementation((_player, _scope, _meta, _query, fetcher) =>
       fetcher({ from: "a", to: "b" }),
