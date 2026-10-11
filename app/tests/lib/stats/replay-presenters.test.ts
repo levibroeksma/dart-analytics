@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { boardTargetLabel } from "@modules/game/board-progression.module";
 import { foldReplay } from "@lib/stats/replay-fold";
 import { legsWonIn, REPLAY_PRESENTERS } from "@lib/stats/replay-presenters";
 import type { GameTypeKey, ReplayCell, ReplayFold } from "@lib/types";
@@ -309,6 +310,9 @@ describe("REPLAY_PRESENTERS", () => {
     const cells = turnCells(playSingles());
 
     expect(valuesOf(cells, "Target")).toEqual(["2", "3", "4"]);
+    expect(valuesOf(cells, "Target")).toEqual(
+      [2, 3, 4].map((number) => boardTargetLabel({ kind: "NUMBER", number })),
+    );
     expect(marksOf(cells)).toEqual([
       ["hit", "hit", "miss"],
       ["miss", "hit", "miss"],

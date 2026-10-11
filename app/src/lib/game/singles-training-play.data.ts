@@ -2,6 +2,7 @@ import { getEngineFactory } from "@modules/game/engine.registry";
 import { singlesTrainingResultsTitle } from "@lib/game/singles-training-results-title";
 import {
   BULL_TARGET_NUMBER,
+  boardTargetLabel,
   numbersPath,
   targetAt,
 } from "@modules/game/board-progression.module";
@@ -428,11 +429,9 @@ export function singlesTrainingPlay() {
         (candidate) => candidate.participantRef === seatRef,
       );
       if (!config || !seat) return "";
-      const target = targetAt(
-        numbersPath(config.targetOrder),
-        seat.targetIndex,
+      return boardTargetLabel(
+        targetAt(numbersPath(config.targetOrder), seat.targetIndex),
       );
-      return target.kind === "BULL" ? "BULL" : String(target.number);
     },
 
     currentTargetLabel(this: SinglesTrainingPlayContext): string {
