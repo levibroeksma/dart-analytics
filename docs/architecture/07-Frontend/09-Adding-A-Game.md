@@ -150,6 +150,15 @@ hand-written `*SetupContext` types. This is a decision, not an oversight: do
 not migrate them, and do not conclude from them that the factory is optional
 for a new preset-driven game.
 
+Opting out of the factory does not opt out of `createSetupSession`
+(`lib/game/setup-session.ts`). Every setup controller, factory-built or
+hand-written, spreads `...createSetupSession({ gameTypeKey, playHref })` for
+the modal, alert and guest/bot chooser state and for `reconcile`,
+`retryReconciliation`, `continueSession`, `abandonSession`, `removeGuest` and
+`removeBot`; its `*SetupContext` type is `SetupSessionContext & { … }`. A new
+hand-written controller must do the same, because `GameSetupPage` reads
+those fields.
+
 ### `createThreeDartValidator` (`services/rulesets/three-dart.validator.ts`)
 
 Three facts and a call:
