@@ -2,20 +2,14 @@ import {
   fetchConfigurationPresets,
   type ConfigurationPresetData,
 } from "@client/api/configuration-templates";
-import {
-  createSession,
-  fetchActiveSessions,
-  completeSession,
-  type SessionActiveData,
-} from "@client/api/sessions";
+import { createSession, fetchActiveSessions } from "@client/api/sessions";
 import {
   clampOneTwentyOneDuration,
   oneTwentyOneDurationClampNotice,
 } from "@lib/game/one-twenty-one-duration";
+import { createSetupSession } from "@lib/game/setup-session";
 import { toSnapshot } from "@lib/game/rulesets/config-codec";
-import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { addBotOpponent, addTypedGuest } from "@lib/game/guest-list";
-import { DEFAULT_BOT_LEVEL } from "@lib/game/rulesets/capabilities";
 import {
   participantsFromGuests,
   resolveSessionModePair,
@@ -98,23 +92,14 @@ function resolveStartOverrides(
 
 export function oneTwentyOneSetup() {
   return {
+    ...createSetupSession({
+      gameTypeKey: GAME_TYPE_KEY,
+      playHref: "/games/121/play",
+    }),
     presets: [] as ConfigurationPresetData[],
     durationType: "TARGET" as OneTwentyOneDurationType,
     durationValue: null as number | string | null,
     clampNotice: "",
-    loading: false,
-    error: "",
-    activeSession: null as SessionActiveData | null,
-    showActiveSessionModal: false,
-    loadingReconciliation: false,
-    reconciliationFailed: false,
-    guests: [] as { displayName: string }[],
-    showAddGuestModal: false,
-    newGuestName: "",
-    bot: null as { level: number } | null,
-    showOpponentChooser: false,
-    pendingBotLevel: DEFAULT_BOT_LEVEL as number,
-    showBotLevelPicker: false,
 
     async init(this: OneTwentyOneSetupContext) {
       this.$watch("durationType", (type) => {
@@ -171,14 +156,6 @@ export function oneTwentyOneSetup() {
       if (addBotOpponent(this)) this.forceTargetIfGuested();
     },
 
-    removeGuest(this: OneTwentyOneSetupContext, index: number) {
-      this.guests.splice(index, 1);
-    },
-
-    removeBot(this: OneTwentyOneSetupContext) {
-      this.bot = null;
-    },
-
     /**
      * ROUNDS/MINUTES have no established 1v1 win condition (see the design
      * spec's Decisions section) — mirrors `scoreTrainingSetup()`'s own
@@ -194,61 +171,6 @@ export function oneTwentyOneSetup() {
      * showing the picker would let a new session violate the
      * single-active-session constraint (D118).
      */
-    async reconcile(
-      this: OneTwentyOneSetupContext,
-      activeSessions: SessionActiveData[],
-    ) {
-      const result = await reconcileActiveSession(
-        GAME_TYPE_KEY,
-        this.$store.game.sessionId,
-        activeSessions,
-        this.$store.game,
-      );
-
-      if (result.action === "match") {
-        this.activeSession = result.activeSession;
-        this.showActiveSessionModal = true;
-        this.reconciliationFailed = false;
-      } else if (result.action === "abandon_failed") {
-        this.showActiveSessionModal = false;
-        this.reconciliationFailed = true;
-      } else {
-        this.showActiveSessionModal = false;
-        this.reconciliationFailed = false;
-      }
-    },
-
-    async retryReconciliation(this: OneTwentyOneSetupContext) {
-      this.loadingReconciliation = true;
-      try {
-        const activeSessions = await fetchActiveSessions();
-        await this.reconcile(activeSessions);
-      } finally {
-        this.loadingReconciliation = false;
-      }
-    },
-
-    continueSession(this: OneTwentyOneSetupContext) {
-      this.showActiveSessionModal = false;
-      globalThis.location.href = "/games/121/play";
-    },
-
-    async abandonSession(this: OneTwentyOneSetupContext) {
-      if (!this.activeSession || this.loading) return;
-      this.loading = true;
-      this.error = "";
-      try {
-        await completeSession(this.activeSession.sessionId, "ABANDONED");
-        this.$store.game.reset();
-        this.showActiveSessionModal = false;
-        this.activeSession = null;
-      } catch {
-        this.error = "Could not abandon session. Try again.";
-      } finally {
-        this.loading = false;
-      }
-    },
-
     async start(this: OneTwentyOneSetupContext) {
       if (this.loading) return;
       const isGuested = guested(this);
