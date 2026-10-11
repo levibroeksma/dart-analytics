@@ -71,6 +71,49 @@ export type TuodDurationType = "ROUNDS" | "MINUTES";
 
 export type OneTwentyOneDurationType = "TARGET" | "ROUNDS" | "MINUTES";
 
+/**
+ * The setup-page contract every game's setup controller shares: the state the
+ * continue-session modal, the reconciliation-failed alert and the guest/bot
+ * chooser read, the Alpine `$store` slice setup touches, and the six methods
+ * that never differ between games. `createSetupSession` supplies all of it;
+ * each game's context type intersects this with its own fields.
+ */
+export type SetupSessionContext = {
+  loading: boolean;
+  error: string;
+  activeSession: SessionActiveData | null;
+  showActiveSessionModal: boolean;
+  loadingReconciliation: boolean;
+  reconciliationFailed: boolean;
+  guests: { displayName: string }[];
+  showAddGuestModal: boolean;
+  newGuestName: string;
+  bot: { level: number } | null;
+  showOpponentChooser: boolean;
+  pendingBotLevel: number;
+  showBotLevelPicker: boolean;
+  $store: {
+    game: {
+      sessionId: string | null;
+      startSession(input: unknown): void;
+      reset(): void;
+    };
+    settings: {
+      captureModeKey: string;
+      inputModeKey: string;
+    };
+  };
+  reconcile(
+    this: SetupSessionContext,
+    activeSessions: SessionActiveData[],
+  ): Promise<void>;
+  retryReconciliation(this: SetupSessionContext): Promise<void>;
+  continueSession(this: SetupSessionContext): void;
+  abandonSession(this: SetupSessionContext): Promise<void>;
+  removeGuest(this: SetupSessionContext, index: number): void;
+  removeBot(this: SetupSessionContext): void;
+};
+
 export type TuodSetupContext = {
   presets: ConfigurationPresetData[];
   durationType: TuodDurationType;
