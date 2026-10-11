@@ -91,6 +91,27 @@ describe("createPresetSetupController", () => {
     } as OrderCtx;
   }
 
+  it("continueSession navigates to the controller's own play route", () => {
+    const setup = plain();
+    setup.showActiveSessionModal = true;
+
+    setup.continueSession();
+
+    expect(setup.showActiveSessionModal).toBe(false);
+    expect(globalThis.location.href).toBe("/games/shanghai/play");
+  });
+
+  it("gives each controller its own guest and bot state", () => {
+    const a = plain();
+    const b = plain();
+
+    a.guests.push({ displayName: "Sam" });
+    a.bot = { level: 3 };
+
+    expect(b.guests).toEqual([]);
+    expect(b.bot).toBeNull();
+  });
+
   it("loads presets for its own game type", async () => {
     const setup = plain();
     vi.mocked(presetsApi.fetchConfigurationPresets).mockResolvedValue([PRESET]);
