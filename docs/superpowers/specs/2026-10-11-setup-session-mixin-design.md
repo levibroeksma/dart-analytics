@@ -30,7 +30,7 @@ removal, #922).
 ### `createSetupSession` (`app/src/lib/game/setup-session.ts`)
 
 ```ts
-createSetupSession<Ctx extends SetupSessionContext>({
+createSetupSession({
   gameTypeKey: string,
   playHref: string,
 })
