@@ -142,6 +142,9 @@
   --text-eyebrow-lg: 0.75rem;
   --text-eyebrow-lg--line-height: 1.2;
   --text-eyebrow-lg--letter-spacing: 0.14em;
+  --text-eyebrow-sm: 0.5625rem;
+  --text-eyebrow-sm--line-height: 1.2;
+  --text-eyebrow-sm--letter-spacing: 0.1em;
 
   --animate-sheet-in: sheet-in 200ms var(--ease-out);
 
@@ -451,7 +454,7 @@
 }
 
 @utility setting-badge {
-  @apply rounded-md px-1.5 py-0.5 font-mono text-[9px] font-semibold tracking-[0.08em] text-accent-bright;
+  @apply rounded-md px-1.5 py-0.5 font-mono text-eyebrow-sm font-semibold text-accent-bright;
   background: var(--accent-muted);
 }
 

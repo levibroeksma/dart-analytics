@@ -48,7 +48,7 @@ Use semantic tokens only. Never raw Tailwind palette utilities (`bg-sky-500`, `t
 | Accent | `accent`, `accent-hover`, `accent-muted`, `accent-foreground`, `accent-glow` (sky); `accent-bright` (sky light: accent text on dark), `accent-foreground-muted`, `accent-deep` (gradient end), `accent-deep-blue` (chart bars, vignette), `bg-blue-glass` (2026-10-08) |
 | States | `error` / `error-hover` / `error-muted` / `error-foreground` (coral); `error-strong` / `error-strong-hover` (solid fill under `error-foreground`, ≥ 4.5:1; `Button`/`IconBtn` error variant); `missed` / `missed-muted` alias error; `success` / `success-muted` |
 | Radius | `rounded-sm` … `rounded-2xl`, `rounded-row`, `rounded-key`, `rounded-switch`, `rounded-board`, `rounded-sheet` per `@theme` |
-| Type scale | `text-hero` 72, `text-title` 26 (screen title), `text-value` 30, `text-tile` 20, `text-card-title` 13, `text-button` 15, `text-eyebrow` 10 / `text-eyebrow-lg` 12 (mono caps); body `text-sm`, caption `text-xs` |
+| Type scale | `text-hero` 72, `text-title` 26 (screen title), `text-value` 30, `text-tile` 20, `text-card-title` 13, `text-button` 15, `text-eyebrow-sm` 9 / `text-eyebrow` 10 / `text-eyebrow-lg` 12 (mono caps); body `text-sm`, caption `text-xs` |
 | Hit target | `size-hit` (44px) minimum for any tap target |
 | Fonts | `font-sans` (Montserrat), `font-display` (Michroma), `font-mono` (JetBrains Mono) |
 | Motion | `--ease-out`; keep UI ≤ ~300ms; transform/opacity only |
@@ -128,7 +128,7 @@ Press feedback is built into `.btn:active:not(:disabled)` (`transform: scale(0.9
 | Case | No `uppercase` on body, description, or button text. Scope `uppercase` to the specific title/eyebrow element only — never a parent wrapping a modal or body region |
 | Weight | `font-normal`, `font-medium`, `font-semibold`, `font-bold`. Display (Michroma) 400 only; Montserrat 400/500/600/700; JetBrains Mono 500/600. Buttons use `font-semibold` (D428) |
 | Screen / card titles | Screen title `font-display text-title`; card title `font-display text-card-title` — never bold Montserrat |
-| Eyebrows | `font-mono font-semibold uppercase text-eyebrow` (or `-lg`); tracking is in the token |
+| Eyebrows | `font-mono font-semibold uppercase text-eyebrow` (or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` literals for these labels (D450, 2026-10-11) |
 
 When a parent uses `font-mono` or `uppercase`, reset children that should not inherit it (`font-sans`, `normal-case`).
 
