@@ -96,9 +96,9 @@ Reason: a label known only at runtime (an `x-for` item's name) could not be expr
 Consequences: no existing call site changes. `ExercisePicker.astro`'s tile is a multi-part control (name plus description with its own tile styling) and stays under the CLAUDE.md exemption; the slot is for the next single-label case. `.astro` carries no unit test (D101).
 Supersedes: none.
 
-### D444 — `GameSetupPage` owns the setup page shell; `DurationField` is shared by two forms only
+### D445 — `GameSetupPage` owns the setup page shell; `DurationField` is shared by two forms only
 Status: Accepted · Date: 2026-10-11
 Decision: `components/layout/games/setup/GameSetupPage.astro` renders `AppLayout`, the `x-data` wrapper `div`, the continue-session modal, the reconciliation-failed alert with Retry, and the game's `*SetupForm` in its default slot. The page's `x-data="<codeSlug>Setup()"` is passed as a rest attribute and spread onto the wrapper, so each page file still carries the literal attribute `scripts/check-game-wiring.sh` greps. All 11 `pages/games/*/setup/index.astro` files now reduce to that call. `DurationField.astro` holds the solo FORMAT toggle with ROUNDS/MINUTES sliders and the guest/bot ROUNDS slider; Score Training and TUOD use it. `OneTwentyOneSetupForm` does not.
-Reason: the 11 pages differed in four strings only, and the alert block was copy-pasted in each, so any change to setup chrome had to land eleven times (#914). 121 has a third TARGET format and shows a text note, not a slider, for guest/bot sessions; folding it in would add props only 121 uses.
-Consequences: a new game's setup page is a five-line file. `.astro` carries no unit test (D101); proof was a byte-for-byte comparison of the built HTML for all 11 setup routes before and after. The alert stays private to `GameSetupPage` (single consumer). `ReconciliationBlocked` (play side) is unchanged.
+Reason: the 11 pages differed in four strings only (Score Training omitted `gameTitle`, equal to its default), and the alert block was copy-pasted in each, so any change to setup chrome had to land eleven times (#914). 121 has a third TARGET format and shows a text note, not a slider, for guest/bot sessions; folding it in would add props only 121 uses.
+Consequences: a new game's setup page is one component call. `.astro` carries no unit test (D101); proof was a byte-for-byte comparison of the built HTML for all 11 setup routes before and after. The alert stays private to `GameSetupPage` (single consumer). `ReconciliationBlocked` (play side) is unchanged.
 Supersedes: none.
