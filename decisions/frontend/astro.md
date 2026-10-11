@@ -109,3 +109,10 @@ Decision: `components/layout/statistics/GameSectionCards.astro` is deleted, with
 Reason: D385 unwired it from `/statistics` while Score Training's dedicated layout was built, and no page has imported it since. Nothing in a build renders it, so its markup cannot be verified, and it kept resurfacing in duplication reviews (#914 task B: 13 repeated stat-figure blocks in 5 grids) as a refactor target with no live consumer.
 Consequences: `routine-stats.store.ts` `stepGame` is no longer read by any component. It is left in place, with its comment updated, as a separate cleanup. A future generic cards component should be built against the dedicated section factories (D385), not restored as-is. Older specs and plans under `docs/superpowers/` that name the file are historical and unchanged.
 Supersedes: none (ends the "temporarily unwired" state of D385 for this component).
+
+### D448 — Remove the dead `routineStats.stepGame` view
+Status: Accepted · Date: 2026-10-11
+Decision: `routine-stats.store.ts` no longer holds `stepGame` (a `gameStatsStore()` fed from `stepSections`) or its three writes in `resetStep`/`selectStep`. `stepSections` and `stepGameType()` stay.
+Reason: Its only consumer was the generic `GameSectionCards`, deleted in D446. Nothing else read it; two tests pinned behaviour no component used (#921).
+Consequences: A GAME step in the Routines tab reads `stepSections` directly. A future cards component builds on the dedicated section factories (D385).
+Supersedes: none (completes the cleanup D446 deferred).

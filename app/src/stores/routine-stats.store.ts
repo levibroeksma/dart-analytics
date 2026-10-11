@@ -29,7 +29,7 @@ import {
   readSection,
   readSessionPage,
 } from "@client/stats-cache/cache";
-import { defaultRange, gameStatsStore } from "@stores/game-stats.store";
+import { defaultRange } from "@stores/game-stats.store";
 import type {
   RoutineHeaderSchemaData,
   RoutineSectionParams,
@@ -257,17 +257,6 @@ export function routineStatsStore() {
     range: defaultRange() as StatsRange,
     routineSections: {} as Partial<Record<RoutineSectionId, SeriesView>>,
     stepSections: {} as Record<string, SeriesView>,
-    /**
-     * The Games tab's own section view, fed from `stepSections`, that a GAME
-     * step's cards render through (no card is mounted on it since the
-     * generic cards were removed, D446): its getters do the rest. `selectStep` names the step's `gameTypeKey` the moment a
-     * GAME step is selected, before any await, and the cards exist only
-     * while a GAME step is (`x-if`), so the factory's own `"501"` default
-     * is never rendered. Its loaders are never called: the step's cards
-     * render without the heatmap target picker, the one card that would
-     * reload through them.
-     */
-    stepGame: gameStatsStore(),
     stepSessions: [] as StepSession[],
     nextCursor: null as string | null,
     loading: false,
@@ -387,7 +376,6 @@ export function routineStatsStore() {
     resetStep() {
       this.stepKey = null;
       this.stepSections = {};
-      this.stepGame.sections = {};
       this.stepSessions = [];
       this.nextCursor = null;
     },
@@ -399,8 +387,6 @@ export function routineStatsStore() {
       if (routineKey === null || step === undefined) return;
       this.resetStep();
       this.stepKey = stepKey;
-      const gameTypeKey = stepGameType(step);
-      if (gameTypeKey !== null) this.stepGame.gameTypeKey = gameTypeKey;
       this.loading = true;
       this.error = null;
       try {
@@ -410,7 +396,6 @@ export function routineStatsStore() {
         ]);
         if (!this.isSelected(routineKey, stepKey)) return;
         this.stepSections = sections;
-        this.stepGame.sections = gameTypeKey === null ? {} : sections;
         this.stepSessions = page.items;
         this.nextCursor = page.nextCursor;
       } catch {
