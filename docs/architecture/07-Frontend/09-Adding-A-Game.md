@@ -75,14 +75,14 @@ page legitimately has none of.
 | `interfaces/<Game>.astro` | The play-screen interface. *Engine-only skips.* |
 | `result-modals/<Game>Results.astro` | The results modal. *Engine-only skips.* |
 
-Check `08-Component-Inventory.md` before hand-rolling markup — `SetupShell`,
-`UserSection`, `InfoSection`, `SettingSectionShell`, `Toggle` already exist.
+Check `08-Component-Inventory.md` before hand-rolling markup — `GameSetupPage`, `SetupShell`,
+`UserSection`, `InfoSection`, `SettingSectionShell`, `Toggle`, `DurationField` already exist.
 
 ### `app/src/pages/games/<route-slug>/`
 
 | File | What goes in it |
 | ---- | --------------- |
-| `<route-slug>/setup/index.astro` | Mounts `x-data="<codeSlug>Setup()"`. *Engine-only skips.* |
+| `<route-slug>/setup/index.astro` | `<GameSetupPage title="<Game>" x-data="<codeSlug>Setup()">` wrapping the setup form. *Engine-only skips.* |
 | `<route-slug>/play/index.astro` | Mounts `x-data="<codeSlug>Play()"` on `<GameLayout>` with `gameSubtitleExpr="subtitle()"`, so header expressions resolve in the play scope (D432). *Engine-only skips.* |
 
 ### `app/src/lib/client/alpine/`
