@@ -1,299 +1,299 @@
-<!--(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-status: canonical(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-scope: frontend/style-guide(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-read-when: any UI/component work — tokens, primitives, typography, motion, accessibility(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-updated: 2026-10-10(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
--->(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-# Frontend Style Guide(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-> **Version:** 0.4.1 (2026-10-10 — resume deck: stack/deck tokens, `deck-top-card`, deck keyframes, D442; prior 0.4.0 was 2026-10-08 — game play: play surfaces, key press, play header, stacked seats, D432; prior 0.3.1 was login, D431)(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
->(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-> Dark-only, mobile-first UI conventions: sky accent, glass/surface tokens, primitive class contracts, typography, spacing, motion, accessibility.(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
->(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-> **Authority split:** this doc owns the *visual contract* — which semantic tokens and primitive classes exist, and the rules governing their use. `05-Astro-Components.md` owns *how* a component composes classes (frontmatter order, `cn()`, the class-placement decision table) — cross-referenced below, not repeated.(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
->(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-> **Runtime authority:** tokens and primitives are defined in `app/src/styles/global.css`. If this doc and CSS disagree after landing, `global.css` wins — update this doc to match.(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
----(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-# Purpose(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-Every screen draws from one fixed set of semantic tokens and primitive classes, defined once in `app/src/styles/global.css`. This doc is the reference for what exists and when to reach for it, so no component invents a one-off color, button, or card style.(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-Class *composition* (`cn()`, frontmatter `// Styles`, prop/`class` placement) lives in `05-Astro-Components.md`. Do not duplicate those rules here.(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
----(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-# Theme(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- **Dark only.** `html { color-scheme: dark only; }`, forced even when the OS prefers light (`@media (prefers-color-scheme: light)` re-asserts dark). No theme toggle exists or is planned for v1.(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- **Ambient backdrop.** `body::before` paints fixed radial gradients (soft top wash + sky `--accent-glow` corner bloom) over `--surface`. `body::after` adds a bottom vignette. Both layers are `pointer-events: none` and sit behind content (`z-index: -2` / `-1`).(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- **Mobile-first shell.** Content column capped at `max-w-lg` (`AppLayout`, `GameLayout`, bottom nav). Full viewport height via `h-lvh max-h-lvh overflow-hidden` on `html` and `fixed inset-x-0 top-0 h-lvh transform-gpu overflow-hidden` on `body` (D417); `body` also pads `env(safe-area-inset-top)` so content clears the iOS status bar in a standalone-launched web app (D174, 2026-07-29).(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- **Touch ergonomics.** `-webkit-tap-highlight-color: transparent` and `touch-action: manipulation` on `html`.(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- **Brand reference.** Token values come from the Claude Design `Brand Style.dc.html` file; a new value enters `global.css` as a token before any component uses it (D428).(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- **Text is not selectable by default.** `body` sets `user-select: none` and `-webkit-touch-callout: none` in `@layer base`, so a long press never opens the iOS copy/share sheet or highlights a label. `input`, `textarea` and `[contenteditable]` stay selectable, and anything a player may want to copy (a code, an error message) opts in with the `select-text` utility — a utility outranks the base layer, so it needs no override. Per-element `select-none` is now redundant and should not be added (D388, 2026-10-02).(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
----(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-# Tokens(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-Use semantic tokens only. Never raw Tailwind palette utilities (`bg-sky-500`, `text-zinc-*`, `bg-teal-*`, etc.) in component markup or frontmatter — if a color is needed that isn't below, add a token to `:root` / `@theme` in `global.css` first.(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Role | Classes / tokens |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| ---- | ---------------- |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Surfaces | `bg-surface`, `bg-surface-raised`, `bg-surface-overlay`, `glass` (cards; no shadow unless a floating card adds `shadow-card`), `glass-tinted`, `glass-raised`, `glass-tinted-raised`, `glass-button` (raised glass: buttons), `glass-blue` (selected pill, avatar), `glass-info` (rules/info card), `inset-well` (tracks, fields), `inset-well-muted` (undo/delete keys, exit), `glass-sheet` (bottom sheets), `bg-scrim` (modal backdrop) (2026-10-08); `shadow-card` (floating card drop shadow, login, D431); play (D432, 2026-10-08): `glass-active-seat` (throwing seat card), `input-well` (input panels), `next-dart-ring` (next dart's bar), `target-key-ring` (doubles target key), `pip-on` (lit mark pip), `board-dim` (board while pressed), `shadow-magnifier`; `bg-skeleton` (white 12%, results value pulse bar, D437, 2026-10-09); `bg-stack-1`/`bg-stack-2` (card-stack slabs under a top card), `deck-top-card` (opaque gradient from `--deck-top-from` to `--deck-top-to`, the deck's top card; D442, 2026-10-10) |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Text | `text-foreground`, `text-soft-foreground` (78%), `text-muted-foreground` (70%, captions/labels), `text-muted` (55%, body), `text-faint-foreground` (50%), `text-placeholder` (48%, empty fields only) |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Borders | `border-border`, `border-border-strong` |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Accent | `accent`, `accent-hover`, `accent-muted`, `accent-foreground`, `accent-glow` (sky); `accent-bright` (sky light: accent text on dark), `accent-foreground-muted`, `accent-deep` (gradient end), `accent-deep-blue` (chart bars, vignette), `bg-blue-glass` (2026-10-08) |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| States | `error` / `error-hover` / `error-muted` / `error-foreground` (coral); `error-strong` / `error-strong-hover` (solid fill under `error-foreground`, ≥ 4.5:1; `Button`/`IconBtn` error variant); `missed` / `missed-muted` alias error; `success` / `success-muted` |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Radius | `rounded-sm` … `rounded-2xl`, `rounded-row`, `rounded-key`, `rounded-switch`, `rounded-board`, `rounded-sheet` per `@theme` |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Type scale | `text-hero` 72, `text-title` 26 (screen title), `text-value` 30, `text-tile` 20, `text-card-title` 13, `text-button` 15, `text-eyebrow-sm` 9 / `text-eyebrow` 10 / `text-eyebrow-lg` 12 (mono caps); body `text-sm`, caption `text-xs` |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Hit target | `size-hit` (44px) minimum for any tap target |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Fonts | `font-sans` (Montserrat), `font-display` (Michroma), `font-mono` (JetBrains Mono) |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Motion | `--ease-out`; keep UI ≤ ~300ms; transform/opacity only |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Chart marks | `--chart-<name>` for the nine `CardWrapper` color names (`sky, violet, rose, teal, emerald, amber, orange, fuchsia, blue`) and `--chart-grid`; read by `lib/ui/chart-theme.ts`, never used as utility classes (2026-09-30, D374) |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-Radius scale (from `@theme`):(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Token | Size | Typical use |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| ----- | ---- | ----------- |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `rounded-sm` | 6px | Nav pills / compact chips |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `rounded-md` | 8px | Buttons, inputs, tabs track |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `rounded-lg` | 12px | Compact panels |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `rounded-xl` | 16px | Nav shell |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `rounded-2xl` | 20px | Cards |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `rounded-row` | 14px | Select option rows |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `rounded-key` | 22px | Keypad / tap-input keys |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `rounded-switch` | 26px | Vertical switch track |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `rounded-board` | 28px | Board container |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `rounded-sheet` | 32px | Bottom sheets and every modal (`glass-sheet`) |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `rounded-full` | pill | Pills, nav, sliders, icon buttons |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-Accent is Tailwind sky (`sky-400` / `sky-500` / `sky-600` mapped into `--accent*` OKLCH values). Selection uses `accent-muted` background.(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
----(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-# Charts(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-Chart.js line/bar/doughnut charts via `components/ui/Chart.astro` and `modules/ui/chart.module.ts` (2026-09-30, D374).(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- Containers are `glass` (`Chart.astro`); the canvas is plain — no fill or blur behind the marks.(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- One glass level: pass `flat` when the chart sits inside an existing glass card (see Surfaces & nesting).(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- A series color is a `CardWrapper` color name; it resolves to `--chart-<name>`. Never a raw palette class or CSS color.(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- A doughnut's slices take `sliceColors` (same names, same rules) from its one series (2026-10-03, D401).(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- Default order: `sky, orange, emerald, violet, rose, amber`; never cycled, and a repeated or missing color is a `RangeError`.(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- `teal`, `fuchsia` and `blue` are explicit-only: they are near-twins of `emerald`, `rose` and `sky` under CVD.(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- The tokens are validated with the dataviz validator against `--surface`; re-run it when a value changes.(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
----(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-# Primitives(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-Implement a reusable class contract once in `global.css` (`@utility` / `@layer components`) and reuse it everywhere. Prefer shared Astro wrappers (`Button.astro`, `Input.astro`, `Modal.astro`, …) that already apply these classes via `cn()`.(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Class / contract | Role |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| ---------------- | ---- |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `.btn` + `btn-primary` / `btn-secondary` / `btn-ghost` / `btn-error` | All buttons (`Button.astro` variants) |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `.input` / `.input-error` | Text fields; error border + focus ring |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `.control` | Checkbox / radio appearance — apply directly to a raw `<input type="checkbox">`/`<input type="radio">`; no dedicated wrapper component exists yet |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `.tab` | Segmented tab buttons inside a glass track (`Tabs.astro`) |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `.alert` / `.alert-error` / `.alert-success` | Inline status banners (`Alert.astro`) |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `.nav-pill` | Compact nav / filter chips (`NavPill.astro`) |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `.gradient-card` | Elevated solid card with soft top light |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `.link-card` | Community / outbound link cards |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `.card-wrapper` | Tintable tool/extension cards (`--card-tint`, default accent); translucent, so blurs its backdrop like `.glass` (2026-10-02) |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `@utility glass` / `glass-tinted` / `glass-raised` / `glass-tinted-raised` | Frosted panels — top-lit radial wash (white, or black when `-tinted`), `border-y`, blur; `-raised` adds `shadow-md` + stronger blur (2026-10-06); `glass-blue` / `glass-info` / `inset-well` / `inset-well-muted` / `glass-sheet` (2026-10-08, D428) |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `@utility setting-badge` | Mono accent chip after a `SettingLabel` (e.g. `ANALYTICS`) (design Game Setup, D430, 2026-10-08) |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `@utility slider-fill` / `slider-thumb` / `slider-bubble` | `RangeSlider` accent fill, white capsule thumb with accent ring, blue-glass value bubble (design 6a, D430, 2026-10-08) |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `@utility slide-thumb` / `slide-fill` | `SlideToStart` accent orb thumb and the trail behind it (design 4d, D430, 2026-10-08) |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `@utility start-bar-fade` | Bottom fade behind the fixed start bar so content scrolls under it (design 4d, D430, 2026-10-08) |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `.field-inset` / `.field-inset-error` | Inset text field with accent focus ring; `-error` adds a coral inset ring, and focus still wins (login, D431, 2026-10-08) |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `@utility glass-active-seat` / `input-well` / `key-press` / `next-dart-ring` / `target-key-ring` / `pip-on` / `board-dim` | Play screens: accent-tinted seat card; glass input panel well; accent inset ring on a pressed key; next-dart and doubles-target rings (each carries its own well background — never stack on `inset-well`); lit mark pip; dimmed board while pressing (design Game Play, D432, 2026-10-08) |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-**Dialogs** are component contracts, not CSS class primitives. Every dialog renders through `Modal.astro` — a bottom `glass-sheet` over `bg-scrim` with a grabber, a centred `font-display` title and an optional mono overline; actions go in `SheetActions` with `sheet-muted` on the left and `sheet-raised` on the right. `fixed inset-0` and `role="dialog"` are legal only in `app/src/components/ui/Modal.astro` (`scripts/check-style-tokens.sh`, D429). Mid-game sheets (exit, finish confirms, continue-session) carry an `InlayRow` context row from `$store.game.contextRow()`; a part with no data is dropped with its dot, never placeheld (D440, 2026-10-10).(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-Press feedback is built into `.btn:active:not(:disabled)` (`transform: scale(0.98)`) — do not add a second press animation elsewhere. Keys (`InputButton`) are the exception: `key-press` draws an accent inset ring on `:active` (120ms box-shadow) instead of the scale (D432, 2026-10-08).(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
----(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-# Typography(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Context | Rules |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| ------- | ----- |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Headings (`h1`–`h4`) | `font-display` (Michroma), `font-normal`, wide tracking — set in `@layer base` |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Eyebrow / section tag (`h5`) | `font-mono font-semibold uppercase tracking-widest text-muted` |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Body / description / buttons | `font-sans` (Montserrat) — never `font-mono` on body or buttons |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Large numeric displays (scores, targets) | `font-display` (Michroma) `leading-none tracking-[-0.02em] tabular-nums text-shadow-glow`; size from `bigValueSize` on the solo card and `seatValueSize` on the active seat card, both a cqw clamp per length capped at the design size (solo: ≤2 → 45cqw cap 84px, 3 → 30cqw cap 64px, 4–5 → 18cqw cap 46px; seat: ≤3 → 30cqw cap 64px, 4–5 → 18cqw cap 46px; both from 6+: 6 → 15cqw, 7–8 → 11cqw, 9+ → 10cqw, cap 46px) (D432, 2026-10-08, replaces D262's `fluid`) |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Case | No `uppercase` on body, description, or button text. Scope `uppercase` to the specific title/eyebrow element only — never a parent wrapping a modal or body region |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Weight | `font-normal`, `font-medium`, `font-semibold`, `font-bold`. Display (Michroma) 400 only; Montserrat 400/500/600/700; JetBrains Mono 500/600. Buttons use `font-semibold` (D428) |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Screen / card titles | Screen title `font-display text-title`; card title `font-display text-card-title` — never bold Montserrat |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Eyebrows | `font-mono font-semibold uppercase text-eyebrow` (or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-When a parent uses `font-mono` or `uppercase`, reset children that should not inherit it (`font-sans`, `normal-case`).(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
----(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-# Spacing & layout(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Pattern | Value |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| ------- | ----- |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Page / section padding | `p-3` or `px-4 py-5` |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Between sections | `gap-3` / `mb-6` |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Tight control / button groups | `gap-2` |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Tap targets | Prefer comfortable padding (`px-4 py-2.5` on `.btn`); icon-only uses equal padding (`p-2.5`) |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Shell width | `max-w-lg` on layout content columns and bottom nav |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-Prefer `flex flex-1` over fixed fractions (`h-1/2`) when siblings share vertical space.(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-Never set `height` (`h-full`, `h-2/5`) on an element that also has `flex-1`. `flex-1` sets `flex-basis: 0%`, which supplies the flex item's main size, so its own `height` is never consulted in a column flex container — the declaration is inert, not a fallback. Size such an item with `min-h-*` / `max-h-*`, which do still clamp it (D326).(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-**Play-screen scoreboard band.** The region at the top of a play screen is `min-h-2/5 max-h-2/5` — 40% of the play area, the same whether one seat or two is showing. It is owned by the two shells, not by call sites: `SinglePlayerDisplay.astro` and `SplitScoreboard.astro` both apply it. `SplitScoreboard` stacks the seats inside it — the throwing seat's `glass-active-seat` card on top, the waiting seat's 64px row under it. A play screen passes no height class of its own (D327, D432, 2026-10-08).(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-**Play header.** `GameLayout` renders a 56px `glass` pill (6px padding, `gap-2`): a 44px `inset-well-muted` exit, the `font-display` 14px title with an optional mono `text-eyebrow` subtitle, and the `header-end` slot in a 44px box. The play column below is padded `6px 16px 30px` with `gap-2`. A play page mounts its `x-data` on `<GameLayout>` so header expressions resolve in the play scope (D432, 2026-10-08).(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
----(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-# Buttons(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- Primary action: `btn btn-primary` (white fill + soft glow via `Button.astro` `variant="primary"`)(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- Secondary: `btn btn-secondary`. Keypad keys are `InputButton.astro` (`inset-well`, `key-press`), not `btn` (D432)(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- Text-only / cancel: `btn btn-ghost` (no border)(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- Destructive: `btn btn-error`(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- Always set `type="button"` unless the button submits a form — `Button.astro` defaults `type` to `"button"`(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- Icon-only buttons need `aria-label`; icons typically `size-6 text-muted-foreground`(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- **Undo is always the icon, never a text label.** Every undo control renders `UndoIcon` with an `aria-label` saying what it undoes (`Undo last visit`, `Undo dart`) — `ScoreInput.astro`, `BoardInputPanel.astro`, `SinglesRecreationalInput.astro`, `DoublesPathRecreationalInput.astro`. A game whose play screen wants undo reaches for the input component that already carries it rather than adding a titled `Button` beside it; a bare `title="Undo"` button is the drift this rule exists to catch.(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- Disabled: `.btn:disabled` applies `opacity-40` + `cursor-not-allowed`(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- Never `rounded-full` on a primary button — `.btn`'s `rounded-md` is the ceiling(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-**ConfirmDialog action row:** cancel `sheet-muted` left, confirm `sheet-raised` right, via `SheetActions` (`ConfirmDialog.astro`). There is no `confirmVariant`.(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
----(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-# Surfaces & nesting(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Need | Reach for |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| ---- | --------- |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Page chrome / body | `bg-surface` (default on `body`) |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Raised panel | `bg-surface-raised` and/or `glass` |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Nested well / inset | `bg-surface-overlay` |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Darker frosted panel | `glass-tinted` |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Floating frosted panel (nav, overlays) | `glass-raised` / `glass-tinted-raised` |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Marketing / tinted card | `.gradient-card`, `.link-card`, or `.card-wrapper` |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Recessed track / field / key / sheet tile | `inset-well` (`inset-well-muted` for secondary keys and the sheet secondary action) |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Selected pill / avatar | `glass-blue` |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Modal (bottom sheet) | `glass-sheet` over `bg-scrim` — `Modal.astro` |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Info / rules card | `glass-info` |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-One intentional surface level per visual block. Do not stack competing glass/raised treatments without a clear hierarchy (e.g. modal over page glass, not glass-in-glass).(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
----(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-# Motion(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Do | Don't |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| -- | ----- |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Animate `transform` / `opacity` only | `transition: all` |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `ease-out` via `--ease-out` for UI motion | `ease-in` on UI |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Keep UI motion at or under ~300ms (`duration-150` is the common default) | Long decorative delays on frequent actions |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Rely on `.btn:active`'s press scale, or `key-press` on keys | A second press animation on high-frequency input (e.g. a numeric keypad) |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Gate hover behind `@media (hover: hover) and (pointer: fine)` (see `.btn-*`, `.nav-pill`, `.tab`, `.link-card`, `.card-wrapper` in `global.css`) | Hover-only critical feedback on a touch target |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Respect `prefers-reduced-motion` where the CSS already scopes it | Ignore reduced-motion preference |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Deck keyframes `animate-deck-out` (240ms, `ease-in`: the one exiting slide), `animate-deck-rise` (220ms), `animate-deck-in` (240ms), each paired with `motion-reduce:animate-deck-fade-*` (150ms opacity only) (D442, 2026-10-10) | Sliding the deck card under reduced motion |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `board-dim` may transition `filter` (150ms) — the one non-transform/opacity transition, scoped to the board while a press is live (D432, 2026-10-08) | Transitioning `filter` elsewhere |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-**Modals:** `motion-safe:animate-sheet-in` — 200ms fade plus 1.5rem rise on `--ease-out`; no slide under reduced motion. If scaling on enter, start from `scale-95` plus opacity — never `scale(0)`.(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
----(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-# Interactivity(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-Mechanics (Alpine factory, stores, `$persist`) are owned by `03-Alpine-Patterns.md` — this section states UI-specific rules only:(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- Put UI state on the smallest owner that needs it; keep interactive children inside that owner.(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- **`x-show` + `x-cloak`:** every `x-show` element must also have `x-cloak` (`[x-cloak] { display: none !important; }` is already global).(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- Dialogs: Escape closes and backdrop click dismisses when `dismissible` — see `Modal.astro` / `ConfirmDialog.astro`.(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- Prefer declarative Alpine v3 shorthand bindings (`:class`, `:disabled`, `@click`) over imperative DOM manipulation — full rules in `03-Alpine-Patterns.md` / `05-Astro-Components.md`. Use `x-on:` / `x-bind:` only where Astro `{}` linter escape requires it (D100).(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-## Pointer-tracked surfaces(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-Any element that tracks a drag (`@pointermove`) must carry **`touch-none`**. Without it the browser claims the gesture as a scroll or pinch and stops delivering `pointermove` mid-drag, so the gesture dies halfway with no error. `DartBoard.astro` sets it on its own wrapper; `BoardInputPanel.astro` sets it again on the pointer surface, since that is the element the handlers are bound to.(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-An overlay that follows the pointer is positioned **`fixed`**, not `absolute`: the anchor is `clientX`/`clientY`, and the placement maths clamps against the visual viewport, so both halves must be read in the same coordinate space. Under `absolute` the overlay is displaced by however far the nearest positioned ancestor sits from the viewport origin.(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-**Magnifier placement rules** (`modules/game/board-input.module.ts`, `magnifierPlacement`):(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- above the pointer by default — a fingertip covers what is directly beneath it — dropping below only when there is no room above;(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- to the side away from the throwing hand (`handedness`), flipping to the opposite side when that overflows;(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- then each axis clamped independently so the box stays in the viewport. When the viewport is smaller than the magnifier itself the clamp pins the box to the near edge rather than letting it hang outside.(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-**No `filter`, `backdrop-filter` or `transform` ancestor above a `fixed` overlay.** Such an ancestor becomes the overlay's containing block, so `fixed` stops meaning viewport-relative and the magnifier and press ring drift off the finger. `BoardInputPanel`'s root therefore carries no surface: its glass is an `aria-hidden` absolute background layer, a sibling of the content (D432, 2026-10-08).(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-An overlay that only duplicates information already announced elsewhere is `aria-hidden` on its outermost element, so a screen reader hears the live read once, not twice.(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-A template bound to a pointer-tracked controller must read a **plain reactive mirror**, never the controller. A pure controller that publishes closure state through getters is invisible to Alpine's dependency tracking, so bindings render once at press and then freeze — with no error and every unit test still green. `boardInputData()`'s `board` field is the pattern: re-copied after every controller call, and the only thing views bind to (D202).(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-**`x-for` cannot live inside `<svg>`.** The HTML parser puts a `<template>` written among SVG children into the SVG namespace, where it has no `.content` for Alpine to clone. Repeat markup over an SVG as an absolutely positioned HTML overlay instead, sized in percent of the same box the SVG's `viewBox` declares, so it scales with the drawing. `DartBoard.astro`'s slot exists for exactly this.(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-**Alpine `:style` binding form is load-bearing, not taste.** The string form calls `setAttribute("style", …)` and replaces the *whole* attribute, wiping any static declaration on the same element — including CSS custom properties a child depends on. The object form (`:style="{ width: … }"`) writes through `style.setProperty` and merges. A static `style` attribute and a string-form `:style` on one element are mutually exclusive; when both are needed, the dynamic half must be the object form (D199).(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
----(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-# Accessibility(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- Icon-only controls always get `aria-label`.(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- Dialogs: `role="dialog"`, `aria-modal="true"`, labelled and described (`Modal.astro` wires `aria-labelledby` / `aria-describedby`).(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- Prefer semantic HTML (`button`, `a`, headings) over `div` + handlers.(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- No hover-only critical affordances on a touch target — anything essential must also work on tap/focus.(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- Focus-visible rings on `.control` use accent outline (`outline: 2px solid var(--accent)`).(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- A pointer-only capture surface is never the sole path to an action. In a `VISUAL_BOARD` session the board replaces the keypad (`BoardInputPanel.astro`, D201, which supersedes D199); the lost keyboard-only path is an accepted accessibility cost recorded there.(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-- Decorative or duplicating SVG gets `aria-hidden`; an SVG carrying meaning gets `role="img"` and an `aria-label` that says what it depicts (`DartBoard.astro`).(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
----(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-# Tailwind v4 class syntax(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-This repo uses Tailwind CSS v4 utility forms. Agents must not emit v3-era variants, and must never reach for the important modifier at all.(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Do | Don't |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| -- | ----- |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Compose overrides via `cn()`'s merge ordering (`classNameProp` merges last) | Important modifier, prefix or suffix: `!max-w-none`, `max-w-none!` |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Extend a primitive's own variant/prop surface when its defaults genuinely conflict (e.g. `Button.astro`'s `dashed` variant) | Layering `!`-forced overrides on top of a primitive |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Negative inside arbitrary: `left-[-45%]`, `bottom-[-25%]` | Leading-dash arbitrary: `-left-[45%]`, `-bottom-[25%]` |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-Scale negatives without arbitrary brackets stay fine (`-mt-4`, `-rotate-45`, `-translate-x-1/2`). Mechanically enforced by `scripts/check-style-tokens.sh` (D226, supersedes D175's suffix-form endorsement).(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-**Container queries.** For an element that must size itself off its own container's width rather than a breakpoint — e.g. a big number whose content length varies and must never wrap — add `@container` to the sizing ancestor and use a `cq*`-unit arbitrary value on the descendant, typically wrapped in `clamp()` to bound both ends: `text-[clamp(1.75rem,13cqw,3rem)]`. A fixed `text-*` step reacts to viewport breakpoints, not to how much text needs to fit; `cqw` scales continuously with the container's own inline size instead. Play-screen big values pick a `cqw` clamp by length (`bigValueSize`, `seatValueSize`, D432, 2026-10-08), with `@container` on the `SinglePlayerDisplay` left column and the `SplitScoreboardHalf` active card; every step is capped at its design size, so a narrow column shrinks any length instead of overflowing.(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
----(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-# Anti-patterns(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Avoid | Prefer |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| ----- | ------ |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Legacy backgrounds `bg-bg`, `bg-bg-subtle`, `bg-bg-muted`, `bg-bg-emphasis` | `bg-surface`, `bg-surface-raised`, `bg-surface-overlay` |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Legacy text `text-fg`, `text-fg-muted`, `text-fg-subtle`, `text-fg-faint` | `text-foreground`, `text-muted-foreground`, `text-muted` |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Old CSS primitives `.surface`, `.surface-elevated`, `.nav-item` / `.nav-item-active`, `.badge` / `.badge-accent` / `.badge-muted` (as formerly documented) | `glass` / raised/overlay tokens; `NavPill` / `.nav-pill`; `Badge.astro` with semantic tokens |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Raw palette colors (`sky-*`, `teal-*`, `zinc-*` as paint) | Semantic tokens (`accent*`, `surface*`, `foreground`, `muted*`) |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `font-mono` on body or buttons | `font-sans` |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| A parent `uppercase` wrapping a modal or body region | `uppercase` scoped to the title/eyebrow only |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Nested competing glass/raised stacks | One surface level + overlay well when needed |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Ad-hoc button CSS | `.btn` + a variant class / `Button.astro` |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| A second press/tap animation on top of `.btn:active` | Instant state update + the shared press scale |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Astro `class:list` or manual `[...].filter(Boolean).join(" ")` for build-time classes | `cn()` (`05-Astro-Components.md`; gated by `scripts/check-astro-class-composition.sh`) |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Important modifier, either form: `!utility` or `utility!` | Compose through `cn()`'s merge ordering, or extend the primitive's variant/prop surface |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Leading-dash arbitrary `-prop-[…]` | `prop-[-…]` (minus inside brackets) |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
----(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-# Related Documents(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| Document | Purpose |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| -------- | ------- |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `00-Overview.md` | Client integration, state ownership, handbook index |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `03-Alpine-Patterns.md` | Alpine factory, stores, `$persist` — interactivity mechanics |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `04-Modules-And-OOP.md` | Portable UI kit (timer, toast, modal, chart) |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `05-Astro-Components.md` | `.astro` authoring: frontmatter order, `cn()`, class-placement decision table |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `10-Frontend-Agent-Guide.md` | Condensed agent rules |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
-| `app/src/styles/global.css` | Runtime token + primitive definitions |(or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` pair for these labels (D450, 2026-10-11) |
+<!--
+status: canonical
+scope: frontend/style-guide
+read-when: any UI/component work — tokens, primitives, typography, motion, accessibility
+updated: 2026-10-10
+-->
+
+# Frontend Style Guide
+
+> **Version:** 0.4.1 (2026-10-10 — resume deck: stack/deck tokens, `deck-top-card`, deck keyframes, D442; prior 0.4.0 was 2026-10-08 — game play: play surfaces, key press, play header, stacked seats, D432; prior 0.3.1 was login, D431)
+>
+> Dark-only, mobile-first UI conventions: sky accent, glass/surface tokens, primitive class contracts, typography, spacing, motion, accessibility.
+>
+> **Authority split:** this doc owns the *visual contract* — which semantic tokens and primitive classes exist, and the rules governing their use. `05-Astro-Components.md` owns *how* a component composes classes (frontmatter order, `cn()`, the class-placement decision table) — cross-referenced below, not repeated.
+>
+> **Runtime authority:** tokens and primitives are defined in `app/src/styles/global.css`. If this doc and CSS disagree after landing, `global.css` wins — update this doc to match.
+
+---
+
+# Purpose
+
+Every screen draws from one fixed set of semantic tokens and primitive classes, defined once in `app/src/styles/global.css`. This doc is the reference for what exists and when to reach for it, so no component invents a one-off color, button, or card style.
+
+Class *composition* (`cn()`, frontmatter `// Styles`, prop/`class` placement) lives in `05-Astro-Components.md`. Do not duplicate those rules here.
+
+---
+
+# Theme
+
+- **Dark only.** `html { color-scheme: dark only; }`, forced even when the OS prefers light (`@media (prefers-color-scheme: light)` re-asserts dark). No theme toggle exists or is planned for v1.
+- **Ambient backdrop.** `body::before` paints fixed radial gradients (soft top wash + sky `--accent-glow` corner bloom) over `--surface`. `body::after` adds a bottom vignette. Both layers are `pointer-events: none` and sit behind content (`z-index: -2` / `-1`).
+- **Mobile-first shell.** Content column capped at `max-w-lg` (`AppLayout`, `GameLayout`, bottom nav). Full viewport height via `h-lvh max-h-lvh overflow-hidden` on `html` and `fixed inset-x-0 top-0 h-lvh transform-gpu overflow-hidden` on `body` (D417); `body` also pads `env(safe-area-inset-top)` so content clears the iOS status bar in a standalone-launched web app (D174, 2026-07-29).
+- **Touch ergonomics.** `-webkit-tap-highlight-color: transparent` and `touch-action: manipulation` on `html`.
+- **Brand reference.** Token values come from the Claude Design `Brand Style.dc.html` file; a new value enters `global.css` as a token before any component uses it (D428).
+- **Text is not selectable by default.** `body` sets `user-select: none` and `-webkit-touch-callout: none` in `@layer base`, so a long press never opens the iOS copy/share sheet or highlights a label. `input`, `textarea` and `[contenteditable]` stay selectable, and anything a player may want to copy (a code, an error message) opts in with the `select-text` utility — a utility outranks the base layer, so it needs no override. Per-element `select-none` is now redundant and should not be added (D388, 2026-10-02).
+
+---
+
+# Tokens
+
+Use semantic tokens only. Never raw Tailwind palette utilities (`bg-sky-500`, `text-zinc-*`, `bg-teal-*`, etc.) in component markup or frontmatter — if a color is needed that isn't below, add a token to `:root` / `@theme` in `global.css` first.
+
+| Role | Classes / tokens |
+| ---- | ---------------- |
+| Surfaces | `bg-surface`, `bg-surface-raised`, `bg-surface-overlay`, `glass` (cards; no shadow unless a floating card adds `shadow-card`), `glass-tinted`, `glass-raised`, `glass-tinted-raised`, `glass-button` (raised glass: buttons), `glass-blue` (selected pill, avatar), `glass-info` (rules/info card), `inset-well` (tracks, fields), `inset-well-muted` (undo/delete keys, exit), `glass-sheet` (bottom sheets), `bg-scrim` (modal backdrop) (2026-10-08); `shadow-card` (floating card drop shadow, login, D431); play (D432, 2026-10-08): `glass-active-seat` (throwing seat card), `input-well` (input panels), `next-dart-ring` (next dart's bar), `target-key-ring` (doubles target key), `pip-on` (lit mark pip), `board-dim` (board while pressed), `shadow-magnifier`; `bg-skeleton` (white 12%, results value pulse bar, D437, 2026-10-09); `bg-stack-1`/`bg-stack-2` (card-stack slabs under a top card), `deck-top-card` (opaque gradient from `--deck-top-from` to `--deck-top-to`, the deck's top card; D442, 2026-10-10) |
+| Text | `text-foreground`, `text-soft-foreground` (78%), `text-muted-foreground` (70%, captions/labels), `text-muted` (55%, body), `text-faint-foreground` (50%), `text-placeholder` (48%, empty fields only) |
+| Borders | `border-border`, `border-border-strong` |
+| Accent | `accent`, `accent-hover`, `accent-muted`, `accent-foreground`, `accent-glow` (sky); `accent-bright` (sky light: accent text on dark), `accent-foreground-muted`, `accent-deep` (gradient end), `accent-deep-blue` (chart bars, vignette), `bg-blue-glass` (2026-10-08) |
+| States | `error` / `error-hover` / `error-muted` / `error-foreground` (coral); `error-strong` / `error-strong-hover` (solid fill under `error-foreground`, ≥ 4.5:1; `Button`/`IconBtn` error variant); `missed` / `missed-muted` alias error; `success` / `success-muted` |
+| Radius | `rounded-sm` … `rounded-2xl`, `rounded-row`, `rounded-key`, `rounded-switch`, `rounded-board`, `rounded-sheet` per `@theme` |
+| Type scale | `text-hero` 72, `text-title` 26 (screen title), `text-value` 30, `text-tile` 20, `text-card-title` 13, `text-button` 15, `text-eyebrow-sm` 9 / `text-eyebrow` 10 / `text-eyebrow-lg` 12 (mono caps); body `text-sm`, caption `text-xs` |
+| Hit target | `size-hit` (44px) minimum for any tap target |
+| Fonts | `font-sans` (Montserrat), `font-display` (Michroma), `font-mono` (JetBrains Mono) |
+| Motion | `--ease-out`; keep UI ≤ ~300ms; transform/opacity only |
+| Chart marks | `--chart-<name>` for the nine `CardWrapper` color names (`sky, violet, rose, teal, emerald, amber, orange, fuchsia, blue`) and `--chart-grid`; read by `lib/ui/chart-theme.ts`, never used as utility classes (2026-09-30, D374) |
+
+Radius scale (from `@theme`):
+
+| Token | Size | Typical use |
+| ----- | ---- | ----------- |
+| `rounded-sm` | 6px | Nav pills / compact chips |
+| `rounded-md` | 8px | Buttons, inputs, tabs track |
+| `rounded-lg` | 12px | Compact panels |
+| `rounded-xl` | 16px | Nav shell |
+| `rounded-2xl` | 20px | Cards |
+| `rounded-row` | 14px | Select option rows |
+| `rounded-key` | 22px | Keypad / tap-input keys |
+| `rounded-switch` | 26px | Vertical switch track |
+| `rounded-board` | 28px | Board container |
+| `rounded-sheet` | 32px | Bottom sheets and every modal (`glass-sheet`) |
+| `rounded-full` | pill | Pills, nav, sliders, icon buttons |
+
+Accent is Tailwind sky (`sky-400` / `sky-500` / `sky-600` mapped into `--accent*` OKLCH values). Selection uses `accent-muted` background.
+
+---
+
+# Charts
+
+Chart.js line/bar/doughnut charts via `components/ui/Chart.astro` and `modules/ui/chart.module.ts` (2026-09-30, D374).
+
+- Containers are `glass` (`Chart.astro`); the canvas is plain — no fill or blur behind the marks.
+- One glass level: pass `flat` when the chart sits inside an existing glass card (see Surfaces & nesting).
+- A series color is a `CardWrapper` color name; it resolves to `--chart-<name>`. Never a raw palette class or CSS color.
+- A doughnut's slices take `sliceColors` (same names, same rules) from its one series (2026-10-03, D401).
+- Default order: `sky, orange, emerald, violet, rose, amber`; never cycled, and a repeated or missing color is a `RangeError`.
+- `teal`, `fuchsia` and `blue` are explicit-only: they are near-twins of `emerald`, `rose` and `sky` under CVD.
+- The tokens are validated with the dataviz validator against `--surface`; re-run it when a value changes.
+
+---
+
+# Primitives
+
+Implement a reusable class contract once in `global.css` (`@utility` / `@layer components`) and reuse it everywhere. Prefer shared Astro wrappers (`Button.astro`, `Input.astro`, `Modal.astro`, …) that already apply these classes via `cn()`.
+
+| Class / contract | Role |
+| ---------------- | ---- |
+| `.btn` + `btn-primary` / `btn-secondary` / `btn-ghost` / `btn-error` | All buttons (`Button.astro` variants) |
+| `.input` / `.input-error` | Text fields; error border + focus ring |
+| `.control` | Checkbox / radio appearance — apply directly to a raw `<input type="checkbox">`/`<input type="radio">`; no dedicated wrapper component exists yet |
+| `.tab` | Segmented tab buttons inside a glass track (`Tabs.astro`) |
+| `.alert` / `.alert-error` / `.alert-success` | Inline status banners (`Alert.astro`) |
+| `.nav-pill` | Compact nav / filter chips (`NavPill.astro`) |
+| `.gradient-card` | Elevated solid card with soft top light |
+| `.link-card` | Community / outbound link cards |
+| `.card-wrapper` | Tintable tool/extension cards (`--card-tint`, default accent); translucent, so blurs its backdrop like `.glass` (2026-10-02) |
+| `@utility glass` / `glass-tinted` / `glass-raised` / `glass-tinted-raised` | Frosted panels — top-lit radial wash (white, or black when `-tinted`), `border-y`, blur; `-raised` adds `shadow-md` + stronger blur (2026-10-06); `glass-blue` / `glass-info` / `inset-well` / `inset-well-muted` / `glass-sheet` (2026-10-08, D428) |
+| `@utility setting-badge` | Mono accent chip after a `SettingLabel` (e.g. `ANALYTICS`) (design Game Setup, D430, 2026-10-08) |
+| `@utility slider-fill` / `slider-thumb` / `slider-bubble` | `RangeSlider` accent fill, white capsule thumb with accent ring, blue-glass value bubble (design 6a, D430, 2026-10-08) |
+| `@utility slide-thumb` / `slide-fill` | `SlideToStart` accent orb thumb and the trail behind it (design 4d, D430, 2026-10-08) |
+| `@utility start-bar-fade` | Bottom fade behind the fixed start bar so content scrolls under it (design 4d, D430, 2026-10-08) |
+| `.field-inset` / `.field-inset-error` | Inset text field with accent focus ring; `-error` adds a coral inset ring, and focus still wins (login, D431, 2026-10-08) |
+| `@utility glass-active-seat` / `input-well` / `key-press` / `next-dart-ring` / `target-key-ring` / `pip-on` / `board-dim` | Play screens: accent-tinted seat card; glass input panel well; accent inset ring on a pressed key; next-dart and doubles-target rings (each carries its own well background — never stack on `inset-well`); lit mark pip; dimmed board while pressing (design Game Play, D432, 2026-10-08) |
+
+**Dialogs** are component contracts, not CSS class primitives. Every dialog renders through `Modal.astro` — a bottom `glass-sheet` over `bg-scrim` with a grabber, a centred `font-display` title and an optional mono overline; actions go in `SheetActions` with `sheet-muted` on the left and `sheet-raised` on the right. `fixed inset-0` and `role="dialog"` are legal only in `app/src/components/ui/Modal.astro` (`scripts/check-style-tokens.sh`, D429). Mid-game sheets (exit, finish confirms, continue-session) carry an `InlayRow` context row from `$store.game.contextRow()`; a part with no data is dropped with its dot, never placeheld (D440, 2026-10-10).
+
+Press feedback is built into `.btn:active:not(:disabled)` (`transform: scale(0.98)`) — do not add a second press animation elsewhere. Keys (`InputButton`) are the exception: `key-press` draws an accent inset ring on `:active` (120ms box-shadow) instead of the scale (D432, 2026-10-08).
+
+---
+
+# Typography
+
+| Context | Rules |
+| ------- | ----- |
+| Headings (`h1`–`h4`) | `font-display` (Michroma), `font-normal`, wide tracking — set in `@layer base` |
+| Eyebrow / section tag (`h5`) | `font-mono font-semibold uppercase tracking-widest text-muted` |
+| Body / description / buttons | `font-sans` (Montserrat) — never `font-mono` on body or buttons |
+| Large numeric displays (scores, targets) | `font-display` (Michroma) `leading-none tracking-[-0.02em] tabular-nums text-shadow-glow`; size from `bigValueSize` on the solo card and `seatValueSize` on the active seat card, both a cqw clamp per length capped at the design size (solo: ≤2 → 45cqw cap 84px, 3 → 30cqw cap 64px, 4–5 → 18cqw cap 46px; seat: ≤3 → 30cqw cap 64px, 4–5 → 18cqw cap 46px; both from 6+: 6 → 15cqw, 7–8 → 11cqw, 9+ → 10cqw, cap 46px) (D432, 2026-10-08, replaces D262's `fluid`) |
+| Case | No `uppercase` on body, description, or button text. Scope `uppercase` to the specific title/eyebrow element only — never a parent wrapping a modal or body region |
+| Weight | `font-normal`, `font-medium`, `font-semibold`, `font-bold`. Display (Michroma) 400 only; Montserrat 400/500/600/700; JetBrains Mono 500/600. Buttons use `font-semibold` (D428) |
+| Screen / card titles | Screen title `font-display text-title`; card title `font-display text-card-title` — never bold Montserrat |
+| Eyebrows | `font-mono font-semibold uppercase text-eyebrow` (or `-sm`, `-lg`); tracking is in the token; no `text-[Npx]` + `tracking-[…]` literals for these labels (D450, 2026-10-11) |
+
+When a parent uses `font-mono` or `uppercase`, reset children that should not inherit it (`font-sans`, `normal-case`).
+
+---
+
+# Spacing & layout
+
+| Pattern | Value |
+| ------- | ----- |
+| Page / section padding | `p-3` or `px-4 py-5` |
+| Between sections | `gap-3` / `mb-6` |
+| Tight control / button groups | `gap-2` |
+| Tap targets | Prefer comfortable padding (`px-4 py-2.5` on `.btn`); icon-only uses equal padding (`p-2.5`) |
+| Shell width | `max-w-lg` on layout content columns and bottom nav |
+
+Prefer `flex flex-1` over fixed fractions (`h-1/2`) when siblings share vertical space.
+
+Never set `height` (`h-full`, `h-2/5`) on an element that also has `flex-1`. `flex-1` sets `flex-basis: 0%`, which supplies the flex item's main size, so its own `height` is never consulted in a column flex container — the declaration is inert, not a fallback. Size such an item with `min-h-*` / `max-h-*`, which do still clamp it (D326).
+
+**Play-screen scoreboard band.** The region at the top of a play screen is `min-h-2/5 max-h-2/5` — 40% of the play area, the same whether one seat or two is showing. It is owned by the two shells, not by call sites: `SinglePlayerDisplay.astro` and `SplitScoreboard.astro` both apply it. `SplitScoreboard` stacks the seats inside it — the throwing seat's `glass-active-seat` card on top, the waiting seat's 64px row under it. A play screen passes no height class of its own (D327, D432, 2026-10-08).
+
+**Play header.** `GameLayout` renders a 56px `glass` pill (6px padding, `gap-2`): a 44px `inset-well-muted` exit, the `font-display` 14px title with an optional mono `text-eyebrow` subtitle, and the `header-end` slot in a 44px box. The play column below is padded `6px 16px 30px` with `gap-2`. A play page mounts its `x-data` on `<GameLayout>` so header expressions resolve in the play scope (D432, 2026-10-08).
+
+---
+
+# Buttons
+
+- Primary action: `btn btn-primary` (white fill + soft glow via `Button.astro` `variant="primary"`)
+- Secondary: `btn btn-secondary`. Keypad keys are `InputButton.astro` (`inset-well`, `key-press`), not `btn` (D432)
+- Text-only / cancel: `btn btn-ghost` (no border)
+- Destructive: `btn btn-error`
+- Always set `type="button"` unless the button submits a form — `Button.astro` defaults `type` to `"button"`
+- Icon-only buttons need `aria-label`; icons typically `size-6 text-muted-foreground`
+- **Undo is always the icon, never a text label.** Every undo control renders `UndoIcon` with an `aria-label` saying what it undoes (`Undo last visit`, `Undo dart`) — `ScoreInput.astro`, `BoardInputPanel.astro`, `SinglesRecreationalInput.astro`, `DoublesPathRecreationalInput.astro`. A game whose play screen wants undo reaches for the input component that already carries it rather than adding a titled `Button` beside it; a bare `title="Undo"` button is the drift this rule exists to catch.
+- Disabled: `.btn:disabled` applies `opacity-40` + `cursor-not-allowed`
+- Never `rounded-full` on a primary button — `.btn`'s `rounded-md` is the ceiling
+
+**ConfirmDialog action row:** cancel `sheet-muted` left, confirm `sheet-raised` right, via `SheetActions` (`ConfirmDialog.astro`). There is no `confirmVariant`.
+
+---
+
+# Surfaces & nesting
+
+| Need | Reach for |
+| ---- | --------- |
+| Page chrome / body | `bg-surface` (default on `body`) |
+| Raised panel | `bg-surface-raised` and/or `glass` |
+| Nested well / inset | `bg-surface-overlay` |
+| Darker frosted panel | `glass-tinted` |
+| Floating frosted panel (nav, overlays) | `glass-raised` / `glass-tinted-raised` |
+| Marketing / tinted card | `.gradient-card`, `.link-card`, or `.card-wrapper` |
+| Recessed track / field / key / sheet tile | `inset-well` (`inset-well-muted` for secondary keys and the sheet secondary action) |
+| Selected pill / avatar | `glass-blue` |
+| Modal (bottom sheet) | `glass-sheet` over `bg-scrim` — `Modal.astro` |
+| Info / rules card | `glass-info` |
+
+One intentional surface level per visual block. Do not stack competing glass/raised treatments without a clear hierarchy (e.g. modal over page glass, not glass-in-glass).
+
+---
+
+# Motion
+
+| Do | Don't |
+| -- | ----- |
+| Animate `transform` / `opacity` only | `transition: all` |
+| `ease-out` via `--ease-out` for UI motion | `ease-in` on UI |
+| Keep UI motion at or under ~300ms (`duration-150` is the common default) | Long decorative delays on frequent actions |
+| Rely on `.btn:active`'s press scale, or `key-press` on keys | A second press animation on high-frequency input (e.g. a numeric keypad) |
+| Gate hover behind `@media (hover: hover) and (pointer: fine)` (see `.btn-*`, `.nav-pill`, `.tab`, `.link-card`, `.card-wrapper` in `global.css`) | Hover-only critical feedback on a touch target |
+| Respect `prefers-reduced-motion` where the CSS already scopes it | Ignore reduced-motion preference |
+| Deck keyframes `animate-deck-out` (240ms, `ease-in`: the one exiting slide), `animate-deck-rise` (220ms), `animate-deck-in` (240ms), each paired with `motion-reduce:animate-deck-fade-*` (150ms opacity only) (D442, 2026-10-10) | Sliding the deck card under reduced motion |
+| `board-dim` may transition `filter` (150ms) — the one non-transform/opacity transition, scoped to the board while a press is live (D432, 2026-10-08) | Transitioning `filter` elsewhere |
+
+**Modals:** `motion-safe:animate-sheet-in` — 200ms fade plus 1.5rem rise on `--ease-out`; no slide under reduced motion. If scaling on enter, start from `scale-95` plus opacity — never `scale(0)`.
+
+
+---
+
+# Interactivity
+
+Mechanics (Alpine factory, stores, `$persist`) are owned by `03-Alpine-Patterns.md` — this section states UI-specific rules only:
+
+- Put UI state on the smallest owner that needs it; keep interactive children inside that owner.
+- **`x-show` + `x-cloak`:** every `x-show` element must also have `x-cloak` (`[x-cloak] { display: none !important; }` is already global).
+- Dialogs: Escape closes and backdrop click dismisses when `dismissible` — see `Modal.astro` / `ConfirmDialog.astro`.
+- Prefer declarative Alpine v3 shorthand bindings (`:class`, `:disabled`, `@click`) over imperative DOM manipulation — full rules in `03-Alpine-Patterns.md` / `05-Astro-Components.md`. Use `x-on:` / `x-bind:` only where Astro `{}` linter escape requires it (D100).
+
+## Pointer-tracked surfaces
+
+Any element that tracks a drag (`@pointermove`) must carry **`touch-none`**. Without it the browser claims the gesture as a scroll or pinch and stops delivering `pointermove` mid-drag, so the gesture dies halfway with no error. `DartBoard.astro` sets it on its own wrapper; `BoardInputPanel.astro` sets it again on the pointer surface, since that is the element the handlers are bound to.
+
+An overlay that follows the pointer is positioned **`fixed`**, not `absolute`: the anchor is `clientX`/`clientY`, and the placement maths clamps against the visual viewport, so both halves must be read in the same coordinate space. Under `absolute` the overlay is displaced by however far the nearest positioned ancestor sits from the viewport origin.
+
+**Magnifier placement rules** (`modules/game/board-input.module.ts`, `magnifierPlacement`):
+
+- above the pointer by default — a fingertip covers what is directly beneath it — dropping below only when there is no room above;
+- to the side away from the throwing hand (`handedness`), flipping to the opposite side when that overflows;
+- then each axis clamped independently so the box stays in the viewport. When the viewport is smaller than the magnifier itself the clamp pins the box to the near edge rather than letting it hang outside.
+
+**No `filter`, `backdrop-filter` or `transform` ancestor above a `fixed` overlay.** Such an ancestor becomes the overlay's containing block, so `fixed` stops meaning viewport-relative and the magnifier and press ring drift off the finger. `BoardInputPanel`'s root therefore carries no surface: its glass is an `aria-hidden` absolute background layer, a sibling of the content (D432, 2026-10-08).
+
+An overlay that only duplicates information already announced elsewhere is `aria-hidden` on its outermost element, so a screen reader hears the live read once, not twice.
+
+A template bound to a pointer-tracked controller must read a **plain reactive mirror**, never the controller. A pure controller that publishes closure state through getters is invisible to Alpine's dependency tracking, so bindings render once at press and then freeze — with no error and every unit test still green. `boardInputData()`'s `board` field is the pattern: re-copied after every controller call, and the only thing views bind to (D202).
+
+**`x-for` cannot live inside `<svg>`.** The HTML parser puts a `<template>` written among SVG children into the SVG namespace, where it has no `.content` for Alpine to clone. Repeat markup over an SVG as an absolutely positioned HTML overlay instead, sized in percent of the same box the SVG's `viewBox` declares, so it scales with the drawing. `DartBoard.astro`'s slot exists for exactly this.
+
+**Alpine `:style` binding form is load-bearing, not taste.** The string form calls `setAttribute("style", …)` and replaces the *whole* attribute, wiping any static declaration on the same element — including CSS custom properties a child depends on. The object form (`:style="{ width: … }"`) writes through `style.setProperty` and merges. A static `style` attribute and a string-form `:style` on one element are mutually exclusive; when both are needed, the dynamic half must be the object form (D199).
+
+---
+
+# Accessibility
+
+- Icon-only controls always get `aria-label`.
+- Dialogs: `role="dialog"`, `aria-modal="true"`, labelled and described (`Modal.astro` wires `aria-labelledby` / `aria-describedby`).
+- Prefer semantic HTML (`button`, `a`, headings) over `div` + handlers.
+- No hover-only critical affordances on a touch target — anything essential must also work on tap/focus.
+- Focus-visible rings on `.control` use accent outline (`outline: 2px solid var(--accent)`).
+- A pointer-only capture surface is never the sole path to an action. In a `VISUAL_BOARD` session the board replaces the keypad (`BoardInputPanel.astro`, D201, which supersedes D199); the lost keyboard-only path is an accepted accessibility cost recorded there.
+- Decorative or duplicating SVG gets `aria-hidden`; an SVG carrying meaning gets `role="img"` and an `aria-label` that says what it depicts (`DartBoard.astro`).
+
+---
+
+# Tailwind v4 class syntax
+
+This repo uses Tailwind CSS v4 utility forms. Agents must not emit v3-era variants, and must never reach for the important modifier at all.
+
+| Do | Don't |
+| -- | ----- |
+| Compose overrides via `cn()`'s merge ordering (`classNameProp` merges last) | Important modifier, prefix or suffix: `!max-w-none`, `max-w-none!` |
+| Extend a primitive's own variant/prop surface when its defaults genuinely conflict (e.g. `Button.astro`'s `dashed` variant) | Layering `!`-forced overrides on top of a primitive |
+| Negative inside arbitrary: `left-[-45%]`, `bottom-[-25%]` | Leading-dash arbitrary: `-left-[45%]`, `-bottom-[25%]` |
+
+Scale negatives without arbitrary brackets stay fine (`-mt-4`, `-rotate-45`, `-translate-x-1/2`). Mechanically enforced by `scripts/check-style-tokens.sh` (D226, supersedes D175's suffix-form endorsement).
+
+**Container queries.** For an element that must size itself off its own container's width rather than a breakpoint — e.g. a big number whose content length varies and must never wrap — add `@container` to the sizing ancestor and use a `cq*`-unit arbitrary value on the descendant, typically wrapped in `clamp()` to bound both ends: `text-[clamp(1.75rem,13cqw,3rem)]`. A fixed `text-*` step reacts to viewport breakpoints, not to how much text needs to fit; `cqw` scales continuously with the container's own inline size instead. Play-screen big values pick a `cqw` clamp by length (`bigValueSize`, `seatValueSize`, D432, 2026-10-08), with `@container` on the `SinglePlayerDisplay` left column and the `SplitScoreboardHalf` active card; every step is capped at its design size, so a narrow column shrinks any length instead of overflowing.
+
+---
+
+# Anti-patterns
+
+| Avoid | Prefer |
+| ----- | ------ |
+| Legacy backgrounds `bg-bg`, `bg-bg-subtle`, `bg-bg-muted`, `bg-bg-emphasis` | `bg-surface`, `bg-surface-raised`, `bg-surface-overlay` |
+| Legacy text `text-fg`, `text-fg-muted`, `text-fg-subtle`, `text-fg-faint` | `text-foreground`, `text-muted-foreground`, `text-muted` |
+| Old CSS primitives `.surface`, `.surface-elevated`, `.nav-item` / `.nav-item-active`, `.badge` / `.badge-accent` / `.badge-muted` (as formerly documented) | `glass` / raised/overlay tokens; `NavPill` / `.nav-pill`; `Badge.astro` with semantic tokens |
+| Raw palette colors (`sky-*`, `teal-*`, `zinc-*` as paint) | Semantic tokens (`accent*`, `surface*`, `foreground`, `muted*`) |
+| `font-mono` on body or buttons | `font-sans` |
+| A parent `uppercase` wrapping a modal or body region | `uppercase` scoped to the title/eyebrow only |
+| Nested competing glass/raised stacks | One surface level + overlay well when needed |
+| Ad-hoc button CSS | `.btn` + a variant class / `Button.astro` |
+| A second press/tap animation on top of `.btn:active` | Instant state update + the shared press scale |
+| Astro `class:list` or manual `[...].filter(Boolean).join(" ")` for build-time classes | `cn()` (`05-Astro-Components.md`; gated by `scripts/check-astro-class-composition.sh`) |
+| Important modifier, either form: `!utility` or `utility!` | Compose through `cn()`'s merge ordering, or extend the primitive's variant/prop surface |
+| Leading-dash arbitrary `-prop-[…]` | `prop-[-…]` (minus inside brackets) |
+
+---
+
+# Related Documents
+
+| Document | Purpose |
+| -------- | ------- |
+| `00-Overview.md` | Client integration, state ownership, handbook index |
+| `03-Alpine-Patterns.md` | Alpine factory, stores, `$persist` — interactivity mechanics |
+| `04-Modules-And-OOP.md` | Portable UI kit (timer, toast, modal, chart) |
+| `05-Astro-Components.md` | `.astro` authoring: frontmatter order, `cn()`, class-placement decision table |
+| `10-Frontend-Agent-Guide.md` | Condensed agent rules |
+| `app/src/styles/global.css` | Runtime token + primitive definitions |
