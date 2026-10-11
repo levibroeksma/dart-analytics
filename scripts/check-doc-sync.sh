@@ -33,6 +33,11 @@
 # the docs. It runs at claim time (run-all-gates) and at PR time (CI), which
 # are the two moments the question "are the docs owed?" can be answered.
 #
+# COMMENT-ONLY EDITS DO NOT TRIP IT (D444): a triggered .ts or .astro file
+# whose diff changes only blank or comment lines (openers `//`, `/*`, `*`)
+# alters nothing a doc can describe. Judged per file from `git diff -U0`.
+# Explicit path arguments carry no diff and are never exempted.
+#
 # ARGUMENTS: an optional list of changed paths, purely so the gate can be
 # aimed at a fixture set to prove it FAILS. A gate not proven to bite is not
 # a gate.
@@ -43,7 +48,23 @@ TRIGGER='^(database/migrations/|app/src/services/|app/src/modules/(game|training
 SATISFIER='^(docs/architecture/|decisions/)'
 BASE_REF="${DOC_SYNC_BASE_REF:-origin/main}"
 
+COMMENT_LINE='^[[:space:]]*($|/\*|\*|//)'
+
+code_changed_in() {
+  local file="$1" diff
+  if [ -n "$DIFF_FROM" ]; then
+    diff=$(git diff -U0 "$DIFF_FROM"..HEAD -- "$file")
+  else
+    diff=$(git diff --cached -U0 -- "$file")
+  fi
+  printf '%s\n' "$diff" | grep -E '^[+-]' | grep -vE '^(\+\+\+|---)' |
+    sed -E 's/^[+-]//' | grep -qvE "$COMMENT_LINE"
+}
+
+DIFF_FROM=""
+EXPLICIT=0
 if [ "$#" -gt 0 ]; then
+  EXPLICIT=1
   CHANGED=$(printf '%s\n' "$@")
 elif ! git diff --cached --quiet 2>/dev/null; then
   CHANGED=$(git diff --cached --name-only --diff-filter=ACMR)
@@ -58,9 +79,20 @@ else
     exit 0
   fi
   CHANGED=$(git diff --name-only --diff-filter=ACMR "$MERGE_BASE"..HEAD)
+  DIFF_FROM="$MERGE_BASE"
 fi
 
 TRIGGERED=$(printf '%s\n' "$CHANGED" | grep -E "$TRIGGER" || true)
+if [ -n "$TRIGGERED" ] && [ "$EXPLICIT" -eq 0 ]; then
+  KEPT=""
+  while IFS= read -r file; do
+    case "$file" in
+      *.ts | *.astro) code_changed_in "$file" || continue ;;
+    esac
+    KEPT="${KEPT:+$KEPT$'\n'}$file"
+  done <<<"$TRIGGERED"
+  TRIGGERED="$KEPT"
+fi
 if [ -z "$TRIGGERED" ]; then
   echo "OK: doc-sync — no change under a documented domain path."
   exit 0
