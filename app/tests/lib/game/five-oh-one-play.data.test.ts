@@ -1188,7 +1188,7 @@ describe("playAgain", () => {
       config: {
         source: "template",
         templateRef: "tpl-1",
-        overrides: { legs_to_win: 1 },
+        overrides: { starting_score: 501, legs_to_win: 1 },
       },
     });
     expect(play.$store.game.sessionId).toBe("new-session");
@@ -1202,6 +1202,29 @@ describe("playAgain", () => {
     await play.submitVisit.call(play);
     expect(play.$store.game.turns).toHaveLength(1);
     expect(play.$store.game.turns[0].sequence).toBe(1);
+  });
+
+  it("playAgain from a 301 V1 match sends starting_score 301", async () => {
+    const play = makePlay({
+      configSnapshot: { ...quickPlayConfig(), startingScore: 301 },
+      turns: [turnFact("t1", "leg-1", 1, 301)],
+    });
+    play.completionStatus = "succeeded";
+    play.finished = true;
+    vi.mocked(createSession).mockResolvedValue({
+      sessionId: "new-session",
+      participants: [
+        { ref: "p1", displayName: "Player", participantTypeKey: "PLAYER" },
+      ],
+    } as any);
+    await play.playAgain.call(play);
+    expect(createSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        config: expect.objectContaining({
+          overrides: expect.objectContaining({ starting_score: 301 }),
+        }),
+      }),
+    );
   });
 
   it("falls back to quick score when no mode settings are available", async () => {
@@ -1269,7 +1292,7 @@ describe("playAgain", () => {
       config: {
         source: "template",
         templateRef: "tpl-1",
-        overrides: { legs_to_win: 3 },
+        overrides: { starting_score: 501, legs_to_win: 3 },
       },
     });
   });

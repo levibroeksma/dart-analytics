@@ -104,7 +104,12 @@ function resumeEngine(
  * never ride the wire.
  */
 function playAgainWire(config: FiveOhOneAnySnapshot): Record<string, unknown> {
-  if ("legsToWin" in config) return { legs_to_win: config.legsToWin };
+  if ("legsToWin" in config) {
+    return {
+      starting_score: config.startingScore,
+      legs_to_win: config.legsToWin,
+    };
+  }
   return {
     starting_score: config.startingScore,
     legs: config.legs,
