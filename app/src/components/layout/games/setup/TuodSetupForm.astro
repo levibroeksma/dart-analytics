@@ -1,13 +1,11 @@
 ---
 // Components
-import Toggle from "./Toggle.astro";
+import DurationField from "./DurationField.astro";
 import Switch from "@components/forms/Switch.astro";
 import InfoSection from "@components/ui/InfoSection.astro";
 import SetupShell from "./SetupShell.astro";
 import SettingSectionShell from "./SettingSectionShell.astro";
 import UserSection from "./UserSection.astro";
-import SettingLabel from "./SettingLabel.astro";
-import RangeSlider from "@components/forms/RangeSlider.astro";
 import { supportsDartbot } from "@lib/game/rulesets/capabilities";
 import { tuodDurationBounds } from "@lib/game/tuod-duration";
 
@@ -37,48 +35,12 @@ const infoSection = {
     description={infoSection.description}
   />
   <SettingSectionShell>
-    <template x-if="guests.length === 0 && !bot">
-      <div class="flex flex-col gap-4">
-        <div class="flex flex-col gap-2">
-          <SettingLabel text="FORMAT" />
-          <Toggle
-            orientation="horizontal"
-            options={durationOpts}
-            x-model="durationType"
-            class="w-full"
-          />
-        </div>
-        <template x-if="durationType === 'ROUNDS'">
-          <RangeSlider
-            min={rounds.min}
-            max={rounds.max}
-            label="ROUNDS"
-            ariaLabel="Number of rounds"
-            hint={soloHint}
-            x-model="durationValue"
-          />
-        </template>
-        <template x-if="durationType === 'MINUTES'">
-          <RangeSlider
-            min={minutes.min}
-            max={minutes.max}
-            label="MINUTES"
-            ariaLabel="Number of minutes"
-            hint={soloHint}
-            x-model="durationValue"
-          />
-        </template>
-      </div>
-    </template>
-    <template x-if="guests.length > 0 || bot">
-      <RangeSlider
-        min={rounds.min}
-        max={rounds.max}
-        label="ROUNDS"
-        ariaLabel="Number of rounds"
-        x-model="durationValue"
-      />
-    </template>
+    <DurationField
+      formatOptions={durationOpts}
+      rounds={rounds}
+      minutes={minutes}
+      soloHint={soloHint}
+    />
     <Switch
       label="Show checkout hints"
       x-model="$store.checkoutHints.enabled"
