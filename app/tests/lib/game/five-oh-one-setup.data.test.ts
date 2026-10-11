@@ -178,6 +178,57 @@ describe("buildFiveOhOneV2Wire", () => {
   });
 });
 
+describe("fiveOhOneSetup played-format notices", () => {
+  function setup(overrides: Record<string, unknown>) {
+    return { ...fiveOhOneSetup(), ...overrides } as any;
+  }
+
+  it("names the odd count an even best-of will play", () => {
+    expect(
+      setup({ matchMode: "BEST_OF", legsToWin: 4 }).legsPlayedNotice(),
+    ).toBe("Plays best of 5");
+  });
+
+  it("names the capped count when an even best-of sits at the max", () => {
+    expect(
+      setup({ matchMode: "BEST_OF", legsToWin: 20 }).legsPlayedNotice(),
+    ).toBe("Plays best of 19");
+  });
+
+  it("is empty for an odd best-of and for first-to", () => {
+    expect(
+      setup({ matchMode: "BEST_OF", legsToWin: 5 }).legsPlayedNotice(),
+    ).toBe("");
+    expect(
+      setup({ matchMode: "FIRST_TO", legsToWin: 4 }).legsPlayedNotice(),
+    ).toBe("");
+  });
+
+  it("clamps a blank or out-of-range count before judging it", () => {
+    expect(
+      setup({ matchMode: "BEST_OF", legsToWin: "" }).legsPlayedNotice(),
+    ).toBe("");
+    expect(
+      setup({ matchMode: "BEST_OF", legsToWin: 99 }).legsPlayedNotice(),
+    ).toBe("Plays best of 19");
+  });
+
+  it("reports the legs-per-set count from its own mode and count", () => {
+    expect(
+      setup({
+        legsPerSetMode: "BEST_OF",
+        legsPerSet: 2,
+      }).legsPerSetPlayedNotice(),
+    ).toBe("Plays best of 3");
+    expect(
+      setup({
+        legsPerSetMode: "FIRST_TO",
+        legsPerSet: 2,
+      }).legsPerSetPlayedNotice(),
+    ).toBe("");
+  });
+});
+
 describe("fiveOhOneSetup", () => {
   let store: FiveOhOneSetupContext["$store"];
 

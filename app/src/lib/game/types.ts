@@ -528,6 +528,8 @@ export type FiveOhOneSetupContext = SetupSessionContext & {
   autoCap: number | null;
   capMin(): number;
   syncCap(): void;
+  legsPlayedNotice(): string;
+  legsPerSetPlayedNotice(): string;
   legsClampNotice: string;
   init(this: FiveOhOneSetupContext): Promise<void>;
   basePreset(this: FiveOhOneSetupContext): ConfigurationPresetData | undefined;

@@ -107,6 +107,14 @@ const infoSection = {
           class="w-full"
         />
       </div>
+      <p
+        class="px-0.5 text-xs text-muted"
+        role="status"
+        x-show="legsPlayedNotice()"
+        x-text="legsPlayedNotice()"
+        x-cloak
+      >
+      </p>
     </div>
     <div
       class="flex flex-col gap-2"
@@ -129,6 +137,14 @@ const infoSection = {
           class="justify-self-center"
         />
       </div>
+      <p
+        class="px-0.5 text-xs text-muted"
+        role="status"
+        x-show="legsPerSetPlayedNotice()"
+        x-text="legsPerSetPlayedNotice()"
+        x-cloak
+      >
+      </p>
     </div>
     <Switch
       label="Win by 2 legs"
