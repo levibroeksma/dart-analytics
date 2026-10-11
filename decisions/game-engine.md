@@ -395,3 +395,10 @@ Decision: `501_V2` adds best of N (odd only), sets, win by 2 legs with a configu
 Reason: the stage tree already supports nesting (`parent_stage_id`, per-parent sequence uniqueness, `v_replay_stages`); a global leg sequence under SET parents would give `sequence` two meanings, and flat legs would make set grouping unreachable in SQL. Ignoring trailing stages in V1 costs nothing and keeps old sessions resumable; V2 has no legacy logs, so strictness catches corruption. One card avoids a duplicate 501 entry for a version the user never picks.
 Consequences: no migration; seed `0037` and the `0007` capability rows carry the version. `SEAT_CAPS` gains `501_V2` (4). Statistics order legs per set. Spec: `docs/superpowers/specs/2026-10-10-501-v2-match-formats-design.md`; rules: `docs/game-rules/rulesets/501.md`.
 Supersedes: none.
+
+### D449 — Single-set 501 keeps `decidingSet` true; only the subtitle flag is dropped
+Status: Accepted · Date: 2026-10-11
+Decision: with `sets` first to 1, `decidingSet` from the match fold stays true from the first leg, so the Win-by-2 DECIDING_SET margin scope applies to the only set. The play subtitle omits the DECIDING SET flag when the set race target is 1.
+Reason: the only set is the one that can end the match, so the margin applying is correct; the flag is noise because it says nothing a one-set match does not already imply. Changing the fold would alter rules behaviour for a display problem.
+Consequences: `fiveOhOneSubtitle` carries the single-set check; `match-format.module.ts` is unchanged. Rules: `docs/game-rules/rulesets/501.md`. Issue #906.
+Supersedes: none.
