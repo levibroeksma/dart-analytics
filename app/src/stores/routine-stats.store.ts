@@ -259,8 +259,8 @@ export function routineStatsStore() {
     stepSections: {} as Record<string, SeriesView>,
     /**
      * The Games tab's own section view, fed from `stepSections`, that a GAME
-     * step's cards render through (`GameSectionCards.astro`): its getters
-     * do the rest. `selectStep` names the step's `gameTypeKey` the moment a
+     * step's cards render through (no card is mounted on it since the
+     * generic cards were removed, D446): its getters do the rest. `selectStep` names the step's `gameTypeKey` the moment a
      * GAME step is selected, before any await, and the cards exist only
      * while a GAME step is (`x-if`), so the factory's own `"501"` default
      * is never rendered. Its loaders are never called: the step's cards
