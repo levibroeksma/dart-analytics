@@ -1,6 +1,7 @@
 /**
- * `legs_to_win` bounds, matching `FiveOhOneConfig`'s `.min(1).max(20)` and the
- * V1 config screen in `docs/game-rules/rulesets/501.md`.
+ * Bounds for every 501 leg and set count: V1 `legs_to_win`, and the V2 match
+ * format's legs, sets and best-of counts. Match `FiveOhOneConfig`'s
+ * `.min(1).max(20)` and the config screen in `docs/game-rules/rulesets/501.md`.
  */
 export const FIVE_OH_ONE_LEGS_MIN = 1;
 export const FIVE_OH_ONE_LEGS_MAX = 20;
