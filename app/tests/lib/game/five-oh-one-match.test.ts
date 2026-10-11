@@ -78,6 +78,26 @@ describe("fiveOhOneSubtitle", () => {
       "SET 3 · LEG 2 · FIRST TO 3 SETS · DECIDING SET",
     );
   });
+  it("single-set format omits the deciding set flag", () => {
+    const stages = [
+      {
+        clientKey: "set-1",
+        stageTypeKey: "SET" as const,
+        parentClientKey: null,
+        sequence: 1,
+      },
+      {
+        clientKey: "set-1-leg-1",
+        stageTypeKey: "LEG" as const,
+        parentClientKey: "set-1",
+        sequence: 1,
+      },
+    ] as any;
+    const config = v2({ sets: { mode: "FIRST_TO", count: 1 } });
+    expect(
+      fiveOhOneSubtitle(config, stages, state({ decidingSet: true })),
+    ).toBe("SET 1 · LEG 1 · FIRST TO 1 SETS");
+  });
   it("sudden death outranks deciding set", () => {
     expect(
       fiveOhOneSubtitle(
