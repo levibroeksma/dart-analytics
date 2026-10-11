@@ -3,6 +3,7 @@ import { matchWinnerName } from "@lib/game/match-result-text";
 import { joinSubtitle } from "@lib/game/play-subtitle";
 import {
   BULL_TARGET_NUMBER,
+  boardTargetLabel,
   targetAt,
 } from "@modules/game/board-progression.module";
 import {
@@ -94,8 +95,7 @@ function timedConfig(
 }
 
 function labelOf(rules: AroundTheClockRules, index: number): string {
-  const target = targetAt(rules.path, index);
-  return target.kind === "BULL" ? "BULL" : String(target.number);
+  return boardTargetLabel(targetAt(rules.path, index));
 }
 
 const EMPTY_SEGMENTS: readonly AroundTheClockPreviewSegment[] = [

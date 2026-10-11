@@ -9,7 +9,11 @@ import {
   isClockHit,
   rulesOf,
 } from "@modules/game/around-the-clock.engine.module";
-import { doublesPath, targetAt } from "@modules/game/board-progression.module";
+import {
+  boardTargetLabel,
+  doublesPath,
+  targetAt,
+} from "@modules/game/board-progression.module";
 import { checkoutAttemptCount } from "@modules/game/checkout-bust.module";
 import {
   CRICKET_OBJECTIVES,
@@ -29,7 +33,6 @@ import type {
 } from "@lib/types";
 import type {
   AroundTheClockSeatState,
-  BoardTarget,
   Bobs27SeatState,
   CricketSeatState,
   TacticsSeatState,
@@ -94,11 +97,6 @@ function hitsCell(hits: readonly boolean[]): ReplayCell {
     label: "Hits",
     marks: hits.map((hit): ReplayMark => (hit ? "hit" : "miss")),
   };
-}
-
-/** The number-or-BULL label the Singles, Shanghai and Around the Clock play pages show. */
-function targetLabel(target: BoardTarget): string {
-  return target.kind === "BULL" ? "BULL" : String(target.number);
 }
 
 /** A seat's final progress: the target it stopped at, or its finished status. */
@@ -247,7 +245,7 @@ const SINGLES: ReplayPresenter = {
     );
     const seat = seatIn<SinglesTrainingSeatState>(after, turn.participantRef);
     return [
-      valueCell("Target", targetLabel(singlesTargetOf(seat, config))),
+      valueCell("Target", boardTargetLabel(singlesTargetOf(seat, config))),
       hitsCell(
         steps.map((step) => step.after.totalPoints > step.before.totalPoints),
       ),
@@ -256,7 +254,10 @@ const SINGLES: ReplayPresenter = {
   session(steps, snapshot) {
     const config = snapshot as unknown as SinglesConfig;
     return finalLine<SinglesTrainingSeatState>(steps, "Progress", (seat) =>
-      progressLabel(seat.status, targetLabel(singlesTargetOf(seat, config))),
+      progressLabel(
+        seat.status,
+        boardTargetLabel(singlesTargetOf(seat, config)),
+      ),
     );
   },
 };
@@ -322,7 +323,7 @@ const SHANGHAI: ReplayPresenter = {
     );
     const seat = seatIn<ShanghaiSeatState>(after, turn.participantRef);
     return [
-      valueCell("Target", targetLabel(shanghaiTargetOf(seat))),
+      valueCell("Target", boardTargetLabel(shanghaiTargetOf(seat))),
       hitsCell(
         turn.darts.map(
           (dart) =>
@@ -333,7 +334,7 @@ const SHANGHAI: ReplayPresenter = {
   },
   session: (steps) =>
     finalLine<ShanghaiSeatState>(steps, "Progress", (seat) =>
-      progressLabel(seat.status, targetLabel(shanghaiTargetOf(seat))),
+      progressLabel(seat.status, boardTargetLabel(shanghaiTargetOf(seat))),
     ),
 };
 
@@ -354,7 +355,7 @@ const AROUND_THE_CLOCK: ReplayPresenter = {
     );
     const seat = seatIn<AroundTheClockSeatState>(after, turn.participantRef);
     return [
-      valueCell("Target", targetLabel(clockTargetOf(seat, config))),
+      valueCell("Target", boardTargetLabel(clockTargetOf(seat, config))),
       hitsCell(
         steps.map((step) =>
           isClockHit(
@@ -369,7 +370,7 @@ const AROUND_THE_CLOCK: ReplayPresenter = {
   session(steps, snapshot) {
     const config = snapshot as unknown as AroundTheClockEngineConfig;
     return finalLine<AroundTheClockSeatState>(steps, "Progress", (seat) =>
-      progressLabel(seat.status, targetLabel(clockTargetOf(seat, config))),
+      progressLabel(seat.status, boardTargetLabel(clockTargetOf(seat, config))),
     );
   },
 };

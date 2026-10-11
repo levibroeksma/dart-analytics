@@ -1,4 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import {
+  boardTargetLabel,
+  numbersPath,
+} from "@modules/game/board-progression.module";
 
 vi.mock("@client/api/sessions", () => ({
   appendBatch: vi.fn(),
@@ -226,6 +230,9 @@ describe("currentTargetLabel / turnsSoFar / isBullVisit", () => {
     const play = makePlay();
     await play.init.call(play);
     expect(play.currentTargetLabel.call(play)).toBe("1");
+    expect(play.currentTargetLabel.call(play)).toBe(
+      boardTargetLabel(numbersPath()[0]!),
+    );
     expect(play.turnsSoFar.call(play)).toBe("0");
     expect(play.isBullVisit.call(play)).toBe(false);
   });
