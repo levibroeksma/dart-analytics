@@ -15,9 +15,10 @@ interface Props {
 }
 
 // Props
-const { title, ...props }: Props = Astro.props;
+const { title, class: classNameProp = "", ...props }: Props = Astro.props;
 
 // Components
+import { cn } from "@client/cn";
 import AppLayout from "@layouts/AppLayout.astro";
 import Button from "@components/forms/Button.astro";
 import ContinueSessionModal from "@components/layout/games/ContinueSessionModal.astro";
@@ -25,7 +26,7 @@ import ContinueSessionModal from "@components/layout/games/ContinueSessionModal.
 
 <AppLayout title={`${title} — Setup`}>
   <div
-    class="p-4"
+    class={cn("p-4", classNameProp as string)}
     {...props}
   >
     <template x-if="showActiveSessionModal && activeSession">
