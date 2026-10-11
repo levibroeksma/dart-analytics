@@ -254,3 +254,10 @@ Decision: `PersonalBestFinishCard.astro` (`personalBestFinishSection()`) mounts 
 Reason: the ladder's highest target reached is already a stored-fact fold in `ladder-progress`; the best finish is that minus one, so no new section, view or schema is needed.
 Consequences: no API or schema change. No date subtext: `maxTarget` carries none. Abandoned sessions are excluded (`includesAbandoned: false`). Not browser-checked.
 Supersedes: none (extends D411).
+
+### D447 — One `createSetupSession` mixin owns setup state and session recovery
+Status: Accepted · Date: 2026-10-11
+Decision: `createSetupSession({ gameTypeKey, playHref })` (`lib/game/setup-session.ts`) returns the 13 shared setup fields and `reconcile`, `retryReconciliation`, `continueSession`, `abandonSession`, `removeGuest`, `removeBot`. `createPresetSetupController`, `fiveOhOneSetup`, `scoreTrainingSetup`, `oneTwentyOneSetup` and `tuodSetup` spread it. `SetupSessionContext` in `types.ts` is the matching type; the five setup context types intersect it.
+Reason: the fields and methods were byte-identical across five controllers and five context types, differing only in game key and play URL, so a fix to recovery had to land five times. `GameSetupPage` reads them, so a controller missing one broke the page silently.
+Consequences: no behaviour, store, API or markup change. `start()`, `init()`, `addGuest()`, `addBot()` and the opt-outs from `createPresetSetupController` stay as they were (D216); the `SESSION_ALREADY_ACTIVE` and `init()` catch blocks stay duplicated by design.
+Supersedes: none (extends D216).
