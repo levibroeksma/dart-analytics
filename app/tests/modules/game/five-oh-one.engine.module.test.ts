@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   FiveOhOneEngine,
   fiveOhOneEngineFactory,
+  fiveOhOneV2EngineFactory,
   foldFiveOhOneState,
   initialFiveOhOneState,
   legResultsOf,
@@ -16,8 +17,13 @@ import type {
   FiveOhOneState,
   FiveOhOneVisitInput,
   MultiSeatState,
+  StageFact,
 } from "@modules/types";
-import type { FiveOhOneSnapshot, Seated } from "@lib/types";
+import type {
+  FiveOhOneSnapshot,
+  FiveOhOneV2Snapshot,
+  Seated,
+} from "@lib/types";
 
 const SEATS = [
   {
@@ -93,7 +99,10 @@ describe("initialFiveOhOneState", () => {
       activeParticipantRef: "participant-1",
       status: "IN_PROGRESS",
       winningSideKey: null,
-      sides: [{ sideKey: "A", legsWon: 0 }],
+      sides: [{ sideKey: "A", legsWon: 0, setsWon: 0 }],
+      sets: [{ legsWon: { A: 0 }, winner: null }],
+      decidingSet: false,
+      suddenDeath: false,
       seats: [
         {
           participantRef: "participant-1",
@@ -363,7 +372,10 @@ describe("FiveOhOneEngine — state", () => {
       activeParticipantRef: "participant-1",
       status: "IN_PROGRESS",
       winningSideKey: null,
-      sides: [{ sideKey: "A", legsWon: 0 }],
+      sides: [{ sideKey: "A", legsWon: 0, setsWon: 0 }],
+      sets: [{ legsWon: { A: 0 }, winner: null }],
+      decidingSet: false,
+      suddenDeath: false,
       seats: [
         {
           participantRef: "participant-1",
@@ -581,7 +593,10 @@ describe("FiveOhOneEngine.undo", () => {
       activeParticipantRef: "participant-1",
       status: "IN_PROGRESS",
       winningSideKey: null,
-      sides: [{ sideKey: "A", legsWon: 0 }],
+      sides: [{ sideKey: "A", legsWon: 0, setsWon: 0 }],
+      sets: [{ legsWon: { A: 0 }, winner: null }],
+      decidingSet: false,
+      suddenDeath: false,
       seats: [
         {
           participantRef: "participant-1",
@@ -621,7 +636,10 @@ describe("FiveOhOneEngine.undo", () => {
       activeParticipantRef: "participant-1",
       status: "IN_PROGRESS",
       winningSideKey: null,
-      sides: [{ sideKey: "A", legsWon: 1 }],
+      sides: [{ sideKey: "A", legsWon: 1, setsWon: 0 }],
+      sets: [{ legsWon: { A: 1 }, winner: null }],
+      decidingSet: false,
+      suddenDeath: false,
       seats: [
         {
           participantRef: "participant-1",
@@ -659,7 +677,10 @@ describe("FiveOhOneEngine.undo", () => {
       activeParticipantRef: "participant-1",
       status: "IN_PROGRESS",
       winningSideKey: null,
-      sides: [{ sideKey: "A", legsWon: 0 }],
+      sides: [{ sideKey: "A", legsWon: 0, setsWon: 0 }],
+      sets: [{ legsWon: { A: 0 }, winner: null }],
+      decidingSet: false,
+      suddenDeath: false,
       seats: [
         {
           participantRef: "participant-1",
@@ -727,7 +748,10 @@ describe("FiveOhOneEngine — rehydration", () => {
       activeParticipantRef: "participant-1",
       status: "IN_PROGRESS",
       winningSideKey: null,
-      sides: [{ sideKey: "A", legsWon: 1 }],
+      sides: [{ sideKey: "A", legsWon: 1, setsWon: 0 }],
+      sets: [{ legsWon: { A: 1 }, winner: null }],
+      decidingSet: false,
+      suddenDeath: false,
       seats: [
         {
           participantRef: "participant-1",
@@ -998,7 +1022,10 @@ describe("FiveOhOneEngine.undo — visual board", () => {
       activeParticipantRef: "participant-1",
       status: "IN_PROGRESS",
       winningSideKey: null,
-      sides: [{ sideKey: "A", legsWon: 1 }],
+      sides: [{ sideKey: "A", legsWon: 1, setsWon: 0 }],
+      sets: [{ legsWon: { A: 1 }, winner: null }],
+      decidingSet: false,
+      suddenDeath: false,
       seats: [
         {
           participantRef: "participant-1",
@@ -1019,7 +1046,10 @@ describe("FiveOhOneEngine.undo — visual board", () => {
       activeParticipantRef: "participant-1",
       status: "IN_PROGRESS",
       winningSideKey: null,
-      sides: [{ sideKey: "A", legsWon: 0 }],
+      sides: [{ sideKey: "A", legsWon: 0, setsWon: 0 }],
+      sets: [{ legsWon: { A: 0 }, winner: null }],
+      decidingSet: false,
+      suddenDeath: false,
       seats: [
         {
           participantRef: "participant-1",
@@ -1036,7 +1066,10 @@ describe("FiveOhOneEngine.undo — visual board", () => {
       activeParticipantRef: "participant-1",
       status: "IN_PROGRESS",
       winningSideKey: null,
-      sides: [{ sideKey: "A", legsWon: 0 }],
+      sides: [{ sideKey: "A", legsWon: 0, setsWon: 0 }],
+      sets: [{ legsWon: { A: 0 }, winner: null }],
+      decidingSet: false,
+      suddenDeath: false,
       seats: [
         {
           participantRef: "participant-1",
@@ -1441,8 +1474,8 @@ describe("FiveOhOneEngine with two seats", () => {
     const state = engine.state();
 
     expect(state.sides).toEqual([
-      { sideKey: "A", legsWon: 1 },
-      { sideKey: "B", legsWon: 0 },
+      { sideKey: "A", legsWon: 1, setsWon: 0 },
+      { sideKey: "B", legsWon: 0, setsWon: 0 },
     ]);
   });
 
@@ -1743,3 +1776,459 @@ describe("legResultsOf", () => {
     ]);
   });
 });
+
+const V2_SEATS = [
+  SEATS[0]!,
+  {
+    participantRef: "participant-2",
+    displayName: "Guest",
+    sideKey: "B",
+    participantTypeKey: "GUEST" as const,
+  },
+];
+
+const v2Config = (patch: Partial<FiveOhOneV2Snapshot> = {}) =>
+  ({
+    startingScore: 501,
+    checkIn: "STRAIGHT_IN",
+    checkOut: "DOUBLE_OUT",
+    maxDartsPerTurn: 3,
+    maxVisitScore: 180,
+    legs: { mode: "FIRST_TO", count: 1 },
+    sets: { mode: "FIRST_TO", count: 2 },
+    winByTwo: null,
+    seats: V2_SEATS,
+    ...patch,
+  }) satisfies Seated<FiveOhOneV2Snapshot>;
+
+/** The seat that opens the leg throws 180, 180, 101 (others score 0) and stands on 40. */
+function leaveOpenerOnForty(engine: FiveOhOneGameEngine): void {
+  const opener = engine.state().activeParticipantRef;
+  for (const score of [180, 180, 101]) {
+    engine.record({ scoreAttempted: score });
+    while (engine.state().activeParticipantRef !== opener)
+      engine.record({ scoreAttempted: 0 });
+  }
+}
+
+/** The seat that opens the leg wins it on a 40 checkout. */
+function activeWinsLeg(engine: FiveOhOneGameEngine): FiveOhOneState {
+  leaveOpenerOnForty(engine);
+  return engine.record({ scoreAttempted: 40, finishedOnDouble: true });
+}
+
+describe("501_V2 factory", () => {
+  it("registers under 501_V2 and reports that key", () => {
+    expect(getEngineFactory("501_V2")).toBe(fiveOhOneV2EngineFactory);
+    expect(fiveOhOneV2EngineFactory.create(v2Config()).rulesetVersionKey).toBe(
+      "501_V2",
+    );
+  });
+});
+
+describe("501_V2 sets match", () => {
+  it("opens set-1 and its first leg", () => {
+    const engine = fiveOhOneV2EngineFactory.create(v2Config());
+    expect(engine.facts().stages.map((s) => s.clientKey)).toEqual([
+      "set-1",
+      "set-1-leg-1",
+    ]);
+  });
+
+  it("a won set opens the next set; set 2 opens on seat 2", () => {
+    const engine = fiveOhOneV2EngineFactory.create(v2Config());
+    const state = activeWinsLeg(engine);
+    expect(state.sets[0]!.winner).toBe("A");
+    expect(engine.facts().stages.map((s) => s.clientKey)).toEqual([
+      "set-1",
+      "set-1-leg-1",
+      "set-2",
+      "set-2-leg-1",
+    ]);
+    expect(state.activeParticipantRef).toBe("participant-2");
+    expect(state.sides.find((s) => s.sideKey === "A")).toEqual({
+      sideKey: "A",
+      legsWon: 0,
+      setsWon: 1,
+    });
+  });
+
+  it("a second set won by the other side levels the match into a deciding set", () => {
+    const engine = fiveOhOneV2EngineFactory.create(v2Config());
+    activeWinsLeg(engine);
+    leaveOpenerOnForty(engine);
+    expect(engine.state().activeParticipantRef).toBe("participant-2");
+    const state = engine.record({ scoreAttempted: 40, finishedOnDouble: true });
+    expect(state.sides.map((side) => side.setsWon)).toEqual([1, 1]);
+    expect(state.status).toBe("IN_PROGRESS");
+    expect(state.decidingSet).toBe(true);
+  });
+
+  it("wouldComplete is true only for the checkout that wins the match", () => {
+    const engine = fiveOhOneV2EngineFactory.create(v2Config({ sets: null }));
+    leaveOpenerOnForty(engine);
+    expect(
+      engine.wouldComplete({ scoreAttempted: 40, finishedOnDouble: true }),
+    ).toBe(true);
+    expect(engine.wouldComplete({ scoreAttempted: 39 })).toBe(false);
+  });
+
+  it("a set-winning checkout is not match-winning", () => {
+    const engine = fiveOhOneV2EngineFactory.create(v2Config());
+    leaveOpenerOnForty(engine);
+    expect(
+      engine.wouldComplete({ scoreAttempted: 40, finishedOnDouble: true }),
+    ).toBe(false);
+  });
+
+  it("rehydrate and undo are exact inverses across a set boundary", () => {
+    const engine = fiveOhOneV2EngineFactory.create(v2Config());
+    leaveOpenerOnForty(engine);
+    const beforeFacts = engine.facts();
+    const beforeState = engine.state();
+    engine.record({ scoreAttempted: 40, finishedOnDouble: true });
+    const rebuilt = fiveOhOneV2EngineFactory.create(v2Config(), engine.facts());
+    expect(rebuilt.state()).toEqual(engine.state());
+    expect(rebuilt.undo()).toBe(true);
+    expect(rebuilt.facts().stages).toEqual(beforeFacts.stages);
+    expect(rebuilt.state()).toEqual(beforeState);
+  });
+
+  it("a dart-by-dart checkout across the set boundary rehydrates and undoes exactly", () => {
+    const engine = fiveOhOneV2EngineFactory.create(
+      v2Config({ startingScore: 40 }),
+    );
+    const beforeFacts = structuredClone(engine.facts());
+    const beforeState = structuredClone(engine.state());
+    const state = engine.record({
+      hitTargetNumber: 20,
+      hitZoneKey: "DOUBLE",
+      locationX: 0,
+      locationY: -166,
+    });
+    expect(engine.facts().stages.map((s) => s.clientKey)).toEqual([
+      "set-1",
+      "set-1-leg-1",
+      "set-2",
+      "set-2-leg-1",
+    ]);
+    expect(state.sets[0]!.winner).toBe("A");
+    expect(state.activeParticipantRef).toBe("participant-2");
+
+    const rebuilt = fiveOhOneV2EngineFactory.create(
+      v2Config({ startingScore: 40 }),
+      structuredClone(engine.facts()),
+    );
+    expect(rebuilt.state()).toEqual(engine.state());
+    expect(rebuilt.state().activeParticipantRef).toBe("participant-2");
+
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts()).toEqual(beforeFacts);
+    expect(engine.state()).toEqual(beforeState);
+    expect(engine.state().activeParticipantRef).toBe("participant-1");
+  });
+
+  it("win by 2 plays past the target", () => {
+    const engine = fiveOhOneV2EngineFactory.create(
+      v2Config({ sets: null, winByTwo: { cap: 3, scope: "EVERY_SET" } }),
+    );
+    const afterOne = activeWinsLeg(engine);
+    expect(afterOne.status).toBe("IN_PROGRESS");
+  });
+
+  it("throws on a LEG whose SET parent is missing", () => {
+    expect(() =>
+      fiveOhOneV2EngineFactory
+        .create(v2Config(), {
+          stages: [
+            {
+              clientKey: "set-1-leg-1",
+              stageTypeKey: "LEG",
+              parentClientKey: "set-1",
+              sequence: 1,
+            },
+          ],
+          turns: [],
+        })
+        .state(),
+    ).toThrow(/unknown set/);
+  });
+
+  it("throws on a SET stage under a sets-off format", () => {
+    expect(() =>
+      fiveOhOneV2EngineFactory
+        .create(v2Config({ sets: null }), {
+          stages: [
+            {
+              clientKey: "set-1",
+              stageTypeKey: "SET",
+              parentClientKey: null,
+              sequence: 1,
+            },
+          ],
+          turns: [],
+        })
+        .state(),
+    ).toThrow(/sets are off/);
+  });
+});
+
+describe("501_V1 golden", () => {
+  it("folds a three-leg V1 log exactly as before", () => {
+    const engine = new FiveOhOneEngine({ ...config(), legsToWin: 3 });
+    winOneLeg(engine);
+    winOneLeg(engine);
+    const state = engine.state();
+    expect(state.status).toBe("IN_PROGRESS");
+    expect(state.sides).toEqual([{ sideKey: "A", legsWon: 2, setsWon: 0 }]);
+    expect(
+      engine
+        .facts()
+        .stages.map((s) => [s.clientKey, s.parentClientKey, s.sequence]),
+    ).toEqual([
+      ["leg-1", null, 1],
+      ["leg-2", null, 2],
+      ["leg-3", null, 3],
+    ]);
+    expect(engine.rulesetVersionKey).toBe("501_V1");
+  });
+});
+
+describe("501_V2 match end and corrupt logs", () => {
+  const SET1: StageFact = {
+    clientKey: "set-1",
+    stageTypeKey: "SET",
+    parentClientKey: null,
+    sequence: 1,
+  };
+  const SET1_LEG1: StageFact = {
+    clientKey: "set-1-leg-1",
+    stageTypeKey: "LEG",
+    parentClientKey: "set-1",
+    sequence: 1,
+  };
+
+  it("drives a sets match to WON, opens nothing after, and undoes the win", () => {
+    const engine = fiveOhOneV2EngineFactory.create(
+      v2Config({ sets: { mode: "FIRST_TO", count: 1 } }),
+    );
+    leaveOpenerOnForty(engine);
+    const preWinFacts = engine.facts();
+    const preWinState = engine.state();
+    const state = engine.record({ scoreAttempted: 40, finishedOnDouble: true });
+    expect(state.status).toBe("WON");
+    expect(state.winningSideKey).toBe("A");
+    expect(state.sides).toEqual([
+      { sideKey: "A", legsWon: 1, setsWon: 1 },
+      { sideKey: "B", legsWon: 0, setsWon: 0 },
+    ]);
+    expect(engine.facts().stages.map((stage) => stage.clientKey)).toEqual([
+      "set-1",
+      "set-1-leg-1",
+    ]);
+    const rebuilt = fiveOhOneV2EngineFactory.create(
+      v2Config({ sets: { mode: "FIRST_TO", count: 1 } }),
+      engine.facts(),
+    );
+    expect(rebuilt.state()).toEqual(state);
+    expect(rebuilt.undo()).toBe(true);
+    expect(rebuilt.facts()).toEqual(preWinFacts);
+    expect(rebuilt.state()).toEqual(preWinState);
+  });
+
+  it("throws on a root LEG while sets are on", () => {
+    expect(() =>
+      fiveOhOneV2EngineFactory
+        .create(v2Config(), {
+          stages: [
+            {
+              clientKey: "leg-1",
+              stageTypeKey: "LEG",
+              parentClientKey: null,
+              sequence: 1,
+            },
+          ],
+          turns: [],
+        })
+        .state(),
+    ).toThrow(/root leg/);
+  });
+
+  it("throws on a SET opened before the previous set was won", () => {
+    expect(() =>
+      fiveOhOneV2EngineFactory
+        .create(v2Config(), {
+          stages: [
+            SET1,
+            SET1_LEG1,
+            {
+              clientKey: "set-2",
+              stageTypeKey: "SET",
+              parentClientKey: null,
+              sequence: 2,
+            },
+            {
+              clientKey: "set-2-leg-1",
+              stageTypeKey: "LEG",
+              parentClientKey: "set-2",
+              sequence: 1,
+            },
+          ],
+          turns: [],
+        })
+        .state(),
+    ).toThrow(/before the previous set was won/);
+  });
+
+  it("throws on a SET while sets are off", () => {
+    expect(() =>
+      fiveOhOneV2EngineFactory
+        .create(v2Config({ sets: null }), {
+          stages: [
+            {
+              clientKey: "set-1",
+              stageTypeKey: "SET",
+              parentClientKey: null,
+              sequence: 1,
+            },
+          ],
+          turns: [],
+        })
+        .state(),
+    ).toThrow(/while sets are off/);
+  });
+
+  it("throws on stages recorded after the match was won", () => {
+    const won = fiveOhOneV2EngineFactory.create(
+      v2Config({ sets: { mode: "FIRST_TO", count: 1 } }),
+    );
+    activeWinsLeg(won);
+    const facts = won.facts();
+    const extra: StageFact = {
+      clientKey: "set-1-leg-2",
+      stageTypeKey: "LEG",
+      parentClientKey: "set-1",
+      sequence: 2,
+    };
+    expect(() =>
+      fiveOhOneV2EngineFactory
+        .create(v2Config({ sets: { mode: "FIRST_TO", count: 1 } }), {
+          stages: [...facts.stages, extra],
+          turns: facts.turns,
+        })
+        .state(),
+    ).toThrow(/after the match was won/);
+    const flat = fiveOhOneV2EngineFactory.create(v2Config({ sets: null }));
+    activeWinsLeg(flat);
+    expect(() =>
+      fiveOhOneV2EngineFactory
+        .create(v2Config({ sets: null }), {
+          stages: [...flat.facts().stages, legStageOf(2)],
+          turns: flat.facts().turns,
+        })
+        .state(),
+    ).toThrow(/after the match was won/);
+  });
+
+  it("win by 2 ends on a 2-0 lead, and sudden death ends at the cap", () => {
+    const format = () =>
+      v2Config({
+        sets: null,
+        legs: { mode: "FIRST_TO", count: 2 },
+        winByTwo: { cap: 2, scope: "EVERY_SET" },
+      });
+    const winLegBy = (
+      engine: FiveOhOneGameEngine,
+      ref: string,
+    ): FiveOhOneState => {
+      let state = engine.state();
+      const steps = [
+        { scoreAttempted: 180 },
+        { scoreAttempted: 180 },
+        { scoreAttempted: 101 },
+        { scoreAttempted: 40, finishedOnDouble: true },
+      ];
+      for (const step of steps) {
+        while (engine.state().activeParticipantRef !== ref)
+          engine.record({ scoreAttempted: 0 });
+        state = engine.record(step);
+      }
+      return state;
+    };
+
+    const sweep = fiveOhOneV2EngineFactory.create(format());
+    winLegBy(sweep, "participant-1");
+    const swept = winLegBy(sweep, "participant-1");
+    expect(swept.status).toBe("WON");
+    expect(swept.sides.map((side) => side.legsWon)).toEqual([2, 0]);
+
+    const engine = fiveOhOneV2EngineFactory.create(format());
+    winLegBy(engine, "participant-1");
+    winLegBy(engine, "participant-2");
+    const lead = winLegBy(engine, "participant-1");
+    expect(lead.status).toBe("IN_PROGRESS");
+    expect(lead.sides.map((side) => side.legsWon)).toEqual([2, 1]);
+    const level = winLegBy(engine, "participant-2");
+    expect(level.status).toBe("IN_PROGRESS");
+    expect(level.suddenDeath).toBe(true);
+    const decided = winLegBy(engine, "participant-1");
+    expect(decided.status).toBe("WON");
+    expect(decided.winningSideKey).toBe("A");
+    expect(decided.sides.map((side) => side.legsWon)).toEqual([3, 2]);
+  });
+});
+
+describe("501_V1 WON and legacy trailing legs", () => {
+  it("reports the winning side with one set and a decided set fold", () => {
+    const engine = new FiveOhOneEngine(config());
+    const state = winOneLeg(engine);
+    expect(state.status).toBe("WON");
+    expect(state.sides).toEqual([{ sideKey: "A", legsWon: 1, setsWon: 1 }]);
+    expect(state.sets[0]!.winner).toBe("A");
+  });
+
+  it("ignores a trailing leg: the losing side's score and tally stay as the deciding leg left them", () => {
+    const duoConfig = { ...config(), seats: V2_SEATS };
+    const engine = new FiveOhOneEngine(duoConfig);
+    const won = activeWinsLeg(engine);
+    expect(won.status).toBe("WON");
+    const facts = engine.facts();
+    const trailing = new FiveOhOneEngine(duoConfig, {
+      stages: [...facts.stages, legStageOf(2)],
+      turns: [
+        ...facts.turns,
+        {
+          clientKey: "late",
+          stageClientKey: "leg-2",
+          participantRef: "participant-2",
+          sequence: 1,
+          completedAt: "2026-01-01T00:00:00.000Z",
+          totalScore: 501,
+          darts: [],
+        },
+      ],
+    });
+    const state = trailing.state();
+    expect(state.winningSideKey).toBe("A");
+    expect(state.sides).toEqual([
+      { sideKey: "A", legsWon: 1, setsWon: 1 },
+      { sideKey: "B", legsWon: 0, setsWon: 0 },
+    ]);
+    expect(
+      state.seats.find((seat) => seat.sideKey === "B")?.remainingScore,
+    ).toBe(501);
+    expect({
+      ...state,
+      activeParticipantRef: won.activeParticipantRef,
+    }).toEqual(won);
+  });
+});
+
+function legStageOf(sequence: number): StageFact {
+  return {
+    clientKey: `leg-${sequence}`,
+    stageTypeKey: "LEG",
+    parentClientKey: null,
+    sequence,
+  };
+}

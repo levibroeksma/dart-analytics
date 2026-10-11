@@ -18,6 +18,7 @@ import {
 } from "@lib/game/session-mode-resolution";
 import {
   clampFiveOhOneLegs,
+  FIVE_OH_ONE_LEGS_MAX,
   FIVE_OH_ONE_LEGS_MIN,
   FIVE_OH_ONE_LEGS_NOTICE,
 } from "@lib/game/five-oh-one-legs";
@@ -33,17 +34,70 @@ import type {
 } from "./types";
 
 const GAME_TYPE_KEY = "501";
-const RULESET_VERSION_KEY = "501_V1";
+const RULESET_VERSION_KEY = "501_V2";
+
+/** A V2-shaped preset: `configuration.legs` is an object (seed 0037). */
+export function isV2Preset(
+  preset: ConfigurationPresetData | undefined,
+): boolean {
+  const legs = preset?.configuration?.legs;
+  return typeof legs === "object" && legs !== null;
+}
+
+type MatchMode = "FIRST_TO" | "BEST_OF";
+
+type V2WireInput = {
+  startingScore: number;
+  matchMode: MatchMode;
+  count: number;
+  matchUnit: "LEGS" | "SETS";
+  legsPerSetMode: MatchMode;
+  legsPerSet: number;
+  winByTwo: boolean;
+  marginScope: "EVERY_SET" | "DECIDING_SET";
+  cap: number | null;
+};
+
+/** Best-of counts must be odd; an even count rounds up, except at the 20 cap, which drops to 19. */
+function oddFor(mode: MatchMode, count: number): number {
+  if (mode !== "BEST_OF" || count % 2 !== 0) return count;
+  return count >= FIVE_OH_ONE_LEGS_MAX ? count - 1 : count + 1;
+}
+
+function legTargetOf(mode: MatchMode, count: number): number {
+  return mode === "FIRST_TO" ? count : (count + 1) / 2;
+}
 
 /**
- * Reads `legs_to_win` off a preset's `configuration`, which the API types as
- * `Record<string, unknown>`.
+ * The V2 overrides `start()` sends; mirrors FiveOhOneV2Config's refinements
+ * so the server never rejects them.
  */
-function presetLegsToWin(
-  preset: ConfigurationPresetData | undefined,
-): number | undefined {
-  const raw = preset?.configuration?.legs_to_win;
-  return typeof raw === "number" ? raw : undefined;
+export function buildFiveOhOneV2Wire(
+  input: V2WireInput,
+): Record<string, unknown> {
+  const outer = {
+    mode: input.matchMode,
+    count: oddFor(input.matchMode, input.count),
+  };
+  const setsOn = input.matchUnit === "SETS";
+  const legs = setsOn
+    ? {
+        mode: input.legsPerSetMode,
+        count: oddFor(input.legsPerSetMode, input.legsPerSet),
+      }
+    : outer;
+  const target = legTargetOf(legs.mode, legs.count);
+  return {
+    starting_score: input.startingScore,
+    legs,
+    sets: setsOn ? outer : null,
+    win_by_two: input.winByTwo
+      ? {
+          cap: Math.max(input.cap ?? target + 2, target),
+          scope: setsOn ? input.marginScope : "EVERY_SET",
+        }
+      : null,
+  };
 }
 
 export function fiveOhOneSetup() {
@@ -53,7 +107,15 @@ export function fiveOhOneSetup() {
     startingScoreValue: FIVE_OH_ONE_STARTING_SCORE_DEFAULT as
       number | string | null,
     scoreClampNotice: "",
+    matchMode: "FIRST_TO" as MatchMode,
+    matchUnit: "LEGS" as "LEGS" | "SETS",
     legsToWin: FIVE_OH_ONE_LEGS_MIN as number | string | null,
+    legsPerSetMode: "BEST_OF" as MatchMode,
+    legsPerSet: 5 as number | string | null,
+    winByTwo: false,
+    marginScope: "EVERY_SET" as "EVERY_SET" | "DECIDING_SET",
+    cap: null as number | string | null,
+    autoCap: null as number | null,
     legsClampNotice: "",
     guests: [] as { displayName: string }[],
     showAddGuestModal: false,
@@ -69,6 +131,22 @@ export function fiveOhOneSetup() {
     loadingReconciliation: false,
     reconciliationFailed: false,
 
+    /** Legs a side needs per leg race: the cap stepper's floor and the base of its default. */
+    capMin(this: FiveOhOneSetupContext): number {
+      const setsOn = this.matchUnit === "SETS";
+      const mode = setsOn ? this.legsPerSetMode : this.matchMode;
+      const raw = setsOn ? this.legsPerSet : this.legsToWin;
+      return legTargetOf(mode, oddFor(mode, clampFiveOhOneLegs(raw).value));
+    },
+
+    /** Keeps the cap at target + 2 until the player edits it; an edited cap is left alone. */
+    syncCap(this: FiveOhOneSetupContext) {
+      if (this.cap !== null && this.cap !== this.autoCap) return;
+      const next = this.capMin() + 2;
+      this.cap = next;
+      this.autoCap = next;
+    },
+
     async init(this: FiveOhOneSetupContext) {
       this.loadingReconciliation = true;
       try {
@@ -77,8 +155,7 @@ export function fiveOhOneSetup() {
           fetchActiveSessions(),
         ]);
         this.presets = presets;
-        this.legsToWin =
-          presetLegsToWin(this.basePreset()) ?? FIVE_OH_ONE_LEGS_MIN;
+        this.legsToWin = FIVE_OH_ONE_LEGS_MIN;
         this.legsClampNotice = "";
         await this.reconcile(activeSessions);
       } catch {
@@ -91,18 +168,12 @@ export function fiveOhOneSetup() {
     },
 
     /**
-     * The template whose configuration is copied, with `legs_to_win` and
-     * `starting_score` overridden by the player's chosen values. The
-     * single-leg preset is preferred so the overrides are the only
-     * difference from a seeded default; any preset will do when that one is
-     * absent, since every 501 preset shares the same locked V1 values for
-     * every other key.
+     * The V2-shaped template whose configuration is copied under the
+     * player's chosen match format; V1 presets carry `legs_to_win`, which the
+     * strict V2 schema rejects.
      */
     basePreset(this: FiveOhOneSetupContext) {
-      return (
-        this.presets.find((p) => presetLegsToWin(p) === FIVE_OH_ONE_LEGS_MIN) ??
-        this.presets[0]
-      );
+      return this.presets.find(isV2Preset);
     },
 
     addGuest(this: FiveOhOneSetupContext) {
@@ -205,10 +276,20 @@ export function fiveOhOneSetup() {
       this.loading = true;
       this.error = "";
       try {
+        const overrides = buildFiveOhOneV2Wire({
+          startingScore,
+          matchMode: this.matchMode,
+          count: legsValue,
+          matchUnit: this.matchUnit,
+          legsPerSetMode: this.legsPerSetMode,
+          legsPerSet: clampFiveOhOneLegs(this.legsPerSet).value,
+          winByTwo: this.winByTwo,
+          marginScope: this.marginScope,
+          cap: this.cap === null ? null : clampFiveOhOneLegs(this.cap).value,
+        });
         const wire = {
           ...(preset.configuration as Record<string, unknown>),
-          legs_to_win: legsValue,
-          starting_score: startingScore,
+          ...overrides,
         };
         const configSnapshot = toSnapshot(RULESET_VERSION_KEY, wire);
         const modePair = resolveSessionModePair(
@@ -224,10 +305,7 @@ export function fiveOhOneSetup() {
           config: {
             source: "template",
             templateRef: preset.configurationTemplateId,
-            overrides: {
-              legs_to_win: legsValue,
-              starting_score: startingScore,
-            },
+            overrides,
           },
           participants,
         });

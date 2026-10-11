@@ -9,7 +9,12 @@ import {
 import { fetchActiveSessions } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { boardInputData } from "@lib/game/board-input.data";
-import { joinSubtitle } from "@lib/game/play-subtitle";
+import {
+  fiveOhOneSubtitle,
+  legBarCount,
+  setLegScoresText,
+  setScoreText,
+} from "@lib/game/five-oh-one-match";
 import {
   clearHiddenTimer,
   playAbandonAndExit,
@@ -37,7 +42,11 @@ import {
 import { classifyDoubleAttempts } from "@modules/game/double-attempt.module";
 import { fiveOhOneCheckoutVisits } from "@modules/game/checkout-visits.module";
 import { matchWinnerName } from "@lib/game/match-result-text";
-import type { RulesetVersionKey, SeatFact } from "@lib/types";
+import type {
+  FiveOhOneAnySnapshot,
+  RulesetVersionKey,
+  SeatFact,
+} from "@lib/types";
 import type {
   CheckoutDartOptions,
   DartCount,
@@ -57,7 +66,7 @@ import type {
 // Value import, not `import type`: the class is the narrowing target below,
 // and importing it also runs the module's side effect, which registers
 // fiveOhOneEngineFactory so the registry can resolve this page's own
-// RULESET_VERSION_KEY. `fiveOhOneEngineFactory` is imported directly (not via
+// RULESET_VERSION_KEYS. `fiveOhOneEngineFactory` is imported directly (not via
 // the type-erased registry) so `playFoldBotQuickScoreVisit`'s `TState` infers
 // as `FiveOhOneState` with no cast at the call site.
 import {
@@ -68,7 +77,7 @@ import {
 import type { LegResult } from "@modules/types";
 
 const GAME_TYPE_KEY = "501";
-const RULESET_VERSION_KEY: RulesetVersionKey = "501_V1";
+const RULESET_VERSION_KEYS: readonly RulesetVersionKey[] = ["501_V1", "501_V2"];
 
 /**
  * Rebuilds the engine for the persisted session, replaying the store's fact
@@ -79,14 +88,29 @@ function resumeEngine(
   game: FiveOhOnePlayContext["$store"]["game"],
 ): FiveOhOneEngine | null {
   const { configSnapshot, rulesetVersionKey } = game;
-  if (!configSnapshot || rulesetVersionKey !== RULESET_VERSION_KEY) return null;
-  const factory = getEngineFactory(RULESET_VERSION_KEY);
+  if (!configSnapshot || !rulesetVersionKey) return null;
+  if (!RULESET_VERSION_KEYS.includes(rulesetVersionKey)) return null;
+  const factory = getEngineFactory(rulesetVersionKey);
   if (!factory) return null;
   const engine = factory.create(configSnapshot, {
     stages: game.stages,
     turns: game.turns,
   });
   return engine instanceof FiveOhOneEngine ? engine : null;
+}
+
+/**
+ * The play-again override: the V1 leg target, or the V2 match format. Seats
+ * never ride the wire.
+ */
+function playAgainWire(config: FiveOhOneAnySnapshot): Record<string, unknown> {
+  if ("legsToWin" in config) return { legs_to_win: config.legsToWin };
+  return {
+    starting_score: config.startingScore,
+    legs: config.legs,
+    sets: config.sets,
+    win_by_two: config.winByTwo,
+  };
 }
 
 const BOT_PRE_THROW_MS = 900;
@@ -209,12 +233,28 @@ function statsFor(
   };
 }
 
+/** The results snapshot's match-format fields: leg bars, sets tally, per-set leg scores. */
+function matchSnapshotFields(
+  context: FiveOhOnePlayContext,
+): Pick<FiveOhOneResultsSnapshot, "legBarCount" | "setScore" | "setLegScores"> {
+  const config = context.$store.game.configSnapshot;
+  if (!config) return { legBarCount: 0, setScore: "", setLegScores: "" };
+  const state = context.state();
+  const seats = context.$store.game.seats;
+  return {
+    legBarCount: legBarCount(config, state),
+    setScore: setScoreText(config, state, seats),
+    setLegScores: setLegScoresText(config, state, seats),
+  };
+}
+
 /**
  * The match-summary modal's whole snapshot: every seat's own `statsFor`,
  * plus the winning side — `null` for a solo session (one seat can't have a
  * side to compare against, so there is nothing to declare a winner over)
- * even though the engine's own fold always names a `sideKey` once that
- * seat's side reaches `legsToWin`.
+ * even though the engine's own fold always names a `sideKey` once the match
+ * is won. Also carries the leg bar count (`legBarCount`) and, with sets on,
+ * the sets tally and per-set leg scores.
  */
 function buildResultsSnapshot(
   context: FiveOhOnePlayContext,
@@ -233,6 +273,7 @@ function buildResultsSnapshot(
       )
     : [];
   return {
+    ...matchSnapshotFields(context),
     winningSideKey:
       seats.length >= 2 ? (context.state()?.winningSideKey ?? null) : null,
     seats: seats.map((seat) =>
@@ -305,7 +346,9 @@ export function fiveOhOnePlay() {
     },
 
     turnsInCurrentLeg(this: FiveOhOnePlayContext): TurnFact[] {
-      const openLeg = this.$store.game.stages.at(-1);
+      const openLeg = this.$store.game.stages
+        .filter((stage) => stage.stageTypeKey === "LEG")
+        .at(-1);
       if (!openLeg) return [];
       return this.$store.game.turns.filter(
         (turn) => turn.stageClientKey === openLeg.clientKey,
@@ -328,19 +371,24 @@ export function fiveOhOnePlay() {
       );
     },
 
-    /** Play-header subtitle: the open leg and the match target (`LEG 2 · FIRST TO 3`); blank before config loads. */
+    /** Play-header subtitle: the open set and leg and the match target (`SET 1 · LEG 2 · FIRST TO 3 SETS`, or `LEG 2 · FIRST TO 3` without sets); blank before config loads. */
     subtitle(this: FiveOhOnePlayContext): string {
-      const legsToWin = this.$store.game.configSnapshot?.legsToWin;
-      if (!legsToWin) return "";
-      return joinSubtitle([
-        `LEG ${Math.max(this.$store.game.stages.length, 1)}`,
-        `FIRST TO ${legsToWin}`,
-      ]);
+      const config = this.$store.game.configSnapshot;
+      if (!config) return "";
+      return fiveOhOneSubtitle(config, this.$store.game.stages, this.state());
     },
 
-    /** Legs a side needs to win the match; 0 before config loads. */
+    /** Sets won per seat (`"2–1"`) for the scoreboard tally; blank without sets or before config loads. */
+    setsTally(this: FiveOhOnePlayContext): string {
+      const config = this.$store.game.configSnapshot;
+      if (!config) return "";
+      return setScoreText(config, this.state(), this.$store.game.seats);
+    },
+
+    /** Leg bars to draw for the current set; 0 before config loads. */
     legsToWin(this: FiveOhOnePlayContext): number {
-      return this.$store.game.configSnapshot?.legsToWin ?? 0;
+      const config = this.$store.game.configSnapshot;
+      return config ? legBarCount(config, this.state()) : 0;
     },
 
     remainingScoreFor(this: FiveOhOnePlayContext, seatRef: string): number {
@@ -832,14 +880,17 @@ export function fiveOhOnePlay() {
      * `play-lifecycle.ts`'s shared `runPlayAgain`.
      */
     async playAgain(this: FiveOhOnePlayContext) {
+      const rulesetVersionKey = this.$store.game.rulesetVersionKey;
+      if (!rulesetVersionKey) return;
+      if (!RULESET_VERSION_KEYS.includes(rulesetVersionKey)) return;
       await runPlayAgain(
         this,
         GAME_TYPE_KEY,
-        RULESET_VERSION_KEY,
+        rulesetVersionKey,
         (engine) => (engine instanceof FiveOhOneEngine ? engine : null),
         (config) => ({
           snapshot: config,
-          wire: { legs_to_win: config.legsToWin },
+          wire: playAgainWire(config),
         }),
         () => {
           this.pendingCheckoutScore = null;

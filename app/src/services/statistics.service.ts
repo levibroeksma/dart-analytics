@@ -119,6 +119,7 @@ import {
   findVisitFacts,
   findVisitScoring,
   findX01CheckoutDarts,
+  findSetSequences,
   findX01FoldRows,
 } from "@repositories/statistics.repository";
 import type {
@@ -177,15 +178,17 @@ export async function getStatisticsOverview(
   playerId: string,
 ): Promise<StatisticsOverview> {
   const db = getDb();
-  const [sessions, visits, legs, checkoutDarts] = await Promise.all([
-    findSessionSummaries(db, playerId),
-    findVisitFacts(db, playerId),
-    findLegFacts(db, playerId),
-    findX01CheckoutDarts(db, playerId),
-  ]);
+  const [sessions, visits, legs, checkoutDarts, setSequences] =
+    await Promise.all([
+      findSessionSummaries(db, playerId),
+      findVisitFacts(db, playerId),
+      findLegFacts(db, playerId),
+      findX01CheckoutDarts(db, playerId),
+      findSetSequences(db, playerId),
+    ]);
 
   const bands = scoreBandCounts(visits);
-  const checkoutVisits = checkoutVisitsWithSession(checkoutDarts);
+  const checkoutVisits = checkoutVisitsWithSession(checkoutDarts, setSequences);
   const { hits, misses } = classifyDoubleAttempts(checkoutVisits);
 
   return {
@@ -400,7 +403,10 @@ function loadHitNumberCells(
  * One session's checkout visits, tagged with the bucket its own
  * `completed_at` falls in — identical across every row of that session.
  */
-function bucketedSessionsFromFoldRows(rows: readonly X01FoldRow[]): {
+function bucketedSessionsFromFoldRows(
+  rows: readonly X01FoldRow[],
+  setSequences: ReadonlyMap<string, number>,
+): {
   sessions: BucketedSession[];
   skippedSessions: number;
 } {
@@ -416,7 +422,7 @@ function bucketedSessionsFromFoldRows(rows: readonly X01FoldRow[]): {
       });
     }
   }
-  const sessions = sessionCheckoutVisits(rows).map((session) => ({
+  const sessions = sessionCheckoutVisits(rows, setSequences).map((session) => ({
     ...session,
     ...bucketsBySession.get(session.sessionId)!,
   }));
@@ -435,12 +441,15 @@ async function foldLoad(
   db: Db,
   ctx: SectionContext,
 ): Promise<{ sessions: BucketedSession[]; skippedSessions: number }> {
-  const rows = await findX01FoldRows(db, {
-    ...sectionScope(ctx),
-    bucket: ctx.bucket,
-    tz: ctx.tz,
-  });
-  return bucketedSessionsFromFoldRows(rows);
+  const [rows, setSequences] = await Promise.all([
+    findX01FoldRows(db, {
+      ...sectionScope(ctx),
+      bucket: ctx.bucket,
+      tz: ctx.tz,
+    }),
+    findSetSequences(db, ctx.playerId),
+  ]);
+  return bucketedSessionsFromFoldRows(rows, setSequences);
 }
 
 /**

@@ -51,12 +51,12 @@ CREATE TEMP TABLE verification_results (
 -- ------------------------------------------------------------
 INSERT INTO verification_results
 SELECT '1',
-    'seed inserted exactly the 32 declared rows',
+    'seed inserted exactly the 34 declared rows',
     CASE
-        WHEN count(*) = 32 THEN 'PASS'
+        WHEN count(*) = 34 THEN 'PASS'
         ELSE 'FAIL'
     END,
-    format('expected 32, found %s', count(*))
+    format('expected 34, found %s', count(*))
 FROM ruleset_version_capabilities;
 
 -- ------------------------------------------------------------
@@ -90,6 +90,8 @@ SELECT '2',
 FROM (
         VALUES ('501_V1', 'RECREATIONAL', 'QUICK_SCORE'),
             ('501_V1', 'ANALYTICS', 'VISUAL_BOARD'),
+            ('501_V2', 'RECREATIONAL', 'QUICK_SCORE'),
+            ('501_V2', 'ANALYTICS', 'VISUAL_BOARD'),
             ('SCORE_TRAINING_V1', 'RECREATIONAL', 'QUICK_SCORE'),
             ('SCORE_TRAINING_V1', 'ANALYTICS', 'VISUAL_BOARD'),
             ('TUOD_V1', 'RECREATIONAL', 'QUICK_SCORE'),
@@ -133,12 +135,12 @@ FROM (
 -- silently read as fewer triples checked, not FAIL.
 INSERT INTO verification_results
 SELECT '2',
-    'all 32 declared triples were actually checked',
+    'all 34 declared triples were actually checked',
     CASE
-        WHEN count(*) = 32 THEN 'PASS'
+        WHEN count(*) = 34 THEN 'PASS'
         ELSE 'FAIL'
     END,
-    format('%s of 32 triple checks ran', count(*))
+    format('%s of 34 triple checks ran', count(*))
 FROM verification_results
 WHERE step = '2';
 
@@ -209,6 +211,8 @@ WHERE NOT EXISTS (
         FROM (
                 VALUES ('501_V1', 'RECREATIONAL', 'QUICK_SCORE'),
                     ('501_V1', 'ANALYTICS', 'VISUAL_BOARD'),
+                    ('501_V2', 'RECREATIONAL', 'QUICK_SCORE'),
+                    ('501_V2', 'ANALYTICS', 'VISUAL_BOARD'),
                     ('SCORE_TRAINING_V1', 'RECREATIONAL', 'QUICK_SCORE'),
                     ('SCORE_TRAINING_V1', 'ANALYTICS', 'VISUAL_BOARD'),
                     ('TUOD_V1', 'RECREATIONAL', 'QUICK_SCORE'),

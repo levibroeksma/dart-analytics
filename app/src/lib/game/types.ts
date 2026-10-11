@@ -46,7 +46,7 @@ import type {
   ScoreTrainingSnapshot,
   SeatFact,
   Seated,
-  FiveOhOneSnapshot,
+  FiveOhOneAnySnapshot,
   Bobs27Snapshot,
   CricketSnapshot,
   TacticsSnapshot,
@@ -540,7 +540,17 @@ export type FiveOhOneSetupContext = {
   startingScoreOption: FiveOhOneStartingScoreOption;
   startingScoreValue: number | string | null;
   scoreClampNotice: string;
+  matchMode: "FIRST_TO" | "BEST_OF";
+  matchUnit: "LEGS" | "SETS";
   legsToWin: number | string | null;
+  legsPerSetMode: "FIRST_TO" | "BEST_OF";
+  legsPerSet: number | string | null;
+  winByTwo: boolean;
+  marginScope: "EVERY_SET" | "DECIDING_SET";
+  cap: number | string | null;
+  autoCap: number | null;
+  capMin(): number;
+  syncCap(): void;
   legsClampNotice: string;
   guests: { displayName: string }[];
   showAddGuestModal: boolean;
@@ -704,11 +714,14 @@ export type FiveOhOneSeatResult = {
  * configured seat (1 for solo, 2 for 1v1), in `$store.game.seats` order. */
 export type FiveOhOneResultsSnapshot = {
   winningSideKey: string | null;
+  legBarCount: number;
+  setScore: string;
+  setLegScores: string;
   seats: FiveOhOneSeatResult[];
 };
 
 export type FiveOhOnePlayContext = PlayLifecycleContext<
-  FiveOhOneSnapshot,
+  FiveOhOneAnySnapshot,
   FiveOhOneEngine,
   FiveOhOneResultsSnapshot
 > & {
@@ -720,7 +733,7 @@ export type FiveOhOnePlayContext = PlayLifecycleContext<
   showDoubleConfirm: boolean;
   showMatchFinishConfirm: boolean;
   botThrowing: boolean;
-  $store: PlayStoreContext<FiveOhOneSnapshot> & {
+  $store: PlayStoreContext<FiveOhOneAnySnapshot> & {
     checkoutHints?: CheckoutHintsStoreContext;
   };
   visitMarkers(this: FiveOhOnePlayContext): BoardMarker[];
@@ -736,6 +749,7 @@ export type FiveOhOnePlayContext = PlayLifecycleContext<
   average(this: FiveOhOnePlayContext): string;
   subtitle(this: FiveOhOnePlayContext): string;
   legsToWin(this: FiveOhOnePlayContext): number;
+  setsTally(this: FiveOhOnePlayContext): string;
   previousScoreFor(this: FiveOhOnePlayContext, seatRef: string): string;
   previousScore(this: FiveOhOnePlayContext): string;
   legsWonFor(this: FiveOhOnePlayContext, seatRef: string): number;

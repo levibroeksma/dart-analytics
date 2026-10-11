@@ -38,6 +38,7 @@ export const RULESET_CAPABILITIES: Readonly<
   Record<RulesetVersionKey, readonly ModePair[]>
 > = {
   "501_V1": [QUICK_SCORE, VISUAL_BOARD],
+  "501_V2": [QUICK_SCORE, VISUAL_BOARD],
   SCORE_TRAINING_V1: [QUICK_SCORE, VISUAL_BOARD],
   TUOD_V1: [QUICK_SCORE, VISUAL_BOARD],
   SINGLES_V1: [DETAILED_DARTS, VISUAL_BOARD],
@@ -69,6 +70,7 @@ export const STATS_TAGS: Readonly<
   Record<RulesetVersionKey, readonly StatsTag[]>
 > = {
   "501_V1": ["board", "scoring", "checkout", "leg"],
+  "501_V2": ["board", "scoring", "checkout", "leg"],
   SCORE_TRAINING_V1: ["board", "scoring"],
   TUOD_V1: ["board", "checkout", "ladder"],
   "121_V1": ["board", "checkout", "ladder"],
@@ -91,6 +93,7 @@ export const GAME_TYPE_BY_RULESET: Readonly<
   Record<RulesetVersionKey, GameTypeKey>
 > = {
   "501_V1": "501",
+  "501_V2": "501",
   SCORE_TRAINING_V1: "SCORE_TRAINING",
   TUOD_V1: "TUOD",
   "121_V1": "ONE_TWENTY_ONE",
@@ -176,7 +179,7 @@ export function capableRulesets(
  * Which ruleset versions currently admit a DartBot opponent seat. `08-DartBot.md`
  * §Delivery Phases names the five rulesets `DictatedStrategy` (phase 3) plays:
  * Around the Clock, Bob's 27, Doubles Training, Shanghai, Singles Training —
- * all five are listed here. `501_V1`, `121_V1` and `TUOD_V1` are on
+ * all five are listed here. `501_V1`, `501_V2`, `121_V1` and `TUOD_V1` are on
  * `X01Strategy` (`x01.strategy.module.ts`, reused unchanged — both are
  * checkout-ladder games with 501's identical `{ remaining, checkoutPath }`
  * decision shape). `SCORE_TRAINING_V1` is on `ScoringStrategy`
@@ -200,6 +203,7 @@ export const RULESET_DARTBOT: Readonly<
   SINGLES_V1: true,
   SINGLES_V3: true,
   "501_V1": true,
+  "501_V2": true,
   "121_V1": true,
   TUOD_V1: true,
   SCORE_TRAINING_V1: true,

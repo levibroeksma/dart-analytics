@@ -43,7 +43,10 @@ import {
   registerEngineFactory,
   resetEngineRegistry,
 } from "@modules/game/engine.registry";
-import { fiveOhOneEngineFactory } from "@modules/game/five-oh-one.engine.module";
+import {
+  fiveOhOneEngineFactory,
+  fiveOhOneV2EngineFactory,
+} from "@modules/game/five-oh-one.engine.module";
 import { fiveOhOnePlay } from "@lib/game/five-oh-one-play.data";
 import type { FiveOhOnePlayContext } from "@lib/types";
 import type {
@@ -260,6 +263,43 @@ describe("init", () => {
     await play.init.call(play);
     expect(play.hasActiveSession).toBe(true);
     expect(play.engine).not.toBeNull();
+  });
+
+  it("resumes a 501_V2 session on the V2 engine", async () => {
+    registerEngineFactory(fiveOhOneV2EngineFactory);
+    const play = makePlay({
+      rulesetVersionKey: "501_V2",
+      configSnapshot: {
+        startingScore: 501,
+        checkIn: "STRAIGHT_IN",
+        checkOut: "DOUBLE_OUT",
+        maxDartsPerTurn: 3,
+        maxVisitScore: 180,
+        legs: { mode: "FIRST_TO", count: 1 },
+        sets: { mode: "FIRST_TO", count: 2 },
+        winByTwo: null,
+        seats: SEATS,
+      } as unknown as Seated<FiveOhOneSnapshot>,
+      stages: [
+        {
+          clientKey: "set-1",
+          stageTypeKey: "SET",
+          parentClientKey: null,
+          sequence: 1,
+        },
+        {
+          clientKey: "set-1-leg-1",
+          stageTypeKey: "LEG",
+          parentClientKey: "set-1",
+          sequence: 1,
+        },
+      ],
+    });
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      { ...ACTIVE_SESSION, rulesetVersionKey: "501_V2" },
+    ]);
+    await play.init.call(play);
+    expect(play.engine?.rulesetVersionKey).toBe("501_V2");
   });
 });
 
@@ -723,6 +763,9 @@ describe("uploadAndCompleteSession", () => {
     await play.uploadAndCompleteSession.call(play);
 
     expect(play.resultsSnapshot).toEqual({
+      legBarCount: 1,
+      setScore: "",
+      setLegScores: "",
       winningSideKey: null,
       seats: [
         {
@@ -774,6 +817,9 @@ describe("uploadAndCompleteSession", () => {
     expect(completeSession).toHaveBeenCalledWith("s1", "COMPLETED");
     expect(play.completionStatus).toBe("succeeded");
     expect(play.resultsSnapshot).toEqual({
+      legBarCount: 1,
+      setScore: "",
+      setLegScores: "",
       winningSideKey: null,
       seats: [
         {
@@ -1709,5 +1755,182 @@ describe("legsToWin", () => {
 
   it("reads the configured leg target", () => {
     expect(makePlay({ configSnapshot: bestOf5Config() }).legsToWin()).toBe(3);
+  });
+});
+
+function v2Config(patch: Record<string, unknown> = {}) {
+  return {
+    startingScore: 501,
+    checkIn: "STRAIGHT_IN",
+    checkOut: "DOUBLE_OUT",
+    maxDartsPerTurn: 3,
+    maxVisitScore: 180,
+    legs: { mode: "FIRST_TO", count: 3 },
+    sets: { mode: "FIRST_TO", count: 2 },
+    winByTwo: null,
+    seats: TWO_SEATS,
+    ...patch,
+  } as unknown as Seated<FiveOhOneSnapshot>;
+}
+
+const SET_STAGES: StageFact[] = [
+  {
+    clientKey: "set-1",
+    stageTypeKey: "SET",
+    parentClientKey: null,
+    sequence: 1,
+  },
+  {
+    clientKey: "set-1-leg-1",
+    stageTypeKey: "LEG",
+    parentClientKey: "set-1",
+    sequence: 1,
+  },
+  {
+    clientKey: "set-2",
+    stageTypeKey: "SET",
+    parentClientKey: null,
+    sequence: 2,
+  },
+];
+
+describe("501_V2 play", () => {
+  beforeEach(() => {
+    registerEngineFactory(fiveOhOneV2EngineFactory);
+  });
+
+  it("turnsInCurrentLeg reads the last LEG stage even when a SET was pushed after it", () => {
+    const play = makePlay({
+      rulesetVersionKey: "501_V2",
+      configSnapshot: v2Config(),
+      stages: SET_STAGES,
+      turns: [turnFact("t1", "set-1-leg-1", 1, 60)],
+    });
+    expect(play.turnsInCurrentLeg().map((turn) => turn.clientKey)).toEqual([
+      "t1",
+    ]);
+  });
+
+  it("subtitle names set, leg and the set target", () => {
+    const play = makePlay({
+      rulesetVersionKey: "501_V2",
+      configSnapshot: v2Config(),
+      stages: SET_STAGES.slice(0, 2),
+    });
+    expect(play.subtitle()).toBe("SET 1 · LEG 1 · FIRST TO 2 SETS");
+  });
+
+  it("legsToWin returns the leg bars to draw", () => {
+    const play = makePlay({
+      rulesetVersionKey: "501_V2",
+      configSnapshot: v2Config(),
+      stages: SET_STAGES.slice(0, 2),
+    });
+    expect(play.legsToWin()).toBe(3);
+  });
+
+  it("results snapshot carries the bar count and set score", async () => {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 1, turns: 0, darts: 0 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const play = makePlay({
+      rulesetVersionKey: "501_V2",
+      configSnapshot: v2Config(),
+      stages: SET_STAGES.slice(0, 2),
+    });
+    await play.uploadAndCompleteSession.call(play);
+    expect(play.resultsSnapshot?.legBarCount).toBe(3);
+    expect(play.resultsSnapshot?.setScore).toBe("0–0");
+  });
+
+  it("setsTally shows the sets won only when sets are on", () => {
+    const withSets = makePlay({
+      rulesetVersionKey: "501_V2",
+      configSnapshot: v2Config(),
+      stages: SET_STAGES.slice(0, 2),
+    });
+    expect(withSets.setsTally()).toBe("0–0");
+    const legsOnly = makePlay({ configSnapshot: bestOf5Config() });
+    expect(legsOnly.setsTally()).toBe("");
+  });
+
+  it("V1 results snapshot has no set score", async () => {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 1, turns: 0, darts: 0 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const play = makePlay({ configSnapshot: bestOf5Config() });
+    await play.uploadAndCompleteSession.call(play);
+    expect(play.resultsSnapshot?.legBarCount).toBe(3);
+    expect(play.resultsSnapshot?.setScore).toBe("");
+  });
+
+  it("playAgain sends the V2 format on the wire, not legs_to_win", async () => {
+    const play = makePlay({
+      rulesetVersionKey: "501_V2",
+      configSnapshot: v2Config({
+        winByTwo: { cap: 5, scope: "DECIDING_SET" },
+      }),
+      stages: SET_STAGES.slice(0, 2),
+    });
+    play.completionStatus = "succeeded";
+    play.finished = true;
+    vi.mocked(createSession).mockResolvedValue({
+      sessionId: "new-session",
+      participants: [
+        { ref: "p1", displayName: "Levi", participantTypeKey: "PLAYER" },
+        { ref: "p2", displayName: "Guest", participantTypeKey: "GUEST" },
+      ],
+    } as any);
+    await play.playAgain.call(play);
+    expect(createSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rulesetVersionKey: "501_V2",
+        config: {
+          source: "template",
+          templateRef: "tpl-1",
+          overrides: {
+            starting_score: 501,
+            legs: { mode: "FIRST_TO", count: 3 },
+            sets: { mode: "FIRST_TO", count: 2 },
+            win_by_two: { cap: 5, scope: "DECIDING_SET" },
+          },
+        },
+      }),
+    );
+  });
+
+  it("playAgain from a 301 V2 match sends starting_score 301", async () => {
+    const play = makePlay({
+      rulesetVersionKey: "501_V2",
+      configSnapshot: v2Config({ startingScore: 301 }),
+      stages: SET_STAGES.slice(0, 2),
+    });
+    play.completionStatus = "succeeded";
+    play.finished = true;
+    vi.mocked(createSession).mockResolvedValue({
+      sessionId: "new-session",
+      participants: [
+        { ref: "p1", displayName: "Levi", participantTypeKey: "PLAYER" },
+        { ref: "p2", displayName: "Guest", participantTypeKey: "GUEST" },
+      ],
+    } as any);
+    await play.playAgain.call(play);
+    expect(createSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        config: expect.objectContaining({
+          overrides: expect.objectContaining({ starting_score: 301 }),
+        }),
+      }),
+    );
   });
 });

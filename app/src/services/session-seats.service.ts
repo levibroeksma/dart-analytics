@@ -18,6 +18,7 @@ const DARTBOT_PARTICIPANT_TYPE_ID = 3;
  */
 const SEAT_CAPS: Record<string, number> = {
   "501_V1": 4,
+  "501_V2": 4,
   BOBS27_V1: 2,
   "121_V1": 2,
   AROUND_THE_CLOCK_V1: 2,

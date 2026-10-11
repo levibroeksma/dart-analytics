@@ -31,9 +31,10 @@ const legsWon = (seatIndex: 0 | 1) =>
   `(resultsSnapshot?.seats?.[${seatIndex}]?.legsWon ?? 0)`;
 const barTrackAttrs = {
   ":style":
-    "`grid-template-columns: repeat(${$store.game.configSnapshot?.legsToWin ?? 0}, minmax(0, 1fr))`",
+    "`grid-template-columns: repeat(${resultsSnapshot?.legBarCount ?? $store.game.configSnapshot?.legsToWin ?? 0}, minmax(0, 1fr))`",
 };
-const legsExpr = "$store.game.configSnapshot?.legsToWin ?? 0";
+const legsExpr =
+  "resultsSnapshot?.legBarCount ?? $store.game.configSnapshot?.legsToWin ?? 0";
 const seatSides = ([0, 1] as const).map((index) => {
   const winnerClass = `winner === ${index}`;
   return {

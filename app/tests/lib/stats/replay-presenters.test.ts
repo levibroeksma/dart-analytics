@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { foldReplay } from "@lib/stats/replay-fold";
-import { REPLAY_PRESENTERS } from "@lib/stats/replay-presenters";
+import { legsWonIn, REPLAY_PRESENTERS } from "@lib/stats/replay-presenters";
 import type { GameTypeKey, ReplayCell, ReplayFold } from "@lib/types";
 import {
   CricketEngine,
@@ -360,5 +360,22 @@ describe("REPLAY_PRESENTERS", () => {
       entries: [],
       curves: [],
     });
+  });
+});
+
+describe("legsWonIn", () => {
+  it("detects a leg win at a set boundary, where current-set legsWon resets", () => {
+    const before = {
+      sides: [{ sideKey: "A", legsWon: 1, setsWon: 0 }],
+      sets: [{ legsWon: { A: 1 }, winner: null }],
+    };
+    const after = {
+      sides: [{ sideKey: "A", legsWon: 0, setsWon: 1 }],
+      sets: [
+        { legsWon: { A: 2 }, winner: "A" },
+        { legsWon: { A: 0 }, winner: null },
+      ],
+    };
+    expect(legsWonIn(after)).toBeGreaterThan(legsWonIn(before));
   });
 });

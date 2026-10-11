@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   GAME_CARDS,
   GAME_GROUPS,
+  cardForRuleset,
   groupedGames,
   visibleGames,
 } from "@lib/game/rulesets/games-visibility";
@@ -19,7 +20,7 @@ describe("visibleGames", () => {
       (game) => game.rulesetVersionKey,
     );
     expect(keys).toEqual([
-      "501_V1",
+      "501_V2",
       "121_V1",
       "CRICKET_V1",
       "TACTICS_V1",
@@ -40,7 +41,7 @@ describe("visibleGames", () => {
     expect(keys).toEqual(
       [
         "SCORE_TRAINING_V1",
-        "501_V1",
+        "501_V2",
         "BOBS27_V1",
         "SINGLES_V1",
         "DOUBLES_TRAINING_V1",
@@ -59,17 +60,17 @@ describe("visibleGames", () => {
   });
 
   it("never hides a game with an active session", () => {
-    const keys = visibleGames("UNKNOWN_CAPTURE_MODE", "501_V1").map(
+    const keys = visibleGames("UNKNOWN_CAPTURE_MODE", "501_V2").map(
       (game) => game.rulesetVersionKey,
     );
-    expect(keys).toEqual(["501_V1"]);
+    expect(keys).toEqual(["501_V2"]);
   });
 
   it("does not duplicate a capable game that is also active", () => {
-    const keys = visibleGames("ANALYTICS", "501_V1").map(
+    const keys = visibleGames("ANALYTICS", "501_V2").map(
       (game) => game.rulesetVersionKey,
     );
-    expect(keys.filter((key) => key === "501_V1")).toHaveLength(1);
+    expect(keys.filter((key) => key === "501_V2")).toHaveLength(1);
   });
 
   it("keeps the declared card order rather than the filter order", () => {
@@ -97,7 +98,7 @@ describe("groupedGames", () => {
         group.games.map((game) => game.rulesetVersionKey),
       ]),
     ).toEqual([
-      ["MATCH PLAY", ["501_V1", "121_V1", "CRICKET_V1", "TACTICS_V1"]],
+      ["MATCH PLAY", ["501_V2", "121_V1", "CRICKET_V1", "TACTICS_V1"]],
       [
         "TRAINING",
         [
@@ -114,7 +115,7 @@ describe("groupedGames", () => {
 
   it("drops a group with no cards", () => {
     const only501 = GAME_CARDS.filter(
-      (game) => game.rulesetVersionKey === "501_V1",
+      (game) => game.rulesetVersionKey === "501_V2",
     );
     expect(groupedGames(only501).map((group) => group.key)).toEqual([
       "MATCH_PLAY",
@@ -124,5 +125,21 @@ describe("groupedGames", () => {
   it("puts every card in a known group", () => {
     const keys = GAME_GROUPS.map((group) => group.key);
     for (const card of GAME_CARDS) expect(keys).toContain(card.group);
+  });
+});
+
+describe("cardForRuleset", () => {
+  it("maps both 501 ruleset versions to the single 501 card", () => {
+    expect(cardForRuleset(GAME_CARDS, "501_V1")?.rulesetVersionKey).toBe(
+      "501_V2",
+    );
+    expect(cardForRuleset(GAME_CARDS, "501_V2")?.rulesetVersionKey).toBe(
+      "501_V2",
+    );
+  });
+
+  it("returns undefined for null or an uncarded key", () => {
+    expect(cardForRuleset(GAME_CARDS, null)).toBeUndefined();
+    expect(cardForRuleset(GAME_CARDS, "NOPE")).toBeUndefined();
   });
 });

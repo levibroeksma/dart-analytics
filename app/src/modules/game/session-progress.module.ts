@@ -1,5 +1,10 @@
 import { foldFiveOhOneState } from "@modules/game/five-oh-one.engine.module";
 import {
+  matchFormatOf,
+  matchPositionOf,
+  raceLabel,
+} from "@modules/game/match-format.module";
+import {
   durationOf,
   foldOneTwentyOneState,
 } from "@modules/game/one-twenty-one.engine.module";
@@ -31,6 +36,7 @@ import { joinSubtitle, orderModeSentenceLabel } from "@lib/game/play-subtitle";
 import type {
   BoardTarget,
   EngineFacts,
+  FiveOhOneSideState,
   MultiSeatState,
   SeatState,
   SessionProgress,
@@ -39,7 +45,7 @@ import type {
   AroundTheClockEngineConfig,
   Bobs27Snapshot,
   DoublesTrainingSnapshot,
-  FiveOhOneSnapshot,
+  FiveOhOneAnySnapshot,
   ScoreTrainingSnapshot,
   Seated,
   SeatFact,
@@ -86,24 +92,39 @@ function ownSeatOf(seats: readonly SeatFact[]): SeatFact {
 }
 
 function fiveOhOne(
-  config: Seated<FiveOhOneSnapshot>,
+  config: Seated<FiveOhOneAnySnapshot>,
   facts: EngineFacts,
 ): SessionProgress {
   const state = foldFiveOhOneState(facts, config);
+  const format = matchFormatOf(config);
+  const position = matchPositionOf(facts.stages);
   const own = ownSeatOf(config.seats);
   const opponents = config.seats.filter((seat) => seat.sideKey !== own.sideKey);
-  const legsOf = (sideKey: string) =>
-    state.sides.find((side) => side.sideKey === sideKey)?.legsWon ?? 0;
-  const others = state.sides.filter((side) => side.sideKey !== own.sideKey);
-  const best = Math.max(0, ...others.map((side) => side.legsWon));
+  const tallyOf = (pick: (side: FiveOhOneSideState) => number) => {
+    const mine = pick(
+      state.sides.find((side) => side.sideKey === own.sideKey)!,
+    );
+    const best = Math.max(
+      0,
+      ...state.sides.filter((side) => side.sideKey !== own.sideKey).map(pick),
+    );
+    return `${mine}–${best}`;
+  };
   return {
     detail: joinSubtitle([
       opponents.length > 0
         ? `vs ${opponents.map((seat) => seat.displayName).join(" & ")}`
         : "",
-      `Leg ${Math.max(facts.stages.length, 1)}`,
-      `First to ${config.legsToWin}`,
-      state.sides.length > 1 ? `${legsOf(own.sideKey)}–${best}` : "",
+      position.set === null ? "" : `Set ${position.set}`,
+      `Leg ${position.leg}`,
+      format.sets === null
+        ? raceLabel(format.legs)
+        : `${raceLabel(format.sets)} sets`,
+      state.sides.length > 1
+        ? tallyOf((side) =>
+            format.sets === null ? side.legsWon : side.setsWon,
+          )
+        : "",
     ]),
     big: big(
       state.seats.find((seat) => seat.participantRef === own.participantRef)
@@ -243,6 +264,7 @@ function aroundTheClock(
 
 const SUMMARIZERS: Readonly<Record<string, Summarizer>> = {
   "501_V1": fiveOhOne,
+  "501_V2": fiveOhOne,
   "121_V1": oneTwentyOne,
   "121_V2": oneTwentyOne,
   CRICKET_V1: cricket,

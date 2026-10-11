@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { fiveOhOneValidator } from "@services/rulesets/five-oh-one/five-oh-one.validator";
+import {
+  fiveOhOneV2Validator,
+  fiveOhOneValidator,
+} from "@services/rulesets/five-oh-one/five-oh-one.validator";
+import { getRulesetValidator } from "@services/rulesets/registry";
 import type { DartFactInput } from "@routes/types";
 
 const validConfig = {
@@ -216,5 +220,42 @@ describe("fiveOhOneValidator.validateBatch", () => {
     });
 
     expect(result.valid).toBe(false);
+  });
+});
+
+describe("fiveOhOneV2Validator", () => {
+  const v2Config = {
+    starting_score: 501,
+    check_in: "STRAIGHT_IN",
+    check_out: "DOUBLE_OUT",
+    max_darts_per_turn: 3,
+    max_visit_score: 180,
+    legs: { mode: "FIRST_TO", count: 1 },
+    sets: null,
+    win_by_two: null,
+  };
+
+  it("is registered under 501_V2", () => {
+    expect(getRulesetValidator("501_V2")).toBe(fiveOhOneV2Validator);
+  });
+
+  it("accepts a V2 config under QUICK_SCORE", () => {
+    expect(
+      fiveOhOneV2Validator.validateConfig({
+        config: v2Config,
+        captureModeKey: "RECREATIONAL",
+        inputModeKey: "QUICK_SCORE",
+      }).valid,
+    ).toBe(true);
+  });
+
+  it("rejects a V1-shaped config", () => {
+    expect(
+      fiveOhOneV2Validator.validateConfig({
+        config: { ...v2Config, legs_to_win: 1 },
+        captureModeKey: "RECREATIONAL",
+        inputModeKey: "QUICK_SCORE",
+      }).valid,
+    ).toBe(false);
   });
 });

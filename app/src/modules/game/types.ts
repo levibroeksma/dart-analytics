@@ -210,10 +210,15 @@ export type FiveOhOneSeatState = SeatState & {
   remainingScore: number;
 };
 
-/** One side's completed legs. What wins a leg and the match is the SIDE. */
+/**
+ * One side's score: `legsWon` counts legs in the current set (the whole match
+ * without sets), `setsWon` counts sets in the match. What wins a leg, a set
+ * and the match is the SIDE.
+ */
 export type FiveOhOneSideState = {
   sideKey: string;
   legsWon: number;
+  setsWon: number;
 };
 
 /**
@@ -228,6 +233,9 @@ export type FiveOhOneState = MultiSeatState<FiveOhOneSeatState> & {
   status: "IN_PROGRESS" | "WON";
   winningSideKey: string | null;
   sides: readonly FiveOhOneSideState[];
+  sets: readonly SetFold[];
+  decidingSet: boolean;
+  suddenDeath: boolean;
 };
 
 export type LegResult = {
@@ -627,4 +635,37 @@ export type SessionContextOptions = {
 export type SessionProgress = {
   detail: string;
   big: { value: string; label: string } | null;
+};
+
+/** A race to a number of legs or sets (`501_V2`); `count` is odd under `BEST_OF`. */
+export type RaceSpec = { mode: "FIRST_TO" | "BEST_OF"; count: number };
+
+/** Win by 2 legs, bounded by sudden death at `cap`-`cap`. */
+export type WinByTwo = { cap: number; scope: "EVERY_SET" | "DECIDING_SET" };
+
+/** A 501 match format, normalised across ruleset versions (`matchFormatOf`). */
+export type MatchFormat = {
+  legs: RaceSpec;
+  sets: RaceSpec | null;
+  winByTwo: WinByTwo | null;
+};
+
+/** One set's leg tally and winner; a match without sets folds as one set. */
+export type SetFold = {
+  legsWon: Readonly<Record<string, number>>;
+  winner: string | null;
+};
+
+/**
+ * A match folded from its leg winners: one `SetFold` per set played (or the
+ * single open set), sets won per side, and the match winner (null while open).
+ * `decidingSet` flags the set that can end the match; `suddenDeath` flags a
+ * leg race where two sides sit at the margin cap with no winner yet.
+ */
+export type MatchFold = {
+  sets: SetFold[];
+  setsWon: Readonly<Record<string, number>>;
+  winner: string | null;
+  decidingSet: boolean;
+  suddenDeath: boolean;
 };

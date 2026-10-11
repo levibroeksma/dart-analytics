@@ -170,6 +170,16 @@ describe("rejectSeatRequest with the seven new rulesets", () => {
     ];
     expect(rejectSeatRequest(four, "501_V1")).toBeNull();
   });
+
+  it("admits four seats on 501_V2, matching 501_V1", () => {
+    const four = [
+      player,
+      { participantTypeKey: "GUEST" as const, sideKey: "B", displayName: "G1" },
+      { participantTypeKey: "GUEST" as const, sideKey: "C", displayName: "G2" },
+      { participantTypeKey: "GUEST" as const, sideKey: "D", displayName: "G3" },
+    ];
+    expect(rejectSeatRequest(four, "501_V2")).toBeNull();
+  });
 });
 
 describe("rejectSeatRequest with a DARTBOT seat", () => {

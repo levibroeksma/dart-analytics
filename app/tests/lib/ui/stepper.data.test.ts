@@ -36,6 +36,15 @@ describe("stepperData", () => {
     expect(ctx.current()).toBe(7);
   });
 
+  it("a raised min clamps current() and step()", () => {
+    const ctx = stepperData({ min: 1, max: 20 });
+    ctx.value = 2;
+    ctx.min = 5;
+    expect(ctx.current()).toBe(5);
+    ctx.step(-1);
+    expect(ctx.value).toBe(5);
+  });
+
   it("step() writes a number back to value", () => {
     const ctx = stepperData({ min: 1, max: 20 });
     ctx.value = null;

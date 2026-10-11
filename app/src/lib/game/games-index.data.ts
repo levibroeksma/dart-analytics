@@ -1,5 +1,9 @@
 import { fetchActiveSessions } from "@client/api/sessions";
-import { GAME_CARDS, visibleGames } from "@lib/game/rulesets/games-visibility";
+import {
+  GAME_CARDS,
+  cardForRuleset,
+  visibleGames,
+} from "@lib/game/rulesets/games-visibility";
 import type { SessionActiveData } from "@client/api/types";
 import type {
   GameCardDescriptor,
@@ -24,11 +28,7 @@ export function resumeTarget(
   const card = sessions
     .filter((session) => !session.isRoutineStep)
     .sort((a, b) => b.startedAt.localeCompare(a.startedAt))
-    .map((session) =>
-      cards.find(
-        (game) => game.rulesetVersionKey === session.rulesetVersionKey,
-      ),
-    )
+    .map((session) => cardForRuleset(cards, session.rulesetVersionKey))
     .find((game) => game !== undefined);
   return card ? { title: card.title, href: card.href } : null;
 }

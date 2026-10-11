@@ -41,6 +41,14 @@ import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
     </SinglePlayerDisplay>
   </template>
 
+  <template x-if="setsTally()">
+    <p
+      class="text-center font-mono text-[9px] font-semibold uppercase tracking-[0.1em] text-muted"
+      x-text="`Sets ${setsTally()}`"
+    >
+    </p>
+  </template>
+
   <template x-if="(state()?.seats.length ?? 1) >= 2">
     <SplitScoreboard
       seatA={{

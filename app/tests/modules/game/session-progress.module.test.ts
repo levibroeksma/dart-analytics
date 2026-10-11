@@ -174,6 +174,74 @@ describe("summarizeProgress — guards", () => {
   });
 });
 
+describe("summarizeProgress — 501_V2", () => {
+  it("reads a V2 first-to-N leg race like the V1 summary", () => {
+    const v2Config = {
+      startingScore: 501,
+      checkIn: "STRAIGHT_IN",
+      checkOut: "DOUBLE_OUT",
+      maxDartsPerTurn: 3,
+      maxVisitScore: 180,
+      legs: { mode: "FIRST_TO", count: 3 },
+      sets: null,
+      winByTwo: null,
+      seats: DUO,
+    };
+    expect(summarizeProgress("501_V2", v2Config, EMPTY_FACTS)).toEqual({
+      detail: "vs Dartbot · Leg 1 · First to 3 · 0–0",
+      big: { value: "501", label: "TO GO" },
+    });
+  });
+});
+
+describe("summarizeProgress — 501_V2 sets", () => {
+  const setsConfig = {
+    startingScore: 501,
+    checkIn: "STRAIGHT_IN",
+    checkOut: "DOUBLE_OUT",
+    maxDartsPerTurn: 3,
+    maxVisitScore: 180,
+    legs: { mode: "FIRST_TO", count: 1 },
+    sets: { mode: "BEST_OF", count: 3 },
+    winByTwo: null,
+    seats: DUO,
+  };
+
+  it("reads Set k · Leg n · Best of S sets and the set tally", () => {
+    const facts: EngineFacts = {
+      stages: [
+        {
+          clientKey: "set-1",
+          stageTypeKey: "SET",
+          parentClientKey: null,
+          sequence: 1,
+        },
+        {
+          clientKey: "set-1-leg-1",
+          stageTypeKey: "LEG",
+          parentClientKey: "set-1",
+          sequence: 1,
+        },
+      ],
+      turns: [],
+    } as unknown as EngineFacts;
+    expect(summarizeProgress("501_V2", setsConfig, facts)?.detail).toBe(
+      "vs Dartbot · Set 1 · Leg 1 · Best of 3 sets · 0–0",
+    );
+  });
+
+  it("reads a best-of leg race by its label, not its win target", () => {
+    const config = {
+      ...setsConfig,
+      legs: { mode: "BEST_OF", count: 5 },
+      sets: null,
+    };
+    expect(summarizeProgress("501_V2", config, EMPTY_FACTS)?.detail).toBe(
+      "vs Dartbot · Leg 1 · Best of 5 · 0–0",
+    );
+  });
+});
+
 describe("summarizeProgress — 501_V1", () => {
   it("501 with empty facts against Dartbot", () => {
     expect(summarizeProgress("501_V1", fiveOhOneConfig, EMPTY_FACTS)).toEqual({

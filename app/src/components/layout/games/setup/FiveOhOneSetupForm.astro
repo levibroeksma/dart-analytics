@@ -24,24 +24,28 @@ const startingScoreOpts = [
 ];
 const matchFormatOpts = [
   { value: "FIRST_TO", label: "First to" },
-  { value: "BEST_OF", label: "Best of", disabled: true },
+  { value: "BEST_OF", label: "Best of" },
 ];
 const matchUnitOpts = [
   { value: "LEGS", label: "Legs" },
-  { value: "SETS", label: "Sets", disabled: true },
+  { value: "SETS", label: "Sets" },
+];
+const marginScopeOpts = [
+  { value: "EVERY_SET", label: "Every set" },
+  { value: "DECIDING_SET", label: "Deciding set" },
 ];
 
 const infoSection = {
   title: "501 rules",
   description:
-    "Race from your starting score down to exactly zero. Open in, double out — the finishing dart must land on a double. First to the chosen number of legs wins the match.",
+    "Race from your starting score down to exactly zero. Open in, double out — the finishing dart must land on a double. Play first to or best of a number of legs, or of sets; optionally a side must win by 2 legs, up to a sudden-death leg.",
 };
 ---
 
 <SetupShell title="501">
   <UserSection
     allowGuests
-    allowDartbot={supportsDartbot("501_V1")}
+    allowDartbot={supportsDartbot("501_V2")}
   />
   <InfoSection
     title={infoSection.title}
@@ -86,7 +90,7 @@ const infoSection = {
         <Toggle
           orientation="vertical"
           options={matchFormatOpts}
-          initial="FIRST_TO"
+          x-model="matchMode"
           class="w-full"
         />
         <Stepper
@@ -99,10 +103,59 @@ const infoSection = {
         <Toggle
           orientation="vertical"
           options={matchUnitOpts}
-          initial="LEGS"
+          x-model="matchUnit"
           class="w-full"
         />
       </div>
+    </div>
+    <div
+      class="flex flex-col gap-2"
+      x-show="matchUnit === 'SETS'"
+      x-cloak
+    >
+      <SettingLabel text="LEGS PER SET" />
+      <div class="grid grid-cols-[minmax(0,1fr)_72px] items-center gap-2.5">
+        <Toggle
+          orientation="vertical"
+          options={matchFormatOpts}
+          x-model="legsPerSetMode"
+          class="w-full"
+        />
+        <Stepper
+          min={FIVE_OH_ONE_LEGS_MIN}
+          max={FIVE_OH_ONE_LEGS_MAX}
+          ariaLabel="Legs per set"
+          x-model="legsPerSet"
+          class="justify-self-center"
+        />
+      </div>
+    </div>
+    <Switch
+      label="Win by 2 legs"
+      x-model="winByTwo"
+    />
+    <div
+      class="flex flex-col gap-2"
+      x-show="winByTwo"
+      x-cloak
+    >
+      <SettingLabel text="SUDDEN DEATH AT" />
+      <Stepper
+        min={FIVE_OH_ONE_LEGS_MIN}
+        max={FIVE_OH_ONE_LEGS_MAX}
+        ariaLabel="Sudden-death cap"
+        x-model="cap"
+        x-effect="syncCap(); min = capMin()"
+        class="justify-self-start"
+      />
+      <Toggle
+        orientation="horizontal"
+        options={marginScopeOpts}
+        x-model="marginScope"
+        x-show="matchUnit === 'SETS'"
+        x-cloak
+        class="w-full"
+      />
     </div>
     <Switch
       label="Show checkout hints"

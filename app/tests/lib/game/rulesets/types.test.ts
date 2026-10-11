@@ -238,6 +238,30 @@ describe("TuodConfig bounds", () => {
 });
 
 describe("RULESET_CONFIGS strictness", () => {
+  it("validates 501_V2 against the V2 schema, not the V1 one", () => {
+    const v1Shaped = {
+      starting_score: 501,
+      legs_to_win: 1,
+      check_in: "STRAIGHT_IN",
+      check_out: "DOUBLE_OUT",
+      max_darts_per_turn: 3,
+    };
+    expect(RULESET_CONFIGS["501_V2"].safeParse(v1Shaped).success).toBe(false);
+    expect(RULESET_CONFIGS["501_V1"].safeParse(v1Shaped).success).toBe(true);
+  });
+
+  it("validates 501_V2 against the V2 schema, not the V1 one", () => {
+    const v1Shaped = {
+      starting_score: 501,
+      legs_to_win: 1,
+      check_in: "STRAIGHT_IN",
+      check_out: "DOUBLE_OUT",
+      max_darts_per_turn: 3,
+    };
+    expect(RULESET_CONFIGS["501_V2"].safeParse(v1Shaped).success).toBe(false);
+    expect(RULESET_CONFIGS["501_V1"].safeParse(v1Shaped).success).toBe(true);
+  });
+
   it("rejects a key the schema does not model instead of silently stripping it", () => {
     const result = RULESET_CONFIGS["501_V1"].safeParse({
       starting_score: 501,

@@ -42,8 +42,30 @@ function stageTag(
   });
 }
 
+type LegStage = { sequence: number; parentClientKey: string | null };
+
+/**
+ * Play-order key of a leg: `[set sequence, leg sequence]` for a leg nested
+ * under a SET, `[leg sequence, 0]` for a root leg (501_V2 sets; D443).
+ */
+function legOrderKey(
+  stage: LegStage,
+  setSequences: ReadonlyMap<string, number>,
+): [number, number] {
+  return stage.parentClientKey === null
+    ? [stage.sequence, 0]
+    : [setSequences.get(stage.parentClientKey) ?? 0, stage.sequence];
+}
+
+function compareKeys(a: [number, number], b: [number, number]): number {
+  return a[0] - b[0] || a[1] - b[1];
+}
+
 /** Rebuilds one session's stage list, newest row wins nothing -- stages are unique by id. */
-function stagesOf(rows: readonly X01CheckoutDartRow[]): StageFact[] {
+function stagesOf(
+  rows: readonly X01CheckoutDartRow[],
+  setSequences: ReadonlyMap<string, number>,
+): StageFact[] {
   const byId = new Map<string, StageFact>();
   for (const row of rows) {
     if (byId.has(row.stageId)) continue;
@@ -54,12 +76,14 @@ function stagesOf(rows: readonly X01CheckoutDartRow[]): StageFact[] {
       sequence: row.stageSequence,
     });
   }
-  return [...byId.values()].sort((a, b) => a.sequence - b.sequence);
+  return [...byId.values()].sort((a, b) =>
+    compareKeys(legOrderKey(a, setSequences), legOrderKey(b, setSequences)),
+  );
 }
 
-/** A rebuilt turn alongside the stage sequence its own `sequence` is relative to. */
+/** A rebuilt turn alongside the stage its own `sequence` is relative to. */
 type StagedTurn = {
-  stageSequence: number;
+  stage: LegStage;
   turn: TurnFact;
 };
 
@@ -68,7 +92,7 @@ type StagedTurn = {
  * dart order. `totalScore` is the counted total the engine wrote, so a busted
  * visit arrives here as the zero it was recorded as.
  *
- * Ordered by `(stageSequence, turnSequence)`, never by `turnSequence` alone:
+ * Ordered by `(legOrderKey, turnSequence)`, never by `turnSequence` alone:
  * `turns.sequence_number` restarts at 1 in every stage (both
  * `one-twenty-one.engine.module.ts` and `five-oh-one.engine.module.ts` write
  * `turnCountIn(stage) + 1`), so sorting on it alone interleaves the rounds of
@@ -79,13 +103,19 @@ type StagedTurn = {
  * repository's `ORDER BY` so this module is correct for any row order; the
  * SQL order is pinned by `statistics.repository.test.ts` as well.
  */
-function turnsOf(rows: readonly X01CheckoutDartRow[]): TurnFact[] {
+function turnsOf(
+  rows: readonly X01CheckoutDartRow[],
+  setSequences: ReadonlyMap<string, number>,
+): TurnFact[] {
   const byId = new Map<string, StagedTurn>();
   for (const row of rows) {
     let staged = byId.get(row.turnId);
     if (!staged) {
       staged = {
-        stageSequence: row.stageSequence,
+        stage: {
+          sequence: row.stageSequence,
+          parentClientKey: row.parentStageId,
+        },
         turn: {
           clientKey: row.turnId,
           stageClientKey: row.stageId,
@@ -115,7 +145,10 @@ function turnsOf(rows: readonly X01CheckoutDartRow[]): TurnFact[] {
   return [...byId.values()]
     .sort(
       (a, b) =>
-        a.stageSequence - b.stageSequence || a.turn.sequence - b.turn.sequence,
+        compareKeys(
+          legOrderKey(a.stage, setSequences),
+          legOrderKey(b.stage, setSequences),
+        ) || a.turn.sequence - b.turn.sequence,
     )
     .map((staged) => staged.turn);
 }
@@ -202,7 +235,10 @@ function soloSeat(participantRef: string): SeatFact {
  * row a session contributes here belongs to its owner. Do not "fix" this
  * into a per-participant grouping without changing one of those two first.
  */
-function visitsForSession(rows: readonly X01CheckoutDartRow[]): {
+function visitsForSession(
+  rows: readonly X01CheckoutDartRow[],
+  setSequences: ReadonlyMap<string, number>,
+): {
   visits: StagedVisit[];
   undecodable: boolean;
 } {
@@ -214,15 +250,22 @@ function visitsForSession(rows: readonly X01CheckoutDartRow[]): {
   const config = snapshotOf(first.rulesetVersionKey, first.configuration);
   if (config === null) return { visits: [], undecodable: true };
 
-  return { visits: foldVisits(rows, first, config), undecodable: false };
+  return {
+    visits: foldVisits(rows, first, config, setSequences),
+    undecodable: false,
+  };
 }
 
 function foldVisits(
   rows: readonly X01CheckoutDartRow[],
   first: X01CheckoutDartRow,
   config: NonNullable<ReturnType<typeof snapshotOf>>,
+  setSequences: ReadonlyMap<string, number>,
 ): StagedVisit[] {
-  const facts: EngineFacts = { stages: stagesOf(rows), turns: turnsOf(rows) };
+  const facts: EngineFacts = {
+    stages: stagesOf(rows, setSequences),
+    turns: turnsOf(rows, setSequences),
+  };
   const participantRef = first.participantId;
   const seated = {
     ...config,
@@ -284,6 +327,7 @@ function toCheckoutVisitTotals(visit: StagedVisit): CheckoutVisitTotals {
  */
 export function sessionCheckoutVisits(
   rows: readonly X01CheckoutDartRow[],
+  setSequences: ReadonlyMap<string, number> = new Map(),
 ): SessionCheckoutVisits[] {
   const bySession = new Map<string, SessionRows>();
   for (const row of rows) {
@@ -297,7 +341,7 @@ export function sessionCheckoutVisits(
       sessionId,
       gameTypeKey: first.gameTypeKey,
       rulesetVersionKey: first.rulesetVersionKey,
-      ...visitsForSession(bucket.rows),
+      ...visitsForSession(bucket.rows, setSequences),
     };
   });
 }
@@ -310,8 +354,9 @@ export function sessionCheckoutVisits(
  */
 export function checkoutVisitsFromRows(
   rows: readonly X01CheckoutDartRow[],
+  setSequences: ReadonlyMap<string, number> = new Map(),
 ): CheckoutVisitTotals[] {
-  return sessionCheckoutVisits(rows)
+  return sessionCheckoutVisits(rows, setSequences)
     .flatMap((session) => session.visits)
     .map(toCheckoutVisitTotals);
 }
@@ -322,8 +367,9 @@ export function checkoutVisitsFromRows(
  */
 export function checkoutVisitsWithSession(
   rows: readonly X01CheckoutDartRow[],
+  setSequences: ReadonlyMap<string, number> = new Map(),
 ): (CheckoutVisitTotals & { sessionId: string })[] {
-  return sessionCheckoutVisits(rows).flatMap((session) =>
+  return sessionCheckoutVisits(rows, setSequences).flatMap((session) =>
     session.visits.map((visit) => ({
       ...toCheckoutVisitTotals(visit),
       sessionId: session.sessionId,

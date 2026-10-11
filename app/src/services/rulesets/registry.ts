@@ -5,6 +5,7 @@ import { cricketValidator } from "./cricket/cricket.validator";
 import { doublesTrainingValidator } from "./doubles-training/doubles-training.validator";
 import { tacticsValidator } from "./tactics/tactics.validator";
 import { fiveOhOneValidator } from "./five-oh-one/five-oh-one.validator";
+import { fiveOhOneV2Validator } from "./five-oh-one/five-oh-one.validator";
 import type { RulesetValidator } from "./interfaces";
 import { oneTwentyOneValidator } from "./one-twenty-one/one-twenty-one.validator";
 import { oneTwentyOneV2Validator } from "./one-twenty-one/one-twenty-one.validator";
@@ -24,6 +25,7 @@ const REGISTRY: Record<string, RulesetValidator> = {
   SINGLES_V3: singlesTrainingV3Validator,
   DOUBLES_TRAINING_V1: doublesTrainingValidator,
   "501_V1": fiveOhOneValidator,
+  "501_V2": fiveOhOneV2Validator,
   TUOD_V1: tuodValidator,
   SHANGHAI_V1: shanghaiValidator,
   SHANGHAI_V2: shanghaiV2Validator,

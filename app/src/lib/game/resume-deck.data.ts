@@ -1,5 +1,8 @@
 import { fetchActiveSessions } from "@client/api/sessions";
-import { GAME_CARDS } from "@lib/game/rulesets/games-visibility";
+import {
+  GAME_CARDS,
+  cardForRuleset,
+} from "@lib/game/rulesets/games-visibility";
 import { startedAgo } from "@utils/started-ago";
 import { summarizeProgress } from "@modules/game/session-progress.module";
 import type { SessionActiveData } from "@client/api/types";
@@ -98,9 +101,7 @@ export function toResumeCards(
     .filter((session) => !session.isRoutineStep)
     .sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt))
     .flatMap((session) => {
-      const card = cards.find(
-        (game) => game.rulesetVersionKey === session.rulesetVersionKey,
-      );
+      const card = cardForRuleset(cards, session.rulesetVersionKey);
       if (!card || session.rulesetVersionKey === null) return [];
       return [toResumeCard(session, card, local, now)];
     });

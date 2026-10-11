@@ -201,6 +201,70 @@ export const FiveOhOneConfig = z
   })
   .strict();
 
+const RaceSpecSchema = z
+  .object({
+    mode: z.enum(["FIRST_TO", "BEST_OF"]),
+    count: z.number().int().min(1).max(20),
+  })
+  .strict();
+
+function raceTargetOf(race: { mode: "FIRST_TO" | "BEST_OF"; count: number }) {
+  return race.mode === "FIRST_TO" ? race.count : (race.count + 1) / 2;
+}
+
+/**
+ * 501 V2: the V1 fields plus a match format — a leg race (per set when `sets`
+ * is set), optional sets, and an optional win-by-2 rule bounded by a
+ * sudden-death `cap` (`docs/game-rules/rulesets/501.md`). Best of takes an odd
+ * count only, so a match is never drawn.
+ */
+export const FiveOhOneV2Config = z
+  .object({
+    starting_score: z.number().int().min(2).default(501),
+    check_in: z.enum(["STRAIGHT_IN"]),
+    check_out: z.enum(["DOUBLE_OUT"]),
+    max_darts_per_turn: z.number().int().min(1).max(3),
+    max_visit_score: z.number().int().default(180),
+    legs: RaceSpecSchema,
+    sets: RaceSpecSchema.nullable(),
+    win_by_two: z
+      .object({
+        cap: z.number().int(),
+        scope: z.enum(["EVERY_SET", "DECIDING_SET"]),
+      })
+      .strict()
+      .nullable(),
+  })
+  .strict()
+  .superRefine((config, ctx) => {
+    for (const key of ["legs", "sets"] as const) {
+      const race = config[key];
+      if (race && race.mode === "BEST_OF" && race.count % 2 === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [key, "count"],
+          message: "best of takes an odd count",
+        });
+      }
+    }
+    const winByTwo = config.win_by_two;
+    if (!winByTwo) return;
+    if (winByTwo.cap < raceTargetOf(config.legs)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["win_by_two", "cap"],
+        message: "cap must be at least the leg target",
+      });
+    }
+    if (winByTwo.scope === "DECIDING_SET" && config.sets === null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["win_by_two", "scope"],
+        message: "deciding-set scope needs sets",
+      });
+    }
+  });
+
 /**
  * Ten Up One Down: a checkout ladder that climbs by `finish_bonus` on a
  * successful attempt and falls by `miss_penalty` on a failed one, played for a
@@ -380,6 +444,7 @@ export type RulesetVersionKey =
   | "SINGLES_V3"
   | "DOUBLES_TRAINING_V1"
   | "501_V1"
+  | "501_V2"
   | "TUOD_V1"
   | "SHANGHAI_V1"
   | "SHANGHAI_V2"
@@ -423,6 +488,7 @@ export const RULESET_CONFIGS: Record<RulesetVersionKey, z.ZodTypeAny> = {
   SINGLES_V3: SinglesV3Config,
   DOUBLES_TRAINING_V1: DoublesTrainingConfig,
   "501_V1": FiveOhOneConfig,
+  "501_V2": FiveOhOneV2Config,
   TUOD_V1: TuodConfig,
   SHANGHAI_V1: ShanghaiConfig,
   SHANGHAI_V2: ShanghaiV2Config,
@@ -441,6 +507,7 @@ export type SinglesV2ConfigData = z.infer<typeof SinglesV2Config>;
 export type SinglesV3ConfigData = z.infer<typeof SinglesV3Config>;
 export type DoublesTrainingConfigData = z.infer<typeof DoublesTrainingConfig>;
 export type FiveOhOneConfigData = z.infer<typeof FiveOhOneConfig>;
+export type FiveOhOneV2ConfigData = z.infer<typeof FiveOhOneV2Config>;
 export type TuodConfigData = z.infer<typeof TuodConfig>;
 export type ShanghaiV2ConfigData = z.infer<typeof ShanghaiV2Config>;
 
@@ -508,6 +575,20 @@ export type FiveOhOneSnapshot = {
   maxDartsPerTurn: FiveOhOneConfigData["max_darts_per_turn"];
   maxVisitScore: FiveOhOneConfigData["max_visit_score"];
 };
+
+export type FiveOhOneV2Snapshot = {
+  startingScore: FiveOhOneV2ConfigData["starting_score"];
+  checkIn: FiveOhOneV2ConfigData["check_in"];
+  checkOut: FiveOhOneV2ConfigData["check_out"];
+  maxDartsPerTurn: FiveOhOneV2ConfigData["max_darts_per_turn"];
+  maxVisitScore: FiveOhOneV2ConfigData["max_visit_score"];
+  legs: FiveOhOneV2ConfigData["legs"];
+  sets: FiveOhOneV2ConfigData["sets"];
+  winByTwo: FiveOhOneV2ConfigData["win_by_two"];
+};
+
+/** Either 501 snapshot; `matchFormatOf` normalises both (match-format.module.ts). */
+export type FiveOhOneAnySnapshot = FiveOhOneSnapshot | FiveOhOneV2Snapshot;
 
 export type TuodSnapshot = {
   startingTarget: TuodConfigData["starting_target"];
@@ -580,23 +661,25 @@ export type ConfigSnapshotFor<K extends RulesetVersionKey> =
               ? DoublesTrainingSnapshot
               : K extends "501_V1"
                 ? FiveOhOneSnapshot
-                : K extends "TUOD_V1"
-                  ? TuodSnapshot
-                  : K extends "SHANGHAI_V1"
-                    ? ShanghaiSnapshot
-                    : K extends "SHANGHAI_V2"
-                      ? ShanghaiV2Snapshot
-                      : K extends "121_V1"
-                        ? OneTwentyOneSnapshot
-                        : K extends "121_V2"
-                          ? OneTwentyOneV2Snapshot
-                          : K extends "AROUND_THE_CLOCK_V1"
-                            ? AroundTheClockSnapshot
-                            : K extends "AROUND_THE_CLOCK_V2"
-                              ? AroundTheClockV2Snapshot
-                              : K extends "CRICKET_V1"
-                                ? CricketSnapshot
-                                : TacticsSnapshot;
+                : K extends "501_V2"
+                  ? FiveOhOneV2Snapshot
+                  : K extends "TUOD_V1"
+                    ? TuodSnapshot
+                    : K extends "SHANGHAI_V1"
+                      ? ShanghaiSnapshot
+                      : K extends "SHANGHAI_V2"
+                        ? ShanghaiV2Snapshot
+                        : K extends "121_V1"
+                          ? OneTwentyOneSnapshot
+                          : K extends "121_V2"
+                            ? OneTwentyOneV2Snapshot
+                            : K extends "AROUND_THE_CLOCK_V1"
+                              ? AroundTheClockSnapshot
+                              : K extends "AROUND_THE_CLOCK_V2"
+                                ? AroundTheClockV2Snapshot
+                                : K extends "CRICKET_V1"
+                                  ? CricketSnapshot
+                                  : TacticsSnapshot;
 
 /**
  * One boundary probe: a complete, parseable config plus the label the contract
