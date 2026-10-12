@@ -104,7 +104,10 @@ defaults. The 20-minute preset is a draft value, not sourced.
   capture pair, as the shipped exercises
   (`docs/architecture/09-Training/01-Routines.md` §Bullseye Checkouts).
 - **One dart's fact:** one `darts` row per throw. Shanghai parts: intended
-  target is the active number, intended zone null (any ring scores).
+  target and zone both null (any ring scores, and a number with a null zone is
+  rejected by `chk_dart_target_consistency`,
+  `database/migrations/0007_constraints.sql:86`); the active number is
+  recovered from the visit index.
   Doubles part: intended target the double's number, zone `DOUBLE`; the bull
   throw `25` / `INNER_BULL` (`database/seeds/0001_reference_data.sql`,
   `dart_zones`). `score` is the **board** score — never 50/100 or +100.
