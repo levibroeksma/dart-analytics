@@ -23,6 +23,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Climb cap / end target | V2+ | All | Wanted, unscheduled: `TuodConfig` carries no cap key — the session is bounded by `duration_type`/`duration_value` and the ladder itself never wins |
 | Alternate start score | V2+ | All | Wanted, unscheduled: `TuodConfig.starting_target` exists, but both seeded presets fix it at 41 (`0002_default_templates.sql`) and no setup control offers another value |
 | Alternate step sizes (+10 / −1) | V2+ | All | Wanted, unscheduled: `finish_bonus` and `miss_penalty` exist for the same reason and are fixed at 10 and 1 by the same seeded presets |
+| Checkout Challenge lives mode | V2+ | Single | Wanted, unscheduled: `TuodConfig` carries no lives key and the session is bounded by `duration_type`/`duration_value` only, so a life-bounded end is a new bound; Single only because 1v1 is ROUNDS mode with both seats playing the full budget |
 | Runs as a routine step (timed) | V1 | All | |
 | Standard dartboard scoring (assumed) | V1 | All | |
 
@@ -124,6 +125,17 @@ winning seat beside both seats' highest targets, or a tie.
 - Configurable start score and step sizes
 - **End target**: win when you successfully check out a chosen high finish
 - Multiplayer: shared ladder or alternate attempts
+- **Checkout Challenge** — Ten Up One Down with a start of 21, 61 or 91,
+  the floor held at that start (the V2+ floor above) and, besides the time
+  bound, a **lives mode**: 5 or 10 lives, one lost on every failed attempt
+  (a bust included), the session ending when the last is gone. Score is the
+  checkouts made. **Single:** lives mode is single-player; 1v1 stays
+  ROUNDS mode. Source: dolfdarts.com, "Checkout Challenge"
+  (https://dolfdarts.com/games/checkout-challenge, read 2026-10-12). Its
+  other pieces are rows above — start score, floor — except the 20, 30 or 45
+  minute time bound, which exceeds the 30-minute ceiling
+  (`app/src/lib/game/tuod-duration.ts:11`). Capture is unchanged: lives left
+  folds from the turn totals, a failure being `0`.
 
 ### Match structure
 
@@ -136,9 +148,12 @@ winning seat beside both seats' highest targets, or a tie.
 | **Ten up**   | V1      | Successful 3-dart checkout → next target +10. |
 | **One down** | V1      | Failed attempt → next target −1.              |
 | **Attempt**  | V1      | One visit at the current target.              |
+| **Checkout Challenge** | V2+ | Start 21, 61 or 91, floor at the start, and either a 20, 30 or 45 minute or a 5 or 10 lives bound. |
 
 ## Open questions
 
 - ~~Whether the ladder floors below the double-out minimum (2).~~ **Resolved (V1):** yes — the ladder floors at **2**, the minimum target any double can finish. A failure at target 2 stays at 2 rather than falling further; see Progress above. <!-- 2026-07-26 -->
 - Whether failing below the start score is floored at **41** instead. **Still open, deferred to V2+.** This is a separate, higher floor from the V1 floor at 2 above — an optional variant (see Later versions), not required for V1. <!-- 2026-07-26 -->
 - ~~Whether a bust mid-visit still consumes the whole attempt.~~ **Resolved for V1:** yes — see Bust above. <!-- 2026-07-26 -->
+- Checkout Challenge: should the 20, 30 or 45 minute bound raise the 30-minute `MINUTES` ceiling (`app/src/lib/game/tuod-duration.ts:11`), or stay capped at 30?
+- Checkout Challenge lives mode: does a game with lives also end on the time bound, or only on the last life? The source offers the two as alternative formats.

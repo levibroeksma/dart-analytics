@@ -25,6 +25,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Visit = 3 darts per target | V1 | All | |
 | Track score / hit quality | V1 | All | |
 | Standard dartboard layout (assumed) | V1 | All | |
+| PAW (numbers 1–20 only, no bull round) | V2+ | All | Wanted, unscheduled: `target_order` must hold exactly 21 targets (`app/src/lib/game/rulesets/types.ts:66-70`), so a 20-target run is a new config shape and a new ruleset version |
 
 ## Identity
 
@@ -47,6 +48,7 @@ Before play, a **config screen** shows the session presets. In V1 most values ar
 | Difficulty | Easy — score hits; misses just score 0 for that dart            | Shown, locked         |
 | Points     | Single = 1, Double = 2, Treble = 3 (only on the current target) | Shown, locked         |
 | Scoring    | Standard (default) or Accuracy — editable from V3 onward         | Editable (V3+)         |
+| Targets    | 1–20 and bull (21 targets); PAW (V2+) drops the bull             | Editable (V2+)         |
 
 ## How to play
 
@@ -125,6 +127,14 @@ Accuracy mode requires `ANALYTICS` + `VISUAL_BOARD` capture (coordinate capture 
 ### Variants
 
 - **Professional:** all 3 darts must hit
+- **PAW** (Points Around the World): Singles Training Easy over the numbers
+  1–20 only — no bull round, so 20 visits and 60 darts. Single 1, double 2,
+  treble 3 on the current number: at most 9 a number and 180 a run (186 with
+  the bull). Source: dolfdarts.com, "PAW" (https://dolfdarts.com/games/paw,
+  read 2026-10-12). Its Reverse PAW is High → low without the bull; its PAW
+  with Bull is the 21-target run above, though the source scores the bull
+  outer 1 or 2 and inner 3 against this file's outer 1, inner 2. The source is
+  solo; seats follow Singles Training.
 
 ### Match structure
 
@@ -138,6 +148,7 @@ Accuracy mode requires `ANALYTICS` + `VISUAL_BOARD` capture (coordinate capture 
 | **Low → high**      | V1      | 1, 2, … 20, bull.                                                               |
 | **High → low**      | V1      | Bull, 20, 19, … 1.                                                              |
 | **Random**          | V1      | All 21 targets (1–20 and bull) shuffled together per session; bull can land anywhere. |
+| **PAW**             | V2+     | Singles Training over 1–20 with no bull round; also called Points Around the World. |
 
 ## Capture
 
@@ -150,3 +161,5 @@ Accuracy mode requires `ANALYTICS` + `VISUAL_BOARD` capture (coordinate capture 
 
 - Training-point values for outer vs inner bull resolved 2026-07-26 (outer 1, inner 2).
 - **Blocked:** a dart fact with a target number and no intended ring is currently rejected by `chk_dart_target_consistency` (migration `0007`). Needs a decision before Singles Training sessions can be uploaded — see `docs/architecture/05-Database/06-Spec/04-Runtime-Layer.md` § darts.
+- PAW (V2+): do Hard, Extreme and Accuracy combine with the 20-target run? The
+  source has plain ring scoring only.

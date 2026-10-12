@@ -27,6 +27,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | 5-Lives Killer | V2+ | All | Wanted, unscheduled: a starting count is a configuration V1 locks |
 | Team Killer | Deferred | 2+ | Blocked on: a session allows one seat per side; 2v2 is rejected (`app/src/services/session-seats.service.ts:86`) |
 | Killer Cricket | V2+ | All | Wanted, unscheduled: three hits on your own number to become a Killer is a rule switch V1 does not need |
+| Survivor (any ring takes lives: single 1, double 2, treble 3) | V2+ | 2+ | Wanted, unscheduled: V1 counts doubles only, so scaling lives by ring, and a self-hit costing lives, is a second damage rule V1 does not need |
 | Standard dartboard scoring (assumed) | V1 | All | |
 
 ## Identity
@@ -48,6 +49,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Players | 2 seats (min 2, max 4) | Editable |
 | Seat numbers | Chosen per seat, 1–20, no two alike | Editable |
 | Lives | 3 | Shown, locked |
+| Damage rule | Doubles only; Survivor (V2+) counts any ring | Editable (V2+) |
 
 Seat order is fixed at setup, as 501 (`501.md` §Features); seat 1 throws
 first. The source draws numbers by a non-dominant-hand throw ("If two players
@@ -95,6 +97,22 @@ took to become a Killer.
 - **5-Lives Killer** — five lives instead of three.
 - **Killer Cricket** — "players must close their number (three hits) before
   becoming a Killer, rather than hitting a single double."
+- **Survivor** — Killer where every ring of a seat's number counts. Become a
+  Killer by hitting your own double, as in V1. Then a Killer's single on
+  another seat's number takes 1 life, a double 2, a treble 3; lives stop at
+  zero and the excess is ignored. A Killer's hit on their own number costs
+  that many lives to themself. Before becoming a Killer, a dart on any
+  number does nothing. A seat is out the dart its lives reach zero and throws
+  no more darts. One dart lands on one number, so no dart can take two seats
+  out at once. Source: dolfdarts.com, "Survivor"
+  (https://dolfdarts.com/games/survivor, read 2026-10-12), classified by its
+  rules text; its overview says otherwise (see Open questions). The source's
+  Variable Lives is 5-Lives Killer; its Blind Killer and Team Survivor are
+  Blind Killer and Team Killer above.
+
+**2+:** the source asks for three or more players; seats follow Killer
+(2–4). Survivor's ring scaling needs the hit's ring, which Capture's "number
+and zone" already records.
 
 ### Match structure
 
@@ -132,6 +150,7 @@ Killer is unbuilt; this is the capture shape its V1 is designed for.
 | **5-Lives Killer** | V2+ | Five lives each |
 | **Team Killer** | Deferred | Teams; teammates' doubles safe |
 | **Killer Cricket** | V2+ | Three hits on your own number to become a Killer |
+| **Survivor** | V2+ | Killer where any ring counts: a hit on a seat's number takes lives equal to the ring (1, 2, 3); a Killer's own-number hit costs the same |
 
 ## Open questions
 
@@ -141,3 +160,14 @@ Killer is unbuilt; this is the capture shape its V1 is designed for.
   first, status lost on the second? The source's two rules meet here.
 - Seat numbers: player-chosen (V1 proposal) or a random draw on the config
   screen?
+- Survivor: the source's overview ("low scorers pushed toward the edge … fall
+  off the virtual platform") describes a score-based game; its rules text is
+  a Killer variant. Classified by the rules text; is the overview a different
+  game, or a stray description?
+- Survivor: does a Killer's own-number hit also lose Killer status, as in V1?
+  The source takes lives only.
+- Survivor: the source's same-turn double elimination (the thrower and a
+  target both reach zero) cannot happen dart by dart, since one dart hits one
+  number. Read here as: the dart that leaves one seat with lives ends the game.
+- Survivor: the source needs three players; Killer V1 allows two. Does
+  Survivor allow a two-seat game?

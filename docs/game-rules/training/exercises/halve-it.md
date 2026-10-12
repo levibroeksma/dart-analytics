@@ -27,6 +27,7 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 | Multiplayer | V2+ | 2+ | Wanted, unscheduled: Halve-It is a pub game for 2–8, but exercise engines run a single solo seat (`app/src/modules/training/exercises/solo-participant.module.ts`) |
 | Time-bound run | Deferred | All | Blocked on: a fixed nine-visit sequence; how a routine's duration cuts it is open (see Open questions) |
 | Standalone entry | V2+ | All | Wanted, unscheduled: no exercise has a standalone play page — `app/src/pages/training/` holds only `index.astro`, `quick-subtract/`, `routines/` and `schedules/` |
+| Double Down preset (opens 15, 16; start total 40) | V2+ | All | Wanted, unscheduled: a named rule switch of this exercise, not a distinct game — it is Configurable target sequence plus Start total 40, both V2+, so it cannot land before them |
 
 ## Identity
 
@@ -113,6 +114,14 @@ after the last target wins (V2+).
 - **Full-Board Count-Up** — the sequence is 1 to 20 then Bull, 21 rounds, in
   ascending or descending order; otherwise the same rules.
 - **Multiplayer** — 2–8 players take turns per round; highest total wins.
+- **Double Down preset** — the same exercise with one fixed list and a
+  start total of 40: 15, 16, Any double, 17, 18, Any treble, 19, 20, Bull.
+  Rounds, hit rule, halving (rounded down) and the end bound are Halve-It's
+  own. The only differences are the opening target (15, where the V1 list
+  opens 20) and the start total (40, where V1 starts 0). Source:
+  dolfdarts.com, "Double Down" (https://dolfdarts.com/games/double-down). It
+  calls the game closely related to Halve-It. Its "Zero Start" variation is
+  this exercise's V1 start total.
 
 ### Other
 
@@ -154,6 +163,7 @@ after the last target wins (V2+).
 | **Multiplayer** | V2+ | 2–8 players, highest total wins |
 | **Time-bound run** | Deferred | A routine duration cutting the run |
 | **Standalone entry** | V2+ | Playing a run outside a routine |
+| **Double Down** | V2+ | Preset: 15, 16, Any double, 17, 18, Any treble, 19, 20, Bull, start total 40 |
 
 ## Open questions
 
@@ -164,3 +174,7 @@ after the last target wins (V2+).
   at expiry?
 - Execution model: exercise (this draft) or a game, as it is a multiplayer pub
   game at heart?
+- Double Down opens its list with 15; this draft's V1 list opens with 20, and
+  the dolfdarts Halve It page agrees with the V1 list. Is the 15 the real
+  difference between the two games, or a slip in one source? Recorded
+  as found; neither list is changed here.

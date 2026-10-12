@@ -30,6 +30,8 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Timed run in 1v1 | V2+ | 1v1 | Wanted, unscheduled: one device alternates seats, and whether the clock is shared or per seat is undecided — Ten Up One Down keeps its timer single-player for the same reason (`ten-up-one-down.md` Ends when) |
 | Clock restart when time remains | V2 | Single | Scheduled for V2 (2026-09-23), with the timed run: finishing the path early must not end a timed run |
 | Runs as a routine step (timed) | V2 | Single | Scheduled for V2 (2026-09-23): the point of this version is use in training routines, via the `GAME` exercise type |
+| Car Rally (player-set course, two-hit obstacles) | V2+ | 1v1 | Wanted, unscheduled (2026-10-12): the variant stacks three switches on the shipped clock, kept here as one variant because the path/hit-advance structure is unchanged. The path comes only from `clockPath(pathDirection, oddsFirst)` (`app/src/modules/game/around-the-clock.engine.module.ts:62`), so a player-set course, a per-target hit count and a first-to-finish end (the engine resolves by fewest darts, `:269-277`) have nowhere to live. The source plays 2–6 players, so no Single; the repo caps this ruleset at 2 seats (`app/src/services/session-seats.service.ts:24-25`) and rejects teams (`:87-88`), so the source's Team Relay is out |
+| Three in a Bed (all 3 darts in one bed to advance) | V2+ | All | Wanted, unscheduled (2026-10-12): the variant stacks several switches, kept here as one variant because it is still a walk along an ordered list. It needs a stay-put fail (V2 only steps back), a strict same-ring bed, a 1…20 path with no bull, and a race end with a tiebreak — none of which `rulesOf` expresses (`around-the-clock.engine.module.ts:57-67`). The source plays 1–8 players; the repo caps this ruleset at 2 seats |
 | Track turns to completion | V1 | All | |
 | Track hit ratio | V1 | All | |
 | Track what was hit per target (S/D/T) | V1 | All | |
@@ -147,6 +149,34 @@ ratio.
   - **Hard:** at least **2 of 3** darts on the current target
   - **Pro:** all **3** darts on the current target
 - Harder modes can make the player **lose** the game on failure (not only stall)
+- **Car Rally (V2+):** a race along a **course** the players agree before play —
+  an ordered list of board segments (source: typically 10–20, e.g. ending on the
+  bull). A **normal** segment clears on one hit; an **obstacle**, marked before
+  play, needs two hits, and a single hit is kept between visits. Any ring of the
+  number is a hit; a dart on any other segment is a miss. Darts resolve one at a
+  time as in Easy, so one visit can clear several segments; there is no bust and
+  no step back. The dart that clears the last segment ends the visit and the
+  game.
+  **1v1:** the first seat to clear the course wins at once — no tie is
+  possible, unlike the shipped clock's fewest-darts-after-both-finish. A seat
+  never skips ahead: only the current segment counts.
+- **Three in a Bed (V2+):** walk 1 → 20 (no bull). To clear a number, all three
+  darts of the visit must land in the same **bed** of it; all three are always
+  thrown. Fewer than three in the bed fails the visit and the player **stays**
+  on that number — no step back (unlike V2's Step back). A dart on another
+  number, or a miss, is not in any bed. Bed, picked before play:
+  **relaxed wedge** — any ring of the number (the same test as Pro with Any
+  segment); **strict** — all three in the same ring (all singles, all doubles or
+  all trebles; inner and outer single count as one ring). The source's "Big
+  Singles Only" is strict with the existing Outer single only lock (V2; needs
+  ANALYTICS + VISUAL_BOARD, `app/src/modules/game/types.ts:391-393`). Clearing
+  20 ends that seat's circuit.
+  **Single:** the session ends when 20 is cleared; the result is darts and
+  visits taken.
+  **1v1:** the round is played out so both seats have equal visits; seats that
+  clear 20 in the same round tie. The source breaks a tie with one sudden-death
+  round of three-in-a-bed on an agreed target (the bull suggested) — see Open
+  questions.
 
 ### Match structure
 
@@ -177,6 +207,8 @@ ratio.
 | **Timed run in 1v1**                 | V2+      | A timed run with two seats on one device.                         |
 | **Clock restart**                    | V2       | In a timed run, the bull with time left restarts the path; one lap. |
 | **Runs as a routine step**           | V2       | Played as a `GAME` exercise step; the routine sets the duration.  |
+| **Car Rally**                        | V2+      | Race along a player-set course; obstacle segments need two hits; first to clear it wins. |
+| **Three in a Bed**                   | V2+      | Clear a number only when all 3 darts of the visit share a bed; a failed visit stays put. |
 
 ## Capture
 
@@ -209,3 +241,17 @@ ratio.
   **Resolved (2026-09-23):** step back one target — see Step back. Losing the
   game on a failed visit stays V2+.
 - Timed run in 1v1: one shared clock or a clock per seat, on a single device?
+- Car Rally: does the bull, as a course segment, take either ring as in the
+  shipped clock? The source lists "Bull" in its example course with no ring rule.
+- Car Rally: are courses presets or free lists — may a segment repeat, and what
+  length bounds apply? The source says only "agree a course", typically 10–20
+  segments.
+- Car Rally: is the round played out after the first seat clears the course? The
+  source's same-round sentence reads either way; the winner is the same (the
+  earlier finisher), only the darts recorded differ.
+- Three in a Bed: when the tiebreak round does not separate the seats (none or
+  all land three in the bed), what happens next? The source says only "a single
+  sudden-death round on a mutually agreed target".
+- Three in a Bed: do inner and outer single count as one ring under Strict? The
+  source's objective speaks of "the single 14 segment", its Strict variation of
+  "all singles".
