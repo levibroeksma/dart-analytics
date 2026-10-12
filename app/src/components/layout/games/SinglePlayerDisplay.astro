@@ -50,7 +50,7 @@ const className = cn(
   >
     <slot name="above" />
     <p
-      class="whitespace-nowrap font-display tabular-nums text-foreground text-shadow-glow"
+      class="whitespace-nowrap font-display leading-none tabular-nums text-foreground text-shadow-glow"
       :class={`$bigValueSize(${valueExpr})`}
       x-text={valueExpr}
     >

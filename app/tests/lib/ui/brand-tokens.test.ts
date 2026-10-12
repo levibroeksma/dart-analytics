@@ -91,6 +91,36 @@ describe("brand type scale", () => {
   });
 });
 
+describe("base rules leave token bundles in charge", () => {
+  const src = (rel: string) =>
+    readFileSync(new URL(`../../../src/${rel}`, import.meta.url), "utf8");
+
+  it.each(["h1", "h2", "h3", "h4"])(
+    "%s sets letter-spacing directly, so a text-* bundle's tracking wins",
+    (tag) => {
+      const rule = css.match(new RegExp(`\\n  ${tag} \\{([^}]*)\\}`))?.[1];
+      expect(rule).toBeDefined();
+      expect(rule).not.toMatch(/@apply[^;]*tracking-wide/);
+      expect(rule).toMatch(/letter-spacing: var\(--tracking-wide\);/);
+    },
+  );
+
+  it.each([
+    "components/layout/games/SinglePlayerDisplay.astro",
+    "components/layout/games/SplitScoreboardHalf.astro",
+  ])("%s numeral <p> pins leading-none over the base p leading", (rel) => {
+    expect(src(rel)).toMatch(
+      /<p\s+class="[^"]*\bleading-none\b[^"]*text-shadow-glow"/,
+    );
+  });
+
+  it("profile name leaves room for Michroma descenders under truncate", () => {
+    expect(src("components/layout/profile/ProfileIdentity.astro")).toMatch(
+      /truncate font-display text-lg\/snug/,
+    );
+  });
+});
+
 describe("brand radius and spacing", () => {
   it.each([
     ["radius-row", "0.875rem"],

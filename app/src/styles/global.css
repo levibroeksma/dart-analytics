@@ -384,19 +384,23 @@
   }
 
   h1 {
-    @apply font-display text-3xl font-normal tracking-wide text-balance sm:text-4xl;
+    @apply font-display text-3xl font-normal text-balance sm:text-4xl;
+    letter-spacing: var(--tracking-wide);
   }
 
   h2 {
-    @apply font-display text-2xl font-normal tracking-wide text-balance sm:text-3xl;
+    @apply font-display text-2xl font-normal text-balance sm:text-3xl;
+    letter-spacing: var(--tracking-wide);
   }
 
   h3 {
-    @apply font-display text-xl font-normal tracking-wide text-balance sm:text-2xl;
+    @apply font-display text-xl font-normal text-balance sm:text-2xl;
+    letter-spacing: var(--tracking-wide);
   }
 
   h4 {
-    @apply font-display text-lg font-normal tracking-wide text-balance sm:text-xl;
+    @apply font-display text-lg font-normal text-balance sm:text-xl;
+    letter-spacing: var(--tracking-wide);
   }
 
   h5 {
