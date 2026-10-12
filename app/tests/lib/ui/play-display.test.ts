@@ -10,37 +10,37 @@ import type { RingKey, TapRing } from "@lib/types";
 
 describe("bigValueSize", () => {
   it.each([
-    ["7", "text-[clamp(2.5rem,45cqw,5.25rem)]"],
-    ["20", "text-[clamp(2.5rem,45cqw,5.25rem)]"],
-    ["501", "text-[clamp(2rem,30cqw,4rem)]"],
-    ["D20", "text-[clamp(2rem,30cqw,4rem)]"],
-    ["BULL", "text-[clamp(1.5rem,18cqw,2.875rem)]"],
-    ["1,234", "text-[clamp(1.5rem,18cqw,2.875rem)]"],
-    ["10,000", "text-[clamp(1.25rem,15cqw,2.875rem)]"],
-    ["12 - 180", "text-[clamp(1.125rem,11cqw,2.875rem)]"],
-    ["501 - 180", "text-[clamp(1rem,10cqw,2.875rem)]"],
+    ["7", "text-numeral-1"],
+    ["20", "text-numeral-1"],
+    ["501", "text-numeral-2"],
+    ["D20", "text-numeral-2"],
+    ["BULL", "text-numeral-3"],
+    ["1,234", "text-numeral-3"],
+    ["10,000", "text-numeral-4"],
+    ["12 - 180", "text-numeral-5"],
+    ["501 - 180", "text-numeral-6"],
   ])("sizes %s as %s", (value, expected) => {
     expect(bigValueSize(value)).toBe(expected);
   });
 
   it("measures a number by its digits", () => {
-    expect(bigValueSize(170)).toBe("text-[clamp(2rem,30cqw,4rem)]");
+    expect(bigValueSize(170)).toBe("text-numeral-2");
   });
 
   it("treats a missing value as empty", () => {
-    expect(bigValueSize(null)).toBe("text-[clamp(2.5rem,45cqw,5.25rem)]");
+    expect(bigValueSize(null)).toBe("text-numeral-1");
   });
 });
 
 describe("seatValueSize", () => {
   it.each([
-    ["7", "text-[clamp(2rem,30cqw,4rem)]"],
-    ["170", "text-[clamp(2rem,30cqw,4rem)]"],
-    ["BULL", "text-[clamp(1.5rem,18cqw,2.875rem)]"],
-    ["1,234", "text-[clamp(1.5rem,18cqw,2.875rem)]"],
-    ["10,000", "text-[clamp(1.25rem,15cqw,2.875rem)]"],
-    ["12 - 180", "text-[clamp(1.125rem,11cqw,2.875rem)]"],
-    ["501 - 180", "text-[clamp(1rem,10cqw,2.875rem)]"],
+    ["7", "text-numeral-2"],
+    ["170", "text-numeral-2"],
+    ["BULL", "text-numeral-3"],
+    ["1,234", "text-numeral-3"],
+    ["10,000", "text-numeral-4"],
+    ["12 - 180", "text-numeral-5"],
+    ["501 - 180", "text-numeral-6"],
   ])("sizes %s as %s", (value, expected) => {
     expect(seatValueSize(value)).toBe(expected);
   });
