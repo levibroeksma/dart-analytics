@@ -133,12 +133,15 @@ after the last target wins (V2+).
 - **Capture / input mode:** analytics mode, `ANALYTICS` + `VISUAL_BOARD`
   capture pair, as the shipped exercises
   (`docs/architecture/09-Training/01-Routines.md` §Bullseye Checkouts).
-- **One dart's fact:** one `darts` row per throw. Number target: intended
-  number set, zone null. Any double: number null, zone `DOUBLE`. Any treble:
-  number null, zone `TREBLE`. Bull: `25`, zone null. All allowed by
+- **One dart's fact:** one `darts` row per throw. Number target and Bull:
+  intended number and zone both null — any ring scores, so naming a ring
+  would invent an intent, and a number with a null zone is rejected by
   `chk_dart_target_consistency`
-  (`database/migrations/0007_constraints.sql:86`) — a zone without a number is
-  permitted. `score` is the **board** score.
+  (`database/migrations/0007_constraints.sql:86`), which admits only both-null
+  or a set zone. The round's target is recovered from the round index, as the
+  list is fixed. Any double: number null, zone `DOUBLE`. Any treble: number
+  null, zone `TREBLE` (a zone without a number is permitted). `score` is the
+  **board** score.
 - **Stage type:** one `EXERCISE_BLOCK` stage per run
   (`app/src/modules/game/turn-log.module.ts:118`); one `turns` row per round.
 - **Derived, never stored:** round score, halved or not, total.
