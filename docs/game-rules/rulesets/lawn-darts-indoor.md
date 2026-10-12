@@ -10,7 +10,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
 | Multiplayer (1v1) | V1 | 1v1 | |
-| 2v2 teams | Deferred | 2+ | Blocked on: a session takes one seat per side, and a side of two seats is rejected (`app/src/services/session-seats.service.ts:87-89`); the source's 2–4 player range is 1v1 or 2v2 |
+| 2v2 teams | Deferred | 2+ | Blocked on: a session takes one seat per side, and a side of two seats is rejected (`app/src/services/session-seats.service.ts:87-88`); the source's 2–4 player range is 1v1 or 2v2 |
 | Config screen (presets shown) | V1 | All | |
 | Round = two darts per side at the bull | V1 | All | |
 | Ringers Only: only an inner bull scores, 3 points a ringer | V1 | All | |

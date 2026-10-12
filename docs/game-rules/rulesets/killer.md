@@ -25,7 +25,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Self-hit life penalty | V2+ | All | Wanted, unscheduled: a house rule on top of the status loss, not needed to play |
 | Blind Killer | V2+ | 2+ | Wanted, unscheduled: secret numbers need hidden information on one shared device |
 | 5-Lives Killer | V2+ | All | Wanted, unscheduled: a starting count is a configuration V1 locks |
-| Team Killer | Deferred | 2+ | Blocked on: a session allows one seat per side; 2v2 is rejected (`app/src/services/session-seats.service.ts:86`) |
+| Team Killer | Deferred | 2+ | Blocked on: a session allows one seat per side; 2v2 is rejected (`app/src/services/session-seats.service.ts:87-88`) |
 | Killer Cricket | V2+ | All | Wanted, unscheduled: three hits on your own number to become a Killer is a rule switch V1 does not need |
 | Survivor (any ring takes lives: single 1, double 2, treble 3) | V2+ | 2+ | Wanted, unscheduled: V1 counts doubles only, so scaling lives by ring, and a self-hit costing lives, is a second damage rule V1 does not need |
 | Standard dartboard scoring (assumed) | V1 | All | |
@@ -134,7 +134,7 @@ Killer is unbuilt; this is the capture shape its V1 is designed for.
   `app/src/services/session-seats.service.ts:106`).
 - **Stage type:** one shared stage for the game — a dart changes another
   seat's lives, as 501's `SHARED` leg
-  (`app/src/modules/game/five-oh-one.engine.module.ts:286`).
+  (`app/src/modules/game/five-oh-one.engine.module.ts:428`).
 - **Derived, never stored:** Killer status, lives per seat, who is out, the
   winner.
 

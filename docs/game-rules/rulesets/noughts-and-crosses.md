@@ -10,7 +10,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
 | Two sides, one seat each | V1 | 1v1 | |
-| Teams | Deferred | 2+ | Blocked on: a session allows one seat per side; 2v2 is rejected (`app/src/services/session-seats.service.ts:86`) |
+| Teams | Deferred | 2+ | Blocked on: a session allows one seat per side; 2v2 is rejected (`app/src/services/session-seats.service.ts:87-88`) |
 | Config screen (presets shown) | V1 | All | |
 | 3×3 grid, centre square the inner bull | V1 | All | |
 | Preset grid: the source's example | V1 | All | |
@@ -115,7 +115,7 @@ for.
   ignores.
 - **Stage type:** one shared stage for the game — a claim by one side closes
   that square to the other, so seats share state, as 501's `SHARED` leg
-  (`app/src/modules/game/five-oh-one.engine.module.ts:286`; `StageOwnership`,
+  (`app/src/modules/game/five-oh-one.engine.module.ts:428`; `StageOwnership`,
   `app/src/modules/game/types.ts:576`).
 - **Derived, never stored:** square owners, the winning line, draw, darts
   thrown.
