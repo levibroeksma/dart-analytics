@@ -20,6 +20,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Extra innings | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer — a solo run has no tie |
 | Bullseye Tiebreaker | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer, as Extra innings |
 | 7th Inning Stretch | V2+ | All | Wanted, unscheduled: a scoring switch V1 does not need |
+| Bullseye Baseball | V2+ | All | Wanted, unscheduled: a scoring gate V1 does not need; V1 already scores no runs on the bull, so the gate only adds the unlock rule |
 | Team Play | Deferred | 2+ | Blocked on: a session allows one seat per side; 2v2 is rejected (`app/src/services/session-seats.service.ts:86`) |
 | Standard dartboard scoring (assumed) | V1 | All | |
 
@@ -74,6 +75,13 @@ Total runs, and runs per inning.
 
 - **7th Inning Stretch** — "All runs scored during the 7th inning are
   doubled."
+- **Bullseye Baseball** — runs in an inning count only if at least one of its
+  three darts hit the bull (outer or inner); with no bull the inning scores 0,
+  however well the number was hit. The bull dart scores no runs itself, so the
+  maximum is 6 an inning. Source: dolfdarts.com, "Bullseye Baseball"
+  (https://dolfdarts.com/games/bullseye-baseball, read 2026-10-12), which names
+  it a variant of Baseball Darts. The gate reads the visit's darts, so
+  Capture is unchanged.
 
 ### Match structure
 
@@ -108,6 +116,7 @@ taken from Shanghai's.
 | --- | --- | --- |
 | **Innings** | V1 | Nine visits, inning n at number n |
 | **Runs** | V1 | 1, 2 or 3 per dart in the inning's number, by ring |
+| **Bullseye Baseball** | V2+ | Runs count only if a dart in the inning hit the bull |
 | **Extra innings** | V2+ | Innings 10, 11, … to break a tie |
 | **Bullseye Tiebreaker** | V2+ | Three darts at the bull to break a tie |
 | **7th Inning Stretch** | V2+ | Inning 7 runs doubled |
@@ -116,5 +125,12 @@ taken from Shanghai's.
 ## Open questions
 
 - Extra innings past 20: what does inning 21 target?
+- Bullseye Baseball: do darts thrown before the bull dart score? The source
+  says the bull "unlocks" the "remaining" darts, but also that an inning
+  with no bull scores 0. One reading counts only darts after the first bull;
+  the other counts the whole inning once any dart hit the bull.
 - Keep Baseball Darts as its own ruleset, or add it as a Shanghai variant
   (nine rounds, runs by ring, no instant win)?
+- Bullseye Baseball: the source seats two to eight players. The `All`
+  applicability (a solo run scoring as Baseball Darts' V1 does) is this file's
+  reading, not the source's; confirm before scheduling.

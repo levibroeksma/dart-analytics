@@ -22,6 +22,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Sudden Death Knockout | V2+ | 2+ | Wanted, unscheduled: a second elimination rule — lowest score each round is out — V1 does not need |
 | Progressive Knockout | V2+ | 2+ | Wanted, unscheduled: a target that rises a fixed step per round; its starting target is an open question |
 | Legs | V2+ | 2+ | Wanted, unscheduled: two rule switches V1 does not need — the target is the visit just before, even a failed one, and a tie costs a strike |
+| Under the Hat (beat the target strictly; five lives; every visit sets the target) | V2+ | 2+ | Wanted, unscheduled: a second survive/target rule set — V1 plays one, and this one changes the tie, the life count and when the target moves |
 | Standard dartboard scoring (assumed) | V1 | All | |
 
 ## Identity
@@ -45,6 +46,7 @@ minimum of 3 players"; a session seats at most four.
 | Players | 3 seats (min 3, max 4) | Editable |
 | Strikes to go out | 3 | Shown, locked |
 | Opener | Seat 1, normal throw | Shown, locked |
+| Rule set | Knockout; Under the Hat (V2+) | Editable (V2+) |
 
 Seat order is fixed at setup, as 501 (`501.md` §Features); seat 1 opens.
 
@@ -94,6 +96,22 @@ Winner, the order seats went out, each seat's strikes and visit average.
   failed visit still becomes the next target. A visit must strictly beat it: a
   tie costs a leg. Two rule switches from V1 (target source, tie rule); the
   source's Match-or-Beat variant puts V1's tie rule back.
+- **Under the Hat** — Knockout with three changes. A visit must beat the
+  target strictly: equal to it is a miss. A miss costs one of five lives
+  instead of one of three strikes. And every visit, hit or miss, sets the
+  next target — a miss does not leave it unchanged. The opening visit still
+  sets the first target with nothing to beat. A seat is out at zero lives. Its
+  last visit still sets the target, as the source says every visit does (see
+  Open questions). Source: dolfdarts.com, "Under the Hat"
+  (https://dolfdarts.com/games/under-the-hat, read 2026-10-12), a DARTSLIVE
+  board game; only its manual-scoring rules are taken, with lives kept on
+  the scoreboard as the source itself suggests for steel tip. The source's
+  doubles format (teams) waits on teams: a session allows one seat per side
+  (`app/src/services/session-seats.service.ts:87-88`).
+
+**2+:** the source seats two to four players, so a two-seat game is allowed
+here, unlike Knockout V1's three (see Open questions); a session seats at most
+four (`app/src/services/session-seats.service.ts:7`).
 
 ### Match structure
 
@@ -127,6 +145,7 @@ Knockout is unbuilt; this is the capture shape its V1 is designed for.
 | **Sudden Death Knockout** | V2+ | Lowest score each round is out |
 | **Progressive Knockout** | V2+ | Target rises a fixed step per round |
 | **Legs** | V2+ | Target is the visit just before, failed or not; a tie costs a leg |
+| **Under the Hat** | V2+ | Knockout where a visit must beat the target strictly, a miss costs one of five lives, and every visit sets the next target |
 
 ## Open questions
 
@@ -138,3 +157,7 @@ Knockout is unbuilt; this is the capture shape its V1 is designed for.
   yet also that every turn is judged against "the immediately preceding
   player's" total. When a round opens, does the first thrower face the last
   thrower of the round before, or throw free?
+- Under the Hat: when a seat's fifth miss puts it out, does that last visit
+  set the target? The source says every visit does and lists elimination
+  separately; Knockout V1 says going out never moves the target. Read here as:
+  it sets the target.

@@ -22,6 +22,12 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Cut-throat variant | V2+ | All | Wanted, unscheduled: depends on Multiplayer, and its own win and scoring rules are an open question below |
 | No-Score Cricket (race to close, points off) | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer — solo V1 already scores no points, so the variant only differs once a second seat exists; and it is a player-picked setting while `CricketConfig` is an empty strict schema (`app/src/lib/game/rulesets/types.ts:393`) |
 | Single-Only Cricket (every dart on an objective = 1 mark) | V2+ | All | Wanted, unscheduled: the marking rule works solo, but its point rule depends on Multiplayer, like Own / score on; and it is a player-picked setting while `CricketConfig` is an empty strict schema (`app/src/lib/game/rulesets/types.ts:393`) |
+| Low-Pitch Cricket (objectives 1–6 + bull) | V2+ | All | Wanted, unscheduled: swaps the objective set, and the engine fixes it at 20–15 + bull (`app/src/modules/game/cricket.engine.module.ts:34-43`) and marks nothing on 1–14 (`:47-66`); a solo run needs no Multiplayer (it ends on the V1 close-out rule), but its points rules depend on Multiplayer and Own / score on |
+| Random Cricket (6 random numbers from 1–20 + bull) | V2+ | All | Wanted, unscheduled: same engine blocker as Low-Pitch Cricket, plus the app must draw the set once at session start; solo needs no Multiplayer, points rules depend on it |
+| Wild Cricket (15–20 + bull + one random Wild number from 1–14) | V2+ | All | Wanted, unscheduled: same engine blocker, and an eighth objective the V1 set has no slot for; solo needs no Multiplayer, points rules depend on it |
+| Hidden Cricket (secret targets, Discovery bonus) | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer (the bonus is a race against opponents; the source describes no solo form), and needs a concealed drawn set plus a reveal rule that V1 has no place for |
+| Select-A-Cricket (each player picks own targets) | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer and Own / score on (the variant is about targets one player has and another lacks), and needs one objective set per seat; one seat per side only (`app/src/services/session-seats.service.ts:7`, `:87-88`) |
+| Reverse Cricket (ascending order 15 to bull, lowest score wins) | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer and on the Cut-throat variant row (its points go to opponents; Cut-throat's own scoring and win rules are an open question below), and adds ordered closing, which V1 does not have |
 | No Doubles/Triples categories (see Tactics) | Dropped | All | Not a feature of this ruleset: Classic Cricket has no Doubles/Triples objectives by definition, and the UK variant that adds them is its own ruleset, `tactics.md` |
 | Visit = up to 3 darts | V1 | All | |
 | Cricket statistics section (MPR, darts-to-close trend) | V2+ | All | Wanted, unscheduled: needs a `v_cricket_*` view and so a new migration; V1 ships the board heatmap only |
@@ -101,6 +107,12 @@ opponent.
 - Team / more than two players
 - **No-Score Cricket:** Classic marks (single 1, double 2, treble 3; outer bull 1, inner bull 2), but no points exist at all, so there is no Own / score on, no Dead and no point total. Extra marks past the third are discarded, and a dart on an already closed number or on a non-objective does nothing. **2+:** the first player to close all seven objectives wins at once, even mid-visit — the rest of that visit is not thrown. Seats alternate, so two players cannot finish together and no tiebreak is needed. Solo play is identical to V1.
 - **Single-Only Cricket:** every dart on an objective is exactly **one** mark whatever its ring, and the inner and outer bull are one mark each, so closing always takes three darts and a dart never closes more than one number or spills into points. Once you have closed a number, each further dart on it scores that number's face value only — a double or treble 20 scores 20, never 40 or 60; outer bull scores 25 and inner bull 50 — while at least one opponent has it open. **2+:** a number all players have closed is Dead; you win by closing all seven with a point total at least equal to every opponent's, and if you are closed out but behind you keep scoring on numbers opponents have open. **Single:** solo play only needs the marking rule, with no points and the same end as V1.
+- **Low-Pitch Cricket (V2+):** objectives are 1, 2, 3, 4, 5, 6 and the bull instead of 20–15 and the bull. Marks, closing and the bull's 25 / 50 are unchanged. A numbered dart tops out at 18 (treble 6) while the bull keeps 50, so the bull dominates the points. **Single:** a solo run ends on the V1 rule, all objectives closed.
+- **Random Cricket (V2+):** six numbers drawn at random from 1–20, plus the bull always, replace 20–15. The app draws the set once at session start; the config snapshot would carry it, so a replay never re-draws. Everything else is classic. **Single:** a solo run ends on the V1 rule.
+- **Wild Cricket (V2+):** classic 20–15 and the bull, plus one **Wild number** drawn at random from 1–14, so eight objectives. Every player shares the Wild number and it marks, closes and scores like any other number, however low. **Single:** a solo run ends on the V1 rule.
+- **Hidden Cricket (V2+):** the app draws six target numbers and keeps them concealed; the bull is always visible, so there are seven objectives. A dart on a concealed target reveals it to everyone; darts on any other number do nothing. The first player to reveal a number gets a **Discovery bonus**: one extra mark on it, on top of the marks the dart itself earned. The bonus is a mark only, never points. **2+:** the bonus is a race, so it needs opponents. Winning is classic (all closed, score ≥ every opponent).
+- **Select-A-Cricket (V2+):** before play each player picks their own seven targets (the bull is normally one). A player only marks and scores on their own list. A number is dead once every player who lists it has closed it. **2+:** the variant exists for targets one seat has and another lacks. Winning is classic over the player's own list.
+- **Reverse Cricket (V2+):** cut-throat scoring (hits on a number you closed add their value to each opponent who has not closed it; lowest total wins) plus ordered closing. Each player works 15, 16, 17, 18, 19, 20, bull in that order; only the current target takes marks. Leftover marks on the closing dart count as points against open opponents. A player wins by closing all seven with a total ≤ every opponent's. **2+:** the points go to opponents. Cut-throat with free order is the existing Cut-throat row, not this one.
 
 ### Match structure
 
@@ -122,6 +134,14 @@ opponent.
 | **Cut-throat**      | V2+     | Alternate scoring/win logic; see Variants.                    |
 | **No-Score Cricket** | V2+ | Race to close all seven objectives with no points; see Variants. |
 | **Single-Only Cricket** | V2+ | Every dart on an objective is one mark, whatever its ring; see Variants. |
+| **Low-Pitch Cricket** | V2+   | Objectives 1–6 + bull instead of 20–15 + bull.                |
+| **Random Cricket**  | V2+     | Six numbers drawn at random from 1–20 + bull replace 20–15.   |
+| **Wild Cricket**    | V2+     | Classic objectives plus one random Wild number from 1–14.     |
+| **Wild number**     | V2+     | The extra objective drawn from 1–14 in Wild Cricket.          |
+| **Hidden Cricket**  | V2+     | Drawn targets stay concealed until a dart hits them.          |
+| **Discovery bonus** | V2+     | One extra mark to the first player to reveal a hidden target. |
+| **Select-A-Cricket** | V2+    | Each player picks their own seven targets.                    |
+| **Reverse Cricket** | V2+     | Cut-throat points, targets closed in order 15 to bull.        |
 
 ## Capture
 
@@ -142,6 +162,7 @@ as-built description.
 - **Derived, never stored:** marks per objective, which objectives are closed or
   dead, and the point total — all folded from the dart facts against the fixed
   20–15 + bull objective set.
+- **Variant objective sets (V2+):** dart facts, the "nothing stored" intent and the single `EXERCISE_BLOCK` stage are unchanged. The objective set is a fixed constant today (`app/src/modules/game/cricket.engine.module.ts:34-43`), so each variant needs it to come from the session's config snapshot, which would carry the drawn set (Random, Wild, Hidden) or one set per seat (Select-A). A draw is a fact recorded once, never re-drawn on read. Which Hidden numbers are revealed, who earned the Discovery bonus (first dart on that number), and Reverse's per-seat current target are all derived from the dart facts and that set, never stored.
 
 ## Open questions
 
@@ -151,3 +172,10 @@ as-built description.
   darts to close per objective (D421).
 - Cut-throat win/score rules when that variant is added.
 - Whether Single-Only marking combines with Cut-throat (dolfdarts lists a Single-Only Cut-Throat Cricket) and whether one game may give each player a different marking rule as a handicap.
+- Low-Pitch Cricket: the source says marks beyond the third never score points on the closing dart, but How to play above lets leftover marks spill into points. Which rule governs the variant?
+- Random Cricket: whether the six numbers must be distinct (source does not say; reading: distinct). Whether match play redraws per leg (source says yes) waits on Match structure.
+- Wild Cricket: source allows "one or more" Wild numbers; this file takes one. dolfdarts' Random Cricket page also uses "Wild Cricket" for a different game (each player gets their own random set); this file follows the wild-cricket page.
+- Hidden Cricket: whether the Discovery bonus mark can itself spill into points (source says a discovered treble yields 4 marks with "the extra mark potentially scoring points", yet says the bonus never awards points). How a shared screen keeps targets concealed. The source's Individual-Reveal form (reveal only to the hitter) is not recorded.
+- Select-A-Cricket: source says a number only one player lists can be scored on "indefinitely", yet also says a number closes once every player who lists it has closed it, which would make it dead the moment its only holder closes it. Which governs? Whether the bull is mandatory (source: "typically").
+- Reverse Cricket: source says hits on numbers a player already closed "do not count", yet also that further hits on a closed number add points to open opponents; this file reads the first as marks only. Whether leftover marks on a closing dart carry on to the next number in order (source: they become points).
+- Low-Pitch, Random and Wild Cricket: each source page seats 2–4 players. The `All` applicability (a solo run ending on the V1 close-out rule) is this file's reading, not the source's; confirm before scheduling.
