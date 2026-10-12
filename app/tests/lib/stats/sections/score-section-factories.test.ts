@@ -6,8 +6,6 @@ vi.mock("@lib/stats/load-game-section", () => ({
   loadGameSection: (...args: unknown[]) => loadGameSection(...args),
 }));
 
-const { scoreTrebleSection } =
-  await import("@lib/stats/sections/score-treble.data");
 const { gameCompletionSection } =
   await import("@lib/stats/sections/game-completion.data");
 
@@ -27,19 +25,6 @@ function respond(metrics: unknown) {
 beforeEach(() => loadGameSection.mockReset());
 
 describe("score section factories", () => {
-  it("scoreTrebleSection requests treble-rate and summarises it", async () => {
-    respond({ "20": { darts: 40, trebles: 10 } });
-    const s = mounted(scoreTrebleSection());
-    await s.load();
-    expect(loadGameSection.mock.calls[0].slice(0, 2)).toEqual([
-      "SCORE_TRAINING",
-      "treble-rate",
-    ]);
-    expect(s.summary.t20).toBe(0.25);
-    expect(s.fmtRate(0.25)).toBe("25%");
-    expect(s.fmtRate(null)).toBe("—");
-  });
-
   it("gameCompletionSection requests completion and summarises it", async () => {
     respond({ completed: 3, abandoned: 1, neverStarted: 0, abandonedTurns: 2 });
     const s = mounted(gameCompletionSection());
