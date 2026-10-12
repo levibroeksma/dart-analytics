@@ -119,6 +119,20 @@ describe("base rules leave token bundles in charge", () => {
       /truncate font-display text-lg\/snug/,
     );
   });
+
+  it("InfoSection titles keep the pre-D451 20px line and h4 tracking", () => {
+    const titles = [
+      ...src("components/ui/InfoSection.astro").matchAll(
+        /<h4[^>]*class="([^"]*)"/g,
+      ),
+    ].map((m) => m[1].split(" "));
+    expect(titles).toHaveLength(2);
+    for (const cls of titles) {
+      expect(cls).toEqual(
+        expect.arrayContaining(["text-body-sm/5", "tracking-wide"]),
+      );
+    }
+  });
 });
 
 describe("brand radius and spacing", () => {

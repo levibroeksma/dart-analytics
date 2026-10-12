@@ -6,7 +6,8 @@
 # - no leading-dash arbitrary negatives (-left-[45%]) — use left-[-45%]
 # Scan: app/src/**/*.{astro,css}.
 # - no Tailwind arbitrary value/modifier/property/variant (D451): prop-[…],
-#   /[…], [prop:value], [&…] in app/src .astro/.ts (tests excluded) and in
+#   /[…], [prop:value], [&…], and v4 variable shorthand prop-(--x),
+#   prop-(type:--x), /(--x) in app/src .astro/.ts (tests excluded) and in
 #   @apply lines of app/src/styles/*.css. Exceptions: ARBITRARY_ALLOW rows
 #   ("path|match", match = exact substring the regex extracts), one reason
 #   comment each; a row that no longer matches fails, so dead rows cannot
@@ -76,7 +77,7 @@ if [ -n "$NEG_ARBITRARY" ]; then
   FAIL=1
 fi
 
-ARB_RE='[a-z][a-z0-9-]*-\[[^] ]+\]|/\[[^] ]+\]|\[[a-z-]+:[^] ]+\]|\[&[^] ]+\]'
+ARB_RE='[a-z][a-z0-9-]*-\[[^] ]+\]|/\[[^] ]+\]|\[[a-z-]+:[^] ]+\]|\[&[^] ]+\]|[a-z][a-z0-9-]*-\(([a-z-]+:)?--[a-z0-9-]+\)|/\(--[a-z0-9-]+\)'
 ARBITRARY_ALLOW=(
   # layout-property animation; no stock transition group covers top/left/width/height
   "app/src/components/ui/GrowingCard.astro|transition-[top,left,width,height]"
@@ -120,7 +121,7 @@ while IFS= read -r hit; do
   rest=${hit#*:}
   match=${rest#*:}
   allowed=0
-  for row in "${ARBITRARY_ALLOW[@]}"; do
+  for row in ${ARBITRARY_ALLOW[@]+"${ARBITRARY_ALLOW[@]}"}; do
     if [ "$row" = "$file|$match" ]; then
       allowed=1
       ARB_USED="$ARB_USED$row"$'\n'
@@ -129,7 +130,7 @@ while IFS= read -r hit; do
   [ "$allowed" -eq 0 ] && ARB_BAD="$ARB_BAD$hit"$'\n'
 done <<< "$ARB_HITS"
 ARB_STALE=""
-for row in "${ARBITRARY_ALLOW[@]}"; do
+for row in ${ARBITRARY_ALLOW[@]+"${ARBITRARY_ALLOW[@]}"}; do
   printf '%s' "$ARB_USED" | grep -qxF -- "$row" || ARB_STALE="$ARB_STALE$row"$'\n'
 done
 if [ -n "$ARB_BAD" ]; then
@@ -139,6 +140,7 @@ if [ -n "$ARB_BAD" ]; then
   echo "  3. new token in global.css first (D428), then use it" >&2
   echo "  4. @utility in global.css for a repeated composite" >&2
   echo "  5. last resort: an ARBITRARY_ALLOW row in this script, with a reason (reviewed)" >&2
+  echo "  A .ts regex literal is not a class: add its row under '# regex literals, not classes'." >&2
   echo "  See docs/architecture/07-Frontend/07-Style-Guide.md §Arbitrary values." >&2
   printf '%s' "$ARB_BAD" >&2
   FAIL=1

@@ -267,7 +267,7 @@ Scale negatives without arbitrary brackets stay fine (`-mt-4`, `-rotate-45`, `-t
 
 **Container queries.** For an element that must size itself off its own container's width rather than a breakpoint — e.g. a big number whose content length varies and must never wrap — add `@container` to the sizing ancestor and give the descendant a `--text-*` token whose size is a `cq*` clamp (`text-numeral-1…6`); a new clamp enters `global.css` as a token first (D451). A fixed `text-*` step reacts to viewport breakpoints, not to how much text needs to fit; `cqw` scales continuously with the container's own inline size instead. Play-screen big values pick a `cqw` clamp by length (`bigValueSize`, `seatValueSize`, D432, 2026-10-08), with `@container` on the `SinglePlayerDisplay` left column and the `SplitScoreboardHalf` active card; every step is capped at its design size, so a narrow column shrinks any length instead of overflowing.
 
-**Arbitrary values.** No `prop-[…]`, `/[…]`, `[prop:value]` or `[&…]` in markup, `.ts` class strings or `@apply`. Fix in order:
+**Arbitrary values.** No `prop-[…]`, `/[…]`, `[prop:value]`, `[&…]` or v4 variable shorthand (`prop-(--x)`, `/(--x)`) in markup, `.ts` class strings or `@apply`. Fix in order:
 1. Stock v4 class: spacing takes any 0.25 step (`h-4.5`, `gap-0.75`); `h-lh`, `scale-106`, `flex-2`, `group-has-focus:`.
 2. Existing `@theme` token: `text-*`, `rounded-*`, `grid-cols-*`.
 3. New token in `global.css` first (D428).
