@@ -36,7 +36,10 @@ const pages = NAV_TABS.map((tab) => ({ ...tab, icon: icons[tab.href] }));
           href={page.href}
           label={page.label}
         >
-          <page.icon aria-hidden="true" />
+          <page.icon
+            class="size-6"
+            aria-hidden="true"
+          />
         </NavBtn>
       ))
     }
