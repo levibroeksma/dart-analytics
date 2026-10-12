@@ -63,13 +63,31 @@ describe("brand type scale", () => {
     ["value", "1.875rem", "1", "0"],
     ["tile", "1.25rem", "1.2", "0"],
     ["card-title", "0.8125rem", "1.3", "0.06em"],
-    ["button", "0.9375rem", "1.3", "0"],
+    ["control", "0.9375rem", "1.3", "0"],
+    ["body-sm", "0.8125rem", "1.3", "0"],
+    ["caption", "0.6875rem", "1.2", "0"],
+    ["micro", "0.625rem", "1.2", "0"],
+    ["key", "1.625rem", "1", "0"],
+    ["key-label", "1.375rem", "1.2", "0.08em"],
+    ["stat", "1.0625rem", "1", "0"],
+    ["summary", "2.5rem", "1", "0"],
+    ["summary-lg", "3.25rem", "1", "0"],
+    ["numeral-1", "clamp(2.5rem, 45cqw, 5.25rem)", "1", "-0.02em"],
+    ["numeral-2", "clamp(2rem, 30cqw, 4rem)", "1", "-0.02em"],
+    ["numeral-3", "clamp(1.5rem, 18cqw, 2.875rem)", "1", "-0.02em"],
+    ["numeral-4", "clamp(1.25rem, 15cqw, 2.875rem)", "1", "-0.02em"],
+    ["numeral-5", "clamp(1.125rem, 11cqw, 2.875rem)", "1", "-0.02em"],
+    ["numeral-6", "clamp(1rem, 10cqw, 2.875rem)", "1", "-0.02em"],
     ["eyebrow", "0.625rem", "1.2", "0.12em"],
     ["eyebrow-lg", "0.75rem", "1.2", "0.14em"],
   ])("defines text-%s", (name, size, lh, ls) => {
     expect(decl(`text-${name}`)).toBe(size);
     expect(decl(`text-${name}--line-height`)).toBe(lh);
     expect(decl(`text-${name}--letter-spacing`)).toBe(ls);
+  });
+
+  it("has no text-button token (renamed to text-control, D451)", () => {
+    expect(decl("text-button")).toBeUndefined();
   });
 });
 
@@ -81,6 +99,10 @@ describe("brand radius and spacing", () => {
     ["radius-board", "1.75rem"],
     ["radius-sheet", "2rem"],
     ["spacing-hit", "2.75rem"],
+    ["grid-template-columns-mirror", "minmax(0, 1fr) auto minmax(0, 1fr)"],
+    ["grid-template-columns-scoreboard", "1.3fr 1fr"],
+    ["nav-bottom", "max(0.5rem, calc(env(safe-area-inset-bottom) - 0.5rem))"],
+    ["nav-clearance", "5.5rem"],
   ])("defines --%s", (name, value) => {
     expect(decl(name)).toBe(value);
   });
@@ -141,6 +163,31 @@ describe("brand surfaces", () => {
   it("field-inset rests on inset-well and keeps its focus ring", () => {
     expect(css).toMatch(/\.field-inset \{\s*@apply inset-well;\s*\}/);
     expect(css).toMatch(/\.field-inset:focus \{/);
+  });
+
+  it.each([
+    "@utility stack-slab-1",
+    "@utility stack-slab-2",
+    "@utility border-medium",
+    "@utility pt-safe",
+    "@utility pb-safe",
+    "@utility bottom-nav",
+    "@utility bottom-above-nav",
+    "@utility pb-nav",
+    "@utility input-number-plain",
+  ])("defines %s", (selector) => {
+    expect(() => block(selector)).not.toThrow();
+  });
+
+  it("stack slabs carry their radius, slab colour and top light", () => {
+    const one = block("@utility stack-slab-1");
+    expect(one).toMatch(/border-bottom-left-radius: 1\.1875rem/);
+    expect(one).toMatch(/var\(--color-stack-1\)/);
+    expect(one).toMatch(/inset 0 -1px 0 oklch\(100% 0 0 \/ 0\.15\)/);
+    const two = block("@utility stack-slab-2");
+    expect(two).toMatch(/border-bottom-left-radius: 1\.125rem/);
+    expect(two).toMatch(/var\(--color-stack-2\)/);
+    expect(two).toMatch(/inset 0 -1px 0 oklch\(100% 0 0 \/ 0\.12\)/);
   });
 });
 

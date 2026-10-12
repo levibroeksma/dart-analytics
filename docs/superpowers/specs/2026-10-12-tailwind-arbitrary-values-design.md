@@ -39,15 +39,19 @@ one by one with the user.
 | 6 | Line-height of new tokens | Explicit unitless values: 1.3 for sans text, 1.2 for mono/caps, 1 for numerals. Never `normal` |
 | 7 | Hand-rolled existing tokens | Swap to `text-title` / `text-card-title` / `text-eyebrow` / `text-hero`; line-height moves to the token value |
 | 8 | 15px text | Rename `text-button` → `text-control` (15px / 1.3 / 0); use it for all 15px control text |
-| 9 | 0.14em eyebrows | All → `text-eyebrow-lg` (`HomeHero:11`, `ResumeSessionDeck:55,84`, `ResumeSessionCard:20`, `global.css:641`) |
+| 9 | 0.14em eyebrows | All → `text-eyebrow-lg` (`HomeHero:11`, `ResumeSessionDeck:55,84`, `ResumeSessionCard:19`, `.section-eyebrow` in `global.css`) |
 | 10 | Unpaired 10px | Tracked labels (`CareerTiles:15`, `ResumeSessionDeck:129`, `UserSection:34`) → `text-eyebrow`; `RoutineRow:26`, `LegBars:42` → `text-micro` |
 | 11 | Numerals | See the token table; `ScoreInput:71` and `Stepper:68` → `text-value` (Stepper 32→30px) |
 | 12 | `leading-[1.55]` | `leading-relaxed` (`InfoSection:35,64`) |
 | 13 | Odd radius/blur/border | `CardStack` slabs → `stack-slab-1/2`; `ScoreInput:79` → `rounded-xl`; `StatsHeatmap:33` → `rounded-xs`; `Select:60` → `backdrop-blur-xs`; `border-[1.5px]` → `border-medium` |
 | 14 | cqw clamps | `text-numeral-1…6` tokens; `play-display.ts` maps lengths to them |
-| 15 | Tracking | No `--tracking-*` tokens. Tracking lives in `--text-*` bundles or stock steps. 0.02 → `tracking-wide` (`SlideToStart:63`, `SetupShell:41`); 0.06 → `tracking-wider` (`GameLayout:47`); 0.01 → dropped (`GameRow:35`, `RoutineStepRow:48`); `global.css:629` → `text-caption tracking-widest`; `setting-badge` → `text-tag` |
+| 15 | Tracking | No `--tracking-*` tokens. Tracking lives in `--text-*` bundles or stock steps. 0.02 → `tracking-wide` (`SlideToStart:63`, `SetupShell:39`); 0.06 → `tracking-wider` (`GameLayout:47`); 0.01 → dropped (`GameRow:35`, `RoutineStepRow:48`); `.mode-pill` in `global.css` → `text-caption tracking-widest` |
 | 16 | Composites | Grid and safe-area/nav tokens + utilities (see below) |
 | 17 | Delivery | One branch, one PR; the gate lands already green |
+| 18 | 9px tag (post-audit) | Already exists as `text-eyebrow-sm` (9px / 1.2 / 0.1em, D450), so there is no `text-tag`. D450 also already moved the 9px and tracked-10px labels |
+| 19 | `/[…]` on stock sizes (post-audit) | `text-xs/[normal]`, `text-base/[normal]`, `text-lg/[normal]` → `/tight` (1.25, the nearest stock value to `normal`); `text-xs/[1.5]` → `text-xs/normal` (exact); `text-eyebrow/[normal]` and `text-eyebrow/[1.3]` → `text-eyebrow` (token line-height) |
+| 20 | Number-input spinners (post-audit) | `RoutineStepRow:64`: `[appearance:textfield]` plus the two `[&::-webkit-*-spin-button]:appearance-none` → `@utility input-number-plain` |
+| 21 | `after:content-['']` (post-audit) | Drop it: v4 `after:` already emits `content: var(--tw-content)` (initial `""`). Compile-verified |
 
 ## Design
 
@@ -58,9 +62,8 @@ one by one with the user.
 | Token | Value | Replaces |
 | ----- | ----- | -------- |
 | `text-body-sm` | 0.8125rem / 1.3 / 0 | 13px text not paired with 0.06em (audit C, 17 hits) |
-| `text-caption` | 0.6875rem / 1.2 / 0 | `text-[11px]` (audit C, 12 hits) and `global.css:629` |
+| `text-caption` | 0.6875rem / 1.2 / 0 | `text-[11px]` (audit C, 12 hits) and `.mode-pill` |
 | `text-micro` | 0.625rem / 1.2 / 0 | `RoutineRow:26`, `LegBars:42` |
-| `text-tag` | 0.5625rem / 1.2 / 0.1em | `SplitScoreboardHalf:114`, `PlayStatTile:30`, `FiveOhOne:46`, `setting-badge` |
 | `text-key` | 1.625rem / 1 / 0 | `InputButton:48` |
 | `text-key-label` | 1.375rem / 1.2 / 0.08em | `SinglesRecreationalInput:78`, `DoublesPathRecreationalInput:34` |
 | `text-stat` | 1.0625rem / 1 / 0 | `TargetGrid:43`, `PlayStatTile:35` |
@@ -103,6 +106,7 @@ Other `@theme`:
 | `bottom-nav` | `bottom: var(--nav-bottom)` | `BottomNav:27` |
 | `bottom-above-nav` | `bottom: calc(var(--nav-bottom) + var(--nav-clearance))` | `SlideToStart:35` |
 | `pb-nav` | `padding-bottom: calc(env(safe-area-inset-bottom) + var(--nav-clearance))` | `AppLayout:16` (keeps its current formula) |
+| `input-number-plain` | `appearance: textfield`; `::-webkit-inner/outer-spin-button { appearance: none }` | `RoutineStepRow:64` |
 
 No `--tracking-*`, `--leading-*` or new `--radius-*` tokens.
 
@@ -144,7 +148,7 @@ A new `ARBITRARY` block after `NEG_ARBITRARY`, in the same style.
     `transition-[grid-template-rows]`, `max-h-[60dvh]`
   - `SlideToStart` `motion-safe:transition-[left,scale]`
   - `Modal` `max-h-[calc(100dvh-2rem)]`
-  - one-off grids: `FiveOhOneSetupForm:88,117`, `SinglePlayerSummary:62`,
+  - one-off grids: `FiveOhOneSetupForm:88,125`, `SinglePlayerSummary:62`,
     `SetupShell:30`
   - `app/src/styles/global.css|bg-radial-[at_50%_0%]`
   - `.ts` false positives found in the sweep (regex literals, e.g.
@@ -169,11 +173,17 @@ A new `ARBITRARY` block after `NEG_ARBITRARY`, in the same style.
 - `docs/architecture/07-Frontend/07-Style-Guide.md` → 0.5.0:
   - type-scale row lists the new tokens
   - L127 numeral row uses `text-numeral-*`
-  - new §Arbitrary values: the ladder and the allowlist
+  - new "Arbitrary values" subsection under §Tailwind v4 class syntax: the
+    ladder and the allowlist; the Container-queries paragraph points to
+    `text-numeral-*` instead of prescribing `text-[clamp(…)]`
+  - Anti-patterns gains a row
   - Primitives table gains `stack-slab-*`, `border-medium`, `pt/pb-safe`,
-    `bottom-nav`, `bottom-above-nav`, `pb-nav`
-- `app/CLAUDE.md` style non-negotiables: one line ("no arbitrary values; see
-  Style Guide §Arbitrary values; gated by `check-style-tokens.sh`").
+    `bottom-nav`, `bottom-above-nav`, `pb-nav`, `input-number-plain`
+- `app/src/components/CLAUDE.md` §Style non-negotiables: one line ("no
+  arbitrary values; see Style Guide §Arbitrary values; gated by
+  `check-style-tokens.sh`").
+- `07-Frontend/10-Frontend-Agent-Guide.md` L118 rule paragraph and L147
+  checklist: add "no arbitrary values (ladder; allowlist)".
 - Gate header comment cites D451.
 - The audit handoff stays as non-canonical source material.
 

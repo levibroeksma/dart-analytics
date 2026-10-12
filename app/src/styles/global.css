@@ -17,6 +17,8 @@
   --accent-deep-blue: oklch(44.3% 0.11 240.79);
   --stack-1: oklch(40% 0.09 238 / 0.75);
   --stack-2: oklch(30% 0.06 240 / 0.6);
+  --nav-bottom: max(0.5rem, calc(env(safe-area-inset-bottom) - 0.5rem));
+  --nav-clearance: 5.5rem;
   --deck-top-from: oklch(52% 0.14 237);
   --deck-top-to: oklch(16% 0.05 245);
   --gradient-blue-glass: linear-gradient(
@@ -133,9 +135,9 @@
   --text-card-title: 0.8125rem;
   --text-card-title--line-height: 1.3;
   --text-card-title--letter-spacing: 0.06em;
-  --text-button: 0.9375rem;
-  --text-button--line-height: 1.3;
-  --text-button--letter-spacing: 0;
+  --text-control: 0.9375rem;
+  --text-control--line-height: 1.3;
+  --text-control--letter-spacing: 0;
   --text-eyebrow: 0.625rem;
   --text-eyebrow--line-height: 1.2;
   --text-eyebrow--letter-spacing: 0.12em;
@@ -145,6 +147,51 @@
   --text-eyebrow-sm: 0.5625rem;
   --text-eyebrow-sm--line-height: 1.2;
   --text-eyebrow-sm--letter-spacing: 0.1em;
+  --text-body-sm: 0.8125rem;
+  --text-body-sm--line-height: 1.3;
+  --text-body-sm--letter-spacing: 0;
+  --text-caption: 0.6875rem;
+  --text-caption--line-height: 1.2;
+  --text-caption--letter-spacing: 0;
+  --text-micro: 0.625rem;
+  --text-micro--line-height: 1.2;
+  --text-micro--letter-spacing: 0;
+  --text-key: 1.625rem;
+  --text-key--line-height: 1;
+  --text-key--letter-spacing: 0;
+  --text-key-label: 1.375rem;
+  --text-key-label--line-height: 1.2;
+  --text-key-label--letter-spacing: 0.08em;
+  --text-stat: 1.0625rem;
+  --text-stat--line-height: 1;
+  --text-stat--letter-spacing: 0;
+  --text-summary: 2.5rem;
+  --text-summary--line-height: 1;
+  --text-summary--letter-spacing: 0;
+  --text-summary-lg: 3.25rem;
+  --text-summary-lg--line-height: 1;
+  --text-summary-lg--letter-spacing: 0;
+  --text-numeral-1: clamp(2.5rem, 45cqw, 5.25rem);
+  --text-numeral-1--line-height: 1;
+  --text-numeral-1--letter-spacing: -0.02em;
+  --text-numeral-2: clamp(2rem, 30cqw, 4rem);
+  --text-numeral-2--line-height: 1;
+  --text-numeral-2--letter-spacing: -0.02em;
+  --text-numeral-3: clamp(1.5rem, 18cqw, 2.875rem);
+  --text-numeral-3--line-height: 1;
+  --text-numeral-3--letter-spacing: -0.02em;
+  --text-numeral-4: clamp(1.25rem, 15cqw, 2.875rem);
+  --text-numeral-4--line-height: 1;
+  --text-numeral-4--letter-spacing: -0.02em;
+  --text-numeral-5: clamp(1.125rem, 11cqw, 2.875rem);
+  --text-numeral-5--line-height: 1;
+  --text-numeral-5--letter-spacing: -0.02em;
+  --text-numeral-6: clamp(1rem, 10cqw, 2.875rem);
+  --text-numeral-6--line-height: 1;
+  --text-numeral-6--letter-spacing: -0.02em;
+
+  --grid-template-columns-mirror: minmax(0, 1fr) auto minmax(0, 1fr);
+  --grid-template-columns-scoreboard: 1.3fr 1fr;
 
   --animate-sheet-in: sheet-in 200ms var(--ease-out);
 
@@ -506,6 +553,53 @@
 
 @utility start-bar-fade {
   background: linear-gradient(180deg, transparent, oklch(0% 0 0 / 0.85) 45%);
+}
+
+@utility stack-slab-1 {
+  border-bottom-left-radius: 1.1875rem;
+  border-bottom-right-radius: 1.1875rem;
+  background-color: var(--color-stack-1);
+  box-shadow: inset 0 -1px 0 oklch(100% 0 0 / 0.15);
+}
+
+@utility stack-slab-2 {
+  border-bottom-left-radius: 1.125rem;
+  border-bottom-right-radius: 1.125rem;
+  background-color: var(--color-stack-2);
+  box-shadow: inset 0 -1px 0 oklch(100% 0 0 / 0.12);
+}
+
+@utility border-medium {
+  border-width: 1.5px;
+}
+
+@utility pt-safe {
+  padding-top: calc(env(safe-area-inset-top) + 1rem);
+}
+
+@utility pb-safe {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 1rem);
+}
+
+@utility bottom-nav {
+  bottom: var(--nav-bottom);
+}
+
+@utility bottom-above-nav {
+  bottom: calc(var(--nav-bottom) + var(--nav-clearance));
+}
+
+@utility pb-nav {
+  padding-bottom: calc(env(safe-area-inset-bottom) + var(--nav-clearance));
+}
+
+@utility input-number-plain {
+  appearance: textfield;
+
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button {
+    appearance: none;
+  }
 }
 
 @utility glass-active-seat {
