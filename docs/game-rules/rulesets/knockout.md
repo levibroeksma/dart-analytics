@@ -21,6 +21,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Last seat standing wins | V1 | All | |
 | Sudden Death Knockout | V2+ | 2+ | Wanted, unscheduled: a second elimination rule — lowest score each round is out — V1 does not need |
 | Progressive Knockout | V2+ | 2+ | Wanted, unscheduled: a target that rises a fixed step per round; its starting target is an open question |
+| Legs | V2+ | 2+ | Wanted, unscheduled: two rule switches V1 does not need — the target is the visit just before, even a failed one, and a tie costs a strike |
 | Standard dartboard scoring (assumed) | V1 | All | |
 
 ## Identity
@@ -88,6 +89,11 @@ Winner, the order seats went out, each seat's strikes and visit average.
 - **Progressive Knockout** — the target rises a fixed step each round ("for
   example, … 10 points per round regardless of what players actually score");
   a visit below it takes a strike.
+- **Legs** — strikes are called legs; three, and you are out. The target is
+  always the visit just before, "not the highest score of the round", and a
+  failed visit still becomes the next target. A visit must strictly beat it: a
+  tie costs a leg. Two rule switches from V1 (target source, tie rule); the
+  source's Match-or-Beat variant puts V1's tie rule back.
 
 ### Match structure
 
@@ -120,6 +126,7 @@ Knockout is unbuilt; this is the capture shape its V1 is designed for.
 | **Weak-hand opener** | V2+ | Opening visit thrown with the non-dominant hand |
 | **Sudden Death Knockout** | V2+ | Lowest score each round is out |
 | **Progressive Knockout** | V2+ | Target rises a fixed step per round |
+| **Legs** | V2+ | Target is the visit just before, failed or not; a tie costs a leg |
 
 ## Open questions
 
@@ -127,3 +134,7 @@ Knockout is unbuilt; this is the capture shape its V1 is designed for.
   — the opening visit is seat 1's turn, and seat 2 throws against it.
 - Progressive Knockout: what is the starting target?
 - Two seats: the source says minimum three. Allow a 1v1 game anyway?
+- Legs: the source says the first thrower each round "has no target to beat",
+  yet also that every turn is judged against "the immediately preceding
+  player's" total. When a round opens, does the first thrower face the last
+  thrower of the round before, or throw free?

@@ -21,6 +21,9 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 | Configurable target sequence | V2+ | All | Wanted, unscheduled: the source says targets are "chosen by agreement"; one fixed list is enough to play |
 | Selected-score target (e.g. score 41 exactly) | V2+ | All | Wanted, unscheduled: a different target kind with its own hit rule; not in the default list |
 | Start total 40 | V2+ | All | Wanted, unscheduled: a variant start the source names; 0 is enough to play |
+| Cricket Count-Up (sequence 15, 16, 17, 18, 19, 20, Bull) | V2+ | All | Wanted, unscheduled: the same rule on a different list, so it needs Configurable target sequence; the one fixed list is enough to play |
+| Reverse Cricket Count-Up | V2+ | All | Wanted, unscheduled: the same list in reverse (Bull down to 15), so it needs Configurable target sequence |
+| Full-Board Count-Up | V2+ | All | Wanted, unscheduled: 1 to 20 plus Bull, 21 rounds, ascending or descending; a list value of Configurable target sequence |
 | Multiplayer | V2+ | 2+ | Wanted, unscheduled: Halve-It is a pub game for 2–8, but exercise engines run a single solo seat (`app/src/modules/training/exercises/solo-participant.module.ts`) |
 | Time-bound run | Deferred | All | Blocked on: a fixed nine-visit sequence; how a routine's duration cuts it is open (see Open questions) |
 | Standalone entry | V2+ | All | Wanted, unscheduled: no exercise has a standalone play page — `app/src/pages/training/` holds only `index.astro`, `quick-subtract/`, `routines/` and `schedules/` |
@@ -98,6 +101,17 @@ after the last target wins (V2+).
 - **Selected-score target** — the visit's total must equal a named number;
   hit adds it, miss halves.
 - **Start total 40** — the run starts at 40 so an early miss still costs.
+- **Cricket Count-Up** — Halve-It on the seven Cricket targets in order: 15,
+  16, 17, 18, 19, 20, Bull; one visit each, start total 0, a blank visit halves
+  the total rounded down, outer bull 25, bullseye 50. Source: dolfdarts.com,
+  "Cricket Count-Up" (https://dolfdarts.com/games/cricket-count-up), which
+  also plays it solo. Its multiplayer tiebreak (a bull throw-off for tied
+  players) is not recorded here; multiplayer is its own row.
+- **Reverse Cricket Count-Up** — Cricket Count-Up in reverse: Bull, 20, 19,
+  18, 17, 16, 15. The source notes the first round cannot cost anything, as
+  the total is still 0.
+- **Full-Board Count-Up** — the sequence is 1 to 20 then Bull, 21 rounds, in
+  ascending or descending order; otherwise the same rules.
 - **Multiplayer** — 2–8 players take turns per round; highest total wins.
 
 ### Other
@@ -134,6 +148,9 @@ after the last target wins (V2+).
 | **Configurable target sequence** | V2+ | A target list set per routine step |
 | **Selected-score target** | V2+ | A round won by a visit total equal to a named number |
 | **Start total 40** | V2+ | A run starting at 40 instead of 0 |
+| **Cricket Count-Up** | V2+ | Halve-It on 15, 16, 17, 18, 19, 20, Bull |
+| **Reverse Cricket Count-Up** | V2+ | Cricket Count-Up from Bull down to 15 |
+| **Full-Board Count-Up** | V2+ | Halve-It on 1 to 20 then Bull, 21 rounds |
 | **Multiplayer** | V2+ | 2–8 players, highest total wins |
 | **Time-bound run** | Deferred | A routine duration cutting the run |
 | **Standalone entry** | V2+ | Playing a run outside a routine |

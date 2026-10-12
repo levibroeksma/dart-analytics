@@ -20,6 +20,8 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Dead number when all players have closed it | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer, for the same reason as Own / score on |
 | Win: all closed + score ≥ opponent(s) | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer; the solo practice win condition is still an open question below |
 | Cut-throat variant | V2+ | All | Wanted, unscheduled: depends on Multiplayer, and its own win and scoring rules are an open question below |
+| No-Score Cricket (race to close, points off) | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer — solo V1 already scores no points, so the variant only differs once a second seat exists; and it is a player-picked setting while `CricketConfig` is an empty strict schema (`app/src/lib/game/rulesets/types.ts:393`) |
+| Single-Only Cricket (every dart on an objective = 1 mark) | V2+ | All | Wanted, unscheduled: the marking rule works solo, but its point rule depends on Multiplayer, like Own / score on; and it is a player-picked setting while `CricketConfig` is an empty strict schema (`app/src/lib/game/rulesets/types.ts:393`) |
 | No Doubles/Triples categories (see Tactics) | Dropped | All | Not a feature of this ruleset: Classic Cricket has no Doubles/Triples objectives by definition, and the UK variant that adds them is its own ruleset, `tactics.md` |
 | Visit = up to 3 darts | V1 | All | |
 | Cricket statistics section (MPR, darts-to-close trend) | V2+ | All | Wanted, unscheduled: needs a `v_cricket_*` view and so a new migration; V1 ships the board heatmap only |
@@ -97,6 +99,8 @@ opponent.
 
 - **Cut-throat:** scoring hits add points to opponents who have not closed that number; lowest score wins among those who have closed everything (house rules vary — lock details when shipping)
 - Team / more than two players
+- **No-Score Cricket:** Classic marks (single 1, double 2, treble 3; outer bull 1, inner bull 2), but no points exist at all, so there is no Own / score on, no Dead and no point total. Extra marks past the third are discarded, and a dart on an already closed number or on a non-objective does nothing. **2+:** the first player to close all seven objectives wins at once, even mid-visit — the rest of that visit is not thrown. Seats alternate, so two players cannot finish together and no tiebreak is needed. Solo play is identical to V1.
+- **Single-Only Cricket:** every dart on an objective is exactly **one** mark whatever its ring, and the inner and outer bull are one mark each, so closing always takes three darts and a dart never closes more than one number or spills into points. Once you have closed a number, each further dart on it scores that number's face value only — a double or treble 20 scores 20, never 40 or 60; outer bull scores 25 and inner bull 50 — while at least one opponent has it open. **2+:** a number all players have closed is Dead; you win by closing all seven with a point total at least equal to every opponent's, and if you are closed out but behind you keep scoring on numbers opponents have open. **Single:** solo play only needs the marking rule, with no points and the same end as V1.
 
 ### Match structure
 
@@ -116,6 +120,8 @@ opponent.
 | **Dead**            | V1      | Closed by all players → no further scoring.                   |
 | **Classic Cricket** | V1      | 20–15 + bull only (no separate D/T categories).               |
 | **Cut-throat**      | V2+     | Alternate scoring/win logic; see Variants.                    |
+| **No-Score Cricket** | V2+ | Race to close all seven objectives with no points; see Variants. |
+| **Single-Only Cricket** | V2+ | Every dart on an objective is one mark, whatever its ring; see Variants. |
 
 ## Capture
 
@@ -144,3 +150,4 @@ as-built description.
   when all seven objectives are closed and reports darts thrown, MPR and
   darts to close per objective (D421).
 - Cut-throat win/score rules when that variant is added.
+- Whether Single-Only marking combines with Cut-throat (dolfdarts lists a Single-Only Cut-Throat Cricket) and whether one game may give each player a different marking rule as a handicap.
