@@ -66,12 +66,12 @@ const variantClasses = {
   error: "bg-error-strong text-error-foreground btn-error",
   dashed: "border-accent border-dashed bg-transparent text-muted-foreground",
   "sheet-muted":
-    "h-13 rounded-2xl text-button inset-well-muted text-muted-foreground",
-  "sheet-raised": "h-13 rounded-2xl text-button glass-button text-foreground",
+    "h-13 rounded-2xl text-control inset-well-muted text-muted-foreground",
+  "sheet-raised": "h-13 rounded-2xl text-control glass-button text-foreground",
 }[variant];
 
 const className = cn(
-  "btn inline-flex items-center justify-center gap-2 rounded-md text-sm font-semibold transition-[transform,color,background-color,border-color,box-shadow] duration-150 text-nowrap",
+  "btn inline-flex items-center justify-center gap-2 rounded-md text-sm font-semibold transition duration-150 text-nowrap",
   !variant.startsWith("sheet-") && "border border-transparent",
   variantClasses,
   icon ? "p-2.5" : "px-4 py-2.5",

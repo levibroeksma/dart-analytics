@@ -74,11 +74,10 @@ import PencilIcon from "@icons/pencil.svg";
 
 // Styles
 const className = cn("flex flex-col gap-2", classNameProp);
-const labelClass =
-  "px-0.5 font-mono text-eyebrow/[normal] font-semibold uppercase";
+const labelClass = "px-0.5 font-mono text-eyebrow font-semibold uppercase";
 const fieldClass = "field-inset h-13 w-full rounded-xl border-0 px-4";
 const skeletonClass = cn(
-  "inline-block h-[1lh] animate-pulse rounded-md bg-foreground/12 align-top",
+  "inline-block h-lh animate-pulse rounded-md bg-foreground/12 align-top",
   skeletonWidth,
 );
 const hintExpr =
@@ -144,7 +143,7 @@ const openExpr = `if (${skeletonExpr}) return; editing = true; openValue = ${mod
     >
       <span
         slot="iconBefore"
-        class="min-w-0 truncate text-[15px]/[normal] font-normal"
+        class="min-w-0 truncate text-control font-normal"
       >
         <span
           x-show={`!(${skeletonExpr})`}
@@ -172,7 +171,7 @@ const openExpr = `if (${skeletonExpr}) return; editing = true; openValue = ${mod
       placeholder={placeholder}
       required={required}
       maxlength={maxlength}
-      class={cn(fieldClass, "py-0 text-[15px]")}
+      class={cn(fieldClass, "py-0 text-control")}
       x-show="editing"
       x-cloak
       x-ref="input"
@@ -185,7 +184,7 @@ const openExpr = `if (${skeletonExpr}) return; editing = true; openValue = ${mod
   {
     hintExpr && (
       <span
-        class="px-0.5 text-xs/[normal] text-muted"
+        class="px-0.5 text-xs/tight text-muted"
         x-show="editing"
         x-cloak
         x-text={hintExpr}

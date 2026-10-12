@@ -37,7 +37,7 @@ const rowShowExpr = `${partsExpr}.length > 0 || ${rowValueExpr}`;
         >
           <span class="flex min-w-0 items-center gap-2">
             <span
-              class="size-[3px] shrink-0 rounded-full bg-muted"
+              class="size-0.75 shrink-0 rounded-full bg-muted"
               x-show="index > 0"
               x-cloak
             />
@@ -61,7 +61,7 @@ const rowShowExpr = `${partsExpr}.length > 0 || ${rowValueExpr}`;
         {parts.map((part, index) => (
           <>
             {index > 0 && (
-              <span class="size-[3px] shrink-0 rounded-full bg-muted" />
+              <span class="size-0.75 shrink-0 rounded-full bg-muted" />
             )}
             <span
               class="truncate"

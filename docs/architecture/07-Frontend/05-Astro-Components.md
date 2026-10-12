@@ -88,6 +88,8 @@ The trigger decides where a class lives — **not** author preference. This is t
 
 **`cn()` is the only class-composition helper.** It is `twMerge(clsx(...))`, so a caller-passed `class` correctly overrides a conflicting base utility (a manual `[...].join(" ")` cannot). Use it for every conditional or passed-through class; never hand-roll composition.
 
+tailwind-merge reads an unknown `text-*`, `shadow-*` or `bg-*` name as a colour, so `cn()` must learn every brand token and `@utility`. Both live in `app/src/lib/client/merge-tokens.ts`: `MERGE_TOKENS` by `@theme` namespace, `UTILITY_GROUPS` mapping each `@utility` to the stock group it overrides (`pt-safe` → `pt`) or `null`. `tests/lib/client/cn.test.ts` parses `global.css` and fails until both match it, so a new token or `@utility` lands with its row (D451, 2026-10-12).
+
 Mechanically enforced by `scripts/check-astro-class-composition.sh` (local Context Maintenance + CI on PRs to `main`): no `class:list` and no `.filter(Boolean).join(` in `app/src/**/*.astro`.
 
 ```astro

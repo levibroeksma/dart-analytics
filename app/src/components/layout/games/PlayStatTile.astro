@@ -23,8 +23,8 @@ import { cn } from "@client/cn";
 const className = cn(
   "inset-well flex min-w-0",
   compact
-    ? "h-11 shrink-0 items-center justify-between gap-2 rounded-[14px] px-3"
-    : "h-[76px] flex-col-reverse items-center justify-center gap-1 rounded-xl px-2",
+    ? "h-11 shrink-0 items-center justify-between gap-2 rounded-row px-3"
+    : "h-19 flex-col-reverse items-center justify-center gap-1 rounded-xl px-2",
 );
 const labelClass = cn(
   "font-mono text-eyebrow-sm font-semibold uppercase text-muted",
@@ -32,7 +32,7 @@ const labelClass = cn(
 );
 const valueClass = cn(
   "shrink-0 font-mono font-medium tabular-nums text-foreground",
-  compact ? "text-sm" : "text-[17px]",
+  compact ? "text-sm" : "text-stat",
 );
 ---
 

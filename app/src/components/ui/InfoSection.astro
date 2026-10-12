@@ -28,11 +28,13 @@ import ChevronDownIcon from "@icons/chevron-down.svg";
     <div class="glass-info flex flex-col gap-2 rounded-2xl px-4 py-3.5">
       <h4
         id={id}
-        class="text-[13px] font-semibold text-accent-bright"
+        class="text-body-sm/5 font-semibold tracking-wide text-accent-bright"
       >
         {title}
       </h4>
-      <p class="text-xs leading-[1.55] text-muted text-pretty">{description}</p>
+      <p class="text-xs leading-relaxed text-muted text-pretty">
+        {description}
+      </p>
     </div>
   ) : (
     <div
@@ -47,19 +49,19 @@ import ChevronDownIcon from "@icons/chevron-down.svg";
       >
         <h4
           id={id}
-          class="text-[13px] font-semibold text-accent-bright"
+          class="text-body-sm/5 font-semibold tracking-wide text-accent-bright"
         >
           {title}
         </h4>
         <ChevronDownIcon
-          class="size-[18px] text-muted-foreground transition-transform duration-300"
+          class="size-4.5 text-muted-foreground transition-transform duration-300"
           {...{ ":class": "expanded ? '' : '-rotate-90'" }}
         />
       </button>
       <p
         x-show="expanded"
         x-cloak
-        class="text-xs leading-[1.55] text-muted text-pretty"
+        class="text-xs leading-relaxed text-muted text-pretty"
       >
         {description}
       </p>

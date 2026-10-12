@@ -29,13 +29,13 @@ import OpponentChooserModal from "./OpponentChooserModal.astro";
 
 <div class="glass flex flex-col gap-3.5 rounded-2xl p-4">
   <div class="flex items-baseline justify-between">
-    <h2 class="font-display text-[13px] tracking-[0.06em]">Players</h2>
+    <h2 class="font-display text-card-title">Players</h2>
     <span
       class="font-mono text-eyebrow font-semibold text-muted-foreground"
       x-text="$playerCount(1 + guests.length + (bot ? 1 : 0))"
     ></span>
   </div>
-  <div class="flex flex-row items-start gap-[18px]">
+  <div class="flex flex-row items-start gap-4.5">
     <UserIconDisplay
       name="User"
       nameExpr="$store.profile.displayName || 'User'"

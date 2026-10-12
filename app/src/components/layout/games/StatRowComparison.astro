@@ -20,10 +20,10 @@ const rightAttrs = { ":class": tint(1) };
 ---
 
 <div
-  class="grid h-10 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center border-t border-border first:border-t-0"
+  class="grid h-10 grid-cols-mirror items-center border-t border-border first:border-t-0"
 >
   <dd
-    class="justify-self-start font-mono text-button tabular-nums"
+    class="justify-self-start font-mono text-control tabular-nums"
     {...leftAttrs}
   >
     <ResultValue
@@ -37,7 +37,7 @@ const rightAttrs = { ":class": tint(1) };
     {label}
   </dt>
   <dd
-    class="justify-self-end font-mono text-button tabular-nums"
+    class="justify-self-end font-mono text-control tabular-nums"
     {...rightAttrs}
   >
     <ResultValue

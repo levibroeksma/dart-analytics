@@ -57,7 +57,7 @@ const saveAndClose = `(await save()) && (${openExpr} = false)`;
         >
           <button
             type="button"
-            class="flex h-10 cursor-pointer flex-col items-center justify-center gap-[3px] rounded-full text-sm font-semibold uppercase transition-[color,background-color] duration-150"
+            class="flex h-10 cursor-pointer flex-col items-center justify-center gap-0.75 rounded-full text-sm font-semibold uppercase transition-colors duration-150"
             :class="selectedIndex === index ? 'glass-button text-foreground' : (hasRoutine(index) ? 'text-foreground' : 'text-muted')"
             :aria-pressed="selectedIndex === index"
             :aria-label="dayLabel(index)"
@@ -75,7 +75,7 @@ const saveAndClose = `(await save()) && (${openExpr} = false)`;
       <section class="flex flex-col gap-2.5">
         <div class="flex items-center justify-between px-1">
           <h2
-            class="font-display text-button text-foreground"
+            class="font-display text-control text-foreground"
             x-text="selectedDayLabel()"
           >
           </h2>
@@ -111,7 +111,7 @@ const saveAndClose = `(await save()) && (${openExpr} = false)`;
                 </span>
                 <span
                   class="flex size-6 shrink-0 items-center justify-center rounded-full"
-                  :class="isRoutineSelected(routine) ? 'bg-accent text-accent-foreground' : 'border-[1.5px] border-white/20'"
+                  :class="isRoutineSelected(routine) ? 'bg-accent text-accent-foreground' : 'border-medium border-white/20'"
                 >
                   <span
                     class="flex"

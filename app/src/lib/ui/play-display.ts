@@ -24,9 +24,9 @@ function charCount(value: unknown): number {
  * a Quick Subtract equation), shared by both scoreboards and capped at 46px.
  */
 function longValueSize(length: number): string {
-  if (length === 6) return "text-[clamp(1.25rem,15cqw,2.875rem)]";
-  if (length <= 8) return "text-[clamp(1.125rem,11cqw,2.875rem)]";
-  return "text-[clamp(1rem,10cqw,2.875rem)]";
+  if (length === 6) return "text-numeral-4";
+  if (length <= 8) return "text-numeral-5";
+  return "text-numeral-6";
 }
 
 /**
@@ -36,9 +36,9 @@ function longValueSize(length: number): string {
  */
 export function bigValueSize(value: unknown): string {
   const length = charCount(value);
-  if (length <= 2) return "text-[clamp(2.5rem,45cqw,5.25rem)]";
-  if (length === 3) return "text-[clamp(2rem,30cqw,4rem)]";
-  if (length <= 5) return "text-[clamp(1.5rem,18cqw,2.875rem)]";
+  if (length <= 2) return "text-numeral-1";
+  if (length === 3) return "text-numeral-2";
+  if (length <= 5) return "text-numeral-3";
   return longValueSize(length);
 }
 
@@ -49,8 +49,8 @@ export function bigValueSize(value: unknown): string {
  */
 export function seatValueSize(value: unknown): string {
   const length = charCount(value);
-  if (length <= 3) return "text-[clamp(2rem,30cqw,4rem)]";
-  if (length <= 5) return "text-[clamp(1.5rem,18cqw,2.875rem)]";
+  if (length <= 3) return "text-numeral-2";
+  if (length <= 5) return "text-numeral-3";
   return longValueSize(length);
 }
 

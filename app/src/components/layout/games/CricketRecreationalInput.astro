@@ -21,7 +21,7 @@ import RingKeyRow from "./RingKeyRow.astro";
   {...props}
 >
   <RingKeyRow />
-  <div class="grid min-h-0 flex-[2] auto-rows-fr grid-cols-4 gap-2">
+  <div class="grid min-h-0 flex-2 auto-rows-fr grid-cols-4 gap-2">
     <template
       x-for="row in objectiveRows()"
       :key="row.objective"

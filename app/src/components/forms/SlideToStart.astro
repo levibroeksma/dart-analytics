@@ -32,7 +32,7 @@ import PlayRoundedIcon from "@icons/play-rounded.svg";
 
 // Styles
 const className = cn(
-  "fixed inset-x-4 z-30 mx-auto max-w-lg bottom-[calc(max(0.5rem,calc(env(safe-area-inset-bottom)-0.5rem))+5.5rem)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent-muted rounded-full",
+  "fixed inset-x-4 z-30 mx-auto max-w-lg bottom-above-nav focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent-muted rounded-full",
   classNameProp,
 );
 ---
@@ -60,13 +60,13 @@ const className = cn(
       :style="`width:calc(${fraction} * (100% - 60px) + 55px)`"
     ></span>
     <span
-      class="relative text-sm font-semibold tracking-[0.02em] text-soft-foreground"
+      class="relative text-sm font-semibold tracking-wide text-soft-foreground"
     >
       {label}
     </span>
     <span
-      class="slide-thumb absolute top-[5px] flex size-[50px] touch-none items-center justify-center rounded-full"
-      :class="dragging ? 'scale-[1.06]' : 'motion-safe:transition-[left,scale] motion-safe:duration-200'"
+      class="slide-thumb absolute top-1.25 flex size-12.5 touch-none items-center justify-center rounded-full"
+      :class="dragging ? 'scale-106' : 'motion-safe:transition-[left,scale] motion-safe:duration-200'"
       :style="`left:calc(5px + (100% - 60px) * ${fraction})`"
       @pointerdown="begin($event)"
       @pointermove="move($event)"

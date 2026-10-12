@@ -43,13 +43,13 @@ import CrossIcon from "@icons/cross.svg";
   >
     <GripIcon class="size-4.5 opacity-55" />
   </IconBtn>
-  <span class="flex min-w-0 flex-1 flex-col gap-[3px]">
+  <span class="flex min-w-0 flex-1 flex-col gap-0.75">
     <span
-      class="truncate font-display text-[13px]/[normal] tracking-[0.01em] text-foreground"
+      class="truncate font-display text-body-sm text-foreground"
       x-text="step.name"
     ></span>
     <span
-      class="text-[11px]/[normal] text-muted-foreground"
+      class="text-caption text-muted-foreground"
       x-show="step.exerciseTypeKey === 'GAME'"
       x-cloak
     >
@@ -61,7 +61,7 @@ import CrossIcon from "@icons/cross.svg";
   >
     <Input
       type="number"
-      class="w-5.5 rounded-none border-0 bg-transparent p-0 text-[13px] font-medium shadow-none [appearance:textfield] focus:bg-transparent focus:shadow-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+      class="w-5.5 rounded-none border-0 bg-transparent p-0 text-body-sm font-medium shadow-none input-number-plain focus:bg-transparent focus:shadow-none"
       :min="stepMinFor(step)"
       :max="stepMaxFor(step)"
       inputmode="numeric"
@@ -69,7 +69,7 @@ import CrossIcon from "@icons/cross.svg";
       @change="setMinutes(index, $event.target.valueAsNumber)"
       aria-label="Minutes"
     />
-    <span class="text-[11px] font-medium text-muted">min</span>
+    <span class="text-caption font-medium text-muted">min</span>
   </label>
   <IconBtn
     variant="ghost"

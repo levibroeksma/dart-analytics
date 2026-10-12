@@ -24,7 +24,7 @@ const pages = NAV_TABS.map((tab) => ({ ...tab, icon: icons[tab.href] }));
 ---
 
 <nav
-  class="pointer-events-none fixed inset-x-0 bottom-[max(0.5rem,calc(env(safe-area-inset-bottom)-0.5rem))] z-40 px-4"
+  class="pointer-events-none fixed inset-x-0 bottom-nav z-40 px-4"
   aria-label="Main navigation"
 >
   <div
@@ -36,7 +36,10 @@ const pages = NAV_TABS.map((tab) => ({ ...tab, icon: icons[tab.href] }));
           href={page.href}
           label={page.label}
         >
-          <page.icon aria-hidden="true" />
+          <page.icon
+            class="size-6"
+            aria-hidden="true"
+          />
         </NavBtn>
       ))
     }

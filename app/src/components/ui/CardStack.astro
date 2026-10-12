@@ -33,20 +33,14 @@ const frontSlabShowExpr = `(${layersExpr}) >= 1`;
   {...props}
 >
   <div
-    class={cn(
-      slabClass,
-      "inset-x-6 bottom-0 rounded-b-[18px] bg-stack-2 shadow-[inset_0_-1px_0_oklch(100%_0_0/0.12)]",
-    )}
+    class={cn(slabClass, "inset-x-6 bottom-0 stack-slab-2")}
     x-show={backSlabShowExpr}
     x-cloak
     aria-hidden="true"
   >
   </div>
   <div
-    class={cn(
-      slabClass,
-      "inset-x-3 rounded-b-[19px] bg-stack-1 shadow-[inset_0_-1px_0_oklch(100%_0_0/0.15)]",
-    )}
+    class={cn(slabClass, "inset-x-3 stack-slab-1")}
     :class={frontSlabExpr}
     x-show={frontSlabShowExpr}
     x-cloak

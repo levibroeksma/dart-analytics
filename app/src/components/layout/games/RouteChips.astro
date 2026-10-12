@@ -23,13 +23,13 @@ const { routeExpr }: Props = Astro.props;
   >
     <span class="flex items-center gap-2">
       <span
-        class="size-[3px] rounded-full bg-faint-foreground"
+        class="size-0.75 rounded-full bg-faint-foreground"
         aria-hidden="true"
         x-show="index > 0"
         x-cloak
       ></span>
       <span
-        class="font-mono text-[13px] text-soft-foreground"
+        class="font-mono text-body-sm text-soft-foreground"
         x-text="part"
       ></span>
     </span>

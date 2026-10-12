@@ -27,16 +27,14 @@ const className = cn(
   classNameProp,
 );
 const handedLabelClass =
-  "px-0.5 font-mono text-eyebrow/[normal] font-semibold text-muted-foreground uppercase";
+  "px-0.5 font-mono text-eyebrow font-semibold text-muted-foreground uppercase";
 ---
 
 <div
   class={className}
   {...props}
 >
-  <h2 class="font-display text-[13px]/[normal] tracking-[0.06em]">
-    Player settings
-  </h2>
+  <h2 class="font-display text-card-title">Player settings</h2>
   <SettingRow
     id="displayName"
     label="Display name"

@@ -39,7 +39,7 @@ const valueExpr = isTarget ? target : score;
 
 // Styles
 const className = cn(
-  "glass grid min-h-2/5 max-h-2/5 flex-1 grid-cols-[1.3fr_1fr] grid-rows-1 rounded-3xl p-5",
+  "glass grid min-h-2/5 max-h-2/5 flex-1 grid-cols-scoreboard grid-rows-1 rounded-3xl p-5",
   classNameProp,
 );
 ---
@@ -50,7 +50,7 @@ const className = cn(
   >
     <slot name="above" />
     <p
-      class="whitespace-nowrap font-display leading-none tracking-[-0.02em] tabular-nums text-foreground text-shadow-glow"
+      class="whitespace-nowrap font-display leading-none tabular-nums text-foreground text-shadow-glow"
       :class={`$bigValueSize(${valueExpr})`}
       x-text={valueExpr}
     >

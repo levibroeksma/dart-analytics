@@ -49,7 +49,7 @@ import RouteChips from "./RouteChips.astro";
   :class={`(${activeExpr}) ? 'order-first flex-1' : 'shrink-0'`}
 >
   <div
-    class="glass-active-seat grid min-h-0 flex-1 grid-cols-[1.3fr_1fr] grid-rows-1 rounded-[22px] px-[18px] py-4"
+    class="glass-active-seat grid min-h-0 flex-1 grid-cols-scoreboard grid-rows-1 rounded-key px-4.5 py-4"
     x-show={activeExpr}
     x-cloak
   >
@@ -67,7 +67,7 @@ import RouteChips from "./RouteChips.astro";
         )
       }
       <p
-        class="whitespace-nowrap font-display leading-none tracking-[-0.02em] tabular-nums text-foreground text-shadow-glow"
+        class="whitespace-nowrap font-display leading-none tabular-nums text-foreground text-shadow-glow"
         :class={`$seatValueSize(${scoreExpr})`}
         x-text={scoreExpr}
       >
@@ -81,7 +81,7 @@ import RouteChips from "./RouteChips.astro";
     </div>
   </div>
   <div
-    class="glass flex h-16 items-center gap-3 rounded-[22px] pr-2.5 pl-4"
+    class="glass flex h-16 items-center gap-3 rounded-key pr-2.5 pl-4"
     x-show={`!(${activeExpr})`}
     x-cloak
   >
@@ -104,10 +104,10 @@ import RouteChips from "./RouteChips.astro";
       x-text={scoreExpr}
     ></span>
     <div
-      class="inset-well flex h-11 w-20 shrink-0 flex-col items-center justify-center rounded-[14px]"
+      class="inset-well flex h-11 w-20 shrink-0 flex-col items-center justify-center rounded-row"
     >
       <span
-        class="font-mono text-[13px] tabular-nums text-foreground"
+        class="font-mono text-body-sm tabular-nums text-foreground"
         x-text={idleStatExpr}
       ></span>
       <span

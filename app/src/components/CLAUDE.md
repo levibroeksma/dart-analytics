@@ -12,7 +12,8 @@ Scope: Astro components — `ui/`, `forms/`, `layout/`. Load the "Frontend page 
 - Weights: `font-normal` / `font-medium` / `font-semibold` / `font-bold` (D428)
 - Text is non-selectable app-wide (`body` in `global.css` `@layer base`); add `select-text` to anything a player may want to copy, never `select-none` to the rest (D388, 2026-10-02)
 - Tailwind v4 utilities only — no important modifier at all, neither prefix (`!utility`) nor suffix (`utility!`); compose overrides through `cn()`'s merge ordering, or extend the primitive's own variant/prop surface when its defaults conflict; arbitrary negatives as `left-[-45%]`, never `-left-[45%]`
-- Full rules: `docs/architecture/07-Frontend/07-Style-Guide.md` (visual) and `07-Frontend/05-Astro-Components.md` (class composition / props); `{...rest}`/raw palette utilities/Tailwind important modifier (either form) + `-prop-[…]` mechanically enforced by `scripts/check-style-tokens.sh` (2026-07-31; important-modifier ban widened to suffix form 2026-08-21; font-medium ban lifted 2026-10-08, D428)
+- No Tailwind arbitrary values (`prop-[…]`, `/[…]`, `[prop:value]`, `[&…]`): stock step → `@theme` token → new token in `global.css` → `@utility`; an `ARBITRARY_ALLOW` row in `scripts/check-style-tokens.sh` only as a reviewed last resort (D451, 2026-10-12)
+- Full rules: `docs/architecture/07-Frontend/07-Style-Guide.md` (visual) and `07-Frontend/05-Astro-Components.md` (class composition / props); `{...rest}`/raw palette utilities/Tailwind important modifier (either form) + `-prop-[…]` + unlisted arbitrary values mechanically enforced by `scripts/check-style-tokens.sh` (2026-07-31; important-modifier ban widened to suffix form 2026-08-21; font-medium ban lifted 2026-10-08, D428)
 
 ## Alpine
 

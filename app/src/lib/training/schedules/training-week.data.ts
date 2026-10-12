@@ -20,7 +20,7 @@ const DAY_CLASSES: Record<DayStatus, string> = {
   done: "size-8.5 bg-accent text-foreground",
   missed:
     "size-8.5 border-2 border-dashed border-missed bg-missed-muted text-missed",
-  today: "home-day-today size-10.5 text-[15px] font-bold text-foreground",
+  today: "home-day-today size-10.5 text-control font-bold text-foreground",
   scheduled: "size-8.5 border-2 border-foreground/50 text-foreground",
   rest: "size-8.5 border-2 border-border text-faint-foreground",
 };

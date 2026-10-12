@@ -45,7 +45,7 @@ const variantClasses = {
 }[variant];
 
 const className = cn(
-  "inline-flex items-center justify-center gap-2 transition-[transform,color,background-color,border-color,box-shadow] duration-150",
+  "inline-flex items-center justify-center gap-2 transition duration-150",
   !isText && "btn rounded-md border border-transparent text-sm font-semibold",
   !isText && (icon ? "p-2.5" : "px-4 py-2.5"),
   isText && "font-semibold",

@@ -91,6 +91,7 @@ describe("trainingWeek", () => {
     expect(week.dayClass(1)).toContain("border-dashed");
     expect(week.dayClass(2)).toContain("text-faint-foreground");
     expect(week.dayClass(3)).toContain("home-day-today");
+    expect(week.dayClass(3)).toContain("text-control");
     expect(week.dayClass(5)).toContain("border-foreground/50");
   });
 

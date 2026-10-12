@@ -57,7 +57,7 @@ const scope = JSON.stringify({ open: false, fixedOptions: options });
 const list = optionsExpr ?? "fixedOptions";
 const picked = `${model} === option.value`;
 const pickedLabel = `(${list}).find((option) => ${picked})?.label ?? ''`;
-const pickedClass = `${picked} ? 'border-border bg-tab-active backdrop-blur-[2px]' : ''`;
+const pickedClass = `${picked} ? 'border-border bg-tab-active backdrop-blur-xs' : ''`;
 const pick = `${model} = option.value; open = false`;
 
 // Styles
