@@ -7,7 +7,7 @@ updated: 2026-10-10
 
 # Frontend Style Guide
 
-> **Version:** 0.4.1 (2026-10-10 — resume deck: stack/deck tokens, `deck-top-card`, deck keyframes, D442; prior 0.4.0 was 2026-10-08 — game play: play surfaces, key press, play header, stacked seats, D432; prior 0.3.1 was login, D431)
+> **Version:** 0.5.0 (2026-10-12 — arbitrary-value ban, role type bundles, layout utilities, D451; prior 0.4.1 was 2026-10-10 — resume deck, D442; prior 0.4.0 was 2026-10-08 — game play: play surfaces, key press, play header, stacked seats, D432; prior 0.3.1 was login, D431)
 >
 > Dark-only, mobile-first UI conventions: sky accent, glass/surface tokens, primitive class contracts, typography, spacing, motion, accessibility.
 >
@@ -48,7 +48,7 @@ Use semantic tokens only. Never raw Tailwind palette utilities (`bg-sky-500`, `t
 | Accent | `accent`, `accent-hover`, `accent-muted`, `accent-foreground`, `accent-glow` (sky); `accent-bright` (sky light: accent text on dark), `accent-foreground-muted`, `accent-deep` (gradient end), `accent-deep-blue` (chart bars, vignette), `bg-blue-glass` (2026-10-08) |
 | States | `error` / `error-hover` / `error-muted` / `error-foreground` (coral); `error-strong` / `error-strong-hover` (solid fill under `error-foreground`, ≥ 4.5:1; `Button`/`IconBtn` error variant); `missed` / `missed-muted` alias error; `success` / `success-muted` |
 | Radius | `rounded-sm` … `rounded-2xl`, `rounded-row`, `rounded-key`, `rounded-switch`, `rounded-board`, `rounded-sheet` per `@theme` |
-| Type scale | `text-hero` 72, `text-title` 26 (screen title), `text-value` 30, `text-tile` 20, `text-card-title` 13, `text-button` 15, `text-eyebrow-sm` 9 / `text-eyebrow` 10 / `text-eyebrow-lg` 12 (mono caps); body `text-sm`, caption `text-xs` |
+| Type scale | `text-hero` 72, `text-title` 26 (screen title), `text-value` 30, `text-tile` 20, `text-card-title` 13, `text-control` 15 (buttons, fields, control text), `text-eyebrow-sm` 9 / `text-eyebrow` 10 / `text-eyebrow-lg` 12 (mono caps); `text-body-sm` 13, `text-caption` 11, `text-micro` 10; numerals `text-key` 26, `text-key-label` 22, `text-stat` 17, `text-summary` 40 / `text-summary-lg` 52, `text-numeral-1…6` (cqw clamps); body `text-sm`, caption `text-xs` (D451) |
 | Hit target | `size-hit` (44px) minimum for any tap target |
 | Fonts | `font-sans` (Montserrat), `font-display` (Michroma), `font-mono` (JetBrains Mono) |
 | Motion | `--ease-out`; keep UI ≤ ~300ms; transform/opacity only |
@@ -110,6 +110,7 @@ Implement a reusable class contract once in `global.css` (`@utility` / `@layer c
 | `@utility start-bar-fade` | Bottom fade behind the fixed start bar so content scrolls under it (design 4d, D430, 2026-10-08) |
 | `.field-inset` / `.field-inset-error` | Inset text field with accent focus ring; `-error` adds a coral inset ring, and focus still wins (login, D431, 2026-10-08) |
 | `@utility glass-active-seat` / `input-well` / `key-press` / `next-dart-ring` / `target-key-ring` / `pip-on` / `board-dim` | Play screens: accent-tinted seat card; glass input panel well; accent inset ring on a pressed key; next-dart and doubles-target rings (each carries its own well background — never stack on `inset-well`); lit mark pip; dimmed board while pressing (design Game Play, D432, 2026-10-08) |
+| `@utility stack-slab-1` / `stack-slab-2` / `border-medium` / `pt-safe` / `pb-safe` / `bottom-nav` / `bottom-above-nav` / `pb-nav` / `input-number-plain`; `grid-cols-mirror` / `grid-cols-scoreboard` | Card-stack slabs; 1.5px border; safe-area sheet padding; bottom-nav offset and clearance (`--nav-bottom`, `--nav-clearance`); bare number input; mirrored and scoreboard grids (D451, 2026-10-12) |
 
 **Dialogs** are component contracts, not CSS class primitives. Every dialog renders through `Modal.astro` — a bottom `glass-sheet` over `bg-scrim` with a grabber, a centred `font-display` title and an optional mono overline; actions go in `SheetActions` with `sheet-muted` on the left and `sheet-raised` on the right. `fixed inset-0` and `role="dialog"` are legal only in `app/src/components/ui/Modal.astro` (`scripts/check-style-tokens.sh`, D429). Mid-game sheets (exit, finish confirms, continue-session) carry an `InlayRow` context row from `$store.game.contextRow()`; a part with no data is dropped with its dot, never placeheld (D440, 2026-10-10).
 
@@ -124,7 +125,7 @@ Press feedback is built into `.btn:active:not(:disabled)` (`transform: scale(0.9
 | Headings (`h1`–`h4`) | `font-display` (Michroma), `font-normal`, wide tracking — set in `@layer base` |
 | Eyebrow / section tag (`h5`) | `font-mono font-semibold uppercase tracking-widest text-muted` |
 | Body / description / buttons | `font-sans` (Montserrat) — never `font-mono` on body or buttons |
-| Large numeric displays (scores, targets) | `font-display` (Michroma) `leading-none tracking-[-0.02em] tabular-nums text-shadow-glow`; size from `bigValueSize` on the solo card and `seatValueSize` on the active seat card, both a cqw clamp per length capped at the design size (solo: ≤2 → 45cqw cap 84px, 3 → 30cqw cap 64px, 4–5 → 18cqw cap 46px; seat: ≤3 → 30cqw cap 64px, 4–5 → 18cqw cap 46px; both from 6+: 6 → 15cqw, 7–8 → 11cqw, 9+ → 10cqw, cap 46px) (D432, 2026-10-08, replaces D262's `fluid`) |
+| Large numeric displays (scores, targets) | `font-display` (Michroma) `tabular-nums text-shadow-glow`; size, line-height and −0.02em tracking from a `text-numeral-*` token picked by `bigValueSize` on the solo card and `seatValueSize` on the active seat card, both a cqw clamp token per length (D451) capped at the design size (solo: ≤2 → 45cqw cap 84px, 3 → 30cqw cap 64px, 4–5 → 18cqw cap 46px; seat: ≤3 → 30cqw cap 64px, 4–5 → 18cqw cap 46px; both from 6+: 6 → 15cqw, 7–8 → 11cqw, 9+ → 10cqw, cap 46px) (D432, 2026-10-08, replaces D262's `fluid`) |
 | Case | No `uppercase` on body, description, or button text. Scope `uppercase` to the specific title/eyebrow element only — never a parent wrapping a modal or body region |
 | Weight | `font-normal`, `font-medium`, `font-semibold`, `font-bold`. Display (Michroma) 400 only; Montserrat 400/500/600/700; JetBrains Mono 500/600. Buttons use `font-semibold` (D428) |
 | Screen / card titles | Screen title `font-display text-title`; card title `font-display text-card-title` — never bold Montserrat |
@@ -264,7 +265,16 @@ This repo uses Tailwind CSS v4 utility forms. Agents must not emit v3-era varian
 
 Scale negatives without arbitrary brackets stay fine (`-mt-4`, `-rotate-45`, `-translate-x-1/2`). Mechanically enforced by `scripts/check-style-tokens.sh` (D226, supersedes D175's suffix-form endorsement).
 
-**Container queries.** For an element that must size itself off its own container's width rather than a breakpoint — e.g. a big number whose content length varies and must never wrap — add `@container` to the sizing ancestor and use a `cq*`-unit arbitrary value on the descendant, typically wrapped in `clamp()` to bound both ends: `text-[clamp(1.75rem,13cqw,3rem)]`. A fixed `text-*` step reacts to viewport breakpoints, not to how much text needs to fit; `cqw` scales continuously with the container's own inline size instead. Play-screen big values pick a `cqw` clamp by length (`bigValueSize`, `seatValueSize`, D432, 2026-10-08), with `@container` on the `SinglePlayerDisplay` left column and the `SplitScoreboardHalf` active card; every step is capped at its design size, so a narrow column shrinks any length instead of overflowing.
+**Container queries.** For an element that must size itself off its own container's width rather than a breakpoint — e.g. a big number whose content length varies and must never wrap — add `@container` to the sizing ancestor and give the descendant a `--text-*` token whose size is a `cq*` clamp (`text-numeral-1…6`); a new clamp enters `global.css` as a token first (D451). A fixed `text-*` step reacts to viewport breakpoints, not to how much text needs to fit; `cqw` scales continuously with the container's own inline size instead. Play-screen big values pick a `cqw` clamp by length (`bigValueSize`, `seatValueSize`, D432, 2026-10-08), with `@container` on the `SinglePlayerDisplay` left column and the `SplitScoreboardHalf` active card; every step is capped at its design size, so a narrow column shrinks any length instead of overflowing.
+
+**Arbitrary values.** No `prop-[…]`, `/[…]`, `[prop:value]` or `[&…]` in markup, `.ts` class strings or `@apply`. Fix in order:
+1. Stock v4 class: spacing takes any 0.25 step (`h-4.5`, `gap-0.75`); `h-lh`, `scale-106`, `flex-2`, `group-has-focus:`.
+2. Existing `@theme` token: `text-*`, `rounded-*`, `grid-cols-*`.
+3. New token in `global.css` first (D428).
+4. `@utility` for a repeated composite.
+5. Last resort: an `ARBITRARY_ALLOW` row (`path|match` plus a reason) in `scripts/check-style-tokens.sh`.
+
+The gate fails on any unlisted hit and on any row that matches nothing (D451, 2026-10-12).
 
 ---
 
@@ -284,6 +294,7 @@ Scale negatives without arbitrary brackets stay fine (`-mt-4`, `-rotate-45`, `-t
 | Astro `class:list` or manual `[...].filter(Boolean).join(" ")` for build-time classes | `cn()` (`05-Astro-Components.md`; gated by `scripts/check-astro-class-composition.sh`) |
 | Important modifier, either form: `!utility` or `utility!` | Compose through `cn()`'s merge ordering, or extend the primitive's variant/prop surface |
 | Leading-dash arbitrary `-prop-[…]` | `prop-[-…]` (minus inside brackets) |
+| Arbitrary values `h-[18px]`, `text-[13px]/[normal]`, `tracking-[0.06em]` | Stock step, `@theme` token or `@utility`; allowlist row only as last resort (D451) |
 
 ---
 
