@@ -130,6 +130,7 @@ describe("BoardMagnifier.astro agrees with the board's coordinate space", () => 
     const viewBox = astro.match(/<svg\s[^>]*viewBox="([^"]+)"/)?.[1];
     const extent = viewBox!.split(",")[2];
 
-    expect(magnifier).toContain(`h-[${extent}px] w-[${extent}px]`);
+    // Tailwind spacing is 4px per step, so size-110 is 440px.
+    expect(magnifier).toContain(`size-${Number(extent) / 4} `);
   });
 });
