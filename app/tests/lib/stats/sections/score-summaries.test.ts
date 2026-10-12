@@ -3,35 +3,11 @@ import {
   completionSummary,
   personalBestFinish,
   sessionRow,
-  trebleSummary,
 } from "@lib/stats/sections/score-summaries";
 
 function bucket<M>(metrics: M) {
   return { start: "a", end: "b", closed: true, sampleSize: 1, metrics };
 }
-
-describe("trebleSummary", () => {
-  it("returns null rates below the minimum sample", () => {
-    const out = trebleSummary([bucket({ "20": { darts: 10, trebles: 5 } })]);
-    expect(out).toEqual({ t20: null, t19: null, overall: null });
-  });
-
-  it("sums buckets and reads T20, T19 and the overall share", () => {
-    const out = trebleSummary([
-      bucket({
-        "20": { darts: 20, trebles: 10 },
-        "19": { darts: 40, trebles: 10 },
-      }),
-      bucket({
-        "20": { darts: 20, trebles: 10 },
-        MISS: { darts: 20, trebles: 0 },
-      }),
-    ]);
-    expect(out.t20).toBeCloseTo(0.5);
-    expect(out.t19).toBeCloseTo(0.25);
-    expect(out.overall).toBeCloseTo(30 / 100);
-  });
-});
 
 describe("completionSummary", () => {
   it("is empty without buckets", () => {

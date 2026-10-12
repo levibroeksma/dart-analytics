@@ -8,7 +8,6 @@ import { trainingIndex } from "@lib/training/routines/training-index.data";
 import { statisticsRoutines } from "@lib/training/routines/statistics-routines.data";
 import { scoreTrendSection } from "@lib/stats/sections/score-trend.data";
 import { gameHeatmapSection } from "@lib/stats/sections/game-heatmap.data";
-import { scoreTrebleSection } from "@lib/stats/sections/score-treble.data";
 import { personalBestFinishSection } from "@lib/stats/sections/personal-best-finish.data";
 import { gameCompletionSection } from "@lib/stats/sections/game-completion.data";
 import { gameSessionList } from "@lib/stats/sections/game-session-list.data";
@@ -74,7 +73,6 @@ describe("registerRouteData", () => {
   });
 
   it.each([
-    ["scoreTrebleSection", scoreTrebleSection],
     ["gameCompletionSection", gameCompletionSection],
     ["personalBestFinishSection", personalBestFinishSection],
     ["gameSessionList", gameSessionList],
