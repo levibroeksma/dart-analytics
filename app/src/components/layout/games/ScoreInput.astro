@@ -65,7 +65,7 @@ const rootClass = cn("input-well flex flex-col", classNameProp);
   {...props}
 >
   <div
-    class="inset-well flex shrink-0 items-center gap-2 rounded-[22px] py-[5px] pr-[5px] pl-5"
+    class="inset-well flex shrink-0 items-center gap-2 rounded-key py-1.25 pr-1.25 pl-5"
   >
     <span
       class="min-w-0 flex-1 truncate font-mono text-[30px] font-medium tabular-nums"
@@ -76,7 +76,7 @@ const rootClass = cn("input-well flex flex-col", classNameProp);
       type="button"
       variant="sheet-raised"
       title="Submit"
-      class="h-12 w-[110px] shrink-0 rounded-[17px]"
+      class="h-12 w-27.5 shrink-0 rounded-xl"
       {...{ ":disabled": submitDisabled, "x-on:click": onSubmit }}
     />
   </div>

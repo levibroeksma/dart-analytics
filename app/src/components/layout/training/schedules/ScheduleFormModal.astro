@@ -57,7 +57,7 @@ const saveAndClose = `(await save()) && (${openExpr} = false)`;
         >
           <button
             type="button"
-            class="flex h-10 cursor-pointer flex-col items-center justify-center gap-[3px] rounded-full text-sm font-semibold uppercase transition-[color,background-color] duration-150"
+            class="flex h-10 cursor-pointer flex-col items-center justify-center gap-0.75 rounded-full text-sm font-semibold uppercase transition-colors duration-150"
             :class="selectedIndex === index ? 'glass-button text-foreground' : (hasRoutine(index) ? 'text-foreground' : 'text-muted')"
             :aria-pressed="selectedIndex === index"
             :aria-label="dayLabel(index)"

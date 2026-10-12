@@ -65,8 +65,8 @@ const className = cn(
       {label}
     </span>
     <span
-      class="slide-thumb absolute top-[5px] flex size-[50px] touch-none items-center justify-center rounded-full"
-      :class="dragging ? 'scale-[1.06]' : 'motion-safe:transition-[left,scale] motion-safe:duration-200'"
+      class="slide-thumb absolute top-1.25 flex size-12.5 touch-none items-center justify-center rounded-full"
+      :class="dragging ? 'scale-106' : 'motion-safe:transition-[left,scale] motion-safe:duration-200'"
       :style="`left:calc(5px + (100% - 60px) * ${fraction})`"
       @pointerdown="begin($event)"
       @pointermove="move($event)"
