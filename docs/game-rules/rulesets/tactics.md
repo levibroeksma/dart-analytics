@@ -27,6 +27,8 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Bull counts toward Doubles | Dropped | All | Bull is its own objective; D/T fed by rings on 1–20 only |
 | Tactics statistics section (MPR, darts-to-close trend) | V2+ | All | Wanted, unscheduled: needs a `v_tactics_*` view and a migration, as Cricket's |
 | Cut-throat / other cricket variants | V2+ | All | Wanted, unscheduled: depends on Multiplayer, and each variant's win and scoring rules are undecided |
+| Minnesota Cricket (a tenth objective, Three-in-a-bed) | V2+ | All | Wanted, unscheduled: the nine objectives are an engine constant (`TACTICS_OBJECTIVES`, `app/src/modules/game/tactics.engine.module.ts:36`), so a tenth is a new engine branch and a config field V1 does not have; the rules also leave gaps (see Open questions) |
+| Three-in-a-bed bonus (points on closing) | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer, as every Tactics points rule does, and the source leaves open whether an opponent's closed state gates it |
 | Visit = up to 3 darts | V1 | All | |
 | Standard dartboard scoring (assumed) | V1 | All | |
 
@@ -107,6 +109,19 @@ opponent.
 - **Strict** Tactics (only 15–20 doubles/trebles count for D/T categories)
 - Standard **Cricket** without Doubles/Triples categories
 - **Cut-throat** and other cricket family variants
+- **Minnesota Cricket** (V2+) — Tactics with a tenth objective, **Three-in-a-bed**:
+  all three darts of one visit land in the same bed, and that closes it in one
+  visit. There is no running count across visits; a visit that misses the
+  pattern leaves it open. The other nine objectives, Slop for Doubles/Triples
+  and the win test (all objectives closed, points at least equal to every
+  opponent) are Tactics' own. Plain Tactics is the source's "Optional
+  Three-in-a-Bed" form. The source also calls it Wild Mouse; its "Mickey Mouse"
+  alias is not this repo's `mickey-mouse.md`, which is a different objective
+  set. Routing verdict (2026-10-12): a rule switch — one added objective plus a
+  bonus — not a distinct game, so it lives here rather than in its own file.
+- **Three-in-a-bed bonus** (V2+, 2+) — when Three-in-a-bed closes, the face
+  values of the three darts are added to the seat's points (three treble 20s =
+  180; three single 18s = 54). It needs an opponent and so follows Multiplayer.
 
 ### Match structure
 
@@ -128,6 +143,9 @@ opponent.
 | **Strict**         | V2+     | Only doubles/trebles among 15–20 mark those categories.                  |
 | **Auto rule**      | V1      | A D/T on 15–20 marks its number while open, else the D/T category.       |
 | **Dual-purpose**   | V2+     | Choose whether a D/T on 15–20 counts for the number or the D/T category. |
+| **Minnesota Cricket** | V2+  | Tactics plus a tenth objective, Three-in-a-bed.                          |
+| **Three-in-a-bed** | V2+     | Objective closed by landing all three darts of one visit in the same bed. |
+| **Three-in-a-bed bonus** | V2+ | Points added on closing it: the face values of the three darts.        |
 
 ## Capture
 
@@ -152,6 +170,10 @@ as-built description.
 - **Derived, never stored:** marks per objective, which objectives are closed or
   dead, and the point total — all folded from the dart facts and the
   dual-purpose choices against the fixed nine-objective set.
+- **Minnesota Cricket (V2+):** Three-in-a-bed is folded from the three dart
+  facts of one visit — number and ring identical on all three; no new stored
+  fact. Whether those darts also mark other objectives is an open question
+  below, and a "yes" would change the auto rule's fold.
 
 ## Open questions
 
@@ -160,3 +182,14 @@ as-built description.
 - ~~Whether V1 ships Slop or Strict as the locked preset.~~ **Resolved:** Slop —
   Config & presets locks the D/T rule to Slop and the Glossary already carries
   Strict as V2+.
+- Minnesota Cricket: do the three darts that close Three-in-a-bed also mark
+  other objectives? The source's single-count rule says each dart serves one
+  requirement, while its tips say a triple 20 bed also advances 20 and Triples.
+- Minnesota Cricket: "same bed" or "same number"? The source's examples are
+  exact beds (single 20, triple 19); a single and a treble of one number are
+  not addressed. Proposed reading: exact bed.
+- Minnesota Cricket: is the Three-in-a-bed bonus paid only while an opponent has
+  not closed it, as for numbers, or always? The source states the general
+  rule and, separately, that the bonus is awarded when achieved.
+- Minnesota Cricket: two seats close out in the same round on equal points — who
+  wins? The source settles only a points difference.

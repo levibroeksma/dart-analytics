@@ -38,6 +38,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Visit = up to 3 darts | V1 | All | |
 | Standard dartboard scoring (assumed) | V1 | All | |
 | Entry type per dart (e.g. target = 1, d1=miss, d2=s1, d3=s2) | V1 | All | |
+| Chase the Dragon: trebles 10–20, outer bull, inner bull; first seat to finish wins | V2+ | 1v1 | Wanted, unscheduled: four things the engine cannot express — a path other than 1…20 + bull (`AroundTheClockV2Config` has direction and odds-first only, `app/src/lib/game/rulesets/types.ts:406`), a treble-only rule (`segment_rule` is `ANY`/`OUTER_SINGLE`, `types.ts:408`; see the Doubles-only / trebles-only row), a bull split into outer then inner (either ring counts, `app/src/modules/game/around-the-clock.engine.module.ts:121-126`), and a race ending (the engine is score-compare, both seats play out, `around-the-clock.engine.module.ts:237-243`) |
 
 ## Identity
 
@@ -69,6 +70,7 @@ From V2 (single player only for the timed settings), the player picks:
 | Segment rule  | Any (default) or outer single only                            | Editable         |
 | Difficulty    | Easy (default), Intermediate, Hard or Pro                     | Editable         |
 | Duration      | Untimed (default) or timed: **10** minutes (min **3**, max **30**) | Editable (Single) |
+| Chase the Dragon (V2+) | Off (default) or on; on fixes the path, treble-only rule and race ending together | Editable (V2+) |
 
 As a routine step the duration is the step's allocation and replaces this setting.
 
@@ -177,6 +179,16 @@ ratio.
   clear 20 in the same round tie. The source breaks a tie with one sudden-death
   round of three-in-a-bed on an agreed target (the bull suggested) — see Open
   questions.
+- **Chase the Dragon (V2+):** a race over thirteen fixed targets — the treble of
+  10, 11 … 20 in order, then the outer bull, then the inner bull. Only the
+  current target counts: the single or double of the number, or the other bull
+  ring, is a miss. A hit advances at once and the visit's remaining darts go at
+  the next target, as in Easy, so one visit can clear up to three. No points, no
+  bust, no step back. **1v1:** the first seat to hit the inner bull wins on that
+  dart and the match ends there, darts unthrown and the other seat's visits
+  unequalised; this replaces the fewest-darts finish for this variant only.
+  Seats are 1v1 only — the source allows up to eight, the cap is 2
+  (`app/src/services/session-seats.service.ts:25`).
 
 ### Match structure
 
@@ -209,6 +221,7 @@ ratio.
 | **Runs as a routine step**           | V2       | Played as a `GAME` exercise step; the routine sets the duration.  |
 | **Car Rally**                        | V2+      | Race along a player-set course; obstacle segments need two hits; first to clear it wins. |
 | **Three in a Bed**                   | V2+      | Clear a number only when all 3 darts of the visit share a bed; a failed visit stays put. |
+| **Chase the Dragon**                 | V2+      | Trebles 10–20, outer bull, inner bull in order; first seat to finish wins at once. |
 
 ## Capture
 
@@ -234,6 +247,13 @@ ratio.
   Down's does (`TuodState.timerExpired`, `app/src/modules/game/types.ts`).
   Outer single only needs ANALYTICS + VISUAL_BOARD: keypad capture records an
   unbanded `SINGLE` and cannot tell an outer single from an inner one.
+- **Chase the Dragon (V2+):** every dart has exactly one possible intent (the
+  current treble, outer bull or inner bull), unlike the "nothing stored" answer
+  above, so an intended target and ring could be recorded; whether to is open.
+  `score` stays the board score. The current target is folded from the darts
+  against the 13-target path in the config snapshot. The winner is the seat
+  whose completing dart came first across seats — see Open questions. Stage type
+  unchanged: one `EXERCISE_BLOCK` per seat.
 
 ## Open questions
 
@@ -255,3 +275,18 @@ ratio.
 - Three in a Bed: do inner and outer single count as one ring under Strict? The
   source's objective speaks of "the single 14 segment", its Strict variation of
   "all singles".
+- Chase the Dragon: the source says only the current target counts, so a dart in
+  the inner bull while the outer bull is needed reads as a miss here. Is that
+  intended, or does the inner bull also clear the outer?
+- Chase the Dragon: the seat that throws first has an edge in a race and the
+  source offers no equalising visit. Accept it, or add one?
+- Chase the Dragon: "first to finish" needs cross-seat order, but this file's
+  stage ownership is `PER_SEAT` and `turns.sequence_number` is unique per stage
+  and participant (`database/migrations/0011_ordering_and_uniqueness.sql:28`).
+  How is the first finisher derived? Proposed reading: seat order is fixed and
+  visits alternate, so the first finisher is the seat that completes in the
+  fewest visits, the earlier seat winning on equal visits — the same per-seat
+  turn count `activeSeat` already folds.
+- Chase the Dragon is solo-unplayable as written (it is a race); a solo
+  darts-to-complete run is not recorded. Source sub-variations (trebles 1–20,
+  trebles 15–20, doubles) are not recorded.

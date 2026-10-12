@@ -26,6 +26,8 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Track score / hit quality | V1 | All | |
 | Standard dartboard layout (assumed) | V1 | All | |
 | PAW (numbers 1–20 only, no bull round) | V2+ | All | Wanted, unscheduled: `target_order` must hold exactly 21 targets (`app/src/lib/game/rulesets/types.ts:66-70`), so a 20-target run is a new config shape and a new ruleset version |
+| 180 Around the Clock: S=1, D=1, T=3 per dart, numbers 1–20 only | V2+ | All | Wanted, unscheduled: the ladder fits the configured `points_single`/`points_double`/`points_treble` (`app/src/lib/game/rulesets/types.ts:151-153`), but `target_order` is fixed at 21 entries, 1–20 plus the bull (`types.ts:148`), so a bull-less run is a new ruleset version; `scoring_mode` admits `STANDARD`/`ACCURACY` only (`types.ts:150`) |
+| 180 Around the Clock tiebreak round | Deferred | 1v1 | Blocked on: the round's target is "mutually agreed" in the source, a judgement the app cannot make; the variant reports a tie meanwhile |
 
 ## Identity
 
@@ -49,6 +51,7 @@ Before play, a **config screen** shows the session presets. In V1 most values ar
 | Points     | Single = 1, Double = 2, Treble = 3 (only on the current target) | Shown, locked         |
 | Scoring    | Standard (default) or Accuracy — editable from V3 onward         | Editable (V3+)         |
 | Targets    | 1–20 and bull (21 targets); PAW (V2+) drops the bull             | Editable (V2+)         |
+| Scoring: 180 Around the Clock value (V2+) | 180 Around the Clock as one more Scoring value: S = 1, D = 1, T = 3, numbers 1–20 only — see Open questions | Editable (V2+) |
 
 ## How to play
 
@@ -135,6 +138,18 @@ Accuracy mode requires `ANALYTICS` + `VISUAL_BOARD` capture (coordinate capture 
   with Bull is the 21-target run above, though the source scores the bull
   outer 1 or 2 and inner 3 against this file's outer 1, inner 2. The source is
   solo; seats follow Singles Training.
+- **180 Around the Clock:** the same one-target-per-visit run with another points
+  ladder and target set. Per dart on the current number: treble 3, single 1
+  (outer or inner), double 1, anything else 0 — a double scores no more than a
+  single, so the treble is the only bonus. Targets are the numbers 1–20 only, no
+  bull: 20 visits, 60 darts, at most 9 a visit and 180 a run. Visits are thrown
+  in full and a miss just scores 0, as Easy. In 1v1 the higher total wins and
+  equal totals tie, as above; the source's extra tiebreak round is deferred.
+  Seats stay as this file's — the source allows up to eight, but the cap is 2
+  (`app/src/services/session-seats.service.ts:31`).
+- **180 Around the Clock tiebreak round:** on equal totals, one more round at a
+  single target number the two players agree on, scored as the variant. Deferred
+  (see Features): the target is agreed, not derived.
 
 ### Match structure
 
@@ -149,6 +164,8 @@ Accuracy mode requires `ANALYTICS` + `VISUAL_BOARD` capture (coordinate capture 
 | **High → low**      | V1      | Bull, 20, 19, … 1.                                                              |
 | **Random**          | V1      | All 21 targets (1–20 and bull) shuffled together per session; bull can land anywhere. |
 | **PAW**             | V2+     | Singles Training over 1–20 with no bull round; also called Points Around the World. |
+| **180 Around the Clock** | V2+ | Singles Training scored treble 3, single 1, double 1 on the numbers 1–20 only, no bull; a perfect run totals 180. |
+| **180 Around the Clock tiebreak round** | Deferred | One extra round at a mutually agreed target number when 180 Around the Clock totals are equal. |
 
 ## Capture
 
@@ -156,6 +173,11 @@ Accuracy mode requires `ANALYTICS` + `VISUAL_BOARD` capture (coordinate capture 
 - **One dart's fact:** intended = **nothing stored** — both the target number and the ring are null; single, double and treble on the current segment are all valid intentional outcomes, so recording either half of the pair would fabricate an intent the player never held (and a target number with no ring is rejected by `chk_dart_target_consistency` regardless). The intended target is recoverable from the visit index instead, since Singles plays one fixed target per visit. Hit = whatever landed; `score` = the **board** score of that dart (T1 = 3, S20 = 20, inner bull = 50) — never the 1/2/3 training points.
 - **Stage type:** one `EXERCISE_BLOCK` for the whole run.
 - **Derived, never stored:** training points. They follow from the hit segment and ring against the visit's target.
+- **180 Around the Clock (V2+):** dart facts are unchanged — intended stays
+  nothing stored, `score` stays the board score. The intended target is still
+  recovered from the visit index, over 20 visits rather than 21. Training points
+  are derived with the 1/1/3 ladder, which the config snapshot would carry with
+  the target list; never stored.
 
 ## Open questions
 
@@ -163,3 +185,15 @@ Accuracy mode requires `ANALYTICS` + `VISUAL_BOARD` capture (coordinate capture 
 - **Blocked:** a dart fact with a target number and no intended ring is currently rejected by `chk_dart_target_consistency` (migration `0007`). Needs a decision before Singles Training sessions can be uploaded — see `docs/architecture/05-Database/06-Spec/04-Runtime-Layer.md` § darts.
 - PAW (V2+): do Hard, Extreme and Accuracy combine with the 20-target run? The
   source has plain ring scoring only.
+- 180 Around the Clock: is it one more value of Scoring (so never combined with
+  Accuracy, which also redefines points) or a separate toggle? The source plays
+  1 → 20 only: does Order stay editable? It has no bust, so Hard/Extreme
+  combinations are unstated; if allowed, the mandatory-hit check counts any ring,
+  as Accuracy's does.
+- 180 Around the Clock tiebreak round: the source plays "a single additional
+  round at a mutually agreed target number". Who proposes the number, and does
+  a number already played count? Unstated. Until settled, the variant
+  reports a tie.
+- 180 Around the Clock, source sub-variations not recorded: a bull as a 21st
+  visit (inner 3, outer 1) clashes with this file's bull ladder (outer 1, inner
+  2); a 1–10 half board.
