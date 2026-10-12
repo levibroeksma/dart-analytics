@@ -1,12 +1,10 @@
 ---
 /**
  * Guest/DartBot opponent chooser. Choosing DartBot swaps the body to a
- * level step (1–15 slider bound to `pendingBotLevel`, two simulated stat
- * tiles and a level pill riding the thumb) instead of seating immediately;
- * `addBot()` seats at the chosen level. One `x-text`-bound `<h2>` covers both
- * steps to avoid a duplicate `titleId`. The range input stays native for
- * keyboard and screen readers; the track, fill and thumb are drawn beneath
- * it.
+ * level step (shared `RangeSlider` 1–15 bound to `pendingBotLevel`, two
+ * simulated stat tiles) instead of seating immediately; `addBot()` seats at
+ * the chosen level. One `x-text`-bound `<h2>` covers both steps to avoid a
+ * duplicate `titleId`.
  */
 
 // Components
@@ -14,6 +12,7 @@ import Modal from "@components/ui/Modal.astro";
 import Button from "@components/forms/Button.astro";
 import SheetActions from "@components/ui/SheetActions.astro";
 import StatTile from "@components/layout/games/StatTile.astro";
+import RangeSlider from "@components/forms/RangeSlider.astro";
 
 // Icons
 import ChevronIcon from "@icons/chevron-down.svg";
@@ -101,48 +100,13 @@ const options = [
       />
     </dl>
 
-    <div class="flex w-full flex-col gap-2">
-      <div class="relative h-7">
-        <span
-          class="glass-blue absolute bottom-0.5 flex h-7 min-w-10 -translate-x-1/2 items-center justify-center rounded-full px-2.5 font-mono text-sm text-foreground"
-          :style="`left: calc(0.75rem + ${(pendingBotLevel - 1) / 14} * (100% - 1.5rem))`"
-          x-text="pendingBotLevel"
-        >
-        </span>
-      </div>
-      <div class="relative flex h-8 items-center">
-        <input
-          type="range"
-          id="botLevel"
-          name="botLevel"
-          min="1"
-          max="15"
-          step="1"
-          value="8"
-          aria-label="DartBot level, 1 to 15"
-          x-model.number="pendingBotLevel"
-          class="peer absolute inset-0 z-10 m-0 w-full cursor-pointer opacity-0"
-        />
-        <div class="inset-well absolute inset-x-3 h-2 rounded-full">
-          <div
-            class="h-full rounded-full bg-linear-to-r from-accent/30 to-accent"
-            :style="`width: ${((pendingBotLevel - 1) / 14) * 100}%`"
-          >
-          </div>
-        </div>
-        <span
-          class="absolute h-[22px] w-9 -translate-x-1/2 rounded-full bg-white shadow-md ring-3 ring-accent/35 peer-focus-visible:ring-accent"
-          :style="`left: calc(0.75rem + ${(pendingBotLevel - 1) / 14} * (100% - 1.5rem))`"
-        >
-        </span>
-      </div>
-      <div class="flex justify-between px-1 font-mono text-xs text-muted">
-        <span>1</span>
-        <span>5</span>
-        <span>10</span>
-        <span>15</span>
-      </div>
-    </div>
+    <RangeSlider
+      min={1}
+      max={15}
+      label="LEVEL"
+      ariaLabel="DartBot level, 1 to 15"
+      x-model.number="pendingBotLevel"
+    />
   </div>
 
   <SheetActions
