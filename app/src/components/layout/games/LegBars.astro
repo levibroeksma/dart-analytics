@@ -39,7 +39,7 @@ const labelExpr = `'Legs won: ' + (${wonExpr}) + ' of ' + (${toWinExpr})`;
   </template>
   <template x-if={`${statesExpr} === null`}>
     <span
-      class="font-mono text-[10px] tabular-nums text-muted-foreground"
+      class="font-mono text-micro tabular-nums text-muted-foreground"
       x-text={`(${wonExpr}) + '/' + (${toWinExpr})`}
     ></span>
   </template>

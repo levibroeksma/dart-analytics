@@ -12,7 +12,7 @@ import { cn } from "@client/cn";
 
 // Styles
 const avatarClass =
-  "flex size-14 shrink-0 items-center justify-center rounded-full font-display text-lg/[normal]";
+  "flex size-14 shrink-0 items-center justify-center rounded-full font-display text-lg/tight";
 const skeletonBarClass =
   "inline-block h-lh animate-pulse rounded-md bg-foreground/12 align-top";
 const nameSkeletonClass = cn(skeletonBarClass, "w-16");
@@ -42,7 +42,7 @@ const statsSkeletonClass = cn(skeletonBarClass, "w-52");
   >
   </div>
   <div class="flex min-w-0 flex-col gap-1">
-    <span class="min-h-lh truncate font-display text-lg/[normal]">
+    <span class="min-h-lh truncate font-display text-lg/tight">
       <span
         x-show="$store.profile.loaded"
         x-cloak
@@ -55,7 +55,7 @@ const statsSkeletonClass = cn(skeletonBarClass, "w-52");
         aria-hidden="true"
       ></span>
     </span>
-    <span class="min-h-lh text-[13px]/[normal] text-strong-foreground">
+    <span class="min-h-lh text-body-sm text-strong-foreground">
       <span
         x-show="$store.profile.loaded"
         x-cloak

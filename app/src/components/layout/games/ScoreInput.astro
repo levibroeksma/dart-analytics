@@ -68,7 +68,7 @@ const rootClass = cn("input-well flex flex-col", classNameProp);
     class="inset-well flex shrink-0 items-center gap-2 rounded-key py-1.25 pr-1.25 pl-5"
   >
     <span
-      class="min-w-0 flex-1 truncate font-mono text-[30px] font-medium tabular-nums"
+      class="min-w-0 flex-1 truncate font-mono text-value font-medium tabular-nums"
       :class={`(!${value} || ${value} === '0') ? 'text-placeholder' : 'text-foreground'`}
       x-text={`${value} || '0'`}
     ></span>

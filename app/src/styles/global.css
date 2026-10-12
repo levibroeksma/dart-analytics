@@ -723,7 +723,7 @@
   }
 
   .mode-pill {
-    @apply rounded-full px-3 py-1 font-mono text-[11px]/[normal] font-semibold tracking-[0.08em] backdrop-blur-sm;
+    @apply rounded-full px-3 py-1 font-mono text-caption font-semibold tracking-widest backdrop-blur-sm;
     color: oklch(92% 0.06 237);
     background: radial-gradient(
       at 50% 0%,
@@ -735,7 +735,7 @@
   }
 
   .section-eyebrow {
-    @apply px-1 font-mono text-[11px]/[normal] font-semibold tracking-[0.14em] text-muted-foreground;
+    @apply px-1 font-mono text-eyebrow-lg font-semibold text-muted-foreground;
   }
 
   .home-feature-card {

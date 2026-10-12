@@ -51,15 +51,14 @@ const phaseClassExpr =
     x-cloak
   >
     <div class="flex min-h-7 items-center">
-      <span
-        class="font-mono text-[11px] font-semibold tracking-[0.14em] text-foreground"
+      <span class="font-mono text-eyebrow-lg font-semibold text-foreground"
         >IN PROGRESS</span
       >
     </div>
     <div class="flex items-end justify-between gap-3">
       <div class="flex flex-col gap-1.5">
         <span class={cn(skeletonClass, "w-24 font-display text-xl")}></span>
-        <span class={cn(skeletonClass, "w-40 text-[13px]")}></span>
+        <span class={cn(skeletonClass, "w-40 text-body-sm")}></span>
       </div>
       <span class={cn(skeletonClass, "w-12 font-display text-3xl")}></span>
     </div>
@@ -79,9 +78,9 @@ const phaseClassExpr =
       @pointercancel="swipeCancel()"
     >
       <div
-        class="flex min-h-7 items-center justify-between font-mono text-[11px] font-semibold"
+        class="flex min-h-7 items-center justify-between font-mono text-caption font-semibold"
       >
-        <span class="tracking-[0.14em] text-foreground">IN PROGRESS</span>
+        <span class="text-eyebrow-lg text-foreground">IN PROGRESS</span>
         <DeckPager
           positionExpr="position()"
           prevExpr="prev()"
@@ -106,11 +105,11 @@ const phaseClassExpr =
             x-text="top()?.title"
           ></span>
           <span
-            class="text-[13px] font-semibold text-accent-foreground-muted"
+            class="text-body-sm font-semibold text-accent-foreground-muted"
             x-text="top()?.detail"
           ></span>
           <span
-            class="text-[13px] font-semibold text-accent-foreground-muted"
+            class="text-body-sm font-semibold text-accent-foreground-muted"
             x-show="!top()?.local"
             x-cloak
             >Progress is on another device</span
@@ -134,7 +133,7 @@ const phaseClassExpr =
       <Button
         variant="secondary"
         loadingExpr="false"
-        class="glass-button h-12 w-full rounded-lg text-[15px]"
+        class="glass-button h-12 w-full rounded-lg text-control"
         @click="resume()"
       >
         <PlayIcon
