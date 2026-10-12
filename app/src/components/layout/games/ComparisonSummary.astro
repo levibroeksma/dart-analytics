@@ -63,7 +63,7 @@ const seatSides = ([0, 1] as const).map((index) => {
 >
   {
     legsBars ? (
-      <div class="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
+      <div class="grid grid-cols-mirror items-center gap-2">
         {seatSides.map((side) => (
           <>
             <div class={side.wrapClass}>
@@ -97,7 +97,7 @@ const seatSides = ([0, 1] as const).map((index) => {
         ))}
       </div>
     ) : (
-      <div class="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
+      <div class="grid grid-cols-mirror items-center gap-2">
         <ResultValue
           class="justify-self-start font-display text-sm text-foreground"
           valueExpr="$store.game.seats[0]?.displayName"
