@@ -21,6 +21,7 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 | High-checkout rotation | V2+ | All | Wanted, unscheduled: needs a dart path per finish (167, 164) that the source does not give — see Open questions |
 | Head-to-head | V2+ | 1v1 | Wanted, unscheduled: exercise engines run a single solo seat (`app/src/modules/training/exercises/solo-participant.module.ts`) |
 | Standalone entry | V2+ | All | Wanted, unscheduled: no exercise has a standalone play page — `app/src/pages/training/` holds only `index.astro`, `quick-subtract/`, `routines/` and `schedules/` |
+| 167 path: T20, T19, bullseye | V2+ | All | Wanted, unscheduled: the T20, T20, bullseye path is usable without it; it is one fixed target per dart slot, so a configuration of the same `VISIT_PATH` type, not a new engine |
 
 ## Identity
 
@@ -28,6 +29,8 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
   accuracy, the bullseye, and finishing under self-set pressure. Source:
   dolfdarts.com, "170 Practice" (https://dolfdarts.com/games/170-practice,
   read 2026-10-06).
+- 167 path source: dolfdarts.com, "167" (https://dolfdarts.com/games/167,
+  read 2026-10-12).
 - Standard dartboard scoring. No exercise points: the run counts checkouts and
   hit rates.
 
@@ -98,6 +101,12 @@ questions.
   block restarts.
 - **High-checkout rotation** — attempts alternate 170, 167 and 164.
 - **Head-to-head** — two players throw the same block; more checkouts wins.
+- **167 path** — the same block on another fixed path: dart 1 at T20, dart 2 at
+  T19, dart 3 at the bullseye (the 167 checkout: 60 + 57 + 50). Ten attempts of
+  one visit each; a checkout is still every dart on its own target. It replaces
+  the path for the whole run — it does not alternate with 170 (that is
+  High-checkout rotation). The source's session total, one point per dart on
+  target (maximum 30), is the sum of the three per-slot hit counts, derived.
 
 ### Other
 
@@ -122,6 +131,11 @@ questions.
   checkout rate, T20 rate, bullseye rate, 2-of-3 rate, darts to first
   checkout.
 - The exercise produces no conventional score.
+- **167 path (V2+):** dart 2's intended target is 19, zone `TREBLE`, instead of
+  20; dart facts are otherwise as above, and the config snapshot would carry
+  the path. "T20 rate" no longer describes darts 1–2 on this path, so the
+  per-target readouts are derived per dart slot (T20, T19, bullseye). Checkout
+  and 2-of-3 are unchanged. The stage and `turns` mapping are unchanged.
 
 ## Glossary
 
@@ -134,6 +148,7 @@ questions.
 | **Pressure variant** | V2+ | Restart the block if no checkout inside 5 attempts |
 | **High-checkout rotation** | V2+ | Attempts alternate 170, 167, 164 |
 | **Head-to-head** | V2+ | Two players, more checkouts wins |
+| **167 path** | V2+ | Fixed dart path T20, T19, bullseye — the 167 checkout |
 | **Standalone entry** | V2+ | Playing a run outside a routine |
 
 ## Open questions
@@ -143,3 +158,7 @@ questions.
   names only the totals.
 - Inside a routine, does the run stop at the block's end or keep starting new
   blocks until time runs out?
+- 167 path: the 167 source gives its dart path (T20, T19, bullseye), which the
+  High-checkout rotation note above says no source provides. Its page also lists
+  164 as T20, T18, bullseye; 164 is not recorded as a variant here. The rotation
+  line above is left as written (additions only); read it with this one.

@@ -28,6 +28,11 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Hidden Cricket (secret targets, Discovery bonus) | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer (the bonus is a race against opponents; the source describes no solo form), and needs a concealed drawn set plus a reveal rule that V1 has no place for |
 | Select-A-Cricket (each player picks own targets) | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer and Own / score on (the variant is about targets one player has and another lacks), and needs one objective set per seat; one seat per side only (`app/src/services/session-seats.service.ts:7`, `:87-88`) |
 | Reverse Cricket (ascending order 15 to bull, lowest score wins) | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer and on the Cut-throat variant row (its points go to opponents; Cut-throat's own scoring and win rules are an open question below), and adds ordered closing, which V1 does not have |
+| All Numbers Cricket (1–20 + bull) | V2+ | All | Wanted, unscheduled: an objective-set switch on the Classic rules; V1 needs only the one fixed set, and a solo close-out drill over 21 objectives is valid without Multiplayer |
+| Spanish Cricket (11–20 + bull) | V2+ | All | Wanted, unscheduled: an objective-set switch (eleven objectives); V1 needs only the one fixed set, and the solo close-out drill carries over unchanged |
+| Double-Only Cricket (only doubles mark) | V2+ | All | Wanted, unscheduled: a marking-rule switch; V1 needs only the single/double/treble mark values, and the solo close-out drill carries over unchanged |
+| Double-Only Cricket tiebreak leg | Deferred | 2+ | Blocked on: the source leaves a simultaneous close-out to "a draw or an additional tiebreak leg agreed before the match", a judgement made by the players; the outcome is an open question |
+| Killer Cricket (mark-stripping) | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer — there is no opponent to strip marks from with one seat — and its allocation, elimination and win rules are open questions below |
 | No Doubles/Triples categories (see Tactics) | Dropped | All | Not a feature of this ruleset: Classic Cricket has no Doubles/Triples objectives by definition, and the UK variant that adds them is its own ruleset, `tactics.md` |
 | Visit = up to 3 darts | V1 | All | |
 | Cricket statistics section (MPR, darts-to-close trend) | V2+ | All | Wanted, unscheduled: needs a `v_cricket_*` view and so a new migration; V1 ships the board heatmap only |
@@ -113,6 +118,13 @@ opponent.
 - **Hidden Cricket (V2+):** the app draws six target numbers and keeps them concealed; the bull is always visible, so there are seven objectives. A dart on a concealed target reveals it to everyone; darts on any other number do nothing. The first player to reveal a number gets a **Discovery bonus**: one extra mark on it, on top of the marks the dart itself earned. The bonus is a mark only, never points. **2+:** the bonus is a race, so it needs opponents. Winning is classic (all closed, score ≥ every opponent).
 - **Select-A-Cricket (V2+):** before play each player picks their own seven targets (the bull is normally one). A player only marks and scores on their own list. A number is dead once every player who lists it has closed it. **2+:** the variant exists for targets one seat has and another lacks. Winning is classic over the player's own list.
 - **Reverse Cricket (V2+):** cut-throat scoring (hits on a number you closed add their value to each opponent who has not closed it; lowest total wins) plus ordered closing. Each player works 15, 16, 17, 18, 19, 20, bull in that order; only the current target takes marks. Leftover marks on the closing dart count as points against open opponents. A player wins by closing all seven with a total ≤ every opponent's. **2+:** the points go to opponents. Cut-throat with free order is the existing Cut-throat row, not this one.
+- **All Numbers Cricket (1–20 + bull):** the objective set is every number 1–20 plus the bull, 21 in all, closed in any order. Marks, points, dead numbers and the win condition (all closed and points ≥ every opponent) are as Classic. If several players finish closing on the same visit, the higher point total wins; if those tie, the player whose closing dart came first wins. Cut-throat, no-score, ordered-groups and round-limited forms exist in the source and stay unscheduled.
+- **Spanish Cricket (11–20 + bull):** as All Numbers Cricket but the objective set is 11–20 plus the bull, eleven in all. A 10–20 + bull extension (twelve objectives) is a further setting of the same switch.
+- **Double-Only Cricket (only doubles mark):** only the double ring marks. Each double on an objective is **1 mark**, three close it; the inner bull is the double bull and is **1 mark**; singles, trebles and the outer bull neither mark nor score. Once you have closed an objective an opponent has not, each further double on it scores its double value (D20 = 40, inner bull = 50). Objectives are 20–15 + bull; dead numbers and the win condition are as Classic.
+- **Double-Only Cricket tiebreak leg:** when several players close out on the
+  same visit with equal points, an extra leg played by agreement before the
+  match. Deferred (see Features); the agreement is not derived.
+- **Killer Cricket (mark-stripping):** objectives, mark values and closing are as Classic, but there are **no points**. Once you have closed an objective, each further mark you throw on it (1 for a single, 2 for a double, 3 for a treble) strips that many marks from opponents' tallies on that objective, floored at zero, and a stripped player must re-earn all three to close again. A player whose marks on all seven objectives are zero is eliminated and skipped from then on; the last player left wins. The source also allows first-to-close-all-seven while no opponent has — agreed before play. Not the same game as the Killer Cricket row in `killer.md` (see Open questions).
 
 ### Match structure
 
@@ -142,6 +154,11 @@ opponent.
 | **Discovery bonus** | V2+     | One extra mark to the first player to reveal a hidden target. |
 | **Select-A-Cricket** | V2+    | Each player picks their own seven targets.                    |
 | **Reverse Cricket** | V2+     | Cut-throat points, targets closed in order 15 to bull.        |
+| **All Numbers Cricket** | V2+ | Objective set 1–20 + bull (21); see Variants. |
+| **Spanish Cricket** | V2+ | Objective set 11–20 + bull (11); see Variants. |
+| **Double-Only Cricket** | V2+ | Only doubles mark: 1 mark per double, inner bull 1 mark; see Variants. |
+| **Double-Only Cricket tiebreak leg** | Deferred | An extra leg agreed before the match when a simultaneous close-out ties on points. |
+| **Killer Cricket (mark-stripping)** | V2+ | Marks past closing strip opponents' marks; no points; elimination. Not `killer.md`'s Killer Cricket. |
 
 ## Capture
 
@@ -164,6 +181,23 @@ as-built description.
   20–15 + bull objective set.
 - **Variant objective sets (V2+):** dart facts, the "nothing stored" intent and the single `EXERCISE_BLOCK` stage are unchanged. The objective set is a fixed constant today (`app/src/modules/game/cricket.engine.module.ts:34-43`), so each variant needs it to come from the session's config snapshot, which would carry the drawn set (Random, Wild, Hidden) or one set per seat (Select-A). A draw is a fact recorded once, never re-drawn on read. Which Hidden numbers are revealed, who earned the Discovery bonus (first dart on that number), and Reverse's per-seat current target are all derived from the dart facts and that set, never stored.
 
+V2+ variants and capture (design intent only):
+
+- **All Numbers / Spanish Cricket:** no change to what a dart is. The objective
+  set becomes configuration the fold reads — the config snapshot would carry
+  it — instead of the fixed 20–15 + bull set. Nothing about the intended-target
+  rule changes: any live number is a legitimate aim, so still nothing stored.
+- **Double-Only Cricket:** no change to the stored fact. The ring is already on
+  the dart, and a double yielding 1 mark rather than 2, and a single or treble
+  yielding none, is a different fold of the same facts.
+- **Killer Cricket (mark-stripping):** marks can fall, so a tally is the fold of
+  marks gained minus marks stripped by other players' darts, across all
+  players' turns. With three or more players, which opponent a stripping mark
+  lands on is a player choice a dart fact cannot express; see Open questions.
+  In 1v1 there is one opponent, so a stripping mark always lands on them and
+  the allocation is derivable; only three or more seats need a recorded
+  allocation fact.
+
 ## Open questions
 
 - ~~Exact single-player practice win condition before multiplayer ships.~~
@@ -179,3 +213,30 @@ as-built description.
 - Select-A-Cricket: source says a number only one player lists can be scored on "indefinitely", yet also says a number closes once every player who lists it has closed it, which would make it dead the moment its only holder closes it. Which governs? Whether the bull is mandatory (source: "typically").
 - Reverse Cricket: source says hits on numbers a player already closed "do not count", yet also that further hits on a closed number add points to open opponents; this file reads the first as marks only. Whether leftover marks on a closing dart carry on to the next number in order (source: they become points).
 - Low-Pitch, Random and Wild Cricket: each source page seats 2–4 players. The `All` applicability (a solo run ending on the V1 close-out rule) is this file's reading, not the source's; confirm before scheduling.
+- Name clash: `killer.md` already has a different **Killer Cricket** row
+  (close your own number to become a Killer). The mark-stripping Cricket variant
+  is called Killer Cricket on dolfdarts, so this file uses the Glossary term
+  **Killer Cricket (mark-stripping)**. Whether either gets a distinct product
+  name is undecided.
+- Killer Cricket (mark-stripping), with two or more opponents: stripping marks
+  go to one or more opponents at the thrower's choice (the source says
+  "may"), so that allocation is not derivable from dart facts. It needs a
+  recorded choice per stripping dart, or a fixed rule (for example, the
+  leader). Not decided; blocks the state shape for three or more seats only —
+  in 1v1 the sole opponent takes every stripping mark.
+- Killer Cricket (mark-stripping): elimination is "all seven objectives at
+  zero", but every player starts there. The source does not say whether a
+  player must first have held a mark, or whether elimination is checked
+  mid-visit or at visit end.
+- Killer Cricket (mark-stripping): the source's tips imply a closing dart's
+  surplus marks strip at once (a treble that closes also attacks); the rules
+  text does not say so. The two win conditions (last player left, or first to
+  close all seven with no opponent closed out) are per-game choices; whether
+  that is a setting is undecided.
+- Double-Only Cricket: if several players close out on the same visit and are
+  tied on points, the source leaves it to "a draw or an additional tiebreak leg
+  agreed before the match". Not decided.
+- All Numbers Cricket allows teams of two, up to 8 players; the repo seats at
+  most 4, one seat per side, with teams rejected
+  (`app/src/services/session-seats.service.ts:7`, `:87-88`). Teams are already
+  listed under Variants as Team / more than two players.
