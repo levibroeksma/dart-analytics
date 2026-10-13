@@ -48,324 +48,318 @@ import OpenRoutineModal from "@components/layout/training/routines/OpenRoutineMo
       <RoutineReadyGate />
     </template>
 
-    <template
-      x-if="routineReady && !loading && adapter?.panel === 'warm-up' && warmUpEngine"
-    >
-      <WarmUpPanel />
-    </template>
+    <template x-if="routineReady && !loading">
+      <div class="flex min-h-0 flex-1 flex-col">
+        <template x-if="adapter?.panel === 'warm-up' && warmUpEngine">
+          <WarmUpPanel />
+        </template>
 
-    <template
-      x-if="routineReady && !loading && adapter?.panel === 'switching' && switchingEngine"
-    >
-      <SwitchingPanel />
-    </template>
+        <template x-if="adapter?.panel === 'switching' && switchingEngine">
+          <SwitchingPanel />
+        </template>
 
-    <template
-      x-if="routineReady && !loading && adapter?.panel === 'double-pattern' && doublePatternEngine"
-    >
-      <DoublePatternPanel />
-    </template>
-
-    <template
-      x-if="routineReady && !loading && adapter?.panel === 'target-scoring' && targetScoringEngine"
-    >
-      <TargetScoringPanel />
-    </template>
-
-    <template
-      x-if="routineReady && !loading && adapter?.panel === 'switching-target-scoring' && switchingTargetScoringEngine"
-    >
-      <SwitchingTargetScoringPanel />
-    </template>
-
-    <template
-      x-if="routineReady && !loading && adapter?.panel === 'score-threshold' && scoreThresholdEngine"
-    >
-      <ScoreThresholdPanel />
-    </template>
-
-    <template
-      x-if="routineReady && !loading && adapter?.panel === 'bullseye-checkout' && bullseyeCheckoutEngine"
-    >
-      <BullseyeCheckoutPanel />
-    </template>
-
-    <template
-      x-if="routineReady && !loading && adapter?.panel === 'bull-up' && bullUpEngine"
-    >
-      <BullUpPanel />
-    </template>
-
-    <template
-      x-if="routineReady && !loading && adapter?.panel === 'checkout-sequence' && checkoutSequenceEngine"
-    >
-      <CheckoutSequencePanel />
-    </template>
-
-    <template
-      x-if="routineReady && !loading && adapter?.panel === 'random-checkout' && randomCheckoutEngine"
-    >
-      <RandomCheckoutPanel />
-    </template>
-
-    <template
-      x-if="routineReady && !loading && adapter?.panel === 'tuod' && game"
-    >
-      <div
-        x-data="game"
-        class="flex min-h-0 flex-1 flex-col"
-      >
-        <div class="flex items-center justify-between gap-2">
-          <p
-            class="min-w-0 truncate font-mono text-eyebrow font-semibold uppercase text-muted-foreground"
-            x-text="subtitle()"
-          >
-          </p>
-          <CountdownPauseControl
-            disabledExpr="finished || showDoubleConfirm || showFinishConfirm"
-          />
-        </div>
-        <TenUpOneDown
-          x-show="!finished"
-          x-cloak
-        />
-        {
-          /* TUOD's own confirm gates, same wiring as `games/tuod/play`. The
-          store raises these instead of recording: a session-ending dart sets
-          `showFinishConfirm` and waits, so without the dialog the step can
-          never finish and the routine hangs. */
-        }
-        <div
-          x-show="showDoubleConfirm"
-          x-cloak
+        <template
+          x-if="adapter?.panel === 'double-pattern' && doublePatternEngine"
         >
-          <CheckoutConfirm />
-        </div>
-        <div
-          x-show="showFinishConfirm"
-          x-cloak
+          <DoublePatternPanel />
+        </template>
+
+        <template
+          x-if="adapter?.panel === 'target-scoring' && targetScoringEngine"
         >
-          <ConfirmDialog
-            titleId="routine-finish-confirm-title"
-            title="Finish session?"
-            description="This attempt completes the session. Confirm to save and finish, or cancel to reconsider."
-            confirmLabel="Finish"
-            onCancel="cancelFinish()"
-            onConfirm="confirmFinish()"
-            dismissible={false}
+          <TargetScoringPanel />
+        </template>
+
+        <template
+          x-if="adapter?.panel === 'switching-target-scoring' && switchingTargetScoringEngine"
+        >
+          <SwitchingTargetScoringPanel />
+        </template>
+
+        <template
+          x-if="adapter?.panel === 'score-threshold' && scoreThresholdEngine"
+        >
+          <ScoreThresholdPanel />
+        </template>
+
+        <template
+          x-if="adapter?.panel === 'bullseye-checkout' && bullseyeCheckoutEngine"
+        >
+          <BullseyeCheckoutPanel />
+        </template>
+
+        <template x-if="adapter?.panel === 'bull-up' && bullUpEngine">
+          <BullUpPanel />
+        </template>
+
+        <template
+          x-if="adapter?.panel === 'checkout-sequence' && checkoutSequenceEngine"
+        >
+          <CheckoutSequencePanel />
+        </template>
+
+        <template
+          x-if="adapter?.panel === 'random-checkout' && randomCheckoutEngine"
+        >
+          <RandomCheckoutPanel />
+        </template>
+
+        <template x-if="adapter?.panel === 'tuod' && game">
+          <div
+            x-data="game"
+            class="flex min-h-0 flex-1 flex-col"
           >
-            <InlayRow
-              slot="context"
-              rowExpr="stepContextRow()"
+            <div class="flex items-center justify-between gap-2">
+              <p
+                class="min-w-0 truncate font-mono text-eyebrow font-semibold uppercase text-muted-foreground"
+                x-text="subtitle()"
+              >
+              </p>
+              <CountdownPauseControl
+                disabledExpr="finished || showDoubleConfirm || showFinishConfirm"
+              />
+            </div>
+            <TenUpOneDown
+              x-show="!finished"
+              x-cloak
             />
-          </ConfirmDialog>
-        </div>
-        <div
-          x-show="finished && completionStatus === 'failed'"
-          x-cloak
-          class="p-4"
-        >
-          <ErrorAlert
-            textExpr="completionError"
-            alwaysVisible
-          />
-          <Button
-            class="mt-2"
-            @click="uploadAndCompleteSession()"
-            title="Retry"
-          />
-        </div>
-        <div
-          x-show="finished && completionStatus !== 'failed'"
-          x-cloak
-          class="p-4 text-center"
-        >
-          <p class="text-foreground">Saving your finishing session…</p>
-        </div>
-      </div>
-    </template>
+            {
+              /* TUOD's own confirm gates, same wiring as `games/tuod/play`. The
+            store raises these instead of recording: a session-ending dart sets
+            `showFinishConfirm` and waits, so without the dialog the step can
+            never finish and the routine hangs. */
+            }
+            <div
+              x-show="showDoubleConfirm"
+              x-cloak
+            >
+              <CheckoutConfirm />
+            </div>
+            <div
+              x-show="showFinishConfirm"
+              x-cloak
+            >
+              <ConfirmDialog
+                titleId="routine-finish-confirm-title"
+                title="Finish session?"
+                description="This attempt completes the session. Confirm to save and finish, or cancel to reconsider."
+                confirmLabel="Finish"
+                onCancel="cancelFinish()"
+                onConfirm="confirmFinish()"
+                dismissible={false}
+              >
+                <InlayRow
+                  slot="context"
+                  rowExpr="stepContextRow()"
+                />
+              </ConfirmDialog>
+            </div>
+            <div
+              x-show="finished && completionStatus === 'failed'"
+              x-cloak
+              class="p-4"
+            >
+              <ErrorAlert
+                textExpr="completionError"
+                alwaysVisible
+              />
+              <Button
+                class="mt-2"
+                @click="uploadAndCompleteSession()"
+                title="Retry"
+              />
+            </div>
+            <div
+              x-show="finished && completionStatus !== 'failed'"
+              x-cloak
+              class="p-4 text-center"
+            >
+              <p class="text-foreground">Saving your finishing session…</p>
+            </div>
+          </div>
+        </template>
 
-    <template
-      x-if="routineReady && !loading && adapter?.panel === 'score-training' && game"
-    >
-      <div
-        x-data="game"
-        class="flex min-h-0 flex-1 flex-col"
-      >
-        <div class="flex items-center justify-between gap-2">
-          <p
-            class="min-w-0 truncate font-mono text-eyebrow font-semibold uppercase text-muted-foreground"
-            x-text="subtitle()"
+        <template x-if="adapter?.panel === 'score-training' && game">
+          <div
+            x-data="game"
+            class="flex min-h-0 flex-1 flex-col"
           >
-          </p>
-          <CountdownPauseControl disabledExpr="finished || showFinishConfirm" />
-        </div>
-        <ScoreTraining
-          x-show="!finished"
-          x-cloak
-        />
-        {
-          /* Score Training's own confirm gate, same wiring as
-          `games/score-training/play`. */
-        }
-        <div
-          x-show="showFinishConfirm"
-          x-cloak
-        >
-          <ConfirmDialog
-            titleId="routine-finish-confirm-title"
-            title="Finish session?"
-            description="This visit completes the session. Confirm to save and finish, or cancel to reconsider."
-            confirmLabel="Finish"
-            onCancel="cancelFinish()"
-            onConfirm="confirmFinish()"
-            dismissible={false}
-          >
-            <InlayRow
-              slot="context"
-              rowExpr="stepContextRow()"
+            <div class="flex items-center justify-between gap-2">
+              <p
+                class="min-w-0 truncate font-mono text-eyebrow font-semibold uppercase text-muted-foreground"
+                x-text="subtitle()"
+              >
+              </p>
+              <CountdownPauseControl
+                disabledExpr="finished || showFinishConfirm"
+              />
+            </div>
+            <ScoreTraining
+              x-show="!finished"
+              x-cloak
             />
-          </ConfirmDialog>
-        </div>
-        <div
-          x-show="finished && completionStatus === 'failed'"
-          x-cloak
-          class="p-4"
-        >
-          <ErrorAlert
-            textExpr="completionError"
-            alwaysVisible
-          />
-          <Button
-            class="mt-2"
-            @click="uploadAndCompleteSession()"
-            title="Retry"
-          />
-        </div>
-        <div
-          x-show="finished && completionStatus !== 'failed'"
-          x-cloak
-          class="p-4 text-center"
-        >
-          <p class="text-foreground">Saving your scoring session…</p>
-        </div>
-      </div>
-    </template>
+            {
+              /* Score Training's own confirm gate, same wiring as
+            `games/score-training/play`. */
+            }
+            <div
+              x-show="showFinishConfirm"
+              x-cloak
+            >
+              <ConfirmDialog
+                titleId="routine-finish-confirm-title"
+                title="Finish session?"
+                description="This visit completes the session. Confirm to save and finish, or cancel to reconsider."
+                confirmLabel="Finish"
+                onCancel="cancelFinish()"
+                onConfirm="confirmFinish()"
+                dismissible={false}
+              >
+                <InlayRow
+                  slot="context"
+                  rowExpr="stepContextRow()"
+                />
+              </ConfirmDialog>
+            </div>
+            <div
+              x-show="finished && completionStatus === 'failed'"
+              x-cloak
+              class="p-4"
+            >
+              <ErrorAlert
+                textExpr="completionError"
+                alwaysVisible
+              />
+              <Button
+                class="mt-2"
+                @click="uploadAndCompleteSession()"
+                title="Retry"
+              />
+            </div>
+            <div
+              x-show="finished && completionStatus !== 'failed'"
+              x-cloak
+              class="p-4 text-center"
+            >
+              <p class="text-foreground">Saving your scoring session…</p>
+            </div>
+          </div>
+        </template>
 
-    <template
-      x-if="routineReady && !loading && adapter?.panel === 'one-twenty-one' && game"
-    >
-      <div
-        x-data="game"
-        class="flex min-h-0 flex-1 flex-col"
-      >
-        <div class="flex items-center justify-between gap-2">
-          <p
-            class="min-w-0 truncate font-mono text-eyebrow font-semibold uppercase text-muted-foreground"
-            x-text="subtitle()"
+        <template x-if="adapter?.panel === 'one-twenty-one' && game">
+          <div
+            x-data="game"
+            class="flex min-h-0 flex-1 flex-col"
           >
-          </p>
-          <CountdownPauseControl
-            disabledExpr="finished || showDoubleConfirm || showSessionFinishConfirm"
-          />
-        </div>
-        <OneTwentyOne
-          x-show="!finished"
-          x-cloak
-        />
-        {/* 121's own confirm gates, same wiring as `games/121/play`. */}
-        <div
-          x-show="showDoubleConfirm"
-          x-cloak
-        >
-          <CheckoutConfirm />
-        </div>
-        <div
-          x-show="showSessionFinishConfirm"
-          x-cloak
-        >
-          <ConfirmDialog
-            titleId="routine-session-finish-confirm-title"
-            title="Check out 170?"
-            description="This checkout wins the session. Confirm to save and finish, or cancel to reconsider."
-            cancelLabel="Cancel"
-            confirmLabel="Check out"
-            onCancel="cancelSessionFinish()"
-            onConfirm="confirmSessionFinish()"
-            dismissible={false}
-          >
-            <InlayRow
-              slot="context"
-              rowExpr="stepContextRow()"
+            <div class="flex items-center justify-between gap-2">
+              <p
+                class="min-w-0 truncate font-mono text-eyebrow font-semibold uppercase text-muted-foreground"
+                x-text="subtitle()"
+              >
+              </p>
+              <CountdownPauseControl
+                disabledExpr="finished || showDoubleConfirm || showSessionFinishConfirm"
+              />
+            </div>
+            <OneTwentyOne
+              x-show="!finished"
+              x-cloak
             />
-          </ConfirmDialog>
-        </div>
-        <div
-          x-show="finished && completionStatus === 'failed'"
-          x-cloak
-          class="p-4"
-        >
-          <ErrorAlert
-            textExpr="completionError"
-            alwaysVisible
-          />
-          <Button
-            class="mt-2"
-            @click="uploadAndCompleteSession()"
-            title="Retry"
-          />
-        </div>
-        <div
-          x-show="finished && completionStatus !== 'failed'"
-          x-cloak
-          class="p-4 text-center"
-        >
-          <p class="text-foreground">Saving your 121 session…</p>
-        </div>
-      </div>
-    </template>
+            {/* 121's own confirm gates, same wiring as `games/121/play`. */}
+            <div
+              x-show="showDoubleConfirm"
+              x-cloak
+            >
+              <CheckoutConfirm />
+            </div>
+            <div
+              x-show="showSessionFinishConfirm"
+              x-cloak
+            >
+              <ConfirmDialog
+                titleId="routine-session-finish-confirm-title"
+                title="Check out 170?"
+                description="This checkout wins the session. Confirm to save and finish, or cancel to reconsider."
+                cancelLabel="Cancel"
+                confirmLabel="Check out"
+                onCancel="cancelSessionFinish()"
+                onConfirm="confirmSessionFinish()"
+                dismissible={false}
+              >
+                <InlayRow
+                  slot="context"
+                  rowExpr="stepContextRow()"
+                />
+              </ConfirmDialog>
+            </div>
+            <div
+              x-show="finished && completionStatus === 'failed'"
+              x-cloak
+              class="p-4"
+            >
+              <ErrorAlert
+                textExpr="completionError"
+                alwaysVisible
+              />
+              <Button
+                class="mt-2"
+                @click="uploadAndCompleteSession()"
+                title="Retry"
+              />
+            </div>
+            <div
+              x-show="finished && completionStatus !== 'failed'"
+              x-cloak
+              class="p-4 text-center"
+            >
+              <p class="text-foreground">Saving your 121 session…</p>
+            </div>
+          </div>
+        </template>
 
-    <template
-      x-if="routineReady && !loading && adapter?.panel === 'around-the-clock' && game"
-    >
-      <div
-        x-data="game"
-        class="flex min-h-0 flex-1 flex-col"
-      >
-        <div class="flex items-center justify-between gap-2">
-          <p
-            class="min-w-0 truncate font-mono text-eyebrow font-semibold uppercase text-muted-foreground"
-            x-text="subtitle()"
+        <template x-if="adapter?.panel === 'around-the-clock' && game">
+          <div
+            x-data="game"
+            class="flex min-h-0 flex-1 flex-col"
           >
-          </p>
-          <CountdownPauseControl disabledExpr="finished" />
-        </div>
-        <AroundTheClock
-          x-show="!finished"
-          x-cloak
-        />
-        <div
-          x-show="finished && completionStatus === 'failed'"
-          x-cloak
-          class="p-4"
-        >
-          <ErrorAlert
-            textExpr="completionError"
-            alwaysVisible
-          />
-          <Button
-            class="mt-2"
-            @click="uploadAndCompleteSession()"
-            title="Retry"
-          />
-        </div>
-        <div
-          x-show="finished && completionStatus !== 'failed'"
-          x-cloak
-          class="p-4 text-center"
-        >
-          <p class="text-foreground">Saving your Around the Clock session…</p>
-        </div>
+            <div class="flex items-center justify-between gap-2">
+              <p
+                class="min-w-0 truncate font-mono text-eyebrow font-semibold uppercase text-muted-foreground"
+                x-text="subtitle()"
+              >
+              </p>
+              <CountdownPauseControl disabledExpr="finished" />
+            </div>
+            <AroundTheClock
+              x-show="!finished"
+              x-cloak
+            />
+            <div
+              x-show="finished && completionStatus === 'failed'"
+              x-cloak
+              class="p-4"
+            >
+              <ErrorAlert
+                textExpr="completionError"
+                alwaysVisible
+              />
+              <Button
+                class="mt-2"
+                @click="uploadAndCompleteSession()"
+                title="Retry"
+              />
+            </div>
+            <div
+              x-show="finished && completionStatus !== 'failed'"
+              x-cloak
+              class="p-4 text-center"
+            >
+              <p class="text-foreground">
+                Saving your Around the Clock session…
+              </p>
+            </div>
+          </div>
+        </template>
       </div>
     </template>
 
