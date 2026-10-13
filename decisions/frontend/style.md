@@ -239,12 +239,12 @@ Supersedes: D442 (loading skeleton clause only); D429 (`sheet-in` motion clause 
 Status: Accepted · Date: 2026-10-13
 Decision: `/games` renders `ResumeSessionDeck` (own `resumeDeck()` scope) in place of `ResumeSessionCard`. `gamesIndex()` drops `activeSession` and `resumeTarget()`; its sessions fetch still drives card visibility. The `ResumeTarget` type is removed.
 Reason: two resume UIs showed different data — `/games` only the newest session with a static detail line, the homepage every open game with progress (#892).
-Consequences: `/games` fetches active sessions twice (page scope and deck scope). The static detail line D427 described is gone with the card; the deck's progress caveats (D442, #815) now apply on `/games` too. `.astro` carries no unit test (D101).
+Consequences: both scopes read the shared `activeSessions` store, one fetch per page (D458). The static detail line D427 described is gone with the card; the deck's progress caveats (D442, #815) now apply on `/games` too. `.astro` carries no unit test (D101).
 Supersedes: D427 (in-progress card clause only).
 
 ### D457 — Long exercise previews and target chips page six at a time
 Status: Accepted · Date: 2026-10-13
-Decision: `windowPage()` (`lib/training/routines/exercise-preview.ts`) cuts a list to the six-item page holding a focus index. `visitPreview()` pages its segments on the next (or, once full, last) dart; `switchingSequence()` pages the Switching targets on the engine's `targetIndex`. Lists of six or fewer are unchanged. `SwitchingV1Config` keeps `.max(20)`.
+Decision: `windowPage()` (`lib/training/routines/exercise-preview.ts`) cuts a list to the six-item page holding a focus index; `windowIndex()` gives the focus's slot on that page. `visitPreview()` pages its segments on the next (or, once full, last) dart; `switchingSequence()` pages the Switching targets on the engine's `targetIndex`. Lists of six or fewer are unchanged. `SwitchingV1Config` keeps `.max(20)`.
 Reason: one preview slot or chip per target overflowed the 390px play column past ~6 targets (#954). Paging over a config cap leaves stored snapshots valid.
-Consequences: a Switching visit over six targets shows only its current page; earlier slots of the visit leave the screen once their page is done. Chip highlight still matches by label, so a repeated target lights every copy on the page.
-Supersedes: none.
+Consequences: a Switching visit over six targets shows only its current page; earlier slots of the visit leave the screen once their page is done. `RouteChips` lights the current part by index (`currentIndexExpr`), not label, so a repeated target or double lights once; Switching, Double Pattern and Switching Target Scoring pass their engine's index (`*ChipIndex()`).
+Supersedes: D454 in part (`RouteChips` `currentExpr`, now `currentIndexExpr`).

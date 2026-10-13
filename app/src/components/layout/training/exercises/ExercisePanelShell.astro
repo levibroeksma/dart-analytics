@@ -8,7 +8,7 @@
  * page scope.
  * @param {string} score Alpine expression for the big value
  * @param {string} caption Mono caption under the big value
- * @param {object} [chip] `{ routeExpr, currentExpr? }` for `RouteChips`
+ * @param {object} [chip] `{ routeExpr, currentIndexExpr? }` for `RouteChips`
  * @param {object[]} tiles `{ label, value, showWhen? }` — Alpine expressions; a tile with `showWhen` is hidden while it is false
  */
 import type { Tile } from "@lib/interfaces";
@@ -28,7 +28,7 @@ interface ExerciseTile {
 
 interface ExerciseChip {
   routeExpr: string;
-  currentExpr?: string;
+  currentIndexExpr?: string;
 }
 
 // Props
@@ -63,7 +63,7 @@ const soloTiles: Tile[] = tiles.map(({ label, value, showWhen }) => ({
         <RouteChips
           slot="route"
           routeExpr={chip.routeExpr}
-          currentExpr={chip.currentExpr}
+          currentIndexExpr={chip.currentIndexExpr}
         />
       )
     }

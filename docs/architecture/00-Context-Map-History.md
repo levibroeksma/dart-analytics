@@ -17,7 +17,7 @@ updated: 2026-10-13
 
 # Version History
 
-> **Version:** 1.183.0 (2026-10-13 — discovered-work batch #830/#892/#954: D456/D457 in `decisions/frontend/style.md` (D456 supersedes D427 in-progress card clause); `08-Component-Inventory.md` `ResumeSessionCard` row removed, `ResumeSessionDeck` row on `/games`; `00-File-Inventory.md` `games-index.data.ts`, schedule/games and deck rows.)
+> **Version:** 1.183.0 (2026-10-13 — discovered-work batch #830/#892/#954: D456/D457 in `decisions/frontend/style.md` (D456 supersedes D427 in-progress card clause; D457 supersedes D454 `RouteChips` `currentExpr`); D458 `activeSessions` store in `decisions/frontend/alpine.md`; `active-sessions.store.ts` registered; `08-Component-Inventory.md` `ResumeSessionCard` row removed, `ResumeSessionDeck` row on `/games`; `00-File-Inventory.md` `games-index.data.ts`, schedule/games and deck rows.)
 
 > **Version:** 1.182.0 (2026-10-13 — UI regressions #886/#901/#902/#835: D455 in `decisions/frontend/style.md` (supersedes D442 skeleton clause, D429 `sheet-in` clause); `07-Style-Guide.md` 0.5.2 sheet slide and `.field-inset` autofill; `08-Component-Inventory.md` `ResumeSessionDeck` and `InfoSection` rows.)
 

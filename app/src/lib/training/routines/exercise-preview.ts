@@ -156,6 +156,11 @@ export function windowPage<T>(items: readonly T[], focus: number): T[] {
   return items.slice(start, start + WINDOW_SIZE);
 }
 
+/** Where index `focus` sits within its `windowPage()` page. */
+export function windowIndex(focus: number): number {
+  return Math.max(focus, 0) % WINDOW_SIZE;
+}
+
 /** `length` items of `items` from `start`, wrapping both ways. */
 export function cycleFrom<T>(
   items: readonly T[],
