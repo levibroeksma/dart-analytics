@@ -1332,6 +1332,7 @@ export type GamesIndexContext = {
       inputModeKey: string;
       loading?: boolean;
     };
+    activeSessions: ActiveSessionsStore;
   };
   init(this: GamesIndexContext): Promise<void>;
   loading(this: GamesIndexContext): boolean;
@@ -1363,6 +1364,14 @@ export type ResumeCard = {
 /** Animation phase of the resume deck: at rest, top card leaving, next card rising, previous card entering. */
 export type ResumeDeckPhase = "idle" | "out" | "rise" | "in";
 
+/** The `activeSessions` store: the page's one shared active-sessions fetch. */
+export type ActiveSessionsStore = {
+  sessions: SessionActiveData[];
+  loaded: boolean;
+  failed: boolean;
+  load(this: ActiveSessionsStore): Promise<void>;
+};
+
 /** The slice of the `game` store the resume deck overlays onto its server-fetched cards. */
 export type LocalGame = {
   sessionId: string | null;
@@ -1382,7 +1391,7 @@ export type ResumeDeckContext = {
   swipeX: number | null;
   swipeY: number | null;
   settleTimer: ReturnType<typeof setTimeout> | null;
-  $store: { game: LocalGame };
+  $store: { game: LocalGame; activeSessions: ActiveSessionsStore };
   init(this: ResumeDeckContext): Promise<void>;
   top(this: ResumeDeckContext): ResumeCard | null;
   position(this: ResumeDeckContext): string;

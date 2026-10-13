@@ -1,4 +1,3 @@
-import { fetchActiveSessions } from "@client/api/sessions";
 import { GAME_CARDS, visibleGames } from "@lib/game/rulesets/games-visibility";
 import type {
   GameGroupKey,
@@ -12,7 +11,7 @@ const ANALYTICS_CAPTURE_MODE_KEY = "ANALYTICS";
  * Games-page state: which cards the player's current app mode leaves visible.
  *
  * Mode comes from the `settings` store, which loads itself; the active sessions
- * come from the server, because a card whose session is still ACTIVE must stay
+ * come from the shared `activeSessions` store, because a card whose session is still ACTIVE must stay
  * reachable even under a mode its ruleset does not support — the setup page it
  * links to owns the Continue/Abandon recovery flow, and this page is the only
  * way in. `uq_sessions_single_active` keys on `(player_id, game_type_id)`, so
@@ -38,16 +37,11 @@ export function gamesIndex() {
     sessionsLoading: true,
 
     async init(this: GamesIndexContext) {
-      try {
-        const sessions = await fetchActiveSessions();
-        this.activeRulesetKeys = sessions
-          .map((session) => session.rulesetVersionKey)
-          .filter((key) => key !== null);
-      } catch {
-        this.activeRulesetKeys = [];
-      } finally {
-        this.sessionsLoading = false;
-      }
+      await this.$store.activeSessions.load();
+      this.activeRulesetKeys = this.$store.activeSessions.sessions
+        .map((session) => session.rulesetVersionKey)
+        .filter((key) => key !== null);
+      this.sessionsLoading = false;
     },
 
     loading(this: GamesIndexContext) {
