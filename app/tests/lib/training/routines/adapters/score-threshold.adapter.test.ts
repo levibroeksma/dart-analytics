@@ -24,6 +24,7 @@ describe("scoreThresholdAdapter", () => {
   it("declares its key, header label and panel", () => {
     expect(scoreThresholdAdapter.key).toBe("SCORE_THRESHOLD");
     expect(scoreThresholdAdapter.headerLabel).toBe("65 or more");
+    expect(scoreThresholdAdapter.title).toBe("65 or More");
     expect(scoreThresholdAdapter.panel).toBe("score-threshold");
     expect(scoreThresholdAdapter.completesOwnSession).toBe(false);
   });

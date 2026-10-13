@@ -8,19 +8,31 @@ import {
 import { appendBatch, completeSession } from "@client/api/sessions";
 import { trainingEngine } from "@modules/training/routines/training.module";
 import { resolveWarmUpPhaseDurations } from "@modules/training/exercises/warm-up.engine.module";
-import { dartboardHighlightPath } from "@lib/game/board/board-highlight.module";
+import {
+  dartboardDimPath,
+  dartboardHighlightPath,
+  sectionRingPaths,
+} from "@lib/game/board/board-highlight.module";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
 import { SessionClock } from "@modules/ui/session-clock.module";
-import { playAudioCue } from "@modules/ui/audio-cue.module";
+import { playAudioCue, unlockAudioCues } from "@modules/ui/audio-cue.module";
 import { boardInputData, markersForTurns } from "@lib/game/board-input.data";
-import { playPreviewSegments } from "@lib/game/play-lifecycle";
 import { resolveSoloParticipantRef } from "@lib/training/exercises/solo-participant-upload";
 import { buildEventsBatch } from "@modules/game/events.payload.module";
 import {
   stepAdapterKey,
   resolveStepAdapter,
 } from "./adapters/step-adapter.registry";
+import {
+  bullUpPreview,
+  exerciseFamily,
+  judgeDart,
+  visitLabelsFor,
+  visitPreview,
+} from "./exercise-preview";
 import { routineIdFromLocation } from "./routine-route";
+import { readyGate } from "./ready-gate";
+import { routineHeader } from "./routine-header";
 import { routineStartErrorMessage } from "./routine-start-error";
 import { stepAdvanceErrorMessage } from "./step-advance-error";
 import {
@@ -31,8 +43,12 @@ import type { TrainingEngine } from "@modules/interfaces";
 import type { DartObservation, SessionContextRow } from "@modules/types";
 import type {
   BoardMarker,
+  DoublePatternConfigData,
   ExerciseRulesetVersionKey,
   PreviewSegment,
+  SectionRingPaths,
+  SwitchingConfigData,
+  SwitchingTargetScoringConfigData,
   WarmUpEngineInput,
 } from "@lib/types";
 import type {
@@ -41,11 +57,16 @@ import type {
   StartTrainingStepResponseData,
 } from "@client/api/types";
 import type { StepAdapter } from "@lib/interfaces";
-import type { RoutinePlayContext, TrainingStepResolved } from "./types";
+import type {
+  DartJudgement,
+  ReadyGateView,
+  RoutineHeader,
+  RoutinePlayContext,
+  TrainingStepResolved,
+} from "./types";
 import type { SwitchingEngine } from "@modules/training/exercises/switching.engine.module";
 import type { DoublePatternEngine } from "@modules/training/exercises/double-pattern.engine.module";
 import {
-  targetScoringPoints,
   targetScoringTargetLabel,
   type TargetScoringEngine,
 } from "@modules/training/exercises/target-scoring.engine.module";
@@ -67,6 +88,9 @@ function startedDateLabel(startedAt: string | null | undefined): string {
     ? ""
     : started.toLocaleDateString(undefined, { day: "numeric", month: "short" });
 }
+
+/** Warm-Up ring radius: clears the 220mm board face inside `SectionRing`. */
+const WARM_UP_RING_RADIUS_MM = 232;
 
 const STEP_CHANGE_CUE_HZ = 660;
 const STEP_CHANGE_CUE_SECONDS = 0.25;
@@ -122,8 +146,8 @@ export function routinePlay() {
     stepRemainingSeconds: 0,
     warmUpTimer: null,
     warmUpElapsedSeconds: 0,
-    warmUpReady: false,
     warmUpConfiguration: null,
+    stepConfiguration: null,
     adapter: null as StepAdapter | null,
     game: null,
     sessionClock: null,
@@ -135,6 +159,8 @@ export function routinePlay() {
     resolvingOpenRoutine: false,
     stepSummaries: [],
     routineFinished: false,
+    routineReady: false,
+    confirmingReady: false,
     completionStatus: "pending" as
       "pending" | "saving" | "succeeded" | "failed",
     completionError: "",
@@ -190,41 +216,63 @@ export function routinePlay() {
     },
 
     /**
-     * Hit/miss marks for the current visit's darts. Each dart carries the
-     * target it was thrown at (`intendedTargetNumber`), so no config lookup
-     * is needed; Double Pattern additionally requires the double, since
-     * nothing else scores under `DOUBLE_PATTERN_V1`, and both Target
-     * Scoring exercises defer to their shared ring rule (a double is a miss).
-     * 65 or More has no target: a dart on the board is a hit, off it a miss.
-     * Bullseye Checkouts: setup darts as 65 or More; dart 3 (the one aimed at
-     * the bull) is a hit only on the bullseye. Bull Up Practice: either bull
-     * is a hit. Catch 40 and Random Checkout are free aim, judged as 65 or More.
+     * The latest visit's darts as labelled preview slots. Bull Up Practice
+     * shows only the throw about to be made; every other exercise shows one
+     * slot per dart of the visit, judged by `judgeExerciseDart()` and
+     * captioned by `exerciseVisitLabels()`.
      */
     previewSegments(this: RoutinePlayContext): PreviewSegment[] {
+      if (this.bullUpEngine)
+        return bullUpPreview(this.bullUpEngine.state().throws);
       const turns = this.activeDartEngine()?.facts().turns ?? [];
-      const requireDouble = this.doublePatternEngine !== null;
-      const isHit = this.bullUpEngine
-        ? (dart: DartFact) =>
-            dart.hitZoneKey === "INNER_BULL" || dart.hitZoneKey === "OUTER_BULL"
-        : this.bullseyeCheckoutEngine
-          ? (dart: DartFact) =>
-              dart.intendedZoneKey === "INNER_BULL"
-                ? dart.hitZoneKey === "INNER_BULL"
-                : dart.hitTargetNumber !== null
-          : this.scoreThresholdEngine ||
-              this.checkoutSequenceEngine ||
-              this.randomCheckoutEngine
-            ? (dart: DartFact) => dart.hitTargetNumber !== null
-            : this.targetScoringEngine || this.switchingTargetScoringEngine
-              ? (dart: DartFact) =>
-                  dart.intendedTargetNumber !== null &&
-                  targetScoringPoints(dart.intendedTargetNumber, dart) !== null
-              : (dart: DartFact) =>
-                  dart.hitTargetNumber === dart.intendedTargetNumber &&
-                  (!requireDouble || dart.hitZoneKey === "DOUBLE");
-      return playPreviewSegments(turns, null, (dart) =>
-        isHit(dart) ? "hit" : "miss",
-      );
+      return visitPreview({
+        turns,
+        visitLabels: (visitIndex) => this.exerciseVisitLabels(visitIndex),
+        judge: (dart) => this.judgeExerciseDart(dart),
+      });
+    },
+
+    /** Hit, miss or free-aim value for one dart (`judgeDart()`). */
+    judgeExerciseDart(this: RoutinePlayContext, dart: DartFact): DartJudgement {
+      return judgeDart(exerciseFamily(this) ?? "switching", dart);
+    },
+
+    /** One caption per dart slot of the latest visit (`visitLabelsFor()`). */
+    exerciseVisitLabels(
+      this: RoutinePlayContext,
+      visitIndex: number,
+    ): (string | undefined)[] {
+      const progress = (
+        this.targetScoringEngine ?? this.switchingTargetScoringEngine
+      )?.state();
+      return visitLabelsFor(exerciseFamily(this), {
+        config: this.stepConfiguration,
+        visitIndex,
+        currentTargetNumber: progress?.currentTargetNumber,
+        targetIndex: progress?.targetIndex ?? 0,
+        dartsInOpenVisit:
+          this.activeDartEngine()?.facts().turns.at(-1)?.darts.length ?? 0,
+      });
+    },
+
+    /** The Switching step's targets, in throw order. */
+    switchingSequence(this: RoutinePlayContext): string {
+      const config = this.stepConfiguration as SwitchingConfigData | null;
+      return config?.targets.map(String).join(" ") ?? "";
+    },
+
+    /** The doubles of Double Pattern's current pattern. */
+    doublePatternSequence(this: RoutinePlayContext): string {
+      const config = this.stepConfiguration as DoublePatternConfigData | null;
+      const index = this.doublePatternEngine?.state().patternIndex ?? 0;
+      return config?.patterns[index]?.map((n) => `D${n}`).join(" ") ?? "";
+    },
+
+    /** Switching Target Scoring's targets, in sequence order. */
+    switchingTargetScoringSequence(this: RoutinePlayContext): string {
+      const config = this
+        .stepConfiguration as SwitchingTargetScoringConfigData | null;
+      return config?.targets.map(targetScoringTargetLabel).join(" ") ?? "";
     },
 
     async init(this: RoutinePlayContext) {
@@ -264,9 +312,9 @@ export function routinePlay() {
     },
 
     /**
-     * Builds the routine engine from a started or reopened routine and starts
-     * the step it stands on; `completedStepCount` is how many leading steps
-     * already finished.
+     * Builds the routine engine from a started or reopened routine and
+     * shows the ready gate, which starts the step it stands on;
+     * `completedStepCount` is how many leading steps already finished.
      */
     async beginRoutine(
       this: RoutinePlayContext,
@@ -291,7 +339,42 @@ export function routinePlay() {
         },
         completedStepCount,
       );
-      await this.startCurrentStep();
+      this.routineReady = false;
+    },
+
+    /**
+     * The routine's one ready gate. Runs inside the slide's gesture, which is
+     * what lets `unlockAudioCues()` unlock the `AudioContext` — every later
+     * cue (step change, Warm-Up section beeps, countdown end) plays from a
+     * timer, which alone can never satisfy browser autoplay policy. No
+     * server step starts before this, so the gate costs no step time. The
+     * gate stays up until the step has started, so a failed start leaves
+     * the slide there to retry.
+     */
+    async confirmRoutineReady(this: RoutinePlayContext) {
+      if (this.routineReady || this.confirmingReady) return;
+      this.confirmingReady = true;
+      this.error = "";
+      unlockAudioCues();
+      try {
+        await this.startCurrentStep();
+        this.routineReady = true;
+      } catch (err: unknown) {
+        this.error = routineStartErrorMessage(err);
+      } finally {
+        this.confirmingReady = false;
+      }
+    },
+
+    readyGateView(this: RoutinePlayContext): ReadyGateView {
+      return readyGate(
+        this.steps.map((step) => ({
+          title:
+            resolveStepAdapter(stepAdapterKey(step))?.title ??
+            step.exerciseTypeKey,
+          durationSeconds: step.durationSeconds,
+        })),
+      );
     },
 
     /**
@@ -374,6 +457,36 @@ export function routinePlay() {
       return this.steps[stepIndex] ?? null;
     },
 
+    header(this: RoutinePlayContext): RoutineHeader {
+      const step = this.currentStep();
+      return routineHeader({
+        routineName: this.routineName,
+        ready: this.routineReady,
+        finished: this.routineFinished,
+        stepIndex: step ? this.steps.indexOf(step) : -1,
+        stepCount: this.steps.length,
+        adapter: (step && resolveStepAdapter(stepAdapterKey(step))) ?? null,
+        stepRemaining: this.stepTimer ? this.formattedStepRemaining() : null,
+        warmUpElapsed: this.formattedWarmUpElapsed(),
+      });
+    },
+
+    headerTitle(this: RoutinePlayContext): string {
+      return this.header().title;
+    },
+
+    headerSubtitle(this: RoutinePlayContext): string {
+      return this.header().subtitle;
+    },
+
+    headerClock(this: RoutinePlayContext): string {
+      return this.header().clock;
+    },
+
+    headerClockLabel(this: RoutinePlayContext): string {
+      return this.header().clockLabel;
+    },
+
     /**
      * The context row a routine finish confirm shows: routine name and step
      * position, then the step game's round and value.
@@ -415,9 +528,9 @@ export function routinePlay() {
 
     /**
      * Binds a started step's server session to the screen: its engine, its
-     * clock and the header the routine store drives. Which engine/clock/
-     * header depends entirely on `stepAdapterKey()`'s resolved adapter — this
-     * method itself no longer branches on the step kind.
+     * clock and the `trainingSession` store's step label. All three come
+     * from `stepAdapterKey()`'s resolved adapter; this method does not
+     * branch on the step kind.
      */
     openStep(
       this: RoutinePlayContext,
@@ -432,6 +545,7 @@ export function routinePlay() {
       }
       this.currentSessionId = result.sessionId;
       this.currentParticipantRef = result.participant.ref;
+      this.stepConfiguration = result.configuration;
       if (this.$store.trainingSession.active) {
         playAudioCue(STEP_CHANGE_CUE_HZ, STEP_CHANGE_CUE_SECONDS);
       }
@@ -500,17 +614,10 @@ export function routinePlay() {
       this.sessionClock = null;
     },
 
-    confirmWarmUpReady(this: RoutinePlayContext) {
-      if (!this.warmUpConfiguration || this.warmUpReady) return;
-      this.warmUpReady = true;
-      this.startWarmUpTimer(this.warmUpConfiguration);
-    },
-
     /**
-     * Only ever reached via `confirmWarmUpReady()`'s click handler — that
-     * gesture is what lets `SegmentTimer.unlockAudio()` actually unlock the
-     * `AudioContext`; the timer's later beeps run from `setInterval`, which
-     * alone can never satisfy browser autoplay policy.
+     * Called from the warm-up adapter's `open()`. Audio was unlocked by the
+     * routine ready gate's gesture (`confirmRoutineReady`); `unlockAudio()`
+     * here is a harmless repeat.
      */
     startWarmUpTimer(
       this: RoutinePlayContext,
@@ -546,6 +653,29 @@ export function routinePlay() {
 
     warmUpHighlightPath(this: RoutinePlayContext): string {
       return dartboardHighlightPath(this.warmUpEngine?.state().targets ?? []);
+    },
+
+    warmUpDimPath(this: RoutinePlayContext): string {
+      return dartboardDimPath(this.warmUpEngine?.state().targets ?? []);
+    },
+
+    warmUpRing(this: RoutinePlayContext): SectionRingPaths {
+      const configuration = this
+        .warmUpConfiguration as WarmUpEngineInput | null;
+      if (!configuration) return { track: "", fill: "" };
+      return sectionRingPaths(
+        resolveWarmUpPhaseDurations(configuration),
+        this.warmUpElapsedSeconds,
+        WARM_UP_RING_RADIUS_MM,
+      );
+    },
+
+    warmUpRingTrack(this: RoutinePlayContext): string {
+      return this.warmUpRing().track;
+    },
+
+    warmUpRingFill(this: RoutinePlayContext): string {
+      return this.warmUpRing().fill;
     },
 
     /**

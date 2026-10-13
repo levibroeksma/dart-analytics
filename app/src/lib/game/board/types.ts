@@ -26,3 +26,9 @@ export type MissMargin = {
   distanceMm: number;
   bearingDegrees: number;
 };
+
+/** A section ring as two SVG path strings: the full track and the elapsed share. */
+export type SectionRingPaths = {
+  track: string;
+  fill: string;
+};

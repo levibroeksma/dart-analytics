@@ -31,6 +31,7 @@ describe("bullUpAdapter", () => {
   it("declares its key, header label and panel", () => {
     expect(bullUpAdapter.key).toBe("BULL_UP");
     expect(bullUpAdapter.headerLabel).toBe("Bull up practice");
+    expect(bullUpAdapter.title).toBe("Bull Up Practice");
     expect(bullUpAdapter.panel).toBe("bull-up");
     expect(bullUpAdapter.completesOwnSession).toBe(false);
   });

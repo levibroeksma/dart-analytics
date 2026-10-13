@@ -75,8 +75,9 @@ A section holds 1–6 targets (`1`–`20`, or `25` for the bull); a template hol
 
 ### Progress
 
-- The run starts after the player confirms "Are you ready?"
-  (`app/src/components/layout/training/exercises/WarmUpPanel.astro`).
+- The run starts with its step, after the routine's one "Are you ready?" gate
+  (`app/src/components/layout/training/routines/RoutineReadyGate.astro`); the
+  exercise has no gate of its own.
 - Sections run in template order. When a section's time ends the next begins;
   after the last, the run is complete.
 - **Section time split by weight:** each section gets the step's duration

@@ -2,21 +2,12 @@ import { describe, it, expect } from "vitest";
 import { trainingSessionStore } from "@stores/training-session.store";
 
 describe("trainingSessionStore", () => {
-  it("starts empty, with no header label before a step is running", () => {
+  it("starts inactive, with the clock at zero and no step label", () => {
     const store = trainingSessionStore();
 
     expect(store.active).toBe(false);
     expect(store.elapsedSeconds).toBe(0);
-    expect(store.headerLabel).toBe("");
-  });
-
-  it("renders the routine clock beside the running step", () => {
-    const store = trainingSessionStore();
-
-    store.setStep("warm up");
-    store.tick(38);
-
-    expect(store.headerLabel).toBe("00:38 - warm up");
+    expect(store.stepLabel).toBe("");
   });
 
   it("reports the routine clock as mm:ss", () => {
@@ -37,15 +28,6 @@ describe("trainingSessionStore", () => {
     );
 
     expect(labels).toEqual(["warm up", "switching", "doubles", "finishing"]);
-  });
-
-  it("keeps counting past an hour's worth of minutes", () => {
-    const store = trainingSessionStore();
-
-    store.setStep("finishing");
-    store.tick(25 * 60 + 39);
-
-    expect(store.headerLabel).toBe("25:39 - finishing");
   });
 
   it("startSession() marks the routine running and zeroes the clock", () => {
@@ -69,9 +51,9 @@ describe("trainingSessionStore", () => {
     expect(store.active).toBe(false);
     expect(store.elapsedSeconds).toBe(0);
     expect(store.stepKey).toBeNull();
-    expect(store.headerLabel).toBe("");
   });
-  it("markComplete() freezes the elapsed time and relabels the header", () => {
+
+  it("markComplete() freezes the elapsed time and relabels the step", () => {
     const store = trainingSessionStore();
     store.startSession();
     store.setStep("finishing");
@@ -80,10 +62,10 @@ describe("trainingSessionStore", () => {
     store.markComplete();
 
     expect(store.elapsedSeconds).toBe(1934);
-    expect(store.headerLabel).toBe("32:14 - complete");
+    expect(store.stepLabel).toBe("complete");
   });
 
-  it("reset() clears a completed session's header", () => {
+  it("reset() clears a completed session's step label", () => {
     const store = trainingSessionStore();
     store.startSession();
     store.setStep("finishing");
@@ -92,7 +74,7 @@ describe("trainingSessionStore", () => {
 
     store.reset();
 
-    expect(store.headerLabel).toBe("");
+    expect(store.stepLabel).toBe("");
   });
 
   it("setGameSession stores the id and reset clears it", () => {

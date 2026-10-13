@@ -103,6 +103,7 @@ describe("gameAdapter", () => {
   const adapter = gameAdapter({
     rulesetVersionKey: "TUOD_V1",
     headerLabel: "finishing",
+    title: "Ten Up One Down",
     panel: "tuod",
     playFactory: playFactoryStub,
     summarise: () => null,
@@ -111,6 +112,7 @@ describe("gameAdapter", () => {
   it("declares its key, header label, panel and that it completes its own session", () => {
     expect(adapter.key).toBe("GAME:TUOD_V1");
     expect(adapter.headerLabel).toBe("finishing");
+    expect(adapter.title).toBe("Ten Up One Down");
     expect(adapter.panel).toBe("tuod");
     expect(adapter.completesOwnSession).toBe(true);
   });

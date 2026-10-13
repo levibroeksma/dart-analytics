@@ -5,7 +5,12 @@ import ExercisePanelShell from "./ExercisePanelShell.astro";
 
 <ExercisePanelShell
   score="switchingPoints()"
-  rows={[
+  caption="POINTS"
+  chip={{
+    routeExpr: "switchingSequence()",
+    currentExpr: "switchingTargetLabel()",
+  }}
+  tiles={[
     { label: "Target", value: "switchingTargetLabel()" },
     { label: "Darts", value: "dartsThrown()" },
   ]}

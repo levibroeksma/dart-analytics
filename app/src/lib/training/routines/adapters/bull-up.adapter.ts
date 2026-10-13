@@ -7,6 +7,7 @@ import type { StepAdapter } from "./interfaces";
 export const bullUpAdapter: StepAdapter = {
   key: "BULL_UP",
   headerLabel: "Bull up practice",
+  title: "Bull Up Practice",
   panel: "bull-up",
   open(ctx, result, durationSeconds) {
     const factory = getDartExerciseEngineFactory("BULL_UP_V1");

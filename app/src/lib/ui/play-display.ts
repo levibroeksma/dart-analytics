@@ -67,12 +67,13 @@ export function legBarStates(won: number, toWin: number): LegBarState[] | null {
 
 /** The visit strip's columns; only the first empty dart is `next`. */
 export function previewColumnState(
-  segments: readonly { status: PreviewStatus }[],
+  segments: readonly { status: PreviewStatus; label?: string }[],
 ): PreviewColumn[] {
   const nextIndex = segments.findIndex((segment) => segment.status === "empty");
   return segments.map((segment, index) => ({
     status: segment.status,
     next: index === nextIndex,
+    label: segment.label,
   }));
 }
 

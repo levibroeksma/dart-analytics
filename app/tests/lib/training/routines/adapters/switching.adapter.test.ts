@@ -29,6 +29,7 @@ describe("switchingAdapter", () => {
   it("declares its key, header label and panel", () => {
     expect(switchingAdapter.key).toBe("SWITCHING");
     expect(switchingAdapter.headerLabel).toBe("switching");
+    expect(switchingAdapter.title).toBe("Switching");
     expect(switchingAdapter.panel).toBe("switching");
     expect(switchingAdapter.completesOwnSession).toBe(false);
   });

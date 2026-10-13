@@ -53,6 +53,11 @@ describe("cn", () => {
     expect(cn("px-4", "pt-safe", "pb-safe")).toBe("px-4 pt-safe pb-safe");
     expect(cn("fixed", "bottom-above-nav")).toBe("fixed bottom-above-nav");
   });
+
+  it("lets section-ring-inset replace stock inset and composes highlight-glow freely", () => {
+    expect(cn("inset-0", "section-ring-inset")).toBe("section-ring-inset");
+    expect(cn("fill-none", "highlight-glow")).toBe("fill-none highlight-glow");
+  });
 });
 
 describe("cn token registry stays in lockstep with global.css", () => {

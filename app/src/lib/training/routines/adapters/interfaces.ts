@@ -15,6 +15,8 @@ export interface StepAdapter {
   key: StepAdapterKey;
   /** The session header's own step label — replaces the old `STEP_LABELS`. */
   headerLabel: string;
+  /** The play header's own title for this step, Title Case ("Target Scoring"). */
+  title: string;
   /** Which of the play page's `x-if` blocks renders this step. */
   panel: StepPanel;
   open(

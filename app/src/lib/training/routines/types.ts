@@ -23,14 +23,48 @@ import type { BullseyeCheckoutEngine } from "@modules/training/exercises/bullsey
 import type { BullUpEngine } from "@modules/training/exercises/bull-up.engine.module";
 import type { CheckoutSequenceEngine } from "@modules/training/exercises/checkout-sequence.engine.module";
 import type { RandomCheckoutEngine } from "@modules/training/exercises/random-checkout.engine.module";
-import type { DartObservation } from "@modules/types";
-import type { BoardMarker, PreviewSegment } from "@lib/types";
+import type { DartFact, DartObservation } from "@modules/types";
+import type { BoardMarker, PreviewSegment, SectionRingPaths } from "@lib/types";
 import type { gameStep } from "./game-step.data";
 import type { StepAdapter } from "./adapters/interfaces";
 import type { trainingSessionStore } from "@stores/training-session.store";
 import type { routineStatsStore } from "@stores/routine-stats.store";
 
 export * from "./adapters/types";
+
+/** How a thrown exercise dart reads in the visit preview. */
+export type DartJudgement = "hit" | "miss" | "value";
+
+/** The preview rules an exercise follows: how its darts are judged and its empty slots captioned. */
+export type ExercisePreviewFamily =
+  | "switching"
+  | "doublePattern"
+  | "targetScoring"
+  | "switchingTargetScoring"
+  | "freeAim"
+  | "bullseye";
+
+/** The engine slots `exerciseFamily()` reads. */
+export type ExerciseEngineSlots = Pick<
+  RoutinePlayContext,
+  | "switchingEngine"
+  | "doublePatternEngine"
+  | "targetScoringEngine"
+  | "switchingTargetScoringEngine"
+  | "scoreThresholdEngine"
+  | "bullseyeCheckoutEngine"
+  | "checkoutSequenceEngine"
+  | "randomCheckoutEngine"
+>;
+
+/** What `visitLabelsFor()` reads: the step's configuration and where the visit stands. */
+export type VisitLabelInput = {
+  config: Record<string, unknown> | null;
+  visitIndex: number;
+  currentTargetNumber: number | undefined;
+  targetIndex: number;
+  dartsInOpenVisit: number;
+};
 
 export type TrainingStepResolved = StartTrainingResponseData["steps"][number];
 
@@ -82,8 +116,8 @@ export type RoutinePlayContext = {
   stepRemainingSeconds: number;
   warmUpTimer: SegmentTimer | null;
   warmUpElapsedSeconds: number;
-  warmUpReady: boolean;
   warmUpConfiguration: Record<string, unknown> | null;
+  stepConfiguration: Record<string, unknown> | null;
   adapter: StepAdapter | null;
   game: ReturnType<typeof gameStep> | null;
   sessionClock: SessionClock | null;
@@ -96,6 +130,8 @@ export type RoutinePlayContext = {
   resolvingOpenRoutine: boolean;
   stepSummaries: RoutineStepSummary[];
   routineFinished: boolean;
+  routineReady: boolean;
+  confirmingReady: boolean;
   completionStatus: "pending" | "saving" | "succeeded" | "failed";
   completionError: string;
   $store: {
@@ -112,6 +148,11 @@ export type RoutinePlayContext = {
   };
   init(this: RoutinePlayContext): Promise<void>;
   currentStep(this: RoutinePlayContext): TrainingStepResolved | null;
+  header(this: RoutinePlayContext): RoutineHeader;
+  headerTitle(this: RoutinePlayContext): string;
+  headerSubtitle(this: RoutinePlayContext): string;
+  headerClock(this: RoutinePlayContext): string;
+  headerClockLabel(this: RoutinePlayContext): string;
   stepContextRow(this: RoutinePlayContext): SessionContextRow | null;
   startCurrentStep(this: RoutinePlayContext): Promise<void>;
   openStep(
@@ -132,13 +173,18 @@ export type RoutinePlayContext = {
   openRoutineStartedLabel(this: RoutinePlayContext): string;
   startSessionClock(this: RoutinePlayContext): void;
   stopSessionClock(this: RoutinePlayContext): void;
-  confirmWarmUpReady(this: RoutinePlayContext): void;
+  confirmRoutineReady(this: RoutinePlayContext): Promise<void>;
+  readyGateView(this: RoutinePlayContext): ReadyGateView;
   startWarmUpTimer(
     this: RoutinePlayContext,
     configuration: Record<string, unknown>,
   ): void;
   formattedWarmUpElapsed(this: RoutinePlayContext): string;
   warmUpHighlightPath(this: RoutinePlayContext): string;
+  warmUpDimPath(this: RoutinePlayContext): string;
+  warmUpRing(this: RoutinePlayContext): SectionRingPaths;
+  warmUpRingTrack(this: RoutinePlayContext): string;
+  warmUpRingFill(this: RoutinePlayContext): string;
   startStepTimer(this: RoutinePlayContext, durationSeconds: number): void;
   formattedStepRemaining(this: RoutinePlayContext): string;
   switchingPoints(this: RoutinePlayContext): number;
@@ -197,6 +243,14 @@ export type RoutinePlayContext = {
     | null;
   visitMarkers(this: RoutinePlayContext): BoardMarker[];
   previewSegments(this: RoutinePlayContext): PreviewSegment[];
+  judgeExerciseDart(this: RoutinePlayContext, dart: DartFact): DartJudgement;
+  exerciseVisitLabels(
+    this: RoutinePlayContext,
+    visitIndex: number,
+  ): (string | undefined)[];
+  switchingSequence(this: RoutinePlayContext): string;
+  doublePatternSequence(this: RoutinePlayContext): string;
+  switchingTargetScoringSequence(this: RoutinePlayContext): string;
   recordSwitchingDart(
     this: RoutinePlayContext,
     observation: DartObservation,
@@ -240,6 +294,28 @@ export type RoutinePlayContext = {
   completeRoutine(this: RoutinePlayContext): Promise<void>;
   dismissSummary(this: RoutinePlayContext): void;
   abandonAndExit(this: RoutinePlayContext): Promise<void>;
+};
+
+export type RoutineHeaderInput = {
+  routineName: string;
+  ready: boolean;
+  finished: boolean;
+  stepIndex: number;
+  stepCount: number;
+  adapter: { title: string; panel: string } | null;
+  stepRemaining: string | null;
+  warmUpElapsed: string;
+};
+
+export type ReadyGateRow = { number: string; title: string; duration: string };
+
+export type ReadyGateView = { eyebrow: string; rows: ReadyGateRow[] };
+
+export type RoutineHeader = {
+  title: string;
+  subtitle: string;
+  clock: string;
+  clockLabel: string;
 };
 
 export type TrainingSessionStoreContext = ReturnType<

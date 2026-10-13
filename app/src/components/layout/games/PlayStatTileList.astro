@@ -1,11 +1,13 @@
 ---
 /**
- * `SeatedPlayScreen`'s tile list for one scoreboard: each `Tile` expanded
- * with `call` (solo or one seat) into a `PlayStatTile`, inside
- * `<template x-if>` when it has `showWhen`.
+ * A tile list for one scoreboard: each `Tile` expanded with `call` (solo or
+ * one seat) into a `PlayStatTile`, inside `<template x-if>` when it has
+ * `showWhen`.
  * @param {Tile[]} tiles Tile definitions
  * @param {Call} call `soloCall()` or `seatCall(i)`
  * @param {boolean} [compact] Seat-card row layout
+ * @param {boolean} [fit] Tiles flex to share their column
+ * @param {boolean} [highlightFirst] Light the first tile's value
  */
 import type { Call, Tile } from "@lib/interfaces";
 
@@ -13,31 +15,40 @@ interface Props {
   tiles: Tile[];
   call: Call;
   compact?: boolean;
+  fit?: boolean;
+  highlightFirst?: boolean;
 }
 
 // Props
-const { tiles, call, compact = false }: Props = Astro.props;
+const {
+  tiles,
+  call,
+  compact = false,
+  fit = false,
+  highlightFirst = false,
+}: Props = Astro.props;
 
 // Components
 import PlayStatTile from "@components/layout/games/PlayStatTile.astro";
+
+// Data
+const tileProps = (tile: Tile, index: number) => ({
+  compact,
+  label: tile.label,
+  valueExpr: tile.value(call),
+  highlight: highlightFirst && index === 0,
+  fit,
+});
 ---
 
 {
-  tiles.map((tile) =>
+  tiles.map((tile, index) =>
     tile.showWhen ? (
       <template x-if={tile.showWhen(call)}>
-        <PlayStatTile
-          compact={compact}
-          label={tile.label}
-          valueExpr={tile.value(call)}
-        />
+        <PlayStatTile {...tileProps(tile, index)} />
       </template>
     ) : (
-      <PlayStatTile
-        compact={compact}
-        label={tile.label}
-        valueExpr={tile.value(call)}
-      />
+      <PlayStatTile {...tileProps(tile, index)} />
     ),
   )
 }

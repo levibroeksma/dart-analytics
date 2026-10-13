@@ -7,6 +7,7 @@ import type { StepAdapter } from "./interfaces";
 export const doublePatternAdapter: StepAdapter = {
   key: "DOUBLE_PATTERN",
   headerLabel: "doubles",
+  title: "Double Pattern",
   panel: "double-pattern",
   open(ctx, result, durationSeconds) {
     const factory = getDartExerciseEngineFactory("DOUBLE_PATTERN_V1");

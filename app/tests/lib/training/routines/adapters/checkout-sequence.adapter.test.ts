@@ -32,6 +32,7 @@ describe("checkoutSequenceAdapter", () => {
   it("declares its key, header label and panel", () => {
     expect(checkoutSequenceAdapter.key).toBe("CHECKOUT_SEQUENCE");
     expect(checkoutSequenceAdapter.headerLabel).toBe("Catch 40");
+    expect(checkoutSequenceAdapter.title).toBe("Catch 40");
     expect(checkoutSequenceAdapter.panel).toBe("checkout-sequence");
     expect(checkoutSequenceAdapter.completesOwnSession).toBe(false);
   });

@@ -2,7 +2,7 @@
 status: historical
 scope: context-map version history and point-in-time task records
 read-when: never during a task — provenance only
-updated: 2026-10-10
+updated: 2026-10-13
 -->
 
 # Context Map History
@@ -16,6 +16,8 @@ updated: 2026-10-10
 ---
 
 # Version History
+
+> **Version:** 1.181.0 (2026-10-13 — Exercise play restyle: D454 in `decisions/frontend/alpine.md` (supersedes D270); `08-Component-Inventory.md` gains `HeaderClockPill`/`RoutineReadyGate`/`SectionRing`, loses `ExerciseBoardInputPanel`, and restates the exercise panels, `BoardInputPanel`, `VisitPreview`, `PlayStatTile`, `RouteChips`, `SlideToStart`, `DartBoard`; `07-Style-Guide.md` 0.5.1 routine header and two utilities; `09-Training/01-Routines.md` §16 ready gate; `warm-up.md` gate line; new File Inventory section "Exercise play restyle"; spec `docs/superpowers/specs/2026-10-13-exercise-play-restyle-design.md`, plan `docs/superpowers/plans/2026-10-13-exercise-play-restyle.md`.)
 
 > **Version:** 1.180.0 (2026-10-10 — Homepage resume deck: D442 in `decisions/frontend/style.md` (~10.6k → ~11.8k); `08-Component-Inventory.md` gains `CardStack`/`DeckPager` and a `components/layout/sessions/` section with `ResumeSessionDeck`, loses `ResumeGameCard` (budget ~7.2k → ~8.9k); `07-Style-Guide.md` 0.4.1 stack/deck tokens and keyframes (~5.6k → ~6.8k); "New game (full stack)" pack budget ~17.1k → ~24.5k; `06-API/04-Endpoint-Contracts.md` 1.16.4 (`SessionActive` gains `isRoutineStep`, `progress`); new "Home resume deck" section in `00-File-Inventory.md`; spec `docs/superpowers/specs/2026-10-10-home-resume-deck-design.md`.)
 

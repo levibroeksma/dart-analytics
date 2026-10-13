@@ -19,11 +19,14 @@
  * @param {string} [highlightPathExpr] Raw Alpine expression evaluating to an
  *   SVG path `d` string (e.g. `warmUpHighlightPath()`); when supplied,
  *   renders it as a highlight outline overlay, reactively re-evaluated.
+ * @param {string} [dimPathExpr] Raw Alpine expression for an even-odd mask
+ *   path dimming the board outside the highlight
  */
 interface Props {
   boardRef?: string;
   class?: string;
   highlightPathExpr?: string;
+  dimPathExpr?: string;
   [key: string]: unknown;
 }
 
@@ -32,6 +35,7 @@ const {
   boardRef,
   class: classNameProp,
   highlightPathExpr,
+  dimPathExpr,
   ...props
 }: Props = Astro.props;
 
@@ -647,16 +651,25 @@ const refAttrs = boardRef ? { "x-ref": boardRef } : {};
       </g>
     </g>
     {
-      highlightPathExpr && (
+      (highlightPathExpr || dimPathExpr) && (
         <g
           class="board-highlight-group pointer-events-none"
           aria-hidden="true"
         >
-          <path
-            stroke-width="3"
-            class="fill-none stroke-accent"
-            {...{ ":d": highlightPathExpr }}
-          />
+          {dimPathExpr && (
+            <path
+              class="fill-black/60"
+              fill-rule="evenodd"
+              {...{ ":d": dimPathExpr }}
+            />
+          )}
+          {highlightPathExpr && (
+            <path
+              stroke-width="3"
+              class="highlight-glow fill-none stroke-accent"
+              {...{ ":d": highlightPathExpr }}
+            />
+          )}
         </g>
       )
     }

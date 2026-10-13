@@ -43,6 +43,7 @@ export const STEP_ADAPTERS: Record<StepAdapterKey, StepAdapter> = {
   "GAME:TUOD_V1": gameAdapter({
     rulesetVersionKey: "TUOD_V1",
     headerLabel: "finishing",
+    title: "Ten Up One Down",
     panel: "tuod",
     playFactory: tuodPlay,
     summarise: summariseTuodStep,
@@ -50,6 +51,7 @@ export const STEP_ADAPTERS: Record<StepAdapterKey, StepAdapter> = {
   "GAME:SCORE_TRAINING_V1": gameAdapter({
     rulesetVersionKey: "SCORE_TRAINING_V1",
     headerLabel: "scoring",
+    title: "Score Training",
     panel: "score-training",
     playFactory: scoreTrainingPlay,
     summarise: summariseScoreTrainingStep,
@@ -57,6 +59,7 @@ export const STEP_ADAPTERS: Record<StepAdapterKey, StepAdapter> = {
   "GAME:121_V2": gameAdapter({
     rulesetVersionKey: "121_V2",
     headerLabel: "121",
+    title: "121",
     panel: "one-twenty-one",
     playFactory: oneTwentyOnePlay,
     summarise: summariseOneTwentyOneStep,
@@ -64,6 +67,7 @@ export const STEP_ADAPTERS: Record<StepAdapterKey, StepAdapter> = {
   "GAME:AROUND_THE_CLOCK_V2": gameAdapter({
     rulesetVersionKey: "AROUND_THE_CLOCK_V2",
     headerLabel: "around the clock",
+    title: "Around the Clock",
     panel: "around-the-clock",
     playFactory: aroundTheClockPlay,
     summarise: summariseAroundTheClockStep,

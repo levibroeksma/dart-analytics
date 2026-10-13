@@ -1,76 +1,84 @@
 ---
 /**
- * Play surface shared by the scored exercise panels (#915): a
- * `SinglePlayerDisplay` with the step's big value and a `dl` of `StatRow`s
- * that always ends with the step clock, then `VisitPreview` and
- * `ExerciseBoardInputPanel`. Reads the routine play page scope.
+ * Play surface shared by the scored exercise panels (#915, restyled to
+ * `Exercise Play.dc.html`): a `SinglePlayerDisplay` with the step's big
+ * value, its caption, an optional `RouteChips` chip and a
+ * `PlayStatTileList` (first tile lit, `fit`), then the labelled
+ * `VisitPreview` and the shared `BoardInputPanel`. Reads the routine play
+ * page scope.
  * @param {string} score Alpine expression for the big value
- * @param {object[]} rows `{ label, value, showWhen? }` — `value` and
- *   `showWhen` are Alpine expressions; a row with `showWhen` is hidden while
- *   it is false. The `Time` row is appended here, not passed.
+ * @param {string} caption Mono caption under the big value
+ * @param {object} [chip] `{ routeExpr, currentExpr? }` for `RouteChips`
+ * @param {object[]} tiles `{ label, value, showWhen? }` — Alpine expressions; a tile with `showWhen` is hidden while it is false
  */
+import type { Tile } from "@lib/interfaces";
+
 interface Props {
   score: string;
-  rows: ExerciseRow[];
+  caption: string;
+  chip?: ExerciseChip;
+  tiles: ExerciseTile[];
 }
 
-interface ExerciseRow {
+interface ExerciseTile {
   label: string;
   value: string;
   showWhen?: string;
 }
 
+interface ExerciseChip {
+  routeExpr: string;
+  currentExpr?: string;
+}
+
 // Props
-const { score, rows }: Props = Astro.props;
+const { score, caption, chip, tiles }: Props = Astro.props;
 
 // Components
 import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
+import PlayStatTileList from "@components/layout/games/PlayStatTileList.astro";
+import RouteChips from "@components/layout/games/RouteChips.astro";
 import VisitPreview from "@components/layout/games/VisitPreview.astro";
-import StatRow from "@components/layout/games/StatRow.astro";
-import ExerciseBoardInputPanel from "./ExerciseBoardInputPanel.astro";
+import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
+
+// Lib
+import { soloCall } from "@lib/game/play-screen-expr";
 
 // Data
-const allRows: ExerciseRow[] = [
-  ...rows,
-  { label: "Time", value: "formattedStepRemaining()" },
-];
+const soloTiles: Tile[] = tiles.map(({ label, value, showWhen }) => ({
+  label,
+  value: () => value,
+  showWhen: showWhen ? () => showWhen : undefined,
+}));
 ---
 
-<div class="flex flex-col flex-1 min-h-0 gap-3 p-3">
+<div class="flex min-h-0 flex-1 flex-col gap-2">
   <SinglePlayerDisplay
     isTarget={false}
     score={score}
+    caption={caption}
   >
-    <div
-      slot="progress"
-      class="mt-2 flex w-full flex-col items-center gap-2 px-4"
-    >
-      <dl class="w-full space-y-1">
-        {
-          allRows.map((row) =>
-            row.showWhen ? (
-              <div
-                x-show={row.showWhen}
-                x-cloak
-              >
-                <StatRow
-                  label={row.label}
-                  value={row.value}
-                />
-              </div>
-            ) : (
-              <StatRow
-                label={row.label}
-                value={row.value}
-              />
-            ),
-          )
-        }
-      </dl>
-    </div>
+    {
+      chip && (
+        <RouteChips
+          slot="route"
+          routeExpr={chip.routeExpr}
+          currentExpr={chip.currentExpr}
+        />
+      )
+    }
+    <PlayStatTileList
+      tiles={soloTiles}
+      call={soloCall()}
+      fit
+      highlightFirst
+    />
   </SinglePlayerDisplay>
 
-  <VisitPreview />
+  <VisitPreview labelled />
 
-  <ExerciseBoardInputPanel />
+  <BoardInputPanel
+    showExpr="true"
+    undoDisabledExpr="!activeDartEngine()?.facts().turns.length"
+  />
 </div>

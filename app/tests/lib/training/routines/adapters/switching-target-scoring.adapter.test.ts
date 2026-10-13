@@ -26,6 +26,9 @@ describe("switchingTargetScoringAdapter", () => {
     expect(switchingTargetScoringAdapter.headerLabel).toBe(
       "switching target scoring",
     );
+    expect(switchingTargetScoringAdapter.title).toBe(
+      "Switching Target Scoring",
+    );
     expect(switchingTargetScoringAdapter.panel).toBe(
       "switching-target-scoring",
     );

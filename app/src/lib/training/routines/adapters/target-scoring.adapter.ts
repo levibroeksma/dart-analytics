@@ -7,6 +7,7 @@ import type { StepAdapter } from "./interfaces";
 export const targetScoringAdapter: StepAdapter = {
   key: "TARGET_SCORING",
   headerLabel: "target scoring",
+  title: "Target Scoring",
   panel: "target-scoring",
   open(ctx, result, durationSeconds) {
     const factory = getDartExerciseEngineFactory("TARGET_SCORING_V1");

@@ -7,6 +7,7 @@ import type { StepAdapter } from "./interfaces";
 export const scoreThresholdAdapter: StepAdapter = {
   key: "SCORE_THRESHOLD",
   headerLabel: "65 or more",
+  title: "65 or More",
   panel: "score-threshold",
   open(ctx, result, durationSeconds) {
     const factory = getDartExerciseEngineFactory("SCORE_THRESHOLD_V1");

@@ -116,6 +116,30 @@ describe("doublesPathPreviewSegments", () => {
     ]);
   });
 
+  it("never labels a segment: the game strip keeps its HIT / MISS / DART n captions", () => {
+    const turns = [
+      turnWithDarts("t1", [
+        {
+          sequence: 1,
+          intendedTargetNumber: 5,
+          intendedZoneKey: "DOUBLE",
+          hitTargetNumber: 5,
+          hitZoneKey: "DOUBLE",
+          score: 10,
+          locationX: null,
+          locationY: null,
+        },
+      ]),
+    ];
+    const segments = doublesPathPreviewSegments(turns, null);
+    expect(segments.every((segment) => !("label" in segment))).toBe(true);
+    expect(segments.map((segment) => segment.status)).toEqual([
+      "hit",
+      "empty",
+      "empty",
+    ]);
+  });
+
   it("marks all 3 darts hit/miss once the visit holds 3 darts, with no padding", () => {
     const turns = [
       turnWithDarts("t1", [

@@ -503,7 +503,7 @@ export function routineStatsStore() {
       return this.selectedExerciseKind === null ? "dartless" : "exercise";
     },
 
-    /** `Step n · <adapter headerLabel>`, the label the routine play header shows for the same step; the raw exercise type when no adapter matches. */
+    /** `Step n · <adapter headerLabel>` naming a step in the stats selector; the raw exercise type when no adapter matches. */
     stepLabel(step: StepDescriptor): string {
       const adapter = resolveStepAdapter(
         stepAdapterKey({
