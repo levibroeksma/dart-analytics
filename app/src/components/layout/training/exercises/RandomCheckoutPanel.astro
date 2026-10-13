@@ -8,7 +8,7 @@ import ExercisePanelShell from "./ExercisePanelShell.astro";
   caption="CHECKOUTS"
   chip={{
     routeExpr:
-      "randomCheckoutLastResult() === '—' ? '' : 'LAST ' + randomCheckoutLastResult()",
+      "randomCheckoutLastResult() === '—' ? '' : 'LAST\u00a0' + randomCheckoutLastResult()",
   }}
   tiles={[
     { label: "Start", value: "randomCheckoutStart()" },
