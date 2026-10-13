@@ -1323,12 +1323,8 @@ export type AroundTheClockPlayContext = PlayLifecycleContext<
  * not one: the single-active-session index keys on `(player_id, game_type_id)`,
  * so one session per game type can be running at the same time.
  */
-/** The games page's in-progress card: the game's title and its setup route. */
-export type ResumeTarget = { title: string; href: string };
-
 export type GamesIndexContext = {
   activeRulesetKeys: string[];
-  activeSession: ResumeTarget | null;
   sessionsLoading: boolean;
   $store: {
     settings: {

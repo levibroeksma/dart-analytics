@@ -1,37 +1,12 @@
 import { fetchActiveSessions } from "@client/api/sessions";
-import {
-  GAME_CARDS,
-  cardForRuleset,
-  visibleGames,
-} from "@lib/game/rulesets/games-visibility";
-import type { SessionActiveData } from "@client/api/types";
+import { GAME_CARDS, visibleGames } from "@lib/game/rulesets/games-visibility";
 import type {
-  GameCardDescriptor,
   GameGroupKey,
   GamesIndexContext,
-  ResumeTarget,
   RulesetVersionKey,
 } from "@lib/types";
 
 const ANALYTICS_CAPTURE_MODE_KEY = "ANALYTICS";
-
-/**
- * The most recently started standalone active session that has a game card,
- * as that card's title and setup route (the setup page owns the
- * Continue/Abandon recovery flow); `null` when no such session has a card.
- * A routine step is skipped: it is resumed from its routine, not from here.
- */
-export function resumeTarget(
-  sessions: SessionActiveData[],
-  cards: readonly GameCardDescriptor[] = GAME_CARDS,
-): ResumeTarget | null {
-  const card = sessions
-    .filter((session) => !session.isRoutineStep)
-    .sort((a, b) => b.startedAt.localeCompare(a.startedAt))
-    .map((session) => cardForRuleset(cards, session.rulesetVersionKey))
-    .find((game) => game !== undefined);
-  return card ? { title: card.title, href: card.href } : null;
-}
 
 /**
  * Games-page state: which cards the player's current app mode leaves visible.
@@ -52,15 +27,14 @@ export function resumeTarget(
  * `v_active_sessions` returns since migration `0033` — gates no card and is
  * dropped here rather than widening `activeRulesetKeys` to hold NULL.
  *
- * `activeSession` is the in-progress card's target (`resumeTarget`); the
- * group helpers drive the grouped list's section and divider visibility.
+ * The group helpers drive the grouped list's section and divider visibility;
+ * the in-progress deck runs in its own `resumeDeck()` scope.
  * `loading()` holds the rows' skeleton until both the sessions fetch and the
  * settings store settle, so the page swaps data in once, in place.
  */
 export function gamesIndex() {
   return {
     activeRulesetKeys: [] as string[],
-    activeSession: null as ResumeTarget | null,
     sessionsLoading: true,
 
     async init(this: GamesIndexContext) {
@@ -69,10 +43,8 @@ export function gamesIndex() {
         this.activeRulesetKeys = sessions
           .map((session) => session.rulesetVersionKey)
           .filter((key) => key !== null);
-        this.activeSession = resumeTarget(sessions);
       } catch {
         this.activeRulesetKeys = [];
-        this.activeSession = null;
       } finally {
         this.sessionsLoading = false;
       }
