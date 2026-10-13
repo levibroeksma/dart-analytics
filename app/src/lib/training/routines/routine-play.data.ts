@@ -465,7 +465,7 @@ export function routinePlay() {
         finished: this.routineFinished,
         stepIndex: step ? this.steps.indexOf(step) : -1,
         stepCount: this.steps.length,
-        adapter: this.adapter,
+        adapter: (step && resolveStepAdapter(stepAdapterKey(step))) ?? null,
         stepRemaining: this.stepTimer ? this.formattedStepRemaining() : null,
         warmUpElapsed: this.formattedWarmUpElapsed(),
       });

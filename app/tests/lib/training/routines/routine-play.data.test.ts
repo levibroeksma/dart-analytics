@@ -649,6 +649,44 @@ describe("routinePlay", () => {
     store.stopSessionClock();
   });
 
+  it("the header names the next step while that step is still starting", async () => {
+    const nextStep = {
+      sequenceNumber: 2,
+      exerciseTypeKey: "SWITCHING",
+      exerciseRulesetVersionKey: "SWITCHING_V1",
+      gameTypeKey: null,
+      durationSeconds: 300,
+      configuration: {
+        targets: [20, 19, 18],
+        scoring: { single: 1, double: 2, treble: 3 },
+      },
+    };
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineTemplateId: "rt-1",
+      routineName: "Balanced Training",
+      steps: [STEPS[0], nextStep] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep)
+      .mockResolvedValueOnce(warmUpStepResponse())
+      .mockReturnValueOnce(new Promise(() => {}));
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(sessionApi.completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const store = makeStore();
+    await startRoutine(store);
+
+    await vi.advanceTimersByTimeAsync(600_000);
+
+    expect(store.adapter).toBeNull();
+    expect(store.headerTitle()).toBe("Switching");
+    expect(store.headerSubtitle()).toBe("STEP 2 OF 2");
+    store.stopSessionClock();
+  });
+
   it("plays a cue on every step change, and none when the first step opens", async () => {
     const nextStep = {
       sequenceNumber: 2,
@@ -895,6 +933,27 @@ describe("routinePlay — Switching", () => {
     expect(store.formattedStepRemaining()).toBe("4:41");
     vi.advanceTimersByTime(281_000);
     expect(store.formattedStepRemaining()).toBe("0:00");
+  });
+
+  it("the header clock counts the scored step down", async () => {
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineTemplateId: "rt-1",
+      routineName: "Balanced Training",
+      steps: [SWITCHING_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "SWITCHING",
+      configuration: SWITCHING_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+    const store = makeStore();
+    await startRoutine(store);
+    vi.advanceTimersByTime(19_000);
+    expect(store.headerClockLabel()).toBe("Step time remaining");
+    expect(store.headerClock()).toBe(store.formattedStepRemaining());
+    expect(store.headerClock()).toBe("4:41");
   });
 
   it("completeCurrentStep() stops the step timer", async () => {
