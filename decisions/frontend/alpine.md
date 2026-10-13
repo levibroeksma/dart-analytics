@@ -5,7 +5,7 @@ read-when: why an Alpine store/persist/recovery choice was made
 load-when: Alpine, stores, state, persist, recovery, x-data, x-show, outbox, x-init, idempotency, auth gate, session recovery
 depends-on: decisions/architecture.md, decisions/frontend/architecture.md
 related: decisions/frontend/astro.md, decisions/api.md
-updated: 2026-10-04
+updated: 2026-10-13
 -->
 
 | # | Source | Decision | Rationale |
@@ -261,3 +261,10 @@ Decision: `createSetupSession({ gameTypeKey, playHref })` (`lib/game/setup-sessi
 Reason: the fields and methods were byte-identical across five controllers and five context types, differing only in game key and play URL, so a fix to recovery had to land five times. `GameSetupPage` reads them, so a controller missing one broke the page silently.
 Consequences: no behaviour, store, API or markup change. `start()`, `init()`, `addGuest()`, `addBot()` and the opt-outs from `createPresetSetupController` stay as they were (D216); the `SESSION_ALREADY_ACTIVE` and `init()` catch blocks stay duplicated by design.
 Supersedes: none (extends D216).
+
+### D454 — The routine ready gate moves to routine start; exercise screens reuse game primitives
+Status: Accepted · Date: 2026-10-13
+Decision: a routine shows one `RoutineReadyGate` ("Are you ready?", one row per step) once per page load, before its first step, on a fresh start and on a resume alike. Its slide runs `confirmRoutineReady()`, which calls `unlockAudioCues()` inside the gesture and then starts the first step; no server step starts before it. Warm-Up's per-step gate (`warmUpReady`, `confirmWarmUpReady()`, "Let's play!") is removed and its timer starts with its step. The play page's `x-data="routinePlay()"` moves onto `GameLayout` (D432), so the header — title (Title Case step title), `STEP n OF m`, `HeaderClockPill` — reads page methods built by the pure `routineHeader()`; the store's `headerLabel` getter is removed (the adapter's `headerLabel` stays for stats and replay). Exercise screens reuse the game primitives through default-preserving optional props (`BoardInputPanel` `showExpr`/`undoDisabledExpr`, `VisitPreview` `labelled`, `PlayStatTile` `highlight`/`fit`, `RouteChips` `currentExpr`, `SlideToStart` `inline`, `DartBoard` `dimPathExpr`), and `ExerciseBoardInputPanel` is deleted.
+Reason: the gate lived on the Warm-Up step alone, yet since D278 one unlocked `AudioContext` serves every cue of the routine, so the unlock belongs to the routine's start rather than to one step kind; one gate also lists the whole session before it begins (`Exercise Play.dc.html` 2b). A second input panel duplicated `BoardInputPanel` apart from the `$store.game` gate; optional props with the old behaviour as default keep the 11 games' built `play` HTML byte-identical (parity diff passed) while the exercise screens follow `Exercise Play.dc.html`.
+Consequences: spec `docs/superpowers/specs/2026-10-13-exercise-play-restyle-design.md` (with its Amendments); `.astro` carries no unit test (D101), so the proof of "games unchanged" is the before/after built-HTML diff. The `Time` stat row of exercises is gone — the header pill carries the clock. The ready gate is per page load, not per routine run: a reload mid-routine shows it again before the open step resumes.
+Supersedes: D270 (the per-step Warm-Up gate; its audio-unlock reasoning stands and now applies once per routine).

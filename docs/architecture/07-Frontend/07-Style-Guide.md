@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/style-guide
 read-when: any UI/component work — tokens, primitives, typography, motion, accessibility
-updated: 2026-10-10
+updated: 2026-10-13
 -->
 
 # Frontend Style Guide
 
-> **Version:** 0.5.0 (2026-10-12 — arbitrary-value ban, role type bundles, layout utilities, D451; prior 0.4.1 was 2026-10-10 — resume deck, D442; prior 0.4.0 was 2026-10-08 — game play: play surfaces, key press, play header, stacked seats, D432; prior 0.3.1 was login, D431)
+> **Version:** 0.5.1 (2026-10-13 — routine play header, `highlight-glow`/`section-ring-inset`, D454; prior 0.5.0 was 2026-10-12 — arbitrary-value ban, role type bundles, layout utilities, D451; prior 0.4.1 was 2026-10-10 — resume deck, D442; prior 0.4.0 was 2026-10-08 — game play: play surfaces, key press, play header, stacked seats, D432; prior 0.3.1 was login, D431)
 >
 > Dark-only, mobile-first UI conventions: sky accent, glass/surface tokens, primitive class contracts, typography, spacing, motion, accessibility.
 >
@@ -110,6 +110,7 @@ Implement a reusable class contract once in `global.css` (`@utility` / `@layer c
 | `@utility start-bar-fade` | Bottom fade behind the fixed start bar so content scrolls under it (design 4d, D430, 2026-10-08) |
 | `.field-inset` / `.field-inset-error` | Inset text field with accent focus ring; `-error` adds a coral inset ring, and focus still wins (login, D431, 2026-10-08) |
 | `@utility glass-active-seat` / `input-well` / `key-press` / `next-dart-ring` / `target-key-ring` / `pip-on` / `board-dim` | Play screens: accent-tinted seat card; glass input panel well; accent inset ring on a pressed key; next-dart and doubles-target rings (each carries its own well background — never stack on `inset-well`); lit mark pip; dimmed board while pressing (design Game Play, D432, 2026-10-08) |
+| `@utility highlight-glow` / `section-ring-inset` | Warm-Up spotlight board: accent `drop-shadow` on the highlight outline; the inset (4.1667% = 220/240) that seats a board inside `SectionRing`; both registered in `merge-tokens.ts` (D454, 2026-10-13) |
 | `@utility stack-slab-1` / `stack-slab-2` / `border-medium` / `pt-safe` / `pb-safe` / `bottom-nav` / `bottom-above-nav` / `pb-nav` / `input-number-plain`; `grid-cols-mirror` / `grid-cols-scoreboard` | Card-stack slabs; 1.5px border; safe-area sheet padding; bottom-nav offset and clearance (`--nav-bottom`, `--nav-clearance`); bare number input; mirrored and scoreboard grids (D451, 2026-10-12) |
 
 **Dialogs** are component contracts, not CSS class primitives. Every dialog renders through `Modal.astro` — a bottom `glass-sheet` over `bg-scrim` with a grabber, a centred `font-display` title and an optional mono overline; actions go in `SheetActions` with `sheet-muted` on the left and `sheet-raised` on the right. `fixed inset-0` and `role="dialog"` are legal only in `app/src/components/ui/Modal.astro` (`scripts/check-style-tokens.sh`, D429). Mid-game sheets (exit, finish confirms, continue-session) carry an `InlayRow` context row from `$store.game.contextRow()`; a part with no data is dropped with its dot, never placeheld (D440, 2026-10-10).
@@ -151,7 +152,7 @@ Never set `height` (`h-full`, `h-2/5`) on an element that also has `flex-1`. `fl
 
 **Play-screen scoreboard band.** The region at the top of a play screen is `min-h-2/5 max-h-2/5` — 40% of the play area, the same whether one seat or two is showing. It is owned by the two shells, not by call sites: `SinglePlayerDisplay.astro` and `SplitScoreboard.astro` both apply it. `SplitScoreboard` stacks the seats inside it — the throwing seat's `glass-active-seat` card on top, the waiting seat's 64px row under it. A play screen passes no height class of its own (D327, D432, 2026-10-08).
 
-**Play header.** `GameLayout` renders a 56px `glass` pill (6px padding, `gap-2`): a 44px `inset-well-muted` exit, the `font-display` 14px title with an optional mono `text-eyebrow` subtitle, and the `header-end` slot in a 44px box. The play column below is padded `6px 16px 30px` with `gap-2`. A play page mounts its `x-data` on `<GameLayout>` so header expressions resolve in the play scope (D432, 2026-10-08).
+**Play header.** `GameLayout` renders a 56px `glass` pill (6px padding, `gap-2`): a 44px `inset-well-muted` exit, the `font-display` 14px title with an optional mono `text-eyebrow` subtitle, and the `header-end` slot in a 44px box. The play column below is padded `6px 16px 30px` with `gap-2`. A play page mounts its `x-data` on `<GameLayout>` so header expressions resolve in the play scope (D432, 2026-10-08). The routine play header (`/training/routines/play`) fills the same pill: the step's Title Case title over `STEP n OF m`, and a `HeaderClockPill` in `header-end` — a 44px `inset-well` mono readout with no control (step countdown, Warm-Up elapsed, absent on game steps, whose own countdown sits above the game). Behind the ready gate and after the last step the routine's name stands in, with `COMPLETE` once finished (D454, 2026-10-13).
 
 ---
 

@@ -2,7 +2,7 @@
 status: canonical
 scope: canonical file inventory — what each document answers
 read-when: a context pack demonstrably lacks the answer
-updated: 2026-10-10
+updated: 2026-10-13
 -->
 
 > Escalation target for `00-Context-Map.md`. Packs come first; open this
@@ -425,6 +425,17 @@ Registered for discoverability, not as reading material — the contract lives i
 | `app/src/components/ui/ExpandingModal.astro` | Corner `sheet-raised` toggle that opens a `Modal` bottom sheet; caller owns the open flag (2026-09-21; sheet, D429, 2026-10-08) | canonical |
 | `app/src/components/layout/training/routines/RoutineFormModal.astro` | `RoutineBuilder` in an `ExpandingModal` with its own `routineBuilder(mode)` scope — the modal form used by `/training` in place of a create/edit page (2026-09-21) | canonical |
 | `app/src/pages/training/routines/detail/index.astro`, `app/src/pages/training/routines/edit/index.astro`, `app/src/pages/training/routines/play/index.astro` | The three data-driven routine routes, all `prerender = true`, routine id via `?routine=` query string; replace the retired static `/training/balanced-training` pair (2026-09-19). The `new/` route was retired 2026-09-21 — creating a routine is `RoutineFormModal` on `/training` (D351's modal host), not a page |  canonical |
+
+## Exercise play restyle (2026-10-13)
+
+| File | Answers | Status |
+| ---- | ------- | ------ |
+| `app/src/components/layout/games/HeaderClockPill.astro` | Routine play header clock: 44px `inset-well` mono readout, no control (D454, 2026-10-13) | canonical |
+| `app/src/components/layout/training/routines/RoutineReadyGate.astro` | The routine's one "Are you ready?" gate: step list plus inline `SlideToStart`, the audio-unlock gesture (D454, 2026-10-13) | canonical |
+| `app/src/components/ui/SectionRing.astro` | Sectioned progress ring around a square board (Warm-Up spotlight; 2026-10-13) | canonical |
+| `app/src/lib/training/routines/routine-header.ts` | `routineHeader()` — pure header title / subtitle / clock for the routine play page (D454, 2026-10-13) | canonical |
+| `app/src/lib/training/routines/ready-gate.ts` | `readyGate()` — the ready gate's `n STEPS · m MIN` eyebrow and per-step rows (D454, 2026-10-13) | canonical |
+| `app/src/lib/training/routines/exercise-preview.ts` | `cycleFrom()` and the labelled `PreviewSegment` builders for the exercise visit strip (2026-10-13) | canonical |
 
 ## Routine step-kind generalisation (2026-09-20)
 
