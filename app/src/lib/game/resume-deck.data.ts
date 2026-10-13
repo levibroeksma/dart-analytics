@@ -1,4 +1,3 @@
-import { fetchActiveSessions } from "@client/api/sessions";
 import {
   GAME_CARDS,
   cardForRuleset,
@@ -111,7 +110,7 @@ export function toResumeCards(
  * Home resume-deck state: the player's active sessions as a stack of cards
  * with the top one resumable.
  *
- * Cards load once from the server and are overlaid with the local `game`
+ * Cards come from the shared `activeSessions` store and are overlaid with the local `game`
  * store's progress for the session it holds. The deck stays hidden until the
  * load settles, and a failed fetch or an empty result keeps it hidden.
  * `phase` drives the swap animation: `next()` sends the top card `out`, and
@@ -132,17 +131,14 @@ export function resumeDeck() {
 
     async init(this: ResumeDeckContext) {
       this.loading = true;
-      try {
-        this.cards = toResumeCards(
-          await fetchActiveSessions(),
-          this.$store.game,
-          new Date(),
-        );
-      } catch {
-        this.failed = true;
-      } finally {
-        this.loading = false;
-      }
+      await this.$store.activeSessions.load();
+      this.failed = this.$store.activeSessions.failed;
+      this.cards = toResumeCards(
+        this.$store.activeSessions.sessions,
+        this.$store.game,
+        new Date(),
+      );
+      this.loading = false;
     },
 
     top(this: ResumeDeckContext) {

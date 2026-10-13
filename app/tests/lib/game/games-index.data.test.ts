@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { gamesIndex } from "@lib/game/games-index.data";
 import type { GamesIndexContext } from "@lib/types";
 import * as sessionsApi from "@client/api/sessions";
+import { activeSessionsStore } from "@stores/active-sessions.store";
 
 vi.mock("@client/api/sessions");
 
@@ -39,6 +40,7 @@ describe("gamesIndex", () => {
     vi.clearAllMocks();
     store = {
       settings: { captureModeKey: "RECREATIONAL", inputModeKey: "QUICK_SCORE" },
+      activeSessions: activeSessionsStore(),
     };
   });
 
