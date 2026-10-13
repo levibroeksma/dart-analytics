@@ -107,6 +107,28 @@ describe("previewColumnState", () => {
       ]).some((column) => column.next),
     ).toBe(false);
   });
+
+  it("passes each label through and treats a value dart as filled", () => {
+    expect(
+      previewColumnState([
+        { status: "value", label: "S20" },
+        { status: "empty", label: "T19" },
+        { status: "empty", label: "T18" },
+      ]),
+    ).toEqual([
+      { status: "value", next: false, label: "S20" },
+      { status: "empty", next: true, label: "T19" },
+      { status: "empty", next: false, label: "T18" },
+    ]);
+  });
+
+  it("leaves label undefined when a segment has none", () => {
+    expect(previewColumnState([{ status: "hit" }])[0]).toEqual({
+      status: "hit",
+      next: false,
+      label: undefined,
+    });
+  });
 });
 
 describe("ringKeyActive", () => {

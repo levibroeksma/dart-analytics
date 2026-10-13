@@ -1,0 +1,66 @@
+---
+/**
+ * The exercise play screen's visit strip: one column per `previewSegments()`
+ * entry (any count) in a `glass` strip. Each column has an 18px header over a
+ * 6px bar. The header shows the dart's `label`, falling back to HIT / DART n;
+ * a `value` dart shows its label alone. Hit and value bars take accent, a
+ * miss white/22, the next dart `next-dart-ring`, any other empty dart a well.
+ * Rendered by `VisitPreview` when `labelled`.
+ */
+interface Props {
+  [key: string]: unknown;
+}
+
+// Props
+const { ...props }: Props = Astro.props;
+
+// Icons
+import CheckIcon from "@icons/check.svg";
+import CrossIcon from "@icons/cross.svg";
+---
+
+<div
+  class="glass grid shrink-0 gap-2 rounded-key px-4.5 py-3"
+  :style="`grid-template-columns: repeat(${previewSegments().length}, minmax(0, 1fr))`"
+  {...props}
+>
+  <template
+    x-for="(column, index) in $previewColumnState(previewSegments())"
+    :key="index"
+  >
+    <div class="flex min-w-0 flex-col items-center gap-1.5">
+      <div
+        class="flex h-4.5 items-center font-mono text-eyebrow font-semibold uppercase"
+      >
+        <template x-if="column.status === 'hit'">
+          <span class="flex items-center gap-1 text-accent">
+            <CheckIcon class="size-3.5" />
+            <span x-text="column.label ?? 'HIT'"></span>
+          </span>
+        </template>
+        <template x-if="column.status === 'value'">
+          <span
+            class="text-accent"
+            x-text="column.label"
+          ></span>
+        </template>
+        <template x-if="column.status === 'miss'">
+          <span class="flex items-center gap-1 text-muted">
+            <CrossIcon class="size-3" />
+            MISS
+          </span>
+        </template>
+        <template x-if="column.status === 'empty'">
+          <span
+            :class="column.next ? 'text-soft-foreground' : 'text-faint-foreground'"
+            x-text="column.label ?? 'DART ' + (index + 1)"
+          ></span>
+        </template>
+      </div>
+      <span
+        class="h-1.5 w-full rounded-full"
+        :class="column.status === 'hit' || column.status === 'value' ? 'bg-accent' : column.status === 'miss' ? 'bg-white/22' : column.next ? 'next-dart-ring' : 'inset-well'"
+      ></span>
+    </div>
+  </template>
+</div>

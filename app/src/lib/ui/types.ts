@@ -4,11 +4,15 @@ export type SliderTick = { fraction: number; major: boolean };
 /** One `LegBars` pill: a leg already won, or one still to win. */
 export type LegBarState = "won" | "open";
 
-/** A dart slot's outcome in the visit strip. */
-export type PreviewStatus = "hit" | "miss" | "empty";
+/** A dart slot's outcome in the visit strip; `value` is a filled dart carrying a label. */
+export type PreviewStatus = "hit" | "miss" | "value" | "empty";
 
 /** One visit-strip column; `next` marks the dart about to be thrown. */
-export type PreviewColumn = { status: PreviewStatus; next: boolean };
+export type PreviewColumn = {
+  status: PreviewStatus;
+  next: boolean;
+  label?: string;
+};
 
 /** The ring armed on the Cricket / Tactics tap input. */
 export type TapRing = "SINGLE" | "DOUBLE" | "TREBLE";

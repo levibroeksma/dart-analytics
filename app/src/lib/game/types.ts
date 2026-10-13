@@ -160,7 +160,14 @@ export type BoardView = {
   pxPerMm: number;
 };
 
-export type PreviewSegment = { status: "hit" | "miss" | "empty" };
+/** One dart slot of a visit preview; `label` replaces the HIT / MISS / DART n caption (exercise previews only). */
+export type PreviewSegment = {
+  status: "hit" | "miss" | "value" | "empty";
+  label?: string;
+};
+
+/** The dart slot a game's 3-dart strip carries: no labels, no `value` darts. */
+export type GamePreviewSegment = { status: "hit" | "miss" | "empty" };
 
 /** One landed dart, positioned as a percentage of the board's rendered box. */
 export type BoardMarker = {

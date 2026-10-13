@@ -28,10 +28,10 @@ import type {
   BotDartThrower,
   BotQuickScoreFold,
   BotQuickScoreThrower,
+  GamePreviewSegment,
   PlayAgainOverrides,
   PlayLifecycleContext,
   PlayStoreContext,
-  PreviewSegment,
 } from "./types";
 
 function currentFacts<
@@ -402,7 +402,7 @@ export function playVisitMarkers<
   return markersForTurns(context.$store.game.turns);
 }
 
-const EMPTY_PREVIEW_SEGMENTS: readonly PreviewSegment[] = [
+const EMPTY_PREVIEW_SEGMENTS: readonly GamePreviewSegment[] = [
   { status: "empty" },
   { status: "empty" },
   { status: "empty" },
@@ -420,7 +420,7 @@ export function playPreviewSegments(
   turns: readonly TurnFact[],
   hiddenTurnKey: string | null,
   classify: (dart: DartFact, index: number) => "hit" | "miss",
-): PreviewSegment[] {
+): GamePreviewSegment[] {
   const lastTurn = turns.at(-1);
   if (!lastTurn || lastTurn.clientKey === hiddenTurnKey) {
     return [...EMPTY_PREVIEW_SEGMENTS];

@@ -1,7 +1,7 @@
 import { BULL_TARGET_NUMBER } from "@modules/game/board-progression.module";
 import { playPreviewSegments } from "@lib/game/play-lifecycle";
 import type { BoardTarget, DartObservation, TurnFact } from "@modules/types";
-import type { PreviewSegment } from "@lib/types";
+import type { GamePreviewSegment } from "@lib/types";
 
 /** Shared by Bob's 27 and Doubles Training — both walk the same
  * BULL-terminated numeric doubles path (`doublesPath()`). */
@@ -12,7 +12,7 @@ export function doublesPathTargetLabel(target: BoardTarget): string {
 export function doublesPathPreviewSegments(
   turns: readonly TurnFact[],
   hiddenTurnKey: string | null,
-): PreviewSegment[] {
+): GamePreviewSegment[] {
   return playPreviewSegments(turns, hiddenTurnKey, (dart) =>
     dart.hitTargetNumber === dart.intendedTargetNumber &&
     dart.hitZoneKey === dart.intendedZoneKey

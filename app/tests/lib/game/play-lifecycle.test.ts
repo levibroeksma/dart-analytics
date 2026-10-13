@@ -2002,6 +2002,17 @@ describe("playPreviewSegments", () => {
     });
     expect(seenIndexes).toEqual([0, 1, 2]);
   });
+
+  it("keeps the game strip label-free: no segment carries a label or a value status", () => {
+    const turns = [turnWithDarts("t1", [DART, DART])];
+    const segments = playPreviewSegments(turns, null, () => "hit");
+    expect(segments.every((segment) => !("label" in segment))).toBe(true);
+    expect(segments.map((segment) => segment.status)).toEqual([
+      "hit",
+      "hit",
+      "empty",
+    ]);
+  });
 });
 
 describe("resumeGameEngine", () => {
