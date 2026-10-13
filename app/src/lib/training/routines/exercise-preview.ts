@@ -1,7 +1,145 @@
 import { dartLabel } from "@modules/stats/sections/checkout-path.module";
 import type { DartFact, TurnFact } from "@modules/types";
 import type { PreviewSegment } from "@lib/types";
-import type { DartJudgement } from "./types";
+import {
+  targetScoringPoints,
+  targetScoringTargetLabel,
+} from "@modules/training/exercises/target-scoring.engine.module";
+import type {
+  DoublePatternConfigData,
+  SwitchingConfigData,
+  SwitchingTargetScoringConfigData,
+} from "@lib/types";
+import type {
+  DartJudgement,
+  ExerciseEngineSlots,
+  ExercisePreviewFamily,
+  VisitLabelInput,
+} from "./types";
+
+type Captions = (string | undefined)[];
+
+const ENGINE_FAMILIES: readonly [
+  keyof ExerciseEngineSlots,
+  ExercisePreviewFamily,
+][] = [
+  ["switchingEngine", "switching"],
+  ["doublePatternEngine", "doublePattern"],
+  ["targetScoringEngine", "targetScoring"],
+  ["switchingTargetScoringEngine", "switchingTargetScoring"],
+  ["scoreThresholdEngine", "freeAim"],
+  ["checkoutSequenceEngine", "freeAim"],
+  ["randomCheckoutEngine", "freeAim"],
+  ["bullseyeCheckoutEngine", "bullseye"],
+];
+
+/** The preview family of whichever exercise engine is open, or null. */
+export function exerciseFamily(
+  engines: ExerciseEngineSlots,
+): ExercisePreviewFamily | null {
+  return ENGINE_FAMILIES.find(([slot]) => engines[slot] !== null)?.[1] ?? null;
+}
+
+function judgeOnTarget(dart: DartFact): DartJudgement {
+  return dart.hitTargetNumber === dart.intendedTargetNumber ? "hit" : "miss";
+}
+
+function judgeDouble(dart: DartFact): DartJudgement {
+  return judgeOnTarget(dart) === "hit" && dart.hitZoneKey === "DOUBLE"
+    ? "hit"
+    : "miss";
+}
+
+function judgeTargetScoring(dart: DartFact): DartJudgement {
+  const scored =
+    dart.intendedTargetNumber !== null &&
+    targetScoringPoints(dart.intendedTargetNumber, dart) !== null;
+  return scored ? "hit" : "miss";
+}
+
+function judgeFreeAim(dart: DartFact): DartJudgement {
+  return dart.hitTargetNumber !== null ? "value" : "miss";
+}
+
+function judgeBullseye(dart: DartFact): DartJudgement {
+  if (dart.intendedZoneKey !== "INNER_BULL") return judgeFreeAim(dart);
+  return dart.hitZoneKey === "INNER_BULL" ? "hit" : "miss";
+}
+
+const JUDGES: Record<ExercisePreviewFamily, (dart: DartFact) => DartJudgement> =
+  {
+    switching: judgeOnTarget,
+    doublePattern: judgeDouble,
+    targetScoring: judgeTargetScoring,
+    switchingTargetScoring: judgeTargetScoring,
+    freeAim: judgeFreeAim,
+    bullseye: judgeBullseye,
+  };
+
+/**
+ * Hit, miss or free-aim value for one dart. Each dart carries the target it
+ * was thrown at, so no config lookup is needed; Double Pattern additionally
+ * requires the double, both Target Scoring exercises share their ring rule
+ * (a double is a miss), free-aim exercises have no target (a dart on the
+ * board is a value), and Bullseye Checkouts judges setup darts as free aim
+ * and the dart aimed at the bull as a hit only on the bullseye.
+ */
+export function judgeDart(
+  family: ExercisePreviewFamily,
+  dart: DartFact,
+): DartJudgement {
+  return JUDGES[family](dart);
+}
+
+function noCaptions(): Captions {
+  return [undefined, undefined, undefined];
+}
+
+function switchingCaptions(input: VisitLabelInput): Captions {
+  const config = input.config as SwitchingConfigData | null;
+  return config?.targets.map(String) ?? noCaptions();
+}
+
+function doublePatternCaptions(input: VisitLabelInput): Captions {
+  const patterns = (input.config as DoublePatternConfigData | null)?.patterns;
+  if (!patterns?.length) return noCaptions();
+  return patterns[input.visitIndex % patterns.length].map((n) => `D${n}`);
+}
+
+function targetScoringCaptions(input: VisitLabelInput): Captions {
+  if (input.currentTargetNumber === undefined) return noCaptions();
+  const label = targetScoringTargetLabel(input.currentTargetNumber);
+  return [label, label, label];
+}
+
+function switchingTargetScoringCaptions(input: VisitLabelInput): Captions {
+  const config = input.config as SwitchingTargetScoringConfigData | null;
+  if (!config) return noCaptions();
+  const start = input.targetIndex - input.dartsInOpenVisit;
+  return cycleFrom(config.targets, start, 3).map(targetScoringTargetLabel);
+}
+
+const CAPTIONS: Partial<
+  Record<ExercisePreviewFamily, (input: VisitLabelInput) => Captions>
+> = {
+  switching: switchingCaptions,
+  doublePattern: doublePatternCaptions,
+  targetScoring: targetScoringCaptions,
+  switchingTargetScoring: switchingTargetScoringCaptions,
+};
+
+/**
+ * One caption per dart slot of the latest visit: the target that slot is
+ * thrown at, or `undefined` where the exercise has none (the slot then reads
+ * as its dart number).
+ */
+export function visitLabelsFor(
+  family: ExercisePreviewFamily | null,
+  input: VisitLabelInput,
+): Captions {
+  const captions = family ? CAPTIONS[family] : undefined;
+  return captions ? captions(input) : noCaptions();
+}
 
 /** `length` items of `items` from `start`, wrapping both ways. */
 export function cycleFrom<T>(

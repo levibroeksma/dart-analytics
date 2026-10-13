@@ -23,7 +23,13 @@ import {
   stepAdapterKey,
   resolveStepAdapter,
 } from "./adapters/step-adapter.registry";
-import { bullUpPreview, cycleFrom, visitPreview } from "./exercise-preview";
+import {
+  bullUpPreview,
+  exerciseFamily,
+  judgeDart,
+  visitLabelsFor,
+  visitPreview,
+} from "./exercise-preview";
 import { routineIdFromLocation } from "./routine-route";
 import { readyGate } from "./ready-gate";
 import { routineHeader } from "./routine-header";
@@ -61,7 +67,6 @@ import type {
 import type { SwitchingEngine } from "@modules/training/exercises/switching.engine.module";
 import type { DoublePatternEngine } from "@modules/training/exercises/double-pattern.engine.module";
 import {
-  targetScoringPoints,
   targetScoringTargetLabel,
   type TargetScoringEngine,
 } from "@modules/training/exercises/target-scoring.engine.module";
@@ -227,85 +232,27 @@ export function routinePlay() {
       });
     },
 
-    /**
-     * Hit, miss or free-aim value for one dart. Each dart carries the target
-     * it was thrown at (`intendedTargetNumber`), so no config lookup is
-     * needed; Double Pattern additionally requires the double, since nothing
-     * else scores under `DOUBLE_PATTERN_V1`, and both Target Scoring
-     * exercises defer to their shared ring rule (a double is a miss). 65 or
-     * More, Catch 40 and Random Checkout have no target: a dart on the board
-     * is a value, off it a miss. Bullseye Checkouts: setup darts as 65 or
-     * More; the dart aimed at the bull is a hit only on the bullseye.
-     */
+    /** Hit, miss or free-aim value for one dart (`judgeDart()`). */
     judgeExerciseDart(this: RoutinePlayContext, dart: DartFact): DartJudgement {
-      if (this.bullseyeCheckoutEngine) {
-        if (dart.intendedZoneKey === "INNER_BULL") {
-          return dart.hitZoneKey === "INNER_BULL" ? "hit" : "miss";
-        }
-        return dart.hitTargetNumber !== null ? "value" : "miss";
-      }
-      if (
-        this.scoreThresholdEngine ||
-        this.checkoutSequenceEngine ||
-        this.randomCheckoutEngine
-      ) {
-        return dart.hitTargetNumber !== null ? "value" : "miss";
-      }
-      if (this.targetScoringEngine || this.switchingTargetScoringEngine) {
-        return dart.intendedTargetNumber !== null &&
-          targetScoringPoints(dart.intendedTargetNumber, dart) !== null
-          ? "hit"
-          : "miss";
-      }
-      const requireDouble = this.doublePatternEngine !== null;
-      return dart.hitTargetNumber === dart.intendedTargetNumber &&
-        (!requireDouble || dart.hitZoneKey === "DOUBLE")
-        ? "hit"
-        : "miss";
+      return judgeDart(exerciseFamily(this) ?? "switching", dart);
     },
 
-    /**
-     * One caption per dart slot of the latest visit: the target that slot is
-     * thrown at, or `undefined` where the exercise has none (the slot then
-     * reads as its dart number).
-     */
+    /** One caption per dart slot of the latest visit (`visitLabelsFor()`). */
     exerciseVisitLabels(
       this: RoutinePlayContext,
       visitIndex: number,
     ): (string | undefined)[] {
-      const none = [undefined, undefined, undefined];
-      if (this.switchingEngine) {
-        const config = this.stepConfiguration as SwitchingConfigData | null;
-        return config?.targets.map(String) ?? none;
-      }
-      if (this.doublePatternEngine) {
-        const patterns = (
-          this.stepConfiguration as DoublePatternConfigData | null
-        )?.patterns;
-        if (!patterns?.length) return none;
-        return patterns[visitIndex % patterns.length].map((n) => `D${n}`);
-      }
-      if (this.targetScoringEngine) {
-        const label = targetScoringTargetLabel(
-          this.targetScoringEngine.state().currentTargetNumber,
-        );
-        return [label, label, label];
-      }
-      if (this.switchingTargetScoringEngine) {
-        const config = this
-          .stepConfiguration as SwitchingTargetScoringConfigData | null;
-        if (!config) return none;
-        const dartsInOpenVisit =
-          this.switchingTargetScoringEngine.facts().turns.at(-1)?.darts
-            .length ?? 0;
-        return cycleFrom(
-          config.targets,
-          this.switchingTargetScoringEngine.state().targetIndex -
-            dartsInOpenVisit,
-          3,
-        ).map(targetScoringTargetLabel);
-      }
-      return none;
+      const progress = (
+        this.targetScoringEngine ?? this.switchingTargetScoringEngine
+      )?.state();
+      return visitLabelsFor(exerciseFamily(this), {
+        config: this.stepConfiguration,
+        visitIndex,
+        currentTargetNumber: progress?.currentTargetNumber,
+        targetIndex: progress?.targetIndex ?? 0,
+        dartsInOpenVisit:
+          this.activeDartEngine()?.facts().turns.at(-1)?.darts.length ?? 0,
+      });
     },
 
     /** The Switching step's targets, in throw order. */

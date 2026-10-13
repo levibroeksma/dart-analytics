@@ -1498,6 +1498,32 @@ describe("routinePlay — Switching Target Scoring", () => {
     expect(store.switchingTargetScoringMarkToBeat()).toBe(4);
   });
 
+  it("exerciseVisitLabels() re-aims the open visit's empty slot after a mid-visit miss", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+    expect(store.exerciseVisitLabels(0)).toEqual(["20", "19", "Bull"]);
+
+    store.recordSwitchingTargetScoringDart({
+      hitTargetNumber: 20,
+      hitZoneKey: "TREBLE",
+      locationX: 0,
+      locationY: -100,
+    });
+    store.recordSwitchingTargetScoringDart({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+
+    expect(store.exerciseVisitLabels(0)[2]).toBe("20");
+    expect(
+      store.judgeExerciseDart(
+        store.activeDartEngine()!.facts().turns[0].darts[0],
+      ),
+    ).toBe("hit");
+  });
+
   it("switchingTargetScoringSequence() lists the step's targets, the bull as Bull", async () => {
     const store = makeStore();
     expect(store.switchingTargetScoringSequence()).toBe("");

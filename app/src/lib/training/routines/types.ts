@@ -35,6 +35,37 @@ export * from "./adapters/types";
 /** How a thrown exercise dart reads in the visit preview. */
 export type DartJudgement = "hit" | "miss" | "value";
 
+/** The preview rules an exercise follows: how its darts are judged and its empty slots captioned. */
+export type ExercisePreviewFamily =
+  | "switching"
+  | "doublePattern"
+  | "targetScoring"
+  | "switchingTargetScoring"
+  | "freeAim"
+  | "bullseye";
+
+/** The engine slots `exerciseFamily()` reads. */
+export type ExerciseEngineSlots = Pick<
+  RoutinePlayContext,
+  | "switchingEngine"
+  | "doublePatternEngine"
+  | "targetScoringEngine"
+  | "switchingTargetScoringEngine"
+  | "scoreThresholdEngine"
+  | "bullseyeCheckoutEngine"
+  | "checkoutSequenceEngine"
+  | "randomCheckoutEngine"
+>;
+
+/** What `visitLabelsFor()` reads: the step's configuration and where the visit stands. */
+export type VisitLabelInput = {
+  config: Record<string, unknown> | null;
+  visitIndex: number;
+  currentTargetNumber: number | undefined;
+  targetIndex: number;
+  dartsInOpenVisit: number;
+};
+
 export type TrainingStepResolved = StartTrainingResponseData["steps"][number];
 
 export type BlockingSession = {

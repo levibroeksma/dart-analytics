@@ -3,6 +3,9 @@ import {
   visitPreview,
   bullUpPreview,
   cycleFrom,
+  exerciseFamily,
+  judgeDart,
+  visitLabelsFor,
 } from "@lib/training/routines/exercise-preview";
 import type { DartFact, TurnFact } from "@modules/types";
 
@@ -150,5 +153,185 @@ describe("cycleFrom", () => {
 
   it("wraps a negative start", () => {
     expect(cycleFrom([20, 19, 18], -1, 2)).toEqual([18, 20]);
+  });
+});
+
+describe("exerciseFamily", () => {
+  const none = {
+    switchingEngine: null,
+    doublePatternEngine: null,
+    targetScoringEngine: null,
+    switchingTargetScoringEngine: null,
+    scoreThresholdEngine: null,
+    bullseyeCheckoutEngine: null,
+    checkoutSequenceEngine: null,
+    randomCheckoutEngine: null,
+  };
+  const engine = {} as never;
+
+  it("is null while no exercise engine is open", () => {
+    expect(exerciseFamily(none)).toBeNull();
+  });
+
+  it.each([
+    ["switchingEngine", "switching"],
+    ["doublePatternEngine", "doublePattern"],
+    ["targetScoringEngine", "targetScoring"],
+    ["switchingTargetScoringEngine", "switchingTargetScoring"],
+    ["scoreThresholdEngine", "freeAim"],
+    ["checkoutSequenceEngine", "freeAim"],
+    ["randomCheckoutEngine", "freeAim"],
+    ["bullseyeCheckoutEngine", "bullseye"],
+  ] as const)("maps %s to %s", (key, family) => {
+    expect(exerciseFamily({ ...none, [key]: engine })).toBe(family);
+  });
+});
+
+describe("judgeDart", () => {
+  const onBoard = dart({ hitTargetNumber: 20, hitZoneKey: "SINGLE" });
+  const off = dart({ hitTargetNumber: null, hitZoneKey: "MISS" });
+
+  it("switching: a hit is the intended number", () => {
+    expect(judgeDart("switching", dart({ intendedTargetNumber: 20 }))).toBe(
+      "hit",
+    );
+    expect(judgeDart("switching", dart({ intendedTargetNumber: 19 }))).toBe(
+      "miss",
+    );
+  });
+
+  it("doublePattern: only the intended double is a hit", () => {
+    const double = dart({
+      intendedTargetNumber: 20,
+      hitZoneKey: "DOUBLE",
+    });
+    expect(judgeDart("doublePattern", double)).toBe("hit");
+    expect(
+      judgeDart(
+        "doublePattern",
+        dart({ intendedTargetNumber: 20, hitZoneKey: "SINGLE" }),
+      ),
+    ).toBe("miss");
+  });
+
+  it("targetScoring: the target's own ring scores, a double is a miss", () => {
+    expect(
+      judgeDart(
+        "targetScoring",
+        dart({ intendedTargetNumber: 20, hitZoneKey: "TREBLE" }),
+      ),
+    ).toBe("hit");
+    expect(
+      judgeDart(
+        "targetScoring",
+        dart({ intendedTargetNumber: 20, hitZoneKey: "DOUBLE" }),
+      ),
+    ).toBe("miss");
+    expect(judgeDart("targetScoring", dart())).toBe("miss");
+  });
+
+  it("switchingTargetScoring: judged as targetScoring", () => {
+    const treble = dart({ intendedTargetNumber: 20, hitZoneKey: "TREBLE" });
+    const double = dart({ intendedTargetNumber: 20, hitZoneKey: "DOUBLE" });
+    expect(judgeDart("switchingTargetScoring", treble)).toBe("hit");
+    expect(judgeDart("switchingTargetScoring", double)).toBe("miss");
+  });
+
+  it("freeAim: a dart on the board is a value, off it a miss", () => {
+    expect(judgeDart("freeAim", onBoard)).toBe("value");
+    expect(judgeDart("freeAim", off)).toBe("miss");
+  });
+
+  it("bullseye: setup darts are values, the bull-aimed dart hits only the bullseye", () => {
+    expect(judgeDart("bullseye", onBoard)).toBe("value");
+    expect(judgeDart("bullseye", off)).toBe("miss");
+    const aimed = { intendedZoneKey: "INNER_BULL" } as const;
+    expect(
+      judgeDart("bullseye", dart({ ...aimed, hitZoneKey: "INNER_BULL" })),
+    ).toBe("hit");
+    expect(
+      judgeDart("bullseye", dart({ ...aimed, hitZoneKey: "OUTER_BULL" })),
+    ).toBe("miss");
+  });
+});
+
+describe("visitLabelsFor", () => {
+  const base = {
+    config: null,
+    visitIndex: 0,
+    currentTargetNumber: undefined,
+    targetIndex: 0,
+    dartsInOpenVisit: 0,
+  };
+
+  it("has no captions without a family, or for free-aim and bullseye", () => {
+    const blank = [undefined, undefined, undefined];
+    expect(visitLabelsFor(null, base)).toEqual(blank);
+    expect(visitLabelsFor("freeAim", base)).toEqual(blank);
+    expect(visitLabelsFor("bullseye", base)).toEqual(blank);
+  });
+
+  it("switching: one caption per target; none without a config", () => {
+    expect(
+      visitLabelsFor("switching", {
+        ...base,
+        config: { targets: [20, 19, 25] },
+      }),
+    ).toEqual(["20", "19", "25"]);
+    expect(visitLabelsFor("switching", base)).toEqual([
+      undefined,
+      undefined,
+      undefined,
+    ]);
+  });
+
+  it("doublePattern: the visit's own pattern, cycling", () => {
+    const config = {
+      patterns: [
+        [16, 8],
+        [20, 10, 5],
+      ],
+    };
+    const labels = (visitIndex: number) =>
+      visitLabelsFor("doublePattern", { ...base, config, visitIndex });
+    expect(labels(0)).toEqual(["D16", "D8"]);
+    expect(labels(1)).toEqual(["D20", "D10", "D5"]);
+    expect(labels(2)).toEqual(["D16", "D8"]);
+    expect(visitLabelsFor("doublePattern", base)).toEqual([
+      undefined,
+      undefined,
+      undefined,
+    ]);
+    expect(
+      visitLabelsFor("doublePattern", { ...base, config: { patterns: [] } }),
+    ).toEqual([undefined, undefined, undefined]);
+  });
+
+  it("targetScoring: three captions of the current target, the bull as Bull", () => {
+    expect(
+      visitLabelsFor("targetScoring", { ...base, currentTargetNumber: 25 }),
+    ).toEqual(["Bull", "Bull", "Bull"]);
+    expect(
+      visitLabelsFor("targetScoring", { ...base, currentTargetNumber: 19 }),
+    ).toEqual(["19", "19", "19"]);
+  });
+
+  it("switchingTargetScoring: the sequence cycles from the open visit's first target", () => {
+    const config = { targets: [20, 19, 25] };
+    const labels = (targetIndex: number, dartsInOpenVisit: number) =>
+      visitLabelsFor("switchingTargetScoring", {
+        ...base,
+        config,
+        targetIndex,
+        dartsInOpenVisit,
+      });
+    expect(labels(0, 0)).toEqual(["20", "19", "Bull"]);
+    expect(labels(1, 1)).toEqual(["20", "19", "Bull"]);
+    expect(labels(0, 2)).toEqual(["19", "Bull", "20"]);
+    expect(visitLabelsFor("switchingTargetScoring", base)).toEqual([
+      undefined,
+      undefined,
+      undefined,
+    ]);
   });
 });
