@@ -29,6 +29,7 @@ import {
   judgeDart,
   visitLabelsFor,
   visitPreview,
+  windowPage,
 } from "./exercise-preview";
 import { routineIdFromLocation } from "./routine-route";
 import { readyGate } from "./ready-gate";
@@ -255,10 +256,12 @@ export function routinePlay() {
       });
     },
 
-    /** The Switching step's targets, in throw order. */
+    /** The Switching step's targets, in throw order, paged around the current one (`windowPage`). */
     switchingSequence(this: RoutinePlayContext): string {
       const config = this.stepConfiguration as SwitchingConfigData | null;
-      return config?.targets.map(String).join(" ") ?? "";
+      if (!config) return "";
+      const index = this.switchingEngine?.state().targetIndex ?? 0;
+      return windowPage(config.targets, index).map(String).join(" ");
     },
 
     /** The doubles of Double Pattern's current pattern. */
