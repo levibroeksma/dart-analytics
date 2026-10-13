@@ -318,6 +318,42 @@ describe("routinePlay", () => {
     expect(store.confirmingReady).toBe(false);
   });
 
+  it("a failed first step keeps the gate up, and a second confirm retries it", async () => {
+    const store = makeStore();
+    vi.mocked(trainingApi.startTraining).mockResolvedValue(twoStepRoutine());
+    vi.mocked(trainingApi.startTrainingStep)
+      .mockRejectedValueOnce(new Error("offline"))
+      .mockResolvedValueOnce(warmUpStepResponse());
+    await startRoutine(store);
+    expect(store.routineReady).toBe(false);
+    expect(store.error).not.toBe("");
+    await store.confirmRoutineReady();
+    expect(trainingApi.startTrainingStep).toHaveBeenCalledTimes(2);
+    expect(store.routineReady).toBe(true);
+    expect(store.error).toBe("");
+  });
+
+  it("the gate stays up while the first step is starting", async () => {
+    const store = makeStore();
+    vi.mocked(trainingApi.startTraining).mockResolvedValue(twoStepRoutine());
+    let resolveStart: (
+      value: ReturnType<typeof warmUpStepResponse>,
+    ) => void = () => {};
+    vi.mocked(trainingApi.startTrainingStep).mockReturnValue(
+      new Promise((resolve) => {
+        resolveStart = resolve;
+      }),
+    );
+    await store.init();
+    const confirming = store.confirmRoutineReady();
+    expect(store.routineReady).toBe(false);
+    expect(store.confirmingReady).toBe(true);
+    resolveStart(warmUpStepResponse());
+    await confirming;
+    expect(store.routineReady).toBe(true);
+    expect(store.warmUpEngine).not.toBeNull();
+  });
+
   it("a resumed routine shows the gate, then starts the step it stands on", async () => {
     const store = makeStore();
     vi.mocked(trainingApi.startTrainingStep).mockResolvedValue(
@@ -2388,6 +2424,29 @@ describe("routinePlay — Finishing", () => {
     });
     expect(store.error).toBe("");
     expect(store.currentStep()?.exerciseTypeKey).toBe("GAME");
+  });
+
+  it("a blocked first step passes the gate so the blocking modal shows", async () => {
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineTemplateId: "rt-1",
+      routineName: "Balanced Training",
+      steps: [GAME_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockRejectedValueOnce(
+      Object.assign(new Error("Session already active"), {
+        code: "SESSION_ALREADY_ACTIVE",
+        details: {
+          sessionId: "blocker-1",
+          startedAt: "2026-09-14T19:05:00Z",
+        },
+      }),
+    );
+    const store = makeStore();
+    await startRoutine(store);
+    expect(store.blockingSession?.sessionId).toBe("blocker-1");
+    expect(store.routineReady).toBe(true);
+    expect(store.error).toBe("");
   });
 
   describe("an open routine already exists", () => {

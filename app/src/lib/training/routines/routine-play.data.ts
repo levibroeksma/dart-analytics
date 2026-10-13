@@ -347,15 +347,18 @@ export function routinePlay() {
      * what lets `unlockAudioCues()` unlock the `AudioContext` — every later
      * cue (step change, Warm-Up section beeps, countdown end) plays from a
      * timer, which alone can never satisfy browser autoplay policy. No
-     * server step starts before this, so the gate costs no step time.
+     * server step starts before this, so the gate costs no step time. The
+     * gate stays up until the step has started, so a failed start leaves
+     * the slide there to retry.
      */
     async confirmRoutineReady(this: RoutinePlayContext) {
       if (this.routineReady || this.confirmingReady) return;
       this.confirmingReady = true;
+      this.error = "";
       unlockAudioCues();
-      this.routineReady = true;
       try {
         await this.startCurrentStep();
+        this.routineReady = true;
       } catch (err: unknown) {
         this.error = routineStartErrorMessage(err);
       } finally {
