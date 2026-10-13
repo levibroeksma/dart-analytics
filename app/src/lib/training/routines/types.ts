@@ -24,7 +24,7 @@ import type { BullUpEngine } from "@modules/training/exercises/bull-up.engine.mo
 import type { CheckoutSequenceEngine } from "@modules/training/exercises/checkout-sequence.engine.module";
 import type { RandomCheckoutEngine } from "@modules/training/exercises/random-checkout.engine.module";
 import type { DartFact, DartObservation } from "@modules/types";
-import type { BoardMarker, PreviewSegment } from "@lib/types";
+import type { BoardMarker, PreviewSegment, SectionRingPaths } from "@lib/types";
 import type { gameStep } from "./game-step.data";
 import type { StepAdapter } from "./adapters/interfaces";
 import type { trainingSessionStore } from "@stores/training-session.store";
@@ -150,6 +150,10 @@ export type RoutinePlayContext = {
   ): void;
   formattedWarmUpElapsed(this: RoutinePlayContext): string;
   warmUpHighlightPath(this: RoutinePlayContext): string;
+  warmUpDimPath(this: RoutinePlayContext): string;
+  warmUpRing(this: RoutinePlayContext): SectionRingPaths;
+  warmUpRingTrack(this: RoutinePlayContext): string;
+  warmUpRingFill(this: RoutinePlayContext): string;
   startStepTimer(this: RoutinePlayContext, durationSeconds: number): void;
   formattedStepRemaining(this: RoutinePlayContext): string;
   switchingPoints(this: RoutinePlayContext): number;

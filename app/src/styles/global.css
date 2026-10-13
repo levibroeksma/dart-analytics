@@ -659,6 +659,16 @@
   filter: saturate(0.55) brightness(0.75);
 }
 
+@utility highlight-glow {
+  filter: drop-shadow(
+    0 0 6px color-mix(in oklch, var(--accent) 70%, transparent)
+  );
+}
+
+@utility section-ring-inset {
+  inset: 4.1667%;
+}
+
 @utility glass-pill {
   @apply border-x-0 border-y backdrop-blur-sm;
   background:

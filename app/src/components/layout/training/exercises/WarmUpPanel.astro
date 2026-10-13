@@ -1,15 +1,27 @@
 ---
+/**
+ * Warm-Up play (design `Exercise Play.dc.html` 3a): the board fills the
+ * play column inside an `input-well`, dimmed outside the running section
+ * and outlined around it, with a `SectionRing` filling over the run. No
+ * dart input. Elapsed time is the header clock pill; the ready gate is
+ * the routine's (`RoutineReadyGate`).
+ */
+
+// Components
 import DartBoard from "@components/ui/DartBoard.astro";
+import SectionRing from "@components/ui/SectionRing.astro";
 ---
 
-<div class="flex flex-1 min-h-0 flex-col items-center justify-center gap-4 p-4">
-  <p
-    class="text-2xl font-semibold text-foreground tabular-nums"
-    x-text="formattedWarmUpElapsed()"
-  >
-  </p>
-  <DartBoard
-    highlightPathExpr="warmUpHighlightPath()"
-    class="max-w-xs"
-  />
+<div class="input-well flex flex-col items-center">
+  <div class="flex min-h-0 w-full flex-1 items-center justify-center">
+    <SectionRing
+      trackExpr="warmUpRingTrack()"
+      fillExpr="warmUpRingFill()"
+    >
+      <DartBoard
+        dimPathExpr="warmUpDimPath()"
+        highlightPathExpr="warmUpHighlightPath()"
+      />
+    </SectionRing>
+  </div>
 </div>

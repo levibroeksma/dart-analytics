@@ -417,6 +417,29 @@ describe("routinePlay", () => {
     expect(store.formattedWarmUpElapsed()).toBe("1:05");
   });
 
+  it("warmUpDimPath() and the ring follow the running Warm-Up", async () => {
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineTemplateId: "rt-1",
+      routineName: "Balanced Training",
+      steps: STEPS as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "WARM_UP",
+      configuration: STEPS[0].configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+    const store = makeStore();
+    expect(store.warmUpDimPath()).toBe("");
+    expect(store.warmUpRingTrack()).toBe("");
+    await startRoutine(store);
+    vi.advanceTimersByTime(1_000);
+    expect(store.warmUpDimPath()).toContain(store.warmUpHighlightPath());
+    expect(store.warmUpRingTrack()).not.toBe("");
+    expect(store.warmUpRingFill()).not.toBe("");
+  });
+
   it("warmUpHighlightPath() reflects the current phase's targets and is empty once there is no engine", () => {
     const store = makeStore();
     expect(store.warmUpHighlightPath()).toBe("");

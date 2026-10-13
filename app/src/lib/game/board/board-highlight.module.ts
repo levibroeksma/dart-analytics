@@ -4,6 +4,7 @@ import {
   SECTOR_ORDER,
   SECTOR_WIDTH_DEGREES,
 } from "./board-geometry.module";
+import type { SectionRingPaths } from "./types";
 
 /**
  * How far outside a target's actual scoring boundary the Warm-Up highlight
@@ -11,6 +12,12 @@ import {
  * (docs/superpowers/specs/2026-09-12-warmup-play-interface-design.md §5.1).
  */
 export const HIGHLIGHT_GAP_MM = 4;
+
+/** The DartBoard SVG's own face radius — its viewBox is `-220,-220,440,440`. */
+export const BOARD_FACE_RADIUS_MM = 220;
+
+/** Degrees left clear at each end of a section ring arc. */
+const RING_GAP_DEGREES = 2.5;
 
 function round3(value: number): number {
   return Math.round(value * 1000) / 1000;
@@ -130,4 +137,52 @@ export function dartboardHighlightPath(
     BOARD_RADII_MM.outerBull - HIGHLIGHT_GAP_MM,
     BOARD_RADII_MM.doubleOuter + HIGHLIGHT_GAP_MM,
   );
+}
+
+/**
+ * The Warm-Up spotlight's dimming mask: the whole board face plus the
+ * active outline, for `fill-rule="evenodd"` — everything outside the
+ * section is covered, the section itself is not. Empty with no targets.
+ */
+export function dartboardDimPath(targetNumbers: readonly number[]): string {
+  const outline = dartboardHighlightPath(targetNumbers);
+  return outline ? bullOutlinePath(BOARD_FACE_RADIUS_MM) + outline : "";
+}
+
+function arcPath(radiusMm: number, fromDeg: number, toDeg: number): string {
+  const start = polarPoint(radiusMm, fromDeg);
+  const end = polarPoint(radiusMm, toDeg);
+  const largeArc = toDeg - fromDeg > 180 ? 1 : 0;
+  return `M${start.x},${start.y}A${radiusMm},${radiusMm},0,${largeArc},1,${end.x},${end.y}`;
+}
+
+/**
+ * A ring split into one arc per section, sized by duration, from 12
+ * o'clock clockwise with `RING_GAP_DEGREES` clear at each end. `fill`
+ * covers the elapsed share: finished sections whole, the running one in
+ * part.
+ */
+export function sectionRingPaths(
+  durationsSeconds: readonly number[],
+  elapsedSeconds: number,
+  radiusMm: number,
+): SectionRingPaths {
+  const total = durationsSeconds.reduce((sum, d) => sum + d, 0);
+  let track = "";
+  let fill = "";
+  let angle = 0;
+  let before = 0;
+  for (const duration of durationsSeconds) {
+    const span = total > 0 ? (360 * duration) / total : 0;
+    const from = angle + RING_GAP_DEGREES;
+    const to = angle + span - RING_GAP_DEGREES;
+    track += arcPath(radiusMm, from, to);
+    const done = Math.min(Math.max(elapsedSeconds - before, 0), duration);
+    if (done > 0 && duration > 0) {
+      fill += arcPath(radiusMm, from, from + ((to - from) * done) / duration);
+    }
+    angle += span;
+    before += duration;
+  }
+  return { track, fill };
 }

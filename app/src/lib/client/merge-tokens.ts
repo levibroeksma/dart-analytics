@@ -107,5 +107,7 @@ export const UTILITY_GROUPS: Readonly<Record<string, string | null>> = {
   "target-key-ring": null,
   "pip-on": null,
   "board-dim": null,
+  "highlight-glow": null,
+  "section-ring-inset": "inset",
   "glass-pill": null,
 };

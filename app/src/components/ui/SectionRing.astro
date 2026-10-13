@@ -1,0 +1,42 @@
+---
+/**
+ * A sectioned progress ring drawn around a square board (design
+ * `Exercise Play.dc.html` 2c): an overlay SVG at `viewBox -240` whose
+ * slot content sits inset 220/240 (`section-ring-inset`), so a 232mm ring
+ * clears the board's rim. Paths come from `sectionRingPaths`.
+ * @param {string} trackExpr Alpine expression for the full ring path
+ * @param {string} fillExpr Alpine expression for the elapsed share
+ * @slot default The board
+ */
+interface Props {
+  trackExpr: string;
+  fillExpr: string;
+}
+
+// Props
+const { trackExpr, fillExpr }: Props = Astro.props;
+---
+
+<div class="relative aspect-square h-full max-w-full">
+  <div class="section-ring-inset absolute">
+    <slot />
+  </div>
+  <svg
+    class="pointer-events-none absolute inset-0 size-full overflow-visible"
+    viewBox="-240 -240 480 480"
+    aria-hidden="true"
+  >
+    <path
+      class="fill-none stroke-black/50"
+      stroke-width="7"
+      stroke-linecap="round"
+      {...{ ":d": trackExpr }}
+    ></path>
+    <path
+      class="fill-none stroke-accent"
+      stroke-width="7"
+      stroke-linecap="round"
+      {...{ ":d": fillExpr }}
+    ></path>
+  </svg>
+</div>

@@ -8,7 +8,11 @@ import {
 import { appendBatch, completeSession } from "@client/api/sessions";
 import { trainingEngine } from "@modules/training/routines/training.module";
 import { resolveWarmUpPhaseDurations } from "@modules/training/exercises/warm-up.engine.module";
-import { dartboardHighlightPath } from "@lib/game/board/board-highlight.module";
+import {
+  dartboardDimPath,
+  dartboardHighlightPath,
+  sectionRingPaths,
+} from "@lib/game/board/board-highlight.module";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
 import { SessionClock } from "@modules/ui/session-clock.module";
 import { playAudioCue, unlockAudioCues } from "@modules/ui/audio-cue.module";
@@ -36,6 +40,7 @@ import type {
   DoublePatternConfigData,
   ExerciseRulesetVersionKey,
   PreviewSegment,
+  SectionRingPaths,
   SwitchingConfigData,
   SwitchingTargetScoringConfigData,
   WarmUpEngineInput,
@@ -78,6 +83,9 @@ function startedDateLabel(startedAt: string | null | undefined): string {
     ? ""
     : started.toLocaleDateString(undefined, { day: "numeric", month: "short" });
 }
+
+/** Warm-Up ring radius: clears the 220mm board face inside `SectionRing`. */
+const WARM_UP_RING_RADIUS_MM = 232;
 
 const STEP_CHANGE_CUE_HZ = 660;
 const STEP_CHANGE_CUE_SECONDS = 0.25;
@@ -695,6 +703,29 @@ export function routinePlay() {
 
     warmUpHighlightPath(this: RoutinePlayContext): string {
       return dartboardHighlightPath(this.warmUpEngine?.state().targets ?? []);
+    },
+
+    warmUpDimPath(this: RoutinePlayContext): string {
+      return dartboardDimPath(this.warmUpEngine?.state().targets ?? []);
+    },
+
+    warmUpRing(this: RoutinePlayContext): SectionRingPaths {
+      const configuration = this
+        .warmUpConfiguration as WarmUpEngineInput | null;
+      if (!configuration) return { track: "", fill: "" };
+      return sectionRingPaths(
+        resolveWarmUpPhaseDurations(configuration),
+        this.warmUpElapsedSeconds,
+        WARM_UP_RING_RADIUS_MM,
+      );
+    },
+
+    warmUpRingTrack(this: RoutinePlayContext): string {
+      return this.warmUpRing().track;
+    },
+
+    warmUpRingFill(this: RoutinePlayContext): string {
+      return this.warmUpRing().fill;
     },
 
     /**
