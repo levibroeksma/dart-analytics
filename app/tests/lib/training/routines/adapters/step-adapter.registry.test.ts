@@ -120,7 +120,7 @@ describe("STEP_ADAPTERS titles", () => {
         "RANDOM_CHECKOUT": "Random Checkout",
         "SCORE_THRESHOLD": "65 or More",
         "SWITCHING": "Switching",
-        "SWITCHING_TARGET_SCORING": "Switch Target Scoring",
+        "SWITCHING_TARGET_SCORING": "Switching Target Scoring",
         "TARGET_SCORING": "Target Scoring",
         "WARM_UP": "Warm-Up",
       }

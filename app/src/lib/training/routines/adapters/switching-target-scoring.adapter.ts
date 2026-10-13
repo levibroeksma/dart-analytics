@@ -7,7 +7,7 @@ import type { StepAdapter } from "./interfaces";
 export const switchingTargetScoringAdapter: StepAdapter = {
   key: "SWITCHING_TARGET_SCORING",
   headerLabel: "switching target scoring",
-  title: "Switch Target Scoring",
+  title: "Switching Target Scoring",
   panel: "switching-target-scoring",
   open(ctx, result, durationSeconds) {
     const factory = getDartExerciseEngineFactory("SWITCHING_TARGET_SCORING_V1");
