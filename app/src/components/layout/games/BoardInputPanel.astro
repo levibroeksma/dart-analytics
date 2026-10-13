@@ -34,7 +34,10 @@
  * magnifier, never on its ancestors: a `filter` on an ancestor becomes the
  * containing block of the `fixed` magnifier and breaks its placement.
  *
- * `showExpr` / `undoDisabledExpr` let a routine exercise mount it: an exercise is always VISUAL_BOARD, has no pause and unmounts the panel itself when the step ends (replaces `ExerciseBoardInputPanel`).
+ * @param {string} [showExpr] Alpine expression for when the panel shows;
+ *   defaults to the active VISUAL_BOARD game session, unpaused and unfinished
+ * @param {string} [undoDisabledExpr] Alpine expression that disables undo;
+ *   defaults to no turns in the `game` store
  */
 
 // Components

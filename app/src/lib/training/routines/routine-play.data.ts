@@ -312,9 +312,9 @@ export function routinePlay() {
     },
 
     /**
-     * Builds the routine engine from a started or reopened routine and starts
-     * the step it stands on; `completedStepCount` is how many leading steps
-     * already finished.
+     * Builds the routine engine from a started or reopened routine and
+     * shows the ready gate, which starts the step it stands on;
+     * `completedStepCount` is how many leading steps already finished.
      */
     async beginRoutine(
       this: RoutinePlayContext,
@@ -528,9 +528,9 @@ export function routinePlay() {
 
     /**
      * Binds a started step's server session to the screen: its engine, its
-     * clock and the header the routine store drives. Which engine/clock/
-     * header depends entirely on `stepAdapterKey()`'s resolved adapter — this
-     * method itself no longer branches on the step kind.
+     * clock and the `trainingSession` store's step label. All three come
+     * from `stepAdapterKey()`'s resolved adapter; this method does not
+     * branch on the step kind.
      */
     openStep(
       this: RoutinePlayContext,
