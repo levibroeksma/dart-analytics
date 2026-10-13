@@ -517,6 +517,8 @@ Registered for discoverability, not as reading material — the view contract li
 
 | File | Answers | Status |
 | ---- | ------- | ------ |
+| `app/src/components/layout/games/PlayScoreboard.astro` | Per-game solo/split scoreboard from one description (2026-10-13) | canonical |
+| `app/src/components/layout/games/PlayScoreboardSeatTiles.astro` | One seat's compact stat tiles for `PlayScoreboard` (2026-10-13) | canonical |
 | `app/src/components/layout/games/PlayStatTile.astro` | Inset play stat: value over a caps label in a 76px tile, or a 44px label/value row with `compact` (D432, 2026-10-08) | canonical |
 | `app/src/components/layout/games/RouteChips.astro` | Checkout route as a 28px `inset-well` pill of mono parts split by dots (D432, 2026-10-08) | canonical |
 | `app/src/components/layout/games/LegBars.astro` | Legs-won pills per leg to win up to five, else a `won/target` counter (D432, 2026-10-08) | canonical |

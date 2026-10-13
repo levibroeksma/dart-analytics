@@ -7,9 +7,7 @@ interface Props {
 const { ...props }: Props = Astro.props;
 
 // Components
-import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
-import SplitScoreboard from "@components/layout/games/SplitScoreboard.astro";
-import PlayStatTile from "@components/layout/games/PlayStatTile.astro";
+import PlayScoreboard from "@components/layout/games/PlayScoreboard.astro";
 import VisitPreview from "@components/layout/games/VisitPreview.astro";
 import SinglesRecreationalInput from "@components/layout/games/SinglesRecreationalInput.astro";
 import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
@@ -20,82 +18,21 @@ import ErrorAlert from "@components/ui/ErrorAlert.astro";
   class="flex flex-col flex-1 min-h-0 gap-2"
   {...props}
 >
-  <template x-if="(state()?.seats.length ?? 1) < 2">
-    <SinglePlayerDisplay
-      isTarget={false}
-      score="currentPoints()"
-    >
-      <PlayStatTile
-        label="Target"
-        valueExpr="currentTargetLabel()"
-      />
-      <PlayStatTile
-        label="Misses"
-        valueExpr="missCount()"
-      />
-      <PlayStatTile
-        label="S · D · T"
-        valueExpr="singleCount() + ' · ' + doubleCount() + ' · ' + trebleCount()"
-      />
-    </SinglePlayerDisplay>
-  </template>
-
-  <template x-if="(state()?.seats.length ?? 1) >= 2">
-    <SplitScoreboard
-      seatA={{
-        nameExpr: "$store.game.seats[0]?.displayName",
-        activeExpr:
-          "state()?.activeParticipantRef === state()?.seats[0]?.participantRef",
-        scoreExpr: "currentPointsFor(state()?.seats[0]?.participantRef)",
-        idleStatExpr:
-          "currentTargetLabelFor(state()?.seats[0]?.participantRef)",
-      }}
-      seatB={{
-        nameExpr: "$store.game.seats[1]?.displayName",
-        activeExpr:
-          "state()?.activeParticipantRef === state()?.seats[1]?.participantRef",
-        scoreExpr: "currentPointsFor(state()?.seats[1]?.participantRef)",
-        idleStatExpr:
-          "currentTargetLabelFor(state()?.seats[1]?.participantRef)",
-      }}
-      idleStatLabel="Target"
-    >
-      <Fragment slot="progressA">
-        <PlayStatTile
-          compact
-          label="Target"
-          valueExpr="currentTargetLabelFor(state()?.seats[0]?.participantRef)"
-        />
-        <PlayStatTile
-          compact
-          label="Misses"
-          valueExpr="missCountFor(state()?.seats[0]?.participantRef)"
-        />
-        <PlayStatTile
-          compact
-          label="S · D · T"
-          valueExpr="singleCountFor(state()?.seats[0]?.participantRef) + ' · ' + doubleCountFor(state()?.seats[0]?.participantRef) + ' · ' + trebleCountFor(state()?.seats[0]?.participantRef)"
-        />
-      </Fragment>
-      <Fragment slot="progressB">
-        <PlayStatTile
-          compact
-          label="Target"
-          valueExpr="currentTargetLabelFor(state()?.seats[1]?.participantRef)"
-        />
-        <PlayStatTile
-          compact
-          label="Misses"
-          valueExpr="missCountFor(state()?.seats[1]?.participantRef)"
-        />
-        <PlayStatTile
-          compact
-          label="S · D · T"
-          valueExpr="singleCountFor(state()?.seats[1]?.participantRef) + ' · ' + doubleCountFor(state()?.seats[1]?.participantRef) + ' · ' + trebleCountFor(state()?.seats[1]?.participantRef)"
-        />
-      </Fragment>
-    </SplitScoreboard>
-  </template>
+  <PlayScoreboard
+    single={{ isTarget: false, score: "currentPoints()" }}
+    seat={{ score: "currentPoints", idleStat: "currentTargetLabel" }}
+    tiles={[
+      { label: "Target", fn: "currentTargetLabel" },
+      { label: "Misses", fn: "missCount" },
+      {
+        label: "S · D · T",
+        single: "singleCount() + ' · ' + doubleCount() + ' · ' + trebleCount()",
+        seat: (ref) =>
+          `singleCountFor(${ref}) + ' · ' + doubleCountFor(${ref}) + ' · ' + trebleCountFor(${ref})`,
+      },
+    ]}
+    idleStatLabel="Target"
+  />
 
   <ErrorAlert class="mx-3 mt-2 text-xs" />
 

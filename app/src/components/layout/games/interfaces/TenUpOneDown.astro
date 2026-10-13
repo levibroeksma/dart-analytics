@@ -7,9 +7,7 @@ interface Props {
 const { ...props }: Props = Astro.props;
 
 // Components
-import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
-import SplitScoreboard from "@components/layout/games/SplitScoreboard.astro";
-import PlayStatTile from "@components/layout/games/PlayStatTile.astro";
+import PlayScoreboard from "@components/layout/games/PlayScoreboard.astro";
 import RouteChips from "@components/layout/games/RouteChips.astro";
 import ScoreInput from "@components/layout/games/ScoreInput.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
@@ -21,85 +19,25 @@ import CountdownResumePrompt from "@components/layout/games/CountdownResumePromp
   class="flex flex-col flex-1 min-h-0 gap-2"
   {...props}
 >
-  <template x-if="(state()?.seats.length ?? 1) < 2">
-    <SinglePlayerDisplay target="remainingInAttempt()">
-      <RouteChips
-        slot="route"
-        routeExpr="checkoutHint()"
-      />
-      <PlayStatTile
-        label="Target"
-        valueExpr="currentTargetLabel()"
-      />
-      <PlayStatTile
-        label="Attempts"
-        valueExpr="attempts()"
-      />
-      <PlayStatTile
-        label="Successes · Failures"
-        valueExpr="successFailure()"
-      />
-    </SinglePlayerDisplay>
-  </template>
-
-  <template x-if="(state()?.seats.length ?? 1) >= 2">
-    <SplitScoreboard
-      seatA={{
-        nameExpr: "$store.game.seats[0]?.displayName",
-        activeExpr:
-          "state()?.activeParticipantRef === state()?.seats[0]?.participantRef",
-        scoreExpr: "remainingInAttemptFor(state()?.seats[0]?.participantRef)",
-        checkoutExpr: "checkoutHintFor(state()?.seats[0]?.participantRef)",
-        idleStatExpr:
-          "currentTargetLabelFor(state()?.seats[0]?.participantRef)",
-      }}
-      seatB={{
-        nameExpr: "$store.game.seats[1]?.displayName",
-        activeExpr:
-          "state()?.activeParticipantRef === state()?.seats[1]?.participantRef",
-        scoreExpr: "remainingInAttemptFor(state()?.seats[1]?.participantRef)",
-        checkoutExpr: "checkoutHintFor(state()?.seats[1]?.participantRef)",
-        idleStatExpr:
-          "currentTargetLabelFor(state()?.seats[1]?.participantRef)",
-      }}
-      idleStatLabel="Target"
-    >
-      <Fragment slot="progressA">
-        <PlayStatTile
-          compact
-          label="Target"
-          valueExpr="currentTargetLabelFor(state()?.seats[0]?.participantRef)"
-        />
-        <PlayStatTile
-          compact
-          label="Attempts"
-          valueExpr="attemptsFor(state()?.seats[0]?.participantRef)"
-        />
-        <PlayStatTile
-          compact
-          label="Successes · Failures"
-          valueExpr="successFailureFor(state()?.seats[0]?.participantRef)"
-        />
-      </Fragment>
-      <Fragment slot="progressB">
-        <PlayStatTile
-          compact
-          label="Target"
-          valueExpr="currentTargetLabelFor(state()?.seats[1]?.participantRef)"
-        />
-        <PlayStatTile
-          compact
-          label="Attempts"
-          valueExpr="attemptsFor(state()?.seats[1]?.participantRef)"
-        />
-        <PlayStatTile
-          compact
-          label="Successes · Failures"
-          valueExpr="successFailureFor(state()?.seats[1]?.participantRef)"
-        />
-      </Fragment>
-    </SplitScoreboard>
-  </template>
+  <PlayScoreboard
+    single={{ target: "remainingInAttempt()" }}
+    seat={{
+      score: "remainingInAttempt",
+      idleStat: "currentTargetLabel",
+      checkout: "checkoutHint",
+    }}
+    tiles={[
+      { label: "Target", fn: "currentTargetLabel" },
+      { label: "Attempts", fn: "attempts" },
+      { label: "Successes · Failures", fn: "successFailure" },
+    ]}
+    idleStatLabel="Target"
+  >
+    <RouteChips
+      slot="route"
+      routeExpr="checkoutHint()"
+    />
+  </PlayScoreboard>
 
   <ErrorAlert class="mx-3 mt-2 text-xs" />
 

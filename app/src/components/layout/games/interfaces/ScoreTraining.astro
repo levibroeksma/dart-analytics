@@ -7,9 +7,7 @@ interface Props {
 const { ...props }: Props = Astro.props;
 
 // Components
-import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
-import SplitScoreboard from "@components/layout/games/SplitScoreboard.astro";
-import PlayStatTile from "@components/layout/games/PlayStatTile.astro";
+import PlayScoreboard from "@components/layout/games/PlayScoreboard.astro";
 import ScoreInput from "@components/layout/games/ScoreInput.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
 import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
@@ -20,82 +18,23 @@ import CountdownResumePrompt from "@components/layout/games/CountdownResumePromp
   class="flex flex-col flex-1 min-h-0 gap-2"
   {...props}
 >
-  <template x-if="(state()?.seats.length ?? 1) < 2">
-    <SinglePlayerDisplay
-      isTarget={false}
-      score="$store.game.turns.reduce((sum, t) => sum + t.totalScore, 0).toLocaleString('en-US')"
-    >
-      <PlayStatTile
-        label="Avg"
-        valueExpr="threeDartAverage()"
-      />
-      <PlayStatTile
-        label="Darts"
-        valueExpr="dartsThrownThisLeg()"
-      />
-      <PlayStatTile
-        label="Prev"
-        valueExpr="previousScoreThisLeg()"
-      />
-    </SinglePlayerDisplay>
-  </template>
-
-  <template x-if="(state()?.seats.length ?? 1) >= 2">
-    <SplitScoreboard
-      seatA={{
-        nameExpr: "$store.game.seats[0]?.displayName",
-        activeExpr:
-          "state()?.activeParticipantRef === state()?.seats[0]?.participantRef",
-        scoreExpr:
-          "totalScoreFor(state()?.seats[0]?.participantRef).toLocaleString('en-US')",
-        idleStatExpr: "threeDartAverageFor(state()?.seats[0]?.participantRef)",
-      }}
-      seatB={{
-        nameExpr: "$store.game.seats[1]?.displayName",
-        activeExpr:
-          "state()?.activeParticipantRef === state()?.seats[1]?.participantRef",
-        scoreExpr:
-          "totalScoreFor(state()?.seats[1]?.participantRef).toLocaleString('en-US')",
-        idleStatExpr: "threeDartAverageFor(state()?.seats[1]?.participantRef)",
-      }}
-      idleStatLabel="Avg"
-    >
-      <Fragment slot="progressA">
-        <PlayStatTile
-          compact
-          label="Avg"
-          valueExpr="threeDartAverageFor(state()?.seats[0]?.participantRef)"
-        />
-        <PlayStatTile
-          compact
-          label="Darts"
-          valueExpr="dartsThrownThisLegFor(state()?.seats[0]?.participantRef)"
-        />
-        <PlayStatTile
-          compact
-          label="Prev"
-          valueExpr="previousScoreThisLegFor(state()?.seats[0]?.participantRef)"
-        />
-      </Fragment>
-      <Fragment slot="progressB">
-        <PlayStatTile
-          compact
-          label="Avg"
-          valueExpr="threeDartAverageFor(state()?.seats[1]?.participantRef)"
-        />
-        <PlayStatTile
-          compact
-          label="Darts"
-          valueExpr="dartsThrownThisLegFor(state()?.seats[1]?.participantRef)"
-        />
-        <PlayStatTile
-          compact
-          label="Prev"
-          valueExpr="previousScoreThisLegFor(state()?.seats[1]?.participantRef)"
-        />
-      </Fragment>
-    </SplitScoreboard>
-  </template>
+  <PlayScoreboard
+    single={{
+      isTarget: false,
+      score:
+        "$store.game.turns.reduce((sum, t) => sum + t.totalScore, 0).toLocaleString('en-US')",
+    }}
+    seat={{
+      score: (ref) => `totalScoreFor(${ref}).toLocaleString('en-US')`,
+      idleStat: "threeDartAverage",
+    }}
+    tiles={[
+      { label: "Avg", fn: "threeDartAverage" },
+      { label: "Darts", fn: "dartsThrownThisLeg" },
+      { label: "Prev", fn: "previousScoreThisLeg" },
+    ]}
+    idleStatLabel="Avg"
+  />
 
   <ErrorAlert class="mx-3 mt-2 text-xs" />
 

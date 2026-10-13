@@ -1,0 +1,50 @@
+---
+/**
+ * One seat's compact `PlayStatTile` rows for `PlayScoreboard`.
+ * @param {object[]} tiles Tile descriptions (see `PlayScoreboard`)
+ * @param {number} index Seat index
+ */
+interface PlayTile {
+  label: string;
+  fn?: string;
+  single?: string;
+  seat?: (ref: string) => string;
+  when?: string;
+}
+
+interface Props {
+  tiles: PlayTile[];
+  index: number;
+}
+
+// Props
+const { tiles, index }: Props = Astro.props;
+
+// Components
+import PlayStatTile from "@components/layout/games/PlayStatTile.astro";
+
+// Data
+const ref = `state()?.seats[${index}]?.participantRef`;
+const valueOf = (tile: PlayTile) =>
+  tile.seat ? tile.seat(ref) : `${tile.fn}For(${ref})`;
+---
+
+{
+  tiles.map((tile) =>
+    tile.when ? (
+      <template x-if={`${tile.when}For(${ref})`}>
+        <PlayStatTile
+          compact
+          label={tile.label}
+          valueExpr={valueOf(tile)}
+        />
+      </template>
+    ) : (
+      <PlayStatTile
+        compact
+        label={tile.label}
+        valueExpr={valueOf(tile)}
+      />
+    ),
+  )
+}

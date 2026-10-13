@@ -7,9 +7,7 @@ interface Props {
 const { ...props }: Props = Astro.props;
 
 // Components
-import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
-import SplitScoreboard from "@components/layout/games/SplitScoreboard.astro";
-import PlayStatTile from "@components/layout/games/PlayStatTile.astro";
+import PlayScoreboard from "@components/layout/games/PlayScoreboard.astro";
 import VisitPreview from "@components/layout/games/VisitPreview.astro";
 import SinglesRecreationalInput from "@components/layout/games/SinglesRecreationalInput.astro";
 import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
@@ -20,68 +18,15 @@ import ErrorAlert from "@components/ui/ErrorAlert.astro";
   class="flex flex-col flex-1 min-h-0 gap-2"
   {...props}
 >
-  <template x-if="(state()?.seats.length ?? 1) < 2">
-    <SinglePlayerDisplay
-      isTarget={false}
-      score="currentScore()"
-    >
-      <PlayStatTile
-        label="Round"
-        valueExpr="roundLabel()"
-      />
-      <PlayStatTile
-        label="Target"
-        valueExpr="currentTargetLabel()"
-      />
-    </SinglePlayerDisplay>
-  </template>
-
-  <template x-if="(state()?.seats.length ?? 1) >= 2">
-    <SplitScoreboard
-      seatA={{
-        nameExpr: "$store.game.seats[0]?.displayName",
-        activeExpr:
-          "state()?.activeParticipantRef === state()?.seats[0]?.participantRef",
-        scoreExpr: "currentScoreFor(state()?.seats[0]?.participantRef)",
-        idleStatExpr:
-          "currentTargetLabelFor(state()?.seats[0]?.participantRef)",
-      }}
-      seatB={{
-        nameExpr: "$store.game.seats[1]?.displayName",
-        activeExpr:
-          "state()?.activeParticipantRef === state()?.seats[1]?.participantRef",
-        scoreExpr: "currentScoreFor(state()?.seats[1]?.participantRef)",
-        idleStatExpr:
-          "currentTargetLabelFor(state()?.seats[1]?.participantRef)",
-      }}
-      idleStatLabel="Target"
-    >
-      <Fragment slot="progressA">
-        <PlayStatTile
-          compact
-          label="Round"
-          valueExpr="roundLabelFor(state()?.seats[0]?.participantRef)"
-        />
-        <PlayStatTile
-          compact
-          label="Target"
-          valueExpr="currentTargetLabelFor(state()?.seats[0]?.participantRef)"
-        />
-      </Fragment>
-      <Fragment slot="progressB">
-        <PlayStatTile
-          compact
-          label="Round"
-          valueExpr="roundLabelFor(state()?.seats[1]?.participantRef)"
-        />
-        <PlayStatTile
-          compact
-          label="Target"
-          valueExpr="currentTargetLabelFor(state()?.seats[1]?.participantRef)"
-        />
-      </Fragment>
-    </SplitScoreboard>
-  </template>
+  <PlayScoreboard
+    single={{ isTarget: false, score: "currentScore()" }}
+    seat={{ score: "currentScore", idleStat: "currentTargetLabel" }}
+    tiles={[
+      { label: "Round", fn: "roundLabel" },
+      { label: "Target", fn: "currentTargetLabel" },
+    ]}
+    idleStatLabel="Target"
+  />
 
   <ErrorAlert class="mx-3 mt-2 text-xs" />
 

@@ -1,0 +1,117 @@
+---
+/**
+ * Play-screen scoreboard for a game: `SinglePlayerDisplay` for one seat,
+ * `SplitScoreboard` for two, each fed from one declarative description.
+ * Names are Alpine method bases: `fn` resolves to `fn()` solo and
+ * `fnFor(ref)` per seat. A `(ref) => expr` function covers anything else.
+ * @param {object} single `SinglePlayerDisplay` props: `{ score? | target?, isTarget?, caption? }`
+ * @param {object} seat `{ score, idleStat, legs?, checkout? }`, each a method base or `(ref) => expr`
+ * @param {object[]} tiles `{ label, fn? | single + seat, when? }`; `when` is a method base gating the tile
+ * @param {string} idleStatLabel Label of the waiting seat's stat
+ * @param {string} [legsToWinExpr] Alpine expr for the leg target
+ * @slot route Solo only: under the big value
+ */
+type SeatExpr = string | ((ref: string) => string);
+
+interface Tile {
+  label: string;
+  fn?: string;
+  single?: string;
+  seat?: (ref: string) => string;
+  when?: string;
+}
+
+interface Props {
+  single: {
+    score?: string;
+    target?: string;
+    isTarget?: boolean;
+    caption?: string;
+  };
+  seat: {
+    score: SeatExpr;
+    idleStat: SeatExpr;
+    legs?: SeatExpr;
+    checkout?: SeatExpr;
+  };
+  tiles: Tile[];
+  idleStatLabel: string;
+  legsToWinExpr?: string;
+}
+
+// Props
+const { single, seat, tiles, idleStatLabel, legsToWinExpr }: Props =
+  Astro.props;
+
+// Components
+import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
+import SplitScoreboard from "@components/layout/games/SplitScoreboard.astro";
+import PlayStatTile from "@components/layout/games/PlayStatTile.astro";
+import PlayScoreboardSeatTiles from "@components/layout/games/PlayScoreboardSeatTiles.astro";
+
+// Data
+const refOf = (index: number) => `state()?.seats[${index}]?.participantRef`;
+const resolve = (expr: SeatExpr, ref: string) =>
+  typeof expr === "function" ? expr(ref) : `${expr}For(${ref})`;
+const seatDisplay = (index: number) => {
+  const ref = refOf(index);
+  return {
+    nameExpr: `$store.game.seats[${index}]?.displayName`,
+    activeExpr: `state()?.activeParticipantRef === ${ref}`,
+    scoreExpr: resolve(seat.score, ref),
+    idleStatExpr: resolve(seat.idleStat, ref),
+    ...(seat.legs && { legsExpr: resolve(seat.legs, ref) }),
+    ...(seat.checkout && { checkoutExpr: resolve(seat.checkout, ref) }),
+  };
+};
+const singleValue = (tile: Tile) => tile.single ?? `${tile.fn}()`;
+const whenSolo = (tile: Tile) => `${tile.when}()`;
+---
+
+<template x-if="(state()?.seats.length ?? 1) < 2">
+  <SinglePlayerDisplay {...single}>
+    <slot
+      name="route"
+      slot="route"
+    />
+    {
+      tiles.map((tile) =>
+        tile.when ? (
+          <template x-if={whenSolo(tile)}>
+            <PlayStatTile
+              label={tile.label}
+              valueExpr={singleValue(tile)}
+            />
+          </template>
+        ) : (
+          <PlayStatTile
+            label={tile.label}
+            valueExpr={singleValue(tile)}
+          />
+        ),
+      )
+    }
+  </SinglePlayerDisplay>
+</template>
+
+<template x-if="(state()?.seats.length ?? 1) >= 2">
+  <SplitScoreboard
+    seatA={seatDisplay(0)}
+    seatB={seatDisplay(1)}
+    idleStatLabel={idleStatLabel}
+    legsToWinExpr={legsToWinExpr}
+  >
+    <Fragment slot="progressA">
+      <PlayScoreboardSeatTiles
+        tiles={tiles}
+        index={0}
+      />
+    </Fragment>
+    <Fragment slot="progressB">
+      <PlayScoreboardSeatTiles
+        tiles={tiles}
+        index={1}
+      />
+    </Fragment>
+  </SplitScoreboard>
+</template>

@@ -7,9 +7,7 @@ interface Props {
 const { ...props }: Props = Astro.props;
 
 // Components
-import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
-import SplitScoreboard from "@components/layout/games/SplitScoreboard.astro";
-import PlayStatTile from "@components/layout/games/PlayStatTile.astro";
+import PlayScoreboard from "@components/layout/games/PlayScoreboard.astro";
 import VisitPreview from "@components/layout/games/VisitPreview.astro";
 import SinglesRecreationalInput from "@components/layout/games/SinglesRecreationalInput.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
@@ -21,83 +19,16 @@ import CountdownResumePrompt from "@components/layout/games/CountdownResumePromp
   class="flex flex-col flex-1 min-h-0 gap-2"
   {...props}
 >
-  <template x-if="(state()?.seats.length ?? 1) < 2">
-    <SinglePlayerDisplay target="currentTargetLabel()">
-      <PlayStatTile
-        label="Turns"
-        valueExpr="turnsSoFar()"
-      />
-      <PlayStatTile
-        label="Accuracy"
-        valueExpr="accuracy()"
-      />
-      <template x-if="hitsToGo()">
-        <PlayStatTile
-          label="This visit"
-          valueExpr="hitsToGo()"
-        />
-      </template>
-    </SinglePlayerDisplay>
-  </template>
-
-  <template x-if="(state()?.seats.length ?? 1) >= 2">
-    <SplitScoreboard
-      seatA={{
-        nameExpr: "$store.game.seats[0]?.displayName",
-        activeExpr:
-          "state()?.activeParticipantRef === state()?.seats[0]?.participantRef",
-        scoreExpr: "currentTargetLabelFor(state()?.seats[0]?.participantRef)",
-        idleStatExpr: "turnsSoFarFor(state()?.seats[0]?.participantRef)",
-      }}
-      seatB={{
-        nameExpr: "$store.game.seats[1]?.displayName",
-        activeExpr:
-          "state()?.activeParticipantRef === state()?.seats[1]?.participantRef",
-        scoreExpr: "currentTargetLabelFor(state()?.seats[1]?.participantRef)",
-        idleStatExpr: "turnsSoFarFor(state()?.seats[1]?.participantRef)",
-      }}
-      idleStatLabel="Turns"
-    >
-      <Fragment slot="progressA">
-        <PlayStatTile
-          compact
-          label="Turns"
-          valueExpr="turnsSoFarFor(state()?.seats[0]?.participantRef)"
-        />
-        <PlayStatTile
-          compact
-          label="Accuracy"
-          valueExpr="accuracyFor(state()?.seats[0]?.participantRef)"
-        />
-        <template x-if="hitsToGoFor(state()?.seats[0]?.participantRef)">
-          <PlayStatTile
-            compact
-            label="This visit"
-            valueExpr="hitsToGoFor(state()?.seats[0]?.participantRef)"
-          />
-        </template>
-      </Fragment>
-      <Fragment slot="progressB">
-        <PlayStatTile
-          compact
-          label="Turns"
-          valueExpr="turnsSoFarFor(state()?.seats[1]?.participantRef)"
-        />
-        <PlayStatTile
-          compact
-          label="Accuracy"
-          valueExpr="accuracyFor(state()?.seats[1]?.participantRef)"
-        />
-        <template x-if="hitsToGoFor(state()?.seats[1]?.participantRef)">
-          <PlayStatTile
-            compact
-            label="This visit"
-            valueExpr="hitsToGoFor(state()?.seats[1]?.participantRef)"
-          />
-        </template>
-      </Fragment>
-    </SplitScoreboard>
-  </template>
+  <PlayScoreboard
+    single={{ target: "currentTargetLabel()" }}
+    seat={{ score: "currentTargetLabel", idleStat: "turnsSoFar" }}
+    tiles={[
+      { label: "Turns", fn: "turnsSoFar" },
+      { label: "Accuracy", fn: "accuracy" },
+      { label: "This visit", fn: "hitsToGo", when: "hitsToGo" },
+    ]}
+    idleStatLabel="Turns"
+  />
 
   <ErrorAlert class="mx-3 mt-2 text-xs" />
 
