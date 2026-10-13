@@ -10,7 +10,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
 | Single player (practice / vs bot later) | V1 | Single | |
-| Multiplayer (2+ players) | V2+ | 2+ | Wanted, unscheduled: Cricket has no engine, no `game_types` row and no seeded ruleset version, so nothing seats an opponent yet |
+| Multiplayer (2+ players) | V2+ | 2+ | Wanted, unscheduled: the engine and `CRICKET_V1` ship solo, but `CRICKET_V1` has no `SEAT_CAPS` entry (`app/src/services/session-seats.service.ts:19`), so the cap defaults to 1 seat and a second seat is rejected |
 | Config screen (presets shown) | V1 | All | |
 | Objectives: 20–15 + bull (Classic Cricket) | V1 | All | |
 | Close: 3 marks on a number or the bull | V1 | All | |
@@ -19,7 +19,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Own / score on: points on closed-but-opponent-open numbers | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer — with one seat there is no opponent for a number to stay open against |
 | Dead number when all players have closed it | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer, for the same reason as Own / score on |
 | Win: all closed + score ≥ opponent(s) | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer; the solo practice win condition is still an open question below |
-| Cut-throat variant | V2+ | All | Wanted, unscheduled: depends on Multiplayer, and its own win and scoring rules are an open question below |
+| Cut-throat variant | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer, and its own win and scoring rules are an open question below |
 | No-Score Cricket (race to close, points off) | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer — solo V1 already scores no points, so the variant only differs once a second seat exists; and it is a player-picked setting while `CricketConfig` is an empty strict schema (`app/src/lib/game/rulesets/types.ts:393`) |
 | Single-Only Cricket (every dart on an objective = 1 mark) | V2+ | All | Wanted, unscheduled: the marking rule works solo, but its point rule depends on Multiplayer, like Own / score on; and it is a player-picked setting while `CricketConfig` is an empty strict schema (`app/src/lib/game/rulesets/types.ts:393`) |
 | Low-Pitch Cricket (objectives 1–6 + bull) | V2+ | All | Wanted, unscheduled: swaps the objective set, and the engine fixes it at 20–15 + bull (`app/src/modules/game/cricket.engine.module.ts:34-43`) and marks nothing on 1–14 (`:47-66`); a solo run needs no Multiplayer (it ends on the V1 close-out rule), but its points rules depend on Multiplayer and Own / score on |
@@ -140,8 +140,8 @@ opponent.
 | Term                | Version | Meaning                                                       |
 | ------------------- | ------- | ------------------------------------------------------------- |
 | **Close**           | V1      | Reach three marks on an objective.                            |
-| **Own / score on**  | V1      | Closed by you, not yet by opponent → further hits add points. |
-| **Dead**            | V1      | Closed by all players → no further scoring.                   |
+| **Own / score on**  | V2+     | Closed by you, not yet by opponent → further hits add points. |
+| **Dead**            | V2+     | Closed by all players → no further scoring.                   |
 | **Classic Cricket** | V1      | 20–15 + bull only (no separate D/T categories).               |
 | **Cut-throat**      | V2+     | Alternate scoring/win logic; see Variants.                    |
 | **No-Score Cricket** | V2+ | Race to close all seven objectives with no points; see Variants. |
@@ -162,8 +162,8 @@ opponent.
 
 ## Capture
 
-Cricket is unbuilt; this is the capture shape its V1 is designed for, not an
-as-built description.
+This is the capture shape V1 ships with (engine:
+`app/src/modules/game/cricket.engine.module.ts`, ruleset key `CRICKET_V1`).
 
 - **Capture / input mode:** RECREATIONAL + DETAILED_DARTS or ANALYTICS + VISUAL_BOARD — a mark is read off
   the dart's number and ring, so the visit total alone cannot express it and

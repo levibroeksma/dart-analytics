@@ -129,7 +129,7 @@ Knockout is unbuilt; this is the capture shape its V1 is designed for.
   landed; `score` = the dart's **board** score.
 - **Stage type:** one shared stage for the game — each visit is judged
   against a target another seat set, as 501's `SHARED` leg
-  (`app/src/modules/game/five-oh-one.engine.module.ts:286`).
+  (`app/src/modules/game/five-oh-one.engine.module.ts:428`).
 - **Derived, never stored:** the current target, strikes per seat, who is
   out, the winner.
 

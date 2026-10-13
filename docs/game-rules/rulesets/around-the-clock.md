@@ -17,7 +17,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Clock path: Odds first (1, 3 … 19, then 2, 4 … 20, then bull) | V2 | All | Scheduled for V2 (2026-09-23), with high → low and for the same reason: the fixed 1…20 path cannot express it |
 | Other directions / paths | V2+ | All | Wanted, unscheduled: same fixed-path schema gap as high → low, and no path other than 1…20 + bull has been defined |
 | Any segment counts (single/double/treble of the number) | V1 | All | |
-| Outer single only (segment lock) | V2 | All | Scheduled for V2 (2026-09-23): the training drill counts only the outer single. Needs ANALYTICS + VISUAL_BOARD — keypad capture records an unbanded `SINGLE` (`app/src/modules/game/types.ts:382`) |
+| Outer single only (segment lock) | V2 | All | Scheduled for V2 (2026-09-23): the training drill counts only the outer single. Needs ANALYTICS + VISUAL_BOARD — keypad capture records an unbanded `SINGLE` (`app/src/modules/game/types.ts:391-393`) |
 | Doubles-only / trebles-only path | V2+ | All | Wanted, unscheduled: a segment lock is a second fixed rule the empty config cannot express |
 | Bull once (single or double bull) | V1 | All | |
 | Easy: advance on any hit in the visit | V1 | All | |
@@ -38,7 +38,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Visit = up to 3 darts | V1 | All | |
 | Standard dartboard scoring (assumed) | V1 | All | |
 | Entry type per dart (e.g. target = 1, d1=miss, d2=s1, d3=s2) | V1 | All | |
-| Chase the Dragon: trebles 10–20, outer bull, inner bull; first seat to finish wins | V2+ | 1v1 | Wanted, unscheduled: four things the engine cannot express — a path other than 1…20 + bull (`AroundTheClockV2Config` has direction and odds-first only, `app/src/lib/game/rulesets/types.ts:406`), a treble-only rule (`segment_rule` is `ANY`/`OUTER_SINGLE`, `types.ts:408`; see the Doubles-only / trebles-only row), a bull split into outer then inner (either ring counts, `app/src/modules/game/around-the-clock.engine.module.ts:121-126`), and a race ending (the engine is score-compare, both seats play out, `around-the-clock.engine.module.ts:237-243`) |
+| Chase the Dragon: trebles 10–20, outer bull, inner bull; first seat to finish wins | V2+ | 1v1 | Wanted, unscheduled: four things the engine cannot express — a path other than 1…20 + bull (`AroundTheClockV2Config` has direction and odds-first only, `app/src/lib/game/rulesets/types.ts:406-407`), a treble-only rule (`segment_rule` is `ANY`/`OUTER_SINGLE`, `types.ts:408`; see the Doubles-only / trebles-only row), a bull split into outer then inner (either ring counts, `app/src/modules/game/around-the-clock.engine.module.ts:121-126`), and a race ending (the engine is score-compare, both seats play out, `around-the-clock.engine.module.ts:237-243`) |
 
 ## Identity
 

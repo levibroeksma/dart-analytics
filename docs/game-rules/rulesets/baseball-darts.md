@@ -21,7 +21,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Bullseye Tiebreaker | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer, as Extra innings |
 | 7th Inning Stretch | V2+ | All | Wanted, unscheduled: a scoring switch V1 does not need |
 | Bullseye Baseball | V2+ | All | Wanted, unscheduled: a scoring gate V1 does not need; V1 already scores no runs on the bull, so the gate only adds the unlock rule |
-| Team Play | Deferred | 2+ | Blocked on: a session allows one seat per side; 2v2 is rejected (`app/src/services/session-seats.service.ts:86`) |
+| Team Play | Deferred | 2+ | Blocked on: a session allows one seat per side; 2v2 is rejected (`app/src/services/session-seats.service.ts:87-88`) |
 | Standard dartboard scoring (assumed) | V1 | All | |
 
 ## Identity

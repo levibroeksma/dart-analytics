@@ -106,7 +106,7 @@ Gotcha is unbuilt; this is the capture shape its V1 is designed for.
   landed; `score` = the dart's **board** score.
 - **Stage type:** one shared stage for the game — a kill changes another
   seat's total, as 501's `SHARED` leg
-  (`app/src/modules/game/five-oh-one.engine.module.ts:286`).
+  (`app/src/modules/game/five-oh-one.engine.module.ts:428`).
 - **Derived, never stored:** running totals — a fold over visit totals in
   throw order, with busts voided and kills resetting — plus kills, busts and
   the winner.
