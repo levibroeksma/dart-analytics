@@ -1,0 +1,43 @@
+---
+/**
+ * `SeatedPlayScreen`'s tile list for one scoreboard: each `Tile` expanded
+ * with `call` (solo or one seat) into a `PlayStatTile`, inside
+ * `<template x-if>` when it has `showWhen`.
+ * @param {Tile[]} tiles Tile definitions
+ * @param {Call} call `soloCall()` or `seatCall(i)`
+ * @param {boolean} [compact] Seat-card row layout
+ */
+import type { Call, Tile } from "@lib/interfaces";
+
+interface Props {
+  tiles: Tile[];
+  call: Call;
+  compact?: boolean;
+}
+
+// Props
+const { tiles, call, compact = false }: Props = Astro.props;
+
+// Components
+import PlayStatTile from "@components/layout/games/PlayStatTile.astro";
+---
+
+{
+  tiles.map((tile) =>
+    tile.showWhen ? (
+      <template x-if={tile.showWhen(call)}>
+        <PlayStatTile
+          compact={compact}
+          label={tile.label}
+          valueExpr={tile.value(call)}
+        />
+      </template>
+    ) : (
+      <PlayStatTile
+        compact={compact}
+        label={tile.label}
+        valueExpr={tile.value(call)}
+      />
+    ),
+  )
+}
