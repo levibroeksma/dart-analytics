@@ -5,7 +5,7 @@ read-when: why a CSS token/primitive/typography/spacing choice was made
 load-when: style, CSS, token, Tailwind, primitive, typography, spacing, glass, surface, PWA, manifest, icon, safe-area, font, colour, dark mode, motion, accessibility
 depends-on: decisions/frontend/architecture.md
 related: decisions/frontend/astro.md
-updated: 2026-10-10
+updated: 2026-10-13
 -->
 
 | # | Source | Decision | Rationale |
@@ -234,3 +234,17 @@ Decision: `sheet-in` is a 300ms `--ease-out` slide from fully below the viewport
 Reason: reported on production — modals read as appearing, not sliding in (#886); the skeleton flashed for players with no open games (#902); the redesign dropped the rules fold transition (#901); browser autofill could paint login fields pale (#835).
 Consequences: the homepage shows nothing in the deck slot until sessions load, then the deck pops in. Markup/CSS only beyond `visible()`; `.astro`/CSS carry no unit test (D101). The autofill rule is unverified on a real iPhone. #902's second report (sessions vanishing on iOS) is not addressed.
 Supersedes: D442 (loading skeleton clause only); D429 (`sheet-in` motion clause only).
+
+### D456 — `/games` reuses `ResumeSessionDeck`; `ResumeSessionCard` and `resumeTarget()` removed
+Status: Accepted · Date: 2026-10-13
+Decision: `/games` renders `ResumeSessionDeck` (own `resumeDeck()` scope) in place of `ResumeSessionCard`. `gamesIndex()` drops `activeSession` and `resumeTarget()`; its sessions fetch still drives card visibility. The `ResumeTarget` type is removed.
+Reason: two resume UIs showed different data — `/games` only the newest session with a static detail line, the homepage every open game with progress (#892).
+Consequences: `/games` fetches active sessions twice (page scope and deck scope). The static detail line D427 described is gone with the card; the deck's progress caveats (D442, #815) now apply on `/games` too. `.astro` carries no unit test (D101).
+Supersedes: D427 (in-progress card clause only).
+
+### D457 — Long exercise previews and target chips page six at a time
+Status: Accepted · Date: 2026-10-13
+Decision: `windowPage()` (`lib/training/routines/exercise-preview.ts`) cuts a list to the six-item page holding a focus index. `visitPreview()` pages its segments on the next (or, once full, last) dart; `switchingSequence()` pages the Switching targets on the engine's `targetIndex`. Lists of six or fewer are unchanged. `SwitchingV1Config` keeps `.max(20)`.
+Reason: one preview slot or chip per target overflowed the 390px play column past ~6 targets (#954). Paging over a config cap leaves stored snapshots valid.
+Consequences: a Switching visit over six targets shows only its current page; earlier slots of the visit leave the screen once their page is done. Chip highlight still matches by label, so a repeated target lights every copy on the page.
+Supersedes: none.

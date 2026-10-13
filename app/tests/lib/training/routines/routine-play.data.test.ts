@@ -1118,6 +1118,37 @@ describe("routinePlay — Switching", () => {
     expect(store.switchingSequence()).toBe("20 19 18");
   });
 
+  it("switchingSequence() shows the six-target page holding the current target", async () => {
+    const configuration = {
+      ...SWITCHING_STEP.configuration,
+      targets: [20, 19, 18, 17, 16, 15, 14, 13],
+    };
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineTemplateId: "rt-1",
+      routineName: "Balanced Training",
+      steps: [{ ...SWITCHING_STEP, configuration }] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "SWITCHING",
+      configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+    const store = makeStore();
+    await startRoutine(store);
+    expect(store.switchingSequence()).toBe("20 19 18 17 16 15");
+    for (let i = 0; i < 6; i++) {
+      store.recordSwitchingDart({
+        hitTargetNumber: 20,
+        hitZoneKey: "SINGLE",
+        locationX: 0,
+        locationY: -120,
+      });
+    }
+    expect(store.switchingSequence()).toBe("14 13");
+  });
+
   it("previewSegments() marks an on-target dart hit and an off-target dart miss", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
