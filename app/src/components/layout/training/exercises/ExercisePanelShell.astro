@@ -2,14 +2,17 @@
 /**
  * Play surface shared by the scored exercise panels (#915, restyled to
  * `Exercise Play.dc.html`): a `SinglePlayerDisplay` with the step's big
- * value, its caption, an optional `RouteChips` chip and `PlayStatTile`s
- * (first one lit), then the labelled `VisitPreview` and the shared
- * `BoardInputPanel`. Reads the routine play page scope.
+ * value, its caption, an optional `RouteChips` chip and a
+ * `PlayStatTileList` (first tile lit, `fit`), then the labelled
+ * `VisitPreview` and the shared `BoardInputPanel`. Reads the routine play
+ * page scope.
  * @param {string} score Alpine expression for the big value
  * @param {string} caption Mono caption under the big value
  * @param {object} [chip] `{ routeExpr, currentExpr? }` for `RouteChips`
  * @param {object[]} tiles `{ label, value, showWhen? }` — Alpine expressions; a tile with `showWhen` is hidden while it is false
  */
+import type { Tile } from "@lib/interfaces";
+
 interface Props {
   score: string;
   caption: string;
@@ -33,10 +36,20 @@ const { score, caption, chip, tiles }: Props = Astro.props;
 
 // Components
 import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
-import PlayStatTile from "@components/layout/games/PlayStatTile.astro";
+import PlayStatTileList from "@components/layout/games/PlayStatTileList.astro";
 import RouteChips from "@components/layout/games/RouteChips.astro";
 import VisitPreview from "@components/layout/games/VisitPreview.astro";
 import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
+
+// Lib
+import { soloCall } from "@lib/game/play-screen-expr";
+
+// Data
+const soloTiles: Tile[] = tiles.map(({ label, value, showWhen }) => ({
+  label,
+  value: () => value,
+  showWhen: showWhen ? () => showWhen : undefined,
+}));
 ---
 
 <div class="flex min-h-0 flex-1 flex-col gap-2">
@@ -54,27 +67,12 @@ import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
         />
       )
     }
-    {
-      tiles.map((tile, index) =>
-        tile.showWhen ? (
-          <template x-if={tile.showWhen}>
-            <PlayStatTile
-              label={tile.label}
-              valueExpr={tile.value}
-              highlight={index === 0}
-              fit
-            />
-          </template>
-        ) : (
-          <PlayStatTile
-            label={tile.label}
-            valueExpr={tile.value}
-            highlight={index === 0}
-            fit
-          />
-        ),
-      )
-    }
+    <PlayStatTileList
+      tiles={soloTiles}
+      call={soloCall()}
+      fit
+      highlightFirst
+    />
   </SinglePlayerDisplay>
 
   <VisitPreview labelled />
