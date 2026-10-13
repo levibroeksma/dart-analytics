@@ -13,13 +13,13 @@ import { SegmentTimer } from "@modules/ui/segment-timer.module";
 import { SessionClock } from "@modules/ui/session-clock.module";
 import { playAudioCue, unlockAudioCues } from "@modules/ui/audio-cue.module";
 import { boardInputData, markersForTurns } from "@lib/game/board-input.data";
-import { playPreviewSegments } from "@lib/game/play-lifecycle";
 import { resolveSoloParticipantRef } from "@lib/training/exercises/solo-participant-upload";
 import { buildEventsBatch } from "@modules/game/events.payload.module";
 import {
   stepAdapterKey,
   resolveStepAdapter,
 } from "./adapters/step-adapter.registry";
+import { bullUpPreview, cycleFrom, visitPreview } from "./exercise-preview";
 import { routineIdFromLocation } from "./routine-route";
 import { readyGate } from "./ready-gate";
 import { routineHeader } from "./routine-header";
@@ -33,8 +33,11 @@ import type { TrainingEngine } from "@modules/interfaces";
 import type { DartObservation, SessionContextRow } from "@modules/types";
 import type {
   BoardMarker,
+  DoublePatternConfigData,
   ExerciseRulesetVersionKey,
   PreviewSegment,
+  SwitchingConfigData,
+  SwitchingTargetScoringConfigData,
   WarmUpEngineInput,
 } from "@lib/types";
 import type {
@@ -44,6 +47,7 @@ import type {
 } from "@client/api/types";
 import type { StepAdapter } from "@lib/interfaces";
 import type {
+  DartJudgement,
   ReadyGateView,
   RoutineHeader,
   RoutinePlayContext,
@@ -130,6 +134,7 @@ export function routinePlay() {
     warmUpTimer: null,
     warmUpElapsedSeconds: 0,
     warmUpConfiguration: null,
+    stepConfiguration: null,
     adapter: null as StepAdapter | null,
     game: null,
     sessionClock: null,
@@ -198,41 +203,121 @@ export function routinePlay() {
     },
 
     /**
-     * Hit/miss marks for the current visit's darts. Each dart carries the
-     * target it was thrown at (`intendedTargetNumber`), so no config lookup
-     * is needed; Double Pattern additionally requires the double, since
-     * nothing else scores under `DOUBLE_PATTERN_V1`, and both Target
-     * Scoring exercises defer to their shared ring rule (a double is a miss).
-     * 65 or More has no target: a dart on the board is a hit, off it a miss.
-     * Bullseye Checkouts: setup darts as 65 or More; dart 3 (the one aimed at
-     * the bull) is a hit only on the bullseye. Bull Up Practice: either bull
-     * is a hit. Catch 40 and Random Checkout are free aim, judged as 65 or More.
+     * The latest visit's darts as labelled preview slots. Bull Up Practice
+     * shows only the throw about to be made; every other exercise shows one
+     * slot per dart of the visit, judged by `judgeExerciseDart()` and
+     * captioned by `exerciseVisitLabels()`.
      */
     previewSegments(this: RoutinePlayContext): PreviewSegment[] {
+      if (this.bullUpEngine)
+        return bullUpPreview(this.bullUpEngine.state().throws);
       const turns = this.activeDartEngine()?.facts().turns ?? [];
+      return visitPreview({
+        turns,
+        visitLabels: (visitIndex) => this.exerciseVisitLabels(visitIndex),
+        judge: (dart) => this.judgeExerciseDart(dart),
+      });
+    },
+
+    /**
+     * Hit, miss or free-aim value for one dart. Each dart carries the target
+     * it was thrown at (`intendedTargetNumber`), so no config lookup is
+     * needed; Double Pattern additionally requires the double, since nothing
+     * else scores under `DOUBLE_PATTERN_V1`, and both Target Scoring
+     * exercises defer to their shared ring rule (a double is a miss). 65 or
+     * More, Catch 40 and Random Checkout have no target: a dart on the board
+     * is a value, off it a miss. Bullseye Checkouts: setup darts as 65 or
+     * More; the dart aimed at the bull is a hit only on the bullseye.
+     */
+    judgeExerciseDart(this: RoutinePlayContext, dart: DartFact): DartJudgement {
+      if (this.bullseyeCheckoutEngine) {
+        if (dart.intendedZoneKey === "INNER_BULL") {
+          return dart.hitZoneKey === "INNER_BULL" ? "hit" : "miss";
+        }
+        return dart.hitTargetNumber !== null ? "value" : "miss";
+      }
+      if (
+        this.scoreThresholdEngine ||
+        this.checkoutSequenceEngine ||
+        this.randomCheckoutEngine
+      ) {
+        return dart.hitTargetNumber !== null ? "value" : "miss";
+      }
+      if (this.targetScoringEngine || this.switchingTargetScoringEngine) {
+        return dart.intendedTargetNumber !== null &&
+          targetScoringPoints(dart.intendedTargetNumber, dart) !== null
+          ? "hit"
+          : "miss";
+      }
       const requireDouble = this.doublePatternEngine !== null;
-      const isHit = this.bullUpEngine
-        ? (dart: DartFact) =>
-            dart.hitZoneKey === "INNER_BULL" || dart.hitZoneKey === "OUTER_BULL"
-        : this.bullseyeCheckoutEngine
-          ? (dart: DartFact) =>
-              dart.intendedZoneKey === "INNER_BULL"
-                ? dart.hitZoneKey === "INNER_BULL"
-                : dart.hitTargetNumber !== null
-          : this.scoreThresholdEngine ||
-              this.checkoutSequenceEngine ||
-              this.randomCheckoutEngine
-            ? (dart: DartFact) => dart.hitTargetNumber !== null
-            : this.targetScoringEngine || this.switchingTargetScoringEngine
-              ? (dart: DartFact) =>
-                  dart.intendedTargetNumber !== null &&
-                  targetScoringPoints(dart.intendedTargetNumber, dart) !== null
-              : (dart: DartFact) =>
-                  dart.hitTargetNumber === dart.intendedTargetNumber &&
-                  (!requireDouble || dart.hitZoneKey === "DOUBLE");
-      return playPreviewSegments(turns, null, (dart) =>
-        isHit(dart) ? "hit" : "miss",
-      );
+      return dart.hitTargetNumber === dart.intendedTargetNumber &&
+        (!requireDouble || dart.hitZoneKey === "DOUBLE")
+        ? "hit"
+        : "miss";
+    },
+
+    /**
+     * One caption per dart slot of the latest visit: the target that slot is
+     * thrown at, or `undefined` where the exercise has none (the slot then
+     * reads as its dart number).
+     */
+    exerciseVisitLabels(
+      this: RoutinePlayContext,
+      visitIndex: number,
+    ): (string | undefined)[] {
+      const none = [undefined, undefined, undefined];
+      if (this.switchingEngine) {
+        const config = this.stepConfiguration as SwitchingConfigData | null;
+        return config?.targets.map(String) ?? none;
+      }
+      if (this.doublePatternEngine) {
+        const patterns = (
+          this.stepConfiguration as DoublePatternConfigData | null
+        )?.patterns;
+        if (!patterns?.length) return none;
+        return patterns[visitIndex % patterns.length].map((n) => `D${n}`);
+      }
+      if (this.targetScoringEngine) {
+        const label = targetScoringTargetLabel(
+          this.targetScoringEngine.state().currentTargetNumber,
+        );
+        return [label, label, label];
+      }
+      if (this.switchingTargetScoringEngine) {
+        const config = this
+          .stepConfiguration as SwitchingTargetScoringConfigData | null;
+        if (!config) return none;
+        const dartsInOpenVisit =
+          this.switchingTargetScoringEngine.facts().turns.at(-1)?.darts
+            .length ?? 0;
+        return cycleFrom(
+          config.targets,
+          this.switchingTargetScoringEngine.state().targetIndex -
+            dartsInOpenVisit,
+          3,
+        ).map(targetScoringTargetLabel);
+      }
+      return none;
+    },
+
+    /** The Switching step's targets, in throw order. */
+    switchingSequence(this: RoutinePlayContext): string {
+      const config = this.stepConfiguration as SwitchingConfigData | null;
+      return config?.targets.map(String).join(" ") ?? "";
+    },
+
+    /** The doubles of Double Pattern's current pattern. */
+    doublePatternSequence(this: RoutinePlayContext): string {
+      const config = this.stepConfiguration as DoublePatternConfigData | null;
+      const index = this.doublePatternEngine?.state().patternIndex ?? 0;
+      return config?.patterns[index]?.map((n) => `D${n}`).join(" ") ?? "";
+    },
+
+    /** Switching Target Scoring's targets, in sequence order. */
+    switchingTargetScoringSequence(this: RoutinePlayContext): string {
+      const config = this
+        .stepConfiguration as SwitchingTargetScoringConfigData | null;
+      return config?.targets.map(targetScoringTargetLabel).join(" ") ?? "";
     },
 
     async init(this: RoutinePlayContext) {
@@ -502,6 +587,7 @@ export function routinePlay() {
       }
       this.currentSessionId = result.sessionId;
       this.currentParticipantRef = result.participant.ref;
+      this.stepConfiguration = result.configuration;
       if (this.$store.trainingSession.active) {
         playAudioCue(STEP_CHANGE_CUE_HZ, STEP_CHANGE_CUE_SECONDS);
       }

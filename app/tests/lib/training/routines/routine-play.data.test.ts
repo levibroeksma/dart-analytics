@@ -981,6 +981,25 @@ describe("routinePlay — Switching", () => {
     expect(store.dartsThrown()).toBe(1);
   });
 
+  it("switchingSequence() lists the step's targets in order", async () => {
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineTemplateId: "rt-1",
+      routineName: "Balanced Training",
+      steps: [SWITCHING_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "SWITCHING",
+      configuration: SWITCHING_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+    const store = makeStore();
+    expect(store.switchingSequence()).toBe("");
+    await startRoutine(store);
+    expect(store.switchingSequence()).toBe("20 19 18");
+  });
+
   it("previewSegments() marks an on-target dart hit and an off-target dart miss", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
@@ -997,9 +1016,9 @@ describe("routinePlay — Switching", () => {
     const store = makeStore();
     await startRoutine(store);
     expect(store.previewSegments()).toEqual([
-      { status: "empty" },
-      { status: "empty" },
-      { status: "empty" },
+      { status: "empty", label: "20" },
+      { status: "empty", label: "19" },
+      { status: "empty", label: "18" },
     ]);
     store.recordSwitchingDart({
       hitTargetNumber: 20,
@@ -1014,9 +1033,9 @@ describe("routinePlay — Switching", () => {
       locationY: 120,
     });
     expect(store.previewSegments()).toEqual([
-      { status: "hit" },
+      { status: "hit", label: "20" },
       { status: "miss" },
-      { status: "empty" },
+      { status: "empty", label: "18" },
     ]);
   });
 });
@@ -1120,6 +1139,25 @@ describe("routinePlay — Double Pattern", () => {
     expect(store.dartsThrown()).toBe(1);
   });
 
+  it("doublePatternSequence() lists the current pattern's doubles", async () => {
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineTemplateId: "rt-1",
+      routineName: "Balanced Training",
+      steps: [DOUBLE_PATTERN_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "DOUBLE_PATTERN",
+      configuration: DOUBLE_PATTERN_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+    const store = makeStore();
+    expect(store.doublePatternSequence()).toBe("");
+    await startRoutine(store);
+    expect(store.doublePatternSequence()).toBe("D20 D10 D5");
+  });
+
   it("previewSegments() counts only the double as a hit", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
@@ -1148,9 +1186,9 @@ describe("routinePlay — Double Pattern", () => {
       locationY: 40,
     });
     expect(store.previewSegments()).toEqual([
-      { status: "hit" },
+      { status: "hit", label: "D20" },
       { status: "miss" },
-      { status: "empty" },
+      { status: "empty", label: "D5" },
     ]);
   });
 });
@@ -1263,9 +1301,9 @@ describe("routinePlay — Target Scoring", () => {
     });
 
     expect(store.previewSegments()).toEqual([
-      { status: "hit" },
+      { status: "hit", label: "20" },
       { status: "miss" },
-      { status: "empty" },
+      { status: "empty", label: "Bull" },
     ]);
   });
 
@@ -1378,6 +1416,14 @@ describe("routinePlay — Switching Target Scoring", () => {
     expect(store.switchingTargetScoringMarkToBeat()).toBe(4);
   });
 
+  it("switchingTargetScoringSequence() lists the step's targets, the bull as Bull", async () => {
+    const store = makeStore();
+    expect(store.switchingTargetScoringSequence()).toBe("");
+    await startRoutine(store);
+
+    expect(store.switchingTargetScoringSequence()).toBe("20 19 Bull");
+  });
+
   it("previewSegments() marks each dart against its own target", async () => {
     const store = makeStore();
     await startRoutine(store);
@@ -1396,9 +1442,9 @@ describe("routinePlay — Switching Target Scoring", () => {
     });
 
     expect(store.previewSegments()).toEqual([
-      { status: "hit" },
+      { status: "hit", label: "20" },
       { status: "miss" },
-      { status: "empty" },
+      { status: "empty", label: "20" },
     ]);
   });
 
@@ -1511,6 +1557,23 @@ describe("routinePlay — 65 or More", () => {
     expect(store.dartsThrown()).toBe(3);
   });
 
+  it("previewSegments() captions a single with its number as a value", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+
+    store.recordScoreThresholdDart({
+      hitTargetNumber: 20,
+      hitZoneKey: "SINGLE",
+      locationX: 0,
+      locationY: -120,
+    });
+
+    expect(store.previewSegments()[0]).toEqual({
+      status: "value",
+      label: "20",
+    });
+  });
+
   it("previewSegments() marks a dart on the board as hit and off it as miss", async () => {
     const store = makeStore();
     await startRoutine(store);
@@ -1519,7 +1582,7 @@ describe("routinePlay — 65 or More", () => {
     store.recordScoreThresholdDart(MISS);
 
     expect(store.previewSegments()).toEqual([
-      { status: "hit" },
+      { status: "value", label: "T20" },
       { status: "miss" },
       { status: "empty" },
     ]);
@@ -1674,7 +1737,7 @@ describe("routinePlay — Bullseye Checkouts", () => {
     store.recordBullseyeCheckoutDart(S19);
     store.recordBullseyeCheckoutDart(MISS);
     expect(store.previewSegments()).toEqual([
-      { status: "hit" },
+      { status: "value", label: "19" },
       { status: "miss" },
       { status: "empty" },
     ]);
@@ -1689,7 +1752,10 @@ describe("routinePlay — Bullseye Checkouts", () => {
 
     [S19, S12, BULL].forEach((d) => store.recordBullseyeCheckoutDart(d));
 
-    expect(store.previewSegments()[2]).toEqual({ status: "hit" });
+    expect(store.previewSegments()[2]).toEqual({
+      status: "hit",
+      label: "BULL",
+    });
   });
 
   it("the step deadline expires the engine and uploads its darts", async () => {
@@ -1807,20 +1873,22 @@ describe("routinePlay — Bull Up Practice", () => {
     expect(store.dartsThrown()).toBe(3);
   });
 
-  it("previewSegments() marks either bull as hit and anything else as miss", async () => {
+  it("previewSegments() is one slot naming the next throw", async () => {
     const store = makeStore();
     await startRoutine(store);
 
+    expect(store.previewSegments()).toEqual([
+      { status: "empty", label: "THROW 1" },
+    ]);
     store.recordBullUpDart(BULL);
     expect(store.previewSegments()).toEqual([
-      { status: "hit" },
-      { status: "empty" },
-      { status: "empty" },
+      { status: "empty", label: "THROW 2" },
     ]);
     store.recordBullUpDart(OUTER);
-    expect(store.previewSegments()[0]).toEqual({ status: "hit" });
     store.recordBullUpDart(S20);
-    expect(store.previewSegments()[0]).toEqual({ status: "miss" });
+    expect(store.previewSegments()).toEqual([
+      { status: "empty", label: "THROW 4" },
+    ]);
   });
 
   it("the step deadline expires the engine and uploads its darts", async () => {
@@ -1949,7 +2017,7 @@ describe("routinePlay — Catch 40", () => {
     store.recordCheckoutSequenceDart(S20);
     store.recordCheckoutSequenceDart(MISS);
     expect(store.previewSegments()).toEqual([
-      { status: "hit" },
+      { status: "value", label: "20" },
       { status: "miss" },
       { status: "empty" },
     ]);
@@ -2103,7 +2171,7 @@ describe("routinePlay — Random Checkout", () => {
     store.recordRandomCheckoutDart(S20);
     store.recordRandomCheckoutDart(MISS);
     expect(store.previewSegments()).toEqual([
-      { status: "hit" },
+      { status: "value", label: "20" },
       { status: "miss" },
       { status: "empty" },
     ]);

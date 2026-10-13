@@ -23,7 +23,7 @@ import type { BullseyeCheckoutEngine } from "@modules/training/exercises/bullsey
 import type { BullUpEngine } from "@modules/training/exercises/bull-up.engine.module";
 import type { CheckoutSequenceEngine } from "@modules/training/exercises/checkout-sequence.engine.module";
 import type { RandomCheckoutEngine } from "@modules/training/exercises/random-checkout.engine.module";
-import type { DartObservation } from "@modules/types";
+import type { DartFact, DartObservation } from "@modules/types";
 import type { BoardMarker, PreviewSegment } from "@lib/types";
 import type { gameStep } from "./game-step.data";
 import type { StepAdapter } from "./adapters/interfaces";
@@ -31,6 +31,9 @@ import type { trainingSessionStore } from "@stores/training-session.store";
 import type { routineStatsStore } from "@stores/routine-stats.store";
 
 export * from "./adapters/types";
+
+/** How a thrown exercise dart reads in the visit preview. */
+export type DartJudgement = "hit" | "miss" | "value";
 
 export type TrainingStepResolved = StartTrainingResponseData["steps"][number];
 
@@ -83,6 +86,7 @@ export type RoutinePlayContext = {
   warmUpTimer: SegmentTimer | null;
   warmUpElapsedSeconds: number;
   warmUpConfiguration: Record<string, unknown> | null;
+  stepConfiguration: Record<string, unknown> | null;
   adapter: StepAdapter | null;
   game: ReturnType<typeof gameStep> | null;
   sessionClock: SessionClock | null;
@@ -204,6 +208,14 @@ export type RoutinePlayContext = {
     | null;
   visitMarkers(this: RoutinePlayContext): BoardMarker[];
   previewSegments(this: RoutinePlayContext): PreviewSegment[];
+  judgeExerciseDart(this: RoutinePlayContext, dart: DartFact): DartJudgement;
+  exerciseVisitLabels(
+    this: RoutinePlayContext,
+    visitIndex: number,
+  ): (string | undefined)[];
+  switchingSequence(this: RoutinePlayContext): string;
+  doublePatternSequence(this: RoutinePlayContext): string;
+  switchingTargetScoringSequence(this: RoutinePlayContext): string;
   recordSwitchingDart(
     this: RoutinePlayContext,
     observation: DartObservation,
