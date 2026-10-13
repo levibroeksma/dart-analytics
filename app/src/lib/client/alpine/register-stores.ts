@@ -1,5 +1,6 @@
 import type { Alpine } from "alpinejs";
 import type { Persist } from "@alpinejs/persist";
+import { activeSessionsStore } from "@stores/active-sessions.store";
 import { authStore } from "@stores/auth.store";
 import { boardInputStore } from "@stores/board-input.store";
 import { checkoutHintsStore } from "@stores/checkout-hints.store";
@@ -21,6 +22,7 @@ export function registerStores(Alpine: Alpine) {
   Alpine.store("routineStats", routineStatsStore());
   Alpine.store("replay", replayStore());
   Alpine.store("trainingSession", trainingSessionStore());
+  Alpine.store("activeSessions", activeSessionsStore());
   /**
    * Alpine's `$persist` getter returns a fresh persist() per access —
    * required so each store field gets its own `.as()` alias closure.

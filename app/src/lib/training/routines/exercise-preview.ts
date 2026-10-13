@@ -141,6 +141,26 @@ export function visitLabelsFor(
   return captions ? captions(input) : noCaptions();
 }
 
+/** Most slots or chips one row of the 390px play column fits (D457). */
+const WINDOW_SIZE = 6;
+
+/**
+ * The `WINDOW_SIZE`-item page of `items` that holds index `focus` (clamped
+ * into the list); a list that fits is returned whole. Pages, rather than a
+ * sliding window, keep each slot in place until its page is done.
+ */
+export function windowPage<T>(items: readonly T[], focus: number): T[] {
+  const last = Math.max(items.length - 1, 0);
+  const index = Math.min(Math.max(focus, 0), last);
+  const start = Math.floor(index / WINDOW_SIZE) * WINDOW_SIZE;
+  return items.slice(start, start + WINDOW_SIZE);
+}
+
+/** Where index `focus` sits within its `windowPage()` page. */
+export function windowIndex(focus: number): number {
+  return Math.max(focus, 0) % WINDOW_SIZE;
+}
+
 /** `length` items of `items` from `start`, wrapping both ways. */
 export function cycleFrom<T>(
   items: readonly T[],
@@ -158,7 +178,8 @@ export function cycleFrom<T>(
  * The exercise visit preview: the latest visit's darts, one slot per dart
  * that visit throws. A landed dart is captioned with its zone (`T20`, `25`)
  * unless it missed; an empty slot with the target it will be thrown at. A
- * finished visit stays on screen until the next dart opens a new one.
+ * finished visit stays on screen until the next dart opens a new one. A visit
+ * longer than one row shows only the page holding the next (or last) dart.
  */
 export function visitPreview(input: {
   turns: readonly TurnFact[];
@@ -167,12 +188,17 @@ export function visitPreview(input: {
 }): PreviewSegment[] {
   const visitIndex = Math.max(input.turns.length - 1, 0);
   const darts = input.turns.at(-1)?.darts ?? [];
-  return input.visitLabels(visitIndex).map((label, index): PreviewSegment => {
-    const dart = darts[index];
-    if (!dart) return { status: "empty", label };
-    const status = input.judge(dart, index);
-    return status === "miss" ? { status } : { status, label: dartLabel(dart) };
-  });
+  const segments = input
+    .visitLabels(visitIndex)
+    .map((label, index): PreviewSegment => {
+      const dart = darts[index];
+      if (!dart) return { status: "empty", label };
+      const status = input.judge(dart, index);
+      return status === "miss"
+        ? { status }
+        : { status, label: dartLabel(dart) };
+    });
+  return windowPage(segments, darts.length);
 }
 
 /** Bull Up's one-slot preview: the throw about to be made. */

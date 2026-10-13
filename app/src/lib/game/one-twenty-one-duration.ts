@@ -31,11 +31,3 @@ export function clampOneTwentyOneDuration(
     clamped: clampedValue !== numeric,
   };
 }
-
-export function oneTwentyOneDurationClampNotice(
-  type: ClampableDuration,
-): string {
-  return type === "ROUNDS"
-    ? "Allowed range: 1–50 rounds"
-    : "Allowed range: 3–30 minutes";
-}

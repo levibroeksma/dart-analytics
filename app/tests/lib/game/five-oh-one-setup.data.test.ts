@@ -265,7 +265,6 @@ describe("fiveOhOneSetup", () => {
 
     expect(presetsApi.fetchConfigurationPresets).toHaveBeenCalledWith("501");
     expect(setup.legsToWin).toBe(1);
-    expect(setup.legsClampNotice).toBe("");
     expect(setup.startingScoreOption).toBe("501");
     expect(setup.startingScoreValue).toBe(101);
     expect(setup.presets).toHaveLength(2);
@@ -725,7 +724,7 @@ describe("fiveOhOneSetup", () => {
     );
   });
 
-  it("clamps an out-of-range legs value, sets the notice, and still creates", async () => {
+  it("clamps an out-of-range legs value and still creates", async () => {
     const setup = createSetup({
       presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET, V2_PRESET],
       legsToWin: 99,
@@ -745,7 +744,6 @@ describe("fiveOhOneSetup", () => {
     await setup.start();
 
     expect(setup.legsToWin).toBe(20);
-    expect(setup.legsClampNotice).toBe("Allowed range: 1–20 legs");
     expect(sessionsApi.createSession).toHaveBeenCalledWith(
       expect.objectContaining({
         config: expect.objectContaining({

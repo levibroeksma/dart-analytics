@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { gamesIndex, resumeTarget } from "@lib/game/games-index.data";
+import { gamesIndex } from "@lib/game/games-index.data";
 import type { GamesIndexContext } from "@lib/types";
 import * as sessionsApi from "@client/api/sessions";
+import { activeSessionsStore } from "@stores/active-sessions.store";
 
 vi.mock("@client/api/sessions");
 
@@ -39,6 +40,7 @@ describe("gamesIndex", () => {
     vi.clearAllMocks();
     store = {
       settings: { captureModeKey: "RECREATIONAL", inputModeKey: "QUICK_SCORE" },
+      activeSessions: activeSessionsStore(),
     };
   });
 
@@ -140,29 +142,6 @@ describe("gamesIndex", () => {
     expect(page.isFirstVisible("MATCH_PLAY", "CRICKET_V1")).toBe(false);
   });
 
-  it("sets the resume target from the fetched sessions", async () => {
-    vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([
-      activeSession("501_V2"),
-    ]);
-    const page = createPage();
-    await page.init();
-
-    expect(page.activeSession).toEqual({
-      title: "501",
-      href: "/games/501/setup",
-    });
-  });
-
-  it("clears the resume target when the fetch fails", async () => {
-    vi.mocked(sessionsApi.fetchActiveSessions).mockRejectedValue(
-      new Error("offline"),
-    );
-    const page = createPage();
-    await page.init();
-
-    expect(page.activeSession).toBeNull();
-  });
-
   it("falls back to no active session when the fetch fails", async () => {
     vi.mocked(sessionsApi.fetchActiveSessions).mockRejectedValue(
       new Error("offline"),
@@ -200,59 +179,5 @@ describe("gamesIndex", () => {
     await page.init();
 
     expect(page.loading()).toBe(true);
-  });
-});
-
-describe("resumeTarget", () => {
-  it("picks the most recently started session that has a card", () => {
-    const older = {
-      ...activeSession("501_V2"),
-      startedAt: "2026-08-08T10:00:00.000Z",
-    };
-    const newer = {
-      ...activeSession("CRICKET_V1"),
-      startedAt: "2026-08-09T10:00:00.000Z",
-    };
-
-    expect(resumeTarget([older, newer])).toEqual({
-      title: "Cricket",
-      href: "/games/cricket/setup",
-    });
-  });
-
-  it("skips a newer training step session for an older game", () => {
-    const step = {
-      ...trainingStepSession(),
-      startedAt: "2026-09-20T10:00:00.000Z",
-    };
-
-    expect(resumeTarget([step, activeSession("501_V2")])?.title).toBe("501");
-  });
-
-  it("resumes a 501_V1 session through the single 501 card", () => {
-    expect(resumeTarget([activeSession("501_V1")])).toEqual({
-      title: "501",
-      href: "/games/501/setup",
-    });
-  });
-
-  it("skips a newer routine step for an older standalone session", () => {
-    const routineStep = {
-      ...activeSession("CRICKET_V1"),
-      isRoutineStep: true,
-      startedAt: "2026-08-09T10:00:00.000Z",
-    };
-    const standalone = {
-      ...activeSession("501_V2"),
-      startedAt: "2026-08-08T10:00:00.000Z",
-    };
-
-    expect(resumeTarget([routineStep, standalone])?.title).toBe("501");
-    expect(resumeTarget([routineStep])).toBeNull();
-  });
-
-  it("is null without a game session", () => {
-    expect(resumeTarget([trainingStepSession()])).toBeNull();
-    expect(resumeTarget([])).toBeNull();
   });
 });

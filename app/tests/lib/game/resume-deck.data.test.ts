@@ -3,6 +3,8 @@ import { resumeDeck, toResumeCards } from "@lib/game/resume-deck.data";
 import { summarizeProgress } from "@modules/game/session-progress.module";
 import type { LocalGame, ResumeDeckContext } from "@lib/types";
 import * as sessionsApi from "@client/api/sessions";
+import { activeSessionsStore } from "@stores/active-sessions.store";
+import { gamesIndex } from "@lib/game/games-index.data";
 
 vi.mock("@client/api/sessions");
 vi.mock("@modules/game/session-progress.module", () => ({
@@ -218,7 +220,10 @@ describe("resumeDeck", () => {
     overrides: Partial<ResumeDeckContext> = {},
   ): ResumeDeckContext {
     return Object.assign(resumeDeck(), {
-      $store: { game: localGame({ sessionId: null, rulesetVersionKey: null }) },
+      $store: {
+        game: localGame({ sessionId: null, rulesetVersionKey: null }),
+        activeSessions: activeSessionsStore(),
+      },
       navigate: vi.fn(),
       ...overrides,
     }) as ResumeDeckContext;
@@ -255,6 +260,23 @@ describe("resumeDeck", () => {
       expect(deck.failed).toBe(true);
       expect(deck.loading).toBe(false);
       expect(deck.visible()).toBe(false);
+    });
+    it("shares the page's one active-sessions fetch with /games", async () => {
+      vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([session()]);
+      const deck = createDeck();
+      const page = Object.assign(gamesIndex(), {
+        $store: {
+          settings: {
+            captureModeKey: "RECREATIONAL",
+            inputModeKey: "QUICK_SCORE",
+          },
+          activeSessions: deck.$store.activeSessions,
+        },
+      });
+      await Promise.all([deck.init(), page.init()]);
+      expect(sessionsApi.fetchActiveSessions).toHaveBeenCalledTimes(1);
+      expect(deck.cards.map((card) => card.sessionId)).toEqual(["s-501"]);
+      expect(page.activeRulesetKeys).toEqual(["501_V2"]);
     });
   });
 

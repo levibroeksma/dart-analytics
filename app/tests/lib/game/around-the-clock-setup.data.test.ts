@@ -304,7 +304,6 @@ describe("aroundTheClockSetup", () => {
       expect(sentConfig().config).toMatchObject({
         overrides: { duration_type: "MINUTES", duration_value: 12 },
       });
-      expect(setup.clampNotice).toBe("");
     });
 
     it("defaults an empty timed run to AROUND_THE_CLOCK_DEFAULT_MINUTES", async () => {
@@ -318,10 +317,9 @@ describe("aroundTheClockSetup", () => {
           duration_value: AROUND_THE_CLOCK_DEFAULT_MINUTES,
         },
       });
-      expect(setup.clampNotice).toBe("");
     });
 
-    it("clamps a timed run past 30 minutes and says so", async () => {
+    it("clamps a timed run past 30 minutes", async () => {
       mockCreate();
       const setup = createSetup({ presets: [STANDARD_PRESET] });
       setup.durationType = "MINUTES";
@@ -331,7 +329,6 @@ describe("aroundTheClockSetup", () => {
         overrides: { duration_value: 30 },
       });
       expect(setup.durationValue).toBe(30);
-      expect(setup.clampNotice).toBe("Allowed range: 3–30 minutes");
     });
 
     it("sends outer single only under ANALYTICS", async () => {

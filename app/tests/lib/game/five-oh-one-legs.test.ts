@@ -3,7 +3,6 @@ import {
   clampFiveOhOneLegs,
   FIVE_OH_ONE_LEGS_MAX,
   FIVE_OH_ONE_LEGS_MIN,
-  FIVE_OH_ONE_LEGS_NOTICE,
 } from "@lib/game/five-oh-one-legs";
 
 describe("clampFiveOhOneLegs", () => {
@@ -33,10 +32,6 @@ describe("clampFiveOhOneLegs", () => {
     expect(clampFiveOhOneLegs(null)).toEqual({ value: 1, clamped: true });
     expect(clampFiveOhOneLegs("")).toEqual({ value: 1, clamped: true });
     expect(clampFiveOhOneLegs(Number.NaN)).toEqual({ value: 1, clamped: true });
-  });
-
-  it("states the allowed range in its notice", () => {
-    expect(FIVE_OH_ONE_LEGS_NOTICE).toBe("Allowed range: 1–20 legs");
   });
 });
 

@@ -120,7 +120,6 @@ export type TuodSetupContext = SetupSessionContext & {
   presets: ConfigurationPresetData[];
   durationType: TuodDurationType;
   durationValue: number | string | null;
-  clampNotice: string;
   $watch(
     key: "durationType",
     callback: (value: TuodDurationType) => void,
@@ -501,7 +500,6 @@ export type ScoreTrainingSetupContext = SetupSessionContext & {
   presets: ConfigurationPresetData[];
   durationType: ScoreTrainingDurationType;
   durationValue: number | string | null;
-  clampNotice: string;
   $watch(
     key: "durationType",
     callback: (value: ScoreTrainingDurationType) => void,
@@ -541,7 +539,6 @@ export type FiveOhOneSetupContext = SetupSessionContext & {
   syncCap(): void;
   legsPlayedNotice(): string;
   legsPerSetPlayedNotice(): string;
-  legsClampNotice: string;
   init(this: FiveOhOneSetupContext): Promise<void>;
   basePreset(this: FiveOhOneSetupContext): ConfigurationPresetData | undefined;
   addGuest(this: FiveOhOneSetupContext): void;
@@ -1066,7 +1063,6 @@ export type OneTwentyOneSetupContext = SetupSessionContext & {
   presets: ConfigurationPresetData[];
   durationType: OneTwentyOneDurationType;
   durationValue: number | string | null;
-  clampNotice: string;
   $watch(
     key: "durationType",
     callback: (value: OneTwentyOneDurationType) => void,
@@ -1098,7 +1094,6 @@ export type AroundTheClockSetupContext = PresetSetupContext & {
   difficulty: AroundTheClockV2Snapshot["difficulty"];
   durationType: AroundTheClockV2Snapshot["durationType"];
   durationValue: number | string | null;
-  clampNotice: string;
 };
 
 export type DoublesTrainingSeatResult = {
@@ -1328,12 +1323,8 @@ export type AroundTheClockPlayContext = PlayLifecycleContext<
  * not one: the single-active-session index keys on `(player_id, game_type_id)`,
  * so one session per game type can be running at the same time.
  */
-/** The games page's in-progress card: the game's title and its setup route. */
-export type ResumeTarget = { title: string; href: string };
-
 export type GamesIndexContext = {
   activeRulesetKeys: string[];
-  activeSession: ResumeTarget | null;
   sessionsLoading: boolean;
   $store: {
     settings: {
@@ -1341,6 +1332,7 @@ export type GamesIndexContext = {
       inputModeKey: string;
       loading?: boolean;
     };
+    activeSessions: ActiveSessionsStore;
   };
   init(this: GamesIndexContext): Promise<void>;
   loading(this: GamesIndexContext): boolean;
@@ -1372,6 +1364,14 @@ export type ResumeCard = {
 /** Animation phase of the resume deck: at rest, top card leaving, next card rising, previous card entering. */
 export type ResumeDeckPhase = "idle" | "out" | "rise" | "in";
 
+/** The `activeSessions` store: the page's one shared active-sessions fetch. */
+export type ActiveSessionsStore = {
+  sessions: SessionActiveData[];
+  loaded: boolean;
+  failed: boolean;
+  load(this: ActiveSessionsStore): Promise<void>;
+};
+
 /** The slice of the `game` store the resume deck overlays onto its server-fetched cards. */
 export type LocalGame = {
   sessionId: string | null;
@@ -1391,7 +1391,7 @@ export type ResumeDeckContext = {
   swipeX: number | null;
   swipeY: number | null;
   settleTimer: ReturnType<typeof setTimeout> | null;
-  $store: { game: LocalGame };
+  $store: { game: LocalGame; activeSessions: ActiveSessionsStore };
   init(this: ResumeDeckContext): Promise<void>;
   top(this: ResumeDeckContext): ResumeCard | null;
   position(this: ResumeDeckContext): string;

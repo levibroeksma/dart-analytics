@@ -27,11 +27,3 @@ export function clampScoreTrainingDuration(
     clamped: clampedValue !== numeric,
   };
 }
-
-export function scoreTrainingDurationClampNotice(
-  type: ScoreTrainingDurationType,
-): string {
-  return type === "ROUNDS"
-    ? "Allowed range: 1–100 rounds"
-    : "Allowed range: 3–30 minutes";
-}

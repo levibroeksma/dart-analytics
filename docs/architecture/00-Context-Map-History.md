@@ -17,6 +17,8 @@ updated: 2026-10-13
 
 # Version History
 
+> **Version:** 1.183.0 (2026-10-13 — discovered-work batch #830/#892/#954: D456/D457 in `decisions/frontend/style.md` (D456 supersedes D427 in-progress card clause; D457 supersedes D454 `RouteChips` `currentExpr`); D458 `activeSessions` store in `decisions/frontend/alpine.md`; `active-sessions.store.ts` registered; `08-Component-Inventory.md` `ResumeSessionCard` row removed, `ResumeSessionDeck` row on `/games`; `00-File-Inventory.md` `games-index.data.ts`, schedule/games and deck rows.)
+
 > **Version:** 1.182.0 (2026-10-13 — UI regressions #886/#901/#902/#835: D455 in `decisions/frontend/style.md` (supersedes D442 skeleton clause, D429 `sheet-in` clause); `07-Style-Guide.md` 0.5.2 sheet slide and `.field-inset` autofill; `08-Component-Inventory.md` `ResumeSessionDeck` and `InfoSection` rows.)
 
 > **Version:** 1.181.0 (2026-10-13 — Exercise play restyle: D454 in `decisions/frontend/alpine.md` (supersedes D270); `08-Component-Inventory.md` gains `HeaderClockPill`/`RoutineReadyGate`/`SectionRing`, loses `ExerciseBoardInputPanel`, and restates the exercise panels, `BoardInputPanel`, `VisitPreview`, `PlayStatTile`, `RouteChips`, `SlideToStart`, `DartBoard`; `07-Style-Guide.md` 0.5.1 routine header and two utilities; `09-Training/01-Routines.md` §16 ready gate; `warm-up.md` gate line; new File Inventory section "Exercise play restyle"; spec `docs/superpowers/specs/2026-10-13-exercise-play-restyle-design.md`, plan `docs/superpowers/plans/2026-10-13-exercise-play-restyle.md`.)

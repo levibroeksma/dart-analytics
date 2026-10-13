@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest";
 import {
   AROUND_THE_CLOCK_DEFAULT_MINUTES,
   aroundTheClockDurationBounds,
-  aroundTheClockDurationClampNotice,
   clampAroundTheClockDuration,
 } from "@lib/game/around-the-clock-duration";
 
@@ -43,14 +42,6 @@ describe("clampAroundTheClockDuration", () => {
       value: 10,
       clamped: false,
     });
-  });
-});
-
-describe("aroundTheClockDurationClampNotice", () => {
-  it("names the minute range", () => {
-    expect(aroundTheClockDurationClampNotice()).toBe(
-      "Allowed range: 3–30 minutes",
-    );
   });
 });
 

@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest";
 import {
   clampOneTwentyOneDuration,
   oneTwentyOneDurationBounds,
-  oneTwentyOneDurationClampNotice,
 } from "@lib/game/one-twenty-one-duration";
 
 describe("oneTwentyOneDurationBounds", () => {
@@ -49,19 +48,5 @@ describe("clampOneTwentyOneDuration", () => {
       value: 10,
       clamped: false,
     });
-  });
-});
-
-describe("oneTwentyOneDurationClampNotice", () => {
-  it("names the ROUNDS range", () => {
-    expect(oneTwentyOneDurationClampNotice("ROUNDS")).toBe(
-      "Allowed range: 1–50 rounds",
-    );
-  });
-
-  it("names the MINUTES range", () => {
-    expect(oneTwentyOneDurationClampNotice("MINUTES")).toBe(
-      "Allowed range: 3–30 minutes",
-    );
   });
 });

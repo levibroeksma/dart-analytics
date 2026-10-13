@@ -6,6 +6,8 @@ import {
   exerciseFamily,
   judgeDart,
   visitLabelsFor,
+  windowIndex,
+  windowPage,
 } from "@lib/training/routines/exercise-preview";
 import type { DartFact, TurnFact } from "@modules/types";
 
@@ -36,6 +38,28 @@ function turn(darts: DartFact[]): TurnFact {
 }
 
 describe("visitPreview", () => {
+  const eight = ["1", "2", "3", "4", "5", "6", "7", "8"];
+
+  it("shows only the six-slot page of a long visit that holds the next dart", () => {
+    const turns = [turn(Array.from({ length: 6 }, () => dart()))];
+    expect(
+      visitPreview({ turns, visitLabels: () => eight, judge: () => "hit" }),
+    ).toEqual([
+      { status: "empty", label: "7" },
+      { status: "empty", label: "8" },
+    ]);
+  });
+
+  it("keeps a finished long visit on the page of its last dart", () => {
+    const turns = [turn(Array.from({ length: 8 }, () => dart()))];
+    expect(
+      visitPreview({ turns, visitLabels: () => eight, judge: () => "hit" }),
+    ).toEqual([
+      { status: "hit", label: "20" },
+      { status: "hit", label: "20" },
+    ]);
+  });
+
   it("labels a hit with its zone and empties with their upcoming targets", () => {
     const turns = [
       turn([
@@ -143,6 +167,38 @@ describe("visitPreview", () => {
 describe("bullUpPreview", () => {
   it("is one slot naming the next throw", () => {
     expect(bullUpPreview(42)).toEqual([{ status: "empty", label: "THROW 43" }]);
+  });
+});
+
+describe("windowPage", () => {
+  const items = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
+
+  it("returns a list of up to six items whole", () => {
+    expect(windowPage([20, 19, 18], 2)).toEqual([20, 19, 18]);
+  });
+
+  it("returns the six-item page holding the focus index", () => {
+    expect(windowPage(items, 0)).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(windowPage(items, 5)).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(windowPage(items, 6)).toEqual([7, 8, 9, 10, 11, 12]);
+  });
+
+  it("returns a short last page", () => {
+    expect(windowPage(items, 13)).toEqual([13, 14]);
+  });
+
+  it("clamps an out-of-range focus to the list", () => {
+    expect(windowPage(items, 99)).toEqual([13, 14]);
+    expect(windowPage(items, -1)).toEqual([1, 2, 3, 4, 5, 6]);
+  });
+});
+
+describe("windowIndex", () => {
+  it("is the focus index's position within its six-item page", () => {
+    expect(windowIndex(0)).toBe(0);
+    expect(windowIndex(5)).toBe(5);
+    expect(windowIndex(6)).toBe(0);
+    expect(windowIndex(13)).toBe(1);
   });
 });
 

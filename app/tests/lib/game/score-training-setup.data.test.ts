@@ -267,22 +267,19 @@ describe("scoreTrainingSetup", () => {
       await setup.init();
       expect(setup.durationType).toBe("ROUNDS");
       expect(setup.durationValue).toBe(10);
-      expect(setup.clampNotice).toBe("");
     });
   });
 
   describe("selectMode", () => {
-    it("resets durationValue to the mode preset default and clears clampNotice", () => {
+    it("resets durationValue to the mode preset default", () => {
       const setup = createSetup({
         presets: [ROUND_PRESET, MINUTES_PRESET],
         durationType: "ROUNDS",
         durationValue: 20,
-        clampNotice: "Allowed range: 1–100 rounds",
       });
       setup.selectMode("MINUTES");
       expect(setup.durationType).toBe("MINUTES");
       expect(setup.durationValue).toBe(5);
-      expect(setup.clampNotice).toBe("");
     });
 
     it("init registers a durationType watcher that runs selectMode", async () => {
@@ -300,11 +297,9 @@ describe("scoreTrainingSetup", () => {
       expect(watcher).toBeDefined();
 
       setup.durationType = "MINUTES";
-      setup.clampNotice = "Allowed range: 1–100 rounds";
       watcher!.callback("MINUTES" as never);
 
       expect(setup.durationValue).toBe(5);
-      expect(setup.clampNotice).toBe("");
     });
   });
 
@@ -314,7 +309,6 @@ describe("scoreTrainingSetup", () => {
         presets: [ROUND_PRESET, MINUTES_PRESET],
         durationType: "ROUNDS",
         durationValue: 20,
-        clampNotice: "",
       });
       vi.mocked(sessionsApi.createSession).mockResolvedValue({
         sessionId: "new-session-id",
@@ -364,7 +358,6 @@ describe("scoreTrainingSetup", () => {
         presets: [ROUND_PRESET, MINUTES_PRESET],
         durationType: "ROUNDS",
         durationValue: 20,
-        clampNotice: "",
       });
       vi.mocked(sessionsApi.createSession).mockResolvedValue({
         sessionId: "new-session-id",
@@ -397,7 +390,6 @@ describe("scoreTrainingSetup", () => {
         presets: [ROUND_PRESET, MINUTES_PRESET],
         durationType: "ROUNDS",
         durationValue: 20,
-        clampNotice: "",
       });
       vi.mocked(sessionsApi.createSession).mockResolvedValue({
         sessionId: "new-session-id",
@@ -427,7 +419,6 @@ describe("scoreTrainingSetup", () => {
         presets: [ROUND_PRESET, MINUTES_PRESET],
         durationType: "ROUNDS",
         durationValue: 20,
-        clampNotice: "",
       });
       vi.mocked(sessionsApi.createSession).mockResolvedValue({
         sessionId: "new-session-id",
@@ -451,12 +442,11 @@ describe("scoreTrainingSetup", () => {
       );
     });
 
-    it("clamps out-of-range values, sets clampNotice, and still creates", async () => {
+    it("clamps out-of-range values and still creates", async () => {
       const setup = createSetup({
         presets: [ROUND_PRESET, MINUTES_PRESET],
         durationType: "ROUNDS",
         durationValue: 250,
-        clampNotice: "",
       });
       vi.mocked(sessionsApi.createSession).mockResolvedValue({
         sessionId: "new-session-id",
@@ -473,7 +463,6 @@ describe("scoreTrainingSetup", () => {
       await setup.start();
 
       expect(setup.durationValue).toBe(100);
-      expect(setup.clampNotice).toBe("Allowed range: 1–100 rounds");
       expect(sessionsApi.createSession).toHaveBeenCalledWith(
         expect.objectContaining({
           config: expect.objectContaining({
@@ -488,7 +477,6 @@ describe("scoreTrainingSetup", () => {
         presets: [ROUND_PRESET, MINUTES_PRESET],
         durationType: "MINUTES",
         durationValue: null,
-        clampNotice: "",
       });
       vi.mocked(sessionsApi.createSession).mockResolvedValue({
         sessionId: "new-session-id",
@@ -505,7 +493,6 @@ describe("scoreTrainingSetup", () => {
       await setup.start();
 
       expect(setup.durationValue).toBe(3);
-      expect(setup.clampNotice).toBe("Allowed range: 3–30 minutes");
       expect(sessionsApi.createSession).toHaveBeenCalledWith(
         expect.objectContaining({
           config: expect.objectContaining({
@@ -590,7 +577,6 @@ describe("scoreTrainingSetup", () => {
         presets: [ROUND_PRESET, MINUTES_PRESET],
         durationType: "ROUNDS",
         durationValue: 20,
-        clampNotice: "",
       });
       setup.newGuestName = "Guest 1";
       setup.addGuest();
@@ -794,7 +780,6 @@ describe("scoreTrainingSetup — bot wiring", () => {
       presets: [ROUND_PRESET, MINUTES_PRESET],
       durationType: "ROUNDS",
       durationValue: 20,
-      clampNotice: "",
     } as unknown as ScoreTrainingSetupContext;
     (setup as unknown as { bot: { level: number } | null }).bot = {
       level: 8,

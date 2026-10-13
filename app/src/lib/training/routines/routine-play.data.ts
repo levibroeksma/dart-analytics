@@ -29,6 +29,8 @@ import {
   judgeDart,
   visitLabelsFor,
   visitPreview,
+  windowIndex,
+  windowPage,
 } from "./exercise-preview";
 import { routineIdFromLocation } from "./routine-route";
 import { readyGate } from "./ready-gate";
@@ -255,10 +257,12 @@ export function routinePlay() {
       });
     },
 
-    /** The Switching step's targets, in throw order. */
+    /** The Switching step's targets, in throw order, paged around the current one (`windowPage`). */
     switchingSequence(this: RoutinePlayContext): string {
       const config = this.stepConfiguration as SwitchingConfigData | null;
-      return config?.targets.map(String).join(" ") ?? "";
+      if (!config) return "";
+      const index = this.switchingEngine?.state().targetIndex ?? 0;
+      return windowPage(config.targets, index).map(String).join(" ");
     },
 
     /** The doubles of Double Pattern's current pattern. */
@@ -802,6 +806,11 @@ export function routinePlay() {
       return target === undefined ? "" : String(target);
     },
 
+    /** The current target's chip within `switchingSequence()`'s page. */
+    switchingChipIndex(this: RoutinePlayContext): number {
+      return windowIndex(this.switchingEngine?.state().targetIndex ?? 0);
+    },
+
     doublePatternPoints(this: RoutinePlayContext): number {
       return this.doublePatternEngine?.state().totalPoints ?? 0;
     },
@@ -809,6 +818,11 @@ export function routinePlay() {
     doublePatternLabel(this: RoutinePlayContext): string {
       const double = this.doublePatternEngine?.state().currentDoubleNumber;
       return double === undefined ? "" : `D${double}`;
+    },
+
+    /** The current double's chip within `doublePatternSequence()`. */
+    doublePatternChipIndex(this: RoutinePlayContext): number {
+      return this.doublePatternEngine?.state().targetWithinPattern ?? 0;
     },
 
     targetScoringChain(this: RoutinePlayContext): number {
@@ -836,6 +850,11 @@ export function routinePlay() {
       const target =
         this.switchingTargetScoringEngine?.state().currentTargetNumber;
       return target === undefined ? "" : targetScoringTargetLabel(target);
+    },
+
+    /** The current target's chip within `switchingTargetScoringSequence()`. */
+    switchingTargetScoringChipIndex(this: RoutinePlayContext): number {
+      return this.switchingTargetScoringEngine?.state().targetIndex ?? 0;
     },
 
     switchingTargetScoringBestChain(this: RoutinePlayContext): number {

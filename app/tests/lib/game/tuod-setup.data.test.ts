@@ -204,19 +204,17 @@ describe("tuodSetup", () => {
   });
 
   describe("selectMode", () => {
-    it("switches mode, resets durationValue to that mode's preset default, and clears clampNotice", () => {
+    it("switches mode, resets durationValue to that mode's preset default", () => {
       const setup = createSetup({
         presets: [ROUND_PRESET, MINUTES_PRESET],
         durationType: "ROUNDS",
         durationValue: 25,
-        clampNotice: "Allowed range: 1–100 rounds",
       });
 
       setup.selectMode("MINUTES");
 
       expect(setup.durationType).toBe("MINUTES");
       expect(setup.durationValue).toBe(10);
-      expect(setup.clampNotice).toBe("");
     });
 
     it("falls back to the literal default when no preset matches the mode", () => {
@@ -401,7 +399,7 @@ describe("tuodSetup", () => {
       );
     });
 
-    it("clamps an out-of-range typed rounds count and sets a notice for a guested session", async () => {
+    it("clamps an out-of-range typed rounds count for a guested session", async () => {
       const setup = createSetup({
         presets: [ROUND_PRESET, MINUTES_PRESET],
         durationType: "ROUNDS",
@@ -429,7 +427,6 @@ describe("tuodSetup", () => {
       await setup.start();
 
       expect(setup.durationValue).toBe(100);
-      expect(setup.clampNotice).toBe("Allowed range: 1–100 rounds");
     });
 
     it("clamps and overrides duration_value for a solo session too", async () => {
@@ -463,7 +460,7 @@ describe("tuodSetup", () => {
       );
     });
 
-    it("clamps an out-of-range typed value and sets a notice for a solo MINUTES session", async () => {
+    it("clamps an out-of-range typed value for a solo MINUTES session", async () => {
       const setup = createSetup({
         presets: [ROUND_PRESET, MINUTES_PRESET],
         durationType: "MINUTES",
@@ -484,7 +481,6 @@ describe("tuodSetup", () => {
       await setup.start();
 
       expect(setup.durationValue).toBe(30);
-      expect(setup.clampNotice).toBe("Allowed range: 3–30 minutes");
     });
 
     it("threads a PLAYER seat A and the guest as seat B once a guest is added", async () => {

@@ -1,7 +1,6 @@
 import { createPresetSetupController } from "@lib/game/setup-controller";
 import {
   AROUND_THE_CLOCK_DEFAULT_MINUTES,
-  aroundTheClockDurationClampNotice,
   clampAroundTheClockDuration,
 } from "@lib/game/around-the-clock-duration";
 import type { AroundTheClockSetupContext } from "./types";
@@ -17,13 +16,12 @@ const V2_DEFAULTS = {
 
 /**
  * The six V2 wire keys from the form. A timed run's minutes (blank reads
- * as 10) are clamped into range first, written back to the form, and the clamp is announced.
+ * as 10) are clamped into range first and written back to the form.
  * Outer single only needs a board position, so outside ANALYTICS (where the
  * row is hidden) it is sent as `ANY` rather than refused by the validator.
  */
 function v2Overrides(ctx: AroundTheClockSetupContext): Record<string, unknown> {
   let durationValue: number | null = null;
-  ctx.clampNotice = "";
   if (ctx.durationType === "MINUTES") {
     const typed =
       ctx.durationValue === null || ctx.durationValue === ""
@@ -32,7 +30,6 @@ function v2Overrides(ctx: AroundTheClockSetupContext): Record<string, unknown> {
     const clamped = clampAroundTheClockDuration(typed);
     durationValue = clamped.value;
     ctx.durationValue = clamped.value;
-    if (clamped.clamped) ctx.clampNotice = aroundTheClockDurationClampNotice();
   }
   return {
     path_direction: ctx.pathDirection,
@@ -63,7 +60,6 @@ export function aroundTheClockSetup() {
   });
   return {
     ...V2_DEFAULTS,
-    clampNotice: "",
     ...controller,
     addGuest(this: AroundTheClockSetupContext) {
       controller.addGuest.call(this);

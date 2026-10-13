@@ -5,7 +5,7 @@ read-when: why a CSS token/primitive/typography/spacing choice was made
 load-when: style, CSS, token, Tailwind, primitive, typography, spacing, glass, surface, PWA, manifest, icon, safe-area, font, colour, dark mode, motion, accessibility
 depends-on: decisions/frontend/architecture.md
 related: decisions/frontend/astro.md
-updated: 2026-10-10
+updated: 2026-10-13
 -->
 
 | # | Source | Decision | Rationale |
@@ -235,7 +235,21 @@ Reason: reported on production — modals read as appearing, not sliding in (#88
 Consequences: the homepage shows nothing in the deck slot until sessions load, then the deck pops in. Markup/CSS only beyond `visible()`; `.astro`/CSS carry no unit test (D101). The autofill rule is unverified on a real iPhone. #902's second report (sessions vanishing on iOS) is not addressed.
 Supersedes: D442 (loading skeleton clause only); D429 (`sheet-in` motion clause only).
 
-### D456 — Routine game steps put the pause pill in the header; a test pins the overlay containing block
+### D456 — `/games` reuses `ResumeSessionDeck`; `ResumeSessionCard` and `resumeTarget()` removed
+Status: Accepted · Date: 2026-10-13
+Decision: `/games` renders `ResumeSessionDeck` (own `resumeDeck()` scope) in place of `ResumeSessionCard`. `gamesIndex()` drops `activeSession` and `resumeTarget()`; its sessions fetch still drives card visibility. The `ResumeTarget` type is removed.
+Reason: two resume UIs showed different data — `/games` only the newest session with a static detail line, the homepage every open game with progress (#892).
+Consequences: both scopes read the shared `activeSessions` store, one fetch per page (D458). The static detail line D427 described is gone with the card; the deck's progress caveats (D442, #815) now apply on `/games` too. `.astro` carries no unit test (D101).
+Supersedes: D427 (in-progress card clause only).
+
+### D457 — Long exercise previews and target chips page six at a time
+Status: Accepted · Date: 2026-10-13
+Decision: `windowPage()` (`lib/training/routines/exercise-preview.ts`) cuts a list to the six-item page holding a focus index; `windowIndex()` gives the focus's slot on that page. `visitPreview()` pages its segments on the next (or, once full, last) dart; `switchingSequence()` pages the Switching targets on the engine's `targetIndex`. Lists of six or fewer are unchanged. `SwitchingV1Config` keeps `.max(20)`.
+Reason: one preview slot or chip per target overflowed the 390px play column past ~6 targets (#954). Paging over a config cap leaves stored snapshots valid.
+Consequences: a Switching visit over six targets shows only its current page; earlier slots of the visit leave the screen once their page is done. `RouteChips` lights the current part by index (`currentIndexExpr`), not label, so a repeated target or double lights once; Switching, Double Pattern and Switching Target Scoring pass their engine's index (`*ChipIndex()`).
+Supersedes: D454 in part (`RouteChips` `currentExpr`, now `currentIndexExpr`).
+
+### D459 — Routine game steps put the pause pill in the header; a test pins the overlay containing block
 Status: Accepted · Date: 2026-10-13
 Decision: `/training/routines/play` renders one `CountdownPauseControl` in `GameLayout`'s `header-end` slot, beside `HeaderClockPill`, instead of one in a body row above each of its four game interfaces. The component gains an optional `scopeExpr`: when set, its play-scope reads go through `<scopeExpr>?.`, so the routine header reads the active game step as `game` and the pill hides while `game` is null; without it the markup is unchanged. `tests/components/layout/games/board-input-panel-containing-block.test.ts` walks every source ancestor of `BoardInputPanel`'s fixed ring and magnifier (inside the panel, each component and page that mounts it, each wrapping layout's `<slot>`) and fails on any class that sets `filter`, `backdrop-filter`, `transform`, or `will-change`/`contain` of them, deriving the banned `global.css` surfaces from their bodies.
 Reason: a routine step showed its timer in a different place from the same game played standalone (#846); D454 gave the routine header a play scope but the game step's own `x-data="game"` subtree cannot reach the header, and a second `x-data="game"` there would run the game store's `init()` twice. The containing-block rule was documented but unenforced, so a glass class on the panel root or a play wrapper would break magnifier tracking with the suite green (#847).
