@@ -58,6 +58,11 @@ describe("cn", () => {
     expect(cn("inset-0", "section-ring-inset")).toBe("section-ring-inset");
     expect(cn("fill-none", "highlight-glow")).toBe("fill-none highlight-glow");
   });
+
+  it("lets section-ring-square replace stock size and composes section-ring-frame freely", () => {
+    expect(cn("size-full", "section-ring-square")).toBe("section-ring-square");
+    expect(cn("flex", "section-ring-frame")).toBe("flex section-ring-frame");
+  });
 });
 
 describe("cn token registry stays in lockstep with global.css", () => {
