@@ -454,14 +454,17 @@ describe("routinePlay", () => {
     });
     const store = makeStore();
     await store.init();
-    expect(store.$store.trainingSession.headerLabel).toBe("00:00 - warm up");
+    expect(store.$store.trainingSession.elapsedSeconds).toBe(0);
+    expect(store.headerTitle()).toBe("Warm-Up");
+    expect(store.headerSubtitle()).toBe("STEP 1 OF 1");
     expect(store.sessionClock).toBeNull();
 
     store.confirmWarmUpReady();
     vi.advanceTimersByTime(38_000);
 
     expect(store.sessionClock).not.toBeNull();
-    expect(store.$store.trainingSession.headerLabel).toBe("00:38 - warm up");
+    expect(store.$store.trainingSession.elapsedSeconds).toBe(38);
+    expect(store.headerTitle()).toBe("Warm-Up");
   });
 
   it("the routine clock keeps running across a step change, and the header names the new step", async () => {
@@ -507,7 +510,9 @@ describe("routinePlay", () => {
 
     await vi.advanceTimersByTimeAsync(601_000);
 
-    expect(store.$store.trainingSession.headerLabel).toBe("10:01 - switching");
+    expect(store.$store.trainingSession.elapsedSeconds).toBe(601);
+    expect(store.headerTitle()).toBe("Switching");
+    expect(store.headerSubtitle()).toBe("STEP 2 OF 2");
     store.stopSessionClock();
   });
 
@@ -592,7 +597,9 @@ describe("routinePlay", () => {
     await vi.advanceTimersByTimeAsync(600_000);
 
     expect(store.sessionClock).toBeNull();
-    expect(store.$store.trainingSession.headerLabel).toBe("09:59 - complete");
+    expect(store.$store.trainingSession.elapsedSeconds).toBe(599);
+    expect(store.headerTitle()).toBe("Balanced Training");
+    expect(store.headerSubtitle()).toBe("COMPLETE");
   });
 
   it("surfaces an error instead of freezing on the Warm-Up screen when advancing to the next step fails", async () => {
@@ -2931,7 +2938,7 @@ describe("routinePlay — routine summary", () => {
 
     store.dismissSummary();
 
-    expect(store.$store.trainingSession.headerLabel).toBe("");
+    expect(store.$store.trainingSession.stepLabel).toBe("");
     expect(globalThis.location.href).toBe("/training");
   });
 

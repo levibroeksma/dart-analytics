@@ -43,6 +43,7 @@ describe("bullseyeCheckoutAdapter", () => {
   it("declares its key, header label and panel", () => {
     expect(bullseyeCheckoutAdapter.key).toBe("BULLSEYE_CHECKOUT");
     expect(bullseyeCheckoutAdapter.headerLabel).toBe("Bullseye checkouts");
+    expect(bullseyeCheckoutAdapter.title).toBe("Bullseye Checkouts");
     expect(bullseyeCheckoutAdapter.panel).toBe("bullseye-checkout");
     expect(bullseyeCheckoutAdapter.completesOwnSession).toBe(false);
   });

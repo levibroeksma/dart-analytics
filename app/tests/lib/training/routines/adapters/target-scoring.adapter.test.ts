@@ -24,6 +24,7 @@ describe("targetScoringAdapter", () => {
   it("declares its key, header label and panel", () => {
     expect(targetScoringAdapter.key).toBe("TARGET_SCORING");
     expect(targetScoringAdapter.headerLabel).toBe("target scoring");
+    expect(targetScoringAdapter.title).toBe("Target Scoring");
     expect(targetScoringAdapter.panel).toBe("target-scoring");
     expect(targetScoringAdapter.completesOwnSession).toBe(false);
   });

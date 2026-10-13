@@ -21,6 +21,7 @@ import {
   resolveStepAdapter,
 } from "./adapters/step-adapter.registry";
 import { routineIdFromLocation } from "./routine-route";
+import { routineHeader } from "./routine-header";
 import { routineStartErrorMessage } from "./routine-start-error";
 import { stepAdvanceErrorMessage } from "./step-advance-error";
 import {
@@ -41,7 +42,11 @@ import type {
   StartTrainingStepResponseData,
 } from "@client/api/types";
 import type { StepAdapter } from "@lib/interfaces";
-import type { RoutinePlayContext, TrainingStepResolved } from "./types";
+import type {
+  RoutineHeader,
+  RoutinePlayContext,
+  TrainingStepResolved,
+} from "./types";
 import type { SwitchingEngine } from "@modules/training/exercises/switching.engine.module";
 import type { DoublePatternEngine } from "@modules/training/exercises/double-pattern.engine.module";
 import {
@@ -135,6 +140,7 @@ export function routinePlay() {
     resolvingOpenRoutine: false,
     stepSummaries: [],
     routineFinished: false,
+    routineReady: true,
     completionStatus: "pending" as
       "pending" | "saving" | "succeeded" | "failed",
     completionError: "",
@@ -372,6 +378,36 @@ export function routinePlay() {
       if (!this.training) return null;
       const stepIndex = this.training.state().stepIndex;
       return this.steps[stepIndex] ?? null;
+    },
+
+    header(this: RoutinePlayContext): RoutineHeader {
+      const step = this.currentStep();
+      return routineHeader({
+        routineName: this.routineName,
+        ready: this.routineReady,
+        finished: this.routineFinished,
+        stepIndex: step ? this.steps.indexOf(step) : -1,
+        stepCount: this.steps.length,
+        adapter: this.adapter,
+        stepRemaining: this.stepTimer ? this.formattedStepRemaining() : null,
+        warmUpElapsed: this.formattedWarmUpElapsed(),
+      });
+    },
+
+    headerTitle(this: RoutinePlayContext): string {
+      return this.header().title;
+    },
+
+    headerSubtitle(this: RoutinePlayContext): string {
+      return this.header().subtitle;
+    },
+
+    headerClock(this: RoutinePlayContext): string {
+      return this.header().clock;
+    },
+
+    headerClockLabel(this: RoutinePlayContext): string {
+      return this.header().clockLabel;
     },
 
     /**

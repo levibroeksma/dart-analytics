@@ -26,6 +26,7 @@ describe("doublePatternAdapter", () => {
   it("declares its key, header label and panel", () => {
     expect(doublePatternAdapter.key).toBe("DOUBLE_PATTERN");
     expect(doublePatternAdapter.headerLabel).toBe("doubles");
+    expect(doublePatternAdapter.title).toBe("Double Pattern");
     expect(doublePatternAdapter.panel).toBe("double-pattern");
     expect(doublePatternAdapter.completesOwnSession).toBe(false);
   });

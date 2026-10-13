@@ -31,6 +31,7 @@ describe("randomCheckoutAdapter", () => {
   it("declares its key, header label and panel", () => {
     expect(randomCheckoutAdapter.key).toBe("RANDOM_CHECKOUT");
     expect(randomCheckoutAdapter.headerLabel).toBe("Random Checkout");
+    expect(randomCheckoutAdapter.title).toBe("Random Checkout");
     expect(randomCheckoutAdapter.panel).toBe("random-checkout");
     expect(randomCheckoutAdapter.completesOwnSession).toBe(false);
   });

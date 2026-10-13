@@ -69,6 +69,7 @@ export function summariseAroundTheClockStep(
 export function gameAdapter(input: {
   rulesetVersionKey: RulesetVersionKey;
   headerLabel: string;
+  title: string;
   panel: StepPanel;
   playFactory: () => GameStepPlayContext;
   summarise: (ctx: RoutinePlayContext) => RoutineStepSummary | null;
@@ -76,6 +77,7 @@ export function gameAdapter(input: {
   return {
     key: `GAME:${input.rulesetVersionKey}`,
     headerLabel: input.headerLabel,
+    title: input.title,
     panel: input.panel,
     open(ctx, result) {
       ctx.$store.game.reset();

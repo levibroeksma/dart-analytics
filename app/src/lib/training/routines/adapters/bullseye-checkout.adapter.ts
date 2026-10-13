@@ -7,6 +7,7 @@ import type { StepAdapter } from "./interfaces";
 export const bullseyeCheckoutAdapter: StepAdapter = {
   key: "BULLSEYE_CHECKOUT",
   headerLabel: "Bullseye checkouts",
+  title: "Bullseye Checkouts",
   panel: "bullseye-checkout",
   open(ctx, result, durationSeconds) {
     const factory = getDartExerciseEngineFactory("BULLSEYE_CHECKOUT_V1");

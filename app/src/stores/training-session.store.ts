@@ -7,11 +7,9 @@ function formatElapsed(totalSeconds: number): string {
 }
 
 /**
- * The routine-wide clock and the step it is currently running, read by
- * `GameLayout`'s header. It lives in a store rather than the play page's own
- * `x-data` because the header renders in the layout's Alpine scope, which is
- * an ancestor of the page's — an expression there can never reach a page
- * component's members.
+ * The routine-wide clock and the step it is currently running, shared with
+ * the routine summary and the game steps. The play header reads
+ * `routineHeader()` through the page's own scope, not this store.
  *
  * Not persisted: a session's clock is only meaningful while that session is
  * on screen, and a reload restarts the routine rather than resuming it.
@@ -32,11 +30,6 @@ export function trainingSessionStore() {
 
     get elapsedLabel(): string {
       return formatElapsed(this.elapsedSeconds);
-    },
-
-    get headerLabel(): string {
-      if (!this.stepKey) return "";
-      return `${formatElapsed(this.elapsedSeconds)} - ${this.stepLabel}`;
     },
 
     startSession() {

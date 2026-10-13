@@ -7,6 +7,7 @@ import type { StepAdapter } from "./interfaces";
 export const switchingAdapter: StepAdapter = {
   key: "SWITCHING",
   headerLabel: "switching",
+  title: "Switching",
   panel: "switching",
   open(ctx, result, durationSeconds) {
     const factory = getDartExerciseEngineFactory("SWITCHING_V1");

@@ -97,3 +97,33 @@ describe("step adapter registry", () => {
     expect(resolveStepAdapter("GAME:501_V1")).toBeUndefined();
   });
 });
+
+describe("STEP_ADAPTERS titles", () => {
+  it("gives every step kind a Title Case header title", () => {
+    expect(
+      Object.fromEntries(
+        Object.values(STEP_ADAPTERS).map((adapter) => [
+          adapter.key,
+          adapter.title,
+        ]),
+      ),
+    ).toMatchInlineSnapshot(`
+      {
+        "BULLSEYE_CHECKOUT": "Bullseye Checkouts",
+        "BULL_UP": "Bull Up Practice",
+        "CHECKOUT_SEQUENCE": "Catch 40",
+        "DOUBLE_PATTERN": "Double Pattern",
+        "GAME:121_V2": "121",
+        "GAME:AROUND_THE_CLOCK_V2": "Around the Clock",
+        "GAME:SCORE_TRAINING_V1": "Score Training",
+        "GAME:TUOD_V1": "Ten Up One Down",
+        "RANDOM_CHECKOUT": "Random Checkout",
+        "SCORE_THRESHOLD": "65 or More",
+        "SWITCHING": "Switching",
+        "SWITCHING_TARGET_SCORING": "Switch Target Scoring",
+        "TARGET_SCORING": "Target Scoring",
+        "WARM_UP": "Warm-Up",
+      }
+    `);
+  });
+});

@@ -12,6 +12,7 @@ import type { StepAdapter } from "./interfaces";
 export const warmUpAdapter: StepAdapter = {
   key: "WARM_UP",
   headerLabel: "warm up",
+  title: "Warm-Up",
   panel: "warm-up",
   open(ctx, result) {
     const factory = getExerciseEngineFactory("WARM_UP_V1");

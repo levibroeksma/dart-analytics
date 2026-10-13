@@ -7,6 +7,7 @@ import type { StepAdapter } from "./interfaces";
 export const randomCheckoutAdapter: StepAdapter = {
   key: "RANDOM_CHECKOUT",
   headerLabel: "Random Checkout",
+  title: "Random Checkout",
   panel: "random-checkout",
   open(ctx, result, durationSeconds) {
     const factory = getDartExerciseEngineFactory("RANDOM_CHECKOUT_V1");

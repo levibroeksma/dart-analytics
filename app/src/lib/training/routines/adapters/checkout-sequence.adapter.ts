@@ -7,6 +7,7 @@ import type { StepAdapter } from "./interfaces";
 export const checkoutSequenceAdapter: StepAdapter = {
   key: "CHECKOUT_SEQUENCE",
   headerLabel: "Catch 40",
+  title: "Catch 40",
   panel: "checkout-sequence",
   open(ctx, result, durationSeconds) {
     const factory = getDartExerciseEngineFactory("CHECKOUT_SEQUENCE_V1");

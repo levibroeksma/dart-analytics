@@ -96,6 +96,7 @@ export type RoutinePlayContext = {
   resolvingOpenRoutine: boolean;
   stepSummaries: RoutineStepSummary[];
   routineFinished: boolean;
+  routineReady: boolean;
   completionStatus: "pending" | "saving" | "succeeded" | "failed";
   completionError: string;
   $store: {
@@ -112,6 +113,11 @@ export type RoutinePlayContext = {
   };
   init(this: RoutinePlayContext): Promise<void>;
   currentStep(this: RoutinePlayContext): TrainingStepResolved | null;
+  header(this: RoutinePlayContext): RoutineHeader;
+  headerTitle(this: RoutinePlayContext): string;
+  headerSubtitle(this: RoutinePlayContext): string;
+  headerClock(this: RoutinePlayContext): string;
+  headerClockLabel(this: RoutinePlayContext): string;
   stepContextRow(this: RoutinePlayContext): SessionContextRow | null;
   startCurrentStep(this: RoutinePlayContext): Promise<void>;
   openStep(
@@ -240,6 +246,24 @@ export type RoutinePlayContext = {
   completeRoutine(this: RoutinePlayContext): Promise<void>;
   dismissSummary(this: RoutinePlayContext): void;
   abandonAndExit(this: RoutinePlayContext): Promise<void>;
+};
+
+export type RoutineHeaderInput = {
+  routineName: string;
+  ready: boolean;
+  finished: boolean;
+  stepIndex: number;
+  stepCount: number;
+  adapter: { title: string; panel: string } | null;
+  stepRemaining: string | null;
+  warmUpElapsed: string;
+};
+
+export type RoutineHeader = {
+  title: string;
+  subtitle: string;
+  clock: string;
+  clockLabel: string;
 };
 
 export type TrainingSessionStoreContext = ReturnType<

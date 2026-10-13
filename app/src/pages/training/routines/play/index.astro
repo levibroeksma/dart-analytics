@@ -16,6 +16,7 @@ import ScoreTraining from "@components/layout/games/interfaces/ScoreTraining.ast
 import OneTwentyOne from "@components/layout/games/interfaces/OneTwentyOne.astro";
 import AroundTheClock from "@components/layout/games/interfaces/AroundTheClock.astro";
 import CountdownPauseControl from "@components/layout/games/CountdownPauseControl.astro";
+import HeaderClockPill from "@components/layout/games/HeaderClockPill.astro";
 import CheckoutConfirm from "@components/layout/games/CheckoutConfirm.astro";
 import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
 import InlayRow from "@components/ui/InlayRow.astro";
@@ -28,13 +29,18 @@ import OpenRoutineModal from "@components/layout/training/routines/OpenRoutineMo
 
 <GameLayout
   title="Routine — Play"
-  gameTitleExpr="$store.trainingSession.headerLabel"
+  gameTitleExpr="headerTitle()"
+  gameSubtitleExpr="headerSubtitle()"
+  x-data="routinePlay()"
+  @confirm-exit.window="abandonAndExit()"
 >
-  <div
-    class="flex flex-col flex-1 min-h-0"
-    x-data="routinePlay()"
-    @confirm-exit.window="abandonAndExit()"
-  >
+  <HeaderClockPill
+    slot="header-end"
+    valueExpr="headerClock()"
+    ariaLabelExpr="headerClockLabel()"
+    showExpr="headerClock() !== ''"
+  />
+  <div class="flex flex-col flex-1 min-h-0">
     <ErrorAlert />
 
     <template x-if="!loading && adapter?.panel === 'warm-up' && warmUpEngine">
