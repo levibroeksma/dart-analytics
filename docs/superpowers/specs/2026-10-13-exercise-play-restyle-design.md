@@ -14,6 +14,7 @@ In: the 9 scored exercise steps, Warm-Up / Warm-Up Advanced, the routine
 play header, one routine-level ready gate.
 
 Out:
+
 - Game steps inside a routine (TUOD, Score Training, 121, Around the
   Clock) keep their own countdown and pause above the game interface. They
   only inherit the new header title/subtitle.
@@ -78,11 +79,11 @@ Props become `score`, `caption`, `chip?`, `tiles` (replaces `rows`):
 ```ts
 interface ExerciseTile {
   label: string;
-  value: string;     // Alpine expr
+  value: string; // Alpine expr
   showWhen?: string; // Alpine expr; tile hidden while false (kept from rows)
 }
 interface ExerciseChip {
-  routeExpr: string;    // RouteChips input
+  routeExpr: string; // RouteChips input
   currentExpr?: string; // RouteChips lit part
 }
 interface Props {
@@ -105,17 +106,17 @@ interface Props {
 
 Per exercise (all values from existing getters unless marked new):
 
-| Exercise | Caption | Tiles | Chip |
-|---|---|---|---|
-| Switching | POINTS | Target, Darts | `switchingSequence()` (new), current = target |
-| Double Pattern | POINTS | Double, Darts | `doublePatternSequence()` (new), current = double |
-| Target Scoring | CHAIN | Target, To beat\*, Best | — |
-| Switching Target Scoring | CHAIN | Target, To beat\*, Best | `switchingTargetScoringSequence()` (new), current = target |
-| 65 or More | BEATS | This visit, Last\*, Visits, Rate | — |
-| Bullseye Checkouts | CHECKOUTS | Left, Visits, Rate | `` `LAST ${bullseyeCheckoutLastResult()}` `` |
-| Bull Up Practice | BULLSEYES | Last, Throws, Bulls | `` `BULL ${bullUpBullRate()} EYE ${bullUpBullseyeRate()}` `` |
-| Catch 40 | POINTS | Outshot, Left, Dart, Checkouts | `` `LAST ${checkoutSequenceLastResult()}` `` |
-| Random Checkout | CHECKOUTS | Start, Left, Dart, Rate | `` `LAST ${randomCheckoutLastResult()}` `` |
+| Exercise                 | Caption   | Tiles                            | Chip                                                         |
+| ------------------------ | --------- | -------------------------------- | ------------------------------------------------------------ |
+| Switching                | POINTS    | Target, Darts                    | `switchingSequence()` (new), current = target                |
+| Double Pattern           | POINTS    | Double, Darts                    | `doublePatternSequence()` (new), current = double            |
+| Target Scoring           | CHAIN     | Target, To beat\*, Best          | —                                                            |
+| Switching Target Scoring | CHAIN     | Target, To beat\*, Best          | `switchingTargetScoringSequence()` (new), current = target   |
+| 65 or More               | BEATS     | This visit, Last\*, Visits, Rate | —                                                            |
+| Bullseye Checkouts       | CHECKOUTS | Left, Visits, Rate               | `` `LAST ${bullseyeCheckoutLastResult()}` ``                 |
+| Bull Up Practice         | BULLSEYES | Last, Throws, Bulls              | `` `BULL ${bullUpBullRate()} EYE ${bullUpBullseyeRate()}` `` |
+| Catch 40                 | POINTS    | Outshot, Left, Dart, Checkouts   | `` `LAST ${checkoutSequenceLastResult()}` ``                 |
+| Random Checkout          | CHECKOUTS | Start, Left, Dart, Rate          | `` `LAST ${randomCheckoutLastResult()}` ``                   |
 
 \* keeps its existing `showWhen`. `RouteChips` splits on a plain space, so a
 two-word part (Bull Up's `BULL 36%`) joins its words with U+00A0. A `LAST` chip is hidden while there is no
@@ -151,7 +152,7 @@ returns `''` then).
 - `BoardInputPanel` gains `showExpr` and `undoDisabledExpr`; defaults are
   today's expressions, so game pages pass nothing.
 - `ExercisePanelShell` renders `BoardInputPanel showExpr="true"
-  undoDisabledExpr="!activeDartEngine()?.facts().turns.length"`.
+undoDisabledExpr="!activeDartEngine()?.facts().turns.length"`.
 - `ExerciseBoardInputPanel.astro` is deleted. Exercises gain `input-well`,
   `InputButton` undo / Bounce out, `board-dim` and the pointer ring.
 
@@ -215,3 +216,20 @@ by `resolveWarmUpPhaseDurations` and `warmUpElapsedSeconds`.
   replaces the Warm-Up gate.
 - Decision entry in `decisions/frontend/` (gate moves to routine start;
   primitives extended, not copied).
+
+## Amendments (from planning, 2026-10-13)
+
+The plan `docs/superpowers/plans/2026-10-13-exercise-play-restyle.md`
+refines this spec; where they differ, the plan wins:
+
+- Header: the routine page's `x-data="routinePlay()"` moves onto
+  `GameLayout` (D432), so the title / subtitle / clock are page methods
+  (`headerTitle()`, `headerSubtitle()`, `headerClock()`, built by a pure
+  `routineHeader()`), not new `trainingSession` store fields. The store only
+  loses `headerLabel`. After the last step: routine name + `COMPLETE`.
+- Visit labels need the step's configuration, so `openStep` keeps it as
+  `stepConfiguration` on the play context.
+- Bull Up's one preview slot names the next throw (`THROW n`); the last
+  throw reads from the board markers and the Last tile.
+- `VisitPreview` opts in with one `labelled` prop; `SlideToStart` gains
+  `inline` (it is `fixed` today).
