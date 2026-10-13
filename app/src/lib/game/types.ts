@@ -167,7 +167,9 @@ export type PreviewSegment = {
 };
 
 /** The dart slot a game's 3-dart strip carries: no labels, no `value` darts. */
-export type GamePreviewSegment = { status: "hit" | "miss" | "empty" };
+export type GamePreviewSegment = {
+  status: Exclude<PreviewSegment["status"], "value">;
+};
 
 /** One landed dart, positioned as a percentage of the board's rendered box. */
 export type BoardMarker = {
