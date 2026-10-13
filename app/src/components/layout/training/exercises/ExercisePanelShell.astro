@@ -9,15 +9,15 @@
  *   `showWhen` are Alpine expressions; a row with `showWhen` is hidden while
  *   it is false. The `Time` row is appended here, not passed.
  */
+interface Props {
+  score: string;
+  rows: ExerciseRow[];
+}
+
 interface ExerciseRow {
   label: string;
   value: string;
   showWhen?: string;
-}
-
-interface Props {
-  score: string;
-  rows: ExerciseRow[];
 }
 
 // Props

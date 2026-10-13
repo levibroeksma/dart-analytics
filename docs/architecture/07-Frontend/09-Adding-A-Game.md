@@ -72,10 +72,10 @@ page legitimately has none of.
 | File | What goes in it |
 | ---- | --------------- |
 | `setup/<Game>SetupForm.astro` | The setup form. *Engine-only skips.* |
-| `interfaces/<Game>.astro` | The play-screen interface. *Engine-only skips.* |
+| `interfaces/<Game>.astro` | The play-screen interface: a `SeatedPlayScreen` call (tiles as `Expr`s; input stack in the default slot) unless the game is solo-only (Cricket, Tactics). *Engine-only skips.* |
 | `result-modals/<Game>Results.astro` | The results modal. *Engine-only skips.* |
 
-Check `08-Component-Inventory.md` before hand-rolling markup — `GameSetupPage`, `SetupShell`,
+Check `08-Component-Inventory.md` before hand-rolling markup — `SeatedPlayScreen`, `GameSetupPage`, `SetupShell`,
 `UserSection`, `InfoSection`, `SettingSectionShell`, `Toggle`, `DurationField` already exist.
 
 ### `app/src/pages/games/<route-slug>/`
