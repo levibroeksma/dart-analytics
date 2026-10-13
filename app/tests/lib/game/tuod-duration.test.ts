@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  clampTuodDuration,
-  tuodDurationBounds,
-  tuodDurationClampNotice,
-} from "@lib/game/tuod-duration";
+import { clampTuodDuration, tuodDurationBounds } from "@lib/game/tuod-duration";
 
 describe("tuodDurationBounds", () => {
   it("returns 1–100 for ROUNDS", () => {
@@ -69,16 +65,5 @@ describe("clampTuodDuration", () => {
       value: 1,
       clamped: true,
     });
-  });
-});
-
-describe("tuodDurationClampNotice", () => {
-  it("returns the allowed-range copy per mode", () => {
-    expect(tuodDurationClampNotice("ROUNDS")).toBe(
-      "Allowed range: 1–100 rounds",
-    );
-    expect(tuodDurationClampNotice("MINUTES")).toBe(
-      "Allowed range: 3–30 minutes",
-    );
   });
 });

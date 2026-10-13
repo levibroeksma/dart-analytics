@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   clampScoreTrainingDuration,
   scoreTrainingDurationBounds,
-  scoreTrainingDurationClampNotice,
 } from "@lib/game/score-training-duration";
 
 describe("scoreTrainingDurationBounds", () => {
@@ -63,16 +62,5 @@ describe("clampScoreTrainingDuration", () => {
       value: 1,
       clamped: true,
     });
-  });
-});
-
-describe("scoreTrainingDurationClampNotice", () => {
-  it("returns the allowed-range copy per mode", () => {
-    expect(scoreTrainingDurationClampNotice("ROUNDS")).toBe(
-      "Allowed range: 1–100 rounds",
-    );
-    expect(scoreTrainingDurationClampNotice("MINUTES")).toBe(
-      "Allowed range: 3–30 minutes",
-    );
   });
 });

@@ -31,9 +31,3 @@ export function clampTuodDuration(
     clamped: clampedValue !== numeric,
   };
 }
-
-export function tuodDurationClampNotice(type: TuodDurationType): string {
-  return type === "ROUNDS"
-    ? "Allowed range: 1–100 rounds"
-    : "Allowed range: 3–30 minutes";
-}

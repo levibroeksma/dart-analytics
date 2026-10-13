@@ -3,10 +3,7 @@ import {
   type ConfigurationPresetData,
 } from "@client/api/configuration-templates";
 import { createSession, fetchActiveSessions } from "@client/api/sessions";
-import {
-  clampOneTwentyOneDuration,
-  oneTwentyOneDurationClampNotice,
-} from "@lib/game/one-twenty-one-duration";
+import { clampOneTwentyOneDuration } from "@lib/game/one-twenty-one-duration";
 import { createSetupSession } from "@lib/game/setup-session";
 import { toSnapshot } from "@lib/game/rulesets/config-codec";
 import { addBotOpponent, addTypedGuest } from "@lib/game/guest-list";
@@ -67,8 +64,8 @@ function guested(ctx: OneTwentyOneSetupContext): boolean {
 /**
  * The `overrides` record `start()` sends: none for a guested 1v1 (`121_V1`
  * has no duration concept), or the clamped duration override for solo play.
- * Clamps `ctx.durationValue`/`ctx.clampNotice` as a side effect, matching
- * `start()`'s own prior behavior.
+ * Clamps `ctx.durationValue` as a side effect, matching `start()`'s own
+ * prior behavior.
  */
 function resolveStartOverrides(
   ctx: OneTwentyOneSetupContext,
@@ -76,17 +73,13 @@ function resolveStartOverrides(
 ): Record<string, unknown> {
   if (guested) return {};
   if (ctx.durationType === "TARGET") {
-    ctx.clampNotice = "";
     return { duration_type: ctx.durationType };
   }
-  const { value, clamped } = clampOneTwentyOneDuration(
+  const { value } = clampOneTwentyOneDuration(
     ctx.durationType,
     ctx.durationValue,
   );
   ctx.durationValue = value;
-  ctx.clampNotice = clamped
-    ? oneTwentyOneDurationClampNotice(ctx.durationType)
-    : "";
   return { duration_type: ctx.durationType, duration_value: value };
 }
 
@@ -99,7 +92,6 @@ export function oneTwentyOneSetup() {
     presets: [] as ConfigurationPresetData[],
     durationType: "TARGET" as OneTwentyOneDurationType,
     durationValue: null as number | string | null,
-    clampNotice: "",
 
     async init(this: OneTwentyOneSetupContext) {
       this.$watch("durationType", (type) => {
@@ -116,7 +108,6 @@ export function oneTwentyOneSetup() {
         this.presets = presets;
         this.durationType = "TARGET";
         this.durationValue = null;
-        this.clampNotice = "";
 
         await this.reconcile(activeSessions);
       } catch {
@@ -145,7 +136,6 @@ export function oneTwentyOneSetup() {
           ? null
           : (durationValueOf(this.presetForMode(type)) ??
             FALLBACK_DURATION[type]);
-      this.clampNotice = "";
     },
 
     addGuest(this: OneTwentyOneSetupContext) {

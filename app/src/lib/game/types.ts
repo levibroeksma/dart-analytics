@@ -120,7 +120,6 @@ export type TuodSetupContext = SetupSessionContext & {
   presets: ConfigurationPresetData[];
   durationType: TuodDurationType;
   durationValue: number | string | null;
-  clampNotice: string;
   $watch(
     key: "durationType",
     callback: (value: TuodDurationType) => void,
@@ -501,7 +500,6 @@ export type ScoreTrainingSetupContext = SetupSessionContext & {
   presets: ConfigurationPresetData[];
   durationType: ScoreTrainingDurationType;
   durationValue: number | string | null;
-  clampNotice: string;
   $watch(
     key: "durationType",
     callback: (value: ScoreTrainingDurationType) => void,
@@ -541,7 +539,6 @@ export type FiveOhOneSetupContext = SetupSessionContext & {
   syncCap(): void;
   legsPlayedNotice(): string;
   legsPerSetPlayedNotice(): string;
-  legsClampNotice: string;
   init(this: FiveOhOneSetupContext): Promise<void>;
   basePreset(this: FiveOhOneSetupContext): ConfigurationPresetData | undefined;
   addGuest(this: FiveOhOneSetupContext): void;
@@ -1066,7 +1063,6 @@ export type OneTwentyOneSetupContext = SetupSessionContext & {
   presets: ConfigurationPresetData[];
   durationType: OneTwentyOneDurationType;
   durationValue: number | string | null;
-  clampNotice: string;
   $watch(
     key: "durationType",
     callback: (value: OneTwentyOneDurationType) => void,
@@ -1098,7 +1094,6 @@ export type AroundTheClockSetupContext = PresetSetupContext & {
   difficulty: AroundTheClockV2Snapshot["difficulty"];
   durationType: AroundTheClockV2Snapshot["durationType"];
   durationValue: number | string | null;
-  clampNotice: string;
 };
 
 export type DoublesTrainingSeatResult = {

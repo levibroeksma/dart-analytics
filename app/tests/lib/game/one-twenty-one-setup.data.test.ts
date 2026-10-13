@@ -203,7 +203,6 @@ describe("oneTwentyOneSetup", () => {
       await setup.init();
       expect(setup.durationType).toBe("TARGET");
       expect(setup.durationValue).toBeNull();
-      expect(setup.clampNotice).toBe("");
     });
   });
 
@@ -217,7 +216,6 @@ describe("oneTwentyOneSetup", () => {
       setup.selectMode("TARGET");
       expect(setup.durationType).toBe("TARGET");
       expect(setup.durationValue).toBeNull();
-      expect(setup.clampNotice).toBe("");
     });
 
     it("resets durationValue to the mode preset default when switching to ROUNDS", () => {
@@ -229,7 +227,6 @@ describe("oneTwentyOneSetup", () => {
       setup.selectMode("ROUNDS");
       expect(setup.durationType).toBe("ROUNDS");
       expect(setup.durationValue).toBe(10);
-      expect(setup.clampNotice).toBe("");
     });
 
     it("init registers a durationType watcher that runs selectMode", async () => {
@@ -335,7 +332,6 @@ describe("oneTwentyOneSetup", () => {
         presets: [TARGET_PRESET, ROUNDS_PRESET, MINUTES_PRESET],
         durationType: "TARGET",
         durationValue: null,
-        clampNotice: "Allowed range: 1–50 rounds",
       });
       vi.mocked(sessionsApi.createSession).mockResolvedValue({
         sessionId: "new-session-id",
@@ -367,7 +363,6 @@ describe("oneTwentyOneSetup", () => {
           configSnapshot: expect.objectContaining({ durationType: "TARGET" }),
         }),
       );
-      expect(setup.clampNotice).toBe("");
       expect(location.href).toBe("/games/121/play");
     });
 
@@ -392,7 +387,6 @@ describe("oneTwentyOneSetup", () => {
       await setup.start();
 
       expect(setup.durationValue).toBe(50);
-      expect(setup.clampNotice).toBe("Allowed range: 1–50 rounds");
       expect(sessionsApi.createSession).toHaveBeenCalledWith(
         expect.objectContaining({
           config: {
@@ -425,7 +419,6 @@ describe("oneTwentyOneSetup", () => {
       await setup.start();
 
       expect(setup.durationValue).toBe(3);
-      expect(setup.clampNotice).toBe("Allowed range: 3–30 minutes");
       expect(sessionsApi.createSession).toHaveBeenCalledWith(
         expect.objectContaining({
           config: expect.objectContaining({

@@ -6,10 +6,7 @@ import { createSession, fetchActiveSessions } from "@client/api/sessions";
 import { createSetupSession } from "@lib/game/setup-session";
 import { toSnapshot } from "@lib/game/rulesets/config-codec";
 import { addBotOpponent, addTypedGuest } from "@lib/game/guest-list";
-import {
-  clampTuodDuration,
-  tuodDurationClampNotice,
-} from "@lib/game/tuod-duration";
+import { clampTuodDuration } from "@lib/game/tuod-duration";
 import {
   participantsFromGuests,
   resolveSessionModePair,
@@ -50,7 +47,6 @@ export function tuodSetup() {
     presets: [] as ConfigurationPresetData[],
     durationType: "ROUNDS" as TuodDurationType,
     durationValue: FALLBACK_DURATION.ROUNDS as number | string | null,
-    clampNotice: "",
 
     async init(this: TuodSetupContext) {
       this.$watch("durationType", (type) => {
@@ -69,7 +65,6 @@ export function tuodSetup() {
         this.durationValue =
           durationValueOf(this.presetForMode("ROUNDS")) ??
           FALLBACK_DURATION.ROUNDS;
-        this.clampNotice = "";
 
         await this.reconcile(activeSessions);
       } catch {
@@ -92,7 +87,6 @@ export function tuodSetup() {
       this.durationType = type;
       this.durationValue =
         durationValueOf(this.presetForMode(type)) ?? FALLBACK_DURATION[type];
-      this.clampNotice = "";
     },
 
     addGuest(this: TuodSetupContext) {
@@ -121,14 +115,11 @@ export function tuodSetup() {
         return;
       }
 
-      const { value, clamped } = clampTuodDuration(
+      const { value } = clampTuodDuration(
         this.durationType,
         this.durationValue,
       );
       this.durationValue = value;
-      this.clampNotice = clamped
-        ? tuodDurationClampNotice(this.durationType)
-        : "";
 
       this.loading = true;
       this.error = "";
