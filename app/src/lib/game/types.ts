@@ -1,3 +1,5 @@
+import type { Call } from "./interfaces";
+
 import type { ConfigurationPresetData } from "@client/api/configuration-templates";
 import type { SessionActiveData } from "@client/api/types";
 import type { ScoreInputBuffer } from "@modules/game/score-input.module";
@@ -1412,3 +1414,6 @@ export type GuestListContext = {
   pendingBotLevel?: number;
   showBotLevelPicker?: boolean;
 };
+
+/** A play-screen value written once; expanded per scoreboard by `SeatedPlayScreen` (#915). */
+export type Expr = (c: Call) => string;

@@ -2,7 +2,7 @@
 status: canonical
 scope: the file fan-out a new game requires, and the shapes it must reuse
 read-when: adding a game, or changing anything a game is wired into
-updated: 2026-09-10
+updated: 2026-10-13
 -->
 
 # Adding a Game
@@ -72,10 +72,10 @@ page legitimately has none of.
 | File | What goes in it |
 | ---- | --------------- |
 | `setup/<Game>SetupForm.astro` | The setup form. *Engine-only skips.* |
-| `interfaces/<Game>.astro` | The play-screen interface. *Engine-only skips.* |
+| `interfaces/<Game>.astro` | The play-screen interface: a `SeatedPlayScreen` call (tiles as `Expr`s; input stack in the default slot) unless the game is solo-only (Cricket, Tactics). *Engine-only skips.* |
 | `result-modals/<Game>Results.astro` | The results modal. *Engine-only skips.* |
 
-Check `08-Component-Inventory.md` before hand-rolling markup — `GameSetupPage`, `SetupShell`,
+Check `08-Component-Inventory.md` before hand-rolling markup — `SeatedPlayScreen`, `GameSetupPage`, `SetupShell`,
 `UserSection`, `InfoSection`, `SettingSectionShell`, `Toggle`, `DurationField` already exist.
 
 ### `app/src/pages/games/<route-slug>/`

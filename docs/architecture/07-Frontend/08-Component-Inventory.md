@@ -2,7 +2,7 @@
 status: canonical
 scope: shared Astro component inventory
 read-when: before writing markup for any recurring UI shape
-updated: 2026-10-10
+updated: 2026-10-13
 -->
 
 # Component Inventory
@@ -105,6 +105,8 @@ evaluated in the page's own Alpine scope.
 | `SinglesRecreationalInput.astro` | Target-aware S/D/T or BULL/BULLSEYE row over undo + MISS, in an `input-well` (D432, 2026-10-08) | none |
 | `SplitScoreboard.astro` | Two-seat scoreboard in the 40% band: the throwing seat's `glass-active-seat` card on top, the waiting seat's 64px row under it (D432, 2026-10-08) | `seatA`, `seatB` (each `{ nameExpr, activeExpr, scoreExpr, idleStatExpr, legsExpr?, checkoutExpr? }`), `idleStatLabel`, `legsToWinExpr`, named slots `progressA`/`progressB` |
 | `SplitScoreboardHalf.astro` | One seat in `SplitScoreboard`: the active card (name, `LegBars`, score by `seatValueSize`, `RouteChips`, compact stat rows) or the idle row (name, `LegBars`, muted score, one stat tile), swapped on `activeExpr` (D432, 2026-10-08) | `nameExpr`, `activeExpr`, `scoreExpr`, `idleStatExpr`, `idleStatLabel`, `legsExpr`, `legsToWinExpr`, `checkoutExpr`; default slot = the active card's rows |
+| `SeatedPlayScreen.astro` | Play-screen shell for a game with solo and two-seat layouts: wrapper, solo `SinglePlayerDisplay`, two-seat `SplitScoreboard`, `ErrorAlert`, slotted input, `BoardInputPanel`, optional `CountdownResumePrompt`. Each value is an `Expr` from `play-screen-expr.ts`, written once and expanded to `fn()` solo and `fnFor(<seat ref>)` per seat (D453, 2026-10-13) | `big` (`{ isTarget, value }`), `tiles` (`{ label, value, showWhen? }[]`, non-empty), `idle?` (default `tiles[0]`), `route?`, `legs?` (`{ won, toWin }`), `countdownDisabled?`, rest → wrapper; slots `between`, default (input stack) |
+| `PlayStatTileList.astro` | Private to `SeatedPlayScreen`: one tile list expanded with a solo or seat `Call` into `PlayStatTile`s, `showWhen` → `<template x-if>` (D453, 2026-10-13) | `tiles`, `call`, `compact?` |
 | `StatRow.astro` | Label/value row inside a progress or results list | `label`, `value` |
 | `StatTile.astro` | Inlay stat tile: value over mono eyebrow label; with `skeletonWidth` the value pulses until results are saved (2026-10-08; D437, 2026-10-09) | `labelExpr`, `valueExpr`, `skeletonWidth` |
 | `StatRowComparison.astro` | 1v1 comparison row: label centered, one seat's value on each side, values pulse in place until saved (2026-08-28; D437, 2026-10-09) | `label`, `leftValue`, `rightValue` |

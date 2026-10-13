@@ -1,0 +1,131 @@
+---
+/**
+ * Play-screen shell for a game with a solo and a two-seat layout (#915).
+ * Each value is an `Expr` written once; the shell expands it for the solo
+ * `SinglePlayerDisplay` and both `SplitScoreboard` seats. It owns the
+ * wrapper, both `x-if` layouts, `ErrorAlert`, `BoardInputPanel` and the
+ * optional `CountdownResumePrompt`.
+ * @param {object} big `{ isTarget, value }` — the big value (solo
+ *   `target`/`score`, seat `scoreExpr`)
+ * @param {Tile[]} tiles Stat tiles, solo and compact per seat (non-empty)
+ * @param {Tile} [idle] The waiting seat's stat; default `tiles[0]`
+ * @param {Expr} [route] Checkout route (solo `RouteChips`, seat `checkoutExpr`)
+ * @param {object} [legs] `{ won, toWin }` — seat `legsExpr`, `legsToWinExpr`
+ * @param {string} [countdownDisabled] Set → renders `CountdownResumePrompt`
+ * @slot between Between the solo and two-seat layouts
+ * @slot default The game's input stack (keypad or recreational input)
+ */
+import type { Call, Tile } from "@lib/interfaces";
+import type { Expr } from "@lib/types";
+
+interface Props {
+  big: { isTarget: boolean; value: Expr };
+  tiles: [Tile, ...Tile[]];
+  idle?: Tile;
+  route?: Expr;
+  legs?: { won: Expr; toWin: string };
+  countdownDisabled?: string;
+  [key: string]: unknown;
+}
+
+// Props
+const {
+  big,
+  tiles,
+  idle = tiles[0],
+  route,
+  legs,
+  countdownDisabled,
+  ...props
+}: Props = Astro.props;
+
+// Components
+import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
+import SplitScoreboard from "@components/layout/games/SplitScoreboard.astro";
+import PlayStatTileList from "@components/layout/games/PlayStatTileList.astro";
+import RouteChips from "@components/layout/games/RouteChips.astro";
+import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
+import CountdownResumePrompt from "@components/layout/games/CountdownResumePrompt.astro";
+import ErrorAlert from "@components/ui/ErrorAlert.astro";
+
+// Lib
+import { seatCall, seatRef, soloCall } from "@lib/game/play-screen-expr";
+
+// Data
+const solo = soloCall();
+const bigSolo = big.value(solo);
+const seatA = seatCall(0);
+const seatB = seatCall(1);
+const seatDisplay = (index: 0 | 1, c: Call) => ({
+  nameExpr: `$store.game.seats[${index}]?.displayName`,
+  activeExpr: `state()?.activeParticipantRef === ${seatRef(index)}`,
+  scoreExpr: big.value(c),
+  idleStatExpr: idle.value(c),
+  legsExpr: legs?.won(c),
+  checkoutExpr: route?.(c),
+});
+---
+
+<div
+  class="flex flex-col flex-1 min-h-0 gap-2"
+  {...props}
+>
+  <template x-if="(state()?.seats.length ?? 1) < 2">
+    <SinglePlayerDisplay
+      isTarget={big.isTarget}
+      target={bigSolo}
+      score={bigSolo}
+    >
+      {
+        route && (
+          <RouteChips
+            slot="route"
+            routeExpr={route(solo)}
+          />
+        )
+      }
+      <PlayStatTileList
+        tiles={tiles}
+        call={solo}
+      />
+    </SinglePlayerDisplay>
+  </template>
+
+  <slot name="between" />
+
+  <template x-if="(state()?.seats.length ?? 1) >= 2">
+    <SplitScoreboard
+      seatA={seatDisplay(0, seatA)}
+      seatB={seatDisplay(1, seatB)}
+      idleStatLabel={idle.label}
+      legsToWinExpr={legs?.toWin}
+    >
+      <PlayStatTileList
+        slot="progressA"
+        tiles={tiles}
+        call={seatA}
+        compact
+      />
+      <PlayStatTileList
+        slot="progressB"
+        tiles={tiles}
+        call={seatB}
+        compact
+      />
+    </SplitScoreboard>
+  </template>
+
+  <ErrorAlert class="mx-3 mt-2 text-xs" />
+
+  <slot />
+  {
+    /* Visual board — shown instead of the input above for an
+    ANALYTICS + VISUAL_BOARD session, which enters every dart by pointer. */
+  }
+  <BoardInputPanel />
+  {
+    countdownDisabled && (
+      <CountdownResumePrompt disabledExpr={countdownDisabled} />
+    )
+  }
+</div>
