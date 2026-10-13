@@ -290,13 +290,23 @@ describe("solid error fill", () => {
 
 describe("sheet motion", () => {
   it("defines the sheet entrance animation on the ease-out curve", () => {
-    expect(decl("animate-sheet-in")).toBe("sheet-in 200ms var(--ease-out)");
+    expect(decl("animate-sheet-in")).toBe("sheet-in 300ms var(--ease-out)");
   });
 
-  it("slides the sheet up from a faded, offset start", () => {
+  it("slides the sheet up from fully below the viewport edge", () => {
     expect(css).toMatch(
-      /@keyframes sheet-in\s*\{\s*from\s*\{\s*opacity:\s*0;\s*transform:\s*translateY\(1\.5rem\);\s*\}\s*\}/,
+      /@keyframes sheet-in\s*\{\s*from\s*\{\s*transform:\s*translateY\(calc\(100% \+ 1\.75rem \+ env\(safe-area-inset-bottom\)\)\);\s*\}\s*\}/,
     );
+  });
+});
+
+describe("inset field autofill", () => {
+  it("keeps foreground text and the inset well over browser autofill", () => {
+    const rule = css.match(
+      /\.field-inset:-webkit-autofill,[^{]*\{([^}]*)\}/,
+    )?.[1];
+    expect(rule).toContain("-webkit-text-fill-color: var(--foreground);");
+    expect(rule).toMatch(/transition:\s*background-color\s+\d{4,}s/);
   });
 });
 

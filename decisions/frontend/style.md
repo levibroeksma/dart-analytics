@@ -227,3 +227,10 @@ Decision: `app/src` markup, `.ts` class strings and `@apply` carry no Tailwind a
 Reason: the audit found 190 arbitrary values in 72 files, many re-spelling existing tokens. D428 ("a token before any component uses it") was not enforced, so agents copied neighbours' literals.
 Consequences: sub-pixel line-height shifts where `/[normal]` gave way to explicit values; 11→12px and 10→12px "IN PROGRESS" eyebrows; `Stepper` 32→30px; tracking snaps of ≤0.02em; transitions also animate opacity/filter. Visual check per screen, not byte-verifiable. `cn()` learns every brand `@theme` token and `@utility` from `app/src/lib/client/merge-tokens.ts`, which `cn.test.ts` holds in lockstep with `global.css`. The gate also bans v4 variable shorthand (`prop-(--x)`, `/(--x)`). Source: `docs/superpowers/specs/2026-10-12-tailwind-arbitrary-values-design.md`.
 Supersedes: none.
+
+### D455 — Sheets slide up from below; resume deck renders only after load; rules fold animates
+Status: Accepted · Date: 2026-10-13
+Decision: `sheet-in` is a 300ms `--ease-out` slide from fully below the viewport edge (was a 200ms fade plus 1.5rem rise); reduced motion still skips it. `resumeDeck().visible()` is false while loading, so `ResumeSessionDeck` renders its `CardStack` under `x-if="visible()"` and the pulse skeleton is removed. `InfoSection`'s description regains `x-collapse`. `.field-inset:-webkit-autofill` sets `-webkit-text-fill-color: var(--foreground)` and delays the UA fill colour with a long `background-color` transition.
+Reason: reported on production — modals read as appearing, not sliding in (#886); the skeleton flashed for players with no open games (#902); the redesign dropped the rules fold transition (#901); browser autofill could paint login fields pale (#835).
+Consequences: the homepage shows nothing in the deck slot until sessions load, then the deck pops in. Markup/CSS only beyond `visible()`; `.astro`/CSS carry no unit test (D101). The autofill rule is unverified on a real iPhone. #902's second report (sessions vanishing on iOS) is not addressed.
+Supersedes: D442 (loading skeleton clause only); D429 (`sheet-in` motion clause only).
