@@ -116,3 +116,10 @@ Decision: `routine-stats.store.ts` no longer holds `stepGame` (a `gameStatsStore
 Reason: Its only consumer was the generic `GameSectionCards`, deleted in D446. Nothing else read it; two tests pinned behaviour no component used (#921).
 Consequences: A GAME step in the Routines tab reads `stepSections` directly. A future cards component builds on the dedicated section factories (D385).
 Supersedes: none (completes the cleanup D446 deferred).
+
+### D452 — `ExercisePanelShell` owns the scored exercise play surface
+Status: Accepted · Date: 2026-10-13
+Decision: `components/layout/training/exercises/ExercisePanelShell.astro` renders the wrapper, `SinglePlayerDisplay` (`isTarget={false}`), the `dl` of `StatRow`s with the `Time` row appended, `VisitPreview` and `ExerciseBoardInputPanel`. Its `rows` prop is `{ label, value, showWhen? }[]`; `showWhen` wraps a row in `div[x-show][x-cloak]`. The 9 scored panels keep their names and paths and reduce to one call.
+Reason: the panels repeated the same ~40 lines and differed only in the big-value expression and the row list (#915), so a layout change had to land nine times.
+Consequences: a new scored exercise panel is a `score` and a row list. `WarmUpPanel` (no scoreboard) is unchanged. `.astro` carries no unit test (D101); proof was a byte-for-byte comparison of the built `training/routines/play` HTML before and after.
+Supersedes: none.
