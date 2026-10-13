@@ -108,4 +108,43 @@ describe("sectionRingPaths", () => {
     const weighted = sectionRingPaths([30, 90], 0, 232).track;
     expect(weighted).not.toBe(even);
   });
+
+  function arcs(path: string): string[] {
+    return path.split("M").filter(Boolean);
+  }
+
+  function endAngle(arc: string): number {
+    const numbers = arc.split(/[A,]/).map(Number);
+    const x = numbers[numbers.length - 2];
+    const y = numbers[numbers.length - 1];
+    return ((Math.atan2(x, -y) * 180) / Math.PI + 360) % 360;
+  }
+
+  it("starts the first arc at 12 o'clock plus the 2.5° gap", () => {
+    const radians = (2.5 * Math.PI) / 180;
+    const x = Math.round(232 * Math.sin(radians) * 1000) / 1000;
+    const y = Math.round(-232 * Math.cos(radians) * 1000) / 1000;
+    const { track } = sectionRingPaths([60, 60], 0, 232);
+    expect(track.startsWith(`M${x},${y}A`)).toBe(true);
+  });
+
+  it("draws no arc for a section shorter than its two gaps", () => {
+    const { track, fill } = sectionRingPaths([5, 715], 5, 232);
+    expect(arcs(track)).toHaveLength(1);
+    expect(fill).toBe("");
+  });
+
+  it("draws no arc for a section with no duration", () => {
+    const { track } = sectionRingPaths([0, 60], 0, 232);
+    expect(arcs(track)).toHaveLength(1);
+  });
+
+  it("ends a partial fill before its own section's track end", () => {
+    const { track, fill } = sectionRingPaths([60, 60, 60, 60], 90, 232);
+    const running = arcs(fill)[1];
+    const section = arcs(track)[1];
+    expect(running.split("A")[0]).toBe(section.split("A")[0]);
+    expect(endAngle(running)).toBeCloseTo(135, 1);
+    expect(endAngle(running)).toBeLessThan(endAngle(section));
+  });
 });

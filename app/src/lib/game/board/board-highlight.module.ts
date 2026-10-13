@@ -160,7 +160,8 @@ function arcPath(radiusMm: number, fromDeg: number, toDeg: number): string {
  * A ring split into one arc per section, sized by duration, from 12
  * o'clock clockwise with `RING_GAP_DEGREES` clear at each end. `fill`
  * covers the elapsed share: finished sections whole, the running one in
- * part.
+ * part. A section with no duration, or too short to clear both gaps,
+ * draws no arc.
  */
 export function sectionRingPaths(
   durationsSeconds: readonly number[],
@@ -176,10 +177,12 @@ export function sectionRingPaths(
     const span = total > 0 ? (360 * duration) / total : 0;
     const from = angle + RING_GAP_DEGREES;
     const to = angle + span - RING_GAP_DEGREES;
-    track += arcPath(radiusMm, from, to);
     const done = Math.min(Math.max(elapsedSeconds - before, 0), duration);
-    if (done > 0 && duration > 0) {
-      fill += arcPath(radiusMm, from, from + ((to - from) * done) / duration);
+    if (to > from && duration > 0) {
+      track += arcPath(radiusMm, from, to);
+      if (done > 0) {
+        fill += arcPath(radiusMm, from, from + ((to - from) * done) / duration);
+      }
     }
     angle += span;
     before += duration;
