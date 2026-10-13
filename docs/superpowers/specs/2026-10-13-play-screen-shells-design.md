@@ -70,8 +70,9 @@ change) and shrinks to its `score` and `rows`.
 
 ### Task B — `SeatedPlayScreen.astro` (`components/layout/games/`)
 
-A pure TS module `playScreenExpr.ts` (beside it) holds the call helper and
-types:
+A pure TS module `src/lib/game/play-screen-expr.ts` holds the call helper and
+types (shared by the shell and all 9 interfaces, so not a D101 test-only
+extraction):
 
 ```ts
 interface Call {
@@ -83,6 +84,7 @@ interface Tile { label: string; value: Expr; showWhen?: Expr }
 
 soloCall(): Call
 seatCall(index: 0 | 1): Call
+seatRef(index: 0 | 1): string // `state()?.seats[i]?.participantRef`
 ```
 
 Props:
@@ -90,7 +92,7 @@ Props:
 ```ts
 interface Props {
   big: { isTarget: boolean; value: Expr }; // solo target/score; seat scoreExpr
-  tiles: Tile[];                            // solo tiles; compact tiles per seat
+  tiles: [Tile, ...Tile[]];                 // solo tiles; compact tiles per seat
   idle?: Tile;                              // seat idle stat; default tiles[0]
   route?: Expr;                             // solo RouteChips; seat checkoutExpr
   legs?: { won: Expr; toWin: string };      // seat legsExpr; legsToWinExpr
@@ -112,12 +114,13 @@ path, so play pages do not change.
 
 ## Verification
 
-- **Parity (both tasks):** a throwaway script (scratchpad, not committed)
-  renders every touched panel/interface with the Astro container API on `main`
-  and on the branch, normalizes whitespace, and diffs. Pass = identical. Output
-  quoted in the PR. A committed render-snapshot test is a new test pattern and
-  is not introduced here.
-- **TDD:** `playScreenExpr.ts` unit tests (solo/seat expansion, `solo` flag).
+- **Parity (both tasks):** play routes are prerendered, so — as for #914
+  (D445) — `npm run build` before any change, copy every touched route's
+  `dist/**/play/index.html` to the scratchpad, rebuild after, `diff -r`.
+  Pass = byte-identical. Routes: `training/routines/play` (task A); the 9
+  game play routes rendering the 9 interfaces plus `training/routines/play`
+  (task B). Output quoted in the PR.
+- **TDD:** `play-screen-expr.ts` unit tests (solo/seat expansion, `solo` flag).
 - **Gates:** `validate-app` (fallow: dupes count before/after quoted),
   `astro check`, `run-all-gates`.
 
