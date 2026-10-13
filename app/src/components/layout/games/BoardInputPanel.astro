@@ -33,6 +33,8 @@
  * `board-dim` and a 44px ring marks the pointer. Both sit beside the
  * magnifier, never on its ancestors: a `filter` on an ancestor becomes the
  * containing block of the `fixed` magnifier and breaks its placement.
+ *
+ * `showExpr` / `undoDisabledExpr` let a routine exercise mount it: an exercise is always VISUAL_BOARD, has no pause and unmounts the panel itself when the step ends (replaces `ExerciseBoardInputPanel`).
  */
 
 // Components
@@ -42,10 +44,21 @@ import InputButton from "@components/layout/games/InputButton.astro";
 
 // Icons
 import UndoIcon from "@icons/undo.svg";
+
+interface Props {
+  showExpr?: string;
+  undoDisabledExpr?: string;
+}
+
+// Props
+const {
+  showExpr = "!finished && !$store.game.timerPaused && hasActiveSession && $store.game.inputModeKey === 'VISUAL_BOARD'",
+  undoDisabledExpr = "!$store.game.turns.length",
+}: Props = Astro.props;
 ---
 
 <div
-  x-show="!finished && !$store.game.timerPaused && hasActiveSession && $store.game.inputModeKey === 'VISUAL_BOARD'"
+  x-show={showExpr}
   x-cloak
   class="relative isolate flex min-h-0 flex-1 flex-col items-center gap-2 rounded-board p-2.5"
 >
@@ -98,7 +111,7 @@ import UndoIcon from "@icons/undo.svg";
     <InputButton
       variant="muted"
       aria-label="Undo dart"
-      :disabled="!$store.game.turns.length"
+      :disabled={undoDisabledExpr}
       @click="undoVisit()"
     >
       <UndoIcon class="size-6 text-muted-foreground" />
