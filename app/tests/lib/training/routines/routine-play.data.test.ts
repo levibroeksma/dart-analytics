@@ -1158,6 +1158,65 @@ describe("routinePlay — Double Pattern", () => {
     expect(store.doublePatternSequence()).toBe("D20 D10 D5");
   });
 
+  it("previewSegments() and doublePatternSequence() follow the pattern across visits", async () => {
+    const twoPatterns = {
+      patterns: [
+        [16, 8],
+        [20, 10, 5],
+      ],
+    };
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineTemplateId: "rt-1",
+      routineName: "Balanced Training",
+      steps: [{ ...DOUBLE_PATTERN_STEP, configuration: twoPatterns }] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "DOUBLE_PATTERN",
+      configuration: twoPatterns,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+    const store = makeStore();
+    await startRoutine(store);
+    expect(store.doublePatternSequence()).toBe("D16 D8");
+    expect(store.previewSegments()).toEqual([
+      { status: "empty", label: "D16" },
+      { status: "empty", label: "D8" },
+    ]);
+
+    store.recordDoublePatternDart({
+      hitTargetNumber: 16,
+      hitZoneKey: "DOUBLE",
+      locationX: 0,
+      locationY: -166,
+    });
+    store.recordDoublePatternDart({
+      hitTargetNumber: 8,
+      hitZoneKey: "DOUBLE",
+      locationX: 0,
+      locationY: -166,
+    });
+    expect(store.previewSegments()).toEqual([
+      { status: "hit", label: "D16" },
+      { status: "hit", label: "D8" },
+    ]);
+    expect(store.doublePatternSequence()).toBe("D20 D10 D5");
+
+    store.recordDoublePatternDart({
+      hitTargetNumber: 20,
+      hitZoneKey: "DOUBLE",
+      locationX: 0,
+      locationY: -166,
+    });
+    expect(store.previewSegments()).toEqual([
+      { status: "hit", label: "D20" },
+      { status: "empty", label: "D10" },
+      { status: "empty", label: "D5" },
+    ]);
+    expect(store.doublePatternSequence()).toBe("D20 D10 D5");
+  });
+
   it("previewSegments() counts only the double as a hit", async () => {
     vi.mocked(trainingApi.startTraining).mockResolvedValue({
       activityId: "act-1",
@@ -1574,7 +1633,7 @@ describe("routinePlay — 65 or More", () => {
     });
   });
 
-  it("previewSegments() marks a dart on the board as hit and off it as miss", async () => {
+  it("previewSegments() marks a dart on the board as a value and off it as miss", async () => {
     const store = makeStore();
     await startRoutine(store);
 
@@ -1730,7 +1789,7 @@ describe("routinePlay — Bullseye Checkouts", () => {
     expect(store.dartsThrown()).toBe(6);
   });
 
-  it("previewSegments() marks setup darts on the board as hit and dart 3 hit only on the bullseye", async () => {
+  it("previewSegments() marks setup darts on the board as values and dart 3 hit only on the bullseye", async () => {
     const store = makeStore();
     await startRoutine(store);
 
@@ -2010,7 +2069,7 @@ describe("routinePlay — Catch 40", () => {
     expect(store.dartsThrown()).toBe(8);
   });
 
-  it("previewSegments() marks a dart on the board as hit and off it as miss", async () => {
+  it("previewSegments() marks a dart on the board as a value and off it as miss", async () => {
     const store = makeStore();
     await startRoutine(store);
 
@@ -2164,7 +2223,7 @@ describe("routinePlay — Random Checkout", () => {
     expect(store.dartsThrown()).toBe(5);
   });
 
-  it("previewSegments() marks a dart on the board as hit and off it as miss", async () => {
+  it("previewSegments() marks a dart on the board as a value and off it as miss", async () => {
     const store = makeStore();
     await startRoutine(store);
 
