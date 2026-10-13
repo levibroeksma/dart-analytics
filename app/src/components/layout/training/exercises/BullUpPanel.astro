@@ -5,11 +5,14 @@ import ExercisePanelShell from "./ExercisePanelShell.astro";
 
 <ExercisePanelShell
   score="bullUpBullseyes()"
-  rows={[
+  caption="BULLSEYES"
+  chip={{
+    routeExpr:
+      "'BULL\u00a0' + bullUpBullRate() + ' EYE\u00a0' + bullUpBullseyeRate()",
+  }}
+  tiles={[
     { label: "Last", value: "bullUpLastResult()" },
     { label: "Throws", value: "bullUpThrows()" },
     { label: "Bulls", value: "bullUpBulls()" },
-    { label: "Bullseye rate", value: "bullUpBullseyeRate()" },
-    { label: "Bull rate", value: "bullUpBullRate()" },
   ]}
 />

@@ -3,13 +3,29 @@
  * Checkout route as a 28px `inset-well` pill: the route's parts in mono,
  * separated by 3px dots. Hidden while the route is blank.
  * @param {string} routeExpr Alpine expression for the route string ("T20 9 D16")
+ * @param {string} [currentExpr] Alpine expression for the current part; that part is lit (`accent-bright`), the rest dimmed
  */
 interface Props {
   routeExpr: string;
+  currentExpr?: string;
 }
 
+// Lib
+import { cn } from "@client/cn";
+
 // Props
-const { routeExpr }: Props = Astro.props;
+const { routeExpr, currentExpr }: Props = Astro.props;
+
+// Current-part highlight
+const partAttrs = currentExpr
+  ? {
+      ":class": `part === (${currentExpr}) ? 'text-accent-bright' : 'text-faint-foreground'`,
+    }
+  : {};
+const partClass = cn(
+  "font-mono text-body-sm",
+  !currentExpr && "text-soft-foreground",
+);
 ---
 
 <div
@@ -29,7 +45,8 @@ const { routeExpr }: Props = Astro.props;
         x-cloak
       ></span>
       <span
-        class="font-mono text-body-sm text-soft-foreground"
+        class={partClass}
+        {...partAttrs}
         x-text="part"
       ></span>
     </span>

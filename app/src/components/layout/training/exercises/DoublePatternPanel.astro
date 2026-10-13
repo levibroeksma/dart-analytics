@@ -5,7 +5,12 @@ import ExercisePanelShell from "./ExercisePanelShell.astro";
 
 <ExercisePanelShell
   score="doublePatternPoints()"
-  rows={[
+  caption="POINTS"
+  chip={{
+    routeExpr: "doublePatternSequence()",
+    currentExpr: "doublePatternLabel()",
+  }}
+  tiles={[
     { label: "Double", value: "doublePatternLabel()" },
     { label: "Darts", value: "dartsThrown()" },
   ]}

@@ -5,11 +5,15 @@ import ExercisePanelShell from "./ExercisePanelShell.astro";
 
 <ExercisePanelShell
   score="randomCheckoutCheckouts()"
-  rows={[
+  caption="CHECKOUTS"
+  chip={{
+    routeExpr:
+      "randomCheckoutLastResult() === '—' ? '' : 'LAST ' + randomCheckoutLastResult()",
+  }}
+  tiles={[
     { label: "Start", value: "randomCheckoutStart()" },
     { label: "Left", value: "randomCheckoutLeft()" },
     { label: "Dart", value: "`${randomCheckoutAttemptDart()} / 3`" },
-    { label: "Last", value: "randomCheckoutLastResult()" },
     { label: "Rate", value: "randomCheckoutRate()" },
   ]}
 />

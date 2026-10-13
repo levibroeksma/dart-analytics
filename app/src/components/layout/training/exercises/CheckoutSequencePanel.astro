@@ -5,11 +5,15 @@ import ExercisePanelShell from "./ExercisePanelShell.astro";
 
 <ExercisePanelShell
   score="checkoutSequencePoints()"
-  rows={[
+  caption="POINTS"
+  chip={{
+    routeExpr:
+      "checkoutSequenceLastResult() === '—' ? '' : 'LAST ' + checkoutSequenceLastResult()",
+  }}
+  tiles={[
     { label: "Outshot", value: "checkoutSequenceOutshot()" },
     { label: "Left", value: "checkoutSequenceLeft()" },
     { label: "Dart", value: "`${checkoutSequenceAttemptDart()} / 6`" },
-    { label: "Last", value: "checkoutSequenceLastResult()" },
     { label: "Checkouts", value: "checkoutSequenceCheckouts()" },
   ]}
 />

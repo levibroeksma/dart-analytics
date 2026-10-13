@@ -5,9 +5,13 @@ import ExercisePanelShell from "./ExercisePanelShell.astro";
 
 <ExercisePanelShell
   score="bullseyeCheckoutCheckouts()"
-  rows={[
+  caption="CHECKOUTS"
+  chip={{
+    routeExpr:
+      "bullseyeCheckoutLastResult() === '—' ? '' : 'LAST ' + bullseyeCheckoutLastResult()",
+  }}
+  tiles={[
     { label: "Left", value: "bullseyeCheckoutLeft()" },
-    { label: "Last", value: "bullseyeCheckoutLastResult()" },
     { label: "Visits", value: "bullseyeCheckoutVisits()" },
     { label: "Rate", value: "bullseyeCheckoutRate()" },
   ]}

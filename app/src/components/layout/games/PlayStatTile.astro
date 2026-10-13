@@ -2,19 +2,30 @@
 /**
  * Inset stat in a play scoreboard. It shows the value over a mono caps
  * label in a 76px tile. With `compact`, it is one 44px row instead: label
- * left, value right (the active seat card's rows).
+ * left, value right (the active seat card's rows). With `fit`, the tile
+ * flexes to share its column (max 76px) instead of a fixed 76px height.
  * @param {string} label Caps label text
  * @param {string} valueExpr Alpine expression for the value
  * @param {boolean} [compact] Row layout for the active seat card
+ * @param {boolean} [highlight] Lit value (`accent-bright`) instead of `foreground`
+ * @param {boolean} [fit] Flex to fill the column, up to 76px
  */
 interface Props {
   label: string;
   valueExpr: string;
   compact?: boolean;
+  highlight?: boolean;
+  fit?: boolean;
 }
 
 // Props
-const { label, valueExpr, compact = false }: Props = Astro.props;
+const {
+  label,
+  valueExpr,
+  compact = false,
+  highlight = false,
+  fit = false,
+}: Props = Astro.props;
 
 // Lib
 import { cn } from "@client/cn";
@@ -24,14 +35,17 @@ const className = cn(
   "inset-well flex min-w-0",
   compact
     ? "h-11 shrink-0 items-center justify-between gap-2 rounded-row px-3"
-    : "h-19 flex-col-reverse items-center justify-center gap-1 rounded-xl px-2",
+    : fit
+      ? "min-h-0 max-h-19 flex-1 flex-col-reverse items-center justify-center gap-1 rounded-xl px-2"
+      : "h-19 flex-col-reverse items-center justify-center gap-1 rounded-xl px-2",
 );
 const labelClass = cn(
   "font-mono text-eyebrow-sm font-semibold uppercase text-muted",
   compact ? "min-w-0 truncate" : "text-center leading-tight",
 );
 const valueClass = cn(
-  "shrink-0 font-mono font-medium tabular-nums text-foreground",
+  "shrink-0 font-mono font-medium tabular-nums",
+  highlight ? "text-accent-bright" : "text-foreground",
   compact ? "text-sm" : "text-stat",
 );
 ---
