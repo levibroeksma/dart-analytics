@@ -1,38 +1,12 @@
 ---
 // Components
-import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
-import VisitPreview from "@components/layout/games/VisitPreview.astro";
-import StatRow from "@components/layout/games/StatRow.astro";
-import ExerciseBoardInputPanel from "./ExerciseBoardInputPanel.astro";
+import ExercisePanelShell from "./ExercisePanelShell.astro";
 ---
 
-<div class="flex flex-col flex-1 min-h-0 gap-3 p-3">
-  <SinglePlayerDisplay
-    isTarget={false}
-    score="switchingPoints()"
-  >
-    <div
-      slot="progress"
-      class="mt-2 flex w-full flex-col items-center gap-2 px-4"
-    >
-      <dl class="w-full space-y-1">
-        <StatRow
-          label="Target"
-          value="switchingTargetLabel()"
-        />
-        <StatRow
-          label="Darts"
-          value="dartsThrown()"
-        />
-        <StatRow
-          label="Time"
-          value="formattedStepRemaining()"
-        />
-      </dl>
-    </div>
-  </SinglePlayerDisplay>
-
-  <VisitPreview />
-
-  <ExerciseBoardInputPanel />
-</div>
+<ExercisePanelShell
+  score="switchingPoints()"
+  rows={[
+    { label: "Target", value: "switchingTargetLabel()" },
+    { label: "Darts", value: "dartsThrown()" },
+  ]}
+/>
