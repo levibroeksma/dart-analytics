@@ -72,13 +72,8 @@ describe("reconcileActiveSession", () => {
     expect(store.reset).not.toHaveBeenCalled();
   });
 
-  it('auto-abandons the orphan and returns "no_active" on mismatch', async () => {
+  it('returns "elsewhere" with the server session on mismatch, never abandoning it or touching the store', async () => {
     const server = [activeSession("server-id")];
-    vi.mocked(api.completeSession).mockResolvedValue({
-      sessionId: "server-id",
-      statusKey: "ABANDONED",
-      completedAt: "2026-07-17T10:00:00Z",
-    });
 
     const result = await reconcileActiveSession(
       "SCORE_TRAINING",
@@ -87,26 +82,24 @@ describe("reconcileActiveSession", () => {
       store,
     );
 
-    expect(api.completeSession).toHaveBeenCalledWith("server-id", "ABANDONED");
-    expect(store.reset).toHaveBeenCalled();
-    expect(result).toEqual({ action: "no_active", activeSession: null });
+    expect(api.completeSession).not.toHaveBeenCalled();
+    expect(store.reset).not.toHaveBeenCalled();
+    expect(result).toEqual({ action: "elsewhere", activeSession: server[0] });
   });
 
-  it('returns "abandon_failed" and does NOT reset the store when the auto-abandon PATCH fails', async () => {
+  it('returns "elsewhere" for a server session when this device holds none', async () => {
     const server = [activeSession("server-id")];
-    vi.mocked(api.completeSession).mockRejectedValue(
-      new Error("Network error"),
-    );
 
     const result = await reconcileActiveSession(
       "SCORE_TRAINING",
-      "different-local-id",
+      null,
       server,
       store,
     );
 
+    expect(api.completeSession).not.toHaveBeenCalled();
     expect(store.reset).not.toHaveBeenCalled();
-    expect(result).toEqual({ action: "abandon_failed", activeSession: null });
+    expect(result).toEqual({ action: "elsewhere", activeSession: server[0] });
   });
 
   it('resets and returns "no_active" when local is present but no server ACTIVE exists', async () => {

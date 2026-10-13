@@ -1,7 +1,9 @@
 ---
 /**
  * Presentational — GameSetupPage owns showActiveSessionModal (x-if).
- * Custom two-action footer (not cancel/confirm) on Modal shell.
+ * Custom two-action footer (not cancel/confirm) on Modal shell. A session
+ * this device does not hold (`activeSessionLocal` false) cannot be
+ * continued here: the footer offers Back instead (D460).
  */
 interface Props {
   gameTitle?: string;
@@ -34,7 +36,19 @@ import SheetActions from "@components/ui/SheetActions.astro";
     id="continue-session-desc"
     class="text-pretty text-sm text-muted-foreground"
   >
-    You have an active {gameTitle} session. Continue playing or start a new one?
+    <span
+      x-show="activeSessionLocal"
+      x-cloak
+    >
+      You have an active {gameTitle} session. Continue playing or start a new one?
+    </span>
+    <span
+      x-show="!activeSessionLocal"
+      x-cloak
+    >
+      This {gameTitle} game is in progress on another device. Start a new one abandons
+      it.
+    </span>
   </p>
   <InlayRow
     rowExpr="$store.game.contextRow(activeSession?.sessionId ?? null, activeSession?.gameTypeName ?? null)"
@@ -62,6 +76,18 @@ import SheetActions from "@components/ui/SheetActions.astro";
       title="Continue"
       @click="continueSession()"
       :disabled="loading"
+      x-show="activeSessionLocal"
+      x-cloak
+      grow
+    />
+    <Button
+      type="button"
+      variant="sheet-raised"
+      title="Back"
+      @click="leaveSetup()"
+      :disabled="loading"
+      x-show="!activeSessionLocal"
+      x-cloak
       grow
     />
   </SheetActions>

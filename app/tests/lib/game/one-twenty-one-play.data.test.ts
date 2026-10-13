@@ -846,6 +846,21 @@ describe("oneTwentyOnePlay — 121_V2 resume/replay and round/time UI", () => {
     } as OneTwentyOnePlayContext;
   }
 
+  it("shows no session for a session held elsewhere, never abandoning it", async () => {
+    vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([
+      { sessionId: "other-device", gameTypeKey: "ONE_TWENTY_ONE" } as any,
+    ]);
+    const play = createPlay();
+
+    await play.init();
+
+    expect(sessionsApi.completeSession).not.toHaveBeenCalled();
+    expect(store.game.reset).not.toHaveBeenCalled();
+    expect(play.reconciliationFailed).toBe(false);
+    expect(play.hasActiveSession).toBe(false);
+    expect(play.engine).toBeNull();
+  });
+
   describe("resumeEngine — version-aware", () => {
     it("resumes a 121_V2 session", async () => {
       store.game.rulesetVersionKey = "121_V2";

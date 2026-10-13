@@ -89,14 +89,9 @@ export async function playInit<
       context.$store.game,
     );
 
-    if (result.action === "abandon_failed") {
-      context.reconciliationFailed = true;
-      context.hasActiveSession = false;
-      return;
-    }
     context.reconciliationFailed = false;
 
-    if (result.action === "no_active" || !result.activeSession) {
+    if (result.action !== "match" || !result.activeSession) {
       context.hasActiveSession = false;
       return;
     }

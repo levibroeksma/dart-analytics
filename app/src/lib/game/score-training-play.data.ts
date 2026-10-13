@@ -270,13 +270,13 @@ export function scoreTrainingPlay() {
     },
 
     /**
-     * D88 auto-cleanup via shared reconcileActiveSession helper.
+     * Reconciles via the shared reconcileActiveSession helper.
      *
      * On "match", resume silently (no Continue/Abandon modal — that is
      * setup-only): the engine is rebuilt from the persisted facts and the
      * store is written back from `engine.facts()` immediately, so the two
-     * agree before any input. On "abandon_failed", stay on the loading/error
-     * view rather than flipping to "no active session" as if it were cleaned.
+     * agree before any input. Any other outcome shows no session; nothing is
+     * abandoned here (D460).
      */
     async init(this: ScoreTrainingPlayContext) {
       self = this;
@@ -290,14 +290,9 @@ export function scoreTrainingPlay() {
           this.$store.game,
         );
 
-        if (result.action === "abandon_failed") {
-          this.reconciliationFailed = true;
-          this.hasActiveSession = false;
-          return;
-        }
         this.reconciliationFailed = false;
 
-        if (result.action === "no_active" || !result.activeSession) {
+        if (result.action !== "match" || !result.activeSession) {
           this.hasActiveSession = false;
           return;
         }

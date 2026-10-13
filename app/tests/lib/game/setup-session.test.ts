@@ -73,19 +73,23 @@ describe("createSetupSession", () => {
       s.reconciliationFailed = true;
       await s.reconcile([active]);
       expect(s.activeSession).toBe(active);
+      expect(s.activeSessionLocal).toBe(true);
       expect(s.showActiveSessionModal).toBe(true);
       expect(s.reconciliationFailed).toBe(false);
     });
 
-    it("flags failure and hides the modal on abandon_failed", async () => {
+    it("shows the modal for a session held elsewhere, marked not local", async () => {
+      const active = { sessionId: "srv-id" } as any;
       vi.mocked(recovery.reconcileActiveSession).mockResolvedValue({
-        action: "abandon_failed",
+        action: "elsewhere",
+        activeSession: active,
       } as any);
       const s = create();
-      s.showActiveSessionModal = true;
-      await s.reconcile([]);
-      expect(s.showActiveSessionModal).toBe(false);
-      expect(s.reconciliationFailed).toBe(true);
+      await s.reconcile([active]);
+      expect(s.activeSession).toBe(active);
+      expect(s.activeSessionLocal).toBe(false);
+      expect(s.showActiveSessionModal).toBe(true);
+      expect(sessionsApi.completeSession).not.toHaveBeenCalled();
     });
 
     it("clears both flags on no_active", async () => {
@@ -137,11 +141,24 @@ describe("createSetupSession", () => {
     });
   });
 
+  describe("leaveSetup", () => {
+    it("navigates to the games list without ending the session", () => {
+      const loc = { href: "/games/test/setup" };
+      vi.stubGlobal("location", loc);
+      const s = create();
+      s.showActiveSessionModal = true;
+      s.leaveSetup();
+      expect(loc.href).toBe("/games");
+      expect(sessionsApi.completeSession).not.toHaveBeenCalled();
+    });
+  });
+
   describe("abandonSession", () => {
     it("completes as ABANDONED, resets the store and clears the session", async () => {
       vi.mocked(sessionsApi.completeSession).mockResolvedValue({} as any);
       const s = create();
       s.activeSession = { sessionId: "srv-id" } as any;
+      s.activeSessionLocal = true;
       s.showActiveSessionModal = true;
       await s.abandonSession();
       expect(sessionsApi.completeSession).toHaveBeenCalledWith(
@@ -152,6 +169,22 @@ describe("createSetupSession", () => {
       expect(s.showActiveSessionModal).toBe(false);
       expect(s.activeSession).toBeNull();
       expect(s.loading).toBe(false);
+    });
+
+    it("leaves the store alone when the abandoned session was held elsewhere", async () => {
+      vi.mocked(sessionsApi.completeSession).mockResolvedValue({} as any);
+      const s = create();
+      s.activeSession = { sessionId: "srv-id" } as any;
+      s.activeSessionLocal = false;
+      s.showActiveSessionModal = true;
+      await s.abandonSession();
+      expect(sessionsApi.completeSession).toHaveBeenCalledWith(
+        "srv-id",
+        "ABANDONED",
+      );
+      expect(store.game.reset).not.toHaveBeenCalled();
+      expect(s.showActiveSessionModal).toBe(false);
+      expect(s.activeSession).toBeNull();
     });
 
     it("sets an error and keeps the session when completion fails", async () => {

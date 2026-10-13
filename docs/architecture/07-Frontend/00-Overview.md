@@ -288,7 +288,7 @@ Rationale: the frozen API contract is REST under `/api/*` with Bearer JWT and cu
 | Parse or verify JWT in page scripts | middleware owns identity verification |
 | Per-dart API calls during active play | batch write at session boundary |
 | Rely on the server for mid-session recovery | in-progress state is client-local (persisted Alpine store) |
-| Manual abandon dialog on session **mismatch** | client auto-cleans per D88; match-case Continue/Abandon modal is still allowed (D118) |
+| Silent abandon on session **mismatch** | only the player abandons a session; setup asks first (D460, supersedes D88) |
 | Use `x-init` | deprecated — use factory `init()` via `x-data="factory()"` |
 
 ---

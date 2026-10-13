@@ -194,6 +194,7 @@ describe("createPresetSetupController", () => {
   it("clears the modal and abandons an active session", async () => {
     const setup = plain();
     setup.activeSession = { sessionId: "sess-old" } as any;
+    setup.activeSessionLocal = true;
     setup.showActiveSessionModal = true;
     vi.mocked(sessionsApi.completeSession).mockResolvedValue(undefined as any);
 

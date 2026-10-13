@@ -10,13 +10,13 @@ import type { SetupSessionContext } from "./types";
 /**
  * The part of every setup controller that never varies by game: the modal,
  * alert and guest/bot chooser state, and the methods that reconcile a
- * recovered active session, retry that, continue or abandon it. Spread the
+ * recovered active session, retry that, continue, leave or abandon it. Spread the
  * result into the controller's returned object. Each call returns fresh
  * state, so two controllers never share `guests` or `bot`.
  *
- * `abandon_failed` blocks session creation instead of silently resetting: the
- * orphan session is still ACTIVE server-side, so showing the picker would let
- * a new session violate the single-active-session constraint (D118).
+ * A session held elsewhere opens the same modal with `activeSessionLocal`
+ * false: it cannot be continued here, only abandoned or left alone, and the
+ * picker stays hidden while it is ACTIVE (single active session, D118; D460).
  *
  * `start()`, `init()` and `addGuest()`/`addBot()` stay in each controller;
  * they differ per game.
@@ -31,6 +31,7 @@ export function createSetupSession(options: {
     loading: false,
     error: "",
     activeSession: null as SessionActiveData | null,
+    activeSessionLocal: false,
     showActiveSessionModal: false,
     loadingReconciliation: false,
     reconciliationFailed: false,
@@ -53,17 +54,14 @@ export function createSetupSession(options: {
         this.$store.game,
       );
 
-      if (result.action === "match") {
-        this.activeSession = result.activeSession;
-        this.showActiveSessionModal = true;
-        this.reconciliationFailed = false;
-      } else if (result.action === "abandon_failed") {
+      if (result.action === "no_active") {
         this.showActiveSessionModal = false;
-        this.reconciliationFailed = true;
       } else {
-        this.showActiveSessionModal = false;
-        this.reconciliationFailed = false;
+        this.activeSession = result.activeSession;
+        this.activeSessionLocal = result.action === "match";
+        this.showActiveSessionModal = true;
       }
+      this.reconciliationFailed = false;
     },
 
     async retryReconciliation(this: SetupSessionContext) {
@@ -81,13 +79,17 @@ export function createSetupSession(options: {
       globalThis.location.href = playHref;
     },
 
+    leaveSetup(this: SetupSessionContext) {
+      globalThis.location.href = "/games";
+    },
+
     async abandonSession(this: SetupSessionContext) {
       if (!this.activeSession || this.loading) return;
       this.loading = true;
       this.error = "";
       try {
         await completeSession(this.activeSession.sessionId, "ABANDONED");
-        this.$store.game.reset();
+        if (this.activeSessionLocal) this.$store.game.reset();
         this.showActiveSessionModal = false;
         this.activeSession = null;
       } catch {

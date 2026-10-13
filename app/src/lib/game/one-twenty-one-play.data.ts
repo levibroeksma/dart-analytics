@@ -485,14 +485,9 @@ export function oneTwentyOnePlay() {
           this.$store.game,
         );
 
-        if (result.action === "abandon_failed") {
-          this.reconciliationFailed = true;
-          this.hasActiveSession = false;
-          return;
-        }
         this.reconciliationFailed = false;
 
-        if (result.action === "no_active" || !result.activeSession) {
+        if (result.action !== "match" || !result.activeSession) {
           this.hasActiveSession = false;
           return;
         }

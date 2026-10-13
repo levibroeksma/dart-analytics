@@ -301,6 +301,19 @@ describe("init", () => {
     await play.init.call(play);
     expect(play.engine?.rulesetVersionKey).toBe("501_V2");
   });
+
+  it("shows no session for a session held elsewhere, never abandoning it", async () => {
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      { ...ACTIVE_SESSION, sessionId: "other-device" },
+    ]);
+    const play = makePlay();
+    await play.init.call(play);
+    expect(completeSession).not.toHaveBeenCalled();
+    expect(play.$store.game.reset).not.toHaveBeenCalled();
+    expect(play.reconciliationFailed).toBe(false);
+    expect(play.hasActiveSession).toBe(false);
+    expect(play.engine).toBeNull();
+  });
 });
 
 describe("submitVisit — plain reduction", () => {

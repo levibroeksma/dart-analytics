@@ -214,17 +214,16 @@ Do **not** wrap with `` `'${prop}'` `` — that emits a quoted string literal Al
 
 # Recovery & Auto-Cleanup
 
-The client owns session-progress persistence (D67, D88). Setup and play share one helper — `app/src/lib/game/session-recovery.ts` (`reconcileActiveSession`) — identical decision table, no page-specific variants (D118).
+The client owns session-progress persistence (D67). Setup and play share one helper — `app/src/lib/game/session-recovery.ts` (`reconcileActiveSession`) — identical decision table, no page-specific variants (D118). The helper never ends a session; only the player abandons one (D460, supersedes D88).
 
 | Condition | Returned `action` | Caller behavior |
 | --------- | ----------------- | --------------- |
-| Server `ACTIVE` + local `sessionId` **matches** | `"match"` | Resume path. Setup: Continue/Abandon modal. Play: keep store, resume silently. Store untouched. |
-| Server `ACTIVE` + local missing / `sessionId` **mismatch**, auto-abandon `PATCH` succeeds | `"no_active"` | Helper already `store.reset()`. Caller shows empty state. **No dialog on either page.** |
-| Server `ACTIVE` + mismatch, auto-abandon `PATCH` **fails** | `"abandon_failed"` | Store untouched. Block session creation; offer retry. Never treat as `"no_active"` (orphan still `ACTIVE`; create would violate `uq_sessions_single_active`). |
+| Server `ACTIVE` + local `sessionId` **matches** | `"match"` | Resume path. Setup: Continue/Abandon modal (`activeSessionLocal` true). Play: keep store, resume silently. Store untouched. |
+| Server `ACTIVE` + local missing / `sessionId` **mismatch** | `"elsewhere"` | Store untouched, nothing abandoned. Setup: same modal with `activeSessionLocal` false — "in progress on another device", Start new (abandons it, store untouched) or Back (`/games`); the picker stays hidden while it is `ACTIVE` (`uq_sessions_single_active`). Play: no-session panel. |
 | Local present, no server `ACTIVE` | `"no_active"` | Helper `store.reset()` (stale local). |
 | Both empty | `"no_active"` | No store change. |
 
-Match vs mismatch: Continue/Abandon on **match** is intentional user choice for an agreed in-progress session — allowed. Mismatch never shows a dialog (auto-abandon only). Server DB orphans remain server responsibility (future sweep). See `00-Overview.md` state model. <!-- 2026-07-17 -->
+Server DB orphans remain server responsibility (future sweep). See `00-Overview.md` state model. <!-- 2026-10-13 -->
 
 ---
 
@@ -290,9 +289,9 @@ to that one game.
 | `x-bind:*` / `x-on:*` (when shorthand works) | Use `:attr` / `@event` (Alpine v3) |
 | `x-data="play"` without `()` | `init()` does not run |
 | `$persist` in `.data.ts` or components | Unpredictable recovery scope |
+| Abandoning a session the player did not choose to end | Only the player ends a session; recovery asks first (D460) |
 | `import Alpine from 'alpinejs'` outside factory | Breaks single entrypoint |
 | HTTP in `modules/` | Violates import direction |
-| Manual abandon dialog on mismatch | Contradicts D88 auto-cleanup |
 | `x-show` without `x-cloak` | FOUC before Alpine hydrates |
 | `` x-text={`'${prop}'`} `` or `` @click={`'${click}'`} `` | Emits a string literal — Alpine will not evaluate the expression |
 | `;`-separated statements on `@click` | Prefer one factory method / click prop |

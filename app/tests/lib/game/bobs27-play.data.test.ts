@@ -211,14 +211,15 @@ describe("init", () => {
     expect(play.engine).toBeNull();
   });
 
-  it("blocks with reconciliationFailed when auto-abandoning a mismatched session fails", async () => {
+  it("shows no session for a session held elsewhere, never abandoning it", async () => {
     vi.mocked(fetchActiveSessions).mockResolvedValue([
       { ...ACTIVE_SESSION, sessionId: "other" },
     ]);
-    vi.mocked(completeSession).mockRejectedValue(new Error("boom"));
     const play = makePlay({ sessionId: "s1" });
     await play.init.call(play);
-    expect(play.reconciliationFailed).toBe(true);
+
+    expect(completeSession).not.toHaveBeenCalled();
+    expect(play.reconciliationFailed).toBe(false);
     expect(play.hasActiveSession).toBe(false);
   });
 

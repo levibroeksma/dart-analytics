@@ -751,7 +751,7 @@ Module (*.module.ts, *.engine.module.ts, *.payload.module.ts)
 - No `x-init`. Always `x-data="factory()"`.
 - `$persist` only in `*.store.ts`.
 - Modules never import `@client/api` or Alpine.
-- Client recovery auto-cleans on session mismatch (D88).
+- Client recovery never abandons on session mismatch; setup asks the player first (D460, supersedes D88). (2026-10-13)
 
 ## Rule
 

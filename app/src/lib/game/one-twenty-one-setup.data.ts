@@ -156,10 +156,9 @@ export function oneTwentyOneSetup() {
     },
 
     /**
-     * `abandon_failed` blocks session creation instead of silently
-     * resetting: the orphan session is still ACTIVE server-side, so
-     * showing the picker would let a new session violate the
-     * single-active-session constraint (D118).
+     * Unreachable while this game has an ACTIVE session, held here or
+     * elsewhere: the setup modal hides the picker until the player
+     * continues or abandons it (single active session, D118; D460).
      */
     async start(this: OneTwentyOneSetupContext) {
       if (this.loading) return;

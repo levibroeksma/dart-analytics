@@ -332,40 +332,19 @@ describe("scoreTrainingPlay", () => {
       expect(component.reconciliationFailed).toBe(false);
     });
 
-    it('shows no-active-session view on "no_active" (mismatch auto-abandoned)', async () => {
+    it("shows no session for a session held elsewhere, never abandoning it", async () => {
       const store = gameStub({ sessionId: "different-id" });
       vi.mocked(fetchActiveSessions).mockResolvedValue([
         { ...ACTIVE_SESSION, sessionId: "server-id" },
       ]);
-      vi.mocked(completeSession).mockResolvedValue({
-        sessionId: "server-id",
-        statusKey: "ABANDONED",
-        completedAt: "2026-07-17T10:00:00Z",
-      });
       const component = {
         ...scoreTrainingPlay(),
         $store: { game: store, settings: settingsStub() },
       };
       await component.init.call(component);
 
-      expect(completeSession).toHaveBeenCalledWith("server-id", "ABANDONED");
-      expect(store.reset).toHaveBeenCalled();
-      expect(component.hasActiveSession).toBe(false);
-    });
-
-    it('blocks with reconciliationFailed on "abandon_failed" — does not flip to no-active-session as if cleaned', async () => {
-      const store = gameStub({ sessionId: "different-id" });
-      vi.mocked(fetchActiveSessions).mockResolvedValue([
-        { ...ACTIVE_SESSION, sessionId: "server-id" },
-      ]);
-      vi.mocked(completeSession).mockRejectedValue(new Error("Network error"));
-      const component = {
-        ...scoreTrainingPlay(),
-        $store: { game: store, settings: settingsStub() },
-      };
-      await component.init.call(component);
-
-      expect(component.reconciliationFailed).toBe(true);
+      expect(completeSession).not.toHaveBeenCalled();
+      expect(component.reconciliationFailed).toBe(false);
       expect(store.reset).not.toHaveBeenCalled();
       expect(component.hasActiveSession).toBe(false);
     });
@@ -433,42 +412,33 @@ describe("scoreTrainingPlay", () => {
       expect(component.hasActiveSession).toBe(false);
     });
 
-    it("D88: mismatch against first SCORE_TRAINING session auto-abandons and resets", async () => {
+    it("leaves the first SCORE_TRAINING session held elsewhere ACTIVE and the store untouched", async () => {
       vi.mocked(fetchActiveSessions).mockResolvedValue([
         { ...ACTIVE_SESSION, sessionId: "other-session" },
       ]);
-      vi.mocked(completeSession).mockResolvedValue({
-        sessionId: "other-session",
-        statusKey: "ABANDONED",
-        completedAt: "now",
-      });
       const store = gameStub({ sessionId: "s1" });
       const component = {
         ...scoreTrainingPlay(),
         $store: { game: store, settings: settingsStub() },
       };
       await component.init.call(component);
-      expect(completeSession).toHaveBeenCalledWith(
-        "other-session",
-        "ABANDONED",
-      );
-      expect(store.reset).toHaveBeenCalledTimes(1);
+
+      expect(completeSession).not.toHaveBeenCalled();
+      expect(component.reconciliationFailed).toBe(false);
+      expect(store.reset).not.toHaveBeenCalled();
       expect(component.hasActiveSession).toBe(false);
     });
 
-    it("D88: abandons an orphaned server session with no local state", async () => {
+    it("leaves a server session ACTIVE when this device holds no local state", async () => {
       const store = gameStub({ sessionId: null, configSnapshot: null });
-      vi.mocked(completeSession).mockResolvedValue({
-        sessionId: "s1",
-        statusKey: "ABANDONED",
-        completedAt: "now",
-      });
       const component = {
         ...scoreTrainingPlay(),
         $store: { game: store, settings: settingsStub() },
       };
       await component.init.call(component);
-      expect(completeSession).toHaveBeenCalledWith("s1", "ABANDONED");
+
+      expect(completeSession).not.toHaveBeenCalled();
+      expect(component.reconciliationFailed).toBe(false);
       expect(component.hasActiveSession).toBe(false);
     });
 

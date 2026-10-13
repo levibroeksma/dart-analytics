@@ -83,42 +83,21 @@ describe("scoreTrainingSetup", () => {
       });
     });
 
-    it('shows preset picker on "no_active" (mismatch auto-abandoned)', async () => {
+    it("shows the modal for a session held elsewhere, never abandoning it", async () => {
       const setup = createSetup();
 
       vi.mocked(presetsApi.fetchConfigurationPresets).mockResolvedValue([]);
       vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([
         { sessionId: "server-id", gameTypeKey: "SCORE_TRAINING" } as any,
       ]);
-      vi.mocked(sessionsApi.completeSession).mockResolvedValue({
-        sessionId: "server-id",
-        statusKey: "ABANDONED",
-        completedAt: "2026-07-17T10:00:00Z",
-      });
       store.game.sessionId = "different-local-id";
 
       await setup.init();
 
-      expect(setup.showActiveSessionModal).toBe(false);
+      expect(sessionsApi.completeSession).not.toHaveBeenCalled();
+      expect(setup.showActiveSessionModal).toBe(true);
+      expect(setup.activeSessionLocal).toBe(false);
       expect(setup.reconciliationFailed).toBe(false);
-    });
-
-    it('blocks the picker and sets reconciliationFailed on "abandon_failed" — does not show picker as if clear', async () => {
-      const setup = createSetup();
-
-      vi.mocked(presetsApi.fetchConfigurationPresets).mockResolvedValue([]);
-      vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([
-        { sessionId: "server-id", gameTypeKey: "SCORE_TRAINING" } as any,
-      ]);
-      vi.mocked(sessionsApi.completeSession).mockRejectedValue(
-        new Error("Network error"),
-      );
-      store.game.sessionId = "different-local-id";
-
-      await setup.init();
-
-      expect(setup.reconciliationFailed).toBe(true);
-      expect(setup.showActiveSessionModal).toBe(false);
       expect(store.game.reset).not.toHaveBeenCalled();
     });
   });
@@ -153,6 +132,7 @@ describe("scoreTrainingSetup", () => {
 
     it("abandons session when user clicks Abandon", async () => {
       const setup = createSetup({
+        activeSessionLocal: true,
         activeSession: {
           sessionId: "match-id",
           gameTypeKey: "SCORE_TRAINING",
