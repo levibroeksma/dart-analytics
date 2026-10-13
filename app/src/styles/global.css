@@ -665,6 +665,15 @@
   );
 }
 
+@utility section-ring-frame {
+  container-type: size;
+}
+
+@utility section-ring-square {
+  width: 100cqmin;
+  height: 100cqmin;
+}
+
 @utility section-ring-inset {
   inset: 4.1667%;
 }
