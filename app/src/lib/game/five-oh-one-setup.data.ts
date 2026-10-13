@@ -15,7 +15,6 @@ import {
   clampFiveOhOneLegs,
   FIVE_OH_ONE_LEGS_MAX,
   FIVE_OH_ONE_LEGS_MIN,
-  FIVE_OH_ONE_LEGS_NOTICE,
 } from "@lib/game/five-oh-one-legs";
 import {
   clampFiveOhOneStartingScore,
@@ -122,7 +121,6 @@ export function fiveOhOneSetup() {
     marginScope: "EVERY_SET" as "EVERY_SET" | "DECIDING_SET",
     cap: null as number | string | null,
     autoCap: null as number | null,
-    legsClampNotice: "",
 
     legsPlayedNotice(this: FiveOhOneSetupContext): string {
       return playedNotice(this.matchMode, this.legsToWin);
@@ -157,7 +155,6 @@ export function fiveOhOneSetup() {
         ]);
         this.presets = presets;
         this.legsToWin = FIVE_OH_ONE_LEGS_MIN;
-        this.legsClampNotice = "";
         await this.reconcile(activeSessions);
       } catch {
         this.showActiveSessionModal = false;
@@ -191,11 +188,8 @@ export function fiveOhOneSetup() {
         this.error = "Could not find a preset for 501.";
         return;
       }
-      const { value: legsValue, clamped: legsClamped } = clampFiveOhOneLegs(
-        this.legsToWin,
-      );
+      const { value: legsValue } = clampFiveOhOneLegs(this.legsToWin);
       this.legsToWin = legsValue;
-      this.legsClampNotice = legsClamped ? FIVE_OH_ONE_LEGS_NOTICE : "";
 
       let startingScore: number;
       if (this.startingScoreOption === "CUSTOM") {

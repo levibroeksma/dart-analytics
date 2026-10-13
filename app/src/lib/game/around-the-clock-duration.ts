@@ -30,8 +30,3 @@ export function clampAroundTheClockDuration(value: unknown): {
     clamped: clampedValue !== numeric,
   };
 }
-
-/** The notice shown when a typed minute count was clamped. */
-export function aroundTheClockDurationClampNotice(): string {
-  return "Allowed range: 3–30 minutes";
-}

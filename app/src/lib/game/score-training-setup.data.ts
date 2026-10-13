@@ -3,10 +3,7 @@ import {
   type ConfigurationPresetData,
 } from "@client/api/configuration-templates";
 import { createSession, fetchActiveSessions } from "@client/api/sessions";
-import {
-  clampScoreTrainingDuration,
-  scoreTrainingDurationClampNotice,
-} from "@lib/game/score-training-duration";
+import { clampScoreTrainingDuration } from "@lib/game/score-training-duration";
 import { createSetupSession } from "@lib/game/setup-session";
 import { toSnapshot } from "@lib/game/rulesets/config-codec";
 import { addBotOpponent, addTypedGuest } from "@lib/game/guest-list";
@@ -52,7 +49,6 @@ export function scoreTrainingSetup() {
     presets: [] as ConfigurationPresetData[],
     durationType: "ROUNDS" as ScoreTrainingDurationType,
     durationValue: 10 as number | string | null,
-    clampNotice: "",
 
     /**
      * On fetch failure, keeps the user on setup with a visible error and the
@@ -75,7 +71,6 @@ export function scoreTrainingSetup() {
         this.durationValue =
           durationValueOf(this.presetForMode("ROUNDS")) ??
           FALLBACK_DURATION.ROUNDS;
-        this.clampNotice = "";
 
         await this.reconcile(activeSessions);
       } catch {
@@ -104,7 +99,6 @@ export function scoreTrainingSetup() {
       this.durationType = type;
       this.durationValue =
         durationValueOf(this.presetForMode(type)) ?? FALLBACK_DURATION[type];
-      this.clampNotice = "";
     },
 
     addGuest(this: ScoreTrainingSetupContext) {
@@ -138,14 +132,11 @@ export function scoreTrainingSetup() {
         this.error = "Could not find a preset for this mode.";
         return;
       }
-      const { value, clamped } = clampScoreTrainingDuration(
+      const { value } = clampScoreTrainingDuration(
         this.durationType,
         this.durationValue,
       );
       this.durationValue = value;
-      this.clampNotice = clamped
-        ? scoreTrainingDurationClampNotice(this.durationType)
-        : "";
 
       this.loading = true;
       this.error = "";
