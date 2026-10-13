@@ -2,17 +2,19 @@
 /**
  * Slide-to-start control (design 4d/4e). Drag the thumb past 85% or press
  * Enter/Space to submit the enclosing form; an earlier release snaps back.
- * Fixed just above `BottomNav`.
+ * Fixed just above `BottomNav`, or in flow when `inline`.
  * @param {string} disabledExpr Alpine expression; while true, input is ignored
  * @param {string} failedExpr Alpine expression, true when the submit failed;
  *   a fired slide resets only when loading ends with it set
  * @param {string} [label="Slide to start"]
+ * @param {boolean} [inline] Sit in flow inside a card instead of fixed above BottomNav
  * @param {string} [class] Extra classes
  */
 interface Props {
   disabledExpr: string;
   failedExpr: string;
   label?: string;
+  inline?: boolean;
   class?: string;
 }
 
@@ -21,6 +23,7 @@ const {
   disabledExpr,
   failedExpr,
   label = "Slide to start",
+  inline = false,
   class: classNameProp,
 }: Props = Astro.props;
 
@@ -32,7 +35,9 @@ import PlayRoundedIcon from "@icons/play-rounded.svg";
 
 // Styles
 const className = cn(
-  "fixed inset-x-4 z-30 mx-auto max-w-lg bottom-above-nav focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent-muted rounded-full",
+  inline
+    ? "block w-full focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent-muted rounded-full"
+    : "fixed inset-x-4 z-30 mx-auto max-w-lg bottom-above-nav focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent-muted rounded-full",
   classNameProp,
 );
 ---

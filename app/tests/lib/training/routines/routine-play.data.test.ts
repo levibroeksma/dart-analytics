@@ -56,12 +56,12 @@ vi.mock("@lib/training/routines/routine-route", async (importOriginal) => ({
   routineIdFromLocation: vi.fn(() => "rt-1"),
 }));
 
+import * as audioCue from "@modules/ui/audio-cue.module";
 import * as trainingApi from "@client/api/training-sessions";
 import { routinePlay } from "@lib/training/routines/routine-play.data";
 import { warmUpAdapter } from "@lib/training/routines/adapters/warm-up.adapter";
 import { routineIdFromLocation } from "@lib/training/routines/routine-route";
 import { trainingSessionStore } from "@stores/training-session.store";
-import { SegmentTimer } from "@modules/ui/segment-timer.module";
 import { playAbandonAndExit } from "@lib/game/play-lifecycle";
 import { playAudioCue } from "@modules/ui/audio-cue.module";
 import { foldTuodState } from "@modules/game/tuod.engine.module";
@@ -82,6 +82,11 @@ function makeStore(): RoutinePlayContext {
   };
 }
 
+async function startRoutine(store: RoutinePlayContext) {
+  await store.init();
+  await store.confirmRoutineReady();
+}
+
 const STEPS = [
   {
     sequenceNumber: 1,
@@ -95,6 +100,24 @@ const STEPS = [
     },
   },
 ];
+
+function twoStepRoutine() {
+  return {
+    activityId: "act-1",
+    routineTemplateId: "rt-1",
+    routineName: "Balanced Training",
+    steps: [STEPS[0], { ...STEPS[0], sequenceNumber: 2 }] as never,
+  };
+}
+
+function warmUpStepResponse() {
+  return {
+    sessionId: "s1",
+    exerciseTypeKey: "WARM_UP" as const,
+    configuration: STEPS[0].configuration,
+    participant: { ref: "pt1", displayName: "Levi" },
+  };
+}
 
 describe("routinePlay", () => {
   beforeEach(() => {
@@ -199,7 +222,7 @@ describe("routinePlay", () => {
       participant: { ref: "pt1", displayName: "Levi" },
     });
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
     expect(trainingApi.startTrainingStep).toHaveBeenCalledWith("act-1", 1);
     expect(store.warmUpEngine).not.toBeNull();
     expect(store.warmUpEngine!.state().phaseIndex).toBe(0);
@@ -230,52 +253,106 @@ describe("routinePlay", () => {
       rulesetVersionKey: "FIVE_OH_ONE_V1",
     });
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
     expect(store.error).toBe("This step kind is not supported on this device.");
     expect(store.adapter).toBeNull();
   });
 
-  it("startCurrentStep() for WARM_UP does not start the timer until confirmWarmUpReady() runs", async () => {
-    vi.mocked(trainingApi.startTraining).mockResolvedValue({
-      activityId: "act-1",
-      routineTemplateId: "rt-1",
-      routineName: "Balanced Training",
-      steps: STEPS as never,
+  it("init() builds the routine but starts no step until the gate is confirmed", async () => {
+    const store = makeStore();
+    vi.mocked(trainingApi.startTraining).mockResolvedValue(twoStepRoutine());
+    await store.init();
+    expect(store.routineReady).toBe(false);
+    expect(trainingApi.startTrainingStep).not.toHaveBeenCalled();
+    expect(store.warmUpTimer).toBeNull();
+  });
+
+  it("confirmRoutineReady() unlocks audio before it starts the first step", async () => {
+    const order: string[] = [];
+    vi.spyOn(audioCue, "unlockAudioCues").mockImplementation(() => {
+      order.push("unlock");
     });
-    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
-      sessionId: "s1",
-      exerciseTypeKey: "WARM_UP",
-      configuration: STEPS[0].configuration,
-      participant: { ref: "pt1", displayName: "Levi" },
+    vi.mocked(trainingApi.startTrainingStep).mockImplementation(async () => {
+      order.push("start");
+      return warmUpStepResponse();
     });
     const store = makeStore();
-    await store.init();
-    expect(store.warmUpReady).toBe(false);
-    expect(store.warmUpTimer).toBeNull();
+    vi.mocked(trainingApi.startTraining).mockResolvedValue(twoStepRoutine());
+    await startRoutine(store);
+    expect(order.slice(0, 2)).toEqual(["unlock", "start"]);
+    expect(store.routineReady).toBe(true);
+  });
 
-    store.confirmWarmUpReady();
-    expect(store.warmUpReady).toBe(true);
+  it("a Warm-Up step opened after the gate starts its timer at once", async () => {
+    const store = makeStore();
+    vi.mocked(trainingApi.startTraining).mockResolvedValue(twoStepRoutine());
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue(
+      warmUpStepResponse(),
+    );
+    await startRoutine(store);
     expect(store.warmUpTimer).not.toBeNull();
   });
 
-  it("confirmWarmUpReady() unlocks the timer's audio synchronously, before any tick fires", async () => {
-    vi.mocked(trainingApi.startTraining).mockResolvedValue({
-      activityId: "act-1",
-      routineTemplateId: "rt-1",
-      routineName: "Balanced Training",
-      steps: STEPS as never,
-    });
-    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
-      sessionId: "s1",
-      exerciseTypeKey: "WARM_UP",
-      configuration: STEPS[0].configuration,
-      participant: { ref: "pt1", displayName: "Levi" },
-    });
-    const unlockSpy = vi.spyOn(SegmentTimer.prototype, "unlockAudio");
+  it("a second confirm while the first is in flight starts the step once", async () => {
     const store = makeStore();
+    vi.mocked(trainingApi.startTraining).mockResolvedValue(twoStepRoutine());
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue(
+      warmUpStepResponse(),
+    );
     await store.init();
-    store.confirmWarmUpReady();
-    expect(unlockSpy).toHaveBeenCalledOnce();
+    await Promise.all([
+      store.confirmRoutineReady(),
+      store.confirmRoutineReady(),
+    ]);
+    expect(trainingApi.startTrainingStep).toHaveBeenCalledTimes(1);
+  });
+
+  it("a failed first step after the gate surfaces the error", async () => {
+    const store = makeStore();
+    vi.mocked(trainingApi.startTraining).mockResolvedValue(twoStepRoutine());
+    vi.mocked(trainingApi.startTrainingStep).mockRejectedValue(
+      new Error("offline"),
+    );
+    await startRoutine(store);
+    expect(store.error).not.toBe("");
+    expect(store.confirmingReady).toBe(false);
+  });
+
+  it("a resumed routine shows the gate, then starts the step it stands on", async () => {
+    const store = makeStore();
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue(
+      warmUpStepResponse(),
+    );
+    await store.beginRoutine(twoStepRoutine(), 1);
+    expect(trainingApi.startTrainingStep).not.toHaveBeenCalled();
+    await store.confirmRoutineReady();
+    expect(trainingApi.startTrainingStep).toHaveBeenCalledWith("act-1", 2);
+  });
+
+  it("readyGateView() lists every step with its title and duration", async () => {
+    const store = makeStore();
+    vi.mocked(trainingApi.startTraining).mockResolvedValue(twoStepRoutine());
+    await store.init();
+    expect(store.readyGateView()).toEqual({
+      eyebrow: "2 STEPS · 20 MIN",
+      rows: [
+        { number: "01", title: "Warm-Up", duration: "10:00" },
+        { number: "02", title: "Warm-Up", duration: "10:00" },
+      ],
+    });
+  });
+
+  it("the header clock is empty before the gate and shows Warm-Up elapsed time after it", async () => {
+    const store = makeStore();
+    vi.mocked(trainingApi.startTraining).mockResolvedValue(twoStepRoutine());
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue(
+      warmUpStepResponse(),
+    );
+    await store.init();
+    expect(store.headerClock()).toBe("");
+    await store.confirmRoutineReady();
+    expect(store.headerClockLabel()).toBe("Elapsed");
+    expect(store.headerClock()).toBe(store.formattedWarmUpElapsed());
   });
 
   it("the Warm-Up adapter builds the Warm-Up engine directly from a start-step response", () => {
@@ -287,6 +364,8 @@ describe("routinePlay", () => {
     );
     expect(store.warmUpEngine).not.toBeNull();
     expect(store.warmUpEngine!.state().phaseIndex).toBe(0);
+    expect(store.warmUpConfiguration).toBe(STEPS[0].configuration);
+    expect(store.warmUpTimer).not.toBeNull();
   });
 
   it("the Warm-Up timer advances the engine through its phase and completes the step at the end", async () => {
@@ -307,9 +386,8 @@ describe("routinePlay", () => {
       completedAt: "2026-09-12T12:00:00.000Z",
     });
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
     expect(store.warmUpEngine!.state().phaseIndex).toBe(0);
-    store.confirmWarmUpReady();
     expect(store.warmUpTimer).not.toBeNull();
 
     vi.advanceTimersByTime(600_000);
@@ -334,8 +412,7 @@ describe("routinePlay", () => {
       participant: { ref: "pt1", displayName: "Levi" },
     });
     const store = makeStore();
-    await store.init();
-    store.confirmWarmUpReady();
+    await startRoutine(store);
     vi.advanceTimersByTime(65_000);
     expect(store.formattedWarmUpElapsed()).toBe("1:05");
   });
@@ -389,8 +466,7 @@ describe("routinePlay", () => {
       completedAt: "now",
     });
     const store = makeStore();
-    await store.init();
-    store.confirmWarmUpReady();
+    await startRoutine(store);
 
     await vi.advanceTimersByTimeAsync(600_000);
 
@@ -420,8 +496,7 @@ describe("routinePlay", () => {
       completedAt: "2026-09-15T12:00:00.000Z",
     });
     const store = makeStore();
-    await store.init();
-    store.confirmWarmUpReady();
+    await startRoutine(store);
 
     await vi.advanceTimersByTimeAsync(600_000);
 
@@ -455,11 +530,11 @@ describe("routinePlay", () => {
     const store = makeStore();
     await store.init();
     expect(store.$store.trainingSession.elapsedSeconds).toBe(0);
-    expect(store.headerTitle()).toBe("Warm-Up");
-    expect(store.headerSubtitle()).toBe("STEP 1 OF 1");
     expect(store.sessionClock).toBeNull();
 
-    store.confirmWarmUpReady();
+    await store.confirmRoutineReady();
+    expect(store.headerTitle()).toBe("Warm-Up");
+    expect(store.headerSubtitle()).toBe("STEP 1 OF 1");
     vi.advanceTimersByTime(38_000);
 
     expect(store.sessionClock).not.toBeNull();
@@ -505,8 +580,7 @@ describe("routinePlay", () => {
       completedAt: "now",
     });
     const store = makeStore();
-    await store.init();
-    store.confirmWarmUpReady();
+    await startRoutine(store);
 
     await vi.advanceTimersByTimeAsync(601_000);
 
@@ -554,10 +628,9 @@ describe("routinePlay", () => {
       completedAt: "now",
     });
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
     expect(playAudioCue).not.toHaveBeenCalled();
 
-    store.confirmWarmUpReady();
     await vi.advanceTimersByTimeAsync(600_000);
 
     const stepChangeCues = vi
@@ -591,8 +664,7 @@ describe("routinePlay", () => {
       completedAt: "2026-09-12T12:00:00.000Z",
     });
     const store = makeStore();
-    await store.init();
-    store.confirmWarmUpReady();
+    await startRoutine(store);
 
     await vi.advanceTimersByTimeAsync(600_000);
 
@@ -620,8 +692,7 @@ describe("routinePlay", () => {
       new Error("network down"),
     );
     const store = makeStore();
-    await store.init();
-    store.confirmWarmUpReady();
+    await startRoutine(store);
 
     await vi.advanceTimersByTimeAsync(600_000);
 
@@ -697,7 +768,7 @@ describe("routinePlay — Switching", () => {
       participant: { ref: "pt1", displayName: "Levi" },
     });
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
     expect(store.switchingEngine).not.toBeNull();
     expect(store.switchingEngine!.state().currentTargetNumber).toBe(20);
   });
@@ -716,7 +787,7 @@ describe("routinePlay — Switching", () => {
       participant: { ref: "pt1", displayName: "Levi" },
     });
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
     store.recordSwitchingDart({
       hitTargetNumber: 20,
       hitZoneKey: "SINGLE",
@@ -740,7 +811,7 @@ describe("routinePlay — Switching", () => {
       participant: { ref: "pt1", displayName: "Levi" },
     });
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
     expect(store.stepRemainingSeconds).toBe(300);
     vi.advanceTimersByTime(5_000);
     expect(store.stepRemainingSeconds).toBe(295);
@@ -760,7 +831,7 @@ describe("routinePlay — Switching", () => {
       participant: { ref: "pt1", displayName: "Levi" },
     });
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
     vi.advanceTimersByTime(19_000);
     expect(store.formattedStepRemaining()).toBe("4:41");
     vi.advanceTimersByTime(281_000);
@@ -785,7 +856,7 @@ describe("routinePlay — Switching", () => {
       completedAt: "2026-09-14T12:00:00.000Z",
     });
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
     await store.completeCurrentStep();
     expect(store.stepTimer).toBeNull();
     const afterStop = store.stepRemainingSeconds;
@@ -812,7 +883,7 @@ describe("routinePlay — Switching", () => {
       completedAt: "2026-09-12T12:00:00.000Z",
     });
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
     await vi.advanceTimersByTimeAsync(300_000);
     expect(sessionApi.appendBatch).toHaveBeenCalled();
   });
@@ -832,7 +903,7 @@ describe("routinePlay — Switching", () => {
       participant: { ref: "pt1", displayName: "Levi" },
     });
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
     vi.mocked(sessionApi.appendBatch).mockRejectedValueOnce(
       Object.assign(new Error("Batch rejected"), { code: "INTERNAL_ERROR" }),
     );
@@ -863,7 +934,7 @@ describe("routinePlay — Switching", () => {
       participant: { ref: "pt1", displayName: "Levi" },
     });
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
     vi.mocked(sessionApi.appendBatch).mockRejectedValueOnce(
       Object.assign(new Error("Batch rejected"), {
         code: "INTERNAL_ERROR",
@@ -896,7 +967,7 @@ describe("routinePlay — Switching", () => {
       participant: { ref: "pt1", displayName: "Levi" },
     });
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
     expect(store.switchingPoints()).toBe(0);
     expect(store.switchingTargetLabel()).toBe("20");
     store.recordSwitchingDart({
@@ -924,7 +995,7 @@ describe("routinePlay — Switching", () => {
       participant: { ref: "pt1", displayName: "Levi" },
     });
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
     expect(store.previewSegments()).toEqual([
       { status: "empty" },
       { status: "empty" },
@@ -990,7 +1061,7 @@ describe("routinePlay — Double Pattern", () => {
       participant: { ref: "pt1", displayName: "Levi" },
     });
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
     expect(store.doublePatternEngine).not.toBeNull();
     expect(store.doublePatternEngine).toBeDefined();
     expect(store.doublePatternEngine!.state().currentDoubleNumber).toBe(20);
@@ -1010,7 +1081,7 @@ describe("routinePlay — Double Pattern", () => {
       participant: { ref: "pt1", displayName: "Levi" },
     });
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
     store.recordDoublePatternDart({
       hitTargetNumber: 20,
       hitZoneKey: "DOUBLE",
@@ -1035,7 +1106,7 @@ describe("routinePlay — Double Pattern", () => {
       participant: { ref: "pt1", displayName: "Levi" },
     });
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
     expect(store.doublePatternLabel()).toBe("D20");
     expect(store.doublePatternPoints()).toBe(0);
     store.recordDoublePatternDart({
@@ -1063,7 +1134,7 @@ describe("routinePlay — Double Pattern", () => {
       participant: { ref: "pt1", displayName: "Levi" },
     });
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
     store.recordDoublePatternDart({
       hitTargetNumber: 20,
       hitZoneKey: "DOUBLE",
@@ -1125,7 +1196,7 @@ describe("routinePlay — Target Scoring", () => {
 
   it("startCurrentStep() builds the engine and its readouts start empty", async () => {
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
 
     expect(store.targetScoringEngine).not.toBeNull();
     expect(store.targetScoringTargetLabel()).toBe("20");
@@ -1137,7 +1208,7 @@ describe("routinePlay — Target Scoring", () => {
 
   it("the readouts follow the chain, the target change and the mark to beat", async () => {
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
 
     store.recordTargetScoringDart({
       hitTargetNumber: 20,
@@ -1176,7 +1247,7 @@ describe("routinePlay — Target Scoring", () => {
 
   it("previewSegments() marks a double on the target as a miss", async () => {
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
 
     store.recordTargetScoringDart({
       hitTargetNumber: 20,
@@ -1207,7 +1278,7 @@ describe("routinePlay — Target Scoring", () => {
       completedAt: "2026-09-23T12:00:00.000Z",
     });
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
     store.recordTargetScoringDart({
       hitTargetNumber: 20,
       hitZoneKey: "TREBLE",
@@ -1265,7 +1336,7 @@ describe("routinePlay — Switching Target Scoring", () => {
 
   it("startCurrentStep() builds the engine and its readouts start empty", async () => {
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
 
     expect(store.switchingTargetScoringEngine).not.toBeNull();
     expect(store.switchingTargetScoringTargetLabel()).toBe("20");
@@ -1277,7 +1348,7 @@ describe("routinePlay — Switching Target Scoring", () => {
 
   it("the readouts follow each hit's switch, the restart and the mark to beat", async () => {
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
 
     store.recordSwitchingTargetScoringDart({
       hitTargetNumber: 20,
@@ -1309,7 +1380,7 @@ describe("routinePlay — Switching Target Scoring", () => {
 
   it("previewSegments() marks each dart against its own target", async () => {
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
 
     store.recordSwitchingTargetScoringDart({
       hitTargetNumber: 20,
@@ -1340,7 +1411,7 @@ describe("routinePlay — Switching Target Scoring", () => {
       completedAt: "2026-09-23T12:00:00.000Z",
     });
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
     store.recordSwitchingTargetScoringDart({
       hitTargetNumber: 20,
       hitZoneKey: "TREBLE",
@@ -1411,7 +1482,7 @@ describe("routinePlay — 65 or More", () => {
 
   it("startCurrentStep() builds the engine and its readouts start empty", async () => {
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
 
     expect(store.scoreThresholdEngine).not.toBeNull();
     expect(store.scoreThresholdBeats()).toBe(0);
@@ -1424,7 +1495,7 @@ describe("routinePlay — 65 or More", () => {
 
   it("the readouts follow the running visit and each judged visit", async () => {
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
 
     store.recordScoreThresholdDart(T20);
     store.recordScoreThresholdDart(T20);
@@ -1442,7 +1513,7 @@ describe("routinePlay — 65 or More", () => {
 
   it("previewSegments() marks a dart on the board as hit and off it as miss", async () => {
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
 
     store.recordScoreThresholdDart(T20);
     store.recordScoreThresholdDart(MISS);
@@ -1463,7 +1534,7 @@ describe("routinePlay — 65 or More", () => {
       completedAt: "2026-09-23T12:00:00.000Z",
     });
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
     store.recordScoreThresholdDart(T20);
 
     await vi.advanceTimersByTimeAsync(600_000);
@@ -1564,7 +1635,7 @@ describe("routinePlay — Bullseye Checkouts", () => {
 
   it("startCurrentStep() builds the engine and its readouts start empty", async () => {
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
 
     expect(store.bullseyeCheckoutEngine).not.toBeNull();
     expect(store.bullseyeCheckoutCheckouts()).toBe(0);
@@ -1577,7 +1648,7 @@ describe("routinePlay — Bullseye Checkouts", () => {
 
   it("the readouts follow the setup and each judged visit", async () => {
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
 
     store.recordBullseyeCheckoutDart(S19);
     store.recordBullseyeCheckoutDart(S12);
@@ -1598,7 +1669,7 @@ describe("routinePlay — Bullseye Checkouts", () => {
 
   it("previewSegments() marks setup darts on the board as hit and dart 3 hit only on the bullseye", async () => {
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
 
     store.recordBullseyeCheckoutDart(S19);
     store.recordBullseyeCheckoutDart(MISS);
@@ -1614,7 +1685,7 @@ describe("routinePlay — Bullseye Checkouts", () => {
 
   it("previewSegments() marks the bullseye on dart 3 as hit", async () => {
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
 
     [S19, S12, BULL].forEach((d) => store.recordBullseyeCheckoutDart(d));
 
@@ -1630,7 +1701,7 @@ describe("routinePlay — Bullseye Checkouts", () => {
       completedAt: "2026-09-24T12:00:00.000Z",
     });
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
     store.recordBullseyeCheckoutDart(S19);
 
     await vi.advanceTimersByTimeAsync(600_000);
@@ -1702,7 +1773,7 @@ describe("routinePlay — Bull Up Practice", () => {
 
   it("startCurrentStep() builds the engine and its readouts start empty", async () => {
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
 
     expect(store.bullUpEngine).not.toBeNull();
     expect(store.bullUpThrows()).toBe(0);
@@ -1716,7 +1787,7 @@ describe("routinePlay — Bull Up Practice", () => {
 
   it("the readouts follow each throw", async () => {
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
 
     store.recordBullUpDart(BULL);
     expect(store.bullUpBullseyes()).toBe(1);
@@ -1738,7 +1809,7 @@ describe("routinePlay — Bull Up Practice", () => {
 
   it("previewSegments() marks either bull as hit and anything else as miss", async () => {
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
 
     store.recordBullUpDart(BULL);
     expect(store.previewSegments()).toEqual([
@@ -1761,7 +1832,7 @@ describe("routinePlay — Bull Up Practice", () => {
       completedAt: "2026-09-24T12:00:00.000Z",
     });
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
     store.recordBullUpDart(BULL);
 
     await vi.advanceTimersByTimeAsync(300_000);
@@ -1837,7 +1908,7 @@ describe("routinePlay — Catch 40", () => {
 
   it("startCurrentStep() builds the engine and its readouts start at 61", async () => {
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
 
     expect(store.checkoutSequenceEngine).not.toBeNull();
     expect(store.checkoutSequencePoints()).toBe(0);
@@ -1851,7 +1922,7 @@ describe("routinePlay — Catch 40", () => {
 
   it("the readouts follow each dart and each resolved attempt", async () => {
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
 
     store.recordCheckoutSequenceDart(T15);
     expect(store.checkoutSequenceLeft()).toBe(16);
@@ -1873,7 +1944,7 @@ describe("routinePlay — Catch 40", () => {
 
   it("previewSegments() marks a dart on the board as hit and off it as miss", async () => {
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
 
     store.recordCheckoutSequenceDart(S20);
     store.recordCheckoutSequenceDart(MISS);
@@ -1893,7 +1964,7 @@ describe("routinePlay — Catch 40", () => {
       completedAt: "2026-10-06T12:00:00.000Z",
     });
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
 
     Array.from({ length: 240 }, () => MISS).forEach((d) =>
       store.recordCheckoutSequenceDart(d),
@@ -1915,7 +1986,7 @@ describe("routinePlay — Catch 40", () => {
       completedAt: "2026-10-06T12:00:00.000Z",
     });
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
     store.recordCheckoutSequenceDart(S20);
 
     await vi.advanceTimersByTimeAsync(1_800_000);
@@ -1993,7 +2064,7 @@ describe("routinePlay — Random Checkout", () => {
 
   it("startCurrentStep() builds the engine and its readouts start at the first draw", async () => {
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
 
     expect(store.randomCheckoutEngine).not.toBeNull();
     expect(store.randomCheckoutCheckouts()).toBe(0);
@@ -2007,7 +2078,7 @@ describe("routinePlay — Random Checkout", () => {
 
   it("the readouts follow each dart and each resolved attempt", async () => {
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
 
     store.recordRandomCheckoutDart(S20);
     expect(store.randomCheckoutLeft()).toBe(20);
@@ -2027,7 +2098,7 @@ describe("routinePlay — Random Checkout", () => {
 
   it("previewSegments() marks a dart on the board as hit and off it as miss", async () => {
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
 
     store.recordRandomCheckoutDart(S20);
     store.recordRandomCheckoutDart(MISS);
@@ -2040,7 +2111,7 @@ describe("routinePlay — Random Checkout", () => {
 
   it("routes a committed board dart to the Random Checkout engine", async () => {
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
 
     boardCommit.onCommit!(S20);
 
@@ -2052,7 +2123,7 @@ describe("routinePlay — Random Checkout", () => {
     const sessionApi = await import("@client/api/sessions");
     vi.mocked(sessionApi.appendBatch).mockReset();
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
 
     Array.from({ length: 60 }, () => D20).forEach((d) =>
       store.recordRandomCheckoutDart(d),
@@ -2072,7 +2143,7 @@ describe("routinePlay — Random Checkout", () => {
       completedAt: "2026-10-07T12:00:00.000Z",
     });
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
     store.recordRandomCheckoutDart(S20);
 
     await vi.advanceTimersByTimeAsync(600_000);
@@ -2127,7 +2198,7 @@ describe("routinePlay — Finishing", () => {
         }),
       );
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
     store.recordDoublePatternDart({
       hitTargetNumber: 20,
       hitZoneKey: "DOUBLE",
@@ -2221,6 +2292,8 @@ describe("routinePlay — Finishing", () => {
       expect(store.openRoutine).toBeNull();
       expect(store.activityId).toBe("act-old");
       expect(store.currentStep()?.sequenceNumber).toBe(2);
+      expect(store.routineReady).toBe(false);
+      await store.confirmRoutineReady();
       expect(trainingApi.startTrainingStep).toHaveBeenCalledWith("act-old", 2);
       expect(store.resolvingOpenRoutine).toBe(false);
     });
@@ -2289,6 +2362,7 @@ describe("routinePlay — Finishing", () => {
       expect(trainingApi.abandonTraining).toHaveBeenCalledWith("act-old");
       expect(store.openRoutine).toBeNull();
       expect(store.activityId).toBe("act-new");
+      await store.confirmRoutineReady();
       expect(trainingApi.startTrainingStep).toHaveBeenCalledWith("act-new", 1);
     });
 
@@ -2417,7 +2491,7 @@ describe("routinePlay — Finishing", () => {
         inputModeKey: "VISUAL_BOARD",
       });
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
     expect(store.blockingSession).not.toBeNull();
     await store.resolveBlockingSession();
     expect(sessionApi.completeSession).toHaveBeenCalledWith(
@@ -2450,7 +2524,7 @@ describe("routinePlay — Finishing", () => {
       }),
     );
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
     await store.resolveBlockingSession();
     expect(store.blockingSession).toEqual({
       sessionId: "blocker-1",
@@ -2484,7 +2558,7 @@ describe("routinePlay — Finishing", () => {
       }),
     );
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
     await store.resolveBlockingSession();
     expect(store.blockingSession).toEqual({
       sessionId: "blocker-2",
@@ -2517,7 +2591,7 @@ describe("routinePlay — Finishing", () => {
         }),
       );
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
     store.recordDoublePatternDart({
       hitTargetNumber: 20,
       hitZoneKey: "DOUBLE",
@@ -2549,7 +2623,7 @@ describe("routinePlay — Finishing", () => {
       inputModeKey: "VISUAL_BOARD",
     });
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
     expect(store.$store.game.reset).toHaveBeenCalledOnce();
     expect(store.$store.game.startSession).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -2579,7 +2653,7 @@ describe("routinePlay — Finishing", () => {
       inputModeKey: "VISUAL_BOARD",
     });
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
 
     const input = vi.mocked(store.$store.game.startSession).mock
       .calls[0]![0] as {
@@ -2621,7 +2695,7 @@ describe("routinePlay — Finishing", () => {
       inputModeKey: "VISUAL_BOARD",
     });
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
 
     const input = vi.mocked(store.$store.game.startSession).mock
       .calls[0]![0] as {
@@ -2677,7 +2751,7 @@ describe("routinePlay — abandonAndExit", () => {
       completedAt: "2026-09-13T00:00:00.000Z",
     });
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
 
     await store.abandonAndExit();
 
@@ -2705,7 +2779,7 @@ describe("routinePlay — abandonAndExit", () => {
       new Error("network down"),
     );
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
 
     await store.abandonAndExit();
 
@@ -2728,7 +2802,7 @@ describe("routinePlay — abandonAndExit", () => {
       participant: { ref: "pt1", displayName: "Levi" },
     });
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
     store.$store.game.loading = true;
 
     await store.abandonAndExit();
@@ -2759,7 +2833,7 @@ describe("routinePlay — abandonAndExit", () => {
       completedAt: "2026-09-13T00:00:00.000Z",
     });
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
 
     await store.abandonAndExit();
 
@@ -2814,7 +2888,7 @@ describe("routinePlay — routine summary", () => {
       completedAt: "now",
     });
     const store = makeStore();
-    await store.init();
+    await startRoutine(store);
     store.recordSwitchingDart({
       hitTargetNumber: 20,
       hitZoneKey: "SINGLE",
@@ -2885,8 +2959,7 @@ describe("routinePlay — routine summary", () => {
       completedAt: "2026-09-14T12:00:00.000Z",
     });
     const store = makeStore();
-    await store.init();
-    store.confirmWarmUpReady();
+    await startRoutine(store);
 
     await vi.advanceTimersByTimeAsync(600_000);
 

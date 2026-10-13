@@ -21,8 +21,8 @@ export const warmUpAdapter: StepAdapter = {
           result.configuration as WarmUpEngineInput,
         ) as ExerciseEngine<WarmUpState>)
       : null;
-    ctx.warmUpReady = false;
     ctx.warmUpConfiguration = result.configuration;
+    ctx.startWarmUpTimer(result.configuration);
   },
   facts(ctx) {
     return ctx.warmUpEngine?.facts() ?? null;

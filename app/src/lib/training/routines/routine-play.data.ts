@@ -11,7 +11,7 @@ import { resolveWarmUpPhaseDurations } from "@modules/training/exercises/warm-up
 import { dartboardHighlightPath } from "@lib/game/board/board-highlight.module";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
 import { SessionClock } from "@modules/ui/session-clock.module";
-import { playAudioCue } from "@modules/ui/audio-cue.module";
+import { playAudioCue, unlockAudioCues } from "@modules/ui/audio-cue.module";
 import { boardInputData, markersForTurns } from "@lib/game/board-input.data";
 import { playPreviewSegments } from "@lib/game/play-lifecycle";
 import { resolveSoloParticipantRef } from "@lib/training/exercises/solo-participant-upload";
@@ -21,6 +21,7 @@ import {
   resolveStepAdapter,
 } from "./adapters/step-adapter.registry";
 import { routineIdFromLocation } from "./routine-route";
+import { readyGate } from "./ready-gate";
 import { routineHeader } from "./routine-header";
 import { routineStartErrorMessage } from "./routine-start-error";
 import { stepAdvanceErrorMessage } from "./step-advance-error";
@@ -43,6 +44,7 @@ import type {
 } from "@client/api/types";
 import type { StepAdapter } from "@lib/interfaces";
 import type {
+  ReadyGateView,
   RoutineHeader,
   RoutinePlayContext,
   TrainingStepResolved,
@@ -127,7 +129,6 @@ export function routinePlay() {
     stepRemainingSeconds: 0,
     warmUpTimer: null,
     warmUpElapsedSeconds: 0,
-    warmUpReady: false,
     warmUpConfiguration: null,
     adapter: null as StepAdapter | null,
     game: null,
@@ -140,7 +141,8 @@ export function routinePlay() {
     resolvingOpenRoutine: false,
     stepSummaries: [],
     routineFinished: false,
-    routineReady: true,
+    routineReady: false,
+    confirmingReady: false,
     completionStatus: "pending" as
       "pending" | "saving" | "succeeded" | "failed",
     completionError: "",
@@ -297,7 +299,39 @@ export function routinePlay() {
         },
         completedStepCount,
       );
-      await this.startCurrentStep();
+      this.routineReady = false;
+    },
+
+    /**
+     * The routine's one ready gate. Runs inside the slide's gesture, which is
+     * what lets `unlockAudioCues()` unlock the `AudioContext` — every later
+     * cue (step change, Warm-Up section beeps, countdown end) plays from a
+     * timer, which alone can never satisfy browser autoplay policy. No
+     * server step starts before this, so the gate costs no step time.
+     */
+    async confirmRoutineReady(this: RoutinePlayContext) {
+      if (this.routineReady || this.confirmingReady) return;
+      this.confirmingReady = true;
+      unlockAudioCues();
+      this.routineReady = true;
+      try {
+        await this.startCurrentStep();
+      } catch (err: unknown) {
+        this.error = routineStartErrorMessage(err);
+      } finally {
+        this.confirmingReady = false;
+      }
+    },
+
+    readyGateView(this: RoutinePlayContext): ReadyGateView {
+      return readyGate(
+        this.steps.map((step) => ({
+          title:
+            resolveStepAdapter(stepAdapterKey(step))?.title ??
+            step.exerciseTypeKey,
+          durationSeconds: step.durationSeconds,
+        })),
+      );
     },
 
     /**
@@ -536,17 +570,10 @@ export function routinePlay() {
       this.sessionClock = null;
     },
 
-    confirmWarmUpReady(this: RoutinePlayContext) {
-      if (!this.warmUpConfiguration || this.warmUpReady) return;
-      this.warmUpReady = true;
-      this.startWarmUpTimer(this.warmUpConfiguration);
-    },
-
     /**
-     * Only ever reached via `confirmWarmUpReady()`'s click handler — that
-     * gesture is what lets `SegmentTimer.unlockAudio()` actually unlock the
-     * `AudioContext`; the timer's later beeps run from `setInterval`, which
-     * alone can never satisfy browser autoplay policy.
+     * Called from the warm-up adapter's `open()`. Audio was unlocked by the
+     * routine ready gate's gesture (`confirmRoutineReady`); `unlockAudio()`
+     * here is a harmless repeat.
      */
     startWarmUpTimer(
       this: RoutinePlayContext,

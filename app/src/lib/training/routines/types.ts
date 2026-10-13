@@ -82,7 +82,6 @@ export type RoutinePlayContext = {
   stepRemainingSeconds: number;
   warmUpTimer: SegmentTimer | null;
   warmUpElapsedSeconds: number;
-  warmUpReady: boolean;
   warmUpConfiguration: Record<string, unknown> | null;
   adapter: StepAdapter | null;
   game: ReturnType<typeof gameStep> | null;
@@ -97,6 +96,7 @@ export type RoutinePlayContext = {
   stepSummaries: RoutineStepSummary[];
   routineFinished: boolean;
   routineReady: boolean;
+  confirmingReady: boolean;
   completionStatus: "pending" | "saving" | "succeeded" | "failed";
   completionError: string;
   $store: {
@@ -138,7 +138,8 @@ export type RoutinePlayContext = {
   openRoutineStartedLabel(this: RoutinePlayContext): string;
   startSessionClock(this: RoutinePlayContext): void;
   stopSessionClock(this: RoutinePlayContext): void;
-  confirmWarmUpReady(this: RoutinePlayContext): void;
+  confirmRoutineReady(this: RoutinePlayContext): Promise<void>;
+  readyGateView(this: RoutinePlayContext): ReadyGateView;
   startWarmUpTimer(
     this: RoutinePlayContext,
     configuration: Record<string, unknown>,
@@ -258,6 +259,10 @@ export type RoutineHeaderInput = {
   stepRemaining: string | null;
   warmUpElapsed: string;
 };
+
+export type ReadyGateRow = { number: string; title: string; duration: string };
+
+export type ReadyGateView = { eyebrow: string; rows: ReadyGateRow[] };
 
 export type RoutineHeader = {
   title: string;

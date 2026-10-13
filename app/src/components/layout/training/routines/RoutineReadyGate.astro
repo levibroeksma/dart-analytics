@@ -1,0 +1,55 @@
+---
+/**
+ * The routine's one ready gate (design `Exercise Play.dc.html` 2b): a glass
+ * card listing every step with its duration, started by `SlideToStart`.
+ * The slide is the gesture that unlocks audio for the whole routine.
+ * Reads `readyGateView()`, `confirmRoutineReady()` and `confirmingReady`
+ * from the routine play scope.
+ */
+
+// Components
+import SlideToStart from "@components/forms/SlideToStart.astro";
+---
+
+<div class="flex min-h-0 flex-1 flex-col justify-center">
+  <form
+    class="glass flex flex-col items-center gap-5 rounded-3xl px-5 pt-7 pb-5"
+    @submit.prevent="confirmRoutineReady()"
+  >
+    <div class="flex flex-col items-center gap-2">
+      <span
+        class="font-mono text-eyebrow font-semibold uppercase tracking-widest text-accent-bright"
+        x-text="readyGateView().eyebrow"
+      ></span>
+      <h2 class="font-display text-2xl leading-tight text-foreground">
+        Are you ready?
+      </h2>
+    </div>
+    <ol class="flex w-full flex-col gap-2">
+      <template
+        x-for="row in readyGateView().rows"
+        :key="row.number"
+      >
+        <li class="inset-well flex h-12 items-center gap-3 rounded-2xl px-4">
+          <span
+            class="font-mono text-eyebrow font-semibold text-muted"
+            x-text="row.number"
+          ></span>
+          <span
+            class="min-w-0 flex-1 truncate text-control font-medium text-foreground"
+            x-text="row.title"
+          ></span>
+          <span
+            class="font-mono text-body-sm font-medium tabular-nums text-soft-foreground"
+            x-text="row.duration"
+          ></span>
+        </li>
+      </template>
+    </ol>
+    <SlideToStart
+      inline
+      disabledExpr="confirmingReady"
+      failedExpr="error"
+    />
+  </form>
+</div>
