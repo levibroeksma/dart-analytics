@@ -281,8 +281,11 @@ describe("resumeDeck", () => {
       expect(createDeck({ cards: cardsOf(count) }).layers()).toBe(layers);
     });
 
-    it("is visible while loading, even with no cards", () => {
-      expect(createDeck({ loading: true }).visible()).toBe(true);
+    it("is hidden while loading, until sessions are known", () => {
+      expect(createDeck({ loading: true }).visible()).toBe(false);
+      expect(createDeck({ loading: true, cards: cardsOf(1) }).visible()).toBe(
+        false,
+      );
     });
 
     it("is hidden once loaded with no cards", () => {

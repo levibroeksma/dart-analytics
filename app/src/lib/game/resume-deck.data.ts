@@ -112,7 +112,8 @@ export function toResumeCards(
  * with the top one resumable.
  *
  * Cards load once from the server and are overlaid with the local `game`
- * store's progress for the session it holds. A failed fetch hides the deck.
+ * store's progress for the session it holds. The deck stays hidden until the
+ * load settles, and a failed fetch or an empty result keeps it hidden.
  * `phase` drives the swap animation: `next()` sends the top card `out`, and
  * `settle()` (bound to `animationend`) advances the index, `rise`s the next
  * card, then returns to `idle`; `prev()` brings the previous card `in`. Input
@@ -157,7 +158,7 @@ export function resumeDeck() {
     },
 
     visible(this: ResumeDeckContext) {
-      return !this.failed && (this.loading || this.cards.length > 0);
+      return !this.failed && !this.loading && this.cards.length > 0;
     },
 
     next(this: ResumeDeckContext) {

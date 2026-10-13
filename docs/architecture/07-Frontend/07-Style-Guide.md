@@ -7,7 +7,7 @@ updated: 2026-10-13
 
 # Frontend Style Guide
 
-> **Version:** 0.5.1 (2026-10-13 — routine play header, `highlight-glow`/`section-ring-inset`, D454; prior 0.5.0 was 2026-10-12 — arbitrary-value ban, role type bundles, layout utilities, D451; prior 0.4.1 was 2026-10-10 — resume deck, D442; prior 0.4.0 was 2026-10-08 — game play: play surfaces, key press, play header, stacked seats, D432; prior 0.3.1 was login, D431)
+> **Version:** 0.5.2 (2026-10-13 — modal sheet slides up from below, `.field-inset` autofill override, D455; prior 0.5.1 was 2026-10-13 — routine play header, `highlight-glow`/`section-ring-inset`, D454; prior 0.5.0 was 2026-10-12 — arbitrary-value ban, role type bundles, layout utilities, D451; prior 0.4.1 was 2026-10-10 — resume deck, D442; prior 0.4.0 was 2026-10-08 — game play: play surfaces, key press, play header, stacked seats, D432; prior 0.3.1 was login, D431)
 >
 > Dark-only, mobile-first UI conventions: sky accent, glass/surface tokens, primitive class contracts, typography, spacing, motion, accessibility.
 >
@@ -108,7 +108,7 @@ Implement a reusable class contract once in `global.css` (`@utility` / `@layer c
 | `@utility slider-fill` / `slider-thumb` / `slider-bubble` | `RangeSlider` accent fill, white capsule thumb with accent ring, blue-glass value bubble (design 6a, D430, 2026-10-08) |
 | `@utility slide-thumb` / `slide-fill` | `SlideToStart` accent orb thumb and the trail behind it (design 4d, D430, 2026-10-08) |
 | `@utility start-bar-fade` | Bottom fade behind the fixed start bar so content scrolls under it (design 4d, D430, 2026-10-08) |
-| `.field-inset` / `.field-inset-error` | Inset text field with accent focus ring; `-error` adds a coral inset ring, and focus still wins (login, D431, 2026-10-08) |
+| `.field-inset` / `.field-inset-error` | Inset text field with accent focus ring; `-error` adds a coral inset ring, and focus still wins (login, D431, 2026-10-08); `:-webkit-autofill` keeps foreground text and the inset well instead of the browser fill (D455, 2026-10-13) |
 | `@utility glass-active-seat` / `input-well` / `key-press` / `next-dart-ring` / `target-key-ring` / `pip-on` / `board-dim` | Play screens: accent-tinted seat card; glass input panel well; accent inset ring on a pressed key; next-dart and doubles-target rings (each carries its own well background — never stack on `inset-well`); lit mark pip; dimmed board while pressing (design Game Play, D432, 2026-10-08) |
 | `@utility highlight-glow` / `section-ring-inset` | Warm-Up spotlight board: accent `drop-shadow` on the highlight outline; the inset (4.1667% = 220/240) that seats a board inside `SectionRing`; both registered in `merge-tokens.ts` (D454, 2026-10-13) |
 | `@utility stack-slab-1` / `stack-slab-2` / `border-medium` / `pt-safe` / `pb-safe` / `bottom-nav` / `bottom-above-nav` / `pb-nav` / `input-number-plain`; `grid-cols-mirror` / `grid-cols-scoreboard` | Card-stack slabs; 1.5px border; safe-area sheet padding; bottom-nav offset and clearance (`--nav-bottom`, `--nav-clearance`); bare number input; mirrored and scoreboard grids (D451, 2026-10-12) |
@@ -204,7 +204,7 @@ One intentional surface level per visual block. Do not stack competing glass/rai
 | Deck keyframes `animate-deck-out` (240ms, `ease-in`: the one exiting slide), `animate-deck-rise` (220ms), `animate-deck-in` (240ms), each paired with `motion-reduce:animate-deck-fade-*` (150ms opacity only) (D442, 2026-10-10) | Sliding the deck card under reduced motion |
 | `board-dim` may transition `filter` (150ms) — the one non-transform/opacity transition, scoped to the board while a press is live (D432, 2026-10-08) | Transitioning `filter` elsewhere |
 
-**Modals:** `motion-safe:animate-sheet-in` — 200ms fade plus 1.5rem rise on `--ease-out`; no slide under reduced motion. If scaling on enter, start from `scale-95` plus opacity — never `scale(0)`.
+**Modals:** `motion-safe:animate-sheet-in` — 300ms slide up from fully below the viewport edge on `--ease-out`; no slide under reduced motion (D455, 2026-10-13). If scaling on enter, start from `scale-95` plus opacity — never `scale(0)`.
 
 
 ---
