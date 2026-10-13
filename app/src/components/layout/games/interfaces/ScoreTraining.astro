@@ -7,98 +7,26 @@ interface Props {
 const { ...props }: Props = Astro.props;
 
 // Components
-import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
-import SplitScoreboard from "@components/layout/games/SplitScoreboard.astro";
-import PlayStatTile from "@components/layout/games/PlayStatTile.astro";
+import SeatedPlayScreen from "@components/layout/games/SeatedPlayScreen.astro";
 import ScoreInput from "@components/layout/games/ScoreInput.astro";
-import ErrorAlert from "@components/ui/ErrorAlert.astro";
-import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
-import CountdownResumePrompt from "@components/layout/games/CountdownResumePrompt.astro";
 ---
 
-<div
-  class="flex flex-col flex-1 min-h-0 gap-2"
+<SeatedPlayScreen
+  big={{
+    isTarget: false,
+    value: (c) =>
+      c.solo
+        ? "$store.game.turns.reduce((sum, t) => sum + t.totalScore, 0).toLocaleString('en-US')"
+        : `${c("totalScore")}.toLocaleString('en-US')`,
+  }}
+  tiles={[
+    { label: "Avg", value: (c) => c("threeDartAverage") },
+    { label: "Darts", value: (c) => c("dartsThrownThisLeg") },
+    { label: "Prev", value: (c) => c("previousScoreThisLeg") },
+  ]}
+  countdownDisabled="finished || showFinishConfirm"
   {...props}
 >
-  <template x-if="(state()?.seats.length ?? 1) < 2">
-    <SinglePlayerDisplay
-      isTarget={false}
-      score="$store.game.turns.reduce((sum, t) => sum + t.totalScore, 0).toLocaleString('en-US')"
-    >
-      <PlayStatTile
-        label="Avg"
-        valueExpr="threeDartAverage()"
-      />
-      <PlayStatTile
-        label="Darts"
-        valueExpr="dartsThrownThisLeg()"
-      />
-      <PlayStatTile
-        label="Prev"
-        valueExpr="previousScoreThisLeg()"
-      />
-    </SinglePlayerDisplay>
-  </template>
-
-  <template x-if="(state()?.seats.length ?? 1) >= 2">
-    <SplitScoreboard
-      seatA={{
-        nameExpr: "$store.game.seats[0]?.displayName",
-        activeExpr:
-          "state()?.activeParticipantRef === state()?.seats[0]?.participantRef",
-        scoreExpr:
-          "totalScoreFor(state()?.seats[0]?.participantRef).toLocaleString('en-US')",
-        idleStatExpr: "threeDartAverageFor(state()?.seats[0]?.participantRef)",
-      }}
-      seatB={{
-        nameExpr: "$store.game.seats[1]?.displayName",
-        activeExpr:
-          "state()?.activeParticipantRef === state()?.seats[1]?.participantRef",
-        scoreExpr:
-          "totalScoreFor(state()?.seats[1]?.participantRef).toLocaleString('en-US')",
-        idleStatExpr: "threeDartAverageFor(state()?.seats[1]?.participantRef)",
-      }}
-      idleStatLabel="Avg"
-    >
-      <Fragment slot="progressA">
-        <PlayStatTile
-          compact
-          label="Avg"
-          valueExpr="threeDartAverageFor(state()?.seats[0]?.participantRef)"
-        />
-        <PlayStatTile
-          compact
-          label="Darts"
-          valueExpr="dartsThrownThisLegFor(state()?.seats[0]?.participantRef)"
-        />
-        <PlayStatTile
-          compact
-          label="Prev"
-          valueExpr="previousScoreThisLegFor(state()?.seats[0]?.participantRef)"
-        />
-      </Fragment>
-      <Fragment slot="progressB">
-        <PlayStatTile
-          compact
-          label="Avg"
-          valueExpr="threeDartAverageFor(state()?.seats[1]?.participantRef)"
-        />
-        <PlayStatTile
-          compact
-          label="Darts"
-          valueExpr="dartsThrownThisLegFor(state()?.seats[1]?.participantRef)"
-        />
-        <PlayStatTile
-          compact
-          label="Prev"
-          valueExpr="previousScoreThisLegFor(state()?.seats[1]?.participantRef)"
-        />
-      </Fragment>
-    </SplitScoreboard>
-  </template>
-
-  <ErrorAlert class="mx-3 mt-2 text-xs" />
-
   <ScoreInput
     value="scoreInput.value"
     digitHandler="scoreInput.appendDigit"
@@ -111,10 +39,4 @@ import CountdownResumePrompt from "@components/layout/games/CountdownResumePromp
     x-show="$store.game.inputModeKey !== 'VISUAL_BOARD' && !$store.game.timerPaused"
     x-cloak
   />
-  {
-    /* Visual board — shown instead of the keypad above for an
-    ANALYTICS + VISUAL_BOARD session, which enters every dart by pointer. */
-  }
-  <BoardInputPanel />
-  <CountdownResumePrompt disabledExpr="finished || showFinishConfirm" />
-</div>
+</SeatedPlayScreen>

@@ -7,88 +7,23 @@ interface Props {
 const { ...props }: Props = Astro.props;
 
 // Components
-import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
-import SplitScoreboard from "@components/layout/games/SplitScoreboard.astro";
-import PlayStatTile from "@components/layout/games/PlayStatTile.astro";
+import SeatedPlayScreen from "@components/layout/games/SeatedPlayScreen.astro";
 import VisitPreview from "@components/layout/games/VisitPreview.astro";
 import DoublesPathRecreationalInput from "@components/layout/games/DoublesPathRecreationalInput.astro";
-import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
-import ErrorAlert from "@components/ui/ErrorAlert.astro";
 ---
 
-<div
-  class="flex flex-col flex-1 min-h-0 gap-2"
+<SeatedPlayScreen
+  big={{ isTarget: true, value: (c) => c("currentTargetLabel") }}
+  tiles={[
+    { label: "Hits", value: (c) => c("hitCount") },
+    { label: "Misses", value: (c) => c("missCount") },
+  ]}
   {...props}
 >
-  <template x-if="(state()?.seats.length ?? 1) < 2">
-    <SinglePlayerDisplay target="currentTargetLabel()">
-      <PlayStatTile
-        label="Hits"
-        valueExpr="hitCount()"
-      />
-      <PlayStatTile
-        label="Misses"
-        valueExpr="missCount()"
-      />
-    </SinglePlayerDisplay>
-  </template>
-
-  <template x-if="(state()?.seats.length ?? 1) >= 2">
-    <SplitScoreboard
-      seatA={{
-        nameExpr: "$store.game.seats[0]?.displayName",
-        activeExpr:
-          "state()?.activeParticipantRef === state()?.seats[0]?.participantRef",
-        scoreExpr: "currentTargetLabelFor(state()?.seats[0]?.participantRef)",
-        idleStatExpr: "hitCountFor(state()?.seats[0]?.participantRef)",
-      }}
-      seatB={{
-        nameExpr: "$store.game.seats[1]?.displayName",
-        activeExpr:
-          "state()?.activeParticipantRef === state()?.seats[1]?.participantRef",
-        scoreExpr: "currentTargetLabelFor(state()?.seats[1]?.participantRef)",
-        idleStatExpr: "hitCountFor(state()?.seats[1]?.participantRef)",
-      }}
-      idleStatLabel="Hits"
-    >
-      <Fragment slot="progressA">
-        <PlayStatTile
-          compact
-          label="Hits"
-          valueExpr="hitCountFor(state()?.seats[0]?.participantRef)"
-        />
-        <PlayStatTile
-          compact
-          label="Misses"
-          valueExpr="missCountFor(state()?.seats[0]?.participantRef)"
-        />
-      </Fragment>
-      <Fragment slot="progressB">
-        <PlayStatTile
-          compact
-          label="Hits"
-          valueExpr="hitCountFor(state()?.seats[1]?.participantRef)"
-        />
-        <PlayStatTile
-          compact
-          label="Misses"
-          valueExpr="missCountFor(state()?.seats[1]?.participantRef)"
-        />
-      </Fragment>
-    </SplitScoreboard>
-  </template>
-
-  <ErrorAlert class="mx-3 mt-2 text-xs" />
-
   <VisitPreview />
 
   <DoublesPathRecreationalInput
     x-show="$store.game.inputModeKey !== 'VISUAL_BOARD'"
     x-cloak
   />
-  {
-    /* Visual board — shown instead of the tap row above for an
-    ANALYTICS + VISUAL_BOARD session, which enters every dart by pointer. */
-  }
-  <BoardInputPanel />
-</div>
+</SeatedPlayScreen>

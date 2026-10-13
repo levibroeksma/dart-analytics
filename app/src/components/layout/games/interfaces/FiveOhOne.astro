@@ -7,109 +7,31 @@ interface Props {
 const { ...props }: Props = Astro.props;
 
 // Components
-import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
-import SplitScoreboard from "@components/layout/games/SplitScoreboard.astro";
-import PlayStatTile from "@components/layout/games/PlayStatTile.astro";
-import RouteChips from "@components/layout/games/RouteChips.astro";
+import SeatedPlayScreen from "@components/layout/games/SeatedPlayScreen.astro";
 import ScoreInput from "@components/layout/games/ScoreInput.astro";
-import ErrorAlert from "@components/ui/ErrorAlert.astro";
-import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
 ---
 
-<div
-  class="flex flex-col flex-1 min-h-0 gap-2"
+<SeatedPlayScreen
+  big={{ isTarget: true, value: (c) => c("remainingScore") }}
+  route={(c) => c("checkoutHint")}
+  legs={{ won: (c) => c("legsWon"), toWin: "legsToWin()" }}
+  tiles={[
+    { label: "Avg", value: (c) => c("average") },
+    { label: "Prev", value: (c) => c("previousScore") },
+    { label: "Darts", value: (c) => c("dartsThrownThisLeg") },
+  ]}
   {...props}
 >
-  <template x-if="(state()?.seats.length ?? 1) < 2">
-    <SinglePlayerDisplay target="remainingScore()">
-      <RouteChips
-        slot="route"
-        routeExpr="checkoutHint()"
-      />
-      <PlayStatTile
-        label="Avg"
-        valueExpr="average()"
-      />
-      <PlayStatTile
-        label="Prev"
-        valueExpr="previousScore()"
-      />
-      <PlayStatTile
-        label="Darts"
-        valueExpr="dartsThrownThisLeg()"
-      />
-    </SinglePlayerDisplay>
-  </template>
-
-  <template x-if="setsTally()">
+  <template
+    slot="between"
+    x-if="setsTally()"
+  >
     <p
       class="text-center font-mono text-eyebrow-sm font-semibold uppercase text-muted"
       x-text="`Sets ${setsTally()}`"
     >
     </p>
   </template>
-
-  <template x-if="(state()?.seats.length ?? 1) >= 2">
-    <SplitScoreboard
-      seatA={{
-        nameExpr: "$store.game.seats[0]?.displayName",
-        activeExpr:
-          "state()?.activeParticipantRef === state()?.seats[0]?.participantRef",
-        scoreExpr: "remainingScoreFor(state()?.seats[0]?.participantRef)",
-        legsExpr: "legsWonFor(state()?.seats[0]?.participantRef)",
-        checkoutExpr: "checkoutHintFor(state()?.seats[0]?.participantRef)",
-        idleStatExpr: "averageFor(state()?.seats[0]?.participantRef)",
-      }}
-      seatB={{
-        nameExpr: "$store.game.seats[1]?.displayName",
-        activeExpr:
-          "state()?.activeParticipantRef === state()?.seats[1]?.participantRef",
-        scoreExpr: "remainingScoreFor(state()?.seats[1]?.participantRef)",
-        legsExpr: "legsWonFor(state()?.seats[1]?.participantRef)",
-        checkoutExpr: "checkoutHintFor(state()?.seats[1]?.participantRef)",
-        idleStatExpr: "averageFor(state()?.seats[1]?.participantRef)",
-      }}
-      legsToWinExpr="legsToWin()"
-      idleStatLabel="Avg"
-    >
-      <Fragment slot="progressA">
-        <PlayStatTile
-          compact
-          label="Avg"
-          valueExpr="averageFor(state()?.seats[0]?.participantRef)"
-        />
-        <PlayStatTile
-          compact
-          label="Prev"
-          valueExpr="previousScoreFor(state()?.seats[0]?.participantRef)"
-        />
-        <PlayStatTile
-          compact
-          label="Darts"
-          valueExpr="dartsThrownThisLegFor(state()?.seats[0]?.participantRef)"
-        />
-      </Fragment>
-      <Fragment slot="progressB">
-        <PlayStatTile
-          compact
-          label="Avg"
-          valueExpr="averageFor(state()?.seats[1]?.participantRef)"
-        />
-        <PlayStatTile
-          compact
-          label="Prev"
-          valueExpr="previousScoreFor(state()?.seats[1]?.participantRef)"
-        />
-        <PlayStatTile
-          compact
-          label="Darts"
-          valueExpr="dartsThrownThisLegFor(state()?.seats[1]?.participantRef)"
-        />
-      </Fragment>
-    </SplitScoreboard>
-  </template>
-
-  <ErrorAlert class="mx-3 mt-2 text-xs" />
 
   <ScoreInput
     value="scoreInput.value"
@@ -123,9 +45,4 @@ import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
     x-show="$store.game.inputModeKey !== 'VISUAL_BOARD'"
     x-cloak
   />
-  {
-    /* Visual board — shown instead of the keypad above for an
-    ANALYTICS + VISUAL_BOARD session, which enters every dart by pointer. */
-  }
-  <BoardInputPanel />
-</div>
+</SeatedPlayScreen>
