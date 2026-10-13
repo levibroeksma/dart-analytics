@@ -5,15 +5,22 @@
  * shows a pause icon and `remainingLabel()`, and a tap pauses. While paused
  * it stays visible with the remaining time but is disabled ("Timer paused"):
  * resuming is `CountdownResumePrompt`'s job. Reads `remainingLabel()`,
- * `togglePause()`, `hasActiveSession` and `finished` from the play scope.
+ * `togglePause()`, `hasActiveSession` and `finished` from the play scope,
+ * or from `scopeExpr` when the play store is a nullable member of the page
+ * scope (the routine page's `game` step).
  */
 interface Props {
   /** Alpine expression evaluating to a boolean; disables the pill. */
   disabledExpr: string;
+  /** Alpine expression for a nullable play store; hidden while it is null. */
+  scopeExpr?: string;
 }
 
 // Props
-const { disabledExpr }: Props = Astro.props;
+const { disabledExpr, scopeExpr }: Props = Astro.props;
+
+// Data
+const scope = scopeExpr ? `${scopeExpr}?.` : "";
 
 // Components
 import Button from "@components/forms/Button.astro";
@@ -29,13 +36,13 @@ import PauseIcon from "@icons/pause.svg";
   class="h-11 shrink-0 gap-1.5 rounded-full px-3 py-0 font-mono text-body-sm font-medium text-foreground"
   :aria-label="$store.game.timerPaused ? 'Timer paused' : 'Pause timer'"
   :disabled={`(${disabledExpr}) || $store.game.timerPaused`}
-  @click="togglePause()"
-  x-show="hasActiveSession && !finished && $store.game.configSnapshot?.durationType === 'MINUTES'"
+  @click={`${scope}togglePause()`}
+  x-show={`${scope}hasActiveSession && !${scope}finished && $store.game.configSnapshot?.durationType === 'MINUTES'`}
   x-cloak
 >
   <PauseIcon
     slot="iconBefore"
     class="size-3"
   />
-  <span x-text="remainingLabel()"></span>
+  <span x-text={`${scope}remainingLabel()`}></span>
 </Button>

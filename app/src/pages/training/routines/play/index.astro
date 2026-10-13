@@ -41,6 +41,11 @@ import OpenRoutineModal from "@components/layout/training/routines/OpenRoutineMo
     ariaLabelExpr="headerClockLabel()"
     showExpr="headerClock() !== ''"
   />
+  <CountdownPauseControl
+    slot="header-end"
+    scopeExpr="game"
+    disabledExpr="game?.finished || game?.showDoubleConfirm || game?.showFinishConfirm || game?.showSessionFinishConfirm"
+  />
   <div class="flex flex-col flex-1 min-h-0">
     <ErrorAlert />
 
@@ -115,9 +120,6 @@ import OpenRoutineModal from "@components/layout/training/routines/OpenRoutineMo
                 x-text="subtitle()"
               >
               </p>
-              <CountdownPauseControl
-                disabledExpr="finished || showDoubleConfirm || showFinishConfirm"
-              />
             </div>
             <TenUpOneDown
               x-show="!finished"
@@ -190,9 +192,6 @@ import OpenRoutineModal from "@components/layout/training/routines/OpenRoutineMo
                 x-text="subtitle()"
               >
               </p>
-              <CountdownPauseControl
-                disabledExpr="finished || showFinishConfirm"
-              />
             </div>
             <ScoreTraining
               x-show="!finished"
@@ -257,9 +256,6 @@ import OpenRoutineModal from "@components/layout/training/routines/OpenRoutineMo
                 x-text="subtitle()"
               >
               </p>
-              <CountdownPauseControl
-                disabledExpr="finished || showDoubleConfirm || showSessionFinishConfirm"
-              />
             </div>
             <OneTwentyOne
               x-show="!finished"
@@ -328,7 +324,6 @@ import OpenRoutineModal from "@components/layout/training/routines/OpenRoutineMo
                 x-text="subtitle()"
               >
               </p>
-              <CountdownPauseControl disabledExpr="finished" />
             </div>
             <AroundTheClock
               x-show="!finished"
