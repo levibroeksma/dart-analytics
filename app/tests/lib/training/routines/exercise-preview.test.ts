@@ -6,6 +6,7 @@ import {
   exerciseFamily,
   judgeDart,
   visitLabelsFor,
+  windowIndex,
   windowPage,
 } from "@lib/training/routines/exercise-preview";
 import type { DartFact, TurnFact } from "@modules/types";
@@ -189,6 +190,15 @@ describe("windowPage", () => {
   it("clamps an out-of-range focus to the list", () => {
     expect(windowPage(items, 99)).toEqual([13, 14]);
     expect(windowPage(items, -1)).toEqual([1, 2, 3, 4, 5, 6]);
+  });
+});
+
+describe("windowIndex", () => {
+  it("is the focus index's position within its six-item page", () => {
+    expect(windowIndex(0)).toBe(0);
+    expect(windowIndex(5)).toBe(5);
+    expect(windowIndex(6)).toBe(0);
+    expect(windowIndex(13)).toBe(1);
   });
 });
 

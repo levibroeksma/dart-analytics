@@ -189,14 +189,17 @@ export type RoutinePlayContext = {
   formattedStepRemaining(this: RoutinePlayContext): string;
   switchingPoints(this: RoutinePlayContext): number;
   switchingTargetLabel(this: RoutinePlayContext): string;
+  switchingChipIndex(this: RoutinePlayContext): number;
   doublePatternPoints(this: RoutinePlayContext): number;
   doublePatternLabel(this: RoutinePlayContext): string;
+  doublePatternChipIndex(this: RoutinePlayContext): number;
   targetScoringChain(this: RoutinePlayContext): number;
   targetScoringTargetLabel(this: RoutinePlayContext): string;
   targetScoringBestChain(this: RoutinePlayContext): number;
   targetScoringMarkToBeat(this: RoutinePlayContext): number | null;
   switchingTargetScoringChain(this: RoutinePlayContext): number;
   switchingTargetScoringTargetLabel(this: RoutinePlayContext): string;
+  switchingTargetScoringChipIndex(this: RoutinePlayContext): number;
   switchingTargetScoringBestChain(this: RoutinePlayContext): number;
   switchingTargetScoringMarkToBeat(this: RoutinePlayContext): number | null;
   scoreThresholdBeats(this: RoutinePlayContext): number;

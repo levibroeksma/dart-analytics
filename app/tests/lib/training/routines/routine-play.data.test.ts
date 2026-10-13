@@ -1138,6 +1138,7 @@ describe("routinePlay — Switching", () => {
     const store = makeStore();
     await startRoutine(store);
     expect(store.switchingSequence()).toBe("20 19 18 17 16 15");
+    expect(store.switchingChipIndex()).toBe(0);
     for (let i = 0; i < 6; i++) {
       store.recordSwitchingDart({
         hitTargetNumber: 20,
@@ -1147,6 +1148,14 @@ describe("routinePlay — Switching", () => {
       });
     }
     expect(store.switchingSequence()).toBe("14 13");
+    expect(store.switchingChipIndex()).toBe(0);
+    store.recordSwitchingDart({
+      hitTargetNumber: 20,
+      hitZoneKey: "SINGLE",
+      locationX: 0,
+      locationY: -120,
+    });
+    expect(store.switchingChipIndex()).toBe(1);
   });
 
   it("previewSegments() marks an on-target dart hit and an off-target dart miss", async () => {
@@ -1276,6 +1285,7 @@ describe("routinePlay — Double Pattern", () => {
     const store = makeStore();
     await startRoutine(store);
     expect(store.doublePatternLabel()).toBe("D20");
+    expect(store.doublePatternChipIndex()).toBe(0);
     expect(store.doublePatternPoints()).toBe(0);
     store.recordDoublePatternDart({
       hitTargetNumber: 20,
@@ -1285,6 +1295,7 @@ describe("routinePlay — Double Pattern", () => {
     });
     expect(store.doublePatternPoints()).toBe(1);
     expect(store.doublePatternLabel()).toBe("D10");
+    expect(store.doublePatternChipIndex()).toBe(1);
     expect(store.dartsThrown()).toBe(1);
   });
 
@@ -1586,6 +1597,7 @@ describe("routinePlay — Switching Target Scoring", () => {
 
     expect(store.switchingTargetScoringEngine).not.toBeNull();
     expect(store.switchingTargetScoringTargetLabel()).toBe("20");
+    expect(store.switchingTargetScoringChipIndex()).toBe(0);
     expect(store.switchingTargetScoringChain()).toBe(0);
     expect(store.switchingTargetScoringBestChain()).toBe(0);
     expect(store.switchingTargetScoringMarkToBeat()).toBeNull();
@@ -1609,6 +1621,7 @@ describe("routinePlay — Switching Target Scoring", () => {
       locationY: 120,
     });
     expect(store.switchingTargetScoringTargetLabel()).toBe("Bull");
+    expect(store.switchingTargetScoringChipIndex()).toBe(2);
     expect(store.switchingTargetScoringChain()).toBe(4);
     expect(store.dartsThrown()).toBe(2);
 
@@ -1619,6 +1632,7 @@ describe("routinePlay — Switching Target Scoring", () => {
       locationY: null,
     });
     expect(store.switchingTargetScoringTargetLabel()).toBe("20");
+    expect(store.switchingTargetScoringChipIndex()).toBe(0);
     expect(store.switchingTargetScoringChain()).toBe(0);
     expect(store.switchingTargetScoringBestChain()).toBe(4);
     expect(store.switchingTargetScoringMarkToBeat()).toBe(4);
