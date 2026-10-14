@@ -10,7 +10,14 @@
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)/app"
 
-: "${DATABASE_URL:?DATABASE_URL is required}"
+# Locally DATABASE_URL lives in app/.env, as for the other db:* scripts (#794).
+if [[ -z "${DATABASE_URL:-}" && -f .env ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  . ./.env
+  set +a
+fi
+: "${DATABASE_URL:?DATABASE_URL is required (export it or set it in app/.env)}"
 
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
