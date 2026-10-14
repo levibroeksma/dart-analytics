@@ -84,6 +84,7 @@ export type SetupSessionContext = {
   loading: boolean;
   error: string;
   activeSession: SessionActiveData | null;
+  activeSessionLocal: boolean;
   showActiveSessionModal: boolean;
   loadingReconciliation: boolean;
   reconciliationFailed: boolean;
@@ -111,6 +112,7 @@ export type SetupSessionContext = {
   ): Promise<void>;
   retryReconciliation(this: SetupSessionContext): Promise<void>;
   continueSession(this: SetupSessionContext): void;
+  leaveSetup(this: SetupSessionContext): void;
   abandonSession(this: SetupSessionContext): Promise<void>;
   removeGuest(this: SetupSessionContext, index: number): void;
   removeBot(this: SetupSessionContext): void;

@@ -373,9 +373,10 @@ export function tuodPlay() {
     },
 
     /**
-     * D88 auto-cleanup via shared reconcileActiveSession helper. On "match",
+     * Reconciles via the shared reconcileActiveSession helper. On "match",
      * resume silently: the engine is rebuilt from the persisted facts and the
-     * store is written back from `engine.facts()` immediately.
+     * store is written back from `engine.facts()` immediately. Any other
+     * outcome shows no session; nothing is abandoned here (D460).
      */
     async init(this: TuodPlayContext) {
       self = this;
@@ -389,14 +390,9 @@ export function tuodPlay() {
           this.$store.game,
         );
 
-        if (result.action === "abandon_failed") {
-          this.reconciliationFailed = true;
-          this.hasActiveSession = false;
-          return;
-        }
         this.reconciliationFailed = false;
 
-        if (result.action === "no_active" || !result.activeSession) {
+        if (result.action !== "match" || !result.activeSession) {
           this.hasActiveSession = false;
           return;
         }

@@ -100,7 +100,7 @@ describe("bobs27Setup", () => {
       });
     });
 
-    it('blocks with reconciliationFailed on "abandon_failed"', async () => {
+    it("shows the modal for a session held elsewhere, never abandoning it", async () => {
       const setup = createSetup();
       vi.mocked(presetsApi.fetchConfigurationPresets).mockResolvedValue([
         STANDARD_PRESET,
@@ -108,15 +108,14 @@ describe("bobs27Setup", () => {
       vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([
         { sessionId: "server-id", gameTypeKey: "BOBS27" } as any,
       ]);
-      vi.mocked(sessionsApi.completeSession).mockRejectedValue(
-        new Error("Network error"),
-      );
       store.game.sessionId = "different-local-id";
 
       await setup.init();
 
-      expect(setup.reconciliationFailed).toBe(true);
-      expect(setup.showActiveSessionModal).toBe(false);
+      expect(sessionsApi.completeSession).not.toHaveBeenCalled();
+      expect(setup.showActiveSessionModal).toBe(true);
+      expect(setup.activeSessionLocal).toBe(false);
+      expect(setup.reconciliationFailed).toBe(false);
       expect(store.game.reset).not.toHaveBeenCalled();
     });
   });
@@ -136,6 +135,7 @@ describe("bobs27Setup", () => {
 
     it("abandons session when user clicks Abandon", async () => {
       const setup = createSetup({
+        activeSessionLocal: true,
         activeSession: { sessionId: "match-id", gameTypeKey: "BOBS27" } as any,
       });
       vi.mocked(sessionsApi.completeSession).mockResolvedValue({

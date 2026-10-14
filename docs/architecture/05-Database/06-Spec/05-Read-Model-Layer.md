@@ -53,7 +53,7 @@ API Read Model
 
 Lists sessions available for resume.
 
-Used by application startup to reconcile local `sessionId` with server `ACTIVE` rows: resume when they match; otherwise auto-abandon the orphan synchronously (no user prompt). The view itself does not reconstruct gameplay state. <!-- 2026-07-17 -->
+Used by application startup to reconcile local `sessionId` with server `ACTIVE` rows: resume when they match; otherwise the setup page asks the player before abandoning it (D460). The view itself does not reconstruct gameplay state. <!-- 2026-10-13 -->
 
 ## Sources
 

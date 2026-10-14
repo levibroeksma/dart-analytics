@@ -275,3 +275,10 @@ Decision: `activeSessionsStore()` (`$store.activeSessions`) holds the player's a
 Reason: `/games` renders both scopes (D456), and each fetched the same list.
 Consequences: one `GET /api/sessions/active` per page that shows the list. The memo lives for the page load; there is no client router, so navigation refetches. Setup and play pages still call `fetchActiveSessions()` directly for recovery, which needs a fresh read after start/abandon.
 Supersedes: none.
+
+### D460 — Session recovery never abandons; setup asks before ending a session held elsewhere
+Status: Accepted · Date: 2026-10-13
+Decision: `reconcileActiveSession` no longer calls `completeSession`. A server ACTIVE session this device does not hold (local id missing or different) returns `"elsewhere"` with the session and leaves the store untouched; `"abandon_failed"` is removed. Setup shows the active-session modal with `activeSessionLocal` false: "in progress on another device", Start new (abandons it, store untouched) or Back (`leaveSetup()` → `/games`); the picker stays hidden while it is ACTIVE. Play treats `"elsewhere"` as no session. `abandonSession()` resets the store only when the session was local.
+Reason: opening a game's setup on a second device, or after the single-slot `game` store was reused for another game, silently abandoned an in-progress game and lost its turns (#897). Only the player ends a session — the rule D285 already applied to routine blocking games.
+Consequences: no API or schema change. Setup's `reconciliationFailed`/Retry path is no longer reached (a fetch failure surfaces as `error`). Cross-device resume still needs incremental fact upload (#815).
+Supersedes: D88

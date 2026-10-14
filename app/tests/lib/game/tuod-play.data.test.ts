@@ -392,24 +392,20 @@ describe("tuodPlay", () => {
       expect(store.reset).not.toHaveBeenCalled();
     });
 
-    it('shows no-active-session view on "no_active" (mismatch auto-abandoned)', async () => {
+    it("shows no session for a session held elsewhere, never abandoning it", async () => {
       const store = gameStub({ sessionId: "different-id" });
       vi.mocked(fetchActiveSessions).mockResolvedValue([
         { ...ACTIVE_SESSION, sessionId: "server-id" },
       ]);
-      vi.mocked(completeSession).mockResolvedValue({
-        sessionId: "server-id",
-        statusKey: "ABANDONED",
-        completedAt: "now",
-      });
       const component = {
         ...tuodPlay(),
         $store: { game: store, settings: settingsStub() },
       };
       await component.init.call(component);
 
-      expect(completeSession).toHaveBeenCalledWith("server-id", "ABANDONED");
-      expect(store.reset).toHaveBeenCalled();
+      expect(completeSession).not.toHaveBeenCalled();
+      expect(component.reconciliationFailed).toBe(false);
+      expect(store.reset).not.toHaveBeenCalled();
       expect(component.hasActiveSession).toBe(false);
     });
 

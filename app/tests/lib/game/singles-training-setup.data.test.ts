@@ -102,7 +102,7 @@ describe("singlesTrainingSetup", () => {
       });
     });
 
-    it('blocks with reconciliationFailed on "abandon_failed"', async () => {
+    it("shows the modal for a session held elsewhere, never abandoning it", async () => {
       const setup = createSetup();
       vi.mocked(presetsApi.fetchConfigurationPresets).mockResolvedValue([
         STANDARD_PRESET,
@@ -110,15 +110,14 @@ describe("singlesTrainingSetup", () => {
       vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([
         { sessionId: "server-id", gameTypeKey: "SINGLES_TRAINING" } as any,
       ]);
-      vi.mocked(sessionsApi.completeSession).mockRejectedValue(
-        new Error("Network error"),
-      );
       store.game.sessionId = "different-local-id";
 
       await setup.init();
 
-      expect(setup.reconciliationFailed).toBe(true);
-      expect(setup.showActiveSessionModal).toBe(false);
+      expect(sessionsApi.completeSession).not.toHaveBeenCalled();
+      expect(setup.showActiveSessionModal).toBe(true);
+      expect(setup.activeSessionLocal).toBe(false);
+      expect(setup.reconciliationFailed).toBe(false);
       expect(store.game.reset).not.toHaveBeenCalled();
     });
   });
@@ -141,6 +140,7 @@ describe("singlesTrainingSetup", () => {
 
     it("abandons session when user clicks Abandon", async () => {
       const setup = createSetup({
+        activeSessionLocal: true,
         activeSession: {
           sessionId: "match-id",
           gameTypeKey: "SINGLES_TRAINING",

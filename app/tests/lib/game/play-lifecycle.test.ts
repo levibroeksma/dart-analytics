@@ -297,6 +297,19 @@ describe("playInit", () => {
     expect(context.engine).toBeNull();
   });
 
+  it("shows no session for a session held elsewhere, never abandoning it", async () => {
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      { ...ACTIVE_SESSION, sessionId: "other-device" },
+    ]);
+    const context = makeContext();
+    await playInit(context, GAME_TYPE_KEY, resumeEngine);
+    expect(completeSession).not.toHaveBeenCalled();
+    expect(context.$store.game.reset).not.toHaveBeenCalled();
+    expect(context.reconciliationFailed).toBe(false);
+    expect(context.hasActiveSession).toBe(false);
+    expect(context.engine).toBeNull();
+  });
+
   it("uploads immediately when the resumed engine is already complete", async () => {
     vi.mocked(appendBatch).mockResolvedValue({
       created: { stages: 1, turns: 1, darts: 1 },

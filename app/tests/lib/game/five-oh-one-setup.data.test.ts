@@ -306,21 +306,20 @@ describe("fiveOhOneSetup", () => {
     });
   });
 
-  it('blocks with reconciliationFailed on "abandon_failed"', async () => {
+  it("shows the modal for a session held elsewhere, never abandoning it", async () => {
     const setup = createSetup();
     vi.mocked(presetsApi.fetchConfigurationPresets).mockResolvedValue([]);
     vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([
       { sessionId: "server-id", gameTypeKey: "501" } as any,
     ]);
-    vi.mocked(sessionsApi.completeSession).mockRejectedValue(
-      new Error("Network error"),
-    );
     store.game.sessionId = "different-local-id";
 
     await setup.init();
 
-    expect(setup.reconciliationFailed).toBe(true);
-    expect(setup.showActiveSessionModal).toBe(false);
+    expect(sessionsApi.completeSession).not.toHaveBeenCalled();
+    expect(setup.showActiveSessionModal).toBe(true);
+    expect(setup.activeSessionLocal).toBe(false);
+    expect(setup.reconciliationFailed).toBe(false);
     expect(store.game.reset).not.toHaveBeenCalled();
   });
 
