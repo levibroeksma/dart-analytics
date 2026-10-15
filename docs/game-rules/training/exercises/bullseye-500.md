@@ -29,6 +29,17 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
   50 points".
 - Standard dartboard scoring. No exercise points.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | BULL (primary) |
+| Session role | CORE |
+| Format | SOLO, ONE_V_ONE |
+| Difficulty | ADVANCED |
+| Mechanic | ACCUMULATION |
+| Pressure | RESET |
+
 ## Exercise type
 
 - Type constant: `BULL_RUN` (proposed; not among the seeded types —

@@ -31,6 +31,17 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
   (`../trivia/checkouts.md`).
 - Standard dartboard scoring. Finish points are **exercise points**.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | DOUBLES (primary), CHECKOUT |
+| Session role | CORE, FINISHER, BENCHMARK |
+| Format | SOLO, ONE_V_ONE |
+| Difficulty | ADVANCED |
+| Mechanic | COUNTDOWN, SEQUENTIAL |
+| Pressure | PENALTY |
+
 ## Exercise type
 
 - Type constant: `HALVING_DOUBLES` (proposed; not among the seeded types —

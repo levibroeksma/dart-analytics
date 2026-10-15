@@ -29,6 +29,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 
 Popular doubles training game with a running score. Start at **27**, throw three darts at each double from 1 through 20, then the bull. Hits add the double’s value; a clean miss visit subtracts it. Standard dartboard is assumed.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | DOUBLES (primary) |
+| Session role | CORE, BENCHMARK |
+| Format | SOLO, ONE_V_ONE |
+| Difficulty | ADVANCED |
+| Mechanic | SEQUENTIAL, FIXED_COUNT |
+| Pressure | PENALTY |
+| Family | STANDARD |
+
 ## Objective
 
 - **Traditional:** survive the path without hitting **0 or below**; after the bull visit, finish with a **positive** score to win.

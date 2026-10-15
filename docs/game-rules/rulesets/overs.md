@@ -37,6 +37,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 - Standard dartboard scoring: a visit is the sum of its three darts' board
   scores, at most 180.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | SCORING (primary) |
+| Session role | RECREATIONAL |
+| Format | ONE_V_ONE, MULTIPLAYER |
+| Difficulty | INTERMEDIATE |
+| Mechanic | ELIMINATION |
+| Pressure | PENALTY |
+| Family | PUB |
+
 ## Objective
 
 **2+:** be the last seat with a life left. The game needs at least two seats;

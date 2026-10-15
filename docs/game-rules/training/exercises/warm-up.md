@@ -24,6 +24,17 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
   each aimed at one area of the board.
 - No scoring. Darts are thrown but not recorded.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | ACCURACY (primary) |
+| Session role | WARM_UP |
+| Format | SOLO |
+| Difficulty | BEGINNER |
+| Mechanic | SEQUENTIAL |
+| Pressure | NONE |
+
 ## Exercise type
 
 - Type constant: `WARM_UP` (`database/seeds/0014_exercise_types.sql`), ruleset

@@ -32,6 +32,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 - Standard board; the only scoring zone is the inner bull, so no other
   board-scoring rule applies.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | BULL (primary) |
+| Session role | RECREATIONAL |
+| Format | ONE_V_ONE, TEAMS |
+| Difficulty | ADVANCED |
+| Mechanic | SIMULATION, ACCUMULATION |
+| Pressure | NONE |
+| Family | NOVELTY |
+
 ## Objective
 
 **1v1:** be the first seat to stand on exactly 21 points. The source's player

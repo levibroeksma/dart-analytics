@@ -36,6 +36,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 - Standard dartboard scoring: a visit's total is the sum of its darts' board
   scores.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | SCORING (primary) |
+| Session role | RECREATIONAL |
+| Format | ONE_V_ONE, MULTIPLAYER |
+| Difficulty | INTERMEDIATE |
+| Mechanic | SIMULATION, THRESHOLD |
+| Pressure | NONE |
+| Family | NOVELTY |
+
 ## Objective
 
 **1v1:** win more wagers than the other seat: be first to collect N chips.

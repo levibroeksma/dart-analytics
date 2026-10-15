@@ -38,6 +38,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 - Standard dartboard scoring is assumed, but only the zone a dart lands in
   matters here, never its points. Par for every hole is 0.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | ACCURACY (primary) |
+| Session role | RECREATIONAL |
+| Format | ONE_V_ONE, MULTIPLAYER |
+| Difficulty | INTERMEDIATE |
+| Mechanic | SIMULATION, SEQUENTIAL |
+| Pressure | PENALTY |
+| Family | NOVELTY |
+
 ## Objective
 
 **2+:** finish all twenty holes with the lowest total. A total below zero is

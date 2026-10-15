@@ -37,6 +37,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
   hole.
 - Standard dartboard geometry. Strokes, not board scores, rank the seats.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | ACCURACY (primary), DOUBLES |
+| Session role | RECREATIONAL |
+| Format | ONE_V_ONE, MULTIPLAYER, TEAMS |
+| Difficulty | INTERMEDIATE |
+| Mechanic | SIMULATION, SEQUENTIAL |
+| Pressure | PENALTY |
+| Family | NOVELTY |
+
 ## Objective
 
 **2+:** finish nine holes with the fewest total strokes. The source needs two

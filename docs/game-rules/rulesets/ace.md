@@ -33,6 +33,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 - Ace uses its own points, not board scores: a single of the target is 1, a
   double 2, a treble 3. Only the target scores; everything else is a miss.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | ACCURACY (primary) |
+| Session role | RECREATIONAL |
+| Format | SOLO, ONE_V_ONE, MULTIPLAYER |
+| Difficulty | INTERMEDIATE |
+| Mechanic | ACCUMULATION |
+| Pressure | NONE |
+| Family | PUB |
+
 ## Objective
 
 **2+:** have the highest total after the last round.

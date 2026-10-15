@@ -32,6 +32,17 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 - Standard dartboard scoring: T20 = 60, S19 = 19, outer bull 25, bullseye 50.
   No exercise-specific points.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | CHECKOUT (primary), BULL, CONTROL |
+| Session role | CORE, FINISHER |
+| Format | SOLO |
+| Difficulty | ADVANCED |
+| Mechanic | COUNTDOWN |
+| Pressure | NONE |
+
 ## Exercise type
 
 - Type constant: `BULLSEYE_CHECKOUT` (new; not among the seeded types in

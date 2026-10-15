@@ -40,6 +40,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
   of a double-dip — see Open questions.
 - Standard dartboard scoring is assumed.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | SCORING (primary), DOUBLES, BULL |
+| Session role | CORE, RECREATIONAL |
+| Format | SOLO, ONE_V_ONE, MULTIPLAYER |
+| Difficulty | ADVANCED |
+| Mechanic | TERRITORIAL |
+| Pressure | NONE |
+| Family | PUB |
+
 ## Objective
 
 **Single:** close all twelve categories in as few darts as possible. A solo

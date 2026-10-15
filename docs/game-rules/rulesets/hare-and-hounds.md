@@ -35,6 +35,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
   Rulings the source does not make, or makes twice, were settled by user
   decision 2026-10-12 and are marked as such.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | ACCURACY (primary), SWITCHING |
+| Session role | RECREATIONAL |
+| Format | ONE_V_ONE, MULTIPLAYER |
+| Difficulty | INTERMEDIATE |
+| Mechanic | CHASE, ADJACENCY, SEQUENTIAL |
+| Pressure | NONE |
+| Family | PUB |
+
 ## Objective
 
 **1v1:** the Hare wins by arriving back on 20 after a full lap; the Hound wins

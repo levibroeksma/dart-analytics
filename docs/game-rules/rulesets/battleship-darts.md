@@ -40,6 +40,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 - Standard dartboard scoring is assumed, but board scores play no part: only
   which segment a dart hit counts.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | ACCURACY (primary) |
+| Session role | RECREATIONAL |
+| Format | ONE_V_ONE, MULTIPLAYER |
+| Difficulty | INTERMEDIATE |
+| Mechanic | SIMULATION |
+| Pressure | NONE |
+| Family | NOVELTY |
+
 ## Objective
 
 **1v1:** sink all eight of the other seat's ships before they sink yours.

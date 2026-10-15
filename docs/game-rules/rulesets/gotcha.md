@@ -33,6 +33,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
   (https://dolfdarts.com/games/gotcha, read 2026-10-07).
 - Standard dartboard scoring. No double-out by default.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | CONTROL (primary), SCORING |
+| Session role | RECREATIONAL |
+| Format | ONE_V_ONE, MULTIPLAYER |
+| Difficulty | INTERMEDIATE |
+| Mechanic | ACCUMULATION |
+| Pressure | NONE |
+| Family | PUB |
+
 ## Objective
 
 **2+:** be the first seat to a running total of exactly 301.

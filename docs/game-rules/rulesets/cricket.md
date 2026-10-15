@@ -42,6 +42,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 
 Standard (American) **Cricket**: close **20–15** and the **bull**, and score points on numbers you own that opponents have not closed yet. Standard dartboard scoring is assumed. For the UK variant that also closes **Doubles** and **Triples** as separate objectives, see `tactics.md`.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | SCORING (primary), BULL |
+| Session role | CORE |
+| Format | SOLO, ONE_V_ONE, MULTIPLAYER |
+| Difficulty | ADVANCED |
+| Mechanic | TERRITORIAL |
+| Pressure | NONE |
+| Family | STANDARD |
+
 ## Objective
 
 - **Close** all seven objectives: **20, 19, 18, 17, 16, 15, Bull**.

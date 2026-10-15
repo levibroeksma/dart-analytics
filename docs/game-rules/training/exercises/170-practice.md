@@ -34,6 +34,17 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 - Standard dartboard scoring. No exercise points: the run counts checkouts and
   hit rates.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | CHECKOUT (primary), SCORING, BULL |
+| Session role | CORE, FINISHER |
+| Format | SOLO, ONE_V_ONE |
+| Difficulty | EXPERT |
+| Mechanic | SEQUENTIAL |
+| Pressure | NONE |
+
 ## Exercise type
 
 - Type constant: `VISIT_PATH` (proposed; not among the seeded types —

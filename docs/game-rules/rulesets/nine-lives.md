@@ -37,6 +37,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
   (`around-the-clock.md` §Features); the lives and the failure end are new.
 - Board scores play no part; only the number hit matters.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | ACCURACY (primary) |
+| Session role | WARM_UP, RECREATIONAL |
+| Format | SOLO, ONE_V_ONE, MULTIPLAYER |
+| Difficulty | BEGINNER |
+| Mechanic | SEQUENTIAL, ELIMINATION |
+| Pressure | PENALTY |
+| Family | PUB |
+
 ## Objective
 
 **Single:** reach and hit the bull before losing three lives.

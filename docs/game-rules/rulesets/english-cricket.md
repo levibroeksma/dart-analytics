@@ -37,6 +37,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
   bull. English Cricket uses the whole board and shares only the name.
 - Standard dartboard scoring is assumed.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | SCORING (primary), BULL |
+| Session role | RECREATIONAL |
+| Format | ONE_V_ONE, TEAMS |
+| Difficulty | INTERMEDIATE |
+| Mechanic | SIMULATION, THRESHOLD, ACCUMULATION |
+| Pressure | NONE |
+| Family | PUB |
+
 ## Objective
 
 **1v1:** score more runs in your batting innings than the other seat does in

@@ -39,6 +39,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 - Standard dartboard layout. Nothing here scores points: the scorecard is 23
   yes/no targets.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | ACCURACY (primary) |
+| Session role | WARM_UP, RECREATIONAL |
+| Format | SOLO, ONE_V_ONE, MULTIPLAYER, TEAMS |
+| Difficulty | BEGINNER |
+| Mechanic | ADJACENCY |
+| Pressure | NONE |
+| Family | PUB |
+
 ## Objective
 
 **2+:** be the first seat to mark all **23** targets: the numbers 1–20, Red

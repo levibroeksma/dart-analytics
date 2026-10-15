@@ -9,6 +9,7 @@ This tree holds **non-canonical, pre-spec, human-authored** descriptions of dart
 | `training/routines/` | Training-routine outlines, in the `templates/ROUTINE_TEMPLATE.md` shape — compositions only, no rules of their own | `docs/architecture/09-Training/01-Routines.md` §8 (Training Orchestration), §20 and the routine phase specs dated 2026-09-18 |
 | `training/trivia/` | Standalone practice-tool descriptions (e.g. checkout trivia), in the `templates/TRIVIA_TEMPLATE.md` shape | **No pipeline yet** — open question, resolved via the normal engineering workflow (`docs/architecture/03-Engineering-Workflow.md`) when first implemented, not predetermined here |
 | `templates/` | The four authoring templates — game ruleset, exercise type, routine, trivia tool | N/A — meta-docs, stay in place |
+| `TAGS.md` | The tag vocabulary for exercises and games | N/A — meta-doc, stays in place |
 
 `training/` mirrors the `lib/`/`modules/`/`components/layout/` source split (D308, 2026-09-17): the two subfolders that describe training-adjacent tools live there instead of directly under this root.
 

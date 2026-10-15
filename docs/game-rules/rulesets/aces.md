@@ -44,6 +44,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
   format ("players should agree on the match format"), so the whole of Game,
   Set, Tiebreak and Match is user decision 2026-10-12.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | SCORING (primary), DOUBLES |
+| Session role | RECREATIONAL |
+| Format | ONE_V_ONE, MULTIPLAYER, TEAMS |
+| Difficulty | INTERMEDIATE |
+| Mechanic | SIMULATION |
+| Pressure | NONE |
+| Family | NOVELTY |
+
 ## Objective
 
 **1v1:** win the set by taking four games (a tiebreak decides it at 3–3 in

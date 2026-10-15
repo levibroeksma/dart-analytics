@@ -13,7 +13,7 @@ needs neither, it is an exercise or a trivia tool.
 
 ## Required headings
 
-`Features` · `Identity` · `Objective` · `Config & presets` · `How to play`
+`Features` · `Identity` · `Tags` · `Objective` · `Config & presets` · `How to play`
 (with `### Ends when` and `### Result` when standalone) · `Later versions` ·
 `Capture` · `Glossary` · `Open questions`
 
@@ -31,6 +31,10 @@ Entry points: standalone
 
 A game is `standalone` unless it is also usable as a routine step, in which
 case `standalone, routine step`.
+
+Tag the game when it is first authored (`docs/game-rules/TAGS.md`). A
+`standalone, routine step` game splits `## Tags` into `### Standalone` and
+`### Routine step`.
 
 ## The V1 cut test here
 

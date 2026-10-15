@@ -33,6 +33,17 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 - Standard dartboard layout. Only the double counts. Bonus points are
   **exercise points**, not board scores.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | DOUBLES (primary) |
+| Session role | CORE |
+| Format | SOLO, ONE_V_ONE |
+| Difficulty | ADVANCED |
+| Mechanic | LADDER |
+| Pressure | SETBACK |
+
 ## Exercise type
 
 - Type constant: `LOCK_LADDER` (proposed; not among the seeded types —

@@ -38,6 +38,17 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 - Standard dartboard layout. Point values are **exercise points**, not X01
   points (`docs/architecture/09-Training/01-Routines.md` §14).
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | SWITCHING (primary), ACCURACY |
+| Session role | CORE |
+| Format | SOLO |
+| Difficulty | INTERMEDIATE |
+| Mechanic | SEQUENTIAL, ACCUMULATION |
+| Pressure | RESET |
+
 ## Exercise type
 
 - Type constant: `SWITCHING_TARGET_SCORING` (new; not among the seeded types in

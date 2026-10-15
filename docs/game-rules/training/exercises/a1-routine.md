@@ -32,6 +32,17 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 - Standard dartboard layout. Any bed of the target counts; for the bull,
   outer and inner both count. Marks are not board scores.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | ACCURACY (primary) |
+| Session role | CORE |
+| Format | SOLO, ONE_V_ONE |
+| Difficulty | INTERMEDIATE |
+| Mechanic | TERRITORIAL, SEQUENTIAL |
+| Pressure | NONE |
+
 ## Exercise type
 
 - Type constant: `MARKS_TO_CLOSE` (proposed; not among the seeded types —

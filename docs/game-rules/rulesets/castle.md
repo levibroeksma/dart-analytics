@@ -37,6 +37,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 - Standard dartboard scoring decides how many bricks a dart is worth: single
   1, double 2, treble 3. Face value plays no part.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | ACCURACY (primary) |
+| Session role | RECREATIONAL |
+| Format | ONE_V_ONE, MULTIPLAYER, TEAMS |
+| Difficulty | BEGINNER |
+| Mechanic | ACCUMULATION |
+| Pressure | NONE |
+| Family | PUB |
+
 ## Objective
 
 **2+:** be the first seat with a castle of 15 bricks.

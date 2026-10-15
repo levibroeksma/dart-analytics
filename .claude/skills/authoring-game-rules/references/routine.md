@@ -28,6 +28,9 @@ writing how a step is played, you are in the wrong file.
 **No `Capture` section** — a routine persists nothing of its own; its capture
 is its exercises'. A `Capture` section here would be a second, drifting copy.
 
+**No `Tags` section** — tags live on exercises and games; a routine's or
+tool's profile is derived, never stored (`docs/game-rules/TAGS.md`).
+
 **No `Entry points:` field** — a routine is the top-level unit of a training
 and is standalone by definition. `Ends when` and `Result` are still required.
 

@@ -39,6 +39,17 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 - Standard dartboard scoring: S = n, D = 2n, T = 3n, outer bull 25, bullseye
   50.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | ACCURACY (primary) |
+| Session role | CORE, BENCHMARK |
+| Format | SOLO, ONE_V_ONE, MULTIPLAYER |
+| Difficulty | INTERMEDIATE |
+| Mechanic | SEQUENTIAL, ACCUMULATION |
+| Pressure | PENALTY |
+
 ## Exercise type
 
 - Type constant: `HALVE_IT` (proposed; not among the seeded types — checked

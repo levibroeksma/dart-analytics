@@ -39,6 +39,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 - Multiplayer only: the source needs "two or more players" and a race needs a
   rival.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | ACCURACY (primary) |
+| Session role | RECREATIONAL |
+| Format | ONE_V_ONE, MULTIPLAYER, TEAMS |
+| Difficulty | BEGINNER |
+| Mechanic | SIMULATION, TERRITORIAL |
+| Pressure | NONE |
+| Family | NOVELTY |
+
 ## Objective
 
 **2+:** be the first seat to close every number on its own card. The winning

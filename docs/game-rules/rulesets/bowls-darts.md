@@ -41,6 +41,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
   number (below). Rulings the source does not make were settled by user
   decision 2026-10-12 and are marked as such.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | ACCURACY (primary) |
+| Session role | RECREATIONAL |
+| Format | ONE_V_ONE, TEAMS |
+| Difficulty | BEGINNER |
+| Mechanic | SIMULATION |
+| Pressure | NONE |
+| Family | NOVELTY |
+
 ## Objective
 
 **1v1:** be the first seat to reach the target score (default 21) by winning

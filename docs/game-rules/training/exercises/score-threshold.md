@@ -30,6 +30,17 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 - Standard dartboard scoring: the visit total is the X01 visit total (T20 = 60,
   D20 = 40, outer bull 25, bullseye 50). No exercise-specific points.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | SCORING (primary) |
+| Session role | CORE |
+| Format | SOLO |
+| Difficulty | INTERMEDIATE |
+| Mechanic | THRESHOLD |
+| Pressure | NONE |
+
 ## Exercise type
 
 - Type constant: `SCORE_THRESHOLD` (new; not among the seeded types in

@@ -42,6 +42,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 - Standard dartboard scoring: a dart's board score is its face value times
   its ring. The game's points are derived from those board scores.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | BULL (primary), SCORING |
+| Session role | CORE |
+| Format | SOLO, ONE_V_ONE, MULTIPLAYER |
+| Difficulty | ADVANCED |
+| Mechanic | ACCUMULATION |
+| Pressure | NONE |
+| Family | PUB |
+
 ## Objective
 
 **Single:** reach 500 points (or more) in as few visits as you can.

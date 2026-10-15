@@ -38,6 +38,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 - Rulings the source does not make were settled by user decision 2026-10-12
   and are marked as such.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | ACCURACY (primary) |
+| Session role | RECREATIONAL |
+| Format | ONE_V_ONE, MULTIPLAYER |
+| Difficulty | INTERMEDIATE |
+| Mechanic | SIMULATION, ACCUMULATION |
+| Pressure | NONE |
+| Family | NOVELTY |
+
 ## Objective
 
 **2+:** have the highest total after ten frames. Every seat bowls all ten;

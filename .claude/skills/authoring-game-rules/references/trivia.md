@@ -26,6 +26,9 @@ capture. **No `Applies to` column** — a trivia tool has no seats and no
 opponents, so the column would read `All` on every row forever. The Features
 table is `| Feature | Version | Reason |`.
 
+**No `Tags` section** — tags live on exercises and games; a routine's or
+tool's profile is derived, never stored (`docs/game-rules/TAGS.md`).
+
 **No `Entry points:` field** — a trivia tool is standalone by definition
 (`02-Trivia.md`: "fully standalone … no dependency on `01-Routines.md`").
 

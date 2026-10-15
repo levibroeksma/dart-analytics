@@ -39,6 +39,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 - Standard dartboard scoring is assumed, but only the zone a dart lands in
   matters here, never its points.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | BULL (primary), DOUBLES |
+| Session role | RECREATIONAL |
+| Format | ONE_V_ONE, MULTIPLAYER, TEAMS |
+| Difficulty | ADVANCED |
+| Mechanic | SIMULATION, ACCUMULATION |
+| Pressure | NONE |
+| Family | NOVELTY |
+
 ## Objective
 
 **1v1:** be the first seat to 10 goals. The source's objective is "a two-player

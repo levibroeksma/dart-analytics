@@ -35,6 +35,17 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
   (https://dolfdarts.com/games/random-checkout, read 2026-10-06).
 - Standard dartboard scoring and X01 double-out.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | CHECKOUT (primary), DOUBLES |
+| Session role | CORE, FINISHER |
+| Format | SOLO, ONE_V_ONE |
+| Difficulty | ADVANCED |
+| Mechanic | COUNTDOWN |
+| Pressure | NONE |
+
 ## Exercise type
 
 - Type constant: `RANDOM_CHECKOUT`, seeded in `0036`.

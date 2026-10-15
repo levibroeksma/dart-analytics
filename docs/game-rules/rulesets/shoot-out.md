@@ -37,6 +37,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 - Which number you hit never matters, only whether it was open. Board scores
   play no part.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | ACCURACY (primary) |
+| Session role | RECREATIONAL |
+| Format | SOLO, ONE_V_ONE, MULTIPLAYER, TEAMS |
+| Difficulty | BEGINNER |
+| Mechanic | TERRITORIAL, ACCUMULATION |
+| Pressure | NONE |
+| Family | PUB |
+
 ## Objective
 
 **2+:** have the highest total once every number is closed.

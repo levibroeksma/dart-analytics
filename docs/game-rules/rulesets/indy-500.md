@@ -41,6 +41,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
   a visit crossed, the bust and exact-500 rulings below) are recorded
   decisions of 2026-10-12 and are marked as such where they appear.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | SCORING (primary), BULL |
+| Session role | RECREATIONAL |
+| Format | ONE_V_ONE, MULTIPLAYER, TEAMS |
+| Difficulty | INTERMEDIATE |
+| Mechanic | ACCUMULATION, SIMULATION |
+| Pressure | NONE |
+| Family | NOVELTY |
+
 ## Objective
 
 **2+:** be the first seat to a running total of exactly 500.

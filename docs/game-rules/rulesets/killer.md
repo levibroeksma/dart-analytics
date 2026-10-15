@@ -38,6 +38,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 - The game uses the doubles ring only; singles, trebles and the bull do
   nothing. Board scores play no part.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | DOUBLES (primary) |
+| Session role | RECREATIONAL |
+| Format | ONE_V_ONE, MULTIPLAYER, TEAMS |
+| Difficulty | ADVANCED |
+| Mechanic | ELIMINATION |
+| Pressure | NONE |
+| Family | PUB |
+
 ## Objective
 
 **2+:** be the last seat with a life left.

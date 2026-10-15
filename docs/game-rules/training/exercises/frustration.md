@@ -32,6 +32,17 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 - Standard dartboard scoring for the setup total. No points: the result is
   attempts.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | CHECKOUT (primary), SCORING, DOUBLES |
+| Session role | CORE, FINISHER |
+| Format | SOLO, ONE_V_ONE |
+| Difficulty | ADVANCED |
+| Mechanic | LADDER, THRESHOLD |
+| Pressure | NONE |
+
 ## Exercise type
 
 - Type constant: `SETUP_FINISH` (proposed; not among the seeded types —

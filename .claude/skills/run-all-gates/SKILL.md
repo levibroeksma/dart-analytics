@@ -20,6 +20,7 @@ bash scripts/check-worktree-location.sh
 bash scripts/check-test-coverage.sh
 bash scripts/check-doc-sync.sh
 bash scripts/check-game-rules.sh
+bash scripts/test-check-game-rules.sh
 ```
 
 `check-doc-sync.sh` fails when the change set touches `database/migrations/`, `app/src/services/` or a domain subdirectory of `app/src/modules/` (`game`, `training`, `dartbot`, `stats`) with no edit under `docs/architecture/` or `decisions/`. It reads the change set the same way `check-test-coverage.sh` does — staged files mid-commit, otherwise the diff against the merge base with `origin/main` (override with `DOC_SYNC_BASE_REF`). `docs/superpowers/` does not satisfy it: specs and plans are non-canonical (D312). It is absent from `.husky/pre-commit` on purpose — mid-branch it would fail the code commit that precedes the docs commit.
@@ -36,7 +37,9 @@ Glossary → Features agreement. Shape is inferred from the folder;
 **blocking**: any finding fails the run. `GAME_RULES_GATE=warn` prints the
 findings and exits 0, which is useful mid-edit but is not what CI runs — the
 default was warn only until the #464/#465 backfill landed all 12 files on the
-contract. (2026-09-19, D322; blocking 2026-09-19, D323)
+contract. (2026-09-19, D322; blocking 2026-09-19, D323) It also checks each
+`## Tags` section against `docs/game-rules/TAGS.md`;
+`test-check-game-rules.sh` proves that check on fixtures. (2026-10-15, D461)
 
 `check-worktree-location.sh` fails when a worktree inside the repo root sits anywhere but `.worktrees/`, or when the retired `.claude/worktrees/` directory exists. A checkout *beside* the repo is out of scope — it is a separate working copy, not a task worktree. It also prints a non-fatal `WARN` for a `.worktrees/` worktree whose branch is already merged into `origin/main`: the prune signal D312 asked for, left advisory because worktrees are shared across concurrent sessions and another session's landed branch must not fail your commit. In CI there are no task worktrees, so it passes vacuously.
 
