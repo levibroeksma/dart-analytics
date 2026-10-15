@@ -24,6 +24,9 @@ Authoring and amending are driven by the `authoring-game-rules` skill.
   inside a routine. A `GameEngine` must stay independent of the exercise
   system (`09-Training/01-Routines.md` §2, §10).
 - Headings carry no version number.
+- `## Tags` takes one flat table, axes in `docs/game-rules/TAGS.md` order,
+  values only from that file, no Family row. An exercise that wraps a game
+  tags itself; it never inherits the game's tags.
 - Version vocabulary and `Applies to` vocabulary are identical to
   `GAME_RULESET_TEMPLATE.md` — read that file's two tables.
 
@@ -46,6 +49,17 @@ Entry points: routine step
 
 - One short pitch: what this trains and why
 - Whether standard dartboard scoring applies
+
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | … (primary) |
+| Session role | … |
+| Format | SOLO |
+| Difficulty | … |
+| Mechanic | … |
+| Pressure | … |
 
 ## Exercise type
 

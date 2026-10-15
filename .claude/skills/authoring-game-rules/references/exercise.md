@@ -17,9 +17,12 @@ once; the routine records only its overrides.
 
 ## Required headings
 
-`Features` · `Identity` · `Exercise type` · `Objective` · `Config & presets` ·
+`Features` · `Identity` · `Tags` · `Exercise type` · `Objective` · `Config & presets` ·
 `How to practise` (with `### Bound`, and `### Ends when` + `### Result` when
 standalone) · `Later versions` · `Capture` · `Glossary` · `Open questions`
+
+Tag the exercise when it is first authored: one flat table from
+`docs/game-rules/TAGS.md`, no Family row.
 
 ## Header fields
 

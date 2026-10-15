@@ -29,6 +29,7 @@ Authoring and amending are driven by the `authoring-game-rules` skill.
   `GAME_RULESET_TEMPLATE.md`.
 - A routine carries **no `Entry points:` field** and **no `Capture` section** —
   it is standalone by definition, and its capture is its exercises'.
+- No `## Tags` section: tags live on exercises and games (`docs/game-rules/TAGS.md`).
 
 ---
 

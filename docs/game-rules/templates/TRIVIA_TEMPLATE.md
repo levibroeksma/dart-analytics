@@ -28,6 +28,7 @@ Authoring and amending are driven by the `authoring-game-rules` skill.
   rule, not an omission.
 - Headings carry no version number.
 - Version vocabulary is identical to `GAME_RULESET_TEMPLATE.md`.
+- No `## Tags` section: tags live on exercises and games (`docs/game-rules/TAGS.md`).
 
 ---
 

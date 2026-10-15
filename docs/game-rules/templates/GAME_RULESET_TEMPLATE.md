@@ -29,6 +29,11 @@ that skill rather than reconstructing the procedure from this file.
 - Define terms before you rely on them (e.g. **visit** before **bust**).
 - Headings carry no version number. `## Later versions` is correct;
   `## Later versions (V2+)` goes stale the first time a V3 exists.
+- `## Tags` uses the axes and values in `docs/game-rules/TAGS.md`, in its
+  order, plus a Family row. If `Entry points:` include `routine step`, split it
+  into `### Standalone` and `### Routine step`, each a complete table; the
+  Routine step block has no Family row and may label several Difficulty
+  values by preset.
 
 ### Version vocabulary
 
@@ -72,6 +77,18 @@ Entry points: standalone
 
 - One short pitch: what it is and why someone would play it
 - Note if standard dartboard scoring is assumed
+
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | … (primary) |
+| Session role | … |
+| Format | … |
+| Difficulty | … |
+| Mechanic | … |
+| Pressure | … |
+| Family | … |
 
 ## Objective
 
