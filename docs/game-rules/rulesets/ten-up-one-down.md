@@ -31,6 +31,31 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 
 Checkout ladder under pressure: start at **41**, try to finish in **one visit (3 darts)**. Make it → jump **+10**; miss → drop **−1**. Trains short finishes and recovery. Standard dartboard scoring is assumed; finish on a double. (Source note: “starts at 41, 3 darts to finish, success move 10 up, failure go 1 down.”)
 
+## Tags
+
+### Standalone
+
+| Axis | Tags |
+| --- | --- |
+| Skill | CHECKOUT (primary), DOUBLES |
+| Session role | CORE, FINISHER |
+| Format | SOLO, ONE_V_ONE |
+| Difficulty | ADVANCED |
+| Mechanic | COUNTDOWN, LADDER |
+| Pressure | SETBACK |
+| Family | STANDARD |
+
+### Routine step
+
+| Axis | Tags |
+| --- | --- |
+| Skill | CHECKOUT (primary), DOUBLES |
+| Session role | CORE, FINISHER |
+| Format | SOLO |
+| Difficulty | ADVANCED |
+| Mechanic | COUNTDOWN, LADDER |
+| Pressure | SETBACK |
+
 ## Objective
 
 - **Attempt:** from the current target, reach **exactly 0** on a **double** within **three darts**.

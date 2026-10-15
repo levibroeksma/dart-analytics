@@ -29,6 +29,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 
 Round-by-round target game: each round has one **active number** (1, then 2, then 3, …). Score only on that number; chase the high total — or win instantly with a **Shanghai** (single, double, and treble of the active number in one three-dart visit). Standard dartboard scoring is assumed. (Empty source file — rules filled from common Shanghai practice.)
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | ACCURACY (primary), SCORING |
+| Session role | CORE, RECREATIONAL |
+| Format | SOLO, ONE_V_ONE |
+| Difficulty | INTERMEDIATE |
+| Mechanic | SEQUENTIAL, ACCUMULATION, FIXED_COUNT |
+| Pressure | NONE |
+| Family | PUB |
+
 ## Objective
 
 - **Round:** with three darts, score as much as possible on the active number only.

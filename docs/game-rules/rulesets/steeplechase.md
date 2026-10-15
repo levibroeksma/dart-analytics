@@ -37,6 +37,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 - Multiplayer only. The source lists two to eight players and no solo mode;
   a session seats at most four.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | ACCURACY (primary) |
+| Session role | RECREATIONAL |
+| Format | ONE_V_ONE, MULTIPLAYER |
+| Difficulty | ADVANCED |
+| Mechanic | SIMULATION, SEQUENTIAL, ELIMINATION |
+| Pressure | PENALTY |
+| Family | NOVELTY |
+
 ## Objective
 
 **2+:** be the first seat to clear the whole course and hit the inner bull. A

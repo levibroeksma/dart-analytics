@@ -40,6 +40,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 - Not Knockout (`knockout.md`): a failed visit does not leave the target in
   place — the seat that failed sets the next one — and a tie fails.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | SCORING (primary) |
+| Session role | RECREATIONAL |
+| Format | ONE_V_ONE, MULTIPLAYER |
+| Difficulty | INTERMEDIATE |
+| Mechanic | ELIMINATION |
+| Pressure | PENALTY |
+| Family | PUB |
+
 ## Objective
 
 **2+:** be the last seat with a life left. Each seat starts with three; a

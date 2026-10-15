@@ -44,6 +44,31 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 
 Traditional pub game that also works as training: hit every segment “around” the board in order. Standard dartboard scoring is assumed. Directions and difficulty can be configured.
 
+## Tags
+
+### Standalone
+
+| Axis | Tags |
+| --- | --- |
+| Skill | ACCURACY (primary) |
+| Session role | WARM_UP, RECREATIONAL |
+| Format | SOLO, ONE_V_ONE |
+| Difficulty | BEGINNER |
+| Mechanic | SEQUENTIAL |
+| Pressure | NONE |
+| Family | STANDARD |
+
+### Routine step
+
+| Axis | Tags |
+| --- | --- |
+| Skill | ACCURACY (primary) |
+| Session role | WARM_UP, CORE |
+| Format | SOLO |
+| Difficulty | INTERMEDIATE (1 dart), ADVANCED (2 darts), EXPERT (3 darts) |
+| Mechanic | SEQUENTIAL |
+| Pressure | SETBACK |
+
 ## Objective
 
 - **Run:** hit every required target in sequence until the path is complete (typically **1 → 20 → bull**).

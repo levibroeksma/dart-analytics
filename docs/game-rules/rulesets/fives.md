@@ -36,6 +36,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
   variant: the two pages give the same rules.
 - Standard dartboard scoring: a dart is worth its board score.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | CONTROL (primary) |
+| Session role | RECREATIONAL |
+| Format | ONE_V_ONE, MULTIPLAYER |
+| Difficulty | INTERMEDIATE |
+| Mechanic | ACCUMULATION |
+| Pressure | NONE |
+| Family | PUB |
+
 ## Objective
 
 **2+:** be the first seat whose running total is exactly 51 fives points. A

@@ -36,6 +36,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
   lists no points, only marks.
 - Two seats only. Gifting needs an opponent, so this is not a solo game.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | ACCURACY (primary) |
+| Session role | RECREATIONAL |
+| Format | ONE_V_ONE, MULTIPLAYER, TEAMS |
+| Difficulty | INTERMEDIATE |
+| Mechanic | SIMULATION, TERRITORIAL |
+| Pressure | NONE |
+| Family | NOVELTY |
+
 ## Objective
 
 **1v1:** be the first seat to close all nine beds (1 to 9).

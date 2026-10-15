@@ -40,6 +40,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
   number, and which ring, each dart landed in.
 - It needs at least two seats and has no single-player mode.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | ACCURACY (primary) |
+| Session role | RECREATIONAL |
+| Format | ONE_V_ONE, MULTIPLAYER |
+| Difficulty | INTERMEDIATE |
+| Mechanic | SIMULATION, ACCUMULATION |
+| Pressure | NONE |
+| Family | NOVELTY |
+
 ## Objective
 
 **2+:** win the most rounds. Each round the seat with the best hand scores 1

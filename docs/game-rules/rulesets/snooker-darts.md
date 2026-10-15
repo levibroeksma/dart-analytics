@@ -38,6 +38,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 - Standard dartboard scoring is assumed for where a dart lands, but the game
   counts **snooker points**, not board points.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | ACCURACY (primary), SWITCHING |
+| Session role | RECREATIONAL |
+| Format | ONE_V_ONE |
+| Difficulty | INTERMEDIATE |
+| Mechanic | SIMULATION |
+| Pressure | PENALTY |
+| Family | NOVELTY |
+
 ## Objective
 
 **1v1:** finish the frame with more points than the opponent. A seat can win

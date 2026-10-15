@@ -36,6 +36,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 
 **Tactics** is the common UK/European cricket-style game: close **20–15** and **bull**, plus separate **Doubles** and **Triples** objectives, while scoring points on numbers you own that opponents have not closed. Standard dartboard scoring is assumed. (Empty source file — rules filled from standard Tactics/Cricket practice.)
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | SCORING (primary), DOUBLES, BULL |
+| Session role | CORE |
+| Format | SOLO, ONE_V_ONE, MULTIPLAYER |
+| Difficulty | ADVANCED |
+| Mechanic | TERRITORIAL |
+| Pressure | NONE |
+| Family | STANDARD |
+
 ## Objective
 
 - **Close** all nine objectives: **20, 19, 18, 17, 16, 15, Bull, Doubles, Triples**.

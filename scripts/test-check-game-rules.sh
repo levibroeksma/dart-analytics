@@ -147,5 +147,9 @@ expect fail "unlabelled Difficulty in Routine step" "$(fixture $GAME_RS rulesets
 expect fail "Tags on a routine" "$(fixture $ROUTINE training/routines rt-tags <<< "$FLAT_EX")" \
   'section not allowed for a routine: ## Tags'
 
+# --- required ------------------------------------------------------------------
+expect fail "exercise without Tags" "$(fixture $EX training/exercises no-tags <<< "")" 'missing section: ## Tags'
+expect fail "game without Tags" "$(fixture $GAME rulesets no-tags <<< "")" 'missing section: ## Tags'
+
 echo "test-check-game-rules: $PASSED passed, $FAILED failed"
 [ "$FAILED" -eq 0 ]

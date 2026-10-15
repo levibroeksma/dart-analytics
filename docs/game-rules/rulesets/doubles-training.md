@@ -29,6 +29,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 
 Doubles practice: work through each double (and bull) with three darts per target. Modes range from “keep moving” easy practice to stay-until-hit and step-back challenge. Standard dartboard is assumed; only the **double** (or bull as double-bull / bull target) counts as a hit.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | DOUBLES (primary) |
+| Session role | CORE, BENCHMARK |
+| Format | SOLO, ONE_V_ONE |
+| Difficulty | ADVANCED |
+| Mechanic | SEQUENTIAL, FIXED_COUNT |
+| Pressure | NONE |
+| Family | STANDARD |
+
 ## Objective
 
 - **Target:** hit the current double within the visit rules for the active mode.

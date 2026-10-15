@@ -33,8 +33,8 @@ note() {
 # entry:     whether an 'Entry points:' header field is required
 shape_headings() {
   case "$1" in
-    game)     echo "Features,Identity,Objective,Config & presets,How to play,Later versions,Capture,Glossary,Open questions" ;;
-    exercise) echo "Features,Identity,Exercise type,Objective,Config & presets,How to practise,Later versions,Capture,Glossary,Open questions" ;;
+    game)     echo "Features,Identity,Tags,Objective,Config & presets,How to play,Later versions,Capture,Glossary,Open questions" ;;
+    exercise) echo "Features,Identity,Tags,Exercise type,Objective,Config & presets,How to practise,Later versions,Capture,Glossary,Open questions" ;;
     routine)  echo "Features,Identity,Objective,Steps,Total duration,Config & presets,Ends when,Result,Later versions,Glossary,Open questions" ;;
     trivia)   echo "Features,Identity,Objective,Question model,Answer & feedback,Set structure,Config & presets,Ends when,Result,Persistence,Later versions,Glossary,Open questions" ;;
   esac

@@ -40,6 +40,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
   bull 25; inner bull 50.
 - Multiplayer only: the best result wins, so a round needs a rival.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | CONTROL (primary) |
+| Session role | RECREATIONAL |
+| Format | ONE_V_ONE, MULTIPLAYER |
+| Difficulty | INTERMEDIATE |
+| Mechanic | SIMULATION, ACCUMULATION |
+| Pressure | NONE |
+| Family | NOVELTY |
+
 ## Objective
 
 **2+:** finish the round with the best-ranked result. In V1 the game is one

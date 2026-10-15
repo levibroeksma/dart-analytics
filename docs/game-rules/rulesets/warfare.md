@@ -33,6 +33,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
   2026-10-12).
 - Board scores play no part: one hit is one soldier, whatever the ring.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | ACCURACY (primary) |
+| Session role | RECREATIONAL |
+| Format | ONE_V_ONE, MULTIPLAYER, TEAMS |
+| Difficulty | INTERMEDIATE |
+| Mechanic | TERRITORIAL |
+| Pressure | PENALTY |
+| Family | NOVELTY |
+
 ## Objective
 
 **1v1:** eliminate all ten of the opponent's soldiers; the last army standing

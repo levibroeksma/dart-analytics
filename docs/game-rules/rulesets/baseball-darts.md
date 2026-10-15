@@ -34,6 +34,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
   the board score, and there is no instant win (`shanghai.md` §Capture).
 - No bases or outs; runs only.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | ACCURACY (primary) |
+| Session role | WARM_UP, RECREATIONAL |
+| Format | SOLO, ONE_V_ONE, MULTIPLAYER, TEAMS |
+| Difficulty | BEGINNER |
+| Mechanic | SIMULATION, SEQUENTIAL, ACCUMULATION, FIXED_COUNT |
+| Pressure | NONE |
+| Family | NOVELTY |
+
 ## Objective
 
 **Single:** score as many runs as possible over nine innings. The maximum is

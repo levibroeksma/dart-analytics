@@ -42,6 +42,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 - It needs at least two seats: capture and last-seat-standing have no
   meaning alone.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | ACCURACY (primary) |
+| Session role | RECREATIONAL |
+| Format | ONE_V_ONE, MULTIPLAYER, TEAMS |
+| Difficulty | INTERMEDIATE |
+| Mechanic | SEQUENTIAL, ELIMINATION |
+| Pressure | PENALTY |
+| Family | PUB |
+
 ## Objective
 
 **2+:** be the first seat to hit a valid segment on every number from 1

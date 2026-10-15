@@ -39,6 +39,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
   treble is a mark and the targets must be closed in a fixed order.
 - Standard dartboard scoring is assumed. The game has no points; only marks.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | SCORING (primary), BULL |
+| Session role | RECREATIONAL |
+| Format | ONE_V_ONE, MULTIPLAYER, TEAMS |
+| Difficulty | ADVANCED |
+| Mechanic | TERRITORIAL, LADDER |
+| Pressure | NONE |
+| Family | PUB |
+
 ## Objective
 
 **2+:** be the first seat to close all six numbers in order and then hit the

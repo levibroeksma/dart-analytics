@@ -40,6 +40,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
   machine"; V1's round range and its draw rule are recorded decisions of
   2026-10-12 and are marked as such where they appear.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | CONTROL (primary), SCORING |
+| Session role | RECREATIONAL |
+| Format | ONE_V_ONE, MULTIPLAYER, TEAMS |
+| Difficulty | INTERMEDIATE |
+| Mechanic | ACCUMULATION |
+| Pressure | NONE |
+| Family | PUB |
+
 ## Objective
 
 **2+:** hold the most gold when the last round ends.

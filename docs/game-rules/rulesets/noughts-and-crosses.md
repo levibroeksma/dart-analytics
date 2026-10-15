@@ -34,6 +34,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
   read 2026-10-07).
 - Board scores play no part; only the bed a dart lands in matters.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | ACCURACY (primary) |
+| Session role | RECREATIONAL |
+| Format | ONE_V_ONE, TEAMS |
+| Difficulty | ADVANCED |
+| Mechanic | SIMULATION, TERRITORIAL |
+| Pressure | NONE |
+| Family | NOVELTY |
+
 ## Objective
 
 **1v1:** claim three squares in a line before the other side does. All nine

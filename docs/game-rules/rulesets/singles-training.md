@@ -33,6 +33,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 
 Section training: one target at a time, three darts each, scoring by ring quality (single / double / treble) rather than face value. Builds consistency around the board. Standard board layout is assumed; point values here are **training points**, not X01 points.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | ACCURACY (primary) |
+| Session role | WARM_UP, CORE |
+| Format | SOLO, ONE_V_ONE |
+| Difficulty | BEGINNER |
+| Mechanic | SEQUENTIAL, FIXED_COUNT, ACCUMULATION |
+| Pressure | NONE |
+| Family | STANDARD |
+
 ## Objective
 
 - **Target:** throw three darts at the current section; earn training points for hits on that section.

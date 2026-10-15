@@ -35,6 +35,31 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 
 Simple scoring practice: throw for **N** visits and pile up as many points as you can. No checkout, no bust — pure scoring volume. Standard dartboard scoring is assumed. (Source note: “n turns, score as high as you can.”)
 
+## Tags
+
+### Standalone
+
+| Axis | Tags |
+| --- | --- |
+| Skill | SCORING (primary) |
+| Session role | CORE, BENCHMARK |
+| Format | SOLO, ONE_V_ONE |
+| Difficulty | BEGINNER |
+| Mechanic | ACCUMULATION |
+| Pressure | NONE |
+| Family | STANDARD |
+
+### Routine step
+
+| Axis | Tags |
+| --- | --- |
+| Skill | SCORING (primary) |
+| Session role | CORE |
+| Format | SOLO |
+| Difficulty | BEGINNER |
+| Mechanic | ACCUMULATION |
+| Pressure | NONE |
+
 ## Objective
 
 - **Visit:** score the sum of three darts (face values, including doubles/trebles/bulls).

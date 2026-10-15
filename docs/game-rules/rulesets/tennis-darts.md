@@ -38,6 +38,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 - Where the source is silent, the rule below says "user decision 2026-10-12".
   Those rules are the user's, not the source's.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | SCORING (primary), DOUBLES |
+| Session role | RECREATIONAL |
+| Format | ONE_V_ONE, TEAMS |
+| Difficulty | INTERMEDIATE |
+| Mechanic | SIMULATION |
+| Pressure | NONE |
+| Family | NOVELTY |
+
 ## Objective
 
 **1v1:** win the set by taking four games (a tiebreak decides it at 3–3 in

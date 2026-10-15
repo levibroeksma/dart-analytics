@@ -45,6 +45,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 - Close kin of Cricket in spirit (numbers close, closed numbers stop scoring),
   but the roles are separate and sequential, not shared.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | SCORING (primary), ACCURACY |
+| Session role | RECREATIONAL |
+| Format | ONE_V_ONE, MULTIPLAYER, TEAMS |
+| Difficulty | INTERMEDIATE |
+| Mechanic | TERRITORIAL |
+| Pressure | NONE |
+| Family | PUB |
+
 ## Objective
 
 **1v1:** post the higher total in your own Scorer phase. Each seat is Scorer
