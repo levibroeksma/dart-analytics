@@ -163,6 +163,16 @@ later ruleset version and never ride a refactor PR.
    (Hard Invariants: a removed test subject's tests point at the same
    guarantee).
 
+**Shell first, kernels per family.** The umbrella plan builds L2 over the
+engines' *existing* folds — a shell spec takes `fold`, `refusal`, `intent`,
+`isVisitOpen` and `wouldComplete` — plus the oracle harness, and proves both
+on Doubles Training, Bob's 27 (games) and Target Scoring (exercise). The
+shell's first version covers single-`EXERCISE_BLOCK`, dart-only engines;
+multi-stage engines (121, TUOD, 501) and visit-input (`QUICK_SCORE`) engines
+extend it in the Checkout and Visit-points plans. Each family plan then
+introduces its `RuleKernel` and a `kernel → shell spec` adapter, so kernels
+plug into a shell that is already proven.
+
 **Order — one engine per PR, simplest first.** Each kernel lands with its
 first migrated engine, so it never exists without a caller (fallow dead-code
 gate).
@@ -214,7 +224,9 @@ PR.
    (shipped and new); each new game's Capture answers (capture/input mode,
    stage type, `turns`/`darts` mapping — Hard Invariants); the rules-file
    gaps found; and the wave split.
-3. An implementation plan per spec via `superpowers:writing-plans`.
+3. An implementation plan per spec via `superpowers:writing-plans`. This
+   spec's plan: `docs/superpowers/plans/2026-10-15-engine-shell.md` (shell +
+   oracle + three pilot migrations, §6).
 4. Canonical docs (Pattern 18, `09-Adding-A-Game.md`, `app/src/modules/game/CLAUDE.md`)
    change only with phase 1 code — specs are non-canonical input.
 
