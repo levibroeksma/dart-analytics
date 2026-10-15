@@ -54,6 +54,17 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 - Standard dartboard layout. One point per hit is a **hit count**, not a
   board score.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | SCORING (primary), ACCURACY |
+| Session role | CORE, BENCHMARK |
+| Format | SOLO, ONE_V_ONE |
+| Difficulty | ADVANCED |
+| Mechanic | FIXED_COUNT, SEQUENTIAL |
+| Pressure | NONE |
+
 ## Exercise type
 
 - Type constant: `HIT_COUNT` (proposed; not among the seeded types —

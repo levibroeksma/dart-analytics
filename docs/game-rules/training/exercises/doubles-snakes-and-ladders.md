@@ -32,6 +32,17 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 - Standard dartboard layout. Only the double counts; on the last level only
   the bullseye (the outer bull does not count). No points.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | DOUBLES (primary), BULL |
+| Session role | CORE |
+| Format | SOLO, ONE_V_ONE |
+| Difficulty | EXPERT |
+| Mechanic | LADDER |
+| Pressure | RESET |
+
 ## Exercise type
 
 - Type constant: `HIT_COUNT_LADDER` (proposed; not among the seeded types —

@@ -31,6 +31,17 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
   2026-10-06).
 - Standard dartboard scoring and X01 double-out.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | CHECKOUT (primary), DOUBLES |
+| Session role | CORE, FINISHER |
+| Format | SOLO |
+| Difficulty | ADVANCED |
+| Mechanic | COUNTDOWN, LADDER |
+| Pressure | NONE |
+
 ## Exercise type
 
 - Type constant: `CHECKOUT_PYRAMID` (proposed; not among the seeded types

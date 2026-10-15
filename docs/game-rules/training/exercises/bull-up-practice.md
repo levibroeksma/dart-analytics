@@ -26,6 +26,17 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 - Standard dartboard scoring: outer bull 25, bullseye 50. No exercise-specific
   points.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | BULL (primary) |
+| Session role | WARM_UP, CORE |
+| Format | SOLO |
+| Difficulty | BEGINNER |
+| Mechanic | ACCUMULATION |
+| Pressure | NONE |
+
 ## Exercise type
 
 - Type constant: `BULL_UP` (new; not among the seeded types in

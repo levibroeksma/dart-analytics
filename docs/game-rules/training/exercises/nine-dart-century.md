@@ -29,6 +29,17 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
   Century" (https://dolfdarts.com/games/nine-dart-century, read 2026-10-06).
 - Standard dartboard scoring. No double-out.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | CONTROL (primary) |
+| Session role | CORE |
+| Format | SOLO, ONE_V_ONE |
+| Difficulty | INTERMEDIATE |
+| Mechanic | ACCUMULATION |
+| Pressure | RESET |
+
 ## Exercise type
 
 - Type constant: `EXACT_TOTAL` (proposed; not among the seeded types —

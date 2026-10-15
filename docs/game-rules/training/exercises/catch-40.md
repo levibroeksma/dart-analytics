@@ -35,6 +35,17 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 - Standard dartboard scoring and X01 double-out. Attempt points are
   **exercise points**, not board scores.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | CHECKOUT (primary), DOUBLES |
+| Session role | CORE, FINISHER, BENCHMARK |
+| Format | SOLO, ONE_V_ONE |
+| Difficulty | ADVANCED |
+| Mechanic | COUNTDOWN, SEQUENTIAL, ACCUMULATION |
+| Pressure | NONE |
+
 ## Exercise type
 
 - Type constant: `CHECKOUT_SEQUENCE` (proposed; not among the seeded types —

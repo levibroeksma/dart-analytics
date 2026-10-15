@@ -31,6 +31,17 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
   to Mikko Laiho, DartsGym.
 - Standard dartboard layout. No points: the result is darts used.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | SCORING (primary), DOUBLES, SWITCHING |
+| Session role | CORE |
+| Format | SOLO, ONE_V_ONE |
+| Difficulty | ADVANCED |
+| Mechanic | LADDER |
+| Pressure | NONE |
+
 ## Exercise type
 
 - Type constant: `CLOSE_SEQUENCE` (proposed; not among the seeded types —

@@ -33,6 +33,17 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 - Standard dartboard scoring in the Shanghai parts; the doubles part uses
   **exercise points** (50 / 100).
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | ACCURACY (primary), DOUBLES |
+| Session role | CORE, BENCHMARK |
+| Format | SOLO |
+| Difficulty | INTERMEDIATE |
+| Mechanic | SEQUENTIAL, ACCUMULATION |
+| Pressure | NONE |
+
 ## Exercise type
 
 - Type constant: `JDC_CHALLENGE` (proposed; not among the seeded types —

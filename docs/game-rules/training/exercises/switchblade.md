@@ -30,6 +30,17 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 - Standard dartboard scoring: a dart on its own number scores its board
   value; a dart on any other number scores 0.
 
+## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | SWITCHING (primary), SCORING |
+| Session role | CORE, BENCHMARK |
+| Format | SOLO, ONE_V_ONE |
+| Difficulty | INTERMEDIATE |
+| Mechanic | SEQUENTIAL, ACCUMULATION |
+| Pressure | NONE |
+
 ## Exercise type
 
 - Type constant: `PATH_SCORING` (proposed; not among the seeded types —
