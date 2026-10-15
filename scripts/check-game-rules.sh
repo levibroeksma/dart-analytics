@@ -8,12 +8,17 @@
 # print findings without failing, which is useful mid-edit but is not what CI
 # runs. The default was warn until the #464/#465 backfill landed all 12 files
 # on the contract (D323).
+#
+# Tags sections are checked against docs/game-rules/TAGS.md (override with
+# GAME_RULES_TAGS). Path arguments check only those files, which is how
+# scripts/test-check-game-rules.sh aims it at fixtures.
 set -uo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
 MODE="${GAME_RULES_GATE:-block}"
+TAGS_FILE="${GAME_RULES_TAGS:-docs/game-rules/TAGS.md}"
 FINDINGS=0
 
 note() {
@@ -37,7 +42,7 @@ shape_headings() {
 
 shape_forbidden() {
   case "$1" in
-    routine|trivia) echo "Capture" ;;
+    routine|trivia) echo "Capture,Tags" ;;
     *) echo "" ;;
   esac
 }
@@ -60,11 +65,12 @@ check_file() {
   done
 
   # 1b. forbidden headings
-  local forbidden
-  forbidden="$(shape_forbidden "$shape")"
-  if [ -n "$forbidden" ] && grep -qE "^## $forbidden( |$)" "$file"; then
-    note "section not allowed for a $shape: ## $forbidden"
-  fi
+  local IFS=','
+  read -ra forbidden <<< "$(shape_forbidden "$shape")"
+  unset IFS
+  for h in "${forbidden[@]}"; do
+    grep -qE "^## $h( |$)" "$file" && note "section not allowed for a $shape: ## $h"
+  done
 
   # 1c. version-numbered headings
   if grep -qE '^#{2,3} .*\(V[0-9]' "$file"; then
@@ -118,6 +124,11 @@ check_file() {
     local cfg
     cfg="$(awk '/^## Config & presets/{f=1;next} /^## /{f=0} f' "$file" | grep -c '^|' || true)"
     [ "${cfg:-0}" -ge 2 ] || note "standalone: 'Config & presets' has no settings table"
+  fi
+
+  # 7b. Tags section against the TAGS.md vocabulary
+  if shape_has_entry "$shape" && grep -qE '^## Tags( |$)' "$file"; then
+    check_tags "$file" "$shape"
   fi
 
   # 8. applicability tokens
@@ -198,6 +209,114 @@ check_applicability() {
   fi
 }
 
+# Tags tables: axes, values and counts come from TAGS.md, never from here.
+# A game whose Entry points include routine step splits into ### Standalone
+# and ### Routine step; everything else has one flat table.
+check_tags() {
+  local file="$1" shape="$2" routine=0 line
+  if [ ! -f "$TAGS_FILE" ]; then
+    note "Tags: vocabulary file not found: $TAGS_FILE"
+    return
+  fi
+  grep -q '^Entry points:.*routine step' "$file" && routine=1
+  while IFS= read -r line; do
+    [ -n "$line" ] && note "$line"
+  done < <(awk -v shape="$shape" -v routine="$routine" '
+function trim(s) { gsub(/^[ \t]+|[ \t]+$/, "", s); return s }
+function cell(line, i,   c) { split(line, c, "|"); return trim(c[i]) }
+function is_table_body(line) {
+  return line ~ /^\|/ && line !~ /^\|[ :-]*-+/
+}
+# ---- pass 1: TAGS.md ------------------------------------------------------
+FNR == NR {
+  if ($0 ~ /^## /) { sect = trim(substr($0, 4)); hdr = 0; next }
+  if (!is_table_body($0)) next
+  if (!hdr) { hdr = 1; next }
+  if (sect == "Axes") {
+    a = cell($0, 2)
+    naxes++; order[naxes] = a; known[a] = 1
+    rule[a] = cell($0, 3); excl[a] = cell($0, 4); scope[a] = cell($0, 5)
+  } else if (sect in known) {
+    value[sect, cell($0, 2)] = 1
+  }
+  next
+}
+# ---- pass 2: rules file ---------------------------------------------------
+/^## Tags[ \t]*$/ { intags = 1; next }
+/^## /            { intags = 0 }
+!intags           { next }
+/^### / {
+  b = trim(substr($0, 5))
+  if (b != "Standalone" && b != "Routine step") { print "Tags: unknown subsection \"### " b "\""; next }
+  if (b in seenblock) { print "Tags: duplicate subsection \"### " b "\""; next }
+  seenblock[b] = 1; nblocks++; blk = b; bhdr = 0
+  next
+}
+is_table_body($0) {
+  if (blk == "") blk = "flat"
+  if (!bhdr) { bhdr = 1; next }
+  nrows[blk]++
+  rowaxis[blk, nrows[blk]] = cell($0, 2)
+  rowvals[blk, nrows[blk]] = cell($0, 3)
+  if (!(blk in tables)) { tables[blk] = 1; tableorder[++ntables] = blk }
+}
+END {
+  if (naxes == 0) { print "Tags: no axes parsed from TAGS.md"; exit }
+  if (ntables == 0) { print "Tags: no tag table"; exit }
+  if (shape == "exercise" && nblocks > 0)
+    print "Tags: an exercise has one flat table, no subsections"
+  if (shape == "game" && routine && !(("Standalone" in tables) && ("Routine step" in tables)))
+    print "Tags: Entry points include routine step, so Tags needs ### Standalone and ### Routine step"
+  if (shape == "game" && !routine && nblocks > 0)
+    print "Tags: subsections are only for a game whose Entry points include routine step"
+  if (("flat" in tables) && nblocks > 0)
+    print "Tags: a table sits outside the ### Standalone / ### Routine step subsections"
+  for (t = 1; t <= ntables; t++) check_block(tableorder[t])
+}
+function wants(a, blk) {
+  if (scope[a] == "all") return 1
+  if (scope[a] == "game-standalone") return shape == "game" && blk != "Routine step"
+  return 0
+}
+function check_block(blk,   where, i, k, a, pos, n, vals, j, v, lab, nv, nprim, seen, got, expect) {
+  where = (blk == "flat") ? "Tags" : "Tags (" blk ")"
+  # expected axis sequence for this block
+  n = 0
+  for (k = 1; k <= naxes; k++) if (wants(order[k], blk)) expect[++n] = order[k]
+  pos = 1
+  for (i = 1; i <= nrows[blk]; i++) {
+    a = rowaxis[blk, i]
+    if (!(a in known))    { print where ": unknown axis \"" a "\""; continue }
+    if (!wants(a, blk))   { print where ": axis \"" a "\" is not allowed here"; continue }
+    if (a in got)         { print where ": axis \"" a "\" appears twice"; continue }
+    got[a] = 1
+    if (expect[pos] != a) print where ": axis \"" a "\" is out of order (TAGS.md order)"
+    pos++
+    nv = split(rowvals[blk, i], vals, ",")
+    nprim = 0; delete seen
+    for (j = 1; j <= nv; j++) {
+      v = trim(vals[j]); lab = ""
+      if (match(v, /\([^)]*\)$/)) { lab = trim(substr(v, RSTART + 1, RLENGTH - 2)); v = trim(substr(v, 1, RSTART - 1)) }
+      if (v == "") { print where ": empty value in \"" a "\""; continue }
+      if (!((a, v) in value)) print where ": \"" v "\" is not a " a " value in TAGS.md"
+      if (v in seen) print where ": \"" v "\" listed twice in \"" a "\""
+      seen[v] = 1
+      if (rule[a] == "primary") {
+        if (lab == "primary") { nprim++; if (j != 1) print where ": the primary " a " must come first" }
+        else if (lab != "") print where ": unexpected label \"(" lab ")\" on \"" v "\""
+      } else if (rule[a] == "one" && blk == "Routine step" && nv > 1) {
+        if (lab == "") print where ": \"" v "\" needs a preset label, e.g. \"" v " (3 darts)\""
+      } else if (lab != "") print where ": unexpected label \"(" lab ")\" on \"" v "\""
+    }
+    if (rule[a] == "primary" && nprim != 1) print where ": " a " needs exactly one (primary) value, found " nprim
+    if (rule[a] == "one" && nv > 1 && blk != "Routine step") print where ": " a " takes exactly one value"
+    if (excl[a] != "" && excl[a] != "—" && (excl[a] in seen) && nv > 1) print where ": " excl[a] " cannot be combined with another " a " value"
+  }
+  for (k = 1; k <= n; k++) if (!(expect[k] in got)) print where ": missing axis \"" expect[k] "\""
+}
+  ' "$TAGS_FILE" "$file")
+}
+
 # Every bold Glossary term must appear verbatim inside a Features row name.
 check_glossary() {
   local file="$1"
@@ -218,10 +337,10 @@ check_glossary() {
 declare -a FAILED=()
 shapes_for() {
   case "$1" in
-    docs/game-rules/rulesets/*)          echo game ;;
-    docs/game-rules/training/exercises/*) echo exercise ;;
-    docs/game-rules/training/routines/*)  echo routine ;;
-    docs/game-rules/training/trivia/*)    echo trivia ;;
+    *docs/game-rules/rulesets/*)          echo game ;;
+    *docs/game-rules/training/exercises/*) echo exercise ;;
+    *docs/game-rules/training/routines/*)  echo routine ;;
+    *docs/game-rules/training/trivia/*)    echo trivia ;;
   esac
 }
 
@@ -235,7 +354,7 @@ while IFS= read -r f; do
   echo "$f ($shape)"
   check_file "$f" "$shape" || true
   [ "$FINDINGS" -gt "$before" ] && FAILED+=("$f")
-done < <(git ls-files 'docs/game-rules/**/*.md' | sort)
+done < <(if [ "$#" -gt 0 ]; then printf '%s\n' "$@"; else git ls-files 'docs/game-rules/**/*.md' | sort; fi)
 
 echo
 echo "check-game-rules: $CHECKED file(s) checked, ${#FAILED[@]} with findings, $FINDINGS finding(s) total"
