@@ -1,7 +1,7 @@
 # Score Training
 
 Current version: V1 (shipped 2026-07-16)
-Entry points: standalone
+Entry points: standalone, routine step
 
 ## Features
 
@@ -15,6 +15,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Fixed number of visits (N turns, default 10) | V1 | All | |
 | N editable (1–100) | V1 | All | |
 | Timed session (minutes, default 5) | V1 | All | |
+| Runs as a routine step (timed) | V1 | All | |
 | Minutes editable (3–30) | V1 | All | |
 | Score as high as possible (face value) | V1 | All | |
 | All board segments count | V1 | All | |
@@ -52,6 +53,8 @@ Before play, a **config screen** shows the session config. Setup radios select t
 | Visits (N) | Default **10** (min **1**, max **100**)   | Editable when Rounds   |
 | Minutes    | Default **5** (min **3**, max **30**)     | Editable when Timed    |
 | Scoring    | Full board, standard values               | Shown, locked          |
+
+As a routine step the duration is the step's allocation and replaces this setting.
 
 ## How to play
 
