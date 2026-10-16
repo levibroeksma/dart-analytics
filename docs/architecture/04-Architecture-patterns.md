@@ -2,12 +2,12 @@
 status: canonical
 scope: architecture/patterns
 read-when: solving recurring design problems
-updated: 2026-09-19
+updated: 2026-10-16
 -->
 
 # Architecture Patterns
 
-> **Version:** 1.9.3 (Pattern 20: 501/TUOD/121 route their checkout rate
+> **Version:** 1.10.0 (Pattern 18: single-stage dart engines and clockless timed dart exercises are specs bound to a shared shell, `dart-engine-shell.module.ts` / `dart-exercise-shell.module.ts` 2026-10-16, D462; prior 1.9.3: Pattern 20: 501/TUOD/121 route their checkout rate
 > through a second helper, `checkoutPercentageDisplay()`, that dashes a
 > zero-attempt denominator instead of reporting `"0.00%"`; the result
 > field these three rulesets expose is renamed `checkoutPercentage`
@@ -815,6 +815,8 @@ A score-compare engine calls `scoreCompareOutcome(seats, direction, soloStatus)`
 
 The mechanical half of an engine — everything with no ruleset content in it — is composed from two shared pure modules rather than copied per engine (D232). `modules/game/turn-log.module.ts` owns the `TurnFact`/`DartFact` log: `cloneTurns`, `sumDartScores`, `dartsThrownBy`, `openOrCreateTurn` (the caller supplies the reuse rule), `appendCompletedTurn`, `openVisit`, `resolveObservation`/`appendResolvedDart`, `appendObservedDart`/`doubleTargetIntent`, and the three undo shapes `undoLastDart` / `undoLastUnit` / `undoStagedTurn`. `modules/game/seat-state.module.ts` owns per-seat derivation: `foldSeatStates`, `activeSeatState`, `otherSeatsComplete` (a completion predicate `(seat: TSeat) => boolean` as its 3rd argument — a `status` check for the dart-fed engines, `durationSeatComplete` for TUOD and Score Training), `durationSeatComplete`, `completedByIndex`. A new engine composes these; what stays in the engine is what its ruleset actually decides.
 
+A single-stage, dart-input engine goes further: it is a `DartGameSpec` — `fold`, `refusal`, `intent`, `isVisitOpen`, `wouldComplete` — bound to the shell in `modules/game/dart-engine-shell.module.ts`, which owns the log, keys, `completedAt`, undo and rehydration. Clockless timed exercises do the same with `DartExerciseSpec` and `modules/training/exercises/dart-exercise-shell.module.ts`. A hand-written class is the opt-out for an engine the shell cannot express (multi-stage, visit input). (2026-10-16, D462)
+
 `modules/game/checkout-bust.module.ts` owns the double-out bust/checkout rule shared by every X01-style ladder game: `resolveCheckoutAttempt(remainingBefore, scored, endedOnDouble)` returns `{ remainingAfter, checkedOut, busted }` for an overshoot, leaving exactly 1, or reaching exactly 0 without a double. 501, 121, and TUOD each call it and OR their own ruleset-specific escalation (121's final-visit unreachable-remainder rule, TUOD's odd-remainder-with-one-dart-left rule) onto its result rather than folding that escalation into the shared function (D240). `checkout-bust.module.ts` also exports `checkoutAttemptCount(turns)` (D242), counting failed checkout attempts from a completed VISUAL_BOARD turn log.
 
 `modules/game/double-attempt.module.ts` (D256) classifies whether each dart in a double-out session (501, TUOD, 121) was an eligible checkout-attempt dart and whether it hit or missed, from board hits alone -- no stored intent. A bounce-out or off-board dart is a miss, not an excluded dart, and so is any dart that busts the visit -- the bust test is evaluated before the reroute-exclusion rules, so no busting dart can read as a deliberate lay-up. At 50 remaining the inner single band is a missed bull, while the outer single band and the trebles there stay excluded as ordinary setup shots, and the unbanded `SINGLE` key keypad capture writes stays excluded because its band is unknowable. See `docs/superpowers/specs/2026-09-19-x01-checkout-percentage-design.md` for the full rule. <!-- 2026-09-19 --> `modules/game/checkout-visits.module.ts` is the single shared builder `five-oh-one-play.data.ts`, `tuod-play.data.ts`, and `one-twenty-one-play.data.ts` now call for this input (`CheckoutVisitDarts[]`, one entry per visit carrying the remaining score it opened against): 501 with a plain running-sum reduce over `totalScore` within a leg, TUOD/121 by refolding `turnsBeforeVisit` through their own already-exported `foldTuodState`/`foldOneTwentyOneState` -- the same "refold vs. plain reduce" choice documented two paragraphs down for `turnsBeforeVisit` itself. Replaced 501's leg-level `checkoutPercentage` and TUOD's round-level `attempts`/`successes`/`failures`, both of which measured legs/rounds, not darts; net-new for 121. The per-visit remaining for every X01 ladder is therefore built exactly once, in `checkout-visits.module.ts`, and consumed by both the live result modals (via the three `*-play.data.ts` files above) and the career statistics read (`statistics.service.ts`, via `modules/stats/x01-checkout-sessions.module.ts`'s `checkoutVisitsFromRows`), so the two can never disagree. <!-- 2026-09-19 -->
@@ -851,6 +853,8 @@ the same match.
 A new game adds a configuration schema, a validator, an engine and seeds.
 
 It never adds a new engine API, a new fact model, or a per-game payload module.
+
+Where the shell fits, a new engine is a spec bound to it, not a hand-written class.
 
 ---
 
