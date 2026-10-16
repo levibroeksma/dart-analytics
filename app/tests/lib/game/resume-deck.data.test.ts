@@ -423,6 +423,21 @@ describe("resumeDeck", () => {
       expect(view(deck)).toEqual(["s-1@0:rest", "s-0@1:entering"]);
     });
 
+    it("deckView keeps rendered cards in list order through a step, so none is moved mid-transition", () => {
+      const order = (deck: ResumeDeckContext) =>
+        deck.deckView().map((slot) => slot.card.sessionId);
+      const deck = createDeck({ cards: cardsOf(3) });
+      expect(order(deck)).toEqual(["s-0", "s-1", "s-2"]);
+      deck.next();
+      expect(order(deck)).toEqual(["s-0", "s-1", "s-2"]);
+      vi.advanceTimersByTime(480);
+      expect(order(deck)).toEqual(["s-0", "s-1", "s-2"]);
+      vi.advanceTimersByTime(560);
+      expect(order(deck)).toEqual(["s-0", "s-1", "s-2"]);
+      deck.prev();
+      expect(order(deck)).toEqual(["s-0", "s-1", "s-2"]);
+    });
+
     it("wraps from the last card to the first", () => {
       const deck = createDeck({ cards: cardsOf(3), index: 2 });
       deck.next();

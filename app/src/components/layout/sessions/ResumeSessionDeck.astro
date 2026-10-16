@@ -6,9 +6,10 @@
  * to resume, or when the load failed. Only the session this device holds can be
  * resumed: its button reads "Resume game", any other reads "Start over"
  * beside a note that its progress is elsewhere (setup asks before abandoning it, D460).
- * Up to three real cards stack, the front one interactive; `deckSlots()`
- * gives each its depth and motion state, keyed by session so a card keeps
- * its element (and its transition) as it moves between slots.
+ * Up to three real cards stack, the front one interactive; `deckView()`
+ * gives each its depth and motion state in list order, keyed by session, so
+ * a card keeps its element and is never moved in the DOM mid-transition
+ * (z-index does the stacking).
  * @param {string} [class] Extra classes for the section
  */
 interface Props {
@@ -46,7 +47,7 @@ const slotClassExpr =
   <template x-if="visible()">
     <div class="grid pb-4">
       <template
-        x-for="slot in deckSlots()"
+        x-for="slot in deckView()"
         :key="slot.card.sessionId"
       >
         <div
