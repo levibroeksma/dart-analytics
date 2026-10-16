@@ -671,6 +671,9 @@ export type MatchFold = {
   suddenDeath: boolean;
 };
 
+/** The two fields the dart engine shell reads from any folded state. */
+export type ShellState = { activeParticipantRef: string; status: string };
+
 /** A point on the board in millimetres from the bull centre, y downward. */
 export type BoardPointMm = { x: number; y: number };
 

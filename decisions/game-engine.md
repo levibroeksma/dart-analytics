@@ -403,6 +403,12 @@ Reason: the only set is the one that can end the match, so the margin applying i
 Consequences: `fiveOhOneSubtitle` carries the single-set check; `match-format.module.ts` is unchanged. Rules: `docs/game-rules/rulesets/501.md`. Issue #906.
 Supersedes: none.
 
+### D462 — Dart engines are specs bound to a shared shell
+Status: Accepted · Date: 2026-10-16
+Decision: single-stage, dart-input game engines are a `DartGameSpec` bound to `dart-engine-shell.module.ts`; clockless timed dart exercises a `DartExerciseSpec` bound to `dart-exercise-shell.module.ts`. Shipped engines migrate one per PR, proven by a differential oracle against a frozen legacy copy, then locked by golden snapshots. Doubles Training, Bob's 27 and Target Scoring migrated first. Each engine stays a named class (`class X extends dartGameEngineClass(spec) {}`) so it is both value and type and `instanceof` narrows; the spec contracts live in the `interfaces.ts` barrels.
+Reason: every dart engine repeated ~100–150 lines of identical class shell around its pure fold; the shell is L2 of the rule-kernels design (`docs/superpowers/specs/2026-10-15-rule-kernels-design.md`), which family kernels plug into.
+Consequences: Pattern 18, `09-Adding-A-Game.md` and both engine scope guides name the shell. Multi-stage (121, TUOD, 501) and visit-input engines stay hand-written until the Checkout and Visit-points plans extend the shell. `GameEngine` and `DartExerciseEngine` stay separate contracts (D264).
+
 ### D464 — Who throws first is decided before the session and stored only as seat order
 Status: Accepted · Date: 2026-10-16
 Decision: every session with an opponent (guest or Dartbot) opens a who-throws-first step before `createSession` — and again before every rematch: bull-off (default, last choice remembered per device) or coin toss. The winner is seated first via `starterFirst()`, which also re-letters `sideKey` by position (starter `A`). Bull-off distances, Dartbot's bull throw and the coin are never persisted. A QUICK_SCORE bot fold now also returns its thrown darts (`BotQuickScoreFold.darts`) so the board can replay the visit before the total is recorded; they never reach the fact log.

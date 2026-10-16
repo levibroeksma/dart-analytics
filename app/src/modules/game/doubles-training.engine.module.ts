@@ -7,16 +7,13 @@ import {
   foldSeatStates,
   otherSeatsComplete,
 } from "./seat-state.module";
-import {
-  appendObservedDart,
-  cloneTurns,
-  doubleTargetIntent,
-  exerciseBlockStage,
-  openOrCreateTurn,
-  undoLastDart,
-} from "./turn-log.module";
+import { doubleTargetIntent } from "./turn-log.module";
 import { scoreCompareOutcome } from "./match-outcome.module";
-import type { GameEngine, GameEngineFactory } from "./interfaces";
+import {
+  dartGameEngineClass,
+  dartGameEngineFactory,
+} from "./dart-engine-shell.module";
+import type { DartGameSpec } from "./interfaces";
 import type {
   DartFact,
   DartObservation,
@@ -26,8 +23,6 @@ import type {
   EngineFacts,
   TurnFact,
 } from "./types";
-
-const STAGE = exerciseBlockStage();
 
 function initialSeatState(seat: SeatFact): DoublesTrainingSeatState {
   return {
@@ -166,116 +161,54 @@ export function foldDoublesTrainingState(
   };
 }
 
+const COMPLETE_REFUSAL =
+  "Cannot record a dart once the session is complete; undo first to correct it.";
+
 /**
- * Doubles Training: a 21-target path (the 20 doubles and BULL), each visit
- * ending the instant a dart hits its double or after 3 misses, per seat.
- * Score-compare, most doubles hit wins — every seat always takes exactly 21
- * visits, whatever each visit's own dart count.
+ * Doubles Training's rules for the dart engine shell: a 21-target path (the
+ * 20 doubles and BULL), each visit ending the instant a dart hits its double
+ * or after 3 misses, per seat. Score-compare, most doubles hit wins.
  */
-export class DoublesTrainingEngine implements GameEngine<
-  DartObservation,
-  DoublesTrainingState
-> {
-  readonly rulesetVersionKey = "DOUBLES_TRAINING_V1";
-  readonly stageOwnership = "PER_SEAT" as const;
-  private readonly turns: TurnFact[];
-
-  constructor(
-    private readonly config: Seated<DoublesTrainingSnapshot>,
-    prior?: EngineFacts,
-  ) {
-    this.turns = prior ? cloneTurns(prior.turns) : [];
-  }
-
-  private deriveState(): DoublesTrainingState {
-    return foldDoublesTrainingState(
-      { stages: [{ ...STAGE }], turns: this.turns },
-      this.config,
-    );
-  }
-
-  private openOrCreateTurn(activeParticipantRef: string): TurnFact {
-    return openOrCreateTurn(
-      this.turns,
-      STAGE.clientKey,
-      activeParticipantRef,
-      isVisitOpen,
-    );
-  }
-
-  record(observation: DartObservation): DoublesTrainingState {
-    const before = this.deriveState();
-    const seatBefore = activeSeatState(before);
-    if (seatBefore.status !== "IN_PROGRESS") {
-      throw new Error(
-        "Cannot record a dart once the session is complete; undo first to correct it.",
-      );
-    }
-
-    const target = targetAt(
-      doublesPath(this.config.targetOrder),
-      seatBefore.targetIndex,
-    );
-    const openTurn = this.openOrCreateTurn(before.activeParticipantRef);
-    appendObservedDart(openTurn, observation, doubleTargetIntent(target));
-    if (!isVisitOpen(openTurn)) {
-      openTurn.completedAt = new Date().toISOString();
-    }
-
-    return this.deriveState();
-  }
-
-  undo(): boolean {
-    return undoLastDart(this.turns);
-  }
-
-  /**
-   * Answers whether recording `observation` would end the WHOLE session —
-   * this dart completes the active seat's 21st visit, and every other seat
-   * has already reached COMPLETE.
-   */
-  wouldComplete(observation: DartObservation): boolean {
-    const before = this.deriveState();
-    const seatBefore = activeSeatState(before);
-    if (seatBefore.status !== "IN_PROGRESS") return false;
-
-    const after = applyDoublesTrainingDart(
-      this.config,
-      seatBefore,
-      observation,
-    );
-    if (after.status !== "COMPLETE") return false;
-
-    return otherSeatsComplete(
-      before.seats,
-      seatBefore.participantRef,
-      (seat) => seat.status === "COMPLETE",
-    );
-  }
-
-  isComplete(): boolean {
-    return this.deriveState().status !== "IN_PROGRESS";
-  }
-
-  state(): DoublesTrainingState {
-    return this.deriveState();
-  }
-
-  facts(): EngineFacts {
-    return { stages: [{ ...STAGE }], turns: cloneTurns(this.turns) };
-  }
-}
-
-export const doublesTrainingEngineFactory: GameEngineFactory<
+const doublesTrainingSpec: DartGameSpec<
   Seated<DoublesTrainingSnapshot>,
-  DartObservation,
   DoublesTrainingState
 > = {
   rulesetVersionKey: "DOUBLES_TRAINING_V1",
   stageOwnership: "PER_SEAT",
-  create(config: Seated<DoublesTrainingSnapshot>, prior?: EngineFacts) {
-    return new DoublesTrainingEngine(config, prior);
+  fold: foldDoublesTrainingState,
+  refusal: (state) =>
+    activeSeatState(state).status === "IN_PROGRESS" ? null : COMPLETE_REFUSAL,
+  intent: (state, config) =>
+    doubleTargetIntent(
+      targetAt(
+        doublesPath(config.targetOrder),
+        activeSeatState(state).targetIndex,
+      ),
+    ),
+  isVisitOpen,
+  wouldComplete: (state, observation, config) => {
+    const seat = activeSeatState(state);
+    if (seat.status !== "IN_PROGRESS") return false;
+    if (
+      applyDoublesTrainingDart(config, seat, observation).status !== "COMPLETE"
+    )
+      return false;
+    return otherSeatsComplete(
+      state.seats,
+      seat.participantRef,
+      (other) => other.status === "COMPLETE",
+    );
   },
 };
+
+/** Doubles Training engine (Pattern 18), built by the dart engine shell. */
+export class DoublesTrainingEngine extends dartGameEngineClass(
+  doublesTrainingSpec,
+) {}
+
+export const doublesTrainingEngineFactory = dartGameEngineFactory(
+  doublesTrainingSpec,
+  DoublesTrainingEngine,
+);
 
 registerEngineFactory(doublesTrainingEngineFactory);

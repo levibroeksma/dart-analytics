@@ -1,5 +1,12 @@
 import type { RulesetVersionKey } from "@lib/types";
-import type { EngineFacts, StageOwnership } from "./types";
+import type {
+  DartIntent,
+  DartObservation,
+  EngineFacts,
+  ShellState,
+  StageOwnership,
+  TurnFact,
+} from "./types";
 
 /**
  * Contract every game engine implements, regardless of ruleset. `TInput` is
@@ -44,4 +51,36 @@ export interface GameEngineFactory<TConfig, TInput, TState> {
    */
   readonly stageOwnership: StageOwnership;
   create(config: TConfig, prior?: EngineFacts): GameEngine<TInput, TState>;
+}
+
+/**
+ * What a single-stage, dart-input engine decides; everything else — the log,
+ * keys, `completedAt`, undo, rehydration — is the shell's (Pattern 18).
+ * `refusal` returns the error `record()` throws, or null to accept.
+ */
+export interface DartGameSpec<TConfig, TState extends ShellState> {
+  readonly rulesetVersionKey: RulesetVersionKey;
+  readonly stageOwnership: StageOwnership;
+  fold(facts: EngineFacts, config: TConfig): TState;
+  refusal(state: TState): string | null;
+  intent(state: TState, config: TConfig): DartIntent;
+  isVisitOpen(turn: TurnFact): boolean;
+  wouldComplete(
+    state: TState,
+    observation: DartObservation,
+    config: TConfig,
+  ): boolean;
+}
+
+/** A shell-built engine; `spec` brands it so `instanceof` narrows to it. */
+export interface ShellGameEngine<
+  TConfig,
+  TState extends ShellState,
+> extends GameEngine<DartObservation, TState> {
+  readonly spec: DartGameSpec<TConfig, TState>;
+}
+
+/** Constructor of a shell-built engine class. */
+export interface DartGameEngineClass<TConfig, TState extends ShellState> {
+  new (config: TConfig, prior?: EngineFacts): ShellGameEngine<TConfig, TState>;
 }
