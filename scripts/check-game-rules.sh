@@ -60,7 +60,7 @@ check_file() {
   read -ra required <<< "$(shape_headings "$shape")"
   unset IFS
   local h
-  for h in "${required[@]}"; do
+  for h in ${required[@]+"${required[@]}"}; do
     grep -qE "^## ${h//&/\\&}( |$)" "$file" || note "missing section: ## $h"
   done
 
@@ -68,7 +68,7 @@ check_file() {
   local IFS=','
   read -ra forbidden <<< "$(shape_forbidden "$shape")"
   unset IFS
-  for h in "${forbidden[@]}"; do
+  for h in ${forbidden[@]+"${forbidden[@]}"}; do
     grep -qE "^## $h( |$)" "$file" && note "section not allowed for a $shape: ## $h"
   done
 
