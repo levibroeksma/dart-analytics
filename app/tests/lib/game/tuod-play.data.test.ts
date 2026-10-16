@@ -1990,10 +1990,14 @@ describe("tuodPlay — DartBot opponent", () => {
   });
 
   it("under QUICK_SCORE, the bot's attempt uploads as one turn with darts: []", async () => {
+    vi.useFakeTimers();
     const play = makePlay();
     await play.init.call(play);
 
-    await play.recordAttempt.call(play, { checkedOut: false });
+    const recorded = play.recordAttempt.call(play, { checkedOut: false });
+    await vi.runAllTimersAsync();
+    await recorded;
+    vi.useRealTimers();
 
     const botTurn = play.$store.game.turns.find(
       (turn) => turn.participantRef === BOT_REF,

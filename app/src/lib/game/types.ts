@@ -239,12 +239,14 @@ export type BotQuickScoreThrower<TState> = (state: TState) => DartObservation;
 
 /**
  * The result of folding a QUICK_SCORE bot visit through a scratch engine
- * (`playFoldBotQuickScoreVisit`) — just enough for the real caller's own
- * `record()` input, never the scratch engine's per-dart facts.
+ * (`playFoldBotQuickScoreVisit`) — the real caller's own `record()` input,
+ * plus the thrown darts for the board to replay; never the scratch engine's
+ * per-dart facts.
  */
 export type BotQuickScoreFold = {
   totalScore: number;
   dartsThrown: number;
+  darts: DartObservation[];
 };
 
 /** The DARTBOT variant of `SeatFact`, narrowed once so every bot-visit path

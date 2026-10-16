@@ -14,6 +14,7 @@ import {
   clearHiddenTimer,
   playAbandonAndExit,
   playBack,
+  playAnimateBotDarts,
   playFoldBotQuickScoreVisit,
   playRunBotVisualBoardVisit,
   playToggleTimerPause,
@@ -567,6 +568,10 @@ export function tuodPlay() {
             throwBotQuickScoreDart(scratchState, botSeat, dartIndex++),
           DARTS_PER_VISIT,
         );
+        if (
+          !(await playAnimateBotDarts(this, botSeat.participantRef, fold.darts))
+        )
+          return;
         await this.recordAttempt({
           checkedOut: fold.totalScore === target,
           finishedOnDouble: fold.totalScore === target,

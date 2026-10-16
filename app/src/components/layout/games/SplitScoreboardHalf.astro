@@ -6,7 +6,8 @@
  * shows the panel (name, `LegBars`, the score at `seatValueSize`, the route
  * chips, compact stat rows right of a hairline); otherwise it is a 64px
  * `glass` bar (name over `LegBars`, the muted score, one stat tile). Name
- * and score are `data-seat-twin`s that `seatMorph()` glides between layers.
+ * and score are `data-seat-twin`s that `seatMorph()` glides between layers;
+ * a falling score counts down (`scoreTween`).
  * @param {string} nameExpr Alpine expr for the seat's display name
  * @param {string} activeExpr Alpine expr, true while this seat throws
  * @param {string} scoreExpr Alpine expr for the score
@@ -84,7 +85,8 @@ import RouteChips from "./RouteChips.astro";
         class="self-start whitespace-nowrap font-display leading-none tabular-nums text-foreground text-shadow-glow"
         :class={`$seatValueSize(${scoreExpr})`}
         data-seat-twin="score"
-        x-text={scoreExpr}
+        x-data={`scoreTween(() => ${scoreExpr})`}
+        x-text="display"
       >
       </p>
       {checkoutExpr && <RouteChips routeExpr={checkoutExpr} />}
@@ -121,7 +123,8 @@ import RouteChips from "./RouteChips.astro";
     <span
       class="ml-auto font-display text-2xl tabular-nums text-muted"
       data-seat-twin="score"
-      x-text={scoreExpr}
+      x-data={`scoreTween(() => ${scoreExpr})`}
+      x-text="display"
     ></span>
     <div
       class="inset-well flex h-11 w-20 shrink-0 flex-col items-center justify-center rounded-row"

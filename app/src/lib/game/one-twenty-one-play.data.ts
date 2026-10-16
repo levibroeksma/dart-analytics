@@ -16,6 +16,7 @@ import {
   playAbandonAndExit,
   playBack,
   playCommitDart,
+  playAnimateBotDarts,
   playFoldBotQuickScoreVisit,
   playRunBotVisualBoardVisit,
   playToggleTimerPause,
@@ -612,6 +613,10 @@ export function oneTwentyOnePlay() {
             throwBotQuickScoreDart(scratchState, botSeat, dartIndex++),
           DARTS_PER_VISIT,
         );
+        if (
+          !(await playAnimateBotDarts(this, botSeat.participantRef, fold.darts))
+        )
+          return;
         await this.recordVisit(
           fold.totalScore,
           fold.totalScore === remainingBefore,

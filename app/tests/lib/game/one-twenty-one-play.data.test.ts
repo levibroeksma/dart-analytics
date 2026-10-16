@@ -1268,10 +1268,14 @@ describe("oneTwentyOnePlay — DartBot opponent", () => {
   });
 
   it("under QUICK_SCORE, the bot's visit uploads as one turn with darts: []", async () => {
+    vi.useFakeTimers();
     const play = createPlay();
     await play.init();
 
-    await play.recordVisit(26, false);
+    const recorded = play.recordVisit(26, false);
+    await vi.runAllTimersAsync();
+    await recorded;
+    vi.useRealTimers();
 
     const botTurn = store.game.turns.find(
       (turn) => turn.participantRef === BOT_REF,

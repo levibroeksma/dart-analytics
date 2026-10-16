@@ -9,6 +9,7 @@ import {
   clearHiddenTimer,
   playAbandonAndExit,
   playBack,
+  playAnimateBotDarts,
   playFoldBotQuickScoreVisit,
   playRunBotVisualBoardVisit,
   playToggleTimerPause,
@@ -460,6 +461,10 @@ export function scoreTrainingPlay() {
           () => throwOneDart(botSeat, dartIndex++),
           DARTS_PER_VISIT,
         );
+        if (
+          !(await playAnimateBotDarts(this, botSeat.participantRef, fold.darts))
+        )
+          return;
         if (this.engine.wouldComplete(fold.totalScore)) {
           this.engine.record(fold.totalScore);
           this.$store.game.recordFacts(this.engine.facts());

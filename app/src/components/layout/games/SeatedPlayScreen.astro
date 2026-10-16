@@ -4,7 +4,8 @@
  * Each value is an `Expr` written once; the shell expands it for the solo
  * `SinglePlayerDisplay` and both `SplitScoreboard` seats. It owns the
  * wrapper, both `x-if` layouts, `ErrorAlert`, `BoardInputPanel` and the
- * optional `CountdownResumePrompt`.
+ * optional `CountdownResumePrompt`, plus `BotBoardPanel`, which stands in
+ * for the input stack while Dartbot throws off the visual board.
  * @param {object} big `{ isTarget, value }` — the big value (solo
  *   `target`/`score`, seat `scoreExpr`)
  * @param {Tile[]} tiles Stat tiles, solo and compact per seat (non-empty)
@@ -45,6 +46,7 @@ import SplitScoreboard from "@components/layout/games/SplitScoreboard.astro";
 import PlayStatTileList from "@components/layout/games/PlayStatTileList.astro";
 import RouteChips from "@components/layout/games/RouteChips.astro";
 import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
+import BotBoardPanel from "@components/layout/games/BotBoardPanel.astro";
 import CountdownResumePrompt from "@components/layout/games/CountdownResumePrompt.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
 
@@ -117,7 +119,14 @@ const seatDisplay = (index: 0 | 1, c: Call) => ({
 
   <ErrorAlert class="mx-3 mt-2 text-xs" />
 
-  <slot />
+  <div
+    class="contents"
+    x-show="!($data.botFlight && $store.game.inputModeKey !== 'VISUAL_BOARD')"
+    x-cloak
+  >
+    <slot />
+  </div>
+  <BotBoardPanel />
   {
     /* Visual board — shown instead of the input above for an
     ANALYTICS + VISUAL_BOARD session, which enters every dart by pointer. */

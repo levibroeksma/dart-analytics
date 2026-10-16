@@ -11,6 +11,7 @@ import { stepperData } from "@lib/ui/stepper.data";
 import { rangeSliderData } from "@lib/ui/range-slider.data";
 import { slideToStartData } from "@lib/ui/slide-to-start.data";
 import { seatMorph } from "@lib/ui/seat-morph.data";
+import { scoreTween } from "@lib/ui/score-tween.data";
 import { initialsOf, playerCountLabel } from "@lib/ui/initials";
 import {
   bigValueSize,
@@ -79,6 +80,12 @@ describe("registerUiData", () => {
     const data = vi.fn();
     registerUiData({ data, magic: vi.fn() } as unknown as Alpine);
     expect(data).toHaveBeenCalledWith("seatMorph", seatMorph);
+  });
+
+  it("registers scoreTween as an Alpine data factory", () => {
+    const data = vi.fn();
+    registerUiData({ data, magic: vi.fn() } as unknown as Alpine);
+    expect(data).toHaveBeenCalledWith("scoreTween", scoreTween);
   });
 
   it("registers $initials and $playerCount as Alpine magics", () => {
