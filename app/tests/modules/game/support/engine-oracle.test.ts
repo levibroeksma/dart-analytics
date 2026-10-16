@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  goldenTrace,
   normalise,
   randomObservation,
   runOracle,
@@ -112,5 +113,47 @@ describe("runOracle", () => {
         steps: 40,
       }),
     ).toThrow(/seed 1 step \d+: (record|state) diverged/);
+  });
+});
+
+describe("goldenTrace", () => {
+  it("lists every step's outcome and rehydrates from facts", () => {
+    const builds: (EngineFacts | undefined)[] = [];
+    const build = counter();
+    const trace = goldenTrace({
+      build: (prior) => {
+        builds.push(prior);
+        return build(prior);
+      },
+      seed: 3,
+      steps: 10,
+      undoRate: 0.3,
+      rehydrateEvery: 4,
+    }) as { steps: string[] };
+    expect(trace.steps).toHaveLength(10);
+    expect(
+      trace.steps.every((s) => /^(undo (true|false)|record )/.test(s)),
+    ).toBe(true);
+    expect(builds).toHaveLength(3);
+    expect(builds[1]).toBeDefined();
+  });
+
+  it("records a thrown message instead of failing", () => {
+    const trace = goldenTrace({
+      build: () => ({
+        record: () => {
+          throw new Error("refused");
+        },
+        undo: () => false,
+        state: () => null,
+        facts: () => ({ stages: [], turns: [] }),
+        isComplete: () => true,
+      }),
+      seed: 1,
+      steps: 5,
+      undoRate: 0,
+      rehydrateEvery: 100,
+    }) as { steps: string[] };
+    expect(trace.steps[0]).toMatch(/-> throws refused$/);
   });
 });

@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { DoublesTrainingEngine } from "@modules/game/doubles-training.engine.module";
-import { normalise, randomObservation } from "./support/engine-oracle";
+import {
+  goldenTrace,
+  normalise,
+  randomObservation,
+} from "./support/engine-oracle";
 import { seededUniform } from "@modules/game/seeded-rng.module";
 import type { DoublesTrainingSnapshot, Seated } from "@lib/types";
 
@@ -45,6 +49,22 @@ describe("Doubles Training — golden", () => {
       }
       expect(
         normalise({ facts: engine.facts(), state: engine.state() }),
+      ).toMatchSnapshot();
+    });
+  }
+});
+
+describe("Doubles Training — golden trace", () => {
+  for (const [name, config] of Object.entries(CONFIGS)) {
+    it(`${name}: seed 7 step trace with rehydration is unchanged`, () => {
+      expect(
+        goldenTrace({
+          build: (prior) => new DoublesTrainingEngine(config, prior),
+          seed: 7,
+          steps: 260,
+          undoRate: 0.1,
+          rehydrateEvery: 17,
+        }),
       ).toMatchSnapshot();
     });
   }

@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { TargetScoringEngine } from "@modules/training/exercises/target-scoring.engine.module";
-import { normalise, randomObservation } from "../../game/support/engine-oracle";
+import {
+  goldenTrace,
+  normalise,
+  randomObservation,
+} from "../../game/support/engine-oracle";
 import { seededUniform } from "@modules/game/seeded-rng.module";
 
 const CONFIGS = {
@@ -26,6 +30,23 @@ describe("Target Scoring — golden", () => {
       engine.expireTimer();
       expect(
         normalise({ facts: engine.facts(), state: engine.state() }),
+      ).toMatchSnapshot();
+    });
+  }
+});
+
+describe("Target Scoring — golden trace", () => {
+  for (const [name, config] of Object.entries(CONFIGS)) {
+    it(`${name}: seed 7 step trace with rehydration is unchanged`, () => {
+      expect(
+        goldenTrace({
+          build: (prior) => new TargetScoringEngine(config, prior),
+          seed: 7,
+          steps: 260,
+          undoRate: 0.1,
+          rehydrateEvery: 17,
+          expireAt: 200,
+        }),
       ).toMatchSnapshot();
     });
   }

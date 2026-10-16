@@ -167,3 +167,62 @@ export function runOracle(opts: OracleOptions): void {
     }
   }
 }
+
+type TraceOptions = {
+  build: (prior?: EngineFacts) => OracleEngine;
+  seed: number;
+  steps: number;
+  undoRate: number;
+  rehydrateEvery: number;
+  expireAt?: number;
+};
+
+function outcomeLabel(result: ReturnType<typeof attempt>): string {
+  return result.ok ? String(result.value) : `throws ${result.message}`;
+}
+
+function traceStep(
+  engine: OracleEngine,
+  rand: () => number,
+  step: number,
+  opts: TraceOptions,
+): string {
+  if (opts.expireAt === step) {
+    engine.expireTimer?.();
+    return "expire";
+  }
+  if (rand() < opts.undoRate) return `undo ${engine.undo()}`;
+  const o = randomObservation(rand);
+  const would = outcomeLabel(attempt(() => engine.wouldComplete?.(o)));
+  const recorded = outcomeLabel(
+    attempt(() => {
+      engine.record(o);
+      return "ok";
+    }),
+  );
+  return `record ${o.hitZoneKey}/${o.hitTargetNumber} would=${would} -> ${recorded}`;
+}
+
+/**
+ * One seeded run through one engine as a line per step — every
+ * `wouldComplete` answer, every `record` outcome or thrown message, every
+ * undo result — with periodic rehydration from its own facts, then the
+ * final facts and state. Snapshotted, it pins what the oracle pinned once
+ * the legacy copy is gone.
+ */
+export function goldenTrace(opts: TraceOptions): unknown {
+  const rand = seededUniform(opts.seed, 0);
+  let engine = opts.build();
+  const steps: string[] = [];
+  for (let step = 0; step < opts.steps; step += 1) {
+    steps.push(traceStep(engine, rand, step, opts));
+    if (step % opts.rehydrateEvery === opts.rehydrateEvery - 1)
+      engine = opts.build(engine.facts());
+  }
+  return normalise({
+    steps,
+    isComplete: engine.isComplete(),
+    facts: engine.facts(),
+    state: engine.state(),
+  });
+}
