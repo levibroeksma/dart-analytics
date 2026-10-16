@@ -402,3 +402,10 @@ Decision: with `sets` first to 1, `decidingSet` from the match fold stays true f
 Reason: the only set is the one that can end the match, so the margin applying is correct; the flag is noise because it says nothing a one-set match does not already imply. Changing the fold would alter rules behaviour for a display problem.
 Consequences: `fiveOhOneSubtitle` carries the single-set check; `match-format.module.ts` is unchanged. Rules: `docs/game-rules/rulesets/501.md`. Issue #906.
 Supersedes: none.
+
+### D464 — Who throws first is decided before the session and stored only as seat order
+Status: Accepted · Date: 2026-10-16
+Decision: every session with an opponent (guest or Dartbot) opens a who-throws-first step before `createSession` — and again before every rematch: bull-off (default, last choice remembered per device) or coin toss. The winner is seated first via `starterFirst()`, which also re-letters `sideKey` by position (starter `A`). Bull-off distances, Dartbot's bull throw and the coin are never persisted. A QUICK_SCORE bot fold now also returns its thrown darts (`BotQuickScoreFold.darts`) so the board can replay the visit before the total is recorded; they never reach the fact log.
+Reason: array order is already seat order end to end (server keeps request order into `configuration.seats`, reload reads the persisted snapshot, owner views filter `player_id`, bot/undo lookups go by participant type), so seat order expresses the starter with no migration. The darts thrown to decide it belong to no leg (501.md).
+Consequences: the owner can be seat 1 / side `B`; nothing positional depends on the owner being first (121's ROUNDS/MINUTES `seats[0]` reads are solo-only). `08-DartBot.md` §The Play Loop allows the fold's darts to be read for presentation. Leg 1's starter comment in `seat-rota.module.ts` and `501.md` updated.
+Supersedes: none.
