@@ -504,3 +504,48 @@ describe("dart motion", () => {
     );
   });
 });
+
+describe("starter motion", () => {
+  it("flips the coin over 1500ms on the flip curve, faces back to back", () => {
+    const body = block("@utility coin-body");
+    expect(body).toMatch(/transform-style: preserve-3d/);
+    expect(body).toMatch(
+      /transition: transform 1500ms cubic-bezier\(0\.2, 0\.55, 0\.35, 1\)/,
+    );
+    expect(block("@utility coin-face")).toMatch(/backface-visibility: hidden/);
+    expect(block("@utility coin-back")).toMatch(/transform: rotateX\(180deg\)/);
+  });
+
+  it("rises 6rem at 1.18x and falls back over 750ms each", () => {
+    const up = block("@utility coin-up");
+    expect(up).toMatch(/transform: translateY\(-6rem\) scale\(1\.18\)/);
+    expect(up).toMatch(/750ms cubic-bezier\(0\.2, 0\.7, 0\.4, 1\)/);
+    const down = block("@utility coin-down");
+    expect(down).toMatch(/transform: translateY\(0\) scale\(1\)/);
+    expect(down).toMatch(/750ms cubic-bezier\(0\.6, 0, 0\.85, 0\.45\)/);
+  });
+
+  it("shrinks the shadow to 0.45 at 0.35 opacity at the peak", () => {
+    expect(block("@utility coin-shadow-up")).toMatch(
+      /opacity: 0\.35;\s*transform: scale\(0\.45\)/,
+    );
+  });
+
+  it("opens bull rings over 700ms, the second 250ms later", () => {
+    expect(block("@utility bull-ring")).toMatch(
+      /width 700ms cubic-bezier\(0\.2, 0\.8, 0\.2, 1\)/,
+    );
+    expect(block("@utility bull-ring-late")).toMatch(/transition-delay: 250ms/);
+  });
+
+  it("lights the starter's card over 400ms", () => {
+    expect(block("@utility starter-win")).toMatch(
+      /transition:\s*background 400ms ease,\s*box-shadow 400ms ease,\s*color 400ms ease/,
+    );
+  });
+
+  it("crops the board to the trebles: 191.3% centred", () => {
+    const crop = block("@utility bull-crop-board");
+    expect(crop).toMatch(/inset: -45\.65%/);
+  });
+});

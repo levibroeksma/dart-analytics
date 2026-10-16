@@ -176,3 +176,47 @@ describe("starterStep", () => {
     expect(step.phase).toBe("enter");
   });
 });
+
+describe("starterStep text", () => {
+  it("prompts each guest bull-off thrower in turn", async () => {
+    const { step } = makeStep();
+    expect(step.prompt()).toBe("Levi, tap the board where your dart landed.");
+    step.tap(tapAt(30, 0));
+    expect(step.prompt()).toBe("Tap again to adjust, then confirm.");
+    await step.confirm();
+    expect(step.prompt()).toBe("Rosa, tap the board where your dart landed.");
+  });
+
+  it("names the closer dart and the margin", async () => {
+    const { step } = makeStep();
+    step.tap(tapAt(30, 0));
+    await step.confirm();
+    step.tap(tapAt(0, 5));
+    await step.confirm();
+    expect(step.prompt()).toBe("Rosa is closest by 25 mm.");
+    expect(step.status()).toBe("RESULT");
+    expect(step.sideTag(1)).toBe("CLOSEST · 5 MM");
+    expect(step.sideTag(0)).toBe("30 MM");
+  });
+
+  it("calls a tie too close", async () => {
+    const { step } = makeStep();
+    step.tap(tapAt(10, 0));
+    await step.confirm();
+    step.tap(tapAt(0, 10.5));
+    await step.confirm();
+    expect(step.status()).toBe("TOO CLOSE");
+    expect(step.prompt()).toBe("Both darts within a millimetre. Throw again.");
+  });
+
+  it("walks the coin toss through call, toss and result", async () => {
+    const { step } = makeStep({ random: () => 0.9 });
+    step.setMethod("coin");
+    expect(step.status()).toBe("HEADS OR TAILS?");
+    expect(step.prompt()).toBe("Levi, call it");
+    expect(step.sideTag(0)).toBe("CALLS");
+    await step.call("heads");
+    expect(step.status()).toBe("TAILS · WRONG CALL");
+    expect(step.sideTag(1)).toBe("THROWS FIRST");
+  });
+});

@@ -70,6 +70,10 @@ describe("cn", () => {
     );
   });
 
+  it("lets the coin's lift state replace the other", () => {
+    expect(cn("coin-up", "coin-down")).toBe("coin-down");
+  });
+
   it("no longer registers the retired card-stack slabs", () => {
     expect(UTILITY_GROUPS).not.toHaveProperty("stack-slab-1");
     expect(UTILITY_GROUPS).not.toHaveProperty("stack-slab-2");

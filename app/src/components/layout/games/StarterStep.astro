@@ -1,0 +1,297 @@
+---
+/**
+ * The who-throws-first step before a 1v1 match: a full-screen sheet with a
+ * Bull-off | Coin toss toggle (bull-off by default, last choice
+ * remembered), the two sides with `VS`, and the chosen contest. Bull-off is
+ * a crop of the board out to the trebles: each side taps where their dart
+ * landed and confirms, or Dartbot throws (`BotDartFlight`), then dashed
+ * rings open from the bull to each dart and the closer side lights up.
+ * Coin toss: side A calls, the coin rises, flips and falls onto the result.
+ * The winner's button starts the match through `onResolve`; Back cancels.
+ * Rendered through `Modal` (Escape/backdrop cancel); runs in its own
+ * `starterStep(...)` scope inside the host page's.
+ * @param {string} showExpr Host expression: when the step is open
+ * @param {string} optionsExpr Host expression for `starterStep`'s options
+ */
+interface Props {
+  showExpr: string;
+  optionsExpr: string;
+}
+
+// Props
+const { showExpr, optionsExpr }: Props = Astro.props;
+
+// Components
+import Button from "@components/forms/Button.astro";
+import Modal from "@components/ui/Modal.astro";
+import DartBoard from "@components/ui/DartBoard.astro";
+import BotDartFlight from "@components/layout/games/BotDartFlight.astro";
+
+// Icons
+import PlayIcon from "@icons/play-rounded.svg";
+import DartIcon from "@icons/dart.svg";
+import DartboardIcon from "@icons/dartboard.svg";
+import ChevronDownIcon from "@icons/chevron-down.svg";
+
+// Styles
+const eyebrowClass =
+  "font-mono text-eyebrow-lg font-semibold text-accent-bright";
+const optionClass =
+  "flex h-10 items-center justify-center rounded-full text-body-sm font-semibold transition-colors duration-150";
+const sideClass =
+  "starter-win flex h-16 min-w-0 flex-col items-center justify-center gap-1 rounded-row px-3";
+const dotClass =
+  "absolute size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-surface";
+const ringClass =
+  "bull-ring absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-dashed";
+---
+
+<template x-if={showExpr}>
+  <div x-data={`starterStep(${optionsExpr})`}>
+    <Modal
+      titleId="starter-step-title"
+      onDismiss="cancel()"
+      class="max-w-sm"
+    >
+      <header class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            icon
+            ariaLabel="Back"
+            class="size-9 rounded-full"
+            @click="cancel()"
+          >
+            <ChevronDownIcon class="size-5 rotate-90 text-muted-foreground" />
+          </Button>
+          <h2
+            id="starter-step-title"
+            class={eyebrowClass}
+            x-text="method === 'bull' ? 'BULL-OFF' : 'WHO THROWS FIRST'"
+          >
+          </h2>
+        </div>
+        <span
+          class="font-mono text-eyebrow font-semibold transition-colors duration-300"
+          :class="winner() !== null ? 'text-accent-bright' : 'text-muted'"
+          x-text="status()"
+        ></span>
+      </header>
+
+      <div
+        class="field-inset grid grid-cols-2 gap-1 rounded-full p-1"
+        role="radiogroup"
+        aria-label="How to decide who throws first"
+      >
+        <button
+          type="button"
+          role="radio"
+          class={optionClass}
+          :class="method === 'bull' ? 'accent-orb text-foreground' : 'text-muted-foreground'"
+          :aria-checked="method === 'bull'"
+          :tabindex="method === 'bull' ? 0 : -1"
+          @click="setMethod('bull')"
+          @keydown.right.prevent="setMethod('coin')"
+        >
+          Bull-off
+        </button>
+        <button
+          type="button"
+          role="radio"
+          class={optionClass}
+          :class="method === 'coin' ? 'accent-orb text-foreground' : 'text-muted-foreground'"
+          :aria-checked="method === 'coin'"
+          :tabindex="method === 'coin' ? 0 : -1"
+          @click="setMethod('coin')"
+          @keydown.left.prevent="setMethod('bull')"
+        >
+          Coin toss
+        </button>
+      </div>
+
+      <div class="grid grid-cols-mirror items-center gap-2">
+        <template
+          x-for="side in [0, 1]"
+          :key="side"
+        >
+          <div
+            class={sideClass}
+            :class="[winner() === side ? 'starter-winner text-foreground' : winner() !== null ? 'inset-well text-muted' : 'inset-well text-foreground', side === 1 ? 'order-last' : '']"
+          >
+            <span
+              class="max-w-full truncate text-sm font-semibold"
+              x-text="sides()[side]"
+            ></span>
+            <span
+              class="font-mono text-eyebrow-sm font-semibold"
+              :class="winner() === side ? 'text-accent-bright' : 'text-muted'"
+              x-text="sideTag(side)"
+            ></span>
+          </div>
+        </template>
+        <span class="order-1 font-display text-xs text-muted">VS</span>
+      </div>
+
+      <template x-if="method === 'bull'">
+        <div class="flex flex-col gap-3">
+          <div
+            class="relative aspect-square w-full overflow-hidden rounded-full ring-6 ring-black/35"
+            :class="phase === 'enter' ? 'cursor-crosshair' : ''"
+            @click="tap($event)"
+          >
+            <DartBoard class="bull-crop-board pointer-events-none" />
+            <div
+              class="pointer-events-none absolute inset-0"
+              aria-hidden="true"
+            >
+              <span
+                class={ringClass}
+                :class="phase === 'measure' || phase === 'result' ? 'border-foreground/85 opacity-100' : 'opacity-0'"
+                :style="`width: ${phase === 'measure' || phase === 'result' ? ringPercent(0) * 2 : 0}%; height: ${phase === 'measure' || phase === 'result' ? ringPercent(0) * 2 : 0}%`"
+              ></span>
+              <span
+                class={`${ringClass} bull-ring-late`}
+                :class="phase === 'measure' || phase === 'result' ? 'border-accent opacity-100' : 'opacity-0'"
+                :style="`width: ${phase === 'measure' || phase === 'result' ? ringPercent(1) * 2 : 0}%; height: ${phase === 'measure' || phase === 'result' ? ringPercent(1) * 2 : 0}%`"
+              ></span>
+              <span
+                class={`${dotClass} bg-foreground`}
+                x-show="pending && enterSide === 0 || points[0]"
+                x-cloak
+                :style="pointStyle(enterSide === 0 && pending ? pending : points[0])"
+              ></span>
+              <span
+                class={`${dotClass} bg-accent`}
+                x-show="(pending && enterSide === 1) || (points[1] && (!opponentIsBot() || phase === 'measure' || phase === 'result'))"
+                x-cloak
+                :style="pointStyle(enterSide === 1 && pending ? pending : points[1])"
+              ></span>
+            </div>
+            <BotDartFlight />
+          </div>
+          <p
+            class="text-center text-sm text-pretty text-muted-foreground"
+            x-text="prompt()"
+          >
+          </p>
+          <Button
+            variant="secondary"
+            class="glass-button h-13 w-full rounded-row text-control"
+            x-show="phase === 'enter'"
+            x-cloak
+            :disabled="!pending"
+            @click="confirm()"
+          >
+            Confirm dart
+          </Button>
+        </div>
+      </template>
+
+      <template x-if="method === 'coin'">
+        <div class="flex flex-col gap-3">
+          <div
+            class="relative h-55 overflow-hidden rounded-2xl inset-well"
+            aria-hidden="true"
+          >
+            <span
+              class="coin-shadow absolute top-44 left-1/2 h-4.5 w-30 -translate-x-1/2 rounded-full"
+              :class="coinUp ? 'coin-shadow-up' : ''"
+            ></span>
+            <div
+              class="coin-stage absolute top-11 left-1/2 size-31 -translate-x-1/2"
+            >
+              <div
+                class="size-full"
+                :class="coinUp ? 'coin-up' : 'coin-down'"
+              >
+                <div
+                  class="coin-body relative size-full"
+                  :style="`transform: rotateX(${rotation}deg)`"
+                >
+                  <div class="coin-face absolute inset-0 rounded-full">
+                    <div
+                      class="coin-inner-heads absolute inset-1.75 flex flex-col items-center justify-center gap-1 rounded-full"
+                    >
+                      <DartboardIcon class="size-12.5 opacity-60" />
+                      <span
+                        class="font-mono text-eyebrow-sm font-semibold tracking-widest"
+                        >HEADS</span
+                      >
+                    </div>
+                  </div>
+                  <div
+                    class="coin-face coin-back absolute inset-0 rounded-full"
+                  >
+                    <div
+                      class="coin-inner-tails absolute inset-1.75 flex flex-col items-center justify-center gap-1 rounded-full"
+                    >
+                      <DartIcon class="size-12.5 opacity-60" />
+                      <span
+                        class="font-mono text-eyebrow-sm font-semibold tracking-widest"
+                        >TAILS</span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p
+            class="text-center text-sm text-pretty text-muted-foreground"
+            x-text="prompt()"
+          >
+          </p>
+          <div
+            class="grid grid-cols-2 gap-2"
+            x-show="coinPhase !== 'result'"
+            x-cloak
+          >
+            <template
+              x-for="face in ['heads', 'tails']"
+              :key="face"
+            >
+              <Button
+                variant="secondary"
+                class="glass-button h-13 rounded-row text-control"
+                :class="coinPhase === 'pick' || called === face ? 'opacity-100' : 'opacity-35'"
+                :disabled="coinPhase !== 'pick'"
+                @click="call(face)"
+              >
+                <span x-text="face === 'heads' ? 'Heads' : 'Tails'"></span>
+              </Button>
+            </template>
+          </div>
+        </div>
+      </template>
+
+      <div
+        class="flex flex-col gap-2"
+        x-show="winner() !== null || tie()"
+        x-cloak
+      >
+        <Button
+          class="h-13 w-full rounded-row text-control"
+          x-show="winner() !== null"
+          x-cloak
+          @click="start()"
+        >
+          <PlayIcon
+            slot="iconBefore"
+            class="size-4.5"
+            aria-hidden="true"
+          />
+          <span x-text="cta()"></span>
+        </Button>
+        <Button
+          variant="ghost"
+          class="h-11 w-full text-sm"
+          @click="again()"
+        >
+          <span
+            x-text="method === 'coin' ? 'Toss again' : tie() ? 'Throw again' : 'Bull again'"
+          ></span>
+        </Button>
+      </div>
+    </Modal>
+  </div>
+</template>

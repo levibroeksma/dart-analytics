@@ -24,6 +24,7 @@ import { tuodSetup } from "@lib/game/tuod-setup.data";
 import { tuodPlay } from "@lib/game/tuod-play.data";
 import { gamesIndex } from "@lib/game/games-index.data";
 import { resumeDeck } from "@lib/game/resume-deck.data";
+import { starterStep } from "@lib/game/starter-step.data";
 import { quickSubtractPlay } from "@lib/training/trivia/quick-subtract-play.data";
 import { routinePlay } from "@lib/training/routines/routine-play.data";
 import { routineDetail } from "@lib/training/routines/routine-detail.data";
@@ -46,6 +47,7 @@ export function registerRouteData(Alpine: Alpine) {
   Alpine.data("loginForm", loginForm);
   Alpine.data("gamesIndex", gamesIndex);
   Alpine.data("resumeDeck", resumeDeck);
+  Alpine.data("starterStep", starterStep);
   Alpine.data("scoreTrainingSetup", scoreTrainingSetup);
   Alpine.data("scoreTrainingPlay", scoreTrainingPlay);
   Alpine.data("fiveOhOneSetup", fiveOhOneSetup);

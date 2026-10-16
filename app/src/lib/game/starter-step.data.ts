@@ -29,6 +29,14 @@ const BOT_SEQUENCE: [BullOffPhase, number][] = [
 const MEASURE_MS = 1000;
 const COIN_RISE_MS = 750;
 const COIN_SETTLE_MS = 830;
+const BULL_STATUS: Partial<Record<BullOffPhase, string>> = {
+  wait: "DARTBOT UP",
+  aim: "AIMING · BULL",
+  fly: "AIMING · BULL",
+  hit: "AIMING · BULL",
+  land: "DART LANDED",
+  measure: "MEASURING",
+};
 const FLIGHT_PHASES: readonly BullOffPhase[] = ["aim", "fly", "hit", "land"];
 
 function sleep(ms: number): Promise<void> {
@@ -175,6 +183,64 @@ export function starterStep(options: StarterStepOptions) {
     cta(): string {
       const winner = this.winner();
       return winner === null ? "" : `${this.sides()[winner]} throws first`;
+    },
+
+    status(): string {
+      if (this.method === "coin") {
+        if (this.coinPhase === "pick") return "HEADS OR TAILS?";
+        if (this.coinPhase === "flip") return "TOSSING…";
+        const verdict =
+          this.called === this.outcome ? "CALLED IT" : "WRONG CALL";
+        return `${this.outcome!.toUpperCase()} · ${verdict}`;
+      }
+      if (this.phase === "result") return this.tie() ? "TOO CLOSE" : "RESULT";
+      return (
+        BULL_STATUS[this.phase] ??
+        (this.pending ? "DART ENTERED" : "YOUR THROW")
+      );
+    },
+
+    prompt(): string {
+      const sides = this.sides();
+      if (this.method === "coin") {
+        if (this.coinPhase === "pick") return `${sides[0]}, call it`;
+        const face = this.called!;
+        return `${sides[0]} called ${face[0]!.toUpperCase()}${face.slice(1)}`;
+      }
+      if (this.phase === "enter") {
+        return this.pending
+          ? "Tap again to adjust, then confirm."
+          : `${sides[this.enterSide]}, tap the board where your dart landed.`;
+      }
+      if (this.phase === "result") {
+        const winner = this.winner();
+        if (winner === null)
+          return "Both darts within a millimetre. Throw again.";
+        const margin = Math.abs(this.distanceMm(0)! - this.distanceMm(1)!);
+        return `${sides[winner]} is closest by ${Math.max(1, Math.round(margin))} mm.`;
+      }
+      return this.opponentIsBot()
+        ? "Dartbot throws for the bull…"
+        : "Measuring…";
+    },
+
+    sideTag(side: 0 | 1): string {
+      const won = this.winner() === side;
+      if (this.method === "coin") {
+        if (won) return "THROWS FIRST";
+        if (side === 1) return "WAITS";
+        return this.called ? `CALLED ${this.called.toUpperCase()}` : "CALLS";
+      }
+      const distance = Math.round(this.distanceMm(side) ?? 0);
+      if (won) return `CLOSEST · ${distance} MM`;
+      if (this.phase === "measure" || this.phase === "result")
+        return `${distance} MM`;
+      if (this.points[side])
+        return side === 1 && this.opponentIsBot() ? "LANDED" : "ENTERED";
+      if (side === 0) return "THROWS";
+      if (this.opponentIsBot())
+        return this.phase === "enter" ? "WAITS" : "THROWING";
+      return this.enterSide === 1 ? "THROWS" : "WAITS";
     },
 
     start() {
