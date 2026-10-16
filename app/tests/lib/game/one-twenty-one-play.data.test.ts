@@ -1267,6 +1267,22 @@ describe("oneTwentyOnePlay — DartBot opponent", () => {
     expect(play.state()!.activeParticipantRef).toBe(HUMAN_REF);
   });
 
+  it("clears the loading state before the bot opens the match", async () => {
+    const play = createPlay();
+    let release: (() => void) | undefined;
+    play.maybeRunBotVisit = () =>
+      new Promise<void>((resolve) => {
+        release = resolve;
+      });
+
+    const started = play.init();
+    await vi.waitFor(() => expect(release).toBeDefined());
+
+    expect(play.loadingReconciliation).toBe(false);
+    release!();
+    await started;
+  });
+
   it("under QUICK_SCORE, the bot's visit uploads as one turn with darts: []", async () => {
     vi.useFakeTimers();
     const play = createPlay();
