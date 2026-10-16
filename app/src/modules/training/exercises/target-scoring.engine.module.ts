@@ -1,30 +1,16 @@
 import type { TargetScoringConfigData } from "@lib/types";
 import { TargetScoringV1Config } from "@lib/training/exercises/rulesets/types";
-import type {
-  DartFact,
-  DartIntent,
-  DartObservation,
-  EngineFacts,
-  TurnFact,
-} from "@modules/types";
+import type { DartFact, DartIntent, EngineFacts } from "@modules/types";
 import { BULL_TARGET_NUMBER } from "@modules/game/board-progression.module";
-import {
-  appendObservedDart,
-  cloneTurns,
-  exerciseBlockStage,
-  openOrCreateTurn,
-  undoLastDart,
-} from "@modules/game/turn-log.module";
 import { registerDartExerciseEngineFactory } from "./dart-engine.registry";
-import type {
-  DartExerciseEngine,
-  DartExerciseEngineFactory,
-} from "./interfaces";
-import { SOLO_PARTICIPANT_REF } from "./solo-participant.module";
+import {
+  dartExerciseEngineClass,
+  dartExerciseEngineFactory,
+} from "./dart-exercise-shell.module";
+import type { DartExerciseSpec } from "./interfaces";
 import type { TargetScoringState } from "./types";
 
 const EXERCISE_RULESET_VERSION_KEY = "TARGET_SCORING_V1" as const;
-const STAGE = exerciseBlockStage();
 const DARTS_PER_VISIT = 3;
 
 const SINGLE_ZONE_KEYS = new Set(["SINGLE", "INNER_SINGLE", "OUTER_SINGLE"]);
@@ -168,86 +154,29 @@ export function foldTargetScoringState(
 }
 
 /**
- * Target Scoring: build the highest chain on the current target before a
- * miss resets it (`docs/game-rules/training/exercises/target-scoring.md`).
- * One `TurnFact` is one three-dart visit, whatever the target does inside
- * it — each dart carries its own intended target. Clockless like Switching:
- * completion arrives only through `expireTimer()` (D264).
+ * Target Scoring's rules for the exercise shell: build the highest chain on
+ * the current target before a miss resets it; one three-dart visit per
+ * `TurnFact`, each dart carrying its own intended target.
  */
-export class TargetScoringEngine implements DartExerciseEngine<TargetScoringState> {
-  readonly exerciseRulesetVersionKey = EXERCISE_RULESET_VERSION_KEY;
-
-  private readonly config: TargetScoringConfigData;
-  private readonly turns: TurnFact[];
-  private complete = false;
-
-  constructor(config: TargetScoringConfigData, prior?: EngineFacts) {
-    this.config = TargetScoringV1Config.parse(config);
-    this.turns = prior ? cloneTurns(prior.turns) : [];
-  }
-
-  private deriveState(): TargetScoringState {
-    return foldTargetScoringState(
-      { stages: [{ ...STAGE }], turns: this.turns },
-      this.config,
-      this.complete,
-    );
-  }
-
-  record(observation: DartObservation): TargetScoringState {
-    if (this.complete) {
-      throw new Error(
-        "Cannot record a dart once the exercise is complete; undo first to correct it.",
-      );
-    }
-    const target = this.deriveState().currentTargetNumber;
-    const turn = openOrCreateTurn(
-      this.turns,
-      STAGE.clientKey,
-      SOLO_PARTICIPANT_REF,
-      (last) => last.darts.length < DARTS_PER_VISIT,
-    );
-    appendObservedDart(turn, observation, intentFor(target));
-    if (turn.darts.length === DARTS_PER_VISIT) {
-      turn.completedAt = new Date().toISOString();
-    }
-    return this.deriveState();
-  }
-
-  undo(): boolean {
-    if (this.complete) {
-      this.complete = false;
-      return true;
-    }
-    return undoLastDart(this.turns);
-  }
-
-  /** The step's countdown elapsed — the clock lives in the controller (D264). */
-  expireTimer(): void {
-    this.complete = true;
-  }
-
-  isComplete(): boolean {
-    return this.complete;
-  }
-
-  state(): TargetScoringState {
-    return this.deriveState();
-  }
-
-  facts(): EngineFacts {
-    return { stages: [{ ...STAGE }], turns: cloneTurns(this.turns) };
-  }
-}
-
-export const targetScoringEngineFactory: DartExerciseEngineFactory<
+const targetScoringSpec: DartExerciseSpec<
   TargetScoringConfigData,
   TargetScoringState
 > = {
   exerciseRulesetVersionKey: EXERCISE_RULESET_VERSION_KEY,
-  create(config: TargetScoringConfigData, prior?: EngineFacts) {
-    return new TargetScoringEngine(config, prior);
-  },
+  parse: (config) => TargetScoringV1Config.parse(config),
+  fold: foldTargetScoringState,
+  intent: (state) => intentFor(state.currentTargetNumber),
+  isVisitOpen: (turn) => turn.darts.length < DARTS_PER_VISIT,
 };
+
+/** Target Scoring exercise engine (D264), built by the exercise shell. */
+export class TargetScoringEngine extends dartExerciseEngineClass(
+  targetScoringSpec,
+) {}
+
+export const targetScoringEngineFactory = dartExerciseEngineFactory(
+  targetScoringSpec,
+  TargetScoringEngine,
+);
 
 registerDartExerciseEngineFactory(targetScoringEngineFactory);

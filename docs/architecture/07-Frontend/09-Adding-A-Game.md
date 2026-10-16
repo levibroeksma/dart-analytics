@@ -2,7 +2,7 @@
 status: canonical
 scope: the file fan-out a new game requires, and the shapes it must reuse
 read-when: adding a game, or changing anything a game is wired into
-updated: 2026-10-13
+updated: 2026-10-16
 -->
 
 # Adding a Game
@@ -14,7 +14,9 @@ list; `scripts/check-game-wiring.sh` is the gate that holds it.
 **Reference exemplar: Bob's 27.** When a step below says "copy the existing
 shape", copy Bob's 27's — `bobs27-setup.data.ts`, `bobs27.validator.ts`,
 `bobs27.engine.module.ts`. One named game, so "copy an existing game" has one
-answer instead of eight.
+answer instead of eight. Its engine is a `DartGameSpec` bound to the shell in
+`modules/game/dart-engine-shell.module.ts`; a single-stage dart engine copies
+that shape, not a hand-written class.
 
 ## Two slugs, and why
 

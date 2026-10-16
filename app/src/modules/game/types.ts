@@ -670,3 +670,6 @@ export type MatchFold = {
   decidingSet: boolean;
   suddenDeath: boolean;
 };
+
+/** The two fields the dart engine shell reads from any folded state. */
+export type ShellState = { activeParticipantRef: string; status: string };

@@ -1,5 +1,10 @@
 import type { ExerciseRulesetVersionKey } from "@lib/types";
-import type { DartObservation, EngineFacts } from "@modules/types";
+import type {
+  DartIntent,
+  DartObservation,
+  EngineFacts,
+  TurnFact,
+} from "@modules/types";
 
 /**
  * Contract every exercise engine implements, parallel to `GameEngine` and
@@ -51,4 +56,34 @@ export interface DartExerciseEngine<TState> {
 export interface DartExerciseEngineFactory<TConfig, TState> {
   readonly exerciseRulesetVersionKey: ExerciseRulesetVersionKey;
   create(config: TConfig, prior?: EngineFacts): DartExerciseEngine<TState>;
+}
+
+/**
+ * What a clockless timed dart exercise decides; the shell owns the log,
+ * keys, `completedAt`, undo and expiry (D264). `fold` receives whether the
+ * controller's timer has expired.
+ */
+export interface DartExerciseSpec<TConfig, TState> {
+  readonly exerciseRulesetVersionKey: ExerciseRulesetVersionKey;
+  parse(config: TConfig): TConfig;
+  fold(facts: EngineFacts, config: TConfig, expired: boolean): TState;
+  intent(state: TState, config: TConfig): DartIntent;
+  isVisitOpen(turn: TurnFact): boolean;
+}
+
+/** A shell-built exercise; `spec` brands it so `instanceof` narrows to it. */
+export interface TimedDartExerciseEngine<
+  TConfig,
+  TState,
+> extends DartExerciseEngine<TState> {
+  readonly spec: DartExerciseSpec<TConfig, TState>;
+  expireTimer(): void;
+}
+
+/** Constructor of a shell-built exercise class. */
+export interface DartExerciseEngineClass<TConfig, TState> {
+  new (
+    config: TConfig,
+    prior?: EngineFacts,
+  ): TimedDartExerciseEngine<TConfig, TState>;
 }
