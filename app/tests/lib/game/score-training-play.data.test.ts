@@ -2446,4 +2446,11 @@ describe("scoreTrainingPlay bot flight", () => {
   it("starts with no Dartbot dart in flight", () => {
     expect(scoreTrainingPlay().botFlight).toBeNull();
   });
+
+  it("offers the who-throws-first step on rematch, closed until asked", () => {
+    const play = scoreTrainingPlay();
+    expect(play.starterOpen).toBe(false);
+    expect(play.playAgainStarter).toBeNull();
+    expect(typeof play.requestPlayAgain).toBe("function");
+  });
 });

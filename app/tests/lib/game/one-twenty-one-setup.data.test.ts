@@ -612,6 +612,54 @@ describe("oneTwentyOneSetup", () => {
       expect(location.href).toBe("/games/121/play");
     });
 
+    it("seats the guest first as side A when the guest won the starter step", async () => {
+      const setup = createSetup({
+        presets: [V1_PRESET, TARGET_PRESET, ROUNDS_PRESET, MINUTES_PRESET],
+        durationType: "ROUNDS",
+        durationValue: 20,
+      });
+      setup.newGuestName = "Guest 1";
+      setup.addGuest();
+      vi.mocked(sessionsApi.createSession).mockResolvedValue({
+        sessionId: "new-session-id",
+        participants: [
+          {
+            ref: "participant-2",
+            displayName: "Guest 1",
+            participantTypeKey: "GUEST",
+          },
+          {
+            ref: "participant-1",
+            displayName: "Player",
+            participantTypeKey: "PLAYER",
+          },
+        ],
+      } as any);
+      vi.stubGlobal("location", { href: "" });
+
+      setup.starterIndex = 1;
+      await setup.start();
+
+      expect(sessionsApi.createSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          participants: [
+            {
+              participantTypeKey: "GUEST",
+              displayName: "Guest 1",
+              sideKey: "A",
+            },
+            { participantTypeKey: "PLAYER", sideKey: "B" },
+          ],
+        }),
+      );
+      expect(store.game.startSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          configSnapshot: expect.objectContaining({}),
+        }),
+      );
+      expect(location.href).toBe("/games/121/play");
+    });
+
     it("a seated bot starts a 121_V1 session with a 2-seat DARTBOT participants array", async () => {
       const setup = createSetup({
         presets: [V1_PRESET, TARGET_PRESET, ROUNDS_PRESET, MINUTES_PRESET],

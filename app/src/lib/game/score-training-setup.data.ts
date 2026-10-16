@@ -9,6 +9,7 @@ import { toSnapshot } from "@lib/game/rulesets/config-codec";
 import { addBotOpponent, addTypedGuest } from "@lib/game/guest-list";
 import {
   participantsFromGuests,
+  starterFirst,
   resolveSessionModePair,
   startSessionInput,
 } from "@lib/game/session-mode-resolution";
@@ -149,7 +150,10 @@ export function scoreTrainingSetup() {
           RULESET_VERSION_KEY,
           this.$store.settings,
         );
-        const participants = participantsFromGuests(this.guests, this.bot);
+        const participants = starterFirst(
+          participantsFromGuests(this.guests, this.bot),
+          this.starterIndex,
+        );
         const session = await createSession({
           gameTypeKey: GAME_TYPE_KEY,
           rulesetVersionKey: RULESET_VERSION_KEY,

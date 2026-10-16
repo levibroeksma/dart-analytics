@@ -4,8 +4,8 @@ import type { EngineFacts, StageFact, StageOwnership, TurnFact } from "./types";
 /**
  * Which seat starts leg `legIndex` (0-based). The starting seat rotates over
  * SEATS rather than sides, so a 2v2 match alternates A, B, A, B by seat
- * position exactly as a 1v1 does. Deciding leg 1's starter by a throw at the
- * bull is a separate, deferred capture problem.
+ * position exactly as a 1v1 does. Leg 1's starter is seat 0, which the
+ * who-throws-first step decides before the session is created.
  */
 export function startingSeatFor(legIndex: number, seatCount: number): number {
   return ((legIndex % seatCount) + seatCount) % seatCount;

@@ -3,6 +3,7 @@ import {
   participantsFromSeats,
   reseatSnapshot,
   resolveSessionModePair,
+  starterFirst,
 } from "@lib/game/session-mode-resolution";
 import {
   appendBatch,
@@ -697,7 +698,10 @@ export async function runPlayAgain<
         config: overrides
           ? { source: "template", templateRef, overrides: overrides.wire }
           : { source: "template", templateRef },
-        participants: participantsFromSeats(config.seats),
+        participants: starterFirst(
+          participantsFromSeats(config.seats),
+          context.playAgainStarter ?? 0,
+        ),
       });
     } catch (err: unknown) {
       const code = (err as { code?: unknown }).code;
@@ -713,6 +717,7 @@ export async function runPlayAgain<
       session.participants,
     ) as Seated<TConfig>;
 
+    context.playAgainStarter = null;
     context.$store.game.sessionId = session.sessionId;
     context.$store.game.idempotencyKey = null;
     context.$store.game.configSnapshot = seatedSnapshot;

@@ -1,3 +1,4 @@
+import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { matchWinnerName } from "@lib/game/match-result-text";
 import { joinSubtitle } from "@lib/game/play-subtitle";
@@ -282,6 +283,7 @@ export function aroundTheClockPlay() {
     resultsSnapshot: null as AroundTheClockPlayContext["resultsSnapshot"],
     hiddenTurnKey: null as string | null,
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,
+    ...playAgainStarterData(),
     botThrowing: false,
     botFlight: null,
     timer: null as AroundTheClockPlayContext["timer"],

@@ -1,3 +1,4 @@
+import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { matchWinnerName } from "@lib/game/match-result-text";
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
@@ -227,6 +228,7 @@ export function tuodPlay() {
     dartsToFinish: null as DartCount | null,
     showDoubleConfirm: false,
     showFinishConfirm: false,
+    ...playAgainStarterData(),
     botThrowing: false,
     botFlight: null,
     engine: null as TuodEngine | null,

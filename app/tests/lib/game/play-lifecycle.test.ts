@@ -1813,6 +1813,22 @@ describe("runPlayAgain — a replayed 1v1 match", () => {
     ]);
   });
 
+  it("seats the new starter first when the starter step picked seat 1", async () => {
+    const context = twoSeatContext();
+    context.playAgainStarter = 1;
+    mockTwoSeatSession();
+
+    await runPlayAgain(context, GAME_TYPE_KEY, RULESET_VERSION_KEY, (engine) =>
+      engine instanceof FakeEngine ? engine : null,
+    );
+
+    expect(vi.mocked(createSession).mock.calls[0][0].participants).toEqual([
+      { participantTypeKey: "GUEST", displayName: "Guest", sideKey: "A" },
+      { participantTypeKey: "PLAYER", sideKey: "B" },
+    ]);
+    expect(context.playAgainStarter).toBeNull();
+  });
+
   it("builds the replay's engine from the NEW session's participant refs, never the finished session's", async () => {
     const context = twoSeatContext();
     mockTwoSeatSession();

@@ -1,3 +1,4 @@
+import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { matchWinnerName } from "@lib/game/match-result-text";
 import { numbersPath, targetAt } from "@modules/game/board-progression.module";
@@ -244,6 +245,7 @@ export function shanghaiPlay() {
     resultsSnapshot: null as ShanghaiPlayContext["resultsSnapshot"],
     hiddenTurnKey: null as string | null,
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,
+    ...playAgainStarterData(),
     botThrowing: false,
     botFlight: null,
     engine: null as ShanghaiEngine | null,

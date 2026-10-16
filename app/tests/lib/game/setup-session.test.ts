@@ -228,3 +228,74 @@ describe("createSetupSession", () => {
     expect(s.bot).toBeNull();
   });
 });
+
+describe("createSetupSession starter step", () => {
+  function create(start = vi.fn()) {
+    return {
+      ...createSetupSession({ gameTypeKey: "TEST", playHref: "/p" }),
+      $store: {
+        game: { sessionId: null, reset: vi.fn(), startSession: vi.fn() },
+        settings: {
+          captureModeKey: "RECREATIONAL",
+          inputModeKey: "QUICK_SCORE",
+        },
+        profile: { displayName: "Levi" },
+      },
+      start,
+    } as unknown as SetupSessionContext & { start: ReturnType<typeof vi.fn> };
+  }
+
+  it("beginStart starts straight away when solo", () => {
+    const s = create();
+    s.beginStart();
+    expect(s.start).toHaveBeenCalled();
+    expect(s.starterOpen).toBe(false);
+  });
+
+  it("beginStart opens the step with an opponent", () => {
+    const s = create();
+    s.bot = { level: 5 };
+    s.beginStart();
+    expect(s.start).not.toHaveBeenCalled();
+    expect(s.starterOpen).toBe(true);
+  });
+
+  it("resolving the step records the starter and starts", () => {
+    const s = create();
+    s.guests = [{ displayName: "Rosa" }];
+    s.beginStart();
+    s.resolveStarter(1);
+    expect(s.starterIndex).toBe(1);
+    expect(s.starterOpen).toBe(false);
+    expect(s.start).toHaveBeenCalled();
+  });
+
+  it("cancelling closes the step without starting", () => {
+    const s = create();
+    s.bot = { level: 5 };
+    s.beginStart();
+    s.cancelStarter();
+    expect(s.starterOpen).toBe(false);
+    expect(s.start).not.toHaveBeenCalled();
+  });
+
+  it("names the sides player first, then the guest or Dartbot", () => {
+    const s = create();
+    s.guests = [{ displayName: "Rosa" }];
+    expect(s.starterOptions().sides()).toEqual(["Levi", "Rosa"]);
+    expect(s.starterOptions().opponentIsBot()).toBe(false);
+    s.guests = [];
+    s.bot = { level: 5 };
+    expect(s.starterOptions().sides()).toEqual(["Levi", "Dartbot"]);
+    expect(s.starterOptions().opponentIsBot()).toBe(true);
+  });
+
+  it("falls back to You before the profile loads", () => {
+    const s = create();
+    (
+      s.$store as unknown as { profile: { displayName: string } }
+    ).profile.displayName = "";
+    s.bot = { level: 5 };
+    expect(s.starterOptions().sides()[0]).toBe("You");
+  });
+});

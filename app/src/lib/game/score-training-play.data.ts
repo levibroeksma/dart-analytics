@@ -1,3 +1,4 @@
+import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
 import { fetchActiveSessions } from "@client/api/sessions";
@@ -169,6 +170,7 @@ export function scoreTrainingPlay() {
     pendingFinishScore: null as number | null,
     pendingDartObservation: null as DartObservation | null,
     showFinishConfirm: false,
+    ...playAgainStarterData(),
     botThrowing: false,
     botFlight: null,
     engine: null as ScoreTrainingEngine | null,

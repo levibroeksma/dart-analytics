@@ -95,6 +95,8 @@ export type SetupSessionContext = {
   showOpponentChooser: boolean;
   pendingBotLevel: number;
   showBotLevelPicker: boolean;
+  starterOpen: boolean;
+  starterIndex: 0 | 1;
   $store: {
     game: {
       sessionId: string | null;
@@ -105,7 +107,16 @@ export type SetupSessionContext = {
       captureModeKey: string;
       inputModeKey: string;
     };
+    profile?: { displayName: string };
   };
+  start(): Promise<void> | void;
+  beginStart(this: SetupSessionContext): Promise<void> | void;
+  resolveStarter(
+    this: SetupSessionContext,
+    starterIndex: 0 | 1,
+  ): Promise<void> | void;
+  cancelStarter(this: SetupSessionContext): void;
+  starterOptions(this: SetupSessionContext): StarterStepOptions;
   reconcile(
     this: SetupSessionContext,
     activeSessions: SessionActiveData[],
@@ -340,6 +351,7 @@ export type PlayLifecycleContext<
   completionError: string;
   playAgainError: string;
   playAgainLoading: boolean;
+  playAgainStarter?: 0 | 1 | null;
   resultsSnapshot: TResults | null;
   hiddenTurnKey: string | null;
   hiddenTimer?: ReturnType<typeof setTimeout> | null;
@@ -400,6 +412,10 @@ export type ScoreTrainingPlayContext = PlayLifecycleContext<
   showFinishConfirm: boolean;
   botThrowing: boolean;
   botFlight: BotFlight | null;
+  starterOpen: boolean;
+  playAgainStarter: 0 | 1 | null;
+  requestPlayAgain(): unknown;
+  playAgainStarterOptions(): StarterStepOptions;
   timer: SegmentTimer | null;
   visitMarkers(this: ScoreTrainingPlayContext): BoardMarker[];
   state(this: ScoreTrainingPlayContext): ScoreTrainingState | null;
@@ -473,6 +489,10 @@ export type TuodPlayContext = PlayLifecycleContext<
   showFinishConfirm: boolean;
   botThrowing: boolean;
   botFlight: BotFlight | null;
+  starterOpen: boolean;
+  playAgainStarter: 0 | 1 | null;
+  requestPlayAgain(): unknown;
+  playAgainStarterOptions(): StarterStepOptions;
   $store: PlayStoreContext<TuodSnapshot> & {
     checkoutHints?: CheckoutHintsStoreContext;
   };
@@ -677,6 +697,10 @@ export type FiveOhOnePlayContext = PlayLifecycleContext<
   showMatchFinishConfirm: boolean;
   botThrowing: boolean;
   botFlight: BotFlight | null;
+  starterOpen: boolean;
+  playAgainStarter: 0 | 1 | null;
+  requestPlayAgain(): unknown;
+  playAgainStarterOptions(): StarterStepOptions;
   $store: PlayStoreContext<FiveOhOneAnySnapshot> & {
     checkoutHints?: CheckoutHintsStoreContext;
   };
@@ -764,6 +788,10 @@ export type OneTwentyOnePlayContext = PlayLifecycleContext<
   showSessionFinishConfirm: boolean;
   botThrowing: boolean;
   botFlight: BotFlight | null;
+  starterOpen: boolean;
+  playAgainStarter: 0 | 1 | null;
+  requestPlayAgain(): unknown;
+  playAgainStarterOptions(): StarterStepOptions;
   $store: PlayStoreContext<OneTwentyOneSnapshot | OneTwentyOneV2Snapshot> & {
     checkoutHints?: CheckoutHintsStoreContext;
   };
@@ -844,6 +872,10 @@ export type Bobs27PlayContext = PlayLifecycleContext<
 > & {
   botThrowing: boolean;
   botFlight: BotFlight | null;
+  starterOpen: boolean;
+  playAgainStarter: 0 | 1 | null;
+  requestPlayAgain(): unknown;
+  playAgainStarterOptions(): StarterStepOptions;
   visitMarkers(this: Bobs27PlayContext): BoardMarker[];
   state(this: Bobs27PlayContext): Bobs27State | null;
   subtitle(this: Bobs27PlayContext): string;
@@ -1025,6 +1057,10 @@ export type SinglesTrainingPlayContext = PlayLifecycleContext<
 > & {
   botThrowing: boolean;
   botFlight: BotFlight | null;
+  starterOpen: boolean;
+  playAgainStarter: 0 | 1 | null;
+  requestPlayAgain(): unknown;
+  playAgainStarterOptions(): StarterStepOptions;
   state(this: SinglesTrainingPlayContext): SinglesTrainingState | null;
   subtitle(this: SinglesTrainingPlayContext): string;
   visitMarkers(this: SinglesTrainingPlayContext): BoardMarker[];
@@ -1146,6 +1182,10 @@ export type DoublesTrainingPlayContext = PlayLifecycleContext<
 > & {
   botThrowing: boolean;
   botFlight: BotFlight | null;
+  starterOpen: boolean;
+  playAgainStarter: 0 | 1 | null;
+  requestPlayAgain(): unknown;
+  playAgainStarterOptions(): StarterStepOptions;
   state(this: DoublesTrainingPlayContext): DoublesTrainingState | null;
   subtitle(this: DoublesTrainingPlayContext): string;
   visitMarkers(this: DoublesTrainingPlayContext): BoardMarker[];
@@ -1222,6 +1262,10 @@ export type ShanghaiPlayContext = PlayLifecycleContext<
 > & {
   botThrowing: boolean;
   botFlight: BotFlight | null;
+  starterOpen: boolean;
+  playAgainStarter: 0 | 1 | null;
+  requestPlayAgain(): unknown;
+  playAgainStarterOptions(): StarterStepOptions;
   visitMarkers(this: ShanghaiPlayContext): BoardMarker[];
   recordDart(
     this: ShanghaiPlayContext,
@@ -1295,6 +1339,10 @@ export type AroundTheClockPlayContext = PlayLifecycleContext<
 > & {
   botThrowing: boolean;
   botFlight: BotFlight | null;
+  starterOpen: boolean;
+  playAgainStarter: 0 | 1 | null;
+  requestPlayAgain(): unknown;
+  playAgainStarterOptions(): StarterStepOptions;
   timer: SegmentTimer | null;
   $watch(key: "$store.game.timerExpired", callback: () => void): void;
   isTimed(this: AroundTheClockPlayContext): boolean;

@@ -1,3 +1,4 @@
+import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
@@ -335,6 +336,7 @@ export function fiveOhOnePlay() {
     pendingDartObservation: null as DartObservation | null,
     showDoubleConfirm: false,
     showMatchFinishConfirm: false,
+    ...playAgainStarterData(),
     botThrowing: false,
     botFlight: null,
     engine: null as FiveOhOneEngine | null,
