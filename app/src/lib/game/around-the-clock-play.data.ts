@@ -283,6 +283,7 @@ export function aroundTheClockPlay() {
     hiddenTurnKey: null as string | null,
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,
     botThrowing: false,
+    botFlight: null,
     timer: null as AroundTheClockPlayContext["timer"],
     engine: null as AroundTheClockEngine | null,
     ...boardInputData(

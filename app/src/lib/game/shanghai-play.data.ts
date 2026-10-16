@@ -245,6 +245,7 @@ export function shanghaiPlay() {
     hiddenTurnKey: null as string | null,
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,
     botThrowing: false,
+    botFlight: null,
     engine: null as ShanghaiEngine | null,
     ...boardInputData(
       (observation) => self.recordDart(observation),

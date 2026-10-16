@@ -227,6 +227,7 @@ export function tuodPlay() {
     showDoubleConfirm: false,
     showFinishConfirm: false,
     botThrowing: false,
+    botFlight: null,
     engine: null as TuodEngine | null,
     timer: null as SegmentTimer | null,
     hiddenTurnKey: null as string | null,

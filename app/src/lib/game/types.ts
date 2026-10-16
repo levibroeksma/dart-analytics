@@ -211,6 +211,22 @@ export type BotDartThrower = () => {
   pacing: BotPacing;
 };
 
+/** The beat a bot dart's flight is in (Animations.dc.html §03). */
+export type BotFlightPhase = "aim" | "fly" | "hit" | "land";
+
+/**
+ * A bot visit as the board draws it: the dart in flight (`dartIndex`,
+ * `phase`, landing point as board percentages) and the darts already
+ * landed this visit. Presentation only; never part of the fact log.
+ */
+export type BotFlight = {
+  dartIndex: number;
+  phase: BotFlightPhase;
+  leftPercent: number;
+  topPercent: number;
+  landed: { leftPercent: number; topPercent: number; label: string }[];
+};
+
 /**
  * What a play page hands `playFoldBotQuickScoreVisit` for each dart: a
  * function from the scratch engine's own live `state()` (after however many
@@ -381,6 +397,7 @@ export type ScoreTrainingPlayContext = PlayLifecycleContext<
   pendingDartObservation: DartObservation | null;
   showFinishConfirm: boolean;
   botThrowing: boolean;
+  botFlight: BotFlight | null;
   timer: SegmentTimer | null;
   visitMarkers(this: ScoreTrainingPlayContext): BoardMarker[];
   state(this: ScoreTrainingPlayContext): ScoreTrainingState | null;
@@ -453,6 +470,7 @@ export type TuodPlayContext = PlayLifecycleContext<
   showDoubleConfirm: boolean;
   showFinishConfirm: boolean;
   botThrowing: boolean;
+  botFlight: BotFlight | null;
   $store: PlayStoreContext<TuodSnapshot> & {
     checkoutHints?: CheckoutHintsStoreContext;
   };
@@ -656,6 +674,7 @@ export type FiveOhOnePlayContext = PlayLifecycleContext<
   showDoubleConfirm: boolean;
   showMatchFinishConfirm: boolean;
   botThrowing: boolean;
+  botFlight: BotFlight | null;
   $store: PlayStoreContext<FiveOhOneAnySnapshot> & {
     checkoutHints?: CheckoutHintsStoreContext;
   };
@@ -742,6 +761,7 @@ export type OneTwentyOnePlayContext = PlayLifecycleContext<
   showDoubleConfirm: boolean;
   showSessionFinishConfirm: boolean;
   botThrowing: boolean;
+  botFlight: BotFlight | null;
   $store: PlayStoreContext<OneTwentyOneSnapshot | OneTwentyOneV2Snapshot> & {
     checkoutHints?: CheckoutHintsStoreContext;
   };
@@ -821,6 +841,7 @@ export type Bobs27PlayContext = PlayLifecycleContext<
   Bobs27ResultsSnapshot
 > & {
   botThrowing: boolean;
+  botFlight: BotFlight | null;
   visitMarkers(this: Bobs27PlayContext): BoardMarker[];
   state(this: Bobs27PlayContext): Bobs27State | null;
   subtitle(this: Bobs27PlayContext): string;
@@ -1001,6 +1022,7 @@ export type SinglesTrainingPlayContext = PlayLifecycleContext<
   SinglesTrainingResultsSnapshot
 > & {
   botThrowing: boolean;
+  botFlight: BotFlight | null;
   state(this: SinglesTrainingPlayContext): SinglesTrainingState | null;
   subtitle(this: SinglesTrainingPlayContext): string;
   visitMarkers(this: SinglesTrainingPlayContext): BoardMarker[];
@@ -1121,6 +1143,7 @@ export type DoublesTrainingPlayContext = PlayLifecycleContext<
   DoublesTrainingResultsSnapshot
 > & {
   botThrowing: boolean;
+  botFlight: BotFlight | null;
   state(this: DoublesTrainingPlayContext): DoublesTrainingState | null;
   subtitle(this: DoublesTrainingPlayContext): string;
   visitMarkers(this: DoublesTrainingPlayContext): BoardMarker[];
@@ -1196,6 +1219,7 @@ export type ShanghaiPlayContext = PlayLifecycleContext<
   ShanghaiResultsSnapshot
 > & {
   botThrowing: boolean;
+  botFlight: BotFlight | null;
   visitMarkers(this: ShanghaiPlayContext): BoardMarker[];
   recordDart(
     this: ShanghaiPlayContext,
@@ -1268,6 +1292,7 @@ export type AroundTheClockPlayContext = PlayLifecycleContext<
   AroundTheClockResultsSnapshot
 > & {
   botThrowing: boolean;
+  botFlight: BotFlight | null;
   timer: SegmentTimer | null;
   $watch(key: "$store.game.timerExpired", callback: () => void): void;
   isTimed(this: AroundTheClockPlayContext): boolean;

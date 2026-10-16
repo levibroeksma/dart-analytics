@@ -330,6 +330,7 @@ export function oneTwentyOnePlay() {
     showDoubleConfirm: false,
     showSessionFinishConfirm: false,
     botThrowing: false,
+    botFlight: null,
     engine: null as OneTwentyOneEngine | null,
     timer: null as SegmentTimer | null,
     hiddenTurnKey: null as string | null,

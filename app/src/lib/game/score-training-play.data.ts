@@ -169,6 +169,7 @@ export function scoreTrainingPlay() {
     pendingDartObservation: null as DartObservation | null,
     showFinishConfirm: false,
     botThrowing: false,
+    botFlight: null,
     engine: null as ScoreTrainingEngine | null,
     timer: null as SegmentTimer | null,
     hiddenTurnKey: null as string | null,

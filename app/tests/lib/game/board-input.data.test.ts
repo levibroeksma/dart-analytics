@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  BOARD_HALF_EXTENT_MM,
   boardInputData,
   magnifierAnchorStyle,
   magnifierBoardStyle,
@@ -524,5 +525,11 @@ describe("markersForTurns", () => {
 
   it("draws nothing for a keypad visit, which has no darts at all", () => {
     expect(markersForTurns([turn({ darts: [] })])).toEqual([]);
+  });
+});
+
+describe("BOARD_HALF_EXTENT_MM", () => {
+  it("is the board viewBox half-width the markers scale against", () => {
+    expect(BOARD_HALF_EXTENT_MM).toBe(220);
   });
 });

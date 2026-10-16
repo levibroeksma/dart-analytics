@@ -472,3 +472,35 @@ describe("game play surfaces", () => {
     expect(decl("shadow-magnifier")).toBe("0 8px 24px oklch(0% 0 0 / 0.6)");
   });
 });
+
+describe("dart motion", () => {
+  it.each([
+    [
+      "animate-reticle-aim",
+      "reticle-aim 600ms cubic-bezier(0.3, 1.4, 0.5, 1) both",
+    ],
+    [
+      "animate-dart-fly",
+      "dart-fly 240ms cubic-bezier(0.55, 0, 0.9, 0.55) both",
+    ],
+    [
+      "animate-dart-stick",
+      "dart-stick 300ms cubic-bezier(0.3, 1.6, 0.5, 1) both",
+    ],
+    ["animate-dart-ripple", "dart-ripple 500ms ease-out both"],
+  ])("%s is %s", (token, value) => {
+    expect(decl(token)).toBe(value);
+  });
+
+  it("flies the dart in from its board-relative start at 2.6x", () => {
+    expect(css).toMatch(
+      /@keyframes dart-fly\s*\{\s*from\s*\{\s*transform: translate\(-50%, -50%\) translate\(var\(--fly-x\), var\(--fly-y\)\)\s+scale\(2\.6\);/,
+    );
+  });
+
+  it("ripples from 0.5 to 3.2 while fading from 0.9", () => {
+    expect(css).toMatch(
+      /@keyframes dart-ripple\s*\{\s*from\s*\{\s*opacity: 0\.9;\s*transform: translate\(-50%, -50%\) scale\(0\.5\);\s*\}\s*to\s*\{\s*opacity: 0;\s*transform: translate\(-50%, -50%\) scale\(3\.2\);/,
+    );
+  });
+});

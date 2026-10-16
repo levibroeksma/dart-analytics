@@ -1200,3 +1200,9 @@ describe("V2", () => {
     expect(segmentTimerInstances).toHaveLength(1);
   });
 });
+
+describe("aroundTheClockPlay bot flight", () => {
+  it("starts with no Dartbot dart in flight", () => {
+    expect(aroundTheClockPlay().botFlight).toBeNull();
+  });
+});

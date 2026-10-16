@@ -47,7 +47,7 @@ export const MERGE_TOKENS = {
   shadow: ["card", "magnifier"],
   "text-shadow": ["hero", "glow"],
   spacing: ["hit"],
-  animate: ["sheet-in"],
+  animate: ["sheet-in", "reticle-aim", "dart-fly", "dart-stick", "dart-ripple"],
   "grid-template-columns": ["mirror", "scoreboard"],
   "background-image": [
     "blue-glass",

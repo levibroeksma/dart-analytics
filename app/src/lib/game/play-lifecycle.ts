@@ -13,6 +13,11 @@ import {
 import { buildEventsBatch } from "@modules/game/events.payload.module";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { markersForTurns } from "@lib/game/board-input.data";
+import {
+  botFlightSchedule,
+  dartLabel,
+  observationPercent,
+} from "@lib/game/bot-flight";
 import type { RulesetVersionKey, Seated } from "@lib/types";
 import type { SegmentTimer } from "@modules/ui/segment-timer.module";
 import type {
@@ -26,6 +31,8 @@ import type { GameEngine, GameEngineFactory } from "@modules/interfaces";
 import type {
   BoardMarker,
   BotDartThrower,
+  BotFlight,
+  BotFlightPhase,
   BotQuickScoreFold,
   BotQuickScoreThrower,
   GamePreviewSegment,
@@ -281,6 +288,8 @@ export function undoToActiveSeat<
   context.error = "";
 }
 
+const CENTRE_PERCENT = { leftPercent: 50, topPercent: 50 };
+
 function defaultBotWait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -300,6 +309,12 @@ function defaultBotWait(ms: number): Promise<void> {
  * delay. Guard 2 is load-bearing on its own; guard 1 only prevents two
  * *overlapping* loops from both reaching guard 2's window at once.
  *
+ * Each dart's `preThrowMs` is split into the flight's aim, fly and hit beats
+ * (`botFlightSchedule`), with `context.botFlight` set for each so the board
+ * can draw it; the dart lands into `land` for `postThrowMs`. The seat is
+ * re-checked after every beat, and `botFlight` is cleared however the loop
+ * ends.
+ *
  * `wouldComplete` is forwarded to each `playCommitDart`; see there.
  */
 export async function playRunBotVisualBoardVisit<
@@ -309,6 +324,7 @@ export async function playRunBotVisualBoardVisit<
 >(
   context: PlayLifecycleContext<TConfig, TEngine, TResults> & {
     botThrowing: boolean;
+    botFlight?: BotFlight | null;
   },
   botParticipantRef: string,
   throwDart: BotDartThrower,
@@ -319,27 +335,46 @@ export async function playRunBotVisualBoardVisit<
   if (context.$store.game.timerPaused) return;
   if (context.engine.state().activeParticipantRef !== botParticipantRef) return;
 
+  const stillBots = () =>
+    !context.finished &&
+    !context.$store.game.timerPaused &&
+    context.engine?.state().activeParticipantRef === botParticipantRef;
+
   context.botThrowing = true;
+  const landed: BotFlight["landed"] = [];
   try {
-    while (
-      !context.finished &&
-      !context.$store.game.timerPaused &&
-      context.engine.state().activeParticipantRef === botParticipantRef
-    ) {
+    while (stillBots()) {
       const { observation, pacing } = throwDart();
-      await wait(pacing.preThrowMs);
-      if (
-        context.finished ||
-        context.$store.game.timerPaused ||
-        context.engine.state().activeParticipantRef !== botParticipantRef
-      ) {
-        return;
+      const point = observationPercent(observation) ?? CENTRE_PERCENT;
+      const schedule = botFlightSchedule(pacing.preThrowMs);
+      const beats: [BotFlightPhase, number][] = [
+        ["aim", schedule.aimMs],
+        ["fly", schedule.flyMs],
+        ["hit", schedule.hitMs],
+      ];
+      for (const [phase, ms] of beats) {
+        context.botFlight = {
+          dartIndex: landed.length,
+          phase,
+          ...point,
+          landed: [...landed],
+        };
+        await wait(ms);
+        if (!stillBots()) return;
       }
       await playCommitDart(context, observation, wouldComplete);
+      landed.push({ ...point, label: dartLabel(observation) });
+      context.botFlight = {
+        dartIndex: landed.length - 1,
+        phase: "land",
+        ...point,
+        landed: [...landed],
+      };
       await wait(pacing.postThrowMs);
     }
   } finally {
     context.botThrowing = false;
+    context.botFlight = null;
   }
 }
 

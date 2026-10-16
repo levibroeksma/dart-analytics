@@ -192,6 +192,7 @@ export function bobs27Play() {
     hiddenTurnKey: null as string | null,
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,
     botThrowing: false,
+    botFlight: null,
     engine: null as Bobs27Engine | null,
     ...boardInputData(
       (observation) => self.recordDart(observation),

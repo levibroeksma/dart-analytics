@@ -2437,3 +2437,9 @@ describe("scoreTrainingPlay — subtitle", () => {
     ).toBe("ROUND 2");
   });
 });
+
+describe("scoreTrainingPlay bot flight", () => {
+  it("starts with no Dartbot dart in flight", () => {
+    expect(scoreTrainingPlay().botFlight).toBeNull();
+  });
+});

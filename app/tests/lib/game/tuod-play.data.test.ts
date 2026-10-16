@@ -2168,3 +2168,9 @@ describe("tuodPlay — play header and seat stats", () => {
     expect(play.successFailureFor("participant-2")).toBe("0 · 0");
   });
 });
+
+describe("tuodPlay bot flight", () => {
+  it("starts with no Dartbot dart in flight", () => {
+    expect(tuodPlay().botFlight).toBeNull();
+  });
+});

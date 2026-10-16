@@ -1415,3 +1415,9 @@ describe("oneTwentyOnePlay — play header and seat stats", () => {
     expect(play.checkoutHintFor("participant-2")).toBe("T20 T11 D14");
   });
 });
+
+describe("oneTwentyOnePlay bot flight", () => {
+  it("starts with no Dartbot dart in flight", () => {
+    expect(oneTwentyOnePlay().botFlight).toBeNull();
+  });
+});

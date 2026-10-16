@@ -64,6 +64,7 @@ import type {
 import type { GameEngine, GameEngineFactory } from "@modules/interfaces";
 import type {
   BotDartThrower,
+  BotFlight,
   BotPacing,
   PlayLifecycleContext,
   RulesetVersionKey,
@@ -856,7 +857,7 @@ type BotCtx = PlayLifecycleContext<
   { seats: readonly SeatFact[] },
   BotFakeEngine,
   unknown
-> & { botThrowing: boolean };
+> & { botThrowing: boolean; botFlight: BotFlight | null };
 
 function makeBotContext(
   engine: BotFakeEngine,
@@ -877,6 +878,7 @@ function makeBotContext(
     hiddenTurnKey: null,
     hiddenTimer: null,
     botThrowing: false,
+    botFlight: null,
     engine,
     $store: {
       game: {
@@ -1028,7 +1030,7 @@ describe("playRunBotVisualBoardVisit", () => {
     expect(context.botThrowing).toBe(false);
   });
 
-  it("waits preThrowMs then postThrowMs around the recorded dart, in order", async () => {
+  it("splits preThrowMs into aim, fly and hit beats, then waits postThrowMs", async () => {
     const engine = new BotFakeEngine(TWO_BOT_SEATS);
     engine.record(dartAt(20));
     const context = makeBotContext(engine, TWO_BOT_SEATS);
@@ -1044,7 +1046,57 @@ describe("playRunBotVisualBoardVisit", () => {
       wait,
     );
 
-    expect(calls).toEqual([900, 250]);
+    expect(calls).toEqual([590, 240, 70, 250]);
+  });
+
+  it("sets aim, fly, hit, land per dart then clears", async () => {
+    const engine = new BotFakeEngine(TWO_BOT_SEATS);
+    engine.record(dartAt(20));
+    const context = makeBotContext(engine, TWO_BOT_SEATS);
+    const seen: (string | undefined)[] = [];
+    const landed: string[][] = [];
+    const wait = vi.fn().mockImplementation(async () => {
+      seen.push(context.botFlight?.phase);
+      landed.push(context.botFlight?.landed.map((d) => d.label) ?? []);
+    });
+
+    await playRunBotVisualBoardVisit(context, BOT_REF, stubThrower([19]), wait);
+
+    expect(seen).toEqual(["aim", "fly", "hit", "land"]);
+    expect(landed).toEqual([[], [], [], ["S19"]]);
+    expect(context.botFlight).toBeNull();
+  });
+
+  it("aims the flight at the dart's landing point", async () => {
+    const engine = new BotFakeEngine(TWO_BOT_SEATS);
+    engine.record(dartAt(20));
+    const context = makeBotContext(engine, TWO_BOT_SEATS);
+    let flight: BotFlight | null = null;
+    const wait = vi.fn().mockImplementation(async () => {
+      flight ??= context.botFlight && { ...context.botFlight };
+    });
+
+    await playRunBotVisualBoardVisit(context, BOT_REF, stubThrower([19]), wait);
+
+    expect(flight).toMatchObject({
+      dartIndex: 0,
+      leftPercent: 50,
+      topPercent: ((-102 + 220) / 440) * 100,
+    });
+  });
+
+  it("clears flight when the active seat moves away", async () => {
+    const engine = new BotFakeEngine(TWO_BOT_SEATS);
+    engine.record(dartAt(20));
+    const context = makeBotContext(engine, TWO_BOT_SEATS);
+    const wait = vi.fn().mockImplementation(async () => {
+      undoToActiveSeat(context, HUMAN_REF);
+    });
+
+    await playRunBotVisualBoardVisit(context, BOT_REF, stubThrower([19]), wait);
+
+    expect(engine.facts().turns).toHaveLength(0);
+    expect(context.botFlight).toBeNull();
   });
 
   it("does nothing when it is not the bot's turn", async () => {

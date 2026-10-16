@@ -1086,3 +1086,9 @@ describe("subtitle", () => {
     },
   );
 });
+
+describe("doublesTrainingPlay bot flight", () => {
+  it("starts with no Dartbot dart in flight", () => {
+    expect(doublesTrainingPlay().botFlight).toBeNull();
+  });
+});

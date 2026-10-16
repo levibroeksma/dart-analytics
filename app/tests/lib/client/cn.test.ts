@@ -64,6 +64,12 @@ describe("cn", () => {
     expect(cn("seat-layer-out", "seat-layer-in")).toBe("seat-layer-in");
   });
 
+  it("lets a later dart animation replace an earlier one", () => {
+    expect(cn("animate-dart-fly", "animate-dart-stick")).toBe(
+      "animate-dart-stick",
+    );
+  });
+
   it("no longer registers the retired card-stack slabs", () => {
     expect(UTILITY_GROUPS).not.toHaveProperty("stack-slab-1");
     expect(UTILITY_GROUPS).not.toHaveProperty("stack-slab-2");

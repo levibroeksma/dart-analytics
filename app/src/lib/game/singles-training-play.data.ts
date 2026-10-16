@@ -397,6 +397,7 @@ export function singlesTrainingPlay() {
     hiddenTurnKey: null as string | null,
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,
     botThrowing: false,
+    botFlight: null,
     engine: null as SinglesTrainingEngine | null,
     ...boardInputData(
       (observation) => self.recordDart(observation),

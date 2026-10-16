@@ -173,6 +173,7 @@ export function doublesTrainingPlay() {
     hiddenTurnKey: null as string | null,
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,
     botThrowing: false,
+    botFlight: null,
     engine: null as DoublesTrainingEngine | null,
     ...boardInputData(
       (observation) => self.recordDart(observation),

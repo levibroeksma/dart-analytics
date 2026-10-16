@@ -335,6 +335,7 @@ export function fiveOhOnePlay() {
     showDoubleConfirm: false,
     showMatchFinishConfirm: false,
     botThrowing: false,
+    botFlight: null,
     engine: null as FiveOhOneEngine | null,
     hiddenTurnKey: null as string | null,
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,

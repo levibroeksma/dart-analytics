@@ -1970,3 +1970,9 @@ describe("501_V2 play", () => {
     );
   });
 });
+
+describe("fiveOhOnePlay bot flight", () => {
+  it("starts with no Dartbot dart in flight", () => {
+    expect(fiveOhOnePlay().botFlight).toBeNull();
+  });
+});

@@ -1276,3 +1276,9 @@ describe("subtitle", () => {
     expect(play.subtitle.call(play)).toBe("ROUND 20 OF 20");
   });
 });
+
+describe("shanghaiPlay bot flight", () => {
+  it("starts with no Dartbot dart in flight", () => {
+    expect(shanghaiPlay().botFlight).toBeNull();
+  });
+});
