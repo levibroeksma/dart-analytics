@@ -1,3 +1,4 @@
+import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { matchWinnerName } from "@lib/game/match-result-text";
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
@@ -14,6 +15,7 @@ import {
   clearHiddenTimer,
   playAbandonAndExit,
   playBack,
+  playAnimateBotDarts,
   playFoldBotQuickScoreVisit,
   playRunBotVisualBoardVisit,
   playToggleTimerPause,
@@ -226,7 +228,9 @@ export function tuodPlay() {
     dartsToFinish: null as DartCount | null,
     showDoubleConfirm: false,
     showFinishConfirm: false,
+    ...playAgainStarterData(),
     botThrowing: false,
+    botFlight: null,
     engine: null as TuodEngine | null,
     timer: null as SegmentTimer | null,
     hiddenTurnKey: null as string | null,
@@ -566,6 +570,10 @@ export function tuodPlay() {
             throwBotQuickScoreDart(scratchState, botSeat, dartIndex++),
           DARTS_PER_VISIT,
         );
+        if (
+          !(await playAnimateBotDarts(this, botSeat.participantRef, fold.darts))
+        )
+          return;
         await this.recordAttempt({
           checkedOut: fold.totalScore === target,
           finishedOnDouble: fold.totalScore === target,

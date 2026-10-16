@@ -171,8 +171,9 @@ export function participantsFromSeats(seats: readonly SeatFact[]):
  * wins, matching that same single-slot invariant.
  *
  * Neither given returns `undefined` — the field's own "omit me" value — so a
- * solo session sends exactly the request it always did. The owning player is
- * always seat 0 on side `A`; the opponent takes `B`. `displayName` is carried
+ * solo session sends exactly the request it always did. The owning player
+ * comes first on side `A` and the opponent takes `B`; `starterFirst`
+ * reorders the list when the opponent won the starter step. `displayName` is carried
  * for a guest only, `level` for a bot only — the player's name is copied
  * server-side from `players.display_name`.
  */
@@ -206,6 +207,29 @@ export function participantsFromGuests(
       sideKey: String.fromCharCode(66 + index),
     })),
   ];
+}
+
+/**
+ * Puts the starter first in a two-sided participant list — array order is
+ * seat order, so seat 0 throws first in leg 1 — and re-letters side keys by
+ * position (`A`, `B`), the same lettering `toSeatFacts` gives the client's
+ * snapshot. `starterIndex` 0 leaves the list as it is.
+ */
+export function starterFirst<T extends { sideKey: string }>(
+  participants: readonly T[] | undefined,
+  starterIndex: 0 | 1,
+): T[] | undefined {
+  if (!participants) return undefined;
+  if (starterIndex === 0) return [...participants];
+  const starter = participants[starterIndex]!;
+  const ordered = [
+    starter,
+    ...participants.filter((_, index) => index !== starterIndex),
+  ];
+  return ordered.map((participant, index) => ({
+    ...participant,
+    sideKey: String.fromCharCode(65 + index),
+  }));
 }
 
 /**

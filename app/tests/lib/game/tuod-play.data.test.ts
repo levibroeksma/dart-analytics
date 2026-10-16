@@ -1990,10 +1990,14 @@ describe("tuodPlay — DartBot opponent", () => {
   });
 
   it("under QUICK_SCORE, the bot's attempt uploads as one turn with darts: []", async () => {
+    vi.useFakeTimers();
     const play = makePlay();
     await play.init.call(play);
 
-    await play.recordAttempt.call(play, { checkedOut: false });
+    const recorded = play.recordAttempt.call(play, { checkedOut: false });
+    await vi.runAllTimersAsync();
+    await recorded;
+    vi.useRealTimers();
 
     const botTurn = play.$store.game.turns.find(
       (turn) => turn.participantRef === BOT_REF,
@@ -2166,5 +2170,18 @@ describe("tuodPlay — play header and seat stats", () => {
     expect(play.attemptsFor("participant-1")).toBe(2);
     expect(play.attemptsFor("participant-2")).toBe(0);
     expect(play.successFailureFor("participant-2")).toBe("0 · 0");
+  });
+});
+
+describe("tuodPlay bot flight", () => {
+  it("starts with no Dartbot dart in flight", () => {
+    expect(tuodPlay().botFlight).toBeNull();
+  });
+
+  it("offers the who-throws-first step on rematch, closed until asked", () => {
+    const play = tuodPlay();
+    expect(play.starterOpen).toBe(false);
+    expect(play.playAgainStarter).toBeNull();
+    expect(typeof play.requestPlayAgain).toBe("function");
   });
 });

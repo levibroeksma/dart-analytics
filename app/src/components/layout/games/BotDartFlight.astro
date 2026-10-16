@@ -1,0 +1,42 @@
+---
+/**
+ * Dartbot's dart in flight, drawn over a `DartBoard` (mount it in the
+ * board's slot). Reads `botFlight` (via `$data`, so scopes without a bot read undefined) from the enclosing play scope: a reticle
+ * settles on the landing point while the bot aims, the dart flies in large
+ * from below the board, and on landing it sticks with a ripple. The flight
+ * starts from one of three oche points by dart index, as board-relative
+ * `cqw` offsets. Reduced motion shows the dart at the hit with no motion.
+ */
+---
+
+<div
+  class="@container pointer-events-none absolute inset-0"
+  aria-hidden="true"
+  x-show="$data.botFlight"
+  x-cloak
+>
+  <span
+    class="absolute size-14 rounded-full border-2 border-accent animate-reticle-aim motion-reduce:animate-none"
+    x-show="$data.botFlight?.phase === 'aim' || $data.botFlight?.phase === 'fly'"
+    x-cloak
+    :style="$data.botFlight && `left: ${$data.botFlight.leftPercent}%; top: ${$data.botFlight.topPercent}%; transform: translate(-50%, -50%)`"
+  ></span>
+  <span
+    class="absolute size-3 rounded-full border-2 border-surface bg-accent animate-dart-fly motion-reduce:animate-none"
+    x-show="$data.botFlight?.phase === 'fly' || $data.botFlight?.phase === 'hit'"
+    x-cloak
+    :style="$data.botFlight && `left: ${$data.botFlight.leftPercent}%; top: ${$data.botFlight.topPercent}%; --fly-x: ${[44, 50, 56][$data.botFlight.dartIndex % 3] - $data.botFlight.leftPercent}cqw; --fly-y: ${118 - $data.botFlight.topPercent}cqw`"
+  ></span>
+  <template x-if="$data.botFlight?.phase === 'land'">
+    <div>
+      <span
+        class="absolute size-6 rounded-full border-2 border-accent animate-dart-ripple motion-reduce:hidden"
+        :style="`left: ${$data.botFlight.leftPercent}%; top: ${$data.botFlight.topPercent}%`"
+      ></span>
+      <span
+        class="absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-surface bg-accent animate-dart-stick motion-reduce:animate-none"
+        :style="`left: ${$data.botFlight.leftPercent}%; top: ${$data.botFlight.topPercent}%`"
+      ></span>
+    </div>
+  </template>
+</div>

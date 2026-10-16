@@ -1,3 +1,4 @@
+import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { singlesTrainingResultsTitle } from "@lib/game/singles-training-results-title";
 import {
@@ -396,7 +397,9 @@ export function singlesTrainingPlay() {
     resultsSnapshot: null as SinglesTrainingResultsSnapshot | null,
     hiddenTurnKey: null as string | null,
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,
+    ...playAgainStarterData(),
     botThrowing: false,
+    botFlight: null,
     engine: null as SinglesTrainingEngine | null,
     ...boardInputData(
       (observation) => self.recordDart(observation),

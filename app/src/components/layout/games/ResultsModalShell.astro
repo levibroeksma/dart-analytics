@@ -2,7 +2,8 @@
 /**
  * Shared chrome for every game's results sheet: `Modal` shell,
  * save-status region (SAVING…/SAVED, failed + retry), play-again error,
- * and the back/rematch button row. Each game supplies its own
+ * and the back/rematch button row. Rematch on a two-seat game opens the
+ * who-throws-first `StarterStep` first (`requestPlayAgain`). Each game supplies its own
  * `<h2 id="results-title">` (`title` slot — win/tie/loss phrasing differs
  * per game) and its own stat rows (default slot).
  * @param {string} [overline] Eyebrow above the title
@@ -19,6 +20,7 @@ import Button from "@components/forms/Button.astro";
 import SaveStatus from "@components/layout/games/SaveStatus.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
 import Modal from "@components/ui/Modal.astro";
+import StarterStep from "@components/layout/games/StarterStep.astro";
 import SheetActions from "@components/ui/SheetActions.astro";
 ---
 
@@ -75,7 +77,7 @@ import SheetActions from "@components/ui/SheetActions.astro";
       />
       <Button
         variant="sheet-raised"
-        @click="playAgain()"
+        @click="$data.requestPlayAgain ? requestPlayAgain() : playAgain()"
         :disabled="completionStatus !== 'succeeded' || playAgainLoading"
         loadingExpr="playAgainLoading"
         title="Rematch"
@@ -83,4 +85,8 @@ import SheetActions from "@components/ui/SheetActions.astro";
       />
     </SheetActions>
   </Modal>
+  <StarterStep
+    showExpr="$data.starterOpen"
+    optionsExpr="playAgainStarterOptions()"
+  />
 </div>

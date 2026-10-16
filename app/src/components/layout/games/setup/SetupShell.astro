@@ -3,7 +3,8 @@
  * Setup page shell: glass back link and centered title on one row (a
  * 40px / 1fr / 40px grid keeps the title centered while the link sits
  * left), wrapping a form that
- * submits via `start()`. Every setup page's own `x-data` factory exposes
+ * submits via `beginStart()` — straight to `start()` solo, or through the
+ * who-throws-first `StarterStep` with an opponent. Every setup page's own `x-data` factory exposes
  * `loadingReconciliation` (active-session/preset lookup), which disables
  * submit alongside `loading` (the in-flight `start()` call) so a player
  * can't start before defaults have loaded. Start is a slide gesture
@@ -21,6 +22,7 @@ const { title, ...props }: Props = Astro.props;
 // Components
 import SlideToStart from "@components/forms/SlideToStart.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
+import StarterStep from "@components/layout/games/StarterStep.astro";
 
 // Icons
 import ChevronDownIcon from "@icons/chevron-down.svg";
@@ -43,7 +45,7 @@ import ChevronDownIcon from "@icons/chevron-down.svg";
 
   <form
     class="mt-2 flex flex-col gap-3 pb-28"
-    @submit.prevent="loading || loadingReconciliation || start()"
+    @submit.prevent="loading || loadingReconciliation || beginStart()"
   >
     <slot />
 
@@ -59,4 +61,9 @@ import ChevronDownIcon from "@icons/chevron-down.svg";
       failedExpr="error || showActiveSessionModal || reconciliationFailed"
     />
   </form>
+
+  <StarterStep
+    showExpr="starterOpen"
+    optionsExpr="starterOptions()"
+  />
 </div>

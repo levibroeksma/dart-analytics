@@ -514,6 +514,37 @@ describe("fiveOhOneSetup", () => {
     );
   });
 
+  it("seats the starter first and re-letters sides when a guest won the starter step", async () => {
+    const setup = createSetup({
+      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET, V2_PRESET],
+      legsToWin: 5,
+      startingScoreOption: "301",
+      guests: [{ displayName: "Alex" }, { displayName: "Sam" }],
+    });
+    vi.mocked(sessionsApi.createSession).mockResolvedValue({
+      sessionId: "new-session-id",
+      participants: [
+        { ref: "p1", displayName: "Player", participantTypeKey: "PLAYER" },
+        { ref: "p2", displayName: "Alex", participantTypeKey: "GUEST" },
+        { ref: "p3", displayName: "Sam", participantTypeKey: "GUEST" },
+      ],
+    } as any);
+    vi.stubGlobal("location", { href: "" });
+
+    setup.starterIndex = 1;
+    await setup.start();
+
+    expect(sessionsApi.createSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        participants: [
+          { participantTypeKey: "GUEST", displayName: "Alex", sideKey: "A" },
+          { participantTypeKey: "PLAYER", sideKey: "B" },
+          { participantTypeKey: "GUEST", displayName: "Sam", sideKey: "C" },
+        ],
+      }),
+    );
+  });
+
   it("keeps guests across a rejected start() so the player does not retype them", async () => {
     const setup = createSetup({
       presets: [],

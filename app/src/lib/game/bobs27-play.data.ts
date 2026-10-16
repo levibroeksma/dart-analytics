@@ -1,3 +1,4 @@
+import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { matchWinnerName } from "@lib/game/match-result-text";
 import { doublesPath, targetAt } from "@modules/game/board-progression.module";
@@ -191,7 +192,9 @@ export function bobs27Play() {
     resultsSnapshot: null as Bobs27ResultsSnapshot | null,
     hiddenTurnKey: null as string | null,
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,
+    ...playAgainStarterData(),
     botThrowing: false,
+    botFlight: null,
     engine: null as Bobs27Engine | null,
     ...boardInputData(
       (observation) => self.recordDart(observation),

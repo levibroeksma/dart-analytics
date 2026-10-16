@@ -21,7 +21,8 @@ fixture() {
   out="$dir/$3.md"
   mkdir -p "$dir"
   tags="$(cat)"
-  awk -v tags="$tags" '
+  TAGS_BLOCK="$tags" awk '
+    BEGIN { tags = ENVIRON["TAGS_BLOCK"] }
     /^## Tags( |$)/ { skip = 1; next }
     /^## / { skip = 0 }
     skip { next }

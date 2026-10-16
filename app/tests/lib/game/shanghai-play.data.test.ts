@@ -1276,3 +1276,16 @@ describe("subtitle", () => {
     expect(play.subtitle.call(play)).toBe("ROUND 20 OF 20");
   });
 });
+
+describe("shanghaiPlay bot flight", () => {
+  it("starts with no Dartbot dart in flight", () => {
+    expect(shanghaiPlay().botFlight).toBeNull();
+  });
+
+  it("offers the who-throws-first step on rematch, closed until asked", () => {
+    const play = shanghaiPlay();
+    expect(play.starterOpen).toBe(false);
+    expect(play.playAgainStarter).toBeNull();
+    expect(typeof play.requestPlayAgain).toBe("function");
+  });
+});

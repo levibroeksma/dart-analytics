@@ -8,6 +8,8 @@ import { growingCard } from "@lib/ui/growing-card.data";
 import { stepperData } from "@lib/ui/stepper.data";
 import { rangeSliderData } from "@lib/ui/range-slider.data";
 import { slideToStartData } from "@lib/ui/slide-to-start.data";
+import { seatMorph } from "@lib/ui/seat-morph.data";
+import { scoreTween } from "@lib/ui/score-tween.data";
 import { initialsOf, playerCountLabel } from "@lib/ui/initials";
 import {
   bigValueSize,
@@ -27,6 +29,8 @@ export function registerUiData(Alpine: Alpine) {
   Alpine.data("stepper", stepperData);
   Alpine.data("rangeSlider", rangeSliderData);
   Alpine.data("slideToStart", slideToStartData);
+  Alpine.data("seatMorph", seatMorph);
+  Alpine.data("scoreTween", scoreTween);
   Alpine.magic("initials", () => initialsOf);
   Alpine.magic("playerCount", () => playerCountLabel);
   Alpine.magic("bigValueSize", () => bigValueSize);

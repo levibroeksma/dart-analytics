@@ -1268,10 +1268,14 @@ describe("oneTwentyOnePlay — DartBot opponent", () => {
   });
 
   it("under QUICK_SCORE, the bot's visit uploads as one turn with darts: []", async () => {
+    vi.useFakeTimers();
     const play = createPlay();
     await play.init();
 
-    await play.recordVisit(26, false);
+    const recorded = play.recordVisit(26, false);
+    await vi.runAllTimersAsync();
+    await recorded;
+    vi.useRealTimers();
 
     const botTurn = store.game.turns.find(
       (turn) => turn.participantRef === BOT_REF,
@@ -1413,5 +1417,18 @@ describe("oneTwentyOnePlay — play header and seat stats", () => {
     const play = createPlay();
     expect(play.checkoutHintFor("participant-1")).toBe("");
     expect(play.checkoutHintFor("participant-2")).toBe("T20 T11 D14");
+  });
+});
+
+describe("oneTwentyOnePlay bot flight", () => {
+  it("starts with no Dartbot dart in flight", () => {
+    expect(oneTwentyOnePlay().botFlight).toBeNull();
+  });
+
+  it("offers the who-throws-first step on rematch, closed until asked", () => {
+    const play = oneTwentyOnePlay();
+    expect(play.starterOpen).toBe(false);
+    expect(play.playAgainStarter).toBeNull();
+    expect(typeof play.requestPlayAgain).toBe("function");
   });
 });

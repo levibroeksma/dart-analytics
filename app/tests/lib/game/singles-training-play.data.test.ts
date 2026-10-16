@@ -1647,3 +1647,16 @@ describe("subtitle", () => {
     },
   );
 });
+
+describe("singlesTrainingPlay bot flight", () => {
+  it("starts with no Dartbot dart in flight", () => {
+    expect(singlesTrainingPlay().botFlight).toBeNull();
+  });
+
+  it("offers the who-throws-first step on rematch, closed until asked", () => {
+    const play = singlesTrainingPlay();
+    expect(play.starterOpen).toBe(false);
+    expect(play.playAgainStarter).toBeNull();
+    expect(typeof play.requestPlayAgain).toBe("function");
+  });
+});

@@ -8,6 +8,7 @@ import { addBotOpponent, addTypedGuest } from "@lib/game/guest-list";
 import { createSetupSession } from "@lib/game/setup-session";
 import {
   participantsFromGuests,
+  starterFirst,
   resolveSessionModePair,
   startSessionInput,
 } from "@lib/game/session-mode-resolution";
@@ -94,7 +95,10 @@ export function createPresetSetupController<Ctx extends PresetSetupContext>(
           rulesetVersionKey,
           this.$store.settings,
         );
-        const participants = participantsFromGuests(this.guests, this.bot);
+        const participants = starterFirst(
+          participantsFromGuests(this.guests, this.bot),
+          this.starterIndex,
+        );
         const session = await createSession({
           gameTypeKey,
           rulesetVersionKey,

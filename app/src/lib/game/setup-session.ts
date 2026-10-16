@@ -5,7 +5,7 @@ import {
 } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { DEFAULT_BOT_LEVEL } from "@lib/game/rulesets/capabilities";
-import type { SetupSessionContext } from "./types";
+import type { SetupSessionContext, StarterStepOptions } from "./types";
 
 /**
  * The part of every setup controller that never varies by game: the modal,
@@ -17,6 +17,10 @@ import type { SetupSessionContext } from "./types";
  * A session held elsewhere opens the same modal with `activeSessionLocal`
  * false: it cannot be continued here, only abandoned or left alone, and the
  * picker stays hidden while it is ACTIVE (single active session, D118; D460).
+ *
+ * With an opponent, `beginStart()` (the form's submit) opens the
+ * who-throws-first step instead of starting; its result lands in
+ * `starterIndex` and then calls `start()`, which seats the starter first.
  *
  * `start()`, `init()` and `addGuest()`/`addBot()` stay in each controller;
  * they differ per game.
@@ -42,6 +46,35 @@ export function createSetupSession(options: {
     showOpponentChooser: false,
     pendingBotLevel: DEFAULT_BOT_LEVEL as number,
     showBotLevelPicker: false,
+    starterOpen: false,
+    starterIndex: 0 as 0 | 1,
+
+    beginStart(this: SetupSessionContext) {
+      if (this.guests.length === 0 && !this.bot) return this.start();
+      this.starterOpen = true;
+    },
+
+    resolveStarter(this: SetupSessionContext, starterIndex: 0 | 1) {
+      this.starterIndex = starterIndex;
+      this.starterOpen = false;
+      return this.start();
+    },
+
+    cancelStarter(this: SetupSessionContext) {
+      this.starterOpen = false;
+    },
+
+    starterOptions(this: SetupSessionContext): StarterStepOptions {
+      return {
+        sides: () => [
+          this.$store.profile?.displayName || "You",
+          this.bot ? "Dartbot" : (this.guests[0]?.displayName ?? ""),
+        ],
+        opponentIsBot: () => this.bot !== null,
+        onResolve: (starterIndex) => void this.resolveStarter(starterIndex),
+        onCancel: () => this.cancelStarter(),
+      };
+    },
 
     async reconcile(
       this: SetupSessionContext,

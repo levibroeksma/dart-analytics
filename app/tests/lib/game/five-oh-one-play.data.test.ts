@@ -1725,17 +1725,42 @@ describe("DartBot opponent", () => {
   });
 
   it("under QUICK_SCORE, the bot's visit uploads as one turn with darts: []", async () => {
+    vi.useFakeTimers();
     const play = makePlay({ configSnapshot: botConfig() });
     await play.init.call(play);
     play.scoreInput.setValue("26");
 
-    await play.submitVisit.call(play);
+    const submitted = play.submitVisit.call(play);
+    await vi.runAllTimersAsync();
+    await submitted;
+    vi.useRealTimers();
 
     const botTurn = play.$store.game.turns.find(
       (turn) => turn.participantRef === BOT_REF,
     );
     expect(botTurn).toBeDefined();
     expect(botTurn!.darts).toEqual([]);
+  });
+
+  it("under QUICK_SCORE, records the bot's visit once its darts have flown, then clears the flight", async () => {
+    vi.useFakeTimers();
+    const play = makePlay({ configSnapshot: botConfig() });
+    await play.init.call(play);
+    play.scoreInput.setValue("26");
+    const botTurns = () =>
+      play.$store.game.turns.filter((turn) => turn.participantRef === BOT_REF);
+
+    const submitted = play.submitVisit.call(play);
+    await vi.advanceTimersByTimeAsync(100);
+    expect(play.botFlight?.phase).toBe("aim");
+    expect(botTurns()).toHaveLength(0);
+
+    await vi.runAllTimersAsync();
+    await submitted;
+    vi.useRealTimers();
+
+    expect(botTurns()).toHaveLength(1);
+    expect(play.botFlight).toBeNull();
   });
 
   it("undoVisit crosses the seat boundary back to the human", async () => {
@@ -1968,5 +1993,18 @@ describe("501_V2 play", () => {
         }),
       }),
     );
+  });
+});
+
+describe("fiveOhOnePlay bot flight", () => {
+  it("starts with no Dartbot dart in flight", () => {
+    expect(fiveOhOnePlay().botFlight).toBeNull();
+  });
+
+  it("offers the who-throws-first step on rematch, closed until asked", () => {
+    const play = fiveOhOnePlay();
+    expect(play.starterOpen).toBe(false);
+    expect(play.playAgainStarter).toBeNull();
+    expect(typeof play.requestPlayAgain).toBe("function");
   });
 });

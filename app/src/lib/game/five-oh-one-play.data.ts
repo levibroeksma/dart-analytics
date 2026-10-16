@@ -1,3 +1,4 @@
+import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
@@ -20,6 +21,7 @@ import {
   playAbandonAndExit,
   playBack,
   playCommitDart,
+  playAnimateBotDarts,
   playFoldBotQuickScoreVisit,
   playRunBotVisualBoardVisit,
   playUploadAndCompleteSession,
@@ -334,7 +336,9 @@ export function fiveOhOnePlay() {
     pendingDartObservation: null as DartObservation | null,
     showDoubleConfirm: false,
     showMatchFinishConfirm: false,
+    ...playAgainStarterData(),
     botThrowing: false,
+    botFlight: null,
     engine: null as FiveOhOneEngine | null,
     hiddenTurnKey: null as string | null,
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,
@@ -805,6 +809,10 @@ export function fiveOhOnePlay() {
             throwBotQuickScoreDart(scratchState, botSeat, dartIndex++),
           DARTS_PER_VISIT,
         );
+        if (
+          !(await playAnimateBotDarts(this, botSeat.participantRef, fold.darts))
+        )
+          return;
         await this.recordVisit(
           fold.totalScore,
           fold.totalScore === remainingBefore,

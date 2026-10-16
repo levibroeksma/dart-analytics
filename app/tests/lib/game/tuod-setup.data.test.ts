@@ -503,6 +503,47 @@ describe("tuodSetup", () => {
         }),
       );
     });
+
+    it("seats the guest first as side A when the guest won the starter step", async () => {
+      const setup = createSetup({
+        presets: [ROUND_PRESET, MINUTES_PRESET],
+        durationType: "ROUNDS",
+      });
+      setup.newGuestName = "Guest 1";
+      setup.addGuest();
+      vi.mocked(sessionsApi.createSession).mockResolvedValue({
+        sessionId: "new-session-id",
+        participants: [
+          {
+            ref: "participant-1",
+            displayName: "Player",
+            participantTypeKey: "PLAYER",
+          },
+          {
+            ref: "participant-2",
+            displayName: "Guest 1",
+            participantTypeKey: "GUEST",
+          },
+        ],
+      } as any);
+      vi.stubGlobal("location", { href: "" });
+
+      setup.starterIndex = 1;
+      await setup.start();
+
+      expect(sessionsApi.createSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          participants: [
+            {
+              participantTypeKey: "GUEST",
+              displayName: "Guest 1",
+              sideKey: "A",
+            },
+            { participantTypeKey: "PLAYER", sideKey: "B" },
+          ],
+        }),
+      );
+    });
   });
 });
 

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  starterFirst,
   participantsFromGuests,
   participantsFromSeats,
   resolveSessionModePair,
@@ -294,5 +295,33 @@ describe("participantsFromGuests", () => {
   it("omits the field entirely when there is no guest and no bot", () => {
     expect(participantsFromGuests([], null)).toBeUndefined();
     expect(participantsFromGuests([], undefined)).toBeUndefined();
+  });
+});
+
+describe("starterFirst", () => {
+  const bot = participantsFromGuests([], { level: 7 });
+
+  it("keeps the order when seat 0 starts", () => {
+    expect(starterFirst(bot, 0)).toEqual(bot);
+  });
+
+  it("moves the opponent first for 1 and re-letters sides", () => {
+    expect(starterFirst(bot, 1)).toEqual([
+      { participantTypeKey: "DARTBOT", level: 7, sideKey: "A" },
+      { participantTypeKey: "PLAYER", sideKey: "B" },
+    ]);
+  });
+
+  it("moves a guest first and keeps its name", () => {
+    expect(
+      starterFirst(participantsFromGuests([{ displayName: "Rosa" }]), 1),
+    ).toEqual([
+      { participantTypeKey: "GUEST", displayName: "Rosa", sideKey: "A" },
+      { participantTypeKey: "PLAYER", sideKey: "B" },
+    ]);
+  });
+
+  it("undefined stays undefined", () => {
+    expect(starterFirst(undefined, 1)).toBeUndefined();
   });
 });

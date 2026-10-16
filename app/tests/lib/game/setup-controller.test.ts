@@ -260,6 +260,35 @@ describe("createPresetSetupController", () => {
       );
     });
 
+    it("start() seats the guest first when the guest won the starter step", async () => {
+      const setup = bobs27();
+      setup.presets = [BOBS27_PRESET];
+      vi.mocked(sessionsApi.createSession).mockResolvedValue(SESSION);
+
+      setup.newGuestName = "Guest 1";
+      setup.addGuest();
+      setup.newGuestName = "Guest 2";
+      setup.addGuest();
+      expect(setup.guests).toHaveLength(1);
+      expect(setup.guests[0].displayName).toBe("Guest 1");
+
+      setup.starterIndex = 1;
+      await setup.start();
+
+      expect(sessionsApi.createSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          participants: [
+            {
+              participantTypeKey: "GUEST",
+              displayName: "Guest 1",
+              sideKey: "A",
+            },
+            { participantTypeKey: "PLAYER", sideKey: "B" },
+          ],
+        }),
+      );
+    });
+
     it("start() omits participants entirely when no guest was added", async () => {
       const setup = bobs27();
       setup.presets = [BOBS27_PRESET];

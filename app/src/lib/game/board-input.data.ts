@@ -18,7 +18,7 @@ import type { BoardMarker, BoardView } from "./types";
  * they scale with it, and that conversion needs the same extent the SVG is
  * authored in.
  */
-const BOARD_HALF_EXTENT_MM = 220;
+export const BOARD_HALF_EXTENT_MM = 220;
 
 function idleView(): BoardView {
   return {

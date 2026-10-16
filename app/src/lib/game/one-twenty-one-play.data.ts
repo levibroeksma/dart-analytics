@@ -1,3 +1,4 @@
+import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { foldOneTwentyOneState } from "@modules/game/one-twenty-one.engine.module";
@@ -16,6 +17,7 @@ import {
   playAbandonAndExit,
   playBack,
   playCommitDart,
+  playAnimateBotDarts,
   playFoldBotQuickScoreVisit,
   playRunBotVisualBoardVisit,
   playToggleTimerPause,
@@ -329,7 +331,9 @@ export function oneTwentyOnePlay() {
     pendingDartObservation: null as DartObservation | null,
     showDoubleConfirm: false,
     showSessionFinishConfirm: false,
+    ...playAgainStarterData(),
     botThrowing: false,
+    botFlight: null,
     engine: null as OneTwentyOneEngine | null,
     timer: null as SegmentTimer | null,
     hiddenTurnKey: null as string | null,
@@ -611,6 +615,10 @@ export function oneTwentyOnePlay() {
             throwBotQuickScoreDart(scratchState, botSeat, dartIndex++),
           DARTS_PER_VISIT,
         );
+        if (
+          !(await playAnimateBotDarts(this, botSeat.participantRef, fold.darts))
+        )
+          return;
         await this.recordVisit(
           fold.totalScore,
           fold.totalScore === remainingBefore,

@@ -3,6 +3,7 @@ import {
   participantsFromSeats,
   reseatSnapshot,
   resolveSessionModePair,
+  starterFirst,
 } from "@lib/game/session-mode-resolution";
 import {
   appendBatch,
@@ -13,6 +14,11 @@ import {
 import { buildEventsBatch } from "@modules/game/events.payload.module";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { markersForTurns } from "@lib/game/board-input.data";
+import {
+  botFlightSchedule,
+  dartLabel,
+  observationPercent,
+} from "@lib/game/bot-flight";
 import type { RulesetVersionKey, Seated } from "@lib/types";
 import type { SegmentTimer } from "@modules/ui/segment-timer.module";
 import type {
@@ -26,6 +32,9 @@ import type { GameEngine, GameEngineFactory } from "@modules/interfaces";
 import type {
   BoardMarker,
   BotDartThrower,
+  BotFlight,
+  BotFlightPhase,
+  BotPacing,
   BotQuickScoreFold,
   BotQuickScoreThrower,
   GamePreviewSegment,
@@ -281,6 +290,68 @@ export function undoToActiveSeat<
   context.error = "";
 }
 
+const CENTRE_PERCENT = { leftPercent: 50, topPercent: 50 };
+const QUICK_SCORE_PACING: BotPacing = { preThrowMs: 900, postThrowMs: 250 };
+
+function botStillActive<
+  TConfig,
+  TEngine extends GameEngine<DartObservation, MultiSeatState>,
+  TResults,
+>(
+  context: PlayLifecycleContext<TConfig, TEngine, TResults>,
+  botParticipantRef: string,
+): boolean {
+  return (
+    !context.finished &&
+    !context.$store.game.timerPaused &&
+    context.engine?.state().activeParticipantRef === botParticipantRef
+  );
+}
+
+/**
+ * One bot dart through its flight: `aim`, `fly`, `hit` share `preThrowMs`
+ * (`botFlightSchedule`), then `land` holds for `postThrowMs` after `commit`
+ * runs. Returns `false` without landing as soon as `stillBots` fails after a
+ * beat; `landed` gains the dart once it lands.
+ */
+async function flyBotDart(
+  context: { botFlight?: BotFlight | null },
+  observation: DartObservation,
+  pacing: BotPacing,
+  landed: BotFlight["landed"],
+  wait: (ms: number) => Promise<void>,
+  stillBots: () => boolean,
+  commit: () => Promise<void> = async () => {},
+): Promise<boolean> {
+  const point = observationPercent(observation) ?? CENTRE_PERCENT;
+  const schedule = botFlightSchedule(pacing.preThrowMs);
+  const beats: [BotFlightPhase, number][] = [
+    ["aim", schedule.aimMs],
+    ["fly", schedule.flyMs],
+    ["hit", schedule.hitMs],
+  ];
+  for (const [phase, ms] of beats) {
+    context.botFlight = {
+      dartIndex: landed.length,
+      phase,
+      ...point,
+      landed: [...landed],
+    };
+    await wait(ms);
+    if (!stillBots()) return false;
+  }
+  await commit();
+  landed.push({ ...point, label: dartLabel(observation) });
+  context.botFlight = {
+    dartIndex: landed.length - 1,
+    phase: "land",
+    ...point,
+    landed: [...landed],
+  };
+  await wait(pacing.postThrowMs);
+  return true;
+}
+
 function defaultBotWait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -300,6 +371,12 @@ function defaultBotWait(ms: number): Promise<void> {
  * delay. Guard 2 is load-bearing on its own; guard 1 only prevents two
  * *overlapping* loops from both reaching guard 2's window at once.
  *
+ * Each dart's `preThrowMs` is split into the flight's aim, fly and hit beats
+ * (`botFlightSchedule`), with `context.botFlight` set for each so the board
+ * can draw it; the dart lands into `land` for `postThrowMs`. The seat is
+ * re-checked after every beat, and `botFlight` is cleared however the loop
+ * ends.
+ *
  * `wouldComplete` is forwarded to each `playCommitDart`; see there.
  */
 export async function playRunBotVisualBoardVisit<
@@ -309,6 +386,7 @@ export async function playRunBotVisualBoardVisit<
 >(
   context: PlayLifecycleContext<TConfig, TEngine, TResults> & {
     botThrowing: boolean;
+    botFlight?: BotFlight | null;
   },
   botParticipantRef: string,
   throwDart: BotDartThrower,
@@ -319,27 +397,67 @@ export async function playRunBotVisualBoardVisit<
   if (context.$store.game.timerPaused) return;
   if (context.engine.state().activeParticipantRef !== botParticipantRef) return;
 
+  const stillBots = () => botStillActive(context, botParticipantRef);
+
   context.botThrowing = true;
+  const landed: BotFlight["landed"] = [];
   try {
-    while (
-      !context.finished &&
-      !context.$store.game.timerPaused &&
-      context.engine.state().activeParticipantRef === botParticipantRef
-    ) {
+    while (stillBots()) {
       const { observation, pacing } = throwDart();
-      await wait(pacing.preThrowMs);
-      if (
-        context.finished ||
-        context.$store.game.timerPaused ||
-        context.engine.state().activeParticipantRef !== botParticipantRef
-      ) {
-        return;
-      }
-      await playCommitDart(context, observation, wouldComplete);
-      await wait(pacing.postThrowMs);
+      const flew = await flyBotDart(
+        context,
+        observation,
+        pacing,
+        landed,
+        wait,
+        stillBots,
+        () => playCommitDart(context, observation, wouldComplete),
+      );
+      if (!flew) return;
     }
   } finally {
     context.botThrowing = false;
+    context.botFlight = null;
+  }
+}
+
+/**
+ * Replays a QUICK_SCORE bot visit's darts on the board (`botFlight`) with the
+ * visual board's own beats, recording nothing. Resolves `true` once every
+ * dart has landed, `false` (flight cleared) as soon as the session finishes,
+ * pauses or the active seat leaves the bot, so the caller skips recording.
+ */
+export async function playAnimateBotDarts<
+  TConfig,
+  TEngine extends GameEngine<DartObservation, MultiSeatState>,
+  TResults,
+>(
+  context: PlayLifecycleContext<TConfig, TEngine, TResults> & {
+    botFlight?: BotFlight | null;
+  },
+  botParticipantRef: string,
+  darts: readonly DartObservation[],
+  wait: (ms: number) => Promise<void> = defaultBotWait,
+  pacing: BotPacing = QUICK_SCORE_PACING,
+): Promise<boolean> {
+  const stillBots = () => botStillActive(context, botParticipantRef);
+  const landed: BotFlight["landed"] = [];
+  try {
+    for (const observation of darts) {
+      if (!stillBots()) return false;
+      const flew = await flyBotDart(
+        context,
+        observation,
+        pacing,
+        landed,
+        wait,
+        stillBots,
+      );
+      if (!flew) return false;
+    }
+    return true;
+  } finally {
+    context.botFlight = null;
   }
 }
 
@@ -347,9 +465,10 @@ export async function playRunBotVisualBoardVisit<
  * Feeds `throwDart`'s darts into a throwaway instance of the same ruleset,
  * built from `facts` exactly as a page's own `resumeEngine` rehydrates one —
  * `08-DartBot.md` §The Play Loop's "a scratch engine, never arithmetic in
- * the adapter". The scratch engine is discarded when this returns; only its
- * final visit's `totalScore`/`darts.length` survive, so a QUICK_SCORE bot
- * visit's coordinates never reach any caller.
+ * the adapter". The scratch engine is discarded when this returns; its
+ * final visit's `totalScore`/`darts.length` and the thrown darts survive. The
+ * darts are for `playAnimateBotDarts` to replay on the board and never reach
+ * the fact log (08-DartBot.md §The Play Loop).
  *
  * `throwDart` reads the scratch engine's own state — the only way a
  * QUICK_SCORE strategy can re-target between darts without the adapter or
@@ -368,14 +487,18 @@ export function playFoldBotQuickScoreVisit<TConfig, TInput, TState>(
   dartsPerVisit: number,
 ): BotQuickScoreFold {
   const scratch = factory.create(config, facts);
+  const darts: DartObservation[] = [];
   for (let i = 0; i < dartsPerVisit && !scratch.isComplete(); i++) {
-    scratch.record(throwDart(scratch.state()) as TInput);
+    const dart = throwDart(scratch.state());
+    darts.push(dart);
+    scratch.record(dart as TInput);
     if (scratch.facts().turns.at(-1)?.completedAt) break;
   }
   const visitTurn = scratch.facts().turns.at(-1)!;
   return {
     totalScore: visitTurn.totalScore,
     dartsThrown: visitTurn.darts.length,
+    darts,
   };
 }
 
@@ -575,7 +698,10 @@ export async function runPlayAgain<
         config: overrides
           ? { source: "template", templateRef, overrides: overrides.wire }
           : { source: "template", templateRef },
-        participants: participantsFromSeats(config.seats),
+        participants: starterFirst(
+          participantsFromSeats(config.seats),
+          context.playAgainStarter ?? 0,
+        ),
       });
     } catch (err: unknown) {
       const code = (err as { code?: unknown }).code;
@@ -591,6 +717,7 @@ export async function runPlayAgain<
       session.participants,
     ) as Seated<TConfig>;
 
+    context.playAgainStarter = null;
     context.$store.game.sessionId = session.sessionId;
     context.$store.game.idempotencyKey = null;
     context.$store.game.configSnapshot = seatedSnapshot;

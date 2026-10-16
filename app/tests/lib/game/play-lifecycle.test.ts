@@ -46,6 +46,7 @@ import {
   playFoldBotQuickScoreVisit,
   playPreviewSegments,
   playRetryReconciliation,
+  playAnimateBotDarts,
   playRunBotVisualBoardVisit,
   playToggleTimerPause,
   playUndoVisit,
@@ -64,6 +65,7 @@ import type {
 import type { GameEngine, GameEngineFactory } from "@modules/interfaces";
 import type {
   BotDartThrower,
+  BotFlight,
   BotPacing,
   PlayLifecycleContext,
   RulesetVersionKey,
@@ -856,7 +858,7 @@ type BotCtx = PlayLifecycleContext<
   { seats: readonly SeatFact[] },
   BotFakeEngine,
   unknown
-> & { botThrowing: boolean };
+> & { botThrowing: boolean; botFlight: BotFlight | null };
 
 function makeBotContext(
   engine: BotFakeEngine,
@@ -877,6 +879,7 @@ function makeBotContext(
     hiddenTurnKey: null,
     hiddenTimer: null,
     botThrowing: false,
+    botFlight: null,
     engine,
     $store: {
       game: {
@@ -1028,7 +1031,7 @@ describe("playRunBotVisualBoardVisit", () => {
     expect(context.botThrowing).toBe(false);
   });
 
-  it("waits preThrowMs then postThrowMs around the recorded dart, in order", async () => {
+  it("splits preThrowMs into aim, fly and hit beats, then waits postThrowMs", async () => {
     const engine = new BotFakeEngine(TWO_BOT_SEATS);
     engine.record(dartAt(20));
     const context = makeBotContext(engine, TWO_BOT_SEATS);
@@ -1044,7 +1047,57 @@ describe("playRunBotVisualBoardVisit", () => {
       wait,
     );
 
-    expect(calls).toEqual([900, 250]);
+    expect(calls).toEqual([590, 240, 70, 250]);
+  });
+
+  it("sets aim, fly, hit, land per dart then clears", async () => {
+    const engine = new BotFakeEngine(TWO_BOT_SEATS);
+    engine.record(dartAt(20));
+    const context = makeBotContext(engine, TWO_BOT_SEATS);
+    const seen: (string | undefined)[] = [];
+    const landed: string[][] = [];
+    const wait = vi.fn().mockImplementation(async () => {
+      seen.push(context.botFlight?.phase);
+      landed.push(context.botFlight?.landed.map((d) => d.label) ?? []);
+    });
+
+    await playRunBotVisualBoardVisit(context, BOT_REF, stubThrower([19]), wait);
+
+    expect(seen).toEqual(["aim", "fly", "hit", "land"]);
+    expect(landed).toEqual([[], [], [], ["S19"]]);
+    expect(context.botFlight).toBeNull();
+  });
+
+  it("aims the flight at the dart's landing point", async () => {
+    const engine = new BotFakeEngine(TWO_BOT_SEATS);
+    engine.record(dartAt(20));
+    const context = makeBotContext(engine, TWO_BOT_SEATS);
+    let flight: BotFlight | null = null;
+    const wait = vi.fn().mockImplementation(async () => {
+      flight ??= context.botFlight && { ...context.botFlight };
+    });
+
+    await playRunBotVisualBoardVisit(context, BOT_REF, stubThrower([19]), wait);
+
+    expect(flight).toMatchObject({
+      dartIndex: 0,
+      leftPercent: 50,
+      topPercent: ((-102 + 220) / 440) * 100,
+    });
+  });
+
+  it("clears flight when the active seat moves away", async () => {
+    const engine = new BotFakeEngine(TWO_BOT_SEATS);
+    engine.record(dartAt(20));
+    const context = makeBotContext(engine, TWO_BOT_SEATS);
+    const wait = vi.fn().mockImplementation(async () => {
+      undoToActiveSeat(context, HUMAN_REF);
+    });
+
+    await playRunBotVisualBoardVisit(context, BOT_REF, stubThrower([19]), wait);
+
+    expect(engine.facts().turns).toHaveLength(0);
+    expect(context.botFlight).toBeNull();
   });
 
   it("does nothing when it is not the bot's turn", async () => {
@@ -1298,8 +1351,25 @@ describe("playFoldBotQuickScoreVisit", () => {
       3,
     );
 
-    expect(fold).toEqual({ totalScore: 180, dartsThrown: 3 });
+    expect(fold).toMatchObject({ totalScore: 180, dartsThrown: 3 });
     expect(real.facts().turns).toHaveLength(1);
+  });
+
+  it("returns the scratch darts it threw, for the board to replay", () => {
+    const real = scoreTrainingEngineFactory.create(SCORE_TRAINING_CONFIG);
+    real.record(20);
+    const darts = [TREBLE_TWENTY, TREBLE_TWENTY, MISS_DART];
+    let i = 0;
+
+    const fold = playFoldBotQuickScoreVisit(
+      scoreTrainingEngineFactory,
+      SCORE_TRAINING_CONFIG,
+      real.facts(),
+      () => darts[i++]!,
+      3,
+    );
+
+    expect(fold.darts).toEqual(darts);
   });
 
   it("recording the folded total on the real engine writes one turn with darts: []", () => {
@@ -1380,7 +1450,7 @@ describe("playFoldBotQuickScoreVisit", () => {
     );
 
     expect(calls).toBe(2);
-    expect(fold).toEqual({ totalScore: 60, dartsThrown: 2 });
+    expect(fold).toMatchObject({ totalScore: 60, dartsThrown: 2 });
   });
 });
 
@@ -1743,6 +1813,22 @@ describe("runPlayAgain — a replayed 1v1 match", () => {
     ]);
   });
 
+  it("seats the new starter first when the starter step picked seat 1", async () => {
+    const context = twoSeatContext();
+    context.playAgainStarter = 1;
+    mockTwoSeatSession();
+
+    await runPlayAgain(context, GAME_TYPE_KEY, RULESET_VERSION_KEY, (engine) =>
+      engine instanceof FakeEngine ? engine : null,
+    );
+
+    expect(vi.mocked(createSession).mock.calls[0][0].participants).toEqual([
+      { participantTypeKey: "GUEST", displayName: "Guest", sideKey: "A" },
+      { participantTypeKey: "PLAYER", sideKey: "B" },
+    ]);
+    expect(context.playAgainStarter).toBeNull();
+  });
+
   it("builds the replay's engine from the NEW session's participant refs, never the finished session's", async () => {
     const context = twoSeatContext();
     mockTwoSeatSession();
@@ -2063,5 +2149,67 @@ describe("resumeGameEngine", () => {
     expect(
       resumeGameEngine(game, "SCORE_TRAINING_V1", (_c): _c is never => false),
     ).toBeNull();
+  });
+});
+
+describe("playAnimateBotDarts", () => {
+  const PACING = { preThrowMs: 900, postThrowMs: 250 };
+
+  it("animates every dart through aim, fly, hit, land and returns true", async () => {
+    const engine = new BotFakeEngine(TWO_BOT_SEATS);
+    engine.record(dartAt(20));
+    const context = makeBotContext(engine, TWO_BOT_SEATS);
+    const seen: string[] = [];
+    const wait = vi.fn().mockImplementation(async () => {
+      seen.push(`${context.botFlight?.dartIndex}:${context.botFlight?.phase}`);
+    });
+
+    const done = await playAnimateBotDarts(
+      context,
+      BOT_REF,
+      [dartAt(19), dartAt(18), dartAt(17)],
+      wait,
+      PACING,
+    );
+
+    expect(done).toBe(true);
+    expect(seen).toEqual([
+      "0:aim",
+      "0:fly",
+      "0:hit",
+      "0:land",
+      "1:aim",
+      "1:fly",
+      "1:hit",
+      "1:land",
+      "2:aim",
+      "2:fly",
+      "2:hit",
+      "2:land",
+    ]);
+    expect(context.botFlight).toBeNull();
+    expect(engine.facts().turns).toHaveLength(1);
+  });
+
+  it("returns false and clears flight when paused mid-visit", async () => {
+    const engine = new BotFakeEngine(TWO_BOT_SEATS);
+    engine.record(dartAt(20));
+    const context = makeBotContext(engine, TWO_BOT_SEATS);
+    let calls = 0;
+    const wait = vi.fn().mockImplementation(async () => {
+      if (++calls === 2) context.$store.game.timerPaused = true;
+    });
+
+    const done = await playAnimateBotDarts(
+      context,
+      BOT_REF,
+      [dartAt(19), dartAt(18), dartAt(17)],
+      wait,
+      PACING,
+    );
+
+    expect(done).toBe(false);
+    expect(wait).toHaveBeenCalledTimes(2);
+    expect(context.botFlight).toBeNull();
   });
 });

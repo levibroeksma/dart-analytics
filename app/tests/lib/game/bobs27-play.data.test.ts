@@ -1031,3 +1031,16 @@ describe("subtitle", () => {
     expect(play.subtitle.call(play)).toBe("ROUND 21 OF 21");
   });
 });
+
+describe("bobs27Play bot flight", () => {
+  it("starts with no Dartbot dart in flight", () => {
+    expect(bobs27Play().botFlight).toBeNull();
+  });
+
+  it("offers the who-throws-first step on rematch, closed until asked", () => {
+    const play = bobs27Play();
+    expect(play.starterOpen).toBe(false);
+    expect(play.playAgainStarter).toBeNull();
+    expect(typeof play.requestPlayAgain).toBe("function");
+  });
+});

@@ -1200,3 +1200,16 @@ describe("V2", () => {
     expect(segmentTimerInstances).toHaveLength(1);
   });
 });
+
+describe("aroundTheClockPlay bot flight", () => {
+  it("starts with no Dartbot dart in flight", () => {
+    expect(aroundTheClockPlay().botFlight).toBeNull();
+  });
+
+  it("offers the who-throws-first step on rematch, closed until asked", () => {
+    const play = aroundTheClockPlay();
+    expect(play.starterOpen).toBe(false);
+    expect(play.playAgainStarter).toBeNull();
+    expect(typeof play.requestPlayAgain).toBe("function");
+  });
+});

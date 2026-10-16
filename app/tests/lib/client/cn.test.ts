@@ -54,6 +54,37 @@ describe("cn", () => {
     expect(cn("fixed", "bottom-above-nav")).toBe("fixed bottom-above-nav");
   });
 
+  it("lets a later deck depth or motion state replace an earlier one", () => {
+    expect(
+      cn("deck-card deck-depth-0 deck-rest", "deck-depth-2 deck-parked"),
+    ).toBe("deck-card deck-depth-2 deck-parked");
+  });
+
+  it("lets a later seat layer fade replace an earlier one", () => {
+    expect(cn("seat-layer-out", "seat-layer-in")).toBe("seat-layer-in");
+  });
+
+  it("lets a later dart animation replace an earlier one", () => {
+    expect(cn("animate-dart-fly", "animate-dart-stick")).toBe(
+      "animate-dart-stick",
+    );
+  });
+
+  it("lets the coin's lift state replace the other", () => {
+    expect(cn("coin-up", "coin-down")).toBe("coin-down");
+  });
+
+  it("lets bull-crop-board replace a component's own relative position", () => {
+    expect(cn("relative touch-none", "bull-crop-board")).toBe(
+      "touch-none bull-crop-board",
+    );
+  });
+
+  it("no longer registers the retired card-stack slabs", () => {
+    expect(UTILITY_GROUPS).not.toHaveProperty("stack-slab-1");
+    expect(UTILITY_GROUPS).not.toHaveProperty("stack-slab-2");
+  });
+
   it("lets section-ring-inset replace stock inset and composes highlight-glow freely", () => {
     expect(cn("inset-0", "section-ring-inset")).toBe("section-ring-inset");
     expect(cn("fill-none", "highlight-glow")).toBe("fill-none highlight-glow");

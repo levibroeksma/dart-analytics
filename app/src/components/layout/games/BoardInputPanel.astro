@@ -16,6 +16,9 @@
  * screen, and gating on it renders the board over a QUICK_SCORE session, whose
  * dart rows the server refuses for the entire batch at completion.
  *
+ * During a Dartbot visit `BotVisitStrip` tops the panel and `BotDartFlight`
+ * draws the dart in flight over the board (`botFlight`).
+ *
  * Markers show the most recent visit's darts — see `markersForTurns` for why
  * that is the last turn rather than only an open one. They are rendered into
  * `<DartBoard />`'s slot, which overlays the SVG rather than living inside it.
@@ -44,6 +47,8 @@
 import DartBoard from "@components/ui/DartBoard.astro";
 import BoardMagnifier from "@components/ui/BoardMagnifier.astro";
 import InputButton from "@components/layout/games/InputButton.astro";
+import BotDartFlight from "@components/layout/games/BotDartFlight.astro";
+import BotVisitStrip from "@components/layout/games/BotVisitStrip.astro";
 
 // Icons
 import UndoIcon from "@icons/undo.svg";
@@ -70,6 +75,7 @@ const {
     aria-hidden="true"
   >
   </div>
+  <BotVisitStrip />
   <div class="flex min-h-0 w-full flex-1 items-center justify-center">
     <div
       class="relative aspect-square h-full max-w-full touch-none"
@@ -98,6 +104,7 @@ const {
             </span>
           </template>
         </div>
+        <BotDartFlight />
       </DartBoard>
       <span
         class="pointer-events-none fixed z-10 size-11 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/12 ring-1 ring-white/25"

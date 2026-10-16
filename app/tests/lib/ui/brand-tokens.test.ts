@@ -210,8 +210,6 @@ describe("brand surfaces", () => {
   });
 
   it.each([
-    "@utility stack-slab-1",
-    "@utility stack-slab-2",
     "@utility border-medium",
     "@utility pt-safe",
     "@utility pb-safe",
@@ -223,16 +221,65 @@ describe("brand surfaces", () => {
     expect(() => block(selector)).not.toThrow();
   });
 
-  it("stack slabs carry their radius, slab colour and top light", () => {
-    const one = block("@utility stack-slab-1");
-    expect(one).toMatch(/border-bottom-left-radius: 1\.1875rem/);
-    expect(one).toMatch(/var\(--color-stack-1\)/);
-    expect(one).toMatch(/inset 0 -1px 0 oklch\(100% 0 0 \/ 0\.15\)/);
-    const two = block("@utility stack-slab-2");
-    expect(two).toMatch(/border-bottom-left-radius: 1\.125rem/);
-    expect(two).toMatch(/var\(--color-stack-2\)/);
-    expect(two).toMatch(/inset 0 -1px 0 oklch\(100% 0 0 \/ 0\.12\)/);
+  it("seat layers fade on the turn timing: out fast, in late", () => {
+    expect(block("@utility seat-layer-out")).toMatch(
+      /transition: opacity 150ms ease/,
+    );
+    expect(block("@utility seat-layer-in")).toMatch(
+      /transition: opacity 250ms ease 275ms/,
+    );
+    expect(block("@utility seat-glow")).toMatch(
+      /transition: opacity 500ms ease/,
+    );
   });
+
+  it("seat panel holds the published full seat height", () => {
+    expect(block("@utility seat-panel")).toMatch(
+      /height: var\(--seat-full, 100%\)/,
+    );
+  });
+
+  it.each(["seat-layer-out", "seat-layer-in", "seat-glow"])(
+    "%s drops its transition under reduced motion",
+    (name) => {
+      expect(block(`@utility ${name}`)).toMatch(
+        /prefers-reduced-motion: reduce\)\s*\{\s*transition: none/,
+      );
+    },
+  );
+
+  it("deck card carries the study's step timings", () => {
+    const card = block("@utility deck-card");
+    expect(card).toMatch(/--deck-out-duration: 440ms/);
+    expect(card).toMatch(
+      /--deck-out-ease: cubic-bezier\(0\.55, 0, 0\.75, 0\.35\)/,
+    );
+    expect(card).toMatch(/--deck-rise-duration: 460ms/);
+    expect(card).toMatch(/--deck-rise-delay: 60ms/);
+    expect(card).toMatch(/--deck-return-duration: 500ms/);
+    expect(card).toMatch(/--deck-ease: cubic-bezier\(0\.2, 0\.8, 0\.2, 1\)/);
+    expect(card).toMatch(/transform-origin: 50% 100%/);
+  });
+
+  it.each([
+    ["deck-depth-0", "0rem", "1", "0"],
+    ["deck-depth-1", "0.5rem", "0.933", "0.6"],
+    ["deck-depth-2", "1rem", "0.866", "0.8"],
+  ])("%s sets offset %s, scale %s, tint %s", (name, y, scale, tint) => {
+    const depth = block(`@utility ${name}`);
+    expect(depth).toContain(`--deck-y: ${y};`);
+    expect(depth).toContain(`--deck-scale: ${scale};`);
+    expect(depth).toContain(`--deck-tint: ${tint};`);
+  });
+
+  it.each(["deck-rest", "deck-entering", "deck-leaving", "deck-exiting"])(
+    "%s falls back to an opacity fade under reduced motion",
+    (name) => {
+      expect(block(`@utility ${name}`)).toMatch(
+        /prefers-reduced-motion: reduce\)\s*\{\s*transition: opacity var\(--deck-fade-duration\) linear/,
+      );
+    },
+  );
 });
 
 function oklchContrast(a: string, b: string): number {
@@ -423,5 +470,82 @@ describe("game play surfaces", () => {
 
   it("defines the magnifier drop shadow", () => {
     expect(decl("shadow-magnifier")).toBe("0 8px 24px oklch(0% 0 0 / 0.6)");
+  });
+});
+
+describe("dart motion", () => {
+  it.each([
+    [
+      "animate-reticle-aim",
+      "reticle-aim 600ms cubic-bezier(0.3, 1.4, 0.5, 1) both",
+    ],
+    [
+      "animate-dart-fly",
+      "dart-fly 240ms cubic-bezier(0.55, 0, 0.9, 0.55) both",
+    ],
+    [
+      "animate-dart-stick",
+      "dart-stick 300ms cubic-bezier(0.3, 1.6, 0.5, 1) both",
+    ],
+    ["animate-dart-ripple", "dart-ripple 500ms ease-out both"],
+  ])("%s is %s", (token, value) => {
+    expect(decl(token)).toBe(value);
+  });
+
+  it("flies the dart in from its board-relative start at 2.6x", () => {
+    expect(css).toMatch(
+      /@keyframes dart-fly\s*\{\s*from\s*\{\s*transform: translate\(-50%, -50%\) translate\(var\(--fly-x\), var\(--fly-y\)\)\s+scale\(2\.6\);/,
+    );
+  });
+
+  it("ripples from 0.5 to 3.2 while fading from 0.9", () => {
+    expect(css).toMatch(
+      /@keyframes dart-ripple\s*\{\s*from\s*\{\s*opacity: 0\.9;\s*transform: translate\(-50%, -50%\) scale\(0\.5\);\s*\}\s*to\s*\{\s*opacity: 0;\s*transform: translate\(-50%, -50%\) scale\(3\.2\);/,
+    );
+  });
+});
+
+describe("starter motion", () => {
+  it("flips the coin over 1500ms on the flip curve, faces back to back", () => {
+    const body = block("@utility coin-body");
+    expect(body).toMatch(/transform-style: preserve-3d/);
+    expect(body).toMatch(
+      /transition: transform 1500ms cubic-bezier\(0\.2, 0\.55, 0\.35, 1\)/,
+    );
+    expect(block("@utility coin-face")).toMatch(/backface-visibility: hidden/);
+    expect(block("@utility coin-back")).toMatch(/transform: rotateX\(180deg\)/);
+  });
+
+  it("rises 6rem at 1.18x and falls back over 750ms each", () => {
+    const up = block("@utility coin-up");
+    expect(up).toMatch(/transform: translateY\(-6rem\) scale\(1\.18\)/);
+    expect(up).toMatch(/750ms cubic-bezier\(0\.2, 0\.7, 0\.4, 1\)/);
+    const down = block("@utility coin-down");
+    expect(down).toMatch(/transform: translateY\(0\) scale\(1\)/);
+    expect(down).toMatch(/750ms cubic-bezier\(0\.6, 0, 0\.85, 0\.45\)/);
+  });
+
+  it("shrinks the shadow to 0.45 at 0.35 opacity at the peak", () => {
+    expect(block("@utility coin-shadow-up")).toMatch(
+      /opacity: 0\.35;\s*transform: scale\(0\.45\)/,
+    );
+  });
+
+  it("opens bull rings over 700ms, the second 250ms later", () => {
+    expect(block("@utility bull-ring")).toMatch(
+      /width 700ms cubic-bezier\(0\.2, 0\.8, 0\.2, 1\)/,
+    );
+    expect(block("@utility bull-ring-late")).toMatch(/transition-delay: 250ms/);
+  });
+
+  it("lights the starter's card over 400ms", () => {
+    expect(block("@utility starter-win")).toMatch(
+      /transition:\s*background 400ms ease,\s*box-shadow 400ms ease,\s*color 400ms ease/,
+    );
+  });
+
+  it("crops the board to the trebles: 191.3% centred", () => {
+    const crop = block("@utility bull-crop-board");
+    expect(crop).toMatch(/inset: -45\.65%/);
   });
 });

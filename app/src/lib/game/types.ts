@@ -95,6 +95,8 @@ export type SetupSessionContext = {
   showOpponentChooser: boolean;
   pendingBotLevel: number;
   showBotLevelPicker: boolean;
+  starterOpen: boolean;
+  starterIndex: 0 | 1;
   $store: {
     game: {
       sessionId: string | null;
@@ -105,7 +107,16 @@ export type SetupSessionContext = {
       captureModeKey: string;
       inputModeKey: string;
     };
+    profile?: { displayName: string };
   };
+  start(): Promise<void> | void;
+  beginStart(this: SetupSessionContext): Promise<void> | void;
+  resolveStarter(
+    this: SetupSessionContext,
+    starterIndex: 0 | 1,
+  ): Promise<void> | void;
+  cancelStarter(this: SetupSessionContext): void;
+  starterOptions(this: SetupSessionContext): StarterStepOptions;
   reconcile(
     this: SetupSessionContext,
     activeSessions: SessionActiveData[],
@@ -211,6 +222,22 @@ export type BotDartThrower = () => {
   pacing: BotPacing;
 };
 
+/** The beat a bot dart's flight is in (Animations.dc.html §03). */
+export type BotFlightPhase = "aim" | "fly" | "hit" | "land";
+
+/**
+ * A bot visit as the board draws it: the dart in flight (`dartIndex`,
+ * `phase`, landing point as board percentages) and the darts already
+ * landed this visit. Presentation only; never part of the fact log.
+ */
+export type BotFlight = {
+  dartIndex: number;
+  phase: BotFlightPhase;
+  leftPercent: number;
+  topPercent: number;
+  landed: { leftPercent: number; topPercent: number; label: string }[];
+};
+
 /**
  * What a play page hands `playFoldBotQuickScoreVisit` for each dart: a
  * function from the scratch engine's own live `state()` (after however many
@@ -223,12 +250,14 @@ export type BotQuickScoreThrower<TState> = (state: TState) => DartObservation;
 
 /**
  * The result of folding a QUICK_SCORE bot visit through a scratch engine
- * (`playFoldBotQuickScoreVisit`) — just enough for the real caller's own
- * `record()` input, never the scratch engine's per-dart facts.
+ * (`playFoldBotQuickScoreVisit`) — the real caller's own `record()` input,
+ * plus the thrown darts for the board to replay; never the scratch engine's
+ * per-dart facts.
  */
 export type BotQuickScoreFold = {
   totalScore: number;
   dartsThrown: number;
+  darts: DartObservation[];
 };
 
 /** The DARTBOT variant of `SeatFact`, narrowed once so every bot-visit path
@@ -322,6 +351,7 @@ export type PlayLifecycleContext<
   completionError: string;
   playAgainError: string;
   playAgainLoading: boolean;
+  playAgainStarter?: 0 | 1 | null;
   resultsSnapshot: TResults | null;
   hiddenTurnKey: string | null;
   hiddenTimer?: ReturnType<typeof setTimeout> | null;
@@ -381,6 +411,11 @@ export type ScoreTrainingPlayContext = PlayLifecycleContext<
   pendingDartObservation: DartObservation | null;
   showFinishConfirm: boolean;
   botThrowing: boolean;
+  botFlight: BotFlight | null;
+  starterOpen: boolean;
+  playAgainStarter: 0 | 1 | null;
+  requestPlayAgain(): unknown;
+  playAgainStarterOptions(): StarterStepOptions;
   timer: SegmentTimer | null;
   visitMarkers(this: ScoreTrainingPlayContext): BoardMarker[];
   state(this: ScoreTrainingPlayContext): ScoreTrainingState | null;
@@ -453,6 +488,11 @@ export type TuodPlayContext = PlayLifecycleContext<
   showDoubleConfirm: boolean;
   showFinishConfirm: boolean;
   botThrowing: boolean;
+  botFlight: BotFlight | null;
+  starterOpen: boolean;
+  playAgainStarter: 0 | 1 | null;
+  requestPlayAgain(): unknown;
+  playAgainStarterOptions(): StarterStepOptions;
   $store: PlayStoreContext<TuodSnapshot> & {
     checkoutHints?: CheckoutHintsStoreContext;
   };
@@ -656,6 +696,11 @@ export type FiveOhOnePlayContext = PlayLifecycleContext<
   showDoubleConfirm: boolean;
   showMatchFinishConfirm: boolean;
   botThrowing: boolean;
+  botFlight: BotFlight | null;
+  starterOpen: boolean;
+  playAgainStarter: 0 | 1 | null;
+  requestPlayAgain(): unknown;
+  playAgainStarterOptions(): StarterStepOptions;
   $store: PlayStoreContext<FiveOhOneAnySnapshot> & {
     checkoutHints?: CheckoutHintsStoreContext;
   };
@@ -742,6 +787,11 @@ export type OneTwentyOnePlayContext = PlayLifecycleContext<
   showDoubleConfirm: boolean;
   showSessionFinishConfirm: boolean;
   botThrowing: boolean;
+  botFlight: BotFlight | null;
+  starterOpen: boolean;
+  playAgainStarter: 0 | 1 | null;
+  requestPlayAgain(): unknown;
+  playAgainStarterOptions(): StarterStepOptions;
   $store: PlayStoreContext<OneTwentyOneSnapshot | OneTwentyOneV2Snapshot> & {
     checkoutHints?: CheckoutHintsStoreContext;
   };
@@ -821,6 +871,11 @@ export type Bobs27PlayContext = PlayLifecycleContext<
   Bobs27ResultsSnapshot
 > & {
   botThrowing: boolean;
+  botFlight: BotFlight | null;
+  starterOpen: boolean;
+  playAgainStarter: 0 | 1 | null;
+  requestPlayAgain(): unknown;
+  playAgainStarterOptions(): StarterStepOptions;
   visitMarkers(this: Bobs27PlayContext): BoardMarker[];
   state(this: Bobs27PlayContext): Bobs27State | null;
   subtitle(this: Bobs27PlayContext): string;
@@ -1001,6 +1056,11 @@ export type SinglesTrainingPlayContext = PlayLifecycleContext<
   SinglesTrainingResultsSnapshot
 > & {
   botThrowing: boolean;
+  botFlight: BotFlight | null;
+  starterOpen: boolean;
+  playAgainStarter: 0 | 1 | null;
+  requestPlayAgain(): unknown;
+  playAgainStarterOptions(): StarterStepOptions;
   state(this: SinglesTrainingPlayContext): SinglesTrainingState | null;
   subtitle(this: SinglesTrainingPlayContext): string;
   visitMarkers(this: SinglesTrainingPlayContext): BoardMarker[];
@@ -1121,6 +1181,11 @@ export type DoublesTrainingPlayContext = PlayLifecycleContext<
   DoublesTrainingResultsSnapshot
 > & {
   botThrowing: boolean;
+  botFlight: BotFlight | null;
+  starterOpen: boolean;
+  playAgainStarter: 0 | 1 | null;
+  requestPlayAgain(): unknown;
+  playAgainStarterOptions(): StarterStepOptions;
   state(this: DoublesTrainingPlayContext): DoublesTrainingState | null;
   subtitle(this: DoublesTrainingPlayContext): string;
   visitMarkers(this: DoublesTrainingPlayContext): BoardMarker[];
@@ -1196,6 +1261,11 @@ export type ShanghaiPlayContext = PlayLifecycleContext<
   ShanghaiResultsSnapshot
 > & {
   botThrowing: boolean;
+  botFlight: BotFlight | null;
+  starterOpen: boolean;
+  playAgainStarter: 0 | 1 | null;
+  requestPlayAgain(): unknown;
+  playAgainStarterOptions(): StarterStepOptions;
   visitMarkers(this: ShanghaiPlayContext): BoardMarker[];
   recordDart(
     this: ShanghaiPlayContext,
@@ -1268,6 +1338,11 @@ export type AroundTheClockPlayContext = PlayLifecycleContext<
   AroundTheClockResultsSnapshot
 > & {
   botThrowing: boolean;
+  botFlight: BotFlight | null;
+  starterOpen: boolean;
+  playAgainStarter: 0 | 1 | null;
+  requestPlayAgain(): unknown;
+  playAgainStarterOptions(): StarterStepOptions;
   timer: SegmentTimer | null;
   $watch(key: "$store.game.timerExpired", callback: () => void): void;
   isTimed(this: AroundTheClockPlayContext): boolean;
@@ -1364,7 +1439,26 @@ export type ResumeCard = {
 };
 
 /** Animation phase of the resume deck: at rest, top card leaving, next card rising, previous card entering. */
-export type ResumeDeckPhase = "idle" | "out" | "rise" | "in";
+export type ResumeDeckPhase = "idle" | "go" | "snap" | "back";
+
+/** Which way the resume deck is stepping. */
+export type DeckDirection = "next" | "prev";
+
+/**
+ * How one rendered deck card is moving. `leaving`/`parked`/`entering` carry a
+ * `next` step's old top off-left and back into the back slot; `exiting`/
+ * `staged`/`entering` carry a `prev` step's card out of the back slot and in
+ * on top.
+ */
+export type DeckSlotState =
+  "rest" | "leaving" | "parked" | "exiting" | "staged" | "entering";
+
+/** One rendered resume-deck card: its depth slot (0 = front) and motion. */
+export type DeckSlot = {
+  card: ResumeCard;
+  depth: 0 | 1 | 2;
+  state: DeckSlotState;
+};
 
 /** The `activeSessions` store: the page's one shared active-sessions fetch. */
 export type ActiveSessionsStore = {
@@ -1392,16 +1486,17 @@ export type ResumeDeckContext = {
   failed: boolean;
   swipeX: number | null;
   swipeY: number | null;
-  settleTimer: ReturnType<typeof setTimeout> | null;
+  from: number | null;
+  direction: DeckDirection | null;
+  animTimers: ReturnType<typeof setTimeout>[];
   $store: { game: LocalGame; activeSessions: ActiveSessionsStore };
   init(this: ResumeDeckContext): Promise<void>;
   top(this: ResumeDeckContext): ResumeCard | null;
   position(this: ResumeDeckContext): string;
-  layers(this: ResumeDeckContext): number;
+  deckSlots(this: ResumeDeckContext): DeckSlot[];
   visible(this: ResumeDeckContext): boolean;
   next(this: ResumeDeckContext): void;
   prev(this: ResumeDeckContext): void;
-  settle(this: ResumeDeckContext): void;
   swipeStart(this: ResumeDeckContext, event: PointerEvent): void;
   swipeEnd(this: ResumeDeckContext, event: PointerEvent): void;
   swipeCancel(this: ResumeDeckContext): void;
@@ -1428,3 +1523,24 @@ export type GuestListContext = {
 
 /** A play-screen value written once; expanded per scoreboard by `SeatedPlayScreen` (#915). */
 export type Expr = (c: Call) => string;
+
+/** How the who-throws-first step decides: a bull-off or a coin toss. */
+export type StarterMethod = "bull" | "coin";
+
+/** Where a bull-off stands: entering darts, Dartbot's throw, measuring, result. */
+export type BullOffPhase =
+  "enter" | "wait" | "aim" | "fly" | "hit" | "land" | "measure" | "result";
+
+/** Where a coin toss stands: waiting for the call, in the air, landed. */
+export type CoinPhase = "pick" | "flip" | "result";
+
+/** What the step is told by the page that hosts it. */
+export type StarterStepOptions = {
+  sides: () => [string, string];
+  opponentIsBot: () => boolean;
+  onResolve: (starterIndex: 0 | 1) => void;
+  onCancel: () => void;
+  random?: () => number;
+  wait?: (ms: number) => Promise<void>;
+  storage?: Pick<Storage, "getItem" | "setItem">;
+};

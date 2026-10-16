@@ -1,0 +1,44 @@
+---
+/**
+ * The board Dartbot throws on when the session is not entered on the board
+ * (QUICK_SCORE, keypad games): it takes the input stack's place while
+ * `botFlight` is set, plays the same flight as `BoardInputPanel`, and keeps
+ * this visit's landed darts on the board. Presentation only; the visit is
+ * recorded by the caller once the flight ends.
+ */
+
+// Components
+import DartBoard from "@components/ui/DartBoard.astro";
+import BotDartFlight from "@components/layout/games/BotDartFlight.astro";
+import BotVisitStrip from "@components/layout/games/BotVisitStrip.astro";
+---
+
+<div
+  x-show="$data.botFlight && $store.game.inputModeKey !== 'VISUAL_BOARD'"
+  x-cloak
+  class="input-well relative isolate flex min-h-0 flex-1 flex-col items-center gap-2 rounded-board p-2.5"
+>
+  <BotVisitStrip />
+  <div class="flex min-h-0 w-full flex-1 items-center justify-center">
+    <div class="relative aspect-square h-full max-w-full">
+      <DartBoard>
+        <div
+          class="pointer-events-none absolute inset-0"
+          aria-hidden="true"
+        >
+          <template
+            x-for="(dart, i) in $data.botFlight?.landed ?? []"
+            :key="i"
+          >
+            <span
+              class="absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-surface bg-accent"
+              :style="`left: ${dart.leftPercent}%; top: ${dart.topPercent}%`"
+            >
+            </span>
+          </template>
+        </div>
+        <BotDartFlight />
+      </DartBoard>
+    </div>
+  </div>
+</div>
