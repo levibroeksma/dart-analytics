@@ -1475,3 +1475,24 @@ export type GuestListContext = {
 
 /** A play-screen value written once; expanded per scoreboard by `SeatedPlayScreen` (#915). */
 export type Expr = (c: Call) => string;
+
+/** How the who-throws-first step decides: a bull-off or a coin toss. */
+export type StarterMethod = "bull" | "coin";
+
+/** Where a bull-off stands: entering darts, Dartbot's throw, measuring, result. */
+export type BullOffPhase =
+  "enter" | "wait" | "aim" | "fly" | "hit" | "land" | "measure" | "result";
+
+/** Where a coin toss stands: waiting for the call, in the air, landed. */
+export type CoinPhase = "pick" | "flip" | "result";
+
+/** What the step is told by the page that hosts it. */
+export type StarterStepOptions = {
+  sides: () => [string, string];
+  opponentIsBot: () => boolean;
+  onResolve: (starterIndex: 0 | 1) => void;
+  onCancel: () => void;
+  random?: () => number;
+  wait?: (ms: number) => Promise<void>;
+  storage?: Pick<Storage, "getItem" | "setItem">;
+};
