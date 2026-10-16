@@ -210,8 +210,6 @@ describe("brand surfaces", () => {
   });
 
   it.each([
-    "@utility stack-slab-1",
-    "@utility stack-slab-2",
     "@utility border-medium",
     "@utility pt-safe",
     "@utility pb-safe",
@@ -223,16 +221,38 @@ describe("brand surfaces", () => {
     expect(() => block(selector)).not.toThrow();
   });
 
-  it("stack slabs carry their radius, slab colour and top light", () => {
-    const one = block("@utility stack-slab-1");
-    expect(one).toMatch(/border-bottom-left-radius: 1\.1875rem/);
-    expect(one).toMatch(/var\(--color-stack-1\)/);
-    expect(one).toMatch(/inset 0 -1px 0 oklch\(100% 0 0 \/ 0\.15\)/);
-    const two = block("@utility stack-slab-2");
-    expect(two).toMatch(/border-bottom-left-radius: 1\.125rem/);
-    expect(two).toMatch(/var\(--color-stack-2\)/);
-    expect(two).toMatch(/inset 0 -1px 0 oklch\(100% 0 0 \/ 0\.12\)/);
+  it("deck card carries the study's step timings", () => {
+    const card = block("@utility deck-card");
+    expect(card).toMatch(/--deck-out-duration: 440ms/);
+    expect(card).toMatch(
+      /--deck-out-ease: cubic-bezier\(0\.55, 0, 0\.75, 0\.35\)/,
+    );
+    expect(card).toMatch(/--deck-rise-duration: 460ms/);
+    expect(card).toMatch(/--deck-rise-delay: 60ms/);
+    expect(card).toMatch(/--deck-return-duration: 500ms/);
+    expect(card).toMatch(/--deck-ease: cubic-bezier\(0\.2, 0\.8, 0\.2, 1\)/);
+    expect(card).toMatch(/transform-origin: 50% 100%/);
   });
+
+  it.each([
+    ["deck-depth-0", "0rem", "1", "0"],
+    ["deck-depth-1", "0.5rem", "0.933", "0.6"],
+    ["deck-depth-2", "1rem", "0.866", "0.8"],
+  ])("%s sets offset %s, scale %s, tint %s", (name, y, scale, tint) => {
+    const depth = block(`@utility ${name}`);
+    expect(depth).toContain(`--deck-y: ${y};`);
+    expect(depth).toContain(`--deck-scale: ${scale};`);
+    expect(depth).toContain(`--deck-tint: ${tint};`);
+  });
+
+  it.each(["deck-rest", "deck-entering", "deck-leaving", "deck-exiting"])(
+    "%s falls back to an opacity fade under reduced motion",
+    (name) => {
+      expect(block(`@utility ${name}`)).toMatch(
+        /prefers-reduced-motion: reduce\)\s*\{\s*transition: opacity var\(--deck-fade-duration\) linear/,
+      );
+    },
+  );
 });
 
 function oklchContrast(a: string, b: string): number {

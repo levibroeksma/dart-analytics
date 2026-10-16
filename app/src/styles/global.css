@@ -15,8 +15,6 @@
   --accent-bright: oklch(80% 0.13 237);
   --accent-foreground-muted: oklch(92% 0.01 240);
   --accent-deep-blue: oklch(44.3% 0.11 240.79);
-  --stack-1: oklch(40% 0.09 238 / 0.75);
-  --stack-2: oklch(30% 0.06 240 / 0.6);
   --deck-tint-layer: oklch(24% 0.06 241);
   --nav-bottom: max(0.5rem, calc(env(safe-area-inset-bottom) - 0.5rem));
   --nav-clearance: 5.5rem;
@@ -81,8 +79,6 @@
   --color-accent-bright: var(--accent-bright);
   --color-accent-foreground-muted: var(--accent-foreground-muted);
   --color-accent-deep-blue: var(--accent-deep-blue);
-  --color-stack-1: var(--stack-1);
-  --color-stack-2: var(--stack-2);
   --color-deck-tint: var(--deck-tint-layer);
   --background-image-blue-glass: var(--gradient-blue-glass);
 
@@ -512,20 +508,6 @@
 
 @utility start-bar-fade {
   background: linear-gradient(180deg, transparent, oklch(0% 0 0 / 0.85) 45%);
-}
-
-@utility stack-slab-1 {
-  border-bottom-left-radius: 1.1875rem;
-  border-bottom-right-radius: 1.1875rem;
-  background-color: var(--color-stack-1);
-  box-shadow: inset 0 -1px 0 oklch(100% 0 0 / 0.15);
-}
-
-@utility stack-slab-2 {
-  border-bottom-left-radius: 1.125rem;
-  border-bottom-right-radius: 1.125rem;
-  background-color: var(--color-stack-2);
-  box-shadow: inset 0 -1px 0 oklch(100% 0 0 / 0.12);
 }
 
 @utility deck-card {

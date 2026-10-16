@@ -60,6 +60,11 @@ describe("cn", () => {
     ).toBe("deck-card deck-depth-2 deck-parked");
   });
 
+  it("no longer registers the retired card-stack slabs", () => {
+    expect(UTILITY_GROUPS).not.toHaveProperty("stack-slab-1");
+    expect(UTILITY_GROUPS).not.toHaveProperty("stack-slab-2");
+  });
+
   it("lets section-ring-inset replace stock inset and composes highlight-glow freely", () => {
     expect(cn("inset-0", "section-ring-inset")).toBe("section-ring-inset");
     expect(cn("fill-none", "highlight-glow")).toBe("fill-none highlight-glow");

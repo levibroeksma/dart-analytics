@@ -6,8 +6,9 @@
  * to resume, or when the load failed. Only the session this device holds can be
  * resumed: its button reads "Resume game", any other reads "Start over"
  * beside a note that its progress is elsewhere (setup asks before abandoning it, D460).
- * The top card is one persistent element so
- * its phase animation and `animationend` survive an index change.
+ * Up to three real cards stack, the front one interactive; `deckSlots()`
+ * gives each its depth and motion state, keyed by session so a card keeps
+ * its element (and its transition) as it moves between slots.
  * @param {string} [class] Extra classes for the section
  */
 interface Props {
@@ -20,7 +21,6 @@ const { class: classNameProp, ...props }: Props = Astro.props;
 
 // Components
 import Button from "@components/forms/Button.astro";
-import CardStack from "@components/ui/CardStack.astro";
 import DeckPager from "@components/ui/DeckPager.astro";
 
 // Lib
@@ -30,9 +30,10 @@ import { cn } from "@client/cn";
 import PlayIcon from "@icons/play-rounded.svg";
 
 // Styles
-const cardClass = "deck-top-card flex flex-col gap-3.5 rounded-2xl p-4";
-const phaseClassExpr =
-  "{ 'animate-deck-out motion-reduce:animate-deck-fade-out': phase === 'out', 'animate-deck-rise motion-reduce:animate-deck-fade-rise': phase === 'rise', 'animate-deck-in motion-reduce:animate-deck-fade-in': phase === 'in' }";
+const cardClass =
+  "deck-top-card deck-card relative col-start-1 row-start-1 flex flex-col gap-3.5 rounded-2xl p-4";
+const slotClassExpr =
+  "`deck-depth-${slot.depth} deck-${slot.state} ${slot.state === 'leaving' ? 'z-40' : slot.state === 'parked' || slot.state === 'exiting' ? 'z-0' : ['z-30', 'z-20', 'z-10'][slot.depth]} ${slot.depth === 0 && slot.state === 'rest' ? 'touch-pan-y touch-pinch-zoom' : 'pointer-events-none'}`";
 ---
 
 <section
@@ -43,84 +44,95 @@ const phaseClassExpr =
   {...props}
 >
   <template x-if="visible()">
-    <CardStack layersExpr="layers()">
-      <div
-        class={cn(cardClass, "relative touch-pan-y touch-pinch-zoom")}
-        :class={phaseClassExpr}
-        @animationend.self="settle()"
-        @pointerdown="swipeStart($event)"
-        @pointerup="swipeEnd($event)"
-        @pointercancel="swipeCancel()"
+    <div class="grid pb-4">
+      <template
+        x-for="slot in deckSlots()"
+        :key="slot.card.sessionId"
       >
         <div
-          class="flex min-h-7 items-center justify-between font-mono text-caption font-semibold"
+          class={cardClass}
+          :class={slotClassExpr}
+          :inert="slot.depth !== 0 || slot.state !== 'rest'"
+          @pointerdown="swipeStart($event)"
+          @pointerup="swipeEnd($event)"
+          @pointercancel="swipeCancel()"
         >
-          <span class="text-eyebrow-lg text-foreground">IN PROGRESS</span>
-          <DeckPager
-            positionExpr="position()"
-            prevExpr="prev()"
-            nextExpr="next()"
-            prevLabel="Previous open game"
-            nextLabel="Next open game"
-            labelExpr="top()?.title"
-            x-show="cards.length > 1"
-            x-cloak
-          />
-          <span
-            class="text-accent-foreground-muted"
-            x-show="cards.length <= 1"
-            x-cloak
-            x-text="top()?.started"
-          ></span>
-        </div>
-        <div class="flex items-end justify-between gap-3">
-          <div class="flex min-w-0 flex-col gap-1.5">
-            <span
-              class="font-display text-xl"
-              x-text="top()?.title"
-            ></span>
-            <span
-              class="text-body-sm font-semibold text-accent-foreground-muted"
-              x-text="top()?.detail"
-            ></span>
-            <span
-              class="text-body-sm font-semibold text-accent-foreground-muted"
-              x-show="!top()?.local"
-              x-cloak
-              >Progress is on another device</span
-            >
+          <div
+            class="deck-tint pointer-events-none absolute inset-0 z-10 rounded-2xl"
+            aria-hidden="true"
+          >
           </div>
           <div
-            class="flex flex-none flex-col items-end gap-0.5"
-            x-show="top()?.big"
-            x-cloak
+            class="flex min-h-7 items-center justify-between font-mono text-caption font-semibold"
           >
+            <span class="text-eyebrow-lg text-foreground">IN PROGRESS</span>
+            <DeckPager
+              positionExpr="position()"
+              prevExpr="prev()"
+              nextExpr="next()"
+              prevLabel="Previous open game"
+              nextLabel="Next open game"
+              labelExpr="slot.card.title"
+              x-show="cards.length > 1"
+              x-cloak
+            />
             <span
-              class="font-display text-3xl leading-none"
-              x-text="top()?.big?.value"
-            ></span>
-            <span
-              class="font-mono text-eyebrow font-semibold text-accent-foreground-muted"
-              x-text="top()?.big?.label"
+              class="text-accent-foreground-muted"
+              x-show="cards.length <= 1"
+              x-cloak
+              x-text="slot.card.started"
             ></span>
           </div>
+          <div class="flex items-end justify-between gap-3">
+            <div class="flex min-w-0 flex-col gap-1.5">
+              <span
+                class="font-display text-xl"
+                x-text="slot.card.title"
+              ></span>
+              <span
+                class="text-body-sm font-semibold text-accent-foreground-muted"
+                x-text="slot.card.detail"
+              ></span>
+              <span
+                class="text-body-sm font-semibold text-accent-foreground-muted"
+                x-show="!slot.card.local"
+                x-cloak
+                >Progress is on another device</span
+              >
+            </div>
+            <div
+              class="flex flex-none flex-col items-end gap-0.5"
+              x-show="slot.card.big"
+              x-cloak
+            >
+              <span
+                class="font-display text-3xl leading-none"
+                x-text="slot.card.big?.value"
+              ></span>
+              <span
+                class="font-mono text-eyebrow font-semibold text-accent-foreground-muted"
+                x-text="slot.card.big?.label"
+              ></span>
+            </div>
+          </div>
+          <Button
+            variant="secondary"
+            loadingExpr="false"
+            class="glass-button h-12 w-full rounded-lg text-control"
+            @click="resume()"
+          >
+            <PlayIcon
+              slot="iconBefore"
+              class="size-4.5"
+              aria-hidden="true"
+              x-show="slot.card.local"
+              x-cloak
+            />
+            <span x-text="slot.card.local ? 'Resume game' : 'Start over'"
+            ></span>
+          </Button>
         </div>
-        <Button
-          variant="secondary"
-          loadingExpr="false"
-          class="glass-button h-12 w-full rounded-lg text-control"
-          @click="resume()"
-        >
-          <PlayIcon
-            slot="iconBefore"
-            class="size-4.5"
-            aria-hidden="true"
-            x-show="top()?.local"
-            x-cloak
-          />
-          <span x-text="top()?.local ? 'Resume game' : 'Start over'"></span>
-        </Button>
-      </div>
-    </CardStack>
+      </template>
+    </div>
   </template>
 </section>

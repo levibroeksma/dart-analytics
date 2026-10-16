@@ -83,8 +83,6 @@ export const UTILITY_GROUPS: Readonly<Record<string, string | null>> = {
   "slide-thumb": null,
   "slide-fill": null,
   "start-bar-fade": null,
-  "stack-slab-1": "stack-slab",
-  "stack-slab-2": "stack-slab",
   "deck-card": null,
   "deck-depth-0": "deck-depth",
   "deck-depth-1": "deck-depth",
