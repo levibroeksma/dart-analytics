@@ -8,26 +8,20 @@ import {
 import { registerEngineFactory } from "./engine.registry";
 import { activeSeat } from "./seat-rota.module";
 import { activeSeatState, foldSeatStates } from "./seat-state.module";
-import {
-  appendObservedDart,
-  cloneTurns,
-  doubleTargetIntent,
-  exerciseBlockStage,
-  openOrCreateTurn,
-  undoLastDart,
-} from "./turn-log.module";
+import { doubleTargetIntent } from "./turn-log.module";
 import { eliminationWinner } from "./match-outcome.module";
-import type { GameEngine, GameEngineFactory } from "./interfaces";
+import {
+  dartGameEngineClass,
+  dartGameEngineFactory,
+} from "./dart-engine-shell.module";
+import type { DartGameSpec } from "./interfaces";
 import type {
   BoardTarget,
   Bobs27SeatState,
   Bobs27State,
   DartObservation,
   EngineFacts,
-  TurnFact,
 } from "./types";
-
-const STAGE = exerciseBlockStage();
 
 /** One seat's starting progress: the ruleset's starting score, aimed at the first double, no darts thrown. */
 function initialSeatState(
@@ -166,133 +160,44 @@ export function foldBobs27State(
   };
 }
 
+const MATCH_ENDED =
+  "Cannot record a dart once the match has ended; undo first to correct it.";
+const GAME_ENDED =
+  "Cannot record a dart once the game has ended; undo first to correct it.";
+
 /**
- * Bob's 27: a fixed path of 21 targets (D1..D20, then BULL) played to a full
- * -hit clear of BULL or a bust at zero. Elimination: the first seat to bust
- * loses and the match ends immediately, the other seat winning — no "wrong
- * player" error is possible, since `record()` always resolves against the
- * derived active seat. The engine owns the fact log — `state()` derives each
- * seat's running score, current target and win/loss status by folding
- * `facts()`, filtered per seat, through `applyBobs27Dart`; none of it is
- * ever stored.
+ * Bob's 27's rules for the dart engine shell: three darts at each double in
+ * turn, D1 to BULL; elimination when a seat's derived score drops to zero
+ * or below. Only a visit's 3rd dart can end a seat.
  */
-export class Bobs27Engine implements GameEngine<DartObservation, Bobs27State> {
-  readonly rulesetVersionKey = "BOBS27_V1";
-  readonly stageOwnership = "PER_SEAT" as const;
-  private readonly turns: TurnFact[];
-
-  constructor(
-    private readonly config: Seated<Bobs27Snapshot>,
-    prior?: EngineFacts,
-  ) {
-    this.turns = prior ? cloneTurns(prior.turns) : [];
-  }
-
-  private deriveState(): Bobs27State {
-    return foldBobs27State(
-      { stages: [{ ...STAGE }], turns: this.turns },
-      this.config,
-    );
-  }
-
-  private openOrCreateTurn(activeParticipantRef: string): TurnFact {
-    return openOrCreateTurn(
-      this.turns,
-      STAGE.clientKey,
-      activeParticipantRef,
-      (last) => last.darts.length < 3,
-    );
-  }
-
-  /**
-   * Appends one dart to the open visit, opening a new one when the last is
-   * already 3 darts deep. `intendedTargetNumber`/`intendedZoneKey` capture
-   * the target this dart was thrown at, ahead of what it actually hit; the
-   * fact's `score` is the dart's board score, never the game-specific point
-   * value the derived running score adds. `completedAt` is stamped only by
-   * the dart that resolves the visit — the client-observed end of it — so an
-   * open visit carries none. Validated against the derived active seat's own
-   * status before anything is written, so a throw here leaves the fact log
-   * exactly as it was.
-   * @throws when the derived active seat has already ended (WON/LOST); the
-   *   fact log is left untouched.
-   */
-  record(observation: DartObservation): Bobs27State {
-    const before = this.deriveState();
-    if (before.status !== "IN_PROGRESS") {
-      throw new Error(
-        "Cannot record a dart once the match has ended; undo first to correct it.",
-      );
-    }
-    const seatBefore = activeSeatState(before);
-    if (seatBefore.status !== "IN_PROGRESS") {
-      throw new Error(
-        "Cannot record a dart once the game has ended; undo first to correct it.",
-      );
-    }
-
-    const target = targetAt(doublesPath(), seatBefore.targetIndex);
-    const openTurn = this.openOrCreateTurn(before.activeParticipantRef);
-    appendObservedDart(openTurn, observation, doubleTargetIntent(target));
-    if (openTurn.darts.length === 3) {
-      openTurn.completedAt = new Date().toISOString();
-    }
-
-    return this.deriveState();
-  }
-
-  /**
-   * Pops the last recorded dart, including one replayed from persisted
-   * facts, and removes the visit entirely once it holds no darts — the
-   * exact inverse of the `record()` call that created it. A surviving visit
-   * is open again by definition, so its `completedAt` is cleared. No seat
-   * -awareness needed: this always operates on the tail of `this.turns`,
-   * whichever seat it belongs to.
-   * @returns true if a dart was removed; false if there was nothing to undo.
-   */
-  undo(): boolean {
-    return undoLastDart(this.turns);
-  }
-
-  /**
-   * Answers whether recording `observation` would resolve the active seat's
-   * open visit into a win or loss, without mutating the fact log or the
-   * derived state. Only a visit's 3rd dart can ever complete a seat's path.
-   */
-  wouldComplete(observation: DartObservation): boolean {
-    const before = this.deriveState();
-    if (before.status !== "IN_PROGRESS") return false;
-    const seatBefore = activeSeatState(before);
-    if (seatBefore.status !== "IN_PROGRESS") return false;
-    if (seatBefore.dartsThisVisit.length < 2) return false;
-
-    const after = applyBobs27Dart(this.config, seatBefore, observation);
-    return after.status !== "IN_PROGRESS";
-  }
-
-  isComplete(): boolean {
-    return this.deriveState().status !== "IN_PROGRESS";
-  }
-
-  state(): Bobs27State {
-    return this.deriveState();
-  }
-
-  facts(): EngineFacts {
-    return { stages: [{ ...STAGE }], turns: cloneTurns(this.turns) };
-  }
-}
-
-export const bobs27EngineFactory: GameEngineFactory<
-  Seated<Bobs27Snapshot>,
-  DartObservation,
-  Bobs27State
-> = {
+const bobs27Spec: DartGameSpec<Seated<Bobs27Snapshot>, Bobs27State> = {
   rulesetVersionKey: "BOBS27_V1",
   stageOwnership: "PER_SEAT",
-  create(config: Seated<Bobs27Snapshot>, prior?: EngineFacts) {
-    return new Bobs27Engine(config, prior);
+  fold: foldBobs27State,
+  refusal: (state) => {
+    if (state.status !== "IN_PROGRESS") return MATCH_ENDED;
+    return activeSeatState(state).status === "IN_PROGRESS" ? null : GAME_ENDED;
+  },
+  intent: (state) =>
+    doubleTargetIntent(
+      targetAt(doublesPath(), activeSeatState(state).targetIndex),
+    ),
+  isVisitOpen: (turn) => turn.darts.length < 3,
+  wouldComplete: (state, observation, config) => {
+    if (state.status !== "IN_PROGRESS") return false;
+    const seat = activeSeatState(state);
+    if (seat.status !== "IN_PROGRESS") return false;
+    if (seat.dartsThisVisit.length < 2) return false;
+    return applyBobs27Dart(config, seat, observation).status !== "IN_PROGRESS";
   },
 };
+
+/** Bob's 27 engine (Pattern 18), built by the dart engine shell. */
+export class Bobs27Engine extends dartGameEngineClass(bobs27Spec) {}
+
+export const bobs27EngineFactory = dartGameEngineFactory(
+  bobs27Spec,
+  Bobs27Engine,
+);
 
 registerEngineFactory(bobs27EngineFactory);
