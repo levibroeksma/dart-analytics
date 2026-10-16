@@ -22,7 +22,7 @@ type SeatMorphContext = {
   captured: CardCapture[];
   $root: {
     querySelectorAll(selector: string): ArrayLike<MorphElement>;
-    style: Pick<CSSStyleDeclaration, "setProperty">;
+    style: Pick<CSSStyleDeclaration, "setProperty" | "removeProperty">;
   };
   $watch(getter: () => unknown, callback: () => void): void;
   $nextTick(callback: () => void): void;
@@ -70,9 +70,10 @@ function reducedMotion(): boolean {
  * marks the shown one `data-seat-visible="true"`; their name and score are
  * twins (`data-seat-twin`). When `activeKey` changes, every card's height
  * animates from the captured height to its new one and each visible twin
- * glides from where its counterpart sat. Each capture publishes the tallest
- * card's height as `--seat-full`, so the panel layer keeps its final layout
- * while its card is still growing. Reduced motion only re-captures.
+ * glides from where its counterpart sat. For the switch's duration the
+ * tallest card's new height is held as `--seat-full`, so the panel layer
+ * keeps its final layout while its card grows; at rest the panel is simply
+ * its card's height. Reduced motion only re-captures.
  */
 export function seatMorph(activeKey: () => unknown) {
   return {
@@ -96,8 +97,6 @@ export function seatMorph(activeKey: () => unknown) {
         }
         return { height: card.offsetHeight, twins };
       });
-      const full = Math.max(0, ...this.captured.map((card) => card.height));
-      this.$root.style.setProperty("--seat-full", `${full}px`);
     },
 
     morph(this: SeatMorphContext) {
@@ -106,25 +105,34 @@ export function seatMorph(activeKey: () => unknown) {
         return;
       }
       const timing = { duration: TURN_MS, easing: TURN_EASE };
-      const moves = this.cards().map((card, index) => {
+      const cards = this.cards();
+      const heights = cards.map((card) => card.offsetHeight);
+      this.$root.style.setProperty(
+        "--seat-full",
+        `${Math.max(0, ...heights)}px`,
+      );
+      const moves = cards.map((card, index) => {
         const before = this.captured[index];
-        const glides = TWINS.flatMap((twin) => {
+        const lasts = TWINS.flatMap((twin) => {
           const el = visibleTwin(card, twin);
-          const first = before?.twins[twin];
-          return el && first
-            ? [{ el, first, last: relativeBox(el, card) }]
-            : [];
+          return el ? [{ twin, el, last: relativeBox(el, card) }] : [];
         });
-        return { card, before, height: card.offsetHeight, glides };
+        return { card, before, height: heights[index]!, lasts };
       });
-      for (const { card, before, height, glides } of moves) {
+      this.captured = moves.map(({ height, lasts }) => ({
+        height,
+        twins: Object.fromEntries(lasts.map(({ twin, last }) => [twin, last])),
+      }));
+      for (const { card, before, height, lasts } of moves) {
         if (before && before.height !== height) {
           card.animate(
             [{ height: `${before.height}px` }, { height: `${height}px` }],
             timing,
           );
         }
-        for (const { el, first, last } of glides) {
+        for (const { twin, el, last } of lasts) {
+          const first = before?.twins[twin];
+          if (!first) continue;
           el.animate(
             [
               flipFrame(first, last),
@@ -134,7 +142,7 @@ export function seatMorph(activeKey: () => unknown) {
           );
         }
       }
-      this.capture();
+      setTimeout(() => this.$root.style.removeProperty("--seat-full"), TURN_MS);
     },
   };
 }
