@@ -510,6 +510,31 @@
   background: linear-gradient(180deg, transparent, oklch(0% 0 0 / 0.85) 45%);
 }
 
+@utility seat-panel {
+  height: var(--seat-full, 100%);
+}
+
+@utility seat-layer-out {
+  transition: opacity 150ms ease;
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+@utility seat-layer-in {
+  transition: opacity 250ms ease 275ms;
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+@utility seat-glow {
+  transition: opacity 500ms ease;
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
 @utility deck-card {
   --deck-out-duration: 440ms;
   --deck-out-ease: cubic-bezier(0.55, 0, 0.75, 0.35);

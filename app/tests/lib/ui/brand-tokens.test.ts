@@ -221,6 +221,33 @@ describe("brand surfaces", () => {
     expect(() => block(selector)).not.toThrow();
   });
 
+  it("seat layers fade on the turn timing: out fast, in late", () => {
+    expect(block("@utility seat-layer-out")).toMatch(
+      /transition: opacity 150ms ease/,
+    );
+    expect(block("@utility seat-layer-in")).toMatch(
+      /transition: opacity 250ms ease 275ms/,
+    );
+    expect(block("@utility seat-glow")).toMatch(
+      /transition: opacity 500ms ease/,
+    );
+  });
+
+  it("seat panel holds the published full seat height", () => {
+    expect(block("@utility seat-panel")).toMatch(
+      /height: var\(--seat-full, 100%\)/,
+    );
+  });
+
+  it.each(["seat-layer-out", "seat-layer-in", "seat-glow"])(
+    "%s drops its transition under reduced motion",
+    (name) => {
+      expect(block(`@utility ${name}`)).toMatch(
+        /prefers-reduced-motion: reduce\)\s*\{\s*transition: none/,
+      );
+    },
+  );
+
   it("deck card carries the study's step timings", () => {
     const card = block("@utility deck-card");
     expect(card).toMatch(/--deck-out-duration: 440ms/);

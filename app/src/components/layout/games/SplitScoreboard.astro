@@ -1,9 +1,10 @@
 ---
 /**
- * Two-seat scoreboard in the play screen's 40% band (D327). Seats stack:
- * the throwing seat's card on top, the waiting seat's 64px row under it.
- * Each `SplitScoreboardHalf` swaps its own card and row on its `activeExpr`.
- * The markup is static, driven by the caller's Alpine expressions.
+ * Two-seat scoreboard in the play screen's 40% band (D327). Seats keep
+ * their order (seat A, the match's starter, on top); the throwing seat grows
+ * into the full card and the waiting seat shrinks to its 64px bar. Each
+ * `SplitScoreboardHalf` cross-fades its own layers on its `activeExpr`, and
+ * `seatMorph()` animates the heights and glides name and score on a switch.
  * @param {object} seatA `{ nameExpr, activeExpr, scoreExpr, idleStatExpr, legsExpr?, checkoutExpr? }`
  * @param {object} seatB Same shape as `seatA`
  * @param {string} idleStatLabel Label of the idle row's stat (the game's first stat)
@@ -51,7 +52,11 @@ const className = cn(
 );
 ---
 
-<div class={className}>
+<div
+  class={className}
+  x-data={`seatMorph(() => [${seatA.activeExpr}, ${seatB.activeExpr}].join())`}
+  @resize.window="capture()"
+>
   <SplitScoreboardHalf
     nameExpr={seatA.nameExpr}
     activeExpr={seatA.activeExpr}

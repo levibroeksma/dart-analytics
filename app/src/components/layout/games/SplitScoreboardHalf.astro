@@ -1,11 +1,12 @@
 ---
 /**
- * One seat inside `SplitScoreboard`. While `activeExpr` holds, it renders
- * the `glass-active-seat` card and moves to the top of the band. The card
- * has the name, `LegBars`, the score (`seatValueSize`) and the route chips
- * on the left, and compact stat rows right of a hairline. Otherwise it
- * renders a 64px `glass` row: name over `LegBars`, the muted score, and one
- * stat tile.
+ * One seat card inside `SplitScoreboard`; seats keep their order. The card
+ * lays out two layers at once and cross-fades them: while `activeExpr`
+ * holds it grows to fill the band under the `glass-active-seat` glow and
+ * shows the panel (name, `LegBars`, the score at `seatValueSize`, the route
+ * chips, compact stat rows right of a hairline); otherwise it is a 64px
+ * `glass` bar (name over `LegBars`, the muted score, one stat tile). Name
+ * and score are `data-seat-twin`s that `seatMorph()` glides between layers.
  * @param {string} nameExpr Alpine expr for the seat's display name
  * @param {string} activeExpr Alpine expr, true while this seat throws
  * @param {string} scoreExpr Alpine expr for the score
@@ -45,30 +46,44 @@ import RouteChips from "./RouteChips.astro";
 ---
 
 <div
-  class="flex min-h-0 flex-col"
-  :class={`(${activeExpr}) ? 'order-first flex-1' : 'shrink-0'`}
+  data-seat-card
+  class="glass relative min-h-0 overflow-hidden rounded-key"
+  :class={`(${activeExpr}) ? 'flex-1' : 'h-16 shrink-0'`}
 >
   <div
-    class="glass-active-seat grid min-h-0 flex-1 grid-cols-scoreboard grid-rows-1 rounded-key px-4.5 py-4"
-    x-show={activeExpr}
-    x-cloak
+    class="glass-active-seat seat-glow pointer-events-none absolute inset-0 rounded-key"
+    :class={`(${activeExpr}) ? 'opacity-100' : 'opacity-0'`}
+    aria-hidden="true"
+  >
+  </div>
+  <div
+    class="seat-panel relative grid min-h-0 grid-cols-scoreboard grid-rows-1 px-4.5 py-4"
+    :class={`(${activeExpr}) ? 'opacity-100 seat-layer-in' : 'opacity-0 seat-layer-out'`}
+    :data-seat-visible={`String(!!(${activeExpr}))`}
+    :inert={`!(${activeExpr})`}
   >
     <div class="@container flex min-w-0 flex-col justify-center gap-2">
-      <span
-        class="truncate text-sm font-semibold text-accent-bright"
-        x-text={nameExpr}
-      ></span>
-      {
-        legsExpr && legsToWinExpr && (
-          <LegBars
-            wonExpr={legsExpr}
-            toWinExpr={legsToWinExpr}
-          />
-        )
-      }
+      <div
+        class="flex min-w-0 flex-col gap-2"
+        data-seat-twin="name"
+      >
+        <span
+          class="truncate text-sm font-semibold text-accent-bright"
+          x-text={nameExpr}
+        ></span>
+        {
+          legsExpr && legsToWinExpr && (
+            <LegBars
+              wonExpr={legsExpr}
+              toWinExpr={legsToWinExpr}
+            />
+          )
+        }
+      </div>
       <p
-        class="whitespace-nowrap font-display leading-none tabular-nums text-foreground text-shadow-glow"
+        class="self-start whitespace-nowrap font-display leading-none tabular-nums text-foreground text-shadow-glow"
         :class={`$seatValueSize(${scoreExpr})`}
+        data-seat-twin="score"
         x-text={scoreExpr}
       >
       </p>
@@ -81,11 +96,15 @@ import RouteChips from "./RouteChips.astro";
     </div>
   </div>
   <div
-    class="glass flex h-16 items-center gap-3 rounded-key pr-2.5 pl-4"
-    x-show={`!(${activeExpr})`}
-    x-cloak
+    class="absolute inset-x-0 top-0 flex h-16 items-center gap-3 pr-2.5 pl-4"
+    :class={`(${activeExpr}) ? 'opacity-0 seat-layer-out' : 'opacity-100 seat-layer-in'`}
+    :data-seat-visible={`String(!(${activeExpr}))`}
+    :inert={`!!(${activeExpr})`}
   >
-    <div class="flex min-w-0 flex-col gap-1.5">
+    <div
+      class="flex min-w-0 flex-col gap-1.5"
+      data-seat-twin="name"
+    >
       <span
         class="truncate text-sm font-semibold text-muted"
         x-text={nameExpr}
@@ -101,6 +120,7 @@ import RouteChips from "./RouteChips.astro";
     </div>
     <span
       class="ml-auto font-display text-2xl tabular-nums text-muted"
+      data-seat-twin="score"
       x-text={scoreExpr}
     ></span>
     <div

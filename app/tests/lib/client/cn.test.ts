@@ -60,6 +60,10 @@ describe("cn", () => {
     ).toBe("deck-card deck-depth-2 deck-parked");
   });
 
+  it("lets a later seat layer fade replace an earlier one", () => {
+    expect(cn("seat-layer-out", "seat-layer-in")).toBe("seat-layer-in");
+  });
+
   it("no longer registers the retired card-stack slabs", () => {
     expect(UTILITY_GROUPS).not.toHaveProperty("stack-slab-1");
     expect(UTILITY_GROUPS).not.toHaveProperty("stack-slab-2");
