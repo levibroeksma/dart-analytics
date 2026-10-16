@@ -670,3 +670,12 @@ export type MatchFold = {
   decidingSet: boolean;
   suddenDeath: boolean;
 };
+
+/** A point on the board in millimetres from the bull centre, y downward. */
+export type BoardPointMm = { x: number; y: number };
+
+/** A coin face in the who-throws-first toss. */
+export type CoinFace = "heads" | "tails";
+
+/** Which side won a starter contest (0 or 1), or a tie that must be rethrown. */
+export type StarterResult = 0 | 1 | "tie";
