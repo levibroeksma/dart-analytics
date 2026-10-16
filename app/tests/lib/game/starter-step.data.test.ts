@@ -238,4 +238,12 @@ describe("starterStep text", () => {
     ]);
     expect(step.sideTag(0)).toBe("60 MM");
   });
+
+  it("sizes a ring as the dart's distance across the crop, so it passes through the dart", async () => {
+    const { step } = makeStep();
+    step.tap(tapAt(57.5, 0));
+    await step.confirm();
+    expect(step.ringPercent(0)).toBeCloseTo(50);
+    expect(step.pointStyle(step.points[0])).toBe("left: 75%; top: 50%");
+  });
 });

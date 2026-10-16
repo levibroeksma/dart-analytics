@@ -202,7 +202,7 @@ One intentional surface level per visual block. Do not stack competing glass/rai
 | Rely on `.btn:active`'s press scale, or `key-press` on keys | A second press animation on high-frequency input (e.g. a numeric keypad) |
 | Gate hover behind `@media (hover: hover) and (pointer: fine)` (see `.btn-*`, `.nav-pill`, `.tab`, `.link-card`, `.card-wrapper` in `global.css`) | Hover-only critical feedback on a touch target |
 | Respect `prefers-reduced-motion` where the CSS already scopes it | Ignore reduced-motion preference |
-| Deck keyframes `animate-deck-out` (240ms, `ease-in`: the one exiting slide), `animate-deck-rise` (220ms), `animate-deck-in` (240ms), each paired with `motion-reduce:animate-deck-fade-*` (150ms opacity only) (D442, 2026-10-10) | Sliding the deck card under reduced motion |
+| Deck slot transitions `deck-leaving` (440ms out), `deck-rest` (460ms rise, +60ms), `deck-entering` / `deck-exiting` (500ms return), `deck-parked` / `deck-staged` (no transition), each falling back to a 150ms opacity fade under reduced motion (D463, 2026-10-16; was the D442 `animate-deck-*` keyframes) | Sliding the deck card under reduced motion |
 | `board-dim` may transition `filter` (150ms) — the one non-transform/opacity transition, scoped to the board while a press is live (D432, 2026-10-08) | Transitioning `filter` elsewhere |
 
 **Modals:** `motion-safe:animate-sheet-in` — 300ms slide up from fully below the viewport edge on `--ease-out`; no slide under reduced motion (D455, 2026-10-13). If scaling on enter, start from `scale-95` plus opacity — never `scale(0)`.

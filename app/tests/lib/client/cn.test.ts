@@ -74,6 +74,12 @@ describe("cn", () => {
     expect(cn("coin-up", "coin-down")).toBe("coin-down");
   });
 
+  it("lets bull-crop-board replace a component's own relative position", () => {
+    expect(cn("relative touch-none", "bull-crop-board")).toBe(
+      "touch-none bull-crop-board",
+    );
+  });
+
   it("no longer registers the retired card-stack slabs", () => {
     expect(UTILITY_GROUPS).not.toHaveProperty("stack-slab-1");
     expect(UTILITY_GROUPS).not.toHaveProperty("stack-slab-2");

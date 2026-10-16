@@ -97,7 +97,7 @@ export const UTILITY_GROUPS: Readonly<Record<string, string | null>> = {
   "coin-down": "coin-lift",
   "coin-shadow": null,
   "coin-shadow-up": null,
-  "bull-crop-board": null,
+  "bull-crop-board": "position",
   "bull-ring": null,
   "bull-ring-late": null,
   "starter-win": null,

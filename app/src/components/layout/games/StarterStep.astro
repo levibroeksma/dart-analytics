@@ -147,12 +147,12 @@ const ringClass =
               <span
                 class={ringClass}
                 :class="phase === 'measure' || phase === 'result' ? 'border-foreground/85 opacity-100' : 'opacity-0'"
-                :style="`width: ${phase === 'measure' || phase === 'result' ? ringPercent(0) * 2 : 0}%; height: ${phase === 'measure' || phase === 'result' ? ringPercent(0) * 2 : 0}%`"
+                :style="`width: ${phase === 'measure' || phase === 'result' ? ringPercent(0) : 0}%; height: ${phase === 'measure' || phase === 'result' ? ringPercent(0) : 0}%`"
               ></span>
               <span
                 class={`${ringClass} bull-ring-late`}
                 :class="phase === 'measure' || phase === 'result' ? 'border-accent opacity-100' : 'opacity-0'"
-                :style="`width: ${phase === 'measure' || phase === 'result' ? ringPercent(1) * 2 : 0}%; height: ${phase === 'measure' || phase === 'result' ? ringPercent(1) * 2 : 0}%`"
+                :style="`width: ${phase === 'measure' || phase === 'result' ? ringPercent(1) : 0}%; height: ${phase === 'measure' || phase === 'result' ? ringPercent(1) : 0}%`"
               ></span>
               <span
                 class={`${dotClass} bg-foreground`}
