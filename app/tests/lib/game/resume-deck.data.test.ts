@@ -293,16 +293,6 @@ describe("resumeDeck", () => {
       );
     });
 
-    it.each([
-      [0, 0],
-      [1, 0],
-      [2, 1],
-      [3, 2],
-      [5, 2],
-    ])("layers() for %i cards is %i", (count, layers) => {
-      expect(createDeck({ cards: cardsOf(count) }).layers()).toBe(layers);
-    });
-
     it("is hidden while loading, until sessions are known", () => {
       expect(createDeck({ loading: true }).visible()).toBe(false);
       expect(createDeck({ loading: true, cards: cardsOf(1) }).visible()).toBe(
@@ -326,110 +316,123 @@ describe("resumeDeck", () => {
   });
 
   describe("navigation", () => {
-    it("next moves out, then settle advances and rises, then settle idles", () => {
+    const view = (deck: ResumeDeckContext) =>
+      deck
+        .deckSlots()
+        .map((slot) => `${slot.card.sessionId}@${slot.depth}:${slot.state}`);
+
+    it("deckSlots shows at most three cards front-first", () => {
+      const deck = createDeck({ cards: cardsOf(5) });
+      expect(view(deck)).toEqual(["s-0@0:rest", "s-1@1:rest", "s-2@2:rest"]);
+    });
+
+    it("deckSlots shows two cards for a pair and one for a single", () => {
+      expect(view(createDeck({ cards: cardsOf(2) }))).toEqual([
+        "s-0@0:rest",
+        "s-1@1:rest",
+      ]);
+      expect(view(createDeck({ cards: cardsOf(1) }))).toEqual(["s-0@0:rest"]);
+    });
+
+    it("next sends the top card leaving and advances the index", () => {
       const deck = createDeck({ cards: cardsOf(3) });
       deck.next();
-      expect(deck.phase).toBe("out");
-      expect(deck.index).toBe(0);
-      deck.settle();
+      expect(deck.phase).toBe("go");
       expect(deck.index).toBe(1);
-      expect(deck.phase).toBe("rise");
-      deck.settle();
-      expect(deck.phase).toBe("idle");
+      expect(view(deck)).toEqual(["s-1@0:rest", "s-2@1:rest", "s-0@0:leaving"]);
     });
 
-    it("settles itself through the fallback timer when animationend never fires", () => {
+    it("next parks then returns the old top into the back slot with three cards", () => {
       const deck = createDeck({ cards: cardsOf(3) });
       deck.next();
-      expect(deck.phase).toBe("out");
-      vi.advanceTimersByTime(600);
-      expect(deck.phase).toBe("rise");
-      expect(deck.index).toBe(1);
-      vi.advanceTimersByTime(600);
+      vi.advanceTimersByTime(480);
+      expect(deck.phase).toBe("snap");
+      expect(view(deck)).toEqual(["s-1@0:rest", "s-2@1:rest", "s-0@2:parked"]);
+      vi.advanceTimersByTime(40);
+      expect(deck.phase).toBe("back");
+      expect(view(deck)).toEqual([
+        "s-1@0:rest",
+        "s-2@1:rest",
+        "s-0@2:entering",
+      ]);
+      vi.advanceTimersByTime(520);
       expect(deck.phase).toBe("idle");
-      expect(deck.index).toBe(1);
-    });
-
-    it("settles prev through the fallback timer", () => {
-      const deck = createDeck({ cards: cardsOf(3) });
-      deck.prev();
-      vi.advanceTimersByTime(600);
-      expect(deck.phase).toBe("idle");
-      expect(deck.index).toBe(2);
-    });
-
-    it("a real settle before the timer prevents a double advance", () => {
-      const deck = createDeck({ cards: cardsOf(3) });
-      deck.next();
-      deck.settle();
-      expect(deck.index).toBe(1);
-      vi.advanceTimersByTime(600);
-      expect(deck.index).toBe(1);
-      expect(deck.phase).toBe("idle");
-      vi.advanceTimersByTime(1200);
-      expect(deck.index).toBe(1);
-      expect(deck.phase).toBe("idle");
-    });
-
-    it("a stale fallback timer cannot cut a later in-phase short", () => {
-      const deck = createDeck({ cards: cardsOf(3) });
-      deck.prev();
-      vi.advanceTimersByTime(400);
-      deck.settle();
-      expect(deck.phase).toBe("idle");
-      deck.prev();
-      expect(deck.phase).toBe("in");
-      vi.advanceTimersByTime(300);
-      expect(deck.phase).toBe("in");
-      vi.advanceTimersByTime(300);
-      expect(deck.phase).toBe("idle");
-    });
-
-    it("leaves no timer pending once idle", () => {
-      const deck = createDeck({ cards: cardsOf(3) });
-      deck.next();
-      deck.settle();
-      deck.settle();
-      expect(deck.phase).toBe("idle");
-      expect(deck.settleTimer).toBeNull();
+      expect(view(deck)).toEqual(["s-1@0:rest", "s-2@1:rest", "s-0@2:rest"]);
       expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it("next with more than three cards enters the hidden fourth card", () => {
+      const deck = createDeck({ cards: cardsOf(5) });
+      deck.next();
+      expect(view(deck)).toEqual([
+        "s-1@0:rest",
+        "s-2@1:rest",
+        "s-3@2:parked",
+        "s-0@0:leaving",
+      ]);
+      vi.advanceTimersByTime(520);
+      expect(view(deck)).toEqual([
+        "s-1@0:rest",
+        "s-2@1:rest",
+        "s-3@2:entering",
+      ]);
+    });
+
+    it("prev reverses: back card leaves, then enters on top", () => {
+      const deck = createDeck({ cards: cardsOf(3) });
+      deck.prev();
+      expect(deck.index).toBe(2);
+      expect(deck.phase).toBe("go");
+      expect(view(deck)).toEqual(["s-0@1:rest", "s-1@2:rest", "s-2@2:exiting"]);
+      vi.advanceTimersByTime(480);
+      expect(view(deck)).toEqual(["s-0@1:rest", "s-1@2:rest", "s-2@0:staged"]);
+      vi.advanceTimersByTime(40);
+      expect(view(deck)).toEqual([
+        "s-0@1:rest",
+        "s-1@2:rest",
+        "s-2@0:entering",
+      ]);
+      vi.advanceTimersByTime(520);
+      expect(deck.phase).toBe("idle");
+      expect(view(deck)).toEqual(["s-2@0:rest", "s-0@1:rest", "s-1@2:rest"]);
+    });
+
+    it("prev with more than three cards pushes the back card out of view", () => {
+      const deck = createDeck({ cards: cardsOf(5) });
+      deck.prev();
+      expect(deck.index).toBe(4);
+      expect(view(deck)).toEqual([
+        "s-0@1:rest",
+        "s-1@2:rest",
+        "s-2@2:exiting",
+        "s-4@0:staged",
+      ]);
+      vi.advanceTimersByTime(520);
+      expect(view(deck)).toEqual([
+        "s-0@1:rest",
+        "s-1@2:rest",
+        "s-4@0:entering",
+      ]);
     });
 
     it("wraps from the last card to the first", () => {
       const deck = createDeck({ cards: cardsOf(3), index: 2 });
       deck.next();
-      deck.settle();
       expect(deck.index).toBe(0);
     });
 
-    it("prev wraps from the first card to the last and animates in", () => {
+    it("ignores next while animating", () => {
       const deck = createDeck({ cards: cardsOf(3) });
+      deck.next();
+      deck.next();
       deck.prev();
-      expect(deck.index).toBe(2);
-      expect(deck.phase).toBe("in");
-      deck.settle();
-      expect(deck.phase).toBe("idle");
-    });
-
-    it("is locked while animating", () => {
-      const deck = createDeck({ cards: cardsOf(3) });
-      deck.next();
-      deck.next();
-      deck.settle();
-      deck.settle();
+      expect(deck.index).toBe(1);
+      vi.advanceTimersByTime(1040);
       expect(deck.index).toBe(1);
       expect(deck.phase).toBe("idle");
     });
 
-    it("prev is ignored while animating", () => {
-      const deck = createDeck({ cards: cardsOf(3) });
-      deck.next();
-      deck.prev();
-      expect(deck.index).toBe(0);
-      expect(deck.phase).toBe("out");
-    });
-
-    it("ignores next and prev with a single card", () => {
+    it("single card never animates", () => {
       const deck = createDeck({ cards: cardsOf(1) });
       deck.next();
       expect(deck.phase).toBe("idle");
@@ -447,7 +450,7 @@ describe("resumeDeck", () => {
       const deck = createDeck({ cards: cardsOf(3) });
       deck.swipeStart(point(200, 100));
       deck.swipeEnd(point(150, 105));
-      expect(deck.phase).toBe("out");
+      expect(deck.direction).toBe("next");
       expect(deck.swipeX).toBeNull();
       expect(deck.swipeY).toBeNull();
     });
@@ -456,7 +459,7 @@ describe("resumeDeck", () => {
       const deck = createDeck({ cards: cardsOf(3) });
       deck.swipeStart(point(100, 100));
       deck.swipeEnd(point(160, 100));
-      expect(deck.phase).toBe("in");
+      expect(deck.direction).toBe("prev");
       expect(deck.index).toBe(2);
     });
 

@@ -1364,7 +1364,26 @@ export type ResumeCard = {
 };
 
 /** Animation phase of the resume deck: at rest, top card leaving, next card rising, previous card entering. */
-export type ResumeDeckPhase = "idle" | "out" | "rise" | "in";
+export type ResumeDeckPhase = "idle" | "go" | "snap" | "back";
+
+/** Which way the resume deck is stepping. */
+export type DeckDirection = "next" | "prev";
+
+/**
+ * How one rendered deck card is moving. `leaving`/`parked`/`entering` carry a
+ * `next` step's old top off-left and back into the back slot; `exiting`/
+ * `staged`/`entering` carry a `prev` step's card out of the back slot and in
+ * on top.
+ */
+export type DeckSlotState =
+  "rest" | "leaving" | "parked" | "exiting" | "staged" | "entering";
+
+/** One rendered resume-deck card: its depth slot (0 = front) and motion. */
+export type DeckSlot = {
+  card: ResumeCard;
+  depth: 0 | 1 | 2;
+  state: DeckSlotState;
+};
 
 /** The `activeSessions` store: the page's one shared active-sessions fetch. */
 export type ActiveSessionsStore = {
@@ -1392,16 +1411,17 @@ export type ResumeDeckContext = {
   failed: boolean;
   swipeX: number | null;
   swipeY: number | null;
-  settleTimer: ReturnType<typeof setTimeout> | null;
+  from: number | null;
+  direction: DeckDirection | null;
+  animTimers: ReturnType<typeof setTimeout>[];
   $store: { game: LocalGame; activeSessions: ActiveSessionsStore };
   init(this: ResumeDeckContext): Promise<void>;
   top(this: ResumeDeckContext): ResumeCard | null;
   position(this: ResumeDeckContext): string;
-  layers(this: ResumeDeckContext): number;
+  deckSlots(this: ResumeDeckContext): DeckSlot[];
   visible(this: ResumeDeckContext): boolean;
   next(this: ResumeDeckContext): void;
   prev(this: ResumeDeckContext): void;
-  settle(this: ResumeDeckContext): void;
   swipeStart(this: ResumeDeckContext, event: PointerEvent): void;
   swipeEnd(this: ResumeDeckContext, event: PointerEvent): void;
   swipeCancel(this: ResumeDeckContext): void;

@@ -17,6 +17,7 @@
   --accent-deep-blue: oklch(44.3% 0.11 240.79);
   --stack-1: oklch(40% 0.09 238 / 0.75);
   --stack-2: oklch(30% 0.06 240 / 0.6);
+  --deck-tint-layer: oklch(24% 0.06 241);
   --nav-bottom: max(0.5rem, calc(env(safe-area-inset-bottom) - 0.5rem));
   --nav-clearance: 5.5rem;
   --deck-top-from: oklch(52% 0.14 237);
@@ -82,6 +83,7 @@
   --color-accent-deep-blue: var(--accent-deep-blue);
   --color-stack-1: var(--stack-1);
   --color-stack-2: var(--stack-2);
+  --color-deck-tint: var(--deck-tint-layer);
   --background-image-blue-glass: var(--gradient-blue-glass);
 
   --color-surface: var(--surface);
@@ -198,52 +200,6 @@
   @keyframes sheet-in {
     from {
       transform: translateY(calc(100% + 1.75rem + env(safe-area-inset-bottom)));
-    }
-  }
-
-  --animate-deck-out: deck-out 240ms ease-in forwards;
-  --animate-deck-rise: deck-rise 220ms var(--ease-out);
-  --animate-deck-in: deck-in 240ms var(--ease-out);
-  --animate-deck-fade-out: deck-fade-out 150ms linear forwards;
-  --animate-deck-fade-rise: deck-fade-rise 150ms linear;
-  --animate-deck-fade-in: deck-fade-in 150ms linear;
-
-  @keyframes deck-out {
-    to {
-      opacity: 0;
-      transform: translateX(-110%) rotate(-6deg);
-    }
-  }
-
-  @keyframes deck-rise {
-    from {
-      opacity: 0.6;
-      transform: translateY(8px) scale(0.94);
-    }
-  }
-
-  @keyframes deck-in {
-    from {
-      opacity: 0;
-      transform: translateX(-110%) rotate(-6deg);
-    }
-  }
-
-  @keyframes deck-fade-out {
-    to {
-      opacity: 0;
-    }
-  }
-
-  @keyframes deck-fade-rise {
-    from {
-      opacity: 0.4;
-    }
-  }
-
-  @keyframes deck-fade-in {
-    from {
-      opacity: 0;
     }
   }
 
@@ -570,6 +526,98 @@
   border-bottom-right-radius: 1.125rem;
   background-color: var(--color-stack-2);
   box-shadow: inset 0 -1px 0 oklch(100% 0 0 / 0.12);
+}
+
+@utility deck-card {
+  --deck-out-duration: 440ms;
+  --deck-out-ease: cubic-bezier(0.55, 0, 0.75, 0.35);
+  --deck-rise-duration: 460ms;
+  --deck-rise-delay: 60ms;
+  --deck-return-duration: 500ms;
+  --deck-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --deck-fade-duration: 150ms;
+  transform-origin: 50% 100%;
+}
+
+@utility deck-depth-0 {
+  --deck-y: 0rem;
+  --deck-scale: 1;
+  --deck-tint: 0;
+}
+
+@utility deck-depth-1 {
+  --deck-y: 0.5rem;
+  --deck-scale: 0.933;
+  --deck-tint: 0.6;
+}
+
+@utility deck-depth-2 {
+  --deck-y: 1rem;
+  --deck-scale: 0.866;
+  --deck-tint: 0.8;
+}
+
+@utility deck-rest {
+  transform: translateY(var(--deck-y)) scale(var(--deck-scale));
+  transition:
+    transform var(--deck-rise-duration) var(--deck-ease) var(--deck-rise-delay),
+    opacity 300ms ease;
+  @media (prefers-reduced-motion: reduce) {
+    transition: opacity var(--deck-fade-duration) linear;
+  }
+}
+
+@utility deck-entering {
+  transform: translateY(var(--deck-y)) scale(var(--deck-scale));
+  transition:
+    transform var(--deck-return-duration) var(--deck-ease),
+    opacity 250ms ease;
+  @media (prefers-reduced-motion: reduce) {
+    transition: opacity var(--deck-fade-duration) linear;
+  }
+}
+
+@utility deck-leaving {
+  opacity: 0;
+  transform: translateX(-130%) rotate(-6deg);
+  transition:
+    transform var(--deck-out-duration) var(--deck-out-ease),
+    opacity 300ms ease-in 140ms;
+  @media (prefers-reduced-motion: reduce) {
+    transition: opacity var(--deck-fade-duration) linear;
+  }
+}
+
+@utility deck-exiting {
+  opacity: 0;
+  transform: translateX(-130%) translateY(var(--deck-y))
+    scale(var(--deck-scale));
+  transition:
+    transform var(--deck-return-duration) var(--deck-ease),
+    opacity 250ms ease;
+  @media (prefers-reduced-motion: reduce) {
+    transition: opacity var(--deck-fade-duration) linear;
+  }
+}
+
+@utility deck-parked {
+  opacity: 0;
+  transform: translateX(-130%) translateY(var(--deck-y))
+    scale(var(--deck-scale));
+  transition: none;
+}
+
+@utility deck-staged {
+  opacity: 0;
+  transform: translateX(-130%) rotate(-6deg);
+  transition: none;
+}
+
+@utility deck-tint {
+  background-color: var(--color-deck-tint);
+  box-shadow: inset 0 -1px 0 oklch(100% 0 0 / 0.14);
+  opacity: var(--deck-tint);
+  transition: opacity var(--deck-rise-duration) ease var(--deck-rise-delay);
 }
 
 @utility border-medium {

@@ -7,6 +7,9 @@ import { summarizeProgress } from "@modules/game/session-progress.module";
 import type { SessionActiveData } from "@client/api/types";
 import type { SessionProgress } from "@modules/types";
 import type {
+  DeckDirection,
+  DeckSlot,
+  DeckSlotState,
   GameCardDescriptor,
   LocalGame,
   ResumeCard,
@@ -15,24 +18,52 @@ import type {
 } from "@lib/types";
 
 const SWIPE_THRESHOLD_PX = 40;
-const MAX_STACK_LAYERS = 2;
-const SETTLE_FALLBACK_MS = 600;
+const MAX_VISIBLE_CARDS = 3;
+
+/** When each step phase begins, in ms after `next()`/`prev()` (study §01). */
+export const DECK_TIMINGS = { snapMs: 480, backMs: 520, idleMs: 1040 };
 
 /**
- * Re-arms the deck's single fallback timer for its current phase: any pending
- * timer is cleared first, and none is armed once the deck is idle. When the
- * timer fires it settles the deck unless an `animationend` already moved it
- * on, so a swallowed animation event cannot lock the deck.
+ * Starts one deck step: records which card moves and which way, then walks
+ * `go → snap → back → idle` on timers. Timers replace `animationend`, so no
+ * swallowed event can strand the deck.
  */
-function armSettleFallback(deck: ResumeDeckContext) {
-  if (deck.settleTimer !== null) clearTimeout(deck.settleTimer);
-  deck.settleTimer = null;
-  const armedPhase = deck.phase;
-  if (armedPhase === "idle") return;
-  deck.settleTimer = setTimeout(() => {
-    deck.settleTimer = null;
-    if (deck.phase === armedPhase) deck.settle();
-  }, SETTLE_FALLBACK_MS);
+function beginStep(
+  deck: ResumeDeckContext,
+  direction: DeckDirection,
+  from: number,
+) {
+  deck.direction = direction;
+  deck.from = from;
+  deck.phase = "go";
+  const at = (phase: ResumeDeckPhase, ms: number) =>
+    setTimeout(() => {
+      deck.phase = phase;
+      if (phase === "idle") {
+        deck.from = null;
+        deck.direction = null;
+        deck.animTimers = [];
+      }
+    }, ms);
+  deck.animTimers = [
+    at("snap", DECK_TIMINGS.snapMs),
+    at("back", DECK_TIMINGS.backMs),
+    at("idle", DECK_TIMINGS.idleMs),
+  ];
+}
+
+/**
+ * The state of the card moving through a step: `next` takes the old top
+ * `leaving` then `parked` then `entering` the back slot; `prev` takes the
+ * new top `staged` then `entering` the front.
+ */
+function moverState(
+  direction: DeckDirection,
+  phase: ResumeDeckPhase,
+): DeckSlotState {
+  if (phase === "back") return "entering";
+  if (direction === "next") return phase === "go" ? "leaving" : "parked";
+  return "staged";
 }
 
 function holdsSession(
@@ -113,10 +144,11 @@ export function toResumeCards(
  * Cards come from the shared `activeSessions` store and are overlaid with the local `game`
  * store's progress for the session it holds. The deck stays hidden until the
  * load settles, and a failed fetch or an empty result keeps it hidden.
- * `phase` drives the swap animation: `next()` sends the top card `out`, and
- * `settle()` (bound to `animationend`) advances the index, `rise`s the next
- * card, then returns to `idle`; `prev()` brings the previous card `in`. Input
- * is ignored outside `idle`, and a drag that starts on a button never swipes.
+ * Up to three cards render as real stacked cards (`deckSlots()`). `next()`
+ * flies the top card off, the rest step forward and the old top (or, past
+ * three cards, the next hidden one) slides into the back slot; `prev()` is
+ * the reverse. Input is ignored outside `idle`, and a drag that starts on a
+ * button never swipes.
  */
 export function resumeDeck() {
   return {
@@ -127,7 +159,9 @@ export function resumeDeck() {
     failed: false,
     swipeX: null as number | null,
     swipeY: null as number | null,
-    settleTimer: null as ReturnType<typeof setTimeout> | null,
+    from: null as number | null,
+    direction: null as DeckDirection | null,
+    animTimers: [] as ReturnType<typeof setTimeout>[],
 
     async init(this: ResumeDeckContext) {
       this.loading = true;
@@ -149,8 +183,54 @@ export function resumeDeck() {
       return `${this.index + 1} / ${this.cards.length}`;
     },
 
-    layers(this: ResumeDeckContext) {
-      return Math.min(Math.max(this.cards.length - 1, 0), MAX_STACK_LAYERS);
+    deckSlots(this: ResumeDeckContext): DeckSlot[] {
+      const count = this.cards.length;
+      const visible = Math.min(count, MAX_VISIBLE_CARDS);
+      const backDepth = (visible - 1) as DeckSlot["depth"];
+      const at = (offset: number) => (this.index + offset) % count;
+      const slot = (
+        position: number,
+        depth: number,
+        state: DeckSlotState,
+      ): DeckSlot => ({
+        card: this.cards[position]!,
+        depth: depth as DeckSlot["depth"],
+        state,
+      });
+      if (this.phase === "idle" || this.from === null || !this.direction) {
+        return Array.from({ length: visible }, (_, k) =>
+          slot(at(k), k, "rest"),
+        );
+      }
+      const mover = moverState(this.direction, this.phase);
+      if (this.direction === "next") {
+        const backState =
+          at(visible - 1) === this.from
+            ? mover
+            : this.phase === "back"
+              ? "entering"
+              : "parked";
+        const slots = Array.from({ length: visible }, (_, k) =>
+          k === visible - 1
+            ? slot(at(k), backState === "leaving" ? 0 : backDepth, backState)
+            : slot(at(k), k, "rest"),
+        );
+        if (this.phase === "go" && at(visible - 1) !== this.from) {
+          slots.push(slot(this.from, 0, "leaving"));
+        }
+        return slots;
+      }
+      const slots = Array.from({ length: visible - 1 }, (_, k) =>
+        slot(at(k + 1), k + 1, "rest"),
+      );
+      const pushedOut = count > visible ? at(visible) : this.from;
+      if (this.phase === "go") {
+        slots.push(slot(pushedOut, backDepth, "exiting"));
+        if (pushedOut !== this.from) slots.push(slot(this.from, 0, mover));
+        return slots;
+      }
+      slots.push(slot(this.from, 0, mover));
+      return slots;
     },
 
     visible(this: ResumeDeckContext) {
@@ -159,27 +239,16 @@ export function resumeDeck() {
 
     next(this: ResumeDeckContext) {
       if (this.phase !== "idle" || this.cards.length <= 1) return;
-      this.phase = "out";
-      armSettleFallback(this);
+      const from = this.index;
+      this.index = (this.index + 1) % this.cards.length;
+      beginStep(this, "next", from);
     },
 
     prev(this: ResumeDeckContext) {
       if (this.phase !== "idle" || this.cards.length <= 1) return;
       const count = this.cards.length;
       this.index = (this.index - 1 + count) % count;
-      this.phase = "in";
-      armSettleFallback(this);
-    },
-
-    settle(this: ResumeDeckContext) {
-      if (this.phase === "out") {
-        this.index = (this.index + 1) % this.cards.length;
-        this.phase = "rise";
-        armSettleFallback(this);
-      } else if (this.phase === "rise" || this.phase === "in") {
-        this.phase = "idle";
-        armSettleFallback(this);
-      }
+      beginStep(this, "prev", this.index);
     },
 
     swipeStart(this: ResumeDeckContext, event: PointerEvent) {
