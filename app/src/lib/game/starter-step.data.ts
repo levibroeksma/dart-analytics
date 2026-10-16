@@ -63,18 +63,17 @@ type BullTagStep = {
   opponentIsBot(): boolean;
 };
 
+/** Phases in which a dart already thrown is shown as in. */
+const DART_SHOWN: readonly BullOffPhase[] = ["enter", "land"];
+
 /** A bull-off side's tag before or without a win. */
 function bullSideTag(side: 0 | 1, step: BullTagStep): string {
   const point = step.points[side];
   if (step.phase === "measure" || step.phase === "result") {
     return `${Math.round(point ? bullDistanceMm(point) : 0)} MM`;
   }
-  if (
-    !point ||
-    (side === 1 && step.phase !== "land" && step.phase !== "enter")
-  ) {
-    return waitingTag(side, step);
-  }
+  const shown = side === 0 || DART_SHOWN.includes(step.phase);
+  if (!point || !shown) return waitingTag(side, step);
   return side === 1 && step.opponentIsBot() ? "LANDED" : "ENTERED";
 }
 

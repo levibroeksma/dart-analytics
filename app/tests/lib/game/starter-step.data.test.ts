@@ -246,4 +246,14 @@ describe("starterStep text", () => {
     expect(step.ringPercent(0)).toBeCloseTo(50);
     expect(step.pointStyle(step.points[0])).toBe("left: 75%; top: 50%");
   });
+
+  it("tags a guest bull-off in turn: throws, entered, then waits for the guest", async () => {
+    const { step } = makeStep();
+    expect(step.sideTag(0)).toBe("THROWS");
+    expect(step.sideTag(1)).toBe("WAITS");
+    step.tap(tapAt(30, 0));
+    await step.confirm();
+    expect(step.sideTag(0)).toBe("ENTERED");
+    expect(step.sideTag(1)).toBe("THROWS");
+  });
 });
