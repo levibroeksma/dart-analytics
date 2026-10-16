@@ -424,13 +424,13 @@ export function tuodPlay() {
         this.timer = maybeResumeCountdown(this.$store.game, config, engine);
 
         this.hasActiveSession = true;
-        await this.maybeRunBotVisit();
       } catch {
         this.reconciliationFailed = true;
         this.hasActiveSession = false;
       } finally {
         this.loadingReconciliation = false;
       }
+      if (this.hasActiveSession) await this.maybeRunBotVisit();
     },
 
     async retryReconciliation(this: TuodPlayContext) {

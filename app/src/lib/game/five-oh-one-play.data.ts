@@ -549,13 +549,13 @@ export function fiveOhOnePlay() {
         this.engine = engine;
         this.$store.game.recordFacts(engine.facts());
         this.hasActiveSession = true;
-        await this.maybeRunBotVisit();
       } catch {
         this.reconciliationFailed = true;
         this.hasActiveSession = false;
       } finally {
         this.loadingReconciliation = false;
       }
+      if (this.hasActiveSession) await this.maybeRunBotVisit();
     },
 
     async retryReconciliation(this: FiveOhOnePlayContext) {

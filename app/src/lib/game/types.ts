@@ -1494,6 +1494,7 @@ export type ResumeDeckContext = {
   top(this: ResumeDeckContext): ResumeCard | null;
   position(this: ResumeDeckContext): string;
   deckSlots(this: ResumeDeckContext): DeckSlot[];
+  deckView(this: ResumeDeckContext): DeckSlot[];
   visible(this: ResumeDeckContext): boolean;
   next(this: ResumeDeckContext): void;
   prev(this: ResumeDeckContext): void;

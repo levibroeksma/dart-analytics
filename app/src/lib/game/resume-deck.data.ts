@@ -263,6 +263,12 @@ export function resumeDeck() {
       return this.direction === "next" ? nextSlots(step) : prevSlots(step);
     },
 
+    /** `deckSlots()` in list order, the order the cards render in. */
+    deckView(this: ResumeDeckContext): DeckSlot[] {
+      const position = (slot: DeckSlot) => this.cards.indexOf(slot.card);
+      return this.deckSlots().sort((a, b) => position(a) - position(b));
+    },
+
     visible(this: ResumeDeckContext) {
       return !this.failed && !this.loading && this.cards.length > 0;
     },

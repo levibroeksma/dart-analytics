@@ -89,7 +89,13 @@ import RouteChips from "./RouteChips.astro";
         x-text="display"
       >
       </p>
-      {checkoutExpr && <RouteChips routeExpr={checkoutExpr} />}
+      {
+        checkoutExpr && (
+          <div class="self-start">
+            <RouteChips routeExpr={checkoutExpr} />
+          </div>
+        )
+      }
     </div>
     <div
       class="flex min-h-0 min-w-0 flex-col justify-center gap-2 border-l border-white/8 pl-3"

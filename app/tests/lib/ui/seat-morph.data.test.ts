@@ -45,7 +45,7 @@ function morphOver(cards: FakeEl[], reduced = false): any {
     {
       $root: {
         querySelectorAll: () => cards,
-        style: { setProperty: vi.fn() },
+        style: { setProperty: vi.fn(), removeProperty: vi.fn() },
       },
       $watch: vi.fn(),
       $nextTick: (fn: () => void) => fn(),
@@ -114,13 +114,23 @@ describe("seatMorph", () => {
     );
   });
 
-  it("publishes the tallest card's height as --seat-full", () => {
-    const morph = morphOver([fakeCard(228, {}), fakeCard(64, {})]);
+  it("holds --seat-full at the tallest new height only while the switch runs", () => {
+    vi.useFakeTimers();
+    const tall = fakeCard(64, {});
+    const morph = morphOver([tall, fakeCard(228, {})]);
     morph.capture();
+    expect(morph.$root.style.setProperty).not.toHaveBeenCalled();
+    tall.offsetHeight = 228;
+    morph.morph();
     expect(morph.$root.style.setProperty).toHaveBeenCalledWith(
       "--seat-full",
       "228px",
     );
+    vi.advanceTimersByTime(TURN_MS);
+    expect(morph.$root.style.removeProperty).toHaveBeenCalledWith(
+      "--seat-full",
+    );
+    vi.useRealTimers();
   });
 
   it("skips every animation under reduced motion", () => {
