@@ -620,6 +620,7 @@ Registered for discoverability and provenance, not as reading material: `scripts
 | ---- | ------- | ------ |
 | `README.md` | Repo orientation: project summary, folder layout, getting started (2026-07-14) | canonical |
 | `D-E-extract.md` / `D-E-extract.json` (repo root) | Production dart-coordinate extract (328 `PLAYER`-only rows, `participant_type_id = 1`, joined to `dart_zones` for `intended_zone_key`) that `08-DartBot.md`'s D-E population prior was fitted from; read by `app/scripts/dartbot-population-prior.ts`, cited by `08-DartBot-Anchor-Log.md` (registered 2026-09-30, #346) | canonical |
+| `D-E-extract-v2-all-targets.json` / `D-E-extract-v2-doubles-trebles.json` (repo root) | Second production extract (2,230 `PLAYER`-only darts: 1,192 DOUBLE, 966 TREBLE, 72 INNER_BULL), the same darts from `D-E-extract.md`'s two queries — `intended_zone_id` and `intended_zone_key` respectively. `D-E-extract.md` now holds the queries only. Input to the v2 level-6 refit (`docs/superpowers/specs/2026-10-17-dartbot-v2-recalibration-design.md`) (2026-10-17) | canonical |
 | `.github/pull_request_template.md` | Default PR description scaffold + architecture checklist (2026-07-12) | canonical |
 | `.github/ISSUE_TEMPLATE/discovered-work.yml` | Human-facing GitHub issue form mirroring `.claude/skills/capturing-discovered-work/SKILL.md`'s agent-facing procedure (2026-09-13, D273) | canonical |
 | `docs/CLAUDE.md` | Docs-tree editing rules | canonical |
