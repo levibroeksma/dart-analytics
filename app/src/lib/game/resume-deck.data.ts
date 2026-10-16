@@ -21,7 +21,61 @@ const SWIPE_THRESHOLD_PX = 40;
 const MAX_VISIBLE_CARDS = 3;
 
 /** When each step phase begins, in ms after `next()`/`prev()` (study §01). */
-export const DECK_TIMINGS = { snapMs: 480, backMs: 520, idleMs: 1040 };
+const DECK_TIMINGS = { snapMs: 480, backMs: 520, idleMs: 1040 };
+
+type DeckStep = {
+  at: (offset: number) => number;
+  slot: (position: number, depth: number, state: DeckSlotState) => DeckSlot;
+  visible: number;
+  count: number;
+  from: number;
+  phase: ResumeDeckPhase;
+};
+
+/**
+ * A `next` step's slots: the front cards step forward at rest while the back
+ * slot holds the old top (or, past three cards, the next hidden one) on its
+ * way off-left, parked and back in; the old top is drawn leaving while `go`.
+ */
+function nextSlots({ at, slot, visible, from, phase }: DeckStep): DeckSlot[] {
+  const back = at(visible - 1);
+  const backState =
+    back === from
+      ? moverState("next", phase)
+      : phase === "back"
+        ? "entering"
+        : "parked";
+  const slots = Array.from({ length: visible - 1 }, (_, k) =>
+    slot(at(k), k, "rest"),
+  );
+  slots.push(slot(back, backState === "leaving" ? 0 : visible - 1, backState));
+  if (phase === "go" && back !== from) slots.push(slot(from, 0, "leaving"));
+  return slots;
+}
+
+/**
+ * A `prev` step's slots: the rest step back a slot while the back card (the
+ * new top itself, or past three cards the one pushed out of view) exits
+ * left; the new top is staged off-left and enters the front.
+ */
+function prevSlots({
+  at,
+  slot,
+  visible,
+  count,
+  from,
+  phase,
+}: DeckStep): DeckSlot[] {
+  const slots = Array.from({ length: visible - 1 }, (_, k) =>
+    slot(at(k + 1), k + 1, "rest"),
+  );
+  const pushedOut = count > visible ? at(visible) : from;
+  if (phase === "go") slots.push(slot(pushedOut, visible - 1, "exiting"));
+  if (phase !== "go" || pushedOut !== from) {
+    slots.push(slot(from, 0, moverState("prev", phase)));
+  }
+  return slots;
+}
 
 /**
  * Starts one deck step: records which card moves and which way, then walks
@@ -186,51 +240,27 @@ export function resumeDeck() {
     deckSlots(this: ResumeDeckContext): DeckSlot[] {
       const count = this.cards.length;
       const visible = Math.min(count, MAX_VISIBLE_CARDS);
-      const backDepth = (visible - 1) as DeckSlot["depth"];
       const at = (offset: number) => (this.index + offset) % count;
-      const slot = (
-        position: number,
-        depth: number,
-        state: DeckSlotState,
-      ): DeckSlot => ({
-        card: this.cards[position]!,
-        depth: depth as DeckSlot["depth"],
-        state,
-      });
+      const slot = (position: number, depth: number, state: DeckSlotState) =>
+        ({
+          card: this.cards[position]!,
+          depth,
+          state,
+        }) as DeckSlot;
       if (this.phase === "idle" || this.from === null || !this.direction) {
         return Array.from({ length: visible }, (_, k) =>
           slot(at(k), k, "rest"),
         );
       }
-      const mover = moverState(this.direction, this.phase);
-      if (this.direction === "next") {
-        const backState =
-          at(visible - 1) === this.from
-            ? mover
-            : this.phase === "back"
-              ? "entering"
-              : "parked";
-        const slots = Array.from({ length: visible }, (_, k) =>
-          k === visible - 1
-            ? slot(at(k), backState === "leaving" ? 0 : backDepth, backState)
-            : slot(at(k), k, "rest"),
-        );
-        if (this.phase === "go" && at(visible - 1) !== this.from) {
-          slots.push(slot(this.from, 0, "leaving"));
-        }
-        return slots;
-      }
-      const slots = Array.from({ length: visible - 1 }, (_, k) =>
-        slot(at(k + 1), k + 1, "rest"),
-      );
-      const pushedOut = count > visible ? at(visible) : this.from;
-      if (this.phase === "go") {
-        slots.push(slot(pushedOut, backDepth, "exiting"));
-        if (pushedOut !== this.from) slots.push(slot(this.from, 0, mover));
-        return slots;
-      }
-      slots.push(slot(this.from, 0, mover));
-      return slots;
+      const step = {
+        at,
+        slot,
+        visible,
+        count,
+        from: this.from,
+        phase: this.phase,
+      };
+      return this.direction === "next" ? nextSlots(step) : prevSlots(step);
     },
 
     visible(this: ResumeDeckContext) {

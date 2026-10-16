@@ -50,6 +50,42 @@ function cropPercent(point: BoardPointMm) {
   };
 }
 
+/** A coin side's tag before or without a win: side 0 calls, side 1 waits. */
+function coinSideTag(side: 0 | 1, called: CoinFace | null): string {
+  if (side === 1) return "WAITS";
+  return called ? `CALLED ${called.toUpperCase()}` : "CALLS";
+}
+
+type BullTagStep = {
+  phase: BullOffPhase;
+  enterSide: 0 | 1;
+  points: [BoardPointMm | null, BoardPointMm | null];
+  opponentIsBot(): boolean;
+};
+
+/** A bull-off side's tag before or without a win. */
+function bullSideTag(side: 0 | 1, step: BullTagStep): string {
+  const point = step.points[side];
+  if (step.phase === "measure" || step.phase === "result") {
+    return `${Math.round(point ? bullDistanceMm(point) : 0)} MM`;
+  }
+  if (
+    !point ||
+    (side === 1 && step.phase !== "land" && step.phase !== "enter")
+  ) {
+    return waitingTag(side, step);
+  }
+  return side === 1 && step.opponentIsBot() ? "LANDED" : "ENTERED";
+}
+
+/** A bull-off side's tag before its dart is in. */
+function waitingTag(side: 0 | 1, step: BullTagStep): string {
+  if (side === 0) return "THROWS";
+  if (step.opponentIsBot())
+    return step.phase === "enter" ? "WAITS" : "THROWING";
+  return step.enterSide === 1 ? "THROWS" : "WAITS";
+}
+
 /**
  * Alpine factory for the who-throws-first step (bull-off or coin toss).
  * The method defaults to bull-off and is remembered in `storage`. Bull-off:
@@ -225,22 +261,14 @@ export function starterStep(options: StarterStepOptions) {
     },
 
     sideTag(side: 0 | 1): string {
-      const won = this.winner() === side;
-      if (this.method === "coin") {
-        if (won) return "THROWS FIRST";
-        if (side === 1) return "WAITS";
-        return this.called ? `CALLED ${this.called.toUpperCase()}` : "CALLS";
+      if (this.winner() === side) {
+        return this.method === "coin"
+          ? "THROWS FIRST"
+          : `CLOSEST · ${Math.round(this.distanceMm(side) ?? 0)} MM`;
       }
-      const distance = Math.round(this.distanceMm(side) ?? 0);
-      if (won) return `CLOSEST · ${distance} MM`;
-      if (this.phase === "measure" || this.phase === "result")
-        return `${distance} MM`;
-      if (this.points[side])
-        return side === 1 && this.opponentIsBot() ? "LANDED" : "ENTERED";
-      if (side === 0) return "THROWS";
-      if (this.opponentIsBot())
-        return this.phase === "enter" ? "WAITS" : "THROWING";
-      return this.enterSide === 1 ? "THROWS" : "WAITS";
+      return this.method === "coin"
+        ? coinSideTag(side, this.called)
+        : bullSideTag(side, this);
     },
 
     start() {

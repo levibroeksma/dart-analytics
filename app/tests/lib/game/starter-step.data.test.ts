@@ -219,4 +219,23 @@ describe("starterStep text", () => {
     expect(step.status()).toBe("TAILS · WRONG CALL");
     expect(step.sideTag(1)).toBe("THROWS FIRST");
   });
+
+  it("tags Dartbot waiting, then throwing, then landed", async () => {
+    const { step } = makeStep({ bot: true, random: () => 0.5 });
+    expect(step.sideTag(1)).toBe("WAITS");
+    const tags: string[] = [];
+    step.wait = async () => {
+      tags.push(step.sideTag(1));
+    };
+    step.tap(tapAt(60, 0));
+    await step.confirm();
+    expect(tags.slice(0, 5)).toEqual([
+      "THROWING",
+      "THROWING",
+      "THROWING",
+      "THROWING",
+      "LANDED",
+    ]);
+    expect(step.sideTag(0)).toBe("60 MM");
+  });
 });

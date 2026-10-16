@@ -134,6 +134,19 @@ function statsFor(
 }
 
 /**
+ * The bot seat when it is the bot's turn to throw — a bot is seated, the
+ * engine is up, the session is neither finished nor paused, and the active
+ * seat is the bot's — otherwise null.
+ */
+function botSeatToThrow(context: ScoreTrainingPlayContext): DartbotSeat | null {
+  const botSeat = findBotSeat(context.$store.game.seats);
+  if (!botSeat || !context.engine || context.finished) return null;
+  if (context.$store.game.timerPaused) return null;
+  const active = context.state()?.activeParticipantRef;
+  return active === botSeat.participantRef ? botSeat : null;
+}
+
+/**
  * `self` exists only so `boardInputData`'s `onCommit` callback can reach this
  * page's own `recordDart` with the live, reactive `this` Alpine binds to every
  * directive-driven call (`@click="…"`, `init()`). `onCommit` is built once,
@@ -439,17 +452,8 @@ export function scoreTrainingPlay() {
     },
 
     async maybeRunBotVisit(this: ScoreTrainingPlayContext) {
-      const botSeat = findBotSeat(this.$store.game.seats);
-      if (
-        !botSeat ||
-        !this.engine ||
-        this.finished ||
-        this.$store.game.timerPaused
-      )
-        return;
-      const state = this.state();
-      if (!state || state.activeParticipantRef !== botSeat.participantRef)
-        return;
+      const botSeat = botSeatToThrow(this);
+      if (!botSeat || !this.engine) return;
 
       if (this.$store.game.inputModeKey === "QUICK_SCORE") {
         let dartIndex = botDartIndex(
@@ -467,16 +471,13 @@ export function scoreTrainingPlay() {
           !(await playAnimateBotDarts(this, botSeat.participantRef, fold.darts))
         )
           return;
-        if (this.engine.wouldComplete(fold.totalScore)) {
-          this.engine.record(fold.totalScore);
-          this.$store.game.recordFacts(this.engine.facts());
-          this.finished = true;
-          this.completionStatus = "pending";
-          await this.uploadAndCompleteSession();
-          return;
-        }
+        const completes = this.engine.wouldComplete(fold.totalScore);
         this.engine.record(fold.totalScore);
         this.$store.game.recordFacts(this.engine.facts());
+        if (!completes) return;
+        this.finished = true;
+        this.completionStatus = "pending";
+        await this.uploadAndCompleteSession();
         return;
       }
 

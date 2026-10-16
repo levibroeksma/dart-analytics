@@ -415,6 +415,14 @@ describe("resumeDeck", () => {
       ]);
     });
 
+    it("next with two cards returns the old top to the second slot", () => {
+      const deck = createDeck({ cards: cardsOf(2) });
+      deck.next();
+      expect(view(deck)).toEqual(["s-1@0:rest", "s-0@0:leaving"]);
+      vi.advanceTimersByTime(520);
+      expect(view(deck)).toEqual(["s-1@0:rest", "s-0@1:entering"]);
+    });
+
     it("wraps from the last card to the first", () => {
       const deck = createDeck({ cards: cardsOf(3), index: 2 });
       deck.next();

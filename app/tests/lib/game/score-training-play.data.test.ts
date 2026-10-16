@@ -2327,6 +2327,27 @@ describe("scoreTrainingPlay — DartBot opponent", () => {
     ]);
   });
 
+  it("the bot does not throw while the session is paused, and does once resumed", async () => {
+    vi.useFakeTimers();
+    const play = makePlay();
+    await play.init.call(play);
+    play.engine!.record(26);
+    play.$store.game.recordFacts(play.engine!.facts());
+    const botTurns = () =>
+      play.$store.game.turns.filter((turn) => turn.participantRef === BOT_REF);
+
+    play.$store.game.timerPaused = true;
+    await play.maybeRunBotVisit.call(play);
+    expect(botTurns()).toHaveLength(0);
+
+    play.$store.game.timerPaused = false;
+    const run = play.maybeRunBotVisit.call(play);
+    await vi.runAllTimersAsync();
+    await run;
+    vi.useRealTimers();
+    expect(botTurns()).toHaveLength(1);
+  });
+
   it("under VISUAL_BOARD, the bot throws its own visit once it becomes active", async () => {
     vi.mocked(fetchActiveSessions).mockResolvedValue([
       {
