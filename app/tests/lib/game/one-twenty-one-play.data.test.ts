@@ -25,6 +25,18 @@ import type { OneTwentyOnePlayContext } from "@lib/types";
 import type { DartFact, TurnFact } from "@modules/types";
 import * as sessionsApi from "@client/api/sessions";
 
+const dartRngIndices = vi.hoisted(() => [] as number[]);
+vi.mock("@modules/dartbot/rng.module", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@modules/dartbot/rng.module")>();
+  return {
+    createDartRng: (seed: number, dartIndex: number) => {
+      dartRngIndices.push(dartIndex);
+      return actual.createDartRng(seed, dartIndex);
+    },
+  };
+});
+
 vi.mock("@client/api/sessions");
 
 const segmentTimerInstances: Array<{
@@ -1282,6 +1294,24 @@ describe("oneTwentyOnePlay — DartBot opponent", () => {
     );
     expect(botTurn).toBeDefined();
     expect(botTurn!.darts).toEqual([]);
+  });
+
+  it("under QUICK_SCORE, each bot visit draws fresh dart indices", async () => {
+    vi.useFakeTimers();
+    const play = createPlay();
+    await play.init();
+    dartRngIndices.length = 0;
+
+    let visit = play.recordVisit(26, false);
+    await vi.runAllTimersAsync();
+    await visit;
+    visit = play.recordVisit(26, false);
+    await vi.runAllTimersAsync();
+    await visit;
+
+    vi.useRealTimers();
+    expect(Math.max(...dartRngIndices)).toBeGreaterThanOrEqual(3);
+    expect(new Set(dartRngIndices).size).toBe(dartRngIndices.length);
   });
 
   it("undoVisit crosses the seat boundary back to the human", async () => {

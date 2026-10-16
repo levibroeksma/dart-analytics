@@ -1,3 +1,4 @@
+import { botQuickScoreDartIndex } from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
@@ -603,9 +604,10 @@ export function oneTwentyOnePlay() {
         const remainingBefore = this.remainingInAttemptFor(
           botSeat.participantRef,
         );
-        let dartIndex = botDartIndex(
+        let dartIndex = botQuickScoreDartIndex(
           this.$store.game.turns,
           botSeat.participantRef,
+          DARTS_PER_VISIT,
         );
         const fold = playFoldBotQuickScoreVisit(
           oneTwentyOneEngineFactory,

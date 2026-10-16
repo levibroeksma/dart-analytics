@@ -26,6 +26,18 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // must be mocked from the start, even though this task's tests only exercise
 // the "match" path. `appendBatch`/`createSession` are mocked here too so
 // Task 7 can extend this same file without re-declaring the mock.
+const dartRngIndices = vi.hoisted(() => [] as number[]);
+vi.mock("@modules/dartbot/rng.module", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@modules/dartbot/rng.module")>();
+  return {
+    createDartRng: (seed: number, dartIndex: number) => {
+      dartRngIndices.push(dartIndex);
+      return actual.createDartRng(seed, dartIndex);
+    },
+  };
+});
+
 vi.mock("@client/api/sessions", () => ({
   appendBatch: vi.fn(),
   completeSession: vi.fn(),
@@ -1740,6 +1752,25 @@ describe("DartBot opponent", () => {
     );
     expect(botTurn).toBeDefined();
     expect(botTurn!.darts).toEqual([]);
+  });
+
+  it("under QUICK_SCORE, each bot visit draws fresh dart indices", async () => {
+    vi.useFakeTimers();
+    const play = makePlay({ configSnapshot: botConfig() });
+    await play.init.call(play);
+    dartRngIndices.length = 0;
+
+    play.scoreInput.setValue("26");
+    let visit = play.submitVisit.call(play);
+    await vi.runAllTimersAsync();
+    await visit;
+    play.scoreInput.setValue("26");
+    visit = play.submitVisit.call(play);
+    await vi.runAllTimersAsync();
+    await visit;
+
+    vi.useRealTimers();
+    expect(dartRngIndices).toEqual([0, 1, 2, 3, 4, 5]);
   });
 
   it("under QUICK_SCORE, records the bot's visit once its darts have flown, then clears the flight", async () => {

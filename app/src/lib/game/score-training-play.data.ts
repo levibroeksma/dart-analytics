@@ -33,7 +33,11 @@ import {
   previousScoreDisplay,
   visitScoreBandCounts,
 } from "@lib/game/play-visit-stats";
-import { botDartIndex, findBotSeat } from "@lib/game/play-bot-seat";
+import {
+  botDartIndex,
+  botQuickScoreDartIndex,
+  findBotSeat,
+} from "@lib/game/play-bot-seat";
 import {
   formatRemaining,
   maybeResumeCountdown,
@@ -456,9 +460,10 @@ export function scoreTrainingPlay() {
       if (!botSeat || !this.engine) return;
 
       if (this.$store.game.inputModeKey === "QUICK_SCORE") {
-        let dartIndex = botDartIndex(
+        let dartIndex = botQuickScoreDartIndex(
           this.$store.game.turns,
           botSeat.participantRef,
+          DARTS_PER_VISIT,
         );
         const fold = playFoldBotQuickScoreVisit(
           scoreTrainingEngineFactory,

@@ -1,3 +1,4 @@
+import { botQuickScoreDartIndex } from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
@@ -797,9 +798,10 @@ export function fiveOhOnePlay() {
 
       if (this.$store.game.inputModeKey === "QUICK_SCORE") {
         const remainingBefore = this.remainingScoreFor(botSeat.participantRef);
-        let dartIndex = botDartIndex(
+        let dartIndex = botQuickScoreDartIndex(
           this.$store.game.turns,
           botSeat.participantRef,
+          DARTS_PER_VISIT,
         );
         const fold = playFoldBotQuickScoreVisit(
           fiveOhOneEngineFactory,
