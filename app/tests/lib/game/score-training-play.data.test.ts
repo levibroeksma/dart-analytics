@@ -17,6 +17,18 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // threshold once the timerPaused guard was added). Confirmed these
 // assertions still hold unchanged.
 
+const dartRngIndices = vi.hoisted(() => [] as number[]);
+vi.mock("@modules/dartbot/rng.module", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@modules/dartbot/rng.module")>();
+  return {
+    createDartRng: (seed: number, dartIndex: number) => {
+      dartRngIndices.push(dartIndex);
+      return actual.createDartRng(seed, dartIndex);
+    },
+  };
+});
+
 vi.mock("@client/api/sessions", () => ({
   appendBatch: vi.fn(),
   completeSession: vi.fn(),
@@ -2411,6 +2423,26 @@ describe("scoreTrainingPlay — DartBot opponent", () => {
     );
     expect(botTurn).toBeDefined();
     expect(botTurn!.darts).toEqual([]);
+  });
+
+  it("under QUICK_SCORE, each bot visit draws fresh dart indices", async () => {
+    vi.useFakeTimers();
+    const play = makePlay();
+    await play.init.call(play);
+    dartRngIndices.length = 0;
+
+    play.scoreInput.setValue("26");
+    let visit = play.submitVisit.call(play);
+    await vi.runAllTimersAsync();
+    await visit;
+    play.scoreInput.setValue("26");
+    visit = play.submitVisit.call(play);
+    await vi.runAllTimersAsync();
+    await visit;
+
+    vi.useRealTimers();
+    expect(Math.max(...dartRngIndices)).toBeGreaterThanOrEqual(3);
+    expect(new Set(dartRngIndices).size).toBe(dartRngIndices.length);
   });
 
   it("undoVisit crosses the seat boundary back to the human", async () => {

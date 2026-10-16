@@ -415,3 +415,10 @@ Decision: every session with an opponent (guest or Dartbot) opens a who-throws-f
 Reason: array order is already seat order end to end (server keeps request order into `configuration.seats`, reload reads the persisted snapshot, owner views filter `player_id`, bot/undo lookups go by participant type), so seat order expresses the starter with no migration. The darts thrown to decide it belong to no leg (501.md).
 Consequences: the owner can be seat 1 / side `B`; nothing positional depends on the owner being first (121's ROUNDS/MINUTES `seats[0]` reads are solo-only). `08-DartBot.md` §The Play Loop allows the fold's darts to be read for presentation. Leg 1's starter comment in `seat-rota.module.ts` and `501.md` updated.
 Supersedes: none.
+
+### D465 — QUICK_SCORE bot darts index by visit, not by dart
+Status: Accepted · Date: 2026-10-17
+Decision: under `QUICK_SCORE`, the bot's next `dartIndex` is its prior turn count × darts per visit (`botQuickScoreDartIndex`, `app/src/lib/game/play-bot-seat.ts`), used by 501, 121, TUOD and Score Training. `VISUAL_BOARD` keeps `botDartIndex`'s dart count.
+Reason: `QUICK_SCORE` turns persist `darts: []`, so a dart count stayed 0 and every bot visit replayed draws 0–2 — the same landing every visit, a bot stuck on one double for a whole leg. A turn count is still derived from `(seed, facts)`, so undo re-throws identically.
+Consequences: each `QUICK_SCORE` visit owns a fixed three-index block; a visit ended early leaves its unused indices unspent. Stored `QUICK_SCORE` sessions persist no darts, so no replay changes. `08-DartBot.md` §Determinism and Replay names both paths.
+Supersedes: none.

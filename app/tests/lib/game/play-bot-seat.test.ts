@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { botDartIndex, findBotSeat } from "@lib/game/play-bot-seat";
+import {
+  botDartIndex,
+  botQuickScoreDartIndex,
+  findBotSeat,
+} from "@lib/game/play-bot-seat";
 import type { SeatFact } from "@lib/types";
 import type { TurnFact } from "@modules/types";
 
@@ -41,5 +45,21 @@ describe("botDartIndex", () => {
 
   it("returns 0 when the bot has not thrown", () => {
     expect(botDartIndex([turn("p1", 3)], "bot1")).toBe(0);
+  });
+});
+
+describe("botQuickScoreDartIndex", () => {
+  it("advances a full visit per bot turn, though QUICK_SCORE turns carry no darts", () => {
+    const turns = [
+      turn("p1", 0),
+      turn("bot1", 0),
+      turn("p1", 0),
+      turn("bot1", 0),
+    ];
+    expect(botQuickScoreDartIndex(turns, "bot1", 3)).toBe(6);
+  });
+
+  it("returns 0 when the bot has not thrown", () => {
+    expect(botQuickScoreDartIndex([turn("p1", 0)], "bot1", 3)).toBe(0);
   });
 });
