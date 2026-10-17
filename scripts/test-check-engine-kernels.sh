@@ -66,5 +66,11 @@ expect pass "KERNEL_BOUND with alias import" "$T"
 T=$(tree); printf 'import { a } from "@modules/game/track-kernel.module";\n' > "$T/app/src/modules/game/foo.engine.module.ts"; row TRACK PENDING docs/game-rules/rulesets/foo.md "Track PR 9" "$T"
 expect fail "stale PENDING row, alias import" "$T" "imports a kernel but is marked PENDING"
 
+T=$(tree); printf 'import { a } from "./track-exercise-spec.module";\n' > "$T/app/src/modules/game/foo.engine.module.ts"; row TRACK KERNEL_BOUND docs/game-rules/rulesets/foo.md "" "$T"
+expect pass "KERNEL_BOUND through the exercise spec" "$T"
+
+T=$(tree); printf 'import { a } from "./track-exercise-spec.module";\n' > "$T/app/src/modules/game/foo.engine.module.ts"; row TRACK PENDING docs/game-rules/rulesets/foo.md "Track PR 9" "$T"
+expect fail "stale PENDING row, exercise spec import" "$T" "imports a kernel but is marked PENDING"
+
 echo "test-check-engine-kernels: $PASSED passed, $FAILED failed"
 [ "$FAILED" -eq 0 ]

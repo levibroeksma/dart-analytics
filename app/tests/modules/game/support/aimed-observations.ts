@@ -88,3 +88,17 @@ export function aimedOnCurrentTarget(
     return observationOn(target, rand, () => anyRing(rand));
   };
 }
+
+/**
+ * `rate` of darts on an exercise's `currentTarget` board target, in any
+ * ring (either bull on BULL), otherwise `randomObservation`.
+ */
+export function aimedOnCurrentBoardTarget(
+  rate: number,
+): (rand: () => number, engine: OracleEngine) => DartObservation {
+  return (rand, engine) => {
+    if (rand() >= rate) return randomObservation(rand);
+    const { currentTarget } = engine.state() as { currentTarget: BoardTarget };
+    return observationOn(currentTarget, rand, () => anyRing(rand));
+  };
+}

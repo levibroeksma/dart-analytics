@@ -1,3 +1,5 @@
+import type { HitCountTarget } from "@lib/types";
+
 /**
  * Warm-Up state, derived on every `state()` call. It carries no elapsed time:
  * an `ExerciseEngine` is deterministic with respect to its inputs,
@@ -176,5 +178,21 @@ export type RandomCheckoutState = {
   attempts: number;
   lastAttempt: "CHECKOUT" | "FAILED" | null;
   dartsThrown: number;
+  status: "IN_PROGRESS" | "COMPLETE";
+};
+
+/**
+ * Hit Count state, derived by replaying `facts()` (`foldHitCountState`).
+ * `currentTarget`/`targetIndex` locate the target the next dart is thrown
+ * at; `hitsPerTarget` follows the config's list and sums every pass.
+ */
+export type HitCountState = {
+  currentTarget: HitCountTarget;
+  targetIndex: number;
+  dartsLeftOnTarget: number;
+  hits: number;
+  dartsThrown: number;
+  hitsPerTarget: { target: HitCountTarget; hits: number }[];
+  passes: number;
   status: "IN_PROGRESS" | "COMPLETE";
 };
