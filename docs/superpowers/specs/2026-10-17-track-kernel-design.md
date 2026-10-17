@@ -1,7 +1,7 @@
 # Track Kernel — Design
 
 Date: 2026-10-17
-Status: approved in brainstorming, pending written-spec review
+Status: approved; plan `docs/superpowers/plans/2026-10-17-track-kernel.md` (PR 0 + PR 1)
 Parent: `2026-10-15-rule-kernels-design.md` (umbrella, §5 Track row, §8 item 2)
 Branch: `docs/track-kernel-spec`
 
@@ -77,6 +77,13 @@ interface TrackRules<TExt> {
 
 - `applyDart`: judge (`hit`, `points`) → `onDart` → if `!visitOpen`, `onVisitClose`
   and clear `visit`. `seatDone` = `status !== "IN_PROGRESS"`.
+- **Refined by the plan (2026-10-17):** `path(seat)` + `cycle` become one
+  `target(seat)` (path walking is the `pathTarget` policy; cycling lands with
+  its first caller); the seat carries `dartsThisVisit`/`hitsThisVisit` counts
+  instead of a `visit` array; `outcome` stays in each engine's fold until a
+  second engine shares it; the umbrella `RuleKernel` interface waits for a
+  second family. Track ships as functions: `initialTrackSeat`,
+  `applyTrackDart`, `foldTrackSeats`.
 - `TrackRules` is derived on every read from the config snapshot; never stored.
 - `project(match, config) → legacy state` per engine keeps `state()` and the
   exported fold byte-identical in shape.
@@ -202,7 +209,7 @@ must not rise), all `check-*.sh`, `check-test-coverage.sh`.
 
 | PR | Engine | Brings |
 | --- | --- | --- |
-| 0 | — (docs + scripts) | §9 hardening: Pattern 18 families subsection, D-entry, `Family:` lines + rules-file gate, engine-family gate with a row for every shipped engine (`PENDING_MIGRATION: <family>` — Track, Checkout, Visit points, Marks — or `HAND_WRITTEN`) |
+| 0 | — (docs + scripts) | §9 hardening: Pattern 18 families subsection, D-entry, `Kernel:` lines + rules-file gate, `engine-kernels.txt` registry + `check-engine-kernels.sh` with a row for every shipped engine (`PENDING` or `HAND_WRITTEN`) |
 | 1 | Doubles Training | kernel core, first policies, `trackGameSpec`, Track D-entry; deletes its opt-out row |
 | 2 | Bob's 27 | `penaltyOnBlank`, elimination outcome; `09-Adding-A-Game.md` |
 | 3 | Singles Training | `pointsTable`, `outBelowHits`, multi-key shell |
@@ -254,27 +261,28 @@ Mirrors: one bullet in `app/src/modules/game/CLAUDE.md` and
 `07-Frontend/09-Adding-A-Game.md` step "pick the family" before the touch
 list; `00-File-Inventory.md` row update.
 
-### 9.2 Gate on engine code — `scripts/check-game-engines.sh`
+### 9.2 Gate on engine code — `scripts/check-engine-kernels.sh`
 
-New section "Rule-kernel family":
+A new script, not a section of `check-game-engines.sh` (that one scans only
+`modules/game/`). It reads the registry `scripts/engine-kernels.txt`
+(`path | kernel | KERNEL_BOUND·PENDING·HAND_WRITTEN | rules file | reason`):
 
 - Every `*.engine.module.ts` (game and exercise) must either import a family
   kernel (`track-kernel.module.ts`, later `checkout-kernel.module.ts`, …) or
-  appear in `scripts/engine-family-opt-outs.txt` with a reason.
+  have a `PENDING` or `HAND_WRITTEN` row with a reason; every engine has a row.
 - Opt-out reasons are one of `HAND_WRITTEN: <why>` or
-  `PENDING_MIGRATION: <family>`. Each migration PR deletes its engine's
-  `PENDING_MIGRATION` row; a row whose engine already imports a kernel fails
-  the gate (stale opt-out).
+  `PENDING`. Each migration PR flips its engine's row to `KERNEL_BOUND`;
+  a `PENDING` row whose engine already imports a kernel fails (stale row).
 - Self-tested by the script's fixture pattern (as `test-check-game-rules.sh`).
 
 ### 9.3 Gate on rules files — `scripts/check-game-rules.sh`
 
 - Every ruleset and exercise rules file gains a header line
-  `Family: TRACK | CHECKOUT | VISIT_POINTS | MARKS | ELIMINATION | HAND_WRITTEN`
-  under `Entry points:`. Routines and trivia carry none.
-- The checker rejects a missing or unknown value, and (once a family has a
-  kernel) a shipped ruleset whose `Family:` disagrees with its engine's
-  kernel import or opt-out row.
+  `Kernel: TRACK | CHECKOUT | VISIT_POINTS | MARKS | ELIMINATION | HAND_WRITTEN`
+  under `Entry points:`. Routines and trivia carry none. Named `Kernel:`, not
+  `Family:` — `Family` is already a Tags axis.
+- The checker rejects a missing or unknown value. The engine gate (§9.2)
+  rejects a registry row that disagrees with the rules file's `Kernel:`.
 - `docs/game-rules/templates/*` and the `authoring-game-rules` skill require
   the family at authoring time, so a new game is placed before it is specced.
 - Initial values: the umbrella §5 assignment as amended by §5 here (Prisoner,
