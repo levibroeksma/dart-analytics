@@ -1,6 +1,7 @@
 import { fileURLToPath } from "node:url";
 import { LEVEL_SKILL_TABLE } from "../src/modules/dartbot/skill-profile.module";
 import type { SkillProfile } from "../src/modules/dartbot/types";
+import { interiorPoints } from "./dartbot-bias-flatspot-fix";
 import { simulateTierStats } from "../tests/modules/dartbot/harness/simulate-tier";
 
 export type CurveFields = {
@@ -20,6 +21,22 @@ export function scaleCurve(base: CurveFields, scale: number): CurveFields {
     biasYMm: base.biasYMm * scale,
     outlierRate: base.outlierRate * scale,
   };
+}
+
+/** Returns a copy of `table` with only `levels`' `outlierRate` multiplied by `factor`; every other field and level is unchanged. */
+export function scaleOutlierRates(
+  table: Readonly<Record<number, CurveFields>>,
+  factor: number,
+  levels: readonly number[],
+): Record<number, CurveFields> {
+  const result: Record<number, CurveFields> = {};
+  for (const [key, fields] of Object.entries(table)) {
+    const level = Number(key);
+    result[level] = levels.includes(level)
+      ? { ...fields, outlierRate: fields.outlierRate * factor }
+      : { ...fields };
+  }
+  return result;
 }
 
 /**
@@ -95,20 +112,23 @@ const ANCHOR_LOW = 1;
 const ANCHOR_MID = 6;
 const ANCHOR_HIGH = 15;
 
-/** Level 6 stays exactly the D-E measured population prior (`08-DartBot-Anchor-Log.md`) — unchanged by this recalibration. */
+/** Level 6 is the v2 extract's pooled, 3σ-clipped fit (`D-E-extract-v2-doubles-trebles.json`, `08-DartBot-Anchor-Log.md`). */
 const MID_ANCHOR: CurveFields = {
-  sigmaAlongMm: 27.5,
-  sigmaAcrossMm: 20.1,
-  biasXMm: -5.0,
-  biasYMm: 3.1,
-  outlierRate: 0.003,
+  sigmaAlongMm: 29.5,
+  sigmaAcrossMm: 23.5,
+  biasXMm: -1.21,
+  biasYMm: -1.57,
+  outlierRate: 0.0184,
 };
+
+/** Level 15's scaled `biasYMm` (0.4) sits above the interpolated levels 12–14, so their `biasYMm` is re-bracketed geometrically between level 11 and level 15, the `dartbot-bias-flatspot-fix.ts` method. */
+const BIAS_Y_REPAIR = { from: 11, to: 15, levels: [12, 13, 14] } as const;
 
 const LEVEL_1_AVG_MIN = 32;
 const LEVEL_1_AVG_MAX = 37;
-const LEVEL_15_CHECKOUT_MIN = 0.45;
-const LEVEL_15_CHECKOUT_MAX = 0.8;
-const LEVEL_15_AVG_MIN = 90;
+const LEVEL_15_SCALE = 2.0;
+const LEVEL_15_AVG_MIN = 99;
+const LEVEL_15_AVG_MAX = 103;
 
 const SEARCH_SEED = 900001;
 const SEARCH_VISITS = 20000;
@@ -139,50 +159,30 @@ function searchLevel1(
   return { scale, average };
 }
 
-/** Binary-searches a uniform scale on `base` so level 15's simulated checkout rate lands in [`LEVEL_15_CHECKOUT_MIN`, `LEVEL_15_CHECKOUT_MAX`]. Larger scale means more spread, which lowers checkout rate. */
-function searchLevel15(
-  base: CurveFields,
-  live: Record<number, SkillProfile>,
-  original15: SkillProfile,
-): { scale: number; checkoutRate: number; average: number } {
-  let low = 0.5;
-  let high = 15;
-  let scale = (low + high) / 2;
-  let stats = { threeDartAverage: 0, checkoutRate: 0 };
-  for (let i = 0; i < SEARCH_ITERATIONS; i++) {
-    scale = (low + high) / 2;
-    live[15] = { ...original15, ...scaleCurve(base, scale) };
-    stats = simulateTierStats(15, SEARCH_SEED, SEARCH_VISITS);
-    if (stats.checkoutRate > LEVEL_15_CHECKOUT_MAX) {
-      low = scale;
-    } else if (stats.checkoutRate < LEVEL_15_CHECKOUT_MIN) {
-      high = scale;
-    } else {
-      break;
-    }
-  }
-  return {
-    scale,
-    checkoutRate: stats.checkoutRate,
-    average: stats.threeDartAverage,
-  };
-}
-
 function main(): void {
   const original = { ...LEVEL_SKILL_TABLE } as Record<number, SkillProfile>;
   const live = LEVEL_SKILL_TABLE as Record<number, SkillProfile>;
 
-  const level1Result = searchLevel1(original[1]!, live, original[1]!);
-  const level15Result = searchLevel15(original[15]!, live, original[15]!);
+  const base = scaleOutlierRates(
+    original,
+    MID_ANCHOR.outlierRate / original[ANCHOR_MID]!.outlierRate,
+    [1, 2, 3, 4, 5],
+  );
 
-  if (level15Result.average < LEVEL_15_AVG_MIN) {
+  const level1Result = searchLevel1(base[1]!, live, original[1]!);
+  const level1New = scaleCurve(base[1]!, level1Result.scale);
+
+  const level15New = scaleCurve(original[15]!, LEVEL_15_SCALE);
+  live[15] = { ...original[15]!, ...level15New };
+  const level15Stats = simulateTierStats(15, SEARCH_SEED, SEARCH_VISITS);
+  if (
+    level15Stats.threeDartAverage < LEVEL_15_AVG_MIN ||
+    level15Stats.threeDartAverage > LEVEL_15_AVG_MAX
+  ) {
     throw new Error(
-      `level 15 average ${level15Result.average} fell below the ${LEVEL_15_AVG_MIN} floor at the checkout-matched scale`,
+      `level 15 average ${level15Stats.threeDartAverage} outside [${LEVEL_15_AVG_MIN}, ${LEVEL_15_AVG_MAX}] at scale ${LEVEL_15_SCALE}`,
     );
   }
-
-  const level1New = scaleCurve(original[1]!, level1Result.scale);
-  const level15New = scaleCurve(original[15]!, level15Result.scale);
 
   const table: Record<number, CurveFields> = {
     [ANCHOR_LOW]: level1New,
@@ -193,7 +193,7 @@ function main(): void {
     if (level === ANCHOR_LOW || level === ANCHOR_MID || level === ANCHOR_HIGH)
       continue;
     table[level] = interpolateCurve(
-      original,
+      base,
       ANCHOR_LOW,
       level1New,
       ANCHOR_MID,
@@ -204,14 +204,23 @@ function main(): void {
     );
   }
 
+  const repairedY = interiorPoints(
+    table[BIAS_Y_REPAIR.to]!.biasYMm,
+    table[BIAS_Y_REPAIR.from]!.biasYMm,
+    BIAS_Y_REPAIR.to - BIAS_Y_REPAIR.from,
+  );
+  BIAS_Y_REPAIR.levels.forEach((level, i) => {
+    table[level] = { ...table[level]!, biasYMm: repairedY[i]! };
+  });
+
   console.log(
     JSON.stringify(
       {
         level1: { scale: level1Result.scale, average: level1Result.average },
         level15: {
-          scale: level15Result.scale,
-          checkoutRate: level15Result.checkoutRate,
-          average: level15Result.average,
+          scale: LEVEL_15_SCALE,
+          checkoutRate: level15Stats.checkoutRate,
+          average: level15Stats.threeDartAverage,
         },
         table,
       },

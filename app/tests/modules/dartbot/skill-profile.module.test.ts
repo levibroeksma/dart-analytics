@@ -45,23 +45,23 @@ describe("skillProfileForLevel", () => {
     expect(skillProfileForLevel(15).decisionQuality).toBe(100);
   });
 
-  it("anchors level 6 to the D-E measured population prior", () => {
+  it("anchors level 6 to the v2 clipped pooled fit", () => {
     const anchor = skillProfileForLevel(6);
-    expect(anchor.sigmaAlongMm).toBe(27.5);
-    expect(anchor.sigmaAcrossMm).toBe(20.1);
-    expect(anchor.biasXMm).toBe(-5.0);
-    expect(anchor.biasYMm).toBe(3.1);
-    expect(anchor.outlierRate).toBe(0.003);
+    expect(anchor.sigmaAlongMm).toBe(29.5);
+    expect(anchor.sigmaAcrossMm).toBe(23.5);
+    expect(anchor.biasXMm).toBe(-1.21);
+    expect(anchor.biasYMm).toBe(-1.57);
+    expect(anchor.outlierRate).toBe(0.0184);
   });
 
-  it("anchors level 1 and level 15 to the D-N recalibration's found values", () => {
+  it("anchors level 1 and level 15 to the v2 recalibration's values", () => {
     const level1 = skillProfileForLevel(1);
-    expect(level1.sigmaAlongMm).toBe(59.1);
-    expect(level1.sigmaAcrossMm).toBe(46.5);
+    expect(level1.sigmaAlongMm).toBe(48.8);
+    expect(level1.sigmaAcrossMm).toBe(38.4);
 
     const level15 = skillProfileForLevel(15);
-    expect(level15.sigmaAlongMm).toBe(4.4);
-    expect(level15.sigmaAcrossMm).toBe(3.0);
+    expect(level15.sigmaAlongMm).toBe(8.8);
+    expect(level15.sigmaAcrossMm).toBe(6.0);
   });
 
   it("gives every adjacent level pair a distinct bias pair", () => {
