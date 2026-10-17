@@ -3,7 +3,7 @@
 # Every *.engine.module.ts under app/src/modules/game and
 # app/src/modules/training/exercises is listed exactly once in
 # scripts/engine-kernels.txt, and its row is true of the code and the docs:
-#   KERNEL_BOUND  -> the file imports ./<kernel>-kernel.module (exercises: @modules/game/<kernel>-kernel.module)
+#   KERNEL_BOUND  -> the file imports ./<kernel>-kernel.module (exercises: @modules/game/<kernel>-kernel.module, or ./<kernel>-exercise-spec.module)
 #   PENDING       -> the file imports no *-kernel.module (else the row is stale)
 #   HAND_WRITTEN  -> kernel column HAND_WRITTEN, imports no *-kernel.module
 #   rules file    -> '-' or a file whose 'Kernel:' header equals the kernel
@@ -38,11 +38,11 @@ while IFS='|' read -r path kernel status rules reason; do
   [ -f "$path" ] || { fail "$path does not exist (registry row is stale)"; continue; }
   grep -qw -- "$kernel" <<< "$KERNELS" || { fail "$path: unknown kernel $kernel"; continue; }
   imports_kernel=0
-  grep -qE "from \"(\./|@modules/game/)[a-z-]+-kernel\.module\"" "$path" && imports_kernel=1
+  grep -qE "from \"(\./|@modules/game/|@modules/training/exercises/)[a-z-]+-(kernel|exercise-spec)\.module\"" "$path" && imports_kernel=1
   case "$status" in
     KERNEL_BOUND)
       slug="$(tr 'A-Z_' 'a-z-' <<< "$kernel")"
-      grep -qE "from \"(\./|@modules/game/)${slug}-kernel\.module\"" "$path" || fail "$path is KERNEL_BOUND but does not import ./${slug}-kernel.module" ;;
+      grep -qE "from \"(\./|@modules/game/|@modules/training/exercises/)${slug}-(kernel|exercise-spec)\.module\"" "$path" || fail "$path is KERNEL_BOUND but does not import ./${slug}-kernel.module" ;;
     PENDING)
       [ -n "$reason" ] || fail "$path: PENDING needs a reason"
       [ "$imports_kernel" -eq 0 ] || fail "$path imports a kernel but is marked PENDING; flip it to KERNEL_BOUND" ;;
