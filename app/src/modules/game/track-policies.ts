@@ -9,8 +9,10 @@ import type {
   DartObservation,
   DartZoneKey,
   JudgedDart,
+  PassTrackExt,
   PointsTable,
   SequenceTrackExt,
+  TargetTallyExt,
   TrackSeat,
 } from "./types";
 
@@ -161,18 +163,66 @@ export function stepBackBelowHits<TExt>(
   });
 }
 
+function wrapToStart<TExt>(
+  lastIndex: number,
+  bump: (ext: TExt) => TExt,
+): (seat: TrackSeat<TExt>) => TrackSeat<TExt> {
+  return (seat) =>
+    seat.targetIndex > lastIndex
+      ? { ...seat, targetIndex: 0, ext: bump(seat.ext) }
+      : seat;
+}
+
 /** Visit-close policy: past `lastIndex`, restart at the first target and count a lap. */
 export function lapOnWrap<TExt extends { laps: number }>(
   lastIndex: number,
 ): (seat: TrackSeat<TExt>) => TrackSeat<TExt> {
+  return wrapToStart<TExt>(lastIndex, (ext) => ({
+    ...ext,
+    laps: ext.laps + 1,
+  }));
+}
+
+/** Visit-close policy: past `lastIndex`, restart at the first target and count a pass. */
+export function passOnWrap<TExt extends PassTrackExt>(
+  lastIndex: number,
+): (seat: TrackSeat<TExt>) => TrackSeat<TExt> {
+  return wrapToStart<TExt>(lastIndex, (ext) => ({
+    ...ext,
+    passes: ext.passes + 1,
+  }));
+}
+
+/** Per-dart policy: count the dart against the current target in `ext.dartsOnTarget`, and a hit in `ext.hitsPerTarget[targetIndex]`. */
+export function tallyOnTarget<TExt extends TargetTallyExt>(
+  seat: TrackSeat<TExt>,
+  dart: JudgedDart,
+): TrackSeat<TExt> {
+  const hitsPerTarget = [...seat.ext.hitsPerTarget];
+  hitsPerTarget[seat.targetIndex] =
+    (hitsPerTarget[seat.targetIndex] ?? 0) + (dart.hit ? 1 : 0);
+  return {
+    ...seat,
+    ext: {
+      ...seat.ext,
+      dartsOnTarget: seat.ext.dartsOnTarget + 1,
+      hitsPerTarget,
+    },
+  };
+}
+
+/** Visit-close policy: once `darts` darts were thrown at the target, step to the next and zero the count. */
+export function advanceAfterDarts<TExt extends TargetTallyExt>(
+  darts: number,
+): (seat: TrackSeat<TExt>) => TrackSeat<TExt> {
   return (seat) =>
-    seat.targetIndex > lastIndex
-      ? {
+    seat.ext.dartsOnTarget < darts
+      ? seat
+      : {
           ...seat,
-          targetIndex: 0,
-          ext: { ...seat.ext, laps: seat.ext.laps + 1 },
-        }
-      : seat;
+          targetIndex: seat.targetIndex + 1,
+          ext: { ...seat.ext, dartsOnTarget: 0 },
+        };
 }
 
 /** Visit-close policy: past `lastIndex`, finish (`DONE`) on the last target. */

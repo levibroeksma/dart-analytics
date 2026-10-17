@@ -471,6 +471,20 @@ export type SequenceTrackExt = {
   sequences: number;
 };
 
+/** Per-target bookkeeping for a Track seat (Hit Count): darts thrown at the current target, and hits per path index. */
+export type TargetTallyExt = {
+  dartsOnTarget: number;
+  hitsPerTarget: number[];
+};
+
+/** Completed walks of a repeating path. */
+export type PassTrackExt = {
+  passes: number;
+};
+
+/** Hit Count's Track extras. */
+export type HitCountTrackExt = TargetTallyExt & PassTrackExt;
+
 /**
  * What the player did, as observed at input time — the engine's only input.
  * `locationX` / `locationY` are the landing point in regulation millimetres
