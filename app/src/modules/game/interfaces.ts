@@ -95,6 +95,8 @@ export interface DartGameEngineClass<TConfig, TState extends ShellState> {
  */
 export interface TrackRules<TExt> {
   readonly doneMessage: string;
+  /** Every seat's score before its first dart; 0 when absent. */
+  readonly startScore?: number;
   target(seat: TrackSeat<TExt>): BoardTarget;
   hit(target: BoardTarget, observation: DartObservation): boolean;
   points(

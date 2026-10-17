@@ -43,6 +43,9 @@ export type Bobs27SeatState = SeatState & {
   status: "IN_PROGRESS" | "WON" | "LOST";
 };
 
+/** Bob's 27's Track extras: the open visit's per-dart hits, in throw order. */
+export type Bobs27TrackExt = { hits: boolean[] };
+
 export type Bobs27State = MultiSeatState<Bobs27SeatState> & {
   status: "IN_PROGRESS" | "WON" | "LOST" | "COMPLETE";
   winningSideKey: string | null;

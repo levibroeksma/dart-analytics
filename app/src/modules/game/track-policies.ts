@@ -29,3 +29,25 @@ export function advanceToEnd<TExt>(
       ? { ...seat, status: "DONE" }
       : { ...seat, targetIndex: seat.targetIndex + 1 };
 }
+
+/** Visit policy: open until `darts` darts are thrown, hits or not. */
+export function closeAfter<TExt>(
+  darts: number,
+): (seat: TrackSeat<TExt>) => boolean {
+  return (seat) => seat.dartsThisVisit < darts;
+}
+
+/** Visit-close policy: subtract `penalty(seat)` from the score when the visit hit nothing. */
+export function penaltyOnBlank<TExt>(
+  penalty: (seat: TrackSeat<TExt>) => number,
+): (seat: TrackSeat<TExt>) => TrackSeat<TExt> {
+  return (seat) =>
+    seat.hitsThisVisit === 0
+      ? { ...seat, score: seat.score - penalty(seat) }
+      : seat;
+}
+
+/** Visit-close policy: a score at or below zero puts the seat `OUT`. */
+export function outAtOrBelowZero<TExt>(seat: TrackSeat<TExt>): TrackSeat<TExt> {
+  return seat.score <= 0 ? { ...seat, status: "OUT" } : seat;
+}

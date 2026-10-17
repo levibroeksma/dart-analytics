@@ -3,16 +3,17 @@ import type { TrackRules } from "./interfaces";
 import { foldSeatStates } from "./seat-state.module";
 import type { DartObservation, JudgedDart, TrackSeat, TurnFact } from "./types";
 
-/** A Track seat before its first dart: first target, zero counters, `ext` as given. */
+/** A Track seat before its first dart: first target, zero counters, `score` (default 0) and `ext` as given. */
 export function initialTrackSeat<TExt>(
   seat: SeatFact,
   ext: TExt,
+  score = 0,
 ): TrackSeat<TExt> {
   return {
     participantRef: seat.participantRef,
     sideKey: seat.sideKey,
     targetIndex: 0,
-    score: 0,
+    score,
     dartsThisVisit: 0,
     hitsThisVisit: 0,
     status: "IN_PROGRESS",
@@ -64,7 +65,7 @@ export function foldTrackSeats<TExt>(
   return foldSeatStates(
     turns,
     seats,
-    (seat) => initialTrackSeat(seat, initialExt()),
+    (seat) => initialTrackSeat(seat, initialExt(), rules.startScore),
     (state, observation) => applyTrackDart(state, observation, rules),
   );
 }

@@ -989,3 +989,55 @@ describe("foldBobs27State", () => {
     expect(folded).toEqual(expected);
   });
 });
+
+describe("Bob's 27 — Track kernel boundaries", () => {
+  const at = (over: Partial<Bobs27SeatState>): Bobs27SeatState => ({
+    participantRef: "participant-1",
+    sideKey: "A",
+    targetIndex: 0,
+    score: 27,
+    dartsThisVisit: [],
+    status: "IN_PROGRESS",
+    ...over,
+  });
+
+  it("a hit on only the third dart: no penalty, advance, visit cleared", () => {
+    const seat = at({ score: 29, dartsThisVisit: [false, false] });
+    expect(applyBobs27Dart(config, seat, hitObservationFor(seat))).toEqual(
+      at({ score: 31, targetIndex: 1, dartsThisVisit: [] }),
+    );
+  });
+
+  it("a full miss on BULL that reaches 0 loses, not wins", () => {
+    const seat = at({
+      targetIndex: 20,
+      score: 50,
+      dartsThisVisit: [false, false],
+    });
+    expect(applyBobs27Dart(config, seat, missObservationFor(seat))).toEqual(
+      at({ targetIndex: 20, score: 0, status: "LOST" }),
+    );
+  });
+
+  it("a full miss on BULL with multiplier 2 subtracts 2 × bull value and still wins above 0", () => {
+    const seat = at({
+      targetIndex: 20,
+      score: 120,
+      dartsThisVisit: [false, false],
+    });
+    expect(
+      applyBobs27Dart(
+        { ...config, missPenaltyMultiplier: 2 },
+        seat,
+        missObservationFor(seat),
+      ),
+    ).toEqual(at({ targetIndex: 20, score: 20, status: "WON" }));
+  });
+
+  it("keeps a rehydrated visit's hit order across the next dart", () => {
+    const seat = at({ dartsThisVisit: [false] });
+    expect(applyBobs27Dart(config, seat, hitObservationFor(seat))).toEqual(
+      at({ score: 29, dartsThisVisit: [false, true] }),
+    );
+  });
+});

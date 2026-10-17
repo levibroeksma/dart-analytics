@@ -3,7 +3,7 @@
 # KERNEL_BOUND: imports ./<kernel>-kernel.module. PENDING: migrates later, reason names the plan.
 # HAND_WRITTEN: kernel column is HAND_WRITTEN, reason says why. Gate: scripts/check-engine-kernels.sh.
 app/src/modules/game/around-the-clock.engine.module.ts | TRACK | PENDING | docs/game-rules/rulesets/around-the-clock.md | Track PR 4
-app/src/modules/game/bobs27.engine.module.ts | TRACK | PENDING | docs/game-rules/rulesets/bobs-27.md | Track PR 2
+app/src/modules/game/bobs27.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/rulesets/bobs-27.md |
 app/src/modules/game/cricket.engine.module.ts | MARKS | PENDING | docs/game-rules/rulesets/cricket.md | Marks family plan
 app/src/modules/game/doubles-training.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/rulesets/doubles-training.md |
 app/src/modules/game/five-oh-one.engine.module.ts | HAND_WRITTEN | HAND_WRITTEN | docs/game-rules/rulesets/501.md | sets/legs match format (umbrella spec §5)

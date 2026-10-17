@@ -37,20 +37,6 @@ function initialSeatState(
   };
 }
 
-/**
- * Bob's 27 starting state: every configured seat at its own starting
- * progress, seat 0 active, nobody eliminated. A solo session is one seat —
- * no branch anywhere in the engine.
- */
-function initialBobs27State(config: Seated<Bobs27Snapshot>): Bobs27State {
-  return {
-    activeParticipantRef: config.seats[0].participantRef,
-    status: "IN_PROGRESS",
-    winningSideKey: null,
-    seats: config.seats.map((seat) => initialSeatState(config, seat)),
-  };
-}
-
 function pointValueOf(target: BoardTarget, config: Bobs27Snapshot): number {
   return target.kind === "BULL"
     ? config.bullHitValue
