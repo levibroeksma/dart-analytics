@@ -1,3 +1,4 @@
+import type { RulesetVersionKey } from "@lib/types";
 import type {
   DartGameEngineClass,
   DartGameSpec,
@@ -29,14 +30,16 @@ export function dartGameEngineClass<TConfig, TState extends ShellState>(
   const stage = exerciseBlockStage();
   return class implements ShellGameEngine<TConfig, TState> {
     readonly spec = spec;
-    readonly rulesetVersionKey = spec.rulesetVersionKey;
+    readonly rulesetVersionKey: RulesetVersionKey;
     readonly stageOwnership = spec.stageOwnership;
     private readonly turns: TurnFact[];
 
     constructor(
       private readonly config: TConfig,
       prior?: EngineFacts,
+      rulesetVersionKey: RulesetVersionKey = spec.rulesetVersionKey,
     ) {
+      this.rulesetVersionKey = rulesetVersionKey;
       this.turns = prior ? cloneTurns(prior.turns) : [];
     }
 
@@ -84,14 +87,18 @@ export function dartGameEngineClass<TConfig, TState extends ShellState>(
   };
 }
 
-/** The registry-facing factory for a shell-built engine class. */
+/** The registry-facing factory for one ruleset key of a shell-built engine class (default: the spec's own key). */
 export function dartGameEngineFactory<TConfig, TState extends ShellState>(
   spec: DartGameSpec<TConfig, TState>,
   Engine: DartGameEngineClass<TConfig, TState>,
+  rulesetVersionKey: RulesetVersionKey = spec.rulesetVersionKey,
 ): GameEngineFactory<TConfig, DartObservation, TState> {
+  const served = [spec.rulesetVersionKey, ...(spec.rulesetVersionKeys ?? [])];
+  if (!served.includes(rulesetVersionKey))
+    throw new Error(`${rulesetVersionKey} is not served by this spec`);
   return {
-    rulesetVersionKey: spec.rulesetVersionKey,
+    rulesetVersionKey,
     stageOwnership: spec.stageOwnership,
-    create: (config, prior) => new Engine(config, prior),
+    create: (config, prior) => new Engine(config, prior, rulesetVersionKey),
   };
 }

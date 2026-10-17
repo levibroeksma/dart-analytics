@@ -10,7 +10,7 @@ app/src/modules/game/five-oh-one.engine.module.ts | HAND_WRITTEN | HAND_WRITTEN 
 app/src/modules/game/one-twenty-one.engine.module.ts | CHECKOUT | PENDING | docs/game-rules/rulesets/121.md | Checkout family plan
 app/src/modules/game/score-training.engine.module.ts | VISIT_POINTS | PENDING | docs/game-rules/rulesets/score-training.md | Visit-points family plan
 app/src/modules/game/shanghai.engine.module.ts | TRACK | PENDING | docs/game-rules/rulesets/shanghai.md | Track PR 5
-app/src/modules/game/singles-training.engine.module.ts | TRACK | PENDING | docs/game-rules/rulesets/singles-training.md | Track PR 3
+app/src/modules/game/singles-training.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/rulesets/singles-training.md |
 app/src/modules/game/tactics.engine.module.ts | MARKS | PENDING | docs/game-rules/rulesets/tactics.md | Marks family plan
 app/src/modules/game/tuod.engine.module.ts | CHECKOUT | PENDING | docs/game-rules/rulesets/ten-up-one-down.md | Checkout family plan
 app/src/modules/training/exercises/bull-up.engine.module.ts | HAND_WRITTEN | HAND_WRITTEN | docs/game-rules/training/exercises/bull-up-practice.md | single target, counting only; a kernel adds nothing (Track spec §5)

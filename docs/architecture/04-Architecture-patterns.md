@@ -7,7 +7,7 @@ updated: 2026-10-17
 
 # Architecture Patterns
 
-> **Version:** 1.11.2 (Pattern 18: Bob's 27 bound to the Track kernel 2026-10-17, D468; prior 1.11.1: Pattern 18: Track kernel built, Doubles Training bound 2026-10-17, D468; prior 1.11.0: Pattern 18: rule-kernel families are architecture — registry, two gates, Kernel: header 2026-10-17, D467; prior 1.10.0: Pattern 18: single-stage dart engines and clockless timed dart exercises are specs bound to a shared shell, `dart-engine-shell.module.ts` / `dart-exercise-shell.module.ts` 2026-10-16, D462; prior 1.9.3: Pattern 20: 501/TUOD/121 route their checkout rate
+> **Version:** 1.11.3 (Pattern 18: Singles Training bound to the Track kernel; the game shell serves several ruleset keys per spec 2026-10-17, D468; prior 1.11.2: Pattern 18: Bob's 27 bound to the Track kernel 2026-10-17, D468; prior 1.11.1: Pattern 18: Track kernel built, Doubles Training bound 2026-10-17, D468; prior 1.11.0: Pattern 18: rule-kernel families are architecture — registry, two gates, Kernel: header 2026-10-17, D467; prior 1.10.0: Pattern 18: single-stage dart engines and clockless timed dart exercises are specs bound to a shared shell, `dart-engine-shell.module.ts` / `dart-exercise-shell.module.ts` 2026-10-16, D462; prior 1.9.3: Pattern 20: 501/TUOD/121 route their checkout rate
 > through a second helper, `checkoutPercentageDisplay()`, that dashes a
 > zero-attempt denominator instead of reporting `"0.00%"`; the result
 > field these three rulesets expose is renamed `checkoutPercentage`
@@ -815,7 +815,7 @@ A score-compare engine calls `scoreCompareOutcome(seats, direction, soloStatus)`
 
 The mechanical half of an engine — everything with no ruleset content in it — is composed from two shared pure modules rather than copied per engine (D232). `modules/game/turn-log.module.ts` owns the `TurnFact`/`DartFact` log: `cloneTurns`, `sumDartScores`, `dartsThrownBy`, `openOrCreateTurn` (the caller supplies the reuse rule), `appendCompletedTurn`, `openVisit`, `resolveObservation`/`appendResolvedDart`, `appendObservedDart`/`doubleTargetIntent`, and the three undo shapes `undoLastDart` / `undoLastUnit` / `undoStagedTurn`. `modules/game/seat-state.module.ts` owns per-seat derivation: `foldSeatStates`, `activeSeatState`, `otherSeatsComplete` (a completion predicate `(seat: TSeat) => boolean` as its 3rd argument — a `status` check for the dart-fed engines, `durationSeatComplete` for TUOD and Score Training), `durationSeatComplete`, `completedByIndex`. A new engine composes these; what stays in the engine is what its ruleset actually decides.
 
-A single-stage, dart-input engine goes further: it is a `DartGameSpec` — `fold`, `refusal`, `intent`, `isVisitOpen`, `wouldComplete` — bound to the shell in `modules/game/dart-engine-shell.module.ts`, which owns the log, keys, `completedAt`, undo and rehydration. Clockless timed exercises do the same with `DartExerciseSpec` and `modules/training/exercises/dart-exercise-shell.module.ts`. A hand-written class is the opt-out for an engine the shell cannot express (multi-stage, visit input). (2026-10-16, D462)
+A single-stage, dart-input engine goes further: it is a `DartGameSpec` — `fold`, `refusal`, `intent`, `isVisitOpen`, `wouldComplete` — bound to the shell in `modules/game/dart-engine-shell.module.ts`, which owns the log, keys, `completedAt`, undo and rehydration. One spec may serve several ruleset versions (`rulesetVersionKeys`): one class, one factory per key, as Singles Training V1–V3 does. Clockless timed exercises do the same with `DartExerciseSpec` and `modules/training/exercises/dart-exercise-shell.module.ts`. A hand-written class is the opt-out for an engine the shell cannot express (multi-stage, visit input). (2026-10-16, D462)
 
 ### Rule-kernel families <!-- 2026-10-17, D467 -->
 
@@ -827,7 +827,7 @@ hand-written opt-out:
 
 | Kernel | Decides | Kernel module | Status |
 | --- | --- | --- | --- |
-| `TRACK` | walk a target path; hit test, points, visit judgement, seat end | `modules/game/track-kernel.module.ts` (policies: `track-policies.ts`) | built — Doubles Training, Bob's 27 bound (D468) |
+| `TRACK` | walk a target path; hit test, points, visit judgement, seat end | `modules/game/track-kernel.module.ts` (policies: `track-policies.ts`) | built — Doubles Training, Bob's 27, Singles Training bound (D468) |
 | `CHECKOUT` | finish a target score under bust rules; attempt budget; ladder moves | `checkout-kernel.module.ts` | designated, kernel pending |
 | `VISIT_POINTS` | points from a visit's darts; goal, bust, void, compare | `visit-points-kernel.module.ts` | designated, kernel pending |
 | `MARKS` | marks on categories; close order; closed-number scoring | `marks-kernel.module.ts` | designated, kernel pending |

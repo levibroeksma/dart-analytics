@@ -89,6 +89,8 @@ function same(
   }
 }
 
+type Observe = (rand: () => number, engine: OracleEngine) => DartObservation;
+
 type OracleOptions = {
   build: (prior?: EngineFacts) => OracleEngine;
   legacy: (prior?: EngineFacts) => OracleEngine;
@@ -97,6 +99,7 @@ type OracleOptions = {
   undoRate?: number;
   expireAt?: number;
   rehydrateEvery?: number;
+  observe?: Observe;
 };
 
 type Pair = { next: OracleEngine; old: OracleEngine };
@@ -138,7 +141,7 @@ function act(
     same("undo", pair.next.undo(), pair.old.undo(), where);
     return;
   }
-  throwDart(pair, randomObservation(rand), where);
+  throwDart(pair, (opts.observe ?? randomObservation)(rand, pair.old), where);
 }
 
 function rehydrate(pair: Pair, opts: OracleOptions, where: string): Pair {
@@ -175,6 +178,7 @@ type TraceOptions = {
   undoRate: number;
   rehydrateEvery: number;
   expireAt?: number;
+  observe?: Observe;
 };
 
 function outcomeLabel(result: ReturnType<typeof attempt>): string {
@@ -192,7 +196,7 @@ function traceStep(
     return "expire";
   }
   if (rand() < opts.undoRate) return `undo ${engine.undo()}`;
-  const o = randomObservation(rand);
+  const o = (opts.observe ?? randomObservation)(rand, engine);
   const would = outcomeLabel(attempt(() => engine.wouldComplete?.(o)));
   const recorded = outcomeLabel(
     attempt(() => {

@@ -1828,3 +1828,117 @@ describe("applySinglesTrainingDart — HARD combined with ACCURACY", () => {
     expect(state.status).toBe("LOST");
   });
 });
+
+describe("Singles Training — Track kernel boundaries", () => {
+  const at = (
+    over: Partial<SinglesTrainingSeatState>,
+  ): SinglesTrainingSeatState => ({
+    participantRef: "participant-1",
+    sideKey: "A",
+    targetIndex: 4,
+    totalPoints: 7,
+    dartsThisVisit: 2,
+    hitsThisVisit: 0,
+    status: "IN_PROGRESS",
+    ...over,
+  });
+  const dart = (
+    hitTargetNumber: number | null,
+    hitZoneKey: DartZoneKey,
+  ): DartObservation => ({
+    hitTargetNumber,
+    hitZoneKey,
+    locationX: null,
+    locationY: null,
+  });
+  const v2 = (
+    difficulty: SinglesV2Snapshot["difficulty"],
+  ): Seated<SinglesV2Snapshot> => ({ ...config, difficulty });
+  const v3 = (over: Partial<SinglesV3Snapshot>): Seated<SinglesV3Snapshot> => ({
+    ...config,
+    difficulty: "EASY",
+    scoringMode: "STANDARD",
+    ...over,
+  });
+  const SEATS_DUO = [
+    SEATS[0],
+    {
+      ...SEATS[0],
+      participantRef: "participant-2",
+      displayName: "P2",
+      sideKey: "B",
+    },
+  ];
+
+  it("1: a blank BULL visit under HARD loses, not completes", () => {
+    expect(
+      applySinglesTrainingDart(
+        v2("HARD"),
+        at({ targetIndex: 20 }),
+        dart(null, "MISS"),
+      ),
+    ).toEqual(at({ targetIndex: 20, dartsThisVisit: 0, status: "LOST" }));
+  });
+
+  it("2: EXTREME with one hit loses but keeps that hit's points", () => {
+    expect(
+      applySinglesTrainingDart(v2("EXTREME"), at({}), dart(5, "TREBLE")),
+    ).toEqual(at({ totalPoints: 10, dartsThisVisit: 0, status: "LOST" }));
+  });
+
+  it("3: ACCURACY counts an inner single as a HARD hit but scores it 0", () => {
+    const hard = v3({ difficulty: "HARD", scoringMode: "ACCURACY" });
+    expect(
+      applySinglesTrainingDart(hard, at({}), dart(5, "INNER_SINGLE")),
+    ).toEqual(at({ targetIndex: 5, dartsThisVisit: 0 }));
+    expect(
+      applySinglesTrainingDart(
+        hard,
+        at({ dartsThisVisit: 0 }),
+        dart(5, "OUTER_SINGLE"),
+      ),
+    ).toEqual(at({ totalPoints: 8, dartsThisVisit: 1, hitsThisVisit: 1 }));
+    expect(
+      applySinglesTrainingDart(
+        hard,
+        at({ dartsThisVisit: 0 }),
+        dart(5, "SINGLE"),
+      ),
+    ).toEqual(at({ dartsThisVisit: 1, hitsThisVisit: 1 }));
+  });
+
+  it("4: a duo elimination ends the match mid-rotation with the match-ended refusal", () => {
+    const engine = new SinglesTrainingEngine(
+      { ...v2("HARD"), seats: SEATS_DUO },
+      undefined,
+      "SINGLES_V2",
+    );
+    expect(engine.wouldComplete(dart(null, "MISS"))).toBe(false);
+    engine.record(dart(null, "MISS"));
+    engine.record(dart(null, "MISS"));
+    expect(engine.wouldComplete(dart(null, "MISS"))).toBe(true);
+    const state = engine.record(dart(null, "MISS"));
+    expect(state.status).toBe("COMPLETE");
+    expect(state.winningSideKey).toBe("B");
+    expect(state.seats[1].status).toBe("IN_PROGRESS");
+    expect(() => engine.record(dart(1, "SINGLE"))).toThrow(
+      "Cannot record a dart once the match has ended; undo first to correct it.",
+    );
+  });
+
+  it("5: V2 and V3 factories rehydrate with their own key, as the one class", () => {
+    for (const [factory, key] of [
+      [singlesTrainingV2EngineFactory, "SINGLES_V2"],
+      [singlesTrainingV3EngineFactory, "SINGLES_V3"],
+    ] as const) {
+      const cfg = v3({});
+      const first = factory.create(cfg);
+      first.record(dart(1, "SINGLE"));
+      const resumed = factory.create(cfg, first.facts());
+      expect(factory.rulesetVersionKey).toBe(key);
+      expect(resumed.rulesetVersionKey).toBe(key);
+      expect(resumed).toBeInstanceOf(SinglesTrainingEngine);
+      expect(resumed.state()).toEqual(first.state());
+    }
+  });
+});

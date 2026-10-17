@@ -1,43 +1,39 @@
 import type {
-  RulesetVersionKey,
   Seated,
   SeatFact,
   SinglesSnapshot,
   SinglesV2Snapshot,
   SinglesV3Snapshot,
 } from "@lib/types";
-import {
-  BULL_TARGET_NUMBER,
-  numbersPath,
-  targetAt,
-} from "./board-progression.module";
+import { numbersPath, targetAt } from "./board-progression.module";
 import { registerEngineFactory } from "./engine.registry";
 import { activeSeat } from "./seat-rota.module";
-import {
-  activeSeatState,
-  foldSeatStates,
-  otherSeatsComplete,
-} from "./seat-state.module";
-import {
-  appendObservedDart,
-  cloneTurns,
-  exerciseBlockStage,
-  openOrCreateTurn,
-  undoLastDart,
-} from "./turn-log.module";
+import { activeSeatState, otherSeatsComplete } from "./seat-state.module";
 import { eliminationWinner, scoreCompareOutcome } from "./match-outcome.module";
-import type { GameEngine, GameEngineFactory } from "./interfaces";
+import {
+  dartGameEngineClass,
+  dartGameEngineFactory,
+} from "./dart-engine-shell.module";
+import { applyTrackDart, foldTrackSeats } from "./track-kernel.module";
+import {
+  advanceToEnd,
+  anyRingEitherBull,
+  closeAfter,
+  outBelowHits,
+  pathTarget,
+  pointsTable,
+} from "./track-policies";
+import type { DartGameSpec, TrackRules } from "./interfaces";
 import type {
   BoardTarget,
+  DartIntent,
   DartObservation,
-  DartZoneKey,
   EngineFacts,
+  PointsTable,
   SinglesTrainingSeatState,
   SinglesTrainingState,
-  TurnFact,
+  TrackSeat,
 } from "./types";
-
-const STAGE = exerciseBlockStage();
 
 type SinglesEngineConfig =
   | Seated<SinglesSnapshot>
@@ -68,18 +64,6 @@ export function initialSinglesTrainingState(
   };
 }
 
-/**
- * Every `DartZoneKey` a single ring can produce: the unbanded value keypad
- * capture records, plus the two bands coordinate capture resolves to. Singles
- * Training treats all three as equally valid single hits, differing only from
- * DOUBLE and TREBLE in point value.
- */
-const SINGLE_ZONE_KEYS: ReadonlySet<DartZoneKey> = new Set([
-  "SINGLE",
-  "INNER_SINGLE",
-  "OUTER_SINGLE",
-]);
-
 function requiredHitsFor(
   difficulty: SinglesEngineConfig["difficulty"],
 ): number {
@@ -88,88 +72,10 @@ function requiredHitsFor(
   return 0;
 }
 
-/**
- * Whether `observation` landed on `target`'s section at all — single, double
- * or treble on a NUMBER target, outer or inner on BULL — independent of the
- * ring's point value, so a HARD/EXTREME mandatory-hit count never depends on
- * a configured `pointsSingle`/`pointsDouble`/`pointsTreble` staying nonzero.
- */
-function isHitOnTarget(
-  target: BoardTarget,
-  observation: DartObservation,
-): boolean {
-  if (target.kind === "BULL") {
-    return (
-      observation.hitTargetNumber === BULL_TARGET_NUMBER &&
-      (observation.hitZoneKey === "OUTER_BULL" ||
-        observation.hitZoneKey === "INNER_BULL")
-    );
-  }
-  return (
-    observation.hitTargetNumber === target.number &&
-    (SINGLE_ZONE_KEYS.has(observation.hitZoneKey) ||
-      observation.hitZoneKey === "DOUBLE" ||
-      observation.hitZoneKey === "TREBLE")
-  );
-}
-
 /** `scoringMode` is absent on every V1/V2 config; reads as `"STANDARD"` —
  * the ring-quality point ladder both those versions have always used. */
 function scoringModeOf(config: SinglesEngineConfig): "STANDARD" | "ACCURACY" {
   return "scoringMode" in config ? config.scoringMode : "STANDARD";
-}
-
-/**
- * Accuracy scoring: 1 point for the outer/large single on a NUMBER target,
- * or either bull ring — 0 for everything else, including a genuine hit on
- * the wrong ring (inner single, double, treble) or the wrong target.
- */
-function accuracyPointsFor(
-  target: BoardTarget,
-  observation: DartObservation,
-): number {
-  if (target.kind === "BULL") {
-    if (observation.hitTargetNumber !== BULL_TARGET_NUMBER) return 0;
-    return observation.hitZoneKey === "OUTER_BULL" ||
-      observation.hitZoneKey === "INNER_BULL"
-      ? 1
-      : 0;
-  }
-  if (observation.hitTargetNumber !== target.number) return 0;
-  return observation.hitZoneKey === "OUTER_SINGLE" ? 1 : 0;
-}
-
-/**
- * Standard scoring: the ring-quality point ladder V1/V2 have always used,
- * unchanged by V3's addition — single/double/treble on a NUMBER target,
- * outer/inner on BULL, each worth the configured point value.
- */
-function standardPointsFor(
-  target: BoardTarget,
-  config: SinglesEngineConfig,
-  observation: DartObservation,
-): number {
-  if (target.kind === "BULL") {
-    if (observation.hitTargetNumber !== BULL_TARGET_NUMBER) return 0;
-    if (observation.hitZoneKey === "OUTER_BULL") return config.pointsSingle;
-    if (observation.hitZoneKey === "INNER_BULL") return config.pointsDouble;
-    return 0;
-  }
-  if (observation.hitTargetNumber !== target.number) return 0;
-  if (SINGLE_ZONE_KEYS.has(observation.hitZoneKey)) return config.pointsSingle;
-  if (observation.hitZoneKey === "DOUBLE") return config.pointsDouble;
-  if (observation.hitZoneKey === "TREBLE") return config.pointsTreble;
-  return 0;
-}
-
-function trainingPointsFor(
-  target: BoardTarget,
-  config: SinglesEngineConfig,
-  observation: DartObservation,
-): number {
-  return scoringModeOf(config) === "ACCURACY"
-    ? accuracyPointsFor(target, observation)
-    : standardPointsFor(target, config, observation);
 }
 
 /**
@@ -184,8 +90,96 @@ export function activeTargetOf(
   return targetAt(numbersPath(config.targetOrder), state.targetIndex);
 }
 
+const MATCH_ENDED =
+  "Cannot record a dart once the match has ended; undo first to correct it.";
+const SESSION_DONE =
+  "Cannot record a dart once the session is complete; undo first to correct it.";
+
+/** Accuracy scoring: 1 for the outer single on a NUMBER target or either bull, 0 for every other ring. */
+const ACCURACY_POINTS: PointsTable = {
+  number: { OUTER_SINGLE: 1 },
+  bull: { OUTER_BULL: 1, INNER_BULL: 1 },
+};
+
+/** Standard scoring: the configured single/double/treble values; outer bull as a single, inner as a double. */
+function standardPoints(config: SinglesEngineConfig): PointsTable {
+  const { pointsSingle: s, pointsDouble: d, pointsTreble: t } = config;
+  return {
+    number: {
+      SINGLE: s,
+      INNER_SINGLE: s,
+      OUTER_SINGLE: s,
+      DOUBLE: d,
+      TREBLE: t,
+    },
+    bull: { OUTER_BULL: s, INNER_BULL: d },
+  };
+}
+
+const TO_TRACK = {
+  IN_PROGRESS: "IN_PROGRESS",
+  COMPLETE: "DONE",
+  LOST: "OUT",
+} as const;
+const FROM_TRACK = {
+  IN_PROGRESS: "IN_PROGRESS",
+  DONE: "COMPLETE",
+  OUT: "LOST",
+} as const;
+
 /**
- * Pure reducer: folds one dart observation onto one seat's
+ * Singles Training as Track policies: the configured 21-target path, any
+ * ring or either bull is a hit, points from the STANDARD or ACCURACY table,
+ * three-dart visits; a visit below the difficulty's mandatory hits is out,
+ * before clearing BULL is checked.
+ */
+function singlesRules(config: SinglesEngineConfig): TrackRules<null> {
+  const path = numbersPath(config.targetOrder);
+  const judge = outBelowHits<null>(requiredHitsFor(config.difficulty));
+  const advance = advanceToEnd<null>(path.length - 1);
+  return {
+    doneMessage: SESSION_DONE,
+    target: pathTarget(path),
+    hit: anyRingEitherBull,
+    points: pointsTable(
+      scoringModeOf(config) === "ACCURACY"
+        ? ACCURACY_POINTS
+        : standardPoints(config),
+    ),
+    visitOpen: closeAfter(3),
+    onVisitClose: (seat) => {
+      const judged = judge(seat);
+      return judged.status === "OUT" ? judged : advance(judged);
+    },
+  };
+}
+
+/** Lifts a Singles seat into the kernel's shape: `totalPoints` is the score, no extras. */
+function toTrackSeat(state: SinglesTrainingSeatState): TrackSeat<null> {
+  const { totalPoints, status, ...progress } = state;
+  return {
+    ...progress,
+    score: totalPoints,
+    status: TO_TRACK[status],
+    ext: null,
+  };
+}
+
+/** Projects a kernel seat back to Singles Training's seat state. */
+function toSinglesSeat(seat: TrackSeat<null>): SinglesTrainingSeatState {
+  return {
+    participantRef: seat.participantRef,
+    sideKey: seat.sideKey,
+    targetIndex: seat.targetIndex,
+    totalPoints: seat.score,
+    dartsThisVisit: seat.dartsThisVisit,
+    hitsThisVisit: seat.hitsThisVisit,
+    status: FROM_TRACK[seat.status],
+  };
+}
+
+/**
+ * Pure reducer, via the Track kernel: folds one dart observation onto one seat's
  * `SinglesTrainingSeatState`.
  * @throws when `state.status` is not `IN_PROGRESS`; undo first to correct it.
  */
@@ -194,47 +188,9 @@ export function applySinglesTrainingDart(
   state: SinglesTrainingSeatState,
   observation: DartObservation,
 ): SinglesTrainingSeatState {
-  if (state.status !== "IN_PROGRESS") {
-    throw new Error(
-      "Cannot record a dart once the session is complete; undo first to correct it.",
-    );
-  }
-
-  const target = activeTargetOf(state, config);
-  const totalPoints =
-    state.totalPoints + trainingPointsFor(target, config, observation);
-  const dartsThisVisit = state.dartsThisVisit + 1;
-  const hitsThisVisit =
-    state.hitsThisVisit + (isHitOnTarget(target, observation) ? 1 : 0);
-
-  if (dartsThisVisit < 3) {
-    return { ...state, totalPoints, dartsThisVisit, hitsThisVisit };
-  }
-  if (hitsThisVisit < requiredHitsFor(config.difficulty)) {
-    return {
-      ...state,
-      totalPoints,
-      dartsThisVisit: 0,
-      hitsThisVisit: 0,
-      status: "LOST",
-    };
-  }
-  if (state.targetIndex === 20) {
-    return {
-      ...state,
-      totalPoints,
-      dartsThisVisit: 0,
-      hitsThisVisit: 0,
-      status: "COMPLETE",
-    };
-  }
-  return {
-    ...state,
-    totalPoints,
-    dartsThisVisit: 0,
-    hitsThisVisit: 0,
-    targetIndex: state.targetIndex + 1,
-  };
+  return toSinglesSeat(
+    applyTrackDart(toTrackSeat(state), observation, singlesRules(config)),
+  );
 }
 
 /**
@@ -249,13 +205,12 @@ export function foldSinglesTrainingState(
   facts: EngineFacts,
   config: SinglesEngineConfig,
 ): SinglesTrainingState {
-  const seats = foldSeatStates(
+  const seats = foldTrackSeats(
     facts.turns,
     config.seats,
-    initialSeatState,
-    (state, observation) =>
-      applySinglesTrainingDart(config, state, observation),
-  );
+    () => null,
+    singlesRules(config),
+  ).map(toSinglesSeat);
 
   const failedSeats = seats.filter((seat) => seat.status === "LOST");
   const outcome: {
@@ -294,195 +249,76 @@ export function foldSinglesTrainingState(
 }
 
 /**
- * Singles Training: a fixed path of 21 targets (1..20, then BULL), each
- * visit scored by ring quality relative to its own target, per seat. Under
- * EASY (V1 and V2), score-compare decides the match: both seats always play
- * the fixed number of visits, then whichever totalled the higher
- * training-point score wins. Under V2's HARD/EXTREME, a seat can instead
- * fail its mandatory-hit requirement and end the match immediately by
- * elimination. Both ruleset versions are served by this one class (Pattern
- * 18), exactly like `ShanghaiEngine`'s V1/V2 split.
+ * Both intention columns are always null — Singles treats single, double
+ * and treble on the current segment as equally valid, so no ring is "the"
+ * intended one, and a target number with a null zone is rejected by
+ * `chk_dart_target_consistency` (migration `0007`). The intended target is
+ * recoverable from the visit index. Do not restore either field.
  */
-export class SinglesTrainingEngine implements GameEngine<
-  DartObservation,
-  SinglesTrainingState
-> {
-  readonly rulesetVersionKey: RulesetVersionKey;
-  readonly stageOwnership = "PER_SEAT" as const;
-  private readonly turns: TurnFact[];
+const NO_INTENT: DartIntent = {
+  intendedTargetNumber: null,
+  intendedZoneKey: null,
+};
 
-  constructor(
-    private readonly config: SinglesEngineConfig,
-    prior?: EngineFacts,
-    rulesetVersionKey: RulesetVersionKey = "SINGLES_V1",
-  ) {
-    this.rulesetVersionKey = rulesetVersionKey;
-    this.turns = prior ? cloneTurns(prior.turns) : [];
-  }
-
-  private deriveState(): SinglesTrainingState {
-    return foldSinglesTrainingState(
-      { stages: [{ ...STAGE }], turns: this.turns },
-      this.config,
-    );
-  }
-
-  private openOrCreateTurn(activeParticipantRef: string): TurnFact {
-    return openOrCreateTurn(
-      this.turns,
-      STAGE.clientKey,
-      activeParticipantRef,
-      (last) => last.darts.length < 3,
-    );
-  }
-
-  /**
-   * Appends one dart to the active seat's open visit. Both
-   * `intendedTargetNumber` and `intendedZoneKey` are always `null` — the
-   * whole intention pair, not just the zone. Unlike Bob's 27, Singles
-   * Training treats single, double and treble on the current segment as
-   * equally valid intentional outcomes (differing only in point value), so
-   * no single ring is "the" intended one; recording a target number without
-   * a ring would still assert an intention the player never held, and a
-   * target number with a null zone is rejected outright by
-   * `chk_dart_target_consistency` (migration `0007`), which only admits both
-   * intention columns NULL or the zone NOT NULL. Nothing analytic is lost:
-   * Singles plays exactly one target per visit in a fixed, configured order,
-   * so the intended target is always recoverable from the visit index
-   * (`targetIndex`) without storing it per dart. Do not restore either
-   * field. The fact's `score` is the dart's board score, never the training
-   * points the derived total adds. `completedAt` is stamped only by the
-   * dart that resolves the visit — the client-observed end of it — so an
-   * open visit carries none.
-   *
-   * Guarded at both the match and seat level. EASY difficulty alone would
-   * let the per-seat guard suffice (every seat's own visit count is fixed at
-   * 21 and every visit is exactly 3 darts, so both seats always finish in
-   * strict lockstep with no race/instant-win shortcut). HARD/EXTREME's
-   * elimination breaks that: the match can now end the instant one seat
-   * fails while the OTHER seat's own status still reads `IN_PROGRESS` —
-   * exactly the `ShanghaiEngine`-style race this file used to disclaim. The
-   * top-level `before.status !== "IN_PROGRESS"` check below (mirroring
-   * `Bobs27Engine.record()`) catches that case; the seat-level check still
-   * rejects a stray call once the match has normally decided by
-   * score-compare.
-   * @throws when the match has already ended, or the active seat has already
-   *   completed its own session; the fact log is left untouched.
-   */
-  record(observation: DartObservation): SinglesTrainingState {
-    const before = this.deriveState();
-    if (before.status !== "IN_PROGRESS") {
-      throw new Error(
-        "Cannot record a dart once the match has ended; undo first to correct it.",
-      );
-    }
-    const seatBefore = activeSeatState(before);
-    if (seatBefore.status !== "IN_PROGRESS") {
-      throw new Error(
-        "Cannot record a dart once the session is complete; undo first to correct it.",
-      );
-    }
-
-    const openTurn = this.openOrCreateTurn(before.activeParticipantRef);
-    appendObservedDart(openTurn, observation);
-    if (openTurn.darts.length === 3) {
-      openTurn.completedAt = new Date().toISOString();
-    }
-
-    return this.deriveState();
-  }
-
-  /**
-   * Pops the last recorded dart, including one replayed from persisted
-   * facts, and removes the visit entirely once it holds no darts — the
-   * exact inverse of the `record()` call that created it. A surviving visit
-   * is open again by definition, so its `completedAt` is cleared.
-   * @returns true if a dart was removed; false if there was nothing to undo.
-   */
-  undo(): boolean {
-    return undoLastDart(this.turns);
-  }
-
-  /**
-   * Answers whether recording `observation` would end the WHOLE session —
-   * this dart is the active seat's 21st target's 3rd dart, and every other
-   * seat has already reached COMPLETE. Also reports true for a dart that
-   * would eliminate the active seat under HARD/EXTREME — the match ends the
-   * instant that happens, regardless of any other seat's own status.
-   */
-  wouldComplete(observation: DartObservation): boolean {
-    const before = this.deriveState();
-    if (before.status !== "IN_PROGRESS") return false;
-    const seatBefore = activeSeatState(before);
-    if (seatBefore.status !== "IN_PROGRESS") return false;
-    if (seatBefore.dartsThisVisit < 2) return false;
-
-    const after = applySinglesTrainingDart(
-      this.config,
-      seatBefore,
-      observation,
-    );
-    if (after.status === "LOST") return true;
-    if (after.status !== "COMPLETE") return false;
-
-    return otherSeatsComplete(
-      before.seats,
-      seatBefore.participantRef,
-      (seat) => seat.status === "COMPLETE",
-    );
-  }
-
-  isComplete(): boolean {
-    return this.deriveState().status !== "IN_PROGRESS";
-  }
-
-  state(): SinglesTrainingState {
-    return this.deriveState();
-  }
-
-  facts(): EngineFacts {
-    return { stages: [{ ...STAGE }], turns: cloneTurns(this.turns) };
-  }
-}
-
-export const singlesTrainingEngineFactory: GameEngineFactory<
-  Seated<SinglesSnapshot>,
-  DartObservation,
-  SinglesTrainingState
-> = {
+/**
+ * Singles Training's rules for the dart engine shell, serving V1–V3: 21
+ * targets, three darts each, scored per ring. Refused at the match level
+ * first — HARD/EXTREME elimination can end the match while another seat is
+ * still `IN_PROGRESS` — then at the seat level.
+ */
+const singlesSpec: DartGameSpec<SinglesEngineConfig, SinglesTrainingState> = {
   rulesetVersionKey: "SINGLES_V1",
+  rulesetVersionKeys: ["SINGLES_V2", "SINGLES_V3"],
   stageOwnership: "PER_SEAT",
-  create(config: Seated<SinglesSnapshot>, prior?: EngineFacts) {
-    return new SinglesTrainingEngine(config, prior);
+  fold: foldSinglesTrainingState,
+  refusal: (state) => {
+    if (state.status !== "IN_PROGRESS") return MATCH_ENDED;
+    return activeSeatState(state).status === "IN_PROGRESS"
+      ? null
+      : SESSION_DONE;
+  },
+  intent: () => NO_INTENT,
+  isVisitOpen: (turn) => turn.darts.length < 3,
+  wouldComplete: (state, observation, config) => {
+    if (state.status !== "IN_PROGRESS") return false;
+    const seat = activeSeatState(state);
+    if (seat.status !== "IN_PROGRESS" || seat.dartsThisVisit < 2) return false;
+    const after = applySinglesTrainingDart(config, seat, observation);
+    if (after.status !== "COMPLETE") return after.status === "LOST";
+    return otherSeatsComplete(
+      state.seats,
+      seat.participantRef,
+      (other) => other.status === "COMPLETE",
+    );
   },
 };
+
+/**
+ * Singles Training engine (Pattern 18), built by the dart engine shell; one
+ * class for V1–V3, the key passed per factory. EASY decides by
+ * score-compare; HARD/EXTREME can end the match by elimination.
+ */
+export class SinglesTrainingEngine extends dartGameEngineClass(singlesSpec) {}
+
+export const singlesTrainingEngineFactory = dartGameEngineFactory(
+  singlesSpec,
+  SinglesTrainingEngine,
+);
 
 registerEngineFactory(singlesTrainingEngineFactory);
 
-export const singlesTrainingV2EngineFactory: GameEngineFactory<
-  Seated<SinglesV2Snapshot>,
-  DartObservation,
-  SinglesTrainingState
-> = {
-  rulesetVersionKey: "SINGLES_V2",
-  stageOwnership: "PER_SEAT",
-  create(config: Seated<SinglesV2Snapshot>, prior?: EngineFacts) {
-    return new SinglesTrainingEngine(config, prior, "SINGLES_V2");
-  },
-};
+export const singlesTrainingV2EngineFactory = dartGameEngineFactory(
+  singlesSpec,
+  SinglesTrainingEngine,
+  "SINGLES_V2",
+);
 
 registerEngineFactory(singlesTrainingV2EngineFactory);
 
-export const singlesTrainingV3EngineFactory: GameEngineFactory<
-  Seated<SinglesV3Snapshot>,
-  DartObservation,
-  SinglesTrainingState
-> = {
-  rulesetVersionKey: "SINGLES_V3",
-  stageOwnership: "PER_SEAT",
-  create(config: Seated<SinglesV3Snapshot>, prior?: EngineFacts) {
-    return new SinglesTrainingEngine(config, prior, "SINGLES_V3");
-  },
-};
+export const singlesTrainingV3EngineFactory = dartGameEngineFactory(
+  singlesSpec,
+  SinglesTrainingEngine,
+  "SINGLES_V3",
+);
 
 registerEngineFactory(singlesTrainingV3EngineFactory);
