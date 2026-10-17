@@ -83,7 +83,7 @@ interface TrackRules<TExt> {
   instead of a `visit` array; `outcome` stays in each engine's fold until a
   second engine shares it; the umbrella `RuleKernel` interface waits for a
   second family. Track ships as functions: `initialTrackSeat`,
-  `applyTrackDart`, `foldTrackSeats`.
+  `applyTrackDart`, `foldTrackSeats`. Engines keep their own `DartGameSpec`/`DartExerciseSpec` and route their reducer through the kernel; a generic `trackGameSpec` adapter lands only if two engines' specs turn out identical.
 - `TrackRules` is derived on every read from the config snapshot; never stored.
 - `project(match, config) → legacy state` per engine keeps `state()` and the
   exported fold byte-identical in shape.
@@ -210,7 +210,7 @@ must not rise), all `check-*.sh`, `check-test-coverage.sh`.
 | PR | Engine | Brings |
 | --- | --- | --- |
 | 0 | — (docs + scripts) | §9 hardening: Pattern 18 families subsection, D-entry, `Kernel:` lines + rules-file gate, `engine-kernels.txt` registry + `check-engine-kernels.sh` with a row for every shipped engine (`PENDING` or `HAND_WRITTEN`) |
-| 1 | Doubles Training | kernel core, first policies, `trackGameSpec`, Track D-entry; deletes its opt-out row |
+| 1 | Doubles Training | kernel core, first policies, Track D-entry; flips its registry row to `KERNEL_BOUND` |
 | 2 | Bob's 27 | `penaltyOnBlank`, elimination outcome; `09-Adding-A-Game.md` |
 | 3 | Singles Training | `pointsTable`, `outBelowHits`, multi-key shell |
 | 4 | Around the Clock | `stepBackBelowHits`, laps, game-shell timer |
