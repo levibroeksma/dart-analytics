@@ -3,10 +3,12 @@ import {
   advanceOnHit,
   advanceToEnd,
   anyRingEitherBull,
+  boardScorePoints,
   closeAfter,
   closeAfterOrPastEnd,
   closeOnHitOrAfter,
   doneOnWrap,
+  halveOnBlank,
   lapOnWrap,
   noPoints,
   outAtOrBelowZero,
@@ -15,7 +17,10 @@ import {
   pathTarget,
   penaltyOnBlank,
   pointsTable,
+  recordVisitZone,
+  shanghaiWin,
   stepBackBelowHits,
+  zoneBucketOf,
 } from "@modules/game/track-policies";
 import { initialTrackSeat } from "@modules/game/track-kernel.module";
 import { doublesPath, targetAt } from "@modules/game/board-progression.module";
@@ -207,5 +212,69 @@ describe("track policies", () => {
     });
     const onBull = seat({ targetIndex: 20 });
     expect(doneOnWrap(20)(onBull)).toBe(onBull);
+  });
+
+  it("boardScorePoints: a hit's board score, nothing for a miss", () => {
+    expect(boardScorePoints(FIVE, on(5, "TREBLE"), true)).toBe(15);
+    expect(boardScorePoints(FIVE, on(5, "DOUBLE"), true)).toBe(10);
+    expect(boardScorePoints(FIVE, on(5, "OUTER_SINGLE"), true)).toBe(5);
+    expect(boardScorePoints(FIVE, on(20, "TREBLE"), false)).toBe(0);
+  });
+
+  it("zoneBucketOf: single rings, double, treble; null otherwise", () => {
+    expect(zoneBucketOf("INNER_SINGLE")).toBe("SINGLE");
+    expect(zoneBucketOf("DOUBLE")).toBe("DOUBLE");
+    expect(zoneBucketOf("TREBLE")).toBe("TREBLE");
+    expect(zoneBucketOf("OUTER_BULL")).toBeNull();
+    expect(zoneBucketOf("MISS")).toBeNull();
+  });
+
+  type Zones = { zones: (DartZoneKey | null)[]; shanghai: boolean };
+  const zoned = (
+    zones: (DartZoneKey | null)[],
+    over: Partial<TrackSeat<Zones>> = {},
+  ): TrackSeat<Zones> => ({
+    ...initialTrackSeat(SEAT, { zones, shanghai: false }),
+    ...over,
+  });
+
+  it("recordVisitZone: the zone on a hit, null on a miss, input untouched", () => {
+    const before = zoned(["SINGLE"]);
+    const dart = (hit: boolean) => ({
+      observation: on(5, "TREBLE"),
+      target: FIVE,
+      hit,
+      points: 0,
+    });
+    expect(recordVisitZone(before, dart(true)).ext.zones).toEqual([
+      "SINGLE",
+      "TREBLE",
+    ]);
+    expect(recordVisitZone(before, dart(false)).ext.zones).toEqual([
+      "SINGLE",
+      null,
+    ]);
+    expect(before.ext.zones).toEqual(["SINGLE"]);
+  });
+
+  it("halveOnBlank: a hitless visit halves the score, rounding half up", () => {
+    expect(halveOnBlank(seat({ score: 15 })).score).toBe(8);
+    expect(halveOnBlank(seat({ score: 16 })).score).toBe(8);
+    expect(halveOnBlank(seat({ score: 0 })).score).toBe(0);
+    const hit = seat({ score: 15, hitsThisVisit: 1 });
+    expect(halveOnBlank(hit)).toBe(hit);
+  });
+
+  it("shanghaiWin: single, double and treble in any order finish the seat", () => {
+    expect(
+      shanghaiWin(zoned(["TREBLE", "OUTER_SINGLE", "DOUBLE"])),
+    ).toMatchObject({ status: "DONE", ext: { shanghai: true } });
+    for (const zones of [
+      ["SINGLE", "SINGLE", "TREBLE"],
+      ["DOUBLE", null, "TREBLE"],
+    ] as (DartZoneKey | null)[][]) {
+      const s = zoned(zones);
+      expect(shanghaiWin(s)).toBe(s);
+    }
   });
 });

@@ -1,35 +1,46 @@
 import type {
-  RulesetVersionKey,
   Seated,
   SeatFact,
   ShanghaiSnapshot,
   ShanghaiV2Snapshot,
 } from "@lib/types";
-import { boardScore, numbersPath, targetAt } from "./board-progression.module";
+import { numbersPath, targetAt } from "./board-progression.module";
+import {
+  dartGameEngineClass,
+  dartGameEngineFactory,
+} from "./dart-engine-shell.module";
 import { registerEngineFactory } from "./engine.registry";
 import { activeSeat } from "./seat-rota.module";
-import { activeSeatState, foldSeatStates } from "./seat-state.module";
+import { activeSeatState, otherSeatsComplete } from "./seat-state.module";
+import { applyTrackDart, foldTrackSeats } from "./track-kernel.module";
 import {
-  appendObservedDart,
-  cloneTurns,
-  exerciseBlockStage,
-  openOrCreateTurn,
-  undoLastDart,
-} from "./turn-log.module";
+  advanceToEnd,
+  anyRingEitherBull,
+  boardScorePoints,
+  closeAfter,
+  halveOnBlank,
+  pathTarget,
+  recordVisitZone,
+  shanghaiWin,
+} from "./track-policies";
 import { raceWinner, scoreCompareWinner } from "./match-outcome.module";
-import type { GameEngine, GameEngineFactory } from "./interfaces";
+import type { DartGameSpec, TrackRules } from "./interfaces";
 import type {
   BoardTarget,
+  DartIntent,
   DartObservation,
-  DartZoneKey,
   EngineFacts,
   ShanghaiSeatState,
   ShanghaiState,
+  ShanghaiTrackExt,
+  TrackSeat,
   TurnFact,
 } from "./types";
 
-const STAGE = exerciseBlockStage();
+export { zoneBucketOf } from "./track-policies";
+
 const LAST_TARGET_INDEX = 19;
+const PATH = numbersPath();
 
 type ShanghaiEngineConfig =
   Seated<ShanghaiSnapshot> | Seated<ShanghaiV2Snapshot>;
@@ -69,21 +80,6 @@ export function initialShanghaiState(
   };
 }
 
-const SINGLE_ZONE_KEYS: ReadonlySet<DartZoneKey> = new Set([
-  "SINGLE",
-  "INNER_SINGLE",
-  "OUTER_SINGLE",
-]);
-
-export function zoneBucketOf(
-  zone: DartZoneKey,
-): "SINGLE" | "DOUBLE" | "TREBLE" | null {
-  if (SINGLE_ZONE_KEYS.has(zone)) return "SINGLE";
-  if (zone === "DOUBLE") return "DOUBLE";
-  if (zone === "TREBLE") return "TREBLE";
-  return null;
-}
-
 /**
  * The seat's active target: round `targetIndex` of the fixed 1..20 path,
  * never BULL. `config` is accepted only to match the other engines'
@@ -94,39 +90,87 @@ export function activeTargetOf(
   state: ShanghaiSeatState,
   _config?: ShanghaiEngineConfig,
 ): BoardTarget {
-  return targetAt(numbersPath(), state.targetIndex);
+  return targetAt(PATH, state.targetIndex);
 }
 
-function activeNumberAt(state: ShanghaiSeatState): number {
-  const target = activeTargetOf(state);
-  if (target.kind === "BULL") {
-    throw new Error("Shanghai never reaches the BULL target");
-  }
-  return target.number;
+const SESSION_ENDED =
+  "Cannot record a dart once the session has ended; undo first to correct it.";
+
+const MATCH_ENDED =
+  "Cannot record a dart once the match has ended; undo first to correct it.";
+
+/**
+ * Shanghai as Track policies: rounds 1–20, any ring on the round's number
+ * scores its board value, three-dart visits. On close a Hard blank visit
+ * halves the score, a single/double/treble finishes the seat as a
+ * Shanghai, otherwise the seat advances, finishing after round 20.
+ */
+function shanghaiRules(
+  difficulty: ShanghaiDifficulty,
+): TrackRules<ShanghaiTrackExt> {
+  const advance = advanceToEnd<ShanghaiTrackExt>(LAST_TARGET_INDEX);
+  const halve: (
+    seat: TrackSeat<ShanghaiTrackExt>,
+  ) => TrackSeat<ShanghaiTrackExt> =
+    difficulty === "HARD" ? halveOnBlank : (seat) => seat;
+  return {
+    doneMessage: SESSION_ENDED,
+    target: pathTarget(PATH),
+    hit: anyRingEitherBull,
+    points: boardScorePoints,
+    onDart: recordVisitZone,
+    visitOpen: closeAfter(3),
+    onVisitClose: (seat) => {
+      const judged = shanghaiWin(halve(seat));
+      const moved = judged.status === "IN_PROGRESS" ? advance(judged) : judged;
+      return { ...moved, ext: { ...moved.ext, zones: [] } };
+    },
+  };
 }
 
-function isShanghai(dartsThisVisit: readonly (DartZoneKey | null)[]): boolean {
-  const buckets = new Set(
-    dartsThisVisit
-      .filter((zone): zone is DartZoneKey => zone !== null)
-      .map(zoneBucketOf),
-  );
-  return (
-    buckets.has("SINGLE") && buckets.has("DOUBLE") && buckets.has("TREBLE")
-  );
+/** Lifts a Shanghai seat into the kernel's shape: `totalScore` as the score, the zone list and Shanghai flag as the extra. */
+function toTrackSeat(state: ShanghaiSeatState): TrackSeat<ShanghaiTrackExt> {
+  return {
+    participantRef: state.participantRef,
+    sideKey: state.sideKey,
+    targetIndex: state.targetIndex,
+    score: state.totalScore,
+    dartsThisVisit: state.dartsThisVisit.length,
+    hitsThisVisit: state.dartsThisVisit.filter((zone) => zone !== null).length,
+    status: state.status === "IN_PROGRESS" ? "IN_PROGRESS" : "DONE",
+    ext: {
+      zones: state.dartsThisVisit,
+      shanghai: state.status === "SHANGHAI",
+    },
+  };
+}
+
+/** Projects a kernel seat back to Shanghai's seat state; a `DONE` seat is `SHANGHAI` or `COMPLETE` by its flag. */
+function toShanghaiSeat(seat: TrackSeat<ShanghaiTrackExt>): ShanghaiSeatState {
+  return {
+    participantRef: seat.participantRef,
+    sideKey: seat.sideKey,
+    targetIndex: seat.targetIndex,
+    totalScore: seat.score,
+    dartsThisVisit: seat.ext.zones,
+    status: seatStatus(seat),
+  };
+}
+
+/** A kernel seat's Shanghai status: the Shanghai flag first, then done or not. */
+function seatStatus(
+  seat: TrackSeat<ShanghaiTrackExt>,
+): ShanghaiSeatState["status"] {
+  if (seat.ext.shanghai) return "SHANGHAI";
+  return seat.status === "IN_PROGRESS" ? "IN_PROGRESS" : "COMPLETE";
 }
 
 /**
- * Pure reducer: folds one dart observation onto one seat's `ShanghaiSeatState`.
- * `difficulty` defaults to `"NORMAL"` so every V1 call site (including this
- * file's own `foldShanghaiState` for a V1 config) is unaffected. Under
- * `"HARD"`, a visit that lands zero target hits — every entry in
- * `dartsThisVisit` is `null` once it reaches length 3 — halves `totalScore`
- * (round-half-up) instead of leaving it unchanged; a visit with at least one
- * hit is never penalized. This can never coincide with a Shanghai (which
- * needs all three zone kinds present), so the halving check runs ahead of
- * the Shanghai/complete/advance branch without affecting which of those
- * three a visit resolves to.
+ * Pure reducer, via the Track kernel: folds one dart observation onto one
+ * seat's `ShanghaiSeatState`. `difficulty` defaults to `"NORMAL"`. Under
+ * `"HARD"`, a visit with zero target hits halves `totalScore` (round half
+ * up); a visit with a hit is never penalized. A single/double/treble visit
+ * is a Shanghai; otherwise round 20's close completes the seat.
  * @throws when `state.status` is not `IN_PROGRESS`; undo first to correct it.
  */
 export function applyShanghaiDart(
@@ -134,56 +178,9 @@ export function applyShanghaiDart(
   observation: DartObservation,
   difficulty: ShanghaiDifficulty = "NORMAL",
 ): ShanghaiSeatState {
-  if (state.status !== "IN_PROGRESS") {
-    throw new Error(
-      "Cannot record a dart once the session has ended; undo first to correct it.",
-    );
-  }
-
-  const targetNumber = activeNumberAt(state);
-  const onTarget =
-    observation.hitTargetNumber === targetNumber &&
-    zoneBucketOf(observation.hitZoneKey) !== null;
-  const totalScore = onTarget
-    ? state.totalScore + boardScore(targetNumber, observation.hitZoneKey)
-    : state.totalScore;
-  const dartsThisVisit = [
-    ...state.dartsThisVisit,
-    onTarget ? observation.hitZoneKey : null,
-  ];
-
-  if (dartsThisVisit.length < 3) {
-    return { ...state, totalScore, dartsThisVisit };
-  }
-
-  const missedEveryDart = dartsThisVisit.every((zone) => zone === null);
-  const resolvedTotal =
-    difficulty === "HARD" && missedEveryDart
-      ? Math.round(totalScore / 2)
-      : totalScore;
-
-  if (isShanghai(dartsThisVisit)) {
-    return {
-      ...state,
-      totalScore: resolvedTotal,
-      dartsThisVisit: [],
-      status: "SHANGHAI",
-    };
-  }
-  if (state.targetIndex === LAST_TARGET_INDEX) {
-    return {
-      ...state,
-      totalScore: resolvedTotal,
-      dartsThisVisit: [],
-      status: "COMPLETE",
-    };
-  }
-  return {
-    ...state,
-    totalScore: resolvedTotal,
-    dartsThisVisit: [],
-    targetIndex: state.targetIndex + 1,
-  };
+  return toShanghaiSeat(
+    applyTrackDart(toTrackSeat(state), observation, shanghaiRules(difficulty)),
+  );
 }
 
 /**
@@ -198,13 +195,12 @@ export function foldShanghaiState(
   facts: EngineFacts,
   config: ShanghaiEngineConfig,
 ): ShanghaiState {
-  const difficulty = difficultyOf(config);
-  const seats = foldSeatStates(
+  const seats = foldTrackSeats(
     facts.turns,
     config.seats,
-    initialSeatState,
-    (state, observation) => applyShanghaiDart(state, observation, difficulty),
-  );
+    () => ({ zones: [], shanghai: false }),
+    shanghaiRules(difficultyOf(config)),
+  ).map(toShanghaiSeat);
 
   const raceResult =
     seats.length === 1
@@ -248,163 +244,93 @@ export function foldShanghaiState(
   };
 }
 
-/**
- * Shanghai: rounds 1..20, three darts each at that round's own number, per
- * seat. A single/double/treble Shanghai on any seat's visit ends the whole
- * match immediately — score-compare's own race-shaped exception. Otherwise
- * both seats always play all 20 rounds, then the higher total score wins.
- */
-export class ShanghaiEngine implements GameEngine<
-  DartObservation,
-  ShanghaiState
-> {
-  readonly rulesetVersionKey: RulesetVersionKey;
-  readonly stageOwnership = "PER_SEAT" as const;
-  private readonly turns: TurnFact[];
+const NO_INTENT: DartIntent = {
+  intendedTargetNumber: null,
+  intendedZoneKey: null,
+};
 
-  constructor(
-    private readonly config: ShanghaiEngineConfig,
-    prior?: EngineFacts,
-    rulesetVersionKey: RulesetVersionKey = "SHANGHAI_V1",
-  ) {
-    this.rulesetVersionKey = rulesetVersionKey;
-    this.turns = prior ? cloneTurns(prior.turns) : [];
-  }
-
-  private deriveState(): ShanghaiState {
-    return foldShanghaiState(
-      { stages: [{ ...STAGE }], turns: this.turns },
-      this.config,
-    );
-  }
-
-  private openOrCreateTurn(activeParticipantRef: string): TurnFact {
-    return openOrCreateTurn(
-      this.turns,
-      STAGE.clientKey,
-      activeParticipantRef,
-      (last) => last.darts.length < 3,
-    );
-  }
-
-  /**
-   * Appends one dart to the active seat's open visit. Guarded at both
-   * scopes: `before.status` catches the instant-Shanghai short circuit,
-   * which can end the WHOLE match on one seat's own visit while the OTHER
-   * seat's own `status` still reads `IN_PROGRESS` — that seat's own guard
-   * alone would let a caller keep recording its turns after the match is
-   * already decided. The seat-level guard also stays, for the ordinary
-   * single-seat-terminal case a solo session hits directly.
-   * A resolved visit persists its counted total — the change it made to the
-   * seat's running total — so a Hard-mode halving is a negative visit total
-   * and the seat's turn totals always sum to its score.
-   * @throws when the match has already ended (a Shanghai, or score-compare
-   *   once both seats are `COMPLETE`/`TIE`), or the active seat has already
-   *   ended its own session; the fact log is left untouched in either case.
-   */
-  record(observation: DartObservation): ShanghaiState {
-    const before = this.deriveState();
-    if (before.status !== "IN_PROGRESS") {
-      throw new Error(
-        "Cannot record a dart once the match has ended; undo first to correct it.",
-      );
-    }
-    const seatBefore = activeSeatState(before);
-    if (seatBefore.status !== "IN_PROGRESS") {
-      throw new Error(
-        "Cannot record a dart once the session has ended; undo first to correct it.",
-      );
-    }
-
-    const openTurn = this.openOrCreateTurn(before.activeParticipantRef);
-    appendObservedDart(openTurn, observation);
-    if (openTurn.darts.length === 3) {
-      openTurn.completedAt = new Date().toISOString();
-      const seatTotal = (turns: TurnFact[]): number | undefined =>
-        foldShanghaiState(
-          { stages: [{ ...STAGE }], turns },
-          this.config,
-        ).seats.find(
-          (seat) => seat.participantRef === seatBefore.participantRef,
-        )?.totalScore;
-      const visitStart = seatTotal(this.turns.slice(0, -1));
-      const visitEnd = seatTotal(this.turns);
-      if (visitStart !== undefined && visitEnd !== undefined) {
-        openTurn.totalScore = visitEnd - visitStart;
-      }
-    }
-
-    return this.deriveState();
-  }
-
-  undo(): boolean {
-    return undoLastDart(this.turns);
-  }
-
-  /**
-   * Answers whether recording `observation` would end the WHOLE session —
-   * either this dart completes a Shanghai (which always ends the match, no
-   * matter the other seat's own round), or it is the active seat's last
-   * round and every other seat has already reached a terminal status.
-   * `before.status` is checked first: once the match has already ended via
-   * an earlier Shanghai, the active seat's own status can still read
-   * `IN_PROGRESS` (that seat never got to finish its own round), and its own
-   * next visit resolving would otherwise misread as newly completing the
-   * match, when the match was decided already.
-   */
-  wouldComplete(observation: DartObservation): boolean {
-    const before = this.deriveState();
-    if (before.status !== "IN_PROGRESS") return false;
-    const seatBefore = activeSeatState(before);
-    if (seatBefore.status !== "IN_PROGRESS") return false;
-    if (seatBefore.dartsThisVisit.length < 2) return false;
-
-    const after = applyShanghaiDart(seatBefore, observation);
-    if (after.status === "SHANGHAI") return true;
-    if (after.status !== "COMPLETE") return false;
-
-    return before.seats
-      .filter((seat) => seat.participantRef !== seatBefore.participantRef)
-      .every((seat) => seat.status !== "IN_PROGRESS");
-  }
-
-  isComplete(): boolean {
-    return this.deriveState().status !== "IN_PROGRESS";
-  }
-
-  state(): ShanghaiState {
-    return this.deriveState();
-  }
-
-  facts(): EngineFacts {
-    return { stages: [{ ...STAGE }], turns: cloneTurns(this.turns) };
-  }
+/** The match-ended message first — a Shanghai ends the match while another seat still reads `IN_PROGRESS` — then the seat's own. */
+function shanghaiRefusal(state: ShanghaiState): string | null {
+  if (state.status !== "IN_PROGRESS") return MATCH_ENDED;
+  return activeSeatState(state).status === "IN_PROGRESS" ? null : SESSION_ENDED;
 }
 
-export const shanghaiEngineFactory: GameEngineFactory<
-  Seated<ShanghaiSnapshot>,
-  DartObservation,
-  ShanghaiState
-> = {
+/**
+ * Whether `observation` would end the WHOLE match: it completes a Shanghai,
+ * or closes the active seat's round 20 while every other seat has ended.
+ * False once the match has already ended.
+ */
+function wouldCompleteMatch(
+  state: ShanghaiState,
+  observation: DartObservation,
+): boolean {
+  if (state.status !== "IN_PROGRESS") return false;
+  const seat = activeSeatState(state);
+  if (seat.status !== "IN_PROGRESS" || seat.dartsThisVisit.length < 2)
+    return false;
+  const after = applyShanghaiDart(seat, observation);
+  if (after.status === "SHANGHAI") return true;
+  return (
+    after.status === "COMPLETE" &&
+    otherSeatsComplete(
+      state.seats,
+      seat.participantRef,
+      (other) => other.status !== "IN_PROGRESS",
+    )
+  );
+}
+
+/** A seat's running score in `state`; 0 for a participant not seated. */
+function scoreOf(state: ShanghaiState, participantRef: string): number {
+  return (
+    state.seats.find((seat) => seat.participantRef === participantRef)
+      ?.totalScore ?? 0
+  );
+}
+
+/** Three-dart visits: a turn takes darts until it holds three. */
+function isShanghaiVisitOpen(turn: TurnFact): boolean {
+  return turn.darts.length < 3;
+}
+
+/**
+ * Shanghai's rules for the dart engine shell, V1 and V2. A closed visit
+ * persists its counted total — the change it made to the seat's score — so
+ * a Hard halving is a negative visit total and a seat's turn totals sum to
+ * its score.
+ */
+const shanghaiSpec: DartGameSpec<ShanghaiEngineConfig, ShanghaiState> = {
   rulesetVersionKey: "SHANGHAI_V1",
+  rulesetVersionKeys: ["SHANGHAI_V2"],
   stageOwnership: "PER_SEAT",
-  create(config: Seated<ShanghaiSnapshot>, prior?: EngineFacts) {
-    return new ShanghaiEngine(config, prior);
-  },
+  fold: foldShanghaiState,
+  refusal: shanghaiRefusal,
+  intent: () => NO_INTENT,
+  isVisitOpen: isShanghaiVisitOpen,
+  wouldComplete: wouldCompleteMatch,
+  closedVisitTotal: (opened, closed, participantRef) =>
+    scoreOf(closed, participantRef) - scoreOf(opened, participantRef),
 };
+
+/**
+ * Shanghai (Pattern 18), built by the dart engine shell: rounds 1..20, three
+ * darts each at that round's own number, per seat. A single/double/treble
+ * Shanghai on any seat's visit ends the whole match immediately —
+ * score-compare's own race-shaped exception. Otherwise every seat plays all
+ * 20 rounds, then the higher total score wins.
+ */
+export class ShanghaiEngine extends dartGameEngineClass(shanghaiSpec) {}
+
+export const shanghaiEngineFactory = dartGameEngineFactory(
+  shanghaiSpec,
+  ShanghaiEngine,
+);
+
+export const shanghaiV2EngineFactory = dartGameEngineFactory(
+  shanghaiSpec,
+  ShanghaiEngine,
+  "SHANGHAI_V2",
+);
 
 registerEngineFactory(shanghaiEngineFactory);
-
-export const shanghaiV2EngineFactory: GameEngineFactory<
-  Seated<ShanghaiV2Snapshot>,
-  DartObservation,
-  ShanghaiState
-> = {
-  rulesetVersionKey: "SHANGHAI_V2",
-  stageOwnership: "PER_SEAT",
-  create(config: Seated<ShanghaiV2Snapshot>, prior?: EngineFacts) {
-    return new ShanghaiEngine(config, prior, "SHANGHAI_V2");
-  },
-};
-
 registerEngineFactory(shanghaiV2EngineFactory);

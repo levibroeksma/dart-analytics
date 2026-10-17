@@ -1,4 +1,8 @@
-import { BULL_TARGET_NUMBER, targetAt } from "./board-progression.module";
+import {
+  BULL_TARGET_NUMBER,
+  boardScore,
+  targetAt,
+} from "./board-progression.module";
 import type {
   BoardTarget,
   DartObservation,
@@ -177,4 +181,66 @@ export function doneOnWrap<TExt>(
     seat.targetIndex > lastIndex
       ? { ...seat, targetIndex: lastIndex, status: "DONE" }
       : seat;
+}
+
+const SINGLE_ZONE_KEYS: ReadonlySet<DartZoneKey> = new Set([
+  "SINGLE",
+  "INNER_SINGLE",
+  "OUTER_SINGLE",
+]);
+
+/** The single/double/treble bucket of a number ring; null for bull and miss. */
+export function zoneBucketOf(
+  zone: DartZoneKey,
+): "SINGLE" | "DOUBLE" | "TREBLE" | null {
+  if (SINGLE_ZONE_KEYS.has(zone)) return "SINGLE";
+  if (zone === "DOUBLE") return "DOUBLE";
+  if (zone === "TREBLE") return "TREBLE";
+  return null;
+}
+
+/** Points policy: a hit scores its board value, a miss nothing. */
+export function boardScorePoints(
+  _target: BoardTarget,
+  observation: DartObservation,
+  hit: boolean,
+): number {
+  return hit
+    ? boardScore(observation.hitTargetNumber, observation.hitZoneKey)
+    : 0;
+}
+
+/** Per-dart policy: log the dart's zone in `ext.zones` on a hit, `null` on a miss. */
+export function recordVisitZone<TExt extends { zones: (DartZoneKey | null)[] }>(
+  seat: TrackSeat<TExt>,
+  dart: JudgedDart,
+): TrackSeat<TExt> {
+  return {
+    ...seat,
+    ext: {
+      ...seat.ext,
+      zones: [...seat.ext.zones, dart.hit ? dart.observation.hitZoneKey : null],
+    },
+  };
+}
+
+/** Visit-close policy: a visit with no hit halves the score, rounding half up. */
+export function halveOnBlank<TExt>(seat: TrackSeat<TExt>): TrackSeat<TExt> {
+  return seat.hitsThisVisit === 0
+    ? { ...seat, score: Math.round(seat.score / 2) }
+    : seat;
+}
+
+/** Visit-close policy: hits holding a single, a double and a treble finish the seat (`DONE`) and set `ext.shanghai`. */
+export function shanghaiWin<
+  TExt extends { zones: (DartZoneKey | null)[]; shanghai: boolean },
+>(seat: TrackSeat<TExt>): TrackSeat<TExt> {
+  const buckets = new Set(
+    seat.ext.zones
+      .filter((zone): zone is DartZoneKey => zone !== null)
+      .map(zoneBucketOf),
+  );
+  return buckets.has("SINGLE") && buckets.has("DOUBLE") && buckets.has("TREBLE")
+    ? { ...seat, status: "DONE", ext: { ...seat.ext, shanghai: true } }
+    : seat;
 }

@@ -119,6 +119,12 @@ export type ShanghaiState = MultiSeatState<ShanghaiSeatState> & {
   winningSideKey: string | null;
 };
 
+/** Shanghai's Track extras: the open visit's hit zones (`null` per miss) and whether the seat hit a Shanghai. */
+export type ShanghaiTrackExt = {
+  zones: (DartZoneKey | null)[];
+  shanghai: boolean;
+};
+
 export type DoublesVisitOutcome = {
   targetIndex: number;
   hit: boolean;

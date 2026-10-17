@@ -1130,3 +1130,107 @@ describe("ShanghaiEngine — exerciseBlockStage wiring (F40)", () => {
     ]);
   });
 });
+
+describe("Shanghai — kernel seams", () => {
+  const on = (number: number | null, zone: DartZoneKey): DartObservation => ({
+    hitTargetNumber: number,
+    hitZoneKey: zone,
+    locationX: null,
+    locationY: null,
+  });
+  const hard: Seated<ShanghaiV2Snapshot> = {
+    difficulty: "HARD",
+    seats: SEATS,
+  };
+  const duo: Seated<ShanghaiSnapshot> = {
+    seats: [
+      ...SEATS,
+      {
+        participantRef: "participant-2",
+        displayName: "B",
+        sideKey: "B",
+        participantTypeKey: "GUEST" as const,
+      },
+    ],
+  };
+
+  it("1: a Hard blank visit persists a negative total, and turn totals sum to the score", () => {
+    const engine = shanghaiV2EngineFactory.create(hard);
+    [on(1, "TREBLE"), on(1, "TREBLE"), on(1, "SINGLE")].forEach((o) =>
+      engine.record(o),
+    );
+    [missObservation(), on(5, "TREBLE"), missObservation()].forEach((o) =>
+      engine.record(o),
+    );
+    const turns = engine.facts().turns;
+    expect(turns.map((t) => t.totalScore)).toEqual([7, -3]);
+    expect(engine.state().seats[0].totalScore).toBe(4);
+  });
+
+  it("2: undo of a closing dart restores the board sum; re-closing rewrites the counted total", () => {
+    const engine = new ShanghaiEngine(config);
+    [on(1, "SINGLE"), on(20, "TREBLE"), on(1, "DOUBLE")].forEach((o) =>
+      engine.record(o),
+    );
+    expect(engine.facts().turns[0].totalScore).toBe(3);
+    engine.undo();
+    expect(engine.facts().turns[0]).toMatchObject({
+      completedAt: null,
+      totalScore: 61,
+    });
+    engine.record(on(1, "DOUBLE"));
+    expect(engine.facts().turns[0].totalScore).toBe(3);
+  });
+
+  it("3: after a Shanghai in a duo, the other seat is IN_PROGRESS but the match refuses", () => {
+    const engine = new ShanghaiEngine(duo);
+    [on(1, "SINGLE"), on(1, "DOUBLE"), on(1, "TREBLE")].forEach((o) =>
+      engine.record(o),
+    );
+    expect(engine.state().status).toBe("SHANGHAI");
+    expect(engine.state().seats[1].status).toBe("IN_PROGRESS");
+    expect(engine.wouldComplete(on(1, "SINGLE"))).toBe(false);
+    expect(() => engine.record(on(1, "SINGLE"))).toThrow(
+      "Cannot record a dart once the match has ended; undo first to correct it.",
+    );
+  });
+
+  it("4: a V2 engine rehydrated through its factory keeps its key and Hard halving", () => {
+    const engine = shanghaiV2EngineFactory.create(hard);
+    [on(1, "TREBLE"), on(1, "SINGLE"), on(1, "SINGLE")].forEach((o) =>
+      engine.record(o),
+    );
+    const resumed = shanghaiV2EngineFactory.create(hard, engine.facts());
+    expect(resumed.rulesetVersionKey).toBe("SHANGHAI_V2");
+    [missObservation(), missObservation(), missObservation()].forEach((o) =>
+      resumed.record(o),
+    );
+    expect(resumed.state().seats[0].totalScore).toBe(3);
+  });
+
+  it("5: mid-visit zones keep null for a miss and empty at close", () => {
+    const seat = (darts: DartObservation[]): ShanghaiSeatState =>
+      darts.reduce<ShanghaiSeatState>(
+        (state, o) => applyShanghaiDart(state, o),
+        {
+          participantRef: "participant-1",
+          sideKey: "A",
+          targetIndex: 0,
+          totalScore: 0,
+          dartsThisVisit: [],
+          status: "IN_PROGRESS",
+        },
+      );
+    expect(seat([on(1, "INNER_SINGLE"), on(2, "DOUBLE")])).toEqual({
+      participantRef: "participant-1",
+      sideKey: "A",
+      targetIndex: 0,
+      totalScore: 1,
+      dartsThisVisit: ["INNER_SINGLE", null],
+      status: "IN_PROGRESS",
+    });
+    expect(
+      seat([on(1, "INNER_SINGLE"), on(2, "DOUBLE"), on(1, "DOUBLE")]),
+    ).toMatchObject({ targetIndex: 1, totalScore: 3, dartsThisVisit: [] });
+  });
+});

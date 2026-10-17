@@ -77,6 +77,12 @@ export interface DartGameSpec<TConfig, TState extends ShellState> {
     observation: DartObservation,
     config: TConfig,
   ): boolean;
+  /** The `totalScore` a closing visit persists, from the state before it opened and after it closed; without it the darts' board-score sum stays. */
+  closedVisitTotal?(
+    opened: TState,
+    closed: TState,
+    participantRef: string,
+  ): number;
 }
 
 /** A shell-built engine; `spec` brands it so `instanceof` narrows to it. */

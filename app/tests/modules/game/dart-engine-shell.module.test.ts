@@ -192,3 +192,44 @@ describe("timer and state-aware visits", () => {
     expect(engine.facts().turns[1].completedAt).toBeNull();
   });
 });
+
+describe("closed visit totals", () => {
+  const calls: [number, number, string][] = [];
+  const Totalled = dartGameEngineClass<{ limit: number }, Toy>({
+    ...spec,
+    closedVisitTotal: (opened, closed, participantRef) => {
+      calls.push([opened.darts, closed.darts, participantRef]);
+      return closed.darts - opened.darts;
+    },
+  });
+
+  it("writes the spec's total on the closing dart, from the state the visit opened on", () => {
+    calls.length = 0;
+    const engine = new Totalled({ limit: 10 });
+    [T20, T20, T20, T20, T20].forEach((o) => engine.record(o));
+    expect(engine.facts().turns[0].totalScore).toBe(3);
+    expect(engine.facts().turns[1].totalScore).toBe(120);
+    engine.record(T20);
+    expect(engine.facts().turns[1].totalScore).toBe(3);
+    expect(calls).toEqual([
+      [0, 3, "p1"],
+      [3, 6, "p1"],
+    ]);
+  });
+
+  it("undo of the closing dart restores the board-score sum", () => {
+    const engine = new Totalled({ limit: 10 });
+    [T20, T20, T20].forEach((o) => engine.record(o));
+    engine.undo();
+    expect(engine.facts().turns[0]).toMatchObject({
+      completedAt: null,
+      totalScore: 120,
+    });
+  });
+
+  it("leaves the board-score sum without the hook", () => {
+    const engine = new Toy({ limit: 10 });
+    [T20, T20, T20].forEach((o) => engine.record(o));
+    expect(engine.facts().turns[0].totalScore).toBe(180);
+  });
+});

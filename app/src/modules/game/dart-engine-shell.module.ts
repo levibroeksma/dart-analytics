@@ -10,6 +10,7 @@ import {
   cloneTurns,
   exerciseBlockStage,
   openOrCreateTurn,
+  turnsBeforeVisit,
   undoLastDart,
 } from "./turn-log.module";
 import type {
@@ -23,7 +24,8 @@ import type {
  * Builds a `GameEngine` class over one `EXERCISE_BLOCK` stage from `spec`.
  * `undo()` pops one dart (`undoLastDart`) and leaves an expired timer set;
  * a rehydrated engine starts unexpired. `completedAt` is stamped when
- * `isVisitOpen` reads false on the state after the dart. `isComplete()` is
+ * `isVisitOpen` reads false on the state after the dart; a spec with
+ * `closedVisitTotal` then sets that turn's `totalScore`. `isComplete()` is
  * any status other than `IN_PROGRESS`.
  */
 export function dartGameEngineClass<TConfig, TState extends ShellState>(
@@ -46,12 +48,16 @@ export function dartGameEngineClass<TConfig, TState extends ShellState>(
       this.turns = prior ? cloneTurns(prior.turns) : [];
     }
 
-    private deriveState(): TState {
+    private foldTurns(turns: TurnFact[]): TState {
       return spec.fold(
-        { stages: [{ ...stage }], turns: this.turns },
+        { stages: [{ ...stage }], turns },
         this.config,
         this.timerExpired,
       );
+    }
+
+    private deriveState(): TState {
+      return this.foldTurns(this.turns);
     }
 
     record(observation: DartObservation): TState {
@@ -68,6 +74,12 @@ export function dartGameEngineClass<TConfig, TState extends ShellState>(
       const after = this.deriveState();
       if (spec.isVisitOpen(turn, after)) return after;
       turn.completedAt = new Date().toISOString();
+      if (spec.closedVisitTotal)
+        turn.totalScore = spec.closedVisitTotal(
+          this.foldTurns(turnsBeforeVisit(this.turns, turn)),
+          this.deriveState(),
+          turn.participantRef,
+        );
       return this.deriveState();
     }
 
