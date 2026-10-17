@@ -1,6 +1,6 @@
 import { targetAt } from "@modules/game/board-progression.module";
 import { activeSeatState } from "@modules/game/seat-state.module";
-import type { OracleEngine } from "./engine-oracle";
+import { randomObservation, type OracleEngine } from "./engine-oracle";
 import type {
   BoardTarget,
   DartObservation,
@@ -44,4 +44,18 @@ export function onActiveTarget(
 /** Any of the five number rings, one `rand()` draw. */
 export function anyRing(rand: () => number): DartZoneKey {
   return RINGS[Math.floor(rand() * RINGS.length)]!;
+}
+
+/**
+ * `rate` of darts on the active seat's target along `path`, in any ring
+ * (either bull on BULL), otherwise `randomObservation`.
+ */
+export function aimedOnPath(
+  path: readonly BoardTarget[],
+  rate: number,
+): (rand: () => number, engine: OracleEngine) => DartObservation {
+  return (rand, engine) => {
+    if (rand() >= rate) return randomObservation(rand);
+    return onActiveTarget(engine, path, rand, () => anyRing(rand));
+  };
 }
