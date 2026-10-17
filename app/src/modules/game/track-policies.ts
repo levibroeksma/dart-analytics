@@ -10,6 +10,7 @@ import type {
   DartZoneKey,
   JudgedDart,
   PointsTable,
+  SequenceTrackExt,
   TrackSeat,
 } from "./types";
 
@@ -269,6 +270,43 @@ export function chainOnTarget<TExt extends ChainTrackExt>(
       ...seat,
       targetIndex: (seat.targetIndex + 1) % length,
       ext: { ...seat.ext, chain: 0, finishedBest: best },
+    };
+  };
+}
+
+/**
+ * Per-dart policy (Switching Target Scoring): a hit adds its points to the
+ * chain and moves to the next of `length` targets, counting a sequence when
+ * it wraps to the first; a miss restarts at the first target and ends the
+ * chain, keeping the best chain a miss has ended.
+ */
+export function resetOnMiss<TExt extends SequenceTrackExt>(
+  length: number,
+): (seat: TrackSeat<TExt>, dart: JudgedDart) => TrackSeat<TExt> {
+  return (seat, dart) => {
+    const { chain, finishedBest, hits, sequences } = seat.ext;
+    if (dart.hit) {
+      const targetIndex = (seat.targetIndex + 1) % length;
+      return {
+        ...seat,
+        targetIndex,
+        ext: {
+          ...seat.ext,
+          chain: chain + dart.points,
+          hits: hits + 1,
+          sequences: sequences + (targetIndex === 0 ? 1 : 0),
+        },
+      };
+    }
+    return {
+      ...seat,
+      targetIndex: 0,
+      ext: {
+        ...seat.ext,
+        chain: 0,
+        finishedBest:
+          chain > 0 ? Math.max(finishedBest ?? 0, chain) : finishedBest,
+      },
     };
   };
 }

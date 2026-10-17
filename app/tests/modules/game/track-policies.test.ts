@@ -19,6 +19,7 @@ import {
   penaltyOnBlank,
   pointsTable,
   recordVisitZone,
+  resetOnMiss,
   sectionOf,
   shanghaiWin,
   stepBackBelowHits,
@@ -30,6 +31,7 @@ import type {
   ChainTrackExt,
   DartObservation,
   DartZoneKey,
+  SequenceTrackExt,
   TrackSeat,
 } from "@modules/types";
 
@@ -341,6 +343,69 @@ describe("track policies", () => {
     ).toMatchObject({
       targetIndex: 0,
       ext: { chain: 0, finishedBest: [null, null, 4] },
+    });
+  });
+
+  const sequenced = (
+    over: Partial<TrackSeat<SequenceTrackExt>> = {},
+    ext: Partial<SequenceTrackExt> = {},
+  ): TrackSeat<SequenceTrackExt> => ({
+    ...initialTrackSeat(SEAT, {
+      chain: 0,
+      finishedBest: null,
+      hits: 0,
+      sequences: 0,
+      ...ext,
+    }),
+    ...over,
+  });
+  const struck = (hit: boolean, points: number) => ({
+    observation: on(5, hit ? "TREBLE" : "DOUBLE"),
+    target: FIVE,
+    hit,
+    points,
+  });
+
+  it("resetOnMiss: a hit grows the chain and moves to the next target", () => {
+    expect(
+      resetOnMiss(3)(sequenced({}, { chain: 1, hits: 1 }), struck(true, 3)),
+    ).toMatchObject({
+      targetIndex: 1,
+      ext: { chain: 4, hits: 2, sequences: 0 },
+    });
+  });
+
+  it("resetOnMiss: a hit on the last target wraps and counts a sequence", () => {
+    expect(
+      resetOnMiss(3)(
+        sequenced({ targetIndex: 2 }, { chain: 2, hits: 2 }),
+        struck(true, 1),
+      ),
+    ).toMatchObject({
+      targetIndex: 0,
+      ext: { chain: 3, hits: 3, sequences: 1 },
+    });
+  });
+
+  it("resetOnMiss: a miss restarts and keeps the larger mark", () => {
+    expect(
+      resetOnMiss(3)(
+        sequenced({ targetIndex: 2 }, { chain: 4, finishedBest: 3 }),
+        struck(false, 0),
+      ),
+    ).toMatchObject({ targetIndex: 0, ext: { chain: 0, finishedBest: 4 } });
+    expect(
+      resetOnMiss(3)(
+        sequenced({ targetIndex: 1 }, { chain: 2, finishedBest: 5 }),
+        struck(false, 0),
+      ),
+    ).toMatchObject({ targetIndex: 0, ext: { chain: 0, finishedBest: 5 } });
+  });
+
+  it("resetOnMiss: a miss on an empty chain records no mark", () => {
+    expect(resetOnMiss(3)(sequenced(), struck(false, 0))).toMatchObject({
+      targetIndex: 0,
+      ext: { chain: 0, finishedBest: null },
     });
   });
 });

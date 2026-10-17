@@ -76,7 +76,7 @@ export function targetScoringTargetLabel(target: number): string {
  * the bull — the highest-paying ring either way. `darts` needs a zone
  * whenever a target is set (`chk_dart_target_consistency`).
  */
-function intentFor(target: number): DartIntent {
+export function targetScoringIntent(target: number): DartIntent {
   return {
     intendedTargetNumber: target,
     intendedZoneKey: target === BULL_TARGET_NUMBER ? "INNER_BULL" : "TREBLE",
@@ -169,7 +169,7 @@ const targetScoringSpec: DartExerciseSpec<
   exerciseRulesetVersionKey: EXERCISE_RULESET_VERSION_KEY,
   parse: (config) => TargetScoringV1Config.parse(config),
   fold: foldTargetScoringState,
-  intent: (state) => intentFor(state.currentTargetNumber),
+  intent: (state) => targetScoringIntent(state.currentTargetNumber),
   isVisitOpen: (turn) => turn.darts.length < DARTS_PER_VISIT,
 };
 

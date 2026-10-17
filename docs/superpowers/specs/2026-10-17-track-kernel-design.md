@@ -92,6 +92,14 @@ interface TrackRules<TExt> {
   follows the `trackGameSpec` rule and waits for PR 7, where a second
   exercise spec can be compared. `outcome` stays deferred: timer-only is a
   one-line ternary in the projection; re-checked at PR 7.
+- **Refined by the PR 7 plan (2026-10-17):** no `trackExerciseSpec`: the two
+  Track exercise specs differ only in key, `parse` and `fold`, and share
+  `targetScoringIntent`; an adapter would save two one-line fields per caller
+  (reopen with a third Track exercise). No `TrackRules.outcome`: both
+  exercises are timer-only, owned by the shell's `expireTimer()`. No shared
+  cycle helper: cycling is the modulo inside the onDart policy that needs it.
+  Switching Target Scoring's `ext` is `SequenceTrackExt` (`chain`,
+  `finishedBest` as one mark, `hits`, `sequences`), not `ChainTrackExt`.
 - `TrackRules` is derived on every read from the config snapshot; never stored.
 - `project(match, config) → legacy state` per engine keeps `state()` and the
   exported fold byte-identical in shape.
@@ -226,7 +234,7 @@ must not rise), all `check-*.sh`, `check-test-coverage.sh`.
 | 4 | Around the Clock | `stepBackBelowHits`, laps, game-shell timer |
 | 5 | Shanghai | `shanghaiWin`, `halveOnBlank`, visit-total hook |
 | 6 | Target Scoring | `chainOnTarget`, `foldTrackDarts`; `check-engine-kernels.sh` accepts the `@modules/game/` kernel import (refined 2026-10-17: `trackExerciseSpec` moves to PR 7) |
-| 7 | Switching Target Scoring | `resetOnMiss`; deletes its hand-copied shell; `trackExerciseSpec` if its spec matches Target Scoring's |
+| 7 | Switching Target Scoring | `resetOnMiss`; deletes its hand-copied shell; `trackExerciseSpec` if its spec matches Target Scoring's (refined 2026-10-17: not added; `targetScoringIntent` shared instead) |
 
 The stack cap allows one branch on another; each PR merges before the next
 but one starts.
@@ -311,6 +319,7 @@ kernel's policy-record form and project-to-legacy-state (T1, T3).
 - PR 2: `09-Adding-A-Game.md` exemplar paragraph points at the kernel-backed
   Bob's 27.
 - PR 6: `modules/training/CLAUDE.md` exercise-shell bullet notes `foldTrackDarts` (refined 2026-10-17; the `trackExerciseSpec` bullet moves to PR 7 with the adapter).
+- PR 7: the same bullet names both Track exercises and records why there is no `trackExerciseSpec` (refined 2026-10-17).
 
 ## 10. Out of scope
 

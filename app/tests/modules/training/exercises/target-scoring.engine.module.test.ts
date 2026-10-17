@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   foldTargetScoringState,
+  targetScoringIntent,
   targetScoringPoints,
   targetScoringTargetLabel,
   TargetScoringEngine,
@@ -338,6 +339,19 @@ describe("Target Scoring — kernel seams", () => {
         { targetNumber: 20, bestChain: 6 },
         { targetNumber: 19, bestChain: 1 },
       ],
+    });
+  });
+});
+
+describe("targetScoringIntent", () => {
+  it("aims at the treble on a number and the bullseye on the bull", () => {
+    expect(targetScoringIntent(20)).toEqual({
+      intendedTargetNumber: 20,
+      intendedZoneKey: "TREBLE",
+    });
+    expect(targetScoringIntent(25)).toEqual({
+      intendedTargetNumber: 25,
+      intendedZoneKey: "INNER_BULL",
     });
   });
 });
