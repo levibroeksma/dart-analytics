@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  advanceAfterDarts,
   advanceOnHit,
   advanceToEnd,
   anyRingEitherBull,
@@ -15,6 +16,7 @@ import {
   outAtOrBelowZero,
   outBelowHits,
   outerSingleOnly,
+  passOnWrap,
   pathTarget,
   penaltyOnBlank,
   pointsTable,
@@ -23,6 +25,7 @@ import {
   sectionOf,
   shanghaiWin,
   stepBackBelowHits,
+  tallyOnTarget,
   zoneBucketOf,
 } from "@modules/game/track-policies";
 import { initialTrackSeat } from "@modules/game/track-kernel.module";
@@ -31,6 +34,8 @@ import type {
   ChainTrackExt,
   DartObservation,
   DartZoneKey,
+  HitCountTrackExt,
+  JudgedDart,
   SequenceTrackExt,
   TrackSeat,
 } from "@modules/types";
@@ -407,5 +412,87 @@ describe("track policies", () => {
       targetIndex: 0,
       ext: { chain: 0, finishedBest: null },
     });
+  });
+});
+
+describe("Hit Count policies", () => {
+  const tally = (
+    over: Partial<TrackSeat<HitCountTrackExt>> = {},
+    ext: Partial<HitCountTrackExt> = {},
+  ): TrackSeat<HitCountTrackExt> => ({
+    ...initialTrackSeat(SEAT, {
+      dartsOnTarget: 0,
+      hitsPerTarget: [0, 0],
+      passes: 0,
+      ...ext,
+    }),
+    ...over,
+  });
+  const judged = (hit: boolean): JudgedDart => ({
+    observation: {
+      hitTargetNumber: 20,
+      hitZoneKey: "TREBLE",
+      locationX: null,
+      locationY: null,
+    },
+    target: { kind: "TREBLE", number: 20 },
+    hit,
+    points: hit ? 1 : 0,
+  });
+
+  it("tallyOnTarget counts every dart and only hits against the current target", () => {
+    const afterHit = tallyOnTarget(tally({ targetIndex: 1 }), judged(true));
+    expect(afterHit.ext).toEqual({
+      dartsOnTarget: 1,
+      hitsPerTarget: [0, 1],
+      passes: 0,
+    });
+    const afterMiss = tallyOnTarget(afterHit, judged(false));
+    expect(afterMiss.ext).toEqual({
+      dartsOnTarget: 2,
+      hitsPerTarget: [0, 1],
+      passes: 0,
+    });
+  });
+
+  it("tallyOnTarget never mutates the seat it was given", () => {
+    const before = tally();
+    tallyOnTarget(before, judged(true));
+    expect(before.ext.hitsPerTarget).toEqual([0, 0]);
+  });
+
+  it("advanceAfterDarts holds the target until its darts are thrown", () => {
+    const seat = tally({}, { dartsOnTarget: 6 });
+    expect(advanceAfterDarts<HitCountTrackExt>(9)(seat)).toBe(seat);
+  });
+
+  it("advanceAfterDarts moves on and zeroes the count once they are", () => {
+    const moved = advanceAfterDarts<HitCountTrackExt>(9)(
+      tally({ targetIndex: 0 }, { dartsOnTarget: 9 }),
+    );
+    expect(moved.targetIndex).toBe(1);
+    expect(moved.ext.dartsOnTarget).toBe(0);
+  });
+
+  it("passOnWrap leaves an in-range index alone", () => {
+    const seat = tally({ targetIndex: 1 });
+    expect(passOnWrap<HitCountTrackExt>(1)(seat)).toBe(seat);
+  });
+
+  it("passOnWrap restarts past the last index and counts a pass", () => {
+    const wrapped = passOnWrap<HitCountTrackExt>(1)(
+      tally({ targetIndex: 2 }, { passes: 1 }),
+    );
+    expect(wrapped.targetIndex).toBe(0);
+    expect(wrapped.ext.passes).toBe(2);
+  });
+
+  it("lapOnWrap still counts laps after sharing the wrap", () => {
+    const lap = lapOnWrap<{ laps: number }>(20)({
+      ...initialTrackSeat(SEAT, { laps: 0 }),
+      targetIndex: 21,
+    });
+    expect(lap.targetIndex).toBe(0);
+    expect(lap.ext.laps).toBe(1);
   });
 });
