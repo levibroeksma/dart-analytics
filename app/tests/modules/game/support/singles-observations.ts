@@ -1,6 +1,6 @@
 import { numbersPath } from "@modules/game/board-progression.module";
-import { randomObservation, type OracleEngine } from "./engine-oracle";
-import { anyRing, onActiveTarget } from "./aimed-observations";
+import type { OracleEngine } from "./engine-oracle";
+import { aimedOnPath } from "./aimed-observations";
 import type { DartObservation } from "@modules/types";
 
 /**
@@ -11,9 +11,5 @@ import type { DartObservation } from "@modules/types";
 export function aimedSinglesObservation(config: {
   targetOrder: readonly number[];
 }): (rand: () => number, engine: OracleEngine) => DartObservation {
-  const path = numbersPath(config.targetOrder);
-  return (rand, engine) => {
-    if (rand() >= 0.55) return randomObservation(rand);
-    return onActiveTarget(engine, path, rand, () => anyRing(rand));
-  };
+  return aimedOnPath(numbersPath(config.targetOrder), 0.55);
 }
