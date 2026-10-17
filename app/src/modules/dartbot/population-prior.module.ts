@@ -57,7 +57,7 @@ function withinClip(offset: Offset, fit: ScatterFit): boolean {
  * `3 * sqrt(sigmaAlong² + sigmaAcross²)` from the bias-shifted centroid,
  * until a pass drops none (at most `MAX_CLIP_PASSES`). Sigma and bias come
  * from the final kept set; `outlierRate` is the clipped share of located
- * darts (D-O, `08-DartBot.md`).
+ * darts (D-O, D466, `08-DartBot.md`).
  */
 export function foldPopulationPrior(
   rows: readonly MissMarginInput[],

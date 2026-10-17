@@ -1,7 +1,7 @@
 import type { SkillProfile } from "./types";
 
 /**
- * Per-level bot throw parameters (D-O, `08-DartBot.md`). `sigmaAlongMm`,
+ * Per-level bot throw parameters (D-O, D466, `08-DartBot.md`). `sigmaAlongMm`,
  * `sigmaAcrossMm`, `biasXMm`, `biasYMm` and `outlierRate` are calibrated
  * against level 1/6/15 anchors by
  * `app/scripts/dartbot-level-curve-recalibration.ts`: level 6 is the v2

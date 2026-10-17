@@ -422,3 +422,10 @@ Decision: under `QUICK_SCORE`, the bot's next `dartIndex` is its prior turn coun
 Reason: `QUICK_SCORE` turns persist `darts: []`, so a dart count stayed 0 and every bot visit replayed draws 0–2 — the same landing every visit, a bot stuck on one double for a whole leg. A turn count is still derived from `(seed, facts)`, so undo re-throws identically.
 Consequences: each `QUICK_SCORE` visit owns a fixed three-index block; a visit ended early leaves its unused indices unspent. Stored `QUICK_SCORE` sessions persist no darts, so no replay changes. `08-DartBot.md` §Determinism and Replay names both paths.
 Supersedes: none.
+
+### D466 — DartBot v2 recalibration: clipped level-6 fit, level 15 at a ≈101 average
+Status: Accepted · Date: 2026-10-17
+Decision: `foldPopulationPrior()` clips wild darts iteratively at 3× radial sigma and reports the clipped share as `outlierRate`. `LEVEL_SKILL_TABLE` is re-anchored: level 6 = the v2 extract's pooled clipped fit (29.5 / 23.5 mm, 1.84% outliers); level 15 = D-N's level 15 × 2.0 (8.8 / 6.0 mm); level 1 searched to a 32–37 average on a base whose levels 1–5 `outlierRate` are pre-multiplied by the level-6 outlier ratio. `LEVEL_SELECT_STATS_TABLE` is regenerated against it.
+Reason: the owner's guardrails — level 6 is their own game, the top level should not exceed a ~100 three-dart average. With one board-axis spread for every target, a ~100 average caps checkout near 35%, so the owner's earlier 45–66% level-15 checkout band was dropped. Unclipped, the v2 wild darts inflate sigma to 37.5 / 31.8 mm.
+Consequences: level 15 averages ≈101 with ≈35% checkout; level 6 averages ≈45 with ≈7.6% checkout. Wild-dart rates rise ~6× at levels 1–6, so miss rates rise by design. The engine's outlier draw uses `outlierSigmaMm` (frozen), so a 1.84% outlier rate does not reproduce the measured wild-dart share exactly. Re-folding v1 `D-E-extract.json` no longer reproduces the 2026-09-04 anchor-log row. `08-DartBot.md` §Resolved: D-O v2 recalibration; values in `08-DartBot-Anchor-Log.md`.
+Supersedes: none.
