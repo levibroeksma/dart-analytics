@@ -114,6 +114,37 @@ describe("runOracle", () => {
       }),
     ).toThrow(/seed 1 step \d+: (record|state) diverged/);
   });
+
+  it("feeds both sides the observation `observe` returns, given the legacy engine", () => {
+    const seen: DartObservation[] = [];
+    const legacy = counter();
+    let legacyEngine: OracleEngine | undefined;
+    const fixed: DartObservation = {
+      hitTargetNumber: 7,
+      hitZoneKey: "TREBLE",
+      locationX: null,
+      locationY: null,
+    };
+    runOracle({
+      build: (prior) => {
+        const e = counter()(prior);
+        const record = e.record;
+        e.record = (o) => {
+          seen.push(o);
+          return record(o);
+        };
+        return e;
+      },
+      legacy: (prior) => (legacyEngine = legacy(prior)),
+      seeds: [1],
+      steps: 5,
+      observe: (_rand, engine) => {
+        expect(engine).toBe(legacyEngine);
+        return fixed;
+      },
+    });
+    expect(seen).toEqual([fixed, fixed, fixed, fixed, fixed]);
+  });
 });
 
 describe("goldenTrace", () => {
@@ -155,5 +186,22 @@ describe("goldenTrace", () => {
       rehydrateEvery: 100,
     }) as { steps: string[] };
     expect(trace.steps[0]).toMatch(/-> throws refused$/);
+  });
+
+  it("traces the observation `observe` returns", () => {
+    const trace = goldenTrace({
+      build: counter(),
+      seed: 1,
+      steps: 2,
+      undoRate: 0,
+      rehydrateEvery: 100,
+      observe: () => ({
+        hitTargetNumber: 7,
+        hitZoneKey: "TREBLE",
+        locationX: null,
+        locationY: null,
+      }),
+    }) as { steps: string[] };
+    expect(trace.steps[0]).toMatch(/^record TREBLE\/7 /);
   });
 });
