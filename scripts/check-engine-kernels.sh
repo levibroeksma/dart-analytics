@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Rule-kernel family gate (Pattern 18 §Rule-kernel families; D466).
+# Rule-kernel family gate (Pattern 18 §Rule-kernel families; D467).
 # Every *.engine.module.ts under app/src/modules/game and
 # app/src/modules/training/exercises is listed exactly once in
 # scripts/engine-kernels.txt, and its row is true of the code and the docs:

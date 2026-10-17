@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { toMissMarginInputs } from "../../scripts/dartbot-population-prior";
+import { foldPopulationPrior } from "@modules/dartbot/population-prior.module";
 
 describe("toMissMarginInputs", () => {
   it("camel-cases fields and coerces stringly numeric locations", () => {
@@ -70,5 +71,27 @@ describe("D-E-extract.json", () => {
       location_x: expect.any(Number),
       location_y: expect.any(Number),
     });
+  });
+});
+
+describe("D-E-extract-v2-doubles-trebles.json", () => {
+  const path = fileURLToPath(
+    new URL("../../../D-E-extract-v2-doubles-trebles.json", import.meta.url),
+  );
+  const rows = JSON.parse(readFileSync(path, "utf8")) as Parameters<
+    typeof toMissMarginInputs
+  >[0];
+  const prior = foldPopulationPrior(toMissMarginInputs(rows));
+  const within = (actual: number, expected: number, tolerance: number) =>
+    Math.abs(actual - expected) <= tolerance;
+
+  it("folds 2,230 located darts into the v2 clipped pooled fit", () => {
+    expect(rows).toHaveLength(2230);
+    expect(prior.sampleSize).toBe(2230);
+    expect(within(prior.sigmaAlongMm, 29.5, 0.1)).toBe(true);
+    expect(within(prior.sigmaAcrossMm, 23.5, 0.1)).toBe(true);
+    expect(within(prior.biasXMm, -1.2, 0.1)).toBe(true);
+    expect(within(prior.biasYMm, -1.6, 0.1)).toBe(true);
+    expect(within(prior.outlierRate, 41 / 2230, 0.001)).toBe(true);
   });
 });
