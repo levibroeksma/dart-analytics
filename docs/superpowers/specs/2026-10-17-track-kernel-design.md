@@ -22,7 +22,8 @@ the new-game waves (phase 2) need no further design.
 | T3 | Each migrated engine keeps its exported fold and `state()` shape via a `project(match) → legacy state` function (§3). |
 | T4 | Shell gaps (timer on the game shell, several ruleset keys per engine, visit-total write) land with the first engine that needs each (§6). |
 | T5 | Suspected quirks in shipped engines are preserved by the refactor and filed as `discovered-work`; never fixed in a migration PR (§7). |
-| T6 | Scope now: phase 1 (seven migration PRs) is built. Phase 2 waves get their own plans later (§8). |
+| T6 | Scope now: PR 0 (architectural hardening) plus phase 1 (seven migration PRs) is built. Phase 2 waves get their own plans later (§8). |
+| T7 | The five rule-kernel families are **architecture, not convention**: canonical in Pattern 18, enforced by gates on engine code and on rules files (§9). |
 
 ## 2. Current state
 
@@ -201,7 +202,8 @@ must not rise), all `check-*.sh`, `check-test-coverage.sh`.
 
 | PR | Engine | Brings |
 | --- | --- | --- |
-| 1 | Doubles Training | kernel core, first policies, `trackGameSpec`, D-entry, Pattern 18 line |
+| 0 | — (docs + scripts) | §9 hardening: Pattern 18 families subsection, D-entry, `Family:` lines + rules-file gate, engine-family gate with a row for every shipped engine (`PENDING_MIGRATION: <family>` — Track, Checkout, Visit points, Marks — or `HAND_WRITTEN`) |
+| 1 | Doubles Training | kernel core, first policies, `trackGameSpec`, Track D-entry; deletes its opt-out row |
 | 2 | Bob's 27 | `penaltyOnBlank`, elimination outcome; `09-Adding-A-Game.md` |
 | 3 | Singles Training | `pointsTable`, `outBelowHits`, multi-key shell |
 | 4 | Around the Clock | `stepBackBelowHits`, laps, game-shell timer |
@@ -222,14 +224,74 @@ but one starts.
 
 One seed file and one touch-list commit per wave.
 
-## 9. Docs and decisions
+## 9. Architectural hardening
 
-- PR 1: D-entry in `decisions/game-engine.md` (Track kernel; policy-record
-  form; project-to-legacy-state). Pattern 18 Rule gains "an engine is a
-  kernel bound to a shell; a hand-written engine is the opt-out."
-  `modules/game/CLAUDE.md` bullet.
-- PR 2: `07-Frontend/09-Adding-A-Game.md` exemplar paragraph points at the
-  kernel-backed Bob's 27.
+The families stop being a spec-level plan and become binding architecture.
+Specs under `docs/superpowers/` stay non-canonical; these are the canonical
+homes.
+
+### 9.1 Canonical doc — Pattern 18 "Rule-kernel families"
+
+A new subsection of Pattern 18 in `04-Architecture-patterns.md` (version bump)
+states, as rules:
+
+- **Layering:** L1 rule kernel → L2 engine shell → L3 game definition.
+- **The five families** — Track, Checkout, Visit points, Marks, Elimination —
+  each with its kernel module, its policy module, and one line on what it
+  decides. Families not yet built are listed as *designated, kernel pending*.
+- **The kernel contract** (`RuleKernel<TRules, TMatch>`) and the policy-record
+  form of `TRules` (T1).
+- **Every dart engine belongs to exactly one family or is a named opt-out.**
+  The opt-out list (501, Warm-Up, the simulations) is canonical here, each
+  with its reason.
+- **Fit rule:** a game needing more than two new kernel settings is
+  hand-written and joins the opt-out list by decision entry.
+- **A new family** (or moving a game between families) requires a decision
+  entry and an update to this subsection; it is never done in code alone.
+
+Mirrors: one bullet in `app/src/modules/game/CLAUDE.md` and
+`app/src/modules/training/CLAUDE.md` pointing at the subsection;
+`07-Frontend/09-Adding-A-Game.md` step "pick the family" before the touch
+list; `00-File-Inventory.md` row update.
+
+### 9.2 Gate on engine code — `scripts/check-game-engines.sh`
+
+New section "Rule-kernel family":
+
+- Every `*.engine.module.ts` (game and exercise) must either import a family
+  kernel (`track-kernel.module.ts`, later `checkout-kernel.module.ts`, …) or
+  appear in `scripts/engine-family-opt-outs.txt` with a reason.
+- Opt-out reasons are one of `HAND_WRITTEN: <why>` or
+  `PENDING_MIGRATION: <family>`. Each migration PR deletes its engine's
+  `PENDING_MIGRATION` row; a row whose engine already imports a kernel fails
+  the gate (stale opt-out).
+- Self-tested by the script's fixture pattern (as `test-check-game-rules.sh`).
+
+### 9.3 Gate on rules files — `scripts/check-game-rules.sh`
+
+- Every ruleset and exercise rules file gains a header line
+  `Family: TRACK | CHECKOUT | VISIT_POINTS | MARKS | ELIMINATION | HAND_WRITTEN`
+  under `Entry points:`. Routines and trivia carry none.
+- The checker rejects a missing or unknown value, and (once a family has a
+  kernel) a shipped ruleset whose `Family:` disagrees with its engine's
+  kernel import or opt-out row.
+- `docs/game-rules/templates/*` and the `authoring-game-rules` skill require
+  the family at authoring time, so a new game is placed before it is specced.
+- Initial values: the umbrella §5 assignment as amended by §5 here (Prisoner,
+  Hare and Hounds → ELIMINATION; Neighbours, A1 Routine → MARKS; Bullseye 500,
+  Golf, DOLF → VISIT_POINTS; Bullseye Checkout → CHECKOUT).
+
+### 9.4 Decision entry
+
+One D-entry in `decisions/game-engine.md` (PR 0): rule-kernel families are
+architecture; canonical home Pattern 18; enforced by §9.2 and §9.3; family
+moves need a decision. A second, smaller D-entry with PR 1 records the Track
+kernel's policy-record form and project-to-legacy-state (T1, T3).
+
+### 9.5 Other doc touches
+
+- PR 2: `09-Adding-A-Game.md` exemplar paragraph points at the kernel-backed
+  Bob's 27.
 - PR 6: `modules/training/CLAUDE.md` bullet for `trackExerciseSpec`.
 
 ## 10. Out of scope
@@ -246,4 +308,5 @@ One seed file and one touch-list commit per wave.
 | `project` hides a state drift | oracle deep-equals `state()` and `facts()` after every step |
 | Policy library sprawls | each policy needs a live caller; >2 new settings ⇒ hand-written (umbrella fit rule) |
 | Shell changes break pilot engines | additive only; PR-1–2 goldens re-run on every later PR |
+| Families drift back into convention | §9.2/§9.3 gates fail CI; family moves need a decision entry |
 | Snapshot bloat | one-line-per-dart format (§7) |
