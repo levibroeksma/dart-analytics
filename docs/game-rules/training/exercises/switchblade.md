@@ -14,7 +14,7 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 | Five rounds, one visit each, a fixed target per dart | V1 | All | |
 | A dart scores only on its own number, any bed | V1 | All | |
 | Points are board scores | V1 | All | |
-| Run ends after round five | V1 | All | |
+| Pass ends after round five | V1 | All | |
 | Time-bound run | V1 | All | |
 | Total and per-round readouts | V1 | All | |
 | Custom target paths | V2+ | All | Wanted, unscheduled: a configuration widening; the standard path is usable alone |
@@ -92,9 +92,11 @@ five (V2+).
 
 ### Bound
 
-- **Run ends after round five.**
+- **Pass ends after round five**; the next pass starts at round one.
 - **Time-bound run** inside a routine; the routine's allocated duration
-  overrides the default (`EXERCISE_TEMPLATE.md` §Bound).
+  overrides the default (`EXERCISE_TEMPLATE.md` §Bound). Passes repeat until
+  time ends; the total and per-round totals sum over every pass
+  (ruling 2026-10-17).
 
 ## Later versions
 
@@ -134,7 +136,8 @@ five (V2+).
 
 | Term | Version | Meaning |
 | --- | --- | --- |
-| **Five rounds** | V1 | The run: one visit per round, 15 darts |
+| **Five rounds** | V1 | One pass: one visit per round, 15 darts |
+| **Pass** | V1 | One walk of the path, round one to round five |
 | **Custom target paths** | V2+ | Player-set slots per round |
 | **Extended rounds** | V2+ | More than five rounds |
 | **Head-to-head** | V2+ | Two players, higher total wins |
@@ -144,6 +147,9 @@ five (V2+).
 
 - The source states a maximum of 882. The path's per-dart maxima sum to 872
   (180 + 177 + 174 + 171 + 170). Which is right?
-- Share one per-dart-slot type with 170 Practice (`170-practice.md`), with
-  "hit rule" and "points" as configuration, or keep two types?
-- Inside a routine, does a run that ends before time start the path again?
+- ~~Share one per-dart-slot type with 170 Practice (`170-practice.md`), with
+  "hit rule" and "points" as configuration, or keep two types?~~
+  **Resolved (2026-10-17, user):** two types; SwitchBlade binds to the Track
+  kernel.
+- ~~Inside a routine, does a run that ends before time start the path again?~~
+  **Resolved (2026-10-17, user):** yes; passes repeat until time ends.

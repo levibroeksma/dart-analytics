@@ -142,8 +142,9 @@ taken from Shanghai's.
   says the bull "unlocks" the "remaining" darts, but also that an inning
   with no bull scores 0. One reading counts only darts after the first bull;
   the other counts the whole inning once any dart hit the bull.
-- Keep Baseball Darts as its own ruleset, or add it as a Shanghai variant
-  (nine rounds, runs by ring, no instant win)?
+- ~~Keep Baseball Darts as its own ruleset, or add it as a Shanghai variant
+  (nine rounds, runs by ring, no instant win)?~~ **Resolved (2026-10-17,
+  user):** its own ruleset, bound to the Track kernel.
 - Bullseye Baseball: the source seats two to eight players. The `All`
   applicability (a solo run scoring as Baseball Darts' V1 does) is this file's
   reading, not the source's; confirm before scheduling.

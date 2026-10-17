@@ -11,11 +11,11 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
 | Single player | V1 | Single | |
-| Fixed target list, one pass | V1 | All | |
-| Fixed darts per target | V1 | All | |
+| Fixed target list, repeated until time | V1 | All | |
+| Fixed darts per target, a multiple of three | V1 | All | |
 | Per-target bed: treble, double or bullseye | V1 | All | |
 | Only the named bed counts: one point per hit | V1 | All | |
-| Run ends after the last target's darts | V1 | All | |
+| Pass ends after the last target's darts | V1 | All | |
 | Time-bound run | V1 | All | |
 | Hits, hit rate and per-target hits readouts | V1 | All | |
 | Big Trebles template | V1 | All | |
@@ -33,10 +33,11 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 | T20/T19 Combo Drill | V2+ | All | Wanted, unscheduled: T20 and T19 alternate by round, a repeating list; the source gives no round count (open) |
 | Power Scoring Drill template | V2+ | All | Wanted, unscheduled: a configuration of the same rule (T20, T19, bullseye, three darts each, ten rounds); the source counts hits on the intended target, bed unstated (open) |
 | Progressive Treble Drill | Deferred | All | Blocked on: Darts-to-N-hits run applied per target; the source counts darts needed per treble T10 to T20 for a hit count it does not give |
-| Time-only run | V2+ | All | Wanted, unscheduled: a session bound by time alone (the source's fixed-time session and 5-minute Warm-Up Version); V1's run bound is a fixed dart count and its time bound only cuts a fixed-dart pass |
+| Time-only run | V2+ | All | Wanted, unscheduled: a session bound by time alone (the source's fixed-time session and 5-minute Warm-Up Version); V1 repeats a fixed-dart pass until time ends, this variant drops the list and the dart count |
+| Short final visit | V2+ | All | Wanted, unscheduled: darts per target that is not a multiple of three (100 Darts at a Target, T20 Drill) ends a target on a one- or two-dart visit; V1's darts per target is a multiple of three so the aim moves only on a visit boundary |
 | Any-bed hit | V2+ | All | Wanted, unscheduled: the source's simple count scores the target number's single, double and treble; V1 counts one named bed |
 | Weighted 3/2/1 scoring | Deferred | All | Blocked on: Any-bed hit (V2+ row above), since it scores the number's singles and doubles while V1 counts one named bed; not bent into the V1 rule |
-| Darts-to-N-hits run | Deferred | All | Blocked on: whether a routine's time bound or a dart cap ends a run that never reaches N hits (Open questions); V1's run bound is a fixed dart count (§Bound), so an end by hits reached is a second bound kind |
+| Darts-to-N-hits run | Deferred | All | Blocked on: whether a routine's time bound or a dart cap ends a run that never reaches N hits (Open questions); V1's run bound is time (§Bound), so an end by hits reached is a second bound kind |
 | Board-score total readout | V2+ | All | Wanted, unscheduled: sums every dart's board score, not hits (the source's Scored Round, 30 darts at T20); V1 reads hits only |
 
 ## Identity
@@ -130,13 +131,17 @@ Templates:
 ### Progress
 
 - After the target's darts are thrown, the aim moves to the next target in
-  the list. Each target is visited once.
+  the list. Darts per target is a multiple of three, so the aim moves only
+  on a visit boundary.
+- After the last target's darts, the **pass** ends and the next pass starts
+  at the first target.
 
 ### Bound
 
-- **Run ends after the last target's darts.**
 - **Time-bound run** inside a routine; the routine's allocated duration
-  overrides the default (`EXERCISE_TEMPLATE.md` §Bound).
+  overrides the default (`EXERCISE_TEMPLATE.md` §Bound). Passes repeat until
+  time ends; hits and per-target hits sum over every pass
+  (rulings 2026-10-17).
 
 ## Later versions
 
@@ -176,6 +181,9 @@ Templates:
   Treble 20 hits); the result is darts thrown, fewer is better.
 - **Board-score total readout** — the sum of every dart's board score over the
   run (the source's Scored Round: 30 darts at T20, maximum 1,800).
+- **Short final visit** — a darts per target that is not a multiple of
+  three: the target's last visit has one or two darts (the source's 100-dart
+  run is 33 visits of three, then one).
 - **Head-to-head** — two players throw the same list; more hits wins.
 
 ### Other
@@ -209,8 +217,9 @@ Templates:
 
 | Term | Version | Meaning |
 | --- | --- | --- |
-| **Fixed target list** | V1 | The targets of the template, in order |
-| **Fixed darts per target** | V1 | How many darts each target gets before the aim moves |
+| **Fixed target list** | V1 | The targets of the template, in order, repeated pass after pass |
+| **Pass** | V1 | One walk of the list, from the first target's darts to the last's |
+| **Fixed darts per target** | V1 | How many darts each target gets before the aim moves; a multiple of three |
 | **Per-target bed** | V1 | The one bed of a target that counts: treble, double or bullseye |
 | **Big Trebles template** | V1 | T20, T19, T18, T17, nine darts each |
 | **Clutch Trebles template** | V2+ | T16 down to T10, nine darts each |
@@ -232,21 +241,28 @@ Templates:
 | **Weighted 3/2/1 scoring** | Deferred | Treble 3, double 2, single 1 points per dart at the target number |
 | **Darts-to-N-hits run** | Deferred | A run that ends on the Nth hit; the result is darts thrown |
 | **Board-score total readout** | V2+ | Sum of every dart's board score over the run |
+| **Short final visit** | V2+ | A target's last visit of one or two darts |
 
 ## Open questions
 
 - 30 at the Bullseye: does the outer bull count as a hit? The source says
   "bullseye" without saying.
-- Nine darts at one target is three visits. Should the aim change only on a
+- ~~Nine darts at one target is three visits. Should the aim change only on a
   visit boundary (always true for 3 and 9), and is a darts-per-target that is
-  not a multiple of three allowed?
-- Inside a routine, does the run stop after one pass or start the list again
-  until time runs out?
-- Is this a `SWITCHING` configuration once Switching gains a per-target bed
-  and a finite pass, or its own type?
-- 100 and 50 darts are not multiples of three: the last visit of a 100-dart
+  not a multiple of three allowed?~~ **Resolved (2026-10-17):** V1 darts per
+  target is a multiple of three, so the aim moves on a visit boundary; other
+  counts are the Short final visit (V2+).
+- ~~Inside a routine, does the run stop after one pass or start the list again
+  until time runs out?~~ **Resolved (2026-10-17, user):** the list starts again
+  until time runs out.
+- ~~Is this a `SWITCHING` configuration once Switching gains a per-target bed
+  and a finite pass, or its own type?~~ **Resolved (2026-10-17, user):** its own
+  type, bound to the Track kernel.
+- ~~100 and 50 darts are not multiples of three: the last visit of a 100-dart
   run is one dart (the source: 33 visits of three, then one). Does the type
-  allow a short final visit, or must darts-per-target be a multiple of three?
+  allow a short final visit, or must darts-per-target be a multiple of three?~~
+  **Resolved (2026-10-17):** a multiple of three in V1; the short final visit
+  is V2+.
 - T20/T19 Combo Drill: how many rounds? Power Scoring Drill: does "hits on
   the intended target" mean the treble only, and does the outer bull count?
 - Darts-to-N-hits run: should a routine's time bound or a dart cap end a run

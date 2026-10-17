@@ -14,11 +14,11 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 | Doubles D20 down to D1 | V1 | All | |
 | One hit advances | V1 | All | |
 | Two or three hits: Lock the double | V1 | All | |
-| Zero hits: Retreat to the last locked double | V1 | All | |
-| Lock bonus: 3 hits 100, 2 hits 50 | V1 | All | |
-| Run ends past D1 | V1 | All | |
+| Zero hits: Retreat to the last locked double, D20 before any lock | V1 | All | |
+| Lock bonus: 3 hits 100, 2 hits 50, paid on every lock | V1 | All | |
+| Pass ends past D1 | V1 | All | |
 | Time-bound run | V1 | All | |
-| Darts used, bonus points and locks readouts | V1 | All | |
+| Passes, best-pass darts, bonus points and locks readouts | V1 | All | |
 | Strict Lock variant | V2+ | All | Wanted, unscheduled: three hits to lock is a rule narrowing, not needed to play |
 | Even Doubles Only variant | V2+ | All | Wanted, unscheduled: a shorter target list is a configuration narrowing |
 | Ascending Order variant | V2+ | All | Wanted, unscheduled: D1 up to D20 is a configuration of the path |
@@ -94,13 +94,19 @@ defaults. The 15-minute preset is a draft value, not sourced.
 - **3 hits:** advance, **lock** the double, +100 bonus.
 - **2 hits:** advance, lock the double, +50 bonus.
 - **1 hit:** advance, no lock, no bonus.
-- **0 hits:** **retreat** to the most recent locked double.
+- **0 hits:** **retreat** to the most recent locked double; before any lock
+  in the pass, back to D20.
+- The bonus is paid on every lock, a double re-locked after a retreat
+  included (ruling 2026-10-17).
 
 ### Bound
 
-- **Run ends past D1** — once D1 is advanced from.
+- **Pass ends past D1** — once D1 is advanced from. The next pass starts at
+  D20 with no lock.
 - **Time-bound run** inside a routine; the routine's allocated duration
-  overrides the default (`EXERCISE_TEMPLATE.md` §Bound).
+  overrides the default (`EXERCISE_TEMPLATE.md` §Bound). Passes repeat until
+  time ends; bonus points and locks sum over every pass, and darts used is
+  read per completed pass, best (fewest) first (ruling 2026-10-17).
 
 ## Later versions
 
@@ -128,7 +134,7 @@ defaults. The 15-minute preset is a draft value, not sourced.
 - **Stage type:** one `EXERCISE_BLOCK` stage per run (`exerciseBlockStage()`,
   `app/src/modules/game/turn-log.module.ts:118`); one `turns` row per visit.
 - **Derived, never stored:** hits per visit, locks, last lock, current
-  double, bonus points, darts used.
+  double, bonus points, darts used, passes and darts per pass.
 - The result is darts used plus an exercise-points bonus, not a
   conventional score.
 
@@ -137,8 +143,9 @@ defaults. The 15-minute preset is a draft value, not sourced.
 | Term | Version | Meaning |
 | --- | --- | --- |
 | **Lock** | V1 | A double hit two or three times in one visit; the retreat point |
-| **Retreat** | V1 | A blank visit's move back to the last locked double |
-| **Lock bonus** | V1 | 100 for three hits, 50 for two |
+| **Pass** | V1 | One walk of the ladder, D20 to past D1 |
+| **Retreat** | V1 | A blank visit's move back to the last locked double, or D20 before any lock |
+| **Lock bonus** | V1 | 100 for three hits, 50 for two, on every lock |
 | **Strict Lock variant** | V2+ | Only three hits lock |
 | **Even Doubles Only variant** | V2+ | The ten even doubles |
 | **Ascending Order variant** | V2+ | D1 up to D20 |
@@ -147,9 +154,11 @@ defaults. The 15-minute preset is a draft value, not sourced.
 
 ## Open questions
 
-- A blank visit before any lock: back to D20, or stay put? The source does
-  not say.
-- Is the bonus earned again when a double is re-locked after a retreat?
-- Merge with Doubles Snakes and Ladders (`doubles-snakes-and-ladders.md`)
+- ~~A blank visit before any lock: back to D20, or stay put? The source does
+  not say.~~ **Resolved (2026-10-17, user):** back to D20.
+- ~~Is the bonus earned again when a double is re-locked after a retreat?~~
+  **Resolved (2026-10-17, user):** yes, every lock pays.
+- ~~Merge with Doubles Snakes and Ladders (`doubles-snakes-and-ladders.md`)
   into one hit-count ladder type with a configurable move table, or keep two
-  types?
+  types?~~ **Resolved (2026-10-17, user):** two types, both bound to the Track
+  kernel.
