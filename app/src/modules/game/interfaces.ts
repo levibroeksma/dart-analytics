@@ -1,10 +1,13 @@
 import type { RulesetVersionKey } from "@lib/types";
 import type {
+  BoardTarget,
   DartIntent,
   DartObservation,
   EngineFacts,
+  JudgedDart,
   ShellState,
   StageOwnership,
+  TrackSeat,
   TurnFact,
 } from "./types";
 
@@ -83,4 +86,23 @@ export interface ShellGameEngine<
 /** Constructor of a shell-built engine class. */
 export interface DartGameEngineClass<TConfig, TState extends ShellState> {
   new (config: TConfig, prior?: EngineFacts): ShellGameEngine<TConfig, TState>;
+}
+
+/**
+ * One Track ruleset as named policies (Pattern 18 §Rule-kernel families):
+ * which target a seat aims at, what counts as a hit and what it scores, and
+ * what happens per dart and when a visit closes.
+ */
+export interface TrackRules<TExt> {
+  readonly doneMessage: string;
+  target(seat: TrackSeat<TExt>): BoardTarget;
+  hit(target: BoardTarget, observation: DartObservation): boolean;
+  points(
+    target: BoardTarget,
+    observation: DartObservation,
+    hit: boolean,
+  ): number;
+  onDart?(seat: TrackSeat<TExt>, dart: JudgedDart): TrackSeat<TExt>;
+  visitOpen(seat: TrackSeat<TExt>): boolean;
+  onVisitClose?(seat: TrackSeat<TExt>): TrackSeat<TExt>;
 }
