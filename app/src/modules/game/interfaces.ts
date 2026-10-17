@@ -66,10 +66,12 @@ export interface DartGameSpec<TConfig, TState extends ShellState> {
   /** Further ruleset versions this one spec serves; `rulesetVersionKey` is the default. */
   readonly rulesetVersionKeys?: readonly RulesetVersionKey[];
   readonly stageOwnership: StageOwnership;
-  fold(facts: EngineFacts, config: TConfig): TState;
+  /** Folds the log; `timerExpired` is the shell's `expireTimer()` flag (timerless specs ignore it). */
+  fold(facts: EngineFacts, config: TConfig, timerExpired: boolean): TState;
   refusal(state: TState): string | null;
   intent(state: TState, config: TConfig): DartIntent;
-  isVisitOpen(turn: TurnFact): boolean;
+  /** Whether `turn` still takes darts, given the folded state before the dart (reuse) or after it (close). */
+  isVisitOpen(turn: TurnFact, state: TState): boolean;
   wouldComplete(
     state: TState,
     observation: DartObservation,
@@ -83,6 +85,8 @@ export interface ShellGameEngine<
   TState extends ShellState,
 > extends GameEngine<DartObservation, TState> {
   readonly spec: DartGameSpec<TConfig, TState>;
+  /** Marks the run's clock as run out; every fold reads it as `timerExpired`. Undo leaves it set. */
+  expireTimer(): void;
 }
 
 /** Constructor of a shell-built engine class. */

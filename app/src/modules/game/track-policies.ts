@@ -3,6 +3,7 @@ import type {
   BoardTarget,
   DartObservation,
   DartZoneKey,
+  JudgedDart,
   PointsTable,
   TrackSeat,
 } from "./types";
@@ -105,4 +106,75 @@ export function outBelowHits<TExt>(
 ): (seat: TrackSeat<TExt>) => TrackSeat<TExt> {
   return (seat) =>
     seat.hitsThisVisit < hits ? { ...seat, status: "OUT" } : seat;
+}
+
+/** Hit policy: the outer single on a NUMBER target's number, either bull on BULL. */
+export function outerSingleOnly(
+  target: BoardTarget,
+  observation: DartObservation,
+): boolean {
+  if (target.kind === "BULL") return anyRingEitherBull(target, observation);
+  return (
+    observation.hitTargetNumber === target.number &&
+    observation.hitZoneKey === "OUTER_SINGLE"
+  );
+}
+
+/**
+ * Per-dart policy: a hit moves to the next target at once — past the last
+ * index at the path's end — and is spent on the target it left, so
+ * `hitsThisVisit` reads 0.
+ */
+export function advanceOnHit<TExt>(
+  seat: TrackSeat<TExt>,
+  dart: JudgedDart,
+): TrackSeat<TExt> {
+  return dart.hit
+    ? { ...seat, targetIndex: seat.targetIndex + 1, hitsThisVisit: 0 }
+    : seat;
+}
+
+/** Visit policy: open until `darts` darts are thrown or the seat moves past `lastIndex`. */
+export function closeAfterOrPastEnd<TExt>(
+  darts: number,
+  lastIndex: number,
+): (seat: TrackSeat<TExt>) => boolean {
+  return (seat) => seat.dartsThisVisit < darts && seat.targetIndex <= lastIndex;
+}
+
+/** Visit-close policy: at least `hits` hits move to the next target, fewer step back one, never below the first. */
+export function stepBackBelowHits<TExt>(
+  hits: number,
+): (seat: TrackSeat<TExt>) => TrackSeat<TExt> {
+  return (seat) => ({
+    ...seat,
+    targetIndex:
+      seat.hitsThisVisit >= hits
+        ? seat.targetIndex + 1
+        : Math.max(0, seat.targetIndex - 1),
+  });
+}
+
+/** Visit-close policy: past `lastIndex`, restart at the first target and count a lap. */
+export function lapOnWrap<TExt extends { laps: number }>(
+  lastIndex: number,
+): (seat: TrackSeat<TExt>) => TrackSeat<TExt> {
+  return (seat) =>
+    seat.targetIndex > lastIndex
+      ? {
+          ...seat,
+          targetIndex: 0,
+          ext: { ...seat.ext, laps: seat.ext.laps + 1 },
+        }
+      : seat;
+}
+
+/** Visit-close policy: past `lastIndex`, finish (`DONE`) on the last target. */
+export function doneOnWrap<TExt>(
+  lastIndex: number,
+): (seat: TrackSeat<TExt>) => TrackSeat<TExt> {
+  return (seat) =>
+    seat.targetIndex > lastIndex
+      ? { ...seat, targetIndex: lastIndex, status: "DONE" }
+      : seat;
 }

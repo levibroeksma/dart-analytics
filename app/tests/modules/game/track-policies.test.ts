@@ -1,15 +1,21 @@
 import { describe, it, expect } from "vitest";
 import {
+  advanceOnHit,
   advanceToEnd,
   anyRingEitherBull,
   closeAfter,
+  closeAfterOrPastEnd,
   closeOnHitOrAfter,
+  doneOnWrap,
+  lapOnWrap,
   noPoints,
   outAtOrBelowZero,
   outBelowHits,
+  outerSingleOnly,
   pathTarget,
   penaltyOnBlank,
   pointsTable,
+  stepBackBelowHits,
 } from "@modules/game/track-policies";
 import { initialTrackSeat } from "@modules/game/track-kernel.module";
 import { doublesPath, targetAt } from "@modules/game/board-progression.module";
@@ -129,5 +135,77 @@ describe("track policies", () => {
     expect(outBelowHits(0)(seat({ hitsThisVisit: 0 })).status).toBe(
       "IN_PROGRESS",
     );
+  });
+
+  it("outerSingleOnly: only the outer single on the number, either bull on BULL", () => {
+    expect(outerSingleOnly(FIVE, on(5, "OUTER_SINGLE"))).toBe(true);
+    for (const zone of ["SINGLE", "INNER_SINGLE", "DOUBLE", "TREBLE"] as const)
+      expect(outerSingleOnly(FIVE, on(5, zone))).toBe(false);
+    expect(outerSingleOnly(FIVE, on(6, "OUTER_SINGLE"))).toBe(false);
+    expect(outerSingleOnly(BULL, on(25, "OUTER_BULL"))).toBe(true);
+    expect(outerSingleOnly(BULL, on(25, "INNER_BULL"))).toBe(true);
+    expect(outerSingleOnly(BULL, on(null, "MISS"))).toBe(false);
+  });
+
+  const judged = (hit: boolean) => ({
+    observation: on(5, "TREBLE"),
+    target: FIVE,
+    hit,
+    points: 0,
+  });
+
+  it("advanceOnHit: a hit moves on and spends the hit; a miss changes nothing", () => {
+    expect(
+      advanceOnHit(
+        seat({ targetIndex: 4, hitsThisVisit: 1, dartsThisVisit: 2 }),
+        judged(true),
+      ),
+    ).toMatchObject({ targetIndex: 5, hitsThisVisit: 0, dartsThisVisit: 2 });
+    const unchanged = seat({ targetIndex: 4 });
+    expect(advanceOnHit(unchanged, judged(false))).toBe(unchanged);
+  });
+
+  it("closeAfterOrPastEnd(3, 20): open below 3 darts while on the path", () => {
+    const open = closeAfterOrPastEnd(3, 20);
+    expect(open(seat({ dartsThisVisit: 2, targetIndex: 20 }))).toBe(true);
+    expect(open(seat({ dartsThisVisit: 3, targetIndex: 4 }))).toBe(false);
+    expect(open(seat({ dartsThisVisit: 1, targetIndex: 21 }))).toBe(false);
+  });
+
+  it("stepBackBelowHits(2): enough hits move on, fewer step back, floored at 0", () => {
+    const judge = stepBackBelowHits(2);
+    expect(judge(seat({ targetIndex: 4, hitsThisVisit: 2 })).targetIndex).toBe(
+      5,
+    );
+    expect(judge(seat({ targetIndex: 20, hitsThisVisit: 3 })).targetIndex).toBe(
+      21,
+    );
+    expect(judge(seat({ targetIndex: 4, hitsThisVisit: 1 })).targetIndex).toBe(
+      3,
+    );
+    expect(judge(seat({ targetIndex: 0, hitsThisVisit: 0 })).targetIndex).toBe(
+      0,
+    );
+  });
+
+  it("lapOnWrap(20): past the end restarts at 0 and counts a lap", () => {
+    const lap = lapOnWrap<{ laps: number }>(20);
+    const base = initialTrackSeat(SEAT, { laps: 1 });
+    expect(lap({ ...base, targetIndex: 21 })).toMatchObject({
+      targetIndex: 0,
+      status: "IN_PROGRESS",
+      ext: { laps: 2 },
+    });
+    const onBull = { ...base, targetIndex: 20 };
+    expect(lap(onBull)).toBe(onBull);
+  });
+
+  it("doneOnWrap(20): past the end finishes on the last target", () => {
+    expect(doneOnWrap(20)(seat({ targetIndex: 21 }))).toMatchObject({
+      targetIndex: 20,
+      status: "DONE",
+    });
+    const onBull = seat({ targetIndex: 20 });
+    expect(doneOnWrap(20)(onBull)).toBe(onBull);
   });
 });

@@ -149,3 +149,46 @@ describe("multi-key specs", () => {
     );
   });
 });
+
+describe("timer and state-aware visits", () => {
+  const timedSpec: DartGameSpec<{ limit: number }, Toy> = {
+    ...spec,
+    fold: (facts, config, timerExpired) => {
+      const state = spec.fold(facts, config, timerExpired);
+      return timerExpired ? { ...state, status: "COMPLETE" } : state;
+    },
+  };
+  const Timed = dartGameEngineClass(timedSpec);
+
+  it("threads expireTimer() into fold, and undo leaves it set", () => {
+    const engine = new Timed({ limit: 10 });
+    engine.record(T20);
+    expect(engine.isComplete()).toBe(false);
+    engine.expireTimer();
+    expect(engine.isComplete()).toBe(true);
+    expect(engine.undo()).toBe(true);
+    expect(engine.isComplete()).toBe(true);
+  });
+
+  it("starts unexpired when rehydrated", () => {
+    const engine = new Timed({ limit: 10 });
+    engine.record(T20);
+    engine.expireTimer();
+    expect(new Timed({ limit: 10 }, engine.facts()).isComplete()).toBe(false);
+  });
+
+  it("closes a visit short when isVisitOpen reads the folded state", () => {
+    const Short = dartGameEngineClass<{ limit: number }, Toy>({
+      ...spec,
+      isVisitOpen: (t, s) => t.darts.length < 3 && s.darts !== 2,
+    });
+    const engine = new Short({ limit: 10 });
+    engine.record(T20);
+    expect(engine.facts().turns[0].completedAt).toBeNull();
+    engine.record(T20);
+    expect(engine.facts().turns[0].completedAt).not.toBeNull();
+    engine.record(T20);
+    expect(engine.facts().turns).toHaveLength(2);
+    expect(engine.facts().turns[1].completedAt).toBeNull();
+  });
+});

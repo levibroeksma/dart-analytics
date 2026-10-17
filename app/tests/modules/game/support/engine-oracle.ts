@@ -99,6 +99,7 @@ type OracleOptions = {
   undoRate?: number;
   expireAt?: number;
   rehydrateEvery?: number;
+  resumeExpired?: boolean;
   observe?: Observe;
 };
 
@@ -144,6 +145,18 @@ function act(
   throwDart(pair, (opts.observe ?? randomObservation)(rand, pair.old), where);
 }
 
+/** Whether a rebuild after `step` must re-expire, as the play page's countdown resume does. */
+function resumesExpired(
+  opts: { expireAt?: number; resumeExpired?: boolean },
+  step: number,
+): boolean {
+  return (
+    opts.resumeExpired === true &&
+    opts.expireAt !== undefined &&
+    step >= opts.expireAt
+  );
+}
+
 function rehydrate(pair: Pair, opts: OracleOptions, where: string): Pair {
   const next = opts.build(pair.next.facts());
   const old = opts.legacy(pair.old.facts());
@@ -165,8 +178,14 @@ export function runOracle(opts: OracleOptions): void {
       act(pair, step, rand, opts, where);
       compare(pair, where);
       const every = opts.rehydrateEvery ?? 0;
-      if (every > 0 && step % every === every - 1)
+      if (every > 0 && step % every === every - 1) {
         pair = rehydrate(pair, opts, where);
+        if (resumesExpired(opts, step)) {
+          pair.next.expireTimer?.();
+          pair.old.expireTimer?.();
+          compare(pair, `${where} (resumed expired)`);
+        }
+      }
     }
   }
 }
@@ -178,6 +197,7 @@ type TraceOptions = {
   undoRate: number;
   rehydrateEvery: number;
   expireAt?: number;
+  resumeExpired?: boolean;
   observe?: Observe;
 };
 
@@ -220,8 +240,10 @@ export function goldenTrace(opts: TraceOptions): unknown {
   const steps: string[] = [];
   for (let step = 0; step < opts.steps; step += 1) {
     steps.push(traceStep(engine, rand, step, opts));
-    if (step % opts.rehydrateEvery === opts.rehydrateEvery - 1)
+    if (step % opts.rehydrateEvery === opts.rehydrateEvery - 1) {
       engine = opts.build(engine.facts());
+      if (resumesExpired(opts, step)) engine.expireTimer?.();
+    }
   }
   return normalise({
     steps,

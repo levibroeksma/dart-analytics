@@ -21,8 +21,10 @@ import type {
 
 /**
  * Builds a `GameEngine` class over one `EXERCISE_BLOCK` stage from `spec`.
- * `undo()` pops one dart (`undoLastDart`); `isComplete()` is any status
- * other than `IN_PROGRESS`.
+ * `undo()` pops one dart (`undoLastDart`) and leaves an expired timer set;
+ * a rehydrated engine starts unexpired. `completedAt` is stamped when
+ * `isVisitOpen` reads false on the state after the dart. `isComplete()` is
+ * any status other than `IN_PROGRESS`.
  */
 export function dartGameEngineClass<TConfig, TState extends ShellState>(
   spec: DartGameSpec<TConfig, TState>,
@@ -33,6 +35,7 @@ export function dartGameEngineClass<TConfig, TState extends ShellState>(
     readonly rulesetVersionKey: RulesetVersionKey;
     readonly stageOwnership = spec.stageOwnership;
     private readonly turns: TurnFact[];
+    private timerExpired = false;
 
     constructor(
       private readonly config: TConfig,
@@ -47,6 +50,7 @@ export function dartGameEngineClass<TConfig, TState extends ShellState>(
       return spec.fold(
         { stages: [{ ...stage }], turns: this.turns },
         this.config,
+        this.timerExpired,
       );
     }
 
@@ -58,10 +62,12 @@ export function dartGameEngineClass<TConfig, TState extends ShellState>(
         this.turns,
         stage.clientKey,
         before.activeParticipantRef,
-        spec.isVisitOpen,
+        (last) => spec.isVisitOpen(last, before),
       );
       appendObservedDart(turn, observation, spec.intent(before, this.config));
-      if (!spec.isVisitOpen(turn)) turn.completedAt = new Date().toISOString();
+      const after = this.deriveState();
+      if (spec.isVisitOpen(turn, after)) return after;
+      turn.completedAt = new Date().toISOString();
       return this.deriveState();
     }
 
@@ -71,6 +77,10 @@ export function dartGameEngineClass<TConfig, TState extends ShellState>(
 
     wouldComplete(observation: DartObservation): boolean {
       return spec.wouldComplete(this.deriveState(), observation, this.config);
+    }
+
+    expireTimer(): void {
+      this.timerExpired = true;
     }
 
     isComplete(): boolean {

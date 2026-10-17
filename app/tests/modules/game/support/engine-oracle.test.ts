@@ -145,6 +145,26 @@ describe("runOracle", () => {
     });
     expect(seen).toEqual([fixed, fixed, fixed, fixed, fixed]);
   });
+  it("re-expires both rebuilt engines after a rehydration past expireAt when resumeExpired", () => {
+    const calls: string[] = [];
+    const tagged =
+      (tag: string) =>
+      (prior?: EngineFacts): OracleEngine => {
+        const e = counter()(prior);
+        e.expireTimer = () => calls.push(tag);
+        return e;
+      };
+    runOracle({
+      build: tagged("next"),
+      legacy: tagged("old"),
+      seeds: [1],
+      steps: 6,
+      expireAt: 1,
+      rehydrateEvery: 3,
+      resumeExpired: true,
+    });
+    expect(calls).toEqual(["next", "old", "next", "old", "next", "old"]);
+  });
 });
 
 describe("goldenTrace", () => {
@@ -203,5 +223,25 @@ describe("goldenTrace", () => {
       }),
     }) as { steps: string[] };
     expect(trace.steps[0]).toMatch(/^record TREBLE\/7 /);
+  });
+
+  it("re-expires the rebuilt engine after a rehydration past expireAt when resumeExpired", () => {
+    let calls = 0;
+    goldenTrace({
+      build: (prior) => {
+        const e = counter()(prior);
+        e.expireTimer = () => {
+          calls += 1;
+        };
+        return e;
+      },
+      seed: 1,
+      steps: 6,
+      undoRate: 0,
+      rehydrateEvery: 3,
+      expireAt: 1,
+      resumeExpired: true,
+    });
+    expect(calls).toBe(3);
   });
 });

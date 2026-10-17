@@ -16,6 +16,7 @@ import type {
   AroundTheClockSeatState,
   AroundTheClockState,
   DartObservation,
+  DartZoneKey,
 } from "@modules/types";
 import type {
   AroundTheClockEngineConfig,
@@ -1039,5 +1040,119 @@ describe("AroundTheClockEngine — V2 factory, timer and laps", () => {
       laps: 0,
       status: "IN_PROGRESS",
     });
+  });
+});
+
+describe("Around the Clock — Track kernel boundaries", () => {
+  const dart = (
+    hitTargetNumber: number | null,
+    hitZoneKey: DartZoneKey,
+  ): DartObservation => ({
+    hitTargetNumber,
+    hitZoneKey,
+    locationX: null,
+    locationY: null,
+  });
+  const duo = [
+    SEATS[0],
+    {
+      ...SEATS[0],
+      participantRef: "participant-2",
+      displayName: "P2",
+      sideKey: "B",
+    },
+  ];
+
+  it("1: Easy advances twice in one visit and never counts hits", () => {
+    expect(run(v2(), [dart(1, "TREBLE"), dart(2, "DOUBLE")])).toEqual(
+      seatAt(2, { dartsThisVisit: 2 }),
+    );
+  });
+
+  it("2: a 1-dart visit judged on its third dart steps back, floored at the first target", () => {
+    const hard = v2({ difficulty: "HARD" });
+    expect(run(hard, [dart(6, "TREBLE"), miss(), miss()], seatAt(5))).toEqual(
+      seatAt(4),
+    );
+    expect(run(hard, [dart(1, "TREBLE"), miss(), miss()])).toEqual(seatAt(0));
+    expect(run(hard, [dart(6, "TREBLE"), miss()], seatAt(5))).toEqual(
+      seatAt(5, { dartsThisVisit: 2, hitsThisVisit: 1 }),
+    );
+  });
+
+  it("3: OUTER_SINGLE counts only the outer single on a number, either bull on BULL", () => {
+    const outer = v2({ segmentRule: "OUTER_SINGLE" });
+    expect(run(outer, [dart(1, "INNER_SINGLE")])).toEqual(
+      seatAt(0, { dartsThisVisit: 1 }),
+    );
+    expect(run(outer, [dart(1, "OUTER_SINGLE")])).toEqual(
+      seatAt(1, { dartsThisVisit: 1 }),
+    );
+    expect(run(outer, [dart(25, "OUTER_BULL")], seatAt(20))).toEqual(
+      seatAt(20, { status: "COMPLETE" }),
+    );
+  });
+
+  it("4: timed PRO laps on three bull hits", () => {
+    const pro = v2({ difficulty: "PRO", ...TIMED });
+    expect(
+      run(
+        pro,
+        [0, 1, 2].map(() => dart(25, "INNER_BULL")),
+        seatAt(20),
+      ),
+    ).toEqual(seatAt(0, { laps: 1 }));
+  });
+
+  it("5: an untimed Easy duo's bull on dart one closes that visit and hands over", () => {
+    const engine = new AroundTheClockEngine({ ...v2(), seats: duo });
+    const own = [
+      miss(),
+      ...Array.from({ length: 20 }, (_, i) => dart(i + 1, "TREBLE")),
+    ];
+    for (let visit = 0; visit < 7; visit += 1) {
+      for (const d of own.slice(visit * 3, visit * 3 + 3)) engine.record(d);
+      for (let i = 0; i < 3; i += 1) engine.record(miss());
+    }
+    const state = engine.record(dart(25, "OUTER_BULL"));
+    expect(state.seats[0].status).toBe("COMPLETE");
+    expect(state.status).toBe("IN_PROGRESS");
+    expect(state.activeParticipantRef).toBe("participant-2");
+    const bullTurn = engine.facts().turns.at(-1)!;
+    expect(bullTurn.participantRef).toBe("participant-1");
+    expect(bullTurn.darts).toHaveLength(1);
+    expect(bullTurn.completedAt).not.toBeNull();
+    engine.record(miss());
+    const next = engine.facts().turns.at(-1)!;
+    expect(next.participantRef).toBe("participant-2");
+    expect(next.darts).toHaveLength(1);
+    expect(next.completedAt).toBeNull();
+  });
+
+  it("6: expiry survives undo; the reopened visit's closing dart completes the run", () => {
+    const engine = new AroundTheClockEngine(v2(TIMED));
+    for (let i = 0; i < 3; i += 1) engine.record(miss());
+    engine.expireTimer();
+    expect(engine.isComplete()).toBe(true);
+    expect(engine.undo()).toBe(true);
+    expect(engine.state()).toMatchObject({
+      status: "IN_PROGRESS",
+      timerExpired: true,
+    });
+    expect(engine.wouldComplete(miss())).toBe(true);
+    engine.record(miss());
+    expect(engine.isComplete()).toBe(true);
+  });
+
+  it("7: the ruleset key is read off the snapshot's shape", () => {
+    expect(new AroundTheClockEngine(v2()).rulesetVersionKey).toBe(
+      "AROUND_THE_CLOCK_V2",
+    );
+    expect(new AroundTheClockEngine(config).rulesetVersionKey).toBe(
+      "AROUND_THE_CLOCK_V1",
+    );
+    expect(
+      aroundTheClockEngineFactory.create(v2() as never).rulesetVersionKey,
+    ).toBe("AROUND_THE_CLOCK_V2");
   });
 });
