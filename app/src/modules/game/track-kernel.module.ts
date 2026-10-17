@@ -1,11 +1,17 @@
 import type { SeatFact } from "@lib/types";
 import type { TrackRules } from "./interfaces";
 import { foldSeatStates } from "./seat-state.module";
-import type { DartObservation, JudgedDart, TrackSeat, TurnFact } from "./types";
+import type {
+  DartObservation,
+  JudgedDart,
+  SeatState,
+  TrackSeat,
+  TurnFact,
+} from "./types";
 
 /** A Track seat before its first dart: first target, zero counters, `score` (default 0) and `ext` as given. */
 export function initialTrackSeat<TExt>(
-  seat: SeatFact,
+  seat: SeatState,
   ext: TExt,
   score = 0,
 ): TrackSeat<TExt> {
@@ -68,4 +74,18 @@ export function foldTrackSeats<TExt>(
     (seat) => initialTrackSeat(seat, initialExt(), rules.startScore),
     (state, observation) => applyTrackDart(state, observation, rules),
   );
+}
+
+/**
+ * Folds one seat over every dart in `turns`, in write order, whoever threw
+ * it — the solo exercise's fold, since its facts log no seats.
+ */
+export function foldTrackDarts<TExt>(
+  turns: readonly TurnFact[],
+  initial: TrackSeat<TExt>,
+  rules: TrackRules<TExt>,
+): TrackSeat<TExt> {
+  return turns
+    .flatMap((turn) => turn.darts)
+    .reduce((seat, dart) => applyTrackDart(seat, dart, rules), initial);
 }

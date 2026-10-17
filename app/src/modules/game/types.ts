@@ -455,6 +455,13 @@ export type JudgedDart = {
   points: number;
 };
 
+/** Chain bookkeeping for a Track seat (Target Scoring): the live chain, the best finished chain per path index, and hits so far. */
+export type ChainTrackExt = {
+  chain: number;
+  finishedBest: (number | null)[];
+  hits: number;
+};
+
 /**
  * What the player did, as observed at input time — the engine's only input.
  * `locationX` / `locationY` are the landing point in regulation millimetres

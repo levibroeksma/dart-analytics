@@ -4,6 +4,7 @@ import {
   advanceToEnd,
   anyRingEitherBull,
   boardScorePoints,
+  chainOnTarget,
   closeAfter,
   closeAfterOrPastEnd,
   closeOnHitOrAfter,
@@ -18,13 +19,19 @@ import {
   penaltyOnBlank,
   pointsTable,
   recordVisitZone,
+  sectionOf,
   shanghaiWin,
   stepBackBelowHits,
   zoneBucketOf,
 } from "@modules/game/track-policies";
 import { initialTrackSeat } from "@modules/game/track-kernel.module";
 import { doublesPath, targetAt } from "@modules/game/board-progression.module";
-import type { DartObservation, DartZoneKey, TrackSeat } from "@modules/types";
+import type {
+  ChainTrackExt,
+  DartObservation,
+  DartZoneKey,
+  TrackSeat,
+} from "@modules/types";
 
 const SEAT = {
   participantRef: "p1",
@@ -276,5 +283,64 @@ describe("track policies", () => {
       const s = zoned(zones);
       expect(shanghaiWin(s)).toBe(s);
     }
+  });
+
+  const chained = (
+    over: Partial<TrackSeat<ChainTrackExt>> = {},
+    ext: Partial<ChainTrackExt> = {},
+  ): TrackSeat<ChainTrackExt> => ({
+    ...initialTrackSeat(SEAT, {
+      chain: 0,
+      finishedBest: [null, null, null],
+      hits: 0,
+      ...ext,
+    }),
+    ...over,
+  });
+  const thrown = (hit: boolean, points: number) => ({
+    observation: on(5, hit ? "TREBLE" : "DOUBLE"),
+    target: FIVE,
+    hit,
+    points,
+  });
+
+  it("sectionOf: a NUMBER target's number, 25 for BULL", () => {
+    expect(sectionOf(FIVE)).toBe(5);
+    expect(sectionOf(BULL)).toBe(25);
+  });
+
+  it("chainOnTarget: a hit grows the chain and counts", () => {
+    expect(
+      chainOnTarget(3)(chained({}, { chain: 2, hits: 2 }), thrown(true, 3)),
+    ).toMatchObject({ targetIndex: 0, ext: { chain: 5, hits: 3 } });
+  });
+
+  it("chainOnTarget: a miss on an empty chain changes nothing", () => {
+    const s = chained({ targetIndex: 1 });
+    expect(chainOnTarget(3)(s, thrown(false, 0))).toBe(s);
+  });
+
+  it("chainOnTarget: a miss ends the chain, keeps the best, moves on", () => {
+    expect(
+      chainOnTarget(3)(
+        chained(
+          { targetIndex: 1 },
+          { chain: 2, finishedBest: [null, 5, null] },
+        ),
+        thrown(false, 0),
+      ),
+    ).toMatchObject({
+      targetIndex: 2,
+      ext: { chain: 0, finishedBest: [null, 5, null] },
+    });
+    expect(
+      chainOnTarget(3)(
+        chained({ targetIndex: 2 }, { chain: 4 }),
+        thrown(false, 0),
+      ),
+    ).toMatchObject({
+      targetIndex: 0,
+      ext: { chain: 0, finishedBest: [null, null, 4] },
+    });
   });
 });

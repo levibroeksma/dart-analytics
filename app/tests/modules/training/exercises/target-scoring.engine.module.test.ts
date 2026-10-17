@@ -272,3 +272,72 @@ describe("foldTargetScoringState", () => {
     );
   });
 });
+
+describe("Target Scoring — kernel seams", () => {
+  it("keeps the larger finished chain when a target comes round again", () => {
+    const engine = new TargetScoringEngine({ targets: [20] });
+    play(engine, [dart(20, "TREBLE"), dart(20, "SINGLE"), MISS]);
+    const state = play(engine, [dart(20, "SINGLE"), MISS]);
+
+    expect(state.targetIndex).toBe(0);
+    expect(state.markToBeat).toBe(4);
+    expect(state.bestChain).toBe(4);
+    expect(state.bestChainByTarget).toEqual([
+      { targetNumber: 20, bestChain: 4 },
+    ]);
+  });
+
+  it("undoing a chain-ending miss restores the target, chain and mark", () => {
+    const engine = new TargetScoringEngine({ targets: [20, 19] });
+    play(engine, [dart(20, "TREBLE"), MISS, dart(19, "SINGLE"), MISS]);
+    play(engine, [dart(20, "SINGLE"), MISS]);
+    expect(engine.state().currentTargetNumber).toBe(19);
+    engine.undo();
+
+    expect(engine.state()).toMatchObject({
+      currentTargetNumber: 20,
+      targetIndex: 0,
+      currentChain: 1,
+      markToBeat: 3,
+      hits: 3,
+      dartsThrown: 5,
+    });
+  });
+
+  it("scores a bull-only list and wraps it to itself", () => {
+    const engine = new TargetScoringEngine({ targets: [25] });
+    const state = play(engine, [
+      dart(25, "OUTER_BULL"),
+      dart(25, "INNER_BULL"),
+      dart(20, "TREBLE"),
+    ]);
+
+    expect(state).toMatchObject({
+      currentTargetNumber: 25,
+      targetIndex: 0,
+      currentChain: 0,
+      bestChain: 4,
+      markToBeat: 4,
+      hits: 2,
+      dartsThrown: 3,
+    });
+  });
+
+  it("reports a finished best above a smaller live chain at expiry", () => {
+    const engine = new TargetScoringEngine({ targets: [20, 19] });
+    play(engine, [dart(20, "TREBLE"), dart(20, "TREBLE"), MISS]);
+    play(engine, [dart(19, "SINGLE")]);
+    engine.expireTimer();
+
+    expect(engine.state()).toMatchObject({
+      status: "COMPLETE",
+      currentChain: 1,
+      bestChain: 6,
+      markToBeat: null,
+      bestChainByTarget: [
+        { targetNumber: 20, bestChain: 6 },
+        { targetNumber: 19, bestChain: 1 },
+      ],
+    });
+  });
+});

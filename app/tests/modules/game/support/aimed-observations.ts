@@ -21,7 +21,7 @@ const RINGS: readonly DartZoneKey[] = [
  * A dart on `target`: either bull ring on BULL (one `rand()` draw),
  * otherwise the number in the ring `numberZone` picks.
  */
-export function observationOn(
+function observationOn(
   target: BoardTarget,
   rand: () => number,
   numberZone: () => DartZoneKey,
