@@ -4,6 +4,7 @@ import {
   BullseyeCheckoutV1Config,
   BullUpV1Config,
   CheckoutSequenceV1Config,
+  HitCountV1Config,
   RandomCheckoutV1Config,
   ScoreThresholdV1Config,
   SwitchingTargetScoringV1Config,
@@ -301,5 +302,57 @@ describe("RandomCheckoutV1Config", () => {
     expect(EXERCISE_RULESET_CONFIGS.RANDOM_CHECKOUT_V1).toBe(
       RandomCheckoutV1Config,
     );
+  });
+});
+
+describe("HitCountV1Config", () => {
+  const BIG_TREBLES = {
+    targets: [20, 19, 18, 17].map((number) => ({ kind: "TREBLE", number })),
+    dartsPerTarget: 9,
+  };
+
+  it("accepts the Big Trebles template", () => {
+    expect(HitCountV1Config.safeParse(BIG_TREBLES).success).toBe(true);
+  });
+
+  it("accepts doubles and the bullseye", () => {
+    expect(
+      HitCountV1Config.safeParse({
+        targets: [{ kind: "DOUBLE", number: 16 }, { kind: "BULL" }],
+        dartsPerTarget: 3,
+      }).success,
+    ).toBe(true);
+  });
+
+  it("rejects darts per target that is not a positive multiple of three", () => {
+    for (const dartsPerTarget of [0, 1, 2, 4, 10, -3, 4.5]) {
+      expect(
+        HitCountV1Config.safeParse({ ...BIG_TREBLES, dartsPerTarget }).success,
+      ).toBe(false);
+    }
+  });
+
+  it("rejects an empty list, a NUMBER target and an off-board number", () => {
+    for (const targets of [
+      [],
+      [{ kind: "NUMBER", number: 20 }],
+      [{ kind: "TREBLE", number: 21 }],
+      [{ kind: "DOUBLE", number: 0 }],
+      [{ kind: "BULL", number: 25 }],
+    ]) {
+      expect(
+        HitCountV1Config.safeParse({ ...BIG_TREBLES, targets }).success,
+      ).toBe(false);
+    }
+  });
+
+  it("rejects extra keys", () => {
+    expect(
+      HitCountV1Config.safeParse({ ...BIG_TREBLES, scoring: 1 }).success,
+    ).toBe(false);
+  });
+
+  it("is registered under HIT_COUNT_V1", () => {
+    expect(EXERCISE_RULESET_CONFIGS.HIT_COUNT_V1).toBe(HitCountV1Config);
   });
 });

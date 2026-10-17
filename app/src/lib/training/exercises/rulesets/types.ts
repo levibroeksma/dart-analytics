@@ -17,7 +17,8 @@ export type ExerciseRulesetVersionKey =
   | "BULLSEYE_CHECKOUT_V1"
   | "BULL_UP_V1"
   | "CHECKOUT_SEQUENCE_V1"
-  | "RANDOM_CHECKOUT_V1";
+  | "RANDOM_CHECKOUT_V1"
+  | "HIT_COUNT_V1";
 
 /**
  * One timed section of a warm-up. `targets` are board numbers the player
@@ -255,6 +256,29 @@ export const RandomCheckoutV1Config = z
 
 export type RandomCheckoutConfigData = z.infer<typeof RandomCheckoutV1Config>;
 
+const BoardNumber = z.number().int().min(1).max(20);
+
+const HitCountTarget = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("TREBLE"), number: BoardNumber }).strict(),
+  z.object({ kind: z.literal("DOUBLE"), number: BoardNumber }).strict(),
+  z.object({ kind: z.literal("BULL") }).strict(),
+]);
+
+/**
+ * Hit Count v1: a list of targets, each a treble, a double or the
+ * bullseye, and how many darts each gets — a multiple of three, so the aim
+ * moves only between visits (`docs/game-rules/training/exercises/hit-count.md`).
+ */
+export const HitCountV1Config = z
+  .object({
+    targets: z.array(HitCountTarget).min(1).max(21),
+    dartsPerTarget: z.number().int().min(3).max(99).multipleOf(3),
+  })
+  .strict();
+
+export type HitCountConfigData = z.infer<typeof HitCountV1Config>;
+export type HitCountTarget = HitCountConfigData["targets"][number];
+
 export const EXERCISE_RULESET_CONFIGS: Record<
   ExerciseRulesetVersionKey,
   z.ZodTypeAny
@@ -269,4 +293,5 @@ export const EXERCISE_RULESET_CONFIGS: Record<
   BULL_UP_V1: BullUpV1Config,
   CHECKOUT_SEQUENCE_V1: CheckoutSequenceV1Config,
   RANDOM_CHECKOUT_V1: RandomCheckoutV1Config,
+  HIT_COUNT_V1: HitCountV1Config,
 };
