@@ -84,6 +84,14 @@ interface TrackRules<TExt> {
   second engine shares it; the umbrella `RuleKernel` interface waits for a
   second family. Track ships as functions: `initialTrackSeat`,
   `applyTrackDart`, `foldTrackSeats`. Engines keep their own `DartGameSpec`/`DartExerciseSpec` and route their reducer through the kernel; a generic `trackGameSpec` adapter lands only if two engines' specs turn out identical.
+- **Refined by the PR 6 plan (2026-10-17):** exercise facts log no seats, so
+  the kernel gains `foldTrackDarts(turns, initial, rules)`: one seat folded
+  over every dart in write order. `initialTrackSeat` takes a `SeatState`.
+  Target Scoring's cycling is the modulo inside `chainOnTarget`; a shared
+  cycle helper waits for a second policy to need it. `trackExerciseSpec`
+  follows the `trackGameSpec` rule and waits for PR 7, where a second
+  exercise spec can be compared. `outcome` stays deferred: timer-only is a
+  one-line ternary in the projection; re-checked at PR 7.
 - `TrackRules` is derived on every read from the config snapshot; never stored.
 - `project(match, config) → legacy state` per engine keeps `state()` and the
   exported fold byte-identical in shape.
@@ -102,7 +110,7 @@ interface TrackRules<TExt> {
 | Policy | Kind | First caller |
 | --- | --- | --- |
 | `isHitOnTarget` (wraps `isHitOn`) | hit | Doubles Training |
-| `anyRingEitherBull`, `outerSingleOnly`, `sdtBucket`, `singleOrTreble` | hit | Singles / ATC / Shanghai / Target Scoring |
+| `anyRingEitherBull`, `outerSingleOnly` | hit | Singles / ATC / Shanghai |
 | `noPoints`, `fixedValue`, `pointsTable`, `boardScorePoints` | points | Doubles / Bob's 27 / Singles / Shanghai |
 | `closeOnHitOrThree`, `threeDartVisit` | visitOpen | Doubles / all others |
 | `advanceRecordingOutcome` | onVisitClose | Doubles Training |
@@ -110,9 +118,11 @@ interface TrackRules<TExt> {
 | `outBelowHits(n)` | onVisitClose | Singles Training |
 | `advanceOnHit` (n = 0), `stepBackBelowHits(n)`, `lapOnWrap` | onDart / onVisitClose | Around the Clock |
 | `shanghaiWin`, `halveOnBlank` | onVisitClose | Shanghai |
-| `chainOnTarget` | onDart | Target Scoring |
+| `chainOnTarget` (`sectionOf` exported) | onDart | Target Scoring |
 | `resetOnMiss` | onDart | Switching Target Scoring |
 | outcomes: `scoreCompareBy(metric, dir)`, `eliminationOnOut`, `raceThenScore`, `timerOnly` | outcome | per engine (wrap `match-outcome`) |
+
+`sdtBucket` and `singleOrTreble` were not added: Shanghai reuses `anyRingEitherBull`, and Target Scoring's hit and points read the engine's own `targetScoringPoints` table (PR 5 / PR 6 plans, 2026-10-17).
 
 Names are indicative; the plan fixes them. Each preserves the existing
 engine's exact branch, quirks included.
@@ -215,8 +225,8 @@ must not rise), all `check-*.sh`, `check-test-coverage.sh`.
 | 3 | Singles Training | `pointsTable`, `outBelowHits`, multi-key shell |
 | 4 | Around the Clock | `stepBackBelowHits`, laps, game-shell timer |
 | 5 | Shanghai | `shanghaiWin`, `halveOnBlank`, visit-total hook |
-| 6 | Target Scoring | `chainOnTarget`, `trackExerciseSpec` |
-| 7 | Switching Target Scoring | `resetOnMiss`; deletes its hand-copied shell |
+| 6 | Target Scoring | `chainOnTarget`, `foldTrackDarts`; `check-engine-kernels.sh` accepts the `@modules/game/` kernel import (refined 2026-10-17: `trackExerciseSpec` moves to PR 7) |
+| 7 | Switching Target Scoring | `resetOnMiss`; deletes its hand-copied shell; `trackExerciseSpec` if its spec matches Target Scoring's |
 
 The stack cap allows one branch on another; each PR merges before the next
 but one starts.
@@ -300,7 +310,7 @@ kernel's policy-record form and project-to-legacy-state (T1, T3).
 
 - PR 2: `09-Adding-A-Game.md` exemplar paragraph points at the kernel-backed
   Bob's 27.
-- PR 6: `modules/training/CLAUDE.md` bullet for `trackExerciseSpec`.
+- PR 6: `modules/training/CLAUDE.md` exercise-shell bullet notes `foldTrackDarts` (refined 2026-10-17; the `trackExerciseSpec` bullet moves to PR 7 with the adapter).
 
 ## 10. Out of scope
 

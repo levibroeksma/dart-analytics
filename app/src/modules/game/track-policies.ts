@@ -5,6 +5,7 @@ import {
 } from "./board-progression.module";
 import type {
   BoardTarget,
+  ChainTrackExt,
   DartObservation,
   DartZoneKey,
   JudgedDart,
@@ -77,7 +78,7 @@ const EITHER_BULL: ReadonlySet<DartZoneKey> = new Set([
 ]);
 
 /** The board number a target's darts must land on: its own number, or 25 for BULL. */
-function sectionOf(target: BoardTarget): number {
+export function sectionOf(target: BoardTarget): number {
   return target.kind === "BULL" ? BULL_TARGET_NUMBER : target.number;
 }
 
@@ -243,4 +244,31 @@ export function shanghaiWin<
   return buckets.has("SINGLE") && buckets.has("DOUBLE") && buckets.has("TREBLE")
     ? { ...seat, status: "DONE", ext: { ...seat.ext, shanghai: true } }
     : seat;
+}
+
+/**
+ * Per-dart policy (Target Scoring): a hit adds its points to the chain; a
+ * miss that ends a live chain keeps the target's best finished chain and
+ * moves to the next of `length` targets, wrapping after the last. A miss on
+ * an empty chain changes nothing.
+ */
+export function chainOnTarget<TExt extends ChainTrackExt>(
+  length: number,
+): (seat: TrackSeat<TExt>, dart: JudgedDart) => TrackSeat<TExt> {
+  return (seat, dart) => {
+    const { chain, finishedBest, hits } = seat.ext;
+    if (dart.hit)
+      return {
+        ...seat,
+        ext: { ...seat.ext, chain: chain + dart.points, hits: hits + 1 },
+      };
+    if (chain === 0) return seat;
+    const best = [...finishedBest];
+    best[seat.targetIndex] = Math.max(best[seat.targetIndex] ?? 0, chain);
+    return {
+      ...seat,
+      targetIndex: (seat.targetIndex + 1) % length,
+      ext: { ...seat.ext, chain: 0, finishedBest: best },
+    };
+  };
 }

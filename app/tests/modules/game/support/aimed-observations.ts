@@ -18,9 +18,25 @@ const RINGS: readonly DartZoneKey[] = [
 ];
 
 /**
- * A dart on the active seat's target along `path`: either bull ring on BULL
- * (one `rand()` draw), otherwise the number in the ring `numberZone` picks.
+ * A dart on `target`: either bull ring on BULL (one `rand()` draw),
+ * otherwise the number in the ring `numberZone` picks.
  */
+function observationOn(
+  target: BoardTarget,
+  rand: () => number,
+  numberZone: () => DartZoneKey,
+): DartObservation {
+  const base = { locationX: null, locationY: null };
+  if (target.kind === "BULL")
+    return {
+      ...base,
+      hitTargetNumber: 25,
+      hitZoneKey: rand() < 0.5 ? "OUTER_BULL" : "INNER_BULL",
+    };
+  return { ...base, hitTargetNumber: target.number, hitZoneKey: numberZone() };
+}
+
+/** A dart on the active seat's target along `path`; see `observationOn`. */
 export function onActiveTarget(
   engine: OracleEngine,
   path: readonly BoardTarget[],
@@ -31,14 +47,7 @@ export function onActiveTarget(
     SeatState & { targetIndex: number }
   >;
   const target = targetAt(path, activeSeatState(state).targetIndex);
-  const base = { locationX: null, locationY: null };
-  if (target.kind === "BULL")
-    return {
-      ...base,
-      hitTargetNumber: 25,
-      hitZoneKey: rand() < 0.5 ? "OUTER_BULL" : "INNER_BULL",
-    };
-  return { ...base, hitTargetNumber: target.number, hitZoneKey: numberZone() };
+  return observationOn(target, rand, numberZone);
 }
 
 /** Any of the five number rings, one `rand()` draw. */
@@ -57,5 +66,25 @@ export function aimedOnPath(
   return (rand, engine) => {
     if (rand() >= rate) return randomObservation(rand);
     return onActiveTarget(engine, path, rand, () => anyRing(rand));
+  };
+}
+
+/**
+ * `rate` of darts on an exercise's `currentTargetNumber`, in any ring
+ * (either bull on 25), otherwise `randomObservation`.
+ */
+export function aimedOnCurrentTarget(
+  rate: number,
+): (rand: () => number, engine: OracleEngine) => DartObservation {
+  return (rand, engine) => {
+    if (rand() >= rate) return randomObservation(rand);
+    const { currentTargetNumber } = engine.state() as {
+      currentTargetNumber: number;
+    };
+    const target: BoardTarget =
+      currentTargetNumber === 25
+        ? { kind: "BULL" }
+        : { kind: "NUMBER", number: currentTargetNumber };
+    return observationOn(target, rand, () => anyRing(rand));
   };
 }

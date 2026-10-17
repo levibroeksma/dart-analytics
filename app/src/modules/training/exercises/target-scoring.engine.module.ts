@@ -1,17 +1,46 @@
 import type { TargetScoringConfigData } from "@lib/types";
 import { TargetScoringV1Config } from "@lib/training/exercises/rulesets/types";
-import type { DartFact, DartIntent, EngineFacts } from "@modules/types";
-import { BULL_TARGET_NUMBER } from "@modules/game/board-progression.module";
+import type {
+  BoardTarget,
+  ChainTrackExt,
+  DartFact,
+  DartIntent,
+  DartObservation,
+  EngineFacts,
+  TrackSeat,
+} from "@modules/types";
+import type { TrackRules } from "@modules/interfaces";
+import {
+  BULL_TARGET_NUMBER,
+  numbersPath,
+} from "@modules/game/board-progression.module";
+import {
+  foldTrackDarts,
+  initialTrackSeat,
+} from "@modules/game/track-kernel.module";
+import {
+  chainOnTarget,
+  closeAfter,
+  pathTarget,
+  sectionOf,
+} from "@modules/game/track-policies";
 import { registerDartExerciseEngineFactory } from "./dart-engine.registry";
 import {
   dartExerciseEngineClass,
   dartExerciseEngineFactory,
 } from "./dart-exercise-shell.module";
 import type { DartExerciseSpec } from "./interfaces";
+import { SOLO_PARTICIPANT_REF } from "./solo-participant.module";
 import type { TargetScoringState } from "./types";
 
 const EXERCISE_RULESET_VERSION_KEY = "TARGET_SCORING_V1" as const;
 const DARTS_PER_VISIT = 3;
+const DONE_MESSAGE =
+  "A Target Scoring seat never finishes; only the timer ends the exercise.";
+const SOLO_SEAT = {
+  participantRef: SOLO_PARTICIPANT_REF,
+  sideKey: SOLO_PARTICIPANT_REF,
+};
 
 const SINGLE_ZONE_KEYS = new Set(["SINGLE", "INNER_SINGLE", "OUTER_SINGLE"]);
 
@@ -54,72 +83,40 @@ function intentFor(target: number): DartIntent {
   };
 }
 
-type Progress = {
-  targetIndex: number;
-  currentChain: number;
-  bestChain: number;
-  /** Best *finished* chain per target index — what `markToBeat` reads. */
-  finishedBest: (number | null)[];
-  hits: number;
-  dartsThrown: number;
-};
-
-function initialProgress(config: TargetScoringConfigData): Progress {
+/**
+ * Target Scoring's Track rules: the config's targets in order; a dart hits
+ * when `targetScoringPoints` scores it and adds those points; `chainOnTarget`
+ * builds the chain and cycles to the next target on a miss that ends one.
+ * Visits close after three darts and carry no rule of their own.
+ */
+function targetScoringRules(
+  config: TargetScoringConfigData,
+): TrackRules<ChainTrackExt> {
+  const pointsOn = (target: BoardTarget, observation: DartObservation) =>
+    targetScoringPoints(sectionOf(target), observation);
   return {
-    targetIndex: 0,
-    currentChain: 0,
-    bestChain: 0,
-    finishedBest: config.targets.map(() => null),
-    hits: 0,
-    dartsThrown: 0,
+    doneMessage: DONE_MESSAGE,
+    target: pathTarget(numbersPath(config.targets)),
+    hit: (target, observation) => pointsOn(target, observation) !== null,
+    points: (target, observation) => pointsOn(target, observation) ?? 0,
+    onDart: chainOnTarget(config.targets.length),
+    visitOpen: closeAfter(DARTS_PER_VISIT),
   };
 }
 
-/**
- * Folds one dart onto the running progress. A hit grows the chain; a miss
- * resets it, and advances the target only when the chain it ends held a hit
- * — so a chain always belongs to exactly one target.
- */
-function applyDart(
+function initialSeat(
   config: TargetScoringConfigData,
-  progress: Progress,
-  dart: Pick<DartFact, "hitTargetNumber" | "hitZoneKey">,
-): Progress {
-  const points = targetScoringPoints(
-    config.targets[progress.targetIndex],
-    dart,
-  );
-  const dartsThrown = progress.dartsThrown + 1;
-  if (points !== null) {
-    const currentChain = progress.currentChain + points;
-    return {
-      ...progress,
-      currentChain,
-      bestChain: Math.max(progress.bestChain, currentChain),
-      hits: progress.hits + 1,
-      dartsThrown,
-    };
-  }
-  if (progress.currentChain === 0) return { ...progress, dartsThrown };
-
-  const finishedBest = [...progress.finishedBest];
-  const previous = finishedBest[progress.targetIndex] ?? 0;
-  finishedBest[progress.targetIndex] = Math.max(
-    previous,
-    progress.currentChain,
-  );
-  return {
-    ...progress,
-    targetIndex: (progress.targetIndex + 1) % config.targets.length,
-    currentChain: 0,
-    finishedBest,
-    dartsThrown,
-  };
+): TrackSeat<ChainTrackExt> {
+  return initialTrackSeat(SOLO_SEAT, {
+    chain: 0,
+    finishedBest: config.targets.map(() => null),
+    hits: 0,
+  });
 }
 
 /**
  * Folds the whole fact log into Target Scoring state — a pure function of
- * `facts`/`config`/`complete`, mirroring `foldSwitchingState`. Darts are
+ * `facts`/`config`/`complete`, folded through the Track kernel's `foldTrackDarts`. Darts are
  * replayed in write order, which is what reproduces each dart's target.
  */
 export function foldTargetScoringState(
@@ -127,28 +124,35 @@ export function foldTargetScoringState(
   config: TargetScoringConfigData,
   complete: boolean,
 ): TargetScoringState {
-  const progress = facts.turns
-    .flatMap((turn) => turn.darts)
-    .reduce(
-      (acc, dart) => applyDart(config, acc, dart),
-      initialProgress(config),
-    );
+  const seat = foldTrackDarts(
+    facts.turns,
+    initialSeat(config),
+    targetScoringRules(config),
+  );
+  const { chain, finishedBest, hits } = seat.ext;
+  const bestChainByTarget = config.targets.map((targetNumber, index) => ({
+    targetNumber,
+    bestChain: Math.max(
+      finishedBest[index] ?? 0,
+      index === seat.targetIndex ? chain : 0,
+    ),
+  }));
 
   return {
-    currentTargetNumber: config.targets[progress.targetIndex],
-    targetIndex: progress.targetIndex,
-    currentChain: progress.currentChain,
-    bestChain: progress.bestChain,
-    markToBeat: progress.finishedBest[progress.targetIndex],
-    bestChainByTarget: config.targets.map((targetNumber, index) => ({
-      targetNumber,
-      bestChain: Math.max(
-        progress.finishedBest[index] ?? 0,
-        index === progress.targetIndex ? progress.currentChain : 0,
-      ),
-    })),
-    hits: progress.hits,
-    dartsThrown: progress.dartsThrown,
+    currentTargetNumber: config.targets[seat.targetIndex],
+    targetIndex: seat.targetIndex,
+    currentChain: chain,
+    bestChain: Math.max(
+      0,
+      ...bestChainByTarget.map((entry) => entry.bestChain),
+    ),
+    markToBeat: finishedBest[seat.targetIndex],
+    bestChainByTarget,
+    hits,
+    dartsThrown: facts.turns.reduce(
+      (count, turn) => count + turn.darts.length,
+      0,
+    ),
     status: complete ? "COMPLETE" : "IN_PROGRESS",
   };
 }

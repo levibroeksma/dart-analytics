@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   applyTrackDart,
+  foldTrackDarts,
   foldTrackSeats,
   initialTrackSeat,
 } from "@modules/game/track-kernel.module";
@@ -158,5 +159,33 @@ describe("track kernel", () => {
       { ...toy, startScore: 27 },
     );
     expect(seat.score).toBe(28);
+  });
+
+  it("foldTrackDarts folds every dart in write order from one seat", () => {
+    const turn = (darts: DartObservation[]) =>
+      ({ participantRef: "solo", darts }) as unknown as TurnFact;
+    const seat = foldTrackDarts(
+      [turn([hitOn(1), MISS, hitOn(1)]), turn([hitOn(2)])],
+      fresh(),
+      toy,
+    );
+    expect(seat).toMatchObject({
+      targetIndex: 1,
+      score: 3,
+      dartsThisVisit: 1,
+      hitsThisVisit: 1,
+      ext: { closed: [2] },
+    });
+  });
+
+  it("foldTrackDarts with no darts returns the initial seat", () => {
+    const initial = fresh();
+    expect(foldTrackDarts([], initial, toy)).toBe(initial);
+  });
+
+  it("initialTrackSeat takes a bare seat state", () => {
+    expect(
+      initialTrackSeat({ participantRef: "solo", sideKey: "solo" }, null),
+    ).toMatchObject({ participantRef: "solo", sideKey: "solo" });
   });
 });
