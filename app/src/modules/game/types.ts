@@ -423,6 +423,7 @@ export type StageTypeKey =
 export type BoardTarget =
   | { kind: "NUMBER"; number: number }
   | { kind: "DOUBLE"; number: number }
+  | { kind: "TREBLE"; number: number }
   | { kind: "BULL" };
 
 /** A Track seat's lifecycle: still throwing, finished the path, or knocked out. */

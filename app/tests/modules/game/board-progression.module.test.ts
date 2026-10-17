@@ -8,6 +8,7 @@ import {
   targetAt,
   boardTargetLabel,
 } from "@modules/game/board-progression.module";
+import type { DartObservation, DartZoneKey } from "@modules/types";
 
 describe("board progression", () => {
   it("walks D1 to D20 then bull", () => {
@@ -171,5 +172,30 @@ describe("boardTargetLabel", () => {
 
   it("labels the bull BULL", () => {
     expect(boardTargetLabel({ kind: "BULL" })).toBe("BULL");
+  });
+});
+
+describe("TREBLE board target", () => {
+  const T20 = { kind: "TREBLE", number: 20 } as const;
+  const obs = (
+    hitTargetNumber: number | null,
+    hitZoneKey: DartZoneKey,
+  ): DartObservation => ({
+    hitTargetNumber,
+    hitZoneKey,
+    locationX: null,
+    locationY: null,
+  });
+
+  it("labels a treble target T<n>", () => {
+    expect(boardTargetLabel(T20)).toBe("T20");
+  });
+
+  it("isHitOn counts only the treble of the target's number", () => {
+    expect(isHitOn(T20, obs(20, "TREBLE"))).toBe(true);
+    expect(isHitOn(T20, obs(20, "SINGLE"))).toBe(false);
+    expect(isHitOn(T20, obs(20, "DOUBLE"))).toBe(false);
+    expect(isHitOn(T20, obs(1, "TREBLE"))).toBe(false);
+    expect(isHitOn(T20, obs(null, "MISS"))).toBe(false);
   });
 });
