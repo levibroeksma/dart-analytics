@@ -430,7 +430,7 @@ Reason: the families were a spec-level plan (`docs/superpowers/specs/2026-10-15-
 Consequences: a new engine cannot land without a registry row; each kernel migration PR flips its row from PENDING to KERNEL_BOUND. The header is `Kernel:`, not `Family:`, because `Family` is already a Tags axis. Initial assignments follow the umbrella spec §5 as amended by the Track spec §5 (Prisoner, Hare and Hounds → ELIMINATION; Neighbours, A1 Routine → MARKS; Bullseye 500, Golf, DOLF → VISIT_POINTS; Bullseye Checkout → CHECKOUT; Bull-Up → HAND_WRITTEN).
 Supersedes: none.
 
-### D467 — Track kernel: a reducer driven by a record of policy functions
+### D468 — Track kernel: a reducer driven by a record of policy functions
 Status: Accepted · Date: 2026-10-17
 Decision: `modules/game/track-kernel.module.ts` holds the Track family's only reducer, `applyTrackDart` (judge → points → `onDart` → visit close → `onVisitClose`), and `foldTrackSeats`; a ruleset is a `TrackRules<TExt>` record of named policies (`track-policies.ts`) built per read from its configuration snapshot, with game-owned extras in `TrackSeat.ext`. A migrated engine keeps its exported reducer, fold and `state()` shape by projecting `TrackSeat` to its legacy seat state. Doubles Training is the first bound engine. Match outcome stays in each fold until a second engine shares it; the umbrella `RuleKernel` interface waits for a second family.
 Reason: a pure-data enum config would force each shipped engine's special cases (Shanghai's instant win, Target Scoring's chain) into one generic switch past fallow's complexity limit; policies keep each special case local to the one ruleset that has it, and the projection lets the oracle compare old and new engines on identical state.
