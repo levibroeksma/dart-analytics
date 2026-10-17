@@ -63,6 +63,8 @@ export interface GameEngineFactory<TConfig, TInput, TState> {
  */
 export interface DartGameSpec<TConfig, TState extends ShellState> {
   readonly rulesetVersionKey: RulesetVersionKey;
+  /** Further ruleset versions this one spec serves; `rulesetVersionKey` is the default. */
+  readonly rulesetVersionKeys?: readonly RulesetVersionKey[];
   readonly stageOwnership: StageOwnership;
   fold(facts: EngineFacts, config: TConfig): TState;
   refusal(state: TState): string | null;
@@ -85,7 +87,11 @@ export interface ShellGameEngine<
 
 /** Constructor of a shell-built engine class. */
 export interface DartGameEngineClass<TConfig, TState extends ShellState> {
-  new (config: TConfig, prior?: EngineFacts): ShellGameEngine<TConfig, TState>;
+  new (
+    config: TConfig,
+    prior?: EngineFacts,
+    rulesetVersionKey?: RulesetVersionKey,
+  ): ShellGameEngine<TConfig, TState>;
 }
 
 /**

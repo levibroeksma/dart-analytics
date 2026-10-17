@@ -47,6 +47,15 @@ if [ -z "$CAPABILITY_KEYS" ]; then
   exit 1
 fi
 
+# A module's ruleset keys: every `rulesetVersionKey: "X"` plus every key
+# listed in a one-line `rulesetVersionKeys: ["X", "Y"]` (several keys, one spec).
+engine_keys() {
+  {
+    grep -oE 'rulesetVersionKey[[:space:]]*[:=][[:space:]]*"[A-Z0-9_]+"' "$1"
+    grep -oE 'rulesetVersionKeys[[:space:]]*:[[:space:]]*\[[^]]*\]' "$1"
+  } | grep -oE '"[A-Z0-9_]+"' | tr -d '"' | sort -u
+}
+
 for file in $MODULES; do
   BAD=0
 
@@ -62,8 +71,7 @@ for file in $MODULES; do
     BAD=1
   fi
 
-  KEYS=$(grep -oE 'rulesetVersionKey[[:space:]]*[:=][[:space:]]*"[A-Z0-9_]+"' "$file" \
-    | grep -oE '"[A-Z0-9_]+"' | tr -d '"' | sort -u)
+  KEYS=$(engine_keys "$file")
   if [ -z "$KEYS" ]; then
     echo "FAIL: $file names no rulesetVersionKey" >&2
     FAIL=1
@@ -98,8 +106,7 @@ done
 for file in $MODULES; do
   BASENAME=$(basename "$file" .engine.module.ts)
   PLAY_FILE="app/src/lib/game/${BASENAME}-play.data.ts"
-  KEYS=$(grep -oE 'rulesetVersionKey[[:space:]]*[:=][[:space:]]*"[A-Z0-9_]+"' "$file" \
-    | grep -oE '"[A-Z0-9_]+"' | tr -d '"' | sort -u)
+  KEYS=$(engine_keys "$file")
   KEY_COUNT=$(printf '%s\n' "$KEYS" | grep -c .)
   [ "$KEY_COUNT" -le 1 ] && continue
 

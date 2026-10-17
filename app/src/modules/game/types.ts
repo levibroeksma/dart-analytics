@@ -432,6 +432,12 @@ export type TrackSeat<TExt> = SeatState & {
   ext: TExt;
 };
 
+/** Points per zone for a Track ruleset: one row for NUMBER targets, one for BULL; an absent zone scores 0. */
+export type PointsTable = {
+  readonly number: Partial<Record<DartZoneKey, number>>;
+  readonly bull: Partial<Record<DartZoneKey, number>>;
+};
+
 /** A dart as the Track kernel judged it against the seat's target. */
 export type JudgedDart = {
   observation: DartObservation;

@@ -113,3 +113,39 @@ describe("dartGameEngineFactory", () => {
     expect(factory.create({ limit: 3 })).toBeInstanceOf(Toy);
   });
 });
+
+describe("multi-key specs", () => {
+  const multi: DartGameSpec<{ limit: number }, Toy> = {
+    ...spec,
+    rulesetVersionKey: "SINGLES_V1",
+    rulesetVersionKeys: ["SINGLES_V2", "SINGLES_V3"],
+  };
+  const Multi = dartGameEngineClass(multi);
+
+  it("defaults an instance to the spec's own key", () => {
+    expect(new Multi({ limit: 3 }).rulesetVersionKey).toBe("SINGLES_V1");
+  });
+
+  it("builds one factory per served key over the one class", () => {
+    const v2 = dartGameEngineFactory(multi, Multi, "SINGLES_V2");
+    expect(v2.rulesetVersionKey).toBe("SINGLES_V2");
+    const engine = v2.create({ limit: 10 });
+    expect(engine).toBeInstanceOf(Multi);
+    expect(engine.rulesetVersionKey).toBe("SINGLES_V2");
+  });
+
+  it("keeps the key across rehydration", () => {
+    const v3 = dartGameEngineFactory(multi, Multi, "SINGLES_V3");
+    const first = v3.create({ limit: 10 });
+    first.record(T20);
+    expect(v3.create({ limit: 10 }, first.facts()).rulesetVersionKey).toBe(
+      "SINGLES_V3",
+    );
+  });
+
+  it("refuses a key the spec does not serve", () => {
+    expect(() => dartGameEngineFactory(spec, Toy, "SINGLES_V2")).toThrow(
+      "SINGLES_V2 is not served by this spec",
+    );
+  });
+});
