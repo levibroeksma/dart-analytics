@@ -24,6 +24,11 @@ Authoring and amending are driven by the `authoring-game-rules` skill.
   inside a routine. A `GameEngine` must stay independent of the exercise
   system (`09-Training/01-Routines.md` §2, §10).
 - Headings carry no version number.
+- `Kernel:` names the rule-kernel family the engine will be built on —
+  `TRACK`, `CHECKOUT`, `VISIT_POINTS`, `MARKS`, `ELIMINATION` or
+  `HAND_WRITTEN` (Pattern 18 §Rule-kernel families). It is not the `Family`
+  Tags axis. Pick it with the kernel-config questions in
+  `.claude/skills/authoring-game-rules/SKILL.md` Step 1.
 - `## Tags` takes one flat table, axes in `docs/game-rules/TAGS.md` order,
   values only from that file, no Family row. An exercise that wraps a game
   tags itself; it never inherits the game's tags.
@@ -38,6 +43,7 @@ Authoring and amending are driven by the `authoring-game-rules` skill.
 
 Current version: none (V1 in design)
 Entry points: routine step
+Kernel: TRACK
 
 ## Features
 

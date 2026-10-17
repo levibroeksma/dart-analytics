@@ -56,13 +56,14 @@ Does a rules file already exist for this subject?
 Load that one reference file and copy the matching template from
 `docs/game-rules/templates/`.
 
-**Two independent axes — state both before writing.** Conflating them is the
+**Independent axes — state each before writing.** Conflating them is the
 likeliest error here:
 
 | Axis | Values |
 | --- | --- |
 | Execution model | **game** (`GameEngine`, seeded `game_types` row) · **exercise** (`ExerciseEngine`, `game_type_id` nullable) · **trivia** (neither, no persistence) |
 | Entry points | **standalone** · **routine step** · **both** |
+| Kernel | **TRACK** · **CHECKOUT** · **VISIT_POINTS** · **MARKS** · **ELIMINATION** · **HAND_WRITTEN** — the family the engine will use (Pattern 18 §Rule-kernel families); a game needing more than two new kernel settings is HAND_WRITTEN |
 
 Standalone playability does **not** make something a game. Warm-Up is seeded
 with `game_type_id NULL` (`database/seeds/0015_warm_up_routine.sql:32`) and is

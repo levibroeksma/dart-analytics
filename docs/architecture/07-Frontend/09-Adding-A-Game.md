@@ -2,7 +2,7 @@
 status: canonical
 scope: the file fan-out a new game requires, and the shapes it must reuse
 read-when: adding a game, or changing anything a game is wired into
-updated: 2026-10-16
+updated: 2026-10-17
 -->
 
 # Adding a Game
@@ -32,6 +32,14 @@ digit. This is forced, not sloppy. Do not "fix" it by renaming either side.
 
 The ruleset version key follows the route slug, quoted where it must be:
 `"121_V1"`, `"501_V1"`.
+
+## Pick the kernel first
+
+Before any file below: the rules file's `Kernel:` header names the game's
+rule-kernel family (`04-Architecture-patterns.md` Pattern 18 §Rule-kernel
+families), and the engine gets a row in `scripts/engine-kernels.txt`. A
+game whose family has a built kernel is a kernel-config mapper, not a
+hand-written reducer. `HAND_WRITTEN` needs the fit rule's justification.
 
 ## The touch list
 

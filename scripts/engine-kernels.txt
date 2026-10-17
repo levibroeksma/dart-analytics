@@ -1,0 +1,25 @@
+# Engine → rule-kernel registry (Pattern 18 §Rule-kernel families; D467).
+# <engine path> | <KERNEL> | <KERNEL_BOUND|PENDING|HAND_WRITTEN> | <rules file or -> | <reason>
+# KERNEL_BOUND: imports ./<kernel>-kernel.module. PENDING: migrates later, reason names the plan.
+# HAND_WRITTEN: kernel column is HAND_WRITTEN, reason says why. Gate: scripts/check-engine-kernels.sh.
+app/src/modules/game/around-the-clock.engine.module.ts | TRACK | PENDING | docs/game-rules/rulesets/around-the-clock.md | Track PR 4
+app/src/modules/game/bobs27.engine.module.ts | TRACK | PENDING | docs/game-rules/rulesets/bobs-27.md | Track PR 2
+app/src/modules/game/cricket.engine.module.ts | MARKS | PENDING | docs/game-rules/rulesets/cricket.md | Marks family plan
+app/src/modules/game/doubles-training.engine.module.ts | TRACK | PENDING | docs/game-rules/rulesets/doubles-training.md | Track PR 1
+app/src/modules/game/five-oh-one.engine.module.ts | HAND_WRITTEN | HAND_WRITTEN | docs/game-rules/rulesets/501.md | sets/legs match format (umbrella spec §5)
+app/src/modules/game/one-twenty-one.engine.module.ts | CHECKOUT | PENDING | docs/game-rules/rulesets/121.md | Checkout family plan
+app/src/modules/game/score-training.engine.module.ts | VISIT_POINTS | PENDING | docs/game-rules/rulesets/score-training.md | Visit-points family plan
+app/src/modules/game/shanghai.engine.module.ts | TRACK | PENDING | docs/game-rules/rulesets/shanghai.md | Track PR 5
+app/src/modules/game/singles-training.engine.module.ts | TRACK | PENDING | docs/game-rules/rulesets/singles-training.md | Track PR 3
+app/src/modules/game/tactics.engine.module.ts | MARKS | PENDING | docs/game-rules/rulesets/tactics.md | Marks family plan
+app/src/modules/game/tuod.engine.module.ts | CHECKOUT | PENDING | docs/game-rules/rulesets/ten-up-one-down.md | Checkout family plan
+app/src/modules/training/exercises/bull-up.engine.module.ts | HAND_WRITTEN | HAND_WRITTEN | docs/game-rules/training/exercises/bull-up-practice.md | single target, counting only; a kernel adds nothing (Track spec §5)
+app/src/modules/training/exercises/bullseye-checkout.engine.module.ts | CHECKOUT | PENDING | docs/game-rules/training/exercises/bullseye-checkout.md | Checkout family plan
+app/src/modules/training/exercises/checkout-sequence.engine.module.ts | CHECKOUT | PENDING | docs/game-rules/training/exercises/catch-40.md | Checkout family plan
+app/src/modules/training/exercises/double-pattern.engine.module.ts | TRACK | PENDING | - | re-checked when its exercise shell is next touched (Track spec §5)
+app/src/modules/training/exercises/random-checkout.engine.module.ts | CHECKOUT | PENDING | docs/game-rules/training/exercises/random-checkout.md | Checkout family plan
+app/src/modules/training/exercises/score-threshold.engine.module.ts | VISIT_POINTS | PENDING | docs/game-rules/training/exercises/score-threshold.md | Visit-points family plan
+app/src/modules/training/exercises/switching-target-scoring.engine.module.ts | TRACK | PENDING | docs/game-rules/training/exercises/switching-target-scoring.md | Track PR 7
+app/src/modules/training/exercises/switching.engine.module.ts | TRACK | PENDING | - | re-checked when its exercise shell is next touched (Track spec §5)
+app/src/modules/training/exercises/target-scoring.engine.module.ts | TRACK | PENDING | docs/game-rules/training/exercises/target-scoring.md | Track PR 6
+app/src/modules/training/exercises/warm-up.engine.module.ts | HAND_WRITTEN | HAND_WRITTEN | docs/game-rules/training/exercises/warm-up.md | timed, dartless ExerciseEngine (umbrella spec §5)

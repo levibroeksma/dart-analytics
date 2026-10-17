@@ -31,6 +31,7 @@ note() {
 # forbidden: sections that must NOT be present
 # applies:   whether the Features table carries an 'Applies to' column
 # entry:     whether an 'Entry points:' header field is required
+# kernel:    'Kernel:' header required exactly where 'Entry points:' is
 shape_headings() {
   case "$1" in
     game)     echo "Features,Identity,Tags,Objective,Config & presets,How to play,Later versions,Capture,Glossary,Open questions" ;;
@@ -110,6 +111,19 @@ check_file() {
     fi
   elif grep -q '^Entry points:' "$file"; then
     note "'Entry points:' is not used by a $shape (standalone by definition)"
+  fi
+
+  # 6b. Kernel header (rule-kernel family; Pattern 18)
+  if shape_has_entry "$shape"; then
+    local kl
+    kl="$(grep -m1 '^Kernel:' "$file" || true)"
+    if [ -z "$kl" ]; then
+      note "no 'Kernel:' header field"
+    elif ! grep -qE '^Kernel: (TRACK|CHECKOUT|VISIT_POINTS|MARKS|ELIMINATION|HAND_WRITTEN)$' <<< "$kl"; then
+      note "'Kernel:' does not parse: ${kl#Kernel: }"
+    fi
+  elif grep -q '^Kernel:' "$file"; then
+    note "'Kernel:' is not used by a $shape"
   fi
 
   # 7. standalone requirements

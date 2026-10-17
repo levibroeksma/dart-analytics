@@ -2,6 +2,7 @@
 
 Current version: V1 (shipped 2026-07-16)
 Entry points: standalone, routine step
+Kernel: VISIT_POINTS
 
 ## Features
 

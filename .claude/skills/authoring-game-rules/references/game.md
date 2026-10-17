@@ -27,7 +27,10 @@ so bust rate is not computable at all.
 ```
 Current version: none (V1 in design)
 Entry points: standalone
+Kernel: TRACK
 ```
+
+`Kernel:` is required on a game or exercise and absent on a routine or trivia tool; `check-game-rules.sh` rejects any other value.
 
 A game is `standalone` unless it is also usable as a routine step, in which
 case `standalone, routine step`.

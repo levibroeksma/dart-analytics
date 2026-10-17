@@ -7,7 +7,7 @@ updated: 2026-10-16
 
 # Architecture Patterns
 
-> **Version:** 1.10.0 (Pattern 18: single-stage dart engines and clockless timed dart exercises are specs bound to a shared shell, `dart-engine-shell.module.ts` / `dart-exercise-shell.module.ts` 2026-10-16, D462; prior 1.9.3: Pattern 20: 501/TUOD/121 route their checkout rate
+> **Version:** 1.11.0 (Pattern 18: rule-kernel families are architecture — registry, two gates, Kernel: header 2026-10-17, D467; prior 1.10.0: Pattern 18: single-stage dart engines and clockless timed dart exercises are specs bound to a shared shell, `dart-engine-shell.module.ts` / `dart-exercise-shell.module.ts` 2026-10-16, D462; prior 1.9.3: Pattern 20: 501/TUOD/121 route their checkout rate
 > through a second helper, `checkoutPercentageDisplay()`, that dashes a
 > zero-attempt denominator instead of reporting `"0.00%"`; the result
 > field these three rulesets expose is renamed `checkoutPercentage`
@@ -817,6 +817,36 @@ The mechanical half of an engine — everything with no ruleset content in it �
 
 A single-stage, dart-input engine goes further: it is a `DartGameSpec` — `fold`, `refusal`, `intent`, `isVisitOpen`, `wouldComplete` — bound to the shell in `modules/game/dart-engine-shell.module.ts`, which owns the log, keys, `completedAt`, undo and rehydration. Clockless timed exercises do the same with `DartExerciseSpec` and `modules/training/exercises/dart-exercise-shell.module.ts`. A hand-written class is the opt-out for an engine the shell cannot express (multi-stage, visit input). (2026-10-16, D462)
 
+### Rule-kernel families <!-- 2026-10-17, D467 -->
+
+A dart engine is three layers: an **L1 rule kernel** (pure; everything a
+ruleset decides), the **L2 engine shell** above, and an **L3 game
+definition** (rulesetVersionKey + Zod config → the kernel's rules). Every
+game and exercise engine belongs to exactly one family, or is a named
+hand-written opt-out:
+
+| Kernel | Decides | Kernel module | Status |
+| --- | --- | --- | --- |
+| `TRACK` | walk a target path; hit test, points, visit judgement, seat end | `track-kernel.module.ts` | designated, kernel pending |
+| `CHECKOUT` | finish a target score under bust rules; attempt budget; ladder moves | `checkout-kernel.module.ts` | designated, kernel pending |
+| `VISIT_POINTS` | points from a visit's darts; goal, bust, void, compare | `visit-points-kernel.module.ts` | designated, kernel pending |
+| `MARKS` | marks on categories; close order; closed-number scoring | `marks-kernel.module.ts` | designated, kernel pending |
+| `ELIMINATION` | lives, cross-seat effects, last standing | `elimination-kernel.module.ts` | designated, kernel pending |
+| `HAND_WRITTEN` | opt-out: 501 (match format), Warm-Up (dartless), Bull-Up (counting only), the simulations | — | — |
+
+- `scripts/engine-kernels.txt` is the registry of every engine's kernel and
+  status (`KERNEL_BOUND`, `PENDING`, `HAND_WRITTEN`).
+  `scripts/check-engine-kernels.sh` holds it true against the code's imports
+  and the rules files' `Kernel:` header. `scripts/check-game-rules.sh`
+  requires that header on every game and exercise rules file.
+- **Fit rule:** a game needing more than two new kernel settings is
+  `HAND_WRITTEN`.
+- **Changing a family** — adding one, or moving a game between families or
+  to `HAND_WRITTEN` — takes a decision entry and an edit to this table. It is
+  never done in code or a rules file alone.
+- A kernel's rules are a record of named policy functions built per read
+  from the configuration snapshot; nothing about them is stored.
+
 `modules/game/checkout-bust.module.ts` owns the double-out bust/checkout rule shared by every X01-style ladder game: `resolveCheckoutAttempt(remainingBefore, scored, endedOnDouble)` returns `{ remainingAfter, checkedOut, busted }` for an overshoot, leaving exactly 1, or reaching exactly 0 without a double. 501, 121, and TUOD each call it and OR their own ruleset-specific escalation (121's final-visit unreachable-remainder rule, TUOD's odd-remainder-with-one-dart-left rule) onto its result rather than folding that escalation into the shared function (D240). `checkout-bust.module.ts` also exports `checkoutAttemptCount(turns)` (D242), counting failed checkout attempts from a completed VISUAL_BOARD turn log.
 
 `modules/game/double-attempt.module.ts` (D256) classifies whether each dart in a double-out session (501, TUOD, 121) was an eligible checkout-attempt dart and whether it hit or missed, from board hits alone -- no stored intent. A bounce-out or off-board dart is a miss, not an excluded dart, and so is any dart that busts the visit -- the bust test is evaluated before the reroute-exclusion rules, so no busting dart can read as a deliberate lay-up. At 50 remaining the inner single band is a missed bull, while the outer single band and the trebles there stay excluded as ordinary setup shots, and the unbanded `SINGLE` key keypad capture writes stays excluded because its band is unknowable. See `docs/superpowers/specs/2026-09-19-x01-checkout-percentage-design.md` for the full rule. <!-- 2026-09-19 --> `modules/game/checkout-visits.module.ts` is the single shared builder `five-oh-one-play.data.ts`, `tuod-play.data.ts`, and `one-twenty-one-play.data.ts` now call for this input (`CheckoutVisitDarts[]`, one entry per visit carrying the remaining score it opened against): 501 with a plain running-sum reduce over `totalScore` within a leg, TUOD/121 by refolding `turnsBeforeVisit` through their own already-exported `foldTuodState`/`foldOneTwentyOneState` -- the same "refold vs. plain reduce" choice documented two paragraphs down for `turnsBeforeVisit` itself. Replaced 501's leg-level `checkoutPercentage` and TUOD's round-level `attempts`/`successes`/`failures`, both of which measured legs/rounds, not darts; net-new for 121. The per-visit remaining for every X01 ladder is therefore built exactly once, in `checkout-visits.module.ts`, and consumed by both the live result modals (via the three `*-play.data.ts` files above) and the career statistics read (`statistics.service.ts`, via `modules/stats/x01-checkout-sessions.module.ts`'s `checkoutVisitsFromRows`), so the two can never disagree. <!-- 2026-09-19 -->
@@ -855,6 +885,8 @@ A new game adds a configuration schema, a validator, an engine and seeds.
 It never adds a new engine API, a new fact model, or a per-game payload module.
 
 Where the shell fits, a new engine is a spec bound to it, not a hand-written class.
+
+Every engine belongs to one rule-kernel family or is `HAND_WRITTEN` (§Rule-kernel families); a family move needs a decision entry. (D467)
 
 ---
 

@@ -35,6 +35,8 @@ jobs:
         run: bash scripts/check-decision-ids.sh
       - name: Game-engine contract gate
         run: bash scripts/check-game-engines.sh
+      - name: Engine-kernel family gate
+        run: bash scripts/check-engine-kernels.sh && bash scripts/test-check-engine-kernels.sh
       - name: Refinement-coverage gate
         run: bash scripts/check-refinement-coverage.sh
       - name: Type-barrel gate
