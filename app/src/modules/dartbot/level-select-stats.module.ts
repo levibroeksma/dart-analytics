@@ -9,21 +9,21 @@ import type { LevelSelectStats } from "./types";
 export const LEVEL_SELECT_STATS_TABLE: Readonly<
   Record<number, LevelSelectStats>
 > = {
-  1: { averageLow: 20, averageHigh: 42, checkoutLow: 2, checkoutHigh: 3 },
-  2: { averageLow: 21, averageHigh: 44, checkoutLow: 2, checkoutHigh: 4 },
-  3: { averageLow: 22, averageHigh: 45, checkoutLow: 3, checkoutHigh: 5 },
-  4: { averageLow: 24, averageHigh: 50, checkoutLow: 4, checkoutHigh: 7 },
-  5: { averageLow: 26, averageHigh: 58, checkoutLow: 6, checkoutHigh: 9 },
-  6: { averageLow: 30, averageHigh: 60, checkoutLow: 8, checkoutHigh: 11 },
-  7: { averageLow: 36, averageHigh: 60, checkoutLow: 10, checkoutHigh: 14 },
-  8: { averageLow: 41, averageHigh: 81, checkoutLow: 14, checkoutHigh: 17 },
-  9: { averageLow: 45, averageHigh: 100, checkoutLow: 19, checkoutHigh: 23 },
-  10: { averageLow: 60, averageHigh: 100, checkoutLow: 22, checkoutHigh: 25 },
-  11: { averageLow: 60, averageHigh: 100, checkoutLow: 30, checkoutHigh: 33 },
-  12: { averageLow: 60, averageHigh: 140, checkoutLow: 36, checkoutHigh: 39 },
-  13: { averageLow: 100, averageHigh: 140, checkoutLow: 43, checkoutHigh: 46 },
-  14: { averageLow: 100, averageHigh: 140, checkoutLow: 52, checkoutHigh: 55 },
-  15: { averageLow: 100, averageHigh: 180, checkoutLow: 62, checkoutHigh: 65 },
+  1: { averageLow: 21, averageHigh: 44, checkoutLow: 2, checkoutHigh: 4 },
+  2: { averageLow: 22, averageHigh: 45, checkoutLow: 3, checkoutHigh: 5 },
+  3: { averageLow: 22, averageHigh: 46, checkoutLow: 4, checkoutHigh: 5 },
+  4: { averageLow: 24, averageHigh: 50, checkoutLow: 5, checkoutHigh: 7 },
+  5: { averageLow: 25, averageHigh: 55, checkoutLow: 6, checkoutHigh: 8 },
+  6: { averageLow: 26, averageHigh: 60, checkoutLow: 7, checkoutHigh: 9 },
+  7: { averageLow: 27, averageHigh: 60, checkoutLow: 8, checkoutHigh: 11 },
+  8: { averageLow: 30, averageHigh: 60, checkoutLow: 10, checkoutHigh: 14 },
+  9: { averageLow: 41, averageHigh: 81, checkoutLow: 13, checkoutHigh: 16 },
+  10: { averageLow: 41, averageHigh: 83, checkoutLow: 15, checkoutHigh: 19 },
+  11: { averageLow: 45, averageHigh: 100, checkoutLow: 19, checkoutHigh: 22 },
+  12: { averageLow: 60, averageHigh: 100, checkoutLow: 21, checkoutHigh: 26 },
+  13: { averageLow: 60, averageHigh: 100, checkoutLow: 24, checkoutHigh: 29 },
+  14: { averageLow: 60, averageHigh: 100, checkoutLow: 28, checkoutHigh: 33 },
+  15: { averageLow: 60, averageHigh: 140, checkoutLow: 34, checkoutHigh: 38 },
 };
 
 /**

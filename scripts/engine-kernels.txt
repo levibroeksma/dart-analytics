@@ -1,4 +1,4 @@
-# Engine → rule-kernel registry (Pattern 18 §Rule-kernel families; D466).
+# Engine → rule-kernel registry (Pattern 18 §Rule-kernel families; D467).
 # <engine path> | <KERNEL> | <KERNEL_BOUND|PENDING|HAND_WRITTEN> | <rules file or -> | <reason>
 # KERNEL_BOUND: imports ./<kernel>-kernel.module. PENDING: migrates later, reason names the plan.
 # HAND_WRITTEN: kernel column is HAND_WRITTEN, reason says why. Gate: scripts/check-engine-kernels.sh.

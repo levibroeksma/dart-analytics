@@ -25,7 +25,7 @@
 - No inline `//` comments inside function bodies (`check-no-inline-comments.sh`). Use JSDoc above functions.
 - Fallow cognitive complexity ≤ 15 per function. Duplication count must not rise.
 - `npm run check` (run in `app/`) ends with 0 errors, 0 warnings, 0 hints.
-- Decision ids come from `bash scripts/next-decision-id.sh` at commit time, never hard-coded. This plan writes `D466`.
+- Decision ids come from `bash scripts/next-decision-id.sh` at commit time, never hard-coded. This plan writes `D467`.
 - Header field name is **`Kernel:`**, not "Family". `Family` is already a Tags axis (`docs/game-rules/TAGS.md`).
 - Kernel values: `TRACK | CHECKOUT | VISIT_POINTS | MARKS | ELIMINATION | HAND_WRITTEN`.
 - PR 1 is a refactor. `foldDoublesTrainingState`, `applyDoublesTrainingDart`, `initialDoublesTrainingState` and `state()` keep their signatures and output, and the existing Doubles tests and goldens pass with **no edits**.
@@ -260,7 +260,7 @@ git commit -m "chore(game-rules): require a Kernel header on every game and exer
 - [ ] **Step 1: Write the registry** `scripts/engine-kernels.txt`:
 
 ```
-# Engine → rule-kernel registry (Pattern 18 §Rule-kernel families; D466).
+# Engine → rule-kernel registry (Pattern 18 §Rule-kernel families; D467).
 # <engine path> | <KERNEL> | <KERNEL_BOUND|PENDING|HAND_WRITTEN> | <rules file or -> | <reason>
 # KERNEL_BOUND: imports ./<kernel>-kernel.module. PENDING: migrates later, reason names the plan.
 # HAND_WRITTEN: kernel column is HAND_WRITTEN, reason says why. Gate: scripts/check-engine-kernels.sh.
@@ -367,7 +367,7 @@ Expected: every case FAILs (the gate script does not exist), giving `0 passed, 1
 
 ```bash
 #!/usr/bin/env bash
-# Rule-kernel family gate (Pattern 18 §Rule-kernel families; D466).
+# Rule-kernel family gate (Pattern 18 §Rule-kernel families; D467).
 # Every *.engine.module.ts under app/src/modules/game and
 # app/src/modules/training/exercises is listed exactly once in
 # scripts/engine-kernels.txt, and its row is true of the code and the docs:
@@ -470,7 +470,7 @@ git commit -m "chore(scripts): gate every engine on its rule-kernel family"
 - [ ] **Step 1: Add the subsection** after the D462 shell paragraph in Pattern 18 `## Application`:
 
 ```markdown
-### Rule-kernel families <!-- 2026-10-17, D466 -->
+### Rule-kernel families <!-- 2026-10-17, D467 -->
 
 A dart engine is three layers: an **L1 rule kernel** (pure; everything a
 ruleset decides), the **L2 engine shell** above, and an **L3 game
@@ -504,13 +504,13 @@ hand-written opt-out:
 - [ ] **Step 2: Add a `## Rule` bullet** after the D462 line "Where the shell fits, a new engine is a spec bound to it, not a hand-written class.":
 
 ```markdown
-- Every engine belongs to one rule-kernel family or is `HAND_WRITTEN` (§Rule-kernel families); a family move needs a decision entry. (D466)
+- Every engine belongs to one rule-kernel family or is `HAND_WRITTEN` (§Rule-kernel families); a family move needs a decision entry. (D467)
 ```
 
-- [ ] **Step 3: Bump the version line** to `1.11.0 (Pattern 18: rule-kernel families are architecture — registry, two gates, Kernel: header 2026-10-17, D466; prior 1.10.0: Pattern 18: single-stage dart engines ...` and keep the rest of the existing line verbatim after `prior 1.10.0:`.
+- [ ] **Step 3: Bump the version line** to `1.11.0 (Pattern 18: rule-kernel families are architecture — registry, two gates, Kernel: header 2026-10-17, D467; prior 1.10.0: Pattern 18: single-stage dart engines ...` and keep the rest of the existing line verbatim after `prior 1.10.0:`.
 
 - [ ] **Step 4: Add the mirrors.**
-  - `app/src/modules/game/CLAUDE.md` and `app/src/modules/training/CLAUDE.md`, one bullet each in their engine section: `- Every *.engine.module.ts has a row in scripts/engine-kernels.txt (its rule-kernel family and status); check-engine-kernels.sh fails a new engine without one. See 04-Architecture-patterns.md Pattern 18 §Rule-kernel families (D466).`
+  - `app/src/modules/game/CLAUDE.md` and `app/src/modules/training/CLAUDE.md`, one bullet each in their engine section: `- Every *.engine.module.ts has a row in scripts/engine-kernels.txt (its rule-kernel family and status); check-engine-kernels.sh fails a new engine without one. See 04-Architecture-patterns.md Pattern 18 §Rule-kernel families (D467).`
   - `09-Adding-A-Game.md`, a new section before "## The touch list":
 
 ```markdown
@@ -527,12 +527,12 @@ hand-written reducer. `HAND_WRITTEN` needs the fit rule's justification.
   - `00-File-Inventory.md`, three rows after the `check-game-engines.sh` row:
 
 ```
-| `scripts/engine-kernels.txt` | Registry: every engine's rule-kernel family, status, rules file (Pattern 18 §Rule-kernel families, D466, 2026-10-17) | canonical |
-| `scripts/check-engine-kernels.sh` | Guard: the registry lists every engine and matches its kernel import and its rules file's `Kernel:` header (D466, 2026-10-17) | canonical |
-| `scripts/test-check-engine-kernels.sh` | Fixture test for `check-engine-kernels.sh` (D466, 2026-10-17) | canonical |
+| `scripts/engine-kernels.txt` | Registry: every engine's rule-kernel family, status, rules file (Pattern 18 §Rule-kernel families, D467, 2026-10-17) | canonical |
+| `scripts/check-engine-kernels.sh` | Guard: the registry lists every engine and matches its kernel import and its rules file's `Kernel:` header (D467, 2026-10-17) | canonical |
+| `scripts/test-check-engine-kernels.sh` | Fixture test for `check-engine-kernels.sh` (D467, 2026-10-17) | canonical |
 ```
 
-  Append `; rule-kernel families subsection (D466, 2026-10-17)` to the `04-Architecture-patterns.md` row's summary.
+  Append `; rule-kernel families subsection (D467, 2026-10-17)` to the `04-Architecture-patterns.md` row's summary.
 
 - [ ] **Step 5: Run the doc gates.**
 
@@ -544,12 +544,12 @@ Expected: OK lines. If `check-doc-sync.sh` does not exist, skip it. Fix any brok
 **Files:**
 - Modify: `decisions/game-engine.md` (append)
 
-- [ ] **Step 1: Confirm the id.** Run `bash scripts/next-decision-id.sh`. It must print `D466` (see Global Constraints).
+- [ ] **Step 1: Confirm the id.** Run `bash scripts/next-decision-id.sh`. It must print `D467` (see Global Constraints).
 
 - [ ] **Step 2: Append:**
 
 ```markdown
-### D466 — Rule-kernel families are architecture, enforced by registry and gates
+### D467 — Rule-kernel families are architecture, enforced by registry and gates
 Status: Accepted · Date: 2026-10-17
 Decision: every game and exercise engine belongs to one rule-kernel family — TRACK, CHECKOUT, VISIT_POINTS, MARKS, ELIMINATION — or is HAND_WRITTEN. The canonical statement is Pattern 18 §Rule-kernel families. `scripts/engine-kernels.txt` lists every engine with its kernel and status (KERNEL_BOUND, PENDING, HAND_WRITTEN); `scripts/check-engine-kernels.sh` fails an unlisted engine, a stale row, a KERNEL_BOUND engine without its kernel import, and a row that disagrees with the rules file's new `Kernel:` header, which `scripts/check-game-rules.sh` requires on every game and exercise. Adding a family or moving a game between families takes a decision entry.
 Reason: the families were a spec-level plan (`docs/superpowers/specs/2026-10-15-rule-kernels-design.md`, `2026-10-17-track-kernel-design.md`); specs are non-canonical, so nothing stopped a new engine from bypassing them. A registry plus two gates makes the placement checkable at commit time, and the `Kernel:` header puts it in front of whoever authors the rules, before any spec.
@@ -563,7 +563,7 @@ Supersedes: none.
 
 ```bash
 git add docs/architecture decisions/game-engine.md app/src/modules/game/CLAUDE.md app/src/modules/training/CLAUDE.md scripts
-git commit -m "docs(architecture): rule-kernel families are canonical in Pattern 18 (D466)"
+git commit -m "docs(architecture): rule-kernel families are canonical in Pattern 18 (D467)"
 ```
 
 ### Task 0.5: Spec refinements plus history row plus PR
@@ -573,7 +573,7 @@ git commit -m "docs(architecture): rule-kernel families are canonical in Pattern
 - Modify: `docs/architecture/00-Context-Map-History.md` (append row, following its existing format)
 
 - [ ] **Step 1: Check the spec** still matches the code as built. The refinements were applied with the plan; fix the spec only if implementation diverged.
-- [ ] **Step 2: Append a history row** to `00-Context-Map-History.md`: `2026-10-17 | Pattern 18 §Rule-kernel families; engine-kernels registry + check-engine-kernels.sh; Kernel: header on rules files (D466)`, in that file's column format.
+- [ ] **Step 2: Append a history row** to `00-Context-Map-History.md`: `2026-10-17 | Pattern 18 §Rule-kernel families; engine-kernels registry + check-engine-kernels.sh; Kernel: header on rules files (D467)`, in that file's column format.
 - [ ] **Step 3: Run all gates.** Use the `run-all-gates` skill. Every pre-commit script must pass, plus `cd app && npm test` (no app code changed; this is a sanity check).
 - [ ] **Step 4: Commit, push, open the PR.** Follow `finishing-a-dart-branch`: push with `git push -u origin chore/kernel-families-gates`, then open the PR. The title is "Rule-kernel families are architecture (registry, gates, Kernel: header)". The body summarises the tasks and ends with the generated line plus the session link. Then subscribe to the PR's activity and drive it to green.
 
@@ -1104,16 +1104,16 @@ git commit -m "refactor(game): Track kernel; Doubles Training bound to it"
 
 **Files:**
 - Delete: `app/tests/modules/game/legacy/doubles-training.legacy.ts`, `app/tests/modules/game/doubles-training.oracle.test.ts`
-- Modify: `docs/architecture/04-Architecture-patterns.md` (Track row status → `built — Doubles Training bound (D467)`; version 1.11.1)
+- Modify: `docs/architecture/04-Architecture-patterns.md` (Track row status → `built — Doubles Training bound (D468)`; version 1.11.1)
 - Modify: `app/src/modules/game/CLAUDE.md` (one bullet: `track-kernel.module.ts` + `track-policies.ts`; a Track engine is a `TrackRules` mapper plus a projection to its legacy state)
 - Modify: `decisions/game-engine.md` (append), `docs/architecture/00-File-Inventory.md` (rows for the two new modules), `docs/architecture/00-Context-Map-History.md` (row)
 
 - [ ] **Step 1: Delete the legacy copy and the oracle.** The guarantee stays with the existing Doubles goldens and step traces from #973 (`doubles-training.golden.test.ts`), which pin the same behaviour and passed unchanged in Task 1.3 Step 4 (Hard Invariant: tests re-pointed at the same guarantee). Commit 1 keeps the oracle's proof in history.
 
-- [ ] **Step 2: Append the decision.** Confirm `bash scripts/next-decision-id.sh` prints `D467` (see Global Constraints):
+- [ ] **Step 2: Append the decision.** Confirm `bash scripts/next-decision-id.sh` prints `D468` (see Global Constraints):
 
 ```markdown
-### D467 — Track kernel: a reducer driven by a record of policy functions
+### D468 — Track kernel: a reducer driven by a record of policy functions
 Status: Accepted · Date: 2026-10-17
 Decision: `modules/game/track-kernel.module.ts` holds the Track family's only reducer, `applyTrackDart` (judge → points → `onDart` → visit close → `onVisitClose`), and `foldTrackSeats`; a ruleset is a `TrackRules<TExt>` record of named policies (`track-policies.ts`) built per read from its configuration snapshot, with game-owned extras in `TrackSeat.ext`. A migrated engine keeps its exported reducer, fold and `state()` shape by projecting `TrackSeat` to its legacy seat state. Doubles Training is the first bound engine. Match outcome stays in each fold until a second engine shares it; the umbrella `RuleKernel` interface waits for a second family.
 Reason: a pure-data enum config would force each shipped engine's special cases (Shanghai's instant win, Target Scoring's chain) into one generic switch past fallow's complexity limit; policies keep each special case local to the one ruleset that has it, and the projection lets the oracle compare old and new engines on identical state.
@@ -1124,8 +1124,8 @@ Supersedes: none.
 - [ ] **Step 3: Make the doc edits** listed under Files above, plus these File Inventory rows:
 
 ```
-| `app/src/modules/game/track-kernel.module.ts` | Track rule kernel: `initialTrackSeat`, `applyTrackDart`, `foldTrackSeats` (D467, 2026-10-17) | canonical |
-| `app/src/modules/game/track-policies.ts` | Track policies: `pathTarget`, `noPoints`, `closeOnHitOrAfter`, `advanceToEnd` (D467, 2026-10-17) | canonical |
+| `app/src/modules/game/track-kernel.module.ts` | Track rule kernel: `initialTrackSeat`, `applyTrackDart`, `foldTrackSeats` (D468, 2026-10-17) | canonical |
+| `app/src/modules/game/track-policies.ts` | Track policies: `pathTarget`, `noPoints`, `closeOnHitOrAfter`, `advanceToEnd` (D468, 2026-10-17) | canonical |
 ```
 
 - [ ] **Step 4: Run all gates.** Run the `run-all-gates` and `context-maintenance` skills. `npm test` must be fully green, with the count equal to Task 1.3's minus the deleted oracle tests.
@@ -1134,7 +1134,7 @@ Supersedes: none.
 
 ```bash
 git add -A app/tests/modules/game docs decisions app/src/modules/game/CLAUDE.md
-git commit -m "test(doubles-training): drop legacy copy; goldens hold the guarantee (D467)"
+git commit -m "test(doubles-training): drop legacy copy; goldens hold the guarantee (D468)"
 git push -u origin refactor/track-kernel-doubles
 ```
 

@@ -46,6 +46,65 @@ describe("foldPopulationPrior", () => {
     expect(prior.outlierRate).toBeCloseTo(1 / 21);
   });
 
+  it("excludes clipped wild darts from sigma and bias", () => {
+    const tight = Array.from({ length: 20 }, (_, i) => ({
+      dx: i % 2 === 0 ? -2 : 2,
+      dy: 0,
+    }));
+    const prior = foldPopulationPrior(darts([...tight, { dx: 300, dy: 300 }]));
+    expect(prior.outlierRate).toBeCloseTo(1 / 21);
+    expect(prior.biasXMm).toBeCloseTo(0);
+    expect(prior.biasYMm).toBeCloseTo(0);
+    expect(prior.sigmaAcrossMm).toBeCloseTo(Math.sqrt(80 / 19), 5);
+    expect(prior.sigmaAlongMm).toBeCloseTo(0);
+    expect(prior.sampleSize).toBe(21);
+  });
+
+  it("keeps a zero-spread cluster and still clips the far dart", () => {
+    const tight = Array.from({ length: 20 }, () => ({ dx: 1, dy: -1 }));
+    const prior = foldPopulationPrior(darts([...tight, { dx: 500, dy: 500 }]));
+    expect(prior.outlierRate).toBeCloseTo(1 / 21);
+    expect(prior.biasXMm).toBeCloseTo(1);
+    expect(prior.sigmaAcrossMm).toBe(0);
+  });
+
+  it("re-clips until the kept set is stable", () => {
+    const tight = Array.from({ length: 40 }, (_, i) => ({
+      dx: i % 2 === 0 ? -1 : 1,
+      dy: 0,
+    }));
+    const prior = foldPopulationPrior(
+      darts([
+        ...tight,
+        { dx: 30, dy: 0 },
+        { dx: 30, dy: 0 },
+        { dx: 400, dy: 0 },
+      ]),
+    );
+    expect(prior.outlierRate).toBeCloseTo(3 / 43);
+  });
+
+  it("returns zero sigma when the clip keeps fewer than two darts", () => {
+    const prior = foldPopulationPrior(darts([{ dx: 3, dy: 4 }]));
+    expect(prior.sigmaAlongMm).toBe(0);
+    expect(prior.sigmaAcrossMm).toBe(0);
+    for (const value of Object.values(prior)) {
+      expect(Number.isNaN(value)).toBe(false);
+    }
+  });
+
+  it("stops after a bounded number of passes", () => {
+    const tail = Array.from({ length: 12 }, (_, i) => ({ dx: 2 ** i, dy: 0 }));
+    const tight = Array.from({ length: 40 }, (_, i) => ({
+      dx: i % 2 === 0 ? -1 : 1,
+      dy: 0,
+    }));
+    const prior = foldPopulationPrior(darts([...tight, ...tail]));
+    expect(prior.sampleSize).toBe(52);
+    expect(prior.outlierRate).toBeGreaterThan(0);
+    expect(prior.outlierRate).toBeLessThan(1);
+  });
+
   it("excludes a row with no single centroid or an unset landing point", () => {
     const rows: MissMarginInput[] = [
       {

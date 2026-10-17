@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { LEVEL_SKILL_TABLE } from "../../src/modules/dartbot/skill-profile.module";
 import {
   interpolateCurve,
   scaleCurve,
+  recalibrationBase,
+  scaleOutlierRates,
 } from "../../scripts/dartbot-level-curve-recalibration";
 
 describe("scaleCurve", () => {
@@ -225,5 +228,67 @@ describe("interpolateCurve", () => {
         16,
       ),
     ).toThrow();
+  });
+});
+
+describe("scaleOutlierRates", () => {
+  const table = {
+    1: {
+      sigmaAlongMm: 50,
+      sigmaAcrossMm: 40,
+      biasXMm: 5,
+      biasYMm: 6,
+      outlierRate: 0.01,
+    },
+    2: {
+      sigmaAlongMm: 30,
+      sigmaAcrossMm: 20,
+      biasXMm: 3,
+      biasYMm: 4,
+      outlierRate: 0.005,
+    },
+    3: {
+      sigmaAlongMm: 10,
+      sigmaAcrossMm: 8,
+      biasXMm: 1,
+      biasYMm: 2,
+      outlierRate: 0.001,
+    },
+  };
+
+  it("scaleOutlierRates multiplies only the listed levels' outlier rate", () => {
+    const result = scaleOutlierRates(table, 6, [1]);
+    expect(result[1]).toEqual({ ...table[1], outlierRate: 0.06 });
+    expect(result[1]!.outlierRate).toBeCloseTo(0.06, 10);
+    expect(result[2]).toEqual(table[2]);
+    expect(result[3]).toEqual(table[3]);
+  });
+
+  it("scaleOutlierRates does not mutate its input", () => {
+    const before = structuredClone(table);
+    scaleOutlierRates(table, 6, [1, 2]);
+    expect(table).toEqual(before);
+  });
+});
+
+describe("recalibrationBase", () => {
+  it("starts from the frozen D-N curve, not the live refit table", () => {
+    const base = recalibrationBase();
+    expect(base[1]!.sigmaAlongMm).toBe(59.1);
+    expect(base[6]!.outlierRate).toBe(0.003);
+    expect(base[15]!.sigmaAlongMm).toBe(4.4);
+    expect(base[15]!.biasYMm).toBe(0.2);
+  });
+
+  it("keeps every non-curve field from the live table", () => {
+    const base = recalibrationBase();
+    for (let level = 1; level <= 15; level++) {
+      expect(base[level]!.decisionQuality).toBe(
+        LEVEL_SKILL_TABLE[level]!.decisionQuality,
+      );
+      expect(base[level]!.outlierSigmaMm).toBe(
+        LEVEL_SKILL_TABLE[level]!.outlierSigmaMm,
+      );
+    }
   });
 });

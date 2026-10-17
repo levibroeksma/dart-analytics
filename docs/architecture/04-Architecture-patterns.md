@@ -7,7 +7,7 @@ updated: 2026-10-16
 
 # Architecture Patterns
 
-> **Version:** 1.11.1 (Pattern 18: Track kernel built, Doubles Training bound 2026-10-17, D468; prior 1.11.0: Pattern 18: rule-kernel families are architecture — registry, two gates, Kernel: header 2026-10-17, D466; prior 1.10.0: Pattern 18: single-stage dart engines and clockless timed dart exercises are specs bound to a shared shell, `dart-engine-shell.module.ts` / `dart-exercise-shell.module.ts` 2026-10-16, D462; prior 1.9.3: Pattern 20: 501/TUOD/121 route their checkout rate
+> **Version:** 1.11.1 (Pattern 18: Track kernel built, Doubles Training bound 2026-10-17, D468; prior 1.11.0: Pattern 18: rule-kernel families are architecture — registry, two gates, Kernel: header 2026-10-17, D467; prior 1.10.0: Pattern 18: single-stage dart engines and clockless timed dart exercises are specs bound to a shared shell, `dart-engine-shell.module.ts` / `dart-exercise-shell.module.ts` 2026-10-16, D462; prior 1.9.3: Pattern 20: 501/TUOD/121 route their checkout rate
 > through a second helper, `checkoutPercentageDisplay()`, that dashes a
 > zero-attempt denominator instead of reporting `"0.00%"`; the result
 > field these three rulesets expose is renamed `checkoutPercentage`
@@ -817,7 +817,7 @@ The mechanical half of an engine — everything with no ruleset content in it �
 
 A single-stage, dart-input engine goes further: it is a `DartGameSpec` — `fold`, `refusal`, `intent`, `isVisitOpen`, `wouldComplete` — bound to the shell in `modules/game/dart-engine-shell.module.ts`, which owns the log, keys, `completedAt`, undo and rehydration. Clockless timed exercises do the same with `DartExerciseSpec` and `modules/training/exercises/dart-exercise-shell.module.ts`. A hand-written class is the opt-out for an engine the shell cannot express (multi-stage, visit input). (2026-10-16, D462)
 
-### Rule-kernel families <!-- 2026-10-17, D466 -->
+### Rule-kernel families <!-- 2026-10-17, D467 -->
 
 A dart engine is three layers: an **L1 rule kernel** (pure; everything a
 ruleset decides), the **L2 engine shell** above, and an **L3 game
@@ -886,7 +886,7 @@ It never adds a new engine API, a new fact model, or a per-game payload module.
 
 Where the shell fits, a new engine is a spec bound to it, not a hand-written class.
 
-Every engine belongs to one rule-kernel family or is `HAND_WRITTEN` (§Rule-kernel families); a family move needs a decision entry. (D466)
+Every engine belongs to one rule-kernel family or is `HAND_WRITTEN` (§Rule-kernel families); a family move needs a decision entry. (D467)
 
 ---
 
