@@ -13,19 +13,56 @@ function sampleStdDev(values: readonly number[], center: number): number {
   return Math.sqrt(variance);
 }
 
+type Offset = { dx: number; dy: number };
+
+type ScatterFit = {
+  sigmaAlongMm: number;
+  sigmaAcrossMm: number;
+  biasXMm: number;
+  biasYMm: number;
+};
+
+const MAX_CLIP_PASSES = 50;
+
+function fitScatter(offsets: readonly Offset[]): ScatterFit {
+  const biasXMm = mean(offsets.map((o) => o.dx));
+  const biasYMm = mean(offsets.map((o) => o.dy));
+  return {
+    biasXMm,
+    biasYMm,
+    sigmaAcrossMm: sampleStdDev(
+      offsets.map((o) => o.dx),
+      biasXMm,
+    ),
+    sigmaAlongMm: sampleStdDev(
+      offsets.map((o) => o.dy),
+      biasYMm,
+    ),
+  };
+}
+
+function withinClip(offset: Offset, fit: ScatterFit): boolean {
+  const limit = 3 * Math.hypot(fit.sigmaAlongMm, fit.sigmaAcrossMm);
+  return Math.hypot(offset.dx - fit.biasXMm, offset.dy - fit.biasYMm) <= limit;
+}
+
 /**
  * Pools every dart into one population-level scatter around each row's own
  * declared-target centroid. `across` is the board's raw x-axis, `along` its
  * raw y-axis, unrotated (matches `throw-engine.module.ts`'s
  * `covarianceRotationDegrees: 0`). A row with no single centre or an unset
  * landing point is excluded, the same rule `missMargin()` applies.
- * `outlierRate` is the fraction beyond `3 * sqrt(sigmaAlong² + sigmaAcross²)`
- * from its own centroid (D-E, `08-DartBot.md`).
+ * Wild darts are clipped iteratively: each pass fits bias and sigma over the
+ * kept darts and drops every kept dart farther than
+ * `3 * sqrt(sigmaAlong² + sigmaAcross²)` from the bias-shifted centroid,
+ * until a pass drops none (at most `MAX_CLIP_PASSES`). Sigma and bias come
+ * from the final kept set; `outlierRate` is the clipped share of located
+ * darts (D-O, `08-DartBot.md`).
  */
 export function foldPopulationPrior(
   rows: readonly MissMarginInput[],
 ): PopulationPrior {
-  const offsets: { dx: number; dy: number }[] = [];
+  const offsets: Offset[] = [];
   let excludedCount = 0;
 
   for (const row of rows) {
@@ -60,28 +97,18 @@ export function foldPopulationPrior(
     };
   }
 
-  const biasXMm = mean(offsets.map((o) => o.dx));
-  const biasYMm = mean(offsets.map((o) => o.dy));
-  const sigmaAcrossMm = sampleStdDev(
-    offsets.map((o) => o.dx),
-    biasXMm,
-  );
-  const sigmaAlongMm = sampleStdDev(
-    offsets.map((o) => o.dy),
-    biasYMm,
-  );
-  const sigmaRadialMm = Math.sqrt(sigmaAlongMm ** 2 + sigmaAcrossMm ** 2);
-
-  const outlierCount = offsets.filter(
-    (o) => Math.sqrt(o.dx ** 2 + o.dy ** 2) > 3 * sigmaRadialMm,
-  ).length;
+  let kept: readonly Offset[] = offsets;
+  let fit = fitScatter(kept);
+  for (let pass = 0; pass < MAX_CLIP_PASSES; pass++) {
+    const next = kept.filter((o) => withinClip(o, fit));
+    if (next.length === kept.length) break;
+    kept = next;
+    fit = fitScatter(kept);
+  }
 
   return {
-    sigmaAlongMm,
-    sigmaAcrossMm,
-    biasXMm,
-    biasYMm,
-    outlierRate: outlierCount / offsets.length,
+    ...fit,
+    outlierRate: (offsets.length - kept.length) / offsets.length,
     sampleSize: offsets.length,
     excludedCount,
   };
