@@ -334,6 +334,9 @@ export type AroundTheClockSeatState = SeatState & {
   status: "IN_PROGRESS" | "COMPLETE";
 };
 
+/** Around the Clock's Track extras: timed-run laps completed. */
+export type AroundTheClockTrackExt = { laps: number };
+
 export type AroundTheClockState = MultiSeatState<AroundTheClockSeatState> & {
   status: "IN_PROGRESS" | "COMPLETE" | "TIE";
   winningSideKey: string | null;
