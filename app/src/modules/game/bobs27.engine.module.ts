@@ -7,20 +7,30 @@ import {
 } from "./board-progression.module";
 import { registerEngineFactory } from "./engine.registry";
 import { activeSeat } from "./seat-rota.module";
-import { activeSeatState, foldSeatStates } from "./seat-state.module";
+import { activeSeatState } from "./seat-state.module";
 import { doubleTargetIntent } from "./turn-log.module";
 import { eliminationWinner } from "./match-outcome.module";
 import {
   dartGameEngineClass,
   dartGameEngineFactory,
 } from "./dart-engine-shell.module";
-import type { DartGameSpec } from "./interfaces";
+import { applyTrackDart, foldTrackSeats } from "./track-kernel.module";
+import {
+  advanceToEnd,
+  closeAfter,
+  outAtOrBelowZero,
+  pathTarget,
+  penaltyOnBlank,
+} from "./track-policies";
+import type { DartGameSpec, TrackRules } from "./interfaces";
 import type {
   BoardTarget,
   Bobs27SeatState,
   Bobs27State,
+  Bobs27TrackExt,
   DartObservation,
   EngineFacts,
+  TrackSeat,
 } from "./types";
 
 /** One seat's starting progress: the ruleset's starting score, aimed at the first double, no darts thrown. */
@@ -60,8 +70,83 @@ function pointValueOf(target: BoardTarget, config: Bobs27Snapshot): number {
     : boardScore(target.number, "DOUBLE");
 }
 
+const MATCH_ENDED =
+  "Cannot record a dart once the match has ended; undo first to correct it.";
+const GAME_ENDED =
+  "Cannot record a dart once the game has ended; undo first to correct it.";
+
+const PATH = doublesPath();
+
+const TO_TRACK = {
+  IN_PROGRESS: "IN_PROGRESS",
+  WON: "DONE",
+  LOST: "OUT",
+} as const;
+const FROM_TRACK = {
+  IN_PROGRESS: "IN_PROGRESS",
+  DONE: "WON",
+  OUT: "LOST",
+} as const;
+
 /**
- * Pure reducer: folds one dart observation onto one seat's `Bobs27SeatState`.
+ * Bob's 27 as Track policies: D1 → BULL, a hit scores the target's value, a
+ * blank visit costs that value × the miss multiplier; at or below zero is
+ * out, before clearing BULL is checked.
+ */
+function bobs27Rules(config: Bobs27Snapshot): TrackRules<Bobs27TrackExt> {
+  const target = pathTarget<Bobs27TrackExt>(PATH);
+  const penalise = penaltyOnBlank<Bobs27TrackExt>(
+    (seat) => pointValueOf(target(seat), config) * config.missPenaltyMultiplier,
+  );
+  const advance = advanceToEnd<Bobs27TrackExt>(PATH.length - 1);
+  return {
+    doneMessage: GAME_ENDED,
+    startScore: config.startScore,
+    target,
+    hit: isHitOn,
+    points: (aimed, _observation, hit) =>
+      hit ? pointValueOf(aimed, config) : 0,
+    onDart: (seat, dart) => ({
+      ...seat,
+      ext: { hits: [...seat.ext.hits, dart.hit] },
+    }),
+    visitOpen: closeAfter(3),
+    onVisitClose: (seat) => {
+      const judged = outAtOrBelowZero(penalise(seat));
+      const next = judged.status === "OUT" ? judged : advance(judged);
+      return { ...next, ext: { hits: [] } };
+    },
+  };
+}
+
+/** Lifts a Bob's 27 seat into the kernel's shape; the visit counters are read off its hit list. */
+function toTrackSeat(state: Bobs27SeatState): TrackSeat<Bobs27TrackExt> {
+  return {
+    participantRef: state.participantRef,
+    sideKey: state.sideKey,
+    targetIndex: state.targetIndex,
+    score: state.score,
+    dartsThisVisit: state.dartsThisVisit.length,
+    hitsThisVisit: state.dartsThisVisit.filter(Boolean).length,
+    status: TO_TRACK[state.status],
+    ext: { hits: state.dartsThisVisit },
+  };
+}
+
+/** Projects a kernel seat back to Bob's 27's seat state. */
+function toBobs27Seat(seat: TrackSeat<Bobs27TrackExt>): Bobs27SeatState {
+  return {
+    participantRef: seat.participantRef,
+    sideKey: seat.sideKey,
+    targetIndex: seat.targetIndex,
+    score: seat.score,
+    dartsThisVisit: seat.ext.hits,
+    status: FROM_TRACK[seat.status],
+  };
+}
+
+/**
+ * Pure reducer, via the Track kernel: folds one dart observation onto one seat's `Bobs27SeatState`.
  * A hit adds the current target's point value immediately; a visit resolves
  * on its 3rd dart, where a full miss subtracts that value scaled by the
  * ruleset's miss penalty multiplier. Any hit advances to the next target
@@ -76,48 +161,9 @@ export function applyBobs27Dart(
   state: Bobs27SeatState,
   observation: DartObservation,
 ): Bobs27SeatState {
-  if (state.status !== "IN_PROGRESS") {
-    throw new Error(
-      "Cannot record a dart once the game has ended; undo first to correct it.",
-    );
-  }
-
-  const target = targetAt(doublesPath(), state.targetIndex);
-  const pointValue = pointValueOf(target, config);
-  const hit = isHitOn(target, observation);
-  const dartsThisVisit = [...state.dartsThisVisit, hit];
-  const score = hit ? state.score + pointValue : state.score;
-
-  if (dartsThisVisit.length < 3) {
-    return { ...state, score, dartsThisVisit };
-  }
-
-  const visitHits = dartsThisVisit.filter(Boolean).length;
-  const resolvedScore =
-    visitHits === 0 ? score - pointValue * config.missPenaltyMultiplier : score;
-
-  if (resolvedScore <= 0) {
-    return {
-      ...state,
-      score: resolvedScore,
-      dartsThisVisit: [],
-      status: "LOST",
-    };
-  }
-  if (target.kind === "BULL") {
-    return {
-      ...state,
-      score: resolvedScore,
-      dartsThisVisit: [],
-      status: "WON",
-    };
-  }
-  return {
-    ...state,
-    score: resolvedScore,
-    dartsThisVisit: [],
-    targetIndex: state.targetIndex + 1,
-  };
+  return toBobs27Seat(
+    applyTrackDart(toTrackSeat(state), observation, bobs27Rules(config)),
+  );
 }
 
 /**
@@ -131,12 +177,12 @@ export function foldBobs27State(
   facts: EngineFacts,
   config: Seated<Bobs27Snapshot>,
 ): Bobs27State {
-  const seats = foldSeatStates(
+  const seats = foldTrackSeats(
     facts.turns,
     config.seats,
-    (seat) => initialSeatState(config, seat),
-    (state, observation) => applyBobs27Dart(config, state, observation),
-  );
+    () => ({ hits: [] }),
+    bobs27Rules(config),
+  ).map(toBobs27Seat);
 
   const winningSideKey = eliminationWinner(
     seats.map((seat) => ({
@@ -159,11 +205,6 @@ export function foldBobs27State(
     seats,
   };
 }
-
-const MATCH_ENDED =
-  "Cannot record a dart once the match has ended; undo first to correct it.";
-const GAME_ENDED =
-  "Cannot record a dart once the game has ended; undo first to correct it.";
 
 /**
  * Bob's 27's rules for the dart engine shell: three darts at each double in

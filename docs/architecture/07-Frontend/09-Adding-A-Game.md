@@ -15,8 +15,11 @@ list; `scripts/check-game-wiring.sh` is the gate that holds it.
 shape", copy Bob's 27's — `bobs27-setup.data.ts`, `bobs27.validator.ts`,
 `bobs27.engine.module.ts`. One named game, so "copy an existing game" has one
 answer instead of eight. Its engine is a `DartGameSpec` bound to the shell in
-`modules/game/dart-engine-shell.module.ts`; a single-stage dart engine copies
-that shape, not a hand-written class.
+`modules/game/dart-engine-shell.module.ts`, and its rules are a `TrackRules`
+record over the Track kernel (`modules/game/track-kernel.module.ts`), with a
+projection back to its own seat state. A single-stage dart engine copies that
+shape, not a hand-written class. A game in another kernel family copies only
+the shell half (see §Pick the kernel first).
 
 ## Two slugs, and why
 

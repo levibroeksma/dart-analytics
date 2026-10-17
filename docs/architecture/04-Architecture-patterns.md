@@ -2,12 +2,12 @@
 status: canonical
 scope: architecture/patterns
 read-when: solving recurring design problems
-updated: 2026-10-16
+updated: 2026-10-17
 -->
 
 # Architecture Patterns
 
-> **Version:** 1.11.1 (Pattern 18: Track kernel built, Doubles Training bound 2026-10-17, D468; prior 1.11.0: Pattern 18: rule-kernel families are architecture — registry, two gates, Kernel: header 2026-10-17, D467; prior 1.10.0: Pattern 18: single-stage dart engines and clockless timed dart exercises are specs bound to a shared shell, `dart-engine-shell.module.ts` / `dart-exercise-shell.module.ts` 2026-10-16, D462; prior 1.9.3: Pattern 20: 501/TUOD/121 route their checkout rate
+> **Version:** 1.11.2 (Pattern 18: Bob's 27 bound to the Track kernel 2026-10-17, D468; prior 1.11.1: Pattern 18: Track kernel built, Doubles Training bound 2026-10-17, D468; prior 1.11.0: Pattern 18: rule-kernel families are architecture — registry, two gates, Kernel: header 2026-10-17, D467; prior 1.10.0: Pattern 18: single-stage dart engines and clockless timed dart exercises are specs bound to a shared shell, `dart-engine-shell.module.ts` / `dart-exercise-shell.module.ts` 2026-10-16, D462; prior 1.9.3: Pattern 20: 501/TUOD/121 route their checkout rate
 > through a second helper, `checkoutPercentageDisplay()`, that dashes a
 > zero-attempt denominator instead of reporting `"0.00%"`; the result
 > field these three rulesets expose is renamed `checkoutPercentage`
@@ -827,7 +827,7 @@ hand-written opt-out:
 
 | Kernel | Decides | Kernel module | Status |
 | --- | --- | --- | --- |
-| `TRACK` | walk a target path; hit test, points, visit judgement, seat end | `modules/game/track-kernel.module.ts` (policies: `track-policies.ts`) | built — Doubles Training bound (D468) |
+| `TRACK` | walk a target path; hit test, points, visit judgement, seat end | `modules/game/track-kernel.module.ts` (policies: `track-policies.ts`) | built — Doubles Training, Bob's 27 bound (D468) |
 | `CHECKOUT` | finish a target score under bust rules; attempt budget; ladder moves | `checkout-kernel.module.ts` | designated, kernel pending |
 | `VISIT_POINTS` | points from a visit's darts; goal, bust, void, compare | `visit-points-kernel.module.ts` | designated, kernel pending |
 | `MARKS` | marks on categories; close order; closed-number scoring | `marks-kernel.module.ts` | designated, kernel pending |

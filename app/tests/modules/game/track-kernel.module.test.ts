@@ -143,4 +143,20 @@ describe("track kernel", () => {
       [0, 1],
     ]);
   });
+
+  it("initialTrackSeat takes an optional starting score", () => {
+    expect(initialTrackSeat(SEAT, { closed: [] }, 27).score).toBe(27);
+  });
+
+  it("foldTrackSeats starts each seat at rules.startScore", () => {
+    const turn = (participantRef: string, darts: DartObservation[]) =>
+      ({ participantRef, darts }) as unknown as TurnFact;
+    const [seat] = foldTrackSeats(
+      [turn("p1", [hitOn(1), MISS])],
+      [SEAT],
+      () => ({ closed: [] }),
+      { ...toy, startScore: 27 },
+    );
+    expect(seat.score).toBe(28);
+  });
 });
