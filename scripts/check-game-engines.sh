@@ -48,11 +48,13 @@ if [ -z "$CAPABILITY_KEYS" ]; then
 fi
 
 # A module's ruleset keys: every `rulesetVersionKey: "X"` plus every key
-# listed in a one-line `rulesetVersionKeys: ["X", "Y"]` (several keys, one spec).
+# listed in `rulesetVersionKeys: ["X", "Y"]` (several keys, one spec), the
+# array read across line breaks so a wrapped list loses no key.
 engine_keys() {
   {
     grep -oE 'rulesetVersionKey[[:space:]]*[:=][[:space:]]*"[A-Z0-9_]+"' "$1"
-    grep -oE 'rulesetVersionKeys[[:space:]]*:[[:space:]]*\[[^]]*\]' "$1"
+    tr '\n' ' ' < "$1" \
+      | grep -oE 'rulesetVersionKeys[[:space:]]*:[[:space:]]*\[[^]]*\]'
   } | grep -oE '"[A-Z0-9_]+"' | tr -d '"' | sort -u
 }
 
