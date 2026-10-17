@@ -1101,3 +1101,48 @@ describe("foldDoublesTrainingState", () => {
     expect(folded).toEqual(expected);
   });
 });
+
+describe("applyDoublesTrainingDart — Track kernel boundaries", () => {
+  it("records a third-dart hit as hitDartNumber 3 and closes the visit", () => {
+    let state = initialSeat();
+    state = applyDoublesTrainingDart(config, state, missObservationFor(state));
+    state = applyDoublesTrainingDart(config, state, missObservationFor(state));
+    state = applyDoublesTrainingDart(config, state, hitObservationFor(state));
+    expect(state.outcomes).toEqual([
+      { targetIndex: 0, hit: true, hitDartNumber: 3 },
+    ]);
+    expect(state).toMatchObject({ targetIndex: 1, dartsThisVisit: 0 });
+  });
+
+  it("completes on a BULL hit at the last target, index kept, visit counter cleared", () => {
+    let state: DoublesTrainingSeatState = {
+      ...initialSeat(),
+      targetIndex: 20,
+    };
+    state = applyDoublesTrainingDart(config, state, missObservationFor(state));
+    state = applyDoublesTrainingDart(config, state, hitObservationFor(state));
+    expect(state).toMatchObject({
+      status: "COMPLETE",
+      targetIndex: 20,
+      dartsThisVisit: 0,
+    });
+    expect(state.outcomes.at(-1)).toEqual({
+      targetIndex: 20,
+      hit: true,
+      hitDartNumber: 2,
+    });
+  });
+
+  it("refuses a dart on a COMPLETE seat with the session-complete message", () => {
+    const done: DoublesTrainingSeatState = {
+      ...initialSeat(),
+      targetIndex: 20,
+      status: "COMPLETE",
+    };
+    expect(() =>
+      applyDoublesTrainingDart(config, done, missObservationFor(done)),
+    ).toThrow(
+      "Cannot record a dart once the session is complete; undo first to correct it.",
+    );
+  });
+});

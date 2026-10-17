@@ -122,6 +122,9 @@ export type DoublesVisitOutcome = {
   hitDartNumber: 1 | 2 | 3 | null;
 };
 
+/** Doubles Training's Track extras: the visit outcome log. */
+export type DoublesTrackExt = { outcomes: DoublesVisitOutcome[] };
+
 export type DoublesTrainingSeatState = SeatState & {
   targetIndex: number;
   dartsThisVisit: number;
@@ -409,6 +412,30 @@ export type BoardTarget =
   | { kind: "NUMBER"; number: number }
   | { kind: "DOUBLE"; number: number }
   | { kind: "BULL" };
+
+/** A Track seat's lifecycle: still throwing, finished the path, or knocked out. */
+export type TrackStatus = "IN_PROGRESS" | "DONE" | "OUT";
+
+/**
+ * One seat under the Track kernel: progress along its path, running score,
+ * the open visit's dart and hit counts, and game-owned extras in `ext`.
+ */
+export type TrackSeat<TExt> = SeatState & {
+  targetIndex: number;
+  score: number;
+  dartsThisVisit: number;
+  hitsThisVisit: number;
+  status: TrackStatus;
+  ext: TExt;
+};
+
+/** A dart as the Track kernel judged it against the seat's target. */
+export type JudgedDart = {
+  observation: DartObservation;
+  target: BoardTarget;
+  hit: boolean;
+  points: number;
+};
 
 /**
  * What the player did, as observed at input time — the engine's only input.
