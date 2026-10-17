@@ -44,15 +44,18 @@ trackExerciseSpec<TConfig, TExt, TState>({
   parse(raw): TConfig,
   rules(config): TrackRules<TExt>,
   initialExt(config): TExt,
-  project(seat: TrackSeat<TExt>, config, expired: boolean): TState,
+  project(seat: TrackSeat<TExt>, config, expired: boolean, facts): TState,
   intent(state: TState, config): DartIntent,
 }): DartExerciseSpec<TConfig, TState>
 ```
 
-Its `fold` is `project(foldTrackDarts(turns, initialTrackSeat(SOLO, initialExt(config)), rules(config)), config, expired)`; `isVisitOpen(turn)` is
+Its `fold` is `project(foldTrackDarts(turns, initialTrackSeat(SOLO, initialExt(config), rules.startScore), rules(config)), config, expired, facts)`
+(`facts` lets the projection count darts thrown without a dart counter in ext); `isVisitOpen(turn)` is
 `turn.darts.length < 3` (all three exercises close visits at three darts,
 `closeAfter(3)`). It returns a plain `DartExerciseSpec`, bound with the existing
 `dartExerciseEngineClass` / `dartExerciseEngineFactory`. No shell change.
+`scripts/check-engine-kernels.sh` accepts `<kernel>-exercise-spec.module` as
+the binding import for a KERNEL_BOUND engine (refined 2026-10-17, T1.1 plan).
 
 ### 2.2 `BoardTarget` TREBLE (T1.1)
 
@@ -65,8 +68,9 @@ shipped behaviour is unchanged; their goldens prove it.
 
 | Policy | Kind | First caller | Behaviour |
 | --- | --- | --- | --- |
+| `tallyOnTarget` | onDart | Hit Count | `ext.dartsOnTarget + 1`; on a hit, `ext.hitsPerTarget[targetIndex] + 1` |
 | `advanceAfterDarts(n)` | onVisitClose | Hit Count | advance once `n` darts were thrown at the target (`ext.dartsOnTarget`) |
-| `passOnWrap(lastIndex)` | onVisitClose / onDart | Hit Count | past `lastIndex`: index 0, `ext.passes + 1` (generalises `lapOnWrap`; ATC keeps `lapOnWrap`) |
+| `passOnWrap(lastIndex)` | onVisitClose / onDart | Hit Count | past `lastIndex`: index 0, `ext.passes + 1` (generalises `lapOnWrap`; both share a private `wrapToStart(lastIndex, bump)`, ATC behaviour unchanged) |
 | `advanceEveryDart` | onDart | SwitchBlade | `targetIndex + 1` per dart |
 | `lockCheckpoint(bonus)` | onVisitClose | Doubles Lock | hits ≥ 2: lock, bonus to `score`, advance; 1: advance; 0: index = `ext.lastLock ?? 0` |
 
@@ -89,15 +93,16 @@ change.
 | Doubles Lock | `doublesPath` D20→D1 | `isHitOn` | 0 (bonus via `lockCheckpoint`) | — | `lockCheckpoint({2:50,3:100})` → pass wrap | `closeAfter(3)` | `lastLock`, `passes`, `dartsPerPass[]`, `locks` | timer only |
 | Baseball | `numbersPath` 1–9 | number any ring (no bull) | `pointsTable` S1 / D2 / T3 | — | `advanceToEnd` → `doneOnWrap(8)` | `closeAfter(3)` | none | scoreCompare HIGH (one seat) |
 
-Hit Count config: `{ targets: BoardTarget[]; dartsPerTarget: number }`,
-validated non-empty and `dartsPerTarget % 3 === 0`, `> 0`. V1 seeds the Big
+Hit Count config: `{ targets: HitCountTarget[]; dartsPerTarget: number }`,
+`HitCountTarget = TREBLE | DOUBLE | BULL` (no `NUMBER`; `BULL` = bullseye only),
+validated 1–21 targets and `dartsPerTarget` a multiple of 3 in 3–99. V1 seeds the Big
 Trebles template only (T20, T19, T18, T17 × 9).
 
 ## 4. Readouts (projections)
 
 | Subject | State fields |
 | --- | --- |
-| Hit Count | `currentTarget`, `dartsLeftOnTarget`, `hits`, `darts`, `hitRate`, `hitsPerTarget[]`, `passes` |
+| Hit Count | `currentTarget`, `targetIndex`, `dartsLeftOnTarget`, `hits`, `dartsThrown`, `hitsPerTarget[]`, `passes`, `status` (hit rate derived by `accuracyDisplay`, not stored in state) |
 | SwitchBlade | `currentSlot`, `round`, `total`, `roundTotals[5]`, `passes` |
 | Doubles Lock | `currentDouble`, `lastLock`, `bonus`, `locks`, `passes`, `bestPassDarts`, `dartsThisPass` |
 | Baseball | per-seat `inning`, `runs`, `runsPerInning[9]`, status; result = runs |
@@ -163,6 +168,8 @@ No legacy engine exists, so no differential oracle. Per PR:
 - Aimed goldens (`aimedOnCurrentTarget`) as regression snapshots.
 - Two mutation checks per new policy, recorded in the PR.
 - Existing goldens re-run unchanged (TREBLE addition is additive).
+- The routine-stats integration fixture gains Hit Count as step 12, after
+  the 501 step, so existing steps keep their numbers.
 
 ## 8. Decision entry
 
