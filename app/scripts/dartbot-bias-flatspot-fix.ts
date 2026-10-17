@@ -32,12 +32,16 @@ export const SPOTS = [
   { field: "biasYMm", levels: [12, 13], from: 11, to: 14 },
 ] as const;
 
-/** Runs every `SPOTS` entry against `LEVEL_SKILL_TABLE`, resolving each flat
+/** Runs every `SPOTS` entry against `table` (default `LEVEL_SKILL_TABLE`), resolving each flat
  * spot's pair from its bracketing neighbours — falling back to an
  * already-resolved value from an earlier entry when two spots share a
  * neighbour. Returns the per-field, per-level replacement table Task 2
  * pastes into `LEVEL_SKILL_TABLE`. */
-export function deriveFlatSpotValues(): Record<string, Record<number, number>> {
+export function deriveFlatSpotValues(
+  table: Readonly<
+    Record<number, { biasXMm: number; biasYMm: number }>
+  > = LEVEL_SKILL_TABLE,
+): Record<string, Record<number, number>> {
   const resolved: Record<string, Record<number, number>> = {
     biasXMm: {},
     biasYMm: {},
@@ -45,9 +49,8 @@ export function deriveFlatSpotValues(): Record<string, Record<number, number>> {
 
   for (const spot of SPOTS) {
     const field = spot.field;
-    const high =
-      resolved[field][spot.from] ?? LEVEL_SKILL_TABLE[spot.from][field];
-    const low = resolved[field][spot.to] ?? LEVEL_SKILL_TABLE[spot.to][field];
+    const high = resolved[field][spot.from] ?? table[spot.from]![field];
+    const low = resolved[field][spot.to] ?? table[spot.to]![field];
     const steps = spot.to - spot.from;
     const points = interiorPoints(low, high, steps);
     const offset = spot.levels[0] - spot.from - 1;
