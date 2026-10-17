@@ -108,6 +108,125 @@ export function interpolateCurve(
   };
 }
 
+/** The D-N curve fields this recalibration started from (2026-09-18 table), frozen so the script reproduces after its own output is pasted into `LEVEL_SKILL_TABLE`. */
+const D_N_CURVE: Readonly<Record<number, CurveFields>> = {
+  1: {
+    sigmaAlongMm: 59.1,
+    sigmaAcrossMm: 46.5,
+    biasXMm: 7.9,
+    biasYMm: 10.6,
+    outlierRate: 0.0096,
+  },
+  2: {
+    sigmaAlongMm: 51.1,
+    sigmaAcrossMm: 39.6,
+    biasXMm: 5.9,
+    biasYMm: 8.3,
+    outlierRate: 0.0071,
+  },
+  3: {
+    sigmaAlongMm: 43.6,
+    sigmaAcrossMm: 33.2,
+    biasXMm: 5.6,
+    biasYMm: 6.7,
+    outlierRate: 0.0059,
+  },
+  4: {
+    sigmaAlongMm: 36.4,
+    sigmaAcrossMm: 28.6,
+    biasXMm: 4.3,
+    biasYMm: 6.5,
+    outlierRate: 0.0048,
+  },
+  5: {
+    sigmaAlongMm: 31.9,
+    sigmaAcrossMm: 24.2,
+    biasXMm: 4.1,
+    biasYMm: 5.1,
+    outlierRate: 0.0039,
+  },
+  6: {
+    sigmaAlongMm: 27.5,
+    sigmaAcrossMm: 20.1,
+    biasXMm: -5.0,
+    biasYMm: 3.1,
+    outlierRate: 0.003,
+  },
+  7: {
+    sigmaAlongMm: 23.1,
+    sigmaAcrossMm: 17.4,
+    biasXMm: 2.22,
+    biasYMm: 2.54,
+    outlierRate: 0.0026,
+  },
+  8: {
+    sigmaAlongMm: 18.9,
+    sigmaAcrossMm: 14.8,
+    biasXMm: 1.63,
+    biasYMm: 2.08,
+    outlierRate: 0.0022,
+  },
+  9: {
+    sigmaAlongMm: 15.0,
+    sigmaAcrossMm: 12.4,
+    biasXMm: 1.34,
+    biasYMm: 1.57,
+    outlierRate: 0.0018,
+  },
+  10: {
+    sigmaAlongMm: 13.3,
+    sigmaAcrossMm: 10.1,
+    biasXMm: 1.1,
+    biasYMm: 1.19,
+    outlierRate: 0.0015,
+  },
+  11: {
+    sigmaAlongMm: 9.9,
+    sigmaAcrossMm: 8.1,
+    biasXMm: 0.9,
+    biasYMm: 0.9,
+    outlierRate: 0.0012,
+  },
+  12: {
+    sigmaAlongMm: 8.4,
+    sigmaAcrossMm: 6.2,
+    biasXMm: 0.62,
+    biasYMm: 0.62,
+    outlierRate: 0.0009,
+  },
+  13: {
+    sigmaAlongMm: 6.9,
+    sigmaAcrossMm: 5.2,
+    biasXMm: 0.43,
+    biasYMm: 0.43,
+    outlierRate: 0.0007,
+  },
+  14: {
+    sigmaAlongMm: 5.6,
+    sigmaAcrossMm: 3.6,
+    biasXMm: 0.3,
+    biasYMm: 0.3,
+    outlierRate: 0.0004,
+  },
+  15: {
+    sigmaAlongMm: 4.4,
+    sigmaAcrossMm: 3.0,
+    biasXMm: 0,
+    biasYMm: 0.2,
+    outlierRate: 0.0002,
+  },
+};
+
+/** The pre-refit table: live non-curve fields with `D_N_CURVE`'s five curve fields. */
+export function recalibrationBase(): Record<number, SkillProfile> {
+  const base: Record<number, SkillProfile> = {};
+  for (const [key, curve] of Object.entries(D_N_CURVE)) {
+    const level = Number(key);
+    base[level] = { ...LEVEL_SKILL_TABLE[level]!, ...curve };
+  }
+  return base;
+}
+
 const ANCHOR_LOW = 1;
 const ANCHOR_MID = 6;
 const ANCHOR_HIGH = 15;
@@ -160,7 +279,7 @@ function searchLevel1(
 }
 
 function main(): void {
-  const original = { ...LEVEL_SKILL_TABLE } as Record<number, SkillProfile>;
+  const original = recalibrationBase();
   const live = LEVEL_SKILL_TABLE as Record<number, SkillProfile>;
 
   const base = scaleOutlierRates(

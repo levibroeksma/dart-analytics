@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { LEVEL_SKILL_TABLE } from "../../src/modules/dartbot/skill-profile.module";
 import {
   interpolateCurve,
   scaleCurve,
+  recalibrationBase,
   scaleOutlierRates,
 } from "../../scripts/dartbot-level-curve-recalibration";
 
@@ -266,5 +268,27 @@ describe("scaleOutlierRates", () => {
     const before = structuredClone(table);
     scaleOutlierRates(table, 6, [1, 2]);
     expect(table).toEqual(before);
+  });
+});
+
+describe("recalibrationBase", () => {
+  it("starts from the frozen D-N curve, not the live refit table", () => {
+    const base = recalibrationBase();
+    expect(base[1]!.sigmaAlongMm).toBe(59.1);
+    expect(base[6]!.outlierRate).toBe(0.003);
+    expect(base[15]!.sigmaAlongMm).toBe(4.4);
+    expect(base[15]!.biasYMm).toBe(0.2);
+  });
+
+  it("keeps every non-curve field from the live table", () => {
+    const base = recalibrationBase();
+    for (let level = 1; level <= 15; level++) {
+      expect(base[level]!.decisionQuality).toBe(
+        LEVEL_SKILL_TABLE[level]!.decisionQuality,
+      );
+      expect(base[level]!.outlierSigmaMm).toBe(
+        LEVEL_SKILL_TABLE[level]!.outlierSigmaMm,
+      );
+    }
   });
 });
