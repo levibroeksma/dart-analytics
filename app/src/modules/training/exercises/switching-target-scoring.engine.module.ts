@@ -1,106 +1,80 @@
 import type { SwitchingTargetScoringConfigData } from "@lib/types";
 import { SwitchingTargetScoringV1Config } from "@lib/training/exercises/rulesets/types";
 import type {
-  DartFact,
-  DartIntent,
+  BoardTarget,
   DartObservation,
   EngineFacts,
-  TurnFact,
+  SequenceTrackExt,
+  TrackSeat,
 } from "@modules/types";
-import { BULL_TARGET_NUMBER } from "@modules/game/board-progression.module";
+import type { TrackRules } from "@modules/interfaces";
+import { numbersPath } from "@modules/game/board-progression.module";
 import {
-  appendObservedDart,
-  cloneTurns,
-  exerciseBlockStage,
-  openOrCreateTurn,
-  undoLastDart,
-} from "@modules/game/turn-log.module";
+  foldTrackDarts,
+  initialTrackSeat,
+} from "@modules/game/track-kernel.module";
+import {
+  closeAfter,
+  pathTarget,
+  resetOnMiss,
+  sectionOf,
+} from "@modules/game/track-policies";
 import { registerDartExerciseEngineFactory } from "./dart-engine.registry";
-import type {
-  DartExerciseEngine,
-  DartExerciseEngineFactory,
-} from "./interfaces";
+import {
+  dartExerciseEngineClass,
+  dartExerciseEngineFactory,
+} from "./dart-exercise-shell.module";
+import type { DartExerciseSpec } from "./interfaces";
 import { SOLO_PARTICIPANT_REF } from "./solo-participant.module";
-import { targetScoringPoints } from "./target-scoring.engine.module";
+import {
+  targetScoringIntent,
+  targetScoringPoints,
+} from "./target-scoring.engine.module";
 import type { SwitchingTargetScoringState } from "./types";
 
 const EXERCISE_RULESET_VERSION_KEY = "SWITCHING_TARGET_SCORING_V1" as const;
-const STAGE = exerciseBlockStage();
 const DARTS_PER_VISIT = 3;
-
-/** The treble on a number, the bullseye on the bull — as Target Scoring. */
-function intentFor(target: number): DartIntent {
-  return {
-    intendedTargetNumber: target,
-    intendedZoneKey: target === BULL_TARGET_NUMBER ? "INNER_BULL" : "TREBLE",
-  };
-}
-
-type Progress = {
-  targetIndex: number;
-  currentChain: number;
-  bestChain: number;
-  bestFinished: number | null;
-  completedSequences: number;
-  hits: number;
-  dartsThrown: number;
-};
-
-const INITIAL_PROGRESS: Progress = {
-  targetIndex: 0,
-  currentChain: 0,
-  bestChain: 0,
-  bestFinished: null,
-  completedSequences: 0,
-  hits: 0,
-  dartsThrown: 0,
+const DONE_MESSAGE =
+  "A Switching Target Scoring seat never finishes; only the timer ends the exercise.";
+const SOLO_SEAT = {
+  participantRef: SOLO_PARTICIPANT_REF,
+  sideKey: SOLO_PARTICIPANT_REF,
 };
 
 /**
- * Folds one dart onto the running progress. A hit grows the chain and moves
- * to the next target, wrapping after the last; a miss ends the chain and
- * restarts the sequence at the first target, mid-visit or not.
+ * Switching Target Scoring's Track rules: the config's three targets in
+ * order, scored as Target Scoring; `resetOnMiss` advances on a hit, wrapping
+ * after the last, and restarts the sequence on a miss. Visits close after
+ * three darts and carry no rule of their own.
  */
-function applyDart(
+function switchingTargetScoringRules(
   config: SwitchingTargetScoringConfigData,
-  progress: Progress,
-  dart: Pick<DartFact, "hitTargetNumber" | "hitZoneKey">,
-): Progress {
-  const points = targetScoringPoints(
-    config.targets[progress.targetIndex],
-    dart,
-  );
-  const dartsThrown = progress.dartsThrown + 1;
-  if (points !== null) {
-    const currentChain = progress.currentChain + points;
-    const targetIndex = (progress.targetIndex + 1) % config.targets.length;
-    return {
-      ...progress,
-      targetIndex,
-      currentChain,
-      bestChain: Math.max(progress.bestChain, currentChain),
-      completedSequences:
-        progress.completedSequences + (targetIndex === 0 ? 1 : 0),
-      hits: progress.hits + 1,
-      dartsThrown,
-    };
-  }
+): TrackRules<SequenceTrackExt> {
+  const pointsOn = (target: BoardTarget, observation: DartObservation) =>
+    targetScoringPoints(sectionOf(target), observation);
   return {
-    ...progress,
-    targetIndex: 0,
-    currentChain: 0,
-    bestFinished:
-      progress.currentChain > 0
-        ? Math.max(progress.bestFinished ?? 0, progress.currentChain)
-        : progress.bestFinished,
-    dartsThrown,
+    doneMessage: DONE_MESSAGE,
+    target: pathTarget(numbersPath(config.targets)),
+    hit: (target, observation) => pointsOn(target, observation) !== null,
+    points: (target, observation) => pointsOn(target, observation) ?? 0,
+    onDart: resetOnMiss(config.targets.length),
+    visitOpen: closeAfter(DARTS_PER_VISIT),
   };
+}
+
+function initialSeat(): TrackSeat<SequenceTrackExt> {
+  return initialTrackSeat(SOLO_SEAT, {
+    chain: 0,
+    finishedBest: null,
+    hits: 0,
+    sequences: 0,
+  });
 }
 
 /**
  * Folds the whole fact log into Switching Target Scoring state — a pure
- * function of `facts`/`config`/`complete`, mirroring
- * `foldTargetScoringState`. Darts are replayed in write order, which is what
+ * function of `facts`/`config`/`complete`, folded through the Track kernel's
+ * `foldTrackDarts`. Darts are replayed in write order, which is what
  * reproduces each dart's target.
  */
 export function foldSwitchingTargetScoringState(
@@ -108,105 +82,55 @@ export function foldSwitchingTargetScoringState(
   config: SwitchingTargetScoringConfigData,
   complete: boolean,
 ): SwitchingTargetScoringState {
-  const progress = facts.turns
-    .flatMap((turn) => turn.darts)
-    .reduce((acc, dart) => applyDart(config, acc, dart), INITIAL_PROGRESS);
+  const seat = foldTrackDarts(
+    facts.turns,
+    initialSeat(),
+    switchingTargetScoringRules(config),
+  );
+  const { chain, finishedBest, hits, sequences } = seat.ext;
 
   return {
-    currentTargetNumber: config.targets[progress.targetIndex],
-    targetIndex: progress.targetIndex,
-    currentChain: progress.currentChain,
-    bestChain: progress.bestChain,
-    markToBeat: progress.bestFinished,
-    completedSequences: progress.completedSequences,
-    hits: progress.hits,
-    dartsThrown: progress.dartsThrown,
+    currentTargetNumber: config.targets[seat.targetIndex],
+    targetIndex: seat.targetIndex,
+    currentChain: chain,
+    bestChain: Math.max(finishedBest ?? 0, chain),
+    markToBeat: finishedBest,
+    completedSequences: sequences,
+    hits,
+    dartsThrown: facts.turns.reduce(
+      (count, turn) => count + turn.darts.length,
+      0,
+    ),
     status: complete ? "COMPLETE" : "IN_PROGRESS",
   };
 }
 
 /**
- * Switching Target Scoring: Target Scoring's points on a three-target
- * sequence — a hit advances, a miss resets the chain and restarts the
- * sequence (`docs/game-rules/training/exercises/switching-target-scoring.md`).
- * One `TurnFact` is one three-dart visit; the sequence carries across visit
- * boundaries. Clockless: completion arrives only through `expireTimer()`
- * (D264).
+ * Switching Target Scoring's rules for the exercise shell: Target Scoring's
+ * points on a three-target sequence — a hit advances, a miss resets the chain
+ * and restarts the sequence
+ * (`docs/game-rules/training/exercises/switching-target-scoring.md`). One
+ * three-dart visit per `TurnFact`; the sequence carries across visits.
  */
-export class SwitchingTargetScoringEngine implements DartExerciseEngine<SwitchingTargetScoringState> {
-  readonly exerciseRulesetVersionKey = EXERCISE_RULESET_VERSION_KEY;
-
-  private readonly config: SwitchingTargetScoringConfigData;
-  private readonly turns: TurnFact[];
-  private complete = false;
-
-  constructor(config: SwitchingTargetScoringConfigData, prior?: EngineFacts) {
-    this.config = SwitchingTargetScoringV1Config.parse(config);
-    this.turns = prior ? cloneTurns(prior.turns) : [];
-  }
-
-  private deriveState(): SwitchingTargetScoringState {
-    return foldSwitchingTargetScoringState(
-      { stages: [{ ...STAGE }], turns: this.turns },
-      this.config,
-      this.complete,
-    );
-  }
-
-  record(observation: DartObservation): SwitchingTargetScoringState {
-    if (this.complete) {
-      throw new Error(
-        "Cannot record a dart once the exercise is complete; undo first to correct it.",
-      );
-    }
-    const target = this.deriveState().currentTargetNumber;
-    const turn = openOrCreateTurn(
-      this.turns,
-      STAGE.clientKey,
-      SOLO_PARTICIPANT_REF,
-      (last) => last.darts.length < DARTS_PER_VISIT,
-    );
-    appendObservedDart(turn, observation, intentFor(target));
-    if (turn.darts.length === DARTS_PER_VISIT) {
-      turn.completedAt = new Date().toISOString();
-    }
-    return this.deriveState();
-  }
-
-  undo(): boolean {
-    if (this.complete) {
-      this.complete = false;
-      return true;
-    }
-    return undoLastDart(this.turns);
-  }
-
-  /** The step's countdown elapsed — the clock lives in the controller (D264). */
-  expireTimer(): void {
-    this.complete = true;
-  }
-
-  isComplete(): boolean {
-    return this.complete;
-  }
-
-  state(): SwitchingTargetScoringState {
-    return this.deriveState();
-  }
-
-  facts(): EngineFacts {
-    return { stages: [{ ...STAGE }], turns: cloneTurns(this.turns) };
-  }
-}
-
-export const switchingTargetScoringEngineFactory: DartExerciseEngineFactory<
+const switchingTargetScoringSpec: DartExerciseSpec<
   SwitchingTargetScoringConfigData,
   SwitchingTargetScoringState
 > = {
   exerciseRulesetVersionKey: EXERCISE_RULESET_VERSION_KEY,
-  create(config: SwitchingTargetScoringConfigData, prior?: EngineFacts) {
-    return new SwitchingTargetScoringEngine(config, prior);
-  },
+  parse: (config) => SwitchingTargetScoringV1Config.parse(config),
+  fold: foldSwitchingTargetScoringState,
+  intent: (state) => targetScoringIntent(state.currentTargetNumber),
+  isVisitOpen: (turn) => turn.darts.length < DARTS_PER_VISIT,
 };
+
+/** Switching Target Scoring exercise engine (D264), built by the exercise shell. */
+export class SwitchingTargetScoringEngine extends dartExerciseEngineClass(
+  switchingTargetScoringSpec,
+) {}
+
+export const switchingTargetScoringEngineFactory = dartExerciseEngineFactory(
+  switchingTargetScoringSpec,
+  SwitchingTargetScoringEngine,
+);
 
 registerDartExerciseEngineFactory(switchingTargetScoringEngineFactory);

@@ -240,3 +240,69 @@ describe("foldSwitchingTargetScoringState", () => {
     ).toEqual(engine.state());
   });
 });
+
+describe("Switching Target Scoring — kernel seams", () => {
+  it("a miss right after a full sequence records the mark and keeps the count", () => {
+    const engine = new SwitchingTargetScoringEngine(CONFIG);
+    play(engine, [dart(20, "TREBLE"), dart(19, "SINGLE"), dart(18, "SINGLE")]);
+    const state = play(engine, [MISS]);
+
+    expect(state).toMatchObject({
+      targetIndex: 0,
+      currentChain: 0,
+      bestChain: 5,
+      markToBeat: 5,
+      completedSequences: 1,
+      hits: 3,
+      dartsThrown: 4,
+    });
+  });
+
+  it("undoing the dart that completes a sequence restores the count and target", () => {
+    const engine = new SwitchingTargetScoringEngine(CONFIG);
+    play(engine, [dart(20, "SINGLE"), dart(19, "SINGLE"), dart(18, "TREBLE")]);
+    expect(engine.state().completedSequences).toBe(1);
+    engine.undo();
+
+    expect(engine.state()).toMatchObject({
+      currentTargetNumber: 18,
+      targetIndex: 2,
+      currentChain: 2,
+      completedSequences: 0,
+      hits: 2,
+    });
+  });
+
+  it("keeps the larger mark when a later chain is shorter", () => {
+    const engine = new SwitchingTargetScoringEngine(CONFIG);
+    const state = play(engine, [
+      dart(20, "TREBLE"),
+      dart(19, "TREBLE"),
+      MISS,
+      dart(20, "SINGLE"),
+      MISS,
+    ]);
+
+    expect(state).toMatchObject({ markToBeat: 6, bestChain: 6 });
+  });
+
+  it("a miss on the opening dart records nothing", () => {
+    const engine = new SwitchingTargetScoringEngine(CONFIG);
+    const state = play(engine, [MISS]);
+
+    expect(state).toMatchObject({
+      targetIndex: 0,
+      currentChain: 0,
+      bestChain: 0,
+      markToBeat: null,
+      hits: 0,
+      dartsThrown: 1,
+    });
+  });
+
+  it("the factory builds the exported class", () => {
+    expect(switchingTargetScoringEngineFactory.create(CONFIG)).toBeInstanceOf(
+      SwitchingTargetScoringEngine,
+    );
+  });
+});
