@@ -2,6 +2,7 @@
 
 Current version: none (V1 in design)
 Entry points: routine step
+Kernel: CHECKOUT
 
 ## Features
 

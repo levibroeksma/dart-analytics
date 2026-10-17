@@ -2,6 +2,7 @@
 
 Current version: V1 (shipped 2026-09-24)
 Entry points: routine step
+Kernel: CHECKOUT
 
 ## Features
 

@@ -152,5 +152,22 @@ expect fail "Tags on a routine" "$(fixture $ROUTINE training/routines rt-tags <<
 expect fail "exercise without Tags" "$(fixture $EX training/exercises no-tags <<< "")" 'missing section: ## Tags'
 expect fail "game without Tags" "$(fixture $GAME rulesets no-tags <<< "")" 'missing section: ## Tags'
 
+# --- Kernel header -------------------------------------------------------------
+# kfixture <source> <shape folder> <name> <sed expression> : copy with an edit.
+kfixture() {
+  local dir="$TMP/docs/game-rules/$2" out
+  out="$dir/$3.md"
+  mkdir -p "$dir"
+  sed -E "$4" "$ROOT/$1" > "$out"
+  echo "$out"
+}
+expect fail "game missing Kernel" "$(kfixture $GAME rulesets k-missing '/^Kernel:/d')" \
+  "no 'Kernel:' header field"
+expect fail "exercise with unknown Kernel" "$(kfixture $EX training/exercises k-bad 's/^Kernel: .*/Kernel: TRAK/')" \
+  "'Kernel:' does not parse: TRAK"
+expect fail "routine with Kernel" "$(kfixture $ROUTINE training/routines k-routine 's/^(Current version:.*)$/\1\nKernel: TRACK/')" \
+  "'Kernel:' is not used by a routine"
+expect pass "game with Kernel" "$(kfixture $GAME rulesets k-ok 's/^$/&/')"
+
 echo "test-check-game-rules: $PASSED passed, $FAILED failed"
 [ "$FAILED" -eq 0 ]

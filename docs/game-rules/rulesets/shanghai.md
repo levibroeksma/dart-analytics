@@ -2,6 +2,7 @@
 
 Current version: V2 (shipped 2026-08-28)
 Entry points: standalone
+Kernel: TRACK
 
 ## Features
 

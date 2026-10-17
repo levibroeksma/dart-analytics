@@ -29,6 +29,11 @@ that skill rather than reconstructing the procedure from this file.
 - Define terms before you rely on them (e.g. **visit** before **bust**).
 - Headings carry no version number. `## Later versions` is correct;
   `## Later versions (V2+)` goes stale the first time a V3 exists.
+- `Kernel:` names the rule-kernel family the engine will be built on —
+  `TRACK`, `CHECKOUT`, `VISIT_POINTS`, `MARKS`, `ELIMINATION` or
+  `HAND_WRITTEN` (Pattern 18 §Rule-kernel families). It is not the `Family`
+  Tags axis. Pick it with the kernel-config questions in
+  `.claude/skills/authoring-game-rules/SKILL.md` Step 1.
 - `## Tags` uses the axes and values in `docs/game-rules/TAGS.md`, in its
   order, plus a Family row. If `Entry points:` include `routine step`, split it
   into `### Standalone` and `### Routine step`, each a complete table; the
@@ -66,6 +71,7 @@ re-proposed.
 
 Current version: none (V1 in design)
 Entry points: standalone
+Kernel: TRACK
 
 ## Features
 

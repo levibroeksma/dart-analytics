@@ -29,7 +29,10 @@ Tag the exercise when it is first authored: one flat table from
 ```
 Current version: none (V1 in design)
 Entry points: routine step
+Kernel: TRACK
 ```
+
+`Kernel:` is required on a game or exercise and absent on a routine or trivia tool; `check-game-rules.sh` rejects any other value.
 
 Gaining `standalone` later is an amendment, not a migration — see
 `amending.md` §New entry points.
