@@ -69,10 +69,21 @@ export function targetAt(
   return target;
 }
 
-/** A path target's display label: `BULL`, `D16` for a double, the bare number otherwise. */
+const RING_PREFIX: Record<"DOUBLE" | "TREBLE", string> = {
+  DOUBLE: "D",
+  TREBLE: "T",
+};
+
+const RING_ZONE: Record<"DOUBLE" | "TREBLE", DartZoneKey> = {
+  DOUBLE: "DOUBLE",
+  TREBLE: "TREBLE",
+};
+
+/** A path target's display label: `BULL`, `D16` for a double, `T20` for a treble, the bare number otherwise. */
 export function boardTargetLabel(target: BoardTarget): string {
   if (target.kind === "BULL") return "BULL";
-  return target.kind === "DOUBLE" ? `D${target.number}` : String(target.number);
+  if (target.kind === "NUMBER") return String(target.number);
+  return `${RING_PREFIX[target.kind]}${target.number}`;
 }
 
 export function boardScore(
@@ -99,7 +110,7 @@ export function isHitOn(
     );
   }
   if (observation.hitTargetNumber !== target.number) return false;
-  return target.kind === "DOUBLE"
-    ? observation.hitZoneKey === "DOUBLE"
-    : observation.hitZoneKey !== "MISS";
+  return target.kind === "NUMBER"
+    ? observation.hitZoneKey !== "MISS"
+    : observation.hitZoneKey === RING_ZONE[target.kind];
 }
