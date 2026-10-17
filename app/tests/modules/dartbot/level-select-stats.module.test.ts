@@ -47,4 +47,13 @@ describe("levelSelectStatsForLevel", () => {
     expect(level15.averageLow).toBeLessThan(level15.averageHigh);
     expect(level15.averageLow).toBeLessThan(180);
   });
+
+  it("level 15's bands match the v2 elite point", () => {
+    const level15 = levelSelectStatsForLevel(15);
+    expect(level15.averageLow).toBeLessThan(101);
+    expect(level15.averageHigh).toBeGreaterThan(101);
+    expect(level15.averageHigh).toBeLessThan(180);
+    expect(level15.checkoutLow).toBeGreaterThanOrEqual(28);
+    expect(level15.checkoutHigh).toBeLessThanOrEqual(42);
+  });
 });
