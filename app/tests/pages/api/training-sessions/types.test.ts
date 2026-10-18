@@ -201,6 +201,27 @@ describe("StartTrainingResponse", () => {
     ).toBe(true);
   });
 
+  it("accepts a SWITCHBLADE step", () => {
+    expect(
+      StartTrainingResponse.safeParse({
+        activityId: "act-1",
+        routineTemplateId: "rt-1",
+        routineName: "Custom",
+        steps: [
+          {
+            sequenceNumber: 1,
+            exerciseTypeKey: "SWITCHBLADE",
+            exerciseRulesetVersionKey: "SWITCHBLADE_V1",
+            gameTypeKey: null,
+            gameRulesetVersionKey: null,
+            durationSeconds: 600,
+            configuration: {},
+          },
+        ],
+      }).success,
+    ).toBe(true);
+  });
+
   it("accepts a BULL_UP step", () => {
     expect(
       StartTrainingResponse.safeParse({
@@ -318,6 +339,19 @@ describe("StartTrainingStepResponse", () => {
           targets: [{ kind: "TREBLE", number: 20 }],
           dartsPerTarget: 9,
         },
+        participant: { ref: "pt1", displayName: "Levi" },
+        captureModeKey: "ANALYTICS",
+        inputModeKey: "VISUAL_BOARD",
+      }).success,
+    ).toBe(true);
+  });
+
+  it("accepts a SWITCHBLADE step's response", () => {
+    expect(
+      StartTrainingStepResponse.safeParse({
+        sessionId: "s1",
+        exerciseTypeKey: "SWITCHBLADE",
+        configuration: {},
         participant: { ref: "pt1", displayName: "Levi" },
         captureModeKey: "ANALYTICS",
         inputModeKey: "VISUAL_BOARD",

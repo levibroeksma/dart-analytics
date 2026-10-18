@@ -71,6 +71,7 @@ export type TrainingStepResolved = {
     | "CHECKOUT_SEQUENCE"
     | "RANDOM_CHECKOUT"
     | "HIT_COUNT"
+    | "SWITCHBLADE"
     | "GAME";
   exerciseRulesetVersionKey: string | null;
   gameTypeKey: string | null;
