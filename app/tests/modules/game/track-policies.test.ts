@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   advanceAfterDarts,
+  advanceEveryDart,
   advanceOnHit,
   advanceToEnd,
   anyRingEitherBull,
@@ -26,6 +27,7 @@ import {
   shanghaiWin,
   stepBackBelowHits,
   tallyOnTarget,
+  tallyRoundPoints,
   zoneBucketOf,
 } from "@modules/game/track-policies";
 import { initialTrackSeat } from "@modules/game/track-kernel.module";
@@ -37,6 +39,7 @@ import type {
   HitCountTrackExt,
   JudgedDart,
   SequenceTrackExt,
+  SwitchbladeTrackExt,
   TrackSeat,
 } from "@modules/types";
 
@@ -494,5 +497,69 @@ describe("Hit Count policies", () => {
     });
     expect(lap.targetIndex).toBe(0);
     expect(lap.ext.laps).toBe(1);
+  });
+});
+
+describe("SwitchBlade policies", () => {
+  const seatAt = (
+    targetIndex: number,
+    ext: Partial<SwitchbladeTrackExt> = {},
+  ): TrackSeat<SwitchbladeTrackExt> => ({
+    ...initialTrackSeat(SEAT, {
+      passes: 0,
+      roundTotals: [0, 0, 0, 0, 0],
+      ...ext,
+    }),
+    targetIndex,
+  });
+  const judged = (points: number): JudgedDart => ({
+    observation: {
+      hitTargetNumber: 20,
+      hitZoneKey: "TREBLE",
+      locationX: null,
+      locationY: null,
+    },
+    target: { kind: "TREBLE", number: 20 },
+    hit: points > 0,
+    points,
+  });
+
+  it("advanceEveryDart moves one target per dart, hit or miss", () => {
+    expect(advanceEveryDart(seatAt(4)).targetIndex).toBe(5);
+    expect(advanceEveryDart(seatAt(14)).targetIndex).toBe(15);
+  });
+
+  it("advanceEveryDart leaves score and ext alone", () => {
+    const seat = { ...seatAt(2, { passes: 3 }), score: 40 };
+    const moved = advanceEveryDart(seat);
+    expect(moved.score).toBe(40);
+    expect(moved.ext).toBe(seat.ext);
+  });
+
+  it("tallyRoundPoints adds the dart's points to its target's round", () => {
+    const seat = tallyRoundPoints<SwitchbladeTrackExt>(3)(
+      seatAt(5, { roundTotals: [10, 20, 0, 0, 0] }),
+      judged(57),
+    );
+    expect(seat.ext.roundTotals).toEqual([10, 77, 0, 0, 0]);
+  });
+
+  it("tallyRoundPoints maps a round's first and last target to that round", () => {
+    const tally = tallyRoundPoints<SwitchbladeTrackExt>(3);
+    expect(tally(seatAt(12), judged(50)).ext.roundTotals).toEqual([
+      0, 0, 0, 0, 50,
+    ]);
+    expect(tally(seatAt(14), judged(25)).ext.roundTotals).toEqual([
+      0, 0, 0, 0, 25,
+    ]);
+    expect(tally(seatAt(3), judged(60)).ext.roundTotals).toEqual([
+      0, 60, 0, 0, 0,
+    ]);
+  });
+
+  it("tallyRoundPoints never mutates the seat it was given", () => {
+    const before = seatAt(0);
+    tallyRoundPoints<SwitchbladeTrackExt>(3)(before, judged(60));
+    expect(before.ext.roundTotals).toEqual([0, 0, 0, 0, 0]);
   });
 });
