@@ -12,6 +12,7 @@ import BullUpPanel from "@components/layout/training/exercises/BullUpPanel.astro
 import CheckoutSequencePanel from "@components/layout/training/exercises/CheckoutSequencePanel.astro";
 import RandomCheckoutPanel from "@components/layout/training/exercises/RandomCheckoutPanel.astro";
 import HitCountPanel from "@components/layout/training/exercises/HitCountPanel.astro";
+import SwitchbladePanel from "@components/layout/training/exercises/SwitchbladePanel.astro";
 import TenUpOneDown from "@components/layout/games/interfaces/TenUpOneDown.astro";
 import ScoreTraining from "@components/layout/games/interfaces/ScoreTraining.astro";
 import OneTwentyOne from "@components/layout/games/interfaces/OneTwentyOne.astro";
@@ -111,6 +112,9 @@ import OpenRoutineModal from "@components/layout/training/routines/OpenRoutineMo
         </template>
         <template x-if="adapter?.panel === 'hit-count' && hitCountEngine">
           <HitCountPanel />
+        </template>
+        <template x-if="adapter?.panel === 'switchblade' && switchbladeEngine">
+          <SwitchbladePanel />
         </template>
 
         <template x-if="adapter?.panel === 'tuod' && game">
