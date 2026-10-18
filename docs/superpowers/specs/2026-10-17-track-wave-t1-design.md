@@ -73,10 +73,15 @@ shipped behaviour is unchanged; their goldens prove it.
 | `passOnWrap(lastIndex)` | onVisitClose / onDart | Hit Count | past `lastIndex`: index 0, `ext.passes + 1` (generalises `lapOnWrap`; both share a private `wrapToStart(lastIndex, bump)`, ATC behaviour unchanged) |
 | `advanceEveryDart` | onDart | SwitchBlade | `targetIndex + 1` per dart |
 | `tallyRoundPoints(dartsPerRound)` | onDart | SwitchBlade | `ext.roundTotals[floor(targetIndex / dartsPerRound)] += points` (before the advance) |
-| `lockCheckpoint(bonus)` | onVisitClose | Doubles Lock | hits ≥ 2: lock, bonus to `score`, advance; 1: advance; 0: index = `ext.lastLock ?? 0` |
+| `lockCheckpoint(bonus)` | onVisitClose | Doubles Lock | `bonus[hits]` defined: lock, bonus to `score`, advance; else hits > 0: advance; 0: index = `ext.lastLock ?? 0` (`{2:50,3:100}` = hits ≥ 2; `LockTrackExt = { lastLock: index \| null; locks }`) |
 
 Doubles Lock's pass wrap also clears `lastLock` and appends the pass's darts
 to `ext.dartsPerPass`; it composes `passOnWrap` with its own ext reset.
+Refined (T1.3 plan, approved 2026-10-18): ext gains `dartsThisPass`; engine-local
+`tallyPassDarts` adds `dartsThisVisit` at visit close (the kernel resets visit
+counters after `onVisitClose`), and engine-local `closePass(19)` runs
+`passOnWrap(19)` then appends `dartsThisPass` to `dartsPerPass`, zeroes it and
+clears `lastLock`. onVisitClose = `closePass ∘ lockCheckpoint ∘ tallyPassDarts`.
 
 ### 2.4 Per-dart intent (T1.2)
 
@@ -103,13 +108,18 @@ SwitchBlade: type `SWITCHBLADE`, ruleset `SWITCHBLADE_V1`; config is the empty
 strict object `{}` (the path is locked in V1). A perfect pass scores 872.
 (Refinements approved 2026-10-18.)
 
+Doubles Lock: type `DOUBLES_LOCK`, ruleset `DOUBLES_LOCK_V1` (not the rules
+file's `LOCK_LADDER`); config is the empty strict object `{}`. Path and bonus
+are engine constants `DOUBLES_LOCK_PATH` and `DOUBLES_LOCK_BONUS = { 2: 50, 3: 100 }`.
+V2 Strict Lock becomes `{ 3: 100 }` with no new policy. (Refinements approved 2026-10-18.)
+
 ## 4. Readouts (projections)
 
 | Subject | State fields |
 | --- | --- |
 | Hit Count | `currentTarget`, `targetIndex`, `dartsLeftOnTarget`, `hits`, `dartsThrown`, `hitsPerTarget[]`, `passes`, `status` (hit rate derived by `accuracyDisplay`, not stored in state) |
 | SwitchBlade | `currentSlot`, `slotIndex`, `round`, `total`, `roundTotals[5]`, `passes`, `hits`, `dartsThrown`, `status` (hits = darts on the intended number, from facts) |
-| Doubles Lock | `currentDouble`, `lastLock`, `bonus`, `locks`, `passes`, `bestPassDarts`, `dartsThisPass` |
+| Doubles Lock | `currentDouble` (`BoardTarget`), `targetIndex`, `lastLock` (`BoardTarget \| null`), `bonus`, `locks`, `passes`, `dartsPerPass[]`, `bestPassDarts` (fewest darts of a completed pass, or null), `dartsThisPass` (incl. open visit), `hits` (DOUBLE on the intended number, from facts), `dartsThrown`, `status` |
 | Baseball | per-seat `inning`, `runs`, `runsPerInning[9]`, status; result = runs |
 
 Every field is derived from the fold; nothing is stored (Hard Invariant).
@@ -179,6 +189,13 @@ No legacy engine exists, so no differential oracle. Per PR:
 - SwitchBlade board preview: family `switchblade`, judge `judgeOnTarget`,
   captions = the visit's three slot labels; the golden helper
   `aimedOnCurrentBoardTarget(rate, field)` reads `currentSlot`.
+- Doubles Lock is fixture step 14 (itest 13 → 14). Step metrics
+  `{ bonus, locks, darts, hits }`, all `sum`, headline `bonus` higher, rate
+  `hits/darts`; best pass is summary-only (no `min` aggregation). Preview
+  family `doublesLock`: `judgeDouble`, captions `hitCountCaptions` fed by
+  `hitCountTargetLabel() || doublesLockTargetLabel()`. The golden helper gains
+  `aimedOnCurrentBoardTarget(rate, field, ring = anyRing)`; Doubles Lock aims
+  `DOUBLE`. (Refinements approved 2026-10-18.)
 
 ## 8. Decision entry
 
