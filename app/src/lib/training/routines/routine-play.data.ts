@@ -96,6 +96,27 @@ function startedDateLabel(startedAt: string | null | undefined): string {
 /** Warm-Up ring radius: clears the 220mm board face inside `SectionRing`. */
 const WARM_UP_RING_RADIUS_MM = 232;
 
+/**
+ * Each dart exercise's engine slot and the method that records a board dart
+ * into it, in the order `activeDartEngine()` and the board dispatch probe
+ * them. At most one slot is open at a time.
+ */
+const DART_ENGINE_RECORDERS = [
+  ["switchingEngine", "recordSwitchingDart"],
+  ["doublePatternEngine", "recordDoublePatternDart"],
+  ["targetScoringEngine", "recordTargetScoringDart"],
+  ["switchingTargetScoringEngine", "recordSwitchingTargetScoringDart"],
+  ["scoreThresholdEngine", "recordScoreThresholdDart"],
+  ["bullseyeCheckoutEngine", "recordBullseyeCheckoutDart"],
+  ["bullUpEngine", "recordBullUpDart"],
+  ["checkoutSequenceEngine", "recordCheckoutSequenceDart"],
+  ["randomCheckoutEngine", "recordRandomCheckoutDart"],
+  ["hitCountEngine", "recordHitCountDart"],
+] as const satisfies readonly (readonly [
+  keyof RoutinePlayContext,
+  keyof RoutinePlayContext,
+])[];
+
 const STEP_CHANGE_CUE_HZ = 660;
 const STEP_CHANGE_CUE_SECONDS = 0.25;
 
@@ -171,22 +192,8 @@ export function routinePlay() {
     completionError: "",
     ...boardInputData(
       (observation) => {
-        if (self.switchingEngine) self.recordSwitchingDart(observation);
-        else if (self.doublePatternEngine)
-          self.recordDoublePatternDart(observation);
-        else if (self.targetScoringEngine)
-          self.recordTargetScoringDart(observation);
-        else if (self.switchingTargetScoringEngine)
-          self.recordSwitchingTargetScoringDart(observation);
-        else if (self.scoreThresholdEngine)
-          self.recordScoreThresholdDart(observation);
-        else if (self.bullseyeCheckoutEngine)
-          self.recordBullseyeCheckoutDart(observation);
-        else if (self.bullUpEngine) self.recordBullUpDart(observation);
-        else if (self.checkoutSequenceEngine)
-          self.recordCheckoutSequenceDart(observation);
-        else if (self.hitCountEngine) self.recordHitCountDart(observation);
-        else self.recordRandomCheckoutDart(observation);
+        const open = DART_ENGINE_RECORDERS.find(([slot]) => self[slot]);
+        if (open) self[open[1]](observation);
       },
       () => self.activeDartEngine()?.facts().turns ?? [],
     ),
@@ -205,18 +212,8 @@ export function routinePlay() {
       | RandomCheckoutEngine
       | HitCountEngine
       | null {
-      return (
-        this.switchingEngine ??
-        this.doublePatternEngine ??
-        this.targetScoringEngine ??
-        this.switchingTargetScoringEngine ??
-        this.scoreThresholdEngine ??
-        this.bullseyeCheckoutEngine ??
-        this.bullUpEngine ??
-        this.checkoutSequenceEngine ??
-        this.randomCheckoutEngine ??
-        this.hitCountEngine
-      );
+      const open = DART_ENGINE_RECORDERS.find(([slot]) => this[slot]);
+      return open ? this[open[0]] : null;
     },
 
     visitMarkers(this: RoutinePlayContext): BoardMarker[] {
