@@ -9,6 +9,7 @@ import {
   summariseBullUp,
   summariseCheckoutSequence,
   summariseRandomCheckout,
+  summariseHitCount,
 } from "@modules/training/routines/routine-summary.module";
 import { switchingEngineFactory } from "@modules/training/exercises/switching.engine.module";
 import { doublePatternEngineFactory } from "@modules/training/exercises/double-pattern.engine.module";
@@ -19,6 +20,7 @@ import { bullseyeCheckoutEngineFactory } from "@modules/training/exercises/bulls
 import { bullUpEngineFactory } from "@modules/training/exercises/bull-up.engine.module";
 import { checkoutSequenceEngineFactory } from "@modules/training/exercises/checkout-sequence.engine.module";
 import { randomCheckoutEngineFactory } from "@modules/training/exercises/random-checkout.engine.module";
+import { hitCountEngineFactory } from "@modules/training/exercises/hit-count.engine.module";
 import type { DartObservation } from "@modules/types";
 
 /**
@@ -271,6 +273,49 @@ describe("summarise* over a real engine run", () => {
 
     expect(summariseRandomCheckout(engine.state()).rows[2]).toEqual({
       label: "Checkout rate",
+      value: "—",
+    });
+  });
+
+  it("summariseHitCount reads hits, per-target hits, passes, darts and rate", () => {
+    const engine = hitCountEngineFactory.create({
+      targets: [
+        { kind: "TREBLE", number: 20 },
+        { kind: "DOUBLE", number: 16 },
+      ],
+      dartsPerTarget: 3,
+    });
+    [
+      dart(20, "TREBLE"),
+      dart(20, "SINGLE"),
+      dart(20, "TREBLE"),
+      dart(16, "DOUBLE"),
+      dart(null, "MISS"),
+      dart(null, "MISS"),
+      dart(20, "TREBLE"),
+    ].forEach((d) => engine.record(d));
+
+    expect(summariseHitCount(engine.state())).toEqual({
+      stepKey: "HIT_COUNT",
+      label: "Hit Count",
+      rows: [
+        { label: "Hits", value: "4" },
+        { label: "Hits on T20", value: "3" },
+        { label: "Hits on D16", value: "1" },
+        { label: "Passes", value: "1" },
+        { label: "Darts", value: "7" },
+        { label: "Hit rate", value: "57.14%" },
+      ],
+    });
+  });
+
+  it("summariseHitCount shows no rate before a dart", () => {
+    const engine = hitCountEngineFactory.create({
+      targets: [{ kind: "BULL" }],
+      dartsPerTarget: 3,
+    });
+    expect(summariseHitCount(engine.state()).rows.at(-1)).toEqual({
+      label: "Hit rate",
       value: "—",
     });
   });
