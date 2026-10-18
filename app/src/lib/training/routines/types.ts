@@ -43,7 +43,8 @@ export type ExercisePreviewFamily =
   | "targetScoring"
   | "switchingTargetScoring"
   | "freeAim"
-  | "bullseye";
+  | "bullseye"
+  | "hitCount";
 
 /** The engine slots `exerciseFamily()` reads. */
 export type ExerciseEngineSlots = Pick<
@@ -56,6 +57,7 @@ export type ExerciseEngineSlots = Pick<
   | "bullseyeCheckoutEngine"
   | "checkoutSequenceEngine"
   | "randomCheckoutEngine"
+  | "hitCountEngine"
 >;
 
 /** What `visitLabelsFor()` reads: the step's configuration and where the visit stands. */
@@ -63,6 +65,7 @@ export type VisitLabelInput = {
   config: Record<string, unknown> | null;
   visitIndex: number;
   currentTargetNumber: number | undefined;
+  currentTargetLabel?: string;
   targetIndex: number;
   dartsInOpenVisit: number;
 };
@@ -232,6 +235,15 @@ export type RoutinePlayContext = {
   randomCheckoutAttemptDart(this: RoutinePlayContext): number;
   randomCheckoutLastResult(this: RoutinePlayContext): string;
   randomCheckoutRate(this: RoutinePlayContext): string;
+  recordHitCountDart(
+    this: RoutinePlayContext,
+    observation: DartObservation,
+  ): void;
+  hitCountHits(this: RoutinePlayContext): number;
+  hitCountTargetLabel(this: RoutinePlayContext): string;
+  hitCountDartsLeft(this: RoutinePlayContext): number;
+  hitCountPasses(this: RoutinePlayContext): number;
+  hitCountRate(this: RoutinePlayContext): string;
   dartsThrown(this: RoutinePlayContext): number;
   activeDartEngine(
     this: RoutinePlayContext,
@@ -245,6 +257,7 @@ export type RoutinePlayContext = {
     | BullUpEngine
     | CheckoutSequenceEngine
     | RandomCheckoutEngine
+    | HitCountEngine
     | null;
   visitMarkers(this: RoutinePlayContext): BoardMarker[];
   previewSegments(this: RoutinePlayContext): PreviewSegment[];

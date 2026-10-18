@@ -9,7 +9,7 @@ import {
   windowIndex,
   windowPage,
 } from "@lib/training/routines/exercise-preview";
-import type { DartFact, TurnFact } from "@modules/types";
+import type { DartFact, DartZoneKey, TurnFact } from "@modules/types";
 
 function dart(overrides: Partial<DartFact> = {}): DartFact {
   return {
@@ -222,6 +222,7 @@ describe("exerciseFamily", () => {
     bullseyeCheckoutEngine: null,
     checkoutSequenceEngine: null,
     randomCheckoutEngine: null,
+    hitCountEngine: null,
   };
   const engine = {} as never;
 
@@ -240,6 +241,12 @@ describe("exerciseFamily", () => {
     ["bullseyeCheckoutEngine", "bullseye"],
   ] as const)("maps %s to %s", (key, family) => {
     expect(exerciseFamily({ ...none, [key]: engine })).toBe(family);
+  });
+
+  it("maps hitCountEngine to hitCount", () => {
+    expect(exerciseFamily({ ...none, hitCountEngine: engine })).toBe(
+      "hitCount",
+    );
   });
 });
 
@@ -389,5 +396,45 @@ describe("visitLabelsFor", () => {
       undefined,
       undefined,
     ]);
+  });
+});
+
+describe("Hit Count preview", () => {
+  const aimed = (
+    hitTargetNumber: number | null,
+    hitZoneKey: DartZoneKey,
+    intendedTargetNumber: number,
+    intendedZoneKey: DartZoneKey,
+  ) =>
+    ({
+      hitTargetNumber,
+      hitZoneKey,
+      intendedTargetNumber,
+      intendedZoneKey,
+    }) as DartFact;
+
+  it("judges a hit only in the intended bed", () => {
+    expect(judgeDart("hitCount", aimed(20, "TREBLE", 20, "TREBLE"))).toBe(
+      "hit",
+    );
+    expect(judgeDart("hitCount", aimed(20, "SINGLE", 20, "TREBLE"))).toBe(
+      "miss",
+    );
+    expect(
+      judgeDart("hitCount", aimed(25, "OUTER_BULL", 25, "INNER_BULL")),
+    ).toBe("miss");
+  });
+
+  it("captions every slot with the current target", () => {
+    expect(
+      visitLabelsFor("hitCount", {
+        config: null,
+        visitIndex: 0,
+        currentTargetNumber: undefined,
+        currentTargetLabel: "T19",
+        targetIndex: 1,
+        dartsInOpenVisit: 0,
+      }),
+    ).toEqual(["T19", "T19", "T19"]);
   });
 });

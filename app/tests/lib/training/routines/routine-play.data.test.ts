@@ -3404,3 +3404,153 @@ describe("routinePlay — Hit Count", () => {
     expect(makeStore().hitCountEngine).toBeNull();
   });
 });
+
+const HIT_COUNT_STEP = {
+  sequenceNumber: 1,
+  exerciseTypeKey: "HIT_COUNT",
+  exerciseRulesetVersionKey: "HIT_COUNT_V1",
+  gameTypeKey: null,
+  gameRulesetVersionKey: null,
+  durationSeconds: 600,
+  configuration: {
+    targets: [{ kind: "TREBLE", number: 20 }, { kind: "BULL" }],
+    dartsPerTarget: 3,
+  },
+};
+
+describe("routinePlay — Hit Count play", () => {
+  const T20 = {
+    hitTargetNumber: 20,
+    hitZoneKey: "TREBLE" as const,
+    locationX: 0,
+    locationY: -100,
+  };
+  const S20 = {
+    hitTargetNumber: 20,
+    hitZoneKey: "SINGLE" as const,
+    locationX: 0,
+    locationY: -100,
+  };
+  const BULLSEYE = {
+    hitTargetNumber: 25,
+    hitZoneKey: "INNER_BULL" as const,
+    locationX: 0,
+    locationY: 0,
+  };
+  const MISS = {
+    hitTargetNumber: null,
+    hitZoneKey: "MISS" as const,
+    locationX: null,
+    locationY: null,
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+    stubAudioContext();
+    Object.defineProperty(globalThis, "location", {
+      value: { href: "" },
+      writable: true,
+      configurable: true,
+    });
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineTemplateId: "rt-1",
+      routineName: "Custom",
+      steps: [HIT_COUNT_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "HIT_COUNT",
+      configuration: HIT_COUNT_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+  });
+  afterEach(() => {
+    vi.clearAllTimers();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it("startCurrentStep() builds the engine and its readouts start on the first target", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+
+    expect(store.hitCountEngine).not.toBeNull();
+    expect(store.hitCountHits()).toBe(0);
+    expect(store.hitCountTargetLabel()).toBe("T20");
+    expect(store.hitCountDartsLeft()).toBe(3);
+    expect(store.hitCountPasses()).toBe(0);
+    expect(store.hitCountRate()).toBe("—");
+  });
+
+  it("the readouts follow each dart, target and pass", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+
+    [T20, S20, T20].forEach((d) => store.recordHitCountDart(d));
+    expect(store.hitCountHits()).toBe(2);
+    expect(store.hitCountTargetLabel()).toBe("BULL");
+    expect(store.hitCountDartsLeft()).toBe(3);
+    expect(store.hitCountRate()).toBe("66.67%");
+
+    [BULLSEYE, MISS, MISS].forEach((d) => store.recordHitCountDart(d));
+    expect(store.hitCountPasses()).toBe(1);
+    expect(store.hitCountTargetLabel()).toBe("T20");
+  });
+
+  it("previewSegments() marks the named bed hit and anything else miss, captioned with the target", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+
+    store.recordHitCountDart(T20);
+    store.recordHitCountDart(S20);
+    expect(store.previewSegments()).toEqual([
+      { status: "hit", label: "T20" },
+      { status: "miss" },
+      { status: "empty", label: "T20" },
+    ]);
+  });
+
+  it("routes a committed board dart to the Hit Count engine", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+
+    boardCommit.onCommit!(T20);
+
+    expect(store.hitCountEngine!.state().dartsThrown).toBe(1);
+  });
+
+  it("never completes the step on a dart", async () => {
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(sessionApi.appendBatch).mockReset();
+    const store = makeStore();
+    await startRoutine(store);
+
+    Array.from({ length: 60 }, () => T20).forEach((d) =>
+      store.recordHitCountDart(d),
+    );
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(sessionApi.appendBatch).not.toHaveBeenCalled();
+    expect(store.hitCountEngine!.isComplete()).toBe(false);
+  });
+
+  it("the step deadline expires the engine and uploads its darts", async () => {
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(sessionApi.appendBatch).mockResolvedValue(undefined as never);
+    vi.mocked(sessionApi.completeSession).mockResolvedValue(undefined as never);
+    vi.mocked(trainingApi.completeTraining).mockResolvedValue({
+      activityId: "act-1",
+      completedAt: "2026-10-07T12:00:00.000Z",
+    });
+    const store = makeStore();
+    await startRoutine(store);
+    store.recordHitCountDart(T20);
+
+    await vi.advanceTimersByTimeAsync(600_000);
+
+    expect(sessionApi.appendBatch).toHaveBeenCalled();
+    expect(store.stepSummaries[0]).toMatchObject({ stepKey: "HIT_COUNT" });
+  });
+});

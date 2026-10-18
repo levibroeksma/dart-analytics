@@ -31,6 +31,7 @@ const ENGINE_FAMILIES: readonly [
   ["checkoutSequenceEngine", "freeAim"],
   ["randomCheckoutEngine", "freeAim"],
   ["bullseyeCheckoutEngine", "bullseye"],
+  ["hitCountEngine", "hitCount"],
 ];
 
 /** The preview family of whichever exercise engine is open, or null. */
@@ -66,6 +67,13 @@ function judgeBullseye(dart: DartFact): DartJudgement {
   return dart.hitZoneKey === "INNER_BULL" ? "hit" : "miss";
 }
 
+function judgeIntendedBed(dart: DartFact): DartJudgement {
+  return dart.hitTargetNumber === dart.intendedTargetNumber &&
+    dart.hitZoneKey === dart.intendedZoneKey
+    ? "hit"
+    : "miss";
+}
+
 const JUDGES: Record<ExercisePreviewFamily, (dart: DartFact) => DartJudgement> =
   {
     switching: judgeOnTarget,
@@ -74,6 +82,7 @@ const JUDGES: Record<ExercisePreviewFamily, (dart: DartFact) => DartJudgement> =
     switchingTargetScoring: judgeTargetScoring,
     freeAim: judgeFreeAim,
     bullseye: judgeBullseye,
+    hitCount: judgeIntendedBed,
   };
 
 /**
@@ -82,7 +91,8 @@ const JUDGES: Record<ExercisePreviewFamily, (dart: DartFact) => DartJudgement> =
  * requires the double, both Target Scoring exercises share their ring rule
  * (a double is a miss), free-aim exercises have no target (a dart on the
  * board is a value), and Bullseye Checkouts judges setup darts as free aim
- * and the dart aimed at the bull as a hit only on the bullseye.
+ * and the dart aimed at the bull as a hit only on the bullseye. Hit Count
+ * counts only the intended bed.
  */
 export function judgeDart(
   family: ExercisePreviewFamily,
@@ -119,6 +129,11 @@ function switchingTargetScoringCaptions(input: VisitLabelInput): Captions {
   return cycleFrom(config.targets, start, 3).map(targetScoringTargetLabel);
 }
 
+function hitCountCaptions(input: VisitLabelInput): Captions {
+  const label = input.currentTargetLabel;
+  return label === undefined ? noCaptions() : [label, label, label];
+}
+
 const CAPTIONS: Partial<
   Record<ExercisePreviewFamily, (input: VisitLabelInput) => Captions>
 > = {
@@ -126,6 +141,7 @@ const CAPTIONS: Partial<
   doublePattern: doublePatternCaptions,
   targetScoring: targetScoringCaptions,
   switchingTargetScoring: switchingTargetScoringCaptions,
+  hitCount: hitCountCaptions,
 };
 
 /**

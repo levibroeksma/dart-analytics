@@ -1,0 +1,15 @@
+---
+// Components
+import ExercisePanelShell from "./ExercisePanelShell.astro";
+---
+
+<ExercisePanelShell
+  score="hitCountHits()"
+  caption="HITS"
+  tiles={[
+    { label: "Target", value: "hitCountTargetLabel()" },
+    { label: "Left", value: "hitCountDartsLeft()" },
+    { label: "Pass", value: "hitCountPasses() + 1" },
+    { label: "Rate", value: "hitCountRate()" },
+  ]}
+/>
