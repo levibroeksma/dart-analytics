@@ -90,7 +90,6 @@ export type SetupSessionContext = {
   activeSessionLocal: boolean;
   showActiveSessionModal: boolean;
   loadingReconciliation: boolean;
-  reconciliationFailed: boolean;
   guests: { displayName: string }[];
   showAddGuestModal: boolean;
   newGuestName: string;
