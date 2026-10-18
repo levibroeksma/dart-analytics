@@ -50,6 +50,9 @@ jobs:
       - name: Style-tokens gate
         run: bash scripts/check-style-tokens.sh
 
+      - name: Game-rules gate
+        run: bash scripts/check-game-rules.sh && bash scripts/test-check-game-rules.sh
+
       - name: Game-wiring gate
         run: bash scripts/check-game-wiring.sh
 
