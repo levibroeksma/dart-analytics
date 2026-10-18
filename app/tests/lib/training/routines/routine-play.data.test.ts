@@ -3606,6 +3606,7 @@ describe("routinePlay — board dispatch", () => {
     ["CHECKOUT_SEQUENCE", "checkoutSequenceEngine"],
     ["RANDOM_CHECKOUT", "randomCheckoutEngine"],
     ["HIT_COUNT", "hitCountEngine"],
+    ["SWITCHBLADE", "switchbladeEngine"],
   ] as const)(
     "routes a committed board dart to the open %s engine (%s)",
     async (kind, slot) => {
@@ -3641,5 +3642,139 @@ describe("routinePlay — board dispatch", () => {
 describe("routinePlay — SwitchBlade", () => {
   it("starts with no SwitchBlade engine", () => {
     expect(makeStore().switchbladeEngine).toBeNull();
+  });
+});
+
+const SWITCHBLADE_STEP = {
+  sequenceNumber: 1,
+  exerciseTypeKey: "SWITCHBLADE",
+  exerciseRulesetVersionKey: "SWITCHBLADE_V1",
+  gameTypeKey: null,
+  gameRulesetVersionKey: null,
+  durationSeconds: 600,
+  configuration: {},
+};
+
+describe("routinePlay — SwitchBlade play", () => {
+  const T20 = {
+    hitTargetNumber: 20,
+    hitZoneKey: "TREBLE" as const,
+    locationX: 0,
+    locationY: -100,
+  };
+  const S20 = {
+    hitTargetNumber: 20,
+    hitZoneKey: "SINGLE" as const,
+    locationX: 0,
+    locationY: -100,
+  };
+  const MISS = {
+    hitTargetNumber: null,
+    hitZoneKey: "MISS" as const,
+    locationX: null,
+    locationY: null,
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+    stubAudioContext();
+    Object.defineProperty(globalThis, "location", {
+      value: { href: "" },
+      writable: true,
+      configurable: true,
+    });
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineTemplateId: "rt-1",
+      routineName: "Custom",
+      steps: [SWITCHBLADE_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "SWITCHBLADE",
+      configuration: SWITCHBLADE_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+  });
+  afterEach(() => {
+    vi.clearAllTimers();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it("startCurrentStep() builds the engine and its readouts start on round one's first slot", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+
+    expect(store.switchbladeEngine).not.toBeNull();
+    expect(store.switchbladeTotal()).toBe(0);
+    expect(store.switchbladeSlotLabel()).toBe("T20");
+    expect(store.switchbladeRound()).toBe(1);
+    expect(store.switchbladePasses()).toBe(0);
+  });
+
+  it("the readouts follow each dart, slot and round", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+
+    [T20, S20, MISS, T20, MISS].forEach((d) => store.recordSwitchbladeDart(d));
+    expect(store.switchbladeTotal()).toBe(140);
+    expect(store.switchbladeRound()).toBe(2);
+    expect(store.switchbladeSlotLabel()).toBe("T19");
+  });
+
+  it("previewSegments() judges each dart on its own slot and captions the switch", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+
+    [T20, S20, MISS, T20, MISS].forEach((d) => store.recordSwitchbladeDart(d));
+    expect(store.previewSegments()).toEqual([
+      { status: "hit", label: "T20" },
+      { status: "miss" },
+      { status: "empty", label: "T19" },
+    ]);
+  });
+
+  it("routes a committed board dart to the SwitchBlade engine", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+
+    boardCommit.onCommit!(T20);
+
+    expect(store.switchbladeEngine!.state().dartsThrown).toBe(1);
+  });
+
+  it("never completes the step on a dart", async () => {
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(sessionApi.appendBatch).mockReset();
+    const store = makeStore();
+    await startRoutine(store);
+
+    Array.from({ length: 60 }, () => T20).forEach((d) =>
+      store.recordSwitchbladeDart(d),
+    );
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(sessionApi.appendBatch).not.toHaveBeenCalled();
+    expect(store.switchbladeEngine!.isComplete()).toBe(false);
+  });
+
+  it("the step deadline expires the engine and uploads its darts", async () => {
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(sessionApi.appendBatch).mockResolvedValue(undefined as never);
+    vi.mocked(sessionApi.completeSession).mockResolvedValue(undefined as never);
+    vi.mocked(trainingApi.completeTraining).mockResolvedValue({
+      activityId: "act-1",
+      completedAt: "2026-10-07T12:00:00.000Z",
+    });
+    const store = makeStore();
+    await startRoutine(store);
+    store.recordSwitchbladeDart(T20);
+
+    await vi.advanceTimersByTimeAsync(600_000);
+
+    expect(sessionApi.appendBatch).toHaveBeenCalled();
+    expect(store.stepSummaries[0]).toMatchObject({ stepKey: "SWITCHBLADE" });
   });
 });

@@ -5,6 +5,8 @@ import {
   targetScoringPoints,
   targetScoringTargetLabel,
 } from "@modules/training/exercises/target-scoring.engine.module";
+import { boardTargetLabel } from "@modules/game/board-progression.module";
+import { switchbladeRoundSlots } from "@modules/training/exercises/switchblade.engine.module";
 import type {
   DoublePatternConfigData,
   SwitchingConfigData,
@@ -32,6 +34,7 @@ const ENGINE_FAMILIES: readonly [
   ["randomCheckoutEngine", "freeAim"],
   ["bullseyeCheckoutEngine", "bullseye"],
   ["hitCountEngine", "hitCount"],
+  ["switchbladeEngine", "switchblade"],
 ];
 
 /** The preview family of whichever exercise engine is open, or null. */
@@ -83,6 +86,7 @@ const JUDGES: Record<ExercisePreviewFamily, (dart: DartFact) => DartJudgement> =
     freeAim: judgeFreeAim,
     bullseye: judgeBullseye,
     hitCount: judgeIntendedBed,
+    switchblade: judgeOnTarget,
   };
 
 /**
@@ -92,7 +96,7 @@ const JUDGES: Record<ExercisePreviewFamily, (dart: DartFact) => DartJudgement> =
  * (a double is a miss), free-aim exercises have no target (a dart on the
  * board is a value), and Bullseye Checkouts judges setup darts as free aim
  * and the dart aimed at the bull as a hit only on the bullseye. Hit Count
- * counts only the intended bed.
+ * counts only the intended bed. SwitchBlade judges on the number, any ring.
  */
 export function judgeDart(
   family: ExercisePreviewFamily,
@@ -134,6 +138,10 @@ function hitCountCaptions(input: VisitLabelInput): Captions {
   return label === undefined ? noCaptions() : [label, label, label];
 }
 
+function switchbladeCaptions(input: VisitLabelInput): Captions {
+  return switchbladeRoundSlots(input.visitIndex).map(boardTargetLabel);
+}
+
 const CAPTIONS: Partial<
   Record<ExercisePreviewFamily, (input: VisitLabelInput) => Captions>
 > = {
@@ -142,6 +150,7 @@ const CAPTIONS: Partial<
   targetScoring: targetScoringCaptions,
   switchingTargetScoring: switchingTargetScoringCaptions,
   hitCount: hitCountCaptions,
+  switchblade: switchbladeCaptions,
 };
 
 /**

@@ -223,6 +223,7 @@ describe("exerciseFamily", () => {
     checkoutSequenceEngine: null,
     randomCheckoutEngine: null,
     hitCountEngine: null,
+    switchbladeEngine: null,
   };
   const engine = {} as never;
 
@@ -246,6 +247,12 @@ describe("exerciseFamily", () => {
   it("maps hitCountEngine to hitCount", () => {
     expect(exerciseFamily({ ...none, hitCountEngine: engine })).toBe(
       "hitCount",
+    );
+  });
+
+  it("maps switchbladeEngine to switchblade", () => {
+    expect(exerciseFamily({ ...none, switchbladeEngine: engine })).toBe(
+      "switchblade",
     );
   });
 });
@@ -436,5 +443,57 @@ describe("Hit Count preview", () => {
         dartsInOpenVisit: 0,
       }),
     ).toEqual(["T19", "T19", "T19"]);
+  });
+});
+
+describe("SwitchBlade preview", () => {
+  const aimed = (
+    hitTargetNumber: number | null,
+    hitZoneKey: DartZoneKey,
+    intendedTargetNumber: number,
+    intendedZoneKey: DartZoneKey,
+  ) =>
+    ({
+      hitTargetNumber,
+      hitZoneKey,
+      intendedTargetNumber,
+      intendedZoneKey,
+    }) as DartFact;
+
+  it("judges a hit on the slot's number in any ring, either bull on 25", () => {
+    expect(judgeDart("switchblade", aimed(20, "SINGLE", 20, "TREBLE"))).toBe(
+      "hit",
+    );
+    expect(judgeDart("switchblade", aimed(19, "TREBLE", 20, "TREBLE"))).toBe(
+      "miss",
+    );
+    expect(
+      judgeDart("switchblade", aimed(25, "OUTER_BULL", 25, "INNER_BULL")),
+    ).toBe("hit");
+  });
+
+  it("captions the round's three slots, wrapping every five rounds", () => {
+    const input = (visitIndex: number) => ({
+      config: {},
+      visitIndex,
+      currentTargetNumber: undefined,
+      targetIndex: 0,
+      dartsInOpenVisit: 0,
+    });
+    expect(visitLabelsFor("switchblade", input(1))).toEqual([
+      "T20",
+      "T20",
+      "T19",
+    ]);
+    expect(visitLabelsFor("switchblade", input(4))).toEqual([
+      "T20",
+      "T20",
+      "BULL",
+    ]);
+    expect(visitLabelsFor("switchblade", input(5))).toEqual([
+      "T20",
+      "T20",
+      "T20",
+    ]);
   });
 });

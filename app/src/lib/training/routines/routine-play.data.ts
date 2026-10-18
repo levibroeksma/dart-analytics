@@ -79,6 +79,7 @@ import type { BullUpEngine } from "@modules/training/exercises/bull-up.engine.mo
 import type { CheckoutSequenceEngine } from "@modules/training/exercises/checkout-sequence.engine.module";
 import type { RandomCheckoutEngine } from "@modules/training/exercises/random-checkout.engine.module";
 import type { HitCountEngine } from "@modules/training/exercises/hit-count.engine.module";
+import type { SwitchbladeEngine } from "@modules/training/exercises/switchblade.engine.module";
 import { boardTargetLabel } from "@modules/game/board-progression.module";
 import { accuracyDisplay } from "@lib/game/play-visit-stats";
 import type { DartFact } from "@modules/types";
@@ -112,6 +113,7 @@ const DART_ENGINE_RECORDERS = [
   ["checkoutSequenceEngine", "recordCheckoutSequenceDart"],
   ["randomCheckoutEngine", "recordRandomCheckoutDart"],
   ["hitCountEngine", "recordHitCountDart"],
+  ["switchbladeEngine", "recordSwitchbladeDart"],
 ] as const satisfies readonly (readonly [
   keyof RoutinePlayContext,
   keyof RoutinePlayContext,
@@ -212,6 +214,7 @@ export function routinePlay() {
       | CheckoutSequenceEngine
       | RandomCheckoutEngine
       | HitCountEngine
+      | SwitchbladeEngine
       | null {
       const open = DART_ENGINE_RECORDERS.find(([slot]) => this[slot]);
       return open ? this[open[0]] : null;
@@ -712,6 +715,7 @@ export function routinePlay() {
           this.checkoutSequenceEngine?.expireTimer();
           this.randomCheckoutEngine?.expireTimer();
           this.hitCountEngine?.expireTimer();
+          this.switchbladeEngine?.expireTimer();
           void this.completeCurrentStep();
         },
       });
@@ -1039,6 +1043,32 @@ export function routinePlay() {
       return !state || state.dartsThrown === 0
         ? "—"
         : accuracyDisplay(state.hits, state.dartsThrown);
+    },
+
+    /** SwitchBlade never ends on a dart; only the step deadline completes it. */
+    recordSwitchbladeDart(
+      this: RoutinePlayContext,
+      observation: DartObservation,
+    ) {
+      if (!this.switchbladeEngine) return;
+      this.switchbladeEngine.record(observation);
+    },
+
+    switchbladeTotal(this: RoutinePlayContext): number {
+      return this.switchbladeEngine?.state().total ?? 0;
+    },
+
+    switchbladeSlotLabel(this: RoutinePlayContext): string {
+      const slot = this.switchbladeEngine?.state().currentSlot;
+      return slot === undefined ? "" : boardTargetLabel(slot);
+    },
+
+    switchbladeRound(this: RoutinePlayContext): number {
+      return this.switchbladeEngine?.state().round ?? 1;
+    },
+
+    switchbladePasses(this: RoutinePlayContext): number {
+      return this.switchbladeEngine?.state().passes ?? 0;
     },
 
     dartsThrown(this: RoutinePlayContext): number {

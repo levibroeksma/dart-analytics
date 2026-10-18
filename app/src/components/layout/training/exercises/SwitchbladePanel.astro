@@ -1,0 +1,14 @@
+---
+// Components
+import ExercisePanelShell from "./ExercisePanelShell.astro";
+---
+
+<ExercisePanelShell
+  score="switchbladeTotal()"
+  caption="TOTAL"
+  tiles={[
+    { label: "Target", value: "switchbladeSlotLabel()" },
+    { label: "Round", value: "switchbladeRound()" },
+    { label: "Pass", value: "switchbladePasses() + 1" },
+  ]}
+/>
