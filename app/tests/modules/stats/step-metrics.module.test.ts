@@ -15,6 +15,7 @@ import { bullUpEngineFactory } from "@modules/training/exercises/bull-up.engine.
 import { checkoutSequenceEngineFactory } from "@modules/training/exercises/checkout-sequence.engine.module";
 import { randomCheckoutEngineFactory } from "@modules/training/exercises/random-checkout.engine.module";
 import { hitCountEngineFactory } from "@modules/training/exercises/hit-count.engine.module";
+import { switchbladeEngineFactory } from "@modules/training/exercises/switchblade.engine.module";
 import type {
   DartExerciseKind,
   DartObservation,
@@ -148,6 +149,14 @@ function fixtures(): Fixture[] {
     dart(null, "MISS"),
   ].forEach((d) => hitCount.record(d));
 
+  const switchblade = switchbladeEngineFactory.create({});
+  [
+    dart(20, "TREBLE"),
+    dart(20, "SINGLE"),
+    dart(null, "MISS"),
+    dart(20, "TREBLE"),
+  ].forEach((d) => switchblade.record(d));
+
   return [
     {
       kind: "SWITCHING",
@@ -208,6 +217,12 @@ function fixtures(): Fixture[] {
       state: hitCount.state(),
       facts: hitCount.facts(),
       expected: { hits: 2, darts: 4 },
+    },
+    {
+      kind: "SWITCHBLADE",
+      state: switchblade.state(),
+      facts: switchblade.facts(),
+      expected: { points: 140, darts: 4, hits: 3 },
     },
   ];
 }

@@ -35,13 +35,15 @@ const treble = (number: number): SwitchbladeSlot => ({
   number,
 });
 
+const BULL_SLOT: SwitchbladeSlot = { kind: "BULL" };
+
 /** The fixed path: each round two darts at T20, then T20, T19, T18, T17 or the bull. */
 export const SWITCHBLADE_PATH: readonly SwitchbladeSlot[] = [
   treble(20),
   treble(19),
   treble(18),
   treble(17),
-  { kind: "BULL" },
+  BULL_SLOT,
 ].flatMap((third) => [treble(20), treble(20), third]);
 
 /** Round `roundIndex`'s three slots (0-based, wrapping every five rounds). */

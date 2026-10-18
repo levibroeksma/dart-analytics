@@ -231,6 +231,35 @@ describe("foldStepResult", () => {
     expect(result.skippedSessions).toBe(0);
   });
 
+  it("replays a SwitchBlade session's points, darts and hits", () => {
+    const switchblade = (
+      dartNumber: number,
+      hitZoneKey: DartZoneKey,
+      score: number,
+    ) =>
+      dartRow({
+        sessionId: "sb",
+        exerciseRulesetVersionKey: "SWITCHBLADE_V1",
+        configuration: {},
+        turnSequence: 1,
+        dartNumber,
+        intendedTargetNumber: 20,
+        intendedZoneKey: "TREBLE",
+        hitTargetNumber: 20,
+        hitZoneKey,
+        score,
+      });
+
+    const result = foldStepResult("SWITCHBLADE", [
+      switchblade(1, "TREBLE", 60),
+      switchblade(2, "SINGLE", 20),
+    ]);
+
+    expect(result.metrics).toEqual({ points: 80, darts: 2, hits: 2 });
+    expect(result.sessions).toBe(1);
+    expect(result.skippedSessions).toBe(0);
+  });
+
   it("replays a two-stage session in stage pre-order, never interleaving the stages' turns", () => {
     const ROOT = "01900000-0000-7000-9000-0000000000a1";
     const CHILD = "01900000-0000-7000-9000-0000000000a2";

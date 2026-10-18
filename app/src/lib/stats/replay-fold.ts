@@ -16,6 +16,7 @@ import "@modules/training/exercises/double-pattern.engine.module";
 import "@modules/training/exercises/hit-count.engine.module";
 import "@modules/training/exercises/random-checkout.engine.module";
 import "@modules/training/exercises/score-threshold.engine.module";
+import "@modules/training/exercises/switchblade.engine.module";
 import "@modules/training/exercises/switching-target-scoring.engine.module";
 import "@modules/training/exercises/switching.engine.module";
 import "@modules/training/exercises/target-scoring.engine.module";

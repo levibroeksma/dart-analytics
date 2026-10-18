@@ -86,6 +86,10 @@ describe("STEP_REPLAY_PRESENTERS (all nine kinds, real engine runs)", () => {
     expect(KINDS).toContain("HIT_COUNT");
   });
 
+  it("covers SwitchBlade", () => {
+    expect(KINDS).toContain("SWITCHBLADE");
+  });
+
   it.each(KINDS)(
     "%s: the turn cell's headline and darts value equal stepMetrics over the real replayed facts",
     (kind) => {

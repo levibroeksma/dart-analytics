@@ -104,4 +104,16 @@ describe("foldReplay (non-game routine steps)", () => {
     expect(finalState).toMatchObject({ hits: 2 });
     expect(fold.stateAfter(turns.length - 1)).toEqual(finalState);
   });
+
+  it("replays a SwitchBlade run visit by visit to the engine's final state", () => {
+    const { header, turns, finalState } = playExerciseKind("SWITCHBLADE");
+
+    const fold = foldReplay(header, turns);
+
+    expect(fold.ok).toBe(true);
+    if (!fold.ok) return;
+    expect(turns).toHaveLength(2);
+    expect(finalState).toMatchObject({ total: 140 });
+    expect(fold.stateAfter(turns.length - 1)).toEqual(finalState);
+  });
 });
