@@ -9,6 +9,7 @@ import type { FiveOhOneEngine } from "@modules/game/five-oh-one.engine.module";
 import type { Bobs27Engine } from "@modules/game/bobs27.engine.module";
 import type { CricketEngine } from "@modules/game/cricket.engine.module";
 import type { TacticsEngine } from "@modules/game/tactics.engine.module";
+import type { BaseballEngine } from "@modules/game/baseball.engine.module";
 import type { SinglesTrainingEngine } from "@modules/game/singles-training.engine.module";
 import type { DoublesTrainingEngine } from "@modules/game/doubles-training.engine.module";
 import type { ShanghaiEngine } from "@modules/game/shanghai.engine.module";
@@ -23,6 +24,7 @@ import type {
   CricketState,
   TacticsObjective,
   TacticsState,
+  BaseballState,
   DartCount,
   DartObservation,
   DoublesTrainingState,
@@ -52,6 +54,7 @@ import type {
   Bobs27Snapshot,
   CricketSnapshot,
   TacticsSnapshot,
+  BaseballSnapshot,
   SinglesSnapshot,
   SinglesV2Snapshot,
   DoublesTrainingSnapshot,
@@ -1024,6 +1027,62 @@ export type TacticsPlayContext = PlayLifecycleContext<
   back(this: TacticsPlayContext): Promise<void>;
   playAgain(this: TacticsPlayContext): Promise<void>;
   abandonAndExit(this: TacticsPlayContext): Promise<void>;
+};
+
+export type BaseballSetupContext = PresetSetupContext;
+
+/** One seat's results: total runs, hits on the inning's number over darts thrown, the best inning (1-indexed, null with no runs) and runs per inning. */
+export type BaseballSeatResult = {
+  participantRef: string;
+  sideKey: string;
+  runs: number;
+  accuracy: string;
+  bestInning: number | null;
+  runsPerInning: number[];
+};
+
+export type BaseballResultsSnapshot = {
+  status: "COMPLETE";
+  winningSideKey: null;
+  seats: BaseballSeatResult[];
+};
+
+export type BaseballPlayContext = PlayLifecycleContext<
+  BaseballSnapshot,
+  BaseballEngine,
+  BaseballResultsSnapshot
+> & {
+  visitMarkers(this: BaseballPlayContext): BoardMarker[];
+  recordDart(
+    this: BaseballPlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
+  state(this: BaseballPlayContext): BaseballState | null;
+  subtitle(this: BaseballPlayContext): string;
+  currentTargetLabelFor(this: BaseballPlayContext, seatRef: string): string;
+  currentTargetLabel(this: BaseballPlayContext): string;
+  inningLabelFor(this: BaseballPlayContext, seatRef: string): string;
+  inningLabel(this: BaseballPlayContext): string;
+  currentScoreFor(this: BaseballPlayContext, seatRef: string): string;
+  currentScore(this: BaseballPlayContext): string;
+  isBullVisit(this: BaseballPlayContext): boolean;
+  previewSegments(this: BaseballPlayContext): GamePreviewSegment[];
+  init(this: BaseballPlayContext): Promise<void>;
+  retryReconciliation(this: BaseballPlayContext): Promise<void>;
+  recordTap(
+    this: BaseballPlayContext,
+    ring: "SINGLE" | "DOUBLE" | "TREBLE" | "MISS",
+  ): Promise<void>;
+  commitDart(
+    this: BaseballPlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
+  undoVisit(this: BaseballPlayContext): Promise<void>;
+  uploadAndCompleteSession(this: BaseballPlayContext): Promise<void>;
+  resultsTitle(this: BaseballPlayContext): string;
+  back(this: BaseballPlayContext): Promise<void>;
+  playAgain(this: BaseballPlayContext): Promise<void>;
+  abandonAndExit(this: BaseballPlayContext): Promise<void>;
 };
 
 /** One dart slot in Singles Training's visit preview — a resolved hit/miss mark (by training points, not board score), or a not-yet-thrown placeholder. */

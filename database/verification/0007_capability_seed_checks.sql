@@ -51,12 +51,12 @@ CREATE TEMP TABLE verification_results (
 -- ------------------------------------------------------------
 INSERT INTO verification_results
 SELECT '1',
-    'seed inserted exactly the 34 declared rows',
+    'seed inserted exactly the 36 declared rows',
     CASE
-        WHEN count(*) = 34 THEN 'PASS'
+        WHEN count(*) = 36 THEN 'PASS'
         ELSE 'FAIL'
     END,
-    format('expected 34, found %s', count(*))
+    format('expected 36, found %s', count(*))
 FROM ruleset_version_capabilities;
 
 -- ------------------------------------------------------------
@@ -121,7 +121,9 @@ FROM (
             ('CRICKET_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
             ('CRICKET_V1', 'ANALYTICS', 'VISUAL_BOARD'),
             ('TACTICS_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
-            ('TACTICS_V1', 'ANALYTICS', 'VISUAL_BOARD')
+            ('TACTICS_V1', 'ANALYTICS', 'VISUAL_BOARD'),
+            ('BASEBALL_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
+            ('BASEBALL_V1', 'ANALYTICS', 'VISUAL_BOARD')
     ) AS declared(ruleset_key, capture_key, input_key)
     LEFT JOIN ruleset_versions rv ON rv.implementation_key = declared.ruleset_key
     LEFT JOIN capture_modes cm ON cm.implementation_key = declared.capture_key
@@ -135,12 +137,12 @@ FROM (
 -- silently read as fewer triples checked, not FAIL.
 INSERT INTO verification_results
 SELECT '2',
-    'all 34 declared triples were actually checked',
+    'all 36 declared triples were actually checked',
     CASE
-        WHEN count(*) = 34 THEN 'PASS'
+        WHEN count(*) = 36 THEN 'PASS'
         ELSE 'FAIL'
     END,
-    format('%s of 34 triple checks ran', count(*))
+    format('%s of 36 triple checks ran', count(*))
 FROM verification_results
 WHERE step = '2';
 
@@ -242,7 +244,9 @@ WHERE NOT EXISTS (
                     ('CRICKET_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
                     ('CRICKET_V1', 'ANALYTICS', 'VISUAL_BOARD'),
                     ('TACTICS_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
-                    ('TACTICS_V1', 'ANALYTICS', 'VISUAL_BOARD')
+                    ('TACTICS_V1', 'ANALYTICS', 'VISUAL_BOARD'),
+                    ('BASEBALL_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
+                    ('BASEBALL_V1', 'ANALYTICS', 'VISUAL_BOARD')
             ) AS declared(ruleset_key, capture_key, input_key)
         WHERE declared.ruleset_key = rv.implementation_key
             AND declared.capture_key = cm.implementation_key

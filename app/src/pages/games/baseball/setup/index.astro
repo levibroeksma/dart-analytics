@@ -1,0 +1,12 @@
+---
+export const prerender = true;
+import GameSetupPage from "@components/layout/games/setup/GameSetupPage.astro";
+import BaseballSetupForm from "@components/layout/games/setup/BaseballSetupForm.astro";
+---
+
+<GameSetupPage
+  title="Baseball Darts"
+  x-data="baseballSetup()"
+>
+  <BaseballSetupForm />
+</GameSetupPage>

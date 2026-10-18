@@ -1,6 +1,6 @@
 # Baseball Darts
 
-Current version: none (V1 in design)
+Current version: V1 (shipped 2026-10-18)
 Entry points: standalone
 Kernel: TRACK
 
@@ -109,8 +109,8 @@ Total runs, and runs per inning.
 
 ## Capture
 
-Baseball Darts is unbuilt; this is the capture shape its V1 is designed for,
-taken from Shanghai's.
+V1's capture shape, as built (2026-10-18), taken from Shanghai's. Ruleset
+`BASEBALL_V1` (seed `0041`).
 
 - **Capture / input mode:** RECREATIONAL + DETAILED_DARTS and
   ANALYTICS + VISUAL_BOARD — runs are read off the ring, so QUICK_SCORE cannot

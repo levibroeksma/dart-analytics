@@ -90,6 +90,13 @@ export const GAME_CARDS: readonly GameCardDescriptor[] = [
     title: "Around the Clock",
     caption: "A pub classic, and great practice.",
   },
+  {
+    rulesetVersionKey: "BASEBALL_V1",
+    group: "CLASSICS",
+    href: "/games/baseball/setup",
+    title: "Baseball Darts",
+    caption: "Nine innings, runs by the ring.",
+  },
 ];
 
 /**

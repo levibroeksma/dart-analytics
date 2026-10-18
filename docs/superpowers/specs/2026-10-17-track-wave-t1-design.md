@@ -97,7 +97,7 @@ change.
 | Hit Count | config `targets` (TREBLE / DOUBLE / BULL) | `isHitOn` (inner bull for BULL) | 1 on hit | track `dartsOnTarget` | `advanceAfterDarts(n)` → `passOnWrap` | `closeAfter(3)` | `dartsOnTarget`, `passes`, `hitsPerTarget[]` | timer only |
 | SwitchBlade | 15 fixed slots (`SWITCHBLADE_PATH`, a code constant) | `anyRingEitherBull` | `boardScorePoints` on hit | `tallyRoundPoints(3)` → `advanceEveryDart` → `passOnWrap(14)` | — | `closeAfter(3)` | `passes`, `roundTotals[5]` | timer only |
 | Doubles Lock | `doublesPath` D20→D1 | `isHitOn` | 0 (bonus via `lockCheckpoint`) | — | `lockCheckpoint({2:50,3:100})` → pass wrap | `closeAfter(3)` | `lastLock`, `passes`, `dartsPerPass[]`, `locks` | timer only |
-| Baseball | `numbersPath` 1–9 | number any ring (no bull) | `pointsTable` S1 / D2 / T3 | — | `advanceToEnd` → `doneOnWrap(8)` | `closeAfter(3)` | none | scoreCompare HIGH (one seat) |
+| Baseball | `numbersPath` 1–9 | `anyRingEitherBull` (path has no bull) | `pointsTable` S1 / D2 / T3 | `tallyRoundPoints(1)` | `advanceToEnd(8)` | `closeAfter(3)` | `roundTotals[9]` | none (one seat): `COMPLETE` after inning 9, `winningSideKey: null` |
 
 Hit Count config: `{ targets: HitCountTarget[]; dartsPerTarget: number }`,
 `HitCountTarget = TREBLE | DOUBLE | BULL` (no `NUMBER`; `BULL` = bullseye only),
@@ -112,6 +112,16 @@ Doubles Lock: type `DOUBLES_LOCK`, ruleset `DOUBLES_LOCK_V1` (not the rules
 file's `LOCK_LADDER`); config is the empty strict object `{}`. Path and bonus
 are engine constants `DOUBLES_LOCK_PATH` and `DOUBLES_LOCK_BONUS = { 2: 50, 3: 100 }`.
 V2 Strict Lock becomes `{ 3: 100 }` with no new policy. (Refinements approved 2026-10-18.)
+
+Baseball: type `BASEBALL`, ruleset `BASEBALL_V1`, slug `baseball`; config is the
+empty strict object `{}`; preset "Baseball Darts — Nine Innings". Mode pairs
+`RECREATIONAL` + `DETAILED_DARTS` and `ANALYTICS` + `VISUAL_BOARD`; stats tags
+`["board"]`; no Dartbot, no `SEAT_CAPS` entry; `NO_INTENT`. `advanceToEnd(8)`
+finishes the seat on inning 9's close, so no `doneOnWrap`. Stats: `HEATMAP_ONLY_LAYOUTS`,
+`RESULT_DIRECTION` `"higher"`, replay Inning / Runs / Total, progress
+`Inning n of 9` with a RUNS headline. Card in `CLASSICS` after Around the Clock,
+caption "Nine innings, runs by the ring." Results: Runs, Accuracy, Best inning,
+then a "Runs per inning" `TargetGrid` (new optional `title` prop). (Refinements approved 2026-10-18.)
 
 ## 4. Readouts (projections)
 
@@ -129,7 +139,7 @@ Every field is derived from the fold; nothing is stored (Hard Invariant).
 | Subject | Capture / input | Stage | turns / darts |
 | --- | --- | --- | --- |
 | Exercises | analytics, `ANALYTICS` + `VISUAL_BOARD` | one `EXERCISE_BLOCK` per run | one `turns` row per visit; one `darts` row per throw with intended target/zone from `intent`, hit number/zone, board `score` |
-| Baseball | as Shanghai (`VISUAL_BOARD`, game shell) | one `LEG` stage | one `turns` row per inning (`totalScore` = runs via `closedVisitTotal`), `darts` per throw |
+| Baseball | as Shanghai (`VISUAL_BOARD`, game shell) | one `EXERCISE_BLOCK` per seat (`PER_SEAT`) | one `turns` row per inning (`totalScore` = runs via `closedVisitTotal`), `darts` per throw |
 
 Intended zone per target: TREBLE → `TREBLE`, DOUBLE → `DOUBLE`, BULL →
 `INNER_BULL` (Hit Count); SwitchBlade slot → `TREBLE` or `INNER_BULL`;

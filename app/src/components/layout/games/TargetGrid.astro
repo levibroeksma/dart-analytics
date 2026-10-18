@@ -6,15 +6,22 @@
  * @param {readonly string[]} labels Objective labels in display order
  * @param {string} valuesExpr Alpine expression for the per-objective array
  * @param {3 | 4} cols Grid columns
+ * @param {string} [title] Heading; default "Darts to close"
  */
 interface Props {
   labels: readonly string[];
   valuesExpr: string;
   cols: 3 | 4;
+  title?: string;
 }
 
 // Props
-const { labels, valuesExpr, cols }: Props = Astro.props;
+const {
+  labels,
+  valuesExpr,
+  cols,
+  title = "Darts to close",
+}: Props = Astro.props;
 
 // Components
 import ResultValue from "@components/layout/games/ResultValue.astro";
@@ -29,7 +36,7 @@ const COLS = { 3: "grid-cols-3", 4: "grid-cols-4" };
   <span
     class="self-start font-mono text-eyebrow font-semibold uppercase text-muted"
   >
-    Darts to close
+    {title}
   </span>
   <dl class={cn("grid w-full gap-2", COLS[cols])}>
     {

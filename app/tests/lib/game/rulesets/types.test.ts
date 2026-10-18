@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   AroundTheClockConfig,
+  BaseballConfig,
   CricketConfig,
   TacticsConfig,
   AroundTheClockV2Config,
@@ -615,5 +616,16 @@ describe("AroundTheClockV2Config", () => {
       durationType: "UNTIMED",
       durationValue: null,
     });
+  });
+});
+
+describe("BaseballConfig", () => {
+  it("registers BASEBALL_V1", () => {
+    expect(RULESET_CONFIGS.BASEBALL_V1).toBe(BaseballConfig);
+  });
+
+  it("accepts only the empty object", () => {
+    expect(BaseballConfig.safeParse({}).success).toBe(true);
+    expect(BaseballConfig.safeParse({ innings: 9 }).success).toBe(false);
   });
 });

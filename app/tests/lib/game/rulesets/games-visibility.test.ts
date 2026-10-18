@@ -31,6 +31,7 @@ describe("visibleGames", () => {
       "TUOD_V1",
       "SHANGHAI_V1",
       "AROUND_THE_CLOCK_V1",
+      "BASEBALL_V1",
     ]);
   });
 
@@ -48,6 +49,7 @@ describe("visibleGames", () => {
         "SHANGHAI_V1",
         "121_V1",
         "AROUND_THE_CLOCK_V1",
+        "BASEBALL_V1",
         "CRICKET_V1",
         "TACTICS_V1",
         "TUOD_V1",
@@ -109,7 +111,7 @@ describe("groupedGames", () => {
           "TUOD_V1",
         ],
       ],
-      ["CLASSICS", ["SHANGHAI_V1", "AROUND_THE_CLOCK_V1"]],
+      ["CLASSICS", ["SHANGHAI_V1", "AROUND_THE_CLOCK_V1", "BASEBALL_V1"]],
     ]);
   });
 

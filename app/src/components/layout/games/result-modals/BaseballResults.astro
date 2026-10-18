@@ -1,0 +1,38 @@
+---
+import ResultsModalShell from "@components/layout/games/ResultsModalShell.astro";
+import SinglePlayerSummary from "@components/layout/games/SinglePlayerSummary.astro";
+import TargetGrid from "@components/layout/games/TargetGrid.astro";
+
+const STAT_ROWS = [
+  { label: "Runs", key: "runs", hero: true, skeletonWidth: "w-30" },
+  { label: "Accuracy", key: "accuracy", side: true, skeletonWidth: "w-11" },
+  {
+    label: "Best inning",
+    key: "bestInning",
+    side: true,
+    skeletonWidth: "w-6",
+    fallback: "'—'",
+  },
+] as const;
+
+const INNING_LABELS = ["1", "2", "3", "4", "5", "6", "7", "8", "9"] as const;
+---
+
+<ResultsModalShell overline="Baseball Darts · Solo summary">
+  <h2
+    slot="title"
+    id="results-title"
+    class="text-balance font-display text-xl text-foreground"
+    x-text="resultsTitle()"
+  >
+  </h2>
+
+  <SinglePlayerSummary statRows={STAT_ROWS}>
+    <TargetGrid
+      title="Runs per inning"
+      labels={INNING_LABELS}
+      valuesExpr="resultsSnapshot?.seats?.[0]?.runsPerInning"
+      cols={3}
+    />
+  </SinglePlayerSummary>
+</ResultsModalShell>

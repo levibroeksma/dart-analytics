@@ -1,4 +1,5 @@
 import "@modules/game/around-the-clock.engine.module";
+import "@modules/game/baseball.engine.module";
 import "@modules/game/bobs27.engine.module";
 import "@modules/game/cricket.engine.module";
 import "@modules/game/doubles-training.engine.module";
