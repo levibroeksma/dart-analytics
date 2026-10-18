@@ -113,6 +113,9 @@ aimed at" (D370 decision 1). The target maps to an aim key:
 | Around the Clock, `segmentRule = ANY` | `NUMBER:n` | `BULL:25` |
 | Around the Clock, `segmentRule = OUTER_SINGLE` | `OUTER_SINGLE:n` | `BULL:25` |
 
+A `TREBLE` target maps to `TREBLE:n`. No derived game yields one today, but
+`aimPairFor` handles it rather than letting it fall into the `NUMBER` row.
+
 For Singles Training every ring on the current number is a valid aim (D367),
 unlike Shanghai/Around the Clock where the active number also changes across
 the visit. It is recovered by folding the session's facts through the
