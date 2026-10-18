@@ -3398,3 +3398,9 @@ describe("routinePlay — routine summary", () => {
     });
   });
 });
+
+describe("routinePlay — Hit Count", () => {
+  it("starts with no Hit Count engine", () => {
+    expect(makeStore().hitCountEngine).toBeNull();
+  });
+});

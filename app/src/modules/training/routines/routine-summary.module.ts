@@ -1,4 +1,5 @@
 import { accuracyDisplay } from "@lib/game/play-visit-stats";
+import { boardTargetLabel } from "@modules/game/board-progression.module";
 import { targetScoringTargetLabel } from "@modules/training/exercises/target-scoring.engine.module";
 import { stepMetrics } from "@modules/stats/step-metrics.module";
 import type {
@@ -12,6 +13,7 @@ import type {
   BullUpState,
   CheckoutSequenceState,
   RandomCheckoutState,
+  HitCountState,
   RoutineStatRow,
   RoutineStepSummary,
 } from "@modules/types";
@@ -267,6 +269,28 @@ export function summariseRandomCheckout(
         value: attempts === 0 ? NO_VALUE : accuracyDisplay(checkouts, attempts),
       },
       { label: "Darts", value: String(darts) },
+    ],
+  };
+}
+
+/**
+ * Hit Count's result is its hits — overall, then per target in list order —
+ * then passes and darts. The engine sums every pass, so no replay is needed.
+ */
+export function summariseHitCount(state: HitCountState): RoutineStepSummary {
+  const { hits, darts } = stepMetrics("HIT_COUNT", state, NO_FACTS);
+  return {
+    stepKey: "HIT_COUNT",
+    label: "Hit Count",
+    rows: [
+      { label: "Hits", value: String(hits) },
+      ...state.hitsPerTarget.map((entry) => ({
+        label: `Hits on ${boardTargetLabel(entry.target)}`,
+        value: String(entry.hits),
+      })),
+      { label: "Passes", value: String(state.passes) },
+      { label: "Darts", value: String(darts) },
+      hitRateRow(hits, darts),
     ],
   };
 }

@@ -6,6 +6,7 @@ import {
   stepAdapterKey,
 } from "@lib/training/routines/adapters/step-adapter.registry";
 import { ROUTINE_GAME_STEPS } from "@services/routines/game-step";
+import { hitCountAdapter } from "@lib/training/routines/adapters/hit-count.adapter";
 
 describe("step adapter registry", () => {
   it("has one adapter per non-game kind and per server-eligible game ruleset", () => {
@@ -22,6 +23,7 @@ describe("step adapter registry", () => {
         "BULL_UP",
         "CHECKOUT_SEQUENCE",
         "RANDOM_CHECKOUT",
+        "HIT_COUNT",
         ...Object.keys(ROUTINE_GAME_STEPS).map((k) => `GAME:${k}`),
       ].sort(),
     );
@@ -53,6 +55,11 @@ describe("step adapter registry", () => {
     expect(resolveStepAdapter("RANDOM_CHECKOUT")?.headerLabel).toBe(
       "Random Checkout",
     );
+  });
+
+  it("resolves the Hit Count step", () => {
+    expect(resolveStepAdapter("HIT_COUNT")?.title).toBe("Hit Count");
+    expect(STEP_ADAPTERS.HIT_COUNT).toBe(hitCountAdapter);
   });
 
   it("derives the key from a resolved step", () => {
@@ -117,6 +124,7 @@ describe("STEP_ADAPTERS titles", () => {
         "GAME:AROUND_THE_CLOCK_V2": "Around the Clock",
         "GAME:SCORE_TRAINING_V1": "Score Training",
         "GAME:TUOD_V1": "Ten Up One Down",
+        "HIT_COUNT": "Hit Count",
         "RANDOM_CHECKOUT": "Random Checkout",
         "SCORE_THRESHOLD": "65 or More",
         "SWITCHING": "Switching",
