@@ -260,6 +260,37 @@ describe("foldStepResult", () => {
     expect(result.skippedSessions).toBe(0);
   });
 
+  it("replays a Doubles Lock session's bonus, locks, darts and hits", () => {
+    const doublesLock = (
+      dartNumber: number,
+      hitTargetNumber: number | null,
+      hitZoneKey: DartZoneKey,
+      score: number,
+    ) =>
+      dartRow({
+        sessionId: "dl",
+        exerciseRulesetVersionKey: "DOUBLES_LOCK_V1",
+        configuration: {},
+        turnSequence: 1,
+        dartNumber,
+        intendedTargetNumber: 20,
+        intendedZoneKey: "DOUBLE",
+        hitTargetNumber,
+        hitZoneKey,
+        score,
+      });
+
+    const result = foldStepResult("DOUBLES_LOCK", [
+      doublesLock(1, 20, "DOUBLE", 40),
+      doublesLock(2, 20, "DOUBLE", 40),
+      doublesLock(3, null, "MISS", 0),
+    ]);
+
+    expect(result.metrics).toEqual({ bonus: 50, locks: 1, darts: 3, hits: 2 });
+    expect(result.sessions).toBe(1);
+    expect(result.skippedSessions).toBe(0);
+  });
+
   it("replays a two-stage session in stage pre-order, never interleaving the stages' turns", () => {
     const ROOT = "01900000-0000-7000-9000-0000000000a1";
     const CHILD = "01900000-0000-7000-9000-0000000000a2";

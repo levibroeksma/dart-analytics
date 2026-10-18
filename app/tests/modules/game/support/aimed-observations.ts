@@ -91,16 +91,17 @@ export function aimedOnCurrentTarget(
 
 /**
  * `rate` of darts on an exercise's board target in state field `field`
- * (default `currentTarget`), in any ring (either bull on BULL), otherwise
- * `randomObservation`.
+ * (default `currentTarget`), in the ring `ring` picks (any ring by default;
+ * either bull on BULL), otherwise `randomObservation`.
  */
 export function aimedOnCurrentBoardTarget(
   rate: number,
   field = "currentTarget",
+  ring: (rand: () => number) => DartZoneKey = anyRing,
 ): (rand: () => number, engine: OracleEngine) => DartObservation {
   return (rand, engine) => {
     if (rand() >= rate) return randomObservation(rand);
     const target = (engine.state() as Record<string, BoardTarget>)[field];
-    return observationOn(target, rand, () => anyRing(rand));
+    return observationOn(target, rand, () => ring(rand));
   };
 }

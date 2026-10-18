@@ -1,4 +1,5 @@
 import type { HitCountTarget } from "@lib/types";
+import type { BoardTarget } from "@modules/types";
 
 /**
  * Warm-Up state, derived on every `state()` call. It carries no elapsed time:
@@ -213,6 +214,27 @@ export type SwitchbladeState = {
   total: number;
   roundTotals: number[];
   passes: number;
+  hits: number;
+  dartsThrown: number;
+  status: "IN_PROGRESS" | "COMPLETE";
+};
+
+/**
+ * Doubles Lock state, derived by replaying `facts()` (`foldDoublesLockState`).
+ * `currentDouble`/`targetIndex` locate the next dart; `lastLock` is this
+ * pass's checkpoint; `bonus` and `locks` sum over every pass; `dartsPerPass`
+ * lists each completed pass's darts, `bestPassDarts` the fewest.
+ */
+export type DoublesLockState = {
+  currentDouble: BoardTarget;
+  targetIndex: number;
+  lastLock: BoardTarget | null;
+  bonus: number;
+  locks: number;
+  passes: number;
+  dartsPerPass: number[];
+  bestPassDarts: number | null;
+  dartsThisPass: number;
   hits: number;
   dartsThrown: number;
   status: "IN_PROGRESS" | "COMPLETE";

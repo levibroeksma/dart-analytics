@@ -35,6 +35,7 @@ const ENGINE_FAMILIES: readonly [
   ["bullseyeCheckoutEngine", "bullseye"],
   ["hitCountEngine", "hitCount"],
   ["switchbladeEngine", "switchblade"],
+  ["doublesLockEngine", "doublesLock"],
 ];
 
 /** The preview family of whichever exercise engine is open, or null. */
@@ -87,6 +88,7 @@ const JUDGES: Record<ExercisePreviewFamily, (dart: DartFact) => DartJudgement> =
     bullseye: judgeBullseye,
     hitCount: judgeIntendedBed,
     switchblade: judgeOnTarget,
+    doublesLock: judgeDouble,
   };
 
 /**
@@ -97,6 +99,7 @@ const JUDGES: Record<ExercisePreviewFamily, (dart: DartFact) => DartJudgement> =
  * board is a value), and Bullseye Checkouts judges setup darts as free aim
  * and the dart aimed at the bull as a hit only on the bullseye. Hit Count
  * counts only the intended bed. SwitchBlade judges on the number, any ring.
+ * Doubles Lock judges the intended double only.
  */
 export function judgeDart(
   family: ExercisePreviewFamily,
@@ -151,6 +154,7 @@ const CAPTIONS: Partial<
   switchingTargetScoring: switchingTargetScoringCaptions,
   hitCount: hitCountCaptions,
   switchblade: switchbladeCaptions,
+  doublesLock: hitCountCaptions,
 };
 
 /**

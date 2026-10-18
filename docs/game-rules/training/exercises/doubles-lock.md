@@ -1,6 +1,6 @@
 # Doubles Lock
 
-Current version: none (V1 in design)
+Current version: V1 (shipped 2026-10-18)
 Entry points: routine step
 Kernel: TRACK
 
@@ -47,11 +47,7 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 
 ## Exercise type
 
-- Type constant: `LOCK_LADDER` (proposed; not among the seeded types —
-  `WARM_UP`, `GAME`, `EXERCISE_SECTION` (`database/seeds/0014_exercise_types.sql`),
-  `SWITCHING`, `DOUBLE_PATTERN` (`0016`), `TARGET_SCORING` (`0023`),
-  `SWITCHING_TARGET_SCORING` (`0024`), `SCORE_THRESHOLD` (`0025`),
-  `BULLSEYE_CHECKOUT` (`0029`), `BULL_UP` (`0030`)).
+- Type constant: `DOUBLES_LOCK` (seed `0040`).
 - Wraps no game. Doubles Training walks the same kind of path, but its
   modes are advance-always, stay-until-hit and step-back-one
   (`docs/game-rules/rulesets/doubles-training.md` §Features); none retreats

@@ -25,6 +25,7 @@ import type { CheckoutSequenceEngine } from "@modules/training/exercises/checkou
 import type { RandomCheckoutEngine } from "@modules/training/exercises/random-checkout.engine.module";
 import type { HitCountEngine } from "@modules/training/exercises/hit-count.engine.module";
 import type { SwitchbladeEngine } from "@modules/training/exercises/switchblade.engine.module";
+import type { DoublesLockEngine } from "@modules/training/exercises/doubles-lock.engine.module";
 import type { DartFact, DartObservation } from "@modules/types";
 import type { BoardMarker, PreviewSegment, SectionRingPaths } from "@lib/types";
 import type { gameStep } from "./game-step.data";
@@ -46,7 +47,8 @@ export type ExercisePreviewFamily =
   | "freeAim"
   | "bullseye"
   | "hitCount"
-  | "switchblade";
+  | "switchblade"
+  | "doublesLock";
 
 /** The engine slots `exerciseFamily()` reads. */
 export type ExerciseEngineSlots = Pick<
@@ -61,6 +63,7 @@ export type ExerciseEngineSlots = Pick<
   | "randomCheckoutEngine"
   | "hitCountEngine"
   | "switchbladeEngine"
+  | "doublesLockEngine"
 >;
 
 /** What `visitLabelsFor()` reads: the step's configuration and where the visit stands. */
@@ -121,6 +124,7 @@ export type RoutinePlayContext = {
   randomCheckoutEngine: RandomCheckoutEngine | null;
   hitCountEngine: HitCountEngine | null;
   switchbladeEngine: SwitchbladeEngine | null;
+  doublesLockEngine: DoublesLockEngine | null;
   stepTimer: SegmentTimer | null;
   stepRemainingSeconds: number;
   warmUpTimer: SegmentTimer | null;
@@ -256,6 +260,15 @@ export type RoutinePlayContext = {
   switchbladeSlotLabel(this: RoutinePlayContext): string;
   switchbladeRound(this: RoutinePlayContext): number;
   switchbladePasses(this: RoutinePlayContext): number;
+  recordDoublesLockDart(
+    this: RoutinePlayContext,
+    observation: DartObservation,
+  ): void;
+  doublesLockBonus(this: RoutinePlayContext): number;
+  doublesLockTargetLabel(this: RoutinePlayContext): string;
+  doublesLockLastLockLabel(this: RoutinePlayContext): string;
+  doublesLockPasses(this: RoutinePlayContext): number;
+  doublesLockBestPass(this: RoutinePlayContext): string;
   dartsThrown(this: RoutinePlayContext): number;
   activeDartEngine(
     this: RoutinePlayContext,
@@ -271,6 +284,7 @@ export type RoutinePlayContext = {
     | RandomCheckoutEngine
     | HitCountEngine
     | SwitchbladeEngine
+    | DoublesLockEngine
     | null;
   visitMarkers(this: RoutinePlayContext): BoardMarker[];
   previewSegments(this: RoutinePlayContext): PreviewSegment[];

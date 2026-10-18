@@ -18,6 +18,7 @@ import { checkoutSequenceValidator } from "@services/exercise-rulesets/checkout-
 import { randomCheckoutValidator } from "@services/exercise-rulesets/random-checkout/random-checkout.validator";
 import { hitCountValidator } from "@services/exercise-rulesets/hit-count/hit-count.validator";
 import { switchbladeValidator } from "@services/exercise-rulesets/switchblade/switchblade.validator";
+import { doublesLockValidator } from "@services/exercise-rulesets/doubles-lock/doubles-lock.validator";
 
 describe("getExerciseRulesetValidator", () => {
   it("resolves WARM_UP_V1", () => {
@@ -86,6 +87,12 @@ describe("getExerciseRulesetValidator", () => {
     );
   });
 
+  it("resolves DOUBLES_LOCK_V1", () => {
+    expect(getExerciseRulesetValidator("DOUBLES_LOCK_V1")).toBe(
+      doublesLockValidator,
+    );
+  });
+
   it("returns undefined for a game ruleset key", () => {
     expect(getExerciseRulesetValidator("501_V1")).toBeUndefined();
   });
@@ -112,6 +119,10 @@ describe("exerciseRulesetWritesDarts", () => {
 
   it("is true for SwitchBlade", () => {
     expect(exerciseRulesetWritesDarts("SWITCHBLADE_V1")).toBe(true);
+  });
+
+  it("is true for Doubles Lock", () => {
+    expect(exerciseRulesetWritesDarts("DOUBLES_LOCK_V1")).toBe(true);
   });
 
   it("is false for Warm-Up, which records no dart", () => {

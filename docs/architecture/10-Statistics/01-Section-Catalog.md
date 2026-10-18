@@ -279,6 +279,7 @@ the headline and its direction, and the rate pairs the client divides.
 | RANDOM_CHECKOUT | checkouts, attempts, darts (sum) | checkouts ↑ | checkouts/attempts |
 | HIT_COUNT | hits, darts (sum) | hits ↑ | hits/darts |
 | SWITCHBLADE | points, darts, hits (sum) | points ↑ | hits/darts |
+| DOUBLES_LOCK | bonus, locks, darts, hits (sum) | bonus ↑ | hits/darts |
 
 - `stepMetrics(kind, state, facts)` reads engine state the way the routine
   summary modal does: `routine-summary.module.ts`'s `summarise*` functions

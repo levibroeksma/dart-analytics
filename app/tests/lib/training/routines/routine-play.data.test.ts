@@ -3607,6 +3607,7 @@ describe("routinePlay — board dispatch", () => {
     ["RANDOM_CHECKOUT", "randomCheckoutEngine"],
     ["HIT_COUNT", "hitCountEngine"],
     ["SWITCHBLADE", "switchbladeEngine"],
+    ["DOUBLES_LOCK", "doublesLockEngine"],
   ] as const)(
     "routes a committed board dart to the open %s engine (%s)",
     async (kind, slot) => {
@@ -3642,6 +3643,12 @@ describe("routinePlay — board dispatch", () => {
 describe("routinePlay — SwitchBlade", () => {
   it("starts with no SwitchBlade engine", () => {
     expect(makeStore().switchbladeEngine).toBeNull();
+  });
+});
+
+describe("routinePlay — Doubles Lock", () => {
+  it("starts with no Doubles Lock engine", () => {
+    expect(makeStore().doublesLockEngine).toBeNull();
   });
 });
 
@@ -3776,5 +3783,135 @@ describe("routinePlay — SwitchBlade play", () => {
 
     expect(sessionApi.appendBatch).toHaveBeenCalled();
     expect(store.stepSummaries[0]).toMatchObject({ stepKey: "SWITCHBLADE" });
+  });
+});
+
+const DOUBLES_LOCK_STEP = {
+  sequenceNumber: 1,
+  exerciseTypeKey: "DOUBLES_LOCK",
+  exerciseRulesetVersionKey: "DOUBLES_LOCK_V1",
+  gameTypeKey: null,
+  gameRulesetVersionKey: null,
+  durationSeconds: 600,
+  configuration: {},
+};
+
+describe("routinePlay — Doubles Lock play", () => {
+  const D = (n: number) => ({
+    hitTargetNumber: n,
+    hitZoneKey: "DOUBLE" as const,
+    locationX: 0,
+    locationY: -165,
+  });
+  const MISS = {
+    hitTargetNumber: null,
+    hitZoneKey: "MISS" as const,
+    locationX: null,
+    locationY: null,
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+    stubAudioContext();
+    Object.defineProperty(globalThis, "location", {
+      value: { href: "" },
+      writable: true,
+      configurable: true,
+    });
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineTemplateId: "rt-1",
+      routineName: "Custom",
+      steps: [DOUBLES_LOCK_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "DOUBLES_LOCK",
+      configuration: DOUBLES_LOCK_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+  });
+  afterEach(() => {
+    vi.clearAllTimers();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it("startCurrentStep() builds the engine and its readouts start on D20 with no lock", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+
+    expect(store.doublesLockEngine).not.toBeNull();
+    expect(store.doublesLockBonus()).toBe(0);
+    expect(store.doublesLockTargetLabel()).toBe("D20");
+    expect(store.doublesLockLastLockLabel()).toBe("—");
+    expect(store.doublesLockPasses()).toBe(0);
+    expect(store.doublesLockBestPass()).toBe("—");
+  });
+
+  it("the readouts follow a lock and the next double", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+
+    [D(20), D(20), MISS, D(19)].forEach((d) => store.recordDoublesLockDart(d));
+    expect(store.doublesLockBonus()).toBe(50);
+    expect(store.doublesLockTargetLabel()).toBe("D19");
+    expect(store.doublesLockLastLockLabel()).toBe("D20");
+  });
+
+  it("previewSegments() judges the open visit against the current double", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+
+    [D(20), D(20), MISS, D(19)].forEach((d) => store.recordDoublesLockDart(d));
+    expect(store.previewSegments()).toEqual([
+      { status: "hit", label: "D19" },
+      { status: "empty", label: "D19" },
+      { status: "empty", label: "D19" },
+    ]);
+  });
+
+  it("routes a committed board dart to the Doubles Lock engine", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+
+    boardCommit.onCommit!(D(20));
+
+    expect(store.doublesLockEngine!.state().dartsThrown).toBe(1);
+  });
+
+  it("never completes the step on a dart", async () => {
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(sessionApi.appendBatch).mockReset();
+    const store = makeStore();
+    await startRoutine(store);
+
+    Array.from({ length: 20 }, (_, i) => 20 - i)
+      .flatMap((n) => [D(n), D(n), D(n)])
+      .forEach((d) => store.recordDoublesLockDart(d));
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(sessionApi.appendBatch).not.toHaveBeenCalled();
+    expect(store.doublesLockEngine!.isComplete()).toBe(false);
+    expect(store.doublesLockBestPass()).toBe("60 darts");
+  });
+
+  it("the step deadline expires the engine and uploads its darts", async () => {
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(sessionApi.appendBatch).mockResolvedValue(undefined as never);
+    vi.mocked(sessionApi.completeSession).mockResolvedValue(undefined as never);
+    vi.mocked(trainingApi.completeTraining).mockResolvedValue({
+      activityId: "act-1",
+      completedAt: "2026-10-07T12:00:00.000Z",
+    });
+    const store = makeStore();
+    await startRoutine(store);
+    store.recordDoublesLockDart(D(20));
+
+    await vi.advanceTimersByTimeAsync(600_000);
+
+    expect(sessionApi.appendBatch).toHaveBeenCalled();
+    expect(store.stepSummaries[0]).toMatchObject({ stepKey: "DOUBLES_LOCK" });
   });
 });

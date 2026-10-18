@@ -947,6 +947,21 @@ One visit per round, each dart at its own slot. A dart on its slot's number scor
 
 **Implemented** (`SWITCHBLADE_V1`, `app/src/modules/training/exercises/switchblade.engine.module.ts`, seed `0039`): empty configuration (the path is fixed in V1), bound to the Track kernel through `trackExerciseSpec` (D469) with `anyRingEitherBull`, `boardScorePoints`, `tallyRoundPoints(3)`, `advanceEveryDart` and `passOnWrap(14)`. Each dart carries its slot's number (`25` on the bull slot) and bed (`TREBLE`, `INNER_BULL`) — the aim changes mid-visit; `score` is the board score. One turn per round. State carries the total, per-round totals summed over every pass, passes, hits, darts and the current slot. Time-bound only. Capture pair and upload path match Target Scoring (D277). Routine step only in V1 (2026-10-18).
 
+## Doubles Lock
+
+Configuration:
+
+```text
+duration: 15m
+
+path (fixed): D20 D19 … D1
+lock: 2 hits +50, 3 hits +100
+```
+
+One visit of three darts at the current double; only the double counts. One hit advances; two or three lock the double for the bonus and advance; a blank visit retreats to the last locked double, or D20 before any lock in the pass. Past D1 the ladder restarts at D20 with no lock, until the time runs out. Rules: `docs/game-rules/training/exercises/doubles-lock.md`.
+
+**Implemented** (`DOUBLES_LOCK_V1`, `app/src/modules/training/exercises/doubles-lock.engine.module.ts`, seed `0040`): empty configuration (path, threshold and bonus are fixed in V1), bound to the Track kernel through `trackExerciseSpec` (D469) with `isHitOn`, `noPoints`, `lockCheckpoint({2: 50, 3: 100})` and `passOnWrap(19)` composed with a pass reset. Each dart carries the current double (`DOUBLE`); `score` is the board score. One turn per visit. State carries the bonus and locks over every pass, the current double, the last lock, passes, darts per pass and the best (fewest) pass. Time-bound only. Capture pair and upload path match Target Scoring (D277). Routine step only in V1 (2026-10-18).
+
 ---
 
 ## Game Exercise

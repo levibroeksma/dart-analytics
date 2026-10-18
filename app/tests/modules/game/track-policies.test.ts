@@ -13,6 +13,7 @@ import {
   doneOnWrap,
   halveOnBlank,
   lapOnWrap,
+  lockCheckpoint,
   noPoints,
   outAtOrBelowZero,
   outBelowHits,
@@ -38,6 +39,7 @@ import type {
   DartZoneKey,
   HitCountTrackExt,
   JudgedDart,
+  LockTrackExt,
   SequenceTrackExt,
   SwitchbladeTrackExt,
   TrackSeat,
@@ -561,5 +563,69 @@ describe("SwitchBlade policies", () => {
     const before = seatAt(0);
     tallyRoundPoints<SwitchbladeTrackExt>(3)(before, judged(60));
     expect(before.ext.roundTotals).toEqual([0, 0, 0, 0, 0]);
+  });
+});
+
+describe("lockCheckpoint", () => {
+  const BONUS = { 2: 50, 3: 100 };
+  const seatAt = (
+    targetIndex: number,
+    hitsThisVisit: number,
+    lastLock: number | null = null,
+  ): TrackSeat<LockTrackExt> => ({
+    ...initialTrackSeat(SEAT, { lastLock, locks: 0 }),
+    targetIndex,
+    hitsThisVisit,
+    dartsThisVisit: 3,
+  });
+
+  it("locks on three hits: +100, advance, remember the index", () => {
+    const seat = lockCheckpoint<LockTrackExt>(BONUS)(seatAt(4, 3));
+    expect(seat.score).toBe(100);
+    expect(seat.targetIndex).toBe(5);
+    expect(seat.ext).toEqual({ lastLock: 4, locks: 1 });
+  });
+
+  it("locks on two hits: +50", () => {
+    const seat = lockCheckpoint<LockTrackExt>(BONUS)(seatAt(4, 2, 1));
+    expect(seat.score).toBe(50);
+    expect(seat.targetIndex).toBe(5);
+    expect(seat.ext).toEqual({ lastLock: 4, locks: 1 });
+  });
+
+  it("advances on one hit without a lock or bonus", () => {
+    const seat = lockCheckpoint<LockTrackExt>(BONUS)(seatAt(4, 1, 2));
+    expect(seat.score).toBe(0);
+    expect(seat.targetIndex).toBe(5);
+    expect(seat.ext).toEqual({ lastLock: 2, locks: 0 });
+  });
+
+  it("retreats to the first target before any lock", () => {
+    expect(lockCheckpoint<LockTrackExt>(BONUS)(seatAt(6, 0)).targetIndex).toBe(
+      0,
+    );
+  });
+
+  it("retreats to the last locked index on a blank visit", () => {
+    const seat = lockCheckpoint<LockTrackExt>(BONUS)(seatAt(7, 0, 3));
+    expect(seat.targetIndex).toBe(3);
+    expect(seat.score).toBe(0);
+    expect(seat.ext).toEqual({ lastLock: 3, locks: 0 });
+  });
+
+  it("locks only on a hit count the table names", () => {
+    const strict = lockCheckpoint<LockTrackExt>({ 3: 100 });
+    const two = strict(seatAt(4, 2));
+    expect(two.targetIndex).toBe(5);
+    expect(two.score).toBe(0);
+    expect(two.ext.locks).toBe(0);
+    expect(strict(seatAt(4, 3)).ext.locks).toBe(1);
+  });
+
+  it("never mutates the seat it was given", () => {
+    const before = seatAt(4, 3);
+    lockCheckpoint<LockTrackExt>(BONUS)(before);
+    expect(before.ext).toEqual({ lastLock: null, locks: 0 });
+    expect(before.score).toBe(0);
   });
 });

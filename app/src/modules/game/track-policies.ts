@@ -9,6 +9,8 @@ import type {
   DartObservation,
   DartZoneKey,
   JudgedDart,
+  LockBonus,
+  LockTrackExt,
   PassTrackExt,
   PointsTable,
   RoundTallyExt,
@@ -376,5 +378,33 @@ export function tallyRoundPoints<TExt extends RoundTallyExt>(
     const roundTotals = [...seat.ext.roundTotals];
     roundTotals[round] = (roundTotals[round] ?? 0) + dart.points;
     return { ...seat, ext: { ...seat.ext, roundTotals } };
+  };
+}
+
+/**
+ * Visit-close policy: a hit count `bonus` names locks the target — its
+ * bonus to the score, the index kept as `ext.lastLock` — and advances; any
+ * other hit advances; a blank visit retreats to the last lock, or the first
+ * target before one.
+ */
+export function lockCheckpoint<TExt extends LockTrackExt>(
+  bonus: LockBonus,
+): (seat: TrackSeat<TExt>) => TrackSeat<TExt> {
+  return (seat) => {
+    const award = bonus[seat.hitsThisVisit];
+    if (award !== undefined)
+      return {
+        ...seat,
+        score: seat.score + award,
+        targetIndex: seat.targetIndex + 1,
+        ext: {
+          ...seat.ext,
+          lastLock: seat.targetIndex,
+          locks: seat.ext.locks + 1,
+        },
+      };
+    if (seat.hitsThisVisit > 0)
+      return { ...seat, targetIndex: seat.targetIndex + 1 };
+    return { ...seat, targetIndex: seat.ext.lastLock ?? 0 };
   };
 }
