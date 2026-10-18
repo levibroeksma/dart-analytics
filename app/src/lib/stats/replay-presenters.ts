@@ -466,6 +466,7 @@ const DARTS_METRIC_KEY: Record<DartExerciseKind, string> = {
   CHECKOUT_SEQUENCE: "darts",
   RANDOM_CHECKOUT: "darts",
   HIT_COUNT: "darts",
+  SWITCHBLADE: "darts",
 };
 
 /** One dart exercise kind's `EngineFacts`, rebuilt from its own replayed turns -- real facts, unlike the per-turn cell's `NO_FACTS` shortcut, since the session line's "hits" (Switching) must be the true count. */

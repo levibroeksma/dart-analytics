@@ -2,6 +2,7 @@ import { bullUpEngineFactory } from "@modules/training/exercises/bull-up.engine.
 import { checkoutSequenceEngineFactory } from "@modules/training/exercises/checkout-sequence.engine.module";
 import { randomCheckoutEngineFactory } from "@modules/training/exercises/random-checkout.engine.module";
 import { hitCountEngineFactory } from "@modules/training/exercises/hit-count.engine.module";
+import { switchbladeEngineFactory } from "@modules/training/exercises/switchblade.engine.module";
 import { bullseyeCheckoutEngineFactory } from "@modules/training/exercises/bullseye-checkout.engine.module";
 import { doublePatternEngineFactory } from "@modules/training/exercises/double-pattern.engine.module";
 import { scoreThresholdEngineFactory } from "@modules/training/exercises/score-threshold.engine.module";
@@ -273,6 +274,17 @@ const EXERCISE_FIXTURES: Record<
       dart(20, "SINGLE"),
       dart(null, "MISS"),
       dart(25, "INNER_BULL"),
+    ],
+  },
+  SWITCHBLADE: {
+    rulesetKey: "SWITCHBLADE_V1",
+    factory: switchbladeEngineFactory,
+    config: {},
+    darts: [
+      dart(20, "TREBLE"),
+      dart(20, "SINGLE"),
+      dart(null, "MISS"),
+      dart(20, "TREBLE"),
     ],
   },
 };

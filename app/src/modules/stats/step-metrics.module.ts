@@ -82,6 +82,12 @@ export const STEP_METRIC_SPECS: Readonly<
     direction: "higher",
     rates: [["hits", "darts"]],
   },
+  SWITCHBLADE: {
+    metrics: { points: "sum", darts: "sum", hits: "sum" },
+    headline: "points",
+    direction: "higher",
+    rates: [["hits", "darts"]],
+  },
 };
 
 /**
@@ -197,6 +203,12 @@ export function stepMetrics(
       return {
         hits: numberField(state, "hits", kind),
         darts: numberField(state, "dartsThrown", kind),
+      };
+    case "SWITCHBLADE":
+      return {
+        points: numberField(state, "total", kind),
+        darts: numberField(state, "dartsThrown", kind),
+        hits: numberField(state, "hits", kind),
       };
   }
 }
