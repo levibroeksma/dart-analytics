@@ -485,6 +485,14 @@ export type PassTrackExt = {
 /** Hit Count's Track extras. */
 export type HitCountTrackExt = TargetTallyExt & PassTrackExt;
 
+/** Points per round for a Track seat whose path is cut into equal rounds (SwitchBlade). */
+export type RoundTallyExt = {
+  roundTotals: number[];
+};
+
+/** SwitchBlade's Track extras. */
+export type SwitchbladeTrackExt = RoundTallyExt & PassTrackExt;
+
 /**
  * What the player did, as observed at input time — the engine's only input.
  * `locationX` / `locationY` are the landing point in regulation millimetres

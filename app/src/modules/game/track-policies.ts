@@ -11,6 +11,7 @@ import type {
   JudgedDart,
   PassTrackExt,
   PointsTable,
+  RoundTallyExt,
   SequenceTrackExt,
   TargetTallyExt,
   TrackSeat,
@@ -358,5 +359,22 @@ export function resetOnMiss<TExt extends SequenceTrackExt>(
           chain > 0 ? Math.max(finishedBest ?? 0, chain) : finishedBest,
       },
     };
+  };
+}
+
+/** Per-dart policy: step to the next target after every dart, hit or miss. */
+export function advanceEveryDart<TExt>(seat: TrackSeat<TExt>): TrackSeat<TExt> {
+  return { ...seat, targetIndex: seat.targetIndex + 1 };
+}
+
+/** Per-dart policy: add the dart's points to `ext.roundTotals` at the current target's round, `dartsPerRound` targets to a round. */
+export function tallyRoundPoints<TExt extends RoundTallyExt>(
+  dartsPerRound: number,
+): (seat: TrackSeat<TExt>, dart: JudgedDart) => TrackSeat<TExt> {
+  return (seat, dart) => {
+    const round = Math.floor(seat.targetIndex / dartsPerRound);
+    const roundTotals = [...seat.ext.roundTotals];
+    roundTotals[round] = (roundTotals[round] ?? 0) + dart.points;
+    return { ...seat, ext: { ...seat.ext, roundTotals } };
   };
 }
