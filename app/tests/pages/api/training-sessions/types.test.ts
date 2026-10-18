@@ -177,6 +177,30 @@ describe("StartTrainingResponse", () => {
     ).toBe(true);
   });
 
+  it("accepts a HIT_COUNT step", () => {
+    expect(
+      StartTrainingResponse.safeParse({
+        activityId: "act-1",
+        routineTemplateId: "rt-1",
+        routineName: "Custom",
+        steps: [
+          {
+            sequenceNumber: 1,
+            exerciseTypeKey: "HIT_COUNT",
+            exerciseRulesetVersionKey: "HIT_COUNT_V1",
+            gameTypeKey: null,
+            gameRulesetVersionKey: null,
+            durationSeconds: 600,
+            configuration: {
+              targets: [{ kind: "TREBLE", number: 20 }],
+              dartsPerTarget: 9,
+            },
+          },
+        ],
+      }).success,
+    ).toBe(true);
+  });
+
   it("accepts a BULL_UP step", () => {
     expect(
       StartTrainingResponse.safeParse({
@@ -278,6 +302,22 @@ describe("StartTrainingStepResponse", () => {
         sessionId: "s1",
         exerciseTypeKey: "RANDOM_CHECKOUT",
         configuration: { minStart: 40, maxStart: 170, drawSeed: 7 },
+        participant: { ref: "pt1", displayName: "Levi" },
+        captureModeKey: "ANALYTICS",
+        inputModeKey: "VISUAL_BOARD",
+      }).success,
+    ).toBe(true);
+  });
+
+  it("accepts a HIT_COUNT step's response", () => {
+    expect(
+      StartTrainingStepResponse.safeParse({
+        sessionId: "s1",
+        exerciseTypeKey: "HIT_COUNT",
+        configuration: {
+          targets: [{ kind: "TREBLE", number: 20 }],
+          dartsPerTarget: 9,
+        },
         participant: { ref: "pt1", displayName: "Levi" },
         captureModeKey: "ANALYTICS",
         inputModeKey: "VISUAL_BOARD",

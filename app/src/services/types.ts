@@ -70,6 +70,7 @@ export type TrainingStepResolved = {
     | "BULL_UP"
     | "CHECKOUT_SEQUENCE"
     | "RANDOM_CHECKOUT"
+    | "HIT_COUNT"
     | "GAME";
   exerciseRulesetVersionKey: string | null;
   gameTypeKey: string | null;
