@@ -18,7 +18,8 @@ export type ExerciseRulesetVersionKey =
   | "BULL_UP_V1"
   | "CHECKOUT_SEQUENCE_V1"
   | "RANDOM_CHECKOUT_V1"
-  | "HIT_COUNT_V1";
+  | "HIT_COUNT_V1"
+  | "SWITCHBLADE_V1";
 
 /**
  * One timed section of a warm-up. `targets` are board numbers the player
@@ -279,6 +280,17 @@ export const HitCountV1Config = z
 export type HitCountConfigData = z.infer<typeof HitCountV1Config>;
 export type HitCountTarget = HitCountConfigData["targets"][number];
 
+/**
+ * SwitchBlade v1: five rounds on a fixed path — T20, T20, then T20, T19,
+ * T18, T17 or the bullseye — scored at board value on each dart's own
+ * number (`docs/game-rules/training/exercises/switchblade.md`). The path is
+ * locked and duration is the routine step's, so the config is the empty
+ * object.
+ */
+export const SwitchbladeV1Config = z.object({}).strict();
+
+export type SwitchbladeConfigData = z.infer<typeof SwitchbladeV1Config>;
+
 export const EXERCISE_RULESET_CONFIGS: Record<
   ExerciseRulesetVersionKey,
   z.ZodTypeAny
@@ -294,4 +306,5 @@ export const EXERCISE_RULESET_CONFIGS: Record<
   CHECKOUT_SEQUENCE_V1: CheckoutSequenceV1Config,
   RANDOM_CHECKOUT_V1: RandomCheckoutV1Config,
   HIT_COUNT_V1: HitCountV1Config,
+  SWITCHBLADE_V1: SwitchbladeV1Config,
 };
