@@ -72,6 +72,7 @@ shipped behaviour is unchanged; their goldens prove it.
 | `advanceAfterDarts(n)` | onVisitClose | Hit Count | advance once `n` darts were thrown at the target (`ext.dartsOnTarget`) |
 | `passOnWrap(lastIndex)` | onVisitClose / onDart | Hit Count | past `lastIndex`: index 0, `ext.passes + 1` (generalises `lapOnWrap`; both share a private `wrapToStart(lastIndex, bump)`, ATC behaviour unchanged) |
 | `advanceEveryDart` | onDart | SwitchBlade | `targetIndex + 1` per dart |
+| `tallyRoundPoints(dartsPerRound)` | onDart | SwitchBlade | `ext.roundTotals[floor(targetIndex / dartsPerRound)] += points` (before the advance) |
 | `lockCheckpoint(bonus)` | onVisitClose | Doubles Lock | hits ≥ 2: lock, bonus to `score`, advance; 1: advance; 0: index = `ext.lastLock ?? 0` |
 
 Doubles Lock's pass wrap also clears `lastLock` and appends the pass's darts
@@ -89,7 +90,7 @@ change.
 | Subject | path | hit | points | onDart | onVisitClose | visitOpen | ext | outcome |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Hit Count | config `targets` (TREBLE / DOUBLE / BULL) | `isHitOn` (inner bull for BULL) | 1 on hit | track `dartsOnTarget` | `advanceAfterDarts(n)` → `passOnWrap` | `closeAfter(3)` | `dartsOnTarget`, `passes`, `hitsPerTarget[]` | timer only |
-| SwitchBlade | 15 fixed slots | number any ring; bull slot either bull | `boardScorePoints` on hit | `advanceEveryDart` → `passOnWrap(14)` | — | `closeAfter(3)` | `passes`, `roundTotals[5]` | timer only |
+| SwitchBlade | 15 fixed slots (`SWITCHBLADE_PATH`, a code constant) | `anyRingEitherBull` | `boardScorePoints` on hit | `tallyRoundPoints(3)` → `advanceEveryDart` → `passOnWrap(14)` | — | `closeAfter(3)` | `passes`, `roundTotals[5]` | timer only |
 | Doubles Lock | `doublesPath` D20→D1 | `isHitOn` | 0 (bonus via `lockCheckpoint`) | — | `lockCheckpoint({2:50,3:100})` → pass wrap | `closeAfter(3)` | `lastLock`, `passes`, `dartsPerPass[]`, `locks` | timer only |
 | Baseball | `numbersPath` 1–9 | number any ring (no bull) | `pointsTable` S1 / D2 / T3 | — | `advanceToEnd` → `doneOnWrap(8)` | `closeAfter(3)` | none | scoreCompare HIGH (one seat) |
 
@@ -98,12 +99,16 @@ Hit Count config: `{ targets: HitCountTarget[]; dartsPerTarget: number }`,
 validated 1–21 targets and `dartsPerTarget` a multiple of 3 in 3–99. V1 seeds the Big
 Trebles template only (T20, T19, T18, T17 × 9).
 
+SwitchBlade: type `SWITCHBLADE`, ruleset `SWITCHBLADE_V1`; config is the empty
+strict object `{}` (the path is locked in V1). A perfect pass scores 872.
+(Refinements approved 2026-10-18.)
+
 ## 4. Readouts (projections)
 
 | Subject | State fields |
 | --- | --- |
 | Hit Count | `currentTarget`, `targetIndex`, `dartsLeftOnTarget`, `hits`, `dartsThrown`, `hitsPerTarget[]`, `passes`, `status` (hit rate derived by `accuracyDisplay`, not stored in state) |
-| SwitchBlade | `currentSlot`, `round`, `total`, `roundTotals[5]`, `passes` |
+| SwitchBlade | `currentSlot`, `slotIndex`, `round`, `total`, `roundTotals[5]`, `passes`, `hits`, `dartsThrown`, `status` (hits = darts on the intended number, from facts) |
 | Doubles Lock | `currentDouble`, `lastLock`, `bonus`, `locks`, `passes`, `bestPassDarts`, `dartsThisPass` |
 | Baseball | per-seat `inning`, `runs`, `runsPerInning[9]`, status; result = runs |
 
@@ -169,7 +174,11 @@ No legacy engine exists, so no differential oracle. Per PR:
 - Two mutation checks per new policy, recorded in the PR.
 - Existing goldens re-run unchanged (TREBLE addition is additive).
 - The routine-stats integration fixture gains Hit Count as step 12, after
-  the 501 step, so existing steps keep their numbers.
+  the 501 step, so existing steps keep their numbers; SwitchBlade is
+  step 13 (the itest's step count 12 → 13 keeps one step per kind).
+- SwitchBlade board preview: family `switchblade`, judge `judgeOnTarget`,
+  captions = the visit's three slot labels; the golden helper
+  `aimedOnCurrentBoardTarget(rate, field)` reads `currentSlot`.
 
 ## 8. Decision entry
 
