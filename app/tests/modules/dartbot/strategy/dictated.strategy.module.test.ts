@@ -15,6 +15,12 @@ describe("chooseTarget", () => {
     expect(zoneCentroid(intent.targetNumber, intent.zoneKey)).not.toBeNull();
   });
 
+  it("aims a TREBLE target at that number's treble", () => {
+    const intent = chooseTarget({ target: { kind: "TREBLE", number: 19 } });
+    expect(intent).toEqual({ targetNumber: 19, zoneKey: "TREBLE" });
+    expect(zoneCentroid(intent.targetNumber, intent.zoneKey)).not.toBeNull();
+  });
+
   it("aims a BULL target at the inner bull, target number 25", () => {
     const intent = chooseTarget({ target: { kind: "BULL" } });
     expect(intent).toEqual({ targetNumber: 25, zoneKey: "INNER_BULL" });

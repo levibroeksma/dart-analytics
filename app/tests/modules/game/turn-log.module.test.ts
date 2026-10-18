@@ -83,6 +83,16 @@ describe("cloneTurns", () => {
     expect(copy[0]).not.toBe(source[0]);
     expect(copy[0].darts).not.toBe(source[0].darts);
   });
+
+  it("copies each dart so editing the copy leaves the source log untouched", () => {
+    const source = [turn({ darts: [dart()] })];
+    const before = source[0].darts[0].hitZoneKey;
+    const copy = cloneTurns(source);
+
+    expect(copy[0].darts[0]).not.toBe(source[0].darts[0]);
+    copy[0].darts[0].hitZoneKey = "TREBLE";
+    expect(source[0].darts[0].hitZoneKey).toBe(before);
+  });
 });
 
 describe("dartsThrownBy", () => {

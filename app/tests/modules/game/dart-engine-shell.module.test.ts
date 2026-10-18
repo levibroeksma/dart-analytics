@@ -97,6 +97,13 @@ describe("dartGameEngineClass", () => {
     expect(engine.state().darts).toBe(1);
   });
 
+  it("keeps facts() darts detached from the engine's live log", () => {
+    const engine = new Toy({ limit: 10 });
+    engine.record(T20);
+    engine.facts().turns[0].darts[0].hitZoneKey = "MISS";
+    expect(engine.facts().turns[0].darts[0].hitZoneKey).toBe("TREBLE");
+  });
+
   it("delegates wouldComplete to the spec without mutating", () => {
     const engine = new Toy({ limit: 2 });
     engine.record(T20);
