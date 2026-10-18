@@ -388,7 +388,7 @@ export function playAroundTheClock(): ScriptedGame {
 }
 
 /** Two Baseball innings: a treble and a single on 1, then a single on 2 between misses. */
-export function playBaseball(): ScriptedGame {
+function playBaseball(): ScriptedGame {
   return scripted(baseballEngineFactory, { seats: SOLO_SEATS }, [
     [dart(1, "TREBLE"), dart(1, "OUTER_SINGLE"), MISS],
     [MISS, dart(2, "OUTER_SINGLE"), dart(20, "TREBLE")],

@@ -24,6 +24,8 @@ import { cricketSetup } from "@lib/game/cricket-setup.data";
 import { cricketPlay } from "@lib/game/cricket-play.data";
 import { tacticsSetup } from "@lib/game/tactics-setup.data";
 import { tacticsPlay } from "@lib/game/tactics-play.data";
+import { baseballSetup } from "@lib/game/baseball-setup.data";
+import { baseballPlay } from "@lib/game/baseball-play.data";
 
 describe("registerRouteData", () => {
   it.each([
@@ -31,6 +33,8 @@ describe("registerRouteData", () => {
     ["cricketPlay", cricketPlay],
     ["tacticsSetup", tacticsSetup],
     ["tacticsPlay", tacticsPlay],
+    ["baseballSetup", baseballSetup],
+    ["baseballPlay", baseballPlay],
   ])("registers %s as an Alpine data factory", (name, factory) => {
     const data = vi.fn();
     registerRouteData({ data } as unknown as Alpine);

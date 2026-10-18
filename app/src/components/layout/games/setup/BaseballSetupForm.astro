@@ -1,0 +1,22 @@
+---
+// Components
+import InfoSection from "@components/ui/InfoSection.astro";
+import SetupShell from "./SetupShell.astro";
+import UserSection from "./UserSection.astro";
+
+// Data
+const infoSection = {
+  title: "Baseball Darts rules",
+  description:
+    "Nine innings, three darts each. Inning 1 aims at the 1, inning 9 at the 9. On the inning's number a single scores 1 run, a double 2, a treble 3; any other number or the bull scores nothing. Most runs wins — 81 is a perfect game. Solo practice, locked rules.",
+};
+---
+
+<SetupShell title="Baseball Darts">
+  <UserSection />
+  <InfoSection
+    title={infoSection.title}
+    description={infoSection.description}
+    open
+  />
+</SetupShell>

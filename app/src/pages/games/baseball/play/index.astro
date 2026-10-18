@@ -1,0 +1,33 @@
+---
+export const prerender = true;
+import GameLayout from "@layouts/GameLayout.astro";
+import Baseball from "@components/layout/games/interfaces/Baseball.astro";
+import BaseballResults from "@components/layout/games/result-modals/BaseballResults.astro";
+import NoSessionPanel from "@components/layout/games/NoSessionPanel.astro";
+import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocked.astro";
+---
+
+<GameLayout
+  title="Baseball Darts — Play"
+  gameTitle="Baseball Darts"
+  gameSubtitleExpr="hasActiveSession ? subtitle() : ''"
+  x-data="baseballPlay()"
+  @confirm-exit.window="abandonAndExit()"
+>
+  <div class="flex flex-col flex-1 min-h-0">
+    {/* Loading / reconciliation-blocked */}
+    <ReconciliationBlocked />
+
+    {/* No active session view */}
+    <NoSessionPanel href="/games/baseball/setup" />
+
+    {/* Gameplay view */}
+    <Baseball
+      x-show="!finished && hasActiveSession"
+      x-cloak
+    />
+
+    {/* Results modal (overlay) */}
+    <BaseballResults />
+  </div>
+</GameLayout>
