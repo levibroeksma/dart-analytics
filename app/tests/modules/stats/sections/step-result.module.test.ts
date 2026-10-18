@@ -201,6 +201,36 @@ describe("foldStepResult", () => {
     expect(result.skippedSessions).toBe(0);
   });
 
+  it("replays a Hit Count session's hits and darts", () => {
+    const hitCount = (
+      dartNumber: number,
+      hitZoneKey: DartZoneKey,
+      score: number,
+    ) =>
+      dartRow({
+        sessionId: "hc",
+        exerciseRulesetVersionKey: "HIT_COUNT_V1",
+        configuration: {
+          targets: [{ kind: "TREBLE", number: 20 }],
+          dartsPerTarget: 3,
+        },
+        turnSequence: 1,
+        dartNumber,
+        hitTargetNumber: 20,
+        hitZoneKey,
+        score,
+      });
+
+    const result = foldStepResult("HIT_COUNT", [
+      hitCount(1, "TREBLE", 60),
+      hitCount(2, "SINGLE", 20),
+    ]);
+
+    expect(result.metrics).toEqual({ hits: 1, darts: 2 });
+    expect(result.sessions).toBe(1);
+    expect(result.skippedSessions).toBe(0);
+  });
+
   it("replays a two-stage session in stage pre-order, never interleaving the stages' turns", () => {
     const ROOT = "01900000-0000-7000-9000-0000000000a1";
     const CHILD = "01900000-0000-7000-9000-0000000000a2";

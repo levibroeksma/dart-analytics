@@ -92,4 +92,16 @@ describe("foldReplay (non-game routine steps)", () => {
 
     expect(fold).toEqual({ ok: false, reason: "ENGINE_THREW" });
   });
+
+  it("replays a Hit Count run visit by visit to the engine's final state", () => {
+    const { header, turns, finalState } = playExerciseKind("HIT_COUNT");
+
+    const fold = foldReplay(header, turns);
+
+    expect(fold.ok).toBe(true);
+    if (!fold.ok) return;
+    expect(turns).toHaveLength(2);
+    expect(finalState).toMatchObject({ hits: 2 });
+    expect(fold.stateAfter(turns.length - 1)).toEqual(finalState);
+  });
 });

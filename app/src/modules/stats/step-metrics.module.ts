@@ -76,6 +76,12 @@ export const STEP_METRIC_SPECS: Readonly<
     direction: "higher",
     rates: [["checkouts", "attempts"]],
   },
+  HIT_COUNT: {
+    metrics: { hits: "sum", darts: "sum" },
+    headline: "hits",
+    direction: "higher",
+    rates: [["hits", "darts"]],
+  },
 };
 
 /**
@@ -185,6 +191,11 @@ export function stepMetrics(
       return {
         checkouts: numberField(state, "checkouts", kind),
         attempts: numberField(state, "attempts", kind),
+        darts: numberField(state, "dartsThrown", kind),
+      };
+    case "HIT_COUNT":
+      return {
+        hits: numberField(state, "hits", kind),
         darts: numberField(state, "dartsThrown", kind),
       };
   }
