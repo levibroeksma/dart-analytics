@@ -908,6 +908,26 @@ A random score from 40 to 170, one visit of three darts to check it out under X0
 
 **Implemented** (`RANDOM_CHECKOUT_V1`, `app/src/modules/training/exercises/random-checkout.engine.module.ts`, seed `0036`): configuration `{minStart: 40, maxStart: 170, drawSeed}`; the range is locked and `drawSeed` is minted by the server at training start, overwriting any template or step value, so the immutable configuration snapshot holds it. Attempt *n* starts from a uniform pick over the 124 finishable scores in 40–170 keyed by `(drawSeed, n)` through `seededUniform` — a function of the seed and the attempt index only, so undo and replay reproduce it; the pool and the PRNG are frozen for this ruleset version. Free aim — no dart carries an intended target; `score` is the board score. One `turns` row per attempt, closing on a checkout, a bust or its third dart, read from its darts via `resolveCheckoutAttempt`. State carries the start score, what is left, checkouts, attempts and the last result; the checkout rate is derived at display. Time-bound only: nothing completes the step but its timer, and an attempt open at expiry is not judged. Capture pair and upload path match 65 or More (D277). Routine step only in V1 (D424).
 
+## Hit Count
+
+Configuration:
+
+```text
+duration: 15m
+
+targets:
+    T20
+    T19
+    T18
+    T17
+
+dartsPerTarget: 9
+```
+
+A set number of darts at each target in turn, counting only the named bed — the treble, the double or the bullseye. After the last target the list starts again until the time runs out. Rules: `docs/game-rules/training/exercises/hit-count.md`.
+
+**Implemented** (`HIT_COUNT_V1`, `app/src/modules/training/exercises/hit-count.engine.module.ts`, seed `0038`): `targets` (1–21 of `{kind: "TREBLE"|"DOUBLE", number: 1–20}` or `{kind: "BULL"}`) and `dartsPerTarget` (a multiple of three, 3–99), bound to the Track kernel through `trackExerciseSpec` (D469). Each dart carries the target's number (`25` for the bull) and bed (`TREBLE`, `DOUBLE`, `INNER_BULL`); `score` is the board score. One turn per three-dart visit; the aim moves only between visits. State carries hits, hits per target summed over every pass, passes, the current target and darts left on it; the hit rate is derived at display. Time-bound only. Capture pair and upload path match Target Scoring (D277). Routine step only in V1; the seeded template is Big Trebles (D469).
+
 ---
 
 ## Game Exercise

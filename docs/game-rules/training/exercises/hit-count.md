@@ -1,6 +1,6 @@
 # Hit Count
 
-Current version: none (V1 in design)
+Current version: V1 (shipped 2026-10-17)
 Entry points: routine step
 Kernel: TRACK
 
@@ -69,11 +69,7 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 
 ## Exercise type
 
-- Type constant: `HIT_COUNT` (proposed; not among the seeded types —
-  `WARM_UP`, `GAME`, `EXERCISE_SECTION` (`database/seeds/0014_exercise_types.sql`),
-  `SWITCHING`, `DOUBLE_PATTERN` (`0016`), `TARGET_SCORING` (`0023`),
-  `SWITCHING_TARGET_SCORING` (`0024`), `SCORE_THRESHOLD` (`0025`),
-  `BULLSEYE_CHECKOUT` (`0029`), `BULL_UP` (`0030`)). Each named drill is a
+- Type constant: `HIT_COUNT` (seed `0038`). Each named drill is a
   template of it.
 - Wraps no game.
 - Behaviour no existing type provides: a fixed **number of darts per
