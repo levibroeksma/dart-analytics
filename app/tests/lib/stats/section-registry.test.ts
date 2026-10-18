@@ -374,6 +374,11 @@ describe("statistics section registry", () => {
     expect(tagsForGameType("TACTICS")).toEqual(new Set(["board"]));
   });
 
+  it("gives Baseball the higher result direction and only the board tag", () => {
+    expect(RESULT_DIRECTION.BASEBALL).toBe("higher");
+    expect(tagsForGameType("BASEBALL")).toEqual(new Set(["board"]));
+  });
+
   it("tagsForGameType unions the tags of every ruleset version", () => {
     expect(tagsForGameType("DOUBLES_TRAINING")).toEqual(
       new Set(["board", "intent-stored", "target-sequence"]),

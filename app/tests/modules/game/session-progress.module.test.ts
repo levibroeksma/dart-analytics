@@ -10,6 +10,7 @@ import {
 } from "@modules/game/one-twenty-one.engine.module";
 import { cricketEngineFactory } from "@modules/game/cricket.engine.module";
 import { tacticsEngineFactory } from "@modules/game/tactics.engine.module";
+import { baseballEngineFactory } from "@modules/game/baseball.engine.module";
 import { scoreTrainingEngineFactory } from "@modules/game/score-training.engine.module";
 import { singlesTrainingEngineFactory } from "@modules/game/singles-training.engine.module";
 import { doublesTrainingEngineFactory } from "@modules/game/doubles-training.engine.module";
@@ -634,5 +635,43 @@ describe("summarizeProgress — the end of a path", () => {
         EMPTY_FACTS,
       ),
     ).toEqual({ detail: "Low → High", big: null });
+  });
+});
+
+describe("summarizeProgress — BASEBALL_V1", () => {
+  const config = {
+    seats: [
+      {
+        participantRef: "p1",
+        displayName: "L",
+        sideKey: "A",
+        participantTypeKey: "PLAYER" as const,
+      },
+    ],
+  };
+
+  it("reads inning 1 and no runs before a dart", () => {
+    expect(summarizeProgress("BASEBALL_V1", config, EMPTY_FACTS)).toEqual({
+      detail: "Inning 1 of 9",
+      big: { value: "0", label: "RUNS" },
+    });
+  });
+
+  it("reads the next inning and the runs after a visit", () => {
+    const treble = {
+      hitTargetNumber: 1,
+      hitZoneKey: "TREBLE" as const,
+      locationX: null,
+      locationY: null,
+    };
+    const facts = factsAfter(baseballEngineFactory, config, [
+      treble,
+      treble,
+      treble,
+    ]);
+    expect(summarizeProgress("BASEBALL_V1", config, facts)).toEqual({
+      detail: "Inning 2 of 9",
+      big: { value: "9", label: "RUNS" },
+    });
   });
 });

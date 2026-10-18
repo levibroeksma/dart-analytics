@@ -17,6 +17,7 @@ export const HEATMAP_ONLY_LAYOUTS: ReadonlySet<string> = new Set([
   "AROUND_THE_CLOCK_V1",
   "CRICKET_V1",
   "TACTICS_V1",
+  "BASEBALL_V1",
   "DOUBLES_TRAINING_V1",
   "BOBS27_V1",
 ]);

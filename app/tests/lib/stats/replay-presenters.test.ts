@@ -4,6 +4,10 @@ import { foldReplay } from "@lib/stats/replay-fold";
 import { legsWonIn, REPLAY_PRESENTERS } from "@lib/stats/replay-presenters";
 import type { GameTypeKey, ReplayCell, ReplayFold } from "@lib/types";
 import {
+  BaseballEngine,
+  initialBaseballState,
+} from "@modules/game/baseball.engine.module";
+import {
   CricketEngine,
   initialCricketState,
 } from "@modules/game/cricket.engine.module";
@@ -381,5 +385,66 @@ describe("legsWonIn", () => {
       ],
     };
     expect(legsWonIn(after)).toBeGreaterThan(legsWonIn(before));
+  });
+});
+
+describe("REPLAY_PRESENTERS.BASEBALL", () => {
+  const config = {
+    seats: [
+      {
+        participantRef: "p1",
+        displayName: "L",
+        sideKey: "A",
+        participantTypeKey: "PLAYER" as const,
+      },
+    ],
+  };
+  const on = (hitTargetNumber: number, hitZoneKey: "TREBLE" | "SINGLE") => ({
+    hitTargetNumber,
+    hitZoneKey,
+    locationX: null,
+    locationY: null,
+  });
+
+  function twoInnings() {
+    const engine = new BaseballEngine(config);
+    for (const observation of [
+      on(1, "TREBLE"),
+      on(1, "SINGLE"),
+      on(20, "TREBLE"),
+      on(2, "SINGLE"),
+      on(2, "SINGLE"),
+      on(2, "SINGLE"),
+    ])
+      engine.record(observation);
+    return engine;
+  }
+
+  it("shows the inning, its runs and the running total after each visit", () => {
+    const engine = twoInnings();
+    const [, second] = engine.facts().turns;
+    const before = new BaseballEngine(config, {
+      stages: engine.facts().stages,
+      turns: engine.facts().turns.slice(0, 1),
+    }).state();
+    const cells = REPLAY_PRESENTERS.BASEBALL.turn(
+      { turn: second, before, after: engine.state() },
+      config,
+    );
+    expect(
+      cells.map((cell) => (cell.kind === "value" ? cell.value : "")),
+    ).toEqual(["2", "3", "7"]);
+  });
+
+  it("ends the session line on runs", () => {
+    const engine = twoInnings();
+    const [turn] = engine.facts().turns;
+    const line = REPLAY_PRESENTERS.BASEBALL.session(
+      [{ turn, before: initialBaseballState(config), after: engine.state() }],
+      config,
+    );
+    expect(line.entries).toEqual([
+      { participantId: "p1", label: "Runs", value: "7" },
+    ]);
   });
 });

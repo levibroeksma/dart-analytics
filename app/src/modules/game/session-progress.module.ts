@@ -23,6 +23,10 @@ import { foldBobs27State } from "@modules/game/bobs27.engine.module";
 import { foldTuodState } from "@modules/game/tuod.engine.module";
 import { foldShanghaiState } from "@modules/game/shanghai.engine.module";
 import {
+  BASEBALL_INNINGS,
+  foldBaseballState,
+} from "@modules/game/baseball.engine.module";
+import {
   foldAroundTheClockState,
   rulesOf,
 } from "@modules/game/around-the-clock.engine.module";
@@ -169,6 +173,18 @@ function tactics(
   };
 }
 
+function baseball(
+  config: Parameters<typeof foldBaseballState>[1],
+  facts: EngineFacts,
+): SessionProgress {
+  const seat = activeOf(foldBaseballState(facts, config));
+  const inning = Math.min((seat?.targetIndex ?? 0) + 1, BASEBALL_INNINGS);
+  return {
+    detail: `Inning ${inning} of ${BASEBALL_INNINGS}`,
+    big: big(seat?.runs, "RUNS"),
+  };
+}
+
 function scoreTraining(
   config: Seated<ScoreTrainingSnapshot>,
   facts: EngineFacts,
@@ -269,6 +285,7 @@ const SUMMARIZERS: Readonly<Record<string, Summarizer>> = {
   "121_V2": oneTwentyOne,
   CRICKET_V1: cricket,
   TACTICS_V1: tactics,
+  BASEBALL_V1: baseball,
   SCORE_TRAINING_V1: scoreTraining,
   SINGLES_V1: singles,
   SINGLES_V2: singles,

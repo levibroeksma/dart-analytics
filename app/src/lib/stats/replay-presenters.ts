@@ -33,6 +33,7 @@ import type {
 } from "@lib/types";
 import type {
   AroundTheClockSeatState,
+  BaseballSeatState,
   Bobs27SeatState,
   CricketSeatState,
   TacticsSeatState,
@@ -420,6 +421,24 @@ const TACTICS: ReplayPresenter = {
 };
 
 /**
+ * Baseball Darts, read off the play page: the inning just played, the runs
+ * it scored and the running total; the session line is the run total.
+ */
+const BASEBALL: ReplayPresenter = {
+  turn({ turn, before, after }) {
+    const prior = seatIn<BaseballSeatState>(before, turn.participantRef);
+    const seat = seatIn<BaseballSeatState>(after, turn.participantRef);
+    return [
+      valueCell("Inning", prior.targetIndex + 1),
+      valueCell("Runs", seat.runs - prior.runs),
+      valueCell("Total", seat.runs),
+    ];
+  },
+  session: (steps) =>
+    finalLine<BaseballSeatState>(steps, "Runs", (seat) => seat.runs),
+};
+
+/**
  * Each game's replay presenter (D371 decision 8): per turn, the values its
  * play page shows after the visit; per session, its outcome line.
  */
@@ -435,6 +454,7 @@ export const REPLAY_PRESENTERS: Record<GameTypeKey, ReplayPresenter> = {
   AROUND_THE_CLOCK,
   CRICKET,
   TACTICS,
+  BASEBALL,
 };
 
 /** No facts to fold: every dart exercise kind's per-turn headline and darts count read off `state` alone (`stepMetrics`'s `numberField` reads), never off `facts` -- only Switching's own "hits" key uses `facts`, and a turn cell never shows it (session() does, over the real facts). */

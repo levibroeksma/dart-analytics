@@ -2,6 +2,7 @@ import { zoneCentroid } from "@lib/game/board/board-geometry.module";
 import { toWireConfig } from "@lib/game/rulesets/config-codec";
 import { GAME_TYPE_BY_RULESET } from "@lib/game/rulesets/capabilities";
 import { aroundTheClockEngineFactory } from "@modules/game/around-the-clock.engine.module";
+import { baseballEngineFactory } from "@modules/game/baseball.engine.module";
 import { bobs27EngineFactory } from "@modules/game/bobs27.engine.module";
 import { doublesTrainingEngineFactory } from "@modules/game/doubles-training.engine.module";
 import { fiveOhOneEngineFactory } from "@modules/game/five-oh-one.engine.module";
@@ -386,6 +387,14 @@ export function playAroundTheClock(): ScriptedGame {
   ]);
 }
 
+/** Two Baseball innings: a treble and a single on 1, then a single on 2 between misses. */
+export function playBaseball(): ScriptedGame {
+  return scripted(baseballEngineFactory, { seats: SOLO_SEATS }, [
+    [dart(1, "TREBLE"), dart(1, "OUTER_SINGLE"), MISS],
+    [MISS, dart(2, "OUTER_SINGLE"), dart(20, "TREBLE")],
+  ]);
+}
+
 /**
  * Every scripted game, named for `it.each` tables: shared by
  * `replay-fold.test.ts` and `replay.module.test.ts` so the two suites that
@@ -401,4 +410,5 @@ export const SCRIPTED_GAMES: [string, () => ScriptedGame][] = [
   ["Bob's 27", playBobs27],
   ["Shanghai", playShanghai],
   ["Around the Clock", playAroundTheClock],
+  ["Baseball", playBaseball],
 ];
