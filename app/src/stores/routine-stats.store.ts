@@ -85,6 +85,8 @@ const STEP_METRIC_LABELS: Readonly<Record<string, string>> = {
   bullseyes: "Bullseyes",
   bulls: "Bulls",
   attempts: "Attempts",
+  bonus: "Bonus",
+  locks: "Locks",
 };
 
 type SeriesView = CachedSeries<unknown> | null;

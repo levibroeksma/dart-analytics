@@ -641,6 +641,12 @@ describe("routineStatsStore getters", () => {
     }
   });
 
+  it("labels Doubles Lock's bonus and locks metrics", () => {
+    const store = routineStatsStore();
+    expect(store.metricLabel("bonus")).toBe("Bonus");
+    expect(store.metricLabel("locks")).toBe("Locks");
+  });
+
   it("labels Catch 40's attempts metric", () => {
     expect(routineStatsStore().metricLabel("attempts")).toBe("Attempts");
   });
