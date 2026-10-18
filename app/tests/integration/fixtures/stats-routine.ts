@@ -41,8 +41,9 @@ function exerciseStep(
 }
 
 /**
- * Spec §4.4: Warm-Up, the nine dart kinds (every `STEP_METRIC_SPECS` key),
- * then a 501 game step whose configuration is filled in by `seedRoutineRun`.
+ * Spec §4.4: Warm-Up, nine dart kinds, then a 501 game step whose
+ * configuration is filled in by `seedRoutineRun`, then Hit Count — the ten
+ * dart kinds are every `STEP_METRIC_SPECS` key.
  * Configs are the camelCase V1 shapes, literals included (spec F13).
  */
 export const ROUTINE_STEPS: readonly RoutineStep[] = [
@@ -79,6 +80,10 @@ export const ROUTINE_STEPS: readonly RoutineStep[] = [
     durationSeconds: STEP_DURATION_SECONDS,
     configuration: {},
   },
+  exerciseStep(12, "HIT_COUNT", {
+    targets: [{ kind: "TREBLE", number: 20 }],
+    dartsPerTarget: 3,
+  }),
 ];
 
 /**

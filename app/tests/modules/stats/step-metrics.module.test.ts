@@ -14,6 +14,7 @@ import { bullseyeCheckoutEngineFactory } from "@modules/training/exercises/bulls
 import { bullUpEngineFactory } from "@modules/training/exercises/bull-up.engine.module";
 import { checkoutSequenceEngineFactory } from "@modules/training/exercises/checkout-sequence.engine.module";
 import { randomCheckoutEngineFactory } from "@modules/training/exercises/random-checkout.engine.module";
+import { hitCountEngineFactory } from "@modules/training/exercises/hit-count.engine.module";
 import type {
   DartExerciseKind,
   DartObservation,
@@ -136,6 +137,17 @@ function fixtures(): Fixture[] {
     dart(20, "SINGLE"),
   ].forEach((d) => randomCheckout.record(d));
 
+  const hitCount = hitCountEngineFactory.create({
+    targets: [{ kind: "TREBLE", number: 20 }],
+    dartsPerTarget: 3,
+  });
+  [
+    dart(20, "TREBLE"),
+    dart(20, "SINGLE"),
+    dart(20, "TREBLE"),
+    dart(null, "MISS"),
+  ].forEach((d) => hitCount.record(d));
+
   return [
     {
       kind: "SWITCHING",
@@ -190,6 +202,12 @@ function fixtures(): Fixture[] {
       state: randomCheckout.state(),
       facts: randomCheckout.facts(),
       expected: { checkouts: 1, attempts: 2, darts: 5 },
+    },
+    {
+      kind: "HIT_COUNT",
+      state: hitCount.state(),
+      facts: hitCount.facts(),
+      expected: { hits: 2, darts: 4 },
     },
   ];
 }

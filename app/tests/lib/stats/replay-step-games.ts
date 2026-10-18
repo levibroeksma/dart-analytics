@@ -1,6 +1,7 @@
 import { bullUpEngineFactory } from "@modules/training/exercises/bull-up.engine.module";
 import { checkoutSequenceEngineFactory } from "@modules/training/exercises/checkout-sequence.engine.module";
 import { randomCheckoutEngineFactory } from "@modules/training/exercises/random-checkout.engine.module";
+import { hitCountEngineFactory } from "@modules/training/exercises/hit-count.engine.module";
 import { bullseyeCheckoutEngineFactory } from "@modules/training/exercises/bullseye-checkout.engine.module";
 import { doublePatternEngineFactory } from "@modules/training/exercises/double-pattern.engine.module";
 import { scoreThresholdEngineFactory } from "@modules/training/exercises/score-threshold.engine.module";
@@ -258,6 +259,20 @@ const EXERCISE_FIXTURES: Record<
       dart(null, "MISS"),
       dart(null, "MISS"),
       dart(20, "SINGLE"),
+    ],
+  },
+  HIT_COUNT: {
+    rulesetKey: "HIT_COUNT_V1",
+    factory: hitCountEngineFactory,
+    config: {
+      targets: [{ kind: "TREBLE", number: 20 }, { kind: "BULL" }],
+      dartsPerTarget: 3,
+    },
+    darts: [
+      dart(20, "TREBLE"),
+      dart(20, "SINGLE"),
+      dart(null, "MISS"),
+      dart(25, "INNER_BULL"),
     ],
   },
 };

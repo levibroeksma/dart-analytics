@@ -313,7 +313,7 @@ describe("statistics SQL executes against Postgres", () => {
     await inStatsTx(async (db) => {
       const world = await seedStatsWorld(db);
 
-      expect(world.routine.stepKinds).toHaveLength(11);
+      expect(world.routine.stepKinds).toHaveLength(12);
       const listed = await stats.listTrainedRoutines(FIXTURE_PLAYER);
       if (!listed.ok) {
         throw new Error(`trained routines: ${JSON.stringify(listed)}`);
