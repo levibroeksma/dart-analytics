@@ -827,7 +827,7 @@ hand-written opt-out:
 
 | Kernel | Decides | Kernel module | Status |
 | --- | --- | --- | --- |
-| `TRACK` | walk a target path; hit test, points, visit judgement, seat end | `modules/game/track-kernel.module.ts` (policies: `track-policies.ts`) | built — Doubles Training, Bob's 27, Singles Training, Around the Clock, Shanghai, Target Scoring, Switching Target Scoring bound (D468); Hit Count, SwitchBlade, Doubles Lock bound through `trackExerciseSpec` (D469); Baseball Darts bound through the game shell (2026-10-18) |
+| `TRACK` | walk a target path; hit test, points, visit judgement, seat end | `modules/game/track-kernel.module.ts` (policies: `track-policies.ts`) | built — Doubles Training, Bob's 27, Singles Training, Around the Clock, Shanghai, Target Scoring, Switching Target Scoring bound (D468); Target Scoring, Switching Target Scoring, Hit Count, SwitchBlade, Doubles Lock bound through `trackExerciseSpec` (D469, #993); Baseball Darts bound through the game shell (2026-10-18) |
 | `CHECKOUT` | finish a target score under bust rules; attempt budget; ladder moves | `checkout-kernel.module.ts` | designated, kernel pending |
 | `VISIT_POINTS` | points from a visit's darts; goal, bust, void, compare | `visit-points-kernel.module.ts` | designated, kernel pending |
 | `MARKS` | marks on categories; close order; closed-number scoring | `marks-kernel.module.ts` | designated, kernel pending |

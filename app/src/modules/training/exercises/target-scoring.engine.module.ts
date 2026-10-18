@@ -15,10 +15,6 @@ import {
   numbersPath,
 } from "@modules/game/board-progression.module";
 import {
-  foldTrackDarts,
-  initialTrackSeat,
-} from "@modules/game/track-kernel.module";
-import {
   chainOnTarget,
   closeAfter,
   pathTarget,
@@ -29,18 +25,13 @@ import {
   dartExerciseEngineClass,
   dartExerciseEngineFactory,
 } from "./dart-exercise-shell.module";
-import type { DartExerciseSpec } from "./interfaces";
-import { SOLO_PARTICIPANT_REF } from "./solo-participant.module";
+import { trackExerciseSpec } from "./track-exercise-spec.module";
 import type { TargetScoringState } from "./types";
 
 const EXERCISE_RULESET_VERSION_KEY = "TARGET_SCORING_V1" as const;
 const DARTS_PER_VISIT = 3;
 const DONE_MESSAGE =
   "A Target Scoring seat never finishes; only the timer ends the exercise.";
-const SOLO_SEAT = {
-  participantRef: SOLO_PARTICIPANT_REF,
-  sideKey: SOLO_PARTICIPANT_REF,
-};
 
 const SINGLE_ZONE_KEYS = new Set(["SINGLE", "INNER_SINGLE", "OUTER_SINGLE"]);
 
@@ -104,31 +95,20 @@ function targetScoringRules(
   };
 }
 
-function initialSeat(
-  config: TargetScoringConfigData,
-): TrackSeat<ChainTrackExt> {
-  return initialTrackSeat(SOLO_SEAT, {
+function initialExt(config: TargetScoringConfigData): ChainTrackExt {
+  return {
     chain: 0,
     finishedBest: config.targets.map(() => null),
     hits: 0,
-  });
+  };
 }
 
-/**
- * Folds the whole fact log into Target Scoring state — a pure function of
- * `facts`/`config`/`complete`, folded through the Track kernel's `foldTrackDarts`. Darts are
- * replayed in write order, which is what reproduces each dart's target.
- */
-export function foldTargetScoringState(
-  facts: EngineFacts,
+function projectTargetScoring(
+  seat: TrackSeat<ChainTrackExt>,
   config: TargetScoringConfigData,
   complete: boolean,
+  facts: EngineFacts,
 ): TargetScoringState {
-  const seat = foldTrackDarts(
-    facts.turns,
-    initialSeat(config),
-    targetScoringRules(config),
-  );
   const { chain, finishedBest, hits } = seat.ext;
   const bestChainByTarget = config.targets.map((targetNumber, index) => ({
     targetNumber,
@@ -162,16 +142,27 @@ export function foldTargetScoringState(
  * the current target before a miss resets it; one three-dart visit per
  * `TurnFact`, each dart carrying its own intended target.
  */
-const targetScoringSpec: DartExerciseSpec<
+const targetScoringSpec = trackExerciseSpec<
   TargetScoringConfigData,
+  ChainTrackExt,
   TargetScoringState
-> = {
+>({
   exerciseRulesetVersionKey: EXERCISE_RULESET_VERSION_KEY,
   parse: (config) => TargetScoringV1Config.parse(config),
-  fold: foldTargetScoringState,
+  rules: targetScoringRules,
+  initialExt,
+  project: projectTargetScoring,
   intent: (state) => targetScoringIntent(state.currentTargetNumber),
-  isVisitOpen: (turn) => turn.darts.length < DARTS_PER_VISIT,
-};
+});
+
+/** Target Scoring's state from a fact log alone, through the same fold the engine uses. */
+export function foldTargetScoringState(
+  facts: EngineFacts,
+  config: TargetScoringConfigData,
+  complete: boolean,
+): TargetScoringState {
+  return targetScoringSpec.fold(facts, config, complete);
+}
 
 /** Target Scoring exercise engine (D264), built by the exercise shell. */
 export class TargetScoringEngine extends dartExerciseEngineClass(

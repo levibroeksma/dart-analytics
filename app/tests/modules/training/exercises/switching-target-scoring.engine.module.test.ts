@@ -239,6 +239,21 @@ describe("foldSwitchingTargetScoringState", () => {
       foldSwitchingTargetScoringState(engine.facts(), CONFIG, false),
     ).toEqual(engine.state());
   });
+
+  it("reports COMPLETE for an expired log, matching the engine after expiry", () => {
+    const engine = new SwitchingTargetScoringEngine(CONFIG);
+    play(engine, [dart(20, "TREBLE"), MISS]);
+    engine.expireTimer();
+
+    const folded = foldSwitchingTargetScoringState(
+      engine.facts(),
+      CONFIG,
+      true,
+    );
+
+    expect(folded.status).toBe("COMPLETE");
+    expect(folded).toEqual(engine.state());
+  });
 });
 
 describe("Switching Target Scoring — kernel seams", () => {

@@ -272,6 +272,17 @@ describe("foldTargetScoringState", () => {
       engine.state(),
     );
   });
+
+  it("reports COMPLETE for an expired log, matching the engine after expiry", () => {
+    const engine = new TargetScoringEngine(CONFIG);
+    play(engine, [dart(20, "TREBLE"), MISS]);
+    engine.expireTimer();
+
+    const folded = foldTargetScoringState(engine.facts(), CONFIG, true);
+
+    expect(folded.status).toBe("COMPLETE");
+    expect(folded).toEqual(engine.state());
+  });
 });
 
 describe("Target Scoring — kernel seams", () => {
