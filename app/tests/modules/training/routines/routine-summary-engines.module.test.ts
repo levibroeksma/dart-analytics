@@ -10,6 +10,7 @@ import {
   summariseCheckoutSequence,
   summariseRandomCheckout,
   summariseHitCount,
+  summariseSwitchblade,
 } from "@modules/training/routines/routine-summary.module";
 import { switchingEngineFactory } from "@modules/training/exercises/switching.engine.module";
 import { doublePatternEngineFactory } from "@modules/training/exercises/double-pattern.engine.module";
@@ -21,6 +22,7 @@ import { bullUpEngineFactory } from "@modules/training/exercises/bull-up.engine.
 import { checkoutSequenceEngineFactory } from "@modules/training/exercises/checkout-sequence.engine.module";
 import { randomCheckoutEngineFactory } from "@modules/training/exercises/random-checkout.engine.module";
 import { hitCountEngineFactory } from "@modules/training/exercises/hit-count.engine.module";
+import { switchbladeEngineFactory } from "@modules/training/exercises/switchblade.engine.module";
 import type { DartObservation } from "@modules/types";
 
 /**
@@ -315,6 +317,42 @@ describe("summarise* over a real engine run", () => {
       dartsPerTarget: 3,
     });
     expect(summariseHitCount(engine.state()).rows.at(-1)).toEqual({
+      label: "Hit rate",
+      value: "—",
+    });
+  });
+
+  it("summariseSwitchblade reads total, round totals, passes, darts and rate", () => {
+    const engine = switchbladeEngineFactory.create({});
+    [
+      dart(20, "TREBLE"),
+      dart(20, "SINGLE"),
+      dart(null, "MISS"),
+      dart(20, "TREBLE"),
+      dart(null, "MISS"),
+      dart(19, "TREBLE"),
+    ].forEach((d) => engine.record(d));
+
+    expect(summariseSwitchblade(engine.state())).toEqual({
+      stepKey: "SWITCHBLADE",
+      label: "SwitchBlade",
+      rows: [
+        { label: "Total", value: "197" },
+        { label: "Round 1", value: "80" },
+        { label: "Round 2", value: "117" },
+        { label: "Round 3", value: "0" },
+        { label: "Round 4", value: "0" },
+        { label: "Round 5", value: "0" },
+        { label: "Passes", value: "0" },
+        { label: "Darts", value: "6" },
+        { label: "Hit rate", value: "66.67%" },
+      ],
+    });
+  });
+
+  it("summariseSwitchblade shows no rate before a dart", () => {
+    const engine = switchbladeEngineFactory.create({});
+    expect(summariseSwitchblade(engine.state()).rows.at(-1)).toEqual({
       label: "Hit rate",
       value: "—",
     });
