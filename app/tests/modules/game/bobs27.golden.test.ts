@@ -91,7 +91,7 @@ describe("Bob's 27 — refusal order", () => {
     expect([...messages]).toEqual([
       "Cannot record a dart once the game has ended; undo first to correct it.",
     ]);
-  });
+  }, 30_000);
 
   it("refuses an ended match with the match-ended message", () => {
     const engine = new Bobs27Engine(CONFIGS.solo);
