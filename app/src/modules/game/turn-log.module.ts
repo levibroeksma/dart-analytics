@@ -43,7 +43,10 @@ export function turnsBeforeVisit(
  * caller ever holds a reference into an engine's live log.
  */
 export function cloneTurns(turns: readonly TurnFact[]): TurnFact[] {
-  return turns.map((turn) => ({ ...turn, darts: [...turn.darts] }));
+  return turns.map((turn) => ({
+    ...turn,
+    darts: turn.darts.map((dart) => ({ ...dart })),
+  }));
 }
 
 /** How many darts `participantRef` has thrown across the whole log. */

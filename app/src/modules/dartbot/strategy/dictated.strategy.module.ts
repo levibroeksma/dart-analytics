@@ -16,8 +16,8 @@ const BULL_TARGET_NUMBER = 25;
  * (or bot) choose one. A `NUMBER` target aims at the outer single — the
  * largest bed on that number, and the one a real player picks when told
  * "hit 14" with no zone specified. A `DOUBLE` target aims at that double
- * exactly, matching `isHitOn`'s strict double-only check. `BULL` aims at the
- * inner bull; `classify()` reports `targetNumber: 25` for a landing anywhere
+ * exactly, matching `isHitOn`'s strict double-only check. A `TREBLE` target
+ * aims at that treble exactly. `BULL` aims at the inner bull; `classify()` reports `targetNumber: 25` for a landing anywhere
  * in either bull ring, so a wide scatter still resolves to a real hit.
  */
 export function chooseTarget(view: DictatedView): ThrowIntent {
@@ -27,6 +27,9 @@ export function chooseTarget(view: DictatedView): ThrowIntent {
   }
   if (target.kind === "DOUBLE") {
     return { targetNumber: target.number, zoneKey: "DOUBLE" };
+  }
+  if (target.kind === "TREBLE") {
+    return { targetNumber: target.number, zoneKey: "TREBLE" };
   }
   return { targetNumber: target.number, zoneKey: "OUTER_SINGLE" };
 }

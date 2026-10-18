@@ -9,7 +9,11 @@ import {
   isClockHit,
   rulesOf,
 } from "@modules/game/around-the-clock.engine.module";
-import { aimedDarts, sessionSteps } from "@modules/stats/derived-aims.module";
+import {
+  aimedDarts,
+  aimPairFor,
+  sessionSteps,
+} from "@modules/stats/derived-aims.module";
 import type { DartFoldRow, DartObservation, DartZoneKey } from "@modules/types";
 
 const SEATS = [
@@ -452,5 +456,13 @@ describe("sessionSteps — skip rules (phase-4 decision 4)", () => {
     ]);
     expect(sessions.map((s) => s.sessionId)).toEqual(["session-good"]);
     expect(skippedSessions).toBe(1);
+  });
+});
+
+describe("aimPairFor", () => {
+  it("maps a TREBLE target to the TREBLE zone on its own number", () => {
+    expect(
+      aimPairFor("SHANGHAI", { kind: "TREBLE", number: 19 }, {} as never),
+    ).toEqual({ number: 19, zone: "TREBLE" });
   });
 });

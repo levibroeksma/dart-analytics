@@ -241,16 +241,20 @@ function activeTargetFor(
 
 /**
  * Maps an engine's own `BoardTarget` to an aim key (phase-4 decision 1): BULL
- * is always `BULL:25`; a NUMBER target is `OUTER_SINGLE:n` under Around the
- * Clock's `segmentRule: "OUTER_SINGLE"`, otherwise `NUMBER:n`.
+ * is always `BULL:25`; a TREBLE target is `TREBLE:n`; a NUMBER target is
+ * `OUTER_SINGLE:n` under Around the Clock's `segmentRule: "OUTER_SINGLE"`,
+ * otherwise `NUMBER:n`.
  */
-function aimPairFor(
+export function aimPairFor(
   game: DerivedGame,
   target: BoardTarget,
   config: DecodedSnapshot,
 ): { number: number; zone: IntentZoneKey } {
   if (target.kind === "BULL") {
     return { number: BULL_TARGET_NUMBER, zone: "BULL" };
+  }
+  if (target.kind === "TREBLE") {
+    return { number: target.number, zone: "TREBLE" };
   }
   const isOuterSingleOnly =
     game === "AROUND_THE_CLOCK" &&

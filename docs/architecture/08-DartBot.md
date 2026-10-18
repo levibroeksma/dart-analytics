@@ -404,7 +404,7 @@ Under QUICK_SCORE the bot still throws three darts internally; it records only t
 
 "X01 ladder" for `121_V1`/`TUOD_V1` resolved to reusing `x01.strategy.module.ts` unchanged, not a separate module — both are checkout-ladder games with 501's own `{ remaining, checkoutPath }` decision shape. "Score Training" resolved to the new `scoring.strategy.module.ts` (D-G), which takes no `GameView` at all since there is no checkout or decision axis to route on.
 
-Five of nine rulesets dictate their own target, so `DictatedStrategy` is near-free once the engine exists. Depth is spent only where a decision genuinely exists: 501, 121 and Ten Up One Down.
+Five of nine rulesets dictate their own target, so `DictatedStrategy` is near-free once the engine exists. It aims a `NUMBER` target at the outer single, a `DOUBLE` or `TREBLE` target at that ring exactly, and `BULL` at the inner bull. Depth is spent only where a decision genuinely exists: 501, 121 and Ten Up One Down.
 
 The `stageOwnership` column is not DartBot's business — no strategy reads it, and it no longer gates anything either. At 0.2.0 it decided which mode a bot could play against a human first, because `501_V1` was the only rotation-wired engine. D230–D232 wired the other eight: every engine now folds `MultiSeatState` per `participantRef` and derives its active seat through `activeSeat()`. `SHARED` versus `PER_SEAT` is once again only a statement about stage shape.
 
