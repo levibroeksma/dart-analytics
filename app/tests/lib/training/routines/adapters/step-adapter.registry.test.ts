@@ -7,6 +7,7 @@ import {
 } from "@lib/training/routines/adapters/step-adapter.registry";
 import { ROUTINE_GAME_STEPS } from "@services/routines/game-step";
 import { hitCountAdapter } from "@lib/training/routines/adapters/hit-count.adapter";
+import { switchbladeAdapter } from "@lib/training/routines/adapters/switchblade.adapter";
 
 describe("step adapter registry", () => {
   it("has one adapter per non-game kind and per server-eligible game ruleset", () => {
@@ -24,6 +25,7 @@ describe("step adapter registry", () => {
         "CHECKOUT_SEQUENCE",
         "RANDOM_CHECKOUT",
         "HIT_COUNT",
+        "SWITCHBLADE",
         ...Object.keys(ROUTINE_GAME_STEPS).map((k) => `GAME:${k}`),
       ].sort(),
     );
@@ -60,6 +62,11 @@ describe("step adapter registry", () => {
   it("resolves the Hit Count step", () => {
     expect(resolveStepAdapter("HIT_COUNT")?.title).toBe("Hit Count");
     expect(STEP_ADAPTERS.HIT_COUNT).toBe(hitCountAdapter);
+  });
+
+  it("resolves the SwitchBlade step", () => {
+    expect(resolveStepAdapter("SWITCHBLADE")?.title).toBe("SwitchBlade");
+    expect(STEP_ADAPTERS.SWITCHBLADE).toBe(switchbladeAdapter);
   });
 
   it("derives the key from a resolved step", () => {
@@ -127,6 +134,7 @@ describe("STEP_ADAPTERS titles", () => {
         "HIT_COUNT": "Hit Count",
         "RANDOM_CHECKOUT": "Random Checkout",
         "SCORE_THRESHOLD": "65 or More",
+        "SWITCHBLADE": "SwitchBlade",
         "SWITCHING": "Switching",
         "SWITCHING_TARGET_SCORING": "Switching Target Scoring",
         "TARGET_SCORING": "Target Scoring",

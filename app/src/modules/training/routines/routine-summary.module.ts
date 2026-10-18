@@ -14,6 +14,7 @@ import type {
   CheckoutSequenceState,
   RandomCheckoutState,
   HitCountState,
+  SwitchbladeState,
   RoutineStatRow,
   RoutineStepSummary,
 } from "@modules/types";
@@ -287,6 +288,30 @@ export function summariseHitCount(state: HitCountState): RoutineStepSummary {
       ...state.hitsPerTarget.map((entry) => ({
         label: `Hits on ${boardTargetLabel(entry.target)}`,
         value: String(entry.hits),
+      })),
+      { label: "Passes", value: String(state.passes) },
+      { label: "Darts", value: String(darts) },
+      hitRateRow(hits, darts),
+    ],
+  };
+}
+
+/**
+ * SwitchBlade's result is its total, then each round's points summed over
+ * every pass, then passes, darts and hit rate.
+ */
+export function summariseSwitchblade(
+  state: SwitchbladeState,
+): RoutineStepSummary {
+  const { points, darts, hits } = stepMetrics("SWITCHBLADE", state, NO_FACTS);
+  return {
+    stepKey: "SWITCHBLADE",
+    label: "SwitchBlade",
+    rows: [
+      { label: "Total", value: String(points) },
+      ...state.roundTotals.map((total, index) => ({
+        label: `Round ${index + 1}`,
+        value: String(total),
       })),
       { label: "Passes", value: String(state.passes) },
       { label: "Darts", value: String(darts) },

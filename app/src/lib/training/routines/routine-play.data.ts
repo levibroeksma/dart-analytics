@@ -168,6 +168,7 @@ export function routinePlay() {
     checkoutSequenceEngine: null,
     randomCheckoutEngine: null,
     hitCountEngine: null,
+    switchbladeEngine: null,
     stepTimer: null,
     stepRemainingSeconds: 0,
     warmUpTimer: null,

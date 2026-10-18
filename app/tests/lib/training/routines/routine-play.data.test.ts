@@ -3637,3 +3637,9 @@ describe("routinePlay — board dispatch", () => {
     expect(store.dartsThrown()).toBe(0);
   });
 });
+
+describe("routinePlay — SwitchBlade", () => {
+  it("starts with no SwitchBlade engine", () => {
+    expect(makeStore().switchbladeEngine).toBeNull();
+  });
+});

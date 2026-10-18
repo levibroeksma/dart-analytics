@@ -13,6 +13,7 @@ import { bullUpAdapter } from "./bull-up.adapter";
 import { checkoutSequenceAdapter } from "./checkout-sequence.adapter";
 import { randomCheckoutAdapter } from "./random-checkout.adapter";
 import { hitCountAdapter } from "./hit-count.adapter";
+import { switchbladeAdapter } from "./switchblade.adapter";
 import {
   gameAdapter,
   summariseTuodStep,
@@ -42,6 +43,7 @@ export const STEP_ADAPTERS: Record<StepAdapterKey, StepAdapter> = {
   CHECKOUT_SEQUENCE: checkoutSequenceAdapter,
   RANDOM_CHECKOUT: randomCheckoutAdapter,
   HIT_COUNT: hitCountAdapter,
+  SWITCHBLADE: switchbladeAdapter,
   "GAME:TUOD_V1": gameAdapter({
     rulesetVersionKey: "TUOD_V1",
     headerLabel: "finishing",

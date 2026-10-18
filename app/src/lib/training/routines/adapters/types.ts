@@ -16,6 +16,7 @@ export type StepAdapterKey =
   | "CHECKOUT_SEQUENCE"
   | "RANDOM_CHECKOUT"
   | "HIT_COUNT"
+  | "SWITCHBLADE"
   | `GAME:${string}`;
 
 /** The play page's own `x-if` switch — one template block per panel. */
@@ -31,6 +32,7 @@ export type StepPanel =
   | "checkout-sequence"
   | "random-checkout"
   | "hit-count"
+  | "switchblade"
   | "tuod"
   | "score-training"
   | "one-twenty-one"
