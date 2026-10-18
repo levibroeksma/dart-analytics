@@ -456,7 +456,7 @@ export const ROUTINE_SECTIONS: Readonly<
   },
 };
 
-/** Whether `key` is one of `STEP_METRIC_SPECS`' seven dart exercise kinds (D372 decision 7), the only non-game steps `step-result` covers. Exported so a caller resolving one step's own kind (e.g. dispatching `step-result`) can narrow it the same way, instead of an unchecked cast. */
+/** Whether `key` is one of the dart exercise kinds in `STEP_METRIC_SPECS` (D372 decision 7), the only non-game steps `step-result` covers. Exported so a caller resolving one step's own kind (e.g. dispatching `step-result`) can narrow it the same way, instead of an unchecked cast. */
 export function isDartExerciseKind(key: string): key is DartExerciseKind {
   return Object.hasOwn(STEP_METRIC_SPECS, key);
 }
@@ -475,7 +475,7 @@ export function sectionsForRoutine(): RoutineSectionMeta[] {
  * page, `sectionsForGame(gameTypeKey)` resolved to their `SECTIONS` metas —
  * `step-volume` is never added alongside it, since the game's own `volume`
  * section already covers that step's darts. A non-game step whose
- * `exerciseTypeKey` is one of `STEP_METRIC_SPECS`' seven dart exercise kinds
+ * `exerciseTypeKey` is a dart exercise kind in `STEP_METRIC_SPECS`
  * gets `step-result` and `step-volume`; every other non-game step
  * (Warm-Up, or a future non-dart exercise) gets `step-volume` alone.
  */

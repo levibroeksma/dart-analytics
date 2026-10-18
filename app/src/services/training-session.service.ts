@@ -442,11 +442,9 @@ async function resolveActiveExerciseConflict(
 }
 
 /**
- * The capture pair a dart-throwing exercise step records under. Switching,
- * Double Pattern, Target Scoring, Switching Target Scoring, Score Threshold,
- * Bullseye Checkout, Bull Up, Hit Count, SwitchBlade and Doubles Lock capture
- * every dart on the visual board,
- * exactly as an `ANALYTICS` + `VISUAL_BOARD` game does, and
+ * The capture pair a dart-throwing exercise step records under. Every
+ * exercise in `DART_EXERCISE_TYPE_KEYS` captures every dart on the visual
+ * board, exactly as an `ANALYTICS` + `VISUAL_BOARD` game does, and
  * `exercise_sessions` stores the pair as both-or-neither (`chk_exercise_sessions_capture_pair`, migration
  * `0029`). Warm-Up throws no recorded dart, so it keeps the NULL pair.
  */
