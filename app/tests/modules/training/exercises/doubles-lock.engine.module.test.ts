@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  DOUBLES_LOCK_BONUS,
   DOUBLES_LOCK_PATH,
   DoublesLockEngine,
   doublesLockEngineFactory,
@@ -55,6 +56,10 @@ describe("Doubles Lock engine", () => {
     expect(DOUBLES_LOCK_PATH).toHaveLength(20);
     expect(DOUBLES_LOCK_PATH[0]).toEqual(double(20));
     expect(DOUBLES_LOCK_PATH[19]).toEqual(double(1));
+  });
+
+  it("locks two hits for 50 and three for 100", () => {
+    expect(DOUBLES_LOCK_BONUS).toEqual({ 2: 50, 3: 100 });
   });
 
   it("one hit advances without a lock", () => {
