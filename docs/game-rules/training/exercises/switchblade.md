@@ -1,6 +1,6 @@
 # SwitchBlade
 
-Current version: none (V1 in design)
+Current version: V1 (shipped 2026-10-18)
 Entry points: routine step
 Kernel: TRACK
 
@@ -44,11 +44,7 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 
 ## Exercise type
 
-- Type constant: `PATH_SCORING` (proposed; not among the seeded types —
-  `WARM_UP`, `GAME`, `EXERCISE_SECTION` (`database/seeds/0014_exercise_types.sql`),
-  `SWITCHING`, `DOUBLE_PATTERN` (`0016`), `TARGET_SCORING` (`0023`),
-  `SWITCHING_TARGET_SCORING` (`0024`), `SCORE_THRESHOLD` (`0025`),
-  `BULLSEYE_CHECKOUT` (`0029`), `BULL_UP` (`0030`)).
+- Type constant: `SWITCHBLADE` (seed `0039`).
 - Wraps no game.
 - Behaviour no existing type provides: a target **per dart slot** that
   changes mid-visit, scored at board value. `SWITCHING` holds one target per
@@ -147,6 +143,7 @@ five (V2+).
 
 - The source states a maximum of 882. The path's per-dart maxima sum to 872
   (180 + 177 + 174 + 171 + 170). Which is right?
+  The V1 engine's perfect pass totals 872 (`switchblade.engine.module.test.ts`).
 - ~~Share one per-dart-slot type with 170 Practice (`170-practice.md`), with
   "hit rule" and "points" as configuration, or keep two types?~~
   **Resolved (2026-10-17, user):** two types; SwitchBlade binds to the Track
