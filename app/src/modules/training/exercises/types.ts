@@ -196,3 +196,24 @@ export type HitCountState = {
   passes: number;
   status: "IN_PROGRESS" | "COMPLETE";
 };
+
+/** One SwitchBlade path slot: a treble, or the bull. */
+export type SwitchbladeSlot =
+  { kind: "TREBLE"; number: number } | { kind: "BULL" };
+
+/**
+ * SwitchBlade state, derived by replaying `facts()` (`foldSwitchbladeState`).
+ * `currentSlot`/`slotIndex`/`round` locate the next dart; `roundTotals`
+ * sums each round's board points over every pass.
+ */
+export type SwitchbladeState = {
+  currentSlot: SwitchbladeSlot;
+  slotIndex: number;
+  round: number;
+  total: number;
+  roundTotals: number[];
+  passes: number;
+  hits: number;
+  dartsThrown: number;
+  status: "IN_PROGRESS" | "COMPLETE";
+};
