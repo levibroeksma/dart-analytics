@@ -87,6 +87,7 @@ astro check
 37. `seeds/0037_five_oh_one_v2_game_engine_reference.sql`
 38. `seeds/0038_hit_count_exercise_type.sql`
 39. `seeds/0039_switchblade_exercise_type.sql`
+40. `seeds/0040_doubles_lock_exercise_type.sql`
 
 `npm run db:seed` runs this list twice per invocation (2026-08-29, D248). `0007` is a running ledger that a later-numbered seed's ruleset can be appended to before that ruleset's own `ruleset_versions` row exists yet in the same run — the first pass's join then matches nothing and silently inserts zero rows. The second pass re-runs `0007` after every file has committed, so the join now matches. All seeds are `ON CONFLICT DO NOTHING`, so running the full list twice is safe.
 
@@ -141,6 +142,7 @@ These are not a substitute for the Vitest suite: they cover the SQL layer, which
 | `verification/0037_five_oh_one_v2_capability_checks.sql` | `seeds/0037`+`0007` combined: `501_V2`/`RECREATIONAL`/`QUICK_SCORE` and `501_V2`/`ANALYTICS`/`VISUAL_BOARD` resolve, zero undeclared `exercise_sessions` (3 checks) (2026-10-10) |
 | `verification/0038_hit_count_seed_checks.sql` | seed `0038`: the `HIT_COUNT` type is published, `HIT_COUNT_V1` is its version 1, the system template "Big Trebles" pins it with T20–T17, nine darts each, and `v_exercise_template_catalog` offers it (4 checks) (2026-10-17) |
 | `verification/0039_switchblade_seed_checks.sql` | seed `0039`: the `SWITCHBLADE` type is published, `SWITCHBLADE_V1` is its version 1, the system template "SwitchBlade" pins it with the empty configuration, and `v_exercise_template_catalog` offers it (4 checks) (2026-10-18) |
+| `verification/0040_doubles_lock_seed_checks.sql` | seed `0040`: the `DOUBLES_LOCK` type is published, `DOUBLES_LOCK_V1` is its version 1, the system template "Doubles Lock" pins it with the empty configuration, and `v_exercise_template_catalog` offers it (4 checks) (2026-10-18) |
 | `verification/0031_remove_default_routines_checks.sql` | seed `0031`: the "Standard Practice" and standalone "Warm-Up" system routines are gone, none of their steps remain, the Warm-Up exercise template is kept (3 checks) (2026-09-25, D363) |
 | `verification/0032_close_finished_game_activities_checks.sql` | seed `0032`: no finished standalone game has an open activity, closed ones match their session's status and instant, none is closed while its session is open, ACTIVE exactly when `completed_at` is NULL (4 checks) (2026-10-01, D383) |
 | `verification/0034_single_active_session_checks.sql` | `uq_sessions_single_active` after migration `0034`: a second open session of the same exercise type is rejected, a different exercise type stays startable, closing the first frees the key (4 checks) |
