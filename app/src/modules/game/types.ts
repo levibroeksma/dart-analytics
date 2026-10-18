@@ -125,6 +125,27 @@ export type ShanghaiTrackExt = {
   shanghai: boolean;
 };
 
+/**
+ * One seat's Baseball Darts progress: `targetIndex` is the inning (0–8),
+ * `runs` the total, `runsPerInning` one entry per inning.
+ */
+export type BaseballSeatState = SeatState & {
+  targetIndex: number;
+  runs: number;
+  runsPerInning: number[];
+  dartsThisVisit: number;
+  hitsThisVisit: number;
+  status: "IN_PROGRESS" | "COMPLETE";
+};
+
+export type BaseballState = MultiSeatState<BaseballSeatState> & {
+  status: "IN_PROGRESS" | "COMPLETE";
+  winningSideKey: string | null;
+};
+
+/** Baseball Darts' Track extras: runs per inning, one round per target. */
+export type BaseballTrackExt = RoundTallyExt;
+
 export type DoublesVisitOutcome = {
   targetIndex: number;
   hit: boolean;

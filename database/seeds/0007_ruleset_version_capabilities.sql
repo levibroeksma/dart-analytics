@@ -67,7 +67,9 @@ FROM (
             ('CRICKET_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
             ('CRICKET_V1', 'ANALYTICS', 'VISUAL_BOARD'),
             ('TACTICS_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
-            ('TACTICS_V1', 'ANALYTICS', 'VISUAL_BOARD')
+            ('TACTICS_V1', 'ANALYTICS', 'VISUAL_BOARD'),
+            ('BASEBALL_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
+            ('BASEBALL_V1', 'ANALYTICS', 'VISUAL_BOARD')
     ) AS declared(ruleset_key, capture_key, input_key)
     JOIN ruleset_versions rv ON rv.implementation_key = declared.ruleset_key
     JOIN capture_modes cm ON cm.implementation_key = declared.capture_key

@@ -7,6 +7,8 @@ import {
   RULESET_DARTBOT,
   supportsDartbot,
   DEFAULT_BOT_LEVEL,
+  STATS_TAGS,
+  GAME_TYPE_BY_RULESET,
 } from "@lib/game/rulesets/capabilities";
 
 describe("RULESET_CAPABILITIES", () => {
@@ -18,6 +20,7 @@ describe("RULESET_CAPABILITIES", () => {
       "501_V2",
       "AROUND_THE_CLOCK_V1",
       "AROUND_THE_CLOCK_V2",
+      "BASEBALL_V1",
       "BOBS27_V1",
       "CRICKET_V1",
       "DOUBLES_TRAINING_V1",
@@ -84,6 +87,7 @@ describe("supportsMode", () => {
     "AROUND_THE_CLOCK_V2",
     "CRICKET_V1",
     "TACTICS_V1",
+    "BASEBALL_V1",
   ] as const)(
     "gives %s RECREATIONAL + DETAILED_DARTS, not ANALYTICS + DETAILED_DARTS",
     (rulesetVersionKey) => {
@@ -140,6 +144,7 @@ describe("capableRulesets", () => {
       "501_V2",
       "AROUND_THE_CLOCK_V1",
       "AROUND_THE_CLOCK_V2",
+      "BASEBALL_V1",
       "BOBS27_V1",
       "CRICKET_V1",
       "DOUBLES_TRAINING_V1",
@@ -249,5 +254,17 @@ describe("supportsDartbot", () => {
 describe("DEFAULT_BOT_LEVEL", () => {
   it("is 8, the level curve's own documented default", () => {
     expect(DEFAULT_BOT_LEVEL).toBe(8);
+  });
+});
+
+describe("BASEBALL_V1", () => {
+  it("declares DETAILED_DARTS and VISUAL_BOARD, the board tag, game type BASEBALL, no Dartbot", () => {
+    expect(RULESET_CAPABILITIES.BASEBALL_V1).toEqual([
+      { captureModeKey: "RECREATIONAL", inputModeKey: "DETAILED_DARTS" },
+      { captureModeKey: "ANALYTICS", inputModeKey: "VISUAL_BOARD" },
+    ]);
+    expect(STATS_TAGS.BASEBALL_V1).toEqual(["board"]);
+    expect(GAME_TYPE_BY_RULESET.BASEBALL_V1).toBe("BASEBALL");
+    expect(supportsDartbot("BASEBALL_V1")).toBe(false);
   });
 });

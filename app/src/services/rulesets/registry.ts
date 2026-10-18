@@ -1,5 +1,6 @@
 import { aroundTheClockValidator } from "./around-the-clock/around-the-clock.validator";
 import { aroundTheClockV2Validator } from "./around-the-clock/around-the-clock.validator";
+import { baseballValidator } from "./baseball/baseball.validator";
 import { bobs27Validator } from "./bobs27/bobs27.validator";
 import { cricketValidator } from "./cricket/cricket.validator";
 import { doublesTrainingValidator } from "./doubles-training/doubles-training.validator";
@@ -35,6 +36,7 @@ const REGISTRY: Record<string, RulesetValidator> = {
   AROUND_THE_CLOCK_V2: aroundTheClockV2Validator,
   CRICKET_V1: cricketValidator,
   TACTICS_V1: tacticsValidator,
+  BASEBALL_V1: baseballValidator,
 };
 
 export function getRulesetValidator(
