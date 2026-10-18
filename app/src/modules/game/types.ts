@@ -493,6 +493,22 @@ export type RoundTallyExt = {
 /** SwitchBlade's Track extras. */
 export type SwitchbladeTrackExt = RoundTallyExt & PassTrackExt;
 
+/** A visit-close bonus table: the bonus a visit's hit count earns; a count it does not name earns no lock. */
+export type LockBonus = Readonly<Partial<Record<number, number>>>;
+
+/** A Track seat's checkpoint: the path index of its last lock, and how many locks it made. */
+export type LockTrackExt = {
+  lastLock: number | null;
+  locks: number;
+};
+
+/** Doubles Lock's Track extras: the checkpoint, passes, and darts per pass. */
+export type DoublesLockTrackExt = LockTrackExt &
+  PassTrackExt & {
+    dartsThisPass: number;
+    dartsPerPass: number[];
+  };
+
 /**
  * What the player did, as observed at input time — the engine's only input.
  * `locationX` / `locationY` are the landing point in regulation millimetres
