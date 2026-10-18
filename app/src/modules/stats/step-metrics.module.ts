@@ -88,6 +88,12 @@ export const STEP_METRIC_SPECS: Readonly<
     direction: "higher",
     rates: [["hits", "darts"]],
   },
+  DOUBLES_LOCK: {
+    metrics: { bonus: "sum", locks: "sum", darts: "sum", hits: "sum" },
+    headline: "bonus",
+    direction: "higher",
+    rates: [["hits", "darts"]],
+  },
 };
 
 /**
@@ -207,6 +213,13 @@ export function stepMetrics(
     case "SWITCHBLADE":
       return {
         points: numberField(state, "total", kind),
+        darts: numberField(state, "dartsThrown", kind),
+        hits: numberField(state, "hits", kind),
+      };
+    case "DOUBLES_LOCK":
+      return {
+        bonus: numberField(state, "bonus", kind),
+        locks: numberField(state, "locks", kind),
         darts: numberField(state, "dartsThrown", kind),
         hits: numberField(state, "hits", kind),
       };

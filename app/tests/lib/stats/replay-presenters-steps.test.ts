@@ -90,6 +90,10 @@ describe("STEP_REPLAY_PRESENTERS (all nine kinds, real engine runs)", () => {
     expect(KINDS).toContain("SWITCHBLADE");
   });
 
+  it("covers Doubles Lock", () => {
+    expect(KINDS).toContain("DOUBLES_LOCK");
+  });
+
   it.each(KINDS)(
     "%s: the turn cell's headline and darts value equal stepMetrics over the real replayed facts",
     (kind) => {

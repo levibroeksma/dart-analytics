@@ -15,6 +15,7 @@ import { bullUpEngineFactory } from "@modules/training/exercises/bull-up.engine.
 import { checkoutSequenceEngineFactory } from "@modules/training/exercises/checkout-sequence.engine.module";
 import { randomCheckoutEngineFactory } from "@modules/training/exercises/random-checkout.engine.module";
 import { hitCountEngineFactory } from "@modules/training/exercises/hit-count.engine.module";
+import { doublesLockEngineFactory } from "@modules/training/exercises/doubles-lock.engine.module";
 import { switchbladeEngineFactory } from "@modules/training/exercises/switchblade.engine.module";
 import type {
   DartExerciseKind,
@@ -157,6 +158,14 @@ function fixtures(): Fixture[] {
     dart(20, "TREBLE"),
   ].forEach((d) => switchblade.record(d));
 
+  const doublesLock = doublesLockEngineFactory.create({});
+  [
+    dart(20, "DOUBLE"),
+    dart(20, "DOUBLE"),
+    dart(null, "MISS"),
+    dart(19, "DOUBLE"),
+  ].forEach((d) => doublesLock.record(d));
+
   return [
     {
       kind: "SWITCHING",
@@ -223,6 +232,12 @@ function fixtures(): Fixture[] {
       state: switchblade.state(),
       facts: switchblade.facts(),
       expected: { points: 140, darts: 4, hits: 3 },
+    },
+    {
+      kind: "DOUBLES_LOCK",
+      state: doublesLock.state(),
+      facts: doublesLock.facts(),
+      expected: { bonus: 50, locks: 1, darts: 4, hits: 3 },
     },
   ];
 }
