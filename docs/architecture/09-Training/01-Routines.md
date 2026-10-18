@@ -928,6 +928,25 @@ A set number of darts at each target in turn, counting only the named bed — th
 
 **Implemented** (`HIT_COUNT_V1`, `app/src/modules/training/exercises/hit-count.engine.module.ts`, seed `0038`): `targets` (1–21 of `{kind: "TREBLE"|"DOUBLE", number: 1–20}` or `{kind: "BULL"}`) and `dartsPerTarget` (a multiple of three, 3–99), bound to the Track kernel through `trackExerciseSpec` (D469). Each dart carries the target's number (`25` for the bull) and bed (`TREBLE`, `DOUBLE`, `INNER_BULL`); `score` is the board score. One turn per three-dart visit; the aim moves only between visits. State carries hits, hits per target summed over every pass, passes, the current target and darts left on it; the hit rate is derived at display. Time-bound only. Capture pair and upload path match Target Scoring (D277). Routine step only in V1; the seeded template is Big Trebles (D469).
 
+## SwitchBlade
+
+Configuration:
+
+```text
+duration: 8m
+
+path (fixed):
+    round 1: T20 T20 T20
+    round 2: T20 T20 T19
+    round 3: T20 T20 T18
+    round 4: T20 T20 T17
+    round 5: T20 T20 bullseye
+```
+
+One visit per round, each dart at its own slot. A dart on its slot's number scores its board value in any ring; the bull slot takes either bull (25 or 50). After round five the path starts again until the time runs out. Rules: `docs/game-rules/training/exercises/switchblade.md`.
+
+**Implemented** (`SWITCHBLADE_V1`, `app/src/modules/training/exercises/switchblade.engine.module.ts`, seed `0039`): empty configuration (the path is fixed in V1), bound to the Track kernel through `trackExerciseSpec` (D469) with `anyRingEitherBull`, `boardScorePoints`, `tallyRoundPoints(3)`, `advanceEveryDart` and `passOnWrap(14)`. Each dart carries its slot's number (`25` on the bull slot) and bed (`TREBLE`, `INNER_BULL`) — the aim changes mid-visit; `score` is the board score. One turn per round. State carries the total, per-round totals summed over every pass, passes, hits, darts and the current slot. Time-bound only. Capture pair and upload path match Target Scoring (D277). Routine step only in V1 (2026-10-18).
+
 ---
 
 ## Game Exercise
