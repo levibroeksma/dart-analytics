@@ -44,7 +44,7 @@ describe("createSetupSession", () => {
     expect(s.activeSession).toBeNull();
     expect(s.showActiveSessionModal).toBe(false);
     expect(s.loadingReconciliation).toBe(false);
-    expect(s.reconciliationFailed).toBe(false);
+    expect(s).not.toHaveProperty("reconciliationFailed");
   });
 
   describe("reconcile", () => {
@@ -70,12 +70,10 @@ describe("createSetupSession", () => {
         activeSession: active,
       } as any);
       const s = create();
-      s.reconciliationFailed = true;
       await s.reconcile([active]);
       expect(s.activeSession).toBe(active);
       expect(s.activeSessionLocal).toBe(true);
       expect(s.showActiveSessionModal).toBe(true);
-      expect(s.reconciliationFailed).toBe(false);
     });
 
     it("shows the modal for a session held elsewhere, marked not local", async () => {
@@ -92,16 +90,14 @@ describe("createSetupSession", () => {
       expect(sessionsApi.completeSession).not.toHaveBeenCalled();
     });
 
-    it("clears both flags on no_active", async () => {
+    it("closes the modal on no_active", async () => {
       vi.mocked(recovery.reconcileActiveSession).mockResolvedValue({
         action: "no_active",
       } as any);
       const s = create();
       s.showActiveSessionModal = true;
-      s.reconciliationFailed = true;
       await s.reconcile([]);
       expect(s.showActiveSessionModal).toBe(false);
-      expect(s.reconciliationFailed).toBe(false);
     });
   });
 

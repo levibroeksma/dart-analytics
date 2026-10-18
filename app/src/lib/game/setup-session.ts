@@ -38,7 +38,6 @@ export function createSetupSession(options: {
     activeSessionLocal: false,
     showActiveSessionModal: false,
     loadingReconciliation: false,
-    reconciliationFailed: false,
     guests: [] as { displayName: string }[],
     showAddGuestModal: false,
     newGuestName: "",
@@ -94,7 +93,6 @@ export function createSetupSession(options: {
         this.activeSessionLocal = result.action === "match";
         this.showActiveSessionModal = true;
       }
-      this.reconciliationFailed = false;
     },
 
     async retryReconciliation(this: SetupSessionContext) {

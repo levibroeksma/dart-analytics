@@ -117,7 +117,6 @@ describe("singlesTrainingSetup", () => {
       expect(sessionsApi.completeSession).not.toHaveBeenCalled();
       expect(setup.showActiveSessionModal).toBe(true);
       expect(setup.activeSessionLocal).toBe(false);
-      expect(setup.reconciliationFailed).toBe(false);
       expect(store.game.reset).not.toHaveBeenCalled();
     });
   });
