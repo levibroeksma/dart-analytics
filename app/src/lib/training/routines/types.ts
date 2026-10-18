@@ -47,7 +47,8 @@ export type ExercisePreviewFamily =
   | "freeAim"
   | "bullseye"
   | "hitCount"
-  | "switchblade";
+  | "switchblade"
+  | "doublesLock";
 
 /** The engine slots `exerciseFamily()` reads. */
 export type ExerciseEngineSlots = Pick<
@@ -62,6 +63,7 @@ export type ExerciseEngineSlots = Pick<
   | "randomCheckoutEngine"
   | "hitCountEngine"
   | "switchbladeEngine"
+  | "doublesLockEngine"
 >;
 
 /** What `visitLabelsFor()` reads: the step's configuration and where the visit stands. */
@@ -258,6 +260,15 @@ export type RoutinePlayContext = {
   switchbladeSlotLabel(this: RoutinePlayContext): string;
   switchbladeRound(this: RoutinePlayContext): number;
   switchbladePasses(this: RoutinePlayContext): number;
+  recordDoublesLockDart(
+    this: RoutinePlayContext,
+    observation: DartObservation,
+  ): void;
+  doublesLockBonus(this: RoutinePlayContext): number;
+  doublesLockTargetLabel(this: RoutinePlayContext): string;
+  doublesLockLastLockLabel(this: RoutinePlayContext): string;
+  doublesLockPasses(this: RoutinePlayContext): number;
+  doublesLockBestPass(this: RoutinePlayContext): string;
   dartsThrown(this: RoutinePlayContext): number;
   activeDartEngine(
     this: RoutinePlayContext,
@@ -273,6 +284,7 @@ export type RoutinePlayContext = {
     | RandomCheckoutEngine
     | HitCountEngine
     | SwitchbladeEngine
+    | DoublesLockEngine
     | null;
   visitMarkers(this: RoutinePlayContext): BoardMarker[];
   previewSegments(this: RoutinePlayContext): PreviewSegment[];

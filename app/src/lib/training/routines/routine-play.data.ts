@@ -80,6 +80,7 @@ import type { CheckoutSequenceEngine } from "@modules/training/exercises/checkou
 import type { RandomCheckoutEngine } from "@modules/training/exercises/random-checkout.engine.module";
 import type { HitCountEngine } from "@modules/training/exercises/hit-count.engine.module";
 import type { SwitchbladeEngine } from "@modules/training/exercises/switchblade.engine.module";
+import type { DoublesLockEngine } from "@modules/training/exercises/doubles-lock.engine.module";
 import { boardTargetLabel } from "@modules/game/board-progression.module";
 import { accuracyDisplay } from "@lib/game/play-visit-stats";
 import type { DartFact } from "@modules/types";
@@ -114,6 +115,7 @@ const DART_ENGINE_RECORDERS = [
   ["randomCheckoutEngine", "recordRandomCheckoutDart"],
   ["hitCountEngine", "recordHitCountDart"],
   ["switchbladeEngine", "recordSwitchbladeDart"],
+  ["doublesLockEngine", "recordDoublesLockDart"],
 ] as const satisfies readonly (readonly [
   keyof RoutinePlayContext,
   keyof RoutinePlayContext,
@@ -216,6 +218,7 @@ export function routinePlay() {
       | RandomCheckoutEngine
       | HitCountEngine
       | SwitchbladeEngine
+      | DoublesLockEngine
       | null {
       const open = DART_ENGINE_RECORDERS.find(([slot]) => this[slot]);
       return open ? this[open[0]] : null;
@@ -259,7 +262,10 @@ export function routinePlay() {
         config: this.stepConfiguration,
         visitIndex,
         currentTargetNumber: progress?.currentTargetNumber,
-        currentTargetLabel: this.hitCountTargetLabel() || undefined,
+        currentTargetLabel:
+          this.hitCountTargetLabel() ||
+          this.doublesLockTargetLabel() ||
+          undefined,
         targetIndex: progress?.targetIndex ?? 0,
         dartsInOpenVisit:
           this.activeDartEngine()?.facts().turns.at(-1)?.darts.length ?? 0,
@@ -717,6 +723,7 @@ export function routinePlay() {
           this.randomCheckoutEngine?.expireTimer();
           this.hitCountEngine?.expireTimer();
           this.switchbladeEngine?.expireTimer();
+          this.doublesLockEngine?.expireTimer();
           void this.completeCurrentStep();
         },
       });
@@ -1070,6 +1077,38 @@ export function routinePlay() {
 
     switchbladePasses(this: RoutinePlayContext): number {
       return this.switchbladeEngine?.state().passes ?? 0;
+    },
+
+    /** Doubles Lock never ends on a dart; only the step deadline completes it. */
+    recordDoublesLockDart(
+      this: RoutinePlayContext,
+      observation: DartObservation,
+    ) {
+      if (!this.doublesLockEngine) return;
+      this.doublesLockEngine.record(observation);
+    },
+
+    doublesLockBonus(this: RoutinePlayContext): number {
+      return this.doublesLockEngine?.state().bonus ?? 0;
+    },
+
+    doublesLockTargetLabel(this: RoutinePlayContext): string {
+      const target = this.doublesLockEngine?.state().currentDouble;
+      return target === undefined ? "" : boardTargetLabel(target);
+    },
+
+    doublesLockLastLockLabel(this: RoutinePlayContext): string {
+      const lock = this.doublesLockEngine?.state().lastLock;
+      return lock ? boardTargetLabel(lock) : "—";
+    },
+
+    doublesLockPasses(this: RoutinePlayContext): number {
+      return this.doublesLockEngine?.state().passes ?? 0;
+    },
+
+    doublesLockBestPass(this: RoutinePlayContext): string {
+      const best = this.doublesLockEngine?.state().bestPassDarts;
+      return best == null ? "—" : `${best} darts`;
     },
 
     dartsThrown(this: RoutinePlayContext): number {

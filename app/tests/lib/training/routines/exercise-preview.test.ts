@@ -224,6 +224,7 @@ describe("exerciseFamily", () => {
     randomCheckoutEngine: null,
     hitCountEngine: null,
     switchbladeEngine: null,
+    doublesLockEngine: null,
   };
   const engine = {} as never;
 
@@ -253,6 +254,12 @@ describe("exerciseFamily", () => {
   it("maps switchbladeEngine to switchblade", () => {
     expect(exerciseFamily({ ...none, switchbladeEngine: engine })).toBe(
       "switchblade",
+    );
+  });
+
+  it("maps the open Doubles Lock engine to its family", () => {
+    expect(exerciseFamily({ ...none, doublesLockEngine: {} as never })).toBe(
+      "doublesLock",
     );
   });
 });
@@ -495,5 +502,38 @@ describe("SwitchBlade preview", () => {
       "T20",
       "T20",
     ]);
+  });
+});
+
+describe("Doubles Lock preview", () => {
+  const aimed = (
+    hitTargetNumber: number | null,
+    hitZoneKey: DartZoneKey,
+    intendedTargetNumber: number,
+  ) =>
+    ({
+      hitTargetNumber,
+      hitZoneKey,
+      intendedTargetNumber,
+      intendedZoneKey: "DOUBLE",
+    }) as DartFact;
+
+  it("judges a hit only in the intended double", () => {
+    expect(judgeDart("doublesLock", aimed(20, "DOUBLE", 20))).toBe("hit");
+    expect(judgeDart("doublesLock", aimed(20, "SINGLE", 20))).toBe("miss");
+    expect(judgeDart("doublesLock", aimed(19, "DOUBLE", 20))).toBe("miss");
+  });
+
+  it("captions the visit with the current double", () => {
+    expect(
+      visitLabelsFor("doublesLock", {
+        config: {},
+        visitIndex: 0,
+        currentTargetNumber: undefined,
+        currentTargetLabel: "D18",
+        targetIndex: 0,
+        dartsInOpenVisit: 0,
+      }),
+    ).toEqual(["D18", "D18", "D18"]);
   });
 });

@@ -1,0 +1,15 @@
+---
+// Components
+import ExercisePanelShell from "./ExercisePanelShell.astro";
+---
+
+<ExercisePanelShell
+  score="doublesLockBonus()"
+  caption="BONUS"
+  tiles={[
+    { label: "Target", value: "doublesLockTargetLabel()" },
+    { label: "Lock", value: "doublesLockLastLockLabel()" },
+    { label: "Pass", value: "doublesLockPasses() + 1" },
+    { label: "Best", value: "doublesLockBestPass()" },
+  ]}
+/>
