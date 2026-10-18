@@ -25,6 +25,7 @@ import type { CheckoutSequenceEngine } from "@modules/training/exercises/checkou
 import type { RandomCheckoutEngine } from "@modules/training/exercises/random-checkout.engine.module";
 import type { HitCountEngine } from "@modules/training/exercises/hit-count.engine.module";
 import type { SwitchbladeEngine } from "@modules/training/exercises/switchblade.engine.module";
+import type { DoublesLockEngine } from "@modules/training/exercises/doubles-lock.engine.module";
 import type { DartFact, DartObservation } from "@modules/types";
 import type { BoardMarker, PreviewSegment, SectionRingPaths } from "@lib/types";
 import type { gameStep } from "./game-step.data";
@@ -121,6 +122,7 @@ export type RoutinePlayContext = {
   randomCheckoutEngine: RandomCheckoutEngine | null;
   hitCountEngine: HitCountEngine | null;
   switchbladeEngine: SwitchbladeEngine | null;
+  doublesLockEngine: DoublesLockEngine | null;
   stepTimer: SegmentTimer | null;
   stepRemainingSeconds: number;
   warmUpTimer: SegmentTimer | null;

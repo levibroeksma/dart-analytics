@@ -8,6 +8,7 @@ import {
 import { ROUTINE_GAME_STEPS } from "@services/routines/game-step";
 import { hitCountAdapter } from "@lib/training/routines/adapters/hit-count.adapter";
 import { switchbladeAdapter } from "@lib/training/routines/adapters/switchblade.adapter";
+import { doublesLockAdapter } from "@lib/training/routines/adapters/doubles-lock.adapter";
 
 describe("step adapter registry", () => {
   it("has one adapter per non-game kind and per server-eligible game ruleset", () => {
@@ -26,6 +27,7 @@ describe("step adapter registry", () => {
         "RANDOM_CHECKOUT",
         "HIT_COUNT",
         "SWITCHBLADE",
+        "DOUBLES_LOCK",
         ...Object.keys(ROUTINE_GAME_STEPS).map((k) => `GAME:${k}`),
       ].sort(),
     );
@@ -67,6 +69,11 @@ describe("step adapter registry", () => {
   it("resolves the SwitchBlade step", () => {
     expect(resolveStepAdapter("SWITCHBLADE")?.title).toBe("SwitchBlade");
     expect(STEP_ADAPTERS.SWITCHBLADE).toBe(switchbladeAdapter);
+  });
+
+  it("resolves the Doubles Lock step", () => {
+    expect(resolveStepAdapter("DOUBLES_LOCK")?.title).toBe("Doubles Lock");
+    expect(STEP_ADAPTERS.DOUBLES_LOCK).toBe(doublesLockAdapter);
   });
 
   it("derives the key from a resolved step", () => {
@@ -126,6 +133,7 @@ describe("STEP_ADAPTERS titles", () => {
         "BULLSEYE_CHECKOUT": "Bullseye Checkouts",
         "BULL_UP": "Bull Up Practice",
         "CHECKOUT_SEQUENCE": "Catch 40",
+        "DOUBLES_LOCK": "Doubles Lock",
         "DOUBLE_PATTERN": "Double Pattern",
         "GAME:121_V2": "121",
         "GAME:AROUND_THE_CLOCK_V2": "Around the Clock",

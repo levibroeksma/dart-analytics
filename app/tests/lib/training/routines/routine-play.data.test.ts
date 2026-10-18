@@ -3645,6 +3645,12 @@ describe("routinePlay — SwitchBlade", () => {
   });
 });
 
+describe("routinePlay — Doubles Lock", () => {
+  it("starts with no Doubles Lock engine", () => {
+    expect(makeStore().doublesLockEngine).toBeNull();
+  });
+});
+
 const SWITCHBLADE_STEP = {
   sequenceNumber: 1,
   exerciseTypeKey: "SWITCHBLADE",

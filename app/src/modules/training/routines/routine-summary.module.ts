@@ -15,6 +15,7 @@ import type {
   RandomCheckoutState,
   HitCountState,
   SwitchbladeState,
+  DoublesLockState,
   RoutineStatRow,
   RoutineStepSummary,
 } from "@modules/types";
@@ -314,6 +315,36 @@ export function summariseSwitchblade(
         value: String(total),
       })),
       { label: "Passes", value: String(state.passes) },
+      { label: "Darts", value: String(darts) },
+      hitRateRow(hits, darts),
+    ],
+  };
+}
+
+/**
+ * Doubles Lock's result is its bonus and locks over every pass, then
+ * passes, the best pass's darts, darts and hit rate.
+ */
+export function summariseDoublesLock(
+  state: DoublesLockState,
+): RoutineStepSummary {
+  const { bonus, locks, darts, hits } = stepMetrics(
+    "DOUBLES_LOCK",
+    state,
+    NO_FACTS,
+  );
+  return {
+    stepKey: "DOUBLES_LOCK",
+    label: "Doubles Lock",
+    rows: [
+      { label: "Bonus", value: String(bonus) },
+      { label: "Locks", value: String(locks) },
+      { label: "Passes", value: String(state.passes) },
+      {
+        label: "Best pass",
+        value:
+          state.bestPassDarts === null ? "—" : `${state.bestPassDarts} darts`,
+      },
       { label: "Darts", value: String(darts) },
       hitRateRow(hits, darts),
     ],

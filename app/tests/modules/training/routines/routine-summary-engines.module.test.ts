@@ -11,6 +11,7 @@ import {
   summariseRandomCheckout,
   summariseHitCount,
   summariseSwitchblade,
+  summariseDoublesLock,
 } from "@modules/training/routines/routine-summary.module";
 import { switchingEngineFactory } from "@modules/training/exercises/switching.engine.module";
 import { doublePatternEngineFactory } from "@modules/training/exercises/double-pattern.engine.module";
@@ -23,6 +24,7 @@ import { checkoutSequenceEngineFactory } from "@modules/training/exercises/check
 import { randomCheckoutEngineFactory } from "@modules/training/exercises/random-checkout.engine.module";
 import { hitCountEngineFactory } from "@modules/training/exercises/hit-count.engine.module";
 import { switchbladeEngineFactory } from "@modules/training/exercises/switchblade.engine.module";
+import { doublesLockEngineFactory } from "@modules/training/exercises/doubles-lock.engine.module";
 import type { DartObservation } from "@modules/types";
 
 /**
@@ -355,6 +357,42 @@ describe("summarise* over a real engine run", () => {
     expect(summariseSwitchblade(engine.state()).rows.at(-1)).toEqual({
       label: "Hit rate",
       value: "—",
+    });
+  });
+
+  it("summariseDoublesLock reads bonus, locks, passes, best pass, darts and rate", () => {
+    const engine = doublesLockEngineFactory.create({});
+    [
+      dart(20, "DOUBLE"),
+      dart(20, "DOUBLE"),
+      dart(null, "MISS"),
+      dart(19, "DOUBLE"),
+      dart(null, "MISS"),
+      dart(null, "MISS"),
+    ].forEach((d) => engine.record(d));
+
+    expect(summariseDoublesLock(engine.state())).toEqual({
+      stepKey: "DOUBLES_LOCK",
+      label: "Doubles Lock",
+      rows: [
+        { label: "Bonus", value: "50" },
+        { label: "Locks", value: "1" },
+        { label: "Passes", value: "0" },
+        { label: "Best pass", value: "—" },
+        { label: "Darts", value: "6" },
+        { label: "Hit rate", value: "50.00%" },
+      ],
+    });
+  });
+
+  it("summariseDoublesLock shows the best pass's darts once a pass is done", () => {
+    const engine = doublesLockEngineFactory.create({});
+    Array.from({ length: 20 }, (_, i) => 20 - i)
+      .flatMap((n) => [dart(n, "DOUBLE"), dart(n, "DOUBLE"), dart(n, "DOUBLE")])
+      .forEach((d) => engine.record(d));
+    expect(summariseDoublesLock(engine.state()).rows[3]).toEqual({
+      label: "Best pass",
+      value: "60 darts",
     });
   });
 });
