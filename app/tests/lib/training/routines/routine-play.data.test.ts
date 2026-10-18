@@ -9,6 +9,10 @@ const boardCommit = vi.hoisted(() => ({
   onCommit: null as null | ((observation: unknown) => void),
 }));
 
+import { playExerciseKind } from "../../stats/replay-step-games";
+import { getDartExerciseEngineFactory } from "@modules/training/exercises/dart-engine.registry";
+import type { ExerciseRulesetVersionKey } from "@lib/types";
+
 vi.mock("@lib/game/board-input.data", async (importOriginal) => {
   const actual =
     await importOriginal<typeof import("@lib/game/board-input.data")>();
@@ -3556,15 +3560,78 @@ describe("routinePlay — Hit Count play", () => {
 });
 
 describe("routinePlay — board dispatch", () => {
-  it("activeDartEngine() is null and a committed dart records nothing with no exercise engine open", () => {
-    const store = makeStore();
+  const MISS = {
+    hitTargetNumber: null,
+    hitZoneKey: "MISS" as const,
+    locationX: null,
+    locationY: null,
+  };
 
-    boardCommit.onCommit!({
-      hitTargetNumber: 20,
-      hitZoneKey: "TREBLE",
-      locationX: 0,
-      locationY: -100,
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+    stubAudioContext();
+    Object.defineProperty(globalThis, "location", {
+      value: { href: "" },
+      writable: true,
+      configurable: true,
     });
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineTemplateId: "rt-1",
+      routineName: "Custom",
+      steps: [HIT_COUNT_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "HIT_COUNT",
+      configuration: HIT_COUNT_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+  });
+  afterEach(() => {
+    vi.clearAllTimers();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it.each([
+    ["SWITCHING", "switchingEngine"],
+    ["DOUBLE_PATTERN", "doublePatternEngine"],
+    ["TARGET_SCORING", "targetScoringEngine"],
+    ["SWITCHING_TARGET_SCORING", "switchingTargetScoringEngine"],
+    ["SCORE_THRESHOLD", "scoreThresholdEngine"],
+    ["BULLSEYE_CHECKOUT", "bullseyeCheckoutEngine"],
+    ["BULL_UP", "bullUpEngine"],
+    ["CHECKOUT_SEQUENCE", "checkoutSequenceEngine"],
+    ["RANDOM_CHECKOUT", "randomCheckoutEngine"],
+    ["HIT_COUNT", "hitCountEngine"],
+  ] as const)(
+    "routes a committed board dart to the open %s engine (%s)",
+    async (kind, slot) => {
+      const { header } = playExerciseKind(kind);
+      const engine = getDartExerciseEngineFactory(
+        header.exerciseRulesetVersionKey as ExerciseRulesetVersionKey,
+      )!.create(header.configuration);
+      const store = makeStore();
+      await startRoutine(store);
+      Object.assign(store, { hitCountEngine: null, [slot]: engine });
+
+      boardCommit.onCommit!(MISS);
+
+      expect(engine.facts().turns.flatMap((turn) => turn.darts)).toHaveLength(
+        1,
+      );
+      expect(store.activeDartEngine()).toBe(engine);
+    },
+  );
+
+  it("activeDartEngine() is null and a committed dart records nothing with no exercise engine open", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+    store.hitCountEngine = null;
+
+    boardCommit.onCommit!(MISS);
 
     expect(store.activeDartEngine()).toBeNull();
     expect(store.dartsThrown()).toBe(0);
