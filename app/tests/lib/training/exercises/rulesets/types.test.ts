@@ -7,6 +7,7 @@ import {
   HitCountV1Config,
   RandomCheckoutV1Config,
   ScoreThresholdV1Config,
+  SwitchbladeV1Config,
   SwitchingTargetScoringV1Config,
   SwitchingV1Config,
   TargetScoringV1Config,
@@ -354,5 +355,20 @@ describe("HitCountV1Config", () => {
 
   it("is registered under HIT_COUNT_V1", () => {
     expect(EXERCISE_RULESET_CONFIGS.HIT_COUNT_V1).toBe(HitCountV1Config);
+  });
+});
+
+describe("SwitchbladeV1Config", () => {
+  it("accepts the empty config — the path is fixed", () => {
+    expect(SwitchbladeV1Config.safeParse({}).success).toBe(true);
+  });
+
+  it("rejects any key, a custom path included", () => {
+    expect(SwitchbladeV1Config.safeParse({ path: [] }).success).toBe(false);
+    expect(SwitchbladeV1Config.safeParse({ rounds: 5 }).success).toBe(false);
+  });
+
+  it("is registered under SWITCHBLADE_V1", () => {
+    expect(EXERCISE_RULESET_CONFIGS.SWITCHBLADE_V1).toBe(SwitchbladeV1Config);
   });
 });
