@@ -177,6 +177,8 @@ rebuilding the ruleset's engine over the loaded facts (decision 8).
   | Score Training | running total | total |
   | Singles, Doubles, Shanghai, Around the Clock | active target, hit marks | final progress |
   | Bob's 27 | running score | final score, score curve per visit (phase 4 deferral) |
+  | Cricket, Tactics | marks, closed objectives | darts thrown |
+  | Baseball Darts | inning, runs, total | runs |
 
   The session line shows only once every page is loaded.
 - **Step presenters** (`STEP_REPLAY_PRESENTERS`, D372 decision 11), one per

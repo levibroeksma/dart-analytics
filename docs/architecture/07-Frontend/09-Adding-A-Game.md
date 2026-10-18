@@ -85,7 +85,7 @@ page legitimately has none of.
 | File | What goes in it |
 | ---- | --------------- |
 | `setup/<Game>SetupForm.astro` | The setup form. *Engine-only skips.* |
-| `interfaces/<Game>.astro` | The play-screen interface: a `SeatedPlayScreen` call (tiles as `Expr`s; input stack in the default slot) unless the game is solo-only (Cricket, Tactics). *Engine-only skips.* |
+| `interfaces/<Game>.astro` | The play-screen interface: a `SeatedPlayScreen` call (tiles as `Expr`s; input stack in the default slot) (it has a solo layout, so solo games use it too) unless the game needs its own board, as Cricket and Tactics do for the marks board. *Engine-only skips.* |
 | `result-modals/<Game>Results.astro` | The results modal. *Engine-only skips.* |
 
 Check `08-Component-Inventory.md` before hand-rolling markup — `SeatedPlayScreen`, `GameSetupPage`, `SetupShell`,
