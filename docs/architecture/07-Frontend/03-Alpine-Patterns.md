@@ -46,7 +46,7 @@ Alpine boots **only** through the `@astrojs/alpinejs` integration entrypoint. No
 **Target `astro.config.mjs`:**
 
 ```javascript
-alpinejs({ entrypoint: "/src/lib/client/alpine/app.factory" });
+alpinejs({ entrypoint: "/src/lib/client/alpine/app.factory" })
 ```
 
 **`app.factory.ts`:**
@@ -72,11 +72,11 @@ export default (Alpine: Alpine) => {
 
 ### Registration modules
 
-| File                     | Registers                                                            |
-| ------------------------ | -------------------------------------------------------------------- |
-| `register-stores.ts`     | `Alpine.store()` for all stores                                      |
-| `register-ui-data.ts`    | `Alpine.data()` for portable UI (timer, toast, modal, chart, toggle) |
-| `register-route-data.ts` | `Alpine.data()` for route components (play, session-setup, …)        |
+| File | Registers |
+| ---- | --------- |
+| `register-stores.ts` | `Alpine.store()` for all stores |
+| `register-ui-data.ts` | `Alpine.data()` for portable UI (timer, toast, modal, chart, toggle) |
+| `register-route-data.ts` | `Alpine.data()` for route components (play, session-setup, …) |
 
 Each registrar receives `Alpine` as an argument. Factory files (`.store.ts`, `.data.ts`) export functions only — they do not import Alpine.
 
@@ -131,25 +131,25 @@ export function registerRouteData(Alpine: Alpine) {
 
 # Binding Rules (Non-Negotiable)
 
-| Rule                     | Detail                                                                           |
-| ------------------------ | -------------------------------------------------------------------------------- |
-| **Alpine v3 shorthand**  | Use `:attr` and `@event` — never `x-bind:attr` or `x-on:event` (see table below) |
-| **No `x-init`**          | Forbidden everywhere — deprecated                                                |
-| **`x-data` invocation**  | Always `x-data="componentState()"` — never `x-data="componentState"`             |
-| **Store registration**   | `Alpine.store('name', storeFactory(persist))` — invoke factory so `init()` runs  |
-| **No Alpine in modules** | `modules/` never import Alpine                                                   |
+| Rule | Detail |
+| ---- | ------ |
+| **Alpine v3 shorthand** | Use `:attr` and `@event` — never `x-bind:attr` or `x-on:event` (see table below) |
+| **No `x-init`** | Forbidden everywhere — deprecated |
+| **`x-data` invocation** | Always `x-data="componentState()"` — never `x-data="componentState"` |
+| **Store registration** | `Alpine.store('name', storeFactory(persist))` — invoke factory so `init()` runs |
+| **No Alpine in modules** | `modules/` never import Alpine |
 
 ## Alpine v3 directive syntax (mandatory)
 
 Use **shorthand** for binds and listeners. Keep structural/behavioral directives as `x-*`.
 
-| Use                         | Not                             |
-| --------------------------- | ------------------------------- |
-| `:class="expr"`             | `x-bind:class="expr"`           |
-| `:style="expr"`             | `x-bind:style="expr"`           |
-| `:value="expr"`             | `x-bind:value="expr"`           |
-| `:disabled="expr"`          | `x-bind:disabled="expr"`        |
-| `@click="handler"`          | `x-on:click="handler"`          |
+| Use | Not |
+| --- | --- |
+| `:class="expr"` | `x-bind:class="expr"` |
+| `:style="expr"` | `x-bind:style="expr"` |
+| `:value="expr"` | `x-bind:value="expr"` |
+| `:disabled="expr"` | `x-bind:disabled="expr"` |
+| `@click="handler"` | `x-on:click="handler"` |
 | `@submit.prevent="handler"` | `x-on:submit.prevent="handler"` |
 
 **Keep long form (no shorthand):** `x-data`, `x-show`, `x-text`, `x-model`, `x-cloak`, `x-for`, `x-if`, `x-transition`, `x-effect`.
@@ -197,18 +197,18 @@ Do **not** wrap with `` `'${prop}'` `` — that emits a quoted string literal Al
 
 `$persist` is allowed **only** in `*.store.ts`.
 
-| Persisted                               | Never persisted             |
-| --------------------------------------- | --------------------------- |
-| Gameplay / session recovery (`stores/`) | Modal open state            |
-| Timer fields in `game.store.ts`         | Chart hover/selection       |
-| `idempotencyKey` until batch ACK        | Ephemeral `.data.ts` fields |
-| Completed-but-unsent batches (`outbox`) | —                           |
+| Persisted | Never persisted |
+| --------- | --------------- |
+| Gameplay / session recovery (`stores/`) | Modal open state |
+| Timer fields in `game.store.ts` | Chart hover/selection |
+| `idempotencyKey` until batch ACK | Ephemeral `.data.ts` fields |
+| Completed-but-unsent batches (`outbox`) | — |
 
 `lib/client/alpine/` configures the persist plugin (namespace prefix) — not individual store keys.
 
 **Per-field factory (D120):** each persisted property must call a fresh `Alpine.$persist` (via `PersistFactory`). One shared `persist()` collapses every `.as()` key onto the last alias — array fields then hydrate as `null`. <!-- 2026-07-17 -->
 
-**Schema evolution:** **additive-only is the discipline** — extend persisted shapes, never remove or rename incompatibly (D89). No heavyweight `schemaVersion` machinery. As a safety valve for the rare unavoidable _incompatible_ change, each persisted store carries a single `_v` integer and discards its own state on mismatch in `init()` (D91). Additive changes never bump `_v`; only a genuinely breaking shape change does. This keeps the additive-only rule as the norm while preventing a stale store from rehydrating into incompatible code. <!-- 2026-07-14 -->
+**Schema evolution:** **additive-only is the discipline** — extend persisted shapes, never remove or rename incompatibly (D89). No heavyweight `schemaVersion` machinery. As a safety valve for the rare unavoidable *incompatible* change, each persisted store carries a single `_v` integer and discards its own state on mismatch in `init()` (D91). Additive changes never bump `_v`; only a genuinely breaking shape change does. This keeps the additive-only rule as the norm while preventing a stale store from rehydrating into incompatible code. <!-- 2026-07-14 -->
 
 ---
 
@@ -216,12 +216,12 @@ Do **not** wrap with `` `'${prop}'` `` — that emits a quoted string literal Al
 
 The client owns session-progress persistence (D67). Setup and play share one helper — `app/src/lib/game/session-recovery.ts` (`reconcileActiveSession`) — identical decision table, no page-specific variants (D118). The helper never ends a session; only the player abandons one (D460, supersedes D88).
 
-| Condition                                                  | Returned `action` | Caller behavior                                                                                                                                                                                                                                                                           |
-| ---------------------------------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Server `ACTIVE` + local `sessionId` **matches**            | `"match"`         | Resume path. Setup: Continue/Abandon modal (`activeSessionLocal` true). Play: keep store, resume silently. Store untouched.                                                                                                                                                               |
-| Server `ACTIVE` + local missing / `sessionId` **mismatch** | `"elsewhere"`     | Store untouched, nothing abandoned. Setup: same modal with `activeSessionLocal` false — "in progress on another device", Start new (abandons it, store untouched) or Back (`/games`); the picker stays hidden while it is `ACTIVE` (`uq_sessions_single_active`). Play: no-session panel. |
-| Local present, no server `ACTIVE`                          | `"no_active"`     | Helper `store.reset()` (stale local) only when `store.gameTypeKey` is the caller's game; another game's session stays untouched.                                                                                                                                                          |
-| Both empty                                                 | `"no_active"`     | No store change.                                                                                                                                                                                                                                                                          |
+| Condition | Returned `action` | Caller behavior |
+| --------- | ----------------- | --------------- |
+| Server `ACTIVE` + local `sessionId` **matches** | `"match"` | Resume path. Setup: Continue/Abandon modal (`activeSessionLocal` true). Play: keep store, resume silently. Store untouched. |
+| Server `ACTIVE` + local missing / `sessionId` **mismatch** | `"elsewhere"` | Store untouched, nothing abandoned. Setup: same modal with `activeSessionLocal` false — "in progress on another device", Start new (abandons it, store untouched) or Back (`/games`); the picker stays hidden while it is `ACTIVE` (`uq_sessions_single_active`). Play: no-session panel. |
+| Local present, no server `ACTIVE` | `"no_active"` | Helper `store.reset()` (stale local) only when `store.gameTypeKey` is the caller's game; another game's session stays untouched. |
+| Both empty | `"no_active"` | No store change. |
 
 Server DB orphans remain server responsibility (future sweep). See `00-Overview.md` state model. <!-- 2026-10-13 -->
 
@@ -233,12 +233,12 @@ Recovery above governs the **active** session. A **completed** session whose bat
 
 **Default (D90):** On session completion the assembled `EventsBatchRequest` moves from `game.store.ts` into a persisted `outbox` store, carrying the `Idempotency-Key` minted at session-complete (`04-Modules-And-OOP.md` key ownership). Upload is attempted immediately with a few backoff retries; on persistent failure the entry stays queued.
 
-| Condition                                             | Action                                                        |
-| ----------------------------------------------------- | ------------------------------------------------------------- |
-| Upload succeeds (or same-key/same-hash stored result) | Remove entry from `outbox`                                    |
-| Upload fails after retries                            | Keep entry; show passive **"unsaved — will retry"** indicator |
-| Next app load / `online` event                        | Auto-retry all queued entries with their stored keys          |
-| Retryable error only (`503`)                          | Retry with the **same** `Idempotency-Key`; never re-mint      |
+| Condition | Action |
+| --------- | ------ |
+| Upload succeeds (or same-key/same-hash stored result) | Remove entry from `outbox` |
+| Upload fails after retries | Keep entry; show passive **"unsaved — will retry"** indicator |
+| Next app load / `online` event | Auto-retry all queued entries with their stored keys |
+| Retryable error only (`503`) | Retry with the **same** `Idempotency-Key`; never re-mint |
 
 The stable key makes retries safe: a batch the server already persisted but never acknowledged returns its stored result on retry, and the client dequeues (D90). Removal happens **only** on confirmed success — never blind discard. localStorage backs the `outbox` in v1; if queue depth ever grows, only the `outbox` store migrates to IndexedDB (unchanged elsewhere).
 
@@ -282,29 +282,29 @@ to that one game.
 
 # Anti-Patterns
 
-| Anti-pattern                                                                        | Reason                                                                                                                                                           |
-| ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `x-init`                                                                            | Deprecated — use factory `init()`                                                                                                                                |
-| Inline ternary on a results modal's `x-text="..."` title                            | Unreadable and untestable — use a named `resultsTitle()` factory method (see Results-Modal Title Pattern above)                                                  |
-| `x-bind:*` / `x-on:*` (when shorthand works)                                        | Use `:attr` / `@event` (Alpine v3)                                                                                                                               |
-| `x-data="play"` without `()`                                                        | `init()` does not run                                                                                                                                            |
-| `$persist` in `.data.ts` or components                                              | Unpredictable recovery scope                                                                                                                                     |
-| Abandoning a session the player did not choose to end                               | Only the player ends a session; recovery asks first (D460)                                                                                                       |
-| `import Alpine from 'alpinejs'` outside factory                                     | Breaks single entrypoint                                                                                                                                         |
-| HTTP in `modules/`                                                                  | Violates import direction                                                                                                                                        |
-| `x-show` without `x-cloak`                                                          | FOUC before Alpine hydrates                                                                                                                                      |
-| ``x-text={`'${prop}'`}`` or ``@click={`'${click}'`}``                               | Emits a string literal — Alpine will not evaluate the expression                                                                                                 |
-| `;`-separated statements on `@click`                                                | Prefer one factory method / click prop                                                                                                                           |
+| Anti-pattern | Reason |
+| ------------ | ------ |
+| `x-init` | Deprecated — use factory `init()` |
+| Inline ternary on a results modal's `x-text="..."` title | Unreadable and untestable — use a named `resultsTitle()` factory method (see Results-Modal Title Pattern above) |
+| `x-bind:*` / `x-on:*` (when shorthand works) | Use `:attr` / `@event` (Alpine v3) |
+| `x-data="play"` without `()` | `init()` does not run |
+| `$persist` in `.data.ts` or components | Unpredictable recovery scope |
+| Abandoning a session the player did not choose to end | Only the player ends a session; recovery asks first (D460) |
+| `import Alpine from 'alpinejs'` outside factory | Breaks single entrypoint |
+| HTTP in `modules/` | Violates import direction |
+| `x-show` without `x-cloak` | FOUC before Alpine hydrates |
+| `` x-text={`'${prop}'`} `` or `` @click={`'${click}'`} `` | Emits a string literal — Alpine will not evaluate the expression |
+| `;`-separated statements on `@click` | Prefer one factory method / click prop |
 | OOP module instance stored on the Alpine data object (`this.toggle = new Toggle()`) | Alpine deep-proxies reactive state; a proxied class throws on every ES private field, so lifecycle methods silently never run — hold it in the factory's closure |
 
 ---
 
 # Related Documents
 
-| Document                     | Purpose                    |
-| ---------------------------- | -------------------------- |
-| `00-Overview.md`             | API client, data flows     |
-| `01-Rendering-Strategy.md`   | Prerender + middleware     |
-| `02-Folder-Structure.md`     | Suffixes, aliases          |
-| `04-Modules-And-OOP.md`      | Engine and payload modules |
-| `10-Frontend-Agent-Guide.md` | Condensed agent rules      |
+| Document | Purpose |
+| -------- | ------- |
+| `00-Overview.md` | API client, data flows |
+| `01-Rendering-Strategy.md` | Prerender + middleware |
+| `02-Folder-Structure.md` | Suffixes, aliases |
+| `04-Modules-And-OOP.md` | Engine and payload modules |
+| `10-Frontend-Agent-Guide.md` | Condensed agent rules |
