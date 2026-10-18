@@ -8,6 +8,7 @@ import {
   RandomCheckoutV1Config,
   ScoreThresholdV1Config,
   SwitchbladeV1Config,
+  DoublesLockV1Config,
   SwitchingTargetScoringV1Config,
   SwitchingV1Config,
   TargetScoringV1Config,
@@ -370,5 +371,20 @@ describe("SwitchbladeV1Config", () => {
 
   it("is registered under SWITCHBLADE_V1", () => {
     expect(EXERCISE_RULESET_CONFIGS.SWITCHBLADE_V1).toBe(SwitchbladeV1Config);
+  });
+});
+
+describe("DoublesLockV1Config", () => {
+  it("accepts the empty config — path and bonus are fixed", () => {
+    expect(DoublesLockV1Config.safeParse({}).success).toBe(true);
+  });
+
+  it("rejects any key", () => {
+    expect(DoublesLockV1Config.safeParse({ lockHits: 3 }).success).toBe(false);
+    expect(DoublesLockV1Config.safeParse({ path: [] }).success).toBe(false);
+  });
+
+  it("is registered under DOUBLES_LOCK_V1", () => {
+    expect(EXERCISE_RULESET_CONFIGS.DOUBLES_LOCK_V1).toBe(DoublesLockV1Config);
   });
 });
