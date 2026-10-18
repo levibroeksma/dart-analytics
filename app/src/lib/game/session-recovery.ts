@@ -1,6 +1,7 @@
 import type { SessionActiveData } from "@client/api/sessions";
 
 interface StoreLike {
+  gameTypeKey?: string | null;
   reset(): void;
 }
 
@@ -18,7 +19,8 @@ interface StoreLike {
  *   device, or a store since reused for another game). Store is left
  *   untouched; setup asks before abandoning it, play shows no session.
  * "no_active": no server ACTIVE session for this game type. A local session
- *   the server no longer holds has been reset by this function.
+ *   of this game that the server no longer holds has been reset by this
+ *   function; a store holding another game's session is left untouched.
  *
  * @param gameTypeKey - The game whose ACTIVE session this caller owns; server
  *   sessions for any other game type are ignored entirely.
@@ -43,6 +45,6 @@ export async function reconcileActiveSession(
     };
   }
 
-  if (localSessionId) store.reset();
+  if (localSessionId && store.gameTypeKey === gameTypeKey) store.reset();
   return { action: "no_active", activeSession: null };
 }
