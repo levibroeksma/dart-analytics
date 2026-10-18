@@ -414,7 +414,7 @@ describe("scoreTrainingPlay", () => {
 
     it("D88: clears local state when the server has no matching active session", async () => {
       vi.mocked(fetchActiveSessions).mockResolvedValue([]);
-      const store = gameStub();
+      const store = gameStub({ gameTypeKey: "SCORE_TRAINING" });
       const component = {
         ...scoreTrainingPlay(),
         $store: { game: store, settings: settingsStub() },

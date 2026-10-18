@@ -103,6 +103,7 @@ export type SetupSessionContext = {
   $store: {
     game: {
       sessionId: string | null;
+      gameTypeKey?: string | null;
       startSession(input: unknown): void;
       reset(): void;
     };
@@ -304,6 +305,7 @@ export type PlayStoreContext<TConfig> = {
   game: {
     rulesetVersionKey: RulesetVersionKey | null;
     sessionId: string | null;
+    gameTypeKey?: string | null;
     templateRef: string | null;
     configSnapshot: Seated<TConfig> | null;
     readonly seats: readonly SeatFact[];

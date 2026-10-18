@@ -48,14 +48,14 @@ function nonGameSession(sessionId: string): SessionActiveData {
  * `Mock<Procedure | Constructable>`, which `astro check` rejects as an
  * argument for `StoreLike`. `vi.mocked()` recovers `.mock.calls` where needed.
  */
-type StoreStub = { reset: () => void };
+type StoreStub = { gameTypeKey: string | null; reset: () => void };
 
 describe("reconcileActiveSession", () => {
   let store: StoreStub;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    store = { reset: vi.fn() };
+    store = { gameTypeKey: "SCORE_TRAINING", reset: vi.fn() };
   });
 
   it('returns "match" and does not touch the store when local sessionId matches server ACTIVE', async () => {
@@ -111,6 +111,20 @@ describe("reconcileActiveSession", () => {
     );
 
     expect(store.reset).toHaveBeenCalled();
+    expect(result).toEqual({ action: "no_active", activeSession: null });
+  });
+
+  it('keeps a store holding another game\'s session and returns "no_active"', async () => {
+    store.gameTypeKey = "FIVE_OH_ONE";
+
+    const result = await reconcileActiveSession(
+      "SCORE_TRAINING",
+      "other-game-id",
+      [],
+      store,
+    );
+
+    expect(store.reset).not.toHaveBeenCalled();
     expect(result).toEqual({ action: "no_active", activeSession: null });
   });
 

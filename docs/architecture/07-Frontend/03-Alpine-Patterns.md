@@ -220,7 +220,7 @@ The client owns session-progress persistence (D67). Setup and play share one hel
 | --------- | ----------------- | --------------- |
 | Server `ACTIVE` + local `sessionId` **matches** | `"match"` | Resume path. Setup: Continue/Abandon modal (`activeSessionLocal` true). Play: keep store, resume silently. Store untouched. |
 | Server `ACTIVE` + local missing / `sessionId` **mismatch** | `"elsewhere"` | Store untouched, nothing abandoned. Setup: same modal with `activeSessionLocal` false — "in progress on another device", Start new (abandons it, store untouched) or Back (`/games`); the picker stays hidden while it is `ACTIVE` (`uq_sessions_single_active`). Play: no-session panel. |
-| Local present, no server `ACTIVE` | `"no_active"` | Helper `store.reset()` (stale local). |
+| Local present, no server `ACTIVE` | `"no_active"` | Helper `store.reset()` (stale local) only when `store.gameTypeKey` is the caller's game; another game's session stays untouched. |
 | Both empty | `"no_active"` | No store change. |
 
 Server DB orphans remain server responsibility (future sweep). See `00-Overview.md` state model. <!-- 2026-10-13 -->
