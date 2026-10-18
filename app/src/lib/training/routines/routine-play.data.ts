@@ -78,6 +78,8 @@ import type { BullseyeCheckoutEngine } from "@modules/training/exercises/bullsey
 import type { BullUpEngine } from "@modules/training/exercises/bull-up.engine.module";
 import type { CheckoutSequenceEngine } from "@modules/training/exercises/checkout-sequence.engine.module";
 import type { RandomCheckoutEngine } from "@modules/training/exercises/random-checkout.engine.module";
+import type { HitCountEngine } from "@modules/training/exercises/hit-count.engine.module";
+import { boardTargetLabel } from "@modules/game/board-progression.module";
 import { accuracyDisplay } from "@lib/game/play-visit-stats";
 import type { DartFact } from "@modules/types";
 
@@ -183,6 +185,7 @@ export function routinePlay() {
         else if (self.bullUpEngine) self.recordBullUpDart(observation);
         else if (self.checkoutSequenceEngine)
           self.recordCheckoutSequenceDart(observation);
+        else if (self.hitCountEngine) self.recordHitCountDart(observation);
         else self.recordRandomCheckoutDart(observation);
       },
       () => self.activeDartEngine()?.facts().turns ?? [],
@@ -200,6 +203,7 @@ export function routinePlay() {
       | BullUpEngine
       | CheckoutSequenceEngine
       | RandomCheckoutEngine
+      | HitCountEngine
       | null {
       return (
         this.switchingEngine ??
@@ -210,7 +214,8 @@ export function routinePlay() {
         this.bullseyeCheckoutEngine ??
         this.bullUpEngine ??
         this.checkoutSequenceEngine ??
-        this.randomCheckoutEngine
+        this.randomCheckoutEngine ??
+        this.hitCountEngine
       );
     },
 
@@ -252,6 +257,7 @@ export function routinePlay() {
         config: this.stepConfiguration,
         visitIndex,
         currentTargetNumber: progress?.currentTargetNumber,
+        currentTargetLabel: this.hitCountTargetLabel() || undefined,
         targetIndex: progress?.targetIndex ?? 0,
         dartsInOpenVisit:
           this.activeDartEngine()?.facts().turns.at(-1)?.darts.length ?? 0,
@@ -707,6 +713,7 @@ export function routinePlay() {
           this.bullUpEngine?.expireTimer();
           this.checkoutSequenceEngine?.expireTimer();
           this.randomCheckoutEngine?.expireTimer();
+          this.hitCountEngine?.expireTimer();
           void this.completeCurrentStep();
         },
       });
@@ -1004,6 +1011,36 @@ export function routinePlay() {
       return !state || state.attempts === 0
         ? "—"
         : accuracyDisplay(state.checkouts, state.attempts);
+    },
+
+    /** Hit Count never ends on a dart; only the step deadline completes it. */
+    recordHitCountDart(this: RoutinePlayContext, observation: DartObservation) {
+      if (!this.hitCountEngine) return;
+      this.hitCountEngine.record(observation);
+    },
+
+    hitCountHits(this: RoutinePlayContext): number {
+      return this.hitCountEngine?.state().hits ?? 0;
+    },
+
+    hitCountTargetLabel(this: RoutinePlayContext): string {
+      const target = this.hitCountEngine?.state().currentTarget;
+      return target === undefined ? "" : boardTargetLabel(target);
+    },
+
+    hitCountDartsLeft(this: RoutinePlayContext): number {
+      return this.hitCountEngine?.state().dartsLeftOnTarget ?? 0;
+    },
+
+    hitCountPasses(this: RoutinePlayContext): number {
+      return this.hitCountEngine?.state().passes ?? 0;
+    },
+
+    hitCountRate(this: RoutinePlayContext): string {
+      const state = this.hitCountEngine?.state();
+      return !state || state.dartsThrown === 0
+        ? "—"
+        : accuracyDisplay(state.hits, state.dartsThrown);
     },
 
     dartsThrown(this: RoutinePlayContext): number {
