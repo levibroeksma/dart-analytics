@@ -11,6 +11,7 @@ import { checkoutSequenceValidator } from "./checkout-sequence/checkout-sequence
 import { randomCheckoutValidator } from "./random-checkout/random-checkout.validator";
 import { hitCountValidator } from "./hit-count/hit-count.validator";
 import { switchbladeValidator } from "./switchblade/switchblade.validator";
+import { doublesLockValidator } from "./doubles-lock/doubles-lock.validator";
 
 const REGISTRY: Record<string, ExerciseRulesetValidator> = {
   WARM_UP_V1: warmUpValidator,
@@ -25,6 +26,7 @@ const REGISTRY: Record<string, ExerciseRulesetValidator> = {
   RANDOM_CHECKOUT_V1: randomCheckoutValidator,
   HIT_COUNT_V1: hitCountValidator,
   SWITCHBLADE_V1: switchbladeValidator,
+  DOUBLES_LOCK_V1: doublesLockValidator,
 };
 
 export function getExerciseRulesetValidator(
@@ -52,6 +54,7 @@ const DART_WRITING_RULESET_VERSION_KEYS = new Set([
   "RANDOM_CHECKOUT_V1",
   "HIT_COUNT_V1",
   "SWITCHBLADE_V1",
+  "DOUBLES_LOCK_V1",
 ]);
 
 export function exerciseRulesetWritesDarts(

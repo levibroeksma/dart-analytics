@@ -222,6 +222,27 @@ describe("StartTrainingResponse", () => {
     ).toBe(true);
   });
 
+  it("accepts a DOUBLES_LOCK step", () => {
+    expect(
+      StartTrainingResponse.safeParse({
+        activityId: "act-1",
+        routineTemplateId: "rt-1",
+        routineName: "Custom",
+        steps: [
+          {
+            sequenceNumber: 1,
+            exerciseTypeKey: "DOUBLES_LOCK",
+            exerciseRulesetVersionKey: "DOUBLES_LOCK_V1",
+            gameTypeKey: null,
+            gameRulesetVersionKey: null,
+            durationSeconds: 600,
+            configuration: {},
+          },
+        ],
+      }).success,
+    ).toBe(true);
+  });
+
   it("accepts a BULL_UP step", () => {
     expect(
       StartTrainingResponse.safeParse({
@@ -351,6 +372,19 @@ describe("StartTrainingStepResponse", () => {
       StartTrainingStepResponse.safeParse({
         sessionId: "s1",
         exerciseTypeKey: "SWITCHBLADE",
+        configuration: {},
+        participant: { ref: "pt1", displayName: "Levi" },
+        captureModeKey: "ANALYTICS",
+        inputModeKey: "VISUAL_BOARD",
+      }).success,
+    ).toBe(true);
+  });
+
+  it("accepts a DOUBLES_LOCK step's response", () => {
+    expect(
+      StartTrainingStepResponse.safeParse({
+        sessionId: "s1",
+        exerciseTypeKey: "DOUBLES_LOCK",
         configuration: {},
         participant: { ref: "pt1", displayName: "Levi" },
         captureModeKey: "ANALYTICS",
