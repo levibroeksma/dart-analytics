@@ -3554,3 +3554,19 @@ describe("routinePlay — Hit Count play", () => {
     expect(store.stepSummaries[0]).toMatchObject({ stepKey: "HIT_COUNT" });
   });
 });
+
+describe("routinePlay — board dispatch", () => {
+  it("activeDartEngine() is null and a committed dart records nothing with no exercise engine open", () => {
+    const store = makeStore();
+
+    boardCommit.onCommit!({
+      hitTargetNumber: 20,
+      hitZoneKey: "TREBLE",
+      locationX: 0,
+      locationY: -100,
+    });
+
+    expect(store.activeDartEngine()).toBeNull();
+    expect(store.dartsThrown()).toBe(0);
+  });
+});
