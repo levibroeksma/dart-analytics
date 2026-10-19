@@ -63,6 +63,45 @@ describe("buildSeedSql", () => {
     );
   });
 
+  it("writes timestamps explicitly: now() on insert, updated_at on upsert", () => {
+    const { sql } = build();
+    for (const table of ["tag_axes", "tag_contexts", "tags"]) {
+      const stmt = sql
+        .slice(sql.indexOf(`INSERT INTO ${table} (`))
+        .split(";")[0];
+      expect(stmt).toMatch(/, created_at, updated_at\) VALUES/);
+      const rows = stmt.split("\n").filter((l) => l.startsWith("  ("));
+      expect(rows.length).toBeGreaterThan(0);
+      for (const row of rows) expect(row).toMatch(/, now\(\), now\(\)\),?$/);
+      expect(stmt).toMatch(
+        /ON CONFLICT \(id\) DO UPDATE SET .*updated_at = now\(\)$/,
+      );
+    }
+    const link = sql
+      .slice(sql.indexOf("INSERT INTO game_type_tags"))
+      .split(";")[0];
+    expect(link).toContain("is_primary, created_at) VALUES");
+    for (const row of link.split("\n").filter((l) => l.startsWith("  (")))
+      expect(row).toMatch(/, (TRUE|FALSE), now\(\)\),?$/);
+  });
+
+  it("writes created_at on exercise link rows", () => {
+    const single: TagBlock = {
+      context: "ROUTINE_STEP",
+      tags: tags(["BEGINNER"]),
+      difficultyLabels: [{ key: "BEGINNER", label: null }],
+    };
+    const { sql } = build({ exercises: new Map([["BULL_UP", [single]]]) });
+    const link = sql
+      .slice(sql.indexOf("INSERT INTO exercise_type_tags"))
+      .split(";")[0];
+    expect(link).toContain(
+      "(exercise_type_id, tag_id, is_primary, created_at) VALUES",
+    );
+    for (const row of link.split("\n").filter((l) => l.startsWith("  (")))
+      expect(row).toMatch(/, (TRUE|FALSE), now\(\)\),?$/);
+  });
+
   it("resolves type and context by implementation key", () => {
     const { sql } = build();
     expect(sql).toContain(

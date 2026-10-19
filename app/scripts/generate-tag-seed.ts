@@ -68,7 +68,7 @@ export function buildSeedSql(input: SeedInput): {
     axis.values.forEach((v, vi) => {
       tagId.set(`${axis.key}:${v.key}`, nextTag);
       tagRows.push(
-        `  (${nextTag}, ${ai + 1}, ${q(v.key)}, ${q(v.name)}, ${vi + 1})`,
+        `  (${nextTag}, ${ai + 1}, ${q(v.key)}, ${q(v.name)}, ${vi + 1}, now(), now())`,
       );
       nextTag++;
     });
@@ -103,22 +103,22 @@ export function buildSeedSql(input: SeedInput): {
       if (table === "game_type_tags") {
         const ctx = `(SELECT id FROM tag_contexts WHERE implementation_key = ${q(block.context)})`;
         out.push(
-          `INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary) VALUES\n` +
+          `INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at) VALUES\n` +
             rows
               .map(
                 (r) =>
-                  `  (${typeSel}, ${ctx}, ${r.id}, ${r.primary ? "TRUE" : "FALSE"})`,
+                  `  (${typeSel}, ${ctx}, ${r.id}, ${r.primary ? "TRUE" : "FALSE"}, now())`,
               )
               .join(",\n") +
             ";",
         );
       } else {
         out.push(
-          `INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary) VALUES\n` +
+          `INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at) VALUES\n` +
             rows
               .map(
                 (r) =>
-                  `  (${typeSel}, ${r.id}, ${r.primary ? "TRUE" : "FALSE"})`,
+                  `  (${typeSel}, ${r.id}, ${r.primary ? "TRUE" : "FALSE"}, now())`,
               )
               .join(",\n") +
             ";",
@@ -174,17 +174,21 @@ export function buildSeedSql(input: SeedInput): {
     "-- Idempotent: lookups upsert by id; link tables are cleared and refilled.",
     "BEGIN;",
     "",
-    "INSERT INTO tag_axes (id, implementation_key, name) VALUES",
-    axes.map((a, i) => `  (${i + 1}, ${q(a.key)}, ${q(a.name)})`).join(",\n"),
-    "ON CONFLICT (id) DO UPDATE SET implementation_key = EXCLUDED.implementation_key, name = EXCLUDED.name;",
+    "INSERT INTO tag_axes (id, implementation_key, name, created_at, updated_at) VALUES",
+    axes
+      .map((a, i) => `  (${i + 1}, ${q(a.key)}, ${q(a.name)}, now(), now())`)
+      .join(",\n"),
+    "ON CONFLICT (id) DO UPDATE SET implementation_key = EXCLUDED.implementation_key, name = EXCLUDED.name, updated_at = now();",
     "",
-    "INSERT INTO tag_contexts (id, implementation_key, name) VALUES",
-    CONTEXTS.map((c) => `  (${c.id}, ${q(c.key)}, ${q(c.name)})`).join(",\n"),
-    "ON CONFLICT (id) DO UPDATE SET implementation_key = EXCLUDED.implementation_key, name = EXCLUDED.name;",
+    "INSERT INTO tag_contexts (id, implementation_key, name, created_at, updated_at) VALUES",
+    CONTEXTS.map(
+      (c) => `  (${c.id}, ${q(c.key)}, ${q(c.name)}, now(), now())`,
+    ).join(",\n"),
+    "ON CONFLICT (id) DO UPDATE SET implementation_key = EXCLUDED.implementation_key, name = EXCLUDED.name, updated_at = now();",
     "",
-    "INSERT INTO tags (id, tag_axis_id, implementation_key, name, sort_order) VALUES",
+    "INSERT INTO tags (id, tag_axis_id, implementation_key, name, sort_order, created_at, updated_at) VALUES",
     tagRows.join(",\n"),
-    "ON CONFLICT (id) DO UPDATE SET tag_axis_id = EXCLUDED.tag_axis_id, implementation_key = EXCLUDED.implementation_key, name = EXCLUDED.name, sort_order = EXCLUDED.sort_order;",
+    "ON CONFLICT (id) DO UPDATE SET tag_axis_id = EXCLUDED.tag_axis_id, implementation_key = EXCLUDED.implementation_key, name = EXCLUDED.name, sort_order = EXCLUDED.sort_order, updated_at = now();",
     "",
     "DELETE FROM game_type_tags;",
     "DELETE FROM exercise_type_tags;",

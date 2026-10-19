@@ -584,9 +584,10 @@ export const exerciseTypeTags = pgTable(
     exerciseTypeId: uuid("exercise_type_id").notNull(),
     tagId: smallint("tag_id").notNull(),
     isPrimary: boolean("is_primary").default(false).notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
-      .defaultNow()
-      .notNull(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
   },
   (table) => [
     uniqueIndex("uq_exercise_type_tags_primary")
@@ -713,9 +714,10 @@ export const gameTypeTags = pgTable(
     tagContextId: smallint("tag_context_id").notNull(),
     tagId: smallint("tag_id").notNull(),
     isPrimary: boolean("is_primary").default(false).notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
-      .defaultNow()
-      .notNull(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
   },
   (table) => [
     uniqueIndex("uq_game_type_tags_primary")
@@ -1129,12 +1131,14 @@ export const tagAxes = pgTable(
     id: smallint().primaryKey().notNull(),
     implementationKey: text("implementation_key").notNull(),
     name: text().notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
-      .defaultNow()
-      .notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" })
-      .defaultNow()
-      .notNull(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+    updatedAt: timestamp("updated_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
   },
   (table) => [
     unique("uq_tag_axes_implementation_key").on(table.implementationKey),
@@ -1147,12 +1151,14 @@ export const tagContexts = pgTable(
     id: smallint().primaryKey().notNull(),
     implementationKey: text("implementation_key").notNull(),
     name: text().notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
-      .defaultNow()
-      .notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" })
-      .defaultNow()
-      .notNull(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+    updatedAt: timestamp("updated_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
   },
   (table) => [
     unique("uq_tag_contexts_implementation_key").on(table.implementationKey),
@@ -1167,12 +1173,14 @@ export const tags = pgTable(
     implementationKey: text("implementation_key").notNull(),
     name: text().notNull(),
     sortOrder: smallint("sort_order").notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
-      .defaultNow()
-      .notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" })
-      .defaultNow()
-      .notNull(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+    updatedAt: timestamp("updated_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
   },
   (table) => [
     foreignKey({
@@ -1184,6 +1192,7 @@ export const tags = pgTable(
       table.tagAxisId,
       table.implementationKey,
     ),
+    unique("uq_tags_axis_sort_order").on(table.tagAxisId, table.sortOrder),
   ],
 );
 
@@ -1389,7 +1398,7 @@ export const vExerciseTemplateCatalog = pgView("v_exercise_template_catalog", {
   gameTypeName: text("game_type_name"),
   difficultyLevel: smallint("difficulty_level"),
 }).as(
-  sql`WITH difficulty_levels AS ( SELECT t.id AS tag_id, row_number() OVER (ORDER BY t.sort_order)::smallint AS difficulty_level FROM tags t JOIN tag_axes ta ON ta.id = t.tag_axis_id WHERE ta.implementation_key = 'DIFFICULTY'::text ) SELECT et.id AS exercise_template_id, et.name, et.description, ext.implementation_key AS exercise_type_key, gt.implementation_key AS game_type_key, grv.implementation_key AS game_ruleset_version_key, et.default_configuration IS NOT NULL AS has_default_configuration, ext.name AS exercise_type_name, gt.name AS game_type_name, COALESCE(template_level.difficulty_level, type_level.difficulty_level) AS difficulty_level FROM exercise_templates et JOIN exercise_types ext ON ext.id = et.exercise_type_id LEFT JOIN game_types gt ON gt.id = et.game_type_id LEFT JOIN ruleset_versions grv ON grv.id = et.game_ruleset_version_id LEFT JOIN difficulty_levels template_level ON template_level.tag_id = et.difficulty_tag_id LEFT JOIN LATERAL ( SELECT min(dl.difficulty_level) AS difficulty_level FROM ( SELECT gtt.tag_id FROM game_type_tags gtt JOIN tag_contexts tc ON tc.id = gtt.tag_context_id WHERE et.game_type_id IS NOT NULL AND gtt.game_type_id = et.game_type_id AND tc.implementation_key = 'ROUTINE_STEP'::text UNION ALL SELECT ett.tag_id FROM exercise_type_tags ett WHERE et.game_type_id IS NULL AND ett.exercise_type_id = et.exercise_type_id) owner_tags JOIN difficulty_levels dl ON dl.tag_id = owner_tags.tag_id HAVING count(*) = 1) type_level ON true WHERE et.is_system_template AND ext.is_published`,
+  sql`WITH difficulty_levels AS ( SELECT t.id AS tag_id, row_number() OVER (ORDER BY t.sort_order, t.id)::smallint AS difficulty_level FROM tags t JOIN tag_axes ta ON ta.id = t.tag_axis_id WHERE ta.implementation_key = 'DIFFICULTY'::text ) SELECT et.id AS exercise_template_id, et.name, et.description, ext.implementation_key AS exercise_type_key, gt.implementation_key AS game_type_key, grv.implementation_key AS game_ruleset_version_key, et.default_configuration IS NOT NULL AS has_default_configuration, ext.name AS exercise_type_name, gt.name AS game_type_name, COALESCE(template_level.difficulty_level, type_level.difficulty_level) AS difficulty_level FROM exercise_templates et JOIN exercise_types ext ON ext.id = et.exercise_type_id LEFT JOIN game_types gt ON gt.id = et.game_type_id LEFT JOIN ruleset_versions grv ON grv.id = et.game_ruleset_version_id LEFT JOIN difficulty_levels template_level ON template_level.tag_id = et.difficulty_tag_id LEFT JOIN LATERAL ( SELECT min(dl.difficulty_level) AS difficulty_level FROM ( SELECT gtt.tag_id FROM game_type_tags gtt JOIN tag_contexts tc ON tc.id = gtt.tag_context_id WHERE et.game_type_id IS NOT NULL AND gtt.game_type_id = et.game_type_id AND tc.implementation_key = 'ROUTINE_STEP'::text UNION ALL SELECT ett.tag_id FROM exercise_type_tags ett WHERE et.game_type_id IS NULL AND ett.exercise_type_id = et.exercise_type_id) owner_tags JOIN difficulty_levels dl ON dl.tag_id = owner_tags.tag_id HAVING count(*) = 1) type_level ON true WHERE et.is_system_template AND ext.is_published`,
 );
 
 export const vGameReplay = pgView("v_game_replay", {

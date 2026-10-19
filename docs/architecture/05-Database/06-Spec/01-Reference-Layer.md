@@ -557,7 +557,7 @@ drift-gated) writes every table below; never hand-edit it. <!-- 2026-10-19 -->
 | ----- | ----------- | ----------- |
 | `tag_axes` | `id SMALLINT` (seeded) | `implementation_key` (`uq_tag_axes_implementation_key`): `SKILL`, `SESSION_ROLE`, `FORMAT`, `DIFFICULTY`, `MECHANIC`, `PRESSURE`, `FAMILY`; `name` |
 | `tag_contexts` | `id SMALLINT` (seeded) | `implementation_key` (`uq_tag_contexts_implementation_key`): `STANDALONE` = 1, `ROUTINE_STEP` = 2; `name` |
-| `tags` | `id SMALLINT` (seeded) | `tag_axis_id` → `tag_axes` (`fk_tags_tag_axis`, RESTRICT); `implementation_key`, unique per axis (`uq_tags_axis_implementation_key`); `name`; `sort_order` (TAGS.md row order within the axis) |
+| `tags` | `id SMALLINT` (seeded) | `tag_axis_id` → `tag_axes` (`fk_tags_tag_axis`, RESTRICT); `implementation_key`, unique per axis (`uq_tags_axis_implementation_key`); `name`; `sort_order` (TAGS.md row order within the axis, unique per axis: `uq_tags_axis_sort_order`) |
 | `game_type_tags` | (`game_type_id`, `tag_context_id`, `tag_id`) | `game_type_id` → `game_types` (CASCADE); `tag_context_id` → `tag_contexts`, `tag_id` → `tags` (RESTRICT); `is_primary BOOLEAN NOT NULL DEFAULT FALSE` |
 | `exercise_type_tags` | (`exercise_type_id`, `tag_id`) | `exercise_type_id` → `exercise_types` (CASCADE); `tag_id` → `tags` (RESTRICT); `is_primary BOOLEAN NOT NULL DEFAULT FALSE` |
 
@@ -576,8 +576,8 @@ An exercise type is always a routine step, so `exercise_type_tags` has no contex
 no `### Routine step` block gets its Standalone tags minus Family in `ROUTINE_STEP`. Only types with a
 `game_types` / `exercise_types` row get link rows.
 
-Unlike the other lookups, `created_at`/`updated_at` default to `now()`: the generated seed lists only
-the identifying columns. Ids are still always seeded.
+Like every other table, no column has a default: the generated seed writes the ids and
+`created_at`/`updated_at = now()` explicitly, and its upserts refresh `updated_at`.
 
 Read through `v_catalog_tags` (Read Model Layer), never directly.
 

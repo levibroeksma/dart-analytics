@@ -23,9 +23,10 @@
 -- - v_exercise_template_catalog: appends exercise_type_name,
 --   game_type_name and difficulty_level (additive, as 0040 did).
 --
--- created_at/updated_at default to now() here because the seed is
--- generated and lists only the identifying columns; the ids are
--- still always supplied by the seed, never by the database.
+-- No column defaults for timestamps or ids: the generated seed writes
+-- created_at/updated_at = now() and every id explicitly. tags.sort_order
+-- is unique per axis (uq_tags_axis_sort_order) so the difficulty rank
+-- is deterministic.
 -- ============================================================
 
 -- migrate:up
@@ -33,8 +34,8 @@ CREATE TABLE tag_axes (
     id SMALLINT PRIMARY KEY,
     implementation_key TEXT NOT NULL,
     name TEXT NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL,
     CONSTRAINT uq_tag_axes_implementation_key UNIQUE (implementation_key)
 );
 COMMENT ON TABLE tag_axes IS 'Tag axes from docs/game-rules/TAGS.md (Skill, Session role, Format, Difficulty, Mechanic, Pressure, Family). Seeded by 0042 (0047).';
@@ -43,8 +44,8 @@ CREATE TABLE tag_contexts (
     id SMALLINT PRIMARY KEY,
     implementation_key TEXT NOT NULL,
     name TEXT NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL,
     CONSTRAINT uq_tag_contexts_implementation_key UNIQUE (implementation_key)
 );
 COMMENT ON TABLE tag_contexts IS 'Where a game type''s tags apply: STANDALONE (Games screen) or ROUTINE_STEP (exercise picker). Seeded by 0042 (0047).';
@@ -55,9 +56,10 @@ CREATE TABLE tags (
     implementation_key TEXT NOT NULL,
     name TEXT NOT NULL,
     sort_order SMALLINT NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL,
     CONSTRAINT uq_tags_axis_implementation_key UNIQUE (tag_axis_id, implementation_key),
+    CONSTRAINT uq_tags_axis_sort_order UNIQUE (tag_axis_id, sort_order),
     CONSTRAINT fk_tags_tag_axis FOREIGN KEY (tag_axis_id) REFERENCES tag_axes(id) ON DELETE RESTRICT
 );
 COMMENT ON TABLE tags IS 'One row per tag value in docs/game-rules/TAGS.md. sort_order follows TAGS.md row order within the axis; on the DIFFICULTY axis it drives the 1-4 meter level. Seeded by 0042 (0047).';
@@ -67,7 +69,7 @@ CREATE TABLE game_type_tags (
     tag_context_id SMALLINT NOT NULL,
     tag_id SMALLINT NOT NULL,
     is_primary BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    created_at TIMESTAMPTZ NOT NULL,
     PRIMARY KEY (game_type_id, tag_context_id, tag_id),
     CONSTRAINT fk_game_type_tags_game_type FOREIGN KEY (game_type_id) REFERENCES game_types(id) ON DELETE CASCADE,
     CONSTRAINT fk_game_type_tags_tag_context FOREIGN KEY (tag_context_id) REFERENCES tag_contexts(id) ON DELETE RESTRICT,
@@ -81,7 +83,7 @@ CREATE TABLE exercise_type_tags (
     exercise_type_id UUID NOT NULL,
     tag_id SMALLINT NOT NULL,
     is_primary BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    created_at TIMESTAMPTZ NOT NULL,
     PRIMARY KEY (exercise_type_id, tag_id),
     CONSTRAINT fk_exercise_type_tags_exercise_type FOREIGN KEY (exercise_type_id) REFERENCES exercise_types(id) ON DELETE CASCADE,
     CONSTRAINT fk_exercise_type_tags_tag FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE RESTRICT
@@ -132,7 +134,7 @@ COMMENT ON VIEW v_catalog_tags IS 'Catalog tags per game type (per context) and 
 CREATE OR REPLACE VIEW v_exercise_template_catalog AS
 WITH difficulty_levels AS (
     SELECT t.id AS tag_id,
-        (row_number() OVER (ORDER BY t.sort_order))::smallint AS difficulty_level
+        (row_number() OVER (ORDER BY t.sort_order, t.id))::smallint AS difficulty_level
     FROM tags t
         JOIN tag_axes ta ON ta.id = t.tag_axis_id
     WHERE ta.implementation_key = 'DIFFICULTY'

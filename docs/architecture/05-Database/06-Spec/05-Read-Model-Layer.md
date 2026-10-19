@@ -223,7 +223,7 @@ Lists the system exercise templates a player may compose a custom routine from �
 
 `exercise_template_id`, `name`, `description`, exercise type key, game type key, and `has_default_configuration` — a derived boolean (`default_configuration IS NOT NULL`), not a stored column. Filtered to `is_system_template` and the exercise type's `is_published`; a user-owned template never appears, and neither does a template of an unpublished exercise type. <!-- 2026-09-19 -->
 
-Appended by `0047`, in this order: `exercise_type_name`, `game_type_name` (NULL for a non-game template) and `difficulty_level SMALLINT` — the 1–4 rank (`row_number()` by `sort_order` within the DIFFICULTY axis) of the template's own `difficulty_tag_id`, else of the owning type's single DIFFICULTY tag in the `ROUTINE_STEP` context (the game type for a template with a `game_type_id`, else the exercise type), else NULL (e.g. `SWITCHING`, `DOUBLE_PATTERN`, which have no rules file). The picker groups by type key and names the group from these columns; no name splitting. <!-- 2026-10-19 -->
+Appended by `0047`, in this order: `exercise_type_name`, `game_type_name` (NULL for a non-game template) and `difficulty_level SMALLINT` — the 1–4 rank (`row_number()` by `sort_order, id` within the DIFFICULTY axis; `sort_order` is unique per axis) of the template's own `difficulty_tag_id`, else of the owning type's single DIFFICULTY tag in the `ROUTINE_STEP` context (the game type for a template with a `game_type_id`, else the exercise type), else NULL (e.g. `SWITCHING`, `DOUBLE_PATTERN`, which have no rules file). The picker groups by type key and names the group from these columns; no name splitting. <!-- 2026-10-19 -->
 
 ## Design Rationale
 
