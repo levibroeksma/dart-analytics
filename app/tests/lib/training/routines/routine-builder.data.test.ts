@@ -20,6 +20,9 @@ const CATALOG = [
     exerciseTypeKey: "WARM_UP",
     gameTypeKey: null,
     gameRulesetVersionKey: null,
+    exerciseTypeName: "Warm-Up",
+    gameTypeName: null,
+    difficultyLevel: null,
   },
   {
     exerciseTemplateId: "et-f",
@@ -28,6 +31,9 @@ const CATALOG = [
     exerciseTypeKey: "GAME",
     gameTypeKey: "TUOD",
     gameRulesetVersionKey: "TUOD_V1",
+    exerciseTypeName: "Game",
+    gameTypeName: "Tour of the Doubles",
+    difficultyLevel: 3,
   },
 ];
 const ROUTINE = {

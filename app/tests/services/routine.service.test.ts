@@ -44,6 +44,9 @@ const CATALOG = [
     gameTypeKey: null,
     gameRulesetVersionKey: null,
     hasDefaultConfiguration: true,
+    exerciseTypeName: "Type",
+    gameTypeName: null,
+    difficultyLevel: null,
   },
   {
     exerciseTemplateId: "et-sw",
@@ -53,6 +56,9 @@ const CATALOG = [
     gameTypeKey: null,
     gameRulesetVersionKey: null,
     hasDefaultConfiguration: true,
+    exerciseTypeName: "Type",
+    gameTypeName: null,
+    difficultyLevel: null,
   },
   {
     exerciseTemplateId: "et-fin",
@@ -62,6 +68,9 @@ const CATALOG = [
     gameTypeKey: "TUOD",
     gameRulesetVersionKey: "TUOD_V1",
     hasDefaultConfiguration: true,
+    exerciseTypeName: "Type",
+    gameTypeName: null,
+    difficultyLevel: null,
   },
   {
     exerciseTemplateId: "et-score",
@@ -71,6 +80,9 @@ const CATALOG = [
     gameTypeKey: "SCORE_TRAINING",
     gameRulesetVersionKey: "SCORE_TRAINING_V1",
     hasDefaultConfiguration: true,
+    exerciseTypeName: "Type",
+    gameTypeName: null,
+    difficultyLevel: null,
   },
   {
     exerciseTemplateId: "et-nodef",
@@ -80,6 +92,9 @@ const CATALOG = [
     gameTypeKey: null,
     gameRulesetVersionKey: null,
     hasDefaultConfiguration: false,
+    exerciseTypeName: "Type",
+    gameTypeName: null,
+    difficultyLevel: null,
   },
 ];
 
@@ -223,6 +238,30 @@ describe("listExerciseTemplates", () => {
     ]);
     expect(result.data[0]).not.toHaveProperty("hasDefaultConfiguration");
   });
+
+  it("passes exerciseTypeName, gameTypeName and difficultyLevel through", async () => {
+    vi.mocked(repo.findExerciseTemplateCatalog).mockResolvedValueOnce([
+      {
+        exerciseTemplateId: "et-g",
+        name: "Finishing",
+        description: null,
+        exerciseTypeKey: "GAME",
+        gameTypeKey: "TUOD",
+        gameRulesetVersionKey: "TUOD_V1",
+        hasDefaultConfiguration: true,
+        exerciseTypeName: "Game",
+        gameTypeName: "Tour of the Doubles",
+        difficultyLevel: 3,
+      },
+    ]);
+    const result = await listExerciseTemplates();
+    if (!result.ok) throw new Error("expected ok");
+    expect(result.data[0]).toMatchObject({
+      exerciseTypeName: "Game",
+      gameTypeName: "Tour of the Doubles",
+      difficultyLevel: 3,
+    });
+  });
 });
 
 describe("createRoutine", () => {
@@ -302,6 +341,9 @@ describe("createRoutine", () => {
         gameTypeKey: "501",
         gameRulesetVersionKey: "501_V1",
         hasDefaultConfiguration: true,
+        exerciseTypeName: "Type",
+        gameTypeName: null,
+        difficultyLevel: null,
       },
     ]);
     const result = await createRoutine("p1", {

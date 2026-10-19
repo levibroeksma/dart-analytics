@@ -229,6 +229,9 @@ export type ExerciseTemplateCatalogEntry = {
   exerciseTypeKey: string;
   gameTypeKey: string | null;
   gameRulesetVersionKey: string | null;
+  exerciseTypeName: string;
+  gameTypeName: string | null;
+  difficultyLevel: number | null;
 };
 
 export type RoutineWriteInput = {

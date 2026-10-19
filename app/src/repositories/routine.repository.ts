@@ -100,6 +100,9 @@ export async function findExerciseTemplateCatalog(
       gameTypeKey: vExerciseTemplateCatalog.gameTypeKey,
       gameRulesetVersionKey: vExerciseTemplateCatalog.gameRulesetVersionKey,
       hasDefaultConfiguration: vExerciseTemplateCatalog.hasDefaultConfiguration,
+      exerciseTypeName: vExerciseTemplateCatalog.exerciseTypeName,
+      gameTypeName: vExerciseTemplateCatalog.gameTypeName,
+      difficultyLevel: vExerciseTemplateCatalog.difficultyLevel,
     })
     .from(vExerciseTemplateCatalog)
     .orderBy(asc(vExerciseTemplateCatalog.name));
@@ -114,6 +117,9 @@ export async function findExerciseTemplateCatalog(
       row.hasDefaultConfiguration,
       "has_default_configuration",
     ),
+    exerciseTypeName: nonNull(row.exerciseTypeName, "exercise_type_name"),
+    gameTypeName: row.gameTypeName,
+    difficultyLevel: row.difficultyLevel,
   }));
 }
 

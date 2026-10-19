@@ -5,5 +5,6 @@ export * from "./statistics/types";
 export * from "./training-sessions/types";
 export * from "./routines/types";
 export * from "./exercise-templates/types";
+export * from "./catalog-tags/types";
 export * from "./schedules/types";
 export type { ErrorCode } from "@server/types";

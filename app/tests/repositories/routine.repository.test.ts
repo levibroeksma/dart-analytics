@@ -103,6 +103,69 @@ describe("findExerciseTemplateCatalog", () => {
     );
   });
 
+  it("selects exerciseTypeName, gameTypeName and difficultyLevel", async () => {
+    const db = { select: vi.fn(() => fakeSelect([])) } as any;
+    await findExerciseTemplateCatalog(db);
+    expect(Object.keys(db.select.mock.calls[0]![0])).toEqual(
+      expect.arrayContaining([
+        "exerciseTypeName",
+        "gameTypeName",
+        "difficultyLevel",
+      ]),
+    );
+  });
+
+  it("maps the type names and difficulty level, keeping nulls", async () => {
+    const db = {
+      select: vi.fn(() =>
+        fakeSelect([
+          {
+            exerciseTemplateId: "et-1",
+            name: "Doubles",
+            description: null,
+            exerciseTypeKey: "DOUBLES_LOCK",
+            gameTypeKey: null,
+            gameRulesetVersionKey: null,
+            hasDefaultConfiguration: true,
+            exerciseTypeName: "Doubles Lock",
+            gameTypeName: null,
+            difficultyLevel: null,
+          },
+        ]),
+      ),
+    } as any;
+    const [entry] = await findExerciseTemplateCatalog(db);
+    expect(entry).toMatchObject({
+      exerciseTypeName: "Doubles Lock",
+      gameTypeName: null,
+      difficultyLevel: null,
+    });
+  });
+
+  it("throws on a null exercise_type_name", async () => {
+    const db = {
+      select: vi.fn(() =>
+        fakeSelect([
+          {
+            exerciseTemplateId: "et-1",
+            name: "Doubles",
+            description: null,
+            exerciseTypeKey: "DOUBLES_LOCK",
+            gameTypeKey: null,
+            gameRulesetVersionKey: null,
+            hasDefaultConfiguration: true,
+            exerciseTypeName: null,
+            gameTypeName: null,
+            difficultyLevel: null,
+          },
+        ]),
+      ),
+    } as any;
+    await expect(findExerciseTemplateCatalog(db)).rejects.toThrow(
+      /exercise_type_name/,
+    );
+  });
+
   it("throws instead of silently returning a null name column", async () => {
     const db = {
       select: vi.fn(() =>
@@ -115,6 +178,9 @@ describe("findExerciseTemplateCatalog", () => {
             gameTypeKey: null,
             gameRulesetVersionKey: null,
             hasDefaultConfiguration: true,
+            exerciseTypeName: "Warm-Up",
+            gameTypeName: null,
+            difficultyLevel: null,
           },
         ]),
       ),

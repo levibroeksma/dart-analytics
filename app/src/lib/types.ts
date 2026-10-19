@@ -1,4 +1,5 @@
 export * from "./auth/types";
+export * from "./catalog/types";
 export * from "./game/types";
 export * from "./home/types";
 export * from "./profile/types";
