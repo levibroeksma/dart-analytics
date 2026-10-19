@@ -135,10 +135,15 @@ beforeEach(() => {
 });
 
 describe("listRoutines", () => {
-  it("groups view rows into summaries with derived totalMinutes and stepCount", async () => {
+  it("groups view rows into summaries with derived totalMinutes, stepCount and stepLabels", async () => {
     vi.mocked(repo.findRoutineExecutionRows).mockResolvedValue([
       row({}),
-      row({ sequenceNumber: 2, exerciseTemplateId: "et-sw", durationValue: 5 }),
+      row({
+        sequenceNumber: 2,
+        exerciseTemplateId: "et-sw",
+        exerciseName: "Switching",
+        durationValue: 5,
+      }),
       row({
         routineId: "rt-own",
         routineName: "Mine",
@@ -158,6 +163,7 @@ describe("listRoutines", () => {
             description: "d",
             isSystemTemplate: true,
             stepCount: 2,
+            stepLabels: ["Warm-Up", "Switching"],
             totalMinutes: 15,
           },
           {
@@ -166,6 +172,7 @@ describe("listRoutines", () => {
             description: "d",
             isSystemTemplate: false,
             stepCount: 1,
+            stepLabels: ["Warm-Up"],
             totalMinutes: 30,
           },
         ],

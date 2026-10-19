@@ -81,6 +81,7 @@ function summarise(routine: RoutineExecution): RoutineSummary {
     description: routine.description,
     isSystemTemplate: routine.isSystemTemplate,
     stepCount: routine.steps.length,
+    stepLabels: routine.steps.map((step) => step.exerciseName),
     totalMinutes: routine.steps.reduce(
       (total, step) =>
         step.durationTypeKey === USER_STEP_DURATION_TYPE_KEY

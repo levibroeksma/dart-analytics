@@ -220,6 +220,7 @@ export type RoutineSummary = {
   description: string | null;
   isSystemTemplate: boolean;
   stepCount: number;
+  stepLabels: string[];
   totalMinutes: number;
 };
 

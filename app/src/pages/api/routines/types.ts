@@ -61,6 +61,7 @@ export const RoutineSummary = z.object({
   description: z.string().nullable(),
   isSystemTemplate: z.boolean(),
   stepCount: z.number().int(),
+  stepLabels: z.array(z.string()),
   totalMinutes: z.number().int(),
 });
 export type RoutineSummaryData = z.infer<typeof RoutineSummary>;

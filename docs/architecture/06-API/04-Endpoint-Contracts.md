@@ -1265,6 +1265,7 @@ const DartAnalytics = z.object({            // v_dart_analytics (session-filtere
 const RoutineSummary = z.object({           // v_routine_execution aggregated — GET /routines → ListResult<RoutineSummary>
   routineId: z.string(), routineName: z.string(), stepCount: z.number().int(),
   description: z.string().nullable(), isSystemTemplate: z.boolean(),   // D321: the list must tell system from own
+  stepLabels: z.array(z.string()),                                       // step exercise names in sequence order (#816)
   totalMinutes: z.number().int(),                                        // sum of MINUTES steps, derived per §6
 });
 
