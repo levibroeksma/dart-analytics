@@ -64,6 +64,35 @@ describe("cardThrow", () => {
     expect(card.phase).toBe("wind");
   });
 
+  it.each([
+    { metaKey: true },
+    { ctrlKey: true },
+    { shiftKey: true },
+    { altKey: true },
+    { button: 1 },
+  ])("leaves a modified click %o to the browser", (mods) => {
+    const { card, navigate } = setup();
+    const event = {
+      preventDefault: vi.fn(),
+      button: 0,
+      ...mods,
+    } as unknown as Event;
+    card.activate(event, "/games/x");
+    expect(event.preventDefault).not.toHaveBeenCalled();
+    expect(card.phase).toBe("rest");
+    vi.advanceTimersByTime(1000);
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it("raises the dart again from reset", () => {
+    const { card, event } = setup();
+    card.activate(event, "/games/x");
+    vi.advanceTimersByTime(550);
+    expect(card.phase).toBe("reset");
+    card.enter();
+    expect(card.phase).toBe("hover");
+  });
+
   it("maps each phase to its dart class", () => {
     const { card } = setup();
     const expected = {

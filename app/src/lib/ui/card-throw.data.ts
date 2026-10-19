@@ -19,6 +19,17 @@ function assignLocation(href: string): void {
   window.location.assign(href);
 }
 
+function opensElsewhere(event: Event): boolean {
+  const click = event as Partial<MouseEvent>;
+  return Boolean(
+    click.metaKey ||
+    click.ctrlKey ||
+    click.shiftKey ||
+    click.altKey ||
+    (click.button !== undefined && click.button !== 0),
+  );
+}
+
 function later(fn: () => void, ms: number): void {
   setTimeout(fn, ms);
 }
@@ -26,7 +37,7 @@ function later(fn: () => void, ms: number): void {
 /**
  * Alpine factory for a game `CatalogCard`'s dart. Hover raises the dart
  * from rest; a tap winds it back, throws it at `THROW_AT_MS` and navigates
- * at `NAVIGATE_AT_MS`. A tap during wind or throw is ignored, and under
+ * at `NAVIGATE_AT_MS`. A modified click (new tab) is left to the browser. A tap during wind or throw is ignored, and under
  * reduced motion the tap navigates at once. `dartClass()` is the CSS class
  * for the current phase.
  */
@@ -39,14 +50,15 @@ export function cardThrow(deps: CardThrowDeps = {}) {
     phase: "rest" as CardThrowPhase,
 
     enter() {
-      if (this.phase === "rest") this.phase = "hover";
+      if (this.phase === "rest" || this.phase === "reset") this.phase = "hover";
     },
 
     leave() {
-      if (this.phase === "hover") this.phase = "rest";
+      if (this.phase === "hover" || this.phase === "reset") this.phase = "rest";
     },
 
     activate(event: Event, href: string) {
+      if (opensElsewhere(event)) return;
       event.preventDefault();
       if (this.phase === "wind" || this.phase === "throw") return;
       if (reducedMotion()) {

@@ -1481,7 +1481,9 @@
     z-index: 2;
     opacity: 0.95;
     transform: translate(-52px, -36px) rotate(-45deg);
-    transition: transform 0.16s ease-out;
+    transition:
+      transform 0.16s ease-out,
+      opacity 0.16s ease-out;
   }
 
   .card-dart-throw {
@@ -1509,6 +1511,9 @@
     .card-dart-wind,
     .card-dart-throw,
     .card-dart-reset {
+      z-index: 0;
+      opacity: 0.45;
+      transform: rotate(-45deg);
       transition: none;
     }
   }

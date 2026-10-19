@@ -38,6 +38,8 @@ describe("catalog primitives (static source)", () => {
     );
     expect(block).not.toBeNull();
     expect(block?.[0]).toMatch(/transition:\s*none/);
+    expect(block?.[0]).toMatch(/transform:\s*rotate\(-45deg\)/);
+    expect(block?.[0]).toMatch(/opacity:\s*0\.45/);
   });
 
   it("global.css applies card-dart-hover only inside hover: hover", () => {
@@ -58,6 +60,11 @@ describe("catalog primitives (static source)", () => {
     expect(src).toMatch(/<a\b/);
     expect(src).toMatch(/<div\b/);
     expect(src).toContain("cardThrow()");
+  });
+
+  it("CatalogCard requires href for the game variant", () => {
+    const src = read("src/components/ui/CatalogCard.astro");
+    expect(src).toMatch(/variant:\s*"game";\s*href:\s*string/);
   });
 
   it("only motion.ts under lib/ui mentions prefers-reduced-motion", () => {

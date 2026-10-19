@@ -7,10 +7,8 @@
  * @param {string} [href] Destination of a `game` card
  * Slots: `title`, `meter`, `caption`, `tags`, default (body).
  */
-interface Props {
-  variant: "game" | "exercise";
-  href?: string;
-}
+type Props =
+  { variant: "game"; href: string } | { variant: "exercise"; href?: undefined };
 
 // Props
 const { variant, href }: Props = Astro.props;
