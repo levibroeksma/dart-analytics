@@ -169,5 +169,13 @@ expect fail "routine with Kernel" "$(kfixture $ROUTINE training/routines k-routi
   "'Kernel:' is not used by a routine"
 expect pass "game with Kernel" "$(kfixture $GAME rulesets k-ok 's/^$/&/')"
 
+# --- Game type header ----------------------------------------------------------
+expect fail "game type lowercase" "$(kfixture $GAME rulesets gt-lower 's/^(Entry points:.*)$/\1\nGame type: `cricket`/')" \
+  'Game type: must be `UPPER_SNAKE`'
+expect fail "game type without backticks" "$(kfixture $GAME rulesets gt-bare 's/^(Entry points:.*)$/\1\nGame type: CRICKET/')" \
+  'Game type: must be `UPPER_SNAKE`'
+expect pass "game type valid" "$(kfixture $GAME rulesets gt-ok 's/^(Entry points:.*)$/\1\nGame type: `CRICKET`/')"
+expect pass "game without game type" "$(kfixture $GAME rulesets gt-absent 's/^$/&/')"
+
 echo "test-check-game-rules: $PASSED passed, $FAILED failed"
 [ "$FAILED" -eq 0 ]

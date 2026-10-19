@@ -2,6 +2,7 @@
 
 Current version: V1 (shipped 2026-10-18)
 Entry points: standalone
+Game type: `BASEBALL`
 Kernel: TRACK
 
 ## Features

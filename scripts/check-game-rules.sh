@@ -126,6 +126,15 @@ check_file() {
     note "'Kernel:' is not used by a $shape"
   fi
 
+  # 6c. Game type header (game shape only, optional: unbuilt games have none)
+  if [ "$shape" = game ]; then
+    local gt
+    gt="$(grep -m1 '^Game type:' "$file" || true)"
+    if [ -n "$gt" ] && ! grep -qE '^Game type: `[A-Z0-9_]+`$' <<< "$gt"; then
+      note 'Game type: must be `UPPER_SNAKE`'
+    fi
+  fi
+
   # 7. standalone requirements
   local standalone=0
   case "$shape" in
