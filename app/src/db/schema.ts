@@ -138,16 +138,16 @@ export const configurationTemplates = pgTable(
       name: "fk_configuration_templates_player",
     }).onDelete("cascade"),
     check(
-      "chk_configuration_templates_system_ownership",
-      sql`(NOT is_system_template) OR (player_id IS NULL)`,
-    ),
-    check(
       "chk_configuration_templates_name_not_empty",
       sql`length(TRIM(BOTH FROM name)) > 0`,
     ),
     check(
       "chk_configuration_templates_object",
       sql`jsonb_typeof(configuration) = 'object'::text`,
+    ),
+    check(
+      "chk_configuration_templates_system_ownership",
+      sql`(NOT is_system_template) OR (player_id IS NULL)`,
     ),
   ],
 );
@@ -352,8 +352,8 @@ export const exerciseSessions = pgTable(
   (table) => [
     index("idx_exercise_sessions_player_game_completed").using(
       "btree",
-      table.playerId.asc().nullsLast().op("timestamptz_ops"),
-      table.gameTypeId.asc().nullsLast().op("uuid_ops"),
+      table.playerId.asc().nullsLast().op("uuid_ops"),
+      table.gameTypeId.asc().nullsLast().op("timestamptz_ops"),
       table.completedAt.desc().nullsFirst().op("uuid_ops"),
     ),
     index("idx_sessions_active")
@@ -370,13 +370,13 @@ export const exerciseSessions = pgTable(
     index("idx_sessions_player_completed")
       .using(
         "btree",
-        table.playerId.asc().nullsLast().op("timestamptz_ops"),
-        table.completedAt.desc().nullsFirst().op("timestamptz_ops"),
+        table.playerId.asc().nullsLast().op("uuid_ops"),
+        table.completedAt.desc().nullsFirst().op("uuid_ops"),
       )
       .where(sql`(completed_at IS NOT NULL)`),
     index("idx_sessions_player_created").using(
       "btree",
-      table.playerId.asc().nullsLast().op("timestamptz_ops"),
+      table.playerId.asc().nullsLast().op("uuid_ops"),
       table.createdAt.desc().nullsFirst().op("uuid_ops"),
     ),
     uniqueIndex("uq_sessions_single_active")
@@ -476,21 +476,21 @@ export const exerciseStages = pgTable(
     index("idx_stages_session_sequence").using(
       "btree",
       table.exerciseSessionId.asc().nullsLast().op("int4_ops"),
-      table.sequenceNumber.asc().nullsLast().op("int4_ops"),
+      table.sequenceNumber.asc().nullsLast().op("uuid_ops"),
     ),
     uniqueIndex("uq_stages_root_sequence")
       .using(
         "btree",
-        table.exerciseSessionId.asc().nullsLast().op("uuid_ops"),
-        table.sequenceNumber.asc().nullsLast().op("uuid_ops"),
+        table.exerciseSessionId.asc().nullsLast().op("int4_ops"),
+        table.sequenceNumber.asc().nullsLast().op("int4_ops"),
       )
       .where(sql`(parent_stage_id IS NULL)`),
     uniqueIndex("uq_stages_sibling_sequence")
       .using(
         "btree",
-        table.exerciseSessionId.asc().nullsLast().op("int4_ops"),
-        table.parentStageId.asc().nullsLast().op("uuid_ops"),
-        table.sequenceNumber.asc().nullsLast().op("uuid_ops"),
+        table.exerciseSessionId.asc().nullsLast().op("uuid_ops"),
+        table.parentStageId.asc().nullsLast().op("int4_ops"),
+        table.sequenceNumber.asc().nullsLast().op("int4_ops"),
       )
       .where(sql`(parent_stage_id IS NOT NULL)`),
     foreignKey({
@@ -536,6 +536,7 @@ export const exerciseTemplates = pgTable(
     defaultConfiguration: jsonb("default_configuration"),
     exerciseRulesetVersionId: uuid("exercise_ruleset_version_id"),
     gameRulesetVersionId: uuid("game_ruleset_version_id"),
+    difficultyTagId: smallint("difficulty_tag_id"),
   },
   (table) => [
     index("idx_exercise_templates_game_type").using(
@@ -565,10 +566,46 @@ export const exerciseTemplates = pgTable(
       foreignColumns: [rulesetVersions.id, rulesetVersions.gameTypeId],
       name: "fk_exercise_templates_game_ruleset_version",
     }).onDelete("restrict"),
+    foreignKey({
+      columns: [table.difficultyTagId],
+      foreignColumns: [tags.id],
+      name: "fk_exercise_templates_difficulty_tag",
+    }).onDelete("restrict"),
     check(
       "chk_exercise_templates_game_ruleset_pair",
       sql`(game_ruleset_version_id IS NULL) OR (game_type_id IS NOT NULL)`,
     ),
+  ],
+);
+
+export const exerciseTypeTags = pgTable(
+  "exercise_type_tags",
+  {
+    exerciseTypeId: uuid("exercise_type_id").notNull(),
+    tagId: smallint("tag_id").notNull(),
+    isPrimary: boolean("is_primary").default(false).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("uq_exercise_type_tags_primary")
+      .using("btree", table.exerciseTypeId.asc().nullsLast().op("uuid_ops"))
+      .where(sql`is_primary`),
+    foreignKey({
+      columns: [table.exerciseTypeId],
+      foreignColumns: [exerciseTypes.id],
+      name: "fk_exercise_type_tags_exercise_type",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.tagId],
+      foreignColumns: [tags.id],
+      name: "fk_exercise_type_tags_tag",
+    }).onDelete("restrict"),
+    primaryKey({
+      columns: [table.exerciseTypeId, table.tagId],
+      name: "exercise_type_tags_pkey",
+    }),
   ],
 );
 
@@ -666,6 +703,47 @@ export const gameTypeFeatures = pgTable(
       name: "game_type_features_pkey",
     }),
     unique("uq_game_type_feature").on(table.gameTypeId, table.gameFeatureId),
+  ],
+);
+
+export const gameTypeTags = pgTable(
+  "game_type_tags",
+  {
+    gameTypeId: uuid("game_type_id").notNull(),
+    tagContextId: smallint("tag_context_id").notNull(),
+    tagId: smallint("tag_id").notNull(),
+    isPrimary: boolean("is_primary").default(false).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("uq_game_type_tags_primary")
+      .using(
+        "btree",
+        table.gameTypeId.asc().nullsLast().op("int2_ops"),
+        table.tagContextId.asc().nullsLast().op("uuid_ops"),
+      )
+      .where(sql`is_primary`),
+    foreignKey({
+      columns: [table.gameTypeId],
+      foreignColumns: [gameTypes.id],
+      name: "fk_game_type_tags_game_type",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.tagContextId],
+      foreignColumns: [tagContexts.id],
+      name: "fk_game_type_tags_tag_context",
+    }).onDelete("restrict"),
+    foreignKey({
+      columns: [table.tagId],
+      foreignColumns: [tags.id],
+      name: "fk_game_type_tags_tag",
+    }).onDelete("restrict"),
+    primaryKey({
+      columns: [table.gameTypeId, table.tagContextId, table.tagId],
+      name: "game_type_tags_pkey",
+    }),
   ],
 );
 
@@ -1045,6 +1123,70 @@ export const stageTypes = pgTable(
   ],
 );
 
+export const tagAxes = pgTable(
+  "tag_axes",
+  {
+    id: smallint().primaryKey().notNull(),
+    implementationKey: text("implementation_key").notNull(),
+    name: text().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    unique("uq_tag_axes_implementation_key").on(table.implementationKey),
+  ],
+);
+
+export const tagContexts = pgTable(
+  "tag_contexts",
+  {
+    id: smallint().primaryKey().notNull(),
+    implementationKey: text("implementation_key").notNull(),
+    name: text().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    unique("uq_tag_contexts_implementation_key").on(table.implementationKey),
+  ],
+);
+
+export const tags = pgTable(
+  "tags",
+  {
+    id: smallint().primaryKey().notNull(),
+    tagAxisId: smallint("tag_axis_id").notNull(),
+    implementationKey: text("implementation_key").notNull(),
+    name: text().notNull(),
+    sortOrder: smallint("sort_order").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.tagAxisId],
+      foreignColumns: [tagAxes.id],
+      name: "fk_tags_tag_axis",
+    }).onDelete("restrict"),
+    unique("uq_tags_axis_implementation_key").on(
+      table.tagAxisId,
+      table.implementationKey,
+    ),
+  ],
+);
+
 export const trainingScheduleDays = pgTable(
   "training_schedule_days",
   {
@@ -1140,7 +1282,7 @@ export const turns = pgTable(
     index("idx_turns_stage_sequence").using(
       "btree",
       table.exerciseStageId.asc().nullsLast().op("int4_ops"),
-      table.sequenceNumber.asc().nullsLast().op("int4_ops"),
+      table.sequenceNumber.asc().nullsLast().op("uuid_ops"),
     ),
     foreignKey({
       columns: [table.exerciseStageId],
@@ -1172,6 +1314,19 @@ export const vActiveSessions = pgView("v_active_sessions", {
   startedAt: timestamp("started_at", { withTimezone: true, mode: "string" }),
 }).as(
   sql`SELECT es.id AS session_id, es.player_id, gt.implementation_key AS game_type_key, gt.name AS game_type_name, cm.implementation_key AS capture_mode_key, im.implementation_key AS input_mode_key, rv.implementation_key AS ruleset_version_key, es.started_at FROM exercise_sessions es LEFT JOIN game_types gt ON gt.id = es.game_type_id LEFT JOIN capture_modes cm ON cm.id = es.capture_mode_id LEFT JOIN input_modes im ON im.id = es.input_mode_id LEFT JOIN ruleset_versions rv ON rv.id = es.ruleset_version_id JOIN game_statuses gs ON gs.id = es.status_id WHERE gs.implementation_key = 'ACTIVE'::text`,
+);
+
+export const vCatalogTags = pgView("v_catalog_tags", {
+  entityKind: text("entity_kind"),
+  typeKey: text("type_key"),
+  contextKey: text("context_key"),
+  axisKey: text("axis_key"),
+  tagKey: text("tag_key"),
+  tagName: text("tag_name"),
+  isPrimary: boolean("is_primary"),
+  sortOrder: smallint("sort_order"),
+}).as(
+  sql`SELECT 'GAME'::text AS entity_kind, gt.implementation_key AS type_key, tc.implementation_key AS context_key, ta.implementation_key AS axis_key, t.implementation_key AS tag_key, t.name AS tag_name, gtt.is_primary, t.sort_order FROM game_type_tags gtt JOIN game_types gt ON gt.id = gtt.game_type_id JOIN tag_contexts tc ON tc.id = gtt.tag_context_id JOIN tags t ON t.id = gtt.tag_id JOIN tag_axes ta ON ta.id = t.tag_axis_id UNION ALL SELECT 'EXERCISE'::text AS entity_kind, ext.implementation_key AS type_key, 'ROUTINE_STEP'::text AS context_key, ta.implementation_key AS axis_key, t.implementation_key AS tag_key, t.name AS tag_name, ett.is_primary, t.sort_order FROM exercise_type_tags ett JOIN exercise_types ext ON ext.id = ett.exercise_type_id JOIN tags t ON t.id = ett.tag_id JOIN tag_axes ta ON ta.id = t.tag_axis_id`,
 );
 
 export const vConfigurationPresets = pgView("v_configuration_presets", {
@@ -1230,8 +1385,11 @@ export const vExerciseTemplateCatalog = pgView("v_exercise_template_catalog", {
   gameTypeKey: text("game_type_key"),
   gameRulesetVersionKey: text("game_ruleset_version_key"),
   hasDefaultConfiguration: boolean("has_default_configuration"),
+  exerciseTypeName: text("exercise_type_name"),
+  gameTypeName: text("game_type_name"),
+  difficultyLevel: smallint("difficulty_level"),
 }).as(
-  sql`SELECT et.id AS exercise_template_id, et.name, et.description, ext.implementation_key AS exercise_type_key, gt.implementation_key AS game_type_key, grv.implementation_key AS game_ruleset_version_key, et.default_configuration IS NOT NULL AS has_default_configuration FROM exercise_templates et JOIN exercise_types ext ON ext.id = et.exercise_type_id LEFT JOIN game_types gt ON gt.id = et.game_type_id LEFT JOIN ruleset_versions grv ON grv.id = et.game_ruleset_version_id WHERE et.is_system_template AND ext.is_published`,
+  sql`WITH difficulty_levels AS ( SELECT t.id AS tag_id, row_number() OVER (ORDER BY t.sort_order)::smallint AS difficulty_level FROM tags t JOIN tag_axes ta ON ta.id = t.tag_axis_id WHERE ta.implementation_key = 'DIFFICULTY'::text ) SELECT et.id AS exercise_template_id, et.name, et.description, ext.implementation_key AS exercise_type_key, gt.implementation_key AS game_type_key, grv.implementation_key AS game_ruleset_version_key, et.default_configuration IS NOT NULL AS has_default_configuration, ext.name AS exercise_type_name, gt.name AS game_type_name, COALESCE(template_level.difficulty_level, type_level.difficulty_level) AS difficulty_level FROM exercise_templates et JOIN exercise_types ext ON ext.id = et.exercise_type_id LEFT JOIN game_types gt ON gt.id = et.game_type_id LEFT JOIN ruleset_versions grv ON grv.id = et.game_ruleset_version_id LEFT JOIN difficulty_levels template_level ON template_level.tag_id = et.difficulty_tag_id LEFT JOIN LATERAL ( SELECT min(dl.difficulty_level) AS difficulty_level FROM ( SELECT gtt.tag_id FROM game_type_tags gtt JOIN tag_contexts tc ON tc.id = gtt.tag_context_id WHERE et.game_type_id IS NOT NULL AND gtt.game_type_id = et.game_type_id AND tc.implementation_key = 'ROUTINE_STEP'::text UNION ALL SELECT ett.tag_id FROM exercise_type_tags ett WHERE et.game_type_id IS NULL AND ett.exercise_type_id = et.exercise_type_id) owner_tags JOIN difficulty_levels dl ON dl.tag_id = owner_tags.tag_id HAVING count(*) = 1) type_level ON true WHERE et.is_system_template AND ext.is_published`,
 );
 
 export const vGameReplay = pgView("v_game_replay", {

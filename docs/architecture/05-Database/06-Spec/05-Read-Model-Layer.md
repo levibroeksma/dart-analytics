@@ -2,7 +2,7 @@
 status: canonical
 scope: database/read-model-layer
 read-when: adding/changing views or read contracts
-updated: 2026-09-28
+updated: 2026-10-19
 -->
 
 # Database Specification — Chapter 5: Read Model Layer
@@ -216,14 +216,44 @@ Lists the system exercise templates a player may compose a custom routine from �
 - exercise_templates
 - exercise_types
 - game_types (LEFT JOIN)
+- ruleset_versions (LEFT JOIN, `0040`)
+- tags, tag_axes, tag_contexts, game_type_tags, exercise_type_tags (difficulty, `0047`)
 
 ## Exposes
 
 `exercise_template_id`, `name`, `description`, exercise type key, game type key, and `has_default_configuration` — a derived boolean (`default_configuration IS NOT NULL`), not a stored column. Filtered to `is_system_template` and the exercise type's `is_published`; a user-owned template never appears, and neither does a template of an unpublished exercise type. <!-- 2026-09-19 -->
 
+Appended by `0047`, in this order: `exercise_type_name`, `game_type_name` (NULL for a non-game template) and `difficulty_level SMALLINT` — the 1–4 rank (`row_number()` by `sort_order` within the DIFFICULTY axis) of the template's own `difficulty_tag_id`, else of the owning type's single DIFFICULTY tag in the `ROUTINE_STEP` context (the game type for a template with a `game_type_id`, else the exercise type), else NULL (e.g. `SWITCHING`, `DOUBLE_PATTERN`, which have no rules file). The picker groups by type key and names the group from these columns; no name splitting. <!-- 2026-10-19 -->
+
 ## Design Rationale
 
 The view is deliberately broad: it does not filter out a template whose `has_default_configuration` is FALSE (a GAME template, whose configuration comes from its game session, not a routine step) — narrowing to only the templates a routine step can actually use is the service layer's job (`listExerciseTemplates` in `app/src/services/routine.service.ts`, which filters on `hasDefaultConfiguration`), not the view's. Keeping the exclusion in the service, not the view, keeps the view a plain projection and leaves room for a future consumer that wants the unfiltered catalog. <!-- 2026-09-19 -->
+
+---
+
+# v_catalog_tags
+
+## Category
+
+API Read Model
+
+## Purpose
+
+Catalog tags for game and exercise cards (`GET /api/catalog-tags`), one row per tag of a type in a context (migration `0047`). <!-- 2026-10-19 -->
+
+## Sources
+
+- game_type_tags, game_types, tag_contexts
+- exercise_type_tags, exercise_types
+- tags, tag_axes
+
+## Exposes
+
+`entity_kind` (`GAME` | `EXERCISE`), `type_key`, `context_key` (`STANDALONE` | `ROUTINE_STEP`; always `ROUTINE_STEP` for an exercise), `axis_key`, `tag_key`, `tag_name`, `is_primary`, `sort_order` (the tag's order within its axis). Keys and names only, never lookup ids (agent guide rule 5). <!-- 2026-10-19 -->
+
+## Design Rationale
+
+A `UNION ALL` of the two typed link tables, so one read serves every axis and both entity kinds. No `is_published` filter: link rows exist only for types the generated seed found a row for, and the consumer pairs tags with its own card list. <!-- 2026-10-19 -->
 
 ---
 

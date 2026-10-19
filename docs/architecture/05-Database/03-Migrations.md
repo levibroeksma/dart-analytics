@@ -2,7 +2,7 @@
 status: canonical
 scope: database/migrations
 read-when: adding migrations, understanding the chain
-updated: 2026-10-03
+updated: 2026-10-19
 -->
 
 # Database Migration Strategy
@@ -1098,6 +1098,24 @@ Contains:
 `v_game_replay` is unchanged and keeps serving turn and dart rows.
 
 View-only; no table, column or constraint changes. Applied. <!-- 2026-10-03 -->
+
+---
+
+## 0047_catalog_tags.sql
+
+Purpose:
+
+Make catalog tags real data (they lived only in `docs/game-rules/**` `## Tags` tables, D461) and give each exercise template a difficulty, for the game/exercise cards. <!-- 2026-10-19 -->
+
+Contains:
+
+- new lookups `tag_axes`, `tag_contexts` (`STANDALONE`, `ROUTINE_STEP`) and `tags` (`uq_tags_axis_implementation_key`, `fk_tags_tag_axis`), SMALLINT ids written by the generated seed `0042_catalog_tags.sql`; no `cardinality` column on `tag_axes` (the generator and its gate enforce "exactly one")
+- new typed link tables `game_type_tags` (PK `game_type_id`, `tag_context_id`, `tag_id`) and `exercise_type_tags` (PK `exercise_type_id`, `tag_id`), CASCADE from the type, RESTRICT from `tags`/`tag_contexts`, each with a partial unique index (`uq_game_type_tags_primary`, `uq_exercise_type_tags_primary`) allowing one primary tag per type (and context)
+- `exercise_templates.difficulty_tag_id SMALLINT NULL` + `fk_exercise_templates_difficulty_tag` → `tags` (RESTRICT), hand-set by seed `0043_exercise_template_difficulty.sql`
+- new `v_catalog_tags` (`entity_kind`, `type_key`, `context_key`, `axis_key`, `tag_key`, `tag_name`, `is_primary`, `sort_order`; keys only)
+- `v_exercise_template_catalog` (`CREATE OR REPLACE`) appends `exercise_type_name`, `game_type_name`, `difficulty_level` (1–4: template's tag, else the owning type's single routine-step Difficulty, else NULL); existing columns unchanged
+
+Timestamps on the new tables default to `now()` because the generated seed lists only identifying columns; ids are still seeded. `migrate:down` restores the `0040` definition of `v_exercise_template_catalog` and drops everything in reverse. Applied. <!-- 2026-10-19 -->
 
 ---
 

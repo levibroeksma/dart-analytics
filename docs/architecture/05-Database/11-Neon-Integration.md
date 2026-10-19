@@ -129,7 +129,7 @@ Never commit `.env`.
 
 ## Migration Workflow (`dbmate`)
 
-Migrations remain in `database/migrations/` (`0001`–`0046`).
+Migrations remain in `database/migrations/` (`0001`–`0047`).
 
 Migration files must use dbmate section markers (`-- migrate:up` / `-- migrate:down`). See [`03-Migrations.md`](03-Migrations.md#dbmate-format).
 
