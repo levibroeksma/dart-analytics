@@ -79,8 +79,6 @@ fi
 
 ARB_RE='[a-z][a-z0-9-]*-\[[^] ]+\]|/\[[^] ]+\]|\[[a-z-]+:[^] ]+\]|\[&[^] ]+\]|[a-z][a-z0-9-]*-\(([a-z-]+:)?--[a-z0-9-]+\)|/\(--[a-z0-9-]+\)'
 ARBITRARY_ALLOW=(
-  # responsive card grid; no stock grid-cols-N auto-fills tracks at a minimum width
-  "app/src/pages/games/index.astro|grid-cols-[repeat(auto-fill,minmax(320px,1fr))]"
   # layout-property animation; no stock transition group covers top/left/width/height
   "app/src/components/ui/GrowingCard.astro|transition-[top,left,width,height]"
   # CSS grid accordion; stock grid-rows-N means repeat(N, …), not a track size

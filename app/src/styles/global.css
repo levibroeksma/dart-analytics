@@ -434,6 +434,10 @@
   }
 }
 
+@utility catalog-grid {
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+}
+
 @utility glass {
   @apply bg-radial-[at_50%_0%] from-white/5 to-white/10 to-85% border-y border-white/25 backdrop-blur-sm;
 }

@@ -47,6 +47,7 @@ export function gamesIndex() {
     sessionsLoading: true,
     catalogTags: null as CatalogTagsResponse | null,
 
+    /** The tags fetch's rejection is swallowed on purpose: cards degrade to untagged. */
     async init(this: GamesIndexContext) {
       void fetchCatalogTags().then(
         (tags) => {
