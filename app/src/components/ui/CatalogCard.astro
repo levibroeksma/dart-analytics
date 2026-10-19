@@ -1,0 +1,77 @@
+---
+/**
+ * Card shell for a catalog entry. `game` is a link with the dart hover and
+ * throw animation (`cardThrow()`); `exercise` is a static card whose body
+ * slot holds the config well.
+ * @param {"game"|"exercise"} variant
+ * @param {string} [href] Destination of a `game` card
+ * Slots: `title`, `meter`, `caption`, `tags`, default (body).
+ */
+interface Props {
+  variant: "game" | "exercise";
+  href?: string;
+}
+
+// Props
+const { variant, href }: Props = Astro.props;
+
+// Icons
+import dartAccentUrl from "@icons/dart-accent.svg?url";
+
+// Styles
+const activate = `activate($event, ${JSON.stringify(href ?? "")})`;
+---
+
+{
+  variant === "game" ? (
+    <a
+      href={href}
+      class="catalog-card"
+      x-data="cardThrow()"
+      @mouseenter="enter()"
+      @mouseleave="leave()"
+      @focus="enter()"
+      @blur="leave()"
+      {...{ "@click": activate }}
+    >
+      <img
+        src={dartAccentUrl}
+        alt=""
+        aria-hidden="true"
+        width="96"
+        height="96"
+        class="card-dart"
+        {...{ ":class": "dartClass()" }}
+      />
+      <div class="relative z-1 flex items-start justify-between gap-3">
+        <span class="font-display text-control font-normal">
+          <slot name="title" />
+        </span>
+        <slot name="meter" />
+      </div>
+      <p class="relative z-1 text-xs font-normal text-muted-foreground">
+        <slot name="caption" />
+      </p>
+      <slot />
+      <div class="relative z-1 mt-auto flex flex-wrap gap-1.5">
+        <slot name="tags" />
+      </div>
+    </a>
+  ) : (
+    <div class="catalog-card">
+      <div class="flex items-start justify-between gap-3">
+        <span class="font-display text-control font-normal">
+          <slot name="title" />
+        </span>
+        <slot name="meter" />
+      </div>
+      <p class="text-xs font-normal text-muted-foreground">
+        <slot name="caption" />
+      </p>
+      <div class="flex flex-wrap gap-1.5">
+        <slot name="tags" />
+      </div>
+      <slot />
+    </div>
+  )
+}

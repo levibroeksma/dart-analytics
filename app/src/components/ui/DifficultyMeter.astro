@@ -1,0 +1,60 @@
+---
+/**
+ * Four-bar difficulty meter. The root is an image role carrying the level
+ * name; the bars are decorative. Static through `level`, or bound to an
+ * Alpine expression through `levelExpr`. Renders nothing for a null level.
+ * @param {1|2|3|4} [level] Static difficulty level
+ * @param {string} [levelExpr] Alpine expression for the level (number or null)
+ */
+import type { DifficultyLevel } from "@lib/types";
+
+interface Props {
+  level?: DifficultyLevel | null;
+  levelExpr?: string;
+}
+
+// Props
+const { level, levelExpr }: Props = Astro.props;
+
+// Styles
+const names = ["Beginner", "Intermediate", "Advanced", "Expert"];
+const dynamicName = `'Difficulty: ' + (${JSON.stringify(names)})[(${levelExpr}) - 1]`;
+const staticName = level ? `Difficulty: ${names[level - 1]}` : undefined;
+const renders = levelExpr !== undefined || Boolean(level);
+---
+
+{
+  renders && (
+    <span
+      class="meter"
+      role="img"
+      aria-label={staticName}
+      title={staticName}
+      {...(levelExpr === undefined
+        ? {}
+        : {
+            ":aria-label": dynamicName,
+            ":title": dynamicName,
+            "x-show": `(${levelExpr}) != null`,
+            "x-cloak": true,
+          })}
+    >
+      {[1, 2, 3, 4].map((bar) => (
+        <span
+          class="meter-bar"
+          aria-hidden="true"
+          style={
+            levelExpr === undefined && level && bar <= level
+              ? `background: var(--meter-${bar})`
+              : undefined
+          }
+          {...(levelExpr === undefined
+            ? {}
+            : {
+                ":style": `(${levelExpr}) >= ${bar} ? 'background: var(--meter-${bar})' : ''`,
+              })}
+        />
+      ))}
+    </span>
+  )
+}

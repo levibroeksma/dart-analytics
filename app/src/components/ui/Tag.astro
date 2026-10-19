@@ -1,0 +1,66 @@
+---
+/**
+ * Catalog tag pill, coloured by its axis through the `tag-*` classes. Static
+ * text comes from the slot; inside an Alpine `x-for`, `nameExpr`, `axisExpr`
+ * and `primaryExpr` bind the text and classes instead.
+ * @param {AxisKey} [axis] Tag axis (static)
+ * @param {boolean} [primary] Primary skill (static)
+ * @param {boolean} [overArt] Dark blurred backdrop for pills over artwork
+ * @param {string} [nameExpr] Alpine expression for the text
+ * @param {string} [axisExpr] Alpine expression for the axis
+ * @param {string} [primaryExpr] Alpine expression for the primary flag
+ */
+import type { AxisKey } from "@lib/types";
+
+interface Props {
+  axis?: AxisKey;
+  primary?: boolean;
+  overArt?: boolean;
+  nameExpr?: string;
+  axisExpr?: string;
+  primaryExpr?: string;
+}
+
+// Props
+const {
+  axis,
+  primary = false,
+  overArt = false,
+  nameExpr,
+  axisExpr,
+  primaryExpr,
+}: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const axisClasses: Record<AxisKey, string> = {
+  SKILL: "tag-skill",
+  SESSION_ROLE: "tag-role",
+  FORMAT: "tag-format",
+  DIFFICULTY: "tag-mechanic",
+  MECHANIC: "tag-mechanic",
+  PRESSURE: "tag-pressure",
+  FAMILY: "tag-family",
+};
+
+const className = cn(
+  "tag",
+  axis && axisClasses[axis],
+  axis === "SKILL" && primary && "tag-skill-primary",
+  overArt && "tag-over-art",
+);
+
+const dynamicClass =
+  axisExpr === undefined
+    ? undefined
+    : `(${JSON.stringify(axisClasses)})[${axisExpr}] + ((${axisExpr}) === 'SKILL' && (${primaryExpr ?? "false"}) ? ' tag-skill-primary' : '')`;
+---
+
+<span
+  class={className}
+  {...dynamicClass === undefined ? {} : { ":class": dynamicClass }}
+  x-text={nameExpr}
+  ><slot /></span
+>
