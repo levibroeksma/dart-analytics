@@ -6,6 +6,10 @@ tools carry no tags; a routine's tags will be derived from its steps.
 Non-canonical like the rest of `docs/game-rules/`. Design:
 `docs/superpowers/specs/2026-10-15-training-tags-design.md`.
 
+The database tag tables are now generated from this file and the `## Tags`
+sections (append-only, ids are positional); see D470 in
+`decisions/context-system.md`.
+
 `scripts/check-game-rules.sh` reads the tables below. Keep their headings and
 columns exactly as they are: a `## ` heading per axis, named as in the Axes
 table, holding a `| Key | Name | Meaning |` table.

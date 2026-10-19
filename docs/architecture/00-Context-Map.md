@@ -25,11 +25,11 @@ Load exactly the pack for your task type. Do not preload anything else. Escalate
 
 | Task type | Load exactly | ~Budget |
 | --------- | ------------ | ------- |
-| New table / column / constraint | `05-Database/10-Database-Agent-Guide.md`, relevant `05-Database/06-Spec/` chapter, `05-Database/03-Migrations.md` | ~12.1k |
+| New table / column / constraint | `05-Database/10-Database-Agent-Guide.md`, relevant `05-Database/06-Spec/` chapter, `05-Database/03-Migrations.md` | ~17.4k |
 | Detailed statistics page / insight section / statistics endpoint | `10-Statistics/00-Overview.md`, `10-Statistics/01-Section-Catalog.md`, `10-Statistics/02-Replay.md`, `05-Database/05-Views/00-Overview.md`, `06-API/03-Shared-Conventions.md` | ~23.0k |
 | New view / analytics query | `05-Database/05-Views/00-Overview.md`, `05-Database/06-Spec/05-Read-Model-Layer.md` | ~8.5k |
 | New general (career-wide) stat view | `05-Database/05-Views/01-General-Views.md`, `05-Database/06-Spec/05-Read-Model-Layer.md` | ~5.9k |
-| New seed data | `database/seeds/0001` or `0002` (match id ranges); `0003`/`0004` for game-type and preset-realignment precedent, `05-Database/06-Spec/01-Reference-Layer.md` | ~2.2k |
+| New seed data | `database/seeds/0001` or `0002` (match id ranges); `0003`/`0004` for game-type and preset-realignment precedent, `05-Database/06-Spec/01-Reference-Layer.md` | ~3.7k |
 | Neon environment / tooling | `05-Database/11-Neon-Integration.md`, `app/CLAUDE.md` | ~4.6k |
 | New API endpoint | `06-API/00-Overview.md`, `06-API/04-Endpoint-Contracts.md`, `app/CLAUDE.md` | ~24.1k |
 | API middleware / layering change | `06-API/02-Middleware-And-Layering.md`, `06-API/03-Shared-Conventions.md`, `app/CLAUDE.md` | ~9.2k |
@@ -44,7 +44,7 @@ Load exactly the pack for your task type. Do not preload anything else. Escalate
 | Architecture question / new pattern | `01-Principles.md`, `04-Architecture-patterns.md` | ~8.6k |
 | Workflow / process question | `03-Engineering-Workflow.md` | ~2.2k |
 | "Why was X decided?" | `DECISIONS.md` (router — Source key, routing table, Deferred list, how-to-add-a-decision); then load only the domain file(s) your task needs from its routing table, e.g. `decisions/database.md`; deeper lineage: git history. Per-task total varies with domain: each decision file's size is its `~Tokens` figure in the File Inventory; the single figure in the last column below prices only the router + the one example file named above. | ~20k |
-| Bug in migration chain | `05-Database/03-Migrations.md`, full chain `database/migrations/0001`–`0046`; never patch applied files | ~9.9k |
+| Bug in migration chain | `05-Database/03-Migrations.md`, full chain `database/migrations/0001`–`0046`; never patch applied files | ~14.4k |
 | Issue-driven UI polish | `07-Frontend/10-Frontend-Agent-Guide.md`, `07-Frontend/07-Style-Guide.md`, `07-Frontend/08-Component-Inventory.md`, `app/CLAUDE.md` | ~18.1k |
 | New game (full stack) | `07-Frontend/09-Adding-A-Game.md` (the touch list, the two shapes to reuse, the two opt-outs), `05-Database/10-Database-Agent-Guide.md` §"Add a new game type", `04-Architecture-patterns.md` §Pattern 18, `07-Frontend/08-Component-Inventory.md`, `app/CLAUDE.md` | ~24.5k |
 | Authoring or amending game / exercise / routine / trivia rules | `authoring-game-rules` skill (its own `references/` file for the shape), the matching `docs/game-rules/templates/` template, `docs/game-rules/TAGS.md`, and the existing rules file if there is one; `09-Training/01-Routines.md` for exercise and routine shapes | ~11.5k |
@@ -69,7 +69,7 @@ When documents conflict, higher wins; correct the lower one:
 5. `05-Database/06-Database-Specification.md` (+ its `06-Spec/` chapters)
 6. `06-API/00-Overview.md`
 7. `03-Engineering-Workflow.md`
-8. SQL migrations `0001`–`0046` and seeds
+8. SQL migrations `0001`–`0047` and seeds
 9. Application code in `app/`
 
 If code contradicts architecture docs, the docs win unless the user explicitly directs otherwise. Git history (the retired master context) and the decision ledger (`DECISIONS.md` the router, `decisions/**` the domain files it routes to) are context, never authority — they explain *why*, they never state *what is*, and rank below every numbered item above.
