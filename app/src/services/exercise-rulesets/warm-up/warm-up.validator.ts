@@ -1,6 +1,5 @@
 import { WarmUpV1Config } from "@lib/training/exercises/rulesets/types";
-import type { ExerciseRulesetValidator } from "@services/interfaces";
-import type { ExerciseConfigValidationResult } from "@services/types";
+import { makeConfigValidator } from "@services/exercise-rulesets/config-validator";
 
 /**
  * Warm-Up v1 asserts only that the phase list parses: the ruleset has no mode
@@ -8,17 +7,4 @@ import type { ExerciseConfigValidationResult } from "@services/types";
  * The §7 sixty-minute cap spans a whole routine, so it belongs to
  * `modules/training/routine-duration.module.ts`, not here.
  */
-export const warmUpValidator: ExerciseRulesetValidator = {
-  validateConfig({ config }): ExerciseConfigValidationResult {
-    const parsed = WarmUpV1Config.safeParse(config);
-    if (!parsed.success) {
-      return {
-        ok: false,
-        issues: parsed.error.issues.map(
-          (issue) => `${issue.path.join(".")}: ${issue.message}`,
-        ),
-      };
-    }
-    return { ok: true, config: parsed.data as Record<string, unknown> };
-  },
-};
+export const warmUpValidator = makeConfigValidator(WarmUpV1Config);

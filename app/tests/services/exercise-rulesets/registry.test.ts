@@ -133,3 +133,29 @@ describe("exerciseRulesetWritesDarts", () => {
     expect(exerciseRulesetWritesDarts(null)).toBe(false);
   });
 });
+
+describe("registered validators", () => {
+  it.each([
+    "WARM_UP_V1",
+    "SWITCHING_V1",
+    "DOUBLE_PATTERN_V1",
+    "TARGET_SCORING_V1",
+    "SWITCHING_TARGET_SCORING_V1",
+    "SCORE_THRESHOLD_V1",
+    "BULLSEYE_CHECKOUT_V1",
+    "BULL_UP_V1",
+    "CHECKOUT_SEQUENCE_V1",
+    "RANDOM_CHECKOUT_V1",
+    "HIT_COUNT_V1",
+    "SWITCHBLADE_V1",
+    "DOUBLES_LOCK_V1",
+  ])("%s rejects a non-object configuration with issues", (key) => {
+    const result = getExerciseRulesetValidator(key)?.validateConfig({
+      config: "not an object",
+    });
+
+    expect(result?.ok).toBe(false);
+    if (!result || result.ok) return;
+    expect(result.issues.length).toBeGreaterThan(0);
+  });
+});
