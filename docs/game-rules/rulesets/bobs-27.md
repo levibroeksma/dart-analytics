@@ -46,7 +46,7 @@ Popular doubles training game with a running score. Start at **27**, throw three
 
 - **Traditional:** survive the path without hitting **0 or below**; after the bull visit, finish with a **positive** score to win.
 - **Session (V1):** one full traditional run (D1…D20, bull).
-- **1v1:** first to bust loses; the other seat wins (elimination). <!-- 2026-08-22 -->
+- **1v1:** first to bust loses; the other seat wins (elimination); if neither busts, higher final score wins, equal is a tie. <!-- 2026-08-22 -->
 
 ## Config & presets
 
@@ -106,7 +106,9 @@ score reaches **0 or below**, whichever comes first. Nothing else bounds a run.
 surviving the bull visit with a positive score ends it as a win.
 
 **1v1:** elimination — the first seat to reach 0 or below loses and the match
-ends there, the other seat wins. A DartBot seat counts as the opponent seat.
+ends there, the other seat wins. If both seats clear the bull visit with a
+positive score, the higher final score wins; equal scores are a tie with no
+winner. A DartBot seat counts as the opponent seat.
 
 ### Result
 

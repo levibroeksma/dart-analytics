@@ -815,6 +815,47 @@ describe("Bobs27Engine — 1v1", () => {
     expect(state.winningSideKey).toBe("B");
   });
 
+  function playToEnd(
+    engine: Bobs27Engine,
+    missFirstVisitOf: string | null,
+  ): void {
+    let missesLeft = missFirstVisitOf === null ? 0 : 3;
+    while (!engine.isComplete()) {
+      const state = engine.state();
+      const active = state.seats.find(
+        (seat) => seat.participantRef === state.activeParticipantRef,
+      )!;
+      if (active.status !== "IN_PROGRESS") break;
+      if (missesLeft > 0 && active.participantRef === missFirstVisitOf) {
+        missesLeft -= 1;
+        engine.record(missObservationFor(active));
+      } else {
+        engine.record(hitObservationFor(active));
+      }
+    }
+  }
+
+  it("completes with the higher final score winning when both seats survive the bull", () => {
+    const engine = new Bobs27Engine(twoSeatConfig);
+    playToEnd(engine, "p2");
+    const state = engine.state();
+    expect(state.seats.map((seat) => seat.status)).toEqual(["WON", "WON"]);
+    expect(state.seats[0].score).toBeGreaterThan(state.seats[1].score);
+    expect(state.status).toBe("COMPLETE");
+    expect(state.winningSideKey).toBe("A");
+    expect(engine.isComplete()).toBe(true);
+  });
+
+  it("completes as a TIE with no winner when both seats survive on equal scores", () => {
+    const engine = new Bobs27Engine(twoSeatConfig);
+    playToEnd(engine, null);
+    const state = engine.state();
+    expect(state.seats[0].score).toBe(state.seats[1].score);
+    expect(state.status).toBe("TIE");
+    expect(state.winningSideKey).toBeNull();
+    expect(engine.isComplete()).toBe(true);
+  });
+
   it("stamps every turn's participantRef with a seat present in seats[]", () => {
     const engine = new Bobs27Engine(twoSeatConfig);
     engine.record(missDart());

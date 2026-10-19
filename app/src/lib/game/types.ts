@@ -864,7 +864,7 @@ export type Bobs27SeatResult = {
  * correct source for this field in a 1v1 session. `seats` has one entry per
  * configured seat (1 for solo, 2 for 1v1), in `$store.game.seats` order. */
 export type Bobs27ResultsSnapshot = {
-  status: "WON" | "LOST" | "COMPLETE";
+  status: "WON" | "LOST" | "COMPLETE" | "TIE";
   winningSideKey: string | null;
   seats: Bobs27SeatResult[];
 };

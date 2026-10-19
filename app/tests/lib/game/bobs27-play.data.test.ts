@@ -562,6 +562,21 @@ describe("completion — 1v1", () => {
     expect(play.resultsSnapshot?.winningSideKey).toBe("A");
     expect(play.resultsTitle.call(play)).toBe("Levi wins!");
   });
+
+  it("titles a both-survive draw as a tie", async () => {
+    const play = makePlay({
+      configSnapshot: {
+        startScore: 27,
+        bullHitValue: 50,
+        missPenaltyMultiplier: 1,
+        seats: TWO_SEATS,
+      },
+    });
+    await play.init.call(play);
+    play.resultsSnapshot = { status: "TIE", winningSideKey: null, seats: [] };
+
+    expect(play.resultsTitle.call(play)).toBe("It's a tie!");
+  });
 });
 
 describe("previewSegments", () => {

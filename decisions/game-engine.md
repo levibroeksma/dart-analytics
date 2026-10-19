@@ -449,3 +449,10 @@ Decision: a Track-family exercise is a `TrackExerciseDefinition` (key, parse, ru
 Reason: the third Track exercise reopened the Track spec §3 deferral: Hit Count, SwitchBlade and Doubles Lock differ only in rules and projection, so binding each by hand would repeat the seat setup, fold and visit rule three times. A seed per PR keeps every merged PR a playable type.
 Consequences: Target Scoring and Switching Target Scoring still bind by hand until issue #993. SwitchBlade and Doubles Lock (T1.2, T1.3) use the helper. Spec: `docs/superpowers/specs/2026-10-17-track-wave-t1-design.md`; plan: `docs/superpowers/plans/2026-10-17-track-t1-hit-count.md`.
 Supersedes: none.
+
+### D472 — Bob's 27 1v1: both seats surviving the bull resolves by final score
+Status: Accepted · Date: 2026-10-19
+Decision: in a 1v1 `BOBS27_V1` match where neither seat reaches 0 or below, the match completes when both seats finish the bull visit. The higher final score wins; equal scores end as `TIE` with no winning side. An elimination (a seat busting) still ends the match at once. `foldBobs27State` composes `scoreCompareOutcome` for this case, as Singles and Doubles Training do; `Bobs27State` and `Bobs27ResultsSnapshot` gain `TIE`.
+Reason: both seats ended `WON` with no match outcome, so the session stayed `IN_PROGRESS` and could be neither finished nor continued (#983). The score-compare rule is the repo's existing outcome for equal-footing survival, and the tie follows the deferred-tiebreak convention.
+Consequences: `docs/game-rules/rulesets/bobs-27.md` §Ends when states the rule. A tie is not persisted as a winner; the results title reads "It's a tie!".
+Supersedes: none.

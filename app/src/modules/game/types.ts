@@ -47,7 +47,7 @@ export type Bobs27SeatState = SeatState & {
 export type Bobs27TrackExt = { hits: boolean[] };
 
 export type Bobs27State = MultiSeatState<Bobs27SeatState> & {
-  status: "IN_PROGRESS" | "WON" | "LOST" | "COMPLETE";
+  status: "IN_PROGRESS" | "WON" | "LOST" | "COMPLETE" | "TIE";
   winningSideKey: string | null;
 };
 
