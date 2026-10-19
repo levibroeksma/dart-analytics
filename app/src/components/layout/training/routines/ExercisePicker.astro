@@ -80,17 +80,19 @@ const levelNameExpr = `entry.level ? (${JSON.stringify(DIFFICULTY_LEVEL_NAMES)})
             :key="entry.exerciseTemplateId"
           >
             <div
-              class="flex min-h-12 items-center gap-3 border-t border-white/8 first:border-t-0"
+              class="flex min-h-12 items-center gap-2.5 border-t border-white/8 py-1.5 first-of-type:border-t-0"
             >
               <DifficultyMeter levelExpr="entry.level" />
-              <span
-                class="min-w-0 flex-1 truncate font-display text-sm font-semibold text-foreground"
-                x-text="entry.label"
-              ></span>
-              <span
-                class="font-mono text-eyebrow font-medium text-muted"
-                x-text={levelNameExpr}
-              ></span>
+              <div class="flex min-w-0 flex-1 flex-col gap-0.5">
+                <span
+                  class="truncate font-sans text-body-sm font-semibold text-foreground"
+                  x-text="entry.label"
+                ></span>
+                <span
+                  class="font-mono text-eyebrow font-medium uppercase text-muted-foreground"
+                  x-text={levelNameExpr}
+                ></span>
+              </div>
               <button
                 type="button"
                 class="glass-button flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-foreground disabled:cursor-not-allowed disabled:opacity-40"
@@ -98,7 +100,7 @@ const levelNameExpr = `entry.level ? (${JSON.stringify(DIFFICULTY_LEVEL_NAMES)})
                 :disabled="steps.length >= maxSteps"
                 @click="addStep(entry)"
               >
-                <PlusIcon class="size-3.5" />
+                <PlusIcon class="size-3" />
               </button>
             </div>
           </template>

@@ -43,6 +43,17 @@ describe("catalog primitives (static source)", () => {
     expect(src).toMatch(/<DifficultyLegend inlay \/>/);
   });
 
+  it("exercise config rows stack label over level, divider between rows", () => {
+    const src = read(
+      "src/components/layout/training/routines/ExercisePicker.astro",
+    );
+    expect(src).toMatch(
+      /flex-col gap-0\.5">\s*<span[^>]*x-text="entry\.label"[\s\S]*?x-text=\{levelNameExpr\}/,
+    );
+    expect(src).toMatch(/first-of-type:border-t-0/);
+    expect(src).not.toMatch(/\bfirst:border-t-0/);
+  });
+
   it("games page renders its card pills over the art", () => {
     const src = read("src/pages/games/index.astro");
     expect(src).toMatch(/<Tag\b[^>]*\boverArt\b/);
