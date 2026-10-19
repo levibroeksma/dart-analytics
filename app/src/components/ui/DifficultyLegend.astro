@@ -22,12 +22,15 @@ import { DIFFICULTY_LEVEL_NAMES } from "@lib/catalog/difficulty";
 // Styles
 const className = cn(
   inlay
-    ? "inset-well grid grid-cols-2 gap-x-4 gap-y-2 rounded-2xl px-4 py-3"
+    ? "inset-well grid grid-cols-2 gap-x-4 gap-y-2 rounded-2xl px-4 py-3 backdrop-blur-sm dark:backdrop-blur bg-background/60 dark:bg-background/30"
     : "flex flex-wrap items-center gap-x-4 gap-y-2",
 );
 ---
 
 <div class={className}>
+  <div class="col-span-2">
+    <h4 class="text-xs">Legend</h4>
+  </div>
   {
     DIFFICULTY_LEVEL_NAMES.map((name, index) => (
       <span class="inline-flex items-center gap-2 font-mono text-xs font-semibold uppercase text-muted-foreground">
