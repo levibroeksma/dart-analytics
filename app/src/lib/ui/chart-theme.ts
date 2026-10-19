@@ -1,4 +1,5 @@
 import type { ChartTheme, ChartThemeEnv, TintName } from "@modules/types";
+import { prefersReducedMotion } from "@lib/ui/motion";
 
 export const TINT_NAMES: readonly TintName[] = [
   "sky",
@@ -74,8 +75,7 @@ function browserEnv(): ChartThemeEnv {
       ctx.fillRect(0, 0, 1, 1);
       return Array.from(ctx.getImageData(0, 0, 1, 1).data);
     },
-    prefersReducedMotion: () =>
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    prefersReducedMotion,
   };
 }
 
