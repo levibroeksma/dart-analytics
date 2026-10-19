@@ -6,7 +6,11 @@ vi.mock("@client/api/routines", () => ({
   createRoutine: vi.fn(),
   updateRoutine: vi.fn(),
 }));
+vi.mock("@client/api/catalog", () => ({
+  fetchCatalogTags: vi.fn(),
+}));
 import * as api from "@client/api/routines";
+import { fetchCatalogTags } from "@client/api/catalog";
 import { SessionApiError } from "@client/api/sessions";
 import * as builderModule from "@lib/training/routines/routine-builder.data";
 import { routineBuilder } from "@lib/training/routines/routine-builder.data";
@@ -70,6 +74,24 @@ const ROUTINE = {
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(api.listExerciseTemplates).mockResolvedValue(CATALOG);
+  vi.mocked(fetchCatalogTags).mockResolvedValue({ games: {}, exercises: {} });
+});
+
+describe("routineBuilder groups", () => {
+  it("exposes the catalog grouped by type", async () => {
+    const b: RoutineBuilderContext = routineBuilder("create");
+    await b.init();
+    expect(b.groups().map((g) => g.key)).toEqual(["WARM_UP", "TUOD"]);
+  });
+
+  it("still loads and groups when the tags fetch fails", async () => {
+    vi.mocked(fetchCatalogTags).mockRejectedValue(new Error("down"));
+    const b: RoutineBuilderContext = routineBuilder("create");
+    await b.init();
+    expect(b.error).toBe("");
+    expect(b.catalogTags).toBeNull();
+    expect(b.groups()).toHaveLength(2);
+  });
 });
 
 describe("routineBuilder (create)", () => {

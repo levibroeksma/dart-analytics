@@ -16,8 +16,10 @@ interface Props {
 // Props
 const { level, levelExpr }: Props = Astro.props;
 
+// Lib
+import { DIFFICULTY_LEVEL_NAMES as names } from "@lib/catalog/difficulty";
+
 // Styles
-const names = ["Beginner", "Intermediate", "Advanced", "Expert"];
 const dynamicName = `'Difficulty: ' + (${JSON.stringify(names)})[(${levelExpr}) - 1]`;
 const staticName = level ? `Difficulty: ${names[level - 1]}` : undefined;
 const renders = levelExpr !== undefined || Boolean(level);

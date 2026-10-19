@@ -27,7 +27,13 @@ import type { HitCountEngine } from "@modules/training/exercises/hit-count.engin
 import type { SwitchbladeEngine } from "@modules/training/exercises/switchblade.engine.module";
 import type { DoublesLockEngine } from "@modules/training/exercises/doubles-lock.engine.module";
 import type { DartFact, DartObservation } from "@modules/types";
-import type { BoardMarker, PreviewSegment, SectionRingPaths } from "@lib/types";
+import type {
+  BoardMarker,
+  CatalogTag,
+  CatalogTagsResponse,
+  PreviewSegment,
+  SectionRingPaths,
+} from "@lib/types";
 import type { gameStep } from "./game-step.data";
 import type { StepAdapter } from "./adapters/interfaces";
 import type { trainingSessionStore } from "@stores/training-session.store";
@@ -431,6 +437,18 @@ export type BuilderStep = {
   durationValue: number;
 };
 
+/** One picker card: a type's templates under its name, blurb and tags. */
+export type CatalogGroup = {
+  key: string;
+  name: string;
+  blurb: string | null;
+  tags: CatalogTag[];
+  entries: (ExerciseTemplateCatalogEntryData & {
+    level: 1 | 2 | 3 | 4 | null;
+    label: string;
+  })[];
+};
+
 /**
  * Hand-written rather than `ReturnType<typeof routineBuilder>`: every method
  * below already types its own `this` as `RoutineBuilderContext`, so deriving
@@ -449,6 +467,7 @@ export type RoutineBuilderContext = {
   name: string;
   description: string;
   catalog: ExerciseTemplateCatalogEntryData[];
+  catalogTags: CatalogTagsResponse | null;
   steps: BuilderStep[];
   minMinutes: number;
   maxMinutes: number;
@@ -457,6 +476,7 @@ export type RoutineBuilderContext = {
   stepMaxMinutes: number;
   maxNameLength: number;
   maxDescriptionLength: number;
+  groups(this: RoutineBuilderContext): CatalogGroup[];
   clearServerIssues(): void;
   navigate(path: string): void;
   init(this: RoutineBuilderContext): Promise<void>;
