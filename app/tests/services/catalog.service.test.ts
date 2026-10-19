@@ -16,7 +16,7 @@ const row = (
   axisKey: string,
   tagKey: string,
   isPrimary = false,
-  sortOrder = 1,
+  axisRank = 1,
 ): CatalogTagRow => ({
   entityKind,
   typeKey,
@@ -25,7 +25,8 @@ const row = (
   tagKey,
   tagName: tagKey.toLowerCase(),
   isPrimary,
-  sortOrder,
+  sortOrder: axisRank,
+  axisRank,
 });
 
 beforeEach(() => {
@@ -86,6 +87,22 @@ describe("getCatalogTags", () => {
     if (!result.ok) throw new Error("expected ok");
     expect(result.data.exercises.A!.difficultyLevel).toBeNull();
     expect(result.data.exercises.B!.difficultyLevel).toBeNull();
+  });
+
+  it("takes difficultyLevel from axis_rank, not from the tag key", async () => {
+    vi.mocked(repo.findCatalogTagRows).mockResolvedValue([
+      row("EXERCISE", "A", "ROUTINE_STEP", "DIFFICULTY", "NEW_TIER", false, 3),
+    ]);
+    const result = await getCatalogTags();
+    if (!result.ok) throw new Error("expected ok");
+    expect(result.data.exercises.A!.difficultyLevel).toBe(3);
+  });
+
+  it("throws when a DIFFICULTY axis_rank is outside 1-4", async () => {
+    vi.mocked(repo.findCatalogTagRows).mockResolvedValue([
+      row("EXERCISE", "A", "ROUTINE_STEP", "DIFFICULTY", "BEGINNER", false, 5),
+    ]);
+    await expect(getCatalogTags()).rejects.toThrow(/axis_rank/);
   });
 
   it("rejects an unknown axis rather than guessing", async () => {

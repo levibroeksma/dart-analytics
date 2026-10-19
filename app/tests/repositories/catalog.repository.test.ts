@@ -10,4 +10,10 @@ describe("findCatalogTagRows", () => {
     expect(sql).toContain('"v_catalog_tags"');
     expect(sql).toMatch(/order by .*"type_key".*"sort_order"/);
   });
+
+  it("selects axis_rank from the view", async () => {
+    const { db, statements } = renderingDb([]);
+    await findCatalogTagRows(db);
+    expect(onlyStatement(statements)).toContain('"axis_rank"');
+  });
 });

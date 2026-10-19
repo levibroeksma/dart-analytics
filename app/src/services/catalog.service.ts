@@ -11,17 +11,7 @@ import type {
 } from "@lib/types";
 import type { ServiceResult } from "./types";
 
-/**
- * Rank of each DIFFICULTY tag, matching the `difficulty_level` the template
- * view derives from `sort_order`. A set holds only its own tags, so its rank
- * cannot be read from position; the keys are the seeded DIFFICULTY axis.
- */
-const DIFFICULTY_LEVEL: Record<string, DifficultyLevel> = {
-  BEGINNER: 1,
-  INTERMEDIATE: 2,
-  ADVANCED: 3,
-  EXPERT: 4,
-};
+type RankedTag = { tag: CatalogTag; axisRank: number };
 
 const emptySet = (): CatalogTagSet => ({ tags: [], difficultyLevel: null });
 
@@ -31,16 +21,29 @@ function toAxis(key: string): AxisKey {
   return axis;
 }
 
-function finishSet(tags: CatalogTag[]): CatalogTagSet {
-  const difficulty = tags.filter((tag) => tag.axis === "DIFFICULTY");
-  const level =
-    difficulty.length === 1 ? DIFFICULTY_LEVEL[difficulty[0]!.key] : undefined;
-  return { tags, difficultyLevel: level ?? null };
+function toDifficultyLevel(axisRank: number): DifficultyLevel {
+  if (axisRank === 1 || axisRank === 2 || axisRank === 3 || axisRank === 4) {
+    return axisRank;
+  }
+  throw new Error(
+    `v_catalog_tags: DIFFICULTY axis_rank ${axisRank} not in 1-4`,
+  );
+}
+
+function finishSet(ranked: RankedTag[]): CatalogTagSet {
+  const difficulty = ranked.filter(({ tag }) => tag.axis === "DIFFICULTY");
+  return {
+    tags: ranked.map(({ tag }) => tag),
+    difficultyLevel:
+      difficulty.length === 1
+        ? toDifficultyLevel(difficulty[0]!.axisRank)
+        : null,
+  };
 }
 
 function groupCatalogTags(rows: CatalogTagRow[]): CatalogTagsResponse {
-  const games = new Map<string, Record<string, CatalogTag[]>>();
-  const exercises = new Map<string, CatalogTag[]>();
+  const games = new Map<string, Record<string, RankedTag[]>>();
+  const exercises = new Map<string, RankedTag[]>();
   for (const row of rows) {
     const tag: CatalogTag = {
       axis: toAxis(row.axisKey),
@@ -48,11 +51,15 @@ function groupCatalogTags(rows: CatalogTagRow[]): CatalogTagsResponse {
       name: row.tagName,
       primary: row.isPrimary,
     };
+    const entry: RankedTag = { tag, axisRank: row.axisRank };
     if (row.entityKind === "EXERCISE") {
-      exercises.set(row.typeKey, [...(exercises.get(row.typeKey) ?? []), tag]);
+      exercises.set(row.typeKey, [
+        ...(exercises.get(row.typeKey) ?? []),
+        entry,
+      ]);
     } else if (row.entityKind === "GAME") {
       const contexts = games.get(row.typeKey) ?? {};
-      contexts[row.contextKey] = [...(contexts[row.contextKey] ?? []), tag];
+      contexts[row.contextKey] = [...(contexts[row.contextKey] ?? []), entry];
       games.set(row.typeKey, contexts);
     } else {
       throw new Error(`v_catalog_tags: unknown entity_kind ${row.entityKind}`);

@@ -200,6 +200,7 @@ export interface CatalogTagRow {
   tagName: string;
   isPrimary: boolean;
   sortOrder: number;
+  axisRank: number;
 }
 
 /** One `v_training_schedules` row — a schedule with its day count. */

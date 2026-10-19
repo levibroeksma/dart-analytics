@@ -103,6 +103,11 @@ ALTER TABLE exercise_templates
 COMMENT ON COLUMN exercise_templates.difficulty_tag_id IS 'DIFFICULTY-axis tag of this template (0047), hand-set by seed 0043 for a type whose routine-step tag block labels several difficulties. NULL falls back to the owning type''s single routine-step Difficulty in v_exercise_template_catalog.';
 
 CREATE VIEW v_catalog_tags AS
+WITH axis_ranks AS (
+    SELECT t.id AS tag_id,
+        row_number() OVER (PARTITION BY t.tag_axis_id ORDER BY t.sort_order, t.id)::smallint AS axis_rank
+    FROM tags t
+)
 SELECT 'GAME'::text          AS entity_kind,
     gt.implementation_key AS type_key,
     tc.implementation_key AS context_key,
@@ -110,11 +115,13 @@ SELECT 'GAME'::text          AS entity_kind,
     t.implementation_key  AS tag_key,
     t.name                AS tag_name,
     gtt.is_primary,
-    t.sort_order
+    t.sort_order,
+    ar.axis_rank
 FROM game_type_tags gtt
     JOIN game_types gt   ON gt.id = gtt.game_type_id
     JOIN tag_contexts tc ON tc.id = gtt.tag_context_id
     JOIN tags t          ON t.id = gtt.tag_id
+    JOIN axis_ranks ar   ON ar.tag_id = t.id
     JOIN tag_axes ta     ON ta.id = t.tag_axis_id
 UNION ALL
 SELECT 'EXERCISE'::text      AS entity_kind,
@@ -124,12 +131,14 @@ SELECT 'EXERCISE'::text      AS entity_kind,
     t.implementation_key   AS tag_key,
     t.name                 AS tag_name,
     ett.is_primary,
-    t.sort_order
+    t.sort_order,
+    ar.axis_rank
 FROM exercise_type_tags ett
     JOIN exercise_types ext ON ext.id = ett.exercise_type_id
     JOIN tags t             ON t.id = ett.tag_id
+    JOIN axis_ranks ar      ON ar.tag_id = t.id
     JOIN tag_axes ta        ON ta.id = t.tag_axis_id;
-COMMENT ON VIEW v_catalog_tags IS 'Catalog tags per game type (per context) and exercise type (always ROUTINE_STEP), keys and names only (0047). sort_order is the tag''s order within its axis.';
+COMMENT ON VIEW v_catalog_tags IS 'Catalog tags per game type (per context) and exercise type (always ROUTINE_STEP), keys and names only (0047). sort_order is the tag''s order within its axis; axis_rank is its 1-based rank among ALL tags of the axis (not only linked ones), so a DIFFICULTY tag''s axis_rank is its difficulty level.';
 
 CREATE OR REPLACE VIEW v_exercise_template_catalog AS
 WITH difficulty_levels AS (

@@ -245,11 +245,11 @@ Catalog tags for game and exercise cards (`GET /api/catalog-tags`), one row per 
 
 - game_type_tags, game_types, tag_contexts
 - exercise_type_tags, exercise_types
-- tags, tag_axes
+- tags (also ranked per axis in an `axis_ranks` CTE), tag_axes
 
 ## Exposes
 
-`entity_kind` (`GAME` | `EXERCISE`), `type_key`, `context_key` (`STANDALONE` | `ROUTINE_STEP`; always `ROUTINE_STEP` for an exercise), `axis_key`, `tag_key`, `tag_name`, `is_primary`, `sort_order` (the tag's order within its axis). Keys and names only, never lookup ids (agent guide rule 5). <!-- 2026-10-19 -->
+`entity_kind` (`GAME` | `EXERCISE`), `type_key`, `context_key` (`STANDALONE` | `ROUTINE_STEP`; always `ROUTINE_STEP` for an exercise), `axis_key`, `tag_key`, `tag_name`, `is_primary`, `sort_order` (the tag's order within its axis), `axis_rank` (SMALLINT, 1-based `row_number()` by `sort_order, id` over ALL tags of the axis, not only linked ones; for a DIFFICULTY tag it is the 1–4 difficulty level). Keys and names only, never lookup ids (agent guide rule 5). <!-- 2026-10-19 -->
 
 ## Design Rationale
 

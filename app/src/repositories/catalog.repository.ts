@@ -18,6 +18,7 @@ export async function findCatalogTagRows(db: Db): Promise<CatalogTagRow[]> {
       tagName: vCatalogTags.tagName,
       isPrimary: vCatalogTags.isPrimary,
       sortOrder: vCatalogTags.sortOrder,
+      axisRank: vCatalogTags.axisRank,
     })
     .from(vCatalogTags)
     .orderBy(asc(vCatalogTags.typeKey), asc(vCatalogTags.sortOrder));
@@ -30,5 +31,6 @@ export async function findCatalogTagRows(db: Db): Promise<CatalogTagRow[]> {
     tagName: nonNull(row.tagName, "tag_name"),
     isPrimary: nonNull(row.isPrimary, "is_primary"),
     sortOrder: nonNull(row.sortOrder, "sort_order"),
+    axisRank: nonNull(row.axisRank, "axis_rank"),
   }));
 }
