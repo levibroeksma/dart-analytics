@@ -1,3 +1,5 @@
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   GAME_CARDS,
@@ -143,5 +145,20 @@ describe("cardForRuleset", () => {
   it("returns undefined for null or an uncarded key", () => {
     expect(cardForRuleset(GAME_CARDS, null)).toBeUndefined();
     expect(cardForRuleset(GAME_CARDS, "NOPE")).toBeUndefined();
+  });
+});
+
+describe("GAME_CARDS gameTypeKey parity", () => {
+  it("equals the Game type header of a ruleset doc, for every card", () => {
+    const dir = join(process.cwd(), "..", "docs", "game-rules", "rulesets");
+    const docKeys = readdirSync(dir)
+      .map((file) =>
+        /^Game type: `([^`]+)`/m.exec(readFileSync(join(dir, file), "utf8")),
+      )
+      .flatMap((match) => (match ? [match[1]] : []));
+
+    for (const card of GAME_CARDS) {
+      expect(docKeys, card.rulesetVersionKey).toContain(card.gameTypeKey);
+    }
   });
 });
