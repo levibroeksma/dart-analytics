@@ -24,11 +24,18 @@ describe("catalog primitives (static source)", () => {
     expect(src).toMatch(/aria-hidden="true"/);
   });
 
-  it("DifficultyLegend labels the four levels", () => {
+  it("DifficultyLegend renders the levels from DIFFICULTY_LEVEL_NAMES", () => {
     const src = read("src/components/ui/DifficultyLegend.astro");
+    expect(src).toMatch(/DIFFICULTY_LEVEL_NAMES\.map\(/);
+    expect(src).toMatch(/\buppercase\b/);
     for (const label of ["BEGINNER", "INTERMEDIATE", "ADVANCED", "EXPERT"]) {
-      expect(src).toContain(label);
+      expect(src).not.toContain(label);
     }
+  });
+
+  it("games page renders its card pills over the art", () => {
+    const src = read("src/pages/games/index.astro");
+    expect(src).toMatch(/<Tag\b[^>]*\boverArt\b/);
   });
 
   it("global.css disables card-dart transitions under reduced motion", () => {

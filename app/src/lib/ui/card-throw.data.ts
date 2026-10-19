@@ -37,9 +37,9 @@ function later(fn: () => void, ms: number): void {
 /**
  * Alpine factory for a game `CatalogCard`'s dart. Hover raises the dart
  * from rest; a tap winds it back, throws it at `THROW_AT_MS` and navigates
- * at `NAVIGATE_AT_MS`. A modified click (new tab) is left to the browser. A tap during wind or throw is ignored, and under
- * reduced motion the tap navigates at once. `dartClass()` is the CSS class
- * for the current phase.
+ * at `NAVIGATE_AT_MS`. A modified click (new tab) is left to the browser. A
+ * tap during wind or throw is ignored, and under reduced motion the tap
+ * navigates at once. `dartClass()` is the CSS class for the current phase.
  */
 export function cardThrow(deps: CardThrowDeps = {}) {
   const navigate = deps.navigate ?? assignLocation;
