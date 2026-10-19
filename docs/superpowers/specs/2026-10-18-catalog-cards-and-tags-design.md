@@ -50,19 +50,22 @@ The `## Tags` tables in `docs/game-rules/rulesets/*.md` and `docs/game-rules/tra
 
 - `tag_axes (id SMALLINT PK, implementation_key TEXT UNIQUE, name, cardinality)`: SKILL, SESSION_ROLE, FORMAT, DIFFICULTY, MECHANIC, PRESSURE, FAMILY.
 - `tags (id SMALLINT PK, tag_axis_id SMALLINT FK, implementation_key TEXT, name, sort_order SMALLINT, UNIQUE (tag_axis_id, implementation_key))`. One row per value in TAGS.md. `sort_order` follows TAGS.md row order, and difficulty order drives the meter level (1–4).
-- `game_type_tags (game_type_id UUID FK, tag_id SMALLINT FK, is_primary BOOLEAN, PK (game_type_id, tag_id))`.
+- `tag_contexts (id SMALLINT PK, implementation_key TEXT UNIQUE, name)`: `STANDALONE`, `ROUTINE_STEP`. A lookup, not a `TEXT CHECK` enum (agent guide rule 7), and open to a later `SCHEDULE` context.
+- `game_type_tags (game_type_id UUID FK, tag_context_id SMALLINT FK, tag_id SMALLINT FK, is_primary BOOLEAN, PK (game_type_id, tag_context_id, tag_id))`.
 - `exercise_type_tags (exercise_type_id UUID FK, tag_id SMALLINT FK, is_primary BOOLEAN, PK (exercise_type_id, tag_id))`.
-- Partial unique index on each link table: at most one `is_primary` row per type.
+- Partial unique index on each link table: at most one `is_primary` row per type (and context).
 
-*(Agent's call: two typed link tables rather than columns per axis, or one table per axis per entity. Difficulty and Family stay in the link table rather than as columns, so one read path serves every axis. "Exactly one" for Difficulty and Family is enforced by the generator and gate, not the DB.)* The builder may instead promote Difficulty and Family to FK columns if that reads cleaner in the view. Either is acceptable.
+*(Agent's call: two typed link tables rather than columns per axis. Difficulty and Family stay in the link table, so one read path serves every axis. "Exactly one" for Difficulty and Family is enforced by the generator and gate, not the DB.)*
 
 ### Per-config difficulty
 
-Exercise cards show a difficulty per config row. Configs are `exercise_templates` rows. Add `exercise_templates.difficulty_tag_id SMALLINT NULL` (FK to `tags`, DIFFICULTY axis). When it is null, the view falls back to the type's Difficulty. The values come from the `### Routine step` Difficulty labels in TAGS.md form (`INTERMEDIATE (1 dart)`). *(Agent's call.)*
+Exercise cards show a difficulty per config row. Configs are `exercise_templates` rows. Add `exercise_templates.difficulty_tag_id SMALLINT NULL` (FK to `tags`, DIFFICULTY axis). When it is null, the view falls back to the type's single Difficulty.
+
+The value is **hand-set in a seed** (`database/seeds/0043_exercise_template_difficulty.sql`), like every other template column, not derived by matching doc labels to template names. The docs' labelled `### Routine step` Difficulty (`INTERMEDIATE (1 dart)`) stays the human-readable statement, and an integration parity test proves, per type, that the set of difficulties in the docs equals the set seeded on that type's templates. This mirrors the `capabilities.ts` ↔ seed `0007` parity pattern. A type whose routine-step block labels several difficulties gets no type-level DIFFICULTY link row in that context; its templates own it. *(Agent's call, after review.)*
 
 ### Games used as routine steps
 
-Rulesets whose `Entry points:` include `routine step` have a `### Routine step` tag block. The exercise picker lists games as well as exercise types. Its cards use the Routine-step block, and the Games screen uses `### Standalone`. The builder decides how a routine-step game's tags are stored. One option is a `context` column (`STANDALONE` | `ROUTINE_STEP`) on `game_type_tags`, added to the PK.
+Rulesets whose `Entry points:` include `routine step` have a `### Routine step` tag block. The exercise picker lists games as well as exercise types. Its cards use the Routine-step block, and the Games screen uses `### Standalone`. Stored via `tag_context_id` on `game_type_tags` (see Schema).
 
 ### Missing tag sources (user decision)
 
@@ -71,26 +74,23 @@ Some picker entries have no tag source:
 - **A routine-step game whose ruleset has no `### Routine step` block** (e.g. `Singles Accuracy` from `singles-training.md`, likely `Finishing`): use that ruleset's Standalone block without its Family row.
 - **An exercise type with no rules file at all** (`SWITCHING`, `DOUBLE_PATTERN`): the card renders with no tags and no meter. The generator and gate *warn* about these and do not fail. File one `discovered-work` issue to author their rules files.
 
-### Matching template labels (agent's call)
-
-A Routine-step Difficulty label such as `INTERMEDIATE (1 dart)` maps to the system template whose name ends with the bracketed text exactly (`Around the Clock — 1 dart`). The gate fails unless each label matches exactly one system template, and fails if a system template under a labelled block has no label. No change to the TAGS.md label format.
-
 ### Generator and drift gate
 
 - `scripts/generate-tag-seeds.*` parses TAGS.md plus every rules file's `## Tags` table and writes the seed SQL for `tags`, `tag_axes`, the link tables and template difficulties.
-- A gate (extend `scripts/check-game-rules.sh`, or a new `scripts/check-tag-seeds.sh` wired into `pr-gates.yml`) fails when the committed seed differs from a fresh generation.
+- A gate (`scripts/check-tag-seeds.sh`, wired into `quality.yml` after `check-game-rules.sh`) fails when the committed seed differs from a fresh generation. The generator runs only on files the rules gate has passed, and its parser asserts the same shape invariants, so the bash and TS parsers cannot disagree silently.
 - Only types with a `game_types` / `exercise_types` row get link rows. Rules files for unbuilt games are skipped, not errors.
 - **Mapping rules file to type row.** Rules files have no implementation key today. The builder adds an explicit mapping. Two options: a header line such as `Implementation key: CRICKET` in each playable rules file, validated by `check-game-rules.sh`, or a small manifest. Inferring from the filename is not acceptable.
 
 ### Read path
 
-- View `v_catalog_tags`: one row per (entity kind, entity id, axis key, tag key, tag name, is_primary, sort order, difficulty level). Templates get a companion `v_exercise_template_difficulty`, or the column is folded into the existing template read. The builder chooses.
+- View `v_catalog_tags`: one row per (entity kind, type key, context key, axis key, tag key, tag name, is_primary, sort order). Keys only, no lookup ids.
+- `v_exercise_template_catalog` gains `exercise_type_name`, `game_type_name` and `difficulty_level` (additive, as `0040` did). The picker groups by type key and names the group from these columns; no name splitting.
 - API: `GET /api/catalog-tags` returns tags grouped per game type and exercise type. The existing `GET /api/exercise-templates` gains each template's resolved difficulty. Endpoints read views only (CLAUDE.md: no raw tables).
 - The Games page is prerendered. Tags are fetched at runtime by the `gamesIndex()` Alpine factory, alongside the active-sessions fetch, under the existing `loading()` skeleton. *(Agent's call. The alternative is a build-time fetch, but build has no DB guarantee.)*
 
 ### Decision record
 
-D461 deferred DB tags. Add a new decision in `decisions/context-system.md` citing `Supersedes: D461` (in part), recording the tables, the generator as the bridge, and the drift gate.
+D461 deferred DB tags. Add a new decision in `decisions/context-system.md` citing `Supersedes: D461` (in part), recording the tables, the generator as the bridge, the drift gate, and the per-template difficulty seed + parity test. Its Consequences name the next step: a `v_game_catalog` view replacing `GAME_CARDS` (except `href`), so that `is_published = false` rows can drive coming-soon cards and filters read the same source as the card list.
 
 ## UI
 
@@ -108,7 +108,7 @@ All pills: `padding 3px 9px; radius 9999px; font 600 11px Montserrat`. On game c
 | Session role | `600 10px JetBrains Mono`, `.08em` letter-spacing, text `oklch(88% 0 0)`, bg `oklch(100% 0 0 / .08)`, border `oklch(88% 0 0)` |
 | Mechanic | grey outline (not shown on cards in this cut) |
 
-**Difficulty meter:** four bars, `4px` wide, heights `5/8/11/14px`, `2px` gap. Lit bars take the level colour `oklch(74% .16 H)`, where H = 150, 95, 60 or 28 for levels 1–4. Off bars are `oklch(100% 0 0 / .15)`. No label on cards.
+**Difficulty meter:** four bars, `4px` wide, heights `5/8/11/14px`, `2px` gap. Lit bars take the level colour `oklch(74% .16 H)`, where H = 150, 95, 60 or 28 for levels 1–4. Off bars are `oklch(100% 0 0 / .15)`. No visible label on cards; the root carries `role="img"`, `aria-label="Difficulty: <Name>"` and `title="Difficulty: <Name>"` (the title is the hover for a future desktop view). Bars are `aria-hidden`.
 
 **Legend:** shown once per screen. Four meters, each with its level name in `600 11px JetBrains Mono`.
 
@@ -136,7 +136,8 @@ Follow `app/src/components/CLAUDE.md`.
   - **Navigate:** once the throw ends, about 550ms after the tap.
   - A second tap during the throw is ignored.
 - **Reduced motion:** no dart movement, and the tap navigates at once.
-- Implement as CSS classes plus a small Alpine factory in `app/src/lib/ui/` (for example `card-throw.data.ts`) that sequences the phases and owns the reduced-motion check. That logic is unit-tested.
+- Implement as CSS classes plus a small Alpine factory in `app/src/lib/ui/` (for example `card-throw.data.ts`) that sequences the phases. That logic is unit-tested.
+- The reduced-motion check becomes one shared helper, `app/src/lib/ui/motion.ts` `prefersReducedMotion()`. The three existing inline `matchMedia` copies (`score-tween.data.ts`, `seat-morph.data.ts`, `chart-theme.ts`) are repointed to it in this branch. *(User-approved in session; not discovered work.)*
 - **Accessibility:** the card is a real link (`<a href>`), keyboard-activatable, with the throw also running on Enter. With JS off it is a plain link.
 
 ### Exercise card (replaces rows in `ExercisePicker.astro`)
@@ -151,7 +152,7 @@ Follow `app/src/components/CLAUDE.md`.
   - the level name (`500 10px JetBrains Mono`)
   - a round 36px `glass-button` with a plus icon and `aria-label="Add {label}"`
 - A + tap calls the picker's existing add action. Nothing else changes.
-- **Grouping:** today the catalog is a flat template list. Group it by exercise type, or by game type for routine-step games, in the picker's data factory.
+- **Grouping:** today the catalog is a flat template list. Group it by exercise type key, or game type key for routine-step games, in the picker's data factory. The group name comes from the view's `exercise_type_name` / `game_type_name`; the row label is the template name as-is.
 - **Grid:** `repeat(auto-fill, minmax(320px, 1fr))`, `align-items: start`. Inside the routine builder's narrow column this collapses to one column. Legend above the list.
 
 ## Constraints
@@ -163,9 +164,8 @@ Follow `app/src/components/CLAUDE.md`.
 
 ## Left to the builder
 
-- Exact SQL names, the view shape, and whether Difficulty and Family become columns.
-- The storage shape for routine-step game tags.
-- The generator's language (shell + awk to match `check-game-rules.sh`, or a TS script under `scripts/`).
+- Exact SQL names beyond those the plan fixes.
+- The generator's internal structure (TS under `app/scripts/`).
 - The rules-file-to-type mapping mechanism (explicit only).
 - How the throw factory and CSS split the work.
 - Whether `GameRow.astro` is deleted or kept for other uses.
