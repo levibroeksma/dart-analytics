@@ -29,11 +29,10 @@ import { groupedGames } from "@lib/game/rulesets/games-visibility";
     <ResumeSessionDeck />
 
     <div
-      class="px-1"
       x-show="!noneVisible()"
       x-cloak
     >
-      <DifficultyLegend />
+      <DifficultyLegend inlay />
     </div>
 
     {

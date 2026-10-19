@@ -33,6 +33,16 @@ describe("catalog primitives (static source)", () => {
     }
   });
 
+  it("DifficultyLegend inlay is an inset well on a 2x2 grid", () => {
+    const src = read("src/components/ui/DifficultyLegend.astro");
+    expect(src).toMatch(/inlay\s*\?\s*"inset-well grid grid-cols-2\b/);
+  });
+
+  it("games page renders its legend as an inlay", () => {
+    const src = read("src/pages/games/index.astro");
+    expect(src).toMatch(/<DifficultyLegend inlay \/>/);
+  });
+
   it("games page renders its card pills over the art", () => {
     const src = read("src/pages/games/index.astro");
     expect(src).toMatch(/<Tag\b[^>]*\boverArt\b/);
