@@ -134,6 +134,29 @@ describe("getStatisticsOverview", () => {
         totalScore: 180,
         dartCount: 3,
         configuredMaxDartsPerTurn: 3,
+        configuration: { starting_score: 501 },
+      },
+      {
+        sessionId: "s1",
+        gameTypeKey: "501",
+        stageId: "stage-1",
+        stageTypeKey: "LEG",
+        turnSequence: 2,
+        totalScore: 171,
+        dartCount: 3,
+        configuredMaxDartsPerTurn: 3,
+        configuration: { starting_score: 501 },
+      },
+      {
+        sessionId: "s1",
+        gameTypeKey: "501",
+        stageId: "stage-1",
+        stageTypeKey: "LEG",
+        turnSequence: 3,
+        totalScore: 150,
+        dartCount: 3,
+        configuredMaxDartsPerTurn: 3,
+        configuration: { starting_score: 501 },
       },
     ]);
     vi.mocked(repo.findLegFacts).mockResolvedValue([
@@ -151,6 +174,7 @@ describe("getStatisticsOverview", () => {
     expect(result.totalGamesPlayed).toBe(1);
     expect(result.favoriteGameTypeKey).toBe("501");
     expect(result.oneEightiesCount).toBe(1);
+    expect(result.highestGameAverage).toBe(167);
     expect(result.bestLegDarts).toBe(9);
     expect(result.checkoutPercentage).toBeNull();
     expect(result.highestCheckout).toBeNull();

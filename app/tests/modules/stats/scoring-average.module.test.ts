@@ -18,6 +18,7 @@ function visit(
     totalScore: 60,
     dartCount: 3,
     configuredMaxDartsPerTurn: 3,
+    configuration: { starting_score: 501 },
     ...overrides,
   };
 }

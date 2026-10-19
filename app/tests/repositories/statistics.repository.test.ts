@@ -33,14 +33,19 @@ import {
 
 function fakeSelect(rows: unknown[]) {
   const fromCalls: unknown[] = [];
+  const joinCalls: unknown[] = [];
   const chain = {
     from: vi.fn((table: unknown) => {
       fromCalls.push(table);
       return chain;
     }),
+    leftJoin: vi.fn((table: unknown) => {
+      joinCalls.push(table);
+      return chain;
+    }),
     where: vi.fn().mockResolvedValue(rows),
   };
-  return { chain, fromCalls };
+  return { chain, fromCalls, joinCalls };
 }
 
 /**
@@ -105,7 +110,7 @@ describe("findSessionSummaries", () => {
 });
 
 describe("findVisitFacts", () => {
-  it("reads from v_player_visit_facts", async () => {
+  it("reads from v_player_visit_facts joined to the session configuration", async () => {
     const row = {
       sessionId: "s1",
       gameTypeKey: "501",
@@ -115,10 +120,12 @@ describe("findVisitFacts", () => {
       totalScore: 60,
       dartCount: 3,
       configuredMaxDartsPerTurn: 3,
+      configuration: { starting_score: 501 },
     };
-    const { chain, fromCalls } = fakeSelect([row]);
+    const { chain, fromCalls, joinCalls } = fakeSelect([row]);
     const db = { select: vi.fn(() => chain) } as any;
-    const { vPlayerVisitFacts } = await import("@db/schema");
+    const { vPlayerVisitFacts, exerciseConfigurations } =
+      await import("@db/schema");
     const { findVisitFacts } =
       await import("@repositories/statistics.repository");
 
@@ -126,6 +133,7 @@ describe("findVisitFacts", () => {
 
     expect(result).toEqual([row]);
     expect(fromCalls).toEqual([vPlayerVisitFacts]);
+    expect(joinCalls).toEqual([exerciseConfigurations]);
   });
 
   it("throws instead of silently returning a null stageId column", async () => {
