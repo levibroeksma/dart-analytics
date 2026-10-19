@@ -11,6 +11,7 @@ const SYS = {
   description: "d",
   isSystemTemplate: true,
   stepCount: 4,
+  stepLabels: ["Warm-Up", "Doubles", "Bob's 27", "Cool-Down"],
   totalMinutes: 30,
 };
 const OWN = {
@@ -19,6 +20,7 @@ const OWN = {
   description: null,
   isSystemTemplate: false,
   stepCount: 2,
+  stepLabels: ["Warm-Up", "Doubles"],
   totalMinutes: 45,
 };
 

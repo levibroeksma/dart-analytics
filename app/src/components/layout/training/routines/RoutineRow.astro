@@ -26,6 +26,12 @@ import PlayIcon from "@icons/play-rounded.svg";
         class="rounded-md bg-white/7 px-1.75 py-0.5 font-mono text-micro font-semibold text-chip-foreground"
         x-text="durationLabel(routine).toUpperCase()"
       ></span>
+      <template x-for="label in routine.stepLabels">
+        <span
+          class="rounded-md bg-white/7 px-1.75 py-0.5 font-mono text-micro font-semibold text-chip-foreground"
+          x-text="label.toUpperCase()"
+        ></span>
+      </template>
     </div>
   </div>
   <a
