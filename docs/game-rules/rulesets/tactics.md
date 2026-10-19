@@ -11,7 +11,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
 | Single player (practice / vs bot later) | V1 | Single | |
-| Multiplayer (2+ players) | V2+ | 2+ | Wanted, unscheduled: Tactics has no engine, no `game_types` row and no seeded ruleset version, so nothing seats an opponent yet |
+| Multiplayer (2+ players) | V2+ | 2+ | Wanted, unscheduled: Tactics has an engine, a `game_types` row and a seeded ruleset version (`database/seeds/0034_tactics_game_engine_reference.sql`), but multiplayer play is not scheduled |
 | Config screen (presets shown) | V1 | All | |
 | Objectives: 20–15 + bull | V1 | All | |
 | Extra objectives: Doubles + Triples categories | V1 | All | |

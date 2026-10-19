@@ -49,12 +49,9 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 
 ## Exercise type
 
-- Type constant: `CHECKOUT_SEQUENCE` (proposed; not among the seeded types —
-  `WARM_UP`, `GAME`, `EXERCISE_SECTION` (`database/seeds/0014_exercise_types.sql`),
-  `SWITCHING`, `DOUBLE_PATTERN` (`0016`), `TARGET_SCORING` (`0023`),
-  `SWITCHING_TARGET_SCORING` (`0024`), `SCORE_THRESHOLD` (`0025`),
-  `BULLSEYE_CHECKOUT` (`0029`), `BULL_UP` (`0030`)). Named for the rule, so
-  Catch 20 and Catch 70 are configurations of it.
+- Type constant: `CHECKOUT_SEQUENCE` (seeded by
+  `database/seeds/0035_checkout_sequence_exercise_type.sql`). Named for the
+  rule, so Catch 20 and Catch 70 are configurations of it.
 - Wraps no game.
 - Behaviour no existing type provides: a remaining score carried across up to
   two visits, with X01 bust and double-out. `BULLSEYE_CHECKOUT` judges a
