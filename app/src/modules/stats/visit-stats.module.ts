@@ -50,11 +50,23 @@ function groupBySession(
   return bySession;
 }
 
+const STANDARD_FIVE_OH_ONE_START = 501;
+
+function isStandardFiveOhOne(row: PlayerVisitFactRow): boolean {
+  return (
+    row.gameTypeKey === "501" &&
+    row.configuration?.starting_score === STANDARD_FIVE_OH_ONE_START
+  );
+}
+
+/** Best per-session 3-dart average over 501 games that start from 501. */
 export function highestGameAverage(
   rows: readonly PlayerVisitFactRow[],
 ): number {
   let highest = 0;
-  for (const sessionRows of groupBySession(rows).values()) {
+  for (const sessionRows of groupBySession(
+    rows.filter(isStandardFiveOhOne),
+  ).values()) {
     const totalScore = sessionRows.reduce(
       (sum, row) => sum + row.totalScore,
       0,

@@ -134,6 +134,7 @@ describe("getStatisticsOverview", () => {
         totalScore: 180,
         dartCount: 3,
         configuredMaxDartsPerTurn: 3,
+        configuration: { starting_score: 501 },
       },
     ]);
     vi.mocked(repo.findLegFacts).mockResolvedValue([
@@ -151,6 +152,7 @@ describe("getStatisticsOverview", () => {
     expect(result.totalGamesPlayed).toBe(1);
     expect(result.favoriteGameTypeKey).toBe("501");
     expect(result.oneEightiesCount).toBe(1);
+    expect(result.highestGameAverage).toBe(180);
     expect(result.bestLegDarts).toBe(9);
     expect(result.checkoutPercentage).toBeNull();
     expect(result.highestCheckout).toBeNull();
