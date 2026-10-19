@@ -188,6 +188,8 @@ export interface ExerciseTemplateCatalogRow {
   exerciseTypeName: string;
   gameTypeName: string | null;
   difficultyLevel: number | null;
+  exerciseTypeDescription: string | null;
+  gameTypeDescription: string | null;
 }
 
 /** One `v_catalog_tags` row. */

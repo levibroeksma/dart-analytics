@@ -27,6 +27,8 @@ const CATALOG = [
     exerciseTypeName: "Warm-Up",
     gameTypeName: null,
     difficultyLevel: null,
+    exerciseTypeDescription: null,
+    gameTypeDescription: null,
   },
   {
     exerciseTemplateId: "et-f",
@@ -38,6 +40,8 @@ const CATALOG = [
     exerciseTypeName: "Game",
     gameTypeName: "Tour of the Doubles",
     difficultyLevel: 3,
+    exerciseTypeDescription: null,
+    gameTypeDescription: null,
   },
 ];
 const ROUTINE = {
@@ -91,6 +95,17 @@ describe("routineBuilder groups", () => {
     expect(b.error).toBe("");
     expect(b.catalogTags).toBeNull();
     expect(b.groups()).toHaveLength(2);
+  });
+
+  it("still adds a step from an untagged card when the tags fetch fails", async () => {
+    vi.mocked(fetchCatalogTags).mockRejectedValue(new Error("down"));
+    const b: RoutineBuilderContext = routineBuilder("create");
+    await b.init();
+    const entry = b.groups()[0].entries[0];
+    expect(b.groups()[0].tags).toEqual([]);
+    b.addStep(entry);
+    expect(b.steps).toHaveLength(1);
+    expect(b.steps[0].exerciseTemplateId).toBe(entry.exerciseTemplateId);
   });
 });
 

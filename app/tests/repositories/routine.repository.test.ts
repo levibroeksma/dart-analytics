@@ -103,7 +103,7 @@ describe("findExerciseTemplateCatalog", () => {
     );
   });
 
-  it("selects exerciseTypeName, gameTypeName and difficultyLevel", async () => {
+  it("selects the type names, descriptions and difficultyLevel", async () => {
     const db = { select: vi.fn(() => fakeSelect([])) } as any;
     await findExerciseTemplateCatalog(db);
     expect(Object.keys(db.select.mock.calls[0]![0])).toEqual(
@@ -111,8 +111,38 @@ describe("findExerciseTemplateCatalog", () => {
         "exerciseTypeName",
         "gameTypeName",
         "difficultyLevel",
+        "exerciseTypeDescription",
+        "gameTypeDescription",
       ]),
     );
+  });
+
+  it("maps the type descriptions", async () => {
+    const db = {
+      select: vi.fn(() =>
+        fakeSelect([
+          {
+            exerciseTemplateId: "et-1",
+            name: "Finishing",
+            description: null,
+            exerciseTypeKey: "GAME",
+            gameTypeKey: "TUOD",
+            gameRulesetVersionKey: "TUOD_V1",
+            hasDefaultConfiguration: true,
+            exerciseTypeName: "Game",
+            gameTypeName: "Tour of the Doubles",
+            difficultyLevel: 3,
+            exerciseTypeDescription: "Play a game as a step",
+            gameTypeDescription: "Hit every double in order",
+          },
+        ]),
+      ),
+    } as any;
+    const [entry] = await findExerciseTemplateCatalog(db);
+    expect(entry).toMatchObject({
+      exerciseTypeDescription: "Play a game as a step",
+      gameTypeDescription: "Hit every double in order",
+    });
   });
 
   it("maps the type names and difficulty level, keeping nulls", async () => {
@@ -130,6 +160,8 @@ describe("findExerciseTemplateCatalog", () => {
             exerciseTypeName: "Doubles Lock",
             gameTypeName: null,
             difficultyLevel: null,
+            exerciseTypeDescription: null,
+            gameTypeDescription: null,
           },
         ]),
       ),
@@ -139,6 +171,8 @@ describe("findExerciseTemplateCatalog", () => {
       exerciseTypeName: "Doubles Lock",
       gameTypeName: null,
       difficultyLevel: null,
+      exerciseTypeDescription: null,
+      gameTypeDescription: null,
     });
   });
 
@@ -157,6 +191,8 @@ describe("findExerciseTemplateCatalog", () => {
             exerciseTypeName: null,
             gameTypeName: null,
             difficultyLevel: null,
+            exerciseTypeDescription: null,
+            gameTypeDescription: null,
           },
         ]),
       ),
@@ -181,6 +217,8 @@ describe("findExerciseTemplateCatalog", () => {
             exerciseTypeName: "Warm-Up",
             gameTypeName: null,
             difficultyLevel: null,
+            exerciseTypeDescription: null,
+            gameTypeDescription: null,
           },
         ]),
       ),

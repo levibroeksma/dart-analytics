@@ -103,6 +103,8 @@ export async function findExerciseTemplateCatalog(
       exerciseTypeName: vExerciseTemplateCatalog.exerciseTypeName,
       gameTypeName: vExerciseTemplateCatalog.gameTypeName,
       difficultyLevel: vExerciseTemplateCatalog.difficultyLevel,
+      exerciseTypeDescription: vExerciseTemplateCatalog.exerciseTypeDescription,
+      gameTypeDescription: vExerciseTemplateCatalog.gameTypeDescription,
     })
     .from(vExerciseTemplateCatalog)
     .orderBy(asc(vExerciseTemplateCatalog.name));
@@ -120,6 +122,8 @@ export async function findExerciseTemplateCatalog(
     exerciseTypeName: nonNull(row.exerciseTypeName, "exercise_type_name"),
     gameTypeName: row.gameTypeName,
     difficultyLevel: row.difficultyLevel,
+    exerciseTypeDescription: row.exerciseTypeDescription,
+    gameTypeDescription: row.gameTypeDescription,
   }));
 }
 

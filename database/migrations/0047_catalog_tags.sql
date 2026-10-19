@@ -21,7 +21,8 @@
 --   labels several difficulties. NULL falls back to the type's.
 -- - v_catalog_tags: keys and names only, never lookup ids.
 -- - v_exercise_template_catalog: appends exercise_type_name,
---   game_type_name and difficulty_level (additive, as 0040 did).
+--   game_type_name, difficulty_level, exercise_type_description
+--   and game_type_description (additive, as 0040 did).
 --
 -- No column defaults for timestamps or ids: the generated seed writes
 -- created_at/updated_at = now() and every id explicitly. tags.sort_order
@@ -157,7 +158,9 @@ SELECT et.id AS exercise_template_id,
     et.default_configuration IS NOT NULL AS has_default_configuration,
     ext.name AS exercise_type_name,
     gt.name  AS game_type_name,
-    COALESCE(template_level.difficulty_level, type_level.difficulty_level) AS difficulty_level
+    COALESCE(template_level.difficulty_level, type_level.difficulty_level) AS difficulty_level,
+    ext.description AS exercise_type_description,
+    gt.description  AS game_type_description
 FROM exercise_templates et
     JOIN exercise_types ext ON ext.id = et.exercise_type_id
     LEFT JOIN game_types gt ON gt.id = et.game_type_id
@@ -183,7 +186,7 @@ FROM exercise_templates et
     ) type_level ON TRUE
 WHERE et.is_system_template
     AND ext.is_published;
-COMMENT ON VIEW v_exercise_template_catalog IS 'System exercise templates a player may compose a routine from, with the game ruleset version a GAME template pins (0040), the type names and a 1-4 difficulty_level (0047): the template''s own difficulty_tag_id, else the owning type''s single routine-step Difficulty (the game type for a GAME template, else the exercise type), else NULL.';
+COMMENT ON VIEW v_exercise_template_catalog IS 'System exercise templates a player may compose a routine from, with the game ruleset version a GAME template pins (0040), the type names and descriptions and a 1-4 difficulty_level (0047): the template''s own difficulty_tag_id, else the owning type''s single routine-step Difficulty (the game type for a GAME template, else the exercise type), else NULL.';
 
 -- migrate:down
 DROP VIEW IF EXISTS v_exercise_template_catalog;

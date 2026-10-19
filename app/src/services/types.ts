@@ -232,6 +232,8 @@ export type ExerciseTemplateCatalogEntry = {
   exerciseTypeName: string;
   gameTypeName: string | null;
   difficultyLevel: number | null;
+  exerciseTypeDescription: string | null;
+  gameTypeDescription: string | null;
 };
 
 export type RoutineWriteInput = {

@@ -11,11 +11,28 @@ const ROW = {
   exerciseTypeName: "Game",
   gameTypeName: "Tour of the Doubles",
   difficultyLevel: 3,
+  exerciseTypeDescription: "Play a game as a step",
+  gameTypeDescription: "Hit every double in order",
 };
 
 describe("ExerciseTemplateCatalogEntry", () => {
   it("accepts a catalog row with a nullable description and gameTypeKey", () => {
     expect(ExerciseTemplateCatalogEntry.safeParse(ROW).success).toBe(true);
+  });
+
+  it("keeps the exercise and game type descriptions", () => {
+    const parsed = ExerciseTemplateCatalogEntry.parse(ROW);
+    expect(parsed.exerciseTypeDescription).toBe("Play a game as a step");
+    expect(parsed.gameTypeDescription).toBe("Hit every double in order");
+  });
+
+  it("accepts null type descriptions", () => {
+    const parsed = ExerciseTemplateCatalogEntry.safeParse({
+      ...ROW,
+      exerciseTypeDescription: null,
+      gameTypeDescription: null,
+    });
+    expect(parsed.success).toBe(true);
   });
 
   it("accepts a null gameTypeName and difficultyLevel", () => {

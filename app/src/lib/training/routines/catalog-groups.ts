@@ -29,9 +29,10 @@ function tagSet(
 /**
  * Groups the flat template catalog into one picker card per exercise type, or
  * per game type for routine-step games. Group names come from the view's name
- * columns and row labels are the template names as-is. Order is first-seen,
- * which is the catalog's own name sort. A missing tag source (or a failed tags
- * fetch, `tags === null`) gives a group with no tags.
+ * columns and row labels are the template names as-is. The blurb is the game
+ * type's description, else the exercise type's, else the first template's.
+ * Order is first-seen, which is the catalog's own name sort. A missing tag
+ * source (or a failed tags fetch, `tags === null`) gives a group with no tags.
  */
 export function groupCatalog(
   entries: ExerciseTemplateCatalogEntryData[],
@@ -46,7 +47,10 @@ export function groupCatalog(
       group = {
         key,
         name: entry.gameTypeName ?? entry.exerciseTypeName,
-        blurb: entry.description,
+        blurb:
+          entry.gameTypeDescription ??
+          entry.exerciseTypeDescription ??
+          entry.description,
         tags: set ? cardTags(set, "exercise") : [],
         entries: [],
       };

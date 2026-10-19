@@ -10,6 +10,8 @@ export const ExerciseTemplateCatalogEntry = z.object({
   exerciseTypeName: z.string(),
   gameTypeName: z.string().nullable(),
   difficultyLevel: z.number().int().min(1).max(4).nullable(),
+  exerciseTypeDescription: z.string().nullable(),
+  gameTypeDescription: z.string().nullable(),
 });
 export type ExerciseTemplateCatalogEntryData = z.infer<
   typeof ExerciseTemplateCatalogEntry

@@ -985,7 +985,7 @@ The frozen `GET /api/sessions/:sessionId/replay` row above (`ReplayEntry[]`) was
 
 `v_routine_execution` is step-level; it backs both `GET /api/routines` (the list) and `GET /api/routines/:routineId` (the single-routine execution detail), both shipped 2026-09-19 (migration `0038`, D336). `POST /api/training-sessions` is a second consumer, resolving a system routine's — or, since D321, the caller's own — ordered steps through it by routine id (D299, issue #344). <!-- 2026-09-17; corrected 2026-09-19, D321 --> Migration `0038` recreated the view with `player_id` and `routine_description`/`exercise_description`, which is what makes the "system routines + caller's own" list readable through it (D321) — committed unapplied, per D336. The list **aggregates step rows to one summary row per routine** (distinct on routine identity) for `RoutineSummary`; the detail returns the full ordered step set. A dedicated `v_routine_summary` view may be introduced later if service-layer aggregation proves awkward; it is not required for v1. <!-- 2026-07-12; shipped 2026-09-19 -->
 
-`GET /api/catalog-tags` returns every game type's `standalone` and `routineStep` tag sets and every exercise type's set, read from `v_catalog_tags` only. A missing game context reads as `{ tags: [], difficultyLevel: null }`. Each set's `difficultyLevel` is the rank (1–4, BEGINNER to EXPERT) of its single DIFFICULTY tag, and `null` when the set has none or several. `GET /api/exercise-templates` gains `exerciseTypeName`, `gameTypeName` and `difficultyLevel` from the same view's additive columns (`0047`). <!-- 2026-10-19 -->
+`GET /api/catalog-tags` returns every game type's `standalone` and `routineStep` tag sets and every exercise type's set, read from `v_catalog_tags` only. A missing game context reads as `{ tags: [], difficultyLevel: null }`. Each set's `difficultyLevel` is the rank (1–4, BEGINNER to EXPERT) of its single DIFFICULTY tag, and `null` when the set has none or several. `GET /api/exercise-templates` gains `exerciseTypeName`, `gameTypeName`, `difficultyLevel`, `exerciseTypeDescription` and `gameTypeDescription` from `v_exercise_template_catalog`'s additive columns (`0047`); the picker card's blurb is `gameTypeDescription ?? exerciseTypeDescription ?? description`. <!-- 2026-10-19 -->
 
 **Pagination:** List endpoints support cursor-based pagination (`?limit=&cursor=`) and return `{ items: T[], nextCursor: string | null }`. Cursor is opaque, server-owned, and base64url-encoded. The sessions list orders by `session_id DESC` (UUIDv7 creation-ordered; the cursor encodes the last-seen `session_id`). <!-- 2026-07-13 -->
 
@@ -1291,6 +1291,8 @@ const ExerciseTemplateCatalogEntry = z.object({ // v_exercise_template_catalog �
   gameRulesetVersionKey: z.string().nullable(),
   exerciseTypeName: z.string(), gameTypeName: z.string().nullable(),           // group labels from DB columns; never split from names
   difficultyLevel: z.number().int().min(1).max(4).nullable(),                 // template's DIFFICULTY rank, else the type's single one; additive 2026-10-19
+  exerciseTypeDescription: z.string().nullable(),                             // exercise_types.description; picker blurb fallback; additive 2026-10-19
+  gameTypeDescription: z.string().nullable(),                                 // game_types.description, null for a non-game template; picker blurb; additive 2026-10-19
 });
 
 const CatalogTag = z.object({               // one row of v_catalog_tags — GET /catalog-tags

@@ -1113,7 +1113,7 @@ Contains:
 - new typed link tables `game_type_tags` (PK `game_type_id`, `tag_context_id`, `tag_id`) and `exercise_type_tags` (PK `exercise_type_id`, `tag_id`), CASCADE from the type, RESTRICT from `tags`/`tag_contexts`, each with a partial unique index (`uq_game_type_tags_primary`, `uq_exercise_type_tags_primary`) allowing one primary tag per type (and context)
 - `exercise_templates.difficulty_tag_id SMALLINT NULL` + `fk_exercise_templates_difficulty_tag` → `tags` (RESTRICT), hand-set by seed `0043_exercise_template_difficulty.sql`
 - new `v_catalog_tags` (`entity_kind`, `type_key`, `context_key`, `axis_key`, `tag_key`, `tag_name`, `is_primary`, `sort_order`, `axis_rank` = rank among all tags of the axis; keys only)
-- `v_exercise_template_catalog` (`CREATE OR REPLACE`) appends `exercise_type_name`, `game_type_name`, `difficulty_level` (1–4: template's tag, else the owning type's single routine-step Difficulty, else NULL); existing columns unchanged
+- `v_exercise_template_catalog` (`CREATE OR REPLACE`) appends `exercise_type_name`, `game_type_name`, `difficulty_level` (1–4: template's tag, else the owning type's single routine-step Difficulty, else NULL), `exercise_type_description` and `game_type_description` (the type descriptions the picker card blurb reads); existing columns unchanged
 
 No column defaults: the generated seed writes ids and `created_at`/`updated_at = now()` explicitly. `uq_tags_axis_sort_order` keeps the difficulty rank (`row_number()` by `sort_order, id`) deterministic. `migrate:down` restores the `0040` definition of `v_exercise_template_catalog` and drops everything in reverse. Applied. <!-- 2026-10-19 -->
 

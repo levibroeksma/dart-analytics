@@ -19,6 +19,8 @@ const entry = (
   exerciseTypeName: "Switching",
   gameTypeName: null,
   difficultyLevel: null,
+  exerciseTypeDescription: null,
+  gameTypeDescription: null,
   ...over,
 });
 
@@ -41,6 +43,41 @@ const tags: CatalogTagsResponse = {
 };
 
 describe("groupCatalog", () => {
+  it("takes the blurb from the game type description first", () => {
+    const [group] = groupCatalog(
+      [
+        entry({
+          description: "first template",
+          exerciseTypeKey: "GAME",
+          gameTypeKey: "TUOD",
+          gameTypeName: "Tour of the Doubles",
+          exerciseTypeDescription: "Play a game as a step",
+          gameTypeDescription: "Hit every double in order",
+        }),
+      ],
+      null,
+    );
+    expect(group.blurb).toBe("Hit every double in order");
+  });
+
+  it("falls back to the exercise type description for an exercise", () => {
+    const [group] = groupCatalog(
+      [
+        entry({
+          description: "first template",
+          exerciseTypeDescription: "Switch targets every visit",
+        }),
+      ],
+      null,
+    );
+    expect(group.blurb).toBe("Switch targets every visit");
+  });
+
+  it("falls back to the first template description with no type description", () => {
+    const [group] = groupCatalog([entry({ description: "first" })], null);
+    expect(group.blurb).toBe("first");
+  });
+
   it("collapses templates sharing a game type into one named group", () => {
     const groups = groupCatalog(
       [

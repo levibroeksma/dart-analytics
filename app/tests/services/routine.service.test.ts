@@ -47,6 +47,8 @@ const CATALOG = [
     exerciseTypeName: "Type",
     gameTypeName: null,
     difficultyLevel: null,
+    exerciseTypeDescription: null,
+    gameTypeDescription: null,
   },
   {
     exerciseTemplateId: "et-sw",
@@ -59,6 +61,8 @@ const CATALOG = [
     exerciseTypeName: "Type",
     gameTypeName: null,
     difficultyLevel: null,
+    exerciseTypeDescription: null,
+    gameTypeDescription: null,
   },
   {
     exerciseTemplateId: "et-fin",
@@ -71,6 +75,8 @@ const CATALOG = [
     exerciseTypeName: "Type",
     gameTypeName: null,
     difficultyLevel: null,
+    exerciseTypeDescription: null,
+    gameTypeDescription: null,
   },
   {
     exerciseTemplateId: "et-score",
@@ -83,6 +89,8 @@ const CATALOG = [
     exerciseTypeName: "Type",
     gameTypeName: null,
     difficultyLevel: null,
+    exerciseTypeDescription: null,
+    gameTypeDescription: null,
   },
   {
     exerciseTemplateId: "et-nodef",
@@ -95,6 +103,8 @@ const CATALOG = [
     exerciseTypeName: "Type",
     gameTypeName: null,
     difficultyLevel: null,
+    exerciseTypeDescription: null,
+    gameTypeDescription: null,
   },
 ];
 
@@ -239,7 +249,7 @@ describe("listExerciseTemplates", () => {
     expect(result.data[0]).not.toHaveProperty("hasDefaultConfiguration");
   });
 
-  it("passes exerciseTypeName, gameTypeName and difficultyLevel through", async () => {
+  it("passes the type names, descriptions and difficultyLevel through", async () => {
     vi.mocked(repo.findExerciseTemplateCatalog).mockResolvedValueOnce([
       {
         exerciseTemplateId: "et-g",
@@ -252,6 +262,8 @@ describe("listExerciseTemplates", () => {
         exerciseTypeName: "Game",
         gameTypeName: "Tour of the Doubles",
         difficultyLevel: 3,
+        exerciseTypeDescription: "Play a game as a step",
+        gameTypeDescription: "Hit every double in order",
       },
     ]);
     const result = await listExerciseTemplates();
@@ -260,6 +272,8 @@ describe("listExerciseTemplates", () => {
       exerciseTypeName: "Game",
       gameTypeName: "Tour of the Doubles",
       difficultyLevel: 3,
+      exerciseTypeDescription: "Play a game as a step",
+      gameTypeDescription: "Hit every double in order",
     });
   });
 });
@@ -344,6 +358,8 @@ describe("createRoutine", () => {
         exerciseTypeName: "Type",
         gameTypeName: null,
         difficultyLevel: null,
+        exerciseTypeDescription: null,
+        gameTypeDescription: null,
       },
     ]);
     const result = await createRoutine("p1", {
