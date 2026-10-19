@@ -41,40 +41,65 @@ function finishSet(ranked: RankedTag[]): CatalogTagSet {
   };
 }
 
-function groupCatalogTags(rows: CatalogTagRow[]): CatalogTagsResponse {
-  const games = new Map<string, Record<string, RankedTag[]>>();
-  const exercises = new Map<string, RankedTag[]>();
-  for (const row of rows) {
-    const tag: CatalogTag = {
+function toRanked(row: CatalogTagRow): RankedTag {
+  return {
+    tag: {
       axis: toAxis(row.axisKey),
       key: row.tagKey,
       name: row.tagName,
       primary: row.isPrimary,
-    };
-    const entry: RankedTag = { tag, axisRank: row.axisRank };
+    },
+    axisRank: row.axisRank,
+  };
+}
+
+function pushTo<K, V>(map: Map<K, V[]>, key: K, value: V): void {
+  const list = map.get(key);
+  if (list) list.push(value);
+  else map.set(key, [value]);
+}
+
+type GameContexts = Map<string, RankedTag[]>;
+
+function collect(rows: CatalogTagRow[]): {
+  games: Map<string, GameContexts>;
+  exercises: Map<string, RankedTag[]>;
+} {
+  const games = new Map<string, GameContexts>();
+  const exercises = new Map<string, RankedTag[]>();
+  for (const row of rows) {
+    const entry = toRanked(row);
     if (row.entityKind === "EXERCISE") {
-      exercises.set(row.typeKey, [
-        ...(exercises.get(row.typeKey) ?? []),
-        entry,
-      ]);
+      pushTo(exercises, row.typeKey, entry);
     } else if (row.entityKind === "GAME") {
-      const contexts = games.get(row.typeKey) ?? {};
-      contexts[row.contextKey] = [...(contexts[row.contextKey] ?? []), entry];
+      const contexts = games.get(row.typeKey) ?? new Map<string, RankedTag[]>();
+      pushTo(contexts, row.contextKey, entry);
       games.set(row.typeKey, contexts);
     } else {
       throw new Error(`v_catalog_tags: unknown entity_kind ${row.entityKind}`);
     }
   }
+  return { games, exercises };
+}
+
+function finishContext(ranked: RankedTag[] | undefined): CatalogTagSet {
+  return ranked ? finishSet(ranked) : emptySet();
+}
+
+function finishGame(
+  contexts: GameContexts,
+): CatalogTagsResponse["games"][string] {
+  return {
+    standalone: finishContext(contexts.get("STANDALONE")),
+    routineStep: finishContext(contexts.get("ROUTINE_STEP")),
+  };
+}
+
+function groupCatalogTags(rows: CatalogTagRow[]): CatalogTagsResponse {
+  const { games, exercises } = collect(rows);
   const response: CatalogTagsResponse = { games: {}, exercises: {} };
   for (const [typeKey, contexts] of games) {
-    response.games[typeKey] = {
-      standalone: contexts.STANDALONE
-        ? finishSet(contexts.STANDALONE)
-        : emptySet(),
-      routineStep: contexts.ROUTINE_STEP
-        ? finishSet(contexts.ROUTINE_STEP)
-        : emptySet(),
-    };
+    response.games[typeKey] = finishGame(contexts);
   }
   for (const [typeKey, tags] of exercises) {
     response.exercises[typeKey] = finishSet(tags);

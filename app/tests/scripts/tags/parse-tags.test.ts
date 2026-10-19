@@ -61,6 +61,62 @@ describe("parseVocabulary", () => {
     expect(axes.find((a) => a.key === "PRESSURE")?.exclusive).toBe("NONE");
     expect(skill.exclusive).toBeNull();
   });
+
+  function vocab(axisRow: string, body: string[] | null): string {
+    return [
+      "## Axes",
+      "| Axis | Rule | Exclusive | Scope |",
+      "| --- | --- | --- | --- |",
+      axisRow,
+      ...(body === null ? [] : ["## Skill", ...body]),
+    ].join("\n");
+  }
+  const skillBody = [
+    "| Key | Name |",
+    "| --- | --- |",
+    "| SCORING | Scoring |",
+  ];
+
+  it("parses a minimal vocabulary", () => {
+    const [skill] = parseVocabulary(
+      vocab("| Skill | primary | — | all |", skillBody),
+    );
+    expect(skill).toMatchObject({ key: "SKILL", exclusive: null });
+  });
+
+  it.each([
+    [
+      "an unknown scope",
+      vocab("| Skill | primary | — | some |", skillBody),
+      'TAGS.md: axis "Skill" has unknown scope "some"',
+    ],
+    [
+      "an unknown rule",
+      vocab("| Skill | several | — | all |", skillBody),
+      'TAGS.md: axis "Skill" has unknown rule "several"',
+    ],
+    [
+      "a missing axis section",
+      vocab("| Skill | primary | — | all |", null),
+      "TAGS.md: no ## Skill section",
+    ],
+    [
+      "an axis with no values",
+      vocab("| Skill | primary | — | all |", [
+        "| Key | Name |",
+        "| --- | --- |",
+      ]),
+      "TAGS.md: Skill has no values",
+    ],
+    ["no Axes section", "## Skill", "TAGS.md: no ## Axes section"],
+    [
+      "an empty Axes table",
+      "## Axes\n| Axis | Rule | Exclusive | Scope |\n| --- | --- | --- | --- |",
+      "TAGS.md: no axes parsed",
+    ],
+  ])("throws on %s", (_name, md, message) => {
+    expect(() => parseVocabulary(md)).toThrow(message);
+  });
 });
 
 describe("parseRulesFile", () => {

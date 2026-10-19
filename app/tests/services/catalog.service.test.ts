@@ -111,4 +111,37 @@ describe("getCatalogTags", () => {
     ]);
     await expect(getCatalogTags()).rejects.toThrow(/axis_key/);
   });
+
+  it("rejects an unknown entity kind", async () => {
+    vi.mocked(repo.findCatalogTagRows).mockResolvedValue([
+      row("TRIVIA", "A", "ROUTINE_STEP", "SKILL", "SCORING", true),
+    ]);
+    await expect(getCatalogTags()).rejects.toThrow(
+      "v_catalog_tags: unknown entity_kind TRIVIA",
+    );
+  });
+
+  it("keeps view row order within each set when rows interleave", async () => {
+    vi.mocked(repo.findCatalogTagRows).mockResolvedValue([
+      row("GAME", "CRICKET", "STANDALONE", "SKILL", "SCORING", true),
+      row("GAME", "CRICKET", "ROUTINE_STEP", "SKILL", "ACCURACY", true),
+      row("EXERCISE", "BULL_UP", "ROUTINE_STEP", "SKILL", "BULL", true),
+      row("GAME", "CRICKET", "STANDALONE", "SKILL", "TACTICS"),
+      row("EXERCISE", "BULL_UP", "ROUTINE_STEP", "SKILL", "ACCURACY"),
+      row("GAME", "CRICKET", "ROUTINE_STEP", "SKILL", "SCORING"),
+    ]);
+    const result = await getCatalogTags();
+    if (!result.ok) throw new Error("expected ok");
+    const keys = (set: { tags: { key: string }[] }) =>
+      set.tags.map((t) => t.key);
+    expect(keys(result.data.games.CRICKET.standalone)).toEqual([
+      "SCORING",
+      "TACTICS",
+    ]);
+    expect(keys(result.data.games.CRICKET.routineStep)).toEqual([
+      "ACCURACY",
+      "SCORING",
+    ]);
+    expect(keys(result.data.exercises.BULL_UP)).toEqual(["BULL", "ACCURACY"]);
+  });
 });
