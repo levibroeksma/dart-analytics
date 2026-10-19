@@ -4,15 +4,15 @@
 -- Idempotent: lookups upsert by id; link tables are cleared and refilled.
 BEGIN;
 
-INSERT INTO tag_axes (id, implementation_key, name, cardinality) VALUES
-  (1, 'SKILL', 'Skill', 'primary'),
-  (2, 'SESSION_ROLE', 'Session role', 'many'),
-  (3, 'FORMAT', 'Format', 'many'),
-  (4, 'DIFFICULTY', 'Difficulty', 'one'),
-  (5, 'MECHANIC', 'Mechanic', 'many'),
-  (6, 'PRESSURE', 'Pressure', 'many'),
-  (7, 'FAMILY', 'Family', 'one')
-ON CONFLICT (id) DO UPDATE SET implementation_key = EXCLUDED.implementation_key, name = EXCLUDED.name, cardinality = EXCLUDED.cardinality;
+INSERT INTO tag_axes (id, implementation_key, name) VALUES
+  (1, 'SKILL', 'Skill'),
+  (2, 'SESSION_ROLE', 'Session role'),
+  (3, 'FORMAT', 'Format'),
+  (4, 'DIFFICULTY', 'Difficulty'),
+  (5, 'MECHANIC', 'Mechanic'),
+  (6, 'PRESSURE', 'Pressure'),
+  (7, 'FAMILY', 'Family')
+ON CONFLICT (id) DO UPDATE SET implementation_key = EXCLUDED.implementation_key, name = EXCLUDED.name;
 
 INSERT INTO tag_contexts (id, implementation_key, name) VALUES
   (1, 'STANDALONE', 'Standalone'),

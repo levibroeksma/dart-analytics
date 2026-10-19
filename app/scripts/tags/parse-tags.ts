@@ -9,11 +9,16 @@
 export type Rule = "primary" | "one" | "many";
 export type ContextKey = "STANDALONE" | "ROUTINE_STEP";
 
+export type Scope = "all" | "game-standalone";
+/** Which rules-file shape a block belongs to (bash derives it from the folder). */
+export type Kind = "game" | "exercise";
+
 export type Axis = {
   key: string;
   name: string;
   rule: Rule;
   exclusive: string | null;
+  scope: Scope;
   values: { key: string; name: string }[];
 };
 export type TagRef = { axis: string; key: string; primary: boolean };
@@ -77,7 +82,10 @@ export function parseVocabulary(md: string): Axis[] {
   if (!axesTable) throw new Error("TAGS.md: no ## Axes section");
   const axes: Axis[] = [];
   for (const row of tableRows(axesTable)) {
-    const [name, rule, exclusive] = row;
+    const [name, rule, exclusive, scope] = row;
+    if (scope !== "all" && scope !== "game-standalone") {
+      throw new Error(`TAGS.md: axis "${name}" has unknown scope "${scope}"`);
+    }
     if (rule !== "primary" && rule !== "one" && rule !== "many") {
       throw new Error(`TAGS.md: axis "${name}" has unknown rule "${rule}"`);
     }
@@ -90,6 +98,7 @@ export function parseVocabulary(md: string): Axis[] {
       name,
       rule,
       exclusive: exclusive && exclusive !== "—" ? exclusive : null,
+      scope,
       values,
     });
   }
@@ -101,6 +110,7 @@ function parseTable(
   where: string,
   context: ContextKey,
   lines: string[],
+  gameRoutine: boolean,
 ): TagBlock {
   const tags: TagRef[] = [];
   const difficultyLabels: TagBlock["difficultyLabels"] = [];
@@ -112,7 +122,7 @@ function parseTable(
     seenAxes.add(axis);
     const parts = rawValues.split(",").map((p) => p.trim());
     const labelledDifficulty =
-      axis === "DIFFICULTY" && parts.length > 1 && context === "ROUTINE_STEP";
+      axis === "DIFFICULTY" && parts.length > 1 && gameRoutine;
     parts.forEach((part, i) => {
       const m = /^(.*?)\s*\(([^)]*)\)$/.exec(part);
       const key = (m ? m[1] : part).trim();
@@ -156,15 +166,24 @@ export function validateBlock(
   block: TagBlock,
   axes: Axis[],
   where: string,
+  kind: Kind = "game",
 ): void {
   const byKey = new Map(axes.map((a) => [a.key, a]));
-  const routine = block.context === "ROUTINE_STEP";
-  const wanted = axes.filter((a) => !(a.key === "FAMILY" && routine));
+  // Same rule as check-game-rules.sh `wants`: game-standalone axes only in a
+  // game's standalone (or flat) table. Several values on a `one` axis only in
+  // a game's `### Routine step` block, never in an exercise's flat table.
+  const gameRoutine = kind === "game" && block.context === "ROUTINE_STEP";
+  const inScope = (a: Axis) =>
+    a.scope === "all" ||
+    (a.scope === "game-standalone" &&
+      kind === "game" &&
+      block.context === "STANDALONE");
+  const wanted = axes.filter(inScope);
   const grouped = new Map<string, TagRef[]>();
   for (const t of block.tags) {
     const axis = byKey.get(t.axis);
     if (!axis) throw new Error(`${where}: unknown axis "${t.axis}"`);
-    if (axis.key === "FAMILY" && routine) {
+    if (!inScope(axis)) {
       throw new Error(`${where}: axis "${axis.name}" is not allowed here`);
     }
     if (!axis.values.some((v) => v.key === t.key)) {
@@ -200,7 +219,7 @@ export function validateBlock(
       throw new Error(`${where}: unexpected primary on ${axis.name}`);
     }
     if (axis.rule === "one" && list.length > 1) {
-      if (!(routine && axis.key === "DIFFICULTY")) {
+      if (!gameRoutine) {
         throw new Error(`${where}: ${axis.name} takes exactly one value`);
       }
     }
@@ -233,6 +252,7 @@ export function parseRulesFile(
     /^- Type constant: `([A-Z0-9_]+)`/m.exec(md)?.[1] ?? null;
   const lines = sections(md).get("Tags");
   const blocks: TagBlock[] = [];
+  const kind: Kind = exerciseTypeKey && !gameTypeKey ? "exercise" : "game";
   if (lines) {
     // An exercise's one flat table is its routine-step context; a flat game table is standalone.
     const flatContext: ContextKey =
@@ -246,10 +266,20 @@ export function parseRulesFile(
       else groups[groups.length - 1].lines.push(line);
     }
     const seen = new Set<string>();
+    if (groups.length > 1 && groups[0].lines.some((l) => l.startsWith("|"))) {
+      throw new Error(
+        "Tags: a table sits outside the ### Standalone / ### Routine step subsections",
+      );
+    }
     for (const g of groups) {
       if (g.name === null && !g.lines.some((l) => l.startsWith("|"))) continue;
       let context: ContextKey = flatContext;
       if (g.name !== null) {
+        if (kind === "exercise") {
+          throw new Error(
+            "Tags: an exercise has one flat table, no subsections",
+          );
+        }
         if (g.name === "Standalone") context = "STANDALONE";
         else if (g.name === "Routine step") context = "ROUTINE_STEP";
         else throw new Error(`Tags: unknown subsection "### ${g.name}"`);
@@ -258,9 +288,27 @@ export function parseRulesFile(
         seen.add(g.name);
       }
       const where = g.name ? `Tags (${g.name})` : "Tags";
-      const block = parseTable(where, context, g.lines);
-      if (axes) validateBlock(block, axes, where);
+      const block = parseTable(
+        where,
+        context,
+        g.lines,
+        kind === "game" && g.name === "Routine step",
+      );
+      if (axes) validateBlock(block, axes, where, kind);
       blocks.push(block);
+    }
+    if (kind === "game" && blocks.length > 0) {
+      const routine = /^Entry points:.*routine step/m.test(md);
+      if (routine && !(seen.has("Standalone") && seen.has("Routine step"))) {
+        throw new Error(
+          "Tags: Entry points include routine step, so Tags needs ### Standalone and ### Routine step",
+        );
+      }
+      if (!routine && seen.size > 0) {
+        throw new Error(
+          "Tags: subsections are only for a game whose Entry points include routine step",
+        );
+      }
     }
   }
   return { gameTypeKey, exerciseTypeKey, blocks };

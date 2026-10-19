@@ -17,6 +17,7 @@ const axes = parseVocabulary(rules("TAGS.md"));
 function routineDoc(difficulty: string): string {
   return [
     "Game type: `X`",
+    "Entry points: standalone, routine step",
     "## Tags",
     "### Standalone",
     "| Axis | Tags |",
@@ -129,7 +130,43 @@ describe("parseRulesFile", () => {
     ).toThrow(/not a Format value/);
   });
 
-  it("parses every playable rules file in the repo without throwing", () => {
+  it("rejects what check-game-rules.sh rejects", () => {
+    const exercise = (tableDifficulty: string, sub = false) =>
+      [
+        "## Tags",
+        sub ? "### Standalone" : "",
+        "| Axis | Tags |",
+        "| --- | --- |",
+        "| Skill | DOUBLES (primary) |",
+        "| Session role | CORE |",
+        "| Format | SOLO |",
+        `| Difficulty | ${tableDifficulty} |`,
+        "| Mechanic | LADDER |",
+        "| Pressure | SETBACK |",
+        "## Exercise type",
+        "- Type constant: `X_TYPE`",
+      ].join("\n");
+    expect(() =>
+      parseRulesFile(
+        exercise("INTERMEDIATE (1 dart), ADVANCED (2 darts)"),
+        axes,
+      ),
+    ).toThrow(/unexpected label/);
+    expect(() =>
+      parseRulesFile(exercise("INTERMEDIATE, ADVANCED"), axes),
+    ).toThrow(/takes exactly one value/);
+    expect(() => parseRulesFile(exercise("BEGINNER", true), axes)).toThrow(
+      /no subsections/,
+    );
+    expect(() => parseRulesFile(exercise("BEGINNER"), axes)).not.toThrow();
+  });
+
+  it("drives axis scope from the Scope column", () => {
+    expect(axes.find((a) => a.key === "FAMILY")?.scope).toBe("game-standalone");
+    expect(axes.find((a) => a.key === "SKILL")?.scope).toBe("all");
+  });
+
+  it("parses a sample of playable rules files without throwing", () => {
     for (const p of [
       "rulesets/501.md",
       "rulesets/singles-training.md",

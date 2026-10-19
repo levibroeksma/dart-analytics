@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { buildSeedSql } from "../../scripts/generate-tag-seed";
+import { buildSeedSql, generate } from "../../scripts/generate-tag-seed";
 import {
   parseVocabulary,
   type TagBlock,
@@ -93,7 +93,7 @@ describe("buildSeedSql", () => {
     expect(standaloneRows.some((l) => l.includes(`, ${familyId},`))).toBe(true);
   });
 
-  it("writes no DIFFICULTY row for a multi-label ROUTINE_STEP block, one for a single", () => {
+  it("writes no DIFFICULTY row for a multi-label game ROUTINE_STEP block, one for a single", () => {
     const beginnerId =
       axes[0].values.length + axes[1].values.length + axes[2].values.length + 1;
     const multi: TagBlock = {
@@ -110,22 +110,48 @@ describe("buildSeedSql", () => {
       difficultyLabels: [{ key: "BEGINNER", label: null }],
     };
     const { sql } = build({
-      games: new Map(),
-      exercises: new Map([
-        ["HIT_COUNT", [multi]],
-        ["BULL_UP", [single]],
-      ]),
+      games: new Map([["SINGLES_TRAINING", [standalone, multi]]]),
+      exercises: new Map([["BULL_UP", [single]]]),
     });
     const hit = sql
-      .slice(
-        sql.indexOf("-- exercise HIT_COUNT"),
-        sql.indexOf("-- exercise HIT_COUNT") + 1500,
-      )
+      .slice(sql.indexOf("-- game SINGLES_TRAINING"))
+      .split("INSERT INTO game_type_tags")[2]
       .split(";")[0];
     const difficultyIds = axes[3].values.map((_, i) => beginnerId + i);
     for (const id of difficultyIds) expect(hit).not.toContain(`, ${id},`);
     const bull = sql.slice(sql.indexOf("-- exercise BULL_UP")).split(";")[0];
     expect(bull).toContain(`, ${beginnerId},`);
+  });
+
+  it("throws on a multi-value Difficulty in an exercise's flat table", () => {
+    const multi: TagBlock = {
+      context: "ROUTINE_STEP",
+      tags: tags(["INTERMEDIATE", "ADVANCED"]),
+      difficultyLabels: [
+        { key: "INTERMEDIATE", label: "1 dart" },
+        { key: "ADVANCED", label: "2 darts" },
+      ],
+    };
+    expect(() =>
+      build({ games: new Map(), exercises: new Map([["HIT_COUNT", [multi]]]) }),
+    ).toThrow(/takes exactly one value/);
+  });
+
+  it("warns and writes no rows for a rules file with no Tags section", () => {
+    const { sql, warnings } = build({
+      games: new Map([["CRICKET", []]]),
+      exercises: new Map([["HIT_COUNT", []]]),
+    });
+    expect(warnings).toEqual([
+      "no tag source: CRICKET",
+      "no tag source: HIT_COUNT",
+    ]);
+    expect(sql).not.toContain("INSERT INTO game_type_tags");
+    expect(sql).not.toContain("INSERT INTO exercise_type_tags");
+  });
+
+  it("has no cardinality column on tag_axes", () => {
+    expect(build().sql).not.toContain("cardinality");
   });
 
   it("throws on two primary SKILL rows in one block", () => {
@@ -166,6 +192,27 @@ describe("buildSeedSql", () => {
     const b = build();
     expect(a.sql).not.toContain("exercise_templates");
     expect(a.sql).toBe(b.sql);
+  });
+});
+
+describe("generate() over the real rules files", () => {
+  it("parses every in-scope rules file, matches the committed seed, and warns only for the two untagged types", () => {
+    const { sql, warnings } = generate();
+    expect(warnings).toEqual([
+      "no tag source: DOUBLE_PATTERN",
+      "no tag source: SWITCHING",
+    ]);
+    expect(sql).toBe(
+      readFileSync(
+        fileURLToPath(
+          new URL(
+            "../../../database/seeds/0042_catalog_tags.sql",
+            import.meta.url,
+          ),
+        ),
+        "utf8",
+      ),
+    );
   });
 });
 

@@ -87,7 +87,12 @@ export function buildSeedSql(input: SeedInput): {
         CONTEXTS.findIndex((c) => c.key === b.context),
     );
     for (const block of ordered) {
-      validateBlock(block, axes, `${typeTable} ${typeKey} (${block.context})`);
+      validateBlock(
+        block,
+        axes,
+        `${typeTable} ${typeKey} (${block.context})`,
+        table === "game_type_tags" ? "game" : "exercise",
+      );
       const multiLabelled =
         block.context === "ROUTINE_STEP" && block.difficultyLabels.length > 1;
       const rows = block.tags
@@ -123,9 +128,15 @@ export function buildSeedSql(input: SeedInput): {
     return out;
   };
 
+  const noSource = new Set<string>();
   const gameSql: string[] = [];
   for (const key of [...input.games.keys()].sort()) {
-    const blocks = withRoutineStep(input.games.get(key) as TagBlock[]);
+    const raw = input.games.get(key) as TagBlock[];
+    if (raw.length === 0) {
+      noSource.add(key); // rules file without a ## Tags section
+      continue;
+    }
+    const blocks = withRoutineStep(raw);
     gameSql.push(
       `-- game ${key}`,
       ...linkInserts("game_type_tags", "game_types", key, blocks),
@@ -135,6 +146,10 @@ export function buildSeedSql(input: SeedInput): {
   const exerciseSql: string[] = [];
   for (const key of [...input.exercises.keys()].sort()) {
     const blocks = input.exercises.get(key) as TagBlock[];
+    if (blocks.length === 0) {
+      noSource.add(key);
+      continue;
+    }
     if (blocks.some((b) => b.context !== "ROUTINE_STEP")) {
       throw new Error(
         `exercise ${key}: tags must be one flat (ROUTINE_STEP) table`,
@@ -148,8 +163,9 @@ export function buildSeedSql(input: SeedInput): {
 
   for (const key of [...(input.dbExerciseKeys ?? [])].sort()) {
     if (key === "GAME" || input.exercises.has(key)) continue;
-    warnings.push(`no tag source: ${key}`);
+    noSource.add(key);
   }
+  warnings.push(...[...noSource].sort().map((k) => `no tag source: ${k}`));
 
   const lines = [
     "-- GENERATED — do not edit. Run `npm run tags:generate` (app/).",
@@ -158,11 +174,9 @@ export function buildSeedSql(input: SeedInput): {
     "-- Idempotent: lookups upsert by id; link tables are cleared and refilled.",
     "BEGIN;",
     "",
-    "INSERT INTO tag_axes (id, implementation_key, name, cardinality) VALUES",
-    axes
-      .map((a, i) => `  (${i + 1}, ${q(a.key)}, ${q(a.name)}, ${q(a.rule)})`)
-      .join(",\n"),
-    "ON CONFLICT (id) DO UPDATE SET implementation_key = EXCLUDED.implementation_key, name = EXCLUDED.name, cardinality = EXCLUDED.cardinality;",
+    "INSERT INTO tag_axes (id, implementation_key, name) VALUES",
+    axes.map((a, i) => `  (${i + 1}, ${q(a.key)}, ${q(a.name)})`).join(",\n"),
+    "ON CONFLICT (id) DO UPDATE SET implementation_key = EXCLUDED.implementation_key, name = EXCLUDED.name;",
     "",
     "INSERT INTO tag_contexts (id, implementation_key, name) VALUES",
     CONTEXTS.map((c) => `  (${c.id}, ${q(c.key)}, ${q(c.name)})`).join(",\n"),
