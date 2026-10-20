@@ -331,7 +331,9 @@ describe("TacticsEngine", () => {
     runToLastObjective(engine);
     engine.record(T(7));
     const before = engine.facts();
-    expect(() => engine.record(MISS)).toThrow();
+    expect(() => engine.record(MISS)).toThrow(
+      "Cannot record a dart once the game has ended; undo first to correct it.",
+    );
     expect(engine.facts()).toEqual(before);
   });
 

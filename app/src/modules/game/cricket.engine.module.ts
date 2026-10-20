@@ -8,6 +8,7 @@ import {
   cloneTurns,
   exerciseBlockStage,
   openOrCreateTurn,
+  refuseWhenEnded,
   undoLastDart,
 } from "./turn-log.module";
 import type { GameEngine, GameEngineFactory } from "./interfaces";
@@ -157,11 +158,10 @@ export class CricketEngine implements GameEngine<
    */
   record(observation: DartObservation): CricketState {
     const before = this.deriveState();
-    if (activeSeatState(before).status !== "IN_PROGRESS") {
-      throw new Error(
-        "Cannot record a dart once the game has ended; undo first to correct it.",
-      );
-    }
+    refuseWhenEnded(
+      activeSeatState(before).status !== "IN_PROGRESS",
+      "game has ended",
+    );
     const openTurn = openOrCreateTurn(
       this.turns,
       STAGE.clientKey,

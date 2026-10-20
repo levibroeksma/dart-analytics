@@ -7,6 +7,7 @@ import {
   exerciseBlockStage,
   openOrCreateTurn,
   openVisit,
+  refuseWhenEnded,
   resolveObservation,
   sumDartScores,
   undoLastUnit,
@@ -240,11 +241,7 @@ export class ScoreTrainingEngine implements GameEngine<
    *   never be mutated after the outcome is settled.
    */
   private recordDart(observation: DartObservation): ScoreTrainingState {
-    if (this.isMatchDecided()) {
-      throw new Error(
-        "Cannot record a dart once the match is complete; undo first to correct it.",
-      );
-    }
+    refuseWhenEnded(this.isMatchDecided(), "match is complete");
     const resolved = resolveObservation(observation);
 
     const turn =

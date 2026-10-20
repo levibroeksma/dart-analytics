@@ -199,7 +199,9 @@ describe("CricketEngine", () => {
     engine.record(dart(25, "INNER_BULL"));
     engine.record(dart(25, "OUTER_BULL"));
     const before = engine.facts();
-    expect(() => engine.record(MISS)).toThrow();
+    expect(() => engine.record(MISS)).toThrow(
+      "Cannot record a dart once the game has ended; undo first to correct it.",
+    );
     expect(engine.facts()).toEqual(before);
   });
 
