@@ -1,4 +1,5 @@
 import type { DartZoneKey, MarksHit, MarksSeatState } from "./types";
+import { refuseWhenEnded } from "./turn-log.module";
 
 export type { MarksHit } from "./types";
 
@@ -50,11 +51,7 @@ export function applyMarksDart(
   state: MarksSeatState,
   hit: MarksHit,
 ): MarksSeatState {
-  if (state.status !== "IN_PROGRESS") {
-    throw new Error(
-      "Cannot record a dart once the game has ended; undo first to correct it.",
-    );
-  }
+  refuseWhenEnded(state.status !== "IN_PROGRESS", "game has ended");
   const dartsThrown = state.dartsThrown + 1;
   const marks = [...state.marks];
   const closedAtDart = [...state.closedAtDart];

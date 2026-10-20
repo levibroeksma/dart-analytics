@@ -82,7 +82,9 @@ describe("applyMarksDart", () => {
       objectiveIndex: 0,
       marks: 3,
     });
-    expect(() => applyMarksDart(done, null)).toThrow(/undo first/);
+    expect(() => applyMarksDart(done, null)).toThrow(
+      "Cannot record a dart once the game has ended; undo first to correct it.",
+    );
   });
 });
 

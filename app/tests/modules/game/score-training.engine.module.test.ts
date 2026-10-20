@@ -864,7 +864,9 @@ describe("ScoreTrainingEngine — 1v1 completion guard", () => {
     expect(decided.status).toBe("COMPLETE");
     expect(decided.winningSideKey).toBe("B");
 
-    expect(() => engine.record(trebleTwenty)).toThrow();
+    expect(() => engine.record(trebleTwenty)).toThrow(
+      "Cannot record a dart once the match is complete; undo first to correct it.",
+    );
 
     expect(engine.state().winningSideKey).toBe("B");
     expect(engine.facts().turns).toHaveLength(2);
