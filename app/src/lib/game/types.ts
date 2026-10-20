@@ -1,3 +1,8 @@
+import type {
+  CatalogTag,
+  CatalogTagsResponse,
+  DifficultyLevel,
+} from "@lib/types";
 import type { Call } from "./interfaces";
 
 import type { ConfigurationPresetData } from "@client/api/configuration-templates";
@@ -1463,6 +1468,7 @@ export type AroundTheClockPlayContext = PlayLifecycleContext<
 export type GamesIndexContext = {
   activeRulesetKeys: string[];
   sessionsLoading: boolean;
+  catalogTags: CatalogTagsResponse | null;
   $store: {
     settings: {
       captureModeKey: string;
@@ -1473,17 +1479,17 @@ export type GamesIndexContext = {
   };
   init(this: GamesIndexContext): Promise<void>;
   loading(this: GamesIndexContext): boolean;
+  gameTags(this: GamesIndexContext, gameTypeKey: string): CatalogTag[];
+  gameLevel(
+    this: GamesIndexContext,
+    gameTypeKey: string,
+  ): DifficultyLevel | null;
   isVisible(
     this: GamesIndexContext,
     rulesetVersionKey: RulesetVersionKey,
   ): boolean;
   analyticsMode(this: GamesIndexContext): boolean;
   groupVisible(this: GamesIndexContext, groupKey: GameGroupKey): boolean;
-  isFirstVisible(
-    this: GamesIndexContext,
-    groupKey: GameGroupKey,
-    rulesetVersionKey: RulesetVersionKey,
-  ): boolean;
   noneVisible(this: GamesIndexContext): boolean;
 };
 

@@ -1035,6 +1035,73 @@ describe("readSection (server, step-result chunk merge, controller ruling R22)",
     });
   });
 
+  it("merges a composite exercise kind's chunks under that kind's own spec", async () => {
+    const query = {
+      bucket: "none" as const,
+      context: "all" as const,
+      inputMode: "VISUAL_BOARD",
+      from: "2026-01-01T00:00:00.000Z",
+      to: "2026-03-01T00:00:00.000Z",
+    };
+    const scope: CacheScope = {
+      key: stepScopeKey("routine-1", "4-abc"),
+      gameTypeKey: null,
+      exerciseKind: "SWITCHING:CHAIN",
+    };
+    const fetcher = vi
+      .fn()
+      .mockImplementation((span: { from: string; to: string }) =>
+        Promise.resolve({
+          sectionId: "step-result",
+          sectionVersion: 1,
+          dataVersion: "v1:1:0",
+          bucket: "none" as const,
+          tz: null,
+          range: { from: span.from, to: span.to },
+          buckets: [
+            {
+              start: span.from,
+              end: span.to,
+              closed: true,
+              sampleSize: 1,
+              metrics: (span.from === "2026-01-01T00:00:00.000Z"
+                ? {
+                    metrics: { bestChain: 10, sequences: 1, darts: 9, hits: 3 },
+                    headlineMin: 10,
+                    headlineMax: 10,
+                    sessions: 1,
+                    skippedSessions: 0,
+                  }
+                : {
+                    metrics: { bestChain: 6, sequences: 2, darts: 3, hits: 1 },
+                    headlineMin: 6,
+                    headlineMax: 6,
+                    sessions: 1,
+                    skippedSessions: 0,
+                  }) as StepResultLike,
+            },
+          ],
+        }),
+      );
+
+    const result = await readSection(
+      "p1",
+      scope,
+      ROUTINE_SECTIONS["step-result"],
+      query,
+      fetcher,
+      new Date("2026-04-01T00:00:00.000Z"),
+    );
+
+    expect(result.buckets[0]!.metrics).toEqual({
+      metrics: { bestChain: 10, sequences: 3, darts: 12, hits: 4 },
+      headlineMin: 6,
+      headlineMax: 10,
+      sessions: 2,
+      skippedSessions: 0,
+    });
+  });
+
   it("throws when a step-result chunk read has no exerciseKind (programming error)", async () => {
     const query = {
       bucket: "none" as const,

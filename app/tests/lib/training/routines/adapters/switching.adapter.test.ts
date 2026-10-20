@@ -65,7 +65,7 @@ describe("switchingAdapter", () => {
     });
 
     expect(switchingAdapter.summarise(ctx)).toEqual({
-      stepKey: "SWITCHING",
+      stepKey: "SWITCHING:STANDARD",
       label: "Switching",
       rows: [
         { label: "Points", value: "1" },

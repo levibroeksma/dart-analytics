@@ -2,7 +2,7 @@
 status: canonical
 scope: database/reference-layer
 read-when: adding/changing lookup tables or seeded reference data
-updated: 2026-09-17
+updated: 2026-10-19
 -->
 
 # Database Specification — Chapter 1: Reference Layer
@@ -539,6 +539,47 @@ game-backed exercise. A single discriminated `ruleset_versions` table would give
 `ruleset_versions` is left untouched.
 
 Seeded by `0014_exercise_types.sql`.
+
+---
+
+# Catalog tags (migration 0047)
+
+## Purpose
+
+Tags shown on game and exercise cards (and, later, filters). Authored only in the `## Tags` tables
+of `docs/game-rules/rulesets/*.md` and `docs/game-rules/training/exercises/*.md`, vocabulary in
+`docs/game-rules/TAGS.md`. The generated seed `0042_catalog_tags.sql` (`npm run tags:generate`,
+drift-gated) writes every table below; never hand-edit it. <!-- 2026-10-19 -->
+
+## Tables
+
+| Table | Primary key | Key columns |
+| ----- | ----------- | ----------- |
+| `tag_axes` | `id SMALLINT` (seeded) | `implementation_key` (`uq_tag_axes_implementation_key`): `SKILL`, `SESSION_ROLE`, `FORMAT`, `DIFFICULTY`, `MECHANIC`, `PRESSURE`, `FAMILY`; `name` |
+| `tag_contexts` | `id SMALLINT` (seeded) | `implementation_key` (`uq_tag_contexts_implementation_key`): `STANDALONE` = 1, `ROUTINE_STEP` = 2; `name` |
+| `tags` | `id SMALLINT` (seeded) | `tag_axis_id` → `tag_axes` (`fk_tags_tag_axis`, RESTRICT); `implementation_key`, unique per axis (`uq_tags_axis_implementation_key`); `name`; `sort_order` (TAGS.md row order within the axis, unique per axis: `uq_tags_axis_sort_order`) |
+| `game_type_tags` | (`game_type_id`, `tag_context_id`, `tag_id`) | `game_type_id` → `game_types` (CASCADE); `tag_context_id` → `tag_contexts`, `tag_id` → `tags` (RESTRICT); `is_primary BOOLEAN NOT NULL DEFAULT FALSE` |
+| `exercise_type_tags` | (`exercise_type_id`, `tag_id`) | `exercise_type_id` → `exercise_types` (CASCADE); `tag_id` → `tags` (RESTRICT); `is_primary BOOLEAN NOT NULL DEFAULT FALSE` |
+
+## Constraints
+
+- `uq_game_type_tags_primary` — partial unique index on (`game_type_id`, `tag_context_id`) `WHERE is_primary`: at most one primary tag per game type and context.
+- `uq_exercise_type_tags_primary` — partial unique index on (`exercise_type_id`) `WHERE is_primary`.
+- "Exactly one" Difficulty and Family per block is enforced by the generator and its gate, not the database; `tag_axes` has no cardinality column.
+
+## Design Rationale
+
+Two typed link tables, not EAV or a polymorphic FK: both parents are UUID domain entities with their
+own tables. The context is a lookup (agent guide rule 7), not a `TEXT CHECK` enum; a game is tagged
+per context because the Games screen reads `STANDALONE` and the exercise picker reads `ROUTINE_STEP`.
+An exercise type is always a routine step, so `exercise_type_tags` has no context column. A game with
+no `### Routine step` block gets its Standalone tags minus Family in `ROUTINE_STEP`. Only types with a
+`game_types` / `exercise_types` row get link rows.
+
+Like every other table, no column has a default: the generated seed writes the ids and
+`created_at`/`updated_at = now()` explicitly, and its upserts refresh `updated_at`.
+
+Read through `v_catalog_tags` (Read Model Layer), never directly.
 
 ---
 

@@ -9,8 +9,8 @@ import { boardTargetLabel } from "@modules/game/board-progression.module";
 import { switchbladeRoundSlots } from "@modules/training/exercises/switchblade.engine.module";
 import type {
   DoublePatternConfigData,
+  SwitchingChainConfigData,
   SwitchingConfigData,
-  SwitchingTargetScoringConfigData,
 } from "@lib/types";
 import type {
   DartJudgement,
@@ -28,7 +28,7 @@ const ENGINE_FAMILIES: readonly [
   ["switchingEngine", "switching"],
   ["doublePatternEngine", "doublePattern"],
   ["targetScoringEngine", "targetScoring"],
-  ["switchingTargetScoringEngine", "switchingTargetScoring"],
+  ["switchingChainEngine", "switchingChain"],
   ["scoreThresholdEngine", "freeAim"],
   ["checkoutSequenceEngine", "freeAim"],
   ["randomCheckoutEngine", "freeAim"],
@@ -83,7 +83,7 @@ const JUDGES: Record<ExercisePreviewFamily, (dart: DartFact) => DartJudgement> =
     switching: judgeOnTarget,
     doublePattern: judgeDouble,
     targetScoring: judgeTargetScoring,
-    switchingTargetScoring: judgeTargetScoring,
+    switchingChain: judgeTargetScoring,
     freeAim: judgeFreeAim,
     bullseye: judgeBullseye,
     hitCount: judgeIntendedBed,
@@ -94,8 +94,8 @@ const JUDGES: Record<ExercisePreviewFamily, (dart: DartFact) => DartJudgement> =
 /**
  * Hit, miss or free-aim value for one dart. Each dart carries the target it
  * was thrown at, so no config lookup is needed; Double Pattern additionally
- * requires the double, both Target Scoring exercises share their ring rule
- * (a double is a miss), free-aim exercises have no target (a dart on the
+ * requires the double, Target Scoring and Switching Chain share their ring
+ * rule (a double is a miss), free-aim exercises have no target (a dart on the
  * board is a value), and Bullseye Checkouts judges setup darts as free aim
  * and the dart aimed at the bull as a hit only on the bullseye. Hit Count
  * counts only the intended bed. SwitchBlade judges on the number, any ring.
@@ -129,8 +129,8 @@ function targetScoringCaptions(input: VisitLabelInput): Captions {
   return [label, label, label];
 }
 
-function switchingTargetScoringCaptions(input: VisitLabelInput): Captions {
-  const config = input.config as SwitchingTargetScoringConfigData | null;
+function switchingChainCaptions(input: VisitLabelInput): Captions {
+  const config = input.config as SwitchingChainConfigData | null;
   if (!config) return noCaptions();
   const start = input.targetIndex - input.dartsInOpenVisit;
   return cycleFrom(config.targets, start, 3).map(targetScoringTargetLabel);
@@ -151,7 +151,7 @@ const CAPTIONS: Partial<
   switching: switchingCaptions,
   doublePattern: doublePatternCaptions,
   targetScoring: targetScoringCaptions,
-  switchingTargetScoring: switchingTargetScoringCaptions,
+  switchingChain: switchingChainCaptions,
   hitCount: hitCountCaptions,
   switchblade: switchbladeCaptions,
   doublesLock: hitCountCaptions,

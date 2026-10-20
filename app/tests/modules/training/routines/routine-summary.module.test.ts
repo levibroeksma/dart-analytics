@@ -3,7 +3,7 @@ import {
   summariseSwitching,
   summariseDoublePattern,
   summariseTargetScoring,
-  summariseSwitchingTargetScoring,
+  summariseSwitchingChain,
   summariseScoreThreshold,
   summariseBullseyeCheckout,
   summariseBullUp,
@@ -17,7 +17,7 @@ import type {
   SwitchingState,
   DoublePatternState,
   TargetScoringState,
-  SwitchingTargetScoringState,
+  SwitchingChainState,
   ScoreThresholdState,
   BullseyeCheckoutState,
   BullUpState,
@@ -82,7 +82,7 @@ describe("summariseSwitching", () => {
     ]);
 
     expect(summariseSwitching(SWITCHING_STATE, facts)).toEqual({
-      stepKey: "SWITCHING",
+      stepKey: "SWITCHING:STANDARD",
       label: "Switching",
       rows: [
         { label: "Points", value: "7" },
@@ -327,8 +327,8 @@ describe("summariseTargetScoring", () => {
   });
 });
 
-describe("summariseSwitchingTargetScoring", () => {
-  const STATE: SwitchingTargetScoringState = {
+describe("summariseSwitchingChain", () => {
+  const STATE: SwitchingChainState = {
     currentTargetNumber: 19,
     targetIndex: 1,
     currentChain: 4,
@@ -341,9 +341,9 @@ describe("summariseSwitchingTargetScoring", () => {
   };
 
   it("reports the best chain, sequences, darts and hit rate", () => {
-    expect(summariseSwitchingTargetScoring(STATE)).toEqual({
-      stepKey: "SWITCHING_TARGET_SCORING",
-      label: "Switching Target Scoring",
+    expect(summariseSwitchingChain(STATE)).toEqual({
+      stepKey: "SWITCHING:CHAIN",
+      label: "Switching Chain",
       rows: [
         { label: "Best chain", value: "9" },
         { label: "Sequences", value: "2" },

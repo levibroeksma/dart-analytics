@@ -6,7 +6,11 @@ vi.mock("@client/api/routines", () => ({
   createRoutine: vi.fn(),
   updateRoutine: vi.fn(),
 }));
+vi.mock("@client/api/catalog", () => ({
+  fetchCatalogTags: vi.fn(),
+}));
 import * as api from "@client/api/routines";
+import { fetchCatalogTags } from "@client/api/catalog";
 import { SessionApiError } from "@client/api/sessions";
 import * as builderModule from "@lib/training/routines/routine-builder.data";
 import { routineBuilder } from "@lib/training/routines/routine-builder.data";
@@ -20,6 +24,11 @@ const CATALOG = [
     exerciseTypeKey: "WARM_UP",
     gameTypeKey: null,
     gameRulesetVersionKey: null,
+    exerciseTypeName: "Warm-Up",
+    gameTypeName: null,
+    difficultyLevel: null,
+    exerciseTypeDescription: null,
+    gameTypeDescription: null,
   },
   {
     exerciseTemplateId: "et-f",
@@ -28,6 +37,11 @@ const CATALOG = [
     exerciseTypeKey: "GAME",
     gameTypeKey: "TUOD",
     gameRulesetVersionKey: "TUOD_V1",
+    exerciseTypeName: "Game",
+    gameTypeName: "Tour of the Doubles",
+    difficultyLevel: 3,
+    exerciseTypeDescription: null,
+    gameTypeDescription: null,
   },
 ];
 const ROUTINE = {
@@ -64,6 +78,35 @@ const ROUTINE = {
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(api.listExerciseTemplates).mockResolvedValue(CATALOG);
+  vi.mocked(fetchCatalogTags).mockResolvedValue({ games: {}, exercises: {} });
+});
+
+describe("routineBuilder groups", () => {
+  it("exposes the catalog grouped by type, card-name ordered", async () => {
+    const b: RoutineBuilderContext = routineBuilder("create");
+    await b.init();
+    expect(b.groups().map((g) => g.key)).toEqual(["TUOD", "WARM_UP"]);
+  });
+
+  it("still loads and groups when the tags fetch fails", async () => {
+    vi.mocked(fetchCatalogTags).mockRejectedValue(new Error("down"));
+    const b: RoutineBuilderContext = routineBuilder("create");
+    await b.init();
+    expect(b.error).toBe("");
+    expect(b.catalogTags).toBeNull();
+    expect(b.groups()).toHaveLength(2);
+  });
+
+  it("still adds a step from an untagged card when the tags fetch fails", async () => {
+    vi.mocked(fetchCatalogTags).mockRejectedValue(new Error("down"));
+    const b: RoutineBuilderContext = routineBuilder("create");
+    await b.init();
+    const entry = b.groups()[0].entries[0];
+    expect(b.groups()[0].tags).toEqual([]);
+    b.addStep(entry);
+    expect(b.steps).toHaveLength(1);
+    expect(b.steps[0].exerciseTemplateId).toBe(entry.exerciseTemplateId);
+  });
 });
 
 describe("routineBuilder (create)", () => {
@@ -378,6 +421,15 @@ describe("routineBuilder (edit)", () => {
       expect.objectContaining({ name: "Mine", description: "desc" }),
     );
     expect(nav).toHaveBeenCalledWith("/training/routines/detail?routine=o");
+  });
+
+  it("renders a routine left with no steps", async () => {
+    vi.mocked(api.getRoutine).mockResolvedValue({ ...ROUTINE, steps: [] });
+    const b: RoutineBuilderContext = routineBuilder("edit");
+    await b.init();
+    expect(b.error).toBe("");
+    expect(() => b.groups()).not.toThrow();
+    expect(b.totalMinutes()).toBe(0);
   });
 
   it("refuses to edit a system routine", async () => {

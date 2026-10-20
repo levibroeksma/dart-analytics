@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Switching Target Scoring — aimed golden trace > bull first: seed 11 aimed step trace is unchanged 1`] = `
+exports[`Switching Chain — aimed golden trace > bull first: seed 11 aimed step trace is unchanged 1`] = `
 {
   "facts": {
     "stages": [
@@ -3041,7 +3041,7 @@ exports[`Switching Target Scoring — aimed golden trace > bull first: seed 11 a
 }
 `;
 
-exports[`Switching Target Scoring — aimed golden trace > bull last: seed 11 aimed step trace is unchanged 1`] = `
+exports[`Switching Chain — aimed golden trace > bull last: seed 11 aimed step trace is unchanged 1`] = `
 {
   "facts": {
     "stages": [
@@ -6082,7 +6082,7 @@ exports[`Switching Target Scoring — aimed golden trace > bull last: seed 11 ai
 }
 `;
 
-exports[`Switching Target Scoring — aimed golden trace > expired, resumed: seed 11 aimed step trace is unchanged 1`] = `
+exports[`Switching Chain — aimed golden trace > expired, resumed: seed 11 aimed step trace is unchanged 1`] = `
 {
   "facts": {
     "stages": [
@@ -8883,7 +8883,7 @@ exports[`Switching Target Scoring — aimed golden trace > expired, resumed: see
 }
 `;
 
-exports[`Switching Target Scoring — aimed golden trace > numbers: seed 11 aimed step trace is unchanged 1`] = `
+exports[`Switching Chain — aimed golden trace > numbers: seed 11 aimed step trace is unchanged 1`] = `
 {
   "facts": {
     "stages": [

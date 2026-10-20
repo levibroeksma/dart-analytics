@@ -64,7 +64,6 @@ export type TrainingStepResolved = {
     | "SWITCHING"
     | "DOUBLE_PATTERN"
     | "TARGET_SCORING"
-    | "SWITCHING_TARGET_SCORING"
     | "SCORE_THRESHOLD"
     | "BULLSEYE_CHECKOUT"
     | "BULL_UP"
@@ -231,6 +230,11 @@ export type ExerciseTemplateCatalogEntry = {
   exerciseTypeKey: string;
   gameTypeKey: string | null;
   gameRulesetVersionKey: string | null;
+  exerciseTypeName: string;
+  gameTypeName: string | null;
+  difficultyLevel: number | null;
+  exerciseTypeDescription: string | null;
+  gameTypeDescription: string | null;
 };
 
 export type RoutineWriteInput = {

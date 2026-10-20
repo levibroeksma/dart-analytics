@@ -7,7 +7,7 @@ import type {
   SwitchingState,
   DoublePatternState,
   TargetScoringState,
-  SwitchingTargetScoringState,
+  SwitchingChainState,
   ScoreThresholdState,
   BullseyeCheckoutState,
   BullUpState,
@@ -29,8 +29,8 @@ import type {
 const NO_VALUE = "—";
 
 /**
- * Stands in for `facts` on every kind but Switching, whose hit count is the
- * only one `stepMetrics` derives by replaying dart facts rather than
+ * Stands in for `facts` on every kind but Switching Standard, whose hit
+ * count is the only one `stepMetrics` derives by replaying dart facts rather than
  * reading engine state alone (`stepMetrics`'s `switchingHits`). Every other
  * `summarise*` function takes its engine state only, so it has no real
  * facts to pass and none of its metrics needs them.
@@ -49,7 +49,7 @@ function hitRateRow(hits: number, darts: number): RoutineStatRow {
 }
 
 /**
- * Switching scores a dart only when it lands on the target that dart was
+ * Switching Standard scores a dart only when it lands on the target that dart was
  * thrown at, and every `DartFact` carries both numbers, so the hit count
  * needs neither the config nor the ruleset's scoring table.
  */
@@ -57,9 +57,13 @@ export function summariseSwitching(
   state: SwitchingState,
   facts: EngineFacts,
 ): RoutineStepSummary {
-  const { points, darts, hits } = stepMetrics("SWITCHING", state, facts);
+  const { points, darts, hits } = stepMetrics(
+    "SWITCHING:STANDARD",
+    state,
+    facts,
+  );
   return {
-    stepKey: "SWITCHING",
+    stepKey: "SWITCHING:STANDARD",
     label: "Switching",
     rows: [
       { label: "Points", value: String(points) },
@@ -117,21 +121,21 @@ export function summariseTargetScoring(
 }
 
 /**
- * Switching Target Scoring's result is its best chain, then how many full
- * passes through the sequence the run made. The engine folds a chain still
- * live at expiry into `bestChain`, so no fact replay is needed.
+ * Switching Chain's result is its best chain, then how many full passes
+ * through the sequence the run made. The engine folds a chain still live at
+ * expiry into `bestChain`, so no fact replay is needed.
  */
-export function summariseSwitchingTargetScoring(
-  state: SwitchingTargetScoringState,
+export function summariseSwitchingChain(
+  state: SwitchingChainState,
 ): RoutineStepSummary {
   const { bestChain, sequences, darts, hits } = stepMetrics(
-    "SWITCHING_TARGET_SCORING",
+    "SWITCHING:CHAIN",
     state,
     NO_FACTS,
   );
   return {
-    stepKey: "SWITCHING_TARGET_SCORING",
-    label: "Switching Target Scoring",
+    stepKey: "SWITCHING:CHAIN",
+    label: "Switching Chain",
     rows: [
       { label: "Best chain", value: String(bestChain) },
       { label: "Sequences", value: String(sequences) },

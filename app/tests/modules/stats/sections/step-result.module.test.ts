@@ -109,7 +109,10 @@ describe("foldStepResult", () => {
       { target: 18, hitTargetNumber: 18, hitZoneKey: "SINGLE" as DartZoneKey },
     ]);
 
-    const result = foldStepResult("SWITCHING", [...sessionA, ...sessionB]);
+    const result = foldStepResult("SWITCHING:STANDARD", [
+      ...sessionA,
+      ...sessionB,
+    ]);
 
     expect(result.metrics).toEqual({ points: 10, darts: 6, hits: 5 });
     expect(result.headlineMin).toBe(4);
@@ -329,15 +332,15 @@ describe("foldStepResult", () => {
     expect(result.sessions).toBe(1);
   });
 
-  it("skips a session whose ruleset has no registered engine, without throwing", () => {
+  it("skips a session whose ruleset has no registered engine, without throwing, a retired ruleset key included", () => {
     const rows = switchingSession("session-a", "2026-01-05T00:00:00.000Z", [
       { target: 20, hitTargetNumber: 20, hitZoneKey: "TREBLE" as DartZoneKey },
     ]).map((row) => ({
       ...row,
-      exerciseRulesetVersionKey: "MADE_UP_V1",
+      exerciseRulesetVersionKey: "RETIRED_EXERCISE_RULESET_V1",
     }));
 
-    const result = foldStepResult("SWITCHING", rows);
+    const result = foldStepResult("SWITCHING:STANDARD", rows);
 
     expect(result).toEqual({
       metrics: { points: 0, darts: 0, hits: 0 },
@@ -356,7 +359,7 @@ describe("foldStepResult", () => {
       exerciseRulesetVersionKey: null,
     }));
 
-    const result = foldStepResult("SWITCHING", rows);
+    const result = foldStepResult("SWITCHING:STANDARD", rows);
 
     expect(result).toEqual({
       metrics: { points: 0, darts: 0, hits: 0 },
@@ -372,7 +375,7 @@ describe("foldStepResult", () => {
       { target: 20, hitTargetNumber: 20, hitZoneKey: "TREBLE" as DartZoneKey },
     ]).map((row) => ({ ...row, configuration: null }));
 
-    const result = foldStepResult("SWITCHING", rows);
+    const result = foldStepResult("SWITCHING:STANDARD", rows);
 
     expect(result).toEqual({
       metrics: { points: 0, darts: 0, hits: 0 },
@@ -415,7 +418,10 @@ describe("foldStepResult", () => {
       { target: 20, hitTargetNumber: 20, hitZoneKey: "TREBLE" as DartZoneKey },
     ]).map((row) => ({ ...row, exerciseRulesetVersionKey: "MADE_UP_V1" }));
 
-    const result = foldStepResult("SWITCHING", [...folded, ...skipped]);
+    const result = foldStepResult("SWITCHING:STANDARD", [
+      ...folded,
+      ...skipped,
+    ]);
 
     expect(result.metrics).toEqual({ points: 4, darts: 2, hits: 2 });
     expect(result.sessions).toBe(1);
@@ -423,7 +429,7 @@ describe("foldStepResult", () => {
   });
 
   it("returns a zeroed result for no sessions in scope", () => {
-    expect(foldStepResult("SWITCHING", [])).toEqual({
+    expect(foldStepResult("SWITCHING:STANDARD", [])).toEqual({
       metrics: { points: 0, darts: 0, hits: 0 },
       headlineMin: null,
       headlineMax: null,
@@ -459,10 +465,14 @@ describe("stepResultBuckets", () => {
       bucketEnd: "2026-03-01T00:00:00.000Z",
     }));
 
-    const buckets = stepResultBuckets("SWITCHING", [...bucketA, ...bucketB], {
-      to: "2026-03-01T00:00:00.000Z",
-      now: new Date("2026-03-15T00:00:00.000Z"),
-    });
+    const buckets = stepResultBuckets(
+      "SWITCHING:STANDARD",
+      [...bucketA, ...bucketB],
+      {
+        to: "2026-03-01T00:00:00.000Z",
+        now: new Date("2026-03-15T00:00:00.000Z"),
+      },
+    );
 
     expect(buckets).toHaveLength(2);
     expect(buckets[0]).toMatchObject({
@@ -483,7 +493,7 @@ describe("stepResultBuckets", () => {
 
   it("returns no buckets for no rows in scope", () => {
     expect(
-      stepResultBuckets("SWITCHING", [], {
+      stepResultBuckets("SWITCHING:STANDARD", [], {
         to: "2026-03-01T00:00:00.000Z",
         now: new Date("2026-03-15T00:00:00.000Z"),
       }),
@@ -496,7 +506,7 @@ describe("stepResultBuckets", () => {
       "2026-04-01T00:00:00.000Z",
     );
 
-    const [bucket] = stepResultBuckets("SWITCHING", [row], {
+    const [bucket] = stepResultBuckets("SWITCHING:STANDARD", [row], {
       to: "2026-04-01T00:00:00.000Z",
       now: new Date("2026-03-15T00:00:00.000Z"),
     });

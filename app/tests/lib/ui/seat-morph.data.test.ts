@@ -133,6 +133,16 @@ describe("seatMorph", () => {
     vi.useRealTimers();
   });
 
+  it("animates when matchMedia is unavailable", () => {
+    const card = fakeCard(64, {});
+    const morph = morphOver([card]);
+    vi.stubGlobal("matchMedia", undefined);
+    morph.capture();
+    card.offsetHeight = 228;
+    morph.morph();
+    expect(card.animate).toHaveBeenCalled();
+  });
+
   it("skips every animation under reduced motion", () => {
     const score = fakeTwin(rect(250, 20, 40, 24));
     const card = fakeCard(64, { score });

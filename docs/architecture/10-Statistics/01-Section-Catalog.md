@@ -257,8 +257,9 @@ An entry is a `RoutineSectionMeta`: `SectionMeta`'s fields, with `id` a
   (`sectionsForRoutine()`). A step's list is `sectionsForStep(step)`: a GAME
   step shows exactly `sectionsForGame(gameTypeKey)` — its game's own
   `volume` covers the step, so `step-volume` is not added; a non-game step
-  whose exercise type is a dart exercise kind shows `step-result`,
-  `step-volume`; any other non-game step shows `step-volume` only. Warm-Up
+  whose exercise type and ruleset version resolve to a dart exercise kind
+  (`dartExerciseKindOf`, §3.1) shows `step-result`, `step-volume`; any other
+  non-game step shows `step-volume` only. Warm-Up
   throws no darts, so it gets `step-volume` only; it is told apart by its
   exercise type, not its input mode.
 
@@ -269,12 +270,26 @@ An entry is a `RoutineSectionMeta`: `SectionMeta`'s fields, with `id` a
 definition of each kind's metrics: their keys, their merge (`sum` or `max`),
 the headline and its direction, and the rate pairs the client divides.
 
+A kind is usually an exercise type key, but it is a **composite** wherever one
+exercise type ships several ruleset versions whose metrics differ. `SWITCHING`
+alone is not a kind: its two rulesets read as `SWITCHING:STANDARD`
+(`SWITCHING_V1`, headline points) and `SWITCHING:CHAIN` (`SWITCHING_CHAIN_V1`,
+headline best chain). `section-registry.ts`'s
+`dartExerciseKindOf({ exerciseTypeKey, exerciseRulesetVersionKey })` is the one
+place that mapping is written down; it returns `null` — never throws — for a
+GAME step, a dartless exercise or a kind this build does not know, so a session
+stored under a retired key still renders. A session that names no exercise
+ruleset at all falls back to the type key, which is why a legacy `SWITCHING`
+session still reads as `SWITCHING:STANDARD`. The composite key changes no cache
+key — `exerciseKind` only selects `step-result`'s chunk merger, so
+`STATS_SCHEMA_VERSION` is unaffected (2026-10-20).
+
 | Kind | Metrics (merge) | Headline | Rates |
 | ---- | --------------- | -------- | ----- |
-| SWITCHING | points, darts, hits (sum) | points ↑ | hits/darts |
+| SWITCHING:STANDARD | points, darts, hits (sum) | points ↑ | hits/darts |
+| SWITCHING:CHAIN | bestChain (max); sequences, darts, hits (sum) | bestChain ↑ | hits/darts |
 | DOUBLE_PATTERN | hits, darts (sum) | hits ↑ | hits/darts |
 | TARGET_SCORING | bestChain (max); darts, hits (sum) | bestChain ↑ | hits/darts |
-| SWITCHING_TARGET_SCORING | bestChain (max); sequences, darts, hits (sum) | bestChain ↑ | hits/darts |
 | SCORE_THRESHOLD | beats, visits, darts (sum) | beats ↑ | beats/visits |
 | BULLSEYE_CHECKOUT | checkouts, visits, darts (sum) | checkouts ↑ | checkouts/visits |
 | BULL_UP | throws, bullseyes, bulls (sum) | bullseyes ↑ | bullseyes/throws, bulls/throws |
@@ -287,7 +302,8 @@ the headline and its direction, and the rate pairs the client divides.
 - `stepMetrics(kind, state, facts)` reads engine state the way the routine
   summary modal does: `routine-summary.module.ts`'s `summarise*` functions
   run on it, so the modal and the statistics page cannot disagree.
-  Switching's hits come from the same fact walk.
+  Switching Standard's hits come from the same fact walk; Chain counts its
+  own hits, so it reads engine state alone.
 - The fold runs on the server (`step-result.module.ts`). `findStepFoldRows`
   reads `v_game_replay` joined to the step's sessions, each row tagged with
   the bucket its session's `completed_at` falls in. Per session:

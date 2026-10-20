@@ -1,5 +1,5 @@
-import type { SwitchingTargetScoringConfigData } from "@lib/types";
-import { SwitchingTargetScoringV1Config } from "@lib/training/exercises/rulesets/types";
+import type { SwitchingChainConfigData } from "@lib/types";
+import { SwitchingChainV1Config } from "@lib/training/exercises/rulesets/types";
 import type {
   BoardTarget,
   DartObservation,
@@ -25,21 +25,21 @@ import {
   targetScoringPoints,
 } from "./target-scoring.engine.module";
 import { trackExerciseSpec } from "./track-exercise-spec.module";
-import type { SwitchingTargetScoringState } from "./types";
+import type { SwitchingChainState } from "./types";
 
-const EXERCISE_RULESET_VERSION_KEY = "SWITCHING_TARGET_SCORING_V1" as const;
+const EXERCISE_RULESET_VERSION_KEY = "SWITCHING_CHAIN_V1" as const;
 const DARTS_PER_VISIT = 3;
 const DONE_MESSAGE =
-  "A Switching Target Scoring seat never finishes; only the timer ends the exercise.";
+  "A Switching Chain seat never finishes; only the timer ends the exercise.";
 
 /**
- * Switching Target Scoring's Track rules: the config's three targets in
- * order, scored as Target Scoring; `resetOnMiss` advances on a hit, wrapping
- * after the last, and restarts the sequence on a miss. Visits close after
- * three darts and carry no rule of their own.
+ * Switching Chain's Track rules: the config's three targets in order,
+ * scored as Target Scoring; `resetOnMiss` advances on a hit, wrapping after
+ * the last, and restarts the sequence on a miss. Visits close after three
+ * darts and carry no rule of their own.
  */
-function switchingTargetScoringRules(
-  config: SwitchingTargetScoringConfigData,
+function switchingChainRules(
+  config: SwitchingChainConfigData,
 ): TrackRules<SequenceTrackExt> {
   const pointsOn = (target: BoardTarget, observation: DartObservation) =>
     targetScoringPoints(sectionOf(target), observation);
@@ -62,12 +62,12 @@ function initialExt(): SequenceTrackExt {
   };
 }
 
-function projectSwitchingTargetScoring(
+function projectSwitchingChain(
   seat: TrackSeat<SequenceTrackExt>,
-  config: SwitchingTargetScoringConfigData,
+  config: SwitchingChainConfigData,
   complete: boolean,
   facts: EngineFacts,
-): SwitchingTargetScoringState {
+): SwitchingChainState {
   const { chain, finishedBest, hits, sequences } = seat.ext;
 
   return {
@@ -87,42 +87,44 @@ function projectSwitchingTargetScoring(
 }
 
 /**
- * Switching Target Scoring's rules for the exercise shell: Target Scoring's
- * points on a three-target sequence — a hit advances, a miss resets the chain
- * and restarts the sequence
- * (`docs/game-rules/training/exercises/switching-target-scoring.md`). One
- * three-dart visit per `TurnFact`; the sequence carries across visits.
+ * Switching's Chain config, as its own ruleset version of the `SWITCHING`
+ * exercise type: Target Scoring's points on a three-target sequence — a hit
+ * advances, a miss resets the chain and restarts the sequence. One
+ * three-dart visit per `TurnFact`; the sequence carries across visits. The
+ * mode rides on `SWITCHING_CHAIN_V1`, never on the step configuration, so
+ * Standard's stored configuration — and the step fingerprint its stats
+ * trend is bucketed by — is untouched by this ruleset existing.
  */
-const switchingTargetScoringSpec = trackExerciseSpec<
-  SwitchingTargetScoringConfigData,
+const switchingChainSpec = trackExerciseSpec<
+  SwitchingChainConfigData,
   SequenceTrackExt,
-  SwitchingTargetScoringState
+  SwitchingChainState
 >({
   exerciseRulesetVersionKey: EXERCISE_RULESET_VERSION_KEY,
-  parse: (config) => SwitchingTargetScoringV1Config.parse(config),
-  rules: switchingTargetScoringRules,
+  parse: (config) => SwitchingChainV1Config.parse(config),
+  rules: switchingChainRules,
   initialExt,
-  project: projectSwitchingTargetScoring,
+  project: projectSwitchingChain,
   intent: (state) => targetScoringIntent(state.currentTargetNumber),
 });
 
-/** Switching Target Scoring's state from a fact log alone, through the same fold the engine uses. */
-export function foldSwitchingTargetScoringState(
+/** Switching Chain's state from a fact log alone, through the same fold the engine uses. */
+export function foldSwitchingChainState(
   facts: EngineFacts,
-  config: SwitchingTargetScoringConfigData,
+  config: SwitchingChainConfigData,
   complete: boolean,
-): SwitchingTargetScoringState {
-  return switchingTargetScoringSpec.fold(facts, config, complete);
+): SwitchingChainState {
+  return switchingChainSpec.fold(facts, config, complete);
 }
 
-/** Switching Target Scoring exercise engine (D264), built by the exercise shell. */
-export class SwitchingTargetScoringEngine extends dartExerciseEngineClass(
-  switchingTargetScoringSpec,
+/** Switching Chain exercise engine (D264), built by the exercise shell. */
+export class SwitchingChainEngine extends dartExerciseEngineClass(
+  switchingChainSpec,
 ) {}
 
-export const switchingTargetScoringEngineFactory = dartExerciseEngineFactory(
-  switchingTargetScoringSpec,
-  SwitchingTargetScoringEngine,
+export const switchingChainEngineFactory = dartExerciseEngineFactory(
+  switchingChainSpec,
+  SwitchingChainEngine,
 );
 
-registerDartExerciseEngineFactory(switchingTargetScoringEngineFactory);
+registerDartExerciseEngineFactory(switchingChainEngineFactory);

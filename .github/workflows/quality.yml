@@ -80,6 +80,9 @@ jobs:
           cache-dependency-path: app/package-lock.json
       - name: Install
         run: npm ci
+      - name: Tag-seed drift gate
+        working-directory: ${{ github.workspace }}
+        run: bash scripts/check-tag-seeds.sh && bash scripts/test-check-tag-seeds.sh
       - name: Format gate
         run: npm run format:check
       - name: Type gate

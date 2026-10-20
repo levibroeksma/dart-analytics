@@ -1,6 +1,6 @@
 import { isGameTypeKey } from "@lib/game/rulesets/capabilities";
 import {
-  isDartExerciseKind,
+  dartExerciseKindOf,
   sectionsForRoutine,
   sectionsForStep,
 } from "@lib/stats/section-registry";
@@ -115,9 +115,9 @@ function stepGameType(step: StepDescriptor): GameTypeKey | null {
     : null;
 }
 
-/** A step's dart exercise kind, or `null` for a GAME step or a dartless one (Warm-Up). */
+/** A step's dart exercise kind, or `null` for a GAME step or a dartless one (Warm-Up). Resolved from the step's type *and* ruleset version, since a kind is composite wherever one type ships several rulesets. */
 function stepExerciseKind(step: StepDescriptor): DartExerciseKind | null {
-  return isDartExerciseKind(step.exerciseTypeKey) ? step.exerciseTypeKey : null;
+  return dartExerciseKindOf(step);
 }
 
 /**
@@ -414,6 +414,7 @@ export function routineStatsStore() {
       const scope = stepScope(routineKey, step);
       const { sections } = sectionsForStep({
         exerciseTypeKey: step.exerciseTypeKey,
+        exerciseRulesetVersionKey: step.exerciseRulesetVersionKey,
         gameTypeKey: scope.gameTypeKey,
       });
       const results = await Promise.all(
@@ -510,6 +511,7 @@ export function routineStatsStore() {
       const adapter = resolveStepAdapter(
         stepAdapterKey({
           exerciseTypeKey: step.exerciseTypeKey,
+          exerciseRulesetVersionKey: step.exerciseRulesetVersionKey,
           gameRulesetVersionKey: step.rulesetVersionKey,
         }),
       );

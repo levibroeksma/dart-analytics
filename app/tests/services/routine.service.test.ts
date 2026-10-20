@@ -44,6 +44,11 @@ const CATALOG = [
     gameTypeKey: null,
     gameRulesetVersionKey: null,
     hasDefaultConfiguration: true,
+    exerciseTypeName: "Type",
+    gameTypeName: null,
+    difficultyLevel: null,
+    exerciseTypeDescription: null,
+    gameTypeDescription: null,
   },
   {
     exerciseTemplateId: "et-sw",
@@ -53,6 +58,11 @@ const CATALOG = [
     gameTypeKey: null,
     gameRulesetVersionKey: null,
     hasDefaultConfiguration: true,
+    exerciseTypeName: "Type",
+    gameTypeName: null,
+    difficultyLevel: null,
+    exerciseTypeDescription: null,
+    gameTypeDescription: null,
   },
   {
     exerciseTemplateId: "et-fin",
@@ -62,6 +72,11 @@ const CATALOG = [
     gameTypeKey: "TUOD",
     gameRulesetVersionKey: "TUOD_V1",
     hasDefaultConfiguration: true,
+    exerciseTypeName: "Type",
+    gameTypeName: null,
+    difficultyLevel: null,
+    exerciseTypeDescription: null,
+    gameTypeDescription: null,
   },
   {
     exerciseTemplateId: "et-score",
@@ -71,6 +86,11 @@ const CATALOG = [
     gameTypeKey: "SCORE_TRAINING",
     gameRulesetVersionKey: "SCORE_TRAINING_V1",
     hasDefaultConfiguration: true,
+    exerciseTypeName: "Type",
+    gameTypeName: null,
+    difficultyLevel: null,
+    exerciseTypeDescription: null,
+    gameTypeDescription: null,
   },
   {
     exerciseTemplateId: "et-nodef",
@@ -80,6 +100,11 @@ const CATALOG = [
     gameTypeKey: null,
     gameRulesetVersionKey: null,
     hasDefaultConfiguration: false,
+    exerciseTypeName: "Type",
+    gameTypeName: null,
+    difficultyLevel: null,
+    exerciseTypeDescription: null,
+    gameTypeDescription: null,
   },
 ];
 
@@ -230,6 +255,34 @@ describe("listExerciseTemplates", () => {
     ]);
     expect(result.data[0]).not.toHaveProperty("hasDefaultConfiguration");
   });
+
+  it("passes the type names, descriptions and difficultyLevel through", async () => {
+    vi.mocked(repo.findExerciseTemplateCatalog).mockResolvedValueOnce([
+      {
+        exerciseTemplateId: "et-g",
+        name: "Finishing",
+        description: null,
+        exerciseTypeKey: "GAME",
+        gameTypeKey: "TUOD",
+        gameRulesetVersionKey: "TUOD_V1",
+        hasDefaultConfiguration: true,
+        exerciseTypeName: "Game",
+        gameTypeName: "Tour of the Doubles",
+        difficultyLevel: 3,
+        exerciseTypeDescription: "Play a game as a step",
+        gameTypeDescription: "Hit every double in order",
+      },
+    ]);
+    const result = await listExerciseTemplates();
+    if (!result.ok) throw new Error("expected ok");
+    expect(result.data[0]).toMatchObject({
+      exerciseTypeName: "Game",
+      gameTypeName: "Tour of the Doubles",
+      difficultyLevel: 3,
+      exerciseTypeDescription: "Play a game as a step",
+      gameTypeDescription: "Hit every double in order",
+    });
+  });
 });
 
 describe("createRoutine", () => {
@@ -309,6 +362,11 @@ describe("createRoutine", () => {
         gameTypeKey: "501",
         gameRulesetVersionKey: "501_V1",
         hasDefaultConfiguration: true,
+        exerciseTypeName: "Type",
+        gameTypeName: null,
+        difficultyLevel: null,
+        exerciseTypeDescription: null,
+        gameTypeDescription: null,
       },
     ]);
     const result = await createRoutine("p1", {

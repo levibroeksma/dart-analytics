@@ -2,6 +2,7 @@
 
 Current version: V2 (shipped 2026-09-24)
 Entry points: standalone, routine step
+Game type: `AROUND_THE_CLOCK`
 Kernel: TRACK
 
 ## Features

@@ -2,7 +2,7 @@
 status: canonical
 scope: database/migrations
 read-when: adding migrations, understanding the chain
-updated: 2026-10-03
+updated: 2026-10-19
 -->
 
 # Database Migration Strategy
@@ -154,7 +154,6 @@ database/
     ├── 0021_exercise_template_game_rulesets.sql
     ├── 0022_routine_game_templates.sql
     ├── 0023_target_scoring_exercise_type.sql
-    ├── 0024_switching_target_scoring_exercise_type.sql
     ├── 0025_score_threshold_exercise_type.sql
     ├── 0026_warm_up_advanced_template.sql
     ├── 0027_around_the_clock_v2_game_engine_reference.sql
@@ -1100,6 +1099,43 @@ Contains:
 View-only; no table, column or constraint changes. Applied; `database/verification/0046_replay_stages_view_checks.sql` proves it (D377). <!-- 2026-10-03 -->
 
 Never edits `0016`/`0044`.
+
+---
+
+## 0047_catalog_tags.sql
+
+Purpose:
+
+Make catalog tags real data (they lived only in `docs/game-rules/**` `## Tags` tables, D461) and give each exercise template a difficulty, for the game/exercise cards. <!-- 2026-10-19 -->
+
+Contains:
+
+- new lookups `tag_axes`, `tag_contexts` (`STANDALONE`, `ROUTINE_STEP`) and `tags` (`uq_tags_axis_implementation_key`, `uq_tags_axis_sort_order`, `fk_tags_tag_axis`), SMALLINT ids written by the generated seed `0042_catalog_tags.sql`; no `cardinality` column on `tag_axes` (the generator and its gate enforce "exactly one")
+- new typed link tables `game_type_tags` (PK `game_type_id`, `tag_context_id`, `tag_id`) and `exercise_type_tags` (PK `exercise_type_id`, `tag_id`), CASCADE from the type, RESTRICT from `tags`/`tag_contexts`, each with a partial unique index (`uq_game_type_tags_primary`, `uq_exercise_type_tags_primary`) allowing one primary tag per type (and context)
+- `exercise_templates.difficulty_tag_id SMALLINT NULL` + `fk_exercise_templates_difficulty_tag` → `tags` (RESTRICT), hand-set by seed `0043_exercise_template_difficulty.sql`
+- new `v_catalog_tags` (`entity_kind`, `type_key`, `context_key`, `axis_key`, `tag_key`, `tag_name`, `is_primary`, `sort_order`, `axis_rank` = rank among all tags of the axis; keys only)
+- `v_exercise_template_catalog` (`CREATE OR REPLACE`) appends `exercise_type_name`, `game_type_name`, `difficulty_level` (1–4: template's tag, else the owning type's single routine-step Difficulty, else NULL), `exercise_type_description` and `game_type_description` (the type descriptions the picker card blurb reads); existing columns unchanged
+
+No column defaults: the generated seed writes ids and `created_at`/`updated_at = now()` explicitly. `uq_tags_axis_sort_order` keeps the difficulty rank (`row_number()` by `sort_order, id`) deterministic. `migrate:down` restores the `0040` definition of `v_exercise_template_catalog` and drops everything in reverse. Applied. <!-- 2026-10-19 -->
+
+---
+
+## 0048_erase_switching_target_scoring.sql
+
+Purpose:
+
+Erase the `SWITCHING_TARGET_SCORING` exercise type, merged into `SWITCHING`, and every row descending from it, from databases where seed `0024` has already run. The chain's one data-only migration (D472). <!-- 2026-10-20 -->
+
+Contains:
+
+- no schema change: one `DO` block whose statements all select by `implementation_key = 'SWITCHING_TARGET_SCORING'`, never by a hard-coded row id, and each report their `ROW_COUNT` with `RAISE NOTICE`. The block returns early with a notice when the type is absent, so a replay and a fresh chain build are no-ops
+- deletes in dependency order: `darts`, then `turns` of the type's sessions (explicit, because `fk_turn_participant` is RESTRICT and participants cascade from the session), the `exercise_sessions` themselves (configurations, stages, participants and idempotency rows cascade), the `routine_steps` naming the type's template, then `exercise_type_tags`, `exercise_templates`, `exercise_ruleset_versions` and `exercise_types`
+- `routine_steps` is locked `IN SHARE ROW EXCLUSIVE MODE` first; the minutes a player's routine loses are added back to its first surviving MINUTES step, and a player routine left with no step is deleted with its `training_schedule_days` rows, both naming every routine destroyed (D472, `trg_routine_steps_duration_bounds`/D305)
+- surviving steps of an affected routine are renumbered to close the gap in `uq_routine_steps_sequence`: that constraint is not deferrable and is checked after each row, so the numbers are parked above every live value and then ranked back into `1..n` by `row_number() OVER (PARTITION BY routine_template_id ORDER BY sequence_number)`
+
+What the erasure leaves behind, none of it repaired here and each of it named — not merely counted — by a `RAISE NOTICE`, so a production run is auditable rather than silent: an `activities` row whose every session was of this type survives the session delete (`fk_sessions_activity` cascades the child direction only); a routine training among them keeps its `activity_configurations` snapshot, so it still counts in `v_training_completions` and still emits a run in `v_stats_routine_run_facts` with its snapshot `step_count` and zero started, completed and darts, while a standalone run of this type never had that snapshot and is left an empty `activities` row appearing in neither view (both inner-join `activity_configurations`); a renumbered step starts a new `step_key` (`<sequence_number>-<step_fingerprint>`), so its future runs bucket apart from its past ones; and a completed run that had a step of this type now under-reports `steps_completed` and `dart_count` against a `step_count` taken from the immutable snapshot, reading as unfinished. Whether an emptied training should disappear from a player's history is a product decision, not this migration's. <!-- 2026-10-20 -->
+
+`migrate:down` is a comment only: seed `0024` and the type's rules file are deleted in the same commit, so nothing is left to restore from and rolling back past `0048` means restoring a backup. Past step-level history is not rewritten — `activity_configurations` is an immutable snapshot and `v_stats_routine_step_facts` resolves a step through it, never through `routine_steps` — but run-level facts and forward step identity are, as above. Applied; `app/tests/integration/switching-target-scoring-erased.itest.ts` proves it. <!-- 2026-10-20 -->
 
 ---
 

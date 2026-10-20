@@ -2875,6 +2875,43 @@ describe("getRoutineStepSection", () => {
     }
   });
 
+  it("folds a Chain step under its own composite kind, read off the step's ruleset version", async () => {
+    vi.mocked(repo.findRoutineHeader).mockResolvedValue(makeRoutineHeaderRow());
+    vi.mocked(repo.findRoutineStepDescriptors).mockResolvedValue([
+      makeExerciseStepDescriptorRow({
+        exerciseRulesetVersionKey: "SWITCHING_CHAIN_V1",
+      }),
+    ]);
+    vi.mocked(repo.findRoutineDataVersion).mockResolvedValue({
+      runCount: 5,
+      maxCompletedAt: "2026-01-10T00:00:00.000Z",
+    });
+    vi.mocked(repo.findStepScopeDartCount).mockResolvedValue(1);
+    vi.mocked(repo.findStepFoldRows).mockResolvedValue([
+      makeSwitchingFoldRow({
+        exerciseRulesetVersionKey: "SWITCHING_CHAIN_V1",
+        configuration: { targets: [20, 19, 18] },
+      }),
+    ] as never);
+
+    const result = await getRoutineStepSection(
+      playerId,
+      routineKey,
+      exerciseStepKey,
+      "step-result",
+      routineRangeQuery,
+    );
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.buckets[0]!.metrics).toMatchObject({
+        metrics: { bestChain: 3, sequences: 0, darts: 1, hits: 1 },
+        sessions: 1,
+        skippedSessions: 0,
+      });
+    }
+  });
+
   it("delegates a GAME step to the game section path with context 'routine' and the exact routineStep, and keys dataVersion under the routine", async () => {
     vi.mocked(repo.findRoutineHeader).mockResolvedValue(makeRoutineHeaderRow());
     vi.mocked(repo.findRoutineStepDescriptors).mockResolvedValue([

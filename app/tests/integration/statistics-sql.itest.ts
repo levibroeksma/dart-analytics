@@ -18,8 +18,12 @@ vi.mock("@db/client", () => ({
   },
 }));
 
-const { sectionsForGame, sectionsForStep, sectionsForRoutine } =
-  await import("@lib/stats/section-registry");
+const {
+  dartExerciseKindOf,
+  sectionsForGame,
+  sectionsForStep,
+  sectionsForRoutine,
+} = await import("@lib/stats/section-registry");
 const { STEP_METRIC_SPECS } =
   await import("@modules/stats/step-metrics.module");
 const stats = await import("@services/statistics.service");
@@ -330,14 +334,22 @@ describe("statistics SQL executes against Postgres", () => {
       if (!header.ok) {
         throw new Error(`routine header: ${JSON.stringify(header)}`);
       }
-      const kinds = header.data.steps.map((step) => step.exerciseTypeKey);
+      // A `STEP_METRIC_SPECS` key is a dart exercise *kind*, which since the
+      // Switching merge is a composite (`SWITCHING:STANDARD`,
+      // `SWITCHING:CHAIN`) resolved from the step's ruleset version key — not
+      // the step's bare `exerciseTypeKey`. Resolve each step the way the app
+      // does, so the coverage assertion keeps meaning "the fixture routine
+      // exercises every kind".
+      const kinds = header.data.steps.map((step) => dartExerciseKindOf(step));
       expect(
         header.data.steps.map((step) => sectionsForStep(step).kind),
       ).toContain("game");
       for (const kind of Object.keys(STEP_METRIC_SPECS)) {
         expect(kinds, `routine has a ${kind} step`).toContain(kind);
       }
-      expect(kinds).toContain("WARM_UP");
+      expect(header.data.steps.map((step) => step.exerciseTypeKey)).toContain(
+        "WARM_UP",
+      );
 
       const planFailed: string[] = [];
       const calls: Call[] = [];

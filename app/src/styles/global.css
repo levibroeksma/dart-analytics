@@ -434,6 +434,10 @@
   }
 }
 
+@utility catalog-grid {
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+}
+
 @utility glass {
   @apply bg-radial-[at_50%_0%] from-white/5 to-white/10 to-85% border-y border-white/25 backdrop-blur-sm;
 }
@@ -1329,5 +1333,192 @@
   }
   .dartboard-group .segment path:hover {
     filter: brightness(1.25);
+  }
+}
+
+:root {
+  --tag-skill-h: 285;
+  --tag-format-h: 310;
+  --tag-pressure-h: 260;
+  --tag-family-h: 237;
+  --meter-1: oklch(74% 0.16 150);
+  --meter-2: oklch(74% 0.16 95);
+  --meter-3: oklch(74% 0.16 60);
+  --meter-4: oklch(74% 0.16 28);
+  --meter-off: oklch(100% 0 0 / 0.15);
+}
+
+@layer components {
+  .tag {
+    --tag-h: var(--tag-family-h);
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 9999px;
+    border: 1px solid oklch(72% 0.14 var(--tag-h) / 0.6);
+    color: oklch(82% 0.12 var(--tag-h));
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  .tag-skill {
+    --tag-h: var(--tag-skill-h);
+  }
+
+  .tag-skill-primary {
+    background: oklch(65% 0.14 var(--tag-skill-h) / 0.2);
+    color: oklch(87% 0.1 var(--tag-skill-h));
+  }
+
+  .tag-format {
+    --tag-h: var(--tag-format-h);
+  }
+
+  .tag-pressure {
+    --tag-h: var(--tag-pressure-h);
+  }
+
+  .tag-family {
+    --tag-h: var(--tag-family-h);
+  }
+
+  .tag-role {
+    border-color: oklch(88% 0 0);
+    background: oklch(100% 0 0 / 0.08);
+    color: oklch(88% 0 0);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+  }
+
+  .tag-mechanic {
+    border-color: oklch(100% 0 0 / 0.25);
+    color: var(--muted-foreground);
+  }
+
+  .tag-over-art {
+    background: oklch(0% 0 0 / 0.5);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+  }
+
+  .meter {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 2px;
+  }
+
+  .meter-bar {
+    display: block;
+    width: 4px;
+    border-radius: 1px;
+    background: var(--meter-off);
+  }
+
+  .meter-bar:nth-child(1) {
+    height: 5px;
+  }
+
+  .meter-bar:nth-child(2) {
+    height: 8px;
+  }
+
+  .meter-bar:nth-child(3) {
+    height: 11px;
+  }
+
+  .meter-bar:nth-child(4) {
+    height: 14px;
+  }
+
+  .catalog-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow: hidden;
+    padding: 16px;
+    border-radius: 20px;
+    border: 1px solid oklch(100% 0 0 / 0.08);
+    background:
+      radial-gradient(
+        at 50% 0%,
+        oklch(100% 0 0 / 0.05),
+        oklch(100% 0 0 / 0.1) 85%
+      ),
+      #000;
+    color: var(--foreground);
+    text-decoration: none;
+  }
+
+  .catalog-card:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .catalog-well {
+    border-radius: 14px;
+    padding: 0 6px 0 12px;
+    background: oklch(0% 0 0 / 0.35);
+    box-shadow: inset 0 1px 2px oklch(0% 0 0 / 0.4);
+  }
+
+  .card-dart {
+    position: absolute;
+    right: -22px;
+    bottom: -26px;
+    z-index: 0;
+    width: 96px;
+    height: 96px;
+    opacity: 0.45;
+    pointer-events: none;
+    transform: rotate(-45deg);
+    transition:
+      transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.2),
+      opacity 0.25s;
+  }
+
+  .card-dart-wind {
+    z-index: 2;
+    opacity: 0.95;
+    transform: translate(-52px, -36px) rotate(-45deg);
+    transition:
+      transform 0.16s ease-out,
+      opacity 0.16s ease-out;
+  }
+
+  .card-dart-throw {
+    z-index: 2;
+    opacity: 0.95;
+    transform: translate(420px, -36px) rotate(-45deg);
+    transition: transform 0.38s cubic-bezier(0.55, 0, 0.85, 0.4);
+  }
+
+  .card-dart-reset {
+    transition: none;
+  }
+
+  @media (hover: hover) {
+    .card-dart-hover {
+      z-index: 2;
+      opacity: 0.95;
+      transform: translate(-38px, -36px) rotate(-45deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card-dart,
+    .card-dart-hover,
+    .card-dart-wind,
+    .card-dart-throw,
+    .card-dart-reset {
+      z-index: 0;
+      opacity: 0.45;
+      transform: rotate(-45deg);
+      transition: none;
+    }
   }
 }

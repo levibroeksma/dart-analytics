@@ -2,6 +2,7 @@
 
 Current version: V1 (shipped 2026-10-06)
 Entry points: standalone
+Game type: `CRICKET`
 Kernel: MARKS
 
 ## Features

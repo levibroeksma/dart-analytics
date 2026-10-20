@@ -17,7 +17,7 @@ import type {
 import type { SwitchingEngine } from "@modules/training/exercises/switching.engine.module";
 import type { DoublePatternEngine } from "@modules/training/exercises/double-pattern.engine.module";
 import type { TargetScoringEngine } from "@modules/training/exercises/target-scoring.engine.module";
-import type { SwitchingTargetScoringEngine } from "@modules/training/exercises/switching-target-scoring.engine.module";
+import type { SwitchingChainEngine } from "@modules/training/exercises/switching-chain.engine.module";
 import type { ScoreThresholdEngine } from "@modules/training/exercises/score-threshold.engine.module";
 import type { BullseyeCheckoutEngine } from "@modules/training/exercises/bullseye-checkout.engine.module";
 import type { BullUpEngine } from "@modules/training/exercises/bull-up.engine.module";
@@ -27,7 +27,13 @@ import type { HitCountEngine } from "@modules/training/exercises/hit-count.engin
 import type { SwitchbladeEngine } from "@modules/training/exercises/switchblade.engine.module";
 import type { DoublesLockEngine } from "@modules/training/exercises/doubles-lock.engine.module";
 import type { DartFact, DartObservation } from "@modules/types";
-import type { BoardMarker, PreviewSegment, SectionRingPaths } from "@lib/types";
+import type {
+  BoardMarker,
+  CatalogTag,
+  CatalogTagsResponse,
+  PreviewSegment,
+  SectionRingPaths,
+} from "@lib/types";
 import type { gameStep } from "./game-step.data";
 import type { StepAdapter } from "./adapters/interfaces";
 import type { trainingSessionStore } from "@stores/training-session.store";
@@ -43,7 +49,7 @@ export type ExercisePreviewFamily =
   | "switching"
   | "doublePattern"
   | "targetScoring"
-  | "switchingTargetScoring"
+  | "switchingChain"
   | "freeAim"
   | "bullseye"
   | "hitCount"
@@ -56,7 +62,7 @@ export type ExerciseEngineSlots = Pick<
   | "switchingEngine"
   | "doublePatternEngine"
   | "targetScoringEngine"
-  | "switchingTargetScoringEngine"
+  | "switchingChainEngine"
   | "scoreThresholdEngine"
   | "bullseyeCheckoutEngine"
   | "checkoutSequenceEngine"
@@ -116,7 +122,7 @@ export type RoutinePlayContext = {
   switchingEngine: SwitchingEngine | null;
   doublePatternEngine: DoublePatternEngine | null;
   targetScoringEngine: TargetScoringEngine | null;
-  switchingTargetScoringEngine: SwitchingTargetScoringEngine | null;
+  switchingChainEngine: SwitchingChainEngine | null;
   scoreThresholdEngine: ScoreThresholdEngine | null;
   bullseyeCheckoutEngine: BullseyeCheckoutEngine | null;
   bullUpEngine: BullUpEngine | null;
@@ -210,11 +216,11 @@ export type RoutinePlayContext = {
   targetScoringTargetLabel(this: RoutinePlayContext): string;
   targetScoringBestChain(this: RoutinePlayContext): number;
   targetScoringMarkToBeat(this: RoutinePlayContext): number | null;
-  switchingTargetScoringChain(this: RoutinePlayContext): number;
-  switchingTargetScoringTargetLabel(this: RoutinePlayContext): string;
-  switchingTargetScoringChipIndex(this: RoutinePlayContext): number;
-  switchingTargetScoringBestChain(this: RoutinePlayContext): number;
-  switchingTargetScoringMarkToBeat(this: RoutinePlayContext): number | null;
+  switchingChainChain(this: RoutinePlayContext): number;
+  switchingChainTargetLabel(this: RoutinePlayContext): string;
+  switchingChainChipIndex(this: RoutinePlayContext): number;
+  switchingChainBestChain(this: RoutinePlayContext): number;
+  switchingChainMarkToBeat(this: RoutinePlayContext): number | null;
   scoreThresholdBeats(this: RoutinePlayContext): number;
   scoreThresholdVisits(this: RoutinePlayContext): number;
   scoreThresholdVisitTotal(this: RoutinePlayContext): number;
@@ -276,7 +282,7 @@ export type RoutinePlayContext = {
     | SwitchingEngine
     | DoublePatternEngine
     | TargetScoringEngine
-    | SwitchingTargetScoringEngine
+    | SwitchingChainEngine
     | ScoreThresholdEngine
     | BullseyeCheckoutEngine
     | BullUpEngine
@@ -295,7 +301,7 @@ export type RoutinePlayContext = {
   ): (string | undefined)[];
   switchingSequence(this: RoutinePlayContext): string;
   doublePatternSequence(this: RoutinePlayContext): string;
-  switchingTargetScoringSequence(this: RoutinePlayContext): string;
+  switchingChainSequence(this: RoutinePlayContext): string;
   recordSwitchingDart(
     this: RoutinePlayContext,
     observation: DartObservation,
@@ -308,7 +314,7 @@ export type RoutinePlayContext = {
     this: RoutinePlayContext,
     observation: DartObservation,
   ): void;
-  recordSwitchingTargetScoringDart(
+  recordSwitchingChainDart(
     this: RoutinePlayContext,
     observation: DartObservation,
   ): void;
@@ -431,6 +437,18 @@ export type BuilderStep = {
   durationValue: number;
 };
 
+/** One picker card: a type's templates under its name, blurb and tags. */
+export type CatalogGroup = {
+  key: string;
+  name: string;
+  blurb: string | null;
+  tags: CatalogTag[];
+  entries: (ExerciseTemplateCatalogEntryData & {
+    level: 1 | 2 | 3 | 4 | null;
+    label: string;
+  })[];
+};
+
 /**
  * Hand-written rather than `ReturnType<typeof routineBuilder>`: every method
  * below already types its own `this` as `RoutineBuilderContext`, so deriving
@@ -449,6 +467,7 @@ export type RoutineBuilderContext = {
   name: string;
   description: string;
   catalog: ExerciseTemplateCatalogEntryData[];
+  catalogTags: CatalogTagsResponse | null;
   steps: BuilderStep[];
   minMinutes: number;
   maxMinutes: number;
@@ -457,6 +476,7 @@ export type RoutineBuilderContext = {
   stepMaxMinutes: number;
   maxNameLength: number;
   maxDescriptionLength: number;
+  groups(this: RoutineBuilderContext): CatalogGroup[];
   clearServerIssues(): void;
   navigate(path: string): void;
   init(this: RoutineBuilderContext): Promise<void>;

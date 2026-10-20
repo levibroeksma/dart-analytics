@@ -26,4 +26,6 @@ cd .. && bash scripts/check-file-locations.sh \
        && bash scripts/check-game-wiring.sh \
        && bash scripts/check-game-rules.sh \
        && bash scripts/test-check-game-rules.sh \
+       && bash scripts/check-tag-seeds.sh \
+       && bash scripts/test-check-tag-seeds.sh \
        && bash scripts/check-test-coverage.sh

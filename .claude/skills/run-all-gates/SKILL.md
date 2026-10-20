@@ -21,7 +21,11 @@ bash scripts/check-test-coverage.sh
 bash scripts/check-doc-sync.sh
 bash scripts/check-game-rules.sh
 bash scripts/test-check-game-rules.sh
+bash scripts/check-tag-seeds.sh
+bash scripts/test-check-tag-seeds.sh
 ```
+
+`check-tag-seeds.sh` fails when the committed catalog tag seed (`database/seeds/0042_catalog_tags.sql`) is out of date with the rules docs. It runs `check-game-rules.sh` first, then `generate-tag-seed.ts --check` (needs `app/` dependencies for `tsx`). Fix drift with `npm run tags:generate` (in `app/`). Generator warnings such as `no tag source` are printed, not failing. `test-check-tag-seeds.sh` proves the drift detection on a one-byte-edited copy.
 
 `check-doc-sync.sh` fails when the change set touches `database/migrations/`, `app/src/services/` or a domain subdirectory of `app/src/modules/` (`game`, `training`, `dartbot`, `stats`) with no edit under `docs/architecture/` or `decisions/`. It reads the change set the same way `check-test-coverage.sh` does — staged files mid-commit, otherwise the diff against the merge base with `origin/main` (override with `DOC_SYNC_BASE_REF`). `docs/superpowers/` does not satisfy it: specs and plans are non-canonical (D312). It is absent from `.husky/pre-commit` on purpose — mid-branch it would fail the code commit that precedes the docs commit.
 

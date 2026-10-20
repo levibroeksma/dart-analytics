@@ -231,8 +231,8 @@ docs/
 ├── architecture/05-Database/     # Handbook + specification
 └── ...
 database/
-├── migrations/0001–0046.sql
-└── seeds/0001–0041.sql  (ordered list: database/README.md)
+├── migrations/0001–0048.sql
+└── seeds/0001–0046.sql            # run order and per-file purpose in `database/README.md`
 ```
 
 ---

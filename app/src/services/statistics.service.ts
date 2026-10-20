@@ -1,6 +1,6 @@
 import { getDb } from "@db/client";
 import {
-  isDartExerciseKind,
+  dartExerciseKindOf,
   MAX_FOLD_DARTS,
   SECTIONS,
   sectionSite,
@@ -1472,7 +1472,8 @@ export async function getRoutineStepSection(
           details: { reason: foldBoundMessage(dartCount) },
         };
       }
-      if (!isDartExerciseKind(step.exerciseTypeKey)) {
+      const kind = dartExerciseKindOf(step);
+      if (kind === null) {
         throw new Error(
           `step-result dispatched for a step whose exerciseTypeKey "${step.exerciseTypeKey}" is not a dart exercise kind`,
         );
@@ -1481,7 +1482,7 @@ export async function getRoutineStepSection(
         findStepFoldRows(db, { ...stepScope, ...bucketArgs }),
         routineDataVersion(db, playerId, routineKey),
       ]);
-      buckets = stepResultBuckets(step.exerciseTypeKey, rows, {
+      buckets = stepResultBuckets(kind, rows, {
         to: q.to,
         now,
       });

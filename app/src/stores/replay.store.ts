@@ -3,9 +3,8 @@ import { markersForTurns } from "@lib/game/board-input.data";
 import { foldReplay } from "@lib/stats/replay-fold";
 import {
   REPLAY_PRESENTERS,
-  STEP_REPLAY_PRESENTERS,
+  stepReplayPresenter,
 } from "@lib/stats/replay-presenters";
-import { isDartExerciseKind } from "@lib/stats/section-registry";
 import {
   resolveStepAdapter,
   stepAdapterKey,
@@ -198,9 +197,11 @@ export function replayStore() {
     /**
      * The session's own presenter (D372 decision 11): a game
      * session (`gameTypeKey` set) picks `REPLAY_PRESENTERS`, a non-game
-     * routine step picks `STEP_REPLAY_PRESENTERS` off its
-     * `exerciseTypeKey`. `null` for a game type or exercise kind this
-     * client does not know.
+     * routine step picks `stepReplayPresenter()` off its exercise type and
+     * ruleset version together — the kind is composite, so the type key
+     * alone no longer names one. `null` for a game type or exercise kind
+     * this client does not know, which renders the replay without a
+     * presenter line rather than throwing.
      */
     get presenter(): ReplayPresenter | null {
       const header = this.header;
@@ -210,9 +211,7 @@ export function replayStore() {
           ? REPLAY_PRESENTERS[header.gameTypeKey]
           : null;
       }
-      return isDartExerciseKind(header.exerciseTypeKey)
-        ? STEP_REPLAY_PRESENTERS[header.exerciseTypeKey]
-        : null;
+      return stepReplayPresenter(header);
     },
 
     /**
@@ -228,6 +227,7 @@ export function replayStore() {
       const label = resolveStepAdapter(
         stepAdapterKey({
           exerciseTypeKey: header.exerciseTypeKey,
+          exerciseRulesetVersionKey: header.exerciseRulesetVersionKey,
           gameRulesetVersionKey: header.rulesetVersionKey,
         }),
       )?.headerLabel;

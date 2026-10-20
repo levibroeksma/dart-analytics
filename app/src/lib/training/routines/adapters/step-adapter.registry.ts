@@ -4,9 +4,9 @@ import { oneTwentyOnePlay } from "@lib/game/one-twenty-one-play.data";
 import { aroundTheClockPlay } from "@lib/game/around-the-clock-play.data";
 import { warmUpAdapter } from "./warm-up.adapter";
 import { switchingAdapter } from "./switching.adapter";
+import { switchingChainAdapter } from "./switching-chain.adapter";
 import { doublePatternAdapter } from "./double-pattern.adapter";
 import { targetScoringAdapter } from "./target-scoring.adapter";
-import { switchingTargetScoringAdapter } from "./switching-target-scoring.adapter";
 import { scoreThresholdAdapter } from "./score-threshold.adapter";
 import { bullseyeCheckoutAdapter } from "./bullseye-checkout.adapter";
 import { bullUpAdapter } from "./bull-up.adapter";
@@ -35,9 +35,9 @@ import type { StepAdapterKey } from "./types";
 export const STEP_ADAPTERS: Record<StepAdapterKey, StepAdapter> = {
   WARM_UP: warmUpAdapter,
   SWITCHING: switchingAdapter,
+  SWITCHING_CHAIN: switchingChainAdapter,
   DOUBLE_PATTERN: doublePatternAdapter,
   TARGET_SCORING: targetScoringAdapter,
-  SWITCHING_TARGET_SCORING: switchingTargetScoringAdapter,
   SCORE_THRESHOLD: scoreThresholdAdapter,
   BULLSEYE_CHECKOUT: bullseyeCheckoutAdapter,
   BULL_UP: bullUpAdapter,
@@ -80,15 +80,37 @@ export const STEP_ADAPTERS: Record<StepAdapterKey, StepAdapter> = {
   }),
 };
 
-/** Derives a resolved step's adapter key from its exercise/game ruleset. */
+/**
+ * The adapter key each exercise ruleset version pins outright, for the
+ * exercise types that ship more than one ruleset and drive a different
+ * panel per ruleset. Everything absent here keys on its exercise type.
+ */
+const ADAPTER_KEY_BY_EXERCISE_RULESET: Readonly<
+  Record<string, StepAdapterKey>
+> = {
+  SWITCHING_CHAIN_V1: "SWITCHING_CHAIN",
+};
+
+/**
+ * Derives a resolved step's adapter key from its exercise/game ruleset. A
+ * GAME step keys on its pinned game ruleset; every other step keys on its
+ * exercise type, except where its exercise ruleset version names an adapter
+ * of its own (`ADAPTER_KEY_BY_EXERCISE_RULESET`) because its type ships
+ * several playable configs.
+ */
 export function stepAdapterKey(step: {
   exerciseTypeKey: string;
+  exerciseRulesetVersionKey: string | null;
   gameRulesetVersionKey: string | null;
 }): StepAdapterKey {
   if (step.exerciseTypeKey === "GAME") {
     return `GAME:${step.gameRulesetVersionKey ?? ""}`;
   }
-  return step.exerciseTypeKey as StepAdapterKey;
+  const byRuleset =
+    step.exerciseRulesetVersionKey === null
+      ? undefined
+      : ADAPTER_KEY_BY_EXERCISE_RULESET[step.exerciseRulesetVersionKey];
+  return byRuleset ?? (step.exerciseTypeKey as StepAdapterKey);
 }
 
 export function resolveStepAdapter(

@@ -1,16 +1,16 @@
 import { describe, expect, it } from "vitest";
 import {
-  foldSwitchingTargetScoringState,
-  SwitchingTargetScoringEngine,
-  switchingTargetScoringEngineFactory,
-} from "@modules/training/exercises/switching-target-scoring.engine.module";
+  foldSwitchingChainState,
+  SwitchingChainEngine,
+  switchingChainEngineFactory,
+} from "@modules/training/exercises/switching-chain.engine.module";
 import { getDartExerciseEngineFactory } from "@modules/training/exercises/dart-engine.registry";
-import type { SwitchingTargetScoringConfigData } from "@lib/types";
+import type { SwitchingChainConfigData } from "@lib/types";
 import type { DartObservation } from "@modules/types";
 import { buildEventsBatch } from "@modules/game/events.payload.module";
 import { EventsBatchRequest } from "@pages/api/sessions/types";
 
-const CONFIG: SwitchingTargetScoringConfigData = { targets: [20, 19, 18] };
+const CONFIG: SwitchingChainConfigData = { targets: [20, 19, 18] };
 
 function dart(
   hitTargetNumber: number | null,
@@ -22,16 +22,16 @@ function dart(
 const MISS = dart(null, "MISS");
 
 function play(
-  engine: SwitchingTargetScoringEngine,
+  engine: SwitchingChainEngine,
   darts: DartObservation[],
-): ReturnType<SwitchingTargetScoringEngine["state"]> {
+): ReturnType<SwitchingChainEngine["state"]> {
   darts.forEach((d) => engine.record(d));
   return engine.state();
 }
 
-describe("SwitchingTargetScoringEngine", () => {
+describe("SwitchingChainEngine", () => {
   it("starts on the first target with an empty chain and no mark", () => {
-    const engine = switchingTargetScoringEngineFactory.create(CONFIG);
+    const engine = switchingChainEngineFactory.create(CONFIG);
 
     expect(engine.state()).toEqual({
       currentTargetNumber: 20,
@@ -47,7 +47,7 @@ describe("SwitchingTargetScoringEngine", () => {
   });
 
   it("advances to the next target on every hit", () => {
-    const state = play(new SwitchingTargetScoringEngine(CONFIG), [
+    const state = play(new SwitchingChainEngine(CONFIG), [
       dart(20, "TREBLE"),
       dart(19, "SINGLE"),
     ]);
@@ -58,7 +58,7 @@ describe("SwitchingTargetScoringEngine", () => {
   });
 
   it("restarts at the first target and keeps the chain after a full sequence", () => {
-    const state = play(new SwitchingTargetScoringEngine(CONFIG), [
+    const state = play(new SwitchingChainEngine(CONFIG), [
       dart(20, "TREBLE"),
       dart(19, "TREBLE"),
       dart(18, "SINGLE"),
@@ -71,7 +71,7 @@ describe("SwitchingTargetScoringEngine", () => {
   });
 
   it("treats a double as a miss", () => {
-    const state = play(new SwitchingTargetScoringEngine(CONFIG), [
+    const state = play(new SwitchingChainEngine(CONFIG), [
       dart(20, "TREBLE"),
       dart(19, "DOUBLE"),
     ]);
@@ -81,7 +81,7 @@ describe("SwitchingTargetScoringEngine", () => {
   });
 
   it("resets the chain and restarts the sequence on a miss mid-visit", () => {
-    const state = play(new SwitchingTargetScoringEngine(CONFIG), [
+    const state = play(new SwitchingChainEngine(CONFIG), [
       dart(20, "SINGLE"),
       dart(19, "SINGLE"),
       MISS,
@@ -95,7 +95,7 @@ describe("SwitchingTargetScoringEngine", () => {
   });
 
   it("scores a hit on a target other than the current one as a miss", () => {
-    const state = play(new SwitchingTargetScoringEngine(CONFIG), [
+    const state = play(new SwitchingChainEngine(CONFIG), [
       dart(20, "SINGLE"),
       dart(20, "SINGLE"),
     ]);
@@ -105,7 +105,7 @@ describe("SwitchingTargetScoringEngine", () => {
   });
 
   it("carries the sequence and chain across visits", () => {
-    const engine = new SwitchingTargetScoringEngine(CONFIG);
+    const engine = new SwitchingChainEngine(CONFIG);
     const state = play(engine, [MISS, dart(20, "SINGLE"), dart(19, "SINGLE")]);
 
     expect(state.currentTargetNumber).toBe(18);
@@ -121,7 +121,7 @@ describe("SwitchingTargetScoringEngine", () => {
   });
 
   it("keeps the best finished chain as the mark to beat", () => {
-    const engine = new SwitchingTargetScoringEngine(CONFIG);
+    const engine = new SwitchingChainEngine(CONFIG);
     play(engine, [dart(20, "TREBLE"), dart(19, "TREBLE"), MISS]);
     const state = play(engine, [dart(20, "SINGLE"), MISS]);
 
@@ -130,17 +130,18 @@ describe("SwitchingTargetScoringEngine", () => {
   });
 
   it("scores the bull rings when the bull is in the sequence", () => {
-    const state = play(
-      new SwitchingTargetScoringEngine({ targets: [25, 20, 19] }),
-      [dart(25, "INNER_BULL"), dart(20, "SINGLE"), dart(19, "SINGLE")],
-    );
+    const state = play(new SwitchingChainEngine({ targets: [25, 20, 19] }), [
+      dart(25, "INNER_BULL"),
+      dart(20, "SINGLE"),
+      dart(19, "SINGLE"),
+    ]);
 
     expect(state.currentChain).toBe(5);
     expect(state.currentTargetNumber).toBe(25);
   });
 
   it("counts a chain still live at timer expiry toward the best chain", () => {
-    const engine = new SwitchingTargetScoringEngine(CONFIG);
+    const engine = new SwitchingChainEngine(CONFIG);
     play(engine, [dart(20, "SINGLE"), MISS, dart(20, "TREBLE")]);
     engine.expireTimer();
 
@@ -151,7 +152,7 @@ describe("SwitchingTargetScoringEngine", () => {
   });
 
   it("stamps each dart with its own target and aimed ring", () => {
-    const engine = new SwitchingTargetScoringEngine({ targets: [20, 25, 19] });
+    const engine = new SwitchingChainEngine({ targets: [20, 25, 19] });
     play(engine, [dart(20, "SINGLE"), dart(25, "OUTER_BULL"), MISS, MISS]);
 
     const darts = engine.facts().turns.flatMap((turn) => turn.darts);
@@ -166,7 +167,7 @@ describe("SwitchingTargetScoringEngine", () => {
   });
 
   it("undoes the last dart, restoring the chain and target", () => {
-    const engine = new SwitchingTargetScoringEngine(CONFIG);
+    const engine = new SwitchingChainEngine(CONFIG);
     play(engine, [dart(20, "TREBLE"), MISS]);
 
     expect(engine.undo()).toBe(true);
@@ -175,7 +176,7 @@ describe("SwitchingTargetScoringEngine", () => {
   });
 
   it("un-completes before undoing a dart", () => {
-    const engine = new SwitchingTargetScoringEngine(CONFIG);
+    const engine = new SwitchingChainEngine(CONFIG);
     play(engine, [dart(20, "TREBLE")]);
     engine.expireTimer();
 
@@ -185,41 +186,34 @@ describe("SwitchingTargetScoringEngine", () => {
   });
 
   it("refuses to record once complete", () => {
-    const engine = new SwitchingTargetScoringEngine(CONFIG);
+    const engine = new SwitchingChainEngine(CONFIG);
     engine.expireTimer();
 
     expect(() => engine.record(MISS)).toThrow();
   });
 
   it("rehydrates in-progress state from prior facts", () => {
-    const engine = new SwitchingTargetScoringEngine(CONFIG);
+    const engine = new SwitchingChainEngine(CONFIG);
     play(engine, [dart(20, "TREBLE"), MISS, dart(20, "SINGLE")]);
 
-    const resumed = switchingTargetScoringEngineFactory.create(
-      CONFIG,
-      engine.facts(),
-    );
+    const resumed = switchingChainEngineFactory.create(CONFIG, engine.facts());
 
     expect(resumed.state()).toEqual(engine.state());
   });
 
   it("rejects an invalid configuration", () => {
-    expect(
-      () => new SwitchingTargetScoringEngine({ targets: [20, 20, 19] }),
-    ).toThrow();
-    expect(
-      () => new SwitchingTargetScoringEngine({ targets: [20, 19] }),
-    ).toThrow();
+    expect(() => new SwitchingChainEngine({ targets: [20, 20, 19] })).toThrow();
+    expect(() => new SwitchingChainEngine({ targets: [20, 19] })).toThrow();
   });
 
   it("is registered as a dart exercise engine", () => {
-    expect(getDartExerciseEngineFactory("SWITCHING_TARGET_SCORING_V1")).toBe(
-      switchingTargetScoringEngineFactory,
+    expect(getDartExerciseEngineFactory("SWITCHING_CHAIN_V1")).toBe(
+      switchingChainEngineFactory,
     );
   });
 
   it("produces facts the events-batch API accepts", () => {
-    const engine = new SwitchingTargetScoringEngine(CONFIG);
+    const engine = new SwitchingChainEngine(CONFIG);
     play(engine, [dart(20, "TREBLE"), dart(5, "SINGLE"), dart(20, "SINGLE")]);
 
     const parsed = EventsBatchRequest.safeParse(
@@ -230,35 +224,31 @@ describe("SwitchingTargetScoringEngine", () => {
   });
 });
 
-describe("foldSwitchingTargetScoringState", () => {
+describe("foldSwitchingChainState", () => {
   it("derives state from a fact log without an engine instance", () => {
-    const engine = new SwitchingTargetScoringEngine(CONFIG);
+    const engine = new SwitchingChainEngine(CONFIG);
     play(engine, [dart(20, "SINGLE"), dart(19, "SINGLE")]);
 
-    expect(
-      foldSwitchingTargetScoringState(engine.facts(), CONFIG, false),
-    ).toEqual(engine.state());
+    expect(foldSwitchingChainState(engine.facts(), CONFIG, false)).toEqual(
+      engine.state(),
+    );
   });
 
   it("reports COMPLETE for an expired log, matching the engine after expiry", () => {
-    const engine = new SwitchingTargetScoringEngine(CONFIG);
+    const engine = new SwitchingChainEngine(CONFIG);
     play(engine, [dart(20, "TREBLE"), MISS]);
     engine.expireTimer();
 
-    const folded = foldSwitchingTargetScoringState(
-      engine.facts(),
-      CONFIG,
-      true,
-    );
+    const folded = foldSwitchingChainState(engine.facts(), CONFIG, true);
 
     expect(folded.status).toBe("COMPLETE");
     expect(folded).toEqual(engine.state());
   });
 });
 
-describe("Switching Target Scoring — kernel seams", () => {
+describe("Switching Chain — kernel seams", () => {
   it("a miss right after a full sequence records the mark and keeps the count", () => {
-    const engine = new SwitchingTargetScoringEngine(CONFIG);
+    const engine = new SwitchingChainEngine(CONFIG);
     play(engine, [dart(20, "TREBLE"), dart(19, "SINGLE"), dart(18, "SINGLE")]);
     const state = play(engine, [MISS]);
 
@@ -274,7 +264,7 @@ describe("Switching Target Scoring — kernel seams", () => {
   });
 
   it("undoing the dart that completes a sequence restores the count and target", () => {
-    const engine = new SwitchingTargetScoringEngine(CONFIG);
+    const engine = new SwitchingChainEngine(CONFIG);
     play(engine, [dart(20, "SINGLE"), dart(19, "SINGLE"), dart(18, "TREBLE")]);
     expect(engine.state().completedSequences).toBe(1);
     engine.undo();
@@ -289,7 +279,7 @@ describe("Switching Target Scoring — kernel seams", () => {
   });
 
   it("keeps the larger mark when a later chain is shorter", () => {
-    const engine = new SwitchingTargetScoringEngine(CONFIG);
+    const engine = new SwitchingChainEngine(CONFIG);
     const state = play(engine, [
       dart(20, "TREBLE"),
       dart(19, "TREBLE"),
@@ -302,7 +292,7 @@ describe("Switching Target Scoring — kernel seams", () => {
   });
 
   it("a miss on the opening dart records nothing", () => {
-    const engine = new SwitchingTargetScoringEngine(CONFIG);
+    const engine = new SwitchingChainEngine(CONFIG);
     const state = play(engine, [MISS]);
 
     expect(state).toMatchObject({
@@ -316,8 +306,8 @@ describe("Switching Target Scoring — kernel seams", () => {
   });
 
   it("the factory builds the exported class", () => {
-    expect(switchingTargetScoringEngineFactory.create(CONFIG)).toBeInstanceOf(
-      SwitchingTargetScoringEngine,
+    expect(switchingChainEngineFactory.create(CONFIG)).toBeInstanceOf(
+      SwitchingChainEngine,
     );
   });
 });

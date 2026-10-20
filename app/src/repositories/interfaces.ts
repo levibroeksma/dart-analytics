@@ -185,6 +185,24 @@ export interface ExerciseTemplateCatalogRow {
   gameTypeKey: string | null;
   gameRulesetVersionKey: string | null;
   hasDefaultConfiguration: boolean;
+  exerciseTypeName: string;
+  gameTypeName: string | null;
+  difficultyLevel: number | null;
+  exerciseTypeDescription: string | null;
+  gameTypeDescription: string | null;
+}
+
+/** One `v_catalog_tags` row. */
+export interface CatalogTagRow {
+  entityKind: string;
+  typeKey: string;
+  contextKey: string;
+  axisKey: string;
+  tagKey: string;
+  tagName: string;
+  isPrimary: boolean;
+  sortOrder: number;
+  axisRank: number;
 }
 
 /** One `v_training_schedules` row — a schedule with its day count. */

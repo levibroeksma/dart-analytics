@@ -12,7 +12,7 @@ export type ExerciseRulesetVersionKey =
   | "SWITCHING_V1"
   | "DOUBLE_PATTERN_V1"
   | "TARGET_SCORING_V1"
-  | "SWITCHING_TARGET_SCORING_V1"
+  | "SWITCHING_CHAIN_V1"
   | "SCORE_THRESHOLD_V1"
   | "BULLSEYE_CHECKOUT_V1"
   | "BULL_UP_V1"
@@ -161,12 +161,15 @@ export const TargetScoringV1Config = z
 export type TargetScoringConfigData = z.infer<typeof TargetScoringV1Config>;
 
 /**
- * Switching Target Scoring v1: exactly three distinct board targets, hit in
- * order and over again — a hit advances, a miss restarts at the first
- * (`docs/game-rules/training/exercises/switching-target-scoring.md`).
- * Scoring is Target Scoring's locked table, so it lives in the engine.
+ * Switching v1 Chain: exactly three distinct board targets — any of 1–20
+ * and the bull (25) — hit in order and over again; a hit advances, a miss
+ * restarts at the first. The second ruleset version of the `SWITCHING`
+ * exercise type, so the mode travels on the ruleset version key and never
+ * on the stored configuration, which keeps Standard's own step fingerprint
+ * untouched. Scoring is Target Scoring's locked table, so it lives in the
+ * engine.
  */
-export const SwitchingTargetScoringV1Config = z
+export const SwitchingChainV1Config = z
   .object({
     targets: z
       .array(BoardTarget)
@@ -175,9 +178,7 @@ export const SwitchingTargetScoringV1Config = z
   })
   .strict();
 
-export type SwitchingTargetScoringConfigData = z.infer<
-  typeof SwitchingTargetScoringV1Config
->;
+export type SwitchingChainConfigData = z.infer<typeof SwitchingChainV1Config>;
 
 /**
  * Score Threshold v1 ("65 or More"): a visit beats when its board total
@@ -311,7 +312,7 @@ export const EXERCISE_RULESET_CONFIGS: Record<
   SWITCHING_V1: SwitchingV1Config,
   DOUBLE_PATTERN_V1: DoublePatternV1Config,
   TARGET_SCORING_V1: TargetScoringV1Config,
-  SWITCHING_TARGET_SCORING_V1: SwitchingTargetScoringV1Config,
+  SWITCHING_CHAIN_V1: SwitchingChainV1Config,
   SCORE_THRESHOLD_V1: ScoreThresholdV1Config,
   BULLSEYE_CHECKOUT_V1: BullseyeCheckoutV1Config,
   BULL_UP_V1: BullUpV1Config,
