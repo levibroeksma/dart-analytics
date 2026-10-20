@@ -359,3 +359,19 @@ export function undoLastDart(turns: TurnFact[]): boolean {
   }
   return true;
 }
+
+/**
+ * The refusal every engine raises for a dart recorded after it ended;
+ * `noun` names what ended ("game has ended", "exercise is complete", …).
+ */
+export function endedRefusal(noun: string): string {
+  return `Cannot record a dart once the ${noun}; undo first to correct it.`;
+}
+
+/**
+ * Guard for the top of `record()`: refuses the dart while `ended`.
+ * @throws `endedRefusal(noun)` when `ended` is true.
+ */
+export function refuseWhenEnded(ended: boolean, noun: string): void {
+  if (ended) throw new Error(endedRefusal(noun));
+}

@@ -6,10 +6,12 @@ import {
   cloneTurns,
   dartsThrownBy,
   doubleTargetIntent,
+  endedRefusal,
   exerciseBlockStage,
   isDartObservationInput,
   openOrCreateTurn,
   openVisit,
+  refuseWhenEnded,
   resolveObservation,
   sumDartScores,
   turnsBeforeVisit,
@@ -479,5 +481,27 @@ describe("undoStagedTurn across a set boundary", () => {
     const turns = [visit("set-1-leg-1", 1)];
     undoStagedTurn(turns, stages);
     expect(stages.map((s) => s.clientKey)).toEqual(["set-1", "set-1-leg-1"]);
+  });
+});
+
+describe("endedRefusal", () => {
+  it("fills the noun into the shared refusal template", () => {
+    expect(endedRefusal("game has ended")).toBe(
+      "Cannot record a dart once the game has ended; undo first to correct it.",
+    );
+  });
+});
+
+describe("refuseWhenEnded", () => {
+  it("throws the exact refusal once ended", () => {
+    expect(() => refuseWhenEnded(true, "session is complete")).toThrow(
+      new Error(
+        "Cannot record a dart once the session is complete; undo first to correct it.",
+      ),
+    );
+  });
+
+  it("returns quietly while not ended", () => {
+    expect(() => refuseWhenEnded(false, "session is complete")).not.toThrow();
   });
 });
