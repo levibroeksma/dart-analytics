@@ -2,7 +2,7 @@ import { configGroupKey } from "@lib/stats/config-group";
 import { formatTargetKey } from "@lib/stats/target-key";
 import { doublesPath, targetAt } from "@modules/game/board-progression.module";
 import { doubleTargetIntent } from "@modules/game/turn-log.module";
-import { isClosed } from "./series.module";
+import { closeBuckets } from "./series.module";
 import type { IntentZoneKey, SeriesBucket, TargetKey } from "@lib/types";
 import type {
   Bobs27SeatState,
@@ -119,14 +119,5 @@ export function bobs27SurvivalBuckets(
     buckets.set(session.bucketStart, bucket);
   }
 
-  return Array.from(buckets.entries())
-    .filter(([, bucket]) => bucket.sampleSize > 0)
-    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
-    .map(([start, bucket]) => ({
-      start,
-      end: bucket.end,
-      closed: isClosed(bucket.end, ctx.to, ctx.now),
-      sampleSize: bucket.sampleSize,
-      metrics: bucket.metrics,
-    }));
+  return closeBuckets(buckets, ctx, { dropEmpty: true });
 }

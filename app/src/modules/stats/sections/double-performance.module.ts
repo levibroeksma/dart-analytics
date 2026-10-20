@@ -3,7 +3,7 @@ import {
   checkoutDarts,
   classifyDart,
 } from "@modules/game/double-attempt.module";
-import { isClosed } from "./series.module";
+import { closeBuckets } from "./series.module";
 import type {
   BucketedSession,
   DoublePerformanceMetrics,
@@ -80,14 +80,5 @@ export function doublePerformanceBuckets(
     buckets.set(session.bucketStart, bucket);
   }
 
-  return Array.from(buckets.entries())
-    .filter(([, bucket]) => bucket.sampleSize > 0)
-    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
-    .map(([start, bucket]) => ({
-      start,
-      end: bucket.end,
-      closed: isClosed(bucket.end, ctx.to, ctx.now),
-      sampleSize: bucket.sampleSize,
-      metrics: bucket.metrics,
-    }));
+  return closeBuckets(buckets, ctx, { dropEmpty: true });
 }

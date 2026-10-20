@@ -145,3 +145,25 @@ describe("doublePerformanceBuckets", () => {
     });
   });
 });
+
+describe("doublePerformanceBuckets series order", () => {
+  it("returns buckets oldest first, whatever order the sessions arrive in", () => {
+    const later = session({
+      bucketStart: "2026-02-01T00:00:00.000Z",
+      bucketEnd: "2026-03-01T00:00:00.000Z",
+      visits: [visit(32, [dart(16, "DOUBLE", 32)])],
+    });
+    const earlier = session({
+      bucketStart: "2026-01-01T00:00:00.000Z",
+      bucketEnd: "2026-02-01T00:00:00.000Z",
+      visits: [visit(32, [dart(16, "DOUBLE", 32)])],
+    });
+
+    const buckets = doublePerformanceBuckets([later, earlier], CTX);
+
+    expect(buckets.map((bucket) => bucket.start)).toEqual([
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+    ]);
+  });
+});
