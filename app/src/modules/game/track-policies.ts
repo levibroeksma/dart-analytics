@@ -328,10 +328,10 @@ export function chainOnTarget<TExt extends ChainTrackExt>(
 }
 
 /**
- * Per-dart policy (Target Scoring): a hit adds its points to the
- * chain and moves to the next of `length` targets, counting a sequence when
- * it wraps to the first; a miss restarts at the first target and ends the
- * chain, keeping the best chain a miss has ended.
+ * Per-dart policy for a sequence-walking Track exercise: a hit adds its
+ * points to the chain and moves to the next of `length` targets, counting a
+ * sequence when it wraps to the first; a miss restarts at the first target
+ * and ends the chain, keeping the best chain a miss has ended.
  */
 export function resetOnMiss<TExt extends SequenceTrackExt>(
   length: number,
