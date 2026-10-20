@@ -1,4 +1,9 @@
-import { botQuickScoreDartIndex } from "@lib/game/play-bot-seat";
+import {
+  BOT_PACING,
+  botDartIndex,
+  botQuickScoreDartIndex,
+  findBotSeat,
+} from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
@@ -39,7 +44,7 @@ import { joinSubtitle } from "@lib/game/play-subtitle";
 import { classifyDoubleAttempts } from "@modules/game/double-attempt.module";
 import { oneTwentyOneCheckoutVisits } from "@modules/game/checkout-visits.module";
 import { matchWinnerName } from "@lib/game/match-result-text";
-import type { RulesetVersionKey, SeatFact } from "@lib/types";
+import type { DartbotSeat, RulesetVersionKey } from "@lib/types";
 import type {
   CheckoutDartOptions,
   DartCount,
@@ -74,23 +79,6 @@ const DARTS_PER_VISIT = 3;
 /** Three visits make one 121 attempt, so an attempt is nine darts. */
 const DARTS_PER_ATTEMPT = 3 * DARTS_PER_VISIT;
 
-const BOT_PRE_THROW_MS = 900;
-const BOT_POST_THROW_MS = 250;
-
-type DartbotSeat = Extract<SeatFact, { participantTypeKey: "DARTBOT" }>;
-
-function findBotSeat(seats: readonly SeatFact[]): DartbotSeat | undefined {
-  return seats.find(
-    (seat): seat is DartbotSeat => seat.participantTypeKey === "DARTBOT",
-  );
-}
-
-function botDartIndex(turns: readonly TurnFact[], botRef: string): number {
-  return turns
-    .filter((turn) => turn.participantRef === botRef)
-    .reduce((sum, turn) => sum + turn.darts.length, 0);
-}
-
 function throwOneDart(
   remaining: number,
   botSeat: DartbotSeat,
@@ -124,7 +112,7 @@ function throwBotDart(
   );
   return {
     observation: throwOneDart(remaining, botSeat, dartIndex),
-    pacing: { preThrowMs: BOT_PRE_THROW_MS, postThrowMs: BOT_POST_THROW_MS },
+    pacing: BOT_PACING,
   };
 }
 

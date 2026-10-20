@@ -19,6 +19,7 @@ import {
 } from "@modules/game/engine.registry";
 import { bobs27EngineFactory } from "@modules/game/bobs27.engine.module";
 import { bobs27Play } from "@lib/game/bobs27-play.data";
+import { BOT_PACING } from "@lib/game/play-bot-seat";
 import type {
   Bobs27PlayContext,
   Bobs27Snapshot,
@@ -997,6 +998,26 @@ function botConfig(): Seated<Bobs27Snapshot> {
 }
 
 describe("bobs27Play — DartBot opponent", () => {
+  it("paces the bot's darts with the shared BOT_PACING", async () => {
+    vi.useFakeTimers();
+    const setTimeoutSpy = vi.spyOn(globalThis, "setTimeout");
+    const play = makePlay({ configSnapshot: botConfig() });
+    await play.init.call(play);
+
+    await play.recordDart.call(play, missAt(1));
+    await play.recordDart.call(play, missAt(1));
+    const handOver = play.recordDart.call(play, missAt(1));
+    await vi.runAllTimersAsync();
+    await handOver;
+
+    expect(setTimeoutSpy).toHaveBeenCalledWith(
+      expect.any(Function),
+      BOT_PACING.postThrowMs,
+    );
+    setTimeoutSpy.mockRestore();
+    vi.useRealTimers();
+  });
+
   it("throws automatically once it becomes the bot's turn, without any UI action", async () => {
     const play = makePlay({ configSnapshot: botConfig() });
     await play.init.call(play);

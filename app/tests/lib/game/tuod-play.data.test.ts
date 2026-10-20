@@ -82,6 +82,7 @@ import {
 } from "@modules/game/tuod.engine.module";
 import type { GameEngine, GameEngineFactory } from "@modules/interfaces";
 import { tuodPlay } from "@lib/game/tuod-play.data";
+import { BOT_PACING } from "@lib/game/play-bot-seat";
 import type { TuodPlayContext, TuodSnapshot, Seated } from "@lib/types";
 import type {
   DartFact,
@@ -1951,6 +1952,32 @@ describe("tuodPlay — DartBot opponent", () => {
     vi.mocked(fetchActiveSessions).mockResolvedValue([
       { ...ACTIVE_SESSION, sessionId: "session-1" },
     ]);
+  });
+
+  it("paces the bot's darts with the shared BOT_PACING", async () => {
+    vi.useFakeTimers();
+    const setTimeoutSpy = vi.spyOn(globalThis, "setTimeout");
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      {
+        ...ACTIVE_SESSION,
+        sessionId: "session-1",
+        captureModeKey: "ANALYTICS",
+        inputModeKey: "VISUAL_BOARD",
+      },
+    ]);
+    const play = makePlay();
+    await play.init.call(play);
+
+    const handOver = play.recordAttempt.call(play, { checkedOut: false });
+    await vi.runAllTimersAsync();
+    await handOver;
+
+    expect(setTimeoutSpy).toHaveBeenCalledWith(
+      expect.any(Function),
+      BOT_PACING.postThrowMs,
+    );
+    setTimeoutSpy.mockRestore();
+    vi.useRealTimers();
   });
 
   it("under VISUAL_BOARD, the bot throws its own attempt once it becomes active", async () => {

@@ -27,6 +27,7 @@ import {
   singlesTrainingV3EngineFactory,
 } from "@modules/game/singles-training.engine.module";
 import { singlesTrainingPlay } from "@lib/game/singles-training-play.data";
+import { BOT_PACING } from "@lib/game/play-bot-seat";
 import type {
   SinglesSnapshot,
   SinglesV3Snapshot,
@@ -1587,6 +1588,26 @@ function botConfig(): Seated<SinglesSnapshot> {
 }
 
 describe("singlesTrainingPlay — DartBot opponent", () => {
+  it("paces the bot's darts with the shared BOT_PACING", async () => {
+    vi.useFakeTimers();
+    const setTimeoutSpy = vi.spyOn(globalThis, "setTimeout");
+    const play = makePlay({ configSnapshot: botConfig() });
+    await play.init.call(play);
+
+    await play.recordTap.call(play, "MISS");
+    await play.recordTap.call(play, "MISS");
+    const handOver = play.recordTap.call(play, "MISS");
+    await vi.runAllTimersAsync();
+    await handOver;
+
+    expect(setTimeoutSpy).toHaveBeenCalledWith(
+      expect.any(Function),
+      BOT_PACING.postThrowMs,
+    );
+    setTimeoutSpy.mockRestore();
+    vi.useRealTimers();
+  });
+
   it("throws automatically once it becomes the bot's turn, without any UI action", async () => {
     const play = makePlay({ configSnapshot: botConfig() });
     await play.init.call(play);

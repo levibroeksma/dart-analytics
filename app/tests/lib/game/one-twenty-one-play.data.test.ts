@@ -17,6 +17,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // Confirmed these assertions (including the VISUAL_BOARD checkoutPercentage
 // test) still hold unchanged.
 import { oneTwentyOnePlay } from "@lib/game/one-twenty-one-play.data";
+import { BOT_PACING } from "@lib/game/play-bot-seat";
 import {
   oneTwentyOneEngineFactory,
   oneTwentyOneV2EngineFactory,
@@ -1264,6 +1265,25 @@ describe("oneTwentyOnePlay — DartBot opponent", () => {
       ...overrides,
     } as OneTwentyOnePlayContext;
   }
+
+  it("paces the bot's darts with the shared BOT_PACING", async () => {
+    vi.useFakeTimers();
+    const setTimeoutSpy = vi.spyOn(globalThis, "setTimeout");
+    store.game.inputModeKey = "VISUAL_BOARD";
+    const play = createPlay();
+    await play.init();
+
+    const handOver = play.recordVisit(26, false);
+    await vi.runAllTimersAsync();
+    await handOver;
+
+    expect(setTimeoutSpy).toHaveBeenCalledWith(
+      expect.any(Function),
+      BOT_PACING.postThrowMs,
+    );
+    setTimeoutSpy.mockRestore();
+    vi.useRealTimers();
+  });
 
   it("under VISUAL_BOARD, the bot throws its own visit once it becomes active", async () => {
     store.game.inputModeKey = "VISUAL_BOARD";

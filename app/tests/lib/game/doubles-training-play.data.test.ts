@@ -19,6 +19,7 @@ import {
 } from "@modules/game/engine.registry";
 import { doublesTrainingEngineFactory } from "@modules/game/doubles-training.engine.module";
 import { doublesTrainingPlay } from "@lib/game/doubles-training-play.data";
+import { BOT_PACING } from "@lib/game/play-bot-seat";
 import type {
   DoublesTrainingPlayContext,
   DoublesTrainingSnapshot,
@@ -1026,6 +1027,26 @@ function botConfig(): Seated<DoublesTrainingSnapshot> {
 }
 
 describe("doublesTrainingPlay — DartBot opponent", () => {
+  it("paces the bot's darts with the shared BOT_PACING", async () => {
+    vi.useFakeTimers();
+    const setTimeoutSpy = vi.spyOn(globalThis, "setTimeout");
+    const play = makePlay({ configSnapshot: botConfig() });
+    await play.init.call(play);
+
+    await play.recordTap.call(play, false);
+    await play.recordTap.call(play, false);
+    const handOver = play.recordTap.call(play, false);
+    await vi.runAllTimersAsync();
+    await handOver;
+
+    expect(setTimeoutSpy).toHaveBeenCalledWith(
+      expect.any(Function),
+      BOT_PACING.postThrowMs,
+    );
+    setTimeoutSpy.mockRestore();
+    vi.useRealTimers();
+  });
+
   it("throws automatically once it becomes the bot's turn, without any UI action", async () => {
     const play = makePlay({ configSnapshot: botConfig() });
     await play.init.call(play);
