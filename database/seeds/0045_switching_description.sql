@@ -21,11 +21,13 @@
 -- primary-key-targeted UPDATE, written in a later-numbered file
 -- so filename order puts it after the INSERT it corrects.
 --
--- The per-template descriptions are untouched: the "Switching"
--- template (0199b000-...-002, seed 0017) and the "Chain"
--- template (0199b000-...-015, seed 0044) each name their own
--- config, and the Switching template's row is what the stats
--- step fingerprint reads.
+-- The per-template descriptions are untouched here: the
+-- Standard template (0199b000-...-002, seed 0017, renamed and
+-- redescribed by seed 0046) and the "Chain" template
+-- (0199b000-...-015, seed 0044) each name their own config.
+-- Neither name nor description is in the stats step
+-- fingerprint, which hashes only the snapshot resolveStep
+-- writes (see seed 0046's header).
 --
 -- Idempotent: a primary-key-targeted UPDATE to a constant
 -- value, guarded by IS DISTINCT FROM so the second pass of

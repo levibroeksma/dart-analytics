@@ -12,14 +12,22 @@
 -- mode rides on the ruleset version key, not on the step
 -- configuration.
 --
--- The existing "Switching" template
+-- The existing Standard template
 -- (0199b000-0000-7000-8000-000000000002, seed 0017, pinned to
 -- SWITCHING_V1 by seed 0019) is NOT touched beyond
--- difficulty_tag_id. Routine statistics fingerprint a step by
--- its stored configuration and its ruleset version key
--- (v_stats_routine_step_facts, migration 0045), so changing its
--- name, description, default_configuration or pinned ruleset
--- would restart every player's Balanced Training trend.
+-- difficulty_tag_id. What a change there would cost is exactly
+-- what the step fingerprint reads, and no more:
+-- v_stats_routine_step_facts (migration 0045) hashes
+-- md5((element - 'sequenceNumber')::text) over the snapshot
+-- resolveStep writes
+-- (app/src/services/training-session.service.ts) —
+-- exerciseTypeKey, exerciseRulesetVersionKey, gameTypeKey,
+-- gameRulesetVersionKey, durationSeconds and configuration. So
+-- a changed default_configuration or a changed ruleset pin
+-- would restart every player's Balanced Training trend, while
+-- name and description are NOT in the snapshot and are safe to
+-- change. Seed 0046 does change both, renaming this template to
+-- "Standard" so the card's two rows read Standard and Chain.
 --
 -- exercise_ruleset_versions has no unique on
 -- (exercise_type_id, version_number) — only
@@ -93,8 +101,8 @@ VALUES (
 
 -- SWITCHING (rules file still owed; its routine-step Difficulty
 -- row will read BEGINNER (Standard), INTERMEDIATE (Chain)):
--- - 0199b000-...-002  Switching (seed 0017)  -> BEGINNER
--- - 0199b000-...-015  Chain      (above)     -> INTERMEDIATE
+-- - 0199b000-...-002  Standard (seed 0017, renamed by 0046) -> BEGINNER
+-- - 0199b000-...-015  Chain    (above)                      -> INTERMEDIATE
 UPDATE exercise_templates SET difficulty_tag_id = (SELECT t.id FROM tags t JOIN tag_axes a ON a.id = t.tag_axis_id WHERE a.implementation_key = 'DIFFICULTY' AND t.implementation_key = 'BEGINNER') WHERE id = '0199b000-0000-7000-8000-000000000002';
 UPDATE exercise_templates SET difficulty_tag_id = (SELECT t.id FROM tags t JOIN tag_axes a ON a.id = t.tag_axis_id WHERE a.implementation_key = 'DIFFICULTY' AND t.implementation_key = 'INTERMEDIATE') WHERE id = '0199b000-0000-7000-8000-000000000015';
 

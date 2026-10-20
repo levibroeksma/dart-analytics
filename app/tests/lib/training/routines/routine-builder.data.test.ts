@@ -82,10 +82,10 @@ beforeEach(() => {
 });
 
 describe("routineBuilder groups", () => {
-  it("exposes the catalog grouped by type", async () => {
+  it("exposes the catalog grouped by type, card-name ordered", async () => {
     const b: RoutineBuilderContext = routineBuilder("create");
     await b.init();
-    expect(b.groups().map((g) => g.key)).toEqual(["WARM_UP", "TUOD"]);
+    expect(b.groups().map((g) => g.key)).toEqual(["TUOD", "WARM_UP"]);
   });
 
   it("still loads and groups when the tags fetch fails", async () => {

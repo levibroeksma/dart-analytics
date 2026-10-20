@@ -107,10 +107,10 @@ describe("groupCatalog", () => {
     expect(groups[0].name).toBe("Around the Clock");
     expect(groups[0].blurb).toBe("desc");
     expect(groups[0].entries.map((e) => e.label)).toEqual([
-      "ATC Singles",
       "ATC Doubles",
+      "ATC Singles",
     ]);
-    expect(groups[0].entries.map((e) => e.level)).toEqual([1, 3]);
+    expect(groups[0].entries.map((e) => e.level)).toEqual([3, 1]);
   });
 
   it("groups a GAME entry by gameTypeKey and uses routine-step tags", () => {
@@ -161,7 +161,7 @@ describe("groupCatalog", () => {
     expect(groups[0].entries).toHaveLength(2);
   });
 
-  it("keeps first-seen group order", () => {
+  it("orders groups by their own name, not by first-seen entry", () => {
     const groups = groupCatalog(
       [
         entry({ exerciseTypeKey: "B", exerciseTypeName: "B" }),
@@ -170,6 +170,53 @@ describe("groupCatalog", () => {
       ],
       null,
     );
-    expect(groups.map((g) => g.key)).toEqual(["B", "A"]);
+    expect(groups.map((g) => g.key)).toEqual(["A", "B"]);
+  });
+
+  it("keeps a card under its own initial when a row sorts earlier", () => {
+    const groups = groupCatalog(
+      [
+        entry({
+          exerciseTemplateId: "chain",
+          name: "Chain",
+          exerciseTypeKey: "SWITCHING",
+          exerciseTypeName: "Switching",
+        }),
+        entry({
+          exerciseTemplateId: "dl",
+          name: "Doubles Lock",
+          exerciseTypeKey: "DOUBLES_LOCK",
+          exerciseTypeName: "Doubles Lock",
+        }),
+        entry({
+          exerciseTemplateId: "standard",
+          name: "Standard",
+          exerciseTypeKey: "SWITCHING",
+          exerciseTypeName: "Switching",
+        }),
+      ],
+      null,
+    );
+    expect(groups.map((g) => g.name)).toEqual(["Doubles Lock", "Switching"]);
+    expect(groups[1].entries.map((e) => e.label)).toEqual([
+      "Chain",
+      "Standard",
+    ]);
+  });
+
+  it("orders rows within a card by template name", () => {
+    const [group] = groupCatalog(
+      [
+        entry({ exerciseTemplateId: "c", name: "Zulu" }),
+        entry({ exerciseTemplateId: "a", name: "Alpha" }),
+        entry({ exerciseTemplateId: "b", name: "Mike" }),
+      ],
+      null,
+    );
+    expect(group.entries.map((e) => e.label)).toEqual([
+      "Alpha",
+      "Mike",
+      "Zulu",
+    ]);
   });
 });

@@ -31,8 +31,14 @@ function tagSet(
  * per game type for routine-step games. Group names come from the view's name
  * columns and row labels are the template names as-is. The blurb is the game
  * type's description, else the exercise type's, else the first template's.
- * Order is first-seen, which is the catalog's own name sort. A missing tag
- * source (or a failed tags fetch, `tags === null`) gives a group with no tags.
+ * A missing tag source (or a failed tags fetch, `tags === null`) gives a group
+ * with no tags.
+ *
+ * Cards are ordered by their own name and rows within a card by template name,
+ * both independently of the order the catalog arrives in. First-seen order
+ * would give a card the position of its alphabetically-first template — the
+ * Switching card sorting under "C" for its "Chain" row — because the catalog
+ * query sorts by template name alone.
  */
 export function groupCatalog(
   entries: ExerciseTemplateCatalogEntryData[],
@@ -62,5 +68,8 @@ export function groupCatalog(
       label: entry.name,
     });
   }
-  return [...groups.values()];
+  for (const group of groups.values()) {
+    group.entries.sort((a, b) => a.label.localeCompare(b.label));
+  }
+  return [...groups.values()].sort((a, b) => a.name.localeCompare(b.name));
 }

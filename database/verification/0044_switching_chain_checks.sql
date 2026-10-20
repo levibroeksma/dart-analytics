@@ -8,14 +8,17 @@
 -- three-target configuration, both Switching templates reach
 -- the routine builder through v_exercise_template_catalog with
 -- the right difficulty levels, and — the check that matters
--- most — the pre-existing "Switching" template is unchanged
--- apart from difficulty_tag_id.
+-- most — the pre-existing Standard template still holds the
+-- configuration and the SWITCHING_V1 pin it was seeded with.
 --
 -- That last one is not cosmetic: v_stats_routine_step_facts
 -- (migration 0045) fingerprints a routine step by its stored
--- configuration and ruleset version key, so a drifted name,
--- description, configuration or pin would restart every
--- player's Balanced Training trend.
+-- configuration and ruleset version key, so a drifted
+-- configuration or pin would restart every player's Balanced
+-- Training trend. The template's name and description are not
+-- in that fingerprint — seed 0046 renames the row to "Standard"
+-- and redescribes it on purpose, and checks 4 and 6 assert the
+-- post-0046 values.
 --
 -- Reads seeded rows only and ends in ROLLBACK, so it leaves
 -- nothing behind and composes with the other verification
@@ -72,7 +75,7 @@ WHERE et.implementation_key = 'SWITCHING'
 
 INSERT INTO verification_results
 SELECT '4',
-    'the Standard template is untouched: name, description, configuration and SWITCHING_V1 pin',
+    'the Standard template reads Standard, with its seeded configuration and SWITCHING_V1 pin',
     CASE WHEN count(*) = 1 THEN 'PASS' ELSE 'FAIL' END,
     format('%s matching template(s)', count(*))
 FROM exercise_templates t
@@ -80,8 +83,8 @@ FROM exercise_templates t
 WHERE t.id = '0199b000-0000-7000-8000-000000000002'
     AND t.exercise_type_id = '0199a000-0000-7000-8000-000000000003'
     AND erv.implementation_key = 'SWITCHING_V1'
-    AND t.name = 'Switching'
-    AND t.description = 'One dart each at a fixed target list, scored by zone.'
+    AND t.name = 'Standard'
+    AND t.description = 'One dart at each target in turn, every dart scored by the ring it hits: single 1, double 2, treble 3.'
     AND t.game_type_id IS NULL
     AND t.default_configuration = '{"targets":[20,19,18],"scoring":{"single":1,"double":2,"treble":3}}'::jsonb;
 
@@ -96,12 +99,12 @@ WHERE exercise_type_key = 'SWITCHING'
 
 INSERT INTO verification_results
 SELECT '6',
-    'the catalog levels Switching 1 (Beginner) and Chain 2 (Intermediate)',
+    'the catalog levels Standard 1 (Beginner) and Chain 2 (Intermediate)',
     CASE WHEN count(*) = 2 THEN 'PASS' ELSE 'FAIL' END,
     format('%s matching row(s)', count(*))
 FROM v_exercise_template_catalog
 WHERE exercise_type_key = 'SWITCHING'
-    AND ((name = 'Switching' AND difficulty_level = 1)
+    AND ((name = 'Standard' AND difficulty_level = 1)
       OR (name = 'Chain' AND difficulty_level = 2));
 
 INSERT INTO verification_results

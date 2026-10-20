@@ -21,7 +21,8 @@
 --    before turns would abort.
 -- 2. the sessions themselves; exercise_configurations,
 --    exercise_stages, participants and session_write_idempotency
---    follow by ON DELETE CASCADE.
+--    follow by ON DELETE CASCADE. The owning activities row does
+--    not follow and is not deleted here: see (d) below.
 -- 3. routine_steps naming the type's template, in seeded and
 --    player-built routines alike (fk_routine_steps_exercise is
 --    ON DELETE RESTRICT: the template cannot go first).
@@ -53,15 +54,58 @@
 --    is deleted (readers unaffected, writers wait), so no
 --    concurrent insert can land in an affected routine between
 --    the park and the rank-down and make the park's offset
---    collide with a live number.
+--    collide with a live number. Renumbering has a statistics
+--    cost, paid knowingly: see (b) below.
 -- 7. exercise_type_tags, then the exercise_templates,
 --    exercise_ruleset_versions and exercise_types rows.
 --
--- History is not rewritten: activity_configurations is an
--- immutable snapshot of what a training ran, and
--- v_stats_routine_step_facts resolves a step through that
--- snapshot by sequence number, never through routine_steps, so
--- renumbering a live routine leaves past runs intact.
+-- What this leaves behind. Each of these is reported by a
+-- NOTICE rather than repaired, because repairing it is a
+-- product decision this migration is not entitled to take.
+--
+-- a. Past step-level history is intact. activity_configurations
+--    is an immutable snapshot of what a training ran, and
+--    v_stats_routine_step_facts resolves a step through that
+--    snapshot by sequence number, never through routine_steps,
+--    so renumbering a live routine does not move a past run's
+--    step.
+-- b. Forward continuity is NOT intact for a renumbered step.
+--    v_stats_routine_step_facts keys a step by
+--    sequence_number || '-' || md5(element - 'sequenceNumber')
+--    (0045_stats_routine_views.sql), and a past session keeps
+--    the number it recorded while the next run of the same
+--    routine records the new one. Step 4 renumbered to 3
+--    therefore starts a fresh step_key: its runs so far stay
+--    under '4-<fingerprint>' and read as a step that stopped,
+--    and its trend restarts at the first run after this
+--    migration. Unavoidable while uq_routine_steps_sequence
+--    demands a gapless 1..n, so the renumber notice below names
+--    every routine and every step it moved, with the old and
+--    the new sequence number.
+-- c. Run-level history IS rewritten for any training that ran
+--    this type as a step. v_stats_routine_run_facts reads
+--    step_count from the immutable snapshot but counts
+--    steps_started, steps_completed and dart_count over live
+--    exercise_sessions (0045_stats_routine_views.sql), so a
+--    finished four-step run whose step 3 was this type now
+--    reports 3 completed against 4 expected — a completed run
+--    that reads as unfinished — and its dart count drops by the
+--    darts deleted in step 1. A notice counts and names those
+--    activities.
+-- d. activities and their activity_configurations snapshots
+--    survive the session delete. fk_sessions_activity is
+--    exercise_sessions -> activities ON DELETE CASCADE, the
+--    child direction: deleting sessions never reaches the
+--    parent. A training whose only sessions were of this type
+--    is therefore left with no session at all, and
+--    v_training_completions reads activities alone, so an
+--    erased training still counts in history and streaks while
+--    v_stats_routine_run_facts emits a ghost run with the
+--    snapshot's step_count and zero started, completed and
+--    darts. Those rows are deliberately NOT deleted here; the
+--    notice names each one (id, player, status, start, and the
+--    routine its snapshot recorded) so the production run is
+--    auditable.
 -- ============================================================
 
 -- migrate:up
@@ -97,10 +141,47 @@ BEGIN
     GET DIAGNOSTICS v_count = ROW_COUNT;
     RAISE NOTICE '0048: deleted % turns', v_count;
 
+    CREATE TEMP TABLE tmp_0048_touched_activities ON COMMIT DROP AS
+    SELECT DISTINCT s.activity_id
+    FROM exercise_sessions s
+    WHERE s.exercise_type_id = v_type_id;
+
     DELETE FROM exercise_sessions s
     WHERE s.exercise_type_id = v_type_id;
     GET DIAGNOSTICS v_count = ROW_COUNT;
     RAISE NOTICE '0048: deleted % exercise sessions (stages, participants, configurations and idempotency rows cascaded)', v_count;
+
+    SELECT count(*),
+        string_agg(
+            format('%s (player %s, %s, started %s, snapshot routine %s)',
+                a.id,
+                a.player_id,
+                gs.implementation_key,
+                a.started_at,
+                COALESCE(ac.configuration ->> 'routineName', 'none')
+            ),
+            '; '
+            ORDER BY a.started_at, a.id
+        )
+    INTO v_count, v_named
+    FROM tmp_0048_touched_activities ta
+        JOIN activities a ON a.id = ta.activity_id
+        JOIN game_statuses gs ON gs.id = a.status_id
+        LEFT JOIN activity_configurations ac ON ac.activity_id = a.id
+    WHERE NOT EXISTS (
+        SELECT 1 FROM exercise_sessions s WHERE s.activity_id = a.id
+    );
+    RAISE NOTICE '0048: % activity(ies) left with no exercise session by this erasure, kept on purpose (v_training_completions still counts them; v_stats_routine_run_facts emits a ghost run): %', v_count, COALESCE(v_named, 'none');
+
+    SELECT count(*),
+        string_agg(a.id::text, '; ' ORDER BY a.started_at, a.id)
+    INTO v_count, v_named
+    FROM tmp_0048_touched_activities ta
+        JOIN activities a ON a.id = ta.activity_id
+    WHERE EXISTS (
+        SELECT 1 FROM exercise_sessions s WHERE s.activity_id = a.id
+    );
+    RAISE NOTICE '0048: % surviving activity(ies) now under-report in v_stats_routine_run_facts (snapshot step_count against live steps_started, steps_completed and dart_count): %', v_count, COALESCE(v_named, 'none');
 
     LOCK TABLE routine_steps IN SHARE ROW EXCLUSIVE MODE;
 
@@ -183,21 +264,28 @@ BEGIN
     GET DIAGNOSTICS v_count = ROW_COUNT;
     RAISE NOTICE '0048: deleted % player routine(s) left with no step: %', v_count, COALESCE(v_named, 'none');
 
-    SELECT count(*)
-    INTO v_count
-    FROM (
-        SELECT rs.sequence_number,
-            row_number() OVER (
-                PARTITION BY rs.routine_template_id
-                ORDER BY rs.sequence_number
-            ) AS rn
-        FROM routine_steps rs
-        WHERE EXISTS (
-            SELECT 1 FROM tmp_0048_erased_steps e
-            WHERE e.routine_template_id = rs.routine_template_id
-        )
-    ) gap
-    WHERE gap.sequence_number <> gap.rn;
+    CREATE TEMP TABLE tmp_0048_renumbered_steps ON COMMIT DROP AS
+    SELECT rs.routine_template_id,
+        rt.name AS routine_name,
+        et.name AS exercise_name,
+        rs.sequence_number AS old_sequence_number,
+        gap.rn AS new_sequence_number
+    FROM routine_steps rs
+        JOIN routine_templates rt ON rt.id = rs.routine_template_id
+        JOIN exercise_templates et ON et.id = rs.exercise_template_id
+        JOIN (
+            SELECT rs2.id,
+                row_number() OVER (
+                    PARTITION BY rs2.routine_template_id
+                    ORDER BY rs2.sequence_number
+                ) AS rn
+            FROM routine_steps rs2
+            WHERE EXISTS (
+                SELECT 1 FROM tmp_0048_erased_steps e
+                WHERE e.routine_template_id = rs2.routine_template_id
+            )
+        ) gap ON gap.id = rs.id
+    WHERE rs.sequence_number <> gap.rn;
 
     UPDATE routine_steps rs
     SET sequence_number = rs.sequence_number + 1000000
@@ -221,7 +309,27 @@ BEGIN
         )
     ) ranked
     WHERE rs.id = ranked.id;
-    RAISE NOTICE '0048: renumbered % surviving routine step(s)', v_count;
+
+    SELECT count(*) INTO v_count FROM tmp_0048_renumbered_steps;
+
+    SELECT string_agg(moved.line, '; ' ORDER BY moved.routine_name, moved.routine_template_id)
+    INTO v_named
+    FROM (
+        SELECT n.routine_template_id,
+            n.routine_name,
+            format('%s (%s): %s',
+                n.routine_name,
+                n.routine_template_id,
+                string_agg(
+                    format('%s moves %s -> %s', n.exercise_name, n.old_sequence_number, n.new_sequence_number),
+                    ', '
+                    ORDER BY n.old_sequence_number
+                )
+            ) AS line
+        FROM tmp_0048_renumbered_steps n
+        GROUP BY n.routine_template_id, n.routine_name
+    ) moved;
+    RAISE NOTICE '0048: renumbered % surviving routine step(s); each one starts a new step_key in v_stats_routine_step_facts, so its trend restarts on the next run: %', v_count, COALESCE(v_named, 'none');
 
     DELETE FROM exercise_type_tags tt
     WHERE tt.exercise_type_id = v_type_id;
