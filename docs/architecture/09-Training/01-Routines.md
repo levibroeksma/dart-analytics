@@ -189,6 +189,17 @@ The type does not determine every contextual property of an exercise occurrence.
 
 For example, `SWITCHING` can be configured differently in different routines.
 
+A type may also ship **more than one ruleset version**, each a distinct playable
+config with its own engine, validator, adapter and panel. `SWITCHING` does:
+`SWITCHING_V1` is its Standard config and `SWITCHING_CHAIN_V1` its Chain config
+(§17). The mode rides on the ruleset version key and never on the step
+configuration, which is what keeps Standard's stored configuration — and
+therefore its `step_key` fingerprint and its statistics trend — unchanged by a
+second config arriving beside it. Everything that used to resolve a behaviour
+from the bare exercise type now resolves it from the type and the ruleset
+version together: the step adapter (`stepAdapterKey`) and the statistics kind
+(`DartExerciseKind`, `10-Statistics/01-Section-Catalog.md` §3.1) (2026-10-20).
+
 ---
 
 ## 3.5 Exercise Configuration
@@ -773,7 +784,15 @@ exercise score
 progress
 ```
 
-**Implemented** (`SWITCHING_V1`, `app/src/modules/training/exercises/switching.engine.module.ts`): `targets: number[]` (board numbers, e.g. `[20, 19, 18]`) and `scoring: { single, double, treble }` replace this section's `T20`/`evaluation` notation one-for-one. There is no `outside` config key — a dart landing on any number other than the visit's own current target always scores 0, by omission rather than by a configured value. Its play screen renders total points as the primary readout with target/darts/remaining-time stat rows and a three-dart visit preview, the same shape a board-input game uses (D275, 2026-09-14). Each dart is stored with the visit's current target as `intended_target_number` and `TREBLE` as `intended_zone_key` — the sequence's own aim, and what `chk_dart_target_consistency` requires once a target is set (D276, 2026-09-14). Targets run `1`–`20` only: the bull has no treble, so it cannot carry that aim, and a configuration naming `25` is rejected by `switchingValidator` rather than scored 0 in silence (D297, 2026-09-17). Its step session is created under the `ANALYTICS` + `VISUAL_BOARD` capture pair with no game pair, and uploads its darts through `POST /api/sessions/:id/events/batch` like any board-input game (D277, 2026-09-14).
+Switching ships two configs under the one exercise type: **Standard**
+(`SWITCHING_V1`), the configurable-scoring cycle this section describes, and
+**Chain** (`SWITCHING_CHAIN_V1`), a three-target chain with locked scoring.
+The rules of both belong in Switching's own game-rules document, not here;
+what follows is only how each is built.
+
+**Implemented — Standard** (`SWITCHING_V1`, `app/src/modules/training/exercises/switching.engine.module.ts`): `targets: number[]` (board numbers, e.g. `[20, 19, 18]`) and `scoring: { single, double, treble }` replace this section's `T20`/`evaluation` notation one-for-one. There is no `outside` config key — a dart landing on any number other than the visit's own current target always scores 0, by omission rather than by a configured value. Its play screen renders total points as the primary readout with target/darts/remaining-time stat rows and a three-dart visit preview, the same shape a board-input game uses (D275, 2026-09-14). Each dart is stored with the visit's current target as `intended_target_number` and `TREBLE` as `intended_zone_key` — the sequence's own aim, and what `chk_dart_target_consistency` requires once a target is set (D276, 2026-09-14). Targets run `1`–`20` only: the bull has no treble, so it cannot carry that aim, and a configuration naming `25` is rejected by `switchingValidator` rather than scored 0 in silence (D297, 2026-09-17). Its step session is created under the `ANALYTICS` + `VISUAL_BOARD` capture pair with no game pair, and uploads its darts through `POST /api/sessions/:id/events/batch` like any board-input game (D277, 2026-09-14).
+
+**Implemented — Chain** (`SWITCHING_CHAIN_V1`, `app/src/modules/training/exercises/switching-chain.engine.module.ts`): a second `exercise_ruleset_versions` row under the same `SWITCHING` exercise type, not a type of its own — Standard's own row, template and `default_configuration` are untouched by it. Its configuration is `targets` alone: exactly three, distinct, `1`–`20` or `25`. Unlike Standard (D297) the bull is a legal target, so a dart's intended zone is `TREBLE` on a number and `INNER_BULL` on `25`. Scoring is locked in the engine and shared with Target Scoring (`targetScoringPoints`), so there is no `scoring` key to configure. State carries the live chain, the best chain (a chain live at timer expiry counts), the best chain a miss has ended as the "to beat" mark, and completed passes through the sequence. It folds through the Track kernel via `trackExerciseSpec`, with `resetOnMiss(3)` as its per-dart rule and `closeAfter(3)` closing each three-dart visit; the sequence carries across visit boundaries. Capture pair, upload path and routine-step-only scope match Standard (D277). It reaches its own panel because `stepAdapterKey` resolves `SWITCHING_CHAIN_V1` to the `SWITCHING_CHAIN` adapter (§3.4), and its own statistics because `dartExerciseKindOf` resolves it to the `SWITCHING:CHAIN` kind (2026-10-20).
 
 ---
 
