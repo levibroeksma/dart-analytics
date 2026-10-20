@@ -8,6 +8,7 @@ import {
 import { switchingEngineFactory } from "@modules/training/exercises/switching.engine.module";
 import { doublePatternEngineFactory } from "@modules/training/exercises/double-pattern.engine.module";
 import { targetScoringEngineFactory } from "@modules/training/exercises/target-scoring.engine.module";
+import { switchingChainEngineFactory } from "@modules/training/exercises/switching-chain.engine.module";
 import { scoreThresholdEngineFactory } from "@modules/training/exercises/score-threshold.engine.module";
 import { bullseyeCheckoutEngineFactory } from "@modules/training/exercises/bullseye-checkout.engine.module";
 import { bullUpEngineFactory } from "@modules/training/exercises/bull-up.engine.module";
@@ -73,6 +74,15 @@ function fixtures(): Fixture[] {
   targetScoring.record(dart(5, "SINGLE"));
   targetScoring.record(dart(19, "TREBLE"));
   targetScoring.record(dart(1, "SINGLE"));
+
+  const switchingChain = switchingChainEngineFactory.create({
+    targets: [20, 19, 18],
+  });
+  switchingChain.record(dart(20, "TREBLE"));
+  switchingChain.record(dart(19, "TREBLE"));
+  switchingChain.record(dart(18, "TREBLE"));
+  switchingChain.record(dart(5, "SINGLE"));
+  switchingChain.record(dart(20, "TREBLE"));
 
   const scoreThreshold = scoreThresholdEngineFactory.create({
     threshold: 65,
@@ -158,7 +168,7 @@ function fixtures(): Fixture[] {
 
   return [
     {
-      kind: "SWITCHING",
+      kind: "SWITCHING:STANDARD",
       state: switching.state(),
       facts: switching.facts(),
       expected: { points: 6, darts: 4, hits: 3 },
@@ -174,6 +184,12 @@ function fixtures(): Fixture[] {
       state: targetScoring.state(),
       facts: targetScoring.facts(),
       expected: { bestChain: 4, darts: 5, hits: 3 },
+    },
+    {
+      kind: "SWITCHING:CHAIN",
+      state: switchingChain.state(),
+      facts: switchingChain.facts(),
+      expected: { bestChain: 9, sequences: 1, darts: 5, hits: 4 },
     },
     {
       kind: "SCORE_THRESHOLD",
@@ -242,7 +258,9 @@ describe("stepMetrics", () => {
     engine.record(dart(20, "SINGLE"));
     engine.record(dart(5, "SINGLE"));
 
-    expect(stepMetrics("SWITCHING", engine.state(), engine.facts())).toEqual({
+    expect(
+      stepMetrics("SWITCHING:STANDARD", engine.state(), engine.facts()),
+    ).toEqual({
       points: 0,
       darts: 2,
       hits: 1,
@@ -271,16 +289,17 @@ describe("stepMetrics", () => {
 
 describe("mergeStepMetrics", () => {
   it("sums 'sum' keys and takes the max of 'max' keys", () => {
-    const spec = STEP_METRIC_SPECS.TARGET_SCORING;
+    const spec = STEP_METRIC_SPECS["SWITCHING:CHAIN"];
 
     const merged = mergeStepMetrics(
       spec,
-      { bestChain: 9, darts: 5, hits: 4 },
-      { bestChain: 12, darts: 8, hits: 6 },
+      { bestChain: 9, sequences: 1, darts: 5, hits: 4 },
+      { bestChain: 12, sequences: 3, darts: 8, hits: 6 },
     );
 
     expect(merged).toEqual({
       bestChain: 12,
+      sequences: 4,
       darts: 13,
       hits: 10,
     });
@@ -288,7 +307,7 @@ describe("mergeStepMetrics", () => {
 });
 
 describe("mergeStepResult", () => {
-  const spec = STEP_METRIC_SPECS.SWITCHING;
+  const spec = STEP_METRIC_SPECS["SWITCHING:STANDARD"];
 
   function metric(overrides: Partial<StepResultMetric>): StepResultMetric {
     return {

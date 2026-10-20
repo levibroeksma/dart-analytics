@@ -461,6 +461,51 @@ export function isDartExerciseKind(key: string): key is DartExerciseKind {
   return Object.hasOwn(STEP_METRIC_SPECS, key);
 }
 
+/**
+ * The dart exercise kind each exercise ruleset version pins outright, for
+ * the exercise types that ship more than one ruleset and whose metrics
+ * differ between them. `SWITCHING_V1` is listed beside `SWITCHING_CHAIN_V1`
+ * even though `LEGACY_KIND_BY_TYPE` would reach the same answer, so the
+ * pairing reads as one table rather than a rule plus an exception.
+ */
+const KIND_BY_EXERCISE_RULESET: Readonly<Record<string, DartExerciseKind>> = {
+  SWITCHING_V1: "SWITCHING:STANDARD",
+  SWITCHING_CHAIN_V1: "SWITCHING:CHAIN",
+};
+
+/**
+ * The kind a composite exercise type falls back to when its session names
+ * no ruleset version at all — a session stored before exercise rulesets
+ * existed, whose only clue is the type key. Standard answers for
+ * `SWITCHING` because it is the only ruleset such a session can have run.
+ */
+const LEGACY_KIND_BY_TYPE: Readonly<Record<string, DartExerciseKind>> = {
+  SWITCHING: "SWITCHING:STANDARD",
+};
+
+/**
+ * One session or step's dart exercise kind, or `null` when it has none — a
+ * GAME step, a dartless exercise (Warm-Up), or a type this client does not
+ * know. The kind is a composite wherever one exercise type ships several
+ * rulesets with different metrics, so the ruleset version key decides first
+ * and the type key is only the fallback. This is the single place that
+ * mapping is written down; every caller that used to narrow a bare
+ * `exerciseTypeKey` resolves through here instead.
+ */
+export function dartExerciseKindOf(step: {
+  exerciseTypeKey: string;
+  exerciseRulesetVersionKey: string | null;
+}): DartExerciseKind | null {
+  const byRuleset =
+    step.exerciseRulesetVersionKey === null
+      ? undefined
+      : KIND_BY_EXERCISE_RULESET[step.exerciseRulesetVersionKey];
+  if (byRuleset !== undefined) return byRuleset;
+  const legacy = LEGACY_KIND_BY_TYPE[step.exerciseTypeKey];
+  if (legacy !== undefined) return legacy;
+  return isDartExerciseKind(step.exerciseTypeKey) ? step.exerciseTypeKey : null;
+}
+
 /** The routine picker's run-level sections, in page order (D372 decision 6). */
 export function sectionsForRoutine(): RoutineSectionMeta[] {
   return [
@@ -474,13 +519,14 @@ export function sectionsForRoutine(): RoutineSectionMeta[] {
  * (`gameTypeKey` set) gets exactly its game's own
  * page, `sectionsForGame(gameTypeKey)` resolved to their `SECTIONS` metas —
  * `step-volume` is never added alongside it, since the game's own `volume`
- * section already covers that step's darts. A non-game step whose
- * `exerciseTypeKey` is a dart exercise kind in `STEP_METRIC_SPECS`
+ * section already covers that step's darts. A non-game step whose type and
+ * ruleset version resolve to a dart exercise kind (`dartExerciseKindOf`)
  * gets `step-result` and `step-volume`; every other non-game step
  * (Warm-Up, or a future non-dart exercise) gets `step-volume` alone.
  */
 export function sectionsForStep(step: {
   exerciseTypeKey: string;
+  exerciseRulesetVersionKey: string | null;
   gameTypeKey: GameTypeKey | null;
 }):
   | { kind: "game"; gameTypeKey: GameTypeKey; sections: SectionMeta[] }
@@ -492,7 +538,7 @@ export function sectionsForStep(step: {
       sections: sectionsForGame(step.gameTypeKey).map((id) => SECTIONS[id]),
     };
   }
-  if (isDartExerciseKind(step.exerciseTypeKey)) {
+  if (dartExerciseKindOf(step) !== null) {
     return {
       kind: "exercise",
       sections: [

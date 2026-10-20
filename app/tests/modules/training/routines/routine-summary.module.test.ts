@@ -3,6 +3,7 @@ import {
   summariseSwitching,
   summariseDoublePattern,
   summariseTargetScoring,
+  summariseSwitchingChain,
   summariseScoreThreshold,
   summariseBullseyeCheckout,
   summariseBullUp,
@@ -16,6 +17,7 @@ import type {
   SwitchingState,
   DoublePatternState,
   TargetScoringState,
+  SwitchingChainState,
   ScoreThresholdState,
   BullseyeCheckoutState,
   BullUpState,
@@ -80,7 +82,7 @@ describe("summariseSwitching", () => {
     ]);
 
     expect(summariseSwitching(SWITCHING_STATE, facts)).toEqual({
-      stepKey: "SWITCHING",
+      stepKey: "SWITCHING:STANDARD",
       label: "Switching",
       rows: [
         { label: "Points", value: "7" },
@@ -322,6 +324,33 @@ describe("summariseTargetScoring", () => {
     });
 
     expect(summary.rows.at(-1)).toEqual({ label: "Hit rate", value: "—" });
+  });
+});
+
+describe("summariseSwitchingChain", () => {
+  const STATE: SwitchingChainState = {
+    currentTargetNumber: 19,
+    targetIndex: 1,
+    currentChain: 4,
+    bestChain: 9,
+    markToBeat: 9,
+    completedSequences: 2,
+    hits: 9,
+    dartsThrown: 12,
+    status: "COMPLETE",
+  };
+
+  it("reports the best chain, sequences, darts and hit rate", () => {
+    expect(summariseSwitchingChain(STATE)).toEqual({
+      stepKey: "SWITCHING:CHAIN",
+      label: "Switching Chain",
+      rows: [
+        { label: "Best chain", value: "9" },
+        { label: "Sequences", value: "2" },
+        { label: "Darts", value: "12" },
+        { label: "Hit rate", value: "75.00%" },
+      ],
+    });
   });
 });
 

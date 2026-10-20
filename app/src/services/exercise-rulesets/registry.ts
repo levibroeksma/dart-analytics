@@ -3,6 +3,7 @@ import { warmUpValidator } from "./warm-up/warm-up.validator";
 import { switchingValidator } from "./switching/switching.validator";
 import { doublePatternValidator } from "./double-pattern/double-pattern.validator";
 import { targetScoringValidator } from "./target-scoring/target-scoring.validator";
+import { switchingChainValidator } from "./switching-chain/switching-chain.validator";
 import { scoreThresholdValidator } from "./score-threshold/score-threshold.validator";
 import { bullseyeCheckoutValidator } from "./bullseye-checkout/bullseye-checkout.validator";
 import { bullUpValidator } from "./bull-up/bull-up.validator";
@@ -17,6 +18,7 @@ const REGISTRY: Record<string, ExerciseRulesetValidator> = {
   SWITCHING_V1: switchingValidator,
   DOUBLE_PATTERN_V1: doublePatternValidator,
   TARGET_SCORING_V1: targetScoringValidator,
+  SWITCHING_CHAIN_V1: switchingChainValidator,
   SCORE_THRESHOLD_V1: scoreThresholdValidator,
   BULLSEYE_CHECKOUT_V1: bullseyeCheckoutValidator,
   BULL_UP_V1: bullUpValidator,
@@ -44,6 +46,7 @@ const DART_WRITING_RULESET_VERSION_KEYS = new Set([
   "SWITCHING_V1",
   "DOUBLE_PATTERN_V1",
   "TARGET_SCORING_V1",
+  "SWITCHING_CHAIN_V1",
   "SCORE_THRESHOLD_V1",
   "BULLSEYE_CHECKOUT_V1",
   "BULL_UP_V1",

@@ -217,6 +217,7 @@ describe("exerciseFamily", () => {
     switchingEngine: null,
     doublePatternEngine: null,
     targetScoringEngine: null,
+    switchingChainEngine: null,
     scoreThresholdEngine: null,
     bullseyeCheckoutEngine: null,
     checkoutSequenceEngine: null,
@@ -235,6 +236,7 @@ describe("exerciseFamily", () => {
     ["switchingEngine", "switching"],
     ["doublePatternEngine", "doublePattern"],
     ["targetScoringEngine", "targetScoring"],
+    ["switchingChainEngine", "switchingChain"],
     ["scoreThresholdEngine", "freeAim"],
     ["checkoutSequenceEngine", "freeAim"],
     ["randomCheckoutEngine", "freeAim"],
@@ -303,6 +305,13 @@ describe("judgeDart", () => {
       ),
     ).toBe("miss");
     expect(judgeDart("targetScoring", dart())).toBe("miss");
+  });
+
+  it("switchingChain: judged as targetScoring", () => {
+    const treble = dart({ intendedTargetNumber: 20, hitZoneKey: "TREBLE" });
+    const double = dart({ intendedTargetNumber: 20, hitZoneKey: "DOUBLE" });
+    expect(judgeDart("switchingChain", treble)).toBe("hit");
+    expect(judgeDart("switchingChain", double)).toBe("miss");
   });
 
   it("freeAim: a dart on the board is a value, off it a miss", () => {
@@ -382,6 +391,25 @@ describe("visitLabelsFor", () => {
     expect(
       visitLabelsFor("targetScoring", { ...base, currentTargetNumber: 19 }),
     ).toEqual(["19", "19", "19"]);
+  });
+
+  it("switchingChain: the sequence cycles from the open visit's first target", () => {
+    const config = { targets: [20, 19, 25] };
+    const labels = (targetIndex: number, dartsInOpenVisit: number) =>
+      visitLabelsFor("switchingChain", {
+        ...base,
+        config,
+        targetIndex,
+        dartsInOpenVisit,
+      });
+    expect(labels(0, 0)).toEqual(["20", "19", "Bull"]);
+    expect(labels(1, 1)).toEqual(["20", "19", "Bull"]);
+    expect(labels(0, 2)).toEqual(["19", "Bull", "20"]);
+    expect(visitLabelsFor("switchingChain", base)).toEqual([
+      undefined,
+      undefined,
+      undefined,
+    ]);
   });
 });
 

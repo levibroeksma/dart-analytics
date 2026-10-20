@@ -1,4 +1,5 @@
 import { doublesPathTargetLabel } from "@lib/game/doubles-path-play";
+import { dartExerciseKindOf } from "@lib/stats/section-registry";
 import {
   STEP_METRIC_SPECS,
   stepMetrics,
@@ -476,7 +477,8 @@ function metricLabel(key: string): string {
  * hence `"throws"`.
  */
 const DARTS_METRIC_KEY: Record<DartExerciseKind, string> = {
-  SWITCHING: "darts",
+  "SWITCHING:STANDARD": "darts",
+  "SWITCHING:CHAIN": "darts",
   DOUBLE_PATTERN: "darts",
   TARGET_SCORING: "darts",
   SCORE_THRESHOLD: "darts",
@@ -543,3 +545,20 @@ export const STEP_REPLAY_PRESENTERS: Record<DartExerciseKind, ReplayPresenter> =
       buildStepPresenter(kind),
     ]),
   ) as Record<DartExerciseKind, ReplayPresenter>;
+
+/**
+ * One non-game session's step presenter, resolved from the session's own
+ * exercise type and ruleset version keys (`dartExerciseKindOf`) rather than
+ * from a bare type key — a kind is composite wherever one exercise type
+ * ships rulesets with different metrics. `null` for a session whose kind
+ * this client does not know, which is a degrade (the replay renders without
+ * a presenter line), never a throw: a legacy session stored under a key
+ * this build has since retired must still open.
+ */
+export function stepReplayPresenter(session: {
+  exerciseTypeKey: string;
+  exerciseRulesetVersionKey: string | null;
+}): ReplayPresenter | null {
+  const kind = dartExerciseKindOf(session);
+  return kind === null ? null : STEP_REPLAY_PRESENTERS[kind];
+}

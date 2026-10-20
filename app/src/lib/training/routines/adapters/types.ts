@@ -3,10 +3,15 @@
  * kinds are fixed strings; a GAME step's key is templated on its pinned
  * game ruleset version, since each routine-eligible game gets its own
  * adapter (`ROUTINE_GAME_STEPS`, `services/routines/game-step.ts`).
+ * `SWITCHING_CHAIN` is the one exercise key that is not an exercise type
+ * key: Switching's Chain config is a second ruleset version of the
+ * `SWITCHING` type, so `stepAdapterKey()` resolves it off the step's
+ * exercise ruleset version instead.
  */
 export type StepAdapterKey =
   | "WARM_UP"
   | "SWITCHING"
+  | "SWITCHING_CHAIN"
   | "DOUBLE_PATTERN"
   | "TARGET_SCORING"
   | "SCORE_THRESHOLD"
@@ -23,6 +28,7 @@ export type StepAdapterKey =
 export type StepPanel =
   | "warm-up"
   | "switching"
+  | "switching-chain"
   | "double-pattern"
   | "target-scoring"
   | "score-threshold"

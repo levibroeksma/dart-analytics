@@ -17,6 +17,7 @@ describe("step adapter registry", () => {
       [
         "WARM_UP",
         "SWITCHING",
+        "SWITCHING_CHAIN",
         "DOUBLE_PATTERN",
         "TARGET_SCORING",
         "SCORE_THRESHOLD",
@@ -79,15 +80,37 @@ describe("step adapter registry", () => {
     expect(
       stepAdapterKey({
         exerciseTypeKey: "SWITCHING",
+        exerciseRulesetVersionKey: "SWITCHING_V1",
         gameRulesetVersionKey: null,
       }),
     ).toBe("SWITCHING");
     expect(
       stepAdapterKey({
         exerciseTypeKey: "GAME",
+        exerciseRulesetVersionKey: null,
         gameRulesetVersionKey: "TUOD_V1",
       }),
     ).toBe("GAME:TUOD_V1");
+  });
+
+  it("keys Switching's Chain ruleset on its own adapter, not the type's", () => {
+    expect(
+      stepAdapterKey({
+        exerciseTypeKey: "SWITCHING",
+        exerciseRulesetVersionKey: "SWITCHING_CHAIN_V1",
+        gameRulesetVersionKey: null,
+      }),
+    ).toBe("SWITCHING_CHAIN");
+  });
+
+  it("falls back to the exercise type when the step names no exercise ruleset", () => {
+    expect(
+      stepAdapterKey({
+        exerciseTypeKey: "SWITCHING",
+        exerciseRulesetVersionKey: null,
+        gameRulesetVersionKey: null,
+      }),
+    ).toBe("SWITCHING");
   });
 
   it("header labels are the Phase-1 strings for the four seeded kinds", () => {
@@ -96,6 +119,9 @@ describe("step adapter registry", () => {
     expect(resolveStepAdapter("DOUBLE_PATTERN")?.headerLabel).toBe("doubles");
     expect(resolveStepAdapter("TARGET_SCORING")?.headerLabel).toBe(
       "target scoring",
+    );
+    expect(resolveStepAdapter("SWITCHING_CHAIN")?.headerLabel).toBe(
+      "switching chain",
     );
     expect(resolveStepAdapter("GAME:TUOD_V1")?.headerLabel).toBe("finishing");
     expect(resolveStepAdapter("GAME:SCORE_TRAINING_V1")?.headerLabel).toBe(
@@ -140,6 +166,7 @@ describe("STEP_ADAPTERS titles", () => {
         "SCORE_THRESHOLD": "65 or More",
         "SWITCHBLADE": "SwitchBlade",
         "SWITCHING": "Switching",
+        "SWITCHING_CHAIN": "Switching Chain",
         "TARGET_SCORING": "Target Scoring",
         "WARM_UP": "Warm-Up",
       }

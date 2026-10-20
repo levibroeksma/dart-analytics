@@ -1556,6 +1556,184 @@ describe("routinePlay — Target Scoring", () => {
   });
 });
 
+const SWITCHING_CHAIN_STEP = {
+  sequenceNumber: 1,
+  exerciseTypeKey: "SWITCHING",
+  exerciseRulesetVersionKey: "SWITCHING_CHAIN_V1",
+  gameTypeKey: null,
+  gameRulesetVersionKey: null,
+  durationSeconds: 600,
+  configuration: { targets: [20, 19, 25] },
+};
+
+describe("routinePlay — Switching Chain", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+    stubAudioContext();
+    Object.defineProperty(globalThis, "location", {
+      value: { href: "" },
+      writable: true,
+      configurable: true,
+    });
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineTemplateId: "rt-1",
+      routineName: "Custom",
+      steps: [SWITCHING_CHAIN_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "SWITCHING",
+      configuration: SWITCHING_CHAIN_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+  });
+  afterEach(() => {
+    vi.clearAllTimers();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it("resolves the Chain adapter off the step's ruleset, not the Switching type", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+
+    expect(store.adapter?.panel).toBe("switching-chain");
+    expect(store.switchingEngine).toBeNull();
+  });
+
+  it("startCurrentStep() builds the engine and its readouts start empty", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+
+    expect(store.switchingChainEngine).not.toBeNull();
+    expect(store.switchingChainTargetLabel()).toBe("20");
+    expect(store.switchingChainChipIndex()).toBe(0);
+    expect(store.switchingChainChain()).toBe(0);
+    expect(store.switchingChainBestChain()).toBe(0);
+    expect(store.switchingChainMarkToBeat()).toBeNull();
+    expect(store.stepRemainingSeconds).toBe(600);
+  });
+
+  it("the readouts follow each hit's switch, the restart and the mark to beat", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+
+    store.recordSwitchingChainDart({
+      hitTargetNumber: 20,
+      hitZoneKey: "TREBLE",
+      locationX: 0,
+      locationY: -100,
+    });
+    store.recordSwitchingChainDart({
+      hitTargetNumber: 19,
+      hitZoneKey: "SINGLE",
+      locationX: 0,
+      locationY: 120,
+    });
+    expect(store.switchingChainTargetLabel()).toBe("Bull");
+    expect(store.switchingChainChipIndex()).toBe(2);
+    expect(store.switchingChainChain()).toBe(4);
+    expect(store.dartsThrown()).toBe(2);
+
+    store.recordSwitchingChainDart({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    expect(store.switchingChainTargetLabel()).toBe("20");
+    expect(store.switchingChainChipIndex()).toBe(0);
+    expect(store.switchingChainChain()).toBe(0);
+    expect(store.switchingChainBestChain()).toBe(4);
+    expect(store.switchingChainMarkToBeat()).toBe(4);
+  });
+
+  it("exerciseVisitLabels() re-aims the open visit's empty slot after a mid-visit miss", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+    expect(store.exerciseVisitLabels(0)).toEqual(["20", "19", "Bull"]);
+
+    store.recordSwitchingChainDart({
+      hitTargetNumber: 20,
+      hitZoneKey: "TREBLE",
+      locationX: 0,
+      locationY: -100,
+    });
+    store.recordSwitchingChainDart({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+
+    expect(store.exerciseVisitLabels(0)[2]).toBe("20");
+    expect(
+      store.judgeExerciseDart(
+        store.activeDartEngine()!.facts().turns[0].darts[0],
+      ),
+    ).toBe("hit");
+  });
+
+  it("switchingChainSequence() lists the step's targets, the bull as Bull", async () => {
+    const store = makeStore();
+    expect(store.switchingChainSequence()).toBe("");
+    await startRoutine(store);
+
+    expect(store.switchingChainSequence()).toBe("20 19 Bull");
+  });
+
+  it("previewSegments() marks each dart against its own target", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+
+    store.recordSwitchingChainDart({
+      hitTargetNumber: 20,
+      hitZoneKey: "SINGLE",
+      locationX: 0,
+      locationY: -120,
+    });
+    store.recordSwitchingChainDart({
+      hitTargetNumber: 19,
+      hitZoneKey: "DOUBLE",
+      locationX: 0,
+      locationY: 166,
+    });
+
+    expect(store.previewSegments()).toEqual([
+      { status: "hit", label: "20" },
+      { status: "miss" },
+      { status: "empty", label: "20" },
+    ]);
+  });
+
+  it("the step deadline expires the engine and uploads its darts", async () => {
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(sessionApi.appendBatch).mockResolvedValue(undefined as never);
+    vi.mocked(sessionApi.completeSession).mockResolvedValue(undefined as never);
+    vi.mocked(trainingApi.completeTraining).mockResolvedValue({
+      activityId: "act-1",
+      completedAt: "2026-09-23T12:00:00.000Z",
+    });
+    const store = makeStore();
+    await startRoutine(store);
+    store.recordSwitchingChainDart({
+      hitTargetNumber: 20,
+      hitZoneKey: "TREBLE",
+      locationX: 0,
+      locationY: -100,
+    });
+
+    await vi.advanceTimersByTimeAsync(600_000);
+
+    expect(sessionApi.appendBatch).toHaveBeenCalled();
+    expect(store.stepSummaries[0]).toMatchObject({
+      stepKey: "SWITCHING:CHAIN",
+    });
+  });
+});
+
 const SCORE_THRESHOLD_STEP = {
   sequenceNumber: 1,
   exerciseTypeKey: "SCORE_THRESHOLD",
@@ -3097,7 +3275,7 @@ describe("routinePlay — routine summary", () => {
 
     expect(store.stepSummaries).toEqual([
       {
-        stepKey: "SWITCHING",
+        stepKey: "SWITCHING:STANDARD",
         label: "Switching",
         rows: [
           { label: "Points", value: "1" },
@@ -3426,7 +3604,8 @@ describe("routinePlay — board dispatch", () => {
   });
 
   it.each([
-    ["SWITCHING", "switchingEngine"],
+    ["SWITCHING:STANDARD", "switchingEngine"],
+    ["SWITCHING:CHAIN", "switchingChainEngine"],
     ["DOUBLE_PATTERN", "doublePatternEngine"],
     ["TARGET_SCORING", "targetScoringEngine"],
     ["SCORE_THRESHOLD", "scoreThresholdEngine"],

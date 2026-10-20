@@ -33,7 +33,7 @@ describe("replayStore (non-game routine steps)", () => {
 
     await store.open(header.sessionId);
 
-    expect(store.presenter).toBe(STEP_REPLAY_PRESENTERS.SWITCHING);
+    expect(store.presenter).toBe(STEP_REPLAY_PRESENTERS["SWITCHING:STANDARD"]);
     expect(store.derivedAvailable).toBe(true);
     expect(store.turnView(0).cells.length).toBeGreaterThan(0);
     expect(store.sessionLine?.entries.length).toBeGreaterThan(0);
@@ -42,7 +42,11 @@ describe("replayStore (non-game routine steps)", () => {
   it("treats an unrecognized exercise kind like a skipped fold", async () => {
     const { header, turns } = playSwitching();
     readReplayPage.mockResolvedValue({
-      header: { ...header, exerciseTypeKey: "SOME_FUTURE_KIND" },
+      header: {
+        ...header,
+        exerciseTypeKey: "SOME_FUTURE_KIND",
+        exerciseRulesetVersionKey: "SOME_FUTURE_KIND_V1",
+      },
       turns,
       nextCursor: null,
     });

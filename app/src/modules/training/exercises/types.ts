@@ -68,6 +68,26 @@ export type TargetScoringState = {
 };
 
 /**
+ * Switching Chain state, derived by replaying `facts()`
+ * (`foldSwitchingChainState`). `targetIndex`/`currentTargetNumber` locate
+ * the target the *next* dart is thrown at. `bestChain` includes the live
+ * chain; `markToBeat` is the best chain ended by a miss this run — `null`
+ * until one exists. `completedSequences` counts hits on the last target,
+ * i.e. full passes through the sequence.
+ */
+export type SwitchingChainState = {
+  currentTargetNumber: number;
+  targetIndex: number;
+  currentChain: number;
+  bestChain: number;
+  markToBeat: number | null;
+  completedSequences: number;
+  hits: number;
+  dartsThrown: number;
+  status: "IN_PROGRESS" | "COMPLETE";
+};
+
+/**
  * Score Threshold ("65 or More") state, derived by replaying `facts()`
  * (`foldScoreThresholdState`). A visit is judged once its third dart lands:
  * `visits` counts judged visits, `beats` those reaching `threshold`, and

@@ -17,6 +17,7 @@ import type {
 import type { SwitchingEngine } from "@modules/training/exercises/switching.engine.module";
 import type { DoublePatternEngine } from "@modules/training/exercises/double-pattern.engine.module";
 import type { TargetScoringEngine } from "@modules/training/exercises/target-scoring.engine.module";
+import type { SwitchingChainEngine } from "@modules/training/exercises/switching-chain.engine.module";
 import type { ScoreThresholdEngine } from "@modules/training/exercises/score-threshold.engine.module";
 import type { BullseyeCheckoutEngine } from "@modules/training/exercises/bullseye-checkout.engine.module";
 import type { BullUpEngine } from "@modules/training/exercises/bull-up.engine.module";
@@ -48,6 +49,7 @@ export type ExercisePreviewFamily =
   | "switching"
   | "doublePattern"
   | "targetScoring"
+  | "switchingChain"
   | "freeAim"
   | "bullseye"
   | "hitCount"
@@ -60,6 +62,7 @@ export type ExerciseEngineSlots = Pick<
   | "switchingEngine"
   | "doublePatternEngine"
   | "targetScoringEngine"
+  | "switchingChainEngine"
   | "scoreThresholdEngine"
   | "bullseyeCheckoutEngine"
   | "checkoutSequenceEngine"
@@ -119,6 +122,7 @@ export type RoutinePlayContext = {
   switchingEngine: SwitchingEngine | null;
   doublePatternEngine: DoublePatternEngine | null;
   targetScoringEngine: TargetScoringEngine | null;
+  switchingChainEngine: SwitchingChainEngine | null;
   scoreThresholdEngine: ScoreThresholdEngine | null;
   bullseyeCheckoutEngine: BullseyeCheckoutEngine | null;
   bullUpEngine: BullUpEngine | null;
@@ -212,6 +216,11 @@ export type RoutinePlayContext = {
   targetScoringTargetLabel(this: RoutinePlayContext): string;
   targetScoringBestChain(this: RoutinePlayContext): number;
   targetScoringMarkToBeat(this: RoutinePlayContext): number | null;
+  switchingChainChain(this: RoutinePlayContext): number;
+  switchingChainTargetLabel(this: RoutinePlayContext): string;
+  switchingChainChipIndex(this: RoutinePlayContext): number;
+  switchingChainBestChain(this: RoutinePlayContext): number;
+  switchingChainMarkToBeat(this: RoutinePlayContext): number | null;
   scoreThresholdBeats(this: RoutinePlayContext): number;
   scoreThresholdVisits(this: RoutinePlayContext): number;
   scoreThresholdVisitTotal(this: RoutinePlayContext): number;
@@ -273,6 +282,7 @@ export type RoutinePlayContext = {
     | SwitchingEngine
     | DoublePatternEngine
     | TargetScoringEngine
+    | SwitchingChainEngine
     | ScoreThresholdEngine
     | BullseyeCheckoutEngine
     | BullUpEngine
@@ -291,6 +301,7 @@ export type RoutinePlayContext = {
   ): (string | undefined)[];
   switchingSequence(this: RoutinePlayContext): string;
   doublePatternSequence(this: RoutinePlayContext): string;
+  switchingChainSequence(this: RoutinePlayContext): string;
   recordSwitchingDart(
     this: RoutinePlayContext,
     observation: DartObservation,
@@ -300,6 +311,10 @@ export type RoutinePlayContext = {
     observation: DartObservation,
   ): void;
   recordTargetScoringDart(
+    this: RoutinePlayContext,
+    observation: DartObservation,
+  ): void;
+  recordSwitchingChainDart(
     this: RoutinePlayContext,
     observation: DartObservation,
   ): void;
