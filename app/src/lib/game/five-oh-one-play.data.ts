@@ -1,4 +1,9 @@
-import { botQuickScoreDartIndex } from "@lib/game/play-bot-seat";
+import {
+  BOT_PACING,
+  botDartIndex,
+  botQuickScoreDartIndex,
+  findBotSeat,
+} from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
@@ -48,6 +53,7 @@ import { matchWinnerName } from "@lib/game/match-result-text";
 import type {
   FiveOhOneAnySnapshot,
   RulesetVersionKey,
+  DartbotSeat,
   SeatFact,
 } from "@lib/types";
 import type {
@@ -121,23 +127,7 @@ function playAgainWire(config: FiveOhOneAnySnapshot): Record<string, unknown> {
   };
 }
 
-const BOT_PRE_THROW_MS = 900;
-const BOT_POST_THROW_MS = 250;
 const DARTS_PER_VISIT = 3;
-
-type DartbotSeat = Extract<SeatFact, { participantTypeKey: "DARTBOT" }>;
-
-function findBotSeat(seats: readonly SeatFact[]): DartbotSeat | undefined {
-  return seats.find(
-    (seat): seat is DartbotSeat => seat.participantTypeKey === "DARTBOT",
-  );
-}
-
-function botDartIndex(turns: readonly TurnFact[], botRef: string): number {
-  return turns
-    .filter((turn) => turn.participantRef === botRef)
-    .reduce((sum, turn) => sum + turn.darts.length, 0);
-}
 
 function throwOneDart(
   remaining: number,
@@ -174,7 +164,7 @@ function throwBotDart(
   );
   return {
     observation: throwOneDart(remaining, botSeat, dartIndex),
-    pacing: { preThrowMs: BOT_PRE_THROW_MS, postThrowMs: BOT_POST_THROW_MS },
+    pacing: BOT_PACING,
   };
 }
 

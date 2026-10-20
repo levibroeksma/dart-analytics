@@ -34,6 +34,7 @@ import {
   visitScoreBandCounts,
 } from "@lib/game/play-visit-stats";
 import {
+  BOT_PACING,
   botDartIndex,
   botQuickScoreDartIndex,
   findBotSeat,
@@ -78,8 +79,6 @@ import {
 const GAME_TYPE_KEY = "SCORE_TRAINING";
 const RULESET_VERSION_KEY: RulesetVersionKey = "SCORE_TRAINING_V1";
 
-const BOT_PRE_THROW_MS = 900;
-const BOT_POST_THROW_MS = 250;
 const DARTS_PER_VISIT = 3;
 
 /** No `remaining`/checkout view — `chooseTarget()` always fires treble 20. */
@@ -109,7 +108,7 @@ function throwBotDart(
   );
   return {
     observation: throwOneDart(botSeat, dartIndex),
-    pacing: { preThrowMs: BOT_PRE_THROW_MS, postThrowMs: BOT_POST_THROW_MS },
+    pacing: BOT_PACING,
   };
 }
 

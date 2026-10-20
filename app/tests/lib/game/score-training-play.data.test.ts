@@ -75,6 +75,7 @@ import {
 } from "@modules/game/score-training.engine.module";
 import type { GameEngine, GameEngineFactory } from "@modules/interfaces";
 import { scoreTrainingPlay } from "@lib/game/score-training-play.data";
+import { BOT_PACING } from "@lib/game/play-bot-seat";
 import type { ScoreTrainingPlayContext } from "@lib/types";
 import type { ScoreTrainingSnapshot, Seated } from "@lib/types";
 import type {
@@ -2358,6 +2359,33 @@ describe("scoreTrainingPlay — DartBot opponent", () => {
     await run;
     vi.useRealTimers();
     expect(botTurns()).toHaveLength(1);
+  });
+
+  it("paces the bot's darts with the shared BOT_PACING", async () => {
+    vi.useFakeTimers();
+    const setTimeoutSpy = vi.spyOn(globalThis, "setTimeout");
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      {
+        ...ACTIVE_SESSION,
+        sessionId: "session-1",
+        captureModeKey: "ANALYTICS",
+        inputModeKey: "VISUAL_BOARD",
+      },
+    ]);
+    const play = makePlay();
+    await play.init.call(play);
+    play.scoreInput.setValue("26");
+
+    const handOver = play.submitVisit.call(play);
+    await vi.runAllTimersAsync();
+    await handOver;
+
+    expect(setTimeoutSpy).toHaveBeenCalledWith(
+      expect.any(Function),
+      BOT_PACING.postThrowMs,
+    );
+    setTimeoutSpy.mockRestore();
+    vi.useRealTimers();
   });
 
   it("under VISUAL_BOARD, the bot throws its own visit once it becomes active", async () => {

@@ -60,6 +60,7 @@ import {
   fiveOhOneV2EngineFactory,
 } from "@modules/game/five-oh-one.engine.module";
 import { fiveOhOnePlay } from "@lib/game/five-oh-one-play.data";
+import { BOT_PACING } from "@lib/game/play-bot-seat";
 import type { FiveOhOnePlayContext } from "@lib/types";
 import type {
   DartFact,
@@ -1711,6 +1712,33 @@ describe("DartBot opponent", () => {
   function botConfig(): Seated<FiveOhOneSnapshot> {
     return { ...quickPlayConfig(), seats: seatsWithBot() };
   }
+
+  it("paces the bot's darts with the shared BOT_PACING", async () => {
+    vi.useFakeTimers();
+    const setTimeoutSpy = vi.spyOn(globalThis, "setTimeout");
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      {
+        ...ACTIVE_SESSION,
+        captureModeKey: "ANALYTICS",
+        inputModeKey: "VISUAL_BOARD",
+      },
+    ]);
+    const play = makePlay({ configSnapshot: botConfig() });
+    await play.init.call(play);
+
+    await play.recordDart.call(play, SINGLE_20);
+    await play.recordDart.call(play, SINGLE_20);
+    const handOver = play.recordDart.call(play, SINGLE_20);
+    await vi.runAllTimersAsync();
+    await handOver;
+
+    expect(setTimeoutSpy).toHaveBeenCalledWith(
+      expect.any(Function),
+      BOT_PACING.postThrowMs,
+    );
+    setTimeoutSpy.mockRestore();
+    vi.useRealTimers();
+  });
 
   it("under VISUAL_BOARD, the bot throws its own visit once it becomes active", async () => {
     vi.mocked(fetchActiveSessions).mockResolvedValue([
