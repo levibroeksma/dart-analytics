@@ -528,6 +528,18 @@ describe("undoVisit", () => {
 
     expect(play.$store.game.turns).toHaveLength(priorTurns.length);
   });
+
+  it("is a no-op while the match-finish confirm is open", async () => {
+    const play = makePlay();
+    await play.init.call(play);
+    play.scoreInput.setValue("100");
+    await play.submitVisit.call(play);
+    play.showMatchFinishConfirm = true;
+
+    play.undoVisit.call(play);
+
+    expect(play.$store.game.turns).toHaveLength(1);
+  });
 });
 
 describe("progress stats", () => {

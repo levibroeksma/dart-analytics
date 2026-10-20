@@ -23,7 +23,6 @@ import {
   setScoreText,
 } from "@lib/game/five-oh-one-match";
 import {
-  clearHiddenTimer,
   playAbandonAndExit,
   playBack,
   playCommitDart,
@@ -33,7 +32,7 @@ import {
   playUploadAndCompleteSession,
   playVisitMarkers,
   runPlayAgain,
-  undoToActiveSeat,
+  undoBotAwareVisit,
 } from "@lib/game/play-lifecycle";
 import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
 import { createDartRng } from "@modules/dartbot/rng.module";
@@ -823,21 +822,7 @@ export function fiveOhOnePlay() {
         this.showMatchFinishConfirm
       )
         return;
-      if (!this.engine) return;
-      const botSeat = findBotSeat(this.$store.game.seats);
-      if (botSeat) {
-        const humanSeat = this.$store.game.seats.find(
-          (seat) => seat.participantTypeKey === "PLAYER",
-        )!;
-        undoToActiveSeat(this, humanSeat.participantRef);
-      } else {
-        if (!this.engine.undo()) return;
-        clearHiddenTimer(this);
-        this.$store.game.recordFacts(this.engine.facts());
-      }
-      this.scoreInput.clear();
-      this.error = "";
-      void this.maybeRunBotVisit();
+      undoBotAwareVisit(this);
     },
 
     /**
