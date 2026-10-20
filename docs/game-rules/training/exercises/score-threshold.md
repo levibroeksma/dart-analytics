@@ -46,15 +46,14 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 
 - Type constant: `SCORE_THRESHOLD` (new; not among the seeded types in
   `database/seeds/0014_exercise_types.sql`,
-  `database/seeds/0016_switching_double_pattern_exercise_types.sql`,
-  `database/seeds/0023_target_scoring_exercise_type.sql` or
-  `database/seeds/0024_switching_target_scoring_exercise_type.sql`). The type
+  `database/seeds/0016_switching_double_pattern_exercise_types.sql` or
+  `database/seeds/0023_target_scoring_exercise_type.sql`). The type
   is named for the rule, not the number, so a later threshold is a
   configuration of it (§3.5); "65 or More" is the template's name.
 - Wraps no game (§12).
 - Behaviour no existing type provides: every other dart-writing type judges
   each dart against an intended target (`TARGET_SCORING`,
-  `SWITCHING_TARGET_SCORING`, `SWITCHING`, `DOUBLE_PATTERN`). This one has no
+  `SWITCHING`, `DOUBLE_PATTERN`). This one has no
   target and judges the whole visit by its board total.
 
 ## Objective

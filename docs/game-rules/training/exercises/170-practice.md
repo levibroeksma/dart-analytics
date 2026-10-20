@@ -51,7 +51,7 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 - Type constant: `VISIT_PATH` (proposed; not among the seeded types —
   `WARM_UP`, `GAME`, `EXERCISE_SECTION` (`database/seeds/0014_exercise_types.sql`),
   `SWITCHING`, `DOUBLE_PATTERN` (`0016`), `TARGET_SCORING` (`0023`),
-  `SWITCHING_TARGET_SCORING` (`0024`), `SCORE_THRESHOLD` (`0025`),
+  `SCORE_THRESHOLD` (`0025`),
   `BULLSEYE_CHECKOUT` (`0029`), `BULL_UP` (`0030`)). Named for the rule — one
   fixed target per dart slot — so the 167 and 164 rotations are
   configurations of it.

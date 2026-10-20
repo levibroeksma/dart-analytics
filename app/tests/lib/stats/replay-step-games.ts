@@ -7,7 +7,6 @@ import { switchbladeEngineFactory } from "@modules/training/exercises/switchblad
 import { bullseyeCheckoutEngineFactory } from "@modules/training/exercises/bullseye-checkout.engine.module";
 import { doublePatternEngineFactory } from "@modules/training/exercises/double-pattern.engine.module";
 import { scoreThresholdEngineFactory } from "@modules/training/exercises/score-threshold.engine.module";
-import { switchingTargetScoringEngineFactory } from "@modules/training/exercises/switching-target-scoring.engine.module";
 import { switchingEngineFactory } from "@modules/training/exercises/switching.engine.module";
 import { targetScoringEngineFactory } from "@modules/training/exercises/target-scoring.engine.module";
 import type {
@@ -189,18 +188,6 @@ const EXERCISE_FIXTURES: Record<
       dart(5, "SINGLE"),
       dart(19, "TREBLE"),
       dart(1, "SINGLE"),
-    ],
-  },
-  SWITCHING_TARGET_SCORING: {
-    rulesetKey: "SWITCHING_TARGET_SCORING_V1",
-    factory: switchingTargetScoringEngineFactory,
-    config: { targets: [20, 19, 18] },
-    darts: [
-      dart(20, "TREBLE"),
-      dart(19, "TREBLE"),
-      dart(18, "TREBLE"),
-      dart(5, "SINGLE"),
-      dart(20, "TREBLE"),
     ],
   },
   SCORE_THRESHOLD: {

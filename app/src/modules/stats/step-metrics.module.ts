@@ -32,17 +32,6 @@ export const STEP_METRIC_SPECS: Readonly<
     direction: "higher",
     rates: [["hits", "darts"]],
   },
-  SWITCHING_TARGET_SCORING: {
-    metrics: {
-      bestChain: "max",
-      sequences: "sum",
-      darts: "sum",
-      hits: "sum",
-    },
-    headline: "bestChain",
-    direction: "higher",
-    rates: [["hits", "darts"]],
-  },
   SCORE_THRESHOLD: {
     metrics: { beats: "sum", visits: "sum", darts: "sum" },
     headline: "beats",
@@ -164,13 +153,6 @@ export function stepMetrics(
     case "TARGET_SCORING":
       return {
         bestChain: numberField(state, "bestChain", kind),
-        darts: numberField(state, "dartsThrown", kind),
-        hits: numberField(state, "hits", kind),
-      };
-    case "SWITCHING_TARGET_SCORING":
-      return {
-        bestChain: numberField(state, "bestChain", kind),
-        sequences: numberField(state, "completedSequences", kind),
         darts: numberField(state, "dartsThrown", kind),
         hits: numberField(state, "hits", kind),
       };

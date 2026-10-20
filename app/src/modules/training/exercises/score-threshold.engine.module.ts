@@ -70,7 +70,7 @@ function applyVisit(
 
 /**
  * Folds the whole fact log into Score Threshold state — a pure function of
- * `facts`/`config`/`complete`, mirroring `foldSwitchingTargetScoringState`.
+ * `facts`/`config`/`complete`, mirroring `foldTargetScoringState`.
  * A dart's `score` is its board score, so the visit total needs no rules
  * of its own.
  */

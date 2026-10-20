@@ -173,7 +173,6 @@ that split (2026-09-19, closes issue #423).
 | `DoublesLockPanel.astro` | Doubles Lock play surface (2026-10-18): `doublesLockBonus()` BONUS with Target / Lock / Pass / Best tiles — a call to `ExercisePanelShell` | none (reads the routine play page scope) |
 | `BullseyeCheckoutPanel.astro` | Bullseye Checkouts play surface, restyled 2026-10-13: `bullseyeCheckoutCheckouts()` CHECKOUTS with a LAST result chip and Left / Visits / Rate tiles — a call to `ExercisePanelShell` | none (reads the Bullseye Checkout page scope) |
 | `ScoreThresholdPanel.astro` | Score Threshold (65 or More) play surface, restyled 2026-10-13: `scoreThresholdBeats()` BEATS with This visit / Last / Visits / Rate tiles (no chip) — a call to `ExercisePanelShell` | none (reads the Score Threshold page scope) |
-| `SwitchingTargetScoringPanel.astro` | Switching Target Scoring play surface, restyled 2026-10-13: `switchingTargetScoringChain()` CHAIN with the sequence chip (current target lit) and Target / To beat / Best tiles — a call to `ExercisePanelShell` | none (reads the Switching Target Scoring page scope) |
 | `TargetScoringPanel.astro` | Target Scoring play surface, restyled 2026-10-13: `targetScoringChain()` CHAIN with Target / To beat / Best tiles (no chip) — a call to `ExercisePanelShell` | none (reads the Target Scoring page scope) |
 
 ## `components/layout/training/trivia/`

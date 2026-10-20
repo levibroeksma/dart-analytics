@@ -274,7 +274,6 @@ the headline and its direction, and the rate pairs the client divides.
 | SWITCHING | points, darts, hits (sum) | points ↑ | hits/darts |
 | DOUBLE_PATTERN | hits, darts (sum) | hits ↑ | hits/darts |
 | TARGET_SCORING | bestChain (max); darts, hits (sum) | bestChain ↑ | hits/darts |
-| SWITCHING_TARGET_SCORING | bestChain (max); sequences, darts, hits (sum) | bestChain ↑ | hits/darts |
 | SCORE_THRESHOLD | beats, visits, darts (sum) | beats ↑ | beats/visits |
 | BULLSEYE_CHECKOUT | checkouts, visits, darts (sum) | checkouts ↑ | checkouts/visits |
 | BULL_UP | throws, bullseyes, bulls (sum) | bullseyes ↑ | bullseyes/throws, bulls/throws |

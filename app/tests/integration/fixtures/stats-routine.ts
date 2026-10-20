@@ -41,9 +41,9 @@ function exerciseStep(
 }
 
 /**
- * Spec §4.4: Warm-Up, nine dart kinds, then a 501 game step whose
+ * Spec §4.4: Warm-Up, eight dart kinds, then a 501 game step whose
  * configuration is filled in by `seedRoutineRun`, then Hit Count, then
- * SwitchBlade, then Doubles Lock — the twelve dart kinds are every `STEP_METRIC_SPECS` key.
+ * SwitchBlade, then Doubles Lock — the eleven dart kinds are every `STEP_METRIC_SPECS` key.
  * Configs are the camelCase V1 shapes, literals included (spec F13).
  */
 export const ROUTINE_STEPS: readonly RoutineStep[] = [
@@ -57,22 +57,21 @@ export const ROUTINE_STEPS: readonly RoutineStep[] = [
   }),
   exerciseStep(3, "DOUBLE_PATTERN", { patterns: [[20, 16]] }),
   exerciseStep(4, "TARGET_SCORING", { targets: [20, 19, 18, 25] }),
-  exerciseStep(5, "SWITCHING_TARGET_SCORING", { targets: [20, 19, 18] }),
-  exerciseStep(6, "SCORE_THRESHOLD", { threshold: 65 }),
-  exerciseStep(7, "BULLSEYE_CHECKOUT", { startScore: 81 }),
-  exerciseStep(8, "BULL_UP", {}),
-  exerciseStep(9, "CHECKOUT_SEQUENCE", {
+  exerciseStep(5, "SCORE_THRESHOLD", { threshold: 65 }),
+  exerciseStep(6, "BULLSEYE_CHECKOUT", { startScore: 81 }),
+  exerciseStep(7, "BULL_UP", {}),
+  exerciseStep(8, "CHECKOUT_SEQUENCE", {
     firstOutshot: 61,
     lastOutshot: 100,
     dartLimit: 6,
   }),
-  exerciseStep(10, "RANDOM_CHECKOUT", {
+  exerciseStep(9, "RANDOM_CHECKOUT", {
     minStart: 40,
     maxStart: 170,
     drawSeed: 1,
   }),
   {
-    sequenceNumber: 11,
+    sequenceNumber: 10,
     exerciseTypeKey: "GAME",
     exerciseRulesetVersionKey: null,
     gameTypeKey: "501",
@@ -80,12 +79,12 @@ export const ROUTINE_STEPS: readonly RoutineStep[] = [
     durationSeconds: STEP_DURATION_SECONDS,
     configuration: {},
   },
-  exerciseStep(12, "HIT_COUNT", {
+  exerciseStep(11, "HIT_COUNT", {
     targets: [{ kind: "TREBLE", number: 20 }],
     dartsPerTarget: 3,
   }),
-  exerciseStep(13, "SWITCHBLADE", {}),
-  exerciseStep(14, "DOUBLES_LOCK", {}),
+  exerciseStep(12, "SWITCHBLADE", {}),
+  exerciseStep(13, "DOUBLES_LOCK", {}),
 ];
 
 /**

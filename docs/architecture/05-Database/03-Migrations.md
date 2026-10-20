@@ -154,7 +154,6 @@ database/
     ├── 0021_exercise_template_game_rulesets.sql
     ├── 0022_routine_game_templates.sql
     ├── 0023_target_scoring_exercise_type.sql
-    ├── 0024_switching_target_scoring_exercise_type.sql
     ├── 0025_score_threshold_exercise_type.sql
     ├── 0026_warm_up_advanced_template.sql
     ├── 0027_around_the_clock_v2_game_engine_reference.sql

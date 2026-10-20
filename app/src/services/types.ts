@@ -64,7 +64,6 @@ export type TrainingStepResolved = {
     | "SWITCHING"
     | "DOUBLE_PATTERN"
     | "TARGET_SCORING"
-    | "SWITCHING_TARGET_SCORING"
     | "SCORE_THRESHOLD"
     | "BULLSEYE_CHECKOUT"
     | "BULL_UP"

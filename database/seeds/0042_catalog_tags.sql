@@ -429,16 +429,6 @@ INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at
   ((SELECT id FROM exercise_types WHERE implementation_key = 'SWITCHBLADE'), 23, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'SWITCHBLADE'), 24, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'SWITCHBLADE'), 32, FALSE, now());
--- exercise SWITCHING_TARGET_SCORING
-INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at) VALUES
-  ((SELECT id FROM exercise_types WHERE implementation_key = 'SWITCHING_TARGET_SCORING'), 2, TRUE, now()),
-  ((SELECT id FROM exercise_types WHERE implementation_key = 'SWITCHING_TARGET_SCORING'), 6, FALSE, now()),
-  ((SELECT id FROM exercise_types WHERE implementation_key = 'SWITCHING_TARGET_SCORING'), 9, FALSE, now()),
-  ((SELECT id FROM exercise_types WHERE implementation_key = 'SWITCHING_TARGET_SCORING'), 13, FALSE, now()),
-  ((SELECT id FROM exercise_types WHERE implementation_key = 'SWITCHING_TARGET_SCORING'), 18, FALSE, now()),
-  ((SELECT id FROM exercise_types WHERE implementation_key = 'SWITCHING_TARGET_SCORING'), 23, FALSE, now()),
-  ((SELECT id FROM exercise_types WHERE implementation_key = 'SWITCHING_TARGET_SCORING'), 24, FALSE, now()),
-  ((SELECT id FROM exercise_types WHERE implementation_key = 'SWITCHING_TARGET_SCORING'), 35, FALSE, now());
 -- exercise TARGET_SCORING
 INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at) VALUES
   ((SELECT id FROM exercise_types WHERE implementation_key = 'TARGET_SCORING'), 6, TRUE, now()),

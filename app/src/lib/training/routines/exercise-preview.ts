@@ -7,11 +7,7 @@ import {
 } from "@modules/training/exercises/target-scoring.engine.module";
 import { boardTargetLabel } from "@modules/game/board-progression.module";
 import { switchbladeRoundSlots } from "@modules/training/exercises/switchblade.engine.module";
-import type {
-  DoublePatternConfigData,
-  SwitchingConfigData,
-  SwitchingTargetScoringConfigData,
-} from "@lib/types";
+import type { DoublePatternConfigData, SwitchingConfigData } from "@lib/types";
 import type {
   DartJudgement,
   ExerciseEngineSlots,
@@ -28,7 +24,6 @@ const ENGINE_FAMILIES: readonly [
   ["switchingEngine", "switching"],
   ["doublePatternEngine", "doublePattern"],
   ["targetScoringEngine", "targetScoring"],
-  ["switchingTargetScoringEngine", "switchingTargetScoring"],
   ["scoreThresholdEngine", "freeAim"],
   ["checkoutSequenceEngine", "freeAim"],
   ["randomCheckoutEngine", "freeAim"],
@@ -83,7 +78,6 @@ const JUDGES: Record<ExercisePreviewFamily, (dart: DartFact) => DartJudgement> =
     switching: judgeOnTarget,
     doublePattern: judgeDouble,
     targetScoring: judgeTargetScoring,
-    switchingTargetScoring: judgeTargetScoring,
     freeAim: judgeFreeAim,
     bullseye: judgeBullseye,
     hitCount: judgeIntendedBed,
@@ -129,13 +123,6 @@ function targetScoringCaptions(input: VisitLabelInput): Captions {
   return [label, label, label];
 }
 
-function switchingTargetScoringCaptions(input: VisitLabelInput): Captions {
-  const config = input.config as SwitchingTargetScoringConfigData | null;
-  if (!config) return noCaptions();
-  const start = input.targetIndex - input.dartsInOpenVisit;
-  return cycleFrom(config.targets, start, 3).map(targetScoringTargetLabel);
-}
-
 function hitCountCaptions(input: VisitLabelInput): Captions {
   const label = input.currentTargetLabel;
   return label === undefined ? noCaptions() : [label, label, label];
@@ -151,7 +138,6 @@ const CAPTIONS: Partial<
   switching: switchingCaptions,
   doublePattern: doublePatternCaptions,
   targetScoring: targetScoringCaptions,
-  switchingTargetScoring: switchingTargetScoringCaptions,
   hitCount: hitCountCaptions,
   switchblade: switchbladeCaptions,
   doublesLock: hitCountCaptions,

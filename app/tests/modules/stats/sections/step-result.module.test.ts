@@ -329,12 +329,12 @@ describe("foldStepResult", () => {
     expect(result.sessions).toBe(1);
   });
 
-  it("skips a session whose ruleset has no registered engine, without throwing", () => {
+  it("skips a session whose ruleset has no registered engine, without throwing, a retired ruleset key included", () => {
     const rows = switchingSession("session-a", "2026-01-05T00:00:00.000Z", [
       { target: 20, hitTargetNumber: 20, hitZoneKey: "TREBLE" as DartZoneKey },
     ]).map((row) => ({
       ...row,
-      exerciseRulesetVersionKey: "MADE_UP_V1",
+      exerciseRulesetVersionKey: "RETIRED_EXERCISE_RULESET_V1",
     }));
 
     const result = foldStepResult("SWITCHING", rows);

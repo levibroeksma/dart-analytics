@@ -23,7 +23,6 @@ app/src/modules/training/exercises/hit-count.engine.module.ts | TRACK | KERNEL_B
 app/src/modules/training/exercises/random-checkout.engine.module.ts | CHECKOUT | PENDING | docs/game-rules/training/exercises/random-checkout.md | Checkout family plan
 app/src/modules/training/exercises/score-threshold.engine.module.ts | VISIT_POINTS | PENDING | docs/game-rules/training/exercises/score-threshold.md | Visit-points family plan
 app/src/modules/training/exercises/switchblade.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/training/exercises/switchblade.md |
-app/src/modules/training/exercises/switching-target-scoring.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/training/exercises/switching-target-scoring.md |
 app/src/modules/training/exercises/switching.engine.module.ts | TRACK | PENDING | - | re-checked when its exercise shell is next touched (Track spec §5)
 app/src/modules/training/exercises/target-scoring.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/training/exercises/target-scoring.md |
 app/src/modules/training/exercises/warm-up.engine.module.ts | HAND_WRITTEN | HAND_WRITTEN | docs/game-rules/training/exercises/warm-up.md | timed, dartless ExerciseEngine (umbrella spec §5)

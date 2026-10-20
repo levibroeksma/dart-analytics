@@ -484,7 +484,7 @@ export type ChainTrackExt = {
   hits: number;
 };
 
-/** Sequence bookkeeping for a Track seat (Switching Target Scoring): the live chain, the best chain a miss ended, hits so far, and full passes through the path. */
+/** Sequence bookkeeping for a Track seat (Target Scoring): the live chain, the best chain a miss ended, hits so far, and full passes through the path. */
 export type SequenceTrackExt = {
   chain: number;
   finishedBest: number | null;

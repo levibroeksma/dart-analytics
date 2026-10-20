@@ -479,7 +479,6 @@ const DARTS_METRIC_KEY: Record<DartExerciseKind, string> = {
   SWITCHING: "darts",
   DOUBLE_PATTERN: "darts",
   TARGET_SCORING: "darts",
-  SWITCHING_TARGET_SCORING: "darts",
   SCORE_THRESHOLD: "darts",
   BULLSEYE_CHECKOUT: "darts",
   BULL_UP: "throws",

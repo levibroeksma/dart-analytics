@@ -12,7 +12,6 @@ export type ExerciseRulesetVersionKey =
   | "SWITCHING_V1"
   | "DOUBLE_PATTERN_V1"
   | "TARGET_SCORING_V1"
-  | "SWITCHING_TARGET_SCORING_V1"
   | "SCORE_THRESHOLD_V1"
   | "BULLSEYE_CHECKOUT_V1"
   | "BULL_UP_V1"
@@ -161,25 +160,6 @@ export const TargetScoringV1Config = z
 export type TargetScoringConfigData = z.infer<typeof TargetScoringV1Config>;
 
 /**
- * Switching Target Scoring v1: exactly three distinct board targets, hit in
- * order and over again — a hit advances, a miss restarts at the first
- * (`docs/game-rules/training/exercises/switching-target-scoring.md`).
- * Scoring is Target Scoring's locked table, so it lives in the engine.
- */
-export const SwitchingTargetScoringV1Config = z
-  .object({
-    targets: z
-      .array(BoardTarget)
-      .length(3)
-      .refine(distinctTargets, { message: "targets must not repeat" }),
-  })
-  .strict();
-
-export type SwitchingTargetScoringConfigData = z.infer<
-  typeof SwitchingTargetScoringV1Config
->;
-
-/**
  * Score Threshold v1 ("65 or More"): a visit beats when its board total
  * reaches the threshold
  * (`docs/game-rules/training/exercises/score-threshold.md`). V1 accepts 65
@@ -311,7 +291,6 @@ export const EXERCISE_RULESET_CONFIGS: Record<
   SWITCHING_V1: SwitchingV1Config,
   DOUBLE_PATTERN_V1: DoublePatternV1Config,
   TARGET_SCORING_V1: TargetScoringV1Config,
-  SWITCHING_TARGET_SCORING_V1: SwitchingTargetScoringV1Config,
   SCORE_THRESHOLD_V1: ScoreThresholdV1Config,
   BULLSEYE_CHECKOUT_V1: BullseyeCheckoutV1Config,
   BULL_UP_V1: BullUpV1Config,

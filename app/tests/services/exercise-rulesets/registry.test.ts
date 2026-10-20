@@ -11,7 +11,6 @@ import { switchingValidator } from "@services/exercise-rulesets/switching/switch
 import { doublePatternValidator } from "@services/exercise-rulesets/double-pattern/double-pattern.validator";
 import { targetScoringValidator } from "@services/exercise-rulesets/target-scoring/target-scoring.validator";
 import { scoreThresholdValidator } from "@services/exercise-rulesets/score-threshold/score-threshold.validator";
-import { switchingTargetScoringValidator } from "@services/exercise-rulesets/switching-target-scoring/switching-target-scoring.validator";
 import { bullseyeCheckoutValidator } from "@services/exercise-rulesets/bullseye-checkout/bullseye-checkout.validator";
 import { bullUpValidator } from "@services/exercise-rulesets/bull-up/bull-up.validator";
 import { checkoutSequenceValidator } from "@services/exercise-rulesets/checkout-sequence/checkout-sequence.validator";
@@ -40,12 +39,6 @@ describe("getExerciseRulesetValidator", () => {
   it("resolves TARGET_SCORING_V1", () => {
     expect(getExerciseRulesetValidator("TARGET_SCORING_V1")).toBe(
       targetScoringValidator,
-    );
-  });
-
-  it("resolves SWITCHING_TARGET_SCORING_V1", () => {
-    expect(getExerciseRulesetValidator("SWITCHING_TARGET_SCORING_V1")).toBe(
-      switchingTargetScoringValidator,
     );
   });
 
@@ -103,9 +96,6 @@ describe("exerciseRulesetWritesDarts", () => {
     expect(exerciseRulesetWritesDarts("SWITCHING_V1")).toBe(true);
     expect(exerciseRulesetWritesDarts("DOUBLE_PATTERN_V1")).toBe(true);
     expect(exerciseRulesetWritesDarts("TARGET_SCORING_V1")).toBe(true);
-    expect(exerciseRulesetWritesDarts("SWITCHING_TARGET_SCORING_V1")).toBe(
-      true,
-    );
     expect(exerciseRulesetWritesDarts("SCORE_THRESHOLD_V1")).toBe(true);
     expect(exerciseRulesetWritesDarts("BULLSEYE_CHECKOUT_V1")).toBe(true);
     expect(exerciseRulesetWritesDarts("BULL_UP_V1")).toBe(true);

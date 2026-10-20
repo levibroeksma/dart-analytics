@@ -19,7 +19,6 @@ describe("step adapter registry", () => {
         "SWITCHING",
         "DOUBLE_PATTERN",
         "TARGET_SCORING",
-        "SWITCHING_TARGET_SCORING",
         "SCORE_THRESHOLD",
         "BULLSEYE_CHECKOUT",
         "BULL_UP",
@@ -98,9 +97,6 @@ describe("step adapter registry", () => {
     expect(resolveStepAdapter("TARGET_SCORING")?.headerLabel).toBe(
       "target scoring",
     );
-    expect(resolveStepAdapter("SWITCHING_TARGET_SCORING")?.headerLabel).toBe(
-      "switching target scoring",
-    );
     expect(resolveStepAdapter("GAME:TUOD_V1")?.headerLabel).toBe("finishing");
     expect(resolveStepAdapter("GAME:SCORE_TRAINING_V1")?.headerLabel).toBe(
       "scoring",
@@ -144,7 +140,6 @@ describe("STEP_ADAPTERS titles", () => {
         "SCORE_THRESHOLD": "65 or More",
         "SWITCHBLADE": "SwitchBlade",
         "SWITCHING": "Switching",
-        "SWITCHING_TARGET_SCORING": "Switching Target Scoring",
         "TARGET_SCORING": "Target Scoring",
         "WARM_UP": "Warm-Up",
       }

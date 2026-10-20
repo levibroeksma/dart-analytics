@@ -5,7 +5,6 @@ import WarmUpPanel from "@components/layout/training/exercises/WarmUpPanel.astro
 import SwitchingPanel from "@components/layout/training/exercises/SwitchingPanel.astro";
 import DoublePatternPanel from "@components/layout/training/exercises/DoublePatternPanel.astro";
 import TargetScoringPanel from "@components/layout/training/exercises/TargetScoringPanel.astro";
-import SwitchingTargetScoringPanel from "@components/layout/training/exercises/SwitchingTargetScoringPanel.astro";
 import ScoreThresholdPanel from "@components/layout/training/exercises/ScoreThresholdPanel.astro";
 import BullseyeCheckoutPanel from "@components/layout/training/exercises/BullseyeCheckoutPanel.astro";
 import BullUpPanel from "@components/layout/training/exercises/BullUpPanel.astro";
@@ -76,12 +75,6 @@ import OpenRoutineModal from "@components/layout/training/routines/OpenRoutineMo
           x-if="adapter?.panel === 'target-scoring' && targetScoringEngine"
         >
           <TargetScoringPanel />
-        </template>
-
-        <template
-          x-if="adapter?.panel === 'switching-target-scoring' && switchingTargetScoringEngine"
-        >
-          <SwitchingTargetScoringPanel />
         </template>
 
         <template

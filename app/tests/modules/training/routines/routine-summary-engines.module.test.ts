@@ -3,7 +3,6 @@ import {
   summariseSwitching,
   summariseDoublePattern,
   summariseTargetScoring,
-  summariseSwitchingTargetScoring,
   summariseScoreThreshold,
   summariseBullseyeCheckout,
   summariseBullUp,
@@ -16,7 +15,6 @@ import {
 import { switchingEngineFactory } from "@modules/training/exercises/switching.engine.module";
 import { doublePatternEngineFactory } from "@modules/training/exercises/double-pattern.engine.module";
 import { targetScoringEngineFactory } from "@modules/training/exercises/target-scoring.engine.module";
-import { switchingTargetScoringEngineFactory } from "@modules/training/exercises/switching-target-scoring.engine.module";
 import { scoreThresholdEngineFactory } from "@modules/training/exercises/score-threshold.engine.module";
 import { bullseyeCheckoutEngineFactory } from "@modules/training/exercises/bullseye-checkout.engine.module";
 import { bullUpEngineFactory } from "@modules/training/exercises/bull-up.engine.module";
@@ -111,28 +109,6 @@ describe("summarise* over a real engine run", () => {
         { label: "Best on Bull", value: "0" },
         { label: "Darts", value: "5" },
         { label: "Hit rate", value: "60.00%" },
-      ],
-    });
-  });
-
-  it("summariseSwitchingTargetScoring reads the best chain, sequences, darts and hit rate off a played run", () => {
-    const engine = switchingTargetScoringEngineFactory.create({
-      targets: [20, 19, 18],
-    });
-    engine.record(dart(20, "TREBLE"));
-    engine.record(dart(19, "TREBLE"));
-    engine.record(dart(18, "TREBLE"));
-    engine.record(dart(5, "SINGLE"));
-    engine.record(dart(20, "TREBLE"));
-
-    expect(summariseSwitchingTargetScoring(engine.state())).toEqual({
-      stepKey: "SWITCHING_TARGET_SCORING",
-      label: "Switching Target Scoring",
-      rows: [
-        { label: "Best chain", value: "9" },
-        { label: "Sequences", value: "1" },
-        { label: "Darts", value: "5" },
-        { label: "Hit rate", value: "80.00%" },
       ],
     });
   });

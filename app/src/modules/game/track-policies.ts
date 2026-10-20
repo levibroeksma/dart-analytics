@@ -328,7 +328,7 @@ export function chainOnTarget<TExt extends ChainTrackExt>(
 }
 
 /**
- * Per-dart policy (Switching Target Scoring): a hit adds its points to the
+ * Per-dart policy (Target Scoring): a hit adds its points to the
  * chain and moves to the next of `length` targets, counting a sequence when
  * it wraps to the first; a miss restarts at the first target and ends the
  * chain, keeping the best chain a miss has ended.

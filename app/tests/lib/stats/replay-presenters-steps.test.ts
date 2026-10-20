@@ -82,6 +82,13 @@ describe("STEP_REPLAY_PRESENTERS (all nine kinds, real engine runs)", () => {
     expect(KINDS).toContain("RANDOM_CHECKOUT");
   });
 
+  it("is exactly eleven kinds — a presenter per STEP_METRIC_SPECS entry, no more and no fewer", () => {
+    expect(KINDS).toHaveLength(11);
+    expect(Object.keys(STEP_REPLAY_PRESENTERS).sort()).toEqual(
+      [...KINDS].sort(),
+    );
+  });
+
   it("covers Hit Count", () => {
     expect(KINDS).toContain("HIT_COUNT");
   });
