@@ -1,5 +1,11 @@
-import type { DartbotSeat, SeatFact } from "@lib/types";
+import type { BotPacing, DartbotSeat, SeatFact } from "@lib/types";
 import type { TurnFact } from "@modules/types";
+
+/** The DartBot's per-dart pacing in every game: think, then hold the landed dart (08-DartBot.md). */
+export const BOT_PACING: BotPacing = Object.freeze({
+  preThrowMs: 900,
+  postThrowMs: 250,
+});
 
 export function findBotSeat(
   seats: readonly SeatFact[],

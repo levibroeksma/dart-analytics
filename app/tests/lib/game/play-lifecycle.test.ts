@@ -73,6 +73,7 @@ import type {
 } from "@lib/types";
 import type { SegmentTimer } from "@modules/ui/segment-timer.module";
 import { activeSeat } from "@modules/game/seat-rota.module";
+import { BOT_PACING } from "@lib/game/play-bot-seat";
 import { scoreTrainingEngineFactory } from "@modules/game/score-training.engine.module";
 
 const SEATS = [
@@ -2154,6 +2155,23 @@ describe("resumeGameEngine", () => {
 
 describe("playAnimateBotDarts", () => {
   const PACING = { preThrowMs: 900, postThrowMs: 250 };
+
+  it("defaults to the shared BOT_PACING when no pacing is passed", async () => {
+    const engine = new BotFakeEngine(TWO_BOT_SEATS);
+    engine.record(dartAt(20));
+    const context = makeBotContext(engine, TWO_BOT_SEATS);
+    const waits: number[] = [];
+    const wait = vi.fn().mockImplementation(async (ms: number) => {
+      waits.push(ms);
+    });
+
+    await playAnimateBotDarts(context, BOT_REF, [dartAt(19)], wait);
+
+    expect(waits.at(-1)).toBe(BOT_PACING.postThrowMs);
+    expect(waits.slice(0, 3).reduce((sum, ms) => sum + ms, 0)).toBe(
+      BOT_PACING.preThrowMs,
+    );
+  });
 
   it("animates every dart through aim, fly, hit, land and returns true", async () => {
     const engine = new BotFakeEngine(TWO_BOT_SEATS);

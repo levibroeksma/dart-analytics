@@ -14,6 +14,7 @@ import {
 import { buildEventsBatch } from "@modules/game/events.payload.module";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { markersForTurns } from "@lib/game/board-input.data";
+import { BOT_PACING } from "@lib/game/play-bot-seat";
 import {
   botFlightSchedule,
   dartLabel,
@@ -291,7 +292,6 @@ export function undoToActiveSeat<
 }
 
 const CENTRE_PERCENT = { leftPercent: 50, topPercent: 50 };
-const QUICK_SCORE_PACING: BotPacing = { preThrowMs: 900, postThrowMs: 250 };
 
 function botStillActive<
   TConfig,
@@ -438,7 +438,7 @@ export async function playAnimateBotDarts<
   botParticipantRef: string,
   darts: readonly DartObservation[],
   wait: (ms: number) => Promise<void> = defaultBotWait,
-  pacing: BotPacing = QUICK_SCORE_PACING,
+  pacing: BotPacing = BOT_PACING,
 ): Promise<boolean> {
   const stillBots = () => botStillActive(context, botParticipantRef);
   const landed: BotFlight["landed"] = [];
