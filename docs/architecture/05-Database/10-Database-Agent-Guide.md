@@ -237,7 +237,7 @@ docs/
 └── ...
 database/
 ├── migrations/0001–0048.sql
-└── seeds/0001–0002.sql, 0003_game_engine_reference.sql, 0004_score_training_minutes_preset.sql, 0005_visual_board_input_mode.sql, 0006_single_band_dart_zones.sql, 0007_ruleset_version_capabilities.sql
+└── seeds/0001–0045.sql            # run order and per-file purpose in `database/README.md`
 ```
 
 ---
