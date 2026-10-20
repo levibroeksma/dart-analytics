@@ -1118,6 +1118,23 @@ No column defaults: the generated seed writes ids and `created_at`/`updated_at =
 
 ---
 
+## 0048_erase_switching_target_scoring.sql
+
+Purpose:
+
+Erase the `SWITCHING_TARGET_SCORING` exercise type, merged into `SWITCHING`, and every row descending from it, from databases where seed `0024` has already run. The chain's one data-only migration (D472). <!-- 2026-10-20 -->
+
+Contains:
+
+- no schema change: one `DO` block whose statements all select by `implementation_key = 'SWITCHING_TARGET_SCORING'`, never by a hard-coded row id, and each report their `ROW_COUNT` with `RAISE NOTICE`. The block returns early with a notice when the type is absent, so a replay and a fresh chain build are no-ops
+- deletes in dependency order: `darts`, then `turns` of the type's sessions (explicit, because `fk_turn_participant` is RESTRICT and participants cascade from the session), the `exercise_sessions` themselves (configurations, stages, participants and idempotency rows cascade), the `routine_steps` naming the type's template, then `exercise_type_tags`, `exercise_templates`, `exercise_ruleset_versions` and `exercise_types`
+- `routine_steps` is locked `IN SHARE ROW EXCLUSIVE MODE` first; the minutes a player's routine loses are added back to its first surviving MINUTES step, and a player routine left with no step is deleted with its `training_schedule_days` rows, both naming every routine destroyed (D472, `trg_routine_steps_duration_bounds`/D305)
+- surviving steps of an affected routine are renumbered to close the gap in `uq_routine_steps_sequence`: that constraint is not deferrable and is checked after each row, so the numbers are parked above every live value and then ranked back into `1..n` by `row_number() OVER (PARTITION BY routine_template_id ORDER BY sequence_number)`
+
+`migrate:down` is a comment only: seed `0024` and the type's rules file are deleted in the same commit, so nothing is left to restore from and rolling back past `0048` means restoring a backup. History is untouched — `activity_configurations` is an immutable snapshot and `v_stats_routine_step_facts` resolves a step through it, never through `routine_steps`. Applied; `app/tests/integration/switching-target-scoring-erased.itest.ts` proves it. <!-- 2026-10-20 -->
+
+---
+
 # Schema Changes
 
 

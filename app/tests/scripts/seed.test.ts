@@ -43,18 +43,25 @@ describe("seed runner", () => {
   });
 
   /**
-   * Ascending and unique rather than contiguous: a seed whose rows were later
-   * erased is deleted, not renumbered. `0024` seeded the
-   * SWITCHING_TARGET_SCORING exercise type that migration `0048` erased, and
-   * shifting every later seed down one would rewrite the README index, the
-   * generated tag seed's own filename and every document that names a seed by
-   * number. A gap is a retired seed; a repeat or a step backwards is the
-   * numbering mistake this still catches.
+   * One known gap rather than contiguity: a seed whose rows were later erased
+   * is deleted, not renumbered. `0024` seeded the SWITCHING_TARGET_SCORING
+   * exercise type that migration `0048` erased, and shifting every later seed
+   * down one would rewrite the README index, the generated tag seed's own
+   * filename and every document that names a seed by number. Listing the
+   * retired number rather than allowing any gap keeps an *accidental* gap — a
+   * seed deleted or never committed — a failure. Ordering is not asserted:
+   * `seedNames` is a sorted `readdirSync` over fixed-width prefixes, so
+   * ascending is true by construction; a duplicate number is not, and is what
+   * the second assertion catches.
    */
-  it("numbers seeds uniquely and in ascending order from 0001", () => {
+  it("numbers seeds from 0001, with 0024 the only retired number", () => {
     const numbers = seedNames.map((name) => Number(name.slice(0, 4)));
-    expect(numbers[0]).toBe(1);
-    expect(numbers).toEqual([...new Set(numbers)].sort((a, b) => a - b));
+    const missing = Array.from(
+      { length: Math.max(...numbers) },
+      (_, i) => i + 1,
+    ).filter((n) => !numbers.includes(n));
+    expect(missing).toEqual([24]);
+    expect(new Set(numbers).size).toBe(numbers.length);
   });
 
   it("runs every file twice, so a ledger seed's forward reference to a later-numbered file's row resolves on the second pass", () => {

@@ -36,7 +36,11 @@
 -- 5. a player's routine left with no step at all cannot satisfy
 --    that same bound, so it is deleted outright (with the
 --    training_schedule_days rows that would RESTRICT the delete).
---    Such a routine held nothing but this one exercise.
+--    Such a routine held nothing but this one exercise. Both
+--    deletes name every routine they destroy — id, name, and the
+--    weekday of each schedule day — the way seed 0031 names the
+--    system routines it keeps: a destructive delete reporting
+--    only a count tells the prod run nothing about what it lost.
 -- 6. surviving steps are renumbered to close the gap in
 --    uq_routine_steps_sequence. That constraint is NOT
 --    DEFERRABLE, and a non-deferrable unique constraint is
@@ -44,7 +48,12 @@
 --    ranking UPDATE can still collide with a row it has not
 --    reached yet (4 -> 3 while 3 is still live). The numbers are
 --    therefore parked above every live value first, then ranked
---    down into 1..n; neither statement can collide.
+--    down into 1..n; neither statement can collide. routine_steps
+--    is locked IN SHARE ROW EXCLUSIVE MODE before the first step
+--    is deleted (readers unaffected, writers wait), so no
+--    concurrent insert can land in an affected routine between
+--    the park and the rank-down and make the park's offset
+--    collide with a live number.
 -- 7. exercise_type_tags, then the exercise_templates,
 --    exercise_ruleset_versions and exercise_types rows.
 --
@@ -60,6 +69,7 @@ DO $$
 DECLARE
     v_type_id UUID;
     v_count BIGINT;
+    v_named TEXT;
 BEGIN
     SELECT id INTO v_type_id
     FROM exercise_types
@@ -91,6 +101,8 @@ BEGIN
     WHERE s.exercise_type_id = v_type_id;
     GET DIAGNOSTICS v_count = ROW_COUNT;
     RAISE NOTICE '0048: deleted % exercise sessions (stages, participants, configurations and idempotency rows cascaded)', v_count;
+
+    LOCK TABLE routine_steps IN SHARE ROW EXCLUSIVE MODE;
 
     CREATE TEMP TABLE tmp_0048_erased_steps ON COMMIT DROP AS
     SELECT rs.routine_template_id,
@@ -132,22 +144,10 @@ BEGIN
     GET DIAGNOSTICS v_count = ROW_COUNT;
     RAISE NOTICE '0048: gave the deleted minutes back to % routine steps', v_count;
 
-    DELETE FROM training_schedule_days d
-    USING routine_templates rt
-    WHERE d.routine_template_id = rt.id
-        AND NOT rt.is_system_template
-        AND EXISTS (
-            SELECT 1 FROM tmp_0048_erased_steps e
-            WHERE e.routine_template_id = rt.id
-        )
-        AND NOT EXISTS (
-            SELECT 1 FROM routine_steps rs
-            WHERE rs.routine_template_id = rt.id
-        );
-    GET DIAGNOSTICS v_count = ROW_COUNT;
-    RAISE NOTICE '0048: deleted % training schedule days of emptied routines', v_count;
-
-    DELETE FROM routine_templates rt
+    CREATE TEMP TABLE tmp_0048_emptied_routines ON COMMIT DROP AS
+    SELECT rt.id,
+        rt.name
+    FROM routine_templates rt
     WHERE NOT rt.is_system_template
         AND EXISTS (
             SELECT 1 FROM tmp_0048_erased_steps e
@@ -157,8 +157,47 @@ BEGIN
             SELECT 1 FROM routine_steps rs
             WHERE rs.routine_template_id = rt.id
         );
+
+    SELECT string_agg(
+            format('%s (%s) on weekday %s', r.name, r.id, d.day_of_week),
+            '; '
+            ORDER BY r.name, d.day_of_week
+        )
+    INTO v_named
+    FROM training_schedule_days d
+        JOIN tmp_0048_emptied_routines r ON r.id = d.routine_template_id;
+
+    DELETE FROM training_schedule_days d
+    USING tmp_0048_emptied_routines r
+    WHERE d.routine_template_id = r.id;
     GET DIAGNOSTICS v_count = ROW_COUNT;
-    RAISE NOTICE '0048: deleted % player routines left with no step', v_count;
+    RAISE NOTICE '0048: deleted % training schedule day(s) of emptied player routines: %', v_count, COALESCE(v_named, 'none');
+
+    SELECT string_agg(format('%s (%s)', r.name, r.id), '; ' ORDER BY r.name)
+    INTO v_named
+    FROM tmp_0048_emptied_routines r;
+
+    DELETE FROM routine_templates rt
+    USING tmp_0048_emptied_routines r
+    WHERE rt.id = r.id;
+    GET DIAGNOSTICS v_count = ROW_COUNT;
+    RAISE NOTICE '0048: deleted % player routine(s) left with no step: %', v_count, COALESCE(v_named, 'none');
+
+    SELECT count(*)
+    INTO v_count
+    FROM (
+        SELECT rs.sequence_number,
+            row_number() OVER (
+                PARTITION BY rs.routine_template_id
+                ORDER BY rs.sequence_number
+            ) AS rn
+        FROM routine_steps rs
+        WHERE EXISTS (
+            SELECT 1 FROM tmp_0048_erased_steps e
+            WHERE e.routine_template_id = rs.routine_template_id
+        )
+    ) gap
+    WHERE gap.sequence_number <> gap.rn;
 
     UPDATE routine_steps rs
     SET sequence_number = rs.sequence_number + 1000000
@@ -182,8 +221,7 @@ BEGIN
         )
     ) ranked
     WHERE rs.id = ranked.id;
-    GET DIAGNOSTICS v_count = ROW_COUNT;
-    RAISE NOTICE '0048: renumbered % surviving routine steps', v_count;
+    RAISE NOTICE '0048: renumbered % surviving routine step(s)', v_count;
 
     DELETE FROM exercise_type_tags tt
     WHERE tt.exercise_type_id = v_type_id;
