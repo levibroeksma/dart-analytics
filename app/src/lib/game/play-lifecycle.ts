@@ -14,7 +14,7 @@ import {
 import { buildEventsBatch } from "@modules/game/events.payload.module";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { markersForTurns } from "@lib/game/board-input.data";
-import { BOT_PACING } from "@lib/game/play-bot-seat";
+import { BOT_PACING, findBotSeat } from "@lib/game/play-bot-seat";
 import {
   botFlightSchedule,
   dartLabel,
@@ -289,6 +289,60 @@ export function undoToActiveSeat<
   clearHiddenTimer(context);
   context.$store.game.recordFacts(engine.facts());
   context.error = "";
+}
+
+/**
+ * The play-page input guard: true once the session is finished, while the
+ * segment timer is paused, or while any of the caller's own confirm dialogs
+ * is open. Each page passes its own confirm flags.
+ */
+export function isInputBlocked<
+  TConfig,
+  TEngine extends GameEngine<DartObservation, unknown>,
+  TResults,
+>(
+  context: PlayLifecycleContext<TConfig, TEngine, TResults>,
+  ...confirmFlags: boolean[]
+): boolean {
+  return (
+    context.finished ||
+    context.$store.game.timerPaused === true ||
+    confirmFlags.some(Boolean)
+  );
+}
+
+/**
+ * Undoes one visit on a page that may seat a DartBot. With a bot seat it
+ * rewinds to the human's seat (`undoToActiveSeat`); without one it pops a
+ * single visit and stops if there is nothing to pop. Then it clears the
+ * score input and error and re-enters the bot loop. The caller owns its
+ * input guard (`isInputBlocked`, or five-oh-one's own).
+ */
+export function undoBotAwareVisit<
+  TConfig,
+  TEngine extends GameEngine<DartObservation, MultiSeatState>,
+  TResults,
+>(
+  context: PlayLifecycleContext<TConfig, TEngine, TResults> & {
+    scoreInput: { clear(): void };
+    maybeRunBotVisit(): Promise<void>;
+  },
+): void {
+  if (!context.engine) return;
+  const seats = context.$store.game.seats;
+  if (findBotSeat(seats)) {
+    const humanSeat = seats.find(
+      (seat) => seat.participantTypeKey === "PLAYER",
+    )!;
+    undoToActiveSeat(context, humanSeat.participantRef);
+  } else {
+    if (!context.engine.undo()) return;
+    clearHiddenTimer(context);
+    context.$store.game.recordFacts(context.engine.facts());
+  }
+  context.scoreInput.clear();
+  context.error = "";
+  void context.maybeRunBotVisit();
 }
 
 const CENTRE_PERCENT = { leftPercent: 50, topPercent: 50 };

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import type { Mock } from "vitest";
 
 // F27 Task 1: currentFacts is now exported (was module-private). Confirmed
 // these assertions still hold unchanged.
@@ -39,6 +40,7 @@ import {
 import {
   armHiddenTimer,
   clearHiddenTimer,
+  isInputBlocked,
   playAbandonAndExit,
   playBack,
   playCommitDart,
@@ -54,6 +56,7 @@ import {
   playVisitMarkers,
   resumeGameEngine,
   runPlayAgain,
+  undoBotAwareVisit,
   undoToActiveSeat,
 } from "@lib/game/play-lifecycle";
 import type {
@@ -1000,6 +1003,123 @@ describe("undoToActiveSeat", () => {
     expect(context.$store.game.recordFacts).toHaveBeenCalledWith(
       engine.facts(),
     );
+  });
+});
+
+describe("isInputBlocked", () => {
+  it("is false when nothing blocks input", () => {
+    const context = makeBotContext(new BotFakeEngine([HUMAN_SEAT]), [
+      HUMAN_SEAT,
+    ]);
+    expect(isInputBlocked(context, false, false)).toBe(false);
+  });
+
+  it("is true once finished", () => {
+    const context = makeBotContext(new BotFakeEngine([HUMAN_SEAT]), [
+      HUMAN_SEAT,
+    ]);
+    context.finished = true;
+    expect(isInputBlocked(context)).toBe(true);
+  });
+
+  it("is true while the timer is paused", () => {
+    const context = makeBotContext(new BotFakeEngine([HUMAN_SEAT]), [
+      HUMAN_SEAT,
+    ]);
+    context.$store.game.timerPaused = true;
+    expect(isInputBlocked(context)).toBe(true);
+  });
+
+  it("is true when any confirm flag is set", () => {
+    const context = makeBotContext(new BotFakeEngine([HUMAN_SEAT]), [
+      HUMAN_SEAT,
+    ]);
+    expect(isInputBlocked(context, false, true)).toBe(true);
+    expect(isInputBlocked(context, true, false)).toBe(true);
+  });
+});
+
+type UndoCtx = BotCtx & {
+  scoreInput: { clear: Mock<() => void> };
+  maybeRunBotVisit: Mock<() => Promise<void>>;
+};
+
+function makeUndoContext(
+  engine: BotFakeEngine,
+  seats: readonly SeatFact[],
+): UndoCtx {
+  return {
+    ...makeBotContext(engine, seats),
+    scoreInput: { clear: vi.fn() },
+    maybeRunBotVisit: vi.fn(async () => {}),
+  };
+}
+
+describe("undoBotAwareVisit", () => {
+  it("in a bot session, rewinds to the human's seat across the bot's turn", () => {
+    const engine = new BotFakeEngine(TWO_BOT_SEATS);
+    engine.record(dartAt(20));
+    engine.record(dartAt(19));
+    const context = makeUndoContext(engine, TWO_BOT_SEATS);
+
+    undoBotAwareVisit(context);
+
+    expect(engine.facts().turns).toHaveLength(0);
+    expect(engine.state().activeParticipantRef).toBe(HUMAN_REF);
+  });
+
+  it("with no bot, pops one visit and mirrors facts into the store", () => {
+    const engine = new BotFakeEngine([HUMAN_SEAT]);
+    engine.record(dartAt(20));
+    engine.record(dartAt(19));
+    const context = makeUndoContext(engine, [HUMAN_SEAT]);
+    context.hiddenTurnKey = "t2";
+
+    undoBotAwareVisit(context);
+
+    expect(engine.facts().turns).toHaveLength(1);
+    expect(context.hiddenTurnKey).toBeNull();
+    expect(context.$store.game.recordFacts).toHaveBeenCalledWith(
+      engine.facts(),
+    );
+  });
+
+  it("clears score input and error, then hands back to the bot loop", () => {
+    const engine = new BotFakeEngine([HUMAN_SEAT]);
+    engine.record(dartAt(20));
+    const context = makeUndoContext(engine, [HUMAN_SEAT]);
+    context.error = "stale";
+
+    undoBotAwareVisit(context);
+
+    expect(context.scoreInput.clear).toHaveBeenCalledOnce();
+    expect(context.error).toBe("");
+    expect(context.maybeRunBotVisit).toHaveBeenCalledOnce();
+  });
+
+  it("with no bot, stops on a failed engine.undo() without touching input, error or the bot loop", () => {
+    const engine = new BotFakeEngine([HUMAN_SEAT]);
+    const context = makeUndoContext(engine, [HUMAN_SEAT]);
+    context.error = "stale";
+
+    undoBotAwareVisit(context);
+
+    expect(context.$store.game.recordFacts).not.toHaveBeenCalled();
+    expect(context.scoreInput.clear).not.toHaveBeenCalled();
+    expect(context.error).toBe("stale");
+    expect(context.maybeRunBotVisit).not.toHaveBeenCalled();
+  });
+
+  it("does nothing without an engine", () => {
+    const context = makeUndoContext(new BotFakeEngine([HUMAN_SEAT]), [
+      HUMAN_SEAT,
+    ]);
+    context.engine = null;
+
+    undoBotAwareVisit(context);
+
+    expect(context.scoreInput.clear).not.toHaveBeenCalled();
+    expect(context.maybeRunBotVisit).not.toHaveBeenCalled();
   });
 });
 

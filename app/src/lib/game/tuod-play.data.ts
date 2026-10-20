@@ -12,7 +12,6 @@ import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { boardInputData } from "@lib/game/board-input.data";
 import {
   armHiddenTimer,
-  clearHiddenTimer,
   playAbandonAndExit,
   playBack,
   playAnimateBotDarts,
@@ -23,7 +22,8 @@ import {
   playVisitMarkers,
   resumeGameEngine,
   runPlayAgain,
-  undoToActiveSeat,
+  isInputBlocked,
+  undoBotAwareVisit,
 } from "@lib/game/play-lifecycle";
 import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
 import { createDartRng } from "@modules/dartbot/rng.module";
@@ -696,28 +696,9 @@ export function tuodPlay() {
     },
 
     undoVisit(this: TuodPlayContext) {
-      if (
-        this.finished ||
-        this.showDoubleConfirm ||
-        this.showFinishConfirm ||
-        this.$store.game.timerPaused
-      )
+      if (isInputBlocked(this, this.showDoubleConfirm, this.showFinishConfirm))
         return;
-      if (!this.engine) return;
-      const botSeat = findBotSeat(this.$store.game.seats);
-      if (botSeat) {
-        const humanSeat = this.$store.game.seats.find(
-          (seat) => seat.participantTypeKey === "PLAYER",
-        )!;
-        undoToActiveSeat(this, humanSeat.participantRef);
-      } else {
-        if (!this.engine.undo()) return;
-        clearHiddenTimer(this);
-        this.$store.game.recordFacts(this.engine.facts());
-      }
-      this.scoreInput.clear();
-      this.error = "";
-      void this.maybeRunBotVisit();
+      undoBotAwareVisit(this);
     },
 
     async uploadAndCompleteSession(this: TuodPlayContext): Promise<void> {

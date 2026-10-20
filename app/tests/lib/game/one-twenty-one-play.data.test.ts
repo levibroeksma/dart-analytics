@@ -262,6 +262,18 @@ describe("oneTwentyOnePlay", () => {
 
       expect(store.game.turns).toHaveLength(0);
     });
+
+    it("is a no-op while the session-finish confirm is open", async () => {
+      const play = createPlay();
+      play.engine = oneTwentyOneEngineFactory.create(config) as any;
+      play.scoreInput.setValue("60");
+      await play.submitVisit();
+      play.showSessionFinishConfirm = true;
+
+      play.undoVisit();
+
+      expect(store.game.turns).toHaveLength(1);
+    });
   });
 
   describe("uploadAndCompleteSession", () => {
