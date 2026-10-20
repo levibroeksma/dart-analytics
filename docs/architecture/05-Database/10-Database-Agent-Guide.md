@@ -141,7 +141,7 @@ Answer these questions:
 
 ```
 [ ] One clear responsibility
-[ ] Numbered sequentially after the current chain end (0016)
+[ ] Numbered sequentially after the current chain end (see `database/migrations/`)
 [ ] No BEGIN/COMMIT (dbmate owns the transaction)
 [ ] FK constraints with fk_ prefix
 [ ] CHECK constraints with chk_ prefix
@@ -164,12 +164,7 @@ Answer these questions:
 [ ] No user data, no runtime history, no test data
 ```
 
-Current seeds:
-
-- `0001_reference_data.sql` — lookups + game types + rulesets + dart zones
-- `0002_default_templates.sql` — exercise templates, configuration presets (its "Standard Practice" routine removed by `0031`, D363)
-- `0003_game_engine_reference.sql` — `BOBS27`/`DOUBLES_TRAINING` game types, ruleset versions, configuration presets (2026-07-26)
-- `0004_score_training_minutes_preset.sql` — Score Training minutes preset realigned to 5 (2026-07-31)
+Current seeds: see the Seed Order list in `database/README.md` (the single source).
 
 ---
 
@@ -237,7 +232,7 @@ docs/
 └── ...
 database/
 ├── migrations/0001–0048.sql
-└── seeds/0001–0045.sql            # run order and per-file purpose in `database/README.md`
+└── seeds/0001–0046.sql            # run order and per-file purpose in `database/README.md`
 ```
 
 ---

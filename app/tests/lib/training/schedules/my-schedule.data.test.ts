@@ -27,6 +27,7 @@ const ROUTINE = (routineId: string) => ({
   description: null,
   isSystemTemplate: true,
   stepCount: 1,
+  stepLabels: ["Warm-Up"],
   totalMinutes: 30,
 });
 const ACTIVE = {

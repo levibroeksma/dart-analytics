@@ -21,6 +21,7 @@ function visit(
     totalScore: 60,
     dartCount: 3,
     configuredMaxDartsPerTurn: 3,
+    configuration: { starting_score: 501 },
     ...overrides,
   };
 }
@@ -122,6 +123,56 @@ describe("highestGameAverage", () => {
       visit({ sessionId: "b", totalScore: 20, dartCount: 3 }),
     ];
     expect(highestGameAverage(rows)).toBe(60);
+  });
+
+  it("ignores sessions that are not a 501 start", () => {
+    const rows = [
+      visit({ sessionId: "a", totalScore: 60, dartCount: 3 }),
+      visit({
+        sessionId: "b",
+        totalScore: 100,
+        dartCount: 3,
+        configuration: { starting_score: 301 },
+      }),
+      visit({
+        sessionId: "c",
+        totalScore: 90,
+        dartCount: 3,
+        configuration: null,
+      }),
+    ];
+    expect(highestGameAverage(rows)).toBe(60);
+  });
+
+  it("ignores sessions of other game types", () => {
+    const rows = [
+      visit({ sessionId: "a", totalScore: 60, dartCount: 3 }),
+      visit({
+        sessionId: "b",
+        gameTypeKey: "121",
+        totalScore: 100,
+        dartCount: 3,
+        configuration: { starting_score: 501 },
+      }),
+      visit({
+        sessionId: "c",
+        gameTypeKey: null,
+        totalScore: 90,
+        dartCount: 3,
+      }),
+    ];
+    expect(highestGameAverage(rows)).toBe(60);
+  });
+
+  it("returns 0 when no session is a 501 game", () => {
+    const rows = [
+      visit({
+        totalScore: 100,
+        dartCount: 3,
+        configuration: { starting_score: 301 },
+      }),
+    ];
+    expect(highestGameAverage(rows)).toBe(0);
   });
 });
 

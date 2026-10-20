@@ -6,6 +6,7 @@ import {
   MAX_ROUTINE_NAME_LENGTH,
   MAX_ROUTINE_DESCRIPTION_LENGTH,
   RoutineStep,
+  RoutineSummary,
 } from "@routes/routines/types";
 
 const step = {
@@ -20,6 +21,30 @@ describe("MAX_ROUTINE_STEP_MINUTES / MAX_ROUTINE_STEPS / MAX_ROUTINE_NAME_LENGTH
     expect(MAX_ROUTINE_STEPS).toBe(12);
     expect(MAX_ROUTINE_NAME_LENGTH).toBe(60);
     expect(MAX_ROUTINE_DESCRIPTION_LENGTH).toBe(280);
+  });
+});
+
+describe("RoutineSummary", () => {
+  const summary = {
+    routineId: "rt-1",
+    routineName: "Balanced Training",
+    description: null,
+    isSystemTemplate: true,
+    stepCount: 2,
+    stepLabels: ["Warm-Up", "Doubles"],
+    totalMinutes: 20,
+  };
+
+  it("carries one label per step", () => {
+    const parsed = RoutineSummary.safeParse(summary);
+    expect(parsed.success).toBe(true);
+    if (!parsed.success) return;
+    expect(parsed.data.stepLabels).toEqual(["Warm-Up", "Doubles"]);
+  });
+
+  it("rejects a summary without stepLabels", () => {
+    const { stepLabels: _omitted, ...without } = summary;
+    expect(RoutineSummary.safeParse(without).success).toBe(false);
   });
 });
 

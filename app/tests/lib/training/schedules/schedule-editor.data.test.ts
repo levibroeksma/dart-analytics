@@ -20,6 +20,7 @@ const ROUTINES = {
       description: null,
       isSystemTemplate: true,
       stepCount: 2,
+      stepLabels: ["Warm-Up", "Doubles"],
       totalMinutes: 30,
     },
     {
@@ -28,6 +29,7 @@ const ROUTINES = {
       description: null,
       isSystemTemplate: false,
       stepCount: 1,
+      stepLabels: ["Warm-Up"],
       totalMinutes: 45,
     },
   ],

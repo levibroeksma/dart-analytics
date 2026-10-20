@@ -142,6 +142,7 @@ export type StatisticsOverview = {
   oneFortyPlusCount: number;
   oneEightiesCount: number;
   medianVisitScore: number;
+  /** Best per-session 3-dart average over 501 games started from 501; `0` when none. */
   highestGameAverage: number;
   firstNineCareerAverage: number;
   scoringAverageExcludingDoubles: number;
@@ -218,6 +219,7 @@ export type RoutineSummary = {
   description: string | null;
   isSystemTemplate: boolean;
   stepCount: number;
+  stepLabels: string[];
   totalMinutes: number;
 };
 

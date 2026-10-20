@@ -75,14 +75,13 @@ ACTUAL_MAX=$(ls database/migrations/ | grep -oE '^[0-9]{4}' | sort | tail -1)
 if [ -n "$ACTUAL_MAX" ]; then
   for f in CLAUDE.md DECISIONS.md $(git ls-files 'docs/architecture/*.md' 'database/*.md'); do
     head -6 "$f" | grep -q '^status: historical' && continue
-    while IFS= read -r line; do
-      echo "$line" | grep -qi 'applied' && continue
-      for q in $(echo "$line" | grep -hoiE 'migrations?[^0-9A-Za-z]{0,20}0001.?[–-].?.?[0-9]{4}' \
-        | grep -oE '0001.?[–-].?.?[0-9]{4}' | grep -oE '[0-9]{4}$' | sort -u); do
-        [ "$q" \> "0002" ] && [ "$q" != "$ACTUAL_MAX" ] \
-          && err "$f quotes migration range ending $q but chain ends at $ACTUAL_MAX"
-      done
-    done < "$f"
+    for q in $(grep -iE 'migrations?[^0-9A-Za-z]{0,20}0001.?[–-].?.?[0-9]{4}' "$f" \
+      | grep -vi 'applied' \
+      | grep -hoiE 'migrations?[^0-9A-Za-z]{0,20}0001.?[–-].?.?[0-9]{4}' \
+      | grep -oE '0001.?[–-].?.?[0-9]{4}' | grep -oE '[0-9]{4}$' | sort -u); do
+      [ "$q" \> "0002" ] && [ "$q" != "$ACTUAL_MAX" ] \
+        && err "$f quotes migration range ending $q but chain ends at $ACTUAL_MAX"
+    done
   done
 fi
 

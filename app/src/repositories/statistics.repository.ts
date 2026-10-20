@@ -13,6 +13,7 @@ import {
 } from "drizzle-orm";
 import type { Column, SQL } from "drizzle-orm";
 import {
+  exerciseConfigurations,
   vGameReplay,
   vReplayStages,
   vPlayerLegFacts,
@@ -102,8 +103,13 @@ export async function findVisitFacts(
       totalScore: vPlayerVisitFacts.totalScore,
       dartCount: vPlayerVisitFacts.dartCount,
       configuredMaxDartsPerTurn: vPlayerVisitFacts.configuredMaxDartsPerTurn,
+      configuration: exerciseConfigurations.configuration,
     })
     .from(vPlayerVisitFacts)
+    .leftJoin(
+      exerciseConfigurations,
+      eq(exerciseConfigurations.exerciseSessionId, vPlayerVisitFacts.sessionId),
+    )
     .where(eq(vPlayerVisitFacts.playerId, playerId));
 
   return rows.map((row) => ({
@@ -115,6 +121,7 @@ export async function findVisitFacts(
     totalScore: nonNull(row.totalScore, "total_score"),
     dartCount: nonNull(row.dartCount, "dart_count"),
     configuredMaxDartsPerTurn: row.configuredMaxDartsPerTurn,
+    configuration: row.configuration as Record<string, unknown> | null,
   }));
 }
 

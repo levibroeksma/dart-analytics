@@ -18,7 +18,11 @@ export type PlayerSessionSummaryRow = {
   durationSeconds: number;
 };
 
-/** One row of `v_player_visit_facts`; `gameTypeKey` is NULL for a training exercise session. */
+/**
+ * One row of `v_player_visit_facts`; `gameTypeKey` is NULL for a training
+ * exercise session. `configuration` is the session's stored snapshot, joined
+ * from `exercise_configurations` (snake_case ruleset fields).
+ */
 export type PlayerVisitFactRow = {
   sessionId: string;
   gameTypeKey: string | null;
@@ -28,6 +32,7 @@ export type PlayerVisitFactRow = {
   totalScore: number;
   dartCount: number;
   configuredMaxDartsPerTurn: number | null;
+  configuration: Record<string, unknown> | null;
 };
 
 /**
