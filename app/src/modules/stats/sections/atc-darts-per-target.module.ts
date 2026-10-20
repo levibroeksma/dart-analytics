@@ -1,7 +1,7 @@
 import { configGroupKey } from "@lib/stats/config-group";
 import { aroundTheClockAimKey } from "../derived-aims.module";
 import { snapshotOf } from "../x01-checkout-sessions.module";
-import { isClosed } from "./series.module";
+import { closeBuckets } from "./series.module";
 import type { AroundTheClockEngineConfig, SeriesBucket } from "@lib/types";
 import type {
   AroundTheClockSeatState,
@@ -88,14 +88,5 @@ export function atcDartsPerTargetBuckets(
     buckets.set(session.bucketStart, bucket);
   }
 
-  return Array.from(buckets.entries())
-    .filter(([, bucket]) => bucket.sampleSize > 0)
-    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
-    .map(([start, bucket]) => ({
-      start,
-      end: bucket.end,
-      closed: isClosed(bucket.end, ctx.to, ctx.now),
-      sampleSize: bucket.sampleSize,
-      metrics: bucket.metrics,
-    }));
+  return closeBuckets(buckets, ctx, { dropEmpty: true });
 }

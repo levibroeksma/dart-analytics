@@ -114,3 +114,25 @@ describe("checkoutRateBuckets", () => {
     expect(buckets[1]!.metrics).toEqual({ "40": { chances: 1, finished: 1 } });
   });
 });
+
+describe("checkoutRateBuckets series order", () => {
+  it("returns buckets oldest first, whatever order the sessions arrive in", () => {
+    const later = session({
+      bucketStart: "2026-02-01T00:00:00.000Z",
+      bucketEnd: "2026-03-01T00:00:00.000Z",
+      visits: [visit(40, [dart(20, "DOUBLE", 40)])],
+    });
+    const earlier = session({
+      bucketStart: "2026-01-01T00:00:00.000Z",
+      bucketEnd: "2026-02-01T00:00:00.000Z",
+      visits: [visit(40, [dart(20, "DOUBLE", 40)])],
+    });
+
+    const buckets = checkoutRateBuckets([later, earlier], CTX);
+
+    expect(buckets.map((bucket) => bucket.start)).toEqual([
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+    ]);
+  });
+});

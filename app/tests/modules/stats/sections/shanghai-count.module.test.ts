@@ -124,3 +124,35 @@ describe("shanghaiCountBuckets", () => {
     });
   });
 });
+
+describe("shanghaiCountBuckets series order", () => {
+  it("returns buckets oldest first, whatever order the sessions arrive in", () => {
+    const [early] = sessionSteps(
+      rowsFor({ sessionId: "session-shanghai" }, [hit(1, "OUTER_SINGLE")]),
+    ).sessions;
+    const [late] = sessionSteps(
+      rowsFor({ sessionId: "session-late-shanghai" }, [hit(1, "OUTER_SINGLE")]),
+    ).sessions;
+
+    const buckets = shanghaiCountBuckets(
+      [
+        {
+          ...late!,
+          bucketStart: "2026-02-01T00:00:00.000Z",
+          bucketEnd: "2026-03-01T00:00:00.000Z",
+        },
+        {
+          ...early!,
+          bucketStart: "2026-01-01T00:00:00.000Z",
+          bucketEnd: "2026-02-01T00:00:00.000Z",
+        },
+      ],
+      CTX,
+    );
+
+    expect(buckets.map((bucket) => bucket.start)).toEqual([
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+    ]);
+  });
+});

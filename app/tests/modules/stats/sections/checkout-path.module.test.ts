@@ -131,3 +131,37 @@ describe("dartLabel", () => {
     expect(dartLabel(dart(null, "MISS", 0))).toBe("MISS");
   });
 });
+
+describe("checkoutPathBuckets series order", () => {
+  it("returns buckets oldest first, whatever order the sessions arrive in", () => {
+    const later = session({
+      bucketStart: "2026-02-01T00:00:00.000Z",
+      bucketEnd: "2026-03-01T00:00:00.000Z",
+      visits: [
+        visit(170, [
+          dart(20, "TREBLE", 60),
+          dart(20, "TREBLE", 60),
+          dart(25, "INNER_BULL", 50),
+        ]),
+      ],
+    });
+    const earlier = session({
+      bucketStart: "2026-01-01T00:00:00.000Z",
+      bucketEnd: "2026-02-01T00:00:00.000Z",
+      visits: [
+        visit(170, [
+          dart(20, "TREBLE", 60),
+          dart(20, "TREBLE", 60),
+          dart(25, "INNER_BULL", 50),
+        ]),
+      ],
+    });
+
+    const buckets = checkoutPathBuckets([later, earlier], CTX);
+
+    expect(buckets.map((bucket) => bucket.start)).toEqual([
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+    ]);
+  });
+});

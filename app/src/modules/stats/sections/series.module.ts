@@ -1,4 +1,5 @@
 import type { SessionListCursor } from "@modules/types";
+import type { SeriesBucket } from "@lib/types";
 
 /**
  * Shared, pure helpers every section module uses: bucket closure
@@ -33,6 +34,28 @@ export function isClosed(bucketEnd: string, to: string, now: Date): boolean {
   const endMs = Date.parse(bucketEnd);
   const toMs = Date.parse(to);
   return endMs <= Math.min(toMs, now.getTime());
+}
+
+/**
+ * Turns a section's start-keyed accumulators into its ordered series:
+ * sorted by bucket start, each stamped with closure. `dropEmpty` omits buckets
+ * that took no sample.
+ */
+export function closeBuckets<M>(
+  buckets: ReadonlyMap<string, { end: string; sampleSize: number; metrics: M }>,
+  ctx: { to: string; now: Date },
+  options: { dropEmpty?: boolean } = {},
+): SeriesBucket<M>[] {
+  return Array.from(buckets.entries())
+    .filter(([, bucket]) => !options.dropEmpty || bucket.sampleSize > 0)
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+    .map(([start, bucket]) => ({
+      start,
+      end: bucket.end,
+      closed: isClosed(bucket.end, ctx.to, ctx.now),
+      sampleSize: bucket.sampleSize,
+      metrics: bucket.metrics,
+    }));
 }
 
 /** Opaque, server-owned session-list cursor (`06-API/03-Shared-Conventions.md` §Pagination). */

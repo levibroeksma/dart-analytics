@@ -194,3 +194,51 @@ describe("atcDartsPerTargetBuckets", () => {
     expect(Object.keys(bucket!.metrics)).toHaveLength(2);
   });
 });
+
+describe("atcDartsPerTargetBuckets series order", () => {
+  it("returns buckets oldest first, whatever order the sessions arrive in", () => {
+    const [early] = sessionSteps(
+      rowsFor(
+        {
+          sessionId: "session-atc",
+          gameTypeKey: "AROUND_THE_CLOCK",
+          rulesetVersionKey: "AROUND_THE_CLOCK_V1",
+          configuration: {},
+        },
+        [hit(1, "OUTER_SINGLE")],
+      ),
+    ).sessions;
+    const [late] = sessionSteps(
+      rowsFor(
+        {
+          sessionId: "session-late-atc",
+          gameTypeKey: "AROUND_THE_CLOCK",
+          rulesetVersionKey: "AROUND_THE_CLOCK_V1",
+          configuration: {},
+        },
+        [hit(1, "OUTER_SINGLE")],
+      ),
+    ).sessions;
+
+    const buckets = atcDartsPerTargetBuckets(
+      [
+        {
+          ...late!,
+          bucketStart: "2026-02-01T00:00:00.000Z",
+          bucketEnd: "2026-03-01T00:00:00.000Z",
+        },
+        {
+          ...early!,
+          bucketStart: "2026-01-01T00:00:00.000Z",
+          bucketEnd: "2026-02-01T00:00:00.000Z",
+        },
+      ],
+      CTX,
+    );
+
+    expect(buckets.map((bucket) => bucket.start)).toEqual([
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+    ]);
+  });
+});

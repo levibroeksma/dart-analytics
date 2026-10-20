@@ -207,3 +207,27 @@ describe("ladderProgressBuckets", () => {
     expect(ladderProgressBuckets([s], CTX)).toEqual([]);
   });
 });
+
+describe("ladderProgressBuckets series order", () => {
+  it("returns buckets oldest first, whatever order the sessions arrive in", () => {
+    const later = bucketedSession({
+      bucketStart: "2026-02-01T00:00:00.000Z",
+      bucketEnd: "2026-03-01T00:00:00.000Z",
+      gameTypeKey: "TUOD",
+      visits: [visit(41, finishingDarts(41))],
+    });
+    const earlier = bucketedSession({
+      bucketStart: "2026-01-01T00:00:00.000Z",
+      bucketEnd: "2026-02-01T00:00:00.000Z",
+      gameTypeKey: "TUOD",
+      visits: [visit(41, finishingDarts(41))],
+    });
+
+    const buckets = ladderProgressBuckets([later, earlier], CTX);
+
+    expect(buckets.map((bucket) => bucket.start)).toEqual([
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+    ]);
+  });
+});
