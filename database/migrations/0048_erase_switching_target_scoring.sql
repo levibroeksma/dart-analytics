@@ -96,15 +96,20 @@
 --    survive the session delete. fk_sessions_activity is
 --    exercise_sessions -> activities ON DELETE CASCADE, the
 --    child direction: deleting sessions never reaches the
---    parent. A training whose only sessions were of this type
---    is therefore left with no session at all, and
---    v_training_completions reads activities alone, so an
---    erased training still counts in history and streaks while
---    v_stats_routine_run_facts emits a ghost run with the
---    snapshot's step_count and zero started, completed and
---    darts. Those rows are deliberately NOT deleted here; the
---    notice names each one (id, player, status, start, and the
---    routine its snapshot recorded) so the production run is
+--    parent. A routine training whose only sessions were of
+--    this type is therefore left with no session at all but
+--    keeps its activity_configurations snapshot; both
+--    v_training_completions and v_stats_routine_run_facts
+--    inner-join that snapshot, so the training still counts in
+--    history and streaks and v_stats_routine_run_facts emits a
+--    ghost run with the snapshot's step_count and zero started,
+--    completed and darts. A standalone run of this type never
+--    had an activity_configurations snapshot, so it is left as
+--    an empty activities row with no session and no snapshot,
+--    appearing in neither view. Those rows are deliberately NOT
+--    deleted here; the notice names each one (id, player,
+--    status, start, and the routine its snapshot recorded, or
+--    'none' for a standalone run) so the production run is
 --    auditable.
 -- ============================================================
 
@@ -171,7 +176,7 @@ BEGIN
     WHERE NOT EXISTS (
         SELECT 1 FROM exercise_sessions s WHERE s.activity_id = a.id
     );
-    RAISE NOTICE '0048: % activity(ies) left with no exercise session by this erasure, kept on purpose (v_training_completions still counts them; v_stats_routine_run_facts emits a ghost run): %', v_count, COALESCE(v_named, 'none');
+    RAISE NOTICE '0048: % activity(ies) left with no exercise session by this erasure, kept on purpose (a routine training still counts in v_training_completions and gets a ghost run in v_stats_routine_run_facts; a standalone run of this type has no activity_configurations snapshot and appears in neither view): %', v_count, COALESCE(v_named, 'none');
 
     SELECT count(*),
         string_agg(a.id::text, '; ' ORDER BY a.started_at, a.id)

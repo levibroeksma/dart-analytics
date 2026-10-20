@@ -38,7 +38,7 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 | # | Exercise type | Configuration | Duration |
 | --- | --- | --- | --- |
 | 1 | `WARM_UP` — template "Warm-Up" (`database/seeds/0015_warm_up_routine.sql`) | none | 10 minutes |
-| 2 | `SWITCHING` — template "Switching" | none | 5 minutes |
+| 2 | `SWITCHING` — template "Standard" | none | 5 minutes |
 | 3 | `DOUBLE_PATTERN` — template "Double Pattern" | none | 5 minutes |
 | 4 | `GAME` — template "Finishing", pinned to `TUOD_V1` (`database/seeds/0021_exercise_template_game_rulesets.sql`) | start 41, finish bonus 10, miss penalty 1, 3 darts per visit | 10 minutes |
 
