@@ -198,7 +198,9 @@ describe("CheckoutSequenceEngine", () => {
     expect(engine.state().status).toBe("COMPLETE");
     expect(engine.state().currentOutshot).toBeNull();
     expect(engine.state().attempts).toBe(40);
-    expect(() => engine.record(MISS)).toThrow();
+    expect(() => engine.record(MISS)).toThrow(
+      "Cannot record a dart once the exercise is complete; undo first to correct it.",
+    );
   });
 
   it("completes when the timer expires and leaves the open attempt unscored", () => {

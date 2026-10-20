@@ -107,7 +107,9 @@ describe("BullUpEngine", () => {
   it("refuses a throw once complete", () => {
     const engine = new BullUpEngine({});
     engine.expireTimer();
-    expect(() => engine.record(BULL)).toThrow();
+    expect(() => engine.record(BULL)).toThrow(
+      "Cannot record a dart once the exercise is complete; undo first to correct it.",
+    );
   });
 
   it("undo un-completes first, then removes the throw and its turn", () => {

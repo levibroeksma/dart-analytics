@@ -4,6 +4,7 @@ import {
   cloneTurns,
   exerciseBlockStage,
   openOrCreateTurn,
+  refuseWhenEnded,
   undoLastDart,
 } from "@modules/game/turn-log.module";
 import type {
@@ -13,9 +14,6 @@ import type {
   TimedDartExerciseEngine,
 } from "./interfaces";
 import { SOLO_PARTICIPANT_REF } from "./solo-participant.module";
-
-const EXPIRED_REFUSAL =
-  "Cannot record a dart once the exercise is complete; undo first to correct it.";
 
 /**
  * Builds a `DartExerciseEngine` class over one `EXERCISE_BLOCK` stage.
@@ -47,7 +45,7 @@ export function dartExerciseEngineClass<TConfig, TState>(
     }
 
     record(observation: DartObservation): TState {
-      if (this.expired) throw new Error(EXPIRED_REFUSAL);
+      refuseWhenEnded(this.expired, "exercise is complete");
       const intent = spec.intent(this.deriveState(), this.config);
       const turn = openOrCreateTurn(
         this.turns,

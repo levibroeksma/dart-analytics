@@ -11,6 +11,7 @@ import {
   cloneTurns,
   exerciseBlockStage,
   openOrCreateTurn,
+  refuseWhenEnded,
   undoLastDart,
 } from "@modules/game/turn-log.module";
 import { registerDartExerciseEngineFactory } from "./dart-engine.registry";
@@ -155,11 +156,7 @@ export class SwitchingEngine implements DartExerciseEngine<SwitchingState> {
   }
 
   record(observation: DartObservation): SwitchingState {
-    if (this.complete) {
-      throw new Error(
-        "Cannot record a dart once the exercise is complete; undo first to correct it.",
-      );
-    }
+    refuseWhenEnded(this.complete, "exercise is complete");
     const turn = openOrCreateTurn(
       this.turns,
       STAGE.clientKey,

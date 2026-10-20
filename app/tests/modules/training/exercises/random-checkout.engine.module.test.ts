@@ -236,7 +236,9 @@ describe("RandomCheckoutEngine", () => {
     const engine = new RandomCheckoutEngine(CONFIG);
     engine.expireTimer();
 
-    expect(() => engine.record(D20)).toThrow();
+    expect(() => engine.record(D20)).toThrow(
+      "Cannot record a dart once the exercise is complete; undo first to correct it.",
+    );
   });
 
   it("never completes on its own", () => {
