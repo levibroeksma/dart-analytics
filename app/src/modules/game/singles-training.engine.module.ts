@@ -34,6 +34,7 @@ import type {
   SinglesTrainingState,
   TrackSeat,
 } from "./types";
+import { endedRefusal } from "./turn-log.module";
 
 type SinglesEngineConfig =
   | Seated<SinglesSnapshot>
@@ -90,10 +91,8 @@ export function activeTargetOf(
   return targetAt(numbersPath(config.targetOrder), state.targetIndex);
 }
 
-const MATCH_ENDED =
-  "Cannot record a dart once the match has ended; undo first to correct it.";
-const SESSION_DONE =
-  "Cannot record a dart once the session is complete; undo first to correct it.";
+const MATCH_ENDED = endedRefusal("match has ended");
+const SESSION_DONE = endedRefusal("session is complete");
 
 /** Accuracy scoring: 1 for the outer single on a NUMBER target or either bull, 0 for every other ring. */
 const ACCURACY_POINTS: PointsTable = {

@@ -36,6 +36,7 @@ import type {
   TrackSeat,
   TurnFact,
 } from "./types";
+import { endedRefusal } from "./turn-log.module";
 
 export { zoneBucketOf } from "./track-policies";
 
@@ -93,11 +94,9 @@ export function activeTargetOf(
   return targetAt(PATH, state.targetIndex);
 }
 
-const SESSION_ENDED =
-  "Cannot record a dart once the session has ended; undo first to correct it.";
+const SESSION_ENDED = endedRefusal("session has ended");
 
-const MATCH_ENDED =
-  "Cannot record a dart once the match has ended; undo first to correct it.";
+const MATCH_ENDED = endedRefusal("match has ended");
 
 /**
  * Shanghai as Track policies: rounds 1–20, any ring on the round's number

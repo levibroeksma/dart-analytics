@@ -3,7 +3,7 @@ import { doublesPath, isHitOn, targetAt } from "./board-progression.module";
 import { registerEngineFactory } from "./engine.registry";
 import { activeSeat } from "./seat-rota.module";
 import { activeSeatState, otherSeatsComplete } from "./seat-state.module";
-import { doubleTargetIntent } from "./turn-log.module";
+import { doubleTargetIntent, endedRefusal } from "./turn-log.module";
 import { scoreCompareOutcome } from "./match-outcome.module";
 import {
   dartGameEngineClass,
@@ -60,8 +60,7 @@ function toHitDartNumber(dartsThisVisit: number): 1 | 2 | 3 {
   );
 }
 
-const COMPLETE_REFUSAL =
-  "Cannot record a dart once the session is complete; undo first to correct it.";
+const COMPLETE_REFUSAL = endedRefusal("session is complete");
 
 /** Visit-close policy: log the visit's outcome (the hitting dart's number, or a miss). */
 function recordOutcome(

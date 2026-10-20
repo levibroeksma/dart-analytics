@@ -27,6 +27,7 @@ import type {
   SeatState,
   TrackSeat,
 } from "./types";
+import { endedRefusal } from "./turn-log.module";
 
 /** Nine innings; inning n aims at number n. */
 export const BASEBALL_INNINGS = 9;
@@ -35,8 +36,7 @@ const LAST_INNING_INDEX = BASEBALL_INNINGS - 1;
 
 const PATH = numbersPath().slice(0, BASEBALL_INNINGS);
 
-const GAME_ENDED =
-  "Cannot record a dart once the game has ended; undo first to correct it.";
+const GAME_ENDED = endedRefusal("game has ended");
 
 const NO_INTENT: DartIntent = {
   intendedTargetNumber: null,

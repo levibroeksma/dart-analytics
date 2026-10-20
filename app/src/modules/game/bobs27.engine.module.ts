@@ -8,7 +8,7 @@ import {
 import { registerEngineFactory } from "./engine.registry";
 import { activeSeat } from "./seat-rota.module";
 import { activeSeatState } from "./seat-state.module";
-import { doubleTargetIntent } from "./turn-log.module";
+import { doubleTargetIntent, endedRefusal } from "./turn-log.module";
 import { eliminationWinner, scoreCompareOutcome } from "./match-outcome.module";
 import {
   dartGameEngineClass,
@@ -70,10 +70,8 @@ function pointValueOf(target: BoardTarget, config: Bobs27Snapshot): number {
     : boardScore(target.number, "DOUBLE");
 }
 
-const MATCH_ENDED =
-  "Cannot record a dart once the match has ended; undo first to correct it.";
-const GAME_ENDED =
-  "Cannot record a dart once the game has ended; undo first to correct it.";
+const MATCH_ENDED = endedRefusal("match has ended");
+const GAME_ENDED = endedRefusal("game has ended");
 
 const PATH = doublesPath();
 

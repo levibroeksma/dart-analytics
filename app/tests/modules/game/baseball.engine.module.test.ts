@@ -117,7 +117,9 @@ describe("baseball engine", () => {
 
   it("refuses a dart once inning 9 has closed", () => {
     const engine = engineAfter(perfectGame());
-    expect(() => engine.record(T(9))).toThrow(/ended/);
+    expect(() => engine.record(T(9))).toThrow(
+      "Cannot record a dart once the game has ended; undo first to correct it.",
+    );
   });
 
   it("would complete only on inning 9's third dart", () => {

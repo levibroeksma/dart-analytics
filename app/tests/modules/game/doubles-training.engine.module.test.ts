@@ -778,7 +778,9 @@ describe("DoublesTrainingEngine.undo", () => {
 
     expect(() =>
       engine.record(hitObservationFor(engine.state().seats[0])),
-    ).toThrow();
+    ).toThrow(
+      "Cannot record a dart once the session is complete; undo first to correct it.",
+    );
 
     expect(engine.undo()).toBe(true);
     expect(engine.isComplete()).toBe(false);

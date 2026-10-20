@@ -362,7 +362,9 @@ describe("applySinglesTrainingDart — terminal state guard", () => {
         locationX: null,
         locationY: null,
       }),
-    ).toThrow();
+    ).toThrow(
+      "Cannot record a dart once the session is complete; undo first to correct it.",
+    );
   });
 });
 
@@ -1209,7 +1211,9 @@ describe("SinglesTrainingEngine — 1v1 completion guard", () => {
     expect(engine.state().status).toBe("TIE");
     const factsBefore = engine.facts();
 
-    expect(() => engine.record(dart(1, "MISS"))).toThrow();
+    expect(() => engine.record(dart(1, "MISS"))).toThrow(
+      "Cannot record a dart once the match has ended; undo first to correct it.",
+    );
 
     expect(engine.facts()).toEqual(factsBefore);
     expect(engine.state().status).toBe("TIE");

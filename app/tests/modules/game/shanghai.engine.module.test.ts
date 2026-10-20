@@ -464,7 +464,9 @@ describe("applyShanghaiDart — terminal state guard", () => {
         dartsThisVisit: [],
         status,
       };
-      expect(() => applyShanghaiDart(terminal, missObservation())).toThrow();
+      expect(() => applyShanghaiDart(terminal, missObservation())).toThrow(
+        "Cannot record a dart once the session has ended; undo first to correct it.",
+      );
     },
   );
 });
