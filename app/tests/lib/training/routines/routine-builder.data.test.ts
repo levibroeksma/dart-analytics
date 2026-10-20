@@ -423,6 +423,15 @@ describe("routineBuilder (edit)", () => {
     expect(nav).toHaveBeenCalledWith("/training/routines/detail?routine=o");
   });
 
+  it("renders a routine left with no steps", async () => {
+    vi.mocked(api.getRoutine).mockResolvedValue({ ...ROUTINE, steps: [] });
+    const b: RoutineBuilderContext = routineBuilder("edit");
+    await b.init();
+    expect(b.error).toBe("");
+    expect(() => b.groups()).not.toThrow();
+    expect(b.totalMinutes()).toBe(0);
+  });
+
   it("refuses to edit a system routine", async () => {
     vi.mocked(api.getRoutine).mockResolvedValue({
       ...ROUTINE,

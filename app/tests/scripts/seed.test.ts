@@ -42,9 +42,19 @@ describe("seed runner", () => {
     expect(unregistered).toEqual([]);
   });
 
-  it("numbers seeds contiguously from 0001", () => {
+  /**
+   * Ascending and unique rather than contiguous: a seed whose rows were later
+   * erased is deleted, not renumbered. `0024` seeded the
+   * SWITCHING_TARGET_SCORING exercise type that migration `0048` erased, and
+   * shifting every later seed down one would rewrite the README index, the
+   * generated tag seed's own filename and every document that names a seed by
+   * number. A gap is a retired seed; a repeat or a step backwards is the
+   * numbering mistake this still catches.
+   */
+  it("numbers seeds uniquely and in ascending order from 0001", () => {
     const numbers = seedNames.map((name) => Number(name.slice(0, 4)));
-    expect(numbers).toEqual(numbers.map((_, i) => i + 1));
+    expect(numbers[0]).toBe(1);
+    expect(numbers).toEqual([...new Set(numbers)].sort((a, b) => a - b));
   });
 
   it("runs every file twice, so a ledger seed's forward reference to a later-numbered file's row resolves on the second pass", () => {
