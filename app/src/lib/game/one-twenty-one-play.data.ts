@@ -19,7 +19,6 @@ import { boardInputData } from "@lib/game/board-input.data";
 import { fetchActiveSessions } from "@client/api/sessions";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import {
-  clearHiddenTimer,
   playAbandonAndExit,
   playBack,
   playCommitDart,
@@ -30,7 +29,8 @@ import {
   playUploadAndCompleteSession,
   playVisitMarkers,
   runPlayAgain,
-  undoToActiveSeat,
+  isInputBlocked,
+  undoBotAwareVisit,
 } from "@lib/game/play-lifecycle";
 import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
 import { createDartRng } from "@modules/dartbot/rng.module";
@@ -795,27 +795,14 @@ export function oneTwentyOnePlay() {
 
     undoVisit(this: OneTwentyOnePlayContext) {
       if (
-        this.finished ||
-        this.showDoubleConfirm ||
-        this.showSessionFinishConfirm ||
-        this.$store.game.timerPaused
+        isInputBlocked(
+          this,
+          this.showDoubleConfirm,
+          this.showSessionFinishConfirm,
+        )
       )
         return;
-      if (!this.engine) return;
-      const botSeat = findBotSeat(this.$store.game.seats);
-      if (botSeat) {
-        const humanSeat = this.$store.game.seats.find(
-          (seat) => seat.participantTypeKey === "PLAYER",
-        )!;
-        undoToActiveSeat(this, humanSeat.participantRef);
-      } else {
-        if (!this.engine.undo()) return;
-        clearHiddenTimer(this);
-        this.$store.game.recordFacts(this.engine.facts());
-      }
-      this.scoreInput.clear();
-      this.error = "";
-      void this.maybeRunBotVisit();
+      undoBotAwareVisit(this);
     },
 
     async uploadAndCompleteSession(

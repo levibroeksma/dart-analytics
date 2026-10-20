@@ -1939,6 +1939,22 @@ describe("scoreTrainingPlay", () => {
       expect(component.error).toBe("");
     });
 
+    it("is a no-op once finished", async () => {
+      const store = gameStub({ configSnapshot: rounds(20) });
+      const component = {
+        ...scoreTrainingPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
+      component.scoreInput.setValue("45");
+      await component.init.call(component);
+      await component.submitVisit.call(component);
+      component.finished = true;
+
+      component.undoVisit();
+
+      expect(store.turns).toHaveLength(1);
+    });
+
     it("is a no-op when there are no turns", async () => {
       const store = gameStub({ configSnapshot: rounds(20) });
       const component = {

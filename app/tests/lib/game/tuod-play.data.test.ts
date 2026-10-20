@@ -772,6 +772,21 @@ describe("tuodPlay", () => {
       expect(component.error).toBe("");
     });
 
+    it("is a no-op while the finish confirm is open", async () => {
+      const store = gameStub({ configSnapshot: rounds(20) });
+      const component = {
+        ...tuodPlay(),
+        $store: { game: store, settings: settingsStub() },
+      };
+      await component.init.call(component);
+      await component.recordAttempt.call(component, CHECKOUT);
+      component.showFinishConfirm = true;
+
+      component.undoVisit();
+
+      expect(store.turns).toHaveLength(1);
+    });
+
     it("is a no-op when there are no turns", async () => {
       const store = gameStub({ configSnapshot: rounds(20) });
       const component = {

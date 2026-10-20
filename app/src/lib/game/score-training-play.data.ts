@@ -7,7 +7,6 @@ import { boardInputData } from "@lib/game/board-input.data";
 import { matchWinnerName } from "@lib/game/match-result-text";
 import {
   armHiddenTimer,
-  clearHiddenTimer,
   playAbandonAndExit,
   playBack,
   playAnimateBotDarts,
@@ -18,7 +17,8 @@ import {
   playVisitMarkers,
   resumeGameEngine,
   runPlayAgain,
-  undoToActiveSeat,
+  isInputBlocked,
+  undoBotAwareVisit,
 } from "@lib/game/play-lifecycle";
 import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
 import { createDartRng } from "@modules/dartbot/rng.module";
@@ -541,27 +541,8 @@ export function scoreTrainingPlay() {
     },
 
     undoVisit(this: ScoreTrainingPlayContext) {
-      if (
-        this.finished ||
-        this.showFinishConfirm ||
-        this.$store.game.timerPaused
-      )
-        return;
-      if (!this.engine) return;
-      const botSeat = findBotSeat(this.$store.game.seats);
-      if (botSeat) {
-        const humanSeat = this.$store.game.seats.find(
-          (seat) => seat.participantTypeKey === "PLAYER",
-        )!;
-        undoToActiveSeat(this, humanSeat.participantRef);
-      } else {
-        if (!this.engine.undo()) return;
-        clearHiddenTimer(this);
-        this.$store.game.recordFacts(this.engine.facts());
-      }
-      this.scoreInput.clear();
-      this.error = "";
-      void this.maybeRunBotVisit();
+      if (isInputBlocked(this, this.showFinishConfirm)) return;
+      undoBotAwareVisit(this);
     },
 
     /**
