@@ -9,7 +9,7 @@ import { registerEngineFactory } from "./engine.registry";
 import { activeSeat } from "./seat-rota.module";
 import { activeSeatState } from "./seat-state.module";
 import { doubleTargetIntent } from "./turn-log.module";
-import { eliminationWinner } from "./match-outcome.module";
+import { eliminationWinner, scoreCompareOutcome } from "./match-outcome.module";
 import {
   dartGameEngineClass,
   dartGameEngineFactory,
@@ -166,12 +166,29 @@ export function applyBobs27Dart(
   );
 }
 
+function elimination(
+  seats: readonly Bobs27SeatState[],
+): Pick<Bobs27State, "status" | "winningSideKey"> {
+  const winningSideKey = eliminationWinner(
+    seats.map((seat) => ({
+      sideKey: seat.sideKey,
+      failed: seat.status === "LOST",
+    })),
+  );
+  return {
+    status: winningSideKey !== null ? "COMPLETE" : "IN_PROGRESS",
+    winningSideKey,
+  };
+}
+
 /**
  * Folds the whole fact log into the session's state — the function the
  * engine's own `deriveState()` delegates to, and the play controller's own
  * `state()` folds directly against `$store.game`'s reactive fields, exactly
  * like `foldTuodState`/`foldFiveOhOneState`. Elimination: the first seat to
- * bust loses and the match ends immediately, the other seat winning.
+ * bust loses and the match ends immediately, the other seat winning. When
+ * every seat survives the bull, the higher final score wins and equal scores
+ * are a `TIE`.
  */
 export function foldBobs27State(
   facts: EngineFacts,
@@ -184,18 +201,24 @@ export function foldBobs27State(
     bobs27Rules(config),
   ).map(toBobs27Seat);
 
-  const winningSideKey = eliminationWinner(
-    seats.map((seat) => ({
-      sideKey: seat.sideKey,
-      failed: seat.status === "LOST",
-    })),
-  );
-  const status: Bobs27State["status"] =
+  const anyLost = seats.some((seat) => seat.status === "LOST");
+  const {
+    status,
+    winningSideKey,
+  }: Pick<Bobs27State, "status" | "winningSideKey"> =
     seats.length === 1
-      ? seats[0].status
-      : winningSideKey !== null
-        ? "COMPLETE"
-        : "IN_PROGRESS";
+      ? { status: seats[0].status, winningSideKey: null }
+      : anyLost
+        ? elimination(seats)
+        : scoreCompareOutcome(
+            seats.map((seat) => ({
+              sideKey: seat.sideKey,
+              completed: seat.status === "WON",
+              metric: seat.score,
+            })),
+            "HIGHEST",
+            "IN_PROGRESS",
+          );
 
   return {
     activeParticipantRef: activeSeat(facts, config.seats, "PER_SEAT")

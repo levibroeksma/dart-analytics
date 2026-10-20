@@ -88,7 +88,7 @@ function computeStats(
   turns: readonly TurnFact[],
 ): Bobs27ResultsSnapshot {
   return {
-    status: state.status as "WON" | "LOST" | "COMPLETE",
+    status: state.status as Bobs27ResultsSnapshot["status"],
     winningSideKey: state.winningSideKey,
     seats: state.seats.map((seat) => statsFor(seat, turns)),
   };
@@ -330,6 +330,7 @@ export function bobs27Play() {
         this.resultsSnapshot?.winningSideKey ?? null,
       );
       if (winner) return `${winner} wins!`;
+      if (this.resultsSnapshot?.status === "TIE") return "It's a tie!";
       return this.resultsSnapshot?.status === "LOST" ? "Game over!" : "Winner!";
     },
 
