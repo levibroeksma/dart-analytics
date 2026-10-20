@@ -28,6 +28,13 @@ table, holding a `| Key | Name | Meaning |` table.
   The Routine step block has no Family row and may list several Difficulty
   values, each labelled with its template or preset, e.g.
   `INTERMEDIATE (1 dart), ADVANCED (2 darts)`.
+- **Per-config difficulty.** An exercise keeps one flat table and no
+  subsections, and that table is a routine-step block: it may list several
+  Difficulty values the same way, each labelled with the config it describes,
+  e.g. `BEGINNER (Standard), INTERMEDIATE (Chain)`. Label every value or none:
+  unlabelled, Difficulty still takes exactly one value. A block that labels
+  several of them links no Difficulty tag at all, so each template states its
+  own level through `exercise_templates.difficulty_tag_id` (D473).
 - **Skill.** Exactly one value is marked `(primary)` and comes first; the
   rest are secondary.
 - **Extending.** A new value or axis is a row here plus a decision in

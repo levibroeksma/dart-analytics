@@ -13,10 +13,14 @@ if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is required");
 
 /**
  * Seed 0043 hand-sets exercise_templates.difficulty_tag_id; the docs'
- * `### Routine step` Difficulty row is the human-readable statement of the
- * same fact. Per type, the set of difficulties the docs name must equal the
- * set of difficulty_levels across that type's system templates in
+ * routine-step Difficulty row is the human-readable statement of the same
+ * fact. Per type, the set of difficulties the docs name must equal the set of
+ * difficulty_levels across that type's system templates in
  * v_exercise_template_catalog. Set equality only: no label-to-name matching.
+ *
+ * The rule covers exercise types as well as game types: a game's routine-step
+ * block is its `### Routine step` subsection, an exercise's is its one flat
+ * table, and since D473 either may label several difficulties.
  */
 
 const rulesRoot = fileURLToPath(
@@ -102,6 +106,10 @@ describe("template difficulty parity (docs vs seed 0043)", () => {
       Object.values(expected).some((keys) => keys.length > 1),
       "at least one compared type labels several difficulties",
     ).toBe(true);
+    expect(
+      Object.keys(expected).filter((owner) => owner.startsWith("EXERCISE:")),
+      "the rule reaches exercise types, not only game types",
+    ).not.toHaveLength(0);
     expect(actual).toEqual(expected);
   });
 });

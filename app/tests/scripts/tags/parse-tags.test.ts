@@ -42,6 +42,43 @@ function routineDoc(difficulty: string): string {
   ].join("\n");
 }
 
+/** An exercise rules file: one flat table, no subsections unless `sub`. */
+function exerciseDoc(difficulty: string, sub = false): string {
+  return [
+    "## Tags",
+    sub ? "### Standalone" : "",
+    "| Axis | Tags |",
+    "| --- | --- |",
+    "| Skill | DOUBLES (primary) |",
+    "| Session role | CORE |",
+    "| Format | SOLO |",
+    `| Difficulty | ${difficulty} |`,
+    "| Mechanic | LADDER |",
+    "| Pressure | SETBACK |",
+    "## Exercise type",
+    "- Type constant: `X_TYPE`",
+  ].join("\n");
+}
+
+/** A standalone-only game: its flat table is a STANDALONE block. */
+function gameDoc(difficulty: string): string {
+  return [
+    "Game type: `X`",
+    "Entry points: standalone",
+    "## Tags",
+    "| Axis | Tags |",
+    "| --- | --- |",
+    "| Skill | ACCURACY (primary) |",
+    "| Session role | CORE |",
+    "| Format | SOLO |",
+    `| Difficulty | ${difficulty} |`,
+    "| Mechanic | SEQUENTIAL |",
+    "| Pressure | NONE |",
+    "| Family | STANDARD |",
+    "## Objective",
+  ].join("\n");
+}
+
 describe("parseVocabulary", () => {
   it("parses the 7 axes of the real TAGS.md", () => {
     expect(axes.map((a) => a.key)).toEqual([
@@ -187,34 +224,53 @@ describe("parseRulesFile", () => {
   });
 
   it("rejects what check-game-rules.sh rejects", () => {
-    const exercise = (tableDifficulty: string, sub = false) =>
-      [
-        "## Tags",
-        sub ? "### Standalone" : "",
-        "| Axis | Tags |",
-        "| --- | --- |",
-        "| Skill | DOUBLES (primary) |",
-        "| Session role | CORE |",
-        "| Format | SOLO |",
-        `| Difficulty | ${tableDifficulty} |`,
-        "| Mechanic | LADDER |",
-        "| Pressure | SETBACK |",
-        "## Exercise type",
-        "- Type constant: `X_TYPE`",
-      ].join("\n");
+    expect(() =>
+      parseRulesFile(exerciseDoc("INTERMEDIATE (1 dart)"), axes),
+    ).toThrow(/unexpected label/);
+    expect(() =>
+      parseRulesFile(exerciseDoc("INTERMEDIATE (1 dart), ADVANCED"), axes),
+    ).toThrow(/unexpected label/);
+    expect(() =>
+      parseRulesFile(exerciseDoc("INTERMEDIATE, ADVANCED"), axes),
+    ).toThrow(/takes exactly one value/);
+    expect(() => parseRulesFile(exerciseDoc("BEGINNER", true), axes)).toThrow(
+      /no subsections/,
+    );
+    expect(() => parseRulesFile(exerciseDoc("BEGINNER"), axes)).not.toThrow();
+  });
+
+  it("accepts labelled difficulties in an exercise's flat table", () => {
+    const r = parseRulesFile(
+      exerciseDoc("BEGINNER (Standard), INTERMEDIATE (Chain)"),
+      axes,
+    );
+    expect(r.blocks).toHaveLength(1);
+    expect(r.blocks[0].difficultyLabels).toEqual([
+      { key: "BEGINNER", label: "Standard" },
+      { key: "INTERMEDIATE", label: "Chain" },
+    ]);
+  });
+
+  it("still rejects an unlabelled second difficulty in an exercise", () => {
+    expect(() =>
+      parseRulesFile(exerciseDoc("BEGINNER, INTERMEDIATE"), axes),
+    ).toThrow(/Difficulty takes exactly one value/);
+  });
+
+  it("still rejects subsections in an exercise", () => {
+    expect(() => parseRulesFile(exerciseDoc("BEGINNER", true), axes)).toThrow(
+      /an exercise has one flat table, no subsections/,
+    );
+  });
+
+  it("still rejects labelled difficulties in a game's flat table", () => {
     expect(() =>
       parseRulesFile(
-        exercise("INTERMEDIATE (1 dart), ADVANCED (2 darts)"),
+        gameDoc("BEGINNER (Standard), INTERMEDIATE (Chain)"),
         axes,
       ),
     ).toThrow(/unexpected label/);
-    expect(() =>
-      parseRulesFile(exercise("INTERMEDIATE, ADVANCED"), axes),
-    ).toThrow(/takes exactly one value/);
-    expect(() => parseRulesFile(exercise("BEGINNER", true), axes)).toThrow(
-      /no subsections/,
-    );
-    expect(() => parseRulesFile(exercise("BEGINNER"), axes)).not.toThrow();
+    expect(() => parseRulesFile(gameDoc("BEGINNER"), axes)).not.toThrow();
   });
 
   it("drives axis scope from the Scope column", () => {

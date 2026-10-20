@@ -142,6 +142,24 @@ function checkDifficultyLabel(
   }
 }
 
+/** Does a value carry a `(...)` suffix? */
+function hasLabel(part: string): boolean {
+  return /\([^)]*\)$/.test(part);
+}
+
+/**
+ * May a `one` axis hold several values here? Only in a routine-step block: a
+ * game's `### Routine step`, or an exercise's flat table when every value
+ * carries a preset label. Unlabelled, an exercise still takes exactly one.
+ */
+function allowsSeveral(
+  context: ContextKey,
+  kind: Kind,
+  labelled: boolean,
+): boolean {
+  return context === "ROUTINE_STEP" && (kind === "game" || labelled);
+}
+
 /** One comma-separated value of a row: its tag, plus its label on Difficulty. */
 function parseValue(
   row: RowContext,
@@ -174,7 +192,7 @@ function parseTable(
   where: string,
   context: ContextKey,
   lines: string[],
-  gameRoutine: boolean,
+  kind: Kind,
 ): TagBlock {
   const tags: TagRef[] = [];
   const difficultyLabels: TagBlock["difficultyLabels"] = [];
@@ -190,7 +208,9 @@ function parseTable(
       axisName,
       axis,
       labelledDifficulty:
-        axis === "DIFFICULTY" && parts.length > 1 && gameRoutine,
+        axis === "DIFFICULTY" &&
+        parts.length > 1 &&
+        allowsSeveral(context, kind, parts.every(hasLabel)),
     };
     parts.forEach((part, i) => {
       const { tag, difficulty } = parseValue(row, part, i);
@@ -248,16 +268,16 @@ function checkPrimary(axis: Axis, list: TagRef[], where: string): void {
 
 /**
  * The axis rule on one axis's values. Several values on a `one` axis are
- * allowed only in a game's `### Routine step` block (`gameRoutine`).
+ * allowed only where `allowsSeveral` says so (`several`).
  */
 function checkAxisRule(
   axis: Axis,
   list: TagRef[],
-  gameRoutine: boolean,
+  several: boolean,
   where: string,
 ): void {
   checkPrimary(axis, list, where);
-  if (axis.rule === "one" && list.length > 1 && !gameRoutine) {
+  if (axis.rule === "one" && list.length > 1 && !several) {
     throw new Error(`${where}: ${axis.name} takes exactly one value`);
   }
   if (
@@ -279,7 +299,7 @@ function checkAxisRule(
  *
  * Same rule as check-game-rules.sh `wants`: game-standalone axes only in a
  * game's standalone (or flat) table. Several values on a `one` axis only in a
- * game's `### Routine step` block, never in an exercise's flat table.
+ * routine-step block, and in an exercise's flat table only when labelled.
  */
 export function validateBlock(
   block: TagBlock,
@@ -288,7 +308,11 @@ export function validateBlock(
   kind: Kind = "game",
 ): void {
   const byKey = new Map(axes.map((a) => [a.key, a]));
-  const gameRoutine = kind === "game" && block.context === "ROUTINE_STEP";
+  const several = allowsSeveral(
+    block.context,
+    kind,
+    block.difficultyLabels.every((d) => d.label !== null),
+  );
   const inScope = (a: Axis) =>
     a.scope === "all" ||
     (a.scope === "game-standalone" &&
@@ -304,7 +328,7 @@ export function validateBlock(
   for (const axis of wanted) {
     const list = grouped.get(axis.key);
     if (!list) throw new Error(`${where}: missing axis "${axis.name}"`);
-    checkAxisRule(axis, list, gameRoutine, where);
+    checkAxisRule(axis, list, several, where);
   }
 }
 
@@ -375,12 +399,7 @@ function groupBlock(
   axes: Axis[] | undefined,
 ): TagBlock {
   const where = g.name ? `Tags (${g.name})` : "Tags";
-  const block = parseTable(
-    where,
-    context,
-    g.lines,
-    kind === "game" && g.name === "Routine step",
-  );
+  const block = parseTable(where, context, g.lines, kind);
   if (axes) validateBlock(block, axes, where, kind);
   return block;
 }

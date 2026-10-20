@@ -162,13 +162,34 @@ describe("buildSeedSql", () => {
     expect(bull).toContain(`, ${beginnerId},`);
   });
 
-  it("throws on a multi-value Difficulty in an exercise's flat table", () => {
+  it("writes no DIFFICULTY row for a multi-label exercise flat block", () => {
+    const beginnerId =
+      axes[0].values.length + axes[1].values.length + axes[2].values.length + 1;
+    const multi: TagBlock = {
+      context: "ROUTINE_STEP",
+      tags: tags(["BEGINNER", "INTERMEDIATE"]),
+      difficultyLabels: [
+        { key: "BEGINNER", label: "Standard" },
+        { key: "INTERMEDIATE", label: "Chain" },
+      ],
+    };
+    const { sql } = build({
+      games: new Map(),
+      exercises: new Map([["HIT_COUNT", [multi]]]),
+    });
+    const hit = sql.slice(sql.indexOf("-- exercise HIT_COUNT")).split(";")[0];
+    expect(hit).toContain("INSERT INTO exercise_type_tags");
+    const difficultyIds = axes[3].values.map((_, i) => beginnerId + i);
+    for (const id of difficultyIds) expect(hit).not.toContain(`, ${id},`);
+  });
+
+  it("throws on an unlabelled multi-value Difficulty in an exercise", () => {
     const multi: TagBlock = {
       context: "ROUTINE_STEP",
       tags: tags(["INTERMEDIATE", "ADVANCED"]),
       difficultyLabels: [
-        { key: "INTERMEDIATE", label: "1 dart" },
-        { key: "ADVANCED", label: "2 darts" },
+        { key: "INTERMEDIATE", label: null },
+        { key: "ADVANCED", label: null },
       ],
     };
     expect(() =>
