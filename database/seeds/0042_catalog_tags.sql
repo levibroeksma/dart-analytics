@@ -386,6 +386,16 @@ INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at
   ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLES_LOCK'), 19, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLES_LOCK'), 29, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLES_LOCK'), 34, FALSE, now());
+-- exercise DOUBLE_PATTERN
+INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at) VALUES
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLE_PATTERN'), 2, FALSE, now()),
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLE_PATTERN'), 3, TRUE, now()),
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLE_PATTERN'), 9, FALSE, now()),
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLE_PATTERN'), 13, FALSE, now()),
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLE_PATTERN'), 19, FALSE, now()),
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLE_PATTERN'), 23, FALSE, now()),
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLE_PATTERN'), 24, FALSE, now()),
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLE_PATTERN'), 32, FALSE, now());
 -- exercise HIT_COUNT
 INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at) VALUES
   ((SELECT id FROM exercise_types WHERE implementation_key = 'HIT_COUNT'), 1, TRUE, now()),

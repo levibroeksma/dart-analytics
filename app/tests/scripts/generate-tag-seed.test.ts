@@ -256,12 +256,14 @@ describe("buildSeedSql", () => {
 });
 
 describe("generate() over the real rules files", () => {
-  it("parses every in-scope rules file, matches the committed seed, and warns only for the one untagged type", () => {
+  it("parses every in-scope rules file, matches the committed seed, and warns for no type", () => {
     const { sql, warnings } = generate();
     // SWITCHING dropped off this list when
-    // docs/game-rules/training/exercises/switching.md landed; DOUBLE_PATTERN
-    // is the last seeded exercise type with no rules file.
-    expect(warnings).toEqual(["no tag source: DOUBLE_PATTERN"]);
+    // docs/game-rules/training/exercises/switching.md landed, and
+    // DOUBLE_PATTERN when double-pattern.md did: every seeded exercise type
+    // now has a rules file with a `## Tags` table. GAME has one too, but the
+    // generator skips that key by design, so it is never a warning either.
+    expect(warnings).toEqual([]);
     expect(sql).toBe(
       readFileSync(
         fileURLToPath(
