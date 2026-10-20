@@ -106,7 +106,9 @@ describe("doublePatternEngineFactory", () => {
     engine.expireTimer();
     expect(engine.isComplete()).toBe(true);
     expect(engine.state().status).toBe("COMPLETE");
-    expect(() => engine.record(dart(20, "DOUBLE"))).toThrow();
+    expect(() => engine.record(dart(20, "DOUBLE"))).toThrow(
+      "Cannot record a dart once the exercise is complete; undo first to correct it.",
+    );
   });
 
   it("opens a new turn per pattern when consecutive patterns differ in length", () => {

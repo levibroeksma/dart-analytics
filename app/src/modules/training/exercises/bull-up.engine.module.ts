@@ -7,6 +7,7 @@ import {
   doubleTargetIntent,
   exerciseBlockStage,
   openOrCreateTurn,
+  refuseWhenEnded,
   undoLastDart,
 } from "@modules/game/turn-log.module";
 import { registerDartExerciseEngineFactory } from "./dart-engine.registry";
@@ -84,11 +85,7 @@ export class BullUpEngine implements DartExerciseEngine<BullUpState> {
   }
 
   record(observation: DartObservation): BullUpState {
-    if (this.complete) {
-      throw new Error(
-        "Cannot record a dart once the exercise is complete; undo first to correct it.",
-      );
-    }
+    refuseWhenEnded(this.complete, "exercise is complete");
     const turn = openOrCreateTurn(
       this.turns,
       STAGE.clientKey,

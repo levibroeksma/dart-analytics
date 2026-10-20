@@ -91,7 +91,9 @@ describe("switchingEngineFactory", () => {
     engine.expireTimer();
     expect(engine.isComplete()).toBe(true);
     expect(engine.state().status).toBe("COMPLETE");
-    expect(() => engine.record(dart(19, "SINGLE"))).toThrow();
+    expect(() => engine.record(dart(19, "SINGLE"))).toThrow(
+      "Cannot record a dart once the exercise is complete; undo first to correct it.",
+    );
   });
 
   it("rehydrates in-progress totals from prior facts", () => {

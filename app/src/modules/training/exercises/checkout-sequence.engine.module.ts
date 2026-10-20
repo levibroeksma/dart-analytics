@@ -12,6 +12,7 @@ import {
   cloneTurns,
   exerciseBlockStage,
   openOrCreateTurn,
+  refuseWhenEnded,
   undoLastDart,
 } from "@modules/game/turn-log.module";
 import { registerDartExerciseEngineFactory } from "./dart-engine.registry";
@@ -207,11 +208,7 @@ export class CheckoutSequenceEngine implements DartExerciseEngine<CheckoutSequen
 
   record(observation: DartObservation): CheckoutSequenceState {
     const before = this.deriveState();
-    if (before.status === "COMPLETE") {
-      throw new Error(
-        "Cannot record a dart once the exercise is complete; undo first to correct it.",
-      );
-    }
+    refuseWhenEnded(before.status === "COMPLETE", "exercise is complete");
     const turn = openOrCreateTurn(
       this.turns,
       STAGE.clientKey,

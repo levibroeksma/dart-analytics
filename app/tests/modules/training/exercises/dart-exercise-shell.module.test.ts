@@ -55,6 +55,7 @@ describe("dartExerciseEngineClass", () => {
     expect(e.undo()).toBe(true);
     expect(e.isComplete()).toBe(false);
     expect(e.facts().turns[0].darts).toHaveLength(1);
+    expect(() => e.record(T20)).not.toThrow();
   });
 
   it("factory carries the key and builds the class", () => {

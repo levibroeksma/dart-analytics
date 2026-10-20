@@ -11,6 +11,7 @@ import {
   cloneTurns,
   exerciseBlockStage,
   openOrCreateTurn,
+  refuseWhenEnded,
   undoLastDart,
 } from "@modules/game/turn-log.module";
 import { registerDartExerciseEngineFactory } from "./dart-engine.registry";
@@ -143,11 +144,7 @@ export class DoublePatternEngine implements DartExerciseEngine<DoublePatternStat
   }
 
   record(observation: DartObservation): DoublePatternState {
-    if (this.complete) {
-      throw new Error(
-        "Cannot record a dart once the exercise is complete; undo first to correct it.",
-      );
-    }
+    refuseWhenEnded(this.complete, "exercise is complete");
     const { patternIndex, targetWithinPattern } = positionFor(
       this.config.patterns,
       this.dartsThrownSoFar(),

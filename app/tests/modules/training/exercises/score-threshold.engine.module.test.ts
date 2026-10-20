@@ -153,7 +153,9 @@ describe("ScoreThresholdEngine", () => {
     const engine = new ScoreThresholdEngine(CONFIG);
     engine.expireTimer();
 
-    expect(() => engine.record(MISS)).toThrow();
+    expect(() => engine.record(MISS)).toThrow(
+      "Cannot record a dart once the exercise is complete; undo first to correct it.",
+    );
   });
 
   it("rehydrates in-progress state from prior facts", () => {
