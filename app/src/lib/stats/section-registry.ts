@@ -474,10 +474,14 @@ const KIND_BY_EXERCISE_RULESET: Readonly<Record<string, DartExerciseKind>> = {
 };
 
 /**
- * The kind a composite exercise type falls back to when its session names
- * no ruleset version at all — a session stored before exercise rulesets
- * existed, whose only clue is the type key. Standard answers for
- * `SWITCHING` because it is the only ruleset such a session can have run.
+ * The kind a composite exercise type falls back to when
+ * `KIND_BY_EXERCISE_RULESET` does not answer: the session names no ruleset
+ * version at all (stored before exercise rulesets existed), or names one
+ * this client does not know. Standard answers for `SWITCHING` because it is
+ * the only ruleset a version-less session can have run — which means a
+ * ruleset this client has not heard of yet, a future `SWITCHING_V2`, is
+ * also bucketed as Standard rather than rejected. Adding a ruleset to
+ * `KIND_BY_EXERCISE_RULESET` is what stops that.
  */
 const LEGACY_KIND_BY_TYPE: Readonly<Record<string, DartExerciseKind>> = {
   SWITCHING: "SWITCHING:STANDARD",

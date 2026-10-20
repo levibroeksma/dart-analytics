@@ -65,10 +65,12 @@ export type RoutineStatRow = {
 /**
  * One completed exercise's contribution to the routine summary. Warm-Up
  * throws no darts and produces none, which is why no adapter ever pushes one
- * for it. `stepKey` is a plain string — `StepAdapterKey`-compatible
- * (`"SWITCHING"`, `"DOUBLE_PATTERN"`, `"GAME:<rulesetVersionKey>"`) — rather
- * than importing that type from `lib/training/routines/adapters/`, which
- * would invert the `lib` → `modules` dependency direction.
+ * for it. `stepKey` holds a `DartExerciseKind` (`"SWITCHING:STANDARD"`,
+ * `"SWITCHING:CHAIN"`, `"DOUBLE_PATTERN"`) on an exercise step and
+ * `"GAME:<rulesetVersionKey>"` on a game step. It stays a plain string
+ * because the latter form is `StepAdapterKey`'s, and importing that type
+ * from `lib/training/routines/adapters/` would invert the
+ * `lib` → `modules` dependency direction.
  */
 export type RoutineStepSummary = {
   stepKey: string;

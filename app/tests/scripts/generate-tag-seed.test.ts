@@ -256,12 +256,12 @@ describe("buildSeedSql", () => {
 });
 
 describe("generate() over the real rules files", () => {
-  it("parses every in-scope rules file, matches the committed seed, and warns only for the two untagged types", () => {
+  it("parses every in-scope rules file, matches the committed seed, and warns only for the one untagged type", () => {
     const { sql, warnings } = generate();
-    expect(warnings).toEqual([
-      "no tag source: DOUBLE_PATTERN",
-      "no tag source: SWITCHING",
-    ]);
+    // SWITCHING dropped off this list when
+    // docs/game-rules/training/exercises/switching.md landed; DOUBLE_PATTERN
+    // is the last seeded exercise type with no rules file.
+    expect(warnings).toEqual(["no tag source: DOUBLE_PATTERN"]);
     expect(sql).toBe(
       readFileSync(
         fileURLToPath(
