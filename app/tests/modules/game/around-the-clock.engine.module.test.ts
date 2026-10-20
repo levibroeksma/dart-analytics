@@ -613,7 +613,9 @@ describe("AroundTheClockEngine — 1v1", () => {
     expect(state.seats[0].status).toBe("COMPLETE");
     expect(state.seats[1].status).toBe("COMPLETE");
 
-    expect(() => engine.record(missDart())).toThrow(/ended/);
+    expect(() => engine.record(missDart())).toThrow(
+      "Cannot record a dart once the session has ended; undo first to correct it.",
+    );
     expect(engine.wouldComplete(missDart())).toBe(false);
 
     const after = engine.state();

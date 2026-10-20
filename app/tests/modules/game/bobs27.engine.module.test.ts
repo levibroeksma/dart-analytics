@@ -892,7 +892,9 @@ describe("Bobs27Engine — 1v1", () => {
     expect(state.winningSideKey).toBe("B");
     expect(state.activeParticipantRef).toBe("p2");
 
-    expect(() => engine.record(missDart())).toThrow(/ended/);
+    expect(() => engine.record(missDart())).toThrow(
+      "Cannot record a dart once the match has ended; undo first to correct it.",
+    );
 
     const after = engine.state();
     expect(after.status).toBe("COMPLETE");

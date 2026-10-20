@@ -23,7 +23,7 @@ import {
   pathTarget,
   stepBackBelowHits,
 } from "./track-policies";
-import { dartsThrownBy } from "./turn-log.module";
+import { dartsThrownBy, endedRefusal } from "./turn-log.module";
 import { scoreCompareOutcome } from "./match-outcome.module";
 import type { DartGameSpec, TrackRules } from "./interfaces";
 import type {
@@ -137,8 +137,7 @@ export function isClockHit(
   return hitPolicy(rules)(target, observation);
 }
 
-const SESSION_ENDED =
-  "Cannot record a dart once the session has ended; undo first to correct it.";
+const SESSION_ENDED = endedRefusal("session has ended");
 
 /**
  * Around the Clock as Track policies: the resolved path, the segment rule's
