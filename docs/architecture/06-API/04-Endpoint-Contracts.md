@@ -961,6 +961,7 @@ All read endpoints are view-backed and player-scoped. Thin response contracts st
 | `GET /api/routines/:routineId` | `v_routine_execution` | `RoutineExecution` | 2026-07-12; shipped 2026-09-19 |
 | `GET /api/routines/:routineId/execution` (dropped 2026-09-18, D321 — same shape as the row above; never built) | — | — | 2026-07-12 |
 | `GET /api/exercise-templates` | `v_exercise_template_catalog` | `ExerciseTemplateCatalogEntry[]` | 2026-09-17; shipped 2026-09-19 |
+| `GET /api/catalog-tags` | `v_catalog_tags` | `CatalogTagsResponse` | 2026-10-19 |
 | `GET /api/schedules` | `v_training_schedules` | `ListResult<ScheduleSummary>` | 2026-09-20 |
 | `GET /api/schedules/active` | `v_training_schedules` + `v_training_schedule_days` | `Schedule \| null` | 2026-09-20 |
 | `GET /api/schedules/:scheduleId` | `v_training_schedules` + `v_training_schedule_days` | `Schedule` | 2026-09-20 |
@@ -983,6 +984,8 @@ The frozen `GET /api/sessions/:sessionId/replay` row above (`ReplayEntry[]`) was
 **Deferred (post-v1):** `GET /api/statistics/trends`, `GET /api/statistics/checkouts` — replaced by the section route (D365): trends are bucketed sections, checkouts are the checkout-family sections (`10-Statistics/00-Overview.md` §12 phase 3). `GET /api/statistics/overview` shipped 2026-09-06 (see the Statistics Overview section above); the two statistics-games routes shipped 2026-09-26 (see the section above). <!-- 2026-07-12; overview shipped 2026-09-06; games/sections shipped 2026-09-26 -->
 
 `v_routine_execution` is step-level; it backs both `GET /api/routines` (the list) and `GET /api/routines/:routineId` (the single-routine execution detail), both shipped 2026-09-19 (migration `0038`, D336). `POST /api/training-sessions` is a second consumer, resolving a system routine's — or, since D321, the caller's own — ordered steps through it by routine id (D299, issue #344). <!-- 2026-09-17; corrected 2026-09-19, D321 --> Migration `0038` recreated the view with `player_id` and `routine_description`/`exercise_description`, which is what makes the "system routines + caller's own" list readable through it (D321) — committed unapplied, per D336. The list **aggregates step rows to one summary row per routine** (distinct on routine identity) for `RoutineSummary`; the detail returns the full ordered step set. A dedicated `v_routine_summary` view may be introduced later if service-layer aggregation proves awkward; it is not required for v1. <!-- 2026-07-12; shipped 2026-09-19 -->
+
+`GET /api/catalog-tags` returns every game type's `standalone` and `routineStep` tag sets and every exercise type's set, read from `v_catalog_tags` only. A missing game context reads as `{ tags: [], difficultyLevel: null }`. Each set's `difficultyLevel` is the rank (1–4, BEGINNER to EXPERT) of its single DIFFICULTY tag, and `null` when the set has none or several. `GET /api/exercise-templates` gains `exerciseTypeName`, `gameTypeName`, `difficultyLevel`, `exerciseTypeDescription` and `gameTypeDescription` from `v_exercise_template_catalog`'s additive columns (`0047`); the picker card's blurb is `gameTypeDescription ?? exerciseTypeDescription ?? description`. <!-- 2026-10-19 -->
 
 **Pagination:** List endpoints support cursor-based pagination (`?limit=&cursor=`) and return `{ items: T[], nextCursor: string | null }`. Cursor is opaque, server-owned, and base64url-encoded. The sessions list orders by `session_id DESC` (UUIDv7 creation-ordered; the cursor encodes the last-seen `session_id`). <!-- 2026-07-13 -->
 
@@ -1286,6 +1289,24 @@ const RoutineExecution = z.object({         // GET /routines/:id → RoutineExec
 const ExerciseTemplateCatalogEntry = z.object({ // v_exercise_template_catalog — GET /exercise-templates (D321, shipped 2026-09-19)
   exerciseTemplateId: z.string(), name: z.string(), description: z.string().nullable(),
   exerciseTypeKey: z.string(), gameTypeKey: z.string().nullable(),
+  gameRulesetVersionKey: z.string().nullable(),
+  exerciseTypeName: z.string(), gameTypeName: z.string().nullable(),           // group labels from DB columns; never split from names
+  difficultyLevel: z.number().int().min(1).max(4).nullable(),                 // template's DIFFICULTY rank, else the type's single one; additive 2026-10-19
+  exerciseTypeDescription: z.string().nullable(),                             // exercise_types.description; picker blurb fallback; additive 2026-10-19
+  gameTypeDescription: z.string().nullable(),                                 // game_types.description, null for a non-game template; picker blurb; additive 2026-10-19
+});
+
+const CatalogTag = z.object({               // one row of v_catalog_tags — GET /catalog-tags
+  axis: z.enum(["SKILL", "SESSION_ROLE", "FORMAT", "DIFFICULTY", "MECHANIC", "PRESSURE", "FAMILY"]),
+  key: z.string(), name: z.string(), primary: z.boolean(),
+});
+const CatalogTagSet = z.object({
+  tags: z.array(CatalogTag),                // ordered by tag sort_order within an axis
+  difficultyLevel: z.number().int().min(1).max(4).nullable(), // the set's single DIFFICULTY tag, else null
+});
+const CatalogTagsResponse = z.object({      // GET /catalog-tags — standard ok() envelope, keyed by implementation key
+  games: z.record(z.object({ standalone: CatalogTagSet, routineStep: CatalogTagSet })),
+  exercises: z.record(CatalogTagSet),       // exercise types are ROUTINE_STEP only
 });
 
 const RoutineStepInput = z.object({         // request shape inside steps[] — POST/PUT /routines

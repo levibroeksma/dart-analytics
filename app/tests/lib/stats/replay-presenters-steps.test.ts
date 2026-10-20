@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { foldReplay } from "@lib/stats/replay-fold";
-import { STEP_REPLAY_PRESENTERS } from "@lib/stats/replay-presenters";
+import {
+  STEP_REPLAY_PRESENTERS,
+  stepReplayPresenter,
+} from "@lib/stats/replay-presenters";
 import {
   STEP_METRIC_SPECS,
   stepMetrics,
@@ -24,7 +27,7 @@ describe("STEP_REPLAY_PRESENTERS", () => {
 
   it("shows Switching's running points and darts thrown after each turn, equal to the engine's own state", () => {
     const fold = folded();
-    const presenter = STEP_REPLAY_PRESENTERS.SWITCHING;
+    const presenter = STEP_REPLAY_PRESENTERS["SWITCHING:STANDARD"];
 
     fold.steps.forEach((step) => {
       const engineState = step.after as {
@@ -50,7 +53,7 @@ describe("STEP_REPLAY_PRESENTERS", () => {
   it("shows the final metrics on the session line, hits included (derived from the replayed darts)", () => {
     const fold = folded();
 
-    const line = STEP_REPLAY_PRESENTERS.SWITCHING.session(
+    const line = STEP_REPLAY_PRESENTERS["SWITCHING:STANDARD"].session(
       fold.steps,
       fold.snapshot,
     );
@@ -61,9 +64,66 @@ describe("STEP_REPLAY_PRESENTERS", () => {
   });
 
   it("gives an empty session line to a step with no turns", () => {
-    expect(STEP_REPLAY_PRESENTERS.SWITCHING.session([], { seats: [] })).toEqual(
-      { entries: [], curves: [] },
-    );
+    expect(
+      STEP_REPLAY_PRESENTERS["SWITCHING:STANDARD"].session([], { seats: [] }),
+    ).toEqual({ entries: [], curves: [] });
+  });
+});
+
+/**
+ * Review Focus 4: `DartExerciseKind` is a composite key, so a presenter is
+ * resolved from a session's exercise type *and* ruleset version. A session
+ * stored before the Chain ruleset existed names only `SWITCHING`/
+ * `SWITCHING_V1` and must still render, and a kind this build does not know
+ * must degrade to `null` rather than throw.
+ */
+describe("stepReplayPresenter", () => {
+  it("renders a legacy Switching session after the kind key becomes composite", () => {
+    const { header, turns } = playSwitching();
+    const presenter = stepReplayPresenter({
+      exerciseTypeKey: "SWITCHING",
+      exerciseRulesetVersionKey: "SWITCHING_V1",
+    });
+    const fold = foldReplay(header, turns);
+    if (!fold.ok) throw new Error(`fold skipped: ${fold.reason}`);
+
+    expect(presenter).not.toBeNull();
+    expect(
+      presenter!.session(fold.steps, fold.snapshot).entries.map((e) => e.label),
+    ).toEqual(["Points", "Darts", "Hits"]);
+  });
+
+  it("reads a Switching session with no ruleset version at all as Standard", () => {
+    expect(
+      stepReplayPresenter({
+        exerciseTypeKey: "SWITCHING",
+        exerciseRulesetVersionKey: null,
+      }),
+    ).toBe(STEP_REPLAY_PRESENTERS["SWITCHING:STANDARD"]);
+  });
+
+  it("resolves the Chain ruleset to its own presenter, not Standard's", () => {
+    expect(
+      stepReplayPresenter({
+        exerciseTypeKey: "SWITCHING",
+        exerciseRulesetVersionKey: "SWITCHING_CHAIN_V1",
+      }),
+    ).toBe(STEP_REPLAY_PRESENTERS["SWITCHING:CHAIN"]);
+  });
+
+  it("degrades rather than throwing on an unknown kind", () => {
+    expect(() =>
+      stepReplayPresenter({
+        exerciseTypeKey: "NOPE",
+        exerciseRulesetVersionKey: "NOPE_V1",
+      }),
+    ).not.toThrow();
+    expect(
+      stepReplayPresenter({
+        exerciseTypeKey: "NOPE",
+        exerciseRulesetVersionKey: "NOPE_V1",
+      }),
+    ).toBeNull();
   });
 });
 
@@ -71,15 +131,28 @@ describe("STEP_REPLAY_PRESENTERS", () => {
  * Item 5 (fix round 1): every `STEP_METRIC_SPECS` kind, not just Switching
  * -- proves the `NO_FACTS` shortcut `buildStepPresenter`'s `turn()` takes
  * (`replay-presenters.ts` ~386/420) never changes the headline or darts
- * value a real per-turn fact log would give, for all nine kinds,
+ * value a real per-turn fact log would give, for every kind,
  * `BULL_UP`'s `"throws"` branch included.
  */
-describe("STEP_REPLAY_PRESENTERS (all nine kinds, real engine runs)", () => {
+describe("STEP_REPLAY_PRESENTERS (every kind, real engine runs)", () => {
   const KINDS = Object.keys(STEP_METRIC_SPECS) as DartExerciseKind[];
 
   it("covers Catch 40 and Random Checkout", () => {
     expect(KINDS).toContain("CHECKOUT_SEQUENCE");
     expect(KINDS).toContain("RANDOM_CHECKOUT");
+  });
+
+  it("covers both Switching rulesets under their composite keys", () => {
+    expect(KINDS).toContain("SWITCHING:STANDARD");
+    expect(KINDS).toContain("SWITCHING:CHAIN");
+    expect(KINDS).not.toContain("SWITCHING");
+  });
+
+  it("is exactly twelve kinds — a presenter per STEP_METRIC_SPECS entry, no more and no fewer", () => {
+    expect(KINDS).toHaveLength(12);
+    expect(Object.keys(STEP_REPLAY_PRESENTERS).sort()).toEqual(
+      [...KINDS].sort(),
+    );
   });
 
   it("covers Hit Count", () => {

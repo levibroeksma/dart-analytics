@@ -2,6 +2,7 @@
 
 Current version: V1 (shipped 2026-08-13)
 Entry points: standalone
+Game type: `DOUBLES_TRAINING`
 Kernel: TRACK
 
 ## Features

@@ -1,3 +1,5 @@
+import { prefersReducedMotion } from "@lib/ui/motion";
+
 /** Turn-switch duration and easing (Animations.dc.html §02). */
 export const TURN_MS = 500;
 export const TURN_EASE = "cubic-bezier(0.65, 0, 0.35, 1)";
@@ -60,10 +62,6 @@ function visibleTwin(card: MorphElement, twin: string): MorphElement | null {
   );
 }
 
-function reducedMotion(): boolean {
-  return globalThis.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-}
-
 /**
  * Alpine factory for `SplitScoreboard`'s turn switch. Each seat card
  * (`[data-seat-card]`) lays out both its panel and its bar layer at once and
@@ -100,7 +98,7 @@ export function seatMorph(activeKey: () => unknown) {
     },
 
     morph(this: SeatMorphContext) {
-      if (reducedMotion()) {
+      if (prefersReducedMotion()) {
         this.capture();
         return;
       }

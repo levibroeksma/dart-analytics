@@ -46,6 +46,7 @@ const GAME_KEY = `2-${FP}`;
 const DOUBLES_KEY = `3-${FP}`;
 const OLD_SWITCHING_KEY = `3-${"f".repeat(32)}`;
 const OTHER_ROUTINE_KEY = `name-${"a".repeat(32)}`;
+const CHAIN_KEY = `4-${FP}`;
 const LOAD_ERROR =
   "Could not load your routine statistics. Check your connection and try again.";
 
@@ -119,6 +120,12 @@ const HEADER = {
       exerciseTypeKey: "SWITCHING",
       exerciseRulesetVersionKey: "SWITCHING_V1",
       current: false,
+    }),
+    step({
+      stepKey: CHAIN_KEY,
+      sequenceNumber: 4,
+      exerciseTypeKey: "SWITCHING",
+      exerciseRulesetVersionKey: "SWITCHING_CHAIN_V1",
     }),
   ],
 };
@@ -494,6 +501,25 @@ describe("routineStatsStore selectStep", () => {
     }
   });
 
+  it("scopes each Switching ruleset under its own composite exerciseKind", async () => {
+    const store = routineStatsStore();
+    await store.selectRoutine(ROUTINE_KEY);
+
+    readSection.mockClear();
+    await store.selectStep(OLD_SWITCHING_KEY);
+    expect(readSection.mock.calls[0][1]).toMatchObject({
+      exerciseKind: "SWITCHING:STANDARD",
+    });
+    expect(store.selectedExerciseKind).toBe("SWITCHING:STANDARD");
+
+    readSection.mockClear();
+    await store.selectStep(CHAIN_KEY);
+    expect(readSection.mock.calls[0][1]).toMatchObject({
+      exerciseKind: "SWITCHING:CHAIN",
+    });
+    expect(store.selectedExerciseKind).toBe("SWITCHING:CHAIN");
+  });
+
   it("loads the first session page under the step scope and the routine's versionKey", async () => {
     const store = routineStatsStore();
     await store.selectRoutine(ROUTINE_KEY);
@@ -555,6 +581,7 @@ describe("routineStatsStore getters", () => {
       WARM_UP_KEY,
       GAME_KEY,
       DOUBLES_KEY,
+      CHAIN_KEY,
     ]);
     expect(store.earlierSteps.map((s) => s.stepKey)).toEqual([
       OLD_SWITCHING_KEY,

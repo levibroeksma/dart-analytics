@@ -18,11 +18,11 @@ describe("foldReplay (non-game routine steps)", () => {
     expect(fold.stateAfter(turns.length - 1)).toEqual(finalState);
   });
 
-  it("skips with NO_EXERCISE_ENGINE when no dart exercise engine is registered for the ruleset", () => {
+  it("skips with NO_EXERCISE_ENGINE when no dart exercise engine is registered for the ruleset, a retired ruleset key included", () => {
     const { header, turns } = playSwitching();
 
     const fold = foldReplay(
-      { ...header, exerciseRulesetVersionKey: "NOT_A_REAL_RULESET_V1" },
+      { ...header, exerciseRulesetVersionKey: "RETIRED_EXERCISE_RULESET_V1" },
       turns,
     );
 

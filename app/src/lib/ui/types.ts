@@ -19,3 +19,13 @@ export type TapRing = "SINGLE" | "DOUBLE" | "TREBLE";
 
 /** A ring key's label on that input. */
 export type RingKey = "S" | "D" | "T";
+
+/** Where a game card's dart is in its hover and throw sequence. */
+export type CardThrowPhase = "rest" | "hover" | "wind" | "throw" | "reset";
+
+/** Seams `cardThrow()` takes so navigation, motion preference and timers can be faked. */
+export type CardThrowDeps = {
+  navigate?: (href: string) => void;
+  reducedMotion?: () => boolean;
+  schedule?: (fn: () => void, ms: number) => void;
+};

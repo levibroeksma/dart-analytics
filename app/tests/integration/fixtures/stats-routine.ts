@@ -28,11 +28,12 @@ function exerciseStep(
   sequenceNumber: number,
   kind: string,
   configuration: Record<string, unknown>,
+  exerciseRulesetVersionKey: string = `${kind}_V1`,
 ): RoutineStep {
   return {
     sequenceNumber,
     exerciseTypeKey: kind,
-    exerciseRulesetVersionKey: `${kind}_V1`,
+    exerciseRulesetVersionKey,
     gameTypeKey: null,
     gameRulesetVersionKey: null,
     durationSeconds: STEP_DURATION_SECONDS,
@@ -44,6 +45,8 @@ function exerciseStep(
  * Spec §4.4: Warm-Up, nine dart kinds, then a 501 game step whose
  * configuration is filled in by `seedRoutineRun`, then Hit Count, then
  * SwitchBlade, then Doubles Lock — the twelve dart kinds are every `STEP_METRIC_SPECS` key.
+ * Switching appears twice, once per ruleset version, since its two
+ * rulesets are two kinds under one exercise type.
  * Configs are the camelCase V1 shapes, literals included (spec F13).
  */
 export const ROUTINE_STEPS: readonly RoutineStep[] = [
@@ -57,7 +60,7 @@ export const ROUTINE_STEPS: readonly RoutineStep[] = [
   }),
   exerciseStep(3, "DOUBLE_PATTERN", { patterns: [[20, 16]] }),
   exerciseStep(4, "TARGET_SCORING", { targets: [20, 19, 18, 25] }),
-  exerciseStep(5, "SWITCHING_TARGET_SCORING", { targets: [20, 19, 18] }),
+  exerciseStep(5, "SWITCHING", { targets: [20, 19, 18] }, "SWITCHING_CHAIN_V1"),
   exerciseStep(6, "SCORE_THRESHOLD", { threshold: 65 }),
   exerciseStep(7, "BULLSEYE_CHECKOUT", { startScore: 81 }),
   exerciseStep(8, "BULL_UP", {}),

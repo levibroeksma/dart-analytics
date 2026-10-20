@@ -77,6 +77,28 @@ SWAPPED='## Tags
 | Mechanic | COUNTDOWN |
 | Pressure | NONE |'
 
+# An exercise's flat table is a routine-step block: several Difficulty values,
+# each labelled with its config, are allowed there as in a game's Routine step.
+LABELLED_EX='## Tags
+
+| Axis | Tags |
+| --- | --- |
+| Skill | CHECKOUT (primary), DOUBLES |
+| Session role | CORE |
+| Format | SOLO |
+| Difficulty | BEGINNER (Standard), INTERMEDIATE (Chain) |
+| Mechanic | COUNTDOWN |
+| Pressure | NONE |'
+
+UNLABELLED_EX="${LABELLED_EX/ (Standard), INTERMEDIATE (Chain)/, INTERMEDIATE}"
+
+LABELLED_EX_SPLIT="${LABELLED_EX/\| Axis/### Routine step
+
+| Axis}"
+
+LABELLED_GAME="$LABELLED_EX
+| Family | STANDARD |"
+
 SPLIT_GAME='## Tags
 
 ### Standalone
@@ -141,6 +163,13 @@ expect fail "NONE with another Pressure" "$(fixture $EX training/exercises none-
   'NONE cannot be combined'
 expect fail "two Difficulty outside Routine step" "$(fixture $EX training/exercises two-diff <<< "${FLAT_EX/| INTERMEDIATE |/| INTERMEDIATE, ADVANCED |}")" \
   'Difficulty takes exactly one value'
+expect pass "exercise, labelled difficulties" "$(fixture $EX training/exercises ex-labelled <<< "$LABELLED_EX")"
+expect fail "exercise, unlabelled second Difficulty" "$(fixture $EX training/exercises ex-unlabelled <<< "$UNLABELLED_EX")" \
+  'Difficulty takes exactly one value'
+expect fail "exercise, labelled Difficulty in a subsection" "$(fixture $EX training/exercises ex-labelled-split <<< "$LABELLED_EX_SPLIT")" \
+  'an exercise has one flat table'
+expect fail "labelled Difficulty in a game's flat table" "$(fixture $GAME rulesets game-labelled <<< "$LABELLED_GAME")" \
+  'unexpected label "(Standard)" on "BEGINNER"'
 expect fail "unlabelled Difficulty in Routine step" "$(fixture $GAME_RS rulesets rs-unlabelled <<< "${SPLIT_GAME/INTERMEDIATE (1 dart)/INTERMEDIATE}")" \
   'needs a preset label'
 
@@ -168,6 +197,14 @@ expect fail "exercise with unknown Kernel" "$(kfixture $EX training/exercises k-
 expect fail "routine with Kernel" "$(kfixture $ROUTINE training/routines k-routine 's/^(Current version:.*)$/\1\nKernel: TRACK/')" \
   "'Kernel:' is not used by a routine"
 expect pass "game with Kernel" "$(kfixture $GAME rulesets k-ok 's/^$/&/')"
+
+# --- Game type header ----------------------------------------------------------
+expect fail "game type lowercase" "$(kfixture $GAME rulesets gt-lower 's/^(Entry points:.*)$/\1\nGame type: `cricket`/')" \
+  'Game type: must be `UPPER_SNAKE`'
+expect fail "game type without backticks" "$(kfixture $GAME rulesets gt-bare 's/^(Entry points:.*)$/\1\nGame type: CRICKET/')" \
+  'Game type: must be `UPPER_SNAKE`'
+expect pass "game type valid" "$(kfixture $GAME rulesets gt-ok 's/^(Entry points:.*)$/\1\nGame type: `CRICKET`/')"
+expect pass "game without game type" "$(kfixture $GAME rulesets gt-absent 's/^$/&/')"
 
 echo "test-check-game-rules: $PASSED passed, $FAILED failed"
 [ "$FAILED" -eq 0 ]

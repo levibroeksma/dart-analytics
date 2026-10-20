@@ -5,6 +5,8 @@ import {
   RESULT_DIRECTION,
   ROUTINE_SECTIONS,
   SECTIONS,
+  dartExerciseKindOf,
+  isDartExerciseKind,
   isSectionId,
   sectionSite,
   sectionsForGame,
@@ -505,6 +507,7 @@ describe("routine section registry (phase 6b plan decision 6)", () => {
   it("sectionsForStep gives a GAME step exactly sectionsForGame's metas", () => {
     const result = sectionsForStep({
       exerciseTypeKey: "GAME",
+      exerciseRulesetVersionKey: null,
       gameTypeKey: "SCORE_TRAINING",
     });
 
@@ -519,6 +522,7 @@ describe("routine section registry (phase 6b plan decision 6)", () => {
   it("sectionsForStep gives a dart exercise step-result and step-volume", () => {
     const result = sectionsForStep({
       exerciseTypeKey: "SWITCHING",
+      exerciseRulesetVersionKey: "SWITCHING_V1",
       gameTypeKey: null,
     });
 
@@ -532,6 +536,7 @@ describe("routine section registry (phase 6b plan decision 6)", () => {
   it("sectionsForStep gives Warm-Up step-volume only", () => {
     const result = sectionsForStep({
       exerciseTypeKey: "WARM_UP",
+      exerciseRulesetVersionKey: "WARM_UP_V1",
       gameTypeKey: null,
     });
 
@@ -543,5 +548,88 @@ describe("routine section registry (phase 6b plan decision 6)", () => {
     for (const meta of Object.values(ROUTINE_SECTIONS)) {
       expect(meta.requires).toEqual([]);
     }
+  });
+});
+
+/**
+ * `DartExerciseKind` is composite: one exercise type can ship several
+ * rulesets whose metrics differ, so the kind is resolved from the type and
+ * the ruleset version together. Standard's own resolution is pinned here
+ * because a session stored before Chain existed must keep reading as
+ * `SWITCHING:STANDARD` — its stats trend depends on it.
+ */
+describe("dartExerciseKindOf", () => {
+  it("resolves each Switching ruleset to its own composite kind", () => {
+    expect(
+      dartExerciseKindOf({
+        exerciseTypeKey: "SWITCHING",
+        exerciseRulesetVersionKey: "SWITCHING_V1",
+      }),
+    ).toBe("SWITCHING:STANDARD");
+    expect(
+      dartExerciseKindOf({
+        exerciseTypeKey: "SWITCHING",
+        exerciseRulesetVersionKey: "SWITCHING_CHAIN_V1",
+      }),
+    ).toBe("SWITCHING:CHAIN");
+  });
+
+  it("reads a Switching session with no ruleset version as Standard", () => {
+    expect(
+      dartExerciseKindOf({
+        exerciseTypeKey: "SWITCHING",
+        exerciseRulesetVersionKey: null,
+      }),
+    ).toBe("SWITCHING:STANDARD");
+  });
+
+  it("keys a single-ruleset exercise on its type alone", () => {
+    expect(
+      dartExerciseKindOf({
+        exerciseTypeKey: "TARGET_SCORING",
+        exerciseRulesetVersionKey: "TARGET_SCORING_V1",
+      }),
+    ).toBe("TARGET_SCORING");
+  });
+
+  it("is null for a dartless exercise, a GAME step and an unknown type", () => {
+    for (const step of [
+      { exerciseTypeKey: "WARM_UP", exerciseRulesetVersionKey: "WARM_UP_V1" },
+      { exerciseTypeKey: "GAME", exerciseRulesetVersionKey: null },
+      { exerciseTypeKey: "NOPE", exerciseRulesetVersionKey: "NOPE_V1" },
+    ]) {
+      expect(dartExerciseKindOf(step)).toBeNull();
+    }
+  });
+
+  it("no longer accepts the bare SWITCHING key as a kind", () => {
+    expect(isDartExerciseKind("SWITCHING")).toBe(false);
+    expect(isDartExerciseKind("SWITCHING:STANDARD")).toBe(true);
+    expect(isDartExerciseKind("SWITCHING:CHAIN")).toBe(true);
+  });
+});
+
+describe("sectionsForStep (composite kinds)", () => {
+  it("gives a Chain step step-result and step-volume, read off its ruleset", () => {
+    const result = sectionsForStep({
+      exerciseTypeKey: "SWITCHING",
+      exerciseRulesetVersionKey: "SWITCHING_CHAIN_V1",
+      gameTypeKey: null,
+    });
+
+    expect(result.sections.map((meta) => meta.id)).toEqual([
+      "step-result",
+      "step-volume",
+    ]);
+  });
+
+  it("gives an unknown exercise type step-volume alone rather than throwing", () => {
+    const result = sectionsForStep({
+      exerciseTypeKey: "NOPE",
+      exerciseRulesetVersionKey: "NOPE_V1",
+      gameTypeKey: null,
+    });
+
+    expect(result.sections.map((meta) => meta.id)).toEqual(["step-volume"]);
   });
 });

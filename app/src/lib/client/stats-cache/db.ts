@@ -1,5 +1,5 @@
 export const STATS_DB_NAME = "dart-stats";
-export const STATS_SCHEMA_VERSION = 4;
+export const STATS_SCHEMA_VERSION = 5;
 
 const STORES = [
   "sectionResults",
@@ -15,8 +15,10 @@ const STORES = [
  * stores"). `replayPages` joined `STORES` in phase 5b (D371 decision 7);
  * `STATS_SCHEMA_VERSION` 3 (D372 decision 12) wipes every store
  * again for the cache key's move from a bare `gameTypeKey` to a general
- * scope key, without changing `STORES` itself; `facts` joins in its own
- * future phase, each bumping `STATS_SCHEMA_VERSION`.
+ * scope key, without changing `STORES` itself; `STATS_SCHEMA_VERSION` 5
+ * wipes every store again, discarding any cache keyed to an exercise type
+ * erased by migration `0048`; `facts` joins in its own future phase, each
+ * bumping `STATS_SCHEMA_VERSION`.
  *
  * Returns `null` when IndexedDB is missing or the open fails for any reason
  * (private browsing, quota, a blocked upgrade) — every caller degrades to

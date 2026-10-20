@@ -126,6 +126,15 @@ check_file() {
     note "'Kernel:' is not used by a $shape"
   fi
 
+  # 6c. Game type header (game shape only, optional: unbuilt games have none)
+  if [ "$shape" = game ]; then
+    local gt
+    gt="$(grep -m1 '^Game type:' "$file" || true)"
+    if [ -n "$gt" ] && ! grep -qE '^Game type: `[A-Z0-9_]+`$' <<< "$gt"; then
+      note 'Game type: must be `UPPER_SNAKE`'
+    fi
+  fi
+
   # 7. standalone requirements
   local standalone=0
   case "$shape" in
@@ -225,7 +234,8 @@ check_applicability() {
 
 # Tags tables: axes, values and counts come from TAGS.md, never from here.
 # A game whose Entry points include routine step splits into ### Standalone
-# and ### Routine step; everything else has one flat table.
+# and ### Routine step; everything else has one flat table. An exercise's flat
+# table is a routine-step block, so it may label several Difficulty values.
 check_tags() {
   local file="$1" shape="$2" routine=0 line
   if [ ! -f "$TAGS_FILE" ]; then
@@ -287,12 +297,20 @@ END {
     print "Tags: a table sits outside the ### Standalone / ### Routine step subsections"
   for (t = 1; t <= ntables; t++) check_block(tableorder[t])
 }
+# Mirrors allowsSeveral() in app/scripts/tags/parse-tags.ts: several values on
+# a `one` axis only in a routine-step block, meaning the ### Routine step block
+# of a game, or the flat table of an exercise when every value carries a label.
+function allows_several(blk, nv, nlab,   rstep) {
+  rstep = (shape == "exercise") ? (blk == "flat") : (blk == "Routine step")
+  if (!rstep) return 0
+  return shape == "game" || nlab == nv
+}
 function wants(a, blk) {
   if (scope[a] == "all") return 1
   if (scope[a] == "game-standalone") return shape == "game" && blk != "Routine step"
   return 0
 }
-function check_block(blk,   where, i, k, a, pos, n, vals, j, v, lab, nv, nprim, seen, got, expect) {
+function check_block(blk,   where, i, k, a, pos, n, vals, j, v, lab, nv, nlab, several, nprim, seen, got, expect) {
   where = (blk == "flat") ? "Tags" : "Tags (" blk ")"
   # expected axis sequence for this block
   n = 0
@@ -307,7 +325,9 @@ function check_block(blk,   where, i, k, a, pos, n, vals, j, v, lab, nv, nprim, 
     if (expect[pos] != a) print where ": axis \"" a "\" is out of order (TAGS.md order)"
     pos++
     nv = split(rowvals[blk, i], vals, ",")
-    nprim = 0; delete seen
+    nprim = 0; nlab = 0; delete seen
+    for (j = 1; j <= nv; j++) if (trim(vals[j]) ~ /\([^)]*\)$/) nlab++
+    several = allows_several(blk, nv, nlab)
     for (j = 1; j <= nv; j++) {
       v = trim(vals[j]); lab = ""
       if (match(v, /\([^)]*\)$/)) { lab = trim(substr(v, RSTART + 1, RLENGTH - 2)); v = trim(substr(v, 1, RSTART - 1)) }
@@ -318,12 +338,12 @@ function check_block(blk,   where, i, k, a, pos, n, vals, j, v, lab, nv, nprim, 
       if (rule[a] == "primary") {
         if (lab == "primary") { nprim++; if (j != 1) print where ": the primary " a " must come first" }
         else if (lab != "") print where ": unexpected label \"(" lab ")\" on \"" v "\""
-      } else if (rule[a] == "one" && blk == "Routine step" && nv > 1) {
+      } else if (rule[a] == "one" && nv > 1 && several) {
         if (lab == "") print where ": \"" v "\" needs a preset label, e.g. \"" v " (3 darts)\""
       } else if (lab != "") print where ": unexpected label \"(" lab ")\" on \"" v "\""
     }
     if (rule[a] == "primary" && nprim != 1) print where ": " a " needs exactly one (primary) value, found " nprim
-    if (rule[a] == "one" && nv > 1 && blk != "Routine step") print where ": " a " takes exactly one value"
+    if (rule[a] == "one" && nv > 1 && !several) print where ": " a " takes exactly one value"
     if (excl[a] != "" && excl[a] != "—" && (excl[a] in seen) && nv > 1) print where ": " excl[a] " cannot be combined with another " a " value"
   }
   for (k = 1; k <= n; k++) if (!(expect[k] in got)) print where ": missing axis \"" expect[k] "\""

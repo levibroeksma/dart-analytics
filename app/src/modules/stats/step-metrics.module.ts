@@ -14,9 +14,20 @@ import type {
 export const STEP_METRIC_SPECS: Readonly<
   Record<DartExerciseKind, StepMetricSpec>
 > = {
-  SWITCHING: {
+  "SWITCHING:STANDARD": {
     metrics: { points: "sum", darts: "sum", hits: "sum" },
     headline: "points",
+    direction: "higher",
+    rates: [["hits", "darts"]],
+  },
+  "SWITCHING:CHAIN": {
+    metrics: {
+      bestChain: "max",
+      sequences: "sum",
+      darts: "sum",
+      hits: "sum",
+    },
+    headline: "bestChain",
     direction: "higher",
     rates: [["hits", "darts"]],
   },
@@ -28,17 +39,6 @@ export const STEP_METRIC_SPECS: Readonly<
   },
   TARGET_SCORING: {
     metrics: { bestChain: "max", darts: "sum", hits: "sum" },
-    headline: "bestChain",
-    direction: "higher",
-    rates: [["hits", "darts"]],
-  },
-  SWITCHING_TARGET_SCORING: {
-    metrics: {
-      bestChain: "max",
-      sequences: "sum",
-      darts: "sum",
-      hits: "sum",
-    },
     headline: "bestChain",
     direction: "higher",
     rates: [["hits", "darts"]],
@@ -122,11 +122,12 @@ function numberField(
 }
 
 /**
- * Switching scores a dart by the ring it hit relative to its own visit's
- * target, so a non-hit dart can still score under a lenient scoring config
- * (`docs/game-rules/training/exercises/switching.md`). The hit count the
- * summary modal shows is therefore not `state.totalPoints` but a replay of
- * every dart's own intended/hit pair.
+ * Switching Standard scores a dart by the ring it hit relative to its own
+ * visit's target, so a non-hit dart can still score under a lenient scoring
+ * config (`docs/game-rules/training/exercises/switching.md`). The hit count
+ * the summary modal shows is therefore not `state.totalPoints` but a replay
+ * of every dart's own intended/hit pair. Chain has no such gap — it counts
+ * its own hits — so only Standard reads `facts`.
  */
 function switchingHits(facts: EngineFacts): number {
   return facts.turns
@@ -150,11 +151,18 @@ export function stepMetrics(
   facts: EngineFacts,
 ): Record<string, number> {
   switch (kind) {
-    case "SWITCHING":
+    case "SWITCHING:STANDARD":
       return {
         points: numberField(state, "totalPoints", kind),
         darts: numberField(state, "dartsThrown", kind),
         hits: switchingHits(facts),
+      };
+    case "SWITCHING:CHAIN":
+      return {
+        bestChain: numberField(state, "bestChain", kind),
+        sequences: numberField(state, "completedSequences", kind),
+        darts: numberField(state, "dartsThrown", kind),
+        hits: numberField(state, "hits", kind),
       };
     case "DOUBLE_PATTERN":
       return {
@@ -164,13 +172,6 @@ export function stepMetrics(
     case "TARGET_SCORING":
       return {
         bestChain: numberField(state, "bestChain", kind),
-        darts: numberField(state, "dartsThrown", kind),
-        hits: numberField(state, "hits", kind),
-      };
-    case "SWITCHING_TARGET_SCORING":
-      return {
-        bestChain: numberField(state, "bestChain", kind),
-        sequences: numberField(state, "completedSequences", kind),
         darts: numberField(state, "dartsThrown", kind),
         hits: numberField(state, "hits", kind),
       };

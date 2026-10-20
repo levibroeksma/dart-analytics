@@ -17,6 +17,59 @@ function deleteStatsDb(): Promise<void> {
 describe("openStatsDb", () => {
   beforeEach(() => deleteStatsDb());
 
+  it("bumps the schema version so caches keyed to erased types are discarded", () => {
+    expect(STATS_SCHEMA_VERSION).toBe(5);
+  });
+
+  it("wipes every store on upgrade rather than merging", async () => {
+    const stores = [
+      "sectionResults",
+      "coverage",
+      "sessionLists",
+      "meta",
+      "replayPages",
+    ] as const;
+    const stale = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open(STATS_DB_NAME, STATS_SCHEMA_VERSION - 1);
+      request.onupgradeneeded = () => {
+        const db = request.result;
+        for (const name of Array.from(db.objectStoreNames)) {
+          db.deleteObjectStore(name);
+        }
+        db.createObjectStore("erasedTypeStore");
+        for (const store of stores) db.createObjectStore(store);
+      };
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    await new Promise<void>((resolve, reject) => {
+      const tx = stale.transaction(["erasedTypeStore", ...stores], "readwrite");
+      tx.objectStore("erasedTypeStore").put("stale", "key");
+      for (const store of stores) tx.objectStore(store).put("stale", "key");
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+    stale.close();
+
+    const db = await openStatsDb();
+
+    expect(Array.from(db!.objectStoreNames).sort()).toEqual([
+      "coverage",
+      "meta",
+      "replayPages",
+      "sectionResults",
+      "sessionLists",
+    ]);
+    const values = await new Promise<unknown[]>((resolve, reject) => {
+      const tx = db!.transaction(stores, "readonly");
+      const requests = stores.map((store) => tx.objectStore(store).get("key"));
+      tx.oncomplete = () => resolve(requests.map((request) => request.result));
+      tx.onerror = () => reject(tx.error);
+    });
+    expect(values).toEqual(stores.map(() => undefined));
+    db!.close();
+  });
+
   it("creates all five stores", async () => {
     const db = await openStatsDb();
     expect(db).not.toBeNull();
@@ -113,7 +166,7 @@ describe("openStatsDb", () => {
     db!.close();
   });
 
-  it("wipes coverage, replayPages and sectionResults records from a v3 database, landing at version 4", async () => {
+  it("wipes coverage, replayPages and sectionResults records from a v3 database, landing at the current schema version", async () => {
     const v3 = await new Promise<IDBDatabase>((resolve, reject) => {
       const request = indexedDB.open(STATS_DB_NAME, 3);
       request.onupgradeneeded = () => {
@@ -143,7 +196,7 @@ describe("openStatsDb", () => {
 
     const db = await openStatsDb();
 
-    expect(db!.version).toBe(4);
+    expect(db!.version).toBe(STATS_SCHEMA_VERSION);
     const [sectionResultsValue, coverageValue, replayPagesValue] =
       await new Promise<[unknown, unknown, unknown]>((resolve, reject) => {
         const tx = db!.transaction(

@@ -1,5 +1,10 @@
 import { GAME_CARDS, visibleGames } from "@lib/game/rulesets/games-visibility";
+import { fetchCatalogTags } from "@client/api/catalog";
+import { cardTags } from "@lib/catalog/tags";
 import type {
+  CatalogTag,
+  CatalogTagsResponse,
+  DifficultyLevel,
   GameGroupKey,
   GamesIndexContext,
   RulesetVersionKey,
@@ -26,22 +31,49 @@ const ANALYTICS_CAPTURE_MODE_KEY = "ANALYTICS";
  * `v_active_sessions` returns since migration `0033` — gates no card and is
  * dropped here rather than widening `activeRulesetKeys` to hold NULL.
  *
- * The group helpers drive the grouped list's section and divider visibility;
+ * The group helpers drive the grouped list's section visibility;
  * the in-progress deck runs in its own `resumeDeck()` scope.
  * `loading()` holds the rows' skeleton until both the sessions fetch and the
  * settings store settle, so the page swaps data in once, in place.
+ *
+ * The catalog tags load in parallel with the sessions and never gate
+ * `loading()`: the cards render their title at once and the pills and meter
+ * fill in when the tags arrive. A failed tags fetch leaves `catalogTags` null,
+ * so `gameTags` is empty and `gameLevel` null — cards stay usable untagged.
  */
 export function gamesIndex() {
   return {
     activeRulesetKeys: [] as string[],
     sessionsLoading: true,
+    catalogTags: null as CatalogTagsResponse | null,
 
+    /** The tags fetch's rejection is swallowed on purpose: cards degrade to untagged. */
     async init(this: GamesIndexContext) {
+      void fetchCatalogTags().then(
+        (tags) => {
+          this.catalogTags = tags;
+        },
+        () => {},
+      );
       await this.$store.activeSessions.load();
       this.activeRulesetKeys = this.$store.activeSessions.sessions
         .map((session) => session.rulesetVersionKey)
         .filter((key) => key !== null);
       this.sessionsLoading = false;
+    },
+
+    gameTags(this: GamesIndexContext, gameTypeKey: string): CatalogTag[] {
+      const set = this.catalogTags?.games[gameTypeKey]?.standalone;
+      return set ? cardTags(set, "game") : [];
+    },
+
+    gameLevel(
+      this: GamesIndexContext,
+      gameTypeKey: string,
+    ): DifficultyLevel | null {
+      return (
+        this.catalogTags?.games[gameTypeKey]?.standalone.difficultyLevel ?? null
+      );
     },
 
     loading(this: GamesIndexContext) {
@@ -66,18 +98,6 @@ export function gamesIndex() {
         (game) =>
           game.group === groupKey && this.isVisible(game.rulesetVersionKey),
       );
-    },
-
-    isFirstVisible(
-      this: GamesIndexContext,
-      groupKey: GameGroupKey,
-      rulesetVersionKey: RulesetVersionKey,
-    ) {
-      const first = GAME_CARDS.find(
-        (game) =>
-          game.group === groupKey && this.isVisible(game.rulesetVersionKey),
-      );
-      return first?.rulesetVersionKey === rulesetVersionKey;
     },
 
     noneVisible(this: GamesIndexContext) {

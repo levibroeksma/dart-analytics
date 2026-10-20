@@ -2,9 +2,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { gamesIndex } from "@lib/game/games-index.data";
 import type { GamesIndexContext } from "@lib/types";
 import * as sessionsApi from "@client/api/sessions";
+import * as catalogApi from "@client/api/catalog";
+import { cardTags } from "@lib/catalog/tags";
+import type { CatalogTag, CatalogTagsResponse } from "@lib/types";
 import { activeSessionsStore } from "@stores/active-sessions.store";
 
 vi.mock("@client/api/sessions");
+vi.mock("@client/api/catalog");
 
 /** A training exercise step session: no game, so no ruleset version key. */
 const trainingStepSession = () =>
@@ -33,11 +37,37 @@ const activeSession = (rulesetVersionKey: string) =>
     startedAt: "2026-08-08T10:00:00.000Z",
   }) as any;
 
+const tag = (
+  key: string,
+  axis: CatalogTag["axis"],
+  primary = false,
+): CatalogTag => ({ key, name: key, axis, primary }) as CatalogTag;
+
+const cricketTags: CatalogTag[] = [
+  tag("FAMILY_X", "FAMILY"),
+  tag("PRESSURE_X", "PRESSURE"),
+  tag("FORMAT_X", "FORMAT"),
+  tag("SKILL_P", "SKILL", true),
+  tag("SKILL_S", "SKILL"),
+];
+
+const catalogTags = (): CatalogTagsResponse =>
+  ({
+    games: {
+      CRICKET: {
+        standalone: { tags: cricketTags, difficultyLevel: 3 },
+        routineStep: { tags: [], difficultyLevel: null },
+      },
+    },
+    exercises: {},
+  }) as CatalogTagsResponse;
+
 describe("gamesIndex", () => {
   let store: GamesIndexContext["$store"];
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(catalogApi.fetchCatalogTags).mockResolvedValue(catalogTags());
     store = {
       settings: { captureModeKey: "RECREATIONAL", inputModeKey: "QUICK_SCORE" },
       activeSessions: activeSessionsStore(),
@@ -132,16 +162,6 @@ describe("gamesIndex", () => {
     expect(none.groupVisible("CLASSICS")).toBe(false);
   });
 
-  it("drops the divider on a group's first visible row, skipping hidden rows", () => {
-    const page = createPage({
-      isVisible: (key: string) => key !== "501_V2",
-    });
-
-    expect(page.isFirstVisible("MATCH_PLAY", "121_V1")).toBe(true);
-    expect(page.isFirstVisible("MATCH_PLAY", "501_V2")).toBe(false);
-    expect(page.isFirstVisible("MATCH_PLAY", "CRICKET_V1")).toBe(false);
-  });
-
   it("falls back to no active session when the fetch fails", async () => {
     vi.mocked(sessionsApi.fetchActiveSessions).mockRejectedValue(
       new Error("offline"),
@@ -179,5 +199,72 @@ describe("gamesIndex", () => {
     await page.init();
 
     expect(page.loading()).toBe(true);
+  });
+
+  describe("catalog tags", () => {
+    it("returns the card tag order and level for a game after init", async () => {
+      vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([]);
+      const page = createPage();
+      await page.init();
+      await vi.waitFor(() => expect(page.catalogTags).not.toBeNull());
+
+      expect(page.gameTags("CRICKET")).toEqual(
+        cardTags({ tags: cricketTags, difficultyLevel: 3 }, "game"),
+      );
+      expect(page.gameLevel("CRICKET")).toBe(3);
+    });
+
+    it("returns no tags and no level for an unknown game or before load", async () => {
+      vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([]);
+      const page = createPage();
+
+      expect(page.catalogTags).toBeNull();
+      expect(page.gameTags("CRICKET")).toEqual([]);
+      expect(page.gameLevel("CRICKET")).toBeNull();
+      await page.init();
+      await vi.waitFor(() => expect(page.catalogTags).not.toBeNull());
+      expect(page.gameTags("NOPE")).toEqual([]);
+      expect(page.gameLevel("NOPE")).toBeNull();
+    });
+
+    it("degrades to empty tags and still stops loading when the tags fetch fails", async () => {
+      vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([]);
+      vi.mocked(catalogApi.fetchCatalogTags).mockRejectedValue(
+        new Error("offline"),
+      );
+      const page = createPage();
+      await page.init();
+
+      expect(page.gameTags("CRICKET")).toEqual([]);
+      expect(page.gameLevel("CRICKET")).toBeNull();
+      expect(page.loading()).toBe(false);
+    });
+
+    it("does not hold loading() for a tags fetch that has not settled", async () => {
+      vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([]);
+      vi.mocked(catalogApi.fetchCatalogTags).mockReturnValue(
+        new Promise(() => {}),
+      );
+      const page = createPage();
+      await page.init();
+
+      expect(page.loading()).toBe(false);
+      expect(page.gameTags("CRICKET")).toEqual([]);
+    });
+
+    it("starts the tags fetch before the sessions fetch settles", async () => {
+      let resolveSessions: (v: never[]) => void = () => {};
+      vi.mocked(sessionsApi.fetchActiveSessions).mockReturnValue(
+        new Promise((resolve) => {
+          resolveSessions = resolve;
+        }),
+      );
+      const page = createPage();
+      const init = page.init();
+
+      expect(catalogApi.fetchCatalogTags).toHaveBeenCalledTimes(1);
+      resolveSessions([]);
+      await init;
+    });
   });
 });

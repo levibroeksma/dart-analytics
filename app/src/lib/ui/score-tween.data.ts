@@ -1,3 +1,5 @@
+import { prefersReducedMotion } from "@lib/ui/motion";
+
 /** How long a falling score counts down (Animations.dc.html §03). */
 export const SCORE_TWEEN_MS = 700;
 
@@ -18,10 +20,6 @@ function asNumber(value: unknown): number | null {
     : null;
 }
 
-function reducedMotion(): boolean {
-  return globalThis.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-}
-
 /**
  * Alpine factory for a score that counts down: `display` follows `read()`,
  * and when a number falls it eases there over `SCORE_TWEEN_MS` (ease-out
@@ -39,7 +37,12 @@ export function scoreTween(read: () => unknown) {
         this.frame = null;
         const to = asNumber(next);
         const from = asNumber(previous);
-        if (to === null || from === null || to >= from || reducedMotion()) {
+        if (
+          to === null ||
+          from === null ||
+          to >= from ||
+          prefersReducedMotion()
+        ) {
           this.display = next;
           return;
         }

@@ -7,8 +7,8 @@ import { switchbladeEngineFactory } from "@modules/training/exercises/switchblad
 import { bullseyeCheckoutEngineFactory } from "@modules/training/exercises/bullseye-checkout.engine.module";
 import { doublePatternEngineFactory } from "@modules/training/exercises/double-pattern.engine.module";
 import { scoreThresholdEngineFactory } from "@modules/training/exercises/score-threshold.engine.module";
-import { switchingTargetScoringEngineFactory } from "@modules/training/exercises/switching-target-scoring.engine.module";
 import { switchingEngineFactory } from "@modules/training/exercises/switching.engine.module";
+import { switchingChainEngineFactory } from "@modules/training/exercises/switching-chain.engine.module";
 import { targetScoringEngineFactory } from "@modules/training/exercises/target-scoring.engine.module";
 import type {
   ExerciseRulesetVersionKey,
@@ -141,13 +141,15 @@ type AnyDartExerciseEngineFactory = DartExerciseEngineFactory<unknown, unknown>;
 const EXERCISE_FIXTURES: Record<
   DartExerciseKind,
   {
+    typeKey: string;
     rulesetKey: ExerciseRulesetVersionKey;
     factory: AnyDartExerciseEngineFactory;
     config: Record<string, unknown>;
     darts: DartObservation[];
   }
 > = {
-  SWITCHING: {
+  "SWITCHING:STANDARD": {
+    typeKey: "SWITCHING",
     rulesetKey: "SWITCHING_V1",
     factory: switchingEngineFactory,
     config: {
@@ -161,7 +163,21 @@ const EXERCISE_FIXTURES: Record<
       dart(20, "DOUBLE"),
     ],
   },
+  "SWITCHING:CHAIN": {
+    typeKey: "SWITCHING",
+    rulesetKey: "SWITCHING_CHAIN_V1",
+    factory: switchingChainEngineFactory,
+    config: { targets: [20, 19, 18] },
+    darts: [
+      dart(20, "TREBLE"),
+      dart(19, "TREBLE"),
+      dart(18, "TREBLE"),
+      dart(5, "SINGLE"),
+      dart(20, "TREBLE"),
+    ],
+  },
   DOUBLE_PATTERN: {
+    typeKey: "DOUBLE_PATTERN",
     rulesetKey: "DOUBLE_PATTERN_V1",
     factory: doublePatternEngineFactory,
     config: {
@@ -180,6 +196,7 @@ const EXERCISE_FIXTURES: Record<
     ],
   },
   TARGET_SCORING: {
+    typeKey: "TARGET_SCORING",
     rulesetKey: "TARGET_SCORING_V1",
     factory: targetScoringEngineFactory,
     config: { targets: [20, 19, 18, 25] },
@@ -191,19 +208,8 @@ const EXERCISE_FIXTURES: Record<
       dart(1, "SINGLE"),
     ],
   },
-  SWITCHING_TARGET_SCORING: {
-    rulesetKey: "SWITCHING_TARGET_SCORING_V1",
-    factory: switchingTargetScoringEngineFactory,
-    config: { targets: [20, 19, 18] },
-    darts: [
-      dart(20, "TREBLE"),
-      dart(19, "TREBLE"),
-      dart(18, "TREBLE"),
-      dart(5, "SINGLE"),
-      dart(20, "TREBLE"),
-    ],
-  },
   SCORE_THRESHOLD: {
+    typeKey: "SCORE_THRESHOLD",
     rulesetKey: "SCORE_THRESHOLD_V1",
     factory: scoreThresholdEngineFactory,
     config: { threshold: 65 },
@@ -218,6 +224,7 @@ const EXERCISE_FIXTURES: Record<
     ],
   },
   BULLSEYE_CHECKOUT: {
+    typeKey: "BULLSEYE_CHECKOUT",
     rulesetKey: "BULLSEYE_CHECKOUT_V1",
     factory: bullseyeCheckoutEngineFactory,
     config: { startScore: 81 },
@@ -232,12 +239,14 @@ const EXERCISE_FIXTURES: Record<
     ],
   },
   BULL_UP: {
+    typeKey: "BULL_UP",
     rulesetKey: "BULL_UP_V1",
     factory: bullUpEngineFactory,
     config: {},
     darts: [dart(25, "INNER_BULL"), dart(25, "OUTER_BULL"), dart(5, "SINGLE")],
   },
   CHECKOUT_SEQUENCE: {
+    typeKey: "CHECKOUT_SEQUENCE",
     rulesetKey: "CHECKOUT_SEQUENCE_V1",
     factory: checkoutSequenceEngineFactory,
     config: { firstOutshot: 61, lastOutshot: 100, dartLimit: 6 },
@@ -252,6 +261,7 @@ const EXERCISE_FIXTURES: Record<
     ],
   },
   RANDOM_CHECKOUT: {
+    typeKey: "RANDOM_CHECKOUT",
     rulesetKey: "RANDOM_CHECKOUT_V1",
     factory: randomCheckoutEngineFactory,
     config: { minStart: 40, maxStart: 170, drawSeed: 774 },
@@ -264,6 +274,7 @@ const EXERCISE_FIXTURES: Record<
     ],
   },
   HIT_COUNT: {
+    typeKey: "HIT_COUNT",
     rulesetKey: "HIT_COUNT_V1",
     factory: hitCountEngineFactory,
     config: {
@@ -278,6 +289,7 @@ const EXERCISE_FIXTURES: Record<
     ],
   },
   SWITCHBLADE: {
+    typeKey: "SWITCHBLADE",
     rulesetKey: "SWITCHBLADE_V1",
     factory: switchbladeEngineFactory,
     config: {},
@@ -289,6 +301,7 @@ const EXERCISE_FIXTURES: Record<
     ],
   },
   DOUBLES_LOCK: {
+    typeKey: "DOUBLES_LOCK",
     rulesetKey: "DOUBLES_LOCK_V1",
     factory: doublesLockEngineFactory,
     config: {},
@@ -325,7 +338,7 @@ export function playExerciseKind(kind: DartExerciseKind) {
   }));
 
   const header = stepHeader({
-    exerciseTypeKey: kind,
+    exerciseTypeKey: fixture.typeKey,
     exerciseRulesetVersionKey: fixture.rulesetKey,
     configuration: fixture.config,
     turnCount: turns.length,

@@ -152,6 +152,7 @@ export {
   type RoutineSummaryData,
   type RoutineListData,
   type ExerciseTemplateCatalogEntryData,
+  type CatalogTagsResponseData,
   CreateScheduleRequest,
   type CreateScheduleRequestInput,
   UpdateScheduleRequest,

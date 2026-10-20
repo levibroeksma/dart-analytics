@@ -774,6 +774,8 @@ export type GameGroupKey = "MATCH_PLAY" | "TRAINING" | "CLASSICS";
 
 export type GameCardDescriptor = {
   rulesetVersionKey: RulesetVersionKey;
+  /** `game_types.key` the catalog tags API files this card's tags under. */
+  gameTypeKey: string;
   group: GameGroupKey;
   href: string;
   title: string;

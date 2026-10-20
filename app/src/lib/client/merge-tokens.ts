@@ -100,6 +100,7 @@ export const UTILITY_GROUPS: Readonly<Record<string, string | null>> = {
   "bull-crop-board": "position",
   "bull-ring": null,
   "bull-ring-late": null,
+  "catalog-grid": null,
   "starter-win": null,
   "starter-winner": null,
   "deck-card": null,

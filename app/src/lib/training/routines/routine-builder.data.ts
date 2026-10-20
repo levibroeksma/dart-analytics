@@ -4,6 +4,7 @@ import {
   listExerciseTemplates,
   updateRoutine,
 } from "@client/api/routines";
+import { fetchCatalogTags } from "@client/api/catalog";
 import { SessionApiError } from "@client/api/sessions";
 import {
   MAX_ROUTINE_MINUTES,
@@ -17,8 +18,10 @@ import {
   MAX_ROUTINE_DESCRIPTION_LENGTH,
 } from "@routes/routines/types";
 import { tuodDurationBounds } from "@lib/game/tuod-duration";
+import { groupCatalog } from "./catalog-groups";
 import { routineDetailPath, routineIdFromLocation } from "./routine-route";
 import type { ExerciseTemplateCatalogEntryData } from "@client/api/types";
+import type { CatalogTagsResponse } from "@lib/types";
 import type { BuilderStep, RoutineBuilderContext } from "./types";
 
 /** Mirrors the server's per-routine step cap (`pages/api/routines/types.ts`). */
@@ -87,6 +90,7 @@ export function routineBuilder(mode: "create" | "edit") {
     name: "",
     description: "",
     catalog: [] as ExerciseTemplateCatalogEntryData[],
+    catalogTags: null as CatalogTagsResponse | null,
     steps: [] as BuilderStep[],
     minMinutes: MIN_USER_ROUTINE_MINUTES,
     maxMinutes: MAX_ROUTINE_MINUTES,
@@ -95,6 +99,10 @@ export function routineBuilder(mode: "create" | "edit") {
     stepMaxMinutes: MAX_STEP_MINUTES,
     maxNameLength: MAX_NAME_LENGTH,
     maxDescriptionLength: MAX_DESCRIPTION_LENGTH,
+
+    groups(this: RoutineBuilderContext) {
+      return groupCatalog(this.catalog, this.catalogTags);
+    },
 
     clearServerIssues() {
       this.serverIssues = [];
@@ -108,7 +116,12 @@ export function routineBuilder(mode: "create" | "edit") {
       this.loading = true;
       this.error = "";
       try {
-        this.catalog = await listExerciseTemplates();
+        const [catalog, catalogTags] = await Promise.all([
+          listExerciseTemplates(),
+          fetchCatalogTags().catch(() => null),
+        ]);
+        this.catalog = catalog;
+        this.catalogTags = catalogTags;
       } catch {
         this.error = "Could not load the exercise catalog.";
         this.loading = false;

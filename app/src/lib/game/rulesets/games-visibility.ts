@@ -15,6 +15,7 @@ import type { GameCardDescriptor, GameGroupKey } from "./types";
 export const GAME_CARDS: readonly GameCardDescriptor[] = [
   {
     rulesetVersionKey: "501_V2",
+    gameTypeKey: "501",
     group: "MATCH_PLAY",
     href: "/games/501/setup",
     title: "501",
@@ -22,6 +23,7 @@ export const GAME_CARDS: readonly GameCardDescriptor[] = [
   },
   {
     rulesetVersionKey: "121_V1",
+    gameTypeKey: "ONE_TWENTY_ONE",
     group: "MATCH_PLAY",
     href: "/games/121/setup",
     title: "121",
@@ -29,6 +31,7 @@ export const GAME_CARDS: readonly GameCardDescriptor[] = [
   },
   {
     rulesetVersionKey: "CRICKET_V1",
+    gameTypeKey: "CRICKET",
     group: "MATCH_PLAY",
     href: "/games/cricket/setup",
     title: "Cricket",
@@ -36,6 +39,7 @@ export const GAME_CARDS: readonly GameCardDescriptor[] = [
   },
   {
     rulesetVersionKey: "TACTICS_V1",
+    gameTypeKey: "TACTICS",
     group: "MATCH_PLAY",
     href: "/games/tactics/setup",
     title: "Tactics",
@@ -43,6 +47,7 @@ export const GAME_CARDS: readonly GameCardDescriptor[] = [
   },
   {
     rulesetVersionKey: "SCORE_TRAINING_V1",
+    gameTypeKey: "SCORE_TRAINING",
     group: "TRAINING",
     href: "/games/score-training/setup",
     title: "Score training",
@@ -50,6 +55,7 @@ export const GAME_CARDS: readonly GameCardDescriptor[] = [
   },
   {
     rulesetVersionKey: "SINGLES_V1",
+    gameTypeKey: "SINGLES_TRAINING",
     group: "TRAINING",
     href: "/games/singles-training/setup",
     title: "Singles training",
@@ -57,6 +63,7 @@ export const GAME_CARDS: readonly GameCardDescriptor[] = [
   },
   {
     rulesetVersionKey: "DOUBLES_TRAINING_V1",
+    gameTypeKey: "DOUBLES_TRAINING",
     group: "TRAINING",
     href: "/games/doubles-training/setup",
     title: "Doubles training",
@@ -64,6 +71,7 @@ export const GAME_CARDS: readonly GameCardDescriptor[] = [
   },
   {
     rulesetVersionKey: "BOBS27_V1",
+    gameTypeKey: "BOBS27",
     group: "TRAINING",
     href: "/games/bobs27/setup",
     title: "Bob's 27",
@@ -71,6 +79,7 @@ export const GAME_CARDS: readonly GameCardDescriptor[] = [
   },
   {
     rulesetVersionKey: "TUOD_V1",
+    gameTypeKey: "TUOD",
     group: "TRAINING",
     href: "/games/tuod/setup",
     title: "Ten Up One Down",
@@ -78,6 +87,7 @@ export const GAME_CARDS: readonly GameCardDescriptor[] = [
   },
   {
     rulesetVersionKey: "SHANGHAI_V1",
+    gameTypeKey: "SHANGHAI",
     group: "CLASSICS",
     href: "/games/shanghai/setup",
     title: "Shanghai",
@@ -85,6 +95,7 @@ export const GAME_CARDS: readonly GameCardDescriptor[] = [
   },
   {
     rulesetVersionKey: "AROUND_THE_CLOCK_V1",
+    gameTypeKey: "AROUND_THE_CLOCK",
     group: "CLASSICS",
     href: "/games/around-the-clock/setup",
     title: "Around the Clock",
@@ -92,6 +103,7 @@ export const GAME_CARDS: readonly GameCardDescriptor[] = [
   },
   {
     rulesetVersionKey: "BASEBALL_V1",
+    gameTypeKey: "BASEBALL",
     group: "CLASSICS",
     href: "/games/baseball/setup",
     title: "Baseball Darts",

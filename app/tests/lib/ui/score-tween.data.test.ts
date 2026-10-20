@@ -64,6 +64,14 @@ describe("scoreTween", () => {
     expect(tween.display).toBe(90);
   });
 
+  it("counts down when matchMedia is unavailable", () => {
+    const { tween, change, advance } = setup(230);
+    vi.stubGlobal("matchMedia", undefined);
+    change(90);
+    advance(350);
+    expect(tween.display).toBeGreaterThan(90);
+  });
+
   it("shows non-numeric values as they are", () => {
     const { tween, change } = setup("—");
     expect(tween.display).toBe("—");

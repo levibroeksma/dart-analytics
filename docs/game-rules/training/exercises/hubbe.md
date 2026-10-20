@@ -49,7 +49,7 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 - Type constant: `CHECKOUT_TIERS` (proposed; not among the seeded types —
   `WARM_UP`, `GAME`, `EXERCISE_SECTION` (`database/seeds/0014_exercise_types.sql`),
   `SWITCHING`, `DOUBLE_PATTERN` (`0016`), `TARGET_SCORING` (`0023`),
-  `SWITCHING_TARGET_SCORING` (`0024`), `SCORE_THRESHOLD` (`0025`),
+  `SCORE_THRESHOLD` (`0025`),
   `BULLSEYE_CHECKOUT` (`0029`), `BULL_UP` (`0030`)).
 - Wraps no game.
 - Close to Catch 40 (`catch-40.md`, proposed `CHECKOUT_SEQUENCE`): both walk

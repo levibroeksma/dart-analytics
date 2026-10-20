@@ -1,0 +1,22 @@
+---
+// Components
+import ExercisePanelShell from "./ExercisePanelShell.astro";
+---
+
+<ExercisePanelShell
+  score="switchingChainChain()"
+  caption="CHAIN"
+  chip={{
+    routeExpr: "switchingChainSequence()",
+    currentIndexExpr: "switchingChainChipIndex()",
+  }}
+  tiles={[
+    { label: "Target", value: "switchingChainTargetLabel()" },
+    {
+      label: "To beat",
+      value: "switchingChainMarkToBeat()",
+      showWhen: "switchingChainMarkToBeat() !== null",
+    },
+    { label: "Best", value: "switchingChainBestChain()" },
+  ]}
+/>

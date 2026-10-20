@@ -1556,17 +1556,17 @@ describe("routinePlay — Target Scoring", () => {
   });
 });
 
-const SWITCHING_TARGET_SCORING_STEP = {
+const SWITCHING_CHAIN_STEP = {
   sequenceNumber: 1,
-  exerciseTypeKey: "SWITCHING_TARGET_SCORING",
-  exerciseRulesetVersionKey: "SWITCHING_TARGET_SCORING_V1",
+  exerciseTypeKey: "SWITCHING",
+  exerciseRulesetVersionKey: "SWITCHING_CHAIN_V1",
   gameTypeKey: null,
   gameRulesetVersionKey: null,
   durationSeconds: 600,
   configuration: { targets: [20, 19, 25] },
 };
 
-describe("routinePlay — Switching Target Scoring", () => {
+describe("routinePlay — Switching Chain", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
@@ -1580,12 +1580,12 @@ describe("routinePlay — Switching Target Scoring", () => {
       activityId: "act-1",
       routineTemplateId: "rt-1",
       routineName: "Custom",
-      steps: [SWITCHING_TARGET_SCORING_STEP] as never,
+      steps: [SWITCHING_CHAIN_STEP] as never,
     });
     vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
       sessionId: "s1",
-      exerciseTypeKey: "SWITCHING_TARGET_SCORING",
-      configuration: SWITCHING_TARGET_SCORING_STEP.configuration,
+      exerciseTypeKey: "SWITCHING",
+      configuration: SWITCHING_CHAIN_STEP.configuration,
       participant: { ref: "pt1", displayName: "Levi" },
     });
   });
@@ -1595,16 +1595,24 @@ describe("routinePlay — Switching Target Scoring", () => {
     vi.unstubAllGlobals();
   });
 
+  it("resolves the Chain adapter off the step's ruleset, not the Switching type", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+
+    expect(store.adapter?.panel).toBe("switching-chain");
+    expect(store.switchingEngine).toBeNull();
+  });
+
   it("startCurrentStep() builds the engine and its readouts start empty", async () => {
     const store = makeStore();
     await startRoutine(store);
 
-    expect(store.switchingTargetScoringEngine).not.toBeNull();
-    expect(store.switchingTargetScoringTargetLabel()).toBe("20");
-    expect(store.switchingTargetScoringChipIndex()).toBe(0);
-    expect(store.switchingTargetScoringChain()).toBe(0);
-    expect(store.switchingTargetScoringBestChain()).toBe(0);
-    expect(store.switchingTargetScoringMarkToBeat()).toBeNull();
+    expect(store.switchingChainEngine).not.toBeNull();
+    expect(store.switchingChainTargetLabel()).toBe("20");
+    expect(store.switchingChainChipIndex()).toBe(0);
+    expect(store.switchingChainChain()).toBe(0);
+    expect(store.switchingChainBestChain()).toBe(0);
+    expect(store.switchingChainMarkToBeat()).toBeNull();
     expect(store.stepRemainingSeconds).toBe(600);
   });
 
@@ -1612,34 +1620,34 @@ describe("routinePlay — Switching Target Scoring", () => {
     const store = makeStore();
     await startRoutine(store);
 
-    store.recordSwitchingTargetScoringDart({
+    store.recordSwitchingChainDart({
       hitTargetNumber: 20,
       hitZoneKey: "TREBLE",
       locationX: 0,
       locationY: -100,
     });
-    store.recordSwitchingTargetScoringDart({
+    store.recordSwitchingChainDart({
       hitTargetNumber: 19,
       hitZoneKey: "SINGLE",
       locationX: 0,
       locationY: 120,
     });
-    expect(store.switchingTargetScoringTargetLabel()).toBe("Bull");
-    expect(store.switchingTargetScoringChipIndex()).toBe(2);
-    expect(store.switchingTargetScoringChain()).toBe(4);
+    expect(store.switchingChainTargetLabel()).toBe("Bull");
+    expect(store.switchingChainChipIndex()).toBe(2);
+    expect(store.switchingChainChain()).toBe(4);
     expect(store.dartsThrown()).toBe(2);
 
-    store.recordSwitchingTargetScoringDart({
+    store.recordSwitchingChainDart({
       hitTargetNumber: null,
       hitZoneKey: "MISS",
       locationX: null,
       locationY: null,
     });
-    expect(store.switchingTargetScoringTargetLabel()).toBe("20");
-    expect(store.switchingTargetScoringChipIndex()).toBe(0);
-    expect(store.switchingTargetScoringChain()).toBe(0);
-    expect(store.switchingTargetScoringBestChain()).toBe(4);
-    expect(store.switchingTargetScoringMarkToBeat()).toBe(4);
+    expect(store.switchingChainTargetLabel()).toBe("20");
+    expect(store.switchingChainChipIndex()).toBe(0);
+    expect(store.switchingChainChain()).toBe(0);
+    expect(store.switchingChainBestChain()).toBe(4);
+    expect(store.switchingChainMarkToBeat()).toBe(4);
   });
 
   it("exerciseVisitLabels() re-aims the open visit's empty slot after a mid-visit miss", async () => {
@@ -1647,13 +1655,13 @@ describe("routinePlay — Switching Target Scoring", () => {
     await startRoutine(store);
     expect(store.exerciseVisitLabels(0)).toEqual(["20", "19", "Bull"]);
 
-    store.recordSwitchingTargetScoringDart({
+    store.recordSwitchingChainDart({
       hitTargetNumber: 20,
       hitZoneKey: "TREBLE",
       locationX: 0,
       locationY: -100,
     });
-    store.recordSwitchingTargetScoringDart({
+    store.recordSwitchingChainDart({
       hitTargetNumber: null,
       hitZoneKey: "MISS",
       locationX: null,
@@ -1668,25 +1676,25 @@ describe("routinePlay — Switching Target Scoring", () => {
     ).toBe("hit");
   });
 
-  it("switchingTargetScoringSequence() lists the step's targets, the bull as Bull", async () => {
+  it("switchingChainSequence() lists the step's targets, the bull as Bull", async () => {
     const store = makeStore();
-    expect(store.switchingTargetScoringSequence()).toBe("");
+    expect(store.switchingChainSequence()).toBe("");
     await startRoutine(store);
 
-    expect(store.switchingTargetScoringSequence()).toBe("20 19 Bull");
+    expect(store.switchingChainSequence()).toBe("20 19 Bull");
   });
 
   it("previewSegments() marks each dart against its own target", async () => {
     const store = makeStore();
     await startRoutine(store);
 
-    store.recordSwitchingTargetScoringDart({
+    store.recordSwitchingChainDart({
       hitTargetNumber: 20,
       hitZoneKey: "SINGLE",
       locationX: 0,
       locationY: -120,
     });
-    store.recordSwitchingTargetScoringDart({
+    store.recordSwitchingChainDart({
       hitTargetNumber: 19,
       hitZoneKey: "DOUBLE",
       locationX: 0,
@@ -1710,7 +1718,7 @@ describe("routinePlay — Switching Target Scoring", () => {
     });
     const store = makeStore();
     await startRoutine(store);
-    store.recordSwitchingTargetScoringDart({
+    store.recordSwitchingChainDart({
       hitTargetNumber: 20,
       hitZoneKey: "TREBLE",
       locationX: 0,
@@ -1721,7 +1729,7 @@ describe("routinePlay — Switching Target Scoring", () => {
 
     expect(sessionApi.appendBatch).toHaveBeenCalled();
     expect(store.stepSummaries[0]).toMatchObject({
-      stepKey: "SWITCHING_TARGET_SCORING",
+      stepKey: "SWITCHING:CHAIN",
     });
   });
 });
@@ -3267,7 +3275,7 @@ describe("routinePlay — routine summary", () => {
 
     expect(store.stepSummaries).toEqual([
       {
-        stepKey: "SWITCHING",
+        stepKey: "SWITCHING:STANDARD",
         label: "Switching",
         rows: [
           { label: "Points", value: "1" },
@@ -3596,10 +3604,10 @@ describe("routinePlay — board dispatch", () => {
   });
 
   it.each([
-    ["SWITCHING", "switchingEngine"],
+    ["SWITCHING:STANDARD", "switchingEngine"],
+    ["SWITCHING:CHAIN", "switchingChainEngine"],
     ["DOUBLE_PATTERN", "doublePatternEngine"],
     ["TARGET_SCORING", "targetScoringEngine"],
-    ["SWITCHING_TARGET_SCORING", "switchingTargetScoringEngine"],
     ["SCORE_THRESHOLD", "scoreThresholdEngine"],
     ["BULLSEYE_CHECKOUT", "bullseyeCheckoutEngine"],
     ["BULL_UP", "bullUpEngine"],

@@ -1,9 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   CHART_ORDER,
   TINT_NAMES,
   TOOLTIP_CLASS,
   buildChartTheme,
+  readChartTheme,
 } from "@lib/ui/chart-theme";
 import type { ChartThemeEnv } from "@modules/types";
 
@@ -72,6 +73,26 @@ describe("buildChartTheme", () => {
     expect(seen).toContain("--muted-foreground");
     expect(seen).toContain("--surface");
     expect(seen).toContain("--chart-grid");
+  });
+});
+
+describe("readChartTheme", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("takes the motion preference from the shared helper", () => {
+    vi.stubGlobal("document", {
+      documentElement: {},
+      body: {},
+      createElement: () => ({ getContext: () => null }),
+    });
+    vi.stubGlobal("getComputedStyle", () => ({
+      getPropertyValue: () => "",
+      fontFamily: "",
+    }));
+    vi.stubGlobal("matchMedia", () => ({ matches: true }));
+    expect(readChartTheme().reducedMotion).toBe(true);
+    vi.stubGlobal("matchMedia", undefined);
+    expect(readChartTheme().reducedMotion).toBe(false);
   });
 });
 

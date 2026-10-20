@@ -396,12 +396,20 @@ export type StepSessionRow = {
  * metrics for (D372 decision 7) — `RoutineStepSummary.stepKey`'s
  * non-`"GAME:…"` values. Warm-Up throws no darts and is excluded: it gets
  * `step-volume` only, never `step-result` (D372 decision 6).
+ *
+ * A kind is usually an exercise type key, but it is a *composite* wherever
+ * one exercise type ships several rulesets whose metrics differ: `SWITCHING`
+ * alone is no longer a kind, and its two rulesets read as
+ * `SWITCHING:STANDARD` (`SWITCHING_V1`) and `SWITCHING:CHAIN`
+ * (`SWITCHING_CHAIN_V1`). `section-registry.ts`'s `dartExerciseKindOf`
+ * resolves one from a session's own type and ruleset version keys, and is
+ * the only place that mapping is written down.
  */
 export type DartExerciseKind =
-  | "SWITCHING"
+  | "SWITCHING:STANDARD"
+  | "SWITCHING:CHAIN"
   | "DOUBLE_PATTERN"
   | "TARGET_SCORING"
-  | "SWITCHING_TARGET_SCORING"
   | "SCORE_THRESHOLD"
   | "BULLSEYE_CHECKOUT"
   | "BULL_UP"

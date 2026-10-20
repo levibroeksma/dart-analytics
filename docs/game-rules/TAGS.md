@@ -6,6 +6,10 @@ tools carry no tags; a routine's tags will be derived from its steps.
 Non-canonical like the rest of `docs/game-rules/`. Design:
 `docs/superpowers/specs/2026-10-15-training-tags-design.md`.
 
+The database tag tables are now generated from this file and the `## Tags`
+sections (append-only, ids are positional); see D470 in
+`decisions/context-system.md`.
+
 `scripts/check-game-rules.sh` reads the tables below. Keep their headings and
 columns exactly as they are: a `## ` heading per axis, named as in the Axes
 table, holding a `| Key | Name | Meaning |` table.
@@ -24,6 +28,15 @@ table, holding a `| Key | Name | Meaning |` table.
   The Routine step block has no Family row and may list several Difficulty
   values, each labelled with its template or preset, e.g.
   `INTERMEDIATE (1 dart), ADVANCED (2 darts)`.
+- **Per-config difficulty.** An exercise keeps one flat table and no
+  subsections, and that table is a routine-step block: it may list several
+  Difficulty values the same way, each labelled with the config it describes,
+  e.g. `BEGINNER (Standard), INTERMEDIATE (Chain)`. Labels are only for two
+  or more values, and then every value carries one: a row holding a single
+  value is always unlabelled, and an unlabelled row takes exactly one value.
+  A block that labels several of them links no Difficulty tag at all, so each
+  template states its own level through
+  `exercise_templates.difficulty_tag_id` (D473).
 - **Skill.** Exactly one value is marked `(primary)` and comes first; the
   rest are secondary.
 - **Extending.** A new value or axis is a row here plus a decision in

@@ -74,6 +74,10 @@ describe("cn", () => {
     expect(cn("coin-up", "coin-down")).toBe("coin-down");
   });
 
+  it("keeps catalog-grid beside the stock grid utilities", () => {
+    expect(cn("catalog-grid grid gap-3")).toBe("catalog-grid grid gap-3");
+  });
+
   it("lets bull-crop-board replace a component's own relative position", () => {
     expect(cn("relative touch-none", "bull-crop-board")).toBe(
       "touch-none bull-crop-board",

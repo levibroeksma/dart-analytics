@@ -49,8 +49,8 @@ import type {
   ExerciseRulesetVersionKey,
   PreviewSegment,
   SectionRingPaths,
+  SwitchingChainConfigData,
   SwitchingConfigData,
-  SwitchingTargetScoringConfigData,
   WarmUpEngineInput,
 } from "@lib/types";
 import type {
@@ -72,7 +72,7 @@ import {
   targetScoringTargetLabel,
   type TargetScoringEngine,
 } from "@modules/training/exercises/target-scoring.engine.module";
-import type { SwitchingTargetScoringEngine } from "@modules/training/exercises/switching-target-scoring.engine.module";
+import type { SwitchingChainEngine } from "@modules/training/exercises/switching-chain.engine.module";
 import type { ScoreThresholdEngine } from "@modules/training/exercises/score-threshold.engine.module";
 import type { BullseyeCheckoutEngine } from "@modules/training/exercises/bullseye-checkout.engine.module";
 import type { BullUpEngine } from "@modules/training/exercises/bull-up.engine.module";
@@ -107,7 +107,7 @@ const DART_ENGINE_RECORDERS = [
   ["switchingEngine", "recordSwitchingDart"],
   ["doublePatternEngine", "recordDoublePatternDart"],
   ["targetScoringEngine", "recordTargetScoringDart"],
-  ["switchingTargetScoringEngine", "recordSwitchingTargetScoringDart"],
+  ["switchingChainEngine", "recordSwitchingChainDart"],
   ["scoreThresholdEngine", "recordScoreThresholdDart"],
   ["bullseyeCheckoutEngine", "recordBullseyeCheckoutDart"],
   ["bullUpEngine", "recordBullUpDart"],
@@ -165,7 +165,7 @@ export function routinePlay() {
     switchingEngine: null,
     doublePatternEngine: null,
     targetScoringEngine: null,
-    switchingTargetScoringEngine: null,
+    switchingChainEngine: null,
     scoreThresholdEngine: null,
     bullseyeCheckoutEngine: null,
     bullUpEngine: null,
@@ -210,7 +210,7 @@ export function routinePlay() {
       | SwitchingEngine
       | DoublePatternEngine
       | TargetScoringEngine
-      | SwitchingTargetScoringEngine
+      | SwitchingChainEngine
       | ScoreThresholdEngine
       | BullseyeCheckoutEngine
       | BullUpEngine
@@ -256,7 +256,7 @@ export function routinePlay() {
       visitIndex: number,
     ): (string | undefined)[] {
       const progress = (
-        this.targetScoringEngine ?? this.switchingTargetScoringEngine
+        this.targetScoringEngine ?? this.switchingChainEngine
       )?.state();
       return visitLabelsFor(exerciseFamily(this), {
         config: this.stepConfiguration,
@@ -287,10 +287,9 @@ export function routinePlay() {
       return config?.patterns[index]?.map((n) => `D${n}`).join(" ") ?? "";
     },
 
-    /** Switching Target Scoring's targets, in sequence order. */
-    switchingTargetScoringSequence(this: RoutinePlayContext): string {
-      const config = this
-        .stepConfiguration as SwitchingTargetScoringConfigData | null;
+    /** Switching Chain's targets, in sequence order. */
+    switchingChainSequence(this: RoutinePlayContext): string {
+      const config = this.stepConfiguration as SwitchingChainConfigData | null;
       return config?.targets.map(targetScoringTargetLabel).join(" ") ?? "";
     },
 
@@ -715,7 +714,7 @@ export function routinePlay() {
           this.switchingEngine?.expireTimer();
           this.doublePatternEngine?.expireTimer();
           this.targetScoringEngine?.expireTimer();
-          this.switchingTargetScoringEngine?.expireTimer();
+          this.switchingChainEngine?.expireTimer();
           this.scoreThresholdEngine?.expireTimer();
           this.bullseyeCheckoutEngine?.expireTimer();
           this.bullUpEngine?.expireTimer();
@@ -762,12 +761,12 @@ export function routinePlay() {
       this.targetScoringEngine.record(observation);
     },
 
-    recordSwitchingTargetScoringDart(
+    recordSwitchingChainDart(
       this: RoutinePlayContext,
       observation: DartObservation,
     ) {
-      if (!this.switchingTargetScoringEngine) return;
-      this.switchingTargetScoringEngine.record(observation);
+      if (!this.switchingChainEngine) return;
+      this.switchingChainEngine.record(observation);
     },
 
     recordScoreThresholdDart(
@@ -860,27 +859,26 @@ export function routinePlay() {
       return this.targetScoringEngine?.state().markToBeat ?? null;
     },
 
-    switchingTargetScoringChain(this: RoutinePlayContext): number {
-      return this.switchingTargetScoringEngine?.state().currentChain ?? 0;
+    switchingChainChain(this: RoutinePlayContext): number {
+      return this.switchingChainEngine?.state().currentChain ?? 0;
     },
 
-    switchingTargetScoringTargetLabel(this: RoutinePlayContext): string {
-      const target =
-        this.switchingTargetScoringEngine?.state().currentTargetNumber;
+    switchingChainTargetLabel(this: RoutinePlayContext): string {
+      const target = this.switchingChainEngine?.state().currentTargetNumber;
       return target === undefined ? "" : targetScoringTargetLabel(target);
     },
 
-    /** The current target's chip within `switchingTargetScoringSequence()`. */
-    switchingTargetScoringChipIndex(this: RoutinePlayContext): number {
-      return this.switchingTargetScoringEngine?.state().targetIndex ?? 0;
+    /** The current target's chip within `switchingChainSequence()`. */
+    switchingChainChipIndex(this: RoutinePlayContext): number {
+      return this.switchingChainEngine?.state().targetIndex ?? 0;
     },
 
-    switchingTargetScoringBestChain(this: RoutinePlayContext): number {
-      return this.switchingTargetScoringEngine?.state().bestChain ?? 0;
+    switchingChainBestChain(this: RoutinePlayContext): number {
+      return this.switchingChainEngine?.state().bestChain ?? 0;
     },
 
-    switchingTargetScoringMarkToBeat(this: RoutinePlayContext): number | null {
-      return this.switchingTargetScoringEngine?.state().markToBeat ?? null;
+    switchingChainMarkToBeat(this: RoutinePlayContext): number | null {
+      return this.switchingChainEngine?.state().markToBeat ?? null;
     },
 
     scoreThresholdBeats(this: RoutinePlayContext): number {

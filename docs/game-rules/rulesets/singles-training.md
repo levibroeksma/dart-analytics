@@ -2,6 +2,7 @@
 
 Current version: V3 (shipped 2026-09-12)
 Entry points: standalone
+Game type: `SINGLES_TRAINING`
 Kernel: TRACK
 
 ## Features

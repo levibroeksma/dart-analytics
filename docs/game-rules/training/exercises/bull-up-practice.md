@@ -44,7 +44,6 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
   `database/seeds/0014_exercise_types.sql`,
   `database/seeds/0016_switching_double_pattern_exercise_types.sql`,
   `database/seeds/0023_target_scoring_exercise_type.sql`,
-  `database/seeds/0024_switching_target_scoring_exercise_type.sql`,
   `database/seeds/0025_score_threshold_exercise_type.sql` or
   `database/seeds/0029_bullseye_checkout_exercise_type.sql`).
 - Wraps no game (§12).
