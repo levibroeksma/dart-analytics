@@ -4,20 +4,17 @@ import { registerEngineFactory } from "./engine.registry";
 import { activeSeat } from "./seat-rota.module";
 import { activeSeatState, foldSeatStates } from "./seat-state.module";
 import {
-  appendObservedDart,
   cloneTurns,
   exerciseBlockStage,
-  openOrCreateTurn,
-  refuseWhenEnded,
   undoLastDart,
 } from "./turn-log.module";
 import type { GameEngine, GameEngineFactory } from "./interfaces";
 import {
   applyMarksDart,
   BULL_RING_MARKS,
-  DARTS_PER_VISIT,
   initialMarksSeat,
   NUMBER_RING_MARKS,
+  recordMarksDart,
 } from "./marks-close.module";
 import type {
   CricketSeatState,
@@ -150,34 +147,13 @@ export class CricketEngine implements GameEngine<
   }
 
   /**
-   * Appends one dart to the open visit, opening a new one when the last is
-   * closed. `completedAt` is stamped by a visit's 3rd dart or by the dart
-   * that completes the run. Validated against derived state first, so a
-   * throw leaves the fact log untouched.
+   * Appends one dart to the open visit (`recordMarksDart`).
    * @throws when the active seat has already completed.
    */
   record(observation: DartObservation): CricketState {
-    const before = this.deriveState();
-    refuseWhenEnded(
-      activeSeatState(before).status !== "IN_PROGRESS",
-      "game has ended",
+    return recordMarksDart(this.turns, STAGE.clientKey, observation, () =>
+      this.deriveState(),
     );
-    const openTurn = openOrCreateTurn(
-      this.turns,
-      STAGE.clientKey,
-      before.activeParticipantRef,
-      (last) =>
-        last.completedAt === null && last.darts.length < DARTS_PER_VISIT,
-    );
-    appendObservedDart(openTurn, observation);
-    const after = this.deriveState();
-    if (
-      openTurn.darts.length === DARTS_PER_VISIT ||
-      activeSeatState(after).status === "COMPLETE"
-    ) {
-      openTurn.completedAt = new Date().toISOString();
-    }
-    return this.deriveState();
   }
 
   /** Pops the last dart; a surviving visit reopens (`undoLastDart`). */

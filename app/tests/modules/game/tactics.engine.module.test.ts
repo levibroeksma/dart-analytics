@@ -273,6 +273,15 @@ describe("TacticsEngine", () => {
     expect(engine.state().seats[0].marks[IDX.DOUBLES]).toBe(1);
   });
 
+  it("returns the state after the dart", () => {
+    const engine = new TacticsEngine(config);
+    engine.record(MISS);
+    engine.record(MISS);
+    const returned = engine.record(MISS);
+    expect(returned).toEqual(engine.state());
+    expect(returned.seats[0].dartsThrown).toBe(3);
+  });
+
   it("closes a visit on its third dart", () => {
     const engine = new TacticsEngine(config);
     engine.record(MISS);

@@ -147,6 +147,15 @@ describe("CricketEngine", () => {
     expect(written.score).toBe(60);
   });
 
+  it("returns the state after the dart", () => {
+    const engine = new CricketEngine(config);
+    engine.record(MISS);
+    engine.record(MISS);
+    const returned = engine.record(MISS);
+    expect(returned).toEqual(engine.state());
+    expect(returned.seats[0].dartsThrown).toBe(3);
+  });
+
   it("closes a visit on its third dart", () => {
     const engine = new CricketEngine(config);
     engine.record(MISS);
