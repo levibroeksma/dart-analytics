@@ -47,6 +47,8 @@
   --error-foreground: oklch(96% 0.01 30);
   --error-strong: oklch(54% 0.15 30);
   --error-strong-hover: oklch(50% 0.15 30);
+  --error-glass-icon: oklch(78% 0.13 30);
+  --error-glass-foreground: oklch(90% 0.05 30);
 
   --success: oklch(72% 0.16 155);
   --success-muted: oklch(72% 0.16 155 / 0.14);
@@ -108,6 +110,8 @@
   --color-error-foreground: var(--error-foreground);
   --color-error-strong: var(--error-strong);
   --color-error-strong-hover: var(--error-strong-hover);
+  --color-error-glass-icon: var(--error-glass-icon);
+  --color-error-glass-foreground: var(--error-glass-foreground);
   --color-success: var(--success);
   --color-success-muted: var(--success-muted);
   --color-missed: var(--missed);
@@ -466,6 +470,24 @@
   box-shadow:
     0 2px 8px oklch(0% 0 0 / 0.25),
     inset 0 1px 0 oklch(100% 0 0 / 0.12);
+}
+
+@utility glass-destructive {
+  @apply border-x-0 border-y backdrop-blur-md;
+  background: radial-gradient(
+    at 50% 0%,
+    oklch(62% 0.17 28 / 0.18),
+    oklch(62% 0.17 28 / 0.32) 85%
+  );
+  border-top-color: oklch(72% 0.15 30 / 0.55);
+  border-bottom-color: oklch(68% 0.15 30 / 0.25);
+  box-shadow:
+    0 2px 8px oklch(0% 0 0 / 0.25),
+    inset 0 1px 0 oklch(80% 0.12 30 / 0.2);
+}
+
+@utility chip {
+  @apply rounded-md bg-white/7 px-1.75 py-0.5 font-mono text-micro font-semibold text-chip-foreground;
 }
 
 @utility glass-blue {
