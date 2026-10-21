@@ -19,6 +19,7 @@ import type {
   HitCountState,
   SwitchbladeState,
   DoublesLockState,
+  HalveItState,
   RoutineStatRow,
   RoutineStepSummary,
 } from "@modules/types";
@@ -352,6 +353,33 @@ export function summariseDoublesLock(
         value:
           state.bestPassDarts === null ? "—" : `${state.bestPassDarts} darts`,
       },
+      { label: "Darts", value: String(darts) },
+      hitRateRow(hits, darts),
+    ],
+  };
+}
+
+/**
+ * Halve-It's result is its total and halvings, then each round's hits
+ * summed over every pass, then passes, darts and hit rate.
+ */
+export function summariseHalveIt(state: HalveItState): RoutineStepSummary {
+  const { points, halvings, darts, hits } = stepMetrics(
+    "HALVE_IT",
+    state,
+    NO_FACTS,
+  );
+  return {
+    stepKey: "HALVE_IT",
+    label: "Halve-It",
+    rows: [
+      { label: "Total", value: String(points) },
+      { label: "Halvings", value: String(halvings) },
+      ...state.hitsPerTarget.map((entry, index) => ({
+        label: `Round ${index + 1} (${boardTargetLabel(entry.target)})`,
+        value: String(entry.hits),
+      })),
+      { label: "Passes", value: String(state.passes) },
       { label: "Darts", value: String(darts) },
       hitRateRow(hits, darts),
     ],

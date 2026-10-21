@@ -14,6 +14,7 @@ import { randomCheckoutAdapter } from "@lib/training/routines/adapters/random-ch
 import { hitCountAdapter } from "@lib/training/routines/adapters/hit-count.adapter";
 import { switchbladeAdapter } from "@lib/training/routines/adapters/switchblade.adapter";
 import { doublesLockAdapter } from "@lib/training/routines/adapters/doubles-lock.adapter";
+import { halveItAdapter } from "@lib/training/routines/adapters/halve-it.adapter";
 import { DoublesLockEngine } from "@modules/training/exercises/doubles-lock.engine.module";
 import type { StepAdapter } from "@lib/interfaces";
 import type { DartEngineSlot, RoutinePlayContext } from "@lib/types";
@@ -33,6 +34,7 @@ const CASES: [StepAdapter, DartExerciseKind, DartEngineSlot][] = [
   [hitCountAdapter, "HIT_COUNT", "hitCountEngine"],
   [switchbladeAdapter, "SWITCHBLADE", "switchbladeEngine"],
   [doublesLockAdapter, "DOUBLES_LOCK", "doublesLockEngine"],
+  [halveItAdapter, "HALVE_IT", "halveItEngine"],
 ];
 
 function makeContext(): RoutinePlayContext {

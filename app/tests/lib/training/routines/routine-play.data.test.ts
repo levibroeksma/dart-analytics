@@ -3958,3 +3958,9 @@ describe("routinePlay — dart recorders", () => {
       expect(typeof store[name]).toBe("function");
   });
 });
+
+describe("routinePlay — Halve-It", () => {
+  it("starts with no Halve-It engine", () => {
+    expect(makeStore().halveItEngine).toBeNull();
+  });
+});

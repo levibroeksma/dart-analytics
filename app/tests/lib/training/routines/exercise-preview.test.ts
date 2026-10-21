@@ -225,6 +225,7 @@ describe("exerciseFamily", () => {
     hitCountEngine: null,
     switchbladeEngine: null,
     doublesLockEngine: null,
+    halveItEngine: null,
   };
   const engine = {} as never;
 

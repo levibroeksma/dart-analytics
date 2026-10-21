@@ -86,6 +86,7 @@ import type { RandomCheckoutEngine } from "@modules/training/exercises/random-ch
 import type { HitCountEngine } from "@modules/training/exercises/hit-count.engine.module";
 import type { SwitchbladeEngine } from "@modules/training/exercises/switchblade.engine.module";
 import type { DoublesLockEngine } from "@modules/training/exercises/doubles-lock.engine.module";
+import type { HalveItEngine } from "@modules/training/exercises/halve-it.engine.module";
 import { boardTargetLabel } from "@modules/game/board-progression.module";
 import { checkoutPercentageDisplay } from "@lib/game/play-visit-stats";
 import type { DartFact } from "@modules/types";
@@ -121,6 +122,7 @@ const DART_ENGINE_RECORDERS = [
   ["hitCountEngine", "recordHitCountDart"],
   ["switchbladeEngine", "recordSwitchbladeDart"],
   ["doublesLockEngine", "recordDoublesLockDart"],
+  ["halveItEngine", "recordHalveItDart"],
 ] as const satisfies readonly (readonly [
   DartEngineSlot,
   keyof RoutinePlayContext,
@@ -221,6 +223,7 @@ export function routinePlay() {
     hitCountEngine: null,
     switchbladeEngine: null,
     doublesLockEngine: null,
+    halveItEngine: null,
     stepTimer: null,
     stepRemainingSeconds: 0,
     warmUpTimer: null,
@@ -267,6 +270,7 @@ export function routinePlay() {
       | HitCountEngine
       | SwitchbladeEngine
       | DoublesLockEngine
+      | HalveItEngine
       | null {
       const open = DART_ENGINE_RECORDERS.find(([slot]) => this[slot]);
       return open ? this[open[0]] : null;

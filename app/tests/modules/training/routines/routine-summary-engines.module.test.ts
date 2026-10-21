@@ -12,6 +12,7 @@ import {
   summariseHitCount,
   summariseSwitchblade,
   summariseDoublesLock,
+  summariseHalveIt,
 } from "@modules/training/routines/routine-summary.module";
 import { switchingEngineFactory } from "@modules/training/exercises/switching.engine.module";
 import { doublePatternEngineFactory } from "@modules/training/exercises/double-pattern.engine.module";
@@ -25,6 +26,7 @@ import { randomCheckoutEngineFactory } from "@modules/training/exercises/random-
 import { hitCountEngineFactory } from "@modules/training/exercises/hit-count.engine.module";
 import { switchbladeEngineFactory } from "@modules/training/exercises/switchblade.engine.module";
 import { doublesLockEngineFactory } from "@modules/training/exercises/doubles-lock.engine.module";
+import { halveItEngineFactory } from "@modules/training/exercises/halve-it.engine.module";
 import type { DartObservation } from "@modules/types";
 
 /**
@@ -394,5 +396,36 @@ describe("summarise* over a real engine run", () => {
       label: "Best pass",
       value: "60 darts",
     });
+  });
+
+  it("summariseHalveIt reads total, halvings, each round's hits, passes, darts and rate", () => {
+    const engine = halveItEngineFactory.create({});
+    [
+      dart(20, "TREBLE"),
+      dart(20, "SINGLE"),
+      dart(null, "MISS"),
+      dart(null, "MISS"),
+      dart(null, "MISS"),
+      dart(null, "MISS"),
+    ].forEach((d) => engine.record(d));
+
+    const summary = summariseHalveIt(engine.state());
+    expect(summary.stepKey).toBe("HALVE_IT");
+    expect(summary.label).toBe("Halve-It");
+    expect(summary.rows.slice(0, 4)).toEqual([
+      { label: "Total", value: "40" },
+      { label: "Halvings", value: "1" },
+      { label: "Round 1 (20)", value: "2" },
+      { label: "Round 2 (16)", value: "0" },
+    ]);
+    expect(summary.rows[4]).toEqual({
+      label: "Round 3 (Any double)",
+      value: "0",
+    });
+    expect(summary.rows.slice(-3)).toEqual([
+      { label: "Passes", value: "0" },
+      { label: "Darts", value: "6" },
+      { label: "Hit rate", value: "33.33%" },
+    ]);
   });
 });
