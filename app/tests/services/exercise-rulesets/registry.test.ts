@@ -157,3 +157,20 @@ describe("registered validators", () => {
     expect(result.issues.length).toBeGreaterThan(0);
   });
 });
+
+describe("Halve-It validator", () => {
+  it("resolves HALVE_IT_V1 to a validator that takes only the empty config", () => {
+    const validator = getExerciseRulesetValidator("HALVE_IT_V1");
+    expect(validator?.validateConfig({ config: {} })).toEqual({
+      ok: true,
+      config: {},
+    });
+    expect(validator?.validateConfig({ config: { startTotal: 40 } }).ok).toBe(
+      false,
+    );
+  });
+
+  it("is true for Halve-It", () => {
+    expect(exerciseRulesetWritesDarts("HALVE_IT_V1")).toBe(true);
+  });
+});
