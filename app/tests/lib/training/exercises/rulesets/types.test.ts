@@ -5,6 +5,7 @@ import {
   BullUpV1Config,
   EmptyV1Config,
   CheckoutSequenceV1Config,
+  HalveItV1Config,
   HitCountV1Config,
   RandomCheckoutV1Config,
   ScoreThresholdV1Config,
@@ -395,5 +396,16 @@ describe("EmptyV1Config", () => {
   it("accepts {} and rejects any key", () => {
     expect(EmptyV1Config.safeParse({}).success).toBe(true);
     expect(EmptyV1Config.safeParse({ x: 1 }).success).toBe(false);
+  });
+});
+
+describe("HalveItV1Config", () => {
+  it("is the empty config — list and start total are fixed", () => {
+    expect(HalveItV1Config).toBe(EmptyV1Config);
+    expect(HalveItV1Config.safeParse({ startTotal: 40 }).success).toBe(false);
+  });
+
+  it("is registered under HALVE_IT_V1", () => {
+    expect(EXERCISE_RULESET_CONFIGS.HALVE_IT_V1).toBe(HalveItV1Config);
   });
 });

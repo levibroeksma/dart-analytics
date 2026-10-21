@@ -20,7 +20,8 @@ export type ExerciseRulesetVersionKey =
   | "RANDOM_CHECKOUT_V1"
   | "HIT_COUNT_V1"
   | "SWITCHBLADE_V1"
-  | "DOUBLES_LOCK_V1";
+  | "DOUBLES_LOCK_V1"
+  | "HALVE_IT_V1";
 
 /**
  * One timed section of a warm-up. `targets` are board numbers the player
@@ -307,6 +308,16 @@ export const DoublesLockV1Config = EmptyV1Config;
 
 export type DoublesLockConfigData = z.infer<typeof DoublesLockV1Config>;
 
+/**
+ * Halve-It v1: 20, 16, any double, 17, 18, any treble, 19, 20, bull; a
+ * blank visit halves the total, rounding up
+ * (`docs/game-rules/training/exercises/halve-it.md`). List and start total
+ * are locked and duration is the routine step's.
+ */
+export const HalveItV1Config = EmptyV1Config;
+
+export type HalveItConfigData = z.infer<typeof HalveItV1Config>;
+
 export const EXERCISE_RULESET_CONFIGS: Record<
   ExerciseRulesetVersionKey,
   z.ZodTypeAny
@@ -324,4 +335,5 @@ export const EXERCISE_RULESET_CONFIGS: Record<
   HIT_COUNT_V1: HitCountV1Config,
   SWITCHBLADE_V1: SwitchbladeV1Config,
   DOUBLES_LOCK_V1: DoublesLockV1Config,
+  HALVE_IT_V1: HalveItV1Config,
 };
