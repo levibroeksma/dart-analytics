@@ -131,9 +131,9 @@ Reason: every tile was written three times per game and the shell was copied int
 Consequences: a new two-seat game's interface is a tile list and its input. The expression builders in `play-screen-expr.ts` run at build time inside the shell, and their `Call`/`Tile`/`Expr` types (`lib/game/interfaces.ts`, `types.ts`) are what all nine interfaces write against, so it is not a D101 test-only extraction; it is unit-tested. `.astro` carries no unit test (D101); proof was a byte-for-byte comparison of the built HTML of every game play route and `training/routines/play` before and after.
 Supersedes: none.
 
-### D476 — `PageHeader` extracted from `SetupShell`; `ConfirmDialog` regains `confirmVariant`
+### D476 — `PageHeader` extracted from `SetupShell`
 Status: Accepted · Date: 2026-10-21
-Decision: `components/layout/PageHeader.astro` (glass back link, centred title, optional `actions` slot) is the one page-header row; `SetupShell` and the routine-detail page both use it. `ConfirmDialog` takes `confirmVariant` (`sheet-raised` default, `sheet-destructive`) so delete confirms render in the coral `glass-destructive` look; `IconBtn` gains `glass` and `destructive` variants.
-Reason: the routine-detail redesign needs the same header as the setup screens plus a trailing delete action, and a destructive confirm that reads as destructive.
-Consequences: the style-token allowlist entry moved from `SetupShell` to `PageHeader`. `glass-destructive` and `chip` are registered in `merge-tokens.ts` so `cn()` keeps them.
-Supersedes: D429 in part (the removal of `ConfirmDialog`'s `confirmVariant` only).
+Decision: `components/layout/PageHeader.astro` (glass back link, centred title, optional `actions` slot) is the one page-header row; `SetupShell` and the routine-detail page both use it. Destructive-confirm styling: D477.
+Reason: the routine-detail redesign needs the same header as the setup screens plus a trailing action slot.
+Consequences: the style-token allowlist entry moved from `SetupShell` to `PageHeader`.
+Supersedes: none.

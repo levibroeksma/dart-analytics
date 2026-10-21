@@ -261,3 +261,10 @@ Decision: the Claude Design `Animations.dc.html` studies are the motion source o
 Reason: the user corrected the brand guide's `animate-deck-*` values (240/220ms keyframes) as a mistake; the studies' slot moves and shared-element glides need transitions and FLIP, which keyframe tokens cannot express in a responsive layout.
 Consequences: `CardStack.astro` and the `stack-slab-*` utilities/colours are removed. `SplitScoreboardHalf` lays out panel and bar at once; the active seat no longer moves to the top (seat A, the starter, stays on top all match). Motion values are pinned by `tests/lib/ui/brand-tokens.test.ts`.
 Supersedes: D442 in part (deck animation and slab stack only).
+
+### D477 — Destructive confirms return as coral glass; `ConfirmDialog` regains `confirmVariant`
+Status: Accepted · Date: 2026-10-21
+Decision: `ConfirmDialog` takes `confirmVariant` (`sheet-raised` default, `sheet-destructive`). `glass-destructive` plus `--error-glass-*` tokens (`error-glass-icon`, `error-glass-foreground`) give a coral-tinted frosted surface; `Button` `sheet-destructive` and `IconBtn` `destructive` use it, and `IconBtn` gains `glass` and `destructive` variants. `glass-destructive` and `chip` are registered in `merge-tokens.ts` so `cn()` keeps them.
+Reason: the routine-detail redesign needs a delete action and a confirm that reads as destructive.
+Consequences: D429's "no coral fill on destructive confirms" consequence is partly reversed: coral returns as glass, not a solid fill. Other confirms keep the raised default.
+Supersedes: D429 in part (the removal of `ConfirmDialog`'s `confirmVariant`).
