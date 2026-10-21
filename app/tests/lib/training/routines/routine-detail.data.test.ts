@@ -4,7 +4,9 @@ vi.mock("@client/api/routines", () => ({
   getRoutine: vi.fn(),
   deleteRoutine: vi.fn(),
 }));
+vi.mock("@client/api/catalog", () => ({ fetchCatalogTags: vi.fn() }));
 import { getRoutine, deleteRoutine } from "@client/api/routines";
+import { fetchCatalogTags } from "@client/api/catalog";
 import { routineDetail } from "@lib/training/routines/routine-detail.data";
 import type { RoutineDetailContext } from "@lib/types";
 
@@ -28,8 +30,17 @@ const ROUTINE = {
   ],
 };
 
+const SET = {
+  tags: [{ axis: "SKILL", key: "SCORING", name: "Scoring", primary: true }],
+};
+const TAGS = {
+  games: { TUOD: { standalone: SET, routineStep: SET } },
+  exercises: { SWITCHING: SET },
+} as unknown as Awaited<ReturnType<typeof fetchCatalogTags>>;
+
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.mocked(fetchCatalogTags).mockResolvedValue(TAGS);
   history.replaceState(null, "", "/training/routines/detail?routine=o");
 });
 
@@ -107,5 +118,85 @@ describe("routineDetail", () => {
     await data.confirmDelete();
     expect(deleteRoutine).toHaveBeenCalledWith("o");
     expect(assign).toHaveBeenCalledWith("/training");
+  });
+
+  it("stepWeight uses minutes, else 1", () => {
+    const data: RoutineDetailContext = routineDetail();
+    expect(data.stepWeight(ROUTINE.steps[0])).toBe(30);
+    expect(
+      data.stepWeight({
+        ...ROUTINE.steps[0],
+        durationTypeKey: "ROUNDS",
+        durationValue: 3,
+      }),
+    ).toBe(1);
+  });
+
+  it("stepTone cycles four tones", () => {
+    const data: RoutineDetailContext = routineDetail();
+    expect(data.stepTone(0, "bg")).toBe("bg-accent");
+    expect(data.stepTone(3, "border")).toBe("border-white/35");
+    expect(data.stepTone(4, "bg")).toBe("bg-accent");
+  });
+
+  it("totalMinutes is 0 with no steps", async () => {
+    vi.mocked(getRoutine).mockResolvedValue({ ...ROUTINE, steps: [] });
+    const data: RoutineDetailContext = routineDetail();
+    await data.init();
+    expect(data.totalMinutes()).toBe(0);
+    expect(data.durationLabel()).toBe("0 min");
+  });
+
+  it("totalMinutes skips non-minute steps", async () => {
+    vi.mocked(getRoutine).mockResolvedValue({
+      ...ROUTINE,
+      steps: [
+        ROUTINE.steps[0],
+        { ...ROUTINE.steps[0], durationTypeKey: "ROUNDS", durationValue: 3 },
+      ],
+    });
+    const data: RoutineDetailContext = routineDetail();
+    await data.init();
+    expect(data.totalMinutes()).toBe(30);
+  });
+
+  it("stepTag reads the exercise set", async () => {
+    vi.mocked(getRoutine).mockResolvedValue(ROUTINE);
+    const data: RoutineDetailContext = routineDetail();
+    await data.init();
+    expect(data.stepTag(ROUTINE.steps[0])).toBe("Scoring");
+  });
+
+  it("stepTag reads a game step's routineStep set", async () => {
+    vi.mocked(getRoutine).mockResolvedValue(ROUTINE);
+    const data: RoutineDetailContext = routineDetail();
+    await data.init();
+    expect(
+      data.stepTag({
+        ...ROUTINE.steps[0],
+        exerciseTypeKey: "GAME",
+        gameTypeKey: "TUOD",
+      }),
+    ).toBe("Scoring");
+  });
+
+  it("stepTag null for a missing set", async () => {
+    vi.mocked(getRoutine).mockResolvedValue(ROUTINE);
+    const data: RoutineDetailContext = routineDetail();
+    await data.init();
+    expect(
+      data.stepTag({ ...ROUTINE.steps[0], exerciseTypeKey: "NOPE" }),
+    ).toBeNull();
+  });
+
+  it("loads the routine when the tags fetch rejects", async () => {
+    vi.mocked(getRoutine).mockResolvedValue(ROUTINE);
+    vi.mocked(fetchCatalogTags).mockRejectedValue(new Error("down"));
+    const data: RoutineDetailContext = routineDetail();
+    await data.init();
+    expect(data.routine).toEqual(ROUTINE);
+    expect(data.catalogTags).toBeNull();
+    expect(data.error).toBe("");
+    expect(data.stepTag(ROUTINE.steps[0])).toBeNull();
   });
 });

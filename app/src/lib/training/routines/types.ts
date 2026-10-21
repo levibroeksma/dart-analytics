@@ -414,9 +414,22 @@ export type RoutineDetailContext = {
   deleting: boolean;
   deleteBusy: boolean;
   starting: boolean;
+  /** Catalog tag sets for step pills; `null` until loaded or when the fetch fails. */
+  catalogTags: CatalogTagsResponse | null;
   navigate(path: string): void;
   init(this: RoutineDetailContext): Promise<void>;
+  /** Sum of the MINUTES steps' durations. */
+  totalMinutes(this: RoutineDetailContext): number;
   durationLabel(this: RoutineDetailContext): string;
+  /** A step's share of the timeline bar: its minutes, else 1. */
+  stepWeight(step: RoutineExecutionData["steps"][number]): number;
+  /** Tailwind class for the step at `index`, cycling four accent tones. */
+  stepTone(index: number, part: "bg" | "border"): string;
+  /** The step's lead exercise tag name, or `null` without a tag set. */
+  stepTag(
+    this: RoutineDetailContext,
+    step: RoutineExecutionData["steps"][number],
+  ): string | null;
   stepDuration(step: RoutineExecutionData["steps"][number]): string;
   canEdit(this: RoutineDetailContext): boolean;
   playPath(this: RoutineDetailContext): string;

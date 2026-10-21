@@ -1,13 +1,25 @@
+import { fetchCatalogTags } from "@client/api/catalog";
 import { deleteRoutine, getRoutine } from "@client/api/routines";
+import { cardTags } from "@lib/catalog/tags";
 import {
   routineEditPath,
   routineIdFromLocation,
   routinePlayPath,
 } from "./routine-route";
+import { stepTagSet } from "./step-tag-set";
 import type { RoutineExecutionData } from "@client/api/types";
+import type { CatalogTagsResponse } from "@lib/types";
 import type { RoutineDetailContext } from "./types";
 
 type Step = RoutineExecutionData["steps"][number];
+
+const TONE_BG = ["bg-accent", "bg-accent/70", "bg-accent/45", "bg-white/35"];
+const TONE_BORDER = [
+  "border-accent",
+  "border-accent/70",
+  "border-accent/45",
+  "border-white/35",
+];
 
 export function routineDetail() {
   return {
@@ -17,6 +29,7 @@ export function routineDetail() {
     deleting: false,
     deleteBusy: false,
     starting: false,
+    catalogTags: null as CatalogTagsResponse | null,
 
     navigate(path: string) {
       globalThis.location.href = path;
@@ -30,7 +43,12 @@ export function routineDetail() {
         return;
       }
       try {
-        this.routine = await getRoutine(routineId);
+        const [routine, tags] = await Promise.all([
+          getRoutine(routineId),
+          fetchCatalogTags().catch(() => null),
+        ]);
+        this.routine = routine;
+        this.catalogTags = tags;
       } catch {
         this.error = "Could not load this routine.";
       } finally {
@@ -38,13 +56,34 @@ export function routineDetail() {
       }
     },
 
-    durationLabel(this: RoutineDetailContext): string {
-      const total = (this.routine?.steps ?? []).reduce(
+    totalMinutes(this: RoutineDetailContext): number {
+      return (this.routine?.steps ?? []).reduce(
         (sum, step) =>
           step.durationTypeKey === "MINUTES" ? sum + step.durationValue : sum,
         0,
       );
-      return `${total} min`;
+    },
+
+    durationLabel(this: RoutineDetailContext): string {
+      return `${this.totalMinutes()} min`;
+    },
+
+    stepWeight(step: Step): number {
+      return step.durationTypeKey === "MINUTES" ? step.durationValue : 1;
+    },
+
+    stepTone(index: number, part: "bg" | "border"): string {
+      const tones = part === "bg" ? TONE_BG : TONE_BORDER;
+      return tones[index % tones.length];
+    },
+
+    stepTag(this: RoutineDetailContext, step: Step): string | null {
+      const set = stepTagSet(
+        this.catalogTags,
+        step.exerciseTypeKey,
+        step.gameTypeKey,
+      );
+      return set ? (cardTags(set, "exercise")[0]?.name ?? null) : null;
     },
 
     stepDuration(step: Step): string {
