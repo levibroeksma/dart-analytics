@@ -3,6 +3,7 @@ import "@modules/training/exercises/bullseye-checkout.engine.module";
 import "@modules/training/exercises/checkout-sequence.engine.module";
 import "@modules/training/exercises/double-pattern.engine.module";
 import "@modules/training/exercises/doubles-lock.engine.module";
+import "@modules/training/exercises/halve-it.engine.module";
 import "@modules/training/exercises/hit-count.engine.module";
 import "@modules/training/exercises/random-checkout.engine.module";
 import "@modules/training/exercises/score-threshold.engine.module";

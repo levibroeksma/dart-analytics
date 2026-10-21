@@ -94,6 +94,12 @@ export const STEP_METRIC_SPECS: Readonly<
     direction: "higher",
     rates: [["hits", "darts"]],
   },
+  HALVE_IT: {
+    metrics: { points: "sum", halvings: "sum", darts: "sum", hits: "sum" },
+    headline: "points",
+    direction: "higher",
+    rates: [["hits", "darts"]],
+  },
 };
 
 /**
@@ -184,6 +190,12 @@ const STATE_FIELDS: Readonly<
   DOUBLES_LOCK: {
     bonus: "bonus",
     locks: "locks",
+    darts: "dartsThrown",
+    hits: "hits",
+  },
+  HALVE_IT: {
+    points: "total",
+    halvings: "halvings",
     darts: "dartsThrown",
     hits: "hits",
   },

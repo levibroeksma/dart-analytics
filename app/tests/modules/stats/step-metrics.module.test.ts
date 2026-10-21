@@ -16,6 +16,7 @@ import { checkoutSequenceEngineFactory } from "@modules/training/exercises/check
 import { randomCheckoutEngineFactory } from "@modules/training/exercises/random-checkout.engine.module";
 import { hitCountEngineFactory } from "@modules/training/exercises/hit-count.engine.module";
 import { doublesLockEngineFactory } from "@modules/training/exercises/doubles-lock.engine.module";
+import { halveItEngineFactory } from "@modules/training/exercises/halve-it.engine.module";
 import { switchbladeEngineFactory } from "@modules/training/exercises/switchblade.engine.module";
 import type {
   DartExerciseKind,
@@ -166,6 +167,16 @@ function fixtures(): Fixture[] {
     dart(19, "DOUBLE"),
   ].forEach((d) => doublesLock.record(d));
 
+  const halveIt = halveItEngineFactory.create({});
+  [
+    dart(20, "TREBLE"),
+    dart(20, "SINGLE"),
+    dart(null, "MISS"),
+    dart(null, "MISS"),
+    dart(null, "MISS"),
+    dart(null, "MISS"),
+  ].forEach((d) => halveIt.record(d));
+
   return [
     {
       kind: "SWITCHING:STANDARD",
@@ -238,6 +249,12 @@ function fixtures(): Fixture[] {
       state: doublesLock.state(),
       facts: doublesLock.facts(),
       expected: { bonus: 50, locks: 1, darts: 4, hits: 3 },
+    },
+    {
+      kind: "HALVE_IT",
+      state: halveIt.state(),
+      facts: halveIt.facts(),
+      expected: { points: 40, halvings: 1, darts: 6, hits: 2 },
     },
   ];
 }

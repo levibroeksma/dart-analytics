@@ -148,8 +148,8 @@ describe("STEP_REPLAY_PRESENTERS (every kind, real engine runs)", () => {
     expect(KINDS).not.toContain("SWITCHING");
   });
 
-  it("is exactly twelve kinds — a presenter per STEP_METRIC_SPECS entry, no more and no fewer", () => {
-    expect(KINDS).toHaveLength(12);
+  it("is exactly thirteen kinds — a presenter per STEP_METRIC_SPECS entry, no more and no fewer", () => {
+    expect(KINDS).toHaveLength(13);
     expect(Object.keys(STEP_REPLAY_PRESENTERS).sort()).toEqual(
       [...KINDS].sort(),
     );
@@ -165,6 +165,10 @@ describe("STEP_REPLAY_PRESENTERS (every kind, real engine runs)", () => {
 
   it("covers Doubles Lock", () => {
     expect(KINDS).toContain("DOUBLES_LOCK");
+  });
+
+  it("covers Halve-It", () => {
+    expect(KINDS).toContain("HALVE_IT");
   });
 
   it.each(KINDS)(

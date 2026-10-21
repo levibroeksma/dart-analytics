@@ -3,6 +3,7 @@ import { checkoutSequenceEngineFactory } from "@modules/training/exercises/check
 import { randomCheckoutEngineFactory } from "@modules/training/exercises/random-checkout.engine.module";
 import { hitCountEngineFactory } from "@modules/training/exercises/hit-count.engine.module";
 import { doublesLockEngineFactory } from "@modules/training/exercises/doubles-lock.engine.module";
+import { halveItEngineFactory } from "@modules/training/exercises/halve-it.engine.module";
 import { switchbladeEngineFactory } from "@modules/training/exercises/switchblade.engine.module";
 import { bullseyeCheckoutEngineFactory } from "@modules/training/exercises/bullseye-checkout.engine.module";
 import { doublePatternEngineFactory } from "@modules/training/exercises/double-pattern.engine.module";
@@ -310,6 +311,20 @@ const EXERCISE_FIXTURES: Record<
       dart(20, "DOUBLE"),
       dart(null, "MISS"),
       dart(19, "DOUBLE"),
+    ],
+  },
+  HALVE_IT: {
+    typeKey: "HALVE_IT",
+    rulesetKey: "HALVE_IT_V1",
+    factory: halveItEngineFactory,
+    config: {},
+    darts: [
+      dart(20, "TREBLE"),
+      dart(20, "SINGLE"),
+      dart(null, "MISS"),
+      dart(null, "MISS"),
+      dart(null, "MISS"),
+      dart(null, "MISS"),
     ],
   },
 };

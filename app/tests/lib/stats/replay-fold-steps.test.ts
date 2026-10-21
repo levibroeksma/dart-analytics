@@ -128,4 +128,16 @@ describe("foldReplay (non-game routine steps)", () => {
     expect(finalState).toMatchObject({ bonus: 50, locks: 1 });
     expect(fold.stateAfter(turns.length - 1)).toEqual(finalState);
   });
+
+  it("replays a Halve-It run visit by visit to the engine's final state", () => {
+    const { header, turns, finalState } = playExerciseKind("HALVE_IT");
+
+    const fold = foldReplay(header, turns);
+
+    expect(fold.ok).toBe(true);
+    if (!fold.ok) return;
+    expect(turns).toHaveLength(2);
+    expect(finalState).toMatchObject({ total: 40, halvings: 1 });
+    expect(fold.stateAfter(turns.length - 1)).toEqual(finalState);
+  });
 });
