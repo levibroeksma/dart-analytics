@@ -45,7 +45,7 @@ export const HALVE_IT_PATH: readonly TrackTarget[] = [
 const LAST_INDEX = HALVE_IT_PATH.length - 1;
 
 /** The bed a dart is aimed at: none on a number or the bull (any ring scores), the ring alone on a zone. */
-export function halveItIntent(target: TrackTarget): DartIntent {
+function halveItIntent(target: TrackTarget): DartIntent {
   if (target.kind === "ANY_DOUBLE")
     return { intendedTargetNumber: null, intendedZoneKey: "DOUBLE" };
   if (target.kind === "ANY_TREBLE")

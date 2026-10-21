@@ -199,6 +199,19 @@ describe("Halve-It engine", () => {
     ]);
   });
 
+  it("aims at the zone again on the second pass", () => {
+    const engine = new HalveItEngine({});
+    play(
+      engine,
+      Array.from({ length: 9 * 3 + 3 * 3 }, () => MISS),
+    );
+    const last = engine.facts().turns.at(-1)!.darts[0];
+    expect([last.intendedTargetNumber, last.intendedZoneKey]).toEqual([
+      null,
+      "DOUBLE",
+    ]);
+  });
+
   it("writes one turn per three-dart visit", () => {
     const engine = new HalveItEngine({});
     play(engine, [MISS, MISS, MISS, MISS, MISS, MISS, MISS]);
