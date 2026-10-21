@@ -2,7 +2,7 @@
 /**
  * Button with design-system variants.
  * @param {"button"|"submit"|"reset"} [type]
- * @param {"primary"|"secondary"|"ghost"|"error"|"dashed"|"sheet-muted"|"sheet-raised"} [variant]
+ * @param {"primary"|"secondary"|"ghost"|"error"|"dashed"|"sheet-muted"|"sheet-raised"|"sheet-destructive"} [variant]
  * @param {boolean} [icon] Equal padding on all sides (icon-only / square hit area)
  * @param {boolean} [disabled]
  * @param {string} [ariaLabel] Accessible name (required for icon-only)
@@ -19,7 +19,8 @@ interface Props {
     | "error"
     | "dashed"
     | "sheet-muted"
-    | "sheet-raised";
+    | "sheet-raised"
+    | "sheet-destructive";
   icon?: boolean;
   grow?: boolean;
   disabled?: boolean;
@@ -68,6 +69,8 @@ const variantClasses = {
   "sheet-muted":
     "h-13 rounded-2xl text-control inset-well-muted text-muted-foreground",
   "sheet-raised": "h-13 rounded-2xl text-control glass-button text-foreground",
+  "sheet-destructive":
+    "h-13 rounded-2xl text-control glass-destructive text-error-glass-foreground",
 }[variant];
 
 const className = cn(
