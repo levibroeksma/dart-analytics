@@ -273,6 +273,16 @@ describe("stepMetrics", () => {
     ).toThrow();
   });
 
+  it("names the state field a kind's metric reads when it is missing", () => {
+    const noFacts = { stages: [], turns: [] };
+    expect(() =>
+      stepMetrics("SWITCHBLADE", { dartsThrown: 1, hits: 1 }, noFacts),
+    ).toThrow('state is missing numeric field "total"');
+    expect(() =>
+      stepMetrics("DOUBLE_PATTERN", { dartsThrown: 1 }, noFacts),
+    ).toThrow('state is missing numeric field "totalPoints"');
+  });
+
   it("returns exactly the spec's keys for every kind (a new kind with no extractor fails here)", () => {
     const byKind = new Map(fixtures().map((f) => [f.kind, f]));
 
