@@ -27,6 +27,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Hard: at least 2 of 3 darts on target | V2 | All | Scheduled for V2 with Intermediate, same reason |
 | Pro: all 3 darts on target | V2 | All | Scheduled for V2 with Intermediate, same reason |
 | Step back one target on a failed visit | V2 | All | Scheduled for V2 (2026-09-23): the fail behaviour the harder modes take — answers the open question below |
+| Nine Lives: three lives, a visit with no hit costs one, out at zero | V3 | Single | Scheduled for V3 (2026-10-21): Nine Lives ships as this setting, not its own ruleset (`nine-lives.md` §Open questions). Path settings combine with it; difficulty stays Easy and the run is untimed, so it is not a routine step |
 | Fail / lose the game on missed visit (harder modes) | V2+ | All | Wanted, unscheduled: depends on Intermediate/Hard/Pro, and the open question below is exactly which fail behaviour it takes |
 | Timed run (3–30 minutes) | V2 | Single | Scheduled for V2 (2026-09-23): the drill asks how far you get in a set time; V1 has no clock (see Ends when) |
 | Timed run in 1v1 | V2+ | 1v1 | Wanted, unscheduled: one device alternates seats, and whether the clock is shared or per seat is undecided — Ten Up One Down keeps its timer single-player for the same reason (`ten-up-one-down.md` Ends when) |
@@ -97,6 +98,7 @@ From V2 (single player only for the timed settings), the player picks:
 | Segment rule  | Any (default) or outer single only                            | Editable         |
 | Difficulty    | Easy (default), Intermediate, Hard or Pro                     | Editable         |
 | Duration      | Untimed (default) or timed: **10** minutes (min **3**, max **30**) | Editable (Single) |
+| Nine Lives (V3) | Off (default) or on; on fixes Easy, untimed, three lives | Editable (Single) |
 | Chase the Dragon (V2+) | Off (default) or on; on fixes the path, treble-only rule and race ending together | Editable (V2+) |
 
 As a routine step the duration is the step's allocation and replaces this setting.
@@ -216,6 +218,13 @@ ratio.
   unequalised; this replaces the fewest-darts finish for this variant only.
   Seats are 1v1 only — the source allows up to eight, the cap is 2
   (`app/src/services/session-seats.service.ts:25`).
+- **Nine Lives (V3):** the player starts with three lives. A visit with no
+  hit on the current target costs one life; a visit with any hit costs none,
+  even when its later darts miss the new target. At zero lives the run ends
+  unfinished. Path, odds first and outer single only combine with it;
+  difficulty is Easy and the run is untimed. Rules: `nine-lives.md`.
+  **Single:** the only seat count; 1v1 lives (first to finish, else last
+  standing) stays V2+ in `nine-lives.md`.
 
 ### Match structure
 
@@ -248,6 +257,7 @@ ratio.
 | **Runs as a routine step**           | V2       | Played as a `GAME` exercise step; the routine sets the duration.  |
 | **Car Rally**                        | V2+      | Race along a player-set course; obstacle segments need two hits; first to clear it wins. |
 | **Three in a Bed**                   | V2+      | Clear a number only when all 3 darts of the visit share a bed; a failed visit stays put. |
+| **Nine Lives**                       | V3       | Three lives; a visit with no hit costs one; out at zero. Single only. |
 | **Chase the Dragon**                 | V2+      | Trebles 10–20, outer bull, inner bull in order; first seat to finish wins at once. |
 
 ## Capture
