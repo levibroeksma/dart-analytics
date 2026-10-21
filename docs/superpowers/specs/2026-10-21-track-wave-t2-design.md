@@ -32,18 +32,46 @@ Ship three new playable V1s on the Track kernel, one PR each, each end to end:
 - PR order: Halve-It, Doubles S&L, Nine Lives (the shipped game with live data
   last). Stack cap: one branch on another at most.
 - Seed per engine PR, as T1.
+- No new duplication (user, 2026-10-21): every piece reuses an existing
+  component or helper (§2.0); where T1 left copy-paste the new subject would
+  extend, T2.1 extracts the shared piece first. Reuse audit 2026-10-21.
+- Nine Lives card shows Around the Clock's tags and difficulty (cards are
+  keyed by game type, `pages/games/index.astro:58-65`); card-level tags are
+  discovered work.
 - Approach A for zone-class targets: `BoardTarget` gains number-less kinds
   (§2.1). Rejected: widening `TrackRules.target` to a generic type (touches the
   kernel and every engine).
 
 ## 2. Shared additions
 
+### 2.0 Reuse prep (T2.1, first commit, no behaviour change)
+
+Extractions that stop the 13th/14th copies of T1 boilerplate:
+
+| Extraction | Replaces | Where |
+| --- | --- | --- |
+| `dartExerciseAdapter({ key, headerLabel, title, panel, rulesetKey, slot, engineClass, summarise })`, mirroring `gameAdapter` (`adapters/game.adapter.ts:69`) | 11 near-identical exercise adapters (e.g. `hit-count.adapter.ts`, `doubles-lock.adapter.ts`, differ only in names) | `lib/training/routines/adapters/` |
+| `expireTimer` / `onComplete` loop over `DART_ENGINE_RECORDERS` slots | per-engine lists in `routine-play.data.ts` (recorders 106-119, `expireTimer` 714-725) and identical timer-only `record*Dart` bodies | `routine-play.data.ts` |
+| `targetLabelOf(target?)`, `rateOf(hits, darts)` | the repeated `x === undefined ? "" : boardTargetLabel(x)` getters and hit-rate getters | `routine-play.data.ts` helpers |
+| `EmptyV1Config` (`z.object({}).strict()`) | three copies in `lib/training/exercises/rulesets/types.ts` (222, 292, 303) | same file; T1 configs alias it |
+| one `ExerciseTypeKeyEnum` | the same `z.enum` twice in `pages/api/training-sessions/types.ts` (10-24, 52-66) | same file |
+
+Existing shared pieces the new exercises use as-is: `trackExerciseSpec`,
+`makeConfigValidator`, `doublesPath()`, `doubleTargetIntent`,
+`ExercisePanelShell` (+ `RouteChips`, `windowPage`/`windowIndex`),
+`accuracyDisplay`, `hitRateRow` / `NO_VALUE` / `stepMetrics`,
+`judgeIntendedBed`, `hitCountCaptions`, the generic `STEP_REPLAY_PRESENTERS`.
+Each exercise also lands in `DART_WRITING_RULESET_VERSION_KEYS`
+(`services/exercise-rulesets/registry.ts:46-59`), missing from T1 §6's list.
+
 ### 2.1 `BoardTarget` ANY_DOUBLE / ANY_TREBLE (T2.1)
 
 `BoardTarget` gains `{ kind: "ANY_DOUBLE" }` and `{ kind: "ANY_TREBLE" }`.
 `isHitOn`: ANY_DOUBLE = zone `DOUBLE` on any number **or** `INNER_BULL`;
-ANY_TREBLE = zone `TREBLE` on any number. `sectionOf` and every exhaustive
-switch over the union handle them. Existing callers never build them, so
+ANY_TREBLE = zone `TREBLE` on any number. `sectionOf`, `anyRingEitherBull`, `pointsTable`
+(`track-policies.ts:87-111`), every exhaustive switch, `boardTargetLabel`
+(labels "Any double", "Any treble") and the test helper `observationOn`
+(`tests/modules/game/support/aimed-observations.ts`) handle them. Existing callers never build them, so
 shipped behaviour is unchanged; their goldens prove it.
 
 ### 2.2 Policies (each with its first caller, D468)
@@ -62,8 +90,8 @@ total) is not reset by the wrap.
 
 | Subject | path | hit | points | onDart | onVisitClose | visitOpen | ext | outcome |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Halve-It | `HALVE_IT_PATH`: 20, 16, ANY_DOUBLE, 17, 18, ANY_TREBLE, 19, 20, BULL | NUMBER / BULL: `anyRingEitherBull`; ANY_*: `isHitOn` | `boardScorePoints` on hit | — | `halveOnBlank` → advance → `passOnWrap(8)` | `closeAfter(3)` | `passes`, `halvings` | timer only |
-| Doubles S&L | `doublesPath` D1→D20, BULL (inner) | `isHitOn` | 0 | — | `finishOnHits(3, 20)` → `moveTable({0:-2,1:-1,2:0,3:1})` | `closeAfter(3)` | `highestIndex` | `DONE` on finish, else timer |
+| Halve-It | `HALVE_IT_PATH`: 20, 16, ANY_DOUBLE, 17, 18, ANY_TREBLE, 19, 20, BULL | NUMBER / BULL: `anyRingEitherBull`; ANY_*: `isHitOn` | `boardScorePoints` on hit | `tallyOnTarget` | engine-local `countHalving` → `halveOnBlank` → `advanceAfterDarts(3)` → `passOnWrap(8)` (Hit Count's shape) | `closeAfter(3)` | `TargetTallyExt` + `passes`, `halvings` | timer only |
+| Doubles S&L | `doublesPath()` D1→D20, BULL (inner) | `isHitOn` | `noPoints` | `tallyOnTarget` | `finishOnHits(3, 20)` → `moveTable({0:-2,1:-1,2:0,3:1})` | `closeAfter(3)` | `TargetTallyExt` + `highestIndex` | `DONE` on finish, else timer |
 | Nine Lives | ATC V2 path (direction, odds first) | ATC V2 segment rule, Easy | 0 | ATC Easy advance | `loseLifeOnBlank` | ATC | ATC ext + `lives` | single seat: `COMPLETE` on bull or `OUT` |
 
 Halve-It: type `HALVE_IT`, ruleset `HALVE_IT_V1`; config the empty strict
@@ -89,6 +117,20 @@ live data). With `lives: null`, V3 plays exactly as V2.
 | Nine Lives | ATC fields + `lives`, `out` (bool); result adds lives left and, when out, the target stood on |
 
 Every field is derived from the fold; nothing is stored (Hard Invariant).
+`hits` = sum of `ext.hitsPerTarget` from the fold for both exercises — never
+from intent (Halve-It's NUMBER/BULL intent is null, so an intent compare
+would count an off-board dart as a hit), and not via a copy of Doubles Lock's
+private `onIntendedDouble` (it misses the bull level).
+
+UI and stats, all on existing pieces:
+
+| Piece | Halve-It | Doubles S&L |
+| --- | --- | --- |
+| Panel | `ExercisePanelShell`: score `TOTAL`, route chip of the 9 targets (Switching's `windowPage` pattern), tiles Round, Pass, Rate | `ExercisePanelShell`: score `LEVEL`, ladder chip, tiles Highest, Rounds, Rate |
+| Preview judge | new family judging each visit against `HALVE_IT_PATH[visitIndex % 9]` with `isHitOn`/`anyRingEitherBull`; `judgeExerciseDart` gains the visit index (small signature change) | `hitCount` family (`judgeIntendedBed`), **not** `judgeDouble` (scores a bullseye as a miss); captions `hitCountCaptions` |
+| Summary | `hitRateRow`, per-target rows as `summariseHitCount` | `hitRateRow`; Highest level, Rounds, Finished |
+| Step metrics | `{ points, halvings, darts, hits }`, headline `points` higher | `{ highestLevel: "max", rounds, finishes, darts, hits }`, headline `highestLevel` higher |
+| Recorder | timer-only (shared loop, §2.0) | completes on `isComplete()`, the `checkoutSequence` branch (`routine-play.data.ts:800-806`) |
 
 ## 5. Persistence (named before implementation)
 
@@ -113,6 +155,17 @@ the rules file via `npm run tags:generate` (seed 0042) once the rules file's
 `Current version:` flips to V1.
 
 ### Nine Lives PR (T2.3)
+
+Reuse, no fork: `AroundTheClockSetupForm.astro` gains a Lives `Switch` like
+Odds first, inside the no-guest block, hiding difficulty and duration while
+on; `around-the-clock-setup.data.ts` `rulesetVersionKey` returns V3 **only
+when lives are on** (V2 otherwise) and `addGuest`/`addBot` turn lives off;
+`interfaces/AroundTheClock.astro` adds a Lives tile via `showWhen`;
+`AroundTheClockResults.astro` adds a `LIVES_ROWS` variant via `x-if` (as
+`TIMED_ROWS`), reusing `targetAtEnd` for "out on". The card preset uses a new
+**generic** `setupPresetFromLocation` in `lib/game/setup-controller.ts`
+(pattern: `lib/training/routines/routine-route.ts`), not ATC-only code; no
+card carries a query today.
 
 ATC engine: V3 key in `rulesetVersionKeys`, `keyOf` reads `lives`; V3 Zod
 config + `RULESET_CONFIGS`; capabilities rows for V3 (seed 0007 parity and
@@ -144,6 +197,10 @@ additive). Boundary cases:
   → `OUT` with darts refused; bull hit with lives left → `COMPLETE`; V2
   snapshot replays identically through the V3 engine path with `lives: null`;
   V3 config refuses lives with HARD or timed.
+- Duplication: `npx fallow dupes --mode semantic --min-tokens 30` on the
+  touched files before and after each PR; clone groups must not rise. The
+  fallow gate cannot catch it (`.fallowrc.jsonc` sets no duplicate
+  threshold; default mode flags none of the T1 copies).
 - Routine-stats integration fixture: Halve-It step 15, Doubles S&L step 16
   (itest step count rises by one each).
 
@@ -161,6 +218,11 @@ follows D243's version-not-widen rule. If a plan needs one, the id comes from
 - Standalone exercise entry.
 - Schema changes (none needed).
 - Wave T3.
+- Remaining duplication T2 does not extend, filed as discovered work: a
+  data-driven `stepMetrics` field map; one parameterised seed-verification
+  SQL (0038–0040 are identical but for key and config; T2 accepts copies 4
+  and 5); an engine-tail helper (fold export, class, factory, register);
+  card-level tags for preset cards (#1048–#1051).
 
 ## 10. Risks
 
