@@ -145,6 +145,14 @@ describe("groupCatalog", () => {
     expect(group.tags).toEqual([skill]);
   });
 
+  it("gives a GAME entry without a gameTypeKey no tags", () => {
+    const [group] = groupCatalog(
+      [entry({ exerciseTypeKey: "GAME", gameTypeKey: null })],
+      tags,
+    );
+    expect(group.tags).toEqual([]);
+  });
+
   it("gives an untagged type no tags and a null level", () => {
     const [group] = groupCatalog([entry({})], tags);
     expect(group.tags).toEqual([]);

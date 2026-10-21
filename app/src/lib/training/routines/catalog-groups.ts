@@ -1,8 +1,8 @@
 import { cardTags } from "@lib/catalog/tags";
+import { stepTagSet } from "@lib/training/routines/step-tag-set";
 import type { ExerciseTemplateCatalogEntryData } from "@client/api/types";
 import type {
   CatalogGroup,
-  CatalogTagSet,
   CatalogTagsResponse,
   DifficultyLevel,
 } from "@lib/types";
@@ -13,17 +13,6 @@ function groupKey(entry: ExerciseTemplateCatalogEntryData): string {
   return entry.exerciseTypeKey === GAME_TYPE_KEY && entry.gameTypeKey
     ? entry.gameTypeKey
     : entry.exerciseTypeKey;
-}
-
-function tagSet(
-  entry: ExerciseTemplateCatalogEntryData,
-  tags: CatalogTagsResponse | null,
-  key: string,
-): CatalogTagSet | undefined {
-  if (!tags) return undefined;
-  return entry.exerciseTypeKey === GAME_TYPE_KEY
-    ? tags.games[key]?.routineStep
-    : tags.exercises[key];
 }
 
 /**
@@ -49,7 +38,7 @@ export function groupCatalog(
     const key = groupKey(entry);
     let group = groups.get(key);
     if (!group) {
-      const set = tagSet(entry, tags, key);
+      const set = stepTagSet(tags, entry.exerciseTypeKey, entry.gameTypeKey);
       group = {
         key,
         name: entry.gameTypeName ?? entry.exerciseTypeName,
