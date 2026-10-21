@@ -71,6 +71,8 @@ export const UTILITY_GROUPS: Readonly<Record<string, string | null>> = {
   "glass-raised": null,
   "glass-tinted-raised": null,
   "glass-button": null,
+  "glass-destructive": null,
+  chip: null,
   "glass-blue": null,
   "glass-info": null,
   "inset-well": null,

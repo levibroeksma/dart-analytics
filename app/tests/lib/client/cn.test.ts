@@ -74,6 +74,15 @@ describe("cn", () => {
     expect(cn("coin-up", "coin-down")).toBe("coin-down");
   });
 
+  it("keeps glass-destructive and chip beside the stock classes they sit with", () => {
+    expect(cn("glass-destructive", "size-10", "text-foreground")).toBe(
+      "glass-destructive size-10 text-foreground",
+    );
+    expect(cn("chip", "px-2", "text-foreground")).toBe(
+      "chip px-2 text-foreground",
+    );
+  });
+
   it("keeps catalog-grid beside the stock grid utilities", () => {
     expect(cn("catalog-grid grid gap-3")).toBe("catalog-grid grid gap-3");
   });
