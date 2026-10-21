@@ -2,7 +2,7 @@
 status: canonical
 scope: frontend/style-guide
 read-when: any UI/component work — tokens, primitives, typography, motion, accessibility
-updated: 2026-10-13
+updated: 2026-10-21
 -->
 
 # Frontend Style Guide
@@ -46,7 +46,7 @@ Use semantic tokens only. Never raw Tailwind palette utilities (`bg-sky-500`, `t
 | Text | `text-foreground`, `text-soft-foreground` (78%), `text-muted-foreground` (70%, captions/labels), `text-muted` (55%, body), `text-faint-foreground` (50%), `text-placeholder` (48%, empty fields only) |
 | Borders | `border-border`, `border-border-strong` |
 | Accent | `accent`, `accent-hover`, `accent-muted`, `accent-foreground`, `accent-glow` (sky); `accent-bright` (sky light: accent text on dark), `accent-foreground-muted`, `accent-deep` (gradient end), `accent-deep-blue` (chart bars, vignette), `bg-blue-glass` (2026-10-08) |
-| States | `error` / `error-hover` / `error-muted` / `error-foreground` (coral); `error-strong` / `error-strong-hover` (solid fill under `error-foreground`, ≥ 4.5:1; `Button`/`IconBtn` error variant); `missed` / `missed-muted` alias error; `success` / `success-muted` |
+| States | `error` / `error-hover` / `error-muted` / `error-foreground` (coral); `error-glass-icon` / `error-glass-foreground` (coral glyph/text on `glass-destructive`, 2026-10-21); `error-strong` / `error-strong-hover` (solid fill under `error-foreground`, ≥ 4.5:1; `Button`/`IconBtn` error variant); `missed` / `missed-muted` alias error; `success` / `success-muted` |
 | Radius | `rounded-sm` … `rounded-2xl`, `rounded-row`, `rounded-key`, `rounded-switch`, `rounded-board`, `rounded-sheet` per `@theme` |
 | Type scale | `text-hero` 72, `text-title` 26 (screen title), `text-value` 30, `text-tile` 20, `text-card-title` 13, `text-control` 15 (buttons, fields, control text), `text-eyebrow-sm` 9 / `text-eyebrow` 10 / `text-eyebrow-lg` 12 (mono caps); `text-body-sm` 13, `text-caption` 11, `text-micro` 10; numerals `text-key` 26, `text-key-label` 22, `text-stat` 17, `text-summary` 40 / `text-summary-lg` 52, `text-numeral-1…6` (cqw clamps); body `text-sm`, caption `text-xs` (D451) |
 | Hit target | `size-hit` (44px) minimum for any tap target |
@@ -104,6 +104,8 @@ Implement a reusable class contract once in `global.css` (`@utility` / `@layer c
 | `.link-card` | Community / outbound link cards |
 | `.card-wrapper` | Tintable tool/extension cards (`--card-tint`, default accent); translucent, so blurs its backdrop like `.glass` (2026-10-02) |
 | `@utility glass` / `glass-tinted` / `glass-raised` / `glass-tinted-raised` | Frosted panels — top-lit radial wash (white, or black when `-tinted`), `border-y`, blur; `-raised` adds `shadow-md` + stronger blur (2026-10-06); `glass-blue` / `glass-info` / `inset-well` / `inset-well-muted` / `glass-sheet` (2026-10-08, D428) |
+| `@utility glass-destructive` | Coral-tinted frosted surface for destructive actions (`IconBtn` `destructive`, `Button` `sheet-destructive`); glyph/text `error-glass-icon` / `error-glass-foreground` (D476, 2026-10-21) |
+| `@utility chip` | Mono micro pill (`bg-white/7`, `text-chip-foreground`) for minutes and tags (`RoutineRow`, `RoutineSummaryCard`) (2026-10-21) |
 | `@utility setting-badge` | Mono accent chip after a `SettingLabel` (e.g. `ANALYTICS`) (design Game Setup, D430, 2026-10-08) |
 | `@utility slider-fill` / `slider-thumb` / `slider-bubble` | `RangeSlider` accent fill, white capsule thumb with accent ring, blue-glass value bubble (design 6a, D430, 2026-10-08) |
 | `@utility slide-thumb` / `slide-fill` | `SlideToStart` accent orb thumb and the trail behind it (design 4d, D430, 2026-10-08) |
