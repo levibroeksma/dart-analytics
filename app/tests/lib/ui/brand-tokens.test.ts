@@ -330,7 +330,7 @@ describe("solid error fill", () => {
       /error: "bg-error-strong text-error-foreground btn-error"/,
     );
     expect(iconBtn).toMatch(
-      /error: "border-transparent bg-error-strong text-error-foreground btn-error"/,
+      /error:\s*"border-3 border-transparent bg-error-strong text-error-foreground btn-error"/,
     );
   });
 });
