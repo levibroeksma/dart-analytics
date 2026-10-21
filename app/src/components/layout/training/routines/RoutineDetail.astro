@@ -1,61 +1,58 @@
 ---
 /**
- * Routine detail: title + duration pill, ordered steps, Start; Edit/Delete for
- * the player's own routines. Reads `routineDetail()` state from the parent
- * scope (`routine-detail.data.ts`).
+ * Routine detail: page header (delete/edit actions for the player's own
+ * routines), summary card, step list, Start. Reads `routineDetail()` state
+ * from the parent scope (`routine-detail.data.ts`).
  */
-import Badge from "@components/ui/Badge.astro";
+import PageHeader from "@components/layout/PageHeader.astro";
+import RoutineSummaryCard from "@components/layout/training/routines/RoutineSummaryCard.astro";
+import RoutineStepList from "@components/layout/training/routines/RoutineStepList.astro";
+import IconBtn from "@components/forms/IconBtn.astro";
 import Button from "@components/forms/Button.astro";
 import InlayRow from "@components/ui/InlayRow.astro";
 import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
+
+// Icons
+import TrashIcon from "@icons/trash.svg";
+import PencilIcon from "@icons/pencil.svg";
 ---
 
 <div class="space-y-4">
+  <PageHeader
+    backHref="/training"
+    backLabel="Back to training"
+    title="Routine"
+  >
+    <template
+      slot="actions"
+      x-if="canEdit()"
+    >
+      <div class="flex gap-2">
+        <IconBtn
+          variant="destructive"
+          ariaLabel="Delete routine"
+          class="size-10"
+          @click="requestDelete()"
+        >
+          <TrashIcon class="size-5" />
+        </IconBtn>
+        <IconBtn
+          variant="glass"
+          ariaLabel="Edit routine"
+          class="size-10"
+          @click="navigate(editPath())"
+        >
+          <PencilIcon class="size-5" />
+        </IconBtn>
+      </div>
+    </template>
+  </PageHeader>
   <ErrorAlert />
   <template x-if="routine">
     <div class="space-y-4">
-      <div class="flex items-center justify-between">
-        <h1
-          class="text-xl font-semibold text-foreground"
-          x-text="routine.routineName"
-        >
-        </h1>
-        <Badge x-text="durationLabel()" />
-      </div>
-      <p
-        class="text-sm text-muted-foreground"
-        x-show="routine.description"
-        x-cloak
-        x-text="routine.description"
-      >
-      </p>
-      <ol class="space-y-4">
-        <template
-          x-for="(step, index) in routine.steps"
-          :key="step.sequenceNumber"
-        >
-          <li class="space-y-1">
-            <div class="flex items-baseline gap-2">
-              <span
-                class="text-sm font-semibold text-accent"
-                x-text="`${index + 1}. ${step.exerciseName}`"
-              >
-              </span>
-              <span
-                class="text-xs text-muted-foreground"
-                x-text="`— ${stepDuration(step)}`"
-              >
-              </span>
-            </div>
-            <p
-              class="text-sm text-muted-foreground"
-              x-text="step.exerciseDescription ?? ''"
-            >
-            </p>
-          </li>
-        </template>
-      </ol>
+      <RoutineSummaryCard />
+      <RoutineStepList />
       <Button
         title="Start"
         variant="primary"
@@ -63,24 +60,6 @@ import ErrorAlert from "@components/ui/ErrorAlert.astro";
         @click="start()"
         loadingExpr="starting"
       />
-      <div
-        class="flex gap-2"
-        x-show="canEdit()"
-        x-cloak
-      >
-        <Button
-          title="Edit"
-          variant="secondary"
-          grow
-          @click="navigate(editPath())"
-        />
-        <Button
-          title="Delete"
-          variant="error"
-          grow
-          @click="requestDelete()"
-        />
-      </div>
     </div>
   </template>
   <div
@@ -93,6 +72,7 @@ import ErrorAlert from "@components/ui/ErrorAlert.astro";
       description="Completed sessions keep their own record. The routine itself is removed."
       cancelLabel="Keep routine"
       confirmLabel="Delete"
+      confirmVariant="sheet-destructive"
       onCancel="cancelDelete()"
       onConfirm="confirmDelete()"
       loadingExpr="deleteBusy"
