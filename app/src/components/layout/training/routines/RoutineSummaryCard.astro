@@ -35,7 +35,10 @@ import Badge from "@components/ui/Badge.astro";
     x-text="routine.description"
   >
   </p>
-  <div class="flex h-2 gap-0.75">
+  <div
+    class="flex h-2 gap-0.75"
+    aria-hidden="true"
+  >
     <template
       x-for="(step, index) in routine.steps"
       :key="index"
@@ -51,7 +54,9 @@ import Badge from "@components/ui/Badge.astro";
   <div
     class="flex justify-between font-mono text-micro uppercase text-muted-foreground"
   >
-    <span x-text="`${routine.steps.length} steps`"></span>
+    <span
+      x-text="`${routine.steps.length} ${routine.steps.length === 1 ? 'step' : 'steps'}`"
+    ></span>
     <span x-text="`0:00 → ${totalMinutes()}:00`"></span>
   </div>
 </div>

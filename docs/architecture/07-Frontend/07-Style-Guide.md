@@ -104,8 +104,8 @@ Implement a reusable class contract once in `global.css` (`@utility` / `@layer c
 | `.link-card` | Community / outbound link cards |
 | `.card-wrapper` | Tintable tool/extension cards (`--card-tint`, default accent); translucent, so blurs its backdrop like `.glass` (2026-10-02) |
 | `@utility glass` / `glass-tinted` / `glass-raised` / `glass-tinted-raised` | Frosted panels — top-lit radial wash (white, or black when `-tinted`), `border-y`, blur; `-raised` adds `shadow-md` + stronger blur (2026-10-06); `glass-blue` / `glass-info` / `inset-well` / `inset-well-muted` / `glass-sheet` (2026-10-08, D428) |
-| `@utility glass-destructive` | Coral-tinted frosted surface for destructive actions (`IconBtn` `destructive`, `Button` `sheet-destructive`); glyph/text `error-glass-icon` / `error-glass-foreground` (D476, 2026-10-21) |
-| `@utility chip` | Mono micro pill (`bg-white/7`, `text-chip-foreground`) for minutes and tags (`RoutineRow`, `RoutineSummaryCard`) (2026-10-21) |
+| `@utility glass-destructive` | Coral-tinted frosted surface for destructive actions (`IconBtn` `destructive`, `Button` `sheet-destructive`); glyph/text `error-glass-icon` / `error-glass-foreground` (D477, 2026-10-21) |
+| `@utility chip` | Mono micro pill (`bg-white/7`, `text-chip-foreground`) for minutes and tags (`RoutineRow`, `RoutineStepList`) (2026-10-21) |
 | `@utility setting-badge` | Mono accent chip after a `SettingLabel` (e.g. `ANALYTICS`) (design Game Setup, D430, 2026-10-08) |
 | `@utility slider-fill` / `slider-thumb` / `slider-bubble` | `RangeSlider` accent fill, white capsule thumb with accent ring, blue-glass value bubble (design 6a, D430, 2026-10-08) |
 | `@utility slide-thumb` / `slide-fill` | `SlideToStart` accent orb thumb and the trail behind it (design 4d, D430, 2026-10-08) |
