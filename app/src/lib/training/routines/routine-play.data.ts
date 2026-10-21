@@ -46,6 +46,7 @@ import type {
   BoardTarget,
   DartObservation,
   SessionContextRow,
+  TrackTarget,
 } from "@modules/types";
 import type {
   BoardMarker,
@@ -87,6 +88,7 @@ import type { HitCountEngine } from "@modules/training/exercises/hit-count.engin
 import type { SwitchbladeEngine } from "@modules/training/exercises/switchblade.engine.module";
 import type { DoublesLockEngine } from "@modules/training/exercises/doubles-lock.engine.module";
 import type { HalveItEngine } from "@modules/training/exercises/halve-it.engine.module";
+import { HALVE_IT_PATH } from "@modules/training/exercises/halve-it.engine.module";
 import { boardTargetLabel } from "@modules/game/board-progression.module";
 import { checkoutPercentageDisplay } from "@lib/game/play-visit-stats";
 import type { DartFact } from "@modules/types";
@@ -163,6 +165,11 @@ function dartRecorders(): Record<
     DartRecorderName,
     (this: RoutinePlayContext, observation: DartObservation) => void
   >;
+}
+
+/** A path target's chip text: `RouteChips` splits on spaces, so a zone's words join with a no-break space. */
+function chipLabel(target: TrackTarget): string {
+  return boardTargetLabel(target).replace(" ", "\u00a0");
 }
 
 /** A path target's label, or "" while no engine is open. */
@@ -293,13 +300,18 @@ export function routinePlay() {
       return visitPreview({
         turns,
         visitLabels: (visitIndex) => this.exerciseVisitLabels(visitIndex),
-        judge: (dart) => this.judgeExerciseDart(dart),
+        judge: (dart, _index, visitIndex) =>
+          this.judgeExerciseDart(dart, visitIndex),
       });
     },
 
     /** Hit, miss or free-aim value for one dart (`judgeDart()`). */
-    judgeExerciseDart(this: RoutinePlayContext, dart: DartFact): DartJudgement {
-      return judgeDart(exerciseFamily(this) ?? "switching", dart);
+    judgeExerciseDart(
+      this: RoutinePlayContext,
+      dart: DartFact,
+      visitIndex = 0,
+    ): DartJudgement {
+      return judgeDart(exerciseFamily(this) ?? "switching", dart, visitIndex);
     },
 
     /** One caption per dart slot of the latest visit (`visitLabelsFor()`). */
@@ -1048,6 +1060,37 @@ export function routinePlay() {
     doublesLockBestPass(this: RoutinePlayContext): string {
       const best = this.doublesLockEngine?.state().bestPassDarts;
       return best == null ? "—" : `${best} darts`;
+    },
+
+    halveItTotal(this: RoutinePlayContext): number {
+      return this.halveItEngine?.state().total ?? 0;
+    },
+
+    /** Halve-It's list as chips, paged around the current round (`windowPage`); a zone keeps its words with a no-break space. */
+    halveItRoute(this: RoutinePlayContext): string {
+      const index = this.halveItEngine?.state().targetIndex ?? 0;
+      return windowPage(HALVE_IT_PATH.map(chipLabel), index).join(" ");
+    },
+
+    /** The current round's chip within `halveItRoute()`'s page. */
+    halveItChipIndex(this: RoutinePlayContext): number {
+      return windowIndex(this.halveItEngine?.state().targetIndex ?? 0);
+    },
+
+    halveItRound(this: RoutinePlayContext): number {
+      return this.halveItEngine?.state().round ?? 1;
+    },
+
+    halveItPasses(this: RoutinePlayContext): number {
+      return this.halveItEngine?.state().passes ?? 0;
+    },
+
+    halveItRate(this: RoutinePlayContext): string {
+      const state = this.halveItEngine?.state();
+      return checkoutPercentageDisplay(
+        state?.hits ?? 0,
+        state?.dartsThrown ?? 0,
+      );
     },
 
     dartsThrown(this: RoutinePlayContext): number {

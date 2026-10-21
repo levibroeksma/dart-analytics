@@ -263,6 +263,12 @@ describe("exerciseFamily", () => {
       "doublesLock",
     );
   });
+
+  it("maps the open Halve-It engine to its family", () => {
+    expect(exerciseFamily({ ...none, halveItEngine: {} as never })).toBe(
+      "halveIt",
+    );
+  });
 });
 
 describe("judgeDart", () => {
@@ -536,5 +542,60 @@ describe("Doubles Lock preview", () => {
         dartsInOpenVisit: 0,
       }),
     ).toEqual(["D18", "D18", "D18"]);
+  });
+});
+
+describe("Halve-It preview", () => {
+  const thrown = (hitTargetNumber: number | null, hitZoneKey: DartZoneKey) =>
+    dart({
+      hitTargetNumber,
+      hitZoneKey,
+      intendedTargetNumber: null,
+      intendedZoneKey: null,
+    });
+
+  it("judges each visit against its own round's target", () => {
+    expect(judgeDart("halveIt", thrown(20, "TREBLE"), 0)).toBe("hit");
+    expect(judgeDart("halveIt", thrown(5, "SINGLE"), 0)).toBe("miss");
+    expect(judgeDart("halveIt", thrown(25, "INNER_BULL"), 2)).toBe("hit");
+    expect(judgeDart("halveIt", thrown(25, "OUTER_BULL"), 2)).toBe("miss");
+    expect(judgeDart("halveIt", thrown(25, "OUTER_BULL"), 8)).toBe("hit");
+  });
+
+  it("judges a wrapped visit against 20", () => {
+    expect(judgeDart("halveIt", thrown(20, "SINGLE"), 9)).toBe("hit");
+    expect(judgeDart("halveIt", thrown(25, "INNER_BULL"), 9)).toBe("miss");
+  });
+
+  it("captions the visit with its round's target", () => {
+    const input = {
+      config: {},
+      currentTargetNumber: undefined,
+      targetIndex: 0,
+      dartsInOpenVisit: 0,
+    };
+    expect(visitLabelsFor("halveIt", { ...input, visitIndex: 2 })).toEqual([
+      "Any double",
+      "Any double",
+      "Any double",
+    ]);
+    expect(visitLabelsFor("halveIt", { ...input, visitIndex: 17 })).toEqual([
+      "BULL",
+      "BULL",
+      "BULL",
+    ]);
+  });
+
+  it("visitPreview hands each dart's visit index to the judge", () => {
+    const seen: number[] = [];
+    visitPreview({
+      turns: [turn([dart()]), turn([dart()])],
+      visitLabels: () => ["a", "b", "c"],
+      judge: (_dart, _index, visitIndex) => {
+        seen.push(visitIndex);
+        return "hit";
+      },
+    });
+    expect(seen).toEqual([1]);
   });
 });

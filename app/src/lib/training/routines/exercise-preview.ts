@@ -1,5 +1,5 @@
 import { dartLabel } from "@modules/stats/sections/checkout-path.module";
-import type { DartFact, TurnFact } from "@modules/types";
+import type { DartFact, TrackTarget, TurnFact } from "@modules/types";
 import type { PreviewSegment } from "@lib/types";
 import {
   targetScoringPoints,
@@ -7,6 +7,8 @@ import {
 } from "@modules/training/exercises/target-scoring.engine.module";
 import { boardTargetLabel } from "@modules/game/board-progression.module";
 import { switchbladeRoundSlots } from "@modules/training/exercises/switchblade.engine.module";
+import { HALVE_IT_PATH } from "@modules/training/exercises/halve-it.engine.module";
+import { anyRingEitherBull } from "@modules/game/track-policies";
 import type {
   DoublePatternConfigData,
   SwitchingChainConfigData,
@@ -36,6 +38,7 @@ const ENGINE_FAMILIES: readonly [
   ["hitCountEngine", "hitCount"],
   ["switchbladeEngine", "switchblade"],
   ["doublesLockEngine", "doublesLock"],
+  ["halveItEngine", "halveIt"],
 ];
 
 /** The preview family of whichever exercise engine is open, or null. */
@@ -78,18 +81,31 @@ function judgeIntendedBed(dart: DartFact): DartJudgement {
     : "miss";
 }
 
-const JUDGES: Record<ExercisePreviewFamily, (dart: DartFact) => DartJudgement> =
-  {
-    switching: judgeOnTarget,
-    doublePattern: judgeDouble,
-    targetScoring: judgeTargetScoring,
-    switchingChain: judgeTargetScoring,
-    freeAim: judgeFreeAim,
-    bullseye: judgeBullseye,
-    hitCount: judgeIntendedBed,
-    switchblade: judgeOnTarget,
-    doublesLock: judgeDouble,
-  };
+function halveItRoundTarget(visitIndex: number): TrackTarget {
+  return HALVE_IT_PATH[visitIndex % HALVE_IT_PATH.length];
+}
+
+function judgeHalveIt(dart: DartFact, visitIndex: number): DartJudgement {
+  return anyRingEitherBull(halveItRoundTarget(visitIndex), dart)
+    ? "hit"
+    : "miss";
+}
+
+const JUDGES: Record<
+  ExercisePreviewFamily,
+  (dart: DartFact, visitIndex: number) => DartJudgement
+> = {
+  switching: judgeOnTarget,
+  doublePattern: judgeDouble,
+  targetScoring: judgeTargetScoring,
+  switchingChain: judgeTargetScoring,
+  freeAim: judgeFreeAim,
+  bullseye: judgeBullseye,
+  hitCount: judgeIntendedBed,
+  switchblade: judgeOnTarget,
+  doublesLock: judgeDouble,
+  halveIt: judgeHalveIt,
+};
 
 /**
  * Hit, miss or free-aim value for one dart. Each dart carries the target it
@@ -99,13 +115,15 @@ const JUDGES: Record<ExercisePreviewFamily, (dart: DartFact) => DartJudgement> =
  * board is a value), and Bullseye Checkouts judges setup darts as free aim
  * and the dart aimed at the bull as a hit only on the bullseye. Hit Count
  * counts only the intended bed. SwitchBlade judges on the number, any ring.
- * Doubles Lock judges the intended double only.
+ * Doubles Lock judges the intended double only. Halve-It judges against the
+ * round's own target (any ring, either bull, or the zone).
  */
 export function judgeDart(
   family: ExercisePreviewFamily,
   dart: DartFact,
+  visitIndex = 0,
 ): DartJudgement {
-  return JUDGES[family](dart);
+  return JUDGES[family](dart, visitIndex);
 }
 
 function noCaptions(): Captions {
@@ -145,6 +163,11 @@ function switchbladeCaptions(input: VisitLabelInput): Captions {
   return switchbladeRoundSlots(input.visitIndex).map(boardTargetLabel);
 }
 
+function halveItCaptions(input: VisitLabelInput): Captions {
+  const label = boardTargetLabel(halveItRoundTarget(input.visitIndex));
+  return [label, label, label];
+}
+
 const CAPTIONS: Partial<
   Record<ExercisePreviewFamily, (input: VisitLabelInput) => Captions>
 > = {
@@ -155,6 +178,7 @@ const CAPTIONS: Partial<
   hitCount: hitCountCaptions,
   switchblade: switchbladeCaptions,
   doublesLock: hitCountCaptions,
+  halveIt: halveItCaptions,
 };
 
 /**
@@ -213,7 +237,7 @@ export function cycleFrom<T>(
 export function visitPreview(input: {
   turns: readonly TurnFact[];
   visitLabels: (visitIndex: number) => readonly (string | undefined)[];
-  judge: (dart: DartFact, index: number) => DartJudgement;
+  judge: (dart: DartFact, index: number, visitIndex: number) => DartJudgement;
 }): PreviewSegment[] {
   const visitIndex = Math.max(input.turns.length - 1, 0);
   const darts = input.turns.at(-1)?.darts ?? [];
@@ -222,7 +246,7 @@ export function visitPreview(input: {
     .map((label, index): PreviewSegment => {
       const dart = darts[index];
       if (!dart) return { status: "empty", label };
-      const status = input.judge(dart, index);
+      const status = input.judge(dart, index, visitIndex);
       return status === "miss"
         ? { status }
         : { status, label: dartLabel(dart) };

@@ -674,6 +674,10 @@ describe("routineStatsStore getters", () => {
     expect(store.metricLabel("locks")).toBe("Locks");
   });
 
+  it("labels Halve-It's halvings metric", () => {
+    expect(routineStatsStore().metricLabel("halvings")).toBe("Halvings");
+  });
+
   it("labels Catch 40's attempts metric", () => {
     expect(routineStatsStore().metricLabel("attempts")).toBe("Attempts");
   });

@@ -55,7 +55,8 @@ export type ExercisePreviewFamily =
   | "bullseye"
   | "hitCount"
   | "switchblade"
-  | "doublesLock";
+  | "doublesLock"
+  | "halveIt";
 
 /** The engine slots `exerciseFamily()` reads. */
 export type ExerciseEngineSlots = Pick<
@@ -281,6 +282,12 @@ export type RoutinePlayContext = {
   doublesLockLastLockLabel(this: RoutinePlayContext): string;
   doublesLockPasses(this: RoutinePlayContext): number;
   doublesLockBestPass(this: RoutinePlayContext): string;
+  halveItTotal(this: RoutinePlayContext): number;
+  halveItRoute(this: RoutinePlayContext): string;
+  halveItChipIndex(this: RoutinePlayContext): number;
+  halveItRound(this: RoutinePlayContext): number;
+  halveItPasses(this: RoutinePlayContext): number;
+  halveItRate(this: RoutinePlayContext): string;
   recordHalveItDart(
     this: RoutinePlayContext,
     observation: DartObservation,
@@ -305,7 +312,11 @@ export type RoutinePlayContext = {
     | null;
   visitMarkers(this: RoutinePlayContext): BoardMarker[];
   previewSegments(this: RoutinePlayContext): PreviewSegment[];
-  judgeExerciseDart(this: RoutinePlayContext, dart: DartFact): DartJudgement;
+  judgeExerciseDart(
+    this: RoutinePlayContext,
+    dart: DartFact,
+    visitIndex?: number,
+  ): DartJudgement;
   exerciseVisitLabels(
     this: RoutinePlayContext,
     visitIndex: number,
