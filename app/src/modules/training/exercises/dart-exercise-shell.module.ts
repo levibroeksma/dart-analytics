@@ -13,6 +13,7 @@ import type {
   DartExerciseSpec,
   TimedDartExerciseEngine,
 } from "./interfaces";
+import { registerDartExerciseEngineFactory } from "./dart-engine.registry";
 import { SOLO_PARTICIPANT_REF } from "./solo-participant.module";
 
 /**
@@ -93,4 +94,21 @@ export function dartExerciseEngineFactory<TConfig, TState>(
     exerciseRulesetVersionKey: spec.exerciseRulesetVersionKey,
     create: (config, prior) => new Engine(config, prior),
   };
+}
+
+/**
+ * Binds a shell-built exercise's class to its registry-facing factory,
+ * registers the factory under the spec's ruleset key, and returns it with
+ * the spec's fold.
+ */
+export function registerDartExercise<TConfig, TState>(
+  spec: DartExerciseSpec<TConfig, TState>,
+  Engine: DartExerciseEngineClass<TConfig, TState>,
+): {
+  factory: DartExerciseEngineFactory<TConfig, TState>;
+  fold: DartExerciseSpec<TConfig, TState>["fold"];
+} {
+  const factory = dartExerciseEngineFactory(spec, Engine);
+  registerDartExerciseEngineFactory(factory);
+  return { factory, fold: spec.fold };
 }

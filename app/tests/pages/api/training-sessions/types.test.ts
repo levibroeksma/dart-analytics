@@ -462,3 +462,11 @@ describe("ResumeTrainingResponse", () => {
     expect(ResumeTrainingResponse.safeParse(base).success).toBe(false);
   });
 });
+
+describe("exercise type keys", () => {
+  it("the step list and the start-step response accept the same keys", () => {
+    expect(StartTrainingStepResponse.shape.exerciseTypeKey.options).toEqual(
+      StartTrainingResponse.shape.steps.element.shape.exerciseTypeKey.options,
+    );
+  });
+});

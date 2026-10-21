@@ -213,13 +213,16 @@ export type BullseyeCheckoutConfigData = z.infer<
   typeof BullseyeCheckoutV1Config
 >;
 
+/** The config of every ruleset that has nothing to configure: the empty strict object. */
+export const EmptyV1Config = z.object({}).strict();
+
 /**
  * Bull Up v1 ("Bull Up Practice"): one dart per throw, always at the bull
  * (`docs/game-rules/training/exercises/bull-up-practice.md`). Nothing is
  * configurable — duration is the routine step's — so the config is the
  * empty object.
  */
-export const BullUpV1Config = z.object({}).strict();
+export const BullUpV1Config = EmptyV1Config;
 
 export type BullUpConfigData = z.infer<typeof BullUpV1Config>;
 
@@ -289,7 +292,7 @@ export type HitCountTarget = HitCountConfigData["targets"][number];
  * locked and duration is the routine step's, so the config is the empty
  * object.
  */
-export const SwitchbladeV1Config = z.object({}).strict();
+export const SwitchbladeV1Config = EmptyV1Config;
 
 export type SwitchbladeConfigData = z.infer<typeof SwitchbladeV1Config>;
 
@@ -300,7 +303,7 @@ export type SwitchbladeConfigData = z.infer<typeof SwitchbladeV1Config>;
  * and bonus are locked and duration is the routine step's, so the config
  * is the empty object.
  */
-export const DoublesLockV1Config = z.object({}).strict();
+export const DoublesLockV1Config = EmptyV1Config;
 
 export type DoublesLockConfigData = z.infer<typeof DoublesLockV1Config>;
 

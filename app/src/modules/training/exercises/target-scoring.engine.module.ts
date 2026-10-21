@@ -20,10 +20,9 @@ import {
   pathTarget,
   sectionOf,
 } from "@modules/game/track-policies";
-import { registerDartExerciseEngineFactory } from "./dart-engine.registry";
 import {
   dartExerciseEngineClass,
-  dartExerciseEngineFactory,
+  registerDartExercise,
 } from "./dart-exercise-shell.module";
 import { trackExerciseSpec } from "./track-exercise-spec.module";
 import type { TargetScoringState } from "./types";
@@ -156,22 +155,14 @@ const targetScoringSpec = trackExerciseSpec<
 });
 
 /** Target Scoring's state from a fact log alone, through the same fold the engine uses. */
-export function foldTargetScoringState(
-  facts: EngineFacts,
-  config: TargetScoringConfigData,
-  complete: boolean,
-): TargetScoringState {
-  return targetScoringSpec.fold(facts, config, complete);
-}
+export const foldTargetScoringState = targetScoringSpec.fold;
 
-/** Target Scoring exercise engine (D264), built by the exercise shell. */
+/** Target Scoring exercise engine, built by the exercise shell. */
 export class TargetScoringEngine extends dartExerciseEngineClass(
   targetScoringSpec,
 ) {}
 
-export const targetScoringEngineFactory = dartExerciseEngineFactory(
+export const targetScoringEngineFactory = registerDartExercise(
   targetScoringSpec,
   TargetScoringEngine,
-);
-
-registerDartExerciseEngineFactory(targetScoringEngineFactory);
+).factory;

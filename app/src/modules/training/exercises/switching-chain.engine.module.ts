@@ -15,10 +15,9 @@ import {
   resetOnMiss,
   sectionOf,
 } from "@modules/game/track-policies";
-import { registerDartExerciseEngineFactory } from "./dart-engine.registry";
 import {
   dartExerciseEngineClass,
-  dartExerciseEngineFactory,
+  registerDartExercise,
 } from "./dart-exercise-shell.module";
 import {
   targetScoringIntent,
@@ -109,22 +108,14 @@ const switchingChainSpec = trackExerciseSpec<
 });
 
 /** Switching Chain's state from a fact log alone, through the same fold the engine uses. */
-export function foldSwitchingChainState(
-  facts: EngineFacts,
-  config: SwitchingChainConfigData,
-  complete: boolean,
-): SwitchingChainState {
-  return switchingChainSpec.fold(facts, config, complete);
-}
+export const foldSwitchingChainState = switchingChainSpec.fold;
 
-/** Switching Chain exercise engine (D264), built by the exercise shell. */
+/** Switching Chain exercise engine, built by the exercise shell. */
 export class SwitchingChainEngine extends dartExerciseEngineClass(
   switchingChainSpec,
 ) {}
 
-export const switchingChainEngineFactory = dartExerciseEngineFactory(
+export const switchingChainEngineFactory = registerDartExercise(
   switchingChainSpec,
   SwitchingChainEngine,
-);
-
-registerDartExerciseEngineFactory(switchingChainEngineFactory);
+).factory;

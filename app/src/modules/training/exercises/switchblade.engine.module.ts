@@ -17,10 +17,9 @@ import {
   sectionOf,
   tallyRoundPoints,
 } from "@modules/game/track-policies";
-import { registerDartExerciseEngineFactory } from "./dart-engine.registry";
 import {
   dartExerciseEngineClass,
-  dartExerciseEngineFactory,
+  registerDartExercise,
 } from "./dart-exercise-shell.module";
 import { trackExerciseSpec } from "./track-exercise-spec.module";
 import type { SwitchbladeSlot, SwitchbladeState } from "./types";
@@ -122,22 +121,14 @@ const switchbladeSpec = trackExerciseSpec<
 });
 
 /** SwitchBlade's state from a fact log alone, through the same fold the engine uses. */
-export function foldSwitchbladeState(
-  facts: EngineFacts,
-  config: SwitchbladeConfigData,
-  complete: boolean,
-): SwitchbladeState {
-  return switchbladeSpec.fold(facts, config, complete);
-}
+export const foldSwitchbladeState = switchbladeSpec.fold;
 
 /** SwitchBlade exercise engine, built by the exercise shell. */
 export class SwitchbladeEngine extends dartExerciseEngineClass(
   switchbladeSpec,
 ) {}
 
-export const switchbladeEngineFactory = dartExerciseEngineFactory(
+export const switchbladeEngineFactory = registerDartExercise(
   switchbladeSpec,
   SwitchbladeEngine,
-);
-
-registerDartExerciseEngineFactory(switchbladeEngineFactory);
+).factory;

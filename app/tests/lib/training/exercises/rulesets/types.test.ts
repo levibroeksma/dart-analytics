@@ -3,6 +3,7 @@ import {
   EXERCISE_RULESET_CONFIGS,
   BullseyeCheckoutV1Config,
   BullUpV1Config,
+  EmptyV1Config,
   CheckoutSequenceV1Config,
   HitCountV1Config,
   RandomCheckoutV1Config,
@@ -381,5 +382,18 @@ describe("DoublesLockV1Config", () => {
 
   it("is registered under DOUBLES_LOCK_V1", () => {
     expect(EXERCISE_RULESET_CONFIGS.DOUBLES_LOCK_V1).toBe(DoublesLockV1Config);
+  });
+});
+
+describe("EmptyV1Config", () => {
+  it("is the one schema behind every empty-config ruleset", () => {
+    expect(BullUpV1Config).toBe(EmptyV1Config);
+    expect(SwitchbladeV1Config).toBe(EmptyV1Config);
+    expect(DoublesLockV1Config).toBe(EmptyV1Config);
+  });
+
+  it("accepts {} and rejects any key", () => {
+    expect(EmptyV1Config.safeParse({}).success).toBe(true);
+    expect(EmptyV1Config.safeParse({ x: 1 }).success).toBe(false);
   });
 });

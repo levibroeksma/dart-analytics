@@ -1,8 +1,13 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import {
   dartExerciseEngineClass,
   dartExerciseEngineFactory,
+  registerDartExercise,
 } from "@modules/training/exercises/dart-exercise-shell.module";
+import {
+  getDartExerciseEngineFactory,
+  resetDartExerciseEngineRegistry,
+} from "@modules/training/exercises/dart-engine.registry";
 import type { DartExerciseSpec } from "@modules/interfaces";
 import type { DartObservation } from "@modules/types";
 
@@ -62,5 +67,18 @@ describe("dartExerciseEngineClass", () => {
     const f = dartExerciseEngineFactory(spec, Toy);
     expect(f.exerciseRulesetVersionKey).toBe("TARGET_SCORING_V1");
     expect(f.create({ n: 1 })).toBeInstanceOf(Toy);
+  });
+});
+
+describe("registerDartExercise", () => {
+  beforeEach(() => resetDartExerciseEngineRegistry());
+
+  it("registers a factory that builds the given class and returns the spec's fold", () => {
+    const registered = registerDartExercise(spec, Toy);
+    expect(registered.factory.create({ n: 1 })).toBeInstanceOf(Toy);
+    expect(getDartExerciseEngineFactory("TARGET_SCORING_V1")).toBe(
+      registered.factory,
+    );
+    expect(registered.fold).toBe(spec.fold);
   });
 });
