@@ -38,9 +38,9 @@ Ship three new playable V1s on the Track kernel, one PR each, each end to end:
 - Nine Lives card shows Around the Clock's tags and difficulty (cards are
   keyed by game type, `pages/games/index.astro:58-65`); card-level tags are
   discovered work.
-- Approach A for zone-class targets: `BoardTarget` gains number-less kinds
-  (§2.1). Rejected: widening `TrackRules.target` to a generic type (touches the
-  kernel and every engine).
+- Zone-class targets live in a separate `ZoneTarget` type (§2.1), reached
+  through a defaulted `TTarget` parameter on `TrackRules`. Rejected: widening
+  `BoardTarget` (33 type errors in 20 files, 12 in append-only tests).
 
 ## 2. Shared additions
 
@@ -64,15 +64,19 @@ Existing shared pieces the new exercises use as-is: `trackExerciseSpec`,
 Each exercise also lands in `DART_WRITING_RULESET_VERSION_KEYS`
 (`services/exercise-rulesets/registry.ts:46-59`), missing from T1 §6's list.
 
-### 2.1 `BoardTarget` ANY_DOUBLE / ANY_TREBLE (T2.1)
+### 2.1 `ZoneTarget` ANY_DOUBLE / ANY_TREBLE (T2.1)
 
-`BoardTarget` gains `{ kind: "ANY_DOUBLE" }` and `{ kind: "ANY_TREBLE" }`.
-`isHitOn`: ANY_DOUBLE = zone `DOUBLE` on any number **or** `INNER_BULL`;
-ANY_TREBLE = zone `TREBLE` on any number. `sectionOf`, `anyRingEitherBull`, `pointsTable`
-(`track-policies.ts:87-111`), every exhaustive switch, `boardTargetLabel`
-(labels "Any double", "Any treble") and the test helper `observationOn`
-(`tests/modules/game/support/aimed-observations.ts`) handle them. Existing callers never build them, so
-shipped behaviour is unchanged; their goldens prove it.
+`ZoneTarget = { kind: "ANY_DOUBLE" } | { kind: "ANY_TREBLE" }` and
+`TrackTarget = BoardTarget | ZoneTarget`. `BoardTarget` is unchanged.
+`TrackRules`, `JudgedDart`, `applyTrackDart` / `foldTrackSeats` /
+`foldTrackDarts`, `TrackExerciseDefinition` and `trackExerciseSpec` gain
+`TTarget extends TrackTarget = BoardTarget`; the default leaves every
+existing engine and test untouched. `isHitOn`, `boardTargetLabel`,
+`targetAt`, `pathTarget`, `anyRingEitherBull`, `tallyOnTarget` and
+`boardScorePoints` accept `TrackTarget`. `isHitOn`: ANY_DOUBLE = zone
+`DOUBLE` on any number **or** `INNER_BULL`; ANY_TREBLE = zone `TREBLE` on any
+number. Labels "Any double", "Any treble". `sectionOf` and `pointsTable` stay
+`BoardTarget`. The test helper `observationOn` handles zones. Decision D478.
 
 ### 2.2 Policies (each with its first caller, D468)
 
@@ -206,8 +210,8 @@ additive). Boundary cases:
 
 ## 8. Decision entry
 
-None planned: zone-class targets follow the T1 TREBLE addition; ATC V3
-follows D243's version-not-widen rule. If a plan needs one, the id comes from
+D478 (T2.1): zone targets via the defaulted `TTarget` parameter. ATC V3
+follows D243's version-not-widen rule. If a plan needs another, the id comes from
 `bash scripts/next-decision-id.sh`, re-run before each PR.
 
 ## 9. Out of scope
@@ -218,11 +222,9 @@ follows D243's version-not-widen rule. If a plan needs one, the id comes from
 - Standalone exercise entry.
 - Schema changes (none needed).
 - Wave T3.
-- Remaining duplication T2 does not extend, filed as discovered work: a
-  data-driven `stepMetrics` field map; one parameterised seed-verification
-  SQL (0038–0040 are identical but for key and config; T2 accepts copies 4
-  and 5); an engine-tail helper (fold export, class, factory, register);
-  card-level tags for preset cards (#1048–#1051).
+- Folded into T2.1 by user approval: #1048 (`stepMetrics` field map), #1049
+  (one parameterised seed-verification SQL), #1050 (engine-tail helper).
+  Still discovered work, owned by T2.3: #1051 card-level tags.
 
 ## 10. Risks
 
@@ -232,3 +234,26 @@ follows D243's version-not-widen rule. If a plan needs one, the id comes from
 | ATC V3 leaks into V1/V2 sessions | V1/V2 keys, schemas and factories untouched; V2-through-V3 replay test |
 | `moveTable` index off by one at the bull level | boundary tests at D20 ↔ bull and the D1 floor |
 | Nine Lives card bypasses the seat cap | V3 seat check refuses 2 seats with lives set; test |
+
+## 11. T2.1 plan refinements (2026-10-21)
+
+Detail in `docs/superpowers/plans/2026-10-21-track-t2-halve-it.md`:
+
+- Halve-It's hit is `anyRingEitherBull` alone; it defers zones to `isHitOn`.
+- `rateOf` is the existing `checkoutPercentageDisplay`; `targetLabelOf` stays
+  local to `routine-play.data.ts`.
+- `dartExerciseAdapter` lives in `adapters/dart-exercise.adapter.ts`; the
+  per-kind adapter files stay as one call each. `record…Dart` methods are
+  generated from `DART_ENGINE_RECORDERS`; `COMPLETES_ON_DART` replaces the
+  hand-written completion branch.
+- `HALVE_IT_V1` validates through `makeConfigValidator(HalveItV1Config)`
+  inline in the registry.
+- `0042_catalog_tags.sql` runs before `0047`; the tag generator skips a type
+  not yet seeded (`WHERE v.exercise_type_id IS NOT NULL`) and the second seed
+  pass links it.
+- `HalveItState` adds `targetIndex` and `hitsPerTarget`; `halvings` counts
+  every blank visit.
+- `judgeDart(family, dart, visitIndex)`; the `halveIt` family judges against
+  `HALVE_IT_PATH[visitIndex % 9]`.
+- Route chip parts use a no-break space.
+- Integration fixture: Halve-It is step 15.
