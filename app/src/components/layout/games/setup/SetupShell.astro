@@ -1,9 +1,7 @@
 ---
 /**
- * Setup page shell: glass back link and centered title on one row (a
- * 40px / 1fr / 40px grid keeps the title centered while the link sits
- * left), wrapping a form that
- * submits via `beginStart()` — straight to `start()` solo, or through the
+ * Setup page shell: `PageHeader` (back link + centered title), wrapping a
+ * form that submits via `beginStart()` — straight to `start()` solo, or through the
  * who-throws-first `StarterStep` with an opponent. Every setup page's own `x-data` factory exposes
  * `loadingReconciliation` (active-session/preset lookup), which disables
  * submit alongside `loading` (the in-flight `start()` call) so a player
@@ -23,25 +21,15 @@ const { title, ...props }: Props = Astro.props;
 import SlideToStart from "@components/forms/SlideToStart.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
 import StarterStep from "@components/layout/games/StarterStep.astro";
-
-// Icons
-import ChevronDownIcon from "@icons/chevron-down.svg";
+import PageHeader from "@components/layout/PageHeader.astro";
 ---
 
 <div {...props}>
-  <header class="grid grid-cols-[40px_1fr_40px] items-center pt-3 pb-2">
-    <a
-      href="/games"
-      aria-label="Back to games"
-      class="glass-button flex size-10 items-center justify-center rounded-full"
-    >
-      <ChevronDownIcon class="size-5.5 rotate-90 text-muted-foreground" />
-    </a>
-    <h2 class="text-center font-display text-lg tracking-wide text-foreground">
-      {title}
-    </h2>
-    <span></span>
-  </header>
+  <PageHeader
+    backHref="/games"
+    backLabel="Back to games"
+    title={title}
+  />
 
   <form
     class="mt-2 flex flex-col gap-3 pb-28"
