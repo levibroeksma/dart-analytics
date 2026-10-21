@@ -78,12 +78,12 @@ function tuodScope(source: string): string {
 
 /**
  * TUOD's scope as rendered: `RoutineCompletionStates` renders its
- * `showFinishConfirm` dialog only when given a `description`, so the
+ * `showFinishConfirm` dialog only when given a non-empty `description`, so the
  * component's markup counts as part of the scope only in that case.
  */
 function tuodGateMarkup(source: string): string {
   const scope = tuodScope(source);
-  return /<RoutineCompletionStates\b[^>]*\bdescription=/.test(scope)
+  return /<RoutineCompletionStates\b[^>]*\bdescription="[^"]+"/.test(scope)
     ? scope + completionStates
     : scope;
 }
@@ -103,11 +103,11 @@ describe("Balanced Training's Finishing step", () => {
   it.each(GATES)(
     "answers the $flag gate the standalone TUOD page answers",
     ({ flag, dialog }) => {
-      expect(standalonePage).toContain(flag);
+      expect(standalonePage).toContain(`x-show="${flag}"`);
       expect(standalonePage).toContain(dialog);
 
       const scope = tuodGateMarkup(routinePage);
-      expect(scope).toContain(flag);
+      expect(scope).toContain(`x-show="${flag}"`);
       expect(scope).toContain(dialog);
     },
   );
