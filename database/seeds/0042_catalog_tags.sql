@@ -345,7 +345,8 @@ INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, cr
   ((SELECT id FROM game_types WHERE implementation_key = 'TUOD'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 34, FALSE, now());
 
 -- exercise BULLSEYE_CHECKOUT
-INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at) VALUES
+INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM exercise_types WHERE implementation_key = 'BULLSEYE_CHECKOUT'), 4, TRUE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'BULLSEYE_CHECKOUT'), 5, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'BULLSEYE_CHECKOUT'), 7, FALSE, now()),
@@ -354,18 +355,24 @@ INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at
   ((SELECT id FROM exercise_types WHERE implementation_key = 'BULLSEYE_CHECKOUT'), 13, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'BULLSEYE_CHECKOUT'), 19, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'BULLSEYE_CHECKOUT'), 21, FALSE, now()),
-  ((SELECT id FROM exercise_types WHERE implementation_key = 'BULLSEYE_CHECKOUT'), 32, FALSE, now());
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'BULLSEYE_CHECKOUT'), 32, FALSE, now())
+) AS v (exercise_type_id, tag_id, is_primary, created_at)
+WHERE v.exercise_type_id IS NOT NULL;
 -- exercise BULL_UP
-INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at) VALUES
+INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM exercise_types WHERE implementation_key = 'BULL_UP'), 5, TRUE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'BULL_UP'), 8, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'BULL_UP'), 9, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'BULL_UP'), 13, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'BULL_UP'), 17, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'BULL_UP'), 24, FALSE, now()),
-  ((SELECT id FROM exercise_types WHERE implementation_key = 'BULL_UP'), 32, FALSE, now());
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'BULL_UP'), 32, FALSE, now())
+) AS v (exercise_type_id, tag_id, is_primary, created_at)
+WHERE v.exercise_type_id IS NOT NULL;
 -- exercise CHECKOUT_SEQUENCE
-INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at) VALUES
+INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM exercise_types WHERE implementation_key = 'CHECKOUT_SEQUENCE'), 3, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'CHECKOUT_SEQUENCE'), 4, TRUE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'CHECKOUT_SEQUENCE'), 9, FALSE, now()),
@@ -377,18 +384,24 @@ INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at
   ((SELECT id FROM exercise_types WHERE implementation_key = 'CHECKOUT_SEQUENCE'), 21, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'CHECKOUT_SEQUENCE'), 23, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'CHECKOUT_SEQUENCE'), 24, FALSE, now()),
-  ((SELECT id FROM exercise_types WHERE implementation_key = 'CHECKOUT_SEQUENCE'), 32, FALSE, now());
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'CHECKOUT_SEQUENCE'), 32, FALSE, now())
+) AS v (exercise_type_id, tag_id, is_primary, created_at)
+WHERE v.exercise_type_id IS NOT NULL;
 -- exercise DOUBLES_LOCK
-INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at) VALUES
+INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLES_LOCK'), 3, TRUE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLES_LOCK'), 9, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLES_LOCK'), 13, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLES_LOCK'), 14, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLES_LOCK'), 19, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLES_LOCK'), 29, FALSE, now()),
-  ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLES_LOCK'), 34, FALSE, now());
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLES_LOCK'), 34, FALSE, now())
+) AS v (exercise_type_id, tag_id, is_primary, created_at)
+WHERE v.exercise_type_id IS NOT NULL;
 -- exercise DOUBLE_PATTERN
-INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at) VALUES
+INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLE_PATTERN'), 2, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLE_PATTERN'), 3, TRUE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLE_PATTERN'), 9, FALSE, now()),
@@ -396,9 +409,27 @@ INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at
   ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLE_PATTERN'), 19, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLE_PATTERN'), 23, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLE_PATTERN'), 24, FALSE, now()),
-  ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLE_PATTERN'), 32, FALSE, now());
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLE_PATTERN'), 32, FALSE, now())
+) AS v (exercise_type_id, tag_id, is_primary, created_at)
+WHERE v.exercise_type_id IS NOT NULL;
+-- exercise HALVE_IT
+INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'HALVE_IT'), 6, TRUE, now()),
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'HALVE_IT'), 9, FALSE, now()),
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'HALVE_IT'), 11, FALSE, now()),
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'HALVE_IT'), 13, FALSE, now()),
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'HALVE_IT'), 14, FALSE, now()),
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'HALVE_IT'), 15, FALSE, now()),
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'HALVE_IT'), 18, FALSE, now()),
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'HALVE_IT'), 23, FALSE, now()),
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'HALVE_IT'), 24, FALSE, now()),
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'HALVE_IT'), 33, FALSE, now())
+) AS v (exercise_type_id, tag_id, is_primary, created_at)
+WHERE v.exercise_type_id IS NOT NULL;
 -- exercise HIT_COUNT
-INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at) VALUES
+INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM exercise_types WHERE implementation_key = 'HIT_COUNT'), 1, TRUE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'HIT_COUNT'), 6, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'HIT_COUNT'), 9, FALSE, now()),
@@ -408,9 +439,12 @@ INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at
   ((SELECT id FROM exercise_types WHERE implementation_key = 'HIT_COUNT'), 19, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'HIT_COUNT'), 23, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'HIT_COUNT'), 31, FALSE, now()),
-  ((SELECT id FROM exercise_types WHERE implementation_key = 'HIT_COUNT'), 32, FALSE, now());
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'HIT_COUNT'), 32, FALSE, now())
+) AS v (exercise_type_id, tag_id, is_primary, created_at)
+WHERE v.exercise_type_id IS NOT NULL;
 -- exercise RANDOM_CHECKOUT
-INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at) VALUES
+INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM exercise_types WHERE implementation_key = 'RANDOM_CHECKOUT'), 3, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'RANDOM_CHECKOUT'), 4, TRUE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'RANDOM_CHECKOUT'), 9, FALSE, now()),
@@ -419,17 +453,23 @@ INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at
   ((SELECT id FROM exercise_types WHERE implementation_key = 'RANDOM_CHECKOUT'), 14, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'RANDOM_CHECKOUT'), 19, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'RANDOM_CHECKOUT'), 21, FALSE, now()),
-  ((SELECT id FROM exercise_types WHERE implementation_key = 'RANDOM_CHECKOUT'), 32, FALSE, now());
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'RANDOM_CHECKOUT'), 32, FALSE, now())
+) AS v (exercise_type_id, tag_id, is_primary, created_at)
+WHERE v.exercise_type_id IS NOT NULL;
 -- exercise SCORE_THRESHOLD
-INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at) VALUES
+INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM exercise_types WHERE implementation_key = 'SCORE_THRESHOLD'), 1, TRUE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'SCORE_THRESHOLD'), 9, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'SCORE_THRESHOLD'), 13, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'SCORE_THRESHOLD'), 18, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'SCORE_THRESHOLD'), 30, FALSE, now()),
-  ((SELECT id FROM exercise_types WHERE implementation_key = 'SCORE_THRESHOLD'), 32, FALSE, now());
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'SCORE_THRESHOLD'), 32, FALSE, now())
+) AS v (exercise_type_id, tag_id, is_primary, created_at)
+WHERE v.exercise_type_id IS NOT NULL;
 -- exercise SWITCHBLADE
-INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at) VALUES
+INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM exercise_types WHERE implementation_key = 'SWITCHBLADE'), 1, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'SWITCHBLADE'), 2, TRUE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'SWITCHBLADE'), 9, FALSE, now()),
@@ -439,32 +479,43 @@ INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at
   ((SELECT id FROM exercise_types WHERE implementation_key = 'SWITCHBLADE'), 18, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'SWITCHBLADE'), 23, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'SWITCHBLADE'), 24, FALSE, now()),
-  ((SELECT id FROM exercise_types WHERE implementation_key = 'SWITCHBLADE'), 32, FALSE, now());
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'SWITCHBLADE'), 32, FALSE, now())
+) AS v (exercise_type_id, tag_id, is_primary, created_at)
+WHERE v.exercise_type_id IS NOT NULL;
 -- exercise SWITCHING
-INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at) VALUES
+INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM exercise_types WHERE implementation_key = 'SWITCHING'), 2, TRUE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'SWITCHING'), 6, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'SWITCHING'), 9, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'SWITCHING'), 13, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'SWITCHING'), 23, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'SWITCHING'), 24, FALSE, now()),
-  ((SELECT id FROM exercise_types WHERE implementation_key = 'SWITCHING'), 35, FALSE, now());
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'SWITCHING'), 35, FALSE, now())
+) AS v (exercise_type_id, tag_id, is_primary, created_at)
+WHERE v.exercise_type_id IS NOT NULL;
 -- exercise TARGET_SCORING
-INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at) VALUES
+INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM exercise_types WHERE implementation_key = 'TARGET_SCORING'), 6, TRUE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'TARGET_SCORING'), 9, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'TARGET_SCORING'), 13, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'TARGET_SCORING'), 18, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'TARGET_SCORING'), 23, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'TARGET_SCORING'), 24, FALSE, now()),
-  ((SELECT id FROM exercise_types WHERE implementation_key = 'TARGET_SCORING'), 35, FALSE, now());
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'TARGET_SCORING'), 35, FALSE, now())
+) AS v (exercise_type_id, tag_id, is_primary, created_at)
+WHERE v.exercise_type_id IS NOT NULL;
 -- exercise WARM_UP
-INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at) VALUES
+INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM exercise_types WHERE implementation_key = 'WARM_UP'), 6, TRUE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'WARM_UP'), 8, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'WARM_UP'), 13, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'WARM_UP'), 17, FALSE, now()),
   ((SELECT id FROM exercise_types WHERE implementation_key = 'WARM_UP'), 23, FALSE, now()),
-  ((SELECT id FROM exercise_types WHERE implementation_key = 'WARM_UP'), 32, FALSE, now());
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'WARM_UP'), 32, FALSE, now())
+) AS v (exercise_type_id, tag_id, is_primary, created_at)
+WHERE v.exercise_type_id IS NOT NULL;
 
 COMMIT;

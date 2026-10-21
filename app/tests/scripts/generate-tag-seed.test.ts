@@ -96,10 +96,27 @@ describe("buildSeedSql", () => {
       .slice(sql.indexOf("INSERT INTO exercise_type_tags"))
       .split(";")[0];
     expect(link).toContain(
-      "(exercise_type_id, tag_id, is_primary, created_at) VALUES",
+      "(exercise_type_id, tag_id, is_primary, created_at)\nSELECT * FROM (VALUES",
     );
     for (const row of link.split("\n").filter((l) => l.startsWith("  (")))
       expect(row).toMatch(/, (TRUE|FALSE), now\(\)\),?$/);
+  });
+
+  it("skips a type the seeds have not inserted yet instead of inserting a null id", () => {
+    const single: TagBlock = {
+      context: "ROUTINE_STEP",
+      tags: tags(["BEGINNER"]),
+      difficultyLabels: [{ key: "BEGINNER", label: null }],
+    };
+    const { sql } = build({ exercises: new Map([["BULL_UP", [single]]]) });
+    const link = sql
+      .slice(sql.indexOf("INSERT INTO exercise_type_tags"))
+      .split(";")[0];
+    expect(link).toContain("SELECT * FROM (VALUES");
+    expect(link).toContain(
+      ") AS v (exercise_type_id, tag_id, is_primary, created_at)",
+    );
+    expect(link).toContain("WHERE v.exercise_type_id IS NOT NULL");
   });
 
   it("resolves type and context by implementation key", () => {
