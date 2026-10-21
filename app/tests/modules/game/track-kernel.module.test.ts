@@ -6,8 +6,14 @@ import {
   initialTrackSeat,
 } from "@modules/game/track-kernel.module";
 import { isHitOn } from "@modules/game/board-progression.module";
+import { boardScorePoints } from "@modules/game/track-policies";
 import type { TrackRules } from "@modules/interfaces";
-import type { DartObservation, TrackSeat, TurnFact } from "@modules/types";
+import type {
+  DartObservation,
+  TrackSeat,
+  TrackTarget,
+  TurnFact,
+} from "@modules/types";
 
 type Ext = { closed: number[] };
 
@@ -187,5 +193,35 @@ describe("track kernel", () => {
     expect(
       initialTrackSeat({ participantRef: "solo", sideKey: "solo" }, null),
     ).toMatchObject({ participantRef: "solo", sideKey: "solo" });
+  });
+});
+
+describe("applyTrackDart on a zone path", () => {
+  it("judges the dart with the ruleset's hit and passes the zone target to onDart", () => {
+    const seen: TrackTarget[] = [];
+    const rules: TrackRules<null, TrackTarget> = {
+      doneMessage: "done",
+      target: () => ({ kind: "ANY_DOUBLE" }),
+      hit: isHitOn,
+      points: boardScorePoints,
+      onDart: (seat, dart) => {
+        seen.push(dart.target);
+        return seat;
+      },
+      visitOpen: () => true,
+    };
+    const seat = applyTrackDart(
+      initialTrackSeat({ participantRef: "p", sideKey: "A" }, null),
+      {
+        hitTargetNumber: 25,
+        hitZoneKey: "INNER_BULL",
+        locationX: null,
+        locationY: null,
+      },
+      rules,
+    );
+    expect(seat.score).toBe(50);
+    expect(seat.hitsThisVisit).toBe(1);
+    expect(seen).toEqual([{ kind: "ANY_DOUBLE" }]);
   });
 });

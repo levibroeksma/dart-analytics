@@ -1,4 +1,10 @@
-import type { BoardTarget, DartObservation, DartZoneKey } from "./types";
+import type {
+  BoardTarget,
+  DartObservation,
+  DartZoneKey,
+  TrackTarget,
+  ZoneTarget,
+} from "./types";
 
 export const BULL_TARGET_NUMBER = 25;
 
@@ -60,10 +66,10 @@ export function clockPath(
   return [...ordered, BULL_TARGET_NUMBER];
 }
 
-export function targetAt(
-  path: readonly BoardTarget[],
+export function targetAt<TTarget extends TrackTarget = BoardTarget>(
+  path: readonly TTarget[],
   index: number,
-): BoardTarget {
+): TTarget {
   const target = path[index];
   if (!target) throw new Error(`No target at index ${index}`);
   return target;
@@ -79,8 +85,15 @@ const RING_ZONE: Record<"DOUBLE" | "TREBLE", DartZoneKey> = {
   TREBLE: "TREBLE",
 };
 
-/** A path target's display label: `BULL`, `D16` for a double, `T20` for a treble, the bare number otherwise. */
-export function boardTargetLabel(target: BoardTarget): string {
+const ZONE_LABEL: Record<ZoneTarget["kind"], string> = {
+  ANY_DOUBLE: "Any double",
+  ANY_TREBLE: "Any treble",
+};
+
+/** A path target's display label: `BULL`, `D16` for a double, `T20` for a treble, `Any double`/`Any treble` for a zone, the bare number otherwise. */
+export function boardTargetLabel(target: TrackTarget): string {
+  if (target.kind === "ANY_DOUBLE" || target.kind === "ANY_TREBLE")
+    return ZONE_LABEL[target.kind];
   if (target.kind === "BULL") return "BULL";
   if (target.kind === "NUMBER") return String(target.number);
   return `${RING_PREFIX[target.kind]}${target.number}`;
@@ -99,10 +112,21 @@ export function boardScore(
   return targetNumber;
 }
 
+/**
+ * Whether a dart hits `target`: the bullseye for BULL; any ring for a
+ * NUMBER; the named ring for DOUBLE/TREBLE; any double or the bullseye for
+ * ANY_DOUBLE; any treble for ANY_TREBLE.
+ */
 export function isHitOn(
-  target: BoardTarget,
+  target: TrackTarget,
   observation: DartObservation,
 ): boolean {
+  if (target.kind === "ANY_DOUBLE")
+    return (
+      observation.hitZoneKey === "DOUBLE" ||
+      observation.hitZoneKey === "INNER_BULL"
+    );
+  if (target.kind === "ANY_TREBLE") return observation.hitZoneKey === "TREBLE";
   if (target.kind === "BULL") {
     return (
       observation.hitTargetNumber === BULL_TARGET_NUMBER &&

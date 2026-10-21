@@ -1,8 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { trackExerciseSpec } from "@modules/training/exercises/track-exercise-spec.module";
-import { closeAfter, pathTarget } from "@modules/game/track-policies";
+import {
+  boardScorePoints,
+  closeAfter,
+  pathTarget,
+} from "@modules/game/track-policies";
 import { isHitOn, numbersPath } from "@modules/game/board-progression.module";
-import type { DartObservation, EngineFacts, TurnFact } from "@modules/types";
+import type {
+  DartObservation,
+  EngineFacts,
+  TrackTarget,
+  TurnFact,
+} from "@modules/types";
 
 type Config = { start: number };
 type State = {
@@ -82,5 +91,37 @@ describe("trackExerciseSpec", () => {
         { start: 0 },
       ),
     ).toEqual({ intendedTargetNumber: 5, intendedZoneKey: "SINGLE" });
+  });
+
+  it("folds a ruleset whose path mixes beds and zones", () => {
+    const zoneSpec = trackExerciseSpec<
+      Record<string, never>,
+      null,
+      number,
+      TrackTarget
+    >({
+      exerciseRulesetVersionKey: "HIT_COUNT_V1",
+      parse: (config) => config,
+      rules: () => ({
+        doneMessage: "done",
+        target: () => ({ kind: "ANY_TREBLE" }),
+        hit: isHitOn,
+        points: boardScorePoints,
+        visitOpen: closeAfter(3),
+      }),
+      initialExt: () => null,
+      project: (seat) => seat.score,
+      intent: () => ({
+        intendedTargetNumber: null,
+        intendedZoneKey: "TREBLE",
+      }),
+    });
+    const treble: DartObservation = {
+      hitTargetNumber: 19,
+      hitZoneKey: "TREBLE",
+      locationX: null,
+      locationY: null,
+    };
+    expect(zoneSpec.fold(facts([treble]), {}, false)).toBe(57);
   });
 });

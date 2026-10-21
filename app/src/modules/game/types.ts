@@ -447,6 +447,12 @@ export type BoardTarget =
   | { kind: "TREBLE"; number: number }
   | { kind: "BULL" };
 
+/** A number-less Track target: any double (the bullseye included) or any treble. */
+export type ZoneTarget = { kind: "ANY_DOUBLE" } | { kind: "ANY_TREBLE" };
+
+/** A Track path entry: one bed of the board, or a whole zone. */
+export type TrackTarget = BoardTarget | ZoneTarget;
+
 /** A Track seat's lifecycle: still throwing, finished the path, or knocked out. */
 export type TrackStatus = "IN_PROGRESS" | "DONE" | "OUT";
 
@@ -470,9 +476,9 @@ export type PointsTable = {
 };
 
 /** A dart as the Track kernel judged it against the seat's target. */
-export type JudgedDart = {
+export type JudgedDart<TTarget extends TrackTarget = BoardTarget> = {
   observation: DartObservation;
-  target: BoardTarget;
+  target: TTarget;
   hit: boolean;
   points: number;
 };

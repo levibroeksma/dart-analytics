@@ -1,6 +1,7 @@
 import {
   BULL_TARGET_NUMBER,
   boardScore,
+  isHitOn,
   targetAt,
 } from "./board-progression.module";
 import type {
@@ -17,12 +18,13 @@ import type {
   SequenceTrackExt,
   TargetTallyExt,
   TrackSeat,
+  TrackTarget,
 } from "./types";
 
 /** Target policy: the path entry at the seat's `targetIndex`. */
-export function pathTarget<TExt>(
-  path: readonly BoardTarget[],
-): (seat: TrackSeat<TExt>) => BoardTarget {
+export function pathTarget<TExt, TTarget extends TrackTarget = BoardTarget>(
+  path: readonly TTarget[],
+): (seat: TrackSeat<TExt>) => TTarget {
   return (seat) => targetAt(path, seat.targetIndex);
 }
 
@@ -88,11 +90,13 @@ export function sectionOf(target: BoardTarget): number {
   return target.kind === "BULL" ? BULL_TARGET_NUMBER : target.number;
 }
 
-/** Hit policy: any ring on a NUMBER target's number, either bull on BULL. */
+/** Hit policy: any ring on a NUMBER target's number, either bull on BULL; a zone target defers to `isHitOn`. */
 export function anyRingEitherBull(
-  target: BoardTarget,
+  target: TrackTarget,
   observation: DartObservation,
 ): boolean {
+  if (target.kind === "ANY_DOUBLE" || target.kind === "ANY_TREBLE")
+    return isHitOn(target, observation);
   const zones = target.kind === "BULL" ? EITHER_BULL : ANY_RING;
   return (
     observation.hitTargetNumber === sectionOf(target) &&
@@ -199,7 +203,7 @@ export function passOnWrap<TExt extends PassTrackExt>(
 /** Per-dart policy: count the dart against the current target in `ext.dartsOnTarget`, and a hit in `ext.hitsPerTarget[targetIndex]`. */
 export function tallyOnTarget<TExt extends TargetTallyExt>(
   seat: TrackSeat<TExt>,
-  dart: JudgedDart,
+  dart: JudgedDart<TrackTarget>,
 ): TrackSeat<TExt> {
   const hitsPerTarget = [...seat.ext.hitsPerTarget];
   hitsPerTarget[seat.targetIndex] =
@@ -256,7 +260,7 @@ export function zoneBucketOf(
 
 /** Points policy: a hit scores its board value, a miss nothing. */
 export function boardScorePoints(
-  _target: BoardTarget,
+  _target: TrackTarget,
   observation: DartObservation,
   hit: boolean,
 ): number {
