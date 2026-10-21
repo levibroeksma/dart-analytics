@@ -31,17 +31,17 @@ The routine detail page (`/training/routines/detail`) should show what a routine
 
 ### Header row
 
-- Grid `[88px_1fr_88px]`-equivalent (stock/token widths, not arbitrary): glass back link (chevron rotated 90°, `aria-label="Back to training"`, href `/training`), centred `Routine` title (`font-display text-lg`), right cluster.
-- Right cluster only when `canEdit()`: trashcan `IconBtn variant="destructive"` (`ariaLabel="Delete routine"`, `@click="requestDelete()"`) **left of** pencil `IconBtn` in glass (`ariaLabel="Edit routine"`, navigates to `editPath()`). Both `size-10`.
-- The side columns are fixed and equal width, so the title stays centred when the right cluster is hidden (system routines).
+- **New `PageHeader.astro`** (`components/layout/`), extracted from the inline header in `components/layout/games/setup/SetupShell.astro`: props `backHref`, `backLabel`, `title`, optional `actions` slot. It holds the glass back link (`glass-button size-10 rounded-full`, `chevron-down.svg` rotated 90°) and the centred title (`font-display text-lg tracking-wide`). `SetupShell` switches to it, so the back link + title markup exists once.
+- Grid: with no `actions` slot, keep SetupShell's current `grid-cols-[40px_1fr_40px]` (no visual change there). With `actions`, use stock `grid-cols-3`: equal columns keep the title centred and fit two 40px buttons. Branch on `Astro.slots.has("actions")`.
+- Detail page: `<PageHeader backHref="/training" backLabel="Back to training" title="Routine">`.
+- `actions` slot, rendered only when `canEdit()`: trashcan `IconBtn variant="destructive"` (`ariaLabel="Delete routine"`, `@click="requestDelete()"`) **left of** the existing `pencil.svg` in a new `IconBtn variant="glass"` (`glass-button text-foreground`, `ariaLabel="Edit routine"`, `@click="navigate(editPath())"`). Both `size-10`.
 - *Call:* the header always renders, in loading, error and "No routine selected" states too, so a failed load still has a back link. Summary card, step list and Start stay inside `x-if="routine"`.
-- Copy the back-link pattern from `components/layout/games/setup/SetupShell.astro`.
 - Add a trashcan icon `app/src/icons/trash.svg` using the design's path (`M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3`, stroke 2, round caps/joins, `currentColor`, matching the repo's icon file format). The existing `delete.svg` is a backspace glyph and is not reused.
 - The existing full-width Edit/Delete buttons are removed.
 
 ### Destructive glass
 
-- New `@utility glass-destructive` in `global.css`. Design values: background `radial-gradient(at 50% 0%, oklch(62% 0.17 28 / 0.18), oklch(62% 0.17 28 / 0.32) 85%)`, border-top `oklch(72% 0.15 30 / 0.55)`, border-bottom `oklch(68% 0.15 30 / 0.25)`, shadow `0 2px 8px oklch(0% 0 0 / 0.25), inset 0 1px 0 oklch(80% 0.12 30 / 0.2)`, `backdrop-blur-md`. Mirrors `glass-button`'s structure.
+- No existing error glass: `--error*` tokens and `btn-error` are solid fills. New `@utility glass-destructive` in `global.css`. Design values: background `radial-gradient(at 50% 0%, oklch(62% 0.17 28 / 0.18), oklch(62% 0.17 28 / 0.32) 85%)`, border-top `oklch(72% 0.15 30 / 0.55)`, border-bottom `oklch(68% 0.15 30 / 0.25)`, shadow `0 2px 8px oklch(0% 0 0 / 0.25), inset 0 1px 0 oklch(80% 0.12 30 / 0.2)`, `backdrop-blur-md`. Mirrors `glass-button`'s structure.
 - Foreground: icon `oklch(78% 0.13 30)`, label `oklch(90% 0.05 30)`. Expose as semantic tokens (e.g. `--error-glass-icon`, `--error-glass-foreground`) alongside the existing `--error*` set.
 - `IconBtn.astro` gains `variant="destructive"` → `glass-destructive` + icon colour token, no `border-3`.
 - `Button.astro` gains `variant="sheet-destructive"` → `h-13 rounded-2xl text-control glass-destructive` + label colour token (same shape as `sheet-raised`).
@@ -52,21 +52,21 @@ The routine detail page (`/training/routines/detail`) should show what a routine
 
 ### Summary card (`RoutineSummaryCard.astro`, new, under `components/layout/training/routines/`)
 
-- `glass` card, `rounded-2xl p-4 gap-3` (20px radius per design → nearest stock/token).
-- Eyebrow: `PERSONAL ROUTINE` when `canEdit()`, else `ROUTINE` (mono, 10px, tracking `.14em`, accent-light).
-- Name: Michroma 20px. Duration pill: accent-tinted (`accent/16` bg, `accent/50` border, mono 11px uppercase), text from `durationLabel()` uppercased (`45 MIN`). Check whether `Badge.astro` can express this before adding markup.
+- `glass rounded-2xl p-4 flex flex-col gap-3`, the same surface as the `/training` routine card.
+- Eyebrow: `PERSONAL ROUTINE` when `canEdit()`, else `ROUTINE`. Reuse the ready gate's eyebrow classes (`font-mono text-eyebrow font-semibold uppercase tracking-widest text-accent-bright`, `RoutineReadyGate.astro`).
+- Name: Michroma 20px. Duration pill: existing `Badge variant="accent"` (already used on this page) with `class="font-mono text-micro uppercase"`, `x-text="durationLabel()"`. Badge's accent border is `/25` against the design's `/50`; the existing Badge wins over a pixel match.
 - Description: 13px muted, hidden when null.
 - Timeline: flex row, `gap-0.75`, `h-2`. One segment per step, `rounded`, `flex-grow` = the step's weight (below), background = the step's tone.
 - Footer: `N STEPS` / `0:00 → {total}:00` (mono 10px, muted).
 
 ### Step list (`RoutineStepList.astro`, new; the existing `RoutineStepRow.astro` is the builder's and stays as is)
 
-- `STEPS` label above (mono 11px, tracking `.14em`, muted, `pt-2.5 px-1`).
-- `glass` card `rounded-2xl px-4`, `<ol>` of rows; each row `flex gap-3 py-3.5`, divider `border-t border-white/8` on every row but the first.
-- Number ring: `size-8 rounded-full border-[1.5px]`-equivalent (token/utility, not arbitrary). Only the border takes the step's tone (white/35 too). No fill; the number is mono 12px in `text-foreground` (white), per the design.
+- `STEPS` label above: existing `.section-eyebrow pt-2.5`, as on `/training`'s `ROUTINES` label.
+- Card: `glass flex flex-col rounded-2xl px-4 shadow-none`, same as `/training`'s routine card. `<ol>` of rows, each `flex gap-3 py-3.5` with `border-t border-border` on every row but the first, the same row rhythm as `RoutineRow.astro`.
+- Number ring: `size-8 rounded-full border-medium` (existing 1.5px utility). Only the border takes the step's tone (white/35 too). No fill; the number is mono 12px in `text-foreground` (white), per the design.
 - Name `font-display` 14px; duration right, mono 11px uppercase from `stepDuration(step)` (`15 MIN` / `3 ROUNDS`).
 - Description 12px muted; omitted when null.
-- One tag pill (mono 10px, `bg-white/7`, `rounded-md px-1.75 py-0.5`); omitted when no tag.
+- One tag chip, omitted when there's no tag. The design's chip is exactly the neutral chip `RoutineRow.astro` already writes out twice (`rounded-md bg-white/7 px-1.75 py-0.5 font-mono text-micro font-semibold text-chip-foreground`). Promote it to `@utility chip` in `global.css`, switch both `RoutineRow` copies to it, and use it here. `Tag.astro` is **not** used: its pills are axis-coloured and outlined, but the design's chip is neutral.
 
 ### Tones
 
@@ -91,6 +91,24 @@ The routine detail page (`/training/routines/detail`) should show what a routine
 
 UI-only. Reads `RoutineExecutionData` via the existing API (view-backed). No new state is captured or stored.
 
+## Reuse audit (2026-10-21)
+
+| Need | Source |
+| ---- | ------ |
+| Back link + title | `PageHeader.astro`, new: extracted from `SetupShell.astro`, which adopts it |
+| Edit / Delete buttons | `IconBtn.astro`, adding `glass` and `destructive` variants |
+| Confirm sheet | `ConfirmDialog.astro` + `InlayRow.astro` as-is, adding `confirmVariant` |
+| Red sheet button | `Button.astro`, adding `sheet-destructive` |
+| Duration pill | `Badge.astro` accent |
+| Card surfaces | `glass` utility (+ `/training` card classes) |
+| `STEPS` label | `.section-eyebrow` |
+| Number ring border | `border-medium` |
+| Tag chip | new `@utility chip`, deduplicating `RoutineRow.astro`'s two copies |
+| Tag lookup | shared helper extracted from `catalog-groups.ts`, plus `cardTags` |
+| Start | `Button.astro` primary, unchanged |
+
+Genuinely new: `RoutineSummaryCard.astro` (timeline bar), `RoutineStepList.astro` (`RoutineReadyGate`'s rows are inset wells with no description or tag, and `RoutineStepRow` is the builder's editable row, so neither fits), `glass-destructive` + its two colour tokens, and `trash.svg`.
+
 ## Tests (TDD, `app/CLAUDE.md`)
 
 Unit tests in the `routine-detail.data` test file for `stepWeight`, `stepTone`, `stepTag` (game step, exercise step, missing set, `catalogTags === null`), and for `init` still loading the routine when the tags fetch rejects. The tag-set lookup helper gets its own test if extracted. No Astro component test runner (D101).
@@ -98,6 +116,5 @@ Unit tests in the `routine-detail.data` test file for `stepWeight`, `stepTone`, 
 ## Left to the builder
 
 - Exact token/utility names, and stock-step approximations of the design's px values.
-- Whether the duration pill is a `Badge` variant or local markup.
 - Wiring `lib/training/routines/types.ts` (`RoutineDetailContext`) for the new fields and helpers.
 - Context-maintenance updates (Style Guide entry for destructive glass, context map / File Inventory rows for new components, decision entry if warranted).
