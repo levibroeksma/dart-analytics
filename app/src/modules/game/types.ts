@@ -512,6 +512,12 @@ export type PassTrackExt = {
 /** Hit Count's Track extras. */
 export type HitCountTrackExt = TargetTallyExt & PassTrackExt;
 
+/** Halve-It's Track extras: the per-target tally, passes, and blank visits. */
+export type HalveItTrackExt = TargetTallyExt &
+  PassTrackExt & {
+    halvings: number;
+  };
+
 /** Points per round for a Track seat whose path is cut into equal rounds (SwitchBlade). */
 export type RoundTallyExt = {
   roundTotals: number[];

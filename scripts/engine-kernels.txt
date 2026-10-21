@@ -19,6 +19,7 @@ app/src/modules/training/exercises/bullseye-checkout.engine.module.ts | CHECKOUT
 app/src/modules/training/exercises/checkout-sequence.engine.module.ts | CHECKOUT | PENDING | docs/game-rules/training/exercises/catch-40.md | Checkout family plan
 app/src/modules/training/exercises/double-pattern.engine.module.ts | TRACK | PENDING | docs/game-rules/training/exercises/double-pattern.md | re-checked when its exercise shell is next touched (Track spec §5)
 app/src/modules/training/exercises/doubles-lock.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/training/exercises/doubles-lock.md |
+app/src/modules/training/exercises/halve-it.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/training/exercises/halve-it.md |
 app/src/modules/training/exercises/hit-count.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/training/exercises/hit-count.md |
 app/src/modules/training/exercises/random-checkout.engine.module.ts | CHECKOUT | PENDING | docs/game-rules/training/exercises/random-checkout.md | Checkout family plan
 app/src/modules/training/exercises/score-threshold.engine.module.ts | VISIT_POINTS | PENDING | docs/game-rules/training/exercises/score-threshold.md | Visit-points family plan

@@ -1,5 +1,5 @@
 import type { HitCountTarget } from "@lib/types";
-import type { BoardTarget } from "@modules/types";
+import type { BoardTarget, TrackTarget } from "@modules/types";
 
 /**
  * Warm-Up state, derived on every `state()` call. It carries no elapsed time:
@@ -237,5 +237,24 @@ export type DoublesLockState = {
   dartsThisPass: number;
   hits: number;
   dartsThrown: number;
+  status: "IN_PROGRESS" | "COMPLETE";
+};
+
+/**
+ * Halve-It state, derived by replaying `facts()` (`foldHalveItState`).
+ * `currentTarget`/`targetIndex`/`round` locate the next visit; `total` is the
+ * score after every halving; `hitsPerTarget` follows the path and sums every
+ * pass.
+ */
+export type HalveItState = {
+  currentTarget: TrackTarget;
+  targetIndex: number;
+  round: number;
+  total: number;
+  passes: number;
+  halvings: number;
+  hits: number;
+  dartsThrown: number;
+  hitsPerTarget: { target: TrackTarget; hits: number }[];
   status: "IN_PROGRESS" | "COMPLETE";
 };
