@@ -1,6 +1,6 @@
 # Halve-It
 
-Current version: none (V1 in design)
+Current version: V1 (shipped 2026-10-21)
 Entry points: routine step
 Kernel: TRACK
 
@@ -53,8 +53,7 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 
 ## Exercise type
 
-- Type constant: `HALVE_IT` (proposed; not among the seeded types — checked
-  against `database/seeds/0014`, `0016`, `0023`–`0025`, `0029`, `0030`).
+- Type constant: `HALVE_IT` (seed `0047`).
 - Wraps no game.
 - Behaviour no existing type provides: a penalty that scales with the running
   total, and targets that are a zone class (any double, any treble) rather

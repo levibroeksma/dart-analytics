@@ -961,6 +961,21 @@ One visit of three darts at the current double; only the double counts. One hit 
 
 **Implemented** (`DOUBLES_LOCK_V1`, `app/src/modules/training/exercises/doubles-lock.engine.module.ts`, seed `0040`): empty configuration (path, threshold and bonus are fixed in V1), bound to the Track kernel through `trackExerciseSpec` (D469) with `isHitOn`, `noPoints`, `lockCheckpoint({2: 50, 3: 100})` and `passOnWrap(19)` composed with a pass reset. Each dart carries the current double (`DOUBLE`); `score` is the board score. One turn per visit. State carries the bonus and locks over every pass, the current double, the last lock, passes, darts per pass and the best (fewest) pass. Time-bound only. Capture pair and upload path match Target Scoring (D277). Routine step only in V1 (2026-10-18).
 
+## Halve-It
+
+Configuration:
+
+```text
+duration: 10m
+
+list (fixed): 20 16 any-double 17 18 any-treble 19 20 bull
+start total (fixed): 0
+```
+
+One visit of three darts per round. Darts in the round's target add their board value: any ring on a number, any double (the bullseye included) on Any double, any treble on Any treble, outer bull 25 and bullseye 50 on Bull. A visit with no dart in the target halves the total, rounding up (95 → 48). After Bull the list starts again with the total carried, until the time runs out. Rules: `docs/game-rules/training/exercises/halve-it.md`.
+
+**Implemented** (`HALVE_IT_V1`, `app/src/modules/training/exercises/halve-it.engine.module.ts`, seed `0047`): empty configuration, bound to the Track kernel through `trackExerciseSpec` (D469) on a `TrackTarget` path (D478) with `anyRingEitherBull`, `boardScorePoints`, `tallyOnTarget`, `halveOnBlank`, `advanceAfterDarts(3)` and `passOnWrap(8)`. A dart at a number or the bull carries no intended bed; a dart at a zone carries the zone. One turn per visit. State carries the total, halvings, rounds, passes and hits per round. Time-bound only. Routine step only in V1 (2026-10-21).
+
 ---
 
 ## Game Exercise

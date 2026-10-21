@@ -298,6 +298,7 @@ key — `exerciseKind` only selects `step-result`'s chunk merger, so
 | HIT_COUNT | hits, darts (sum) | hits ↑ | hits/darts |
 | SWITCHBLADE | points, darts, hits (sum) | points ↑ | hits/darts |
 | DOUBLES_LOCK | bonus, locks, darts, hits (sum) | bonus ↑ | hits/darts |
+| HALVE_IT | points, halvings, darts, hits (sum) | points ↑ | hits/darts |
 
 - `stepMetrics(kind, state, facts)` reads engine state the way the routine
   summary modal does: `routine-summary.module.ts`'s `summarise*` functions

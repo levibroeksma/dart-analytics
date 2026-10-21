@@ -463,3 +463,10 @@ Decision: in a 1v1 `BOBS27_V1` match where neither seat reaches 0 or below, the 
 Reason: both seats ended `WON` with no match outcome, so the session stayed `IN_PROGRESS` and could be neither finished nor continued (#983). The score-compare rule is the repo's existing outcome for equal-footing survival, and the tie follows the deferred-tiebreak convention.
 Consequences: `docs/game-rules/rulesets/bobs-27.md` §Ends when states the rule. A tie is not persisted as a winner; the results title reads "It's a tie!".
 Supersedes: none.
+
+### D478 — Zone targets are their own type; TrackRules takes a defaulted target parameter
+Status: Accepted · Date: 2026-10-21
+Decision: a number-less Track target (`ANY_DOUBLE`, `ANY_TREBLE`) is a `ZoneTarget`, and `TrackTarget = BoardTarget | ZoneTarget`. `TrackRules`, `JudgedDart`, the kernel's three folds, `TrackExerciseDefinition` and `trackExerciseSpec` take `TTarget extends TrackTarget = BoardTarget`; `isHitOn`, `boardTargetLabel`, `targetAt`, `pathTarget`, `anyRingEitherBull`, `tallyOnTarget` and `boardScorePoints` accept a `TrackTarget`. `BoardTarget` is unchanged. Halve-It is the first caller.
+Reason: widening `BoardTarget` itself breaks every game that reads `target.number` once BULL is ruled out — 33 type errors in 20 files, 12 in append-only tests. The defaulted parameter changes no existing engine or test.
+Consequences: a game or exercise that never aims at a zone keeps `BoardTarget` and its narrowings. A zone target's dart carries `intendedTargetNumber` null and the zone as `intendedZoneKey`. Spec: `docs/superpowers/specs/2026-10-21-track-wave-t2-design.md`; plan: `docs/superpowers/plans/2026-10-21-track-t2-halve-it.md`.
+Supersedes: none.
