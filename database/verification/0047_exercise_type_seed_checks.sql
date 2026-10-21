@@ -6,7 +6,9 @@
 -- 0047 HALVE_IT) can only claim locally: the type is published,
 -- its v1 ruleset belongs to it, the system template pins that
 -- ruleset with its default configuration, and the template
--- reaches the routine builder through v_exercise_template_catalog.
+-- reaches the routine builder through v_exercise_template_catalog, and
+-- the type carries catalog tag links (0042 skips a type seeded later;
+-- the second db:seed pass links it).
 -- A new exercise seed adds one row to `expected`.
 --
 -- Reads seeded rows only and ends in ROLLBACK.
@@ -81,6 +83,16 @@ SELECT '4',
 FROM expected e
     LEFT JOIN v_exercise_template_catalog c ON c.exercise_type_key = e.type_key
         AND c.has_default_configuration
+GROUP BY e.type_key;
+
+INSERT INTO verification_results
+SELECT '5',
+    format('%s has catalog tag links', e.type_key),
+    CASE WHEN count(ett.tag_id) > 0 THEN 'PASS' ELSE 'FAIL' END,
+    format('%s tag link(s)', count(ett.tag_id))
+FROM expected e
+    LEFT JOIN exercise_types et ON et.implementation_key = e.type_key
+    LEFT JOIN exercise_type_tags ett ON ett.exercise_type_id = et.id
 GROUP BY e.type_key;
 
 SELECT step, result, check_name, detail
