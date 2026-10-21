@@ -1,0 +1,63 @@
+---
+/**
+ * Page header row: glass back link, centered title, optional trailing
+ * actions. Without an `actions` slot a 40px / 1fr / 40px grid keeps the
+ * title centered; with one, three equal columns do.
+ * @param {string} backHref
+ * @param {string} backLabel
+ * @param {string} title
+ */
+interface Props {
+  backHref: string;
+  backLabel: string;
+  title: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+// Props
+const {
+  backHref,
+  backLabel,
+  title,
+  class: classNameProp,
+  ...props
+}: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+
+// Icons
+import ChevronDownIcon from "@icons/chevron-down.svg";
+
+const className = cn(
+  "grid items-center pt-3 pb-2",
+  Astro.slots.has("actions") ? "grid-cols-3" : "grid-cols-[40px_1fr_40px]",
+  classNameProp,
+);
+---
+
+<header
+  class={className}
+  {...props}
+>
+  <a
+    href={backHref}
+    aria-label={backLabel}
+    class="glass-button flex size-10 items-center justify-center rounded-full"
+  >
+    <ChevronDownIcon class="size-5.5 rotate-90 text-muted-foreground" />
+  </a>
+  <h2 class="text-center font-display text-lg tracking-wide text-foreground">
+    {title}
+  </h2>
+  {
+    Astro.slots.has("actions") ? (
+      <div class="flex justify-end gap-2">
+        <slot name="actions" />
+      </div>
+    ) : (
+      <span />
+    )
+  }
+</header>

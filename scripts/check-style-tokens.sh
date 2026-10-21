@@ -95,7 +95,7 @@ ARBITRARY_ALLOW=(
   "app/src/components/layout/games/setup/FiveOhOneSetupForm.astro|grid-cols-[minmax(0,1fr)_72px_minmax(0,1fr)]"
   "app/src/components/layout/games/setup/FiveOhOneSetupForm.astro|grid-cols-[minmax(0,1fr)_72px]"
   "app/src/components/layout/games/SinglePlayerSummary.astro|grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]"
-  "app/src/components/layout/games/setup/SetupShell.astro|grid-cols-[40px_1fr_40px]"
+  "app/src/components/layout/PageHeader.astro|grid-cols-[40px_1fr_40px]"
   # glass utilities' top-lit wash; v4 has no theme namespace for gradient position
   "app/src/styles/global.css|bg-radial-[at_50%_0%]"
   # regex literals, not classes
