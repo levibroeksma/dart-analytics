@@ -1,0 +1,69 @@
+---
+/**
+ * Presentational — a routine game step's completion states, rendered inside
+ * that step's `x-data="game"` scope: the finish confirm (`showFinishConfirm`),
+ * the failed-upload block with Retry, and the saving block once `finished`.
+ * @param {string} [description] Finish-confirm text; omit when the step has no
+ *   `showFinishConfirm` gate
+ * @param {string} savingText Saving-block copy
+ */
+interface Props {
+  description?: string;
+  savingText: string;
+}
+
+// Props
+const { description, savingText } = Astro.props;
+
+// Components
+import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
+import InlayRow from "@components/ui/InlayRow.astro";
+import ErrorAlert from "@components/ui/ErrorAlert.astro";
+import Button from "@components/forms/Button.astro";
+---
+
+{
+  description && (
+    <div
+      x-show="showFinishConfirm"
+      x-cloak
+    >
+      <ConfirmDialog
+        titleId="routine-finish-confirm-title"
+        title="Finish session?"
+        description={description}
+        confirmLabel="Finish"
+        onCancel="cancelFinish()"
+        onConfirm="confirmFinish()"
+        dismissible={false}
+      >
+        <InlayRow
+          slot="context"
+          rowExpr="stepContextRow()"
+        />
+      </ConfirmDialog>
+    </div>
+  )
+}
+<div
+  x-show="finished && completionStatus === 'failed'"
+  x-cloak
+  class="p-4"
+>
+  <ErrorAlert
+    textExpr="completionError"
+    alwaysVisible
+  />
+  <Button
+    class="mt-2"
+    @click="uploadAndCompleteSession()"
+    title="Retry"
+  />
+</div>
+<div
+  x-show="finished && completionStatus !== 'failed'"
+  x-cloak
+  class="p-4 text-center"
+>
+  <p class="text-foreground">{savingText}</p>
+</div>
