@@ -6,6 +6,7 @@
  * @param {string} description
  * @param {string} [cancelLabel="Cancel"]
  * @param {string} [confirmLabel="Confirm"]
+ * @param {"sheet-raised"|"sheet-destructive"} [confirmVariant="sheet-raised"] Confirm button look
  * @param {string} onCancel Alpine expression
  * @param {string} onConfirm Alpine expression
  * @param {boolean} [dismissible=true] When true, dismiss uses `onCancel`
@@ -18,6 +19,7 @@ interface Props {
   description: string;
   cancelLabel?: string;
   confirmLabel?: string;
+  confirmVariant?: "sheet-raised" | "sheet-destructive";
   onCancel: string;
   onConfirm: string;
   dismissible?: boolean;
@@ -33,6 +35,7 @@ const {
   description,
   cancelLabel = "Cancel",
   confirmLabel = "Confirm",
+  confirmVariant = "sheet-raised",
   onCancel,
   onConfirm,
   dismissible = true,
@@ -79,7 +82,7 @@ const descriptionId = `${titleId}-desc`;
       grow
     />
     <Button
-      variant="sheet-raised"
+      variant={confirmVariant}
       title={confirmLabel}
       x-on:click={onConfirm}
       loadingExpr={loadingExpr}
