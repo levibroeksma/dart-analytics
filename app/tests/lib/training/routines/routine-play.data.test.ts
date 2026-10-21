@@ -3923,3 +3923,38 @@ describe("routinePlay — Doubles Lock play", () => {
     expect(store.stepSummaries[0]).toMatchObject({ stepKey: "DOUBLES_LOCK" });
   });
 });
+
+describe("routinePlay — dart recorders", () => {
+  const MISS = {
+    hitTargetNumber: null,
+    hitZoneKey: "MISS" as const,
+    locationX: null,
+    locationY: null,
+  };
+
+  it("a recorder whose slot is empty records nothing", () => {
+    const store = makeStore();
+    store.recordHitCountDart(MISS);
+    store.recordCheckoutSequenceDart(MISS);
+    expect(store.activeDartEngine()).toBeNull();
+  });
+
+  it("every dart engine slot has a recorder", () => {
+    const store = makeStore() as unknown as Record<string, unknown>;
+    for (const name of [
+      "recordSwitchingDart",
+      "recordDoublePatternDart",
+      "recordTargetScoringDart",
+      "recordSwitchingChainDart",
+      "recordScoreThresholdDart",
+      "recordBullseyeCheckoutDart",
+      "recordBullUpDart",
+      "recordCheckoutSequenceDart",
+      "recordRandomCheckoutDart",
+      "recordHitCountDart",
+      "recordSwitchbladeDart",
+      "recordDoublesLockDart",
+    ])
+      expect(typeof store[name]).toBe("function");
+  });
+});

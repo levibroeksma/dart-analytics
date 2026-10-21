@@ -1,4 +1,7 @@
-import { accuracyDisplay } from "@lib/game/play-visit-stats";
+import {
+  accuracyDisplay,
+  checkoutPercentageDisplay,
+} from "@lib/game/play-visit-stats";
 import { boardTargetLabel } from "@modules/game/board-progression.module";
 import { targetScoringTargetLabel } from "@modules/training/exercises/target-scoring.engine.module";
 import { stepMetrics } from "@modules/stats/step-metrics.module";
@@ -44,7 +47,7 @@ const NO_FACTS: EngineFacts = { stages: [], turns: [] };
 function hitRateRow(hits: number, darts: number): RoutineStatRow {
   return {
     label: "Hit rate",
-    value: darts === 0 ? NO_VALUE : accuracyDisplay(hits, darts),
+    value: checkoutPercentageDisplay(hits, darts),
   };
 }
 

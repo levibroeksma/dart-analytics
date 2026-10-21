@@ -1,32 +1,14 @@
-import { getDartExerciseEngineFactory } from "@modules/training/exercises/dart-engine.registry";
 import { BullseyeCheckoutEngine } from "@modules/training/exercises/bullseye-checkout.engine.module";
 import { summariseBullseyeCheckout } from "@modules/training/routines/routine-summary.module";
-import type { BullseyeCheckoutConfigData } from "@lib/types";
-import type { StepAdapter } from "./interfaces";
+import { dartExerciseAdapter } from "./dart-exercise.adapter";
 
-export const bullseyeCheckoutAdapter: StepAdapter = {
+export const bullseyeCheckoutAdapter = dartExerciseAdapter({
   key: "BULLSEYE_CHECKOUT",
   headerLabel: "Bullseye checkouts",
   title: "Bullseye Checkouts",
   panel: "bullseye-checkout",
-  open(ctx, result, durationSeconds) {
-    const factory = getDartExerciseEngineFactory("BULLSEYE_CHECKOUT_V1");
-    const created = factory?.create(
-      result.configuration as BullseyeCheckoutConfigData,
-    );
-    ctx.bullseyeCheckoutEngine =
-      created instanceof BullseyeCheckoutEngine ? created : null;
-    ctx.startStepTimer(durationSeconds);
-  },
-  facts(ctx) {
-    return ctx.bullseyeCheckoutEngine?.facts() ?? null;
-  },
-  completesOwnSession: false,
-  summarise(ctx) {
-    if (!ctx.bullseyeCheckoutEngine) return null;
-    return summariseBullseyeCheckout(ctx.bullseyeCheckoutEngine.state());
-  },
-  close(ctx) {
-    ctx.bullseyeCheckoutEngine = null;
-  },
-};
+  rulesetKey: "BULLSEYE_CHECKOUT_V1",
+  slot: "bullseyeCheckoutEngine",
+  engineClass: BullseyeCheckoutEngine,
+  summarise: (engine) => summariseBullseyeCheckout(engine.state()),
+});

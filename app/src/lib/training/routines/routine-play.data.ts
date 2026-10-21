@@ -42,7 +42,11 @@ import {
   activeSessionConflict,
 } from "./step-session-conflict";
 import type { TrainingEngine } from "@modules/interfaces";
-import type { DartObservation, SessionContextRow } from "@modules/types";
+import type {
+  BoardTarget,
+  DartObservation,
+  SessionContextRow,
+} from "@modules/types";
 import type {
   BoardMarker,
   DoublePatternConfigData,
@@ -60,6 +64,7 @@ import type {
 } from "@client/api/types";
 import type { StepAdapter } from "@lib/interfaces";
 import type {
+  DartEngineSlot,
   DartJudgement,
   ReadyGateView,
   RoutineHeader,
@@ -82,7 +87,7 @@ import type { HitCountEngine } from "@modules/training/exercises/hit-count.engin
 import type { SwitchbladeEngine } from "@modules/training/exercises/switchblade.engine.module";
 import type { DoublesLockEngine } from "@modules/training/exercises/doubles-lock.engine.module";
 import { boardTargetLabel } from "@modules/game/board-progression.module";
-import { accuracyDisplay } from "@lib/game/play-visit-stats";
+import { checkoutPercentageDisplay } from "@lib/game/play-visit-stats";
 import type { DartFact } from "@modules/types";
 
 const SESSION_ALREADY_COMPLETED = "SESSION_ALREADY_COMPLETED";
@@ -117,9 +122,51 @@ const DART_ENGINE_RECORDERS = [
   ["switchbladeEngine", "recordSwitchbladeDart"],
   ["doublesLockEngine", "recordDoublesLockDart"],
 ] as const satisfies readonly (readonly [
-  keyof RoutinePlayContext,
+  DartEngineSlot,
   keyof RoutinePlayContext,
 ])[];
+
+type DartRecorderName = (typeof DART_ENGINE_RECORDERS)[number][1];
+
+/** Slots whose engine ends on its own dart, so the step completes before its deadline (Catch 40's last outshot). */
+const COMPLETES_ON_DART: ReadonlySet<DartEngineSlot> = new Set([
+  "checkoutSequenceEngine",
+]);
+
+function recordInto(
+  ctx: RoutinePlayContext,
+  slot: DartEngineSlot,
+  observation: DartObservation,
+): void {
+  const engine = ctx[slot];
+  if (!engine) return;
+  engine.record(observation);
+  if (COMPLETES_ON_DART.has(slot) && engine.isComplete())
+    void ctx.completeCurrentStep();
+}
+
+/** One `record…Dart(observation)` method per `DART_ENGINE_RECORDERS` row; a no-op while its slot is empty. */
+function dartRecorders(): Record<
+  DartRecorderName,
+  (this: RoutinePlayContext, observation: DartObservation) => void
+> {
+  return Object.fromEntries(
+    DART_ENGINE_RECORDERS.map(([slot, name]) => [
+      name,
+      function (this: RoutinePlayContext, observation: DartObservation) {
+        recordInto(this, slot, observation);
+      },
+    ]),
+  ) as Record<
+    DartRecorderName,
+    (this: RoutinePlayContext, observation: DartObservation) => void
+  >;
+}
+
+/** A path target's label, or "" while no engine is open. */
+function targetLabelOf(target: BoardTarget | undefined): string {
+  return target === undefined ? "" : boardTargetLabel(target);
+}
 
 const STEP_CHANGE_CUE_HZ = 660;
 const STEP_CHANGE_CUE_SECONDS = 0.25;
@@ -196,6 +243,7 @@ export function routinePlay() {
     completionStatus: "pending" as
       "pending" | "saving" | "succeeded" | "failed",
     completionError: "",
+    ...dartRecorders(),
     ...boardInputData(
       (observation) => {
         const open = DART_ENGINE_RECORDERS.find(([slot]) => self[slot]);
@@ -711,18 +759,7 @@ export function routinePlay() {
           this.stepRemainingSeconds = remaining;
         },
         onComplete: () => {
-          this.switchingEngine?.expireTimer();
-          this.doublePatternEngine?.expireTimer();
-          this.targetScoringEngine?.expireTimer();
-          this.switchingChainEngine?.expireTimer();
-          this.scoreThresholdEngine?.expireTimer();
-          this.bullseyeCheckoutEngine?.expireTimer();
-          this.bullUpEngine?.expireTimer();
-          this.checkoutSequenceEngine?.expireTimer();
-          this.randomCheckoutEngine?.expireTimer();
-          this.hitCountEngine?.expireTimer();
-          this.switchbladeEngine?.expireTimer();
-          this.doublesLockEngine?.expireTimer();
+          for (const [slot] of DART_ENGINE_RECORDERS) this[slot]?.expireTimer();
           void this.completeCurrentStep();
         },
       });
@@ -737,83 +774,10 @@ export function routinePlay() {
       return `${minutes}:${seconds.toString().padStart(2, "0")}`;
     },
 
-    recordSwitchingDart(
-      this: RoutinePlayContext,
-      observation: DartObservation,
-    ) {
-      if (!this.switchingEngine) return;
-      this.switchingEngine.record(observation);
-    },
-
-    recordDoublePatternDart(
-      this: RoutinePlayContext,
-      observation: DartObservation,
-    ) {
-      if (!this.doublePatternEngine) return;
-      this.doublePatternEngine.record(observation);
-    },
-
-    recordTargetScoringDart(
-      this: RoutinePlayContext,
-      observation: DartObservation,
-    ) {
-      if (!this.targetScoringEngine) return;
-      this.targetScoringEngine.record(observation);
-    },
-
-    recordSwitchingChainDart(
-      this: RoutinePlayContext,
-      observation: DartObservation,
-    ) {
-      if (!this.switchingChainEngine) return;
-      this.switchingChainEngine.record(observation);
-    },
-
-    recordScoreThresholdDart(
-      this: RoutinePlayContext,
-      observation: DartObservation,
-    ) {
-      if (!this.scoreThresholdEngine) return;
-      this.scoreThresholdEngine.record(observation);
-    },
-
-    recordBullseyeCheckoutDart(
-      this: RoutinePlayContext,
-      observation: DartObservation,
-    ) {
-      if (!this.bullseyeCheckoutEngine) return;
-      this.bullseyeCheckoutEngine.record(observation);
-    },
-
-    recordBullUpDart(this: RoutinePlayContext, observation: DartObservation) {
-      if (!this.bullUpEngine) return;
-      this.bullUpEngine.record(observation);
-    },
-
     /**
      * Catch 40 ends on its own once the last outshot is attempted, so the
      * step completes without waiting for its deadline.
      */
-    recordCheckoutSequenceDart(
-      this: RoutinePlayContext,
-      observation: DartObservation,
-    ) {
-      if (!this.checkoutSequenceEngine) return;
-      this.checkoutSequenceEngine.record(observation);
-      if (this.checkoutSequenceEngine.isComplete()) {
-        void this.completeCurrentStep();
-      }
-    },
-
-    /** Random Checkout never ends on a dart; only the step deadline completes it. */
-    recordRandomCheckoutDart(
-      this: RoutinePlayContext,
-      observation: DartObservation,
-    ) {
-      if (!this.randomCheckoutEngine) return;
-      this.randomCheckoutEngine.record(observation);
-    },
-
     switchingPoints(this: RoutinePlayContext): number {
       return this.switchingEngine?.state().totalPoints ?? 0;
     },
@@ -899,9 +863,7 @@ export function routinePlay() {
 
     scoreThresholdBeatRate(this: RoutinePlayContext): string {
       const state = this.scoreThresholdEngine?.state();
-      return !state || state.visits === 0
-        ? "—"
-        : accuracyDisplay(state.beats, state.visits);
+      return checkoutPercentageDisplay(state?.beats ?? 0, state?.visits ?? 0);
     },
 
     bullseyeCheckoutCheckouts(this: RoutinePlayContext): number {
@@ -924,9 +886,10 @@ export function routinePlay() {
 
     bullseyeCheckoutRate(this: RoutinePlayContext): string {
       const state = this.bullseyeCheckoutEngine?.state();
-      return !state || state.visits === 0
-        ? "—"
-        : accuracyDisplay(state.checkouts, state.visits);
+      return checkoutPercentageDisplay(
+        state?.checkouts ?? 0,
+        state?.visits ?? 0,
+      );
     },
 
     bullUpThrows(this: RoutinePlayContext): number {
@@ -953,16 +916,15 @@ export function routinePlay() {
 
     bullUpBullseyeRate(this: RoutinePlayContext): string {
       const state = this.bullUpEngine?.state();
-      return !state || state.throws === 0
-        ? "—"
-        : accuracyDisplay(state.bullseyes, state.throws);
+      return checkoutPercentageDisplay(
+        state?.bullseyes ?? 0,
+        state?.throws ?? 0,
+      );
     },
 
     bullUpBullRate(this: RoutinePlayContext): string {
       const state = this.bullUpEngine?.state();
-      return !state || state.throws === 0
-        ? "—"
-        : accuracyDisplay(state.bulls, state.throws);
+      return checkoutPercentageDisplay(state?.bulls ?? 0, state?.throws ?? 0);
     },
 
     checkoutSequencePoints(this: RoutinePlayContext): number {
@@ -1016,15 +978,10 @@ export function routinePlay() {
 
     randomCheckoutRate(this: RoutinePlayContext): string {
       const state = this.randomCheckoutEngine?.state();
-      return !state || state.attempts === 0
-        ? "—"
-        : accuracyDisplay(state.checkouts, state.attempts);
-    },
-
-    /** Hit Count never ends on a dart; only the step deadline completes it. */
-    recordHitCountDart(this: RoutinePlayContext, observation: DartObservation) {
-      if (!this.hitCountEngine) return;
-      this.hitCountEngine.record(observation);
+      return checkoutPercentageDisplay(
+        state?.checkouts ?? 0,
+        state?.attempts ?? 0,
+      );
     },
 
     hitCountHits(this: RoutinePlayContext): number {
@@ -1032,8 +989,7 @@ export function routinePlay() {
     },
 
     hitCountTargetLabel(this: RoutinePlayContext): string {
-      const target = this.hitCountEngine?.state().currentTarget;
-      return target === undefined ? "" : boardTargetLabel(target);
+      return targetLabelOf(this.hitCountEngine?.state().currentTarget);
     },
 
     hitCountDartsLeft(this: RoutinePlayContext): number {
@@ -1046,18 +1002,10 @@ export function routinePlay() {
 
     hitCountRate(this: RoutinePlayContext): string {
       const state = this.hitCountEngine?.state();
-      return !state || state.dartsThrown === 0
-        ? "—"
-        : accuracyDisplay(state.hits, state.dartsThrown);
-    },
-
-    /** SwitchBlade never ends on a dart; only the step deadline completes it. */
-    recordSwitchbladeDart(
-      this: RoutinePlayContext,
-      observation: DartObservation,
-    ) {
-      if (!this.switchbladeEngine) return;
-      this.switchbladeEngine.record(observation);
+      return checkoutPercentageDisplay(
+        state?.hits ?? 0,
+        state?.dartsThrown ?? 0,
+      );
     },
 
     switchbladeTotal(this: RoutinePlayContext): number {
@@ -1065,8 +1013,7 @@ export function routinePlay() {
     },
 
     switchbladeSlotLabel(this: RoutinePlayContext): string {
-      const slot = this.switchbladeEngine?.state().currentSlot;
-      return slot === undefined ? "" : boardTargetLabel(slot);
+      return targetLabelOf(this.switchbladeEngine?.state().currentSlot);
     },
 
     switchbladeRound(this: RoutinePlayContext): number {
@@ -1077,22 +1024,12 @@ export function routinePlay() {
       return this.switchbladeEngine?.state().passes ?? 0;
     },
 
-    /** Doubles Lock never ends on a dart; only the step deadline completes it. */
-    recordDoublesLockDart(
-      this: RoutinePlayContext,
-      observation: DartObservation,
-    ) {
-      if (!this.doublesLockEngine) return;
-      this.doublesLockEngine.record(observation);
-    },
-
     doublesLockBonus(this: RoutinePlayContext): number {
       return this.doublesLockEngine?.state().bonus ?? 0;
     },
 
     doublesLockTargetLabel(this: RoutinePlayContext): string {
-      const target = this.doublesLockEngine?.state().currentDouble;
-      return target === undefined ? "" : boardTargetLabel(target);
+      return targetLabelOf(this.doublesLockEngine?.state().currentDouble);
     },
 
     doublesLockLastLockLabel(this: RoutinePlayContext): string {

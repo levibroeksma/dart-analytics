@@ -72,6 +72,9 @@ export type ExerciseEngineSlots = Pick<
   | "doublesLockEngine"
 >;
 
+/** Every dart exercise's engine slot on the routine play context. */
+export type DartEngineSlot = keyof ExerciseEngineSlots | "bullUpEngine";
+
 /** What `visitLabelsFor()` reads: the step's configuration and where the visit stands. */
 export type VisitLabelInput = {
   config: Record<string, unknown> | null;
