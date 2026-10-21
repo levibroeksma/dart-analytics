@@ -24,9 +24,9 @@ import CheckoutConfirm from "@components/layout/games/CheckoutConfirm.astro";
 import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
 import InlayRow from "@components/ui/InlayRow.astro";
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
-import Button from "@components/forms/Button.astro";
 import RoutineReadyGate from "@components/layout/training/routines/RoutineReadyGate.astro";
 import RoutineSummaryModal from "@components/layout/training/routines/RoutineSummaryModal.astro";
+import RoutineCompletionStates from "@components/layout/training/routines/RoutineCompletionStates.astro";
 import BlockedStepModal from "@components/layout/training/exercises/BlockedStepModal.astro";
 import OpenRoutineModal from "@components/layout/training/routines/OpenRoutineModal.astro";
 ---
@@ -149,47 +149,10 @@ import OpenRoutineModal from "@components/layout/training/routines/OpenRoutineMo
             >
               <CheckoutConfirm />
             </div>
-            <div
-              x-show="showFinishConfirm"
-              x-cloak
-            >
-              <ConfirmDialog
-                titleId="routine-finish-confirm-title"
-                title="Finish session?"
-                description="This attempt completes the session. Confirm to save and finish, or cancel to reconsider."
-                confirmLabel="Finish"
-                onCancel="cancelFinish()"
-                onConfirm="confirmFinish()"
-                dismissible={false}
-              >
-                <InlayRow
-                  slot="context"
-                  rowExpr="stepContextRow()"
-                />
-              </ConfirmDialog>
-            </div>
-            <div
-              x-show="finished && completionStatus === 'failed'"
-              x-cloak
-              class="p-4"
-            >
-              <ErrorAlert
-                textExpr="completionError"
-                alwaysVisible
-              />
-              <Button
-                class="mt-2"
-                @click="uploadAndCompleteSession()"
-                title="Retry"
-              />
-            </div>
-            <div
-              x-show="finished && completionStatus !== 'failed'"
-              x-cloak
-              class="p-4 text-center"
-            >
-              <p class="text-foreground">Saving your finishing session…</p>
-            </div>
+            <RoutineCompletionStates
+              description="This attempt completes the session. Confirm to save and finish, or cancel to reconsider."
+              savingText="Saving your finishing session…"
+            />
           </div>
         </template>
 
@@ -213,47 +176,10 @@ import OpenRoutineModal from "@components/layout/training/routines/OpenRoutineMo
               /* Score Training's own confirm gate, same wiring as
             `games/score-training/play`. */
             }
-            <div
-              x-show="showFinishConfirm"
-              x-cloak
-            >
-              <ConfirmDialog
-                titleId="routine-finish-confirm-title"
-                title="Finish session?"
-                description="This visit completes the session. Confirm to save and finish, or cancel to reconsider."
-                confirmLabel="Finish"
-                onCancel="cancelFinish()"
-                onConfirm="confirmFinish()"
-                dismissible={false}
-              >
-                <InlayRow
-                  slot="context"
-                  rowExpr="stepContextRow()"
-                />
-              </ConfirmDialog>
-            </div>
-            <div
-              x-show="finished && completionStatus === 'failed'"
-              x-cloak
-              class="p-4"
-            >
-              <ErrorAlert
-                textExpr="completionError"
-                alwaysVisible
-              />
-              <Button
-                class="mt-2"
-                @click="uploadAndCompleteSession()"
-                title="Retry"
-              />
-            </div>
-            <div
-              x-show="finished && completionStatus !== 'failed'"
-              x-cloak
-              class="p-4 text-center"
-            >
-              <p class="text-foreground">Saving your scoring session…</p>
-            </div>
+            <RoutineCompletionStates
+              description="This visit completes the session. Confirm to save and finish, or cancel to reconsider."
+              savingText="Saving your scoring session…"
+            />
           </div>
         </template>
 
@@ -300,28 +226,7 @@ import OpenRoutineModal from "@components/layout/training/routines/OpenRoutineMo
                 />
               </ConfirmDialog>
             </div>
-            <div
-              x-show="finished && completionStatus === 'failed'"
-              x-cloak
-              class="p-4"
-            >
-              <ErrorAlert
-                textExpr="completionError"
-                alwaysVisible
-              />
-              <Button
-                class="mt-2"
-                @click="uploadAndCompleteSession()"
-                title="Retry"
-              />
-            </div>
-            <div
-              x-show="finished && completionStatus !== 'failed'"
-              x-cloak
-              class="p-4 text-center"
-            >
-              <p class="text-foreground">Saving your 121 session…</p>
-            </div>
+            <RoutineCompletionStates savingText="Saving your 121 session…" />
           </div>
         </template>
 
@@ -341,30 +246,9 @@ import OpenRoutineModal from "@components/layout/training/routines/OpenRoutineMo
               x-show="!finished"
               x-cloak
             />
-            <div
-              x-show="finished && completionStatus === 'failed'"
-              x-cloak
-              class="p-4"
-            >
-              <ErrorAlert
-                textExpr="completionError"
-                alwaysVisible
-              />
-              <Button
-                class="mt-2"
-                @click="uploadAndCompleteSession()"
-                title="Retry"
-              />
-            </div>
-            <div
-              x-show="finished && completionStatus !== 'failed'"
-              x-cloak
-              class="p-4 text-center"
-            >
-              <p class="text-foreground">
-                Saving your Around the Clock session…
-              </p>
-            </div>
+            <RoutineCompletionStates
+              savingText="Saving your Around the Clock session…"
+            />
           </div>
         </template>
       </div>

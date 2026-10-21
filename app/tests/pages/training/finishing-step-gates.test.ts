@@ -30,6 +30,9 @@ const standalonePage = read("../../../src/pages/games/tuod/play/index.astro");
 const routinePage = read(
   "../../../src/pages/training/routines/play/index.astro",
 );
+const completionStates = read(
+  "../../../src/components/layout/training/routines/RoutineCompletionStates.astro",
+);
 
 /**
  * Every `x-data="game"` subtree in the routine page — one per routine-
@@ -74,6 +77,18 @@ function tuodScope(source: string): string {
 }
 
 /**
+ * TUOD's scope as rendered: `RoutineCompletionStates` renders its
+ * `showFinishConfirm` dialog only when given a `description`, so the
+ * component's markup counts as part of the scope only in that case.
+ */
+function tuodGateMarkup(source: string): string {
+  const scope = tuodScope(source);
+  return /<RoutineCompletionStates\b[^>]*\bdescription=/.test(scope)
+    ? scope + completionStates
+    : scope;
+}
+
+/**
  * Each TUOD gate flag, with the dialog that answers it. The confirm handler
  * itself lives in `CheckoutConfirm` (`confirmDouble()`); `ConfirmDialog` is
  * generic, so its page passes `confirmFinish()` in — asserted separately
@@ -91,14 +106,14 @@ describe("Balanced Training's Finishing step", () => {
       expect(standalonePage).toContain(flag);
       expect(standalonePage).toContain(dialog);
 
-      const scope = tuodScope(routinePage);
+      const scope = tuodGateMarkup(routinePage);
       expect(scope).toContain(flag);
       expect(scope).toContain(dialog);
     },
   );
 
   it("hands its finish dialog the store's own confirm and cancel", () => {
-    const scope = tuodScope(routinePage);
+    const scope = tuodGateMarkup(routinePage);
 
     expect(scope).toContain('onConfirm="confirmFinish()"');
     expect(scope).toContain('onCancel="cancelFinish()"');

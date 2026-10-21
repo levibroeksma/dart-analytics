@@ -154,6 +154,7 @@ that split (2026-09-19, closes issue #423).
 | `ExercisePicker.astro` | Exercise catalog as tappable tiles; tapping appends a step, disabled once the builder is at its step cap | none — reads `catalog`/`steps`/`maxSteps` from the parent scope (2026-09-19) |
 | `RoutineSummaryModal.astro` | End-of-routine results overlay: one card per completed exercise (`stepSummaries`), total session time, `completeTraining` save status (`SaveStatus`, values pulse in place via `ResultValue`, D437) with Retry, and a `Done` button that resets the header store and leaves for `/training` | none — reads the play page's `x-data` scope (2026-09-14) |
 | `RoutineReadyGate.astro` | The routine's one ready gate (2026-10-13, D454): glass card with an "Are you ready?" title and one row per step (number, title, `m:ss`), started by an inline `SlideToStart`; the slide unlocks audio for the whole routine | none (reads `readyGateView()`, `confirmRoutineReady()`, `confirmingReady` from the routine play scope) |
+| `RoutineCompletionStates.astro` | A routine game step's completion states inside the panel's `x-data="game"` scope: optional `showFinishConfirm` dialog (`routine-finish-confirm-title`, `stepContextRow()` inlay), failed-upload `ErrorAlert` with Retry, and the saving line (2026-10-21) | `description?` (finish-confirm text; omit for no confirm), `savingText` |
 
 ## `components/layout/training/exercises/`
 
