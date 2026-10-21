@@ -1,0 +1,57 @@
+---
+/**
+ * Routine summary card: eyebrow, name, duration pill, description and a
+ * proportional step timeline. Prop-less; reads `routineDetail()` state
+ * (`routine`, `canEdit()`, `durationLabel()`, `totalMinutes()`,
+ * `stepWeight()`, `stepTone()`) from the parent scope
+ * (`routine-detail.data.ts`). Render inside `x-if="routine"`.
+ */
+
+// Components
+import Badge from "@components/ui/Badge.astro";
+---
+
+<div class="glass flex flex-col gap-3 rounded-2xl p-4 shadow-none">
+  <span
+    class="font-mono text-eyebrow font-semibold uppercase tracking-widest text-accent-bright"
+    x-text="canEdit() ? 'Personal routine' : 'Routine'"
+  ></span>
+  <div class="flex items-start justify-between gap-3">
+    <h1
+      class="font-display text-xl text-foreground"
+      x-text="routine.routineName"
+    >
+    </h1>
+    <Badge
+      variant="accent"
+      class="font-mono text-micro uppercase"
+      x-text="durationLabel()"
+    />
+  </div>
+  <p
+    class="text-sm text-muted-foreground"
+    x-show="routine.description"
+    x-cloak
+    x-text="routine.description"
+  >
+  </p>
+  <div class="flex h-2 gap-0.75">
+    <template
+      x-for="(step, index) in routine.steps"
+      :key="index"
+    >
+      <div
+        class="rounded"
+        :class="stepTone(index, 'bg')"
+        :style="{ flexGrow: stepWeight(step) }"
+      >
+      </div>
+    </template>
+  </div>
+  <div
+    class="flex justify-between font-mono text-micro uppercase text-muted-foreground"
+  >
+    <span x-text="`${routine.steps.length} steps`"></span>
+    <span x-text="`0:00 → ${totalMinutes()}:00`"></span>
+  </div>
+</div>

@@ -1,0 +1,54 @@
+---
+/**
+ * Routine step list: numbered glass rows with a tone ring, name, duration,
+ * exercise description and tag chip. Prop-less; reads `routine`,
+ * `stepTone()`, `stepTag()` and `stepDuration()` from the parent scope
+ * (`routine-detail.data.ts`). Render inside `x-if="routine"`.
+ */
+---
+
+<div class="flex flex-col gap-2">
+  <span class="section-eyebrow pt-2.5">Steps</span>
+  <ol class="glass flex flex-col rounded-2xl px-4 shadow-none">
+    <template
+      x-for="(step, index) in routine.steps"
+      :key="index"
+    >
+      <li
+        class="flex gap-3 py-3.5"
+        :class="index === 0 ? '' : 'border-t border-border'"
+      >
+        <span
+          class="flex size-8 shrink-0 items-center justify-center rounded-full border-medium font-mono text-xs text-foreground"
+          :class="stepTone(index, 'border')"
+          x-text="index + 1"
+        ></span>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-baseline gap-2">
+            <span
+              class="font-display text-sm text-foreground"
+              x-text="step.exerciseName"
+            ></span>
+            <span
+              class="ml-auto font-mono text-xs uppercase text-muted-foreground"
+              x-text="stepDuration(step)"
+            ></span>
+          </div>
+          <p
+            class="text-xs text-muted-foreground"
+            x-show="step.exerciseDescription"
+            x-cloak
+            x-text="step.exerciseDescription"
+          >
+          </p>
+          <span
+            class="chip uppercase"
+            x-show="stepTag(step)"
+            x-cloak
+            x-text="stepTag(step)"
+          ></span>
+        </div>
+      </li>
+    </template>
+  </ol>
+</div>
