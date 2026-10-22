@@ -1,32 +1,14 @@
-import { getDartExerciseEngineFactory } from "@modules/training/exercises/dart-engine.registry";
 import { DoublePatternEngine } from "@modules/training/exercises/double-pattern.engine.module";
 import { summariseDoublePattern } from "@modules/training/routines/routine-summary.module";
-import type { DoublePatternConfigData } from "@lib/types";
-import type { StepAdapter } from "./interfaces";
+import { dartExerciseAdapter } from "./dart-exercise.adapter";
 
-export const doublePatternAdapter: StepAdapter = {
+export const doublePatternAdapter = dartExerciseAdapter({
   key: "DOUBLE_PATTERN",
   headerLabel: "doubles",
   title: "Double Pattern",
   panel: "double-pattern",
-  open(ctx, result, durationSeconds) {
-    const factory = getDartExerciseEngineFactory("DOUBLE_PATTERN_V1");
-    const created = factory?.create(
-      result.configuration as DoublePatternConfigData,
-    );
-    ctx.doublePatternEngine =
-      created instanceof DoublePatternEngine ? created : null;
-    ctx.startStepTimer(durationSeconds);
-  },
-  facts(ctx) {
-    return ctx.doublePatternEngine?.facts() ?? null;
-  },
-  completesOwnSession: false,
-  summarise(ctx) {
-    if (!ctx.doublePatternEngine) return null;
-    return summariseDoublePattern(ctx.doublePatternEngine.state());
-  },
-  close(ctx) {
-    ctx.doublePatternEngine = null;
-  },
-};
+  rulesetKey: "DOUBLE_PATTERN_V1",
+  slot: "doublePatternEngine",
+  engineClass: DoublePatternEngine,
+  summarise: (engine) => summariseDoublePattern(engine.state()),
+});

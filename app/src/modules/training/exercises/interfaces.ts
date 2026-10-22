@@ -1,10 +1,12 @@
 import type { ExerciseRulesetVersionKey } from "@lib/types";
 import type { TrackRules } from "@modules/interfaces";
 import type {
+  BoardTarget,
   DartIntent,
   DartObservation,
   EngineFacts,
   TrackSeat,
+  TrackTarget,
   TurnFact,
 } from "@modules/types";
 
@@ -77,10 +79,15 @@ export interface DartExerciseSpec<TConfig, TState> {
  * A Track-family exercise as rules plus a projection; `trackExerciseSpec`
  * turns it into a `DartExerciseSpec` over one solo seat, three-dart visits.
  */
-export interface TrackExerciseDefinition<TConfig, TExt, TState> {
+export interface TrackExerciseDefinition<
+  TConfig,
+  TExt,
+  TState,
+  TTarget extends TrackTarget = BoardTarget,
+> {
   readonly exerciseRulesetVersionKey: ExerciseRulesetVersionKey;
   parse(config: TConfig): TConfig;
-  rules(config: TConfig): TrackRules<TExt>;
+  rules(config: TConfig): TrackRules<TExt, TTarget>;
   initialExt(config: TConfig): TExt;
   project(
     seat: TrackSeat<TExt>,

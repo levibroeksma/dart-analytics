@@ -1,6 +1,6 @@
 # Halve-It
 
-Current version: none (V1 in design)
+Current version: V1 (shipped 2026-10-21)
 Entry points: routine step
 Kernel: TRACK
 
@@ -15,9 +15,9 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 | One visit per target | V1 | All | |
 | Only darts in the round's target score, board value | V1 | All | |
 | Halving penalty: no dart in the target halves the total | V1 | All | |
-| Halving rounds down | V1 | All | |
+| Halving rounds up | V1 | All | |
 | Start total 0 | V1 | All | |
-| Run ends after the last target | V1 | All | |
+| Passes repeat until time ends | V1 | All | |
 | Total readout | V1 | All | |
 | Configurable target sequence | V2+ | All | Wanted, unscheduled: the source says targets are "chosen by agreement"; one fixed list is enough to play |
 | Selected-score target (e.g. score 41 exactly) | V2+ | All | Wanted, unscheduled: a different target kind with its own hit rule; not in the default list |
@@ -26,7 +26,7 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 | Reverse Cricket Count-Up | V2+ | All | Wanted, unscheduled: the same list in reverse (Bull down to 15), so it needs Configurable target sequence |
 | Full-Board Count-Up | V2+ | All | Wanted, unscheduled: 1 to 20 plus Bull, 21 rounds, ascending or descending; a list value of Configurable target sequence |
 | Multiplayer | V2+ | 2+ | Wanted, unscheduled: Halve-It is a pub game for 2–8, but exercise engines run a single solo seat (`app/src/modules/training/exercises/solo-participant.module.ts`) |
-| Time-bound run | Deferred | All | Blocked on: a fixed nine-visit sequence; how a routine's duration cuts it is open (see Open questions) |
+| Time-bound run | V1 | All | |
 | Standalone entry | V2+ | All | Wanted, unscheduled: no exercise has a standalone play page — `app/src/pages/training/` holds only `index.astro`, `quick-subtract/`, `routines/` and `schedules/` |
 | Double Down preset (opens 15, 16; start total 40) | V2+ | All | Wanted, unscheduled: a named rule switch of this exercise, not a distinct game — it is Configurable target sequence plus Start total 40, both V2+, so it cannot land before them |
 
@@ -53,8 +53,7 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 
 ## Exercise type
 
-- Type constant: `HALVE_IT` (proposed; not among the seeded types — checked
-  against `database/seeds/0014`, `0016`, `0023`–`0025`, `0029`, `0030`).
+- Type constant: `HALVE_IT` (seed `0047`).
 - Wraps no game.
 - Behaviour no existing type provides: a penalty that scales with the running
   total, and targets that are a zone class (any double, any treble) rather
@@ -89,7 +88,7 @@ after the last target wins (V2+).
 - **Number target:** any dart in that number (any ring) scores its board
   value.
 - **Any double:** every double hit scores its board value; the bullseye
-  counts only if it is treated as a double — see Open questions.
+  counts as a double and scores 50.
 - **Any treble:** every treble hit scores its board value.
 - **Bull:** outer bull 25, bullseye 50.
 
@@ -97,13 +96,15 @@ after the last target wins (V2+).
 
 - At least one dart in the target: add the darts that hit it to the total.
 - No dart in the target: **halving penalty** — total becomes half, rounded
-  down (95 → 47).
+  up (95 → 48).
 - Then the next target.
 
 ### Bound
 
-- **Run ends after the last target** (Bull).
-- How a routine's duration applies is deferred — see Features.
+- **Time-bound run** inside a routine; the routine's allocated duration
+  overrides the default (`EXERCISE_TEMPLATE.md` §Bound). After the last
+  target (Bull) the list starts again; **passes repeat until time ends**, and
+  the total carries across passes.
 
 ## Later versions
 
@@ -128,8 +129,7 @@ after the last target wins (V2+).
 - **Multiplayer** — 2–8 players take turns per round; highest total wins.
 - **Double Down preset** — the same exercise with one fixed list and a
   start total of 40: 15, 16, Any double, 17, 18, Any treble, 19, 20, Bull.
-  Rounds, hit rule, halving (rounded down) and the end bound are Halve-It's
-  own. The only differences are the opening target (15, where the V1 list
+  Rounds, hit rule, halving and the end bound are Halve-It's own. The only differences are the opening target (15, where the V1 list
   opens 20) and the start total (40, where V1 starts 0). Source:
   dolfdarts.com, "Double Down" (https://dolfdarts.com/games/double-down). It
   calls the game closely related to Halve-It. Its "Zero Start" variation is
@@ -137,7 +137,6 @@ after the last target wins (V2+).
 
 ### Other
 
-- **Time-bound run** — see Features.
 - **Standalone entry** — see Features.
 
 ## Capture
@@ -167,7 +166,7 @@ after the last target wins (V2+).
 | **Any double** | V1 | A round where any double scores |
 | **Any treble** | V1 | A round where any treble scores |
 | **Halving penalty** | V1 | Total halved when no dart hits the round's target |
-| **Halving rounds down** | V1 | An odd total halves to the lower whole number |
+| **Halving rounds up** | V1 | An odd total halves to the higher whole number |
 | **Total** | V1 | Running score of the run |
 | **Configurable target sequence** | V2+ | A target list set per routine step |
 | **Selected-score target** | V2+ | A round won by a visit total equal to a named number |
@@ -176,19 +175,24 @@ after the last target wins (V2+).
 | **Reverse Cricket Count-Up** | V2+ | Cricket Count-Up from Bull down to 15 |
 | **Full-Board Count-Up** | V2+ | Halve-It on 1 to 20 then Bull, 21 rounds |
 | **Multiplayer** | V2+ | 2–8 players, highest total wins |
-| **Time-bound run** | Deferred | A routine duration cutting the run |
+| **Time-bound run** | V1 | A routine duration bounding the run |
+| **Passes repeat until time ends** | V1 | The list starts again after Bull until the duration ends |
 | **Standalone entry** | V2+ | Playing a run outside a routine |
 | **Double Down** | V2+ | Preset: 15, 16, Any double, 17, 18, Any treble, 19, 20, Bull, start total 40 |
 
 ## Open questions
 
-- Rounding: dolfdarts.com rounds down (95 → 47); Wikipedia says odd numbers
-  round up. Draft uses down. Confirm.
-- Does the bullseye count in the "Any double" round?
-- Time bound: let the nine visits finish past the routine's duration, or end
-  at expiry?
-- Execution model: exercise (this draft) or a game, as it is a multiplayer pub
-  game at heart?
+- ~~Rounding: dolfdarts.com rounds down (95 → 47); Wikipedia says odd numbers
+  round up. Draft uses down. Confirm.~~ **Resolved (2026-10-21, user):** round
+  up (95 → 48).
+- ~~Does the bullseye count in the "Any double" round?~~ **Resolved
+  (2026-10-21, user):** yes; it scores 50.
+- ~~Time bound: let the nine visits finish past the routine's duration, or end
+  at expiry?~~ **Resolved (2026-10-21, user):** neither — the list starts
+  again after Bull until time ends, as Hit Count (`hit-count.md` §Bound).
+- ~~Execution model: exercise (this draft) or a game, as it is a multiplayer pub
+  game at heart?~~ **Resolved (2026-10-21, user):** exercise; Multiplayer
+  stays V2+.
 - Double Down opens its list with 15; this draft's V1 list opens with 20, and
   the dolfdarts Halve It page agrees with the V1 list. Is the 15 the real
   difference between the two games, or a slip in one source? Recorded

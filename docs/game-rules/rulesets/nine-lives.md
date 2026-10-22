@@ -47,7 +47,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Format | SOLO, ONE_V_ONE, MULTIPLAYER |
 | Difficulty | BEGINNER |
 | Mechanic | SEQUENTIAL, ELIMINATION |
-| Pressure | PENALTY |
+| Pressure | LIVES |
 | Family | PUB |
 
 ## Objective
@@ -158,12 +158,16 @@ taken from Around the Clock's.
 
 ## Open questions
 
-- A visit that advances on dart 1, then misses the new target with darts 2
+- ~~A visit that advances on dart 1, then misses the new target with darts 2
   and 3: no life lost (V1's literal reading), or a life lost because the
   current target ended the visit unhit? The source's sentence does not settle
-  it.
-- Keep Nine Lives as its own ruleset, or add lives as an Around the Clock
-  variant?
+  it.~~ **Resolved (2026-10-21, user):** no life lost — the literal reading.
+- ~~Keep Nine Lives as its own ruleset, or add lives as an Around the Clock
+  variant?~~ **Resolved (2026-10-21, user):** an Around the Clock setting,
+  shipped as a new ATC ruleset version (`around-the-clock.md` §Features, Nine
+  Lives row). Single only; it combines with the ATC path settings (high →
+  low, odds first, outer single only), with Easy difficulty and no timer. This
+  file stays the rules source.
 - Grand National advanced course: when a dart misses the required bed, is a
   life lost for every missed dart in the visit, or only for a miss after a
   hit? Can one visit cost all three lives? The source says only that "a life

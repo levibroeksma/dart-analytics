@@ -20,6 +20,9 @@ import {
  * is safe. `--check` compares a fresh generation with the committed file
  * (env TAG_SEED_FILE overrides the path) and exits 1 on drift.
  *
+ * Exercise links skip a type not yet inserted; `db:seed`'s second pass links
+ * it (D248).
+ *
  * Never reads template seeds: per-template difficulty is hand-set in 0043.
  */
 
@@ -114,14 +117,16 @@ export function buildSeedSql(input: SeedInput): {
         );
       } else {
         out.push(
-          `INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at) VALUES\n` +
+          `INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at)\n` +
+            `SELECT * FROM (VALUES\n` +
             rows
               .map(
                 (r) =>
                   `  (${typeSel}, ${r.id}, ${r.primary ? "TRUE" : "FALSE"}, now())`,
               )
               .join(",\n") +
-            ";",
+            `\n) AS v (exercise_type_id, tag_id, is_primary, created_at)\n` +
+            `WHERE v.exercise_type_id IS NOT NULL;`,
         );
       }
     }

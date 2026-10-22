@@ -199,3 +199,42 @@ describe("TREBLE board target", () => {
     expect(isHitOn(T20, obs(null, "MISS"))).toBe(false);
   });
 });
+
+describe("zone targets", () => {
+  const on = (
+    hitTargetNumber: number | null,
+    hitZoneKey: DartZoneKey,
+  ): DartObservation => ({
+    hitTargetNumber,
+    hitZoneKey,
+    locationX: null,
+    locationY: null,
+  });
+
+  it("ANY_DOUBLE hits any double and the bullseye, nothing else", () => {
+    const anyDouble = { kind: "ANY_DOUBLE" } as const;
+    expect(isHitOn(anyDouble, on(5, "DOUBLE"))).toBe(true);
+    expect(isHitOn(anyDouble, on(25, "INNER_BULL"))).toBe(true);
+    expect(isHitOn(anyDouble, on(25, "OUTER_BULL"))).toBe(false);
+    expect(isHitOn(anyDouble, on(5, "TREBLE"))).toBe(false);
+    expect(isHitOn(anyDouble, on(null, "MISS"))).toBe(false);
+  });
+
+  it("ANY_TREBLE hits any treble, nothing else", () => {
+    const anyTreble = { kind: "ANY_TREBLE" } as const;
+    expect(isHitOn(anyTreble, on(19, "TREBLE"))).toBe(true);
+    expect(isHitOn(anyTreble, on(19, "DOUBLE"))).toBe(false);
+    expect(isHitOn(anyTreble, on(25, "INNER_BULL"))).toBe(false);
+  });
+
+  it("labels zones in words", () => {
+    expect(boardTargetLabel({ kind: "ANY_DOUBLE" })).toBe("Any double");
+    expect(boardTargetLabel({ kind: "ANY_TREBLE" })).toBe("Any treble");
+  });
+
+  it("targetAt reads a path that mixes beds and zones", () => {
+    expect(
+      targetAt([{ kind: "NUMBER", number: 20 }, { kind: "ANY_TREBLE" }], 1),
+    ).toEqual({ kind: "ANY_TREBLE" });
+  });
+});

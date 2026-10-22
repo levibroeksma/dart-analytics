@@ -19,10 +19,9 @@ import {
   sectionOf,
   tallyOnTarget,
 } from "@modules/game/track-policies";
-import { registerDartExerciseEngineFactory } from "./dart-engine.registry";
 import {
   dartExerciseEngineClass,
-  dartExerciseEngineFactory,
+  registerDartExercise,
 } from "./dart-exercise-shell.module";
 import { trackExerciseSpec } from "./track-exercise-spec.module";
 import type { HitCountState } from "./types";
@@ -117,20 +116,12 @@ const hitCountSpec = trackExerciseSpec<
 });
 
 /** Hit Count's state from a fact log alone, through the same fold the engine uses. */
-export function foldHitCountState(
-  facts: EngineFacts,
-  config: HitCountConfigData,
-  complete: boolean,
-): HitCountState {
-  return hitCountSpec.fold(facts, config, complete);
-}
+export const foldHitCountState = hitCountSpec.fold;
 
 /** Hit Count exercise engine, built by the exercise shell. */
 export class HitCountEngine extends dartExerciseEngineClass(hitCountSpec) {}
 
-export const hitCountEngineFactory = dartExerciseEngineFactory(
+export const hitCountEngineFactory = registerDartExercise(
   hitCountSpec,
   HitCountEngine,
-);
-
-registerDartExerciseEngineFactory(hitCountEngineFactory);
+).factory;

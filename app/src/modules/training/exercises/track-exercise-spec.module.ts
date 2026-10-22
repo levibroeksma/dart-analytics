@@ -1,4 +1,4 @@
-import type { EngineFacts } from "@modules/types";
+import type { BoardTarget, EngineFacts, TrackTarget } from "@modules/types";
 import {
   foldTrackDarts,
   initialTrackSeat,
@@ -17,8 +17,13 @@ const SOLO_SEAT = {
  * dart through `foldTrackDarts` from the solo seat and hands the seat to
  * `project`; visits close at three darts (Track wave T1 spec §2.1).
  */
-export function trackExerciseSpec<TConfig, TExt, TState>(
-  definition: TrackExerciseDefinition<TConfig, TExt, TState>,
+export function trackExerciseSpec<
+  TConfig,
+  TExt,
+  TState,
+  TTarget extends TrackTarget = BoardTarget,
+>(
+  definition: TrackExerciseDefinition<TConfig, TExt, TState, TTarget>,
 ): DartExerciseSpec<TConfig, TState> {
   const fold = (facts: EngineFacts, config: TConfig, expired: boolean) => {
     const rules = definition.rules(config);

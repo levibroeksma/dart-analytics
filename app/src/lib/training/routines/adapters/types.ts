@@ -22,6 +22,7 @@ export type StepAdapterKey =
   | "HIT_COUNT"
   | "SWITCHBLADE"
   | "DOUBLES_LOCK"
+  | "HALVE_IT"
   | `GAME:${string}`;
 
 /** The play page's own `x-if` switch — one template block per panel. */
@@ -39,6 +40,7 @@ export type StepPanel =
   | "hit-count"
   | "switchblade"
   | "doubles-lock"
+  | "halve-it"
   | "tuod"
   | "score-training"
   | "one-twenty-one"

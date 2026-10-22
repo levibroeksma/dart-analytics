@@ -1,4 +1,7 @@
-import { accuracyDisplay } from "@lib/game/play-visit-stats";
+import {
+  accuracyDisplay,
+  checkoutPercentageDisplay,
+} from "@lib/game/play-visit-stats";
 import { boardTargetLabel } from "@modules/game/board-progression.module";
 import { targetScoringTargetLabel } from "@modules/training/exercises/target-scoring.engine.module";
 import { stepMetrics } from "@modules/stats/step-metrics.module";
@@ -16,6 +19,7 @@ import type {
   HitCountState,
   SwitchbladeState,
   DoublesLockState,
+  HalveItState,
   RoutineStatRow,
   RoutineStepSummary,
 } from "@modules/types";
@@ -44,7 +48,7 @@ const NO_FACTS: EngineFacts = { stages: [], turns: [] };
 function hitRateRow(hits: number, darts: number): RoutineStatRow {
   return {
     label: "Hit rate",
-    value: darts === 0 ? NO_VALUE : accuracyDisplay(hits, darts),
+    value: checkoutPercentageDisplay(hits, darts),
   };
 }
 
@@ -349,6 +353,33 @@ export function summariseDoublesLock(
         value:
           state.bestPassDarts === null ? "—" : `${state.bestPassDarts} darts`,
       },
+      { label: "Darts", value: String(darts) },
+      hitRateRow(hits, darts),
+    ],
+  };
+}
+
+/**
+ * Halve-It's result is its total and halvings, then each round's hits
+ * summed over every pass, then passes, darts and hit rate.
+ */
+export function summariseHalveIt(state: HalveItState): RoutineStepSummary {
+  const { points, halvings, darts, hits } = stepMetrics(
+    "HALVE_IT",
+    state,
+    NO_FACTS,
+  );
+  return {
+    stepKey: "HALVE_IT",
+    label: "Halve-It",
+    rows: [
+      { label: "Total", value: String(points) },
+      { label: "Halvings", value: String(halvings) },
+      ...state.hitsPerTarget.map((entry, index) => ({
+        label: `Round ${index + 1} (${boardTargetLabel(entry.target)})`,
+        value: String(entry.hits),
+      })),
+      { label: "Passes", value: String(state.passes) },
       { label: "Darts", value: String(darts) },
       hitRateRow(hits, darts),
     ],

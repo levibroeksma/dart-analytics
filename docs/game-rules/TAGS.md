@@ -122,8 +122,9 @@ with any other on that axis. `game-standalone`: rulesets only, and never in a
 | --- | --- | --- |
 | NONE | None | A miss costs nothing beyond the dart (Score Threshold) |
 | PENALTY | Penalty | A miss costs points (Halve-It) |
-| SETBACK | Setback | A miss moves progress back one step; progress is kept (ATC Intermediate, Doubles Lock) |
-| RESET | Reset | A miss sends progress back to the start (Doubles Snakes & Ladders, Bullseye 500) |
+| SETBACK | Setback | A miss moves progress back one or more steps; progress is kept (ATC Intermediate, Doubles Lock, Doubles Snakes & Ladders) |
+| RESET | Reset | A miss sends progress back to the start (Bullseye 500) |
+| LIVES | Lives | A miss costs a life; out at zero lives (Nine Lives) |
 
 ## Family
 

@@ -3,6 +3,7 @@ import { activeSeatState } from "@modules/game/seat-state.module";
 import { randomObservation, type OracleEngine } from "./engine-oracle";
 import type {
   BoardTarget,
+  TrackTarget,
   DartObservation,
   DartZoneKey,
   MultiSeatState,
@@ -19,14 +20,21 @@ const RINGS: readonly DartZoneKey[] = [
 
 /**
  * A dart on `target`: either bull ring on BULL (one `rand()` draw),
- * otherwise the number in the ring `numberZone` picks.
+ * a random number in its ring for a zone target, otherwise the number in the
+ * ring `numberZone` picks.
  */
 function observationOn(
-  target: BoardTarget,
+  target: TrackTarget,
   rand: () => number,
   numberZone: () => DartZoneKey,
 ): DartObservation {
   const base = { locationX: null, locationY: null };
+  if (target.kind === "ANY_DOUBLE" || target.kind === "ANY_TREBLE")
+    return {
+      ...base,
+      hitTargetNumber: 1 + Math.floor(rand() * 20),
+      hitZoneKey: target.kind === "ANY_DOUBLE" ? "DOUBLE" : "TREBLE",
+    };
   if (target.kind === "BULL")
     return {
       ...base,
@@ -101,7 +109,7 @@ export function aimedOnCurrentBoardTarget(
 ): (rand: () => number, engine: OracleEngine) => DartObservation {
   return (rand, engine) => {
     if (rand() >= rate) return randomObservation(rand);
-    const target = (engine.state() as Record<string, BoardTarget>)[field];
+    const target = (engine.state() as Record<string, TrackTarget>)[field];
     return observationOn(target, rand, () => ring(rand));
   };
 }

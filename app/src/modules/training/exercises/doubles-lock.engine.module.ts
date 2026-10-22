@@ -18,10 +18,9 @@ import {
   pathTarget,
 } from "@modules/game/track-policies";
 import { doubleTargetIntent } from "@modules/game/turn-log.module";
-import { registerDartExerciseEngineFactory } from "./dart-engine.registry";
 import {
   dartExerciseEngineClass,
-  dartExerciseEngineFactory,
+  registerDartExercise,
 } from "./dart-exercise-shell.module";
 import { trackExerciseSpec } from "./track-exercise-spec.module";
 import type { DoublesLockState } from "./types";
@@ -137,22 +136,14 @@ const doublesLockSpec = trackExerciseSpec<
 });
 
 /** Doubles Lock's state from a fact log alone, through the same fold the engine uses. */
-export function foldDoublesLockState(
-  facts: EngineFacts,
-  config: DoublesLockConfigData,
-  complete: boolean,
-): DoublesLockState {
-  return doublesLockSpec.fold(facts, config, complete);
-}
+export const foldDoublesLockState = doublesLockSpec.fold;
 
 /** Doubles Lock exercise engine, built by the exercise shell. */
 export class DoublesLockEngine extends dartExerciseEngineClass(
   doublesLockSpec,
 ) {}
 
-export const doublesLockEngineFactory = dartExerciseEngineFactory(
+export const doublesLockEngineFactory = registerDartExercise(
   doublesLockSpec,
   DoublesLockEngine,
-);
-
-registerDartExerciseEngineFactory(doublesLockEngineFactory);
+).factory;

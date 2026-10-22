@@ -94,6 +94,12 @@ export const STEP_METRIC_SPECS: Readonly<
     direction: "higher",
     rates: [["hits", "darts"]],
   },
+  HALVE_IT: {
+    metrics: { points: "sum", halvings: "sum", darts: "sum", hits: "sum" },
+    headline: "points",
+    direction: "higher",
+    rates: [["hits", "darts"]],
+  },
 };
 
 /**
@@ -140,91 +146,84 @@ function switchingHits(facts: EngineFacts): number {
 }
 
 /**
+ * Each kind's metric → engine-state field. Switching Standard is absent: its
+ * hits replay the darts' own intended/hit pair (`switchingHits`).
+ */
+const STATE_FIELDS: Readonly<
+  Record<
+    Exclude<DartExerciseKind, "SWITCHING:STANDARD">,
+    Readonly<Record<string, string>>
+  >
+> = {
+  "SWITCHING:CHAIN": {
+    bestChain: "bestChain",
+    sequences: "completedSequences",
+    darts: "dartsThrown",
+    hits: "hits",
+  },
+  DOUBLE_PATTERN: { hits: "totalPoints", darts: "dartsThrown" },
+  TARGET_SCORING: {
+    bestChain: "bestChain",
+    darts: "dartsThrown",
+    hits: "hits",
+  },
+  SCORE_THRESHOLD: { beats: "beats", visits: "visits", darts: "dartsThrown" },
+  BULLSEYE_CHECKOUT: {
+    checkouts: "checkouts",
+    visits: "visits",
+    darts: "dartsThrown",
+  },
+  BULL_UP: { throws: "throws", bullseyes: "bullseyes", bulls: "bulls" },
+  CHECKOUT_SEQUENCE: {
+    points: "points",
+    checkouts: "checkouts",
+    attempts: "attempts",
+    darts: "dartsThrown",
+  },
+  RANDOM_CHECKOUT: {
+    checkouts: "checkouts",
+    attempts: "attempts",
+    darts: "dartsThrown",
+  },
+  HIT_COUNT: { hits: "hits", darts: "dartsThrown" },
+  SWITCHBLADE: { points: "total", darts: "dartsThrown", hits: "hits" },
+  DOUBLES_LOCK: {
+    bonus: "bonus",
+    locks: "locks",
+    darts: "dartsThrown",
+    hits: "hits",
+  },
+  HALVE_IT: {
+    points: "total",
+    halvings: "halvings",
+    darts: "dartsThrown",
+    hits: "hits",
+  },
+};
+
+/**
  * One definition of each dart exercise kind's step metrics (D372 decision
- * 7), read from its engine state exactly as
- * `routine-summary.module.ts` reads it today. Returns exactly the keys
- * `STEP_METRIC_SPECS[kind].metrics` declares.
+ * 7), read from its engine state exactly as `routine-summary.module.ts`
+ * reads it. Returns exactly the keys `STEP_METRIC_SPECS[kind].metrics`
+ * declares.
  */
 export function stepMetrics(
   kind: DartExerciseKind,
   state: unknown,
   facts: EngineFacts,
 ): Record<string, number> {
-  switch (kind) {
-    case "SWITCHING:STANDARD":
-      return {
-        points: numberField(state, "totalPoints", kind),
-        darts: numberField(state, "dartsThrown", kind),
-        hits: switchingHits(facts),
-      };
-    case "SWITCHING:CHAIN":
-      return {
-        bestChain: numberField(state, "bestChain", kind),
-        sequences: numberField(state, "completedSequences", kind),
-        darts: numberField(state, "dartsThrown", kind),
-        hits: numberField(state, "hits", kind),
-      };
-    case "DOUBLE_PATTERN":
-      return {
-        hits: numberField(state, "totalPoints", kind),
-        darts: numberField(state, "dartsThrown", kind),
-      };
-    case "TARGET_SCORING":
-      return {
-        bestChain: numberField(state, "bestChain", kind),
-        darts: numberField(state, "dartsThrown", kind),
-        hits: numberField(state, "hits", kind),
-      };
-    case "SCORE_THRESHOLD":
-      return {
-        beats: numberField(state, "beats", kind),
-        visits: numberField(state, "visits", kind),
-        darts: numberField(state, "dartsThrown", kind),
-      };
-    case "BULLSEYE_CHECKOUT":
-      return {
-        checkouts: numberField(state, "checkouts", kind),
-        visits: numberField(state, "visits", kind),
-        darts: numberField(state, "dartsThrown", kind),
-      };
-    case "BULL_UP":
-      return {
-        throws: numberField(state, "throws", kind),
-        bullseyes: numberField(state, "bullseyes", kind),
-        bulls: numberField(state, "bulls", kind),
-      };
-    case "CHECKOUT_SEQUENCE":
-      return {
-        points: numberField(state, "points", kind),
-        checkouts: numberField(state, "checkouts", kind),
-        attempts: numberField(state, "attempts", kind),
-        darts: numberField(state, "dartsThrown", kind),
-      };
-    case "RANDOM_CHECKOUT":
-      return {
-        checkouts: numberField(state, "checkouts", kind),
-        attempts: numberField(state, "attempts", kind),
-        darts: numberField(state, "dartsThrown", kind),
-      };
-    case "HIT_COUNT":
-      return {
-        hits: numberField(state, "hits", kind),
-        darts: numberField(state, "dartsThrown", kind),
-      };
-    case "SWITCHBLADE":
-      return {
-        points: numberField(state, "total", kind),
-        darts: numberField(state, "dartsThrown", kind),
-        hits: numberField(state, "hits", kind),
-      };
-    case "DOUBLES_LOCK":
-      return {
-        bonus: numberField(state, "bonus", kind),
-        locks: numberField(state, "locks", kind),
-        darts: numberField(state, "dartsThrown", kind),
-        hits: numberField(state, "hits", kind),
-      };
-  }
+  if (kind === "SWITCHING:STANDARD")
+    return {
+      points: numberField(state, "totalPoints", kind),
+      darts: numberField(state, "dartsThrown", kind),
+      hits: switchingHits(facts),
+    };
+  return Object.fromEntries(
+    Object.entries(STATE_FIELDS[kind]).map(([metric, field]) => [
+      metric,
+      numberField(state, field, kind),
+    ]),
+  );
 }
 
 /**

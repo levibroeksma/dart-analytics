@@ -9,6 +9,7 @@ import { ROUTINE_GAME_STEPS } from "@services/routines/game-step";
 import { hitCountAdapter } from "@lib/training/routines/adapters/hit-count.adapter";
 import { switchbladeAdapter } from "@lib/training/routines/adapters/switchblade.adapter";
 import { doublesLockAdapter } from "@lib/training/routines/adapters/doubles-lock.adapter";
+import { halveItAdapter } from "@lib/training/routines/adapters/halve-it.adapter";
 
 describe("step adapter registry", () => {
   it("has one adapter per non-game kind and per server-eligible game ruleset", () => {
@@ -28,6 +29,7 @@ describe("step adapter registry", () => {
         "HIT_COUNT",
         "SWITCHBLADE",
         "DOUBLES_LOCK",
+        "HALVE_IT",
         ...Object.keys(ROUTINE_GAME_STEPS).map((k) => `GAME:${k}`),
       ].sort(),
     );
@@ -74,6 +76,11 @@ describe("step adapter registry", () => {
   it("resolves the Doubles Lock step", () => {
     expect(resolveStepAdapter("DOUBLES_LOCK")?.title).toBe("Doubles Lock");
     expect(STEP_ADAPTERS.DOUBLES_LOCK).toBe(doublesLockAdapter);
+  });
+
+  it("resolves the Halve-It step", () => {
+    expect(resolveStepAdapter("HALVE_IT")?.title).toBe("Halve-It");
+    expect(STEP_ADAPTERS.HALVE_IT).toBe(halveItAdapter);
   });
 
   it("derives the key from a resolved step", () => {
@@ -161,6 +168,7 @@ describe("STEP_ADAPTERS titles", () => {
         "GAME:AROUND_THE_CLOCK_V2": "Around the Clock",
         "GAME:SCORE_TRAINING_V1": "Score Training",
         "GAME:TUOD_V1": "Ten Up One Down",
+        "HALVE_IT": "Halve-It",
         "HIT_COUNT": "Hit Count",
         "RANDOM_CHECKOUT": "Random Checkout",
         "SCORE_THRESHOLD": "65 or More",

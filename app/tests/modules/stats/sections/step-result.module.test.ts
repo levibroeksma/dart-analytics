@@ -294,6 +294,42 @@ describe("foldStepResult", () => {
     expect(result.skippedSessions).toBe(0);
   });
 
+  it("replays a Halve-It session's points, halvings, darts and hits", () => {
+    const halveIt = (
+      dartNumber: number,
+      hitTargetNumber: number | null,
+      hitZoneKey: DartZoneKey,
+      score: number,
+    ) =>
+      dartRow({
+        sessionId: "hi",
+        exerciseRulesetVersionKey: "HALVE_IT_V1",
+        configuration: {},
+        turnSequence: 1,
+        dartNumber,
+        intendedTargetNumber: null,
+        intendedZoneKey: null,
+        hitTargetNumber,
+        hitZoneKey,
+        score,
+      });
+
+    const result = foldStepResult("HALVE_IT", [
+      halveIt(1, 20, "TREBLE", 60),
+      halveIt(2, 20, "SINGLE", 20),
+      halveIt(3, null, "MISS", 0),
+    ]);
+
+    expect(result.metrics).toEqual({
+      points: 80,
+      halvings: 0,
+      darts: 3,
+      hits: 2,
+    });
+    expect(result.sessions).toBe(1);
+    expect(result.skippedSessions).toBe(0);
+  });
+
   it("replays a two-stage session in stage pre-order, never interleaving the stages' turns", () => {
     const ROOT = "01900000-0000-7000-9000-0000000000a1";
     const CHILD = "01900000-0000-7000-9000-0000000000a2";

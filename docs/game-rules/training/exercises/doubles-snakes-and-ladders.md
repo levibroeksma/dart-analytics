@@ -42,7 +42,7 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 | Format | SOLO, ONE_V_ONE |
 | Difficulty | EXPERT |
 | Mechanic | LADDER |
-| Pressure | RESET |
+| Pressure | SETBACK |
 
 ## Exercise type
 
@@ -92,13 +92,16 @@ defaults. The 15-minute preset is a draft value, not sourced.
 
 - 0 hits: back two levels. 1 hit: back one. 2 hits: stay. 3 hits: up one.
 - Never below D1.
-- On the bullseye level, three bullseyes in one visit finish the run.
+- On the bullseye level, three bullseyes in one visit finish the run; 0–2
+  bullseyes move by the same table.
 
 ### Bound
 
 - **Run ends at the finish.**
 - **Time-bound run** inside a routine; the routine's allocated duration
   overrides the default (`EXERCISE_TEMPLATE.md` §Bound).
+- **Result:** a finished run shows its rounds; a run cut by time shows the
+  highest level reached and the rounds played.
 
 ## Later versions
 
@@ -146,8 +149,12 @@ defaults. The 15-minute preset is a draft value, not sourced.
 
 ## Open questions
 
-- On the bullseye level, do 0–2 bullseyes move the player back by the same
-  table, or stay?
-- Merge with Doubles Lock (`doubles-lock.md`) into one ladder type with a
-  configurable move table, or keep two types?
-- A run cut by time: is the highest level reached the result?
+- ~~On the bullseye level, do 0–2 bullseyes move the player back by the same
+  table, or stay?~~ **Resolved (2026-10-21, user):** the same table.
+- ~~Merge with Doubles Lock (`doubles-lock.md`) into one ladder type with a
+  configurable move table, or keep two types?~~ **Resolved (2026-10-17,
+  user):** two types, both bound to the Track kernel (`doubles-lock.md`
+  §Open questions).
+- ~~A run cut by time: is the highest level reached the result?~~
+  **Resolved (2026-10-21, user):** yes — highest level reached, beside the
+  rounds played; a finished run shows its rounds.

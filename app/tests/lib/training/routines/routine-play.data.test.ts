@@ -3616,6 +3616,7 @@ describe("routinePlay — board dispatch", () => {
     ["HIT_COUNT", "hitCountEngine"],
     ["SWITCHBLADE", "switchbladeEngine"],
     ["DOUBLES_LOCK", "doublesLockEngine"],
+    ["HALVE_IT", "halveItEngine"],
   ] as const)(
     "routes a committed board dart to the open %s engine (%s)",
     async (kind, slot) => {
@@ -3921,5 +3922,200 @@ describe("routinePlay — Doubles Lock play", () => {
 
     expect(sessionApi.appendBatch).toHaveBeenCalled();
     expect(store.stepSummaries[0]).toMatchObject({ stepKey: "DOUBLES_LOCK" });
+  });
+});
+
+describe("routinePlay — dart recorders", () => {
+  const MISS = {
+    hitTargetNumber: null,
+    hitZoneKey: "MISS" as const,
+    locationX: null,
+    locationY: null,
+  };
+
+  it("a recorder whose slot is empty records nothing", () => {
+    const store = makeStore();
+    store.recordHitCountDart(MISS);
+    store.recordCheckoutSequenceDart(MISS);
+    expect(store.activeDartEngine()).toBeNull();
+  });
+
+  it("every dart engine slot has a recorder", () => {
+    const store = makeStore() as unknown as Record<string, unknown>;
+    for (const name of [
+      "recordSwitchingDart",
+      "recordDoublePatternDart",
+      "recordTargetScoringDart",
+      "recordSwitchingChainDart",
+      "recordScoreThresholdDart",
+      "recordBullseyeCheckoutDart",
+      "recordBullUpDart",
+      "recordCheckoutSequenceDart",
+      "recordRandomCheckoutDart",
+      "recordHitCountDart",
+      "recordSwitchbladeDart",
+      "recordDoublesLockDart",
+    ])
+      expect(typeof store[name]).toBe("function");
+  });
+});
+
+const HALVE_IT_STEP = {
+  sequenceNumber: 1,
+  exerciseTypeKey: "HALVE_IT",
+  exerciseRulesetVersionKey: "HALVE_IT_V1",
+  gameTypeKey: null,
+  gameRulesetVersionKey: null,
+  durationSeconds: 600,
+  configuration: {},
+};
+
+describe("routinePlay — Halve-It", () => {
+  it("starts with no Halve-It engine", () => {
+    expect(makeStore().halveItEngine).toBeNull();
+  });
+});
+
+describe("routinePlay — Halve-It play", () => {
+  const S = (n: number) => ({
+    hitTargetNumber: n,
+    hitZoneKey: "SINGLE" as const,
+    locationX: 0,
+    locationY: -100,
+  });
+  const MISS = {
+    hitTargetNumber: null,
+    hitZoneKey: "MISS" as const,
+    locationX: null,
+    locationY: null,
+  };
+  const BLANK = [MISS, MISS, MISS];
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+    stubAudioContext();
+    Object.defineProperty(globalThis, "location", {
+      value: { href: "" },
+      writable: true,
+      configurable: true,
+    });
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineTemplateId: "rt-1",
+      routineName: "Custom",
+      steps: [HALVE_IT_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "HALVE_IT",
+      configuration: HALVE_IT_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+  });
+  afterEach(() => {
+    vi.clearAllTimers();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it("startCurrentStep() builds the engine and its readouts start at round 1 with total 0", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+
+    expect(store.halveItEngine).not.toBeNull();
+    expect(store.halveItTotal()).toBe(0);
+    expect(store.halveItRound()).toBe(1);
+    expect(store.halveItPasses()).toBe(0);
+    expect(store.halveItRate()).toBe("—");
+    expect(store.halveItRoute()).toBe(
+      "20 16 Any\u00a0double 17 18 Any\u00a0treble",
+    );
+    expect(store.halveItChipIndex()).toBe(0);
+  });
+
+  it("the readouts follow the total, the round and the rate", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+
+    [S(20), S(20), MISS, S(16)].forEach((d) => store.recordHalveItDart(d));
+    expect(store.halveItTotal()).toBe(56);
+    expect(store.halveItRound()).toBe(2);
+    expect(store.halveItRate()).toBe("75.00%");
+    expect(store.halveItChipIndex()).toBe(1);
+  });
+
+  it("a blank visit halves the total the readout shows", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+
+    [S(20), MISS, MISS, ...BLANK].forEach((d) => store.recordHalveItDart(d));
+    expect(store.halveItTotal()).toBe(10);
+    expect(store.halveItRound()).toBe(3);
+  });
+
+  it("the route pages to the last three rounds", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+
+    Array.from({ length: 6 }, () => BLANK)
+      .flat()
+      .forEach((d) => store.recordHalveItDart(d));
+    expect(store.halveItRoute()).toBe("19 20 BULL");
+    expect(store.halveItChipIndex()).toBe(0);
+  });
+
+  it("previewSegments() judges the open visit against the current round", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+
+    [S(20), MISS, MISS, S(16)].forEach((d) => store.recordHalveItDart(d));
+    expect(store.previewSegments()).toEqual([
+      { status: "hit", label: "16" },
+      { status: "empty", label: "16" },
+      { status: "empty", label: "16" },
+    ]);
+  });
+
+  it("routes a committed board dart to the Halve-It engine", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+
+    boardCommit.onCommit!(S(20));
+
+    expect(store.halveItEngine!.state().dartsThrown).toBe(1);
+  });
+
+  it("never completes the step on a dart", async () => {
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(sessionApi.appendBatch).mockReset();
+    const store = makeStore();
+    await startRoutine(store);
+
+    Array.from({ length: 27 }, () => MISS).forEach((d) =>
+      store.recordHalveItDart(d),
+    );
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(sessionApi.appendBatch).not.toHaveBeenCalled();
+    expect(store.halveItEngine!.isComplete()).toBe(false);
+  });
+
+  it("the step deadline expires the engine and uploads its darts", async () => {
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(sessionApi.appendBatch).mockResolvedValue(undefined as never);
+    vi.mocked(sessionApi.completeSession).mockResolvedValue(undefined as never);
+    vi.mocked(trainingApi.completeTraining).mockResolvedValue({
+      activityId: "act-1",
+      completedAt: "2026-10-07T12:00:00.000Z",
+    });
+    const store = makeStore();
+    await startRoutine(store);
+    store.recordHalveItDart(S(20));
+
+    await vi.advanceTimersByTimeAsync(600_000);
+
+    expect(sessionApi.appendBatch).toHaveBeenCalled();
+    expect(store.stepSummaries[0]).toMatchObject({ stepKey: "HALVE_IT" });
   });
 });

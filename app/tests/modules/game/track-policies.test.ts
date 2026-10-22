@@ -43,6 +43,7 @@ import type {
   SequenceTrackExt,
   SwitchbladeTrackExt,
   TrackSeat,
+  TrackTarget,
 } from "@modules/types";
 
 const SEAT = {
@@ -627,5 +628,39 @@ describe("lockCheckpoint", () => {
     lockCheckpoint<LockTrackExt>(BONUS)(before);
     expect(before.ext).toEqual({ lastLock: null, locks: 0 });
     expect(before.score).toBe(0);
+  });
+});
+
+describe("track policies on zone targets", () => {
+  const on = (n: number | null, zone: DartZoneKey): DartObservation => ({
+    hitTargetNumber: n,
+    hitZoneKey: zone,
+    locationX: null,
+    locationY: null,
+  });
+
+  it("anyRingEitherBull defers a zone target to isHitOn", () => {
+    expect(
+      anyRingEitherBull({ kind: "ANY_DOUBLE" }, on(25, "INNER_BULL")),
+    ).toBe(true);
+    expect(
+      anyRingEitherBull({ kind: "ANY_DOUBLE" }, on(25, "OUTER_BULL")),
+    ).toBe(false);
+    expect(anyRingEitherBull({ kind: "ANY_TREBLE" }, on(7, "TREBLE"))).toBe(
+      true,
+    );
+  });
+
+  it("pathTarget walks a zone path", () => {
+    const path: TrackTarget[] = [{ kind: "ANY_DOUBLE" }, { kind: "BULL" }];
+    expect(pathTarget(path)(seat({ targetIndex: 0 }))).toEqual({
+      kind: "ANY_DOUBLE",
+    });
+  });
+
+  it("boardScorePoints scores a zone hit at board value", () => {
+    expect(
+      boardScorePoints({ kind: "ANY_TREBLE" }, on(19, "TREBLE"), true),
+    ).toBe(57);
   });
 });

@@ -26,6 +26,7 @@ import type { RandomCheckoutEngine } from "@modules/training/exercises/random-ch
 import type { HitCountEngine } from "@modules/training/exercises/hit-count.engine.module";
 import type { SwitchbladeEngine } from "@modules/training/exercises/switchblade.engine.module";
 import type { DoublesLockEngine } from "@modules/training/exercises/doubles-lock.engine.module";
+import type { HalveItEngine } from "@modules/training/exercises/halve-it.engine.module";
 import type { DartFact, DartObservation } from "@modules/types";
 import type {
   BoardMarker,
@@ -54,7 +55,8 @@ export type ExercisePreviewFamily =
   | "bullseye"
   | "hitCount"
   | "switchblade"
-  | "doublesLock";
+  | "doublesLock"
+  | "halveIt";
 
 /** The engine slots `exerciseFamily()` reads. */
 export type ExerciseEngineSlots = Pick<
@@ -70,7 +72,11 @@ export type ExerciseEngineSlots = Pick<
   | "hitCountEngine"
   | "switchbladeEngine"
   | "doublesLockEngine"
+  | "halveItEngine"
 >;
+
+/** Every dart exercise's engine slot on the routine play context. */
+export type DartEngineSlot = keyof ExerciseEngineSlots | "bullUpEngine";
 
 /** What `visitLabelsFor()` reads: the step's configuration and where the visit stands. */
 export type VisitLabelInput = {
@@ -131,6 +137,7 @@ export type RoutinePlayContext = {
   hitCountEngine: HitCountEngine | null;
   switchbladeEngine: SwitchbladeEngine | null;
   doublesLockEngine: DoublesLockEngine | null;
+  halveItEngine: HalveItEngine | null;
   stepTimer: SegmentTimer | null;
   stepRemainingSeconds: number;
   warmUpTimer: SegmentTimer | null;
@@ -275,6 +282,16 @@ export type RoutinePlayContext = {
   doublesLockLastLockLabel(this: RoutinePlayContext): string;
   doublesLockPasses(this: RoutinePlayContext): number;
   doublesLockBestPass(this: RoutinePlayContext): string;
+  halveItTotal(this: RoutinePlayContext): number;
+  halveItRoute(this: RoutinePlayContext): string;
+  halveItChipIndex(this: RoutinePlayContext): number;
+  halveItRound(this: RoutinePlayContext): number;
+  halveItPasses(this: RoutinePlayContext): number;
+  halveItRate(this: RoutinePlayContext): string;
+  recordHalveItDart(
+    this: RoutinePlayContext,
+    observation: DartObservation,
+  ): void;
   dartsThrown(this: RoutinePlayContext): number;
   activeDartEngine(
     this: RoutinePlayContext,
@@ -291,10 +308,15 @@ export type RoutinePlayContext = {
     | HitCountEngine
     | SwitchbladeEngine
     | DoublesLockEngine
+    | HalveItEngine
     | null;
   visitMarkers(this: RoutinePlayContext): BoardMarker[];
   previewSegments(this: RoutinePlayContext): PreviewSegment[];
-  judgeExerciseDart(this: RoutinePlayContext, dart: DartFact): DartJudgement;
+  judgeExerciseDart(
+    this: RoutinePlayContext,
+    dart: DartFact,
+    visitIndex?: number,
+  ): DartJudgement;
   exerciseVisitLabels(
     this: RoutinePlayContext,
     visitIndex: number,

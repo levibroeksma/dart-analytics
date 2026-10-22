@@ -1,0 +1,18 @@
+---
+// Components
+import ExercisePanelShell from "./ExercisePanelShell.astro";
+---
+
+<ExercisePanelShell
+  score="halveItTotal()"
+  caption="TOTAL"
+  chip={{
+    routeExpr: "halveItRoute()",
+    currentIndexExpr: "halveItChipIndex()",
+  }}
+  tiles={[
+    { label: "Round", value: "halveItRound()" },
+    { label: "Pass", value: "halveItPasses() + 1" },
+    { label: "Rate", value: "halveItRate()" },
+  ]}
+/>

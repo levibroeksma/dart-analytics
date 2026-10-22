@@ -8,6 +8,7 @@ import type {
   ShellState,
   StageOwnership,
   TrackSeat,
+  TrackTarget,
   TurnFact,
 } from "./types";
 
@@ -109,18 +110,14 @@ export interface DartGameEngineClass<TConfig, TState extends ShellState> {
  * which target a seat aims at, what counts as a hit and what it scores, and
  * what happens per dart and when a visit closes.
  */
-export interface TrackRules<TExt> {
+export interface TrackRules<TExt, TTarget extends TrackTarget = BoardTarget> {
   readonly doneMessage: string;
   /** Every seat's score before its first dart; 0 when absent. */
   readonly startScore?: number;
-  target(seat: TrackSeat<TExt>): BoardTarget;
-  hit(target: BoardTarget, observation: DartObservation): boolean;
-  points(
-    target: BoardTarget,
-    observation: DartObservation,
-    hit: boolean,
-  ): number;
-  onDart?(seat: TrackSeat<TExt>, dart: JudgedDart): TrackSeat<TExt>;
+  target(seat: TrackSeat<TExt>): TTarget;
+  hit(target: TTarget, observation: DartObservation): boolean;
+  points(target: TTarget, observation: DartObservation, hit: boolean): number;
+  onDart?(seat: TrackSeat<TExt>, dart: JudgedDart<TTarget>): TrackSeat<TExt>;
   visitOpen(seat: TrackSeat<TExt>): boolean;
   onVisitClose?(seat: TrackSeat<TExt>): TrackSeat<TExt>;
 }

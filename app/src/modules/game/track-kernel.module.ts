@@ -2,10 +2,12 @@ import type { SeatFact } from "@lib/types";
 import type { TrackRules } from "./interfaces";
 import { foldSeatStates } from "./seat-state.module";
 import type {
+  BoardTarget,
   DartObservation,
   JudgedDart,
   SeatState,
   TrackSeat,
+  TrackTarget,
   TurnFact,
 } from "./types";
 
@@ -35,15 +37,15 @@ export function initialTrackSeat<TExt>(
  * on the visit boundary.
  * @throws `rules.doneMessage` when the seat is not `IN_PROGRESS`.
  */
-export function applyTrackDart<TExt>(
+export function applyTrackDart<TExt, TTarget extends TrackTarget = BoardTarget>(
   seat: TrackSeat<TExt>,
   observation: DartObservation,
-  rules: TrackRules<TExt>,
+  rules: TrackRules<TExt, TTarget>,
 ): TrackSeat<TExt> {
   if (seat.status !== "IN_PROGRESS") throw new Error(rules.doneMessage);
   const target = rules.target(seat);
   const hit = rules.hit(target, observation);
-  const dart: JudgedDart = {
+  const dart: JudgedDart<TTarget> = {
     observation,
     target,
     hit,
@@ -62,11 +64,11 @@ export function applyTrackDart<TExt>(
 }
 
 /** Folds every seat over its own darts through `applyTrackDart`; nothing is stored. */
-export function foldTrackSeats<TExt>(
+export function foldTrackSeats<TExt, TTarget extends TrackTarget = BoardTarget>(
   turns: readonly TurnFact[],
   seats: readonly SeatFact[],
   initialExt: () => TExt,
-  rules: TrackRules<TExt>,
+  rules: TrackRules<TExt, TTarget>,
 ): TrackSeat<TExt>[] {
   return foldSeatStates(
     turns,
@@ -80,10 +82,10 @@ export function foldTrackSeats<TExt>(
  * Folds one seat over every dart in `turns`, in write order, whoever threw
  * it — the solo exercise's fold, since its facts log no seats.
  */
-export function foldTrackDarts<TExt>(
+export function foldTrackDarts<TExt, TTarget extends TrackTarget = BoardTarget>(
   turns: readonly TurnFact[],
   initial: TrackSeat<TExt>,
-  rules: TrackRules<TExt>,
+  rules: TrackRules<TExt, TTarget>,
 ): TrackSeat<TExt> {
   return turns
     .flatMap((turn) => turn.darts)

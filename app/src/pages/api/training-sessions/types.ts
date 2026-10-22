@@ -5,23 +5,26 @@ export const StartTrainingRequest = z.object({
 });
 export type StartTrainingRequestInput = z.infer<typeof StartTrainingRequest>;
 
+const ExerciseTypeKey = z.enum([
+  "WARM_UP",
+  "SWITCHING",
+  "DOUBLE_PATTERN",
+  "TARGET_SCORING",
+  "SCORE_THRESHOLD",
+  "BULLSEYE_CHECKOUT",
+  "BULL_UP",
+  "CHECKOUT_SEQUENCE",
+  "RANDOM_CHECKOUT",
+  "HIT_COUNT",
+  "SWITCHBLADE",
+  "DOUBLES_LOCK",
+  "HALVE_IT",
+  "GAME",
+]);
+
 const TrainingStepResolved = z.object({
   sequenceNumber: z.number().int(),
-  exerciseTypeKey: z.enum([
-    "WARM_UP",
-    "SWITCHING",
-    "DOUBLE_PATTERN",
-    "TARGET_SCORING",
-    "SCORE_THRESHOLD",
-    "BULLSEYE_CHECKOUT",
-    "BULL_UP",
-    "CHECKOUT_SEQUENCE",
-    "RANDOM_CHECKOUT",
-    "HIT_COUNT",
-    "SWITCHBLADE",
-    "DOUBLES_LOCK",
-    "GAME",
-  ]),
+  exerciseTypeKey: ExerciseTypeKey,
   exerciseRulesetVersionKey: z.string().nullable(),
   gameTypeKey: z.string().nullable(),
   gameRulesetVersionKey: z.string().nullable(),
@@ -49,21 +52,7 @@ export type StartTrainingStepRequestInput = z.infer<
 
 export const StartTrainingStepResponse = z.object({
   sessionId: z.string(),
-  exerciseTypeKey: z.enum([
-    "WARM_UP",
-    "SWITCHING",
-    "DOUBLE_PATTERN",
-    "TARGET_SCORING",
-    "SCORE_THRESHOLD",
-    "BULLSEYE_CHECKOUT",
-    "BULL_UP",
-    "CHECKOUT_SEQUENCE",
-    "RANDOM_CHECKOUT",
-    "HIT_COUNT",
-    "SWITCHBLADE",
-    "DOUBLES_LOCK",
-    "GAME",
-  ]),
+  exerciseTypeKey: ExerciseTypeKey,
   configuration: z.record(z.unknown()),
   participant: z.object({ ref: z.string(), displayName: z.string() }),
   gameTypeKey: z.string().optional(),

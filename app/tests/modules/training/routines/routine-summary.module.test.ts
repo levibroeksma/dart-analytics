@@ -11,7 +11,9 @@ import {
   summariseScoreTraining,
   summariseOneTwentyOne,
   summariseAroundTheClock,
+  summariseHitCount,
 } from "@modules/training/routines/routine-summary.module";
+import { hitCountEngineFactory } from "@modules/training/exercises/hit-count.engine.module";
 import type {
   EngineFacts,
   SwitchingState,
@@ -465,5 +467,19 @@ describe("summariseBullUp", () => {
       { label: "Bullseye rate", value: "—" },
       { label: "Bull rate", value: "—" },
     ]);
+  });
+});
+
+describe("hit rate row", () => {
+  it("a hit rate over no darts reads as a dash", () => {
+    const summary = summariseHitCount(
+      hitCountEngineFactory
+        .create({
+          targets: [{ kind: "TREBLE", number: 20 }],
+          dartsPerTarget: 3,
+        })
+        .state(),
+    );
+    expect(summary.rows.at(-1)).toEqual({ label: "Hit rate", value: "—" });
   });
 });

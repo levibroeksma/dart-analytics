@@ -222,6 +222,27 @@ describe("StartTrainingResponse", () => {
     ).toBe(true);
   });
 
+  it("accepts a HALVE_IT step", () => {
+    expect(
+      StartTrainingResponse.safeParse({
+        activityId: "act-1",
+        routineTemplateId: "rt-1",
+        routineName: "Custom",
+        steps: [
+          {
+            sequenceNumber: 1,
+            exerciseTypeKey: "HALVE_IT",
+            exerciseRulesetVersionKey: "HALVE_IT_V1",
+            gameTypeKey: null,
+            gameRulesetVersionKey: null,
+            durationSeconds: 600,
+            configuration: {},
+          },
+        ],
+      }).success,
+    ).toBe(true);
+  });
+
   it("accepts a BULL_UP step", () => {
     expect(
       StartTrainingResponse.safeParse({
@@ -460,5 +481,13 @@ describe("ResumeTrainingResponse", () => {
 
   it("rejects a response without completedStepCount", () => {
     expect(ResumeTrainingResponse.safeParse(base).success).toBe(false);
+  });
+});
+
+describe("exercise type keys", () => {
+  it("the step list and the start-step response accept the same keys", () => {
+    expect(StartTrainingStepResponse.shape.exerciseTypeKey.options).toEqual(
+      StartTrainingResponse.shape.steps.element.shape.exerciseTypeKey.options,
+    );
   });
 });

@@ -16,6 +16,7 @@ import { checkoutSequenceEngineFactory } from "@modules/training/exercises/check
 import { randomCheckoutEngineFactory } from "@modules/training/exercises/random-checkout.engine.module";
 import { hitCountEngineFactory } from "@modules/training/exercises/hit-count.engine.module";
 import { doublesLockEngineFactory } from "@modules/training/exercises/doubles-lock.engine.module";
+import { halveItEngineFactory } from "@modules/training/exercises/halve-it.engine.module";
 import { switchbladeEngineFactory } from "@modules/training/exercises/switchblade.engine.module";
 import type {
   DartExerciseKind,
@@ -166,6 +167,16 @@ function fixtures(): Fixture[] {
     dart(19, "DOUBLE"),
   ].forEach((d) => doublesLock.record(d));
 
+  const halveIt = halveItEngineFactory.create({});
+  [
+    dart(20, "TREBLE"),
+    dart(20, "SINGLE"),
+    dart(null, "MISS"),
+    dart(null, "MISS"),
+    dart(null, "MISS"),
+    dart(null, "MISS"),
+  ].forEach((d) => halveIt.record(d));
+
   return [
     {
       kind: "SWITCHING:STANDARD",
@@ -239,6 +250,12 @@ function fixtures(): Fixture[] {
       facts: doublesLock.facts(),
       expected: { bonus: 50, locks: 1, darts: 4, hits: 3 },
     },
+    {
+      kind: "HALVE_IT",
+      state: halveIt.state(),
+      facts: halveIt.facts(),
+      expected: { points: 40, halvings: 1, darts: 6, hits: 2 },
+    },
   ];
 }
 
@@ -271,6 +288,16 @@ describe("stepMetrics", () => {
     expect(() =>
       stepMetrics("BULL_UP", { throws: 1 }, { stages: [], turns: [] }),
     ).toThrow();
+  });
+
+  it("names the state field a kind's metric reads when it is missing", () => {
+    const noFacts = { stages: [], turns: [] };
+    expect(() =>
+      stepMetrics("SWITCHBLADE", { dartsThrown: 1, hits: 1 }, noFacts),
+    ).toThrow('state is missing numeric field "total"');
+    expect(() =>
+      stepMetrics("DOUBLE_PATTERN", { dartsThrown: 1 }, noFacts),
+    ).toThrow('state is missing numeric field "totalPoints"');
   });
 
   it("returns exactly the spec's keys for every kind (a new kind with no extractor fails here)", () => {
