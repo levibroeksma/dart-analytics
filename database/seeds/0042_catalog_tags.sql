@@ -399,6 +399,19 @@ SELECT * FROM (VALUES
   ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLES_LOCK'), 34, FALSE, now())
 ) AS v (exercise_type_id, tag_id, is_primary, created_at)
 WHERE v.exercise_type_id IS NOT NULL;
+-- exercise DOUBLES_SNAKES_LADDERS
+INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLES_SNAKES_LADDERS'), 3, TRUE, now()),
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLES_SNAKES_LADDERS'), 5, FALSE, now()),
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLES_SNAKES_LADDERS'), 9, FALSE, now()),
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLES_SNAKES_LADDERS'), 13, FALSE, now()),
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLES_SNAKES_LADDERS'), 14, FALSE, now()),
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLES_SNAKES_LADDERS'), 20, FALSE, now()),
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLES_SNAKES_LADDERS'), 29, FALSE, now()),
+  ((SELECT id FROM exercise_types WHERE implementation_key = 'DOUBLES_SNAKES_LADDERS'), 34, FALSE, now())
+) AS v (exercise_type_id, tag_id, is_primary, created_at)
+WHERE v.exercise_type_id IS NOT NULL;
 -- exercise DOUBLE_PATTERN
 INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at)
 SELECT * FROM (VALUES

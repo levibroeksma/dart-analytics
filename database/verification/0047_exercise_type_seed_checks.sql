@@ -3,7 +3,7 @@
 --
 -- Proves against a live database what each Track exercise seed
 -- (0038 HIT_COUNT, 0039 SWITCHBLADE, 0040 DOUBLES_LOCK,
--- 0047 HALVE_IT) can only claim locally: the type is published,
+-- 0047 HALVE_IT, 0048 DOUBLES_SNAKES_LADDERS) can only claim locally: the type is published,
 -- its v1 ruleset belongs to it, the system template pins that
 -- ruleset with its default configuration, and the template
 -- reaches the routine builder through v_exercise_template_catalog, and
@@ -37,7 +37,8 @@ INSERT INTO expected VALUES
     ('HIT_COUNT', 'HIT_COUNT_V1', '{"targets":[{"kind":"TREBLE","number":20},{"kind":"TREBLE","number":19},{"kind":"TREBLE","number":18},{"kind":"TREBLE","number":17}],"dartsPerTarget":9}'),
     ('SWITCHBLADE', 'SWITCHBLADE_V1', '{}'),
     ('DOUBLES_LOCK', 'DOUBLES_LOCK_V1', '{}'),
-    ('HALVE_IT', 'HALVE_IT_V1', '{}');
+    ('HALVE_IT', 'HALVE_IT_V1', '{}'),
+    ('DOUBLES_SNAKES_LADDERS', 'DOUBLES_SNAKES_LADDERS_V1', '{}');
 
 INSERT INTO verification_results
 SELECT '1',
