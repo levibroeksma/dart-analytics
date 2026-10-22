@@ -257,3 +257,24 @@ Detail in `docs/superpowers/plans/2026-10-21-track-t2-halve-it.md`:
   `HALVE_IT_PATH[visitIndex % 9]`.
 - Route chip parts use a no-break space.
 - Integration fixture: Halve-It is step 15.
+
+## 12. T2.2 plan refinements (2026-10-22)
+
+Detail in `docs/superpowers/plans/2026-10-22-track-t2-snakes-ladders.md`:
+
+- Finish needs a shell hook: `DartExerciseSpec` and `TrackExerciseDefinition`
+  gain optional `ends?(state)`; the shell's `isComplete()` and `record()`
+  honour it (D479). `snakesLaddersEngine` joins `COMPLETES_ON_DART`.
+- `moveTable(table, lastIndex)` and `finishOnHits(hits, index)` over
+  `LadderTrackExt = { highestIndex }`; the engine composes
+  `move(finish(seat))`. `stepBackBelowHits` stays untouched.
+- `SnakesLaddersState`: `currentLevel`, `levelIndex`, `highestLevel`,
+  `highestLevelNumber` (1-21), `rounds` (closed visits), `finishes` (0/1),
+  `hits`, `dartsThrown`, `status`. No per-level rows.
+- Preview reuses the `hitCount` family; no new family.
+- Reuse prep: `tallyTotals`, `hitRateOf`, `routeChipsOf`, and a label-getter
+  table replace inline copies.
+- Stats: `highestLevel` max; `rounds`, `finishes`, `darts`, `hits` sum;
+  headline `highestLevel`. Integration fixture: S&L is step 16.
+- Rules file flips to V1; type `DOUBLES_SNAKES_LADDERS`, ruleset
+  `DOUBLES_SNAKES_LADDERS_V1`, seed `0048`; no new tag key, ids do not shift.
