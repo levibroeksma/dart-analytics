@@ -33,6 +33,7 @@ describe("visibleGames", () => {
       "TUOD_V1",
       "SHANGHAI_V1",
       "AROUND_THE_CLOCK_V1",
+      "AROUND_THE_CLOCK_V3",
       "BASEBALL_V1",
     ]);
   });
@@ -51,6 +52,7 @@ describe("visibleGames", () => {
         "SHANGHAI_V1",
         "121_V1",
         "AROUND_THE_CLOCK_V1",
+        "AROUND_THE_CLOCK_V3",
         "BASEBALL_V1",
         "CRICKET_V1",
         "TACTICS_V1",
@@ -86,7 +88,7 @@ describe("visibleGames", () => {
 
   it("gives every card a setup href and copy", () => {
     for (const game of GAME_CARDS) {
-      expect(game.href).toMatch(/^\/games\/.+\/setup$/);
+      expect(game.href).toMatch(/^\/games\/[^/?]+\/setup(\?[^?]+)?$/);
       expect(game.title.length).toBeGreaterThan(0);
       expect(game.caption.length).toBeGreaterThan(0);
       expect(game.caption).not.toMatch(/\n/);
@@ -113,7 +115,15 @@ describe("groupedGames", () => {
           "TUOD_V1",
         ],
       ],
-      ["CLASSICS", ["SHANGHAI_V1", "AROUND_THE_CLOCK_V1", "BASEBALL_V1"]],
+      [
+        "CLASSICS",
+        [
+          "SHANGHAI_V1",
+          "AROUND_THE_CLOCK_V1",
+          "AROUND_THE_CLOCK_V3",
+          "BASEBALL_V1",
+        ],
+      ],
     ]);
   });
 
@@ -160,5 +170,39 @@ describe("GAME_CARDS gameTypeKey parity", () => {
     for (const card of GAME_CARDS) {
       expect(docKeys, card.rulesetVersionKey).toContain(card.gameTypeKey);
     }
+  });
+});
+
+describe("the Nine Lives card", () => {
+  const card = GAME_CARDS.find(
+    (game) => game.rulesetVersionKey === "AROUND_THE_CLOCK_V3",
+  );
+
+  it("is in CLASSICS with the lives href and the V3 key", () => {
+    expect(card).toMatchObject({
+      gameTypeKey: "AROUND_THE_CLOCK",
+      group: "CLASSICS",
+      href: "/games/around-the-clock/setup?lives=3",
+      title: "Nine Lives",
+    });
+  });
+
+  it("shows under both canonical capture modes", () => {
+    for (const mode of ["RECREATIONAL", "ANALYTICS"]) {
+      expect(
+        visibleGames(mode, null).map((game) => game.rulesetVersionKey),
+      ).toContain("AROUND_THE_CLOCK_V3");
+    }
+  });
+
+  it("leaves the Around the Clock card unchanged", () => {
+    expect(
+      GAME_CARDS.find(
+        (game) => game.rulesetVersionKey === "AROUND_THE_CLOCK_V1",
+      ),
+    ).toMatchObject({
+      href: "/games/around-the-clock/setup",
+      title: "Around the Clock",
+    });
   });
 });

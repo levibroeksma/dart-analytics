@@ -1222,6 +1222,7 @@ export type AroundTheClockSetupContext = PresetSetupContext & {
   difficulty: AroundTheClockV2Snapshot["difficulty"];
   durationType: AroundTheClockV2Snapshot["durationType"];
   durationValue: number | string | null;
+  lives: boolean;
 };
 
 export type DoublesTrainingSeatResult = {

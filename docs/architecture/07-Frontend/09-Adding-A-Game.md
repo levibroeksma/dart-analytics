@@ -64,7 +64,7 @@ page legitimately has none of.
 | ---- | --------------- |
 | `types.ts` | **shared** — the game's Zod config schema |
 | `capabilities.ts` | **shared** — the ruleset key and its capture/input mode pairs |
-| `games-visibility.ts` | **shared** — the card: key, `href`, title, caption. *Engine-only skips:* a ruleset joins this list only once its `href` resolves. |
+| `games-visibility.ts` | **shared** — the card: key, `href`, title, caption. *Engine-only skips:* a ruleset joins this list only once its `href` resolves. A preset card of an existing game (Nine Lives, `AROUND_THE_CLOCK_V3`) may carry a query on its `href` (`?lives=3`) that the setup `init` reads through `searchParamFromLocation` (`lib/location.ts`); its tags come from a `Card ruleset:` header in the rules file (2026-10-22). |
 
 ### `app/src/modules/game/`
 

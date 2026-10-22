@@ -17,6 +17,15 @@ describe("routine routes", () => {
     expect(routineIdFromLocation()).toBeNull();
   });
 
+  it("reads ?routine= beside other params", () => {
+    history.replaceState(
+      null,
+      "",
+      "/training/routines/detail?lives=3&routine=rt-2",
+    );
+    expect(routineIdFromLocation()).toBe("rt-2");
+  });
+
   it("builds encoded paths", () => {
     expect(routineDetailPath("a b")).toBe(
       "/training/routines/detail?routine=a%20b",

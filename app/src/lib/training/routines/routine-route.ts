@@ -1,10 +1,10 @@
+import { searchParamFromLocation } from "@lib/location";
+
 const ROUTINE_PARAM = "routine";
 
 /** The routine id the current page was opened for (`?routine=<id>`), or null. */
 export function routineIdFromLocation(): string | null {
-  if (typeof window === "undefined") return null;
-  const value = new URL(window.location.href).searchParams.get(ROUTINE_PARAM);
-  return value && value.trim().length > 0 ? value : null;
+  return searchParamFromLocation(ROUTINE_PARAM);
 }
 
 export function routineDetailPath(routineId: string): string {

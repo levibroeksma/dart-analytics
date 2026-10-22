@@ -102,6 +102,14 @@ export const GAME_CARDS: readonly GameCardDescriptor[] = [
     caption: "A pub classic, and great practice.",
   },
   {
+    rulesetVersionKey: "AROUND_THE_CLOCK_V3",
+    gameTypeKey: "AROUND_THE_CLOCK",
+    group: "CLASSICS",
+    href: "/games/around-the-clock/setup?lives=3",
+    title: "Nine Lives",
+    caption: "Three lives. Miss a whole visit and one goes.",
+  },
+  {
     rulesetVersionKey: "BASEBALL_V1",
     gameTypeKey: "BASEBALL",
     group: "CLASSICS",
