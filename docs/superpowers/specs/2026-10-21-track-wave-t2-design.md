@@ -278,3 +278,27 @@ Detail in `docs/superpowers/plans/2026-10-22-track-t2-snakes-ladders.md`:
   headline `highestLevel`. Integration fixture: S&L is step 16.
 - Rules file flips to V1; type `DOUBLES_SNAKES_LADDERS`, ruleset
   `DOUBLES_SNAKES_LADDERS_V1`, seed `0048`; no new tag key, ids do not shift.
+
+## 13. T2.3 plan refinements (2026-10-22)
+
+Detail in `docs/superpowers/plans/2026-10-22-track-t2-nine-lives.md`:
+
+- V3 `lives` is a required literal `3`, not nullable. V3 = shared
+  `AroundTheClockV2Fields` + literal overrides; no refine, no contract.
+  `SEAT_CAPS.AROUND_THE_CLOCK_V3 = 1`.
+- Lives rule reads a visit-hit flag: `noteVisitHit` (per dart) and
+  `loseLifeOnBlank` (visit close) over `LivesTrackExt = { lives: number | null;
+  visitHit: boolean }`. Easy's `advanceOnHit` zeroes `hitsThisVisit`, so the
+  `hitsThisVisit === 0` test fails there.
+- Seat state gains optional `lives`, `visitHit` and status `OUT`; solo session
+  status maps `COMPLETE` and `OUT` to `COMPLETE`.
+- Shared reuse: engine `rulesetKeyOf`, `aroundTheClockVariantValidator`,
+  `variantsPlayAgain`, `REACHED_ROW`, `searchParamFromLocation` (replaces the
+  generic `setupPresetFromLocation`). No new `0049` capability verification
+  file; V3 joins `0007`.
+- #1051 card tags: migration `0049` `ruleset_version_tags` + `CARD` branch in
+  `v_catalog_tags`; `Card ruleset:` header in `nine-lives.md`; catalog
+  response gains `cards`; `gameTags`/`gameLevel` take an optional card key.
+  The "no schema change" line in §3 no longer holds.
+- Rules files: `nine-lives.md` Format `SOLO`, version `V1`;
+  `around-the-clock.md` current version `V3`. Seed `0049`, ruleset id `…19`.
