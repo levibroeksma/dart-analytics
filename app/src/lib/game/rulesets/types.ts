@@ -398,23 +398,23 @@ export const TacticsConfig = z.object({}).strict();
 /** Baseball Darts V1 locks every rule (nine innings, runs by ring, solo seat) — nothing to configure. */
 export const BaseballConfig = z.object({}).strict();
 
+const AroundTheClockV2Fields = z.object({
+  path_direction: z.enum(["LOW_TO_HIGH", "HIGH_TO_LOW"]),
+  odds_first: z.boolean(),
+  segment_rule: z.enum(["ANY", "OUTER_SINGLE"]),
+  difficulty: z.enum(["EASY", "INTERMEDIATE", "HARD", "PRO"]),
+  duration_type: z.enum(["UNTIMED", "MINUTES"]),
+  duration_value: z.number().int().nullable(),
+});
+
 /**
  * Around the Clock V2: the training variants. A new version rather than a
  * widening of `AroundTheClockConfig` — V1's empty schema is live against real
  * session data (D243/D245/D247). `duration_value` is bounded by
  * `duration_type`, so the bound lives in a whole-object `superRefine`.
  */
-export const AroundTheClockV2Config = z
-  .object({
-    path_direction: z.enum(["LOW_TO_HIGH", "HIGH_TO_LOW"]),
-    odds_first: z.boolean(),
-    segment_rule: z.enum(["ANY", "OUTER_SINGLE"]),
-    difficulty: z.enum(["EASY", "INTERMEDIATE", "HARD", "PRO"]),
-    duration_type: z.enum(["UNTIMED", "MINUTES"]),
-    duration_value: z.number().int().nullable(),
-  })
-  .strict()
-  .superRefine((val, ctx) => {
+export const AroundTheClockV2Config =
+  AroundTheClockV2Fields.strict().superRefine((val, ctx) => {
     if (val.duration_type === "UNTIMED") {
       if (val.duration_value !== null) {
         ctx.addIssue({
@@ -439,6 +439,17 @@ export const AroundTheClockV2Config = z
     }
   });
 
+/**
+ * Around the Clock V3: Nine Lives, the solo three-lives setting. Always Easy
+ * and untimed, so it carries no duration refinement of its own.
+ */
+export const AroundTheClockV3Config = AroundTheClockV2Fields.extend({
+  difficulty: z.literal("EASY"),
+  duration_type: z.literal("UNTIMED"),
+  duration_value: z.null(),
+  lives: z.literal(3),
+}).strict();
+
 export type RulesetVersionKey =
   | "SCORE_TRAINING_V1"
   | "BOBS27_V1"
@@ -455,6 +466,7 @@ export type RulesetVersionKey =
   | "121_V2"
   | "AROUND_THE_CLOCK_V1"
   | "AROUND_THE_CLOCK_V2"
+  | "AROUND_THE_CLOCK_V3"
   | "CRICKET_V1"
   | "TACTICS_V1"
   | "BASEBALL_V1";
@@ -501,6 +513,7 @@ export const RULESET_CONFIGS: Record<RulesetVersionKey, z.ZodTypeAny> = {
   "121_V2": OneTwentyOneV2Config,
   AROUND_THE_CLOCK_V1: AroundTheClockConfig,
   AROUND_THE_CLOCK_V2: AroundTheClockV2Config,
+  AROUND_THE_CLOCK_V3: AroundTheClockV3Config,
   CRICKET_V1: CricketConfig,
   TACTICS_V1: TacticsConfig,
   BASEBALL_V1: BaseballConfig,
@@ -646,6 +659,9 @@ export type AroundTheClockV2Snapshot = {
   durationValue: AroundTheClockV2ConfigData["duration_value"];
 };
 
+/** Around the Clock V3 is the V2 snapshot with the Nine Lives setting. */
+export type AroundTheClockV3Snapshot = AroundTheClockV2Snapshot & { lives: 3 };
+
 /** Cricket V1 has nothing to configure — no fields to carry. */
 export type CricketSnapshot = Record<string, never>;
 
@@ -686,11 +702,13 @@ export type ConfigSnapshotFor<K extends RulesetVersionKey> =
                               ? AroundTheClockSnapshot
                               : K extends "AROUND_THE_CLOCK_V2"
                                 ? AroundTheClockV2Snapshot
-                                : K extends "CRICKET_V1"
-                                  ? CricketSnapshot
-                                  : K extends "TACTICS_V1"
-                                    ? TacticsSnapshot
-                                    : BaseballSnapshot;
+                                : K extends "AROUND_THE_CLOCK_V3"
+                                  ? AroundTheClockV3Snapshot
+                                  : K extends "CRICKET_V1"
+                                    ? CricketSnapshot
+                                    : K extends "TACTICS_V1"
+                                      ? TacticsSnapshot
+                                      : BaseballSnapshot;
 
 /**
  * One boundary probe: a complete, parseable config plus the label the contract
@@ -828,6 +846,8 @@ export type Seated<TConfig> =
     ? { seats: readonly SeatFact[] }
     : TConfig & { seats: readonly SeatFact[] };
 
-/** Either Around the Clock snapshot, seated — the one engine serves both versions. */
+/** Any Around the Clock snapshot, seated — the one engine serves every version. */
 export type AroundTheClockEngineConfig =
-  Seated<AroundTheClockSnapshot> | Seated<AroundTheClockV2Snapshot>;
+  | Seated<AroundTheClockSnapshot>
+  | Seated<AroundTheClockV2Snapshot>
+  | Seated<AroundTheClockV3Snapshot>;

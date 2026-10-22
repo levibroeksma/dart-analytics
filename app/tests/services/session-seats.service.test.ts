@@ -294,3 +294,26 @@ describe("composeSeatFacts", () => {
     ).toThrow();
   });
 });
+
+describe("rejectSeatRequest for Around the Clock V3", () => {
+  const solo = {
+    participantTypeKey: "PLAYER" as const,
+    sideKey: "A",
+    displayName: "Me",
+  };
+  const guest = {
+    participantTypeKey: "GUEST" as const,
+    sideKey: "B",
+    displayName: "Guest",
+  };
+
+  it("accepts one seat", () => {
+    expect(rejectSeatRequest([solo], "AROUND_THE_CLOCK_V3")).toBeNull();
+  });
+
+  it("refuses a second seat", () => {
+    expect(rejectSeatRequest([solo, guest], "AROUND_THE_CLOCK_V3")).toContain(
+      "supports at most 1 seat",
+    );
+  });
+});

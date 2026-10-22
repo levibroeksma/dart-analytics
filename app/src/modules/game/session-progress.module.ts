@@ -297,6 +297,7 @@ const SUMMARIZERS: Readonly<Record<string, Summarizer>> = {
   SHANGHAI_V2: shanghai,
   AROUND_THE_CLOCK_V1: aroundTheClock,
   AROUND_THE_CLOCK_V2: aroundTheClock,
+  AROUND_THE_CLOCK_V3: aroundTheClock,
 };
 
 function isSeatedConfig(config: unknown): config is { seats: SeatFact[] } {

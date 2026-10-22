@@ -20,6 +20,7 @@ describe("RULESET_CAPABILITIES", () => {
       "501_V2",
       "AROUND_THE_CLOCK_V1",
       "AROUND_THE_CLOCK_V2",
+      "AROUND_THE_CLOCK_V3",
       "BASEBALL_V1",
       "BOBS27_V1",
       "CRICKET_V1",
@@ -144,6 +145,7 @@ describe("capableRulesets", () => {
       "501_V2",
       "AROUND_THE_CLOCK_V1",
       "AROUND_THE_CLOCK_V2",
+      "AROUND_THE_CLOCK_V3",
       "BASEBALL_V1",
       "BOBS27_V1",
       "CRICKET_V1",
@@ -266,5 +268,17 @@ describe("BASEBALL_V1", () => {
     expect(STATS_TAGS.BASEBALL_V1).toEqual(["board"]);
     expect(GAME_TYPE_BY_RULESET.BASEBALL_V1).toBe("BASEBALL");
     expect(supportsDartbot("BASEBALL_V1")).toBe(false);
+  });
+});
+
+describe("Around the Clock V3 capabilities", () => {
+  it("declares DETAILED_DARTS and VISUAL_BOARD", () => {
+    expect(RULESET_CAPABILITIES.AROUND_THE_CLOCK_V3).toEqual(
+      RULESET_CAPABILITIES.AROUND_THE_CLOCK_V2,
+    );
+  });
+
+  it("is not a dartbot ruleset", () => {
+    expect(supportsDartbot("AROUND_THE_CLOCK_V3")).toBe(false);
   });
 });

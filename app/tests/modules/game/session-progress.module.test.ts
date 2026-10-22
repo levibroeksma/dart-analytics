@@ -567,6 +567,16 @@ describe("summarizeProgress — SHANGHAI", () => {
 });
 
 describe("summarizeProgress — AROUND_THE_CLOCK", () => {
+  it("AROUND_THE_CLOCK_V3 summarises like V2 on the configured path", () => {
+    const config = { ...clockV2Config, lives: 3 as const };
+    expect(
+      summarizeProgress("AROUND_THE_CLOCK_V3", config, EMPTY_FACTS),
+    ).toEqual({
+      detail: "Lap 1 · 20 → 1",
+      big: { value: "20", label: "TARGET" },
+    });
+  });
+
   it("AROUND_THE_CLOCK_V1 reads the lap and the 1 → 20 path", () => {
     expect(
       summarizeProgress("AROUND_THE_CLOCK_V1", { seats: DUO }, EMPTY_FACTS),
