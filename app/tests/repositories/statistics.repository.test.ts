@@ -3246,3 +3246,25 @@ describe("findStepScopeDartCount", () => {
     expect(result).toBe(789);
   });
 });
+
+describe("intent queries skip zone-only intents", () => {
+  it("findIntentCells filters intended_target_number IS NOT NULL", async () => {
+    const { db, statements } = renderingDb([]);
+    await findIntentCells(db, { ...dartScope, bucket: "none", tz: undefined });
+    expect(onlyStatement(statements)).toContain(
+      '"intended_target_number" is not null',
+    );
+  });
+
+  it("findIntentMoments filters intended_target_number IS NOT NULL", async () => {
+    const { db, statements } = renderingDb([]);
+    await findIntentMoments(db, {
+      ...dartScope,
+      bucket: "none",
+      tz: undefined,
+    });
+    expect(onlyStatement(statements)).toContain(
+      '"intended_target_number" is not null',
+    );
+  });
+});

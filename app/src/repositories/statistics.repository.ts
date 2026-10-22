@@ -754,7 +754,8 @@ function mapIntentCellRow(row: {
 
 /**
  * Intended×hit pair counts over `v_stats_dart_facts`, filtered to darts with
- * a stored intent — feeds `target-accuracy`, `confusion` and `loose-darts`
+ * a stored number-and-zone intent (zone-only intents have no number to
+ * compare against) — feeds `target-accuracy`, `confusion` and `loose-darts`
  * (phase-2 decision 2).
  */
 export async function findIntentCells(
@@ -763,6 +764,7 @@ export async function findIntentCells(
 ): Promise<IntentCellRow[]> {
   const whereClause = and(
     dartScopeWhere(q),
+    isNotNull(vStatsDartFacts.intendedTargetNumber),
     isNotNull(vStatsDartFacts.intendedZoneKey),
   );
 
@@ -859,6 +861,7 @@ export async function findIntentMoments(
 ): Promise<IntentMomentRow[]> {
   const whereClause = and(
     dartScopeWhere(q),
+    isNotNull(vStatsDartFacts.intendedTargetNumber),
     isNotNull(vStatsDartFacts.intendedZoneKey),
   );
   const sumXExpr = sql<string>`sum(${vStatsDartFacts.locationX})`;
