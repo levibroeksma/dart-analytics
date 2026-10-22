@@ -174,3 +174,18 @@ describe("Halve-It validator", () => {
     expect(exerciseRulesetWritesDarts("HALVE_IT_V1")).toBe(true);
   });
 });
+
+describe("Snakes & Ladders validator", () => {
+  it("resolves DOUBLES_SNAKES_LADDERS_V1 to a validator that takes only the empty config", () => {
+    const validator = getExerciseRulesetValidator("DOUBLES_SNAKES_LADDERS_V1");
+    expect(validator?.validateConfig({ config: {} })).toEqual({
+      ok: true,
+      config: {},
+    });
+    expect(validator?.validateConfig({ config: { finish: 2 } }).ok).toBe(false);
+  });
+
+  it("is true for Snakes & Ladders", () => {
+    expect(exerciseRulesetWritesDarts("DOUBLES_SNAKES_LADDERS_V1")).toBe(true);
+  });
+});

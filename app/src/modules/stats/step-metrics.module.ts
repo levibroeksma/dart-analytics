@@ -100,6 +100,18 @@ export const STEP_METRIC_SPECS: Readonly<
     direction: "higher",
     rates: [["hits", "darts"]],
   },
+  DOUBLES_SNAKES_LADDERS: {
+    metrics: {
+      highestLevel: "max",
+      rounds: "sum",
+      finishes: "sum",
+      darts: "sum",
+      hits: "sum",
+    },
+    headline: "highestLevel",
+    direction: "higher",
+    rates: [["hits", "darts"]],
+  },
 };
 
 /**
@@ -196,6 +208,13 @@ const STATE_FIELDS: Readonly<
   HALVE_IT: {
     points: "total",
     halvings: "halvings",
+    darts: "dartsThrown",
+    hits: "hits",
+  },
+  DOUBLES_SNAKES_LADDERS: {
+    highestLevel: "highestLevelNumber",
+    rounds: "rounds",
+    finishes: "finishes",
     darts: "dartsThrown",
     hits: "hits",
   },

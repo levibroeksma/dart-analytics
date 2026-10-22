@@ -39,6 +39,7 @@ const ENGINE_FAMILIES: readonly [
   ["switchbladeEngine", "switchblade"],
   ["doublesLockEngine", "doublesLock"],
   ["halveItEngine", "halveIt"],
+  ["snakesLaddersEngine", "hitCount"],
 ];
 
 /** The preview family of whichever exercise engine is open, or null. */

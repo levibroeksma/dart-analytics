@@ -11,9 +11,11 @@ import {
   closeAfterOrPastEnd,
   closeOnHitOrAfter,
   doneOnWrap,
+  finishOnHits,
   halveOnBlank,
   lapOnWrap,
   lockCheckpoint,
+  moveTable,
   noPoints,
   outAtOrBelowZero,
   outBelowHits,
@@ -39,6 +41,7 @@ import type {
   DartZoneKey,
   HitCountTrackExt,
   JudgedDart,
+  LadderTrackExt,
   LockTrackExt,
   SequenceTrackExt,
   SwitchbladeTrackExt,
@@ -662,5 +665,84 @@ describe("track policies on zone targets", () => {
     expect(
       boardScorePoints({ kind: "ANY_TREBLE" }, on(19, "TREBLE"), true),
     ).toBe(57);
+  });
+});
+
+function seatAt(
+  targetIndex: number,
+  hitsThisVisit: number,
+  ext: LadderTrackExt = { highestIndex: targetIndex },
+  status: TrackSeat<LadderTrackExt>["status"] = "IN_PROGRESS",
+): TrackSeat<LadderTrackExt> {
+  return {
+    ...initialTrackSeat(SEAT, ext),
+    targetIndex,
+    hitsThisVisit,
+    status,
+  };
+}
+
+describe("moveTable", () => {
+  const TABLE = { 0: -2, 1: -1, 2: 0, 3: 1 };
+  const LAST = 20;
+  const move = moveTable<LadderTrackExt>(TABLE, LAST);
+
+  it.each([
+    [5, 0, 3],
+    [5, 1, 4],
+    [5, 2, 5],
+    [5, 3, 6],
+  ])("from %i with %i hits lands on %i", (from, hits, to) => {
+    expect(move(seatAt(from, hits)).targetIndex).toBe(to);
+  });
+
+  it("floors at the first index", () => {
+    expect(move(seatAt(0, 0)).targetIndex).toBe(0);
+    expect(move(seatAt(1, 0)).targetIndex).toBe(0);
+  });
+
+  it("caps at the last index", () => {
+    expect(move(seatAt(20, 3)).targetIndex).toBe(20);
+    expect(move(seatAt(19, 3)).targetIndex).toBe(20);
+  });
+
+  it("keeps the highest index reached after a slide", () => {
+    const slid = move(seatAt(6, 0, { highestIndex: 9 }));
+    expect(slid.targetIndex).toBe(4);
+    expect(slid.ext.highestIndex).toBe(9);
+  });
+
+  it("raises the highest index on a climb", () => {
+    expect(move(seatAt(9, 3, { highestIndex: 9 })).ext.highestIndex).toBe(10);
+  });
+
+  it("does nothing once the seat is no longer in progress", () => {
+    const done = seatAt(20, 0, { highestIndex: 20 }, "DONE");
+    expect(move(done)).toBe(done);
+  });
+
+  it("treats a hit count absent from the table as no move", () => {
+    expect(
+      moveTable<LadderTrackExt>({ 3: 1 }, LAST)(seatAt(5, 2)).targetIndex,
+    ).toBe(5);
+  });
+});
+
+describe("finishOnHits", () => {
+  const finish = finishOnHits<LadderTrackExt>(3, 20);
+
+  it("finishes at the index with enough hits", () => {
+    expect(finish(seatAt(20, 3)).status).toBe("DONE");
+  });
+
+  it("does not finish short of the hits or off the index", () => {
+    expect(finish(seatAt(20, 2)).status).toBe("IN_PROGRESS");
+    expect(finish(seatAt(19, 3)).status).toBe("IN_PROGRESS");
+    expect(finish(seatAt(21, 3)).status).toBe("IN_PROGRESS");
+  });
+
+  it("composes before moveTable without moving a finished seat", () => {
+    const move = moveTable<LadderTrackExt>({ 0: -2, 3: 1 }, 20);
+    expect(move(finish(seatAt(20, 3))).targetIndex).toBe(20);
   });
 });

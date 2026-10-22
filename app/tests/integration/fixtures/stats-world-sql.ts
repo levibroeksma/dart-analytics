@@ -11,6 +11,7 @@ export type ScriptDart = {
   score: number;
   x: number;
   y: number;
+  intent?: { target: number; zone: ZoneKey };
 };
 
 /** Turns of darts, in play order. */
@@ -109,7 +110,9 @@ async function insertPlay(
         INSERT INTO darts (id, turn_id, dart_number, intended_target_number, intended_zone_id,
           hit_target_number, hit_zone_id, score, location_x, location_y, created_at)
         VALUES (${uuid(spec.base + 0x40 + turnIndex * 3 + dartIndex)}::uuid, ${turnId}::uuid, ${dartIndex + 1},
-          NULL, NULL, ${d.target},
+          ${d.intent?.target ?? null},
+          (SELECT id FROM dart_zones WHERE implementation_key = ${d.intent?.zone ?? null}),
+          ${d.target},
           (SELECT id FROM dart_zones WHERE implementation_key = ${d.zone}),
           ${d.score}, ${d.x}, ${d.y}, now())`);
     }

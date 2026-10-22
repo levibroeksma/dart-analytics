@@ -464,6 +464,7 @@ const DART_EXERCISE_TYPE_KEYS = new Set([
   "SWITCHBLADE",
   "DOUBLES_LOCK",
   "HALVE_IT",
+  "DOUBLES_SNAKES_LADDERS",
 ]);
 
 type NonGameReferences = {

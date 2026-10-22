@@ -986,6 +986,48 @@ describe("startTrainingStep", () => {
     );
   });
 
+  it("inserts DOUBLES_SNAKES_LADDERS under the ANALYTICS/VISUAL_BOARD capture pair", async () => {
+    vi.mocked(trainingRepo.findActivityConfiguration).mockResolvedValue({
+      routineName: "Custom",
+      steps: [
+        {
+          sequenceNumber: 1,
+          exerciseTypeKey: "DOUBLES_SNAKES_LADDERS",
+          exerciseRulesetVersionKey: "DOUBLES_SNAKES_LADDERS_V1",
+          gameTypeKey: null,
+          gameRulesetVersionKey: null,
+          durationSeconds: 600,
+          configuration: {},
+        },
+      ],
+    } as any);
+    vi.mocked(sessionRepo.findGameStatusId).mockResolvedValue(1);
+    vi.mocked(sessionRepo.findExerciseTypeId).mockResolvedValue("et-sl");
+    vi.mocked(sessionRepo.findExerciseRulesetVersionId).mockResolvedValue(
+      "erv-sl",
+    );
+    vi.mocked(sessionRepo.findCaptureModeId).mockResolvedValue(3);
+    vi.mocked(sessionRepo.findInputModeId).mockResolvedValue(4);
+    vi.mocked(sessionRepo.findParticipantTypeId).mockResolvedValue(2);
+    vi.mocked(sessionRepo.findPlayerDisplayName).mockResolvedValue("Levi");
+    vi.mocked(sessionRepo.insertExerciseSessionRecord).mockResolvedValue({
+      sessionId: "generated-id",
+    });
+
+    const result = await startTrainingStep("p1", "act-1", 1);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.data.exerciseTypeKey).toBe("DOUBLES_SNAKES_LADDERS");
+    expect(sessionRepo.insertExerciseSessionRecord).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        exerciseRulesetVersionId: "erv-sl",
+        captureModeId: 3,
+        inputModeId: 4,
+      }),
+    );
+  });
+
   it("inserts BULL_UP under the ANALYTICS/VISUAL_BOARD capture pair", async () => {
     vi.mocked(trainingRepo.findActivityConfiguration).mockResolvedValue({
       routineName: "Custom",

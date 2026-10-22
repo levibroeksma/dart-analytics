@@ -27,6 +27,7 @@ import type { HitCountEngine } from "@modules/training/exercises/hit-count.engin
 import type { SwitchbladeEngine } from "@modules/training/exercises/switchblade.engine.module";
 import type { DoublesLockEngine } from "@modules/training/exercises/doubles-lock.engine.module";
 import type { HalveItEngine } from "@modules/training/exercises/halve-it.engine.module";
+import type { SnakesLaddersEngine } from "@modules/training/exercises/snakes-ladders.engine.module";
 import type { DartFact, DartObservation } from "@modules/types";
 import type {
   BoardMarker,
@@ -73,6 +74,7 @@ export type ExerciseEngineSlots = Pick<
   | "switchbladeEngine"
   | "doublesLockEngine"
   | "halveItEngine"
+  | "snakesLaddersEngine"
 >;
 
 /** Every dart exercise's engine slot on the routine play context. */
@@ -138,6 +140,7 @@ export type RoutinePlayContext = {
   switchbladeEngine: SwitchbladeEngine | null;
   doublesLockEngine: DoublesLockEngine | null;
   halveItEngine: HalveItEngine | null;
+  snakesLaddersEngine: SnakesLaddersEngine | null;
   stepTimer: SegmentTimer | null;
   stepRemainingSeconds: number;
   warmUpTimer: SegmentTimer | null;
@@ -292,6 +295,17 @@ export type RoutinePlayContext = {
     this: RoutinePlayContext,
     observation: DartObservation,
   ): void;
+  snakesLaddersLevel(this: RoutinePlayContext): number;
+  snakesLaddersTargetLabel(this: RoutinePlayContext): string;
+  snakesLaddersRoute(this: RoutinePlayContext): string;
+  snakesLaddersChipIndex(this: RoutinePlayContext): number;
+  snakesLaddersHighest(this: RoutinePlayContext): string;
+  snakesLaddersRounds(this: RoutinePlayContext): number;
+  snakesLaddersRate(this: RoutinePlayContext): string;
+  recordSnakesLaddersDart(
+    this: RoutinePlayContext,
+    observation: DartObservation,
+  ): void;
   dartsThrown(this: RoutinePlayContext): number;
   activeDartEngine(
     this: RoutinePlayContext,
@@ -309,6 +323,7 @@ export type RoutinePlayContext = {
     | SwitchbladeEngine
     | DoublesLockEngine
     | HalveItEngine
+    | SnakesLaddersEngine
     | null;
   visitMarkers(this: RoutinePlayContext): BoardMarker[];
   previewSegments(this: RoutinePlayContext): PreviewSegment[];

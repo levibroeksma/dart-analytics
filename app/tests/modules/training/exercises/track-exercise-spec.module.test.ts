@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { trackExerciseSpec } from "@modules/training/exercises/track-exercise-spec.module";
+import {
+  tallyTotals,
+  trackExerciseSpec,
+} from "@modules/training/exercises/track-exercise-spec.module";
 import {
   boardScorePoints,
   closeAfter,
@@ -9,6 +12,7 @@ import { isHitOn, numbersPath } from "@modules/game/board-progression.module";
 import type {
   DartObservation,
   EngineFacts,
+  TrackSeat,
   TrackTarget,
   TurnFact,
 } from "@modules/types";
@@ -123,5 +127,53 @@ describe("trackExerciseSpec", () => {
       locationY: null,
     };
     expect(zoneSpec.fold(facts([treble]), {}, false)).toBe(57);
+  });
+});
+
+describe("tallyTotals", () => {
+  it("sums hits per target and counts every dart in the log", () => {
+    const log = {
+      stages: [],
+      turns: [{ darts: [{}, {}, {}] }, { darts: [{}] }],
+    } as unknown as EngineFacts;
+    expect(tallyTotals([2, 0, 1], log)).toEqual({ hits: 3, dartsThrown: 4 });
+  });
+
+  it("is zero over an empty log", () => {
+    expect(tallyTotals([], { stages: [], turns: [] })).toEqual({
+      hits: 0,
+      dartsThrown: 0,
+    });
+  });
+});
+
+describe("trackExerciseSpec ends", () => {
+  const definition = {
+    exerciseRulesetVersionKey: "TARGET_SCORING_V1" as const,
+    parse: (config: Config) => config,
+    rules: () => ({
+      doneMessage: "never",
+      startScore: 0,
+      target: pathTarget(numbersPath()),
+      hit: isHitOn,
+      points: () => 0,
+      onDart: (seat: TrackSeat<object>) => seat,
+      visitOpen: closeAfter(3),
+    }),
+    initialExt: () => ({}),
+    project: () => ({ done: false }),
+    intent: () => ({
+      intendedTargetNumber: 20,
+      intendedZoneKey: "SINGLE" as const,
+    }),
+  };
+
+  it("forwards the definition's ends", () => {
+    const ends = (state: { done: boolean }) => state.done;
+    expect(trackExerciseSpec({ ...definition, ends }).ends).toBe(ends);
+  });
+
+  it("leaves ends undefined when the definition has none", () => {
+    expect(trackExerciseSpec(definition).ends).toBeUndefined();
   });
 });

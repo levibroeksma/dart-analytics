@@ -82,3 +82,52 @@ describe("registerDartExercise", () => {
     expect(registered.fold).toBe(spec.fold);
   });
 });
+
+describe("dartExerciseEngineClass ends hook", () => {
+  type Counted = { n: number };
+  const endingSpec: DartExerciseSpec<{ n: number }, Counted> = {
+    exerciseRulesetVersionKey: spec.exerciseRulesetVersionKey,
+    parse: spec.parse,
+    intent: () => ({ intendedTargetNumber: 20, intendedZoneKey: "TREBLE" }),
+    isVisitOpen: spec.isVisitOpen,
+    fold: (facts) => ({
+      n: facts.turns.reduce((sum, turn) => sum + turn.darts.length, 0),
+    }),
+    ends: (state) => state.n >= 2,
+  };
+  const Ending = dartExerciseEngineClass(endingSpec);
+  const refusal =
+    "Cannot record a dart once the exercise is complete; undo first to correct it.";
+
+  it("completes on the dart whose state ends the run", () => {
+    const e = new Ending({ n: 1 });
+    e.record(T20);
+    expect(e.isComplete()).toBe(false);
+    e.record(T20);
+    expect(e.isComplete()).toBe(true);
+  });
+
+  it("refuses a dart once ended and leaves facts alone", () => {
+    const e = new Ending({ n: 1 });
+    [T20, T20].forEach((o) => e.record(o));
+    const before = e.facts();
+    expect(() => e.record(T20)).toThrow(refusal);
+    expect(e.facts()).toEqual(before);
+  });
+
+  it("undo of the ending dart reopens the run", () => {
+    const e = new Ending({ n: 1 });
+    [T20, T20].forEach((o) => e.record(o));
+    expect(e.undo()).toBe(true);
+    expect(e.isComplete()).toBe(false);
+    expect(() => e.record(T20)).not.toThrow();
+  });
+
+  it("a spec without ends completes only on expiry", () => {
+    const e = new Toy({ n: 1 });
+    [T20, T20, T20, T20].forEach((o) => e.record(o));
+    expect(e.isComplete()).toBe(false);
+    e.expireTimer();
+    expect(e.isComplete()).toBe(true);
+  });
+});

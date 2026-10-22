@@ -330,6 +330,46 @@ describe("foldStepResult", () => {
     expect(result.skippedSessions).toBe(0);
   });
 
+  it("replays a Snakes & Ladders session's level, rounds, darts and hits", () => {
+    const run = (sessionId: string, climbs: number) =>
+      Array.from({ length: climbs * 3 }, (_, i) =>
+        dartRow({
+          sessionId,
+          exerciseRulesetVersionKey: "DOUBLES_SNAKES_LADDERS_V1",
+          configuration: {},
+          turnSequence: Math.floor(i / 3) + 1,
+          dartNumber: (i % 3) + 1,
+          intendedTargetNumber: Math.floor(i / 3) + 1,
+          intendedZoneKey: "DOUBLE",
+          hitTargetNumber: Math.floor(i / 3) + 1,
+          hitZoneKey: "DOUBLE",
+          score: 0,
+        }),
+      );
+
+    const single = foldStepResult("DOUBLES_SNAKES_LADDERS", run("sl", 2));
+    expect(single.metrics).toEqual({
+      highestLevel: 3,
+      rounds: 2,
+      finishes: 0,
+      darts: 6,
+      hits: 6,
+    });
+
+    const merged = foldStepResult("DOUBLES_SNAKES_LADDERS", [
+      ...run("sl-a", 2),
+      ...run("sl-b", 4),
+    ]);
+    expect(merged.metrics).toEqual({
+      highestLevel: 5,
+      rounds: 6,
+      finishes: 0,
+      darts: 18,
+      hits: 18,
+    });
+    expect(merged.sessions).toBe(2);
+  });
+
   it("replays a two-stage session in stage pre-order, never interleaving the stages' turns", () => {
     const ROOT = "01900000-0000-7000-9000-0000000000a1";
     const CHILD = "01900000-0000-7000-9000-0000000000a2";

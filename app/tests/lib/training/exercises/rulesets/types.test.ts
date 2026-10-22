@@ -9,6 +9,7 @@ import {
   HitCountV1Config,
   RandomCheckoutV1Config,
   ScoreThresholdV1Config,
+  SnakesLaddersV1Config,
   SwitchbladeV1Config,
   DoublesLockV1Config,
   SwitchingChainV1Config,
@@ -407,5 +408,18 @@ describe("HalveItV1Config", () => {
 
   it("is registered under HALVE_IT_V1", () => {
     expect(EXERCISE_RULESET_CONFIGS.HALVE_IT_V1).toBe(HalveItV1Config);
+  });
+});
+
+describe("SnakesLaddersV1Config", () => {
+  it("is the empty config; levels, moves and finish are fixed", () => {
+    expect(SnakesLaddersV1Config).toBe(EmptyV1Config);
+    expect(SnakesLaddersV1Config.safeParse({ finish: 2 }).success).toBe(false);
+  });
+
+  it("is registered under DOUBLES_SNAKES_LADDERS_V1", () => {
+    expect(EXERCISE_RULESET_CONFIGS.DOUBLES_SNAKES_LADDERS_V1).toBe(
+      SnakesLaddersV1Config,
+    );
   });
 });

@@ -509,6 +509,12 @@ export type PassTrackExt = {
   passes: number;
 };
 
+/** A ladder's furthest index reached, kept as the seat moves up and down. */
+export type LadderTrackExt = { highestIndex: number };
+
+/** Index change by visit hit count; a count the table lacks does not move the seat. */
+export type MoveTable = Readonly<Record<number, number>>;
+
 /** Hit Count's Track extras. */
 export type HitCountTrackExt = TargetTallyExt & PassTrackExt;
 
@@ -516,6 +522,12 @@ export type HitCountTrackExt = TargetTallyExt & PassTrackExt;
 export type HalveItTrackExt = TargetTallyExt &
   PassTrackExt & {
     halvings: number;
+  };
+
+/** Doubles Snakes & Ladders' Track extras: the per-level tally, the furthest level, and closed visits. */
+export type SnakesLaddersTrackExt = TargetTallyExt &
+  LadderTrackExt & {
+    rounds: number;
   };
 
 /** Points per round for a Track seat whose path is cut into equal rounds (SwitchBlade). */

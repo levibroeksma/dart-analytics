@@ -678,6 +678,13 @@ describe("routineStatsStore getters", () => {
     expect(routineStatsStore().metricLabel("halvings")).toBe("Halvings");
   });
 
+  it("labels Snakes & Ladders' level, rounds and finishes metrics", () => {
+    const store = routineStatsStore();
+    expect(store.metricLabel("highestLevel")).toBe("Highest level");
+    expect(store.metricLabel("rounds")).toBe("Rounds");
+    expect(store.metricLabel("finishes")).toBe("Finishes");
+  });
+
   it("labels Catch 40's attempts metric", () => {
     expect(routineStatsStore().metricLabel("attempts")).toBe("Attempts");
   });

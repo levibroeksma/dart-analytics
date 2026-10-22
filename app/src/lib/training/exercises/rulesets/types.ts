@@ -21,7 +21,8 @@ export type ExerciseRulesetVersionKey =
   | "HIT_COUNT_V1"
   | "SWITCHBLADE_V1"
   | "DOUBLES_LOCK_V1"
-  | "HALVE_IT_V1";
+  | "HALVE_IT_V1"
+  | "DOUBLES_SNAKES_LADDERS_V1";
 
 /**
  * One timed section of a warm-up. `targets` are board numbers the player
@@ -318,6 +319,16 @@ export const HalveItV1Config = EmptyV1Config;
 
 export type HalveItConfigData = z.infer<typeof HalveItV1Config>;
 
+/**
+ * Doubles Snakes & Ladders v1: D1 to D20 then the bullseye, moved by the
+ * visit's hits, finished by three bullseyes in one visit
+ * (`docs/game-rules/training/exercises/doubles-snakes-and-ladders.md`).
+ * Levels, moves and finish are locked; duration is the routine step's.
+ */
+export const SnakesLaddersV1Config = EmptyV1Config;
+
+export type SnakesLaddersConfigData = z.infer<typeof SnakesLaddersV1Config>;
+
 export const EXERCISE_RULESET_CONFIGS: Record<
   ExerciseRulesetVersionKey,
   z.ZodTypeAny
@@ -336,4 +347,5 @@ export const EXERCISE_RULESET_CONFIGS: Record<
   SWITCHBLADE_V1: SwitchbladeV1Config,
   DOUBLES_LOCK_V1: DoublesLockV1Config,
   HALVE_IT_V1: HalveItV1Config,
+  DOUBLES_SNAKES_LADDERS_V1: SnakesLaddersV1Config,
 };

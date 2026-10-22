@@ -3617,6 +3617,7 @@ describe("routinePlay — board dispatch", () => {
     ["SWITCHBLADE", "switchbladeEngine"],
     ["DOUBLES_LOCK", "doublesLockEngine"],
     ["HALVE_IT", "halveItEngine"],
+    ["DOUBLES_SNAKES_LADDERS", "snakesLaddersEngine"],
   ] as const)(
     "routes a committed board dart to the open %s engine (%s)",
     async (kind, slot) => {
@@ -4045,6 +4046,17 @@ describe("routinePlay — Halve-It play", () => {
     expect(store.halveItChipIndex()).toBe(1);
   });
 
+  it("the shared rate and route getters read Halve-It's hits, darts and index", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+
+    [S(20), MISS, MISS, ...BLANK].forEach((d) => store.recordHalveItDart(d));
+    expect(store.halveItRate()).toBe("16.67%");
+    expect(store.halveItRoute()).toBe(
+      "20 16 Any\u00a0double 17 18 Any\u00a0treble",
+    );
+  });
+
   it("a blank visit halves the total the readout shows", async () => {
     const store = makeStore();
     await startRoutine(store);
@@ -4117,5 +4129,139 @@ describe("routinePlay — Halve-It play", () => {
 
     expect(sessionApi.appendBatch).toHaveBeenCalled();
     expect(store.stepSummaries[0]).toMatchObject({ stepKey: "HALVE_IT" });
+  });
+});
+
+const SNAKES_LADDERS_STEP = {
+  sequenceNumber: 1,
+  exerciseTypeKey: "DOUBLES_SNAKES_LADDERS",
+  exerciseRulesetVersionKey: "DOUBLES_SNAKES_LADDERS_V1",
+  gameTypeKey: null,
+  gameRulesetVersionKey: null,
+  durationSeconds: 600,
+  configuration: {},
+};
+
+describe("routinePlay — Doubles Snakes & Ladders", () => {
+  it("starts with no Snakes & Ladders engine", () => {
+    expect(makeStore().snakesLaddersEngine).toBeNull();
+  });
+});
+
+describe("routinePlay — Doubles Snakes & Ladders play", () => {
+  const D = (n: number) => ({
+    hitTargetNumber: n,
+    hitZoneKey: "DOUBLE" as const,
+    locationX: 0,
+    locationY: -100,
+  });
+  const MISS = {
+    hitTargetNumber: null,
+    hitZoneKey: "MISS" as const,
+    locationX: null,
+    locationY: null,
+  };
+  const BULLSEYE = {
+    hitTargetNumber: 25,
+    hitZoneKey: "INNER_BULL" as const,
+    locationX: 0,
+    locationY: 0,
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+    stubAudioContext();
+    Object.defineProperty(globalThis, "location", {
+      value: { href: "" },
+      writable: true,
+      configurable: true,
+    });
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineTemplateId: "rt-1",
+      routineName: "Custom",
+      steps: [SNAKES_LADDERS_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "DOUBLES_SNAKES_LADDERS",
+      configuration: SNAKES_LADDERS_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+  });
+  afterEach(() => {
+    vi.clearAllTimers();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it("startCurrentStep() builds the engine", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+
+    expect(store.snakesLaddersEngine).not.toBeNull();
+    expect(store.activeDartEngine()).toBe(store.snakesLaddersEngine);
+  });
+
+  it("the readouts start at level 1 with the first six levels as chips", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+
+    expect(store.snakesLaddersLevel()).toBe(1);
+    expect(store.snakesLaddersTargetLabel()).toBe("D1");
+    expect(store.snakesLaddersHighest()).toBe("D1");
+    expect(store.snakesLaddersRounds()).toBe(0);
+    expect(store.snakesLaddersRate()).toBe("—");
+    expect(store.snakesLaddersRoute()).toBe("D1 D2 D3 D4 D5 D6");
+    expect(store.snakesLaddersChipIndex()).toBe(0);
+  });
+
+  it("the readouts follow a climb and a slide", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+
+    [D(1), D(1), D(1)].forEach((d) => store.recordSnakesLaddersDart(d));
+    expect(store.snakesLaddersLevel()).toBe(2);
+    expect(store.snakesLaddersTargetLabel()).toBe("D2");
+    expect(store.snakesLaddersRounds()).toBe(1);
+    expect(store.snakesLaddersRate()).toBe("100.00%");
+
+    [MISS, MISS, MISS].forEach((d) => store.recordSnakesLaddersDart(d));
+    expect(store.snakesLaddersTargetLabel()).toBe("D1");
+    expect(store.snakesLaddersHighest()).toBe("D2");
+  });
+
+  it("the preview captions the open visit with the current level", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+
+    expect(store.exerciseVisitLabels(0)).toEqual(["D1", "D1", "D1"]);
+  });
+
+  it("completes the step on the finishing dart, and the deadline does not upload again", async () => {
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(sessionApi.appendBatch).mockResolvedValue(undefined as never);
+    vi.mocked(sessionApi.completeSession).mockResolvedValue(undefined as never);
+    vi.mocked(trainingApi.completeTraining).mockResolvedValue({
+      activityId: "act-1",
+      completedAt: "2026-10-22T12:00:00.000Z",
+    });
+    const store = makeStore();
+    await startRoutine(store);
+
+    for (let level = 1; level <= 20; level += 1)
+      [0, 1, 2].forEach(() => store.recordSnakesLaddersDart(D(level)));
+    expect(store.snakesLaddersEngine?.isComplete()).toBe(false);
+    [0, 1, 2].forEach(() => store.recordSnakesLaddersDart(BULLSEYE));
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(sessionApi.appendBatch).toHaveBeenCalledTimes(1);
+    expect(store.stepSummaries[0]).toMatchObject({
+      stepKey: "DOUBLES_SNAKES_LADDERS",
+    });
+
+    await vi.advanceTimersByTimeAsync(900_000);
+    expect(sessionApi.appendBatch).toHaveBeenCalledTimes(1);
   });
 });

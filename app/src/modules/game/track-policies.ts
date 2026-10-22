@@ -10,8 +10,10 @@ import type {
   DartObservation,
   DartZoneKey,
   JudgedDart,
+  LadderTrackExt,
   LockBonus,
   LockTrackExt,
+  MoveTable,
   PassTrackExt,
   PointsTable,
   RoundTallyExt,
@@ -411,4 +413,41 @@ export function lockCheckpoint<TExt extends LockTrackExt>(
       return { ...seat, targetIndex: seat.targetIndex + 1 };
     return { ...seat, targetIndex: seat.ext.lastLock ?? 0 };
   };
+}
+
+/**
+ * Visit-close policy: move by the hit count's row of `table`, clamped to
+ * the path, and keep the highest index reached in `ext.highestIndex`.
+ * A seat no longer in progress does not move.
+ */
+export function moveTable<TExt extends LadderTrackExt>(
+  table: MoveTable,
+  lastIndex: number,
+): (seat: TrackSeat<TExt>) => TrackSeat<TExt> {
+  return (seat) => {
+    if (seat.status !== "IN_PROGRESS") return seat;
+    const targetIndex = Math.min(
+      lastIndex,
+      Math.max(0, seat.targetIndex + (table[seat.hitsThisVisit] ?? 0)),
+    );
+    return {
+      ...seat,
+      targetIndex,
+      ext: {
+        ...seat.ext,
+        highestIndex: Math.max(seat.ext.highestIndex, targetIndex),
+      },
+    };
+  };
+}
+
+/** Visit-close policy: at `index`, `hits` hits in the visit finish (`DONE`) the seat. */
+export function finishOnHits<TExt>(
+  hits: number,
+  index: number,
+): (seat: TrackSeat<TExt>) => TrackSeat<TExt> {
+  return (seat) =>
+    seat.targetIndex === index && seat.hitsThisVisit >= hits
+      ? { ...seat, status: "DONE" }
+      : seat;
 }

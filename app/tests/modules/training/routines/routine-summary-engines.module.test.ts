@@ -13,6 +13,7 @@ import {
   summariseSwitchblade,
   summariseDoublesLock,
   summariseHalveIt,
+  summariseSnakesLadders,
 } from "@modules/training/routines/routine-summary.module";
 import { switchingEngineFactory } from "@modules/training/exercises/switching.engine.module";
 import { doublePatternEngineFactory } from "@modules/training/exercises/double-pattern.engine.module";
@@ -26,6 +27,7 @@ import { randomCheckoutEngineFactory } from "@modules/training/exercises/random-
 import { hitCountEngineFactory } from "@modules/training/exercises/hit-count.engine.module";
 import { switchbladeEngineFactory } from "@modules/training/exercises/switchblade.engine.module";
 import { doublesLockEngineFactory } from "@modules/training/exercises/doubles-lock.engine.module";
+import { snakesLaddersEngineFactory } from "@modules/training/exercises/snakes-ladders.engine.module";
 import { halveItEngineFactory } from "@modules/training/exercises/halve-it.engine.module";
 import type { DartObservation } from "@modules/types";
 
@@ -426,6 +428,42 @@ describe("summarise* over a real engine run", () => {
       { label: "Passes", value: "0" },
       { label: "Darts", value: "6" },
       { label: "Hit rate", value: "33.33%" },
+    ]);
+  });
+
+  it("summariseSnakesLadders reads the highest level, rounds, finish, darts and rate", () => {
+    const engine = snakesLaddersEngineFactory.create({});
+    [
+      ...[1, 1, 1].map((n) => dart(n, "DOUBLE")),
+      ...[2, 2, 2].map((n) => dart(n, "DOUBLE")),
+      dart(null, "MISS"),
+      dart(null, "MISS"),
+      dart(null, "MISS"),
+    ].forEach((d) => engine.record(d));
+
+    const summary = summariseSnakesLadders(engine.state());
+    expect(summary.stepKey).toBe("DOUBLES_SNAKES_LADDERS");
+    expect(summary.label).toBe("Doubles Snakes & Ladders");
+    expect(summary.rows).toEqual([
+      { label: "Highest level", value: "D3" },
+      { label: "Rounds", value: "3" },
+      { label: "Finished", value: "No" },
+      { label: "Darts", value: "9" },
+      { label: "Hit rate", value: "66.67%" },
+    ]);
+  });
+
+  it("summariseSnakesLadders shows a finished run at the bull", () => {
+    const engine = snakesLaddersEngineFactory.create({});
+    for (let level = 1; level <= 20; level += 1)
+      [0, 1, 2].forEach(() => engine.record(dart(level, "DOUBLE")));
+    [0, 1, 2].forEach(() => engine.record(dart(25, "INNER_BULL")));
+
+    const summary = summariseSnakesLadders(engine.state());
+    expect(summary.rows.slice(0, 3)).toEqual([
+      { label: "Highest level", value: "BULL" },
+      { label: "Rounds", value: "21" },
+      { label: "Finished", value: "Yes" },
     ]);
   });
 });

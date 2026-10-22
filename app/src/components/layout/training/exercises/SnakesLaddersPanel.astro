@@ -1,0 +1,18 @@
+---
+// Components
+import ExercisePanelShell from "./ExercisePanelShell.astro";
+---
+
+<ExercisePanelShell
+  score="snakesLaddersLevel()"
+  caption="LEVEL"
+  chip={{
+    routeExpr: "snakesLaddersRoute()",
+    currentIndexExpr: "snakesLaddersChipIndex()",
+  }}
+  tiles={[
+    { label: "Highest", value: "snakesLaddersHighest()" },
+    { label: "Rounds", value: "snakesLaddersRounds()" },
+    { label: "Rate", value: "snakesLaddersRate()" },
+  ]}
+/>

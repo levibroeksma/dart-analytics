@@ -73,6 +73,8 @@ export interface DartExerciseSpec<TConfig, TState> {
   fold(facts: EngineFacts, config: TConfig, expired: boolean): TState;
   intent(state: TState, config: TConfig): DartIntent;
   isVisitOpen(turn: TurnFact): boolean;
+  /** A state that ends the run on its own, before the timer. */
+  ends?(state: TState): boolean;
 }
 
 /**
@@ -96,6 +98,8 @@ export interface TrackExerciseDefinition<
     facts: EngineFacts,
   ): TState;
   intent(state: TState, config: TConfig): DartIntent;
+  /** A state that ends the run on its own, before the timer. */
+  ends?(state: TState): boolean;
 }
 
 /** A shell-built exercise; `spec` brands it so `instanceof` narrows to it. */

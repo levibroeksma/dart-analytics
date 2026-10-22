@@ -23,6 +23,7 @@ export type StepAdapterKey =
   | "SWITCHBLADE"
   | "DOUBLES_LOCK"
   | "HALVE_IT"
+  | "DOUBLES_SNAKES_LADDERS"
   | `GAME:${string}`;
 
 /** The play page's own `x-if` switch — one template block per panel. */
@@ -41,6 +42,7 @@ export type StepPanel =
   | "switchblade"
   | "doubles-lock"
   | "halve-it"
+  | "doubles-snakes-ladders"
   | "tuod"
   | "score-training"
   | "one-twenty-one"

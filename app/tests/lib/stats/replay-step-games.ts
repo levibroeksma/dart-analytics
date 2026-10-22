@@ -4,6 +4,7 @@ import { randomCheckoutEngineFactory } from "@modules/training/exercises/random-
 import { hitCountEngineFactory } from "@modules/training/exercises/hit-count.engine.module";
 import { doublesLockEngineFactory } from "@modules/training/exercises/doubles-lock.engine.module";
 import { halveItEngineFactory } from "@modules/training/exercises/halve-it.engine.module";
+import { snakesLaddersEngineFactory } from "@modules/training/exercises/snakes-ladders.engine.module";
 import { switchbladeEngineFactory } from "@modules/training/exercises/switchblade.engine.module";
 import { bullseyeCheckoutEngineFactory } from "@modules/training/exercises/bullseye-checkout.engine.module";
 import { doublePatternEngineFactory } from "@modules/training/exercises/double-pattern.engine.module";
@@ -322,6 +323,23 @@ const EXERCISE_FIXTURES: Record<
       dart(20, "TREBLE"),
       dart(20, "SINGLE"),
       dart(null, "MISS"),
+      dart(null, "MISS"),
+      dart(null, "MISS"),
+      dart(null, "MISS"),
+    ],
+  },
+  DOUBLES_SNAKES_LADDERS: {
+    typeKey: "DOUBLES_SNAKES_LADDERS",
+    rulesetKey: "DOUBLES_SNAKES_LADDERS_V1",
+    factory: snakesLaddersEngineFactory,
+    config: {},
+    darts: [
+      dart(1, "DOUBLE"),
+      dart(1, "DOUBLE"),
+      dart(1, "DOUBLE"),
+      dart(2, "DOUBLE"),
+      dart(2, "DOUBLE"),
+      dart(2, "DOUBLE"),
       dart(null, "MISS"),
       dart(null, "MISS"),
       dart(null, "MISS"),

@@ -1,6 +1,6 @@
 # Doubles Snakes and Ladders
 
-Current version: none (V1 in design)
+Current version: V1 (shipped 2026-10-22)
 Entry points: routine step
 Kernel: TRACK
 
@@ -46,12 +46,9 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 
 ## Exercise type
 
-- Type constant: `HIT_COUNT_LADDER` (proposed; not among the seeded types —
-  `WARM_UP`, `GAME`, `EXERCISE_SECTION` (`database/seeds/0014_exercise_types.sql`),
-  `SWITCHING`, `DOUBLE_PATTERN` (`0016`), `TARGET_SCORING` (`0023`),
-  `SCORE_THRESHOLD` (`0025`),
-  `BULLSEYE_CHECKOUT` (`0029`), `BULL_UP` (`0030`)). Named for the rule, so
-  the singles and trebles versions are configurations.
+- Type constant: `DOUBLES_SNAKES_LADDERS` (`database/seeds/0048_snakes_ladders_exercise_type.sql`),
+  ruleset `DOUBLES_SNAKES_LADDERS_V1`. Named for the exercise; the singles
+  and trebles versions are later configurations or types.
 - Wraps no game. Doubles Training's Challenge mode steps back one on a blank
   visit and ends the game on a D1 miss
   (`docs/game-rules/rulesets/doubles-training.md` §Features); this ladder

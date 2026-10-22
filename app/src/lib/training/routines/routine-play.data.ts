@@ -89,6 +89,8 @@ import type { SwitchbladeEngine } from "@modules/training/exercises/switchblade.
 import type { DoublesLockEngine } from "@modules/training/exercises/doubles-lock.engine.module";
 import type { HalveItEngine } from "@modules/training/exercises/halve-it.engine.module";
 import { HALVE_IT_PATH } from "@modules/training/exercises/halve-it.engine.module";
+import type { SnakesLaddersEngine } from "@modules/training/exercises/snakes-ladders.engine.module";
+import { SNAKES_LADDERS_PATH } from "@modules/training/exercises/snakes-ladders.engine.module";
 import { boardTargetLabel } from "@modules/game/board-progression.module";
 import { checkoutPercentageDisplay } from "@lib/game/play-visit-stats";
 import type { DartFact } from "@modules/types";
@@ -125,6 +127,7 @@ const DART_ENGINE_RECORDERS = [
   ["switchbladeEngine", "recordSwitchbladeDart"],
   ["doublesLockEngine", "recordDoublesLockDart"],
   ["halveItEngine", "recordHalveItDart"],
+  ["snakesLaddersEngine", "recordSnakesLaddersDart"],
 ] as const satisfies readonly (readonly [
   DartEngineSlot,
   keyof RoutinePlayContext,
@@ -132,9 +135,10 @@ const DART_ENGINE_RECORDERS = [
 
 type DartRecorderName = (typeof DART_ENGINE_RECORDERS)[number][1];
 
-/** Slots whose engine ends on its own dart, so the step completes before its deadline (Catch 40's last outshot). */
+/** Slots whose engine ends on its own dart, so the step completes before its deadline (Catch 40's last outshot, Snakes & Ladders' three bullseyes). */
 const COMPLETES_ON_DART: ReadonlySet<DartEngineSlot> = new Set([
   "checkoutSequenceEngine",
+  "snakesLaddersEngine",
 ]);
 
 function recordInto(
@@ -171,6 +175,25 @@ function dartRecorders(): Record<
 function chipLabel(target: TrackTarget): string {
   return boardTargetLabel(target).replace(" ", "\u00a0");
 }
+
+/** A path's chips paged around `index` (`windowPage`), space-joined for `RouteChips`. */
+function routeChipsOf(path: readonly TrackTarget[], index: number): string {
+  return windowPage(path.map(chipLabel), index).join(" ");
+}
+
+/** Hits over darts as a percentage display; zero while no engine is open. */
+function hitRateOf(
+  state: { hits: number; dartsThrown: number } | undefined,
+): string {
+  return checkoutPercentageDisplay(state?.hits ?? 0, state?.dartsThrown ?? 0);
+}
+
+/** Context getters that label an engine's current target, tried in order. */
+const TARGET_LABEL_GETTERS = [
+  "hitCountTargetLabel",
+  "doublesLockTargetLabel",
+  "snakesLaddersTargetLabel",
+] as const;
 
 /** A path target's label, or "" while no engine is open. */
 function targetLabelOf(target: BoardTarget | undefined): string {
@@ -231,6 +254,7 @@ export function routinePlay() {
     switchbladeEngine: null,
     doublesLockEngine: null,
     halveItEngine: null,
+    snakesLaddersEngine: null,
     stepTimer: null,
     stepRemainingSeconds: 0,
     warmUpTimer: null,
@@ -278,6 +302,7 @@ export function routinePlay() {
       | SwitchbladeEngine
       | DoublesLockEngine
       | HalveItEngine
+      | SnakesLaddersEngine
       | null {
       const open = DART_ENGINE_RECORDERS.find(([slot]) => this[slot]);
       return open ? this[open[0]] : null;
@@ -326,10 +351,9 @@ export function routinePlay() {
         config: this.stepConfiguration,
         visitIndex,
         currentTargetNumber: progress?.currentTargetNumber,
-        currentTargetLabel:
-          this.hitCountTargetLabel() ||
-          this.doublesLockTargetLabel() ||
-          undefined,
+        currentTargetLabel: TARGET_LABEL_GETTERS.map((getter) =>
+          this[getter](),
+        ).find(Boolean),
         targetIndex: progress?.targetIndex ?? 0,
         dartsInOpenVisit:
           this.activeDartEngine()?.facts().turns.at(-1)?.darts.length ?? 0,
@@ -1017,11 +1041,7 @@ export function routinePlay() {
     },
 
     hitCountRate(this: RoutinePlayContext): string {
-      const state = this.hitCountEngine?.state();
-      return checkoutPercentageDisplay(
-        state?.hits ?? 0,
-        state?.dartsThrown ?? 0,
-      );
+      return hitRateOf(this.hitCountEngine?.state());
     },
 
     switchbladeTotal(this: RoutinePlayContext): number {
@@ -1068,8 +1088,10 @@ export function routinePlay() {
 
     /** Halve-It's list as chips, paged around the current round (`windowPage`); a zone keeps its words with a no-break space. */
     halveItRoute(this: RoutinePlayContext): string {
-      const index = this.halveItEngine?.state().targetIndex ?? 0;
-      return windowPage(HALVE_IT_PATH.map(chipLabel), index).join(" ");
+      return routeChipsOf(
+        HALVE_IT_PATH,
+        this.halveItEngine?.state().targetIndex ?? 0,
+      );
     },
 
     /** The current round's chip within `halveItRoute()`'s page. */
@@ -1086,11 +1108,41 @@ export function routinePlay() {
     },
 
     halveItRate(this: RoutinePlayContext): string {
-      const state = this.halveItEngine?.state();
-      return checkoutPercentageDisplay(
-        state?.hits ?? 0,
-        state?.dartsThrown ?? 0,
+      return hitRateOf(this.halveItEngine?.state());
+    },
+
+    /** Snakes & Ladders' LEVEL score: 1 for D1 up to 21 for the bull. */
+    snakesLaddersLevel(this: RoutinePlayContext): number {
+      return (this.snakesLaddersEngine?.state().levelIndex ?? 0) + 1;
+    },
+
+    snakesLaddersTargetLabel(this: RoutinePlayContext): string {
+      return targetLabelOf(this.snakesLaddersEngine?.state().currentLevel);
+    },
+
+    /** The ladder as chips, paged around the current level (`windowPage`). */
+    snakesLaddersRoute(this: RoutinePlayContext): string {
+      return routeChipsOf(
+        SNAKES_LADDERS_PATH,
+        this.snakesLaddersEngine?.state().levelIndex ?? 0,
       );
+    },
+
+    /** The current level's chip within `snakesLaddersRoute()`'s page. */
+    snakesLaddersChipIndex(this: RoutinePlayContext): number {
+      return windowIndex(this.snakesLaddersEngine?.state().levelIndex ?? 0);
+    },
+
+    snakesLaddersHighest(this: RoutinePlayContext): string {
+      return targetLabelOf(this.snakesLaddersEngine?.state().highestLevel);
+    },
+
+    snakesLaddersRounds(this: RoutinePlayContext): number {
+      return this.snakesLaddersEngine?.state().rounds ?? 0;
+    },
+
+    snakesLaddersRate(this: RoutinePlayContext): string {
+      return hitRateOf(this.snakesLaddersEngine?.state());
     },
 
     dartsThrown(this: RoutinePlayContext): number {

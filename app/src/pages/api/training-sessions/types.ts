@@ -19,6 +19,7 @@ const ExerciseTypeKey = z.enum([
   "SWITCHBLADE",
   "DOUBLES_LOCK",
   "HALVE_IT",
+  "DOUBLES_SNAKES_LADDERS",
   "GAME",
 ]);
 

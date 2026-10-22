@@ -140,4 +140,18 @@ describe("foldReplay (non-game routine steps)", () => {
     expect(finalState).toMatchObject({ total: 40, halvings: 1 });
     expect(fold.stateAfter(turns.length - 1)).toEqual(finalState);
   });
+
+  it("replays a Snakes & Ladders run visit by visit to the engine's final state", () => {
+    const { header, turns, finalState } = playExerciseKind(
+      "DOUBLES_SNAKES_LADDERS",
+    );
+
+    const fold = foldReplay(header, turns);
+
+    expect(fold.ok).toBe(true);
+    if (!fold.ok) return;
+    expect(turns).toHaveLength(3);
+    expect(finalState).toMatchObject({ highestLevelNumber: 3, rounds: 3 });
+    expect(fold.stateAfter(turns.length - 1)).toEqual(finalState);
+  });
 });
