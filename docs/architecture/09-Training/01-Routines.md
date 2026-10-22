@@ -976,6 +976,22 @@ One visit of three darts per round. Darts in the round's target add their board 
 
 **Implemented** (`HALVE_IT_V1`, `app/src/modules/training/exercises/halve-it.engine.module.ts`, seed `0047`): empty configuration, bound to the Track kernel through `trackExerciseSpec` (D469) on a `TrackTarget` path (D478) with `anyRingEitherBull`, `boardScorePoints`, `tallyOnTarget`, `halveOnBlank`, `advanceAfterDarts(3)` and `passOnWrap(8)`. A dart at a number or the bull carries no intended bed; a dart at a zone carries the zone. One turn per visit. State carries the total, halvings, rounds, passes and hits per round. Time-bound only. Routine step only in V1 (2026-10-21).
 
+## Doubles Snakes & Ladders
+
+Configuration:
+
+```text
+duration: 15m
+
+levels (fixed): D1 .. D20, bullseye
+moves (fixed): 0 hits back two, 1 back one, 2 stay, 3 up one, floor D1
+finish (fixed): 3 bullseyes in one visit
+```
+
+One visit of three darts at the current level; only that level's double counts, and on the last level only the bullseye. The visit's hits move the level; three bullseyes in one visit finish the run. Rules: `docs/game-rules/training/exercises/doubles-snakes-and-ladders.md`.
+
+**Implemented** (`DOUBLES_SNAKES_LADDERS_V1`, `app/src/modules/training/exercises/snakes-ladders.engine.module.ts`, seed `0048`): empty configuration, bound to the Track kernel through `trackExerciseSpec` (D469) with `isHitOn`, `noPoints`, `tallyOnTarget`, `moveTable` and `finishOnHits` composed at the visit's close, and `ends` finishing the run (D479); the step completes on the finishing dart through `COMPLETES_ON_DART`. Each dart carries the current level through `doubleTargetIntent` (a bullseye at the bull level). One turn per visit. State carries the current and highest level, rounds, finishes, darts and hits. Routine step only in V1 (2026-10-22).
+
 ---
 
 ## Game Exercise
