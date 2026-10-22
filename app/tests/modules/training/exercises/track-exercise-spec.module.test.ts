@@ -12,6 +12,7 @@ import { isHitOn, numbersPath } from "@modules/game/board-progression.module";
 import type {
   DartObservation,
   EngineFacts,
+  TrackSeat,
   TrackTarget,
   TurnFact,
 } from "@modules/types";
@@ -143,5 +144,36 @@ describe("tallyTotals", () => {
       hits: 0,
       dartsThrown: 0,
     });
+  });
+});
+
+describe("trackExerciseSpec ends", () => {
+  const definition = {
+    exerciseRulesetVersionKey: "TARGET_SCORING_V1" as const,
+    parse: (config: Config) => config,
+    rules: () => ({
+      doneMessage: "never",
+      startScore: 0,
+      target: pathTarget(numbersPath()),
+      hit: isHitOn,
+      points: () => 0,
+      onDart: (seat: TrackSeat<object>) => seat,
+      visitOpen: closeAfter(3),
+    }),
+    initialExt: () => ({}),
+    project: () => ({ done: false }),
+    intent: () => ({
+      intendedTargetNumber: 20,
+      intendedZoneKey: "SINGLE" as const,
+    }),
+  };
+
+  it("forwards the definition's ends", () => {
+    const ends = (state: { done: boolean }) => state.done;
+    expect(trackExerciseSpec({ ...definition, ends }).ends).toBe(ends);
+  });
+
+  it("leaves ends undefined when the definition has none", () => {
+    expect(trackExerciseSpec(definition).ends).toBeUndefined();
   });
 });

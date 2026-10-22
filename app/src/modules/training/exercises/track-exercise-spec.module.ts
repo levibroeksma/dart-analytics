@@ -55,5 +55,6 @@ export function trackExerciseSpec<
     fold,
     intent: definition.intent,
     isVisitOpen: (turn) => turn.darts.length < DARTS_PER_VISIT,
+    ends: definition.ends,
   };
 }
