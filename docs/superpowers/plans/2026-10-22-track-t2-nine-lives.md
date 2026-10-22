@@ -6,9 +6,9 @@
 
 **Architecture:**
 - **Engine (Tasks 1–3):** two lives policies in `track-policies.ts`, each with this game as first caller (D468). The Around the Clock engine gains a V3 key; its rules, seat state and outcome learn `lives` and `OUT`. V1 and V2 fold byte for byte as before.
-- **Config and data (Tasks 2, 4):** `AroundTheClockV3Config` (V2 fields plus `lives: 3`), validator built from one shared builder, capability rows, seed `0049`.
+- **Config and data (Tasks 2, 4):** `AroundTheClockV3Config` built from the V2 fields (shared const, literal overrides), validator built from one shared builder, capability rows in `0007`, seed `0049`.
 - **Card tags (Tasks 5–7, #1051):** a `ruleset_version_tags` table and a `CARD` branch in `v_catalog_tags`; the generator reads a `Card ruleset:` header from `nine-lives.md`; the games page prefers a card's own tag set over its game type's.
-- **UI (Tasks 8–9):** Lives switch on the existing setup form, a generic `setupPresetFromLocation`, a lives tile and results rows on the existing interface and modal.
+- **UI (Tasks 8–9):** Lives switch on the existing setup form, one shared query-param reader, a lives tile and results rows on the existing interface and modal.
 
 **Tech Stack:** TypeScript, Zod, Vitest, Astro + Alpine, PostgreSQL migration + seeds, bash gates.
 
@@ -38,11 +38,11 @@
   The commit hook is slow: 400000 ms timeout, output redirected to a log in the workspace.
 - **Before the PR:** `cd app && npm run format && npm run format:check`.
 - **Naming:** policies `noteVisitHit`, `loseLifeOnBlank`; types `LivesTrackExt`, `AroundTheClockLivesExt`, `AroundTheClockV3Config`, `AroundTheClockV3Snapshot`; key `AROUND_THE_CLOCK_V3`; card title `Nine Lives`; card href `/games/around-the-clock/setup?lives=3`.
-- **Duplication:** Task 1 Step 0 records `npx fallow dupes --mode semantic --min-tokens 30 <path>` for `src/modules/game`, `src/services/rulesets`, `src/lib/game`, `src/components/layout/games`; Task 11 re-runs it. No path's duplicated-line count may rise.
+- **Duplication:** the Reuse audit above is binding. Task 1 Step 0 records `npx fallow dupes --mode semantic --min-tokens 30 <path>` for `src/modules/game`, `src/services/rulesets`, `src/lib/game`, `src/components/layout/games`; Task 11 re-runs it. No path's duplicated-line count may rise.
 
 ## Spec refinements (write back into the spec on approval)
 
-1. **`lives` is required on V3, not nullable (§3).** `AroundTheClockV3Config` = V2 fields + `lives: z.literal(3)`. The setup form selects V3 only when lives are on, so a nullable `lives` is a branch nothing reaches, and the seat cap becomes a plain `SEAT_CAPS.AROUND_THE_CLOCK_V3 = 1` (the seat check sees the ruleset key only). `superRefine`: difficulty `EASY`, duration `UNTIMED`, `duration_value` null. The V2-through-V3 replay test becomes "V2 snapshot folds identically with the lives-aware engine".
+1. **`lives` is required on V3, not nullable (§3).** `AroundTheClockV3Config` = V2 fields + `lives: z.literal(3)`. The setup form selects V3 only when lives are on, so a nullable `lives` is a branch nothing reaches, and the seat cap becomes a plain `SEAT_CAPS.AROUND_THE_CLOCK_V3 = 1` (the seat check sees the ruleset key only). Built from a shared `AroundTheClockV2Fields` object with literal overrides `difficulty: z.literal("EASY")`, `duration_type: z.literal("UNTIMED")`, `duration_value: z.null()`, so V3 has no `superRefine` and no refinement contract of its own. The V2-through-V3 replay test becomes "V2 snapshot folds identically with the lives-aware engine".
 2. **`loseLifeOnBlank` reads a visit-hit flag, not `hitsThisVisit` (§2.2).** Easy's `advanceOnHit` zeroes `hitsThisVisit` on each hit, so `hitsThisVisit === 0` would charge a life for a visit that hit on dart 1. A new per-dart policy `noteVisitHit` sets `ext.visitHit`; `loseLifeOnBlank` reads and clears it at visit close.
    - `LivesTrackExt = { lives: number | null; visitHit: boolean }`. `lives: null` makes both policies no-ops, so V1/V2 take the same code path.
    - The engine-internal ext is `AroundTheClockLivesExt = AroundTheClockTrackExt & LivesTrackExt`; `AroundTheClockTrackExt` itself is unchanged (existing tests build it).
@@ -55,7 +55,22 @@
    - The catalog response gains `cards: Record<rulesetVersionKey, CatalogTagSet>`.
    - A card's own set replaces its game type's set wholesale; a card with no row falls back as today. `gameTags(gameTypeKey, cardKey?)` and `gameLevel(gameTypeKey, cardKey?)` gain the optional second parameter (existing calls unchanged).
 7. **Rules-file edits.** `nine-lives.md` Format tag `SOLO` only (V1 ships one seat; the file's `SOLO, ONE_V_ONE, MULTIPLAYER` would label a card for modes it cannot play); `Current version:` → `V1 (shipped 2026-10-22)`. `around-the-clock.md` `Current version:` → `V3`. Tag seed regenerated.
-8. **Card preset.** `href` carries `?lives=3`. `setupPresetFromLocation<Ctx>(ctx, allowed)` in `lib/game/setup-controller.ts` copies the allowed query keys onto the setup context in `init`; the game passes `{ lives: (v) => v === "3" }`. `check-game-wiring.sh` must read the route slug through the query; if it does not, the gate's href parse is fixed in the same task (ledgered).
+8. **Card preset.** `href` carries `?lives=3`. The setup `init` reads it through one shared `searchParamFromLocation(name)` (new, `lib/location.ts`); `routineIdFromLocation` is rewritten on top of it, so there is one query reader, not two. This replaces the spec's `setupPresetFromLocation` in `setup-controller.ts`: one game, one key, so the generic option map and `presetQuery` option would be machinery with a single caller. `check-game-wiring.sh` must read the route slug through the query; if it does not, the gate's href parse is fixed in the same task (ledgered).
+
+## Reuse audit (2026-10-22): duplicates found in the first draft and how this plan avoids them
+
+| Would-be duplicate | Existing piece | Resolution |
+| --- | --- | --- |
+| Third `"pathDirection" in config ? … : …` key ternary, in the engine and again in the play data | engine `keyOf` and play-data `keyOf` (two copies today) | engine exports `rulesetKeyOf`; play data imports it and deletes its copy (Task 3, Task 9) |
+| V3 config re-listing the V2 fields and the V2 duration `superRefine` | `AroundTheClockV2Config` | shared `AroundTheClockV2Fields`; V3 overrides with literals, no refine (Task 2) |
+| V3 refinement contract copying V2's duration cases | `aroundTheClockV2Contract` | none needed: V3 has no refinement (Task 2) |
+| V3 validator wrapper copying V2's OUTER_SINGLE gate | `aroundTheClockV2Validator` | `aroundTheClockVariantValidator(schema)` (Task 2) |
+| New per-ruleset capability verification SQL (the 11th copy of `0027`) | `0007_capability_seed_checks.sql` owns exact-count parity and already lists every ruleset's rows | add V3 to `0007`'s lists only; no `0049` verification file (Task 4) |
+| Second query-string reader | `routineIdFromLocation` | one `searchParamFromLocation`; routines rewritten on it (Task 8) |
+| Third copy of the play-again "resend variants as overrides" block | the same block in `around-the-clock-play.data.ts` (V2) and `shanghai-play.data.ts` (V2) | one `variantsPlayAgain(key)` beside `runPlayAgain`; both games and V3 call it (Task 9) |
+| `Reached` result row declared in `TIMED_ROWS` and again in `LIVES_ROWS` | `TIMED_ROWS` | one `REACHED_ROW` const used by both (Task 9) |
+| Card-tag generator branch copying the game and exercise branches | `linkInserts` | `linkInserts` gains the third table kind and shares its row build (Task 6) |
+| Third link table, third view branch | `game_type_tags`, `exercise_type_tags`, `v_catalog_tags` | **kept, by decision**: the repo rule is one typed link table per tagged entity (no EAV, no polymorphic FK), and a ruleset version is a third entity. Folding it into `game_type_tags` means a nullable second FK and a reworked primary key on live data. Flagged for your call |
 
 ## Review Focus
 
@@ -171,7 +186,7 @@
 ### Task 2: V3 key, config, validator, registries, seat cap
 
 **Files:**
-- Modify: `app/src/lib/game/rulesets/types.ts` (Zod config, key union, `RULESET_CONFIGS`, snapshot, `ConfigSnapshotFor`, `AroundTheClockEngineConfig`), `app/src/lib/game/rulesets/refinement-contract.ts`, `app/src/lib/game/rulesets/capabilities.ts`, `app/src/services/rulesets/around-the-clock/around-the-clock.validator.ts`, `app/src/services/rulesets/registry.ts`, `app/src/services/session-seats.service.ts`, `app/src/modules/game/session-progress.module.ts`
+- Modify: `app/src/lib/game/rulesets/types.ts` (Zod config, key union, `RULESET_CONFIGS`, snapshot, `ConfigSnapshotFor`, `AroundTheClockEngineConfig`), `app/src/lib/game/rulesets/capabilities.ts`, `app/src/services/rulesets/around-the-clock/around-the-clock.validator.ts`, `app/src/services/rulesets/registry.ts`, `app/src/services/session-seats.service.ts`, `app/src/modules/game/session-progress.module.ts`
 - Test: append to `app/tests/lib/game/rulesets/types.test.ts`, `app/tests/services/rulesets/around-the-clock/around-the-clock.validator.test.ts`, `app/tests/services/session-seats.service.test.ts`, `app/tests/lib/game/rulesets/capabilities.test.ts`, `app/tests/services/rulesets/registry.test.ts`
 
 **Interfaces:**
@@ -183,19 +198,24 @@
   `RulesetVersionKey` gains `"AROUND_THE_CLOCK_V3"`; `AroundTheClockEngineConfig` gains `Seated<AroundTheClockV3Snapshot>`.
 
 - [ ] **Step 1: Write the failing tests.**
-  - `types.test.ts`: `V3 accepts the V2 fields with lives 3 on Easy untimed`; `V3 refuses lives with HARD`; `V3 refuses lives with a timed run`; `V3 refuses lives 2`; `V3 refuses a missing lives`; `V3 refuses an unknown key`.
+  - `types.test.ts`: `V3 accepts the V2 fields with lives 3 on Easy untimed`; `V3 refuses lives with HARD`; `V3 refuses lives with a timed run`; `V3 refuses a duration_value`; `V3 refuses lives 2`; `V3 refuses a missing lives`; `V3 refuses an unknown key`; `V2 schema behaviour unchanged after the field extraction` (the existing V2 tests re-run).
   - validator test: `V3 refuses outer single outside VISUAL_BOARD capture` (mirror the V2 case); `V3 accepts any segment on keypad capture`.
   - seats test: `a second seat is refused for AROUND_THE_CLOCK_V3`; `one seat is accepted`.
   - capabilities test: `AROUND_THE_CLOCK_V3 declares DETAILED_DARTS and VISUAL_BOARD`; dartbot unsupported (`supportsDartbot("AROUND_THE_CLOCK_V3")` is false).
   - registry test: `AROUND_THE_CLOCK_V3 has a validator`.
 - [ ] **Step 2: Run** the five files. Expected: FAIL on the missing key, schema and caps.
 - [ ] **Step 3: Implement.**
-  - `types.ts`:
+  - `types.ts`: extract V2's `z.object({...})` into a module const `AroundTheClockV2Fields` (V2 then wraps it with its existing `.strict().superRefine(...)`, unchanged behaviour), then
     ```ts
-    export const AroundTheClockV3Config = AroundTheClockV2Config.innerType().extend({ lives: z.literal(3) }).superRefine(...)
+    export const AroundTheClockV3Config = AroundTheClockV2Fields.extend({
+      difficulty: z.literal("EASY"),
+      duration_type: z.literal("UNTIMED"),
+      duration_value: z.null(),
+      lives: z.literal(3),
+    }).strict();
     ```
-    Confirm `.innerType()` exists on the installed Zod version; if the V2 schema is a `ZodEffects`, extract the V2 `z.object` into an exported-for-use const `AroundTheClockV2Fields` first and spread it in both (ledger the ruling). V3's refine: difficulty must be `EASY`, `duration_type` `UNTIMED`, `duration_value` null; reuse `AroundTheClockV2Config`'s duration check by running it for `UNTIMED` only. Add `AROUND_THE_CLOCK_V3` to `RulesetVersionKey`, `RULESET_CONFIGS`, `ConfigSnapshotFor` (the camel-cased snapshot), and the engine-config union.
-  - `refinement-contract.ts`: add `aroundTheClockV3Contract` with accept cases (lives 3 Easy untimed) and refuse cases (HARD, MINUTES, lives 2, missing). `check-refinement-coverage.sh` must pass.
+    Add `AROUND_THE_CLOCK_V3` to `RulesetVersionKey`, `RULESET_CONFIGS`, `ConfigSnapshotFor` (the camel-cased snapshot), and the engine-config union.
+  - `refinement-contract.ts`: no change (V3 has no refinement); run `check-refinement-coverage.sh` to confirm.
   - `capabilities.ts`: add V3 to the three maps with the V2 values; leave it out of `RULESET_DARTBOT`.
   - validator: extract `aroundTheClockVariantValidator(schema)` from `aroundTheClockV2Validator`'s IIFE; V2 calls it with `AroundTheClockV2Config`, V3 with `AroundTheClockV3Config`. `registry.ts`: `AROUND_THE_CLOCK_V3: aroundTheClockV3Validator`.
   - `session-seats.service.ts`: `AROUND_THE_CLOCK_V3: 1`.
@@ -217,7 +237,7 @@
 
 **Interfaces:**
 - Consumes: `noteVisitHit`, `loseLifeOnBlank`, `AroundTheClockLivesExt` (Task 1); `AroundTheClockV3Snapshot` (Task 2).
-- Produces: `AroundTheClockRules.lives?: number`; `AroundTheClockSeatState.lives?: number`, `.visitHit?: boolean`, `.status` gains `"OUT"`; `aroundTheClockV3EngineFactory`.
+- Produces: `rulesetKeyOf(config): RulesetVersionKey` (exported); `AroundTheClockRules.lives?: number`; `AroundTheClockSeatState.lives?: number`, `.visitHit?: boolean`, `.status` gains `"OUT"`; `aroundTheClockV3EngineFactory`.
 
 - [ ] **Step 1: Write the failing tests** (build a `v3` helper like the golden file's `v2` helper, `lives: 3`; use the file's observation helpers):
   - `hit then two misses keeps the life` (target 1 hit on dart 1, darts 2–3 miss: `lives` 3, target index 1).
@@ -228,7 +248,7 @@
   - `undo restores the life` (after the third blank visit's last dart, `undoLastDart` returns lives 1, status `IN_PROGRESS`).
   - `lives apply with odds first and high to low` (path settings combine).
   - `V2 snapshot folds without lives fields` (a V2 seat state `not.toHaveProperty("lives")`; `rulesOf` of V2 has no `lives`).
-  - `keyOf reads lives`: engine built from a V3 snapshot reports `AROUND_THE_CLOCK_V3`; a V2 snapshot reports V2.
+  - `rulesetKeyOf reads lives`: engine built from a V3 snapshot reports `AROUND_THE_CLOCK_V3`; a V2 snapshot reports V2.
   - golden: append a `"v3 lives, odds first"` config to `CONFIGS` (the file's own mechanism); run the file; existing snapshots are unchanged, one new snapshot is written and reviewed.
 - [ ] **Step 2: Run** the two files. Expected: FAIL (new tests); existing goldens PASS.
 - [ ] **Step 3: Implement** in `around-the-clock.engine.module.ts`:
@@ -248,7 +268,7 @@
   - `toClockSeat`: status maps `DONE`→`COMPLETE`, `OUT`→`OUT`; spread `{ lives, visitHit }` only when `seat.ext.lives !== null`.
   - `foldAroundTheClockState`: `initialExt` is `() => ({ laps: 0, lives: rules.lives ?? null, visitHit: false })`; the `activeSeat` completion predicate and the solo status use `status !== "IN_PROGRESS"`; `scoreCompareOutcome`'s `completed` stays `=== "COMPLETE"` (an `OUT` seat is solo-only).
   - `wouldCompleteSession`: untimed `seatDone = after.status !== "IN_PROGRESS"`.
-  - `clockSpec.rulesetVersionKeys` adds `"AROUND_THE_CLOCK_V3"`; `keyOf` returns V3 when `"lives" in config`; add and register `aroundTheClockV3EngineFactory`.
+  - `clockSpec.rulesetVersionKeys` adds `"AROUND_THE_CLOCK_V3"`; `keyOf` becomes the exported `rulesetKeyOf` and returns V3 when `"lives" in config`; one unexported V3 factory is built and registered beside the V1 and V2 ones (the exported V1/V2 factories stay: tests import them).
   - `types.ts`: the type changes listed in Interfaces. Update the engine JSDoc to name V3.
 - [ ] **Step 4: Run** Step 2's files, then the whole `tests/modules/game`, `tests/modules/stats`, `tests/lib/stats`, `tests/lib/game` directories, then `npm run check`. Expected: PASS, 0/0/0; no existing snapshot changes. Two mutation checks: drop `noteVisitHit` from `onDart` (fails `hit then two misses keeps the life`); change the solo status to `=== "COMPLETE"` only (fails `the third blank visit ends the session`).
 - [ ] **Step 5: Commit**
@@ -262,16 +282,16 @@
 ### Task 4: Seed `0049` and capability rows
 
 **Files:**
-- Create: `database/seeds/0049_around_the_clock_v3_ruleset.sql`, `database/verification/0049_around_the_clock_v3_checks.sql`
+- Create: `database/seeds/0049_around_the_clock_v3_ruleset.sql`
 - Modify: `database/seeds/0007_ruleset_version_capabilities.sql`, `database/verification/0007_capability_seed_checks.sql`, `database/README.md`
-- Test: `app/tests/services/rulesets/registry.test.ts` (already covers parity); seed checked on the throwaway Postgres
+- Test: `0007_capability_seed_checks.sql` on the throwaway Postgres; `app/tests/lib/game/rulesets/capabilities.test.ts` (Task 2) pins the TS side
 
 **Interfaces:** none.
 
 - [ ] **Step 1: Write** the seed as `0027_around_the_clock_v2_game_engine_reference.sql` does: one `INSERT INTO ruleset_versions` with id `0198f100-0000-7000-8000-000000000019`, game type `0198f000-0000-7000-8000-000000000009`, key `AROUND_THE_CLOCK_V3`, `version_number` 3, a description naming lives and the single seat, `ON CONFLICT (id) DO NOTHING`.
-- [ ] **Step 2: Write** the verification as `0027_around_the_clock_v2_capability_checks.sql` (three steps, V3 in place of V2): `RECREATIONAL + DETAILED_DARTS` resolved, `ANALYTICS + VISUAL_BOARD` resolved, no undeclared session. Per `0049` (Halve-It's `0047` verification) check whether the shared parameterised verification SQL from #1049 now covers ruleset rows; if it does, add the V3 row there instead and skip this file (ledgered).
+- [ ] **Step 2: No new verification file.** `0007_capability_seed_checks.sql` owns exact-count parity for every ruleset's capability rows; the per-ruleset files (`0010`, `0027`, `0031`, …) are copies of one another and a twelfth adds nothing the parity check does not assert. Ledger the ruling.
 - [ ] **Step 3: Add** the four V3 capability tuples to `0007` at each of its three lists (lines 65–66 pattern, 119–120, 242–243) and the matching expected-count rows in `0007_capability_seed_checks.sql`; the count rises by two.
-- [ ] **Step 4: Run** on the throwaway Postgres: `npm run db:migrate`, `npm run db:seed`, `psql` each verification file. Expected: every row `PASS`.
+- [ ] **Step 4: Run** on the throwaway Postgres: `npm run db:migrate`, `npm run db:seed`, `psql -f database/verification/0007_capability_seed_checks.sql`. Expected: every row `PASS`, the counts at their new values.
 - [ ] **Step 5: Commit**
   ```bash
   git add database
@@ -393,28 +413,26 @@
 ### Task 8: Setup form, preset query, card
 
 **Files:**
-- Modify: `app/src/lib/game/setup-controller.ts` (`setupPresetFromLocation`), `app/src/lib/game/around-the-clock-setup.data.ts`, `app/src/lib/game/types.ts` (`AroundTheClockSetupContext.lives`), `app/src/components/layout/games/setup/AroundTheClockSetupForm.astro`, `app/src/lib/game/rulesets/games-visibility.ts`, `docs/architecture/07-Frontend/09-Adding-A-Game.md` (the preset-controller section)
-- Test: append to `app/tests/lib/game/around-the-clock-setup.data.test.ts`, `app/tests/lib/game/setup-controller.test.ts` (create if absent, one file per module), `app/tests/lib/game/rulesets/games-visibility.test.ts`
+- Create: `app/src/lib/location.ts`
+- Modify: `app/src/lib/training/routines/routine-route.ts`, `app/src/lib/game/around-the-clock-setup.data.ts`, `app/src/lib/game/types.ts` (`AroundTheClockSetupContext.lives`), `app/src/components/layout/games/setup/AroundTheClockSetupForm.astro`, `app/src/lib/game/rulesets/games-visibility.ts`, `docs/architecture/07-Frontend/09-Adding-A-Game.md` (preset cards may carry a query)
+- Test: append to `app/tests/lib/game/around-the-clock-setup.data.test.ts`, `app/tests/lib/location.test.ts` (create), `app/tests/lib/training/routines/routine-route.test.ts` (existing, re-run unchanged), `app/tests/lib/game/rulesets/games-visibility.test.ts`
 
 **Interfaces:**
 - Produces:
   ```ts
-  export function setupPresetFromLocation<Ctx extends object>(
-    ctx: Ctx,
-    allowed: Readonly<Record<string, (value: string) => boolean>>,
-    search?: string,
-  ): void;
+  export function searchParamFromLocation(name: string): string | null;
   ```
-  Copies each allowed query key onto `ctx` as a boolean-coerced field when its predicate accepts the value; unknown keys and rejected values are ignored. `search` defaults to `globalThis.location.search`.
+  The trimmed non-empty value of `?<name>=` on the current page, or `null` (also `null` outside a browser).
 
 - [ ] **Step 1: Write the failing tests.**
-  - controller: `copies an allowed key whose value passes`; `ignores an unknown key`; `ignores a rejected value`; `reads no query when search is empty`.
-  - setup data: `lives on selects V3 with lives 3 and Easy untimed overrides`; `lives off selects V2`; `adding a guest turns lives off`; `adding a bot turns lives off`; `init applies ?lives=3` (V3 key on start); `lives on ignores a typed duration`.
+  - location: `reads a present param`; `null when absent`; `null when blank`; `null outside a browser`. `routineIdFromLocation` behaves as before (its existing tests re-run unchanged).
+  - setup data: `lives on selects V3 with lives 3 and Easy untimed overrides`; `lives off selects V2`; `adding a guest turns lives off`; `adding a bot turns lives off`; `init turns lives on for ?lives=3 and leaves it off for ?lives=2 or no query`; `lives on ignores a typed duration`.
   - visibility: `the Nine Lives card is in CLASSICS with the lives href and the V3 key`; `it shows only where V3 is supported for the mode`; `the Around the Clock card is unchanged`.
 - [ ] **Step 2: Run** the three files. Expected: FAIL.
 - [ ] **Step 3: Implement.**
-  - `setup-controller.ts`: add `setupPresetFromLocation` above `createPresetSetupController` and call it from `init`'s start through an optional `presetQuery` option on `PresetSetupControllerOptions` (so the five other games are untouched).
-  - setup data: `lives: false` in `V2_DEFAULTS` (typed on `AroundTheClockSetupContext`); `rulesetVersionKey: (ctx) => ctx.bot ? V1 : ctx.lives ? V3 : V2`; `v2Overrides` returns `{ …, lives: 3, difficulty: "EASY", duration_type: "UNTIMED", duration_value: null }` when `ctx.lives`; `addGuest` and `addBot` set `lives = false`; `presetQuery: { lives: (v) => v === "3" }`.
+  - `lib/location.ts`: `searchParamFromLocation`; `routine-route.ts`: `routineIdFromLocation` returns `searchParamFromLocation(ROUTINE_PARAM)`.
+  - setup data: wrap the controller's `init` (`async init() { this.lives = searchParamFromLocation("lives") === "3"; await controller.init.call(this); }`), the same wrapping `addGuest`/`addBot` already use.
+  - setup data: `lives: false` in `V2_DEFAULTS` (typed on `AroundTheClockSetupContext`); `rulesetVersionKey: (ctx) => ctx.bot ? V1 : ctx.lives ? V3 : V2`; `v2Overrides` returns `{ …, lives: 3, difficulty: "EASY", duration_type: "UNTIMED", duration_value: null }` when `ctx.lives`; `addGuest` and `addBot` set `lives = false`; `init` reads `?lives=3` as above.
   - setup form: a `Switch` `label="Nine Lives"` `hint="Three lives. A visit with no hit costs one. Solo only."` `x-model="lives"` inside the no-guest block (`x-show="guests.length === 0"`), and `x-show="!lives"` on the difficulty and duration blocks; extend `infoSection.description` by one sentence.
   - `games-visibility.ts`: CLASSICS entry `{ rulesetVersionKey: "AROUND_THE_CLOCK_V3", gameTypeKey: "AROUND_THE_CLOCK", group: "CLASSICS", href: "/games/around-the-clock/setup?lives=3", title: "Nine Lives", caption: "Three lives. Miss a whole visit and one goes." }`, after the Around the Clock card.
 - [ ] **Step 4: Run** Step 2's files, `npm run check`, then `bash scripts/check-game-wiring.sh`. If the gate fails on the `?lives=3` href (its route slug is read from the href), make the slug parse stop at `?` and add a case to its own test; ledger the ruling. Expected: PASS.
@@ -429,21 +447,21 @@
 ### Task 9: Play surface, results, progress, replay
 
 **Files:**
-- Modify: `app/src/lib/game/around-the-clock-play.data.ts`, `app/src/lib/game/types.ts` (`AroundTheClockSeatResult`, play context), `app/src/components/layout/games/interfaces/AroundTheClock.astro`, `app/src/components/layout/games/result-modals/AroundTheClockResults.astro`, `app/src/modules/game/session-progress.module.ts`, `app/src/lib/stats/replay-presenters.ts`
+- Modify: `app/src/lib/game/play-lifecycle.ts` (`variantsPlayAgain`), `app/src/lib/game/shanghai-play.data.ts`, `app/src/lib/game/around-the-clock-play.data.ts`, `app/src/lib/game/types.ts` (`AroundTheClockSeatResult`, play context), `app/src/components/layout/games/interfaces/AroundTheClock.astro`, `app/src/components/layout/games/result-modals/AroundTheClockResults.astro`, `app/src/modules/game/session-progress.module.ts`, `app/src/lib/stats/replay-presenters.ts`
 - Test: append to `app/tests/lib/game/around-the-clock-play.data.test.ts`, `app/tests/modules/game/session-progress.module.test.ts`, `app/tests/lib/stats/replay-games.test.ts` (or the file the existing ATC presenter test lives in; find with `grep -rln "AROUND_THE_CLOCK" app/tests/lib/stats`)
 
 **Interfaces:**
 - Produces: `AroundTheClockSeatResult` gains `lives: number | null` and `out: boolean`; play context `livesLeft(): string` (empty without lives).
 
 - [ ] **Step 1: Write the failing tests.**
-  - play data: `livesLeft reads the active seat's lives` (`"3"`, `"1"`); `livesLeft is empty under V2`; `statsFor records lives and out`; `resultsTitle says out on the target stood on`; `resultsTitle for a finished lives run says session complete`; `playAgain resends V3 overrides with lives` (the V3 branch beside the V2 one, via one shared helper rather than a second copy: widen the `key === "AROUND_THE_CLOCK_V2"` test to the set `{V2, V3}`).
+  - play data: `livesLeft reads the active seat's lives` (`"3"`, `"1"`); `livesLeft is empty under V2`; `statsFor records lives and out`; `resultsTitle says out on the target stood on`; `resultsTitle for a finished lives run says session complete`; `variantsPlayAgain strips seats and wires the rest` (new helper, tested in the lifecycle's test file); `playAgain resends V3 overrides with lives`. The existing Around the Clock V2 and Shanghai V2 play-again tests re-run unchanged.
   - progress: `V3 detail names lives left`.
   - replay: `a V3 turn shows a Lives cell`; `a session out reads "Out"` (the existing `progressLabel` already turns `OUT` into `Out`; the test pins it).
 - [ ] **Step 2: Run** the three files. Expected: FAIL.
 - [ ] **Step 3: Implement.**
-  - play data: `RESUMABLE` gains V3; `livesLeft` getter; `statsFor` sets `lives: seat.lives ?? null`, `out: seat.status === "OUT"`, and `targetAtEnd` also for an `out` seat (reuse `labelOf`); `resultsTitle` first branch: `out` → `Out on ${targetAtEnd}`; `keyOf` and `playAgain` handle V3.
+  - play data: `variantsPlayAgain(key)` in `play-lifecycle.ts` returns the `buildOverrides` callback both games hand `runPlayAgain` (`(prior) => { const { seats: _seats, ...variants } = prior; return { snapshot: variants, wire: toWireConfig(key, variants) }; }`); Around the Clock passes it for V2 and V3, Shanghai for V2, and their inline copies are deleted; `keyOf` is deleted and `rulesetKeyOf` imported from the engine; `RESUMABLE` gains V3; `livesLeft` getter; `statsFor` sets `lives: seat.lives ?? null`, `out: seat.status === "OUT"`, and `targetAtEnd` also for an `out` seat (reuse `labelOf`); `resultsTitle` first branch: `out` → `Out on ${targetAtEnd}`; `keyOf` and `playAgain` handle V3.
   - interface astro: tile `{ label: "Lives", value: (c) => c("livesLeft"), showWhen: (c) => c("livesLeft") }`.
-  - results astro: `LIVES_ROWS = [...STAT_ROWS, { label: "Lives left", key: "lives", skeletonWidth: "w-6" }, { label: "Reached", key: "targetAtEnd", skeletonWidth: "w-6" }]` rendered through a third `x-if` on `hasLives()`; the existing two blocks stay.
+  - results astro: `REACHED_ROW = { label: "Reached", key: "targetAtEnd", skeletonWidth: "w-6" }` shared by `TIMED_ROWS` and `LIVES_ROWS = [...STAT_ROWS, { label: "Lives left", key: "lives", skeletonWidth: "w-6" }, REACHED_ROW]` rendered through a third `x-if` on `hasLives()`; the existing two blocks stay.
   - `session-progress.module.ts`: detail adds `Lives n` when the seat carries lives.
   - presenter: a `valueCell("Lives", seat.lives)` in the turn cells when `seat.lives !== undefined`.
 - [ ] **Step 4: Run** Step 2's files, then `npm test -- tests/lib tests/modules tests/components` and `npm run check`. Expected: PASS, 0/0/0.
