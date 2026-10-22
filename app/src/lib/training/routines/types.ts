@@ -295,6 +295,13 @@ export type RoutinePlayContext = {
     this: RoutinePlayContext,
     observation: DartObservation,
   ): void;
+  snakesLaddersLevel(this: RoutinePlayContext): number;
+  snakesLaddersTargetLabel(this: RoutinePlayContext): string;
+  snakesLaddersRoute(this: RoutinePlayContext): string;
+  snakesLaddersChipIndex(this: RoutinePlayContext): number;
+  snakesLaddersHighest(this: RoutinePlayContext): string;
+  snakesLaddersRounds(this: RoutinePlayContext): number;
+  snakesLaddersRate(this: RoutinePlayContext): string;
   recordSnakesLaddersDart(
     this: RoutinePlayContext,
     observation: DartObservation,

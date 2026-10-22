@@ -265,6 +265,12 @@ describe("exerciseFamily", () => {
     );
   });
 
+  it("maps the open Snakes & Ladders engine to the hitCount family", () => {
+    expect(exerciseFamily({ ...none, snakesLaddersEngine: {} as never })).toBe(
+      "hitCount",
+    );
+  });
+
   it("maps the open Halve-It engine to its family", () => {
     expect(exerciseFamily({ ...none, halveItEngine: {} as never })).toBe(
       "halveIt",
@@ -598,5 +604,47 @@ describe("Halve-It preview", () => {
       },
     });
     expect(seen).toEqual([1]);
+  });
+});
+
+describe("Snakes & Ladders preview", () => {
+  const aimed = (
+    hitTargetNumber: number | null,
+    hitZoneKey: DartZoneKey,
+    intendedTargetNumber: number,
+    intendedZoneKey: DartZoneKey,
+  ) =>
+    ({
+      hitTargetNumber,
+      hitZoneKey,
+      intendedTargetNumber,
+      intendedZoneKey,
+    }) as DartFact;
+
+  it("judges a bullseye at the bull level as a hit and the outer bull as a miss", () => {
+    expect(
+      judgeDart("hitCount", aimed(25, "INNER_BULL", 25, "INNER_BULL")),
+    ).toBe("hit");
+    expect(
+      judgeDart("hitCount", aimed(25, "OUTER_BULL", 25, "INNER_BULL")),
+    ).toBe("miss");
+  });
+
+  it("judges only the intended double", () => {
+    expect(judgeDart("hitCount", aimed(7, "DOUBLE", 7, "DOUBLE"))).toBe("hit");
+    expect(judgeDart("hitCount", aimed(7, "DOUBLE", 8, "DOUBLE"))).toBe("miss");
+  });
+
+  it("captions every slot with the current level", () => {
+    expect(
+      visitLabelsFor("hitCount", {
+        config: null,
+        visitIndex: 0,
+        currentTargetNumber: undefined,
+        currentTargetLabel: "D4",
+        targetIndex: 3,
+        dartsInOpenVisit: 0,
+      }),
+    ).toEqual(["D4", "D4", "D4"]);
   });
 });

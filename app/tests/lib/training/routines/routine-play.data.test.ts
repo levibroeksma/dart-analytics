@@ -4155,6 +4155,12 @@ describe("routinePlay — Doubles Snakes & Ladders play", () => {
     locationX: 0,
     locationY: -100,
   });
+  const MISS = {
+    hitTargetNumber: null,
+    hitZoneKey: "MISS" as const,
+    locationX: null,
+    locationY: null,
+  };
   const BULLSEYE = {
     hitTargetNumber: 25,
     hitZoneKey: "INNER_BULL" as const,
@@ -4196,6 +4202,41 @@ describe("routinePlay — Doubles Snakes & Ladders play", () => {
 
     expect(store.snakesLaddersEngine).not.toBeNull();
     expect(store.activeDartEngine()).toBe(store.snakesLaddersEngine);
+  });
+
+  it("the readouts start at level 1 with the first six levels as chips", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+
+    expect(store.snakesLaddersLevel()).toBe(1);
+    expect(store.snakesLaddersTargetLabel()).toBe("D1");
+    expect(store.snakesLaddersHighest()).toBe("D1");
+    expect(store.snakesLaddersRounds()).toBe(0);
+    expect(store.snakesLaddersRate()).toBe("—");
+    expect(store.snakesLaddersRoute()).toBe("D1 D2 D3 D4 D5 D6");
+    expect(store.snakesLaddersChipIndex()).toBe(0);
+  });
+
+  it("the readouts follow a climb and a slide", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+
+    [D(1), D(1), D(1)].forEach((d) => store.recordSnakesLaddersDart(d));
+    expect(store.snakesLaddersLevel()).toBe(2);
+    expect(store.snakesLaddersTargetLabel()).toBe("D2");
+    expect(store.snakesLaddersRounds()).toBe(1);
+    expect(store.snakesLaddersRate()).toBe("100.00%");
+
+    [MISS, MISS, MISS].forEach((d) => store.recordSnakesLaddersDart(d));
+    expect(store.snakesLaddersTargetLabel()).toBe("D1");
+    expect(store.snakesLaddersHighest()).toBe("D2");
+  });
+
+  it("the preview captions the open visit with the current level", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+
+    expect(store.exerciseVisitLabels(0)).toEqual(["D1", "D1", "D1"]);
   });
 
   it("completes the step on the finishing dart, and the deadline does not upload again", async () => {

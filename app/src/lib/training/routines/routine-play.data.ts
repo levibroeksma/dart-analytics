@@ -90,6 +90,7 @@ import type { DoublesLockEngine } from "@modules/training/exercises/doubles-lock
 import type { HalveItEngine } from "@modules/training/exercises/halve-it.engine.module";
 import { HALVE_IT_PATH } from "@modules/training/exercises/halve-it.engine.module";
 import type { SnakesLaddersEngine } from "@modules/training/exercises/snakes-ladders.engine.module";
+import { SNAKES_LADDERS_PATH } from "@modules/training/exercises/snakes-ladders.engine.module";
 import { boardTargetLabel } from "@modules/game/board-progression.module";
 import { checkoutPercentageDisplay } from "@lib/game/play-visit-stats";
 import type { DartFact } from "@modules/types";
@@ -191,6 +192,7 @@ function hitRateOf(
 const TARGET_LABEL_GETTERS = [
   "hitCountTargetLabel",
   "doublesLockTargetLabel",
+  "snakesLaddersTargetLabel",
 ] as const;
 
 /** A path target's label, or "" while no engine is open. */
@@ -1107,6 +1109,40 @@ export function routinePlay() {
 
     halveItRate(this: RoutinePlayContext): string {
       return hitRateOf(this.halveItEngine?.state());
+    },
+
+    /** Snakes & Ladders' LEVEL score: 1 for D1 up to 21 for the bull. */
+    snakesLaddersLevel(this: RoutinePlayContext): number {
+      return (this.snakesLaddersEngine?.state().levelIndex ?? 0) + 1;
+    },
+
+    snakesLaddersTargetLabel(this: RoutinePlayContext): string {
+      return targetLabelOf(this.snakesLaddersEngine?.state().currentLevel);
+    },
+
+    /** The ladder as chips, paged around the current level (`windowPage`). */
+    snakesLaddersRoute(this: RoutinePlayContext): string {
+      return routeChipsOf(
+        SNAKES_LADDERS_PATH,
+        this.snakesLaddersEngine?.state().levelIndex ?? 0,
+      );
+    },
+
+    /** The current level's chip within `snakesLaddersRoute()`'s page. */
+    snakesLaddersChipIndex(this: RoutinePlayContext): number {
+      return windowIndex(this.snakesLaddersEngine?.state().levelIndex ?? 0);
+    },
+
+    snakesLaddersHighest(this: RoutinePlayContext): string {
+      return targetLabelOf(this.snakesLaddersEngine?.state().highestLevel);
+    },
+
+    snakesLaddersRounds(this: RoutinePlayContext): number {
+      return this.snakesLaddersEngine?.state().rounds ?? 0;
+    },
+
+    snakesLaddersRate(this: RoutinePlayContext): string {
+      return hitRateOf(this.snakesLaddersEngine?.state());
     },
 
     dartsThrown(this: RoutinePlayContext): number {
