@@ -44,7 +44,7 @@ function exerciseStep(
 /**
  * Spec §4.4: Warm-Up, nine dart kinds, then a 501 game step whose
  * configuration is filled in by `seedRoutineRun`, then Hit Count, then
- * SwitchBlade, then Doubles Lock, then Halve-It — the thirteen dart kinds are every `STEP_METRIC_SPECS` key.
+ * SwitchBlade, then Doubles Lock, then Halve-It, then Doubles Snakes & Ladders — the fourteen dart kinds are every `STEP_METRIC_SPECS` key.
  * Switching appears twice, once per ruleset version, since its two
  * rulesets are two kinds under one exercise type.
  * Configs are the camelCase V1 shapes, literals included (spec F13).
@@ -90,7 +90,17 @@ export const ROUTINE_STEPS: readonly RoutineStep[] = [
   exerciseStep(13, "SWITCHBLADE", {}),
   exerciseStep(14, "DOUBLES_LOCK", {}),
   exerciseStep(15, "HALVE_IT", {}),
+  exerciseStep(16, "DOUBLES_SNAKES_LADDERS", {}),
 ];
+
+/** `UNIVERSAL_SCRIPT` with its bullseye aimed at the bull, so the Snakes & Ladders step writes the bull level's `(25, INNER_BULL)` intent. */
+const SNAKES_LADDERS_SCRIPT: DartScript = UNIVERSAL_SCRIPT.map((turn) =>
+  turn.map((d) =>
+    d.zone === "INNER_BULL"
+      ? { ...d, intent: { target: 25, zone: "INNER_BULL" as const } }
+      : d,
+  ),
+);
 
 /**
  * Inserts one completed routine activity, its `activity_configurations`
@@ -141,7 +151,13 @@ export async function seedRoutineRun(
         ? null
         : isGame
           ? { stageTypeKey: "LEG", script: fiveOhOne.script }
-          : { stageTypeKey: "EXERCISE_BLOCK", script: UNIVERSAL_SCRIPT },
+          : {
+              stageTypeKey: "EXERCISE_BLOCK",
+              script:
+                step.exerciseTypeKey === "DOUBLES_SNAKES_LADDERS"
+                  ? SNAKES_LADDERS_SCRIPT
+                  : UNIVERSAL_SCRIPT,
+            },
     });
   }
 

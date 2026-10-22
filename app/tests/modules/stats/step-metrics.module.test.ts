@@ -17,6 +17,7 @@ import { randomCheckoutEngineFactory } from "@modules/training/exercises/random-
 import { hitCountEngineFactory } from "@modules/training/exercises/hit-count.engine.module";
 import { doublesLockEngineFactory } from "@modules/training/exercises/doubles-lock.engine.module";
 import { halveItEngineFactory } from "@modules/training/exercises/halve-it.engine.module";
+import { snakesLaddersEngineFactory } from "@modules/training/exercises/snakes-ladders.engine.module";
 import { switchbladeEngineFactory } from "@modules/training/exercises/switchblade.engine.module";
 import type {
   DartExerciseKind,
@@ -177,6 +178,19 @@ function fixtures(): Fixture[] {
     dart(null, "MISS"),
   ].forEach((d) => halveIt.record(d));
 
+  const snakesLadders = snakesLaddersEngineFactory.create({});
+  [
+    dart(1, "DOUBLE"),
+    dart(1, "DOUBLE"),
+    dart(1, "DOUBLE"),
+    dart(2, "DOUBLE"),
+    dart(2, "DOUBLE"),
+    dart(2, "DOUBLE"),
+    dart(null, "MISS"),
+    dart(null, "MISS"),
+    dart(null, "MISS"),
+  ].forEach((d) => snakesLadders.record(d));
+
   return [
     {
       kind: "SWITCHING:STANDARD",
@@ -256,6 +270,12 @@ function fixtures(): Fixture[] {
       facts: halveIt.facts(),
       expected: { points: 40, halvings: 1, darts: 6, hits: 2 },
     },
+    {
+      kind: "DOUBLES_SNAKES_LADDERS",
+      state: snakesLadders.state(),
+      facts: snakesLadders.facts(),
+      expected: { highestLevel: 3, rounds: 3, finishes: 0, darts: 9, hits: 6 },
+    },
   ];
 }
 
@@ -329,6 +349,23 @@ describe("mergeStepMetrics", () => {
       sequences: 4,
       darts: 13,
       hits: 10,
+    });
+  });
+});
+
+describe("mergeStepMetrics for Snakes & Ladders", () => {
+  it("keeps the highest level and sums the rest", () => {
+    const merged = mergeStepMetrics(
+      STEP_METRIC_SPECS.DOUBLES_SNAKES_LADDERS,
+      { highestLevel: 5, rounds: 4, finishes: 0, darts: 12, hits: 7 },
+      { highestLevel: 9, rounds: 6, finishes: 1, darts: 18, hits: 11 },
+    );
+    expect(merged).toEqual({
+      highestLevel: 9,
+      rounds: 10,
+      finishes: 1,
+      darts: 30,
+      hits: 18,
     });
   });
 });

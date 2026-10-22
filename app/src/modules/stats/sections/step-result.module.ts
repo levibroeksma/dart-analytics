@@ -7,6 +7,7 @@ import "@modules/training/exercises/halve-it.engine.module";
 import "@modules/training/exercises/hit-count.engine.module";
 import "@modules/training/exercises/random-checkout.engine.module";
 import "@modules/training/exercises/score-threshold.engine.module";
+import "@modules/training/exercises/snakes-ladders.engine.module";
 import "@modules/training/exercises/switchblade.engine.module";
 import "@modules/training/exercises/switching-chain.engine.module";
 import "@modules/training/exercises/switching.engine.module";
