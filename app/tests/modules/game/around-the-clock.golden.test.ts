@@ -45,6 +45,12 @@ const CONFIGS: Record<
       difficulty: "HARD",
     }),
   },
+  "v3 lives, odds first": {
+    config: {
+      ...v2(1, { oddsFirst: true }),
+      lives: 3,
+    } as AroundTheClockEngineConfig,
+  },
   "v2 easy timed solo, expires": {
     config: v2(1, TIMED),
     expireAt: 150,

@@ -18,7 +18,9 @@ import {
   closeAfterOrPastEnd,
   doneOnWrap,
   lapOnWrap,
+  loseLifeOnBlank,
   noPoints,
+  noteVisitHit,
   outerSingleOnly,
   pathTarget,
   stepBackBelowHits,
@@ -30,7 +32,7 @@ import type {
   AroundTheClockRules,
   AroundTheClockSeatState,
   AroundTheClockState,
-  AroundTheClockTrackExt,
+  AroundTheClockLivesExt,
   BoardTarget,
   DartIntent,
   DartObservation,
@@ -57,12 +59,13 @@ export function rulesOf(
   config: AroundTheClockEngineConfig,
 ): AroundTheClockRules {
   if (!("pathDirection" in config)) return V1_RULES;
-  return {
+  const rules: AroundTheClockRules = {
     path: numbersPath(clockPath(config.pathDirection, config.oddsFirst)),
     segmentRule: config.segmentRule,
     hitsRequired: HITS_REQUIRED[config.difficulty],
     timed: config.durationType === "MINUTES",
   };
+  return "lives" in config ? { ...rules, lives: config.lives } : rules;
 }
 
 /** The target at `targetIndex` of an already-resolved rule set's path. */
@@ -88,7 +91,10 @@ export function activeTargetOf(
   return targetOnPath(rulesOf(config), state.targetIndex);
 }
 
-function initialSeatState(seat: SeatFact): AroundTheClockSeatState {
+function initialSeatState(
+  seat: SeatFact,
+  lives?: number,
+): AroundTheClockSeatState {
   return {
     participantRef: seat.participantRef,
     sideKey: seat.sideKey,
@@ -96,6 +102,7 @@ function initialSeatState(seat: SeatFact): AroundTheClockSeatState {
     dartsThisVisit: 0,
     hitsThisVisit: 0,
     laps: 0,
+    ...(lives === undefined ? {} : { lives, visitHit: false }),
     status: "IN_PROGRESS",
   };
 }
@@ -109,7 +116,9 @@ export function initialAroundTheClockState(
     status: "IN_PROGRESS",
     winningSideKey: null,
     timerExpired: false,
-    seats: config.seats.map(initialSeatState),
+    seats: config.seats.map((seat) =>
+      initialSeatState(seat, rulesOf(config).lives),
+    ),
   };
 }
 
@@ -144,44 +153,61 @@ const SESSION_ENDED = endedRefusal("session has ended");
  * hit test, no points, three-dart visits that also close when the seat moves
  * past BULL. Easy advances on each hit mid-visit; a 1/2/3-dart difficulty
  * judges the visit on close and steps back below the bar. Past BULL a timed
- * seat laps and an untimed one is done.
+ * seat laps and an untimed one is done. With lives, a visit that never hit
+ * costs a life and the last life lost puts the seat out.
  */
 function clockRules(
   rules: AroundTheClockRules,
-): TrackRules<AroundTheClockTrackExt> {
+): TrackRules<AroundTheClockLivesExt> {
   const lastIndex = rules.path.length - 1;
   const wrap = rules.timed
-    ? lapOnWrap<AroundTheClockTrackExt>(lastIndex)
-    : doneOnWrap<AroundTheClockTrackExt>(lastIndex);
-  const judge = stepBackBelowHits<AroundTheClockTrackExt>(rules.hitsRequired);
+    ? lapOnWrap<AroundTheClockLivesExt>(lastIndex)
+    : doneOnWrap<AroundTheClockLivesExt>(lastIndex);
+  const judge = stepBackBelowHits<AroundTheClockLivesExt>(rules.hitsRequired);
   const easy = rules.hitsRequired === 0;
   return {
     doneMessage: SESSION_ENDED,
     target: pathTarget(rules.path),
     hit: hitPolicy(rules),
     points: noPoints,
-    onDart: easy ? advanceOnHit : undefined,
+    onDart: easy
+      ? (seat, dart) => advanceOnHit(noteVisitHit(seat, dart), dart)
+      : noteVisitHit,
     visitOpen: closeAfterOrPastEnd(3, lastIndex),
-    onVisitClose: easy ? wrap : (seat) => wrap(judge(seat)),
+    onVisitClose: easy
+      ? (seat) => wrap(loseLifeOnBlank(seat))
+      : (seat) => wrap(judge(loseLifeOnBlank(seat))),
   };
 }
 
-/** Lifts a clock seat into the kernel's shape: no score, `laps` as the extra. */
+const TRACK_STATUS = {
+  IN_PROGRESS: "IN_PROGRESS",
+  COMPLETE: "DONE",
+  OUT: "OUT",
+} as const;
+
+const CLOCK_STATUS = {
+  IN_PROGRESS: "IN_PROGRESS",
+  DONE: "COMPLETE",
+  OUT: "OUT",
+} as const;
+
+/** Lifts a clock seat into the kernel's shape: no score, `laps` and the lives rule as the extra. */
 function toTrackSeat(
   state: AroundTheClockSeatState,
-): TrackSeat<AroundTheClockTrackExt> {
-  const { laps, status, ...progress } = state;
+): TrackSeat<AroundTheClockLivesExt> {
+  const { laps, lives, visitHit, status, ...progress } = state;
   return {
     ...progress,
     score: 0,
-    status: status === "COMPLETE" ? "DONE" : "IN_PROGRESS",
-    ext: { laps },
+    status: TRACK_STATUS[status],
+    ext: { laps, lives: lives ?? null, visitHit: visitHit ?? false },
   };
 }
 
-/** Projects a kernel seat back to the clock's seat state; no clock policy puts a seat `OUT`. */
+/** Projects a kernel seat back to the clock's seat state; `lives` rides along only under the lives rule. */
 function toClockSeat(
-  seat: TrackSeat<AroundTheClockTrackExt>,
+  seat: TrackSeat<AroundTheClockLivesExt>,
 ): AroundTheClockSeatState {
   return {
     participantRef: seat.participantRef,
@@ -190,7 +216,10 @@ function toClockSeat(
     dartsThisVisit: seat.dartsThisVisit,
     hitsThisVisit: seat.hitsThisVisit,
     laps: seat.ext.laps,
-    status: seat.status === "IN_PROGRESS" ? "IN_PROGRESS" : "COMPLETE",
+    ...(seat.ext.lives === null
+      ? {}
+      : { lives: seat.ext.lives, visitHit: seat.ext.visitHit }),
+    status: CLOCK_STATUS[seat.status],
   };
 }
 
@@ -241,7 +270,7 @@ export function foldAroundTheClockState(
   const folded = foldTrackSeats(
     facts.turns,
     config.seats,
-    () => ({ laps: 0 }),
+    () => ({ laps: 0, lives: rules.lives ?? null, visitHit: false }),
     clockRules(rules),
   ).map(toClockSeat);
   const seats =
@@ -260,7 +289,7 @@ export function foldAroundTheClockState(
       metric: dartsThrownBy(seat.participantRef, facts.turns),
     })),
     "LOWEST",
-    seats[0].status,
+    seats[0].status === "OUT" ? "COMPLETE" : seats[0].status,
   );
 
   return {
@@ -270,7 +299,7 @@ export function foldAroundTheClockState(
       "PER_SEAT",
       (candidate) =>
         seats.find((seat) => seat.participantRef === candidate.participantRef)
-          ?.status === "COMPLETE",
+          ?.status !== "IN_PROGRESS",
     ).participantRef,
     status: outcome.status,
     winningSideKey: outcome.winningSideKey,
@@ -325,7 +354,7 @@ function wouldCompleteSession(
   const after = applyAroundTheClockDart(seat, observation, rules);
   const seatDone = rules.timed
     ? state.timerExpired && after.dartsThisVisit === 0
-    : after.status === "COMPLETE";
+    : after.status !== "IN_PROGRESS";
   return (
     seatDone &&
     otherSeatsComplete(
@@ -336,11 +365,11 @@ function wouldCompleteSession(
   );
 }
 
-/** Around the Clock's rules for the dart engine shell, V1 and V2; refused once the active seat has finished its own circuit. */
+/** Around the Clock's rules for the dart engine shell, V1 to V3; refused once the active seat has finished its own circuit. */
 const clockSpec: DartGameSpec<AroundTheClockEngineConfig, AroundTheClockState> =
   {
     rulesetVersionKey: "AROUND_THE_CLOCK_V1",
-    rulesetVersionKeys: ["AROUND_THE_CLOCK_V2"],
+    rulesetVersionKeys: ["AROUND_THE_CLOCK_V2", "AROUND_THE_CLOCK_V3"],
     stageOwnership: "PER_SEAT",
     fold: foldAroundTheClockState,
     refusal: (state) =>
@@ -350,8 +379,11 @@ const clockSpec: DartGameSpec<AroundTheClockEngineConfig, AroundTheClockState> =
     wouldComplete: wouldCompleteSession,
   };
 
-/** The ruleset key a snapshot's shape names: a `pathDirection` field is V2. */
-function keyOf(config: AroundTheClockEngineConfig): RulesetVersionKey {
+/** The ruleset key a snapshot's shape names: a `pathDirection` field is V2, a `lives` field V3. */
+export function rulesetKeyOf(
+  config: AroundTheClockEngineConfig,
+): RulesetVersionKey {
+  if ("lives" in config) return "AROUND_THE_CLOCK_V3";
   return "pathDirection" in config
     ? "AROUND_THE_CLOCK_V2"
     : "AROUND_THE_CLOCK_V1";
@@ -359,15 +391,15 @@ function keyOf(config: AroundTheClockEngineConfig): RulesetVersionKey {
 
 /**
  * Around the Clock (Pattern 18), built by the dart engine shell: a 21-target
- * path (V1: 1..20, then BULL; V2: direction and odds-first order, BULL last)
- * walked per seat under the snapshot's rules. Score-compare: both seats
+ * path (V1: 1..20, then BULL; V2: direction and odds-first order, BULL last;
+ * V3: V2 on Easy with three lives) walked per seat under the snapshot's rules. Score-compare: both seats
  * always play their whole circuit, then whichever finished in fewer darts
  * wins. A timed V2 run ends only through `expireTimer()`. The key is read
  * off the snapshot's shape, whatever key a factory passes.
  */
 export class AroundTheClockEngine extends dartGameEngineClass(clockSpec) {
   constructor(config: AroundTheClockEngineConfig, prior?: EngineFacts) {
-    super(config, prior, keyOf(config));
+    super(config, prior, rulesetKeyOf(config));
   }
 }
 
@@ -382,5 +414,12 @@ export const aroundTheClockV2EngineFactory = dartGameEngineFactory(
   "AROUND_THE_CLOCK_V2",
 );
 
+export const aroundTheClockV3EngineFactory = dartGameEngineFactory(
+  clockSpec,
+  AroundTheClockEngine,
+  "AROUND_THE_CLOCK_V3",
+);
+
 registerEngineFactory(aroundTheClockEngineFactory);
 registerEngineFactory(aroundTheClockV2EngineFactory);
+registerEngineFactory(aroundTheClockV3EngineFactory);

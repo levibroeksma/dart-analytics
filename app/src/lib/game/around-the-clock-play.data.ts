@@ -62,7 +62,7 @@ import type {
 // Value import, not `import type`: the class is the narrowing target below,
 // and importing it also runs the module's side effect, which registers
 // aroundTheClockEngineFactory so the registry can resolve this page's own
-// V1 and V2 keys.
+// V1, V2 and V3 keys.
 import {
   applyAroundTheClockDart,
   AroundTheClockEngine,
@@ -70,20 +70,15 @@ import {
   initialAroundTheClockState,
   isClockHit,
   rulesOf,
+  rulesetKeyOf,
 } from "@modules/game/around-the-clock.engine.module";
 
 const GAME_TYPE_KEY = "AROUND_THE_CLOCK";
 const RESUMABLE = new Set<RulesetVersionKey>([
   "AROUND_THE_CLOCK_V1",
   "AROUND_THE_CLOCK_V2",
+  "AROUND_THE_CLOCK_V3",
 ]);
-
-/** The session's own key, read off the snapshot's shape (as the engine does). */
-function keyOf(config: AroundTheClockEngineConfig): RulesetVersionKey {
-  return "pathDirection" in config
-    ? "AROUND_THE_CLOCK_V2"
-    : "AROUND_THE_CLOCK_V1";
-}
 
 /** A timed V2 snapshot, or null for V1 and untimed V2. */
 function timedConfig(
@@ -568,7 +563,7 @@ export function aroundTheClockPlay() {
     playAgain(this: AroundTheClockPlayContext) {
       const config = this.$store.game.configSnapshot;
       if (!config) return Promise.resolve();
-      const key = keyOf(config);
+      const key = rulesetKeyOf(config);
       return runPlayAgain(
         this,
         GAME_TYPE_KEY,

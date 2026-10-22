@@ -341,6 +341,7 @@ export type AroundTheClockRules = {
   segmentRule: "ANY" | "OUTER_SINGLE";
   hitsRequired: 0 | 1 | 2 | 3;
   timed: boolean;
+  lives?: number;
 };
 
 /**
@@ -358,7 +359,9 @@ export type AroundTheClockSeatState = SeatState & {
   dartsThisVisit: number;
   hitsThisVisit: number;
   laps: number;
-  status: "IN_PROGRESS" | "COMPLETE";
+  lives?: number;
+  visitHit?: boolean;
+  status: "IN_PROGRESS" | "COMPLETE" | "OUT";
 };
 
 /** Around the Clock's Track extras: timed-run laps completed. */

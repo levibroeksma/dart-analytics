@@ -1020,6 +1020,22 @@ describe("V2", () => {
     expect(foreign.engine).toBeNull();
   });
 
+  it("resumes a V3 session under its own key", async () => {
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      { ...ACTIVE_SESSION, rulesetVersionKey: "AROUND_THE_CLOCK_V3" },
+    ]);
+    const play = makePlay(
+      {
+        rulesetVersionKey: "AROUND_THE_CLOCK_V3",
+        configSnapshot: { ...v2(), lives: 3 },
+        timerExpired: false,
+      },
+      { captureModeKey: "ANALYTICS", inputModeKey: "VISUAL_BOARD" },
+    );
+    await play.init.call(play);
+    expect(play.engine?.rulesetVersionKey).toBe("AROUND_THE_CLOCK_V3");
+  });
+
   it("labels the first target off the configured path", async () => {
     const high = makeV2({ pathDirection: "HIGH_TO_LOW" });
     await high.init.call(high);
