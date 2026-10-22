@@ -12,6 +12,20 @@ const SOLO_SEAT = {
   sideKey: SOLO_PARTICIPANT_REF,
 };
 
+/** A Track exercise's projected totals: hits summed from the fold's per-target tally, darts counted from the log. */
+export function tallyTotals(
+  hitsPerTarget: readonly number[],
+  facts: EngineFacts,
+): { hits: number; dartsThrown: number } {
+  return {
+    hits: hitsPerTarget.reduce((sum, hits) => sum + hits, 0),
+    dartsThrown: facts.turns.reduce(
+      (count, turn) => count + turn.darts.length,
+      0,
+    ),
+  };
+}
+
 /**
  * Binds a Track-family exercise to the exercise shell: `fold` replays every
  * dart through `foldTrackDarts` from the solo seat and hands the seat to

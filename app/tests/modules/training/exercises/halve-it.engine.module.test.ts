@@ -270,4 +270,10 @@ describe("Halve-It engine", () => {
       EventsBatchRequest.safeParse(buildEventsBatch(engine.facts())).success,
     ).toBe(true);
   });
+
+  it("projects hits and darts from the shared totals", () => {
+    const state = play(new HalveItEngine({}), [S(20), S(20), MISS, S(16)]);
+    expect(state.hits).toBe(3);
+    expect(state.dartsThrown).toBe(4);
+  });
 });

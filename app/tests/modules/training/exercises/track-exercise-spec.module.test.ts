@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { trackExerciseSpec } from "@modules/training/exercises/track-exercise-spec.module";
+import {
+  tallyTotals,
+  trackExerciseSpec,
+} from "@modules/training/exercises/track-exercise-spec.module";
 import {
   boardScorePoints,
   closeAfter,
@@ -123,5 +126,22 @@ describe("trackExerciseSpec", () => {
       locationY: null,
     };
     expect(zoneSpec.fold(facts([treble]), {}, false)).toBe(57);
+  });
+});
+
+describe("tallyTotals", () => {
+  it("sums hits per target and counts every dart in the log", () => {
+    const log = {
+      stages: [],
+      turns: [{ darts: [{}, {}, {}] }, { darts: [{}] }],
+    } as unknown as EngineFacts;
+    expect(tallyTotals([2, 0, 1], log)).toEqual({ hits: 3, dartsThrown: 4 });
+  });
+
+  it("is zero over an empty log", () => {
+    expect(tallyTotals([], { stages: [], turns: [] })).toEqual({
+      hits: 0,
+      dartsThrown: 0,
+    });
   });
 });

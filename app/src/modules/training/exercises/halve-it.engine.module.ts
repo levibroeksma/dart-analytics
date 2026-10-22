@@ -22,7 +22,7 @@ import {
   dartExerciseEngineClass,
   registerDartExercise,
 } from "./dart-exercise-shell.module";
-import { trackExerciseSpec } from "./track-exercise-spec.module";
+import { tallyTotals, trackExerciseSpec } from "./track-exercise-spec.module";
 import type { HalveItState } from "./types";
 
 const DARTS_PER_VISIT = 3;
@@ -99,11 +99,7 @@ function projectHalveIt(
     total: seat.score,
     passes: seat.ext.passes,
     halvings: seat.ext.halvings,
-    hits: hitsPerTarget.reduce((sum, entry) => sum + entry.hits, 0),
-    dartsThrown: facts.turns.reduce(
-      (count, turn) => count + turn.darts.length,
-      0,
-    ),
+    ...tallyTotals(seat.ext.hitsPerTarget, facts),
     hitsPerTarget,
     status: complete ? "COMPLETE" : "IN_PROGRESS",
   };

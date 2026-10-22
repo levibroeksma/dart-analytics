@@ -172,6 +172,24 @@ function chipLabel(target: TrackTarget): string {
   return boardTargetLabel(target).replace(" ", "\u00a0");
 }
 
+/** A path's chips paged around `index` (`windowPage`), space-joined for `RouteChips`. */
+function routeChipsOf(path: readonly TrackTarget[], index: number): string {
+  return windowPage(path.map(chipLabel), index).join(" ");
+}
+
+/** Hits over darts as a percentage display; zero while no engine is open. */
+function hitRateOf(
+  state: { hits: number; dartsThrown: number } | undefined,
+): string {
+  return checkoutPercentageDisplay(state?.hits ?? 0, state?.dartsThrown ?? 0);
+}
+
+/** Context getters that label an engine's current target, tried in order. */
+const TARGET_LABEL_GETTERS = [
+  "hitCountTargetLabel",
+  "doublesLockTargetLabel",
+] as const;
+
 /** A path target's label, or "" while no engine is open. */
 function targetLabelOf(target: BoardTarget | undefined): string {
   return target === undefined ? "" : boardTargetLabel(target);
@@ -326,10 +344,9 @@ export function routinePlay() {
         config: this.stepConfiguration,
         visitIndex,
         currentTargetNumber: progress?.currentTargetNumber,
-        currentTargetLabel:
-          this.hitCountTargetLabel() ||
-          this.doublesLockTargetLabel() ||
-          undefined,
+        currentTargetLabel: TARGET_LABEL_GETTERS.map((getter) =>
+          this[getter](),
+        ).find(Boolean),
         targetIndex: progress?.targetIndex ?? 0,
         dartsInOpenVisit:
           this.activeDartEngine()?.facts().turns.at(-1)?.darts.length ?? 0,
@@ -1017,11 +1034,7 @@ export function routinePlay() {
     },
 
     hitCountRate(this: RoutinePlayContext): string {
-      const state = this.hitCountEngine?.state();
-      return checkoutPercentageDisplay(
-        state?.hits ?? 0,
-        state?.dartsThrown ?? 0,
-      );
+      return hitRateOf(this.hitCountEngine?.state());
     },
 
     switchbladeTotal(this: RoutinePlayContext): number {
@@ -1068,8 +1081,10 @@ export function routinePlay() {
 
     /** Halve-It's list as chips, paged around the current round (`windowPage`); a zone keeps its words with a no-break space. */
     halveItRoute(this: RoutinePlayContext): string {
-      const index = this.halveItEngine?.state().targetIndex ?? 0;
-      return windowPage(HALVE_IT_PATH.map(chipLabel), index).join(" ");
+      return routeChipsOf(
+        HALVE_IT_PATH,
+        this.halveItEngine?.state().targetIndex ?? 0,
+      );
     },
 
     /** The current round's chip within `halveItRoute()`'s page. */
@@ -1086,11 +1101,7 @@ export function routinePlay() {
     },
 
     halveItRate(this: RoutinePlayContext): string {
-      const state = this.halveItEngine?.state();
-      return checkoutPercentageDisplay(
-        state?.hits ?? 0,
-        state?.dartsThrown ?? 0,
-      );
+      return hitRateOf(this.halveItEngine?.state());
     },
 
     dartsThrown(this: RoutinePlayContext): number {

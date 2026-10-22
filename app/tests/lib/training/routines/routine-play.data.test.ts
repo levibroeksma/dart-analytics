@@ -4045,6 +4045,17 @@ describe("routinePlay — Halve-It play", () => {
     expect(store.halveItChipIndex()).toBe(1);
   });
 
+  it("the shared rate and route getters read Halve-It's hits, darts and index", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+
+    [S(20), MISS, MISS, ...BLANK].forEach((d) => store.recordHalveItDart(d));
+    expect(store.halveItRate()).toBe("16.67%");
+    expect(store.halveItRoute()).toBe(
+      "20 16 Any\u00a0double 17 18 Any\u00a0treble",
+    );
+  });
+
   it("a blank visit halves the total the readout shows", async () => {
     const store = makeStore();
     await startRoutine(store);
