@@ -258,3 +258,21 @@ export type HalveItState = {
   hitsPerTarget: { target: TrackTarget; hits: number }[];
   status: "IN_PROGRESS" | "COMPLETE";
 };
+
+/**
+ * Doubles Snakes & Ladders state, derived by replaying `facts()`
+ * (`foldSnakesLaddersState`). `levelIndex` locates the next dart;
+ * `highestLevelNumber` is 1-21; `finishes` is 1 once three bullseyes land in
+ * one visit.
+ */
+export type SnakesLaddersState = {
+  currentLevel: BoardTarget;
+  levelIndex: number;
+  highestLevel: BoardTarget;
+  highestLevelNumber: number;
+  rounds: number;
+  finishes: number;
+  hits: number;
+  dartsThrown: number;
+  status: "IN_PROGRESS" | "COMPLETE";
+};

@@ -524,6 +524,12 @@ export type HalveItTrackExt = TargetTallyExt &
     halvings: number;
   };
 
+/** Doubles Snakes & Ladders' Track extras: the per-level tally, the furthest level, and closed visits. */
+export type SnakesLaddersTrackExt = TargetTallyExt &
+  LadderTrackExt & {
+    rounds: number;
+  };
+
 /** Points per round for a Track seat whose path is cut into equal rounds (SwitchBlade). */
 export type RoundTallyExt = {
   roundTotals: number[];
