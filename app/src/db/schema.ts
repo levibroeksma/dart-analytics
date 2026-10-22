@@ -1042,6 +1042,38 @@ export const rulesetVersionCapabilities = pgTable(
   ],
 );
 
+export const rulesetVersionTags = pgTable(
+  "ruleset_version_tags",
+  {
+    rulesetVersionId: uuid("ruleset_version_id").notNull(),
+    tagId: smallint("tag_id").notNull(),
+    isPrimary: boolean("is_primary").default(false).notNull(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+  },
+  (table) => [
+    uniqueIndex("uq_ruleset_version_tags_primary")
+      .using("btree", table.rulesetVersionId.asc().nullsLast().op("uuid_ops"))
+      .where(sql`is_primary`),
+    foreignKey({
+      columns: [table.rulesetVersionId],
+      foreignColumns: [rulesetVersions.id],
+      name: "fk_ruleset_version_tags_ruleset_version",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.tagId],
+      foreignColumns: [tags.id],
+      name: "fk_ruleset_version_tags_tag",
+    }).onDelete("restrict"),
+    primaryKey({
+      columns: [table.rulesetVersionId, table.tagId],
+      name: "ruleset_version_tags_pkey",
+    }),
+  ],
+);
+
 export const rulesetVersions = pgTable(
   "ruleset_versions",
   {
@@ -1336,7 +1368,7 @@ export const vCatalogTags = pgView("v_catalog_tags", {
   sortOrder: smallint("sort_order"),
   axisRank: smallint("axis_rank"),
 }).as(
-  sql`WITH axis_ranks AS ( SELECT t.id AS tag_id, row_number() OVER (PARTITION BY t.tag_axis_id ORDER BY t.sort_order, t.id)::smallint AS axis_rank FROM tags t ) SELECT 'GAME'::text AS entity_kind, gt.implementation_key AS type_key, tc.implementation_key AS context_key, ta.implementation_key AS axis_key, t.implementation_key AS tag_key, t.name AS tag_name, gtt.is_primary, t.sort_order, ar.axis_rank FROM game_type_tags gtt JOIN game_types gt ON gt.id = gtt.game_type_id JOIN tag_contexts tc ON tc.id = gtt.tag_context_id JOIN tags t ON t.id = gtt.tag_id JOIN axis_ranks ar ON ar.tag_id = t.id JOIN tag_axes ta ON ta.id = t.tag_axis_id UNION ALL SELECT 'EXERCISE'::text AS entity_kind, ext.implementation_key AS type_key, 'ROUTINE_STEP'::text AS context_key, ta.implementation_key AS axis_key, t.implementation_key AS tag_key, t.name AS tag_name, ett.is_primary, t.sort_order, ar.axis_rank FROM exercise_type_tags ett JOIN exercise_types ext ON ext.id = ett.exercise_type_id JOIN tags t ON t.id = ett.tag_id JOIN axis_ranks ar ON ar.tag_id = t.id JOIN tag_axes ta ON ta.id = t.tag_axis_id`,
+  sql`WITH axis_ranks AS ( SELECT t.id AS tag_id, row_number() OVER (PARTITION BY t.tag_axis_id ORDER BY t.sort_order, t.id)::smallint AS axis_rank FROM tags t ) SELECT 'GAME'::text AS entity_kind, gt.implementation_key AS type_key, tc.implementation_key AS context_key, ta.implementation_key AS axis_key, t.implementation_key AS tag_key, t.name AS tag_name, gtt.is_primary, t.sort_order, ar.axis_rank FROM game_type_tags gtt JOIN game_types gt ON gt.id = gtt.game_type_id JOIN tag_contexts tc ON tc.id = gtt.tag_context_id JOIN tags t ON t.id = gtt.tag_id JOIN axis_ranks ar ON ar.tag_id = t.id JOIN tag_axes ta ON ta.id = t.tag_axis_id UNION ALL SELECT 'EXERCISE'::text AS entity_kind, ext.implementation_key AS type_key, 'ROUTINE_STEP'::text AS context_key, ta.implementation_key AS axis_key, t.implementation_key AS tag_key, t.name AS tag_name, ett.is_primary, t.sort_order, ar.axis_rank FROM exercise_type_tags ett JOIN exercise_types ext ON ext.id = ett.exercise_type_id JOIN tags t ON t.id = ett.tag_id JOIN axis_ranks ar ON ar.tag_id = t.id JOIN tag_axes ta ON ta.id = t.tag_axis_id UNION ALL SELECT 'CARD'::text AS entity_kind, rv.implementation_key AS type_key, 'STANDALONE'::text AS context_key, ta.implementation_key AS axis_key, t.implementation_key AS tag_key, t.name AS tag_name, rvt.is_primary, t.sort_order, ar.axis_rank FROM ruleset_version_tags rvt JOIN ruleset_versions rv ON rv.id = rvt.ruleset_version_id JOIN tags t ON t.id = rvt.tag_id JOIN axis_ranks ar ON ar.tag_id = t.id JOIN tag_axes ta ON ta.id = t.tag_axis_id`,
 );
 
 export const vConfigurationPresets = pgView("v_configuration_presets", {

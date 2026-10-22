@@ -1529,3 +1529,14 @@ Migrations are the historical record of database evolution.
 They must be treated as permanent architectural documentation.
 
 A future developer or AI agent should be able to understand how the database evolved by reading the migration history alone.
+
+## 0049_ruleset_version_tags.sql
+
+Let a preset card carry its own catalog tags (#1051): Nine Lives is a card on the Around the Clock game type (ruleset `AROUND_THE_CLOCK_V3`) and reads as its own difficulty and format. <!-- 2026-10-22 -->
+
+Contains:
+
+- new typed link table `ruleset_version_tags` (PK `ruleset_version_id`, `tag_id`; `is_primary BOOLEAN NOT NULL DEFAULT FALSE`; `created_at TIMESTAMPTZ NOT NULL`), CASCADE from `ruleset_versions`, RESTRICT from `tags`, partial unique index `uq_ruleset_version_tags_primary` (one primary tag per ruleset version); no context column, a card is always `STANDALONE`,
+- `v_catalog_tags` recreated (`DROP VIEW` + `CREATE VIEW`) with a third `UNION ALL` branch: `entity_kind = 'CARD'`, `type_key` the ruleset implementation key, `context_key = 'STANDALONE'`; the `GAME` and `EXERCISE` branches and the column list are unchanged.
+
+No column defaults: the generated seed `0042_catalog_tags.sql` writes `created_at = now()` explicitly. `migrate:down` restores the `0047` view and drops the table. Applied; `app/tests/integration/card-tags.itest.ts` proves the view branch and the primary-tag index. <!-- 2026-10-22 -->
