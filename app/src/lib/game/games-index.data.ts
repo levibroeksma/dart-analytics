@@ -3,6 +3,7 @@ import { fetchCatalogTags } from "@client/api/catalog";
 import { cardTags } from "@lib/catalog/tags";
 import type {
   CatalogTag,
+  CatalogTagSet,
   CatalogTagsResponse,
   DifficultyLevel,
   GameGroupKey,
@@ -11,6 +12,16 @@ import type {
 } from "@lib/types";
 
 const ANALYTICS_CAPTURE_MODE_KEY = "ANALYTICS";
+
+/** A card's own tag set when it has one, else its game type's Standalone set. */
+function cardSet(
+  tags: CatalogTagsResponse | null,
+  gameTypeKey: string,
+  cardKey: string | undefined,
+): CatalogTagSet | undefined {
+  const own = cardKey === undefined ? undefined : tags?.cards?.[cardKey];
+  return own ?? tags?.games[gameTypeKey]?.standalone;
+}
 
 /**
  * Games-page state: which cards the player's current app mode leaves visible.
@@ -62,17 +73,22 @@ export function gamesIndex() {
       this.sessionsLoading = false;
     },
 
-    gameTags(this: GamesIndexContext, gameTypeKey: string): CatalogTag[] {
-      const set = this.catalogTags?.games[gameTypeKey]?.standalone;
+    gameTags(
+      this: GamesIndexContext,
+      gameTypeKey: string,
+      cardKey?: string,
+    ): CatalogTag[] {
+      const set = cardSet(this.catalogTags, gameTypeKey, cardKey);
       return set ? cardTags(set, "game") : [];
     },
 
     gameLevel(
       this: GamesIndexContext,
       gameTypeKey: string,
+      cardKey?: string,
     ): DifficultyLevel | null {
       return (
-        this.catalogTags?.games[gameTypeKey]?.standalone.difficultyLevel ?? null
+        cardSet(this.catalogTags, gameTypeKey, cardKey)?.difficultyLevel ?? null
       );
     },
 

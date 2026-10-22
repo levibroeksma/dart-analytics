@@ -22,6 +22,7 @@ const tags: CatalogTagsResponse = {
     AROUND_THE_CLOCK: { standalone: set(1), routineStep: set(2) },
   },
   exercises: { BULL_UP: set(2) },
+  cards: {},
 };
 
 describe("stepTagSet", () => {

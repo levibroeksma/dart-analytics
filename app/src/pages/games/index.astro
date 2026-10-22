@@ -57,12 +57,12 @@ import { groupedGames } from "@lib/game/rulesets/games-visibility";
                   <Fragment slot="title">{game.title}</Fragment>
                   <DifficultyMeter
                     slot="meter"
-                    levelExpr={`gameLevel('${game.gameTypeKey}')`}
+                    levelExpr={`gameLevel('${game.gameTypeKey}', '${game.rulesetVersionKey}')`}
                   />
                   <Fragment slot="caption">{game.caption}</Fragment>
                   <template
                     slot="tags"
-                    x-for={`tag in gameTags('${game.gameTypeKey}')`}
+                    x-for={`tag in gameTags('${game.gameTypeKey}', '${game.rulesetVersionKey}')`}
                     {...{ ":key": "tag.key" }}
                   >
                     <Tag

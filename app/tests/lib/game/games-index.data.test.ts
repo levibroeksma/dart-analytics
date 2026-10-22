@@ -60,6 +60,12 @@ const catalogTags = (): CatalogTagsResponse =>
       },
     },
     exercises: {},
+    cards: {
+      AROUND_THE_CLOCK_V3: {
+        tags: [tag("SKILL_C", "SKILL", true)],
+        difficultyLevel: 1,
+      },
+    },
   }) as CatalogTagsResponse;
 
 describe("gamesIndex", () => {
@@ -212,6 +218,30 @@ describe("gamesIndex", () => {
         cardTags({ tags: cricketTags, difficultyLevel: 3 }, "game"),
       );
       expect(page.gameLevel("CRICKET")).toBe(3);
+    });
+
+    it("prefers the card's own tag set and level", async () => {
+      vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([]);
+      const page = createPage();
+      await page.init();
+      await vi.waitFor(() => expect(page.catalogTags).not.toBeNull());
+
+      expect(
+        page.gameTags("CRICKET", "AROUND_THE_CLOCK_V3").map((t) => t.key),
+      ).toEqual(["SKILL_C"]);
+      expect(page.gameLevel("CRICKET", "AROUND_THE_CLOCK_V3")).toBe(1);
+    });
+
+    it("falls back to the game type when the card has no set", async () => {
+      vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([]);
+      const page = createPage();
+      await page.init();
+      await vi.waitFor(() => expect(page.catalogTags).not.toBeNull());
+
+      expect(page.gameTags("CRICKET", "CRICKET_V1")).toEqual(
+        page.gameTags("CRICKET"),
+      );
+      expect(page.gameLevel("CRICKET", "CRICKET_V1")).toBe(3);
     });
 
     it("returns no tags and no level for an unknown game or before load", async () => {

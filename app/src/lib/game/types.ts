@@ -1480,10 +1480,15 @@ export type GamesIndexContext = {
   };
   init(this: GamesIndexContext): Promise<void>;
   loading(this: GamesIndexContext): boolean;
-  gameTags(this: GamesIndexContext, gameTypeKey: string): CatalogTag[];
+  gameTags(
+    this: GamesIndexContext,
+    gameTypeKey: string,
+    cardKey?: string,
+  ): CatalogTag[];
   gameLevel(
     this: GamesIndexContext,
     gameTypeKey: string,
+    cardKey?: string,
   ): DifficultyLevel | null;
   isVisible(
     this: GamesIndexContext,

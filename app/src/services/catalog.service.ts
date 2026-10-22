@@ -64,13 +64,17 @@ type GameContexts = Map<string, RankedTag[]>;
 function collect(rows: CatalogTagRow[]): {
   games: Map<string, GameContexts>;
   exercises: Map<string, RankedTag[]>;
+  cards: Map<string, RankedTag[]>;
 } {
   const games = new Map<string, GameContexts>();
   const exercises = new Map<string, RankedTag[]>();
+  const cards = new Map<string, RankedTag[]>();
   for (const row of rows) {
     const entry = toRanked(row);
     if (row.entityKind === "EXERCISE") {
       pushTo(exercises, row.typeKey, entry);
+    } else if (row.entityKind === "CARD") {
+      pushTo(cards, row.typeKey, entry);
     } else if (row.entityKind === "GAME") {
       const contexts = games.get(row.typeKey) ?? new Map<string, RankedTag[]>();
       pushTo(contexts, row.contextKey, entry);
@@ -79,7 +83,7 @@ function collect(rows: CatalogTagRow[]): {
       throw new Error(`v_catalog_tags: unknown entity_kind ${row.entityKind}`);
     }
   }
-  return { games, exercises };
+  return { games, exercises, cards };
 }
 
 function finishContext(ranked: RankedTag[] | undefined): CatalogTagSet {
@@ -96,13 +100,16 @@ function finishGame(
 }
 
 function groupCatalogTags(rows: CatalogTagRow[]): CatalogTagsResponse {
-  const { games, exercises } = collect(rows);
-  const response: CatalogTagsResponse = { games: {}, exercises: {} };
+  const { games, exercises, cards } = collect(rows);
+  const response: CatalogTagsResponse = { games: {}, exercises: {}, cards: {} };
   for (const [typeKey, contexts] of games) {
     response.games[typeKey] = finishGame(contexts);
   }
   for (const [typeKey, tags] of exercises) {
     response.exercises[typeKey] = finishSet(tags);
+  }
+  for (const [typeKey, tags] of cards) {
+    response.cards[typeKey] = finishSet(tags);
   }
   return response;
 }

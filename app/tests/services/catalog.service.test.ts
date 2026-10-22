@@ -65,6 +65,57 @@ describe("getCatalogTags", () => {
     expect(result.data.exercises.DOUBLES_LOCK!.tags).toHaveLength(2);
   });
 
+  it("CARD rows land under cards keyed by ruleset key", async () => {
+    vi.mocked(repo.findCatalogTagRows).mockResolvedValue([
+      row(
+        "CARD",
+        "AROUND_THE_CLOCK_V3",
+        "STANDALONE",
+        "SKILL",
+        "ACCURACY",
+        true,
+      ),
+      row(
+        "CARD",
+        "AROUND_THE_CLOCK_V3",
+        "STANDALONE",
+        "DIFFICULTY",
+        "BEGINNER",
+        false,
+        1,
+      ),
+    ]);
+    const result = await getCatalogTags();
+    if (!result.ok) throw new Error("expected ok");
+    const card = result.data.cards.AROUND_THE_CLOCK_V3!;
+    expect(card.tags.map((t) => t.key)).toEqual(["ACCURACY", "BEGINNER"]);
+    expect(card.difficultyLevel).toBe(1);
+  });
+
+  it("a CARD row never leaks into games", async () => {
+    vi.mocked(repo.findCatalogTagRows).mockResolvedValue([
+      row(
+        "CARD",
+        "AROUND_THE_CLOCK_V3",
+        "STANDALONE",
+        "SKILL",
+        "ACCURACY",
+        true,
+      ),
+    ]);
+    const result = await getCatalogTags();
+    if (!result.ok) throw new Error("expected ok");
+    expect(result.data.games).toEqual({});
+    expect(result.data.exercises).toEqual({});
+  });
+
+  it("cards is empty when no CARD rows", async () => {
+    vi.mocked(repo.findCatalogTagRows).mockResolvedValue([]);
+    const result = await getCatalogTags();
+    if (!result.ok) throw new Error("expected ok");
+    expect(result.data.cards).toEqual({});
+  });
+
   it("defaults a missing game context to an empty set", async () => {
     vi.mocked(repo.findCatalogTagRows).mockResolvedValue([
       row("GAME", "TUOD", "STANDALONE", "SKILL", "CHECKOUT", true),
