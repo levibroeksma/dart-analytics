@@ -364,6 +364,12 @@ export type AroundTheClockSeatState = SeatState & {
 /** Around the Clock's Track extras: timed-run laps completed. */
 export type AroundTheClockTrackExt = { laps: number };
 
+/** Lives bookkeeping for a Track seat: lives left (null = no lives rule) and whether the open visit has hit. */
+export type LivesTrackExt = { lives: number | null; visitHit: boolean };
+
+/** Around the Clock's engine-internal seat ext: laps plus the lives rule. */
+export type AroundTheClockLivesExt = AroundTheClockTrackExt & LivesTrackExt;
+
 export type AroundTheClockState = MultiSeatState<AroundTheClockSeatState> & {
   status: "IN_PROGRESS" | "COMPLETE" | "TIE";
   winningSideKey: string | null;
