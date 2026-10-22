@@ -16,6 +16,7 @@ import { hitCountAdapter } from "./hit-count.adapter";
 import { switchbladeAdapter } from "./switchblade.adapter";
 import { doublesLockAdapter } from "./doubles-lock.adapter";
 import { halveItAdapter } from "./halve-it.adapter";
+import { snakesLaddersAdapter } from "./snakes-ladders.adapter";
 import {
   gameAdapter,
   summariseTuodStep,
@@ -48,6 +49,7 @@ export const STEP_ADAPTERS: Record<StepAdapterKey, StepAdapter> = {
   SWITCHBLADE: switchbladeAdapter,
   DOUBLES_LOCK: doublesLockAdapter,
   HALVE_IT: halveItAdapter,
+  DOUBLES_SNAKES_LADDERS: snakesLaddersAdapter,
   "GAME:TUOD_V1": gameAdapter({
     rulesetVersionKey: "TUOD_V1",
     headerLabel: "finishing",

@@ -10,6 +10,7 @@ import { hitCountAdapter } from "@lib/training/routines/adapters/hit-count.adapt
 import { switchbladeAdapter } from "@lib/training/routines/adapters/switchblade.adapter";
 import { doublesLockAdapter } from "@lib/training/routines/adapters/doubles-lock.adapter";
 import { halveItAdapter } from "@lib/training/routines/adapters/halve-it.adapter";
+import { snakesLaddersAdapter } from "@lib/training/routines/adapters/snakes-ladders.adapter";
 
 describe("step adapter registry", () => {
   it("has one adapter per non-game kind and per server-eligible game ruleset", () => {
@@ -30,6 +31,7 @@ describe("step adapter registry", () => {
         "SWITCHBLADE",
         "DOUBLES_LOCK",
         "HALVE_IT",
+        "DOUBLES_SNAKES_LADDERS",
         ...Object.keys(ROUTINE_GAME_STEPS).map((k) => `GAME:${k}`),
       ].sort(),
     );
@@ -76,6 +78,13 @@ describe("step adapter registry", () => {
   it("resolves the Doubles Lock step", () => {
     expect(resolveStepAdapter("DOUBLES_LOCK")?.title).toBe("Doubles Lock");
     expect(STEP_ADAPTERS.DOUBLES_LOCK).toBe(doublesLockAdapter);
+  });
+
+  it("resolves the Snakes & Ladders step", () => {
+    expect(resolveStepAdapter("DOUBLES_SNAKES_LADDERS")?.title).toBe(
+      "Doubles Snakes & Ladders",
+    );
+    expect(STEP_ADAPTERS.DOUBLES_SNAKES_LADDERS).toBe(snakesLaddersAdapter);
   });
 
   it("resolves the Halve-It step", () => {
@@ -163,6 +172,7 @@ describe("STEP_ADAPTERS titles", () => {
         "BULL_UP": "Bull Up Practice",
         "CHECKOUT_SEQUENCE": "Catch 40",
         "DOUBLES_LOCK": "Doubles Lock",
+        "DOUBLES_SNAKES_LADDERS": "Doubles Snakes & Ladders",
         "DOUBLE_PATTERN": "Double Pattern",
         "GAME:121_V2": "121",
         "GAME:AROUND_THE_CLOCK_V2": "Around the Clock",

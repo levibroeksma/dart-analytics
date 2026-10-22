@@ -3617,6 +3617,7 @@ describe("routinePlay — board dispatch", () => {
     ["SWITCHBLADE", "switchbladeEngine"],
     ["DOUBLES_LOCK", "doublesLockEngine"],
     ["HALVE_IT", "halveItEngine"],
+    ["DOUBLES_SNAKES_LADDERS", "snakesLaddersEngine"],
   ] as const)(
     "routes a committed board dart to the open %s engine (%s)",
     async (kind, slot) => {
@@ -4128,5 +4129,98 @@ describe("routinePlay — Halve-It play", () => {
 
     expect(sessionApi.appendBatch).toHaveBeenCalled();
     expect(store.stepSummaries[0]).toMatchObject({ stepKey: "HALVE_IT" });
+  });
+});
+
+const SNAKES_LADDERS_STEP = {
+  sequenceNumber: 1,
+  exerciseTypeKey: "DOUBLES_SNAKES_LADDERS",
+  exerciseRulesetVersionKey: "DOUBLES_SNAKES_LADDERS_V1",
+  gameTypeKey: null,
+  gameRulesetVersionKey: null,
+  durationSeconds: 600,
+  configuration: {},
+};
+
+describe("routinePlay — Doubles Snakes & Ladders", () => {
+  it("starts with no Snakes & Ladders engine", () => {
+    expect(makeStore().snakesLaddersEngine).toBeNull();
+  });
+});
+
+describe("routinePlay — Doubles Snakes & Ladders play", () => {
+  const D = (n: number) => ({
+    hitTargetNumber: n,
+    hitZoneKey: "DOUBLE" as const,
+    locationX: 0,
+    locationY: -100,
+  });
+  const BULLSEYE = {
+    hitTargetNumber: 25,
+    hitZoneKey: "INNER_BULL" as const,
+    locationX: 0,
+    locationY: 0,
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+    stubAudioContext();
+    Object.defineProperty(globalThis, "location", {
+      value: { href: "" },
+      writable: true,
+      configurable: true,
+    });
+    vi.mocked(trainingApi.startTraining).mockResolvedValue({
+      activityId: "act-1",
+      routineTemplateId: "rt-1",
+      routineName: "Custom",
+      steps: [SNAKES_LADDERS_STEP] as never,
+    });
+    vi.mocked(trainingApi.startTrainingStep).mockResolvedValue({
+      sessionId: "s1",
+      exerciseTypeKey: "DOUBLES_SNAKES_LADDERS",
+      configuration: SNAKES_LADDERS_STEP.configuration,
+      participant: { ref: "pt1", displayName: "Levi" },
+    });
+  });
+  afterEach(() => {
+    vi.clearAllTimers();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it("startCurrentStep() builds the engine", async () => {
+    const store = makeStore();
+    await startRoutine(store);
+
+    expect(store.snakesLaddersEngine).not.toBeNull();
+    expect(store.activeDartEngine()).toBe(store.snakesLaddersEngine);
+  });
+
+  it("completes the step on the finishing dart, and the deadline does not upload again", async () => {
+    const sessionApi = await import("@client/api/sessions");
+    vi.mocked(sessionApi.appendBatch).mockResolvedValue(undefined as never);
+    vi.mocked(sessionApi.completeSession).mockResolvedValue(undefined as never);
+    vi.mocked(trainingApi.completeTraining).mockResolvedValue({
+      activityId: "act-1",
+      completedAt: "2026-10-22T12:00:00.000Z",
+    });
+    const store = makeStore();
+    await startRoutine(store);
+
+    for (let level = 1; level <= 20; level += 1)
+      [0, 1, 2].forEach(() => store.recordSnakesLaddersDart(D(level)));
+    expect(store.snakesLaddersEngine?.isComplete()).toBe(false);
+    [0, 1, 2].forEach(() => store.recordSnakesLaddersDart(BULLSEYE));
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(sessionApi.appendBatch).toHaveBeenCalledTimes(1);
+    expect(store.stepSummaries[0]).toMatchObject({
+      stepKey: "DOUBLES_SNAKES_LADDERS",
+    });
+
+    await vi.advanceTimersByTimeAsync(900_000);
+    expect(sessionApi.appendBatch).toHaveBeenCalledTimes(1);
   });
 });

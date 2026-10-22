@@ -89,6 +89,7 @@ import type { SwitchbladeEngine } from "@modules/training/exercises/switchblade.
 import type { DoublesLockEngine } from "@modules/training/exercises/doubles-lock.engine.module";
 import type { HalveItEngine } from "@modules/training/exercises/halve-it.engine.module";
 import { HALVE_IT_PATH } from "@modules/training/exercises/halve-it.engine.module";
+import type { SnakesLaddersEngine } from "@modules/training/exercises/snakes-ladders.engine.module";
 import { boardTargetLabel } from "@modules/game/board-progression.module";
 import { checkoutPercentageDisplay } from "@lib/game/play-visit-stats";
 import type { DartFact } from "@modules/types";
@@ -125,6 +126,7 @@ const DART_ENGINE_RECORDERS = [
   ["switchbladeEngine", "recordSwitchbladeDart"],
   ["doublesLockEngine", "recordDoublesLockDart"],
   ["halveItEngine", "recordHalveItDart"],
+  ["snakesLaddersEngine", "recordSnakesLaddersDart"],
 ] as const satisfies readonly (readonly [
   DartEngineSlot,
   keyof RoutinePlayContext,
@@ -132,9 +134,10 @@ const DART_ENGINE_RECORDERS = [
 
 type DartRecorderName = (typeof DART_ENGINE_RECORDERS)[number][1];
 
-/** Slots whose engine ends on its own dart, so the step completes before its deadline (Catch 40's last outshot). */
+/** Slots whose engine ends on its own dart, so the step completes before its deadline (Catch 40's last outshot, Snakes & Ladders' three bullseyes). */
 const COMPLETES_ON_DART: ReadonlySet<DartEngineSlot> = new Set([
   "checkoutSequenceEngine",
+  "snakesLaddersEngine",
 ]);
 
 function recordInto(
@@ -249,6 +252,7 @@ export function routinePlay() {
     switchbladeEngine: null,
     doublesLockEngine: null,
     halveItEngine: null,
+    snakesLaddersEngine: null,
     stepTimer: null,
     stepRemainingSeconds: 0,
     warmUpTimer: null,
@@ -296,6 +300,7 @@ export function routinePlay() {
       | SwitchbladeEngine
       | DoublesLockEngine
       | HalveItEngine
+      | SnakesLaddersEngine
       | null {
       const open = DART_ENGINE_RECORDERS.find(([slot]) => this[slot]);
       return open ? this[open[0]] : null;

@@ -20,6 +20,7 @@ import type {
   SwitchbladeState,
   DoublesLockState,
   HalveItState,
+  SnakesLaddersState,
   RoutineStatRow,
   RoutineStepSummary,
 } from "@modules/types";
@@ -380,6 +381,31 @@ export function summariseHalveIt(state: HalveItState): RoutineStepSummary {
         value: String(entry.hits),
       })),
       { label: "Passes", value: String(state.passes) },
+      { label: "Darts", value: String(darts) },
+      hitRateRow(hits, darts),
+    ],
+  };
+}
+
+/**
+ * Snakes & Ladders' result is the highest level reached, rounds, whether
+ * three bullseyes finished the run, darts and hit rate.
+ */
+export function summariseSnakesLadders(
+  state: SnakesLaddersState,
+): RoutineStepSummary {
+  const { rounds, finishes, darts, hits } = stepMetrics(
+    "DOUBLES_SNAKES_LADDERS",
+    state,
+    NO_FACTS,
+  );
+  return {
+    stepKey: "DOUBLES_SNAKES_LADDERS",
+    label: "Doubles Snakes & Ladders",
+    rows: [
+      { label: "Highest level", value: boardTargetLabel(state.highestLevel) },
+      { label: "Rounds", value: String(rounds) },
+      { label: "Finished", value: finishes === 1 ? "Yes" : "No" },
       { label: "Darts", value: String(darts) },
       hitRateRow(hits, darts),
     ],
