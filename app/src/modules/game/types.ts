@@ -509,6 +509,12 @@ export type PassTrackExt = {
   passes: number;
 };
 
+/** A ladder's furthest index reached, kept as the seat moves up and down. */
+export type LadderTrackExt = { highestIndex: number };
+
+/** Index change by visit hit count; a count the table lacks does not move the seat. */
+export type MoveTable = Readonly<Record<number, number>>;
+
 /** Hit Count's Track extras. */
 export type HitCountTrackExt = TargetTallyExt & PassTrackExt;
 
