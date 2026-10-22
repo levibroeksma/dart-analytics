@@ -590,3 +590,35 @@ describe("stepResultBuckets", () => {
     expect(bucket!.closed).toBe(false);
   });
 });
+
+describe("foldStepResult Snakes & Ladders finish rounds", () => {
+  const cut = (sessionId: string) =>
+    Array.from({ length: 3 }, (_, i) =>
+      dartRow({
+        sessionId,
+        exerciseRulesetVersionKey: "DOUBLES_SNAKES_LADDERS_V1",
+        configuration: {},
+        turnSequence: 1,
+        dartNumber: i + 1,
+        intendedTargetNumber: 1,
+        intendedZoneKey: "DOUBLE",
+        hitTargetNumber: 1,
+        hitZoneKey: "DOUBLE",
+        score: 0,
+      }),
+    );
+
+  it("leaves finishRounds and the headline extremes empty when no run finished", () => {
+    const result = foldStepResult("DOUBLES_SNAKES_LADDERS", cut("a"));
+    expect("finishRounds" in result.metrics).toBe(false);
+    expect(result.headlineMin).toBeNull();
+    expect(result.headlineMax).toBeNull();
+    expect(result.sessions).toBe(1);
+  });
+
+  it("zeroes no finishRounds when every session is skipped", () => {
+    const result = foldStepResult("DOUBLES_SNAKES_LADDERS", []);
+    expect("finishRounds" in result.metrics).toBe(false);
+    expect(result.metrics.rounds).toBe(0);
+  });
+});

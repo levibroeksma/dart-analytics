@@ -91,6 +91,7 @@ const STEP_METRIC_LABELS: Readonly<Record<string, string>> = {
   highestLevel: "Highest level",
   rounds: "Rounds",
   finishes: "Finishes",
+  finishRounds: "Rounds to finish",
 };
 
 type SeriesView = CachedSeries<unknown> | null;
@@ -232,7 +233,11 @@ function stepResultTotals(
 ): StepResultMetric {
   const spec = STEP_METRIC_SPECS[kind];
   const empty: StepResultMetric = {
-    metrics: Object.fromEntries(Object.keys(spec.metrics).map((k) => [k, 0])),
+    metrics: Object.fromEntries(
+      Object.entries(spec.metrics)
+        .filter(([, kind]) => kind !== "min")
+        .map(([key]) => [key, 0]),
+    ),
     headlineMin: null,
     headlineMax: null,
     sessions: 0,
@@ -599,7 +604,7 @@ export function routineStatsStore() {
     /** The kind's headline metric: its merged total and the best single session, read off the extreme `direction` names. */
     get stepHeadline(): {
       key: string;
-      total: number;
+      total: number | null;
       personalBest: number | null;
     } | null {
       const totals = this.stepResultTotals;
@@ -608,7 +613,7 @@ export function routineStatsStore() {
       const spec = STEP_METRIC_SPECS[kind];
       return {
         key: spec.headline,
-        total: totals.metrics[spec.headline] ?? 0,
+        total: totals.metrics[spec.headline] ?? null,
         personalBest:
           spec.direction === "higher" ? totals.headlineMax : totals.headlineMin,
       };

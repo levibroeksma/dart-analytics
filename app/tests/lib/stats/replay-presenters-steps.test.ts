@@ -194,7 +194,7 @@ describe("STEP_REPLAY_PRESENTERS (every kind, real engine runs)", () => {
         const [headlineCell, dartsCell] = presenter.turn(step, fold.snapshot);
 
         expect(headlineCell?.kind === "value" ? headlineCell.value : null).toBe(
-          String(expected[spec.headline]),
+          String(expected[spec.headline] ?? "—"),
         );
         expect(dartsCell?.kind === "value" ? dartsCell.value : null).toBe(
           String(expected[dartsKey]),

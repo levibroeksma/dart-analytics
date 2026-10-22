@@ -954,3 +954,11 @@ describe("routineStatsStore GAME step view", () => {
     ).toEqual(sectionsForGame("TUOD").slice().sort());
   });
 });
+
+describe("Snakes & Ladders rounds-to-finish label", () => {
+  it("labels finishRounds", () => {
+    expect(routineStatsStore().metricLabel("finishRounds")).toBe(
+      "Rounds to finish",
+    );
+  });
+});
