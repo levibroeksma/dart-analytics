@@ -46,6 +46,7 @@ import {
 import {
   aroundTheClockEngineFactory,
   aroundTheClockV2EngineFactory,
+  aroundTheClockV3EngineFactory,
 } from "@modules/game/around-the-clock.engine.module";
 import { aroundTheClockPlay } from "@lib/game/around-the-clock-play.data";
 import { BOT_PACING } from "@lib/game/play-bot-seat";
@@ -205,6 +206,7 @@ beforeEach(() => {
   resetEngineRegistry();
   registerEngineFactory(aroundTheClockEngineFactory);
   registerEngineFactory(aroundTheClockV2EngineFactory);
+  registerEngineFactory(aroundTheClockV3EngineFactory);
   segmentTimerInstances.length = 0;
   vi.mocked(fetchActiveSessions).mockResolvedValue([{ ...ACTIVE_SESSION }]);
 });

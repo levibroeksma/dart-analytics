@@ -67,6 +67,7 @@ import type {
   ShanghaiV2Snapshot,
   OneTwentyOneSnapshot,
   AroundTheClockV2Snapshot,
+  AroundTheClockV3Snapshot,
   OneTwentyOneV2Snapshot,
   AroundTheClockSnapshot,
   TuodSnapshot,
@@ -1398,7 +1399,7 @@ export type AroundTheClockResultsSnapshot = {
 };
 
 export type AroundTheClockPlayContext = PlayLifecycleContext<
-  AroundTheClockSnapshot | AroundTheClockV2Snapshot,
+  AroundTheClockSnapshot | AroundTheClockV2Snapshot | AroundTheClockV3Snapshot,
   AroundTheClockEngine,
   AroundTheClockResultsSnapshot
 > & {
