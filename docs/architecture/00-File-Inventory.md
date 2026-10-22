@@ -415,7 +415,7 @@ Registered for discoverability — the design lives in `10-Statistics/00-Overvie
 | File | Answers | Status | ~Tokens |
 | ---- | ------- | ------ | ------- |
 | `app/src/modules/stats/routine-scope.module.ts` | `isRoutineKey()`/`parseStepKey()` — the two path-key shapes (D372 decisions 1-2); `gameScopeKey()`/`routineScopeKey()`/`stepScopeKey()` — the cache scope keys (decision 12) | canonical | ~0.4k |
-| `app/src/modules/stats/step-metrics.module.ts` | `STEP_METRIC_SPECS`, `stepMetrics()`, `mergeStepMetrics()`/`mergeStepResult()` — the one per-kind step metric definition and its exact chunk merge; pure, no engine import (decision 7) | canonical | ~1.8k |
+| `app/src/modules/stats/step-metrics.module.ts` | `STEP_METRIC_SPECS`, `stepMetrics()`, `mergeStepMetrics()`/`mergeStepResult()` — the one per-kind step metric definition and its exact chunk merge; pure, no engine import (decision 7) | canonical | ~2.4k |
 | `app/src/modules/stats/sections/routine-volume.module.ts` | `routineVolumeBuckets()` — `findRoutineRunBuckets` rows as `routine-volume` buckets, durations in whole seconds (decision 6) | canonical | ~0.3k |
 | `app/src/modules/stats/sections/routine-completion.module.ts` | `routineCompletionBuckets()` — the completed/abandoned/never-started partition plus `stepsCompletedAtAbandon` (decision 6) | canonical | ~0.3k |
 | `app/src/modules/stats/sections/step-volume.module.ts` | `stepVolumeBuckets()` — a non-game step's sessions, seconds and darts per bucket (decision 6) | canonical | ~0.3k |
