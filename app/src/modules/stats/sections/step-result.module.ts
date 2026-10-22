@@ -123,10 +123,11 @@ function foldOneSession(
   }
 }
 
-/** A fully zeroed metrics object for a spec — the identity `foldStepResult` returns when every session in scope was skipped. */
+/** A zeroed metrics object for a spec, `"min"` keys absent — the identity `foldStepResult` returns when every session in scope was skipped. */
 function zeroMetrics(spec: StepMetricSpec): Record<string, number> {
   const zero: Record<string, number> = {};
-  for (const key of Object.keys(spec.metrics)) zero[key] = 0;
+  for (const [key, kind] of Object.entries(spec.metrics))
+    if (kind !== "min") zero[key] = 0;
   return zero;
 }
 
@@ -139,7 +140,7 @@ function zeroMetrics(spec: StepMetricSpec): Record<string, number> {
  * session with no registered factory, whose engine throws, or whose
  * replayed state does not match `kind`'s own metrics is skipped, counted in
  * `skippedSessions`, never guessed. `headlineMin`/`Max` are the spec's headline metric's extremes
- * across the sessions that did fold.
+ * across the folded sessions that supplied it.
  */
 export function foldStepResult(
   kind: DartExerciseKind,
@@ -163,10 +164,12 @@ export function foldStepResult(
         ? sessionMetrics
         : mergeStepMetrics(spec, metrics, sessionMetrics);
     const headline = sessionMetrics[spec.headline];
-    headlineMin =
-      headlineMin === null ? headline : Math.min(headlineMin, headline);
-    headlineMax =
-      headlineMax === null ? headline : Math.max(headlineMax, headline);
+    if (headline !== undefined) {
+      headlineMin =
+        headlineMin === null ? headline : Math.min(headlineMin, headline);
+      headlineMax =
+        headlineMax === null ? headline : Math.max(headlineMax, headline);
+    }
     folded += 1;
   }
 

@@ -267,8 +267,9 @@ An entry is a `RoutineSectionMeta`: `SectionMeta`'s fields, with `id` a
 
 `STEP_METRIC_SPECS: Record<DartExerciseKind, StepMetricSpec>`
 (`modules/stats/step-metrics.module.ts`, D372 decision 7) is the one
-definition of each kind's metrics: their keys, their merge (`sum` or `max`),
-the headline and its direction, and the rate pairs the client divides.
+definition of each kind's metrics: their keys, their merge (`sum`, `max` or
+`min`; a `min` metric is supplied only by sessions that earn it, so its key can
+be absent), the headline and its direction, and the rate pairs the client divides.
 
 A kind is usually an exercise type key, but it is a **composite** wherever one
 exercise type ships several ruleset versions whose metrics differ. `SWITCHING`
@@ -299,7 +300,7 @@ key — `exerciseKind` only selects `step-result`'s chunk merger, so
 | SWITCHBLADE | points, darts, hits (sum) | points ↑ | hits/darts |
 | DOUBLES_LOCK | bonus, locks, darts, hits (sum) | bonus ↑ | hits/darts |
 | HALVE_IT | points, halvings, darts, hits (sum) | points ↑ | hits/darts |
-| DOUBLES_SNAKES_LADDERS | highestLevel (max); rounds, finishes, darts, hits (sum) | highestLevel ↑ | hits/darts |
+| DOUBLES_SNAKES_LADDERS | finishRounds (min, finished runs only); highestLevel (max); rounds, finishes, darts, hits (sum) | finishRounds ↓ | hits/darts |
 
 - `stepMetrics(kind, state, facts)` reads engine state the way the routine
   summary modal does: `routine-summary.module.ts`'s `summarise*` functions

@@ -424,17 +424,18 @@ export type DartExerciseKind =
 /**
  * One dart exercise kind's step-metric contract (D372 decision 7):
  * which keys `stepMetrics` returns and how `mergeStepMetrics` combines two
- * buckets' worth of them (`"sum"` adds, `"max"` takes the larger), which key
- * is the headline stat shown for a bucket, and which key pairs the client
- * divides into a displayed rate — e.g. `["hits", "darts"]` for a hit rate.
- * `direction` is always `"higher"` today (every headline here reads better
- * bigger); the field exists so a future kind can read the other way without
- * a shape change.
+ * buckets' worth of them (`"sum"` adds, `"max"` takes the larger, `"min"`
+ * the smaller), which key is the headline stat shown for a bucket, and which
+ * key pairs the client divides into a displayed rate — e.g. `["hits",
+ * "darts"]` for a hit rate. A `"min"` metric is supplied only by sessions
+ * that earn it, so its key may be absent from `stepMetrics`' result and from
+ * a merged bucket; `direction` names which extreme of the headline is the
+ * best.
  */
 export type StepMetricSpec = {
-  metrics: Readonly<Record<string, "sum" | "max">>;
+  metrics: Readonly<Record<string, "sum" | "max" | "min">>;
   headline: string;
-  direction: "higher";
+  direction: "higher" | "lower";
   rates: readonly (readonly [string, string])[];
 };
 

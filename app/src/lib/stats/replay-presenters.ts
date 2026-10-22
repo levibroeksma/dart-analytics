@@ -514,7 +514,7 @@ function buildStepPresenter(kind: DartExerciseKind): ReplayPresenter {
     turn({ after }) {
       const metrics = stepMetrics(kind, after, NO_FACTS);
       return [
-        valueCell(metricLabel(spec.headline), metrics[spec.headline]),
+        valueCell(metricLabel(spec.headline), metrics[spec.headline] ?? "—"),
         valueCell(metricLabel(dartsKey), metrics[dartsKey]),
       ];
     },
@@ -524,11 +524,13 @@ function buildStepPresenter(kind: DartExerciseKind): ReplayPresenter {
       const metrics = stepMetrics(kind, last.after, stepFactsOf(steps));
       const participantId = last.turn.participantRef;
       return {
-        entries: Object.keys(spec.metrics).map((key) => ({
-          participantId,
-          label: metricLabel(key),
-          value: String(metrics[key]),
-        })),
+        entries: Object.keys(spec.metrics)
+          .filter((key) => metrics[key] !== undefined)
+          .map((key) => ({
+            participantId,
+            label: metricLabel(key),
+            value: String(metrics[key]),
+          })),
         curves: [],
       };
     },

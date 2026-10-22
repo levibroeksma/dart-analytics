@@ -102,14 +102,15 @@ export const STEP_METRIC_SPECS: Readonly<
   },
   DOUBLES_SNAKES_LADDERS: {
     metrics: {
+      finishRounds: "min",
       highestLevel: "max",
       rounds: "sum",
       finishes: "sum",
       darts: "sum",
       hits: "sum",
     },
-    headline: "highestLevel",
-    direction: "higher",
+    headline: "finishRounds",
+    direction: "lower",
     rates: [["hits", "darts"]],
   },
 };
@@ -221,10 +222,35 @@ const STATE_FIELDS: Readonly<
 };
 
 /**
+ * Metrics a session supplies only once it finished: metric → the state
+ * field it reads, gated on the state's `finishes` count.
+ */
+const FINISHED_ONLY: Readonly<
+  Partial<Record<DartExerciseKind, Readonly<Record<string, string>>>>
+> = {
+  DOUBLES_SNAKES_LADDERS: { finishRounds: "rounds" },
+};
+
+function finishedOnlyMetrics(
+  kind: DartExerciseKind,
+  state: unknown,
+): Record<string, number> {
+  const fields = FINISHED_ONLY[kind];
+  if (fields === undefined || numberField(state, "finishes", kind) === 0)
+    return {};
+  return Object.fromEntries(
+    Object.entries(fields).map(([metric, field]) => [
+      metric,
+      numberField(state, field, kind),
+    ]),
+  );
+}
+
+/**
  * One definition of each dart exercise kind's step metrics (D372 decision
  * 7), read from its engine state exactly as `routine-summary.module.ts`
- * reads it. Returns exactly the keys `STEP_METRIC_SPECS[kind].metrics`
- * declares.
+ * reads it. Returns the keys `STEP_METRIC_SPECS[kind].metrics` declares,
+ * less the `"min"` metrics the session did not earn.
  */
 export function stepMetrics(
   kind: DartExerciseKind,
@@ -237,17 +263,21 @@ export function stepMetrics(
       darts: numberField(state, "dartsThrown", kind),
       hits: switchingHits(facts),
     };
-  return Object.fromEntries(
-    Object.entries(STATE_FIELDS[kind]).map(([metric, field]) => [
-      metric,
-      numberField(state, field, kind),
-    ]),
-  );
+  return {
+    ...Object.fromEntries(
+      Object.entries(STATE_FIELDS[kind]).map(([metric, field]) => [
+        metric,
+        numberField(state, field, kind),
+      ]),
+    ),
+    ...finishedOnlyMetrics(kind, state),
+  };
 }
 
 /**
  * Merges two buckets' worth of one kind's step metrics per its own spec —
- * `"sum"` keys add, `"max"` keys take the larger — the same re-aggregation
+ * `"sum"` keys add, `"max"` keys take the larger, `"min"` keys the smaller
+ * (absent on a side means that side earned none) — the same re-aggregation
  * rule `step-result` applies across chunk windows.
  */
 export function mergeStepMetrics(
@@ -257,8 +287,13 @@ export function mergeStepMetrics(
 ): Record<string, number> {
   const merged: Record<string, number> = {};
   for (const key of Object.keys(spec.metrics)) {
-    merged[key] =
-      spec.metrics[key] === "max" ? Math.max(a[key], b[key]) : a[key] + b[key];
+    const kind = spec.metrics[key];
+    if (kind === "min") {
+      const present = [a[key], b[key]].filter((v) => v !== undefined);
+      if (present.length > 0) merged[key] = Math.min(...present);
+    } else {
+      merged[key] = kind === "max" ? Math.max(a[key], b[key]) : a[key] + b[key];
+    }
   }
   return merged;
 }

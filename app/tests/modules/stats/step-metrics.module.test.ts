@@ -328,7 +328,10 @@ describe("stepMetrics", () => {
       expect(fixture, `no fixture for kind ${kind}`).toBeDefined();
       const result = stepMetrics(kind, fixture!.state, fixture!.facts);
       expect(Object.keys(result).sort()).toEqual(
-        Object.keys(STEP_METRIC_SPECS[kind].metrics).sort(),
+        Object.entries(STEP_METRIC_SPECS[kind].metrics)
+          .filter(([, merge]) => merge !== "min")
+          .map(([key]) => key)
+          .sort(),
       );
     }
   });
@@ -420,5 +423,73 @@ describe("mergeStepResult", () => {
 
     expect(mergeStepResult(spec, empty, some)).toEqual(some);
     expect(mergeStepResult(spec, some, empty)).toEqual(some);
+  });
+});
+
+describe("Snakes & Ladders rounds to finish", () => {
+  const spec = STEP_METRIC_SPECS.DOUBLES_SNAKES_LADDERS;
+
+  function finishedRun(extraRounds: number) {
+    const engine = snakesLaddersEngineFactory.create({});
+    for (let level = 1; level <= 20; level += 1)
+      for (let i = 0; i < 3; i += 1) engine.record(dart(level, "DOUBLE"));
+    for (let i = 0; i < 3; i += 1) engine.record(dart(25, "INNER_BULL"));
+    return { engine, extraRounds };
+  }
+
+  it("heads the kind with finishRounds, lower reading better", () => {
+    expect(spec.headline).toBe("finishRounds");
+    expect(spec.direction).toBe("lower");
+    expect(spec.metrics.finishRounds).toBe("min");
+  });
+
+  it("supplies finishRounds only for a finished run", () => {
+    const { engine } = finishedRun(0);
+    const finished = stepMetrics(
+      "DOUBLES_SNAKES_LADDERS",
+      engine.state(),
+      engine.facts(),
+    );
+    expect(finished.finishes).toBe(1);
+    expect(finished.finishRounds).toBe(finished.rounds);
+
+    const cut = snakesLaddersEngineFactory.create({});
+    for (let i = 0; i < 3; i += 1) cut.record(dart(1, "DOUBLE"));
+    expect(
+      "finishRounds" in
+        stepMetrics("DOUBLES_SNAKES_LADDERS", cut.state(), cut.facts()),
+    ).toBe(false);
+  });
+
+  it("merges finishRounds to the smaller, ignoring a side with none", () => {
+    const base = {
+      highestLevel: 21,
+      rounds: 30,
+      finishes: 1,
+      darts: 90,
+      hits: 60,
+    };
+    expect(
+      mergeStepMetrics(
+        spec,
+        { ...base, finishRounds: 40 },
+        { ...base, finishRounds: 30 },
+      ).finishRounds,
+    ).toBe(30);
+    expect(
+      mergeStepMetrics(
+        spec,
+        { ...base, finishRounds: 40 },
+        { ...base, finishes: 0 },
+      ).finishRounds,
+    ).toBe(40);
+    expect(
+      "finishRounds" in
+        mergeStepMetrics(
+          spec,
+          { ...base, finishes: 0 },
+          { ...base, finishes: 0 },
+        ),
+    ).toBe(false);
   });
 });
