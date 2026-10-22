@@ -1096,6 +1096,28 @@ describe("V2", () => {
       expect(play.resultsTitle.call(play)).toBe("Out on 2");
     });
 
+    it("a snapshot with an out seat titles the run by the target it stood on", () => {
+      const play = makeV3();
+      play.resultsSnapshot = {
+        status: "COMPLETE",
+        winningSideKey: null,
+        seats: [
+          {
+            participantRef: "participant-1",
+            sideKey: "A",
+            turns: 4,
+            accuracy: "0.00%",
+            totalDarts: 12,
+            laps: null,
+            targetAtEnd: "5",
+            lives: 0,
+            out: true,
+          },
+        ],
+      };
+      expect(play.resultsTitle.call(play)).toBe("Out on 5");
+    });
+
     it("a finished lives run reads as session complete", async () => {
       mockCompletion();
       const play = makeV3();

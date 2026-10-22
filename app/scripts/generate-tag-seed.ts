@@ -59,6 +59,15 @@ function withRoutineStep(blocks: TagBlock[]): TagBlock[] {
   ];
 }
 
+/** A card's Standalone blocks; a card with none is a rules-file error. */
+function cardStandaloneBlocks(key: string, blocks: TagBlock[]): TagBlock[] {
+  const standalone = blocks.filter((b) => b.context === "STANDALONE");
+  if (standalone.length === 0) {
+    throw new Error(`card ${key}: tags need a Standalone block`);
+  }
+  return standalone;
+}
+
 export function buildSeedSql(input: SeedInput): {
   sql: string;
   warnings: string[];
@@ -179,12 +188,10 @@ export function buildSeedSql(input: SeedInput): {
 
   const cardSql: string[] = [];
   for (const key of [...input.cards.keys()].sort()) {
-    const standalone = (input.cards.get(key) as TagBlock[]).filter(
-      (b) => b.context === "STANDALONE",
+    const standalone = cardStandaloneBlocks(
+      key,
+      input.cards.get(key) as TagBlock[],
     );
-    if (standalone.length === 0) {
-      throw new Error(`card ${key}: tags need a Standalone block`);
-    }
     cardSql.push(
       `-- card ${key}`,
       ...linkInserts(
@@ -275,6 +282,16 @@ function dbExerciseKeys(): string[] {
   return [...keys].sort();
 }
 
+function setUnique(
+  map: Map<string, TagBlock[]>,
+  key: string,
+  blocks: TagBlock[],
+  label: string,
+): void {
+  if (map.has(key)) throw new Error(`duplicate ${label} ${key}`);
+  map.set(key, blocks);
+}
+
 export function generate(): { sql: string; warnings: string[] } {
   const axes = parseVocabulary(
     readFileSync(resolve(repoRoot, "docs/game-rules/TAGS.md"), "utf8"),
@@ -286,22 +303,16 @@ export function generate(): { sql: string; warnings: string[] } {
   for (const file of mdFiles("docs/game-rules/rulesets")) {
     const parsed = parseRulesFile(readFileSync(file, "utf8"), axes);
     if (parsed.cardRulesetKey) {
-      if (cards.has(parsed.cardRulesetKey))
-        throw new Error(`duplicate Card ruleset ${parsed.cardRulesetKey}`);
-      cards.set(parsed.cardRulesetKey, parsed.blocks);
+      setUnique(cards, parsed.cardRulesetKey, parsed.blocks, "Card ruleset");
     }
     if (!parsed.gameTypeKey) continue; // unbuilt game: skipped, not an error
-    if (games.has(parsed.gameTypeKey))
-      throw new Error(`duplicate Game type ${parsed.gameTypeKey}`);
-    games.set(parsed.gameTypeKey, parsed.blocks);
+    setUnique(games, parsed.gameTypeKey, parsed.blocks, "Game type");
   }
   for (const file of mdFiles("docs/game-rules/training/exercises")) {
     const parsed = parseRulesFile(readFileSync(file, "utf8"), axes);
     const key = parsed.exerciseTypeKey;
     if (!key || key === "GAME" || !exerciseKeys.includes(key)) continue; // docs-only
-    if (exercises.has(key))
-      throw new Error(`duplicate exercise Type constant ${key}`);
-    exercises.set(key, parsed.blocks);
+    setUnique(exercises, key, parsed.blocks, "exercise Type constant");
   }
   return buildSeedSql({
     axes,

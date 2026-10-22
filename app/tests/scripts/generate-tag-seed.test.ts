@@ -100,6 +100,18 @@ describe("buildSeedSql", () => {
     );
   });
 
+  it("writes cards in sorted key order", () => {
+    const { sql } = build({
+      cards: new Map([
+        ["ZZ_CARD_V1", [standalone]],
+        ["AA_CARD_V1", [standalone]],
+      ]),
+    });
+    expect(sql.indexOf("-- card AA_CARD_V1")).toBeLessThan(
+      sql.indexOf("-- card ZZ_CARD_V1"),
+    );
+  });
+
   it("throws for a card with no STANDALONE block", () => {
     const routine: TagBlock = {
       context: "ROUTINE_STEP",

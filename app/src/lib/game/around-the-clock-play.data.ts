@@ -53,6 +53,7 @@ import type {
 import type {
   AroundTheClockPlayContext,
   AroundTheClockPreviewSegment,
+  AroundTheClockResultsSnapshot,
   AroundTheClockSeatResult,
   BoardMarker,
   BotDartThrower,
@@ -161,6 +162,18 @@ function countHits(
 
 function countDarts(turns: readonly TurnFact[]): number {
   return turns.reduce((total, turn) => total + turn.darts.length, 0);
+}
+
+/** The title a solo run earns: out of lives, or a timed run's laps; null otherwise. */
+function soloTitle(
+  snapshot: AroundTheClockResultsSnapshot | null,
+): string | null {
+  const seat = snapshot?.seats[0];
+  if (seat?.out) return `Out on ${seat.targetAtEnd}`;
+  if (seat?.laps != null && snapshot?.seats.length === 1) {
+    return `Time — ${seat.laps} laps, on ${seat.targetAtEnd}`;
+  }
+  return null;
 }
 
 function statsFor(
@@ -550,11 +563,8 @@ export function aroundTheClockPlay() {
     },
 
     resultsTitle(this: AroundTheClockPlayContext): string {
-      const timedSeat = this.resultsSnapshot?.seats[0];
-      if (timedSeat?.out) return `Out on ${timedSeat.targetAtEnd}`;
-      if (timedSeat?.laps != null && this.resultsSnapshot?.seats.length === 1) {
-        return `Time — ${timedSeat.laps} laps, on ${timedSeat.targetAtEnd}`;
-      }
+      const solo = soloTitle(this.resultsSnapshot);
+      if (solo) return solo;
       if (this.resultsSnapshot?.status === "TIE") return "Tie — same darts!";
       const winner = matchWinnerName(
         this.$store.game.seats,
