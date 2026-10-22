@@ -15,10 +15,20 @@ const STAT_ROWS = [
     skeletonWidth: "w-7",
   },
 ] as const;
+const REACHED_ROW = {
+  label: "Reached",
+  key: "targetAtEnd",
+  skeletonWidth: "w-6",
+} as const;
 const TIMED_ROWS = [
   ...STAT_ROWS,
   { label: "Laps", key: "laps", skeletonWidth: "w-6" },
-  { label: "Reached", key: "targetAtEnd", skeletonWidth: "w-6" },
+  REACHED_ROW,
+] as const;
+const LIVES_ROWS = [
+  ...STAT_ROWS,
+  { label: "Lives left", key: "lives", skeletonWidth: "w-6" },
+  REACHED_ROW,
 ] as const;
 ---
 
@@ -31,9 +41,14 @@ const TIMED_ROWS = [
   >
   </h2>
 
-  <template x-if="!isTimed()">
+  <template x-if="!isTimed() && !hasLives()">
     <div class="contents">
       <SinglePlayerSummary statRows={STAT_ROWS} />
+    </div>
+  </template>
+  <template x-if="hasLives()">
+    <div class="contents">
+      <SinglePlayerSummary statRows={LIVES_ROWS} />
     </div>
   </template>
   <template x-if="isTimed()">

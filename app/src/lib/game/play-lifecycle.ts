@@ -20,7 +20,8 @@ import {
   dartLabel,
   observationPercent,
 } from "@lib/game/bot-flight";
-import type { RulesetVersionKey, Seated } from "@lib/types";
+import { toWireConfig } from "@lib/game/rulesets/config-codec";
+import type { ConfigSnapshotFor, RulesetVersionKey, Seated } from "@lib/types";
 import type { SegmentTimer } from "@modules/ui/segment-timer.module";
 import type {
   DartFact,
@@ -700,6 +701,26 @@ export async function playAbandonAndExit<
     context.error = "Could not abandon session. Try again.";
     context.$store.game.loading = false;
   }
+}
+
+/**
+ * The `buildOverrides` callback for a variant ruleset: every snapshot field but
+ * `seats` is resent as the template override, so the replay keeps the player's
+ * chosen variants.
+ */
+export function variantsPlayAgain<
+  TConfig extends object,
+  K extends RulesetVersionKey = RulesetVersionKey,
+>(key: K): (prior: Seated<TConfig>) => PlayAgainOverrides<TConfig> {
+  return (prior) => {
+    const { seats: _seats, ...variants } = prior as Seated<TConfig> & {
+      seats: unknown;
+    };
+    return {
+      snapshot: variants as unknown as TConfig,
+      wire: toWireConfig(key, variants as unknown as ConfigSnapshotFor<K>),
+    };
+  };
 }
 
 /**

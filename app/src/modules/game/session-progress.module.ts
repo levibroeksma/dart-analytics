@@ -273,6 +273,7 @@ function aroundTheClock(
     detail: joinSubtitle([
       `Lap ${(seat?.laps ?? 0) + 1}`,
       `${numbers[0]} → ${numbers.at(-1)}`,
+      ...(seat?.lives === undefined ? [] : [`${seat.lives} lives`]),
     ]),
     big: big(labelAt(path, seat?.targetIndex), "TARGET"),
   };

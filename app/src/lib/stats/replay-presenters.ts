@@ -358,6 +358,7 @@ const AROUND_THE_CLOCK: ReplayPresenter = {
     const seat = seatIn<AroundTheClockSeatState>(after, turn.participantRef);
     return [
       valueCell("Target", boardTargetLabel(clockTargetOf(seat, config))),
+      ...(seat.lives === undefined ? [] : [valueCell("Lives", seat.lives)]),
       hitsCell(
         steps.map((step) =>
           isClockHit(

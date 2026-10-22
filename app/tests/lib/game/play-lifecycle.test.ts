@@ -56,6 +56,7 @@ import {
   playVisitMarkers,
   resumeGameEngine,
   runPlayAgain,
+  variantsPlayAgain,
   undoBotAwareVisit,
   undoToActiveSeat,
 } from "@lib/game/play-lifecycle";
@@ -2349,5 +2350,32 @@ describe("playAnimateBotDarts", () => {
     expect(done).toBe(false);
     expect(wait).toHaveBeenCalledTimes(2);
     expect(context.botFlight).toBeNull();
+  });
+});
+
+describe("variantsPlayAgain", () => {
+  it("strips the seats and wires the rest as snake-case overrides", () => {
+    const prior = {
+      seats: [],
+      pathDirection: "HIGH_TO_LOW",
+      oddsFirst: true,
+      segmentRule: "ANY",
+      difficulty: "EASY",
+      durationType: "UNTIMED",
+      durationValue: null,
+      lives: 3,
+    } as any;
+    const result = variantsPlayAgain("AROUND_THE_CLOCK_V3")(prior);
+    expect(result.snapshot).not.toHaveProperty("seats");
+    expect(result.snapshot).toMatchObject({ lives: 3, oddsFirst: true });
+    expect(result.wire).toEqual({
+      path_direction: "HIGH_TO_LOW",
+      odds_first: true,
+      segment_rule: "ANY",
+      difficulty: "EASY",
+      duration_type: "UNTIMED",
+      duration_value: null,
+      lives: 3,
+    });
   });
 });

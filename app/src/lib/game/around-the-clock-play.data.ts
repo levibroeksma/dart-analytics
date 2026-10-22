@@ -13,7 +13,6 @@ import {
   maybeResumeCountdown,
   startCountdown,
 } from "@lib/game/play-countdown";
-import { toWireConfig } from "@lib/game/rulesets/config-codec";
 import {
   playAbandonAndExit,
   playBack,
@@ -28,6 +27,7 @@ import {
   playVisitMarkers,
   runPlayAgain,
   undoToActiveSeat,
+  variantsPlayAgain,
 } from "@lib/game/play-lifecycle";
 import { boardInputData } from "@lib/game/board-input.data";
 import { accuracyDisplay } from "@lib/game/play-visit-stats";
@@ -172,9 +172,13 @@ function statsFor(
     (turn) => turn.participantRef === seat.participantRef,
   );
   const timed = timedConfig(config);
+  const reached = timed ?? (seat.lives === undefined ? null : config);
   return {
+    ...(seat.lives === undefined
+      ? {}
+      : { lives: seat.lives, out: seat.status === "OUT" }),
     laps: timed ? seat.laps : null,
-    targetAtEnd: timed ? labelOf(rulesOf(timed), seat.targetIndex) : null,
+    targetAtEnd: reached ? labelOf(rulesOf(reached), seat.targetIndex) : null,
     participantRef: seat.participantRef,
     sideKey: seat.sideKey,
     turns: seatTurns.length,
@@ -348,12 +352,22 @@ export function aroundTheClockPlay() {
       return targetAt(rulesOf(config).path, seat.targetIndex).kind === "BULL";
     },
 
+    hasLives(this: AroundTheClockPlayContext): boolean {
+      const config = this.$store.game.configSnapshot;
+      return config !== null && "lives" in config;
+    },
+
     isTimed(this: AroundTheClockPlayContext): boolean {
       return timedConfig(this.$store.game.configSnapshot) !== null;
     },
 
     laps(this: AroundTheClockPlayContext): number {
       return this.activeSeatState()?.laps ?? 0;
+    },
+
+    livesLeft(this: AroundTheClockPlayContext): string {
+      const lives = this.activeSeatState()?.lives;
+      return lives === undefined ? "" : String(lives);
     },
 
     remainingLabel(this: AroundTheClockPlayContext): string {
@@ -537,6 +551,7 @@ export function aroundTheClockPlay() {
 
     resultsTitle(this: AroundTheClockPlayContext): string {
       const timedSeat = this.resultsSnapshot?.seats[0];
+      if (timedSeat?.out) return `Out on ${timedSeat.targetAtEnd}`;
       if (timedSeat?.laps != null && this.resultsSnapshot?.seats.length === 1) {
         return `Time — ${timedSeat.laps} laps, on ${timedSeat.targetAtEnd}`;
       }
@@ -569,16 +584,7 @@ export function aroundTheClockPlay() {
         GAME_TYPE_KEY,
         key,
         (engine) => (engine instanceof AroundTheClockEngine ? engine : null),
-        key === "AROUND_THE_CLOCK_V2"
-          ? (prior) => {
-              const { seats: _seats, ...variants } =
-                prior as Seated<AroundTheClockV2Snapshot>;
-              return {
-                snapshot: variants,
-                wire: toWireConfig("AROUND_THE_CLOCK_V2", variants),
-              };
-            }
-          : undefined,
+        key === "AROUND_THE_CLOCK_V1" ? undefined : variantsPlayAgain(key),
         () => {
           this.timer?.stop();
           this.timer = null;
