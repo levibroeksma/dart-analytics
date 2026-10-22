@@ -6,6 +6,7 @@ import {
   GAME_GROUPS,
   cardForRuleset,
   groupedGames,
+  primaryCards,
   visibleGames,
 } from "@lib/game/rulesets/games-visibility";
 
@@ -204,5 +205,18 @@ describe("the Nine Lives card", () => {
       href: "/games/around-the-clock/setup",
       title: "Around the Clock",
     });
+  });
+});
+
+describe("primaryCards", () => {
+  it("keeps the first card of each game type, dropping a preset card", () => {
+    const keys = primaryCards().map((card) => card.rulesetVersionKey);
+    expect(keys).toContain("AROUND_THE_CLOCK_V1");
+    expect(keys).not.toContain("AROUND_THE_CLOCK_V3");
+  });
+
+  it("has one card per game type", () => {
+    const types = primaryCards().map((card) => card.gameTypeKey);
+    expect(new Set(types).size).toBe(types.length);
   });
 });

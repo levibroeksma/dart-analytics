@@ -169,6 +169,18 @@ export function groupedGames(
   })).filter((group) => group.games.length > 0);
 }
 
+/** The first card of each game type: a preset card of an existing game (Nine Lives) is not a game of its own for pickers and titles. */
+export function primaryCards(
+  cards: readonly GameCardDescriptor[] = GAME_CARDS,
+): GameCardDescriptor[] {
+  const seen = new Set<string>();
+  return cards.filter((card) => {
+    if (seen.has(card.gameTypeKey)) return false;
+    seen.add(card.gameTypeKey);
+    return true;
+  });
+}
+
 /**
  * The card a session's ruleset resumes through: its own, or for a `501_V1`
  * session the single 501 card (`501_V2`).
