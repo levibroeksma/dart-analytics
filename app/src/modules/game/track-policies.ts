@@ -11,6 +11,7 @@ import type {
   DartZoneKey,
   JudgedDart,
   LadderTrackExt,
+  LivesTrackExt,
   LockBonus,
   LockTrackExt,
   MoveTable,
@@ -190,6 +191,29 @@ export function lapOnWrap<TExt extends { laps: number }>(
     ...ext,
     laps: ext.laps + 1,
   }));
+}
+
+/** Per-dart policy: a hit sets the visit-hit flag the lives rule reads; a no-lives seat is untouched. */
+export function noteVisitHit<TExt extends LivesTrackExt>(
+  seat: TrackSeat<TExt>,
+  dart: JudgedDart,
+): TrackSeat<TExt> {
+  if (seat.ext.lives === null || !dart.hit) return seat;
+  return { ...seat, ext: { ...seat.ext, visitHit: true } };
+}
+
+/** Visit-close policy: a visit with no hit costs a life, the last lost life puts the seat `OUT`; the flag resets. */
+export function loseLifeOnBlank<TExt extends LivesTrackExt>(
+  seat: TrackSeat<TExt>,
+): TrackSeat<TExt> {
+  const { lives, visitHit } = seat.ext;
+  if (lives === null) return seat;
+  const left = visitHit ? lives : lives - 1;
+  const next = {
+    ...seat,
+    ext: { ...seat.ext, lives: left, visitHit: false },
+  };
+  return left <= 0 ? { ...next, status: "OUT" as const } : next;
 }
 
 /** Visit-close policy: past `lastIndex`, restart at the first target and count a pass. */

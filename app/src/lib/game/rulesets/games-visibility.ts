@@ -102,6 +102,14 @@ export const GAME_CARDS: readonly GameCardDescriptor[] = [
     caption: "A pub classic, and great practice.",
   },
   {
+    rulesetVersionKey: "AROUND_THE_CLOCK_V3",
+    gameTypeKey: "AROUND_THE_CLOCK",
+    group: "CLASSICS",
+    href: "/games/around-the-clock/setup?lives=3",
+    title: "Nine Lives",
+    caption: "Three lives. Miss a whole visit and one goes.",
+  },
+  {
     rulesetVersionKey: "BASEBALL_V1",
     gameTypeKey: "BASEBALL",
     group: "CLASSICS",
@@ -159,6 +167,18 @@ export function groupedGames(
     ...group,
     games: cards.filter((card) => card.group === group.key),
   })).filter((group) => group.games.length > 0);
+}
+
+/** The first card of each game type: a preset card of an existing game (Nine Lives) is not a game of its own for pickers and titles. */
+export function primaryCards(
+  cards: readonly GameCardDescriptor[] = GAME_CARDS,
+): GameCardDescriptor[] {
+  const seen = new Set<string>();
+  return cards.filter((card) => {
+    if (seen.has(card.gameTypeKey)) return false;
+    seen.add(card.gameTypeKey);
+    return true;
+  });
 }
 
 /**

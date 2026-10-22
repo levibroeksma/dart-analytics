@@ -6,14 +6,14 @@ import Toggle from "@components/layout/games/setup/Toggle.astro";
 import ScoreTrainingStatsOverview from "@components/layout/games/statistics/ScoreTrainingStatsOverview.astro";
 import HeatmapStatsOverview from "@components/layout/games/statistics/HeatmapStatsOverview.astro";
 import { HEATMAP_ONLY_LAYOUTS } from "@lib/stats/constants";
-import { GAME_CARDS } from "@lib/game/rulesets/games-visibility";
+import { primaryCards } from "@lib/game/rulesets/games-visibility";
 import { TREND_RANGE_OPTIONS } from "@lib/stats/sections/score-trend-window";
 
 const tabOptions = [
   { value: "games", label: "Games" },
   { value: "routines", label: "Routines" },
 ];
-const gameOptions = GAME_CARDS.map((game) => ({
+const gameOptions = primaryCards().map((game) => ({
   value: game.rulesetVersionKey,
   label: game.title,
 }));

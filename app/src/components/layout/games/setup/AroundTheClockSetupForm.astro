@@ -19,7 +19,7 @@ import {
 const infoSection = {
   title: "Around the Clock rules",
   description:
-    "Hit every number in order, then finish on the bull — either bull ring counts. Choose low to high or high to low, and odds before evens. On Easy any hit advances immediately, so a great turn can clear several numbers in three darts. On 1, 2 or 3 darts, a visit needs that many hits to move up one; fall short and you step back one, never below the first number. Outer single only counts just the large single ring (Analytics mode). Timed runs restart at the first number after the bull and count laps until time runs out. Playing the DartBot always uses the classic rules.",
+    "Hit every number in order, then finish on the bull — either bull ring counts. Choose low to high or high to low, and odds before evens. On Easy any hit advances immediately, so a great turn can clear several numbers in three darts. On 1, 2 or 3 darts, a visit needs that many hits to move up one; fall short and you step back one, never below the first number. Outer single only counts just the large single ring (Analytics mode). Timed runs restart at the first number after the bull and count laps until time runs out. Nine Lives (solo only) locks the run to Easy and untimed: a visit with no hit costs one of three lives, and the run ends on the bull or at zero lives. Playing the DartBot always uses the classic rules.",
 };
 
 const directionOpts = [
@@ -75,7 +75,21 @@ const minutes = aroundTheClockDurationBounds();
         hint="Play every odd number before the evens"
         x-model="oddsFirst"
       />
-      <div class="flex flex-col gap-2">
+      <div
+        x-show="guests.length === 0"
+        x-cloak
+      >
+        <Switch
+          label="Nine Lives"
+          hint="Three lives. A visit with no hit costs one. Solo only."
+          x-model="lives"
+        />
+      </div>
+      <div
+        class="flex flex-col gap-2"
+        x-show="!lives"
+        x-cloak
+      >
         <SettingLabel text="DIFFICULTY" />
         <Toggle
           orientation="horizontal"
@@ -102,7 +116,7 @@ const minutes = aroundTheClockDurationBounds();
       </div>
       <div
         class="flex flex-col gap-4"
-        x-show="guests.length === 0"
+        x-show="guests.length === 0 && !lives"
         x-cloak
       >
         <div class="flex flex-col gap-2">

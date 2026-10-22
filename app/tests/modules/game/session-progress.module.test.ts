@@ -20,6 +20,7 @@ import { shanghaiEngineFactory } from "@modules/game/shanghai.engine.module";
 import {
   aroundTheClockEngineFactory,
   aroundTheClockV2EngineFactory,
+  aroundTheClockV3EngineFactory,
 } from "@modules/game/around-the-clock.engine.module";
 import type { DartObservation, EngineFacts } from "@modules/types";
 import type {
@@ -567,6 +568,32 @@ describe("summarizeProgress — SHANGHAI", () => {
 });
 
 describe("summarizeProgress — AROUND_THE_CLOCK", () => {
+  it("AROUND_THE_CLOCK_V3 detail names the lives left", () => {
+    const config = {
+      ...clockV2Config,
+      seats: [clockV2Config.seats[0]!],
+      lives: 3 as const,
+    };
+    const facts = factsAfter(aroundTheClockV3EngineFactory, config, [
+      MISS,
+      MISS,
+      MISS,
+    ]);
+    expect(
+      summarizeProgress("AROUND_THE_CLOCK_V3", config, facts)?.detail,
+    ).toBe("Lap 1 · 20 → 1 · 2 lives");
+  });
+
+  it("AROUND_THE_CLOCK_V3 summarises like V2 on the configured path", () => {
+    const config = { ...clockV2Config, lives: 3 as const };
+    expect(
+      summarizeProgress("AROUND_THE_CLOCK_V3", config, EMPTY_FACTS),
+    ).toEqual({
+      detail: "Lap 1 · 20 → 1 · 3 lives",
+      big: { value: "20", label: "TARGET" },
+    });
+  });
+
   it("AROUND_THE_CLOCK_V1 reads the lap and the 1 → 20 path", () => {
     expect(
       summarizeProgress("AROUND_THE_CLOCK_V1", { seats: DUO }, EMPTY_FACTS),

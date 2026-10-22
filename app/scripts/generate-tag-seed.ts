@@ -15,13 +15,14 @@ import {
  *
  * Reads docs/game-rules/TAGS.md plus every playable rules file's `## Tags`
  * tables and writes database/seeds/0042_catalog_tags.sql: the lookups
- * (tag_axes, tags, tag_contexts) and the two typed link tables. Tables arrive
- * in migration 0047; a seed only runs after migrations, so committing it early
+ * (tag_axes, tags, tag_contexts) and the three typed link tables (game types,
+ * exercise types, preset cards). Tables arrive in migrations 0047 and 0049; a seed only runs after migrations, so committing it early
  * is safe. `--check` compares a fresh generation with the committed file
  * (env TAG_SEED_FILE overrides the path) and exits 1 on drift.
  *
- * Exercise links skip a type not yet inserted; `db:seed`'s second pass links
- * it (D248).
+ * Exercise and card links skip a type not yet inserted; `db:seed`'s second pass
+ * links it (D248). A rules file with a `Card ruleset:` header is a preset card
+ * of an existing game type: only its Standalone block is written.
  *
  * Never reads template seeds: per-template difficulty is hand-set in 0043.
  */
@@ -35,6 +36,8 @@ export type SeedInput = {
   axes: Axis[];
   games: Map<string, TagBlock[]>;
   exercises: Map<string, TagBlock[]>;
+  /** Preset cards: ruleset_versions.implementation_key -> the card's tag blocks. */
+  cards: Map<string, TagBlock[]>;
   /** exercise_types.implementation_key values present in the DB seeds. */
   dbExerciseKeys?: string[];
 };
@@ -54,6 +57,15 @@ function withRoutineStep(blocks: TagBlock[]): TagBlock[] {
       difficultyLabels: standalone.difficultyLabels,
     },
   ];
+}
+
+/** A card's Standalone blocks; a card with none is a rules-file error. */
+function cardStandaloneBlocks(key: string, blocks: TagBlock[]): TagBlock[] {
+  const standalone = blocks.filter((b) => b.context === "STANDALONE");
+  if (standalone.length === 0) {
+    throw new Error(`card ${key}: tags need a Standalone block`);
+  }
+  return standalone;
 }
 
 export function buildSeedSql(input: SeedInput): {
@@ -77,9 +89,26 @@ export function buildSeedSql(input: SeedInput): {
     });
   });
 
+  const guardedInsert = (
+    table: "exercise_type_tags" | "ruleset_version_tags",
+    column: "exercise_type_id" | "ruleset_version_id",
+    typeSel: string,
+    rows: { id: number; primary: boolean }[],
+  ): string =>
+    `INSERT INTO ${table} (${column}, tag_id, is_primary, created_at)\n` +
+    `SELECT * FROM (VALUES\n` +
+    rows
+      .map(
+        (r) =>
+          `  (${typeSel}, ${r.id}, ${r.primary ? "TRUE" : "FALSE"}, now())`,
+      )
+      .join(",\n") +
+    `\n) AS v (${column}, tag_id, is_primary, created_at)\n` +
+    `WHERE v.${column} IS NOT NULL;`;
+
   const linkInserts = (
-    table: "game_type_tags" | "exercise_type_tags",
-    typeTable: "game_types" | "exercise_types",
+    table: "game_type_tags" | "exercise_type_tags" | "ruleset_version_tags",
+    typeTable: "game_types" | "exercise_types" | "ruleset_versions",
     typeKey: string,
     blocks: TagBlock[],
   ): string[] => {
@@ -94,7 +123,7 @@ export function buildSeedSql(input: SeedInput): {
         block,
         axes,
         `${typeTable} ${typeKey} (${block.context})`,
-        table === "game_type_tags" ? "game" : "exercise",
+        table === "exercise_type_tags" ? "exercise" : "game",
       );
       const multiLabelled =
         block.context === "ROUTINE_STEP" && block.difficultyLabels.length > 1;
@@ -115,19 +144,10 @@ export function buildSeedSql(input: SeedInput): {
               .join(",\n") +
             ";",
         );
+      } else if (table === "exercise_type_tags") {
+        out.push(guardedInsert(table, "exercise_type_id", typeSel, rows));
       } else {
-        out.push(
-          `INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at)\n` +
-            `SELECT * FROM (VALUES\n` +
-            rows
-              .map(
-                (r) =>
-                  `  (${typeSel}, ${r.id}, ${r.primary ? "TRUE" : "FALSE"}, now())`,
-              )
-              .join(",\n") +
-            `\n) AS v (exercise_type_id, tag_id, is_primary, created_at)\n` +
-            `WHERE v.exercise_type_id IS NOT NULL;`,
-        );
+        out.push(guardedInsert(table, "ruleset_version_id", typeSel, rows));
       }
     }
     return out;
@@ -166,6 +186,23 @@ export function buildSeedSql(input: SeedInput): {
     );
   }
 
+  const cardSql: string[] = [];
+  for (const key of [...input.cards.keys()].sort()) {
+    const standalone = cardStandaloneBlocks(
+      key,
+      input.cards.get(key) as TagBlock[],
+    );
+    cardSql.push(
+      `-- card ${key}`,
+      ...linkInserts(
+        "ruleset_version_tags",
+        "ruleset_versions",
+        key,
+        standalone,
+      ),
+    );
+  }
+
   for (const key of [...(input.dbExerciseKeys ?? [])].sort()) {
     if (key === "GAME" || input.exercises.has(key)) continue;
     noSource.add(key);
@@ -197,10 +234,13 @@ export function buildSeedSql(input: SeedInput): {
     "",
     "DELETE FROM game_type_tags;",
     "DELETE FROM exercise_type_tags;",
+    "DELETE FROM ruleset_version_tags;",
     "",
     ...gameSql,
     "",
     ...exerciseSql,
+    "",
+    ...cardSql,
     "",
     "COMMIT;",
     "",
@@ -242,6 +282,16 @@ function dbExerciseKeys(): string[] {
   return [...keys].sort();
 }
 
+function setUnique(
+  map: Map<string, TagBlock[]>,
+  key: string,
+  blocks: TagBlock[],
+  label: string,
+): void {
+  if (map.has(key)) throw new Error(`duplicate ${label} ${key}`);
+  map.set(key, blocks);
+}
+
 export function generate(): { sql: string; warnings: string[] } {
   const axes = parseVocabulary(
     readFileSync(resolve(repoRoot, "docs/game-rules/TAGS.md"), "utf8"),
@@ -249,22 +299,28 @@ export function generate(): { sql: string; warnings: string[] } {
   const exerciseKeys = dbExerciseKeys();
   const games = new Map<string, TagBlock[]>();
   const exercises = new Map<string, TagBlock[]>();
+  const cards = new Map<string, TagBlock[]>();
   for (const file of mdFiles("docs/game-rules/rulesets")) {
     const parsed = parseRulesFile(readFileSync(file, "utf8"), axes);
+    if (parsed.cardRulesetKey) {
+      setUnique(cards, parsed.cardRulesetKey, parsed.blocks, "Card ruleset");
+    }
     if (!parsed.gameTypeKey) continue; // unbuilt game: skipped, not an error
-    if (games.has(parsed.gameTypeKey))
-      throw new Error(`duplicate Game type ${parsed.gameTypeKey}`);
-    games.set(parsed.gameTypeKey, parsed.blocks);
+    setUnique(games, parsed.gameTypeKey, parsed.blocks, "Game type");
   }
   for (const file of mdFiles("docs/game-rules/training/exercises")) {
     const parsed = parseRulesFile(readFileSync(file, "utf8"), axes);
     const key = parsed.exerciseTypeKey;
     if (!key || key === "GAME" || !exerciseKeys.includes(key)) continue; // docs-only
-    if (exercises.has(key))
-      throw new Error(`duplicate exercise Type constant ${key}`);
-    exercises.set(key, parsed.blocks);
+    setUnique(exercises, key, parsed.blocks, "exercise Type constant");
   }
-  return buildSeedSql({ axes, games, exercises, dbExerciseKeys: exerciseKeys });
+  return buildSeedSql({
+    axes,
+    games,
+    exercises,
+    cards,
+    dbExerciseKeys: exerciseKeys,
+  });
 }
 
 function main(): void {

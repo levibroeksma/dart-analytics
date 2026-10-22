@@ -273,6 +273,7 @@ function aroundTheClock(
     detail: joinSubtitle([
       `Lap ${(seat?.laps ?? 0) + 1}`,
       `${numbers[0]} → ${numbers.at(-1)}`,
+      ...(seat?.lives === undefined ? [] : [`${seat.lives} lives`]),
     ]),
     big: big(labelAt(path, seat?.targetIndex), "TARGET"),
   };
@@ -297,6 +298,7 @@ const SUMMARIZERS: Readonly<Record<string, Summarizer>> = {
   SHANGHAI_V2: shanghai,
   AROUND_THE_CLOCK_V1: aroundTheClock,
   AROUND_THE_CLOCK_V2: aroundTheClock,
+  AROUND_THE_CLOCK_V3: aroundTheClock,
 };
 
 function isSeatedConfig(config: unknown): config is { seats: SeatFact[] } {

@@ -5,6 +5,7 @@ import {
   CricketConfig,
   TacticsConfig,
   AroundTheClockV2Config,
+  AroundTheClockV3Config,
   FiveOhOneConfig,
   OneTwentyOneV2Config,
   RULESET_CONFIGS,
@@ -627,5 +628,56 @@ describe("BaseballConfig", () => {
   it("accepts only the empty object", () => {
     expect(BaseballConfig.safeParse({}).success).toBe(true);
     expect(BaseballConfig.safeParse({ innings: 9 }).success).toBe(false);
+  });
+});
+
+describe("AroundTheClockV3Config", () => {
+  const v3Base = {
+    path_direction: "LOW_TO_HIGH",
+    odds_first: false,
+    segment_rule: "ANY",
+    difficulty: "EASY",
+    duration_type: "UNTIMED",
+    duration_value: null,
+    lives: 3,
+  } as const;
+  const refuses = (over: Record<string, unknown>) =>
+    AroundTheClockV3Config.safeParse({ ...v3Base, ...over }).success;
+
+  it("accepts the V2 fields with lives 3 on Easy untimed", () => {
+    expect(AroundTheClockV3Config.safeParse(v3Base).success).toBe(true);
+  });
+
+  it("refuses lives with HARD", () => {
+    expect(refuses({ difficulty: "HARD" })).toBe(false);
+  });
+
+  it("refuses lives with a timed run", () => {
+    expect(refuses({ duration_type: "MINUTES", duration_value: 10 })).toBe(
+      false,
+    );
+  });
+
+  it("refuses a duration_value", () => {
+    expect(refuses({ duration_value: 5 })).toBe(false);
+  });
+
+  it("refuses lives 2", () => {
+    expect(refuses({ lives: 2 })).toBe(false);
+  });
+
+  it("refuses a missing lives", () => {
+    const { lives: _lives, ...rest } = v3Base;
+    expect(AroundTheClockV3Config.safeParse(rest).success).toBe(false);
+  });
+
+  it("refuses an unknown key", () => {
+    expect(refuses({ extra: 1 })).toBe(false);
+  });
+
+  it("keeps V2 untouched by the field extraction", () => {
+    const { lives: _lives, ...v2Fields } = v3Base;
+    expect(AroundTheClockV2Config.safeParse(v2Fields).success).toBe(true);
+    expect(AroundTheClockV2Config.safeParse(v3Base).success).toBe(false);
   });
 });

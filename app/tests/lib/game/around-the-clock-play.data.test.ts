@@ -46,6 +46,7 @@ import {
 import {
   aroundTheClockEngineFactory,
   aroundTheClockV2EngineFactory,
+  aroundTheClockV3EngineFactory,
 } from "@modules/game/around-the-clock.engine.module";
 import { aroundTheClockPlay } from "@lib/game/around-the-clock-play.data";
 import { BOT_PACING } from "@lib/game/play-bot-seat";
@@ -205,6 +206,7 @@ beforeEach(() => {
   resetEngineRegistry();
   registerEngineFactory(aroundTheClockEngineFactory);
   registerEngineFactory(aroundTheClockV2EngineFactory);
+  registerEngineFactory(aroundTheClockV3EngineFactory);
   segmentTimerInstances.length = 0;
   vi.mocked(fetchActiveSessions).mockResolvedValue([{ ...ACTIVE_SESSION }]);
 });
@@ -1018,6 +1020,144 @@ describe("V2", () => {
     const foreign = makePlay({ rulesetVersionKey: "TUOD_V1" });
     await foreign.init.call(foreign);
     expect(foreign.engine).toBeNull();
+  });
+
+  it("resumes a V3 session under its own key", async () => {
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      { ...ACTIVE_SESSION, rulesetVersionKey: "AROUND_THE_CLOCK_V3" },
+    ]);
+    const play = makePlay(
+      {
+        rulesetVersionKey: "AROUND_THE_CLOCK_V3",
+        configSnapshot: { ...v2(), lives: 3 },
+        timerExpired: false,
+      },
+      { captureModeKey: "ANALYTICS", inputModeKey: "VISUAL_BOARD" },
+    );
+    await play.init.call(play);
+    expect(play.engine?.rulesetVersionKey).toBe("AROUND_THE_CLOCK_V3");
+  });
+
+  describe("Nine Lives", () => {
+    function makeV3() {
+      vi.mocked(fetchActiveSessions).mockResolvedValue([
+        { ...ACTIVE_SESSION, rulesetVersionKey: "AROUND_THE_CLOCK_V3" },
+      ]);
+      return makePlay(
+        {
+          rulesetVersionKey: "AROUND_THE_CLOCK_V3",
+          configSnapshot: { ...v2(), lives: 3 },
+          timerExpired: false,
+        },
+        { captureModeKey: "ANALYTICS", inputModeKey: "VISUAL_BOARD" },
+      );
+    }
+
+    const blankVisit = async (play: ReturnType<typeof makeV3>) => {
+      for (let i = 0; i < 3; i += 1) {
+        await play.recordDart.call(play, board(25, "MISS"));
+      }
+    };
+
+    it("livesLeft reads the active seat's lives", async () => {
+      const play = makeV3();
+      await play.init.call(play);
+      expect(play.livesLeft.call(play)).toBe("3");
+      await blankVisit(play);
+      expect(play.livesLeft.call(play)).toBe("2");
+    });
+
+    it("hasLives is true under V3 and false under V2", async () => {
+      expect(makeV3().hasLives.call(makeV3())).toBe(true);
+      expect(makeV2().hasLives.call(makeV2())).toBe(false);
+    });
+
+    it("livesLeft is empty under V2", async () => {
+      const play = makeV2();
+      await play.init.call(play);
+      expect(play.livesLeft.call(play)).toBe("");
+    });
+
+    it("a run that ends out records lives, out and the target it stood on", async () => {
+      mockCompletion();
+      const play = makeV3();
+      await play.init.call(play);
+      await play.recordDart.call(play, board(1, "OUTER_SINGLE"));
+      await blankVisit(play);
+      await blankVisit(play);
+      await blankVisit(play);
+      await blankVisit(play);
+      expect(play.finished).toBe(true);
+      expect(play.resultsSnapshot?.seats[0]).toMatchObject({
+        lives: 0,
+        out: true,
+        targetAtEnd: "2",
+      });
+      expect(play.resultsTitle.call(play)).toBe("Out on 2");
+    });
+
+    it("a snapshot with an out seat titles the run by the target it stood on", () => {
+      const play = makeV3();
+      play.resultsSnapshot = {
+        status: "COMPLETE",
+        winningSideKey: null,
+        seats: [
+          {
+            participantRef: "participant-1",
+            sideKey: "A",
+            turns: 4,
+            accuracy: "0.00%",
+            totalDarts: 12,
+            laps: null,
+            targetAtEnd: "5",
+            lives: 0,
+            out: true,
+          },
+        ],
+      };
+      expect(play.resultsTitle.call(play)).toBe("Out on 5");
+    });
+
+    it("a finished lives run reads as session complete", async () => {
+      mockCompletion();
+      const play = makeV3();
+      await play.init.call(play);
+      for (let n = 1; n <= 20; n += 1) {
+        await play.recordDart.call(play, board(n, "OUTER_SINGLE"));
+      }
+      await play.recordDart.call(play, board(25, "OUTER_BULL"));
+      expect(play.resultsSnapshot?.seats[0]).toMatchObject({
+        lives: 3,
+        out: false,
+      });
+      expect(play.resultsTitle.call(play)).toBe("Session complete");
+    });
+
+    it("play again resends the V3 overrides with lives", async () => {
+      const play = makeV3();
+      play.finished = true;
+      vi.mocked(createSession).mockResolvedValue({
+        sessionId: "new-session",
+        participants: [
+          {
+            ref: "new-participant",
+            displayName: "Player",
+            participantTypeKey: "PLAYER",
+          },
+        ],
+      } as any);
+      await play.playAgain.call(play);
+      expect(createSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          rulesetVersionKey: "AROUND_THE_CLOCK_V3",
+          config: {
+            source: "template",
+            templateRef: "tpl-1",
+            overrides: expect.objectContaining({ lives: 3 }),
+          },
+        }),
+      );
+    });
   });
 
   it("labels the first target off the configured path", async () => {

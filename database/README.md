@@ -13,7 +13,7 @@ This directory contains SQL source-of-truth artifacts used by the application.
 
 ```text
 database/
-├── migrations/     # ordered schema migrations (0001–0048)
+├── migrations/     # ordered schema migrations (0001–0049)
 ├── seeds/          # controlled reference/system data
 └── verification/   # rollback-safe checks run against a live database
 ```
@@ -95,6 +95,7 @@ astro check
 46. `seeds/0046_switching_standard_name.sql` (renames the Switching exercise's first system template `0199b000-…-002` to "Standard" and redescribes it as that config, so the one Switching card reads Standard / Chain instead of Switching / Chain; a later-numbered `UPDATE` because `0017`'s `ON CONFLICT (id) DO NOTHING` cannot revise the row it inserted; `exercise_templates.name` is not in the stats step fingerprint, so the rename is trend-neutral; proven by `app/tests/integration/switching-chain-seed.itest.ts`)
 47. `seeds/0047_halve_it_exercise_type.sql` (`HALVE_IT`; a type seeded after `0042`, so its tag links land on `db:seed`'s second pass) (2026-10-21)
 48. `seeds/0048_snakes_ladders_exercise_type.sql` (`DOUBLES_SNAKES_LADDERS`; a type seeded after `0042`, so its tag links land on `db:seed`'s second pass) (2026-10-22)
+49. `seeds/0049_around_the_clock_v3_ruleset.sql` (`AROUND_THE_CLOCK_V3`, Nine Lives: a `ruleset_versions` row under the existing Around the Clock game type; its capability rows are in `0007`) (2026-10-22)
 
 `npm run db:seed` runs this list twice per invocation (2026-08-29, D248). `0007` is a running ledger that a later-numbered seed's ruleset can be appended to before that ruleset's own `ruleset_versions` row exists yet in the same run — the first pass's join then matches nothing and silently inserts zero rows. The second pass re-runs `0007` after every file has committed, so the join now matches. Seeds are `ON CONFLICT DO NOTHING`, so running the full list twice is safe, with one exception: `seeds/0042_catalog_tags.sql` is generated and upserts its lookups with `ON CONFLICT (id) DO UPDATE` and deletes and refills its link tables (`game_type_tags`, `exercise_type_tags`), which is also safe to run twice. `seeds/0043_exercise_template_difficulty.sql`, `seeds/0044_switching_chain.sql`'s difficulty pins, `seeds/0045_switching_description.sql` and `seeds/0046_switching_standard_name.sql` are primary-key-targeted `UPDATE`s, idempotent the same way; the last two are guarded by `IS DISTINCT FROM`, so the second pass leaves `updated_at` alone.
 

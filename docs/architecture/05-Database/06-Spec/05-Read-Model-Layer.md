@@ -245,15 +245,16 @@ Catalog tags for game and exercise cards (`GET /api/catalog-tags`), one row per 
 
 - game_type_tags, game_types, tag_contexts
 - exercise_type_tags, exercise_types
+- ruleset_version_tags, ruleset_versions (`CARD` branch, `0049`)
 - tags (also ranked per axis in an `axis_ranks` CTE), tag_axes
 
 ## Exposes
 
-`entity_kind` (`GAME` | `EXERCISE`), `type_key`, `context_key` (`STANDALONE` | `ROUTINE_STEP`; always `ROUTINE_STEP` for an exercise), `axis_key`, `tag_key`, `tag_name`, `is_primary`, `sort_order` (the tag's order within its axis), `axis_rank` (SMALLINT, 1-based `row_number()` by `sort_order, id` over ALL tags of the axis, not only linked ones; for a DIFFICULTY tag it is the 1–4 difficulty level). Keys and names only, never lookup ids (agent guide rule 5). <!-- 2026-10-19 -->
+`entity_kind` (`GAME` | `EXERCISE` | `CARD`), `type_key` (the ruleset version key for a `CARD`), `context_key` (`STANDALONE` | `ROUTINE_STEP`; always `ROUTINE_STEP` for an exercise, `STANDALONE` for a card), `axis_key`, `tag_key`, `tag_name`, `is_primary`, `sort_order` (the tag's order within its axis), `axis_rank` (SMALLINT, 1-based `row_number()` by `sort_order, id` over ALL tags of the axis, not only linked ones; for a DIFFICULTY tag it is the 1–4 difficulty level). Keys and names only, never lookup ids (agent guide rule 5). <!-- 2026-10-19 -->
 
 ## Design Rationale
 
-A `UNION ALL` of the two typed link tables, so one read serves every axis and both entity kinds. No `is_published` filter: link rows exist only for types the generated seed found a row for, and the consumer pairs tags with its own card list. <!-- 2026-10-19 -->
+A `UNION ALL` of the three typed link tables (a card branch joined in `0049`), so one read serves every axis and every entity kind. No `is_published` filter: link rows exist only for types the generated seed found a row for, and the consumer pairs tags with its own card list. <!-- 2026-10-19 -->
 
 ---
 

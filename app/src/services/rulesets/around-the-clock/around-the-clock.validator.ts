@@ -1,5 +1,10 @@
-import { AroundTheClockConfig, AroundTheClockV2Config } from "@lib/types";
+import {
+  AroundTheClockConfig,
+  AroundTheClockV2Config,
+  AroundTheClockV3Config,
+} from "@lib/types";
 import type { RulesetValidator } from "@services/interfaces";
+import type { ThreeDartValidatorOptions } from "@services/types";
 import {
   createThreeDartValidator,
   DETAILED_DARTS_MODES,
@@ -26,15 +31,17 @@ export const aroundTheClockValidator: RulesetValidator =
   });
 
 /**
- * Around the Clock V2: same mode pairs and batch rules as V1 (a lap restart
- * also closes a visit short). Outer single only needs a board position, so
- * it is refused outside ANALYTICS + VISUAL_BOARD — mirrors
+ * Builds a variant validator: same mode pairs and batch rules as V1 (a lap
+ * restart also closes a visit short). Outer single only needs a board
+ * position, so it is refused outside ANALYTICS + VISUAL_BOARD — mirrors
  * `singlesTrainingV3Validator`'s Accuracy gate.
  */
-export const aroundTheClockV2Validator: RulesetValidator = (() => {
+function aroundTheClockVariantValidator(
+  configSchema: ThreeDartValidatorOptions["configSchema"],
+): RulesetValidator {
   const base = createThreeDartValidator({
     label: "Around the Clock",
-    configSchema: AroundTheClockV2Config,
+    configSchema,
     dartlessIssue: DARTLESS_ISSUE,
   });
   return {
@@ -56,4 +63,14 @@ export const aroundTheClockV2Validator: RulesetValidator = (() => {
       return result;
     },
   };
-})();
+}
+
+/** Around the Clock V2: the training variants. */
+export const aroundTheClockV2Validator = aroundTheClockVariantValidator(
+  AroundTheClockV2Config,
+);
+
+/** Around the Clock V3: Nine Lives. */
+export const aroundTheClockV3Validator = aroundTheClockVariantValidator(
+  AroundTheClockV3Config,
+);

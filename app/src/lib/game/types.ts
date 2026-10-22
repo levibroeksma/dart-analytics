@@ -67,6 +67,7 @@ import type {
   ShanghaiV2Snapshot,
   OneTwentyOneSnapshot,
   AroundTheClockV2Snapshot,
+  AroundTheClockV3Snapshot,
   OneTwentyOneV2Snapshot,
   AroundTheClockSnapshot,
   TuodSnapshot,
@@ -1221,6 +1222,7 @@ export type AroundTheClockSetupContext = PresetSetupContext & {
   difficulty: AroundTheClockV2Snapshot["difficulty"];
   durationType: AroundTheClockV2Snapshot["durationType"];
   durationValue: number | string | null;
+  lives: boolean;
 };
 
 export type DoublesTrainingSeatResult = {
@@ -1373,7 +1375,7 @@ export type AroundTheClockPreviewSegment = {
 /** One seat's own results stats, replayed from its own completed turns.
  * `accuracy` is genuine target hits over darts thrown, formatted as a
  * percentage rounded to 2 decimals. */
-/** `laps`/`targetAtEnd` are set for a timed V2 run only, null otherwise. */
+/** `laps`/`targetAtEnd` are set for a timed V2 run only, null otherwise; a Nine Lives run also sets `targetAtEnd` and carries `lives` left and `out`. */
 export type AroundTheClockSeatResult = {
   participantRef: string;
   sideKey: string;
@@ -1382,6 +1384,8 @@ export type AroundTheClockSeatResult = {
   totalDarts: number;
   laps: number | null;
   targetAtEnd: string | null;
+  lives?: number;
+  out?: boolean;
 };
 
 /** `winningSideKey` is score-compare (fewest darts) resolved by the engine;
@@ -1398,7 +1402,7 @@ export type AroundTheClockResultsSnapshot = {
 };
 
 export type AroundTheClockPlayContext = PlayLifecycleContext<
-  AroundTheClockSnapshot | AroundTheClockV2Snapshot,
+  AroundTheClockSnapshot | AroundTheClockV2Snapshot | AroundTheClockV3Snapshot,
   AroundTheClockEngine,
   AroundTheClockResultsSnapshot
 > & {
@@ -1410,8 +1414,10 @@ export type AroundTheClockPlayContext = PlayLifecycleContext<
   playAgainStarterOptions(): StarterStepOptions;
   timer: SegmentTimer | null;
   $watch(key: "$store.game.timerExpired", callback: () => void): void;
+  hasLives(this: AroundTheClockPlayContext): boolean;
   isTimed(this: AroundTheClockPlayContext): boolean;
   laps(this: AroundTheClockPlayContext): number;
+  livesLeft(this: AroundTheClockPlayContext): string;
   remainingLabel(this: AroundTheClockPlayContext): string;
   subtitle(this: AroundTheClockPlayContext): string;
   hitsToGoFor(this: AroundTheClockPlayContext, seatRef: string): string;
@@ -1479,10 +1485,15 @@ export type GamesIndexContext = {
   };
   init(this: GamesIndexContext): Promise<void>;
   loading(this: GamesIndexContext): boolean;
-  gameTags(this: GamesIndexContext, gameTypeKey: string): CatalogTag[];
+  gameTags(
+    this: GamesIndexContext,
+    gameTypeKey: string,
+    cardKey?: string,
+  ): CatalogTag[];
   gameLevel(
     this: GamesIndexContext,
     gameTypeKey: string,
+    cardKey?: string,
   ): DifficultyLevel | null;
   isVisible(
     this: GamesIndexContext,

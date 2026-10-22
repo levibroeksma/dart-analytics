@@ -1,4 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+// @vitest-environment jsdom
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { aroundTheClockSetup } from "@lib/game/around-the-clock-setup.data";
 import { AROUND_THE_CLOCK_DEFAULT_MINUTES } from "@lib/game/around-the-clock-duration";
 import type { AroundTheClockSetupContext } from "@lib/types";
@@ -408,5 +409,116 @@ describe("aroundTheClockSetup", () => {
         durationValue: null,
       });
     });
+  });
+});
+
+describe("aroundTheClockSetup Nine Lives", () => {
+  let store: AroundTheClockSetupContext["$store"];
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    store = {
+      game: { sessionId: null, reset: vi.fn(), startSession: vi.fn() },
+      settings: {
+        captureModeKey: "RECREATIONAL",
+        inputModeKey: "DETAILED_DARTS",
+      },
+    };
+    vi.mocked(sessionsApi.createSession).mockResolvedValue({
+      sessionId: "s",
+      participants: [
+        { ref: "p1", displayName: "Player", participantTypeKey: "PLAYER" },
+      ],
+    } as any);
+  });
+
+  afterEach(() => vi.unstubAllGlobals());
+
+  const stubRedirect = () => vi.stubGlobal("location", { href: "" });
+
+  function createSetup(
+    overrides: Partial<AroundTheClockSetupContext> = {},
+  ): AroundTheClockSetupContext {
+    return {
+      ...aroundTheClockSetup(),
+      $store: store,
+      presets: [STANDARD_PRESET],
+      ...overrides,
+    } as AroundTheClockSetupContext;
+  }
+
+  const sent = () => vi.mocked(sessionsApi.createSession).mock.calls[0]![0];
+
+  it("lives on selects V3 with lives 3 and Easy untimed overrides", async () => {
+    stubRedirect();
+    const setup = createSetup();
+    setup.lives = true;
+    await setup.start();
+    expect(sent().rulesetVersionKey).toBe("AROUND_THE_CLOCK_V3");
+    expect(sent().config).toMatchObject({
+      overrides: {
+        ...V2_WIRE_DEFAULTS,
+        difficulty: "EASY",
+        duration_type: "UNTIMED",
+        duration_value: null,
+        lives: 3,
+      },
+    });
+  });
+
+  it("lives off selects V2 and sends no lives key", async () => {
+    stubRedirect();
+    const setup = createSetup();
+    await setup.start();
+    expect(sent().rulesetVersionKey).toBe("AROUND_THE_CLOCK_V2");
+    expect(sent().config).toMatchObject({ overrides: V2_WIRE_DEFAULTS });
+  });
+
+  it("lives on ignores a typed duration and difficulty", async () => {
+    stubRedirect();
+    const setup = createSetup();
+    setup.lives = true;
+    setup.difficulty = "PRO";
+    setup.durationType = "MINUTES";
+    setup.durationValue = 20;
+    await setup.start();
+    expect(sent().config).toMatchObject({
+      overrides: {
+        difficulty: "EASY",
+        duration_type: "UNTIMED",
+        duration_value: null,
+        lives: 3,
+      },
+    });
+  });
+
+  it("adding a guest turns lives off", () => {
+    const setup = createSetup();
+    setup.lives = true;
+    setup.newGuestName = "Sam";
+    setup.addGuest();
+    expect(setup.lives).toBe(false);
+  });
+
+  it("adding a bot turns lives off", () => {
+    const setup = createSetup();
+    setup.lives = true;
+    setup.addBot();
+    expect(setup.lives).toBe(false);
+  });
+
+  it.each([
+    ["?lives=3", true],
+    ["?lives=2", false],
+    ["", false],
+  ])("init reads %s", async (query, expected) => {
+    history.replaceState(null, "", `/games/around-the-clock/setup${query}`);
+    vi.mocked(presetsApi.fetchConfigurationPresets).mockResolvedValue([
+      STANDARD_PRESET,
+    ]);
+    vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([]);
+    const setup = createSetup();
+    await setup.init();
+    expect(setup.lives).toBe(expected);
   });
 });

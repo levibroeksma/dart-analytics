@@ -51,12 +51,12 @@ CREATE TEMP TABLE verification_results (
 -- ------------------------------------------------------------
 INSERT INTO verification_results
 SELECT '1',
-    'seed inserted exactly the 36 declared rows',
+    'seed inserted exactly the 38 declared rows',
     CASE
-        WHEN count(*) = 36 THEN 'PASS'
+        WHEN count(*) = 38 THEN 'PASS'
         ELSE 'FAIL'
     END,
-    format('expected 36, found %s', count(*))
+    format('expected 38, found %s', count(*))
 FROM ruleset_version_capabilities;
 
 -- ------------------------------------------------------------
@@ -118,6 +118,8 @@ FROM (
             ('AROUND_THE_CLOCK_V1', 'ANALYTICS', 'VISUAL_BOARD'),
             ('AROUND_THE_CLOCK_V2', 'RECREATIONAL', 'DETAILED_DARTS'),
             ('AROUND_THE_CLOCK_V2', 'ANALYTICS', 'VISUAL_BOARD'),
+            ('AROUND_THE_CLOCK_V3', 'RECREATIONAL', 'DETAILED_DARTS'),
+            ('AROUND_THE_CLOCK_V3', 'ANALYTICS', 'VISUAL_BOARD'),
             ('CRICKET_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
             ('CRICKET_V1', 'ANALYTICS', 'VISUAL_BOARD'),
             ('TACTICS_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
@@ -137,12 +139,12 @@ FROM (
 -- silently read as fewer triples checked, not FAIL.
 INSERT INTO verification_results
 SELECT '2',
-    'all 36 declared triples were actually checked',
+    'all 38 declared triples were actually checked',
     CASE
-        WHEN count(*) = 36 THEN 'PASS'
+        WHEN count(*) = 38 THEN 'PASS'
         ELSE 'FAIL'
     END,
-    format('%s of 36 triple checks ran', count(*))
+    format('%s of 38 triple checks ran', count(*))
 FROM verification_results
 WHERE step = '2';
 
@@ -241,6 +243,8 @@ WHERE NOT EXISTS (
                     ('AROUND_THE_CLOCK_V1', 'ANALYTICS', 'VISUAL_BOARD'),
                     ('AROUND_THE_CLOCK_V2', 'RECREATIONAL', 'DETAILED_DARTS'),
                     ('AROUND_THE_CLOCK_V2', 'ANALYTICS', 'VISUAL_BOARD'),
+                    ('AROUND_THE_CLOCK_V3', 'RECREATIONAL', 'DETAILED_DARTS'),
+                    ('AROUND_THE_CLOCK_V3', 'ANALYTICS', 'VISUAL_BOARD'),
                     ('CRICKET_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
                     ('CRICKET_V1', 'ANALYTICS', 'VISUAL_BOARD'),
                     ('TACTICS_V1', 'RECREATIONAL', 'DETAILED_DARTS'),

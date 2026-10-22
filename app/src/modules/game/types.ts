@@ -341,6 +341,7 @@ export type AroundTheClockRules = {
   segmentRule: "ANY" | "OUTER_SINGLE";
   hitsRequired: 0 | 1 | 2 | 3;
   timed: boolean;
+  lives?: number;
 };
 
 /**
@@ -358,11 +359,19 @@ export type AroundTheClockSeatState = SeatState & {
   dartsThisVisit: number;
   hitsThisVisit: number;
   laps: number;
-  status: "IN_PROGRESS" | "COMPLETE";
+  lives?: number;
+  visitHit?: boolean;
+  status: "IN_PROGRESS" | "COMPLETE" | "OUT";
 };
 
 /** Around the Clock's Track extras: timed-run laps completed. */
 export type AroundTheClockTrackExt = { laps: number };
+
+/** Lives bookkeeping for a Track seat: lives left (null = no lives rule) and whether the open visit has hit. */
+export type LivesTrackExt = { lives: number | null; visitHit: boolean };
+
+/** Around the Clock's engine-internal seat ext: laps plus the lives rule. */
+export type AroundTheClockLivesExt = AroundTheClockTrackExt & LivesTrackExt;
 
 export type AroundTheClockState = MultiSeatState<AroundTheClockSeatState> & {
   status: "IN_PROGRESS" | "COMPLETE" | "TIE";

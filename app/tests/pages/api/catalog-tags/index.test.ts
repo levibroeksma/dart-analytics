@@ -11,7 +11,7 @@ const context = {
 
 describe("GET /api/catalog-tags", () => {
   it("returns the grouped tags in the standard envelope", async () => {
-    const data = { games: {}, exercises: {} };
+    const data = { games: {}, exercises: {}, cards: {} };
     vi.mocked(service.getCatalogTags).mockResolvedValue({ ok: true, data });
     const { GET } = await import("@pages/api/catalog-tags/index");
     const response = await GET(context);

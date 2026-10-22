@@ -24,6 +24,7 @@ import {
   playDoubles,
   playDoublesUnfinished,
   playFiveOhOne,
+  playNineLives,
   playOneTwentyOne,
   playScoreTraining,
   playShanghai,
@@ -267,6 +268,29 @@ describe("REPLAY_PRESENTERS", () => {
           label: "Progress",
           value: "4",
         },
+      ]);
+    });
+  });
+
+  describe("Around the Clock — Nine Lives", () => {
+    it("shows the lives left after each visit", () => {
+      expect(valuesOf(turnCells(playNineLives()), "Lives")).toEqual([
+        "3",
+        "2",
+        "1",
+        "0",
+      ]);
+    });
+
+    it("reads a seat that ran out of lives as Out", () => {
+      expect(sessionLine(playNineLives()).entries[0]!.value).toBe("Out");
+    });
+
+    it("shows no Lives cell for a V1 run", () => {
+      expect(valuesOf(turnCells(playAroundTheClock()), "Lives")).toEqual([
+        "",
+        "",
+        "",
       ]);
     });
   });

@@ -23,6 +23,7 @@ const SEAT_CAPS: Record<string, number> = {
   "121_V1": 2,
   AROUND_THE_CLOCK_V1: 2,
   AROUND_THE_CLOCK_V2: 2,
+  AROUND_THE_CLOCK_V3: 1,
   TUOD_V1: 2,
   SHANGHAI_V1: 2,
   SHANGHAI_V2: 2,

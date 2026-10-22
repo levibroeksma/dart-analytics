@@ -444,13 +444,16 @@ export function parseRulesFile(
 ): {
   gameTypeKey: string | null;
   exerciseTypeKey: string | null;
+  cardRulesetKey: string | null;
   blocks: TagBlock[];
 } {
   const gameTypeKey = /^Game type: `([A-Z0-9_]+)`\s*$/m.exec(md)?.[1] ?? null;
+  const cardRulesetKey =
+    /^Card ruleset: `([A-Z0-9_]+)`\s*$/m.exec(md)?.[1] ?? null;
   const exerciseTypeKey =
     /^- Type constant: `([A-Z0-9_]+)`/m.exec(md)?.[1] ?? null;
   const lines = sections(md).get("Tags");
   const kind: Kind = exerciseTypeKey && !gameTypeKey ? "exercise" : "game";
   const blocks = lines ? parseBlocks(md, lines, kind, axes) : [];
-  return { gameTypeKey, exerciseTypeKey, blocks };
+  return { gameTypeKey, exerciseTypeKey, cardRulesetKey, blocks };
 }

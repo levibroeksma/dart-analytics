@@ -1,6 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { getRulesetValidator } from "@services/rulesets/registry";
-import { aroundTheClockV2Validator } from "@services/rulesets/around-the-clock/around-the-clock.validator";
+import {
+  aroundTheClockV2Validator,
+  aroundTheClockV3Validator,
+} from "@services/rulesets/around-the-clock/around-the-clock.validator";
 
 describe("getRulesetValidator", () => {
   it("returns the Score Training validator for SCORE_TRAINING_V1", () => {
@@ -42,6 +45,12 @@ describe("getRulesetValidator", () => {
   it("returns the Around the Clock V2 validator for AROUND_THE_CLOCK_V2", () => {
     expect(getRulesetValidator("AROUND_THE_CLOCK_V2")).toBe(
       aroundTheClockV2Validator,
+    );
+  });
+
+  it("returns the Around the Clock V3 validator for AROUND_THE_CLOCK_V3", () => {
+    expect(getRulesetValidator("AROUND_THE_CLOCK_V3")).toBe(
+      aroundTheClockV3Validator,
     );
   });
 

@@ -27,6 +27,8 @@ export type CatalogTagsResponse = {
     { standalone: CatalogTagSet; routineStep: CatalogTagSet }
   >;
   exercises: Record<string, CatalogTagSet>;
+  /** Preset cards, keyed by ruleset version key; a card's set replaces its game type's. */
+  cards: Record<string, CatalogTagSet>;
 };
 
 export type CatalogCardKind = "game" | "exercise";

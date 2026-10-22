@@ -1,7 +1,10 @@
 import { zoneCentroid } from "@lib/game/board/board-geometry.module";
 import { toWireConfig } from "@lib/game/rulesets/config-codec";
 import { GAME_TYPE_BY_RULESET } from "@lib/game/rulesets/capabilities";
-import { aroundTheClockEngineFactory } from "@modules/game/around-the-clock.engine.module";
+import {
+  aroundTheClockEngineFactory,
+  aroundTheClockV3EngineFactory,
+} from "@modules/game/around-the-clock.engine.module";
 import { baseballEngineFactory } from "@modules/game/baseball.engine.module";
 import { bobs27EngineFactory } from "@modules/game/bobs27.engine.module";
 import { doublesTrainingEngineFactory } from "@modules/game/doubles-training.engine.module";
@@ -385,6 +388,29 @@ export function playAroundTheClock(): ScriptedGame {
     [MISS, MISS, dart(3, "OUTER_SINGLE")],
     [dart(5, "OUTER_SINGLE"), MISS, MISS],
   ]);
+}
+
+/** Nine Lives: a hit on 1 keeps its life, then three blank visits put the seat out. */
+export function playNineLives(): ScriptedGame {
+  return scripted(
+    aroundTheClockV3EngineFactory,
+    {
+      seats: SOLO_SEATS,
+      pathDirection: "LOW_TO_HIGH",
+      oddsFirst: false,
+      segmentRule: "ANY",
+      difficulty: "EASY",
+      durationType: "UNTIMED",
+      durationValue: null,
+      lives: 3,
+    },
+    [
+      [dart(1, "OUTER_SINGLE"), MISS, MISS],
+      [MISS, MISS, MISS],
+      [MISS, MISS, MISS],
+      [MISS, MISS, MISS],
+    ],
+  );
 }
 
 /** Two Baseball innings: a treble and a single on 1, then a single on 2 between misses. */

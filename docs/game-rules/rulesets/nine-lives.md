@@ -1,7 +1,8 @@
 # Nine Lives
 
-Current version: none (V1 in design)
+Current version: V1 (shipped 2026-10-22)
 Entry points: standalone
+Card ruleset: `AROUND_THE_CLOCK_V3`
 Kernel: TRACK
 
 ## Features
@@ -44,7 +45,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | --- | --- |
 | Skill | ACCURACY (primary) |
 | Session role | WARM_UP, RECREATIONAL |
-| Format | SOLO, ONE_V_ONE, MULTIPLAYER |
+| Format | SOLO |
 | Difficulty | BEGINNER |
 | Mechanic | SEQUENTIAL, ELIMINATION |
 | Pressure | LIVES |

@@ -169,6 +169,18 @@ describe("parseRulesFile", () => {
     });
   });
 
+  it("reads the Card ruleset header", () => {
+    const r = parseRulesFile(rules("rulesets/nine-lives.md"), axes);
+    expect(r.cardRulesetKey).toBe("AROUND_THE_CLOCK_V3");
+    expect(r.gameTypeKey).toBeNull();
+  });
+
+  it("returns a null card ruleset for a file without the header", () => {
+    expect(
+      parseRulesFile(rules("rulesets/cricket.md"), axes).cardRulesetKey,
+    ).toBeNull();
+  });
+
   it("reads an exercise's flat table as one ROUTINE_STEP block", () => {
     const r = parseRulesFile(rules("training/exercises/doubles-lock.md"), axes);
     expect(r.exerciseTypeKey).toBe("DOUBLES_LOCK");

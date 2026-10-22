@@ -18,6 +18,11 @@ import SinglesRecreationalInput from "@components/layout/games/SinglesRecreation
     { label: "Turns", value: (c) => c("turnsSoFar") },
     { label: "Accuracy", value: (c) => c("accuracy") },
     {
+      label: "Lives",
+      value: (c) => c("livesLeft"),
+      showWhen: (c) => c("livesLeft"),
+    },
+    {
       label: "This visit",
       value: (c) => c("hitsToGo"),
       showWhen: (c) => c("hitsToGo"),

@@ -14,9 +14,11 @@ import {
   finishOnHits,
   halveOnBlank,
   lapOnWrap,
+  loseLifeOnBlank,
   lockCheckpoint,
   moveTable,
   noPoints,
+  noteVisitHit,
   outAtOrBelowZero,
   outBelowHits,
   outerSingleOnly,
@@ -42,6 +44,7 @@ import type {
   HitCountTrackExt,
   JudgedDart,
   LadderTrackExt,
+  LivesTrackExt,
   LockTrackExt,
   SequenceTrackExt,
   SwitchbladeTrackExt,
@@ -744,5 +747,53 @@ describe("finishOnHits", () => {
   it("composes before moveTable without moving a finished seat", () => {
     const move = moveTable<LadderTrackExt>({ 0: -2, 3: 1 }, 20);
     expect(move(finish(seatAt(20, 3))).targetIndex).toBe(20);
+  });
+});
+
+describe("lives policies", () => {
+  const seat = (ext: LivesTrackExt): TrackSeat<LivesTrackExt> => ({
+    ...initialTrackSeat(SEAT, ext),
+    targetIndex: 4,
+    dartsThisVisit: 3,
+  });
+  const judged = (hit: boolean): JudgedDart => ({
+    observation: {
+      hitTargetNumber: 5,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    },
+    target: { kind: "NUMBER", number: 5 },
+    hit,
+    points: 0,
+  });
+
+  it("noteVisitHit marks a hit and ignores a miss", () => {
+    const start = seat({ lives: 3, visitHit: false });
+    expect(noteVisitHit(start, judged(true)).ext.visitHit).toBe(true);
+    expect(noteVisitHit(start, judged(false))).toBe(start);
+  });
+
+  it("a blank visit costs one life", () => {
+    const next = loseLifeOnBlank(seat({ lives: 3, visitHit: false }));
+    expect(next.ext).toEqual({ lives: 2, visitHit: false });
+    expect(next.status).toBe("IN_PROGRESS");
+  });
+
+  it("a visit with an earlier hit keeps its life and clears the flag", () => {
+    const next = loseLifeOnBlank(seat({ lives: 3, visitHit: true }));
+    expect(next.ext).toEqual({ lives: 3, visitHit: false });
+  });
+
+  it("out at zero lives", () => {
+    const next = loseLifeOnBlank(seat({ lives: 1, visitHit: false }));
+    expect(next.ext.lives).toBe(0);
+    expect(next.status).toBe("OUT");
+  });
+
+  it("with no lives set both policies leave the seat as is", () => {
+    const start = seat({ lives: null, visitHit: false });
+    expect(noteVisitHit(start, judged(true))).toBe(start);
+    expect(loseLifeOnBlank(start)).toBe(start);
   });
 });

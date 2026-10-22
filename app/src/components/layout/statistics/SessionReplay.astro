@@ -13,12 +13,12 @@ import ErrorAlert from "@components/ui/ErrorAlert.astro";
 
 // Lib
 import { GAME_TYPE_BY_RULESET } from "@lib/game/rulesets/capabilities";
-import { GAME_CARDS } from "@lib/game/rulesets/games-visibility";
+import { primaryCards } from "@lib/game/rulesets/games-visibility";
 
 // Data
 const scope = JSON.stringify({
   titles: Object.fromEntries(
-    GAME_CARDS.map((game) => [
+    primaryCards().map((game) => [
       GAME_TYPE_BY_RULESET[game.rulesetVersionKey],
       game.title,
     ]),

@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   aroundTheClockValidator,
   aroundTheClockV2Validator,
+  aroundTheClockV3Validator,
 } from "@services/rulesets/around-the-clock/around-the-clock.validator";
 import type { DartFactInput } from "@routes/types";
 
@@ -273,6 +274,46 @@ describe("aroundTheClockV2Validator.validateConfig", () => {
   it("rejects V1's empty config", () => {
     const result = aroundTheClockV2Validator.validateConfig({
       config: {},
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "DETAILED_DARTS",
+    });
+    expect(result.valid).toBe(false);
+  });
+});
+
+describe("aroundTheClockV3Validator", () => {
+  const v3Config = {
+    path_direction: "LOW_TO_HIGH",
+    odds_first: false,
+    segment_rule: "ANY",
+    difficulty: "EASY",
+    duration_type: "UNTIMED",
+    duration_value: null,
+    lives: 3,
+  };
+
+  it("accepts any segment on keypad capture", () => {
+    const result = aroundTheClockV3Validator.validateConfig({
+      config: v3Config,
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "DETAILED_DARTS",
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it("refuses outer single outside VISUAL_BOARD capture", () => {
+    const result = aroundTheClockV3Validator.validateConfig({
+      config: { ...v3Config, segment_rule: "OUTER_SINGLE" },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "DETAILED_DARTS",
+    });
+    expect(result.valid).toBe(false);
+  });
+
+  it("refuses a config without lives", () => {
+    const { lives: _lives, ...rest } = v3Config;
+    const result = aroundTheClockV3Validator.validateConfig({
+      config: rest,
       captureModeKey: "RECREATIONAL",
       inputModeKey: "DETAILED_DARTS",
     });

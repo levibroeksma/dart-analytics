@@ -1013,6 +1013,32 @@ describe("playAgain", () => {
     expect(play.hasActiveSession).toBe(true);
   });
 
+  it("keeps the prior SHANGHAI_V2 difficulty in the next session's snapshot", async () => {
+    const play = makePlay({
+      rulesetVersionKey: "SHANGHAI_V2",
+      turns: priorRoundsThroughNumber(19),
+      configSnapshot: { seats: SEATS, difficulty: "HARD" },
+    });
+    play.completionStatus = "succeeded";
+    play.finished = true;
+    vi.mocked(createSession).mockResolvedValue({
+      sessionId: "new-session",
+      participants: [
+        {
+          ref: "new-participant",
+          displayName: "Player",
+          participantTypeKey: "PLAYER",
+        },
+      ],
+    } as any);
+
+    await play.playAgain.call(play);
+
+    expect(play.$store.game.configSnapshot).toMatchObject({
+      difficulty: "HARD",
+    });
+  });
+
   it("carries the prior SHANGHAI_V2 difficulty as a template override — reported #581: the V2 template has no difficulty, so a bare replay failed VALIDATION_FAILED", async () => {
     const play = makePlay({
       rulesetVersionKey: "SHANGHAI_V2",

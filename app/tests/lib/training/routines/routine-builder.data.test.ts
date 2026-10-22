@@ -78,7 +78,11 @@ const ROUTINE = {
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(api.listExerciseTemplates).mockResolvedValue(CATALOG);
-  vi.mocked(fetchCatalogTags).mockResolvedValue({ games: {}, exercises: {} });
+  vi.mocked(fetchCatalogTags).mockResolvedValue({
+    games: {},
+    exercises: {},
+    cards: {},
+  });
 });
 
 describe("routineBuilder groups", () => {

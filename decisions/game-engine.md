@@ -477,3 +477,10 @@ Decision: `DartExerciseSpec` and `TrackExerciseDefinition` take an optional `end
 Reason: the shell completed on the timer alone, so a finish needed a hand-written engine as Catch 40 has.
 Consequences: an exercise that omits `ends` behaves as before. The routine page completes the step on the finishing dart through `COMPLETES_ON_DART`. Spec: `docs/superpowers/specs/2026-10-21-track-wave-t2-design.md`; plan: `docs/superpowers/plans/2026-10-22-track-t2-snakes-ladders.md`.
 Supersedes: none.
+
+### D481 — Around the Clock V3 is Nine Lives: required `lives`, two lives policies, `OUT` as a solo outcome
+Status: Accepted · Date: 2026-10-22
+Decision: `AROUND_THE_CLOCK_V3` is a new ruleset version (V2 fields with `difficulty` fixed to `EASY`, `duration_type` to `UNTIMED`, and a required literal `lives: 3`; seat cap 1). The Track policies `noteVisitHit` (per dart) and `loseLifeOnBlank` (visit close) read `LivesTrackExt = { lives: number | null; visitHit: boolean }`; `lives: null` makes both no-ops, so V1 and V2 fold through the same code. A visit with no hit costs a life and the last one puts the seat `OUT`; solo session status maps `COMPLETE` and `OUT` to `COMPLETE`. The seat state, results snapshot and replay cell carry `lives` and `out` only when the snapshot has `lives`.
+Reason: Easy's `advanceOnHit` zeroes `hitsThisVisit` on every hit, so a `hitsThisVisit === 0` blank test would charge a life for a visit that hit on dart one; a visit-hit flag is the smallest state that survives it. Optional seat fields keep every V1/V2 golden and existing test as they were (D243's rule: a shipped version is never edited in place).
+Consequences: both policies have Nine Lives as first caller (D468). A multi-seat lives race stays out of scope (`SEAT_CAPS` 1). `rulesetKeyOf`, `aroundTheClockVariantValidator`, `variantsPlayAgain` and `searchParamFromLocation` are shared, not copied. Spec: `docs/superpowers/specs/2026-10-21-track-wave-t2-design.md`; plan: `docs/superpowers/plans/2026-10-22-track-t2-nine-lives.md`.
+Supersedes: none.

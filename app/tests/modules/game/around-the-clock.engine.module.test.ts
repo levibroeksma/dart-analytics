@@ -7,7 +7,9 @@ import {
   isAroundTheClockHit,
   isClockHit,
   rulesOf,
+  rulesetKeyOf,
   AroundTheClockEngine,
+  aroundTheClockV3EngineFactory,
   aroundTheClockEngineFactory,
 } from "@modules/game/around-the-clock.engine.module";
 import { numbersPath, targetAt } from "@modules/game/board-progression.module";
@@ -22,6 +24,7 @@ import type {
   AroundTheClockEngineConfig,
   AroundTheClockSnapshot,
   AroundTheClockV2Snapshot,
+  AroundTheClockV3Snapshot,
   Seated,
 } from "@lib/types";
 
@@ -1156,5 +1159,107 @@ describe("Around the Clock — Track kernel boundaries", () => {
     expect(
       aroundTheClockEngineFactory.create(v2() as never).rulesetVersionKey,
     ).toBe("AROUND_THE_CLOCK_V2");
+  });
+});
+
+function v3(
+  over: Partial<AroundTheClockV3Snapshot> = {},
+): Seated<AroundTheClockV3Snapshot> {
+  return { ...v2(), lives: 3, ...over } as Seated<AroundTheClockV3Snapshot>;
+}
+
+function visit(engine: AroundTheClockEngine, darts: DartObservation[]): void {
+  darts.forEach((dart) => engine.record(dart));
+}
+
+function blankVisits(engine: AroundTheClockEngine, count: number): void {
+  for (let i = 0; i < count; i += 1) visit(engine, [miss(), miss(), miss()]);
+}
+
+describe("Around the Clock V3 — lives", () => {
+  it("hit then two misses keeps the life", () => {
+    const engine = new AroundTheClockEngine(v3());
+    visit(engine, [numberHit(1, "SINGLE"), miss(), miss()]);
+    const seat = engine.state().seats[0];
+    expect(seat.lives).toBe(3);
+    expect(seat.targetIndex).toBe(1);
+  });
+
+  it("the first two blank visits cost a life each", () => {
+    const engine = new AroundTheClockEngine(v3());
+    blankVisits(engine, 2);
+    expect(engine.state().seats[0].lives).toBe(1);
+    expect(engine.state().seats[0].status).toBe("IN_PROGRESS");
+  });
+
+  it("the third blank visit ends the session", () => {
+    const engine = new AroundTheClockEngine(v3());
+    blankVisits(engine, 3);
+    expect(engine.state().seats[0].status).toBe("OUT");
+    expect(engine.state().status).toBe("COMPLETE");
+    expect(engine.isComplete()).toBe(true);
+  });
+
+  it("record refuses after out", () => {
+    const engine = new AroundTheClockEngine(v3());
+    blankVisits(engine, 3);
+    expect(() => engine.record(miss())).toThrow(/session has ended/);
+  });
+
+  it("bull hit with lives left completes", () => {
+    const engine = new AroundTheClockEngine(v3());
+    for (let n = 1; n <= 20; n += 1) {
+      visit(engine, [numberHit(n, "SINGLE"), miss(), miss()]);
+    }
+    engine.record(bullHit("OUTER_BULL"));
+    const seat = engine.state().seats[0];
+    expect(seat.status).toBe("COMPLETE");
+    expect(seat.lives).toBe(3);
+  });
+
+  it("undo restores the life", () => {
+    const engine = new AroundTheClockEngine(v3());
+    blankVisits(engine, 3);
+    expect(engine.undo()).toBe(true);
+    const seat = engine.state().seats[0];
+    expect(seat.lives).toBe(1);
+    expect(seat.status).toBe("IN_PROGRESS");
+    expect(seat.dartsThisVisit).toBe(2);
+  });
+
+  it("lives apply with odds first and high to low", () => {
+    const engine = new AroundTheClockEngine(
+      v3({ oddsFirst: true, pathDirection: "HIGH_TO_LOW" }),
+    );
+    visit(engine, [numberHit(19, "SINGLE"), miss(), miss()]);
+    expect(engine.state().seats[0].lives).toBe(3);
+    blankVisits(engine, 1);
+    expect(engine.state().seats[0].lives).toBe(2);
+  });
+});
+
+describe("Around the Clock V3 — shape and key", () => {
+  it("V2 snapshot folds without lives fields", () => {
+    const engine = new AroundTheClockEngine(v2());
+    blankVisits(engine, 3);
+    const seat = engine.state().seats[0];
+    expect(seat).not.toHaveProperty("lives");
+    expect(seat).not.toHaveProperty("visitHit");
+    expect(rulesOf(v2())).not.toHaveProperty("lives");
+  });
+
+  it("rulesetKeyOf reads lives", () => {
+    expect(rulesetKeyOf(v3())).toBe("AROUND_THE_CLOCK_V3");
+    expect(rulesetKeyOf(v2())).toBe("AROUND_THE_CLOCK_V2");
+    expect(rulesetKeyOf(config)).toBe("AROUND_THE_CLOCK_V1");
+    expect(new AroundTheClockEngine(v3()).rulesetVersionKey).toBe(
+      "AROUND_THE_CLOCK_V3",
+    );
+  });
+
+  it("registers a V3 factory", () => {
+    expect(getEngineFactory("AROUND_THE_CLOCK_V3")).toBe(
+      aroundTheClockV3EngineFactory,
+    );
   });
 });
