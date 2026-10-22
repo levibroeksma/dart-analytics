@@ -64,6 +64,7 @@ ON CONFLICT (id) DO UPDATE SET tag_axis_id = EXCLUDED.tag_axis_id, implementatio
 
 DELETE FROM game_type_tags;
 DELETE FROM exercise_type_tags;
+DELETE FROM ruleset_version_tags;
 
 -- game 501
 INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at) VALUES
@@ -530,5 +531,20 @@ SELECT * FROM (VALUES
   ((SELECT id FROM exercise_types WHERE implementation_key = 'WARM_UP'), 32, FALSE, now())
 ) AS v (exercise_type_id, tag_id, is_primary, created_at)
 WHERE v.exercise_type_id IS NOT NULL;
+
+-- card AROUND_THE_CLOCK_V3
+INSERT INTO ruleset_version_tags (ruleset_version_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
+  ((SELECT id FROM ruleset_versions WHERE implementation_key = 'AROUND_THE_CLOCK_V3'), 6, TRUE, now()),
+  ((SELECT id FROM ruleset_versions WHERE implementation_key = 'AROUND_THE_CLOCK_V3'), 8, FALSE, now()),
+  ((SELECT id FROM ruleset_versions WHERE implementation_key = 'AROUND_THE_CLOCK_V3'), 12, FALSE, now()),
+  ((SELECT id FROM ruleset_versions WHERE implementation_key = 'AROUND_THE_CLOCK_V3'), 13, FALSE, now()),
+  ((SELECT id FROM ruleset_versions WHERE implementation_key = 'AROUND_THE_CLOCK_V3'), 17, FALSE, now()),
+  ((SELECT id FROM ruleset_versions WHERE implementation_key = 'AROUND_THE_CLOCK_V3'), 23, FALSE, now()),
+  ((SELECT id FROM ruleset_versions WHERE implementation_key = 'AROUND_THE_CLOCK_V3'), 25, FALSE, now()),
+  ((SELECT id FROM ruleset_versions WHERE implementation_key = 'AROUND_THE_CLOCK_V3'), 36, FALSE, now()),
+  ((SELECT id FROM ruleset_versions WHERE implementation_key = 'AROUND_THE_CLOCK_V3'), 38, FALSE, now())
+) AS v (ruleset_version_id, tag_id, is_primary, created_at)
+WHERE v.ruleset_version_id IS NOT NULL;
 
 COMMIT;

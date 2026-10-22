@@ -1,6 +1,6 @@
 # Around the Clock
 
-Current version: V2 (shipped 2026-09-24)
+Current version: V3 (shipped 2026-10-22)
 Entry points: standalone, routine step
 Game type: `AROUND_THE_CLOCK`
 Kernel: TRACK

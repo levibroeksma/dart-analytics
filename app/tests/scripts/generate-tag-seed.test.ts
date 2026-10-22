@@ -42,6 +42,7 @@ function build(overrides: Partial<Parameters<typeof buildSeedSql>[0]> = {}) {
     axes,
     games: new Map([["CRICKET", [standalone]]]),
     exercises: new Map(),
+    cards: new Map(),
     ...overrides,
   });
 }
@@ -61,6 +62,53 @@ describe("buildSeedSql", () => {
     expect(sql).toMatch(
       /INSERT INTO tag_contexts[\s\S]*ON CONFLICT \(id\) DO UPDATE/,
     );
+  });
+
+  it("emits card tags into ruleset_version_tags guarded by the ruleset existing", () => {
+    const { sql } = build({
+      cards: new Map([["AROUND_THE_CLOCK_V3", [standalone]]]),
+    });
+    expect(sql).toContain("INSERT INTO ruleset_version_tags");
+    expect(sql).toContain(
+      "(SELECT id FROM ruleset_versions WHERE implementation_key = 'AROUND_THE_CLOCK_V3')",
+    );
+    expect(sql).toContain("WHERE v.ruleset_version_id IS NOT NULL;");
+  });
+
+  it("clears the card table before refilling it", () => {
+    const { sql } = build({
+      cards: new Map([["AROUND_THE_CLOCK_V3", [standalone]]]),
+    });
+    expect(sql.indexOf("DELETE FROM ruleset_version_tags;")).toBeLessThan(
+      sql.indexOf("INSERT INTO ruleset_version_tags"),
+    );
+  });
+
+  it("uses a card's STANDALONE block only", () => {
+    const routine: TagBlock = {
+      context: "ROUTINE_STEP",
+      tags: tags(["ADVANCED"]),
+      difficultyLabels: [{ key: "ADVANCED", label: null }],
+    };
+    const { sql } = build({
+      cards: new Map([["AROUND_THE_CLOCK_V3", [routine, standalone]]]),
+    });
+    const card = sql.slice(sql.indexOf("INSERT INTO ruleset_version_tags"));
+    expect(card).not.toContain("INSERT INTO game_type_tags");
+    expect((card.match(/AROUND_THE_CLOCK_V3/g) ?? []).length).toBe(
+      standalone.tags.length,
+    );
+  });
+
+  it("throws for a card with no STANDALONE block", () => {
+    const routine: TagBlock = {
+      context: "ROUTINE_STEP",
+      tags: tags(["BEGINNER"]),
+      difficultyLabels: [{ key: "BEGINNER", label: null }],
+    };
+    expect(() =>
+      build({ cards: new Map([["AROUND_THE_CLOCK_V3", [routine]]]) }),
+    ).toThrow(/card AROUND_THE_CLOCK_V3/);
   });
 
   it("writes timestamps explicitly: now() on insert, updated_at on upsert", () => {
