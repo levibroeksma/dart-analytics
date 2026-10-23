@@ -2,7 +2,8 @@ import type { Seated, TacticsSnapshot } from "@lib/types";
 import { BULL_TARGET_NUMBER } from "./board-progression.module";
 import { registerEngineFactory } from "./engine.registry";
 import { activeSeat } from "./seat-rota.module";
-import { activeSeatState, foldSeatStates } from "./seat-state.module";
+import { foldSeatStates } from "./seat-state.module";
+import { foldMarksDuel } from "./marks-duel.module";
 import {
   cloneTurns,
   exerciseBlockStage,
@@ -21,6 +22,7 @@ import type {
   DartObservation,
   DartZoneKey,
   EngineFacts,
+  MarksDuelSpec,
   MarksHit,
   TacticsObjective,
   TacticsSeatState,
@@ -56,10 +58,14 @@ const CATEGORY_INDEX: Partial<Record<DartZoneKey, number>> = {
  * or treble on a closed 15–20, or on 1–14, marks Doubles / Triples by one.
  * The bull is keyed on the ring alone, so a visual-board bull hit marks it
  * whatever number the hit carries, and never feeds a category.
+ * With `opponentOpen` (1v1) the rule is points first: a hit on a 15–20 number
+ * the opponent still has open stays on that number, so its spare marks score;
+ * only a number dead for both feeds a category.
  */
 export function tacticsMarksOf(
   seat: TacticsSeatState,
   observation: DartObservation,
+  opponentOpen: (objectiveIndex: number) => boolean = () => false,
 ): MarksHit {
   const bullMarks = BULL_RING_MARKS[observation.hitZoneKey];
   if (bullMarks !== undefined) {
@@ -69,7 +75,10 @@ export function tacticsMarksOf(
   const marks = NUMBER_RING_MARKS[observation.hitZoneKey];
   if (number === null || number < 1 || number > 20 || !marks) return null;
   const numberIndex = TACTICS_OBJECTIVES.indexOf(number);
-  if (numberIndex !== -1 && seat.marks[numberIndex] < MARKS_TO_CLOSE) {
+  if (
+    numberIndex !== -1 &&
+    (seat.marks[numberIndex] < MARKS_TO_CLOSE || opponentOpen(numberIndex))
+  ) {
     return { objectiveIndex: numberIndex, marks };
   }
   const categoryIndex = CATEGORY_INDEX[observation.hitZoneKey];
@@ -82,10 +91,7 @@ export function tacticsMarksOf(
 export function isTacticsTarget(observation: DartObservation): boolean {
   return (
     tacticsMarksOf(
-      initialMarksSeat(
-        { participantRef: "", sideKey: "" },
-        TACTICS_OBJECTIVES.length,
-      ),
+      initialSeatState({ participantRef: "", sideKey: "" }),
       observation,
     ) !== null
   );
@@ -95,7 +101,7 @@ function initialSeatState(seat: {
   participantRef: string;
   sideKey: string;
 }): TacticsSeatState {
-  return initialMarksSeat(seat, TACTICS_OBJECTIVES.length);
+  return { ...initialMarksSeat(seat, TACTICS_OBJECTIVES.length), points: 0 };
 }
 
 /** Tactics' starting state: every seat with no marks, seat 0 active. */
@@ -105,6 +111,7 @@ export function initialTacticsState(
   return {
     activeParticipantRef: config.seats[0].participantRef,
     status: "IN_PROGRESS",
+    winnerParticipantRef: null,
     seats: config.seats.map(initialSeatState),
   };
 }
@@ -118,18 +125,54 @@ export function applyTacticsDart(
   state: TacticsSeatState,
   observation: DartObservation,
 ): TacticsSeatState {
-  return applyMarksDart(state, tacticsMarksOf(state, observation));
+  return {
+    ...state,
+    ...applyMarksDart(state, tacticsMarksOf(state, observation)),
+  };
 }
+
+const TACTICS_DUEL: MarksDuelSpec<TacticsSeatState> = {
+  initialSeat: initialSeatState,
+  hitOf: (seat, opponent, observation) =>
+    tacticsMarksOf(
+      seat,
+      observation,
+      (index) => opponent.marks[index] < MARKS_TO_CLOSE,
+    ),
+  valueOf: (index) => {
+    const objective = TACTICS_OBJECTIVES[index];
+    return typeof objective === "number" ? objective : null;
+  },
+};
 
 /**
  * Folds the whole fact log into the session's state — what the engine's own
- * `deriveState()` and the play controller's `state()` both call. Complete
- * once every seat is complete.
+ * `deriveState()` and the play controller's `state()` both call. One seat:
+ * complete once it is closed out. Two seats: the duel fold, complete once a
+ * seat closes out with points at least equal to its opponent's.
  */
 export function foldTacticsState(
   facts: EngineFacts,
   config: Seated<TacticsSnapshot>,
 ): TacticsState {
+  const activeParticipantRef = activeSeat(
+    facts,
+    config.seats,
+    "PER_SEAT",
+  ).participantRef;
+  if (config.seats.length === 2) {
+    const duel = foldMarksDuel(
+      facts.turns,
+      [config.seats[0], config.seats[1]],
+      TACTICS_DUEL,
+    );
+    return {
+      activeParticipantRef,
+      status: duel.winnerParticipantRef === null ? "IN_PROGRESS" : "COMPLETE",
+      winnerParticipantRef: duel.winnerParticipantRef,
+      seats: duel.seats,
+    };
+  }
   const seats = foldSeatStates(
     facts.turns,
     config.seats,
@@ -137,18 +180,18 @@ export function foldTacticsState(
     applyTacticsDart,
   );
   return {
-    activeParticipantRef: activeSeat(facts, config.seats, "PER_SEAT")
-      .participantRef,
+    activeParticipantRef,
     status: seats.every((seat) => seat.status === "COMPLETE")
       ? "COMPLETE"
       : "IN_PROGRESS",
+    winnerParticipantRef: null,
     seats,
   };
 }
 
 /**
- * Tactics V1: close 20–15, the bull, Doubles and Triples in as few darts as
- * possible. The engine owns the fact log; marks, closures and completion are
+ * Tactics: close 20–15, the bull, Doubles and Triples in as few darts as
+ * possible; V2 adds a second seat, points and a winner. The engine owns the fact log; marks, closures and completion are
  * folded from it on every read and never stored. Darts carry no intent: any
  * objective is a legitimate aim on any dart.
  */
@@ -156,13 +199,13 @@ export class TacticsEngine implements GameEngine<
   DartObservation,
   TacticsState
 > {
-  readonly rulesetVersionKey = "TACTICS_V1";
   readonly stageOwnership = "PER_SEAT" as const;
   private readonly turns: TurnFact[];
 
   constructor(
     private readonly config: Seated<TacticsSnapshot>,
     prior?: EngineFacts,
+    readonly rulesetVersionKey: "TACTICS_V1" | "TACTICS_V2" = "TACTICS_V1",
   ) {
     this.turns = prior ? cloneTurns(prior.turns) : [];
   }
@@ -176,11 +219,15 @@ export class TacticsEngine implements GameEngine<
 
   /**
    * Appends one dart to the open visit (`recordMarksDart`).
-   * @throws when the active seat has already completed.
+   * @throws when the game has already ended.
    */
   record(observation: DartObservation): TacticsState {
-    return recordMarksDart(this.turns, STAGE.clientKey, observation, () =>
-      this.deriveState(),
+    return recordMarksDart(
+      this.turns,
+      STAGE.clientKey,
+      observation,
+      () => this.deriveState(),
+      (state) => state.status === "COMPLETE",
     );
   }
 
@@ -189,11 +236,19 @@ export class TacticsEngine implements GameEngine<
     return undoLastDart(this.turns);
   }
 
-  /** Whether `observation` would close the active seat's last open objective. */
+  /** Whether `observation` would end the game: the last close-out of a solo seat, the winning dart of a duel. */
   wouldComplete(observation: DartObservation): boolean {
-    const seat = activeSeatState(this.deriveState());
-    if (seat.status !== "IN_PROGRESS") return false;
-    return applyTacticsDart(seat, observation).status === "COMPLETE";
+    try {
+      return (
+        new TacticsEngine(
+          this.config,
+          this.facts(),
+          this.rulesetVersionKey,
+        ).record(observation).status === "COMPLETE"
+      );
+    } catch {
+      return false;
+    }
   }
 
   isComplete(): boolean {
@@ -217,8 +272,21 @@ export const tacticsEngineFactory: GameEngineFactory<
   rulesetVersionKey: "TACTICS_V1",
   stageOwnership: "PER_SEAT",
   create(config: Seated<TacticsSnapshot>, prior?: EngineFacts) {
-    return new TacticsEngine(config, prior);
+    return new TacticsEngine(config, prior, "TACTICS_V1");
+  },
+};
+
+export const tacticsV2EngineFactory: GameEngineFactory<
+  Seated<TacticsSnapshot>,
+  DartObservation,
+  TacticsState
+> = {
+  rulesetVersionKey: "TACTICS_V2",
+  stageOwnership: "PER_SEAT",
+  create(config: Seated<TacticsSnapshot>, prior?: EngineFacts) {
+    return new TacticsEngine(config, prior, "TACTICS_V2");
   },
 };
 
 registerEngineFactory(tacticsEngineFactory);
+registerEngineFactory(tacticsV2EngineFactory);

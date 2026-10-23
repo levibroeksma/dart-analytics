@@ -47,6 +47,7 @@ import { marksPerRound } from "@modules/game/marks-close.module";
 
 const GAME_TYPE_KEY = "TACTICS";
 const RULESET_VERSION_KEY: RulesetVersionKey = "TACTICS_V1";
+const RESUMABLE = new Set<RulesetVersionKey>(["TACTICS_V1", "TACTICS_V2"]);
 
 const BULL_RING: Record<Exclude<TacticsRing, "TREBLE">, DartZoneKey> = {
   SINGLE: "OUTER_BULL",
@@ -119,8 +120,14 @@ function resumeEngine(
   game: TacticsPlayContext["$store"]["game"],
 ): TacticsEngine | null {
   const { configSnapshot, rulesetVersionKey } = game;
-  if (!configSnapshot || rulesetVersionKey !== RULESET_VERSION_KEY) return null;
-  const factory = getEngineFactory(RULESET_VERSION_KEY);
+  if (
+    !configSnapshot ||
+    !rulesetVersionKey ||
+    !RESUMABLE.has(rulesetVersionKey)
+  ) {
+    return null;
+  }
+  const factory = getEngineFactory(rulesetVersionKey);
   if (!factory) return null;
   const engine = factory.create(configSnapshot, {
     stages: game.stages,

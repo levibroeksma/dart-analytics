@@ -15,7 +15,9 @@ import {
 import {
   applyTacticsDart,
   tacticsEngineFactory,
+  tacticsV2EngineFactory,
   initialTacticsState,
+  TacticsEngine,
 } from "@modules/game/tactics.engine.module";
 import {
   tacticsPlay,
@@ -111,6 +113,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   resetEngineRegistry();
   registerEngineFactory(tacticsEngineFactory);
+  registerEngineFactory(tacticsV2EngineFactory);
   vi.mocked(fetchActiveSessions).mockResolvedValue([{ ...ACTIVE_SESSION }]);
 });
 
@@ -236,6 +239,24 @@ describe("tacticsPlay", () => {
     await first.recordTarget(19);
     const resumed = await started({ turns: first.$store.game.turns });
     expect(resumed.objectiveRows()[1].marks).toBe(1);
+  });
+
+  it("resumes a TACTICS_V2 store into a V2 engine", async () => {
+    const seats = [
+      ...SEATS,
+      {
+        participantRef: "participant-2",
+        displayName: "Guest",
+        sideKey: "B",
+        participantTypeKey: "GUEST" as const,
+      },
+    ];
+    const ctx = await started({
+      rulesetVersionKey: "TACTICS_V2",
+      configSnapshot: { seats } as Seated<TacticsSnapshot>,
+    });
+    expect(ctx.engine).toBeInstanceOf(TacticsEngine);
+    expect(ctx.engine?.rulesetVersionKey).toBe("TACTICS_V2");
   });
 
   it("builds results with darts, MPR to 2 dp and darts to close", () => {

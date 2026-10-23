@@ -114,7 +114,7 @@ export type CricketSeatState = MarksSeatState;
 export type TacticsObjective = number | "DOUBLES" | "TRIPLES";
 
 /** One seat's Tactics progress, indexed by `TACTICS_OBJECTIVES` order. */
-export type TacticsSeatState = MarksSeatState;
+export type TacticsSeatState = MarksSeatState & { points: number };
 
 export type CricketState = MultiSeatState<CricketSeatState> & {
   status: "IN_PROGRESS" | "COMPLETE";
@@ -122,6 +122,7 @@ export type CricketState = MultiSeatState<CricketSeatState> & {
 
 export type TacticsState = MultiSeatState<TacticsSeatState> & {
   status: "IN_PROGRESS" | "COMPLETE";
+  winnerParticipantRef: string | null;
 };
 
 export type SinglesTrainingSeatState = SeatState & {

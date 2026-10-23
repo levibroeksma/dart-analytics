@@ -8,6 +8,7 @@ import {
   TacticsEngine,
   tacticsEngineFactory,
   tacticsMarksOf,
+  tacticsV2EngineFactory,
 } from "@modules/game/tactics.engine.module";
 import {
   effectiveMarks,
@@ -389,5 +390,224 @@ describe("TacticsEngine", () => {
     const fresh = new TacticsEngine(config);
     for (const obs of [D(20), D(20)]) fresh.record(obs);
     expect(live.state()).toEqual(fresh.state());
+  });
+});
+
+const duelConfig: Seated<TacticsSnapshot> = {
+  seats: [
+    {
+      participantRef: "p1",
+      displayName: "Levi",
+      sideKey: "A",
+      participantTypeKey: "PLAYER" as const,
+    },
+    {
+      participantRef: "p2",
+      displayName: "Guest",
+      sideKey: "B",
+      participantTypeKey: "GUEST" as const,
+    },
+  ],
+};
+
+function newDuel() {
+  return new TacticsEngine(duelConfig, undefined, "TACTICS_V2");
+}
+
+function playVisits(engine: TacticsEngine, ...visits: DartObservation[][]) {
+  for (const darts of visits) {
+    for (const observation of darts) {
+      if (engine.isComplete()) return;
+      engine.record(observation);
+    }
+    for (let i = darts.length; i < 3 && !engine.isComplete(); i += 1) {
+      engine.record(MISS);
+    }
+  }
+}
+
+const THREE_MISS = [MISS, MISS, MISS];
+const CLOSE_ALL_BUT_LAST = [
+  [T(20), T(19), T(18)],
+  [T(17), T(16), T(15)],
+  [IB, OB, T(1)],
+  [T(2), T(3), D(1)],
+];
+
+function playToLastClosingDarts(engine: TacticsEngine) {
+  playVisits(
+    engine,
+    CLOSE_ALL_BUT_LAST[0],
+    THREE_MISS,
+    CLOSE_ALL_BUT_LAST[1],
+    THREE_MISS,
+    CLOSE_ALL_BUT_LAST[2],
+    THREE_MISS,
+    CLOSE_ALL_BUT_LAST[3],
+    THREE_MISS,
+  );
+}
+
+describe("Tactics V2 duel", () => {
+  it("registers a second factory for TACTICS_V2", () => {
+    expect(tacticsV2EngineFactory.rulesetVersionKey).toBe("TACTICS_V2");
+    expect(getEngineFactory("TACTICS_V2")).toBe(tacticsV2EngineFactory);
+    expect(newDuel().rulesetVersionKey).toBe("TACTICS_V2");
+  });
+
+  it("scores points on a number the opponent has open", () => {
+    const engine = newDuel();
+    playVisits(engine, [T(20), S(20), MISS]);
+    expect(engine.state().seats[0].points).toBe(20);
+  });
+
+  it("scores the spare marks of a closing dart", () => {
+    const engine = newDuel();
+    playVisits(engine, [D(20)], THREE_MISS, [T(20)]);
+    expect(engine.state().seats[0].marks[IDX[20]]).toBe(3);
+    expect(engine.state().seats[0].points).toBe(40);
+  });
+
+  it("scores nothing once both seats have closed the number", () => {
+    const engine = newDuel();
+    playVisits(engine, [T(20)], [T(20)], [S(20)]);
+    expect(engine.state().seats[0].points).toBe(0);
+  });
+
+  it("scores a double on an owned number instead of marking Doubles", () => {
+    const engine = newDuel();
+    playVisits(engine, [T(20), D(20)]);
+    const seat = engine.state().seats[0];
+    expect(seat.points).toBe(40);
+    expect(seat.marks[IDX.DOUBLES]).toBe(0);
+  });
+
+  it("marks Doubles from a double on a dead number", () => {
+    const engine = newDuel();
+    playVisits(engine, [T(20)], [T(20)], [D(20)]);
+    const seat = engine.state().seats[0];
+    expect(seat.marks[IDX.DOUBLES]).toBe(1);
+    expect(seat.points).toBe(0);
+  });
+
+  it("does nothing for a single on a dead number", () => {
+    const engine = newDuel();
+    playVisits(engine, [T(20)], [T(20)], [S(20)]);
+    expect(engine.state().seats[0].marks[IDX.DOUBLES]).toBe(0);
+    expect(engine.state().seats[0].marks[IDX.TRIPLES]).toBe(0);
+  });
+
+  it("marks Doubles from a double on 1-14 whatever the opponent holds", () => {
+    const engine = newDuel();
+    playVisits(engine, [D(5)]);
+    expect(engine.state().seats[0].marks[IDX.DOUBLES]).toBe(1);
+  });
+
+  it("scores the bull at 25 a mark", () => {
+    const engine = newDuel();
+    playVisits(engine, [IB, OB, IB]);
+    expect(engine.state().seats[0].marks[IDX.BULL]).toBe(3);
+    expect(engine.state().seats[0].points).toBe(50);
+  });
+
+  it("never scores on Doubles or Triples", () => {
+    const engine = newDuel();
+    playVisits(engine, [D(1), D(2), D(3)], THREE_MISS, [D(4)]);
+    expect(engine.state().seats[0].marks[IDX.DOUBLES]).toBe(3);
+    expect(engine.state().seats[0].points).toBe(0);
+  });
+
+  it("wins on the closing dart mid-visit, stamps the visit and refuses another dart", () => {
+    const engine = newDuel();
+    playToLastClosingDarts(engine);
+    playVisits(engine, [D(2), D(3)]);
+    const state = engine.state();
+    expect(state.status).toBe("COMPLETE");
+    expect(state.winnerParticipantRef).toBe("p1");
+    expect(engine.isComplete()).toBe(true);
+    expect(engine.facts().turns.at(-1)?.completedAt).not.toBeNull();
+    expect(() => engine.record(MISS)).toThrow("game has ended");
+  });
+
+  it("reports wouldComplete only for the winning dart", () => {
+    const engine = newDuel();
+    playToLastClosingDarts(engine);
+    engine.record(D(2));
+    expect(engine.wouldComplete(MISS)).toBe(false);
+    expect(engine.wouldComplete(D(3))).toBe(true);
+  });
+
+  it("reopens the game when the winning dart is undone", () => {
+    const engine = newDuel();
+    playToLastClosingDarts(engine);
+    playVisits(engine, [D(2), D(3)]);
+    expect(engine.undo()).toBe(true);
+    expect(engine.state().status).toBe("IN_PROGRESS");
+    expect(engine.state().winnerParticipantRef).toBeNull();
+  });
+
+  it("keeps a closed-out seat that is behind throwing, and it wins on catching up", () => {
+    const engine = newDuel();
+    playVisits(engine, THREE_MISS, [T(20), S(20)]);
+    playVisits(
+      engine,
+      CLOSE_ALL_BUT_LAST[0],
+      THREE_MISS,
+      CLOSE_ALL_BUT_LAST[1],
+      THREE_MISS,
+      CLOSE_ALL_BUT_LAST[2],
+      THREE_MISS,
+      CLOSE_ALL_BUT_LAST[3],
+      THREE_MISS,
+      [D(2), D(3), S(19)],
+      THREE_MISS,
+    );
+    expect(engine.state().seats[0].status).toBe("COMPLETE");
+    expect(engine.state().seats[0].points).toBe(19);
+    expect(engine.state().status).toBe("IN_PROGRESS");
+    expect(engine.state().activeParticipantRef).toBe("p1");
+    playVisits(engine, [S(19)]);
+    expect(engine.state().winnerParticipantRef).toBe("p1");
+  });
+
+  it("lets the other seat win by closing out ahead of a closed-out opponent", () => {
+    const engine = newDuel();
+    playVisits(engine, THREE_MISS, [T(20), S(20)]);
+    playVisits(
+      engine,
+      CLOSE_ALL_BUT_LAST[0],
+      THREE_MISS,
+      CLOSE_ALL_BUT_LAST[1],
+      THREE_MISS,
+      CLOSE_ALL_BUT_LAST[2],
+      THREE_MISS,
+      CLOSE_ALL_BUT_LAST[3],
+      THREE_MISS,
+      [D(2), D(3), S(19)],
+    );
+    playVisits(
+      engine,
+      [T(19), T(18), T(17)],
+      THREE_MISS,
+      [T(16), T(15), IB],
+      THREE_MISS,
+      [OB, T(1), T(2)],
+      THREE_MISS,
+      [T(3), D(1), D(2)],
+      THREE_MISS,
+      [D(3)],
+    );
+    expect(engine.state().winnerParticipantRef).toBe("p2");
+  });
+
+  it("folds a V2 solo log exactly as V1", () => {
+    const v1 = new TacticsEngine(config);
+    const v2 = new TacticsEngine(config, undefined, "TACTICS_V2");
+    for (const observation of [T(20), S(20), D(5), MISS, IB]) {
+      v1.record(observation);
+      v2.record(observation);
+    }
+    expect(v2.state()).toEqual(v1.state());
+    expect(v2.state().winnerParticipantRef).toBeNull();
   });
 });
