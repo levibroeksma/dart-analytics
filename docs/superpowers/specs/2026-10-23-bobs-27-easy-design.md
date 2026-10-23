@@ -92,3 +92,12 @@ Tags are not versioned (`docs/game-rules/TAGS.md`): Easy inherits `bobs-27.md`'s
 - 1v1 under Easy with a DartBot: no early end, tie handling.
 - Resume of an Easy session after reload and the resume deck (#1061 is the known pre-existing gap for V2 keys; Bob's 27 V2 must not add to it).
 - A V1 session started before deploy replays unchanged.
+
+## 13. Refinements (2026-10-23, from the plan)
+
+1. No fold or outcome change (§4): Easy never yields `LOST`, so `foldBobs27State` and `elimination` are untouched; the score-compare branch decides 1v1. Only `bobs27Rules` changes. Solo `WON` means "finished the path".
+2. No Mode row in results and no Mode cell in replay (§6): the results title carries the distinction ("Run complete!").
+3. `constants.ts` is not touched (§5, §7): `HEATMAP_ONLY_LAYOUTS` is keyed by primary cards.
+4. The #1061 gap is closed on `main` (§12): the `GAME_TYPE_BY_RULESET.BOBS27_V2` row keeps Easy sessions in the resume deck; a test pins it.
+5. Validator builder (§5): `bobs27ValidatorFor(schema)` is shared by V1 and V2.
+6. Play again and resume read the session's own key from `$store.game.rulesetVersionKey` (§6).

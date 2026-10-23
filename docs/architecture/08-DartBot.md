@@ -392,6 +392,7 @@ The simulation always runs in millimetres. **Capture mode decides how much of it
 | --------------------- | ---------------------------------- | ---------------- | -------------- | -------------------------------------------------------------------------- |
 | `AROUND_THE_CLOCK_V1` | DETAILED_DARTS · VISUAL_BOARD      | `PER_SEAT`       | Dictated       | `DartObservation` per dart                                                 |
 | `BOBS27_V1`           | DETAILED_DARTS · VISUAL_BOARD      | `PER_SEAT`       | Dictated       | `DartObservation` per dart                                                 |
+| `BOBS27_V2`           | DETAILED_DARTS · VISUAL_BOARD      | `PER_SEAT`       | Dictated       | `DartObservation` per dart                                                 |
 | `DOUBLES_TRAINING_V1` | DETAILED_DARTS · VISUAL_BOARD      | `PER_SEAT`       | Dictated       | `DartObservation` per dart                                                 |
 | `SHANGHAI_V1`         | DETAILED_DARTS · VISUAL_BOARD      | `PER_SEAT`       | Dictated       | `DartObservation` per dart                                                 |
 | `SINGLES_V1`          | DETAILED_DARTS · VISUAL_BOARD      | `PER_SEAT`       | Dictated       | `DartObservation` per dart                                                 |
@@ -595,7 +596,7 @@ None of these is a contract change. All of them are the same shape of edit: a un
 
 | Role     | Modes                                          | Shape                                                                                                                      | Blocked by            |
 | -------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | --------------------- |
-| Opponent | `501_V1`, `121_V1`, `SHANGHAI_V1`, `BOBS27_V1` | Alternating turns; the pressure model reads the live game situation, and `match-outcome.module.ts` already decides who won | participant type only |
+| Opponent | `501_V1`, `121_V1`, `SHANGHAI_V1`, `BOBS27_V1`, `BOBS27_V2` | Alternating turns; the pressure model reads the live game situation, and `match-outcome.module.ts` already decides who won | participant type only |
 | Ghost    | Every training mode                            | The bot takes the second seat and runs the same exercise alongside the user as a live pace-setter                          | participant type only |
 
 Both roles are the same shape: **one engine, several seats**. `undo()` rewinding across the seat boundary and a leg resetting every seat's score are behaviours of that one engine, not something a coordinator above two engines would have to reproduce.

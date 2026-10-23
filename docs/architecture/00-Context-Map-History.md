@@ -17,6 +17,8 @@ updated: 2026-10-13
 
 # Version History
 
+> **Version:** 1.185.0 (2026-10-23 — Bob's 27 Easy: D485 in `decisions/game-engine.md`; `0050_bobs27_v2_ruleset.sql` registered in `00-File-Inventory.md` and `database/README.md`; `BOBS27_V2` added to the seat-cap table in `06-API/04-Endpoint-Contracts.md` and the DartBot mode tables in `08-DartBot.md`)
+
 > **Version:** 1.184.0 (2026-10-23 — pause on every timed surface (#1063): D483 in `decisions/frontend/alpine.md` (supersedes D275's no-pause clause); `08-Component-Inventory.md` restates `CountdownPauseControl`/`CountdownResumePrompt` and drops `HeaderClockPill`; `10-Frontend-Agent-Guide.md` checklist line; `authoring-game-rules` V1 corollary; spec `docs/superpowers/specs/2026-10-23-pause-all-timers-design.md`.)
 
 > **Version:** 1.183.0 (2026-10-13 — discovered-work batch #830/#892/#954: D456/D457 in `decisions/frontend/style.md` (D456 supersedes D427 in-progress card clause; D457 supersedes D454 `RouteChips` `currentExpr`); D458 `activeSessions` store in `decisions/frontend/alpine.md`; `active-sessions.store.ts` registered; `08-Component-Inventory.md` `ResumeSessionCard` row removed, `ResumeSessionDeck` row on `/games`; `00-File-Inventory.md` `games-index.data.ts`, schedule/games and deck rows.)
