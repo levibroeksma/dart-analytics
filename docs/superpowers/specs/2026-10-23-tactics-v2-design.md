@@ -106,3 +106,12 @@ No new view. Tactics MPR/darts-to-close sections stay V2+. `ruleset_version_key`
 - Undo of a winning dart, a scoring dart and a dead-making dart.
 - Resume after reload mid-game in each seat's turn; V1 solo sessions started before deploy replay unchanged.
 - The seat switch animation on every hand-over, including after a 1-dart visit that scores and after an undo that reopens a visit.
+
+## 13. Refinements made while building (2026-10-23)
+
+- `recordMarksDart` keeps an optional `isEnded` parameter (default: the active seat is complete) instead of reading the game status; the existing recorder tests derive a state with no game status. Tactics passes `status === "COMPLETE"`.
+- The seat rota needed no change: with no completion predicate `activeSeat` alternates, so a closed-out seat that is behind keeps throwing (pinned by a test).
+- `wouldComplete` clones the engine and records the dart inside a try, for both seat counts.
+- `SeatedPlayScreen` wraps the `rows` slot in `x-data="{ get rowsRef() {...} }"`; `MarkRows` takes `rowsExpr` (default `objectiveRows()`).
+- `RULESET_CONFIGS.TACTICS_V2` is `TacticsConfig` itself; `tacticsValidator` serves both keys.
+- No per-seat "POINTS" caption: `SplitScoreboard` has no caption prop; the seat's big value is its points and the idle bar shows `Closed`.
