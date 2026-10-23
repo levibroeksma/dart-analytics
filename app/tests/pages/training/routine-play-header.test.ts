@@ -6,7 +6,9 @@ import { describe, expect, it } from "vitest";
  * A countdown game's pause pill lives in `GameLayout`'s `header-end` slot
  * (D432). The routine page must place a game step's pill there too, not in
  * a body row above the game, so a routine step shows its timer where the
- * same game played standalone does (#846).
+ * same game played standalone does (#846). Every step type shares that one
+ * pill: the page scope's `pausable()`/`paused()`/`togglePause()` delegate a
+ * game step to its own pause (D483).
  */
 
 const routinePage = readFileSync(
@@ -30,7 +32,11 @@ describe("routine play countdown pill", () => {
     expect(pillTags[0]?.[0]).toContain('slot="header-end"');
   });
 
-  it("reads the active game step through the page scope, not a nested x-data", () => {
-    expect(pillTags[0]?.[0]).toContain('scopeExpr="game"');
+  it("reads pause state through the page scope, not a nested x-data", () => {
+    const pill = pillTags[0]?.[0] ?? "";
+    expect(pill).toContain('pausedExpr="paused()"');
+    expect(pill).toContain('showExpr="pausable()"');
+    expect(pill).toContain('toggleExpr="togglePause()"');
+    expect(pill).not.toContain("scopeExpr");
   });
 });

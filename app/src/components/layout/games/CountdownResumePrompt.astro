@@ -3,15 +3,24 @@
  * Resume affordance shown in place of the score/board input while a
  * MINUTES countdown is paused (#253): a round `glass-button` with an accent
  * play icon. It has the same `disabledExpr` contract as
- * `CountdownPauseControl`.
+ * `CountdownPauseControl`; `pausedExpr` and `toggleExpr` override the
+ * `$store.game` defaults for a scope with its own pause.
  */
 interface Props {
   /** Alpine expression evaluating to a boolean; disables the resume button. */
   disabledExpr: string;
+  /** Alpine expression: whether the timer is paused. */
+  pausedExpr?: string;
+  /** Alpine expression: the pause toggle call. */
+  toggleExpr?: string;
 }
 
 // Props
-const { disabledExpr }: Props = Astro.props;
+const {
+  disabledExpr,
+  pausedExpr = "$store.game.timerPaused",
+  toggleExpr = "togglePause()",
+}: Props = Astro.props;
 
 // Components
 import Button from "@components/forms/Button.astro";
@@ -22,7 +31,7 @@ import PlayIcon from "@icons/play-solid.svg";
 
 <div
   class="flex min-h-0 flex-1 items-center justify-center"
-  x-show="$store.game.timerPaused"
+  x-show={pausedExpr}
   x-cloak
 >
   <Button
@@ -33,7 +42,7 @@ import PlayIcon from "@icons/play-solid.svg";
     loadingExpr="false"
     class="size-24 rounded-full p-0"
     :disabled={disabledExpr}
-    @click="togglePause()"
+    @click={toggleExpr}
   >
     <PlayIcon
       slot="iconBefore"

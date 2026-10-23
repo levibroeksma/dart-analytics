@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { QuickSubtractGame } from "@modules/training/trivia/quick-subtract.module";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
 
@@ -148,5 +148,61 @@ describe("QuickSubtractGame", () => {
       }
     }).not.toThrow();
     expect(game.getStatus()).toBe("finished");
+  });
+
+  describe("pause", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("freezes the clock and refuses answers until resumed", () => {
+      vi.spyOn(Math, "random").mockReturnValue(0);
+      const game = new QuickSubtractGame({
+        mode: "count",
+        count: 5,
+        timer: countupTimer(),
+      });
+      game.start();
+      vi.advanceTimersByTime(4000);
+
+      game.pause();
+      vi.advanceTimersByTime(20000);
+      expect(game.isPaused()).toBe(true);
+      expect(game.getElapsedTime()).toBe(4);
+      expect(game.answer("1")).toEqual({
+        valid: false,
+        correct: false,
+        expected: null,
+        calculation: null,
+      });
+      expect(game.getAttempts()).toBe(0);
+
+      game.resume();
+      vi.advanceTimersByTime(2000);
+      expect(game.isPaused()).toBe(false);
+      expect(game.getElapsedTime()).toBe(6);
+      expect(game.answer("1").valid).toBe(true);
+      game.destroy();
+    });
+
+    it("ignores pause before start and after finish", () => {
+      const game = new QuickSubtractGame({
+        mode: "count",
+        count: 5,
+        timer: countupTimer(),
+      });
+      game.pause();
+      expect(game.isPaused()).toBe(false);
+
+      game.start();
+      game.pause();
+      game.finish();
+      expect(game.isPaused()).toBe(false);
+      game.pause();
+      expect(game.isPaused()).toBe(false);
+    });
   });
 });
