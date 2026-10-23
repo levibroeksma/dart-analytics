@@ -1,12 +1,13 @@
+import { activeSeatState } from "./seat-state.module";
 import type {
   DartObservation,
   DartZoneKey,
   MarksHit,
   MarksSeatState,
+  MarksTally,
   MultiSeatState,
   TurnFact,
 } from "./types";
-import { activeSeatState } from "./seat-state.module";
 import {
   appendObservedDart,
   openOrCreateTurn,
@@ -16,7 +17,7 @@ import {
 export type { MarksHit } from "./types";
 
 export const MARKS_TO_CLOSE = 3;
-const DARTS_PER_VISIT = 3;
+export const DARTS_PER_VISIT = 3;
 
 /** Marks a number ring adds to its own objective. */
 export const NUMBER_RING_MARKS: Partial<Record<DartZoneKey, number>> = {
@@ -52,6 +53,45 @@ export function initialMarksSeat(
 }
 
 /**
+ * Adds one dart's marks to a seat's bookkeeping. Marks add to their objective,
+ * capped at 3; the overflow comes back as `spare`. Every dart counts as thrown.
+ * Hits are tallied per objective and as trebles (3-mark hits), uncapped.
+ */
+export function tallyMarksDart(
+  state: MarksSeatState,
+  hit: MarksHit,
+): MarksTally {
+  const dartsThrown = state.dartsThrown + 1;
+  const marks = [...state.marks];
+  const closedAtDart = [...state.closedAtDart];
+  const objectiveHits = [...state.objectiveHits];
+  let spare = 0;
+  if (hit) {
+    const index = hit.objectiveIndex;
+    const total = marks[index] + hit.marks;
+    objectiveHits[index] += 1;
+    marks[index] = Math.min(MARKS_TO_CLOSE, total);
+    spare = Math.max(0, total - MARKS_TO_CLOSE);
+    if (
+      state.marks[index] < MARKS_TO_CLOSE &&
+      marks[index] === MARKS_TO_CLOSE
+    ) {
+      closedAtDart[index] = dartsThrown;
+    }
+  }
+  return {
+    fields: {
+      marks,
+      closedAtDart,
+      objectiveHits,
+      trebleHits: state.trebleHits + (hit?.marks === 3 ? 1 : 0),
+      dartsThrown,
+    },
+    spare,
+  };
+}
+
+/**
  * Pure reducer: folds one already-mapped dart onto one seat. Marks add to
  * their objective, capped at 3; overflow is discarded. Every dart counts as
  * thrown. The dart that closes the last open objective completes the seat
@@ -64,55 +104,44 @@ export function applyMarksDart(
   hit: MarksHit,
 ): MarksSeatState {
   refuseWhenEnded(state.status !== "IN_PROGRESS", "game has ended");
-  const dartsThrown = state.dartsThrown + 1;
-  const marks = [...state.marks];
-  const closedAtDart = [...state.closedAtDart];
-  const objectiveHits = [...state.objectiveHits];
-  if (hit) objectiveHits[hit.objectiveIndex] += 1;
-  if (hit && marks[hit.objectiveIndex] < MARKS_TO_CLOSE) {
-    marks[hit.objectiveIndex] = Math.min(
-      MARKS_TO_CLOSE,
-      marks[hit.objectiveIndex] + hit.marks,
-    );
-    if (marks[hit.objectiveIndex] === MARKS_TO_CLOSE) {
-      closedAtDart[hit.objectiveIndex] = dartsThrown;
-    }
-  }
-  const complete = marks.every((count) => count === MARKS_TO_CLOSE);
+  const { fields } = tallyMarksDart(state, hit);
+  const complete = fields.marks.every((count) => count === MARKS_TO_CLOSE);
   const visitDarts = state.dartsThisVisit + 1;
   return {
     ...state,
-    marks,
-    closedAtDart,
-    objectiveHits,
-    trebleHits: state.trebleHits + (hit?.marks === 3 ? 1 : 0),
-    dartsThrown,
+    ...fields,
     dartsThisVisit: complete || visitDarts === DARTS_PER_VISIT ? 0 : visitDarts,
     status: complete ? "COMPLETE" : "IN_PROGRESS",
   };
 }
 
 /**
+ * The default end test of a marks-close game: the active seat has completed.
+ */
+function activeSeatComplete(state: MultiSeatState<MarksSeatState>): boolean {
+  return activeSeatState(state).status === "COMPLETE";
+}
+
+/**
  * A marks-close engine's `record()`: appends one dart to the open visit,
  * opening a new one when the last is closed. `completedAt` is stamped by a
- * visit's 3rd dart or by the dart that completes the run. Validated against
+ * visit's 3rd dart or by the dart that ends the game. Validated against
  * `derive()` first, so a throw leaves `turns` untouched.
  * @param turns The engine's fact log, mutated in place
  * @param stageClientKey The stage new visits open under
  * @param derive Folds `turns` into the engine's state
- * @throws when the active seat has already completed.
+ * @param isEnded Whether the game is over; defaults to the active seat being complete
+ * @throws when the game has already ended.
  */
 export function recordMarksDart<TState extends MultiSeatState<MarksSeatState>>(
   turns: TurnFact[],
   stageClientKey: string,
   observation: DartObservation,
   derive: () => TState,
+  isEnded: (state: TState) => boolean = activeSeatComplete,
 ): TState {
   const before = derive();
-  refuseWhenEnded(
-    activeSeatState(before).status !== "IN_PROGRESS",
-    "game has ended",
-  );
+  refuseWhenEnded(isEnded(before), "game has ended");
   const openTurn = openOrCreateTurn(
     turns,
     stageClientKey,
@@ -120,11 +149,7 @@ export function recordMarksDart<TState extends MultiSeatState<MarksSeatState>>(
     (last) => last.completedAt === null && last.darts.length < DARTS_PER_VISIT,
   );
   appendObservedDart(openTurn, observation);
-  const after = derive();
-  if (
-    openTurn.darts.length === DARTS_PER_VISIT ||
-    activeSeatState(after).status === "COMPLETE"
-  ) {
+  if (openTurn.darts.length === DARTS_PER_VISIT || isEnded(derive())) {
     openTurn.completedAt = new Date().toISOString();
   }
   return derive();

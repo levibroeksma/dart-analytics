@@ -5,6 +5,7 @@ import {
   initialMarksSeat,
   marksPerRound,
   recordMarksDart,
+  tallyMarksDart,
 } from "@modules/game/marks-close.module";
 import type {
   DartObservation,
@@ -213,5 +214,47 @@ describe("recordMarksDart", () => {
       "Cannot record a dart once the game has ended; undo first to correct it.",
     );
     expect(turns).toEqual(snapshot);
+  });
+});
+
+describe("tallyMarksDart", () => {
+  const three = (marks: number[]) => ({
+    ...initialMarksSeat(seat, 3),
+    marks,
+  });
+
+  it("reports the marks beyond the third as spare", () => {
+    const { fields, spare } = tallyMarksDart(three([2, 0, 0]), {
+      objectiveIndex: 0,
+      marks: 3,
+    });
+    expect(fields.marks).toEqual([3, 0, 0]);
+    expect(fields.closedAtDart).toEqual([1, null, null]);
+    expect(spare).toBe(2);
+  });
+
+  it("treats every mark as spare once the objective is closed", () => {
+    const { fields, spare } = tallyMarksDart(three([3, 0, 0]), {
+      objectiveIndex: 0,
+      marks: 2,
+    });
+    expect(fields.marks).toEqual([3, 0, 0]);
+    expect(fields.closedAtDart).toEqual([null, null, null]);
+    expect(spare).toBe(2);
+  });
+
+  it("counts a miss as a thrown dart with no spare", () => {
+    const { fields, spare } = tallyMarksDart(three([1, 0, 0]), null);
+    expect(fields.dartsThrown).toBe(1);
+    expect(spare).toBe(0);
+  });
+
+  it("tallies the hit and the treble count", () => {
+    const { fields } = tallyMarksDart(three([0, 0, 0]), {
+      objectiveIndex: 1,
+      marks: 3,
+    });
+    expect(fields.objectiveHits).toEqual([0, 1, 0]);
+    expect(fields.trebleHits).toBe(1);
   });
 });
