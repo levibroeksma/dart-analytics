@@ -224,6 +224,27 @@ describe("rejectSeatRequest for Bob's 27 V2", () => {
   });
 });
 
+describe("rejectSeatRequest for Tactics", () => {
+  it("accepts two seats under V2", () => {
+    expect(rejectSeatRequest([player, guest], "TACTICS_V2")).toBeNull();
+  });
+
+  it("refuses a third seat under V2", () => {
+    expect(
+      rejectSeatRequest(
+        [player, guest, { ...guest, sideKey: "C" }],
+        "TACTICS_V2",
+      ),
+    ).toContain("supports at most 2 seats");
+  });
+
+  it("still refuses a second seat under V1", () => {
+    expect(rejectSeatRequest([player, guest], "TACTICS_V1")).toContain(
+      "supports at most 1 seat",
+    );
+  });
+});
+
 describe("composeSeatFacts", () => {
   it("projects the persisted seat plan into snapshot seats, in order", () => {
     expect(

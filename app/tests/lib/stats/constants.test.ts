@@ -33,6 +33,7 @@ describe("HEATMAP_ONLY_LAYOUTS", () => {
         "SHANGHAI_V1",
         "SINGLES_V1",
         "TACTICS_V1",
+        "TACTICS_V2",
         "TUOD_V1",
       ].sort(),
     );

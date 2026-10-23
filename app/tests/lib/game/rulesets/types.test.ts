@@ -315,6 +315,12 @@ describe("RULESET_CONFIGS", () => {
     expect(CricketConfig.safeParse({}).success).toBe(true);
   });
 
+  it("registers TACTICS_V2 on the shared empty strict config", () => {
+    expect(RULESET_CONFIGS.TACTICS_V2).toBe(TacticsConfig);
+    expect(TacticsConfig.safeParse({}).success).toBe(true);
+    expect(TacticsConfig.safeParse({ mode: "X" }).success).toBe(false);
+  });
+
   it("registers TACTICS_V1", () => {
     expect(RULESET_CONFIGS.TACTICS_V1).toBe(TacticsConfig);
   });

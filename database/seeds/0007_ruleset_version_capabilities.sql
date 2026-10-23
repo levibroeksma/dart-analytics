@@ -72,6 +72,8 @@ FROM (
             ('CRICKET_V1', 'ANALYTICS', 'VISUAL_BOARD'),
             ('TACTICS_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
             ('TACTICS_V1', 'ANALYTICS', 'VISUAL_BOARD'),
+            ('TACTICS_V2', 'RECREATIONAL', 'DETAILED_DARTS'),
+            ('TACTICS_V2', 'ANALYTICS', 'VISUAL_BOARD'),
             ('BASEBALL_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
             ('BASEBALL_V1', 'ANALYTICS', 'VISUAL_BOARD')
     ) AS declared(ruleset_key, capture_key, input_key)
