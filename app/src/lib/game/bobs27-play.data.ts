@@ -22,12 +22,17 @@ import {
   playVisitMarkers,
   runPlayAgain,
   undoToActiveSeat,
+  variantsPlayAgain,
 } from "@lib/game/play-lifecycle";
 import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
 import { createDartRng } from "@modules/dartbot/rng.module";
 import { throwDart as botThrowDart } from "@modules/dartbot/throw-engine.module";
 import { chooseTarget } from "@modules/dartbot/strategy/dictated.strategy.module";
-import type { RulesetVersionKey, DartbotSeat } from "@lib/types";
+import type {
+  Bobs27Snapshot,
+  DartbotSeat,
+  RulesetVersionKey,
+} from "@lib/types";
 import type {
   Bobs27SeatState,
   Bobs27State,
@@ -44,15 +49,15 @@ import type {
 
 // Value import, not `import type`: the class is the narrowing target below,
 // and importing it also runs the module's side effect, which registers
-// bobs27EngineFactory so the registry can resolve this page's own
-// RULESET_VERSION_KEY.
+// both Bob's 27 engine factories so the registry can resolve this page's
+// own keys.
 import {
   Bobs27Engine,
   foldBobs27State,
 } from "@modules/game/bobs27.engine.module";
 
 const GAME_TYPE_KEY = "BOBS27";
-const RULESET_VERSION_KEY: RulesetVersionKey = "BOBS27_V1";
+const RESUMABLE = new Set<RulesetVersionKey>(["BOBS27_V1", "BOBS27_V2"]);
 
 function statsFor(
   seat: Bobs27SeatState,
@@ -104,8 +109,14 @@ function resumeEngine(
   game: Bobs27PlayContext["$store"]["game"],
 ): Bobs27Engine | null {
   const { configSnapshot, rulesetVersionKey } = game;
-  if (!configSnapshot || rulesetVersionKey !== RULESET_VERSION_KEY) return null;
-  const factory = getEngineFactory(RULESET_VERSION_KEY);
+  if (
+    !configSnapshot ||
+    !rulesetVersionKey ||
+    !RESUMABLE.has(rulesetVersionKey)
+  ) {
+    return null;
+  }
+  const factory = getEngineFactory(rulesetVersionKey);
   if (!factory) return null;
   const engine = factory.create(configSnapshot, {
     stages: game.stages,
@@ -314,8 +325,12 @@ export function bobs27Play() {
         this.resultsSnapshot?.winningSideKey ?? null,
       );
       if (winner) return `${winner} wins!`;
-      if (this.resultsSnapshot?.status === "TIE") return "It's a tie!";
-      return this.resultsSnapshot?.status === "LOST" ? "Game over!" : "Winner!";
+      const status = this.resultsSnapshot?.status;
+      if (status === "TIE") return "It's a tie!";
+      if (status === "LOST") return "Game over!";
+      return this.$store.game.configSnapshot?.mode === "EASY"
+        ? "Run complete!"
+        : "Winner!";
     },
 
     back(this: Bobs27PlayContext) {
@@ -327,12 +342,20 @@ export function bobs27Play() {
     },
 
     /**
-     * Replays the same configuration template the first session used, with
-     * no overrides — V1 has zero editable settings.
+     * Replays under the session's own key; Easy resends its mode as an
+     * override.
      */
     playAgain(this: Bobs27PlayContext) {
-      return runPlayAgain(this, GAME_TYPE_KEY, RULESET_VERSION_KEY, (engine) =>
-        engine instanceof Bobs27Engine ? engine : null,
+      const key = this.$store.game.rulesetVersionKey;
+      if (!key) return Promise.resolve();
+      return runPlayAgain(
+        this,
+        GAME_TYPE_KEY,
+        key,
+        (engine) => (engine instanceof Bobs27Engine ? engine : null),
+        key === "BOBS27_V2"
+          ? variantsPlayAgain<Bobs27Snapshot>(key)
+          : undefined,
       );
     },
   };

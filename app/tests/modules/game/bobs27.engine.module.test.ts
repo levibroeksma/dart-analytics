@@ -3,6 +3,7 @@ import {
   applyBobs27Dart,
   Bobs27Engine,
   bobs27EngineFactory,
+  bobs27V2EngineFactory,
   foldBobs27State,
   initialBobs27State,
 } from "@modules/game/bobs27.engine.module";
@@ -1082,5 +1083,134 @@ describe("Bob's 27 — Track kernel boundaries", () => {
     expect(applyBobs27Dart(config, seat, hitObservationFor(seat))).toEqual(
       at({ score: 29, dartsThisVisit: [false, true] }),
     );
+  });
+});
+
+const easyConfig = (
+  startScore: number,
+  seats: Seated<Bobs27Snapshot>["seats"] = SEATS,
+): Seated<Bobs27Snapshot> => ({
+  mode: "EASY",
+  startScore,
+  bullHitValue: 50,
+  missPenaltyMultiplier: 1,
+  seats,
+});
+
+function missVisit(
+  cfg: Seated<Bobs27Snapshot>,
+  seat: Bobs27SeatState,
+): Bobs27SeatState {
+  return [0, 1, 2].reduce(
+    (acc) => applyBobs27Dart(cfg, acc, missObservationFor(acc)),
+    seat,
+  );
+}
+
+describe("bobs27V2EngineFactory", () => {
+  it("registers under BOBS27_V2 and builds a Bobs27Engine", () => {
+    expect(bobs27V2EngineFactory.rulesetVersionKey).toBe("BOBS27_V2");
+    expect(getEngineFactory("BOBS27_V2")).toBe(bobs27V2EngineFactory);
+    const engine = bobs27V2EngineFactory.create(easyConfig(27));
+    expect(engine).toBeInstanceOf(Bobs27Engine);
+    expect(engine.rulesetVersionKey).toBe("BOBS27_V2");
+  });
+});
+
+describe("applyBobs27Dart — Easy", () => {
+  it("keeps a seat alive at zero and moves it to the next double", () => {
+    const cfg = easyConfig(2);
+    const seat = missVisit(cfg, initialBobs27State(cfg).seats[0]);
+    expect(seat.score).toBe(0);
+    expect(seat.status).toBe("IN_PROGRESS");
+    expect(seat.targetIndex).toBe(1);
+  });
+
+  it("lets the score go below zero", () => {
+    const cfg = easyConfig(2);
+    const first = missVisit(cfg, initialBobs27State(cfg).seats[0]);
+    const second = missVisit(cfg, first);
+    expect(second.score).toBe(-4);
+    expect(second.status).toBe("IN_PROGRESS");
+  });
+
+  it("still ends a Traditional seat at zero (V1 unchanged)", () => {
+    const cfg: Seated<Bobs27Snapshot> = { ...easyConfig(2), mode: undefined };
+    const seat = missVisit(cfg, initialBobs27State(cfg).seats[0]);
+    expect(seat.status).toBe("LOST");
+  });
+});
+
+describe("Bobs27Engine — Easy run", () => {
+  it("never reports a mid-path visit as completing, even one that is lethal in V1", () => {
+    const engine = bobs27V2EngineFactory.create(easyConfig(2));
+    const seat = engine.state().seats[0];
+    engine.record(missObservationFor(seat));
+    engine.record(missObservationFor(seat));
+    expect(engine.wouldComplete(missObservationFor(seat))).toBe(false);
+  });
+
+  it("finishes after the bull visit with the negative score kept", () => {
+    const engine = bobs27V2EngineFactory.create(easyConfig(27));
+    for (let i = 0; i < 70 && !engine.isComplete(); i += 1) {
+      const seat = engine.state().seats[0];
+      engine.record(missObservationFor(seat));
+    }
+    const state = engine.state();
+    expect(engine.isComplete()).toBe(true);
+    expect(state.seats[0].status).toBe("WON");
+    expect(state.seats[0].score).toBe(27 - 420 - 50);
+  });
+});
+
+describe("Bobs27Engine — Easy 1v1", () => {
+  const duo = [
+    ...SEATS,
+    {
+      participantRef: "participant-2",
+      displayName: "Guest",
+      sideKey: "B",
+      participantTypeKey: "GUEST" as const,
+    },
+  ];
+
+  function playOut(missFor: (ref: string) => boolean) {
+    const engine = bobs27V2EngineFactory.create(easyConfig(27, duo));
+    for (let i = 0; i < 200 && !engine.isComplete(); i += 1) {
+      const state = engine.state();
+      const seat = state.seats.find(
+        (s) => s.participantRef === state.activeParticipantRef,
+      )!;
+      engine.record(
+        missFor(seat.participantRef)
+          ? missObservationFor(seat)
+          : hitObservationFor(seat),
+      );
+    }
+    return engine.state();
+  }
+
+  it("does not end the match when one seat goes negative", () => {
+    const engine = bobs27V2EngineFactory.create(easyConfig(2, duo));
+    for (let i = 0; i < 6; i += 1) {
+      const state = engine.state();
+      const seat = state.seats.find(
+        (s) => s.participantRef === state.activeParticipantRef,
+      )!;
+      engine.record(missObservationFor(seat));
+    }
+    expect(engine.state().status).toBe("IN_PROGRESS");
+  });
+
+  it("gives the win to the higher final score", () => {
+    const state = playOut((ref) => ref === "participant-1");
+    expect(state.status).toBe("COMPLETE");
+    expect(state.winningSideKey).toBe("B");
+  });
+
+  it("ties on equal final scores", () => {
+    const state = playOut(() => true);
+    expect(state.status).toBe("TIE");
+    expect(state.winningSideKey).toBeNull();
   });
 });

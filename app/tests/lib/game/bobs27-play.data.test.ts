@@ -17,7 +17,10 @@ import {
   registerEngineFactory,
   resetEngineRegistry,
 } from "@modules/game/engine.registry";
-import { bobs27EngineFactory } from "@modules/game/bobs27.engine.module";
+import {
+  bobs27EngineFactory,
+  bobs27V2EngineFactory,
+} from "@modules/game/bobs27.engine.module";
 import { bobs27Play } from "@lib/game/bobs27-play.data";
 import { BOT_PACING } from "@lib/game/play-bot-seat";
 import type {
@@ -193,6 +196,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   resetEngineRegistry();
   registerEngineFactory(bobs27EngineFactory);
+  registerEngineFactory(bobs27V2EngineFactory);
   vi.mocked(fetchActiveSessions).mockResolvedValue([{ ...ACTIVE_SESSION }]);
 });
 
@@ -1078,5 +1082,84 @@ describe("bobs27Play bot flight", () => {
     expect(play.starterOpen).toBe(false);
     expect(play.playAgainStarter).toBeNull();
     expect(typeof play.requestPlayAgain).toBe("function");
+  });
+});
+
+describe("Easy sessions", () => {
+  const easyConfig = (): Seated<Bobs27Snapshot> => ({
+    ...defaultConfig(),
+    mode: "EASY",
+  });
+
+  it("resumes a BOBS27_V2 session through the V2 factory", async () => {
+    const play = makePlay({
+      rulesetVersionKey: "BOBS27_V2",
+      configSnapshot: easyConfig(),
+    });
+    await play.init.call(play);
+    expect(play.engine?.rulesetVersionKey).toBe("BOBS27_V2");
+  });
+
+  it("titles a finished solo Easy run 'Run complete!'", () => {
+    const play = makePlay({
+      rulesetVersionKey: "BOBS27_V2",
+      configSnapshot: easyConfig(),
+    });
+    play.resultsSnapshot = {
+      status: "WON",
+      winningSideKey: null,
+      seats: [],
+    } as any;
+    expect(play.resultsTitle.call(play)).toBe("Run complete!");
+  });
+
+  it("keeps 'Winner!' for a Traditional solo win", () => {
+    const play = makePlay();
+    play.resultsSnapshot = {
+      status: "WON",
+      winningSideKey: null,
+      seats: [],
+    } as any;
+    expect(play.resultsTitle.call(play)).toBe("Winner!");
+  });
+
+  it("shows a negative score as a minus number", async () => {
+    const play = makePlay({
+      rulesetVersionKey: "BOBS27_V2",
+      configSnapshot: { ...easyConfig(), startScore: -3 },
+    });
+    await play.init.call(play);
+    expect(play.currentScore.call(play)).toBe("-3");
+  });
+
+  it("plays again under BOBS27_V2 with the mode resent", async () => {
+    const play = makePlay({
+      rulesetVersionKey: "BOBS27_V2",
+      configSnapshot: easyConfig(),
+      turns: priorTurnsThroughBull(),
+    });
+    play.completionStatus = "succeeded";
+    play.finished = true;
+    vi.mocked(createSession).mockResolvedValue({
+      sessionId: "new-session",
+      participants: [
+        {
+          ref: "new-participant",
+          displayName: "Player",
+          participantTypeKey: "PLAYER",
+        },
+      ],
+    } as any);
+
+    await play.playAgain.call(play);
+
+    expect(createSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rulesetVersionKey: "BOBS27_V2",
+        config: expect.objectContaining({
+          overrides: expect.objectContaining({ mode: "EASY" }),
+        }),
+      }),
+    );
   });
 });
