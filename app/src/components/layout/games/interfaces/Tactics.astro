@@ -7,37 +7,28 @@ interface Props {
 const { ...props }: Props = Astro.props;
 
 // Components
-import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
+import SeatedPlayScreen from "@components/layout/games/SeatedPlayScreen.astro";
 import MarkRows from "@components/layout/games/MarkRows.astro";
 import VisitPreview from "@components/layout/games/VisitPreview.astro";
 import TacticsRecreationalInput from "@components/layout/games/TacticsRecreationalInput.astro";
-import BoardInputPanel from "@components/layout/games/BoardInputPanel.astro";
-import ErrorAlert from "@components/ui/ErrorAlert.astro";
 ---
 
-<div
-  class="flex flex-col flex-1 min-h-0 gap-2"
+<SeatedPlayScreen
+  big={{
+    isTarget: false,
+    value: (c) => (c.solo ? c("dartsThrown") : c("points")),
+  }}
+  soloCaption="DARTS USED"
+  tiles={[{ label: "Closed", value: (c) => c("closedCount") }]}
   {...props}
 >
-  <SinglePlayerDisplay
-    isTarget={false}
-    score="dartsThrown()"
-    caption="DARTS USED"
-  >
-    <MarkRows />
-  </SinglePlayerDisplay>
-
-  <ErrorAlert class="mx-3 mt-2 text-xs" />
-
+  <MarkRows
+    slot="rows"
+    rowsExpr="objectiveRowsFor(rowsRef)"
+  />
   <VisitPreview />
-
   <TacticsRecreationalInput
     x-show="$store.game.inputModeKey !== 'VISUAL_BOARD'"
     x-cloak
   />
-  {
-    /* Visual board — shown instead of the tap input above for an
-    ANALYTICS + VISUAL_BOARD session, which enters every dart by pointer. */
-  }
-  <BoardInputPanel />
-</div>
+</SeatedPlayScreen>

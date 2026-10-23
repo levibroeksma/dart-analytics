@@ -985,6 +985,9 @@ export type TacticsObjectiveRow = {
   objective: TacticsObjective;
   marks: number;
   closed: boolean;
+  opponentMarks: number | null;
+  scoring: boolean;
+  dead: boolean;
 };
 
 export type TacticsSeatResult = {
@@ -993,12 +996,13 @@ export type TacticsSeatResult = {
   darts: number;
   marksPerRound: string;
   bulls: number;
+  points: number;
   dartsToClose: (number | null)[];
 };
 
 export type TacticsResultsSnapshot = {
   status: "COMPLETE";
-  winningSideKey: null;
+  winningSideKey: string | null;
   seats: TacticsSeatResult[];
 };
 
@@ -1011,7 +1015,13 @@ export type TacticsPlayContext = PlayLifecycleContext<
   visitMarkers(this: TacticsPlayContext): BoardMarker[];
   state(this: TacticsPlayContext): TacticsState | null;
   subtitle(this: TacticsPlayContext): string;
-  objectiveRows(this: TacticsPlayContext): TacticsObjectiveRow[];
+  objectiveRowsFor(
+    this: TacticsPlayContext,
+    ref: string | undefined,
+  ): TacticsObjectiveRow[];
+  pointsFor(this: TacticsPlayContext, ref: string | undefined): string;
+  closedCountFor(this: TacticsPlayContext, ref: string | undefined): string;
+  dartsThrownFor(this: TacticsPlayContext, ref: string | undefined): string;
   dartsThrown(this: TacticsPlayContext): string;
   previewSegments(this: TacticsPlayContext): Bobs27PreviewSegment[];
   init(this: TacticsPlayContext): Promise<void>;

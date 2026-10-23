@@ -14,6 +14,7 @@ import {
   runPlayAgain,
 } from "@lib/game/play-lifecycle";
 import { joinSubtitle } from "@lib/game/play-subtitle";
+import { matchWinnerName } from "@lib/game/match-result-text";
 import type { RulesetVersionKey } from "@lib/types";
 import type {
   DartObservation,
@@ -46,7 +47,6 @@ import {
 import { marksPerRound } from "@modules/game/marks-close.module";
 
 const GAME_TYPE_KEY = "TACTICS";
-const RULESET_VERSION_KEY: RulesetVersionKey = "TACTICS_V1";
 const RESUMABLE = new Set<RulesetVersionKey>(["TACTICS_V1", "TACTICS_V2"]);
 
 const BULL_RING: Record<Exclude<TacticsRing, "TREBLE">, DartZoneKey> = {
@@ -99,16 +99,48 @@ export function tacticsSeatResult(seat: TacticsSeatState): TacticsSeatResult {
     darts: seat.dartsThrown,
     marksPerRound: marksPerRound(seat).toFixed(2),
     bulls: seat.objectiveHits[TACTICS_OBJECTIVES.indexOf(BULL_TARGET_NUMBER)],
+    points: seat.points,
     dartsToClose: [...seat.closedAtDart],
   };
 }
 
 function computeStats(state: TacticsState): TacticsResultsSnapshot {
+  const winner = state.seats.find(
+    (seat) => seat.participantRef === state.winnerParticipantRef,
+  );
   return {
     status: "COMPLETE",
-    winningSideKey: null,
+    winningSideKey: winner?.sideKey ?? null,
     seats: state.seats.map(tacticsSeatResult),
   };
+}
+
+function seatByRef(state: TacticsState | null, ref: string | undefined) {
+  return state?.seats.find((seat) => seat.participantRef === ref);
+}
+
+function rowsOf(
+  state: TacticsState | null,
+  ref: string | undefined,
+): TacticsObjectiveRow[] {
+  const seat = seatByRef(state, ref);
+  const opponent = state?.seats.find(
+    (candidate) => candidate.participantRef !== ref,
+  );
+  const duel = (state?.seats.length ?? 0) > 1;
+  return TACTICS_OBJECTIVES.map((objective, i) => {
+    const marks = seat?.marks[i] ?? 0;
+    const opponentMarks = duel ? (opponent?.marks[i] ?? 0) : null;
+    return {
+      label: objectiveLabel(objective),
+      objective,
+      marks,
+      closed: marks === 3,
+      opponentMarks,
+      scoring: opponentMarks !== null && marks === 3 && opponentMarks < 3,
+      dead: opponentMarks !== null && marks === 3 && opponentMarks === 3,
+    };
+  });
 }
 
 /**
@@ -175,20 +207,35 @@ export function tacticsPlay() {
       );
     },
 
-    /** Play-header subtitle: `SOLO · 9 OBJECTIVES`; blank before config loads. */
+    /** Play-header subtitle: `SOLO · 9 OBJECTIVES` or `1V1 · 9 OBJECTIVES`; blank before config loads. */
     subtitle(this: TacticsPlayContext): string {
-      if (!this.$store.game.configSnapshot) return "";
-      return joinSubtitle(["SOLO", `${TACTICS_OBJECTIVES.length} OBJECTIVES`]);
+      const config = this.$store.game.configSnapshot;
+      if (!config) return "";
+      return joinSubtitle([
+        config.seats.length > 1 ? "1V1" : "SOLO",
+        `${TACTICS_OBJECTIVES.length} OBJECTIVES`,
+      ]);
     },
 
-    objectiveRows(this: TacticsPlayContext): TacticsObjectiveRow[] {
-      const seat = this.state()?.seats[0];
-      return TACTICS_OBJECTIVES.map((objective, i) => ({
-        label: objectiveLabel(objective),
-        objective,
-        marks: seat?.marks[i] ?? 0,
-        closed: (seat?.marks[i] ?? 0) === 3,
-      }));
+    /** One seat's nine rows; the opponent fields are set only in a duel. */
+    objectiveRowsFor(
+      this: TacticsPlayContext,
+      ref: string | undefined,
+    ): TacticsObjectiveRow[] {
+      return rowsOf(this.state(), ref);
+    },
+
+    pointsFor(this: TacticsPlayContext, ref: string | undefined): string {
+      return String(seatByRef(this.state(), ref)?.points ?? 0);
+    },
+
+    closedCountFor(this: TacticsPlayContext, ref: string | undefined): string {
+      const seat = seatByRef(this.state(), ref);
+      return String(seat?.marks.filter((count) => count === 3).length ?? 0);
+    },
+
+    dartsThrownFor(this: TacticsPlayContext, ref: string | undefined): string {
+      return String(seatByRef(this.state(), ref)?.dartsThrown ?? 0);
     },
 
     dartsThrown(this: TacticsPlayContext): string {
@@ -277,8 +324,13 @@ export function tacticsPlay() {
       return playUploadAndCompleteSession(this, computeStats);
     },
 
-    resultsTitle(): string {
-      return "Closed out!";
+    resultsTitle(this: TacticsPlayContext): string {
+      if (this.$store.game.seats.length < 2) return "Closed out!";
+      const winner = matchWinnerName(
+        this.$store.game.seats,
+        this.resultsSnapshot?.winningSideKey ?? null,
+      );
+      return winner ? `${winner} wins!` : "Game over";
     },
 
     back(this: TacticsPlayContext) {
@@ -290,11 +342,13 @@ export function tacticsPlay() {
     },
 
     /**
-     * Replays the same configuration template the first session used, with
-     * no overrides — V1 has zero editable settings.
+     * Replays the same configuration template the first session used, under
+     * the session's own ruleset key, with no overrides.
      */
     playAgain(this: TacticsPlayContext) {
-      return runPlayAgain(this, GAME_TYPE_KEY, RULESET_VERSION_KEY, (engine) =>
+      const key = this.$store.game.rulesetVersionKey;
+      if (!key) return Promise.resolve();
+      return runPlayAgain(this, GAME_TYPE_KEY, key, (engine) =>
         engine instanceof TacticsEngine ? engine : null,
       );
     },

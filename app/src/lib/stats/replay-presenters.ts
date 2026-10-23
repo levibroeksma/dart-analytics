@@ -402,22 +402,28 @@ const CRICKET: ReplayPresenter = {
 
 /**
  * Tactics, read as Cricket is: after each visit, the seat's capped marks and
- * closed objectives; the session line is darts thrown.
+ * closed objectives, and points for two seats; the session line is darts
+ * thrown, or points for two seats.
  */
 const TACTICS: ReplayPresenter = {
   turn({ turn, after }) {
     const seat = seatIn<TacticsSeatState>(after, turn.participantRef);
     const closed = seat.marks.filter((count) => count === 3).length;
-    return [
+    const cells = [
       valueCell("Marks", effectiveMarks(seat)),
       valueCell("Closed", `${closed}/${TACTICS_OBJECTIVES.length}`),
     ];
+    return seatsOf<TacticsSeatState>(after).length > 1
+      ? [...cells, valueCell("Points", seat.points)]
+      : cells;
   },
   session(steps) {
+    const last = steps.at(-1);
+    const duel = last !== undefined && seatsOf(last.after).length > 1;
     return finalLine<TacticsSeatState>(
       steps,
-      "Darts",
-      (seat) => seat.dartsThrown,
+      duel ? "Points" : "Darts",
+      (seat) => (duel ? seat.points : seat.dartsThrown),
     );
   },
 };
