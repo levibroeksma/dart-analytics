@@ -128,6 +128,7 @@ describe("routinePlay — pause", () => {
     store.switchingEngine = {
       record,
       isComplete: () => false,
+      facts: () => ({ turns: [] }),
     } as unknown as RoutinePlayContext["switchingEngine"];
     store.startStepTimer(60);
     store.togglePause();
