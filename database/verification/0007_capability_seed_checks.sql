@@ -156,7 +156,7 @@ WHERE step = '2';
 -- Population: rows with the whole triple set, the rows migration
 -- 0020's MATCH SIMPLE FK constrains. Migration 0029 made the triple
 -- nullable for non-GAME sessions; a NULL never matches a capability
--- row, so counting those would fail on a healthy database (#404).
+-- row, so counting those would fail on a healthy database (#384).
 --
 -- This is the exact query from task-2-brief.md Step 4 and the
 -- precondition migration 0020's composite FK depends on. The
