@@ -66,6 +66,10 @@ const solo = soloCall();
 const bigSolo = big.value(solo);
 const seatA = seatCall(0);
 const seatB = seatCall(1);
+const progressSeats = [
+  { slot: "progressA", index: 0, call: seatA },
+  { slot: "progressB", index: 1, call: seatB },
+] as const;
 const seatDisplay = (index: 0 | 1, c: Call) => ({
   nameExpr: `$store.game.seats[${index}]?.displayName`,
   activeExpr: `state()?.activeParticipantRef === ${seatRef(index)}`,
@@ -123,39 +127,23 @@ const seatDisplay = (index: 0 | 1, c: Call) => ({
       legsToWinExpr={legs?.toWin}
     >
       {
-        hasRows ? (
-          <div
-            slot="progressA"
-            class="contents"
-            x-data={rowsRefOf(0)}
-          >
-            <slot name="rows" />
-          </div>
-        ) : (
-          <PlayStatTileList
-            slot="progressA"
-            tiles={tiles}
-            call={seatA}
-            compact
-          />
-        )
-      }
-      {
-        hasRows ? (
-          <div
-            slot="progressB"
-            class="contents"
-            x-data={rowsRefOf(1)}
-          >
-            <slot name="rows" />
-          </div>
-        ) : (
-          <PlayStatTileList
-            slot="progressB"
-            tiles={tiles}
-            call={seatB}
-            compact
-          />
+        progressSeats.map(({ slot, index, call }) =>
+          hasRows ? (
+            <div
+              slot={slot}
+              class="contents"
+              x-data={rowsRefOf(index)}
+            >
+              <slot name="rows" />
+            </div>
+          ) : (
+            <PlayStatTileList
+              slot={slot}
+              tiles={tiles}
+              call={call}
+              compact
+            />
+          ),
         )
       }
     </SplitScoreboard>
