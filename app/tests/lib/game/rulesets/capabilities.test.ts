@@ -23,6 +23,7 @@ describe("RULESET_CAPABILITIES", () => {
       "AROUND_THE_CLOCK_V3",
       "BASEBALL_V1",
       "BOBS27_V1",
+      "BOBS27_V2",
       "CRICKET_V1",
       "DOUBLES_TRAINING_V1",
       "SCORE_TRAINING_V1",
@@ -148,6 +149,7 @@ describe("capableRulesets", () => {
       "AROUND_THE_CLOCK_V3",
       "BASEBALL_V1",
       "BOBS27_V1",
+      "BOBS27_V2",
       "CRICKET_V1",
       "DOUBLES_TRAINING_V1",
       "SCORE_TRAINING_V1",
@@ -169,7 +171,7 @@ describe("capableRulesets", () => {
 });
 
 describe("RULESET_DARTBOT", () => {
-  it("admits the twelve rulesets whose bot strategy exists today", () => {
+  it("admits the thirteen rulesets whose bot strategy exists today", () => {
     expect(
       (Object.keys(RULESET_DARTBOT) as (keyof typeof RULESET_DARTBOT)[])
         .filter((key) => RULESET_DARTBOT[key])
@@ -180,6 +182,7 @@ describe("RULESET_DARTBOT", () => {
       "501_V2",
       "AROUND_THE_CLOCK_V1",
       "BOBS27_V1",
+      "BOBS27_V2",
       "DOUBLES_TRAINING_V1",
       "SCORE_TRAINING_V1",
       "SHANGHAI_V1",
@@ -280,5 +283,25 @@ describe("Around the Clock V3 capabilities", () => {
 
   it("is not a dartbot ruleset", () => {
     expect(supportsDartbot("AROUND_THE_CLOCK_V3")).toBe(false);
+  });
+});
+
+describe("Bob's 27 V2 capabilities", () => {
+  it("declares the same pairs as V1", () => {
+    expect(RULESET_CAPABILITIES.BOBS27_V2).toEqual(
+      RULESET_CAPABILITIES.BOBS27_V1,
+    );
+  });
+
+  it("is a dartbot ruleset", () => {
+    expect(supportsDartbot("BOBS27_V2")).toBe(true);
+  });
+
+  it("belongs to the BOBS27 game type", () => {
+    expect(GAME_TYPE_BY_RULESET.BOBS27_V2).toBe("BOBS27");
+  });
+
+  it("reports the V1 stats tags", () => {
+    expect(STATS_TAGS.BOBS27_V2).toEqual(STATS_TAGS.BOBS27_V1);
   });
 });

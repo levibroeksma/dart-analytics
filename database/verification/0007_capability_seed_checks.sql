@@ -51,12 +51,12 @@ CREATE TEMP TABLE verification_results (
 -- ------------------------------------------------------------
 INSERT INTO verification_results
 SELECT '1',
-    'seed inserted exactly the 38 declared rows',
+    'seed inserted exactly the 40 declared rows',
     CASE
-        WHEN count(*) = 38 THEN 'PASS'
+        WHEN count(*) = 40 THEN 'PASS'
         ELSE 'FAIL'
     END,
-    format('expected 38, found %s', count(*))
+    format('expected 40, found %s', count(*))
 FROM ruleset_version_capabilities;
 
 -- ------------------------------------------------------------
@@ -104,6 +104,8 @@ FROM (
             ('SINGLES_V3', 'ANALYTICS', 'VISUAL_BOARD'),
             ('BOBS27_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
             ('BOBS27_V1', 'ANALYTICS', 'VISUAL_BOARD'),
+            ('BOBS27_V2', 'RECREATIONAL', 'DETAILED_DARTS'),
+            ('BOBS27_V2', 'ANALYTICS', 'VISUAL_BOARD'),
             ('DOUBLES_TRAINING_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
             ('DOUBLES_TRAINING_V1', 'ANALYTICS', 'VISUAL_BOARD'),
             ('SHANGHAI_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
@@ -139,12 +141,12 @@ FROM (
 -- silently read as fewer triples checked, not FAIL.
 INSERT INTO verification_results
 SELECT '2',
-    'all 38 declared triples were actually checked',
+    'all 40 declared triples were actually checked',
     CASE
-        WHEN count(*) = 38 THEN 'PASS'
+        WHEN count(*) = 40 THEN 'PASS'
         ELSE 'FAIL'
     END,
-    format('%s of 38 triple checks ran', count(*))
+    format('%s of 40 triple checks ran', count(*))
 FROM verification_results
 WHERE step = '2';
 
@@ -154,7 +156,7 @@ WHERE step = '2';
 -- Population: rows with the whole triple set, the rows migration
 -- 0020's MATCH SIMPLE FK constrains. Migration 0029 made the triple
 -- nullable for non-GAME sessions; a NULL never matches a capability
--- row, so counting those would fail on a healthy database (#384).
+-- row, so counting those would fail on a healthy database (#404).
 --
 -- This is the exact query from task-2-brief.md Step 4 and the
 -- precondition migration 0020's composite FK depends on. The
@@ -229,6 +231,8 @@ WHERE NOT EXISTS (
                     ('SINGLES_V3', 'ANALYTICS', 'VISUAL_BOARD'),
                     ('BOBS27_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
                     ('BOBS27_V1', 'ANALYTICS', 'VISUAL_BOARD'),
+                    ('BOBS27_V2', 'RECREATIONAL', 'DETAILED_DARTS'),
+                    ('BOBS27_V2', 'ANALYTICS', 'VISUAL_BOARD'),
                     ('DOUBLES_TRAINING_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
                     ('DOUBLES_TRAINING_V1', 'ANALYTICS', 'VISUAL_BOARD'),
                     ('SHANGHAI_V1', 'RECREATIONAL', 'DETAILED_DARTS'),

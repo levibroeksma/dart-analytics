@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { getRulesetValidator } from "@services/rulesets/registry";
+import { bobs27V2Validator } from "@services/rulesets/bobs27/bobs27.validator";
 import {
   aroundTheClockV2Validator,
   aroundTheClockV3Validator,
@@ -12,6 +13,10 @@ describe("getRulesetValidator", () => {
 
   it("returns the Bob's 27 validator for BOBS27_V1", () => {
     expect(getRulesetValidator("BOBS27_V1")).toBeDefined();
+  });
+
+  it("returns the Bob's 27 V2 validator for BOBS27_V2", () => {
+    expect(getRulesetValidator("BOBS27_V2")).toBe(bobs27V2Validator);
   });
 
   it("returns the Singles Training validator for SINGLES_V1", () => {

@@ -24,7 +24,9 @@ describe("statistics capability tags", () => {
       .filter(([, tags]) => tags.includes("intent-stored"))
       .map(([key]) => key)
       .sort();
-    expect(stored).toEqual(["BOBS27_V1", "DOUBLES_TRAINING_V1"].sort());
+    expect(stored).toEqual(
+      ["BOBS27_V1", "BOBS27_V2", "DOUBLES_TRAINING_V1"].sort(),
+    );
   });
 
   it("groups ruleset versions under their game type", () => {
