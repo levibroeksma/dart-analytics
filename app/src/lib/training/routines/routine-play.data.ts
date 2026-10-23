@@ -30,6 +30,7 @@ import {
   judgeDart,
   visitLabelsFor,
   visitPreview,
+  chipPage,
   windowIndex,
   windowPage,
 } from "./exercise-preview";
@@ -178,9 +179,14 @@ function chipLabel(target: TrackTarget): string {
   return boardTargetLabel(target).replace(" ", "\u00a0");
 }
 
-/** A path's chips paged around `index` (`windowPage`), space-joined for `RouteChips`. */
+/** A path's chips paged around `index` (`chipPage`), space-joined for `RouteChips`. */
 function routeChipsOf(path: readonly TrackTarget[], index: number): string {
-  return windowPage(path.map(chipLabel), index).join(" ");
+  return chipPage(path.map(chipLabel), index).chips.join(" ");
+}
+
+/** The chip at `index` within `routeChipsOf()`'s page. */
+function routeChipIndexOf(path: readonly TrackTarget[], index: number): number {
+  return chipPage(path.map(chipLabel), index).index;
 }
 
 /** Hits over darts as a percentage display; zero while no engine is open. */
@@ -1148,7 +1154,7 @@ export function routinePlay() {
       return this.halveItEngine?.state().total ?? 0;
     },
 
-    /** Halve-It's list as chips, paged around the current round (`windowPage`); a zone keeps its words with a no-break space. */
+    /** Halve-It's list as chips, paged around the current round (`chipPage`); a zone keeps its words with a no-break space. */
     halveItRoute(this: RoutinePlayContext): string {
       return routeChipsOf(
         HALVE_IT_PATH,
@@ -1158,7 +1164,10 @@ export function routinePlay() {
 
     /** The current round's chip within `halveItRoute()`'s page. */
     halveItChipIndex(this: RoutinePlayContext): number {
-      return windowIndex(this.halveItEngine?.state().targetIndex ?? 0);
+      return routeChipIndexOf(
+        HALVE_IT_PATH,
+        this.halveItEngine?.state().targetIndex ?? 0,
+      );
     },
 
     halveItRound(this: RoutinePlayContext): number {
@@ -1182,7 +1191,7 @@ export function routinePlay() {
       return targetLabelOf(this.snakesLaddersEngine?.state().currentLevel);
     },
 
-    /** The ladder as chips, paged around the current level (`windowPage`). */
+    /** The ladder as chips, paged around the current level (`chipPage`). */
     snakesLaddersRoute(this: RoutinePlayContext): string {
       return routeChipsOf(
         SNAKES_LADDERS_PATH,
@@ -1192,7 +1201,10 @@ export function routinePlay() {
 
     /** The current level's chip within `snakesLaddersRoute()`'s page. */
     snakesLaddersChipIndex(this: RoutinePlayContext): number {
-      return windowIndex(this.snakesLaddersEngine?.state().levelIndex ?? 0);
+      return routeChipIndexOf(
+        SNAKES_LADDERS_PATH,
+        this.snakesLaddersEngine?.state().levelIndex ?? 0,
+      );
     },
 
     snakesLaddersHighest(this: RoutinePlayContext): string {

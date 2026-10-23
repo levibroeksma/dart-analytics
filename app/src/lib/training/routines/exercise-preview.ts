@@ -210,6 +210,47 @@ export function windowPage<T>(items: readonly T[], focus: number): T[] {
   return items.slice(start, start + WINDOW_SIZE);
 }
 
+/** Row budget for `chipPage()`: a chip costs twice its length plus a separator, and a row holds `CHIP_ROW_BUDGET`. */
+const CHIP_ROW_BUDGET = 77;
+const CHIP_SEPARATOR_COST = 5;
+
+/**
+ * The page of chip `labels` holding index `focus` (clamped into the list),
+ * and the focus chip's position in it. A page closes at `WINDOW_SIZE` chips or
+ * when the next label would overflow the row, so a wide label (`Any double`)
+ * starts the next page instead of spilling out of the pill; labels of up to
+ * three characters still fill six to a page.
+ */
+export function chipPage(
+  labels: readonly string[],
+  focus: number,
+): { chips: string[]; index: number } {
+  const target = Math.min(Math.max(focus, 0), Math.max(labels.length - 1, 0));
+  let start = 0;
+  let cost = 0;
+  for (const [position, label] of labels.entries()) {
+    const labelCost = label.length * 2 + CHIP_SEPARATOR_COST;
+    const overflows =
+      position - start >= WINDOW_SIZE || cost + labelCost > CHIP_ROW_BUDGET;
+    if (position > start && overflows) {
+      if (position > target) return page(labels, start, position, target);
+      start = position;
+      cost = 0;
+    }
+    cost += labelCost;
+  }
+  return page(labels, start, labels.length, target);
+}
+
+function page(
+  labels: readonly string[],
+  start: number,
+  end: number,
+  target: number,
+): { chips: string[]; index: number } {
+  return { chips: labels.slice(start, end), index: target - start };
+}
+
 /** Where index `focus` sits within its `windowPage()` page. */
 export function windowIndex(focus: number): number {
   return Math.max(focus, 0) % WINDOW_SIZE;
