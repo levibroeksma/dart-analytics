@@ -23,8 +23,8 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Miss = anything except the double | V1 | All | |
 | Traditional: ≤0 is game over | V1 | All | |
 | Traditional: win if score > 0 after bull visit | V1 | All | |
-| Easy / beginner: cannot die (negative allowed) | V2+ | All | Wanted, unscheduled: `Bobs27Config` carries only `start_score`, `bull_hit_value` and `miss_penalty_multiplier` — no mode key, so a death-free run is a schema change plus an engine branch |
-| Easy: ends after bull visit regardless of score | V2+ | All | Wanted, unscheduled: the other half of the Easy mode above, and blocked on the same missing mode key |
+| Easy / beginner: cannot die (negative allowed) | V2 | All | Scheduled for V2 (2026-10-23): `Bobs27Config` is a strict object with no mode key, so the mode arrives as a new ruleset version, `BOBS27_V2`, and V1 stays untouched |
+| Easy: ends after bull visit regardless of score | V2 | All | Scheduled for V2 (2026-10-23): the other half of the Easy mode above, same ruleset version. The run has no win or loss; the result is the final score |
 | Standard dartboard (assumed) | V1 | All | |
 
 ## Identity
@@ -48,6 +48,7 @@ Popular doubles training game with a running score. Start at **27**, throw three
 - **Traditional:** survive the path without hitting **0 or below**; after the bull visit, finish with a **positive** score to win.
 - **Session (V1):** one full traditional run (D1…D20, bull).
 - **1v1:** first to bust loses; the other seat wins (elimination); if neither busts, higher final score wins, equal is a tie. <!-- 2026-08-22 -->
+- **Easy (V2):** play the whole path; nobody dies. The aim is the highest final score. **1v1:** higher final score wins, equal is a tie.
 
 ## Config & presets
 
@@ -57,6 +58,7 @@ Before play, a **config screen** shows the session presets.
 | ----------- | --------------- | --------------------- |
 | Players     | 1 seat, or 2 (guest or DartBot) | Editable |
 | Mode        | Traditional     | Shown, locked         |
+| Mode (V2)   | Traditional or Easy; Traditional is the default | Editable |
 | Start score | 27              | Shown, locked         |
 | Path        | D1 → D20 → bull | Shown, locked         |
 
@@ -122,6 +124,14 @@ The final score, the win or loss, and per target: hits and full-miss visits. In
 
 Player **cannot die**; score may go negative. Run still ends when the bull visit is complete.
 
+Scoring, path, bull rule and the three-darts-per-double visit are exactly Traditional; only the death check is removed. A full miss visit subtracts as usual, so the running score can fall below zero and keep falling. <!-- 2026-10-23 -->
+
+**Single:** the run completes after the bull visit with no win or loss. The result is the final score, which may be negative.
+
+**1v1:** no seat is eliminated; both seats play the full path. The higher final score wins; equal scores are a tie with no winner. A DartBot seat counts as the opponent seat.
+
+**Result (Easy):** the final score, and per target: hits and full-miss visits. No win or loss in single; in 1v1, the winning seat (or a tie) beside both seats' final scores.
+
 ### Match structure / other
 
 - Guest and DartBot opponents both shipped under V1 (traditional only); the
@@ -134,7 +144,7 @@ Player **cannot die**; score may go negative. Run still ends when the bull visit
 | **Hit**             | V1      | Dart in the required double; on the bull target, the inner bull only. |
 | **Full miss visit** | V1      | All three darts miss → subtract 1× the double’s value. |
 | **Traditional**     | V1      | ≤0 ends the game; positive after bull wins.            |
-| **Easy**            | V2+     | No death; finish the path even with a negative score.  |
+| **Easy**            | V2      | No death; finish the path even with a negative score.  |
 
 ## Capture
 
