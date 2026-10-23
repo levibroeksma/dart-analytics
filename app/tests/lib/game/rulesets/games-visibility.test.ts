@@ -153,6 +153,27 @@ describe("cardForRuleset", () => {
     );
   });
 
+  it("resolves a ruleset with no card of its own to its game type's primary card", () => {
+    expect(
+      cardForRuleset(GAME_CARDS, "AROUND_THE_CLOCK_V2")?.rulesetVersionKey,
+    ).toBe("AROUND_THE_CLOCK_V1");
+    expect(cardForRuleset(GAME_CARDS, "SHANGHAI_V2")?.rulesetVersionKey).toBe(
+      "SHANGHAI_V1",
+    );
+    expect(cardForRuleset(GAME_CARDS, "121_V2")?.rulesetVersionKey).toBe(
+      "121_V1",
+    );
+    expect(cardForRuleset(GAME_CARDS, "SINGLES_V3")?.rulesetVersionKey).toBe(
+      "SINGLES_V1",
+    );
+  });
+
+  it("keeps a ruleset's own card over the primary one", () => {
+    expect(
+      cardForRuleset(GAME_CARDS, "AROUND_THE_CLOCK_V3")?.rulesetVersionKey,
+    ).toBe("AROUND_THE_CLOCK_V3");
+  });
+
   it("returns undefined for null or an uncarded key", () => {
     expect(cardForRuleset(GAME_CARDS, null)).toBeUndefined();
     expect(cardForRuleset(GAME_CARDS, "NOPE")).toBeUndefined();

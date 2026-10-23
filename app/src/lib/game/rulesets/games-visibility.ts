@@ -1,5 +1,5 @@
 import type { RulesetVersionKey } from "@lib/types";
-import { supportsCaptureMode } from "./capabilities";
+import { GAME_TYPE_BY_RULESET, supportsCaptureMode } from "./capabilities";
 import type { GameCardDescriptor, GameGroupKey } from "./types";
 
 /**
@@ -182,13 +182,19 @@ export function primaryCards(
 }
 
 /**
- * The card a session's ruleset resumes through: its own, or for a `501_V1`
- * session the single 501 card (`501_V2`).
+ * The card a session's ruleset resumes through: its own, else its game type's
+ * first card (`501_V1` resumes through the 501 card, `SHANGHAI_V2` through
+ * Shanghai's).
  */
 export function cardForRuleset(
   cards: readonly GameCardDescriptor[],
   rulesetVersionKey: string | null,
 ): GameCardDescriptor | undefined {
-  const target = rulesetVersionKey === "501_V1" ? "501_V2" : rulesetVersionKey;
-  return cards.find((game) => game.rulesetVersionKey === target);
+  const own = cards.find(
+    (game) => game.rulesetVersionKey === rulesetVersionKey,
+  );
+  if (own || rulesetVersionKey === null) return own;
+  const gameTypeKey =
+    GAME_TYPE_BY_RULESET[rulesetVersionKey as RulesetVersionKey];
+  return primaryCards(cards).find((game) => game.gameTypeKey === gameTypeKey);
 }
