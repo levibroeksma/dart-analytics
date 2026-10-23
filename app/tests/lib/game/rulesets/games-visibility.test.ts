@@ -241,3 +241,11 @@ describe("primaryCards", () => {
     expect(new Set(types).size).toBe(types.length);
   });
 });
+
+describe("cardForRuleset — Bob's 27 Easy", () => {
+  it("keeps a BOBS27_V2 session on the Bob's 27 card", () => {
+    const card = cardForRuleset(GAME_CARDS, "BOBS27_V2");
+    expect(card?.gameTypeKey).toBe("BOBS27");
+    expect(card?.rulesetVersionKey).toBe("BOBS27_V1");
+  });
+});
