@@ -296,4 +296,52 @@ describe("bobs27Setup", () => {
       expect(setup.loading).toBe(false);
     });
   });
+
+  describe("Easy mode", () => {
+    const created = {
+      sessionId: "new-session-id",
+      participants: [
+        {
+          ref: "participant-1",
+          displayName: "Player",
+          participantTypeKey: "PLAYER",
+        },
+      ],
+    } as any;
+
+    it("defaults to Traditional on the V1 key with no overrides", async () => {
+      const setup = createSetup({ presets: [STANDARD_PRESET] });
+      vi.mocked(sessionsApi.createSession).mockResolvedValue(created);
+      vi.stubGlobal("location", { href: "" });
+      expect(setup.easy).toBe(false);
+
+      await setup.start();
+
+      expect(sessionsApi.createSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          rulesetVersionKey: "BOBS27_V1",
+          config: { source: "template", templateRef: "tmpl-standard" },
+        }),
+      );
+    });
+
+    it("starts BOBS27_V2 with the mode override when Easy is on", async () => {
+      const setup = createSetup({ presets: [STANDARD_PRESET], easy: true });
+      vi.mocked(sessionsApi.createSession).mockResolvedValue(created);
+      vi.stubGlobal("location", { href: "" });
+
+      await setup.start();
+
+      expect(sessionsApi.createSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          rulesetVersionKey: "BOBS27_V2",
+          config: {
+            source: "template",
+            templateRef: "tmpl-standard",
+            overrides: { mode: "EASY" },
+          },
+        }),
+      );
+    });
+  });
 });
