@@ -6,6 +6,7 @@ import {
   exerciseFamily,
   judgeDart,
   visitLabelsFor,
+  chipPage,
   windowIndex,
   windowPage,
 } from "@lib/training/routines/exercise-preview";
@@ -190,6 +191,61 @@ describe("windowPage", () => {
   it("clamps an out-of-range focus to the list", () => {
     expect(windowPage(items, 99)).toEqual([13, 14]);
     expect(windowPage(items, -1)).toEqual([1, 2, 3, 4, 5, 6]);
+  });
+});
+
+describe("chipPage", () => {
+  const halveIt = [
+    "20",
+    "16",
+    "Any\u00a0double",
+    "17",
+    "18",
+    "Any\u00a0treble",
+    "19",
+    "20",
+    "BULL",
+  ];
+
+  it("fills a page with short labels up to six", () => {
+    const labels = ["20", "19", "18", "17", "16", "15", "14", "13"];
+
+    expect(chipPage(labels, 0)).toEqual({
+      chips: labels.slice(0, 6),
+      index: 0,
+    });
+    expect(chipPage(labels, 7)).toEqual({ chips: ["14", "13"], index: 1 });
+  });
+
+  it("fits six three-character labels on one page", () => {
+    const labels = ["D20", "D19", "D18", "D17", "D16", "D15", "D14"];
+
+    expect(chipPage(labels, 5).chips).toHaveLength(6);
+  });
+
+  it("breaks a page early when wide labels would overflow the row", () => {
+    expect(chipPage(halveIt, 0).chips).toEqual(halveIt.slice(0, 5));
+    expect(chipPage(halveIt, 4)).toEqual({
+      chips: halveIt.slice(0, 5),
+      index: 4,
+    });
+  });
+
+  it("starts the next page at the label that did not fit", () => {
+    expect(chipPage(halveIt, 5)).toEqual({
+      chips: halveIt.slice(5),
+      index: 0,
+    });
+    expect(chipPage(halveIt, 8)).toEqual({ chips: halveIt.slice(5), index: 3 });
+  });
+
+  it("clamps an out-of-range focus to the list", () => {
+    expect(chipPage(halveIt, 99).chips).toEqual(halveIt.slice(5));
+    expect(chipPage(halveIt, -1).index).toBe(0);
+  });
+
+  it("returns nothing for an empty list", () => {
+    expect(chipPage([], 0)).toEqual({ chips: [], index: 0 });
   });
 });
 

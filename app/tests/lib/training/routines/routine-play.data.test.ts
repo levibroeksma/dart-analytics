@@ -4029,9 +4029,7 @@ describe("routinePlay — Halve-It play", () => {
     expect(store.halveItRound()).toBe(1);
     expect(store.halveItPasses()).toBe(0);
     expect(store.halveItRate()).toBe("—");
-    expect(store.halveItRoute()).toBe(
-      "20 16 Any\u00a0double 17 18 Any\u00a0treble",
-    );
+    expect(store.halveItRoute()).toBe("20 16 Any\u00a0double 17 18");
     expect(store.halveItChipIndex()).toBe(0);
   });
 
@@ -4052,9 +4050,7 @@ describe("routinePlay — Halve-It play", () => {
 
     [S(20), MISS, MISS, ...BLANK].forEach((d) => store.recordHalveItDart(d));
     expect(store.halveItRate()).toBe("16.67%");
-    expect(store.halveItRoute()).toBe(
-      "20 16 Any\u00a0double 17 18 Any\u00a0treble",
-    );
+    expect(store.halveItRoute()).toBe("20 16 Any\u00a0double 17 18");
   });
 
   it("a blank visit halves the total the readout shows", async () => {
@@ -4066,15 +4062,15 @@ describe("routinePlay — Halve-It play", () => {
     expect(store.halveItRound()).toBe(3);
   });
 
-  it("the route pages to the last three rounds", async () => {
+  it("the route pages to the last four rounds", async () => {
     const store = makeStore();
     await startRoutine(store);
 
     Array.from({ length: 6 }, () => BLANK)
       .flat()
       .forEach((d) => store.recordHalveItDart(d));
-    expect(store.halveItRoute()).toBe("19 20 BULL");
-    expect(store.halveItChipIndex()).toBe(0);
+    expect(store.halveItRoute()).toBe("Any\u00a0treble 19 20 BULL");
+    expect(store.halveItChipIndex()).toBe(1);
   });
 
   it("previewSegments() judges the open visit against the current round", async () => {
