@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   AroundTheClockConfig,
   BaseballConfig,
+  Bobs27Config,
+  Bobs27V2Config,
   CricketConfig,
   TacticsConfig,
   AroundTheClockV2Config,
@@ -679,5 +681,38 @@ describe("AroundTheClockV3Config", () => {
     const { lives: _lives, ...v2Fields } = v3Base;
     expect(AroundTheClockV2Config.safeParse(v2Fields).success).toBe(true);
     expect(AroundTheClockV2Config.safeParse(v3Base).success).toBe(false);
+  });
+});
+
+describe("Bobs27V2Config", () => {
+  it("accepts the Easy mode and fills the V1 defaults", () => {
+    expect(Bobs27V2Config.parse({ mode: "EASY" })).toEqual({
+      mode: "EASY",
+      start_score: 27,
+      bull_hit_value: 50,
+      miss_penalty_multiplier: 1,
+    });
+  });
+
+  it("requires the mode", () => {
+    expect(Bobs27V2Config.safeParse({}).success).toBe(false);
+  });
+
+  it("rejects any mode but EASY", () => {
+    expect(Bobs27V2Config.safeParse({ mode: "HARD" }).success).toBe(false);
+  });
+
+  it("stays strict after extending V1", () => {
+    expect(Bobs27V2Config.safeParse({ mode: "EASY", lives: 3 }).success).toBe(
+      false,
+    );
+  });
+
+  it("is the config registered for BOBS27_V2", () => {
+    expect(RULESET_CONFIGS.BOBS27_V2).toBe(Bobs27V2Config);
+  });
+
+  it("leaves V1 refusing a mode key", () => {
+    expect(Bobs27Config.safeParse({ mode: "EASY" }).success).toBe(false);
   });
 });

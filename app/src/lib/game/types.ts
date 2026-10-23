@@ -645,7 +645,7 @@ export type PresetSetupControllerOptions<Ctx extends PresetSetupContext> = {
   configOverrides?: (ctx: Ctx) => Record<string, unknown> | undefined;
 };
 
-export type Bobs27SetupContext = PresetSetupContext;
+export type Bobs27SetupContext = PresetSetupContext & { easy: boolean };
 export type CricketSetupContext = PresetSetupContext;
 export type TacticsSetupContext = PresetSetupContext;
 

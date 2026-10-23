@@ -491,3 +491,10 @@ Decision: `RANDOM_CHECKOUT_V1` folds a visit to `FAILED` the moment the remainde
 Reason: a player on 120 who hit a 1 with two darts left kept throwing at a target that could not be finished.
 Consequences: no new ruleset version. The outcome folds from the visit's darts alone, so undo and replay agree. A stored visit that kept throwing after the finish became unreachable still folds to the same attempt and checkout counts, since it could not have checked out. Rules: `docs/game-rules/training/exercises/random-checkout.md`.
 Supersedes: none.
+
+### D485 — Bob's 27 Easy is `BOBS27_V2`: the same engine, no death check
+Status: Accepted · Date: 2026-10-23
+Decision: Bob's 27 Easy is a new ruleset version `BOBS27_V2` (`Bobs27V2Config` = the V1 fields plus a required literal `mode: "EASY"`), served by the same `Bobs27Engine` class through `rulesetVersionKeys` and a second factory. Easy skips the `outAtOrBelowZero` judgement only, so a seat is never `LOST`, the score may go negative, and the run ends after the bull visit (seat status `WON` means "finished the path"). 1v1 keeps the existing score-compare outcome (higher final score wins, equal is a tie); a solo run has no win or loss. Selection is a setup switch with no games-index card.
+Reason: `Bobs27Config` is `.strict()` with no mode key and V1 is live against real session data, so a mode field would change what V1 validates (the D243/D245 rule: a shipped version is never edited in place). Never losing means the fold and outcome code need no change.
+Consequences: no new Track policy, no migration, no results row and no replay cell. The stats section groups by `ruleset_version_key`, so Easy forms its own group. `GAME_TYPE_BY_RULESET.BOBS27_V2` keeps an Easy session in the resume deck. Tags are not versioned (`TAGS.md`), so Easy inherits `bobs-27.md`'s. Spec: `docs/superpowers/specs/2026-10-23-bobs-27-easy-design.md`; plan: `docs/superpowers/plans/2026-10-23-bobs-27-easy.md`. Rules: `docs/game-rules/rulesets/bobs-27.md`.
+Supersedes: none.

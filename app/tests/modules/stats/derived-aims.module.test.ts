@@ -466,3 +466,34 @@ describe("aimPairFor", () => {
     ).toEqual({ number: 19, zone: "TREBLE" });
   });
 });
+
+describe("sessionSteps — Bob's 27 Easy", () => {
+  it("folds a session past zero without skipping it or ending the seat", () => {
+    const rows = rowsFor(
+      {
+        sessionId: "session-bobs27-easy",
+        gameTypeKey: "BOBS27",
+        rulesetVersionKey: "BOBS27_V2",
+        configuration: {
+          mode: "EASY",
+          start_score: 2,
+          bull_hit_value: 50,
+          miss_penalty_multiplier: 1,
+          seats: SEATS,
+        },
+      },
+      Array.from({ length: 7 }, () => miss()),
+    );
+
+    const { sessions, skippedSessions } = sessionSteps(rows);
+    expect(skippedSessions).toBe(0);
+
+    const last = sessions[0]!.steps.at(-1)!.after as {
+      score: number;
+      status: string;
+    };
+    expect(last.score).toBeLessThan(0);
+    expect(last.status).toBe("IN_PROGRESS");
+    expect(aimedDarts(sessions[0]!)).toEqual([]);
+  });
+});

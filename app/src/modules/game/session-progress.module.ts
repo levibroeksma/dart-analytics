@@ -293,6 +293,7 @@ const SUMMARIZERS: Readonly<Record<string, Summarizer>> = {
   SINGLES_V3: singles,
   DOUBLES_TRAINING_V1: doublesTraining,
   BOBS27_V1: bobs27,
+  BOBS27_V2: bobs27,
   TUOD_V1: tuod,
   SHANGHAI_V1: shanghai,
   SHANGHAI_V2: shanghai,

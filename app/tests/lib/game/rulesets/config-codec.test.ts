@@ -63,4 +63,20 @@ describe("config codec", () => {
     expect(snapshot.legsToWin).toBe(3);
     expect(snapshot.maxVisitScore).toBe(180);
   });
+
+  it("carries mode through the BOBS27_V2 snapshot and back", () => {
+    const snapshot = toSnapshot("BOBS27_V2", { mode: "EASY" });
+    expect(snapshot).toEqual({
+      mode: "EASY",
+      startScore: 27,
+      bullHitValue: 50,
+      missPenaltyMultiplier: 1,
+    });
+    expect(toWireConfig("BOBS27_V2", snapshot)).toEqual({
+      mode: "EASY",
+      start_score: 27,
+      bull_hit_value: 50,
+      miss_penalty_multiplier: 1,
+    });
+  });
 });

@@ -1,7 +1,9 @@
 ---
 // Components
+import Switch from "@components/forms/Switch.astro";
 import InfoSection from "@components/ui/InfoSection.astro";
 import SetupShell from "./SetupShell.astro";
+import SettingSectionShell from "./SettingSectionShell.astro";
 import UserSection from "./UserSection.astro";
 import { supportsDartbot } from "@lib/game/rulesets/capabilities";
 
@@ -9,7 +11,7 @@ import { supportsDartbot } from "@lib/game/rulesets/capabilities";
 const infoSection = {
   title: "Bob's 27 rules",
   description:
-    "3 targets at the designated double, for each double hit, add the double's board value to your total. For each three darts missed, deduct the target double's board value from your total. E.g. miss all three darts at D18 → deduct 36; hit two D16 → add 2 × 32 = 64.",
+    "3 targets at the designated double, for each double hit, add the double's board value to your total. For each three darts missed, deduct the target double's board value from your total. E.g. miss all three darts at D18 → deduct 36; hit two D16 → add 2 × 32 = 64. Easy mode: nobody is eliminated and the score may go negative; the run ends after the bull. In 1v1 the higher score wins.",
 };
 ---
 
@@ -23,4 +25,11 @@ const infoSection = {
     description={infoSection.description}
     open
   />
+  <SettingSectionShell>
+    <Switch
+      label="Easy mode"
+      hint="Nobody is eliminated. The score may go negative."
+      x-model="easy"
+    />
+  </SettingSectionShell>
 </SetupShell>

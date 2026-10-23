@@ -41,6 +41,14 @@ export const Bobs27Config = z
   .strict();
 
 /**
+ * Bob's 27 V2: Easy. The V1 fields plus the mode, so a seat is never
+ * eliminated and the score may go negative.
+ */
+export const Bobs27V2Config = Bobs27Config.extend({
+  mode: z.literal("EASY"),
+});
+
+/**
  * `target_order` is the concrete, already-resolved 21-target sequence a
  * Singles/Doubles Training session actually plays — a permutation of the 20
  * numbered targets (1..20) and BULL (25, the same sentinel
@@ -453,6 +461,7 @@ export const AroundTheClockV3Config = AroundTheClockV2Fields.extend({
 export type RulesetVersionKey =
   | "SCORE_TRAINING_V1"
   | "BOBS27_V1"
+  | "BOBS27_V2"
   | "SINGLES_V1"
   | "SINGLES_V2"
   | "SINGLES_V3"
@@ -500,6 +509,7 @@ export type StatsTag =
 export const RULESET_CONFIGS: Record<RulesetVersionKey, z.ZodTypeAny> = {
   SCORE_TRAINING_V1: ScoreTrainingConfig,
   BOBS27_V1: Bobs27Config,
+  BOBS27_V2: Bobs27V2Config,
   SINGLES_V1: SinglesConfig,
   SINGLES_V2: SinglesV2Config,
   SINGLES_V3: SinglesV3Config,
@@ -521,6 +531,7 @@ export const RULESET_CONFIGS: Record<RulesetVersionKey, z.ZodTypeAny> = {
 
 export type ScoreTrainingConfigData = z.infer<typeof ScoreTrainingConfig>;
 export type Bobs27ConfigData = z.infer<typeof Bobs27Config>;
+export type Bobs27V2ConfigData = z.infer<typeof Bobs27V2Config>;
 export type SinglesConfigData = z.infer<typeof SinglesConfig>;
 export type SinglesV2ConfigData = z.infer<typeof SinglesV2Config>;
 export type SinglesV3ConfigData = z.infer<typeof SinglesV3Config>;
@@ -541,6 +552,7 @@ export type Bobs27Snapshot = {
   startScore: Bobs27ConfigData["start_score"];
   bullHitValue: Bobs27ConfigData["bull_hit_value"];
   missPenaltyMultiplier: Bobs27ConfigData["miss_penalty_multiplier"];
+  mode?: Bobs27V2ConfigData["mode"];
 };
 
 export type SinglesSnapshot = {
@@ -674,7 +686,7 @@ export type BaseballSnapshot = Record<string, never>;
 export type ConfigSnapshotFor<K extends RulesetVersionKey> =
   K extends "SCORE_TRAINING_V1"
     ? ScoreTrainingSnapshot
-    : K extends "BOBS27_V1"
+    : K extends "BOBS27_V1" | "BOBS27_V2"
       ? Bobs27Snapshot
       : K extends "SINGLES_V1"
         ? SinglesSnapshot

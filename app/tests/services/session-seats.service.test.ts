@@ -209,6 +209,21 @@ describe("rejectSeatRequest with a DARTBOT seat", () => {
   });
 });
 
+describe("rejectSeatRequest for Bob's 27 V2", () => {
+  it("accepts two seats", () => {
+    expect(rejectSeatRequest([player, guest], "BOBS27_V2")).toBeNull();
+  });
+
+  it("refuses a third seat", () => {
+    expect(
+      rejectSeatRequest(
+        [player, guest, { ...guest, sideKey: "C" }],
+        "BOBS27_V2",
+      ),
+    ).toContain("supports at most 2 seats");
+  });
+});
+
 describe("composeSeatFacts", () => {
   it("projects the persisted seat plan into snapshot seats, in order", () => {
     expect(

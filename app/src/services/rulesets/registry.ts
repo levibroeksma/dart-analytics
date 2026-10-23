@@ -3,6 +3,7 @@ import { aroundTheClockV2Validator } from "./around-the-clock/around-the-clock.v
 import { aroundTheClockV3Validator } from "./around-the-clock/around-the-clock.validator";
 import { baseballValidator } from "./baseball/baseball.validator";
 import { bobs27Validator } from "./bobs27/bobs27.validator";
+import { bobs27V2Validator } from "./bobs27/bobs27.validator";
 import { cricketValidator } from "./cricket/cricket.validator";
 import { doublesTrainingValidator } from "./doubles-training/doubles-training.validator";
 import { tacticsValidator } from "./tactics/tactics.validator";
@@ -22,6 +23,7 @@ import { tuodValidator } from "./tuod/tuod.validator";
 const REGISTRY: Record<string, RulesetValidator> = {
   SCORE_TRAINING_V1: scoreTrainingValidator,
   BOBS27_V1: bobs27Validator,
+  BOBS27_V2: bobs27V2Validator,
   SINGLES_V1: singlesTrainingValidator,
   SINGLES_V2: singlesTrainingV2Validator,
   SINGLES_V3: singlesTrainingV3Validator,

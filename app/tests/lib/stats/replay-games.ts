@@ -6,7 +6,10 @@ import {
   aroundTheClockV3EngineFactory,
 } from "@modules/game/around-the-clock.engine.module";
 import { baseballEngineFactory } from "@modules/game/baseball.engine.module";
-import { bobs27EngineFactory } from "@modules/game/bobs27.engine.module";
+import {
+  bobs27EngineFactory,
+  bobs27V2EngineFactory,
+} from "@modules/game/bobs27.engine.module";
 import { doublesTrainingEngineFactory } from "@modules/game/doubles-training.engine.module";
 import { fiveOhOneEngineFactory } from "@modules/game/five-oh-one.engine.module";
 import { oneTwentyOneEngineFactory } from "@modules/game/one-twenty-one.engine.module";
@@ -368,6 +371,24 @@ export function playBobs27(): ScriptedGame {
       [dart(1, "DOUBLE"), MISS, MISS],
       [MISS, MISS, MISS],
       [dart(3, "DOUBLE"), dart(3, "DOUBLE"), MISS],
+    ],
+  );
+}
+
+/** Two Easy visits from a start score of 2: a blank each, taking the score to -4. */
+export function playBobs27Easy(): ScriptedGame {
+  return scripted(
+    bobs27V2EngineFactory,
+    {
+      mode: "EASY",
+      startScore: 2,
+      bullHitValue: 50,
+      missPenaltyMultiplier: 1,
+      seats: SOLO_SEATS,
+    },
+    [
+      [MISS, MISS, MISS],
+      [MISS, MISS, MISS],
     ],
   );
 }

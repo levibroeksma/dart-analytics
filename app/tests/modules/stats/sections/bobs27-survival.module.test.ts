@@ -240,3 +240,44 @@ describe("bobs27SurvivalBuckets series order", () => {
     ]);
   });
 });
+
+describe("bobs27SurvivalBuckets — Easy", () => {
+  const lostRows = rowsFor(
+    {
+      sessionId: "session-traditional-lost",
+      configuration: bobs27Config({
+        start_score: 1,
+        miss_penalty_multiplier: 5,
+      }),
+    },
+    [miss(), miss(), miss()],
+  );
+  const easyRows = rowsFor(
+    {
+      sessionId: "session-easy-negative",
+      rulesetVersionKey: "BOBS27_V2",
+      configuration: bobs27Config({ mode: "EASY", start_score: 2 }),
+    },
+    Array.from({ length: 63 }, () => miss()),
+  );
+
+  it("groups an Easy run apart from a Traditional run", () => {
+    const { sessions, skippedSessions } = sessionSteps([
+      ...lostRows,
+      ...easyRows,
+    ]);
+    expect(skippedSessions).toBe(0);
+    const [bucket] = bobs27SurvivalBuckets(sessions, CTX);
+    expect(Object.keys(bucket!.metrics)).toHaveLength(2);
+  });
+
+  it("completes the path with no death and a negative score at the bull", () => {
+    const { sessions, skippedSessions } = sessionSteps(easyRows);
+    expect(skippedSessions).toBe(0);
+    const [bucket] = bobs27SurvivalBuckets(sessions, CTX);
+    const [group] = Object.values(bucket!.metrics);
+    expect(group!.completed).toBe(1);
+    expect(group!.died).toEqual({});
+    expect(group!.scoreAfter["INNER_BULL:25"]!.min).toBeLessThan(0);
+  });
+});

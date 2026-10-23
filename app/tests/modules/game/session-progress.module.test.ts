@@ -702,3 +702,13 @@ describe("summarizeProgress — BASEBALL_V1", () => {
     });
   });
 });
+
+describe("summarizeProgress — BOBS27_V2", () => {
+  it("summarises like V1 and shows a negative score", () => {
+    const config = { ...bobs27Config, mode: "EASY" as const, startScore: -5 };
+    expect(summarizeProgress("BOBS27_V2", config, EMPTY_FACTS)).toEqual({
+      detail: "Double 1 of 21",
+      big: { value: "-5", label: "POINTS" },
+    });
+  });
+});

@@ -89,13 +89,15 @@ const FROM_TRACK = {
 /**
  * Bob's 27 as Track policies: D1 → BULL, a hit scores the target's value, a
  * blank visit costs that value × the miss multiplier; at or below zero is
- * out, before clearing BULL is checked.
+ * out, before clearing BULL is checked; in Easy mode nobody is out.
  */
 function bobs27Rules(config: Bobs27Snapshot): TrackRules<Bobs27TrackExt> {
   const target = pathTarget<Bobs27TrackExt>(PATH);
   const penalise = penaltyOnBlank<Bobs27TrackExt>(
     (seat) => pointValueOf(target(seat), config) * config.missPenaltyMultiplier,
   );
+  const judge: (seat: TrackSeat<Bobs27TrackExt>) => TrackSeat<Bobs27TrackExt> =
+    config.mode === "EASY" ? (seat) => seat : outAtOrBelowZero;
   const advance = advanceToEnd<Bobs27TrackExt>(PATH.length - 1);
   return {
     doneMessage: GAME_ENDED,
@@ -110,7 +112,7 @@ function bobs27Rules(config: Bobs27Snapshot): TrackRules<Bobs27TrackExt> {
     }),
     visitOpen: closeAfter(3),
     onVisitClose: (seat) => {
-      const judged = outAtOrBelowZero(penalise(seat));
+      const judged = judge(penalise(seat));
       const next = judged.status === "OUT" ? judged : advance(judged);
       return { ...next, ext: { hits: [] } };
     },
@@ -228,12 +230,13 @@ export function foldBobs27State(
 }
 
 /**
- * Bob's 27's rules for the dart engine shell: three darts at each double in
- * turn, D1 to BULL; elimination when a seat's derived score drops to zero
+ * Bob's 27's rules for the dart engine shell, serving V1 and V2: three darts
+ * at each double in turn, D1 to BULL; elimination when a seat's derived score drops to zero
  * or below. Only a visit's 3rd dart can end a seat.
  */
 const bobs27Spec: DartGameSpec<Seated<Bobs27Snapshot>, Bobs27State> = {
   rulesetVersionKey: "BOBS27_V1",
+  rulesetVersionKeys: ["BOBS27_V2"],
   stageOwnership: "PER_SEAT",
   fold: foldBobs27State,
   refusal: (state) => {
@@ -254,7 +257,7 @@ const bobs27Spec: DartGameSpec<Seated<Bobs27Snapshot>, Bobs27State> = {
   },
 };
 
-/** Bob's 27 engine (Pattern 18), built by the dart engine shell. */
+/** Bob's 27 engine (Pattern 18), built by the dart engine shell; one class for V1 and V2. */
 export class Bobs27Engine extends dartGameEngineClass(bobs27Spec) {}
 
 export const bobs27EngineFactory = dartGameEngineFactory(
@@ -263,3 +266,11 @@ export const bobs27EngineFactory = dartGameEngineFactory(
 );
 
 registerEngineFactory(bobs27EngineFactory);
+
+export const bobs27V2EngineFactory = dartGameEngineFactory(
+  bobs27Spec,
+  Bobs27Engine,
+  "BOBS27_V2",
+);
+
+registerEngineFactory(bobs27V2EngineFactory);

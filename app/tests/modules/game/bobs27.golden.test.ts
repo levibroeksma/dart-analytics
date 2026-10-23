@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { Bobs27Engine } from "@modules/game/bobs27.engine.module";
+import {
+  Bobs27Engine,
+  bobs27V2EngineFactory,
+} from "@modules/game/bobs27.engine.module";
 import {
   goldenTrace,
   normalise,
@@ -109,4 +112,25 @@ describe("Bob's 27 — refusal order", () => {
       "Cannot record a dart once the match has ended; undo first to correct it.",
     );
   });
+});
+
+const EASY_CONFIGS: Record<string, Seated<Bobs27Snapshot>> = {
+  easySolo: { ...CONFIGS.solo, mode: "EASY" },
+  easyDuo: { ...CONFIGS.duo, mode: "EASY" },
+};
+
+describe("Bob's 27 Easy — golden", () => {
+  for (const [name, config] of Object.entries(EASY_CONFIGS)) {
+    it(`${name}: seed 42 run is unchanged`, () => {
+      const engine = bobs27V2EngineFactory.create(config);
+      const rand = seededUniform(42, 0);
+      for (let i = 0; i < 160 && !engine.isComplete(); i += 1) {
+        if (rand() < 0.1) engine.undo();
+        else engine.record(randomObservation(rand));
+      }
+      expect(
+        normalise({ facts: engine.facts(), state: engine.state() }),
+      ).toMatchSnapshot();
+    });
+  }
 });

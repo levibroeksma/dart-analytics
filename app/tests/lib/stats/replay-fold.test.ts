@@ -14,6 +14,7 @@ import {
   SOLO_SEATS,
   SCRIPTED_GAMES,
   playBobs27,
+  playBobs27Easy,
   playFiveOhOne,
   playScoreTraining,
   replayHeader,
@@ -90,6 +91,17 @@ describe("foldReplay", () => {
       expect(step.before).toBe(fold.stateAfter(index - 1));
       expect(step.after).toBe(fold.stateAfter(index));
       expect(step.turn.participantRef).toBe(game.turns[index]!.participantId);
+    });
+  });
+
+  it("folds an Easy Bob's 27 run below zero without ending it", () => {
+    const game = playBobs27Easy();
+    const fold = foldReplay(game.header, game.turns);
+
+    if (!fold.ok) throw new Error("expected a fold");
+    expect(fold.stateAfter(game.turns.length - 1)).toMatchObject({
+      status: "IN_PROGRESS",
+      seats: [{ score: -4, status: "IN_PROGRESS" }],
     });
   });
 

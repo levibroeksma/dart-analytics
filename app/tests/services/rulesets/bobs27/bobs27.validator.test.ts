@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { bobs27Validator } from "@services/rulesets/bobs27/bobs27.validator";
+import {
+  bobs27Validator,
+  bobs27V2Validator,
+} from "@services/rulesets/bobs27/bobs27.validator";
 import type { DartFactInput } from "@routes/types";
 
 const validConfig = {
@@ -159,5 +162,32 @@ describe("bobs27Validator.validateBatch", () => {
       inputModeKey: "VISUAL_BOARD",
     });
     expect(result.valid).toBe(false);
+  });
+});
+
+describe("bobs27V2Validator.validateConfig", () => {
+  const modes = {
+    captureModeKey: "RECREATIONAL",
+    inputModeKey: "DETAILED_DARTS",
+  };
+
+  it("accepts the Easy config", () => {
+    expect(
+      bobs27V2Validator.validateConfig({ config: { mode: "EASY" }, ...modes })
+        .valid,
+    ).toBe(true);
+  });
+
+  it("refuses a config with no mode", () => {
+    expect(
+      bobs27V2Validator.validateConfig({ config: {}, ...modes }).valid,
+    ).toBe(false);
+  });
+
+  it("leaves V1 refusing the mode key", () => {
+    expect(
+      bobs27Validator.validateConfig({ config: { mode: "EASY" }, ...modes })
+        .valid,
+    ).toBe(false);
   });
 });
