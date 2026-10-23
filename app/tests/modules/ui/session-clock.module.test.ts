@@ -70,4 +70,41 @@ describe("SessionClock", () => {
 
     expect(ticks).toEqual([1]);
   });
+
+  it("pause freezes elapsed and resume excludes the paused wall time", () => {
+    const ticks: number[] = [];
+    const clock = new SessionClock({
+      onTick: (elapsed) => ticks.push(elapsed),
+    });
+
+    clock.start();
+    vi.advanceTimersByTime(5000);
+    clock.pause();
+    vi.advanceTimersByTime(60000);
+    expect(clock.elapsedSeconds()).toBe(5);
+    expect(ticks).toEqual([1, 2, 3, 4, 5]);
+
+    clock.resume();
+    vi.advanceTimersByTime(2000);
+    expect(clock.elapsedSeconds()).toBe(7);
+    expect(ticks.slice(-2)).toEqual([6, 7]);
+    clock.stop();
+  });
+
+  it("pause and resume are no-ops before start and when repeated", () => {
+    const clock = new SessionClock();
+
+    clock.pause();
+    clock.resume();
+    expect(clock.elapsedSeconds()).toBe(0);
+
+    clock.start();
+    vi.advanceTimersByTime(2000);
+    clock.resume();
+    clock.pause();
+    clock.pause();
+    vi.advanceTimersByTime(5000);
+    expect(clock.elapsedSeconds()).toBe(2);
+    clock.stop();
+  });
 });

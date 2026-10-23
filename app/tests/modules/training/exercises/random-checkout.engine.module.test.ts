@@ -192,6 +192,38 @@ describe("RandomCheckoutEngine", () => {
     expect(turns[1].darts).toHaveLength(1);
   });
 
+  it("fails the attempt as soon as the remainder cannot be finished with the darts left", () => {
+    const engine = new RandomCheckoutEngine({ ...CONFIG, drawSeed: 42 });
+    const state = play(engine, [dart(1, "SINGLE")]);
+
+    expect(drawStartScore({ ...CONFIG, drawSeed: 42 }, 0)).toBe(155);
+    expect(state.attempts).toBe(1);
+    expect(state.lastAttempt).toBe("FAILED");
+    expect(state.dartsInVisit).toBe(0);
+    expect(state.startScore).toBe(141);
+    expect(engine.facts().turns[0].completedAt).toBeDefined();
+  });
+
+  it("fails on the second dart when one dart is left and the remainder is no double", () => {
+    const state = play(new RandomCheckoutEngine(CONFIG), [
+      S19,
+      dart(2, "SINGLE"),
+    ]);
+
+    expect(state.attempts).toBe(1);
+    expect(state.lastAttempt).toBe("FAILED");
+    expect(state.dartsInVisit).toBe(0);
+    expect(state.startScore).toBe(50);
+  });
+
+  it("keeps an attempt open while a finish stays reachable", () => {
+    const state = play(new RandomCheckoutEngine(CONFIG), [MISS, MISS]);
+
+    expect(state.attempts).toBe(0);
+    expect(state.remaining).toBe(40);
+    expect(state.dartsInVisit).toBe(2);
+  });
+
   it("fails an attempt after three darts without a checkout", () => {
     const state = play(new RandomCheckoutEngine(CONFIG), [MISS, MISS, MISS]);
 

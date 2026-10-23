@@ -7,20 +7,42 @@
  * resuming is `CountdownResumePrompt`'s job. Reads `remainingLabel()`,
  * `togglePause()`, `hasActiveSession` and `finished` from the play scope,
  * or from `scopeExpr` when the play store is a nullable member of the page
- * scope (the routine page's `game` step).
+ * scope. A scope with its own pause (the routine page, Quick Subtract)
+ * overrides the four reads with `pausedExpr`, `showExpr`, `labelExpr` and
+ * `toggleExpr`.
  */
 interface Props {
   /** Alpine expression evaluating to a boolean; disables the pill. */
   disabledExpr: string;
   /** Alpine expression for a nullable play store; hidden while it is null. */
   scopeExpr?: string;
+  /** Alpine expression: whether the timer is paused. */
+  pausedExpr?: string;
+  /** Alpine expression: whether the pill shows. */
+  showExpr?: string;
+  /** Alpine expression: the pill's clock text. */
+  labelExpr?: string;
+  /** Alpine expression: the pause toggle call. */
+  toggleExpr?: string;
 }
 
 // Props
-const { disabledExpr, scopeExpr }: Props = Astro.props;
+const {
+  disabledExpr,
+  scopeExpr,
+  pausedExpr = "$store.game.timerPaused",
+  showExpr,
+  labelExpr,
+  toggleExpr,
+}: Props = Astro.props;
 
 // Data
 const scope = scopeExpr ? `${scopeExpr}?.` : "";
+const shown =
+  showExpr ??
+  `${scope}hasActiveSession && !${scope}finished && $store.game.configSnapshot?.durationType === 'MINUTES'`;
+const label = labelExpr ?? `${scope}remainingLabel()`;
+const toggle = toggleExpr ?? `${scope}togglePause()`;
 
 // Components
 import Button from "@components/forms/Button.astro";
@@ -34,15 +56,15 @@ import PauseIcon from "@icons/pause.svg";
   variant="sheet-muted"
   loadingExpr="false"
   class="h-11 shrink-0 gap-1.5 rounded-full px-3 py-0 font-mono text-body-sm font-medium text-foreground"
-  :aria-label="$store.game.timerPaused ? 'Timer paused' : 'Pause timer'"
-  :disabled={`(${disabledExpr}) || $store.game.timerPaused`}
-  @click={`${scope}togglePause()`}
-  x-show={`${scope}hasActiveSession && !${scope}finished && $store.game.configSnapshot?.durationType === 'MINUTES'`}
+  :aria-label={`${pausedExpr} ? 'Timer paused' : 'Pause timer'`}
+  :disabled={`(${disabledExpr}) || ${pausedExpr}`}
+  @click={toggle}
+  x-show={shown}
   x-cloak
 >
   <PauseIcon
     slot="iconBefore"
     class="size-3"
   />
-  <span x-text={`${scope}remainingLabel()`}></span>
+  <span x-text={label}></span>
 </Button>

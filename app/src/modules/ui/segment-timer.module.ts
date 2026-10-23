@@ -17,6 +17,7 @@ export class SegmentTimer {
   private direction: "countdown" | "countup";
   private timerId: ReturnType<typeof setInterval> | null = null;
   private segmentIndex = 0;
+  private paused = false;
 
   private onTick?: (secondsRemaining: number) => void;
   private onSegmentChange?: (segmentIndex: number) => void;
@@ -64,6 +65,23 @@ export class SegmentTimer {
     if (this.timerId !== null) return;
 
     this.segmentIndex = 0;
+    this.timerId = setInterval(() => this.tick(), 1000);
+  }
+
+  /**
+   * Freezes a running timer and keeps `remaining` and the segment index.
+   * Unlike `stop()`, a following `resume()` continues the same run instead
+   * of restarting segment tracking.
+   */
+  pause(): void {
+    if (this.timerId === null) return;
+    this.stop();
+    this.paused = true;
+  }
+
+  resume(): void {
+    if (!this.paused) return;
+    this.paused = false;
     this.timerId = setInterval(() => this.tick(), 1000);
   }
 
@@ -116,6 +134,7 @@ export class SegmentTimer {
   }
 
   stop(): void {
+    this.paused = false;
     if (this.timerId !== null) {
       clearInterval(this.timerId);
       this.timerId = null;

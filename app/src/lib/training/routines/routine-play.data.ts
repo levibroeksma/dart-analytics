@@ -17,6 +17,7 @@ import { SegmentTimer } from "@modules/ui/segment-timer.module";
 import { SessionClock } from "@modules/ui/session-clock.module";
 import { playAudioCue, unlockAudioCues } from "@modules/ui/audio-cue.module";
 import { boardInputData, markersForTurns } from "@lib/game/board-input.data";
+import { armHiddenTimer, clearHiddenTimer } from "@lib/game/play-lifecycle";
 import { resolveSoloParticipantRef } from "@lib/training/exercises/solo-participant-upload";
 import { buildEventsBatch } from "@modules/game/events.payload.module";
 import {
@@ -29,6 +30,7 @@ import {
   judgeDart,
   visitLabelsFor,
   visitPreview,
+  chipPage,
   windowIndex,
   windowPage,
 } from "./exercise-preview";
@@ -147,8 +149,9 @@ function recordInto(
   observation: DartObservation,
 ): void {
   const engine = ctx[slot];
-  if (!engine) return;
+  if (!engine || ctx.timerPaused) return;
   engine.record(observation);
+  armHiddenTimer(ctx, engine.facts().turns);
   if (COMPLETES_ON_DART.has(slot) && engine.isComplete())
     void ctx.completeCurrentStep();
 }
@@ -176,9 +179,14 @@ function chipLabel(target: TrackTarget): string {
   return boardTargetLabel(target).replace(" ", "\u00a0");
 }
 
-/** A path's chips paged around `index` (`windowPage`), space-joined for `RouteChips`. */
+/** A path's chips paged around `index` (`chipPage`), space-joined for `RouteChips`. */
 function routeChipsOf(path: readonly TrackTarget[], index: number): string {
-  return windowPage(path.map(chipLabel), index).join(" ");
+  return chipPage(path.map(chipLabel), index).chips.join(" ");
+}
+
+/** The chip at `index` within `routeChipsOf()`'s page. */
+function routeChipIndexOf(path: readonly TrackTarget[], index: number): number {
+  return chipPage(path.map(chipLabel), index).index;
 }
 
 /** Hits over darts as a percentage display; zero while no engine is open. */
@@ -258,6 +266,9 @@ export function routinePlay() {
     stepTimer: null,
     stepRemainingSeconds: 0,
     warmUpTimer: null,
+    timerPaused: false,
+    hiddenTurnKey: null as string | null,
+    hiddenTimer: null as ReturnType<typeof setTimeout> | null,
     warmUpElapsedSeconds: 0,
     warmUpConfiguration: null,
     stepConfiguration: null,
@@ -309,7 +320,9 @@ export function routinePlay() {
     },
 
     visitMarkers(this: RoutinePlayContext): BoardMarker[] {
-      return markersForTurns(this.activeDartEngine()?.facts().turns ?? []);
+      const turns = this.activeDartEngine()?.facts().turns ?? [];
+      if (turns.at(-1)?.clientKey === this.hiddenTurnKey) return [];
+      return markersForTurns(turns);
     },
 
     /**
@@ -594,6 +607,59 @@ export function routinePlay() {
     },
 
     /**
+     * Whether the active step runs a clock the header pause pill can
+     * freeze: a game step's MINUTES countdown, or an exercise or warm-up
+     * `SegmentTimer`.
+     */
+    pausable(this: RoutinePlayContext): boolean {
+      if (this.routineFinished) return false;
+      if (this.game) {
+        return (
+          this.game.hasActiveSession === true &&
+          this.game.finished !== true &&
+          this.$store.game.configSnapshot?.durationType === "MINUTES"
+        );
+      }
+      return this.stepTimer !== null || this.warmUpTimer !== null;
+    },
+
+    paused(this: RoutinePlayContext): boolean {
+      if (this.game) return this.$store.game.timerPaused === true;
+      return this.timerPaused;
+    },
+
+    pauseLabel(this: RoutinePlayContext): string {
+      return this.game
+        ? (this.game.remainingLabel?.() ?? "")
+        : this.headerClock();
+    },
+
+    clearPause(this: RoutinePlayContext) {
+      this.timerPaused = false;
+      this.sessionClock?.resume();
+    },
+
+    /**
+     * One pause for every timed step. A game step keeps its own pause
+     * (`$store.game.timerPaused`); an exercise or warm-up step freezes its
+     * `SegmentTimer`. The routine's `SessionClock` follows either, so paused
+     * time never counts toward the session.
+     */
+    togglePause(this: RoutinePlayContext) {
+      if (!this.pausable()) return;
+      if (this.game) {
+        this.game.togglePause?.();
+      } else {
+        this.timerPaused = !this.timerPaused;
+        const timer = this.stepTimer ?? this.warmUpTimer;
+        if (this.timerPaused) timer?.pause();
+        else timer?.resume();
+      }
+      if (this.paused()) this.sessionClock?.pause();
+      else this.sessionClock?.resume();
+    },
+
+    /**
      * The context row a routine finish confirm shows: routine name and step
      * position, then the step game's round and value.
      */
@@ -729,6 +795,7 @@ export function routinePlay() {
       this: RoutinePlayContext,
       configuration: Record<string, unknown>,
     ) {
+      this.clearPause();
       this.warmUpElapsedSeconds = 0;
       this.warmUpTimer = new SegmentTimer({
         direction: "countup",
@@ -791,6 +858,7 @@ export function routinePlay() {
      * as `expireTimer()`.
      */
     startStepTimer(this: RoutinePlayContext, durationSeconds: number) {
+      this.clearPause();
       this.stepRemainingSeconds = durationSeconds;
       this.stepTimer = new SegmentTimer({
         segmentDurationsSeconds: [durationSeconds],
@@ -1086,7 +1154,7 @@ export function routinePlay() {
       return this.halveItEngine?.state().total ?? 0;
     },
 
-    /** Halve-It's list as chips, paged around the current round (`windowPage`); a zone keeps its words with a no-break space. */
+    /** Halve-It's list as chips, paged around the current round (`chipPage`); a zone keeps its words with a no-break space. */
     halveItRoute(this: RoutinePlayContext): string {
       return routeChipsOf(
         HALVE_IT_PATH,
@@ -1096,7 +1164,10 @@ export function routinePlay() {
 
     /** The current round's chip within `halveItRoute()`'s page. */
     halveItChipIndex(this: RoutinePlayContext): number {
-      return windowIndex(this.halveItEngine?.state().targetIndex ?? 0);
+      return routeChipIndexOf(
+        HALVE_IT_PATH,
+        this.halveItEngine?.state().targetIndex ?? 0,
+      );
     },
 
     halveItRound(this: RoutinePlayContext): number {
@@ -1120,7 +1191,7 @@ export function routinePlay() {
       return targetLabelOf(this.snakesLaddersEngine?.state().currentLevel);
     },
 
-    /** The ladder as chips, paged around the current level (`windowPage`). */
+    /** The ladder as chips, paged around the current level (`chipPage`). */
     snakesLaddersRoute(this: RoutinePlayContext): string {
       return routeChipsOf(
         SNAKES_LADDERS_PATH,
@@ -1130,7 +1201,10 @@ export function routinePlay() {
 
     /** The current level's chip within `snakesLaddersRoute()`'s page. */
     snakesLaddersChipIndex(this: RoutinePlayContext): number {
-      return windowIndex(this.snakesLaddersEngine?.state().levelIndex ?? 0);
+      return routeChipIndexOf(
+        SNAKES_LADDERS_PATH,
+        this.snakesLaddersEngine?.state().levelIndex ?? 0,
+      );
     },
 
     snakesLaddersHighest(this: RoutinePlayContext): string {
@@ -1151,6 +1225,7 @@ export function routinePlay() {
 
     undoVisit(this: RoutinePlayContext) {
       this.activeDartEngine()?.undo();
+      clearHiddenTimer(this);
     },
 
     async uploadCurrentStepFacts(this: RoutinePlayContext) {
@@ -1206,6 +1281,8 @@ export function routinePlay() {
       if (!this.currentSessionId || !this.training || !this.activityId) {
         return;
       }
+      this.clearPause();
+      clearHiddenTimer(this);
       if (this.stepTimer) {
         this.stepTimer.stop();
         this.stepTimer = null;

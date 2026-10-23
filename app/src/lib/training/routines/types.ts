@@ -114,6 +114,10 @@ export type OpenRoutine = {
 export type GameStepPlayContext = {
   completionStatus: string;
   timer?: { stop(): void } | null;
+  hasActiveSession?: boolean;
+  finished?: boolean;
+  remainingLabel?(): string;
+  togglePause?(): void;
   uploadAndCompleteSession(): Promise<void>;
   abandonAndExit(): Promise<void>;
 };
@@ -144,6 +148,9 @@ export type RoutinePlayContext = {
   stepTimer: SegmentTimer | null;
   stepRemainingSeconds: number;
   warmUpTimer: SegmentTimer | null;
+  timerPaused: boolean;
+  hiddenTurnKey: string | null;
+  hiddenTimer: ReturnType<typeof setTimeout> | null;
   warmUpElapsedSeconds: number;
   warmUpConfiguration: Record<string, unknown> | null;
   stepConfiguration: Record<string, unknown> | null;
@@ -166,6 +173,8 @@ export type RoutinePlayContext = {
   $store: {
     game: {
       loading: boolean;
+      timerPaused?: boolean;
+      configSnapshot?: { durationType?: string } | null;
       reset(): void;
       startSession(input: unknown): void;
       contextRow(
@@ -182,6 +191,11 @@ export type RoutinePlayContext = {
   headerSubtitle(this: RoutinePlayContext): string;
   headerClock(this: RoutinePlayContext): string;
   headerClockLabel(this: RoutinePlayContext): string;
+  clearPause(this: RoutinePlayContext): void;
+  pausable(this: RoutinePlayContext): boolean;
+  paused(this: RoutinePlayContext): boolean;
+  pauseLabel(this: RoutinePlayContext): string;
+  togglePause(this: RoutinePlayContext): void;
   stepContextRow(this: RoutinePlayContext): SessionContextRow | null;
   startCurrentStep(this: RoutinePlayContext): Promise<void>;
   openStep(

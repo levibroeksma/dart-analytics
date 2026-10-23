@@ -18,6 +18,7 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 | One visit per attempt | V1 | All | |
 | Double-out: last dart a double or the bullseye | V1 | All | |
 | Bust fails the attempt | V1 | All | |
+| Unreachable remainder fails the attempt | V1 | All | |
 | New score after every attempt | V1 | All | |
 | Time-bound run | V1 | All | |
 | Draw seed | V1 | All | |
@@ -86,6 +87,9 @@ defaults. The 10-minute preset is a draft value, not sourced.
   dart hit a double or the bullseye.
 - **Bust:** remaining below 0, exactly 1, or 0 without a double-out. Later
   darts are void and the attempt fails. An attempt ending above 0 fails.
+- **Unreachable:** the attempt also fails the moment the remaining score cannot
+  be finished with the darts left in the visit (120 after a single 1 with two
+  darts left). The next score is drawn at once.
 
 ### Progress
 
@@ -141,6 +145,7 @@ defaults. The 10-minute preset is a draft value, not sourced.
 | **One visit per attempt** | V1 | An attempt is exactly one three-dart visit |
 | **Double-out** | V1 | Remaining reaches 0 with the last dart in a double or the bullseye |
 | **Bust** | V1 | Remaining below 0, exactly 1, or 0 without a double-out |
+| **Unreachable remainder** | V1 | The remaining score has no double-out within the darts left in the visit; the attempt fails and a new score is drawn |
 | **Checkout rate** | V1 | Checkouts ÷ judged attempts |
 | **Configurable range** | V2+ | A draw range other than 40–170 |
 | **Fixed-round bound** | V2+ | A run of a set number of attempts |

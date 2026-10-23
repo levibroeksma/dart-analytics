@@ -193,4 +193,50 @@ describe("SegmentTimer", () => {
     timer.unlockAudio();
     expect(resumeMock).toHaveBeenCalled();
   });
+
+  it("pause freezes the countdown and resume continues from the same remaining", () => {
+    const timer = new SegmentTimer({ totalMinutes: 1, intervalMinutes: 1 });
+    timer.start();
+    vi.advanceTimersByTime(10000);
+    timer.pause();
+    vi.advanceTimersByTime(30000);
+    expect(timer.getRemaining()).toBe(50);
+    timer.resume();
+    vi.advanceTimersByTime(5000);
+    expect(timer.getRemaining()).toBe(45);
+    timer.stop();
+  });
+
+  it("resume keeps the segment index, so a passed boundary is not fired again", () => {
+    const onSegmentChange = vi.fn();
+    const timer = new SegmentTimer({
+      direction: "countup",
+      segmentDurationsSeconds: [2, 10],
+      onSegmentChange,
+    });
+    timer.start();
+    vi.advanceTimersByTime(3000);
+    expect(onSegmentChange).toHaveBeenCalledTimes(1);
+    timer.pause();
+    timer.resume();
+    vi.advanceTimersByTime(3000);
+    expect(onSegmentChange).toHaveBeenCalledTimes(1);
+    timer.stop();
+  });
+
+  it("pause and resume are no-ops when not running or already running", () => {
+    const timer = new SegmentTimer({ totalMinutes: 1, intervalMinutes: 1 });
+    timer.resume();
+    vi.advanceTimersByTime(3000);
+    expect(timer.getRemaining()).toBe(60);
+    timer.start();
+    timer.resume();
+    vi.advanceTimersByTime(2000);
+    expect(timer.getRemaining()).toBe(58);
+    timer.pause();
+    timer.pause();
+    vi.advanceTimersByTime(2000);
+    expect(timer.getRemaining()).toBe(58);
+    timer.stop();
+  });
 });

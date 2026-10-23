@@ -140,4 +140,58 @@ describe("quickSubtractPlay", () => {
     expect(destroySpy).toHaveBeenCalled();
     expect(location.href).toBe("/training");
   });
+
+  describe("pause", () => {
+    it("is pausable only while a game is running", () => {
+      const ctx = quickSubtractPlay();
+      expect(ctx.pausable()).toBe(false);
+      ctx.startTimer(1);
+      expect(ctx.pausable()).toBe(true);
+      ctx.game?.finish();
+      ctx.syncFromGame();
+      expect(ctx.pausable()).toBe(false);
+    });
+
+    it("freezes the countdown, ignores submits and resumes", () => {
+      vi.spyOn(Math, "random").mockReturnValue(0);
+      const ctx = quickSubtractPlay();
+      ctx.startTimer(1);
+      vi.advanceTimersByTime(10000);
+
+      ctx.togglePause();
+      vi.advanceTimersByTime(30000);
+      expect(ctx.paused).toBe(true);
+      expect(ctx.remainingTime).toBe(50);
+      ctx.scoreInput.appendDigit(1);
+      ctx.submit();
+      expect(ctx.attempts).toBe(0);
+
+      ctx.togglePause();
+      vi.advanceTimersByTime(5000);
+      expect(ctx.paused).toBe(false);
+      expect(ctx.remainingTime).toBe(45);
+      ctx.destroy();
+    });
+
+    it("labels the pause with the countdown, or elapsed time in count mode", () => {
+      const ctx = quickSubtractPlay();
+      ctx.startTimer(1);
+      expect(ctx.pauseLabel()).toBe("01:00");
+      ctx.destroy();
+      ctx.reset();
+
+      ctx.startCount(5);
+      vi.advanceTimersByTime(3000);
+      expect(ctx.pauseLabel()).toBe("00:03");
+      ctx.destroy();
+    });
+
+    it("reset clears a pause", () => {
+      const ctx = quickSubtractPlay();
+      ctx.startCount(5);
+      ctx.togglePause();
+      ctx.reset();
+      expect(ctx.paused).toBe(false);
+    });
+  });
 });
