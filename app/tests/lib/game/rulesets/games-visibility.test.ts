@@ -249,3 +249,11 @@ describe("cardForRuleset — Bob's 27 Easy", () => {
     expect(card?.rulesetVersionKey).toBe("BOBS27_V1");
   });
 });
+
+describe("cardForRuleset — Tactics 1v1", () => {
+  it("keeps a TACTICS_V2 session on the Tactics card", () => {
+    const card = cardForRuleset(GAME_CARDS, "TACTICS_V2");
+    expect(card?.gameTypeKey).toBe("TACTICS");
+    expect(card?.rulesetVersionKey).toBe("TACTICS_V1");
+  });
+});

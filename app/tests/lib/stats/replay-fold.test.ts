@@ -15,6 +15,7 @@ import {
   SCRIPTED_GAMES,
   playBobs27,
   playBobs27Easy,
+  playTacticsDuel,
   playFiveOhOne,
   playScoreTraining,
   replayHeader,
@@ -102,6 +103,23 @@ describe("foldReplay", () => {
     expect(fold.stateAfter(game.turns.length - 1)).toMatchObject({
       status: "IN_PROGRESS",
       seats: [{ score: -4, status: "IN_PROGRESS" }],
+    });
+  });
+
+  it("folds a Tactics duel to the points and the winner the engine reached", () => {
+    const game = playTacticsDuel();
+    const fold = foldReplay(game.header, game.turns);
+
+    if (!fold.ok) throw new Error("expected a fold");
+    expect(fold.stateAfter(game.turns.length - 1)).toEqual(game.finalState);
+    expect(game.finalState).toMatchObject({
+      status: "COMPLETE",
+      winnerParticipantRef: PLAYER_ONE.participantId,
+    });
+    expect(fold.stateAfter(game.turns.length - 2)).toMatchObject({
+      status: "IN_PROGRESS",
+      winnerParticipantRef: null,
+      seats: [{ points: 19 }, { points: 20 }],
     });
   });
 
