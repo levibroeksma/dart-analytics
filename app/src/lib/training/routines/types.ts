@@ -149,6 +149,8 @@ export type RoutinePlayContext = {
   stepRemainingSeconds: number;
   warmUpTimer: SegmentTimer | null;
   timerPaused: boolean;
+  hiddenTurnKey: string | null;
+  hiddenTimer: ReturnType<typeof setTimeout> | null;
   warmUpElapsedSeconds: number;
   warmUpConfiguration: Record<string, unknown> | null;
   stepConfiguration: Record<string, unknown> | null;

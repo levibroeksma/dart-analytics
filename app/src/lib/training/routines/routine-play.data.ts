@@ -17,6 +17,7 @@ import { SegmentTimer } from "@modules/ui/segment-timer.module";
 import { SessionClock } from "@modules/ui/session-clock.module";
 import { playAudioCue, unlockAudioCues } from "@modules/ui/audio-cue.module";
 import { boardInputData, markersForTurns } from "@lib/game/board-input.data";
+import { armHiddenTimer, clearHiddenTimer } from "@lib/game/play-lifecycle";
 import { resolveSoloParticipantRef } from "@lib/training/exercises/solo-participant-upload";
 import { buildEventsBatch } from "@modules/game/events.payload.module";
 import {
@@ -149,6 +150,7 @@ function recordInto(
   const engine = ctx[slot];
   if (!engine || ctx.timerPaused) return;
   engine.record(observation);
+  armHiddenTimer(ctx, engine.facts().turns);
   if (COMPLETES_ON_DART.has(slot) && engine.isComplete())
     void ctx.completeCurrentStep();
 }
@@ -259,6 +261,8 @@ export function routinePlay() {
     stepRemainingSeconds: 0,
     warmUpTimer: null,
     timerPaused: false,
+    hiddenTurnKey: null as string | null,
+    hiddenTimer: null as ReturnType<typeof setTimeout> | null,
     warmUpElapsedSeconds: 0,
     warmUpConfiguration: null,
     stepConfiguration: null,
@@ -310,7 +314,9 @@ export function routinePlay() {
     },
 
     visitMarkers(this: RoutinePlayContext): BoardMarker[] {
-      return markersForTurns(this.activeDartEngine()?.facts().turns ?? []);
+      const turns = this.activeDartEngine()?.facts().turns ?? [];
+      if (turns.at(-1)?.clientKey === this.hiddenTurnKey) return [];
+      return markersForTurns(turns);
     },
 
     /**
@@ -1207,6 +1213,7 @@ export function routinePlay() {
 
     undoVisit(this: RoutinePlayContext) {
       this.activeDartEngine()?.undo();
+      clearHiddenTimer(this);
     },
 
     async uploadCurrentStepFacts(this: RoutinePlayContext) {
@@ -1263,6 +1270,7 @@ export function routinePlay() {
         return;
       }
       this.clearPause();
+      clearHiddenTimer(this);
       if (this.stepTimer) {
         this.stepTimer.stop();
         this.stepTimer = null;
