@@ -32,6 +32,7 @@ export class QuickSubtractGame {
   private targetCount: number | null;
   private timer: SegmentTimer;
   private status: GameStatus = "idle";
+  private paused = false;
   private current: Calculation | null = null;
   private correctAnswers = 0;
   private attempts = 0;
@@ -53,7 +54,12 @@ export class QuickSubtractGame {
 
   answer(value: number | string): AnswerResult {
     const numeric = parseAnswerValue(value);
-    if (this.status !== "running" || !this.current || numeric === null) {
+    if (
+      this.status !== "running" ||
+      this.paused ||
+      !this.current ||
+      numeric === null
+    ) {
       return invalidAnswerResult();
     }
 
@@ -66,9 +72,26 @@ export class QuickSubtractGame {
     return { valid: true, correct, expected, calculation };
   }
 
+  pause(): void {
+    if (this.status !== "running" || this.paused) return;
+    this.paused = true;
+    this.timer.pause();
+  }
+
+  resume(): void {
+    if (!this.paused) return;
+    this.paused = false;
+    this.timer.resume();
+  }
+
+  isPaused(): boolean {
+    return this.paused;
+  }
+
   finish(): void {
     if (this.status !== "running") return;
     this.status = "finished";
+    this.paused = false;
     this.timer.stop();
   }
 

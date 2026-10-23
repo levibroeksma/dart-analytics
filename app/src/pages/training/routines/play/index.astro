@@ -21,7 +21,7 @@ import ScoreTraining from "@components/layout/games/interfaces/ScoreTraining.ast
 import OneTwentyOne from "@components/layout/games/interfaces/OneTwentyOne.astro";
 import AroundTheClock from "@components/layout/games/interfaces/AroundTheClock.astro";
 import CountdownPauseControl from "@components/layout/games/CountdownPauseControl.astro";
-import HeaderClockPill from "@components/layout/games/HeaderClockPill.astro";
+import CountdownResumePrompt from "@components/layout/games/CountdownResumePrompt.astro";
 import CheckoutConfirm from "@components/layout/games/CheckoutConfirm.astro";
 import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
 import InlayRow from "@components/ui/InlayRow.astro";
@@ -40,16 +40,13 @@ import OpenRoutineModal from "@components/layout/training/routines/OpenRoutineMo
   x-data="routinePlay()"
   @confirm-exit.window="abandonAndExit()"
 >
-  <HeaderClockPill
-    slot="header-end"
-    valueExpr="headerClock()"
-    ariaLabelExpr="headerClockLabel()"
-    showExpr="headerClock() !== ''"
-  />
   <CountdownPauseControl
     slot="header-end"
-    scopeExpr="game"
-    disabledExpr="game?.finished || game?.showDoubleConfirm || game?.showFinishConfirm || game?.showSessionFinishConfirm"
+    pausedExpr="paused()"
+    showExpr="pausable()"
+    labelExpr="pauseLabel()"
+    toggleExpr="togglePause()"
+    disabledExpr="routineFinished || game?.finished || game?.showDoubleConfirm || game?.showFinishConfirm || game?.showSessionFinishConfirm"
   />
   <div class="flex flex-col flex-1 min-h-0">
     <ErrorAlert />
@@ -59,7 +56,11 @@ import OpenRoutineModal from "@components/layout/training/routines/OpenRoutineMo
     </template>
 
     <template x-if="routineReady && !loading">
-      <div class="flex min-h-0 flex-1 flex-col">
+      <div
+        class="flex min-h-0 flex-1 flex-col"
+        x-show="!(paused() && !game)"
+        x-cloak
+      >
         <template x-if="adapter?.panel === 'warm-up' && warmUpEngine">
           <WarmUpPanel />
         </template>
@@ -263,6 +264,12 @@ import OpenRoutineModal from "@components/layout/training/routines/OpenRoutineMo
         </template>
       </div>
     </template>
+
+    <CountdownResumePrompt
+      disabledExpr="routineFinished"
+      pausedExpr="paused() && !game"
+      toggleExpr="togglePause()"
+    />
 
     <template x-if="blockingSession">
       <BlockedStepModal />

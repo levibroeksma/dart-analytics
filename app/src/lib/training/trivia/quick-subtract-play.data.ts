@@ -21,6 +21,8 @@ export function quickSubtractPlay() {
     elapsedTime: 0,
     remainingTime: 0,
     lastAnswer: null as AnswerResult | null,
+    paused: false,
+    runMode: "count" as "count" | "timer",
     game: null as QuickSubtractGame | null,
 
     formattedElapsed(): string {
@@ -31,12 +33,30 @@ export function quickSubtractPlay() {
       return formatSeconds(this.remainingTime);
     },
 
+    pausable(): boolean {
+      return this.status === "running";
+    },
+
+    pauseLabel(): string {
+      return this.runMode === "timer"
+        ? this.formattedRemaining()
+        : this.formattedElapsed();
+    },
+
+    togglePause() {
+      if (!this.game || !this.pausable()) return;
+      if (this.game.isPaused()) this.game.resume();
+      else this.game.pause();
+      this.paused = this.game.isPaused();
+    },
+
     /** Runs after every game mutation, including a timer's onComplete firing
      * outside submit() — otherwise status/elapsedTime/remainingTime go stale
      * the moment a running-mode timer finishes on its own. */
     syncFromGame(): void {
       if (!this.game) return;
       this.status = this.game.getStatus();
+      this.paused = this.game.isPaused();
       this.current = this.game.getCurrent();
       this.correctAnswers = this.game.getCorrectAnswers();
       this.attempts = this.game.getAttempts();
@@ -59,6 +79,7 @@ export function quickSubtractPlay() {
       });
       timer.unlockAudio();
       game = new QuickSubtractGame({ mode: "count", count, timer });
+      this.runMode = "count";
       this.game = game;
       game.start();
       this.syncFromGame();
@@ -77,13 +98,14 @@ export function quickSubtractPlay() {
       });
       timer.unlockAudio();
       game = new QuickSubtractGame({ mode: "timer", timer });
+      this.runMode = "timer";
       this.game = game;
       game.start();
       this.syncFromGame();
     },
 
     submit() {
-      if (!this.game || !this.scoreInput.value) return;
+      if (!this.game || this.paused || !this.scoreInput.value) return;
       const result = this.game.answer(this.scoreInput.value);
       this.lastAnswer = result;
       this.scoreInput.clear();
@@ -94,6 +116,7 @@ export function quickSubtractPlay() {
       this.game?.destroy();
       this.game = null;
       this.status = "idle";
+      this.paused = false;
       this.current = null;
       this.scoreInput.clear();
       this.correctAnswers = 0;

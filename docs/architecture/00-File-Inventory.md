@@ -2,7 +2,7 @@
 status: canonical
 scope: canonical file inventory — what each document answers
 read-when: a context pack demonstrably lacks the answer
-updated: 2026-10-13
+updated: 2026-10-23
 -->
 
 > Escalation target for `00-Context-Map.md`. Packs come first; open this
@@ -480,7 +480,6 @@ Registered for discoverability, not as reading material — the contract lives i
 
 | File | Answers | Status |
 | ---- | ------- | ------ |
-| `app/src/components/layout/games/HeaderClockPill.astro` | Routine play header clock: 44px `inset-well` mono readout, no control (D454, 2026-10-13) | canonical |
 | `app/src/components/layout/training/routines/RoutineReadyGate.astro` | The routine's one "Are you ready?" gate: step list plus inline `SlideToStart`, the audio-unlock gesture (D454, 2026-10-13) | canonical |
 | `app/src/components/layout/training/routines/RoutineCompletionStates.astro` | The routine play page's shared per-step completion states — finish confirm, failed upload, saving (2026-10-21) | canonical |
 | `app/src/components/ui/SectionRing.astro` | Sectioned progress ring around a square board (Warm-Up spotlight; 2026-10-13) | canonical |

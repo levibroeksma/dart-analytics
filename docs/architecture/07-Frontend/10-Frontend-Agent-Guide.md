@@ -2,7 +2,7 @@
 status: canonical
 scope: frontend/agent-rules
 read-when: before any frontend page, component, or module work
-updated: 2026-08-20
+updated: 2026-10-23
 -->
 
 # Frontend Agent Guide
@@ -155,6 +155,7 @@ Semantic tokens only (`surface` / `foreground` / `muted*` / `border*` / `accent*
 - [ ] Context Maintenance: `00-File-Inventory.md` updated if docs added/moved
 - [ ] `scripts/check-context-map.sh` passes
 - [ ] Template comments are `{/* */}` only (no `<!-- -->`)
+- [ ] Any timed surface (game, trivia tool, routine step) has pause: `togglePause()` in its play data, `CountdownPauseControl` in `header-end` (D483)
 - [ ] `npm run format:check` clean when touching `app/` markup/TS
 
 ---

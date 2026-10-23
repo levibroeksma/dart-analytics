@@ -94,6 +94,8 @@ Two corollaries:
   `V2+` exercise type is itself `V2+`.
 - **A game or exercise is not V1 until `Capture` is answered.** A state shape
   that cannot be persisted is not playable, only demoable.
+- **A timed setting is not V1 without pause.** Any game, exercise, routine
+  step or trivia tool with a timed mode must say how it pauses (D483).
 
 ## Step 4 — force the defer list
 

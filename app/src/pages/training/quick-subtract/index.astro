@@ -3,18 +3,25 @@ export const prerender = true;
 
 import GameLayout from "@layouts/GameLayout.astro";
 import QuickSubtract from "@components/layout/training/trivia/QuickSubtract.astro";
+import CountdownPauseControl from "@components/layout/games/CountdownPauseControl.astro";
 ---
 
 <GameLayout
   title="Quick Subtract"
   gameTitle="Quick Subtract"
   exitDescription="Your progress in this session will be lost."
+  x-data="quickSubtractPlay()"
+  @confirm-exit.window="exit()"
 >
-  <div
-    class="flex flex-col flex-1 min-h-0"
-    x-data="quickSubtractPlay()"
-    @confirm-exit.window="exit()"
-  >
+  <CountdownPauseControl
+    slot="header-end"
+    pausedExpr="paused"
+    showExpr="pausable()"
+    labelExpr="pauseLabel()"
+    toggleExpr="togglePause()"
+    disabledExpr="false"
+  />
+  <div class="flex flex-col flex-1 min-h-0">
     <QuickSubtract />
   </div>
 </GameLayout>
