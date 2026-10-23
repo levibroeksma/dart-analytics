@@ -484,3 +484,10 @@ Decision: `AROUND_THE_CLOCK_V3` is a new ruleset version (V2 fields with `diffic
 Reason: Easy's `advanceOnHit` zeroes `hitsThisVisit` on every hit, so a `hitsThisVisit === 0` blank test would charge a life for a visit that hit on dart one; a visit-hit flag is the smallest state that survives it. Optional seat fields keep every V1/V2 golden and existing test as they were (D243's rule: a shipped version is never edited in place).
 Consequences: both policies have Nine Lives as first caller (D468). A multi-seat lives race stays out of scope (`SEAT_CAPS` 1). `rulesetKeyOf`, `aroundTheClockVariantValidator`, `variantsPlayAgain` and `searchParamFromLocation` are shared, not copied. Spec: `docs/superpowers/specs/2026-10-21-track-wave-t2-design.md`; plan: `docs/superpowers/plans/2026-10-22-track-t2-nine-lives.md`.
 Supersedes: none.
+
+### D484 — Random Checkout fails an attempt once its finish is unreachable
+Status: Accepted · Date: 2026-10-23
+Decision: `RANDOM_CHECKOUT_V1` folds a visit to `FAILED` the moment the remainder has no double-out within the darts left (`isCheckoutReachable(remaining, 3 - dartsThrown)`), alongside the bust and third-dart rules. The next draw replaces the attempt at once (#1064).
+Reason: a player on 120 who hit a 1 with two darts left kept throwing at a target that could not be finished.
+Consequences: no new ruleset version. The outcome folds from the visit's darts alone, so undo and replay agree. A stored visit that kept throwing after the finish became unreachable still folds to the same attempt and checkout counts, since it could not have checked out. Rules: `docs/game-rules/training/exercises/random-checkout.md`.
+Supersedes: none.
