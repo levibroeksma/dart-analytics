@@ -7,6 +7,7 @@ import type {
   TurnFact,
 } from "@modules/types";
 import { resolveCheckoutAttempt } from "@modules/game/checkout-bust.module";
+import { isCheckoutReachable } from "@modules/game/checkout-reachability.module";
 import { seededUniform } from "@modules/game/seeded-rng.module";
 import {
   appendObservedDart,
@@ -67,10 +68,15 @@ function isFinishingDart(dart: DartFact): boolean {
   return dart.hitZoneKey === "DOUBLE" || dart.hitZoneKey === "INNER_BULL";
 }
 
-/** Walks one visit's darts from `start` under the X01 double-out rule. */
+/**
+ * Walks one visit's darts from `start` under the X01 double-out rule. A
+ * visit also fails the moment the remainder can no longer be finished with
+ * the darts it has left (#1064), so the next draw replaces it at once; the
+ * outcome reads from the darts alone, so replay and undo agree.
+ */
 function walkVisit(start: number, darts: readonly DartFact[]): VisitOutcome {
   let remaining = start;
-  for (const dart of darts) {
+  for (const [index, dart] of darts.entries()) {
     const outcome = resolveCheckoutAttempt(
       remaining,
       dart.score,
@@ -79,6 +85,9 @@ function walkVisit(start: number, darts: readonly DartFact[]): VisitOutcome {
     if (outcome.checkedOut) return { kind: "CHECKOUT" };
     if (outcome.busted) return { kind: "FAILED" };
     remaining = outcome.remainingAfter;
+    if (!isCheckoutReachable(remaining, DARTS_PER_VISIT - index - 1)) {
+      return { kind: "FAILED" };
+    }
   }
   return darts.length === DARTS_PER_VISIT
     ? { kind: "FAILED" }
