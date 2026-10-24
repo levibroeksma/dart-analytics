@@ -688,4 +688,11 @@ describe("TacticsEngine on the shared marks engine", () => {
     expect(v1.rulesetVersionKey).toBe("TACTICS_V1");
     expect(v2.rulesetVersionKey).toBe("TACTICS_V2");
   });
+
+  it("types the engine by its key", () => {
+    const v1 = new TacticsEngine(config, undefined, "TACTICS_V1");
+    // @ts-expect-error a TACTICS_V1 engine is not a TACTICS_V2 engine
+    const v2: TacticsEngine<"TACTICS_V2"> = v1;
+    expect(v2.rulesetVersionKey).toBe("TACTICS_V1");
+  });
 });

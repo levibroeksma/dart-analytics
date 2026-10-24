@@ -41,7 +41,7 @@ export abstract class MarksEngine<
 
   protected abstract fold(facts: EngineFacts): TState;
 
-  protected abstract fork(): { record(observation: DartObservation): TState };
+  protected abstract fork(): MarksEngine<TConfig, TState, TKey>;
 
   /**
    * Appends one dart to the open visit (`recordMarksDart`).
@@ -85,12 +85,18 @@ export abstract class MarksEngine<
 }
 
 /** The factory for one marks ruleset version; the literal key stays in the engine file for the wiring gate. */
-export function marksEngineFactory<TConfig, TState>(spec: {
-  rulesetVersionKey: RulesetVersionKey;
+export function marksEngineFactory<
+  TConfig,
+  TState,
+  TKey extends RulesetVersionKey,
+>(spec: {
+  rulesetVersionKey: TKey;
   build: (
     config: TConfig,
     prior?: EngineFacts,
-  ) => GameEngine<DartObservation, TState>;
+  ) => GameEngine<DartObservation, TState> & {
+    rulesetVersionKey: NoInfer<TKey>;
+  };
 }): GameEngineFactory<TConfig, DartObservation, TState> {
   return {
     rulesetVersionKey: spec.rulesetVersionKey,
