@@ -199,7 +199,8 @@ export function capableRulesets(
  * checkout-ladder games with 501's identical `{ remaining, checkoutPath }`
  * decision shape). `SCORE_TRAINING_V1` is on `ScoringStrategy`
  * (`scoring.strategy.module.ts`, D-G) — no checkout to route on, so it
- * always aims treble 20. `SINGLES_V2` is absent because no setup screen
+ * always aims treble 20. `CRICKET_V2` is on `MarksStrategy` (`marks.strategy.module.ts`), the first
+ * strategy that chooses its own target. `SINGLES_V2` is absent because no setup screen
  * creates a session on it — Singles Training's own screen resolves every new
  * session to `SINGLES_V3` (issue #290), which is wired here and in
  * `SEAT_CAPS` exactly as D259 wired Shanghai V2. `121_V2` is solo-only for
@@ -213,6 +214,7 @@ export const RULESET_DARTBOT: Readonly<
   AROUND_THE_CLOCK_V1: true,
   BOBS27_V1: true,
   BOBS27_V2: true,
+  CRICKET_V2: true,
   DOUBLES_TRAINING_V1: true,
   SHANGHAI_V1: true,
   SHANGHAI_V2: true,

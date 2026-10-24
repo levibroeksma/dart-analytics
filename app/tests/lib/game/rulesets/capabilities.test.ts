@@ -177,7 +177,7 @@ describe("capableRulesets", () => {
 });
 
 describe("RULESET_DARTBOT", () => {
-  it("admits the thirteen rulesets whose bot strategy exists today", () => {
+  it("admits the fourteen rulesets whose bot strategy exists today", () => {
     expect(
       (Object.keys(RULESET_DARTBOT) as (keyof typeof RULESET_DARTBOT)[])
         .filter((key) => RULESET_DARTBOT[key])
@@ -189,6 +189,7 @@ describe("RULESET_DARTBOT", () => {
       "AROUND_THE_CLOCK_V1",
       "BOBS27_V1",
       "BOBS27_V2",
+      "CRICKET_V2",
       "DOUBLES_TRAINING_V1",
       "SCORE_TRAINING_V1",
       "SHANGHAI_V1",
@@ -347,7 +348,11 @@ describe("Cricket V2 capabilities", () => {
     expect(STATS_TAGS.CRICKET_V2).toEqual(STATS_TAGS.CRICKET_V1);
   });
 
-  it("has no dartbot", () => {
-    expect(supportsDartbot("CRICKET_V2")).toBe(false);
+  it("admits a dartbot", () => {
+    expect(supportsDartbot("CRICKET_V2")).toBe(true);
+  });
+
+  it("keeps solo Cricket without a dartbot", () => {
+    expect(supportsDartbot("CRICKET_V1")).toBe(false);
   });
 });
