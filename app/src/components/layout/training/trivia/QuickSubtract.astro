@@ -8,11 +8,19 @@ import StatTile from "@components/layout/games/StatTile.astro";
 import Toggle from "@components/layout/games/setup/Toggle.astro";
 import Input from "@components/forms/Input.astro";
 import SettingSectionShell from "@components/layout/games/setup/SettingSectionShell.astro";
-import StatRow from "@components/layout/games/StatRow.astro";
+import PlayStatTileList from "@components/layout/games/PlayStatTileList.astro";
 import CountdownResumePrompt from "@components/layout/games/CountdownResumePrompt.astro";
 import SinglePlayerDisplay from "@components/layout/games/SinglePlayerDisplay.astro";
 
+// Lib
+import { soloCall } from "@lib/game/play-screen-expr";
+import type { Tile } from "@lib/interfaces";
+
 // Data
+const answerTiles: Tile[] = [
+  { label: "Correct", value: () => "correctAnswers" },
+  { label: "Incorrect", value: () => "incorrectAnswers" },
+];
 const modeOptions = [
   { value: "count", label: "Fixed Count" },
   { value: "timer", label: "Timer" },
@@ -96,21 +104,12 @@ const modeOptions = [
         x-text="mode === 'count' ? formattedElapsed() : formattedRemaining()"
       >
       </div>
-      <div
-        slot="progress"
-        class="mt-2 flex w-full flex-col items-center gap-2 px-4"
-      >
-        <dl class="w-full space-y-1">
-          <StatRow
-            label="Correct"
-            value="correctAnswers"
-          />
-          <StatRow
-            label="Incorrect"
-            value="incorrectAnswers"
-          />
-        </dl>
-      </div>
+      <PlayStatTileList
+        tiles={answerTiles}
+        call={soloCall()}
+        fit
+        highlightFirst
+      />
     </SinglePlayerDisplay>
     <ScoreInput
       value="scoreInput.value"
