@@ -942,6 +942,10 @@ export type CricketPlayContext = PlayLifecycleContext<
   CricketResultsSnapshot
 > & {
   ring: CricketRing;
+  starterOpen: boolean;
+  playAgainStarter: 0 | 1 | null;
+  requestPlayAgain(): unknown;
+  playAgainStarterOptions(): StarterStepOptions;
   botThrowing: boolean;
   botFlight: BotFlight | null;
   maybeRunBotVisit(this: CricketPlayContext): Promise<void>;
@@ -1020,6 +1024,10 @@ export type TacticsPlayContext = PlayLifecycleContext<
   TacticsResultsSnapshot
 > & {
   ring: TacticsRing;
+  starterOpen: boolean;
+  playAgainStarter: 0 | 1 | null;
+  requestPlayAgain(): unknown;
+  playAgainStarterOptions(): StarterStepOptions;
   visitMarkers(this: TacticsPlayContext): BoardMarker[];
   state(this: TacticsPlayContext): TacticsState | null;
   subtitle(this: TacticsPlayContext): string;

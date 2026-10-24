@@ -526,3 +526,10 @@ Decision: `marks.strategy.module.ts` is the first DartBot strategy that chooses 
 Reason: Cricket V2 shipped guest-only because no strategy could aim at an objective. A strict ladder is explainable and testable as a table, and the view and strategy are game-agnostic, so Tactics V2 can reuse them.
 Consequences: no decision-degrading by level in this version: `level` changes aim noise only. The bull is last in every tier, so a bot behind on points may be slow to score on it. A passive opponent who closes nothing lets the bot keep scoring on numbers it owns, so that game ends only when the opponent closes numbers; a human playing to win does. No migration and no schema change. Spec: `docs/superpowers/specs/2026-10-24-cricket-dartbot-design.md`. Rules: `docs/game-rules/rulesets/cricket.md`.
 Supersedes: none.
+
+### D490 — The marks ladder scores only while the bot does not lead on points
+Status: Accepted · Date: 2026-10-24
+Decision: `MarksView` gains `ownPoints` and `opponentPoints`. In `marks.strategy.module.ts` the score tier applies only when `ownPoints <= opponentPoints`; block, close and the treble-20 fallback are unchanged. A bot that leads on points skips scoring and closes its remaining numbers, and resumes scoring if the opponent catches up.
+Reason: D489's strict ladder let the bot score without end on numbers it owned against a passive opponent, so that game never finished. A lead needs no more points, only the closes that end the game.
+Consequences: a passive human now loses: the bot builds a lead, then closes. Levels still change aim noise only. No migration. Rules and architecture: `docs/architecture/08-DartBot.md` 0.8.14.
+Supersedes: D489 (score tier only; the rest of D489 stands).

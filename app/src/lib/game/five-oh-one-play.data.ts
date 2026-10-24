@@ -1,6 +1,7 @@
 import {
   BOT_PACING,
   botDartIndex,
+  botDartObservationAt,
   botQuickScoreDartIndex,
   findBotSeat,
 } from "@lib/game/play-bot-seat";
@@ -35,8 +36,6 @@ import {
   undoBotAwareVisit,
 } from "@lib/game/play-lifecycle";
 import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
-import { createDartRng } from "@modules/dartbot/rng.module";
-import { throwDart as botThrowDart } from "@modules/dartbot/throw-engine.module";
 import { chooseTarget } from "@modules/dartbot/strategy/x01.strategy.module";
 import {
   checkoutPercentageDisplay,
@@ -133,19 +132,11 @@ function throwOneDart(
   botSeat: DartbotSeat,
   dartIndex: number,
 ): DartObservation {
-  const profile = skillProfileForLevel(botSeat.dartbot.level);
-  const rng = createDartRng(botSeat.dartbot.seed, dartIndex);
   const intent = chooseTarget(
     { remaining, checkoutPath: checkoutPathFor(remaining) },
-    profile.decisionQuality,
+    skillProfileForLevel(botSeat.dartbot.level).decisionQuality,
   );
-  const thrown = botThrowDart(intent, profile, rng);
-  return {
-    hitTargetNumber: thrown.hit.targetNumber,
-    hitZoneKey: thrown.hit.zoneKey,
-    locationX: thrown.landing.x,
-    locationY: thrown.landing.y,
-  };
+  return botDartObservationAt(botSeat, dartIndex, intent);
 }
 
 /** VISUAL_BOARD thrower: reads the real engine's own live `state()`, exactly

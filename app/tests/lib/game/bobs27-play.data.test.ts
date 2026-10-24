@@ -22,7 +22,7 @@ import {
   bobs27V2EngineFactory,
 } from "@modules/game/bobs27.engine.module";
 import { bobs27Play } from "@lib/game/bobs27-play.data";
-import { BOT_PACING } from "@lib/game/play-bot-seat";
+import { BOT_PACING, botDartObservationAt } from "@lib/game/play-bot-seat";
 import type {
   Bobs27PlayContext,
   Bobs27Snapshot,
@@ -1037,6 +1037,25 @@ describe("bobs27Play — DartBot opponent", () => {
       .turns.filter((turn) => turn.participantRef === "bot-1");
     expect(botTurns.length).toBeGreaterThan(0);
     expect(play.botThrowing).toBe(false);
+  });
+
+  it("throws its first dart at the seeded draw for double 1", async () => {
+    const play = makePlay({ configSnapshot: botConfig() });
+    await play.init.call(play);
+    await play.recordDart.call(play, missAt(1));
+    await play.recordDart.call(play, missAt(1));
+    await play.recordDart.call(play, missAt(1));
+
+    const first = play
+      .engine!.facts()
+      .turns.find((turn) => turn.participantRef === "bot-1")!.darts[0];
+    const expected = botDartObservationAt(BOT_SEATS[1] as never, 0, {
+      targetNumber: 1,
+      zoneKey: "DOUBLE",
+    });
+    expect(first.hitZoneKey).toBe(expected.hitZoneKey);
+    expect(first.locationX).toBe(expected.locationX);
+    expect(first.locationY).toBe(expected.locationY);
   });
 
   it("undoVisit returns control to the human across the bot's own turn", async () => {
