@@ -94,7 +94,7 @@ evaluated in the page's own Alpine scope.
 | `GameCard.astro` | Linked card with title, caption and dart (used by `/training/schedules`; `/games` uses `CatalogCard`) | `href`, `title`, `caption`, `duration` (optional pill, e.g. "30 min") (2026-09-11; games index moved off 2026-10-07) |
 | `InputButton.astro` | One play key: `inset-well`, `rounded-key`, mono 26px, `key-press` accent ring, 35% when disabled (D432, 2026-10-08) | `type`, `variant` (`well`/`muted`/`target`), `pressedExpr` (`glass-blue` + `aria-pressed` while true) |
 | `LegBars.astro` | One seat's legs: a 4px pill per leg to win (accent once won), or a mono `won/target` counter above five legs (`legBarStates`, D432, 2026-10-08) | `wonExpr`, `toWinExpr` |
-| `MarkRows.astro` | Cricket/Tactics mark rows (via `MarksPlayScreen`): label + three pips (`pip-on`), closed rows at 50%, `aria-label` per row (D432, 2026-10-08) | none (reads the `rowsExpr` accessor, `objectiveRowsFor(rowsRef)`) |
+| `MarkRows.astro` | Cricket/Tactics mark rows (via `MarksPlayScreen`): label + three pips (`pip-on`), closed rows at 50%, a row both seats closed struck through across label and pips, `aria-label` per row (D432, 2026-10-24) | none (reads the `rowsExpr` accessor, `objectiveRowsFor(rowsRef)`) |
 | `NoSessionPanel.astro` | Empty state when no session is active | `href` |
 | `PlayStatTile.astro` | Inset play stat: value over a mono caps label in a 76px tile, or a 44px label/value row with `compact` (D432, 2026-10-08) | `label`, `valueExpr`, `compact`, `highlight` (lit value, `accent-bright`), `fit` (flexes to share its column, max 76px; 2026-10-13) |
 | `ReconciliationBlocked.astro` | Blocked-upload explanation panel | none |
