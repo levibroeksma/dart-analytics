@@ -278,6 +278,38 @@ describe("cricketSetup", () => {
       );
     });
 
+    it("selects CRICKET_V2 when a DartBot is added and sends no overrides", async () => {
+      const setup = createSetup({
+        presets: [STANDARD_PRESET],
+        bot: { level: 8 },
+      });
+      vi.mocked(sessionsApi.createSession).mockResolvedValue({
+        sessionId: "new-session-id",
+        participants: [
+          {
+            ref: "participant-1",
+            displayName: "Player",
+            participantTypeKey: "PLAYER",
+          },
+          {
+            ref: "participant-2",
+            displayName: "DartBot",
+            participantTypeKey: "DARTBOT",
+          },
+        ],
+      } as any);
+      vi.stubGlobal("location", { href: "" });
+
+      await setup.start();
+
+      expect(sessionsApi.createSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          rulesetVersionKey: "CRICKET_V2",
+          config: { source: "template", templateRef: "tmpl-standard" },
+        }),
+      );
+    });
+
     it("errors when no preset is available", async () => {
       const setup = createSetup({ presets: [] });
       await setup.start();

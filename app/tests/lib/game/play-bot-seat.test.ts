@@ -3,6 +3,7 @@ import {
   BOT_PACING,
   botDartIndex,
   botQuickScoreDartIndex,
+  botThrowObservation,
   findBotSeat,
 } from "@lib/game/play-bot-seat";
 import type { SeatFact } from "@lib/types";
@@ -72,5 +73,35 @@ describe("BOT_PACING", () => {
 
   it("is frozen, so no game can change another game's pacing", () => {
     expect(Object.isFrozen(BOT_PACING)).toBe(true);
+  });
+});
+
+describe("botThrowObservation", () => {
+  const dartbot = findBotSeat([botSeat])!;
+  const intent = { targetNumber: 20, zoneKey: "TREBLE" as const };
+
+  it("is deterministic for the same seed and fact log", () => {
+    const a = botThrowObservation(dartbot, [], intent);
+    const b = botThrowObservation(dartbot, [], intent);
+    expect(a).toEqual(b);
+  });
+
+  it("returns the shared bot pacing and a board observation", () => {
+    const { observation, pacing } = botThrowObservation(dartbot, [], intent);
+    expect(pacing).toBe(BOT_PACING);
+    expect(observation).toHaveProperty("hitZoneKey");
+    expect(typeof observation.locationX).toBe("number");
+  });
+
+  it("draws the next dart index from the bot's own darts in the log", () => {
+    const first = botThrowObservation(dartbot, [], intent);
+    const later = botThrowObservation(dartbot, [turn("bot1", 3)], intent);
+    expect(later.observation).not.toEqual(first.observation);
+  });
+
+  it("ignores the human's darts when indexing", () => {
+    expect(botThrowObservation(dartbot, [turn("p1", 3)], intent)).toEqual(
+      botThrowObservation(dartbot, [], intent),
+    );
   });
 });

@@ -26,3 +26,23 @@ export interface X01View {
   remaining: number;
   checkoutPath: readonly string[] | null;
 }
+
+/**
+ * One objective in a marks game, as the strategy sees it: the board number
+ * (the bull is 25) and each seat's marks on it, capped at three. The app
+ * adapter flattens engine state into this.
+ */
+export interface MarksObjectiveView {
+  targetNumber: number;
+  own: number;
+  opponent: number;
+}
+
+/**
+ * Read-only view a marks ruleset hands the strategy: every objective in the
+ * order the bot prefers to attack it, with the bot's own and its opponent's
+ * marks. Carries no points, because the ladder never reads them.
+ */
+export interface MarksView {
+  objectives: readonly MarksObjectiveView[];
+}

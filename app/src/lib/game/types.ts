@@ -942,6 +942,9 @@ export type CricketPlayContext = PlayLifecycleContext<
   CricketResultsSnapshot
 > & {
   ring: CricketRing;
+  botThrowing: boolean;
+  botFlight: BotFlight | null;
+  maybeRunBotVisit(this: CricketPlayContext): Promise<void>;
   visitMarkers(this: CricketPlayContext): BoardMarker[];
   state(this: CricketPlayContext): CricketState | null;
   subtitle(this: CricketPlayContext): string;
