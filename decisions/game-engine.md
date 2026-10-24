@@ -533,3 +533,10 @@ Decision: `MarksView` gains `ownPoints` and `opponentPoints`. In `marks.strategy
 Reason: D489's strict ladder let the bot score without end on numbers it owned against a passive opponent, so that game never finished. A lead needs no more points, only the closes that end the game.
 Consequences: a passive human now loses: the bot builds a lead, then closes. Levels still change aim noise only. No migration. Rules and architecture: `docs/architecture/08-DartBot.md` 0.8.14.
 Supersedes: D489 (score tier only; the rest of D489 stands).
+
+### D491 — Cricket and Tactics share one validator factory and one set of play-data helpers
+Status: Accepted · Date: 2026-10-24
+Decision: `createMarksCloseValidator(label, configSchema)` in `services/rulesets/marks-close.validator.ts` builds both marks-close validators (no intent, at most 3 darts per visit, on top of the shared three-dart rules); `cricket.validator.ts` and `tactics.validator.ts` only name the game and its config. `lib/game/marks-play.data.ts` gains the ring tap, miss, ring toggle, visit preview and engine-resume helpers both play pages used to copy. `MarksRing` is the one ring type.
+Reason: #916 cluster 6 and the Cricket/Tactics play-data clones were left open by #1039 (#1044); each copy had to be edited twice for any rule change.
+Consequences: no behaviour change, no migration. A third marks game adds a one-line validator. The play-data boilerplate every game shares (`init`, `retryReconciliation`, `back`, `abandonAndExit`) stays in each game's file.
+Supersedes: none.

@@ -1,3 +1,4 @@
+import { marksTapObservation } from "@lib/game/marks-play.data";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@client/api/sessions", () => ({
@@ -28,7 +29,6 @@ import {
   cricketMarksView,
   cricketPlay,
   cricketSeatResult,
-  cricketTapObservation,
 } from "@lib/game/cricket-play.data";
 import { BOT_PACING } from "@lib/game/play-bot-seat";
 import type { CricketPlayContext, CricketSnapshot, Seated } from "@lib/types";
@@ -128,25 +128,6 @@ beforeEach(() => {
   registerEngineFactory(cricketEngineFactory);
   registerEngineFactory(cricketV2EngineFactory);
   vi.mocked(fetchActiveSessions).mockResolvedValue([{ ...ACTIVE_SESSION }]);
-});
-
-describe("cricketTapObservation", () => {
-  it.each([
-    [20, "SINGLE", { hitTargetNumber: 20, hitZoneKey: "SINGLE" }],
-    [15, "TREBLE", { hitTargetNumber: 15, hitZoneKey: "TREBLE" }],
-    [25, "SINGLE", { hitTargetNumber: 25, hitZoneKey: "OUTER_BULL" }],
-    [25, "DOUBLE", { hitTargetNumber: 25, hitZoneKey: "INNER_BULL" }],
-  ] as const)("maps %i + %s", (objective, ring, expected) => {
-    expect(cricketTapObservation(objective, ring)).toEqual({
-      ...expected,
-      locationX: null,
-      locationY: null,
-    });
-  });
-
-  it("refuses a treble bull", () => {
-    expect(() => cricketTapObservation(25, "TREBLE")).toThrow();
-  });
 });
 
 describe("cricketPlay", () => {
@@ -283,8 +264,8 @@ describe("Cricket V2 play data", () => {
     ],
   };
   const trebles = (...numbers: number[]) =>
-    numbers.map((n) => cricketTapObservation(n, "TREBLE"));
-  const single = (n: number) => cricketTapObservation(n, "SINGLE");
+    numbers.map((n) => marksTapObservation(n, "TREBLE"));
+  const single = (n: number) => marksTapObservation(n, "SINGLE");
   const MISS: DartObservation = {
     hitTargetNumber: null,
     hitZoneKey: "MISS",
@@ -315,8 +296,8 @@ describe("Cricket V2 play data", () => {
       trebles(17, 16, 15),
       [],
       [
-        cricketTapObservation(25, "DOUBLE"),
-        cricketTapObservation(25, "SINGLE"),
+        marksTapObservation(25, "DOUBLE"),
+        marksTapObservation(25, "SINGLE"),
         single(19),
       ],
     );
@@ -329,8 +310,8 @@ describe("Cricket V2 play data", () => {
       [],
       [
         ...trebles(20),
-        cricketTapObservation(25, "DOUBLE"),
-        cricketTapObservation(25, "SINGLE"),
+        marksTapObservation(25, "DOUBLE"),
+        marksTapObservation(25, "SINGLE"),
       ],
     );
 
