@@ -4,7 +4,7 @@
  * objective label, then three pips, one lit per mark. A closed row fades
  * to 50%. Rows that carry `opponentMarks` (1v1) add a muted second pip
  * group, light the label while the row scores (`scoring`) and fade it once
- * both seats closed it (`dead`).
+ * both seats closed it (`dead`) and strike a line through label and pips.
  * @param {string} [rowsExpr] Alpine expression for the rows (default `objectiveRowsFor(rowsRef)`)
  */
 interface Props {
@@ -21,9 +21,9 @@ const { rowsExpr = "objectiveRowsFor(rowsRef)" }: Props = Astro.props;
     :key="row.objective"
   >
     <div
-      class="flex items-center justify-between gap-2"
+      class="relative flex items-center justify-between gap-2"
       role="img"
-      :class="row.dead ? 'opacity-30' : row.closed && !row.scoring && 'opacity-50'"
+      :class="row.dead ? 'opacity-60' : row.closed && !row.scoring && 'opacity-50'"
       :aria-label="`${row.label}: ${row.marks} of 3 marks` + (row.opponentMarks != null ? `, opponent ${row.opponentMarks} of 3` : '') + (row.scoring ? ', scoring' : row.dead ? ', dead' : '')"
     >
       <span
@@ -55,6 +55,12 @@ const { rowsExpr = "objectiveRowsFor(rowsRef)" }: Props = Astro.props;
           ></span>
         </template>
       </span>
+      <span
+        x-show="row.dead"
+        x-cloak
+        class="absolute inset-x-0 top-1/2 h-px bg-foreground"
+        aria-hidden="true"
+      ></span>
     </div>
   </template>
 </div>
