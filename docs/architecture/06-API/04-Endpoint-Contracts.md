@@ -106,6 +106,7 @@ Sessions are created with a ruleset and a configuration source. The configuratio
   | `BOBS27_V1`              | 2        |
   | `BOBS27_V2`              | 2        |
   | `TACTICS_V2`             | 2        |
+  | `CRICKET_V2`             | 2        |
   | `121_V1`                 | 2        |
   | `AROUND_THE_CLOCK_V1`    | 2        |
   | `TUOD_V1`                | 2        |

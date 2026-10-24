@@ -17,6 +17,8 @@ updated: 2026-10-13
 
 # Version History
 
+> **Version:** 1.187.0 (2026-10-24 — Cricket V2 (1v1): D487 in `decisions/game-engine.md`; `0052_cricket_v2_ruleset.sql`, `marks-engine.module.ts`, `marks-play.data.ts` registered in `00-File-Inventory.md`; `MarksPlayScreen` row in `07-Frontend/08-Component-Inventory.md`; `CRICKET_V2` added to the seat-cap table in `06-API/04-Endpoint-Contracts.md`; `0052` row in `database/README.md`; marks-engine bullet in `app/src/modules/game/CLAUDE.md`)
+
 > **Version:** 1.186.0 (2026-10-23 — Tactics V2 (1v1): D486 in `decisions/game-engine.md`; `0051_tactics_v2_ruleset.sql` and `marks-duel.module.ts` registered in `00-File-Inventory.md`; `TACTICS_V2` added to the seat-cap table in `06-API/04-Endpoint-Contracts.md`; `0051` row in `database/README.md`)
 
 > **Version:** 1.185.0 (2026-10-23 — Bob's 27 Easy: D485 in `decisions/game-engine.md`; `0050_bobs27_v2_ruleset.sql` registered in `00-File-Inventory.md` and `database/README.md`; `BOBS27_V2` added to the seat-cap table in `06-API/04-Endpoint-Contracts.md` and the DartBot mode tables in `08-DartBot.md`)

@@ -90,3 +90,11 @@ DartBot (blocked, §1); more than two seats; every variant in `cricket.md` §Var
 - Undo of a winning, scoring and dead-making dart.
 - Resume mid-game in each seat's turn; V1 solo sessions started before deploy replay unchanged.
 - Guest opponent selectable from setup; DartBot not offered.
+
+## 13. Refinements (build, 2026-10-24)
+
+- `marks-play.data.ts` exports one `marksPlayAccessors(objectives, labelOf)` factory (subtitle, per-seat rows, points, closed count, darts, solo darts, results title) plus `duelWinningSideKey`, spread into both play-data files, instead of the separate `*Text` helpers the plan listed: separate helpers left the accessor block cloned across Cricket and Tactics.
+- `MarksEngine` has a third generic `TKey` so each subclass keeps its narrow key union.
+- `CricketRecreationalInput` reads its tap targets from `objectiveRowsFor(state()?.activeParticipantRef)`; labels and objectives do not depend on the seat.
+- `cricket-play.data.ts` `resumeEngine` accepting both keys landed in the registration commit, because `check-game-engines.sh` requires the play data to reference every key.
+
