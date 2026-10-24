@@ -607,6 +607,61 @@ describe("Tactics V2 duel", () => {
     expect(engine.state().winnerParticipantRef).toBe("p2");
   });
 
+  it("scores nothing on a closing dart when the opponent already closed the number", () => {
+    const engine = newDuel();
+    playVisits(engine, [D(20)], [T(20)], [T(20)]);
+    expect(engine.state().seats[0].marks[IDX[20]]).toBe(3);
+    expect(engine.state().seats[0].points).toBe(0);
+  });
+
+  it("restores the state exactly when a scoring dart is undone", () => {
+    const engine = newDuel();
+    playVisits(engine, [T(20)], THREE_MISS);
+    const before = engine.state();
+    engine.record(S(20));
+    expect(engine.state().seats[0].points).toBe(20);
+    expect(engine.undo()).toBe(true);
+    expect(engine.state()).toEqual(before);
+  });
+
+  it("restores the state exactly when a dead-making dart is undone", () => {
+    const engine = newDuel();
+    playVisits(engine, [T(20)], [T(20)]);
+    const before = engine.state();
+    engine.record(S(20));
+    expect(engine.undo()).toBe(true);
+    expect(engine.state()).toEqual(before);
+    expect(engine.state().seats[1].marks[IDX[20]]).toBe(3);
+  });
+
+  it("folds the same state after an interleaved undo as straight through", () => {
+    const straight = newDuel();
+    playVisits(straight, [T(20), S(20), MISS]);
+    straight.record(T(20));
+    straight.record(S(19));
+    const detoured = newDuel();
+    playVisits(detoured, [T(20), S(20), MISS]);
+    detoured.record(T(20));
+    detoured.record(D(19));
+    expect(detoured.undo()).toBe(true);
+    detoured.record(S(19));
+    expect(detoured.state()).toEqual(straight.state());
+    expect(detoured.facts().turns).toHaveLength(straight.facts().turns.length);
+  });
+
+  it("resumes with the second seat to throw mid-visit and continues the visit", () => {
+    const played = newDuel();
+    playVisits(played, THREE_MISS);
+    played.record(T(20));
+    const resumed = tacticsV2EngineFactory.create(duelConfig, played.facts());
+    expect(resumed.state().activeParticipantRef).toBe("p2");
+    expect(resumed.state().seats[1].dartsThisVisit).toBe(1);
+    resumed.record(S(20));
+    resumed.record(MISS);
+    expect(resumed.state().activeParticipantRef).toBe("p1");
+    expect(resumed.state().seats[1].points).toBe(20);
+  });
+
   it("folds a V2 solo log exactly as V1", () => {
     const v1 = new TacticsEngine(config);
     const v2 = new TacticsEngine(config, undefined, "TACTICS_V2");

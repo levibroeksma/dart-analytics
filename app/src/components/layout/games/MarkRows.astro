@@ -24,7 +24,7 @@ const { rowsExpr = "objectiveRows()" }: Props = Astro.props;
       class="flex items-center justify-between gap-2"
       role="img"
       :class="row.dead ? 'opacity-30' : row.closed && !row.scoring && 'opacity-50'"
-      :aria-label="`${row.label}: ${row.marks} of 3 marks`"
+      :aria-label="`${row.label}: ${row.marks} of 3 marks` + (row.opponentMarks != null ? `, opponent ${row.opponentMarks} of 3` : '') + (row.scoring ? ', scoring' : row.dead ? ', dead' : '')"
     >
       <span
         class="text-body-sm font-medium text-foreground"

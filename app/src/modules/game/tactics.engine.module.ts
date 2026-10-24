@@ -191,8 +191,9 @@ export function foldTacticsState(
 
 /**
  * Tactics: close 20–15, the bull, Doubles and Triples in as few darts as
- * possible; V2 adds a second seat, points and a winner. The engine owns the fact log; marks, closures and completion are
- * folded from it on every read and never stored. Darts carry no intent: any
+ * possible, alone or against one opponent. The engine owns the fact log;
+ * marks, closures, points and the winner are folded from it on every read
+ * and never stored. Darts carry no intent: any
  * objective is a legitimate aim on any dart.
  */
 export class TacticsEngine implements GameEngine<
