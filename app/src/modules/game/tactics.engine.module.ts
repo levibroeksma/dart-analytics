@@ -155,7 +155,7 @@ export function foldTacticsState(
   facts: EngineFacts,
   config: Seated<TacticsSnapshot>,
 ): TacticsState {
-  const activeParticipantRef = activeSeat(
+  const turnParticipantRef = activeSeat(
     facts,
     config.seats,
     "PER_SEAT",
@@ -167,7 +167,7 @@ export function foldTacticsState(
       TACTICS_DUEL,
     );
     return {
-      activeParticipantRef,
+      activeParticipantRef: duel.winnerParticipantRef ?? turnParticipantRef,
       status: duel.winnerParticipantRef === null ? "IN_PROGRESS" : "COMPLETE",
       winnerParticipantRef: duel.winnerParticipantRef,
       seats: duel.seats,
@@ -180,7 +180,7 @@ export function foldTacticsState(
     applyTacticsDart,
   );
   return {
-    activeParticipantRef,
+    activeParticipantRef: turnParticipantRef,
     status: seats.every((seat) => seat.status === "COMPLETE")
       ? "COMPLETE"
       : "IN_PROGRESS",

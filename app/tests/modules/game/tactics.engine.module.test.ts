@@ -529,6 +529,13 @@ describe("Tactics V2 duel", () => {
     expect(() => engine.record(MISS)).toThrow("game has ended");
   });
 
+  it("keeps the winner active after the winning dart", () => {
+    const engine = newDuel();
+    playToLastClosingDarts(engine);
+    playVisits(engine, [D(2), D(3)]);
+    expect(engine.state().activeParticipantRef).toBe("p1");
+  });
+
   it("reports wouldComplete only for the winning dart", () => {
     const engine = newDuel();
     playToLastClosingDarts(engine);

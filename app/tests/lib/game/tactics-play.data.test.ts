@@ -382,6 +382,14 @@ describe("Tactics V2 play data", () => {
     return engine;
   }
 
+  function duelEngineWithOwnDoubles() {
+    const engine = new TacticsEngine(duelConfig, undefined, "TACTICS_V2");
+    for (const dart of [obs(1, "DOUBLE"), obs(2, "DOUBLE"), obs(3, "DOUBLE")]) {
+      engine.record(dart);
+    }
+    return engine;
+  }
+
   async function duelCtx(engine = duelEngine()) {
     return started({
       rulesetVersionKey: "TACTICS_V2",
@@ -403,6 +411,33 @@ describe("Tactics V2 play data", () => {
       opponentMarks: 0,
       scoring: true,
       dead: false,
+    });
+  });
+
+  it("never marks Doubles or Triples as scoring or dead", async () => {
+    const engine = new TacticsEngine(duelConfig, undefined, "TACTICS_V2");
+    const darts = [
+      obs(1, "DOUBLE"),
+      obs(2, "DOUBLE"),
+      obs(3, "DOUBLE"),
+      obs(4, "DOUBLE"),
+      obs(5, "DOUBLE"),
+      obs(6, "DOUBLE"),
+    ];
+    for (const dart of darts) engine.record(dart);
+    const ctx = await duelCtx(engine);
+    const doubles = ctx.objectiveRowsFor("participant-1")[7];
+    expect(doubles).toMatchObject({
+      closed: true,
+      opponentMarks: 3,
+      scoring: false,
+      dead: false,
+    });
+    const own = await duelCtx(duelEngineWithOwnDoubles());
+    expect(own.objectiveRowsFor("participant-1")[7]).toMatchObject({
+      closed: true,
+      opponentMarks: 0,
+      scoring: false,
     });
   });
 

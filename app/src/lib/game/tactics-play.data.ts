@@ -131,14 +131,17 @@ function rowsOf(
   return TACTICS_OBJECTIVES.map((objective, i) => {
     const marks = seat?.marks[i] ?? 0;
     const opponentMarks = duel ? (opponent?.marks[i] ?? 0) : null;
+    const scores = typeof objective === "number";
     return {
       label: objectiveLabel(objective),
       objective,
       marks,
       closed: marks === 3,
       opponentMarks,
-      scoring: opponentMarks !== null && marks === 3 && opponentMarks < 3,
-      dead: opponentMarks !== null && marks === 3 && opponentMarks === 3,
+      scoring:
+        scores && opponentMarks !== null && marks === 3 && opponentMarks < 3,
+      dead:
+        scores && opponentMarks !== null && marks === 3 && opponentMarks === 3,
     };
   });
 }

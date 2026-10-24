@@ -4,6 +4,9 @@ import InfoSection from "@components/ui/InfoSection.astro";
 import SetupShell from "./SetupShell.astro";
 import UserSection from "./UserSection.astro";
 
+// Lib
+import { supportsDartbot } from "@lib/game/rulesets/capabilities";
+
 // Data
 const infoSection = {
   title: "Tactics rules",
@@ -13,7 +16,10 @@ const infoSection = {
 ---
 
 <SetupShell title="Tactics">
-  <UserSection />
+  <UserSection
+    allowGuests
+    allowDartbot={supportsDartbot("TACTICS_V2")}
+  />
   <InfoSection
     title={infoSection.title}
     description={infoSection.description}

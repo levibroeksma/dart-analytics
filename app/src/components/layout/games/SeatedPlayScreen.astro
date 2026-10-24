@@ -125,7 +125,7 @@ const seatDisplay = (index: 0 | 1, c: Call) => ({
       <div
         slot="progressA"
         class="contents"
-        x-data={rowsRefOf(0)}
+        x-data={hasRows ? rowsRefOf(0) : undefined}
       >
         {
           hasRows ? (
@@ -142,7 +142,7 @@ const seatDisplay = (index: 0 | 1, c: Call) => ({
       <div
         slot="progressB"
         class="contents"
-        x-data={rowsRefOf(1)}
+        x-data={hasRows ? rowsRefOf(1) : undefined}
       >
         {
           hasRows ? (
