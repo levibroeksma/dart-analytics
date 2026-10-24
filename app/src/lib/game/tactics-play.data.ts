@@ -13,8 +13,15 @@ import {
   playVisitMarkers,
   runPlayAgain,
 } from "@lib/game/play-lifecycle";
-import { joinSubtitle } from "@lib/game/play-subtitle";
-import { matchWinnerName } from "@lib/game/match-result-text";
+import {
+  closedCountText,
+  dartsThrownText,
+  duelWinningSideKey,
+  markRowsFor,
+  marksResultsTitle,
+  marksSubtitle,
+  seatPointsText,
+} from "@lib/game/marks-play.data";
 import type { RulesetVersionKey } from "@lib/types";
 import type {
   DartObservation,
@@ -105,52 +112,11 @@ export function tacticsSeatResult(seat: TacticsSeatState): TacticsSeatResult {
 }
 
 function computeStats(state: TacticsState): TacticsResultsSnapshot {
-  const winner = state.seats.find(
-    (seat) => seat.participantRef === state.winnerParticipantRef,
-  );
   return {
     status: "COMPLETE",
-    winningSideKey: winner?.sideKey ?? null,
+    winningSideKey: duelWinningSideKey(state),
     seats: state.seats.map(tacticsSeatResult),
   };
-}
-
-function seatByRef(state: TacticsState | null, ref: string | undefined) {
-  return state?.seats.find((seat) => seat.participantRef === ref);
-}
-
-function duelFlags(
-  scores: boolean,
-  marks: number,
-  opponentMarks: number | null,
-): Pick<TacticsObjectiveRow, "scoring" | "dead"> {
-  if (!scores || opponentMarks === null || marks < 3) {
-    return { scoring: false, dead: false };
-  }
-  return { scoring: opponentMarks < 3, dead: opponentMarks === 3 };
-}
-
-function rowsOf(
-  state: TacticsState | null,
-  ref: string | undefined,
-): TacticsObjectiveRow[] {
-  const seat = seatByRef(state, ref);
-  const opponent = state?.seats.find(
-    (candidate) => candidate.participantRef !== ref,
-  );
-  const duel = (state?.seats.length ?? 0) > 1;
-  return TACTICS_OBJECTIVES.map((objective, i) => {
-    const marks = seat?.marks[i] ?? 0;
-    const opponentMarks = duel ? (opponent?.marks[i] ?? 0) : null;
-    return {
-      label: objectiveLabel(objective),
-      objective,
-      marks,
-      closed: marks === 3,
-      opponentMarks,
-      ...duelFlags(typeof objective === "number", marks, opponentMarks),
-    };
-  });
 }
 
 /**
@@ -221,10 +187,7 @@ export function tacticsPlay() {
     subtitle(this: TacticsPlayContext): string {
       const config = this.$store.game.configSnapshot;
       if (!config) return "";
-      return joinSubtitle([
-        config.seats.length > 1 ? "1V1" : "SOLO",
-        `${TACTICS_OBJECTIVES.length} OBJECTIVES`,
-      ]);
+      return marksSubtitle(config.seats.length, TACTICS_OBJECTIVES.length);
     },
 
     /** One seat's nine rows; the opponent fields are set only in a duel. */
@@ -232,20 +195,19 @@ export function tacticsPlay() {
       this: TacticsPlayContext,
       ref: string | undefined,
     ): TacticsObjectiveRow[] {
-      return rowsOf(this.state(), ref);
+      return markRowsFor(this.state(), ref, TACTICS_OBJECTIVES, objectiveLabel);
     },
 
     pointsFor(this: TacticsPlayContext, ref: string | undefined): string {
-      return String(seatByRef(this.state(), ref)?.points ?? 0);
+      return seatPointsText(this.state(), ref);
     },
 
     closedCountFor(this: TacticsPlayContext, ref: string | undefined): string {
-      const seat = seatByRef(this.state(), ref);
-      return String(seat?.marks.filter((count) => count === 3).length ?? 0);
+      return closedCountText(this.state(), ref);
     },
 
     dartsThrownFor(this: TacticsPlayContext, ref: string | undefined): string {
-      return String(seatByRef(this.state(), ref)?.dartsThrown ?? 0);
+      return dartsThrownText(this.state(), ref);
     },
 
     dartsThrown(this: TacticsPlayContext): string {
@@ -335,12 +297,10 @@ export function tacticsPlay() {
     },
 
     resultsTitle(this: TacticsPlayContext): string {
-      if (this.$store.game.seats.length < 2) return "Closed out!";
-      const winner = matchWinnerName(
+      return marksResultsTitle(
         this.$store.game.seats,
         this.resultsSnapshot?.winningSideKey ?? null,
       );
-      return winner ? `${winner} wins!` : "Game over";
     },
 
     back(this: TacticsPlayContext) {

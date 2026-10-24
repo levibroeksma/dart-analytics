@@ -979,16 +979,19 @@ export type TacticsRing = "SINGLE" | "DOUBLE" | "TREBLE";
 /** One button of the Tactics tap grid: a board number and its label. */
 export type TacticsTapTarget = { number: number; label: string };
 
-/** One row of the Tactics play board. */
-export type TacticsObjectiveRow = {
+/** One row of a marks game's play board. */
+export type MarksObjectiveRow<TObjective> = {
   label: string;
-  objective: TacticsObjective;
+  objective: TObjective;
   marks: number;
   closed: boolean;
   opponentMarks: number | null;
   scoring: boolean;
   dead: boolean;
 };
+
+/** One row of the Tactics play board. */
+export type TacticsObjectiveRow = MarksObjectiveRow<TacticsObjective>;
 
 export type TacticsSeatResult = {
   participantRef: string;
