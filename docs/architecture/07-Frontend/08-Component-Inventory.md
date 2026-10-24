@@ -115,7 +115,6 @@ evaluated in the page's own Alpine scope.
 | `BotBoardPanel.astro` | Board panel standing in for the input stack while Dartbot throws in a non-VISUAL_BOARD session; keeps the visit's landed darts (D463, 2026-10-16) | none |
 | `StarterStep.astro` | Who-throws-first sheet (`Modal`): Bull-off \| Coin toss toggle (bull-off default, remembered), sides with `VS`, cropped-board bull-off (taps, Dartbot throw, distance rings) or 3D coin toss, `<name> throws first` (D464, 2026-10-16) | `showExpr`, `optionsExpr` (`starterStep` options) |
 | `PlayStatTileList.astro` | One tile list expanded with a solo or seat `Call` into `PlayStatTile`s, `showWhen` → `<template x-if>`; used by `SeatedPlayScreen` and `ExercisePanelShell` (D453, 2026-10-13) | `tiles`, `call`, `compact?`, `fit?` (tiles flex to share the column; the exercise card), `highlightFirst?` (lights the first tile's value; the exercise card) — both default off |
-| `StatRow.astro` | Label/value row inside a progress or results list | `label`, `value` |
 | `StatTile.astro` | Inlay stat tile: value over mono eyebrow label; with `skeletonWidth` the value pulses until results are saved (2026-10-08; D437, 2026-10-09) | `labelExpr`, `valueExpr`, `skeletonWidth` |
 | `StatRowComparison.astro` | 1v1 comparison row: label centered, one seat's value on each side, values pulse in place until saved (2026-08-28; D437, 2026-10-09) | `label`, `leftValue`, `rightValue` |
 | `TargetGrid.astro` | Cricket/Tactics "Darts to close" grid, Baseball Darts "Runs per inning": one 56px `inset-well` tile per objective, the closing dart (`–` if never closed) over the static label (D437, 2026-10-09) | `labels`, `valuesExpr`, `cols` (3/4), `title` (default "Darts to close", 2026-10-18) |
@@ -186,7 +185,7 @@ that split (2026-09-19, closes issue #423).
 
 | Component | Purpose | Key props |
 | --------- | ------- | --------- |
-| `QuickSubtract.astro` | Quick Subtract's whole play surface: idle setup (Fixed Count/Timer toggle, count/minutes input), running state (score display, correct/incorrect `PlayStatTileList` tiles, `ScoreInput` keypad), and a finished overlay with session stats and Play again/Back to Trivia | none — reads the page's `x-data` scope (`status`, `correctAnswers`, `incorrectAnswers`, `attempts`, `startCount()`/`startTimer()`/`submit()`/`exit()`/`reset()`) (2026-10-24) |
+| `QuickSubtract.astro` | Quick Subtract's whole play surface: idle setup (Fixed Count/Timer toggle, count/minutes input), running state (score display, correct/incorrect `PlayStatTileList` tiles, `ScoreInput` keypad), and a finished overlay with session stats and Play again/Back to Trivia | none — reads the page's `x-data` scope (`status`, `correctAnswers`, `incorrectAnswers`, `attempts`, `startCount()`/`startTimer()`/`submit()`/`exit()`/`reset()`) (2026-10-24); `StatRow.astro` row removed with its last consumer (2026-10-24) |
 
 ## `components/layout/training/schedules/`
 
