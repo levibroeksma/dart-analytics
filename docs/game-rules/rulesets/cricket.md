@@ -12,7 +12,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
 | Single player (practice / vs bot later) | V1 | Single | |
-| 1v1 multiplayer (two seats) | V2 | 1v1 | Being built as ruleset version `CRICKET_V2` (2026-10-24), against a guest; solo stays `CRICKET_V1`, which has no `SEAT_CAPS` entry (`app/src/services/session-seats.service.ts:19`), so its cap stays 1 |
+| 1v1 multiplayer (two seats) | V2 | 1v1 | Ruleset version `CRICKET_V2` (2026-10-24), against a guest; solo stays `CRICKET_V1`, which has no `SEAT_CAPS` entry (`app/src/services/session-seats.service.ts:19`), so its cap stays 1 |
 | Multiplayer (2+ players) | V2+ | 2+ | Wanted, unscheduled: more than two seats — V2 caps a session at two seats, and the win and dead-number rules are written for one opponent |
 | Vs DartBot | V2+ | 1v1 | Blocked on: no DartBot strategy can aim at an objective — `app/src/modules/dartbot/strategy/` holds only dictated, scoring and x01 strategies — so a marks strategy, its level calibration and its tests come first; `RULESET_DARTBOT` has no Cricket entry |
 | Config screen (presets shown) | V1 | All | |
