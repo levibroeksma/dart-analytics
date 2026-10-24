@@ -395,6 +395,20 @@ describe("summarizeProgress — CRICKET_V1 / TACTICS_V1", () => {
   });
 });
 
+describe("summarizeProgress — TACTICS_V2", () => {
+  it("reads 1v1 with two seats and Solo with one", () => {
+    const two = {
+      seats: [YOU, { ...YOU, participantRef: "p2", sideKey: "B" }],
+    };
+    expect(summarizeProgress("TACTICS_V2", two, EMPTY_FACTS)?.detail).toBe(
+      "1v1 · 9 objectives",
+    );
+    expect(
+      summarizeProgress("TACTICS_V2", { seats: [YOU] }, EMPTY_FACTS)?.detail,
+    ).toBe("Solo · 9 objectives");
+  });
+});
+
 describe("summarizeProgress — SCORE_TRAINING_V1", () => {
   it("reads Round n of m and the active seat's points", () => {
     expect(

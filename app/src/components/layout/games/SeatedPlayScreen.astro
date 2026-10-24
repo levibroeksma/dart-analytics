@@ -13,6 +13,9 @@
  * @param {Expr} [route] Checkout route (solo `RouteChips`, seat `checkoutExpr`)
  * @param {object} [legs] `{ won, toWin }` — seat `legsExpr`, `legsToWinExpr`
  * @param {string} [countdownDisabled] Set → renders `CountdownResumePrompt`
+ * @param {string} [soloCaption] Mono eyebrow under the solo big value
+ * @slot rows Replaces the stat tiles in the solo display and each active seat
+ *   card; its content reads `rowsRef`, the seat's participant ref
  * @slot between Between the solo and two-seat layouts
  * @slot default The game's input stack (keypad or recreational input)
  */
@@ -26,6 +29,7 @@ interface Props {
   route?: Expr;
   legs?: { won: Expr; toWin: string };
   countdownDisabled?: string;
+  soloCaption?: string;
   [key: string]: unknown;
 }
 
@@ -37,6 +41,7 @@ const {
   route,
   legs,
   countdownDisabled,
+  soloCaption,
   ...props
 }: Props = Astro.props;
 
@@ -54,6 +59,9 @@ import ErrorAlert from "@components/ui/ErrorAlert.astro";
 import { seatCall, seatRef, soloCall } from "@lib/game/play-screen-expr";
 
 // Data
+const hasRows = Astro.slots.has("rows");
+const rowsRefOf = (index: 0 | 1) =>
+  `{ get rowsRef() { return ${seatRef(index)} } }`;
 const solo = soloCall();
 const bigSolo = big.value(solo);
 const seatA = seatCall(0);
@@ -77,6 +85,7 @@ const seatDisplay = (index: 0 | 1, c: Call) => ({
       isTarget={big.isTarget}
       target={bigSolo}
       score={bigSolo}
+      caption={soloCaption}
     >
       {
         route && (
@@ -86,10 +95,21 @@ const seatDisplay = (index: 0 | 1, c: Call) => ({
           />
         )
       }
-      <PlayStatTileList
-        tiles={tiles}
-        call={solo}
-      />
+      {
+        hasRows ? (
+          <div
+            class="contents"
+            x-data={rowsRefOf(0)}
+          >
+            <slot name="rows" />
+          </div>
+        ) : (
+          <PlayStatTileList
+            tiles={tiles}
+            call={solo}
+          />
+        )
+      }
     </SinglePlayerDisplay>
   </template>
 
@@ -102,18 +122,40 @@ const seatDisplay = (index: 0 | 1, c: Call) => ({
       idleStatLabel={idle.label}
       legsToWinExpr={legs?.toWin}
     >
-      <PlayStatTileList
+      <div
         slot="progressA"
-        tiles={tiles}
-        call={seatA}
-        compact
-      />
-      <PlayStatTileList
+        class="contents"
+        x-data={hasRows ? rowsRefOf(0) : undefined}
+      >
+        {
+          hasRows ? (
+            <slot name="rows" />
+          ) : (
+            <PlayStatTileList
+              tiles={tiles}
+              call={seatA}
+              compact
+            />
+          )
+        }
+      </div>
+      <div
         slot="progressB"
-        tiles={tiles}
-        call={seatB}
-        compact
-      />
+        class="contents"
+        x-data={hasRows ? rowsRefOf(1) : undefined}
+      >
+        {
+          hasRows ? (
+            <slot name="rows" />
+          ) : (
+            <PlayStatTileList
+              tiles={tiles}
+              call={seatB}
+              compact
+            />
+          )
+        }
+      </div>
     </SplitScoreboard>
   </template>
 

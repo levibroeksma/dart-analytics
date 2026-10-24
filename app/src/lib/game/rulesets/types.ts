@@ -478,6 +478,7 @@ export type RulesetVersionKey =
   | "AROUND_THE_CLOCK_V3"
   | "CRICKET_V1"
   | "TACTICS_V1"
+  | "TACTICS_V2"
   | "BASEBALL_V1";
 
 /** A game page's route segment (`10-Statistics/00-Overview.md` §6): one key per game, spanning its ruleset versions. */
@@ -526,6 +527,7 @@ export const RULESET_CONFIGS: Record<RulesetVersionKey, z.ZodTypeAny> = {
   AROUND_THE_CLOCK_V3: AroundTheClockV3Config,
   CRICKET_V1: CricketConfig,
   TACTICS_V1: TacticsConfig,
+  TACTICS_V2: TacticsConfig,
   BASEBALL_V1: BaseballConfig,
 };
 
@@ -718,7 +720,7 @@ export type ConfigSnapshotFor<K extends RulesetVersionKey> =
                                   ? AroundTheClockV3Snapshot
                                   : K extends "CRICKET_V1"
                                     ? CricketSnapshot
-                                    : K extends "TACTICS_V1"
+                                    : K extends "TACTICS_V1" | "TACTICS_V2"
                                       ? TacticsSnapshot
                                       : BaseballSnapshot;
 

@@ -15,6 +15,12 @@ describe("getRulesetValidator", () => {
     expect(getRulesetValidator("BOBS27_V1")).toBeDefined();
   });
 
+  it("returns the Tactics validator for TACTICS_V2", () => {
+    expect(getRulesetValidator("TACTICS_V2")).toBe(
+      getRulesetValidator("TACTICS_V1"),
+    );
+  });
+
   it("returns the Bob's 27 V2 validator for BOBS27_V2", () => {
     expect(getRulesetValidator("BOBS27_V2")).toBe(bobs27V2Validator);
   });

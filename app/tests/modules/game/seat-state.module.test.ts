@@ -6,6 +6,7 @@ import {
   foldSeatSteps,
   foldSeatStates,
   otherSeatsComplete,
+  toObservation,
 } from "@modules/game/seat-state.module";
 import type { SeatFact } from "@lib/types";
 import type { DartFact, DartObservation, TurnFact } from "@modules/types";
@@ -260,5 +261,27 @@ describe("otherSeatsComplete", () => {
 
     expect(otherSeatsComplete(budget, "p1", budgetComplete)).toBe(true);
     expect(otherSeatsComplete(budget, "p2", budgetComplete)).toBe(false);
+  });
+});
+
+describe("toObservation", () => {
+  it("keeps the hit facts and drops intent and score", () => {
+    expect(
+      toObservation({
+        sequence: 1,
+        intendedTargetNumber: 20,
+        intendedZoneKey: "TREBLE",
+        hitTargetNumber: 19,
+        hitZoneKey: "SINGLE",
+        score: 19,
+        locationX: 0.1,
+        locationY: 0.2,
+      }),
+    ).toEqual({
+      hitTargetNumber: 19,
+      hitZoneKey: "SINGLE",
+      locationX: 0.1,
+      locationY: 0.2,
+    });
   });
 });

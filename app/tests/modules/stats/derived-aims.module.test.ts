@@ -497,3 +497,47 @@ describe("sessionSteps — Bob's 27 Easy", () => {
     expect(aimedDarts(sessions[0]!)).toEqual([]);
   });
 });
+
+describe("sessionSteps — Tactics 1v1", () => {
+  const darts = [hit(20, "TREBLE"), hit(20, "OUTER_SINGLE"), miss()];
+  const meta = {
+    sessionId: "session-tactics",
+    gameTypeKey: "TACTICS",
+  } as const;
+
+  it("skips a two-seat session as it skips a V1 one, without throwing", () => {
+    const duel = sessionSteps(
+      rowsFor(
+        {
+          ...meta,
+          rulesetVersionKey: "TACTICS_V2",
+          configuration: {
+            seats: [
+              ...SEATS,
+              {
+                participantRef: "participant-2",
+                displayName: "Guest",
+                sideKey: "AWAY",
+                participantTypeKey: "GUEST",
+              },
+            ],
+          },
+        },
+        darts,
+      ),
+    );
+    const solo = sessionSteps(
+      rowsFor(
+        {
+          ...meta,
+          rulesetVersionKey: "TACTICS_V1",
+          configuration: { seats: SEATS },
+        },
+        darts,
+      ),
+    );
+    expect(duel).toEqual(solo);
+    expect(duel.sessions).toEqual([]);
+    expect(duel.skippedSessions).toBe(1);
+  });
+});

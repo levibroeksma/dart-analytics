@@ -33,6 +33,7 @@ describe("RULESET_CAPABILITIES", () => {
       "SINGLES_V2",
       "SINGLES_V3",
       "TACTICS_V1",
+      "TACTICS_V2",
       "TUOD_V1",
     ]);
   });
@@ -89,6 +90,7 @@ describe("supportsMode", () => {
     "AROUND_THE_CLOCK_V2",
     "CRICKET_V1",
     "TACTICS_V1",
+    "TACTICS_V2",
     "BASEBALL_V1",
   ] as const)(
     "gives %s RECREATIONAL + DETAILED_DARTS, not ANALYTICS + DETAILED_DARTS",
@@ -159,6 +161,7 @@ describe("capableRulesets", () => {
       "SINGLES_V2",
       "SINGLES_V3",
       "TACTICS_V1",
+      "TACTICS_V2",
       "TUOD_V1",
     ]);
   });
@@ -303,5 +306,25 @@ describe("Bob's 27 V2 capabilities", () => {
 
   it("reports the V1 stats tags", () => {
     expect(STATS_TAGS.BOBS27_V2).toEqual(STATS_TAGS.BOBS27_V1);
+  });
+});
+
+describe("Tactics V2 capabilities", () => {
+  it("declares the same pairs as V1", () => {
+    expect(RULESET_CAPABILITIES.TACTICS_V2).toEqual(
+      RULESET_CAPABILITIES.TACTICS_V1,
+    );
+  });
+
+  it("belongs to the TACTICS game type", () => {
+    expect(GAME_TYPE_BY_RULESET.TACTICS_V2).toBe("TACTICS");
+  });
+
+  it("reports the V1 stats tags", () => {
+    expect(STATS_TAGS.TACTICS_V2).toEqual(STATS_TAGS.TACTICS_V1);
+  });
+
+  it("has no dartbot", () => {
+    expect(supportsDartbot("TACTICS_V2")).toBe(false);
   });
 });

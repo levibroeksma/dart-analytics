@@ -1,5 +1,6 @@
 import type { SeatFact } from "@lib/types";
 import type {
+  DartFact,
   DartObservation,
   MultiSeatState,
   SeatFoldStep,
@@ -30,20 +31,23 @@ export function foldSeatSteps<TSeat>(
   return steps;
 }
 
+/** The hit facts of one dart, with the intent and score dropped. */
+export function toObservation(dart: DartFact): DartObservation {
+  return {
+    hitTargetNumber: dart.hitTargetNumber,
+    hitZoneKey: dart.hitZoneKey,
+    locationX: dart.locationX,
+    locationY: dart.locationY,
+  };
+}
+
 function seatObservations(
   turns: readonly TurnFact[],
   participantRef: string,
 ): DartObservation[] {
   return turns
     .filter((turn) => turn.participantRef === participantRef)
-    .flatMap((turn) =>
-      turn.darts.map((dart) => ({
-        hitTargetNumber: dart.hitTargetNumber,
-        hitZoneKey: dart.hitZoneKey,
-        locationX: dart.locationX,
-        locationY: dart.locationY,
-      })),
-    );
+    .flatMap((turn) => turn.darts.map(toObservation));
 }
 
 /**

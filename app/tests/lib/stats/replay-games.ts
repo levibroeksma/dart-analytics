@@ -16,6 +16,7 @@ import { oneTwentyOneEngineFactory } from "@modules/game/one-twenty-one.engine.m
 import { scoreTrainingEngineFactory } from "@modules/game/score-training.engine.module";
 import { shanghaiEngineFactory } from "@modules/game/shanghai.engine.module";
 import { singlesTrainingEngineFactory } from "@modules/game/singles-training.engine.module";
+import { tacticsV2EngineFactory } from "@modules/game/tactics.engine.module";
 import { tuodEngineFactory } from "@modules/game/tuod.engine.module";
 import type { GameEngineFactory } from "@modules/interfaces";
 import type { DartObservation, DartZoneKey, EngineFacts } from "@modules/types";
@@ -393,6 +394,30 @@ export function playBobs27Easy(): ScriptedGame {
   );
 }
 
+/**
+ * A 1v1 Tactics V2 game: the first seat misses a visit, the second scores 20
+ * points on 20, the first closes all nine objectives and trails on 19 points,
+ * then both seats miss a visit and the first catches up on the winning dart.
+ */
+export function playTacticsDuel(): ScriptedGame {
+  const blanks = [MISS, MISS, MISS];
+  return scripted(tacticsV2EngineFactory, { seats: DUO_SEATS }, [
+    blanks,
+    [dart(20, "TREBLE"), dart(20, "OUTER_SINGLE"), MISS],
+    [dart(20, "TREBLE"), dart(19, "TREBLE"), dart(18, "TREBLE")],
+    blanks,
+    [dart(17, "TREBLE"), dart(16, "TREBLE"), dart(15, "TREBLE")],
+    blanks,
+    [dart(25, "INNER_BULL"), dart(25, "OUTER_BULL"), dart(1, "TREBLE")],
+    blanks,
+    [dart(2, "TREBLE"), dart(3, "TREBLE"), dart(1, "DOUBLE")],
+    blanks,
+    [dart(2, "DOUBLE"), dart(3, "DOUBLE"), dart(19, "OUTER_SINGLE")],
+    blanks,
+    [dart(19, "OUTER_SINGLE")],
+  ]);
+}
+
 /** Three Shanghai rounds: a single and a double on 1, a treble on 2, a blank on 3. */
 export function playShanghai(): ScriptedGame {
   return scripted(shanghaiEngineFactory, { seats: SOLO_SEATS }, [
@@ -458,4 +483,5 @@ export const SCRIPTED_GAMES: [string, () => ScriptedGame][] = [
   ["Shanghai", playShanghai],
   ["Around the Clock", playAroundTheClock],
   ["Baseball", playBaseball],
+  ["Tactics 1v1", playTacticsDuel],
 ];

@@ -168,7 +168,10 @@ function tactics(
   facts: EngineFacts,
 ): SessionProgress {
   return {
-    detail: joinSubtitle(["Solo", `${TACTICS_OBJECTIVES.length} objectives`]),
+    detail: joinSubtitle([
+      config.seats.length > 1 ? "1v1" : "Solo",
+      `${TACTICS_OBJECTIVES.length} objectives`,
+    ]),
     big: big(activeOf(foldTacticsState(facts, config))?.dartsThrown, "DARTS"),
   };
 }
@@ -286,6 +289,7 @@ const SUMMARIZERS: Readonly<Record<string, Summarizer>> = {
   "121_V2": oneTwentyOne,
   CRICKET_V1: cricket,
   TACTICS_V1: tactics,
+  TACTICS_V2: tactics,
   BASEBALL_V1: baseball,
   SCORE_TRAINING_V1: scoreTraining,
   SINGLES_V1: singles,

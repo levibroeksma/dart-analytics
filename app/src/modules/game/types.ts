@@ -1,4 +1,4 @@
-import type { BoardHit } from "@lib/types";
+import type { BoardHit, SeatFact } from "@lib/types";
 
 /**
  * One seat's Score Training progress, folded from the fact log — never
@@ -71,6 +71,42 @@ export type MarksSeatState = SeatState & {
 /** The objective one dart marks and by how much; null marks nothing. */
 export type MarksHit = { objectiveIndex: number; marks: number } | null;
 
+/**
+ * What one dart added to a marks seat: the updated bookkeeping fields and the
+ * marks beyond the third (`spare`) that a scoring variant may turn into points.
+ */
+export type MarksTally = {
+  fields: Pick<
+    MarksSeatState,
+    "marks" | "closedAtDart" | "objectiveHits" | "trebleHits" | "dartsThrown"
+  >;
+  spare: number;
+};
+
+/** A marks seat that also carries points scored on spare marks. */
+export type MarksDuelSeat = MarksSeatState & { points: number };
+
+/**
+ * How a marks game plugs into the two-seat fold: the starting seat, the hit one
+ * dart makes given both seats before it, and each objective's point value
+ * (null when it never scores).
+ */
+export type MarksDuelSpec<TSeat extends MarksDuelSeat> = {
+  initialSeat: (seat: SeatFact) => TSeat;
+  hitOf: (
+    seat: TSeat,
+    opponent: TSeat,
+    observation: DartObservation,
+  ) => MarksHit;
+  valueOf: (objectiveIndex: number) => number | null;
+};
+
+/** The two seats after a duel fold, and the winner once one exists. */
+export type MarksDuelFold<TSeat extends MarksDuelSeat> = {
+  seats: TSeat[];
+  winnerParticipantRef: string | null;
+};
+
 /** One seat's Cricket progress, indexed by `CRICKET_OBJECTIVES` order. */
 export type CricketSeatState = MarksSeatState;
 
@@ -78,7 +114,7 @@ export type CricketSeatState = MarksSeatState;
 export type TacticsObjective = number | "DOUBLES" | "TRIPLES";
 
 /** One seat's Tactics progress, indexed by `TACTICS_OBJECTIVES` order. */
-export type TacticsSeatState = MarksSeatState;
+export type TacticsSeatState = MarksSeatState & { points: number };
 
 export type CricketState = MultiSeatState<CricketSeatState> & {
   status: "IN_PROGRESS" | "COMPLETE";
@@ -86,6 +122,7 @@ export type CricketState = MultiSeatState<CricketSeatState> & {
 
 export type TacticsState = MultiSeatState<TacticsSeatState> & {
   status: "IN_PROGRESS" | "COMPLETE";
+  winnerParticipantRef: string | null;
 };
 
 export type SinglesTrainingSeatState = SeatState & {

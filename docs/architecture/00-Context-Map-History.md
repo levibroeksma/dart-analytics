@@ -17,6 +17,8 @@ updated: 2026-10-13
 
 # Version History
 
+> **Version:** 1.186.0 (2026-10-23 — Tactics V2 (1v1): D486 in `decisions/game-engine.md`; `0051_tactics_v2_ruleset.sql` and `marks-duel.module.ts` registered in `00-File-Inventory.md`; `TACTICS_V2` added to the seat-cap table in `06-API/04-Endpoint-Contracts.md`; `0051` row in `database/README.md`)
+
 > **Version:** 1.185.0 (2026-10-23 — Bob's 27 Easy: D485 in `decisions/game-engine.md`; `0050_bobs27_v2_ruleset.sql` registered in `00-File-Inventory.md` and `database/README.md`; `BOBS27_V2` added to the seat-cap table in `06-API/04-Endpoint-Contracts.md` and the DartBot mode tables in `08-DartBot.md`)
 
 > **Version:** 1.184.0 (2026-10-23 — pause on every timed surface (#1063): D483 in `decisions/frontend/alpine.md` (supersedes D275's no-pause clause); `08-Component-Inventory.md` restates `CountdownPauseControl`/`CountdownResumePrompt` and drops `HeaderClockPill`; `10-Frontend-Agent-Guide.md` checklist line; `authoring-game-rules` V1 corollary; spec `docs/superpowers/specs/2026-10-23-pause-all-timers-design.md`.)

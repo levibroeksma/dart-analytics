@@ -289,5 +289,37 @@ describe("tacticsSetup", () => {
       expect(setup.activeSession).toMatchObject({ sessionId: "active-1" });
       expect(setup.loading).toBe(false);
     });
+
+    it("selects TACTICS_V2 when a guest is added and sends no overrides", async () => {
+      const setup = createSetup({
+        presets: [STANDARD_PRESET],
+        guests: [{ displayName: "Guest" }],
+      });
+      vi.mocked(sessionsApi.createSession).mockResolvedValue({
+        sessionId: "new-session-id",
+        participants: [
+          {
+            ref: "participant-1",
+            displayName: "Player",
+            participantTypeKey: "PLAYER",
+          },
+          {
+            ref: "participant-2",
+            displayName: "Guest",
+            participantTypeKey: "GUEST",
+          },
+        ],
+      } as any);
+      vi.stubGlobal("location", { href: "" });
+
+      await setup.start();
+
+      expect(sessionsApi.createSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          rulesetVersionKey: "TACTICS_V2",
+          config: { source: "template", templateRef: "tmpl-standard" },
+        }),
+      );
+    });
   });
 });
