@@ -473,7 +473,7 @@ function botClosedSixTurns(): TurnFact[] {
     locationY: null,
   });
   for (const n of [20, 19, 18, 17, 16, 15]) {
-    engine.record(treble(n));
+    engine.record(miss());
     engine.record(miss());
     engine.record(miss());
     engine.record(treble(n));
@@ -498,6 +498,15 @@ describe("cricketMarksView", () => {
     };
   }
 
+  it("carries both seats' points, bot as own", () => {
+    const state = stateWith([0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]);
+    state.seats[0] = { ...state.seats[0], points: 15 };
+    state.seats[1] = { ...state.seats[1], points: 40 };
+    const view = cricketMarksView(state, "bot-1");
+    expect(view.ownPoints).toBe(40);
+    expect(view.opponentPoints).toBe(15);
+  });
+
   it("lists objectives 20…15 then the bull as 25, bot marks as own", () => {
     const view = cricketMarksView(
       stateWith([3, 0, 0, 0, 0, 0, 1], [0, 2, 0, 0, 0, 0, 0]),
@@ -506,6 +515,8 @@ describe("cricketMarksView", () => {
     expect(view.objectives.map((o) => o.targetNumber)).toEqual([
       20, 19, 18, 17, 16, 15, 25,
     ]);
+    expect(view.ownPoints).toBe(0);
+    expect(view.opponentPoints).toBe(0);
     expect(view.objectives[0]).toEqual({
       targetNumber: 20,
       own: 3,
