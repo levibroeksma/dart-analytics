@@ -154,15 +154,13 @@ export function foldTacticsState(
  * and never stored. Darts carry no intent: any
  * objective is a legitimate aim on any dart.
  */
-export class TacticsEngine extends MarksEngine<
-  Seated<TacticsSnapshot>,
-  TacticsState,
-  "TACTICS_V1" | "TACTICS_V2"
-> {
+export class TacticsEngine<
+  TKey extends "TACTICS_V1" | "TACTICS_V2" = "TACTICS_V1" | "TACTICS_V2",
+> extends MarksEngine<Seated<TacticsSnapshot>, TacticsState, TKey> {
   constructor(
     config: Seated<TacticsSnapshot>,
     prior?: EngineFacts,
-    rulesetVersionKey: "TACTICS_V1" | "TACTICS_V2" = "TACTICS_V1",
+    rulesetVersionKey: TKey = "TACTICS_V1" as TKey,
   ) {
     super(config, prior, rulesetVersionKey);
   }
@@ -171,7 +169,7 @@ export class TacticsEngine extends MarksEngine<
     return foldTacticsState(facts, this.config);
   }
 
-  protected fork(): { record(observation: DartObservation): TacticsState } {
+  protected fork(): TacticsEngine<TKey> {
     return new TacticsEngine(this.config, this.facts(), this.rulesetVersionKey);
   }
 }

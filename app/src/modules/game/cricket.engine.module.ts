@@ -113,15 +113,13 @@ export function foldCricketState(
  * points and the winner are folded from it on every read and never stored.
  * Darts carry no intent: any objective is a legitimate aim on any dart.
  */
-export class CricketEngine extends MarksEngine<
-  Seated<CricketSnapshot>,
-  CricketState,
-  "CRICKET_V1" | "CRICKET_V2"
-> {
+export class CricketEngine<
+  TKey extends "CRICKET_V1" | "CRICKET_V2" = "CRICKET_V1" | "CRICKET_V2",
+> extends MarksEngine<Seated<CricketSnapshot>, CricketState, TKey> {
   constructor(
     config: Seated<CricketSnapshot>,
     prior?: EngineFacts,
-    rulesetVersionKey: "CRICKET_V1" | "CRICKET_V2" = "CRICKET_V1",
+    rulesetVersionKey: TKey = "CRICKET_V1" as TKey,
   ) {
     super(config, prior, rulesetVersionKey);
   }
@@ -130,7 +128,7 @@ export class CricketEngine extends MarksEngine<
     return foldCricketState(facts, this.config);
   }
 
-  protected fork(): { record(observation: DartObservation): CricketState } {
+  protected fork(): CricketEngine<TKey> {
     return new CricketEngine(this.config, this.facts(), this.rulesetVersionKey);
   }
 }

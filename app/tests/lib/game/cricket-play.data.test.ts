@@ -10,6 +10,7 @@ vi.mock("@client/api/sessions", () => ({
 import {
   appendBatch,
   completeSession,
+  createSession,
   fetchActiveSessions,
 } from "@client/api/sessions";
 import {
@@ -414,5 +415,18 @@ describe("Cricket V2 play data", () => {
   it("resolves playAgain without a session key and does not create a session", async () => {
     const ctx = await started({ rulesetVersionKey: null });
     await expect(ctx.playAgain.call(ctx)).resolves.toBeUndefined();
+    expect(createSession).not.toHaveBeenCalled();
+  });
+
+  it("resumes mid-visit with the second seat to throw and records to that seat", async () => {
+    const midway = playDuel(trebles(20, 19, 18));
+    midway.record(single(19));
+    const ctx = await duelCtx(midway);
+    expect(ctx.engine?.state().activeParticipantRef).toBe("participant-2");
+    expect(ctx.engine?.state().seats[1].dartsThisVisit).toBe(1);
+    await ctx.recordObjective(19);
+    expect(ctx.engine?.state().seats[1].dartsThisVisit).toBe(2);
+    expect(ctx.engine?.state().seats[0].dartsThisVisit).toBe(0);
+    expect(ctx.engine?.state().activeParticipantRef).toBe("participant-2");
   });
 });

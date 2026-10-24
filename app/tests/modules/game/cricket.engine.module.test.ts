@@ -417,6 +417,103 @@ describe("Cricket V2 duel", () => {
     expect(engine.state().winnerParticipantRef).toBe("p2");
   });
 
+  it("undoing a scoring dart takes its points back", () => {
+    const engine = newDuel();
+    playVisits(engine, [T(20)], THREE_MISS);
+    engine.record(S(20));
+    expect(engine.state().seats[0].points).toBe(20);
+    expect(engine.undo()).toBe(true);
+    expect(engine.state().seats[0].points).toBe(0);
+    expect(engine.state().seats[0].marks[0]).toBe(3);
+  });
+
+  it("undoing the dart that kills a number lets it score again", () => {
+    const engine = newDuel();
+    playVisits(engine, [T(20)]);
+    for (let i = 0; i < 3; i += 1) engine.record(S(20));
+    expect(engine.state().seats[1].marks[0]).toBe(3);
+    expect(engine.undo()).toBe(true);
+    expect(engine.state().seats[1].marks[0]).toBe(2);
+    engine.record(MISS);
+    playVisits(engine, [S(20)]);
+    expect(engine.state().seats[0].points).toBe(20);
+  });
+
+  it("keeps V1 solo state identical to the pre-V2 engine apart from points and winner", () => {
+    const log = [
+      T(20),
+      dart(19, "DOUBLE"),
+      MISS,
+      dart(25, "INNER_BULL"),
+      S(20),
+      dart(14, "SINGLE"),
+      T(19),
+      T(18),
+      T(17),
+      T(16),
+      T(15),
+      dart(25, "OUTER_BULL"),
+    ];
+    const seat = (
+      marks: number[],
+      closedAtDart: (number | null)[],
+      objectiveHits: number[],
+      trebleHits: number,
+      dartsThrown: number,
+      status: "IN_PROGRESS" | "COMPLETE",
+    ) => ({
+      participantRef: "participant-1",
+      sideKey: "A",
+      marks,
+      closedAtDart,
+      objectiveHits,
+      trebleHits,
+      dartsThrown,
+      dartsThisVisit: 0,
+      status,
+      points: 0,
+    });
+    const expected = {
+      2: seat(
+        [3, 2, 0, 0, 0, 0, 0],
+        [1, null, null, null, null, null, null],
+        [1, 1, 0, 0, 0, 0, 0],
+        1,
+        3,
+        "IN_PROGRESS",
+      ),
+      5: seat(
+        [3, 2, 0, 0, 0, 0, 2],
+        [1, null, null, null, null, null, null],
+        [2, 1, 0, 0, 0, 0, 1],
+        1,
+        6,
+        "IN_PROGRESS",
+      ),
+      11: seat(
+        [3, 3, 3, 3, 3, 3, 3],
+        [1, 7, 8, 9, 10, 11, 12],
+        [2, 2, 1, 1, 1, 1, 2],
+        6,
+        12,
+        "COMPLETE",
+      ),
+    } as const;
+    const engine = new CricketEngine(config);
+    log.forEach((observation, index) => {
+      const state = engine.record(observation);
+      const want = expected[index as keyof typeof expected];
+      if (want) {
+        expect(state).toEqual({
+          activeParticipantRef: "participant-1",
+          status: want.status,
+          winnerParticipantRef: null,
+          seats: [want],
+        });
+      }
+    });
+  });
+
   it("folds a V2 solo log exactly as V1", () => {
     const v1 = new CricketEngine(config);
     const v2 = new CricketEngine(config, undefined, "CRICKET_V2");

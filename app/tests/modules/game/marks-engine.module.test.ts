@@ -20,7 +20,11 @@ const OBSERVATION: DartObservation = {
   locationY: null,
 };
 
-class FakeEngine extends MarksEngine<{ seat: string }, FakeState> {
+class FakeEngine extends MarksEngine<
+  { seat: string },
+  FakeState,
+  "CRICKET_V1"
+> {
   constructor(config: { seat: string }, prior?: EngineFacts) {
     super(config, prior, "CRICKET_V1");
   }
@@ -107,13 +111,21 @@ describe("marksEngineFactory", () => {
     const built = engineAt(0);
     const build = vi.fn(() => built);
     const factory = marksEngineFactory({
-      rulesetVersionKey: "CRICKET_V2",
+      rulesetVersionKey: "CRICKET_V1",
       build,
     });
     const prior: EngineFacts = { stages: [], turns: [] };
-    expect(factory.rulesetVersionKey).toBe("CRICKET_V2");
+    expect(factory.rulesetVersionKey).toBe("CRICKET_V1");
     expect(factory.stageOwnership).toBe("PER_SEAT");
     expect(factory.create({ seat: "p1" }, prior)).toBe(built);
     expect(build).toHaveBeenCalledWith({ seat: "p1" }, prior);
+  });
+
+  it("rejects a build whose engine carries a different key", () => {
+    marksEngineFactory({
+      rulesetVersionKey: "CRICKET_V2",
+      // @ts-expect-error build returns a CRICKET_V1 engine under a CRICKET_V2 key
+      build: () => engineAt(0),
+    });
   });
 });
