@@ -310,6 +310,12 @@ describe("RULESET_CONFIGS", () => {
     expect(RULESET_CONFIGS.CRICKET_V1).toBe(CricketConfig);
   });
 
+  it("registers CRICKET_V2 on the shared empty strict config", () => {
+    expect(RULESET_CONFIGS.CRICKET_V2).toBe(CricketConfig);
+    expect(CricketConfig.safeParse({}).success).toBe(true);
+    expect(CricketConfig.safeParse({ mode: "X" }).success).toBe(false);
+  });
+
   it("rejects any Cricket config key", () => {
     expect(CricketConfig.safeParse({ objectives: [20] }).success).toBe(false);
     expect(CricketConfig.safeParse({}).success).toBe(true);

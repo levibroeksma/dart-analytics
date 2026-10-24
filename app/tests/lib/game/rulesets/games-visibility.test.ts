@@ -250,6 +250,14 @@ describe("cardForRuleset — Bob's 27 Easy", () => {
   });
 });
 
+describe("cardForRuleset — Cricket 1v1", () => {
+  it("keeps a CRICKET_V2 session on the Cricket card", () => {
+    const card = cardForRuleset(GAME_CARDS, "CRICKET_V2");
+    expect(card?.gameTypeKey).toBe("CRICKET");
+    expect(card?.rulesetVersionKey).toBe("CRICKET_V1");
+  });
+});
+
 describe("cardForRuleset — Tactics 1v1", () => {
   it("keeps a TACTICS_V2 session on the Tactics card", () => {
     const card = cardForRuleset(GAME_CARDS, "TACTICS_V2");

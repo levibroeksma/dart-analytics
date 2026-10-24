@@ -3,6 +3,7 @@ import {
   applyCricketDart,
   CricketEngine,
   cricketEngineFactory,
+  cricketV2EngineFactory,
   cricketMarksOf,
   effectiveMarks,
   foldCricketState,
@@ -249,5 +250,12 @@ describe("marks-close core re-exports", () => {
   it("re-exports the core's effectiveMarks and marksPerRound unchanged", () => {
     expect(effectiveMarks).toBe(marksClose.effectiveMarks);
     expect(marksPerRound).toBe(marksClose.marksPerRound);
+  });
+});
+
+describe("cricketV2EngineFactory", () => {
+  it("is keyed CRICKET_V2 and builds a Cricket engine", () => {
+    expect(cricketV2EngineFactory.rulesetVersionKey).toBe("CRICKET_V2");
+    expect(cricketV2EngineFactory.stageOwnership).toBe("PER_SEAT");
   });
 });

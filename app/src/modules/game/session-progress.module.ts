@@ -158,7 +158,10 @@ function cricket(
   facts: EngineFacts,
 ): SessionProgress {
   return {
-    detail: joinSubtitle(["Solo", `${CRICKET_OBJECTIVES.length} objectives`]),
+    detail: joinSubtitle([
+      config.seats.length > 1 ? "1v1" : "Solo",
+      `${CRICKET_OBJECTIVES.length} objectives`,
+    ]),
     big: big(activeOf(foldCricketState(facts, config))?.dartsThrown, "DARTS"),
   };
 }
@@ -288,6 +291,7 @@ const SUMMARIZERS: Readonly<Record<string, Summarizer>> = {
   "121_V1": oneTwentyOne,
   "121_V2": oneTwentyOne,
   CRICKET_V1: cricket,
+  CRICKET_V2: cricket,
   TACTICS_V1: tactics,
   TACTICS_V2: tactics,
   BASEBALL_V1: baseball,

@@ -397,7 +397,7 @@ export const OneTwentyOneV2Config = z
  */
 export const AroundTheClockConfig = z.object({}).strict();
 
-/** Cricket V1 locks every rule (objectives, marks, solo seat) — nothing to configure. */
+/** Cricket V1 and V2 lock every rule (objectives, marks, seats) — nothing to configure. */
 export const CricketConfig = z.object({}).strict();
 
 /** Tactics V1 locks every rule (objectives, marks, D/T rule, solo seat) — nothing to configure. */
@@ -477,6 +477,7 @@ export type RulesetVersionKey =
   | "AROUND_THE_CLOCK_V2"
   | "AROUND_THE_CLOCK_V3"
   | "CRICKET_V1"
+  | "CRICKET_V2"
   | "TACTICS_V1"
   | "TACTICS_V2"
   | "BASEBALL_V1";
@@ -526,6 +527,7 @@ export const RULESET_CONFIGS: Record<RulesetVersionKey, z.ZodTypeAny> = {
   AROUND_THE_CLOCK_V2: AroundTheClockV2Config,
   AROUND_THE_CLOCK_V3: AroundTheClockV3Config,
   CRICKET_V1: CricketConfig,
+  CRICKET_V2: CricketConfig,
   TACTICS_V1: TacticsConfig,
   TACTICS_V2: TacticsConfig,
   BASEBALL_V1: BaseballConfig,
@@ -718,7 +720,7 @@ export type ConfigSnapshotFor<K extends RulesetVersionKey> =
                                 ? AroundTheClockV2Snapshot
                                 : K extends "AROUND_THE_CLOCK_V3"
                                   ? AroundTheClockV3Snapshot
-                                  : K extends "CRICKET_V1"
+                                  : K extends "CRICKET_V1" | "CRICKET_V2"
                                     ? CricketSnapshot
                                     : K extends "TACTICS_V1" | "TACTICS_V2"
                                       ? TacticsSnapshot

@@ -15,6 +15,7 @@ import {
 import {
   applyCricketDart,
   cricketEngineFactory,
+  cricketV2EngineFactory,
   initialCricketState,
 } from "@modules/game/cricket.engine.module";
 import {
@@ -111,6 +112,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   resetEngineRegistry();
   registerEngineFactory(cricketEngineFactory);
+  registerEngineFactory(cricketV2EngineFactory);
   vi.mocked(fetchActiveSessions).mockResolvedValue([{ ...ACTIVE_SESSION }]);
 });
 
@@ -171,6 +173,16 @@ describe("cricketPlay", () => {
     const first = await started();
     await first.recordObjective(19);
     const resumed = await started({ turns: first.$store.game.turns });
+    expect(resumed.objectiveRows()[1].marks).toBe(1);
+  });
+
+  it("restores marks from the store's facts under CRICKET_V2", async () => {
+    const first = await started({ rulesetVersionKey: "CRICKET_V2" });
+    await first.recordObjective(19);
+    const resumed = await started({
+      rulesetVersionKey: "CRICKET_V2",
+      turns: first.$store.game.turns,
+    });
     expect(resumed.objectiveRows()[1].marks).toBe(1);
   });
 

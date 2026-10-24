@@ -51,12 +51,12 @@ CREATE TEMP TABLE verification_results (
 -- ------------------------------------------------------------
 INSERT INTO verification_results
 SELECT '1',
-    'seed inserted exactly the 42 declared rows',
+    'seed inserted exactly the 44 declared rows',
     CASE
-        WHEN count(*) = 42 THEN 'PASS'
+        WHEN count(*) = 44 THEN 'PASS'
         ELSE 'FAIL'
     END,
-    format('expected 42, found %s', count(*))
+    format('expected 44, found %s', count(*))
 FROM ruleset_version_capabilities;
 
 -- ------------------------------------------------------------
@@ -124,6 +124,8 @@ FROM (
             ('AROUND_THE_CLOCK_V3', 'ANALYTICS', 'VISUAL_BOARD'),
             ('CRICKET_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
             ('CRICKET_V1', 'ANALYTICS', 'VISUAL_BOARD'),
+            ('CRICKET_V2', 'RECREATIONAL', 'DETAILED_DARTS'),
+            ('CRICKET_V2', 'ANALYTICS', 'VISUAL_BOARD'),
             ('TACTICS_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
             ('TACTICS_V1', 'ANALYTICS', 'VISUAL_BOARD'),
             ('TACTICS_V2', 'RECREATIONAL', 'DETAILED_DARTS'),
@@ -143,12 +145,12 @@ FROM (
 -- silently read as fewer triples checked, not FAIL.
 INSERT INTO verification_results
 SELECT '2',
-    'all 42 declared triples were actually checked',
+    'all 44 declared triples were actually checked',
     CASE
-        WHEN count(*) = 42 THEN 'PASS'
+        WHEN count(*) = 44 THEN 'PASS'
         ELSE 'FAIL'
     END,
-    format('%s of 42 triple checks ran', count(*))
+    format('%s of 44 triple checks ran', count(*))
 FROM verification_results
 WHERE step = '2';
 
@@ -253,6 +255,8 @@ WHERE NOT EXISTS (
                     ('AROUND_THE_CLOCK_V3', 'ANALYTICS', 'VISUAL_BOARD'),
                     ('CRICKET_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
                     ('CRICKET_V1', 'ANALYTICS', 'VISUAL_BOARD'),
+                    ('CRICKET_V2', 'RECREATIONAL', 'DETAILED_DARTS'),
+                    ('CRICKET_V2', 'ANALYTICS', 'VISUAL_BOARD'),
                     ('TACTICS_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
                     ('TACTICS_V1', 'ANALYTICS', 'VISUAL_BOARD'),
                     ('TACTICS_V2', 'RECREATIONAL', 'DETAILED_DARTS'),

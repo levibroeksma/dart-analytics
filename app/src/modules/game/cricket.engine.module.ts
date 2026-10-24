@@ -193,4 +193,17 @@ export const cricketEngineFactory: GameEngineFactory<
   },
 };
 
+export const cricketV2EngineFactory: GameEngineFactory<
+  Seated<CricketSnapshot>,
+  DartObservation,
+  CricketState
+> = {
+  rulesetVersionKey: "CRICKET_V2",
+  stageOwnership: "PER_SEAT",
+  create(config: Seated<CricketSnapshot>, prior?: EngineFacts) {
+    return new CricketEngine(config, prior);
+  },
+};
+
 registerEngineFactory(cricketEngineFactory);
+registerEngineFactory(cricketV2EngineFactory);

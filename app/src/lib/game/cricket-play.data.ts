@@ -45,6 +45,7 @@ import {
 
 const GAME_TYPE_KEY = "CRICKET";
 const RULESET_VERSION_KEY: RulesetVersionKey = "CRICKET_V1";
+const RESUMABLE = new Set<RulesetVersionKey>(["CRICKET_V1", "CRICKET_V2"]);
 
 const BULL_RING: Record<Exclude<CricketRing, "TREBLE">, DartZoneKey> = {
   SINGLE: "OUTER_BULL",
@@ -106,8 +107,14 @@ function resumeEngine(
   game: CricketPlayContext["$store"]["game"],
 ): CricketEngine | null {
   const { configSnapshot, rulesetVersionKey } = game;
-  if (!configSnapshot || rulesetVersionKey !== RULESET_VERSION_KEY) return null;
-  const factory = getEngineFactory(RULESET_VERSION_KEY);
+  if (
+    !configSnapshot ||
+    !rulesetVersionKey ||
+    !RESUMABLE.has(rulesetVersionKey)
+  ) {
+    return null;
+  }
+  const factory = getEngineFactory(rulesetVersionKey);
   if (!factory) return null;
   const engine = factory.create(configSnapshot, {
     stages: game.stages,
