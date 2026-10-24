@@ -537,13 +537,12 @@ export const exerciseTemplates = pgTable(
     exerciseRulesetVersionId: uuid("exercise_ruleset_version_id"),
     gameRulesetVersionId: uuid("game_ruleset_version_id"),
     difficultyTagId: smallint("difficulty_tag_id"),
-    difficultyTagAxisId: smallint("difficulty_tag_axis_id").generatedAlwaysAs(
-      sql`
+    difficultyTagAxisId: smallint("difficulty_tag_axis_id")
+      .generatedAlwaysAs(sql`
 CASE
     WHEN (difficulty_tag_id IS NULL) THEN NULL::smallint
     ELSE (4)::smallint
-END`,
-    ),
+END`),
   },
   (table) => [
     index("idx_exercise_templates_game_type").using(
@@ -1227,12 +1226,12 @@ export const tags = pgTable(
       foreignColumns: [tagAxes.id],
       name: "fk_tags_tag_axis",
     }).onDelete("restrict"),
+    unique("uq_tags_id_axis").on(table.id, table.tagAxisId),
     unique("uq_tags_axis_implementation_key").on(
       table.tagAxisId,
       table.implementationKey,
     ),
     unique("uq_tags_axis_sort_order").on(table.tagAxisId, table.sortOrder),
-    unique("uq_tags_id_axis").on(table.id, table.tagAxisId),
   ],
 );
 
