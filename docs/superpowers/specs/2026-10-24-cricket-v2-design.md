@@ -13,7 +13,7 @@ Locked with the user (2026-10-24):
 - A new ruleset version `CRICKET_V2` beside the untouched `CRICKET_V1`.
 - Excess marks score (marks × value) while the opponent has the number open, as Tactics V2.
 - The seat switch uses the 501 animation by reusing the 501 shell, as Tactics V2.
-- No duplicated code: `foldMarksDuel` is reused, nothing is copied from Tactics.
+- No duplicated code: `foldMarksDuel` is reused and nothing is copied from Tactics. Where Cricket would repeat Tactics code (engine class body, fold branches, factories, row/accessor/title helpers, play screen, replay presenter), the code moves once into shared kernel or `lib/game` modules and Tactics is refactored onto it (plan Tasks 2-4).
 
 ## 2. Classification
 
@@ -33,11 +33,11 @@ Execution model: game. Entry points: standalone. Kernel: MARKS. Additive and sea
 
 ## 5. Engine
 
-`CricketEngine` takes a `rulesetVersionKey` constructor parameter (`"CRICKET_V1" | "CRICKET_V2"`) and a second `cricketV2EngineFactory`, exactly the `TacticsEngine` pattern.
+`CricketEngine` takes a `rulesetVersionKey` constructor parameter (`"CRICKET_V1" | "CRICKET_V2"`) and a second `cricketV2EngineFactory`, the `TacticsEngine` pattern. The class body is a `MarksEngine` base shared with Tactics (`marks-engine.module.ts`); the fold is `foldMarksSeats`.
 
 - `foldCricketState` branches on seat count: one seat → existing path unchanged; two seats → `foldMarksDuel(turns, [a, b], CRICKET_DUEL)`.
 - `CRICKET_DUEL = { initialSeat, hitOf: (_seat, _opponent, observation) => cricketMarksOf(observation), valueOf: (index) => CRICKET_OBJECTIVES[index] }`. Cricket's marks do not depend on either seat, which is the simple case the shared module was built for.
-- `record` passes `(state) => state.status === "COMPLETE"` as `isEnded`; `wouldComplete` clones the engine in a try, both seat counts, as Tactics. The existing `activeSeatState`-based `wouldComplete` is replaced, not kept beside it.
+- `record` passes `(state) => state.status === "COMPLETE"` as `isEnded`; `wouldComplete` forks the engine in a try, both seat counts. Both live in the `MarksEngine` base; the existing `activeSeatState`-based `wouldComplete` is replaced, not kept beside it.
 - The seat rota needs no change (proved for Tactics; a Cricket test pins it).
 - Dead-number and win logic live in `marks-duel.module.ts` already; this task adds no code there.
 
