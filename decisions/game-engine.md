@@ -512,3 +512,10 @@ Decision: `CRICKET_V2` (seed `0052`) adds 1v1 against a guest to `CRICKET`. Spar
 Reason: D421 named multiplayer a later version; D486 built the cross-seat fold for exactly this reuse.
 Consequences: Tactics and Cricket share `foldMarksDuel`, `foldMarksSeats`, the `MarksEngine` base class, `recordMarksDart`'s `isEnded`, `lib/game/marks-play.data.ts`, `MarksPlayScreen.astro` and one replay presenter. A DartBot marks strategy, Cut-throat, No-Score, Single-Only, more than two seats and a Cricket stats view stay V2+ (`docs/game-rules/rulesets/cricket.md`). Spec: `docs/superpowers/specs/2026-10-24-cricket-v2-design.md`.
 Supersedes: none.
+
+### D488 — A marks engine's class and factory are typed by the same ruleset key
+Status: Accepted · Date: 2026-10-24
+Decision: `CricketEngine` and `TacticsEngine` are generic in their ruleset key (`TKey`), `MarksEngine.fork()` returns the engine type, and `marksEngineFactory` requires `build` to return an engine whose key is the factory's own (`NoInfer`). A factory keyed `CRICKET_V2` that builds a V1-keyed engine fails to type-check.
+Reason: the D487 factory took the key and the built engine independently, so the two could disagree and only the wiring gate's grep caught a missing literal, not a mismatched one.
+Consequences: type-level only, no behaviour change. `new CricketEngine(config)` still defaults to V1. Regression guards are `@ts-expect-error` tests in `marks-engine.module.test.ts` and `tactics.engine.module.test.ts`.
+Supersedes: none.
