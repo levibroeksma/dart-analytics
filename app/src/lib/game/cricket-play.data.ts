@@ -2,22 +2,27 @@ import { getEngineFactory } from "@modules/game/engine.registry";
 import { BULL_TARGET_NUMBER } from "@modules/game/board-progression.module";
 import { openVisit } from "@modules/game/turn-log.module";
 import { boardInputData } from "@lib/game/board-input.data";
+import { botThrowObservation, findBotSeat } from "@lib/game/play-bot-seat";
+import { chooseTarget } from "@modules/dartbot/strategy/marks.strategy.module";
 import {
   playAbandonAndExit,
   playBack,
   playCommitDart,
   playInit,
   playRetryReconciliation,
+  playRunBotVisualBoardVisit,
   playUndoVisit,
   playUploadAndCompleteSession,
   playVisitMarkers,
   runPlayAgain,
+  undoToActiveSeat,
 } from "@lib/game/play-lifecycle";
 import {
   duelWinningSideKey,
   marksPlayAccessors,
 } from "@lib/game/marks-play.data";
-import type { RulesetVersionKey } from "@lib/types";
+import type { DartbotSeat, RulesetVersionKey } from "@lib/types";
+import type { MarksView } from "@modules/interfaces";
 import type {
   CricketSeatState,
   CricketState,
@@ -31,6 +36,7 @@ import type {
   CricketResultsSnapshot,
   CricketRing,
   CricketSeatResult,
+  BotDartThrower,
 } from "./types";
 
 // Value import, not `import type`: the class is the narrowing target below,
@@ -126,6 +132,36 @@ function resumeEngine(
 }
 
 /**
+ * Flattens the engine's two-seat state into the strategy's view: the bot's
+ * own marks and its opponent's, per objective, in `CRICKET_OBJECTIVES` order.
+ * @throws when the bot or its opponent has no seat in the state.
+ */
+export function cricketMarksView(
+  state: CricketState,
+  botRef: string,
+): MarksView {
+  const own = state.seats.find((seat) => seat.participantRef === botRef);
+  const opponent = state.seats.find((seat) => seat.participantRef !== botRef);
+  if (!own || !opponent) {
+    throw new Error("DartBot has no opponent in this session's engine state");
+  }
+  return {
+    objectives: CRICKET_OBJECTIVES.map((targetNumber, index) => ({
+      targetNumber,
+      own: own.marks[index],
+      opponent: opponent.marks[index],
+    })),
+  };
+}
+
+function throwBotDart(context: CricketPlayContext, botSeat: DartbotSeat) {
+  const state = context.state();
+  if (!state) throw new Error("DartBot has no session state to read");
+  const intent = chooseTarget(cricketMarksView(state, botSeat.participantRef));
+  return botThrowObservation(botSeat, context.$store.game.turns, intent);
+}
+
+/**
  * `self` exists only so `boardInputData`'s `onCommit` callback can reach this
  * page's own `recordDart` with the live, reactive `this` — see
  * `five-oh-one-play.data.ts`'s identical comment for the full reasoning.
@@ -150,6 +186,8 @@ export function cricketPlay() {
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,
     engine: null as CricketEngine | null,
     ring: "SINGLE" as CricketRing,
+    botThrowing: false,
+    botFlight: null,
     ...boardInputData(
       (observation) => self.recordDart(observation),
       () => self.$store.game.turns,
@@ -187,6 +225,7 @@ export function cricketPlay() {
     async init(this: CricketPlayContext) {
       self = this;
       await playInit(this, GAME_TYPE_KEY, resumeEngine);
+      await this.maybeRunBotVisit();
     },
 
     retryReconciliation(this: CricketPlayContext) {
@@ -230,10 +269,27 @@ export function cricketPlay() {
 
     async commitDart(this: CricketPlayContext, observation: DartObservation) {
       await playCommitDart(this, observation);
+      await this.maybeRunBotVisit();
+    },
+
+    async maybeRunBotVisit(this: CricketPlayContext) {
+      const botSeat = findBotSeat(this.$store.game.seats);
+      if (!botSeat) return;
+      const thrower: BotDartThrower = () => throwBotDart(this, botSeat);
+      await playRunBotVisualBoardVisit(this, botSeat.participantRef, thrower);
     },
 
     async undoVisit(this: CricketPlayContext) {
-      playUndoVisit(this);
+      const botSeat = findBotSeat(this.$store.game.seats);
+      if (botSeat) {
+        const humanSeat = this.$store.game.seats.find(
+          (seat) => seat.participantTypeKey === "PLAYER",
+        )!;
+        undoToActiveSeat(this, humanSeat.participantRef);
+      } else {
+        playUndoVisit(this);
+      }
+      await this.maybeRunBotVisit();
     },
 
     uploadAndCompleteSession(this: CricketPlayContext): Promise<void> {

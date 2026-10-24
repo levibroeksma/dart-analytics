@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@client/api/sessions", () => ({
   appendBatch: vi.fn(),
@@ -25,12 +25,15 @@ import {
   initialCricketState,
 } from "@modules/game/cricket.engine.module";
 import {
+  cricketMarksView,
   cricketPlay,
   cricketSeatResult,
   cricketTapObservation,
 } from "@lib/game/cricket-play.data";
+import { BOT_PACING } from "@lib/game/play-bot-seat";
 import type { CricketPlayContext, CricketSnapshot, Seated } from "@lib/types";
 import type {
+  CricketState,
   DartObservation,
   DartZoneKey,
   StageFact,
@@ -428,5 +431,233 @@ describe("Cricket V2 play data", () => {
     expect(ctx.engine?.state().seats[1].dartsThisVisit).toBe(2);
     expect(ctx.engine?.state().seats[0].dartsThisVisit).toBe(0);
     expect(ctx.engine?.state().activeParticipantRef).toBe("participant-2");
+  });
+});
+
+const BOT_SEATS = [
+  ...SEATS,
+  {
+    participantRef: "bot-1",
+    displayName: "DartBot",
+    sideKey: "B",
+    participantTypeKey: "DARTBOT" as const,
+    dartbot: { level: 8, seed: 424242, levelSource: "MANUAL" as const },
+  },
+];
+
+function botGame(overrides: Partial<GameStub> = {}): Partial<GameStub> {
+  return {
+    rulesetVersionKey: "CRICKET_V2",
+    configSnapshot: { seats: BOT_SEATS } as Seated<CricketSnapshot>,
+    ...overrides,
+  };
+}
+
+function miss(): DartObservation {
+  return {
+    hitTargetNumber: null,
+    hitZoneKey: "MISS",
+    locationX: null,
+    locationY: null,
+  };
+}
+
+function botClosedSixTurns(): TurnFact[] {
+  const engine = cricketV2EngineFactory.create({
+    seats: BOT_SEATS,
+  } as Seated<CricketSnapshot>) as CricketEngine;
+  const treble = (n: number): DartObservation => ({
+    hitTargetNumber: n,
+    hitZoneKey: "TREBLE",
+    locationX: null,
+    locationY: null,
+  });
+  for (const n of [20, 19, 18, 17, 16, 15]) {
+    engine.record(treble(n));
+    engine.record(miss());
+    engine.record(miss());
+    engine.record(treble(n));
+    engine.record(miss());
+    engine.record(miss());
+  }
+  engine.record(miss());
+  engine.record(miss());
+  engine.record(miss());
+  return [...engine.facts().turns];
+}
+
+describe("cricketMarksView", () => {
+  function stateWith(own: number[], opponent: number[]): CricketState {
+    const base = initialCricketState({ seats: BOT_SEATS } as never);
+    return {
+      ...base,
+      seats: [
+        { ...base.seats[0], marks: opponent },
+        { ...base.seats[1], marks: own },
+      ],
+    };
+  }
+
+  it("lists objectives 20…15 then the bull as 25, bot marks as own", () => {
+    const view = cricketMarksView(
+      stateWith([3, 0, 0, 0, 0, 0, 1], [0, 2, 0, 0, 0, 0, 0]),
+      "bot-1",
+    );
+    expect(view.objectives.map((o) => o.targetNumber)).toEqual([
+      20, 19, 18, 17, 16, 15, 25,
+    ]);
+    expect(view.objectives[0]).toEqual({
+      targetNumber: 20,
+      own: 3,
+      opponent: 0,
+    });
+    expect(view.objectives[1]).toEqual({
+      targetNumber: 19,
+      own: 0,
+      opponent: 2,
+    });
+    expect(view.objectives[6]).toEqual({
+      targetNumber: 25,
+      own: 1,
+      opponent: 0,
+    });
+  });
+
+  it("reads the same view when the bot sits in seat 0", () => {
+    const base = initialCricketState({ seats: BOT_SEATS } as never);
+    const state: CricketState = {
+      ...base,
+      seats: [
+        { ...base.seats[0], marks: [3, 0, 0, 0, 0, 0, 0] },
+        { ...base.seats[1], marks: [0, 0, 0, 0, 0, 0, 0] },
+      ],
+    };
+    expect(cricketMarksView(state, "participant-1").objectives[0]).toEqual({
+      targetNumber: 20,
+      own: 3,
+      opponent: 0,
+    });
+  });
+
+  it("throws when the bot has no opponent seat", () => {
+    const base = initialCricketState({ seats: SEATS } as never);
+    expect(() => cricketMarksView(base, "participant-1")).toThrow(/opponent/);
+  });
+});
+
+describe("cricketPlay — DartBot opponent", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  async function run<T>(pending: Promise<T>): Promise<T> {
+    await vi.runAllTimersAsync();
+    return pending;
+  }
+
+  it("throws on its own once the human's visit ends, with no UI action", async () => {
+    const play = await run(started(botGame()));
+    await run(play.recordMiss());
+    await run(play.recordMiss());
+    await run(play.recordMiss());
+    const botTurns = play
+      .engine!.facts()
+      .turns.filter((turn) => turn.participantRef === "bot-1");
+    expect(botTurns.length).toBeGreaterThan(0);
+    expect(play.botThrowing).toBe(false);
+    expect(play.engine!.state().activeParticipantRef).toBe("participant-1");
+  });
+
+  it("does not throw while it is the human's turn", async () => {
+    const play = await run(started(botGame()));
+    await run(play.recordMiss());
+    expect(
+      play.engine!.facts().turns.some((t) => t.participantRef === "bot-1"),
+    ).toBe(false);
+  });
+
+  it("paces its darts with the shared BOT_PACING", async () => {
+    const spy = vi.spyOn(globalThis, "setTimeout");
+    const play = await run(started(botGame()));
+    await run(play.recordMiss());
+    await run(play.recordMiss());
+    const handOver = play.recordMiss();
+    await vi.runAllTimersAsync();
+    await handOver;
+    expect(spy).toHaveBeenCalledWith(
+      expect.any(Function),
+      BOT_PACING.postThrowMs,
+    );
+    spy.mockRestore();
+  });
+
+  it("undoVisit returns control to the human across the bot's visit", async () => {
+    const play = await run(started(botGame()));
+    await run(play.recordMiss());
+    await run(play.recordMiss());
+    await run(play.recordMiss());
+    await run(play.undoVisit());
+    expect(play.engine!.state().activeParticipantRef).toBe("participant-1");
+    expect(
+      play.engine!.facts().turns.some((t) => t.participantRef === "bot-1"),
+    ).toBe(false);
+  });
+
+  it("re-throws identically after an undo (determinism)", async () => {
+    const play = await run(started(botGame()));
+    await run(play.recordMiss());
+    await run(play.recordMiss());
+    await run(play.recordMiss());
+    const before = play
+      .engine!.facts()
+      .turns.filter((t) => t.participantRef === "bot-1")
+      .flatMap((t) => t.darts);
+    await run(play.undoVisit());
+    await run(play.recordMiss());
+    await run(play.recordMiss());
+    await run(play.recordMiss());
+    const after = play
+      .engine!.facts()
+      .turns.filter((t) => t.participantRef === "bot-1")
+      .flatMap((t) => t.darts);
+    expect(after).toEqual(before);
+  });
+
+  it("resumes with the bot to throw and plays its visit on init", async () => {
+    const first = await run(started(botGame()));
+    await run(first.recordMiss());
+    await run(first.recordMiss());
+    const humanTurns = first.$store.game.turns;
+    const resumed = await run(started(botGame({ turns: humanTurns })));
+    await run(resumed.recordMiss());
+    expect(
+      resumed.engine!.facts().turns.some((t) => t.participantRef === "bot-1"),
+    ).toBe(true);
+  });
+
+  it("ends the game on the bot's winning dart with no further bot dart", async () => {
+    const play = await run(started(botGame({ turns: botClosedSixTurns() })));
+    for (let guard = 0; !play.finished && guard < 30; guard += 1) {
+      if (play.engine!.state().activeParticipantRef === "participant-1") {
+        for (let i = 0; i < 3 && !play.finished; i += 1) {
+          await run(play.recordMiss());
+        }
+      } else {
+        await run(play.maybeRunBotVisit());
+      }
+    }
+    expect(play.finished).toBe(true);
+    const turns = play.engine!.facts().turns;
+    expect(turns[turns.length - 1].participantRef).toBe("bot-1");
+    const dartCount = turns.flatMap((t) => t.darts).length;
+    await run(play.maybeRunBotVisit());
+    expect(play.engine!.facts().turns.flatMap((t) => t.darts).length).toBe(
+      dartCount,
+    );
+    expect(play.engine!.state().winnerParticipantRef).toBe("bot-1");
   });
 });
