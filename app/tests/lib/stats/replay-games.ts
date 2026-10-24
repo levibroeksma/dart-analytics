@@ -10,6 +10,7 @@ import {
   bobs27EngineFactory,
   bobs27V2EngineFactory,
 } from "@modules/game/bobs27.engine.module";
+import { cricketV2EngineFactory } from "@modules/game/cricket.engine.module";
 import { doublesTrainingEngineFactory } from "@modules/game/doubles-training.engine.module";
 import { fiveOhOneEngineFactory } from "@modules/game/five-oh-one.engine.module";
 import { oneTwentyOneEngineFactory } from "@modules/game/one-twenty-one.engine.module";
@@ -418,6 +419,27 @@ export function playTacticsDuel(): ScriptedGame {
   ]);
 }
 
+/**
+ * A 1v1 Cricket V2 game: the first seat misses a visit, the second scores 20
+ * points on 20, the first closes all seven objectives and trails on 19
+ * points, then both seats miss a visit and the first catches up on the
+ * winning dart.
+ */
+export function playCricketDuel(): ScriptedGame {
+  const blanks = [MISS, MISS, MISS];
+  return scripted(cricketV2EngineFactory, { seats: DUO_SEATS }, [
+    blanks,
+    [dart(20, "TREBLE"), dart(20, "OUTER_SINGLE"), MISS],
+    [dart(20, "TREBLE"), dart(19, "TREBLE"), dart(18, "TREBLE")],
+    blanks,
+    [dart(17, "TREBLE"), dart(16, "TREBLE"), dart(15, "TREBLE")],
+    blanks,
+    [dart(25, "INNER_BULL"), dart(25, "OUTER_BULL"), dart(19, "OUTER_SINGLE")],
+    blanks,
+    [dart(19, "OUTER_SINGLE")],
+  ]);
+}
+
 /** Three Shanghai rounds: a single and a double on 1, a treble on 2, a blank on 3. */
 export function playShanghai(): ScriptedGame {
   return scripted(shanghaiEngineFactory, { seats: SOLO_SEATS }, [
@@ -484,4 +506,5 @@ export const SCRIPTED_GAMES: [string, () => ScriptedGame][] = [
   ["Around the Clock", playAroundTheClock],
   ["Baseball", playBaseball],
   ["Tactics 1v1", playTacticsDuel],
+  ["Cricket 1v1", playCricketDuel],
 ];

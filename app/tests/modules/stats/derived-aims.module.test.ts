@@ -541,3 +541,47 @@ describe("sessionSteps — Tactics 1v1", () => {
     expect(duel.skippedSessions).toBe(1);
   });
 });
+
+describe("sessionSteps — Cricket 1v1", () => {
+  const darts = [hit(20, "TREBLE"), hit(20, "OUTER_SINGLE"), miss()];
+  const meta = {
+    sessionId: "session-cricket",
+    gameTypeKey: "CRICKET",
+  } as const;
+
+  it("skips a two-seat session as it skips a V1 one, without throwing", () => {
+    const duel = sessionSteps(
+      rowsFor(
+        {
+          ...meta,
+          rulesetVersionKey: "CRICKET_V2",
+          configuration: {
+            seats: [
+              ...SEATS,
+              {
+                participantRef: "participant-2",
+                displayName: "Guest",
+                sideKey: "AWAY",
+                participantTypeKey: "GUEST",
+              },
+            ],
+          },
+        },
+        darts,
+      ),
+    );
+    const solo = sessionSteps(
+      rowsFor(
+        {
+          ...meta,
+          rulesetVersionKey: "CRICKET_V1",
+          configuration: { seats: SEATS },
+        },
+        darts,
+      ),
+    );
+    expect(duel).toEqual(solo);
+    expect(duel.sessions).toEqual([]);
+    expect(duel.skippedSessions).toBe(1);
+  });
+});
