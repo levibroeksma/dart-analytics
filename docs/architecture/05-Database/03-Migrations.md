@@ -1150,6 +1150,18 @@ Contains:
 
 No column defaults: the generated seed `0042_catalog_tags.sql` writes `created_at = now()` explicitly. `migrate:down` restores the `0047` view and drops the table. Applied; `app/tests/integration/card-tags.itest.ts` proves the view branch and the primary-tag index. <!-- 2026-10-22 -->
 
+## 0050_template_difficulty_axis.sql
+
+Pin `exercise_templates.difficulty_tag_id` to the DIFFICULTY axis (#1024). The `0047` foreign key referenced `tags(id)` with no axis restriction, so a tag of any other axis was accepted and `v_exercise_template_catalog` silently fell back to the type's difficulty; only seeded system templates were guarded, by an integration test. <!-- 2026-10-24 -->
+
+Contains:
+
+- `uq_tags_id_axis` — `UNIQUE (id, tag_axis_id)` on `tags`, the target a composite foreign key needs; `id` is already unique, so it admits no new row,
+- `exercise_templates.difficulty_tag_axis_id SMALLINT` — a `STORED` generated column: `4` (the seeded DIFFICULTY axis id) while `difficulty_tag_id` is set, `NULL` otherwise; never written,
+- `fk_exercise_templates_difficulty_tag` replaced by the composite `(difficulty_tag_id, difficulty_tag_axis_id)` → `tags (id, tag_axis_id)` (RESTRICT). `MATCH SIMPLE` skips the check when the tag is `NULL`, so a template without its own difficulty is unaffected.
+
+No data change: seed `0043` sets only DIFFICULTY tags. `migrate:down` restores the single-column foreign key and drops the column and the unique constraint. Applied; `app/tests/integration/template-difficulty-axis.itest.ts` proves a non-DIFFICULTY tag is rejected, a DIFFICULTY tag and `NULL` are accepted, and the generated column equals the seeded axis id. <!-- 2026-10-24 -->
+
 # Schema Changes
 
 

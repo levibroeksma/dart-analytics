@@ -557,7 +557,7 @@ drift-gated) writes every table below; never hand-edit it. <!-- 2026-10-19 -->
 | ----- | ----------- | ----------- |
 | `tag_axes` | `id SMALLINT` (seeded) | `implementation_key` (`uq_tag_axes_implementation_key`): `SKILL`, `SESSION_ROLE`, `FORMAT`, `DIFFICULTY`, `MECHANIC`, `PRESSURE`, `FAMILY`; `name` |
 | `tag_contexts` | `id SMALLINT` (seeded) | `implementation_key` (`uq_tag_contexts_implementation_key`): `STANDALONE` = 1, `ROUTINE_STEP` = 2; `name` |
-| `tags` | `id SMALLINT` (seeded) | `tag_axis_id` → `tag_axes` (`fk_tags_tag_axis`, RESTRICT); `implementation_key`, unique per axis (`uq_tags_axis_implementation_key`); `name`; `sort_order` (TAGS.md row order within the axis, unique per axis: `uq_tags_axis_sort_order`) |
+| `tags` | `id SMALLINT` (seeded) | `tag_axis_id` → `tag_axes` (`fk_tags_tag_axis`, RESTRICT); `implementation_key`, unique per axis (`uq_tags_axis_implementation_key`); `name`; `sort_order` (TAGS.md row order within the axis, unique per axis: `uq_tags_axis_sort_order`); `uq_tags_id_axis` on (`id`, `tag_axis_id`) is the target of the composite difficulty-tag FK (`0050`) |
 | `game_type_tags` | (`game_type_id`, `tag_context_id`, `tag_id`) | `game_type_id` → `game_types` (CASCADE); `tag_context_id` → `tag_contexts`, `tag_id` → `tags` (RESTRICT); `is_primary BOOLEAN NOT NULL DEFAULT FALSE` |
 | `ruleset_version_tags` | (`ruleset_version_id`, `tag_id`) | `ruleset_version_id` → `ruleset_versions` (CASCADE); `tag_id` → `tags` (RESTRICT); `is_primary BOOLEAN NOT NULL DEFAULT FALSE` (`0049`, 2026-10-22) |
 | `exercise_type_tags` | (`exercise_type_id`, `tag_id`) | `exercise_type_id` → `exercise_types` (CASCADE); `tag_id` → `tags` (RESTRICT); `is_primary BOOLEAN NOT NULL DEFAULT FALSE` |

@@ -79,6 +79,7 @@ UUIDv7
 - game_type_id (nullable — NULL unless the exercise type is `GAME`)
 - game_ruleset_version_id (nullable — NULL unless the exercise type is `GAME`; migration `0040`) <!-- 2026-09-20 -->
 - difficulty_tag_id (SMALLINT, nullable — DIFFICULTY-axis `tags` row; migration `0047`) <!-- 2026-10-19 -->
+- difficulty_tag_axis_id (SMALLINT, generated — the DIFFICULTY axis id while difficulty_tag_id is set, else NULL; never written; migration `0050`) <!-- 2026-10-24 -->
 - name
 - description
 - default_configuration (JSONB, nullable)
@@ -93,7 +94,7 @@ References:
 - game_types (RESTRICT on delete)
 - exercise_ruleset_versions, on the composite pair (exercise_type_id, exercise_ruleset_version_id) (RESTRICT on delete) <!-- 2026-09-17 -->
 - ruleset_versions, on the composite pair (game_type_id, game_ruleset_version_id) (RESTRICT on delete; migration `0040`) <!-- 2026-09-20 -->
-- tags, via difficulty_tag_id (`fk_exercise_templates_difficulty_tag`, RESTRICT on delete; migration `0047`) <!-- 2026-10-19 -->
+- tags, on the composite pair (difficulty_tag_id, difficulty_tag_axis_id) (`fk_exercise_templates_difficulty_tag`, RESTRICT on delete; migrations `0047`, `0050`) — only a DIFFICULTY-axis tag is accepted <!-- 2026-10-24 -->
 
 Referenced by:
 
@@ -147,8 +148,8 @@ routine tries to start one. See `03-Migrations.md` `## 0040` and D339. <!-- 2026
 `0043_exercise_template_difficulty.sql`, only for a type whose `### Routine step` tag block labels
 several difficulties (today `AROUND_THE_CLOCK`: 1/2/3 darts → Intermediate/Advanced/Expert); every
 other template stays NULL and `v_exercise_template_catalog.difficulty_level` falls back to the owning
-type's single routine-step Difficulty. The FK does not restrict the axis; the integration test
-`app/tests/integration/template-difficulty-parity.itest.ts` proves, per type, that the seeded set
+type's single routine-step Difficulty. The composite FK (migration `0050`) rejects a tag of any other
+axis; the integration test `app/tests/integration/template-difficulty-parity.itest.ts` proves, per type, that the seeded set
 equals the docs' set. <!-- 2026-10-19 -->
 
 ---
