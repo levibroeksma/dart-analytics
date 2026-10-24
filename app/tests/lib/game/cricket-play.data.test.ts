@@ -639,6 +639,24 @@ describe("cricketPlay — DartBot opponent", () => {
     ).toBe(true);
   });
 
+  it("resumes mid-visit with the bot to throw and re-throws identically on init", async () => {
+    const first = await run(started(botGame()));
+    for (let i = 0; i < 3; i += 1) await run(first.recordMiss());
+    const botDarts = (play: typeof first) =>
+      play
+        .engine!.facts()
+        .turns.filter((t) => t.participantRef === "bot-1")
+        .flatMap((t) => t.darts);
+    const original = botDarts(first);
+    expect(original.length).toBe(3);
+    const humanOnly = first.$store.game.turns.filter(
+      (t) => t.participantRef !== "bot-1",
+    );
+    const resumed = await run(started(botGame({ turns: humanOnly })));
+    expect(resumed.error).toBe("");
+    expect(botDarts(resumed)).toEqual(original);
+  });
+
   it("ends the game on the bot's winning dart with no further bot dart", async () => {
     const play = await run(started(botGame({ turns: botClosedSixTurns() })));
     for (let guard = 0; !play.finished && guard < 30; guard += 1) {
@@ -651,6 +669,7 @@ describe("cricketPlay — DartBot opponent", () => {
       }
     }
     expect(play.finished).toBe(true);
+    expect(play.error).toBe("");
     const turns = play.engine!.facts().turns;
     expect(turns[turns.length - 1].participantRef).toBe("bot-1");
     const dartCount = turns.flatMap((t) => t.darts).length;
