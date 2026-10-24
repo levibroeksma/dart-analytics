@@ -500,7 +500,10 @@ describe("sessionSteps — Bob's 27 Easy", () => {
 
 describe("sessionSteps — Tactics 1v1", () => {
   const darts = [hit(20, "TREBLE"), hit(20, "OUTER_SINGLE"), miss()];
-  const meta = { sessionId: "session-tactics", gameTypeKey: "TACTICS" };
+  const meta = {
+    sessionId: "session-tactics",
+    gameTypeKey: "TACTICS",
+  } as const;
 
   it("skips a two-seat session as it skips a V1 one, without throwing", () => {
     const duel = sessionSteps(
