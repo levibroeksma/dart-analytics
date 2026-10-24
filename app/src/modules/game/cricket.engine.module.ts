@@ -1,33 +1,24 @@
 import type { CricketSnapshot, Seated } from "@lib/types";
 import { BULL_TARGET_NUMBER } from "./board-progression.module";
 import { registerEngineFactory } from "./engine.registry";
-import { activeSeat } from "./seat-rota.module";
-import { activeSeatState, foldSeatStates } from "./seat-state.module";
-import {
-  cloneTurns,
-  exerciseBlockStage,
-  undoLastDart,
-} from "./turn-log.module";
-import type { GameEngine, GameEngineFactory } from "./interfaces";
+import { foldMarksSeats } from "./marks-duel.module";
+import { MarksEngine, marksEngineFactory } from "./marks-engine.module";
 import {
   applyMarksDart,
   BULL_RING_MARKS,
   initialMarksSeat,
   NUMBER_RING_MARKS,
-  recordMarksDart,
 } from "./marks-close.module";
 import type {
   CricketSeatState,
   CricketState,
   DartObservation,
   EngineFacts,
+  MarksDuelSpec,
   MarksHit,
-  TurnFact,
 } from "./types";
 
 export { effectiveMarks, marksPerRound } from "./marks-close.module";
-
-const STAGE = exerciseBlockStage();
 
 /** The seven Classic Cricket objectives in display order; the bull is `BULL_TARGET_NUMBER`. */
 export const CRICKET_OBJECTIVES: readonly number[] = [
@@ -67,7 +58,7 @@ function initialSeatState(seat: {
   participantRef: string;
   sideKey: string;
 }): CricketSeatState {
-  return initialMarksSeat(seat, CRICKET_OBJECTIVES.length);
+  return { ...initialMarksSeat(seat, CRICKET_OBJECTIVES.length), points: 0 };
 }
 
 /** Cricket's starting state: every seat with no marks, seat 0 active. */
@@ -77,6 +68,7 @@ export function initialCricketState(
   return {
     activeParticipantRef: config.seats[0].participantRef,
     status: "IN_PROGRESS",
+    winnerParticipantRef: null,
     seats: config.seats.map(initialSeatState),
   };
 }
@@ -90,120 +82,70 @@ export function applyCricketDart(
   state: CricketSeatState,
   observation: DartObservation,
 ): CricketSeatState {
-  return applyMarksDart(state, cricketMarksOf(observation));
+  return {
+    ...state,
+    ...applyMarksDart(state, cricketMarksOf(observation)),
+  };
 }
+
+const CRICKET_DUEL: MarksDuelSpec<CricketSeatState> = {
+  initialSeat: initialSeatState,
+  hitOf: (_seat, _opponent, observation) => cricketMarksOf(observation),
+  valueOf: (index) => CRICKET_OBJECTIVES[index],
+};
 
 /**
  * Folds the whole fact log into the session's state — what the engine's own
- * `deriveState()` and the play controller's `state()` both call. Complete
- * once every seat is complete.
+ * `state()` and the play controller's `state()` both call. One seat: complete
+ * once it is closed out. Two seats: the duel fold, complete once a seat
+ * closes out with points at least equal to its opponent's.
  */
 export function foldCricketState(
   facts: EngineFacts,
   config: Seated<CricketSnapshot>,
 ): CricketState {
-  const seats = foldSeatStates(
-    facts.turns,
-    config.seats,
-    initialSeatState,
-    applyCricketDart,
-  );
-  return {
-    activeParticipantRef: activeSeat(facts, config.seats, "PER_SEAT")
-      .participantRef,
-    status: seats.every((seat) => seat.status === "COMPLETE")
-      ? "COMPLETE"
-      : "IN_PROGRESS",
-    seats,
-  };
+  return foldMarksSeats(facts, config.seats, CRICKET_DUEL, applyCricketDart);
 }
 
 /**
- * Cricket V1: close 20–15 and the bull in as few darts as possible. The
- * engine owns the fact log; marks, closures and completion are folded from
- * it on every read and never stored. Darts carry no intent: any objective is
- * a legitimate aim on any dart.
+ * Cricket: close 20–15 and the bull in as few darts as possible, alone (V1)
+ * or against one opponent (V2). The engine owns the fact log; marks, closures,
+ * points and the winner are folded from it on every read and never stored.
+ * Darts carry no intent: any objective is a legitimate aim on any dart.
  */
-export class CricketEngine implements GameEngine<
-  DartObservation,
-  CricketState
+export class CricketEngine extends MarksEngine<
+  Seated<CricketSnapshot>,
+  CricketState,
+  "CRICKET_V1" | "CRICKET_V2"
 > {
-  readonly rulesetVersionKey = "CRICKET_V1";
-  readonly stageOwnership = "PER_SEAT" as const;
-  private readonly turns: TurnFact[];
-
   constructor(
-    private readonly config: Seated<CricketSnapshot>,
+    config: Seated<CricketSnapshot>,
     prior?: EngineFacts,
+    rulesetVersionKey: "CRICKET_V1" | "CRICKET_V2" = "CRICKET_V1",
   ) {
-    this.turns = prior ? cloneTurns(prior.turns) : [];
+    super(config, prior, rulesetVersionKey);
   }
 
-  private deriveState(): CricketState {
-    return foldCricketState(
-      { stages: [{ ...STAGE }], turns: this.turns },
-      this.config,
-    );
+  protected fold(facts: EngineFacts): CricketState {
+    return foldCricketState(facts, this.config);
   }
 
-  /**
-   * Appends one dart to the open visit (`recordMarksDart`).
-   * @throws when the active seat has already completed.
-   */
-  record(observation: DartObservation): CricketState {
-    return recordMarksDart(this.turns, STAGE.clientKey, observation, () =>
-      this.deriveState(),
-    );
-  }
-
-  /** Pops the last dart; a surviving visit reopens (`undoLastDart`). */
-  undo(): boolean {
-    return undoLastDart(this.turns);
-  }
-
-  /** Whether `observation` would close the active seat's last open objective. */
-  wouldComplete(observation: DartObservation): boolean {
-    const seat = activeSeatState(this.deriveState());
-    if (seat.status !== "IN_PROGRESS") return false;
-    return applyCricketDart(seat, observation).status === "COMPLETE";
-  }
-
-  isComplete(): boolean {
-    return this.deriveState().status !== "IN_PROGRESS";
-  }
-
-  state(): CricketState {
-    return this.deriveState();
-  }
-
-  facts(): EngineFacts {
-    return { stages: [{ ...STAGE }], turns: cloneTurns(this.turns) };
+  protected fork(): { record(observation: DartObservation): CricketState } {
+    return new CricketEngine(this.config, this.facts(), this.rulesetVersionKey);
   }
 }
 
-export const cricketEngineFactory: GameEngineFactory<
-  Seated<CricketSnapshot>,
-  DartObservation,
-  CricketState
-> = {
+export const cricketEngineFactory = marksEngineFactory({
   rulesetVersionKey: "CRICKET_V1",
-  stageOwnership: "PER_SEAT",
-  create(config: Seated<CricketSnapshot>, prior?: EngineFacts) {
-    return new CricketEngine(config, prior);
-  },
-};
+  build: (config: Seated<CricketSnapshot>, prior) =>
+    new CricketEngine(config, prior, "CRICKET_V1"),
+});
 
-export const cricketV2EngineFactory: GameEngineFactory<
-  Seated<CricketSnapshot>,
-  DartObservation,
-  CricketState
-> = {
+export const cricketV2EngineFactory = marksEngineFactory({
   rulesetVersionKey: "CRICKET_V2",
-  stageOwnership: "PER_SEAT",
-  create(config: Seated<CricketSnapshot>, prior?: EngineFacts) {
-    return new CricketEngine(config, prior);
-  },
-};
+  build: (config: Seated<CricketSnapshot>, prior) =>
+    new CricketEngine(config, prior, "CRICKET_V2"),
+});
 
 registerEngineFactory(cricketEngineFactory);
 registerEngineFactory(cricketV2EngineFactory);

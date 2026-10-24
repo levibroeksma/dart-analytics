@@ -108,7 +108,14 @@ export type MarksDuelFold<TSeat extends MarksDuelSeat> = {
 };
 
 /** One seat's Cricket progress, indexed by `CRICKET_OBJECTIVES` order. */
-export type CricketSeatState = MarksSeatState;
+export type CricketSeatState = MarksSeatState & { points: number };
+
+/** A marks game's state after the seat fold: status and, in a duel, the winner. */
+export type MarksGameState<TSeat extends MarksDuelSeat> =
+  MultiSeatState<TSeat> & {
+    status: "IN_PROGRESS" | "COMPLETE";
+    winnerParticipantRef: string | null;
+  };
 
 /** A Tactics objective: a number 15–20, the bull, or a Doubles / Triples category. */
 export type TacticsObjective = number | "DOUBLES" | "TRIPLES";
@@ -118,6 +125,7 @@ export type TacticsSeatState = MarksSeatState & { points: number };
 
 export type CricketState = MultiSeatState<CricketSeatState> & {
   status: "IN_PROGRESS" | "COMPLETE";
+  winnerParticipantRef: string | null;
 };
 
 export type TacticsState = MultiSeatState<TacticsSeatState> & {

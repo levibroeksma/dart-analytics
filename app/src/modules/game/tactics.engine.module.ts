@@ -1,22 +1,14 @@
 import type { Seated, TacticsSnapshot } from "@lib/types";
 import { BULL_TARGET_NUMBER } from "./board-progression.module";
 import { registerEngineFactory } from "./engine.registry";
-import { activeSeat } from "./seat-rota.module";
-import { foldSeatStates } from "./seat-state.module";
-import { foldMarksDuel } from "./marks-duel.module";
-import {
-  cloneTurns,
-  exerciseBlockStage,
-  undoLastDart,
-} from "./turn-log.module";
-import type { GameEngine, GameEngineFactory } from "./interfaces";
+import { foldMarksSeats } from "./marks-duel.module";
+import { MarksEngine, marksEngineFactory } from "./marks-engine.module";
 import {
   applyMarksDart,
   BULL_RING_MARKS,
   initialMarksSeat,
   MARKS_TO_CLOSE,
   NUMBER_RING_MARKS,
-  recordMarksDart,
 } from "./marks-close.module";
 import type {
   DartObservation,
@@ -27,10 +19,7 @@ import type {
   TacticsObjective,
   TacticsSeatState,
   TacticsState,
-  TurnFact,
 } from "./types";
-
-const STAGE = exerciseBlockStage();
 
 /** The nine Tactics objectives in display order; the bull is `BULL_TARGET_NUMBER`. */
 export const TACTICS_OBJECTIVES: readonly TacticsObjective[] = [
@@ -147,46 +136,15 @@ const TACTICS_DUEL: MarksDuelSpec<TacticsSeatState> = {
 
 /**
  * Folds the whole fact log into the session's state — what the engine's own
- * `deriveState()` and the play controller's `state()` both call. One seat:
- * complete once it is closed out. Two seats: the duel fold, complete once a
- * seat closes out with points at least equal to its opponent's.
+ * `state()` and the play controller's `state()` both call. One seat: complete
+ * once it is closed out. Two seats: the duel fold, complete once a seat
+ * closes out with points at least equal to its opponent's.
  */
 export function foldTacticsState(
   facts: EngineFacts,
   config: Seated<TacticsSnapshot>,
 ): TacticsState {
-  const turnParticipantRef = activeSeat(
-    facts,
-    config.seats,
-    "PER_SEAT",
-  ).participantRef;
-  if (config.seats.length === 2) {
-    const duel = foldMarksDuel(
-      facts.turns,
-      [config.seats[0], config.seats[1]],
-      TACTICS_DUEL,
-    );
-    return {
-      activeParticipantRef: duel.winnerParticipantRef ?? turnParticipantRef,
-      status: duel.winnerParticipantRef === null ? "IN_PROGRESS" : "COMPLETE",
-      winnerParticipantRef: duel.winnerParticipantRef,
-      seats: duel.seats,
-    };
-  }
-  const seats = foldSeatStates(
-    facts.turns,
-    config.seats,
-    initialSeatState,
-    applyTacticsDart,
-  );
-  return {
-    activeParticipantRef: turnParticipantRef,
-    status: seats.every((seat) => seat.status === "COMPLETE")
-      ? "COMPLETE"
-      : "IN_PROGRESS",
-    winnerParticipantRef: null,
-    seats,
-  };
+  return foldMarksSeats(facts, config.seats, TACTICS_DUEL, applyTacticsDart);
 }
 
 /**
@@ -196,98 +154,39 @@ export function foldTacticsState(
  * and never stored. Darts carry no intent: any
  * objective is a legitimate aim on any dart.
  */
-export class TacticsEngine implements GameEngine<
-  DartObservation,
-  TacticsState
+export class TacticsEngine extends MarksEngine<
+  Seated<TacticsSnapshot>,
+  TacticsState,
+  "TACTICS_V1" | "TACTICS_V2"
 > {
-  readonly stageOwnership = "PER_SEAT" as const;
-  private readonly turns: TurnFact[];
-
   constructor(
-    private readonly config: Seated<TacticsSnapshot>,
+    config: Seated<TacticsSnapshot>,
     prior?: EngineFacts,
-    readonly rulesetVersionKey: "TACTICS_V1" | "TACTICS_V2" = "TACTICS_V1",
+    rulesetVersionKey: "TACTICS_V1" | "TACTICS_V2" = "TACTICS_V1",
   ) {
-    this.turns = prior ? cloneTurns(prior.turns) : [];
+    super(config, prior, rulesetVersionKey);
   }
 
-  private deriveState(): TacticsState {
-    return foldTacticsState(
-      { stages: [{ ...STAGE }], turns: this.turns },
-      this.config,
-    );
+  protected fold(facts: EngineFacts): TacticsState {
+    return foldTacticsState(facts, this.config);
   }
 
-  /**
-   * Appends one dart to the open visit (`recordMarksDart`).
-   * @throws when the game has already ended.
-   */
-  record(observation: DartObservation): TacticsState {
-    return recordMarksDart(
-      this.turns,
-      STAGE.clientKey,
-      observation,
-      () => this.deriveState(),
-      (state) => state.status === "COMPLETE",
-    );
-  }
-
-  /** Pops the last dart; a surviving visit reopens (`undoLastDart`). */
-  undo(): boolean {
-    return undoLastDart(this.turns);
-  }
-
-  /** Whether `observation` would end the game: the last close-out of a solo seat, the winning dart of a duel. */
-  wouldComplete(observation: DartObservation): boolean {
-    try {
-      return (
-        new TacticsEngine(
-          this.config,
-          this.facts(),
-          this.rulesetVersionKey,
-        ).record(observation).status === "COMPLETE"
-      );
-    } catch {
-      return false;
-    }
-  }
-
-  isComplete(): boolean {
-    return this.deriveState().status !== "IN_PROGRESS";
-  }
-
-  state(): TacticsState {
-    return this.deriveState();
-  }
-
-  facts(): EngineFacts {
-    return { stages: [{ ...STAGE }], turns: cloneTurns(this.turns) };
+  protected fork(): { record(observation: DartObservation): TacticsState } {
+    return new TacticsEngine(this.config, this.facts(), this.rulesetVersionKey);
   }
 }
 
-export const tacticsEngineFactory: GameEngineFactory<
-  Seated<TacticsSnapshot>,
-  DartObservation,
-  TacticsState
-> = {
+export const tacticsEngineFactory = marksEngineFactory({
   rulesetVersionKey: "TACTICS_V1",
-  stageOwnership: "PER_SEAT",
-  create(config: Seated<TacticsSnapshot>, prior?: EngineFacts) {
-    return new TacticsEngine(config, prior, "TACTICS_V1");
-  },
-};
+  build: (config: Seated<TacticsSnapshot>, prior) =>
+    new TacticsEngine(config, prior, "TACTICS_V1"),
+});
 
-export const tacticsV2EngineFactory: GameEngineFactory<
-  Seated<TacticsSnapshot>,
-  DartObservation,
-  TacticsState
-> = {
+export const tacticsV2EngineFactory = marksEngineFactory({
   rulesetVersionKey: "TACTICS_V2",
-  stageOwnership: "PER_SEAT",
-  create(config: Seated<TacticsSnapshot>, prior?: EngineFacts) {
-    return new TacticsEngine(config, prior, "TACTICS_V2");
-  },
-};
+  build: (config: Seated<TacticsSnapshot>, prior) =>
+    new TacticsEngine(config, prior, "TACTICS_V2"),
+});
 
 registerEngineFactory(tacticsEngineFactory);
 registerEngineFactory(tacticsV2EngineFactory);

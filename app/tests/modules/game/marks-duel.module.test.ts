@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { foldMarksDuel } from "@modules/game/marks-duel.module";
+import { foldMarksDuel, foldMarksSeats } from "@modules/game/marks-duel.module";
 import {
+  applyMarksDart,
   initialMarksSeat,
   NUMBER_RING_MARKS,
 } from "@modules/game/marks-close.module";
 import type {
   DartFact,
+  DartObservation,
   MarksDuelSeat,
   MarksDuelSpec,
   TurnFact,
@@ -160,5 +162,62 @@ describe("foldMarksDuel", () => {
       spec,
     );
     expect(fold.winnerParticipantRef).toBe("b");
+  });
+});
+
+describe("foldMarksSeats", () => {
+  const applyDart = (seat: MarksDuelSeat, observation: DartObservation) => ({
+    ...seat,
+    ...applyMarksDart(seat, spec.hitOf(seat, seat, observation)),
+  });
+  const facts = (turns: TurnFact[]) => ({ stages: [], turns });
+  const done = (turn: TurnFact): TurnFact => ({
+    ...turn,
+    completedAt: "2026-10-24T10:00:00.000Z",
+  });
+
+  it("folds one seat through applyDart and completes once closed out", () => {
+    const open = foldMarksSeats(
+      facts([visit("a", [20, "TREBLE"])]),
+      [A],
+      spec,
+      applyDart,
+    );
+    expect(open.status).toBe("IN_PROGRESS");
+    expect(open.seats[0].marks[0]).toBe(3);
+    expect(open.winnerParticipantRef).toBeNull();
+    const closed = foldMarksSeats(
+      facts([visit("a", [20, "TREBLE"], [19, "TREBLE"], [0, "TREBLE"])]),
+      [A],
+      spec,
+      applyDart,
+    );
+    expect(closed.status).toBe("COMPLETE");
+    expect(closed.winnerParticipantRef).toBeNull();
+    expect(closed.activeParticipantRef).toBe("a");
+  });
+
+  it("takes the active seat from the rota for two seats in progress", () => {
+    const state = foldMarksSeats(
+      facts([done(visit("a", [20, "SINGLE"]))]),
+      [A, B],
+      spec,
+      applyDart,
+    );
+    expect(state.status).toBe("IN_PROGRESS");
+    expect(state.activeParticipantRef).toBe("b");
+    expect(state.seats.map((seat) => seat.participantRef)).toEqual(["a", "b"]);
+  });
+
+  it("maps the duel fold and pins the active seat to the winner", () => {
+    const state = foldMarksSeats(
+      facts([done(visit("a", [20, "TREBLE"], [19, "TREBLE"], [0, "TREBLE"]))]),
+      [A, B],
+      spec,
+      applyDart,
+    );
+    expect(state.status).toBe("COMPLETE");
+    expect(state.winnerParticipantRef).toBe("a");
+    expect(state.activeParticipantRef).toBe("a");
   });
 });
