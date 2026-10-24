@@ -12,15 +12,18 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
 | Single player (practice / vs bot later) | V1 | Single | |
-| Multiplayer (2+ players) | V2+ | 2+ | Wanted, unscheduled: the engine and `CRICKET_V1` ship solo, but `CRICKET_V1` has no `SEAT_CAPS` entry (`app/src/services/session-seats.service.ts:19`), so the cap defaults to 1 seat and a second seat is rejected |
+| 1v1 multiplayer (two seats) | V2 | 1v1 | Being built as ruleset version `CRICKET_V2` (2026-10-24), against a guest; solo stays `CRICKET_V1`, which has no `SEAT_CAPS` entry (`app/src/services/session-seats.service.ts:19`), so its cap stays 1 |
+| Multiplayer (2+ players) | V2+ | 2+ | Wanted, unscheduled: more than two seats — V2 caps a session at two seats, and the win and dead-number rules are written for one opponent |
+| Vs DartBot | V2+ | 1v1 | Blocked on: no DartBot strategy can aim at an objective — `app/src/modules/dartbot/strategy/` holds only dictated, scoring and x01 strategies — so a marks strategy, its level calibration and its tests come first; `RULESET_DARTBOT` has no Cricket entry |
 | Config screen (presets shown) | V1 | All | |
 | Objectives: 20–15 + bull (Classic Cricket) | V1 | All | |
 | Close: 3 marks on a number or the bull | V1 | All | |
 | Single = 1 mark, double = 2, treble = 3 | V1 | All | |
 | Bull: outer = 1 mark, inner = 2 marks | V1 | All | |
-| Own / score on: points on closed-but-opponent-open numbers | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer — with one seat there is no opponent for a number to stay open against |
-| Dead number when all players have closed it | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer, for the same reason as Own / score on |
-| Win: all closed + score ≥ opponent(s) | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer; the solo practice win condition is still an open question below |
+| Own / score on: points on closed-but-opponent-open numbers | V2 | 1v1 | Needs an opponent seat, so it applies only in 1v1; solo has none |
+| Excess marks score on a number the opponent has open | V2 | 1v1 | A dart's marks beyond the third score as points while the opponent has not closed the number; V1 discards them because it has no opponent |
+| Dead number when all players have closed it | V2 | 1v1 | Needs an opponent seat, as Own / score on |
+| Win: all closed + score ≥ opponent(s) | V2 | 1v1 | The first dart that leaves a seat closed out with points at least equal to the opponent's ends the game; solo has no win condition (resolved below) |
 | Cut-throat variant | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer, and its own win and scoring rules are an open question below |
 | No-Score Cricket (race to close, points off) | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer — solo V1 already scores no points, so the variant only differs once a second seat exists; and it is a player-picked setting while `CricketConfig` is an empty strict schema (`app/src/lib/game/rulesets/types.ts:393`) |
 | Single-Only Cricket (every dart on an objective = 1 mark) | V2+ | All | Wanted, unscheduled: the marking rule works solo, but its point rule depends on Multiplayer, like Own / score on; and it is a player-picked setting while `CricketConfig` is an empty strict schema (`app/src/lib/game/rulesets/types.ts:393`) |
@@ -68,7 +71,7 @@ Before play, a **config screen** shows the session presets.
 
 | Setting    | V1 preset                                                   | On config screen (V1) |
 | ---------- | ----------------------------------------------------------- | --------------------- |
-| Players    | 1 seat, solo practice; a second seat follows with Multiplayer | Shown, locked         |
+| Players    | 1 seat, solo practice; V2 adds a second seat (1v1)          | Shown, chosen by seat |
 | Objectives | 20–15 + Bull                                                | Shown, locked         |
 | Variant    | Classic (highest score wins with all closed)                | Shown, locked         |
 
@@ -90,13 +93,19 @@ Each of **20–15** needs **three marks** to close:
 
 Extra marks in the same dart that closes a number can spill into **points** if the opponent has not closed that number yet (e.g. needing one mark and hitting a treble closes and scores leftover value).
 
+**Single:** there is no opponent, so spare marks are discarded as in V1.
+
 ### Points
 
 Once you have **closed** a number and an opponent has **not**, further hits on that number score **points** equal to the segment value. When **all** players have closed a number, it is **dead** — no more points there.
 
+**1v1:** points on a number are the marks beyond the third times the number's value (the bull is worth 25 a mark), scored while the opponent has not closed it. A dart that closes a number with marks to spare scores those spare marks the same way. Solo has no opponent, so nothing scores.
+
 ### Finishing
 
 First player to close **all** objectives with a score **≥** every opponent wins. If you are fully closed but behind on points, keep scoring on numbers opponents have not closed until you catch up or they close out ahead.
+
+**1v1:** the game ends on the first dart that leaves the throwing seat with all seven objectives closed and points at least equal to the opponent's, mid-visit if need be. It cannot end level: a closed-out seat that is behind keeps throwing, and the opponent can no longer score on any number that seat has closed, so the first seat to be closed out and level or ahead wins at that dart.
 
 ### Bust
 
@@ -105,23 +114,31 @@ N/A in the X01 sense.
 ### Ends when
 
 **Single:** all seven objectives — 20, 19, 18, 17, 16, 15 and the bull — are
-closed. Nothing else bounds a run: no clock, no visit budget. What a solo run
-counts as a *win* rather than merely a completed run is still an open question
-below.
+closed. Nothing else bounds a run: no clock, no visit budget. A solo run has no
+win condition; it reports darts, MPR and darts to close (resolved below).
 
-Once Multiplayer ships, the session instead ends when one player is closed out
+**1v1:** the session instead ends when one seat is closed out with a point
+total at least equal to its opponent's (see Finishing). The winner is that
+seat; there is no tie.
+
+With more than two seats (V2+) the session ends when one player is closed out
 with a point total at least equal to every opponent's.
 
 ### Result
 
-Darts thrown, and per objective the marks it took to close. Points appear
-alongside them once Multiplayer ships and a number can be open against an
-opponent.
+Darts thrown, and per objective the marks it took to close.
+
+**1v1:** each seat's points and darts, and the winner.
 
 ## Later versions
 
 ### Variants
 
+- **Excess marks** (V2, 1v1) — marks beyond the third on a number the opponent
+  has not closed score as points: a treble 20 on a number with two marks closes
+  it and scores 40.
+- **Vs DartBot** (V2+, 1v1) — a DartBot seat as the opponent; blocked on a marks
+  strategy (see Features).
 - **Cut-throat:** scoring hits add points to opponents who have not closed that number; lowest score wins among those who have closed everything (house rules vary — lock details when shipping)
 - Team / more than two players
 - **No-Score Cricket:** Classic marks (single 1, double 2, treble 3; outer bull 1, inner bull 2), but no points exist at all, so there is no Own / score on, no Dead and no point total. Extra marks past the third are discarded, and a dart on an already closed number or on a non-objective does nothing. **2+:** the first player to close all seven objectives wins at once, even mid-visit — the rest of that visit is not thrown. Seats alternate, so two players cannot finish together and no tiebreak is needed. Solo play is identical to V1.
@@ -146,7 +163,7 @@ opponent.
 
 ### Other
 
-- Vs DartBot / guest
+- Vs DartBot (V2+; see Features) / guest (V2, 1v1)
 - Cross-link / optional switch to **Tactics** (adds Doubles + Triples objectives)
 
 ## Glossary
@@ -154,9 +171,11 @@ opponent.
 | Term                | Version | Meaning                                                       |
 | ------------------- | ------- | ------------------------------------------------------------- |
 | **Close**           | V1      | Reach three marks on an objective.                            |
-| **Own / score on**  | V2+     | Closed by you, not yet by opponent → further hits add points. |
-| **Dead**            | V2+     | Closed by all players → no further scoring.                   |
+| **Own / score on**  | V2      | Closed by you, not yet by opponent → further hits add points. |
+| **Dead**            | V2      | Closed by all players → no further scoring.                   |
 | **Classic Cricket** | V1      | 20–15 + bull only (no separate D/T categories).               |
+| **Excess marks**    | V2      | Marks beyond the third on a number; they score while the opponent has it open. |
+| **Vs DartBot**      | V2+     | A DartBot opponent; needs a marks strategy first.             |
 | **Cut-throat**      | V2+     | Alternate scoring/win logic; see Variants.                    |
 | **No-Score Cricket** | V2+ | Race to close all seven objectives with no points; see Variants. |
 | **Single-Only Cricket** | V2+ | Every dart on an objective is one mark, whatever its ring; see Variants. |
@@ -193,6 +212,7 @@ This is the capture shape V1 ships with (engine:
 - **Derived, never stored:** marks per objective, which objectives are closed or
   dead, and the point total — all folded from the dart facts against the fixed
   20–15 + bull objective set.
+- **1v1 (V2):** no new stored fact and no schema change. Points, dead numbers and the winner are folded from the dart facts of both seats read in log order, because a dart's points depend on the opponent's marks at that moment; `score` stays the dart's board score. A V1 log still folds as it did.
 - **Variant objective sets (V2+):** dart facts, the "nothing stored" intent and the single `EXERCISE_BLOCK` stage are unchanged. The objective set is a fixed constant today (`app/src/modules/game/cricket.engine.module.ts:34-43`), so each variant needs it to come from the session's config snapshot, which would carry the drawn set (Random, Wild, Hidden) or one set per seat (Select-A). A draw is a fact recorded once, never re-drawn on read. Which Hidden numbers are revealed, who earned the Discovery bonus (first dart on that number), and Reverse's per-seat current target are all derived from the dart facts and that set, never stored.
 
 V2+ variants and capture (design intent only):
