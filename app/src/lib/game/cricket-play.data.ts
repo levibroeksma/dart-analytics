@@ -146,6 +146,8 @@ export function cricketMarksView(
     throw new Error("DartBot has no opponent in this session's engine state");
   }
   return {
+    ownPoints: own.points,
+    opponentPoints: opponent.points,
     objectives: CRICKET_OBJECTIVES.map((targetNumber, index) => ({
       targetNumber,
       own: own.marks[index],

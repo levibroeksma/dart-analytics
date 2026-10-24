@@ -18,7 +18,8 @@ function intentFor(targetNumber: number): ThrowIntent {
 /**
  * Picks the next dart's target: block an objective the opponent has closed
  * and the bot has not, else score on one the bot has closed and the opponent
- * has not, else close the first objective the bot has open. Each tier takes
+ * has not (only while it does not lead on points; a lead needs no more
+ * points, only the remaining closes), else close the first objective the bot has open. Each tier takes
  * the first match in the view's order. Re-derived from the view before every
  * dart, so a miss corrects itself with nothing held across a visit. The
  * fallback is reachable only when every objective is dead, which ends the
@@ -30,9 +31,11 @@ export function chooseTarget(view: MarksView): ThrowIntent {
     objectives.find(
       (o) => o.opponent >= MARKS_TO_CLOSE && o.own < MARKS_TO_CLOSE,
     ) ??
-    objectives.find(
-      (o) => o.own >= MARKS_TO_CLOSE && o.opponent < MARKS_TO_CLOSE,
-    ) ??
+    (view.ownPoints > view.opponentPoints
+      ? undefined
+      : objectives.find(
+          (o) => o.own >= MARKS_TO_CLOSE && o.opponent < MARKS_TO_CLOSE,
+        )) ??
     objectives.find((o) => o.own < MARKS_TO_CLOSE);
   return pick ? intentFor(pick.targetNumber) : FALLBACK_TARGET;
 }

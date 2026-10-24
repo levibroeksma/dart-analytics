@@ -41,8 +41,10 @@ export interface MarksObjectiveView {
 /**
  * Read-only view a marks ruleset hands the strategy: every objective in the
  * order the bot prefers to attack it, with the bot's own and its opponent's
- * marks. Carries no points, because the ladder never reads them.
+ * marks, plus both sides' points so the strategy can stop scoring once ahead.
  */
 export interface MarksView {
+  ownPoints: number;
+  opponentPoints: number;
   objectives: readonly MarksObjectiveView[];
 }

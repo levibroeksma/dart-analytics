@@ -5,8 +5,13 @@ import type { MarksView } from "@modules/interfaces";
 
 const ORDER = [20, 19, 18, 17, 16, 15, 25];
 
-function view(marks: Record<number, [number, number]> = {}): MarksView {
+function view(
+  marks: Record<number, [number, number]> = {},
+  points: [number, number] = [0, 0],
+): MarksView {
   return {
+    ownPoints: points[0],
+    opponentPoints: points[1],
     objectives: ORDER.map((targetNumber) => {
       const [own, opponent] = marks[targetNumber] ?? [0, 0];
       return { targetNumber, own, opponent };
@@ -101,5 +106,33 @@ describe("marks chooseTarget", () => {
       );
       expect(zoneCentroid(intent.targetNumber, intent.zoneKey)).not.toBeNull();
     }
+  });
+
+  it("stops scoring once it leads on points and closes instead", () => {
+    expect(chooseTarget(view({ 20: [3, 0] }, [40, 0]))).toEqual({
+      targetNumber: 19,
+      zoneKey: "TREBLE",
+    });
+  });
+
+  it("keeps scoring when tied on points", () => {
+    expect(chooseTarget(view({ 20: [3, 0] }, [20, 20]))).toEqual({
+      targetNumber: 20,
+      zoneKey: "TREBLE",
+    });
+  });
+
+  it("scores when trailing on points", () => {
+    expect(chooseTarget(view({ 20: [3, 0] }, [0, 40]))).toEqual({
+      targetNumber: 20,
+      zoneKey: "TREBLE",
+    });
+  });
+
+  it("still blocks while leading on points", () => {
+    expect(chooseTarget(view({ 17: [1, 3] }, [40, 0]))).toEqual({
+      targetNumber: 17,
+      zoneKey: "TREBLE",
+    });
   });
 });
