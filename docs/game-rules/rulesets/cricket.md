@@ -14,7 +14,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Single player (practice / vs bot later) | V1 | Single | |
 | 1v1 multiplayer (two seats) | V2 | 1v1 | Ruleset version `CRICKET_V2` (2026-10-24), against a guest; solo stays `CRICKET_V1`, which has no `SEAT_CAPS` entry (`app/src/services/session-seats.service.ts:19`), so its cap stays 1 |
 | Multiplayer (2+ players) | V2+ | 2+ | Wanted, unscheduled: more than two seats — V2 caps a session at two seats, and the win and dead-number rules are written for one opponent |
-| Vs DartBot | V2+ | 1v1 | Blocked on: no DartBot strategy can aim at an objective — `app/src/modules/dartbot/strategy/` holds only dictated, scoring and x01 strategies — so a marks strategy, its level calibration and its tests come first; `RULESET_DARTBOT` has no Cricket entry |
+| Vs DartBot | V3 | 1v1 | Unblocked 2026-10-24: a marks strategy exists (`app/src/modules/dartbot/strategy/marks.strategy.module.ts`) and `RULESET_DARTBOT` admits `CRICKET_V2`; the bot is a seat on `CRICKET_V2`, not a new ruleset key |
 | Config screen (presets shown) | V1 | All | |
 | Objectives: 20–15 + bull (Classic Cricket) | V1 | All | |
 | Close: 3 marks on a number or the bull | V1 | All | |
@@ -137,8 +137,11 @@ Darts thrown, and per objective the marks it took to close.
 - **Excess marks** (V2, 1v1) — marks beyond the third on a number the opponent
   has not closed score as points: a treble 20 on a number with two marks closes
   it and scores 40.
-- **Vs DartBot** (V2+, 1v1) — a DartBot seat as the opponent; blocked on a marks
-  strategy (see Features).
+- **Vs DartBot** (V3, 1v1) — a DartBot seat as the opponent. Each dart it blocks
+  a number the opponent has closed and it has not, else scores on one it has
+  closed and the opponent has not, else closes the first number it has open, in
+  the order 20 to 15 then the bull, aiming treble (inner bull for the bull).
+  `level` changes aim noise only.
 - **Cut-throat:** scoring hits add points to opponents who have not closed that number; lowest score wins among those who have closed everything (house rules vary — lock details when shipping)
 - Team / more than two players
 - **No-Score Cricket:** Classic marks (single 1, double 2, treble 3; outer bull 1, inner bull 2), but no points exist at all, so there is no Own / score on, no Dead and no point total. Extra marks past the third are discarded, and a dart on an already closed number or on a non-objective does nothing. **2+:** the first player to close all seven objectives wins at once, even mid-visit — the rest of that visit is not thrown. Seats alternate, so two players cannot finish together and no tiebreak is needed. Solo play is identical to V1.
@@ -163,7 +166,7 @@ Darts thrown, and per objective the marks it took to close.
 
 ### Other
 
-- Vs DartBot (V2+; see Features) / guest (V2, 1v1)
+- Vs DartBot (V3; see Features) / guest (V2, 1v1)
 - Cross-link / optional switch to **Tactics** (adds Doubles + Triples objectives)
 
 ## Glossary
@@ -175,7 +178,7 @@ Darts thrown, and per objective the marks it took to close.
 | **Dead**            | V2      | Closed by all players → no further scoring.                   |
 | **Classic Cricket** | V1      | 20–15 + bull only (no separate D/T categories).               |
 | **Excess marks**    | V2      | Marks beyond the third on a number; they score while the opponent has it open. |
-| **Vs DartBot**      | V2+     | A DartBot opponent; needs a marks strategy first.             |
+| **Vs DartBot**      | V3      | A DartBot opponent on `CRICKET_V2`, driven by the marks strategy. |
 | **Cut-throat**      | V2+     | Alternate scoring/win logic; see Variants.                    |
 | **No-Score Cricket** | V2+ | Race to close all seven objectives with no points; see Variants. |
 | **Single-Only Cricket** | V2+ | Every dart on an objective is one mark, whatever its ring; see Variants. |

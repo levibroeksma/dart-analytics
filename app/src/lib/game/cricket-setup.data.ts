@@ -5,7 +5,7 @@ export function cricketSetup() {
   return createPresetSetupController<CricketSetupContext>({
     gameTypeKey: "CRICKET",
     rulesetVersionKey: (ctx) =>
-      ctx.guests.length > 0 ? "CRICKET_V2" : "CRICKET_V1",
+      ctx.guests.length > 0 || ctx.bot !== null ? "CRICKET_V2" : "CRICKET_V1",
     playHref: "/games/cricket/play",
     label: "Cricket",
   });
