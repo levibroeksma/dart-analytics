@@ -32,13 +32,13 @@ const { rowsExpr = "objectiveRows()" }: Props = Astro.props;
         x-text="row.label"
       ></span>
       <template x-if="row.opponentMarks != null">
-        <span class="ml-auto flex gap-1 opacity-40">
+        <span class="ml-auto flex gap-0.5 opacity-40">
           <template
             x-for="pip in [1, 2, 3]"
             :key="pip"
           >
             <span
-              class="size-2.5 rounded-full"
+              class="size-1.5 rounded-full"
               :class="pip <= row.opponentMarks ? 'pip-on' : 'inset-well'"
             ></span>
           </template>
