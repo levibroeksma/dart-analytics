@@ -2,7 +2,14 @@ import { describe, expect, it } from "vitest";
 import {
   duelWinningSideKey,
   marksPlayAccessors,
+  marksPreviewSegments,
+  marksTapObservation,
+  recordMarksMiss,
+  recordMarksTap,
+  resumeMarksEngine,
+  toggleMarksRing,
 } from "@lib/game/marks-play.data";
+import type { DartObservation } from "@modules/types";
 import type { MarksSeatState } from "@modules/types";
 
 const OBJECTIVES = [20, 25, "CAT"] as const;
@@ -178,5 +185,164 @@ describe("resultsTitle", () => {
 
   it("falls back to Game over without a winner", () => {
     expect(accessors.resultsTitle.call(context(duel, null))).toBe("Game over");
+  });
+});
+
+describe("marksTapObservation", () => {
+  it.each([
+    [20, "SINGLE", { hitTargetNumber: 20, hitZoneKey: "SINGLE" }],
+    [15, "TREBLE", { hitTargetNumber: 15, hitZoneKey: "TREBLE" }],
+    [7, "DOUBLE", { hitTargetNumber: 7, hitZoneKey: "DOUBLE" }],
+    [25, "SINGLE", { hitTargetNumber: 25, hitZoneKey: "OUTER_BULL" }],
+    [25, "DOUBLE", { hitTargetNumber: 25, hitZoneKey: "INNER_BULL" }],
+  ] as const)("maps %i + %s", (number, ring, expected) => {
+    expect(marksTapObservation(number, ring)).toEqual({
+      ...expected,
+      locationX: null,
+      locationY: null,
+    });
+  });
+
+  it("rejects a treble bull", () => {
+    expect(() => marksTapObservation(25, "TREBLE")).toThrow(
+      "The bull has no treble ring.",
+    );
+  });
+});
+
+describe("toggleMarksRing", () => {
+  it("selects a ring, and a second tap returns to SINGLE", () => {
+    const ctx = { ring: "SINGLE" as const } as { ring: "SINGLE" | "DOUBLE" };
+    toggleMarksRing(ctx, "DOUBLE");
+    expect(ctx.ring).toBe("DOUBLE");
+    toggleMarksRing(ctx, "DOUBLE");
+    expect(ctx.ring).toBe("SINGLE");
+  });
+});
+
+function tapContext(
+  over: Partial<{ engine: unknown; finished: boolean }> = {},
+) {
+  const committed: DartObservation[] = [];
+  return {
+    committed,
+    engine: {} as unknown,
+    finished: false,
+    ring: "TREBLE" as "SINGLE" | "DOUBLE" | "TREBLE",
+    commitDart: async (o: DartObservation) => {
+      committed.push(o);
+    },
+    ...over,
+  };
+}
+
+describe("recordMarksTap", () => {
+  it("commits the tapped number with the selected ring, then resets the ring", async () => {
+    const ctx = tapContext();
+    await recordMarksTap(ctx, 20);
+    expect(ctx.committed).toEqual([marksTapObservation(20, "TREBLE")]);
+    expect(ctx.ring).toBe("SINGLE");
+  });
+
+  it("records a single bull for a treble-bull tap", async () => {
+    const ctx = tapContext();
+    await recordMarksTap(ctx, 25);
+    expect(ctx.committed[0].hitZoneKey).toBe("OUTER_BULL");
+  });
+
+  it("ignores a tap with no engine or a finished game", async () => {
+    const noEngine = tapContext({ engine: null });
+    await recordMarksTap(noEngine, 20);
+    const done = tapContext({ finished: true });
+    await recordMarksTap(done, 20);
+    expect(noEngine.committed).toEqual([]);
+    expect(done.committed).toEqual([]);
+  });
+});
+
+describe("recordMarksMiss", () => {
+  it("commits a miss and resets the ring", async () => {
+    const ctx = tapContext();
+    await recordMarksMiss(ctx);
+    expect(ctx.committed).toEqual([
+      {
+        hitTargetNumber: null,
+        hitZoneKey: "MISS",
+        locationX: null,
+        locationY: null,
+      },
+    ]);
+    expect(ctx.ring).toBe("SINGLE");
+  });
+
+  it("ignores a miss once finished", async () => {
+    const ctx = tapContext({ finished: true });
+    await recordMarksMiss(ctx);
+    expect(ctx.committed).toEqual([]);
+  });
+});
+
+describe("marksPreviewSegments", () => {
+  const dart = (n: number | null): DartObservation => ({
+    hitTargetNumber: n,
+    hitZoneKey: n === null ? "MISS" : "SINGLE",
+    locationX: null,
+    locationY: null,
+  });
+  const turn = (key: string, done: boolean, darts: DartObservation[]) =>
+    ({ clientKey: key, completedAt: done ? "t" : null, darts }) as never;
+
+  it("shows hit and miss for the open visit, padded to three", () => {
+    const segments = marksPreviewSegments(
+      [turn("a", false, [dart(20), dart(null)])],
+      null,
+      (o) => o.hitTargetNumber !== null,
+    );
+    expect(segments).toEqual([
+      { status: "hit" },
+      { status: "miss" },
+      { status: "empty" },
+    ]);
+  });
+
+  it("is empty while the open visit is the hidden one", () => {
+    const segments = marksPreviewSegments(
+      [turn("a", false, [dart(20)])],
+      "a",
+      () => true,
+    );
+    expect(segments).toEqual([
+      { status: "empty" },
+      { status: "empty" },
+      { status: "empty" },
+    ]);
+  });
+});
+
+describe("resumeMarksEngine", () => {
+  class FakeEngine {}
+  const isFake = (engine: unknown): engine is FakeEngine =>
+    engine instanceof FakeEngine;
+  const game = (over: object) =>
+    ({
+      configSnapshot: {},
+      rulesetVersionKey: "CRICKET_V1",
+      stages: [],
+      turns: [],
+      ...over,
+    }) as never;
+
+  it("returns null without a snapshot or for a non-resumable ruleset", () => {
+    const resumable = new Set(["CRICKET_V1"]) as never;
+    expect(
+      resumeMarksEngine(game({ configSnapshot: null }), resumable, isFake),
+    ).toBeNull();
+    expect(
+      resumeMarksEngine(
+        game({ rulesetVersionKey: "501_V2" }),
+        resumable,
+        isFake,
+      ),
+    ).toBeNull();
   });
 });

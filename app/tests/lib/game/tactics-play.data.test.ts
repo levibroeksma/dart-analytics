@@ -23,11 +23,7 @@ import {
   initialTacticsState,
   TacticsEngine,
 } from "@modules/game/tactics.engine.module";
-import {
-  tacticsPlay,
-  tacticsSeatResult,
-  tacticsTapObservation,
-} from "@lib/game/tactics-play.data";
+import { tacticsPlay, tacticsSeatResult } from "@lib/game/tactics-play.data";
 import type { TacticsPlayContext, TacticsSnapshot, Seated } from "@lib/types";
 import type { DartZoneKey, StageFact, TurnFact } from "@modules/types";
 
@@ -119,27 +115,6 @@ beforeEach(() => {
   registerEngineFactory(tacticsEngineFactory);
   registerEngineFactory(tacticsV2EngineFactory);
   vi.mocked(fetchActiveSessions).mockResolvedValue([{ ...ACTIVE_SESSION }]);
-});
-
-describe("tacticsTapObservation", () => {
-  it.each([
-    [20, "SINGLE", { hitTargetNumber: 20, hitZoneKey: "SINGLE" }],
-    [15, "TREBLE", { hitTargetNumber: 15, hitZoneKey: "TREBLE" }],
-    [7, "DOUBLE", { hitTargetNumber: 7, hitZoneKey: "DOUBLE" }],
-    [1, "TREBLE", { hitTargetNumber: 1, hitZoneKey: "TREBLE" }],
-    [25, "SINGLE", { hitTargetNumber: 25, hitZoneKey: "OUTER_BULL" }],
-    [25, "DOUBLE", { hitTargetNumber: 25, hitZoneKey: "INNER_BULL" }],
-  ] as const)("maps %i + %s", (number, ring, expected) => {
-    expect(tacticsTapObservation(number, ring)).toEqual({
-      ...expected,
-      locationX: null,
-      locationY: null,
-    });
-  });
-
-  it("refuses a treble bull", () => {
-    expect(() => tacticsTapObservation(25, "TREBLE")).toThrow();
-  });
 });
 
 describe("tacticsPlay", () => {

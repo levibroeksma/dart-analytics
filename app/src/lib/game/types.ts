@@ -915,7 +915,10 @@ export type Bobs27PlayContext = PlayLifecycleContext<
 };
 
 /** The ring the Cricket recreational input applies to the next objective tap. */
-export type CricketRing = "SINGLE" | "DOUBLE" | "TREBLE";
+/** The ring a marks game's recreational input applies to the next number tap. */
+export type MarksRing = "SINGLE" | "DOUBLE" | "TREBLE";
+
+export type CricketRing = MarksRing;
 
 /** One row of the Cricket play board. */
 export type CricketObjectiveRow = MarksObjectiveRow<number>;
@@ -983,7 +986,7 @@ export type CricketPlayContext = PlayLifecycleContext<
 };
 
 /** The ring the Tactics recreational input applies to the next number tap. */
-export type TacticsRing = "SINGLE" | "DOUBLE" | "TREBLE";
+export type TacticsRing = MarksRing;
 
 /** One button of the Tactics tap grid: a board number and its label. */
 export type TacticsTapTarget = { number: number; label: string };

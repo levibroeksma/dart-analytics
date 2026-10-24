@@ -98,7 +98,11 @@ describe("tacticsValidator.validateBatch", () => {
     const result = validate([
       [{ ...t20, intendedTargetNumber: 20, intendedZoneKey: "TREBLE" }],
     ]);
-    expect(result).toMatchObject({ valid: false, code: "VALIDATION_FAILED" });
+    expect(result).toMatchObject({
+      valid: false,
+      code: "VALIDATION_FAILED",
+      issues: [expect.stringContaining("Tactics stores none")],
+    });
   });
 
   it("rejects a visit of 4 darts", () => {

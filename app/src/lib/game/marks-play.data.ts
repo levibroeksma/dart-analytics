@@ -1,7 +1,139 @@
 import { matchWinnerName } from "@lib/game/match-result-text";
 import { joinSubtitle } from "@lib/game/play-subtitle";
-import type { MarksSeatState } from "@modules/types";
-import type { MarksObjectiveRow } from "./types";
+import { BULL_TARGET_NUMBER } from "@modules/game/board-progression.module";
+import { getEngineFactory } from "@modules/game/engine.registry";
+import { openVisit } from "@modules/game/turn-log.module";
+import type { RulesetVersionKey } from "@lib/types";
+import type {
+  DartObservation,
+  DartZoneKey,
+  MarksSeatState,
+  TurnFact,
+} from "@modules/types";
+import type {
+  Bobs27PreviewSegment,
+  MarksObjectiveRow,
+  MarksRing,
+  PlayStoreContext,
+} from "./types";
+
+type MarksTapContext = {
+  engine: unknown;
+  finished: boolean;
+  ring: MarksRing;
+  commitDart(observation: DartObservation): Promise<void>;
+};
+
+const BULL_RING: Record<Exclude<MarksRing, "TREBLE">, DartZoneKey> = {
+  SINGLE: "OUTER_BULL",
+  DOUBLE: "INNER_BULL",
+};
+
+/**
+ * The recreational tap → `DartObservation` for a board number and ring.
+ * @throws on a treble bull, which has no such ring.
+ */
+export function marksTapObservation(
+  number: number,
+  ring: MarksRing,
+): DartObservation {
+  if (number === BULL_TARGET_NUMBER) {
+    if (ring === "TREBLE") throw new Error("The bull has no treble ring.");
+    return {
+      hitTargetNumber: number,
+      hitZoneKey: BULL_RING[ring],
+      locationX: null,
+      locationY: null,
+    };
+  }
+  return {
+    hitTargetNumber: number,
+    hitZoneKey: ring,
+    locationX: null,
+    locationY: null,
+  };
+}
+
+/** Tapping the selected ring again returns to SINGLE. */
+export function toggleMarksRing(
+  context: { ring: MarksRing },
+  ring: MarksRing,
+): void {
+  context.ring = context.ring === ring ? "SINGLE" : ring;
+}
+
+/**
+ * A tap on a board number with the selected ring. The ring resets after every
+ * tap; Treble on the bull (which has no such ring) records a single bull.
+ */
+export async function recordMarksTap(
+  context: MarksTapContext,
+  number: number,
+): Promise<void> {
+  if (!context.engine || context.finished) return;
+  const ring =
+    number === BULL_TARGET_NUMBER && context.ring === "TREBLE"
+      ? "SINGLE"
+      : context.ring;
+  context.ring = "SINGLE";
+  await context.commitDart(marksTapObservation(number, ring));
+}
+
+/** A dart off every objective: counts as thrown, marks nothing. */
+export async function recordMarksMiss(context: MarksTapContext): Promise<void> {
+  if (!context.engine || context.finished) return;
+  context.ring = "SINGLE";
+  await context.commitDart({
+    hitTargetNumber: null,
+    hitZoneKey: "MISS",
+    locationX: null,
+    locationY: null,
+  });
+}
+
+/**
+ * The open visit's three dart slots: hit or miss by `isHit`, empty past the
+ * darts thrown, and all empty while that visit is the one being cleared.
+ */
+export function marksPreviewSegments(
+  turns: readonly TurnFact[],
+  hiddenTurnKey: string | null,
+  isHit: (observation: DartObservation) => boolean,
+): Bobs27PreviewSegment[] {
+  const open = openVisit(turns);
+  const darts = open && open.clientKey !== hiddenTurnKey ? open.darts : [];
+  return [0, 1, 2].map((i) =>
+    i >= darts.length
+      ? { status: "empty" }
+      : { status: isHit(darts[i]) ? "hit" : "miss" },
+  );
+}
+
+/**
+ * Rebuilds a marks game's engine for the persisted session by replaying the
+ * store's fact log, so a reload restores the game exactly.
+ */
+export function resumeMarksEngine<TEngine>(
+  game: PlayStoreContext<unknown>["game"],
+  resumable: ReadonlySet<RulesetVersionKey>,
+  isEngine: (engine: unknown) => engine is TEngine,
+): TEngine | null {
+  const { configSnapshot, rulesetVersionKey } = game;
+  if (
+    !configSnapshot ||
+    !rulesetVersionKey ||
+    !resumable.has(rulesetVersionKey)
+  ) {
+    return null;
+  }
+  const factory = getEngineFactory(rulesetVersionKey);
+  if (!factory) return null;
+  const engine = factory.create(configSnapshot, {
+    stages: game.stages,
+    turns: game.turns,
+  });
+  return isEngine(engine) ? engine : null;
+}
 
 type SeatsState = { seats: readonly MarksSeatState[] } | null;
 

@@ -1,7 +1,5 @@
 import { playAgainStarterData } from "@lib/game/play-again-starter";
-import { getEngineFactory } from "@modules/game/engine.registry";
 import { BULL_TARGET_NUMBER } from "@modules/game/board-progression.module";
-import { openVisit } from "@modules/game/turn-log.module";
 import { boardInputData } from "@lib/game/board-input.data";
 import { botThrowObservation, findBotSeat } from "@lib/game/play-bot-seat";
 import { chooseTarget } from "@modules/dartbot/strategy/marks.strategy.module";
@@ -21,6 +19,11 @@ import {
 import {
   duelWinningSideKey,
   marksPlayAccessors,
+  marksPreviewSegments,
+  recordMarksMiss,
+  recordMarksTap,
+  resumeMarksEngine,
+  toggleMarksRing,
 } from "@lib/game/marks-play.data";
 import type { DartbotSeat, RulesetVersionKey } from "@lib/types";
 import type { MarksView } from "@modules/interfaces";
@@ -28,7 +31,6 @@ import type {
   CricketSeatState,
   CricketState,
   DartObservation,
-  DartZoneKey,
 } from "@modules/types";
 import type {
   BoardMarker,
@@ -55,33 +57,6 @@ import {
 const GAME_TYPE_KEY = "CRICKET";
 const RESUMABLE = new Set<RulesetVersionKey>(["CRICKET_V1", "CRICKET_V2"]);
 
-const BULL_RING: Record<Exclude<CricketRing, "TREBLE">, DartZoneKey> = {
-  SINGLE: "OUTER_BULL",
-  DOUBLE: "INNER_BULL",
-};
-
-/** The recreational tap → `DartObservation` for an objective and ring. */
-export function cricketTapObservation(
-  objective: number,
-  ring: CricketRing,
-): DartObservation {
-  if (objective === BULL_TARGET_NUMBER) {
-    if (ring === "TREBLE") throw new Error("The bull has no treble ring.");
-    return {
-      hitTargetNumber: objective,
-      hitZoneKey: BULL_RING[ring],
-      locationX: null,
-      locationY: null,
-    };
-  }
-  return {
-    hitTargetNumber: objective,
-    hitZoneKey: ring,
-    locationX: null,
-    locationY: null,
-  };
-}
-
 function objectiveLabel(objective: number): string {
   return objective === BULL_TARGET_NUMBER ? "Bull" : String(objective);
 }
@@ -107,29 +82,14 @@ function computeStats(state: CricketState): CricketResultsSnapshot {
   };
 }
 
-/**
- * Rebuilds the engine for the persisted session, replaying the store's fact
- * log so a reload restores the game exactly. Mirrors
- * `bobs27-play.data.ts`'s `resumeEngine`.
- */
 function resumeEngine(
   game: CricketPlayContext["$store"]["game"],
 ): CricketEngine | null {
-  const { configSnapshot, rulesetVersionKey } = game;
-  if (
-    !configSnapshot ||
-    !rulesetVersionKey ||
-    !RESUMABLE.has(rulesetVersionKey)
-  ) {
-    return null;
-  }
-  const factory = getEngineFactory(rulesetVersionKey);
-  if (!factory) return null;
-  const engine = factory.create(configSnapshot, {
-    stages: game.stages,
-    turns: game.turns,
-  });
-  return engine instanceof CricketEngine ? engine : null;
+  return resumeMarksEngine(
+    game,
+    RESUMABLE,
+    (engine): engine is CricketEngine => engine instanceof CricketEngine,
+  );
 }
 
 /**
@@ -209,13 +169,10 @@ export function cricketPlay() {
     ...marksPlayAccessors(CRICKET_OBJECTIVES, objectiveLabel),
 
     previewSegments(this: CricketPlayContext): Bobs27PreviewSegment[] {
-      const open = openVisit(this.$store.game.turns);
-      const darts =
-        open && open.clientKey !== this.hiddenTurnKey ? open.darts : [];
-      return [0, 1, 2].map((i) =>
-        i >= darts.length
-          ? { status: "empty" }
-          : { status: cricketMarksOf(darts[i]) ? "hit" : "miss" },
+      return marksPreviewSegments(
+        this.$store.game.turns,
+        this.hiddenTurnKey,
+        (observation) => cricketMarksOf(observation) !== null,
       );
     },
 
@@ -238,32 +195,19 @@ export function cricketPlay() {
 
     /** Tapping the selected ring again returns to SINGLE. */
     setRing(this: CricketPlayContext, ring: CricketRing) {
-      this.ring = this.ring === ring ? "SINGLE" : ring;
+      toggleMarksRing(this, ring);
     },
 
     /** The recreational input's entry point: a tap on an objective with the
      * selected ring. The ring resets after every tap; Treble on the bull
      * (which has no such ring) records a single bull. */
     async recordObjective(this: CricketPlayContext, objective: number) {
-      if (!this.engine || this.finished) return;
-      const ring =
-        objective === BULL_TARGET_NUMBER && this.ring === "TREBLE"
-          ? "SINGLE"
-          : this.ring;
-      this.ring = "SINGLE";
-      await this.commitDart(cricketTapObservation(objective, ring));
+      await recordMarksTap(this, objective);
     },
 
     /** A dart off every objective: counts as thrown, marks nothing. */
     async recordMiss(this: CricketPlayContext) {
-      if (!this.engine || this.finished) return;
-      this.ring = "SINGLE";
-      await this.commitDart({
-        hitTargetNumber: null,
-        hitZoneKey: "MISS",
-        locationX: null,
-        locationY: null,
-      });
+      await recordMarksMiss(this);
     },
 
     async recordDart(this: CricketPlayContext, observation: DartObservation) {
