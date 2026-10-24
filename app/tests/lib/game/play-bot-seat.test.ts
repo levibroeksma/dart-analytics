@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   BOT_PACING,
   botDartIndex,
+  botDartObservationAt,
   botQuickScoreDartIndex,
   botThrowObservation,
   findBotSeat,
@@ -102,6 +103,24 @@ describe("botThrowObservation", () => {
   it("ignores the human's darts when indexing", () => {
     expect(botThrowObservation(dartbot, [turn("p1", 3)], intent)).toEqual(
       botThrowObservation(dartbot, [], intent),
+    );
+  });
+});
+
+describe("botDartObservationAt", () => {
+  const dartbot = findBotSeat([botSeat])!;
+  const intent = { targetNumber: 20, zoneKey: "TREBLE" as const };
+
+  it("matches botThrowObservation at the log's own dart index", () => {
+    const turns = [turn("bot1", 3)];
+    expect(botDartObservationAt(dartbot, 3, intent)).toEqual(
+      botThrowObservation(dartbot, turns, intent).observation,
+    );
+  });
+
+  it("draws a different dart at a different explicit index", () => {
+    expect(botDartObservationAt(dartbot, 0, intent)).not.toEqual(
+      botDartObservationAt(dartbot, 5, intent),
     );
   });
 });

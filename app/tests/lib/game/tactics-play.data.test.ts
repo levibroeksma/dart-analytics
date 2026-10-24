@@ -527,3 +527,34 @@ describe("Tactics V2 play data", () => {
     expect(ctx.engine?.rulesetVersionKey).toBe("TACTICS_V2");
   });
 });
+
+describe("tacticsPlay play again starter", () => {
+  function withSeats(count: number) {
+    const play = tacticsPlay();
+    const playAgain = vi.fn();
+    const ctx = {
+      ...play,
+      playAgain,
+      $store: { game: { seats: Array.from({ length: count }, () => ({})) } },
+    } as never as {
+      starterOpen: boolean;
+      playAgain: typeof playAgain;
+      requestPlayAgain(): unknown;
+    };
+    return ctx;
+  }
+
+  it("opens the who-throws-first step with two seats", () => {
+    const ctx = withSeats(2);
+    ctx.requestPlayAgain();
+    expect(ctx.starterOpen).toBe(true);
+    expect(ctx.playAgain).not.toHaveBeenCalled();
+  });
+
+  it("replays straight away with one seat", () => {
+    const ctx = withSeats(1);
+    ctx.requestPlayAgain();
+    expect(ctx.starterOpen).toBe(false);
+    expect(ctx.playAgain).toHaveBeenCalledOnce();
+  });
+});

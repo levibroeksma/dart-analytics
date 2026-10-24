@@ -499,9 +499,14 @@ describe("cricketMarksView", () => {
   }
 
   it("carries both seats' points, bot as own", () => {
-    const state = stateWith([0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]);
-    state.seats[0] = { ...state.seats[0], points: 15 };
-    state.seats[1] = { ...state.seats[1], points: 40 };
+    const base = stateWith([0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]);
+    const state = {
+      ...base,
+      seats: [
+        { ...base.seats[0], points: 15 },
+        { ...base.seats[1], points: 40 },
+      ],
+    };
     const view = cricketMarksView(state, "bot-1");
     expect(view.ownPoints).toBe(40);
     expect(view.opponentPoints).toBe(15);
@@ -689,5 +694,36 @@ describe("cricketPlay — DartBot opponent", () => {
       dartCount,
     );
     expect(play.engine!.state().winnerParticipantRef).toBe("bot-1");
+  });
+});
+
+describe("cricketPlay play again starter", () => {
+  function withSeats(count: number) {
+    const play = cricketPlay();
+    const playAgain = vi.fn();
+    const ctx = {
+      ...play,
+      playAgain,
+      $store: { game: { seats: Array.from({ length: count }, () => ({})) } },
+    } as never as {
+      starterOpen: boolean;
+      playAgain: typeof playAgain;
+      requestPlayAgain(): unknown;
+    };
+    return ctx;
+  }
+
+  it("opens the who-throws-first step with two seats", () => {
+    const ctx = withSeats(2);
+    ctx.requestPlayAgain();
+    expect(ctx.starterOpen).toBe(true);
+    expect(ctx.playAgain).not.toHaveBeenCalled();
+  });
+
+  it("replays straight away with one seat", () => {
+    const ctx = withSeats(1);
+    ctx.requestPlayAgain();
+    expect(ctx.starterOpen).toBe(false);
+    expect(ctx.playAgain).toHaveBeenCalledOnce();
   });
 });

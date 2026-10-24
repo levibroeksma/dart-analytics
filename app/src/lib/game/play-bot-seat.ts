@@ -54,19 +54,32 @@ export function botThrowObservation(
   turns: readonly TurnFact[],
   intent: ThrowIntent,
 ): { observation: DartObservation; pacing: BotPacing } {
+  return {
+    observation: botDartObservationAt(
+      botSeat,
+      botDartIndex(turns, botSeat.participantRef),
+      intent,
+    ),
+    pacing: BOT_PACING,
+  };
+}
+
+/**
+ * The observation of one bot dart at an explicit `dartIndex`, for a caller
+ * whose index is not the fact log's (501's QUICK_SCORE scratch visit).
+ */
+export function botDartObservationAt(
+  botSeat: DartbotSeat,
+  dartIndex: number,
+  intent: ThrowIntent,
+): DartObservation {
   const profile = skillProfileForLevel(botSeat.dartbot.level);
-  const rng = createDartRng(
-    botSeat.dartbot.seed,
-    botDartIndex(turns, botSeat.participantRef),
-  );
+  const rng = createDartRng(botSeat.dartbot.seed, dartIndex);
   const thrown = throwDart(intent, profile, rng);
   return {
-    observation: {
-      hitTargetNumber: thrown.hit.targetNumber,
-      hitZoneKey: thrown.hit.zoneKey,
-      locationX: thrown.landing.x,
-      locationY: thrown.landing.y,
-    },
-    pacing: BOT_PACING,
+    hitTargetNumber: thrown.hit.targetNumber,
+    hitZoneKey: thrown.hit.zoneKey,
+    locationX: thrown.landing.x,
+    locationY: thrown.landing.y,
   };
 }

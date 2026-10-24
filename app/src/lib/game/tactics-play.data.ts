@@ -1,3 +1,4 @@
+import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { BULL_TARGET_NUMBER } from "@modules/game/board-progression.module";
 import { openVisit } from "@modules/game/turn-log.module";
@@ -158,6 +159,7 @@ export function tacticsPlay() {
     completionError: "",
     playAgainError: "",
     playAgainLoading: false,
+    ...playAgainStarterData(),
     resultsSnapshot: null as TacticsResultsSnapshot | null,
     hiddenTurnKey: null as string | null,
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,

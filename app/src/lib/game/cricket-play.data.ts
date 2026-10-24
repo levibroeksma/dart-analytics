@@ -1,3 +1,4 @@
+import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { BULL_TARGET_NUMBER } from "@modules/game/board-progression.module";
 import { openVisit } from "@modules/game/turn-log.module";
@@ -190,6 +191,7 @@ export function cricketPlay() {
     ring: "SINGLE" as CricketRing,
     botThrowing: false,
     botFlight: null,
+    ...playAgainStarterData(),
     ...boardInputData(
       (observation) => self.recordDart(observation),
       () => self.$store.game.turns,
