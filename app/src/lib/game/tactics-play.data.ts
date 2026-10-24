@@ -119,6 +119,17 @@ function seatByRef(state: TacticsState | null, ref: string | undefined) {
   return state?.seats.find((seat) => seat.participantRef === ref);
 }
 
+function duelFlags(
+  scores: boolean,
+  marks: number,
+  opponentMarks: number | null,
+): Pick<TacticsObjectiveRow, "scoring" | "dead"> {
+  if (!scores || opponentMarks === null || marks < 3) {
+    return { scoring: false, dead: false };
+  }
+  return { scoring: opponentMarks < 3, dead: opponentMarks === 3 };
+}
+
 function rowsOf(
   state: TacticsState | null,
   ref: string | undefined,
@@ -131,17 +142,13 @@ function rowsOf(
   return TACTICS_OBJECTIVES.map((objective, i) => {
     const marks = seat?.marks[i] ?? 0;
     const opponentMarks = duel ? (opponent?.marks[i] ?? 0) : null;
-    const scores = typeof objective === "number";
     return {
       label: objectiveLabel(objective),
       objective,
       marks,
       closed: marks === 3,
       opponentMarks,
-      scoring:
-        scores && opponentMarks !== null && marks === 3 && opponentMarks < 3,
-      dead:
-        scores && opponentMarks !== null && marks === 3 && opponentMarks === 3,
+      ...duelFlags(typeof objective === "number", marks, opponentMarks),
     };
   });
 }

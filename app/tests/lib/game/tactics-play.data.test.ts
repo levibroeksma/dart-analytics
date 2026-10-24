@@ -441,6 +441,21 @@ describe("Tactics V2 play data", () => {
     });
   });
 
+  it("flags an unclosed number as neither scoring nor dead", async () => {
+    const ctx = await duelCtx();
+    expect(ctx.objectiveRowsFor("participant-1")[2]).toMatchObject({
+      closed: true,
+      opponentMarks: 0,
+      scoring: true,
+      dead: false,
+    });
+    expect(ctx.objectiveRowsFor("participant-2")[1]).toMatchObject({
+      closed: false,
+      scoring: false,
+      dead: false,
+    });
+  });
+
   it("reports null opponent marks for a solo store", async () => {
     const ctx = await started();
     expect(ctx.objectiveRowsFor("participant-1")[0].opponentMarks).toBeNull();
