@@ -5,14 +5,14 @@
  * to 50%. Rows that carry `opponentMarks` (1v1) add a muted second pip
  * group, light the label while the row scores (`scoring`) and fade it once
  * both seats closed it (`dead`).
- * @param {string} [rowsExpr] Alpine expression for the rows (default `objectiveRows()`)
+ * @param {string} [rowsExpr] Alpine expression for the rows (default `objectiveRowsFor(rowsRef)`)
  */
 interface Props {
   rowsExpr?: string;
 }
 
 // Props
-const { rowsExpr = "objectiveRows()" }: Props = Astro.props;
+const { rowsExpr = "objectiveRowsFor(rowsRef)" }: Props = Astro.props;
 ---
 
 <div class="flex min-h-0 flex-col justify-center gap-1">

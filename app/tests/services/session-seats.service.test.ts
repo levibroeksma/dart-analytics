@@ -245,6 +245,27 @@ describe("rejectSeatRequest for Tactics", () => {
   });
 });
 
+describe("rejectSeatRequest for Cricket", () => {
+  it("accepts two seats under V2", () => {
+    expect(rejectSeatRequest([player, guest], "CRICKET_V2")).toBeNull();
+  });
+
+  it("refuses a third seat under V2", () => {
+    expect(
+      rejectSeatRequest(
+        [player, guest, { ...guest, sideKey: "C" }],
+        "CRICKET_V2",
+      ),
+    ).toContain("supports at most 2 seats");
+  });
+
+  it("still refuses a second seat under V1", () => {
+    expect(rejectSeatRequest([player, guest], "CRICKET_V1")).toContain(
+      "supports at most 1 seat",
+    );
+  });
+});
+
 describe("composeSeatFacts", () => {
   it("projects the persisted seat plan into snapshot seats, in order", () => {
     expect(

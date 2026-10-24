@@ -25,6 +25,7 @@ describe("RULESET_CAPABILITIES", () => {
       "BOBS27_V1",
       "BOBS27_V2",
       "CRICKET_V1",
+      "CRICKET_V2",
       "DOUBLES_TRAINING_V1",
       "SCORE_TRAINING_V1",
       "SHANGHAI_V1",
@@ -89,6 +90,7 @@ describe("supportsMode", () => {
     "AROUND_THE_CLOCK_V1",
     "AROUND_THE_CLOCK_V2",
     "CRICKET_V1",
+    "CRICKET_V2",
     "TACTICS_V1",
     "TACTICS_V2",
     "BASEBALL_V1",
@@ -153,6 +155,7 @@ describe("capableRulesets", () => {
       "BOBS27_V1",
       "BOBS27_V2",
       "CRICKET_V1",
+      "CRICKET_V2",
       "DOUBLES_TRAINING_V1",
       "SCORE_TRAINING_V1",
       "SHANGHAI_V1",
@@ -326,5 +329,25 @@ describe("Tactics V2 capabilities", () => {
 
   it("has no dartbot", () => {
     expect(supportsDartbot("TACTICS_V2")).toBe(false);
+  });
+});
+
+describe("Cricket V2 capabilities", () => {
+  it("declares the same pairs as V1", () => {
+    expect(RULESET_CAPABILITIES.CRICKET_V2).toEqual(
+      RULESET_CAPABILITIES.CRICKET_V1,
+    );
+  });
+
+  it("belongs to the CRICKET game type", () => {
+    expect(GAME_TYPE_BY_RULESET.CRICKET_V2).toBe("CRICKET");
+  });
+
+  it("reports the V1 stats tags", () => {
+    expect(STATS_TAGS.CRICKET_V2).toEqual(STATS_TAGS.CRICKET_V1);
+  });
+
+  it("has no dartbot", () => {
+    expect(supportsDartbot("CRICKET_V2")).toBe(false);
   });
 });

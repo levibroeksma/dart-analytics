@@ -7,14 +7,20 @@ vi.mock("@client/api/sessions", () => ({
   createSession: vi.fn(),
 }));
 
-import { fetchActiveSessions } from "@client/api/sessions";
+import {
+  appendBatch,
+  completeSession,
+  fetchActiveSessions,
+} from "@client/api/sessions";
 import {
   registerEngineFactory,
   resetEngineRegistry,
 } from "@modules/game/engine.registry";
 import {
   applyCricketDart,
+  CricketEngine,
   cricketEngineFactory,
+  cricketV2EngineFactory,
   initialCricketState,
 } from "@modules/game/cricket.engine.module";
 import {
@@ -23,7 +29,12 @@ import {
   cricketTapObservation,
 } from "@lib/game/cricket-play.data";
 import type { CricketPlayContext, CricketSnapshot, Seated } from "@lib/types";
-import type { DartZoneKey, StageFact, TurnFact } from "@modules/types";
+import type {
+  DartObservation,
+  DartZoneKey,
+  StageFact,
+  TurnFact,
+} from "@modules/types";
 
 const SEATS = [
   {
@@ -111,6 +122,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   resetEngineRegistry();
   registerEngineFactory(cricketEngineFactory);
+  registerEngineFactory(cricketV2EngineFactory);
   vi.mocked(fetchActiveSessions).mockResolvedValue([{ ...ACTIVE_SESSION }]);
 });
 
@@ -139,7 +151,7 @@ describe("cricketPlay", () => {
     ctx.setRing("TREBLE");
     await ctx.recordObjective(20);
     expect(ctx.ring).toBe("SINGLE");
-    expect(ctx.objectiveRows()[0]).toMatchObject({
+    expect(ctx.objectiveRowsFor("participant-1")[0]).toMatchObject({
       label: "20",
       marks: 3,
       closed: true,
@@ -150,7 +162,10 @@ describe("cricketPlay", () => {
     const ctx = await started();
     ctx.setRing("TREBLE");
     await ctx.recordObjective(25);
-    expect(ctx.objectiveRows()[6]).toMatchObject({ label: "Bull", marks: 1 });
+    expect(ctx.objectiveRowsFor("participant-1")[6]).toMatchObject({
+      label: "Bull",
+      marks: 1,
+    });
   });
 
   it("setRing toggles a selected ring back to SINGLE", async () => {
@@ -171,7 +186,17 @@ describe("cricketPlay", () => {
     const first = await started();
     await first.recordObjective(19);
     const resumed = await started({ turns: first.$store.game.turns });
-    expect(resumed.objectiveRows()[1].marks).toBe(1);
+    expect(resumed.objectiveRowsFor("participant-1")[1].marks).toBe(1);
+  });
+
+  it("restores marks from the store's facts under CRICKET_V2", async () => {
+    const first = await started({ rulesetVersionKey: "CRICKET_V2" });
+    await first.recordObjective(19);
+    const resumed = await started({
+      rulesetVersionKey: "CRICKET_V2",
+      turns: first.$store.game.turns,
+    });
+    expect(resumed.objectiveRowsFor("participant-1")[1].marks).toBe(1);
   });
 
   it("builds results with darts, MPR to 2 dp and darts to close", () => {
@@ -198,6 +223,7 @@ describe("cricketPlay", () => {
       darts: 8,
       marksPerRound: "7.88",
       trebles: 6,
+      points: 0,
       dartsToClose: [2, 3, 4, 5, 6, 1, 8],
     });
   });
@@ -237,5 +263,156 @@ describe("subtitle", () => {
   it("names solo play and the seven objectives", () => {
     const ctx = makeContext();
     expect(ctx.subtitle.call(ctx)).toBe("SOLO · 7 OBJECTIVES");
+  });
+});
+
+describe("Cricket V2 play data", () => {
+  const duelSeats: Seated<CricketSnapshot> = {
+    seats: [
+      ...SEATS,
+      {
+        participantRef: "participant-2",
+        displayName: "Guest",
+        sideKey: "B",
+        participantTypeKey: "GUEST" as const,
+      },
+    ],
+  };
+  const trebles = (...numbers: number[]) =>
+    numbers.map((n) => cricketTapObservation(n, "TREBLE"));
+  const single = (n: number) => cricketTapObservation(n, "SINGLE");
+  const MISS: DartObservation = {
+    hitTargetNumber: null,
+    hitZoneKey: "MISS",
+    locationX: null,
+    locationY: null,
+  };
+
+  function playDuel(...visits: DartObservation[][]) {
+    const engine = new CricketEngine(duelSeats, undefined, "CRICKET_V2");
+    for (const darts of visits) {
+      for (const dart of darts) {
+        if (engine.isComplete()) return engine;
+        engine.record(dart);
+      }
+      for (let i = darts.length; i < 3 && !engine.isComplete(); i += 1) {
+        engine.record(MISS);
+      }
+    }
+    return engine;
+  }
+
+  const behind = () =>
+    playDuel(
+      [],
+      [...trebles(20), single(20)],
+      trebles(20, 19, 18),
+      [],
+      trebles(17, 16, 15),
+      [],
+      [
+        cricketTapObservation(25, "DOUBLE"),
+        cricketTapObservation(25, "SINGLE"),
+        single(19),
+      ],
+    );
+
+  const won = () =>
+    playDuel(
+      trebles(20, 19, 18),
+      [],
+      trebles(17, 16, 15),
+      [],
+      [
+        ...trebles(20),
+        cricketTapObservation(25, "DOUBLE"),
+        cricketTapObservation(25, "SINGLE"),
+      ],
+    );
+
+  function duelCtx(engine: CricketEngine) {
+    return started({
+      rulesetVersionKey: "CRICKET_V2",
+      configSnapshot: duelSeats,
+      turns: engine.facts().turns,
+    });
+  }
+
+  it("shows the opponent's marks, scoring and dead numbers per seat", async () => {
+    const ctx = await duelCtx(behind());
+    const rows = ctx.objectiveRowsFor("participant-1");
+    expect(rows).toHaveLength(7);
+    expect(rows[0]).toMatchObject({
+      opponentMarks: 3,
+      scoring: false,
+      dead: true,
+    });
+    expect(rows[1]).toMatchObject({
+      opponentMarks: 0,
+      scoring: true,
+      dead: false,
+    });
+  });
+
+  it("reports null opponent marks for a solo store", async () => {
+    const ctx = await started();
+    expect(ctx.objectiveRowsFor("participant-1")[0].opponentMarks).toBeNull();
+  });
+
+  it("reads points, closed count and darts for each seat", async () => {
+    const ctx = await duelCtx(behind());
+    expect(ctx.pointsFor("participant-1")).toBe("19");
+    expect(ctx.closedCountFor("participant-1")).toBe("7");
+    expect(ctx.dartsThrownFor("participant-1")).toBe(
+      String(ctx.state()?.seats[0].dartsThrown),
+    );
+    expect(ctx.pointsFor("participant-2")).toBe("20");
+    expect(ctx.pointsFor("nobody")).toBe("0");
+  });
+
+  it("names the subtitle 1V1 for two seats", async () => {
+    const ctx = await duelCtx(behind());
+    expect(ctx.subtitle.call(ctx)).toBe("1V1 · 7 OBJECTIVES");
+  });
+
+  it("titles the results solo, by winner and without one", async () => {
+    const solo = makeContext();
+    expect(solo.resultsTitle.call(solo)).toBe("Closed out!");
+    const duel = await duelCtx(behind());
+    duel.resultsSnapshot = {
+      status: "COMPLETE",
+      winningSideKey: "B",
+      seats: [],
+    };
+    expect(duel.resultsTitle.call(duel)).toBe("Guest wins!");
+    duel.resultsSnapshot = {
+      status: "COMPLETE",
+      winningSideKey: null,
+      seats: [],
+    };
+    expect(duel.resultsTitle.call(duel)).toBe("Game over");
+  });
+
+  it("carries the winner and points into the results snapshot", async () => {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 1, turns: 0, darts: 0 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({} as never);
+    const ctx = await duelCtx(won());
+    await ctx.uploadAndCompleteSession.call(ctx);
+    expect(ctx.resultsSnapshot?.winningSideKey).toBe("A");
+    expect(ctx.resultsSnapshot?.seats.map((seat) => seat.points)).toEqual([
+      60, 0,
+    ]);
+  });
+
+  it("resumes under the session's own ruleset key", async () => {
+    const ctx = await duelCtx(behind());
+    expect(ctx.engine?.rulesetVersionKey).toBe("CRICKET_V2");
+  });
+
+  it("resolves playAgain without a session key and does not create a session", async () => {
+    const ctx = await started({ rulesetVersionKey: null });
+    await expect(ctx.playAgain.call(ctx)).resolves.toBeUndefined();
   });
 });

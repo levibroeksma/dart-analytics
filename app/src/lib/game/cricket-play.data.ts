@@ -13,7 +13,10 @@ import {
   playVisitMarkers,
   runPlayAgain,
 } from "@lib/game/play-lifecycle";
-import { joinSubtitle } from "@lib/game/play-subtitle";
+import {
+  duelWinningSideKey,
+  marksPlayAccessors,
+} from "@lib/game/marks-play.data";
 import type { RulesetVersionKey } from "@lib/types";
 import type {
   CricketSeatState,
@@ -24,7 +27,6 @@ import type {
 import type {
   BoardMarker,
   Bobs27PreviewSegment,
-  CricketObjectiveRow,
   CricketPlayContext,
   CricketResultsSnapshot,
   CricketRing,
@@ -33,8 +35,8 @@ import type {
 
 // Value import, not `import type`: the class is the narrowing target below,
 // and importing it also runs the module's side effect, which registers
-// cricketEngineFactory so the registry can resolve this page's own
-// RULESET_VERSION_KEY.
+// both Cricket factories so the registry can resolve this page's own
+// ruleset keys.
 import {
   CRICKET_OBJECTIVES,
   CricketEngine,
@@ -44,7 +46,7 @@ import {
 } from "@modules/game/cricket.engine.module";
 
 const GAME_TYPE_KEY = "CRICKET";
-const RULESET_VERSION_KEY: RulesetVersionKey = "CRICKET_V1";
+const RESUMABLE = new Set<RulesetVersionKey>(["CRICKET_V1", "CRICKET_V2"]);
 
 const BULL_RING: Record<Exclude<CricketRing, "TREBLE">, DartZoneKey> = {
   SINGLE: "OUTER_BULL",
@@ -85,6 +87,7 @@ export function cricketSeatResult(seat: CricketSeatState): CricketSeatResult {
     darts: seat.dartsThrown,
     marksPerRound: marksPerRound(seat).toFixed(2),
     trebles: seat.trebleHits,
+    points: seat.points,
     dartsToClose: [...seat.closedAtDart],
   };
 }
@@ -92,7 +95,7 @@ export function cricketSeatResult(seat: CricketSeatState): CricketSeatResult {
 function computeStats(state: CricketState): CricketResultsSnapshot {
   return {
     status: "COMPLETE",
-    winningSideKey: null,
+    winningSideKey: duelWinningSideKey(state),
     seats: state.seats.map(cricketSeatResult),
   };
 }
@@ -106,8 +109,14 @@ function resumeEngine(
   game: CricketPlayContext["$store"]["game"],
 ): CricketEngine | null {
   const { configSnapshot, rulesetVersionKey } = game;
-  if (!configSnapshot || rulesetVersionKey !== RULESET_VERSION_KEY) return null;
-  const factory = getEngineFactory(RULESET_VERSION_KEY);
+  if (
+    !configSnapshot ||
+    !rulesetVersionKey ||
+    !RESUMABLE.has(rulesetVersionKey)
+  ) {
+    return null;
+  }
+  const factory = getEngineFactory(rulesetVersionKey);
   if (!factory) return null;
   const engine = factory.create(configSnapshot, {
     stages: game.stages,
@@ -155,25 +164,7 @@ export function cricketPlay() {
       );
     },
 
-    /** Play-header subtitle: `SOLO · 7 OBJECTIVES`; blank before config loads. */
-    subtitle(this: CricketPlayContext): string {
-      if (!this.$store.game.configSnapshot) return "";
-      return joinSubtitle(["SOLO", `${CRICKET_OBJECTIVES.length} OBJECTIVES`]);
-    },
-
-    objectiveRows(this: CricketPlayContext): CricketObjectiveRow[] {
-      const seat = this.state()?.seats[0];
-      return CRICKET_OBJECTIVES.map((objective, i) => ({
-        label: objectiveLabel(objective),
-        objective,
-        marks: seat?.marks[i] ?? 0,
-        closed: (seat?.marks[i] ?? 0) === 3,
-      }));
-    },
-
-    dartsThrown(this: CricketPlayContext): string {
-      return String(this.state()?.seats[0]?.dartsThrown ?? 0);
-    },
+    ...marksPlayAccessors(CRICKET_OBJECTIVES, objectiveLabel),
 
     previewSegments(this: CricketPlayContext): Bobs27PreviewSegment[] {
       const open = openVisit(this.$store.game.turns);
@@ -249,10 +240,6 @@ export function cricketPlay() {
       return playUploadAndCompleteSession(this, computeStats);
     },
 
-    resultsTitle(): string {
-      return "Closed out!";
-    },
-
     back(this: CricketPlayContext) {
       return playBack(this);
     },
@@ -262,11 +249,13 @@ export function cricketPlay() {
     },
 
     /**
-     * Replays the same configuration template the first session used, with
-     * no overrides — V1 has zero editable settings.
+     * Replays the same configuration template the first session used, under
+     * the session's own ruleset key, with no overrides.
      */
     playAgain(this: CricketPlayContext) {
-      return runPlayAgain(this, GAME_TYPE_KEY, RULESET_VERSION_KEY, (engine) =>
+      const key = this.$store.game.rulesetVersionKey;
+      if (!key) return Promise.resolve();
+      return runPlayAgain(this, GAME_TYPE_KEY, key, (engine) =>
         engine instanceof CricketEngine ? engine : null,
       );
     },

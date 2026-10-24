@@ -3,6 +3,7 @@ import {
   applyCricketDart,
   CricketEngine,
   cricketEngineFactory,
+  cricketV2EngineFactory,
   cricketMarksOf,
   effectiveMarks,
   foldCricketState,
@@ -249,5 +250,181 @@ describe("marks-close core re-exports", () => {
   it("re-exports the core's effectiveMarks and marksPerRound unchanged", () => {
     expect(effectiveMarks).toBe(marksClose.effectiveMarks);
     expect(marksPerRound).toBe(marksClose.marksPerRound);
+  });
+});
+
+describe("cricketV2EngineFactory", () => {
+  it("is keyed CRICKET_V2 and builds a Cricket engine", () => {
+    expect(cricketV2EngineFactory.rulesetVersionKey).toBe("CRICKET_V2");
+    expect(cricketV2EngineFactory.stageOwnership).toBe("PER_SEAT");
+  });
+});
+
+const S = (n: number) => dart(n, "SINGLE");
+const D = (n: number) => dart(n, "DOUBLE");
+const IB = dart(25, "INNER_BULL");
+const OB = dart(25, "OUTER_BULL");
+
+const duelConfig: Seated<CricketSnapshot> = {
+  seats: [
+    {
+      participantRef: "p1",
+      displayName: "Levi",
+      sideKey: "A",
+      participantTypeKey: "PLAYER" as const,
+    },
+    {
+      participantRef: "p2",
+      displayName: "Guest",
+      sideKey: "B",
+      participantTypeKey: "GUEST" as const,
+    },
+  ],
+};
+
+function newDuel() {
+  return new CricketEngine(duelConfig, undefined, "CRICKET_V2");
+}
+
+function playVisits(engine: CricketEngine, ...visits: DartObservation[][]) {
+  for (const darts of visits) {
+    for (const observation of darts) {
+      if (engine.isComplete()) return;
+      engine.record(observation);
+    }
+    for (let i = darts.length; i < 3 && !engine.isComplete(); i += 1) {
+      engine.record(MISS);
+    }
+  }
+}
+
+const THREE_MISS = [MISS, MISS, MISS];
+const SEVEN = [
+  [T(20), T(19), T(18)],
+  [T(17), T(16), T(15)],
+];
+
+describe("Cricket V2 duel", () => {
+  it("registers a second factory for CRICKET_V2", () => {
+    expect(cricketV2EngineFactory.rulesetVersionKey).toBe("CRICKET_V2");
+    expect(getEngineFactory("CRICKET_V2")).toBe(cricketV2EngineFactory);
+    expect(newDuel().rulesetVersionKey).toBe("CRICKET_V2");
+  });
+
+  it("scores points on a number the opponent has open", () => {
+    const engine = newDuel();
+    playVisits(engine, [T(20), S(20)]);
+    expect(engine.state().seats[0].points).toBe(20);
+  });
+
+  it("scores the spare marks of a closing dart", () => {
+    const engine = newDuel();
+    playVisits(engine, [D(20)], THREE_MISS, [T(20)]);
+    expect(engine.state().seats[0].marks[0]).toBe(3);
+    expect(engine.state().seats[0].points).toBe(40);
+  });
+
+  it("scores nothing once both seats have closed the number", () => {
+    const engine = newDuel();
+    playVisits(engine, [T(20)], [T(20)], [S(20)]);
+    expect(engine.state().seats[0].points).toBe(0);
+  });
+
+  it("scores the bull at 25 a mark", () => {
+    const engine = newDuel();
+    playVisits(engine, [IB, OB, IB]);
+    expect(engine.state().seats[0].marks[6]).toBe(3);
+    expect(engine.state().seats[0].points).toBe(50);
+  });
+
+  it("ignores darts off the objectives", () => {
+    const engine = newDuel();
+    playVisits(engine, [T(14), S(1), MISS]);
+    expect(engine.state().seats[0].points).toBe(0);
+    expect(engine.state().seats[0].dartsThrown).toBe(3);
+  });
+
+  it("wins on the closing dart mid-visit, stamps the visit and refuses another dart", () => {
+    const engine = newDuel();
+    playVisits(engine, SEVEN[0], THREE_MISS, SEVEN[1], THREE_MISS, [
+      IB,
+      OB,
+      T(20),
+    ]);
+    const state = engine.state();
+    expect(state.status).toBe("COMPLETE");
+    expect(state.winnerParticipantRef).toBe("p1");
+    expect(state.activeParticipantRef).toBe("p1");
+    expect(engine.isComplete()).toBe(true);
+    expect(engine.facts().turns.at(-1)?.completedAt).not.toBeNull();
+    expect(() => engine.record(MISS)).toThrow("game has ended");
+  });
+
+  it("reports wouldComplete only for the winning dart", () => {
+    const engine = newDuel();
+    playVisits(engine, SEVEN[0], THREE_MISS, SEVEN[1], THREE_MISS);
+    engine.record(IB);
+    expect(engine.wouldComplete(MISS)).toBe(false);
+    expect(engine.wouldComplete(OB)).toBe(true);
+  });
+
+  it("reopens the game when the winning dart is undone", () => {
+    const engine = newDuel();
+    playVisits(engine, SEVEN[0], THREE_MISS, SEVEN[1], THREE_MISS, [IB, OB]);
+    expect(engine.undo()).toBe(true);
+    expect(engine.state().status).toBe("IN_PROGRESS");
+    expect(engine.state().winnerParticipantRef).toBeNull();
+  });
+
+  it("keeps a closed-out seat that is behind throwing, and it wins on catching up", () => {
+    const engine = newDuel();
+    playVisits(
+      engine,
+      THREE_MISS,
+      [T(20), S(20)],
+      SEVEN[0],
+      THREE_MISS,
+      SEVEN[1],
+      THREE_MISS,
+      [IB, OB, S(19)],
+      THREE_MISS,
+    );
+    expect(engine.state().seats[0].status).toBe("COMPLETE");
+    expect(engine.state().seats[0].points).toBe(19);
+    expect(engine.state().status).toBe("IN_PROGRESS");
+    expect(engine.state().activeParticipantRef).toBe("p1");
+    playVisits(engine, [S(19)]);
+    expect(engine.state().winnerParticipantRef).toBe("p1");
+  });
+
+  it("lets the other seat win by closing out ahead of a closed-out opponent", () => {
+    const engine = newDuel();
+    playVisits(
+      engine,
+      THREE_MISS,
+      [T(20), S(20)],
+      SEVEN[0],
+      THREE_MISS,
+      SEVEN[1],
+      THREE_MISS,
+      [IB, OB, S(19)],
+      [T(19), T(18), T(17)],
+      THREE_MISS,
+      [T(16), T(15), IB],
+      THREE_MISS,
+      [OB],
+    );
+    expect(engine.state().winnerParticipantRef).toBe("p2");
+  });
+
+  it("folds a V2 solo log exactly as V1", () => {
+    const v1 = new CricketEngine(config);
+    const v2 = new CricketEngine(config, undefined, "CRICKET_V2");
+    for (const observation of [T(20), S(20), D(5), MISS, IB]) {
+      v1.record(observation);
+      v2.record(observation);
+    }
+    expect(v2.state()).toEqual(v1.state());
+    expect(v2.state().winnerParticipantRef).toBeNull();
   });
 });

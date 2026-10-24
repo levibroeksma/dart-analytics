@@ -673,3 +673,19 @@ describe("Tactics V2 duel", () => {
     expect(v2.state().winnerParticipantRef).toBeNull();
   });
 });
+
+describe("TacticsEngine on the shared marks engine", () => {
+  it("keeps its key and leaves the log untouched when asked wouldComplete", () => {
+    const engine = new TacticsEngine(config, undefined, "TACTICS_V2");
+    expect(engine.rulesetVersionKey).toBe("TACTICS_V2");
+    expect(engine.wouldComplete(S(20))).toBe(false);
+    expect(engine.facts().turns).toHaveLength(0);
+  });
+
+  it("builds both factories' engines under their own key", () => {
+    const v1 = tacticsEngineFactory.create(config);
+    const v2 = tacticsV2EngineFactory.create(config);
+    expect(v1.rulesetVersionKey).toBe("TACTICS_V1");
+    expect(v2.rulesetVersionKey).toBe("TACTICS_V2");
+  });
+});

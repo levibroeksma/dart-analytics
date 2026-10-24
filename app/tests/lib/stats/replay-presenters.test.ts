@@ -126,6 +126,71 @@ describe("REPLAY_PRESENTERS.CRICKET", () => {
   });
 });
 
+describe("REPLAY_PRESENTERS.CRICKET 1v1", () => {
+  const config = {
+    seats: [
+      {
+        participantRef: "p1",
+        displayName: "L",
+        sideKey: "A",
+        participantTypeKey: "PLAYER" as const,
+      },
+      {
+        participantRef: "p2",
+        displayName: "G",
+        sideKey: "B",
+        participantTypeKey: "GUEST" as const,
+      },
+    ],
+  };
+  const dart = (n: number | null, zone: "TREBLE" | "SINGLE" | "MISS") => ({
+    hitTargetNumber: n,
+    hitZoneKey: zone,
+    locationX: null,
+    locationY: null,
+  });
+
+  function duelVisit() {
+    const engine = new CricketEngine(config, undefined, "CRICKET_V2");
+    for (const observation of [
+      dart(null, "MISS"),
+      dart(null, "MISS"),
+      dart(null, "MISS"),
+      dart(20, "TREBLE"),
+      dart(20, "SINGLE"),
+      dart(null, "MISS"),
+    ]) {
+      engine.record(observation);
+    }
+    return engine;
+  }
+
+  it("adds a Points cell for two seats", () => {
+    const engine = duelVisit();
+    const turn = engine.facts().turns[1];
+    const cells = REPLAY_PRESENTERS.CRICKET.turn(
+      { turn, before: initialCricketState(config), after: engine.state() },
+      config,
+    );
+    expect(
+      cells.map((cell) => (cell.kind === "value" ? cell.value : "")),
+    ).toEqual(["3", "1/7", "20"]);
+  });
+
+  it("ends the two-seat session line on points", () => {
+    const engine = duelVisit();
+    const turn = engine.facts().turns[1];
+    const line = REPLAY_PRESENTERS.CRICKET.session(
+      [{ turn, before: initialCricketState(config), after: engine.state() }],
+      config,
+    );
+    expect(line.entries).toEqual([
+      { participantId: "p1", label: "Points", value: "0" },
+      { participantId: "p2", label: "Points", value: "20" },
+    ]);
+  });
+});
+
 describe("REPLAY_PRESENTERS.TACTICS", () => {
   const config = {
     seats: [

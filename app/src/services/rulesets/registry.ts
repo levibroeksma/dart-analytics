@@ -39,6 +39,7 @@ const REGISTRY: Record<string, RulesetValidator> = {
   AROUND_THE_CLOCK_V2: aroundTheClockV2Validator,
   AROUND_THE_CLOCK_V3: aroundTheClockV3Validator,
   CRICKET_V1: cricketValidator,
+  CRICKET_V2: cricketValidator,
   TACTICS_V1: tacticsValidator,
   TACTICS_V2: tacticsValidator,
   BASEBALL_V1: baseballValidator,
