@@ -36,8 +36,7 @@ import type {
   AroundTheClockSeatState,
   BaseballSeatState,
   Bobs27SeatState,
-  CricketSeatState,
-  TacticsSeatState,
+  MarksDuelSeat,
   DartExerciseKind,
   DartObservation,
   DoublesTrainingSeatState,
@@ -379,54 +378,37 @@ const AROUND_THE_CLOCK: ReplayPresenter = {
 };
 
 /**
- * Cricket, read as `cricket-play.data.ts` does: after each visit, the seat's
- * capped marks and closed objectives; the session line is darts thrown.
+ * Cricket and Tactics, read off the play page: after each visit, the seat's
+ * capped marks and closed objectives, plus points for two seats; the session
+ * line is darts thrown, or points for two seats.
  */
-const CRICKET: ReplayPresenter = {
-  turn({ turn, after }) {
-    const seat = seatIn<CricketSeatState>(after, turn.participantRef);
-    const closed = seat.marks.filter((count) => count === 3).length;
-    return [
-      valueCell("Marks", effectiveMarks(seat)),
-      valueCell("Closed", `${closed}/${CRICKET_OBJECTIVES.length}`),
-    ];
-  },
-  session(steps) {
-    return finalLine<CricketSeatState>(
-      steps,
-      "Darts",
-      (seat) => seat.dartsThrown,
-    );
-  },
-};
+function marksPresenter(objectiveCount: number): ReplayPresenter {
+  return {
+    turn({ turn, after }) {
+      const seat = seatIn<MarksDuelSeat>(after, turn.participantRef);
+      const closed = seat.marks.filter((count) => count === 3).length;
+      const cells = [
+        valueCell("Marks", effectiveMarks(seat)),
+        valueCell("Closed", `${closed}/${objectiveCount}`),
+      ];
+      return seatsOf<MarksDuelSeat>(after).length > 1
+        ? [...cells, valueCell("Points", seat.points)]
+        : cells;
+    },
+    session(steps) {
+      const last = steps.at(-1);
+      const duel = last !== undefined && seatsOf(last.after).length > 1;
+      return finalLine<MarksDuelSeat>(
+        steps,
+        duel ? "Points" : "Darts",
+        (seat) => (duel ? seat.points : seat.dartsThrown),
+      );
+    },
+  };
+}
 
-/**
- * Tactics, read as Cricket is: after each visit, the seat's capped marks and
- * closed objectives, and points for two seats; the session line is darts
- * thrown, or points for two seats.
- */
-const TACTICS: ReplayPresenter = {
-  turn({ turn, after }) {
-    const seat = seatIn<TacticsSeatState>(after, turn.participantRef);
-    const closed = seat.marks.filter((count) => count === 3).length;
-    const cells = [
-      valueCell("Marks", effectiveMarks(seat)),
-      valueCell("Closed", `${closed}/${TACTICS_OBJECTIVES.length}`),
-    ];
-    return seatsOf<TacticsSeatState>(after).length > 1
-      ? [...cells, valueCell("Points", seat.points)]
-      : cells;
-  },
-  session(steps) {
-    const last = steps.at(-1);
-    const duel = last !== undefined && seatsOf(last.after).length > 1;
-    return finalLine<TacticsSeatState>(
-      steps,
-      duel ? "Points" : "Darts",
-      (seat) => (duel ? seat.points : seat.dartsThrown),
-    );
-  },
-};
+const CRICKET = marksPresenter(CRICKET_OBJECTIVES.length);
+const TACTICS = marksPresenter(TACTICS_OBJECTIVES.length);
 
 /**
  * Baseball Darts, read off the play page: the inning just played, the runs

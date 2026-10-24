@@ -6,7 +6,7 @@ import type { MarksObjectiveRow } from "./types";
 type SeatsState = { seats: readonly MarksSeatState[] } | null;
 
 /** The seat with this participant ref, or undefined for a null state or unknown ref. */
-export function seatByRef<TSeat extends MarksSeatState>(
+function seatByRef<TSeat extends MarksSeatState>(
   state: { seats: readonly TSeat[] } | null,
   ref: string | undefined,
 ): TSeat | undefined {
@@ -25,7 +25,7 @@ function duelFlags(
 }
 
 /** One seat's play-board rows; the opponent fields and flags are set only in a duel. */
-export function markRowsFor<TSeat extends MarksSeatState, TObjective>(
+function markRowsFor<TSeat extends MarksSeatState, TObjective>(
   state: { seats: readonly TSeat[] } | null,
   ref: string | undefined,
   objectives: readonly TObjective[],
@@ -50,25 +50,19 @@ export function markRowsFor<TSeat extends MarksSeatState, TObjective>(
   });
 }
 
-export function seatPointsText(
+function seatPointsText(
   state: { seats: readonly (MarksSeatState & { points: number })[] } | null,
   ref: string | undefined,
 ): string {
   return String(seatByRef(state, ref)?.points ?? 0);
 }
 
-export function closedCountText(
-  state: SeatsState,
-  ref: string | undefined,
-): string {
+function closedCountText(state: SeatsState, ref: string | undefined): string {
   const seat = seatByRef(state, ref);
   return String(seat?.marks.filter((count) => count === 3).length ?? 0);
 }
 
-export function dartsThrownText(
-  state: SeatsState,
-  ref: string | undefined,
-): string {
+function dartsThrownText(state: SeatsState, ref: string | undefined): string {
   return String(seatByRef(state, ref)?.dartsThrown ?? 0);
 }
 
@@ -84,10 +78,7 @@ export function duelWinningSideKey(state: {
 }
 
 /** `SOLO · 7 OBJECTIVES` or `1V1 · 9 OBJECTIVES`. */
-export function marksSubtitle(
-  seatCount: number,
-  objectiveCount: number,
-): string {
+function marksSubtitle(seatCount: number, objectiveCount: number): string {
   return joinSubtitle([
     seatCount > 1 ? "1V1" : "SOLO",
     `${objectiveCount} OBJECTIVES`,
@@ -95,11 +86,78 @@ export function marksSubtitle(
 }
 
 /** Results heading: `Closed out!` solo, `<name> wins!` for a duel winner, else `Game over`. */
-export function marksResultsTitle(
+function marksResultsTitle(
   seats: Parameters<typeof matchWinnerName>[0],
   winningSideKey: string | null,
 ): string {
   if (seats.length < 2) return "Closed out!";
   const winner = matchWinnerName(seats, winningSideKey);
   return winner ? `${winner} wins!` : "Game over";
+}
+
+type MarksAccessorContext = {
+  state(): { seats: readonly (MarksSeatState & { points: number })[] } | null;
+  resultsSnapshot: { winningSideKey: string | null } | null;
+  $store: {
+    game: {
+      configSnapshot: { seats: readonly unknown[] } | null;
+      seats: Parameters<typeof matchWinnerName>[0];
+    };
+  };
+};
+
+/**
+ * The Alpine accessors every marks game's play page shares: the header
+ * subtitle, one seat's rows, a seat's points, closed count and darts, the
+ * solo darts count and the results title.
+ */
+export function marksPlayAccessors<TObjective>(
+  objectives: readonly TObjective[],
+  labelOf: (objective: TObjective) => string,
+) {
+  return {
+    /** `SOLO · N OBJECTIVES` or `1V1 · N OBJECTIVES`; blank before config loads. */
+    subtitle(this: MarksAccessorContext): string {
+      const config = this.$store.game.configSnapshot;
+      if (!config) return "";
+      return marksSubtitle(config.seats.length, objectives.length);
+    },
+
+    /** One seat's rows; the opponent fields are set only in a duel. */
+    objectiveRowsFor(
+      this: MarksAccessorContext,
+      ref: string | undefined,
+    ): MarksObjectiveRow<TObjective>[] {
+      return markRowsFor(this.state(), ref, objectives, labelOf);
+    },
+
+    pointsFor(this: MarksAccessorContext, ref: string | undefined): string {
+      return seatPointsText(this.state(), ref);
+    },
+
+    closedCountFor(
+      this: MarksAccessorContext,
+      ref: string | undefined,
+    ): string {
+      return closedCountText(this.state(), ref);
+    },
+
+    dartsThrownFor(
+      this: MarksAccessorContext,
+      ref: string | undefined,
+    ): string {
+      return dartsThrownText(this.state(), ref);
+    },
+
+    dartsThrown(this: MarksAccessorContext): string {
+      return String(this.state()?.seats[0]?.dartsThrown ?? 0);
+    },
+
+    resultsTitle(this: MarksAccessorContext): string {
+      return marksResultsTitle(
+        this.$store.game.seats,
+        this.resultsSnapshot?.winningSideKey ?? null,
+      );
+    },
+  };
 }

@@ -1,0 +1,35 @@
+---
+/**
+ * Play screen for the marks games (Cricket, Tactics): the 501 seat shell with
+ * the mark rows, the visit preview and the game's input in the default slot.
+ * @slot default The game's recreational tap input
+ */
+interface Props {
+  [key: string]: unknown;
+}
+
+// Props
+const { ...props }: Props = Astro.props;
+
+// Components
+import SeatedPlayScreen from "@components/layout/games/SeatedPlayScreen.astro";
+import MarkRows from "@components/layout/games/MarkRows.astro";
+import VisitPreview from "@components/layout/games/VisitPreview.astro";
+---
+
+<SeatedPlayScreen
+  big={{
+    isTarget: false,
+    value: (c) => (c.solo ? c("dartsThrown") : c("points")),
+  }}
+  soloCaption="DARTS USED"
+  tiles={[{ label: "Closed", value: (c) => c("closedCount") }]}
+  {...props}
+>
+  <MarkRows
+    slot="rows"
+    rowsExpr="objectiveRowsFor(rowsRef)"
+  />
+  <VisitPreview />
+  <slot />
+</SeatedPlayScreen>

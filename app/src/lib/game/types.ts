@@ -918,12 +918,7 @@ export type Bobs27PlayContext = PlayLifecycleContext<
 export type CricketRing = "SINGLE" | "DOUBLE" | "TREBLE";
 
 /** One row of the Cricket play board. */
-export type CricketObjectiveRow = {
-  label: string;
-  objective: number;
-  marks: number;
-  closed: boolean;
-};
+export type CricketObjectiveRow = MarksObjectiveRow<number>;
 
 export type CricketSeatResult = {
   participantRef: string;
@@ -931,12 +926,13 @@ export type CricketSeatResult = {
   darts: number;
   marksPerRound: string;
   trebles: number;
+  points: number;
   dartsToClose: (number | null)[];
 };
 
 export type CricketResultsSnapshot = {
   status: "COMPLETE";
-  winningSideKey: null;
+  winningSideKey: string | null;
   seats: CricketSeatResult[];
 };
 
@@ -949,7 +945,13 @@ export type CricketPlayContext = PlayLifecycleContext<
   visitMarkers(this: CricketPlayContext): BoardMarker[];
   state(this: CricketPlayContext): CricketState | null;
   subtitle(this: CricketPlayContext): string;
-  objectiveRows(this: CricketPlayContext): CricketObjectiveRow[];
+  objectiveRowsFor(
+    this: CricketPlayContext,
+    ref: string | undefined,
+  ): CricketObjectiveRow[];
+  pointsFor(this: CricketPlayContext, ref: string | undefined): string;
+  closedCountFor(this: CricketPlayContext, ref: string | undefined): string;
+  dartsThrownFor(this: CricketPlayContext, ref: string | undefined): string;
   dartsThrown(this: CricketPlayContext): string;
   previewSegments(this: CricketPlayContext): Bobs27PreviewSegment[];
   init(this: CricketPlayContext): Promise<void>;

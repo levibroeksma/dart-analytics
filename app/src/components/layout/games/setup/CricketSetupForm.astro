@@ -8,12 +8,12 @@ import UserSection from "./UserSection.astro";
 const infoSection = {
   title: "Cricket rules",
   description:
-    "Close 20, 19, 18, 17, 16, 15 and the bull — three marks each — in as few darts as you can. A single marks once, a double twice, a treble three times; the outer bull marks once, the bullseye twice. Solo practice, classic objectives.",
+    "Close 20, 19, 18, 17, 16, 15 and the bull — three marks each — in as few darts as you can. A single marks once, a double twice, a treble three times; the outer bull marks once, the bullseye twice. Classic objectives. Add a guest for 1v1: a closed number scores points while your opponent has it open, and the first seat closed out with points at least equal to the other's wins.",
 };
 ---
 
 <SetupShell title="Cricket">
-  <UserSection />
+  <UserSection allowGuests />
   <InfoSection
     title={infoSection.title}
     description={infoSection.description}

@@ -23,7 +23,7 @@ import RingKeyRow from "./RingKeyRow.astro";
   <RingKeyRow />
   <div class="grid min-h-0 flex-2 auto-rows-fr grid-cols-4 gap-2">
     <template
-      x-for="row in objectiveRows()"
+      x-for="row in objectiveRowsFor(state()?.activeParticipantRef)"
       :key="row.objective"
     >
       <InputButton

@@ -7,28 +7,13 @@ interface Props {
 const { ...props }: Props = Astro.props;
 
 // Components
-import SeatedPlayScreen from "@components/layout/games/SeatedPlayScreen.astro";
-import MarkRows from "@components/layout/games/MarkRows.astro";
-import VisitPreview from "@components/layout/games/VisitPreview.astro";
+import MarksPlayScreen from "@components/layout/games/MarksPlayScreen.astro";
 import TacticsRecreationalInput from "@components/layout/games/TacticsRecreationalInput.astro";
 ---
 
-<SeatedPlayScreen
-  big={{
-    isTarget: false,
-    value: (c) => (c.solo ? c("dartsThrown") : c("points")),
-  }}
-  soloCaption="DARTS USED"
-  tiles={[{ label: "Closed", value: (c) => c("closedCount") }]}
-  {...props}
->
-  <MarkRows
-    slot="rows"
-    rowsExpr="objectiveRowsFor(rowsRef)"
-  />
-  <VisitPreview />
+<MarksPlayScreen {...props}>
   <TacticsRecreationalInput
     x-show="$store.game.inputModeKey !== 'VISUAL_BOARD'"
     x-cloak
   />
-</SeatedPlayScreen>
+</MarksPlayScreen>

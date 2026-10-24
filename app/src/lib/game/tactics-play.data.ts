@@ -14,13 +14,8 @@ import {
   runPlayAgain,
 } from "@lib/game/play-lifecycle";
 import {
-  closedCountText,
-  dartsThrownText,
   duelWinningSideKey,
-  markRowsFor,
-  marksResultsTitle,
-  marksSubtitle,
-  seatPointsText,
+  marksPlayAccessors,
 } from "@lib/game/marks-play.data";
 import type { RulesetVersionKey } from "@lib/types";
 import type {
@@ -33,7 +28,6 @@ import type {
 import type {
   BoardMarker,
   Bobs27PreviewSegment,
-  TacticsObjectiveRow,
   TacticsPlayContext,
   TacticsResultsSnapshot,
   TacticsRing,
@@ -183,36 +177,7 @@ export function tacticsPlay() {
       );
     },
 
-    /** Play-header subtitle: `SOLO · 9 OBJECTIVES` or `1V1 · 9 OBJECTIVES`; blank before config loads. */
-    subtitle(this: TacticsPlayContext): string {
-      const config = this.$store.game.configSnapshot;
-      if (!config) return "";
-      return marksSubtitle(config.seats.length, TACTICS_OBJECTIVES.length);
-    },
-
-    /** One seat's nine rows; the opponent fields are set only in a duel. */
-    objectiveRowsFor(
-      this: TacticsPlayContext,
-      ref: string | undefined,
-    ): TacticsObjectiveRow[] {
-      return markRowsFor(this.state(), ref, TACTICS_OBJECTIVES, objectiveLabel);
-    },
-
-    pointsFor(this: TacticsPlayContext, ref: string | undefined): string {
-      return seatPointsText(this.state(), ref);
-    },
-
-    closedCountFor(this: TacticsPlayContext, ref: string | undefined): string {
-      return closedCountText(this.state(), ref);
-    },
-
-    dartsThrownFor(this: TacticsPlayContext, ref: string | undefined): string {
-      return dartsThrownText(this.state(), ref);
-    },
-
-    dartsThrown(this: TacticsPlayContext): string {
-      return String(this.state()?.seats[0]?.dartsThrown ?? 0);
-    },
+    ...marksPlayAccessors(TACTICS_OBJECTIVES, objectiveLabel),
 
     previewSegments(this: TacticsPlayContext): Bobs27PreviewSegment[] {
       const open = openVisit(this.$store.game.turns);
@@ -294,13 +259,6 @@ export function tacticsPlay() {
 
     uploadAndCompleteSession(this: TacticsPlayContext): Promise<void> {
       return playUploadAndCompleteSession(this, computeStats);
-    },
-
-    resultsTitle(this: TacticsPlayContext): string {
-      return marksResultsTitle(
-        this.$store.game.seats,
-        this.resultsSnapshot?.winningSideKey ?? null,
-      );
     },
 
     back(this: TacticsPlayContext) {

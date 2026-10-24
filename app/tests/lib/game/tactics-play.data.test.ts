@@ -479,6 +479,13 @@ describe("Tactics V2 play data", () => {
     expect(ctx.objectiveRowsFor("nobody")[0].marks).toBe(0);
   });
 
+  it("counts the solo darts from the first seat through the shared accessors", async () => {
+    const ctx = await started();
+    await ctx.recordMiss();
+    expect(ctx.dartsThrown()).toBe("1");
+    expect(ctx.dartsThrownFor("participant-1")).toBe("1");
+  });
+
   it("names the subtitle 1V1 for two seats", async () => {
     const ctx = await duelCtx();
     expect(ctx.subtitle.call(ctx)).toBe("1V1 · 9 OBJECTIVES");
