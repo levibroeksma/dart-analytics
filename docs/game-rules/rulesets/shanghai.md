@@ -14,14 +14,15 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Single player | V1 | Single | |
 | Multiplayer (1v1) | V1 | 1v1 | |
 | Config screen (presets shown) | V1 | All | |
-| Rounds 1–7 | V2+ | All | Wanted, unscheduled: the shipped range is fixed at 1–20 (`ShanghaiConfig` is an empty `.strict()` object; seed `0008`), so a shorter range is a schema change |
+| Rounds 1–7 | V3 | All | Scheduled for V3 as a Round range preset: the shipped range is fixed at 1–20 (`ShanghaiConfig` is an empty `.strict()` object; seed `0008`), so a shorter range is a schema change — a new ruleset version, not an edit to V1/V2 (D245) |
 | Rounds 1–20 | V1 | All | |
-| Other round ranges | V2+ | All | Wanted, unscheduled: same fixed-range gap as Rounds 1–7 |
+| Round range presets (1–10, 11–20, 13–20) | V3 | All | Scheduled for V3 beside Rounds 1–7: same fixed-range gap, and 11–20 and 13–20 also need a start offset, since the active number is no longer the visit index plus one |
+| Custom round range (free start/end) | V2+ | All | Wanted, unscheduled: V3 ships presets only (decided 2026-10-25) — a free start/end needs a two-field control and start ≤ end validation the presets avoid |
 | Only active number scores | Dropped | All | Not a separate feature: only the Active number has ever scored — it is the V1 rule (see Progress / scoring), not an option that could be turned off |
 | Active number: single / double / treble count | V1 | All | |
 | Shanghai instant win (S+D+T in one visit) | V1 | All | |
 | Highest total wins if no Shanghai | V1 | All | |
-| Disable instant-win (score only) | V2+ | All | Wanted, unscheduled: no config key expresses it — `ShanghaiV2Config` carries `difficulty` and nothing else |
+| Score-only mode (disable instant-win) | V3 | All | Scheduled for V3: no config key expresses it — `ShanghaiV2Config` carries `difficulty` and nothing else, so V3 adds a flag |
 | Visit = 3 darts per round | V1 | All | |
 | Track per-round score | V1 | All | |
 | Target Needed difficulty (Normal/Hard) | V2 | All | Shipped as `ShanghaiV2Config.difficulty`: V1 scoring left a round with no target hit indistinguishable from a cautious one, so there was nothing to punish aimless rounds |
@@ -119,8 +120,9 @@ Available under both Recreational and Analytical capture modes, same as V1.
 
 ### Variants
 
-- Round ranges: **1–20**, custom start/end
-- **Score-only** mode (no instant-win Shanghai)
+- **Round range preset** (V3): the player picks one of **1–7**, **1–10**, **11–20**, **13–20** or the existing **1–20**. The active number of the *n*th round (from 1) is the range start plus *n* − 1, and the session ends after the range's last round. Applies to every seat; a 1v1 match plays the same range for both seats. <!-- 2026-10-25 -->
+- Custom round range (free start/end): any start ≤ end within 1–20 — `V2+`, not scheduled.
+- **Score-only** mode (V3): a Shanghai no longer wins instantly. The visit scores like any other, every seat plays the whole range, and the highest total wins. In 1v1 equal totals is a tie, as in V1. Composes with Normal/Hard and with every range preset. <!-- 2026-10-25 -->
 - Multiplayer: all players take each round; first Shanghai in throwing order wins that path; else highest total
 
 ### Match structure
@@ -135,6 +137,8 @@ Available under both Recreational and Analytical capture modes, same as V1.
 | **Shanghai**      | V1      | Single + double + treble of the active number in one visit → instant win (when enabled). |
 | **Normal**        | V2      | Target Needed off: a round with no target hit simply scores 0.                            |
 | **Hard**          | V2      | Target Needed on: a round with no target hit halves the running total (round-half-up).    |
+| **Round range preset** | V3 | One of 1–7, 1–10, 11–20, 13–20 or 1–20: the first and last active number of the session. |
+| **Score-only**    | V3      | Instant win off: a Shanghai is an ordinary visit and the highest total after the last round wins. |
 
 ## Capture
 
@@ -145,7 +149,8 @@ Available under both Recreational and Analytical capture modes, same as V1.
   and the ring are null. Single, double and treble of the round's number are all
   legitimate aims (and all three in one visit is the Shanghai), so recording one
   ring would fabricate an intent the player never held; the round's number is
-  recoverable from the visit index instead. Hit = whatever landed; `score` = the
+  recoverable from the visit index instead (V3: from the visit index plus the
+  session's range start). Hit = whatever landed; `score` = the
   **board** score of that dart (S7 = 7, T7 = 21, miss or wrong number = that
   dart's own board score, which the game then ignores) — never the round's
   Shanghai points.
