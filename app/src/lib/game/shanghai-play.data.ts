@@ -2,7 +2,6 @@ import { BOT_PACING, botDartIndex, findBotSeat } from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { matchWinnerName } from "@lib/game/match-result-text";
-import { numbersPath, targetAt } from "@modules/game/board-progression.module";
 import {
   playAbandonAndExit,
   playBack,
@@ -46,32 +45,21 @@ import type {
 // RULESET_VERSION_KEY.
 import {
   ShanghaiEngine,
+  activeNumberOf,
+  activeTargetOf,
   foldShanghaiState,
+  roundCountOf,
+  roundOf,
   zoneBucketOf,
 } from "@modules/game/shanghai.engine.module";
 
 const GAME_TYPE_KEY = "SHANGHAI";
 
-/** Shanghai is played over numbers 1–20, one round each. */
-const SHANGHAI_ROUNDS = 20;
 const RESUMABLE_RULESET_VERSIONS = new Set<RulesetVersionKey>([
   "SHANGHAI_V1",
   "SHANGHAI_V2",
   "SHANGHAI_V3",
 ]);
-
-/**
- * Rounds 1..20 never reach `numbersPath()`'s 21st (BULL) entry — mirrors the
- * same guard the engine itself carries, since this module also needs the
- * plain round number for the tap row and the preview.
- */
-function targetNumberAt(targetIndex: number): number {
-  const target = targetAt(numbersPath(), targetIndex);
-  if (target.kind === "BULL") {
-    throw new Error("Shanghai never reaches the BULL target");
-  }
-  return target.number;
-}
 
 /**
  * The last resolved turn maps 1:1 to the round at its own array index within
@@ -86,6 +74,7 @@ function targetNumberAt(targetIndex: number): number {
 function previewSegmentsFor(
   turns: readonly TurnFact[],
   hiddenTurnKey: string | null,
+  rangeStart: number,
 ): ShanghaiPreviewSegment[] {
   const lastTurn = turns.at(-1);
   const seatRoundIndex = lastTurn
@@ -93,7 +82,7 @@ function previewSegmentsFor(
         .length - 1
     : 0;
   return playPreviewSegments(turns, hiddenTurnKey, (dart) => {
-    const targetNumber = targetNumberAt(seatRoundIndex);
+    const targetNumber = rangeStart + seatRoundIndex;
     return dart.hitTargetNumber === targetNumber ? "hit" : "miss";
   });
 }
@@ -121,7 +110,7 @@ function statsFor(
   let doubles = 0;
   let singles = 0;
   seatDarts.forEach((dart, index) => {
-    const targetNumber = targetNumberAt(Math.floor(index / 3));
+    const targetNumber = seat.rangeStart + Math.floor(index / 3);
     if (dart.hitTargetNumber === targetNumber) hits += 1;
     const bucket = zoneBucketOf(dart.hitZoneKey);
     if (bucket === "TREBLE") trebles += 1;
@@ -135,7 +124,7 @@ function statsFor(
     participantRef: seat.participantRef,
     sideKey: seat.sideKey,
     score: seat.totalScore,
-    round: seat.targetIndex + 1,
+    round: roundOf(seat),
     accuracy,
     trebles,
     doubles,
@@ -193,8 +182,7 @@ function throwBotDart(
     botSeat.participantRef,
   );
   const rng = createDartRng(botSeat.dartbot.seed, dartIndex);
-  const target = targetAt(numbersPath(), seatState.targetIndex);
-  const intent = chooseTarget({ target });
+  const intent = chooseTarget({ target: activeTargetOf(seatState) });
   const thrown = botThrowDart(intent, profile, rng);
   return {
     observation: {
@@ -243,21 +231,21 @@ export function shanghaiPlay() {
       );
     },
 
-    /** Play-header subtitle: `ROUND 7 OF 20`; blank before config loads. */
+    /** Play-header subtitle: `ROUND 7 OF 20` (the range's length);  blank before config loads. */
     subtitle(this: ShanghaiPlayContext): string {
       const state = this.state();
       const seat = state?.seats.find(
         (candidate) => candidate.participantRef === state.activeParticipantRef,
       );
       if (!seat) return "";
-      return `ROUND ${Math.min(seat.targetIndex + 1, SHANGHAI_ROUNDS)} OF ${SHANGHAI_ROUNDS}`;
+      return `ROUND ${Math.min(roundOf(seat), roundCountOf(seat))} OF ${roundCountOf(seat)}`;
     },
 
     currentTargetLabelFor(this: ShanghaiPlayContext, seatRef: string): string {
       const seat = this.state()?.seats.find(
         (candidate) => candidate.participantRef === seatRef,
       );
-      return seat ? String(targetNumberAt(seat.targetIndex)) : "";
+      return seat ? String(activeNumberOf(seat)) : "";
     },
 
     currentTargetLabel(this: ShanghaiPlayContext): string {
@@ -270,7 +258,7 @@ export function shanghaiPlay() {
       const seat = this.state()?.seats.find(
         (candidate) => candidate.participantRef === seatRef,
       );
-      return seat ? `${seat.targetIndex + 1}/20` : "";
+      return seat ? `${roundOf(seat)}/${roundCountOf(seat)}` : "";
     },
 
     roundLabel(this: ShanghaiPlayContext): string {
@@ -297,7 +285,11 @@ export function shanghaiPlay() {
     },
 
     previewSegments(this: ShanghaiPlayContext): ShanghaiPreviewSegment[] {
-      return previewSegmentsFor(this.$store.game.turns, this.hiddenTurnKey);
+      return previewSegmentsFor(
+        this.$store.game.turns,
+        this.hiddenTurnKey,
+        this.state()?.seats[0]?.rangeStart ?? 1,
+      );
     },
 
     async init(this: ShanghaiPlayContext) {
@@ -329,7 +321,7 @@ export function shanghaiPlay() {
               locationY: null,
             }
           : {
-              hitTargetNumber: targetNumberAt(activeSeat.targetIndex),
+              hitTargetNumber: activeNumberOf(activeSeat),
               hitZoneKey: ring,
               locationX: null,
               locationY: null,
@@ -419,9 +411,9 @@ export function shanghaiPlay() {
         GAME_TYPE_KEY,
         rulesetVersionKey,
         (engine) => (engine instanceof ShanghaiEngine ? engine : null),
-        rulesetVersionKey === "SHANGHAI_V2"
-          ? variantsPlayAgain("SHANGHAI_V2")
-          : undefined,
+        rulesetVersionKey === "SHANGHAI_V1"
+          ? undefined
+          : variantsPlayAgain(rulesetVersionKey),
       );
     },
   };

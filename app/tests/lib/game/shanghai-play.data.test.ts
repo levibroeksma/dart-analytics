@@ -24,6 +24,10 @@ import {
 } from "@modules/game/shanghai.engine.module";
 import { shanghaiPlay } from "@lib/game/shanghai-play.data";
 import { BOT_PACING } from "@lib/game/play-bot-seat";
+import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
+import { createDartRng } from "@modules/dartbot/rng.module";
+import { throwDart as botThrowDart } from "@modules/dartbot/throw-engine.module";
+import { chooseTarget } from "@modules/dartbot/strategy/dictated.strategy.module";
 import type {
   ShanghaiSnapshot,
   ShanghaiV2Snapshot,
@@ -66,12 +70,13 @@ function defaultConfig(): Seated<ShanghaiSnapshot> {
   return { seats: SEATS };
 }
 
-/** `n` prior rounds (numbers 1..n), each 3 SINGLE hits, so a fresh engine
- * rehydrated from it starts exactly at round `n + 1`, in progress, with a
- * score of `3 * sum(1..n)` (three SINGLE hits per round, worth face value). */
-function priorRoundsThroughNumber(n: number): TurnFact[] {
+/** `count` prior rounds on the numbers `first..first + count - 1`, each 3
+ * SINGLE hits, so a fresh engine rehydrated from it starts exactly after them,
+ * in progress, scoring face value. */
+function priorRoundsOver(first: number, count: number): TurnFact[] {
   const turns: TurnFact[] = [];
-  for (let number = 1; number <= n; number += 1) {
+  for (let round = 1; round <= count; round += 1) {
+    const number = first + round - 1;
     const darts: DartFact[] = [1, 2, 3].map((seq) => ({
       sequence: seq,
       intendedTargetNumber: null,
@@ -86,13 +91,18 @@ function priorRoundsThroughNumber(n: number): TurnFact[] {
       clientKey: `prior-${number}`,
       stageClientKey: "block-1",
       participantRef: "participant-1",
-      sequence: number,
+      sequence: round,
       completedAt: "2026-08-14T10:00:00.000Z",
       totalScore: darts.reduce((sum, d) => sum + d.score, 0),
       darts,
     });
   }
   return turns;
+}
+
+/** `n` prior rounds (numbers 1..n) of a full-board session. */
+function priorRoundsThroughNumber(n: number): TurnFact[] {
+  return priorRoundsOver(1, n);
 }
 
 type GameStub = ShanghaiPlayContext["$store"]["game"];
@@ -1271,6 +1281,171 @@ describe("shanghaiPlay — DartBot opponent", () => {
     await play.undoVisit.call(play);
 
     expect(play.engine!.state().activeParticipantRef).toBe("participant-1");
+  });
+});
+
+function v3Config(
+  rangeStart: number,
+  rangeEnd: number,
+  patch: Partial<Seated<ShanghaiV3Snapshot>> = {},
+): Seated<ShanghaiV3Snapshot> {
+  return {
+    seats: SEATS,
+    difficulty: "NORMAL",
+    rangeStart,
+    rangeEnd,
+    instantWin: true,
+    ...patch,
+  };
+}
+
+function makeV3Play(
+  config: Seated<ShanghaiV3Snapshot>,
+  turns: TurnFact[] = [],
+) {
+  return makePlay({
+    rulesetVersionKey: "SHANGHAI_V3",
+    configSnapshot: config,
+    turns,
+  });
+}
+
+describe("SHANGHAI_V3 range on the play screen", () => {
+  it("reads the round within a 13-20 range and the range's own number", async () => {
+    const play = makeV3Play(v3Config(13, 20), priorRoundsOver(13, 2));
+    await play.init.call(play);
+    expect(play.subtitle.call(play)).toBe("ROUND 3 OF 8");
+    expect(play.currentTargetLabel.call(play)).toBe("15");
+    expect(play.roundLabel.call(play)).toBe("3/8");
+  });
+
+  it("keeps the full-board header strings for V1", async () => {
+    const play = makePlay({ turns: priorRoundsThroughNumber(6) });
+    await play.init.call(play);
+    expect(play.subtitle.call(play)).toBe("ROUND 7 OF 20");
+    expect(play.roundLabel.call(play)).toBe("7/20");
+  });
+
+  it("scores a treble tap against the range start", async () => {
+    const play = makeV3Play(v3Config(13, 20));
+    await play.init.call(play);
+    await play.recordTap.call(play, "TREBLE");
+    expect(play.state.call(play)?.seats[0].totalScore).toBe(39);
+  });
+
+  it("marks a dart on the round's number a hit and the old index number a miss", async () => {
+    const play = makeV3Play(v3Config(13, 20), priorRoundsOver(13, 2));
+    await play.init.call(play);
+    await play.recordTap.call(play, "SINGLE");
+    await play.commitDart.call(play, {
+      hitTargetNumber: 3,
+      hitZoneKey: "SINGLE",
+      locationX: null,
+      locationY: null,
+    });
+    expect(play.previewSegments.call(play)).toEqual([
+      { status: "hit" },
+      { status: "miss" },
+      { status: "empty" },
+    ]);
+  });
+
+  it("counts an offset session's darts against its own numbers in the results", async () => {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 1, turns: 1, darts: 3 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const play = makeV3Play(v3Config(11, 12), priorRoundsOver(11, 1));
+    await play.init.call(play);
+
+    await play.recordTap.call(play, "SINGLE");
+    await play.recordTap.call(play, "SINGLE");
+    await play.recordTap.call(play, "SINGLE");
+
+    expect(play.finished).toBe(true);
+    expect(play.resultsSnapshot).toEqual({
+      status: "COMPLETE",
+      winningSideKey: null,
+      seats: [
+        {
+          participantRef: "participant-1",
+          sideKey: "A",
+          score: 3 * 11 + 3 * 12,
+          round: 2,
+          accuracy: "100.00%",
+          trebles: 0,
+          doubles: 0,
+          singles: 6,
+        },
+      ],
+    });
+  });
+
+  it("aims the DartBot at the range's own number", async () => {
+    const play = makePlay({
+      rulesetVersionKey: "SHANGHAI_V3",
+      configSnapshot: v3Config(13, 20, { seats: BOT_SEATS }),
+    });
+    await play.init.call(play);
+    await play.recordTap.call(play, "MISS");
+    await play.recordTap.call(play, "MISS");
+    await play.recordTap.call(play, "MISS");
+
+    const firstBotDart = play
+      .engine!.facts()
+      .turns.find((turn) => turn.participantRef === "bot-1")!.darts[0];
+    const expected = botThrowDart(
+      chooseTarget({ target: { kind: "NUMBER", number: 13 } }),
+      skillProfileForLevel(8),
+      createDartRng(424242, 0),
+    );
+    expect(firstBotDart.hitTargetNumber).toBe(expected.hit.targetNumber);
+    expect(firstBotDart.hitZoneKey).toBe(expected.hit.zoneKey);
+  });
+
+  it("plays again from a V3 session keeping range, win rule and difficulty", async () => {
+    const play = makeV3Play(
+      v3Config(13, 20, { difficulty: "HARD", instantWin: false }),
+      priorRoundsOver(13, 8),
+    );
+    play.completionStatus = "succeeded";
+    play.finished = true;
+    vi.mocked(createSession).mockResolvedValue({
+      sessionId: "new-session",
+      participants: [
+        {
+          ref: "new-participant",
+          displayName: "Player",
+          participantTypeKey: "PLAYER",
+        },
+      ],
+    } as any);
+
+    await play.playAgain.call(play);
+
+    expect(createSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rulesetVersionKey: "SHANGHAI_V3",
+        config: expect.objectContaining({
+          overrides: {
+            difficulty: "HARD",
+            range_start: 13,
+            range_end: 20,
+            instant_win: false,
+          },
+        }),
+      }),
+    );
+    expect(play.$store.game.configSnapshot).toMatchObject({
+      rangeStart: 13,
+      rangeEnd: 20,
+      instantWin: false,
+      difficulty: "HARD",
+    });
   });
 });
 
