@@ -1,6 +1,9 @@
 import { sql } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
-import { findVisitScoring } from "@repositories/statistics.repository";
+import {
+  findHomeScoring,
+  findVisitScoring,
+} from "@repositories/statistics.repository";
 import { inRolledBackTx, uuid } from "./fixtures/itest-db";
 
 if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is required");
@@ -140,5 +143,42 @@ describe("findVisitScoring first nine (#697)", () => {
       firstNinePoints: 18,
       firstNineDarts: 3,
     });
+  });
+});
+
+describe("findHomeScoring (#808)", () => {
+  it("folds 501 and Score Training into one local-day row", async () => {
+    const rows = await inRolledBackTx(async (db: Db) => {
+      await seedWorld(db);
+      await seedSession(db, {
+        base: 0x80810,
+        ruleset: "501_V1",
+        stageType: "LEG",
+        ownerScores: [10, 20, 30, 40],
+        guestScores: [100, 100, 100, 100],
+      });
+      await seedSession(db, {
+        base: 0x80820,
+        ruleset: "SCORE_TRAINING_V1",
+        stageType: "EXERCISE_BLOCK",
+        ownerScores: [5, 6, 7, 8],
+        guestScores: [90, 90, 90, 90],
+      });
+      return findHomeScoring(db, {
+        playerId: OWNER,
+        gameTypeKeys: ["501", "SCORE_TRAINING"],
+        ...RANGE,
+        tz: "Europe/Amsterdam",
+        bands: BANDS,
+      });
+    });
+    const totals = rows.reduce(
+      (sum, r) => ({
+        points: sum.points + r.points,
+        firstNinePoints: sum.firstNinePoints + r.firstNinePoints,
+      }),
+      { points: 0, firstNinePoints: 0 },
+    );
+    expect(totals).toEqual({ points: 126, firstNinePoints: 78 });
   });
 });
