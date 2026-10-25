@@ -126,28 +126,35 @@ const SESSION_ENDED = endedRefusal("session has ended");
 const MATCH_ENDED = endedRefusal("match has ended");
 
 /**
- * Shanghai as Track policies: rounds 1–20, any ring on the round's number
- * scores its board value, three-dart visits. On close a Hard blank visit
- * halves the score, a single/double/treble finishes the seat as a
- * Shanghai, otherwise the seat advances, finishing after round 20.
+ * Shanghai as Track policies over the settings' round range: any ring on the
+ * round's number scores its board value, three-dart visits. On close a Hard
+ * blank visit halves the score, a single/double/treble finishes the seat as a
+ * Shanghai when instant win is on, otherwise the seat advances, finishing
+ * after the range's last round.
  */
 function shanghaiRules(
-  difficulty: ShanghaiDifficulty,
+  settings: ShanghaiSettings,
 ): TrackRules<ShanghaiTrackExt> {
-  const advance = advanceToEnd<ShanghaiTrackExt>(19);
+  const path = PATH.slice(settings.rangeStart - 1, settings.rangeEnd);
+  const advance = advanceToEnd<ShanghaiTrackExt>(path.length - 1);
   const halve: (
     seat: TrackSeat<ShanghaiTrackExt>,
   ) => TrackSeat<ShanghaiTrackExt> =
-    difficulty === "HARD" ? halveOnBlank : (seat) => seat;
+    settings.difficulty === "HARD" ? halveOnBlank : (seat) => seat;
+  const judge: (
+    seat: TrackSeat<ShanghaiTrackExt>,
+  ) => TrackSeat<ShanghaiTrackExt> = settings.instantWin
+    ? shanghaiWin
+    : (seat) => seat;
   return {
     doneMessage: SESSION_ENDED,
-    target: pathTarget(PATH),
+    target: pathTarget(path),
     hit: anyRingEitherBull,
     points: boardScorePoints,
     onDart: recordVisitZone,
     visitOpen: closeAfter(3),
     onVisitClose: (seat) => {
-      const judged = shanghaiWin(halve(seat));
+      const judged = judge(halve(seat));
       const moved = judged.status === "IN_PROGRESS" ? advance(judged) : judged;
       return { ...moved, ext: { ...moved.ext, zones: [] } };
     },
@@ -202,7 +209,7 @@ function seatStatus(
  * seat's `ShanghaiSeatState`. `difficulty` defaults to `"NORMAL"`. Under
  * `"HARD"`, a visit with zero target hits halves `totalScore` (round half
  * up); a visit with a hit is never penalized. A single/double/treble visit
- * is a Shanghai; otherwise round 20's close completes the seat.
+ * is a Shanghai; otherwise the range's last round closing completes the seat.
  * @throws when `state.status` is not `IN_PROGRESS`; undo first to correct it.
  */
 export function applyShanghaiDart(
@@ -211,7 +218,16 @@ export function applyShanghaiDart(
   difficulty: ShanghaiDifficulty = "NORMAL",
 ): ShanghaiSeatState {
   return toShanghaiSeat(
-    applyTrackDart(toTrackSeat(state), observation, shanghaiRules(difficulty)),
+    applyTrackDart(
+      toTrackSeat(state),
+      observation,
+      shanghaiRules({
+        difficulty,
+        rangeStart: state.rangeStart,
+        rangeEnd: state.rangeEnd,
+        instantWin: state.instantWin,
+      }),
+    ),
   );
 }
 
@@ -221,7 +237,7 @@ export function applyShanghaiDart(
  * a Shanghai short-circuits the whole match the instant either seat hits
  * one, whatever the other seat's own round is — this is score-compare's own
  * race-shaped exception. Absent that, the match resolves only once both
- * seats reach `COMPLETE` (all 20 rounds, no Shanghai), by total score.
+ * seats reach `COMPLETE` (the whole range, no Shanghai), by total score.
  */
 export function foldShanghaiState(
   facts: EngineFacts,
@@ -238,7 +254,7 @@ export function foldShanghaiState(
       rangeEnd: settings.rangeEnd,
       instantWin: settings.instantWin,
     }),
-    shanghaiRules(settings.difficulty),
+    shanghaiRules(settings),
   ).map(toShanghaiSeat);
 
   const raceResult =
@@ -296,7 +312,7 @@ function shanghaiRefusal(state: ShanghaiState): string | null {
 
 /**
  * Whether `observation` would end the WHOLE match: it completes a Shanghai,
- * or closes the active seat's round 20 while every other seat has ended.
+ * or closes the active seat's last round while every other seat has ended.
  * False once the match has already ended.
  */
 function wouldCompleteMatch(
@@ -352,11 +368,12 @@ const shanghaiSpec: DartGameSpec<ShanghaiEngineConfig, ShanghaiState> = {
 };
 
 /**
- * Shanghai (Pattern 18), built by the dart engine shell: rounds 1..20, three
- * darts each at that round's own number, per seat. A single/double/treble
+ * Shanghai (Pattern 18), built by the dart engine shell: one round per number
+ * of the configured range (1..20 by default), three darts each at that
+ * round's own number, per seat. A single/double/treble
  * Shanghai on any seat's visit ends the whole match immediately —
- * score-compare's own race-shaped exception. Otherwise every seat plays all
- * 20 rounds, then the higher total score wins.
+ * score-compare's own race-shaped exception. Otherwise every seat plays the
+ * whole range, then the higher total score wins.
  */
 export class ShanghaiEngine extends dartGameEngineClass(shanghaiSpec) {}
 
