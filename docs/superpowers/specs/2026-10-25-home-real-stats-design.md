@@ -38,21 +38,25 @@ One new scope type, `HomeScope = { playerId; gameTypeKeys: GameTypeKey[]; from; 
 (`modules/stats/types.ts`). Two readers, added beside the existing ones; the
 existing per-game scopes and readers are not widened.
 
-- `findHomeScoring(db, scope, tz)`: from `v_player_visit_facts` joined to
-  `v_stats_session_facts`, `status = COMPLETED`, `input_mode_key = VISUAL_BOARD`,
-  `game_type_key IN gameTypeKeys`, `completed_at` in `[from, to)`. Returns
-  per local day (in `tz`): `points`, `darts`, `firstNinePoints`,
-  `firstNineDarts`. First nine = the owner's first three visits per `LEG` or
-  `EXERCISE_BLOCK` stage, the same definition `findVisitScoring` uses
-  (section `scoring-trend` v2, D385). The `bucketExprs` day expression is
-  reused, not copied.
+- `findHomeScoring(db, scope, tz)`: one 60-day read, `bucket: "day"` in `tz`,
+  returning the same `VisitScoringRow` sums as `findVisitScoring`. The service
+  folds the day rows into the current 30 days, the previous 30 and the last 7.
+  Scope filter: `status = COMPLETED`, `input_mode_key = VISUAL_BOARD`,
+  `game_type_key IN gameTypeKeys`, `completed_at` in `[from, to)`.
+- Shared body (verified against `findVisitScoring`, lines 593-665): that
+  function builds its `where` once, uses it only in the `scoped_visits`
+  subquery (first nine = visit rank ≤ 3 per stage, `LEG`/`EXERCISE_BLOCK`),
+  and is otherwise scope-independent. The body moves unchanged into a private
+  helper taking the `where` clause; `findVisitScoring` passes
+  `sessionScopeWhere(q)`, `findHomeScoring` passes the home clause. The
+  existing rendered-SQL tests for `findVisitScoring` must pass untouched;
+  that is the proof the extraction changed nothing. `sessionScopeWhere` is
+  not widened (it hard-codes one `gameTypeKey`).
 - `findHomeHeatmapCells(db, scope, cellMm)`: `v_stats_dart_facts`, same
   scope filter, grouped by `FLOOR(location / cellMm)`. Darts without a
   location are excluded.
 
-The visit-scoring body is shared with `findVisitScoring` by extracting the
-common select; if extraction would change that function's output, copy the
-first-nine clause instead and note it. No migration, no new view.
+No migration, no new view.
 
 ### 2. Module — `modules/stats/home-stats.module.ts` (pure)
 
