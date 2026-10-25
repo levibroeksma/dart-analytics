@@ -33,6 +33,12 @@ describe("ruleset refinement contract", () => {
     ).toContain("SinglesV2Config");
   });
 
+  it("covers ShanghaiV3Config's range ordering refinement", () => {
+    expect(
+      REFINEMENT_CONTRACTS.map((contract) => contract.schemaName),
+    ).toContain("ShanghaiV3Config");
+  });
+
   it("covers FiveOhOneV2Config's legs, sets and win_by_two refinements", () => {
     expect(
       REFINEMENT_CONTRACTS.map((contract) => contract.schemaName),

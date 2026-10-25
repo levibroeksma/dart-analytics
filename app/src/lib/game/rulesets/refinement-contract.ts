@@ -5,6 +5,7 @@ import {
   FiveOhOneV2Config,
   OneTwentyOneV2Config,
   ScoreTrainingConfig,
+  ShanghaiV3Config,
   SinglesConfig,
   SinglesV2Config,
   SinglesV3Config,
@@ -267,6 +268,46 @@ const singlesTrainingV3Contract: SchemaRefinementContract<SinglesV3Input> = {
               20,
             ],
           },
+        },
+      ],
+    },
+  ],
+};
+
+type ShanghaiV3Input = z.input<typeof ShanghaiV3Config>;
+
+const shanghaiV3Base = {
+  difficulty: "NORMAL",
+  rangeStart: 1,
+  rangeEnd: 20,
+  instantWin: true,
+} satisfies ShanghaiV3Input;
+
+/**
+ * `ShanghaiV3Config` bounds `rangeStart` against `rangeEnd` in a
+ * whole-object `refine`; the field-level `.min(1).max(20)` cannot see the
+ * other field, so only the refinement rejects an inverted range.
+ */
+const shanghaiV3Contract: SchemaRefinementContract<ShanghaiV3Input> = {
+  schemaName: "ShanghaiV3Config",
+  schema: ShanghaiV3Config,
+  fields: [
+    {
+      field: "rangeStart",
+      accept: [
+        {
+          label: "a single-round range, start equal to end",
+          config: { ...shanghaiV3Base, rangeStart: 13, rangeEnd: 13 },
+        },
+        {
+          label: "the full board, 1 to 20",
+          config: shanghaiV3Base,
+        },
+      ],
+      reject: [
+        {
+          label: "start one past end — load-bearing, both fields in bounds",
+          config: { ...shanghaiV3Base, rangeStart: 14, rangeEnd: 13 },
         },
       ],
     },
@@ -653,4 +694,5 @@ export const REFINEMENT_CONTRACTS: readonly SchemaRefinementContract[] = [
   tuodContract,
   aroundTheClockV2Contract,
   fiveOhOneV2Contract,
+  shanghaiV3Contract,
 ];
