@@ -1,3 +1,4 @@
+import { activeNumberOf } from "@modules/game/shanghai.engine.module";
 import { closeBuckets } from "./series.module";
 import type { SeriesBucket } from "@lib/types";
 import type {
@@ -14,15 +15,25 @@ type BucketAccumulator = {
 };
 
 /**
- * The 1-based round a session's fold reached a Shanghai in, or `null` when it
+ * The active number a session's fold reached a Shanghai on, or `null` when it
  * never did (phase-4 decision 12): the engine's own `SHANGHAI` seat status,
  * read off the same fold every derived-intent section walks — never a copy of
- * the S+D+T rule.
+ * the S+D+T rule. Equals the round for a 1–20 session, so the histogram stays
+ * comparable across ruleset versions.
  */
-function shanghaiRoundOf(session: SessionSteps<unknown>): number | null {
+function shanghaiNumberOf(session: SessionSteps<unknown>): number | null {
   const steps = session.steps as readonly SeatFoldStep<ShanghaiSeatState>[];
   const shanghaiStep = steps.find((step) => step.after.status === "SHANGHAI");
-  return shanghaiStep ? shanghaiStep.before.targetIndex + 1 : null;
+  return shanghaiStep ? activeNumberOf(shanghaiStep.before) : null;
+}
+
+/**
+ * Whether a session could have ended on a Shanghai: a Score-only session
+ * (`instantWin` off) never can, so counting it would deflate the rate.
+ */
+function canShanghai(session: SessionSteps<unknown>): boolean {
+  const steps = session.steps as readonly SeatFoldStep<ShanghaiSeatState>[];
+  return steps[0]?.before.instantWin ?? true;
 }
 
 /**
@@ -37,6 +48,7 @@ export function shanghaiCountBuckets(
   const buckets = new Map<string, BucketAccumulator>();
 
   for (const session of sessions) {
+    if (!canShanghai(session)) continue;
     const bucket = buckets.get(session.bucketStart) ?? {
       end: session.bucketEnd,
       metrics: { sessions: 0, shanghais: 0, byRound: {} },
@@ -46,10 +58,10 @@ export function shanghaiCountBuckets(
     bucket.metrics.sessions += 1;
     bucket.sampleSize += 1;
 
-    const round = shanghaiRoundOf(session);
-    if (round !== null) {
+    const landedOn = shanghaiNumberOf(session);
+    if (landedOn !== null) {
       bucket.metrics.shanghais += 1;
-      const key = String(round);
+      const key = String(landedOn);
       bucket.metrics.byRound[key] = (bucket.metrics.byRound[key] ?? 0) + 1;
     }
 

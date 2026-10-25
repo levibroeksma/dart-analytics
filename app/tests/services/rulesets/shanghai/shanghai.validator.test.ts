@@ -269,9 +269,9 @@ describe("shanghaiV2Validator.validateConfig", () => {
 describe("shanghaiV3Validator.validateConfig", () => {
   const v3 = {
     difficulty: "NORMAL",
-    rangeStart: 13,
-    rangeEnd: 20,
-    instantWin: false,
+    range_start: 13,
+    range_end: 20,
+    instant_win: false,
   };
   const validate = (config: unknown) =>
     shanghaiV3Validator.validateConfig({
@@ -286,8 +286,8 @@ describe("shanghaiV3Validator.validateConfig", () => {
 
   it.each([
     ["a V2-shaped config", { difficulty: "NORMAL" }],
-    ["an inverted range", { ...v3, rangeStart: 14, rangeEnd: 13 }],
-    ["an out-of-range end", { ...v3, rangeEnd: 21 }],
+    ["an inverted range", { ...v3, range_start: 14, range_end: 13 }],
+    ["an out-of-range end", { ...v3, range_end: 21 }],
     ["an unrecognized key", { ...v3, rounds: 7 }],
   ])("rejects %s", (_name, config) => {
     expect(validate(config).valid).toBe(false);

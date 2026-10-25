@@ -125,6 +125,69 @@ describe("shanghaiCountBuckets", () => {
   });
 });
 
+describe("shanghaiCountBuckets — SHANGHAI_V3", () => {
+  const v3Config = (instantWin: boolean) => ({
+    seats: SEATS,
+    difficulty: "NORMAL",
+    range_start: 13,
+    range_end: 20,
+    instant_win: instantWin,
+  });
+  const v3Meta = (sessionId: string, instantWin: boolean) => ({
+    sessionId,
+    rulesetVersionKey: "SHANGHAI_V3",
+    configuration: v3Config(instantWin),
+  });
+  const shanghaiInRoundThree = [
+    miss(),
+    miss(),
+    miss(),
+    miss(),
+    miss(),
+    miss(),
+    hit(15, "OUTER_SINGLE"),
+    hit(15, "DOUBLE"),
+    hit(15, "TREBLE"),
+  ];
+
+  it("files a 13-20 Shanghai under the number it landed on, not the round index", () => {
+    const rows = rowsFor(v3Meta("session-v3", true), shanghaiInRoundThree);
+    const { sessions } = sessionSteps(rows);
+
+    const [bucket] = shanghaiCountBuckets(sessions, CTX);
+
+    expect(bucket!.metrics).toEqual({
+      sessions: 1,
+      shanghais: 1,
+      byRound: { "15": 1 },
+    });
+  });
+
+  it("leaves a Score-only session out of the denominator", () => {
+    const scoreOnly = rowsFor(
+      v3Meta("session-score-only", false),
+      shanghaiInRoundThree,
+    );
+    const counted = rowsFor(v3Meta("session-counted", true), [miss()]);
+    const { sessions } = sessionSteps([...scoreOnly, ...counted]);
+
+    const [bucket] = shanghaiCountBuckets(sessions, CTX);
+
+    expect(bucket!.metrics.sessions).toBe(1);
+    expect(bucket!.sampleSize).toBe(1);
+  });
+
+  it("emits no bucket for a Score-only session alone", () => {
+    const rows = rowsFor(
+      v3Meta("session-score-only", false),
+      shanghaiInRoundThree,
+    );
+    const { sessions } = sessionSteps(rows);
+
+    expect(shanghaiCountBuckets(sessions, CTX)).toEqual([]);
+  });
+});
+
 describe("shanghaiCountBuckets series order", () => {
   it("returns buckets oldest first, whatever order the sessions arrive in", () => {
     const [early] = sessionSteps(

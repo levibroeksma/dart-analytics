@@ -39,6 +39,15 @@ describe("ruleset refinement contract", () => {
     ).toContain("ShanghaiV3Config");
   });
 
+  it("names ShanghaiV3Config's wire field, range_start, as the refined one", () => {
+    const contract = REFINEMENT_CONTRACTS.find(
+      (entry) => entry.schemaName === "ShanghaiV3Config",
+    );
+    expect(contract?.fields.map((field) => field.field)).toEqual([
+      "range_start",
+    ]);
+  });
+
   it("covers FiveOhOneV2Config's legs, sets and win_by_two refinements", () => {
     expect(
       REFINEMENT_CONTRACTS.map((contract) => contract.schemaName),

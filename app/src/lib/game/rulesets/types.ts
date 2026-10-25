@@ -348,14 +348,14 @@ export const ShanghaiV2Config = z
 export const ShanghaiV3Config = z
   .object({
     difficulty: z.enum(["NORMAL", "HARD"]),
-    rangeStart: z.number().int().min(1).max(20),
-    rangeEnd: z.number().int().min(1).max(20),
-    instantWin: z.boolean(),
+    range_start: z.number().int().min(1).max(20),
+    range_end: z.number().int().min(1).max(20),
+    instant_win: z.boolean(),
   })
   .strict()
-  .refine((config) => config.rangeStart <= config.rangeEnd, {
-    path: ["rangeStart"],
-    message: "rangeStart must not exceed rangeEnd",
+  .refine((config) => config.range_start <= config.range_end, {
+    path: ["range_start"],
+    message: "range_start must not exceed range_end",
   });
 
 /**
@@ -670,9 +670,9 @@ export type ShanghaiV2Snapshot = {
 
 /** Shanghai V3 carries V2's difficulty plus the range and the instant-win switch. */
 export type ShanghaiV3Snapshot = ShanghaiV2Snapshot & {
-  rangeStart: ShanghaiV3ConfigData["rangeStart"];
-  rangeEnd: ShanghaiV3ConfigData["rangeEnd"];
-  instantWin: ShanghaiV3ConfigData["instantWin"];
+  rangeStart: ShanghaiV3ConfigData["range_start"];
+  rangeEnd: ShanghaiV3ConfigData["range_end"];
+  instantWin: ShanghaiV3ConfigData["instant_win"];
 };
 
 /** 121 v1 has nothing to configure — no fields to carry. */

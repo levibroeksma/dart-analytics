@@ -567,9 +567,9 @@ describe("RULESET_CONFIGS SHANGHAI_V2", () => {
 describe("ShanghaiV3Config", () => {
   const valid = {
     difficulty: "NORMAL",
-    rangeStart: 13,
-    rangeEnd: 20,
-    instantWin: true,
+    range_start: 13,
+    range_end: 20,
+    instant_win: true,
   };
 
   it("registers SHANGHAI_V3", () => {
@@ -579,20 +579,20 @@ describe("ShanghaiV3Config", () => {
   it("accepts a valid range, a single-round range and the full board", () => {
     expect(ShanghaiV3Config.safeParse(valid).success).toBe(true);
     expect(
-      ShanghaiV3Config.safeParse({ ...valid, rangeStart: 7, rangeEnd: 7 })
+      ShanghaiV3Config.safeParse({ ...valid, range_start: 7, range_end: 7 })
         .success,
     ).toBe(true);
     expect(
-      ShanghaiV3Config.safeParse({ ...valid, rangeStart: 1, rangeEnd: 20 })
+      ShanghaiV3Config.safeParse({ ...valid, range_start: 1, range_end: 20 })
         .success,
     ).toBe(true);
   });
 
   it.each([
-    ["start after end", { rangeStart: 8, rangeEnd: 7 }],
-    ["start below 1", { rangeStart: 0 }],
-    ["end above 20", { rangeEnd: 21 }],
-    ["non-integer", { rangeStart: 1.5 }],
+    ["start after end", { range_start: 8, range_end: 7 }],
+    ["start below 1", { range_start: 0 }],
+    ["end above 20", { range_end: 21 }],
+    ["non-integer", { range_start: 1.5 }],
     ["unknown key", { extra: true }],
   ])("rejects %s", (_name, patch) => {
     expect(ShanghaiV3Config.safeParse({ ...valid, ...patch }).success).toBe(
@@ -600,7 +600,7 @@ describe("ShanghaiV3Config", () => {
     );
   });
 
-  it.each(["difficulty", "rangeStart", "rangeEnd", "instantWin"])(
+  it.each(["difficulty", "range_start", "range_end", "instant_win"])(
     "rejects a missing %s",
     (key) => {
       const { [key]: _omit, ...rest } = valid as Record<string, unknown>;

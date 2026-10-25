@@ -15,7 +15,10 @@ import { doublesTrainingEngineFactory } from "@modules/game/doubles-training.eng
 import { fiveOhOneEngineFactory } from "@modules/game/five-oh-one.engine.module";
 import { oneTwentyOneEngineFactory } from "@modules/game/one-twenty-one.engine.module";
 import { scoreTrainingEngineFactory } from "@modules/game/score-training.engine.module";
-import { shanghaiEngineFactory } from "@modules/game/shanghai.engine.module";
+import {
+  shanghaiEngineFactory,
+  shanghaiV3EngineFactory,
+} from "@modules/game/shanghai.engine.module";
 import { singlesTrainingEngineFactory } from "@modules/game/singles-training.engine.module";
 import { tacticsV2EngineFactory } from "@modules/game/tactics.engine.module";
 import { tuodEngineFactory } from "@modules/game/tuod.engine.module";
@@ -447,6 +450,25 @@ export function playShanghai(): ScriptedGame {
     [dart(2, "TREBLE"), dart(7, "OUTER_SINGLE"), MISS],
     [MISS, MISS, MISS],
   ]);
+}
+
+/** Three Shanghai V3 rounds over 11-20: a single and a double on 11, a treble on 12, a blank on 13. */
+export function playShanghaiRange(): ScriptedGame {
+  return scripted(
+    shanghaiV3EngineFactory,
+    {
+      seats: SOLO_SEATS,
+      difficulty: "NORMAL",
+      rangeStart: 11,
+      rangeEnd: 20,
+      instantWin: true,
+    },
+    [
+      [dart(11, "OUTER_SINGLE"), dart(11, "DOUBLE"), MISS],
+      [dart(12, "TREBLE"), dart(7, "OUTER_SINGLE"), MISS],
+      [MISS, MISS, MISS],
+    ],
+  );
 }
 
 /** Three Around the Clock visits: 1 and 2 hit, then 3 on the last dart, then only a wrong number. */

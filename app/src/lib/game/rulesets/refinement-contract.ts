@@ -278,13 +278,13 @@ type ShanghaiV3Input = z.input<typeof ShanghaiV3Config>;
 
 const shanghaiV3Base = {
   difficulty: "NORMAL",
-  rangeStart: 1,
-  rangeEnd: 20,
-  instantWin: true,
+  range_start: 1,
+  range_end: 20,
+  instant_win: true,
 } satisfies ShanghaiV3Input;
 
 /**
- * `ShanghaiV3Config` bounds `rangeStart` against `rangeEnd` in a
+ * `ShanghaiV3Config` bounds `range_start` against `range_end` in a
  * whole-object `refine`; the field-level `.min(1).max(20)` cannot see the
  * other field, so only the refinement rejects an inverted range.
  */
@@ -293,11 +293,11 @@ const shanghaiV3Contract: SchemaRefinementContract<ShanghaiV3Input> = {
   schema: ShanghaiV3Config,
   fields: [
     {
-      field: "rangeStart",
+      field: "range_start",
       accept: [
         {
           label: "a single-round range, start equal to end",
-          config: { ...shanghaiV3Base, rangeStart: 13, rangeEnd: 13 },
+          config: { ...shanghaiV3Base, range_start: 13, range_end: 13 },
         },
         {
           label: "the full board, 1 to 20",
@@ -307,7 +307,7 @@ const shanghaiV3Contract: SchemaRefinementContract<ShanghaiV3Input> = {
       reject: [
         {
           label: "start one past end — load-bearing, both fields in bounds",
-          config: { ...shanghaiV3Base, rangeStart: 14, rangeEnd: 13 },
+          config: { ...shanghaiV3Base, range_start: 14, range_end: 13 },
         },
       ],
     },
