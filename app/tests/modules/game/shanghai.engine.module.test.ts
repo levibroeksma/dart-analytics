@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   activeNumberOf,
   activeTargetOf,
+  numberAtRound,
   roundCountOf,
   roundOf,
   applyShanghaiDart,
@@ -119,6 +120,11 @@ describe("range helpers on seat state", () => {
       20,
       false,
     ]);
+  });
+
+  it("numberAtRound offsets the range start by the round index", () => {
+    expect(numberAtRound(1, 0)).toBe(1);
+    expect(numberAtRound(13, 7)).toBe(20);
   });
 
   it("derives number, round and count from the seat", () => {

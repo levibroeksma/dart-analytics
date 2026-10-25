@@ -31,6 +31,8 @@ Execution model: game. Entry points: standalone. Kernel: TRACK. Additive, applie
 
 ## 5. Config schema
 
+> Status 2026-10-25: the shipped Zod keys are snake_case (`range_start`, `range_end`, `instant_win`) because configs decode through `toSnapshot`; the snapshot stays camelCase (D495).
+
 `app/src/lib/game/rulesets/types.ts`:
 
 ```ts

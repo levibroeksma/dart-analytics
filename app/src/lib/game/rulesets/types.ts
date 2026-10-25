@@ -340,7 +340,7 @@ export const ShanghaiV2Config = z
 
 /**
  * Shanghai V3 adds a round range and an instant-win switch over V2. The
- * range is any `rangeStart..rangeEnd` slice of 1..20; the setup form offers
+ * range is any `range_start..range_end` slice of 1..20; the setup form offers
  * presets only, so a free start/end later needs no new version. A new ruleset
  * version rather than an edit to V1/V2, which are live against real session
  * data (D245).

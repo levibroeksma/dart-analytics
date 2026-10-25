@@ -101,9 +101,14 @@ export function initialShanghaiState(
   };
 }
 
+/** The number thrown at in a 0-based round of a range starting at `rangeStart`. */
+export function numberAtRound(rangeStart: number, roundIndex: number): number {
+  return rangeStart + roundIndex;
+}
+
 /** The number a seat is throwing at: its range start plus its round index. */
 export function activeNumberOf(seat: ShanghaiSeatState): number {
-  return seat.rangeStart + seat.targetIndex;
+  return numberAtRound(seat.rangeStart, seat.targetIndex);
 }
 
 /** The seat's 1-based round within its range. */
@@ -209,7 +214,8 @@ function seatStatus(
  * seat's `ShanghaiSeatState`. `difficulty` defaults to `"NORMAL"`. Under
  * `"HARD"`, a visit with zero target hits halves `totalScore` (round half
  * up); a visit with a hit is never penalized. A single/double/treble visit
- * is a Shanghai; otherwise the range's last round closing completes the seat.
+ * is a Shanghai when the seat's instant win is on; otherwise the range's last
+ * round closing completes the seat.
  * @throws when `state.status` is not `IN_PROGRESS`; undo first to correct it.
  */
 export function applyShanghaiDart(
@@ -349,7 +355,7 @@ function isShanghaiVisitOpen(turn: TurnFact): boolean {
 }
 
 /**
- * Shanghai's rules for the dart engine shell, V1 and V2. A closed visit
+ * Shanghai's rules for the dart engine shell, V1 to V3. A closed visit
  * persists its counted total — the change it made to the seat's score — so
  * a Hard halving is a negative visit total and a seat's turn totals sum to
  * its score.

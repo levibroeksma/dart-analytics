@@ -10,8 +10,8 @@
 -- game type 0008 already seeded.
 --
 -- No new configuration_templates row: the setup controller reuses
--- 0008's {} preset and always supplies difficulty, rangeStart,
--- rangeEnd and instantWin through its configOverrides, as V2 does.
+-- 0008's {} preset and always supplies difficulty, range_start,
+-- range_end and instant_win through its configOverrides, as V2 does.
 --
 -- UUID allocation (highest in use 000022):
 -- - 0198f100-...-000023 ruleset_versions (SHANGHAI_V3)
