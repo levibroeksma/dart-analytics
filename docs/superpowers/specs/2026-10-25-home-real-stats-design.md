@@ -110,7 +110,7 @@ The route is view-backed (D63): `v_player_visit_facts`, `v_stats_session_facts`,
 | `delta = null` (no previous window) | value shown, delta line hidden                                             |
 | Delta sign                          | "Up X" for positive, "Down X" for negative (absolute value), hidden at 0.0 |
 | Day with no darts                   | no bar (zero height), skipped for the peak; all seven empty → peak `—`     |
-| Bar scale                           | unchanged: 50–75 mapped to 0–100%, clamped                                 |
+| Bar scale                           | each bar is its share of the week's peak (peak = 100%); a fixed 50–75 scale left averages below 50 at 0% |
 | Landing with no cells               | landing card hidden                                                        |
 | Fetch fails or is pending           | dashes, bars and landing card hidden (as the career tiles)                 |
 

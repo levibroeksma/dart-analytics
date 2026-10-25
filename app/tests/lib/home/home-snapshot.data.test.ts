@@ -272,15 +272,16 @@ describe("dailyPeak", () => {
 });
 
 describe("barHeight", () => {
-  it("maps 50–75 onto 0–100%", () => {
-    expect(barHeight(50)).toBe("0%");
-    expect(barHeight(62.5)).toBe("50%");
-    expect(barHeight(75)).toBe("100%");
+  it("scales a value against the peak", () => {
+    expect(barHeight(43.76, 43.76)).toBe("100%");
+    expect(barHeight(21.88, 43.76)).toBe("50%");
+    expect(barHeight(0, 43.76)).toBe("0%");
   });
 
-  it("clamps outside the range", () => {
-    expect(barHeight(45)).toBe("0%");
-    expect(barHeight(80)).toBe("100%");
+  it("is zero for an empty day or no peak", () => {
+    expect(barHeight(null, 43.76)).toBe("0%");
+    expect(barHeight(40, null)).toBe("0%");
+    expect(barHeight(40, 0)).toBe("0%");
   });
 });
 
@@ -292,7 +293,15 @@ describe("dailyBars", () => {
       { day: "W", value: 74.1 },
     ]);
     expect(bars.map((b) => b.peak)).toEqual([false, true, true]);
-    expect(bars[0].height).toBe("80%");
+    expect(bars[0].height).toBe("94.5%");
+  });
+
+  it("sizes bars against the peak even when every average is below 50", () => {
+    const bars = dailyBars([
+      { day: "M", value: 21.88 },
+      { day: "T", value: 43.76 },
+    ]);
+    expect(bars.map((b) => b.height)).toEqual(["50%", "100%"]);
   });
 
   it("is empty with no days", () => {

@@ -19,9 +19,6 @@ import type {
 
 const BOARD_SPAN_MM = BOARD_RADII_MM.surroundOuter * 2;
 
-const BAR_FLOOR = 50;
-const BAR_RANGE = 25;
-
 const WEEKDAY_LETTERS = ["M", "T", "W", "T", "F", "S", "S"];
 
 /**
@@ -112,19 +109,18 @@ export function dailyPeak(days: DailyAverage[]): string {
   return peak === null ? "—" : peak.toFixed(2);
 }
 
-/** A bar's CSS height: `value` mapped from 50–75 onto 0–100%, clamped; an empty day is 0%. */
-export function barHeight(value: number | null): string {
-  if (value === null) return "0%";
-  const pct = ((value - BAR_FLOOR) / BAR_RANGE) * 100;
-  return `${Math.round(Math.min(100, Math.max(0, pct)) * 10) / 10}%`;
+/** A bar's CSS height: `value` as a share of `peak`; an empty day, or no peak, is 0%. */
+export function barHeight(value: number | null, peak: number | null): string {
+  if (value === null || peak === null || peak <= 0) return "0%";
+  return `${Math.round(Math.min(100, (value / peak) * 100) * 10) / 10}%`;
 }
 
-/** One bar per day; every measured day sharing the highest value is a peak. */
+/** One bar per day, sized against the highest day; every measured day sharing the highest value is a peak. */
 export function dailyBars(days: DailyAverage[]): DailyBar[] {
   const max = peakValue(days);
   return days.map((d) => ({
     day: d.day,
-    height: barHeight(d.value),
+    height: barHeight(d.value, max),
     peak: d.value !== null && d.value === max,
   }));
 }

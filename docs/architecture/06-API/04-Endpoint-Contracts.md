@@ -369,9 +369,9 @@ Win rate is deliberately absent from this shape, not a null field — it needs s
 
 The caller's Home page stat blocks (#808, D493, 2026-10-25). Read-only, backed by `v_player_visit_facts`, `v_stats_session_facts` and `v_stats_dart_facts`. Scope: completed sessions of `501` and `SCORE_TRAINING` (the games whose rulesets carry the `scoring` tag), `VISUAL_BOARD` input, any context.
 
-**Auth:** standard protected route class; the caller is `me`. Query: `tz` (required IANA name, validated; `.strict()`). The server derives the windows from the request time in `tz`; there is no `from`/`to`, so the statistics range contract (`10-Statistics/00-Overview.md` §5) does not apply. Any other parameter, a missing `tz` or an unknown zone answers `422 VALIDATION_FAILED`.
+**Auth:** standard protected route class; the caller is `me`. Query: `tz` (required IANA name, validated, offset-style strings refused; `.strict()`). The server derives the windows from the request time in `tz`; there is no `from`/`to`, so the statistics range contract (`10-Statistics/00-Overview.md` §5) does not apply. Any other parameter, a missing `tz` or an unknown zone answers `422 VALIDATION_FAILED`.
 
-Windows (all bounds on a local midnight in `tz`): current = the last 30 local days ending today, previous = the 30 days before, daily = the last 7 local days ending today, landing = the current window.
+Windows (all bounds on a local midnight in `tz`; a day whose midnight a clock change skips starts at the change): current = the last 30 local days ending today, previous = the 30 days before, daily = the last 7 local days ending today, landing = the current window.
 
 ```typescript
 const StatisticsHomeResponse = z.object({

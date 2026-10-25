@@ -49,6 +49,34 @@ describe("homeWindows", () => {
   });
 });
 
+describe("homeWindows across zones", () => {
+  it("keeps whole-hour-negative zones on local midnights across the autumn DST day", () => {
+    expect(
+      homeWindows(new Date("2026-11-01T12:00:00.000Z"), "America/New_York"),
+    ).toMatchObject({
+      today: "2026-11-01",
+      currentFrom: "2026-10-03T04:00:00.000Z",
+      to: "2026-11-02T05:00:00.000Z",
+    });
+  });
+
+  it("handles a half-hour offset", () => {
+    expect(
+      homeWindows(new Date("2026-10-25T20:00:00.000Z"), "Asia/Kolkata"),
+    ).toMatchObject({
+      today: "2026-10-26",
+      currentFrom: "2026-09-26T18:30:00.000Z",
+      to: "2026-10-26T18:30:00.000Z",
+    });
+  });
+
+  it("starts a day whose midnight does not exist at the transition instant", () => {
+    expect(
+      homeWindows(new Date("2026-09-05T15:00:00.000Z"), "America/Santiago").to,
+    ).toBe("2026-09-06T04:00:00.000Z");
+  });
+});
+
 describe("shapeHomeStats", () => {
   const windows = homeWindows(NOW, TZ);
 
