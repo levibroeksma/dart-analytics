@@ -7,7 +7,11 @@ vi.mock("@client/api/sessions", () => ({
   createSession: vi.fn(),
 }));
 
-import { fetchActiveSessions } from "@client/api/sessions";
+import {
+  appendBatch,
+  completeSession,
+  fetchActiveSessions,
+} from "@client/api/sessions";
 import {
   registerEngineFactory,
   resetEngineRegistry,
@@ -162,6 +166,46 @@ describe("baseballPlay", () => {
     expect(makeContext().subtitle()).toBe("INNING 1 OF 9");
     const empty = makeContext({ configSnapshot: null });
     expect(empty.subtitle()).toBe("");
+  });
+
+  it("abandonAndExit uploads the played darts, marks ABANDONED and leaves", async () => {
+    const locationSpy = { href: "" };
+    vi.stubGlobal("location", locationSpy);
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 1, turns: 1, darts: 2 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "ABANDONED",
+      completedAt: "now",
+    });
+    const ctx = await started();
+    await ctx.recordTap("SINGLE");
+    await ctx.recordTap("MISS");
+
+    await ctx.abandonAndExit();
+
+    expect(ctx.error).toBe("");
+    expect(appendBatch).toHaveBeenCalledTimes(1);
+    expect(completeSession).toHaveBeenCalledWith("s1", "ABANDONED");
+    expect(ctx.$store.game.reset).toHaveBeenCalled();
+    expect(locationSpy.href).toBe("/games");
+  });
+
+  it("abandonAndExit with no darts skips the batch", async () => {
+    const locationSpy = { href: "" };
+    vi.stubGlobal("location", locationSpy);
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "ABANDONED",
+      completedAt: "now",
+    });
+    const ctx = await started();
+
+    await ctx.abandonAndExit();
+
+    expect(appendBatch).not.toHaveBeenCalled();
+    expect(locationSpy.href).toBe("/games");
   });
 
   it("builds results with runs, accuracy, best inning and runs per inning", () => {
