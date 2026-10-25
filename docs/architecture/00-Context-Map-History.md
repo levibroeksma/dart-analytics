@@ -17,6 +17,8 @@ updated: 2026-10-13
 
 # Version History
 
+> **Version:** 1.190.0 (2026-10-25 — Shanghai V3 (round range presets, Score-only): D495 in `decisions/game-engine.md`; `0053_shanghai_v3_ruleset.sql` registered in `00-File-Inventory.md`; `SHANGHAI_V3` added to the seat-cap table and the `shanghai-count` `byRound` key reworded in `06-API/04-Endpoint-Contracts.md`; `01-Section-Catalog.md` Shanghai V1–V3 and `shanghai-count` note; `0053` row in `database/README.md`.)
+
 > **Version:** 1.189.0 (2026-10-24 — Cricket DartBot ladder fix: D490 in `decisions/game-engine.md`, `08-DartBot.md` 0.8.14; Cricket and Tactics Play Again gain the starter step; 501 and Bob's 27 bot throws move onto `play-bot-seat.ts` helpers; no inventory row owed.)
 
 > **Version:** 1.188.0 (2026-10-24 — Cricket DartBot: D489 in `decisions/game-engine.md`; `08-DartBot.md` 0.8.13 gains the `CRICKET_V2` coverage row, the marks-strategy paragraph, the `MarksView` contract and the opponent-mode row; `cricket.md` moves Vs DartBot to V3; `marks.strategy.module.ts` and `cricket-dartbot-seat.contract.test.ts` need no inventory row.)

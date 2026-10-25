@@ -109,7 +109,7 @@ aimed at" (D370 decision 1). The target maps to an aim key:
 | Game | `NUMBER` target | `BULL` target |
 | ---- | --------------- | ------------- |
 | Singles Training (V1–V3) | `NUMBER:n` (any ring) | `BULL:25` (either ring) |
-| Shanghai (V1/V2) | `NUMBER:n` | never reached |
+| Shanghai (V1–V3) | `NUMBER:n` | never reached |
 | Around the Clock, `segmentRule = ANY` | `NUMBER:n` | `BULL:25` |
 | Around the Clock, `segmentRule = OUTER_SINGLE` | `OUTER_SINGLE:n` | `BULL:25` |
 
@@ -190,8 +190,11 @@ and `session-result` in Shanghai's page order (decision 11).
 
 Metrics (all additive; grouped by `configGroupKey`, D370 decision 13):
 
-- **`shanghai-count`**: `{ sessions, shanghais, byRound: Record<round, count> }`
-  per bucket. `configSensitive: []` — Shanghai V1/V2 pool (Hard mode changes
+- **`shanghai-count`**: `{ sessions, shanghais, byRound: Record<number, count> }`
+  per bucket; `byRound` is keyed by the active number the Shanghai landed on,
+  which equals the round on a 1–20 session (D495). A Score-only session
+  (`instantWin` off) can never end on a Shanghai and is left out of
+  `sessions`. `configSensitive: []` — Shanghai V1–V3 pool (Hard mode changes
   scoring, not the Shanghai rule).
 - **`training-result`**: `Record<configGroupKey, { sessions, total, best }>`.
   The headline is the last fold step's `totalPoints` (Singles Training) or the
@@ -218,7 +221,7 @@ Metrics (all additive; grouped by `configGroupKey`, D370 decision 13):
 
 ## 2.2 Ruleset versions
 
-Versions that change scoring or difficulty (Singles V1–V3, Shanghai V1/V2, 121
+Versions that change scoring or difficulty (Singles V1–V3, Shanghai V1–V3, 121
 V1/V2, Around the Clock V1/V2) put `ruleset_version_key` in `configSensitive`:
 results are grouped or filtered per version, never blended. `configSensitive`
 governs **result-shaped** sections — `session-result` and `ladder-progress`,

@@ -1,6 +1,6 @@
 # Shanghai
 
-Current version: V2 (shipped 2026-08-28)
+Current version: V3 (shipped 2026-10-25)
 Entry points: standalone
 Game type: `SHANGHAI`
 Kernel: TRACK
