@@ -2,7 +2,7 @@
 /**
  * Homepage hero stat inside the `homeSnapshot()` scope: mono eyebrow,
  * display-size value, and its change over the window with the delta in
- * accent; a hidden delta keeps its line.
+ * accent; a delta with nothing to show keeps its line, hidden until the stats say otherwise.
  */
 ---
 
@@ -16,8 +16,8 @@
     x-text="hero.value"
   ></span>
   <span
-    class="text-sm text-muted"
-    :class="hero.showDelta ? '' : 'invisible'"
+    class="invisible text-sm text-muted data-shown:visible"
+    :data-shown="hero.showDelta"
   >
     <span x-text="hero.direction"></span>
     <span

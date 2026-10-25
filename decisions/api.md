@@ -393,3 +393,10 @@ Decision: Home reads its hero, daily-average and landing blocks from one route, 
 Reason: the section route is per game and bounded by the §5 range contract, so three Home blocks over two games would take several calls and a client-side merge. One summary route keeps the client to one read and the windows in one place (#808).
 Consequences: no schema or view change. The client sends its IANA `tz`; an unknown zone is `VALIDATION_FAILED`. Home's scope is fixed to `501` + `SCORE_TRAINING`. Spec: `docs/superpowers/specs/2026-10-25-home-real-stats-design.md`.
 Supersedes: none.
+
+### D494 — A statistics `tz` is a named zone; offset-style strings are refused
+Status: Accepted · Date: 2026-10-25
+Decision: `isValidTimeZone` (`pages/api/statistics/types.ts`), shared by `StatisticsRangeQuery`, the routine section query and `StatisticsHomeQuery`, rejects a `tz` that starts with an optional sign and a digit (`+01:00`, `-0500`, `1`) before the `Intl` check. Named zones such as `Etc/GMT+5` and `UTC` pass. `homeWindows` starts a local day whose midnight a clock change skips (America/Santiago, America/Havana) at the change instant.
+Reason: Node's `Intl` accepts `+01:00` as a fixed offset, while Postgres reads the same string POSIX-style with the sign flipped, so SQL day buckets and the JS windows disagreed by two hours. The skipped-midnight bound sat an hour early on those days (#1088 review).
+Consequences: a hand-made request with an offset `tz` now answers `422 VALIDATION_FAILED`; browsers send IANA names and are unaffected. No schema change.
+Supersedes: none (refines D493).

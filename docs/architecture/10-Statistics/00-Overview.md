@@ -172,7 +172,7 @@ silently ignored.
 | Param | Values | Rule |
 | ----- | ------ | ---- |
 | `from`, `to` | ISO 8601 instants | **Required.** Half-open `[from, to)` on `completed_at`. The client supplies boundaries (no server timezone, D343). |
-| `tz` | IANA zone name | Required when `bucket ≠ none`. Used only for bucket boundaries (`date_trunc(…, completed_at AT TIME ZONE tz)`). Never stored. |
+| `tz` | IANA zone name | Required when `bucket ≠ none`. Used only for bucket boundaries (`date_trunc(…, completed_at AT TIME ZONE tz)`). Never stored. Offset-style strings (`+01:00`) are refused: Postgres reads them POSIX-style with the sign flipped (D494, 2026-10-25). |
 | `bucket` | `none` \| `day` \| `week` \| `month` \| `year` | Bucketable sections only. Server caps bucket count per request (120, D367) — the estimate is span ÷ nominal unit length, rounded up, plus 1 for widening. |
 | `status` | `completed` (default) \| `abandoned` \| `all` | Constrained by the section's `includesAbandoned` (D367 decision 5): an `includesAbandoned` section accepts only `all` (its default); every other section accepts only `completed` (its default); the session list accepts and defaults to all three. Anything else is `VALIDATION_FAILED`. |
 | `context` | `all` (default for game pages) \| `standalone` \| `routine` | §8 |

@@ -65,11 +65,13 @@ function offsetMinutes(instant: Date, tz: string): number {
   return (asUtc - Math.floor(instant.getTime() / 1000) * 1000) / MINUTE_MS;
 }
 
+/** The first instant of local `date` in `tz`; a day whose midnight is skipped by a clock change starts at the change. */
 function startOfLocalDay(date: string, tz: string): Date {
   const [year, month, day] = date.split("-").map(Number);
   const guess = Date.UTC(year, month - 1, day);
   const first = guess - offsetMinutes(new Date(guess), tz) * MINUTE_MS;
-  return new Date(guess - offsetMinutes(new Date(first), tz) * MINUTE_MS);
+  const second = guess - offsetMinutes(new Date(first), tz) * MINUTE_MS;
+  return new Date(localDate(new Date(second), tz) === date ? second : first);
 }
 
 /**

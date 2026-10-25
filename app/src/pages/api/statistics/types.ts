@@ -80,7 +80,10 @@ const BUCKET_UNIT_SECONDS: Record<"day" | "week" | "month" | "year", number> = {
   year: 366 * 86400,
 };
 
+const OFFSET_STYLE_TZ = /^[+-]?\d/;
+
 function isValidTimeZone(tz: string): boolean {
+  if (OFFSET_STYLE_TZ.test(tz)) return false;
   try {
     new Intl.DateTimeFormat("en-US", { timeZone: tz });
     return true;

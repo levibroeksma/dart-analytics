@@ -160,6 +160,16 @@ describe("StatisticsRangeQuery", () => {
     expect(result.success).toBe(false);
   });
 
+  it("rejects an offset-style tz", () => {
+    const result = StatisticsRangeQuery.safeParse({
+      from: "2026-01-01T00:00:00+01:00",
+      to: "2026-09-01T00:00:00+01:00",
+      bucket: "month",
+      tz: "+01:00",
+    });
+    expect(result.success).toBe(false);
+  });
+
   it("rejects an unknown tz", () => {
     const result = StatisticsRangeQuery.safeParse({
       from: "2026-01-01T00:00:00+01:00",
@@ -1566,6 +1576,16 @@ describe("StatisticsHomeQuery", () => {
     expect(
       StatisticsHomeQuery.safeParse({ tz: "Europe/Amsterdam" }).success,
     ).toBe(true);
+  });
+
+  it("rejects offset-style zones that Postgres would read differently", () => {
+    for (const tz of ["+01:00", "-05:00", "+0100", "1"]) {
+      expect(StatisticsHomeQuery.safeParse({ tz }).success).toBe(false);
+    }
+    expect(StatisticsHomeQuery.safeParse({ tz: "Etc/GMT+5" }).success).toBe(
+      true,
+    );
+    expect(StatisticsHomeQuery.safeParse({ tz: "UTC" }).success).toBe(true);
   });
 
   it("rejects a missing, unknown or extra param", () => {
