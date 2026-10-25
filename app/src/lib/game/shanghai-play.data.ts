@@ -48,6 +48,7 @@ import {
   activeNumberOf,
   activeTargetOf,
   foldShanghaiState,
+  numberAtRound,
   roundCountOf,
   roundOf,
   zoneBucketOf,
@@ -82,7 +83,7 @@ function previewSegmentsFor(
         .length - 1
     : 0;
   return playPreviewSegments(turns, hiddenTurnKey, (dart) => {
-    const targetNumber = rangeStart + seatRoundIndex;
+    const targetNumber = numberAtRound(rangeStart, seatRoundIndex);
     return dart.hitTargetNumber === targetNumber ? "hit" : "miss";
   });
 }
@@ -110,7 +111,7 @@ function statsFor(
   let doubles = 0;
   let singles = 0;
   seatDarts.forEach((dart, index) => {
-    const targetNumber = seat.rangeStart + Math.floor(index / 3);
+    const targetNumber = numberAtRound(seat.rangeStart, Math.floor(index / 3));
     if (dart.hitTargetNumber === targetNumber) hits += 1;
     const bucket = zoneBucketOf(dart.hitZoneKey);
     if (bucket === "TREBLE") trebles += 1;

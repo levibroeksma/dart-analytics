@@ -1319,6 +1319,13 @@ describe("SHANGHAI_V3 range on the play screen", () => {
     expect(play.roundLabel.call(play)).toBe("3/8");
   });
 
+  it("marks round 1's dart on the range start a hit in a 13-20 session", async () => {
+    const play = makeV3Play(v3Config(13, 20));
+    await play.init.call(play);
+    await play.recordTap.call(play, "DOUBLE");
+    expect(play.previewSegments.call(play)[0]).toEqual({ status: "hit" });
+  });
+
   it("keeps the full-board header strings for V1", async () => {
     const play = makePlay({ turns: priorRoundsThroughNumber(6) });
     await play.init.call(play);
