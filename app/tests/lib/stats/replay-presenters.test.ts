@@ -28,6 +28,7 @@ import {
   playOneTwentyOne,
   playScoreTraining,
   playShanghai,
+  playShanghaiRange,
   playSingles,
   playTuod,
   type ScriptedGame,
@@ -512,6 +513,18 @@ describe("REPLAY_PRESENTERS", () => {
       ["miss", "miss", "miss"],
     ]);
     expect(sessionLine(game).entries[0]!.value).toBe("4");
+  });
+
+  it("marks Shanghai V3 hits on each round's number within an 11-20 range", () => {
+    const game = playShanghaiRange();
+    const cells = turnCells(game);
+
+    expect(valuesOf(cells, "Target")).toEqual(["12", "13", "14"]);
+    expect(marksOf(cells)).toEqual([
+      ["hit", "hit", "miss"],
+      ["hit", "miss", "miss"],
+      ["miss", "miss", "miss"],
+    ]);
   });
 
   it("gives an empty session line to a session with no turns", () => {

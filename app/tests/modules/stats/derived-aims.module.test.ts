@@ -179,6 +179,38 @@ describe("sessionSteps + aimedDarts — Shanghai", () => {
   });
 });
 
+describe("sessionSteps + aimedDarts — Shanghai V3 range", () => {
+  it("aims a 13-20 session's first visit at 13 and its second at 14", () => {
+    const rows = rowsFor(
+      {
+        sessionId: "session-shanghai-v3",
+        gameTypeKey: "SHANGHAI",
+        rulesetVersionKey: "SHANGHAI_V3",
+        configuration: {
+          seats: SEATS,
+          difficulty: "NORMAL",
+          range_start: 13,
+          range_end: 20,
+          instant_win: true,
+        },
+      },
+      [miss(), miss(), miss(), miss(), miss(), miss()],
+    );
+
+    const { sessions, skippedSessions } = sessionSteps(rows);
+    expect(skippedSessions).toBe(0);
+
+    expect(aimedDarts(sessions[0]!).map((d) => d.aim)).toEqual([
+      "NUMBER:13",
+      "NUMBER:13",
+      "NUMBER:13",
+      "NUMBER:14",
+      "NUMBER:14",
+      "NUMBER:14",
+    ]);
+  });
+});
+
 describe("sessionSteps + aimedDarts — Around the Clock", () => {
   it("V1: a hit on dart 1 moves dart 2's aim from NUMBER:1 to NUMBER:2 mid-visit", () => {
     const rows = rowsFor(
