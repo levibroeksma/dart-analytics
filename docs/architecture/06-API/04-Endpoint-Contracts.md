@@ -111,6 +111,7 @@ Sessions are created with a ruleset and a configuration source. The configuratio
   | `AROUND_THE_CLOCK_V1`    | 2        |
   | `TUOD_V1`                | 2        |
   | `SHANGHAI_V1`            | 2        |
+  | `SHANGHAI_V3`            | 2        |
   | `SCORE_TRAINING_V1`      | 2        |
   | `SINGLES_V1`             | 2        |
   | `DOUBLES_TRAINING_V1`    | 2        |
@@ -731,7 +732,7 @@ const Bobs27SurvivalMetrics = GroupRecord(
 const ShanghaiCountMetrics = z.object({
   sessions: z.number().int(),
   shanghais: z.number().int(),
-  byRound: ValueRecord(z.number().int()), // key: 1-based round number
+  byRound: ValueRecord(z.number().int()), // key: the active number the Shanghai landed on
 });
 ```
 
@@ -741,7 +742,7 @@ const ShanghaiCountMetrics = z.object({
 "difficulty", "segment_rule"]`); `bobs27-survival` to Bob's 27
 (`configSensitive: ["ruleset_version_key", "start_score",
 "miss_penalty_multiplier", "bull_hit_value"]`); `shanghai-count` to Shanghai
-(no `configSensitive` — V1/V2 pool); `training-result` to Singles and Doubles
+(no `configSensitive` — V1–V3 pool; Score-only sessions are skipped); `training-result` to Singles and Doubles
 Training (`configSensitive: ["ruleset_version_key", "difficulty",
 "scoring_mode"]`, metrics `GroupRecord<{ sessions, total, best }>`, D396). All four are `server`-site, bucketable,
 and gated by `MAX_FOLD_DARTS` the same way as the phase-3 folds.
