@@ -157,6 +157,9 @@ export type ShanghaiSeatState = SeatState & {
   totalScore: number;
   dartsThisVisit: (DartZoneKey | null)[];
   status: "IN_PROGRESS" | "SHANGHAI" | "COMPLETE";
+  rangeStart: number;
+  rangeEnd: number;
+  instantWin: boolean;
 };
 
 export type ShanghaiState = MultiSeatState<ShanghaiSeatState> & {
@@ -168,6 +171,9 @@ export type ShanghaiState = MultiSeatState<ShanghaiSeatState> & {
 export type ShanghaiTrackExt = {
   zones: (DartZoneKey | null)[];
   shanghai: boolean;
+  rangeStart: number;
+  rangeEnd: number;
+  instantWin: boolean;
 };
 
 /**
