@@ -7,12 +7,13 @@ import SettingLabel from "./SettingLabel.astro";
 import Toggle from "./Toggle.astro";
 import UserSection from "./UserSection.astro";
 import { supportsDartbot } from "@lib/game/rulesets/capabilities";
+import { SHANGHAI_RANGES } from "@lib/game/shanghai-setup.data";
 
 // Data
 const infoSection = {
   title: "Shanghai rules",
   description:
-    "Twenty rounds, three darts each: round 1 targets the number 1, round 2 targets 2, and so on through 20. Only hits on the round's own number score — single is face value, double is 2x, treble is 3x. Anything else scores 0. Hit single, double and treble of the round's number in one visit, in any order, for a Shanghai — an instant win. Otherwise the session ends after round 20 with your total score.",
+    "One round per number in the range you pick (1–20 by default), three darts each: the first round targets the range's first number, the next the one after, and so on. Only hits on the round's own number score — single is face value, double is 2x, treble is 3x. Anything else scores 0. Hit single, double and treble of the round's number in one visit, in any order, for a Shanghai — an instant win. Otherwise the session ends after the last round with your total score. With Score-only, a Shanghai is just a big visit and the highest total after the last round wins.",
 };
 
 const difficultyOpts = [
@@ -20,31 +21,70 @@ const difficultyOpts = [
   { value: "HARD", label: "Hard" },
 ];
 
+const rangeOpts = SHANGHAI_RANGES.map(({ value, label }) => ({
+  value,
+  label,
+}));
+
+const winRuleOpts = [
+  { value: "INSTANT", label: "Shanghai wins" },
+  { value: "SCORE_ONLY", label: "Score only" },
+];
+
 const hints = {
   NORMAL: "Aim for the highest score or win with a Shanghai.",
   HARD: "Just like normal, but miss a target completely and your score is halved",
+  RANGE: "Play only these numbers, one round each.",
+  INSTANT:
+    "Single, double and treble of the target number in one visit wins at once.",
+  SCORE_ONLY: "No instant win — the highest total after the last round wins.",
 };
+
+const settings = [
+  {
+    label: "DIFFICULTY",
+    model: "difficulty",
+    options: difficultyOpts,
+    hint: `difficulty === 'HARD' ? '${hints.HARD}' : '${hints.NORMAL}'`,
+  },
+  {
+    label: "ROUNDS",
+    model: "range",
+    options: rangeOpts,
+    hint: `'${hints.RANGE}'`,
+  },
+  {
+    label: "WIN RULE",
+    model: "winRule",
+    options: winRuleOpts,
+    hint: `winRule === 'SCORE_ONLY' ? '${hints.SCORE_ONLY}' : '${hints.INSTANT}'`,
+  },
+];
 ---
 
 <SetupShell title="Shanghai">
   <UserSection
     allowGuests
-    allowDartbot={supportsDartbot("SHANGHAI_V2")}
+    allowDartbot={supportsDartbot("SHANGHAI_V3")}
   />
   <InfoSection
     title={infoSection.title}
     description={infoSection.description}
   />
   <SettingSectionShell>
-    <div class="flex flex-col gap-2">
-      <SettingLabel text="DIFFICULTY" />
-      <Toggle
-        orientation="horizontal"
-        options={difficultyOpts}
-        x-model="difficulty"
-        hint={`difficulty === 'HARD' ? '${hints.HARD}' : '${hints.NORMAL}'`}
-        class="w-full"
-      />
-    </div>
+    {
+      settings.map((setting) => (
+        <div class="flex flex-col gap-2">
+          <SettingLabel text={setting.label} />
+          <Toggle
+            orientation="horizontal"
+            options={setting.options}
+            x-model={setting.model}
+            hint={setting.hint}
+            class="w-full"
+          />
+        </div>
+      ))
+    }
   </SettingSectionShell>
 </SetupShell>

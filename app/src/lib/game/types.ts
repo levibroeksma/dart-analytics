@@ -1208,6 +1208,8 @@ export type DoublesTrainingSetupContext = PresetSetupContext & {
 
 export type ShanghaiSetupContext = PresetSetupContext & {
   difficulty: "NORMAL" | "HARD";
+  range: "1-20" | "1-10" | "1-7" | "11-20" | "13-20";
+  winRule: "INSTANT" | "SCORE_ONLY";
 };
 
 /**
