@@ -10,6 +10,8 @@ import {
   findIntentMoments,
   findMissSectors,
   findHeatmapCells,
+  findHomeScoring,
+  findHomeHeatmapCells,
   findScopeDartCount,
   findX01FoldRows,
   findDartFoldRows,
@@ -3266,5 +3268,62 @@ describe("intent queries skip zone-only intents", () => {
     expect(onlyStatement(statements)).toContain(
       '"intended_target_number" is not null',
     );
+  });
+});
+
+const homeScope = {
+  playerId: "p1",
+  gameTypeKeys: ["501", "SCORE_TRAINING"] as ("501" | "SCORE_TRAINING")[],
+  from: "2026-08-26T22:00:00.000Z",
+  to: "2026-10-25T23:00:00.000Z",
+};
+
+describe("findHomeScoring", () => {
+  const bands = [100, 140, 180] as const;
+
+  it("scopes to completed board sessions of the listed game types", async () => {
+    const { db, statements } = renderingDb([]);
+    await findHomeScoring(db, { ...homeScope, tz: "Europe/Amsterdam", bands });
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('"v_player_visit_facts"');
+    expect(sql).toContain('"v_stats_session_facts"');
+    expect(sql).toMatch(/"game_type_key" in \(/i);
+    const params = statements[0].params;
+    expect(params).toEqual(
+      expect.arrayContaining([
+        "p1",
+        "501",
+        "SCORE_TRAINING",
+        "COMPLETED",
+        "VISUAL_BOARD",
+      ]),
+    );
+  });
+
+  it("buckets by local day with the tz as a literal, not a bind param", async () => {
+    const { db, statements } = renderingDb([]);
+    await findHomeScoring(db, { ...homeScope, tz: "Europe/Amsterdam", bands });
+    expectLiteralTzGroupBy(onlyStatement(statements), "day");
+  });
+});
+
+describe("findHomeHeatmapCells", () => {
+  it("reads located darts of the listed game types from v_stats_dart_facts", async () => {
+    const { db, statements } = renderingDb([]);
+    await findHomeHeatmapCells(db, { ...homeScope, cellMm: 4 });
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('"v_stats_dart_facts"');
+    expect(sql).toMatch(/"game_type_key" in \(/i);
+    expect(sql).toMatch(/"location_x" is not null/i);
+    expect(sql).toMatch(/"location_y" is not null/i);
+    expect(statements[0].params).toEqual(
+      expect.arrayContaining(["p1", "501", "SCORE_TRAINING", "COMPLETED"]),
+    );
+  });
+
+  it("maps rows to numeric cells", async () => {
+    const { db } = renderingDb([[-1, -26, "30"]]);
+    const cells = await findHomeHeatmapCells(db, { ...homeScope, cellMm: 4 });
+    expect(cells).toEqual([{ ix: -1, iy: -26, darts: 30 }]);
   });
 });

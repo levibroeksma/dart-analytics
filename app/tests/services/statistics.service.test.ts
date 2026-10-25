@@ -3,6 +3,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 vi.mock("@db/client", () => ({ getDb: vi.fn(() => ({})) }));
 vi.mock("@repositories/statistics.repository", () => ({
   findSessionSummaries: vi.fn(),
+  findHomeScoring: vi.fn(),
+  findHomeHeatmapCells: vi.fn(),
   findVisitFacts: vi.fn(),
   findLegFacts: vi.fn(),
   findX01CheckoutDarts: vi.fn(),
@@ -39,6 +41,7 @@ vi.mock("@repositories/statistics.repository", () => ({
 import * as repo from "@repositories/statistics.repository";
 import {
   getStatisticsOverview,
+  getHomeStats,
   listGameSessions,
   getGameSection,
   getSessionReplay,
@@ -3202,5 +3205,48 @@ describe("listRoutineStepSessions", () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.data.nextCursor).toBeNull();
+  });
+});
+
+describe("getHomeStats", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("reads the 60-day scoring window and the 30-day heatmap in the caller's tz", async () => {
+    vi.mocked(repo.findHomeScoring).mockResolvedValue([]);
+    vi.mocked(repo.findHomeHeatmapCells).mockResolvedValue([
+      { ix: 0, iy: 0, darts: 2 },
+    ]);
+
+    const result = await getHomeStats("player-1", {
+      tz: "Europe/Amsterdam",
+      now: new Date("2026-10-25T10:00:00.000Z"),
+    });
+
+    expect(repo.findHomeScoring).toHaveBeenCalledWith(
+      {},
+      {
+        playerId: "player-1",
+        gameTypeKeys: ["501", "SCORE_TRAINING"],
+        from: "2026-08-26T22:00:00.000Z",
+        to: "2026-10-25T23:00:00.000Z",
+        tz: "Europe/Amsterdam",
+        bands: SCORE_BANDS,
+      },
+    );
+    expect(repo.findHomeHeatmapCells).toHaveBeenCalledWith(
+      {},
+      {
+        playerId: "player-1",
+        gameTypeKeys: ["501", "SCORE_TRAINING"],
+        from: "2026-09-25T22:00:00.000Z",
+        to: "2026-10-25T23:00:00.000Z",
+        cellMm: 4,
+      },
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.landing.cells).toEqual([[0, 0, 2]]);
+      expect(result.data.daily).toHaveLength(7);
+    }
   });
 });

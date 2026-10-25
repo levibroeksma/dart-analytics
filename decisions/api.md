@@ -386,3 +386,10 @@ Decision: `StepMetricSpec.metrics` gains a `"min"` merge and `direction` gains `
 Reason: the rules document names a falling rounds count on a finished run as success; a `max` headline of 21 on both of two finished days hid the improvement, and an unfinished run's rounds polluted the sum (#1057).
 Consequences: replay cells show "—" for an absent headline. Metrics that never carry `"min"` behave as before.
 Supersedes: none.
+
+### D493 — `GET /api/statistics/home`: one fixed-window endpoint for the Home stat blocks
+Status: Accepted · Date: 2026-10-25
+Decision: Home reads its hero, daily-average and landing blocks from one route, `GET /api/statistics/home?tz=`. The server derives the windows (last 30 local days, the 30 before, the last 7) from the request time in `tz`; the route takes no `from`/`to`. It reads completed `501` and `SCORE_TRAINING` `VISUAL_BOARD` sessions in any context. `findHomeScoring` reads one 60-day `bucket: "day"` scoring row set and the service folds it into the windows; `findHomeHeatmapCells` reads located darts. `findVisitScoring`'s body moves unchanged into a private `selectVisitScoring(db, where, q)` that both readers call.
+Reason: the section route is per game and bounded by the §5 range contract, so three Home blocks over two games would take several calls and a client-side merge. One summary route keeps the client to one read and the windows in one place (#808).
+Consequences: no schema or view change. The client sends its IANA `tz`; an unknown zone is `VALIDATION_FAILED`. Home's scope is fixed to `501` + `SCORE_TRAINING`. Spec: `docs/superpowers/specs/2026-10-25-home-real-stats-design.md`.
+Supersedes: none.

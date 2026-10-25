@@ -33,6 +33,37 @@ export type StatisticsOverviewResponseData = z.infer<
   typeof StatisticsOverviewResponse
 >;
 
+export const StatisticsHomeQuery = z
+  .object({
+    tz: z.string().refine(isValidTimeZone, "tz must be a valid IANA time zone"),
+  })
+  .strict();
+
+export const StatisticsHomeResponse = z.object({
+  firstNine: z.object({
+    current: z.number().nullable(),
+    previous: z.number().nullable(),
+    delta: z.number().nullable(),
+  }),
+  daily: z
+    .array(
+      z.object({
+        date: z.string(),
+        weekday: z.number().int().min(1).max(7),
+        value: z.number().nullable(),
+      }),
+    )
+    .length(7),
+  landing: z.object({
+    cellMm: z.number(),
+    cells: z.array(
+      z.tuple([z.number().int(), z.number().int(), z.number().int()]),
+    ),
+  }),
+});
+
+export type StatisticsHomeResponseData = z.infer<typeof StatisticsHomeResponse>;
+
 /**
  * Every `bucket ≠ none` request is capped at `MAX_BUCKETS` estimated buckets
  * (`10-Statistics/00-Overview.md` §5, D367). The estimate is span ÷ nominal

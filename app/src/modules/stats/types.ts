@@ -575,6 +575,39 @@ export type HeatmapMetrics = {
   cells: [number, number, number][];
 };
 
+/** The local-day windows `GET /api/statistics/home` reads, in the caller's time zone. */
+export type HomeWindows = {
+  today: string;
+  currentStartDate: string;
+  previousStartDate: string;
+  dailyStartDate: string;
+  currentFrom: string;
+  previousFrom: string;
+  to: string;
+};
+
+/** One day of the Home daily-average card: ISO weekday 1 (Mon) to 7 (Sun), `null` with no darts. */
+export type HomeDay = { date: string; weekday: number; value: number | null };
+
+/** The `GET /api/statistics/home` payload. */
+export type HomeStats = {
+  firstNine: {
+    current: number | null;
+    previous: number | null;
+    delta: number | null;
+  };
+  daily: HomeDay[];
+  landing: { cellMm: number; cells: [number, number, number][] };
+};
+
+/** The shared filter of the Home readers: one player, several game types, completed board sessions in `[from, to)`. */
+export type HomeScope = {
+  playerId: string;
+  gameTypeKeys: GameTypeKey[];
+  from: string;
+  to: string;
+};
+
 /** One density stamp for the heatmap canvas: centre, radius and peak alpha as fractions of the canvas size / of the busiest cell. */
 export type HeatStamp = {
   x: number;

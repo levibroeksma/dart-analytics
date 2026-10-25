@@ -2,6 +2,8 @@
 
 **Date:** 2026-10-07 · **Status:** implemented · **Branch:** `feat/home-redesign` · **Decision:** D425 (`decisions/frontend/style.md`)
 
+> 2026-10-25: the hero, daily-average and landing fixtures are replaced by real data; see `2026-10-25-home-real-stats-design.md`.
+
 Source design: Claude Design project `cdea52ee-4746-4efb-b646-81448a40c033`,
 `Darts Home.dc.html`, options 2a (game in progress), 2b (training done),
 2c (no game).

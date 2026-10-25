@@ -1,6 +1,10 @@
 import { sql } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
-import { findVisitScoring } from "@repositories/statistics.repository";
+import {
+  findHomeHeatmapCells,
+  findHomeScoring,
+  findVisitScoring,
+} from "@repositories/statistics.repository";
 import { inRolledBackTx, uuid } from "./fixtures/itest-db";
 
 if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is required");
@@ -18,6 +22,8 @@ type SessionSeed = {
   stageType: string;
   ownerScores: number[];
   guestScores: number[];
+  status?: string;
+  located?: boolean;
 };
 
 /**
@@ -39,7 +45,7 @@ async function seedSession(db: Db, s: SessionSeed) {
       rv.game_type_id,
       (SELECT id FROM capture_modes WHERE implementation_key = 'ANALYTICS'),
       (SELECT id FROM input_modes WHERE implementation_key = 'VISUAL_BOARD'),
-      (SELECT id FROM game_statuses WHERE implementation_key = 'COMPLETED'),
+      (SELECT id FROM game_statuses WHERE implementation_key = ${s.status ?? "COMPLETED"}),
       rv.id, now() - interval '1 hour', now(), now()
     FROM ruleset_versions rv WHERE rv.implementation_key = ${s.ruleset}`);
   await db.execute(sql`
@@ -70,9 +76,10 @@ async function seedSession(db: Db, s: SessionSeed) {
       INSERT INTO turns (id, exercise_stage_id, participant_id, sequence_number, total_score, completed_at, created_at)
       VALUES (${turn}::uuid, ${stage}::uuid, ${t.seat}::uuid, ${t.seq}, ${t.score}, now(), now())`);
     await db.execute(sql`
-      INSERT INTO darts (id, turn_id, dart_number, hit_target_number, hit_zone_id, score, created_at)
+      INSERT INTO darts (id, turn_id, dart_number, hit_target_number, hit_zone_id, score, location_x, location_y, created_at)
       VALUES (${uuid(s.base + 0x200 + i)}::uuid, ${turn}::uuid, 1, 20,
-        (SELECT id FROM dart_zones WHERE implementation_key = 'TREBLE'), ${t.score}, now())`);
+        (SELECT id FROM dart_zones WHERE implementation_key = 'TREBLE'), ${t.score},
+        ${s.located ? 1 : null}, ${s.located ? -26 : null}, now())`);
   }
 }
 
@@ -140,5 +147,71 @@ describe("findVisitScoring first nine (#697)", () => {
       firstNinePoints: 18,
       firstNineDarts: 3,
     });
+  });
+});
+
+describe("Home readers (#808)", () => {
+  const scope = {
+    playerId: OWNER,
+    gameTypeKeys: ["501", "SCORE_TRAINING"] as ("501" | "SCORE_TRAINING")[],
+    ...RANGE,
+  };
+
+  async function seedHome(db: Db) {
+    await seedWorld(db);
+    await seedSession(db, {
+      base: 0x80810,
+      ruleset: "501_V1",
+      stageType: "LEG",
+      ownerScores: [10, 20, 30, 40],
+      guestScores: [100, 100, 100, 100],
+      located: true,
+    });
+    await seedSession(db, {
+      base: 0x80820,
+      ruleset: "SCORE_TRAINING_V1",
+      stageType: "EXERCISE_BLOCK",
+      ownerScores: [5, 6, 7, 8],
+      guestScores: [90, 90, 90, 90],
+      located: true,
+    });
+    await seedSession(db, {
+      base: 0x80830,
+      ruleset: "CRICKET_V1",
+      stageType: "LEG",
+      ownerScores: [50, 50, 50, 50],
+      guestScores: [50, 50, 50, 50],
+      located: true,
+    });
+    await seedSession(db, {
+      base: 0x80840,
+      ruleset: "501_V1",
+      stageType: "LEG",
+      ownerScores: [60, 60, 60, 60],
+      guestScores: [60, 60, 60, 60],
+      status: "ABANDONED",
+      located: true,
+    });
+  }
+
+  it("folds 501 and Score Training into one local-day row, excluding Cricket and abandoned", async () => {
+    const rows = await inRolledBackTx(async (db: Db) => {
+      await seedHome(db);
+      return findHomeScoring(db, {
+        ...scope,
+        tz: "Europe/Amsterdam",
+        bands: BANDS,
+      });
+    });
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ points: 126, firstNinePoints: 78 });
+  });
+
+  it("counts located darts of in-scope sessions only", async () => {
+    const cells = await inRolledBackTx(async (db: Db) => {
+      await seedHome(db);
+      return findHomeHeatmapCells(db, { ...scope, cellMm: 4 });
+    });
+    expect(cells).toEqual([{ ix: 0, iy: -7, darts: 8 }]);
   });
 });

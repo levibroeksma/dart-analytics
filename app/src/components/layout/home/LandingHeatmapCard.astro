@@ -1,14 +1,19 @@
 ---
 /**
  * Homepage "Where you land" card inside the `homeSnapshot()` scope: the
- * density heatmap board fed `landing.stamps`, with the window label.
+ * density heatmap board fed `landing.stamps`, with the window label;
+ * hidden until the stats load and have data.
  */
 
 // Components
 import StatsDensityHeatmap from "@components/ui/StatsDensityHeatmap.astro";
 ---
 
-<section class="glass flex flex-col gap-1.5 rounded-2xl px-3.5 pt-3.5 pb-1.5">
+<section
+  class="glass flex flex-col gap-1.5 rounded-2xl px-3.5 pt-3.5 pb-1.5"
+  x-show="landing.stamps.length > 0"
+  x-cloak
+>
   <div class="flex items-baseline justify-between">
     <h2 class="font-display text-card-title">Where you land</h2>
     <span

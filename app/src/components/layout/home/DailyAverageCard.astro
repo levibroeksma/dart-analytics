@@ -2,11 +2,16 @@
 /**
  * Homepage daily-average card inside the `homeSnapshot()` scope: seven
  * CSS bars sized by `bars[].height`, every peak day in full accent, the
- * rest in muted accent, with the peak value in the header.
+ * rest in muted accent, with the peak value in the header; hidden until
+ * the stats load and have data.
  */
 ---
 
-<section class="glass flex flex-col gap-3.5 rounded-2xl p-4">
+<section
+  class="glass flex flex-col gap-3.5 rounded-2xl p-4"
+  x-show="peak !== '—'"
+  x-cloak
+>
   <div class="flex items-baseline justify-between">
     <h2 class="font-display text-card-title">Daily average</h2>
     <span

@@ -201,10 +201,10 @@ that split (2026-09-19, closes issue #423).
 
 | Component | Purpose | Key props |
 | --------- | ------- | --------- |
-| `HomeHero.astro` | Homepage hero stat: mono eyebrow, `font-display text-7xl` value, "Up <delta> in the <window>" with the delta in accent (2026-10-07) | none — reads `homeSnapshot()` from the parent scope |
+| `HomeHero.astro` | Homepage hero stat: mono eyebrow, `font-display text-7xl` value, "<Up|Down> <delta> in the <window>" with the delta in accent; the line is `invisible` (keeps its space) when there is no change to show (2026-10-07; data-driven 2026-10-25) | none — reads `homeSnapshot()` from the parent scope |
 | `CareerTiles.astro` | Three-column grid of `glass` tiles: mono key, display value, muted hint; values from `GET /api/statistics/overview` via `homeSnapshot().init()`, dashes until loaded (2026-10-07; wired 2026-10-09) | none — reads `homeSnapshot()` from the parent scope |
-| `DailyAverageCard.astro` | `glass` card of seven CSS bars sized by `bars[].height`, peak days in `bg-accent`, others `bg-accent/35`, `PEAK` value in the header; no Chart.js (2026-10-07) | none — reads `homeSnapshot()` from the parent scope |
-| `LandingHeatmapCard.astro` | "Where you land" `glass` card around `StatsDensityHeatmap` fed `landing.stamps`, board in the `dartboard-accent` tone (2026-10-07) | none — reads `homeSnapshot()` from the parent scope |
+| `DailyAverageCard.astro` | `glass` card of seven CSS bars sized by `bars[].height`, peak days in `bg-accent`, others `bg-accent/35`, `PEAK` value in the header; no Chart.js; hidden (`x-show`/`x-cloak`) until the stats load and have a measured day (2026-10-07; 2026-10-25) | none — reads `homeSnapshot()` from the parent scope |
+| `LandingHeatmapCard.astro` | "Where you land" `glass` card around `StatsDensityHeatmap` fed `landing.stamps`, board in the `dartboard-accent` tone; hidden (`x-show`/`x-cloak`) until `landing.stamps` is non-empty (2026-10-07; 2026-10-25) | none — reads `homeSnapshot()` from the parent scope |
 
 ## `components/layout/sessions/`
 

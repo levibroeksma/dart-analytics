@@ -33,6 +33,7 @@ import type {
   DartScope,
   DartZoneKey,
   HeatmapCellRow,
+  HomeScope,
   HitNumberCellRow,
   IntentCellRow,
   IntentMomentRow,
@@ -582,23 +583,19 @@ function mapVisitScoringRow(row: {
   };
 }
 
-/**
- * Additive turn-score sums for `scoring-trend` over `v_player_visit_facts`
- * joined to `v_stats_session_facts` under `sessionScopeWhere` (phase-3
- * decision 10). `bands` are the three `SCORE_BANDS` edges, bound as
- * parameters so no band edge ever reaches SQL as a literal. First-nine sums
- * take the owner's first three visits of each LEG or EXERCISE_BLOCK stage,
- * ranked by turn_sequence.
- */
-export async function findVisitScoring(
+type VisitScoringQuery = {
+  from: string;
+  to: string;
+  bucket: Bucket;
+  tz: string | undefined;
+  bands: readonly [number, number, number];
+};
+
+async function selectVisitScoring(
   db: Db,
-  q: SessionScope & {
-    bucket: Bucket;
-    tz: string | undefined;
-    bands: readonly [number, number, number];
-  },
+  whereClause: SQL | undefined,
+  q: VisitScoringQuery,
 ): Promise<VisitScoringRow[]> {
-  const whereClause = sessionScopeWhere(q);
   const scoped = db
     .select({
       completedAt: vStatsSessionFacts.completedAt,
@@ -662,6 +659,25 @@ export async function findVisitScoring(
     .from(scoped)
     .groupBy(bucketStartExpr, bucketEndExpr);
   return rows.map(mapVisitScoringRow);
+}
+
+/**
+ * Additive turn-score sums for `scoring-trend` over `v_player_visit_facts`
+ * joined to `v_stats_session_facts` under `sessionScopeWhere` (phase-3
+ * decision 10). `bands` are the three `SCORE_BANDS` edges, bound as
+ * parameters so no band edge ever reaches SQL as a literal. First-nine sums
+ * take the owner's first three visits of each LEG or EXERCISE_BLOCK stage,
+ * ranked by turn_sequence.
+ */
+export async function findVisitScoring(
+  db: Db,
+  q: SessionScope & {
+    bucket: Bucket;
+    tz: string | undefined;
+    bands: readonly [number, number, number];
+  },
+): Promise<VisitScoringRow[]> {
+  return selectVisitScoring(db, sessionScopeWhere(q), q);
 }
 
 function mapHitNumberCellRow(row: {
@@ -1004,6 +1020,76 @@ export async function findHeatmapCells(
     })
     .from(vStatsDartFacts)
     .where(and(...conditions))
+    .groupBy(sql`1`, sql`2`);
+
+  return rows.map((row) => ({
+    ix: Number(nonNull(row.ix, "ix")),
+    iy: Number(nonNull(row.iy, "iy")),
+    darts: Number(nonNull(row.darts, "darts")),
+  }));
+}
+
+function homeSessionWhere(scope: HomeScope) {
+  return and(
+    eq(vStatsSessionFacts.playerId, scope.playerId),
+    inArray(vStatsSessionFacts.gameTypeKey, scope.gameTypeKeys),
+    gte(vStatsSessionFacts.completedAt, scope.from),
+    lt(vStatsSessionFacts.completedAt, scope.to),
+    eq(vStatsSessionFacts.statusKey, "COMPLETED"),
+    eq(vStatsSessionFacts.inputModeKey, "VISUAL_BOARD"),
+  );
+}
+
+/**
+ * Day-bucketed visit-scoring sums for the Home page over the completed board
+ * sessions of `scope.gameTypeKeys`; rows are the same shape as
+ * `findVisitScoring`'s.
+ */
+export async function findHomeScoring(
+  db: Db,
+  q: HomeScope & {
+    tz: string;
+    bands: readonly [number, number, number];
+  },
+): Promise<VisitScoringRow[]> {
+  return selectVisitScoring(db, homeSessionWhere(q), {
+    from: q.from,
+    to: q.to,
+    bucket: "day",
+    tz: q.tz,
+    bands: q.bands,
+  });
+}
+
+/**
+ * Located-dart counts per `cellMm` grid cell for the Home landing heatmap,
+ * over the completed darts of `scope.gameTypeKeys`.
+ */
+export async function findHomeHeatmapCells(
+  db: Db,
+  q: HomeScope & { cellMm: number },
+): Promise<HeatmapCellRow[]> {
+  const ixExpr = sql<number>`FLOOR(${vStatsDartFacts.locationX} / ${q.cellMm})::integer`;
+  const iyExpr = sql<number>`FLOOR(${vStatsDartFacts.locationY} / ${q.cellMm})::integer`;
+
+  const rows = await db
+    .select({
+      ix: ixExpr,
+      iy: iyExpr,
+      darts: sql<number>`count(*)::integer`,
+    })
+    .from(vStatsDartFacts)
+    .where(
+      and(
+        eq(vStatsDartFacts.playerId, q.playerId),
+        inArray(vStatsDartFacts.gameTypeKey, q.gameTypeKeys),
+        gte(vStatsDartFacts.completedAt, q.from),
+        lt(vStatsDartFacts.completedAt, q.to),
+        eq(vStatsDartFacts.statusKey, "COMPLETED"),
+        isNotNull(vStatsDartFacts.locationX),
+        isNotNull(vStatsDartFacts.locationY),
+      ),
+    )
     .groupBy(sql`1`, sql`2`);
 
   return rows.map((row) => ({
