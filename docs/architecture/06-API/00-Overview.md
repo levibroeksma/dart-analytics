@@ -109,6 +109,7 @@ Lists configuration presets (system + the caller's own) for a game type; backed 
 ### Statistics
 
 - `GET /api/statistics/overview` <!-- 2026-09-06 -->
+- `GET /api/statistics/home` <!-- 2026-10-25, D493 -->
 - `GET /api/statistics/games/:gameTypeKey/sessions` <!-- 2026-09-26, D367 -->
 - `GET /api/statistics/games/:gameTypeKey/sections/:sectionId` <!-- 2026-09-26, D367 -->
 - `GET /api/statistics/sessions/:sessionId/replay` <!-- 2026-09-28, D371 -->

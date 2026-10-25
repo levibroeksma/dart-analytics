@@ -1,6 +1,6 @@
 # Home real stats — design
 
-**Date:** 2026-10-25 · **Status:** draft · **Branch:** `feat/home-real-stats` · **Issue:** #808
+**Date:** 2026-10-25 · **Status:** implemented · **Branch:** `feat/home-real-stats` · **Issue:** #808
 
 Supersedes the data-pass notes in `2026-10-07-home-redesign-design.md`
 (units 1 and Out-of-scope). Decision: D493 (provisional; re-derive before the PR)
