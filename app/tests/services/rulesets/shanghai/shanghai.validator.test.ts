@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   shanghaiValidator,
   shanghaiV2Validator,
+  shanghaiV3Validator,
 } from "@services/rulesets/shanghai/shanghai.validator";
 import type { DartFactInput } from "@routes/types";
 
@@ -262,5 +263,33 @@ describe("shanghaiV2Validator.validateConfig", () => {
       inputModeKey: "VISUAL_BOARD",
     });
     expect(result.valid).toBe(true);
+  });
+});
+
+describe("shanghaiV3Validator.validateConfig", () => {
+  const v3 = {
+    difficulty: "NORMAL",
+    rangeStart: 13,
+    rangeEnd: 20,
+    instantWin: false,
+  };
+  const validate = (config: unknown) =>
+    shanghaiV3Validator.validateConfig({
+      config,
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "DETAILED_DARTS",
+    });
+
+  it("accepts a ranged, score-only config", () => {
+    expect(validate(v3).valid).toBe(true);
+  });
+
+  it.each([
+    ["a V2-shaped config", { difficulty: "NORMAL" }],
+    ["an inverted range", { ...v3, rangeStart: 14, rangeEnd: 13 }],
+    ["an out-of-range end", { ...v3, rangeEnd: 21 }],
+    ["an unrecognized key", { ...v3, rounds: 7 }],
+  ])("rejects %s", (_name, config) => {
+    expect(validate(config).valid).toBe(false);
   });
 });

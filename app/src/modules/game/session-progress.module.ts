@@ -21,7 +21,12 @@ import { foldSinglesTrainingState } from "@modules/game/singles-training.engine.
 import { foldDoublesTrainingState } from "@modules/game/doubles-training.engine.module";
 import { foldBobs27State } from "@modules/game/bobs27.engine.module";
 import { foldTuodState } from "@modules/game/tuod.engine.module";
-import { foldShanghaiState } from "@modules/game/shanghai.engine.module";
+import {
+  activeNumberOf,
+  foldShanghaiState,
+  roundCountOf,
+  roundOf,
+} from "@modules/game/shanghai.engine.module";
 import {
   BASEBALL_INNINGS,
   foldBaseballState,
@@ -57,9 +62,6 @@ import type {
 } from "@lib/types";
 
 type Summarizer = (config: never, facts: EngineFacts) => SessionProgress;
-
-/** Shanghai is played over numbers 1–20, one round each. */
-const SHANGHAI_ROUNDS = 20;
 
 /** A fact log with nothing recorded — the server's view of a session it has not replayed. */
 export const EMPTY_FACTS: EngineFacts = { stages: [], turns: [] };
@@ -259,10 +261,10 @@ function shanghai(
   facts: EngineFacts,
 ): SessionProgress {
   const seat = activeOf(foldShanghaiState(facts, config));
-  const round = Math.min((seat?.targetIndex ?? 0) + 1, SHANGHAI_ROUNDS);
+  if (!seat) return { detail: "", big: null };
   return {
-    detail: `Round ${round} of ${SHANGHAI_ROUNDS}`,
-    big: big(labelAt(numbersPath(), seat?.targetIndex), "TARGET"),
+    detail: `Round ${Math.min(roundOf(seat), roundCountOf(seat))} of ${roundCountOf(seat)}`,
+    big: big(activeNumberOf(seat), "TARGET"),
   };
 }
 
@@ -305,6 +307,7 @@ const SUMMARIZERS: Readonly<Record<string, Summarizer>> = {
   TUOD_V1: tuod,
   SHANGHAI_V1: shanghai,
   SHANGHAI_V2: shanghai,
+  SHANGHAI_V3: shanghai,
   AROUND_THE_CLOCK_V1: aroundTheClock,
   AROUND_THE_CLOCK_V2: aroundTheClock,
   AROUND_THE_CLOCK_V3: aroundTheClock,

@@ -20,12 +20,14 @@ import {
 import {
   shanghaiEngineFactory,
   shanghaiV2EngineFactory,
+  shanghaiV3EngineFactory,
 } from "@modules/game/shanghai.engine.module";
 import { shanghaiPlay } from "@lib/game/shanghai-play.data";
 import { BOT_PACING } from "@lib/game/play-bot-seat";
 import type {
   ShanghaiSnapshot,
   ShanghaiV2Snapshot,
+  ShanghaiV3Snapshot,
   Seated,
   SeatFact,
   ShanghaiPlayContext,
@@ -156,6 +158,7 @@ beforeEach(() => {
   resetEngineRegistry();
   registerEngineFactory(shanghaiEngineFactory);
   registerEngineFactory(shanghaiV2EngineFactory);
+  registerEngineFactory(shanghaiV3EngineFactory);
   vi.mocked(fetchActiveSessions).mockResolvedValue([{ ...ACTIVE_SESSION }]);
 });
 
@@ -182,6 +185,26 @@ describe("init", () => {
     await play.init.call(play);
     expect(play.hasActiveSession).toBe(true);
     expect(play.engine).not.toBeNull();
+  });
+
+  it("resumes a SHANGHAI_V3 session over its configured range", async () => {
+    const v3Config: Seated<ShanghaiV3Snapshot> = {
+      seats: SEATS,
+      difficulty: "NORMAL",
+      rangeStart: 13,
+      rangeEnd: 20,
+      instantWin: false,
+    };
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      { ...ACTIVE_SESSION, rulesetVersionKey: "SHANGHAI_V3" },
+    ]);
+    const play = makePlay({
+      rulesetVersionKey: "SHANGHAI_V3",
+      configSnapshot: v3Config,
+    });
+    await play.init.call(play);
+    expect(play.hasActiveSession).toBe(true);
+    expect(play.engine?.state().seats[0].rangeStart).toBe(13);
   });
 
   it("leaves hasActiveSession false when there is no server session for this game", async () => {

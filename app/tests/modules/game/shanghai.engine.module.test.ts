@@ -10,6 +10,7 @@ import {
   ShanghaiEngine,
   shanghaiEngineFactory,
   shanghaiV2EngineFactory,
+  shanghaiV3EngineFactory,
   zoneBucketOf,
 } from "@modules/game/shanghai.engine.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
@@ -162,6 +163,15 @@ function playVisit(
     seat,
   );
 }
+
+describe("shanghaiV3EngineFactory", () => {
+  it("registers under SHANGHAI_V3 and folds the configured range", () => {
+    expect(shanghaiV3EngineFactory.rulesetVersionKey).toBe("SHANGHAI_V3");
+    expect(getEngineFactory("SHANGHAI_V3")).toBe(shanghaiV3EngineFactory);
+    const engine = shanghaiV3EngineFactory.create(v3Config());
+    expect(activeNumberOf(engine.state().seats[0])).toBe(13);
+  });
+});
 
 describe("SHANGHAI_V3 range", () => {
   it("round 1 targets the range start and 8 rounds end the session", () => {

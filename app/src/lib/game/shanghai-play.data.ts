@@ -57,6 +57,7 @@ const SHANGHAI_ROUNDS = 20;
 const RESUMABLE_RULESET_VERSIONS = new Set<RulesetVersionKey>([
   "SHANGHAI_V1",
   "SHANGHAI_V2",
+  "SHANGHAI_V3",
 ]);
 
 /**
