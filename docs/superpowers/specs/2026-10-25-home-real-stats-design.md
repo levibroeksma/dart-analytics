@@ -3,8 +3,7 @@
 **Date:** 2026-10-25 · **Status:** implemented · **Branch:** `feat/home-real-stats` · **Issue:** #808
 
 Supersedes the data-pass notes in `2026-10-07-home-redesign-design.md`
-(units 1 and Out-of-scope). Decision: D493 (provisional; re-derive before the PR)
-(api domain file).
+(units 1 and Out-of-scope). Decision: D493 (`decisions/api.md`).
 
 ## Goal
 
@@ -105,15 +104,15 @@ The route is view-backed (D63): `v_player_visit_facts`, `v_stats_session_facts`,
 
 ## Behaviour
 
-| Case | Result |
-| ---- | ------ |
-| `firstNine.current = null` | hero value `—`, delta line hidden |
-| `delta = null` (no previous window) | value shown, delta line hidden |
-| Delta sign | "Up X" for positive, "Down X" for negative (absolute value), hidden at 0.0 |
-| Day with no darts | no bar (zero height), skipped for the peak; all seven empty → peak `—` |
-| Bar scale | unchanged: 50–75 mapped to 0–100%, clamped |
-| Landing with no cells | landing card hidden |
-| Fetch fails or is pending | dashes, bars and landing card hidden (as the career tiles) |
+| Case                                | Result                                                                     |
+| ----------------------------------- | -------------------------------------------------------------------------- |
+| `firstNine.current = null`          | hero value `—`, delta line hidden                                          |
+| `delta = null` (no previous window) | value shown, delta line hidden                                             |
+| Delta sign                          | "Up X" for positive, "Down X" for negative (absolute value), hidden at 0.0 |
+| Day with no darts                   | no bar (zero height), skipped for the peak; all seven empty → peak `—`     |
+| Bar scale                           | unchanged: 50–75 mapped to 0–100%, clamped                                 |
+| Landing with no cells               | landing card hidden                                                        |
+| Fetch fails or is pending           | dashes, bars and landing card hidden (as the career tiles)                 |
 
 `HomeHero` and `LandingHeatmapCard` gain `x-show`/`x-cloak` hooks for the
 hidden states; the hero delta text becomes a derived string.
