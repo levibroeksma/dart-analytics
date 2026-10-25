@@ -13,6 +13,7 @@ import {
   RULESET_CONFIGS,
   ScoreTrainingConfig,
   ShanghaiV2Config,
+  ShanghaiV3Config,
   SinglesConfig,
   SinglesV2Config,
   SinglesV3Config,
@@ -561,6 +562,51 @@ describe("RULESET_CONFIGS SHANGHAI_V2", () => {
   it("registers SHANGHAI_V2", () => {
     expect(RULESET_CONFIGS.SHANGHAI_V2).toBe(ShanghaiV2Config);
   });
+});
+
+describe("ShanghaiV3Config", () => {
+  const valid = {
+    difficulty: "NORMAL",
+    rangeStart: 13,
+    rangeEnd: 20,
+    instantWin: true,
+  };
+
+  it("registers SHANGHAI_V3", () => {
+    expect(RULESET_CONFIGS.SHANGHAI_V3).toBe(ShanghaiV3Config);
+  });
+
+  it("accepts a valid range, a single-round range and the full board", () => {
+    expect(ShanghaiV3Config.safeParse(valid).success).toBe(true);
+    expect(
+      ShanghaiV3Config.safeParse({ ...valid, rangeStart: 7, rangeEnd: 7 })
+        .success,
+    ).toBe(true);
+    expect(
+      ShanghaiV3Config.safeParse({ ...valid, rangeStart: 1, rangeEnd: 20 })
+        .success,
+    ).toBe(true);
+  });
+
+  it.each([
+    ["start after end", { rangeStart: 8, rangeEnd: 7 }],
+    ["start below 1", { rangeStart: 0 }],
+    ["end above 20", { rangeEnd: 21 }],
+    ["non-integer", { rangeStart: 1.5 }],
+    ["unknown key", { extra: true }],
+  ])("rejects %s", (_name, patch) => {
+    expect(ShanghaiV3Config.safeParse({ ...valid, ...patch }).success).toBe(
+      false,
+    );
+  });
+
+  it.each(["difficulty", "rangeStart", "rangeEnd", "instantWin"])(
+    "rejects a missing %s",
+    (key) => {
+      const { [key]: _omit, ...rest } = valid as Record<string, unknown>;
+      expect(ShanghaiV3Config.safeParse(rest).success).toBe(false);
+    },
+  );
 });
 
 describe("AroundTheClockV2Config", () => {

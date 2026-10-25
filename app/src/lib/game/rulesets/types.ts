@@ -339,6 +339,26 @@ export const ShanghaiV2Config = z
   .strict();
 
 /**
+ * Shanghai V3 adds a round range and an instant-win switch over V2. The
+ * range is any `rangeStart..rangeEnd` slice of 1..20; the setup form offers
+ * presets only, so a free start/end later needs no new version. A new ruleset
+ * version rather than an edit to V1/V2, which are live against real session
+ * data (D245).
+ */
+export const ShanghaiV3Config = z
+  .object({
+    difficulty: z.enum(["NORMAL", "HARD"]),
+    rangeStart: z.number().int().min(1).max(20),
+    rangeEnd: z.number().int().min(1).max(20),
+    instantWin: z.boolean(),
+  })
+  .strict()
+  .refine((config) => config.rangeStart <= config.rangeEnd, {
+    path: ["rangeStart"],
+    message: "rangeStart must not exceed rangeEnd",
+  });
+
+/**
  * 121 v1 locks every rule (start target, cap, dart budget, fail rule) with
  * nothing left to configure — a genuinely empty `.strict()` object, exactly
  * like `ShanghaiConfig`. A future version that adds a selectable dart budget
@@ -471,6 +491,7 @@ export type RulesetVersionKey =
   | "TUOD_V1"
   | "SHANGHAI_V1"
   | "SHANGHAI_V2"
+  | "SHANGHAI_V3"
   | "121_V1"
   | "121_V2"
   | "AROUND_THE_CLOCK_V1"
@@ -521,6 +542,7 @@ export const RULESET_CONFIGS: Record<RulesetVersionKey, z.ZodTypeAny> = {
   TUOD_V1: TuodConfig,
   SHANGHAI_V1: ShanghaiConfig,
   SHANGHAI_V2: ShanghaiV2Config,
+  SHANGHAI_V3: ShanghaiV3Config,
   "121_V1": OneTwentyOneConfig,
   "121_V2": OneTwentyOneV2Config,
   AROUND_THE_CLOCK_V1: AroundTheClockConfig,
@@ -544,6 +566,7 @@ export type FiveOhOneConfigData = z.infer<typeof FiveOhOneConfig>;
 export type FiveOhOneV2ConfigData = z.infer<typeof FiveOhOneV2Config>;
 export type TuodConfigData = z.infer<typeof TuodConfig>;
 export type ShanghaiV2ConfigData = z.infer<typeof ShanghaiV2Config>;
+export type ShanghaiV3ConfigData = z.infer<typeof ShanghaiV3Config>;
 
 export type ScoreTrainingSnapshot = {
   durationType: ScoreTrainingConfigData["duration_type"];
@@ -645,6 +668,13 @@ export type ShanghaiV2Snapshot = {
   difficulty: ShanghaiV2ConfigData["difficulty"];
 };
 
+/** Shanghai V3 carries V2's difficulty plus the range and the instant-win switch. */
+export type ShanghaiV3Snapshot = ShanghaiV2Snapshot & {
+  rangeStart: ShanghaiV3ConfigData["rangeStart"];
+  rangeEnd: ShanghaiV3ConfigData["rangeEnd"];
+  instantWin: ShanghaiV3ConfigData["instantWin"];
+};
+
 /** 121 v1 has nothing to configure — no fields to carry. */
 export type OneTwentyOneSnapshot = Record<string, never>;
 
@@ -710,21 +740,23 @@ export type ConfigSnapshotFor<K extends RulesetVersionKey> =
                       ? ShanghaiSnapshot
                       : K extends "SHANGHAI_V2"
                         ? ShanghaiV2Snapshot
-                        : K extends "121_V1"
-                          ? OneTwentyOneSnapshot
-                          : K extends "121_V2"
-                            ? OneTwentyOneV2Snapshot
-                            : K extends "AROUND_THE_CLOCK_V1"
-                              ? AroundTheClockSnapshot
-                              : K extends "AROUND_THE_CLOCK_V2"
-                                ? AroundTheClockV2Snapshot
-                                : K extends "AROUND_THE_CLOCK_V3"
-                                  ? AroundTheClockV3Snapshot
-                                  : K extends "CRICKET_V1" | "CRICKET_V2"
-                                    ? CricketSnapshot
-                                    : K extends "TACTICS_V1" | "TACTICS_V2"
-                                      ? TacticsSnapshot
-                                      : BaseballSnapshot;
+                        : K extends "SHANGHAI_V3"
+                          ? ShanghaiV3Snapshot
+                          : K extends "121_V1"
+                            ? OneTwentyOneSnapshot
+                            : K extends "121_V2"
+                              ? OneTwentyOneV2Snapshot
+                              : K extends "AROUND_THE_CLOCK_V1"
+                                ? AroundTheClockSnapshot
+                                : K extends "AROUND_THE_CLOCK_V2"
+                                  ? AroundTheClockV2Snapshot
+                                  : K extends "AROUND_THE_CLOCK_V3"
+                                    ? AroundTheClockV3Snapshot
+                                    : K extends "CRICKET_V1" | "CRICKET_V2"
+                                      ? CricketSnapshot
+                                      : K extends "TACTICS_V1" | "TACTICS_V2"
+                                        ? TacticsSnapshot
+                                        : BaseballSnapshot;
 
 /**
  * One boundary probe: a complete, parseable config plus the label the contract
