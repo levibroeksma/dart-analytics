@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { shanghaiSetup } from "@lib/game/shanghai-setup.data";
+import { SHANGHAI_RANGES } from "@lib/game/shanghai-ranges.data";
 import type { ShanghaiSetupContext } from "@lib/types";
 import * as sessionsApi from "@client/api/sessions";
 import * as presetsApi from "@client/api/configuration-templates";
@@ -325,6 +326,10 @@ describe("shanghaiSetup", () => {
           }),
         }),
       );
+    });
+
+    it("defaults to the first preset of the shared range list", () => {
+      expect(createSetup().range).toBe(SHANGHAI_RANGES[0].value);
     });
 
     it("starts on the full board with instant win", () => {
