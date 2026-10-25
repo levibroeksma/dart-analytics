@@ -900,7 +900,10 @@ exports[`Shanghai — golden > v1 duo: seed 42 run is unchanged 1`] = `
     "seats": [
       {
         "dartsThisVisit": [],
+        "instantWin": true,
         "participantRef": "participant-1",
+        "rangeEnd": 20,
+        "rangeStart": 1,
         "sideKey": "A",
         "status": "IN_PROGRESS",
         "targetIndex": 11,
@@ -908,7 +911,10 @@ exports[`Shanghai — golden > v1 duo: seed 42 run is unchanged 1`] = `
       },
       {
         "dartsThisVisit": [],
+        "instantWin": true,
         "participantRef": "participant-2",
+        "rangeEnd": 20,
+        "rangeStart": 1,
         "sideKey": "B",
         "status": "SHANGHAI",
         "targetIndex": 10,
@@ -1741,7 +1747,10 @@ exports[`Shanghai — golden > v1 solo: seed 42 run is unchanged 1`] = `
     "seats": [
       {
         "dartsThisVisit": [],
+        "instantWin": true,
         "participantRef": "participant-1",
+        "rangeEnd": 20,
+        "rangeStart": 1,
         "sideKey": "A",
         "status": "COMPLETE",
         "targetIndex": 19,
@@ -2574,7 +2583,10 @@ exports[`Shanghai — golden > v2 hard solo: seed 42 run is unchanged 1`] = `
     "seats": [
       {
         "dartsThisVisit": [],
+        "instantWin": true,
         "participantRef": "participant-1",
+        "rangeEnd": 20,
+        "rangeStart": 1,
         "sideKey": "A",
         "status": "COMPLETE",
         "targetIndex": 19,
@@ -3487,7 +3499,10 @@ exports[`Shanghai — golden > v2 hard trio: seed 42 run is unchanged 1`] = `
     "seats": [
       {
         "dartsThisVisit": [],
+        "instantWin": true,
         "participantRef": "participant-1",
+        "rangeEnd": 20,
+        "rangeStart": 1,
         "sideKey": "A",
         "status": "SHANGHAI",
         "targetIndex": 7,
@@ -3495,7 +3510,10 @@ exports[`Shanghai — golden > v2 hard trio: seed 42 run is unchanged 1`] = `
       },
       {
         "dartsThisVisit": [],
+        "instantWin": true,
         "participantRef": "participant-2",
+        "rangeEnd": 20,
+        "rangeStart": 1,
         "sideKey": "B",
         "status": "IN_PROGRESS",
         "targetIndex": 7,
@@ -3503,7 +3521,10 @@ exports[`Shanghai — golden > v2 hard trio: seed 42 run is unchanged 1`] = `
       },
       {
         "dartsThisVisit": [],
+        "instantWin": true,
         "participantRef": "participant-3",
+        "rangeEnd": 20,
+        "rangeStart": 1,
         "sideKey": "C",
         "status": "IN_PROGRESS",
         "targetIndex": 7,
@@ -5136,7 +5157,10 @@ exports[`Shanghai — golden trace > v1 duo: seed 7 step trace with rehydration 
     "seats": [
       {
         "dartsThisVisit": [],
+        "instantWin": true,
         "participantRef": "participant-1",
+        "rangeEnd": 20,
+        "rangeStart": 1,
         "sideKey": "A",
         "status": "COMPLETE",
         "targetIndex": 19,
@@ -5144,7 +5168,10 @@ exports[`Shanghai — golden trace > v1 duo: seed 7 step trace with rehydration 
       },
       {
         "dartsThisVisit": [],
+        "instantWin": true,
         "participantRef": "participant-2",
+        "rangeEnd": 20,
+        "rangeStart": 1,
         "sideKey": "B",
         "status": "COMPLETE",
         "targetIndex": 19,
@@ -6239,7 +6266,10 @@ exports[`Shanghai — golden trace > v1 solo: seed 7 step trace with rehydration
     "seats": [
       {
         "dartsThisVisit": [],
+        "instantWin": true,
         "participantRef": "participant-1",
+        "rangeEnd": 20,
+        "rangeStart": 1,
         "sideKey": "A",
         "status": "COMPLETE",
         "targetIndex": 19,
@@ -7334,7 +7364,10 @@ exports[`Shanghai — golden trace > v2 hard solo: seed 7 step trace with rehydr
     "seats": [
       {
         "dartsThisVisit": [],
+        "instantWin": true,
         "participantRef": "participant-1",
+        "rangeEnd": 20,
+        "rangeStart": 1,
         "sideKey": "A",
         "status": "COMPLETE",
         "targetIndex": 19,
@@ -10029,7 +10062,10 @@ exports[`Shanghai — golden trace > v2 hard trio: seed 7 step trace with rehydr
     "seats": [
       {
         "dartsThisVisit": [],
+        "instantWin": true,
         "participantRef": "participant-1",
+        "rangeEnd": 20,
+        "rangeStart": 1,
         "sideKey": "A",
         "status": "COMPLETE",
         "targetIndex": 19,
@@ -10037,7 +10073,10 @@ exports[`Shanghai — golden trace > v2 hard trio: seed 7 step trace with rehydr
       },
       {
         "dartsThisVisit": [],
+        "instantWin": true,
         "participantRef": "participant-2",
+        "rangeEnd": 20,
+        "rangeStart": 1,
         "sideKey": "B",
         "status": "COMPLETE",
         "targetIndex": 19,
@@ -10045,7 +10084,10 @@ exports[`Shanghai — golden trace > v2 hard trio: seed 7 step trace with rehydr
       },
       {
         "dartsThisVisit": [],
+        "instantWin": true,
         "participantRef": "participant-3",
+        "rangeEnd": 20,
+        "rangeStart": 1,
         "sideKey": "C",
         "status": "COMPLETE",
         "targetIndex": 19,

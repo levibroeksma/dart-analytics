@@ -1,6 +1,9 @@
 import { describe, it, expect } from "vitest";
 import {
+  activeNumberOf,
   activeTargetOf,
+  roundCountOf,
+  roundOf,
   applyShanghaiDart,
   foldShanghaiState,
   initialShanghaiState,
@@ -9,7 +12,6 @@ import {
   shanghaiV2EngineFactory,
   zoneBucketOf,
 } from "@modules/game/shanghai.engine.module";
-import { numbersPath, targetAt } from "@modules/game/board-progression.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import type {
   DartObservation,
@@ -31,11 +33,9 @@ const SEATS = [
 
 const config: Seated<ShanghaiSnapshot> = { seats: SEATS };
 
-function targetNumberFor(seat: ShanghaiSeatState): number {
-  const target = targetAt(numbersPath(), seat.targetIndex);
-  if (target.kind === "BULL") throw new Error("unreachable in these tests");
-  return target.number;
-}
+const FULL_BOARD = { rangeStart: 1, rangeEnd: 20, instantWin: true };
+
+const targetNumberFor = activeNumberOf;
 
 function hitObservationFor(
   seat: ShanghaiSeatState,
@@ -80,6 +80,56 @@ function facts19RoundsPlayed(): EngineFacts {
   }
   return engine.facts();
 }
+
+describe("range helpers on seat state", () => {
+  const seatWith = (patch: Partial<ShanghaiSeatState>): ShanghaiSeatState => ({
+    ...initialShanghaiState(config).seats[0],
+    ...patch,
+  });
+
+  it("V1 and V2 configs seed range 1..20 with instant win on", () => {
+    const v1 = initialShanghaiState(config).seats[0];
+    const v2 = initialShanghaiState({ seats: SEATS, difficulty: "HARD" })
+      .seats[0];
+    for (const seat of [v1, v2]) {
+      expect([seat.rangeStart, seat.rangeEnd, seat.instantWin]).toEqual([
+        1,
+        20,
+        true,
+      ]);
+    }
+  });
+
+  it("a V3 config seeds its own range and win rule", () => {
+    const seat = initialShanghaiState({
+      seats: SEATS,
+      difficulty: "NORMAL",
+      rangeStart: 13,
+      rangeEnd: 20,
+      instantWin: false,
+    }).seats[0];
+    expect([seat.rangeStart, seat.rangeEnd, seat.instantWin]).toEqual([
+      13,
+      20,
+      false,
+    ]);
+  });
+
+  it("derives number, round and count from the seat", () => {
+    const seat = seatWith({ rangeStart: 13, rangeEnd: 20, targetIndex: 2 });
+    expect(activeNumberOf(seat)).toBe(15);
+    expect(roundOf(seat)).toBe(3);
+    expect(roundCountOf(seat)).toBe(8);
+  });
+
+  it("activeTargetOf follows the range start", () => {
+    expect(
+      activeTargetOf(
+        seatWith({ rangeStart: 11, rangeEnd: 20, targetIndex: 0 }),
+      ),
+    ).toEqual({ kind: "NUMBER", number: 11 });
+  });
+});
 
 describe("shanghaiEngineFactory", () => {
   it("registers itself under SHANGHAI_V1", () => {
@@ -126,6 +176,7 @@ describe("initialShanghaiState", () => {
       totalScore: 0,
       dartsThisVisit: [],
       status: "IN_PROGRESS",
+      ...FULL_BOARD,
     });
   });
 });
@@ -189,6 +240,7 @@ describe("applyShanghaiDart — scoring on the round's own number", () => {
       totalScore: 0,
       dartsThisVisit: [],
       status: "IN_PROGRESS",
+      ...FULL_BOARD,
     };
     const next = applyShanghaiDart(roundTwenty, {
       hitTargetNumber: 25,
@@ -259,6 +311,7 @@ describe("applyShanghaiDart — completion at round 20", () => {
       totalScore: 570,
       dartsThisVisit: [],
       status: "IN_PROGRESS",
+      ...FULL_BOARD,
     };
     state = applyShanghaiDart(state, missObservation());
     state = applyShanghaiDart(state, missObservation());
@@ -276,6 +329,7 @@ describe("applyShanghaiDart — completion at round 20", () => {
       totalScore: 570,
       dartsThisVisit: [],
       status: "IN_PROGRESS",
+      ...FULL_BOARD,
     };
     state = applyShanghaiDart(state, hitObservationFor(state, "SINGLE"));
     state = applyShanghaiDart(state, hitObservationFor(state, "DOUBLE"));
@@ -294,6 +348,7 @@ describe("applyShanghaiDart — Hard mode (Target Needed)", () => {
       totalScore,
       dartsThisVisit: [],
       status: "IN_PROGRESS",
+      ...FULL_BOARD,
     };
   }
 
@@ -375,11 +430,6 @@ describe("activeTargetOf", () => {
       kind: "NUMBER",
       number: 2,
     });
-  });
-
-  it("ignores an omitted config — Shanghai's path never depends on one", () => {
-    const seat = initialShanghaiState(config).seats[0];
-    expect(activeTargetOf(seat, config)).toEqual(activeTargetOf(seat));
   });
 });
 
@@ -463,6 +513,7 @@ describe("applyShanghaiDart — terminal state guard", () => {
         totalScore: 570,
         dartsThisVisit: [],
         status,
+        ...FULL_BOARD,
       };
       expect(() => applyShanghaiDart(terminal, missObservation())).toThrow(
         "Cannot record a dart once the session has ended; undo first to correct it.",
@@ -1221,6 +1272,7 @@ describe("Shanghai — kernel seams", () => {
           totalScore: 0,
           dartsThisVisit: [],
           status: "IN_PROGRESS",
+          ...FULL_BOARD,
         },
       );
     expect(seat([on(1, "INNER_SINGLE"), on(2, "DOUBLE")])).toEqual({
@@ -1230,6 +1282,7 @@ describe("Shanghai — kernel seams", () => {
       totalScore: 1,
       dartsThisVisit: ["INNER_SINGLE", null],
       status: "IN_PROGRESS",
+      ...FULL_BOARD,
     });
     expect(
       seat([on(1, "INNER_SINGLE"), on(2, "DOUBLE"), on(1, "DOUBLE")]),

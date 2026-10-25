@@ -3,6 +3,7 @@ import type {
   SeatFact,
   ShanghaiSnapshot,
   ShanghaiV2Snapshot,
+  ShanghaiV3Snapshot,
 } from "@lib/types";
 import { numbersPath, targetAt } from "./board-progression.module";
 import {
@@ -40,25 +41,40 @@ import { endedRefusal } from "./turn-log.module";
 
 export { zoneBucketOf } from "./track-policies";
 
-const LAST_TARGET_INDEX = 19;
 const PATH = numbersPath();
 
 type ShanghaiEngineConfig =
-  Seated<ShanghaiSnapshot> | Seated<ShanghaiV2Snapshot>;
+  | Seated<ShanghaiSnapshot>
+  | Seated<ShanghaiV2Snapshot>
+  | Seated<ShanghaiV3Snapshot>;
 
 type ShanghaiDifficulty = ShanghaiV2Snapshot["difficulty"];
 
+type ShanghaiSettings = {
+  difficulty: ShanghaiDifficulty;
+  rangeStart: number;
+  rangeEnd: number;
+  instantWin: boolean;
+};
+
 /**
- * Reads the Hard-mode toggle off either ruleset version's config.
- * `"difficulty" in config` is false for every SHANGHAI_V1 config (its
- * schema has no such key at all), so a V1-created engine always folds as
- * `"NORMAL"` — byte-identical to today's behaviour.
+ * Reads the settings off any ruleset version's config. A key a version's
+ * schema lacks falls back to the full board with instant win and Normal
+ * difficulty, so a V1 or V2 engine folds exactly as it always did.
  */
-function difficultyOf(config: ShanghaiEngineConfig): ShanghaiDifficulty {
-  return "difficulty" in config ? config.difficulty : "NORMAL";
+function settingsOf(config: ShanghaiEngineConfig): ShanghaiSettings {
+  return {
+    difficulty: "difficulty" in config ? config.difficulty : "NORMAL",
+    rangeStart: "rangeStart" in config ? config.rangeStart : 1,
+    rangeEnd: "rangeEnd" in config ? config.rangeEnd : 20,
+    instantWin: "instantWin" in config ? config.instantWin : true,
+  };
 }
 
-function initialSeatState(seat: SeatFact): ShanghaiSeatState {
+function initialSeatState(
+  seat: SeatFact,
+  settings: ShanghaiSettings,
+): ShanghaiSeatState {
   return {
     participantRef: seat.participantRef,
     sideKey: seat.sideKey,
@@ -66,6 +82,9 @@ function initialSeatState(seat: SeatFact): ShanghaiSeatState {
     totalScore: 0,
     dartsThisVisit: [],
     status: "IN_PROGRESS",
+    rangeStart: settings.rangeStart,
+    rangeEnd: settings.rangeEnd,
+    instantWin: settings.instantWin,
   };
 }
 
@@ -73,25 +92,33 @@ function initialSeatState(seat: SeatFact): ShanghaiSeatState {
 export function initialShanghaiState(
   config: ShanghaiEngineConfig,
 ): ShanghaiState {
+  const settings = settingsOf(config);
   return {
     activeParticipantRef: config.seats[0].participantRef,
     status: "IN_PROGRESS",
     winningSideKey: null,
-    seats: config.seats.map(initialSeatState),
+    seats: config.seats.map((seat) => initialSeatState(seat, settings)),
   };
 }
 
-/**
- * The seat's active target: round `targetIndex` of the fixed 1..20 path,
- * never BULL. `config` is accepted only to match the other engines'
- * `activeTargetOf(state, config)` shape — Shanghai's path never depends on
- * it — so it is optional and unused here.
- */
-export function activeTargetOf(
-  state: ShanghaiSeatState,
-  _config?: ShanghaiEngineConfig,
-): BoardTarget {
-  return targetAt(PATH, state.targetIndex);
+/** The number a seat is throwing at: its range start plus its round index. */
+export function activeNumberOf(seat: ShanghaiSeatState): number {
+  return seat.rangeStart + seat.targetIndex;
+}
+
+/** The seat's 1-based round within its range. */
+export function roundOf(seat: ShanghaiSeatState): number {
+  return seat.targetIndex + 1;
+}
+
+/** How many rounds the seat's range holds. */
+export function roundCountOf(seat: ShanghaiSeatState): number {
+  return seat.rangeEnd - seat.rangeStart + 1;
+}
+
+/** The seat's active target: its active number on the 1..20 path, never BULL. */
+export function activeTargetOf(seat: ShanghaiSeatState): BoardTarget {
+  return targetAt(PATH, activeNumberOf(seat) - 1);
 }
 
 const SESSION_ENDED = endedRefusal("session has ended");
@@ -107,7 +134,7 @@ const MATCH_ENDED = endedRefusal("match has ended");
 function shanghaiRules(
   difficulty: ShanghaiDifficulty,
 ): TrackRules<ShanghaiTrackExt> {
-  const advance = advanceToEnd<ShanghaiTrackExt>(LAST_TARGET_INDEX);
+  const advance = advanceToEnd<ShanghaiTrackExt>(19);
   const halve: (
     seat: TrackSeat<ShanghaiTrackExt>,
   ) => TrackSeat<ShanghaiTrackExt> =
@@ -140,6 +167,9 @@ function toTrackSeat(state: ShanghaiSeatState): TrackSeat<ShanghaiTrackExt> {
     ext: {
       zones: state.dartsThisVisit,
       shanghai: state.status === "SHANGHAI",
+      rangeStart: state.rangeStart,
+      rangeEnd: state.rangeEnd,
+      instantWin: state.instantWin,
     },
   };
 }
@@ -153,6 +183,9 @@ function toShanghaiSeat(seat: TrackSeat<ShanghaiTrackExt>): ShanghaiSeatState {
     totalScore: seat.score,
     dartsThisVisit: seat.ext.zones,
     status: seatStatus(seat),
+    rangeStart: seat.ext.rangeStart,
+    rangeEnd: seat.ext.rangeEnd,
+    instantWin: seat.ext.instantWin,
   };
 }
 
@@ -194,11 +227,18 @@ export function foldShanghaiState(
   facts: EngineFacts,
   config: ShanghaiEngineConfig,
 ): ShanghaiState {
+  const settings = settingsOf(config);
   const seats = foldTrackSeats(
     facts.turns,
     config.seats,
-    () => ({ zones: [], shanghai: false }),
-    shanghaiRules(difficultyOf(config)),
+    () => ({
+      zones: [],
+      shanghai: false,
+      rangeStart: settings.rangeStart,
+      rangeEnd: settings.rangeEnd,
+      instantWin: settings.instantWin,
+    }),
+    shanghaiRules(settings.difficulty),
   ).map(toShanghaiSeat);
 
   const raceResult =
@@ -320,16 +360,13 @@ const shanghaiSpec: DartGameSpec<ShanghaiEngineConfig, ShanghaiState> = {
  */
 export class ShanghaiEngine extends dartGameEngineClass(shanghaiSpec) {}
 
-export const shanghaiEngineFactory = dartGameEngineFactory(
-  shanghaiSpec,
-  ShanghaiEngine,
-);
+function factoryFor(key: "SHANGHAI_V1" | "SHANGHAI_V2") {
+  return dartGameEngineFactory(shanghaiSpec, ShanghaiEngine, key);
+}
 
-export const shanghaiV2EngineFactory = dartGameEngineFactory(
-  shanghaiSpec,
-  ShanghaiEngine,
-  "SHANGHAI_V2",
-);
+export const shanghaiEngineFactory = factoryFor("SHANGHAI_V1");
+
+export const shanghaiV2EngineFactory = factoryFor("SHANGHAI_V2");
 
 registerEngineFactory(shanghaiEngineFactory);
 registerEngineFactory(shanghaiV2EngineFactory);
