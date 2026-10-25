@@ -20,7 +20,12 @@ import type {
   ShanghaiSeatState,
   TurnFact,
 } from "@modules/types";
-import type { ShanghaiSnapshot, ShanghaiV2Snapshot, Seated } from "@lib/types";
+import type {
+  ShanghaiSnapshot,
+  ShanghaiV2Snapshot,
+  ShanghaiV3Snapshot,
+  Seated,
+} from "@lib/types";
 
 const SEATS = [
   {
@@ -128,6 +133,159 @@ describe("range helpers on seat state", () => {
         seatWith({ rangeStart: 11, rangeEnd: 20, targetIndex: 0 }),
       ),
     ).toEqual({ kind: "NUMBER", number: 11 });
+  });
+});
+
+const v3Config = (
+  patch: Partial<ShanghaiV3Snapshot> = {},
+): Seated<ShanghaiV3Snapshot> => ({
+  seats: SEATS,
+  difficulty: "NORMAL",
+  rangeStart: 13,
+  rangeEnd: 20,
+  instantWin: true,
+  ...patch,
+});
+
+function playVisit(
+  seat: ShanghaiSeatState,
+  zones: ("SINGLE" | "DOUBLE" | "TREBLE" | "MISS")[],
+  difficulty?: "NORMAL" | "HARD",
+): ShanghaiSeatState {
+  return zones.reduce(
+    (state, zone) =>
+      applyShanghaiDart(
+        state,
+        zone === "MISS" ? missObservation() : hitObservationFor(state, zone),
+        difficulty,
+      ),
+    seat,
+  );
+}
+
+describe("SHANGHAI_V3 range", () => {
+  it("round 1 targets the range start and 8 rounds end the session", () => {
+    let seat = initialShanghaiState(v3Config()).seats[0];
+    expect(activeNumberOf(seat)).toBe(13);
+    for (let round = 0; round < 8; round += 1) {
+      seat = playVisit(seat, ["MISS", "MISS", "MISS"]);
+    }
+    expect(seat.status).toBe("COMPLETE");
+    expect(seat.targetIndex).toBe(7);
+  });
+
+  it("refuses a dart after the range ends", () => {
+    let seat = initialShanghaiState(v3Config({ rangeStart: 7, rangeEnd: 7 }))
+      .seats[0];
+    seat = playVisit(seat, ["MISS", "MISS", "MISS"]);
+    expect(seat.status).toBe("COMPLETE");
+    expect(() => applyShanghaiDart(seat, missObservation())).toThrow();
+  });
+
+  it("scores the range's own numbers", () => {
+    const seat = initialShanghaiState(v3Config()).seats[0];
+    expect(playVisit(seat, ["TREBLE"]).totalScore).toBe(39);
+  });
+
+  it("Hard halves a blank round in 11-20", () => {
+    let seat = initialShanghaiState(
+      v3Config({ rangeStart: 11, difficulty: "HARD" }),
+    ).seats[0];
+    seat = playVisit(seat, ["SINGLE", "SINGLE", "SINGLE"], "HARD");
+    expect(seat.totalScore).toBe(33);
+    seat = playVisit(seat, ["MISS", "MISS", "MISS"], "HARD");
+    expect(seat.totalScore).toBe(17);
+  });
+
+  it("an engine over a 13-20 range targets 13 first and completes after 20", () => {
+    const engine = new ShanghaiEngine(v3Config());
+    expect(activeNumberOf(engine.state().seats[0])).toBe(13);
+    for (let dart = 0; dart < 8 * 3; dart += 1) {
+      engine.record(missObservation());
+    }
+    expect(engine.state().status).toBe("COMPLETE");
+    expect(() => engine.record(missObservation())).toThrow();
+  });
+});
+
+describe("SHANGHAI_V3 score-only", () => {
+  const scoreOnly = (patch: Partial<ShanghaiV3Snapshot> = {}) =>
+    v3Config({ rangeStart: 1, rangeEnd: 20, instantWin: false, ...patch });
+
+  it("a S+D+T visit scores and advances without ending the seat", () => {
+    const seat = playVisit(initialShanghaiState(scoreOnly()).seats[0], [
+      "SINGLE",
+      "DOUBLE",
+      "TREBLE",
+    ]);
+    expect(seat.status).toBe("IN_PROGRESS");
+    expect(seat.totalScore).toBe(6);
+    expect(seat.targetIndex).toBe(1);
+  });
+
+  it("with instant win on the same visit is a Shanghai", () => {
+    const seat = playVisit(
+      initialShanghaiState(scoreOnly({ instantWin: true })).seats[0],
+      ["SINGLE", "DOUBLE", "TREBLE"],
+    );
+    expect(seat.status).toBe("SHANGHAI");
+  });
+
+  const twoSeats = [
+    { ...SEATS[0] },
+    {
+      participantRef: "participant-2",
+      displayName: "Guest",
+      sideKey: "B",
+      participantTypeKey: "GUEST" as const,
+    },
+  ];
+
+  type Zone = "SINGLE" | "DOUBLE" | "TREBLE" | "MISS";
+
+  function playOut(engine: ShanghaiEngine, openers: Record<string, Zone[]>) {
+    const used = new Set<string>();
+    while (engine.state().status === "IN_PROGRESS") {
+      const ref = engine.state().activeParticipantRef;
+      const zones: Zone[] = used.has(ref)
+        ? ["MISS", "MISS", "MISS"]
+        : openers[ref];
+      used.add(ref);
+      for (const zone of zones) {
+        const seat = engine
+          .state()
+          .seats.find((candidate) => candidate.participantRef === ref)!;
+        engine.record(
+          zone === "MISS" ? missObservation() : hitObservationFor(seat, zone),
+        );
+      }
+    }
+  }
+
+  it("1v1 plays the whole range and the higher total wins", () => {
+    const engine = new ShanghaiEngine({ ...scoreOnly(), seats: twoSeats });
+    playOut(engine, {
+      "participant-1": ["SINGLE", "DOUBLE", "TREBLE"],
+      "participant-2": ["TREBLE", "TREBLE", "TREBLE"],
+    });
+    const state = engine.state();
+    expect(state.seats.map((seat) => seat.status)).toEqual([
+      "COMPLETE",
+      "COMPLETE",
+    ]);
+    expect(state.status).toBe("COMPLETE");
+    expect(state.winningSideKey).toBe("B");
+  });
+
+  it("1v1 with equal totals ends in a tie", () => {
+    const engine = new ShanghaiEngine({ ...scoreOnly(), seats: twoSeats });
+    playOut(engine, {
+      "participant-1": ["SINGLE", "DOUBLE", "TREBLE"],
+      "participant-2": ["DOUBLE", "DOUBLE", "DOUBLE"],
+    });
+    const state = engine.state();
+    expect(state.status).toBe("TIE");
+    expect(state.winningSideKey).toBeNull();
   });
 });
 
