@@ -16,6 +16,13 @@ const STANDARD_PRESET = {
   isSystemTemplate: true,
 } as any;
 
+const FULL_BOARD_NORMAL = {
+  difficulty: "NORMAL",
+  range_start: 1,
+  range_end: 20,
+  instant_win: true,
+};
+
 describe("shanghaiSetup", () => {
   let store: ShanghaiSetupContext["$store"];
 
@@ -163,7 +170,7 @@ describe("shanghaiSetup", () => {
   });
 
   describe("start", () => {
-    it("creates a SHANGHAI_V2 session on NORMAL difficulty by default and redirects", async () => {
+    it("creates a SHANGHAI_V3 session on the full board with instant win by default and redirects", async () => {
       const setup = createSetup({ presets: [STANDARD_PRESET] });
       vi.mocked(sessionsApi.createSession).mockResolvedValue({
         sessionId: "new-session-id",
@@ -182,13 +189,13 @@ describe("shanghaiSetup", () => {
 
       expect(sessionsApi.createSession).toHaveBeenCalledWith({
         gameTypeKey: "SHANGHAI",
-        rulesetVersionKey: "SHANGHAI_V2",
+        rulesetVersionKey: "SHANGHAI_V3",
         captureModeKey: "RECREATIONAL",
         inputModeKey: "DETAILED_DARTS",
         config: {
           source: "template",
           templateRef: "tmpl-shanghai-standard",
-          overrides: { difficulty: "NORMAL" },
+          overrides: FULL_BOARD_NORMAL,
         },
       });
       expect(store.game.startSession).toHaveBeenCalledWith(
@@ -196,6 +203,9 @@ describe("shanghaiSetup", () => {
           templateRef: "tmpl-shanghai-standard",
           configSnapshot: {
             difficulty: "NORMAL",
+            rangeStart: 1,
+            rangeEnd: 20,
+            instantWin: true,
             seats: [
               {
                 participantRef: "participant-1",
@@ -232,7 +242,7 @@ describe("shanghaiSetup", () => {
       expect(sessionsApi.createSession).toHaveBeenCalledWith(
         expect.objectContaining({
           config: expect.objectContaining({
-            overrides: { difficulty: "HARD" },
+            overrides: { ...FULL_BOARD_NORMAL, difficulty: "HARD" },
           }),
         }),
       );
@@ -241,6 +251,86 @@ describe("shanghaiSetup", () => {
           configSnapshot: expect.objectContaining({ difficulty: "HARD" }),
         }),
       );
+    });
+
+    it.each([
+      ["1-7", 1, 7],
+      ["1-10", 1, 10],
+      ["1-20", 1, 20],
+      ["11-20", 11, 20],
+      ["13-20", 13, 20],
+    ] as const)("range %s maps to rounds %i..%i", async (range, start, end) => {
+      const setup = createSetup({ presets: [STANDARD_PRESET], range });
+      vi.mocked(sessionsApi.createSession).mockResolvedValue({
+        sessionId: "new-session-id",
+        participants: [
+          {
+            ref: "participant-1",
+            displayName: "Player",
+            participantTypeKey: "PLAYER",
+          },
+        ],
+      } as any);
+      vi.stubGlobal("location", { href: "" });
+
+      await setup.start();
+
+      expect(sessionsApi.createSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          config: expect.objectContaining({
+            overrides: expect.objectContaining({
+              range_start: start,
+              range_end: end,
+            }),
+          }),
+        }),
+      );
+      expect(store.game.startSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          configSnapshot: expect.objectContaining({
+            rangeStart: start,
+            rangeEnd: end,
+          }),
+        }),
+      );
+    });
+
+    it("Score-only sends instant_win false and keeps Hard", async () => {
+      const setup = createSetup({
+        presets: [STANDARD_PRESET],
+        winRule: "SCORE_ONLY",
+        difficulty: "HARD",
+      });
+      vi.mocked(sessionsApi.createSession).mockResolvedValue({
+        sessionId: "new-session-id",
+        participants: [
+          {
+            ref: "participant-1",
+            displayName: "Player",
+            participantTypeKey: "PLAYER",
+          },
+        ],
+      } as any);
+      vi.stubGlobal("location", { href: "" });
+
+      await setup.start();
+
+      expect(sessionsApi.createSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          config: expect.objectContaining({
+            overrides: expect.objectContaining({
+              instant_win: false,
+              difficulty: "HARD",
+            }),
+          }),
+        }),
+      );
+    });
+
+    it("starts on the full board with instant win", () => {
+      const setup = createSetup();
+      expect(setup.range).toBe("1-20");
+      expect(setup.winRule).toBe("INSTANT");
     });
 
     it("falls back to Shanghai's declared pair when settings holds a pair it does not declare", async () => {
@@ -278,7 +368,7 @@ describe("shanghaiSetup", () => {
       expect(setup.error).toBe("Could not find a preset for Shanghai.");
     });
 
-    it("keeps HARD difficulty and creates SHANGHAI_V2 once a guest is added", async () => {
+    it("keeps HARD difficulty and creates SHANGHAI_V3 once a guest is added", async () => {
       const setup = createSetup({
         presets: [STANDARD_PRESET],
         difficulty: "HARD",
@@ -308,21 +398,21 @@ describe("shanghaiSetup", () => {
 
       expect(sessionsApi.createSession).toHaveBeenCalledWith(
         expect.objectContaining({
-          rulesetVersionKey: "SHANGHAI_V2",
+          rulesetVersionKey: "SHANGHAI_V3",
           config: expect.objectContaining({
-            overrides: { difficulty: "HARD" },
+            overrides: { ...FULL_BOARD_NORMAL, difficulty: "HARD" },
           }),
         }),
       );
       expect(store.game.startSession).toHaveBeenCalledWith(
         expect.objectContaining({
-          rulesetVersionKey: "SHANGHAI_V2",
+          rulesetVersionKey: "SHANGHAI_V3",
           configSnapshot: expect.objectContaining({ difficulty: "HARD" }),
         }),
       );
     });
 
-    it("keeps HARD difficulty and creates SHANGHAI_V2 once a DartBot is seated", async () => {
+    it("keeps HARD difficulty and creates SHANGHAI_V3 once a DartBot is seated", async () => {
       const setup = createSetup({
         presets: [STANDARD_PRESET],
         difficulty: "HARD",
@@ -353,15 +443,15 @@ describe("shanghaiSetup", () => {
 
       expect(sessionsApi.createSession).toHaveBeenCalledWith(
         expect.objectContaining({
-          rulesetVersionKey: "SHANGHAI_V2",
+          rulesetVersionKey: "SHANGHAI_V3",
           config: expect.objectContaining({
-            overrides: { difficulty: "HARD" },
+            overrides: { ...FULL_BOARD_NORMAL, difficulty: "HARD" },
           }),
         }),
       );
       expect(store.game.startSession).toHaveBeenCalledWith(
         expect.objectContaining({
-          rulesetVersionKey: "SHANGHAI_V2",
+          rulesetVersionKey: "SHANGHAI_V3",
           configSnapshot: expect.objectContaining({ difficulty: "HARD" }),
         }),
       );
