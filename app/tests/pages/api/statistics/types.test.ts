@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
   StatisticsOverviewResponse,
+  StatisticsHomeQuery,
+  StatisticsHomeResponse,
   StatisticsRangeQuery,
   SessionListQuery,
   MAX_BUCKETS,
@@ -1556,5 +1558,49 @@ describe("RoutineStepSessionListResponse", () => {
       ],
     });
     expect(result.success).toBe(true);
+  });
+});
+
+describe("StatisticsHomeQuery", () => {
+  it("accepts a valid IANA tz", () => {
+    expect(
+      StatisticsHomeQuery.safeParse({ tz: "Europe/Amsterdam" }).success,
+    ).toBe(true);
+  });
+
+  it("rejects a missing, unknown or extra param", () => {
+    expect(StatisticsHomeQuery.safeParse({}).success).toBe(false);
+    expect(StatisticsHomeQuery.safeParse({ tz: "Mars/Olympus" }).success).toBe(
+      false,
+    );
+    expect(
+      StatisticsHomeQuery.safeParse({ tz: "UTC", from: "2026-01-01" }).success,
+    ).toBe(false);
+  });
+});
+
+describe("StatisticsHomeResponse", () => {
+  const day = (n: number) => ({
+    date: `2026-10-${19 + n}`,
+    weekday: n + 1,
+    value: n === 0 ? null : 60,
+  });
+  const valid = {
+    firstNine: { current: 90, previous: null, delta: null },
+    daily: Array.from({ length: 7 }, (_, n) => day(n)),
+    landing: { cellMm: 4, cells: [[0, -1, 3]] },
+  };
+
+  it("accepts a full payload", () => {
+    expect(StatisticsHomeResponse.safeParse(valid).success).toBe(true);
+  });
+
+  it("requires exactly seven daily entries", () => {
+    expect(
+      StatisticsHomeResponse.safeParse({
+        ...valid,
+        daily: valid.daily.slice(1),
+      }).success,
+    ).toBe(false);
   });
 });

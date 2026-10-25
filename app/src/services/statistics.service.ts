@@ -1,3 +1,9 @@
+import {
+  HOME_CELL_MM,
+  HOME_GAME_TYPES,
+  homeWindows,
+  shapeHomeStats,
+} from "@modules/stats/home-stats.module";
 import { getDb } from "@db/client";
 import {
   dartExerciseKindOf,
@@ -96,6 +102,8 @@ import {
   countGameSessions,
   findGameSessionsPage,
   findHeatmapCells,
+  findHomeScoring,
+  findHomeHeatmapCells,
   findHitNumberCells,
   findIntentCells,
   findIntentMoments,
@@ -145,6 +153,7 @@ import type {
   BucketedSession,
   DartScope,
   HeatmapCellRow,
+  HomeStats,
   HitNumberCellRow,
   IntentCellRow,
   IntentMomentRow,
@@ -213,6 +222,42 @@ export async function getStatisticsOverview(
     averageDartsPerLeg: averageDartsPerLeg(legs),
     checkoutPercentage: hits + misses === 0 ? null : hits / (hits + misses),
     highestCheckout: highestCheckout(checkoutVisits),
+  };
+}
+
+/**
+ * The Home page's three stat blocks for `q.now` in `q.tz`: first-9 average
+ * over the last 30 local days against the 30 before, the last 7 daily
+ * averages, and the last 30 days' landing cells, over completed `501` and
+ * Score Training sessions.
+ */
+export async function getHomeStats(
+  playerId: string,
+  q: { tz: string; now: Date },
+): Promise<ServiceResult<HomeStats>> {
+  const db = getDb();
+  const windows = homeWindows(q.now, q.tz);
+  const scope = {
+    playerId,
+    gameTypeKeys: [...HOME_GAME_TYPES],
+    to: windows.to,
+  };
+  const [rows, cells] = await Promise.all([
+    findHomeScoring(db, {
+      ...scope,
+      from: windows.previousFrom,
+      tz: q.tz,
+      bands: SCORE_BANDS,
+    }),
+    findHomeHeatmapCells(db, {
+      ...scope,
+      from: windows.currentFrom,
+      cellMm: HOME_CELL_MM,
+    }),
+  ]);
+  return {
+    ok: true,
+    data: shapeHomeStats({ rows, cells, windows, tz: q.tz }),
   };
 }
 
