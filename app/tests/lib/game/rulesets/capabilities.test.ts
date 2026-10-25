@@ -30,6 +30,7 @@ describe("RULESET_CAPABILITIES", () => {
       "SCORE_TRAINING_V1",
       "SHANGHAI_V1",
       "SHANGHAI_V2",
+      "SHANGHAI_V3",
       "SINGLES_V1",
       "SINGLES_V2",
       "SINGLES_V3",
@@ -87,6 +88,7 @@ describe("supportsMode", () => {
     "DOUBLES_TRAINING_V1",
     "SHANGHAI_V1",
     "SHANGHAI_V2",
+    "SHANGHAI_V3",
     "AROUND_THE_CLOCK_V1",
     "AROUND_THE_CLOCK_V2",
     "CRICKET_V1",
@@ -111,12 +113,13 @@ describe("supportsMode", () => {
     expect(supportsMode("121_V2", "ANALYTICS", "VISUAL_BOARD")).toBe(true);
   });
 
-  it("gives SHANGHAI_V2 the same pairs as SHANGHAI_V1", () => {
-    expect(supportsMode("SHANGHAI_V2", "RECREATIONAL", "DETAILED_DARTS")).toBe(
-      true,
-    );
-    expect(supportsMode("SHANGHAI_V2", "ANALYTICS", "VISUAL_BOARD")).toBe(true);
-  });
+  it.each(["SHANGHAI_V2", "SHANGHAI_V3"] as const)(
+    "gives %s the same pairs as SHANGHAI_V1",
+    (key) => {
+      expect(supportsMode(key, "RECREATIONAL", "DETAILED_DARTS")).toBe(true);
+      expect(supportsMode(key, "ANALYTICS", "VISUAL_BOARD")).toBe(true);
+    },
+  );
 });
 
 describe("supportsCaptureMode", () => {
@@ -160,6 +163,7 @@ describe("capableRulesets", () => {
       "SCORE_TRAINING_V1",
       "SHANGHAI_V1",
       "SHANGHAI_V2",
+      "SHANGHAI_V3",
       "SINGLES_V1",
       "SINGLES_V2",
       "SINGLES_V3",
@@ -177,7 +181,7 @@ describe("capableRulesets", () => {
 });
 
 describe("RULESET_DARTBOT", () => {
-  it("admits the fourteen rulesets whose bot strategy exists today", () => {
+  it("admits the fifteen rulesets whose bot strategy exists today", () => {
     expect(
       (Object.keys(RULESET_DARTBOT) as (keyof typeof RULESET_DARTBOT)[])
         .filter((key) => RULESET_DARTBOT[key])
@@ -194,6 +198,7 @@ describe("RULESET_DARTBOT", () => {
       "SCORE_TRAINING_V1",
       "SHANGHAI_V1",
       "SHANGHAI_V2",
+      "SHANGHAI_V3",
       "SINGLES_V1",
       "SINGLES_V3",
       "TUOD_V1",
@@ -242,9 +247,12 @@ describe("supportsDartbot", () => {
     expect(supportsDartbot("SCORE_TRAINING_V1")).toBe(true);
   });
 
-  it("accepts Shanghai V2, now that its 2-seat admission is wired (D259)", () => {
-    expect(supportsDartbot("SHANGHAI_V2")).toBe(true);
-  });
+  it.each(["SHANGHAI_V2", "SHANGHAI_V3"] as const)(
+    "accepts %s, now that its 2-seat admission is wired (D259)",
+    (key) => {
+      expect(supportsDartbot(key)).toBe(true);
+    },
+  );
 
   it("accepts Singles Training V3, now that its 2-seat admission is wired (#290)", () => {
     expect(supportsDartbot("SINGLES_V3")).toBe(true);

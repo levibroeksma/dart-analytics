@@ -356,7 +356,7 @@ function isShanghaiVisitOpen(turn: TurnFact): boolean {
  */
 const shanghaiSpec: DartGameSpec<ShanghaiEngineConfig, ShanghaiState> = {
   rulesetVersionKey: "SHANGHAI_V1",
-  rulesetVersionKeys: ["SHANGHAI_V2"],
+  rulesetVersionKeys: ["SHANGHAI_V2", "SHANGHAI_V3"],
   stageOwnership: "PER_SEAT",
   fold: foldShanghaiState,
   refusal: shanghaiRefusal,
@@ -377,7 +377,7 @@ const shanghaiSpec: DartGameSpec<ShanghaiEngineConfig, ShanghaiState> = {
  */
 export class ShanghaiEngine extends dartGameEngineClass(shanghaiSpec) {}
 
-function factoryFor(key: "SHANGHAI_V1" | "SHANGHAI_V2") {
+function factoryFor(key: "SHANGHAI_V1" | "SHANGHAI_V2" | "SHANGHAI_V3") {
   return dartGameEngineFactory(shanghaiSpec, ShanghaiEngine, key);
 }
 
@@ -385,5 +385,8 @@ export const shanghaiEngineFactory = factoryFor("SHANGHAI_V1");
 
 export const shanghaiV2EngineFactory = factoryFor("SHANGHAI_V2");
 
+export const shanghaiV3EngineFactory = factoryFor("SHANGHAI_V3");
+
 registerEngineFactory(shanghaiEngineFactory);
 registerEngineFactory(shanghaiV2EngineFactory);
+registerEngineFactory(shanghaiV3EngineFactory);

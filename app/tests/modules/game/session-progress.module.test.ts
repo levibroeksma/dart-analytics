@@ -16,7 +16,10 @@ import { singlesTrainingEngineFactory } from "@modules/game/singles-training.eng
 import { doublesTrainingEngineFactory } from "@modules/game/doubles-training.engine.module";
 import { bobs27EngineFactory } from "@modules/game/bobs27.engine.module";
 import { tuodEngineFactory } from "@modules/game/tuod.engine.module";
-import { shanghaiEngineFactory } from "@modules/game/shanghai.engine.module";
+import {
+  shanghaiEngineFactory,
+  shanghaiV3EngineFactory,
+} from "@modules/game/shanghai.engine.module";
 import {
   aroundTheClockEngineFactory,
   aroundTheClockV2EngineFactory,
@@ -581,6 +584,29 @@ describe("summarizeProgress — SHANGHAI", () => {
     expect(summarizeProgress("SHANGHAI_V1", config, facts)).toEqual({
       detail: "Round 2 of 20",
       big: { value: "2", label: "TARGET" },
+    });
+  });
+
+  it("SHANGHAI_V3 reads the round within its range and the range's own number", () => {
+    const config = {
+      seats: DUO,
+      difficulty: "NORMAL" as const,
+      rangeStart: 13,
+      rangeEnd: 20,
+      instantWin: true,
+    };
+    expect(summarizeProgress("SHANGHAI_V3", config, EMPTY_FACTS)).toEqual({
+      detail: "Round 1 of 8",
+      big: { value: "13", label: "TARGET" },
+    });
+    const facts = factsAfter(
+      shanghaiV3EngineFactory,
+      config,
+      Array<typeof MISS>(12).fill(MISS),
+    );
+    expect(summarizeProgress("SHANGHAI_V3", config, facts)).toEqual({
+      detail: "Round 3 of 8",
+      big: { value: "15", label: "TARGET" },
     });
   });
 

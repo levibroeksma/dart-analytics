@@ -51,12 +51,12 @@ CREATE TEMP TABLE verification_results (
 -- ------------------------------------------------------------
 INSERT INTO verification_results
 SELECT '1',
-    'seed inserted exactly the 44 declared rows',
+    'seed inserted exactly the 46 declared rows',
     CASE
-        WHEN count(*) = 44 THEN 'PASS'
+        WHEN count(*) = 46 THEN 'PASS'
         ELSE 'FAIL'
     END,
-    format('expected 44, found %s', count(*))
+    format('expected 46, found %s', count(*))
 FROM ruleset_version_capabilities;
 
 -- ------------------------------------------------------------
@@ -112,6 +112,8 @@ FROM (
             ('SHANGHAI_V1', 'ANALYTICS', 'VISUAL_BOARD'),
             ('SHANGHAI_V2', 'RECREATIONAL', 'DETAILED_DARTS'),
             ('SHANGHAI_V2', 'ANALYTICS', 'VISUAL_BOARD'),
+            ('SHANGHAI_V3', 'RECREATIONAL', 'DETAILED_DARTS'),
+            ('SHANGHAI_V3', 'ANALYTICS', 'VISUAL_BOARD'),
             ('121_V1', 'RECREATIONAL', 'QUICK_SCORE'),
             ('121_V1', 'ANALYTICS', 'VISUAL_BOARD'),
             ('121_V2', 'RECREATIONAL', 'QUICK_SCORE'),
@@ -145,12 +147,12 @@ FROM (
 -- silently read as fewer triples checked, not FAIL.
 INSERT INTO verification_results
 SELECT '2',
-    'all 44 declared triples were actually checked',
+    'all 46 declared triples were actually checked',
     CASE
-        WHEN count(*) = 44 THEN 'PASS'
+        WHEN count(*) = 46 THEN 'PASS'
         ELSE 'FAIL'
     END,
-    format('%s of 44 triple checks ran', count(*))
+    format('%s of 46 triple checks ran', count(*))
 FROM verification_results
 WHERE step = '2';
 
@@ -243,6 +245,8 @@ WHERE NOT EXISTS (
                     ('SHANGHAI_V1', 'ANALYTICS', 'VISUAL_BOARD'),
                     ('SHANGHAI_V2', 'RECREATIONAL', 'DETAILED_DARTS'),
                     ('SHANGHAI_V2', 'ANALYTICS', 'VISUAL_BOARD'),
+                    ('SHANGHAI_V3', 'RECREATIONAL', 'DETAILED_DARTS'),
+                    ('SHANGHAI_V3', 'ANALYTICS', 'VISUAL_BOARD'),
                     ('121_V1', 'RECREATIONAL', 'QUICK_SCORE'),
                     ('121_V1', 'ANALYTICS', 'VISUAL_BOARD'),
                     ('121_V2', 'RECREATIONAL', 'QUICK_SCORE'),

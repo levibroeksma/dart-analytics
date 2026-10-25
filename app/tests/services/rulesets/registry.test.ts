@@ -55,6 +55,10 @@ describe("getRulesetValidator", () => {
     expect(getRulesetValidator("SHANGHAI_V2")).toBeDefined();
   });
 
+  it("returns the Shanghai V3 validator for SHANGHAI_V3", () => {
+    expect(getRulesetValidator("SHANGHAI_V3")).toBeDefined();
+  });
+
   it("returns the Singles Training V2 validator for SINGLES_V2", () => {
     expect(getRulesetValidator("SINGLES_V2")).toBeDefined();
   });

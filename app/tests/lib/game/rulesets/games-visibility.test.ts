@@ -160,6 +160,9 @@ describe("cardForRuleset", () => {
     expect(cardForRuleset(GAME_CARDS, "SHANGHAI_V2")?.rulesetVersionKey).toBe(
       "SHANGHAI_V1",
     );
+    expect(cardForRuleset(GAME_CARDS, "SHANGHAI_V3")?.rulesetVersionKey).toBe(
+      "SHANGHAI_V1",
+    );
     expect(cardForRuleset(GAME_CARDS, "121_V2")?.rulesetVersionKey).toBe(
       "121_V1",
     );

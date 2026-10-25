@@ -122,6 +122,7 @@ describe("rejectSeatRequest with the seven new rulesets", () => {
     "TUOD_V1",
     "SHANGHAI_V1",
     "SHANGHAI_V2",
+    "SHANGHAI_V3",
     "SCORE_TRAINING_V1",
     "SINGLES_V1",
     "SINGLES_V3",
@@ -138,6 +139,7 @@ describe("rejectSeatRequest with the seven new rulesets", () => {
     "TUOD_V1",
     "SHANGHAI_V1",
     "SHANGHAI_V2",
+    "SHANGHAI_V3",
     "SCORE_TRAINING_V1",
     "SINGLES_V1",
     "SINGLES_V3",
@@ -193,9 +195,12 @@ describe("rejectSeatRequest with a DARTBOT seat", () => {
     );
   });
 
-  it("accepts a DARTBOT seat for Shanghai V2, now that it's wired (D259)", () => {
-    expect(rejectSeatRequest([player, bot], "SHANGHAI_V2")).toBeNull();
-  });
+  it.each(["SHANGHAI_V2", "SHANGHAI_V3"])(
+    "accepts a DARTBOT seat for %s, now that it's wired (D259)",
+    (rulesetVersionKey) => {
+      expect(rejectSeatRequest([player, bot], rulesetVersionKey)).toBeNull();
+    },
+  );
 
   it("accepts a DARTBOT seat for Singles Training V3, now that it's wired (#290)", () => {
     expect(rejectSeatRequest([player, bot], "SINGLES_V3")).toBeNull();
