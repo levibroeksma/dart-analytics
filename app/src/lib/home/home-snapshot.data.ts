@@ -1,12 +1,19 @@
-import { fetchStatisticsOverview } from "@client/api/statistics";
+import {
+  fetchStatisticsHome,
+  fetchStatisticsOverview,
+} from "@client/api/statistics";
 import { BOARD_RADII_MM } from "@lib/game/board/board-geometry.module";
 import { heatStamps } from "@modules/stats/sections/heatmap-density.module";
-import type { HeatmapMetrics } from "@modules/types";
-import type { StatisticsOverviewResponseData } from "@routes/types";
+import type {
+  StatisticsHomeResponseData,
+  StatisticsOverviewResponseData,
+} from "@routes/types";
 import type {
   CareerTile,
   DailyAverage,
   DailyBar,
+  HomeHero,
+  HomeLanding,
   HomeSnapshotContext,
 } from "@lib/types";
 
@@ -15,40 +22,7 @@ const BOARD_SPAN_MM = BOARD_RADII_MM.surroundOuter * 2;
 const BAR_FLOOR = 50;
 const BAR_RANGE = 25;
 
-const DAILY: DailyAverage[] = [
-  { day: "M", value: 61.2 },
-  { day: "T", value: 66.8 },
-  { day: "W", value: 58.4 },
-  { day: "T", value: 70.3 },
-  { day: "F", value: 74.1 },
-  { day: "S", value: 68.9 },
-  { day: "S", value: 71.5 },
-];
-
-/** Fixture landing cells (4 mm grid, mm from the bull): T20 heaviest, then S20, S1/S5, bull, a few strays. */
-const LANDING: HeatmapMetrics = {
-  cellMm: 4,
-  target: null,
-  cells: [
-    [-1, -26, 30],
-    [0, -26, 38],
-    [1, -26, 24],
-    [0, -25, 18],
-    [0, -27, 14],
-    [-1, -34, 10],
-    [0, -34, 14],
-    [0, -33, 9],
-    [1, -35, 6],
-    [-7, -23, 8],
-    [-8, -24, 5],
-    [7, -24, 7],
-    [8, -23, 4],
-    [0, 0, 6],
-    [-1, 0, 4],
-    [37, -13, 3],
-    [-13, -39, 3],
-  ],
-};
+const WEEKDAY_LETTERS = ["M", "T", "W", "T", "F", "S", "S"];
 
 /**
  * The three career tiles. Titles are fixed; `null` (not loaded, or the load
@@ -81,56 +55,111 @@ export function careerTiles(
   ];
 }
 
-/** The highest daily average to two decimals, or a dash with no days. */
-export function dailyPeak(days: DailyAverage[]): string {
-  if (days.length === 0) return "—";
-  return Math.max(...days.map((d) => d.value)).toFixed(2);
+/** The hero stat: first-9 average and its change over 30 days; a dash and no change line without data. */
+export function heroFromStats(
+  home: StatisticsHomeResponseData | null,
+): HomeHero {
+  const current = home?.firstNine.current ?? null;
+  const delta = home?.firstNine.delta ?? null;
+  const text = delta === null ? null : Math.abs(delta).toFixed(1);
+  const shown = text !== null && text !== "0.0" ? text : null;
+  return {
+    label: "FIRST-9 AVERAGE",
+    value: current === null ? "—" : current.toFixed(1),
+    delta: shown ?? "",
+    direction: delta !== null && delta < 0 ? "Down" : "Up",
+    showDelta: shown !== null,
+    window: "last 30 days",
+  };
 }
 
-/** A bar's CSS height: `value` mapped from 50–75 onto 0–100%, clamped. */
-export function barHeight(value: number): string {
+/** The seven daily averages labelled by weekday letter; empty without stats. */
+export function dailyFromStats(
+  home: StatisticsHomeResponseData | null,
+): DailyAverage[] {
+  if (home === null) return [];
+  return home.daily.map((day) => ({
+    day: WEEKDAY_LETTERS[day.weekday - 1] ?? "",
+    value: day.value,
+  }));
+}
+
+/** The landing card: the last 30 days' cells as heat stamps; none without cells. */
+export function landingFromStats(
+  home: StatisticsHomeResponseData | null,
+): HomeLanding {
+  const cells = home?.landing.cells ?? [];
+  return {
+    window: "LAST 30 DAYS",
+    stamps:
+      home === null || cells.length === 0
+        ? []
+        : heatStamps(
+            { cellMm: home.landing.cellMm, target: null, cells },
+            BOARD_SPAN_MM,
+          ),
+  };
+}
+
+function peakValue(days: DailyAverage[]): number | null {
+  const values = days.flatMap((d) => (d.value === null ? [] : [d.value]));
+  return values.length === 0 ? null : Math.max(...values);
+}
+
+/** The highest daily average to two decimals, or a dash with no measured days. */
+export function dailyPeak(days: DailyAverage[]): string {
+  const peak = peakValue(days);
+  return peak === null ? "—" : peak.toFixed(2);
+}
+
+/** A bar's CSS height: `value` mapped from 50–75 onto 0–100%, clamped; an empty day is 0%. */
+export function barHeight(value: number | null): string {
+  if (value === null) return "0%";
   const pct = ((value - BAR_FLOOR) / BAR_RANGE) * 100;
   return `${Math.round(Math.min(100, Math.max(0, pct)) * 10) / 10}%`;
 }
 
-/** One bar per day; every day sharing the highest value is a peak. */
+/** One bar per day; every measured day sharing the highest value is a peak. */
 export function dailyBars(days: DailyAverage[]): DailyBar[] {
-  const max = Math.max(...days.map((d) => d.value));
+  const max = peakValue(days);
   return days.map((d) => ({
     day: d.day,
     height: barHeight(d.value),
-    peak: d.value === max,
+    peak: d.value !== null && d.value === max,
   }));
 }
 
 /**
- * Homepage stat sections. The career tiles read `GET /api/statistics/overview`
- * on `init()` and stay dashes if it fails; the other sections are still
- * design fixtures until their data pass.
+ * Homepage stat sections. `init()` reads `GET /api/statistics/overview` for
+ * the career tiles and `GET /api/statistics/home` for the hero, daily bars
+ * and landing heatmap; each stays empty if its own read fails.
  */
 export function homeSnapshot(): HomeSnapshotContext {
   return {
-    hero: {
-      label: "FIRST-9 AVERAGE",
-      value: "72.4",
-      delta: "1.8",
-      window: "last 30 days",
-    },
+    hero: heroFromStats(null),
     careerTiles: careerTiles(null),
-    dailyAverage: DAILY,
-    peak: dailyPeak(DAILY),
-    bars: dailyBars(DAILY),
-    landing: {
-      window: "LAST 30 DAYS",
-      stamps: heatStamps(LANDING, BOARD_SPAN_MM),
-    },
+    dailyAverage: dailyFromStats(null),
+    peak: dailyPeak([]),
+    bars: dailyBars([]),
+    landing: landingFromStats(null),
 
     async init(this: HomeSnapshotContext) {
-      try {
-        this.careerTiles = careerTiles(await fetchStatisticsOverview());
-      } catch {
-        this.careerTiles = careerTiles(null);
-      }
+      const [overview, home] = await Promise.allSettled([
+        fetchStatisticsOverview(),
+        fetchStatisticsHome(Intl.DateTimeFormat().resolvedOptions().timeZone),
+      ]);
+      this.careerTiles = careerTiles(
+        overview.status === "fulfilled" && overview.value
+          ? overview.value
+          : null,
+      );
+      const stats =
+        home.status === "fulfilled" && home.value ? home.value : null;
+      this.hero = heroFromStats(stats);
+      this.dailyAverage = dailyFromStats(stats);
+      this.peak = dailyPeak(this.dailyAverage);
+      this.bars = dailyBars(this.dailyAverage);
+      this.landing = landingFromStats(stats);
     },
   };
 }

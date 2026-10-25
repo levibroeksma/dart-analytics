@@ -5,6 +5,7 @@ vi.mock("@client/api/client", () => ({ apiRequest: vi.fn() }));
 import { apiRequest } from "@client/api/client";
 import {
   fetchStatisticsOverview,
+  fetchStatisticsHome,
   fetchGameSessions,
   fetchGameSection,
   fetchSessionReplay,
@@ -522,5 +523,34 @@ describe("fetchRoutineStepSessions", () => {
         to: "2026-02-01T00:00:00.000Z",
       }),
     ).rejects.toBeInstanceOf(StatisticsApiError);
+  });
+});
+
+describe("fetchStatisticsHome", () => {
+  beforeEach(() => vi.resetAllMocks());
+
+  it("requests the endpoint with the tz and returns the data", async () => {
+    const data = {
+      firstNine: { current: null, previous: null, delta: null },
+      daily: [],
+      landing: { cellMm: 4, cells: [] },
+    };
+    vi.mocked(apiRequest).mockResolvedValue({ ok: true, data } as never);
+    await expect(fetchStatisticsHome("Europe/Amsterdam")).resolves.toEqual(
+      data,
+    );
+    expect(apiRequest).toHaveBeenCalledWith(
+      "/api/statistics/home?tz=Europe%2FAmsterdam",
+    );
+  });
+
+  it("throws StatisticsApiError on an error envelope", async () => {
+    vi.mocked(apiRequest).mockResolvedValue({
+      ok: false,
+      error: { code: "VALIDATION_FAILED", message: "bad tz" },
+    } as never);
+    await expect(fetchStatisticsHome("x")).rejects.toBeInstanceOf(
+      StatisticsApiError,
+    );
   });
 });

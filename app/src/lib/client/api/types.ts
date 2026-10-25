@@ -127,6 +127,7 @@ export {
   type UpdatePlayerProfileInput,
   type PlayerProfileResponseData,
   type StatisticsOverviewResponseData,
+  type StatisticsHomeResponseData,
   type GameSessionListResponseData,
   type ReplayPageSchemaData,
   ReplaySessionIdParam,

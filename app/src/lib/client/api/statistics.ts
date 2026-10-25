@@ -12,6 +12,7 @@ import type {
   RoutineStepSessionListResponseData,
   RoutineStepSessionsParams,
   StatisticsOverviewResponseData,
+  StatisticsHomeResponseData,
   TrainedRoutineListResponseData,
 } from "./types";
 
@@ -28,6 +29,17 @@ export class StatisticsApiError extends Error {
 export async function fetchStatisticsOverview(): Promise<StatisticsOverviewResponseData> {
   const result = await apiRequest<StatisticsOverviewResponseData>(
     "/api/statistics/overview",
+  );
+  if (!result.ok)
+    throw new StatisticsApiError(result.error.code, result.error.message);
+  return result.data;
+}
+
+export async function fetchStatisticsHome(
+  tz: string,
+): Promise<StatisticsHomeResponseData> {
+  const result = await apiRequest<StatisticsHomeResponseData>(
+    `/api/statistics/home?tz=${encodeURIComponent(tz)}`,
   );
   if (!result.ok)
     throw new StatisticsApiError(result.error.code, result.error.message);
