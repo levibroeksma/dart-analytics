@@ -52,10 +52,10 @@ Presets are a UI list, not a schema enum, so a later free start/end needs no new
 `app/src/modules/game/shanghai.engine.module.ts`:
 
 - `ShanghaiEngineConfig` gains `Seated<ShanghaiV3Snapshot>`. A `settingsOf(config)` normaliser (the `difficultyOf` pattern) returns `{ difficulty, rangeStart, rangeEnd, instantWin }`, defaulting to `NORMAL`, 1, 20, `true` for any config without those keys, so V1/V2 fold unchanged by construction.
+- **Seat state carries the settings.** `ShanghaiSeatState` gains `rangeStart`, `rangeEnd`, `instantWin`. Every consumer that holds only a seat (replay presenter, derived aims, the stats section, the play screen) then needs no config threading, and the range math lives in three exported helpers in the engine module: `activeNumberOf(seat)`, `roundOf(seat)` (1-based index in the range), `roundCountOf(seat)`. They replace the second copy of the "1–20" constant (`SHANGHAI_ROUNDS` in `shanghai-play.data.ts` and `session-progress.module.ts`) and the `numbersPath()`/BULL guard copy in `shanghai-play.data.ts` (`targetNumberAt`). V1/V2 seat states gain the three fields with defaults; the golden snapshots change by exactly those additions.
 - `shanghaiRules(settings)`: `target: pathTarget(PATH.slice(rangeStart − 1, rangeEnd))`; `advance = advanceToEnd(rangeEnd − rangeStart)`; `onVisitClose` applies `shanghaiWin` only when `instantWin`. In Score-only the Shanghai flag is never set, so no seat reaches `SHANGHAI` and the existing fold ends on `COMPLETE`/`TIE` unchanged.
-- `activeTargetOf(state, config?)` now uses `config` for the range offset (its optional, unused parameter becomes real). `initialShanghaiState`, `applyShanghaiDart` take the settings object; `difficulty` positional parameter is kept for V1/V2 callers as a default (see §10 risk).
-- `shanghaiSpec.rulesetVersionKeys` gains `"SHANGHAI_V3"`; a third `dartGameEngineFactory(..., "SHANGHAI_V3")` is registered.
-- `LAST_TARGET_INDEX = 19` and the module comments naming 1–20 and "round 20" are replaced by the range.
+- `activeTargetOf(seat)` takes the seat only (the unused optional `config` parameter is dropped) and returns `targetAt(PATH, rangeStart − 1 + targetIndex)`. `initialShanghaiState(config)` seeds the three fields. `applyShanghaiDart(state, observation, difficulty?)` reads range and `instantWin` from the seat; the positional `difficulty` stays, since V1/V2 callers pass it and it is not seat state.
+- Engine factories for V1, V2 and V3 are produced by one loop over the served keys; `LAST_TARGET_INDEX` and comments naming "round 20" are removed.
 
 ## 7. Registration
 
@@ -67,8 +67,9 @@ Seed `0053_shanghai_v3_ruleset.sql`: a `ruleset_versions` row under game type `0
 
 - `shanghai-setup.data.ts`: new fields `range` (a preset key, default `1-20`) and `instantWin` (default `true`); `configOverrides` maps them to `rangeStart`, `rangeEnd`, `instantWin`, `difficulty`; `rulesetVersionKey: "SHANGHAI_V3"` for every new session (V1 and V2 sessions only resume and replay).
 - `ShanghaiSetupForm.astro`: a Range toggle (five options) and a "Shanghai wins instantly" toggle beside the Difficulty toggle; hint text per state; the info copy no longer says "Twenty rounds".
-- `shanghai-play.data.ts`: `SHANGHAI_ROUNDS` and `targetNumberAt(targetIndex)` read the session's range (`rangeStart + index`); `subtitle` is `ROUND n OF <length>`; `roundLabelFor` is `n/<length>`; `statsFor` computes each dart's number from `rangeStart`; `resultsTitle` is unchanged (`SHANGHAI` status cannot occur in Score-only, so the plain winner/tie titles apply); `RESUMABLE_RULESET_VERSIONS` gains V3; `playAgain` uses `variantsPlayAgain` for V2 and V3 so range and flags carry over.
-- `derived-aims.module.ts`: passes the config's range to `activeTargetOf` so heatmap and aim derivation stay correct for 11–20 and 13–20; `rulesetVersionKey.startsWith("SHANGHAI_")` already covers V3.
+- `shanghai-play.data.ts`: the local `SHANGHAI_ROUNDS` and `targetNumberAt` are deleted in favour of the engine helpers; `subtitle` is `ROUND n OF <length>`; `roundLabelFor` is `n/<length>`; `previewSegmentsFor` and `statsFor` take the range start from the seat; `resultsTitle` is unchanged (`SHANGHAI` status cannot occur in Score-only, so the plain winner/tie titles apply); `RESUMABLE_RULESET_VERSIONS` gains V3; `playAgain` uses `variantsPlayAgain` for V2 and V3 so range and flags carry over.
+- `derived-aims.module.ts` and `replay-presenters.ts` call `activeTargetOf(seat)` unchanged: the seat carries the range, so aim derivation and replay target cells are correct for 11–20 and 13–20 with no edit beyond the new fields. `rulesetVersionKey.startsWith("SHANGHAI_")` already covers V3.
+- `shanghai-count.module.ts` (stats): `shanghaiRoundOf` returns the **active number** the Shanghai landed on (`activeNumberOf(before)`), which equals the round for V1/V2, so the `byRound` histogram stays comparable across versions. Sessions whose seat has `instantWin === false` are skipped: a Score-only session can never end on a Shanghai and would deflate the rate.
 - DartBot: aims at the active number through the existing flow; the bot reads the target from engine state, not a hard-coded 1–20 (test pins an 11–20 bot round).
 
 ## 9. Testing (TDD, failing test first)
@@ -86,14 +87,13 @@ Seed `0053_shanghai_v3_ruleset.sql`: a `ruleset_versions` row under game type `0
 
 ## 10. Out of scope
 
-Free start/end, match structure, any change to V1/V2 config or behaviour, a Shanghai-count result stat, a stats section, existing seeds or migrations.
+Free start/end, match structure, a Score-only-aware Shanghai rate (those sessions are skipped), any change to V1/V2 config or behaviour, a Shanghai-count result stat, a stats section, existing seeds or migrations.
 
 ## 11. Risks
 
 | Risk | Mitigation |
 | --- | --- |
-| Range offset missed at one of the many "20 rounds" call sites | The call-site list in §6–§8 is exhaustive from a grep of `20`, `SHANGHAI_ROUNDS`, `targetAt(numbersPath()` and `activeTargetOf`; a test per site with an 11–20 session |
+| Range offset missed at one of the "20 rounds" call sites | Sites listed in §6–§8 come from a grep of `20`, `SHANGHAI_ROUNDS`, `numbersPath`, `activeTargetOf` and `targetIndex`; seat-carried settings remove the config-threading sites; a test per site with an 11–20 session |
 | V1/V2 regress through the settings refactor | `settingsOf` defaults; differential goldens (§9.4) |
-| `applyShanghaiDart`'s positional `difficulty` parameter and a new settings object coexist awkwardly | Replace the positional parameter with a settings object in one task and update all callers (`derived-aims`, tests); no overloads kept |
 | Score-only players lose the "Shanghai" moment | Out of scope; the visit still shows its zone chips. Revisit with a result stat if wanted |
 | Stats layout membership for V3 missed | Follow how V2 is routed; add a test if V2 is listed anywhere |
