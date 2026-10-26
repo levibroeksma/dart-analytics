@@ -268,3 +268,10 @@ Decision: migration `0050_template_difficulty_axis.sql` adds `uq_tags_id_axis` (
 Reason: the `0047` foreign key accepted any tag, and a wrong value silently fell back to the type's difficulty in `v_exercise_template_catalog`; only seeded system templates were guarded, so a future user template was not. A composite key enforces it in the schema, where a verification script would only report it.
 Consequences: the axis id 4 is hard-coded in the generated column, safe because lookup ids are seeded and never reassigned; the integration test asserts it equals the `DIFFICULTY` row. No data change and no API change. Proof: `app/tests/integration/template-difficulty-axis.itest.ts`.
 Supersedes: none.
+
+### D499 — `v_active_sessions` carries the routine-step flag and configuration
+Status: Accepted · Date: 2026-10-26
+Decision: migration `0051_active_sessions_routine_config.sql` recreates `v_active_sessions` with two trailing columns, `is_routine_step` (`routine_step_sequence_number IS NOT NULL`) and `configuration` (the `exercise_configurations` snapshot, NULL when absent, joined `LEFT JOIN` on the unique session key). `findActiveSessions` switches to them in a follow-up once `schema.ts` carries the columns.
+Reason: D442 left a request-time join of `exercise_sessions` and `exercise_configurations` in the repository because `schema.ts` could not be edited where the resume deck was built. That split the read model between a view and an ad-hoc join and made the next consumer repeat it.
+Consequences: `app/src/db/schema.ts` is refreshed by `.github/workflows/schema.yml`, not by hand. No data change, no API shape change. Proof: `database/verification/0051_active_sessions_routine_config_checks.sql`.
+Supersedes: none.

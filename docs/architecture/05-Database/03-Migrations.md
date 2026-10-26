@@ -1137,6 +1137,16 @@ What the erasure leaves behind, none of it repaired here and each of it named �
 
 `migrate:down` is a comment only: seed `0024` and the type's rules file are deleted in the same commit, so nothing is left to restore from and rolling back past `0048` means restoring a backup. Past step-level history is not rewritten — `activity_configurations` is an immutable snapshot and `v_stats_routine_step_facts` resolves a step through it, never through `routine_steps` — but run-level facts and forward step identity are, as above. Applied; `app/tests/integration/switching-target-scoring-erased.itest.ts` proves it. <!-- 2026-10-20 -->
 
+## 0051_active_sessions_routine_config.sql
+
+Fold `is_routine_step` and `configuration` into `v_active_sessions` (#893). `findActiveSessions` had joined `exercise_sessions` and `exercise_configurations` at request time for those two values because the view exposed neither (D442).
+
+Contains:
+
+- `v_active_sessions` recreated with two trailing columns: `is_routine_step` (`routine_step_sequence_number IS NOT NULL`) and `configuration` (the `exercise_configurations` snapshot, NULL when absent), via one more `LEFT JOIN` that `uq_exercise_configuration_session` keeps one-to-one.
+
+No data change. `migrate:down` restores the `0033` view. Proof: `database/verification/0051_active_sessions_routine_config_checks.sql`. <!-- 2026-10-26, D499 -->
+
 ---
 
 ## 0049_ruleset_version_tags.sql

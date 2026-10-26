@@ -25,6 +25,8 @@ updated: 2026-10-13
 
 > **Version:** 1.188.0 (2026-10-24 — Cricket DartBot: D489 in `decisions/game-engine.md`; `08-DartBot.md` 0.8.13 gains the `CRICKET_V2` coverage row, the marks-strategy paragraph, the `MarksView` contract and the opponent-mode row; `cricket.md` moves Vs DartBot to V3; `marks.strategy.module.ts` and `cricket-dartbot-seat.contract.test.ts` need no inventory row.)
 
+> **Version:** 1.188.0 (2026-10-26 — `v_active_sessions` gains `is_routine_step` and `configuration` (#893): D499 in `decisions/database.md`; `0051_active_sessions_routine_config.sql` in `05-Database/03-Migrations.md` and the migration counts; `database/verification/0051_active_sessions_routine_config_checks.sql` registered in `00-File-Inventory.md`; view contract in `06-Spec/05-Read-Model-Layer.md`)
+
 > **Version:** 1.187.0 (2026-10-24 — Cricket V2 (1v1): D487 in `decisions/game-engine.md`; `0052_cricket_v2_ruleset.sql`, `marks-engine.module.ts`, `marks-play.data.ts` registered in `00-File-Inventory.md`; `MarksPlayScreen` row in `07-Frontend/08-Component-Inventory.md`; `CRICKET_V2` added to the seat-cap table in `06-API/04-Endpoint-Contracts.md`; `0052` row in `database/README.md`; marks-engine bullet in `app/src/modules/game/CLAUDE.md`)
 
 > **Version:** 1.186.0 (2026-10-23 — Tactics V2 (1v1): D486 in `decisions/game-engine.md`; `0051_tactics_v2_ruleset.sql` and `marks-duel.module.ts` registered in `00-File-Inventory.md`; `TACTICS_V2` added to the seat-cap table in `06-API/04-Endpoint-Contracts.md`; `0051` row in `database/README.md`)
