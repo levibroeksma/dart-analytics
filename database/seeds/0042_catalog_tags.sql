@@ -539,6 +539,7 @@ SELECT * FROM (VALUES
   ((SELECT id FROM ruleset_versions WHERE implementation_key = 'AROUND_THE_CLOCK_V3'), 8, FALSE, now()),
   ((SELECT id FROM ruleset_versions WHERE implementation_key = 'AROUND_THE_CLOCK_V3'), 12, FALSE, now()),
   ((SELECT id FROM ruleset_versions WHERE implementation_key = 'AROUND_THE_CLOCK_V3'), 13, FALSE, now()),
+  ((SELECT id FROM ruleset_versions WHERE implementation_key = 'AROUND_THE_CLOCK_V3'), 14, FALSE, now()),
   ((SELECT id FROM ruleset_versions WHERE implementation_key = 'AROUND_THE_CLOCK_V3'), 17, FALSE, now()),
   ((SELECT id FROM ruleset_versions WHERE implementation_key = 'AROUND_THE_CLOCK_V3'), 23, FALSE, now()),
   ((SELECT id FROM ruleset_versions WHERE implementation_key = 'AROUND_THE_CLOCK_V3'), 25, FALSE, now()),

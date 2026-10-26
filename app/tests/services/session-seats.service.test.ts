@@ -373,9 +373,41 @@ describe("rejectSeatRequest for Around the Clock V3", () => {
     expect(rejectSeatRequest([solo], "AROUND_THE_CLOCK_V3")).toBeNull();
   });
 
-  it("refuses a second seat", () => {
-    expect(rejectSeatRequest([solo, guest], "AROUND_THE_CLOCK_V3")).toContain(
-      "supports at most 1 seat",
-    );
+  it("accepts a second seat", () => {
+    expect(rejectSeatRequest([solo, guest], "AROUND_THE_CLOCK_V3")).toBeNull();
+  });
+
+  it("refuses a third seat", () => {
+    const third = { ...guest, sideKey: "C" };
+    expect(
+      rejectSeatRequest([solo, guest, third], "AROUND_THE_CLOCK_V3"),
+    ).toContain("supports at most 2 seats");
+  });
+});
+
+describe("rejectSeatRequest for Baseball", () => {
+  const solo = {
+    participantTypeKey: "PLAYER" as const,
+    sideKey: "A",
+    displayName: "Levi",
+  };
+  const guest = {
+    participantTypeKey: "GUEST" as const,
+    sideKey: "B",
+    displayName: "Guest",
+  };
+
+  it("accepts one or two seats", () => {
+    expect(rejectSeatRequest([solo], "BASEBALL_V1")).toBeNull();
+    expect(rejectSeatRequest([solo, guest], "BASEBALL_V1")).toBeNull();
+  });
+
+  it("refuses a third seat", () => {
+    expect(
+      rejectSeatRequest(
+        [solo, guest, { ...guest, sideKey: "C" }],
+        "BASEBALL_V1",
+      ),
+    ).toContain("supports at most 2 seats");
   });
 });

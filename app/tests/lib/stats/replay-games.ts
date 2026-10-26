@@ -511,6 +511,46 @@ function playBaseball(): ScriptedGame {
   ]);
 }
 
+/** A 1v1 Baseball game: two innings each, the first seat ahead 5 runs to 4. */
+export function playBaseballDuel(): ScriptedGame {
+  return scripted(baseballEngineFactory, { seats: DUO_SEATS }, [
+    [dart(1, "TREBLE"), dart(1, "OUTER_SINGLE"), MISS],
+    [dart(1, "OUTER_SINGLE"), MISS, MISS],
+    [MISS, dart(2, "OUTER_SINGLE"), dart(20, "TREBLE")],
+    [dart(2, "TREBLE"), MISS, MISS],
+  ]);
+}
+
+/**
+ * A 1v1 Nine Lives game: the first seat hits 1 and keeps its life, then both
+ * seats alternate blank visits until the second seat runs out and the first
+ * wins without throwing again.
+ */
+export function playNineLivesDuel(): ScriptedGame {
+  const blanks = [MISS, MISS, MISS];
+  return scripted(
+    aroundTheClockV3EngineFactory,
+    {
+      seats: DUO_SEATS,
+      pathDirection: "LOW_TO_HIGH",
+      oddsFirst: false,
+      segmentRule: "ANY",
+      difficulty: "EASY",
+      durationType: "UNTIMED",
+      durationValue: null,
+      lives: 3,
+    },
+    [
+      [dart(1, "OUTER_SINGLE"), MISS, MISS],
+      blanks,
+      blanks,
+      blanks,
+      blanks,
+      blanks,
+    ],
+  );
+}
+
 /**
  * Every scripted game, named for `it.each` tables: shared by
  * `replay-fold.test.ts` and `replay.module.test.ts` so the two suites that
@@ -527,6 +567,8 @@ export const SCRIPTED_GAMES: [string, () => ScriptedGame][] = [
   ["Shanghai", playShanghai],
   ["Around the Clock", playAroundTheClock],
   ["Baseball", playBaseball],
+  ["Baseball 1v1", playBaseballDuel],
+  ["Nine Lives 1v1", playNineLivesDuel],
   ["Tactics 1v1", playTacticsDuel],
   ["Cricket 1v1", playCricketDuel],
 ];

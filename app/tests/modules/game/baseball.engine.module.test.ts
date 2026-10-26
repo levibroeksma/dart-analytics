@@ -165,3 +165,91 @@ describe("baseball engine", () => {
     });
   });
 });
+
+const duel: Seated<BaseballSnapshot> = {
+  seats: [
+    ...config.seats,
+    {
+      participantRef: "participant-2",
+      displayName: "Guest",
+      sideKey: "B",
+      participantTypeKey: "GUEST" as const,
+    },
+  ],
+};
+
+function playInning(
+  engine: BaseballEngine,
+  darts: [DartObservation, DartObservation, DartObservation],
+) {
+  for (const observation of darts) engine.record(observation);
+}
+
+function playToInning9Seat1(engine: BaseballEngine) {
+  for (let inning = 1; inning <= BASEBALL_INNINGS; inning += 1) {
+    playInning(engine, [S(inning), MISS, MISS]);
+    if (inning < BASEBALL_INNINGS) playInning(engine, [S(inning), MISS, MISS]);
+  }
+}
+
+describe("baseball engine — 1v1", () => {
+  it("the seat with more runs wins after inning 9", () => {
+    const engine = new BaseballEngine(duel);
+    for (let inning = 1; inning <= BASEBALL_INNINGS; inning += 1) {
+      playInning(engine, [T(inning), MISS, MISS]);
+      playInning(engine, [S(inning), MISS, MISS]);
+    }
+    const state = engine.state();
+    expect(state.status).toBe("COMPLETE");
+    expect(state.winningSideKey).toBe("A");
+    expect(state.seats.map((seat) => seat.runs)).toEqual([27, 9]);
+    expect(engine.isComplete()).toBe(true);
+  });
+
+  it("equal runs is a TIE with no winner", () => {
+    const engine = new BaseballEngine(duel);
+    for (let inning = 1; inning <= BASEBALL_INNINGS; inning += 1) {
+      playInning(engine, [S(inning), MISS, MISS]);
+      playInning(engine, [S(inning), MISS, MISS]);
+    }
+    expect(engine.state().status).toBe("TIE");
+    expect(engine.state().winningSideKey).toBeNull();
+    expect(() => engine.record(MISS)).toThrow(/game has ended/);
+  });
+
+  it("stays in progress until both seats close inning 9", () => {
+    const engine = new BaseballEngine(duel);
+    playToInning9Seat1(engine);
+    expect(engine.state().status).toBe("IN_PROGRESS");
+    expect(engine.state().activeParticipantRef).toBe("participant-2");
+  });
+
+  it("wouldComplete is false on the first seat's inning-9 third dart", () => {
+    const engine = new BaseballEngine(duel);
+    for (let inning = 1; inning < BASEBALL_INNINGS; inning += 1) {
+      playInning(engine, [S(inning), MISS, MISS]);
+      playInning(engine, [S(inning), MISS, MISS]);
+    }
+    engine.record(S(9));
+    engine.record(MISS);
+    expect(engine.wouldComplete(MISS)).toBe(false);
+    engine.record(MISS);
+    expect(engine.isComplete()).toBe(false);
+  });
+
+  it("wouldComplete is true on the last seat's inning-9 third dart", () => {
+    const engine = new BaseballEngine(duel);
+    playToInning9Seat1(engine);
+    engine.record(S(9));
+    engine.record(MISS);
+    expect(engine.wouldComplete(MISS)).toBe(true);
+    engine.record(MISS);
+    expect(engine.isComplete()).toBe(true);
+  });
+
+  it("solo still reports no winner", () => {
+    const engine = engineAfter(perfectGame());
+    expect(engine.state().status).toBe("COMPLETE");
+    expect(engine.state().winningSideKey).toBeNull();
+  });
+});

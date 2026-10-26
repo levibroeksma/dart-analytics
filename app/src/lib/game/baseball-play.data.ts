@@ -1,5 +1,6 @@
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { boardInputData } from "@lib/game/board-input.data";
+import { matchWinnerName } from "@lib/game/match-result-text";
 import { accuracyDisplay } from "@lib/game/play-visit-stats";
 import {
   playAbandonAndExit,
@@ -171,7 +172,10 @@ export function baseballPlay() {
     /** The open (or last) visit's darts against its own inning's number. */
     previewSegments(this: BaseballPlayContext): GamePreviewSegment[] {
       const turns = this.$store.game.turns;
-      const inning = turns.length;
+      const lastSeat = turns.at(-1)?.participantRef;
+      const inning = turns.filter(
+        (turn) => turn.participantRef === lastSeat,
+      ).length;
       return playPreviewSegments(turns, this.hiddenTurnKey, (dart) =>
         dart.hitTargetNumber === inning ? "hit" : "miss",
       );
@@ -225,14 +229,23 @@ export function baseballPlay() {
     uploadAndCompleteSession(this: BaseballPlayContext): Promise<void> {
       const turns = this.$store.game.turns;
       return playUploadAndCompleteSession(this, (finalState) => ({
-        status: "COMPLETE",
-        winningSideKey: null,
+        status: finalState.status === "TIE" ? "TIE" : "COMPLETE",
+        winningSideKey: finalState.winningSideKey,
         seats: finalState.seats.map((seat) => baseballSeatResult(seat, turns)),
       }));
     },
 
-    resultsTitle(): string {
-      return "Nine innings played";
+    resultsTitle(this: BaseballPlayContext): string {
+      const snapshot = this.resultsSnapshot;
+      if (!snapshot || snapshot.seats.length === 1) {
+        return "Nine innings played";
+      }
+      if (snapshot.status === "TIE") return "Tie — same runs!";
+      const winner = matchWinnerName(
+        this.$store.game.seats,
+        snapshot.winningSideKey,
+      );
+      return winner ? `${winner} wins!` : "Session complete";
     },
 
     back(this: BaseballPlayContext) {

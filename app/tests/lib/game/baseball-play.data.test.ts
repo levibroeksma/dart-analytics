@@ -265,3 +265,89 @@ function turnOf(
     })),
   } as TurnFact;
 }
+
+const DUEL_SEATS = [
+  ...SEATS,
+  {
+    participantRef: "participant-2",
+    displayName: "Guest",
+    sideKey: "B",
+    participantTypeKey: "GUEST" as const,
+  },
+];
+
+async function playDuel(
+  seatARing: "SINGLE" | "TREBLE",
+  seatBRing: "SINGLE" | "TREBLE",
+) {
+  vi.mocked(appendBatch).mockResolvedValue({
+    created: { stages: 2, turns: 18, darts: 54 },
+  });
+  vi.mocked(completeSession).mockResolvedValue({
+    sessionId: "s1",
+    statusKey: "COMPLETED",
+    completedAt: "now",
+  });
+  const ctx = await started({
+    configSnapshot: { seats: DUEL_SEATS } as Seated<BaseballSnapshot>,
+  });
+  for (let inning = 1; inning <= 9; inning += 1) {
+    await ctx.recordTap(seatARing);
+    await ctx.recordTap("MISS");
+    await ctx.recordTap("MISS");
+    await ctx.recordTap(seatBRing);
+    await ctx.recordTap("MISS");
+    await ctx.recordTap("MISS");
+  }
+  await ctx.uploadAndCompleteSession();
+  return ctx;
+}
+
+describe("baseballPlay — 1v1 results", () => {
+  it("names the seat with more runs", async () => {
+    const ctx = await playDuel("TREBLE", "SINGLE");
+    expect(ctx.resultsSnapshot?.status).toBe("COMPLETE");
+    expect(ctx.resultsSnapshot?.winningSideKey).toBe("A");
+    expect(ctx.resultsTitle()).toBe("Levi wins!");
+  });
+
+  it("reports equal runs as a tie", async () => {
+    const ctx = await playDuel("SINGLE", "SINGLE");
+    expect(ctx.resultsSnapshot?.status).toBe("TIE");
+    expect(ctx.resultsSnapshot?.winningSideKey).toBeNull();
+    expect(ctx.resultsTitle()).toBe("Tie — same runs!");
+  });
+
+  it("keeps the solo title and no winner", async () => {
+    vi.mocked(appendBatch).mockResolvedValue({
+      created: { stages: 1, turns: 9, darts: 27 },
+    });
+    vi.mocked(completeSession).mockResolvedValue({
+      sessionId: "s1",
+      statusKey: "COMPLETED",
+      completedAt: "now",
+    });
+    const ctx = await started();
+    for (let dart = 0; dart < 27; dart += 1) await ctx.recordTap("MISS");
+    await ctx.uploadAndCompleteSession();
+    expect(ctx.resultsSnapshot?.winningSideKey).toBeNull();
+    expect(ctx.resultsTitle()).toBe("Nine innings played");
+  });
+});
+
+describe("baseballPlay — 1v1 preview", () => {
+  it("colours the second seat's darts against its own inning", async () => {
+    const ctx = await started({
+      configSnapshot: { seats: DUEL_SEATS } as Seated<BaseballSnapshot>,
+    });
+    await ctx.recordTap("MISS");
+    await ctx.recordTap("MISS");
+    await ctx.recordTap("MISS");
+    await ctx.recordTap("SINGLE");
+    expect(ctx.previewSegments().map((segment) => segment.status)).toEqual([
+      "hit",
+      "empty",
+      "empty",
+    ]);
+  });
+});

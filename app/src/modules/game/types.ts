@@ -190,7 +190,7 @@ export type BaseballSeatState = SeatState & {
 };
 
 export type BaseballState = MultiSeatState<BaseballSeatState> & {
-  status: "IN_PROGRESS" | "COMPLETE";
+  status: "IN_PROGRESS" | "COMPLETE" | "TIE";
   winningSideKey: string | null;
 };
 

@@ -169,8 +169,9 @@ function soloTitle(
   snapshot: AroundTheClockResultsSnapshot | null,
 ): string | null {
   const seat = snapshot?.seats[0];
-  if (seat?.out) return `Out on ${seat.targetAtEnd}`;
-  if (seat?.laps != null && snapshot?.seats.length === 1) {
+  if (snapshot?.seats.length !== 1 || !seat) return null;
+  if (seat.out) return `Out on ${seat.targetAtEnd}`;
+  if (seat.laps != null) {
     return `Time — ${seat.laps} laps, on ${seat.targetAtEnd}`;
   }
   return null;
@@ -570,7 +571,10 @@ export function aroundTheClockPlay() {
         this.$store.game.seats,
         this.resultsSnapshot?.winningSideKey ?? null,
       );
-      return winner ? `${winner} wins — fewest darts!` : "Session complete";
+      if (!winner) return "Session complete";
+      return this.hasLives()
+        ? `${winner} wins!`
+        : `${winner} wins — fewest darts!`;
     },
 
     back(this: AroundTheClockPlayContext) {

@@ -1078,8 +1078,8 @@ export type BaseballSeatResult = {
 };
 
 export type BaseballResultsSnapshot = {
-  status: "COMPLETE";
-  winningSideKey: null;
+  status: "COMPLETE" | "TIE";
+  winningSideKey: string | null;
   seats: BaseballSeatResult[];
 };
 

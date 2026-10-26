@@ -52,7 +52,7 @@ function v2Overrides(ctx: AroundTheClockSetupContext): Record<string, unknown> {
 
 /**
  * Around the Clock setup. Solo and guest games start V2 with the form's
- * variants, or V3 (Nine Lives, solo only) when lives are on; a seated DartBot
+ * variants, or V3 (Nine Lives, solo or 1v1) when lives are on; a seated DartBot
  * starts V1 (no V2 bot strategy), so seating one
  * resets the toggles. Timed 1v1 is deferred: seating a guest forces untimed.
  */
@@ -79,7 +79,6 @@ export function aroundTheClockSetup() {
       if (this.guests.length > 0) {
         this.durationType = "UNTIMED";
         this.durationValue = null;
-        this.lives = false;
       }
     },
     addBot(this: AroundTheClockSetupContext) {
