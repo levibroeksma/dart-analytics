@@ -1263,3 +1263,105 @@ describe("Around the Clock V3 — shape and key", () => {
     );
   });
 });
+
+const duelSeats = [
+  {
+    participantRef: "participant-1",
+    displayName: "Levi",
+    sideKey: "A",
+    participantTypeKey: "PLAYER" as const,
+  },
+  {
+    participantRef: "participant-2",
+    displayName: "Guest",
+    sideKey: "B",
+    participantTypeKey: "GUEST" as const,
+  },
+];
+
+function v3Duel(): Seated<AroundTheClockV3Snapshot> {
+  return { ...v3(), seats: duelSeats } as Seated<AroundTheClockV3Snapshot>;
+}
+
+function hitVisit(engine: AroundTheClockEngine, n: number): void {
+  visit(engine, [numberHit(n, "SINGLE"), miss(), miss()]);
+}
+
+describe("Around the Clock V3 — 1v1 lives", () => {
+  it("the first seat to hit the bull wins at once", () => {
+    const engine = new AroundTheClockEngine(v3Duel());
+    for (let n = 1; n <= 20; n += 1) {
+      hitVisit(engine, n);
+      hitVisit(engine, n);
+    }
+    engine.record(bullHit("INNER_BULL"));
+    const state = engine.state();
+    expect(state.status).toBe("COMPLETE");
+    expect(state.winningSideKey).toBe("A");
+    expect(state.seats[1].status).toBe("IN_PROGRESS");
+    expect(() => engine.record(miss())).toThrow(/session has ended/);
+  });
+
+  it("the survivor wins when the other seat loses its last life", () => {
+    const engine = new AroundTheClockEngine(v3Duel());
+    visit(engine, [miss(), miss(), miss()]);
+    hitVisit(engine, 1);
+    visit(engine, [miss(), miss(), miss()]);
+    hitVisit(engine, 2);
+    visit(engine, [miss(), miss(), miss()]);
+    const state = engine.state();
+    expect(state.seats[0].status).toBe("OUT");
+    expect(state.status).toBe("COMPLETE");
+    expect(state.winningSideKey).toBe("B");
+    expect(() => engine.record(miss())).toThrow(/session has ended/);
+  });
+
+  it("wouldComplete is true on the dart that costs the last life", () => {
+    const engine = new AroundTheClockEngine(v3Duel());
+    visit(engine, [miss(), miss(), miss()]);
+    hitVisit(engine, 1);
+    visit(engine, [miss(), miss(), miss()]);
+    hitVisit(engine, 2);
+    engine.record(miss());
+    engine.record(miss());
+    expect(engine.wouldComplete(miss())).toBe(true);
+  });
+
+  it("hit then two misses keeps the life in a duel", () => {
+    const engine = new AroundTheClockEngine(v3Duel());
+    hitVisit(engine, 1);
+    expect(engine.state().seats[0].lives).toBe(3);
+    expect(engine.state().status).toBe("IN_PROGRESS");
+  });
+
+  it("replaying all but the winning dart resumes play for seat A", () => {
+    const full = new AroundTheClockEngine(v3Duel());
+    for (let n = 1; n <= 20; n += 1) {
+      hitVisit(full, n);
+      hitVisit(full, n);
+    }
+    full.record(bullHit("OUTER_BULL"));
+    expect(full.isComplete()).toBe(true);
+    const turns = full.facts().turns;
+    const last = turns[turns.length - 1];
+    const trimmed = {
+      stages: full.facts().stages,
+      turns: [
+        ...turns.slice(0, -1),
+        { ...last, darts: last.darts.slice(0, -1), completedAt: null },
+      ],
+    };
+    const resumed = new AroundTheClockEngine(v3Duel(), trimmed);
+    expect(resumed.state().status).toBe("IN_PROGRESS");
+    expect(resumed.state().activeParticipantRef).toBe("participant-1");
+  });
+
+  it("V2 1v1 still resolves by fewest darts", () => {
+    const engine = new AroundTheClockEngine({
+      ...v2(),
+      seats: duelSeats,
+    } as never);
+    expect(engine.state().status).toBe("IN_PROGRESS");
+    expect(engine.state().winningSideKey).toBeNull();
+  });
+});

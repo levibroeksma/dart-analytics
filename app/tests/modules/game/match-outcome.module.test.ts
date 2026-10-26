@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   eliminationWinner,
+  livesOutcome,
   raceWinner,
   scoreCompareOutcome,
   scoreCompareWinner,
@@ -178,6 +179,49 @@ describe("scoreCompareOutcome", () => {
       scoreCompareOutcome(
         [{ sideKey: "A", completed: true, metric: 40 }],
         "HIGHEST",
+        "IN_PROGRESS",
+      ),
+    ).toEqual({ status: "IN_PROGRESS", winningSideKey: null });
+  });
+});
+
+describe("livesOutcome", () => {
+  const live = { finished: false, out: false };
+  it("a solo seat reports the given status and no winner", () => {
+    expect(livesOutcome([{ sideKey: "A", ...live }], "COMPLETE")).toEqual({
+      status: "COMPLETE",
+      winningSideKey: null,
+    });
+  });
+  it("the seat that finished wins", () => {
+    expect(
+      livesOutcome(
+        [
+          { sideKey: "A", ...live, finished: true },
+          { sideKey: "B", ...live },
+        ],
+        "IN_PROGRESS",
+      ),
+    ).toEqual({ status: "COMPLETE", winningSideKey: "A" });
+  });
+  it("the survivor wins once the other seat is out", () => {
+    expect(
+      livesOutcome(
+        [
+          { sideKey: "A", ...live, out: true },
+          { sideKey: "B", ...live },
+        ],
+        "IN_PROGRESS",
+      ),
+    ).toEqual({ status: "COMPLETE", winningSideKey: "B" });
+  });
+  it("is in progress while both seats are alive", () => {
+    expect(
+      livesOutcome(
+        [
+          { sideKey: "A", ...live },
+          { sideKey: "B", ...live },
+        ],
         "IN_PROGRESS",
       ),
     ).toEqual({ status: "IN_PROGRESS", winningSideKey: null });
