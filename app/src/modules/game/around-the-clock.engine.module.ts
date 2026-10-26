@@ -26,7 +26,7 @@ import {
   stepBackBelowHits,
 } from "./track-policies";
 import { dartsThrownBy, endedRefusal } from "./turn-log.module";
-import { scoreCompareOutcome } from "./match-outcome.module";
+import { livesOutcome, scoreCompareOutcome } from "./match-outcome.module";
 import type { DartGameSpec, TrackRules } from "./interfaces";
 import type {
   AroundTheClockRules,
@@ -254,7 +254,8 @@ export function applyAroundTheClockDart(
  * full circuit — a completed seat is skipped by `activeSeat`'s completion
  * predicate, handing every remaining turn to the other, so a miss's extra
  * visit never steals a turn from a seat that has already finished. The
- * match resolves only once both seats are `COMPLETE`.
+ * match resolves once both seats are `COMPLETE`; a lives snapshot ends at the
+ * first bull, or as soon as a seat is out.
  *
  * Timed (V2 MINUTES): no seat completes on darts — the bull restarts the lap.
  * Once `timerExpired`, a seat is `COMPLETE` when it has at least one closed
@@ -282,15 +283,26 @@ export function foldAroundTheClockState(
         )
       : folded;
 
-  const outcome = scoreCompareOutcome(
-    seats.map((seat) => ({
-      sideKey: seat.sideKey,
-      completed: seat.status === "COMPLETE",
-      metric: dartsThrownBy(seat.participantRef, facts.turns),
-    })),
-    "LOWEST",
-    seats[0].status === "OUT" ? "COMPLETE" : seats[0].status,
-  );
+  const soloStatus = seats[0].status === "OUT" ? "COMPLETE" : seats[0].status;
+  const outcome =
+    rules.lives === undefined
+      ? scoreCompareOutcome(
+          seats.map((seat) => ({
+            sideKey: seat.sideKey,
+            completed: seat.status === "COMPLETE",
+            metric: dartsThrownBy(seat.participantRef, facts.turns),
+          })),
+          "LOWEST",
+          soloStatus,
+        )
+      : livesOutcome(
+          seats.map((seat) => ({
+            sideKey: seat.sideKey,
+            finished: seat.status === "COMPLETE",
+            out: seat.status === "OUT",
+          })),
+          soloStatus,
+        );
 
   return {
     activeParticipantRef: activeSeat(
@@ -352,6 +364,7 @@ function wouldCompleteSession(
   if (seat.status !== "IN_PROGRESS") return false;
   const rules = rulesOf(config);
   const after = applyAroundTheClockDart(seat, observation, rules);
+  if (rules.lives !== undefined) return after.status !== "IN_PROGRESS";
   const seatDone = rules.timed
     ? state.timerExpired && after.dartsThisVisit === 0
     : after.status !== "IN_PROGRESS";
@@ -365,7 +378,7 @@ function wouldCompleteSession(
   );
 }
 
-/** Around the Clock's rules for the dart engine shell, V1 to V3; refused once the active seat has finished its own circuit. */
+/** Around the Clock's rules for the dart engine shell, V1 to V3; refused once the active seat has finished its own circuit or, with lives, the match is decided. */
 const clockSpec: DartGameSpec<AroundTheClockEngineConfig, AroundTheClockState> =
   {
     rulesetVersionKey: "AROUND_THE_CLOCK_V1",
@@ -373,7 +386,10 @@ const clockSpec: DartGameSpec<AroundTheClockEngineConfig, AroundTheClockState> =
     stageOwnership: "PER_SEAT",
     fold: foldAroundTheClockState,
     refusal: (state) =>
-      activeSeatState(state).status === "IN_PROGRESS" ? null : SESSION_ENDED,
+      state.status === "IN_PROGRESS" &&
+      activeSeatState(state).status === "IN_PROGRESS"
+        ? null
+        : SESSION_ENDED,
     intent: () => NO_INTENT,
     isVisitOpen: isClockVisitOpen,
     wouldComplete: wouldCompleteSession,

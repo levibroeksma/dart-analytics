@@ -492,12 +492,25 @@ describe("aroundTheClockSetup Nine Lives", () => {
     });
   });
 
-  it("adding a guest turns lives off", () => {
+  it("keeps Nine Lives on and untimed when a guest is added", () => {
     const setup = createSetup();
     setup.lives = true;
-    setup.newGuestName = "Sam";
+    setup.newGuestName = "Friend";
     setup.addGuest();
-    expect(setup.lives).toBe(false);
+    expect(setup.guests).toHaveLength(1);
+    expect(setup.lives).toBe(true);
+    expect(setup.durationType).toBe("UNTIMED");
+  });
+
+  it("starts AROUND_THE_CLOCK_V3 with a guest seated", async () => {
+    stubRedirect();
+    const setup = createSetup();
+    setup.lives = true;
+    setup.newGuestName = "Friend";
+    setup.addGuest();
+    await setup.start();
+    expect(sent().rulesetVersionKey).toBe("AROUND_THE_CLOCK_V3");
+    expect(sent().participants).toHaveLength(2);
   });
 
   it("adding a bot turns lives off", () => {

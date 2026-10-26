@@ -1,5 +1,7 @@
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { boardInputData } from "@lib/game/board-input.data";
+import { playAgainStarterData } from "@lib/game/play-again-starter";
+import { matchWinnerName } from "@lib/game/match-result-text";
 import { accuracyDisplay } from "@lib/game/play-visit-stats";
 import {
   playAbandonAndExit,
@@ -108,6 +110,7 @@ export function baseballPlay() {
     playAgainError: "",
     playAgainLoading: false,
     resultsSnapshot: null as BaseballResultsSnapshot | null,
+    ...playAgainStarterData(),
     hiddenTurnKey: null as string | null,
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,
     engine: null as BaseballEngine | null,
@@ -171,7 +174,10 @@ export function baseballPlay() {
     /** The open (or last) visit's darts against its own inning's number. */
     previewSegments(this: BaseballPlayContext): GamePreviewSegment[] {
       const turns = this.$store.game.turns;
-      const inning = turns.length;
+      const lastSeat = turns.at(-1)?.participantRef;
+      const inning = turns.filter(
+        (turn) => turn.participantRef === lastSeat,
+      ).length;
       return playPreviewSegments(turns, this.hiddenTurnKey, (dart) =>
         dart.hitTargetNumber === inning ? "hit" : "miss",
       );
@@ -225,14 +231,23 @@ export function baseballPlay() {
     uploadAndCompleteSession(this: BaseballPlayContext): Promise<void> {
       const turns = this.$store.game.turns;
       return playUploadAndCompleteSession(this, (finalState) => ({
-        status: "COMPLETE",
-        winningSideKey: null,
+        status: finalState.status === "TIE" ? "TIE" : "COMPLETE",
+        winningSideKey: finalState.winningSideKey,
         seats: finalState.seats.map((seat) => baseballSeatResult(seat, turns)),
       }));
     },
 
-    resultsTitle(): string {
-      return "Nine innings played";
+    resultsTitle(this: BaseballPlayContext): string {
+      const snapshot = this.resultsSnapshot;
+      if (!snapshot || snapshot.seats.length === 1) {
+        return "Nine innings played";
+      }
+      if (snapshot.status === "TIE") return "Tie — same runs!";
+      const winner = matchWinnerName(
+        this.$store.game.seats,
+        snapshot.winningSideKey,
+      );
+      return winner ? `${winner} wins!` : "Session complete";
     },
 
     back(this: BaseballPlayContext) {
@@ -243,7 +258,7 @@ export function baseballPlay() {
       return playAbandonAndExit(this);
     },
 
-    /** Replays the same preset with no overrides — V1 has nothing to set. */
+    /** Replays the same preset with no overrides — the ruleset has nothing to set. */
     playAgain(this: BaseballPlayContext) {
       return runPlayAgain(this, GAME_TYPE_KEY, RULESET_VERSION_KEY, (engine) =>
         engine instanceof BaseballEngine ? engine : null,

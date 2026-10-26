@@ -73,3 +73,26 @@ export function scoreCompareOutcome(
       : "TIE";
   return { status, winningSideKey };
 }
+
+/**
+ * The whole match's outcome for a lives race (Nine Lives): the seat that
+ * finished wins at once; else once a seat is out the survivor wins; else
+ * the match is still on. A solo session reports `soloStatus`, never a winner.
+ */
+export function livesOutcome(
+  seats: readonly { sideKey: string; finished: boolean; out: boolean }[],
+  soloStatus: "IN_PROGRESS" | "COMPLETE",
+): MatchOutcome {
+  if (seats.length === 1) return { status: soloStatus, winningSideKey: null };
+
+  const finisher = raceWinner(seats);
+  if (finisher !== null) {
+    return { status: "COMPLETE", winningSideKey: finisher };
+  }
+  const survivor = eliminationWinner(
+    seats.map((seat) => ({ sideKey: seat.sideKey, failed: seat.out })),
+  );
+  return survivor === null
+    ? { status: "IN_PROGRESS", winningSideKey: null }
+    : { status: "COMPLETE", winningSideKey: survivor };
+}

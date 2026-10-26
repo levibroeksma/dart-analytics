@@ -1,4 +1,5 @@
 import type { ZodTypeAny } from "zod";
+import type { EventsBatchRequestInput } from "@routes/types";
 
 export type ConfigValidationResult =
   | { valid: true; config: Record<string, unknown> }
@@ -33,3 +34,14 @@ export type ThreeDartValidatorOptions = {
   configSchema: ZodTypeAny;
   dartlessIssue: (clientKey: string) => string;
 };
+
+/**
+ * How a round-based game's closed visit total relates to its darts: returns
+ * `null` when `totalScore` is acceptable for the turn thrown in `round`
+ * (1-based, counted per participant), else why it is not.
+ */
+export type RoundTotalRule = (
+  turn: EventsBatchRequestInput["stages"][number]["turns"][number],
+  round: number,
+  config: Record<string, unknown>,
+) => string | null;

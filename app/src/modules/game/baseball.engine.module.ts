@@ -5,8 +5,9 @@ import {
   dartGameEngineFactory,
 } from "./dart-engine-shell.module";
 import { registerEngineFactory } from "./engine.registry";
+import { scoreCompareOutcome } from "./match-outcome.module";
 import { activeSeat } from "./seat-rota.module";
-import { activeSeatState } from "./seat-state.module";
+import { activeSeatState, otherSeatsComplete } from "./seat-state.module";
 import { applyTrackDart, foldTrackSeats } from "./track-kernel.module";
 import {
   advanceToEnd,
@@ -137,7 +138,7 @@ export function applyBaseballDart(
   );
 }
 
-/** Folds the fact log into the session's state; complete once every seat has closed inning 9. */
+/** Folds the fact log into the session's state; complete once every seat has closed inning 9; most runs wins, equal runs is a tie. */
 export function foldBaseballState(
   facts: EngineFacts,
   config: Seated<BaseballSnapshot>,
@@ -148,13 +149,20 @@ export function foldBaseballState(
     emptyInnings,
     BASEBALL_RULES,
   ).map(toBaseballSeat);
+  const outcome = scoreCompareOutcome(
+    seats.map((seat) => ({
+      sideKey: seat.sideKey,
+      completed: seat.status === "COMPLETE",
+      metric: seat.runs,
+    })),
+    "HIGHEST",
+    seats[0].status,
+  );
   return {
     activeParticipantRef: activeSeat(facts, config.seats, "PER_SEAT")
       .participantRef,
-    status: seats.every((seat) => seat.status === "COMPLETE")
-      ? "COMPLETE"
-      : "IN_PROGRESS",
-    winningSideKey: null,
+    status: outcome.status,
+    winningSideKey: outcome.winningSideKey,
     seats,
   };
 }
@@ -167,11 +175,19 @@ function runsOf(state: BaseballState, participantRef: string): number {
   );
 }
 
-/** Whether the next dart is inning 9's third, which ends the game. */
+/** Whether the next dart is inning 9's third and every other seat has already closed inning 9, which ends the game. */
 function closesLastInning(state: BaseballState): boolean {
   if (state.status !== "IN_PROGRESS") return false;
   const seat = activeSeatState(state);
-  return seat.targetIndex === LAST_INNING_INDEX && seat.dartsThisVisit === 2;
+  return (
+    seat.targetIndex === LAST_INNING_INDEX &&
+    seat.dartsThisVisit === 2 &&
+    otherSeatsComplete(
+      state.seats,
+      seat.participantRef,
+      (other) => other.status === "COMPLETE",
+    )
+  );
 }
 
 /**
