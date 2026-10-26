@@ -82,4 +82,61 @@ describe("baseballValidator", () => {
     ).toBe(true);
     expect(validate([[]]).valid).toBe(false);
   });
+
+  describe("ANALYTICS + VISUAL_BOARD", () => {
+    const dart = (
+      sequence: number,
+      hitTargetNumber: number,
+      hitZoneKey: string,
+      score: number,
+      locationX: number,
+      locationY: number,
+    ): DartFactInput => ({
+      sequence,
+      intendedTargetNumber: null,
+      intendedZoneKey: null,
+      hitTargetNumber,
+      hitZoneKey,
+      score,
+      locationX,
+      locationY,
+    });
+    const treble1 = dart(1, 1, "TREBLE", 3, 31, -95);
+    const treble20 = dart(2, 20, "TREBLE", 60, 0, -102);
+    const outerSingle1 = dart(3, 1, "OUTER_SINGLE", 1, 35, -110);
+
+    const validate = (
+      totalScore: number,
+      darts: DartFactInput[],
+      existing = 0,
+    ) => {
+      const batch = batchWithTurns([darts]);
+      batch.stages[0].turns[0].totalScore = totalScore;
+      return baseballValidator.validateBatch({
+        config: {},
+        batch,
+        existingTurnCounts: { p1: existing },
+        captureModeKey: "ANALYTICS",
+        inputModeKey: "VISUAL_BOARD",
+      });
+    };
+
+    it("accepts an inning whose total is its runs, not its board sum", () => {
+      expect(validate(4, [treble1, treble20, outerSingle1]).valid).toBe(true);
+    });
+
+    it("rejects a total that is neither the runs nor 0", () => {
+      expect(validate(5, [treble1, treble20, outerSingle1]).valid).toBe(false);
+      expect(validate(64, [treble1, treble20, outerSingle1]).valid).toBe(false);
+    });
+
+    it("counts only darts on the inning's own number, from the turns already stored", () => {
+      expect(validate(0, [treble1, treble20, outerSingle1], 1).valid).toBe(
+        true,
+      );
+      expect(validate(4, [treble1, treble20, outerSingle1], 1).valid).toBe(
+        false,
+      );
+    });
+  });
 });

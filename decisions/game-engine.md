@@ -547,3 +547,10 @@ Decision: `SHANGHAI_V3` is a new ruleset version beside the untouched V1 and V2.
 Reason: the shipped range and instant win were fixed, so a shorter or later slice and a scoring-only mode were schema changes; a new version keeps V1/V2 sessions folding unchanged (D245). Carrying the settings on the seat spares the replay presenter, derived aims and stats from threading config.
 Consequences: no migration; seed `0053` adds the `ruleset_versions` row and two capability rows go in `0007`. V1/V2 golden snapshots gain exactly the three seat fields. `shanghai-count` keys a Shanghai by the number it landed on (the round on 1–20) and skips Score-only sessions. Play Again keeps the variant through `variantsPlayAgain`. Free start/end and match structure stay `V2+` in `docs/game-rules/rulesets/shanghai.md`.
 Supersedes: none.
+
+### D496 — Baseball validates a visual-board inning total as its runs
+Status: Accepted · Date: 2026-10-25
+Decision: under ANALYTICS + VISUAL_BOARD, `baseballValidator` checks each turn's `totalScore` against the runs of its inning (the darts that landed on the inning's number, the inning being the seat's stored turn count plus the batch position) or 0 for a void visit. The shared three-dart check still re-derives every dart from its coordinate; it sees the board sum so it no longer refuses the runs total.
+Reason: the engine persists a closed inning's runs as `totalScore`, but the visual-board check demanded the board sum, so any batch with a closed inning holding an off-number scoring dart was refused. Leaving a game uploads the batch first, so Leave failed with "Could not abandon session"; finishing a game failed the same way.
+Consequences: no migration. Keypad (RECREATIONAL + DETAILED_DARTS) behaviour is unchanged. Other `closedVisitTotal` engines are not covered here.
+Supersedes: none.
