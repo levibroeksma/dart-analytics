@@ -4,6 +4,7 @@ import type { BatchValidationResult } from "@services/types";
 import type { EventsBatchRequestInput } from "@routes/types";
 import { createThreeDartValidator } from "../three-dart.validator";
 import { isVisualBoardCapture } from "../visual-board.validator";
+import { runsIn, withBoardSumTotals } from "../target-visit.validator";
 
 type BatchTurn = EventsBatchRequestInput["stages"][number]["turns"][number];
 
@@ -13,17 +14,6 @@ const threeDartValidator = createThreeDartValidator({
   dartlessIssue: (clientKey) =>
     `turn ${clientKey} must carry dart rows — every Baseball Darts inning is exactly 3 darts, hit or miss, never a dartless total`,
 });
-
-function boardSum(turn: BatchTurn): number {
-  return turn.darts.reduce((sum, dart) => sum + dart.score, 0);
-}
-
-/** The runs a turn scored in `inning`: the board score of every dart that landed on the inning's own number. */
-function runsIn(turn: BatchTurn, inning: number): number {
-  return turn.darts
-    .filter((dart) => dart.hitTargetNumber === inning)
-    .reduce((sum, dart) => sum + dart.score, 0);
-}
 
 /**
  * A closed Baseball inning's `totalScore` is its runs, not the board sum the
@@ -71,19 +61,9 @@ export const baseballValidator: RulesetValidator = {
     ) {
       return threeDartValidator.validateBatch(args);
     }
-    const asBoardSums: EventsBatchRequestInput = {
-      ...args.batch,
-      stages: args.batch.stages.map((stage) => ({
-        ...stage,
-        turns: stage.turns.map((turn) => ({
-          ...turn,
-          totalScore: boardSum(turn),
-        })),
-      })),
-    };
     const shared = threeDartValidator.validateBatch({
       ...args,
-      batch: asBoardSums,
+      batch: withBoardSumTotals(args.batch),
     });
     if (!shared.valid) return shared;
     return (

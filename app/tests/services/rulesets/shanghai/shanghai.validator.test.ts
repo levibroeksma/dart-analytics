@@ -123,7 +123,7 @@ describe("shanghaiValidator.validateBatch — visual board", () => {
               clientKey: "turn-1",
               participantRef: "p1",
               sequence: 1,
-              totalScore: 60,
+              totalScore: 0,
               completedAt: "2026-08-15T12:00:00.000Z",
               darts: [
                 {
