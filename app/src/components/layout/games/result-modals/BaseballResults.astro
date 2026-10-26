@@ -16,6 +16,9 @@ const STAT_ROWS = [
   },
 ] as const;
 
+const WINNER_EXPR =
+  "resultsSnapshot?.seats?.findIndex((seat) => seat.sideKey === resultsSnapshot?.winningSideKey) ?? -1";
+
 const INNING_LABELS = ["1", "2", "3", "4", "5", "6", "7", "8", "9"] as const;
 ---
 
@@ -36,5 +39,26 @@ const INNING_LABELS = ["1", "2", "3", "4", "5", "6", "7", "8", "9"] as const;
       cols={3}
     />
   </SinglePlayerSummary>
-  <ComparisonSummary statRows={STAT_ROWS} />
+  <ComparisonSummary
+    statRows={STAT_ROWS}
+    winnerExpr={WINNER_EXPR}
+  />
+  <div
+    class="flex w-full flex-col gap-4"
+    x-show="$store.game.seats.length === 2"
+    x-cloak
+  >
+    <TargetGrid
+      title="Runs per inning · seat 1"
+      labels={INNING_LABELS}
+      valuesExpr="resultsSnapshot?.seats?.[0]?.runsPerInning"
+      cols={3}
+    />
+    <TargetGrid
+      title="Runs per inning · seat 2"
+      labels={INNING_LABELS}
+      valuesExpr="resultsSnapshot?.seats?.[1]?.runsPerInning"
+      cols={3}
+    />
+  </div>
 </ResultsModalShell>
