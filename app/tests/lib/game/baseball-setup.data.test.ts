@@ -77,4 +77,31 @@ describe("baseballSetup", () => {
     });
     expect(locationSpy.href).toBe("/games/baseball/play");
   });
+
+  it("adds a guest and still creates BASEBALL_V1", async () => {
+    const setup = createSetup({ presets: [PRESET] });
+    setup.newGuestName = "Friend";
+    setup.addGuest();
+    expect(setup.guests).toHaveLength(1);
+    vi.mocked(sessionsApi.createSession).mockResolvedValue({
+      sessionId: "new-session-id",
+      participants: [
+        {
+          ref: "participant-1",
+          displayName: "Player",
+          participantTypeKey: "PLAYER",
+        },
+        {
+          ref: "participant-2",
+          displayName: "Friend",
+          participantTypeKey: "GUEST",
+        },
+      ],
+    } as any);
+    vi.stubGlobal("location", { href: "" });
+    await setup.start();
+    expect(sessionsApi.createSession).toHaveBeenCalledWith(
+      expect.objectContaining({ rulesetVersionKey: "BASEBALL_V1" }),
+    );
+  });
 });

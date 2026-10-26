@@ -1,6 +1,7 @@
 ---
 import ResultsModalShell from "@components/layout/games/ResultsModalShell.astro";
 import SinglePlayerSummary from "@components/layout/games/SinglePlayerSummary.astro";
+import ComparisonSummary from "@components/layout/games/ComparisonSummary.astro";
 import TargetGrid from "@components/layout/games/TargetGrid.astro";
 
 const STAT_ROWS = [
@@ -18,7 +19,7 @@ const STAT_ROWS = [
 const INNING_LABELS = ["1", "2", "3", "4", "5", "6", "7", "8", "9"] as const;
 ---
 
-<ResultsModalShell overline="Baseball Darts · Solo summary">
+<ResultsModalShell overline="Baseball Darts · Summary">
   <h2
     slot="title"
     id="results-title"
@@ -35,4 +36,5 @@ const INNING_LABELS = ["1", "2", "3", "4", "5", "6", "7", "8", "9"] as const;
       cols={3}
     />
   </SinglePlayerSummary>
+  <ComparisonSummary statRows={STAT_ROWS} />
 </ResultsModalShell>
