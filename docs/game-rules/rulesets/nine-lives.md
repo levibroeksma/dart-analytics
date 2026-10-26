@@ -140,8 +140,8 @@ darts thrown (V2).
 
 ## Capture
 
-Nine Lives is unbuilt; this is the capture shape its V1 is designed for,
-taken from Around the Clock's.
+V1's capture shape, as built (2026-10-22), taken from Around the Clock's.
+Ruleset `AROUND_THE_CLOCK_V3`.
 
 - **Capture / input mode:** RECREATIONAL + DETAILED_DARTS and
   ANALYTICS + VISUAL_BOARD (`around-the-clock.md` §Capture).
