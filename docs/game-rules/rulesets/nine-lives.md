@@ -1,6 +1,6 @@
 # Nine Lives
 
-Current version: V1 (shipped 2026-10-22)
+Current version: V2 (shipped 2026-10-26)
 Entry points: standalone
 Card ruleset: `AROUND_THE_CLOCK_V3`
 Kernel: TRACK
@@ -12,7 +12,8 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
 | Single player | V1 | Single | |
-| Multiplayer (2–4 seats): first to finish, or last standing, wins | V2+ | 2+ | Wanted, unscheduled: a solo run is playable without it; a second seat adds the race and elimination result and a `SEAT_CAPS` entry (`app/src/services/session-seats.service.ts:19`) |
+| Multiplayer (1v1): first to finish, or last standing, wins | V2 | 1v1 | Scheduled for V2 (2026-10-26): a second seat adds the race and elimination result and lifts `AROUND_THE_CLOCK_V3` from one seat to two in `SEAT_CAPS` (`app/src/services/session-seats.service.ts:29`). It ships in place: the config and snapshot do not change, so there is no new ruleset version |
+| More than two seats | Deferred | 2+ | Blocked on: the seat model supports one opponent (1v1) per ruleset (`app/src/services/session-seats.service.ts:11-18`); the source allows up to eight |
 | Config screen (presets shown) | V1 | All | |
 | Three lives | V1 | All | |
 | Targets 1 up to 20, then the bull, in order | V1 | All | |
@@ -45,7 +46,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | --- | --- |
 | Skill | ACCURACY (primary) |
 | Session role | WARM_UP, RECREATIONAL |
-| Format | SOLO |
+| Format | SOLO, ONE_V_ONE |
 | Difficulty | BEGINNER |
 | Mechanic | SEQUENTIAL, ELIMINATION |
 | Pressure | LIVES |
@@ -55,14 +56,14 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 
 **Single:** reach and hit the bull before losing three lives.
 
-**2+:** the first seat to hit the bull wins outright; otherwise the last seat
-with a life left wins (V2+).
+**1v1:** the first seat to hit the bull wins outright; otherwise the last seat
+with a life left wins (V2).
 
 ## Config & presets
 
 | Setting | Preset | On config screen |
 | --- | --- | --- |
-| Players | 1 seat | Shown, locked |
+| Players | 1 seat; 1v1 (V2) | Shown |
 | Lives | 3 | Shown, locked |
 | Path | 1 → 20 → bull | Shown, locked |
 
@@ -91,9 +92,18 @@ Up to **three darts**, then play passes.
 
 **Single:** the bull is hit (finished), or the third life is lost.
 
+**1v1:** seats alternate visits, and the match ends at once on the first of
+two events: a seat hits the bull and wins, or a seat is out and the other
+seat wins without playing on. Both seats cannot go out on one visit, so there
+is always one winner. This replaces Around the Clock's fewest-darts finish
+for Nine Lives only (`around-the-clock.md` §Variants) (V2).
+
 ### Result
 
 Finished or not, the furthest target reached, lives left, darts thrown.
+
+**1v1:** the winning seat beside both seats' furthest target, lives left and
+darts thrown (V2).
 
 ## Later versions
 
@@ -112,7 +122,7 @@ Finished or not, the furthest target reached, lives left, darts thrown.
   course. Capture is unchanged: the target is still recoverable from the
   path position. The source also names a Horse Racing Darts alias.
   **2+:** if every seat is out, the seat that got furthest along the course
-  wins; this extends the V2+ multiplayer result and waits on it.
+  wins; this extends the V2 multiplayer result and waits on it.
 - **Grand National advanced course** (Deferred) — two circuits of the same
   path. The first circuit counts only the outer single of each number, the
   second only the inner single, and the course ends with the bull. A life
@@ -125,7 +135,7 @@ Finished or not, the furthest target reached, lives left, darts thrown.
 ### Match structure
 
 - Multiplayer: 2–4 seats in seat order fixed at setup, as 501
-  (`501.md` §Features). The source decides the first thrower by a throw at the
+  (`501.md` §Features). V2 plays two seats (1v1); more is Deferred. The source decides the first thrower by a throw at the
   bull; that waits on the same capture problem 501 defers.
 
 ## Capture

@@ -1078,8 +1078,8 @@ export type BaseballSeatResult = {
 };
 
 export type BaseballResultsSnapshot = {
-  status: "COMPLETE";
-  winningSideKey: null;
+  status: "COMPLETE" | "TIE";
+  winningSideKey: string | null;
   seats: BaseballSeatResult[];
 };
 
@@ -1088,6 +1088,10 @@ export type BaseballPlayContext = PlayLifecycleContext<
   BaseballEngine,
   BaseballResultsSnapshot
 > & {
+  starterOpen: boolean;
+  playAgainStarter: 0 | 1 | null;
+  requestPlayAgain(): unknown;
+  playAgainStarterOptions(): StarterStepOptions;
   visitMarkers(this: BaseballPlayContext): BoardMarker[];
   recordDart(
     this: BaseballPlayContext,
