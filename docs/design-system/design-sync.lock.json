@@ -1,0 +1,123 @@
+{
+  "projectId": "92d6fa0d-31bc-4ef3-9737-a4854ce14886",
+  "projectUpdatedAt": null,
+  "pairs": [
+    {
+      "design": "components/buttons/Button",
+      "code": ["app/src/components/forms/Button.astro"]
+    },
+    {
+      "design": "components/buttons/IconButton",
+      "code": ["app/src/components/forms/IconBtn.astro"]
+    },
+    {
+      "design": "components/buttons/SlideToStart",
+      "code": ["app/src/components/forms/SlideToStart.astro"]
+    },
+    {
+      "design": "components/controls/RangeSlider",
+      "code": ["app/src/components/forms/RangeSlider.astro"]
+    },
+    {
+      "design": "components/controls/SegmentedControl",
+      "code": [
+        "app/src/components/layout/games/setup/Toggle.astro",
+        "app/src/components/layout/games/setup/ToggleListItem.astro",
+        "app/src/components/forms/AppModeForm.astro",
+        "app/src/components/forms/HandednessForm.astro"
+      ]
+    },
+    {
+      "design": "components/controls/Stepper",
+      "code": ["app/src/components/forms/Stepper.astro"]
+    },
+    {
+      "design": "components/controls/Switch",
+      "code": ["app/src/components/forms/Switch.astro"]
+    },
+    {
+      "design": "components/feedback/DayState",
+      "code": [
+        "app/src/components/layout/training/schedules/ScheduleStrip.astro"
+      ]
+    },
+    {
+      "design": "components/feedback/SaveStatus",
+      "code": ["app/src/components/layout/games/SaveStatus.astro"]
+    },
+    {
+      "design": "components/feedback/Tag",
+      "code": [
+        "app/src/components/ui/Tag.astro",
+        "app/src/components/ui/Badge.astro"
+      ]
+    },
+    {
+      "design": "components/feedback/VisitPreview",
+      "code": ["app/src/components/layout/games/VisitPreview.astro"]
+    },
+    {
+      "design": "components/forms/Input",
+      "code": ["app/src/components/forms/Input.astro"]
+    },
+    {
+      "design": "components/forms/Select",
+      "code": ["app/src/components/forms/Select.astro"]
+    },
+    {
+      "design": "components/forms/SettingField",
+      "code": [
+        "app/src/components/forms/SettingRow.astro",
+        "app/src/components/layout/games/setup/SettingLabel.astro"
+      ]
+    },
+    {
+      "design": "components/game/InputKey",
+      "code": ["app/src/components/layout/games/InputButton.astro"]
+    },
+    {
+      "design": "components/game/Keypad",
+      "code": ["app/src/components/layout/games/ScoreInput.astro"]
+    },
+    {
+      "design": "components/game/ScoreDisplay",
+      "code": ["app/src/components/layout/games/SinglePlayerDisplay.astro"]
+    },
+    {
+      "design": "components/navigation/BottomNav",
+      "code": [
+        "app/src/components/layout/BottomNav.astro",
+        "app/src/components/layout/NavBtn.astro"
+      ]
+    },
+    {
+      "design": "components/navigation/Pagination",
+      "code": ["app/src/components/ui/Pagination.astro"]
+    },
+    {
+      "design": "components/navigation/ScreenHeader",
+      "code": ["app/src/components/layout/games/setup/SetupShell.astro"]
+    },
+    {
+      "design": "components/overlays/ConfirmDialog",
+      "code": ["app/src/components/ui/ConfirmDialog.astro"]
+    },
+    {
+      "design": "components/overlays/Sheet",
+      "code": ["app/src/components/ui/Modal.astro"]
+    },
+    {
+      "design": "components/overlays/SheetActions",
+      "code": ["app/src/components/ui/SheetActions.astro"]
+    },
+    {
+      "design": "components/surfaces/InlayRow",
+      "code": ["app/src/components/ui/InlayRow.astro"]
+    },
+    {
+      "design": "components/surfaces/StatTile",
+      "code": ["app/src/components/layout/games/StatTile.astro"]
+    }
+  ],
+  "items": []
+}
