@@ -1,6 +1,6 @@
 # Baseball Darts
 
-Current version: V1 (shipped 2026-10-18)
+Current version: V2 (shipped 2026-10-26)
 Entry points: standalone
 Game type: `BASEBALL`
 Kernel: TRACK
@@ -12,7 +12,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
 | Single player | V1 | Single | |
-| Multiplayer (1v1): most runs wins | V2 | 1v1 | Scheduled for V2 (2026-10-26): a second seat adds the compare-runs result and a `SEAT_CAPS` entry for `BASEBALL_V1` (`app/src/services/session-seats.service.ts:19`). It ships in place: the config and snapshot do not change, so there is no new ruleset version. Equal runs after inning 9 is a tie |
+| Multiplayer (1v1): most runs wins | V2 | 1v1 | Scheduled for V2 (2026-10-26): a second seat adds the compare-runs result and a `SEAT_CAPS` entry for `BASEBALL_V1` (`app/src/services/session-seats.service.ts:34`). It ships in place: the config and snapshot do not change, so there is no new ruleset version. Equal runs after inning 9 is a tie |
 | More than two seats | Deferred | 2+ | Blocked on: the seat model supports one opponent (1v1) per ruleset (`app/src/services/session-seats.service.ts:11-18`); the source allows up to eight |
 | Config screen (presets shown) | V1 | All | |
 | Innings: nine, inning n targets number n | V1 | All | |

@@ -1,6 +1,6 @@
 # Nine Lives
 
-Current version: V1 (shipped 2026-10-22)
+Current version: V2 (shipped 2026-10-26)
 Entry points: standalone
 Card ruleset: `AROUND_THE_CLOCK_V3`
 Kernel: TRACK

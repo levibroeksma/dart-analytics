@@ -109,15 +109,17 @@ Sessions are created with a ruleset and a configuration source. The configuratio
   | `CRICKET_V2`             | 2        |
   | `121_V1`                 | 2        |
   | `AROUND_THE_CLOCK_V1`    | 2        |
+  | `AROUND_THE_CLOCK_V3`    | 2        |
   | `TUOD_V1`                | 2        |
   | `SHANGHAI_V1`            | 2        |
   | `SHANGHAI_V3`            | 2        |
+  | `BASEBALL_V1`            | 2        |
   | `SCORE_TRAINING_V1`      | 2        |
   | `SINGLES_V1`             | 2        |
   | `DOUBLES_TRAINING_V1`    | 2        |
   | *(any other ruleset)*   | 1 (default — reject) |
 
-  <!-- 2026-08-22; `501_V2` row 2026-10-10 -->
+  <!-- 2026-08-22; `501_V2` row 2026-10-10; `AROUND_THE_CLOCK_V3` and `BASEBALL_V1` rows 2026-10-26, D497 -->
 - The events batch endpoint is unchanged: a turn's `participantRef` may now vary within one batch, which `validateBatchReferences` already allowed. <!-- 2026-08-21 -->
 - **Activity (v1):** the session's activity is created and managed server-side. A standalone game session gets an activity of its own; a training routine's activity spans every step session started under it, so one activity to N sessions is the shipped shape, not a deferred one (D301, issue #339). Routine-run writes ship as `POST /api/training-sessions` and `POST /api/training-sessions/:activityId/steps`. <!-- 2026-07-12; restated as shipped 2026-09-17 -->
 - Config is **always** copied (materialized as an `exercise_configurations` snapshot), never referenced.

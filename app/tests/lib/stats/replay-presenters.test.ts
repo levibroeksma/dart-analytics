@@ -20,6 +20,8 @@ import {
   PLAYER_ONE,
   PLAYER_TWO,
   playAroundTheClock,
+  playBaseballDuel,
+  playNineLivesDuel,
   playBobs27,
   playDoubles,
   playDoublesUnfinished,
@@ -613,5 +615,47 @@ describe("REPLAY_PRESENTERS.BASEBALL", () => {
     expect(line.entries).toEqual([
       { participantId: "p1", label: "Runs", value: "7" },
     ]);
+  });
+});
+
+describe("REPLAY_PRESENTERS two-seat Baseball and Nine Lives", () => {
+  it("reads each Baseball seat's own inning, runs and total", () => {
+    const cells = turnCells(playBaseballDuel());
+    expect(valuesOf(cells, "Inning")).toEqual(["1", "1", "2", "2"]);
+    expect(valuesOf(cells, "Runs")).toEqual(["4", "1", "1", "3"]);
+    expect(valuesOf(cells, "Total")).toEqual(["4", "1", "5", "4"]);
+  });
+
+  it("ends the Baseball session line on both seats' runs", () => {
+    expect(sessionLine(playBaseballDuel()).entries).toEqual([
+      { participantId: PLAYER_ONE.participantId, label: "Runs", value: "5" },
+      { participantId: PLAYER_TWO.participantId, label: "Runs", value: "4" },
+    ]);
+  });
+
+  it("shows each Nine Lives seat's own lives after its visit", () => {
+    expect(valuesOf(turnCells(playNineLivesDuel()), "Lives")).toEqual([
+      "3",
+      "2",
+      "2",
+      "1",
+      "1",
+      "0",
+    ]);
+  });
+
+  it("ends the Nine Lives session with the survivor's win and the other seat out", () => {
+    const game = playNineLivesDuel();
+    expect(game.finalState).toMatchObject({
+      status: "COMPLETE",
+      winningSideKey: "A",
+    });
+    const entries = sessionLine(game).entries;
+    expect(entries).toHaveLength(2);
+    expect(entries[1]).toMatchObject({
+      participantId: PLAYER_TWO.participantId,
+      value: "Out",
+    });
+    expect(entries[0]!.value).not.toBe("Out");
   });
 });

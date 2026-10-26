@@ -617,3 +617,48 @@ describe("sessionSteps — Cricket 1v1", () => {
     expect(duel.skippedSessions).toBe(1);
   });
 });
+
+describe("sessionSteps — Nine Lives 1v1", () => {
+  const darts = [
+    hit(1, "OUTER_SINGLE"),
+    miss(),
+    miss(),
+    miss(),
+    miss(),
+    miss(),
+  ];
+  const meta = {
+    sessionId: "session-nine-lives",
+    gameTypeKey: "AROUND_THE_CLOCK",
+    rulesetVersionKey: "AROUND_THE_CLOCK_V3",
+  } as const;
+
+  it("folds the owner's darts alone, exactly as a solo session does", () => {
+    const duel = sessionSteps(
+      rowsFor(
+        {
+          ...meta,
+          configuration: atcV2Config({
+            lives: 3,
+            seats: [
+              ...SEATS,
+              {
+                participantRef: "participant-2",
+                displayName: "Guest",
+                sideKey: "AWAY",
+                participantTypeKey: "GUEST",
+              },
+            ],
+          }),
+        },
+        darts,
+      ),
+    );
+    const solo = sessionSteps(
+      rowsFor({ ...meta, configuration: atcV2Config({ lives: 3 }) }, darts),
+    );
+    expect(duel.skippedSessions).toBe(0);
+    expect(duel.sessions[0]!.steps).toEqual(solo.sessions[0]!.steps);
+    expect(duel.sessions[0]!.steps.length).toBe(darts.length);
+  });
+});
