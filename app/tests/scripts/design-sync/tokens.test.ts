@@ -57,6 +57,18 @@ describe("design-sync tokens", () => {
     ).toEqual([]);
   });
 
+  it("keeps ; and braces inside quotes and parentheses out of the structure", () => {
+    const t = parseTokens(
+      ':root{--icon: url(data:image/svg+xml;utf8,<svg>{}</svg>); --q: "a;}b"; --e: "🎯";}\n@utility x { content: "{"; }',
+    );
+    expect(t.map((x) => [x.id, x.value])).toEqual([
+      ["var:--icon", "url(data: image/svg+xml;utf8, <svg>{}</svg>)"],
+      ["var:--q", '"a;}b"'],
+      ["var:--e", '"🎯"'],
+      ["rule:x", 'content: "{"'],
+    ]);
+  });
+
   it("ignores comments and @import", () => {
     expect(parseTokens('@import "x.css";\n/* --fake: 1; */')).toEqual([]);
   });

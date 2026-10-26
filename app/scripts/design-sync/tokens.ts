@@ -15,7 +15,7 @@ export interface ParsedToken {
   value: string;
 }
 
-type Context = "top" | "vars" | "skip";
+type Context = "top" | "vars";
 
 interface Statement {
   type: "decl";
@@ -29,6 +29,7 @@ interface Block {
 }
 
 const SINGLE_CLASS = /^\.([a-z0-9_-]+)$/i;
+const QUOTED = /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g;
 const PASSTHROUGH = /^var\(--([a-z0-9_-]+)\)$/i;
 
 /**
@@ -52,62 +53,58 @@ export function normaliseCss(value: string): string {
 }
 
 /**
- * Split CSS text into top-level declarations and blocks, honouring quotes
- * and parentheses so `url(data:…;…)` and `content: "{"` stay intact.
+ * Blank out quoted strings and parenthesised text (same length), so `;`, `{`
+ * and `}` inside `url(data:…;…)` or `content: "{"` are not structural.
  */
-function split(css: string): (Statement | Block)[] {
-  const out: (Statement | Block)[] = [];
-  let buf = "";
-  let quote: string | null = null;
+function mask(css: string): string {
+  const unquoted = css.replace(QUOTED, (m) => " ".repeat(m.length));
+  let out = "";
   let parens = 0;
-  for (let i = 0; i < css.length; i++) {
-    const ch = css[i];
-    if (quote) {
-      buf += ch;
-      if (ch === "\\") buf += css[++i] ?? "";
-      else if (ch === quote) quote = null;
-      continue;
-    }
-    if (ch === '"' || ch === "'") quote = ch;
-    else if (ch === "(") parens++;
+  for (let i = 0; i < unquoted.length; i++) {
+    const ch = unquoted[i];
+    const inside = parens > 0;
+    if (ch === "(") parens++;
     else if (ch === ")") parens = Math.max(0, parens - 1);
-    if (parens === 0 && ch === ";") {
-      if (buf.trim()) out.push({ type: "decl", text: buf.trim() });
-      buf = "";
-      continue;
-    }
-    if (parens === 0 && ch === "{") {
-      const end = matchBrace(css, i);
-      out.push({
-        type: "block",
-        prelude: buf.trim(),
-        body: css.slice(i + 1, end),
-      });
-      buf = "";
-      i = end;
-      continue;
-    }
-    buf += ch;
+    out += inside ? " " : ch;
   }
-  if (buf.trim()) out.push({ type: "decl", text: buf.trim() });
   return out;
 }
 
-function matchBrace(css: string, open: number): number {
+function matchBrace(masked: string, open: number): number {
   let depth = 0;
-  let quote: string | null = null;
-  for (let i = open; i < css.length; i++) {
-    const ch = css[i];
-    if (quote) {
-      if (ch === "\\") i++;
-      else if (ch === quote) quote = null;
-      continue;
-    }
-    if (ch === '"' || ch === "'") quote = ch;
-    else if (ch === "{") depth++;
-    else if (ch === "}" && --depth === 0) return i;
+  for (let i = open; i < masked.length; i++) {
+    if (masked[i] === "{") depth++;
+    else if (masked[i] === "}" && --depth === 0) return i;
   }
-  return css.length;
+  return masked.length;
+}
+
+/** Split CSS text into top-level declarations and blocks. */
+function split(css: string): (Statement | Block)[] {
+  const masked = mask(css);
+  const out: (Statement | Block)[] = [];
+  let start = 0;
+  const pushDecl = (end: number): void => {
+    const text = css.slice(start, end).trim();
+    if (text) out.push({ type: "decl", text });
+  };
+  for (let i = 0; i < masked.length; i++) {
+    if (masked[i] === ";") {
+      pushDecl(i);
+      start = i + 1;
+    } else if (masked[i] === "{") {
+      const end = matchBrace(masked, i);
+      out.push({
+        type: "block",
+        prelude: css.slice(start, i).trim(),
+        body: css.slice(i + 1, end),
+      });
+      i = end;
+      start = end + 1;
+    }
+  }
+  pushDecl(css.length);
+  return out;
 }
 
 /** Normalised rule body: sorted declarations, then nested blocks in order. */
@@ -123,47 +120,53 @@ function normaliseBody(body: string): string {
   return [...decls, ...blocks].join("; ");
 }
 
+/** A custom property declaration as a token, or null for a passthrough alias. */
+function varToken(text: string): ParsedToken | null {
+  const colon = text.indexOf(":");
+  if (!text.startsWith("--") || colon < 0) return null;
+  const name = text.slice(0, colon).trim();
+  const value = normaliseCss(text.slice(colon + 1));
+  const ref = PASSTHROUGH.exec(value);
+  if (ref && name.endsWith(`-${ref[1]}`)) return null;
+  return { id: `var:${name}`, kind: "var", name, value };
+}
+
+function bodyToken(kind: TokenKind, name: string, body: string): ParsedToken {
+  return { id: `${kind}:${name}`, kind, name, value: normaliseBody(body) };
+}
+
+/** Context a nested block is walked in, or null to skip it. */
+function nestedContext(prelude: string): Context | null {
+  if (prelude === ":root" || prelude.startsWith("@theme")) return "vars";
+  if (prelude.startsWith("@layer base")) return null;
+  return /^@(layer|media|supports)\b/.test(prelude) ? "top" : null;
+}
+
+function blockTokens(block: Block, ctx: Context, out: ParsedToken[]): void {
+  const prelude = block.prelude.replace(/\s+/g, " ");
+  const keyframes = /^@keyframes ([\w-]+)$/i.exec(prelude);
+  if (keyframes) {
+    out.push(bodyToken("keyframes", keyframes[1], block.body));
+    return;
+  }
+  if (ctx !== "top") return;
+  const rule =
+    /^@utility ([\w-]+)$/i.exec(prelude)?.[1] ??
+    SINGLE_CLASS.exec(prelude)?.[1];
+  if (rule) {
+    out.push(bodyToken("rule", rule, block.body));
+    return;
+  }
+  const next = nestedContext(prelude);
+  if (next) walk(block.body, next, out);
+}
+
 function walk(css: string, ctx: Context, out: ParsedToken[]): void {
   for (const part of split(css)) {
-    if (part.type === "decl") {
-      if (ctx !== "vars" || !part.text.startsWith("--")) continue;
-      const colon = part.text.indexOf(":");
-      if (colon < 0) continue;
-      const name = part.text.slice(0, colon).trim();
-      const value = normaliseCss(part.text.slice(colon + 1));
-      const ref = PASSTHROUGH.exec(value);
-      if (ref && name.endsWith(`-${ref[1]}`)) continue;
-      out.push({ id: `var:${name}`, kind: "var", name, value });
-      continue;
-    }
-    const prelude = part.prelude.replace(/\s+/g, " ");
-    const keyframes = /^@keyframes ([\w-]+)$/i.exec(prelude);
-    if (keyframes) {
-      out.push({
-        id: `keyframes:${keyframes[1]}`,
-        kind: "keyframes",
-        name: keyframes[1],
-        value: normaliseBody(part.body),
-      });
-      continue;
-    }
-    if (ctx !== "top") continue;
-    const utility = /^@utility ([\w-]+)$/i.exec(prelude);
-    const cls = SINGLE_CLASS.exec(prelude);
-    const ruleName = utility?.[1] ?? cls?.[1];
-    if (ruleName) {
-      out.push({
-        id: `rule:${ruleName}`,
-        kind: "rule",
-        name: ruleName,
-        value: normaliseBody(part.body),
-      });
-    } else if (prelude === ":root" || prelude.startsWith("@theme")) {
-      walk(part.body, "vars", out);
-    } else if (prelude.startsWith("@layer base")) {
-      continue;
-    } else if (/^@(layer|media|supports)\b/.test(prelude)) {
-      walk(part.body, "top", out);
+    if (part.type === "block") blockTokens(part, ctx, out);
+    else if (ctx === "vars") {
+      const token = varToken(part.text);
+      if (token) out.push(token);
     }
   }
 }
