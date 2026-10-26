@@ -1088,6 +1088,10 @@ export type BaseballPlayContext = PlayLifecycleContext<
   BaseballEngine,
   BaseballResultsSnapshot
 > & {
+  starterOpen: boolean;
+  playAgainStarter: 0 | 1 | null;
+  requestPlayAgain(): unknown;
+  playAgainStarterOptions(): StarterStepOptions;
   visitMarkers(this: BaseballPlayContext): BoardMarker[];
   recordDart(
     this: BaseballPlayContext,

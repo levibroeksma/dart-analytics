@@ -1,5 +1,6 @@
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { boardInputData } from "@lib/game/board-input.data";
+import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { matchWinnerName } from "@lib/game/match-result-text";
 import { accuracyDisplay } from "@lib/game/play-visit-stats";
 import {
@@ -109,6 +110,7 @@ export function baseballPlay() {
     playAgainError: "",
     playAgainLoading: false,
     resultsSnapshot: null as BaseballResultsSnapshot | null,
+    ...playAgainStarterData(),
     hiddenTurnKey: null as string | null,
     hiddenTimer: null as ReturnType<typeof setTimeout> | null,
     engine: null as BaseballEngine | null,
@@ -256,7 +258,7 @@ export function baseballPlay() {
       return playAbandonAndExit(this);
     },
 
-    /** Replays the same preset with no overrides — V1 has nothing to set. */
+    /** Replays the same preset with no overrides — the ruleset has nothing to set. */
     playAgain(this: BaseballPlayContext) {
       return runPlayAgain(this, GAME_TYPE_KEY, RULESET_VERSION_KEY, (engine) =>
         engine instanceof BaseballEngine ? engine : null,

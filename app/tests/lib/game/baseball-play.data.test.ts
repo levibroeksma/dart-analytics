@@ -351,3 +351,12 @@ describe("baseballPlay — 1v1 preview", () => {
     ]);
   });
 });
+
+describe("baseballPlay — play again starter", () => {
+  it("offers the who-throws-first step on rematch, closed until asked", () => {
+    const play = baseballPlay();
+    expect(play.starterOpen).toBe(false);
+    expect(play.playAgainStarter).toBeNull();
+    expect(typeof play.requestPlayAgain).toBe("function");
+  });
+});

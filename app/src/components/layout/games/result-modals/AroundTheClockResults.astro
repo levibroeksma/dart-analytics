@@ -58,12 +58,18 @@ const LIVES_ROWS = [
   </template>
   <template x-if="!hasLives()">
     <div class="contents">
-      <ComparisonSummary statRows={STAT_ROWS} />
+      <ComparisonSummary
+        statRows={STAT_ROWS}
+        winnerExpr="resultsSnapshot?.seats?.findIndex((seat) => seat.sideKey === resultsSnapshot?.winningSideKey) ?? -1"
+      />
     </div>
   </template>
   <template x-if="hasLives()">
     <div class="contents">
-      <ComparisonSummary statRows={LIVES_ROWS} />
+      <ComparisonSummary
+        statRows={LIVES_ROWS}
+        winnerExpr="resultsSnapshot?.seats?.findIndex((seat) => seat.sideKey === resultsSnapshot?.winningSideKey) ?? -1"
+      />
     </div>
   </template>
 </ResultsModalShell>
