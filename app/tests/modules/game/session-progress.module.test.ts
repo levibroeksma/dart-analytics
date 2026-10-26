@@ -638,6 +638,18 @@ describe("summarizeProgress — AROUND_THE_CLOCK", () => {
     ).toBe("Lap 1 · 20 → 1 · 2 lives");
   });
 
+  it("AROUND_THE_CLOCK_V3 1v1 reads the active seat's own lives", () => {
+    const config = { ...clockV2Config, lives: 3 as const };
+    const facts = factsAfter(aroundTheClockV3EngineFactory, config, [
+      MISS,
+      MISS,
+      MISS,
+    ]);
+    expect(
+      summarizeProgress("AROUND_THE_CLOCK_V3", config, facts)?.detail,
+    ).toBe("Lap 1 · 20 → 1 · 3 lives");
+  });
+
   it("AROUND_THE_CLOCK_V3 summarises like V2 on the configured path", () => {
     const config = { ...clockV2Config, lives: 3 as const };
     expect(
@@ -753,6 +765,43 @@ describe("summarizeProgress — BASEBALL_V1", () => {
     expect(summarizeProgress("BASEBALL_V1", config, facts)).toEqual({
       detail: "Inning 2 of 9",
       big: { value: "9", label: "RUNS" },
+    });
+  });
+});
+
+describe("summarizeProgress — BASEBALL_V1 1v1", () => {
+  const config = {
+    seats: [
+      {
+        participantRef: "p1",
+        displayName: "L",
+        sideKey: "A",
+        participantTypeKey: "PLAYER" as const,
+      },
+      {
+        participantRef: "p2",
+        displayName: "G",
+        sideKey: "B",
+        participantTypeKey: "GUEST" as const,
+      },
+    ],
+  };
+
+  it("reads the second seat's own inning and runs after the first seat's visit", () => {
+    const treble = {
+      hitTargetNumber: 1,
+      hitZoneKey: "TREBLE" as const,
+      locationX: null,
+      locationY: null,
+    };
+    const facts = factsAfter(baseballEngineFactory, config, [
+      treble,
+      treble,
+      treble,
+    ]);
+    expect(summarizeProgress("BASEBALL_V1", config, facts)).toEqual({
+      detail: "Inning 1 of 9",
+      big: { value: "0", label: "RUNS" },
     });
   });
 });
