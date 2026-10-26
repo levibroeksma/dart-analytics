@@ -10,7 +10,7 @@ import {
   shanghaiV3Validator,
 } from "@services/rulesets/shanghai/shanghai.validator";
 import type { RulesetValidator } from "@services/interfaces";
-import type { BoardTarget } from "@modules/game/types";
+import type { BoardTarget } from "@modules/types";
 import type { ShanghaiV2Snapshot, ShanghaiV3Snapshot } from "@lib/types";
 
 const SEATS = [

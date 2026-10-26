@@ -16,7 +16,7 @@ import {
 } from "@services/rulesets/singles-training/singles-training.validator";
 import { doublesTrainingValidator } from "@services/rulesets/doubles-training/doubles-training.validator";
 import type { RulesetValidator } from "@services/interfaces";
-import type { BoardTarget } from "@modules/game/types";
+import type { BoardTarget } from "@modules/types";
 import type { RulesetVersionKey } from "@lib/types";
 
 const seats = ["A", "B"].map((sideKey, i) => ({
