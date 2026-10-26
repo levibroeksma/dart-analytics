@@ -4,7 +4,7 @@
  * `app/src/assets/*` or `app/public/*` by basename. SVGs are hashed after
  * normalisation, everything else raw.
  * Spec: docs/superpowers/specs/2026-10-26-design-system-sync-design.md
- * Decision: D498
+ * Decision: D499
  */
 import { readFileSync } from "node:fs";
 import { basename, join } from "node:path";

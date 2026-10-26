@@ -10,7 +10,7 @@
 
 **Spec:** `docs/superpowers/specs/2026-10-26-design-system-sync-design.md`
 
-**Decision id:** D498 (reserved; re-derive with `bash scripts/next-decision-id.sh` before opening the PR)
+**Decision id:** D499 (reserved; re-derive with `bash scripts/next-decision-id.sh` before opening the PR)
 
 ## Global Constraints
 
@@ -282,22 +282,22 @@ it("upsertEntries replaces by id", () => {
 
 **Files:**
 
-- Modify: `decisions/frontend/style.md` (append the D498 block)
+- Modify: `decisions/frontend/style.md` (append the D499 block)
 - Modify: `docs/architecture/00-File-Inventory.md` (rows for the skill, the lock and `app/scripts/design-sync/`, matching neighbouring rows' format)
 - Modify: `docs/architecture/00-Context-Map-History.md` (version entry)
 - Modify: `docs/architecture/07-Frontend/07-Style-Guide.md:34` (Brand reference line)
 - Modify: `CLAUDE.md` ("Where Everything Lives": add the row `Sync with Claude Design system | .claude/skills/syncing-design-system/SKILL.md`)
 
-- [ ] **Step 1: Re-derive the id.** Run `bash scripts/next-decision-id.sh`. If it is not D498, use `bash scripts/renumber-decision.sh`.
+- [ ] **Step 1: Re-derive the id.** Run `bash scripts/next-decision-id.sh`. If it is not D499, use `bash scripts/renumber-decision.sh`.
 - [ ] **Step 2: Append the block:**
-  - Title: `D498 — Claude Design system is a two-way peer of global.css`.
+  - Title: `D499 — Claude Design system is a two-way peer of global.css`.
   - Decision: the project `92d6fa0d-…` and the code are reconciled per item by the owner. Code wins → `DesignSync` write; design wins → code change. A committed lock plus the `syncing-design-system` skill make it repeatable. Phase 1 is manual only; the automatic triggers wait for confirmation that the project survives 2026-12-14.
   - Reason: most of the design system already matches the code; drift needs surfacing, not a port.
   - Consequences: CI cannot run the sync, and sessions without access skip it.
   - Supersedes: D428 (token-source clause only — Brand Style is no longer the sole source).
-- [ ] **Step 3: Style Guide line 34.** "Token values are reconciled two-way with the Claude Design system project via the `syncing-design-system` skill; a new value enters `global.css` as a token before any component uses it (D428, D498)."
+- [ ] **Step 3: Style Guide line 34.** "Token values are reconciled two-way with the Claude Design system project via the `syncing-design-system` skill; a new value enters `global.css` as a token before any component uses it (D428, D499)."
 - [ ] **Step 4: Gates.** Run the `run-all-gates` skill, then `cd app && npm run validate:app` (`validate-app` skill). Expected: every script passes; the type gate reports 0/0/0.
-- [ ] **Step 5: Commit** `docs(design-sync): D498, inventory, style guide, router row`
+- [ ] **Step 5: Commit** `docs(design-sync): D499, inventory, style guide, router row`
 - [ ] **Step 6: Finish.** Run `context-maintenance`, then `superpowers:finishing-a-development-branch` + `finishing-a-dart-branch` (push + PR to `main`).
 
 ---

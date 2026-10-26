@@ -17,7 +17,7 @@ updated: 2026-10-13
 
 # Version History
 
-> **Version:** 1.192.0 (2026-10-26 — Claude Design system sync, phase 1: D498 in `decisions/frontend/style.md` (supersedes D428's token-source clause); `syncing-design-system` skill, `app/scripts/design-sync/` and `docs/design-system/design-sync.lock.json` registered in `00-File-Inventory.md`; Style Guide brand-reference line and root `CLAUDE.md` router row updated.)
+> **Version:** 1.192.0 (2026-10-26 — Claude Design system sync, phase 1: D499 in `decisions/frontend/style.md` (supersedes D428's token-source clause); `syncing-design-system` skill, `app/scripts/design-sync/` and `docs/design-system/design-sync.lock.json` registered in `00-File-Inventory.md`; Style Guide brand-reference line and root `CLAUDE.md` router row updated.)
 
 > **Version:** 1.191.0 (2026-10-26 — Baseball and Nine Lives 1v1: D497 in `decisions/game-engine.md`; `AROUND_THE_CLOCK_V3` and `BASEBALL_V1` added to the seat-cap table in `06-API/04-Endpoint-Contracts.md`; no new file, migration or seed.)
 

@@ -1,11 +1,11 @@
 ---
 name: syncing-design-system
-description: Use when the owner asks to sync the design system, pull from Claude Design, push a component or token to Claude Design, or check whether the "Darts Analytics Design System" project and the codebase have drifted. Compares one area at a time (tokens → assets → components), shows every mismatch, and applies only what the owner decides per item (D498).
+description: Use when the owner asks to sync the design system, pull from Claude Design, push a component or token to Claude Design, or check whether the "Darts Analytics Design System" project and the codebase have drifted. Compares one area at a time (tokens → assets → components), shows every mismatch, and applies only what the owner decides per item (D499).
 ---
 
 # Syncing the Design System
 
-Two-way reconciliation between the Claude Design project **Darts Analytics Design System** and this codebase. Spec: `docs/superpowers/specs/2026-10-26-design-system-sync-design.md`. Decision: D498.
+Two-way reconciliation between the Claude Design project **Darts Analytics Design System** and this codebase. Spec: `docs/superpowers/specs/2026-10-26-design-system-sync-design.md`. Decision: D499.
 
 - Project id: `92d6fa0d-31bc-4ef3-9737-a4854ce14886`
 - Lock: `docs/design-system/design-sync.lock.json` (committed; a direction hint, never the truth)

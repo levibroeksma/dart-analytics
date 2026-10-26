@@ -3,7 +3,7 @@
  * the codebase (`diff`) and record the owner's decisions in the lock (`record`).
  * The mirror is filled by Claude via DesignSync; this script never calls it.
  * Spec: docs/superpowers/specs/2026-10-26-design-system-sync-design.md
- * Decision: D498
+ * Decision: D499
  *
  * Run (from app/):
  *   npm run design:sync -- diff --area tokens --mirror <dir>

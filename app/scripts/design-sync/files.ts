@@ -1,6 +1,6 @@
 /**
  * File listing shared by the Claude Design sync pairers.
- * Decision: D498
+ * Decision: D499
  */
 import { existsSync, readdirSync } from "node:fs";
 import { join, relative } from "node:path";

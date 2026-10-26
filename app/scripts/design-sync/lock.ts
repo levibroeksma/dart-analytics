@@ -4,7 +4,7 @@
  * a status plus a proposed direction. The lock is a direction hint only;
  * comparable items are matched by comparing the two sides directly.
  * Spec: docs/superpowers/specs/2026-10-26-design-system-sync-design.md
- * Decision: D498
+ * Decision: D499
  */
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";

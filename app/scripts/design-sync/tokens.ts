@@ -3,7 +3,7 @@
  * Reads custom properties (:root, @theme), single-class rules / @utility and
  * @keyframes from either side, so both are compared by id + normalised value.
  * Spec: docs/superpowers/specs/2026-10-26-design-system-sync-design.md
- * Decision: D498
+ * Decision: D499
  */
 
 export type TokenKind = "var" | "rule" | "keyframes";

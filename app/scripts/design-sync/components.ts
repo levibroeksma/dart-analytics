@@ -3,7 +3,7 @@
  * sync. React and Astro are never compared line by line, so items are not
  * comparable: the hashes only tell which side changed since the last sync.
  * Spec: docs/superpowers/specs/2026-10-26-design-system-sync-design.md
- * Decision: D498
+ * Decision: D499
  */
 import { existsSync, readFileSync } from "node:fs";
 import { basename, join } from "node:path";
