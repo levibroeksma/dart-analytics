@@ -37,11 +37,11 @@ Most of the design system already lives in the code (it was derived from this re
 
 Areas, always worked **one area at a time, in this order** (owner's choice):
 
-| # | Area | Design side | Code side |
-| - | ---- | ----------- | --------- |
-| 1 | Tokens | `tokens/{colors,typography,surfaces,spacing,motion,fonts}.css`, `styles.css`; the matching `guidelines/*.html` specimen cards | `app/src/styles/global.css` (`:root`, `@theme`, `@utility`, `@layer components`) |
-| 2 | Assets | `assets/brand/*`, `assets/icons/**` | `app/src/icons/*`, `app/src/assets/*`, `app/public/*` brand files |
-| 3 | Components | `components/<group>/<Name>.{jsx,d.ts,prompt.md}` + `<group>.card.html` | `app/src/components/{ui,forms,layout}/**` shared primitives (same scope as `08-Component-Inventory.md`) |
+| #   | Area       | Design side                                                                                                                   | Code side                                                                                               |
+| --- | ---------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| 1   | Tokens     | `tokens/{colors,typography,surfaces,spacing,motion,fonts}.css`, `styles.css`; the matching `guidelines/*.html` specimen cards | `app/src/styles/global.css` (`:root`, `@theme`, `@utility`, `@layer components`)                        |
+| 2   | Assets     | `assets/brand/*`, `assets/icons/**`                                                                                           | `app/src/icons/*`, `app/src/assets/*`, `app/public/*` brand files                                       |
+| 3   | Components | `components/<group>/<Name>.{jsx,d.ts,prompt.md}` + `<group>.card.html`                                                        | `app/src/components/{ui,forms,layout}/**` shared primitives (same scope as `08-Component-Inventory.md`) |
 
 Out of scope on the design side: `*.dc.html`, `ui_kits/**`, `app/src/**` (a raw-asset copy the page mocks reference), `thumbnail.html`, `_ds_bundle.js`, `_ds_manifest.json`, `_adherence.oxlintrc.json`, `support.js`. `readme.md`, `SKILL.md` and `github.md` are read for context and updated only when a code-wins decision makes them wrong.
 
@@ -58,16 +58,16 @@ A committed JSON file records, per item: area, design path, code path(s), a hash
 
 On each run, per item:
 
-| Design changed since lock | Code changed since lock | Proposed direction |
-| - | - | - |
-| yes | no | design → code |
-| no | yes | code → design |
-| yes | yes | none — owner decides |
-| no | no | in sync, not shown |
+| Design changed since lock | Code changed since lock | Proposed direction   |
+| ------------------------- | ----------------------- | -------------------- |
+| yes                       | no                      | design → code        |
+| no                        | yes                     | code → design        |
+| yes                       | yes                     | none — owner decides |
+| no                        | no                      | in sync, not shown   |
 
 The proposal is only a default; the owner confirms every item. `accepted-divergence` lets the owner keep a known difference without it reappearing until either side changes again.
 
-**The lock is a direction hint, never the source of truth.** Whether an item is a mismatch is always decided by comparing the two sides directly (normalised). The lock only supplies the proposed direction. So a stale lock (e.g. a code-wins push whose PR never merged) can at worst produce a wrong *proposal* or "owner decides" — never a silent revert, because nothing applies without confirmation. The lock is updated on the same branch as the run that produced it. (Builder's call.)
+**The lock is a direction hint, never the source of truth.** Whether an item is a mismatch is always decided by comparing the two sides directly (normalised). The lock only supplies the proposed direction. So a stale lock (e.g. a code-wins push whose PR never merged) can at worst produce a wrong _proposal_ or "owner decides" — never a silent revert, because nothing applies without confirmation. The lock is updated on the same branch as the run that produced it. (Builder's call.)
 
 **Code side compared against:** the current working tree (the run's branch, which is cut from `origin/main`). A code-wins push from a branch that is later abandoned leaves the design ahead of `main`; the next run sees that as a plain mismatch and asks. (Builder's call; replaces an earlier "`origin/main` plus branch" idea.)
 
