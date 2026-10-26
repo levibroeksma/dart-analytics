@@ -268,3 +268,10 @@ Decision: `ConfirmDialog` takes `confirmVariant` (`sheet-raised` default, `sheet
 Reason: the routine-detail redesign needs a delete action and a confirm that reads as destructive.
 Consequences: D429's "no coral fill on destructive confirms" consequence is partly reversed: coral returns as glass, not a solid fill. Other confirms keep the raised default.
 Supersedes: D429 in part (the removal of `ConfirmDialog`'s `confirmVariant`).
+
+### D498 — Claude Design system is a two-way peer of `global.css`
+Status: Accepted · Date: 2026-10-26
+Decision: the Claude Design project "Darts Analytics Design System" (`92d6fa0d-31bc-4ef3-9737-a4854ce14886`) and the code are reconciled item by item, by the owner, one area at a time (tokens → assets → components). Code wins → the design system is updated through `DesignSync`; design wins → the code changes through the normal branch, test and PR flow. The `syncing-design-system` skill runs it; `app/scripts/design-sync/` (`npm run design:sync -- diff|record`) compares a scratch mirror of the remote area with the code and classifies each item against the committed lock `docs/design-system/design-sync.lock.json`. Mismatches come from comparing the two sides directly; the lock only proposes a direction and remembers accepted divergences. Phase 1 is manual only: the session-start notice and the task-end step wait until the owner confirms the project survives the 2026-12-14 closure of standalone Claude Design.
+Reason: most of the design system already matches the code; drift needs surfacing and a per-item decision, not a port.
+Consequences: CI cannot run the sync (it needs a claude.ai login in a Claude session); a session without design access skips with one line and loses nothing, since the next run diffs both sides again. React components are never copied; component pairs are compared by looks and behaviour, by hand.
+Supersedes: D428 in part (the token-source clause only — `Brand Style.dc.html` is no longer the sole source of token values).

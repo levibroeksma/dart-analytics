@@ -123,5 +123,6 @@ Decisions are append-only and domain-scoped: never edit or delete an existing bl
 | App implementation rules + validation procedure | `app/CLAUDE.md` |
 | Condensed database rules | `docs/architecture/05-Database/10-Database-Agent-Guide.md` |
 | Pre-spec game/exercise/routine/trivia rule notes (non-canonical, permanent) | `docs/game-rules/README.md`; authored via the `authoring-game-rules` skill |
+| Sync with Claude Design system | `.claude/skills/syncing-design-system/SKILL.md` |
 
 ---
