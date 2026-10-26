@@ -12,15 +12,16 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
 | Single player | V1 | Single | |
-| Multiplayer (2–4 seats): most runs wins | V2+ | 2+ | Wanted, unscheduled: a solo run is playable without it; a second seat adds the compare-runs result and a `SEAT_CAPS` entry (`app/src/services/session-seats.service.ts:19`) |
+| Multiplayer (1v1): most runs wins | V2 | 1v1 | Scheduled for V2 (2026-10-26): a second seat adds the compare-runs result and a `SEAT_CAPS` entry for `BASEBALL_V1` (`app/src/services/session-seats.service.ts:19`). It ships in place: the config and snapshot do not change, so there is no new ruleset version. Equal runs after inning 9 is a tie |
+| More than two seats | Deferred | 2+ | Blocked on: the seat model supports one opponent (1v1) per ruleset (`app/src/services/session-seats.service.ts:11-18`); the source allows up to eight |
 | Config screen (presets shown) | V1 | All | |
 | Innings: nine, inning n targets number n | V1 | All | |
 | One visit per inning | V1 | All | |
 | Runs: single 1, double 2, treble 3 on the inning's number | V1 | All | |
 | Any other number, or the bull, scores no runs | V1 | All | |
 | Run ends after inning 9 | V1 | All | |
-| Extra innings | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer — a solo run has no tie |
-| Bullseye Tiebreaker | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer, as Extra innings |
+| Extra innings | V2+ | 2+ | Wanted, unscheduled: Multiplayer (V2) now yields ties, but V2 ends a tie as a tie; extra innings need a path past inning 9 and an answer to the inning-21 question (Open questions) |
+| Bullseye Tiebreaker | V2+ | 2+ | Wanted, unscheduled: V2 ends a tie as a tie; the tiebreaker needs a bull-only phase after inning 9 that the nine-number path has no place for |
 | 7th Inning Stretch | V2+ | All | Wanted, unscheduled: a scoring switch V1 does not need |
 | Bullseye Baseball | V2+ | All | Wanted, unscheduled: a scoring gate V1 does not need; V1 already scores no runs on the bull, so the gate only adds the unlock rule |
 | Team Play | Deferred | 2+ | Blocked on: a session allows one seat per side; 2v2 is rejected (`app/src/services/session-seats.service.ts:87-88`) |
@@ -53,13 +54,15 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 **Single:** score as many runs as possible over nine innings. The maximum is
 81 (three trebles every inning).
 
-**2+:** most runs after nine innings wins (V2+).
+**1v1:** most runs after nine innings wins; equal runs is a tie (V2).
+
+**2+:** a tie goes to extra innings or a bull tiebreaker (V2+).
 
 ## Config & presets
 
 | Setting | Preset | On config screen |
 | --- | --- | --- |
-| Players | 1 seat | Shown, locked |
+| Players | 1 seat; 1v1 (V2) | Shown |
 | Innings | 9 | Shown, locked |
 | Scoring | Runs by ring | Shown, locked |
 
@@ -79,9 +82,14 @@ Three darts at the inning's number; one visit per inning.
 
 **Single:** after inning 9.
 
+**1v1:** after both seats close inning 9; seats alternate visits within an
+inning. Most runs wins; equal runs is a tie, with no tiebreak (V2).
+
 ### Result
 
 Total runs, and runs per inning.
+
+**1v1:** the winning seat beside both seats' runs, or a tie (V2).
 
 ## Later versions
 
@@ -100,7 +108,7 @@ Total runs, and runs per inning.
 ### Match structure
 
 - Multiplayer: 2–4 seats; "every player completes their turn before the group
-  advances to the next inning."
+  advances to the next inning." V2 plays two seats (1v1); more is Deferred.
 - **Extra innings** — on a tie after nine, inning 10 targets 10, inning 11
   targets 11, and so on, "until one player or team holds the lead at the
   conclusion of a complete extra inning."
