@@ -33,6 +33,7 @@
     "smoke": "tsx scripts/smoke.ts",
     "icons:generate": "tsx scripts/generate-app-icons.ts",
     "logo:generate": "tsx scripts/generate-logo-lockup.ts",
+    "design:sync": "tsx scripts/design-sync/cli.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:integration": "vitest run --config vitest.integration.config.ts",
