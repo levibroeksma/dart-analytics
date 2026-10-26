@@ -924,7 +924,7 @@ describe("gameStatsStore", () => {
     expect(curve.map((point) => point.targetKey)).toEqual(DOUBLES_PATH_KEYS);
   });
 
-  it("shanghaiRateTrend gates below MIN_TARGET_SAMPLE and shanghaiByRound sums the round histogram", async () => {
+  it("shanghaiRateTrend gates below MIN_TARGET_SAMPLE and shanghaiByNumber sums the landed-number histogram", async () => {
     readSection.mockImplementation((_player, _game, meta) => {
       if (meta.id === "shanghai-count") {
         return Promise.resolve(
@@ -944,9 +944,9 @@ describe("gameStatsStore", () => {
     expect(store.shanghaiRateTrend).toEqual([
       { start: "2026-01-01T00:00:00.000Z", rate: 0.1 },
     ]);
-    expect(store.shanghaiByRound).toEqual([
-      { round: 3, count: 3 },
-      { round: 7, count: 1 },
+    expect(store.shanghaiByNumber).toEqual([
+      { number: 3, count: 3 },
+      { number: 7, count: 1 },
     ]);
   });
 
