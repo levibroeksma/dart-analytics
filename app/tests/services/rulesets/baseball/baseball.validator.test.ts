@@ -139,4 +139,18 @@ describe("baseballValidator", () => {
       );
     });
   });
+
+  it("leaves the keypad inning total unchecked against the runs", () => {
+    const batch = batchWithTurns([[t1, { ...t1, sequence: 2 }, t1]]);
+    batch.stages[0].turns[0].totalScore = 9;
+    expect(
+      baseballValidator.validateBatch({
+        config: {},
+        batch,
+        existingTurnCounts: {},
+        captureModeKey: "RECREATIONAL",
+        inputModeKey: "DETAILED_DARTS",
+      }).valid,
+    ).toBe(true);
+  });
 });
