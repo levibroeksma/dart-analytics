@@ -224,7 +224,20 @@ describe("baseball engine — 1v1", () => {
     expect(engine.state().activeParticipantRef).toBe("participant-2");
   });
 
-  it("wouldComplete is true only on the last seat's inning-9 third dart", () => {
+  it("wouldComplete is false on the first seat's inning-9 third dart", () => {
+    const engine = new BaseballEngine(duel);
+    for (let inning = 1; inning < BASEBALL_INNINGS; inning += 1) {
+      playInning(engine, [S(inning), MISS, MISS]);
+      playInning(engine, [S(inning), MISS, MISS]);
+    }
+    engine.record(S(9));
+    engine.record(MISS);
+    expect(engine.wouldComplete(MISS)).toBe(false);
+    engine.record(MISS);
+    expect(engine.isComplete()).toBe(false);
+  });
+
+  it("wouldComplete is true on the last seat's inning-9 third dart", () => {
     const engine = new BaseballEngine(duel);
     playToInning9Seat1(engine);
     engine.record(S(9));

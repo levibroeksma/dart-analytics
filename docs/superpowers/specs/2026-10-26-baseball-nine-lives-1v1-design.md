@@ -36,7 +36,7 @@ No change. `BaseballConfig` and `AroundTheClockV3Config` keep their shape. Seats
 
 ## 6. Engine
 
-**Baseball** (`baseball.engine.module.ts`): `foldBaseballState` sets `winningSideKey` and `status` through `scoreCompareOutcome(..., "HIGHEST", soloStatus)` over `{ sideKey, completed, metric: runs }`. Solo keeps `winningSideKey: null`. A tie is `status: "TIE"`. `refusal` and `wouldComplete` already read per-seat state; `closesLastInning` stays correct for the second seat because the rota alternates visits, so the match closes on the last seat's inning-9 third dart.
+**Baseball** (`baseball.engine.module.ts`): `foldBaseballState` sets `winningSideKey` and `status` through `scoreCompareOutcome(..., "HIGHEST", soloStatus)` over `{ sideKey, completed, metric: runs }`. Solo keeps `winningSideKey: null`. A tie is `status: "TIE"`. `refusal` already reads match status. `closesLastInning` (the `wouldComplete` rule) also requires every other seat to have closed inning 9, so it is true only on the last seat's inning-9 third dart.
 
 **Nine Lives** (`around-the-clock.engine.module.ts`): when the config has `lives`, the outcome comes from a new pure `livesOutcome(seats)` in `match-outcome.module.ts`, composed from the existing `raceWinner` (a seat COMPLETE) and `eliminationWinner` (a seat OUT):
 
@@ -44,7 +44,7 @@ No change. `BaseballConfig` and `AroundTheClockV3Config` keep their shape. Seats
 - else an OUT seat with one survivor → `{ status: "COMPLETE", winningSideKey: survivor }`;
 - else `IN_PROGRESS`, no winner.
 
-The completion predicate passed to `activeSeat` also treats a finished match as done. `refusal` refuses any dart once `state.status !== "IN_PROGRESS"`, and `wouldComplete` returns true on the dart that finishes the match (the bull, or the third dart of a no-hit visit on the last life). Non-lives snapshots keep `scoreCompareOutcome` unchanged.
+The `activeSeat` predicate is unchanged (built; D497). `refusal` refuses any dart once `state.status !== "IN_PROGRESS"`, and `wouldComplete` returns true on the dart that finishes the match (the bull, or the third dart of a no-hit visit on the last life). Non-lives snapshots keep `scoreCompareOutcome` unchanged.
 
 ## 7. Registration
 
@@ -79,8 +79,8 @@ DartBot for either game, more than two seats, teams, Extra innings, Bullseye Tie
 
 | Risk | Mitigation |
 | --- | --- |
-| A finished lives match still hands the loser a turn | `refusal`, `wouldComplete` and the `activeSeat` predicate all read match status; test 4 |
+| A finished lives match still hands the loser a turn | `refusal` and `wouldComplete` read match status; test 4 |
 | ATC V1/V2 1v1 changes by accident | Lives branch keyed on the snapshot's `lives` field only; the last case of test 4 and golden 6 |
-| Baseball `closesLastInning` fires on the wrong seat | The rota alternates, so the last dart is the last seat's; test 2 plays all nine innings with two seats |
+| Baseball `closesLastInning` fires on the wrong seat | `closesLastInning` requires the other seats to be complete; test 2 asserts it is false on the first seat's inning-9 third dart |
 | Baseball stats count a 1v1 session against the owner only | Same as Shanghai V1/V2 1v1; no new behaviour. Check the section reads the owner's seat and add a test if it assumes one seat |
 | Solo result modal regresses | Solo path keeps `SinglePlayerSummary`; play-data test for solo |

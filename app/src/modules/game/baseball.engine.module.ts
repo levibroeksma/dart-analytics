@@ -7,7 +7,7 @@ import {
 import { registerEngineFactory } from "./engine.registry";
 import { scoreCompareOutcome } from "./match-outcome.module";
 import { activeSeat } from "./seat-rota.module";
-import { activeSeatState } from "./seat-state.module";
+import { activeSeatState, otherSeatsComplete } from "./seat-state.module";
 import { applyTrackDart, foldTrackSeats } from "./track-kernel.module";
 import {
   advanceToEnd,
@@ -175,11 +175,19 @@ function runsOf(state: BaseballState, participantRef: string): number {
   );
 }
 
-/** Whether the next dart is inning 9's third, which ends the game. */
+/** Whether the next dart is inning 9's third and every other seat has already closed inning 9, which ends the game. */
 function closesLastInning(state: BaseballState): boolean {
   if (state.status !== "IN_PROGRESS") return false;
   const seat = activeSeatState(state);
-  return seat.targetIndex === LAST_INNING_INDEX && seat.dartsThisVisit === 2;
+  return (
+    seat.targetIndex === LAST_INNING_INDEX &&
+    seat.dartsThisVisit === 2 &&
+    otherSeatsComplete(
+      state.seats,
+      seat.participantRef,
+      (other) => other.status === "COMPLETE",
+    )
+  );
 }
 
 /**

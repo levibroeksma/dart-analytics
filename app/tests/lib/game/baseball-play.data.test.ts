@@ -334,3 +334,20 @@ describe("baseballPlay — 1v1 results", () => {
     expect(ctx.resultsTitle()).toBe("Nine innings played");
   });
 });
+
+describe("baseballPlay — 1v1 preview", () => {
+  it("colours the second seat's darts against its own inning", async () => {
+    const ctx = await started({
+      configSnapshot: { seats: DUEL_SEATS } as Seated<BaseballSnapshot>,
+    });
+    await ctx.recordTap("MISS");
+    await ctx.recordTap("MISS");
+    await ctx.recordTap("MISS");
+    await ctx.recordTap("SINGLE");
+    expect(ctx.previewSegments().map((segment) => segment.status)).toEqual([
+      "hit",
+      "empty",
+      "empty",
+    ]);
+  });
+});

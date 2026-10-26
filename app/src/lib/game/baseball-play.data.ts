@@ -172,7 +172,10 @@ export function baseballPlay() {
     /** The open (or last) visit's darts against its own inning's number. */
     previewSegments(this: BaseballPlayContext): GamePreviewSegment[] {
       const turns = this.$store.game.turns;
-      const inning = turns.length;
+      const lastSeat = turns.at(-1)?.participantRef;
+      const inning = turns.filter(
+        (turn) => turn.participantRef === lastSeat,
+      ).length;
       return playPreviewSegments(turns, this.hiddenTurnKey, (dart) =>
         dart.hitTargetNumber === inning ? "hit" : "miss",
       );
