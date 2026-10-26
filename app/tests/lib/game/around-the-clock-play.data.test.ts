@@ -1374,3 +1374,96 @@ describe("aroundTheClockPlay bot flight", () => {
     expect(typeof play.requestPlayAgain).toBe("function");
   });
 });
+
+describe("resultsTitle — Nine Lives 1v1", () => {
+  const DUEL = [
+    ...SEATS,
+    {
+      participantRef: "participant-2",
+      displayName: "Guest",
+      sideKey: "B",
+      participantTypeKey: "GUEST" as const,
+    },
+  ];
+  const seatResult = (
+    participantRef: string,
+    sideKey: string,
+    out: boolean,
+  ) => ({
+    participantRef,
+    sideKey,
+    turns: 4,
+    accuracy: "0.00%",
+    totalDarts: 12,
+    laps: null,
+    targetAtEnd: out ? "5" : null,
+    lives: out ? 0 : 2,
+    out,
+  });
+
+  function duelPlay(lives: boolean) {
+    const config = lives
+      ? {
+          seats: DUEL,
+          pathDirection: "LOW_TO_HIGH" as const,
+          oddsFirst: false,
+          segmentRule: "ANY" as const,
+          difficulty: "EASY" as const,
+          durationType: "UNTIMED" as const,
+          durationValue: null,
+          lives: 3 as const,
+        }
+      : {
+          seats: DUEL,
+          pathDirection: "LOW_TO_HIGH" as const,
+          oddsFirst: false,
+          segmentRule: "ANY" as const,
+          difficulty: "EASY" as const,
+          durationType: "UNTIMED" as const,
+          durationValue: null,
+        };
+    return makePlay({
+      rulesetVersionKey: lives ? "AROUND_THE_CLOCK_V3" : "AROUND_THE_CLOCK_V2",
+      configSnapshot: config,
+    });
+  }
+
+  it("a lives win by the bull names the winner without fewest darts", () => {
+    const play = duelPlay(true);
+    play.resultsSnapshot = {
+      status: "COMPLETE",
+      winningSideKey: "B",
+      seats: [
+        seatResult("participant-1", "A", false),
+        seatResult("participant-2", "B", false),
+      ],
+    };
+    expect(play.resultsTitle.call(play)).toBe("Guest wins!");
+  });
+
+  it("a lives win by elimination names the survivor", () => {
+    const play = duelPlay(true);
+    play.resultsSnapshot = {
+      status: "COMPLETE",
+      winningSideKey: "B",
+      seats: [
+        seatResult("participant-1", "A", true),
+        seatResult("participant-2", "B", false),
+      ],
+    };
+    expect(play.resultsTitle.call(play)).toBe("Guest wins!");
+  });
+
+  it("a V2 1v1 still reads fewest darts", () => {
+    const play = duelPlay(false);
+    play.resultsSnapshot = {
+      status: "COMPLETE",
+      winningSideKey: "A",
+      seats: [
+        seatResult("participant-1", "A", false),
+        seatResult("participant-2", "B", false),
+      ],
+    };
+    expect(play.resultsTitle.call(play)).toBe("Levi wins — fewest darts!");
+  });
+});

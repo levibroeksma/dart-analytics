@@ -56,5 +56,14 @@ const LIVES_ROWS = [
       <SinglePlayerSummary statRows={TIMED_ROWS} />
     </div>
   </template>
-  <ComparisonSummary statRows={STAT_ROWS} />
+  <template x-if="!hasLives()">
+    <div class="contents">
+      <ComparisonSummary statRows={STAT_ROWS} />
+    </div>
+  </template>
+  <template x-if="hasLives()">
+    <div class="contents">
+      <ComparisonSummary statRows={LIVES_ROWS} />
+    </div>
+  </template>
 </ResultsModalShell>
