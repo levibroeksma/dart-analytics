@@ -70,6 +70,19 @@ describe("design-sync components", () => {
     expect(skeleton?.design?.hash).toBe(sha256("SSD"));
   });
 
+  it("treats a paired side whose files are all gone as missing", () => {
+    const { design, repo } = setup();
+    const items = componentItems(design, repo, [
+      {
+        design: "components/buttons/Gone",
+        code: ["app/src/components/ui/Renamed.astro"],
+      },
+    ]);
+    const gone = items.find((i) => i.id === "component:Gone");
+    expect(gone?.design).toBeNull();
+    expect(gone?.code).toBeNull();
+  });
+
   it("keeps a code-only pair (design null) as a code-only item", () => {
     const { design, repo } = setup();
     const items = componentItems(design, repo, [

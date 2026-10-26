@@ -13,28 +13,24 @@ import { sha256, type ComponentPair, type Side, type SyncItem } from "./lock";
 const DESIGN_EXTS = [".jsx", ".d.ts", ".prompt.md"];
 const CODE_DIRS = ["app/src/components/ui", "app/src/components/forms"];
 
-function hashFiles(root: string, paths: string[]): string {
-  return sha256(
-    paths
-      .filter((p) => existsSync(join(root, p)))
-      .map((p) => readFileSync(join(root, p), "utf8"))
-      .join(""),
+/** Side for the files that exist, or null when none do (deleted or renamed). */
+function sideOf(root: string, path: string, files: string[]): Side | null {
+  const present = files.filter((p) => existsSync(join(root, p)));
+  if (present.length === 0) return null;
+  const text = present.map((p) => readFileSync(join(root, p), "utf8"));
+  return { path, hash: sha256(text.join("")) };
+}
+
+function designSide(root: string, stem: string): Side | null {
+  return sideOf(
+    root,
+    stem,
+    DESIGN_EXTS.map((ext) => stem + ext),
   );
 }
 
-function designSide(root: string, stem: string): Side {
-  return {
-    path: stem,
-    hash: hashFiles(
-      root,
-      DESIGN_EXTS.map((ext) => stem + ext),
-    ),
-  };
-}
-
 function codeSide(root: string, paths: string[]): Side | null {
-  if (paths.length === 0) return null;
-  return { path: paths[0], hash: hashFiles(root, paths) };
+  return paths.length === 0 ? null : sideOf(root, paths[0], paths);
 }
 
 function designStems(designRoot: string): string[] {

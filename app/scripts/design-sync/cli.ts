@@ -70,6 +70,11 @@ function assertMirror(area: Area, mirror: string): void {
       throw new Error(`mirror incomplete: ${path}`);
     }
   }
+  const known = new Set(listed);
+  const stale = listFiles(mirror).find(
+    (path) => IN_SCOPE[area].test(path) && !known.has(path),
+  );
+  if (stale) throw new Error(`mirror stale: ${stale}`);
 }
 
 function tokensBySource(

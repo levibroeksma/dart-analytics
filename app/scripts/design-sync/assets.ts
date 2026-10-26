@@ -14,6 +14,7 @@ import { sha256, type Side, type SyncItem } from "./lock";
 const TAG =
   /<([a-zA-Z][\w:.-]*)((?:\s+[^\s=>/]+\s*=\s*(?:"[^"]*"|'[^']*'))*)\s*(\/?)>/g;
 const ATTR = /([^\s=>/]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g;
+const HEX = /#[0-9a-f]{3,8}\b/gi;
 const CODE_BRAND_DIRS = ["app/src/assets", "app/public"];
 const BRAND_EXT = /\.(svg|png)$/i;
 
@@ -32,7 +33,10 @@ export function normaliseSvg(svg: string): string {
       const pairs = [...attrs.matchAll(ATTR)]
         .map(
           ([, key, dq, sq]) =>
-            `${key}="${(dq ?? sq).replace(/\s+/g, " ").trim()}"`,
+            `${key}="${(dq ?? sq)
+              .replace(/\s+/g, " ")
+              .replace(HEX, (hex) => hex.toLowerCase())
+              .trim()}"`,
         )
         .sort();
       return `<${[name, ...pairs].join(" ")}${selfClose ? "/" : ""}>`;

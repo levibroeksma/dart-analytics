@@ -38,6 +38,14 @@ describe("design-sync cli", () => {
     );
   });
 
+  it("aborts when the mirror holds an in-scope file the project no longer lists", () => {
+    const opts = setup();
+    put(opts.mirror, "tokens/old.css", ":root { --old: 1px; }");
+    expect(() => runDiff({ area: "tokens", ...opts })).toThrow(
+      "mirror stale: tokens/old.css",
+    );
+  });
+
   it("does not require out-of-scope files", () => {
     const opts = setup([
       "tokens/colors.css",

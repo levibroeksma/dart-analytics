@@ -19,6 +19,12 @@ describe("design-sync assets", () => {
     expect(normaliseSvg(CHECK_DESIGN)).toBe(normaliseSvg(CHECK_CODE));
   });
 
+  it("ignores hex colour case", () => {
+    expect(normaliseSvg('<svg><path fill="#FFF" d="M0 0"/></svg>')).toBe(
+      normaliseSvg('<svg><path fill="#fff" d="M0 0"/></svg>'),
+    );
+  });
+
   it("keeps a changed path as a difference", () => {
     expect(normaliseSvg(CHECK_CODE)).not.toBe(
       normaliseSvg(CHECK_CODE.replace("M1 1", "M1 3")),
