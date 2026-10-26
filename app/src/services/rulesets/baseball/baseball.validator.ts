@@ -1,12 +1,10 @@
 import { BaseballConfig } from "@lib/types";
 import type { RulesetValidator } from "@services/interfaces";
-import type { BatchValidationResult } from "@services/types";
-import type { EventsBatchRequestInput } from "@routes/types";
 import { createThreeDartValidator } from "../three-dart.validator";
-import { isVisualBoardCapture } from "../visual-board.validator";
-import { runsIn, withBoardSumTotals } from "../target-visit.validator";
-
-type BatchTurn = EventsBatchRequestInput["stages"][number]["turns"][number];
+import {
+  scoreOnNumber,
+  withRoundTotals,
+} from "../visual-board-round-total.validator";
 
 const threeDartValidator = createThreeDartValidator({
   label: "Baseball Darts",
@@ -16,58 +14,15 @@ const threeDartValidator = createThreeDartValidator({
 });
 
 /**
- * A closed Baseball inning's `totalScore` is its runs, not the board sum the
- * shared visual-board check compares it to. Rejects a turn whose total is
- * neither its runs nor 0 (a void visit); the inning is the participant's
- * stored turn count plus the turns before it in the batch.
+ * Baseball Darts: the shared three-dart rules. A closed inning's `totalScore`
+ * is its runs (darts on the inning's own number), or 0 for a void visit.
  */
-function rejectWrongRuns(
-  batch: EventsBatchRequestInput,
-  existingTurnCounts: Record<string, number>,
-): BatchValidationResult | null {
-  const thrown = new Map<string, number>();
-  const turns = batch.stages
-    .flatMap((stage) => stage.turns)
-    .sort((a, b) => a.sequence - b.sequence);
-  for (const turn of turns) {
-    const before =
-      thrown.get(turn.participantRef) ??
-      existingTurnCounts[turn.participantRef] ??
-      0;
-    thrown.set(turn.participantRef, before + 1);
-    const runs = runsIn(turn, before + 1);
-    if (turn.totalScore !== runs && turn.totalScore !== 0) {
-      return {
-        valid: false,
-        code: "VALIDATION_FAILED",
-        issues: [
-          `turn ${turn.clientKey} totalScore ${turn.totalScore} is neither the runs scored in inning ${before + 1} (${runs}) nor 0 for a void visit`,
-        ],
-      };
-    }
-  }
-  return null;
-}
-
-/**
- * Baseball Darts: the shared three-dart rules, with each turn's runs standing
- * in for the board sum the visual-board check would otherwise demand.
- */
-export const baseballValidator: RulesetValidator = {
-  ...threeDartValidator,
-  validateBatch(args) {
-    if (
-      !isVisualBoardCapture(args.captureModeKey ?? "", args.inputModeKey ?? "")
-    ) {
-      return threeDartValidator.validateBatch(args);
-    }
-    const shared = threeDartValidator.validateBatch({
-      ...args,
-      batch: withBoardSumTotals(args.batch),
-    });
-    if (!shared.valid) return shared;
-    return (
-      rejectWrongRuns(args.batch, args.existingTurnCounts) ?? { valid: true }
-    );
+export const baseballValidator: RulesetValidator = withRoundTotals(
+  threeDartValidator,
+  (turn, inning) => {
+    const runs = scoreOnNumber(turn, inning);
+    return turn.totalScore === runs || turn.totalScore === 0
+      ? null
+      : `is neither the runs scored in inning ${inning} (${runs}) nor 0 for a void visit`;
   },
-};
+);

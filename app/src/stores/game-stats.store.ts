@@ -1309,21 +1309,21 @@ export function gameStatsStore() {
       }));
     },
 
-    /** `shanghai-count`'s round histogram, summed across every loaded bucket, sorted by round. */
-    get shanghaiByRound(): { round: number; count: number }[] {
+    /** `shanghai-count`'s histogram of the number each Shanghai landed on, summed across every loaded bucket, sorted by number. */
+    get shanghaiByNumber(): { number: number; count: number }[] {
       const series = this.sections["shanghai-count"] as
         CachedSeries<ShanghaiCountMetrics> | undefined;
       if (!series) return [];
       const totals = new Map<number, number>();
       for (const b of series.buckets) {
         for (const [key, count] of Object.entries(b.metrics.byRound)) {
-          const round = Number(key);
-          totals.set(round, (totals.get(round) ?? 0) + count);
+          const target = Number(key);
+          totals.set(target, (totals.get(target) ?? 0) + count);
         }
       }
       return Array.from(totals.entries())
         .sort(([a], [b]) => a - b)
-        .map(([round, count]) => ({ round, count }));
+        .map(([number, count]) => ({ number, count }));
     },
 
     /**

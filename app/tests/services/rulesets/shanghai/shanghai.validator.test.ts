@@ -123,18 +123,18 @@ describe("shanghaiValidator.validateBatch — visual board", () => {
               clientKey: "turn-1",
               participantRef: "p1",
               sequence: 1,
-              totalScore: 0,
+              totalScore: 3,
               completedAt: "2026-08-15T12:00:00.000Z",
               darts: [
                 {
                   sequence: 1,
                   intendedTargetNumber: null,
                   intendedZoneKey: null,
-                  hitTargetNumber: 20,
+                  hitTargetNumber: 1,
                   hitZoneKey: "TREBLE",
-                  score: 60,
-                  locationX: 0,
-                  locationY: -102,
+                  score: 3,
+                  locationX: 31,
+                  locationY: -95,
                 },
               ],
             },
@@ -291,5 +291,66 @@ describe("shanghaiV3Validator.validateConfig", () => {
     ["an unrecognized key", { ...v3, rounds: 7 }],
   ])("rejects %s", (_name, config) => {
     expect(validate(config).valid).toBe(false);
+  });
+});
+
+describe("shanghaiValidator.validateBatch ANALYTICS + VISUAL_BOARD", () => {
+  const dart = (
+    sequence: number,
+    hitTargetNumber: number,
+    hitZoneKey: string,
+    score: number,
+    locationX: number,
+    locationY: number,
+  ): DartFactInput => ({
+    sequence,
+    intendedTargetNumber: null,
+    intendedZoneKey: null,
+    hitTargetNumber,
+    hitZoneKey,
+    score,
+    locationX,
+    locationY,
+  });
+  const treble1 = dart(1, 1, "TREBLE", 3, 31, -95);
+  const treble20 = dart(2, 20, "TREBLE", 60, 0, -102);
+  const outerSingle1 = dart(3, 1, "OUTER_SINGLE", 1, 35, -110);
+  const darts = [treble1, treble20, outerSingle1];
+
+  const validate = (
+    totalScore: number,
+    turnDarts: DartFactInput[],
+    existing = 0,
+    config: Record<string, unknown> = {},
+  ) => {
+    const batch = batchWithTurns([turnDarts]);
+    batch.stages[0].turns[0].totalScore = totalScore;
+    return shanghaiV3Validator.validateBatch({
+      config,
+      batch,
+      existingTurnCounts: { p1: existing },
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+    });
+  };
+
+  it("accepts a visit whose total is its points on the round's number, not its board sum", () => {
+    expect(validate(4, darts).valid).toBe(true);
+  });
+
+  it("rejects a total that is neither those points nor 0", () => {
+    expect(validate(5, darts).valid).toBe(false);
+    expect(validate(64, darts).valid).toBe(false);
+  });
+
+  it("takes the round from the turns already stored and the range start", () => {
+    expect(validate(0, darts, 1).valid).toBe(true);
+    expect(validate(4, darts, 1).valid).toBe(false);
+    expect(validate(60, darts, 0, { rangeStart: 20 }).valid).toBe(true);
+  });
+
+  it("accepts a negative total only for a visit with no point on the number (Hard halving)", () => {
+    expect(validate(-12, darts, 1).valid).toBe(true);
+    expect(validate(-12, darts).valid).toBe(false);
   });
 });
