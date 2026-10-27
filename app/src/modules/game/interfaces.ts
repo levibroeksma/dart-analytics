@@ -66,7 +66,7 @@ export interface DartGameVisitInput<
   TVisit,
 > {
   isVisit(input: DartObservation | TVisit): input is TVisit;
-  /** Why the visit is refused now, or `null`; `open` is the turn still taking darts. */
+  /** Why the visit is refused now, or `null` — replaces the spec's `refusal` for visit input; `open` is the turn still taking darts. */
   refusal(
     state: TState,
     input: TVisit,
