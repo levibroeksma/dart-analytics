@@ -400,6 +400,7 @@ export const RESULT_DIRECTION: Readonly<Record<GameTypeKey, ResultDirection>> =
     CRICKET: null,
     TACTICS: null,
     BASEBALL: "higher",
+    KILLER: null,
   };
 
 /**

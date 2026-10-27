@@ -958,3 +958,22 @@ export type KillerExt = {
   dartsToKiller: number | null;
   dartsThrown: number;
 };
+
+/** One Killer seat as the play screen reads it: its number, lives, Killer status, out, and its tallies. */
+export type KillerSeatState = SeatState & {
+  number: number;
+  lives: number;
+  killer: boolean;
+  out: boolean;
+  livesTaken: number;
+  dartsToKiller: number | null;
+  dartsThrown: number;
+};
+
+/** Killer's folded state: seats, the order seats went out, and the outcome. */
+export type KillerState = MultiSeatState<KillerSeatState> & {
+  status: "IN_PROGRESS" | "COMPLETE";
+  winningSideKey: string | null;
+  outOrder: string[];
+  seats: KillerSeatState[];
+};

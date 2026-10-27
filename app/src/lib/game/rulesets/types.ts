@@ -478,6 +478,18 @@ export const AroundTheClockV3Config = AroundTheClockV2Fields.extend({
   lives: z.literal(3),
 }).strict();
 
+/**
+ * Killer V1: three lives each, and the number each seat owns, in seat order
+ * (`seat_numbers[i]` belongs to `seats[i]`). Defaults to `[]` so the seeded
+ * template parses; the validator enforces one distinct number per seat.
+ */
+export const KillerConfig = z
+  .object({
+    lives: z.literal(3).default(3),
+    seat_numbers: z.array(z.number().int().min(1).max(20)).default([]),
+  })
+  .strict();
+
 export type RulesetVersionKey =
   | "SCORE_TRAINING_V1"
   | "BOBS27_V1"
@@ -501,7 +513,8 @@ export type RulesetVersionKey =
   | "CRICKET_V2"
   | "TACTICS_V1"
   | "TACTICS_V2"
-  | "BASEBALL_V1";
+  | "BASEBALL_V1"
+  | "KILLER_V1";
 
 /** A game page's route segment (`10-Statistics/00-Overview.md` §6): one key per game, spanning its ruleset versions. */
 export type GameTypeKey =
@@ -516,7 +529,8 @@ export type GameTypeKey =
   | "AROUND_THE_CLOCK"
   | "CRICKET"
   | "TACTICS"
-  | "BASEBALL";
+  | "BASEBALL"
+  | "KILLER";
 
 /** A fact tag a ruleset version's engine produces (`10-Statistics/00-Overview.md` §3). */
 export type StatsTag =
@@ -553,6 +567,7 @@ export const RULESET_CONFIGS: Record<RulesetVersionKey, z.ZodTypeAny> = {
   TACTICS_V1: TacticsConfig,
   TACTICS_V2: TacticsConfig,
   BASEBALL_V1: BaseballConfig,
+  KILLER_V1: KillerConfig,
 };
 
 export type ScoreTrainingConfigData = z.infer<typeof ScoreTrainingConfig>;
@@ -567,6 +582,8 @@ export type FiveOhOneV2ConfigData = z.infer<typeof FiveOhOneV2Config>;
 export type TuodConfigData = z.infer<typeof TuodConfig>;
 export type ShanghaiV2ConfigData = z.infer<typeof ShanghaiV2Config>;
 export type ShanghaiV3ConfigData = z.infer<typeof ShanghaiV3Config>;
+
+export type KillerConfigData = z.infer<typeof KillerConfig>;
 
 export type ScoreTrainingSnapshot = {
   durationType: ScoreTrainingConfigData["duration_type"];
@@ -717,6 +734,12 @@ export type TacticsSnapshot = Record<string, never>;
 /** Baseball Darts V1 has nothing to configure — no fields to carry. */
 export type BaseballSnapshot = Record<string, never>;
 
+/** Killer V1: the lives each seat starts on and each seat's number, in seat order. */
+export type KillerSnapshot = {
+  lives: KillerConfigData["lives"];
+  seatNumbers: KillerConfigData["seat_numbers"];
+};
+
 export type ConfigSnapshotFor<K extends RulesetVersionKey> =
   K extends "SCORE_TRAINING_V1"
     ? ScoreTrainingSnapshot
@@ -756,7 +779,9 @@ export type ConfigSnapshotFor<K extends RulesetVersionKey> =
                                       ? CricketSnapshot
                                       : K extends "TACTICS_V1" | "TACTICS_V2"
                                         ? TacticsSnapshot
-                                        : BaseballSnapshot;
+                                        : K extends "KILLER_V1"
+                                          ? KillerSnapshot
+                                          : BaseballSnapshot;
 
 /**
  * One boundary probe: a complete, parseable config plus the label the contract
