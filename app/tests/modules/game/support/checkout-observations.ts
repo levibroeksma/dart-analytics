@@ -10,7 +10,7 @@ import { randomObservation, type OracleEngine } from "./engine-oracle";
 const BASE = { locationX: null, locationY: null };
 
 /** The dart that finishes `remaining`, or the set-up shot towards a double. */
-export function finishingShot(remaining: number): DartObservation {
+function finishingShot(remaining: number): DartObservation {
   if (remaining === 50)
     return { ...BASE, hitTargetNumber: 25, hitZoneKey: "INNER_BULL" };
   if (remaining <= 40 && remaining % 2 === 0)

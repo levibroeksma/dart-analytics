@@ -351,6 +351,7 @@ export class LegacyTuodEngine implements GameEngine<TuodInput, TuodState> {
    * rather than as a write through the object `state()` returned — that object
    * is a derived copy, and writing to it changes nothing.
    */
+  // fallow-ignore-next-line unused-class-member -- driven through the oracle's optional expireTimer
   expireTimer(): void {
     this.timerExpired = true;
   }

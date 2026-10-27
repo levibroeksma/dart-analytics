@@ -271,7 +271,7 @@ const padSpec: DartGameSpec<{ limit: number }, Pad, Keypad> = {
       open === null ? null : "board visit open",
     total: (_state, input) => input.total,
   },
-  totalOnClose: true,
+  coordinateCapture: true,
   closedVisitTotal: (_opened, _closed, _ref, turn, config) =>
     turn.darts.length * 100 + config.limit * 0,
   complete: (state) => state.darts >= 4,
@@ -300,7 +300,7 @@ describe("dartGameEngineClass — visit input hooks", () => {
     expect(engine.facts().turns).toHaveLength(1);
   });
 
-  it("keeps an open turn's totalScore at 0 and settles it through closedVisitTotal(…, turn)", () => {
+  it("leaves an open turn's totalScore unwritten and settles it through closedVisitTotal(…, turn)", () => {
     const engine = new Pad({ limit: 2 });
     engine.record(T20);
     expect(engine.facts().turns[0].totalScore).toBe(0);
@@ -348,5 +348,42 @@ describe("dartGameEngineClass — specs without the hooks", () => {
     expect(engine.facts().turns[0].totalScore).toBe(60);
     expect(engine.undo()).toBe(true);
     expect(engine.undo()).toBe(false);
+  });
+});
+
+describe("dartGameEngineClass — coordinate capture", () => {
+  const coordSpec: DartGameSpec<{ limit: number }, Toy> = {
+    ...spec,
+    coordinateCapture: true,
+  };
+  const Coord = dartGameEngineClass(coordSpec);
+  const trebleTwentyAt = {
+    hitTargetNumber: null,
+    hitZoneKey: "MISS" as const,
+    locationX: 0,
+    locationY: -102,
+  };
+
+  it("resolves a located dart from its coordinates, with no intent", () => {
+    const engine = new Coord({ limit: 10 });
+    engine.record(trebleTwentyAt);
+    expect(engine.facts().turns[0].darts[0]).toMatchObject({
+      hitTargetNumber: 20,
+      hitZoneKey: "TREBLE",
+      score: 60,
+      intendedTargetNumber: null,
+      intendedZoneKey: null,
+    });
+    expect(engine.facts().turns[0].totalScore).toBe(0);
+  });
+
+  it("scores an unlocated dart as a scoreless hit on its own zone", () => {
+    const engine = new Coord({ limit: 10 });
+    engine.record({ ...T20, locationX: null, locationY: null });
+    expect(engine.facts().turns[0].darts[0]).toMatchObject({
+      hitTargetNumber: null,
+      hitZoneKey: "TREBLE",
+      score: 0,
+    });
   });
 });
