@@ -1,4 +1,6 @@
 import { resolveCheckoutAttempt } from "./checkout-bust.module";
+import { isCheckoutReachable } from "./checkout-reachability.module";
+import { seededUniform } from "./seeded-rng.module";
 import type { CheckoutSeat, DartFact, TurnFact, VisitVerdict } from "./types";
 
 const DARTS_PER_VISIT = 3;
@@ -37,4 +39,41 @@ export function dartWalkJudge<TExt>(
 export function consecutiveTargets(last: number) {
   return <TExt>(seat: CheckoutSeat<TExt>): number | null =>
     seat.target < last ? seat.target + 1 : null;
+}
+
+/**
+ * `dartWalkJudge`, except an open visit fails the moment its remainder can
+ * no longer be finished with the darts it has left (#1064). No later dart
+ * of such a visit can check out, so judging the walk's verdict is exact.
+ */
+export function unreachableFails<TExt>(
+  seat: CheckoutSeat<TExt>,
+  turn: TurnFact,
+): VisitVerdict {
+  const verdict = dartWalkJudge(seat, turn);
+  if (verdict.kind !== "OPEN" || verdict.darts === 0) return verdict;
+  return isCheckoutReachable(verdict.remaining, DARTS_PER_VISIT - verdict.darts)
+    ? verdict
+    : { kind: "FAIL" };
+}
+
+/**
+ * A uniform pick from `pool` keyed by `(drawSeed, index)` alone, never by
+ * earlier darts, so undo and replay redraw it exactly.
+ */
+export function seededPoolDraw(
+  drawSeed: number,
+  pool: readonly number[],
+  index: number,
+): number {
+  const uniform = seededUniform(drawSeed, index)();
+  return pool[Math.floor(uniform * pool.length)];
+}
+
+/** Next target: the seeded draw for the attempt after the one closing. */
+export function seededDrawTarget(
+  drawSeed: number,
+  pool: readonly number[],
+): <TExt>(seat: CheckoutSeat<TExt>) => number {
+  return (seat) => seededPoolDraw(drawSeed, pool, seat.attemptIndex + 1);
 }
