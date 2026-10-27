@@ -2,13 +2,13 @@ import { expect } from "vitest";
 import { seededUniform } from "@modules/game/seeded-rng.module";
 import type { DartObservation, DartZoneKey, EngineFacts } from "@modules/types";
 
-export type OracleEngine = {
-  record(o: DartObservation): unknown;
+export type OracleEngine<TInput = DartObservation> = {
+  record(o: TInput): unknown;
   undo(): boolean;
   state(): unknown;
   facts(): EngineFacts;
   isComplete(): boolean;
-  wouldComplete?(o: DartObservation): boolean;
+  wouldComplete?(o: TInput): boolean;
   expireTimer?(): void;
 };
 
@@ -89,29 +89,35 @@ function same(
   }
 }
 
-type Observe = (rand: () => number, engine: OracleEngine) => DartObservation;
+type Observe<TInput> = (
+  rand: () => number,
+  engine: OracleEngine<TInput>,
+) => TInput;
 
-type OracleOptions = {
-  build: (prior?: EngineFacts) => OracleEngine;
-  legacy: (prior?: EngineFacts) => OracleEngine;
+type OracleOptions<TInput> = {
+  build: (prior?: EngineFacts) => OracleEngine<TInput>;
+  legacy: (prior?: EngineFacts) => OracleEngine<TInput>;
   seeds: readonly number[];
   steps: number;
   undoRate?: number;
   expireAt?: number;
   rehydrateEvery?: number;
   resumeExpired?: boolean;
-  observe?: Observe;
+  observe?: Observe<TInput>;
 };
 
-type Pair = { next: OracleEngine; old: OracleEngine };
+type Pair<TInput> = {
+  next: OracleEngine<TInput>;
+  old: OracleEngine<TInput>;
+};
 
-function compare(pair: Pair, where: string): void {
+function compare<TInput>(pair: Pair<TInput>, where: string): void {
   same("state", pair.next.state(), pair.old.state(), where);
   same("facts", pair.next.facts(), pair.old.facts(), where);
   same("isComplete", pair.next.isComplete(), pair.old.isComplete(), where);
 }
 
-function throwDart(pair: Pair, o: DartObservation, where: string): void {
+function throwDart<TInput>(pair: Pair<TInput>, o: TInput, where: string): void {
   same(
     "wouldComplete",
     attempt(() => pair.next.wouldComplete?.(o)),
@@ -126,11 +132,11 @@ function throwDart(pair: Pair, o: DartObservation, where: string): void {
   );
 }
 
-function act(
-  pair: Pair,
+function act<TInput>(
+  pair: Pair<TInput>,
   step: number,
   rand: () => number,
-  opts: OracleOptions,
+  opts: OracleOptions<TInput>,
   where: string,
 ): void {
   if (opts.expireAt === step) {
@@ -142,7 +148,9 @@ function act(
     same("undo", pair.next.undo(), pair.old.undo(), where);
     return;
   }
-  throwDart(pair, (opts.observe ?? randomObservation)(rand, pair.old), where);
+  const observe =
+    opts.observe ?? (randomObservation as unknown as Observe<TInput>);
+  throwDart(pair, observe(rand, pair.old), where);
 }
 
 /** Whether a rebuild after `step` must re-expire, as the play page's countdown resume does. */
@@ -157,7 +165,11 @@ function resumesExpired(
   );
 }
 
-function rehydrate(pair: Pair, opts: OracleOptions, where: string): Pair {
+function rehydrate<TInput>(
+  pair: Pair<TInput>,
+  opts: OracleOptions<TInput>,
+  where: string,
+): Pair<TInput> {
   const next = opts.build(pair.next.facts());
   const old = opts.legacy(pair.old.facts());
   same("rehydrated state", next.state(), old.state(), where);
@@ -169,10 +181,12 @@ function rehydrate(pair: Pair, opts: OracleOptions, where: string): Pair {
  * stay indistinguishable through every public method, including thrown
  * error messages and rehydration from their own facts.
  */
-export function runOracle(opts: OracleOptions): void {
+export function runOracle<TInput = DartObservation>(
+  opts: OracleOptions<TInput>,
+): void {
   for (const seed of opts.seeds) {
     const rand = seededUniform(seed, 0);
-    let pair: Pair = { next: opts.build(), old: opts.legacy() };
+    let pair: Pair<TInput> = { next: opts.build(), old: opts.legacy() };
     for (let step = 0; step < opts.steps; step += 1) {
       const where = `seed ${seed} step ${step}`;
       act(pair, step, rand, opts, where);
@@ -190,33 +204,41 @@ export function runOracle(opts: OracleOptions): void {
   }
 }
 
-type TraceOptions = {
-  build: (prior?: EngineFacts) => OracleEngine;
+type TraceOptions<TInput> = {
+  build: (prior?: EngineFacts) => OracleEngine<TInput>;
   seed: number;
   steps: number;
   undoRate: number;
   rehydrateEvery: number;
   expireAt?: number;
   resumeExpired?: boolean;
-  observe?: Observe;
+  observe?: Observe<TInput>;
+  describe?: (input: TInput) => string;
 };
+
+function describeObservation(o: unknown): string {
+  const observation = o as DartObservation;
+  return `${observation.hitZoneKey}/${observation.hitTargetNumber}`;
+}
 
 function outcomeLabel(result: ReturnType<typeof attempt>): string {
   return result.ok ? String(result.value) : `throws ${result.message}`;
 }
 
-function traceStep(
-  engine: OracleEngine,
+function traceStep<TInput>(
+  engine: OracleEngine<TInput>,
   rand: () => number,
   step: number,
-  opts: TraceOptions,
+  opts: TraceOptions<TInput>,
 ): string {
   if (opts.expireAt === step) {
     engine.expireTimer?.();
     return "expire";
   }
   if (rand() < opts.undoRate) return `undo ${engine.undo()}`;
-  const o = (opts.observe ?? randomObservation)(rand, engine);
+  const observe =
+    opts.observe ?? (randomObservation as unknown as Observe<TInput>);
+  const o = observe(rand, engine);
   const would = outcomeLabel(attempt(() => engine.wouldComplete?.(o)));
   const recorded = outcomeLabel(
     attempt(() => {
@@ -224,7 +246,7 @@ function traceStep(
       return "ok";
     }),
   );
-  return `record ${o.hitZoneKey}/${o.hitTargetNumber} would=${would} -> ${recorded}`;
+  return `record ${(opts.describe ?? describeObservation)(o)} would=${would} -> ${recorded}`;
 }
 
 /**
@@ -234,7 +256,9 @@ function traceStep(
  * final facts and state. Snapshotted, it pins what the oracle pinned once
  * the legacy copy is gone.
  */
-export function goldenTrace(opts: TraceOptions): unknown {
+export function goldenTrace<TInput = DartObservation>(
+  opts: TraceOptions<TInput>,
+): unknown {
   const rand = seededUniform(opts.seed, 0);
   let engine = opts.build();
   const steps: string[] = [];
