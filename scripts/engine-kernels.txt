@@ -21,7 +21,7 @@ app/src/modules/training/exercises/double-pattern.engine.module.ts | TRACK | PEN
 app/src/modules/training/exercises/doubles-lock.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/training/exercises/doubles-lock.md |
 app/src/modules/training/exercises/halve-it.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/training/exercises/halve-it.md |
 app/src/modules/training/exercises/hit-count.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/training/exercises/hit-count.md |
-app/src/modules/training/exercises/random-checkout.engine.module.ts | CHECKOUT | PENDING | docs/game-rules/training/exercises/random-checkout.md | Checkout family plan
+app/src/modules/training/exercises/random-checkout.engine.module.ts | CHECKOUT | KERNEL_BOUND | docs/game-rules/training/exercises/random-checkout.md |
 app/src/modules/training/exercises/score-threshold.engine.module.ts | VISIT_POINTS | PENDING | docs/game-rules/training/exercises/score-threshold.md | Visit-points family plan
 app/src/modules/training/exercises/snakes-ladders.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/training/exercises/doubles-snakes-and-ladders.md |
 app/src/modules/training/exercises/switchblade.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/training/exercises/switchblade.md |
