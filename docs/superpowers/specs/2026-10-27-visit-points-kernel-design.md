@@ -1,7 +1,7 @@
 # Visit Points Kernel — Design
 
 Date: 2026-10-27
-Status: awaiting owner approval; plan to follow via `superpowers:writing-plans`
+Status: approved in brainstorming (2026-10-27); plan to follow via `superpowers:writing-plans`
 Parent: `2026-10-15-rule-kernels-design.md` (umbrella, §5 Visit points row, §6, §8 item 2)
 Siblings: `2026-10-17-track-kernel-design.md`, `2026-10-27-checkout-kernel-design.md` (method reused)
 Branch: `claude/adoring-bell-0p3iks`
