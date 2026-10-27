@@ -15,7 +15,7 @@ app/src/modules/game/singles-training.engine.module.ts | TRACK | KERNEL_BOUND | 
 app/src/modules/game/tactics.engine.module.ts | MARKS | PENDING | docs/game-rules/rulesets/tactics.md | Marks family plan
 app/src/modules/game/tuod.engine.module.ts | CHECKOUT | PENDING | docs/game-rules/rulesets/ten-up-one-down.md | Checkout family plan
 app/src/modules/training/exercises/bull-up.engine.module.ts | HAND_WRITTEN | HAND_WRITTEN | docs/game-rules/training/exercises/bull-up-practice.md | single target, counting only; a kernel adds nothing (Track spec §5)
-app/src/modules/training/exercises/bullseye-checkout.engine.module.ts | CHECKOUT | PENDING | docs/game-rules/training/exercises/bullseye-checkout.md | Checkout family plan
+app/src/modules/training/exercises/bullseye-checkout.engine.module.ts | CHECKOUT | PENDING | docs/game-rules/training/exercises/bullseye-checkout.md | re-checked when its exercise shell is next touched (Checkout spec C6)
 app/src/modules/training/exercises/checkout-sequence.engine.module.ts | CHECKOUT | KERNEL_BOUND | docs/game-rules/training/exercises/catch-40.md |
 app/src/modules/training/exercises/double-pattern.engine.module.ts | TRACK | PENDING | docs/game-rules/training/exercises/double-pattern.md | re-checked when its exercise shell is next touched (Track spec §5)
 app/src/modules/training/exercises/doubles-lock.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/training/exercises/doubles-lock.md |
