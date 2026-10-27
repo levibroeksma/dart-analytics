@@ -140,3 +140,12 @@ export interface CheckoutRules<TExt> {
   ): CheckoutSeat<TExt>;
   nextTarget(seat: CheckoutSeat<TExt>, passed: boolean): number | null;
 }
+
+/**
+ * A Visit points ruleset (`visit-points-kernel.module.ts`): how many darts
+ * close a visit, and the points a closed visit's total earns.
+ */
+export interface VisitPointsRules {
+  readonly dartsPerVisit: number;
+  points(visitTotal: number): number;
+}

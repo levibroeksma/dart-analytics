@@ -917,3 +917,17 @@ export type CheckoutSeat<TExt> = {
   status: "IN_PROGRESS" | "DONE";
   ext: TExt;
 };
+
+/**
+ * One seat on the Visit points kernel: closed `visits` and their summed
+ * `points`, the latest closed total, and the open visit's dart sum and
+ * dart count (`openTotal`/`dartsInVisit`, both 0 when none is open).
+ */
+export type VisitPointsSeat = {
+  visits: number;
+  points: number;
+  lastVisitTotal: number | null;
+  openTotal: number;
+  dartsInVisit: number;
+  dartsThrown: number;
+};
