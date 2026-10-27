@@ -949,3 +949,12 @@ export type EliminationMatch<TExt> = {
   winningSideKey: string | null;
   activeParticipantRef: string;
 };
+
+/** Killer's seat extras: its number, Killer status, lives taken, darts to become a Killer, darts thrown. */
+export type KillerExt = {
+  number: number;
+  killer: boolean;
+  livesTaken: number;
+  dartsToKiller: number | null;
+  dartsThrown: number;
+};
