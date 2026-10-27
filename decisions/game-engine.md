@@ -575,3 +575,10 @@ Decision: `checkout-kernel.module.ts` folds a `CheckoutSeat` over visits a rules
 Reason: the four engines share one attempt loop but judge visits from different facts (darts vs a settled `totalScore`), so judging is the ruleset's policy and the loop is the kernel; simplest first keeps each shell change in the PR of the first engine that needs it (D468 method).
 Consequences: Checkout Sequence's hand-written class is gone; its behaviour is pinned by goldens recorded before the rebind. Bullseye Checkout stays `PENDING`. Spec: `docs/superpowers/specs/2026-10-27-checkout-kernel-design.md`.
 Supersedes: none.
+
+### D501 — The Visit points kernel folds visit totals into points; it grows only with its callers
+Status: Accepted · Date: 2026-10-27
+Decision: `visit-points-kernel.module.ts` folds one seat over turns: a turn's total is its dart sum, or its stored `totalScore` when dartless; a turn closes at `dartsPerVisit` darts or when dartless, and adds `points(total)`. `VisitPointsRules` carries only `dartsPerVisit` and `points`; goal, bust, void and compare settings land with the first game that needs each. Seat identity, duration and outcome stay in each engine. The shipped engines migrate Score Threshold → Score Training: Score Threshold fits the exercise shell unchanged; Score Training needs keypad-total input (`visitInput`) on the game shell, built to the Checkout spec §6 shape by whichever of Score Training and Ten Up One Down migrates first, and reused by the other.
+Reason: the two shipped engines share only the visit walk; speccing settings no caller uses would fix a shape before any game tests it (D468 method).
+Consequences: Score Threshold's hand-written class is gone; its behaviour is pinned by goldens recorded before the rebind. Score Training stays `PENDING` until PR 2. Spec: `docs/superpowers/specs/2026-10-27-visit-points-kernel-design.md`.
+Supersedes: none.
