@@ -151,4 +151,18 @@ describe("checkout kernel", () => {
       attemptIndex: 2,
     });
   });
+  it("a FAIL verdict closes the attempt as failed before the budget's last visit", () => {
+    const seat = applyCheckoutVisit(start(), TURN, rules([{ kind: "FAIL" }]));
+    expect(seat).toMatchObject({
+      target: 62,
+      visitStart: 62,
+      remaining: 62,
+      visitIndex: 0,
+      attemptIndex: 1,
+      attempts: 1,
+      checkouts: 0,
+      status: "IN_PROGRESS",
+      ext: { closed: [[false, "FAIL"]] },
+    });
+  });
 });
