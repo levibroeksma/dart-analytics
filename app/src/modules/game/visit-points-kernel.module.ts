@@ -2,7 +2,7 @@ import type { TurnFact, VisitPointsSeat } from "@modules/types";
 import type { VisitPointsRules } from "@modules/interfaces";
 
 /** The seat before any turn: no visits, no points, no open visit. */
-export const INITIAL_VISIT_POINTS_SEAT: VisitPointsSeat = Object.freeze({
+const INITIAL_VISIT_POINTS_SEAT: VisitPointsSeat = Object.freeze({
   visits: 0,
   points: 0,
   lastVisitTotal: null,

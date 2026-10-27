@@ -33,6 +33,10 @@ describe("visit points kernel", () => {
     });
   });
 
+  it("the initial seat cannot be mutated through an empty fold", () => {
+    expect(Object.isFrozen(foldVisitPoints([], RULES))).toBe(true);
+  });
+
   it("a three-dart turn closes and scores its dart sum", () => {
     expect(foldVisitPoints([dartsTurn([60, 20, 5])], RULES)).toEqual({
       visits: 1,
