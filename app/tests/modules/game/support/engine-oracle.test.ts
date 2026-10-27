@@ -217,7 +217,7 @@ describe("goldenTrace", () => {
       rehydrateEvery: 100,
       observe: () => ({
         hitTargetNumber: 7,
-        hitZoneKey: "TREBLE",
+        hitZoneKey: "TREBLE" as const,
         locationX: null,
         locationY: null,
       }),
