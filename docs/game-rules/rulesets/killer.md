@@ -129,7 +129,7 @@ took to become a Killer.
   Blind Killer and Team Killer above.
 
 **2+:** the source asks for three or more players; seats follow Killer
-(2–4). Survivor's ring scaling needs the hit's ring, which Capture's "number
+(two in V1; three or four Deferred). Survivor's ring scaling needs the hit's ring, which Capture's "number
 and zone" already records.
 
 ### Match structure

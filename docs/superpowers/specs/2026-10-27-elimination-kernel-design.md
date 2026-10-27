@@ -101,6 +101,12 @@ interface EliminationMatch<TExt> {
   `activeParticipantRef`; `seat-rota.module.ts`'s lockstep `activeSeat` is
   not used.
 - **Fallow:** fold cognitive complexity ≤ 15; branching lives in policies.
+- **Refined by the PR 1 plan (status note, 2026-10-27):** `dartsPerVisit`
+  left `EliminationRules` — a visit is open while its turn has no
+  `completedAt`, and the 3-dart limit lives in the spec's `isVisitOpen`;
+  `onDart` takes a `DartObservation`. PR 1 also brought the reference seed
+  (`0054`, `0007` rows), because the capability parity test ties
+  `RULESET_CAPABILITIES` to the seed (D501).
 
 ## 4. Killer V1 binding
 
