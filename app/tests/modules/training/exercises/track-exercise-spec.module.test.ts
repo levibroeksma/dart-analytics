@@ -82,8 +82,9 @@ describe("trackExerciseSpec", () => {
   it("closes a visit at three darts", () => {
     const open = { darts: [1, 2] } as unknown as TurnFact;
     const full = { darts: [1, 2, 3] } as unknown as TurnFact;
-    expect(spec.isVisitOpen(open)).toBe(true);
-    expect(spec.isVisitOpen(full)).toBe(false);
+    const state = spec.fold(facts([]), { start: 0 }, false);
+    expect(spec.isVisitOpen(open, state)).toBe(true);
+    expect(spec.isVisitOpen(full, state)).toBe(false);
   });
 
   it("keeps the definition's key, parse and intent", () => {

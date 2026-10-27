@@ -9,6 +9,7 @@ import {
   endedRefusal,
   exerciseBlockStage,
   isDartObservationInput,
+  NO_INTENT,
   openOrCreateTurn,
   openVisit,
   refuseWhenEnded,
@@ -503,5 +504,14 @@ describe("refuseWhenEnded", () => {
 
   it("returns quietly while not ended", () => {
     expect(() => refuseWhenEnded(false, "session is complete")).not.toThrow();
+  });
+});
+
+describe("NO_INTENT", () => {
+  it("is the null intent pair appendObservedDart defaults to", () => {
+    expect(NO_INTENT).toEqual({
+      intendedTargetNumber: null,
+      intendedZoneKey: null,
+    });
   });
 });

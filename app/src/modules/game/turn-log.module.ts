@@ -92,7 +92,7 @@ export function openOrCreateTurn(
 }
 
 /** No intention recorded — the pair a ruleset without one aimed ring writes. */
-const NO_INTENT: DartIntent = {
+export const NO_INTENT: DartIntent = {
   intendedTargetNumber: null,
   intendedZoneKey: null,
 };

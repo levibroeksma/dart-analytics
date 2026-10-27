@@ -19,7 +19,9 @@ import { SOLO_PARTICIPANT_REF } from "./solo-participant.module";
 /**
  * Builds a `DartExerciseEngine` class over one `EXERCISE_BLOCK` stage.
  * Complete once `expireTimer()` is called or the spec's `ends` holds;
- * `undo()` first reverses an expiry, then pops one dart.
+ * `undo()` first reverses an expiry, then pops one dart. `isVisitOpen`
+ * sees the state folded before the dart (reuse the open turn) and after it
+ * (close the turn).
  */
 export function dartExerciseEngineClass<TConfig, TState>(
   spec: DartExerciseSpec<TConfig, TState>,
@@ -47,15 +49,17 @@ export function dartExerciseEngineClass<TConfig, TState>(
 
     record(observation: DartObservation): TState {
       refuseWhenEnded(this.isComplete(), "exercise is complete");
-      const intent = spec.intent(this.deriveState(), this.config);
+      const before = this.deriveState();
+      const intent = spec.intent(before, this.config);
       const turn = openOrCreateTurn(
         this.turns,
         stage.clientKey,
         SOLO_PARTICIPANT_REF,
-        spec.isVisitOpen,
+        (last) => spec.isVisitOpen(last, before),
       );
       appendObservedDart(turn, observation, intent);
-      if (!spec.isVisitOpen(turn)) turn.completedAt = new Date().toISOString();
+      if (!spec.isVisitOpen(turn, this.deriveState()))
+        turn.completedAt = new Date().toISOString();
       return this.deriveState();
     }
 
