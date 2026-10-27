@@ -6,12 +6,15 @@ import type {
   ShellGameEngine,
 } from "./interfaces";
 import {
+  appendCompletedTurn,
   appendObservedDart,
   cloneTurns,
   exerciseBlockStage,
   openOrCreateTurn,
+  openVisit,
   turnsBeforeVisit,
   undoLastDart,
+  undoLastUnit,
 } from "./turn-log.module";
 import type {
   DartObservation,
@@ -25,14 +28,24 @@ import type {
  * `undo()` pops one dart (`undoLastDart`) and leaves an expired timer set;
  * a rehydrated engine starts unexpired. `completedAt` is stamped when
  * `isVisitOpen` reads false on the state after the dart; a spec with
- * `closedVisitTotal` then sets that turn's `totalScore`. `isComplete()` is
- * any status other than `IN_PROGRESS`.
+ * `closedVisitTotal` then sets that turn's `totalScore`. A spec with
+ * `visitInput` writes a keypad total as one closed dartless turn and undoes
+ * whole turns; `totalOnClose` keeps an open dart turn's total at 0; `complete`
+ * replaces the default `isComplete()` (any status other than `IN_PROGRESS`).
  */
-export function dartGameEngineClass<TConfig, TState extends ShellState>(
-  spec: DartGameSpec<TConfig, TState>,
-): DartGameEngineClass<TConfig, TState> {
+export function dartGameEngineClass<
+  TConfig,
+  TState extends ShellState,
+  TVisit = never,
+>(
+  spec: DartGameSpec<TConfig, TState, TVisit>,
+): DartGameEngineClass<TConfig, TState, DartObservation | TVisit> {
   const stage = exerciseBlockStage();
-  return class implements ShellGameEngine<TConfig, TState> {
+  return class implements ShellGameEngine<
+    TConfig,
+    TState,
+    DartObservation | TVisit
+  > {
     readonly spec = spec;
     readonly rulesetVersionKey: RulesetVersionKey;
     readonly stageOwnership = spec.stageOwnership;
@@ -60,7 +73,30 @@ export function dartGameEngineClass<TConfig, TState extends ShellState>(
       return this.foldTurns(this.turns);
     }
 
-    record(observation: DartObservation): TState {
+    record(input: DartObservation | TVisit): TState {
+      if (spec.visitInput?.isVisit(input)) return this.recordVisit(input);
+      return this.recordDart(input as DartObservation);
+    }
+
+    private recordVisit(input: TVisit): TState {
+      const before = this.deriveState();
+      const refusal = spec.visitInput!.refusal(
+        before,
+        input,
+        this.config,
+        openVisit(this.turns),
+      );
+      if (refusal !== null) throw new Error(refusal);
+      appendCompletedTurn(
+        this.turns,
+        stage.clientKey,
+        before.activeParticipantRef,
+        spec.visitInput!.total(before, input),
+      );
+      return this.deriveState();
+    }
+
+    private recordDart(observation: DartObservation): TState {
       const before = this.deriveState();
       const refusal = spec.refusal(before);
       if (refusal !== null) throw new Error(refusal);
@@ -68,27 +104,37 @@ export function dartGameEngineClass<TConfig, TState extends ShellState>(
         this.turns,
         stage.clientKey,
         before.activeParticipantRef,
-        (last) => spec.isVisitOpen(last, before),
+        (last) => spec.isVisitOpen(last, before, this.config),
       );
       appendObservedDart(turn, observation, spec.intent(before, this.config));
+      if (spec.totalOnClose) turn.totalScore = 0;
       const after = this.deriveState();
-      if (spec.isVisitOpen(turn, after)) return after;
+      if (spec.isVisitOpen(turn, after, this.config)) return after;
       turn.completedAt = new Date().toISOString();
       if (spec.closedVisitTotal)
         turn.totalScore = spec.closedVisitTotal(
           this.foldTurns(turnsBeforeVisit(this.turns, turn)),
           this.deriveState(),
           turn.participantRef,
+          turn,
+          this.config,
         );
       return this.deriveState();
     }
 
     undo(): boolean {
-      return undoLastDart(this.turns);
+      return spec.visitInput
+        ? undoLastUnit(this.turns)
+        : undoLastDart(this.turns);
     }
 
-    wouldComplete(observation: DartObservation): boolean {
-      return spec.wouldComplete(this.deriveState(), observation, this.config);
+    wouldComplete(input: DartObservation | TVisit): boolean {
+      return spec.wouldComplete(
+        this.deriveState(),
+        input,
+        this.config,
+        openVisit(this.turns),
+      );
     }
 
     expireTimer(): void {
@@ -96,7 +142,10 @@ export function dartGameEngineClass<TConfig, TState extends ShellState>(
     }
 
     isComplete(): boolean {
-      return this.deriveState().status !== "IN_PROGRESS";
+      const state = this.deriveState();
+      return spec.complete
+        ? spec.complete(state, this.config)
+        : state.status !== "IN_PROGRESS";
     }
 
     state(): TState {
@@ -110,11 +159,15 @@ export function dartGameEngineClass<TConfig, TState extends ShellState>(
 }
 
 /** The registry-facing factory for one ruleset key of a shell-built engine class (default: the spec's own key). */
-export function dartGameEngineFactory<TConfig, TState extends ShellState>(
-  spec: DartGameSpec<TConfig, TState>,
-  Engine: DartGameEngineClass<TConfig, TState>,
+export function dartGameEngineFactory<
+  TConfig,
+  TState extends ShellState,
+  TVisit = never,
+>(
+  spec: DartGameSpec<TConfig, TState, TVisit>,
+  Engine: DartGameEngineClass<TConfig, TState, DartObservation | TVisit>,
   rulesetVersionKey: RulesetVersionKey = spec.rulesetVersionKey,
-): GameEngineFactory<TConfig, DartObservation, TState> {
+): GameEngineFactory<TConfig, DartObservation | TVisit, TState> {
   const served = [spec.rulesetVersionKey, ...(spec.rulesetVersionKeys ?? [])];
   if (!served.includes(rulesetVersionKey))
     throw new Error(`${rulesetVersionKey} is not served by this spec`);
