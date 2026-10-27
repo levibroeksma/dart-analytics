@@ -917,3 +917,35 @@ export type CheckoutSeat<TExt> = {
   status: "IN_PROGRESS" | "DONE";
   ext: TExt;
 };
+
+/**
+ * One seat of an Elimination match (`elimination-kernel.module.ts`): its
+ * lives, whether it is out, and the game-owned `ext`.
+ */
+export type EliminationSeat<TExt> = {
+  participantRef: string;
+  sideKey: string;
+  lives: number;
+  out: boolean;
+  ext: TExt;
+};
+
+/**
+ * One seat's change from one dart. `livesDelta` is clamped so lives never go
+ * below 0; `ext` replaces the seat's ext. A change to a seat already out is
+ * ignored.
+ */
+export type SeatChange<TExt> = {
+  participantRef: string;
+  livesDelta?: number;
+  ext?: TExt;
+};
+
+/** An Elimination match folded from its darts: seats, out order, outcome and the seat to throw. */
+export type EliminationMatch<TExt> = {
+  seats: EliminationSeat<TExt>[];
+  outOrder: string[];
+  status: "IN_PROGRESS" | "COMPLETE";
+  winningSideKey: string | null;
+  activeParticipantRef: string;
+};
