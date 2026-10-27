@@ -4,6 +4,7 @@ import type {
   TuodInput,
   TuodState,
 } from "@modules/types";
+import { zoneCentroid } from "@lib/game/board/board-geometry.module";
 import { randomObservation, type OracleEngine } from "./engine-oracle";
 
 const BASE = { locationX: null, locationY: null };
@@ -44,10 +45,29 @@ function randomAttempt(rand: () => number): TuodAttemptInput {
   };
 }
 
+const OUTER_BULL_POINT = { x: 10, y: 0 };
+
+/**
+ * A coordinate-captured dart: the observation placed at its zone's centre so
+ * the engine's own classification resolves it. A miss stays unlocated, the
+ * unseen-dart path.
+ */
+function located(observation: DartObservation): DartObservation {
+  const { hitTargetNumber, hitZoneKey } = observation;
+  if (hitZoneKey === "MISS") return observation;
+  const point =
+    hitZoneKey === "OUTER_BULL"
+      ? OUTER_BULL_POINT
+      : zoneCentroid(hitTargetNumber, hitZoneKey);
+  return point
+    ? { ...observation, locationX: point.x, locationY: point.y }
+    : observation;
+}
+
 /**
  * Mixes the two TUOD input shapes in one log: with probability `visitRate` a
  * keypad total (valid and invalid alike, so every refusal fires), otherwise a
- * board dart — towards the active seat's live remainder with probability
+ * located board dart — towards the active seat's live remainder with probability
  * `towardRate`, else random.
  */
 export function tuodInputs(visitRate: number, towardRate: number) {
@@ -58,7 +78,7 @@ export function tuodInputs(visitRate: number, towardRate: number) {
       (candidate) => candidate.participantRef === state.activeParticipantRef,
     )!;
     if (rand() >= towardRate || seat.remainingInAttempt <= 1)
-      return randomObservation(rand);
-    return finishingShot(seat.remainingInAttempt);
+      return located(randomObservation(rand));
+    return located(finishingShot(seat.remainingInAttempt));
   };
 }
