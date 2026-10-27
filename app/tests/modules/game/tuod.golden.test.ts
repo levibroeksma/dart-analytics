@@ -64,6 +64,22 @@ describe("Ten Up One Down — golden trace", () => {
     ["solo rounds", config(1), undefined],
     ["duel rounds", config(2), undefined],
     [
+      "solo, one dart",
+      config(1, { maxDartsPerTurn: 1, durationValue: 12 }),
+      undefined,
+    ],
+    ["duel, two darts", config(2, { maxDartsPerTurn: 2 }), undefined],
+    [
+      "solo, ceiling",
+      config(1, { startingTarget: 170, finishBonus: 40, durationValue: 20 }),
+      undefined,
+    ],
+    [
+      "solo, floor",
+      config(1, { startingTarget: 2, missPenalty: 30, durationValue: 20 }),
+      undefined,
+    ],
+    [
       "solo minutes",
       config(1, { durationType: "MINUTES", durationValue: 10 }),
       150,
