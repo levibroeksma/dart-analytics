@@ -2,8 +2,10 @@ import { describe, it, expect } from "vitest";
 import {
   consecutiveTargets,
   dartWalkJudge,
+  ladderTarget,
   seededDrawTarget,
   seededPoolDraw,
+  storedTotalJudge,
   unreachableFails,
 } from "@modules/game/checkout-policies";
 import { initialCheckoutSeat } from "@modules/game/checkout-kernel.module";
@@ -129,5 +131,65 @@ describe("seeded draws", () => {
   it("the next target is the draw for the next attempt index", () => {
     const seat = { ...at(10), attemptIndex: 3 };
     expect(seededDrawTarget(42, POOL)(seat)).toBe(seededPoolDraw(42, POOL, 4));
+  });
+});
+
+const turnOf = (over: Partial<TurnFact>): TurnFact => ({
+  clientKey: "t",
+  stageClientKey: "s",
+  participantRef: "p1",
+  sequence: 1,
+  completedAt: "2026-11-01T10:00:00Z",
+  totalScore: 0,
+  darts: [],
+  ...over,
+});
+
+describe("storedTotalJudge", () => {
+  const seat = initialCheckoutSeat(41, null);
+  const dart = (score: number) =>
+    ({ score, hitZoneKey: "OUTER_SINGLE" }) as TurnFact["darts"][number];
+
+  it("shows an unstamped turn open at the live remainder", () => {
+    expect(
+      storedTotalJudge(
+        seat,
+        turnOf({ completedAt: null, darts: [dart(20), dart(1)] }),
+      ),
+    ).toEqual({ kind: "OPEN", remaining: 20, darts: 2 });
+  });
+
+  it("checks out a closed turn with a positive stored total", () => {
+    expect(
+      storedTotalJudge(seat, turnOf({ totalScore: 41, darts: [dart(41)] })),
+    ).toEqual({
+      kind: "CHECKOUT",
+      darts: 1,
+    });
+  });
+
+  it("fails a closed turn stored as 0", () => {
+    expect(storedTotalJudge(seat, turnOf({ totalScore: 0 }))).toEqual({
+      kind: "FAIL",
+    });
+  });
+});
+
+describe("ladderTarget", () => {
+  const step = ladderTarget(10, 1, 2, 170);
+  const onTarget = (target: number) => ({
+    ...initialCheckoutSeat(target, null),
+    target,
+  });
+
+  it("climbs by `up` on a pass and falls by `down` on a miss", () => {
+    expect(step(onTarget(41), true)).toBe(51);
+    expect(step(onTarget(41), false)).toBe(40);
+  });
+
+  it("clamps at the cap and the floor", () => {
+    expect(step(onTarget(165), true)).toBe(170);
+    expect(step(onTarget(2), false)).toBe(2);
+    expect(ladderTarget(0, 30, 2, 170)(onTarget(10), false)).toBe(2);
   });
 });
