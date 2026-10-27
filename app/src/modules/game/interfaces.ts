@@ -2,6 +2,7 @@ import type { RulesetVersionKey } from "@lib/types";
 import type {
   BoardTarget,
   DartIntent,
+  CheckoutSeat,
   DartObservation,
   EngineFacts,
   JudgedDart,
@@ -10,6 +11,7 @@ import type {
   TrackSeat,
   TrackTarget,
   TurnFact,
+  VisitVerdict,
 } from "./types";
 
 /**
@@ -120,4 +122,21 @@ export interface TrackRules<TExt, TTarget extends TrackTarget = BoardTarget> {
   onDart?(seat: TrackSeat<TExt>, dart: JudgedDart<TTarget>): TrackSeat<TExt>;
   visitOpen(seat: TrackSeat<TExt>): boolean;
   onVisitClose?(seat: TrackSeat<TExt>): TrackSeat<TExt>;
+}
+
+/**
+ * A Checkout ruleset as named policies over `CheckoutSeat`
+ * (`checkout-kernel.module.ts`): how a visit is judged, how many visits an
+ * attempt allows, what closing an attempt books, and the next target
+ * (`null` ends the seat).
+ */
+export interface CheckoutRules<TExt> {
+  readonly visitsPerAttempt: number;
+  judge(seat: CheckoutSeat<TExt>, turn: TurnFact): VisitVerdict;
+  onAttemptClose(
+    seat: CheckoutSeat<TExt>,
+    passed: boolean,
+    verdict: VisitVerdict,
+  ): CheckoutSeat<TExt>;
+  nextTarget(seat: CheckoutSeat<TExt>, passed: boolean): number | null;
 }

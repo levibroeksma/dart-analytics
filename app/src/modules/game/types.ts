@@ -886,3 +886,32 @@ export type CoinFace = "heads" | "tails";
 
 /** Which side won a starter contest (0 or 1), or a tie that must be rethrown. */
 export type StarterResult = 0 | 1 | "tie";
+
+/**
+ * How a Checkout ruleset judged one visit (Pattern 18 §Rule-kernel
+ * families): a checkout in `darts` darts, a bust, a closed visit short of
+ * zero, or a visit still open.
+ */
+export type VisitVerdict =
+  | { kind: "CHECKOUT"; darts: number }
+  | { kind: "BUST" }
+  | { kind: "SPENT"; remaining: number }
+  | { kind: "OPEN"; remaining: number; darts: number };
+
+/**
+ * One seat on the Checkout kernel: the open attempt's `target`, the score
+ * its current visit started from (`visitStart`) and the live `remaining`;
+ * `ext` is the ruleset's own bookkeeping.
+ */
+export type CheckoutSeat<TExt> = {
+  target: number;
+  visitStart: number;
+  remaining: number;
+  dartsInVisit: number;
+  visitIndex: number;
+  attemptIndex: number;
+  attempts: number;
+  checkouts: number;
+  status: "IN_PROGRESS" | "DONE";
+  ext: TExt;
+};
