@@ -568,3 +568,10 @@ Decision: `withRoundTotals` (`visual-board-round-total.validator.ts`) is the one
 Reason: Shanghai persists the change in the seat's score, so the board-sum comparison refused any closed visit with an off-number dart or a halving, failing finish and Leave as Baseball did (D496). `byRound` keys stopped being rounds in D495.
 Consequences: no migration. Keypad behaviour unchanged. Baseball and Shanghai are the only `closedVisitTotal` engines. A negative Shanghai total is not tied to HARD, so the check is looser than the engine there.
 Supersedes: none.
+
+### D500 — The Checkout kernel folds judged visits; its engines migrate simplest first
+Status: Accepted · Date: 2026-10-27
+Decision: `checkout-kernel.module.ts` folds a `CheckoutSeat` over visits a ruleset has already judged: `CheckoutRules` names `judge` (turn → `VisitVerdict`), `visitsPerAttempt`, `onAttemptClose` and `nextTarget` (`null` ends the seat). The kernel never applies a bust rule itself; record-time rules that settle a turn stay in the engine. The shipped Checkout engines migrate Checkout Sequence → Random Checkout → Ten Up One Down → 121, reversing the umbrella order, because the two exercises fit the existing exercise shell and the two games each need a shell extension (visit-total input; a stage per attempt). Checkout Sequence lands first and moves onto the exercise shell, whose `isVisitOpen` now sees the folded state.
+Reason: the four engines share one attempt loop but judge visits from different facts (darts vs a settled `totalScore`), so judging is the ruleset's policy and the loop is the kernel; simplest first keeps each shell change in the PR of the first engine that needs it (D468 method).
+Consequences: Checkout Sequence's hand-written class is gone; its behaviour is pinned by goldens recorded before the rebind. Bullseye Checkout stays `PENDING`. Spec: `docs/superpowers/specs/2026-10-27-checkout-kernel-design.md`.
+Supersedes: none.
