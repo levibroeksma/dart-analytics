@@ -890,13 +890,15 @@ export type StarterResult = 0 | 1 | "tie";
 /**
  * How a Checkout ruleset judged one visit (Pattern 18 §Rule-kernel
  * families): a checkout in `darts` darts, a bust, a closed visit short of
- * zero, or a visit still open.
+ * zero, a visit still open, or `FAIL`, the attempt dead now whatever visits
+ * remain (an unreachable remainder).
  */
 export type VisitVerdict =
   | { kind: "CHECKOUT"; darts: number }
   | { kind: "BUST" }
   | { kind: "SPENT"; remaining: number }
-  | { kind: "OPEN"; remaining: number; darts: number };
+  | { kind: "OPEN"; remaining: number; darts: number }
+  | { kind: "FAIL" };
 
 /**
  * One seat on the Checkout kernel: the open attempt's `target`, the score

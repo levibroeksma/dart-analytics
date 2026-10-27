@@ -102,6 +102,7 @@ interface CheckoutRules<TExt> {
 - **Fallow:** kernel reducer cognitive complexity ≤ 15; branching lives in
   policies.
 - **Refined by the PR 1 plan (2026-10-27):** `target` + target-setting in `onAttemptClose` become `nextTarget(seat, passed) → number | null` (null ⇒ `DONE`), the first target passed to `initialCheckoutSeat`; `VisitVerdict` gains `OPEN { remaining, darts }`, `FAIL` lands in PR 2 and `WON` in PR 4; `CheckoutSeat` carries `visitStart`/`dartsInVisit` and gains seat identity with `foldCheckoutSeats` in PR 3; the exercise shell's `isVisitOpen` sees the folded state; `NO_INTENT` exported from `turn-log.module.ts`.
+- **Refined by the PR 2 plan (2026-10-27):** `seededDrawTarget(drawSeed, pool)` and `drawStartScore` both wrap `seededPoolDraw(drawSeed, pool, index)` in `checkout-policies.ts` (a game module cannot import a training one); `unreachableFails` judges from `dartWalkJudge`'s verdict — an `OPEN` visit with a dart thrown and an unreachable remainder is `FAIL` — rather than walking again; `FAIL` closes the attempt on any visit.
 
 ## 4. Policy library (phase 1)
 

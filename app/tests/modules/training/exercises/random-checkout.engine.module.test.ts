@@ -329,4 +329,28 @@ describe("RandomCheckoutEngine", () => {
   it("holds no rate on state", () => {
     expect(new RandomCheckoutEngine(CONFIG).state()).not.toHaveProperty("rate");
   });
+
+  it("undo of an unreachable-fail dart restores the draw and reopens the visit", () => {
+    const engine = new RandomCheckoutEngine({ ...CONFIG, drawSeed: 42 });
+    play(engine, [dart(1, "SINGLE")]);
+    expect(engine.state()).toMatchObject({ startScore: 141, attempts: 1 });
+
+    engine.undo();
+    expect(engine.state()).toMatchObject({
+      startScore: 155,
+      remaining: 155,
+      dartsInVisit: 0,
+      attempts: 0,
+      lastAttempt: null,
+    });
+
+    play(engine, [T20]);
+    expect(engine.facts().turns).toHaveLength(1);
+    expect(engine.state()).toMatchObject({
+      startScore: 155,
+      remaining: 95,
+      dartsInVisit: 1,
+      attempts: 0,
+    });
+  });
 });

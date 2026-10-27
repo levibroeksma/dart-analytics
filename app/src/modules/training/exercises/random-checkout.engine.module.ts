@@ -1,33 +1,23 @@
 import type { RandomCheckoutConfigData } from "@lib/types";
 import { RandomCheckoutV1Config } from "@lib/training/exercises/rulesets/types";
-import type {
-  DartFact,
-  DartObservation,
-  EngineFacts,
-  TurnFact,
-} from "@modules/types";
-import { resolveCheckoutAttempt } from "@modules/game/checkout-bust.module";
-import { isCheckoutReachable } from "@modules/game/checkout-reachability.module";
-import { seededUniform } from "@modules/game/seeded-rng.module";
+import type { CheckoutSeat, EngineFacts } from "@modules/types";
+import type { CheckoutRules, DartExerciseSpec } from "@modules/interfaces";
 import {
-  appendObservedDart,
-  cloneTurns,
-  exerciseBlockStage,
-  openOrCreateTurn,
-  refuseWhenEnded,
-  undoLastDart,
-} from "@modules/game/turn-log.module";
-import { registerDartExerciseEngineFactory } from "./dart-engine.registry";
-import type {
-  DartExerciseEngine,
-  DartExerciseEngineFactory,
-} from "./interfaces";
-import { SOLO_PARTICIPANT_REF } from "./solo-participant.module";
+  foldCheckoutVisits,
+  initialCheckoutSeat,
+} from "@modules/game/checkout-kernel.module";
+import {
+  seededDrawTarget,
+  seededPoolDraw,
+  unreachableFails,
+} from "@modules/game/checkout-policies";
+import { NO_INTENT } from "@modules/game/turn-log.module";
+import {
+  dartExerciseEngineClass,
+  registerDartExercise,
+} from "./dart-exercise-shell.module";
 import type { RandomCheckoutState } from "./types";
 
-const EXERCISE_RULESET_VERSION_KEY = "RANDOM_CHECKOUT_V1" as const;
-const STAGE = exerciseBlockStage();
-const DARTS_PER_VISIT = 3;
 const MIN_START = 40;
 const MAX_START = 170;
 const UNFINISHABLE_STARTS: ReadonlySet<number> = new Set([
@@ -53,169 +43,83 @@ export function drawStartScore(
   config: RandomCheckoutConfigData,
   attemptIndex: number,
 ): number {
-  const uniform = seededUniform(config.drawSeed, attemptIndex)();
-  return RANDOM_CHECKOUT_POOL[
-    Math.floor(uniform * RANDOM_CHECKOUT_POOL.length)
-  ];
+  return seededPoolDraw(config.drawSeed, RANDOM_CHECKOUT_POOL, attemptIndex);
 }
 
-type VisitOutcome =
-  | { kind: "CHECKOUT" }
-  | { kind: "FAILED" }
-  | { kind: "OPEN"; remaining: number; darts: number };
+type RandomCheckoutExt = { lastAttempt: RandomCheckoutState["lastAttempt"] };
 
-function isFinishingDart(dart: DartFact): boolean {
-  return dart.hitZoneKey === "DOUBLE" || dart.hitZoneKey === "INNER_BULL";
+/** Notes how the closing attempt ended. */
+function noteLastAttempt(
+  seat: CheckoutSeat<RandomCheckoutExt>,
+  passed: boolean,
+): CheckoutSeat<RandomCheckoutExt> {
+  return { ...seat, ext: { lastAttempt: passed ? "CHECKOUT" : "FAILED" } };
 }
 
-/**
- * Walks one visit's darts from `start` under the X01 double-out rule. A
- * visit also fails the moment the remainder can no longer be finished with
- * the darts it has left (#1064), so the next draw replaces it at once; the
- * outcome reads from the darts alone, so replay and undo agree.
- */
-function walkVisit(start: number, darts: readonly DartFact[]): VisitOutcome {
-  let remaining = start;
-  for (const [index, dart] of darts.entries()) {
-    const outcome = resolveCheckoutAttempt(
-      remaining,
-      dart.score,
-      isFinishingDart(dart),
-    );
-    if (outcome.checkedOut) return { kind: "CHECKOUT" };
-    if (outcome.busted) return { kind: "FAILED" };
-    remaining = outcome.remainingAfter;
-    if (!isCheckoutReachable(remaining, DARTS_PER_VISIT - index - 1)) {
-      return { kind: "FAILED" };
-    }
-  }
-  return darts.length === DARTS_PER_VISIT
-    ? { kind: "FAILED" }
-    : { kind: "OPEN", remaining, darts: darts.length };
-}
-
-/**
- * Folds the whole fact log into Random Checkout state — a pure function of
- * `facts`/`config`/`expired`. Attempt *n* is turn *n*, started from
- * `drawStartScore(config, n)`; it closes on a checkout, a bust or its third
- * dart, read from its darts alone. The run is complete once the timer
- * expired; an attempt open then is never judged.
- */
-export function foldRandomCheckoutState(
-  facts: EngineFacts,
+function rules(
   config: RandomCheckoutConfigData,
-  expired: boolean,
-): RandomCheckoutState {
-  let checkouts = 0;
-  let attempts = 0;
-  let lastAttempt: RandomCheckoutState["lastAttempt"] = null;
-  let dartsThrown = 0;
-  let open: { index: number; remaining: number; darts: number } | null = null;
-
-  for (const [index, turn] of facts.turns.entries()) {
-    dartsThrown += turn.darts.length;
-    const outcome = walkVisit(drawStartScore(config, index), turn.darts);
-    if (outcome.kind === "OPEN") {
-      open = { index, remaining: outcome.remaining, darts: outcome.darts };
-      continue;
-    }
-    attempts += 1;
-    if (outcome.kind === "CHECKOUT") checkouts += 1;
-    lastAttempt = outcome.kind;
-  }
-
-  const index = open ? open.index : facts.turns.length;
-  const startScore = drawStartScore(config, index);
-
+): CheckoutRules<RandomCheckoutExt> {
   return {
-    startScore,
-    remaining: open ? open.remaining : startScore,
-    dartsInVisit: open ? open.darts : 0,
-    checkouts,
-    attempts,
-    lastAttempt,
-    dartsThrown,
-    status: expired ? "COMPLETE" : "IN_PROGRESS",
+    visitsPerAttempt: 1,
+    judge: unreachableFails,
+    onAttemptClose: noteLastAttempt,
+    nextTarget: seededDrawTarget(config.drawSeed, RANDOM_CHECKOUT_POOL),
   };
 }
 
 /**
- * Random Checkout: one-visit checkout attempts from a seed-drawn start score,
- * X01 double-out (`docs/game-rules/training/exercises/random-checkout.md`).
- * One `TurnFact` is one attempt; free aim, so no dart carries an intent. The
- * run ends only through `expireTimer()` (D264).
+ * Folds the whole fact log into Random Checkout state through the Checkout
+ * kernel — a pure function of `facts`/`config`/`expired`. Attempt *n* is
+ * turn *n*, started from `drawStartScore(config, n)`; it closes on a
+ * checkout, a bust, an unreachable remainder or its third dart. The run is
+ * complete once the timer expired; an attempt open then is never judged.
  */
-export class RandomCheckoutEngine implements DartExerciseEngine<RandomCheckoutState> {
-  readonly exerciseRulesetVersionKey = EXERCISE_RULESET_VERSION_KEY;
-
-  private readonly config: RandomCheckoutConfigData;
-  private readonly turns: TurnFact[];
-  private expired = false;
-
-  constructor(config: RandomCheckoutConfigData, prior?: EngineFacts) {
-    this.config = RandomCheckoutV1Config.parse(config);
-    this.turns = prior ? cloneTurns(prior.turns) : [];
-  }
-
-  private deriveState(): RandomCheckoutState {
-    return foldRandomCheckoutState(
-      { stages: [{ ...STAGE }], turns: this.turns },
-      this.config,
-      this.expired,
-    );
-  }
-
-  record(observation: DartObservation): RandomCheckoutState {
-    const before = this.deriveState();
-    refuseWhenEnded(before.status === "COMPLETE", "exercise is complete");
-    const turn = openOrCreateTurn(
-      this.turns,
-      STAGE.clientKey,
-      SOLO_PARTICIPANT_REF,
-      () => before.dartsInVisit > 0,
-    );
-    appendObservedDart(turn, observation);
-    const after = this.deriveState();
-    if (after.dartsInVisit === 0) {
-      turn.completedAt = new Date().toISOString();
-    }
-    return after;
-  }
-
-  undo(): boolean {
-    if (this.expired) {
-      this.expired = false;
-      return true;
-    }
-    return undoLastDart(this.turns);
-  }
-
-  /** The step's countdown elapsed — the clock lives in the controller (D264). */
-  expireTimer(): void {
-    this.expired = true;
-  }
-
-  isComplete(): boolean {
-    return this.deriveState().status === "COMPLETE";
-  }
-
-  state(): RandomCheckoutState {
-    return this.deriveState();
-  }
-
-  facts(): EngineFacts {
-    return { stages: [{ ...STAGE }], turns: cloneTurns(this.turns) };
-  }
+function fold(
+  facts: EngineFacts,
+  config: RandomCheckoutConfigData,
+  expired: boolean,
+): RandomCheckoutState {
+  const seat = foldCheckoutVisits(
+    facts.turns,
+    initialCheckoutSeat(drawStartScore(config, 0), { lastAttempt: null }),
+    rules(config),
+  );
+  return {
+    startScore: seat.target,
+    remaining: seat.remaining,
+    dartsInVisit: seat.dartsInVisit,
+    checkouts: seat.checkouts,
+    attempts: seat.attempts,
+    lastAttempt: seat.ext.lastAttempt,
+    dartsThrown: facts.turns.reduce((sum, turn) => sum + turn.darts.length, 0),
+    status: expired ? "COMPLETE" : "IN_PROGRESS",
+  };
 }
 
-export const randomCheckoutEngineFactory: DartExerciseEngineFactory<
+const randomCheckoutSpec: DartExerciseSpec<
   RandomCheckoutConfigData,
   RandomCheckoutState
 > = {
-  exerciseRulesetVersionKey: EXERCISE_RULESET_VERSION_KEY,
-  create(config: RandomCheckoutConfigData, prior?: EngineFacts) {
-    return new RandomCheckoutEngine(config, prior);
-  },
+  exerciseRulesetVersionKey: "RANDOM_CHECKOUT_V1",
+  parse: (config) => RandomCheckoutV1Config.parse(config),
+  fold,
+  intent: () => NO_INTENT,
+  isVisitOpen: (_turn, state) => state.dartsInVisit > 0,
 };
 
-registerDartExerciseEngineFactory(randomCheckoutEngineFactory);
+export const foldRandomCheckoutState = randomCheckoutSpec.fold;
+
+/**
+ * Random Checkout: one-visit checkout attempts from a seed-drawn start score,
+ * X01 double-out (`docs/game-rules/training/exercises/random-checkout.md`),
+ * on the Checkout kernel and the exercise shell. One `TurnFact` is one
+ * attempt; free aim. The run ends only through `expireTimer()` (D264).
+ */
+export class RandomCheckoutEngine extends dartExerciseEngineClass(
+  randomCheckoutSpec,
+) {}
+
+export const randomCheckoutEngineFactory = registerDartExercise(
+  randomCheckoutSpec,
+  RandomCheckoutEngine,
+).factory;

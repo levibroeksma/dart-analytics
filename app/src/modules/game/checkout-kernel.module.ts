@@ -79,7 +79,8 @@ function carryVisit<TExt>(
 
 /**
  * The Checkout kernel's one reducer (Pattern 18 §Rule-kernel families):
- * `judge` the visit, then show it open, pass the attempt, or carry/fail it.
+ * `judge` the visit, then show it open, pass the attempt, fail it now, or
+ * carry the visit (failing it on the budget's last).
  * Every rule a ruleset makes lives in `rules`.
  */
 export function applyCheckoutVisit<TExt>(
@@ -97,6 +98,8 @@ export function applyCheckoutVisit<TExt>(
       };
     case "CHECKOUT":
       return closeAttempt(seat, true, verdict, rules);
+    case "FAIL":
+      return closeAttempt(seat, false, verdict, rules);
     case "BUST":
     case "SPENT":
       return carryVisit(seat, verdict, rules);
