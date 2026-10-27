@@ -280,6 +280,26 @@ describe("CheckoutSequenceEngine", () => {
 
     expect(parsed.success).toBe(true);
   });
+  it("undo of an attempt's closing dart restores the outshot and reopens the visit", () => {
+    const engine = new CheckoutSequenceEngine(CONFIG);
+    [T15, D8].forEach((o) => engine.record(o));
+    expect(engine.state().currentOutshot).toBe(62);
+    engine.undo();
+    expect(engine.state()).toMatchObject({
+      currentOutshot: 61,
+      remaining: 16,
+      dartsInVisit: 1,
+      points: 0,
+      checkouts: 0,
+    });
+    engine.record(D8);
+    expect(engine.facts().turns).toHaveLength(1);
+    expect(engine.state()).toMatchObject({
+      currentOutshot: 62,
+      points: 3,
+      checkouts: 1,
+    });
+  });
 });
 
 describe("foldCheckoutSequenceState", () => {
