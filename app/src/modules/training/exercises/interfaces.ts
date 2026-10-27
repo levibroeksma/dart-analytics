@@ -72,7 +72,8 @@ export interface DartExerciseSpec<TConfig, TState> {
   parse(config: TConfig): TConfig;
   fold(facts: EngineFacts, config: TConfig, expired: boolean): TState;
   intent(state: TState, config: TConfig): DartIntent;
-  isVisitOpen(turn: TurnFact): boolean;
+  /** Whether `turn` stays open, read against the state folded over the log (as the game shell's). */
+  isVisitOpen(turn: TurnFact, state: TState): boolean;
   /** A state that ends the run on its own, before the timer. */
   ends?(state: TState): boolean;
 }

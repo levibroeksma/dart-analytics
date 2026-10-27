@@ -89,7 +89,7 @@ describe("dartExerciseEngineClass ends hook", () => {
     exerciseRulesetVersionKey: spec.exerciseRulesetVersionKey,
     parse: spec.parse,
     intent: () => ({ intendedTargetNumber: 20, intendedZoneKey: "TREBLE" }),
-    isVisitOpen: spec.isVisitOpen,
+    isVisitOpen: (t) => t.darts.length < 3,
     fold: (facts) => ({
       n: facts.turns.reduce((sum, turn) => sum + turn.darts.length, 0),
     }),
@@ -129,5 +129,22 @@ describe("dartExerciseEngineClass ends hook", () => {
     expect(e.isComplete()).toBe(false);
     e.expireTimer();
     expect(e.isComplete()).toBe(true);
+  });
+});
+
+describe("dartExerciseEngineClass — state-aware visit close", () => {
+  const pairs: DartExerciseSpec<{ n: number }, Toy> = {
+    ...spec,
+    isVisitOpen: (_turn, state) => state.darts % 2 === 1,
+  };
+  const Pairs = dartExerciseEngineClass(pairs);
+
+  it("asks isVisitOpen with the folded state, before and after the dart", () => {
+    const e = new Pairs({ n: 1 });
+    [T20, T20, T20].forEach((o) => e.record(o));
+    const turns = e.facts().turns;
+    expect(turns.map((t) => t.darts.length)).toEqual([2, 1]);
+    expect(turns[0].completedAt).not.toBeNull();
+    expect(turns[1].completedAt).toBeNull();
   });
 });
