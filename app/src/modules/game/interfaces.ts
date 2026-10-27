@@ -114,8 +114,8 @@ export interface DartGameSpec<
   ): number;
   /** Visit-total input; also switches `undo()` to pop a whole dartless turn. */
   readonly visitInput?: DartGameVisitInput<TConfig, TState, TVisit>;
-  /** An open dart turn keeps `totalScore` 0 until `closedVisitTotal` settles it. */
-  readonly totalOnClose?: boolean;
+  /** Darts resolve from their coordinates (`resolveObservation`) and carry no intent; an open turn's `totalScore` is never written, so only `closedVisitTotal` sets it. */
+  readonly coordinateCapture?: boolean;
   /** Replaces the default `isComplete()` (any status but `IN_PROGRESS`). */
   complete?(state: TState, config: TConfig): boolean;
 }
