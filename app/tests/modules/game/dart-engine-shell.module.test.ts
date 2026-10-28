@@ -388,6 +388,122 @@ describe("dartGameEngineClass — coordinate capture", () => {
   });
 });
 
+type Staged = Toy & { closed: number };
+
+const stagedSpec: DartGameSpec<{ limit: number }, Staged, Keypad> = {
+  rulesetVersionKey: "BOBS27_V1",
+  stageOwnership: "PER_SEAT",
+  fold: (facts) => ({
+    activeParticipantRef: "p1",
+    status: "IN_PROGRESS",
+    darts: facts.turns.reduce((n, t) => n + t.darts.length, 0),
+    closed: facts.turns.filter((t) => t.completedAt !== null).length,
+  }),
+  refusal: () => null,
+  intent: () => ({ intendedTargetNumber: null, intendedZoneKey: null }),
+  isVisitOpen: (turn) => turn.completedAt === null && turn.darts.length < 2,
+  wouldComplete: () => false,
+  visitInput: {
+    isVisit: (input): input is Keypad => "total" in input,
+    refusal: () => null,
+    total: (_state, input) => input.total,
+  },
+  coordinateCapture: true,
+  liveTotal: true,
+  stageFor: (state) => ({
+    clientKey: `round-${state.closed + 1}`,
+    stageTypeKey: "ROUND",
+    parentClientKey: null,
+    sequence: state.closed + 1,
+  }),
+  complete: (state, _config, expiredAt) =>
+    expiredAt !== null && state.closed > expiredAt.closed,
+};
+
+const Staged = dartGameEngineClass(stagedSpec);
+
+const T20_AT: DartObservation = {
+  hitTargetNumber: null,
+  hitZoneKey: "MISS",
+  locationX: 0,
+  locationY: -102,
+};
+
+const stageKeys = (facts: EngineFacts) => facts.stages.map((s) => s.clientKey);
+
+describe("dartGameEngineClass — stage, live total and expiry hooks", () => {
+  it("opens the stage stageFor names after a visit closes, counting turn sequence within it", () => {
+    const engine = new Staged({ limit: 0 });
+    expect(stageKeys(engine.facts())).toEqual(["round-1"]);
+    [T20_AT, T20_AT, T20_AT, T20_AT].forEach((o) => engine.record(o));
+    const facts = engine.facts();
+    expect(stageKeys(facts)).toEqual(["round-1", "round-2", "round-3"]);
+    expect(facts.stages[1]).toMatchObject({
+      stageTypeKey: "ROUND",
+      sequence: 2,
+    });
+    expect(facts.turns.map((t) => [t.stageClientKey, t.sequence])).toEqual([
+      ["round-1", 1],
+      ["round-2", 1],
+    ]);
+  });
+
+  it("opens a stage after a keypad total and places the total in the open stage", () => {
+    const engine = new Staged({ limit: 0 });
+    engine.record({ total: 9 });
+    engine.record({ total: 5 });
+    const facts = engine.facts();
+    expect(stageKeys(facts)).toEqual(["round-1", "round-2", "round-3"]);
+    expect(facts.turns.map((t) => t.stageClientKey)).toEqual([
+      "round-1",
+      "round-2",
+    ]);
+  });
+
+  it("undo pops the stage the undone visit opened, down to the first", () => {
+    const engine = new Staged({ limit: 0 });
+    [T20_AT, T20_AT, T20_AT, T20_AT].forEach((o) => engine.record(o));
+    expect(engine.undo()).toBe(true);
+    expect(stageKeys(engine.facts())).toEqual(["round-1", "round-2"]);
+    while (engine.undo());
+    expect(stageKeys(engine.facts())).toEqual(["round-1"]);
+    expect(engine.facts().turns).toHaveLength(0);
+  });
+
+  it("rehydrates with its stages", () => {
+    const engine = new Staged({ limit: 0 });
+    [T20_AT, T20_AT, T20_AT].forEach((o) => engine.record(o));
+    const again = new Staged({ limit: 0 }, engine.facts());
+    expect(again.facts()).toEqual(engine.facts());
+    again.record(T20_AT);
+    expect(stageKeys(again.facts())).toEqual(["round-1", "round-2", "round-3"]);
+  });
+
+  it("writes an open turn's live dart sum under liveTotal, also after undo reopens it", () => {
+    const engine = new Staged({ limit: 0 });
+    engine.record(T20_AT);
+    expect(engine.facts().turns[0].totalScore).toBe(60);
+    engine.record(T20_AT);
+    engine.undo();
+    expect(engine.facts().turns[0]).toMatchObject({
+      completedAt: null,
+      totalScore: 60,
+    });
+  });
+
+  it("passes complete the state at the latest expireTimer() call", () => {
+    const engine = new Staged({ limit: 0 });
+    engine.record(T20_AT);
+    expect(engine.isComplete()).toBe(false);
+    engine.expireTimer();
+    expect(engine.isComplete()).toBe(false);
+    engine.record(T20_AT);
+    expect(engine.isComplete()).toBe(true);
+    engine.expireTimer();
+    expect(engine.isComplete()).toBe(false);
+  });
+});
+
 describe("dartGameEngineClass — live total", () => {
   const liveSpec: DartGameSpec<{ limit: number }, Toy> = {
     ...spec,

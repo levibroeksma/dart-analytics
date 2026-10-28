@@ -18,16 +18,19 @@ import {
   turnsBeforeVisit,
   undoLastDart,
   undoLastUnit,
+  undoStagedTurn,
 } from "./turn-log.module";
 import type {
   DartObservation,
   EngineFacts,
   ShellState,
+  StageFact,
   TurnFact,
 } from "./types";
 
 /**
- * Builds a `GameEngine` class over one `EXERCISE_BLOCK` stage from `spec`.
+ * Builds a `GameEngine` class from `spec`, over one `EXERCISE_BLOCK` stage
+ * unless `stageFor` names the stage each state plays in.
  * `undo()` pops one dart (`undoLastDart`) and leaves an expired timer set;
  * a rehydrated engine starts unexpired. `completedAt` is stamped when
  * `isVisitOpen` reads false on the state after the dart; a spec with
@@ -36,7 +39,10 @@ import type {
  * whole turns; `coordinateCapture` resolves each dart from its coordinates
  * instead of its hit fields, leaving an open turn's total unwritten unless the
  * spec sets `liveTotal`, which keeps it at the darts' sum; `complete`
- * replaces the default `isComplete()` (any status other than `IN_PROGRESS`).
+ * replaces the default `isComplete()` (any status other than `IN_PROGRESS`)
+ * and reads the state when `expireTimer()` last ran. `stageFor` opens a new
+ * stage after a closing record, counts turn `sequence` within each stage, and
+ * undoes with `undoStagedTurn`.
  */
 export function dartGameEngineClass<
   TConfig,
@@ -55,7 +61,9 @@ export function dartGameEngineClass<
     readonly rulesetVersionKey: RulesetVersionKey;
     readonly stageOwnership = spec.stageOwnership;
     private readonly turns: TurnFact[];
+    private readonly stages: StageFact[];
     private timerExpired = false;
+    private expiredAt: TState | null = null;
 
     constructor(
       private readonly config: TConfig,
@@ -64,14 +72,46 @@ export function dartGameEngineClass<
     ) {
       this.rulesetVersionKey = rulesetVersionKey;
       this.turns = prior ? cloneTurns(prior.turns) : [];
+      this.stages =
+        prior && prior.stages.length > 0
+          ? prior.stages.map((s) => ({ ...s }))
+          : [this.firstStage()];
+    }
+
+    private firstStage(): StageFact {
+      if (!spec.stageFor) return { ...stage };
+      return spec.stageFor(
+        spec.fold({ stages: [{ ...stage }], turns: [] }, this.config, false),
+      );
+    }
+
+    private copyStages(): StageFact[] {
+      return this.stages.map((s) => ({ ...s }));
+    }
+
+    private openStageKey(): string {
+      return this.stages.at(-1)!.clientKey;
     }
 
     private foldTurns(turns: TurnFact[]): TState {
       return spec.fold(
-        { stages: [{ ...stage }], turns },
+        { stages: this.copyStages(), turns },
         this.config,
         this.timerExpired,
       );
+    }
+
+    private numberInStage(turn: TurnFact): void {
+      if (!spec.stageFor) return;
+      turn.sequence = this.turns.filter(
+        (t) => t.stageClientKey === turn.stageClientKey,
+      ).length;
+    }
+
+    private syncStage(): void {
+      const next = spec.stageFor?.(this.deriveState());
+      if (next && next.clientKey !== this.openStageKey())
+        this.stages.push({ ...next });
     }
 
     private deriveState(): TState {
@@ -92,12 +132,14 @@ export function dartGameEngineClass<
         openVisit(this.turns),
       );
       if (refusal !== null) throw new Error(refusal);
-      appendCompletedTurn(
+      const turn = appendCompletedTurn(
         this.turns,
-        stage.clientKey,
+        this.openStageKey(),
         before.activeParticipantRef,
         spec.visitInput!.total(before, input),
       );
+      this.numberInStage(turn);
+      this.syncStage();
       return this.deriveState();
     }
 
@@ -105,12 +147,14 @@ export function dartGameEngineClass<
       const before = this.deriveState();
       const refusal = spec.refusal(before);
       if (refusal !== null) throw new Error(refusal);
+      const count = this.turns.length;
       const turn = openOrCreateTurn(
         this.turns,
-        stage.clientKey,
+        this.openStageKey(),
         before.activeParticipantRef,
         (last) => spec.isVisitOpen(last, before, this.config),
       );
+      if (this.turns.length > count) this.numberInStage(turn);
       if (spec.coordinateCapture)
         appendResolvedDart(turn, observation, resolveObservation(observation));
       else
@@ -127,10 +171,12 @@ export function dartGameEngineClass<
           turn,
           this.config,
         );
+      this.syncStage();
       return this.deriveState();
     }
 
     undo(): boolean {
+      if (spec.stageFor) return undoStagedTurn(this.turns, this.stages);
       return spec.visitInput
         ? undoLastUnit(this.turns)
         : undoLastDart(this.turns);
@@ -146,13 +192,14 @@ export function dartGameEngineClass<
     }
 
     expireTimer(): void {
+      this.expiredAt = this.deriveState();
       this.timerExpired = true;
     }
 
     isComplete(): boolean {
       const state = this.deriveState();
       return spec.complete
-        ? spec.complete(state, this.config)
+        ? spec.complete(state, this.config, this.expiredAt)
         : state.status !== "IN_PROGRESS";
     }
 
@@ -161,7 +208,7 @@ export function dartGameEngineClass<
     }
 
     facts(): EngineFacts {
-      return { stages: [{ ...stage }], turns: cloneTurns(this.turns) };
+      return { stages: this.copyStages(), turns: cloneTurns(this.turns) };
     }
   };
 }

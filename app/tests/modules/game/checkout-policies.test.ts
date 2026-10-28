@@ -7,6 +7,9 @@ import {
   seededPoolDraw,
   storedTotalJudge,
   unreachableFails,
+  untilWon,
+  walkTotalJudge,
+  winAtCap,
 } from "@modules/game/checkout-policies";
 import { initialCheckoutSeat } from "@modules/game/checkout-kernel.module";
 import type { DartZoneKey, TurnFact } from "@modules/types";
@@ -191,5 +194,69 @@ describe("ladderTarget", () => {
     expect(step(onTarget(165), true)).toBe(170);
     expect(step(onTarget(2), false)).toBe(2);
     expect(ladderTarget(0, 30, 2, 170)(onTarget(10), false)).toBe(2);
+  });
+});
+
+describe("walkTotalJudge", () => {
+  const seat = initialCheckoutSeat(121, null);
+  const dart = (score: number) =>
+    ({ score, hitZoneKey: "OUTER_SINGLE" }) as TurnFact["darts"][number];
+
+  it("shows an unstamped turn open at the visit's start less its darts", () => {
+    expect(
+      walkTotalJudge(
+        seat,
+        turnOf({ completedAt: null, darts: [dart(20), dart(20)] }),
+      ),
+    ).toEqual({ kind: "OPEN", remaining: 81, darts: 2 });
+  });
+
+  it("checks out a stored total equal to the visit's start", () => {
+    expect(
+      walkTotalJudge(seat, turnOf({ totalScore: 121, darts: [dart(121)] })),
+    ).toEqual({ kind: "CHECKOUT", darts: 1 });
+  });
+
+  it("spends a visit at the remainder, a stored 0 at the visit's start", () => {
+    expect(walkTotalJudge(seat, turnOf({ totalScore: 0 }))).toEqual({
+      kind: "SPENT",
+      remaining: 121,
+    });
+    expect(walkTotalJudge(seat, turnOf({ totalScore: 60 }))).toEqual({
+      kind: "SPENT",
+      remaining: 61,
+    });
+  });
+
+  it("busts a total that leaves 1 or overshoots", () => {
+    expect(walkTotalJudge(seat, turnOf({ totalScore: 120 }))).toEqual({
+      kind: "BUST",
+    });
+    expect(walkTotalJudge(seat, turnOf({ totalScore: 130 }))).toEqual({
+      kind: "BUST",
+    });
+  });
+});
+
+describe("winAtCap", () => {
+  const onTarget = (target: number) => ({
+    ...initialCheckoutSeat(target, null),
+    target,
+  });
+
+  it("marks a pass at the cap WON and leaves every other close alone", () => {
+    expect(winAtCap(170)(onTarget(170), true).status).toBe("WON");
+    expect(winAtCap(170)(onTarget(169), true)).toEqual(onTarget(169));
+    expect(winAtCap(170)(onTarget(170), false)).toEqual(onTarget(170));
+  });
+});
+
+describe("untilWon", () => {
+  const next = untilWon(ladderTarget(1, 0, 121, 170));
+
+  it("names no next target for a WON seat and delegates otherwise", () => {
+    const seat = { ...initialCheckoutSeat(170, null), target: 170 };
+    expect(next({ ...seat, status: "WON" }, true)).toBeNull();
+    expect(next({ ...seat, target: 150 }, true)).toBe(151);
   });
 });

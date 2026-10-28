@@ -51,7 +51,8 @@ function closeAttempt<TExt>(
     dartsInVisit: 0,
     visitIndex: 0,
     attemptIndex: closed.attemptIndex + 1,
-    status: next === null ? "DONE" : closed.status,
+    status:
+      next === null && closed.status === "IN_PROGRESS" ? "DONE" : closed.status,
   };
 }
 

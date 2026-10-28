@@ -1472,3 +1472,39 @@ describe("oneTwentyOneV2EngineFactory", () => {
     });
   });
 });
+
+describe("mixed input and solo-only durations", () => {
+  const T20_AT: DartObservation = {
+    hitTargetNumber: null,
+    hitZoneKey: "MISS",
+    locationX: 0,
+    locationY: -102,
+  };
+
+  it("refuses a keypad total while a board visit is open, leaving the facts", () => {
+    const engine = new OneTwentyOneEngine(config());
+    engine.record(T20_AT);
+    const before = engine.facts();
+    expect(() => engine.record({ scoreAttempted: 61 })).toThrow(
+      "Finish the open visit on the board before entering a keypad total.",
+    );
+    expect(engine.facts()).toEqual(before);
+  });
+
+  it("reads only seat 0's attempts for a duel ROUNDS session", () => {
+    const duel = {
+      durationType: "ROUNDS",
+      durationValue: 1,
+      seats: [
+        ...SEATS,
+        { ...SEATS[0], participantRef: "participant-2", sideKey: "B" },
+      ],
+    } satisfies Seated<OneTwentyOneV2Snapshot>;
+    const engine = oneTwentyOneV2EngineFactory.create(duel);
+    engine.record({ scoreAttempted: 121, finishedOnDouble: true });
+    expect(engine.state().seats.map((s) => s.attemptsCompleted)).toEqual([
+      1, 0,
+    ]);
+    expect(engine.isComplete()).toBe(true);
+  });
+});
