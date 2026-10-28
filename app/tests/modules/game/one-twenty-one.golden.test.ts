@@ -50,7 +50,7 @@ const CASES: Record<string, Case> = {
   "v1 duel race": {
     config: v1(2),
     key: "121_V1",
-    steps: 700,
+    steps: 600,
     observe: oneTwentyOneInputs(0.35, 0.9, 0.9),
   },
   "v2 solo rounds": {

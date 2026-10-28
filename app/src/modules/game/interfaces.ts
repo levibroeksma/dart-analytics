@@ -119,7 +119,7 @@ export interface DartGameSpec<
   readonly coordinateCapture?: boolean;
   /** An open turn's `totalScore` is its darts' board-score sum after every dart, under `coordinateCapture`. */
   readonly liveTotal?: boolean;
-  /** Replaces the default `isComplete()` (any status but `IN_PROGRESS`); `expiredAt` is the state when `expireTimer()` first ran, or null. */
+  /** Replaces the default `isComplete()` (any status but `IN_PROGRESS`); `expiredAt` is the state when `expireTimer()` last ran, or null. */
   complete?(state: TState, config: TConfig, expiredAt: TState | null): boolean;
   /** The stage `state` plays in; the shell opens it after a closing record when its `clientKey` differs from the open stage's, counts turn `sequence` within each stage and undoes with `undoStagedTurn`. */
   stageFor?(state: TState): StageFact;

@@ -110,8 +110,8 @@ function randomVisit(
 }
 
 /**
- * Mixes the two 121 input shapes in one log: with probability `visitRate` a
- * keypad total — an exact check-out of the active seat's live remainder with
+ * Mixes the two 121 input shapes in one log, as the play page can: with
+ * probability `visitRate`, when no board visit is open, a keypad total — an exact check-out of the active seat's live remainder with
  * probability `checkoutRate`, else any score in `0..184` (out-of-range ones
  * fire the guard) — otherwise a located board dart, towards the remainder with
  * probability `towardRate`, else random.
@@ -129,7 +129,8 @@ export function oneTwentyOneInputs(
     const seat = state.seats.find(
       (candidate) => candidate.participantRef === state.activeParticipantRef,
     )!;
-    if (rand() < visitRate)
+    const boardVisitOpen = engine.facts().turns.at(-1)?.completedAt === null;
+    if (rand() < visitRate && !boardVisitOpen)
       return randomVisit(rand, seat.remainingInAttempt, checkoutRate);
     if (rand() >= towardRate || seat.remainingInAttempt <= 1)
       return located(randomObservation(rand));

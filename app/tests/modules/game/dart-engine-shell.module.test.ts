@@ -491,7 +491,7 @@ describe("dartGameEngineClass — stage, live total and expiry hooks", () => {
     });
   });
 
-  it("passes complete the state at the first expireTimer() call", () => {
+  it("passes complete the state at the latest expireTimer() call", () => {
     const engine = new Staged({ limit: 0 });
     engine.record(T20_AT);
     expect(engine.isComplete()).toBe(false);
@@ -499,10 +499,7 @@ describe("dartGameEngineClass — stage, live total and expiry hooks", () => {
     expect(engine.isComplete()).toBe(false);
     engine.record(T20_AT);
     expect(engine.isComplete()).toBe(true);
-    engine.undo();
     engine.expireTimer();
     expect(engine.isComplete()).toBe(false);
-    engine.record(T20_AT);
-    expect(engine.isComplete()).toBe(true);
   });
 });

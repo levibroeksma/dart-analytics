@@ -40,7 +40,7 @@ import type {
  * instead of its hit fields, leaving an open turn's total unwritten unless
  * `liveTotal` writes the darts' sum; `complete` replaces the default
  * `isComplete()` (any status other than `IN_PROGRESS`) and reads the state
- * when `expireTimer()` first ran. `stageFor` opens a new stage after a closing
+ * when `expireTimer()` last ran. `stageFor` opens a new stage after a closing
  * record, counts turn `sequence` within each stage, and undoes with
  * `undoStagedTurn`.
  */
@@ -192,7 +192,7 @@ export function dartGameEngineClass<
     }
 
     expireTimer(): void {
-      this.expiredAt ??= this.deriveState();
+      this.expiredAt = this.deriveState();
       this.timerExpired = true;
     }
 
