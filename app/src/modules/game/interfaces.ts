@@ -118,6 +118,8 @@ export interface DartGameSpec<
   readonly visitInput?: DartGameVisitInput<TConfig, TState, TVisit>;
   /** Darts resolve from their coordinates (`resolveObservation`) and carry no intent; an open turn's `totalScore` is never written, so only `closedVisitTotal` sets it. */
   readonly coordinateCapture?: boolean;
+  /** An open turn's `totalScore` is its darts' board-score sum after every dart, in either capture mode; `closedVisitTotal` still settles it at close. */
+  readonly liveTotal?: boolean;
   /** Replaces the default `isComplete()` (any status but `IN_PROGRESS`). */
   complete?(state: TState, config: TConfig): boolean;
 }

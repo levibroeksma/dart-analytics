@@ -14,6 +14,7 @@ import {
   openOrCreateTurn,
   openVisit,
   resolveObservation,
+  sumDartScores,
   turnsBeforeVisit,
   undoLastDart,
   undoLastUnit,
@@ -33,7 +34,8 @@ import type {
  * `closedVisitTotal` then sets that turn's `totalScore`. A spec with
  * `visitInput` writes a keypad total as one closed dartless turn and undoes
  * whole turns; `coordinateCapture` resolves each dart from its coordinates
- * instead of its hit fields, leaving an open turn's total unwritten; `complete`
+ * instead of its hit fields, leaving an open turn's total unwritten unless the
+ * spec sets `liveTotal`, which keeps it at the darts' sum; `complete`
  * replaces the default `isComplete()` (any status other than `IN_PROGRESS`).
  */
 export function dartGameEngineClass<
@@ -113,6 +115,7 @@ export function dartGameEngineClass<
         appendResolvedDart(turn, observation, resolveObservation(observation));
       else
         appendObservedDart(turn, observation, spec.intent(before, this.config));
+      if (spec.liveTotal) turn.totalScore = sumDartScores(turn.darts);
       const after = this.deriveState();
       if (spec.isVisitOpen(turn, after, this.config)) return after;
       turn.completedAt = new Date().toISOString();

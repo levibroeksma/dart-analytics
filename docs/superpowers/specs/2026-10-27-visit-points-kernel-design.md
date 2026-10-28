@@ -137,6 +137,8 @@ Live open-visit `totalScore` needs no gap: `appendObservedDart` already sets
 it on every dart, and `appendResolvedDart` leaves it to the caller, which is
 why the append hook must set it too.
 
+> Status (2026-10-28, PR 2): Ten Up One Down had already landed `visitInput`, `complete`, `coordinateCapture`, whole-turn undo and the open-visit refusal (via `visitInput.refusal(…, open)`), so PR 2 reused them. `coordinateCapture` leaves an open turn's total unwritten, so the one new gap is `liveTotal` (D503).
+
 ## 5. Migration method (per PR)
 
 Track §7 / Checkout §7 unchanged:
