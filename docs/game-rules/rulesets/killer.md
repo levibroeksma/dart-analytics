@@ -10,7 +10,8 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
-| Multiplayer (2–4 seats) | V1 | 2+ | |
+| Multiplayer (2 seats) | V1 | 2+ | |
+| Three or four seats | Deferred | 2+ | Blocked on: setup seats one guest or bot (`app/src/lib/game/guest-list.ts:19`) and the play screen draws two seats (`app/src/components/layout/games/SplitScoreboard.astro:3`); the engine already takes four (user decision 2026-10-27) |
 | More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts:7`); the source calls 3–8 best and allows up to 20 |
 | Config screen (presets shown) | V1 | All | |
 | Seat numbers: one per seat, 1–20, no two alike, set at setup | V1 | All | |
@@ -59,7 +60,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 
 | Setting | Preset | On config screen |
 | --- | --- | --- |
-| Players | 2 seats (min 2, max 4) | Editable |
+| Players | 2 seats | Shown, locked |
 | Seat numbers | Chosen per seat, 1–20, no two alike | Editable |
 | Lives | 3 | Shown, locked |
 | Damage rule | Doubles only; Survivor (V2+) counts any ring | Editable (V2+) |
@@ -80,6 +81,10 @@ Up to **three darts**, then play passes to the next seat still in.
 - Hit **your own double** to become a Killer.
 - "Players who haven't yet become Killers cannot eliminate anyone." A
   non-Killer's dart in another seat's double does nothing.
+- Status changes take effect on the next dart: a seat that becomes a Killer
+  mid-visit may take lives with the visit's remaining darts; a second
+  own-double hit in the same visit loses the status again (user decision
+  2026-10-27).
 
 ### Taking lives
 
@@ -124,7 +129,7 @@ took to become a Killer.
   Blind Killer and Team Killer above.
 
 **2+:** the source asks for three or more players; seats follow Killer
-(2–4). Survivor's ring scaling needs the hit's ring, which Capture's "number
+(two in V1; three or four Deferred). Survivor's ring scaling needs the hit's ring, which Capture's "number
 and zone" already records.
 
 ### Match structure
@@ -167,12 +172,16 @@ Killer is unbuilt; this is the capture shape its V1 is designed for.
 
 ## Open questions
 
-- A seat that becomes a Killer on dart 1 or 2: may the visit's remaining
-  darts take lives? The source does not say.
-- A non-Killer hitting their own double twice in one visit: Killer on the
-  first, status lost on the second? The source's two rules meet here.
-- Seat numbers: player-chosen (V1 proposal) or a random draw on the config
-  screen?
+- ~~A seat that becomes a Killer on dart 1 or 2: may the visit's remaining
+  darts take lives? The source does not say.~~ **Resolved:** yes — status
+  changes take effect on the next dart (user decision 2026-10-27).
+- ~~A non-Killer hitting their own double twice in one visit: Killer on the
+  first, status lost on the second? The source's two rules meet here.~~
+  **Resolved:** yes — every own-double hit toggles the status (user decision
+  2026-10-27).
+- ~~Seat numbers: player-chosen (V1 proposal) or a random draw on the config
+  screen?~~ **Resolved:** player-chosen on the setup screen (user decision
+  2026-10-27).
 - Survivor: the source's overview ("low scorers pushed toward the edge … fall
   off the virtual platform") describes a score-based game; its rules text is
   a Killer variant. Classified by the rules text; is the overview a different

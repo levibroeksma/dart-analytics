@@ -7,6 +7,7 @@ import {
   BaseballEngine,
   initialBaseballState,
 } from "@modules/game/baseball.engine.module";
+import { KillerEngine } from "@modules/game/killer.engine.module";
 import {
   CricketEngine,
   initialCricketState,
@@ -657,5 +658,71 @@ describe("REPLAY_PRESENTERS two-seat Baseball and Nine Lives", () => {
       value: "Out",
     });
     expect(entries[0]!.value).not.toBe("Out");
+  });
+});
+
+describe("REPLAY_PRESENTERS.KILLER", () => {
+  const config = {
+    lives: 3 as const,
+    seatNumbers: [5, 12],
+    seats: [
+      {
+        participantRef: "p1",
+        displayName: "L",
+        sideKey: "A",
+        participantTypeKey: "PLAYER" as const,
+      },
+      {
+        participantRef: "p2",
+        displayName: "G",
+        sideKey: "B",
+        participantTypeKey: "GUEST" as const,
+      },
+    ],
+  };
+  const double = (hitTargetNumber: number) => ({
+    hitTargetNumber,
+    hitZoneKey: "DOUBLE" as const,
+    locationX: null,
+    locationY: null,
+  });
+
+  function oneVisit() {
+    const engine = new KillerEngine(config);
+    for (const n of [5, 12, 12]) engine.record(double(n));
+    return engine;
+  }
+
+  it("shows the thrower's lives and the lives taken this visit", () => {
+    const engine = oneVisit();
+    const [turn] = engine.facts().turns;
+    const before = new KillerEngine(config).state();
+    const cells = REPLAY_PRESENTERS.KILLER.turn(
+      { turn, before, after: engine.state() },
+      config,
+    );
+    expect(cells).toEqual([
+      { kind: "value", label: "Lives", value: "3" },
+      { kind: "value", label: "Taken", value: "2" },
+    ]);
+  });
+
+  it("ends the session line on lives", () => {
+    const engine = oneVisit();
+    const [turn] = engine.facts().turns;
+    const line = REPLAY_PRESENTERS.KILLER.session(
+      [
+        {
+          turn,
+          before: new KillerEngine(config).state(),
+          after: engine.state(),
+        },
+      ],
+      config,
+    );
+    expect(line.entries).toEqual([
+      { participantId: "p1", label: "Lives", value: "3" },
+      { participantId: "p2", label: "Lives", value: "1" },
+    ]);
   });
 });

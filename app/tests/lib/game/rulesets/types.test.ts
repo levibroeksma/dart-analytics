@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   AroundTheClockConfig,
   BaseballConfig,
+  KillerConfig,
   Bobs27Config,
   Bobs27V2Config,
   CricketConfig,
@@ -772,5 +773,31 @@ describe("Bobs27V2Config", () => {
 
   it("leaves V1 refusing a mode key", () => {
     expect(Bobs27Config.safeParse({ mode: "EASY" }).success).toBe(false);
+  });
+});
+
+describe("KillerConfig", () => {
+  it("is KILLER_V1's schema", () => {
+    expect(RULESET_CONFIGS.KILLER_V1).toBe(KillerConfig);
+  });
+
+  it("parses the seeded preset with no seat numbers yet", () => {
+    expect(KillerConfig.parse({ lives: 3 })).toEqual({
+      lives: 3,
+      seat_numbers: [],
+    });
+  });
+
+  it("locks three lives and numbers 1–20", () => {
+    expect(KillerConfig.safeParse({ lives: 5 }).success).toBe(false);
+    expect(
+      KillerConfig.safeParse({ lives: 3, seat_numbers: [0, 12] }).success,
+    ).toBe(false);
+    expect(
+      KillerConfig.safeParse({ lives: 3, seat_numbers: [5, 21] }).success,
+    ).toBe(false);
+    expect(
+      KillerConfig.safeParse({ lives: 3, seat_numbers: [5, 12] }).success,
+    ).toBe(true);
   });
 });

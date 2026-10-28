@@ -152,6 +152,61 @@ describe("brand radius and spacing", () => {
   });
 });
 
+describe("design-system tokens (design sync, tokens area)", () => {
+  const tokenBlock = (opener: string) => {
+    const start = css.indexOf(`${opener} {`);
+    return css.slice(start, css.indexOf("\n}", start) + 2);
+  };
+
+  it.each([":root", "@theme inline"])("%s holds no px values", (opener) => {
+    expect(tokenBlock(opener)).not.toMatch(/\d px|\dpx\b/);
+  });
+
+  it.each([
+    ["space-1", "0.25rem"],
+    ["space-6", "1.75rem"],
+    ["hit", "2.75rem"],
+    ["screen-width", "24.375rem"],
+    ["glass-blur", "blur(0.5rem)"],
+    ["hairline", "0.0625rem solid oklch(100% 0 0 / 0.08)"],
+    ["type-hero", "400 4.5rem/1 var(--font-display)"],
+    ["tracking-overline", "0.14em"],
+    ["dur-sheet", "200ms"],
+    ["inset-bg", "oklch(0% 0 0 / 0.35)"],
+    ["progress-done", "var(--accent)"],
+  ])("defines --%s", (name, value) => {
+    expect(decl(name)).toBe(value);
+  });
+
+  it.each([
+    ["radius-pill", "624.9375rem"],
+    ["radius-card", "1.25rem"],
+    ["radius-tile", "1rem"],
+    ["radius-inlay", "0.875rem"],
+    ["radius-button", "0.75rem"],
+  ])("maps --%s in @theme", (name, value) => {
+    expect(tokenBlock("@theme inline")).toContain(`--${name}: ${value};`);
+  });
+
+  it.each([
+    ["title-foreground", "var(--foreground)"],
+    ["body-foreground", "var(--muted)"],
+    ["caption-foreground", "var(--muted-foreground)"],
+    ["accent-text-foreground", "var(--accent-bright)"],
+  ])(
+    "names the colour alias --%s outside the text-* size namespace",
+    (name, value) => {
+      expect(decl(name)).toBe(value);
+    },
+  );
+
+  it("defines the skeleton pulse keyframes", () => {
+    expect(css).toMatch(
+      /@keyframes skpulse\s*\{\s*0%,\s*100%\s*\{\s*opacity: 0\.45;?\s*\}\s*50%\s*\{\s*opacity: 1;?\s*\}\s*\}/,
+    );
+  });
+});
+
 function block(selector: string): string {
   const start = css.indexOf(`${selector} {`);
   if (start < 0) throw new Error(`${selector} not found`);
@@ -360,14 +415,14 @@ describe("inset field autofill", () => {
 describe("hero glow", () => {
   it("tints the hero text glow with the accent", () => {
     expect(decl("text-shadow-glow")).toBe(
-      "0 4px 30px oklch(68.5% 0.169 237.323 / 0.35)",
+      "0 0.25rem 1.875rem oklch(68.5% 0.169 237.323 / 0.35)",
     );
   });
 });
 
 describe("login surfaces", () => {
   it("defines the card drop shadow", () => {
-    expect(decl("shadow-card")).toBe("0 24px 60px oklch(0% 0 0 / 0.4)");
+    expect(decl("shadow-card")).toBe("0 1.5rem 3.75rem oklch(0% 0 0 / 0.4)");
   });
 
   it("draws a coral inset ring on an errored inset field", () => {
@@ -469,7 +524,9 @@ describe("game play surfaces", () => {
   });
 
   it("defines the magnifier drop shadow", () => {
-    expect(decl("shadow-magnifier")).toBe("0 8px 24px oklch(0% 0 0 / 0.6)");
+    expect(decl("shadow-magnifier")).toBe(
+      "0 0.5rem 1.5rem oklch(0% 0 0 / 0.6)",
+    );
   });
 });
 

@@ -152,6 +152,12 @@ export const GAME_FIXTURES: Record<GameTypeKey, GameFixture> = {
     configuration: {},
     script: UNIVERSAL_SCRIPT,
   },
+  KILLER: {
+    rulesetVersionKey: "KILLER_V1",
+    stageTypeKey: "EXERCISE_BLOCK",
+    configuration: { lives: 3, seat_numbers: [20, 19] },
+    script: UNIVERSAL_SCRIPT,
+  },
 };
 
 /**

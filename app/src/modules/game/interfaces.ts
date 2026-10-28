@@ -1,11 +1,13 @@
-import type { RulesetVersionKey } from "@lib/types";
+import type { RulesetVersionKey, SeatFact } from "@lib/types";
 import type {
   BoardTarget,
   DartIntent,
   CheckoutSeat,
   DartObservation,
+  EliminationSeat,
   EngineFacts,
   JudgedDart,
+  SeatChange,
   ShellState,
   StageFact,
   StageOwnership,
@@ -117,7 +119,7 @@ export interface DartGameSpec<
   readonly visitInput?: DartGameVisitInput<TConfig, TState, TVisit>;
   /** Darts resolve from their coordinates (`resolveObservation`) and carry no intent; an open turn's `totalScore` is never written, so only `closedVisitTotal` sets it. */
   readonly coordinateCapture?: boolean;
-  /** An open turn's `totalScore` is its darts' board-score sum after every dart, under `coordinateCapture`. */
+  /** An open turn's `totalScore` is its darts' board-score sum after every dart, in either capture mode; `closedVisitTotal` still settles it at close. */
   readonly liveTotal?: boolean;
   /** Replaces the default `isComplete()` (any status but `IN_PROGRESS`); `expiredAt` is the state when `expireTimer()` last ran, or null. */
   complete?(state: TState, config: TConfig, expiredAt: TState | null): boolean;
@@ -181,4 +183,29 @@ export interface CheckoutRules<TExt> {
     verdict: VisitVerdict,
   ): CheckoutSeat<TExt>;
   nextTarget(seat: CheckoutSeat<TExt>, passed: boolean): number | null;
+}
+
+/**
+ * A Visit points ruleset (`visit-points-kernel.module.ts`): how many darts
+ * close a visit, and the points a closed visit's total earns.
+ */
+export interface VisitPointsRules {
+  readonly dartsPerVisit: number;
+  points(visitTotal: number): number;
+}
+
+/**
+ * An Elimination ruleset as one policy over `EliminationSeat`
+ * (`elimination-kernel.module.ts`): the lives each seat starts on, its
+ * starting `ext`, and every change one dart causes, judged on the seats as
+ * they stand before it.
+ */
+export interface EliminationRules<TExt> {
+  readonly startingLives: number;
+  initExt(seat: SeatFact, index: number): TExt;
+  onDart(
+    thrower: EliminationSeat<TExt>,
+    seats: readonly EliminationSeat<TExt>[],
+    dart: DartObservation,
+  ): readonly SeatChange<TExt>[];
 }

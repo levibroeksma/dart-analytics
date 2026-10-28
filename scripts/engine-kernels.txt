@@ -8,8 +8,9 @@ app/src/modules/game/bobs27.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-
 app/src/modules/game/cricket.engine.module.ts | MARKS | PENDING | docs/game-rules/rulesets/cricket.md | Marks family plan; builds on MarksEngine (D487)
 app/src/modules/game/doubles-training.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/rulesets/doubles-training.md |
 app/src/modules/game/five-oh-one.engine.module.ts | HAND_WRITTEN | HAND_WRITTEN | docs/game-rules/rulesets/501.md | sets/legs match format (umbrella spec §5)
+app/src/modules/game/killer.engine.module.ts | ELIMINATION | KERNEL_BOUND | docs/game-rules/rulesets/killer.md |
 app/src/modules/game/one-twenty-one.engine.module.ts | CHECKOUT | KERNEL_BOUND | docs/game-rules/rulesets/121.md | Checkout kernel
-app/src/modules/game/score-training.engine.module.ts | VISIT_POINTS | PENDING | docs/game-rules/rulesets/score-training.md | Visit-points family plan
+app/src/modules/game/score-training.engine.module.ts | VISIT_POINTS | KERNEL_BOUND | docs/game-rules/rulesets/score-training.md |
 app/src/modules/game/shanghai.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/rulesets/shanghai.md |
 app/src/modules/game/singles-training.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/rulesets/singles-training.md |
 app/src/modules/game/tactics.engine.module.ts | MARKS | PENDING | docs/game-rules/rulesets/tactics.md | Marks family plan; builds on MarksEngine (D487)
@@ -22,7 +23,7 @@ app/src/modules/training/exercises/doubles-lock.engine.module.ts | TRACK | KERNE
 app/src/modules/training/exercises/halve-it.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/training/exercises/halve-it.md |
 app/src/modules/training/exercises/hit-count.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/training/exercises/hit-count.md |
 app/src/modules/training/exercises/random-checkout.engine.module.ts | CHECKOUT | KERNEL_BOUND | docs/game-rules/training/exercises/random-checkout.md |
-app/src/modules/training/exercises/score-threshold.engine.module.ts | VISIT_POINTS | PENDING | docs/game-rules/training/exercises/score-threshold.md | Visit-points family plan
+app/src/modules/training/exercises/score-threshold.engine.module.ts | VISIT_POINTS | KERNEL_BOUND | docs/game-rules/training/exercises/score-threshold.md |
 app/src/modules/training/exercises/snakes-ladders.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/training/exercises/doubles-snakes-and-ladders.md |
 app/src/modules/training/exercises/switchblade.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/training/exercises/switchblade.md |
 app/src/modules/training/exercises/switching-chain.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/training/exercises/switching.md |

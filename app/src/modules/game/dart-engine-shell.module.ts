@@ -14,11 +14,11 @@ import {
   openOrCreateTurn,
   openVisit,
   resolveObservation,
+  sumDartScores,
   turnsBeforeVisit,
   undoLastDart,
   undoLastUnit,
   undoStagedTurn,
-  sumDartScores,
 } from "./turn-log.module";
 import type {
   DartObservation,
@@ -37,12 +37,12 @@ import type {
  * `closedVisitTotal` then sets that turn's `totalScore`. A spec with
  * `visitInput` writes a keypad total as one closed dartless turn and undoes
  * whole turns; `coordinateCapture` resolves each dart from its coordinates
- * instead of its hit fields, leaving an open turn's total unwritten unless
- * `liveTotal` writes the darts' sum; `complete` replaces the default
- * `isComplete()` (any status other than `IN_PROGRESS`) and reads the state
- * when `expireTimer()` last ran. `stageFor` opens a new stage after a closing
- * record, counts turn `sequence` within each stage, and undoes with
- * `undoStagedTurn`.
+ * instead of its hit fields, leaving an open turn's total unwritten unless the
+ * spec sets `liveTotal`, which keeps it at the darts' sum; `complete`
+ * replaces the default `isComplete()` (any status other than `IN_PROGRESS`)
+ * and reads the state when `expireTimer()` last ran. `stageFor` opens a new
+ * stage after a closing record, counts turn `sequence` within each stage, and
+ * undoes with `undoStagedTurn`.
  */
 export function dartGameEngineClass<
   TConfig,
@@ -155,11 +155,11 @@ export function dartGameEngineClass<
         (last) => spec.isVisitOpen(last, before, this.config),
       );
       if (this.turns.length > count) this.numberInStage(turn);
-      if (spec.coordinateCapture) {
+      if (spec.coordinateCapture)
         appendResolvedDart(turn, observation, resolveObservation(observation));
-        if (spec.liveTotal) turn.totalScore = sumDartScores(turn.darts);
-      } else
+      else
         appendObservedDart(turn, observation, spec.intent(before, this.config));
+      if (spec.liveTotal) turn.totalScore = sumDartScores(turn.darts);
       const after = this.deriveState();
       if (spec.isVisitOpen(turn, after, this.config)) return after;
       turn.completedAt = new Date().toISOString();

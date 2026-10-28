@@ -503,3 +503,41 @@ describe("dartGameEngineClass — stage, live total and expiry hooks", () => {
     expect(engine.isComplete()).toBe(false);
   });
 });
+
+describe("dartGameEngineClass — live total", () => {
+  const liveSpec: DartGameSpec<{ limit: number }, Toy> = {
+    ...spec,
+    coordinateCapture: true,
+    liveTotal: true,
+  };
+  const Live = dartGameEngineClass(liveSpec);
+  const at = (x: number, y: number) => ({
+    hitTargetNumber: null,
+    hitZoneKey: "MISS" as const,
+    locationX: x,
+    locationY: y,
+  });
+
+  it("writes the open turn's totalScore as its darts' sum after every dart", () => {
+    const engine = new Live({ limit: 10 });
+    engine.record(at(0, -102));
+    expect(engine.facts().turns[0].totalScore).toBe(60);
+    engine.record(at(0, -102));
+    expect(engine.facts().turns[0].totalScore).toBe(120);
+  });
+
+  it("leaves the total unwritten without the flag", () => {
+    const Coord = dartGameEngineClass({ ...spec, coordinateCapture: true });
+    const engine = new Coord({ limit: 10 });
+    engine.record(at(0, -102));
+    expect(engine.facts().turns[0].totalScore).toBe(0);
+  });
+
+  it("an undo that reopens a visit rewrites the total to the remaining darts", () => {
+    const engine = new Live({ limit: 10 });
+    engine.record(at(0, -102));
+    engine.record(at(0, -102));
+    engine.undo();
+    expect(engine.facts().turns[0].totalScore).toBe(60);
+  });
+});

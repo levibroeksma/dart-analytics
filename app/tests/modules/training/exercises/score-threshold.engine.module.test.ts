@@ -200,4 +200,20 @@ describe("foldScoreThresholdState", () => {
       engine.state(),
     );
   });
+
+  it("is built on the exercise shell", () => {
+    const engine = new ScoreThresholdEngine(CONFIG);
+    expect(engine.spec.exerciseRulesetVersionKey).toBe("SCORE_THRESHOLD_V1");
+  });
+
+  it("beats on exactly 65, not on 64", () => {
+    const engine = new ScoreThresholdEngine(CONFIG);
+    play(engine, [T20, S5, MISS]);
+    play(engine, [T20, dart(4, "SINGLE"), MISS]);
+    expect(engine.state()).toMatchObject({
+      visits: 2,
+      beats: 1,
+      lastVisitTotal: 64,
+    });
+  });
 });

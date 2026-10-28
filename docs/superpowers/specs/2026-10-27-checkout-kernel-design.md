@@ -157,7 +157,7 @@ All additive: existing specs compile unchanged.
 
 Refined by the PR 3 plan (2026-10-27): beyond `visitInput`, the shell takes optional `coordinateCapture` (darts resolve from their coordinates via `resolveObservation`, carry no intent, and leave an open turn's `totalScore` unwritten — TUOD is coordinate-captured), `complete(state, config)` (replaces `isComplete()`), `isVisitOpen(turn, state, config)`, `wouldComplete(state, input, config, open)` and `closedVisitTotal(opened, closed, participantRef, turn, config)`; `undo()` uses `undoLastUnit` when `visitInput` is declared.
 
-Refined by the PR 4 plan (2026-10-28): `stageFor(state)` is a pure function of the folded state (121: `round-(1 + Σ attempts − won)`); with it the shell counts turn `sequence` within its stage and undoes with `undoStagedTurn`. Two further optional hooks: `liveTotal` (an open turn's `totalScore` is its darts' sum under `coordinateCapture`) and a third `complete` argument, `expiredAt` — the state at the latest `expireTimer()` call (121's `MINUTES` rule).
+Refined by the PR 4 plan (2026-10-28): `stageFor(state)` is a pure function of the folded state (121: `round-(1 + Σ attempts − won)`); with it the shell counts turn `sequence` within its stage and undoes with `undoStagedTurn`. Two further optional hooks: `liveTotal` (an open turn's `totalScore` is its darts' sum; landed first with Score Training, D503) and a third `complete` argument, `expiredAt` — the state at the latest `expireTimer()` call (121's `MINUTES` rule).
 
 ## 7. Migration method (per PR)
 

@@ -944,3 +944,54 @@ describe("ScoreTrainingEngine — exerciseBlockStage wiring (F40)", () => {
     ]);
   });
 });
+
+describe("ScoreTrainingEngine — game shell", () => {
+  it("is built on the game shell", () => {
+    const engine = new ScoreTrainingEngine(ROUNDS_10);
+    expect(engine.spec.rulesetVersionKey).toBe("SCORE_TRAINING_V1");
+    expect(engine.spec.liveTotal).toBe(true);
+  });
+
+  it("keypad refusal order: decided, then open board visit, then range", () => {
+    const duel: Seated<ScoreTrainingSnapshot> = {
+      ...ROUNDS_10,
+      durationValue: 1,
+      seats: [
+        ...SEATS,
+        {
+          participantRef: "participant-2",
+          displayName: "Ana",
+          sideKey: "B",
+          participantTypeKey: "PLAYER" as const,
+        },
+      ],
+    };
+    const engine = new ScoreTrainingEngine(duel);
+    engine.record({
+      hitTargetNumber: 20,
+      hitZoneKey: "TREBLE",
+      locationX: 0,
+      locationY: -102,
+    });
+    expect(() => engine.record(999)).toThrow(
+      "Finish the open visit on the board before entering a keypad total.",
+    );
+    engine.undo();
+    expect(() => engine.record(999)).toThrow(
+      "Enter a score between 0 and 180.",
+    );
+    engine.record(60);
+    engine.record(40);
+    expect(() => engine.record(999)).toThrow(
+      "Cannot record a visit once the match is complete; undo first to correct it.",
+    );
+    expect(() =>
+      engine.record({
+        hitTargetNumber: 20,
+        hitZoneKey: "TREBLE",
+        locationX: 0,
+        locationY: -102,
+      }),
+    ).toThrow("Cannot record a dart once the match is complete");
+  });
+});
