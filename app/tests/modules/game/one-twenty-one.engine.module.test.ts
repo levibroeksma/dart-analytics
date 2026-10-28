@@ -1491,7 +1491,7 @@ describe("mixed input and solo-only durations", () => {
     expect(engine.facts()).toEqual(before);
   });
 
-  it("reads only seat 0's attempts for a duel ROUNDS session", () => {
+  it("reads only seat 0's attempts for a duel ROUNDS config, which rejectSeatRequest never seats", () => {
     const duel = {
       durationType: "ROUNDS",
       durationValue: 1,
