@@ -40,6 +40,12 @@ const SEAT_CAPS: Record<string, number> = {
 };
 
 /**
+ * The fewest seats a session may request, keyed by ruleset version. A ruleset
+ * with no entry defaults to 1. An omitted seat list counts as one seat.
+ */
+const SEAT_FLOORS: Record<string, number> = { KILLER_V1: 2 };
+
+/**
  * Why a requested seat list cannot be created, or null when it can. The
  * session is never created on a rejection — participants, snapshot and
  * session share one transaction, so there is no half-built session with
@@ -53,13 +59,16 @@ const SEAT_CAPS: Record<string, number> = {
  * Two seats on one side is the guard that stops 2v2 preparation from
  * silently half-working: `sideKey` and per-side folding exist, the pairing
  * does not. A ruleset's own cap in `SEAT_CAPS` is the guard that stops a
- * session persisting a participant nothing can throw for.
+ * session persisting a participant nothing can throw for. A ruleset's floor
+ * in `SEAT_FLOORS` refuses a list, or an omitted list, with too few seats.
  */
 export function rejectSeatRequest(
   participants: ParticipantInputData[] | undefined,
   rulesetVersionKey: string,
 ): string | null {
-  if (participants === undefined) return null;
+  const floor = SEAT_FLOORS[rulesetVersionKey] ?? MIN_SEATS;
+  const floorMessage = `${rulesetVersionKey} needs at least ${floor} seats.`;
+  if (participants === undefined) return floor > 1 ? floorMessage : null;
 
   if (participants.length < MIN_SEATS || participants.length > MAX_SEATS) {
     return `A session needs between ${MIN_SEATS} and ${MAX_SEATS} seats.`;
@@ -94,6 +103,8 @@ export function rejectSeatRequest(
   if (sides.size !== participants.length) {
     return "Only one seat per side is supported; 2v2 is not implemented yet.";
   }
+
+  if (participants.length < floor) return floorMessage;
 
   const cap = SEAT_CAPS[rulesetVersionKey] ?? 1;
   if (participants.length > cap) {
