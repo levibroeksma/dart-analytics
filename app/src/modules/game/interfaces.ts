@@ -97,7 +97,8 @@ export interface DartGameSpec<
   /** Folds the log; `timerExpired` is the shell's `expireTimer()` flag (timerless specs ignore it). */
   fold(facts: EngineFacts, config: TConfig, timerExpired: boolean): TState;
   refusal(state: TState): string | null;
-  intent(state: TState, config: TConfig): DartIntent;
+  /** The intent each dart records; omitted, darts record `NO_INTENT`. Never called under `coordinateCapture`. */
+  intent?(state: TState, config: TConfig): DartIntent;
   /** Whether `turn` still takes darts, given the folded state before the dart (reuse) or after it (close). */
   isVisitOpen(turn: TurnFact, state: TState, config: TConfig): boolean;
   /** `open` is the turn still taking darts, or `null`. */

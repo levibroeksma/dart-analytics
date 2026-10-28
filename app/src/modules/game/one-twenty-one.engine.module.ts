@@ -24,7 +24,6 @@ import {
 import { registerEngineFactory } from "./engine.registry";
 import {
   isDartObservationInput,
-  NO_INTENT,
   resolveObservation,
   sumDartScores,
 } from "./turn-log.module";
@@ -524,7 +523,6 @@ const oneTwentyOneSpec: DartGameSpec<
     state.status !== "IN_PROGRESS"
       ? "Cannot record a visit once the match has ended"
       : null,
-  intent: () => NO_INTENT,
   isVisitOpen: isOneTwentyOneVisitOpen,
   wouldComplete: (state, input, config) =>
     wouldCompleteSession(state, input, config),

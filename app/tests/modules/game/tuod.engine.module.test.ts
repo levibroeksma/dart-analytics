@@ -658,6 +658,8 @@ describe("TuodEngine.record — dart-by-dart (VISUAL_BOARD)", () => {
       hitZoneKey: "DOUBLE",
       hitTargetNumber: 20,
       score: 40,
+      intendedTargetNumber: null,
+      intendedZoneKey: null,
       locationX: 0,
       locationY: -166,
     });

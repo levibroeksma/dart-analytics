@@ -349,11 +349,22 @@ describe("dartGameEngineClass — specs without the hooks", () => {
     expect(engine.undo()).toBe(true);
     expect(engine.undo()).toBe(false);
   });
+
+  it("records no intent when the spec has no intent hook", () => {
+    const { intent: _intent, ...rest } = spec;
+    const engine = new (dartGameEngineClass(rest))({ limit: 10 });
+    engine.record(T20);
+    expect(engine.facts().turns[0].darts[0]).toMatchObject({
+      intendedTargetNumber: null,
+      intendedZoneKey: null,
+    });
+  });
 });
 
 describe("dartGameEngineClass — coordinate capture", () => {
+  const { intent: _intent, ...noIntent } = spec;
   const coordSpec: DartGameSpec<{ limit: number }, Toy> = {
-    ...spec,
+    ...noIntent,
     coordinateCapture: true,
   };
   const Coord = dartGameEngineClass(coordSpec);
