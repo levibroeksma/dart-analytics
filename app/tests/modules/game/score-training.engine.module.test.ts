@@ -947,11 +947,9 @@ describe("ScoreTrainingEngine — exerciseBlockStage wiring (F40)", () => {
 
 describe("ScoreTrainingEngine — game shell", () => {
   it("is built on the game shell", () => {
-    const engine = new ScoreTrainingEngine(ROUNDS_10) as unknown as {
-      spec?: { rulesetVersionKey: string; liveTotal?: boolean };
-    };
-    expect(engine.spec?.rulesetVersionKey).toBe("SCORE_TRAINING_V1");
-    expect(engine.spec?.liveTotal).toBe(true);
+    const engine = new ScoreTrainingEngine(ROUNDS_10);
+    expect(engine.spec.rulesetVersionKey).toBe("SCORE_TRAINING_V1");
+    expect(engine.spec.liveTotal).toBe(true);
   });
 
   it("keypad refusal order: decided, then open board visit, then range", () => {

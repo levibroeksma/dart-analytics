@@ -32,7 +32,7 @@
 - **Keypad refusal order stays legacy:** decided → open board visit → range. All in `visitInput.refusal`; spec-level `refusal` is the dart guard (decided, 1v1 only).
 - **Messages:** dart guard `endedRefusal("match is complete")`; keypad strings verbatim from legacy.
 - **Kernel seat per participant:** `foldVisitPoints(turns of that participantRef, rules)`, `rules = { dartsPerVisit: 3, points: (t) => t }`.
-- **Accepted divergence (as PR 1):** a stored turn with `completedAt` set and fewer than 3 darts reads open on the legacy fold, closed on the kernel's dart count. The live engine never writes one. Recorded in the golden test header.
+- **Accepted divergence (as PR 1):** a stored turn with `completedAt` set and fewer than 3 darts reads closed on the legacy fold, open on the kernel's dart count, so its points leave the seat's total once a later turn of that seat closes (#1126). The live engine never writes one. Recorded in the golden test header.
 - **Solo MINUTES:** `complete` is `durationSeatComplete` on solo, `status !== "IN_PROGRESS"` otherwise; `refusal` stays `null` for solo, so the finishing visit after expiry is still accepted.
 
 ## Review Focus

@@ -9,9 +9,10 @@ import type { ScoreTrainingInput } from "@modules/types";
 /*
  * Recorded on the hand-written engine before its rebind onto the visit
  * points kernel. One accepted divergence is outside these traces: a stored
- * turn with `completedAt` set and fewer than three darts reads open on the
- * hand-written fold and closed on the kernel's dart count. The live engine
- * never writes one.
+ * turn with `completedAt` set and fewer than three darts reads closed on the
+ * hand-written fold and open on the kernel's dart count, so its points leave
+ * the seat's total once a later turn of that seat closes (#1126). The live
+ * engine never writes one.
  */
 
 const seat = (n: number, side: string) => ({
