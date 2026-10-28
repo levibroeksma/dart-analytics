@@ -919,6 +919,20 @@ export type CheckoutSeat<TExt> = {
 };
 
 /**
+ * One seat on the Visit points kernel: closed `visits` and their summed
+ * `points`, the latest closed total, and the open visit's dart sum and
+ * dart count (`openTotal`/`dartsInVisit`, both 0 when none is open).
+ */
+export type VisitPointsSeat = {
+  visits: number;
+  points: number;
+  lastVisitTotal: number | null;
+  openTotal: number;
+  dartsInVisit: number;
+  dartsThrown: number;
+};
+
+/**
  * One seat of an Elimination match (`elimination-kernel.module.ts`): its
  * lives, whether it is out, and the game-owned `ext`.
  */

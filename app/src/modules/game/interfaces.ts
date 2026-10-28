@@ -181,6 +181,15 @@ export interface CheckoutRules<TExt> {
 }
 
 /**
+ * A Visit points ruleset (`visit-points-kernel.module.ts`): how many darts
+ * close a visit, and the points a closed visit's total earns.
+ */
+export interface VisitPointsRules {
+  readonly dartsPerVisit: number;
+  points(visitTotal: number): number;
+}
+
+/**
  * An Elimination ruleset as one policy over `EliminationSeat`
  * (`elimination-kernel.module.ts`): the lives each seat starts on, its
  * starting `ext`, and every change one dart causes, judged on the seats as
