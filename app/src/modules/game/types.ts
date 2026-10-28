@@ -914,6 +914,6 @@ export type CheckoutSeat<TExt> = {
   attemptIndex: number;
   attempts: number;
   checkouts: number;
-  status: "IN_PROGRESS" | "DONE";
+  status: "IN_PROGRESS" | "DONE" | "WON";
   ext: TExt;
 };
