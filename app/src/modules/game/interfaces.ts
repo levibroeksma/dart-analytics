@@ -1,11 +1,13 @@
-import type { RulesetVersionKey } from "@lib/types";
+import type { RulesetVersionKey, SeatFact } from "@lib/types";
 import type {
   BoardTarget,
   DartIntent,
   CheckoutSeat,
   DartObservation,
+  EliminationSeat,
   EngineFacts,
   JudgedDart,
+  SeatChange,
   ShellState,
   StageOwnership,
   TrackSeat,
@@ -176,4 +178,20 @@ export interface CheckoutRules<TExt> {
     verdict: VisitVerdict,
   ): CheckoutSeat<TExt>;
   nextTarget(seat: CheckoutSeat<TExt>, passed: boolean): number | null;
+}
+
+/**
+ * An Elimination ruleset as one policy over `EliminationSeat`
+ * (`elimination-kernel.module.ts`): the lives each seat starts on, its
+ * starting `ext`, and every change one dart causes, judged on the seats as
+ * they stand before it.
+ */
+export interface EliminationRules<TExt> {
+  readonly startingLives: number;
+  initExt(seat: SeatFact, index: number): TExt;
+  onDart(
+    thrower: EliminationSeat<TExt>,
+    seats: readonly EliminationSeat<TExt>[],
+    dart: DartObservation,
+  ): readonly SeatChange<TExt>[];
 }

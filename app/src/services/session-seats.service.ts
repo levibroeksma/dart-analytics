@@ -32,6 +32,7 @@ const SEAT_CAPS: Record<string, number> = {
   SHANGHAI_V2: 2,
   SHANGHAI_V3: 2,
   BASEBALL_V1: 2,
+  KILLER_V1: 2,
   SCORE_TRAINING_V1: 2,
   SINGLES_V1: 2,
   SINGLES_V3: 2,

@@ -43,6 +43,7 @@ import type {
   EngineFacts,
   FiveOhOneSeatState,
   FiveOhOneState,
+  KillerSeatState,
   MultiSeatState,
   OneTwentyOneSeatState,
   ScoreTrainingSeatState,
@@ -429,6 +430,23 @@ const BASEBALL: ReplayPresenter = {
 };
 
 /**
+ * Killer, read off the play page: the thrower's lives after the visit and the
+ * lives it took; the session line is each seat's lives left.
+ */
+const KILLER: ReplayPresenter = {
+  turn({ turn, before, after }) {
+    const prior = seatIn<KillerSeatState>(before, turn.participantRef);
+    const seat = seatIn<KillerSeatState>(after, turn.participantRef);
+    return [
+      valueCell("Lives", seat.lives),
+      valueCell("Taken", seat.livesTaken - prior.livesTaken),
+    ];
+  },
+  session: (steps) =>
+    finalLine<KillerSeatState>(steps, "Lives", (seat) => seat.lives),
+};
+
+/**
  * Each game's replay presenter (D371 decision 8): per turn, the values its
  * play page shows after the visit; per session, its outcome line.
  */
@@ -445,6 +463,7 @@ export const REPLAY_PRESENTERS: Record<GameTypeKey, ReplayPresenter> = {
   CRICKET,
   TACTICS,
   BASEBALL,
+  KILLER,
 };
 
 /** No facts to fold: every dart exercise kind's per-turn headline and darts count read off `state` alone (`stepMetrics`'s `numberField` reads), never off `facts` -- only Switching's own "hits" key uses `facts`, and a turn cell never shows it (session() does, over the real facts). */
