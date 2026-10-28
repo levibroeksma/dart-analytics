@@ -478,8 +478,9 @@ function wouldCompleteSession(
  * A cap checkout ends the session in every `durationType`. `ROUNDS` also
  * ends it once the sole seat's `attemptsCompleted` reaches `durationValue`;
  * `MINUTES` once the clock has run out and an attempt has closed since
- * (`expiredAt`). Reads seat 0 — `ROUNDS`/`MINUTES` are solo by setup-UI
- * convention, not an engine guard.
+ * (`expiredAt`). Reads seat 0: `121_V2`, the only version with
+ * `ROUNDS`/`MINUTES`, has no `SEAT_CAPS` entry, so `rejectSeatRequest` caps
+ * it at one seat (`session-seats.service.ts`).
  */
 function isOneTwentyOneComplete(
   state: OneTwentyOneState,
