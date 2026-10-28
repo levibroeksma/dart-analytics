@@ -27,6 +27,7 @@ describe("RULESET_CAPABILITIES", () => {
       "CRICKET_V1",
       "CRICKET_V2",
       "DOUBLES_TRAINING_V1",
+      "KILLER_V1",
       "SCORE_TRAINING_V1",
       "SHANGHAI_V1",
       "SHANGHAI_V2",
@@ -96,6 +97,7 @@ describe("supportsMode", () => {
     "TACTICS_V1",
     "TACTICS_V2",
     "BASEBALL_V1",
+    "KILLER_V1",
   ] as const)(
     "gives %s RECREATIONAL + DETAILED_DARTS, not ANALYTICS + DETAILED_DARTS",
     (rulesetVersionKey) => {
@@ -160,6 +162,7 @@ describe("capableRulesets", () => {
       "CRICKET_V1",
       "CRICKET_V2",
       "DOUBLES_TRAINING_V1",
+      "KILLER_V1",
       "SCORE_TRAINING_V1",
       "SHANGHAI_V1",
       "SHANGHAI_V2",
@@ -362,5 +365,17 @@ describe("Cricket V2 capabilities", () => {
 
   it("keeps solo Cricket without a dartbot", () => {
     expect(supportsDartbot("CRICKET_V1")).toBe(false);
+  });
+});
+
+describe("KILLER_V1", () => {
+  it("declares DETAILED_DARTS and VISUAL_BOARD, the board tag, game type KILLER, no Dartbot", () => {
+    expect(RULESET_CAPABILITIES.KILLER_V1).toEqual([
+      { captureModeKey: "RECREATIONAL", inputModeKey: "DETAILED_DARTS" },
+      { captureModeKey: "ANALYTICS", inputModeKey: "VISUAL_BOARD" },
+    ]);
+    expect(STATS_TAGS.KILLER_V1).toEqual(["board"]);
+    expect(GAME_TYPE_BY_RULESET.KILLER_V1).toBe("KILLER");
+    expect(supportsDartbot("KILLER_V1")).toBe(false);
   });
 });

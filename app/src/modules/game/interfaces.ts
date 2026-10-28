@@ -1,11 +1,13 @@
-import type { RulesetVersionKey } from "@lib/types";
+import type { RulesetVersionKey, SeatFact } from "@lib/types";
 import type {
   BoardTarget,
   DartIntent,
   CheckoutSeat,
   DartObservation,
+  EliminationSeat,
   EngineFacts,
   JudgedDart,
+  SeatChange,
   ShellState,
   StageOwnership,
   TrackSeat,
@@ -59,12 +61,34 @@ export interface GameEngineFactory<TConfig, TInput, TState> {
   create(config: TConfig, prior?: EngineFacts): GameEngine<TInput, TState>;
 }
 
+/** Whole-visit input a spec accepts besides darts (a keypad total). */
+export interface DartGameVisitInput<
+  TConfig,
+  TState extends ShellState,
+  TVisit,
+> {
+  isVisit(input: DartObservation | TVisit): input is TVisit;
+  /** Why the visit is refused now, or `null` — replaces the spec's `refusal` for visit input; `open` is the turn still taking darts. */
+  refusal(
+    state: TState,
+    input: TVisit,
+    config: TConfig,
+    open: TurnFact | null,
+  ): string | null;
+  /** The `totalScore` of the one closed, dartless turn the shell writes. */
+  total(state: TState, input: TVisit): number;
+}
+
 /**
  * What a single-stage, dart-input engine decides; everything else — the log,
  * keys, `completedAt`, undo, rehydration — is the shell's (Pattern 18).
  * `refusal` returns the error `record()` throws, or null to accept.
  */
-export interface DartGameSpec<TConfig, TState extends ShellState> {
+export interface DartGameSpec<
+  TConfig,
+  TState extends ShellState,
+  TVisit = never,
+> {
   readonly rulesetVersionKey: RulesetVersionKey;
   /** Further ruleset versions this one spec serves; `rulesetVersionKey` is the default. */
   readonly rulesetVersionKeys?: readonly RulesetVersionKey[];
@@ -74,37 +98,52 @@ export interface DartGameSpec<TConfig, TState extends ShellState> {
   refusal(state: TState): string | null;
   intent(state: TState, config: TConfig): DartIntent;
   /** Whether `turn` still takes darts, given the folded state before the dart (reuse) or after it (close). */
-  isVisitOpen(turn: TurnFact, state: TState): boolean;
+  isVisitOpen(turn: TurnFact, state: TState, config: TConfig): boolean;
+  /** `open` is the turn still taking darts, or `null`. */
   wouldComplete(
     state: TState,
-    observation: DartObservation,
+    input: DartObservation | TVisit,
     config: TConfig,
+    open: TurnFact | null,
   ): boolean;
-  /** The `totalScore` a closing visit persists, from the state before it opened and after it closed; without it the darts' board-score sum stays. */
+  /** The `totalScore` a closing visit persists, from the state before it opened and after it closed, and the closed turn; without it the darts' board-score sum stays. */
   closedVisitTotal?(
     opened: TState,
     closed: TState,
     participantRef: string,
+    turn: TurnFact,
+    config: TConfig,
   ): number;
+  /** Visit-total input; also switches `undo()` to pop a whole dartless turn. */
+  readonly visitInput?: DartGameVisitInput<TConfig, TState, TVisit>;
+  /** Darts resolve from their coordinates (`resolveObservation`) and carry no intent; an open turn's `totalScore` is never written, so only `closedVisitTotal` sets it. */
+  readonly coordinateCapture?: boolean;
+  /** Replaces the default `isComplete()` (any status but `IN_PROGRESS`). */
+  complete?(state: TState, config: TConfig): boolean;
 }
 
 /** A shell-built engine; `spec` brands it so `instanceof` narrows to it. */
 export interface ShellGameEngine<
   TConfig,
   TState extends ShellState,
-> extends GameEngine<DartObservation, TState> {
-  readonly spec: DartGameSpec<TConfig, TState>;
+  TInput = DartObservation,
+> extends GameEngine<TInput, TState> {
+  readonly spec: DartGameSpec<TConfig, TState, unknown>;
   /** Marks the run's clock as run out; every fold reads it as `timerExpired`. Undo leaves it set. */
   expireTimer(): void;
 }
 
 /** Constructor of a shell-built engine class. */
-export interface DartGameEngineClass<TConfig, TState extends ShellState> {
+export interface DartGameEngineClass<
+  TConfig,
+  TState extends ShellState,
+  TInput = DartObservation,
+> {
   new (
     config: TConfig,
     prior?: EngineFacts,
     rulesetVersionKey?: RulesetVersionKey,
-  ): ShellGameEngine<TConfig, TState>;
+  ): ShellGameEngine<TConfig, TState, TInput>;
 }
 
 /**
@@ -148,4 +187,20 @@ export interface CheckoutRules<TExt> {
 export interface VisitPointsRules {
   readonly dartsPerVisit: number;
   points(visitTotal: number): number;
+}
+
+/**
+ * An Elimination ruleset as one policy over `EliminationSeat`
+ * (`elimination-kernel.module.ts`): the lives each seat starts on, its
+ * starting `ext`, and every change one dart causes, judged on the seats as
+ * they stand before it.
+ */
+export interface EliminationRules<TExt> {
+  readonly startingLives: number;
+  initExt(seat: SeatFact, index: number): TExt;
+  onDart(
+    thrower: EliminationSeat<TExt>,
+    seats: readonly EliminationSeat<TExt>[],
+    dart: DartObservation,
+  ): readonly SeatChange<TExt>[];
 }

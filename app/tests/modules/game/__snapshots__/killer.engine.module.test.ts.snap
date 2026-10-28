@@ -1,0 +1,26 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`killer engine > golden: one full 2-seat game 1`] = `
+[
+  "p1 OUTER_SINGLE:5 → A:3 B:3",
+  "p1 DOUBLE:5 → A:3K B:3",
+  "p1 DOUBLE:12 → A:3K B:2",
+  "p2 DOUBLE:5 → A:3K B:2",
+  "p2 DOUBLE:12 → A:3K B:2K",
+  "p2 DOUBLE:5 → A:2K B:2K",
+  "p1 DOUBLE:5 → A:2 B:2K",
+  "p1 DOUBLE:12 → A:2 B:2K",
+  "p1 DOUBLE:5 → A:2K B:2K",
+  "p2 DOUBLE:12 → A:2K B:2",
+  "p2 DOUBLE:5 → A:2K B:2",
+  "p2 DOUBLE:12 → A:2K B:2K",
+  "p1 DOUBLE:12 → A:2K B:1K",
+  "p1 MISS:null → A:2K B:1K",
+  "p1 OUTER_SINGLE:12 → A:2K B:1K",
+  "p2 DOUBLE:5 → A:1K B:1K",
+  "p2 MISS:null → A:1K B:1K",
+  "p2 MISS:null → A:1K B:1K",
+  "p1 DOUBLE:12 → A:1K B:0KX",
+  "COMPLETE winner=A out=p2 taken=3/2 toKiller=2/2",
+]
+`;

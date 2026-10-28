@@ -1,6 +1,7 @@
 import { resolveCheckoutAttempt } from "./checkout-bust.module";
 import { isCheckoutReachable } from "./checkout-reachability.module";
 import { seededUniform } from "./seeded-rng.module";
+import { sumDartScores } from "./turn-log.module";
 import type { CheckoutSeat, DartFact, TurnFact, VisitVerdict } from "./types";
 
 const DARTS_PER_VISIT = 3;
@@ -76,4 +77,38 @@ export function seededDrawTarget(
   pool: readonly number[],
 ): <TExt>(seat: CheckoutSeat<TExt>) => number {
   return (seat) => seededPoolDraw(drawSeed, pool, seat.attemptIndex + 1);
+}
+
+/**
+ * Judges a visit from what was stored: an unstamped turn is open at the live
+ * remainder (a plain subtraction, the visit's start less its darts), a
+ * stamped turn with a positive `totalScore` checked out, any other failed
+ * the attempt — the one-visit ruleset's settle-at-record-time rule.
+ */
+export function storedTotalJudge<TExt>(
+  seat: CheckoutSeat<TExt>,
+  turn: TurnFact,
+): VisitVerdict {
+  if (turn.completedAt === null)
+    return {
+      kind: "OPEN",
+      remaining: seat.visitStart - sumDartScores(turn.darts),
+      darts: turn.darts.length,
+    };
+  return turn.totalScore > 0
+    ? { kind: "CHECKOUT", darts: turn.darts.length }
+    : { kind: "FAIL" };
+}
+
+/** Next target on a ladder: `up` after a pass, `down` after a miss, clamped to `floor`..`cap`. */
+export function ladderTarget(
+  up: number,
+  down: number,
+  floor: number,
+  cap: number,
+): <TExt>(seat: CheckoutSeat<TExt>, passed: boolean) => number {
+  return (seat, passed) =>
+    passed
+      ? Math.min(cap, seat.target + up)
+      : Math.max(floor, seat.target - down);
 }

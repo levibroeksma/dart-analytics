@@ -1,3 +1,4 @@
+import type { SeatFact } from "@lib/types";
 import type { CheckoutRules } from "./interfaces";
 import type { CheckoutSeat, TurnFact, VisitVerdict } from "./types";
 
@@ -115,5 +116,25 @@ export function foldCheckoutVisits<TExt>(
   return turns.reduce(
     (seat, turn) => applyCheckoutVisit(seat, turn, rules),
     initial,
+  );
+}
+
+/**
+ * Folds every seat over its own turns in write order — the open turn
+ * included, so its seat shows the live remainder. Positionally aligned with
+ * `seats`; every seat starts from `initial`.
+ */
+export function foldCheckoutSeats<TExt>(
+  turns: readonly TurnFact[],
+  seats: readonly SeatFact[],
+  initial: CheckoutSeat<TExt>,
+  rules: CheckoutRules<TExt>,
+): CheckoutSeat<TExt>[] {
+  return seats.map((seat) =>
+    foldCheckoutVisits(
+      turns.filter((turn) => turn.participantRef === seat.participantRef),
+      initial,
+      rules,
+    ),
   );
 }

@@ -411,3 +411,19 @@ describe("rejectSeatRequest for Baseball", () => {
     ).toContain("supports at most 2 seats");
   });
 });
+
+describe("rejectSeatRequest — KILLER_V1", () => {
+  const seat = (sideKey: string) => ({
+    participantTypeKey: "GUEST" as const,
+    sideKey,
+    displayName: `Seat ${sideKey}`,
+  });
+
+  it("accepts two seats and refuses a third", () => {
+    const owner = { ...seat("A"), participantTypeKey: "PLAYER" as const };
+    expect(rejectSeatRequest([owner, seat("B")], "KILLER_V1")).toBeNull();
+    expect(
+      rejectSeatRequest([owner, seat("B"), seat("C")], "KILLER_V1"),
+    ).toContain("supports at most 2 seats");
+  });
+});

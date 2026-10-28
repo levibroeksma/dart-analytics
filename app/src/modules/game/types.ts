@@ -931,3 +931,63 @@ export type VisitPointsSeat = {
   dartsInVisit: number;
   dartsThrown: number;
 };
+
+/**
+ * One seat of an Elimination match (`elimination-kernel.module.ts`): its
+ * lives, whether it is out, and the game-owned `ext`.
+ */
+export type EliminationSeat<TExt> = {
+  participantRef: string;
+  sideKey: string;
+  lives: number;
+  out: boolean;
+  ext: TExt;
+};
+
+/**
+ * One seat's change from one dart. `livesDelta` is clamped so lives never go
+ * below 0; `ext` replaces the seat's ext. A change to a seat already out is
+ * ignored.
+ */
+export type SeatChange<TExt> = {
+  participantRef: string;
+  livesDelta?: number;
+  ext?: TExt;
+};
+
+/** An Elimination match folded from its darts: seats, out order, outcome and the seat to throw. */
+export type EliminationMatch<TExt> = {
+  seats: EliminationSeat<TExt>[];
+  outOrder: string[];
+  status: "IN_PROGRESS" | "COMPLETE";
+  winningSideKey: string | null;
+  activeParticipantRef: string;
+};
+
+/** Killer's seat extras: its number, Killer status, lives taken, darts to become a Killer, darts thrown. */
+export type KillerExt = {
+  number: number;
+  killer: boolean;
+  livesTaken: number;
+  dartsToKiller: number | null;
+  dartsThrown: number;
+};
+
+/** One Killer seat as the play screen reads it: its number, lives, Killer status, out, and its tallies. */
+export type KillerSeatState = SeatState & {
+  number: number;
+  lives: number;
+  killer: boolean;
+  out: boolean;
+  livesTaken: number;
+  dartsToKiller: number | null;
+  dartsThrown: number;
+};
+
+/** Killer's folded state: seats, the order seats went out, and the outcome. */
+export type KillerState = MultiSeatState<KillerSeatState> & {
+  status: "IN_PROGRESS" | "COMPLETE";
+  winningSideKey: string | null;
+  outOrder: string[];
+  seats: KillerSeatState[];
+};
