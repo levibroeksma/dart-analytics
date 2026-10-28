@@ -4,6 +4,7 @@ import {
   dartGameEngineFactory,
 } from "@modules/game/dart-engine-shell.module";
 import type { DartGameSpec } from "@modules/interfaces";
+import { LegacyScoreTrainingEngine } from "./legacy/score-training.legacy";
 import type { DartObservation, EngineFacts } from "@modules/types";
 
 type Toy = { activeParticipantRef: string; status: string; darts: number };
@@ -385,5 +386,61 @@ describe("dartGameEngineClass — coordinate capture", () => {
       hitZoneKey: "TREBLE",
       score: 0,
     });
+  });
+});
+
+describe("dartGameEngineClass — live total", () => {
+  const liveSpec: DartGameSpec<{ limit: number }, Toy> = {
+    ...spec,
+    coordinateCapture: true,
+    liveTotal: true,
+  };
+  const Live = dartGameEngineClass(liveSpec);
+  const at = (x: number, y: number) => ({
+    hitTargetNumber: null,
+    hitZoneKey: "MISS" as const,
+    locationX: x,
+    locationY: y,
+  });
+
+  it("writes the open turn's totalScore as its darts' sum after every dart", () => {
+    const engine = new Live({ limit: 10 });
+    engine.record(at(0, -102));
+    expect(engine.facts().turns[0].totalScore).toBe(60);
+    engine.record(at(0, -102));
+    expect(engine.facts().turns[0].totalScore).toBe(120);
+  });
+
+  it("leaves the total unwritten without the flag", () => {
+    const Coord = dartGameEngineClass({ ...spec, coordinateCapture: true });
+    const engine = new Coord({ limit: 10 });
+    engine.record(at(0, -102));
+    expect(engine.facts().turns[0].totalScore).toBe(0);
+  });
+
+  it("an undo that reopens a visit rewrites the total to the remaining darts, as the legacy engine does", () => {
+    const config = {
+      durationType: "ROUNDS" as const,
+      durationValue: 5,
+      maxDartsPerTurn: 3,
+      maxVisitScore: 180,
+      seats: [
+        {
+          participantRef: "p1",
+          displayName: "P1",
+          sideKey: "A",
+          participantTypeKey: "PLAYER" as const,
+        },
+      ],
+    };
+    const legacy = new LegacyScoreTrainingEngine(config);
+    const engine = new Live({ limit: 10 });
+    for (const e of [legacy, engine]) {
+      e.record(at(0, -102));
+      e.record(at(0, -102));
+      e.undo();
+    }
+    expect(engine.facts().turns[0].totalScore).toBe(60);
+    expect(legacy.facts().turns[0].totalScore).toBe(60);
   });
 });
