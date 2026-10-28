@@ -1,22 +1,30 @@
 {
   "projectId": "92d6fa0d-31bc-4ef3-9737-a4854ce14886",
-  "projectUpdatedAt": null,
+  "projectUpdatedAt": "2026-10-26T13:37:19.373518Z",
   "pairs": [
     {
       "design": "components/buttons/Button",
-      "code": ["app/src/components/forms/Button.astro"]
+      "code": [
+        "app/src/components/forms/Button.astro"
+      ]
     },
     {
       "design": "components/buttons/IconButton",
-      "code": ["app/src/components/forms/IconBtn.astro"]
+      "code": [
+        "app/src/components/forms/IconBtn.astro"
+      ]
     },
     {
       "design": "components/buttons/SlideToStart",
-      "code": ["app/src/components/forms/SlideToStart.astro"]
+      "code": [
+        "app/src/components/forms/SlideToStart.astro"
+      ]
     },
     {
       "design": "components/controls/RangeSlider",
-      "code": ["app/src/components/forms/RangeSlider.astro"]
+      "code": [
+        "app/src/components/forms/RangeSlider.astro"
+      ]
     },
     {
       "design": "components/controls/SegmentedControl",
@@ -29,11 +37,15 @@
     },
     {
       "design": "components/controls/Stepper",
-      "code": ["app/src/components/forms/Stepper.astro"]
+      "code": [
+        "app/src/components/forms/Stepper.astro"
+      ]
     },
     {
       "design": "components/controls/Switch",
-      "code": ["app/src/components/forms/Switch.astro"]
+      "code": [
+        "app/src/components/forms/Switch.astro"
+      ]
     },
     {
       "design": "components/feedback/DayState",
@@ -43,7 +55,9 @@
     },
     {
       "design": "components/feedback/SaveStatus",
-      "code": ["app/src/components/layout/games/SaveStatus.astro"]
+      "code": [
+        "app/src/components/layout/games/SaveStatus.astro"
+      ]
     },
     {
       "design": "components/feedback/Tag",
@@ -54,15 +68,21 @@
     },
     {
       "design": "components/feedback/VisitPreview",
-      "code": ["app/src/components/layout/games/VisitPreview.astro"]
+      "code": [
+        "app/src/components/layout/games/VisitPreview.astro"
+      ]
     },
     {
       "design": "components/forms/Input",
-      "code": ["app/src/components/forms/Input.astro"]
+      "code": [
+        "app/src/components/forms/Input.astro"
+      ]
     },
     {
       "design": "components/forms/Select",
-      "code": ["app/src/components/forms/Select.astro"]
+      "code": [
+        "app/src/components/forms/Select.astro"
+      ]
     },
     {
       "design": "components/forms/SettingField",
@@ -73,15 +93,21 @@
     },
     {
       "design": "components/game/InputKey",
-      "code": ["app/src/components/layout/games/InputButton.astro"]
+      "code": [
+        "app/src/components/layout/games/InputButton.astro"
+      ]
     },
     {
       "design": "components/game/Keypad",
-      "code": ["app/src/components/layout/games/ScoreInput.astro"]
+      "code": [
+        "app/src/components/layout/games/ScoreInput.astro"
+      ]
     },
     {
       "design": "components/game/ScoreDisplay",
-      "code": ["app/src/components/layout/games/SinglePlayerDisplay.astro"]
+      "code": [
+        "app/src/components/layout/games/SinglePlayerDisplay.astro"
+      ]
     },
     {
       "design": "components/navigation/BottomNav",
@@ -92,32 +118,2831 @@
     },
     {
       "design": "components/navigation/Pagination",
-      "code": ["app/src/components/ui/Pagination.astro"]
+      "code": [
+        "app/src/components/ui/Pagination.astro"
+      ]
     },
     {
       "design": "components/navigation/ScreenHeader",
-      "code": ["app/src/components/layout/games/setup/SetupShell.astro"]
+      "code": [
+        "app/src/components/layout/games/setup/SetupShell.astro"
+      ]
     },
     {
       "design": "components/overlays/ConfirmDialog",
-      "code": ["app/src/components/ui/ConfirmDialog.astro"]
+      "code": [
+        "app/src/components/ui/ConfirmDialog.astro"
+      ]
     },
     {
       "design": "components/overlays/Sheet",
-      "code": ["app/src/components/ui/Modal.astro"]
+      "code": [
+        "app/src/components/ui/Modal.astro"
+      ]
     },
     {
       "design": "components/overlays/SheetActions",
-      "code": ["app/src/components/ui/SheetActions.astro"]
+      "code": [
+        "app/src/components/ui/SheetActions.astro"
+      ]
     },
     {
       "design": "components/surfaces/InlayRow",
-      "code": ["app/src/components/ui/InlayRow.astro"]
+      "code": [
+        "app/src/components/ui/InlayRow.astro"
+      ]
     },
     {
       "design": "components/surfaces/StatTile",
-      "code": ["app/src/components/layout/games/StatTile.astro"]
+      "code": [
+        "app/src/components/layout/games/StatTile.astro"
+      ]
     }
   ],
-  "items": []
+  "items": [
+    {
+      "id": "keyframes:dart-fly",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "8dd8e8c79e71a460fa61586071cb58b8abfaea2abc9f858fffcb3f4f27219d4e",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "keyframes:dart-ripple",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "fe19745a6a81e0433c3e9bb871289766a796bbda75696d2583588e9edc445cfb",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "keyframes:dart-stick",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "a005fb62bc809e9032756787b73a09f2c32263c3528f5e19c1dfde3e0190e357",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "keyframes:reticle-aim",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "8b04aaaa8638e37e06e1e279c0a819fe6e5739daedbe39548619855c078a0451",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "keyframes:sheet-in",
+      "area": "tokens",
+      "designHash": "8a7c7bcce5fcd5f0f6dd7a776e2499b499e9a5db267a9925b379dc52ec4137ad",
+      "codeHash": "8a7c7bcce5fcd5f0f6dd7a776e2499b499e9a5db267a9925b379dc52ec4137ad",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "keyframes:skpulse",
+      "area": "tokens",
+      "designHash": "2c24f127673870ef784caab0257654546f0e5037c4aa8d54baa97575bcb18668",
+      "codeHash": "2c24f127673870ef784caab0257654546f0e5037c4aa8d54baa97575bcb18668",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:accent-orb",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "273a8ee5e92a60b0339dc1e5ea164318250aa034b63b5aa21b12795808cff281",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:accent-orb-halo",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "c6d6785ef019e99ca1db954b48e35df821cf99db3bc3155ba807ff7133ad2e73",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:alert",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "be81df91ed1a8c2f7ea7be536223ddcd0a7ae96eed1f5f9a6f79ff3d979e9331",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:alert-error",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "3bc28c6b29cbcbde55c160cfc2cf10fff9c349516f6b664d805fc6bf39972d30",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:alert-success",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "3d6d544ad856ac88b401cf213805aed0357293bcc07cdc56f90fe2e420240243",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:board-dim",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "80f1066f4a72ce4661e598c9a6de9c342420471218adacfd224c8a397b52db8d",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:border-medium",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "714874556142bfbb6b71e9869ea20179e3bed1a68e5f96624f81b1838e7d5b21",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:bottom-above-nav",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "d7b8933d784830ae31e373488d4f0b4b0cab3a6f534ac432f48b9b564d7e3f47",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:bottom-nav",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "9389cdf976950f7b49106c1f9be0a2fb7171a943e7880a9fdb8d4a51a12a7a1e",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:btn",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "5c4906d13ed5775b68c8a5ca779be224e917642585cbbec59ebbc95cfee3de26",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:btn-error",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "c65fa192e243cf56feae93336dc16d56528627af371339432b82812e8f4937f1",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:btn-primary",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "455290c2518b481d30782ac1aeda4418a7e024d7adef7d2eaae4870c68c7a4ab",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:btn-secondary",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "b39ef28952e96741e8e8b05e648cd501290a3646e3bf16e7aaf43f2aafd87c0d",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:bull-crop-board",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "78ad715524f68e875cd8a94fd0b9b441e3a24182c7ccb53ae68fe843ac24fc08",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:bull-ring",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "bf6e8adf98f2cb31e205cfeffd8287c4cf404016d57505ded8cead0433a1ea0e",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:bull-ring-late",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "7894e4b38cabbb12f35d341f1acdf7cabf9b36c0b97355f3e881f9e86400c2bb",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:card-dart",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "d9c363064fbef404aaf63cfb190ccb4b7824540673e4b0af36aa75a7679b7249",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:card-dart-hover",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "d38559b3fa98acf4a1576b9b10d0c1979592dea42b2e6298b9f93530116328ee",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:card-dart-reset",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "67f5f453d9cd4f606fae5c065d60ec5f9cd632e637725746b45f8725bf0655a6",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:card-dart-throw",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "e46f0b6f8f57d26f37879e31e16759bbfcad1a69499fb21ca19a3d6c0fb2d58c",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:card-dart-wind",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "5dcb592c4b113a9a138ffd08ed8c661b7123bf8f14fdc70cead158eb3336d9a1",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:card-wrapper",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "c8e42486b734edf6a31c7c507aeeb7c668963ad30f997d0cdf35783c08849ff4",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:catalog-card",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "8485be573f818cd23262ac73f856c1d34749d06bb8bd31d835c0305f63a4063a",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:catalog-grid",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "e56a636f5481eb16e9acbba830db25ddbf73374a35a331f3c1e0392894ea0fe0",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:catalog-well",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "ba045049367b3b2b1213af632b8cb83bb333e2bd9f08005fd38705ae499c01d3",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:chip",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "82a1eeb45241eb33cdfcf914d85657c093129df1dac21c7175d2711d97e101de",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:coin-back",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "e409b9853e6ec9c7b6298651bcb1472152a9af28489dae36d9fa68701ce0c038",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:coin-body",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "9c608c186d59f3c1e1fbf48b0c2f225d4e5a4351160599b030f677155e4f7ee8",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:coin-down",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "860a3cda6f6f5f8da6b7c6e824f0c12580f02d1c2446f53b8c7bce4bddbf1015",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:coin-face",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "149ad795b30cb6ab5092d3f7f3debc83432c587c37736f1fb5930f64a3db2789",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:coin-inner-heads",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "fd357d46ed60904b61fc7c7fdc8910c71a11ffd6f05dbfda78a9a7ee12ba57d0",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:coin-inner-tails",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "cb45ddd7ace56ad37323da0700d89892eda4f01da40d78af9ed30c255eaad95b",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:coin-shadow",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "5d98ef11629b97ba2b561bcff0977748613ea8148293c16dd91e3ae861bab45b",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:coin-shadow-up",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "81184d11301058ad202cb4b9482c7c3695cccc77e3b85760a3021c4bf366ba12",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:coin-stage",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "ffda1f908561885ca337d441f101a5d0f17cb172c612e760b52b452ba88c83a0",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:coin-up",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "7f1aa0092ae7dadf0b464ad9722c5d577be4de4df3bfc93ed21764ab77a308e5",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:control",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "17053977ff059b42580b26c8c36dfe4301706fadf8df16f371be92040fb63c68",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:dartboard-accent",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "09dbad88832f9de3b07aaa563f9e92721930c1f697f69e38481aa071e7079acb",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:deck-card",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "4b0f8339ee26c8a6eed0944e8eaff789041f33de54e0f023e416b216a731ecfd",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:deck-depth-0",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "04da61a814a9bde33fa15e4aef066e7ca106b6723166c1e87bbb7d0895b634bb",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:deck-depth-1",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "df8b5911a24c2d4903f9d7d4d344e54553660c6e46fb5d0050150e2e7b03032f",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:deck-depth-2",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "4e067eec51e02c82ea749bad364022cab59b002696133bdb584087628eacee6b",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:deck-entering",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "d9e35ae1a72974c2010cfa3624f0d9b7a25cb3adcab1f69b2cab45e8cb8cd9b6",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:deck-exiting",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "133f1123087c4a680d2807607dd60f6248bb3dc66ef7657a7098ce93aeb98d8e",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:deck-leaving",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "af501253deb1806f0dc98dc259c319401cca38e92ed16fc547b76656bf5b150a",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:deck-parked",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "572315156e68297d5147e72274a7b09531d5598ef0bcc1d2aa99f0a44324d78e",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:deck-rest",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "e4b1e8cd09e54c43e6a7170972c5f8aca9dad27b37ddb3493556344d08691550",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:deck-staged",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "fdedaec9c9b22d05be80d5b584d8c65fe90316050d23fdc0e2fe2f5af3b1cbf8",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:deck-tint",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "6a9fc572e0c39b993721ba7f42a58f6b2da66b9dffda46331aebd430db82bcde",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:deck-top-card",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "db78fc6a922db970c0cf148cd5dbbc7a7809fe506ea566468d84e8863b65f60f",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:feature-card",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "1ea2ac5e6ff4088cb87e21a5ad8188279553ee91c9bcedf3e0dd1615b2528cc3",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:field-inset",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "f912d28d5bb3dc33c8ab1c0fdb7621755b01fd828212b046415c44731ffcfb09",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:field-inset-error",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "cc5276ae6985bf6fcc403c684dd8d23bb8548a804413cccde06222c1310e374f",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:glass",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "f2d5dc747b8eeea5a3e68e5aa6f0cb25904a1c32d8e948664e868bd40087ae21",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:glass-active-seat",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "ab2cdbdfd396e4d6980c0a79de263ce90afa9c1e03b57925afc3b0fc8f791ca4",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:glass-blue",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "37c013a3147e31dbf99f5d17ca4e9e57e9a480114760a3f3d305c050a5bb029f",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:glass-button",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "3586488a8f9f87085fe5020465f8e18821667f1a8493ee5d442bc6e6a0aed16c",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:glass-destructive",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "d3d2c2c123537ae615a4a3fa97a96d0b8f0cc700121ae47106643e5a1c71a6f3",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:glass-info",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "129b3aa663e9f32a053ed9e4f462ea14e4311ccc82a473b0e91698d72e137d69",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:glass-pill",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "252110f7530dc6a5550d475d8326e71f62fa005f6b2fbc39e755d41526ddd7ba",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:glass-raised",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "74c21b4d67ebd4da89cb62d0f5aca8d45a697e4f5c2787c6a410ebbfe5853e1d",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:glass-sheet",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "571c2eba6498ecfce5632582ac1220417f42f90bed90375fd209d3f1f97cb40a",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:glass-tinted",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "f4f7612ac20565de7b86656fd76bf68b6e8997673eb1e5843bcce9e328831481",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:glass-tinted-raised",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "ead7daac5362d25db31bee6fc11917cbbfc679d00a403115d6a8c4de69879add",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:gradient-card",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "6d8294a4b881bac1bde0a4a27ce5dab011000c2d64e497c2d8a223cb8a154d52",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:highlight-glow",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "d13bd956d7fcbe5cac682c0979f09e149f2f8e947b392c7eb9718b3317469b27",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:home-backdrop-shade",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "65074055cf35bef8ab7fb455d2b62ecfebe806918c3794bb06a8f5e6ccc1ace4",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:home-day-today",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "3d507f11103aa500f322b885defe028d0a595f2fac78fbddcc1d8cdcd42442ed",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:home-feature-card",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "1346381b300edd3293c2aaaeeb13d61b097ec6a3191736599a6bd6a1a0741de1",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:input",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "ae9863ce446404150db1a634b3c0293e7c82cee405293d9d7b551fbe5de77727",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:input-error",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "5966f7baf7698947af5658370e411cdb297799cac7193ce0b422af1008cb5fe6",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:input-number-plain",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "40e4300102cd25ac695b44dc337e0230d48dce2e1975d91108dc9fc47aa96166",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:input-well",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "caf01922af57c4358849fca65be1c1aa59fb9a5139f7322b79387544478a9ff5",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:inset-well",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "a70b4d2979ef2d64ca0856c4ea4c4c16d6b72abdd5ad891d1f38cc11f70ff1ae",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:inset-well-muted",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "22308251f99e86b10887a7d42cd9679d9ca0a732956a94cd4249f8d6d2f429fd",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:key-press",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "3ca103077b9ada597b6fe98224b23f00384ffa748178d5f1f2048a73ec88ece2",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:link-card",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "135b7efd918d2a3d48c0e6333459787e594ec0972d9f2c3c1aeff5fe2a83cea1",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:meter",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "020cbb8357a212849f78c06d621801990f451418a2ccc7e09ca0af93e1087601",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:meter-bar",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "dd8a74e5ce1947ffb5c4e684cfa576e03ef86aa3f174da841f0d2ae1427b25ab",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:mode-pill",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "abb165c3edf68217325fc7f71d8a0b467f631b8e2d5483f2c5a697b10de676d3",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:nav-pill",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "f11b213a54550b3a5b6b7dcda5dd3c800b6f2734103e2d7c656eed43538257ba",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:next-dart-ring",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "20d910100d4378f50ce452ae65740dff8fb699d83e21bfd191cb04949eb254f2",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:pb-nav",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "fe2d3bde4095cc8818b432bb92c40599f76085d91c08096ec9b19f57b2e35f8e",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:pb-safe",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "edf0c4538a0c1f220d09b728dd2d9ee7dd53dd8e1f76f2063fd11d9e117baeb6",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:pip-on",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "e53a660dee5bf1c65f9ddfd1eb74e5562a8bf18cf41d61cecaee815592bae19c",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:pt-safe",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "7e4753e7d1238b8d0d2cbfee2747120f3cadd4409d6832fe9acc66047e96f3a6",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:seat-glow",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "b21b09a4aa8eabaa6e05aed2c4dd768618ba3e608a82a7278507b21e035de3f2",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:seat-layer-in",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "cc77451030ee8b0dea25a8aebba4cc35868312b6e85173467dc962d936f17bab",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:seat-layer-out",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "8ee96cb52d3cd78fccd36c5051337aad79099134417cc33866aa87e7ec74c3cd",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:seat-panel",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "85ff32be088124f9a9519cd7f97278467afef304c6c5575dc690c4040cb2f3c4",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:section-eyebrow",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "38017a9e66f6407dd4564f2fc1a9fd3231d4748879c4dbedb53d85894892977d",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:section-ring-frame",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "f41d2fe6383d29c4893a548b3ece9273e95a964df4b3cb34829ae7e94df8445c",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:section-ring-inset",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "7b1b79349fb5de0832a393271574e4babcc485057c9973f78d0a207ab1232b61",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:section-ring-square",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "df4337a1a9868f7a585c71b13135e9ec6abbce4d3a077ba131e32001a9f3c900",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:setting-badge",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "734ca87034a5038d99c9e53cffab8ec4bc99b3b85d08489f976901dc48d4088a",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:slide-fill",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "6b21d6373cd3a582d92603711bc36d75862062c13e8f707aa3112fcc981f58c6",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:slide-thumb",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "154796b205d0f9f07f7e75303528b1daa80b4e95069bf271029d6d0905a99550",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:slider-bubble",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "d2a6c1f5f04d4672d4137b73efbaa7d10bccb248c0bf2289cf8dcb8b6b3bc30e",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:slider-fill",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "ff3d898e832d7aa3c247d67143da3556474b90f2877f88e07d1409b18c2d7ce3",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:slider-thumb",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "9e02c96c21e7e9361990689e4b95b0ea1a1219f53ae8dd9035ef5188d6f54ed0",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:start-bar-fade",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "4d0d05e818d520b1b2a594058f3acfc886bfb7b268467f6c9a42c6e6db94b502",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:starter-win",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "e8ecef375e7d3f8231308891e68608207646bdf23a290e590fdbe8f9d1e43a18",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:starter-winner",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "1be8cc99bdf4491813148dbe4e5e3fffff5dcaf4997e9d0b1fc2a63e9ac9b6f1",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:tab",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "5c4906d13ed5775b68c8a5ca779be224e917642585cbbec59ebbc95cfee3de26",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:tab-container",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "c7b25ae6d3aa0b62b1739ead5523092c26d601f97af2b3389fcfb783199bb608",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:tab-wrapper",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "2d843f368f7f8cac9d411128523883402ff9203a8b74c09519b528774bf3e4d6",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:tag",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "d4b3dcce4130661f4007120b98b3f737f77f1dada0c12b4097f03904e09f40cf",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:tag-family",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "17548d1cad636236bb8f08f9c13e4a1bd1bde4ad026de6381e78fe73711f421f",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:tag-format",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "3a2e668b2da160ecf5d599b0ddd8712dd02c94b46bdd6524b5b7e5f0dd0cd91c",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:tag-mechanic",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "8165bde863c0a4f48e6a6270e5cd540d6bfcbb44deba076a165b0d648660c71f",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:tag-over-art",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "110528e961a4c57ac0c055ccbda154b1bd33e84aa01c49d7192adb5452bfa063",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:tag-pressure",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "e36b245e0bd8f0ca6673b74476e69f77e82fa22a001e992f59b6350d0757916b",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:tag-role",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "9183492597ff7fd3347cf41c605842f9bcc5b9d9b609ee041668f3d120fd339e",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:tag-skill",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "bfd7cac44aae636962f95566147eae79fadccf433a92fbe742be9777804e52b4",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:tag-skill-primary",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "363c9fbdd9f263e81639e19cefd2ba7a961bfab3a278f7bfe07864ed9561f121",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "rule:target-key-ring",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "2ea372f3c9264a31876bc6ea76d9d6dec7426c98473dc4808c9ea91e4acd1a63",
+      "decision": "accepted-divergence",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--accent-text-foreground",
+      "area": "tokens",
+      "designHash": "a79e607c5080a67fe6da6720b577c4f969893b71ca045b4c1e506ad705129a01",
+      "codeHash": "a79e607c5080a67fe6da6720b577c4f969893b71ca045b4c1e506ad705129a01",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--active-bg",
+      "area": "tokens",
+      "designHash": "77faecd1788a9b3cc6837bacbf2e10d820e3a5b00b925195c8642a7456e03842",
+      "codeHash": "77faecd1788a9b3cc6837bacbf2e10d820e3a5b00b925195c8642a7456e03842",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--active-glow",
+      "area": "tokens",
+      "designHash": "d7003bb24226b002835b658af7e0723d63e79a0e8d17b8e38f93dea5462d94c3",
+      "codeHash": "d7003bb24226b002835b658af7e0723d63e79a0e8d17b8e38f93dea5462d94c3",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--animate-dart-fly",
+      "area": "tokens",
+      "designHash": "abeed9ac418d25e4a9e212a58aa599a08105a1a90f207696560a7a0bdf501cd7",
+      "codeHash": "abeed9ac418d25e4a9e212a58aa599a08105a1a90f207696560a7a0bdf501cd7",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--animate-dart-ripple",
+      "area": "tokens",
+      "designHash": "e41241bb0fca2cfe7b17e7e7087b4c892839448d9ab517d97800dd1047debf86",
+      "codeHash": "e41241bb0fca2cfe7b17e7e7087b4c892839448d9ab517d97800dd1047debf86",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--animate-dart-stick",
+      "area": "tokens",
+      "designHash": "ae6db2d7d6eaf8ad0c216b5d5bfe3076d33572b29f38148d5bf8d3bedf5a2c07",
+      "codeHash": "ae6db2d7d6eaf8ad0c216b5d5bfe3076d33572b29f38148d5bf8d3bedf5a2c07",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--animate-reticle-aim",
+      "area": "tokens",
+      "designHash": "385613225302b3d2824c0a9c01dc880299dcd009144086ae1600d361f9827f31",
+      "codeHash": "385613225302b3d2824c0a9c01dc880299dcd009144086ae1600d361f9827f31",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--animate-sheet-in",
+      "area": "tokens",
+      "designHash": "f8364e17d19775d8b286e9f393213bb4c2d0d383caaf248266a517d7788988c5",
+      "codeHash": "f8364e17d19775d8b286e9f393213bb4c2d0d383caaf248266a517d7788988c5",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--background-image-blue-glass",
+      "area": "tokens",
+      "designHash": "1b6bde4cf728ead31b178fd4b4a3947d5cac292150b46982860ef27a7aeb8cd1",
+      "codeHash": "1b6bde4cf728ead31b178fd4b4a3947d5cac292150b46982860ef27a7aeb8cd1",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--background-image-tab-active",
+      "area": "tokens",
+      "designHash": "b5bd802c2cbef381fa752eb80cd97cb6dbee7c9434dbada2a5f20d0530f4df0f",
+      "codeHash": "b5bd802c2cbef381fa752eb80cd97cb6dbee7c9434dbada2a5f20d0530f4df0f",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--background-image-tab-active-ring",
+      "area": "tokens",
+      "designHash": "7c426d008bf1654056bfb7b74eb05e4ee13d293a5830af000fdc65447fd5bc40",
+      "codeHash": "7c426d008bf1654056bfb7b74eb05e4ee13d293a5830af000fdc65447fd5bc40",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--background-image-tab-card",
+      "area": "tokens",
+      "designHash": "4bc65eedbd84cd77779100ab784959185b45e7a4ab628817b17784e979bbd3c9",
+      "codeHash": "4bc65eedbd84cd77779100ab784959185b45e7a4ab628817b17784e979bbd3c9",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--blue-glass",
+      "area": "tokens",
+      "designHash": "7b8dae34a1df1a45c1f41f3d8ef4e7e9220b98e1001eecd5a87dc6cb8d20992a",
+      "codeHash": "7b8dae34a1df1a45c1f41f3d8ef4e7e9220b98e1001eecd5a87dc6cb8d20992a",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--body-foreground",
+      "area": "tokens",
+      "designHash": "c4bf512244698e67dc0feb47791a83946b2e46d43cc9330afa6259bf3c092ca6",
+      "codeHash": "c4bf512244698e67dc0feb47791a83946b2e46d43cc9330afa6259bf3c092ca6",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--canvas",
+      "area": "tokens",
+      "designHash": "e1ea2431775f9a9c3255d7602cf2c106b2d4f1baabbb95d5094e127689292d18",
+      "codeHash": "e1ea2431775f9a9c3255d7602cf2c106b2d4f1baabbb95d5094e127689292d18",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--chart-bar",
+      "area": "tokens",
+      "designHash": "97c596a8de561b1d7a7dc5e7e6aac889b493120e5a66b39636093e4475a3a1e5",
+      "codeHash": "97c596a8de561b1d7a7dc5e7e6aac889b493120e5a66b39636093e4475a3a1e5",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--chart-tick",
+      "area": "tokens",
+      "designHash": "a0f29a29baea83a5c07ee24badda2921df0fb7a5071b1e4a3eb9cb662adf3458",
+      "codeHash": "a0f29a29baea83a5c07ee24badda2921df0fb7a5071b1e4a3eb9cb662adf3458",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--color-deck-tint",
+      "area": "tokens",
+      "designHash": "91cc58ef2bb0e1d1de4e676a00e27b83df67d7530b9a09d7c8b6d4f8dfc8a066",
+      "codeHash": "91cc58ef2bb0e1d1de4e676a00e27b83df67d7530b9a09d7c8b6d4f8dfc8a066",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--color-tab-border",
+      "area": "tokens",
+      "designHash": "129fa939f0e698ebc367a7d7e0d1011fffbd711a3035d2d7060c0f82aad49ae8",
+      "codeHash": "129fa939f0e698ebc367a7d7e0d1011fffbd711a3035d2d7060c0f82aad49ae8",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--color-tab-inset",
+      "area": "tokens",
+      "designHash": "43ebe6d116e6730a8f1c4b64d80630d75da0160f72336d0048eba493766726d3",
+      "codeHash": "43ebe6d116e6730a8f1c4b64d80630d75da0160f72336d0048eba493766726d3",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--dartboard-accent-single-dark",
+      "area": "tokens",
+      "designHash": "e682018f26d4ba32f7b819c2b706e72e2ebf208b344e286ee479a0ee5eaef27e",
+      "codeHash": "e682018f26d4ba32f7b819c2b706e72e2ebf208b344e286ee479a0ee5eaef27e",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--dartboard-accent-single-light",
+      "area": "tokens",
+      "designHash": "1475a3fd5e2f9d5d6caf6f5a78248398f84ab173143b094e3780fd09658e0064",
+      "codeHash": "1475a3fd5e2f9d5d6caf6f5a78248398f84ab173143b094e3780fd09658e0064",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--dartboard-accent-wire-green",
+      "area": "tokens",
+      "designHash": "8209e4fd6c8fec01a7310ad9f58ddd466e2bdcfe64f278e59364055a5ed5cbb9",
+      "codeHash": "8209e4fd6c8fec01a7310ad9f58ddd466e2bdcfe64f278e59364055a5ed5cbb9",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--dartboard-accent-wire-red",
+      "area": "tokens",
+      "designHash": "7094c75c6cdd29ee305b9c8b33152c6889a3630c846e55f866da8a307dc38285",
+      "codeHash": "7094c75c6cdd29ee305b9c8b33152c6889a3630c846e55f866da8a307dc38285",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--dartboard-segment-hover",
+      "area": "tokens",
+      "designHash": "6fae1d5211cdcfb9802716ce4bd11fd5da704e86d2ef58a264718b8207d6e8cb",
+      "codeHash": "6fae1d5211cdcfb9802716ce4bd11fd5da704e86d2ef58a264718b8207d6e8cb",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--deck-tint-layer",
+      "area": "tokens",
+      "designHash": "cb1315f7352da439611877e223bae830571a12eee56e8301d680dc19f76cbdb7",
+      "codeHash": "cb1315f7352da439611877e223bae830571a12eee56e8301d680dc19f76cbdb7",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--deck-top-from",
+      "area": "tokens",
+      "designHash": "b41d8de179410e21bc7f9845fa413113a66661d814f9a3340f39c1d9e94e897f",
+      "codeHash": "b41d8de179410e21bc7f9845fa413113a66661d814f9a3340f39c1d9e94e897f",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--deck-top-to",
+      "area": "tokens",
+      "designHash": "0451e3023fd70d02c8e32505b21490a8f33f59ed296c3ef6485007a98c0faf24",
+      "codeHash": "0451e3023fd70d02c8e32505b21490a8f33f59ed296c3ef6485007a98c0faf24",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--device-edge",
+      "area": "tokens",
+      "designHash": "6b2d694a767e417a3bc4c9584347c78bf490f0c684710be9b9597beeed3c3fcc",
+      "codeHash": "6b2d694a767e417a3bc4c9584347c78bf490f0c684710be9b9597beeed3c3fcc",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--dim-foreground",
+      "area": "tokens",
+      "designHash": "1058d3adcceffd7b41d84c67877593b21556700ed92fbf03df332ef6acd102c7",
+      "codeHash": "1058d3adcceffd7b41d84c67877593b21556700ed92fbf03df332ef6acd102c7",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--dur-press",
+      "area": "tokens",
+      "designHash": "682db36433cddbec678aac2b8abd2e9d8485ffa4bd37603455545963e9beefb6",
+      "codeHash": "682db36433cddbec678aac2b8abd2e9d8485ffa4bd37603455545963e9beefb6",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--dur-pulse",
+      "area": "tokens",
+      "designHash": "baec3e21fb185be0aa8c0d3a0f74ab1e979944cf8316eaa86572f8ace9aa9698",
+      "codeHash": "baec3e21fb185be0aa8c0d3a0f74ab1e979944cf8316eaa86572f8ace9aa9698",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--dur-sheet",
+      "area": "tokens",
+      "designHash": "04c099054f64bb3810bd0ad7061a79dfe4b3d80dc250fe4d5d6ef88d98e65c00",
+      "codeHash": "04c099054f64bb3810bd0ad7061a79dfe4b3d80dc250fe4d5d6ef88d98e65c00",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--error-glass-foreground",
+      "area": "tokens",
+      "designHash": "9fea6606feea61164e875d61453950c853bf988ac01b737d1efda6fe3314412e",
+      "codeHash": "9fea6606feea61164e875d61453950c853bf988ac01b737d1efda6fe3314412e",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--error-glass-icon",
+      "area": "tokens",
+      "designHash": "29953cb128e9393a08eeee87945389a79d977aa982b6b15386f39bee88f89ba8",
+      "codeHash": "29953cb128e9393a08eeee87945389a79d977aa982b6b15386f39bee88f89ba8",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--error-ring",
+      "area": "tokens",
+      "designHash": "1bff6286f4e6ab612769b65dd11f375e9567c454cfffaff73bb683d9e25c37a6",
+      "codeHash": "1bff6286f4e6ab612769b65dd11f375e9567c454cfffaff73bb683d9e25c37a6",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--field-error-ring",
+      "area": "tokens",
+      "designHash": "3baef3f7d7d0c4d35cdbf18f90b8804bf0b6a057c2b2b89d719601d5556010af",
+      "codeHash": "3baef3f7d7d0c4d35cdbf18f90b8804bf0b6a057c2b2b89d719601d5556010af",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--field-focus-ring",
+      "area": "tokens",
+      "designHash": "0b1948a4629c7e0dbfe12359461ddfbe1e38c7bd3ac4c379d762a550d39a677e",
+      "codeHash": "0b1948a4629c7e0dbfe12359461ddfbe1e38c7bd3ac4c379d762a550d39a677e",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--focus-ring",
+      "area": "tokens",
+      "designHash": "89d3e68130c74e1fd85a39fa7461d349239b09132b9a92492592fe2ec393f883",
+      "codeHash": "89d3e68130c74e1fd85a39fa7461d349239b09132b9a92492592fe2ec393f883",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--glass-bg",
+      "area": "tokens",
+      "designHash": "f391f92e76c9b5c2f202ca432b0662dff3dfb7a83fe4d345231f617d54acca8d",
+      "codeHash": "f391f92e76c9b5c2f202ca432b0662dff3dfb7a83fe4d345231f617d54acca8d",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--glass-blur",
+      "area": "tokens",
+      "designHash": "4427b331ddf677746e9ca37e2cf76873f93f8f8b630eb96321b9f6bd2b372b76",
+      "codeHash": "4427b331ddf677746e9ca37e2cf76873f93f8f8b630eb96321b9f6bd2b372b76",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--glass-blur-strong",
+      "area": "tokens",
+      "designHash": "46666c7ad6b80cf678817ed2abe51acd0c8b91a2799cd1c64d54242cb93c05cc",
+      "codeHash": "46666c7ad6b80cf678817ed2abe51acd0c8b91a2799cd1c64d54242cb93c05cc",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--glass-edge",
+      "area": "tokens",
+      "designHash": "205f6ae4429ea92911de96b749e916bb567d9c029d23a3be2acc8448a1f03365",
+      "codeHash": "205f6ae4429ea92911de96b749e916bb567d9c029d23a3be2acc8448a1f03365",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--grid-template-columns-mirror",
+      "area": "tokens",
+      "designHash": "6c84b76db2c41b77a9a9a0468dc838582c796e51460bcd42d02f522158d9736d",
+      "codeHash": "6c84b76db2c41b77a9a9a0468dc838582c796e51460bcd42d02f522158d9736d",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--grid-template-columns-scoreboard",
+      "area": "tokens",
+      "designHash": "8474cd16b093e81e29829304543af35b7d5787ebf57afd62e9fb34d3db1caf67",
+      "codeHash": "8474cd16b093e81e29829304543af35b7d5787ebf57afd62e9fb34d3db1caf67",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--hairline",
+      "area": "tokens",
+      "designHash": "cec3fb413426dd7c270168561f049da8bcacf91ceaf6f5dd4ee746f96daeb3c4",
+      "codeHash": "cec3fb413426dd7c270168561f049da8bcacf91ceaf6f5dd4ee746f96daeb3c4",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--hero-bg",
+      "area": "tokens",
+      "designHash": "a49bcc38ce6c1ff2759a79aaf84e61580b11a119adfe13136cfdcbfbc250fbb9",
+      "codeHash": "a49bcc38ce6c1ff2759a79aaf84e61580b11a119adfe13136cfdcbfbc250fbb9",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--hero-shadow",
+      "area": "tokens",
+      "designHash": "d30aaa1ef1f200f30565039012491d2de647ec84ba63d7a71287f8a9afb60b4c",
+      "codeHash": "d30aaa1ef1f200f30565039012491d2de647ec84ba63d7a71287f8a9afb60b4c",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--hit",
+      "area": "tokens",
+      "designHash": "3cc807ca336b58e8497364d0a92dded0e9bb50a556e1d2466e863968cb3307ec",
+      "codeHash": "3cc807ca336b58e8497364d0a92dded0e9bb50a556e1d2466e863968cb3307ec",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--info-bg",
+      "area": "tokens",
+      "designHash": "3740939d46b46488139f1f924e2913b720bb26a40d1bc2ec482c0679e2544be5",
+      "codeHash": "3740939d46b46488139f1f924e2913b720bb26a40d1bc2ec482c0679e2544be5",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--info-edge-bottom",
+      "area": "tokens",
+      "designHash": "30fed6180b8f7278896309fc822a51debaf1ebb892ee642d947edf9134a19728",
+      "codeHash": "30fed6180b8f7278896309fc822a51debaf1ebb892ee642d947edf9134a19728",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--info-edge-top",
+      "area": "tokens",
+      "designHash": "464c3c44853d3cedca7f9ec9345063378d771976dbd1fb9657b7449ee2e76ed1",
+      "codeHash": "464c3c44853d3cedca7f9ec9345063378d771976dbd1fb9657b7449ee2e76ed1",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--inset-bg",
+      "area": "tokens",
+      "designHash": "a851bb6c6414bafa975e14c229f2dd6c81454339f09abdf7c265bba645e60c40",
+      "codeHash": "a851bb6c6414bafa975e14c229f2dd6c81454339f09abdf7c265bba645e60c40",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--inset-muted-bg",
+      "area": "tokens",
+      "designHash": "1574c1433fac397b35280b93d06bcbce69c62d2e12328635517d9bca652d560b",
+      "codeHash": "1574c1433fac397b35280b93d06bcbce69c62d2e12328635517d9bca652d560b",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--inset-muted-shadow",
+      "area": "tokens",
+      "designHash": "f18ae15c9635fce7ffa4588bbb2755a0ddcf107e10a37d3a47dc8395b65958f4",
+      "codeHash": "f18ae15c9635fce7ffa4588bbb2755a0ddcf107e10a37d3a47dc8395b65958f4",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--inset-shadow",
+      "area": "tokens",
+      "designHash": "0f9e53d8bc09abcae6b3c4421831b30455d4bd4d5f5e2544995228ed4ffd56ec",
+      "codeHash": "0f9e53d8bc09abcae6b3c4421831b30455d4bd4d5f5e2544995228ed4ffd56ec",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--meter-1",
+      "area": "tokens",
+      "designHash": "b713c9e598c001d1410561253d5669b9dab2c9def1a620aa3aef6e4f6c95e1f6",
+      "codeHash": "b713c9e598c001d1410561253d5669b9dab2c9def1a620aa3aef6e4f6c95e1f6",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--meter-2",
+      "area": "tokens",
+      "designHash": "029d3e2eb9e50d9b55f016e040fb6a75aa94e5f884a79dea451974858afecb70",
+      "codeHash": "029d3e2eb9e50d9b55f016e040fb6a75aa94e5f884a79dea451974858afecb70",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--meter-3",
+      "area": "tokens",
+      "designHash": "a291c22a07f4abada118f08c01ad9359b8857ad582db6c1ece12af0d906b8879",
+      "codeHash": "a291c22a07f4abada118f08c01ad9359b8857ad582db6c1ece12af0d906b8879",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--meter-4",
+      "area": "tokens",
+      "designHash": "7576b29dc4f0fce9716cdf1126508da0ad7480d37a92e721e50675590fecc929",
+      "codeHash": "7576b29dc4f0fce9716cdf1126508da0ad7480d37a92e721e50675590fecc929",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--meter-off",
+      "area": "tokens",
+      "designHash": "474490c48955f86d7de45303f0d0c6a40f4c9d7887983f20a36f3f90ff020eb5",
+      "codeHash": "474490c48955f86d7de45303f0d0c6a40f4c9d7887983f20a36f3f90ff020eb5",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--nav-bottom",
+      "area": "tokens",
+      "designHash": "92db4a9931b587730aa9fca6b9bf47d78809d6b05c5910b0d4113c772a1970da",
+      "codeHash": "92db4a9931b587730aa9fca6b9bf47d78809d6b05c5910b0d4113c772a1970da",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--nav-clearance",
+      "area": "tokens",
+      "designHash": "59a6ecccacd0b0e76dbb1e28cdcb1d0d70f839e9e164c3252afef7288798ef27",
+      "codeHash": "59a6ecccacd0b0e76dbb1e28cdcb1d0d70f839e9e164c3252afef7288798ef27",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--negative",
+      "area": "tokens",
+      "designHash": "b10874eb28e3a685ba0fd715dc6056d55fd5d8a88ad412807bab71b9682b9617",
+      "codeHash": "b10874eb28e3a685ba0fd715dc6056d55fd5d8a88ad412807bab71b9682b9617",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--positive",
+      "area": "tokens",
+      "designHash": "f6ad3c22770856cb3a89995ec463cbade441c225d7579eb2ea8e441f302e0d13",
+      "codeHash": "f6ad3c22770856cb3a89995ec463cbade441c225d7579eb2ea8e441f302e0d13",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--press-ring",
+      "area": "tokens",
+      "designHash": "28218675df63599c327587b6903df38c92b6753e26c43e80b0374dfbc27fbe4c",
+      "codeHash": "28218675df63599c327587b6903df38c92b6753e26c43e80b0374dfbc27fbe4c",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--progress-done",
+      "area": "tokens",
+      "designHash": "7094c75c6cdd29ee305b9c8b33152c6889a3630c846e55f866da8a307dc38285",
+      "codeHash": "7094c75c6cdd29ee305b9c8b33152c6889a3630c846e55f866da8a307dc38285",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--progress-rest",
+      "area": "tokens",
+      "designHash": "7cb63b0f4dbbdab032609612d5dbcccef3f1dc1c59e374792cb377cfa4d6572c",
+      "codeHash": "7cb63b0f4dbbdab032609612d5dbcccef3f1dc1c59e374792cb377cfa4d6572c",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--progress-todo",
+      "area": "tokens",
+      "designHash": "aaa717e77fd487a1e1c4a34aa1349c9e7ef4a31ed900d43018240255b8594bf9",
+      "codeHash": "aaa717e77fd487a1e1c4a34aa1349c9e7ef4a31ed900d43018240255b8594bf9",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--radius",
+      "area": "tokens",
+      "designHash": "558b9f364b593873f43c0d66cc1dc46008acd978e505fc105b9eb457082d99cc",
+      "codeHash": "558b9f364b593873f43c0d66cc1dc46008acd978e505fc105b9eb457082d99cc",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--radius-2xl",
+      "area": "tokens",
+      "designHash": "c10b7e1d119f8d28ecf6dd91f526318b32544b8c865f84f1d55517ace43f2c56",
+      "codeHash": "c10b7e1d119f8d28ecf6dd91f526318b32544b8c865f84f1d55517ace43f2c56",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--radius-board",
+      "area": "tokens",
+      "designHash": "672ca1c737d9e77f5f98b3accbe84c793535ec075c138c3cd943251260c26619",
+      "codeHash": "672ca1c737d9e77f5f98b3accbe84c793535ec075c138c3cd943251260c26619",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--radius-button",
+      "area": "tokens",
+      "designHash": "a9f23226d97114fb3454323a0b8dae081953def79efdfbb0572c8800fbe503f5",
+      "codeHash": "a9f23226d97114fb3454323a0b8dae081953def79efdfbb0572c8800fbe503f5",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--radius-card",
+      "area": "tokens",
+      "designHash": "c10b7e1d119f8d28ecf6dd91f526318b32544b8c865f84f1d55517ace43f2c56",
+      "codeHash": "c10b7e1d119f8d28ecf6dd91f526318b32544b8c865f84f1d55517ace43f2c56",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--radius-inlay",
+      "area": "tokens",
+      "designHash": "8825a14685976988ad88e557aae98d675f239e1090e0ad3472259e8ddf80aeca",
+      "codeHash": "8825a14685976988ad88e557aae98d675f239e1090e0ad3472259e8ddf80aeca",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--radius-key",
+      "area": "tokens",
+      "designHash": "35da2da1b5fb8d099d5472cee6668ea340534eb30b0c851267be3ddee8a3a1e9",
+      "codeHash": "35da2da1b5fb8d099d5472cee6668ea340534eb30b0c851267be3ddee8a3a1e9",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--radius-lg",
+      "area": "tokens",
+      "designHash": "a9f23226d97114fb3454323a0b8dae081953def79efdfbb0572c8800fbe503f5",
+      "codeHash": "a9f23226d97114fb3454323a0b8dae081953def79efdfbb0572c8800fbe503f5",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--radius-md",
+      "area": "tokens",
+      "designHash": "558b9f364b593873f43c0d66cc1dc46008acd978e505fc105b9eb457082d99cc",
+      "codeHash": "558b9f364b593873f43c0d66cc1dc46008acd978e505fc105b9eb457082d99cc",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--radius-pill",
+      "area": "tokens",
+      "designHash": "6241855d5f8d1ef46eaddd2b473ff9a3cd60639f40bd2eef52938e63fc723af1",
+      "codeHash": "6241855d5f8d1ef46eaddd2b473ff9a3cd60639f40bd2eef52938e63fc723af1",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--radius-row",
+      "area": "tokens",
+      "designHash": "8825a14685976988ad88e557aae98d675f239e1090e0ad3472259e8ddf80aeca",
+      "codeHash": "8825a14685976988ad88e557aae98d675f239e1090e0ad3472259e8ddf80aeca",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--radius-sheet",
+      "area": "tokens",
+      "designHash": "bca5ebd7886ec04fc5f2570dda231a3630d7b3218ff6ba2d4e8811aee1f49610",
+      "codeHash": "bca5ebd7886ec04fc5f2570dda231a3630d7b3218ff6ba2d4e8811aee1f49610",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--radius-sm",
+      "area": "tokens",
+      "designHash": "28a5f8bf50fb071e338c3b32191ae5fb6d4e880093d2e9d1f51cc9ecf86c1c2b",
+      "codeHash": "28a5f8bf50fb071e338c3b32191ae5fb6d4e880093d2e9d1f51cc9ecf86c1c2b",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--radius-switch",
+      "area": "tokens",
+      "designHash": "2ddfbc851e3ea382442df31baaaa1726caab51087765968b2434d7f43bda3ae0",
+      "codeHash": "2ddfbc851e3ea382442df31baaaa1726caab51087765968b2434d7f43bda3ae0",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--radius-tab",
+      "area": "tokens",
+      "designHash": "b84fbc0e9f457dd37a8d68b3952e99993eb6d4c4211022ee7c5c858311595a63",
+      "codeHash": "b84fbc0e9f457dd37a8d68b3952e99993eb6d4c4211022ee7c5c858311595a63",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--radius-tab-pill",
+      "area": "tokens",
+      "designHash": "e1d2841c87fccdb02f483409c3ae5bdd943dfbabf3402cd4784229ea63b17bc9",
+      "codeHash": "e1d2841c87fccdb02f483409c3ae5bdd943dfbabf3402cd4784229ea63b17bc9",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--radius-tile",
+      "area": "tokens",
+      "designHash": "b8be0c77cfdcd326362654410182d1fff9ad6eb3a2af41d732a7b69624c0a7d0",
+      "codeHash": "b8be0c77cfdcd326362654410182d1fff9ad6eb3a2af41d732a7b69624c0a7d0",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--radius-xl",
+      "area": "tokens",
+      "designHash": "b8be0c77cfdcd326362654410182d1fff9ad6eb3a2af41d732a7b69624c0a7d0",
+      "codeHash": "b8be0c77cfdcd326362654410182d1fff9ad6eb3a2af41d732a7b69624c0a7d0",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--raised-bg",
+      "area": "tokens",
+      "designHash": "dd255b9b19bb9e20b1bf064808ff4a2fda29831a1be2e0f67e1ac8975136e721",
+      "codeHash": "dd255b9b19bb9e20b1bf064808ff4a2fda29831a1be2e0f67e1ac8975136e721",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--raised-edge-bottom",
+      "area": "tokens",
+      "designHash": "0808429df934c708b3d4c90c37def158a6c77b3b7bdc8af36799704065b5c1ab",
+      "codeHash": "0808429df934c708b3d4c90c37def158a6c77b3b7bdc8af36799704065b5c1ab",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--raised-edge-top",
+      "area": "tokens",
+      "designHash": "49d8506f624600aa81476ca18e0ca25518699de56ae7d51451c2e597720c8071",
+      "codeHash": "49d8506f624600aa81476ca18e0ca25518699de56ae7d51451c2e597720c8071",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--raised-shadow",
+      "area": "tokens",
+      "designHash": "b6f6ea84de0a1ae67a568bf54a9dbadc3baa822c721f7ecb7e6cb242b7372832",
+      "codeHash": "b6f6ea84de0a1ae67a568bf54a9dbadc3baa822c721f7ecb7e6cb242b7372832",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--raised-shadow-lg",
+      "area": "tokens",
+      "designHash": "359069438adbabd069d82f23ef15abac4e1e7aa113781194c09a25f7610c3a89",
+      "codeHash": "359069438adbabd069d82f23ef15abac4e1e7aa113781194c09a25f7610c3a89",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--saved",
+      "area": "tokens",
+      "designHash": "809cabc25e3109081c8e5577db0ca018c2e93e9f88f85302628029dfed96ded3",
+      "codeHash": "809cabc25e3109081c8e5577db0ca018c2e93e9f88f85302628029dfed96ded3",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--saving",
+      "area": "tokens",
+      "designHash": "aba27d30f8c6bb058bc9397d11dbc79e919e82a6acaeba41b110271c32e7035b",
+      "codeHash": "aba27d30f8c6bb058bc9397d11dbc79e919e82a6acaeba41b110271c32e7035b",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--screen-bg",
+      "area": "tokens",
+      "designHash": "e384ea3b9911380c5cbca8db7b061369b90a8dad74cba74433f48367d7a8aa63",
+      "codeHash": "e384ea3b9911380c5cbca8db7b061369b90a8dad74cba74433f48367d7a8aa63",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--screen-margin",
+      "area": "tokens",
+      "designHash": "b8be0c77cfdcd326362654410182d1fff9ad6eb3a2af41d732a7b69624c0a7d0",
+      "codeHash": "b8be0c77cfdcd326362654410182d1fff9ad6eb3a2af41d732a7b69624c0a7d0",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--screen-width",
+      "area": "tokens",
+      "designHash": "55c06ab5a89430739349bdc4c40a4e518176bf4532c535bbdcf024a4e7aa1350",
+      "codeHash": "55c06ab5a89430739349bdc4c40a4e518176bf4532c535bbdcf024a4e7aa1350",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--selected-shadow",
+      "area": "tokens",
+      "designHash": "24d6539d9293626b83e056b987faee805665112f427c47f2809810aef8ed683e",
+      "codeHash": "24d6539d9293626b83e056b987faee805665112f427c47f2809810aef8ed683e",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--setting-badge-bg",
+      "area": "tokens",
+      "designHash": "2f3e2253c9ee1e5758a734f9f7db2df9e4d3dfe80741c445a9d3fbcec04da8d9",
+      "codeHash": "2f3e2253c9ee1e5758a734f9f7db2df9e4d3dfe80741c445a9d3fbcec04da8d9",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--shadow-card",
+      "area": "tokens",
+      "designHash": "04fa874207af751ac9b16a2f1317ed765206cc3712039f8ecfbd8d963c0fc243",
+      "codeHash": "04fa874207af751ac9b16a2f1317ed765206cc3712039f8ecfbd8d963c0fc243",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--shadow-magnifier",
+      "area": "tokens",
+      "designHash": "ba6febdece0687ef1d3b9fe144bbe0e5c6d674753c5b113c9b53e2242071af48",
+      "codeHash": "ba6febdece0687ef1d3b9fe144bbe0e5c6d674753c5b113c9b53e2242071af48",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--sheet-blur",
+      "area": "tokens",
+      "designHash": "7c5cd0ef56fa943582d6a22a8e0cad1379ea66f2f7c24cc1692731ef776010d5",
+      "codeHash": "7c5cd0ef56fa943582d6a22a8e0cad1379ea66f2f7c24cc1692731ef776010d5",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--sheet-shadow",
+      "area": "tokens",
+      "designHash": "d9346935b48950374092c917a7b089292650c0e9bb1fdb41c9de2aa9184be237",
+      "codeHash": "d9346935b48950374092c917a7b089292650c0e9bb1fdb41c9de2aa9184be237",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--slide-fill",
+      "area": "tokens",
+      "designHash": "48b443ead5e224af0ca9f36046adb96faaeb6bba1ce9c331c10f0abdff678d83",
+      "codeHash": "48b443ead5e224af0ca9f36046adb96faaeb6bba1ce9c331c10f0abdff678d83",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--slide-thumb-bg",
+      "area": "tokens",
+      "designHash": "5a4e745d30d07b76c3855df747c3a6237a3eb670af393c0b3ed94067bf4e0dd4",
+      "codeHash": "5a4e745d30d07b76c3855df747c3a6237a3eb670af393c0b3ed94067bf4e0dd4",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--slide-thumb-glow",
+      "area": "tokens",
+      "designHash": "aa225759294165251c9458b333ffe67f33c3ecd4a0a955e25ca04bb9e38eaa68",
+      "codeHash": "aa225759294165251c9458b333ffe67f33c3ecd4a0a955e25ca04bb9e38eaa68",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--slider-fill",
+      "area": "tokens",
+      "designHash": "12ae265be3eec6b0182f6f95e4a7e426ea466b537277b51f72dfefedc648220a",
+      "codeHash": "12ae265be3eec6b0182f6f95e4a7e426ea466b537277b51f72dfefedc648220a",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--slider-thumb-shadow",
+      "area": "tokens",
+      "designHash": "1beeee776ca1db2a1c6075afc611308d2ea0c019fdedc73c42ea1a46b24bb96a",
+      "codeHash": "1beeee776ca1db2a1c6075afc611308d2ea0c019fdedc73c42ea1a46b24bb96a",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--space-0",
+      "area": "tokens",
+      "designHash": "687e00933e606b03a2b0c3d19e2cf8706737c1032724e3c4f42c2c53af172cbd",
+      "codeHash": "687e00933e606b03a2b0c3d19e2cf8706737c1032724e3c4f42c2c53af172cbd",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--space-1",
+      "area": "tokens",
+      "designHash": "e53fcdb082edf1242cce57fa5381b8b8dcf7e92f8c4a9ff2734b0ea9ee92902e",
+      "codeHash": "e53fcdb082edf1242cce57fa5381b8b8dcf7e92f8c4a9ff2734b0ea9ee92902e",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--space-2",
+      "area": "tokens",
+      "designHash": "558b9f364b593873f43c0d66cc1dc46008acd978e505fc105b9eb457082d99cc",
+      "codeHash": "558b9f364b593873f43c0d66cc1dc46008acd978e505fc105b9eb457082d99cc",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--space-3",
+      "area": "tokens",
+      "designHash": "a9f23226d97114fb3454323a0b8dae081953def79efdfbb0572c8800fbe503f5",
+      "codeHash": "a9f23226d97114fb3454323a0b8dae081953def79efdfbb0572c8800fbe503f5",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--space-4",
+      "area": "tokens",
+      "designHash": "b8be0c77cfdcd326362654410182d1fff9ad6eb3a2af41d732a7b69624c0a7d0",
+      "codeHash": "b8be0c77cfdcd326362654410182d1fff9ad6eb3a2af41d732a7b69624c0a7d0",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--space-5",
+      "area": "tokens",
+      "designHash": "c10b7e1d119f8d28ecf6dd91f526318b32544b8c865f84f1d55517ace43f2c56",
+      "codeHash": "c10b7e1d119f8d28ecf6dd91f526318b32544b8c865f84f1d55517ace43f2c56",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--space-6",
+      "area": "tokens",
+      "designHash": "672ca1c737d9e77f5f98b3accbe84c793535ec075c138c3cd943251260c26619",
+      "codeHash": "672ca1c737d9e77f5f98b3accbe84c793535ec075c138c3cd943251260c26619",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--spacing-hit",
+      "area": "tokens",
+      "designHash": "3cc807ca336b58e8497364d0a92dded0e9bb50a556e1d2466e863968cb3307ec",
+      "codeHash": "3cc807ca336b58e8497364d0a92dded0e9bb50a556e1d2466e863968cb3307ec",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--start-bar-fade",
+      "area": "tokens",
+      "designHash": "655cf39006fb0dad8157c7b3e85e4b6805398f75aa715922414b353f34892732",
+      "codeHash": "655cf39006fb0dad8157c7b3e85e4b6805398f75aa715922414b353f34892732",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--surface-screen",
+      "area": "tokens",
+      "designHash": "cfb40e857b951b4bcb4dd095a522ffb01e1a6461231aaf6bf15fe34b481a0dca",
+      "codeHash": "cfb40e857b951b4bcb4dd095a522ffb01e1a6461231aaf6bf15fe34b481a0dca",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--tag-family-h",
+      "area": "tokens",
+      "designHash": "f0bc318fb8965cad8d73d578cd03c63b7987dc6a79b906aada091e1b6a13443f",
+      "codeHash": "f0bc318fb8965cad8d73d578cd03c63b7987dc6a79b906aada091e1b6a13443f",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--tag-format-h",
+      "area": "tokens",
+      "designHash": "226f76b55acb49701e06ded1d95165d179458f6fc37f5c6fc760ae30dec1c378",
+      "codeHash": "226f76b55acb49701e06ded1d95165d179458f6fc37f5c6fc760ae30dec1c378",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--tag-pressure-h",
+      "area": "tokens",
+      "designHash": "39bb88f40d3aa2b2fe9dea67be27c74765db0ebb3ff3cf8fb779af6319fa2045",
+      "codeHash": "39bb88f40d3aa2b2fe9dea67be27c74765db0ebb3ff3cf8fb779af6319fa2045",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--tag-skill-h",
+      "area": "tokens",
+      "designHash": "a0d177b4967a6d99f4ff117defe1c0d23d4e78ca4630febcb948ee9e4520eff3",
+      "codeHash": "a0d177b4967a6d99f4ff117defe1c0d23d4e78ca4630febcb948ee9e4520eff3",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-body-sm",
+      "area": "tokens",
+      "designHash": "b77f2e88d65ad15586d5728e6a10c607d8e37675bea437391eb10fceb33b7986",
+      "codeHash": "b77f2e88d65ad15586d5728e6a10c607d8e37675bea437391eb10fceb33b7986",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-body-sm--letter-spacing",
+      "area": "tokens",
+      "designHash": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+      "codeHash": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-body-sm--line-height",
+      "area": "tokens",
+      "designHash": "9c193c604ad7de942961af97b39ff541f2e611fdf0b93a3044e16dfbd808f41b",
+      "codeHash": "9c193c604ad7de942961af97b39ff541f2e611fdf0b93a3044e16dfbd808f41b",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-caption",
+      "area": "tokens",
+      "designHash": "da30bdb4e95a51f706b9b3027e52007290ae98d05cac1dd96e84e95eabeb0e41",
+      "codeHash": "da30bdb4e95a51f706b9b3027e52007290ae98d05cac1dd96e84e95eabeb0e41",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-caption--letter-spacing",
+      "area": "tokens",
+      "designHash": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+      "codeHash": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-caption--line-height",
+      "area": "tokens",
+      "designHash": "77ac319bfe1979e2d799d9e6987e65feb54f61511c03552ebae990826c208590",
+      "codeHash": "77ac319bfe1979e2d799d9e6987e65feb54f61511c03552ebae990826c208590",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-card-title",
+      "area": "tokens",
+      "designHash": "b77f2e88d65ad15586d5728e6a10c607d8e37675bea437391eb10fceb33b7986",
+      "codeHash": "b77f2e88d65ad15586d5728e6a10c607d8e37675bea437391eb10fceb33b7986",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-card-title--letter-spacing",
+      "area": "tokens",
+      "designHash": "8dd7b54cac3f2e5642685e4f903bcff9813601bb0ea839343a57a20bc23318ae",
+      "codeHash": "8dd7b54cac3f2e5642685e4f903bcff9813601bb0ea839343a57a20bc23318ae",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-card-title--line-height",
+      "area": "tokens",
+      "designHash": "9c193c604ad7de942961af97b39ff541f2e611fdf0b93a3044e16dfbd808f41b",
+      "codeHash": "9c193c604ad7de942961af97b39ff541f2e611fdf0b93a3044e16dfbd808f41b",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-control",
+      "area": "tokens",
+      "designHash": "9f309ff051519d72bafd365c404b3a0c063f43a2d193100784e0da61b4a080f4",
+      "codeHash": "9f309ff051519d72bafd365c404b3a0c063f43a2d193100784e0da61b4a080f4",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-control--letter-spacing",
+      "area": "tokens",
+      "designHash": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+      "codeHash": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-control--line-height",
+      "area": "tokens",
+      "designHash": "9c193c604ad7de942961af97b39ff541f2e611fdf0b93a3044e16dfbd808f41b",
+      "codeHash": "9c193c604ad7de942961af97b39ff541f2e611fdf0b93a3044e16dfbd808f41b",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-eyebrow",
+      "area": "tokens",
+      "designHash": "7b8ee66537dee68d092d43405601a5136286e0d372cf523b5a8ec4b229228f77",
+      "codeHash": "7b8ee66537dee68d092d43405601a5136286e0d372cf523b5a8ec4b229228f77",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-eyebrow--letter-spacing",
+      "area": "tokens",
+      "designHash": "4e52efcef77663f603cb105ed20cce666994d34fe15779c1b81b463b588f79b0",
+      "codeHash": "4e52efcef77663f603cb105ed20cce666994d34fe15779c1b81b463b588f79b0",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-eyebrow--line-height",
+      "area": "tokens",
+      "designHash": "77ac319bfe1979e2d799d9e6987e65feb54f61511c03552ebae990826c208590",
+      "codeHash": "77ac319bfe1979e2d799d9e6987e65feb54f61511c03552ebae990826c208590",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-eyebrow-lg",
+      "area": "tokens",
+      "designHash": "a9f23226d97114fb3454323a0b8dae081953def79efdfbb0572c8800fbe503f5",
+      "codeHash": "a9f23226d97114fb3454323a0b8dae081953def79efdfbb0572c8800fbe503f5",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-eyebrow-lg--letter-spacing",
+      "area": "tokens",
+      "designHash": "bbc83821eb8b975fa5a00ba9e2edc5bc81f2038aee51a8754f3a5b46d55fd45e",
+      "codeHash": "bbc83821eb8b975fa5a00ba9e2edc5bc81f2038aee51a8754f3a5b46d55fd45e",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-eyebrow-lg--line-height",
+      "area": "tokens",
+      "designHash": "77ac319bfe1979e2d799d9e6987e65feb54f61511c03552ebae990826c208590",
+      "codeHash": "77ac319bfe1979e2d799d9e6987e65feb54f61511c03552ebae990826c208590",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-eyebrow-sm",
+      "area": "tokens",
+      "designHash": "4cacebbafe94aef1f9603021563f12f2eeb6e63d20ba942dfa32252092af7546",
+      "codeHash": "4cacebbafe94aef1f9603021563f12f2eeb6e63d20ba942dfa32252092af7546",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-eyebrow-sm--letter-spacing",
+      "area": "tokens",
+      "designHash": "3f7d883861d16a609d0d78fafc8a71fcc52eb56608e73daffa42d729c22a1464",
+      "codeHash": "3f7d883861d16a609d0d78fafc8a71fcc52eb56608e73daffa42d729c22a1464",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-eyebrow-sm--line-height",
+      "area": "tokens",
+      "designHash": "77ac319bfe1979e2d799d9e6987e65feb54f61511c03552ebae990826c208590",
+      "codeHash": "77ac319bfe1979e2d799d9e6987e65feb54f61511c03552ebae990826c208590",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-hero",
+      "area": "tokens",
+      "designHash": "41dca9e28d00013600c122fdbd2c7b396e23ecbbcd2a4dd2969b37f4d84f60fa",
+      "codeHash": "41dca9e28d00013600c122fdbd2c7b396e23ecbbcd2a4dd2969b37f4d84f60fa",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-hero--letter-spacing",
+      "area": "tokens",
+      "designHash": "7ceacc98840a17931404061121d002ae4cba67d948b160788a1f62b42ca05d62",
+      "codeHash": "7ceacc98840a17931404061121d002ae4cba67d948b160788a1f62b42ca05d62",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-hero--line-height",
+      "area": "tokens",
+      "designHash": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+      "codeHash": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-key",
+      "area": "tokens",
+      "designHash": "2ddfbc851e3ea382442df31baaaa1726caab51087765968b2434d7f43bda3ae0",
+      "codeHash": "2ddfbc851e3ea382442df31baaaa1726caab51087765968b2434d7f43bda3ae0",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-key--letter-spacing",
+      "area": "tokens",
+      "designHash": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+      "codeHash": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-key--line-height",
+      "area": "tokens",
+      "designHash": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+      "codeHash": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-key-label",
+      "area": "tokens",
+      "designHash": "35da2da1b5fb8d099d5472cee6668ea340534eb30b0c851267be3ddee8a3a1e9",
+      "codeHash": "35da2da1b5fb8d099d5472cee6668ea340534eb30b0c851267be3ddee8a3a1e9",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-key-label--letter-spacing",
+      "area": "tokens",
+      "designHash": "52ab8565252e31ceadba56a24d084e220d8b0fda23428e73c5d467d9e70c346f",
+      "codeHash": "52ab8565252e31ceadba56a24d084e220d8b0fda23428e73c5d467d9e70c346f",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-key-label--line-height",
+      "area": "tokens",
+      "designHash": "77ac319bfe1979e2d799d9e6987e65feb54f61511c03552ebae990826c208590",
+      "codeHash": "77ac319bfe1979e2d799d9e6987e65feb54f61511c03552ebae990826c208590",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-micro",
+      "area": "tokens",
+      "designHash": "7b8ee66537dee68d092d43405601a5136286e0d372cf523b5a8ec4b229228f77",
+      "codeHash": "7b8ee66537dee68d092d43405601a5136286e0d372cf523b5a8ec4b229228f77",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-micro--letter-spacing",
+      "area": "tokens",
+      "designHash": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+      "codeHash": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-micro--line-height",
+      "area": "tokens",
+      "designHash": "77ac319bfe1979e2d799d9e6987e65feb54f61511c03552ebae990826c208590",
+      "codeHash": "77ac319bfe1979e2d799d9e6987e65feb54f61511c03552ebae990826c208590",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-numeral-1",
+      "area": "tokens",
+      "designHash": "8c5b04a4e8727d964b687c19c04fc2a0e3d5ff9459ab9fc23fff1ca55fef63a2",
+      "codeHash": "8c5b04a4e8727d964b687c19c04fc2a0e3d5ff9459ab9fc23fff1ca55fef63a2",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-numeral-1--letter-spacing",
+      "area": "tokens",
+      "designHash": "7ceacc98840a17931404061121d002ae4cba67d948b160788a1f62b42ca05d62",
+      "codeHash": "7ceacc98840a17931404061121d002ae4cba67d948b160788a1f62b42ca05d62",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-numeral-1--line-height",
+      "area": "tokens",
+      "designHash": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+      "codeHash": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-numeral-2",
+      "area": "tokens",
+      "designHash": "15b0f600406a5e71e87d7c26102eb34594f78eddc13a9c74085cef8f0a5e0826",
+      "codeHash": "15b0f600406a5e71e87d7c26102eb34594f78eddc13a9c74085cef8f0a5e0826",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-numeral-2--letter-spacing",
+      "area": "tokens",
+      "designHash": "7ceacc98840a17931404061121d002ae4cba67d948b160788a1f62b42ca05d62",
+      "codeHash": "7ceacc98840a17931404061121d002ae4cba67d948b160788a1f62b42ca05d62",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-numeral-2--line-height",
+      "area": "tokens",
+      "designHash": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+      "codeHash": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-numeral-3",
+      "area": "tokens",
+      "designHash": "73b1e75cf5e47fcb7995f478ac2a59e3e5ab8acbc2bc00fbec24e01bdbac6e2d",
+      "codeHash": "73b1e75cf5e47fcb7995f478ac2a59e3e5ab8acbc2bc00fbec24e01bdbac6e2d",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-numeral-3--letter-spacing",
+      "area": "tokens",
+      "designHash": "7ceacc98840a17931404061121d002ae4cba67d948b160788a1f62b42ca05d62",
+      "codeHash": "7ceacc98840a17931404061121d002ae4cba67d948b160788a1f62b42ca05d62",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-numeral-3--line-height",
+      "area": "tokens",
+      "designHash": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+      "codeHash": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-numeral-4",
+      "area": "tokens",
+      "designHash": "13bdc0d882431b23189c3ed145c196b32e430c3b9bf9a91b7a2490067ea25c8d",
+      "codeHash": "13bdc0d882431b23189c3ed145c196b32e430c3b9bf9a91b7a2490067ea25c8d",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-numeral-4--letter-spacing",
+      "area": "tokens",
+      "designHash": "7ceacc98840a17931404061121d002ae4cba67d948b160788a1f62b42ca05d62",
+      "codeHash": "7ceacc98840a17931404061121d002ae4cba67d948b160788a1f62b42ca05d62",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-numeral-4--line-height",
+      "area": "tokens",
+      "designHash": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+      "codeHash": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-numeral-5",
+      "area": "tokens",
+      "designHash": "36cbdee436324168be49f3b8b0fda10b3d0be9d57b03bd90bf19bc90edbac92e",
+      "codeHash": "36cbdee436324168be49f3b8b0fda10b3d0be9d57b03bd90bf19bc90edbac92e",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-numeral-5--letter-spacing",
+      "area": "tokens",
+      "designHash": "7ceacc98840a17931404061121d002ae4cba67d948b160788a1f62b42ca05d62",
+      "codeHash": "7ceacc98840a17931404061121d002ae4cba67d948b160788a1f62b42ca05d62",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-numeral-5--line-height",
+      "area": "tokens",
+      "designHash": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+      "codeHash": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-numeral-6",
+      "area": "tokens",
+      "designHash": "68a3745f3f7c7eb467fc9e9811e7a083a617fddc8faea85671a2223c341594a2",
+      "codeHash": "68a3745f3f7c7eb467fc9e9811e7a083a617fddc8faea85671a2223c341594a2",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-numeral-6--letter-spacing",
+      "area": "tokens",
+      "designHash": "7ceacc98840a17931404061121d002ae4cba67d948b160788a1f62b42ca05d62",
+      "codeHash": "7ceacc98840a17931404061121d002ae4cba67d948b160788a1f62b42ca05d62",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-numeral-6--line-height",
+      "area": "tokens",
+      "designHash": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+      "codeHash": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-shadow-glow",
+      "area": "tokens",
+      "designHash": "30968107b08816212aacfda560a3481b736d9f1797d934856078852c3ecab9cb",
+      "codeHash": "30968107b08816212aacfda560a3481b736d9f1797d934856078852c3ecab9cb",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-shadow-hero",
+      "area": "tokens",
+      "designHash": "75e4f2123f5d68ed74afa77b3b6084aa02c9ced29dd01be5a93b0331e7c75f5b",
+      "codeHash": "75e4f2123f5d68ed74afa77b3b6084aa02c9ced29dd01be5a93b0331e7c75f5b",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-stat",
+      "area": "tokens",
+      "designHash": "6fffdc25a8ca88d65fc25b9ba6c9afdeeaae9a9c7eb1003dafbcf79dee8040b8",
+      "codeHash": "6fffdc25a8ca88d65fc25b9ba6c9afdeeaae9a9c7eb1003dafbcf79dee8040b8",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-stat--letter-spacing",
+      "area": "tokens",
+      "designHash": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+      "codeHash": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-stat--line-height",
+      "area": "tokens",
+      "designHash": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+      "codeHash": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-summary",
+      "area": "tokens",
+      "designHash": "fb391dd7c4154d1701abf2c418d3f6e3ac016cdd92965365792adc3bded8ead1",
+      "codeHash": "fb391dd7c4154d1701abf2c418d3f6e3ac016cdd92965365792adc3bded8ead1",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-summary--letter-spacing",
+      "area": "tokens",
+      "designHash": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+      "codeHash": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-summary--line-height",
+      "area": "tokens",
+      "designHash": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+      "codeHash": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-summary-lg",
+      "area": "tokens",
+      "designHash": "f432a91127948802f811bece75872093f2730821167c43f1b0a19167db777385",
+      "codeHash": "f432a91127948802f811bece75872093f2730821167c43f1b0a19167db777385",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-summary-lg--letter-spacing",
+      "area": "tokens",
+      "designHash": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+      "codeHash": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-summary-lg--line-height",
+      "area": "tokens",
+      "designHash": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+      "codeHash": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-tile",
+      "area": "tokens",
+      "designHash": "c10b7e1d119f8d28ecf6dd91f526318b32544b8c865f84f1d55517ace43f2c56",
+      "codeHash": "c10b7e1d119f8d28ecf6dd91f526318b32544b8c865f84f1d55517ace43f2c56",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-tile--letter-spacing",
+      "area": "tokens",
+      "designHash": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+      "codeHash": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-tile--line-height",
+      "area": "tokens",
+      "designHash": "77ac319bfe1979e2d799d9e6987e65feb54f61511c03552ebae990826c208590",
+      "codeHash": "77ac319bfe1979e2d799d9e6987e65feb54f61511c03552ebae990826c208590",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-title",
+      "area": "tokens",
+      "designHash": "2ddfbc851e3ea382442df31baaaa1726caab51087765968b2434d7f43bda3ae0",
+      "codeHash": "2ddfbc851e3ea382442df31baaaa1726caab51087765968b2434d7f43bda3ae0",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-title--letter-spacing",
+      "area": "tokens",
+      "designHash": "11b0ae63f47f73954509bb16b0fc021faf4081689b694439d594e68aa58a8b19",
+      "codeHash": "11b0ae63f47f73954509bb16b0fc021faf4081689b694439d594e68aa58a8b19",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-title--line-height",
+      "area": "tokens",
+      "designHash": "77ac319bfe1979e2d799d9e6987e65feb54f61511c03552ebae990826c208590",
+      "codeHash": "77ac319bfe1979e2d799d9e6987e65feb54f61511c03552ebae990826c208590",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-value",
+      "area": "tokens",
+      "designHash": "212b7a3182db84af407f80fcc837e7ed218d118fc4386410b930ae27033a2084",
+      "codeHash": "212b7a3182db84af407f80fcc837e7ed218d118fc4386410b930ae27033a2084",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-value--letter-spacing",
+      "area": "tokens",
+      "designHash": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+      "codeHash": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--text-value--line-height",
+      "area": "tokens",
+      "designHash": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+      "codeHash": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+      "decision": "code-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--tint-bg",
+      "area": "tokens",
+      "designHash": "dafbef60edeb8baffacae67ee006a8f920f0c9d0d3eab1c03ff81e4bcff4f260",
+      "codeHash": "dafbef60edeb8baffacae67ee006a8f920f0c9d0d3eab1c03ff81e4bcff4f260",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--tint-edge-bottom",
+      "area": "tokens",
+      "designHash": "e70915403b49e004010282b00e41490ab7bd28a9691abd72ba08104702786c5b",
+      "codeHash": "e70915403b49e004010282b00e41490ab7bd28a9691abd72ba08104702786c5b",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--tint-edge-top",
+      "area": "tokens",
+      "designHash": "b7194d4b5a2d89d1ae70ef82825a80cb08070011c9db2f60c633a73ffa9fd7ea",
+      "codeHash": "b7194d4b5a2d89d1ae70ef82825a80cb08070011c9db2f60c633a73ffa9fd7ea",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--today-bg",
+      "area": "tokens",
+      "designHash": "312c347427bebed258a8043a99489731f196295c35bea0a2c948b5a17584d0ed",
+      "codeHash": "312c347427bebed258a8043a99489731f196295c35bea0a2c948b5a17584d0ed",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--today-shadow",
+      "area": "tokens",
+      "designHash": "bdf438af975375058d33dba02897fed22160b54b06bd1e69c08f4bbd964cdf20",
+      "codeHash": "bdf438af975375058d33dba02897fed22160b54b06bd1e69c08f4bbd964cdf20",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--tracking-card-title",
+      "area": "tokens",
+      "designHash": "8dd7b54cac3f2e5642685e4f903bcff9813601bb0ea839343a57a20bc23318ae",
+      "codeHash": "8dd7b54cac3f2e5642685e4f903bcff9813601bb0ea839343a57a20bc23318ae",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--tracking-eyebrow",
+      "area": "tokens",
+      "designHash": "4e52efcef77663f603cb105ed20cce666994d34fe15779c1b81b463b588f79b0",
+      "codeHash": "4e52efcef77663f603cb105ed20cce666994d34fe15779c1b81b463b588f79b0",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--tracking-hero",
+      "area": "tokens",
+      "designHash": "7ceacc98840a17931404061121d002ae4cba67d948b160788a1f62b42ca05d62",
+      "codeHash": "7ceacc98840a17931404061121d002ae4cba67d948b160788a1f62b42ca05d62",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--tracking-overline",
+      "area": "tokens",
+      "designHash": "bbc83821eb8b975fa5a00ba9e2edc5bc81f2038aee51a8754f3a5b46d55fd45e",
+      "codeHash": "bbc83821eb8b975fa5a00ba9e2edc5bc81f2038aee51a8754f3a5b46d55fd45e",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--tracking-title",
+      "area": "tokens",
+      "designHash": "11b0ae63f47f73954509bb16b0fc021faf4081689b694439d594e68aa58a8b19",
+      "codeHash": "11b0ae63f47f73954509bb16b0fc021faf4081689b694439d594e68aa58a8b19",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--type-body",
+      "area": "tokens",
+      "designHash": "297632f48a432520d9f14147506850a7db09b7548006f59a2be769116479d286",
+      "codeHash": "297632f48a432520d9f14147506850a7db09b7548006f59a2be769116479d286",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--type-button",
+      "area": "tokens",
+      "designHash": "b23ab5d5d609148bb55b852c875372289785e02c18d0bd6da8117e64c5cfbb99",
+      "codeHash": "b23ab5d5d609148bb55b852c875372289785e02c18d0bd6da8117e64c5cfbb99",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--type-caption",
+      "area": "tokens",
+      "designHash": "f7224af32e44503ab9fec01391a37015bd25bcff33a30774e46ec16bec600b0b",
+      "codeHash": "f7224af32e44503ab9fec01391a37015bd25bcff33a30774e46ec16bec600b0b",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--type-card-title",
+      "area": "tokens",
+      "designHash": "509142d3fc9bcb6c4c85a9e815bc1afa036da37af2a714e1c854189e02bd9c37",
+      "codeHash": "509142d3fc9bcb6c4c85a9e815bc1afa036da37af2a714e1c854189e02bd9c37",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--type-control-value",
+      "area": "tokens",
+      "designHash": "9ea82c25dbebc0bbe12065727efbda0ad083e4b36f47cce5e654e14828bf6955",
+      "codeHash": "9ea82c25dbebc0bbe12065727efbda0ad083e4b36f47cce5e654e14828bf6955",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--type-eyebrow",
+      "area": "tokens",
+      "designHash": "9982293220fd1c39edb48096aac23622169cf8ef1e825b238f51a1e2215a79c7",
+      "codeHash": "9982293220fd1c39edb48096aac23622169cf8ef1e825b238f51a1e2215a79c7",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--type-eyebrow-lg",
+      "area": "tokens",
+      "designHash": "c96598140764e47c96952153de41533a645ef84c6c72dbfb794c519a8d0103d6",
+      "codeHash": "c96598140764e47c96952153de41533a645ef84c6c72dbfb794c519a8d0103d6",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--type-field",
+      "area": "tokens",
+      "designHash": "fe17370409a0cdb7c473064bb1d3f8f7341988cbceda9d545d8d53916f98a444",
+      "codeHash": "fe17370409a0cdb7c473064bb1d3f8f7341988cbceda9d545d8d53916f98a444",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--type-hero",
+      "area": "tokens",
+      "designHash": "b470c69d6bc6a0142fff98e0843cc01f2876a97046f65222da022006e647b61a",
+      "codeHash": "b470c69d6bc6a0142fff98e0843cc01f2876a97046f65222da022006e647b61a",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--type-key",
+      "area": "tokens",
+      "designHash": "ac71ca8436f3d81950100b0ed96528609e97a18b11b201be1440480a639a9952",
+      "codeHash": "ac71ca8436f3d81950100b0ed96528609e97a18b11b201be1440480a639a9952",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--type-keypad",
+      "area": "tokens",
+      "designHash": "67b5acf43df3732ce7b33953053ade30386e236caacf09f3ca99ac6ff246a3c9",
+      "codeHash": "67b5acf43df3732ce7b33953053ade30386e236caacf09f3ca99ac6ff246a3c9",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--type-keypad-value",
+      "area": "tokens",
+      "designHash": "8822533736bba1d247a61d04f8f75efa669badb4594b2b92013ce16b5746989a",
+      "codeHash": "8822533736bba1d247a61d04f8f75efa669badb4594b2b92013ce16b5746989a",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--type-meta",
+      "area": "tokens",
+      "designHash": "1f9048e29313b8763f6cfffeca73a72c98f63ee5ebb806d09b934882974cad45",
+      "codeHash": "1f9048e29313b8763f6cfffeca73a72c98f63ee5ebb806d09b934882974cad45",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--type-name",
+      "area": "tokens",
+      "designHash": "29f08dcf9526d6441330ca4328d97e6845770041716cff514bee904ddcd6c998",
+      "codeHash": "29f08dcf9526d6441330ca4328d97e6845770041716cff514bee904ddcd6c998",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--type-overline",
+      "area": "tokens",
+      "designHash": "5310f5ce8ac7dd8ab5026d84321d5560bbb45c87c76a596a5bd88a819a6f1726",
+      "codeHash": "5310f5ce8ac7dd8ab5026d84321d5560bbb45c87c76a596a5bd88a819a6f1726",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--type-row-title",
+      "area": "tokens",
+      "designHash": "faae537dd9db89dfc61cecf876a6bcb6c489b88bb68c662f14a383027e007261",
+      "codeHash": "faae537dd9db89dfc61cecf876a6bcb6c489b88bb68c662f14a383027e007261",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--type-score",
+      "area": "tokens",
+      "designHash": "e6f182972291d93c29b81bc3b1fc2a27901befe2a0adcce7879de578199793dd",
+      "codeHash": "e6f182972291d93c29b81bc3b1fc2a27901befe2a0adcce7879de578199793dd",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--type-sheet-title",
+      "area": "tokens",
+      "designHash": "125aa39f684042493d8677514007912fe2bdcd3f92b935262d2f7c67c38c069b",
+      "codeHash": "125aa39f684042493d8677514007912fe2bdcd3f92b935262d2f7c67c38c069b",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--type-tile",
+      "area": "tokens",
+      "designHash": "8b88193d7fb6db2801d70b4c42db60dcea47c869db2b3186346f70367eebee86",
+      "codeHash": "8b88193d7fb6db2801d70b4c42db60dcea47c869db2b3186346f70367eebee86",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--type-tile-sm",
+      "area": "tokens",
+      "designHash": "200f27ab5c8992f24659eaf935ecf257c1273ea5311f99956cea8301d554eabb",
+      "codeHash": "200f27ab5c8992f24659eaf935ecf257c1273ea5311f99956cea8301d554eabb",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--type-title",
+      "area": "tokens",
+      "designHash": "0a0cf844ef1923e55dfe7892610f8b8c49d34f599506ab65ae26354d2737e19a",
+      "codeHash": "0a0cf844ef1923e55dfe7892610f8b8c49d34f599506ab65ae26354d2737e19a",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--type-value",
+      "area": "tokens",
+      "designHash": "cf25f036b76a27e71b057a20e50989f7dbd80bbf75ad1bfc5a68600a04168ae5",
+      "codeHash": "cf25f036b76a27e71b057a20e50989f7dbd80bbf75ad1bfc5a68600a04168ae5",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    },
+    {
+      "id": "var:--vignette",
+      "area": "tokens",
+      "designHash": "089a6b4756408630520a5f1ba94a9916da90fc83b47a9868faf2fa1498d9c7ee",
+      "codeHash": "089a6b4756408630520a5f1ba94a9916da90fc83b47a9868faf2fa1498d9c7ee",
+      "decision": "design-wins",
+      "date": "2026-10-28"
+    }
+  ]
 }

@@ -235,6 +235,14 @@ describe("cn token registry stays in lockstep with global.css", () => {
     },
   );
 
+  it.each(["pill", "card", "tile", "inlay", "button"])(
+    "merges the design-system radius rounded-%s with stock radii (D504)",
+    (token) => {
+      expect(cn("rounded-lg", `rounded-${token}`)).toBe(`rounded-${token}`);
+      expect(cn(`rounded-${token}`, "rounded-sheet")).toBe("rounded-sheet");
+    },
+  );
+
   const groupSibling: Record<string, string> = {
     "border-w": "border-2",
     pt: "pt-2",
