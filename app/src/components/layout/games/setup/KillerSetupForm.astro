@@ -1,0 +1,59 @@
+---
+// Components
+import Select from "@components/forms/Select.astro";
+import InfoSection from "@components/ui/InfoSection.astro";
+import SetupShell from "./SetupShell.astro";
+import SettingSectionShell from "./SettingSectionShell.astro";
+import SettingLabel from "./SettingLabel.astro";
+import UserSection from "./UserSection.astro";
+
+// Data
+const numberOptions = Array.from({ length: 20 }, (_, i) => ({
+  value: i + 1,
+  label: String(i + 1),
+}));
+const infoSection = {
+  title: "Killer rules",
+  description:
+    "Each player picks a number. Hit your own double to become a Killer, then hit an opponent's double to take one of their three lives. Hit your own double again and you lose Killer status. Last player standing wins. 1v1 against a guest. Locked rules.",
+};
+---
+
+<SetupShell
+  title="Killer"
+  startBlockedExpr="!canStart()"
+>
+  <UserSection allowGuests />
+  <SettingSectionShell>
+    <div class="flex flex-col gap-2">
+      <SettingLabel text="YOU" />
+      <Select
+        options={numberOptions}
+        model="seatNumbers[0]"
+        ariaLabel="Your number"
+      />
+    </div>
+    <div
+      class="flex flex-col gap-2"
+      x-show="guests.length === 1"
+      x-cloak
+    >
+      <SettingLabel text="GUEST" />
+      <Select
+        options={numberOptions}
+        model="seatNumbers[1]"
+        ariaLabel="Guest number"
+      />
+    </div>
+    <p
+      class="text-sm text-muted-foreground"
+      x-text="startBlockedReason()"
+    >
+    </p>
+  </SettingSectionShell>
+  <InfoSection
+    title={infoSection.title}
+    description={infoSection.description}
+    open
+  />
+</SetupShell>

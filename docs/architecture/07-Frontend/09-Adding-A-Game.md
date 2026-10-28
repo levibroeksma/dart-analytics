@@ -11,6 +11,8 @@ A game is 26 files across 9 trees. Six of them are **shared registries** — a
 game wired into five of the six does not fail, it goes quiet. This page is the
 list; `scripts/check-game-wiring.sh` is the gate that holds it.
 
+**Killer** is the `SHARED`-stage shell exemplar for a player-chosen config value (seat numbers) carried through the starter step and Play Again (`killer-setup.data.ts`, D503).
+
 **Reference exemplar: Bob's 27.** When a step below says "copy the existing
 shape", copy Bob's 27's — `bobs27-setup.data.ts`, `bobs27.validator.ts`,
 `bobs27.engine.module.ts`. One named game, so "copy an existing game" has one

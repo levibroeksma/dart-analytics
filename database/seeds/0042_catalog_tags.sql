@@ -206,6 +206,26 @@ INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, cr
   ((SELECT id FROM game_types WHERE implementation_key = 'DOUBLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 23, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'DOUBLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 31, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'DOUBLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 32, FALSE, now());
+-- game KILLER
+INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at) VALUES
+  ((SELECT id FROM game_types WHERE implementation_key = 'KILLER'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 3, TRUE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'KILLER'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 12, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'KILLER'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 14, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'KILLER'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 15, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'KILLER'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 16, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'KILLER'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 19, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'KILLER'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 25, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'KILLER'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 32, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'KILLER'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 38, FALSE, now());
+INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at) VALUES
+  ((SELECT id FROM game_types WHERE implementation_key = 'KILLER'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 3, TRUE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'KILLER'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 12, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'KILLER'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 14, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'KILLER'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 15, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'KILLER'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 16, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'KILLER'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 19, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'KILLER'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 25, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'KILLER'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 32, FALSE, now());
 -- game ONE_TWENTY_ONE
 INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at) VALUES
   ((SELECT id FROM game_types WHERE implementation_key = 'ONE_TWENTY_ONE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 3, FALSE, now()),

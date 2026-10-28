@@ -2,6 +2,7 @@
 
 Date: 2026-10-27
 Status: approved in brainstorming; plan to follow via `superpowers:writing-plans`
+Implementation: PR 1 (engine) shipped 2026-10-27; PR 2 (app wiring, section 6) shipped 2026-10-28
 Parent: `2026-10-15-rule-kernels-design.md` (umbrella, §5 Elimination row, §8 item 2)
 Siblings: `2026-10-17-track-kernel-design.md`, `2026-10-27-checkout-kernel-design.md`
 Rules input: `docs/game-rules/rulesets/killer.md`
@@ -46,6 +47,8 @@ proof is TDD against the rules file (§8).
 - `session-seats.service.ts` `SEAT_CAPS` defaults an unlisted key to 1.
 
 ## 3. Kernel contract
+
+Status: PR 2 shipped 2026-10-28.
 
 `app/src/modules/game/elimination-kernel.module.ts`; types in
 `modules/game/types.ts`, rules interface in `modules/game/interfaces.ts`

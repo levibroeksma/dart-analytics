@@ -1162,9 +1162,20 @@ export type KillerPlayContext = PlayLifecycleContext<
   playAgainStarter: 0 | 1 | null;
   requestPlayAgain(): unknown;
   playAgainStarterOptions(): StarterStepOptions;
-  ring: "SINGLE" | "DOUBLE" | "TREBLE";
-  setRing(this: KillerPlayContext, ring: "SINGLE" | "DOUBLE" | "TREBLE"): void;
+  ring: MarksRing;
+  setRing(this: KillerPlayContext, ring: MarksRing): void;
   state(this: KillerPlayContext): KillerState | null;
+  visitMarkers(this: KillerPlayContext): BoardMarker[];
+  recordDart(
+    this: KillerPlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
+  commitDart(
+    this: KillerPlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
+  isBullVisit(this: KillerPlayContext): boolean;
+  previewSegments(this: KillerPlayContext): GamePreviewSegment[];
   recordNumber(this: KillerPlayContext, n: number): Promise<void>;
   recordBull(this: KillerPlayContext): Promise<void>;
   recordMiss(this: KillerPlayContext): Promise<void>;
