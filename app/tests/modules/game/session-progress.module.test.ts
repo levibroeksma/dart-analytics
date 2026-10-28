@@ -10,6 +10,7 @@ import {
 } from "@modules/game/one-twenty-one.engine.module";
 import { cricketEngineFactory } from "@modules/game/cricket.engine.module";
 import { tacticsEngineFactory } from "@modules/game/tactics.engine.module";
+import { killerEngineFactory } from "@modules/game/killer.engine.module";
 import { baseballEngineFactory } from "@modules/game/baseball.engine.module";
 import { scoreTrainingEngineFactory } from "@modules/game/score-training.engine.module";
 import { singlesTrainingEngineFactory } from "@modules/game/singles-training.engine.module";
@@ -812,6 +813,64 @@ describe("summarizeProgress — BOBS27_V2", () => {
     expect(summarizeProgress("BOBS27_V2", config, EMPTY_FACTS)).toEqual({
       detail: "Double 1 of 21",
       big: { value: "-5", label: "POINTS" },
+    });
+  });
+});
+
+describe("summarizeProgress — KILLER_V1", () => {
+  const config = {
+    seats: [
+      {
+        participantRef: "p1",
+        displayName: "L",
+        sideKey: "A",
+        participantTypeKey: "PLAYER" as const,
+      },
+      {
+        participantRef: "p2",
+        displayName: "G",
+        sideKey: "B",
+        participantTypeKey: "GUEST" as const,
+      },
+    ],
+    lives: 3 as const,
+    seatNumbers: [20, 19],
+  };
+  const dart = (number: number, zone: "DOUBLE" | "OUTER_SINGLE") => ({
+    hitTargetNumber: number,
+    hitZoneKey: zone,
+    locationX: null,
+    locationY: null,
+  });
+
+  it("opens on the first seat's lives and Not Killer", () => {
+    expect(summarizeProgress("KILLER_V1", config, EMPTY_FACTS)).toEqual({
+      detail: "1v1 · Not Killer",
+      big: { value: "3", label: "LIVES" },
+    });
+  });
+
+  it("reads the active seat's Killer status across visits", () => {
+    const afterP1 = factsAfter(killerEngineFactory, config, [
+      dart(20, "DOUBLE"),
+      dart(1, "OUTER_SINGLE"),
+      dart(1, "OUTER_SINGLE"),
+    ]);
+    expect(summarizeProgress("KILLER_V1", config, afterP1)).toEqual({
+      detail: "1v1 · Not Killer",
+      big: { value: "3", label: "LIVES" },
+    });
+    const afterP2 = factsAfter(killerEngineFactory, config, [
+      dart(20, "DOUBLE"),
+      dart(1, "OUTER_SINGLE"),
+      dart(1, "OUTER_SINGLE"),
+      dart(19, "DOUBLE"),
+      dart(1, "OUTER_SINGLE"),
+      dart(1, "OUTER_SINGLE"),
+    ]);
+    expect(summarizeProgress("KILLER_V1", config, afterP2)).toEqual({
+      detail: "1v1 · Killer",
+      big: { value: "3", label: "LIVES" },
     });
   });
 });
