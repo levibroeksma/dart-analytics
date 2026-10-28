@@ -27,7 +27,8 @@ export function killerSetup() {
     },
 
     startBlockedReason(this: KillerSetupContext) {
-      if (this.guests.length !== 1) return "Add a guest to play Killer.";
+      if (this.guests.length === 0) return "Add a guest to play Killer.";
+      if (this.guests.length > 1) return "Killer is 1v1: keep one guest.";
       if (this.seatNumbers[0] === this.seatNumbers[1])
         return "Pick different numbers.";
       return "";

@@ -31,7 +31,11 @@ const WINNER_EXPR =
     statRows={STAT_ROWS}
     winnerExpr={WINNER_EXPR}
   />
-  <div class="flex w-full items-baseline justify-between gap-4">
+  <div
+    class="flex w-full items-baseline justify-between gap-4"
+    x-show="outOrderLabel() !== ''"
+    x-cloak
+  >
     <span
       class="font-mono text-eyebrow font-semibold uppercase text-muted-foreground"
       >Out order</span

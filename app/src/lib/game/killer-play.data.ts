@@ -207,7 +207,7 @@ export function killerPlay() {
       await playCommitDart(this, observation);
     },
 
-    /** Overrides `boardInputData`'s own `visitMarkers` with the shared play-lifecycle one. */
+    /** The board markers for the last visit's located darts; none once that visit's reveal has cleared. */
     visitMarkers(this: KillerPlayContext): BoardMarker[] {
       return playVisitMarkers(this);
     },

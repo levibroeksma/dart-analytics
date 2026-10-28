@@ -247,6 +247,8 @@ describe("killer engine", () => {
       expect(state.status).toBe("IN_PROGRESS");
       expect(seatB(state)).toMatchObject({ lives: 1, out: false });
       expect(state.activeParticipantRef).toBe("p1");
+      expect(state.winningSideKey).toBeNull();
+      expect(state.outOrder).toEqual([]);
       expect(engine.facts().turns.at(-1)?.completedAt).toBeNull();
     });
 
@@ -264,6 +266,7 @@ describe("killer engine", () => {
       const log = [...toOneLife, miss, miss, miss, d(19), miss, miss];
       for (const observation of log) engine.record(observation);
       const state = foldKillerState(engine.facts(), threeSeat);
+      expect(state).toEqual(engine.state());
       expect(state.outOrder).toEqual(["p2"]);
       expect(state.status).toBe("IN_PROGRESS");
       expect(state.activeParticipantRef).toBe("p3");

@@ -45,6 +45,10 @@ const SEAT_CAPS: Record<string, number> = {
  */
 const SEAT_FLOORS: Record<string, number> = { KILLER_V1: 2 };
 
+function floorMessage(rulesetVersionKey: string, floor: number): string {
+  return `${rulesetVersionKey} needs at least ${floor} seats.`;
+}
+
 /**
  * Why a requested seat list cannot be created, or null when it can. The
  * session is never created on a rejection — participants, snapshot and
@@ -67,8 +71,9 @@ export function rejectSeatRequest(
   rulesetVersionKey: string,
 ): string | null {
   const floor = SEAT_FLOORS[rulesetVersionKey] ?? MIN_SEATS;
-  const floorMessage = `${rulesetVersionKey} needs at least ${floor} seats.`;
-  if (participants === undefined) return floor > 1 ? floorMessage : null;
+  if (participants === undefined) {
+    return floor > MIN_SEATS ? floorMessage(rulesetVersionKey, floor) : null;
+  }
 
   if (participants.length < MIN_SEATS || participants.length > MAX_SEATS) {
     return `A session needs between ${MIN_SEATS} and ${MAX_SEATS} seats.`;
@@ -104,7 +109,9 @@ export function rejectSeatRequest(
     return "Only one seat per side is supported; 2v2 is not implemented yet.";
   }
 
-  if (participants.length < floor) return floorMessage;
+  if (participants.length < floor) {
+    return floorMessage(rulesetVersionKey, floor);
+  }
 
   const cap = SEAT_CAPS[rulesetVersionKey] ?? 1;
   if (participants.length > cap) {

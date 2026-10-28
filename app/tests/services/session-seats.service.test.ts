@@ -107,6 +107,10 @@ describe("rejectSeatRequest", () => {
     );
   });
 
+  it("accepts a lone PLAYER for a ruleset without a seat floor", () => {
+    expect(rejectSeatRequest([player], "501_V1")).toBeNull();
+  });
+
   it("accepts a lone player seat for any ruleset", () => {
     expect(rejectSeatRequest([player], "BOBS27_V1")).toBeNull();
   });

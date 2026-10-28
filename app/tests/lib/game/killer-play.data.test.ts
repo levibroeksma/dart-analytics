@@ -178,6 +178,16 @@ describe("killerPlay", () => {
     expect(missed.hitZoneKey).toBe("MISS");
   });
 
+  it("downgrades a treble-ring bull to a single outer bull", async () => {
+    const ctx = await started();
+    ctx.setRing("TREBLE");
+    await ctx.recordBull();
+    const [bull] = ctx.$store.game.turns[0].darts;
+    expect(bull.hitTargetNumber).toBe(25);
+    expect(bull.hitZoneKey).toBe("OUTER_BULL");
+    expect(ctx.ring).toBe("SINGLE");
+  });
+
   it("exposes lives and number per seat and for the active seat", async () => {
     const ctx = await started();
     expect(ctx.livesLabel()).toBe("3");

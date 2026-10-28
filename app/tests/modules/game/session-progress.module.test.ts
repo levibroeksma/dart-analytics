@@ -873,4 +873,16 @@ describe("summarizeProgress — KILLER_V1", () => {
       big: { value: "3", label: "LIVES" },
     });
   });
+
+  it("shows the active seat's reduced lives", () => {
+    const afterHit = factsAfter(killerEngineFactory, config, [
+      dart(20, "DOUBLE"),
+      dart(19, "DOUBLE"),
+      dart(1, "OUTER_SINGLE"),
+    ]);
+    expect(summarizeProgress("KILLER_V1", config, afterHit)).toEqual({
+      detail: "1v1 · Not Killer",
+      big: { value: "2", label: "LIVES" },
+    });
+  });
 });

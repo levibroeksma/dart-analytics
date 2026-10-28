@@ -73,6 +73,13 @@ describe("killerSetup", () => {
     expect(setup.startBlockedReason()).toBe("Add a guest to play Killer.");
   });
 
+  it("does not ask for a guest when more than one is added", () => {
+    const setup = createSetup();
+    setup.guests = [{ displayName: "A" }, { displayName: "B" }];
+    expect(setup.canStart()).toBe(false);
+    expect(setup.startBlockedReason()).not.toBe("Add a guest to play Killer.");
+  });
+
   it("blocks start when both seats share a number", () => {
     const setup = createSetup({ seatNumbers: [7, 7] });
     withGuest(setup);

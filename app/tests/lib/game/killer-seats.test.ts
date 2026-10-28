@@ -34,7 +34,7 @@ function seat(overrides: Partial<KillerSeatState> = {}): KillerSeatState {
     dartsToKiller: 4,
     dartsThrown: 9,
     ...overrides,
-  } as KillerSeatState;
+  };
 }
 
 describe("starterFirstNumbers", () => {
@@ -74,6 +74,10 @@ describe("outOrderNames", () => {
   it("joins display names", () => {
     expect(outOrderNames(["p2"], SEATS)).toBe("Guest");
     expect(outOrderNames(["p2", "p1"], SEATS)).toBe("Guest → Levi");
+  });
+
+  it("falls back to the raw participant ref when the seat is missing", () => {
+    expect(outOrderNames(["gone", "p1"], SEATS)).toBe("gone → Levi");
   });
 
   it("is empty for none", () => {
