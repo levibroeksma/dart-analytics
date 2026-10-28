@@ -1146,6 +1146,7 @@ export type KillerSeatResult = {
   out: boolean;
 };
 
+/** Stored final snapshot of a Killer session; `winningSideKey` is null when no side won. */
 export type KillerResultsSnapshot = {
   status: "COMPLETE";
   winningSideKey: string | null;
@@ -1153,6 +1154,7 @@ export type KillerResultsSnapshot = {
   seats: KillerSeatResult[];
 };
 
+/** Alpine context of the Killer play page: play lifecycle plus starter-step state. */
 export type KillerPlayContext = PlayLifecycleContext<
   KillerSnapshot,
   KillerEngine,

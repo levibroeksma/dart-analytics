@@ -1,7 +1,7 @@
 # Elimination Kernel — Design
 
 Date: 2026-10-27
-Status: approved in brainstorming; plan to follow via `superpowers:writing-plans`
+Status: approved in brainstorming; plans: `docs/superpowers/plans/2026-10-27-elimination-kernel-pr1.md` (shipped), `docs/superpowers/plans/2026-10-28-elimination-kernel-pr2.md` (shipped)
 Implementation: PR 1 (engine) shipped 2026-10-27; PR 2 (app wiring, section 6) shipped 2026-10-28
 Parent: `2026-10-15-rule-kernels-design.md` (umbrella, §5 Elimination row, §8 item 2)
 Siblings: `2026-10-17-track-kernel-design.md`, `2026-10-27-checkout-kernel-design.md`
@@ -47,8 +47,6 @@ proof is TDD against the rules file (§8).
 - `session-seats.service.ts` `SEAT_CAPS` defaults an unlisted key to 1.
 
 ## 3. Kernel contract
-
-Status: PR 2 shipped 2026-10-28.
 
 `app/src/modules/game/elimination-kernel.module.ts`; types in
 `modules/game/types.ts`, rules interface in `modules/game/interfaces.ts`
@@ -171,6 +169,8 @@ the darts' board-score sum (no `closedVisitTotal`).
 - **Seat numbers:** configuration snapshot (`seat_numbers`), never a fact.
 
 ## 6. App wiring (PR 2)
+
+Status: PR 2 shipped 2026-10-28.
 
 Full touch list of `07-Frontend/09-Adding-A-Game.md`, one commit (wiring
 gate). Route slug and code slug: `killer`.
