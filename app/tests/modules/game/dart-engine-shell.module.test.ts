@@ -4,7 +4,6 @@ import {
   dartGameEngineFactory,
 } from "@modules/game/dart-engine-shell.module";
 import type { DartGameSpec } from "@modules/interfaces";
-import { LegacyScoreTrainingEngine } from "./legacy/score-training.legacy";
 import type { DartObservation, EngineFacts } from "@modules/types";
 
 type Toy = { activeParticipantRef: string; status: string; darts: number };
@@ -418,29 +417,11 @@ describe("dartGameEngineClass — live total", () => {
     expect(engine.facts().turns[0].totalScore).toBe(0);
   });
 
-  it("an undo that reopens a visit rewrites the total to the remaining darts, as the legacy engine does", () => {
-    const config = {
-      durationType: "ROUNDS" as const,
-      durationValue: 5,
-      maxDartsPerTurn: 3,
-      maxVisitScore: 180,
-      seats: [
-        {
-          participantRef: "p1",
-          displayName: "P1",
-          sideKey: "A",
-          participantTypeKey: "PLAYER" as const,
-        },
-      ],
-    };
-    const legacy = new LegacyScoreTrainingEngine(config);
+  it("an undo that reopens a visit rewrites the total to the remaining darts", () => {
     const engine = new Live({ limit: 10 });
-    for (const e of [legacy, engine]) {
-      e.record(at(0, -102));
-      e.record(at(0, -102));
-      e.undo();
-    }
+    engine.record(at(0, -102));
+    engine.record(at(0, -102));
+    engine.undo();
     expect(engine.facts().turns[0].totalScore).toBe(60);
-    expect(legacy.facts().turns[0].totalScore).toBe(60);
   });
 });

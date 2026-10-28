@@ -45,7 +45,7 @@ function randomAttempt(rand: () => number): TuodAttemptInput {
   };
 }
 
-export const OUTER_BULL_POINT = { x: 10, y: 0 };
+const OUTER_BULL_POINT = { x: 10, y: 0 };
 
 /**
  * A coordinate-captured dart: the observation placed at its zone's centre so

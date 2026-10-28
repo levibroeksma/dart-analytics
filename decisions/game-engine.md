@@ -588,3 +588,10 @@ Decision: `visit-points-kernel.module.ts` folds one seat over turns: a turn's to
 Reason: the two shipped engines share only the visit walk; speccing settings no caller uses would fix a shape before any game tests it (D468 method).
 Consequences: Score Threshold's hand-written class is gone; its behaviour is pinned by goldens recorded before the rebind. Score Training stays `PENDING` until PR 2. Spec: `docs/superpowers/specs/2026-10-27-visit-points-kernel-design.md`.
 Supersedes: none.
+
+### D503 — The game shell keeps an open visit's total live on request (`liveTotal`)
+Status: Accepted · Date: 2026-10-28
+Decision: `DartGameSpec.liveTotal?: boolean`. With `coordinateCapture`, a spec that sets it has the shell write an open turn's `totalScore` as its darts' board-score sum after every dart; `closedVisitTotal` still settles it at close. Score Training sets it and is bound to the Visit points kernel on the game shell (`foldVisitPoints` per seat, `visitInput` for keypad totals, `complete` for solo duration), reusing the hooks Ten Up One Down landed (D500).
+Reason: Score Training persists a live open-visit total (#168) that `coordinateCapture` alone leaves unwritten; one optional flag keeps its facts byte-identical without changing any other bound engine.
+Consequences: Score Training's hand-written class is gone; its behaviour is pinned by goldens recorded before the rebind and proven by a differential oracle over mixed keypad and board input. The registry row is `KERNEL_BOUND`. Spec: `docs/superpowers/specs/2026-10-27-visit-points-kernel-design.md`.
+Supersedes: none.
