@@ -104,6 +104,7 @@ interface CheckoutRules<TExt> {
 - **Refined by the PR 1 plan (2026-10-27):** `target` + target-setting in `onAttemptClose` become `nextTarget(seat, passed) → number | null` (null ⇒ `DONE`), the first target passed to `initialCheckoutSeat`; `VisitVerdict` gains `OPEN { remaining, darts }`, `FAIL` lands in PR 2 and `WON` in PR 4; `CheckoutSeat` carries `visitStart`/`dartsInVisit` and gains seat identity with `foldCheckoutSeats` in PR 3; the exercise shell's `isVisitOpen` sees the folded state; `NO_INTENT` exported from `turn-log.module.ts`.
 - **Refined by the PR 2 plan (2026-10-27):** `seededDrawTarget(drawSeed, pool)` and `drawStartScore` both wrap `seededPoolDraw(drawSeed, pool, index)` in `checkout-policies.ts` (a game module cannot import a training one); `unreachableFails` judges from `dartWalkJudge`'s verdict — an `OPEN` visit with a dart thrown and an unreachable remainder is `FAIL` — rather than walking again; `FAIL` closes the attempt on any visit.
 - **Refined by the PR 3 plan (2026-10-27):** seat identity stays outside `CheckoutSeat` — `foldCheckoutSeats(turns, seats, initial, rules)` returns seats aligned with `seats` and the engine projection adds `participantRef`/`sideKey`; `ladderStep` is `ladderTarget(up, down, floor, cap)`, a `nextTarget` policy, with TUOD's `onAttemptClose` the identity (121's `WON` cap lands in PR 4); `storedTotalJudge` returns `OPEN` for an unstamped turn, `CHECKOUT` for a stamped turn with `totalScore > 0`, else `FAIL` — 121's `finishedOnDouble` and `BUST`/`SPENT` split land with it.
+- **Refined by the PR 4 plan (2026-10-28):** 121's `ladderStep(+1, 0, —, 170 → WON)` is `ladderTarget(1, 0, 121, 170)` wrapped in `untilWon` (no next target for a `WON` seat) plus `winAtCap(170)` as `onAttemptClose`; the kernel keeps a seat a policy marked `WON` instead of overwriting it with `DONE`, and `CheckoutSeat.status` gains `WON`. 121 is judged by `walkTotalJudge`, not `storedTotalJudge`: a stamped total is walked from the visit's start under the double-out rule (`CHECKOUT`, `BUST`, else `SPENT` at the remainder). A keypad total is refused while a board visit is open — the legacy engine accepted it and opened a round its own fold did not count; the play page never offers both inputs in one session.
 
 ## 4. Policy library (phase 1)
 
@@ -117,7 +118,9 @@ them. Each preserves the engine's exact branch, quirks included.
 | `listTarget(first, last)` | target | Checkout Sequence |
 | `seededDrawTarget(drawSeed, pool)` (wraps `drawStartScore`) | target | Random Checkout |
 | `unreachableFails` (wraps `dartWalkJudge`) | judge | Random Checkout |
-| `storedTotalJudge` | judge | TUOD (success = `totalScore > 0`); 121 (total + `finishedOnDouble: true`) |
+| `storedTotalJudge` | judge | TUOD (success = `totalScore > 0`) |
+| `walkTotalJudge` | judge | 121 (refined by the PR 4 plan, 2026-10-28) |
+| `winAtCap(cap)`, `untilWon(next)` | onAttemptClose, target | 121 (refined by the PR 4 plan, 2026-10-28) |
 | `ladderStep(up, down, floor, cap, onCap)` | onAttemptClose | TUOD (`+finishBonus`, `−missPenalty`, 2, 170, clamp); 121 (`+1`, `0`, —, 170, `WON`) |
 
 ## 5. Kernel-config rows
@@ -153,6 +156,8 @@ All additive: existing specs compile unchanged.
 | Optional `stageFor?(state)`: the shell opens a new root stage when the returned stage changes; `undo` pops a stage left empty | game | PR 4 (121) |
 
 Refined by the PR 3 plan (2026-10-27): beyond `visitInput`, the shell takes optional `coordinateCapture` (darts resolve from their coordinates via `resolveObservation`, carry no intent, and leave an open turn's `totalScore` unwritten — TUOD is coordinate-captured), `complete(state, config)` (replaces `isComplete()`), `isVisitOpen(turn, state, config)`, `wouldComplete(state, input, config, open)` and `closedVisitTotal(opened, closed, participantRef, turn, config)`; `undo()` uses `undoLastUnit` when `visitInput` is declared.
+
+Refined by the PR 4 plan (2026-10-28): `stageFor(state)` is a pure function of the folded state (121: `round-(1 + Σ attempts − won)`); with it the shell counts turn `sequence` within its stage and undoes with `undoStagedTurn`. Two further optional hooks: `liveTotal` (an open turn's `totalScore` is its darts' sum; landed first with Score Training, D503) and a third `complete` argument, `expiredAt` — the state at the latest `expireTimer()` call (121's `MINUTES` rule).
 
 ## 7. Migration method (per PR)
 

@@ -8,6 +8,9 @@ import {
 import {
   ladderTarget,
   storedTotalJudge,
+  untilWon,
+  walkTotalJudge,
+  winAtCap,
 } from "@modules/game/checkout-policies";
 import type { SeatFact } from "@lib/types";
 import type { CheckoutRules } from "@modules/interfaces";
@@ -221,5 +224,31 @@ describe("foldCheckoutSeats", () => {
     );
     expect(folded[0].target).toBe(51);
     expect(folded[1]).toMatchObject({ target: 41, attempts: 0 });
+  });
+});
+
+describe("checkout kernel — a seat a policy marked WON", () => {
+  it("keeps WON on the cap target with the attempt booked", () => {
+    const seat = applyCheckoutVisit(
+      { ...initialCheckoutSeat(170, null), target: 170 },
+      {
+        completedAt: "2026-11-01T10:00:00Z",
+        totalScore: 170,
+        darts: [],
+      } as unknown as TurnFact,
+      {
+        visitsPerAttempt: 3,
+        judge: walkTotalJudge,
+        onAttemptClose: winAtCap(170),
+        nextTarget: untilWon(ladderTarget(1, 0, 121, 170)),
+      },
+    );
+    expect(seat).toMatchObject({
+      status: "WON",
+      target: 170,
+      attempts: 1,
+      checkouts: 1,
+      visitIndex: 0,
+    });
   });
 });

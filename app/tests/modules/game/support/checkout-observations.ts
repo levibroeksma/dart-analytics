@@ -1,5 +1,9 @@
 import type {
+  DartCount,
   DartObservation,
+  OneTwentyOneInput,
+  OneTwentyOneState,
+  OneTwentyOneVisitInput,
   TuodAttemptInput,
   TuodInput,
   TuodState,
@@ -77,6 +81,57 @@ export function tuodInputs(visitRate: number, towardRate: number) {
     const seat = state.seats.find(
       (candidate) => candidate.participantRef === state.activeParticipantRef,
     )!;
+    if (rand() >= towardRate || seat.remainingInAttempt <= 1)
+      return located(randomObservation(rand));
+    return located(finishingShot(seat.remainingInAttempt));
+  };
+}
+
+function randomVisit(
+  rand: () => number,
+  remaining: number,
+  checkoutRate: number,
+): OneTwentyOneVisitInput {
+  const count = (1 + Math.floor(rand() * 3)) as DartCount;
+  const atDouble = (1 + Math.floor(rand() * 3)) as DartCount;
+  if (rand() < checkoutRate)
+    return {
+      scoreAttempted: remaining,
+      finishedOnDouble: true,
+      dartsUsed: count,
+      dartsAtDouble: atDouble,
+    };
+  return {
+    scoreAttempted: Math.floor(rand() * 185),
+    finishedOnDouble: rand() < 0.5,
+    dartsUsed: count,
+    dartsAtDouble: atDouble,
+  };
+}
+
+/**
+ * Mixes the two 121 input shapes in one log, as the play page can: with
+ * probability `visitRate`, when no board visit is open, a keypad total — an exact check-out of the active seat's live remainder with
+ * probability `checkoutRate`, else any score in `0..184` (out-of-range ones
+ * fire the guard) — otherwise a located board dart, towards the remainder with
+ * probability `towardRate`, else random.
+ */
+export function oneTwentyOneInputs(
+  visitRate: number,
+  towardRate: number,
+  checkoutRate: number,
+) {
+  return (
+    rand: () => number,
+    engine: OracleEngine<OneTwentyOneInput>,
+  ): OneTwentyOneInput => {
+    const state = engine.state() as OneTwentyOneState;
+    const seat = state.seats.find(
+      (candidate) => candidate.participantRef === state.activeParticipantRef,
+    )!;
+    const boardVisitOpen = engine.facts().turns.at(-1)?.completedAt === null;
+    if (rand() < visitRate && !boardVisitOpen)
+      return randomVisit(rand, seat.remainingInAttempt, checkoutRate);
     if (rand() >= towardRate || seat.remainingInAttempt <= 1)
       return located(randomObservation(rand));
     return located(finishingShot(seat.remainingInAttempt));

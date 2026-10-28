@@ -112,3 +112,44 @@ export function ladderTarget(
       ? Math.min(cap, seat.target + up)
       : Math.max(floor, seat.target - down);
 }
+
+/**
+ * Judges a visit of a multi-visit attempt from what was stored: an unstamped
+ * turn is open at the visit's start less its darts; a stamped total is walked
+ * from the visit's start under the double-out rule — checked out, busted, or
+ * spent at the remainder (a stored bust is 0, so it carries the start).
+ */
+export function walkTotalJudge<TExt>(
+  seat: CheckoutSeat<TExt>,
+  turn: TurnFact,
+): VisitVerdict {
+  if (turn.completedAt === null)
+    return {
+      kind: "OPEN",
+      remaining: seat.visitStart - sumDartScores(turn.darts),
+      darts: turn.darts.length,
+    };
+  const outcome = resolveCheckoutAttempt(
+    seat.visitStart,
+    turn.totalScore,
+    true,
+  );
+  if (outcome.checkedOut) return { kind: "CHECKOUT", darts: turn.darts.length };
+  if (outcome.busted) return { kind: "BUST" };
+  return { kind: "SPENT", remaining: outcome.remainingAfter };
+}
+
+/** `onAttemptClose`: a pass at `cap` or above marks the seat `WON`. */
+export function winAtCap(
+  cap: number,
+): <TExt>(seat: CheckoutSeat<TExt>, passed: boolean) => CheckoutSeat<TExt> {
+  return (seat, passed) =>
+    passed && seat.target >= cap ? { ...seat, status: "WON" } : seat;
+}
+
+/** `nextTarget` wrapper: a `WON` seat has no next target. */
+export function untilWon(
+  next: <TExt>(seat: CheckoutSeat<TExt>, passed: boolean) => number | null,
+): <TExt>(seat: CheckoutSeat<TExt>, passed: boolean) => number | null {
+  return (seat, passed) => (seat.status === "WON" ? null : next(seat, passed));
+}
