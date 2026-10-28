@@ -1148,3 +1148,30 @@ describe("TuodEngine.state — live in-visit remaining (#202)", () => {
     expect(initialTuodState(config()).seats[0].remainingInAttempt).toBe(41);
   });
 });
+
+describe("TuodEngine — preserved legacy behaviour", () => {
+  it("keeps an open board turn's totalScore at 0, then at the dart sum once undo reopens it", () => {
+    const engine = tuodEngineFactory.create(config());
+    engine.record(SINGLE_1);
+    engine.record(SINGLE_1);
+    expect(engine.facts().turns[0].totalScore).toBe(0);
+
+    engine.undo();
+
+    expect(engine.facts().turns[0].totalScore).toBe(1);
+    expect(engine.facts().turns[0].completedAt).toBeNull();
+  });
+
+  it("accepts input in a solo session after its last round, leaving completion to isComplete()", () => {
+    const engine = tuodEngineFactory.create({
+      ...config(),
+      durationValue: 1,
+    });
+    engine.record(MISS);
+    expect(engine.isComplete()).toBe(true);
+
+    const state = engine.record(MISS);
+
+    expect(state.seats[0].attempts).toBe(2);
+  });
+});

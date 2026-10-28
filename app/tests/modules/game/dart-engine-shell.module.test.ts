@@ -240,3 +240,150 @@ describe("closed visit totals", () => {
     expect(engine.facts().turns[0].totalScore).toBe(180);
   });
 });
+
+type Keypad = { total: number };
+
+type Pad = Toy & { open: boolean };
+
+const padSpec: DartGameSpec<{ limit: number }, Pad, Keypad> = {
+  rulesetVersionKey: "BOBS27_V1",
+  stageOwnership: "PER_SEAT",
+  fold: (facts, config) => {
+    const turns = facts.turns.length;
+    return {
+      activeParticipantRef: "p1",
+      status: turns >= config.limit ? "COMPLETE" : "IN_PROGRESS",
+      darts: facts.turns.reduce((n, t) => n + t.darts.length, 0),
+      open: facts.turns.at(-1)?.completedAt === null,
+    };
+  },
+  refusal: () => null,
+  intent: () => ({ intendedTargetNumber: null, intendedZoneKey: null }),
+  isVisitOpen: (turn, _state, config) =>
+    turn.completedAt === null && turn.darts.length < config.limit,
+  wouldComplete: (state, input, _config, open) =>
+    "total" in input
+      ? open === null
+      : (open?.darts.length ?? 0) + 1 >= 2 && state.darts >= 0,
+  visitInput: {
+    isVisit: (input): input is Keypad => "total" in input,
+    refusal: (_state, _input, _config, open) =>
+      open === null ? null : "board visit open",
+    total: (_state, input) => input.total,
+  },
+  coordinateCapture: true,
+  closedVisitTotal: (_opened, _closed, _ref, turn, config) =>
+    turn.darts.length * 100 + config.limit * 0,
+  complete: (state) => state.darts >= 4,
+};
+
+const Pad = dartGameEngineClass(padSpec);
+
+describe("dartGameEngineClass — visit input hooks", () => {
+  it("writes a keypad total as one closed dartless turn", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-11-01T10:00:00Z"));
+    const engine = new Pad({ limit: 2 });
+    engine.record({ total: 41 });
+    expect(engine.facts().turns).toHaveLength(1);
+    expect(engine.facts().turns[0]).toMatchObject({
+      darts: [],
+      totalScore: 41,
+      completedAt: "2026-11-01T10:00:00.000Z",
+    });
+  });
+
+  it("refuses a keypad total while a dart visit is open, with the spec's message", () => {
+    const engine = new Pad({ limit: 2 });
+    engine.record(T20);
+    expect(() => engine.record({ total: 1 })).toThrow("board visit open");
+    expect(engine.facts().turns).toHaveLength(1);
+  });
+
+  it("leaves an open turn's totalScore unwritten and settles it through closedVisitTotal(…, turn)", () => {
+    const engine = new Pad({ limit: 2 });
+    engine.record(T20);
+    expect(engine.facts().turns[0].totalScore).toBe(0);
+    engine.record(T20);
+    expect(engine.facts().turns[0]).toMatchObject({
+      totalScore: 200,
+    });
+    expect(engine.facts().turns[0].completedAt).not.toBeNull();
+  });
+
+  it("undo pops a whole keypad turn, then a dart", () => {
+    const engine = new Pad({ limit: 5 });
+    engine.record({ total: 7 });
+    engine.record(T20);
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns).toHaveLength(1);
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns).toHaveLength(0);
+    expect(engine.undo()).toBe(false);
+  });
+
+  it("answers wouldComplete with the open turn, for both input shapes", () => {
+    const engine = new Pad({ limit: 5 });
+    expect(engine.wouldComplete({ total: 1 })).toBe(true);
+    engine.record(T20);
+    expect(engine.wouldComplete({ total: 1 })).toBe(false);
+    expect(engine.wouldComplete(T20)).toBe(true);
+  });
+
+  it("reads isComplete from the spec's complete hook when declared", () => {
+    const engine = new Pad({ limit: 99 });
+    engine.record(T20);
+    engine.record(T20);
+    engine.record(T20);
+    engine.record(T20);
+    expect(engine.state().status).toBe("IN_PROGRESS");
+    expect(engine.isComplete()).toBe(true);
+  });
+});
+
+describe("dartGameEngineClass — specs without the hooks", () => {
+  it("still sums a dart visit's total while open and undoes with undoLastDart", () => {
+    const engine = new Toy({ limit: 10 });
+    engine.record(T20);
+    expect(engine.facts().turns[0].totalScore).toBe(60);
+    expect(engine.undo()).toBe(true);
+    expect(engine.undo()).toBe(false);
+  });
+});
+
+describe("dartGameEngineClass — coordinate capture", () => {
+  const coordSpec: DartGameSpec<{ limit: number }, Toy> = {
+    ...spec,
+    coordinateCapture: true,
+  };
+  const Coord = dartGameEngineClass(coordSpec);
+  const trebleTwentyAt = {
+    hitTargetNumber: null,
+    hitZoneKey: "MISS" as const,
+    locationX: 0,
+    locationY: -102,
+  };
+
+  it("resolves a located dart from its coordinates, with no intent", () => {
+    const engine = new Coord({ limit: 10 });
+    engine.record(trebleTwentyAt);
+    expect(engine.facts().turns[0].darts[0]).toMatchObject({
+      hitTargetNumber: 20,
+      hitZoneKey: "TREBLE",
+      score: 60,
+      intendedTargetNumber: null,
+      intendedZoneKey: null,
+    });
+    expect(engine.facts().turns[0].totalScore).toBe(0);
+  });
+
+  it("scores an unlocated dart as a scoreless hit on its own zone", () => {
+    const engine = new Coord({ limit: 10 });
+    engine.record({ ...T20, locationX: null, locationY: null });
+    expect(engine.facts().turns[0].darts[0]).toMatchObject({
+      hitTargetNumber: null,
+      hitZoneKey: "TREBLE",
+      score: 0,
+    });
+  });
+});

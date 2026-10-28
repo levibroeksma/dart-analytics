@@ -103,6 +103,7 @@ interface CheckoutRules<TExt> {
   policies.
 - **Refined by the PR 1 plan (2026-10-27):** `target` + target-setting in `onAttemptClose` become `nextTarget(seat, passed) → number | null` (null ⇒ `DONE`), the first target passed to `initialCheckoutSeat`; `VisitVerdict` gains `OPEN { remaining, darts }`, `FAIL` lands in PR 2 and `WON` in PR 4; `CheckoutSeat` carries `visitStart`/`dartsInVisit` and gains seat identity with `foldCheckoutSeats` in PR 3; the exercise shell's `isVisitOpen` sees the folded state; `NO_INTENT` exported from `turn-log.module.ts`.
 - **Refined by the PR 2 plan (2026-10-27):** `seededDrawTarget(drawSeed, pool)` and `drawStartScore` both wrap `seededPoolDraw(drawSeed, pool, index)` in `checkout-policies.ts` (a game module cannot import a training one); `unreachableFails` judges from `dartWalkJudge`'s verdict — an `OPEN` visit with a dart thrown and an unreachable remainder is `FAIL` — rather than walking again; `FAIL` closes the attempt on any visit.
+- **Refined by the PR 3 plan (2026-10-27):** seat identity stays outside `CheckoutSeat` — `foldCheckoutSeats(turns, seats, initial, rules)` returns seats aligned with `seats` and the engine projection adds `participantRef`/`sideKey`; `ladderStep` is `ladderTarget(up, down, floor, cap)`, a `nextTarget` policy, with TUOD's `onAttemptClose` the identity (121's `WON` cap lands in PR 4); `storedTotalJudge` returns `OPEN` for an unstamped turn, `CHECKOUT` for a stamped turn with `totalScore > 0`, else `FAIL` — 121's `finishedOnDouble` and `BUST`/`SPENT` split land with it.
 
 ## 4. Policy library (phase 1)
 
@@ -150,6 +151,8 @@ All additive: existing specs compile unchanged.
 | Optional `visitInput?: { isVisit(input), refusal(before, input), total(before, input) }`: the shell writes one closed, dartless turn; `record` and `wouldComplete` accept `DartObservation \| TVisit` | game | PR 3 (TUOD) |
 | Existing `closedVisitTotal` settles TUOD's per-dart `totalScore` | game | PR 3 (reuse, no change) |
 | Optional `stageFor?(state)`: the shell opens a new root stage when the returned stage changes; `undo` pops a stage left empty | game | PR 4 (121) |
+
+Refined by the PR 3 plan (2026-10-27): beyond `visitInput`, the shell takes optional `coordinateCapture` (darts resolve from their coordinates via `resolveObservation`, carry no intent, and leave an open turn's `totalScore` unwritten — TUOD is coordinate-captured), `complete(state, config)` (replaces `isComplete()`), `isVisitOpen(turn, state, config)`, `wouldComplete(state, input, config, open)` and `closedVisitTotal(opened, closed, participantRef, turn, config)`; `undo()` uses `undoLastUnit` when `visitInput` is declared.
 
 ## 7. Migration method (per PR)
 

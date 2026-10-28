@@ -1,9 +1,15 @@
 import { describe, it, expect } from "vitest";
 import {
   applyCheckoutVisit,
+  foldCheckoutSeats,
   foldCheckoutVisits,
   initialCheckoutSeat,
 } from "@modules/game/checkout-kernel.module";
+import {
+  ladderTarget,
+  storedTotalJudge,
+} from "@modules/game/checkout-policies";
+import type { SeatFact } from "@lib/types";
 import type { CheckoutRules } from "@modules/interfaces";
 import type { CheckoutSeat, TurnFact, VisitVerdict } from "@modules/types";
 
@@ -164,5 +170,56 @@ describe("checkout kernel", () => {
       status: "IN_PROGRESS",
       ext: { closed: [[false, "FAIL"]] },
     });
+  });
+});
+
+describe("foldCheckoutSeats", () => {
+  const seats = [
+    { participantRef: "p1", sideKey: "A" },
+    { participantRef: "p2", sideKey: "B" },
+  ] as SeatFact[];
+  const seatRules: CheckoutRules<null> = {
+    visitsPerAttempt: 1,
+    judge: storedTotalJudge,
+    onAttemptClose: (seat) => seat,
+    nextTarget: ladderTarget(10, 1, 2, 170),
+  };
+  const stored = (
+    ref: string,
+    totalScore: number,
+    completedAt: string | null = "x",
+  ) =>
+    ({
+      clientKey: `${ref}-${totalScore}`,
+      stageClientKey: "s",
+      participantRef: ref,
+      sequence: 1,
+      completedAt,
+      totalScore,
+      darts: [],
+    }) as TurnFact;
+
+  it("folds each seat over its own turns, aligned with `seats`", () => {
+    const folded = foldCheckoutSeats(
+      [stored("p1", 41), stored("p2", 0), stored("p1", 0), stored("p2", 0)],
+      seats,
+      initialCheckoutSeat(41, null),
+      seatRules,
+    );
+    expect(folded.map((s) => [s.target, s.attempts, s.checkouts])).toEqual([
+      [50, 2, 1],
+      [39, 2, 0],
+    ]);
+  });
+
+  it("shows the open turn on its own seat only, ladder untouched", () => {
+    const folded = foldCheckoutSeats(
+      [stored("p1", 41), stored("p2", 0, null)],
+      seats,
+      initialCheckoutSeat(41, null),
+      seatRules,
+    );
+    expect(folded[0].target).toBe(51);
+    expect(folded[1]).toMatchObject({ target: 41, attempts: 0 });
   });
 });
