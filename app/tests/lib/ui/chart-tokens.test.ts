@@ -18,7 +18,9 @@ function cardTintNames(): string[] {
 }
 
 function chartTokenNames(): string[] {
-  return [...css.matchAll(/^\s*--chart-(?!grid\b)(\w+):/gm)].map((m) => m[1]);
+  return [...css.matchAll(/^\s*--chart-(?!(?:grid|bar|tick)\b)(\w+):/gm)].map(
+    (m) => m[1],
+  );
 }
 
 describe("chart color tokens", () => {
@@ -30,8 +32,8 @@ describe("chart color tokens", () => {
     expect(card).toMatch(/const tintPresets: Record<TintName, string>/);
   });
 
-  it("has a grid token", () => {
-    expect(css).toMatch(/^\s*--chart-grid:/m);
+  it.each(["grid", "bar", "tick"])("has a non-series %s token", (name) => {
+    expect(css).toMatch(new RegExp(`^\\s*--chart-${name}:`, "m"));
   });
 });
 
