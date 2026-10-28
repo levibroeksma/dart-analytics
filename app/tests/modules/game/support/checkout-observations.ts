@@ -45,14 +45,14 @@ function randomAttempt(rand: () => number): TuodAttemptInput {
   };
 }
 
-const OUTER_BULL_POINT = { x: 10, y: 0 };
+export const OUTER_BULL_POINT = { x: 10, y: 0 };
 
 /**
  * A coordinate-captured dart: the observation placed at its zone's centre so
  * the engine's own classification resolves it. A miss stays unlocated, the
  * unseen-dart path.
  */
-function located(observation: DartObservation): DartObservation {
+export function located(observation: DartObservation): DartObservation {
   const { hitTargetNumber, hitZoneKey } = observation;
   if (hitZoneKey === "MISS") return observation;
   const point =
