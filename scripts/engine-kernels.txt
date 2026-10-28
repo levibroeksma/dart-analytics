@@ -10,7 +10,7 @@ app/src/modules/game/doubles-training.engine.module.ts | TRACK | KERNEL_BOUND | 
 app/src/modules/game/five-oh-one.engine.module.ts | HAND_WRITTEN | HAND_WRITTEN | docs/game-rules/rulesets/501.md | sets/legs match format (umbrella spec §5)
 app/src/modules/game/killer.engine.module.ts | ELIMINATION | KERNEL_BOUND | docs/game-rules/rulesets/killer.md |
 app/src/modules/game/one-twenty-one.engine.module.ts | CHECKOUT | PENDING | docs/game-rules/rulesets/121.md | Checkout family plan
-app/src/modules/game/score-training.engine.module.ts | VISIT_POINTS | PENDING | docs/game-rules/rulesets/score-training.md | Visit-points family plan
+app/src/modules/game/score-training.engine.module.ts | VISIT_POINTS | KERNEL_BOUND | docs/game-rules/rulesets/score-training.md |
 app/src/modules/game/shanghai.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/rulesets/shanghai.md |
 app/src/modules/game/singles-training.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/rulesets/singles-training.md |
 app/src/modules/game/tactics.engine.module.ts | MARKS | PENDING | docs/game-rules/rulesets/tactics.md | Marks family plan; builds on MarksEngine (D487)
