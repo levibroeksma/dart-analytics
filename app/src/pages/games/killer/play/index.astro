@@ -1,0 +1,33 @@
+---
+export const prerender = true;
+import GameLayout from "@layouts/GameLayout.astro";
+import Killer from "@components/layout/games/interfaces/Killer.astro";
+import KillerResults from "@components/layout/games/result-modals/KillerResults.astro";
+import NoSessionPanel from "@components/layout/games/NoSessionPanel.astro";
+import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocked.astro";
+---
+
+<GameLayout
+  title="Killer — Play"
+  gameTitle="Killer"
+  gameSubtitleExpr="hasActiveSession ? subtitle() : ''"
+  x-data="killerPlay()"
+  @confirm-exit.window="abandonAndExit()"
+>
+  <div class="flex flex-col flex-1 min-h-0">
+    {/* Loading / reconciliation-blocked */}
+    <ReconciliationBlocked />
+
+    {/* No active session view */}
+    <NoSessionPanel href="/games/killer/setup" />
+
+    {/* Gameplay view */}
+    <Killer
+      x-show="!finished && hasActiveSession"
+      x-cloak
+    />
+
+    {/* Results modal (overlay) */}
+    <KillerResults />
+  </div>
+</GameLayout>

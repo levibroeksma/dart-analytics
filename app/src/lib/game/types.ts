@@ -15,6 +15,7 @@ import type { Bobs27Engine } from "@modules/game/bobs27.engine.module";
 import type { CricketEngine } from "@modules/game/cricket.engine.module";
 import type { TacticsEngine } from "@modules/game/tactics.engine.module";
 import type { BaseballEngine } from "@modules/game/baseball.engine.module";
+import type { KillerEngine } from "@modules/game/killer.engine.module";
 import type { SinglesTrainingEngine } from "@modules/game/singles-training.engine.module";
 import type { DoublesTrainingEngine } from "@modules/game/doubles-training.engine.module";
 import type { ShanghaiEngine } from "@modules/game/shanghai.engine.module";
@@ -30,6 +31,7 @@ import type {
   TacticsObjective,
   TacticsState,
   BaseballState,
+  KillerState,
   DartCount,
   DartObservation,
   DoublesTrainingState,
@@ -60,6 +62,7 @@ import type {
   CricketSnapshot,
   TacticsSnapshot,
   BaseballSnapshot,
+  KillerSnapshot,
   SinglesSnapshot,
   SinglesV2Snapshot,
   DoublesTrainingSnapshot,
@@ -1123,6 +1126,77 @@ export type BaseballPlayContext = PlayLifecycleContext<
   back(this: BaseballPlayContext): Promise<void>;
   playAgain(this: BaseballPlayContext): Promise<void>;
   abandonAndExit(this: BaseballPlayContext): Promise<void>;
+};
+
+/** Killer setup: the two seats' target numbers and whether the pair can start. */
+export type KillerSetupContext = PresetSetupContext & {
+  seatNumbers: [number, number];
+  canStart(): boolean;
+  startBlockedReason(): string;
+};
+
+/** One seat's Killer result: its number, lives left and taken, darts to become killer (null if never) and whether it went out. */
+export type KillerSeatResult = {
+  participantRef: string;
+  sideKey: string;
+  number: number;
+  livesLeft: number;
+  livesTaken: number;
+  dartsToKiller: number | null;
+  out: boolean;
+};
+
+/** Stored final snapshot of a Killer session; `winningSideKey` is null when no side won. */
+export type KillerResultsSnapshot = {
+  status: "COMPLETE";
+  winningSideKey: string | null;
+  outOrder: string[];
+  seats: KillerSeatResult[];
+};
+
+/** Alpine context of the Killer play page: play lifecycle plus starter-step state. */
+export type KillerPlayContext = PlayLifecycleContext<
+  KillerSnapshot,
+  KillerEngine,
+  KillerResultsSnapshot
+> & {
+  starterOpen: boolean;
+  playAgainStarter: 0 | 1 | null;
+  requestPlayAgain(): unknown;
+  playAgainStarterOptions(): StarterStepOptions;
+  ring: MarksRing;
+  setRing(this: KillerPlayContext, ring: MarksRing): void;
+  state(this: KillerPlayContext): KillerState | null;
+  visitMarkers(this: KillerPlayContext): BoardMarker[];
+  recordDart(
+    this: KillerPlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
+  commitDart(
+    this: KillerPlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
+  isBullVisit(this: KillerPlayContext): boolean;
+  previewSegments(this: KillerPlayContext): GamePreviewSegment[];
+  recordNumber(this: KillerPlayContext, n: number): Promise<void>;
+  recordBull(this: KillerPlayContext): Promise<void>;
+  recordMiss(this: KillerPlayContext): Promise<void>;
+  livesLabelFor(this: KillerPlayContext, seatRef: string): string;
+  livesLabel(this: KillerPlayContext): string;
+  numberLabelFor(this: KillerPlayContext, seatRef: string): string;
+  numberLabel(this: KillerPlayContext): string;
+  statusLabelFor(this: KillerPlayContext, seatRef: string): string;
+  statusLabel(this: KillerPlayContext): string;
+  subtitle(this: KillerPlayContext): string;
+  init(this: KillerPlayContext): Promise<void>;
+  retryReconciliation(this: KillerPlayContext): Promise<void>;
+  undoVisit(this: KillerPlayContext): Promise<void>;
+  uploadAndCompleteSession(this: KillerPlayContext): Promise<void>;
+  resultsTitle(this: KillerPlayContext): string;
+  outOrderLabel(this: KillerPlayContext): string;
+  back(this: KillerPlayContext): Promise<void>;
+  playAgain(this: KillerPlayContext): Promise<void>;
+  abandonAndExit(this: KillerPlayContext): Promise<void>;
 };
 
 /** One dart slot in Singles Training's visit preview — a resolved hit/miss mark (by training points, not board score), or a not-yet-thrown placeholder. */

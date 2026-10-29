@@ -31,6 +31,7 @@ describe("HEATMAP_ONLY_LAYOUTS", () => {
         "CRICKET_V1",
         "CRICKET_V2",
         "DOUBLES_TRAINING_V1",
+        "KILLER_V1",
         "SHANGHAI_V1",
         "SINGLES_V1",
         "TACTICS_V1",

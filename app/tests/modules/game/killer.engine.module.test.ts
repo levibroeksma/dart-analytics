@@ -201,4 +201,79 @@ describe("killer engine", () => {
     );
     expect(lines).toMatchSnapshot();
   });
+
+  describe("numbers 20/19", () => {
+    const seat = (ref: string, sideKey: string) => ({
+      participantRef: ref,
+      displayName: ref,
+      sideKey,
+      participantTypeKey: "PLAYER" as const,
+    });
+    const twoSeat: Seated<KillerSnapshot> = {
+      lives: 3,
+      seatNumbers: [20, 19],
+      seats: [seat("p1", "A"), seat("p2", "B")],
+    };
+    const threeSeat: Seated<KillerSnapshot> = {
+      lives: 3,
+      seatNumbers: [20, 19, 18],
+      seats: [seat("p1", "A"), seat("p2", "B"), seat("p3", "C")],
+    };
+    const toOneLife = [d(20), d(19), d(19), miss, miss, miss];
+
+    function ended(): KillerEngine {
+      const engine = new KillerEngine(twoSeat);
+      for (const observation of [...toOneLife, s(5), d(19)])
+        engine.record(observation);
+      return engine;
+    }
+
+    it("eliminates on dart 2 and closes the visit at the match end", () => {
+      const engine = ended();
+      expect(engine.state()).toMatchObject({
+        status: "COMPLETE",
+        winningSideKey: "A",
+        outOrder: ["p2"],
+      });
+      const last = engine.facts().turns.at(-1);
+      expect(last?.darts).toHaveLength(2);
+      expect(last?.completedAt).not.toBeNull();
+    });
+
+    it("undo of an eliminating dart reopens the game", () => {
+      const engine = ended();
+      expect(engine.undo()).toBe(true);
+      const state = engine.state();
+      expect(state.status).toBe("IN_PROGRESS");
+      expect(seatB(state)).toMatchObject({ lives: 1, out: false });
+      expect(state.activeParticipantRef).toBe("p1");
+      expect(state.winningSideKey).toBeNull();
+      expect(state.outOrder).toEqual([]);
+      expect(engine.facts().turns.at(-1)?.completedAt).toBeNull();
+    });
+
+    it("wouldComplete is true mid-visit only for the eliminating dart", () => {
+      const engine = new KillerEngine(twoSeat);
+      for (const observation of [...toOneLife, s(5)])
+        engine.record(observation);
+      expect(engine.wouldComplete(d(19))).toBe(true);
+      expect(engine.wouldComplete(d(18))).toBe(false);
+      expect(engine.wouldComplete(d(20))).toBe(false);
+    });
+
+    it("folds three seats and skips the out seat in the rota", () => {
+      const engine = new KillerEngine(threeSeat);
+      const log = [...toOneLife, miss, miss, miss, d(19), miss, miss];
+      for (const observation of log) engine.record(observation);
+      const state = foldKillerState(engine.facts(), threeSeat);
+      expect(state).toEqual(engine.state());
+      expect(state.outOrder).toEqual(["p2"]);
+      expect(state.status).toBe("IN_PROGRESS");
+      expect(state.activeParticipantRef).toBe("p3");
+      engine.record(miss);
+      engine.record(miss);
+      engine.record(miss);
+      expect(engine.state().activeParticipantRef).toBe("p1");
+    });
+  });
 });
