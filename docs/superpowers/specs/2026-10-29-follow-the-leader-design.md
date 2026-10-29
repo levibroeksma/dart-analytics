@@ -59,6 +59,25 @@ distinct; both singles one ring). **Leader** = seat whose dart set the target.
    standing wins at once.
 5. Result: winner, out order, lives left per seat.
 
+## 3a. Calls from the builder check (Claude's calls)
+
+- **Stop before any match is refused** (`canStop` needs ≥1 match); the
+  validator enforces it. No voluntary life loss.
+- **Closure is stored, never inferred.** The fold treats a turn as closed
+  only when `completedAt` is set. The shell stamps it on: the 3rd dart; a
+  Stop; a leader or opening dart that lands on the board; an off-board
+  dart of a leader or opening turn (see next). Rehydration and undo replay
+  this one rule.
+- **Opening and leader turns hold one dart.** An off-board dart is stored,
+  closes its turn, and the same seat gets a new turn; the rota does not move.
+  Every turn keeps the three-dart cap.
+- **"Failed" means no dart of the visit matched.** A matcher that matched and
+  then lost a life to an off-board last dart did not fail: it blocks a keep.
+  Rules-file open question, V1 reading as stated.
+- **With two seats the others-failed set is one flag.** Kernel stays N-seat.
+- **`kept`**: plan checks `06-API/00-Overview.md` and shared DTOs; a defaulted
+  column is additive and safe to deploy ahead of use.
+
 ## 4. Kernel extension (additive)
 
 Killer must not change. Two additions to `EliminationRules`, both optional:
