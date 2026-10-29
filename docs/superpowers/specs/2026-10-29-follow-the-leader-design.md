@@ -162,7 +162,7 @@ TDD per `app/CLAUDE.md`, no oracle.
 Review focus (cases the spec implies but a happy path misses):
 
 1. Matcher matches on dart 1, throws a spare off the board ⇒ loses a life.
-2. Matcher matches on dart 3 ⇒ no spare, that dart is the setting dart.
+2. Matcher matches on dart 3 ⇒ no spare dart: no loss, target and leader unchanged.
 3. Spare dart in the target's own bed ⇒ matcher becomes leader, same target.
 4. Opening and leader darts off the board ⇒ stored, re-thrown, no rota move.
 5. Undo across a keep, a stop and an elimination.
