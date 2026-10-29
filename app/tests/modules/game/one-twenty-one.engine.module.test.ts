@@ -1112,6 +1112,7 @@ describe("121 board-dart resolution and undo", () => {
     expect(dart.hitZoneKey).toBe("MISS");
     expect(dart.score).toBe(0);
     expect(dart.intendedZoneKey).toBeNull();
+    expect(dart.intendedTargetNumber).toBeNull();
   });
 
   it("classifies a dart that carries coordinates and carries them onto the fact", () => {
