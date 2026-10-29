@@ -1023,3 +1023,31 @@ export type FollowTheLeaderShared = {
 
 /** Follow the Leader seats carry no extras. */
 export type FollowTheLeaderExt = Record<string, never>;
+
+/** One Follow the Leader seat as the play screen reads it: lives and whether it is out. */
+export type FollowTheLeaderSeatState = SeatState & {
+  lives: number;
+  out: boolean;
+};
+
+/**
+ * Follow the Leader's folded state: seats, out order and outcome, plus the
+ * target, its leader, the visit phase (`OPENING` before any target, `LEAD`
+ * at the leader's turn, else `MATCH`), whether the open visit matched, and
+ * whether Stop and Keep are offered now.
+ */
+export type FollowTheLeaderState = MultiSeatState<FollowTheLeaderSeatState> & {
+  status: "IN_PROGRESS" | "COMPLETE";
+  winningSideKey: string | null;
+  outOrder: string[];
+  seats: FollowTheLeaderSeatState[];
+  target: BedFact | null;
+  leaderRef: string | null;
+  phase: "OPENING" | "MATCH" | "LEAD";
+  matched: boolean;
+  canStop: boolean;
+  keepAllowed: boolean;
+};
+
+/** A Follow the Leader visit action: close the open visit after a match, or keep the target without throwing. */
+export type FollowTheLeaderAction = { kind: "STOP" } | { kind: "KEEP" };

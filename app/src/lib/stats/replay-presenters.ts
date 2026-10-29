@@ -43,6 +43,8 @@ import type {
   EngineFacts,
   FiveOhOneSeatState,
   FiveOhOneState,
+  FollowTheLeaderSeatState,
+  FollowTheLeaderState,
   KillerSeatState,
   MultiSeatState,
   OneTwentyOneSeatState,
@@ -447,6 +449,48 @@ const KILLER: ReplayPresenter = {
 };
 
 /**
+ * What one Follow the Leader turn did: `Keep`, `Fail` when the thrower lost
+ * a life or a setting dart landed off the board, `Set` when it set the
+ * target, else `Match`.
+ */
+function followTheLeaderResult(
+  turn: TurnFact,
+  before: FollowTheLeaderState,
+  after: FollowTheLeaderState,
+): string {
+  if (turn.kept) return "Keep";
+  const ref = turn.participantRef;
+  const lost =
+    seatIn<FollowTheLeaderSeatState>(after, ref).lives <
+    seatIn<FollowTheLeaderSeatState>(before, ref).lives;
+  if (lost) return "Fail";
+  if (after.leaderRef !== ref) return after.target ? "Match" : "Fail";
+  return after.activeParticipantRef === ref ? "Fail" : "Set";
+}
+
+/**
+ * Follow the Leader, read off the play page: the thrower's lives after the
+ * visit and what the visit did; the session line is each seat's lives left.
+ */
+const FOLLOW_THE_LEADER: ReplayPresenter = {
+  turn({ turn, before, after }) {
+    const state = after as FollowTheLeaderState;
+    return [
+      valueCell(
+        "Lives",
+        seatIn<FollowTheLeaderSeatState>(state, turn.participantRef).lives,
+      ),
+      valueCell(
+        "Result",
+        followTheLeaderResult(turn, before as FollowTheLeaderState, state),
+      ),
+    ];
+  },
+  session: (steps) =>
+    finalLine<FollowTheLeaderSeatState>(steps, "Lives", (seat) => seat.lives),
+};
+
+/**
  * Each game's replay presenter (D371 decision 8): per turn, the values its
  * play page shows after the visit; per session, its outcome line.
  */
@@ -464,6 +508,7 @@ export const REPLAY_PRESENTERS: Record<GameTypeKey, ReplayPresenter> = {
   TACTICS,
   BASEBALL,
   KILLER,
+  FOLLOW_THE_LEADER,
 };
 
 /** No facts to fold: every dart exercise kind's per-turn headline and darts count read off `state` alone (`stepMetrics`'s `numberField` reads), never off `facts` -- only Switching's own "hits" key uses `facts`, and a turn cell never shows it (session() does, over the real facts). */
