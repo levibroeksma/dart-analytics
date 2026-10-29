@@ -1,6 +1,4 @@
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
@@ -15,8 +13,6 @@ const repoRoot = fileURLToPath(new URL("../../../", import.meta.url));
 const selfPath = fileURLToPath(import.meta.url)
   .slice(repoRoot.length)
   .replaceAll("\\", "/");
-
-const ERASED_TYPE_PATTERN = /switching.target.scoring|switchingtargetscoring/i;
 
 /**
  * Directories that are entirely append-only history: every file under them
@@ -59,36 +55,39 @@ const ALLOWED_EXACT_FILES = new Set([
   "docs/architecture/00-File-Inventory.md",
 ]);
 
+const ERASED_TYPE_GREP = "switching.target.scoring|switchingtargetscoring";
+
 /**
  * Lists every path git knows about — tracked and untracked-but-not-ignored —
- * relative to the repository root, independent of vitest's own working
- * directory (`app/`). `git ls-files` naturally excludes `node_modules/`,
- * build output and anything else `.gitignore` already keeps out, so scratch
- * directories like `.superpowers/sdd/` never reach the search.
+ * whose contents match the erased type, relative to the repository root and
+ * independent of vitest's own working directory (`app/`). One `git grep`
+ * replaces a per-file read in Node, so the scan stays well inside the test
+ * timeout under full-suite load. `--untracked` honours `.gitignore`, so
+ * `node_modules/`, build output and scratch directories like
+ * `.superpowers/sdd/` never reach the search. Exit status 1 means no match.
  */
-function repositoryFiles(): string[] {
-  const tracked = execFileSync("git", ["-C", repoRoot, "ls-files"], {
-    encoding: "utf8",
-  });
-  const untracked = execFileSync(
-    "git",
-    ["-C", repoRoot, "ls-files", "--others", "--exclude-standard"],
-    { encoding: "utf8" },
-  );
-  const files = new Set(
-    [...tracked.split("\n"), ...untracked.split("\n")].filter(Boolean),
-  );
-  return [...files];
-}
-
-function mentionsErasedType(relativePath: string): boolean {
-  let contents: string;
+function filesMentioningErasedType(): string[] {
   try {
-    contents = readFileSync(resolve(repoRoot, relativePath), "utf8");
-  } catch {
-    return false;
+    return execFileSync(
+      "git",
+      [
+        "-C",
+        repoRoot,
+        "grep",
+        "-l",
+        "-i",
+        "-E",
+        "--untracked",
+        ERASED_TYPE_GREP,
+      ],
+      { encoding: "utf8" },
+    )
+      .split("\n")
+      .filter(Boolean);
+  } catch (error) {
+    if ((error as { status?: number }).status === 1) return [];
+    throw error;
   }
-  return ERASED_TYPE_PATTERN.test(contents);
 }
 
 function isHistoricalRecord(relativePath: string): boolean {
@@ -98,9 +97,9 @@ function isHistoricalRecord(relativePath: string): boolean {
 }
 
 function findLiveMentions(): string[] {
-  return repositoryFiles()
-    .filter((relativePath) => !isHistoricalRecord(relativePath))
-    .filter(mentionsErasedType);
+  return filesMentioningErasedType().filter(
+    (relativePath) => !isHistoricalRecord(relativePath),
+  );
 }
 
 describe("erasure gate", () => {
