@@ -1,8 +1,11 @@
 import type { Seated, TacticsSnapshot } from "@lib/types";
 import { BULL_TARGET_NUMBER } from "./board-progression.module";
 import { registerEngineFactory } from "./engine.registry";
-import { foldMarksSeats } from "./marks-duel.module";
-import { MarksEngine, marksEngineFactory } from "./marks-engine.module";
+import {
+  dartGameEngineClass,
+  dartGameEngineFactory,
+} from "./dart-engine-shell.module";
+import { foldMarks, marksGameSpec } from "./marks-kernel.module";
 import {
   applyMarksDart,
   BULL_RING_MARKS,
@@ -14,8 +17,8 @@ import type {
   DartObservation,
   DartZoneKey,
   EngineFacts,
-  MarksDuelSpec,
   MarksHit,
+  MarksRules,
   TacticsObjective,
   TacticsSeatState,
   TacticsState,
@@ -120,13 +123,16 @@ export function applyTacticsDart(
   };
 }
 
-const TACTICS_DUEL: MarksDuelSpec<TacticsSeatState> = {
+/** Tactics as marks rules: alone, a closed number feeds a category; in a duel, only once the opponent has closed it too. */
+export const TACTICS_RULES: MarksRules<TacticsSeatState> = {
   initialSeat: initialSeatState,
   hitOf: (seat, opponent, observation) =>
     tacticsMarksOf(
       seat,
       observation,
-      (index) => opponent.marks[index] < MARKS_TO_CLOSE,
+      opponent
+        ? (index) => opponent.marks[index] < MARKS_TO_CLOSE
+        : () => false,
     ),
   valueOf: (index) => {
     const objective = TACTICS_OBJECTIVES[index];
@@ -144,8 +150,14 @@ export function foldTacticsState(
   facts: EngineFacts,
   config: Seated<TacticsSnapshot>,
 ): TacticsState {
-  return foldMarksSeats(facts, config.seats, TACTICS_DUEL, applyTacticsDart);
+  return foldMarks(facts, config.seats, TACTICS_RULES);
 }
+
+const tacticsSpec = marksGameSpec<Seated<TacticsSnapshot>, TacticsSeatState>({
+  rulesetVersionKey: "TACTICS_V1",
+  rulesetVersionKeys: ["TACTICS_V2"],
+  rules: TACTICS_RULES,
+});
 
 /**
  * Tactics: close 20–15, the bull, Doubles and Triples in as few darts as
@@ -154,37 +166,18 @@ export function foldTacticsState(
  * and never stored. Darts carry no intent: any
  * objective is a legitimate aim on any dart.
  */
-export class TacticsEngine<
-  TKey extends "TACTICS_V1" | "TACTICS_V2" = "TACTICS_V1" | "TACTICS_V2",
-> extends MarksEngine<Seated<TacticsSnapshot>, TacticsState, TKey> {
-  constructor(
-    config: Seated<TacticsSnapshot>,
-    prior?: EngineFacts,
-    rulesetVersionKey: TKey = "TACTICS_V1" as TKey,
-  ) {
-    super(config, prior, rulesetVersionKey);
-  }
+export class TacticsEngine extends dartGameEngineClass(tacticsSpec) {}
 
-  protected fold(facts: EngineFacts): TacticsState {
-    return foldTacticsState(facts, this.config);
-  }
+export const tacticsEngineFactory = dartGameEngineFactory(
+  tacticsSpec,
+  TacticsEngine,
+);
 
-  protected fork(): TacticsEngine<TKey> {
-    return new TacticsEngine(this.config, this.facts(), this.rulesetVersionKey);
-  }
-}
-
-export const tacticsEngineFactory = marksEngineFactory({
-  rulesetVersionKey: "TACTICS_V1",
-  build: (config: Seated<TacticsSnapshot>, prior) =>
-    new TacticsEngine(config, prior, "TACTICS_V1"),
-});
-
-export const tacticsV2EngineFactory = marksEngineFactory({
-  rulesetVersionKey: "TACTICS_V2",
-  build: (config: Seated<TacticsSnapshot>, prior) =>
-    new TacticsEngine(config, prior, "TACTICS_V2"),
-});
+export const tacticsV2EngineFactory = dartGameEngineFactory(
+  tacticsSpec,
+  TacticsEngine,
+  "TACTICS_V2",
+);
 
 registerEngineFactory(tacticsEngineFactory);
 registerEngineFactory(tacticsV2EngineFactory);

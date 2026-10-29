@@ -1,7 +1,7 @@
 import type { CricketSnapshot, Seated } from "@lib/types";
 import { BULL_TARGET_NUMBER } from "./board-progression.module";
 import { registerEngineFactory } from "./engine.registry";
-import { foldMarksSeats } from "./marks-duel.module";
+import { foldMarks } from "./marks-kernel.module";
 import { MarksEngine, marksEngineFactory } from "./marks-engine.module";
 import {
   applyMarksDart,
@@ -14,8 +14,8 @@ import type {
   CricketState,
   DartObservation,
   EngineFacts,
-  MarksDuelSpec,
   MarksHit,
+  MarksRules,
 } from "./types";
 
 export { effectiveMarks, marksPerRound } from "./marks-close.module";
@@ -88,7 +88,8 @@ export function applyCricketDart(
   };
 }
 
-const CRICKET_DUEL: MarksDuelSpec<CricketSeatState> = {
+/** Cricket as marks rules: a dart's hit never depends on either seat; every objective scores its own number. */
+export const CRICKET_RULES: MarksRules<CricketSeatState> = {
   initialSeat: initialSeatState,
   hitOf: (_seat, _opponent, observation) => cricketMarksOf(observation),
   valueOf: (index) => CRICKET_OBJECTIVES[index],
@@ -104,7 +105,7 @@ export function foldCricketState(
   facts: EngineFacts,
   config: Seated<CricketSnapshot>,
 ): CricketState {
-  return foldMarksSeats(facts, config.seats, CRICKET_DUEL, applyCricketDart);
+  return foldMarks(facts, config.seats, CRICKET_RULES);
 }
 
 /**
