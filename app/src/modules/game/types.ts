@@ -1006,3 +1006,20 @@ export type KillerState = MultiSeatState<KillerSeatState> & {
   outOrder: string[];
   seats: KillerSeatState[];
 };
+
+/** A board bed: number and ring; both bulls carry a null number and the single beds are one ring. */
+export type BedFact = {
+  number: number | null;
+  ring: "SINGLE" | "DOUBLE" | "TREBLE" | "OUTER_BULL" | "INNER_BULL";
+};
+
+/** Follow the Leader's game state beyond seats: the target, its leader, seats that failed since, and a seat owed a re-throw. */
+export type FollowTheLeaderShared = {
+  target: BedFact | null;
+  leaderRef: string | null;
+  failed: string[];
+  retryRef: string | null;
+};
+
+/** Follow the Leader seats carry no extras. */
+export type FollowTheLeaderExt = Record<string, never>;
