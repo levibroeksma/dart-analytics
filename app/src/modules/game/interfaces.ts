@@ -4,10 +4,12 @@ import type {
   DartIntent,
   CheckoutSeat,
   DartObservation,
+  ClosedVisit,
   EliminationSeat,
   EngineFacts,
   JudgedDart,
   SeatChange,
+  VisitOutcome,
   ShellState,
   StageFact,
   StageOwnership,
@@ -200,7 +202,7 @@ export interface VisitPointsRules {
  * starting `ext`, and every change one dart causes, judged on the seats as
  * they stand before it.
  */
-export interface EliminationRules<TExt> {
+export interface EliminationRules<TExt, TShared = undefined> {
   readonly startingLives: number;
   initExt(seat: SeatFact, index: number): TExt;
   onDart(
@@ -208,4 +210,14 @@ export interface EliminationRules<TExt> {
     seats: readonly EliminationSeat<TExt>[],
     dart: DartObservation,
   ): readonly SeatChange<TExt>[];
+  initShared?(seats: readonly SeatFact[]): TShared;
+  onVisitClose?(
+    visit: ClosedVisit,
+    seats: readonly EliminationSeat<TExt>[],
+    shared: TShared,
+  ): VisitOutcome<TExt, TShared>;
+  activeOverride?(
+    seats: readonly EliminationSeat<TExt>[],
+    shared: TShared,
+  ): string | null;
 }

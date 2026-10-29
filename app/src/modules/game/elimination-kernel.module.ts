@@ -10,9 +10,9 @@ import type {
 } from "./types";
 
 /** Every seat at `startingLives`, none out, `ext` from `initExt`. */
-function initialSeats<TExt>(
+function initialSeats<TExt, TShared>(
   seats: readonly SeatFact[],
-  rules: EliminationRules<TExt>,
+  rules: EliminationRules<TExt, TShared>,
 ): EliminationSeat<TExt>[] {
   return seats.map((seat, index) => ({
     participantRef: seat.participantRef,
@@ -42,7 +42,7 @@ export function applyEliminationDart<TExt>(
   seats: readonly EliminationSeat<TExt>[],
   throwerRef: string,
   dart: DartObservation,
-  rules: EliminationRules<TExt>,
+  rules: EliminationRules<TExt, unknown>,
 ): EliminationSeat<TExt>[] {
   const thrower = seats.find((seat) => seat.participantRef === throwerRef);
   if (!thrower) throw new Error(`Unknown thrower ${throwerRef}`);
@@ -67,27 +67,49 @@ function nextSeatIn<TExt>(
   return ref;
 }
 
-/** Whose visit it is: seat 0 first, an open visit's thrower, else the next seat still in. */
-function activeSeat<TExt>(
+/** Whose visit it is: seat 0 first, an open visit's thrower, else the override or the next seat still in. */
+function activeSeat<TExt, TShared>(
   seats: readonly EliminationSeat<TExt>[],
   turns: readonly TurnFact[],
+  shared: TShared,
+  rules: EliminationRules<TExt, TShared>,
 ): string {
   const last = turns.at(-1);
   if (!last) return seats[0].participantRef;
   if (last.completedAt === null) return last.participantRef;
-  return nextSeatIn(seats, last.participantRef);
+  return (
+    rules.activeOverride?.(seats, shared) ??
+    nextSeatIn(seats, last.participantRef)
+  );
+}
+
+/** Seats with `changes` applied in order, and the refs that went out because of them. */
+function applyChanges<TExt>(
+  seats: EliminationSeat<TExt>[],
+  changes: readonly SeatChange<TExt>[],
+): { seats: EliminationSeat<TExt>[]; newlyOut: string[] } {
+  const after = changes.reduce<EliminationSeat<TExt>[]>(
+    (acc, change) => acc.map((seat) => applyChange(seat, change)),
+    seats,
+  );
+  const newlyOut = after
+    .filter((seat, i) => seat.out && !seats[i].out)
+    .map((seat) => seat.participantRef);
+  return { seats: after, newlyOut };
 }
 
 /**
  * Folds every dart of every turn, the open one included, into an
- * Elimination match. A visit is open while its turn has no `completedAt`.
+ * Elimination match. A visit is open while its turn has no `completedAt`;
+ * a closed one also runs the ruleset's `onVisitClose`.
  */
-export function foldElimination<TExt>(
+export function foldElimination<TExt, TShared = undefined>(
   turns: readonly TurnFact[],
   seatFacts: readonly SeatFact[],
-  rules: EliminationRules<TExt>,
-): EliminationMatch<TExt> {
+  rules: EliminationRules<TExt, TShared>,
+): EliminationMatch<TExt, TShared> {
   let seats = initialSeats(seatFacts, rules);
+  let shared = rules.initShared?.(seatFacts) as TShared;
   const outOrder: string[] = [];
   for (const turn of turns) {
     for (const dart of turn.darts) {
@@ -102,15 +124,31 @@ export function foldElimination<TExt>(
       });
       seats = after;
     }
+    if (turn.completedAt !== null && rules.onVisitClose) {
+      const outcome = rules.onVisitClose(
+        {
+          participantRef: turn.participantRef,
+          darts: turn.darts,
+          kept: turn.kept ?? false,
+        },
+        seats,
+        shared,
+      );
+      const applied = applyChanges(seats, outcome.changes);
+      outOrder.push(...applied.newlyOut);
+      seats = applied.seats;
+      shared = outcome.shared;
+    }
   }
   const winningSideKey = eliminationWinner(
     seats.map((seat) => ({ sideKey: seat.sideKey, failed: seat.out })),
   );
   return {
     seats,
+    shared,
     outOrder,
     status: winningSideKey === null ? "IN_PROGRESS" : "COMPLETE",
     winningSideKey,
-    activeParticipantRef: activeSeat(seats, turns),
+    activeParticipantRef: activeSeat(seats, turns, shared, rules),
   };
 }

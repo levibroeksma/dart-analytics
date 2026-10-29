@@ -663,6 +663,7 @@ export type TurnFact = {
   sequence: number;
   completedAt: string | null;
   totalScore: number;
+  kept?: boolean;
   darts: DartFact[];
 };
 
@@ -955,9 +956,23 @@ export type SeatChange<TExt> = {
   ext?: TExt;
 };
 
+/** A closed visit as an Elimination ruleset sees it: who threw, the darts, and whether the visit was kept. */
+export type ClosedVisit = {
+  participantRef: string;
+  darts: readonly DartObservation[];
+  kept: boolean;
+};
+
+/** What a closed visit causes: seat changes, and the next shared state. */
+export type VisitOutcome<TExt, TShared> = {
+  changes: readonly SeatChange<TExt>[];
+  shared: TShared;
+};
+
 /** An Elimination match folded from its darts: seats, out order, outcome and the seat to throw. */
-export type EliminationMatch<TExt> = {
+export type EliminationMatch<TExt, TShared = undefined> = {
   seats: EliminationSeat<TExt>[];
+  shared: TShared;
   outOrder: string[];
   status: "IN_PROGRESS" | "COMPLETE";
   winningSideKey: string | null;

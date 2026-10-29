@@ -4,7 +4,7 @@ import {
   foldElimination,
 } from "@modules/game/elimination-kernel.module";
 import type { EliminationRules } from "@modules/interfaces";
-import type { DartObservation, TurnFact } from "@modules/types";
+import type { ClosedVisit, DartObservation, TurnFact } from "@modules/types";
 import type { SeatFact } from "@lib/types";
 
 type Ext = Record<string, never>;
@@ -51,6 +51,7 @@ function turn(
   ref: string,
   darts: DartObservation[],
   closed: boolean,
+  kept?: boolean,
 ): TurnFact {
   seq += 1;
   return {
@@ -60,6 +61,7 @@ function turn(
     sequence: seq,
     completedAt: closed ? "2026-10-27T00:00:00.000Z" : null,
     totalScore: 0,
+    ...(kept === undefined ? {} : { kept }),
     darts: darts.map((dart, i) => ({
       ...dart,
       sequence: i + 1,
@@ -150,5 +152,119 @@ describe("elimination kernel", () => {
       rules,
     );
     expect(after[1].lives).toBe(1);
+  });
+});
+
+type Shared = { closes: number };
+
+const hookRules = (
+  override?: EliminationRules<Ext, Shared>["activeOverride"],
+  seen: ClosedVisit[] = [],
+): EliminationRules<Ext, Shared> => ({
+  ...rules,
+  initShared: () => ({ closes: 0 }),
+  onVisitClose: (visit, seatList, shared) => {
+    seen.push(visit);
+    const target = seatList.find((s) => s.participantRef === "p2");
+    const strike = visit.kept && visit.participantRef === "p1";
+    return {
+      changes:
+        strike && target ? [{ participantRef: "p2", livesDelta: -2 }] : [],
+      shared: { closes: shared.closes + 1 },
+    };
+  },
+  activeOverride: override,
+});
+
+describe("elimination kernel visit-close hook", () => {
+  it("runs once per closed turn, never for the open turn", () => {
+    const seen: ClosedVisit[] = [];
+    foldElimination(
+      [
+        turn("p1", [miss, d(2)], true, true),
+        turn("p2", [miss], true, false),
+        turn("p3", [miss], false),
+      ],
+      seats3,
+      hookRules(undefined, seen),
+    );
+    expect(seen).toHaveLength(2);
+    expect(seen[0]).toMatchObject({ participantRef: "p1", kept: true });
+    expect(seen[0].darts).toHaveLength(2);
+    expect(seen[1]).toMatchObject({ participantRef: "p2", kept: false });
+  });
+
+  it("kept defaults to false when the turn has none", () => {
+    const seen: ClosedVisit[] = [];
+    foldElimination(
+      [turn("p1", [miss], true)],
+      seats3,
+      hookRules(undefined, seen),
+    );
+    expect(seen[0].kept).toBe(false);
+  });
+
+  it("applies changes through clamp and out rules, then decides the winner", () => {
+    const m = foldElimination(
+      [turn("p1", [miss], true, true)],
+      seats2,
+      hookRules(),
+    );
+    expect(m.seats[1]).toMatchObject({ lives: 0, out: true });
+    expect(m.outOrder).toEqual(["p2"]);
+    expect(m).toMatchObject({ status: "COMPLETE", winningSideKey: "A" });
+  });
+
+  it("threads shared turn to turn and returns it", () => {
+    const m = foldElimination(
+      [
+        turn("p2", [miss], true, false),
+        turn("p3", [miss], true, false),
+        turn("p1", [miss], false),
+      ],
+      seats3,
+      hookRules(),
+    );
+    expect(m.shared).toEqual({ closes: 2 });
+  });
+
+  it("shared is undefined with no hooks", () => {
+    expect(foldElimination([], seats2, rules).shared).toBeUndefined();
+  });
+
+  it("activeOverride beats the rota after a closed turn", () => {
+    const m = foldElimination(
+      [turn("p1", [miss], true, false)],
+      seats3,
+      hookRules(() => "p3"),
+    );
+    expect(m.activeParticipantRef).toBe("p3");
+  });
+
+  it("a null override falls back to the rota", () => {
+    const m = foldElimination(
+      [turn("p1", [miss], true, false)],
+      seats3,
+      hookRules(() => null),
+    );
+    expect(m.activeParticipantRef).toBe("p2");
+  });
+
+  it("an open turn beats the override", () => {
+    const m = foldElimination(
+      [turn("p1", [miss], false)],
+      seats3,
+      hookRules(() => "p3"),
+    );
+    expect(m.activeParticipantRef).toBe("p1");
+  });
+
+  it("the override sees the folded seats and shared", () => {
+    const m = foldElimination(
+      [turn("p1", [miss], true, false)],
+      seats3,
+      hookRules((_seats, shared) => (shared.closes === 1 ? "p3" : null)),
+    );
+    expect(m.activeParticipantRef).toBe("p3");
   });
 });
