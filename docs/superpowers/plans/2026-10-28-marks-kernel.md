@@ -167,11 +167,11 @@ describe("marksGameSpec", () => {
 
 ### Task 5: Docs and context
 
-- `decisions/game-engine.md`: **D505** — Marks kernel: `marks-kernel.module.ts` (`MarksRules`, `foldMarks`, `foldMarksDuel`, `marksWouldComplete`, `marksGameSpec`); Cricket and Tactics are specs on the game shell; `MarksEngine`, `marksEngineFactory`, `recordMarksDart` deleted; the key guard is the shell's runtime served-key check. `Supersedes: D488`.
-- `docs/architecture/04-Architecture-patterns.md`: version 1.11.23 line; Pattern 18 `MARKS` row → bound through `foldMarks` on the game shell (D505).
+- `decisions/game-engine.md`: **D506** — Marks kernel: `marks-kernel.module.ts` (`MarksRules`, `foldMarks`, `foldMarksDuel`, `marksWouldComplete`, `marksGameSpec`); Cricket and Tactics are specs on the game shell; `MarksEngine`, `marksEngineFactory`, `recordMarksDart` deleted; the key guard is the shell's runtime served-key check. `Supersedes: D488`.
+- `docs/architecture/04-Architecture-patterns.md`: version 1.11.23 line; Pattern 18 `MARKS` row → bound through `foldMarks` on the game shell (D506).
 - `app/src/modules/game/CLAUDE.md`: replace the `MarksEngine` bullet (line 20) with the kernel shape.
 - `docs/architecture/00-File-Inventory.md`: drop `marks-duel`/`marks-engine` rows, add `marks-kernel`; amend the `marks-close` row (no `recordMarksDart`).
 - Context-Map-History row; spec §4 status note; `context-maintenance` skill; `run-all-gates` skill; `cd app && npm run format`.
-- [ ] **Commit** — `docs(marks): kernel bound, D505`
+- [ ] **Commit** — `docs(marks): kernel bound, D506`
 
 Then `finishing-a-dart-branch` (push + PR).

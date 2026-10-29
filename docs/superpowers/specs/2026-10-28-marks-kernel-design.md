@@ -1,7 +1,7 @@
 # Marks Kernel — Design
 
 Date: 2026-10-28
-Status: draft for approval; plan to follow via `superpowers:writing-plans`
+Status: implemented 2026-10-29 (D506); plan `docs/superpowers/plans/2026-10-28-marks-kernel.md`. Status note: §4 ran as one sequence — kernel + Tactics, then Cricket, then one legacy deletion — and Cricket's registry row flipped with Tactics' because its fold imported the kernel first.
 Parent: `2026-10-15-rule-kernels-design.md` (umbrella, §5 Marks row, §6, §8 item 2)
 Siblings: Track, Checkout, Visit points, Elimination specs (method reused)
 Branch: `feat/marks-kernel`
