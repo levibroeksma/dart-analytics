@@ -16,6 +16,22 @@ const bot = {
 };
 
 describe("rejectSeatRequest", () => {
+  it("refuses an omitted seat list for a ruleset with a two-seat floor", () => {
+    expect(rejectSeatRequest(undefined, "KILLER_V1")).toBe(
+      "KILLER_V1 needs at least 2 seats.",
+    );
+  });
+
+  it("refuses a lone PLAYER seat for KILLER_V1", () => {
+    expect(rejectSeatRequest([player], "KILLER_V1")).toBe(
+      "KILLER_V1 needs at least 2 seats.",
+    );
+  });
+
+  it("accepts PLAYER + GUEST for KILLER_V1", () => {
+    expect(rejectSeatRequest([player, guest], "KILLER_V1")).toBeNull();
+  });
+
   it("accepts an omitted participants field", () => {
     expect(rejectSeatRequest(undefined, "501_V1")).toBeNull();
   });
@@ -89,6 +105,10 @@ describe("rejectSeatRequest", () => {
     expect(rejectSeatRequest([player, guest], "SOME_OTHER_RULESET_V1")).toMatch(
       /supports at most 1 seat/,
     );
+  });
+
+  it("accepts a lone PLAYER for a ruleset without a seat floor", () => {
+    expect(rejectSeatRequest([player], "501_V1")).toBeNull();
   });
 
   it("accepts a lone player seat for any ruleset", () => {

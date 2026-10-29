@@ -36,6 +36,7 @@ describe("visibleGames", () => {
       "AROUND_THE_CLOCK_V1",
       "AROUND_THE_CLOCK_V3",
       "BASEBALL_V1",
+      "KILLER_V1",
     ]);
   });
 
@@ -55,6 +56,7 @@ describe("visibleGames", () => {
         "AROUND_THE_CLOCK_V1",
         "AROUND_THE_CLOCK_V3",
         "BASEBALL_V1",
+        "KILLER_V1",
         "CRICKET_V1",
         "TACTICS_V1",
         "TUOD_V1",
@@ -123,6 +125,7 @@ describe("groupedGames", () => {
           "AROUND_THE_CLOCK_V1",
           "AROUND_THE_CLOCK_V3",
           "BASEBALL_V1",
+          "KILLER_V1",
         ],
       ],
     ]);

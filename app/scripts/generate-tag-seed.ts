@@ -135,14 +135,16 @@ export function buildSeedSql(input: SeedInput): {
       if (table === "game_type_tags") {
         const ctx = `(SELECT id FROM tag_contexts WHERE implementation_key = ${q(block.context)})`;
         out.push(
-          `INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at) VALUES\n` +
+          `INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at)\n` +
+            `SELECT * FROM (VALUES\n` +
             rows
               .map(
                 (r) =>
                   `  (${typeSel}, ${ctx}, ${r.id}, ${r.primary ? "TRUE" : "FALSE"}, now())`,
               )
               .join(",\n") +
-            ";",
+            `\n) AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)\n` +
+            `WHERE v.game_type_id IS NOT NULL;`,
         );
       } else if (table === "exercise_type_tags") {
         out.push(guardedInsert(table, "exercise_type_id", typeSel, rows));
