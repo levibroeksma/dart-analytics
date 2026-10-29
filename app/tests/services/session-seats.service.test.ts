@@ -204,6 +204,18 @@ describe("rejectSeatRequest with the seven new rulesets", () => {
   });
 });
 
+describe("rejectSeatRequest for 121_V2", () => {
+  it("rejects a second seat, so ROUNDS/MINUTES never run as a duel", () => {
+    expect(rejectSeatRequest([player, guest], "121_V2")).toBe(
+      "121_V2 supports at most 1 seat.",
+    );
+  });
+
+  it("still seats a 121_V1 duel", () => {
+    expect(rejectSeatRequest([player, guest], "121_V1")).toBeNull();
+  });
+});
+
 describe("rejectSeatRequest with a DARTBOT seat", () => {
   it("accepts a DARTBOT seat for a ruleset RULESET_DARTBOT admits", () => {
     expect(rejectSeatRequest([player, bot], "BOBS27_V1")).toBeNull();

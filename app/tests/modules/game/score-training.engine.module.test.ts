@@ -322,7 +322,7 @@ describe("visual board capture", () => {
     expect(turn!.completedAt).not.toBeNull();
   });
 
-  it("stores each dart's landing coordinate", () => {
+  it("stores each dart's landing coordinate, with no intent", () => {
     const engine = scoreTrainingEngineFactory.create(
       config,
       undefined,
@@ -336,6 +336,8 @@ describe("visual board capture", () => {
       score: 60,
       locationX: 0,
       locationY: -102,
+      intendedTargetNumber: null,
+      intendedZoneKey: null,
     });
   });
 
