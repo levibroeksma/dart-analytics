@@ -67,7 +67,8 @@ DELETE FROM exercise_type_tags;
 DELETE FROM ruleset_version_tags;
 
 -- game 501
-INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at) VALUES
+INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM game_types WHERE implementation_key = '501'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 1, TRUE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = '501'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 3, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = '501'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 4, FALSE, now()),
@@ -79,8 +80,11 @@ INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, cr
   ((SELECT id FROM game_types WHERE implementation_key = '501'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 19, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = '501'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 21, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = '501'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 32, FALSE, now()),
-  ((SELECT id FROM game_types WHERE implementation_key = '501'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 37, FALSE, now());
-INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at) VALUES
+  ((SELECT id FROM game_types WHERE implementation_key = '501'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 37, FALSE, now())
+) AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+WHERE v.game_type_id IS NOT NULL;
+INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM game_types WHERE implementation_key = '501'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 1, TRUE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = '501'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 3, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = '501'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 4, FALSE, now()),
@@ -91,9 +95,12 @@ INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, cr
   ((SELECT id FROM game_types WHERE implementation_key = '501'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 15, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = '501'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 19, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = '501'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 21, FALSE, now()),
-  ((SELECT id FROM game_types WHERE implementation_key = '501'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 32, FALSE, now());
+  ((SELECT id FROM game_types WHERE implementation_key = '501'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 32, FALSE, now())
+) AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+WHERE v.game_type_id IS NOT NULL;
 -- game AROUND_THE_CLOCK
-INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at) VALUES
+INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM game_types WHERE implementation_key = 'AROUND_THE_CLOCK'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 6, TRUE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'AROUND_THE_CLOCK'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 8, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'AROUND_THE_CLOCK'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 12, FALSE, now()),
@@ -102,16 +109,22 @@ INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, cr
   ((SELECT id FROM game_types WHERE implementation_key = 'AROUND_THE_CLOCK'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 17, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'AROUND_THE_CLOCK'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 23, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'AROUND_THE_CLOCK'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 32, FALSE, now()),
-  ((SELECT id FROM game_types WHERE implementation_key = 'AROUND_THE_CLOCK'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 37, FALSE, now());
-INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at) VALUES
+  ((SELECT id FROM game_types WHERE implementation_key = 'AROUND_THE_CLOCK'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 37, FALSE, now())
+) AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+WHERE v.game_type_id IS NOT NULL;
+INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM game_types WHERE implementation_key = 'AROUND_THE_CLOCK'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 6, TRUE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'AROUND_THE_CLOCK'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 8, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'AROUND_THE_CLOCK'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 9, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'AROUND_THE_CLOCK'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 13, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'AROUND_THE_CLOCK'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 23, FALSE, now()),
-  ((SELECT id FROM game_types WHERE implementation_key = 'AROUND_THE_CLOCK'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 34, FALSE, now());
+  ((SELECT id FROM game_types WHERE implementation_key = 'AROUND_THE_CLOCK'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 34, FALSE, now())
+) AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+WHERE v.game_type_id IS NOT NULL;
 -- game BASEBALL
-INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at) VALUES
+INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM game_types WHERE implementation_key = 'BASEBALL'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 6, TRUE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'BASEBALL'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 8, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'BASEBALL'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 12, FALSE, now()),
@@ -125,8 +138,11 @@ INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, cr
   ((SELECT id FROM game_types WHERE implementation_key = 'BASEBALL'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 27, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'BASEBALL'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 31, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'BASEBALL'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 32, FALSE, now()),
-  ((SELECT id FROM game_types WHERE implementation_key = 'BASEBALL'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 40, FALSE, now());
-INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at) VALUES
+  ((SELECT id FROM game_types WHERE implementation_key = 'BASEBALL'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 40, FALSE, now())
+) AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+WHERE v.game_type_id IS NOT NULL;
+INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM game_types WHERE implementation_key = 'BASEBALL'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 6, TRUE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'BASEBALL'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 8, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'BASEBALL'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 12, FALSE, now()),
@@ -139,9 +155,12 @@ INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, cr
   ((SELECT id FROM game_types WHERE implementation_key = 'BASEBALL'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 24, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'BASEBALL'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 27, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'BASEBALL'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 31, FALSE, now()),
-  ((SELECT id FROM game_types WHERE implementation_key = 'BASEBALL'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 32, FALSE, now());
+  ((SELECT id FROM game_types WHERE implementation_key = 'BASEBALL'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 32, FALSE, now())
+) AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+WHERE v.game_type_id IS NOT NULL;
 -- game BOBS27
-INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at) VALUES
+INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM game_types WHERE implementation_key = 'BOBS27'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 3, TRUE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'BOBS27'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 9, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'BOBS27'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 11, FALSE, now()),
@@ -151,8 +170,11 @@ INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, cr
   ((SELECT id FROM game_types WHERE implementation_key = 'BOBS27'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 23, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'BOBS27'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 31, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'BOBS27'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 33, FALSE, now()),
-  ((SELECT id FROM game_types WHERE implementation_key = 'BOBS27'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 37, FALSE, now());
-INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at) VALUES
+  ((SELECT id FROM game_types WHERE implementation_key = 'BOBS27'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 37, FALSE, now())
+) AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+WHERE v.game_type_id IS NOT NULL;
+INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM game_types WHERE implementation_key = 'BOBS27'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 3, TRUE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'BOBS27'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 9, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'BOBS27'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 11, FALSE, now()),
@@ -161,9 +183,12 @@ INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, cr
   ((SELECT id FROM game_types WHERE implementation_key = 'BOBS27'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 19, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'BOBS27'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 23, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'BOBS27'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 31, FALSE, now()),
-  ((SELECT id FROM game_types WHERE implementation_key = 'BOBS27'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 33, FALSE, now());
+  ((SELECT id FROM game_types WHERE implementation_key = 'BOBS27'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 33, FALSE, now())
+) AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+WHERE v.game_type_id IS NOT NULL;
 -- game CRICKET
-INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at) VALUES
+INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM game_types WHERE implementation_key = 'CRICKET'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 1, TRUE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'CRICKET'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 5, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'CRICKET'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 9, FALSE, now()),
@@ -173,8 +198,11 @@ INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, cr
   ((SELECT id FROM game_types WHERE implementation_key = 'CRICKET'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 19, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'CRICKET'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 22, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'CRICKET'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 32, FALSE, now()),
-  ((SELECT id FROM game_types WHERE implementation_key = 'CRICKET'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 37, FALSE, now());
-INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at) VALUES
+  ((SELECT id FROM game_types WHERE implementation_key = 'CRICKET'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 37, FALSE, now())
+) AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+WHERE v.game_type_id IS NOT NULL;
+INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM game_types WHERE implementation_key = 'CRICKET'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 1, TRUE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'CRICKET'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 5, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'CRICKET'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 9, FALSE, now()),
@@ -183,9 +211,12 @@ INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, cr
   ((SELECT id FROM game_types WHERE implementation_key = 'CRICKET'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 15, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'CRICKET'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 19, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'CRICKET'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 22, FALSE, now()),
-  ((SELECT id FROM game_types WHERE implementation_key = 'CRICKET'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 32, FALSE, now());
+  ((SELECT id FROM game_types WHERE implementation_key = 'CRICKET'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 32, FALSE, now())
+) AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+WHERE v.game_type_id IS NOT NULL;
 -- game DOUBLES_TRAINING
-INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at) VALUES
+INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM game_types WHERE implementation_key = 'DOUBLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 3, TRUE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'DOUBLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 9, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'DOUBLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 11, FALSE, now()),
@@ -195,8 +226,11 @@ INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, cr
   ((SELECT id FROM game_types WHERE implementation_key = 'DOUBLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 23, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'DOUBLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 31, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'DOUBLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 32, FALSE, now()),
-  ((SELECT id FROM game_types WHERE implementation_key = 'DOUBLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 37, FALSE, now());
-INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at) VALUES
+  ((SELECT id FROM game_types WHERE implementation_key = 'DOUBLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 37, FALSE, now())
+) AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+WHERE v.game_type_id IS NOT NULL;
+INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM game_types WHERE implementation_key = 'DOUBLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 3, TRUE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'DOUBLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 9, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'DOUBLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 11, FALSE, now()),
@@ -205,9 +239,38 @@ INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, cr
   ((SELECT id FROM game_types WHERE implementation_key = 'DOUBLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 19, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'DOUBLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 23, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'DOUBLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 31, FALSE, now()),
-  ((SELECT id FROM game_types WHERE implementation_key = 'DOUBLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 32, FALSE, now());
+  ((SELECT id FROM game_types WHERE implementation_key = 'DOUBLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 32, FALSE, now())
+) AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+WHERE v.game_type_id IS NOT NULL;
+-- game KILLER
+INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
+  ((SELECT id FROM game_types WHERE implementation_key = 'KILLER'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 3, TRUE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'KILLER'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 12, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'KILLER'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 14, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'KILLER'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 15, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'KILLER'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 16, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'KILLER'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 19, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'KILLER'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 25, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'KILLER'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 32, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'KILLER'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 38, FALSE, now())
+) AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+WHERE v.game_type_id IS NOT NULL;
+INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
+  ((SELECT id FROM game_types WHERE implementation_key = 'KILLER'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 3, TRUE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'KILLER'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 12, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'KILLER'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 14, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'KILLER'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 15, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'KILLER'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 16, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'KILLER'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 19, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'KILLER'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 25, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'KILLER'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 32, FALSE, now())
+) AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+WHERE v.game_type_id IS NOT NULL;
 -- game ONE_TWENTY_ONE
-INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at) VALUES
+INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM game_types WHERE implementation_key = 'ONE_TWENTY_ONE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 3, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'ONE_TWENTY_ONE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 4, TRUE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'ONE_TWENTY_ONE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 9, FALSE, now()),
@@ -218,8 +281,11 @@ INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, cr
   ((SELECT id FROM game_types WHERE implementation_key = 'ONE_TWENTY_ONE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 21, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'ONE_TWENTY_ONE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 29, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'ONE_TWENTY_ONE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 32, FALSE, now()),
-  ((SELECT id FROM game_types WHERE implementation_key = 'ONE_TWENTY_ONE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 37, FALSE, now());
-INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at) VALUES
+  ((SELECT id FROM game_types WHERE implementation_key = 'ONE_TWENTY_ONE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 37, FALSE, now())
+) AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+WHERE v.game_type_id IS NOT NULL;
+INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM game_types WHERE implementation_key = 'ONE_TWENTY_ONE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 3, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'ONE_TWENTY_ONE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 4, TRUE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'ONE_TWENTY_ONE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 9, FALSE, now()),
@@ -228,9 +294,12 @@ INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, cr
   ((SELECT id FROM game_types WHERE implementation_key = 'ONE_TWENTY_ONE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 19, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'ONE_TWENTY_ONE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 21, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'ONE_TWENTY_ONE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 29, FALSE, now()),
-  ((SELECT id FROM game_types WHERE implementation_key = 'ONE_TWENTY_ONE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 32, FALSE, now());
+  ((SELECT id FROM game_types WHERE implementation_key = 'ONE_TWENTY_ONE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 32, FALSE, now())
+) AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+WHERE v.game_type_id IS NOT NULL;
 -- game SCORE_TRAINING
-INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at) VALUES
+INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM game_types WHERE implementation_key = 'SCORE_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 1, TRUE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'SCORE_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 9, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'SCORE_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 11, FALSE, now()),
@@ -239,16 +308,22 @@ INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, cr
   ((SELECT id FROM game_types WHERE implementation_key = 'SCORE_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 17, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'SCORE_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 24, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'SCORE_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 32, FALSE, now()),
-  ((SELECT id FROM game_types WHERE implementation_key = 'SCORE_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 37, FALSE, now());
-INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at) VALUES
+  ((SELECT id FROM game_types WHERE implementation_key = 'SCORE_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 37, FALSE, now())
+) AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+WHERE v.game_type_id IS NOT NULL;
+INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM game_types WHERE implementation_key = 'SCORE_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 1, TRUE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'SCORE_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 9, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'SCORE_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 13, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'SCORE_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 17, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'SCORE_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 24, FALSE, now()),
-  ((SELECT id FROM game_types WHERE implementation_key = 'SCORE_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 32, FALSE, now());
+  ((SELECT id FROM game_types WHERE implementation_key = 'SCORE_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 32, FALSE, now())
+) AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+WHERE v.game_type_id IS NOT NULL;
 -- game SHANGHAI
-INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at) VALUES
+INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM game_types WHERE implementation_key = 'SHANGHAI'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 1, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'SHANGHAI'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 6, TRUE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'SHANGHAI'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 9, FALSE, now()),
@@ -260,8 +335,11 @@ INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, cr
   ((SELECT id FROM game_types WHERE implementation_key = 'SHANGHAI'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 24, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'SHANGHAI'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 31, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'SHANGHAI'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 32, FALSE, now()),
-  ((SELECT id FROM game_types WHERE implementation_key = 'SHANGHAI'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 38, FALSE, now());
-INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at) VALUES
+  ((SELECT id FROM game_types WHERE implementation_key = 'SHANGHAI'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 38, FALSE, now())
+) AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+WHERE v.game_type_id IS NOT NULL;
+INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM game_types WHERE implementation_key = 'SHANGHAI'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 1, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'SHANGHAI'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 6, TRUE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'SHANGHAI'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 9, FALSE, now()),
@@ -272,9 +350,12 @@ INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, cr
   ((SELECT id FROM game_types WHERE implementation_key = 'SHANGHAI'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 23, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'SHANGHAI'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 24, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'SHANGHAI'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 31, FALSE, now()),
-  ((SELECT id FROM game_types WHERE implementation_key = 'SHANGHAI'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 32, FALSE, now());
+  ((SELECT id FROM game_types WHERE implementation_key = 'SHANGHAI'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 32, FALSE, now())
+) AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+WHERE v.game_type_id IS NOT NULL;
 -- game SINGLES_TRAINING
-INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at) VALUES
+INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM game_types WHERE implementation_key = 'SINGLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 6, TRUE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'SINGLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 8, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'SINGLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 9, FALSE, now()),
@@ -285,8 +366,11 @@ INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, cr
   ((SELECT id FROM game_types WHERE implementation_key = 'SINGLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 24, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'SINGLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 31, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'SINGLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 32, FALSE, now()),
-  ((SELECT id FROM game_types WHERE implementation_key = 'SINGLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 37, FALSE, now());
-INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at) VALUES
+  ((SELECT id FROM game_types WHERE implementation_key = 'SINGLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 37, FALSE, now())
+) AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+WHERE v.game_type_id IS NOT NULL;
+INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM game_types WHERE implementation_key = 'SINGLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 6, TRUE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'SINGLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 8, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'SINGLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 9, FALSE, now()),
@@ -296,9 +380,12 @@ INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, cr
   ((SELECT id FROM game_types WHERE implementation_key = 'SINGLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 23, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'SINGLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 24, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'SINGLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 31, FALSE, now()),
-  ((SELECT id FROM game_types WHERE implementation_key = 'SINGLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 32, FALSE, now());
+  ((SELECT id FROM game_types WHERE implementation_key = 'SINGLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 32, FALSE, now())
+) AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+WHERE v.game_type_id IS NOT NULL;
 -- game TACTICS
-INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at) VALUES
+INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM game_types WHERE implementation_key = 'TACTICS'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 1, TRUE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'TACTICS'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 3, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'TACTICS'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 5, FALSE, now()),
@@ -309,8 +396,11 @@ INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, cr
   ((SELECT id FROM game_types WHERE implementation_key = 'TACTICS'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 19, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'TACTICS'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 22, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'TACTICS'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 32, FALSE, now()),
-  ((SELECT id FROM game_types WHERE implementation_key = 'TACTICS'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 37, FALSE, now());
-INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at) VALUES
+  ((SELECT id FROM game_types WHERE implementation_key = 'TACTICS'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 37, FALSE, now())
+) AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+WHERE v.game_type_id IS NOT NULL;
+INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM game_types WHERE implementation_key = 'TACTICS'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 1, TRUE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'TACTICS'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 3, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'TACTICS'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 5, FALSE, now()),
@@ -320,9 +410,12 @@ INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, cr
   ((SELECT id FROM game_types WHERE implementation_key = 'TACTICS'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 15, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'TACTICS'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 19, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'TACTICS'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 22, FALSE, now()),
-  ((SELECT id FROM game_types WHERE implementation_key = 'TACTICS'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 32, FALSE, now());
+  ((SELECT id FROM game_types WHERE implementation_key = 'TACTICS'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 32, FALSE, now())
+) AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+WHERE v.game_type_id IS NOT NULL;
 -- game TUOD
-INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at) VALUES
+INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM game_types WHERE implementation_key = 'TUOD'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 3, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'TUOD'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 4, TRUE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'TUOD'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 9, FALSE, now()),
@@ -333,8 +426,11 @@ INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, cr
   ((SELECT id FROM game_types WHERE implementation_key = 'TUOD'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 21, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'TUOD'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 29, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'TUOD'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 34, FALSE, now()),
-  ((SELECT id FROM game_types WHERE implementation_key = 'TUOD'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 37, FALSE, now());
-INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at) VALUES
+  ((SELECT id FROM game_types WHERE implementation_key = 'TUOD'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 37, FALSE, now())
+) AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+WHERE v.game_type_id IS NOT NULL;
+INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
   ((SELECT id FROM game_types WHERE implementation_key = 'TUOD'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 3, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'TUOD'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 4, TRUE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'TUOD'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 9, FALSE, now()),
@@ -343,7 +439,9 @@ INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, cr
   ((SELECT id FROM game_types WHERE implementation_key = 'TUOD'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 19, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'TUOD'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 21, FALSE, now()),
   ((SELECT id FROM game_types WHERE implementation_key = 'TUOD'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 29, FALSE, now()),
-  ((SELECT id FROM game_types WHERE implementation_key = 'TUOD'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 34, FALSE, now());
+  ((SELECT id FROM game_types WHERE implementation_key = 'TUOD'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 34, FALSE, now())
+) AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+WHERE v.game_type_id IS NOT NULL;
 
 -- exercise BULLSEYE_CHECKOUT
 INSERT INTO exercise_type_tags (exercise_type_id, tag_id, is_primary, created_at)

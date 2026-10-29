@@ -31,6 +31,7 @@ import {
   BASEBALL_INNINGS,
   foldBaseballState,
 } from "@modules/game/baseball.engine.module";
+import { foldKillerState } from "@modules/game/killer.engine.module";
 import {
   foldAroundTheClockState,
   rulesOf,
@@ -55,6 +56,7 @@ import type {
   Bobs27Snapshot,
   DoublesTrainingSnapshot,
   FiveOhOneAnySnapshot,
+  KillerSnapshot,
   ScoreTrainingSnapshot,
   Seated,
   SeatFact,
@@ -193,6 +195,17 @@ function baseball(
   };
 }
 
+function killer(
+  config: Seated<KillerSnapshot>,
+  facts: EngineFacts,
+): SessionProgress {
+  const seat = activeOf(foldKillerState(facts, config));
+  return {
+    detail: joinSubtitle(["1v1", seat?.killer ? "Killer" : "Not Killer"]),
+    big: big(seat?.lives, "LIVES"),
+  };
+}
+
 function scoreTraining(
   config: Seated<ScoreTrainingSnapshot>,
   facts: EngineFacts,
@@ -297,6 +310,7 @@ const SUMMARIZERS: Readonly<Record<string, Summarizer>> = {
   TACTICS_V1: tactics,
   TACTICS_V2: tactics,
   BASEBALL_V1: baseball,
+  KILLER_V1: killer,
   SCORE_TRAINING_V1: scoreTraining,
   SINGLES_V1: singles,
   SINGLES_V2: singles,

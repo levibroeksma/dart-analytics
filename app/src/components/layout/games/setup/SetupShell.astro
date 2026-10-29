@@ -8,14 +8,16 @@
  * can't start before defaults have loaded. Start is a slide gesture
  * (`SlideToStart`), disabled while `loading || loadingReconciliation`.
  * @param {string} title
+ * @param {string} [startBlockedExpr] Alpine expression that blocks Start while true (default `false`)
  */
 interface Props {
   title: string;
+  startBlockedExpr?: string;
   [key: string]: unknown;
 }
 
 // Props
-const { title, ...props }: Props = Astro.props;
+const { title, startBlockedExpr = "false", ...props }: Props = Astro.props;
 
 // Components
 import SlideToStart from "@components/forms/SlideToStart.astro";
@@ -33,7 +35,7 @@ import PageHeader from "@components/layout/PageHeader.astro";
 
   <form
     class="mt-2 flex flex-col gap-3 pb-28"
-    @submit.prevent="loading || loadingReconciliation || beginStart()"
+    @submit.prevent={`loading || loadingReconciliation || (${startBlockedExpr}) || beginStart()`}
   >
     <slot />
 
@@ -45,7 +47,7 @@ import PageHeader from "@components/layout/PageHeader.astro";
     >
     </div>
     <SlideToStart
-      disabledExpr="loading || loadingReconciliation"
+      disabledExpr={`loading || loadingReconciliation || (${startBlockedExpr})`}
       failedExpr="error || showActiveSessionModal"
     />
   </form>

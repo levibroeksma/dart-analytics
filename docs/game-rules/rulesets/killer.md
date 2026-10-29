@@ -1,7 +1,8 @@
 # Killer
 
-Current version: none (V1 in design)
+Current version: V1 (shipped 2026-10-28)
 Entry points: standalone
+Game type: `KILLER`
 Kernel: ELIMINATION
 
 ## Features
