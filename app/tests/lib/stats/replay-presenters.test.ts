@@ -756,11 +756,11 @@ describe("REPLAY_PRESENTERS.FOLLOW_THE_LEADER", () => {
   const t18 = hit(18, "TREBLE");
   const s18 = hit(18, "OUTER_SINGLE");
 
-  function steps() {
+  const miss = hit(null, "MISS");
+
+  function stepsFor(record: (engine: FollowTheLeaderEngine) => void) {
     const engine = new FollowTheLeaderEngine(config);
-    for (const input of [t18, s18, s18, s18, { kind: "KEEP" as const }, t18])
-      engine.record(input);
-    engine.record({ kind: "STOP" });
+    record(engine);
     const { stages, turns } = engine.facts();
     return turns.map((turn, i) => ({
       turn,
@@ -774,6 +774,28 @@ describe("REPLAY_PRESENTERS.FOLLOW_THE_LEADER", () => {
       ),
     }));
   }
+
+  function steps() {
+    return stepsFor((engine) => {
+      for (const input of [t18, s18, s18, s18, { kind: "KEEP" as const }, t18])
+        engine.record(input);
+      engine.record({ kind: "STOP" });
+    });
+  }
+
+  it("shows Retry for a setting dart that landed off the board", () => {
+    const retries = stepsFor((engine) => {
+      for (const input of [miss, t18, s18, s18, s18, miss, t18])
+        engine.record(input);
+    }).map((step) => REPLAY_PRESENTERS.FOLLOW_THE_LEADER.turn(step, config)[1]);
+    expect(retries).toEqual([
+      { kind: "value", label: "Result", value: "Retry" },
+      { kind: "value", label: "Result", value: "Set" },
+      { kind: "value", label: "Result", value: "Fail" },
+      { kind: "value", label: "Result", value: "Retry" },
+      { kind: "value", label: "Result", value: "Set" },
+    ]);
+  });
 
   it("shows the thrower's lives and the visit's result", () => {
     const cells = steps().map((step) =>

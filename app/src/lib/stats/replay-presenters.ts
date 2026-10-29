@@ -450,8 +450,8 @@ const KILLER: ReplayPresenter = {
 
 /**
  * What one Follow the Leader turn did: `Keep`, `Fail` when the thrower lost
- * a life or a setting dart landed off the board, `Set` when it set the
- * target, else `Match`.
+ * a life, `Retry` when a setting dart landed off the board and is thrown
+ * again, `Set` when it set the target, else `Match`.
  */
 function followTheLeaderResult(
   turn: TurnFact,
@@ -464,8 +464,8 @@ function followTheLeaderResult(
     seatIn<FollowTheLeaderSeatState>(after, ref).lives <
     seatIn<FollowTheLeaderSeatState>(before, ref).lives;
   if (lost) return "Fail";
-  if (after.leaderRef !== ref) return after.target ? "Match" : "Fail";
-  return after.activeParticipantRef === ref ? "Fail" : "Set";
+  if (after.leaderRef !== ref) return after.target ? "Match" : "Retry";
+  return after.activeParticipantRef === ref ? "Retry" : "Set";
 }
 
 /**
