@@ -22,6 +22,8 @@ import { tacticsSetup } from "@lib/game/tactics-setup.data";
 import { tacticsPlay } from "@lib/game/tactics-play.data";
 import { baseballSetup } from "@lib/game/baseball-setup.data";
 import { baseballPlay } from "@lib/game/baseball-play.data";
+import { killerSetup } from "@lib/game/killer-setup.data";
+import { killerPlay } from "@lib/game/killer-play.data";
 import { tuodSetup } from "@lib/game/tuod-setup.data";
 import { tuodPlay } from "@lib/game/tuod-play.data";
 import { gamesIndex } from "@lib/game/games-index.data";
@@ -72,6 +74,8 @@ export function registerRouteData(Alpine: Alpine) {
   Alpine.data("tacticsPlay", tacticsPlay);
   Alpine.data("baseballSetup", baseballSetup);
   Alpine.data("baseballPlay", baseballPlay);
+  Alpine.data("killerSetup", killerSetup);
+  Alpine.data("killerPlay", killerPlay);
   Alpine.data("tuodSetup", tuodSetup);
   Alpine.data("tuodPlay", tuodPlay);
   Alpine.data("quickSubtractPlay", quickSubtractPlay);

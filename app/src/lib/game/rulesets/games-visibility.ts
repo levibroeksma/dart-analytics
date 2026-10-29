@@ -117,6 +117,14 @@ export const GAME_CARDS: readonly GameCardDescriptor[] = [
     title: "Baseball Darts",
     caption: "Nine innings, runs by the ring.",
   },
+  {
+    rulesetVersionKey: "KILLER_V1",
+    gameTypeKey: "KILLER",
+    group: "CLASSICS",
+    href: "/games/killer/setup",
+    title: "Killer",
+    caption: "Hit your double, then hunt theirs.",
+  },
 ];
 
 /**

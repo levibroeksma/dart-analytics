@@ -1,0 +1,12 @@
+---
+export const prerender = true;
+import GameSetupPage from "@components/layout/games/setup/GameSetupPage.astro";
+import KillerSetupForm from "@components/layout/games/setup/KillerSetupForm.astro";
+---
+
+<GameSetupPage
+  title="Killer"
+  x-data="killerSetup()"
+>
+  <KillerSetupForm />
+</GameSetupPage>
