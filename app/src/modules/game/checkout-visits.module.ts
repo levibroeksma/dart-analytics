@@ -50,8 +50,8 @@ export function fiveOhOneCheckoutVisits(
 
 /**
  * One seat's checkout visits, each carrying the target it opened against --
- * folded via `foldTuodState` over every turn strictly before it, mirroring
- * `TuodEngine`'s own (private) `targetBeforeVisit`. `timerExpired` is always
+ * folded via `foldTuodState` over every turn strictly before it, as the game
+ * shell folds `turnsBeforeVisit` for `closedVisitTotal`. `timerExpired` is always
  * `false` here: every visit folded this way is already closed, and a closed
  * visit's own `currentTarget` never depends on the live timer flag.
  */
@@ -76,8 +76,8 @@ export function tuodCheckoutVisits(
 /**
  * One seat's checkout visits, each carrying the remaining score it opened
  * against -- folded via `foldOneTwentyOneState` over every turn strictly
- * before it, mirroring `OneTwentyOneEngine`'s own (private)
- * `seatBeforeVisit`. `timerExpired` is always `false` here, for the same
+ * before it, as the game shell folds `turnsBeforeVisit` for
+ * `closedVisitTotal`. `timerExpired` is always `false` here, for the same
  * reason it is in `tuodCheckoutVisits`.
  */
 export function oneTwentyOneCheckoutVisits(
