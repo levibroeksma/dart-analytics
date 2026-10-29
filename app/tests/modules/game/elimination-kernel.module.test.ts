@@ -5,6 +5,8 @@ import {
 } from "@modules/game/elimination-kernel.module";
 import type { EliminationRules } from "@modules/interfaces";
 import type { ClosedVisit, DartObservation, TurnFact } from "@modules/types";
+import { killerHit } from "@modules/game/elimination-policies";
+import type { KillerExt } from "@modules/types";
 import type { SeatFact } from "@lib/types";
 
 type Ext = Record<string, never>;
@@ -266,5 +268,65 @@ describe("elimination kernel visit-close hook", () => {
       hookRules((_seats, shared) => (shared.closes === 1 ? "p3" : null)),
     );
     expect(m.activeParticipantRef).toBe("p3");
+  });
+});
+
+const KILLER_EXPECTED = {
+  seats: [
+    {
+      participantRef: "p1",
+      sideKey: "A",
+      lives: 3,
+      out: false,
+      ext: {
+        number: 5,
+        killer: true,
+        livesTaken: 3,
+        dartsToKiller: 1,
+        dartsThrown: 4,
+      },
+    },
+    {
+      participantRef: "p2",
+      sideKey: "B",
+      lives: 0,
+      out: true,
+      ext: {
+        number: 12,
+        killer: false,
+        livesTaken: 0,
+        dartsToKiller: null,
+        dartsThrown: 3,
+      },
+    },
+  ],
+  outOrder: ["p2"],
+  status: "COMPLETE",
+  winningSideKey: "A",
+  activeParticipantRef: "p1",
+};
+
+describe("elimination kernel Killer regression", () => {
+  const killerRules: EliminationRules<KillerExt> = {
+    startingLives: 3,
+    initExt: (_seat, index) => ({
+      number: [5, 12][index],
+      killer: false,
+      livesTaken: 0,
+      dartsToKiller: null,
+      dartsThrown: 0,
+    }),
+    onDart: killerHit,
+  };
+  const log = () => [
+    turn("p1", [d(5), d(12), d(12)], true),
+    turn("p2", [miss, miss, miss], true),
+    turn("p1", [d(12)], false),
+  ];
+
+  it("folds a Killer log to its pre-change result", () => {
+    const { shared, ...match } = foldElimination(log(), seats2, killerRules);
+    expect(shared).toBeUndefined();
+    expect(match).toStrictEqual(KILLER_EXPECTED);
   });
 });
