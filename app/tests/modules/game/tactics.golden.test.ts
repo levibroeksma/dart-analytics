@@ -37,7 +37,7 @@ describe("Tactics — golden trace", () => {
     it(`${name}: seed 7 step trace with rehydration is unchanged`, () => {
       expect(
         goldenTrace({
-          build: (prior) => new TacticsEngine(cfg, prior, key as never),
+          build: (prior) => new TacticsEngine(cfg, prior, key),
           seed: 7,
           steps: 300,
           undoRate: 0.1,
