@@ -4,15 +4,8 @@ import {
   effectiveMarks,
   initialMarksSeat,
   marksPerRound,
-  recordMarksDart,
   tallyMarksDart,
 } from "@modules/game/marks-close.module";
-import type {
-  DartObservation,
-  MarksSeatState,
-  MultiSeatState,
-  TurnFact,
-} from "@modules/types";
 
 const seat = { participantRef: "p1", sideKey: "A" };
 
@@ -141,79 +134,6 @@ describe("hit tallies", () => {
     state = applyMarksDart(state, { objectiveIndex: 0, marks: 3 });
     state = applyMarksDart(state, { objectiveIndex: 1, marks: 2 });
     expect(state.trebleHits).toBe(2);
-  });
-});
-
-describe("recordMarksDart", () => {
-  const STAGE_KEY = "block-1";
-  const miss: DartObservation = {
-    hitTargetNumber: null,
-    hitZoneKey: "MISS",
-    locationX: null,
-    locationY: null,
-  };
-  const bull: DartObservation = {
-    hitTargetNumber: 25,
-    hitZoneKey: "INNER_BULL",
-    locationX: null,
-    locationY: null,
-  };
-
-  /** One seat that completes on its first inner bull. */
-  function deriveFrom(turns: TurnFact[]): () => MultiSeatState<MarksSeatState> {
-    return () => {
-      const darts = turns.flatMap((turn) => turn.darts);
-      const done = darts.some((dart) => dart.hitZoneKey === "INNER_BULL");
-      return {
-        activeParticipantRef: seat.participantRef,
-        seats: [
-          {
-            ...initialMarksSeat(seat, 1),
-            status: done ? "COMPLETE" : "IN_PROGRESS",
-          },
-        ],
-      };
-    };
-  }
-
-  it("opens a visit on the first dart, left open", () => {
-    const turns: TurnFact[] = [];
-    recordMarksDart(turns, STAGE_KEY, miss, deriveFrom(turns));
-    expect(turns).toHaveLength(1);
-    expect(turns[0].stageClientKey).toBe(STAGE_KEY);
-    expect(turns[0].participantRef).toBe(seat.participantRef);
-    expect(turns[0].darts).toHaveLength(1);
-    expect(turns[0].completedAt).toBeNull();
-  });
-
-  it("closes the visit on dart 3 and opens a new one on dart 4", () => {
-    const turns: TurnFact[] = [];
-    const derive = deriveFrom(turns);
-    for (let i = 0; i < 3; i++) recordMarksDart(turns, STAGE_KEY, miss, derive);
-    expect(turns).toHaveLength(1);
-    expect(turns[0].completedAt).not.toBeNull();
-    recordMarksDart(turns, STAGE_KEY, miss, derive);
-    expect(turns).toHaveLength(2);
-    expect(turns[1].darts).toHaveLength(1);
-  });
-
-  it("closes the visit early on the completing dart", () => {
-    const turns: TurnFact[] = [];
-    const state = recordMarksDart(turns, STAGE_KEY, bull, deriveFrom(turns));
-    expect(turns[0].darts).toHaveLength(1);
-    expect(turns[0].completedAt).not.toBeNull();
-    expect(state.seats[0].status).toBe("COMPLETE");
-  });
-
-  it("refuses once the seat is complete and leaves the turns alone", () => {
-    const turns: TurnFact[] = [];
-    const derive = deriveFrom(turns);
-    recordMarksDart(turns, STAGE_KEY, bull, derive);
-    const snapshot = structuredClone(turns);
-    expect(() => recordMarksDart(turns, STAGE_KEY, miss, derive)).toThrow(
-      "Cannot record a dart once the game has ended; undo first to correct it.",
-    );
-    expect(turns).toEqual(snapshot);
   });
 });
 

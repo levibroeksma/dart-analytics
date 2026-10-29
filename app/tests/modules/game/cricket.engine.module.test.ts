@@ -236,6 +236,44 @@ describe("CricketEngine", () => {
     expect(engine.wouldComplete(dart(25, "OUTER_BULL"))).toBe(true);
   });
 
+  it("opens its first visit under the stage for the active seat, left open", () => {
+    const engine = new CricketEngine(config);
+    engine.record(MISS);
+    const facts = engine.facts();
+    expect(facts.turns).toHaveLength(1);
+    expect(facts.turns[0].stageClientKey).toBe(facts.stages[0].clientKey);
+    expect(facts.turns[0].participantRef).toBe(config.seats[0].participantRef);
+    expect(facts.turns[0].completedAt).toBeNull();
+  });
+
+  it("returns copies from facts and state", () => {
+    const engine = new CricketEngine(config);
+    engine.record(MISS);
+    engine.record(MISS);
+    engine.facts().turns[0].darts.pop();
+    expect(engine.state().seats[0].dartsThrown).toBe(2);
+    expect(engine.state()).not.toBe(engine.state());
+  });
+
+  it("answers wouldComplete without touching the log", () => {
+    const engine = new CricketEngine(config);
+    closeAllButBull(engine);
+    engine.record(dart(25, "INNER_BULL"));
+    const before = engine.facts();
+    expect(engine.wouldComplete(dart(25, "OUTER_BULL"))).toBe(true);
+    expect(engine.facts()).toEqual(before);
+    engine.record(dart(25, "OUTER_BULL"));
+    expect(engine.wouldComplete(MISS)).toBe(false);
+  });
+
+  it("is PER_SEAT and carries the key it was built with", () => {
+    expect(new CricketEngine(config).stageOwnership).toBe("PER_SEAT");
+    expect(new CricketEngine(config).rulesetVersionKey).toBe("CRICKET_V1");
+    expect(
+      new CricketEngine(config, undefined, "CRICKET_V2").rulesetVersionKey,
+    ).toBe("CRICKET_V2");
+  });
+
   it("replays prior facts into the same state", () => {
     const engine = new CricketEngine(config);
     engine.record(T(20));
@@ -257,6 +295,15 @@ describe("cricketV2EngineFactory", () => {
   it("is keyed CRICKET_V2 and builds a Cricket engine", () => {
     expect(cricketV2EngineFactory.rulesetVersionKey).toBe("CRICKET_V2");
     expect(cricketV2EngineFactory.stageOwnership).toBe("PER_SEAT");
+  });
+
+  it("builds an engine under its key from prior facts", () => {
+    const played = new CricketEngine(config);
+    played.record(T(20));
+    const built = cricketV2EngineFactory.create(config, played.facts());
+    expect(built).toBeInstanceOf(CricketEngine);
+    expect(built.rulesetVersionKey).toBe("CRICKET_V2");
+    expect(built.state()).toEqual(played.state());
   });
 });
 

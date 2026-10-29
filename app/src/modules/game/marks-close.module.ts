@@ -1,18 +1,10 @@
-import { activeSeatState } from "./seat-state.module";
 import type {
-  DartObservation,
   DartZoneKey,
   MarksHit,
   MarksSeatState,
   MarksTally,
-  MultiSeatState,
-  TurnFact,
 } from "./types";
-import {
-  appendObservedDart,
-  openOrCreateTurn,
-  refuseWhenEnded,
-} from "./turn-log.module";
+import { refuseWhenEnded } from "./turn-log.module";
 
 export type { MarksHit } from "./types";
 
@@ -113,46 +105,6 @@ export function applyMarksDart(
     dartsThisVisit: complete || visitDarts === DARTS_PER_VISIT ? 0 : visitDarts,
     status: complete ? "COMPLETE" : "IN_PROGRESS",
   };
-}
-
-/**
- * The default end test of a marks-close game: the active seat has completed.
- */
-function activeSeatComplete(state: MultiSeatState<MarksSeatState>): boolean {
-  return activeSeatState(state).status === "COMPLETE";
-}
-
-/**
- * A marks-close engine's `record()`: appends one dart to the open visit,
- * opening a new one when the last is closed. `completedAt` is stamped by a
- * visit's 3rd dart or by the dart that ends the game. Validated against
- * `derive()` first, so a throw leaves `turns` untouched.
- * @param turns The engine's fact log, mutated in place
- * @param stageClientKey The stage new visits open under
- * @param derive Folds `turns` into the engine's state
- * @param isEnded Whether the game is over; defaults to the active seat being complete
- * @throws when the game has already ended.
- */
-export function recordMarksDart<TState extends MultiSeatState<MarksSeatState>>(
-  turns: TurnFact[],
-  stageClientKey: string,
-  observation: DartObservation,
-  derive: () => TState,
-  isEnded: (state: TState) => boolean = activeSeatComplete,
-): TState {
-  const before = derive();
-  refuseWhenEnded(isEnded(before), "game has ended");
-  const openTurn = openOrCreateTurn(
-    turns,
-    stageClientKey,
-    before.activeParticipantRef,
-    (last) => last.completedAt === null && last.darts.length < DARTS_PER_VISIT,
-  );
-  appendObservedDart(openTurn, observation);
-  if (openTurn.darts.length === DARTS_PER_VISIT || isEnded(derive())) {
-    openTurn.completedAt = new Date().toISOString();
-  }
-  return derive();
 }
 
 /** Marks that counted toward closing, after the cap. */
