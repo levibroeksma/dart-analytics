@@ -541,3 +541,82 @@ describe("dartGameEngineClass — live total", () => {
     expect(engine.facts().turns[0].totalScore).toBe(60);
   });
 });
+
+describe("visit actions", () => {
+  type Act = { action: "STOP" | "KEEP" };
+  type Seen = Toy & { closedTurns: number };
+  const actSpec: DartGameSpec<{ limit: number }, Seen, Act> = {
+    ...spec,
+    fold: (facts, config) => ({
+      ...(spec.fold(facts, config, false) as Toy),
+      closedTurns: facts.turns.filter((t) => t.completedAt !== null).length,
+    }),
+    isVisitOpen: (t) => t.completedAt === null && t.darts.length < 3,
+    wouldComplete: () => false,
+    visitActions: {
+      isAction: (input): input is Act => "action" in input,
+      refusal: (_s, a, _c, open) =>
+        a.action === "STOP" && open === null ? "nothing to stop" : null,
+      effect: (a) => (a.action === "STOP" ? "CLOSE_VISIT" : "KEEP_TURN"),
+      closedByAction: (turn) =>
+        turn.completedAt !== null && turn.darts.length < 3,
+    },
+  };
+  const Act = dartGameEngineClass(actSpec);
+
+  it("STOP closes an open turn and the state sees it closed", () => {
+    const engine = new Act({ limit: 10 });
+    engine.record(T20);
+    const state = engine.record({ action: "STOP" });
+    expect(engine.facts().turns[0].completedAt).not.toBeNull();
+    expect(state.closedTurns).toBe(1);
+  });
+
+  it("KEEP appends a closed dartless kept turn", () => {
+    const engine = new Act({ limit: 10 });
+    engine.record({ action: "KEEP" });
+    expect(engine.facts().turns[0]).toMatchObject({
+      darts: [],
+      kept: true,
+      totalScore: 0,
+      participantRef: "p1",
+    });
+    expect(engine.facts().turns[0].completedAt).not.toBeNull();
+  });
+
+  it("throws the action's refusal", () => {
+    const engine = new Act({ limit: 10 });
+    expect(() => engine.record({ action: "STOP" })).toThrow("nothing to stop");
+  });
+
+  it("undo reopens a stopped turn and keeps its dart", () => {
+    const engine = new Act({ limit: 10 });
+    engine.record(T20);
+    engine.record({ action: "STOP" });
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns[0].completedAt).toBeNull();
+    expect(engine.facts().turns[0].darts).toHaveLength(1);
+  });
+
+  it("undo pops a kept turn", () => {
+    const engine = new Act({ limit: 10 });
+    engine.record({ action: "KEEP" });
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns).toHaveLength(0);
+  });
+
+  it("undo of a dart-closed turn still pops the dart", () => {
+    const engine = new Act({ limit: 10 });
+    [T20, T20, T20].forEach((o) => engine.record(o));
+    expect(engine.undo()).toBe(true);
+    expect(engine.facts().turns[0].darts).toHaveLength(2);
+    expect(engine.facts().turns[0].completedAt).toBeNull();
+  });
+
+  it("rehydrating after STOP equals the live state", () => {
+    const engine = new Act({ limit: 10 });
+    engine.record(T20);
+    const live = engine.record({ action: "STOP" });
+    expect(new Act({ limit: 10 }, engine.facts()).state()).toEqual(live);
+  });
+});
