@@ -140,9 +140,20 @@ describe("buildSeedSql", () => {
     const link = sql
       .slice(sql.indexOf("INSERT INTO game_type_tags"))
       .split(";")[0];
-    expect(link).toContain("is_primary, created_at) VALUES");
+    expect(link).toContain("is_primary, created_at)\nSELECT * FROM (VALUES");
     for (const row of link.split("\n").filter((l) => l.startsWith("  (")))
       expect(row).toMatch(/, (TRUE|FALSE), now\(\)\),?$/);
+  });
+
+  it("guards game link rows against a game type seeded by a later file", () => {
+    const { sql } = build();
+    const link = sql
+      .slice(sql.indexOf("INSERT INTO game_type_tags"))
+      .split(";")[0];
+    expect(link).toContain(
+      ") AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)",
+    );
+    expect(link).toContain("WHERE v.game_type_id IS NOT NULL");
   });
 
   it("writes created_at on exercise link rows", () => {
