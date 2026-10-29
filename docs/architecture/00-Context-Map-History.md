@@ -2,7 +2,7 @@
 status: historical
 scope: context-map version history and point-in-time task records
 read-when: never during a task — provenance only
-updated: 2026-10-13
+updated: 2026-10-29
 -->
 
 # Context Map History
@@ -16,6 +16,8 @@ updated: 2026-10-13
 ---
 
 # Version History
+
+> **Version:** 1.193.0 (2026-10-29 — `04-Architecture-patterns.md` version-line diet (#1146): the line keeps only the current version; 41 earlier versions move to the new § Architecture Patterns Version History below; pack budgets re-synced in `00-Context-Map.md`.)
 
 > **Version:** 1.192.0 (2026-10-26 — Claude Design system sync, phase 1: D499 in `decisions/frontend/style.md` (supersedes D428's token-source clause); `syncing-design-system` skill, `app/scripts/design-sync/` and `docs/design-system/design-sync.lock.json` registered in `00-File-Inventory.md`; Style Guide brand-reference line and root `CLAUDE.md` router row updated.)
 
@@ -602,3 +604,52 @@ updated: 2026-10-13
 | `dart-engine-shell.module.ts`, `interfaces.ts`, `tuod.engine.module.ts`, `one-twenty-one.engine.module.ts`, `score-training.engine.module.ts`, shell test, `04-Architecture-patterns.md` (1.11.23), `modules/game/CLAUDE.md` | `DartGameSpec.intent` optional; omitted, darts record `NO_INTENT`; coordinate-captured specs drop their stubs (#1129, 2026-10-28) | historical |
 | `killer-setup.data.ts`, `killer-play.data.ts`, `killer-seats.ts`, `Killer*.astro`, `SetupShell.astro` (`startBlockedExpr`), `Select.astro`, `games-visibility.ts`, `register-route-data.ts`, pages `games/killer/*`, seed `0042` tags, `killer.md`, `00-File-Inventory.md`, `08-Component-Inventory.md`, `09-Adding-A-Game.md`, `decisions/game-engine.md` (D505) | Killer V1 playable: setup, play, results, card; two-seat floor. Elimination PR 2 (2026-10-28) | historical |
 | `marks-kernel.module.ts` (new; replaces `marks-duel.module.ts`, `marks-engine.module.ts`), `cricket.engine.module.ts`, `tactics.engine.module.ts`, `marks-close.module.ts`, `modules/game/types.ts`, their tests, `{cricket,tactics}.golden.test.ts`, `marks-observations.ts`, `scripts/engine-kernels.txt`, `04-Architecture-patterns.md` (1.11.24), `modules/game/CLAUDE.md`, `00-File-Inventory.md`, `decisions/game-engine.md` (D506, supersedes D488) | Marks kernel built; Tactics and Cricket moved onto the game shell (goldens recorded pre-rebind, oracle at 1 and 2 seats, both keys); `MarksEngine` and `recordMarksDart` deleted (2026-10-29) | historical |
+
+---
+
+# Architecture Patterns Version History
+
+> Earlier `04-Architecture-patterns.md` versions, newest first, moved out of
+> its version line (2026-10-29, #1146). Append new entries at the top of this list.
+
+- 1.11.24 — Pattern 18: Marks kernel built, Tactics and Cricket bound through `foldMarks` on the game shell; `MarksEngine` deleted 2026-10-29, D506
+- 1.11.23 — Pattern 18: a `DartGameSpec`'s `intent` is optional 2026-10-28, #1129
+- 1.11.22 — Pattern 18: 121 bound through `foldCheckoutSeats` on the game shell — all four Checkout engines bound; the shell gains `stageFor` and `complete`'s `expiredAt` 2026-10-28, D500
+- 1.11.21 — Pattern 18: Score Training bound through `foldVisitPoints` on the game shell; the shell gains `liveTotal` 2026-10-28, D503
+- 1.11.20 — Pattern 18: Visit points kernel built; Score Threshold bound through `foldVisitPoints` on the exercise shell 2026-10-27, D502
+- 1.11.19 — Pattern 18: Elimination kernel built, Killer bound through `foldElimination` on the game shell 2026-10-27, D501
+- 1.11.18 — Pattern 18: Ten Up One Down bound through `foldCheckoutSeats` on the game shell; the shell gains visit-total input, coordinate capture, close-settled totals and a `complete` hook 2026-10-27, D500
+- 1.11.17 — Pattern 18: MARKS row notes the shared `MarksEngine` shell 2026-10-27, #1111
+- 1.11.16 — Pattern 18: Random Checkout bound through `foldCheckoutVisits` on the exercise shell; the Checkout kernel's `FAIL` verdict 2026-10-27, D500
+- 1.11.15 — Pattern 18: Checkout kernel built, Checkout Sequence bound through `foldCheckoutVisits` on the exercise shell; an exercise spec's `isVisitOpen` sees the folded state 2026-10-27, D500
+- 1.11.14 — Pattern 18: Around the Clock V3 on the Track kernel; `noteVisitHit`/`loseLifeOnBlank` lives policies, a seat may end `OUT` 2026-10-22, D481
+- 1.11.13 — Pattern 18: Doubles Snakes & Ladders bound through `trackExerciseSpec`; a dart exercise may declare `ends(state)` and the shell completes it 2026-10-22, D479
+- 1.11.12 — Pattern 18: Halve-It bound through `trackExerciseSpec`; zone targets via a defaulted `TrackRules` target type 2026-10-21, D478
+- 1.11.11 — Pattern 18: Baseball Darts, the first new game on the Track kernel, bound through the game shell; `TargetGrid` titles 2026-10-18
+- 1.11.10 — Pattern 18: Doubles Lock bound through `trackExerciseSpec`; `lockCheckpoint` visit-close policy 2026-10-18
+- 1.11.9 — Pattern 18: SwitchBlade bound through `trackExerciseSpec`; per-dart intent changes mid-visit 2026-10-18
+- 1.11.8 — Pattern 18: Hit Count, the first `trackExerciseSpec` exercise; `BoardTarget` gains TREBLE 2026-10-17, D469
+- 1.11.7 — Pattern 18: the switching-sequence exercise bound to the Track kernel and moved onto the exercise shell; Track phase 1 complete 2026-10-17, D468
+- 1.11.6 — Pattern 18: Target Scoring, the first exercise, bound to the Track kernel through `foldTrackDarts`; the kernel gate accepts the exercise import 2026-10-17, D468
+- 1.11.5 — Pattern 18: Shanghai bound to the Track kernel; the game shell gains a closed-visit total hook 2026-10-17, D468
+- 1.11.4 — Pattern 18: Around the Clock bound to the Track kernel; the game shell gains a timer and a state-aware visit close 2026-10-17, D468
+- 1.11.3 — Pattern 18: Singles Training bound to the Track kernel; the game shell serves several ruleset keys per spec 2026-10-17, D468
+- 1.11.2 — Pattern 18: Bob's 27 bound to the Track kernel 2026-10-17, D468
+- 1.11.1 — Pattern 18: Track kernel built, Doubles Training bound 2026-10-17, D468
+- 1.11.0 — Pattern 18: rule-kernel families are architecture — registry, two gates, Kernel: header 2026-10-17, D467
+- 1.10.0 — Pattern 18: single-stage dart engines and clockless timed dart exercises are specs bound to a shared shell, `dart-engine-shell.module.ts` / `dart-exercise-shell.module.ts` 2026-10-16, D462
+- 1.9.3 — Pattern 20: 501/TUOD/121 route their checkout rate through a second helper, `checkoutPercentageDisplay()`, that dashes a zero-attempt denominator instead of reporting `"0.00%"`; the result field these three rulesets expose is renamed `checkoutPercentage` throughout the stack, surfacing as `Checkout %` in the modals, the routine summary and `/statistics` 2026-09-19
+- 1.9.2 — Pattern 18: `five-oh-one-play.data.ts`, `tuod-play.data.ts`, and `one-twenty-one-play.data.ts`'s private checkout-visit builders move into one shared `checkout-visits.module.ts` 2026-09-19
+- 1.9.1 — Pattern 18: `double-attempt.module.ts`'s checkout-attempt classifier now counts a bounce-out/off-board dart and any bust-causing dart as a miss rather than excluding it, and treats the inner single band at 50 remaining as a missed bull 2026-09-19
+- 1.9.0 — Pattern 18: all 9 rulesets' results snapshots now uniformly carry `seats: XSeatResult[]`, closing the gap the single-opponent-seat design's touch list left open 2026-08-30
+- 1.8.3 — Pattern 21 gains a fifth band, Pattern 18's `checkout-bust.module.ts` gains `checkoutAttemptCount` 2026-08-28, D242
+- 1.8.2 — Pattern 18: `isDartObservationInput`, `exerciseBlockStage()`, `turnsBeforeVisit` join `turn-log.module.ts`'s shared exports 2026-08-28, D241
+- 1.8.1 — Pattern 18: `checkout-bust.module.ts` shared bust/checkout rule, `otherSeatsComplete`'s completion-predicate parameter 2026-08-27, D240
+- 1.8.0 — Pattern 21: exclusive score-band tallying via `visitScoreBandCounts()` 2026-08-27
+- 1.7.0 — Pattern 20: shared accuracy/hit-rate formatting via `accuracyDisplay()` 2026-08-27
+- 1.6.1 — Pattern 19: `armHiddenTimer`/`clearHiddenTimer` primitive extracted, all 9 board-input games covered 2026-08-26
+- 1.6.0 — Pattern 19: shared reveal-then-clear preview 2026-08-26
+- 1.5.0 — Pattern 18: seat layer — `participantRef`, `stageOwnership`, seat-less `record()` 2026-08-21
+- 1.4.1 — Pattern 18: undo depth, derived-value returns, `completedAt` timing 2026-07-26
+- 1.4.0 — Pattern 18 game engine contract 2026-07-26
+- 1.3.0 — Pattern 17 frontend layering 2026-07-14
