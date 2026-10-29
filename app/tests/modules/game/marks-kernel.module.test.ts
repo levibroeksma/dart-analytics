@@ -316,6 +316,25 @@ describe("marksWouldComplete", () => {
     );
   });
 
+  it("3 seats: false when the active seat is already closed out", () => {
+    const C: SeatFact = { ...B, participantRef: "c", displayName: "C" };
+    const state = foldMarks(
+      factsOf(
+        visit("a", [20, "TREBLE"], [19, "TREBLE"], [0, "TREBLE"]),
+        visit("b", [null, "MISS"], [null, "MISS"], [null, "MISS"]),
+        {
+          ...visit("c", [null, "MISS"], [null, "MISS"], [null, "MISS"]),
+          completedAt: "2026-11-01T10:00:00Z",
+        },
+      ),
+      [A, B, C],
+      spec,
+    );
+    expect(state.status).toBe("IN_PROGRESS");
+    expect(state.activeParticipantRef).toBe("a");
+    expect(marksWouldComplete(state, obs(20, "TREBLE"), spec)).toBe(false);
+  });
+
   it("false once the game is COMPLETE", () => {
     const state = foldMarks(
       factsOf(visit("a", [20, "TREBLE"], [19, "TREBLE"], [0, "TREBLE"])),
@@ -329,22 +348,22 @@ describe("marksWouldComplete", () => {
 
 describe("marksGameSpec", () => {
   const config = { seats: [A, B] };
-  const cricketSpec = marksGameSpec<{ seats: SeatFact[] }, MarksDuelSeat>({
+  const gameSpec = marksGameSpec<{ seats: SeatFact[] }, MarksDuelSeat>({
     rulesetVersionKey: "CRICKET_V1",
     rulesetVersionKeys: ["CRICKET_V2"],
     rules: spec,
   });
-  const Engine = dartGameEngineClass(cricketSpec);
+  const Engine = dartGameEngineClass(gameSpec);
 
   it("refuses with 'game has ended' once COMPLETE, else null", () => {
-    const done = cricketSpec.fold(
+    const done = gameSpec.fold(
       factsOf(visit("a", [20, "TREBLE"], [19, "TREBLE"], [0, "TREBLE"])),
       config,
       false,
     );
-    expect(cricketSpec.refusal(done)).toContain("game has ended");
+    expect(gameSpec.refusal(done)).toContain("game has ended");
     expect(
-      cricketSpec.refusal(cricketSpec.fold(factsOf(), config, false)),
+      gameSpec.refusal(gameSpec.fold(factsOf(), config, false)),
     ).toBeNull();
   });
 
@@ -377,26 +396,25 @@ describe("marksGameSpec", () => {
   });
 
   it("closes a stamped turn", () => {
-    const state = cricketSpec.fold(factsOf(), config, false);
+    const state = gameSpec.fold(factsOf(), config, false);
     const turn = {
       ...visit("a", [20, "SINGLE"]),
       completedAt: "2026-10-24T10:00:00.000Z",
     };
-    expect(cricketSpec.isVisitOpen(turn, state, config)).toBe(false);
+    expect(gameSpec.isVisitOpen(turn, state, config)).toBe(false);
     expect(
-      cricketSpec.isVisitOpen(visit("a", [20, "SINGLE"]), state, config),
+      gameSpec.isVisitOpen(visit("a", [20, "SINGLE"]), state, config),
     ).toBe(true);
   });
 
   it("serves both keys; dartGameEngineFactory throws for a key it does not serve", () => {
-    expect(cricketSpec.stageOwnership).toBe("PER_SEAT");
+    expect(gameSpec.stageOwnership).toBe("PER_SEAT");
     expect(
-      dartGameEngineFactory(cricketSpec, Engine, "CRICKET_V2")
-        .rulesetVersionKey,
+      dartGameEngineFactory(gameSpec, Engine, "CRICKET_V2").rulesetVersionKey,
     ).toBe("CRICKET_V2");
-    expect(() =>
-      dartGameEngineFactory(cricketSpec, Engine, "TACTICS_V1"),
-    ).toThrow("TACTICS_V1 is not served by this spec");
+    expect(() => dartGameEngineFactory(gameSpec, Engine, "TACTICS_V1")).toThrow(
+      "TACTICS_V1 is not served by this spec",
+    );
   });
 
   it("Cricket and Tactics rules value only their numbers and the bull", () => {
