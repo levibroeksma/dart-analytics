@@ -30,6 +30,7 @@ function batch(totals: number[], darts: DartFactInput[]) {
           participantRef: "p1",
           sequence: i + 1,
           totalScore,
+          kept: false,
           completedAt: null,
           darts,
         })),

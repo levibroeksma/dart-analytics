@@ -23,6 +23,7 @@ const BATCH = {
       participantId: "pt1",
       sequenceNumber: 1,
       totalScore: 60,
+      kept: true,
       completedAt: "2026-01-01T00:00:00.000Z",
       darts: [
         {
@@ -56,7 +57,7 @@ describe("insertBatchRecords rendered SQL", () => {
     expect(result).toEqual({ stages: 1, turns: 1, darts: 1 });
     expect(rendered.statements.map((statement) => statement.sql)).toEqual([
       'insert into "exercise_stages" ("id", "exercise_session_id", "parent_stage_id", "stage_type_id", "sequence_number", "created_at") values ($1, $2, $3, $4, $5, $6)',
-      'insert into "turns" ("id", "exercise_stage_id", "participant_id", "sequence_number", "total_score", "completed_at", "created_at") values ($1, $2, $3, $4, $5, $6, $7)',
+      'insert into "turns" ("id", "exercise_stage_id", "participant_id", "sequence_number", "total_score", "completed_at", "created_at", "kept") values ($1, $2, $3, $4, $5, $6, $7, $8)',
       'insert into "darts" ("id", "turn_id", "dart_number", "intended_target_number", "intended_zone_id", "hit_target_number", "hit_zone_id", "score", "created_at", "location_x", "location_y") values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)',
       'insert into "session_write_idempotency" ("id", "session_id", "idempotency_key", "normalized_payload_hash", "result", "created_at") values ($1, $2, $3, $4, $5, $6)',
     ]);

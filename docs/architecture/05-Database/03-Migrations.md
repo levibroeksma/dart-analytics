@@ -1552,3 +1552,13 @@ Migrations are the historical record of database evolution.
 They must be treated as permanent architectural documentation.
 
 A future developer or AI agent should be able to understand how the database evolved by reading the migration history alone.
+
+## 0051_turns_kept.sql
+
+Store whether a visit was kept (Follow the Leader). <!-- 2026-10-29 -->
+
+Contains:
+
+- `turns.kept BOOLEAN NOT NULL DEFAULT false`, with a column comment; no CHECK.
+
+No data change: every existing turn reads `false`, as does an upload from a client that omits `kept`. `migrate:down` drops the column. Proved on a scratch Postgres 16 built from the chain (apply, rollback, re-apply, `db:drift:ci`, `db:verify:ci`). <!-- 2026-10-29 -->

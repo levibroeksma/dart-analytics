@@ -18,6 +18,7 @@ function batchWithTurns(totalScores: number[]) {
           participantRef: "p1",
           sequence: i + 1,
           totalScore,
+          kept: false,
           completedAt: "2026-08-14T10:00:00.000Z",
           darts: [] as DartFactInput[],
         })),
@@ -145,6 +146,7 @@ describe("oneTwentyOneValidator.validateBatch — visual board", () => {
               participantRef: "p1",
               sequence: 1,
               totalScore: 60,
+              kept: false,
               completedAt: "2026-08-15T12:00:00.000Z",
               darts: [
                 {

@@ -1321,6 +1321,7 @@ export const turns = pgTable(
       withTimezone: true,
       mode: "string",
     }).notNull(),
+    kept: boolean().default(false).notNull(),
   },
   (table) => [
     index("idx_turns_participant").using(

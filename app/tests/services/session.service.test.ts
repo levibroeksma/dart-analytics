@@ -587,6 +587,7 @@ function sampleBatch(
             participantRef: overrides.participantRef ?? "participant-1",
             sequence: 1,
             totalScore: 45,
+            kept: false,
             completedAt: null,
             darts: overrides.darts ?? [],
           },
@@ -671,6 +672,19 @@ describe("appendBatch", () => {
       ok: true,
       data: { created: { stages: 1, turns: 1, darts: 0 } },
     });
+  });
+
+  it("maps a parsed kept onto the inserted turn", async () => {
+    const batch = sampleBatch();
+    const parsed = {
+      stages: batch.stages.map((stage) => ({
+        ...stage,
+        turns: stage.turns.map((turn) => ({ ...turn, kept: true })),
+      })),
+    };
+    await appendBatch("player-1", "session-1", "idem-kept", parsed as never);
+    const input = vi.mocked(repo.insertBatchRecords).mock.calls[0][0];
+    expect(input.turns[0].kept).toBe(true);
   });
 
   it("returns NOT_FOUND for an unknown session", async () => {
@@ -896,6 +910,7 @@ describe("appendBatch", () => {
               participantRef: "participant-1",
               sequence: 1,
               totalScore: 60,
+              kept: false,
               completedAt: null,
               darts: [
                 {
@@ -977,6 +992,7 @@ describe("appendBatch", () => {
               participantRef: "bot-1",
               sequence: 1,
               totalScore: 4,
+              kept: false,
               completedAt: "2026-09-01T10:00:00.000Z",
               darts: [botDart(1, true), botDart(2, true), botDart(3, false)],
             },

@@ -34,6 +34,7 @@ function batchWithTurns(darts: DartFactInput[][]) {
           participantRef: "p1",
           sequence: i + 1,
           totalScore: turnDarts.reduce((total, dart) => total + dart.score, 0),
+          kept: false,
           completedAt: null,
           darts: turnDarts,
         })),
@@ -126,6 +127,7 @@ describe("doublesTrainingValidator.validateBatch — visual board", () => {
               participantRef: "p1",
               sequence: 1,
               totalScore: 60,
+              kept: false,
               completedAt: "2026-08-15T12:00:00.000Z",
               darts: [
                 {
@@ -181,6 +183,7 @@ describe("doublesTrainingValidator.validateBatch — visual board", () => {
               participantRef: "p1",
               sequence: 1,
               totalScore: 20,
+              kept: false,
               completedAt: "2026-08-15T12:00:00.000Z",
               darts: [
                 {

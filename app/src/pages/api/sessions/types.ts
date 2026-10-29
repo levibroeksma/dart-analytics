@@ -123,6 +123,7 @@ export const TurnFact = z.object({
   participantRef: z.string(),
   sequence: z.number().int().positive(),
   totalScore: z.number().int(),
+  kept: z.boolean().default(false),
   completedAt: z.string().datetime().nullable(),
   darts: z.array(DartFact),
 });
