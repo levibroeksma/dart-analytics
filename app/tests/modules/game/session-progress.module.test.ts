@@ -11,6 +11,7 @@ import {
 import { cricketEngineFactory } from "@modules/game/cricket.engine.module";
 import { tacticsEngineFactory } from "@modules/game/tactics.engine.module";
 import { killerEngineFactory } from "@modules/game/killer.engine.module";
+import { followTheLeaderEngineFactory } from "@modules/game/follow-the-leader.engine.module";
 import { baseballEngineFactory } from "@modules/game/baseball.engine.module";
 import { scoreTrainingEngineFactory } from "@modules/game/score-training.engine.module";
 import { singlesTrainingEngineFactory } from "@modules/game/singles-training.engine.module";
@@ -884,5 +885,48 @@ describe("summarizeProgress — KILLER_V1", () => {
       detail: "1v1 · Not Killer",
       big: { value: "2", label: "LIVES" },
     });
+  });
+});
+
+describe("summarizeProgress — FOLLOW_THE_LEADER_V1", () => {
+  const config = {
+    seats: [
+      {
+        participantRef: "p1",
+        displayName: "L",
+        sideKey: "A",
+        participantTypeKey: "PLAYER" as const,
+      },
+      {
+        participantRef: "p2",
+        displayName: "G",
+        sideKey: "B",
+        participantTypeKey: "GUEST" as const,
+      },
+    ],
+    lives: 3 as const,
+  };
+
+  it("opens on the first seat's lives", () => {
+    expect(
+      summarizeProgress("FOLLOW_THE_LEADER_V1", config, EMPTY_FACTS),
+    ).toEqual({
+      detail: "1v1 · Follow the Leader",
+      big: { value: "3", label: "LIVES" },
+    });
+  });
+
+  it("builds from the engine's own facts", () => {
+    const facts = factsAfter(followTheLeaderEngineFactory, config, [
+      {
+        hitTargetNumber: 20,
+        hitZoneKey: "TREBLE",
+        locationX: null,
+        locationY: null,
+      },
+    ]);
+    expect(
+      summarizeProgress("FOLLOW_THE_LEADER_V1", config, facts).detail,
+    ).toBe("1v1 · Follow the Leader");
   });
 });
