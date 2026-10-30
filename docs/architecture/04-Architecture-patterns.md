@@ -2,12 +2,12 @@
 status: canonical
 scope: architecture/patterns
 read-when: solving recurring design problems
-updated: 2026-10-29
+updated: 2026-10-30
 -->
 
 # Architecture Patterns
 
-> **Version:** 1.11.25 (version line holds only the current version; earlier versions moved to `00-Context-Map-History.md` § Architecture Patterns Version History 2026-10-29, #1146)
+> **Version:** 1.11.26 (version line holds only the current version; earlier versions moved to `00-Context-Map-History.md` § Architecture Patterns Version History 2026-10-29, #1146)
 >
 > A bump replaces this line; the outgoing version goes at the top of that history section, never chained here.
 >
@@ -826,7 +826,7 @@ hand-written opt-out:
 | `TRACK` | walk a target path; hit test, points, visit judgement, seat end | `modules/game/track-kernel.module.ts` (policies: `track-policies.ts`) | built — Doubles Training, Bob's 27, Singles Training, Around the Clock, Shanghai, Target Scoring bound (D468); Target Scoring, Hit Count, SwitchBlade, Doubles Lock, Halve-It, Doubles Snakes & Ladders bound through `trackExerciseSpec` (D469, D478, #993); a dart exercise may declare `ends(state)` to finish on its own state, which the shell then completes (D479, 2026-10-22); Baseball Darts bound through the game shell (2026-10-18). `TrackRules` takes an optional target type, defaulting to `BoardTarget`; a ruleset aiming at a zone (`ANY_DOUBLE`, `ANY_TREBLE`) passes `TrackTarget` (D478, 2026-10-21) |
 | `CHECKOUT` | finish a target score under bust rules; attempt budget; ladder moves | `modules/game/checkout-kernel.module.ts` (policies: `checkout-policies.ts`) | built — Checkout Sequence, Random Checkout, Ten Up One Down (2026-10-27) and 121 (2026-10-28) bound (D500) |
 | `VISIT_POINTS` | points from a visit's darts; goal, bust, void, compare as callers need them | `modules/game/visit-points-kernel.module.ts` | built — Score Threshold bound through `foldVisitPoints` on the exercise shell (D502, 2026-10-27); Score Training on the game shell (D503, 2026-10-28) |
-| `MARKS` | marks on categories; close order; closed-number scoring | `modules/game/marks-kernel.module.ts` (primitives: `marks-close.module.ts`) | built — Tactics and Cricket bound through `foldMarks` on the game shell via `marksGameSpec`; `MarksEngine` deleted (D506, 2026-10-29) |
+| `MARKS` | marks on categories; close order; closed-number scoring | `modules/game/marks-kernel.module.ts` (primitives: `marks-close.module.ts`) | built — Tactics, Cricket and Mickey Mouse bound through `foldMarks` on the game shell via `marksGameSpec`; `MarksEngine` deleted (D506, 2026-10-29); `dipOf` gives a dart a second mark (D507, 2026-10-30) |
 | `ELIMINATION` | lives, cross-seat effects, last standing | `modules/game/elimination-kernel.module.ts` (policies: `elimination-policies.ts`) | built — Killer bound through `foldElimination` on the game shell, the first `SHARED`-stage shell engine; a visit is open while its turn has no `completedAt` (D501, 2026-10-27) |
 | `HAND_WRITTEN` | opt-out: 501 (match format), Warm-Up (dartless), Bull-Up (counting only), the simulations | — | — |
 

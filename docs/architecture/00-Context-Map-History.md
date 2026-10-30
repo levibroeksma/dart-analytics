@@ -2,7 +2,7 @@
 status: historical
 scope: context-map version history and point-in-time task records
 read-when: never during a task — provenance only
-updated: 2026-10-29
+updated: 2026-10-30
 -->
 
 # Context Map History
@@ -16,6 +16,8 @@ updated: 2026-10-29
 ---
 
 # Version History
+
+> **Version:** 1.194.0 (2026-10-30 — Mickey Mouse V1 engine (PR 1, engine-only): D507 in `decisions/game-engine.md`; the Marks kernel gains `MarksRules.dipOf`; `mickey-mouse.engine.module.ts`, `mickey-mouse.validator.ts`, seed `0055` + verification `0055`, `0007` ledger (50 triples) registered in `00-File-Inventory.md`; `04-Architecture-patterns.md` 1.11.26.)
 
 > **Version:** 1.193.0 (2026-10-29 — `04-Architecture-patterns.md` version-line diet (#1146): the line keeps only the current version; 41 earlier versions move to the new § Architecture Patterns Version History below; pack budgets re-synced in `00-Context-Map.md`.)
 
@@ -604,6 +606,7 @@ updated: 2026-10-29
 | `dart-engine-shell.module.ts`, `interfaces.ts`, `tuod.engine.module.ts`, `one-twenty-one.engine.module.ts`, `score-training.engine.module.ts`, shell test, `04-Architecture-patterns.md` (1.11.23), `modules/game/CLAUDE.md` | `DartGameSpec.intent` optional; omitted, darts record `NO_INTENT`; coordinate-captured specs drop their stubs (#1129, 2026-10-28) | historical |
 | `killer-setup.data.ts`, `killer-play.data.ts`, `killer-seats.ts`, `Killer*.astro`, `SetupShell.astro` (`startBlockedExpr`), `Select.astro`, `games-visibility.ts`, `register-route-data.ts`, pages `games/killer/*`, seed `0042` tags, `killer.md`, `00-File-Inventory.md`, `08-Component-Inventory.md`, `09-Adding-A-Game.md`, `decisions/game-engine.md` (D505) | Killer V1 playable: setup, play, results, card; two-seat floor. Elimination PR 2 (2026-10-28) | historical |
 | `marks-kernel.module.ts` (new; replaces `marks-duel.module.ts`, `marks-engine.module.ts`), `cricket.engine.module.ts`, `tactics.engine.module.ts`, `marks-close.module.ts`, `modules/game/types.ts`, their tests, `{cricket,tactics}.golden.test.ts`, `marks-observations.ts`, `scripts/engine-kernels.txt`, `04-Architecture-patterns.md` (1.11.24), `modules/game/CLAUDE.md`, `00-File-Inventory.md`, `decisions/game-engine.md` (D506, supersedes D488) | Marks kernel built; Tactics and Cricket moved onto the game shell (goldens recorded pre-rebind, oracle at 1 and 2 seats, both keys); `MarksEngine` and `recordMarksDart` deleted (2026-10-29) | historical |
+| `mickey-mouse.engine.module.ts`, `mickey-mouse.validator.ts` (new), `marks-kernel.module.ts`, `marks-close.module.ts`, `modules/game/types.ts`, `lib/game/rulesets/{types,capabilities}.ts`, `section-registry.ts`, `replay-{presenters,fold}.ts`, `session-progress.module.ts`, `services/rulesets/registry.ts`, seeds `0055` + `0007`, verification `0055` + `0007`, `database/README.md`, their tests, `scripts/engine-kernels.txt`, `docs/game-rules/rulesets/mickey-mouse.md`, `docs/superpowers/plans/2026-10-30-mickey-mouse-v1.md`, `04-Architecture-patterns.md` (1.11.26), `modules/game/CLAUDE.md`, `00-File-Inventory.md`, `decisions/game-engine.md` (D507) | Mickey Mouse V1 engine-only (PR 1): the Marks kernel gains `dipOf`; the engine, validator, registries and reference seed land together (capability parity). Mickey Mouse PR 1 (2026-10-30) | historical |
 
 ---
 
@@ -612,6 +615,7 @@ updated: 2026-10-29
 > Earlier `04-Architecture-patterns.md` versions, newest first, moved out of
 > its version line (2026-10-29, #1146). Append new entries at the top of this list.
 
+- 1.11.25 — Pattern 18: version line holds only the current version (earlier versions moved here) 2026-10-29, #1146
 - 1.11.24 — Pattern 18: Marks kernel built, Tactics and Cricket bound through `foldMarks` on the game shell; `MarksEngine` deleted 2026-10-29, D506
 - 1.11.23 — Pattern 18: a `DartGameSpec`'s `intent` is optional 2026-10-28, #1129
 - 1.11.22 — Pattern 18: 121 bound through `foldCheckoutSeats` on the game shell — all four Checkout engines bound; the shell gains `stageFor` and `complete`'s `expiredAt` 2026-10-28, D500
