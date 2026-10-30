@@ -422,3 +422,45 @@ describe("marksGameSpec", () => {
     expect(TACTICS_RULES.valueOf(7)).toBeNull();
   });
 });
+
+describe("dipOf", () => {
+  const dipRules: MarksRules<MarksDuelSeat> = {
+    ...spec,
+    dipOf: (_seat, observation) =>
+      observation.hitZoneKey === "TREBLE"
+        ? { objectiveIndex: 2, marks: 1 }
+        : null,
+    valueOf: () => null,
+  };
+
+  it("solo: a fold applies the hit and the dip", () => {
+    const state = foldMarks(factsOf(visit("a", [20, "TREBLE"])), [A], dipRules);
+    expect(state.seats[0].marks).toEqual([3, 0, 1]);
+  });
+
+  it("1v1: a fold applies the hit and the dip and scores nothing", () => {
+    const fold = foldMarksDuel(
+      [visit("a", [20, "TREBLE"], [20, "TREBLE"])],
+      seats,
+      dipRules,
+    );
+    expect(fold.seats[0].marks).toEqual([3, 0, 2]);
+    expect(fold.seats[0].points).toBe(0);
+  });
+
+  it("rules without dipOf fold as before", () => {
+    const state = foldMarks(factsOf(visit("a", [20, "TREBLE"])), [A], spec);
+    expect(state.seats[0].marks).toEqual([3, 0, 0]);
+  });
+
+  it("marksWouldComplete sees a dart whose dip closes the last objective", () => {
+    const state = foldMarks(
+      factsOf(visit("a", [20, "TREBLE"], [19, "TREBLE"])),
+      [A],
+      dipRules,
+    );
+    expect(state.seats[0].marks).toEqual([3, 3, 2]);
+    expect(marksWouldComplete(state, obs(20, "TREBLE"), dipRules)).toBe(true);
+    expect(marksWouldComplete(state, obs(20, "SINGLE"), dipRules)).toBe(false);
+  });
+});

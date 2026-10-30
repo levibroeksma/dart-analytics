@@ -178,3 +178,62 @@ describe("tallyMarksDart", () => {
     expect(fields.trebleHits).toBe(1);
   });
 });
+
+describe("dip", () => {
+  const three = (marks: number[]) => ({
+    ...initialMarksSeat(seat, 3),
+    marks,
+  });
+
+  it("marks a second objective from one dart and counts the dart once", () => {
+    const { fields, spare } = tallyMarksDart(
+      three([0, 0, 0]),
+      { objectiveIndex: 0, marks: 3 },
+      { objectiveIndex: 1, marks: 1 },
+    );
+    expect(fields.marks).toEqual([3, 1, 0]);
+    expect(fields.objectiveHits).toEqual([1, 1, 0]);
+    expect(fields.trebleHits).toBe(1);
+    expect(fields.dartsThrown).toBe(1);
+    expect(spare).toBe(0);
+  });
+
+  it("stamps closedAtDart for both objectives a dart closes", () => {
+    const { fields } = tallyMarksDart(
+      three([0, 2, 0]),
+      { objectiveIndex: 0, marks: 3 },
+      { objectiveIndex: 1, marks: 1 },
+    );
+    expect(fields.closedAtDart).toEqual([1, 1, null]);
+  });
+
+  it("takes spare and treble hits from the primary hit only", () => {
+    const { fields, spare } = tallyMarksDart(
+      three([2, 0, 0]),
+      { objectiveIndex: 0, marks: 2 },
+      { objectiveIndex: 1, marks: 3 },
+    );
+    expect(spare).toBe(1);
+    expect(fields.trebleHits).toBe(0);
+  });
+
+  it.each([
+    null,
+    { objectiveIndex: 1, marks: 1 },
+    { objectiveIndex: 2, marks: 3 },
+  ])("an omitted dip equals a null dip for hit %j", (hit) => {
+    expect(tallyMarksDart(three([1, 1, 1]), hit)).toEqual(
+      tallyMarksDart(three([1, 1, 1]), hit, null),
+    );
+  });
+
+  it("completes the seat when the dip closes the last open objective", () => {
+    const next = applyMarksDart(
+      three([3, 2, 3]),
+      { objectiveIndex: 0, marks: 1 },
+      { objectiveIndex: 1, marks: 1 },
+    );
+    expect(next.status).toBe("COMPLETE");
+    expect(next.dartsThisVisit).toBe(0);
+  });
+});

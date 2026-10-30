@@ -99,6 +99,8 @@ export type MarksRules<TSeat extends MarksDuelSeat> = {
     observation: DartObservation,
   ) => MarksHit;
   valueOf: (objectiveIndex: number) => number | null;
+  /** A second mark the same dart earns on another objective. */
+  dipOf?: (seat: TSeat, observation: DartObservation) => MarksHit;
 };
 
 /** The two seats after a duel fold, and the winner once one exists. */
