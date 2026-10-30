@@ -1,6 +1,6 @@
 # Edit-Time Rules — Design
 
-Date: 2026-10-29. Status: draft for owner review.
+Date: 2026-10-29. Status: owner answers folded in 2026-10-30; awaiting approval.
 
 ## Intent
 
@@ -29,6 +29,7 @@ Goal: put the right rule in front of the agent **at the moment of the edit**, an
 
 - Cutting the harness baseline (system prompt, tool schemas, connectors). Optional owner action only: disable unused connectors (e.g. Claude Docs) for this environment.
 - Fixing the existing 4.9% duplication in this work. Each clone family becomes a `discovered-work` issue.
+- Edits made through Bash (heredoc, `sed -i`). Owner decision: accepted gap; gate-time checks (`run-all-gates`, CI) remain the backstop.
 - New convention rules. Only existing gate scripts move to edit time; the one new written rule is the rule of three.
 - Replacing context packs or the authority order.
 
@@ -67,7 +68,7 @@ Goal: put the right rule in front of the agent **at the moment of the edit**, an
 - Candidates:
   - `.astro`: rows from `docs/architecture/07-Frontend/08-Component-Inventory.md` matched on name tokens of the new file (grep, never a whole-file read into context).
   - `.ts`: `graphify-out/graph.json` nodes whose label matches the new file's name tokens or the names it exports (parsed from `content`); same query shape as the `graph-lookup` skill. *(Claude's call)* The graph lags the branch, so also `git grep` `app/src` for `export … <name>` of each exported name — covers helpers added earlier on the same branch.
-- First `Write` to a new path → deny, reason = up to ~8 candidates (`name — path`) + "reuse one, or retry stating why none fits". Second `Write` to the same path in the same session → allow. State keyed by `session_id` + path in a temp file.
+- First `Write` to a new path → deny, reason = up to ~8 candidates (`name — path`) + "reuse one, or retry stating why none fits". Second `Write` to the same path in the same session → allow. State keyed by `session_id` + path in a temp file. *(Claude's call)* The retry's reason is not checked — the hook forces a look, not a verdict; the CI clone-group gate (§3) is the backstop for a wrong "none fits".
 - No candidates → allow silently.
 
 This is what puts the graph to use; the `graph-lookup` skill stays for ad-hoc questions and drops its "not for frontend" steer only where the hook now covers `.ts`.
@@ -81,7 +82,8 @@ This is what puts the graph to use; the `graph-lookup` skill stays for ad-hoc qu
 
 ### 4. Slimmer rule files
 
-- Root `CLAUDE.md` → target ≈ 1.5k tokens: keep invariants as one-line rules; move provenance tails (`(2026-…, Dxxx)`) and long rationale out — the decision ids already hold the why. The migration carve-out and worktree mechanics move to `.claude/rules/` (`paths: ["database/migrations/**"]`) and to a skill respectively; builder picks the exact split.
+- Root `CLAUDE.md` → as small as the rules allow: keep invariants as one-line rules; strip provenance tails (`(2026-…, Dxxx)`) and long rationale — the decision ids already hold the why. Owner decision: the migration carve-out and worktree rules **stay in root** (path-scoped rules don't survive `/compact`); they are condensed, not moved.
+- Owner decision: removing dated provenance tails across all CLAUDE.md files is a **one-time approved exception** to "minimal diffs; never regenerate docs". Record it as a decision. Builder first checks whether any script reads the tails (`check-context-budget.sh`, `context-drift.sh`, `check-agent-mirrors.sh`) and updates budgets/inventory `~tokens` to match.
 - Nested CLAUDE.md files: same treatment — rules stay, dated history goes. Directory-scoped files are already lazily loaded, so do **not** mass-migrate them into `.claude/rules/`; use rules only for cross-cutting globs (e.g. `**/*.astro` across `components/` and `pages/`).
 - `docs/CLAUDE.md` step 1 and `context-maintenance` step 2: "grep `00-File-Inventory.md` for the row; Read with offset/limit; never read it whole".
 - Note from official docs: path-scoped rules reload only when a matching file is touched again after `/compact`; anything that must survive compaction stays unscoped.
@@ -106,4 +108,4 @@ Hook names and file layout; temp-file and state mechanics; exact check-to-path t
 - Writing `x-bind:` in an `.astro` file is refused before it lands.
 - A PR adding a clone group fails CI.
 - Creating a new component/helper/type shows existing matches first.
-- Root CLAUDE.md ≈ 1.5k tokens; no task instruction reads the File Inventory whole.
+- Root CLAUDE.md measurably smaller (tails and rationale gone, invariants intact); no task instruction reads the File Inventory whole.
