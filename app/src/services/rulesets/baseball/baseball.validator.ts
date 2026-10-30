@@ -15,12 +15,14 @@ const threeDartValidator = createThreeDartValidator({
 
 /**
  * Baseball Darts: the shared three-dart rules. A closed inning's `totalScore`
- * is its runs (darts on the inning's own number), or 0 for a void visit.
+ * is its runs, or 0 for a void visit. A run is one multiplier step on the
+ * inning's own number, so the runs are that number's board score divided by
+ * the inning.
  */
 export const baseballValidator: RulesetValidator = withRoundTotals(
   threeDartValidator,
   (turn, inning) => {
-    const runs = scoreOnNumber(turn, inning);
+    const runs = scoreOnNumber(turn, inning) / inning;
     return turn.totalScore === runs || turn.totalScore === 0
       ? null
       : `is neither the runs scored in inning ${inning} (${runs}) nor 0 for a void visit`;

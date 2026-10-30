@@ -634,3 +634,10 @@ Decision: `marks-kernel.module.ts` holds the Marks family: `MarksRules` (`initia
 Reason: every other kernel family runs on the game shell; a second engine base class kept two ways to record, undo and close a visit. The owner chose the shell over keeping `MarksEngine` (2026-10-28).
 Consequences: no behaviour change — a differential oracle against a frozen copy of the `MarksEngine` engines (1 and 2 seats, both keys, undo and rehydration) passed before the copy was deleted, and golden traces recorded on the old engines hold it now. The wrong-key guard is a runtime test, not a type error. Both registry rows are `KERNEL_BOUND`. Close order, cut-throat scoring and more than two seats land with the first game that needs them. Spec: `docs/superpowers/specs/2026-10-28-marks-kernel-design.md`.
 Supersedes: D488.
+
+### D507 — Baseball's visual-board runs are multiplier steps, not board score
+Status: Accepted · Date: 2026-10-29
+Decision: `baseballValidator` derives an inning's runs as the board score of its darts on the inning's number divided by the inning (single 1, double 2, treble 3), matching the engine's runs. D496's rule otherwise stands.
+Reason: D496's check compared `totalScore` to the board score on the number, which equals the runs only in inning 1. From inning 2 on, any visual-board inning that hit its number was refused, so finishing a game failed with "Could not save your game" (#1112).
+Consequences: no migration. Keypad behaviour is unchanged. `scoreOnNumber` keeps returning board score for Shanghai.
+Supersedes: D496.

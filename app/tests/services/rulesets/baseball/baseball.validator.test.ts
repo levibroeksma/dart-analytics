@@ -131,6 +131,18 @@ describe("baseballValidator", () => {
       expect(validate(64, [treble1, treble20, outerSingle1]).valid).toBe(false);
     });
 
+    it("counts runs, not board score, on a later inning's number", () => {
+      const treble2 = dart(1, 2, "TREBLE", 6, 60.5, 83.3);
+      const outerSingle2 = dart(2, 2, "OUTER_SINGLE", 2, 76.4, 105.2);
+      const offNumber = { ...treble20, sequence: 3 };
+      expect(validate(4, [treble2, outerSingle2, offNumber], 1).valid).toBe(
+        true,
+      );
+      expect(validate(8, [treble2, outerSingle2, offNumber], 1).valid).toBe(
+        false,
+      );
+    });
+
     it("counts only darts on the inning's own number, from the turns already stored", () => {
       expect(validate(0, [treble1, treble20, outerSingle1], 1).valid).toBe(
         true,
