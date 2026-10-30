@@ -53,6 +53,8 @@ jobs:
         run: bash scripts/test-check-file-mode.sh
       - name: Edit-gate hook fixtures
         run: bash scripts/test-edit-gate.sh
+      - name: Reuse-lookup hook fixtures
+        run: bash scripts/test-reuse-lookup.sh
 
       - name: Game-rules gate
         run: bash scripts/check-game-rules.sh && bash scripts/test-check-game-rules.sh
