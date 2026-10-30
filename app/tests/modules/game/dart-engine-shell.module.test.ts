@@ -388,6 +388,29 @@ describe("dartGameEngineClass — coordinate capture", () => {
     expect(engine.facts().turns[0].totalScore).toBe(0);
   });
 
+  it("leaves a reopened turn's total unwritten after undo", () => {
+    const engine = new Coord({ limit: 10 });
+    engine.record(trebleTwentyAt);
+    engine.record(trebleTwentyAt);
+    engine.undo();
+    expect(engine.facts().turns[0]).toMatchObject({
+      completedAt: null,
+      totalScore: 0,
+    });
+  });
+
+  it("leaves a keypad spec's reopened turn total unwritten after undo", () => {
+    const engine = new Pad({ limit: 2 });
+    engine.record(trebleTwentyAt);
+    engine.record(trebleTwentyAt);
+    expect(engine.facts().turns[0].totalScore).toBe(200);
+    engine.undo();
+    expect(engine.facts().turns[0]).toMatchObject({
+      completedAt: null,
+      totalScore: 0,
+    });
+  });
+
   it("scores an unlocated dart as a scoreless hit on its own zone", () => {
     const engine = new Coord({ limit: 10 });
     engine.record({ ...T20, locationX: null, locationY: null });

@@ -228,13 +228,15 @@ describe("TuodEngine.record — outcomes", () => {
     expect(engine.facts().turns).toHaveLength(0);
   });
 
-  it("no longer refuses a solo session's record() once ROUNDS-complete — isMatchDecided() (F21) exempts solo sessions from engine-level blocking, delegating that guard to tuod-play.data.ts's finished/showFinishConfirm gate", () => {
+  it("refuses a solo session's record() once ROUNDS-complete", () => {
     const engine = tuodEngineFactory.create({ ...config(), durationValue: 1 });
     engine.record(MISS);
 
     expect(engine.isComplete()).toBe(true);
-    expect(() => engine.record(MISS)).not.toThrow();
-    expect(engine.facts().turns).toHaveLength(2);
+    expect(() => engine.record(MISS)).toThrow(
+      "Cannot record an attempt once the session is complete",
+    );
+    expect(engine.facts().turns).toHaveLength(1);
   });
 });
 
@@ -481,10 +483,10 @@ describe("TuodEngine.wouldComplete — pure", () => {
     expect(engine.wouldComplete(CHECKOUT)).toBe(false);
   });
 
-  it("still reads true for a further attempt once a solo ROUNDS session is already complete — isMatchDecided() (F21) no longer treats a solo session's own completion as a rejection reason at the engine level", () => {
+  it("reads false for a further attempt once a solo ROUNDS session is already complete", () => {
     const engine = tuodEngineFactory.create({ ...config(), durationValue: 1 });
     engine.record(MISS);
-    expect(engine.wouldComplete(MISS)).toBe(true);
+    expect(engine.wouldComplete(MISS)).toBe(false);
   });
 });
 
@@ -818,14 +820,17 @@ describe("TuodEngine.record — dart-by-dart (VISUAL_BOARD)", () => {
     expect(() => engine.record(MISS)).toThrow(/open (visit|attempt)/);
   });
 
-  it("no longer refuses a dart once a solo session is ROUNDS-complete — same isMatchDecided() (F21) exemption as the keypad-total path", () => {
+  it("refuses a dart once a solo session is ROUNDS-complete, as the keypad-total path does", () => {
     const engine = tuodEngineFactory.create({
       ...boardConfig(),
       durationValue: 1,
     });
     engine.record(DOUBLE_20);
     expect(engine.isComplete()).toBe(true);
-    expect(() => engine.record(DOUBLE_20)).not.toThrow();
+    expect(() => engine.record(DOUBLE_20)).toThrow(
+      "Cannot record an attempt once the session is complete",
+    );
+    expect(engine.facts().turns).toHaveLength(1);
   });
 });
 
@@ -839,7 +844,7 @@ describe("TuodEngine.undo — dart-shaped turns", () => {
     const turn = engine.facts().turns[0];
     expect(turn.darts).toHaveLength(1);
     expect(turn.completedAt).toBeNull();
-    expect(turn.totalScore).toBe(1);
+    expect(turn.totalScore).toBe(0);
   });
 
   it("pops the whole turn once its last dart is undone", () => {
@@ -1151,8 +1156,8 @@ describe("TuodEngine.state — live in-visit remaining (#202)", () => {
   });
 });
 
-describe("TuodEngine — preserved legacy behaviour", () => {
-  it("keeps an open board turn's totalScore at 0, then at the dart sum once undo reopens it", () => {
+describe("TuodEngine — open turns and session end", () => {
+  it("keeps an open board turn's totalScore at 0, also once undo reopens it", () => {
     const engine = tuodEngineFactory.create(config());
     engine.record(SINGLE_1);
     engine.record(SINGLE_1);
@@ -1160,20 +1165,19 @@ describe("TuodEngine — preserved legacy behaviour", () => {
 
     engine.undo();
 
-    expect(engine.facts().turns[0].totalScore).toBe(1);
+    expect(engine.facts().turns[0].totalScore).toBe(0);
     expect(engine.facts().turns[0].completedAt).toBeNull();
   });
 
-  it("accepts input in a solo session after its last round, leaving completion to isComplete()", () => {
+  it("still takes input in a solo MINUTES session until its timer expires", () => {
     const engine = tuodEngineFactory.create({
       ...config(),
+      durationType: "MINUTES",
       durationValue: 1,
     });
     engine.record(MISS);
-    expect(engine.isComplete()).toBe(true);
+    engine.record(MISS);
 
-    const state = engine.record(MISS);
-
-    expect(state.seats[0].attempts).toBe(2);
+    expect(engine.state().seats[0].attempts).toBe(2);
   });
 });

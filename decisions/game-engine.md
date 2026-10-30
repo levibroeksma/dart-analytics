@@ -655,3 +655,10 @@ Decision: The target banner, leader badge, off-hand notice and the Keep/Set prom
 Reason: the prompt and Stop lived only in the tap pad, which a VISUAL_BOARD session hides, so a board session could never stop or keep; the prompt also hid the pad's undo.
 Consequences: no migration; capabilities unchanged. Refines D510's play UI.
 Supersedes: none.
+
+### D512 — Ten Up One Down: a played solo ROUNDS session refuses input; undo keeps an open board turn's total at 0
+Status: Accepted · Date: 2026-10-30
+Decision: `tuodSpec` refuses a dart, a keypad total and `wouldComplete()` once `inputClosed` reads true: a decided 1v1 match, or a solo ROUNDS session whose attempts reach `durationValue`. A solo MINUTES session never reads closed there; its timer ends it through `isComplete()`. `DartGameSpec.refusal` now takes the config as a second argument. The game shell resets the trailing turn's `totalScore` to 0 after an `undo()` that leaves it open, for a `coordinateCapture` spec without `liveTotal`, so a reopened turn matches one never closed.
+Reason: a solo ROUNDS session took attempts past its budget for any caller that skipped `isComplete()` (#1119); the 2026-09-02 solo exemption was needed only for MINUTES expiry. An open board turn's `totalScore` read 0 or the darts' sum depending on undo history (#1118).
+Consequences: no migration. TUOD's solo golden traces stop at the round budget. Score Training and 121 set `liveTotal` and are unchanged.
+Supersedes: none.
