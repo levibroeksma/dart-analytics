@@ -1112,6 +1112,7 @@ describe("121 board-dart resolution and undo", () => {
     expect(dart.hitZoneKey).toBe("MISS");
     expect(dart.score).toBe(0);
     expect(dart.intendedZoneKey).toBeNull();
+    expect(dart.intendedTargetNumber).toBeNull();
   });
 
   it("classifies a dart that carries coordinates and carries them onto the fact", () => {
@@ -1491,7 +1492,7 @@ describe("mixed input and solo-only durations", () => {
     expect(engine.facts()).toEqual(before);
   });
 
-  it("reads only seat 0's attempts for a duel ROUNDS session", () => {
+  it("reads only seat 0's attempts for a duel ROUNDS config, which rejectSeatRequest never seats", () => {
     const duel = {
       durationType: "ROUNDS",
       durationValue: 1,

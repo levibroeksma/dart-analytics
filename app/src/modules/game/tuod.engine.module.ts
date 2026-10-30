@@ -13,7 +13,6 @@ import {
 import { registerEngineFactory } from "./engine.registry";
 import {
   isDartObservationInput,
-  NO_INTENT,
   resolveObservation,
   sumDartScores,
 } from "./turn-log.module";
@@ -369,7 +368,6 @@ const tuodSpec: DartGameSpec<
   stageOwnership: "PER_SEAT",
   fold: foldTuodState,
   refusal: (state) => (matchDecided(state) ? SESSION_COMPLETE : null),
-  intent: () => NO_INTENT,
   isVisitOpen: isTuodVisitOpen,
   wouldComplete: wouldCompleteSession,
   closedVisitTotal: settledTotal,

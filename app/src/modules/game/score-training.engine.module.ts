@@ -4,7 +4,7 @@ import {
   dartGameEngineFactory,
 } from "./dart-engine-shell.module";
 import { registerEngineFactory } from "./engine.registry";
-import { endedRefusal, NO_INTENT } from "./turn-log.module";
+import { endedRefusal } from "./turn-log.module";
 import { foldVisitPoints } from "./visit-points-kernel.module";
 import { activeSeat } from "./seat-rota.module";
 import {
@@ -158,7 +158,6 @@ const scoreTrainingSpec: DartGameSpec<
   fold: foldScoreTrainingState,
   refusal: (state) =>
     matchDecided(state) ? endedRefusal("match is complete") : null,
-  intent: () => NO_INTENT,
   isVisitOpen: (turn) =>
     turn.completedAt === null && turn.darts.length < DARTS_PER_VISIT,
   wouldComplete: wouldCompleteSession,

@@ -1,8 +1,11 @@
 import type { CricketSnapshot, Seated } from "@lib/types";
 import { BULL_TARGET_NUMBER } from "./board-progression.module";
 import { registerEngineFactory } from "./engine.registry";
-import { foldMarksSeats } from "./marks-duel.module";
-import { MarksEngine, marksEngineFactory } from "./marks-engine.module";
+import {
+  dartGameEngineClass,
+  dartGameEngineFactory,
+} from "./dart-engine-shell.module";
+import { foldMarks, marksGameSpec } from "./marks-kernel.module";
 import {
   applyMarksDart,
   BULL_RING_MARKS,
@@ -14,8 +17,8 @@ import type {
   CricketState,
   DartObservation,
   EngineFacts,
-  MarksDuelSpec,
   MarksHit,
+  MarksRules,
 } from "./types";
 
 export { effectiveMarks, marksPerRound } from "./marks-close.module";
@@ -88,7 +91,8 @@ export function applyCricketDart(
   };
 }
 
-const CRICKET_DUEL: MarksDuelSpec<CricketSeatState> = {
+/** Cricket as marks rules: a dart's hit never depends on either seat; every objective scores its own number. */
+export const CRICKET_RULES: MarksRules<CricketSeatState> = {
   initialSeat: initialSeatState,
   hitOf: (_seat, _opponent, observation) => cricketMarksOf(observation),
   valueOf: (index) => CRICKET_OBJECTIVES[index],
@@ -104,8 +108,14 @@ export function foldCricketState(
   facts: EngineFacts,
   config: Seated<CricketSnapshot>,
 ): CricketState {
-  return foldMarksSeats(facts, config.seats, CRICKET_DUEL, applyCricketDart);
+  return foldMarks(facts, config.seats, CRICKET_RULES);
 }
+
+const cricketSpec = marksGameSpec<Seated<CricketSnapshot>, CricketSeatState>({
+  rulesetVersionKey: "CRICKET_V1",
+  rulesetVersionKeys: ["CRICKET_V2"],
+  rules: CRICKET_RULES,
+});
 
 /**
  * Cricket: close 20–15 and the bull in as few darts as possible, alone (V1)
@@ -113,37 +123,18 @@ export function foldCricketState(
  * points and the winner are folded from it on every read and never stored.
  * Darts carry no intent: any objective is a legitimate aim on any dart.
  */
-export class CricketEngine<
-  TKey extends "CRICKET_V1" | "CRICKET_V2" = "CRICKET_V1" | "CRICKET_V2",
-> extends MarksEngine<Seated<CricketSnapshot>, CricketState, TKey> {
-  constructor(
-    config: Seated<CricketSnapshot>,
-    prior?: EngineFacts,
-    rulesetVersionKey: TKey = "CRICKET_V1" as TKey,
-  ) {
-    super(config, prior, rulesetVersionKey);
-  }
+export class CricketEngine extends dartGameEngineClass(cricketSpec) {}
 
-  protected fold(facts: EngineFacts): CricketState {
-    return foldCricketState(facts, this.config);
-  }
+export const cricketEngineFactory = dartGameEngineFactory(
+  cricketSpec,
+  CricketEngine,
+);
 
-  protected fork(): CricketEngine<TKey> {
-    return new CricketEngine(this.config, this.facts(), this.rulesetVersionKey);
-  }
-}
-
-export const cricketEngineFactory = marksEngineFactory({
-  rulesetVersionKey: "CRICKET_V1",
-  build: (config: Seated<CricketSnapshot>, prior) =>
-    new CricketEngine(config, prior, "CRICKET_V1"),
-});
-
-export const cricketV2EngineFactory = marksEngineFactory({
-  rulesetVersionKey: "CRICKET_V2",
-  build: (config: Seated<CricketSnapshot>, prior) =>
-    new CricketEngine(config, prior, "CRICKET_V2"),
-});
+export const cricketV2EngineFactory = dartGameEngineFactory(
+  cricketSpec,
+  CricketEngine,
+  "CRICKET_V2",
+);
 
 registerEngineFactory(cricketEngineFactory);
 registerEngineFactory(cricketV2EngineFactory);

@@ -633,7 +633,7 @@ export function tuodPlay() {
      * `playCommitDart` this used to delegate to. A solo MINUTES session's
      * `isComplete()` can already read true — timer expired, at least one
      * prior visit closed — before the dart just recorded has resolved the
-     * CURRENT visit (`TuodEngine.isMatchDecided()`'s own doc comment), and a
+     * CURRENT visit (`tuodSpec.complete` counts closed attempts only), and a
      * generic post-record check cannot tell the difference. `recordDart`'s
      * own pre-record `wouldComplete()` gate is the sole completion signal;
      * `confirmFinish` ends the session explicitly for the dart it defers.

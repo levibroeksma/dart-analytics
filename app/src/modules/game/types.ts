@@ -87,15 +87,15 @@ export type MarksTally = {
 export type MarksDuelSeat = MarksSeatState & { points: number };
 
 /**
- * How a marks game plugs into the two-seat fold: the starting seat, the hit one
- * dart makes given both seats before it, and each objective's point value
- * (null when it never scores).
+ * A marks game's rules for the marks kernel: the starting seat, the hit one
+ * dart makes given the thrower and its opponent before it (null when playing
+ * alone), and each objective's point value (null when it never scores).
  */
-export type MarksDuelSpec<TSeat extends MarksDuelSeat> = {
+export type MarksRules<TSeat extends MarksDuelSeat> = {
   initialSeat: (seat: SeatFact) => TSeat;
   hitOf: (
     seat: TSeat,
-    opponent: TSeat,
+    opponent: TSeat | null,
     observation: DartObservation,
   ) => MarksHit;
   valueOf: (objectiveIndex: number) => number | null;

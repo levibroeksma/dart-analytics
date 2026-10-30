@@ -181,7 +181,11 @@ export function dartGameEngineClass<
       if (spec.coordinateCapture)
         appendResolvedDart(turn, observation, resolveObservation(observation));
       else
-        appendObservedDart(turn, observation, spec.intent(before, this.config));
+        appendObservedDart(
+          turn,
+          observation,
+          spec.intent?.(before, this.config),
+        );
       if (spec.liveTotal) turn.totalScore = sumDartScores(turn.darts);
       const after = this.deriveState();
       if (spec.isVisitOpen(turn, after, this.config)) return after;
