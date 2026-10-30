@@ -41,7 +41,7 @@ Load exactly the pack for your task type. Do not preload anything else. Escalate
 | New test / test-strategy question | `07-Frontend/06-Test-Strategy.md`, `app/CLAUDE.md` | ~4.1k |
 | New game type | `05-Database/10-Database-Agent-Guide.md` §"Add a new game type", `06-Spec/01-Reference-Layer.md`, `06-Spec/02-Template-Layer.md`, seeds | ~9.9k |
 | New game engine | `04-Architecture-patterns.md` §Pattern 18, `07-Frontend/04-Modules-And-OOP.md`, `05-Database/10-Database-Agent-Guide.md` §"Add a new game type", the game's `docs/game-rules/rulesets/` doc | ~12.4k |
-| Architecture question / new pattern | `01-Principles.md`, `04-Architecture-patterns.md` | ~8.6k |
+| Architecture question / new pattern | `01-Principles.md`, `04-Architecture-patterns.md` | ~12.4k |
 | Workflow / process question | `03-Engineering-Workflow.md` | ~2.2k |
 | "Why was X decided?" | `DECISIONS.md` (router — Source key, routing table, Deferred list, how-to-add-a-decision); then load only the domain file(s) your task needs from its routing table, e.g. `decisions/database.md`; deeper lineage: git history. Per-task total varies with domain: each decision file's size is its `~Tokens` figure in the File Inventory; the single figure in the last column below prices only the router + the one example file named above. | ~20k |
 | Bug in migration chain | `05-Database/03-Migrations.md`, full chain `database/migrations/0001`–`0051`; never patch applied files | ~14.4k |
