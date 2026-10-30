@@ -200,10 +200,10 @@ Prisoner is unbuilt; this is the capture shape its V1 is designed for.
 
 ## Open questions
 
-- A valid hit on the thrower's own target that also holds a prisoner is read
-  here as both advancing and capturing. The source says each is a valid hit
-  but never combines them; its tips ("advance and capture in the same
-  action") support this reading.
+- ~~Whether a valid hit on the thrower's own target that also holds a prisoner
+  both advances and captures.~~ **Resolved:** both (user decision
+  2026-10-30), as the source's tips ("advance and capture in the same
+  action") suggest.
 - ~~Prison in a number other than the target: should a non-target inner
   single be imprisoned or a plain miss?~~ **Resolved:** a plain miss (user
   decision 2026-10-30); only the target's inner single is prison.
