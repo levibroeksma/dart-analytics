@@ -609,3 +609,10 @@ Decision: `marks-kernel.module.ts` holds the Marks family: `MarksRules` (`initia
 Reason: every other kernel family runs on the game shell; a second engine base class kept two ways to record, undo and close a visit. The owner chose the shell over keeping `MarksEngine` (2026-10-28).
 Consequences: no behaviour change — a differential oracle against a frozen copy of the `MarksEngine` engines (1 and 2 seats, both keys, undo and rehydration) passed before the copy was deleted, and golden traces recorded on the old engines hold it now. The wrong-key guard is a runtime test, not a type error. Both registry rows are `KERNEL_BOUND`. Close order, cut-throat scoring and more than two seats land with the first game that needs them. Spec: `docs/superpowers/specs/2026-10-28-marks-kernel-design.md`.
 Supersedes: D488.
+
+### D507 — Mickey Mouse V1 is its own ruleset on the Marks kernel; the kernel gains `dipOf`
+Status: Accepted · Date: 2026-10-30
+Decision: `MICKEY_MOUSE_V1` is a one-seat Marks game with twelve objectives (20…12, Doubles, Triples, Bull) and no points. `MarksRules.dipOf?(seat, observation)` returns a second `MarksHit` a dart earns on another objective; `tallyMarksDart`/`applyMarksDart` take it as an optional `dip`, applied after the primary hit under the same cap, with `spare` and treble tallies from the primary hit only. A double or treble on a number already closed still marks Doubles or Triples; on 1–11 it marks only the category. Overflow marks are dropped. Mickey Mouse is not a Tactics variant.
+Reason: the double-dip needs two marks from one dart, which `MarksHit` could not express; the kernel rule M4 lands a feature with its first caller. The rules doc left the closed-number and Tactics-variant questions open; the plan's calls C1–C6 settle them.
+Consequences: Cricket and Tactics set no `dipOf` and their goldens do not change. Scored Mickey Mouse (V2+) revisits the duel path when a scoring dip is written. Plan: `docs/superpowers/plans/2026-10-30-mickey-mouse-v1.md`.
+Supersedes: none.
