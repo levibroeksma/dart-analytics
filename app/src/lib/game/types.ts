@@ -1218,6 +1218,9 @@ export type FollowTheLeaderPlayContext = PlayLifecycleContext<
   keepAllowed(this: FollowTheLeaderPlayContext): boolean;
   showKeepPrompt(this: FollowTheLeaderPlayContext): boolean;
   showPad(this: FollowTheLeaderPlayContext): boolean;
+  usesBoard(this: FollowTheLeaderPlayContext): boolean;
+  showTapPad(this: FollowTheLeaderPlayContext): boolean;
+  showBoard(this: FollowTheLeaderPlayContext): boolean;
   targetLabel(this: FollowTheLeaderPlayContext): string;
   leaderName(this: FollowTheLeaderPlayContext): string;
   openingNotice(this: FollowTheLeaderPlayContext): string;

@@ -66,7 +66,7 @@ describe("followTheLeaderResultsSnapshot", () => {
     });
   });
 
-  it("abandoned: no winner, nobody out", () => {
+  it("a state with no winner yet: null winningSideKey, nobody out", () => {
     const snapshot = followTheLeaderResultsSnapshot(
       state({
         status: "IN_PROGRESS",

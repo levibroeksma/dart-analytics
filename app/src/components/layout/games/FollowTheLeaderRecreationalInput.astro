@@ -1,14 +1,11 @@
 ---
 /**
- * Follow the Leader's tap input in an `input-well`. Top: the target banner
- * (exact bed), a LEADER badge naming the leader, and the off-hand notice
- * on the opening dart. At a leader's turn with a legal keep, a prompt
- * ("Everyone failed. Keep or set?") replaces the pad: Keep passes the turn,
- * Set reveals the pad. Pad: `RingKeyRow`, the numbers 1–20 on a five-column
- * grid, then BULL, MISS and (after a match) STOP. Treble cannot apply to the
- * bull, so BULL is disabled while T is armed. Reads `targetLabel()`,
- * `leaderName()`, `openingNotice()`, `showKeepPrompt()`, `canStop()`, `ring`
- * and `finished` from the surrounding play scope.
+ * Follow the Leader's tap pad: `RingKeyRow`, the numbers 1–20 on a
+ * five-column grid, then a fixed BULL / MISS / STOP row. STOP stays in place
+ * and is disabled until a dart has matched (`canStop()`). Treble cannot apply
+ * to the bull, so BULL is disabled while T is armed. The target banner and
+ * the Keep/Set prompt live in the interface, not here. Reads `canStop()`,
+ * `ring` and `finished` from the surrounding play scope.
  */
 interface Props {
   [key: string]: unknown;
@@ -23,105 +20,48 @@ import RingKeyRow from "./RingKeyRow.astro";
 ---
 
 <div
-  class="input-well flex flex-col"
+  class="flex min-h-0 flex-1 flex-col"
   {...props}
 >
-  <div class="flex items-baseline justify-between gap-3 pb-2">
-    <div class="flex flex-col">
-      <span
-        class="font-mono text-eyebrow font-semibold uppercase text-muted-foreground"
-        >Target</span
-      >
-      <span
-        class="font-display text-xl text-foreground"
-        x-text="targetLabel() || '—'"
-      ></span>
-    </div>
-    <span
-      class="glass-blue rounded-key px-2 py-1 font-mono text-eyebrow font-semibold uppercase text-foreground"
-      x-show="leaderName() !== ''"
-      x-cloak
-      x-text="'Leader · ' + leaderName()"
-    ></span>
-  </div>
-  <p
-    class="pb-2 text-sm text-muted-foreground"
-    x-show="openingNotice() !== ''"
-    x-cloak
-    x-text="openingNotice()"
-  >
-  </p>
-  <div
-    class="flex min-h-0 flex-1 flex-col gap-3"
-    x-show="showKeepPrompt()"
-    x-cloak
-  >
-    <p class="text-center text-sm text-foreground">
-      Everyone failed. Keep or set?
-    </p>
-    <div class="grid min-h-0 flex-1 grid-cols-2 gap-2">
-      <InputButton
-        class="text-2xl uppercase"
-        :disabled="finished"
-        @click="keep()"
-      >
-        Keep
-      </InputButton>
-      <InputButton
-        class="text-2xl uppercase"
-        :disabled="finished"
-        @click="chooseSet()"
-      >
-        Set
-      </InputButton>
-    </div>
-  </div>
-  <div
-    class="flex min-h-0 flex-1 flex-col"
-    x-show="showPad()"
-    x-cloak
-  >
-    <RingKeyRow />
-    <div class="grid min-h-0 flex-4 auto-rows-fr grid-cols-5 gap-2">
-      <template
-        x-for="n in 20"
-        :key="n"
-      >
-        <InputButton
-          class="text-2xl"
-          :disabled="finished"
-          @click="recordNumber(n)"
-          x-text="n"
-        />
-      </template>
-    </div>
-    <div
-      class="grid min-h-0 flex-1 gap-2"
-      :class="canStop() ? 'grid-cols-3' : 'grid-cols-2'"
+  <RingKeyRow />
+  <div class="grid min-h-0 flex-4 auto-rows-fr grid-cols-5 gap-2">
+    <template
+      x-for="n in 20"
+      :key="n"
     >
       <InputButton
-        class="text-2xl uppercase"
-        :disabled="finished || ring === 'TREBLE'"
-        @click="recordBull()"
-      >
-        BULL
-      </InputButton>
-      <InputButton
-        class="text-2xl text-soft-foreground"
+        class="text-2xl"
         :disabled="finished"
-        @click="recordMiss()"
-      >
-        MISS
-      </InputButton>
-      <InputButton
-        class="text-2xl uppercase"
-        x-show="canStop()"
-        x-cloak
-        :disabled="finished"
-        @click="stop()"
-      >
-        Stop
-      </InputButton>
-    </div>
+        @click="recordNumber(n)"
+        x-text="n"
+      />
+    </template>
+  </div>
+  <div
+    class="grid min-h-0 flex-1 grid-cols-3 gap-2"
+    aria-live="polite"
+  >
+    <InputButton
+      class="text-2xl uppercase"
+      :disabled="finished || ring === 'TREBLE'"
+      @click="recordBull()"
+    >
+      BULL
+    </InputButton>
+    <InputButton
+      class="text-2xl text-soft-foreground"
+      :disabled="finished"
+      @click="recordMiss()"
+    >
+      MISS
+    </InputButton>
+    <InputButton
+      class="text-2xl uppercase text-accent"
+      aria-label="Stop throwing this visit"
+      :disabled="finished || !canStop()"
+      @click="stop()"
+    >
+      Stop
+    </InputButton>
   </div>
 </div>

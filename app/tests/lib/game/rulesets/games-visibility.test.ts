@@ -238,6 +238,22 @@ describe("the Nine Lives card", () => {
   });
 });
 
+describe("the Follow the Leader card", () => {
+  it("is in CLASSICS with its title, caption and setup href", () => {
+    expect(
+      GAME_CARDS.find(
+        (game) => game.rulesetVersionKey === "FOLLOW_THE_LEADER_V1",
+      ),
+    ).toMatchObject({
+      gameTypeKey: "FOLLOW_THE_LEADER",
+      group: "CLASSICS",
+      title: "Follow the Leader",
+      caption: "Hit the bed they set, or lose a life.",
+      href: "/games/follow-the-leader/setup",
+    });
+  });
+});
+
 describe("primaryCards", () => {
   it("keeps the first card of each game type, dropping a preset card", () => {
     const keys = primaryCards().map((card) => card.rulesetVersionKey);

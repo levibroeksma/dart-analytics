@@ -394,6 +394,65 @@ describe("followTheLeaderPlay keep and set", () => {
   });
 });
 
+describe("followTheLeaderPlay input modes", () => {
+  const BOARD = { inputModeKey: "VISUAL_BOARD" } as const;
+
+  it("shows the tap pad, not the board, in a keypad session", async () => {
+    const ctx = await started();
+    expect(ctx.usesBoard()).toBe(false);
+    expect(ctx.showTapPad()).toBe(true);
+    expect(ctx.showBoard()).toBe(false);
+  });
+
+  it("shows the board, not the tap pad, in a visual-board session", async () => {
+    const ctx = await started(BOARD);
+    expect(ctx.usesBoard()).toBe(true);
+    expect(ctx.showBoard()).toBe(true);
+    expect(ctx.showTapPad()).toBe(false);
+  });
+
+  it("offers Keep or Set in a visual-board session and hides the board meanwhile", async () => {
+    const ctx = await started(BOARD);
+    await throwAll(ctx, OPEN_T18_P2_FAILS);
+    expect(ctx.showKeepPrompt()).toBe(true);
+    expect(ctx.showBoard()).toBe(false);
+    ctx.chooseSet();
+    expect(ctx.showBoard()).toBe(true);
+  });
+
+  it("hides the tap pad while the prompt shows", async () => {
+    const ctx = await atKeepPrompt();
+    expect(ctx.showTapPad()).toBe(false);
+    ctx.chooseSet();
+    expect(ctx.showTapPad()).toBe(true);
+  });
+
+  it("lets a visual-board session stop after a match", async () => {
+    const ctx = await started(BOARD);
+    await throwAll(ctx, [t(18), t(18)]);
+    expect(ctx.showBoard()).toBe(true);
+    expect(ctx.canStop()).toBe(true);
+    await ctx.stop();
+    expect(ctx.state()?.activeParticipantRef).toBe("p1");
+  });
+
+  it("hides the board while the timer is paused", async () => {
+    const ctx = await started(BOARD);
+    ctx.$store.game.timerPaused = true;
+    expect(ctx.showBoard()).toBe(false);
+  });
+
+  it("records no dart while the prompt shows", async () => {
+    const ctx = await started(BOARD);
+    await throwAll(ctx, OPEN_T18_P2_FAILS);
+    const turns = ctx.$store.game.turns;
+    await ctx.recordDart(t(20));
+    await ctx.recordNumber(20);
+    expect(ctx.$store.game.turns).toBe(turns);
+    expect(ctx.targetLabel()).toBe("Treble 18");
+  });
+});
+
 describe("followTheLeaderPlay ending", () => {
   async function throughToLastLife() {
     const ctx = await started();

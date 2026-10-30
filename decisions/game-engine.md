@@ -648,3 +648,10 @@ Decision: `SEAT_FLOORS` and `SEAT_CAPS` in `session-seats.service.ts` both hold 
 Reason: the rules file seats two for V1; a finished game is immutable once saved, so undo stops at the end as it does for every seated board game.
 Consequences: no migration. `follow-the-leader.md` is now `V1 (shipped 2026-10-30)`. Three or more seats, DartBot and the other deferred rows stay deferred. Spec: `docs/superpowers/specs/2026-10-29-follow-the-leader-design.md`.
 Supersedes: none.
+
+### D511 — Follow the Leader: Stop and Keep/Set in both input modes, undo on the prompt
+Status: Accepted · Date: 2026-10-30
+Decision: The target banner, leader badge, off-hand notice and the Keep/Set prompt move from `FollowTheLeaderRecreationalInput` into `interfaces/FollowTheLeader.astro`, so a VISUAL_BOARD session shows them too; the prompt carries an undo key; a board session gets a Stop key in the board's bottom row (Undo / Bounce out / Stop), through a `BoardInputPanel` `actions` slot that `SeatedPlayScreen` forwards as `boardActions`. While the prompt shows, the tap pad and the board are hidden (`showTapPad()`, `showBoard()`, passed to `BoardInputPanel` through `SeatedPlayScreen`'s `boardShowExpr`) and `commitDart` records no dart. The pad's bottom row is a fixed BULL / MISS / STOP grid with STOP disabled until a match. The per-seat Target tile is dropped; the target is shared and shown in the subtitle and banner.
+Reason: the prompt and Stop lived only in the tap pad, which a VISUAL_BOARD session hides, so a board session could never stop or keep; the prompt also hid the pad's undo.
+Consequences: no migration; capabilities unchanged. Refines D510's play UI.
+Supersedes: none.
