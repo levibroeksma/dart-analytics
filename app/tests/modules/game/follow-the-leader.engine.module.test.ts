@@ -391,6 +391,29 @@ describe("follow the leader engine", () => {
     }
   });
 
+  it("wouldComplete predicts completion at every step of the golden game", () => {
+    const engine = new FollowTheLeaderEngine(config);
+    for (const input of GOLDEN) {
+      const predicted = engine.wouldComplete(input);
+      engine.record(input);
+      expect(predicted).toBe(engine.isComplete());
+    }
+  });
+
+  it("undo after a rebuild lands on the state before each golden step", () => {
+    const engine = new FollowTheLeaderEngine(config);
+    for (const input of GOLDEN) {
+      const before = engine.state();
+      engine.record(input);
+      const rebuilt = followTheLeaderEngineFactory.create(
+        config,
+        engine.facts(),
+      );
+      expect(rebuilt.undo()).toBe(true);
+      expect(rebuilt.state()).toEqual(before);
+    }
+  });
+
   it("golden: one full 2-seat game", () => {
     const engine = new FollowTheLeaderEngine(config);
     const lines = GOLDEN.map((input) => {

@@ -275,7 +275,6 @@ Answered for V1 (user decision 2026-10-29; the source is silent):
 - A leader whose setting dart landed off the board throws again and cannot
   keep, even if every other seat failed.
 
-
 - Player count: the source metadata lists a minimum of three and its setup says
   any number is possible but three or more is "strongly recommended". V1
   seats two. Is that the right minimum?

@@ -2,6 +2,12 @@
 
 Date: 2026-10-29
 Status: PR 1 (engine) built; PR 2 (app wiring) pending. Rulings recorded in D507.
+Status note (2026-10-30, final review of PR 1): the §1/§9 seeds (`0055`
+reference rows, capability triples, catalog tags) shipped in PR 1, not PR 2.
+§4's hook shipped as `onVisitClose(visit, seats, shared)`. §6's "`v_*` views
+untouched" no longer holds: migration `0053` adds `kept` to `v_game_replay`
+so a replay rebuilds a keep, and `0052` corrects `0051`'s column comment
+(a kept turn is the leader's dartless keep). Recorded in D508.
 Parent: `2026-10-27-elimination-kernel-design.md` (E1: Follow the Leader gets its own spec)
 Rules input: `docs/game-rules/rulesets/follow-the-leader.md` (V1 rows only)
 
