@@ -207,8 +207,9 @@ Prisoner is unbuilt; this is the capture shape its V1 is designed for.
 - ~~Prison in a number other than the target: should a non-target inner
   single be imprisoned or a plain miss?~~ **Resolved:** a plain miss (user
   decision 2026-10-30); only the target's inner single is prison.
-- A seat all of whose darts are sitting out has no dart to throw on its next
-  visit; read here as skipping it, not as being out. The source's
-  elimination line ("none due to return from bounce-out penalties") agrees.
+- ~~Whether a seat all of whose darts are sitting out is skipped or out.~~
+  **Resolved:** it skips the visit and stays in (user decision 2026-10-30).
+  The source's elimination line ("none due to return from bounce-out
+  penalties") agrees.
 - The game has no bound beyond a win: if every seat keeps missing, play
   continues. A round limit is a V2+ row.
