@@ -14,9 +14,12 @@
  * @param {object} [legs] `{ won, toWin }` — seat `legsExpr`, `legsToWinExpr`
  * @param {string} [countdownDisabled] Set → renders `CountdownResumePrompt`
  * @param {string} [soloCaption] Mono eyebrow under the solo big value
+ * @param {string} [boardShowExpr] `BoardInputPanel`'s `showExpr`; its default
+ *   when unset
  * @slot rows Replaces the stat tiles in the solo display and each active seat
  *   card; its content reads `rowsRef`, the seat's participant ref
  * @slot between Between the solo and two-seat layouts
+ * @slot boardActions Extra keys for `BoardInputPanel`'s bottom row
  * @slot default The game's input stack (keypad or recreational input)
  */
 import type { Call, Tile } from "@lib/interfaces";
@@ -30,6 +33,7 @@ interface Props {
   legs?: { won: Expr; toWin: string };
   countdownDisabled?: string;
   soloCaption?: string;
+  boardShowExpr?: string;
   [key: string]: unknown;
 }
 
@@ -42,6 +46,7 @@ const {
   legs,
   countdownDisabled,
   soloCaption,
+  boardShowExpr,
   ...props
 }: Props = Astro.props;
 
@@ -60,6 +65,7 @@ import { seatCall, seatRef, soloCall } from "@lib/game/play-screen-expr";
 
 // Data
 const hasRows = Astro.slots.has("rows");
+const hasBoardActions = Astro.slots.has("boardActions");
 const rowsRefOf = (index: 0 | 1) =>
   `{ get rowsRef() { return ${seatRef(index)} } }`;
 const solo = soloCall();
@@ -173,7 +179,16 @@ const seatDisplay = (index: 0 | 1, c: Call) => ({
     /* Visual board — shown instead of the input above for an
     ANALYTICS + VISUAL_BOARD session, which enters every dart by pointer. */
   }
-  <BoardInputPanel />
+  <BoardInputPanel showExpr={boardShowExpr}>
+    {
+      hasBoardActions && (
+        <slot
+          name="boardActions"
+          slot="actions"
+        />
+      )
+    }
+  </BoardInputPanel>
   {
     countdownDisabled && (
       <CountdownResumePrompt disabledExpr={countdownDisabled} />

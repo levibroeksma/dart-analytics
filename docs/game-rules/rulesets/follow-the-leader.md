@@ -214,7 +214,7 @@ each have the same seat count as the base game.
 
 ## Capture
 
-This is the capture shape the V1 engine folds; setup and play follow in a later change.
+This is the capture shape V1 records; setup and play shipped with it.
 
 - **Capture / input mode:** RECREATIONAL + DETAILED_DARTS and
   ANALYTICS + VISUAL_BOARD — whether a dart matched is read off its number and
@@ -223,7 +223,9 @@ This is the capture shape the V1 engine folds; setup and play follow in a later 
   bull (`OUTER_BULL` or `INNER_BULL`), and V1 treats both single beds as one
   ring so the keypad's unbanded `SINGLE` is sufficient
   (`app/src/modules/game/types.ts:390-403`). HORSE (V2+) does not have that
-  luxury.
+  luxury. Both input modes show the target, the leader, Stop and the
+  leader's Keep/Set prompt (with undo); the board or keypad is hidden while
+  the prompt shows. Undo is refused once the game is finished.
 - **One dart's fact:** intended = **nothing stored** — a setting dart is free
   aim, and a matching dart aims at the current target, which is recoverable
   from the earlier darts. Hit = the number and zone where it landed, including

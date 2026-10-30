@@ -130,6 +130,26 @@ export function followTheLeaderPlay() {
       return !this.showKeepPrompt();
     },
 
+    usesBoard(this: FollowTheLeaderPlayContext): boolean {
+      return this.$store.game.inputModeKey === "VISUAL_BOARD";
+    },
+
+    /** The keypad shows in a keypad session whenever the Keep/Set prompt does not. */
+    showTapPad(this: FollowTheLeaderPlayContext): boolean {
+      return !this.usesBoard() && this.showPad();
+    },
+
+    /** The visual board shows in an active, unpaused board session whenever the Keep/Set prompt does not. */
+    showBoard(this: FollowTheLeaderPlayContext): boolean {
+      return (
+        this.usesBoard() &&
+        this.showPad() &&
+        !this.finished &&
+        !this.$store.game.timerPaused &&
+        this.hasActiveSession
+      );
+    },
+
     targetLabel(this: FollowTheLeaderPlayContext): string {
       return bedLabel(this.state()?.target ?? null);
     },
@@ -237,6 +257,7 @@ export function followTheLeaderPlay() {
       this: FollowTheLeaderPlayContext,
       observation: DartObservation,
     ) {
+      if (this.showKeepPrompt()) return;
       const before = this.$store.game.turns;
       await playCommitDart(this, observation);
       if (this.$store.game.turns !== before) this.setChosen = false;
