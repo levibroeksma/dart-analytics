@@ -18,7 +18,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Darts held: three each to start | V1 | All | |
 | Valid hit: outer single of a number | V1 | All | |
 | Double or treble as a valid hit | Dropped | All | User decision of 2026-10-30: only the large (outer) single counts. A double or treble is a plain miss, with no penalty. The source counts them as valid hits |
-| Prison: inner single, outer bull, inner bull | V1 | All | |
+| Prison: inner single of the target number, outer bull, inner bull | V1 | All | |
 | Prisoner: a dart in prison stays on the board and leaves the thrower's arsenal | V1 | All | |
 | Bull prisoners are out of play for good | V1 | All | |
 | Capture: a valid hit on a number holding a prisoner takes one prisoner | V1 | All | |
@@ -118,12 +118,13 @@ A valid hit on a number that is not the target and holds no prisoner is a
 plain miss, with no penalty. So is a double or treble of any number. The dart
 is retrieved and kept.
 
-**Prison.** A dart in the inner single of any number, or in the outer or inner
-bull, is imprisoned. It stays in the board and leaves the thrower's darts
-held; the thrower gets no advance and no capture from it.
+**Prison.** A dart in the inner single of the thrower's target number, or in
+the outer or inner bull, is imprisoned. It stays in the board and leaves the
+thrower's darts held; the thrower gets no advance and no capture from it.
 
-- A dart in the inner single is lodged in that number, and can be captured
-  by a valid hit on that number.
+- A dart in the inner single of the target is lodged in that number, and can
+  be captured by a valid hit on that number. An inner single of any other
+  number is a plain miss, with no penalty: user decision 2026-10-30.
 - A dart in either bull is out of play for good: nothing can capture it.
   User decision 2026-10-12.
 
@@ -189,7 +190,7 @@ Prisoner is unbuilt; this is the capture shape its V1 is designed for.
 
 | Term | Version | Meaning |
 | --- | --- | --- |
-| **Prison** | V1 | The inner single of any number, and either bull; a dart there is imprisoned |
+| **Prison** | V1 | The inner single of the thrower's target number, and either bull; a dart there is imprisoned |
 | **Prisoner** | V1 | A dart in prison: it stays in the board and leaves its thrower's arsenal |
 | **Capture** | V1 | A valid hit on a number holding a prisoner takes one prisoner into the thrower's darts held |
 | **Valid hit** | V1 | A dart in the outer single of a number; a double or treble is a plain miss |
@@ -203,10 +204,9 @@ Prisoner is unbuilt; this is the capture shape its V1 is designed for.
   here as both advancing and capturing. The source says each is a valid hit
   but never combines them; its tips ("advance and capture in the same
   action") support this reading.
-- Prison in a number other than the target: the source's clarification only
-  exempts non-target darts "not in a prison zone", so an inner single on any
-  number is read here as imprisoned. Confirm: should a non-target inner
-  single instead be a plain miss?
+- ~~Prison in a number other than the target: should a non-target inner
+  single be imprisoned or a plain miss?~~ **Resolved:** a plain miss (user
+  decision 2026-10-30); only the target's inner single is prison.
 - A seat all of whose darts are sitting out has no dart to throw on its next
   visit; read here as skipping it, not as being out. The source's
   elimination line ("none due to return from bounce-out penalties") agrees.
