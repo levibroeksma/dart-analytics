@@ -49,6 +49,8 @@ jobs:
         run: bash scripts/check-no-inline-comments.sh
       - name: Style-tokens gate
         run: bash scripts/check-style-tokens.sh
+      - name: Gate per-file mode fixtures
+        run: bash scripts/test-check-file-mode.sh
 
       - name: Game-rules gate
         run: bash scripts/check-game-rules.sh && bash scripts/test-check-game-rules.sh
