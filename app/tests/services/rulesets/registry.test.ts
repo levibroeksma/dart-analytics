@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { getRulesetValidator } from "@services/rulesets/registry";
+import { mickeyMouseValidator } from "@services/rulesets/mickey-mouse/mickey-mouse.validator";
 import { bobs27V2Validator } from "@services/rulesets/bobs27/bobs27.validator";
 import {
   aroundTheClockV2Validator,
@@ -25,6 +26,10 @@ describe("getRulesetValidator", () => {
     expect(getRulesetValidator("TACTICS_V2")).toBe(
       getRulesetValidator("TACTICS_V1"),
     );
+  });
+
+  it("returns the Mickey Mouse validator for MICKEY_MOUSE_V1", () => {
+    expect(getRulesetValidator("MICKEY_MOUSE_V1")).toBe(mickeyMouseValidator);
   });
 
   it("returns the Bob's 27 V2 validator for BOBS27_V2", () => {

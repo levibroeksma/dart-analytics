@@ -10,6 +10,7 @@ import {
 } from "@modules/game/one-twenty-one.engine.module";
 import { cricketEngineFactory } from "@modules/game/cricket.engine.module";
 import { tacticsEngineFactory } from "@modules/game/tactics.engine.module";
+import { mickeyMouseEngineFactory } from "@modules/game/mickey-mouse.engine.module";
 import { killerEngineFactory } from "@modules/game/killer.engine.module";
 import { baseballEngineFactory } from "@modules/game/baseball.engine.module";
 import { scoreTrainingEngineFactory } from "@modules/game/score-training.engine.module";
@@ -410,6 +411,24 @@ describe("summarizeProgress — CRICKET_V2", () => {
     expect(
       summarizeProgress("CRICKET_V2", { seats: [YOU] }, EMPTY_FACTS)?.detail,
     ).toBe("Solo · 7 objectives");
+  });
+});
+
+describe("summarizeProgress — MICKEY_MOUSE_V1", () => {
+  it("counts the darts thrown over twelve objectives", () => {
+    const config = { seats: [YOU] };
+    expect(summarizeProgress("MICKEY_MOUSE_V1", config, EMPTY_FACTS)).toEqual({
+      detail: "Solo · 12 objectives",
+      big: { value: "0", label: "DARTS" },
+    });
+    const facts = factsAfter(mickeyMouseEngineFactory, config, [
+      single(20),
+      MISS,
+    ]);
+    expect(summarizeProgress("MICKEY_MOUSE_V1", config, facts)).toEqual({
+      detail: "Solo · 12 objectives",
+      big: { value: "2", label: "DARTS" },
+    });
   });
 });
 

@@ -8,6 +8,7 @@ import { cricketValidator } from "./cricket/cricket.validator";
 import { killerValidator } from "./killer/killer.validator";
 import { doublesTrainingValidator } from "./doubles-training/doubles-training.validator";
 import { tacticsValidator } from "./tactics/tactics.validator";
+import { mickeyMouseValidator } from "./mickey-mouse/mickey-mouse.validator";
 import { fiveOhOneValidator } from "./five-oh-one/five-oh-one.validator";
 import { fiveOhOneV2Validator } from "./five-oh-one/five-oh-one.validator";
 import type { RulesetValidator } from "./interfaces";
@@ -45,6 +46,7 @@ const REGISTRY: Record<string, RulesetValidator> = {
   CRICKET_V2: cricketValidator,
   TACTICS_V1: tacticsValidator,
   TACTICS_V2: tacticsValidator,
+  MICKEY_MOUSE_V1: mickeyMouseValidator,
   BASEBALL_V1: baseballValidator,
   KILLER_V1: killerValidator,
 };

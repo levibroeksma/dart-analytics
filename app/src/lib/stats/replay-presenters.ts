@@ -21,6 +21,7 @@ import {
   effectiveMarks,
 } from "@modules/game/cricket.engine.module";
 import { TACTICS_OBJECTIVES } from "@modules/game/tactics.engine.module";
+import { MICKEY_MOUSE_OBJECTIVES } from "@modules/game/mickey-mouse.engine.module";
 import { foldSeatSteps } from "@modules/game/seat-state.module";
 import { activeTargetOf as shanghaiTargetOf } from "@modules/game/shanghai.engine.module";
 import {
@@ -379,7 +380,7 @@ const AROUND_THE_CLOCK: ReplayPresenter = {
 };
 
 /**
- * Cricket and Tactics, read off the play page: after each visit, the seat's
+ * Cricket, Tactics and Mickey Mouse, read off the play page: after each visit, the seat's
  * capped marks and closed objectives, plus points for two seats; the session
  * line is darts thrown, or points for two seats.
  */
@@ -410,6 +411,7 @@ function marksPresenter(objectiveCount: number): ReplayPresenter {
 
 const CRICKET = marksPresenter(CRICKET_OBJECTIVES.length);
 const TACTICS = marksPresenter(TACTICS_OBJECTIVES.length);
+const MICKEY_MOUSE = marksPresenter(MICKEY_MOUSE_OBJECTIVES.length);
 
 /**
  * Baseball Darts, read off the play page: the inning just played, the runs
@@ -462,6 +464,7 @@ export const REPLAY_PRESENTERS: Record<GameTypeKey, ReplayPresenter> = {
   AROUND_THE_CLOCK,
   CRICKET,
   TACTICS,
+  MICKEY_MOUSE,
   BASEBALL,
   KILLER,
 };

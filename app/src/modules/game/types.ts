@@ -125,6 +125,15 @@ export type TacticsObjective = number | "DOUBLES" | "TRIPLES";
 /** One seat's Tactics progress, indexed by `TACTICS_OBJECTIVES` order. */
 export type TacticsSeatState = MarksSeatState & { points: number };
 
+/** A Mickey Mouse objective: a number 12–20, the bull, or a Doubles / Triples category. */
+export type MickeyMouseObjective = number | "DOUBLES" | "TRIPLES";
+
+/** One seat's Mickey Mouse progress, indexed by `MICKEY_MOUSE_OBJECTIVES` order. */
+export type MickeyMouseSeatState = MarksDuelSeat;
+
+/** A Mickey Mouse game's state after the seat fold. */
+export type MickeyMouseState = MarksGameState<MickeyMouseSeatState>;
+
 export type CricketState = MultiSeatState<CricketSeatState> & {
   status: "IN_PROGRESS" | "COMPLETE";
   winnerParticipantRef: string | null;

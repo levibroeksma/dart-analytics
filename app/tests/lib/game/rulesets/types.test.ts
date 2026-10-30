@@ -7,6 +7,7 @@ import {
   Bobs27V2Config,
   CricketConfig,
   TacticsConfig,
+  MickeyMouseConfig,
   AroundTheClockV2Config,
   AroundTheClockV3Config,
   FiveOhOneConfig,
@@ -799,5 +800,13 @@ describe("KillerConfig", () => {
     expect(
       KillerConfig.safeParse({ lives: 3, seat_numbers: [5, 12] }).success,
     ).toBe(true);
+  });
+});
+
+describe("MickeyMouseConfig", () => {
+  it("registers MICKEY_MOUSE_V1 on a strict empty config", () => {
+    expect(RULESET_CONFIGS.MICKEY_MOUSE_V1).toBe(MickeyMouseConfig);
+    expect(MickeyMouseConfig.safeParse({}).success).toBe(true);
+    expect(MickeyMouseConfig.safeParse({ mode: "X" }).success).toBe(false);
   });
 });

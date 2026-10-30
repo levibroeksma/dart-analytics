@@ -379,6 +379,7 @@ export function sectionsForGame(gameTypeKey: GameTypeKey): SectionId[] {
  * | Around the Clock | the dart's board score; the match is decided by fewest darts to finish the circuit (`around-the-clock.engine.module.ts`) | no |
  * | Cricket | the dart's board score; the run is measured by fewest darts to close out (`cricket.engine.module.ts`) | no |
  * | Tactics | the dart's board score; the run is measured by fewest darts to close out (`tactics.engine.module.ts`) | no |
+ * | Mickey Mouse | the dart's board score; the run is measured by fewest darts to close out (`mickey-mouse.engine.module.ts`) | no |
  * | Baseball Darts | the inning's runs (`closedVisitTotal` in `baseball.engine.module.ts`) | yes — the headline is the run total; higher is better |
  *
  * Every `null` here is filed as `discovered-work` (D367): a game-specific
@@ -399,6 +400,7 @@ export const RESULT_DIRECTION: Readonly<Record<GameTypeKey, ResultDirection>> =
     AROUND_THE_CLOCK: null,
     CRICKET: null,
     TACTICS: null,
+    MICKEY_MOUSE: null,
     BASEBALL: "higher",
     KILLER: null,
   };

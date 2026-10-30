@@ -30,3 +30,4 @@ app/src/modules/training/exercises/switching-chain.engine.module.ts | TRACK | KE
 app/src/modules/training/exercises/switching.engine.module.ts | TRACK | PENDING | docs/game-rules/training/exercises/switching.md | re-checked when its exercise shell is next touched (Track spec §5)
 app/src/modules/training/exercises/target-scoring.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/training/exercises/target-scoring.md |
 app/src/modules/training/exercises/warm-up.engine.module.ts | HAND_WRITTEN | HAND_WRITTEN | docs/game-rules/training/exercises/warm-up.md | timed, dartless ExerciseEngine (umbrella spec §5)
+app/src/modules/game/mickey-mouse.engine.module.ts | MARKS | KERNEL_BOUND | docs/game-rules/rulesets/mickey-mouse.md |

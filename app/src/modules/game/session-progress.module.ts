@@ -16,6 +16,10 @@ import {
   TACTICS_OBJECTIVES,
   foldTacticsState,
 } from "@modules/game/tactics.engine.module";
+import {
+  MICKEY_MOUSE_OBJECTIVES,
+  foldMickeyMouseState,
+} from "@modules/game/mickey-mouse.engine.module";
 import { foldScoreTrainingState } from "@modules/game/score-training.engine.module";
 import { foldSinglesTrainingState } from "@modules/game/singles-training.engine.module";
 import { foldDoublesTrainingState } from "@modules/game/doubles-training.engine.module";
@@ -183,6 +187,22 @@ function tactics(
   };
 }
 
+function mickeyMouse(
+  config: Parameters<typeof foldMickeyMouseState>[1],
+  facts: EngineFacts,
+): SessionProgress {
+  return {
+    detail: joinSubtitle([
+      "Solo",
+      `${MICKEY_MOUSE_OBJECTIVES.length} objectives`,
+    ]),
+    big: big(
+      activeOf(foldMickeyMouseState(facts, config))?.dartsThrown,
+      "DARTS",
+    ),
+  };
+}
+
 function baseball(
   config: Parameters<typeof foldBaseballState>[1],
   facts: EngineFacts,
@@ -309,6 +329,7 @@ const SUMMARIZERS: Readonly<Record<string, Summarizer>> = {
   CRICKET_V2: cricket,
   TACTICS_V1: tactics,
   TACTICS_V2: tactics,
+  MICKEY_MOUSE_V1: mickeyMouse,
   BASEBALL_V1: baseball,
   KILLER_V1: killer,
   SCORE_TRAINING_V1: scoreTraining,
