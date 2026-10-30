@@ -1,7 +1,7 @@
 # Follow the Leader — Design
 
 Date: 2026-10-29
-Status: PR 1 (engine) built; PR 2 (app wiring) pending. Rulings recorded in D507.
+Status: PR 1 (engine) built; PR 2 (app wiring) pending. Rulings recorded in D509.
 Status note (2026-10-30, final review of PR 1): the §1/§9 seeds (`0055`
 reference rows, capability triples, catalog tags) shipped in PR 1, not PR 2.
 §4's hook shipped as `onVisitClose(visit, seats, shared)`. §6's "`v_*` views
