@@ -916,17 +916,43 @@ describe("summarizeProgress — FOLLOW_THE_LEADER_V1", () => {
     });
   });
 
-  it("builds from the engine's own facts", () => {
+  const sd = (number: number) => ({
+    hitTargetNumber: number,
+    hitZoneKey: "OUTER_SINGLE" as const,
+    locationX: null,
+    locationY: null,
+  });
+  const opened = {
+    hitTargetNumber: 18,
+    hitZoneKey: "TREBLE" as const,
+    locationX: null,
+    locationY: null,
+  };
+
+  it("a failed matcher visit costs a life; the leader's lives still show", () => {
     const facts = factsAfter(followTheLeaderEngineFactory, config, [
-      {
-        hitTargetNumber: 20,
-        hitZoneKey: "TREBLE",
-        locationX: null,
-        locationY: null,
-      },
+      opened,
+      sd(18),
+      sd(18),
+      sd(18),
     ]);
-    expect(
-      summarizeProgress("FOLLOW_THE_LEADER_V1", config, facts).detail,
-    ).toBe("1v1 · Follow the Leader");
+    expect(summarizeProgress("FOLLOW_THE_LEADER_V1", config, facts)).toEqual({
+      detail: "1v1 · Follow the Leader",
+      big: { value: "3", label: "LIVES" },
+    });
+  });
+
+  it("a kept target hands the visit back to the matcher at their reduced lives", () => {
+    const facts = factsAfter(followTheLeaderEngineFactory, config, [
+      opened,
+      sd(18),
+      sd(18),
+      sd(18),
+      { kind: "KEEP" as const },
+    ]);
+    expect(summarizeProgress("FOLLOW_THE_LEADER_V1", config, facts)).toEqual({
+      detail: "1v1 · Follow the Leader",
+      big: { value: "2", label: "LIVES" },
+    });
   });
 });
