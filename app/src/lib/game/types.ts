@@ -16,6 +16,7 @@ import type { CricketEngine } from "@modules/game/cricket.engine.module";
 import type { TacticsEngine } from "@modules/game/tactics.engine.module";
 import type { BaseballEngine } from "@modules/game/baseball.engine.module";
 import type { KillerEngine } from "@modules/game/killer.engine.module";
+import type { FollowTheLeaderEngine } from "@modules/game/follow-the-leader.engine.module";
 import type { SinglesTrainingEngine } from "@modules/game/singles-training.engine.module";
 import type { DoublesTrainingEngine } from "@modules/game/doubles-training.engine.module";
 import type { ShanghaiEngine } from "@modules/game/shanghai.engine.module";
@@ -32,6 +33,8 @@ import type {
   TacticsState,
   BaseballState,
   KillerState,
+  FollowTheLeaderAction,
+  FollowTheLeaderState,
   DartCount,
   DartObservation,
   DoublesTrainingState,
@@ -63,6 +66,7 @@ import type {
   TacticsSnapshot,
   BaseballSnapshot,
   KillerSnapshot,
+  FollowTheLeaderSnapshot,
   SinglesSnapshot,
   SinglesV2Snapshot,
   DoublesTrainingSnapshot,
@@ -1135,6 +1139,11 @@ export type KillerSetupContext = PresetSetupContext & {
   startBlockedReason(): string;
 };
 
+/** Follow the Leader setup: Start needs a guest seated. */
+export type FollowTheLeaderSetupContext = PresetSetupContext & {
+  canStart(): boolean;
+};
+
 /** One seat's Killer result: its number, lives left and taken, darts to become killer (null if never) and whether it went out. */
 export type KillerSeatResult = {
   participantRef: string;
@@ -1152,6 +1161,80 @@ export type KillerResultsSnapshot = {
   winningSideKey: string | null;
   outOrder: string[];
   seats: KillerSeatResult[];
+};
+
+/** One seat's Follow the Leader result: lives left and whether it went out. */
+export type FollowTheLeaderSeatResult = {
+  participantRef: string;
+  sideKey: string;
+  livesLeft: number;
+  out: boolean;
+};
+
+/** Stored final snapshot of a Follow the Leader session; `winningSideKey` is null when no side won. */
+export type FollowTheLeaderResultsSnapshot = {
+  status: "COMPLETE";
+  winningSideKey: string | null;
+  outOrder: string[];
+  seats: FollowTheLeaderSeatResult[];
+};
+
+/** Alpine context of the Follow the Leader play page: play lifecycle plus keypad, Stop and Keep/Set state. */
+export type FollowTheLeaderPlayContext = PlayLifecycleContext<
+  FollowTheLeaderSnapshot,
+  FollowTheLeaderEngine,
+  FollowTheLeaderResultsSnapshot
+> & {
+  starterOpen: boolean;
+  playAgainStarter: 0 | 1 | null;
+  requestPlayAgain(): unknown;
+  playAgainStarterOptions(): StarterStepOptions;
+  ring: MarksRing;
+  setChosen: boolean;
+  setRing(this: FollowTheLeaderPlayContext, ring: MarksRing): void;
+  state(this: FollowTheLeaderPlayContext): FollowTheLeaderState | null;
+  visitMarkers(this: FollowTheLeaderPlayContext): BoardMarker[];
+  recordDart(
+    this: FollowTheLeaderPlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
+  commitDart(
+    this: FollowTheLeaderPlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
+  commitAction(
+    this: FollowTheLeaderPlayContext,
+    action: FollowTheLeaderAction,
+  ): Promise<void>;
+  previewSegments(this: FollowTheLeaderPlayContext): GamePreviewSegment[];
+  recordNumber(this: FollowTheLeaderPlayContext, n: number): Promise<void>;
+  recordBull(this: FollowTheLeaderPlayContext): Promise<void>;
+  recordMiss(this: FollowTheLeaderPlayContext): Promise<void>;
+  stop(this: FollowTheLeaderPlayContext): Promise<void>;
+  keep(this: FollowTheLeaderPlayContext): Promise<void>;
+  chooseSet(this: FollowTheLeaderPlayContext): void;
+  phase(this: FollowTheLeaderPlayContext): FollowTheLeaderState["phase"] | "";
+  canStop(this: FollowTheLeaderPlayContext): boolean;
+  keepAllowed(this: FollowTheLeaderPlayContext): boolean;
+  showKeepPrompt(this: FollowTheLeaderPlayContext): boolean;
+  showPad(this: FollowTheLeaderPlayContext): boolean;
+  targetLabel(this: FollowTheLeaderPlayContext): string;
+  leaderName(this: FollowTheLeaderPlayContext): string;
+  openingNotice(this: FollowTheLeaderPlayContext): string;
+  livesLabelFor(this: FollowTheLeaderPlayContext, seatRef: string): string;
+  livesLabel(this: FollowTheLeaderPlayContext): string;
+  statusLabelFor(this: FollowTheLeaderPlayContext, seatRef: string): string;
+  statusLabel(this: FollowTheLeaderPlayContext): string;
+  subtitle(this: FollowTheLeaderPlayContext): string;
+  init(this: FollowTheLeaderPlayContext): Promise<void>;
+  retryReconciliation(this: FollowTheLeaderPlayContext): Promise<void>;
+  undoVisit(this: FollowTheLeaderPlayContext): Promise<void>;
+  uploadAndCompleteSession(this: FollowTheLeaderPlayContext): Promise<void>;
+  resultsTitle(this: FollowTheLeaderPlayContext): string;
+  outOrderLabel(this: FollowTheLeaderPlayContext): string;
+  back(this: FollowTheLeaderPlayContext): Promise<void>;
+  playAgain(this: FollowTheLeaderPlayContext): Promise<void>;
+  abandonAndExit(this: FollowTheLeaderPlayContext): Promise<void>;
 };
 
 /** Alpine context of the Killer play page: play lifecycle plus starter-step state. */

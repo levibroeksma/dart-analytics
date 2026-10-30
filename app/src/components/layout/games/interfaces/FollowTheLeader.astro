@@ -1,0 +1,30 @@
+---
+interface Props {
+  [key: string]: unknown;
+}
+
+// Props
+const { ...props }: Props = Astro.props;
+
+// Components
+import SeatedPlayScreen from "@components/layout/games/SeatedPlayScreen.astro";
+import VisitPreview from "@components/layout/games/VisitPreview.astro";
+import FollowTheLeaderRecreationalInput from "@components/layout/games/FollowTheLeaderRecreationalInput.astro";
+---
+
+<SeatedPlayScreen
+  big={{ isTarget: false, value: (c) => c("livesLabel") }}
+  tiles={[
+    { label: "Target", value: () => "targetLabel() || '—'" },
+    { label: "Status", value: (c) => c("statusLabel") },
+  ]}
+  idle={{ label: "Status", value: (c) => c("statusLabel") }}
+  {...props}
+>
+  <VisitPreview />
+
+  <FollowTheLeaderRecreationalInput
+    x-show="$store.game.inputModeKey !== 'VISUAL_BOARD'"
+    x-cloak
+  />
+</SeatedPlayScreen>
