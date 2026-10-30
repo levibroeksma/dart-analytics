@@ -1,6 +1,6 @@
 # Follow the Leader
 
-Current version: none (V1 in design)
+Current version: V1 (shipped 2026-10-30)
 Entry points: standalone
 Game type: `FOLLOW_THE_LEADER`
 Kernel: ELIMINATION

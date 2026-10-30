@@ -1,0 +1,33 @@
+---
+export const prerender = true;
+import GameLayout from "@layouts/GameLayout.astro";
+import FollowTheLeader from "@components/layout/games/interfaces/FollowTheLeader.astro";
+import FollowTheLeaderResults from "@components/layout/games/result-modals/FollowTheLeaderResults.astro";
+import NoSessionPanel from "@components/layout/games/NoSessionPanel.astro";
+import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocked.astro";
+---
+
+<GameLayout
+  title="Follow the Leader — Play"
+  gameTitle="Follow the Leader"
+  gameSubtitleExpr="hasActiveSession ? subtitle() : ''"
+  x-data="followTheLeaderPlay()"
+  @confirm-exit.window="abandonAndExit()"
+>
+  <div class="flex flex-col flex-1 min-h-0">
+    {/* Loading / reconciliation-blocked */}
+    <ReconciliationBlocked />
+
+    {/* No active session view */}
+    <NoSessionPanel href="/games/follow-the-leader/setup" />
+
+    {/* Gameplay view */}
+    <FollowTheLeader
+      x-show="!finished && hasActiveSession"
+      x-cloak
+    />
+
+    {/* Results modal (overlay) */}
+    <FollowTheLeaderResults />
+  </div>
+</GameLayout>

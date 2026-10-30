@@ -1,7 +1,7 @@
 # Follow the Leader — Design
 
 Date: 2026-10-29
-Status: PR 1 (engine) built; PR 2 (app wiring) pending. Rulings recorded in D509.
+Status: PR 1 (engine) built; PR 2 (app wiring) built. Rulings recorded in D509; PR 2 in D510.
 Status note (2026-10-30, final review of PR 1): the §1/§9 seeds (`0055`
 reference rows, capability triples, catalog tags) shipped in PR 1, not PR 2.
 §4's hook shipped as `onVisitClose(visit, seats, shared)`. §6's "`v_*` views
@@ -147,6 +147,8 @@ Refusal: after `COMPLETE`; a keep when `keepAllowed` is false; a stop when
 - **Derived, never stored:** target, leader, lives, out, winner, `keepAllowed`.
 
 ## 7. App wiring
+
+Status: PR 2 built 2026-10-30.
 
 Full touch list of `07-Frontend/09-Adding-A-Game.md`, one commit (wiring
 gate), as Killer. Slug `follow-the-leader`.

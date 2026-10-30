@@ -1,0 +1,12 @@
+---
+export const prerender = true;
+import GameSetupPage from "@components/layout/games/setup/GameSetupPage.astro";
+import FollowTheLeaderSetupForm from "@components/layout/games/setup/FollowTheLeaderSetupForm.astro";
+---
+
+<GameSetupPage
+  title="Follow the Leader"
+  x-data="followTheLeaderSetup()"
+>
+  <FollowTheLeaderSetupForm />
+</GameSetupPage>

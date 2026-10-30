@@ -1,0 +1,49 @@
+---
+// Components
+import InfoSection from "@components/ui/InfoSection.astro";
+import SetupShell from "./SetupShell.astro";
+import SettingSectionShell from "./SettingSectionShell.astro";
+import SettingLabel from "./SettingLabel.astro";
+import UserSection from "./UserSection.astro";
+
+// Data
+const lockedRows = [
+  { label: "LIVES", value: "3 each" },
+  { label: "MATCH RULE", value: "Exact bed" },
+  { label: "OPENING DART", value: "Seat 1, off hand" },
+];
+const infoSection = {
+  title: "Follow the Leader rules",
+  description:
+    "Seat 1 throws one dart with the off hand; where it lands is the target, an exact bed (number and ring). Each seat then throws up to three darts and must hit that exact bed or lose a life. The leader is whoever last set the target. Everyone failed: the leader keeps the target or sets a new one. Three lives each; last player standing wins. 1v1 against a guest. Locked rules.",
+};
+---
+
+<SetupShell
+  title="Follow the Leader"
+  startBlockedExpr="!canStart()"
+>
+  <UserSection allowGuests />
+  <SettingSectionShell>
+    {
+      lockedRows.map((row) => (
+        <div class="flex flex-col gap-2">
+          <SettingLabel text={row.label} />
+          <p class="text-sm text-foreground">{row.value}</p>
+        </div>
+      ))
+    }
+    <p
+      class="text-sm text-muted-foreground"
+      x-show="!canStart()"
+      x-cloak
+    >
+      Add a guest to play Follow the Leader.
+    </p>
+  </SettingSectionShell>
+  <InfoSection
+    title={infoSection.title}
+    description={infoSection.description}
+    open
+  />
+</SetupShell>
