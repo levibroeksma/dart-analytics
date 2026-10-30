@@ -13,7 +13,7 @@ This directory contains SQL source-of-truth artifacts used by the application.
 
 ```text
 database/
-├── migrations/     # ordered schema migrations (0001–0051)
+├── migrations/     # ordered schema migrations (0001–0053)
 ├── seeds/          # controlled reference/system data
 └── verification/   # rollback-safe checks run against a live database
 ```
@@ -174,6 +174,7 @@ These are not a substitute for the Vitest suite: they cover the SQL layer, which
 | `verification/0044_replay_view_coordinates_checks.sql` | migration `0044`: `v_game_replay` returns a VISUAL_BOARD dart's `location_x`/`location_y` unchanged, NULL for both on a bounce-out, one row with NULL dart columns and a non-null `participant_id` for a turn-total-only turn, each of PLAYER/GUEST/DARTBOT with its `participant_type_key`, and the same row count as the `0016` definition, anti-vacuity guard (6 checks) (2026-09-27) |
 | `verification/0045_stats_routine_views_checks.sql` | migration `0045`: `v_stats_routine_run_facts`/`v_stats_routine_step_facts` resolve `routine_key`/`step_key` identity from the `activity_configurations` snapshot (template id, or a total `name-md5(routineName)` fallback that still resolves to `name-md5('')` when both `routineTemplateId` and `routineName` are absent, never NULL; `step_fingerprint` equals `md5((step - 'sequenceNumber')::text)` exactly, `step_key` by matched `sequenceNumber` not array position, and the same step content at a different `sequenceNumber` keeps its `step_fingerprint` but changes its `step_key`), step-content dedup, owner-scoped dart counts, ACTIVE and no-snapshot exclusion, a missing, string or non-integer `sequenceNumber` never matching a step session, and a non-array `configuration -> 'steps'` yielding a NULL `step_count`/no step rows instead of erroring (27 checks) (2026-09-28) |
 | `verification/0046_replay_stages_view_checks.sql` | migration `0046`: `v_replay_stages` lists a parent stage that holds no turn (which `v_game_replay` omits), carries `parent_stage_id`/`stage_sequence`/`stage_type_key` on its child, and is scoped by `player_id` |
+| `verification/0053_replay_view_kept_checks.sql` | migration `0053`: `v_game_replay` returns a kept turn (the Follow the Leader leader's dartless keep) as one row with `kept = true` and NULL dart columns, a thrown turn's dart rows with `kept = false`, and one row per kept turn plus one per dart, anti-vacuity guard (4 checks) (2026-10-30) |
 
 ## References
 

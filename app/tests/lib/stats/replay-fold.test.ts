@@ -30,6 +30,7 @@ function scoreTurn(turnSequence: number, total: number): ReplayTurnSchemaData {
     turnSequence,
     participantId: PLAYER_ONE.participantId,
     turnTotalScore: total,
+    kept: false,
     darts: [],
   };
 }

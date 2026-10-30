@@ -1193,6 +1193,18 @@ describe("replay page schemas", () => {
     expect(result.success).toBe(true);
   });
 
+  it("defaults kept to false and carries a kept dartless turn", () => {
+    expect(ReplayTurnSchema.parse(turn).kept).toBe(false);
+    expect(
+      ReplayTurnSchema.parse({
+        ...turn,
+        turnTotalScore: 0,
+        kept: true,
+        darts: [],
+      }).kept,
+    ).toBe(true);
+  });
+
   it("rejects a dart with a null hitZoneKey (R3: real darts always carry one)", () => {
     const result = ReplayTurnSchema.safeParse({
       ...turn,

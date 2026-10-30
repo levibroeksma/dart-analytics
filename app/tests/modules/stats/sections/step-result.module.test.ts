@@ -37,6 +37,7 @@ function dartRow(overrides: Partial<StepFoldSession> = {}): StepFoldSession {
     score: 0,
     locationX: null,
     locationY: null,
+    kept: false,
     ...overrides,
   };
 }

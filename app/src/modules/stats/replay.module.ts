@@ -127,6 +127,7 @@ export function rowsToTurns(rows: readonly ReplayRow[]): ReplayTurn[] {
         turnSequence: row.turnSequence,
         participantId: row.participantId,
         turnTotalScore: row.turnTotalScore,
+        kept: row.kept,
         darts: [],
       };
       turns.push(current);
@@ -206,6 +207,7 @@ type ReplayFactsTurn = {
   turnSequence: number;
   participantId: string;
   turnTotalScore: number;
+  kept?: boolean;
   darts: readonly ReplayFactsDart[];
 };
 
@@ -230,6 +232,7 @@ function turnFactOf(turn: ReplayFactsTurn): TurnFact {
     sequence: turn.turnSequence,
     completedAt: REPLAYED_TURN_CLOSED_AT,
     totalScore: turn.turnTotalScore,
+    kept: turn.kept ?? false,
     darts: turn.darts.map(dartFactOf),
   };
 }

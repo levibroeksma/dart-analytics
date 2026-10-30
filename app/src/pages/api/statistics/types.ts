@@ -656,6 +656,7 @@ export const ReplayTurnSchema = z.object({
   turnSequence: z.number().int(),
   participantId: z.string().uuid(),
   turnTotalScore: z.number().int(),
+  kept: z.boolean().default(false),
   darts: z.array(ReplayDart),
 });
 export type ReplayTurnSchemaData = z.infer<typeof ReplayTurnSchema>;
