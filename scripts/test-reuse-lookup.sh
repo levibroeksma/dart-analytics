@@ -15,7 +15,11 @@ cat > "$T/docs/architecture/07-Frontend/08-Component-Inventory.md" <<'MD'
 | --- | --- | --- |
 | `Badge.astro` | Small inline status pill | `variant` |
 | `Toggle.astro` | On/off switch | `checked` |
+| `RankBadge.astro` | Rank pill | `rank` |
 MD
+mkdir -p "$T/app/src/components/atoms" "$T/app/src/services"
+printf 'x\n' > "$T/app/src/components/ui/Badge.astro"
+printf 'x\n' > "$T/app/src/components/atoms/RankBadge.astro"
 cat > "$T/graphify-out/graph.json" <<'JSON'
 {"nodes":[{"label":"formatScore","norm_label":"formatscore","source_file":"app/src/lib/score.ts","source_location":"L1"},
 {"label":"other","norm_label":"other","source_file":"docs/x.md","source_location":"L1"}],"links":[]}
@@ -54,7 +58,7 @@ PY
 expect_allow() { if [ "$CODE" -eq 0 ] && [ -z "$OUT" ]; then ok; else bad "$1"; fi; }
 
 P=$(payload "$T/app/src/components/ui/StatusBadge.astro" "<div/>" s1)
-run "$P"; expect_deny "new astro denies with inventory match" "Badge.astro"
+run "$P"; expect_deny "new astro denies with inventory match" "Badge.astro" "app/src/components/ui/Badge.astro" "RankBadge.astro" "app/src/components/atoms/RankBadge.astro" "stating why none fits"
 run "$P"; expect_allow "same session second write passes"
 
 P=$(payload "$T/app/src/lib/score-format.ts" "export function formatScore() {}" s2)
@@ -65,6 +69,9 @@ run "$P"; expect_allow "overwrite existing passes"
 
 P=$(payload "$T/app/src/lib/zzz-qqq.ts" "export const zzzQqq = 1;" s4)
 run "$P"; expect_allow "no matching tokens passes"
+
+P=$(payload "$T/app/src/services/x.ts" "export function formatScore() {}" s6)
+run "$P"; expect_allow "unwatched services dir passes"
 
 P=$(payload "$T/app/src/pages/x.astro" "<div/>" s5)
 run "$P"; expect_allow "unwatched dir passes"

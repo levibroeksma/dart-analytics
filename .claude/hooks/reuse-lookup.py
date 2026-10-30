@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import glob
 import json
 import os
 import re
@@ -40,6 +41,13 @@ def export_names(content):
     return EXPORT_RE.findall(content)
 
 
+def component_path(name, root):
+    hits = sorted(glob.glob(os.path.join(root, "app/src/components/**", name), recursive=True))
+    if hits:
+        return os.path.relpath(hits[0], root).replace(os.sep, "/")
+    return INVENTORY
+
+
 def inventory_matches(tokens, root):
     out = []
     try:
@@ -50,7 +58,7 @@ def inventory_matches(tokens, root):
                     continue
                 name = m.group(1)
                 if tokens & name_tokens(name):
-                    out.append((name, INVENTORY))
+                    out.append((name, component_path(name, root)))
     except OSError:
         pass
     return out
@@ -113,9 +121,8 @@ def candidates(relpath, content, root):
 
 
 def watched(rel):
-    if rel.startswith("app/src/components/") and rel.endswith(".astro"):
-        return True
-    return rel.startswith("app/src/") and not rel.startswith("app/src/pages/") and rel.endswith(".ts")
+    dirs = ("components", "lib", "modules", "types")
+    return rel.endswith((".astro", ".ts")) and any(rel.startswith(f"app/src/{d}/") for d in dirs)
 
 
 def main():
@@ -152,7 +159,7 @@ def main():
     deny(
         f"New file {rel}: similar existing code found. Reuse or extend before adding:\n"
         + "\n".join(found)
-        + "\nIf none fit, retry the same write."
+        + "\nReuse one, or retry the same write stating why none fits."
     )
 
 
