@@ -51,6 +51,8 @@ jobs:
         run: bash scripts/check-style-tokens.sh
       - name: Gate per-file mode fixtures
         run: bash scripts/test-check-file-mode.sh
+      - name: Edit-gate hook fixtures
+        run: bash scripts/test-edit-gate.sh
 
       - name: Game-rules gate
         run: bash scripts/check-game-rules.sh && bash scripts/test-check-game-rules.sh

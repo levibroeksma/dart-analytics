@@ -61,6 +61,15 @@
             "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/block-main-commit.py\""
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/edit-gate.py\""
+          }
+        ]
       }
     ],
     "Stop": [
