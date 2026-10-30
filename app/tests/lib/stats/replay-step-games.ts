@@ -108,6 +108,7 @@ export function playSwitching() {
     turnSequence: turn.sequence,
     participantId: turn.participantRef,
     turnTotalScore: turn.totalScore,
+    kept: turn.kept ?? false,
     darts: turn.darts.map(({ sequence, ...rest }) => ({
       dartNumber: sequence,
       ...rest,
@@ -364,6 +365,7 @@ export function playExerciseKind(kind: DartExerciseKind) {
     turnSequence: turn.sequence,
     participantId: turn.participantRef,
     turnTotalScore: turn.totalScore,
+    kept: turn.kept ?? false,
     darts: turn.darts.map(({ sequence, ...rest }) => ({
       dartNumber: sequence,
       ...rest,

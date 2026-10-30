@@ -65,6 +65,7 @@ const TurnFact = z.object({
   participantRef: z.string(),                // participant reference within the session
   sequence: z.number().int(),
   totalScore: z.number().int(),
+  kept: z.boolean().default(false),          // Follow the Leader: the leader's dartless keep (no darts, total 0); omitted by older clients -> false
   completedAt: z.string().datetime().nullable(),
   darts: z.array(DartFact),                  // [] in recreational mode
 });

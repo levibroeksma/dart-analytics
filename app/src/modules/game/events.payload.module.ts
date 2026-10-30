@@ -49,6 +49,7 @@ export function buildEventsBatch(facts: EngineFacts): EventsBatchRequestInput {
           participantRef: turn.participantRef,
           sequence: turn.sequence,
           totalScore: turn.totalScore,
+          kept: turn.kept ?? false,
           completedAt: turn.completedAt,
           darts: turn.darts,
         })),

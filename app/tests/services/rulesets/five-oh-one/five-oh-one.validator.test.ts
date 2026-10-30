@@ -28,6 +28,7 @@ function batchWithTurns(totalScores: number[]) {
           participantRef: "p1",
           sequence: i + 1,
           totalScore,
+          kept: false,
           completedAt: "2026-07-25T10:00:00.000Z",
           darts: [] as DartFactInput[],
         })),
@@ -103,6 +104,7 @@ describe("fiveOhOneValidator.validateBatch", () => {
                 participantRef: "p1",
                 sequence: 1,
                 totalScore: 181,
+                kept: false,
                 completedAt: "2026-07-25T10:00:00.000Z",
                 darts: [],
               },
@@ -166,6 +168,7 @@ describe("fiveOhOneValidator.validateBatch", () => {
               participantRef: "p1",
               sequence: 1,
               totalScore: 60,
+              kept: false,
               completedAt: "2026-08-05T12:00:00.000Z",
               darts: [
                 {

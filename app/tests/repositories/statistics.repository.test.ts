@@ -1951,6 +1951,7 @@ describe("findReplayTurnPage", () => {
             score: 60,
             location_x: "12.50",
             location_y: null,
+            kept: false,
           },
         ],
       }),
@@ -1974,6 +1975,7 @@ describe("findReplayTurnPage", () => {
         score: 60,
         locationX: 12.5,
         locationY: null,
+        kept: false,
       },
     ]);
   });
@@ -1997,6 +1999,7 @@ describe("findReplayTurnPage", () => {
             score: null,
             location_x: null,
             location_y: null,
+            kept: false,
           },
         ],
       }),
@@ -2006,6 +2009,67 @@ describe("findReplayTurnPage", () => {
 
     expect(result[0].dartNumber).toBeNull();
     expect(result[0].score).toBeNull();
+  });
+
+  it("selects kept and maps a kept dartless turn", async () => {
+    const { db, statements } = renderingDb([]);
+    await findReplayTurnPage(db, baseQuery);
+    expect(onlyStatement(statements)).toMatch(/location_y, kept\s+from/i);
+
+    const keptDb = {
+      execute: vi.fn().mockResolvedValue({
+        rows: [
+          {
+            stage_id: "stage-1",
+            turn_sequence: 3,
+            participant_id: "participant-1",
+            participant_name: "Alex",
+            participant_type_key: "PLAYER",
+            turn_total_score: 0,
+            dart_number: null,
+            intended_target_number: null,
+            intended_zone_key: null,
+            hit_target_number: null,
+            hit_zone_key: null,
+            score: null,
+            location_x: null,
+            location_y: null,
+            kept: true,
+          },
+        ],
+      }),
+    } as any;
+
+    const [row] = await findReplayTurnPage(keptDb, baseQuery);
+    expect(row).toMatchObject({ dartNumber: null, kept: true });
+  });
+
+  it("nonNull throws on a null kept column", async () => {
+    const db = {
+      execute: vi.fn().mockResolvedValue({
+        rows: [
+          {
+            stage_id: "stage-1",
+            turn_sequence: 1,
+            participant_id: "participant-1",
+            participant_name: "Alex",
+            participant_type_key: "PLAYER",
+            turn_total_score: 45,
+            dart_number: null,
+            intended_target_number: null,
+            intended_zone_key: null,
+            hit_target_number: null,
+            hit_zone_key: null,
+            score: null,
+            location_x: null,
+            location_y: null,
+            kept: null,
+          },
+        ],
+      }),
+    } as any;
+
+    await expect(findReplayTurnPage(db, baseQuery)).rejects.toThrow(/kept/);
   });
 
   it("nonNull throws on a null stage_id column", async () => {
@@ -2027,6 +2091,7 @@ describe("findReplayTurnPage", () => {
             score: null,
             location_x: null,
             location_y: null,
+            kept: false,
           },
         ],
       }),
@@ -3134,6 +3199,7 @@ describe("findStepFoldRows", () => {
           score: 60,
           locationX: "1.50",
           locationY: "-2.25",
+          kept: false,
           bucketStart: "2026-01-01T00:00:00.000Z",
           bucketEnd: "2026-02-01T00:00:00.000Z",
         },
@@ -3170,6 +3236,7 @@ describe("findStepFoldRows", () => {
         score: 60,
         locationX: 1.5,
         locationY: -2.25,
+        kept: false,
         bucketStart: "2026-01-01T00:00:00.000Z",
         bucketEnd: "2026-02-01T00:00:00.000Z",
       },

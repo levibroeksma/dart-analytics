@@ -551,6 +551,7 @@ UUIDv7
 - participant_id
 - sequence_number
 - total_score
+- kept (BOOLEAN NOT NULL DEFAULT false; migration `0051`, comment corrected in `0052`)
 - completed_at (nullable)
 - created_at
 
@@ -574,6 +575,8 @@ Referenced by:
 The maximum number of darts per turn is owned by the ruleset, not by a database constraint.
 
 `total_score` is the sum of the visit's **counted dart board scores**: `0` for a void visit (a 501 bust, or a visit in which nothing counted), and never negative. Game-specific scores are derivations over the facts and are never written here — not a Bob's 27 running total, not its full-miss penalty, not Singles Training points, not a 501 remaining score. A penalty that would make the turn total negative is a property of the derivation, not of the visit. <!-- 2026-07-26 -->
+
+`kept` is a fact: the Follow the Leader leader kept the target unchanged without throwing, because every other seat failed it. A kept turn has no darts and `total_score` 0. It is `false` for every other turn, every other game, every turn stored before `0051`, and a client that omits it from the batch. `v_game_replay` exposes it (`0053`) so a replay rebuilds the keep. <!-- 2026-10-29; meaning corrected 2026-10-30 -->
 
 ## Design Rationale
 

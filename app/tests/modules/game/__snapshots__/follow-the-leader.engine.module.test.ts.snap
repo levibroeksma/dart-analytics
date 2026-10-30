@@ -1,0 +1,35 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`follow the leader engine > golden: one full 2-seat game 1`] = `
+[
+  "p1 MISS → target:- lead:- A:3 B:3",
+  "p1 T18 → target:T18 lead:p1 A:3 B:3",
+  "p2 S18 → target:T18 lead:p1 A:3 B:3",
+  "p2 S18 → target:T18 lead:p1 A:3 B:3",
+  "p2 S18 → target:T18 lead:p1 A:3 B:2",
+  "p1 KEEP → target:T18 lead:p1 A:3 B:2",
+  "p2 T18 → target:T18 lead:p1 A:3 B:2",
+  "p2 STOP → target:T18 lead:p1 A:3 B:2",
+  "p1 MISS → target:T18 lead:p1 A:3 B:2",
+  "p1 D20 → target:D20 lead:p1 A:3 B:2",
+  "p2 D20 → target:D20 lead:p1 A:3 B:2",
+  "p2 S5 → target:D20 lead:p1 A:3 B:2",
+  "p2 STOP → target:S5 lead:p2 A:3 B:2",
+  "p1 S1 → target:S5 lead:p2 A:3 B:2",
+  "p1 S2 → target:S5 lead:p2 A:3 B:2",
+  "p1 S5 → target:S5 lead:p2 A:3 B:2",
+  "p2 T20 → target:T20 lead:p2 A:3 B:2",
+  "p1 T20 → target:T20 lead:p2 A:3 B:2",
+  "p1 S1 → target:T20 lead:p2 A:3 B:2",
+  "p1 MISS → target:T20 lead:p2 A:2 B:2",
+  "p2 IB → target:IB lead:p2 A:2 B:2",
+  "p1 OB → target:IB lead:p2 A:2 B:2",
+  "p1 OB → target:IB lead:p2 A:2 B:2",
+  "p1 OB → target:IB lead:p2 A:1 B:2",
+  "p2 KEEP → target:IB lead:p2 A:1 B:2",
+  "p1 MISS → target:IB lead:p2 A:1 B:2",
+  "p1 MISS → target:IB lead:p2 A:1 B:2",
+  "p1 MISS → target:IB lead:p2 A:0 B:2",
+  "COMPLETE winner=B out=p1",
+]
+`;

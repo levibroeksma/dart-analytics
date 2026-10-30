@@ -2,6 +2,7 @@
 
 Current version: none (V1 in design)
 Entry points: standalone
+Game type: `FOLLOW_THE_LEADER`
 Kernel: ELIMINATION
 
 ## Features
@@ -10,7 +11,8 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
-| Multiplayer (2–4 seats) | V1 | 2+ | |
+| Multiplayer (2 seats) | V1 | 2+ | |
+| Three or four seats | Deferred | 2+ | Blocked on: setup seats one guest or bot (`app/src/lib/game/guest-list.ts:19`) and the play screen draws two seats (`app/src/components/layout/games/SplitScoreboard.astro:3`); the engine already takes four (user decision 2026-10-29) |
 | More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts:7`); the source allows up to ten |
 | Team play | Deferred | 2+ | Blocked on: a session allows one seat per side; teams are rejected (`app/src/services/session-seats.service.ts:87-88`) |
 | Config screen (presets shown) | V1 | All | |
@@ -62,14 +64,15 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 
 **2+:** be the last seat with a life left. The source says any number of
 players but lists three as its minimum and "most enjoyable with 3 or more";
-this ruleset seats two to four (see Open questions). A session seats at most
+this ruleset seats two in V1 and up to four later (see Open questions). A
+session seats at most
 four (`app/src/services/session-seats.service.ts:7`).
 
 ## Config & presets
 
 | Setting | Preset | On config screen |
 | --- | --- | --- |
-| Players | 2 seats (min 2, max 4) | Editable |
+| Players | 2 seats | Shown, locked |
 | Lives per seat | 3 | Shown, locked |
 | Match rule | Exact bed | Shown, locked |
 | Opening dart | Seat 1, off hand | Shown, locked |
@@ -113,7 +116,10 @@ Seats rotate in seat order, skipping any seat that is out. A seat that is not
 the leader throws up to three darts at the target and may stop after a match.
 
 - **Fail:** none of its darts matched. It loses one life. The target and the
-  leader do not change.
+  leader do not change. A seat cannot stop before a match: with no matching
+  dart it throws all three, and the engine refuses a stop until one has
+  matched (the guard is the engine, not the upload validator, which sees
+  only finished turns).
 - **Match, then stop:** a dart matched and the seat throws no more. It loses
   nothing. The target and the leader do not change.
 - **Match, then spare darts:** after the matching dart the seat may throw some
@@ -208,7 +214,7 @@ each have the same seat count as the base game.
 
 ## Capture
 
-Follow the Leader is unbuilt; this is the capture shape its V1 is designed for.
+This is the capture shape the V1 engine folds; setup and play follow in a later change.
 
 - **Capture / input mode:** RECREATIONAL + DETAILED_DARTS and
   ANALYTICS + VISUAL_BOARD — whether a dart matched is read off its number and
@@ -226,11 +232,12 @@ Follow the Leader is unbuilt; this is the capture shape its V1 is designed for.
   never lives, never a match flag. The dart rows carry no hand, so the off-hand
   opening dart is an instruction the players keep, not a fact the record holds.
 - **Turn facts:** the leader's decision to keep is a decision, not a dart. A
-  keep is a turn with no dart rows, and `turns` has no column to say so
-  (`database/migrations/0006_runtime_events.sql:24-34`) and neither has `darts`
-  (`:43-65`), so a build would add one in the configuration snapshot or a
-  new column (a schema change needs a numbered migration). The spec must settle
-  how a keep is recorded before implementation.
+  keep is a closed turn with no dart rows and `turns.kept = true` (migration
+  `0051`, `BOOLEAN NOT NULL DEFAULT false`); the upload validator accepts a
+  kept turn only with no darts and a total of 0. A matcher that stops after a
+  match is a closed turn with fewer than three darts: no column, the stored
+  `completed_at` is the fact. Closure is stored, never inferred: the fold
+  treats a turn as closed only when it has `completed_at`.
 - **Stage type:** one shared stage for the game — every seat's darts decide a
   target the others face, as 501's `SHARED` leg
   (`app/src/modules/game/five-oh-one.engine.module.ts:428`).
@@ -259,9 +266,18 @@ Follow the Leader is unbuilt; this is the capture shape its V1 is designed for.
 
 ## Open questions
 
+Answered for V1 (user decision 2026-10-29; the source is silent):
+
+- A match on the third dart leaves no spare dart: that dart is the last dart,
+  so the seat loses nothing and the target and leader stand.
+- "Failed" means no dart of the visit matched. A matcher that matched and then
+  lost a life to an off-board last dart did not fail.
+- A leader whose setting dart landed off the board throws again and cannot
+  keep, even if every other seat failed.
+
 - Player count: the source metadata lists a minimum of three and its setup says
   any number is possible but three or more is "strongly recommended". V1
-  allows two seats. Is that the right minimum?
+  seats two. Is that the right minimum?
 - Single beds: the source says a target is "the exact ring (single, double, or
   triple)", with no mention of the inner and outer single beds. V1 reads
   "single" as one ring, so either single bed matches. HORSE tells them apart.
@@ -275,6 +291,7 @@ Follow the Leader is unbuilt; this is the capture shape its V1 is designed for.
 - A matcher who matched and then threw spare darts whose last dart lands off the
   board loses a life, as the source says "regardless of earlier throws". V1
   reads this as covering a seat that had already matched. Is that intended?
+  Such a seat did not fail, so it still blocks the leader's keep.
 - Loop: the source says if two seats remain and both lose their last life in
   the same round, the one who threw earlier is out first. Sequential play makes
   that unreachable; what was meant?

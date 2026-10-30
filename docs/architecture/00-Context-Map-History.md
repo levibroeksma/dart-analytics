@@ -612,6 +612,7 @@ updated: 2026-10-29
 > Earlier `04-Architecture-patterns.md` versions, newest first, moved out of
 > its version line (2026-10-29, #1146). Append new entries at the top of this list.
 
+- 1.11.25 — version line holds only the current version; earlier versions move to this history 2026-10-29, #1146
 - 1.11.24 — Pattern 18: Marks kernel built, Tactics and Cricket bound through `foldMarks` on the game shell; `MarksEngine` deleted 2026-10-29, D506
 - 1.11.23 — Pattern 18: a `DartGameSpec`'s `intent` is optional 2026-10-28, #1129
 - 1.11.22 — Pattern 18: 121 bound through `foldCheckoutSeats` on the game shell — all four Checkout engines bound; the shell gains `stageFor` and `complete`'s `expiredAt` 2026-10-28, D500
@@ -653,3 +654,5 @@ updated: 2026-10-29
 - 1.4.1 — Pattern 18: undo depth, derived-value returns, `completedAt` timing 2026-07-26
 - 1.4.0 — Pattern 18 game engine contract 2026-07-26
 - 1.3.0 — Pattern 17 frontend layering 2026-07-14
+| `elimination-kernel.module.ts`, `modules/game/{types,interfaces}.ts`, `follow-the-leader-policy.ts`, `follow-the-leader.engine.module.ts`, `dart-engine-shell.module.ts`, `turn-log.module.ts`, `follow-the-leader.validator.ts`, `replay-presenters.ts`, migration `0051` (`turns.kept`), seed `0055` + verification, seed `0042` tags, `scripts/engine-kernels.txt`, `follow-the-leader.md`, `04-Architecture-patterns.md` (1.11.23), `modules/game/CLAUDE.md`, `00-File-Inventory.md`, `decisions/game-engine.md` (D509) | Follow the Leader V1 engine on the Elimination kernel (visit-close hook, shared slot, rota override), shell visit actions, `turns.kept`. Follow the Leader PR 1 (2026-10-29) | historical |
+| migrations `0052` (`turns.kept` comment corrected) and `0053` (`v_game_replay.kept`) + verification `0053`, `replay.module.ts`, `modules/stats/types.ts`, `statistics.repository.ts`, `statistics/types.ts` (`ReplayTurnSchema.kept`), `schema.ts`, `03-Migrations.md`, `04-Runtime-Layer.md`, `05-Read-Model-Layer.md`, `04-Endpoint-Contracts.md`, chain ranges to `0053`, `00-File-Inventory.md`, `decisions/game-engine.md` (D508) | Follow the Leader PR 1 final-review fixes: `kept` means the leader's dartless keep; the replay carries `kept` (2026-10-30) | historical |

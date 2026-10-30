@@ -603,6 +603,31 @@ Reason: a guest who wins the starter step must throw first and keep their own nu
 Consequences: no migration. `killer.md` is now `V1 (shipped 2026-10-28)`. Three or more seats, DartBot and the other deferred rows stay deferred. Spec: `docs/superpowers/specs/2026-10-27-elimination-kernel-design.md`.
 Supersedes: none.
 
+### D509 — Follow the Leader V1 engine: the Elimination kernel grows a visit-close hook, a shared slot and rota override; `turns.kept`; shell visit actions
+Status: Accepted · Date: 2026-10-29
+Decision: `EliminationRules` gains three optional members, so Killer's fold is unchanged (pinned by a regression test): `onVisitClose(visit, seats, shared)` runs once when a turn closes (`completedAt` set) and returns seat changes plus the next `shared`, `initShared` seeds the `shared` slot on `EliminationMatch`, and `activeOverride(seats, shared)` names the seat to act next (the rota stays on a seat owed a re-throw). Follow the Leader (`follow-the-leader.engine.module.ts`, policy `follow-the-leader-policy.ts`) resolves a visit at close, not per dart: target, leader, `failed` set and lives all come from `resolveVisit`. Migration `0051` adds `turns.kept BOOLEAN NOT NULL DEFAULT false`; a keep is a closed, dartless turn with `kept = true`, and the upload validator, not a CHECK, requires no darts and a total of 0. The game shell gains `DartGameSpec.visitActions` (STOP closes an open darted turn early, KEEP writes a kept turn), undone like a dart. V1 seats two (kernel and tests cover 3 to 4), key `FOLLOW_THE_LEADER_V1`, `SHARED` stage, no DartBot, no stats page, `STATS_TAGS` `["board"]`. Replay result labels: `Keep`, `Fail`, `Retry`, `Set`, `Match`.
+Reason: whether a seat failed, matched or must set depends on the whole visit, so the per-dart hook cannot decide it; the leader and target live in no seat, hence the shared slot. A stored `kept` flag makes a keep a fact the fold replays rather than an inference from a missing turn.
+Consequences: seed `0055` adds the `FOLLOW_THE_LEADER` game type, `FOLLOW_THE_LEADER_V1` and a `{"lives": 3}` preset, with `0007` capability rows (50) and tag rows in `0042`; `follow-the-leader.md` gains `Game type:`. `SEAT_CAPS`, `SEAT_FLOORS`, setup, play, results and card follow in PR 2; `follow-the-leader.md` keeps `Current version: none` until then. Spec: `docs/superpowers/specs/2026-10-29-follow-the-leader-design.md`.
+Rulings (user decision 2026-10-29 where the rules file is silent):
+
+| Ruling | Reading |
+| ------ | ------- |
+| Stop before any match | Refused by the engine (`canStop` needs a match). A validator sees finished turns only, so it cannot enforce it |
+| Closure | Stored via `completedAt`, never inferred; rehydration and undo replay the one rule |
+| Opening and leader turns | One dart each; an off-board dart is stored, closes its turn, and the same seat throws again; no life lost, rota does not move |
+| Failed | No dart of the visit matched. A matcher that matched, then lost a life to an off-board last dart, did not fail and blocks a keep |
+| Match on the third dart | No spare dart; the seat loses nothing, target and leader stand |
+| `keepAllowed` | Every other seat failed and no re-throw is owed; a leader whose setting dart missed the board cannot keep |
+| Replay label | An off-board setting dart with no life lost reads `Retry`, not `Fail` |
+Supersedes: none.
+
+### D508 — `turns.kept` meaning corrected by migration `0052`; the replay carries `kept` (`0053`)
+Status: Accepted · Date: 2026-10-30
+Decision: a kept turn is the Follow the Leader leader's dartless keep: when every other seat failed, the leader keeps the target unchanged; the turn has no darts and `total_score` 0. `0051`'s column comment said a kept turn was a visit that matched the leader; migration `0052_turns_kept_comment.sql` replaces that comment instead of editing `0051` in place. Migration `0053_replay_view_kept.sql` appends `kept` to `v_game_replay`, and the statistics replay carries it end to end: `ReplayRow`/`ReplayTurn`, `rowsToTurns`, `ReplayTurnSchema` (`kept`, default `false`), `turnFactOf`, `findReplayTurnPage` and `findStepFoldRows`.
+Reason: the D344 in-place carve-out needs `db:status` and `db:status:prod` proof that `0051` is pending everywhere, and this session had no `DATABASE_URL`. Without `kept` in the view a stored keep replayed as a dartless setting turn, read `Retry`, and the rebuilt active seat and phase went wrong from that turn on.
+Consequences: the 05-Database and API docs state the corrected meaning; `database/verification/0053_replay_view_kept_checks.sql` proves the view column. D509 stands; its "`v_*` views untouched" reading (spec §6) no longer holds.
+Supersedes: none.
+
 ### D506 — The Marks kernel binds Cricket and Tactics to the game shell; the shell's served-key check replaces the typed key
 Status: Accepted · Date: 2026-10-29
 Decision: `marks-kernel.module.ts` holds the Marks family: `MarksRules` (`initialSeat`, `hitOf(seat, opponent | null, observation)` — null when playing alone, `valueOf`), `foldMarks` (one seat alone, two seats through `foldMarksDuel`), `marksWouldComplete` (one trial dart by the active seat on the folded state) and `marksGameSpec`, which builds a `PER_SEAT` `DartGameSpec` from a `MarksRules` record: refuse once `COMPLETE`, `NO_INTENT` darts, a visit open below three darts while the game is in progress. Cricket and Tactics are each `dartGameEngineClass(spec)` with one `dartGameEngineFactory` per key. `MarksEngine`, `marksEngineFactory`, `marks-duel.module.ts` and `recordMarksDart` are deleted; the engine classes lose their `TKey` parameter, and a factory for a key the spec does not serve throws at module load.

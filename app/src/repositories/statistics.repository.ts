@@ -1763,6 +1763,7 @@ function mapReplayRow(row: {
   score: number | null;
   location_x: string | number | null;
   location_y: string | number | null;
+  kept: boolean | null;
 }): ReplayRow {
   return {
     stageId: nonNull(row.stage_id, "stage_id"),
@@ -1782,6 +1783,7 @@ function mapReplayRow(row: {
     score: row.score,
     locationX: row.location_x === null ? null : Number(row.location_x),
     locationY: row.location_y === null ? null : Number(row.location_y),
+    kept: nonNull(row.kept, "kept"),
   };
 }
 
@@ -1816,7 +1818,7 @@ export async function findReplayTurnPage(
   const statement = sql`
     SELECT stage_id, turn_sequence, participant_id, participant_name, participant_type_key,
       turn_total_score, dart_number, intended_target_number, intended_zone_key,
-      hit_target_number, hit_zone_key, score, location_x, location_y
+      hit_target_number, hit_zone_key, score, location_x, location_y, kept
     FROM (
       SELECT *,
         ${posExpr} AS pos,
@@ -1845,6 +1847,7 @@ export async function findReplayTurnPage(
     score: number | null;
     location_x: string | number | null;
     location_y: string | number | null;
+    kept: boolean | null;
   }>(result);
 
   return rows.map(mapReplayRow);
@@ -2405,6 +2408,7 @@ function mapStepFoldRow(row: {
   score: number | null;
   locationX: string | number | null;
   locationY: string | number | null;
+  kept: boolean | null;
   bucketStart: string | null;
   bucketEnd: string | null;
 }): StepFoldBucketRow {
@@ -2430,6 +2434,7 @@ function mapStepFoldRow(row: {
     score: row.score,
     locationX: row.locationX === null ? null : Number(row.locationX),
     locationY: row.locationY === null ? null : Number(row.locationY),
+    kept: nonNull(row.kept, "kept"),
     bucketStart: nonNull(row.bucketStart, "bucket_start"),
     bucketEnd: nonNull(row.bucketEnd, "bucket_end"),
   };
@@ -2457,6 +2462,7 @@ const STEP_FOLD_COLUMNS = {
   score: vGameReplay.score,
   locationX: vGameReplay.locationX,
   locationY: vGameReplay.locationY,
+  kept: vGameReplay.kept,
 };
 
 /**

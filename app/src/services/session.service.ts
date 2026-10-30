@@ -628,6 +628,7 @@ function buildBatchInsertPayload(
       participantId: turn.participantRef,
       sequenceNumber: turn.sequence,
       totalScore: turn.totalScore,
+      kept: turn.kept,
       completedAt: turn.completedAt,
       darts: turn.darts.map((dart) => ({
         id: generateId(),

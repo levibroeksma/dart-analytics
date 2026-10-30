@@ -844,9 +844,10 @@ export type ReplayParticipantRow = {
 };
 
 /**
- * One row of `v_game_replay` (migration `0044`). Every dart column —
+ * One row of `v_game_replay` (migrations `0044`, `0053`). Every dart column —
  * `dartNumber` through `locationY` — is `null` together for a
- * turn-total-only turn, the view's `LEFT JOIN` to `darts`.
+ * turn-total-only turn, the view's `LEFT JOIN` to `darts`. `kept` is the
+ * turn's own flag: a Follow the Leader leader's dartless keep.
  */
 export type ReplayRow = {
   stageId: string;
@@ -863,6 +864,7 @@ export type ReplayRow = {
   score: number | null;
   locationX: number | null;
   locationY: number | null;
+  kept: boolean;
 };
 
 /**
@@ -889,6 +891,7 @@ export type ReplayTurn = {
   turnSequence: number;
   participantId: string;
   turnTotalScore: number;
+  kept: boolean;
   darts: ReplayDart[];
 };
 

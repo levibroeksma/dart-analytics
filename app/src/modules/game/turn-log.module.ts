@@ -180,6 +180,20 @@ export function appendCompletedTurn(
 }
 
 /**
+ * Appends a closed, dartless turn marked `kept` — a seat's turn passed
+ * without throwing.
+ */
+export function appendKeptTurn(
+  turns: TurnFact[],
+  stageClientKey: string,
+  participantRef: string,
+): TurnFact {
+  const turn = appendCompletedTurn(turns, stageClientKey, participantRef, 0);
+  turn.kept = true;
+  return turn;
+}
+
+/**
  * The visit still being thrown, or null when the last one closed. Reads
  * `completedAt`, not dart count — a keypad-recorded turn always has
  * `darts: []` and is complete the instant it is pushed, so a dart-count check
@@ -295,6 +309,16 @@ function popStageOpenedBy(stages: StageFact[], stageClientKey: string): void {
     stages.pop();
     popEmptyTrailingSet(stages);
   }
+}
+
+/**
+ * Reopens the closed last turn of a STAGED or unstaged log by clearing its
+ * `completedAt`, popping the stage the closing record opened.
+ */
+export function reopenClosedTurn(turns: TurnFact[], stages: StageFact[]): void {
+  const last = turns.at(-1)!;
+  last.completedAt = null;
+  popStageOpenedBy(stages, last.stageClientKey);
 }
 
 /**

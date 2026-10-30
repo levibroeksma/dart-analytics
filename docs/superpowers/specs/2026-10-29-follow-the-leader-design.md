@@ -1,7 +1,13 @@
 # Follow the Leader — Design
 
 Date: 2026-10-29
-Status: draft for approval
+Status: PR 1 (engine) built; PR 2 (app wiring) pending. Rulings recorded in D509.
+Status note (2026-10-30, final review of PR 1): the §1/§9 seeds (`0055`
+reference rows, capability triples, catalog tags) shipped in PR 1, not PR 2.
+§4's hook shipped as `onVisitClose(visit, seats, shared)`. §6's "`v_*` views
+untouched" no longer holds: migration `0053` adds `kept` to `v_game_replay`
+so a replay rebuilds a keep, and `0052` corrects `0051`'s column comment
+(a kept turn is the leader's dartless keep). Recorded in D508.
 Parent: `2026-10-27-elimination-kernel-design.md` (E1: Follow the Leader gets its own spec)
 Rules input: `docs/game-rules/rulesets/follow-the-leader.md` (V1 rows only)
 
@@ -62,7 +68,9 @@ distinct; both singles one ring). **Leader** = seat whose dart set the target.
 ## 3a. Calls from the builder check (Claude's calls)
 
 - **Stop before any match is refused** (`canStop` needs ≥1 match); the
-  validator enforces it. No voluntary life loss.
+  engine enforces it, not the validator: a validator sees only finished
+  turns and cannot tell a stop from a visit left unfinished. No voluntary
+  life loss.
 - **Closure is stored, never inferred.** The fold treats a turn as closed
   only when `completedAt` is set. The shell stamps it on: the 3rd dart; a
   Stop; a leader or opening dart that lands on the board; an off-board
@@ -74,6 +82,10 @@ distinct; both singles one ring). **Leader** = seat whose dart set the target.
 - **"Failed" means no dart of the visit matched.** A matcher that matched and
   then lost a life to an off-board last dart did not fail: it blocks a keep.
   Rules-file open question, V1 reading as stated.
+- **Replay result labels** are five: `Keep`, `Fail` (a life lost), `Retry`
+  (a setting dart off the board, no life lost), `Set`, `Match`.
+- **A leader owed a re-throw cannot keep**: `keepAllowed` also requires no
+  pending re-throw.
 - **With two seats the others-failed set is one flag.** Kernel stays N-seat.
 - **`kept`**: plan checks `06-API/00-Overview.md` and shared DTOs; a defaulted
   column is additive and safe to deploy ahead of use.

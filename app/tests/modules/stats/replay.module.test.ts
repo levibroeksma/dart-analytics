@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { getEngineFactory } from "@modules/game/engine.registry";
+import { FollowTheLeaderEngine } from "@modules/game/follow-the-leader.engine.module";
+import { foldReplay } from "@lib/stats/replay-fold";
+import { REPLAY_PRESENTERS } from "@lib/stats/replay-presenters";
+import { ReplayTurnSchema } from "@routes/statistics/types";
 import {
   decodeReplayCursor,
   encodeReplayCursor,
@@ -8,9 +12,16 @@ import {
   stageOrder,
 } from "@modules/stats/replay.module";
 import { toBase64Url } from "@modules/stats/sections/series.module";
-import type { ReplayRow, ReplayStageRow } from "@modules/types";
+import type {
+  EngineFacts,
+  FollowTheLeaderState,
+  ReplayRow,
+  ReplayStageRow,
+} from "@modules/types";
 import {
   PLAYER_ONE,
+  PLAYER_TWO,
+  replayHeader,
   playFiveOhOne,
   SCRIPTED_GAMES,
 } from "../../lib/stats/replay-games";
@@ -81,6 +92,7 @@ function row(overrides: Partial<ReplayRow> = {}): ReplayRow {
     score: 60,
     locationX: null,
     locationY: null,
+    kept: false,
     ...overrides,
   };
 }
@@ -223,6 +235,7 @@ describe("rowsToTurns", () => {
         turnSequence: 1,
         participantId: "participant-1",
         turnTotalScore: 45,
+        kept: false,
         darts: [],
       },
     ]);
@@ -272,5 +285,153 @@ describe("rowsToTurns", () => {
       row({ dartNumber: 1, score: 60, hitZoneKey: "TREBLE" }),
     ];
     expect(() => rowsToTurns(rows)).toThrow();
+  });
+});
+
+describe("a Follow the Leader keep replayed from database rows", () => {
+  const STAGE = "01900000-0000-7000-9000-000000000001";
+  const config = {
+    lives: 3 as const,
+    seats: [
+      {
+        participantRef: PLAYER_ONE.participantId,
+        displayName: PLAYER_ONE.displayName,
+        sideKey: "A",
+        participantTypeKey: "PLAYER" as const,
+      },
+      {
+        participantRef: PLAYER_TWO.participantId,
+        displayName: PLAYER_TWO.displayName,
+        sideKey: "B",
+        participantTypeKey: "GUEST" as const,
+      },
+    ],
+  };
+  const board = (
+    hitTargetNumber: number,
+    hitZoneKey: "TREBLE" | "OUTER_SINGLE" | "DOUBLE",
+  ) => ({ hitTargetNumber, hitZoneKey, locationX: null, locationY: null });
+  const INPUTS = [
+    board(18, "TREBLE"),
+    board(18, "OUTER_SINGLE"),
+    board(18, "OUTER_SINGLE"),
+    board(18, "OUTER_SINGLE"),
+    { kind: "KEEP" as const },
+    board(18, "TREBLE"),
+    { kind: "STOP" as const },
+    board(20, "DOUBLE"),
+  ];
+
+  function play() {
+    const engine = new FollowTheLeaderEngine(config);
+    const liveStates: FollowTheLeaderState[] = [];
+    for (const input of INPUTS) {
+      engine.record(input);
+      engine.facts().turns.forEach((turn, index) => {
+        if (turn.completedAt !== null && liveStates[index] === undefined)
+          liveStates[index] = engine.state();
+      });
+    }
+    return { facts: engine.facts(), liveStates };
+  }
+
+  function databaseRows(facts: EngineFacts): ReplayRow[] {
+    return facts.turns.flatMap((turn): ReplayRow[] => {
+      const base = {
+        stageId: STAGE,
+        turnSequence: turn.sequence,
+        participantId: turn.participantRef,
+        participantName: "",
+        participantTypeKey: "PLAYER",
+        turnTotalScore: turn.totalScore,
+        kept: turn.kept ?? false,
+      };
+      if (turn.darts.length === 0)
+        return [
+          {
+            ...base,
+            dartNumber: null,
+            intendedTargetNumber: null,
+            intendedZoneKey: null,
+            hitTargetNumber: null,
+            hitZoneKey: null,
+            score: null,
+            locationX: null,
+            locationY: null,
+          },
+        ];
+      return turn.darts.map((dart) => ({
+        ...base,
+        dartNumber: dart.sequence,
+        intendedTargetNumber: dart.intendedTargetNumber,
+        intendedZoneKey: dart.intendedZoneKey,
+        hitTargetNumber: dart.hitTargetNumber,
+        hitZoneKey: dart.hitZoneKey,
+        score: dart.score,
+        locationX: dart.locationX,
+        locationY: dart.locationY,
+      }));
+    });
+  }
+
+  function replayed() {
+    const { facts, liveStates } = play();
+    const turns = rowsToTurns(databaseRows(facts)).map((turn) =>
+      ReplayTurnSchema.parse(turn),
+    );
+    const header = replayHeader({
+      gameTypeKey: "FOLLOW_THE_LEADER",
+      rulesetVersionKey: "FOLLOW_THE_LEADER_V1",
+      configuration: { lives: 3, seats: config.seats },
+      participants: [PLAYER_ONE, PLAYER_TWO],
+      stages: [
+        {
+          stageId: STAGE,
+          parentStageId: null,
+          stageTypeKey: facts.stages[0]!.stageTypeKey,
+          sequence: 1,
+        },
+      ],
+    });
+    return { fold: foldReplay(header, turns), turns, liveStates };
+  }
+
+  it("carries the kept flag onto the rebuilt turn fact", () => {
+    const { turns } = replayed();
+    const facts = replayFacts([], turns);
+    expect(facts.turns.map((turn) => turn.kept)).toEqual([
+      false,
+      false,
+      true,
+      false,
+      false,
+    ]);
+  });
+
+  it("rebuilds the live engine's state after every turn, the keep included", () => {
+    const { fold, turns, liveStates } = replayed();
+    if (!fold.ok) throw new Error(`expected a fold, got ${fold.reason}`);
+    turns.forEach((_turn, index) => {
+      const rebuilt = fold.stateAfter(index) as FollowTheLeaderState;
+      expect({
+        active: rebuilt.activeParticipantRef,
+        phase: rebuilt.phase,
+      }).toEqual({
+        active: liveStates[index]!.activeParticipantRef,
+        phase: liveStates[index]!.phase,
+      });
+      expect(rebuilt).toEqual(liveStates[index]);
+    });
+  });
+
+  it("presents the stored keep as Keep, not Retry", () => {
+    const { fold } = replayed();
+    if (!fold.ok) throw new Error(`expected a fold, got ${fold.reason}`);
+    expect(
+      REPLAY_PRESENTERS.FOLLOW_THE_LEADER.turn(
+        fold.steps[2]!,
+        fold.snapshot,
+      )[1],
+    ).toEqual({ kind: "value", label: "Result", value: "Keep" });
   });
 });
