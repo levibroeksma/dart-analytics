@@ -361,9 +361,9 @@ describe("marksGameSpec", () => {
       config,
       false,
     );
-    expect(gameSpec.refusal(done)).toContain("game has ended");
+    expect(gameSpec.refusal(done, config)).toContain("game has ended");
     expect(
-      gameSpec.refusal(gameSpec.fold(factsOf(), config, false)),
+      gameSpec.refusal(gameSpec.fold(factsOf(), config, false), config),
     ).toBeNull();
   });
 
