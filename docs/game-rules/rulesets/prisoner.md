@@ -16,7 +16,8 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Config screen (presets shown) | V1 | All | |
 | Target order 1 → 20, one number at a time | V1 | All | |
 | Darts held: three each to start | V1 | All | |
-| Valid hit: outer single, double or treble of a number | V1 | All | |
+| Valid hit: outer single of a number | V1 | All | |
+| Double or treble as a valid hit | Dropped | All | User decision of 2026-10-30: only the large (outer) single counts. A double or treble is a plain miss, with no penalty. The source counts them as valid hits |
 | Prison: inner single, outer bull, inner bull | V1 | All | |
 | Prisoner: a dart in prison stays on the board and leaves the thrower's arsenal | V1 | All | |
 | Bull prisoners are out of play for good | V1 | All | |
@@ -25,7 +26,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Bounce-out or miss: the dart sits out the thrower's next visit | V1 | All | |
 | Out at zero darts held | V1 | All | |
 | Win: complete 20, or be the last seat holding darts | V1 | 2+ | |
-| Doubles Only | V2+ | 2+ | Wanted, unscheduled: a second rule for what advances a seat; V1 plays one. Outer singles and trebles would still capture |
+| Doubles Only | V2+ | 2+ | Wanted, unscheduled: a second rule for what advances a seat; V1 plays one. Outer singles would still capture |
 | Round limit | V2+ | 2+ | Wanted, unscheduled: the source suggests a time or round cap for large groups so the game ends; V1 ends only on a win |
 | First thrower by a throw at the bull | Deferred | 2+ | Blocked on: darts thrown at a target belonging to no leg are a separate capture problem (`501.md` §Features, multiplayer note) |
 | Clockwise board order as the target order | Dropped | 2+ | The source's objective says clockwise, its setup and examples play 1, 2, 3; the user decision of 2026-10-12 is numerical order. Clockwise order (1, 20, 5, 12 …) is not played |
@@ -67,7 +68,7 @@ through 20 in order, or be the last seat still holding darts.
 | Players | 2 seats (min 2, max 4) | Editable |
 | Target order | 1 → 20, numerical | Shown, locked |
 | Darts each at the start | 3 | Shown, locked |
-| What advances a seat | Outer single, double or treble; Doubles Only (V2+) | Editable (V2+) |
+| What advances a seat | Outer single; Doubles Only (V2+) | Editable (V2+) |
 
 Seat order is fixed at setup, as 501 (`501.md` §Features); seat 1 throws
 first. The source has players "throw one dart at the bullseye" to pick the
@@ -101,8 +102,9 @@ user decision 2026-10-12. Play then passes to the next seat still in.
 Let the target be the thrower's current target number, and let a number
 **hold a prisoner** when at least one imprisoned dart is lodged in it.
 
-**Valid hit.** A dart in the outer single, double or treble of a number
-(1–20). It can do two things, both at once:
+**Valid hit.** A dart in the outer single (the large segment) of a number
+(1–20). A double or treble is not a valid hit: it is a plain miss (below),
+user decision 2026-10-30. A valid hit can do two things, both at once:
 
 - **Advance:** if the number is the thrower's target, the target moves to the
   next number, and any darts still to throw this visit go at the new target.
@@ -113,7 +115,8 @@ Let the target be the thrower's current target number, and let a number
   User decision 2026-10-12: capture works on any number, not only the target.
 
 A valid hit on a number that is not the target and holds no prisoner is a
-plain miss, with no penalty. The dart is retrieved and kept.
+plain miss, with no penalty. So is a double or treble of any number. The dart
+is retrieved and kept.
 
 **Prison.** A dart in the inner single of any number, or in the outer or inner
 bull, is imprisoned. It stays in the board and leaves the thrower's darts
@@ -151,8 +154,9 @@ imprisoned per seat.
 ### Variants
 
 - **Doubles Only** — a seat advances only by hitting the double of its target.
-  Outer singles and trebles do not advance, but still capture prisoners. It
-  slows progress and imprisons more darts.
+  Outer singles do not advance, but still capture prisoners. It slows
+  progress and imprisons more darts. Under V1 a double is a plain miss; this
+  variant would make it the one dart that advances.
 
 ### Match structure
 
@@ -188,7 +192,7 @@ Prisoner is unbuilt; this is the capture shape its V1 is designed for.
 | **Prison** | V1 | The inner single of any number, and either bull; a dart there is imprisoned |
 | **Prisoner** | V1 | A dart in prison: it stays in the board and leaves its thrower's arsenal |
 | **Capture** | V1 | A valid hit on a number holding a prisoner takes one prisoner into the thrower's darts held |
-| **Valid hit** | V1 | A dart in the outer single, double or treble of a number |
+| **Valid hit** | V1 | A dart in the outer single of a number; a double or treble is a plain miss |
 | **Darts held** | V1 | Every dart a seat owns, including any sitting out |
 | **Out** | V1 | A seat holding no darts |
 | **Doubles Only** | V2+ | Only the double of the target advances a seat |
