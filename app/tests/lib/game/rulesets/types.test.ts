@@ -3,6 +3,7 @@ import {
   AroundTheClockConfig,
   BaseballConfig,
   KillerConfig,
+  FollowTheLeaderConfig,
   Bobs27Config,
   Bobs27V2Config,
   CricketConfig,
@@ -800,6 +801,24 @@ describe("KillerConfig", () => {
     expect(
       KillerConfig.safeParse({ lives: 3, seat_numbers: [5, 12] }).success,
     ).toBe(true);
+  });
+});
+
+describe("FollowTheLeaderConfig", () => {
+  it("is FOLLOW_THE_LEADER_V1's schema", () => {
+    expect(RULESET_CONFIGS.FOLLOW_THE_LEADER_V1).toBe(FollowTheLeaderConfig);
+  });
+
+  it("parses the seeded preset and defaults three lives", () => {
+    expect(FollowTheLeaderConfig.parse({ lives: 3 })).toEqual({ lives: 3 });
+    expect(FollowTheLeaderConfig.parse({})).toEqual({ lives: 3 });
+  });
+
+  it("locks three lives and no other key", () => {
+    expect(FollowTheLeaderConfig.safeParse({ lives: 5 }).success).toBe(false);
+    expect(
+      FollowTheLeaderConfig.safeParse({ lives: 3, rule: "NUMBER" }).success,
+    ).toBe(false);
   });
 });
 

@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   appendCompletedTurn,
+  appendKeptTurn,
   appendObservedDart,
   appendResolvedDart,
   cloneTurns,
@@ -13,6 +14,7 @@ import {
   openOrCreateTurn,
   openVisit,
   refuseWhenEnded,
+  reopenClosedTurn,
   resolveObservation,
   sumDartScores,
   turnsBeforeVisit,
@@ -513,5 +515,43 @@ describe("NO_INTENT", () => {
       intendedTargetNumber: null,
       intendedZoneKey: null,
     });
+  });
+});
+
+describe("appendKeptTurn", () => {
+  it("appends a closed dartless turn marked kept", () => {
+    const turns: TurnFact[] = [];
+    const turn = appendKeptTurn(turns, "block-1", "p1");
+    expect(turns).toEqual([turn]);
+    expect(turn).toMatchObject({
+      kept: true,
+      darts: [],
+      totalScore: 0,
+      sequence: 1,
+      participantRef: "p1",
+    });
+    expect(turn.completedAt).not.toBeNull();
+  });
+});
+
+describe("reopenClosedTurn", () => {
+  it("clears completedAt and leaves a single stage alone", () => {
+    const turns: TurnFact[] = [];
+    const turn = appendCompletedTurn(turns, "block-1", "p1", 5);
+    const stages: StageFact[] = [exerciseBlockStage()];
+    reopenClosedTurn(turns, stages);
+    expect(turn.completedAt).toBeNull();
+    expect(stages).toHaveLength(1);
+  });
+
+  it("pops the stage the closing record opened", () => {
+    const turns: TurnFact[] = [];
+    appendCompletedTurn(turns, "block-1", "p1", 5);
+    const stages: StageFact[] = [
+      exerciseBlockStage(),
+      { ...exerciseBlockStage(), clientKey: "block-2", sequence: 2 },
+    ];
+    reopenClosedTurn(turns, stages);
+    expect(stages.map((st) => st.clientKey)).toEqual(["block-1"]);
   });
 });

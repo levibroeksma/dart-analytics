@@ -403,6 +403,7 @@ export const RESULT_DIRECTION: Readonly<Record<GameTypeKey, ResultDirection>> =
     MICKEY_MOUSE: null,
     BASEBALL: "higher",
     KILLER: null,
+    FOLLOW_THE_LEADER: null,
   };
 
 /**

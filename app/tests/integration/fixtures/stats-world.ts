@@ -164,6 +164,12 @@ export const GAME_FIXTURES: Record<GameTypeKey, GameFixture> = {
     configuration: { lives: 3, seat_numbers: [20, 19] },
     script: UNIVERSAL_SCRIPT,
   },
+  FOLLOW_THE_LEADER: {
+    rulesetVersionKey: "FOLLOW_THE_LEADER_V1",
+    stageTypeKey: "EXERCISE_BLOCK",
+    configuration: { lives: 3 },
+    script: UNIVERSAL_SCRIPT,
+  },
 };
 
 /**

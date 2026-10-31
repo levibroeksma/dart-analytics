@@ -7,12 +7,14 @@ import type {
 } from "./interfaces";
 import {
   appendCompletedTurn,
+  appendKeptTurn,
   appendObservedDart,
   appendResolvedDart,
   cloneTurns,
   exerciseBlockStage,
   openOrCreateTurn,
   openVisit,
+  reopenClosedTurn,
   resolveObservation,
   sumDartScores,
   turnsBeforeVisit,
@@ -120,6 +122,7 @@ export function dartGameEngineClass<
 
     record(input: DartObservation | TVisit): TState {
       if (spec.visitInput?.isVisit(input)) return this.recordVisit(input);
+      if (spec.visitActions?.isAction(input)) return this.recordAction(input);
       return this.recordDart(input as DartObservation);
     }
 
@@ -139,6 +142,26 @@ export function dartGameEngineClass<
         spec.visitInput!.total(before, input),
       );
       this.numberInStage(turn);
+      this.syncStage();
+      return this.deriveState();
+    }
+
+    private recordAction(action: TVisit): TState {
+      const actions = spec.visitActions!;
+      const before = this.deriveState();
+      const open = openVisit(this.turns);
+      const refusal = actions.refusal(before, action, this.config, open);
+      if (refusal !== null) throw new Error(refusal);
+      if (actions.effect(action) === "CLOSE_VISIT")
+        open!.completedAt = new Date().toISOString();
+      else
+        this.numberInStage(
+          appendKeptTurn(
+            this.turns,
+            this.openStageKey(),
+            before.activeParticipantRef,
+          ),
+        );
       this.syncStage();
       return this.deriveState();
     }
@@ -180,10 +203,33 @@ export function dartGameEngineClass<
     }
 
     undo(): boolean {
+      const last = this.turns.at(-1);
+      if (spec.visitActions && last && this.closedByAction(last))
+        return this.undoAction(last);
       if (spec.stageFor) return undoStagedTurn(this.turns, this.stages);
       return spec.visitInput
         ? undoLastUnit(this.turns)
         : undoLastDart(this.turns);
+    }
+
+    private closedByAction(turn: TurnFact): boolean {
+      if (turn.kept) return true;
+      if (turn.completedAt === null) return false;
+      return spec.visitActions!.closedByAction(
+        turn,
+        this.foldTurns(turnsBeforeVisit(this.turns, turn)),
+        this.config,
+      );
+    }
+
+    private undoAction(last: TurnFact): boolean {
+      if (last.kept) {
+        return spec.stageFor
+          ? undoStagedTurn(this.turns, this.stages)
+          : undoLastUnit(this.turns);
+      }
+      reopenClosedTurn(this.turns, this.stages);
+      return true;
     }
 
     wouldComplete(input: DartObservation | TVisit): boolean {

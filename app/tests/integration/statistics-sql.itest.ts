@@ -45,6 +45,7 @@ const GAME_KEYS = {
   TACTICS: true,
   BASEBALL: true,
   KILLER: true,
+  FOLLOW_THE_LEADER: true,
   MICKEY_MOUSE: true,
 } satisfies Record<GameTypeKey, true>;
 const GAMES = Object.keys(GAME_KEYS) as GameTypeKey[];

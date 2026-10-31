@@ -27,6 +27,7 @@ describe("RULESET_CAPABILITIES", () => {
       "CRICKET_V1",
       "CRICKET_V2",
       "DOUBLES_TRAINING_V1",
+      "FOLLOW_THE_LEADER_V1",
       "KILLER_V1",
       "MICKEY_MOUSE_V1",
       "SCORE_TRAINING_V1",
@@ -99,6 +100,7 @@ describe("supportsMode", () => {
     "TACTICS_V2",
     "BASEBALL_V1",
     "KILLER_V1",
+    "FOLLOW_THE_LEADER_V1",
     "MICKEY_MOUSE_V1",
   ] as const)(
     "gives %s RECREATIONAL + DETAILED_DARTS, not ANALYTICS + DETAILED_DARTS",
@@ -164,6 +166,7 @@ describe("capableRulesets", () => {
       "CRICKET_V1",
       "CRICKET_V2",
       "DOUBLES_TRAINING_V1",
+      "FOLLOW_THE_LEADER_V1",
       "KILLER_V1",
       "MICKEY_MOUSE_V1",
       "SCORE_TRAINING_V1",
@@ -380,6 +383,18 @@ describe("KILLER_V1", () => {
     expect(STATS_TAGS.KILLER_V1).toEqual(["board"]);
     expect(GAME_TYPE_BY_RULESET.KILLER_V1).toBe("KILLER");
     expect(supportsDartbot("KILLER_V1")).toBe(false);
+  });
+});
+
+describe("FOLLOW_THE_LEADER_V1", () => {
+  it("declares DETAILED_DARTS and VISUAL_BOARD, the board tag, game type FOLLOW_THE_LEADER, no Dartbot", () => {
+    expect(RULESET_CAPABILITIES.FOLLOW_THE_LEADER_V1).toEqual([
+      { captureModeKey: "RECREATIONAL", inputModeKey: "DETAILED_DARTS" },
+      { captureModeKey: "ANALYTICS", inputModeKey: "VISUAL_BOARD" },
+    ]);
+    expect(STATS_TAGS.FOLLOW_THE_LEADER_V1).toEqual(["board"]);
+    expect(GAME_TYPE_BY_RULESET.FOLLOW_THE_LEADER_V1).toBe("FOLLOW_THE_LEADER");
+    expect(supportsDartbot("FOLLOW_THE_LEADER_V1")).toBe(false);
   });
 });
 

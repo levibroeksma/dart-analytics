@@ -46,6 +46,31 @@ describe("buildEventsBatch", () => {
     expect(batch.stages[0].turns[0].participantRef).toBe("participant-1");
   });
 
+  it("emits kept false when the turn omits it and the fact's kept when set", () => {
+    const base = {
+      stageClientKey: "leg-1",
+      participantRef: "participant-1",
+      completedAt: "2026-07-25T10:00:00.000Z",
+      totalScore: 0,
+      darts: [],
+    };
+    const batch = buildEventsBatch({
+      stages: [
+        {
+          clientKey: "leg-1",
+          stageTypeKey: "LEG",
+          parentClientKey: null,
+          sequence: 1,
+        },
+      ],
+      turns: [
+        { ...base, clientKey: "t1", sequence: 1 },
+        { ...base, clientKey: "t2", sequence: 2, kept: true },
+      ],
+    });
+    expect(batch.stages[0].turns.map((t) => t.kept)).toEqual([false, true]);
+  });
+
   it("carries a different participant per turn within one stage", () => {
     const batch = buildEventsBatch({
       stages: [

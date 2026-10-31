@@ -108,6 +108,7 @@ export interface BatchInsertTurn {
   participantId: string;
   sequenceNumber: number;
   totalScore: number;
+  kept: boolean;
   completedAt: string | null;
   darts: BatchInsertDart[];
 }

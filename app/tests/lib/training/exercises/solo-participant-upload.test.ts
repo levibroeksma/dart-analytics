@@ -60,4 +60,23 @@ describe("resolveSoloParticipantRef", () => {
     const result = resolveSoloParticipantRef(facts as never, "pt-real-1");
     expect(result.turns[0].participantRef).toBe("pt-other");
   });
+
+  it("carries a turn's kept through the swap", () => {
+    const facts = {
+      stages: [],
+      turns: [
+        {
+          clientKey: "t1",
+          participantRef: "solo",
+          sequence: 1,
+          totalScore: 0,
+          completedAt: null,
+          kept: true,
+          darts: [],
+        },
+      ],
+    };
+    const result = resolveSoloParticipantRef(facts as never, "pt-real-1");
+    expect(result.turns[0].kept).toBe(true);
+  });
 });

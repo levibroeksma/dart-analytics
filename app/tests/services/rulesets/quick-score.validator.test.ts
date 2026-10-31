@@ -17,6 +17,7 @@ function batchWithTurns(
           participantRef: turn.participantRef,
           sequence: i + 1,
           totalScore: turn.totalScore,
+          kept: false,
           completedAt: null,
           darts: [] as DartFactInput[],
         })),

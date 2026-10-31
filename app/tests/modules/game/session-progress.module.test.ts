@@ -12,6 +12,7 @@ import { cricketEngineFactory } from "@modules/game/cricket.engine.module";
 import { tacticsEngineFactory } from "@modules/game/tactics.engine.module";
 import { mickeyMouseEngineFactory } from "@modules/game/mickey-mouse.engine.module";
 import { killerEngineFactory } from "@modules/game/killer.engine.module";
+import { followTheLeaderEngineFactory } from "@modules/game/follow-the-leader.engine.module";
 import { baseballEngineFactory } from "@modules/game/baseball.engine.module";
 import { scoreTrainingEngineFactory } from "@modules/game/score-training.engine.module";
 import { singlesTrainingEngineFactory } from "@modules/game/singles-training.engine.module";
@@ -901,6 +902,75 @@ describe("summarizeProgress — KILLER_V1", () => {
     ]);
     expect(summarizeProgress("KILLER_V1", config, afterHit)).toEqual({
       detail: "1v1 · Not Killer",
+      big: { value: "2", label: "LIVES" },
+    });
+  });
+});
+
+describe("summarizeProgress — FOLLOW_THE_LEADER_V1", () => {
+  const config = {
+    seats: [
+      {
+        participantRef: "p1",
+        displayName: "L",
+        sideKey: "A",
+        participantTypeKey: "PLAYER" as const,
+      },
+      {
+        participantRef: "p2",
+        displayName: "G",
+        sideKey: "B",
+        participantTypeKey: "GUEST" as const,
+      },
+    ],
+    lives: 3 as const,
+  };
+
+  it("opens on the first seat's lives", () => {
+    expect(
+      summarizeProgress("FOLLOW_THE_LEADER_V1", config, EMPTY_FACTS),
+    ).toEqual({
+      detail: "1v1 · Follow the Leader",
+      big: { value: "3", label: "LIVES" },
+    });
+  });
+
+  const sd = (number: number) => ({
+    hitTargetNumber: number,
+    hitZoneKey: "OUTER_SINGLE" as const,
+    locationX: null,
+    locationY: null,
+  });
+  const opened = {
+    hitTargetNumber: 18,
+    hitZoneKey: "TREBLE" as const,
+    locationX: null,
+    locationY: null,
+  };
+
+  it("a failed matcher visit costs a life; the leader's lives still show", () => {
+    const facts = factsAfter(followTheLeaderEngineFactory, config, [
+      opened,
+      sd(18),
+      sd(18),
+      sd(18),
+    ]);
+    expect(summarizeProgress("FOLLOW_THE_LEADER_V1", config, facts)).toEqual({
+      detail: "1v1 · Follow the Leader",
+      big: { value: "3", label: "LIVES" },
+    });
+  });
+
+  it("a kept target hands the visit back to the matcher at their reduced lives", () => {
+    const facts = factsAfter(followTheLeaderEngineFactory, config, [
+      opened,
+      sd(18),
+      sd(18),
+      sd(18),
+      { kind: "KEEP" as const },
+    ]);
+    expect(summarizeProgress("FOLLOW_THE_LEADER_V1", config, facts)).toEqual({
+      detail: "1v1 · Follow the Leader",
       big: { value: "2", label: "LIVES" },
     });
   });

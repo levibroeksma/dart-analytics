@@ -28,6 +28,33 @@ describe("rejectSeatRequest", () => {
     );
   });
 
+  it("refuses an omitted seat list for FOLLOW_THE_LEADER_V1", () => {
+    expect(rejectSeatRequest(undefined, "FOLLOW_THE_LEADER_V1")).toBe(
+      "FOLLOW_THE_LEADER_V1 needs at least 2 seats.",
+    );
+  });
+
+  it("refuses a lone PLAYER seat for FOLLOW_THE_LEADER_V1", () => {
+    expect(rejectSeatRequest([player], "FOLLOW_THE_LEADER_V1")).toBe(
+      "FOLLOW_THE_LEADER_V1 needs at least 2 seats.",
+    );
+  });
+
+  it("accepts PLAYER + GUEST for FOLLOW_THE_LEADER_V1", () => {
+    expect(
+      rejectSeatRequest([player, guest], "FOLLOW_THE_LEADER_V1"),
+    ).toBeNull();
+  });
+
+  it("refuses three seats for FOLLOW_THE_LEADER_V1", () => {
+    expect(
+      rejectSeatRequest(
+        [player, guest, { ...guest, sideKey: "C" }],
+        "FOLLOW_THE_LEADER_V1",
+      ),
+    ).toBe("FOLLOW_THE_LEADER_V1 supports at most 2 seats.");
+  });
+
   it("accepts PLAYER + GUEST for KILLER_V1", () => {
     expect(rejectSeatRequest([player, guest], "KILLER_V1")).toBeNull();
   });

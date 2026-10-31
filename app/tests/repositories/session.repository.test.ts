@@ -365,12 +365,48 @@ describe("insertBatchRecords", () => {
           participantId: "p1",
           sequenceNumber: 1,
           totalScore: 45,
+          kept: false,
           completedAt: null,
           darts: [],
         },
       ],
     });
     expect(result).toEqual({ stages: 1, turns: 1, darts: 0 });
+  });
+
+  it("passes kept through into the turns insert", async () => {
+    const { turns } = await import("@db/schema");
+    const { insertBatchRecords } =
+      await import("@repositories/session.repository");
+    insertedValuesByTable.clear();
+    await insertBatchRecords({
+      sessionId: "s1",
+      idempotencyRecordId: "idem-row-k",
+      idempotencyKey: "idem-k",
+      normalizedPayloadHash: "hash-k",
+      stages: [
+        {
+          id: "stage-1",
+          parentStageId: null,
+          stageTypeId: 5,
+          sequenceNumber: 1,
+        },
+      ],
+      turns: [
+        {
+          id: "turn-1",
+          stageId: "stage-1",
+          participantId: "p1",
+          sequenceNumber: 1,
+          totalScore: 0,
+          kept: true,
+          completedAt: null,
+          darts: [],
+        },
+      ],
+    });
+    const rows = insertedValuesByTable.get(turns) as { kept: boolean }[];
+    expect(rows[0].kept).toBe(true);
   });
 
   it("resolves with zero counts for an empty batch", async () => {
@@ -420,6 +456,7 @@ describe("insertBatchRecords", () => {
           participantId: "p1",
           sequenceNumber: 1,
           totalScore: 60,
+          kept: false,
           completedAt: null,
           darts: [
             {
@@ -478,6 +515,7 @@ describe("insertBatchRecords", () => {
           participantId: "p2",
           sequenceNumber: 1,
           totalScore: 50,
+          kept: false,
           completedAt: null,
           darts: [
             {
@@ -536,6 +574,7 @@ describe("insertBatchRecords", () => {
           participantId: "p3",
           sequenceNumber: 1,
           totalScore: 0,
+          kept: false,
           completedAt: null,
           darts: [
             {

@@ -8,6 +8,7 @@ app/src/modules/game/bobs27.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-
 app/src/modules/game/cricket.engine.module.ts | MARKS | KERNEL_BOUND | docs/game-rules/rulesets/cricket.md |
 app/src/modules/game/doubles-training.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/rulesets/doubles-training.md |
 app/src/modules/game/five-oh-one.engine.module.ts | HAND_WRITTEN | HAND_WRITTEN | docs/game-rules/rulesets/501.md | sets/legs match format (umbrella spec §5)
+app/src/modules/game/follow-the-leader.engine.module.ts | ELIMINATION | KERNEL_BOUND | docs/game-rules/rulesets/follow-the-leader.md |
 app/src/modules/game/killer.engine.module.ts | ELIMINATION | KERNEL_BOUND | docs/game-rules/rulesets/killer.md |
 app/src/modules/game/one-twenty-one.engine.module.ts | CHECKOUT | KERNEL_BOUND | docs/game-rules/rulesets/121.md | Checkout kernel
 app/src/modules/game/score-training.engine.module.ts | VISIT_POINTS | KERNEL_BOUND | docs/game-rules/rulesets/score-training.md |

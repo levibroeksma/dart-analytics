@@ -492,6 +492,7 @@ export async function insertBatchRecords(
           participantId: turn.participantId,
           sequenceNumber: turn.sequenceNumber,
           totalScore: turn.totalScore,
+          kept: turn.kept,
           completedAt: turn.completedAt,
           createdAt: now,
         })),

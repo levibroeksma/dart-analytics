@@ -1831,6 +1831,7 @@ function makeReplayTotalOnlyRow(overrides: Partial<ReplayRow> = {}): ReplayRow {
     score: null,
     locationX: null,
     locationY: null,
+    kept: false,
     ...overrides,
   };
 }
@@ -2303,6 +2304,7 @@ function makeSwitchingFoldRow(overrides: Record<string, unknown> = {}) {
     score: 3,
     locationX: null,
     locationY: null,
+    kept: false,
     bucketStart: "2026-01-01T00:00:00.000Z",
     bucketEnd: "2026-02-01T00:00:00.000Z",
     ...overrides,

@@ -4,6 +4,7 @@ import {
   ParticipantInput,
   ParticipantRef,
   SessionActive,
+  TurnFact,
 } from "@routes/sessions/types";
 
 const config = {
@@ -236,5 +237,28 @@ describe("SessionActive", () => {
     expect(
       SessionActive.safeParse({ ...gameSession, sessionId: undefined }).success,
     ).toBe(false);
+  });
+});
+
+describe("TurnFact kept", () => {
+  const turn = {
+    clientKey: "t1",
+    participantRef: "p1",
+    sequence: 1,
+    totalScore: 45,
+    completedAt: null,
+    darts: [],
+  };
+
+  it("parses a turn without kept as false", () => {
+    expect(TurnFact.parse(turn).kept).toBe(false);
+  });
+
+  it("keeps an explicit kept true", () => {
+    expect(TurnFact.parse({ ...turn, kept: true }).kept).toBe(true);
+  });
+
+  it("rejects a non-boolean kept", () => {
+    expect(TurnFact.safeParse({ ...turn, kept: "yes" }).success).toBe(false);
   });
 });

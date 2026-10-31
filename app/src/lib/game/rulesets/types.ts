@@ -493,6 +493,13 @@ export const KillerConfig = z
   })
   .strict();
 
+/** Follow the Leader V1: three lives each, locked; defaults so the seeded preset parses. */
+export const FollowTheLeaderConfig = z
+  .object({
+    lives: z.literal(3).default(3),
+  })
+  .strict();
+
 export type RulesetVersionKey =
   | "SCORE_TRAINING_V1"
   | "BOBS27_V1"
@@ -518,6 +525,7 @@ export type RulesetVersionKey =
   | "TACTICS_V2"
   | "BASEBALL_V1"
   | "KILLER_V1"
+  | "FOLLOW_THE_LEADER_V1"
   | "MICKEY_MOUSE_V1";
 
 /** A game page's route segment (`10-Statistics/00-Overview.md` §6): one key per game, spanning its ruleset versions. */
@@ -535,6 +543,7 @@ export type GameTypeKey =
   | "TACTICS"
   | "BASEBALL"
   | "KILLER"
+  | "FOLLOW_THE_LEADER"
   | "MICKEY_MOUSE";
 
 /** A fact tag a ruleset version's engine produces (`10-Statistics/00-Overview.md` §3). */
@@ -573,6 +582,7 @@ export const RULESET_CONFIGS: Record<RulesetVersionKey, z.ZodTypeAny> = {
   TACTICS_V2: TacticsConfig,
   BASEBALL_V1: BaseballConfig,
   KILLER_V1: KillerConfig,
+  FOLLOW_THE_LEADER_V1: FollowTheLeaderConfig,
   MICKEY_MOUSE_V1: MickeyMouseConfig,
 };
 
@@ -590,6 +600,8 @@ export type ShanghaiV2ConfigData = z.infer<typeof ShanghaiV2Config>;
 export type ShanghaiV3ConfigData = z.infer<typeof ShanghaiV3Config>;
 
 export type KillerConfigData = z.infer<typeof KillerConfig>;
+
+export type FollowTheLeaderConfigData = z.infer<typeof FollowTheLeaderConfig>;
 
 export type ScoreTrainingSnapshot = {
   durationType: ScoreTrainingConfigData["duration_type"];
@@ -749,6 +761,11 @@ export type KillerSnapshot = {
   seatNumbers: KillerConfigData["seat_numbers"];
 };
 
+/** Follow the Leader V1: the lives each seat starts on. */
+export type FollowTheLeaderSnapshot = {
+  lives: FollowTheLeaderConfigData["lives"];
+};
+
 export type ConfigSnapshotFor<K extends RulesetVersionKey> =
   K extends "SCORE_TRAINING_V1"
     ? ScoreTrainingSnapshot
@@ -790,9 +807,11 @@ export type ConfigSnapshotFor<K extends RulesetVersionKey> =
                                         ? TacticsSnapshot
                                         : K extends "KILLER_V1"
                                           ? KillerSnapshot
-                                          : K extends "MICKEY_MOUSE_V1"
-                                            ? MickeyMouseSnapshot
-                                            : BaseballSnapshot;
+                                          : K extends "FOLLOW_THE_LEADER_V1"
+                                            ? FollowTheLeaderSnapshot
+                                            : K extends "MICKEY_MOUSE_V1"
+                                              ? MickeyMouseSnapshot
+                                              : BaseballSnapshot;
 
 /**
  * One boundary probe: a complete, parseable config plus the label the contract

@@ -27,6 +27,7 @@ function batchWithTurns(darts: DartFactInput[][]) {
           participantRef: i % 2 === 0 ? "p1" : "p2",
           sequence: i + 1,
           totalScore: turnDarts.reduce((sum, dart) => sum + dart.score, 0),
+          kept: false,
           completedAt: null,
           darts: turnDarts,
         })),

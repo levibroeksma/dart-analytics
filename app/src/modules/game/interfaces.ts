@@ -4,10 +4,12 @@ import type {
   DartIntent,
   CheckoutSeat,
   DartObservation,
+  ClosedVisit,
   EliminationSeat,
   EngineFacts,
   JudgedDart,
   SeatChange,
+  VisitOutcome,
   ShellState,
   StageFact,
   StageOwnership,
@@ -80,6 +82,25 @@ export interface DartGameVisitInput<
   total(state: TState, input: TVisit): number;
 }
 
+/** Whole-visit actions a spec accepts besides darts: close the open visit, or keep a turn without throwing. */
+export interface DartGameVisitActions<
+  TConfig,
+  TState extends ShellState,
+  TAction,
+> {
+  isAction(input: DartObservation | TAction): input is TAction;
+  /** Why the action is refused now, or `null`; `open` is the turn still taking darts. */
+  refusal(
+    state: TState,
+    action: TAction,
+    config: TConfig,
+    open: TurnFact | null,
+  ): string | null;
+  effect(action: TAction): "CLOSE_VISIT" | "KEEP_TURN";
+  /** True when `turn` was closed by an action, not by its own darts; `before` is the state folded from the turns preceding it. */
+  closedByAction(turn: TurnFact, before: TState, config: TConfig): boolean;
+}
+
 /**
  * What a single-stage, dart-input engine decides; everything else — the log,
  * keys, `completedAt`, undo, rehydration — is the shell's (Pattern 18).
@@ -118,6 +139,8 @@ export interface DartGameSpec<
   ): number;
   /** Visit-total input; also switches `undo()` to pop a whole dartless turn. */
   readonly visitInput?: DartGameVisitInput<TConfig, TState, TVisit>;
+  /** Close-visit and keep-turn actions; `undo()` reverses each. */
+  readonly visitActions?: DartGameVisitActions<TConfig, TState, TVisit>;
   /** Darts resolve from their coordinates (`resolveObservation`) and carry no intent; an open turn's `totalScore` is never written, so only `closedVisitTotal` sets it. */
   readonly coordinateCapture?: boolean;
   /** An open turn's `totalScore` is its darts' board-score sum after every dart, in either capture mode; `closedVisitTotal` still settles it at close. */
@@ -201,7 +224,7 @@ export interface VisitPointsRules {
  * starting `ext`, and every change one dart causes, judged on the seats as
  * they stand before it.
  */
-export interface EliminationRules<TExt> {
+export interface EliminationRules<TExt, TShared = undefined> {
   readonly startingLives: number;
   initExt(seat: SeatFact, index: number): TExt;
   onDart(
@@ -209,4 +232,14 @@ export interface EliminationRules<TExt> {
     seats: readonly EliminationSeat<TExt>[],
     dart: DartObservation,
   ): readonly SeatChange<TExt>[];
+  initShared?(seats: readonly SeatFact[]): TShared;
+  onVisitClose?(
+    visit: ClosedVisit,
+    seats: readonly EliminationSeat<TExt>[],
+    shared: TShared,
+  ): VisitOutcome<TExt, TShared>;
+  activeOverride?(
+    seats: readonly EliminationSeat<TExt>[],
+    shared: TShared,
+  ): string | null;
 }

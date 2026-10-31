@@ -1,0 +1,40 @@
+---
+import ResultsModalShell from "@components/layout/games/ResultsModalShell.astro";
+import ComparisonSummary from "@components/layout/games/ComparisonSummary.astro";
+
+const STAT_ROWS = [
+  { label: "Lives left", key: "livesLeft", hero: true, skeletonWidth: "w-8" },
+] as const;
+
+const WINNER_EXPR =
+  "resultsSnapshot?.seats?.findIndex((seat) => seat.sideKey === resultsSnapshot?.winningSideKey) ?? -1";
+---
+
+<ResultsModalShell overline="Follow the Leader · Summary">
+  <h2
+    slot="title"
+    id="results-title"
+    class="text-balance font-display text-xl text-foreground"
+    x-text="resultsTitle()"
+  >
+  </h2>
+
+  <ComparisonSummary
+    statRows={STAT_ROWS}
+    winnerExpr={WINNER_EXPR}
+  />
+  <div
+    class="flex w-full items-baseline justify-between gap-4"
+    x-show="outOrderLabel() !== ''"
+    x-cloak
+  >
+    <span
+      class="font-mono text-eyebrow font-semibold uppercase text-muted-foreground"
+      >Out order</span
+    >
+    <span
+      class="text-right text-sm text-foreground"
+      x-text="outOrderLabel()"
+    ></span>
+  </div>
+</ResultsModalShell>

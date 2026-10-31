@@ -40,7 +40,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
   set — 20–15, Doubles, Triples and bull, with points and an auto rule instead
   of a double-dip. Mickey Mouse stays its own ruleset, not a Tactics variant:
   the objective set, the double-dip and the absence of points all differ
-  (D507).
+  (D512).
 - Standard dartboard scoring is assumed.
 
 ## Tags
@@ -88,7 +88,7 @@ Up to **three darts**, then play passes.
   simultaneously" — a treble 20 closes 20 and marks Triples.
 - A double or treble on a number already closed still marks Doubles or
   Triples; closing a number never switches a ring category off. On 1–11 it
-  marks only the category (D507).
+  marks only the category (D512).
 - Marks past three on a closed category are lost.
 
 ### Ends when

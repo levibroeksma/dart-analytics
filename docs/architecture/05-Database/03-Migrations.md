@@ -2,7 +2,7 @@
 status: canonical
 scope: database/migrations
 read-when: adding migrations, understanding the chain
-updated: 2026-10-19
+updated: 2026-10-30
 -->
 
 # Database Migration Strategy
@@ -1161,6 +1161,36 @@ Contains:
 - `fk_exercise_templates_difficulty_tag` replaced by the composite `(difficulty_tag_id, difficulty_tag_axis_id)` → `tags (id, tag_axis_id)` (RESTRICT). `MATCH SIMPLE` skips the check when the tag is `NULL`, so a template without its own difficulty is unaffected.
 
 No data change: seed `0043` sets only DIFFICULTY tags. `migrate:down` restores the single-column foreign key and drops the column and the unique constraint. Applied; `app/tests/integration/template-difficulty-axis.itest.ts` proves a non-DIFFICULTY tag is rejected, a DIFFICULTY tag and `NULL` are accepted, and the generated column equals the seeded axis id. <!-- 2026-10-24 -->
+
+## 0051_turns_kept.sql
+
+Store whether a visit was kept (Follow the Leader). <!-- 2026-10-29 -->
+
+Contains:
+
+- `turns.kept BOOLEAN NOT NULL DEFAULT false`, with a column comment; no CHECK.
+
+No data change: every existing turn reads `false`, as does an upload from a client that omits `kept`. `migrate:down` drops the column. Proved on a scratch Postgres 16 built from the chain (apply, rollback, re-apply, `db:drift:ci`, `db:verify:ci`). <!-- 2026-10-29 -->
+
+## 0052_turns_kept_comment.sql
+
+Correct the meaning `0051`'s column comment gave `turns.kept`. A kept turn is the Follow the Leader leader's dartless keep: when every other seat failed the target, the leader keeps it unchanged instead of throwing; it has no darts and `total_score` 0. `0051` described it as a visit that matched the leader. `0051` is not edited in place (applied-migration rule; no `db:status`/`db:status:prod` proof was available for the D344 carve-out). <!-- 2026-10-30 -->
+
+Contains:
+
+- `COMMENT ON COLUMN turns.kept` replaced; no column, data, constraint or view change.
+
+`migrate:down` restores `0051`'s comment text. Proved on a scratch Postgres 16 built from the chain (migrate, seed, migrate, rollback, re-apply). <!-- 2026-10-30 -->
+
+## 0053_replay_view_kept.sql
+
+Widen `v_game_replay` with the turn's `kept` flag, so the statistics replay rebuilds a stored keep as a keep rather than an empty visit (which replayed as a re-thrown setting dart, with the wrong active seat and phase from that turn on). <!-- 2026-10-30 -->
+
+Contains:
+
+- rewritten `v_game_replay` (`CREATE OR REPLACE`): adds `kept` last, after `location_y`; no new join, row count unchanged, still unfiltered by participant.
+
+`migrate:down` drops the view and recreates `0044`'s definition. `database/verification/0053_replay_view_kept_checks.sql` (4 checks) passed on the scratch database, as did `db:drift:ci`. <!-- 2026-10-30 -->
 
 # Schema Changes
 

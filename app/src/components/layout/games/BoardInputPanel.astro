@@ -41,6 +41,8 @@
  *   defaults to the active VISUAL_BOARD game session, unpaused and unfinished
  * @param {string} [undoDisabledExpr] Alpine expression that disables undo;
  *   defaults to no turns in the `game` store
+ * @slot actions Extra keys after undo and Bounce out in the bottom row,
+ *   which then takes three columns
  */
 
 // Components
@@ -53,6 +55,9 @@ import BotVisitStrip from "@components/layout/games/BotVisitStrip.astro";
 // Icons
 import UndoIcon from "@icons/undo.svg";
 
+// Lib
+import { cn } from "@client/cn";
+
 interface Props {
   showExpr?: string;
   undoDisabledExpr?: string;
@@ -63,6 +68,12 @@ const {
   showExpr = "!finished && !$store.game.timerPaused && hasActiveSession && $store.game.inputModeKey === 'VISUAL_BOARD'",
   undoDisabledExpr = "!$store.game.turns.length",
 }: Props = Astro.props;
+
+// Styles
+const actionsClass = cn(
+  "grid h-14 w-full shrink-0 gap-2",
+  Astro.slots.has("actions") ? "grid-cols-3" : "grid-cols-2",
+);
 ---
 
 <div
@@ -117,7 +128,7 @@ const {
     </div>
   </div>
 
-  <div class="grid h-14 w-full shrink-0 grid-cols-2 gap-2">
+  <div class={actionsClass}>
     <InputButton
       variant="muted"
       aria-label="Undo dart"
@@ -132,5 +143,6 @@ const {
     >
       Bounce out
     </InputButton>
+    <slot name="actions" />
   </div>
 </div>

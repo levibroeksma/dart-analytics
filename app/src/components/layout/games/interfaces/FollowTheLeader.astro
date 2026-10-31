@@ -1,0 +1,122 @@
+---
+/**
+ * Follow the Leader's play interface for both input modes. Above the input:
+ * the target banner, the leader badge and the off-hand notice on the
+ * opening dart. At a leader's turn with a legal keep, the Keep/Set prompt
+ * (with undo) replaces the input — the tap pad or the visual board — until
+ * Set is chosen. A keypad session gets `FollowTheLeaderRecreationalInput`;
+ * a visual-board session gets a Stop key in the board's bottom row.
+ */
+interface Props {
+  [key: string]: unknown;
+}
+
+// Props
+const { ...props }: Props = Astro.props;
+
+// Components
+import SeatedPlayScreen from "@components/layout/games/SeatedPlayScreen.astro";
+import VisitPreview from "@components/layout/games/VisitPreview.astro";
+import InputButton from "@components/layout/games/InputButton.astro";
+import FollowTheLeaderRecreationalInput from "@components/layout/games/FollowTheLeaderRecreationalInput.astro";
+import Badge from "@components/ui/Badge.astro";
+
+// Icons
+import UndoIcon from "@icons/undo.svg";
+---
+
+<SeatedPlayScreen
+  big={{ isTarget: false, value: (c) => c("livesLabel") }}
+  tiles={[{ label: "Status", value: (c) => c("statusLabel") }]}
+  idle={{ label: "Status", value: (c) => c("statusLabel") }}
+  boardShowExpr="showBoard()"
+  {...props}
+>
+  <div
+    slot="boardActions"
+    class="contents"
+    aria-live="polite"
+  >
+    <InputButton
+      class="font-sans text-control font-medium uppercase text-accent"
+      aria-label="Stop throwing this visit"
+      :disabled="finished || !canStop()"
+      @click="stop()"
+    >
+      Stop
+    </InputButton>
+  </div>
+
+  <VisitPreview />
+
+  <div
+    class="glass flex min-h-0 flex-col gap-2 rounded-board p-2.5"
+    :class="showBoard() ? 'shrink-0' : 'flex-1'"
+  >
+    <div class="flex items-baseline justify-between gap-3">
+      <div class="flex flex-col">
+        <span
+          class="font-mono text-eyebrow font-semibold uppercase text-muted-foreground"
+          >Target</span
+        >
+        <span
+          class="font-display text-xl text-foreground"
+          x-text="targetLabel() || '—'"
+        ></span>
+      </div>
+      <Badge
+        class="font-mono text-eyebrow uppercase"
+        x-show="leaderName() !== ''"
+        x-cloak
+        x-text="'Leader · ' + leaderName()"
+      />
+    </div>
+    <p
+      class="text-sm text-muted-foreground"
+      x-show="openingNotice() !== ''"
+      x-cloak
+      x-text="openingNotice()"
+    >
+    </p>
+    <div
+      class="flex min-h-0 flex-1 flex-col gap-3"
+      aria-live="polite"
+      x-show="showKeepPrompt()"
+      x-cloak
+    >
+      <p class="text-center text-sm text-foreground">
+        Everyone failed. Keep or set?
+      </p>
+      <div class="grid min-h-0 flex-1 grid-cols-5 gap-2">
+        <InputButton
+          variant="muted"
+          aria-label="Undo last dart"
+          :disabled="!$store.game.turns.length || finished"
+          @click="undoVisit()"
+        >
+          <UndoIcon class="size-6 text-muted-foreground" />
+        </InputButton>
+        <InputButton
+          class="col-span-2 text-2xl uppercase"
+          aria-label="Keep the target"
+          :disabled="finished"
+          @click="keep()"
+        >
+          Keep
+        </InputButton>
+        <InputButton
+          class="col-span-2 text-2xl uppercase"
+          aria-label="Set a new target"
+          :disabled="finished"
+          @click="chooseSet()"
+        >
+          Set
+        </InputButton>
+      </div>
+    </div>
+    <FollowTheLeaderRecreationalInput
+      x-show="showTapPad()"
+      x-cloak
+    />
+  </div>
+</SeatedPlayScreen>
