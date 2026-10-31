@@ -169,6 +169,12 @@ describe("MickeyMouseEngine", () => {
     expect(engine.state().seats[0].marks[IDX.DOUBLES]).toBe(1);
   });
 
+  it("scores no points, whatever the spare marks", () => {
+    const engine = newEngine();
+    recordAll(engine, [T(20), T(20), T(20)]);
+    expect(engine.state().seats[0].points).toBe(0);
+  });
+
   it("a single and a miss mark nothing", () => {
     const engine = newEngine();
     recordAll(engine, [S(7), MISS]);

@@ -105,7 +105,7 @@ function initialSeatState(seat: {
 }
 
 /** Mickey Mouse as marks rules: no points anywhere, the dip as a second mark. */
-export const MICKEY_MOUSE_RULES: MarksRules<MickeyMouseSeatState> = {
+const MICKEY_MOUSE_RULES: MarksRules<MickeyMouseSeatState> = {
   initialSeat: initialSeatState,
   hitOf: (_seat, _opponent, observation) => mickeyMouseMarksOf(observation),
   dipOf: (_seat, observation) => mickeyMouseDipOf(observation),
