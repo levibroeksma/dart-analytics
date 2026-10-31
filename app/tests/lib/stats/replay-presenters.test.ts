@@ -1,3 +1,4 @@
+import { zoneCentroid } from "@lib/game/board/board-geometry.module";
 import { describe, expect, it } from "vitest";
 import { boardTargetLabel } from "@modules/game/board-progression.module";
 import { foldReplay } from "@lib/stats/replay-fold";
@@ -8,6 +9,10 @@ import {
   initialBaseballState,
 } from "@modules/game/baseball.engine.module";
 import { KillerEngine } from "@modules/game/killer.engine.module";
+import {
+  foldPrisonerState,
+  PrisonerEngine,
+} from "@modules/game/prisoner.engine.module";
 import {
   foldFollowTheLeaderState,
   FollowTheLeaderEngine,
@@ -33,6 +38,7 @@ import {
   playFiveOhOne,
   playNineLives,
   playOneTwentyOne,
+  playPrisoner,
   playScoreTraining,
   playShanghai,
   playShanghaiRange,
@@ -826,6 +832,137 @@ describe("REPLAY_PRESENTERS.FOLLOW_THE_LEADER", () => {
     expect(line.entries).toEqual([
       { participantId: "p1", label: "Lives", value: "3" },
       { participantId: "p2", label: "Lives", value: "2" },
+    ]);
+  });
+});
+
+describe("REPLAY_PRESENTERS.PRISONER", () => {
+  const config = {
+    darts: 3 as const,
+    seats: [
+      {
+        participantRef: "p1",
+        displayName: "L",
+        sideKey: "A",
+        participantTypeKey: "PLAYER" as const,
+      },
+      {
+        participantRef: "p2",
+        displayName: "G",
+        sideKey: "B",
+        participantTypeKey: "GUEST" as const,
+      },
+    ],
+  };
+  const located = (
+    n: number,
+    zone: "OUTER_SINGLE" | "INNER_SINGLE" | "DOUBLE",
+  ) => {
+    const point = zoneCentroid(n, zone);
+    if (!point) throw new Error("no centroid");
+    return {
+      hitTargetNumber: n,
+      hitZoneKey: zone,
+      locationX: point.x,
+      locationY: point.y,
+    };
+  };
+  const miss = {
+    hitTargetNumber: null,
+    hitZoneKey: "MISS" as const,
+    locationX: null,
+    locationY: null,
+  };
+  const bull = {
+    hitTargetNumber: 25,
+    hitZoneKey: "OUTER_BULL" as const,
+    locationX: 10,
+    locationY: 0,
+  };
+
+  function steps() {
+    const engine = new PrisonerEngine(config);
+    for (const input of [
+      located(1, "INNER_SINGLE"),
+      located(1, "OUTER_SINGLE"),
+      located(2, "OUTER_SINGLE"),
+      located(1, "OUTER_SINGLE"),
+      miss,
+      bull,
+      located(3, "OUTER_SINGLE"),
+      located(4, "OUTER_SINGLE"),
+      located(5, "INNER_SINGLE"),
+      located(5, "OUTER_SINGLE"),
+    ])
+      engine.record(input);
+    const { stages, turns } = engine.facts();
+    return turns.map((turn, i) => ({
+      turn,
+      before: foldPrisonerState({ stages, turns: turns.slice(0, i) }, config),
+      after: foldPrisonerState(
+        { stages, turns: turns.slice(0, i + 1) },
+        config,
+      ),
+    }));
+  }
+
+  it("shows the thrower's darts held after the visit and what each dart did", () => {
+    const cells = steps().map((step) =>
+      REPLAY_PRESENTERS.PRISONER.turn(step, config),
+    );
+    expect(cells).toEqual([
+      [
+        { kind: "value", label: "Darts", value: "3" },
+        {
+          kind: "value",
+          label: "Result",
+          value: "Prison, Advance and capture, Advance",
+        },
+      ],
+      [
+        { kind: "value", label: "Darts", value: "2" },
+        { kind: "value", label: "Result", value: "Advance, Miss, Prison" },
+      ],
+      [
+        { kind: "value", label: "Darts", value: "2" },
+        { kind: "value", label: "Result", value: "Advance, Advance, Prison" },
+      ],
+      [
+        { kind: "value", label: "Darts", value: "3" },
+        { kind: "value", label: "Result", value: "Capture" },
+      ],
+    ]);
+  });
+
+  it("replays a stored game to the live engine's state after every visit", () => {
+    const game = playPrisoner();
+    const fold = folded(game);
+    expect(fold.steps.map((step) => step.after)).toEqual(game.liveStates);
+    expect(valuesOf(turnCells(game), "Darts")).toEqual([
+      "3",
+      "2",
+      "2",
+      "3",
+      "2",
+      "3",
+      "3",
+    ]);
+    expect(valuesOf(turnCells(game), "Result")).toEqual([
+      "Prison, Advance and capture, Advance",
+      "Advance, Miss, Prison",
+      "Advance, Advance, Prison",
+      "Capture",
+      "Miss, Miss",
+      "Miss, Miss, Miss",
+      "Advance, Advance, Advance",
+    ]);
+  });
+
+  it("ends the session line on darts held", () => {
+    const line = REPLAY_PRESENTERS.PRISONER.session(steps(), config);
+    expect(line.entries).toEqual([
+      { participantId: "p1", label: "Darts", value: "2" },
+      { participantId: "p2", label: "Darts", value: "3" },
     ]);
   });
 });

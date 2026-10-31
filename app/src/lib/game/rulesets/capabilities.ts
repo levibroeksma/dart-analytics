@@ -62,6 +62,7 @@ export const RULESET_CAPABILITIES: Readonly<
   BASEBALL_V1: [DETAILED_DARTS, VISUAL_BOARD],
   KILLER_V1: [DETAILED_DARTS, VISUAL_BOARD],
   FOLLOW_THE_LEADER_V1: [DETAILED_DARTS, VISUAL_BOARD],
+  PRISONER_V1: [VISUAL_BOARD],
 };
 
 /**
@@ -102,6 +103,7 @@ export const STATS_TAGS: Readonly<
   BASEBALL_V1: ["board"],
   KILLER_V1: ["board"],
   FOLLOW_THE_LEADER_V1: ["board"],
+  PRISONER_V1: ["board"],
 };
 
 /** Which game page (`10-Statistics/00-Overview.md` §6 `:gameTypeKey`) each ruleset version belongs to. */
@@ -133,6 +135,7 @@ export const GAME_TYPE_BY_RULESET: Readonly<
   BASEBALL_V1: "BASEBALL",
   KILLER_V1: "KILLER",
   FOLLOW_THE_LEADER_V1: "FOLLOW_THE_LEADER",
+  PRISONER_V1: "PRISONER",
 };
 
 const GAME_TYPE_KEYS: readonly GameTypeKey[] = Array.from(

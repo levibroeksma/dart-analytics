@@ -164,6 +164,12 @@ export const GAME_FIXTURES: Record<GameTypeKey, GameFixture> = {
     configuration: { lives: 3 },
     script: UNIVERSAL_SCRIPT,
   },
+  PRISONER: {
+    rulesetVersionKey: "PRISONER_V1",
+    stageTypeKey: "EXERCISE_BLOCK",
+    configuration: { darts: 3 },
+    script: UNIVERSAL_SCRIPT,
+  },
 };
 
 /**

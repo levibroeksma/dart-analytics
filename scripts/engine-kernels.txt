@@ -11,6 +11,7 @@ app/src/modules/game/five-oh-one.engine.module.ts | HAND_WRITTEN | HAND_WRITTEN 
 app/src/modules/game/follow-the-leader.engine.module.ts | ELIMINATION | KERNEL_BOUND | docs/game-rules/rulesets/follow-the-leader.md |
 app/src/modules/game/killer.engine.module.ts | ELIMINATION | KERNEL_BOUND | docs/game-rules/rulesets/killer.md |
 app/src/modules/game/one-twenty-one.engine.module.ts | CHECKOUT | KERNEL_BOUND | docs/game-rules/rulesets/121.md | Checkout kernel
+app/src/modules/game/prisoner.engine.module.ts | ELIMINATION | KERNEL_BOUND | docs/game-rules/rulesets/prisoner.md |
 app/src/modules/game/score-training.engine.module.ts | VISIT_POINTS | KERNEL_BOUND | docs/game-rules/rulesets/score-training.md |
 app/src/modules/game/shanghai.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/rulesets/shanghai.md |
 app/src/modules/game/singles-training.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/rulesets/singles-training.md |
