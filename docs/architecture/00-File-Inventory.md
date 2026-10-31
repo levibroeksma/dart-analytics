@@ -2,7 +2,7 @@
 status: canonical
 scope: canonical file inventory — what each document answers
 read-when: a context pack demonstrably lacks the answer
-updated: 2026-10-23
+updated: 2026-10-31
 -->
 
 > Escalation target for `00-Context-Map.md`. Packs come first; open this
