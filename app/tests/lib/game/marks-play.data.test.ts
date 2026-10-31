@@ -345,4 +345,13 @@ describe("resumeMarksEngine", () => {
       ),
     ).toBeNull();
   });
+  it("returns null when the stored key has no registered factory", () => {
+    expect(
+      resumeMarksEngine(
+        game({ rulesetVersionKey: "CRICKET_V1" }),
+        new Set(["CRICKET_V1"]) as never,
+        isFake,
+      ),
+    ).toBeNull();
+  });
 });

@@ -420,3 +420,15 @@ describe("baseball active-seat accessors", () => {
     expect(read).toHaveBeenCalledWith("seat-active");
   });
 });
+
+describe("baseball resume", () => {
+  it("init builds the engine for its own key and none for another game's", async () => {
+    const own = makeContext();
+    await own.init.call(own);
+    expect(own.engine).not.toBeNull();
+
+    const foreign = makeContext({ rulesetVersionKey: "TUOD_V1" });
+    await foreign.init.call(foreign);
+    expect(foreign.engine).toBeNull();
+  });
+});

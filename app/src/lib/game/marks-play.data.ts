@@ -1,7 +1,7 @@
 import { matchWinnerName } from "@lib/game/match-result-text";
 import { joinSubtitle } from "@lib/game/play-subtitle";
 import { BULL_TARGET_NUMBER } from "@modules/game/board-progression.module";
-import { getEngineFactory } from "@modules/game/engine.registry";
+import { resumeVersionedEngine } from "@lib/game/play-lifecycle";
 import { openVisit } from "@modules/game/turn-log.module";
 import type { RulesetVersionKey } from "@lib/types";
 import type {
@@ -118,21 +118,7 @@ export function resumeMarksEngine<TEngine>(
   resumable: ReadonlySet<RulesetVersionKey>,
   isEngine: (engine: unknown) => engine is TEngine,
 ): TEngine | null {
-  const { configSnapshot, rulesetVersionKey } = game;
-  if (
-    !configSnapshot ||
-    !rulesetVersionKey ||
-    !resumable.has(rulesetVersionKey)
-  ) {
-    return null;
-  }
-  const factory = getEngineFactory(rulesetVersionKey);
-  if (!factory) return null;
-  const engine = factory.create(configSnapshot, {
-    stages: game.stages,
-    turns: game.turns,
-  });
-  return isEngine(engine) ? engine : null;
+  return resumeVersionedEngine(game, resumable, isEngine);
 }
 
 type SeatsState = { seats: readonly MarksSeatState[] } | null;

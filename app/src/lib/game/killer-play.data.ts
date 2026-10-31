@@ -4,7 +4,6 @@ import {
   playScreenActions,
   forActiveSeat,
 } from "@lib/game/play-screen.data";
-import { getEngineFactory } from "@modules/game/engine.registry";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { matchWinnerName } from "@lib/game/match-result-text";
 import {
@@ -22,6 +21,7 @@ import {
   playUploadAndCompleteSession,
   runPlayAgain,
   variantsPlayAgain,
+  resumeGameEngine,
 } from "@lib/game/play-lifecycle";
 import { joinSubtitle } from "@lib/game/play-subtitle";
 import type { KillerSnapshot, RulesetVersionKey } from "@lib/types";
@@ -44,15 +44,11 @@ const RULESET_VERSION_KEY: RulesetVersionKey = "KILLER_V1";
 function resumeEngine(
   game: KillerPlayContext["$store"]["game"],
 ): KillerEngine | null {
-  const { configSnapshot, rulesetVersionKey } = game;
-  if (!configSnapshot || rulesetVersionKey !== RULESET_VERSION_KEY) return null;
-  const factory = getEngineFactory(RULESET_VERSION_KEY);
-  if (!factory) return null;
-  const engine = factory.create(configSnapshot, {
-    stages: game.stages,
-    turns: game.turns,
-  });
-  return engine instanceof KillerEngine ? engine : null;
+  return resumeGameEngine(
+    game,
+    RULESET_VERSION_KEY,
+    (engine): engine is KillerEngine => engine instanceof KillerEngine,
+  );
 }
 
 /** A seat in the folded state by ref. */

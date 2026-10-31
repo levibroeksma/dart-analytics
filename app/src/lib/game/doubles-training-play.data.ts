@@ -7,7 +7,6 @@ import {
 } from "@lib/game/play-screen.data";
 import { botSeatState, botThrowObservation } from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
-import { getEngineFactory } from "@modules/game/engine.registry";
 import { matchWinnerName } from "@lib/game/match-result-text";
 import { doublesPath, targetAt } from "@modules/game/board-progression.module";
 import {
@@ -18,6 +17,7 @@ import {
 import {
   playUploadAndCompleteSession,
   runPlayAgain,
+  resumeGameEngine,
 } from "@lib/game/play-lifecycle";
 import { targetOrderFor } from "@lib/game/target-order";
 import { accuracyDisplay } from "@lib/game/play-visit-stats";
@@ -75,15 +75,12 @@ function statsFor(seat: DoublesTrainingSeatState): DoublesTrainingSeatResult {
 function resumeEngine(
   game: DoublesTrainingPlayContext["$store"]["game"],
 ): DoublesTrainingEngine | null {
-  const { configSnapshot, rulesetVersionKey } = game;
-  if (!configSnapshot || rulesetVersionKey !== RULESET_VERSION_KEY) return null;
-  const factory = getEngineFactory(RULESET_VERSION_KEY);
-  if (!factory) return null;
-  const engine = factory.create(configSnapshot, {
-    stages: game.stages,
-    turns: game.turns,
-  });
-  return engine instanceof DoublesTrainingEngine ? engine : null;
+  return resumeGameEngine(
+    game,
+    RULESET_VERSION_KEY,
+    (engine): engine is DoublesTrainingEngine =>
+      engine instanceof DoublesTrainingEngine,
+  );
 }
 
 /**

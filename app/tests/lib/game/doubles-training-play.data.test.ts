@@ -1207,3 +1207,15 @@ describe("doubles-training bot dart without a bot seat in state", () => {
     expect(play.botThrowing).toBe(false);
   });
 });
+
+describe("doubles-training resume", () => {
+  it("init builds the engine for its own key and none for another game's", async () => {
+    const own = makePlay();
+    await own.init.call(own);
+    expect(own.engine).not.toBeNull();
+
+    const foreign = makePlay({ rulesetVersionKey: "TUOD_V1" });
+    await foreign.init.call(foreign);
+    expect(foreign.engine).toBeNull();
+  });
+});

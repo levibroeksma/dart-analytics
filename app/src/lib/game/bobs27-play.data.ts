@@ -1,6 +1,5 @@
 import { botSeatState, botThrowObservation } from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
-import { getEngineFactory } from "@modules/game/engine.registry";
 import { matchWinnerName } from "@lib/game/match-result-text";
 import { doublesPath, targetAt } from "@modules/game/board-progression.module";
 import {
@@ -20,6 +19,7 @@ import {
   playUploadAndCompleteSession,
   runPlayAgain,
   variantsPlayAgain,
+  resumeVersionedEngine,
 } from "@lib/game/play-lifecycle";
 import { chooseTarget } from "@modules/dartbot/strategy/dictated.strategy.module";
 import type {
@@ -102,21 +102,11 @@ function computeStats(
 function resumeEngine(
   game: Bobs27PlayContext["$store"]["game"],
 ): Bobs27Engine | null {
-  const { configSnapshot, rulesetVersionKey } = game;
-  if (
-    !configSnapshot ||
-    !rulesetVersionKey ||
-    !RESUMABLE.has(rulesetVersionKey)
-  ) {
-    return null;
-  }
-  const factory = getEngineFactory(rulesetVersionKey);
-  if (!factory) return null;
-  const engine = factory.create(configSnapshot, {
-    stages: game.stages,
-    turns: game.turns,
-  });
-  return engine instanceof Bobs27Engine ? engine : null;
+  return resumeVersionedEngine(
+    game,
+    RESUMABLE,
+    (engine): engine is Bobs27Engine => engine instanceof Bobs27Engine,
+  );
 }
 
 /**

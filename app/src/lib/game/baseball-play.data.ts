@@ -4,7 +4,6 @@ import {
   playScreenActions,
   forActiveSeat,
 } from "@lib/game/play-screen.data";
-import { getEngineFactory } from "@modules/game/engine.registry";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { matchWinnerName } from "@lib/game/match-result-text";
 import { accuracyDisplay } from "@lib/game/play-visit-stats";
@@ -12,6 +11,7 @@ import {
   playPreviewSegments,
   playUploadAndCompleteSession,
   runPlayAgain,
+  resumeGameEngine,
 } from "@lib/game/play-lifecycle";
 import type { RulesetVersionKey } from "@lib/types";
 import type {
@@ -65,15 +65,11 @@ export function baseballSeatResult(
 function resumeEngine(
   game: BaseballPlayContext["$store"]["game"],
 ): BaseballEngine | null {
-  const { configSnapshot, rulesetVersionKey } = game;
-  if (!configSnapshot || rulesetVersionKey !== RULESET_VERSION_KEY) return null;
-  const factory = getEngineFactory(RULESET_VERSION_KEY);
-  if (!factory) return null;
-  const engine = factory.create(configSnapshot, {
-    stages: game.stages,
-    turns: game.turns,
-  });
-  return engine instanceof BaseballEngine ? engine : null;
+  return resumeGameEngine(
+    game,
+    RULESET_VERSION_KEY,
+    (engine): engine is BaseballEngine => engine instanceof BaseballEngine,
+  );
 }
 
 /** A seat in the folded state by ref. */

@@ -7,13 +7,13 @@ import {
 } from "@lib/game/play-screen.data";
 import { botSeatState, botThrowObservation } from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
-import { getEngineFactory } from "@modules/game/engine.registry";
 import { matchWinnerName } from "@lib/game/match-result-text";
 import {
   playPreviewSegments,
   playUploadAndCompleteSession,
   runPlayAgain,
   variantsPlayAgain,
+  resumeVersionedEngine,
 } from "@lib/game/play-lifecycle";
 import { accuracyDisplay } from "@lib/game/play-visit-stats";
 import { chooseTarget } from "@modules/dartbot/strategy/dictated.strategy.module";
@@ -139,20 +139,11 @@ function statsFor(
 function resumeEngine(
   game: ShanghaiPlayContext["$store"]["game"],
 ): ShanghaiEngine | null {
-  const { configSnapshot, rulesetVersionKey } = game;
-  if (
-    !configSnapshot ||
-    !rulesetVersionKey ||
-    !RESUMABLE_RULESET_VERSIONS.has(rulesetVersionKey)
-  )
-    return null;
-  const factory = getEngineFactory(rulesetVersionKey);
-  if (!factory) return null;
-  const engine = factory.create(configSnapshot, {
-    stages: game.stages,
-    turns: game.turns,
-  });
-  return engine instanceof ShanghaiEngine ? engine : null;
+  return resumeVersionedEngine(
+    game,
+    RESUMABLE_RULESET_VERSIONS,
+    (engine): engine is ShanghaiEngine => engine instanceof ShanghaiEngine,
+  );
 }
 
 /**

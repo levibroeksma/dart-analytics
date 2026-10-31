@@ -1,6 +1,5 @@
 import { botSeatState, botThrowObservation } from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
-import { getEngineFactory } from "@modules/game/engine.registry";
 import { matchWinnerName } from "@lib/game/match-result-text";
 import { joinSubtitle } from "@lib/game/play-subtitle";
 import {
@@ -18,6 +17,7 @@ import {
   playUploadAndCompleteSession,
   runPlayAgain,
   variantsPlayAgain,
+  resumeVersionedEngine,
 } from "@lib/game/play-lifecycle";
 import {
   boardPlayActions,
@@ -199,21 +199,12 @@ function statsFor(
 function resumeEngine(
   game: AroundTheClockPlayContext["$store"]["game"],
 ): AroundTheClockEngine | null {
-  const { configSnapshot, rulesetVersionKey } = game;
-  if (
-    !configSnapshot ||
-    !rulesetVersionKey ||
-    !RESUMABLE.has(rulesetVersionKey)
-  ) {
-    return null;
-  }
-  const factory = getEngineFactory(rulesetVersionKey);
-  if (!factory) return null;
-  const engine = factory.create(configSnapshot, {
-    stages: game.stages,
-    turns: game.turns,
-  });
-  return engine instanceof AroundTheClockEngine ? engine : null;
+  return resumeVersionedEngine(
+    game,
+    RESUMABLE,
+    (engine): engine is AroundTheClockEngine =>
+      engine instanceof AroundTheClockEngine,
+  );
 }
 
 /**

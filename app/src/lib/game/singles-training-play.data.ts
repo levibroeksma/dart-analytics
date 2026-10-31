@@ -7,7 +7,6 @@ import {
 } from "@lib/game/play-screen.data";
 import { botSeatState, botThrowObservation } from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
-import { getEngineFactory } from "@modules/game/engine.registry";
 import { singlesTrainingResultsTitle } from "@lib/game/singles-training-results-title";
 import {
   BULL_TARGET_NUMBER,
@@ -20,6 +19,7 @@ import {
   playPreviewSegments,
   playUploadAndCompleteSession,
   runPlayAgain,
+  resumeVersionedEngine,
 } from "@lib/game/play-lifecycle";
 import { targetOrderFor } from "@lib/game/target-order";
 import { chooseTarget } from "@modules/dartbot/strategy/dictated.strategy.module";
@@ -296,20 +296,12 @@ function statsFor(
 function resumeEngine(
   game: SinglesTrainingPlayContext["$store"]["game"],
 ): SinglesTrainingEngine | null {
-  const { configSnapshot, rulesetVersionKey } = game;
-  if (
-    !configSnapshot ||
-    !rulesetVersionKey ||
-    !RESUMABLE_RULESET_VERSIONS.has(rulesetVersionKey)
-  )
-    return null;
-  const factory = getEngineFactory(rulesetVersionKey);
-  if (!factory) return null;
-  const engine = factory.create(configSnapshot, {
-    stages: game.stages,
-    turns: game.turns,
-  });
-  return engine instanceof SinglesTrainingEngine ? engine : null;
+  return resumeVersionedEngine(
+    game,
+    RESUMABLE_RULESET_VERSIONS,
+    (engine): engine is SinglesTrainingEngine =>
+      engine instanceof SinglesTrainingEngine,
+  );
 }
 
 /**
