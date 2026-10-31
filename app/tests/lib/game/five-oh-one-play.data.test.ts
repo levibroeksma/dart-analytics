@@ -2120,3 +2120,18 @@ describe("fiveOhOnePlay bot flight", () => {
     expect(typeof play.requestPlayAgain).toBe("function");
   });
 });
+
+describe("five-oh-one shared play-screen parts", () => {
+  it("retryReconciliation re-runs init after a failed fetch", async () => {
+    vi.mocked(fetchActiveSessions).mockRejectedValueOnce(new Error("offline"));
+    const play = makePlay();
+    await play.init.call(play);
+    expect(play.reconciliationFailed).toBe(true);
+    expect(play.hasActiveSession).toBe(false);
+
+    await play.retryReconciliation.call(play);
+    expect(play.reconciliationFailed).toBe(false);
+    expect(play.hasActiveSession).toBe(true);
+    expect(play.engine).not.toBeNull();
+  });
+});

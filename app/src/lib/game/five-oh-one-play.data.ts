@@ -14,9 +14,8 @@ import {
   checkoutPathFor,
   checkoutPathWithin,
 } from "@modules/game/checkout-path.module";
-import { fetchActiveSessions } from "@client/api/sessions";
-import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { boardInputData } from "@lib/game/board-input.data";
+import { playScreenActions, playScreenState } from "@lib/game/play-screen.data";
 import {
   fiveOhOneSubtitle,
   legBarCount,
@@ -24,14 +23,12 @@ import {
   setScoreText,
 } from "@lib/game/five-oh-one-match";
 import {
-  playAbandonAndExit,
-  playBack,
   playCommitDart,
   playAnimateBotDarts,
   playFoldBotQuickScoreVisit,
+  playInit,
   playRunBotVisualBoardVisit,
   playUploadAndCompleteSession,
-  playVisitMarkers,
   runPlayAgain,
   undoBotAwareVisit,
 } from "@lib/game/play-lifecycle";
@@ -62,7 +59,6 @@ import type {
   TurnFact,
 } from "@modules/types";
 import type {
-  BoardMarker,
   BotDartThrower,
   BotPacing,
   FiveOhOnePlayContext,
@@ -298,42 +294,23 @@ export function fiveOhOnePlay() {
   let self: FiveOhOnePlayContext;
 
   return {
+    ...playScreenState<FiveOhOneEngine, FiveOhOneResultsSnapshot>(),
+    ...playAgainStarterData(),
+    ...boardInputData(
+      (observation) => self.recordDart(observation),
+      () => self.$store.game.turns,
+    ),
+    ...playScreenActions(),
+
     scoreInput: new ScoreInputBuffer({ maxLength: 3 }),
-    loading: false,
-    error: "",
-    finished: false,
-    hasActiveSession: false,
-    loadingReconciliation: false,
-    reconciliationFailed: false,
-    completionStatus: "pending" as
-      "pending" | "saving" | "succeeded" | "failed",
-    completionError: "",
-    playAgainError: "",
-    playAgainLoading: false,
-    resultsSnapshot: null as FiveOhOneResultsSnapshot | null,
     pendingCheckoutScore: null as number | null,
     dartsAtDouble: null as DartCount | null,
     dartsToFinish: null as DartCount | null,
     pendingDartObservation: null as DartObservation | null,
     showDoubleConfirm: false,
     showMatchFinishConfirm: false,
-    ...playAgainStarterData(),
     botThrowing: false,
     botFlight: null,
-    engine: null as FiveOhOneEngine | null,
-    hiddenTurnKey: null as string | null,
-    hiddenTimer: null as ReturnType<typeof setTimeout> | null,
-    ...boardInputData(
-      (observation) => self.recordDart(observation),
-      () => self.$store.game.turns,
-    ),
-
-    /** Overrides `boardInputData`'s own default — object-literal key order
-     * means this later definition wins. Delegates to `play-lifecycle.ts`'s
-     * shared implementation, mirrors `bobs27-play.data.ts`. */
-    visitMarkers(this: FiveOhOnePlayContext): BoardMarker[] {
-      return playVisitMarkers(this);
-    },
 
     turnsInCurrentLeg(this: FiveOhOnePlayContext): TurnFact[] {
       const openLeg = this.$store.game.stages
@@ -501,45 +478,10 @@ export function fiveOhOnePlay() {
 
     async init(this: FiveOhOnePlayContext) {
       self = this;
-      this.loadingReconciliation = true;
-      try {
-        const activeSessions = await fetchActiveSessions();
-        const result = await reconcileActiveSession(
-          GAME_TYPE_KEY,
-          this.$store.game.sessionId,
-          activeSessions,
-          this.$store.game,
-        );
-
-        this.reconciliationFailed = false;
-
-        if (result.action !== "match" || !result.activeSession) {
-          this.hasActiveSession = false;
-          return;
-        }
-
-        this.$store.game.setSessionModes(result.activeSession);
-
-        const config = this.$store.game.configSnapshot;
-        const engine = resumeEngine(this.$store.game);
-        if (!config || !engine) {
-          this.hasActiveSession = false;
-          return;
-        }
-        this.engine = engine;
-        this.$store.game.recordFacts(engine.facts());
-        this.hasActiveSession = true;
-      } catch {
-        this.reconciliationFailed = true;
-        this.hasActiveSession = false;
-      } finally {
-        this.loadingReconciliation = false;
-      }
+      await playInit(this, GAME_TYPE_KEY, resumeEngine, {
+        uploadIfComplete: false,
+      });
       if (this.hasActiveSession) await this.maybeRunBotVisit();
-    },
-
-    async retryReconciliation(this: FiveOhOnePlayContext) {
-      await this.init();
     },
 
     /**
@@ -840,14 +782,6 @@ export function fiveOhOnePlay() {
         this.resultsSnapshot?.winningSideKey ?? null,
       );
       return winner ? `${winner} wins the match!` : "Match complete";
-    },
-
-    async back(this: FiveOhOnePlayContext) {
-      return playBack(this);
-    },
-
-    async abandonAndExit(this: FiveOhOnePlayContext) {
-      return playAbandonAndExit(this);
     },
 
     /**
