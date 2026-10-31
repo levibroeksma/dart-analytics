@@ -7,6 +7,7 @@ import {
   activeSeatStateOf,
 } from "@lib/game/play-screen.data";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
+import { ringTapObservation } from "@lib/game/target-practice-play";
 import { matchWinnerName } from "@lib/game/match-result-text";
 import { accuracyDisplay } from "@lib/game/play-visit-stats";
 import {
@@ -149,12 +150,11 @@ export function baseballPlay() {
       const inning = Number(
         this.currentTargetLabelFor(state.activeParticipantRef),
       );
-      await this.commitDart({
-        hitTargetNumber: ring === "MISS" ? null : inning,
-        hitZoneKey: ring,
-        locationX: null,
-        locationY: null,
-      });
+      const observation = ringTapObservation(
+        { kind: "NUMBER", number: inning },
+        ring,
+      );
+      if (observation) await this.commitDart(observation);
     },
 
     uploadAndCompleteSession(this: BaseballPlayContext): Promise<void> {

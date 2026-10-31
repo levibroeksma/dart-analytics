@@ -1677,3 +1677,31 @@ describe("shanghai when the active ref has no seat", () => {
     expect(commit).not.toHaveBeenCalled();
   });
 });
+
+describe("shanghai recordTap ring mapping", () => {
+  it("a MISS tap commits a dart with no target number", async () => {
+    const play = makePlay();
+    await play.init.call(play);
+    const commit = vi.spyOn(play, "commitDart").mockResolvedValue(undefined);
+    await play.recordTap("MISS");
+    expect(commit).toHaveBeenCalledWith({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+  });
+
+  it("a TREBLE tap commits the treble on the current number", async () => {
+    const play = makePlay();
+    await play.init.call(play);
+    const commit = vi.spyOn(play, "commitDart").mockResolvedValue(undefined);
+    await play.recordTap("TREBLE");
+    expect(commit).toHaveBeenCalledWith({
+      hitTargetNumber: Number(play.currentTargetLabel()),
+      hitZoneKey: "TREBLE",
+      locationX: null,
+      locationY: null,
+    });
+  });
+});

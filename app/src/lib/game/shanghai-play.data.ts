@@ -9,6 +9,7 @@ import {
 } from "@lib/game/play-screen.data";
 import { botSeatState, botThrowObservation } from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
+import { ringTapObservation } from "@lib/game/target-practice-play";
 import { matchWinnerName } from "@lib/game/match-result-text";
 import {
   playPreviewSegments,
@@ -244,21 +245,11 @@ export function shanghaiPlay() {
       if (!this.engine) return;
       const activeSeat = activeSeatStateOf(this.state());
       if (!activeSeat) return;
-      const observation: DartObservation =
-        ring === "MISS"
-          ? {
-              hitTargetNumber: null,
-              hitZoneKey: "MISS",
-              locationX: null,
-              locationY: null,
-            }
-          : {
-              hitTargetNumber: activeNumberOf(activeSeat),
-              hitZoneKey: ring,
-              locationX: null,
-              locationY: null,
-            };
-      await this.commitDart(observation);
+      const observation = ringTapObservation(
+        { kind: "NUMBER", number: activeNumberOf(activeSeat) },
+        ring,
+      );
+      if (observation) await this.commitDart(observation);
     },
 
     uploadAndCompleteSession(this: ShanghaiPlayContext): Promise<void> {

@@ -9,6 +9,7 @@ import {
 } from "@lib/game/play-screen.data";
 import { botSeatState, botThrowObservation } from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
+import { ringTapObservation } from "@lib/game/target-practice-play";
 import { singlesTrainingResultsTitle } from "@lib/game/singles-training-results-title";
 import {
   BULL_TARGET_NUMBER,
@@ -182,41 +183,6 @@ function trainingPointsFor(
   return scoringModeOf(config) === "ACCURACY"
     ? accuracyPointsFor(target, dart)
     : standardPointsFor(target, config, dart);
-}
-
-/**
- * The dart one recreational tap stands for, on `target`. A MISS carries no
- * target number at all; a tap on the BULL target resolves SINGLE to the outer
- * bull and DOUBLE to the inner one; every other target takes the tapped ring
- * as-is. Coordinates are always null — a tap says which ring was hit, never
- * where on the board it landed.
- */
-function tapObservation(
-  target: BoardTarget,
-  ring: "SINGLE" | "DOUBLE" | "TREBLE" | "MISS",
-): DartObservation {
-  if (ring === "MISS") {
-    return {
-      hitTargetNumber: null,
-      hitZoneKey: "MISS",
-      locationX: null,
-      locationY: null,
-    };
-  }
-  if (target.kind === "BULL") {
-    return {
-      hitTargetNumber: BULL_TARGET_NUMBER,
-      hitZoneKey: ring === "SINGLE" ? "OUTER_BULL" : "INNER_BULL",
-      locationX: null,
-      locationY: null,
-    };
-  }
-  return {
-    hitTargetNumber: target.number,
-    hitZoneKey: ring,
-    locationX: null,
-    locationY: null,
-  };
 }
 
 /**
@@ -481,8 +447,8 @@ export function singlesTrainingPlay() {
         numbersPath(config.targetOrder),
         seat.targetIndex,
       );
-      if (target.kind === "BULL" && ring === "TREBLE") return;
-      await this.commitDart(tapObservation(target, ring));
+      const observation = ringTapObservation(target, ring);
+      if (observation) await this.commitDart(observation);
     },
 
     uploadAndCompleteSession(this: SinglesTrainingPlayContext): Promise<void> {

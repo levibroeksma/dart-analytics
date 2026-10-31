@@ -1,9 +1,9 @@
 import { botSeatState, botThrowObservation } from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
+import { ringTapObservation } from "@lib/game/target-practice-play";
 import { matchWinnerName } from "@lib/game/match-result-text";
 import { joinSubtitle } from "@lib/game/play-subtitle";
 import {
-  BULL_TARGET_NUMBER,
   boardTargetLabel,
   targetAt,
 } from "@modules/game/board-progression.module";
@@ -411,29 +411,8 @@ export function aroundTheClockPlay() {
       if (!seat) return;
       const config = this.$store.game.configSnapshot!;
       const target = targetAt(rulesOf(config).path, seat.targetIndex);
-      if (target.kind === "BULL" && ring === "TREBLE") return;
-      const observation: DartObservation =
-        ring === "MISS"
-          ? {
-              hitTargetNumber: null,
-              hitZoneKey: "MISS",
-              locationX: null,
-              locationY: null,
-            }
-          : target.kind === "BULL"
-            ? {
-                hitTargetNumber: BULL_TARGET_NUMBER,
-                hitZoneKey: ring === "SINGLE" ? "OUTER_BULL" : "INNER_BULL",
-                locationX: null,
-                locationY: null,
-              }
-            : {
-                hitTargetNumber: target.number,
-                hitZoneKey: ring,
-                locationX: null,
-                locationY: null,
-              };
-      await this.commitDart(observation);
+      const observation = ringTapObservation(target, ring);
+      if (observation) await this.commitDart(observation);
     },
 
     uploadAndCompleteSession(this: AroundTheClockPlayContext): Promise<void> {
