@@ -81,6 +81,33 @@ export function resumeGameEngine<TConfig, TEngine>(
   return isEngine(engine) ? engine : null;
 }
 
+/**
+ * `resumeGameEngine` for a page that resumes more than one ruleset version:
+ * the stored key must be one of `resumable`, and the engine is built by that
+ * key's own factory.
+ */
+export function resumeVersionedEngine<TConfig, TEngine>(
+  game: PlayStoreContext<TConfig>["game"],
+  resumable: ReadonlySet<RulesetVersionKey>,
+  isEngine: (candidate: unknown) => candidate is TEngine,
+): TEngine | null {
+  const { configSnapshot, rulesetVersionKey } = game;
+  if (
+    !configSnapshot ||
+    !rulesetVersionKey ||
+    !resumable.has(rulesetVersionKey)
+  ) {
+    return null;
+  }
+  const factory = getEngineFactory(rulesetVersionKey);
+  if (!factory) return null;
+  const engine = factory.create(configSnapshot, {
+    stages: game.stages,
+    turns: game.turns,
+  });
+  return isEngine(engine) ? engine : null;
+}
+
 export async function playInit<
   TConfig,
   TEngine extends GameEngine<DartObservation, unknown>,

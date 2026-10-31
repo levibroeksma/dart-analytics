@@ -1,4 +1,3 @@
-import { boardInputData } from "@lib/game/board-input.data";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { matchWinnerName } from "@lib/game/match-result-text";
 import { followTheLeaderResultsSnapshot } from "@lib/game/follow-the-leader-results";
@@ -11,18 +10,20 @@ import {
 import {
   armHiddenTimer,
   clearHiddenTimer,
-  playAbandonAndExit,
-  playBack,
   playCommitDart,
-  playInit,
   playPreviewSegments,
-  playRetryReconciliation,
   playUploadAndCompleteSession,
-  playVisitMarkers,
   resumeGameEngine,
   runPlayAgain,
   variantsPlayAgain,
 } from "@lib/game/play-lifecycle";
+import {
+  boardPlayActions,
+  playScreenActions,
+  playScreenState,
+  forActiveSeat,
+  seatStateFor,
+} from "@lib/game/play-screen.data";
 import { joinSubtitle } from "@lib/game/play-subtitle";
 import { bedOf, sameBed } from "@modules/game/follow-the-leader-policy";
 import {
@@ -34,11 +35,9 @@ import type {
   BedFact,
   DartObservation,
   FollowTheLeaderAction,
-  FollowTheLeaderSeatState,
   FollowTheLeaderState,
 } from "@modules/types";
 import type {
-  BoardMarker,
   FollowTheLeaderPlayContext,
   FollowTheLeaderResultsSnapshot,
   GamePreviewSegment,
@@ -61,45 +60,25 @@ function bedLabel(bed: BedFact | null): string {
   return `${RING_WORDS[bed.ring]} ${bed.number}`;
 }
 
-function seatOf(
-  context: FollowTheLeaderPlayContext,
-  seatRef: string,
-): FollowTheLeaderSeatState | undefined {
-  return context
-    .state()
-    ?.seats.find((candidate) => candidate.participantRef === seatRef);
+function resumeEngine(
+  game: FollowTheLeaderPlayContext["$store"]["game"],
+): FollowTheLeaderEngine | null {
+  return resumeGameEngine(
+    game,
+    RULESET_VERSION_KEY,
+    (engine): engine is FollowTheLeaderEngine =>
+      engine instanceof FollowTheLeaderEngine,
+  );
 }
 
-/**
- * `self` exists only so `boardInputData`'s `onCommit` callback can reach
- * this page's own `recordDart` with the live, reactive `this`.
- */
 export function followTheLeaderPlay() {
-  let self: FollowTheLeaderPlayContext;
-
   return {
-    loading: false,
-    error: "",
-    finished: false,
-    hasActiveSession: false,
-    loadingReconciliation: false,
-    reconciliationFailed: false,
-    completionStatus: "pending" as
-      "pending" | "saving" | "succeeded" | "failed",
-    completionError: "",
-    playAgainError: "",
-    playAgainLoading: false,
-    resultsSnapshot: null as FollowTheLeaderResultsSnapshot | null,
+    ...playScreenState<FollowTheLeaderEngine, FollowTheLeaderResultsSnapshot>(),
     ...playAgainStarterData(),
-    hiddenTurnKey: null as string | null,
-    hiddenTimer: null as ReturnType<typeof setTimeout> | null,
-    engine: null as FollowTheLeaderEngine | null,
+    ...boardPlayActions({ gameTypeKey: GAME_TYPE_KEY, resume: resumeEngine }),
+    ...playScreenActions(),
     ring: "SINGLE" as MarksRing,
     setChosen: false,
-    ...boardInputData(
-      (observation) => self.recordDart(observation),
-      () => self.$store.game.turns,
-    ),
 
     state(this: FollowTheLeaderPlayContext): FollowTheLeaderState | null {
       const config = this.$store.game.configSnapshot;
@@ -174,26 +153,24 @@ export function followTheLeaderPlay() {
     },
 
     livesLabelFor(this: FollowTheLeaderPlayContext, seatRef: string): string {
-      const seat = seatOf(this, seatRef);
+      const seat = seatStateFor(this.state(), seatRef);
       return seat ? String(seat.lives) : "";
     },
 
     livesLabel(this: FollowTheLeaderPlayContext): string {
-      const state = this.state();
-      return state ? this.livesLabelFor(state.activeParticipantRef) : "";
+      return forActiveSeat(this, (ref) => this.livesLabelFor(ref), "");
     },
 
     /** `OUT` once eliminated, `LEADER` for the seat that set the target, else `—`. */
     statusLabelFor(this: FollowTheLeaderPlayContext, seatRef: string): string {
-      const seat = seatOf(this, seatRef);
+      const seat = seatStateFor(this.state(), seatRef);
       if (!seat) return "";
       if (seat.out) return "OUT";
       return this.state()?.leaderRef === seatRef ? "LEADER" : "—";
     },
 
     statusLabel(this: FollowTheLeaderPlayContext): string {
-      const state = this.state();
-      return state ? this.statusLabelFor(state.activeParticipantRef) : "";
+      return forActiveSeat(this, (ref) => this.statusLabelFor(ref), "");
     },
 
     isBullVisit(): boolean {
@@ -213,22 +190,6 @@ export function followTheLeaderPlay() {
       );
     },
 
-    async init(this: FollowTheLeaderPlayContext) {
-      self = this;
-      await playInit(this, GAME_TYPE_KEY, (game) =>
-        resumeGameEngine(
-          game,
-          RULESET_VERSION_KEY,
-          (engine): engine is FollowTheLeaderEngine =>
-            engine instanceof FollowTheLeaderEngine,
-        ),
-      );
-    },
-
-    retryReconciliation(this: FollowTheLeaderPlayContext) {
-      return playRetryReconciliation(this);
-    },
-
     setRing(this: FollowTheLeaderPlayContext, ring: MarksRing) {
       toggleMarksRing(this, ring);
     },
@@ -243,14 +204,6 @@ export function followTheLeaderPlay() {
 
     async recordMiss(this: FollowTheLeaderPlayContext) {
       await recordMarksMiss(this);
-    },
-
-    async recordDart(
-      this: FollowTheLeaderPlayContext,
-      observation: DartObservation,
-    ) {
-      if (!this.engine || this.finished) return;
-      await this.commitDart(observation);
     },
 
     async commitDart(
@@ -307,10 +260,6 @@ export function followTheLeaderPlay() {
       this.setChosen = true;
     },
 
-    visitMarkers(this: FollowTheLeaderPlayContext): BoardMarker[] {
-      return playVisitMarkers(this);
-    },
-
     async undoVisit(this: FollowTheLeaderPlayContext) {
       if (!this.engine || this.finished) return;
       if (!this.engine.undo()) return;
@@ -338,14 +287,6 @@ export function followTheLeaderPlay() {
       const snapshot = this.resultsSnapshot;
       if (!snapshot) return "";
       return outOrderNames(snapshot.outOrder, this.$store.game.seats);
-    },
-
-    back(this: FollowTheLeaderPlayContext) {
-      return playBack(this);
-    },
-
-    abandonAndExit(this: FollowTheLeaderPlayContext) {
-      return playAbandonAndExit(this);
     },
 
     /** Replays the same preset, seating the chosen starter first and resending lives. */

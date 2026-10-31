@@ -1,32 +1,31 @@
-import { getEngineFactory } from "@modules/game/engine.registry";
-import { boardInputData } from "@lib/game/board-input.data";
+import {
+  playScreenState,
+  boardPlayActions,
+  playScreenActions,
+  forActiveSeat,
+  seatStateFor,
+  activeSeatStateOf,
+} from "@lib/game/play-screen.data";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
+import { ringTapObservation } from "@lib/game/target-practice-play";
 import { matchWinnerName } from "@lib/game/match-result-text";
 import { accuracyDisplay } from "@lib/game/play-visit-stats";
 import {
-  playAbandonAndExit,
-  playBack,
-  playCommitDart,
-  playInit,
   playPreviewSegments,
-  playRetryReconciliation,
-  playUndoVisit,
   playUploadAndCompleteSession,
-  playVisitMarkers,
   runPlayAgain,
+  resumeGameEngine,
 } from "@lib/game/play-lifecycle";
 import type { RulesetVersionKey } from "@lib/types";
 import type {
   BaseballSeatState,
   BaseballState,
-  DartObservation,
   TurnFact,
 } from "@modules/types";
 import type {
   BaseballPlayContext,
   BaseballResultsSnapshot,
   BaseballSeatResult,
-  BoardMarker,
   GamePreviewSegment,
 } from "./types";
 import {
@@ -69,55 +68,19 @@ export function baseballSeatResult(
 function resumeEngine(
   game: BaseballPlayContext["$store"]["game"],
 ): BaseballEngine | null {
-  const { configSnapshot, rulesetVersionKey } = game;
-  if (!configSnapshot || rulesetVersionKey !== RULESET_VERSION_KEY) return null;
-  const factory = getEngineFactory(RULESET_VERSION_KEY);
-  if (!factory) return null;
-  const engine = factory.create(configSnapshot, {
-    stages: game.stages,
-    turns: game.turns,
-  });
-  return engine instanceof BaseballEngine ? engine : null;
+  return resumeGameEngine(
+    game,
+    RULESET_VERSION_KEY,
+    (engine): engine is BaseballEngine => engine instanceof BaseballEngine,
+  );
 }
 
-/** A seat in the folded state by ref. */
-function seatOf(
-  context: BaseballPlayContext,
-  seatRef: string,
-): BaseballSeatState | undefined {
-  return context
-    .state()
-    ?.seats.find((candidate) => candidate.participantRef === seatRef);
-}
-
-/**
- * `self` exists only so `boardInputData`'s `onCommit` callback can reach
- * this page's own `recordDart` with the live, reactive `this`.
- */
 export function baseballPlay() {
-  let self: BaseballPlayContext;
-
   return {
-    loading: false,
-    error: "",
-    finished: false,
-    hasActiveSession: false,
-    loadingReconciliation: false,
-    reconciliationFailed: false,
-    completionStatus: "pending" as
-      "pending" | "saving" | "succeeded" | "failed",
-    completionError: "",
-    playAgainError: "",
-    playAgainLoading: false,
-    resultsSnapshot: null as BaseballResultsSnapshot | null,
+    ...playScreenState<BaseballEngine, BaseballResultsSnapshot>(),
     ...playAgainStarterData(),
-    hiddenTurnKey: null as string | null,
-    hiddenTimer: null as ReturnType<typeof setTimeout> | null,
-    engine: null as BaseballEngine | null,
-    ...boardInputData(
-      (observation) => self.recordDart(observation),
-      () => self.$store.game.turns,
-    ),
+    ...boardPlayActions({ gameTypeKey: GAME_TYPE_KEY, resume: resumeEngine }),
+    ...playScreenActions(),
 
     state(this: BaseballPlayContext): BaseballState | null {
       const config = this.$store.game.configSnapshot;
@@ -130,41 +93,35 @@ export function baseballPlay() {
 
     /** Play-header subtitle: `INNING 3 OF 9`; blank before config loads. */
     subtitle(this: BaseballPlayContext): string {
-      const state = this.state();
-      const seat = state && seatOf(this, state.activeParticipantRef);
+      const seat = activeSeatStateOf(this.state());
       return seat ? `INNING ${inningOf(seat)} OF ${BASEBALL_INNINGS}` : "";
     },
 
     currentTargetLabelFor(this: BaseballPlayContext, seatRef: string): string {
-      const seat = seatOf(this, seatRef);
+      const seat = seatStateFor(this.state(), seatRef);
       return seat ? String(inningOf(seat)) : "";
     },
 
     currentTargetLabel(this: BaseballPlayContext): string {
-      const state = this.state();
-      return state
-        ? this.currentTargetLabelFor(state.activeParticipantRef)
-        : "";
+      return forActiveSeat(this, (ref) => this.currentTargetLabelFor(ref), "");
     },
 
     inningLabelFor(this: BaseballPlayContext, seatRef: string): string {
-      const seat = seatOf(this, seatRef);
+      const seat = seatStateFor(this.state(), seatRef);
       return seat ? `${inningOf(seat)}/${BASEBALL_INNINGS}` : "";
     },
 
     inningLabel(this: BaseballPlayContext): string {
-      const state = this.state();
-      return state ? this.inningLabelFor(state.activeParticipantRef) : "";
+      return forActiveSeat(this, (ref) => this.inningLabelFor(ref), "");
     },
 
     currentScoreFor(this: BaseballPlayContext, seatRef: string): string {
-      const seat = seatOf(this, seatRef);
+      const seat = seatStateFor(this.state(), seatRef);
       return seat ? String(seat.runs) : "";
     },
 
     currentScore(this: BaseballPlayContext): string {
-      const state = this.state();
-      return state ? this.currentScoreFor(state.activeParticipantRef) : "";
+      return forActiveSeat(this, (ref) => this.currentScoreFor(ref), "");
     },
 
     isBullVisit(): boolean {
@@ -183,15 +140,6 @@ export function baseballPlay() {
       );
     },
 
-    async init(this: BaseballPlayContext) {
-      self = this;
-      await playInit(this, GAME_TYPE_KEY, resumeEngine);
-    },
-
-    retryReconciliation(this: BaseballPlayContext) {
-      return playRetryReconciliation(this);
-    },
-
     /** The recreational tap: S/D/T on the inning's number, or MISS. */
     async recordTap(
       this: BaseballPlayContext,
@@ -202,30 +150,11 @@ export function baseballPlay() {
       const inning = Number(
         this.currentTargetLabelFor(state.activeParticipantRef),
       );
-      await this.commitDart({
-        hitTargetNumber: ring === "MISS" ? null : inning,
-        hitZoneKey: ring,
-        locationX: null,
-        locationY: null,
-      });
-    },
-
-    async recordDart(this: BaseballPlayContext, observation: DartObservation) {
-      if (!this.engine || this.finished) return;
-      await this.commitDart(observation);
-    },
-
-    async commitDart(this: BaseballPlayContext, observation: DartObservation) {
-      await playCommitDart(this, observation);
-    },
-
-    /** Overrides `boardInputData`'s own `visitMarkers` with the shared play-lifecycle one. */
-    visitMarkers(this: BaseballPlayContext): BoardMarker[] {
-      return playVisitMarkers(this);
-    },
-
-    async undoVisit(this: BaseballPlayContext) {
-      playUndoVisit(this);
+      const observation = ringTapObservation(
+        { kind: "NUMBER", number: inning },
+        ring,
+      );
+      if (observation) await this.commitDart(observation);
     },
 
     uploadAndCompleteSession(this: BaseballPlayContext): Promise<void> {
@@ -248,14 +177,6 @@ export function baseballPlay() {
         snapshot.winningSideKey,
       );
       return winner ? `${winner} wins!` : "Session complete";
-    },
-
-    back(this: BaseballPlayContext) {
-      return playBack(this);
-    },
-
-    abandonAndExit(this: BaseballPlayContext) {
-      return playAbandonAndExit(this);
     },
 
     /** Replays the same preset with no overrides — the ruleset has nothing to set. */

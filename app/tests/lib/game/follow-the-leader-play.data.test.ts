@@ -582,3 +582,71 @@ describe("followTheLeaderPlay play again", () => {
     expect(ctx.setChosen).toBe(false);
   });
 });
+
+describe("follow-the-leader shared play-screen parts", () => {
+  it("recordDart before init ignores the dart", async () => {
+    const play = makeContext();
+    const commit = vi.spyOn(play, "commitDart").mockResolvedValue(undefined);
+    await play.recordDart({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    expect(commit).not.toHaveBeenCalled();
+  });
+
+  it("recordDart after finish ignores the dart", async () => {
+    const play = makeContext();
+    const commit = vi.spyOn(play, "commitDart").mockResolvedValue(undefined);
+    play.engine = {} as never;
+    play.finished = true;
+    await play.recordDart({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    expect(commit).not.toHaveBeenCalled();
+  });
+});
+
+describe("follow-the-leader active-seat accessors", () => {
+  const pairs = [
+    ["livesLabel", "livesLabelFor", ""],
+    ["statusLabel", "statusLabelFor", ""],
+  ] as const;
+
+  it.each(pairs)(
+    "%s() is its fallback before state exists",
+    (name, forName, fallback) => {
+      const play = makeContext();
+      vi.spyOn(play, "state").mockReturnValue(null);
+      const read = vi.spyOn(play, forName);
+      expect(play[name]()).toBe(fallback);
+      expect(read).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(pairs)("%s() reads %s for the active seat", (name, forName) => {
+    const play = makeContext();
+    vi.spyOn(play, "state").mockReturnValue({
+      activeParticipantRef: "seat-active",
+    } as never);
+    const read = vi.spyOn(play, forName).mockReturnValue("from-seat");
+    expect(play[name]()).toBe("from-seat");
+    expect(read).toHaveBeenCalledWith("seat-active");
+  });
+});
+
+describe("follow-the-leader per-seat accessors for an unknown seat", () => {
+  it.each([
+    ["livesLabelFor", ""],
+    ["statusLabelFor", ""],
+  ] as const)("%s is its blank value", async (name, blank) => {
+    const play = makeContext();
+    await play.init.call(play);
+    expect(play.state()).not.toBeNull();
+    expect(play[name]("nobody")).toBe(blank);
+  });
+});

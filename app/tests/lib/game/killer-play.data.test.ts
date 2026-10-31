@@ -322,3 +322,88 @@ describe("killerPlay play again", () => {
     expect(call.config.overrides.lives).toBe(3);
   });
 });
+
+describe("killer shared play-screen parts", () => {
+  it("recordDart before init ignores the dart", async () => {
+    const play = makeContext();
+    const commit = vi.spyOn(play, "commitDart").mockResolvedValue(undefined);
+    const before = [...play.$store.game.turns];
+    await play.recordDart({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    expect(commit).not.toHaveBeenCalled();
+    expect(play.$store.game.turns).toEqual(before);
+    expect(play.engine).toBeNull();
+  });
+
+  it("recordDart after finish ignores the dart", async () => {
+    const play = makeContext();
+    const commit = vi.spyOn(play, "commitDart").mockResolvedValue(undefined);
+    play.engine = {} as never;
+    play.finished = true;
+    await play.recordDart({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    expect(commit).not.toHaveBeenCalled();
+  });
+});
+
+describe("killer active-seat accessors", () => {
+  const pairs = [
+    ["livesLabel", "livesLabelFor", ""],
+    ["numberLabel", "numberLabelFor", ""],
+    ["statusLabel", "statusLabelFor", ""],
+  ] as const;
+
+  it.each(pairs)(
+    "%s() is its fallback before state exists",
+    (name, forName, fallback) => {
+      const play = makeContext();
+      vi.spyOn(play, "state").mockReturnValue(null);
+      const read = vi.spyOn(play, forName);
+      expect(play[name]()).toBe(fallback);
+      expect(read).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(pairs)("%s() reads %s for the active seat", (name, forName) => {
+    const play = makeContext();
+    vi.spyOn(play, "state").mockReturnValue({
+      activeParticipantRef: "seat-active",
+    } as never);
+    const read = vi.spyOn(play, forName).mockReturnValue("from-seat");
+    expect(play[name]()).toBe("from-seat");
+    expect(read).toHaveBeenCalledWith("seat-active");
+  });
+});
+
+describe("killer resume", () => {
+  it("init builds the engine for its own key and none for another game's", async () => {
+    const own = makeContext();
+    await own.init.call(own);
+    expect(own.engine).not.toBeNull();
+
+    const foreign = makeContext({ rulesetVersionKey: "TUOD_V1" });
+    await foreign.init.call(foreign);
+    expect(foreign.engine).toBeNull();
+  });
+});
+
+describe("killer per-seat accessors for an unknown seat", () => {
+  it.each([
+    ["livesLabelFor", ""],
+    ["numberLabelFor", ""],
+    ["statusLabelFor", ""],
+  ] as const)("%s is its blank value", async (name, blank) => {
+    const play = makeContext();
+    await play.init.call(play);
+    expect(play.state()).not.toBeNull();
+    expect(play[name]("nobody")).toBe(blank);
+  });
+});
