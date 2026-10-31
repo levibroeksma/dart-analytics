@@ -26,6 +26,7 @@ import {
   playScreenState,
   resetTimerForPlayAgain,
   timedPlayData,
+  forActiveSeat,
 } from "@lib/game/play-screen.data";
 import { accuracyDisplay } from "@lib/game/play-visit-stats";
 import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
@@ -331,9 +332,7 @@ export function aroundTheClockPlay() {
     },
 
     currentTargetLabel(this: AroundTheClockPlayContext): string {
-      const state = this.state();
-      if (!state) return "";
-      return this.currentTargetLabelFor(state.activeParticipantRef);
+      return forActiveSeat(this, (ref) => this.currentTargetLabelFor(ref), "");
     },
 
     turnsSoFarFor(this: AroundTheClockPlayContext, seatRef: string): string {
@@ -344,9 +343,7 @@ export function aroundTheClockPlay() {
     },
 
     turnsSoFar(this: AroundTheClockPlayContext): string {
-      const state = this.state();
-      if (!state) return "0";
-      return this.turnsSoFarFor(state.activeParticipantRef);
+      return forActiveSeat(this, (ref) => this.turnsSoFarFor(ref), "0");
     },
 
     accuracyFor(this: AroundTheClockPlayContext, seatRef: string): string {
@@ -358,9 +355,7 @@ export function aroundTheClockPlay() {
     },
 
     accuracy(this: AroundTheClockPlayContext): string {
-      const state = this.state();
-      if (!state) return "0.00%";
-      return this.accuracyFor(state.activeParticipantRef);
+      return forActiveSeat(this, (ref) => this.accuracyFor(ref), "0.00%");
     },
 
     isBullVisit(this: AroundTheClockPlayContext): boolean {
@@ -422,9 +417,7 @@ export function aroundTheClockPlay() {
     },
 
     hitsToGo(this: AroundTheClockPlayContext): string {
-      const state = this.state();
-      if (!state) return "";
-      return this.hitsToGoFor(state.activeParticipantRef);
+      return forActiveSeat(this, (ref) => this.hitsToGoFor(ref), "");
     },
 
     previewSegments(

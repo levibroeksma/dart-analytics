@@ -21,6 +21,7 @@ import {
   boardPlayActions,
   playScreenActions,
   playScreenState,
+  forActiveSeat,
 } from "@lib/game/play-screen.data";
 import { joinSubtitle } from "@lib/game/play-subtitle";
 import { bedOf, sameBed } from "@modules/game/follow-the-leader-policy";
@@ -166,8 +167,7 @@ export function followTheLeaderPlay() {
     },
 
     livesLabel(this: FollowTheLeaderPlayContext): string {
-      const state = this.state();
-      return state ? this.livesLabelFor(state.activeParticipantRef) : "";
+      return forActiveSeat(this, (ref) => this.livesLabelFor(ref), "");
     },
 
     /** `OUT` once eliminated, `LEADER` for the seat that set the target, else `—`. */
@@ -179,8 +179,7 @@ export function followTheLeaderPlay() {
     },
 
     statusLabel(this: FollowTheLeaderPlayContext): string {
-      const state = this.state();
-      return state ? this.statusLabelFor(state.activeParticipantRef) : "";
+      return forActiveSeat(this, (ref) => this.statusLabelFor(ref), "");
     },
 
     isBullVisit(): boolean {

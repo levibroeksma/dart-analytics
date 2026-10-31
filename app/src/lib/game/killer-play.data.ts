@@ -2,6 +2,7 @@ import {
   playScreenState,
   boardPlayActions,
   playScreenActions,
+  forActiveSeat,
 } from "@lib/game/play-screen.data";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
@@ -100,8 +101,7 @@ export function killerPlay() {
     },
 
     livesLabel(this: KillerPlayContext): string {
-      const state = this.state();
-      return state ? this.livesLabelFor(state.activeParticipantRef) : "";
+      return forActiveSeat(this, (ref) => this.livesLabelFor(ref), "");
     },
 
     numberLabelFor(this: KillerPlayContext, seatRef: string): string {
@@ -110,8 +110,7 @@ export function killerPlay() {
     },
 
     numberLabel(this: KillerPlayContext): string {
-      const state = this.state();
-      return state ? this.numberLabelFor(state.activeParticipantRef) : "";
+      return forActiveSeat(this, (ref) => this.numberLabelFor(ref), "");
     },
 
     /** `OUT` once eliminated, `KILLER` while armed, else `—`. */
@@ -123,8 +122,7 @@ export function killerPlay() {
     },
 
     statusLabel(this: KillerPlayContext): string {
-      const state = this.state();
-      return state ? this.statusLabelFor(state.activeParticipantRef) : "";
+      return forActiveSeat(this, (ref) => this.statusLabelFor(ref), "");
     },
 
     isBullVisit(): boolean {

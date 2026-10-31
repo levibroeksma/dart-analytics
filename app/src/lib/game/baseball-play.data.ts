@@ -2,6 +2,7 @@ import {
   playScreenState,
   boardPlayActions,
   playScreenActions,
+  forActiveSeat,
 } from "@lib/game/play-screen.data";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
@@ -114,10 +115,7 @@ export function baseballPlay() {
     },
 
     currentTargetLabel(this: BaseballPlayContext): string {
-      const state = this.state();
-      return state
-        ? this.currentTargetLabelFor(state.activeParticipantRef)
-        : "";
+      return forActiveSeat(this, (ref) => this.currentTargetLabelFor(ref), "");
     },
 
     inningLabelFor(this: BaseballPlayContext, seatRef: string): string {
@@ -126,8 +124,7 @@ export function baseballPlay() {
     },
 
     inningLabel(this: BaseballPlayContext): string {
-      const state = this.state();
-      return state ? this.inningLabelFor(state.activeParticipantRef) : "";
+      return forActiveSeat(this, (ref) => this.inningLabelFor(ref), "");
     },
 
     currentScoreFor(this: BaseballPlayContext, seatRef: string): string {
@@ -136,8 +133,7 @@ export function baseballPlay() {
     },
 
     currentScore(this: BaseballPlayContext): string {
-      const state = this.state();
-      return state ? this.currentScoreFor(state.activeParticipantRef) : "";
+      return forActiveSeat(this, (ref) => this.currentScoreFor(ref), "");
     },
 
     isBullVisit(): boolean {

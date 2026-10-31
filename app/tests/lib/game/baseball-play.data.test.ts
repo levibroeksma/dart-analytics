@@ -391,3 +391,32 @@ describe("baseball shared play-screen parts", () => {
     expect(commit).not.toHaveBeenCalled();
   });
 });
+
+describe("baseball active-seat accessors", () => {
+  const pairs = [
+    ["currentTargetLabel", "currentTargetLabelFor", ""],
+    ["inningLabel", "inningLabelFor", ""],
+    ["currentScore", "currentScoreFor", ""],
+  ] as const;
+
+  it.each(pairs)(
+    "%s() is its fallback before state exists",
+    (name, forName, fallback) => {
+      const play = makeContext();
+      vi.spyOn(play, "state").mockReturnValue(null);
+      const read = vi.spyOn(play, forName);
+      expect(play[name]()).toBe(fallback);
+      expect(read).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(pairs)("%s() reads %s for the active seat", (name, forName) => {
+    const play = makeContext();
+    vi.spyOn(play, "state").mockReturnValue({
+      activeParticipantRef: "seat-active",
+    } as never);
+    const read = vi.spyOn(play, forName).mockReturnValue("from-seat");
+    expect(play[name]()).toBe("from-seat");
+    expect(read).toHaveBeenCalledWith("seat-active");
+  });
+});

@@ -28,6 +28,7 @@ import {
 import {
   boardPlayActions,
   botVisualBoardData,
+  forActiveSeat,
   playScreenActions,
   playScreenState,
   resetTimerForPlayAgain,
@@ -396,5 +397,20 @@ describe("resetTimerForPlayAgain", () => {
   it("tolerates no timer", () => {
     const ctx = { timer: null, $store: store([PLAYER]) };
     expect(() => resetTimerForPlayAgain(ctx)).not.toThrow();
+  });
+});
+
+describe("forActiveSeat", () => {
+  it("reads the active seat's ref", () => {
+    const read = vi.fn((seatRef: string) => `label:${seatRef}`);
+    const context = { state: () => ({ activeParticipantRef: "seat-b" }) };
+    expect(forActiveSeat(context, read, "")).toBe("label:seat-b");
+    expect(read).toHaveBeenCalledWith("seat-b");
+  });
+
+  it("returns the fallback without reading before state exists", () => {
+    const read = vi.fn((seatRef: string) => seatRef);
+    expect(forActiveSeat({ state: () => null }, read, "0")).toBe("0");
+    expect(read).not.toHaveBeenCalled();
   });
 });

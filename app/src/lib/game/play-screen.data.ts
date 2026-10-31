@@ -223,6 +223,19 @@ export function timedPlayData() {
   };
 }
 
+/**
+ * `read` for the seat whose turn it is, or `fallback` before the engine state
+ * exists. Pairs each per-seat `xFor(seatRef)` with its active-seat `x()`.
+ */
+export function forActiveSeat<T>(
+  context: { state(): { activeParticipantRef: string } | null },
+  read: (seatRef: string) => T,
+  fallback: T,
+): T {
+  const state = context.state();
+  return state ? read(state.activeParticipantRef) : fallback;
+}
+
 /** Stops and drops the countdown and clears the store's timer fields before a replay. */
 export function resetTimerForPlayAgain(context: TimerStoreContext): void {
   context.timer?.stop();

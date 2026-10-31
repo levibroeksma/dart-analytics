@@ -3,6 +3,7 @@ import {
   boardPlayActions,
   botVisualBoardData,
   playScreenActions,
+  forActiveSeat,
 } from "@lib/game/play-screen.data";
 import { BOT_PACING, botDartIndex } from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
@@ -170,9 +171,7 @@ export function doublesTrainingPlay() {
     },
 
     currentTargetLabel(this: DoublesTrainingPlayContext): string {
-      const state = this.state();
-      if (!state) return "";
-      return this.currentTargetLabelFor(state.activeParticipantRef);
+      return forActiveSeat(this, (ref) => this.currentTargetLabelFor(ref), "");
     },
 
     hitCountFor(this: DoublesTrainingPlayContext, seatRef: string): string {
@@ -185,9 +184,7 @@ export function doublesTrainingPlay() {
     },
 
     hitCount(this: DoublesTrainingPlayContext): string {
-      const state = this.state();
-      if (!state) return "0";
-      return this.hitCountFor(state.activeParticipantRef);
+      return forActiveSeat(this, (ref) => this.hitCountFor(ref), "0");
     },
 
     missCountFor(this: DoublesTrainingPlayContext, seatRef: string): string {
@@ -200,9 +197,7 @@ export function doublesTrainingPlay() {
     },
 
     missCount(this: DoublesTrainingPlayContext): string {
-      const state = this.state();
-      if (!state) return "0";
-      return this.missCountFor(state.activeParticipantRef);
+      return forActiveSeat(this, (ref) => this.missCountFor(ref), "0");
     },
 
     previewSegments(this: DoublesTrainingPlayContext): DoublesPreviewSegment[] {

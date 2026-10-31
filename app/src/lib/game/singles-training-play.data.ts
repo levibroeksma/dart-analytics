@@ -3,6 +3,7 @@ import {
   boardPlayActions,
   botVisualBoardData,
   playScreenActions,
+  forActiveSeat,
 } from "@lib/game/play-screen.data";
 import { BOT_PACING, botDartIndex } from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
@@ -400,9 +401,7 @@ export function singlesTrainingPlay() {
     },
 
     currentTargetLabel(this: SinglesTrainingPlayContext): string {
-      const state = this.state();
-      if (!state) return "";
-      return this.currentTargetLabelFor(state.activeParticipantRef);
+      return forActiveSeat(this, (ref) => this.currentTargetLabelFor(ref), "");
     },
 
     currentPointsFor(
@@ -416,9 +415,7 @@ export function singlesTrainingPlay() {
     },
 
     currentPoints(this: SinglesTrainingPlayContext): string {
-      const state = this.state();
-      if (!state) return "";
-      return this.currentPointsFor(state.activeParticipantRef);
+      return forActiveSeat(this, (ref) => this.currentPointsFor(ref), "");
     },
 
     isBullVisit(this: SinglesTrainingPlayContext): boolean {

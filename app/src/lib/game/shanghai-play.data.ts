@@ -3,6 +3,7 @@ import {
   boardPlayActions,
   botVisualBoardData,
   playScreenActions,
+  forActiveSeat,
 } from "@lib/game/play-screen.data";
 import { BOT_PACING, botDartIndex } from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
@@ -236,9 +237,7 @@ export function shanghaiPlay() {
     },
 
     currentTargetLabel(this: ShanghaiPlayContext): string {
-      const state = this.state();
-      if (!state) return "";
-      return this.currentTargetLabelFor(state.activeParticipantRef);
+      return forActiveSeat(this, (ref) => this.currentTargetLabelFor(ref), "");
     },
 
     roundLabelFor(this: ShanghaiPlayContext, seatRef: string): string {
@@ -249,9 +248,7 @@ export function shanghaiPlay() {
     },
 
     roundLabel(this: ShanghaiPlayContext): string {
-      const state = this.state();
-      if (!state) return "";
-      return this.roundLabelFor(state.activeParticipantRef);
+      return forActiveSeat(this, (ref) => this.roundLabelFor(ref), "");
     },
 
     currentScoreFor(this: ShanghaiPlayContext, seatRef: string): string {
@@ -262,9 +259,7 @@ export function shanghaiPlay() {
     },
 
     currentScore(this: ShanghaiPlayContext): string {
-      const state = this.state();
-      if (!state) return "";
-      return this.currentScoreFor(state.activeParticipantRef);
+      return forActiveSeat(this, (ref) => this.currentScoreFor(ref), "");
     },
 
     isBullVisit(this: ShanghaiPlayContext): boolean {

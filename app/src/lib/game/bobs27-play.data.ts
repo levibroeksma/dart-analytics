@@ -14,6 +14,7 @@ import {
   botVisualBoardData,
   playScreenActions,
   playScreenState,
+  forActiveSeat,
 } from "@lib/game/play-screen.data";
 import {
   playUploadAndCompleteSession,
@@ -183,9 +184,7 @@ export function bobs27Play() {
     },
 
     currentTargetLabel(this: Bobs27PlayContext): string {
-      const state = this.state();
-      if (!state) return "";
-      return this.currentTargetLabelFor(state.activeParticipantRef);
+      return forActiveSeat(this, (ref) => this.currentTargetLabelFor(ref), "");
     },
 
     currentScoreFor(this: Bobs27PlayContext, seatRef: string): string {
@@ -197,9 +196,7 @@ export function bobs27Play() {
     },
 
     currentScore(this: Bobs27PlayContext): string {
-      const state = this.state();
-      if (!state) return "";
-      return this.currentScoreFor(state.activeParticipantRef);
+      return forActiveSeat(this, (ref) => this.currentScoreFor(ref), "");
     },
 
     previewSegments(this: Bobs27PlayContext): Bobs27PreviewSegment[] {
