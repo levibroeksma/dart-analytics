@@ -20,7 +20,7 @@ if [ -n "${DUPES_JSON:-}" ]; then
   cp "$DUPES_JSON" "$TMP/in.json"
 else
   # Default output lists every group (clone_groups_omitted stays 0 without --top).
-  (cd "$ROOT/app" && npx -y fallow dupes --format json --no-fragments --quiet) > "$TMP/in.json" || true
+  (cd "$ROOT/app" && npx -y fallow@3.38.0 dupes --format json --no-fragments --quiet) > "$TMP/in.json" || true
 fi
 
 OM="$(jq -r '.clone_groups_omitted // 0' "$TMP/in.json" 2>/dev/null)" || { echo "check-dupes: unreadable fallow output" >&2; exit 1; }
