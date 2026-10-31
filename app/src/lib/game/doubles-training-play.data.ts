@@ -14,7 +14,6 @@ import {
   doublesPathPreviewSegments,
   doublesPathTargetLabel,
 } from "@lib/game/doubles-path-play";
-
 import {
   playUploadAndCompleteSession,
   runPlayAgain,

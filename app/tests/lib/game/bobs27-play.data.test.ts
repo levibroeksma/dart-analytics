@@ -1186,6 +1186,7 @@ describe("Easy sessions", () => {
 describe("bobs27 shared play-screen parts", () => {
   it("recordDart before init ignores the dart", async () => {
     const play = makePlay();
+    const commit = vi.spyOn(play, "commitDart").mockResolvedValue(undefined);
     const before = [...play.$store.game.turns];
     await play.recordDart({
       hitTargetNumber: null,
@@ -1193,7 +1194,22 @@ describe("bobs27 shared play-screen parts", () => {
       locationX: null,
       locationY: null,
     });
+    expect(commit).not.toHaveBeenCalled();
     expect(play.$store.game.turns).toEqual(before);
     expect(play.engine).toBeNull();
+  });
+
+  it("recordDart after finish ignores the dart", async () => {
+    const play = makePlay();
+    const commit = vi.spyOn(play, "commitDart").mockResolvedValue(undefined);
+    play.engine = {} as never;
+    play.finished = true;
+    await play.recordDart({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    expect(commit).not.toHaveBeenCalled();
   });
 });
