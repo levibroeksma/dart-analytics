@@ -33,6 +33,7 @@ import {
   playScreenActions,
   playScreenState,
   resetTimerForPlayAgain,
+  resetTimerStoreFields,
   seatStateFor,
   timedPlayData,
 } from "@lib/game/play-screen.data";
@@ -399,6 +400,23 @@ describe("resetTimerForPlayAgain", () => {
   it("tolerates no timer", () => {
     const ctx = { timer: null, $store: store([PLAYER]) };
     expect(() => resetTimerForPlayAgain(ctx)).not.toThrow();
+  });
+});
+
+describe("resetTimerStoreFields", () => {
+  it("clears the store's timer fields and leaves the timer object alone", () => {
+    const timer = fakeTimer();
+    const ctx: {
+      timer: SegmentTimer | null;
+      $store: ReturnType<typeof store>;
+    } = { timer, $store: store([PLAYER]) };
+    resetTimerStoreFields(ctx);
+    expect(timer.stop).not.toHaveBeenCalled();
+    expect(ctx.timer).toBe(timer);
+    expect(ctx.$store.game.timerRemainingMs).toBeNull();
+    expect(ctx.$store.game.timerStartedAt).toBeNull();
+    expect(ctx.$store.game.timerExpired).toBe(false);
+    expect(ctx.$store.game.timerPaused).toBe(false);
   });
 });
 

@@ -254,12 +254,19 @@ export function activeSeatStateOf<TSeat extends { participantRef: string }>(
   return state ? seatStateFor(state, state.activeParticipantRef) : undefined;
 }
 
-/** Stops and drops the countdown and clears the store's timer fields before a replay. */
-export function resetTimerForPlayAgain(context: TimerStoreContext): void {
-  context.timer?.stop();
-  context.timer = null;
+/** Clears the store's countdown fields; the page's own timer object is left as is. */
+export function resetTimerStoreFields(
+  context: Pick<TimerStoreContext, "$store">,
+): void {
   context.$store.game.timerRemainingMs = null;
   context.$store.game.timerStartedAt = null;
   context.$store.game.timerExpired = false;
   context.$store.game.timerPaused = false;
+}
+
+/** Stops and drops the countdown and clears the store's timer fields before a replay. */
+export function resetTimerForPlayAgain(context: TimerStoreContext): void {
+  context.timer?.stop();
+  context.timer = null;
+  resetTimerStoreFields(context);
 }

@@ -16,18 +16,19 @@ import {
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
 import { formatRemaining, startCountdown } from "@lib/game/play-countdown";
 import { boardInputData } from "@lib/game/board-input.data";
-import { fetchActiveSessions } from "@client/api/sessions";
-import { reconcileActiveSession } from "@lib/game/session-recovery";
 import {
-  playAbandonAndExit,
-  playBack,
+  playScreenActions,
+  playScreenState,
+  resetTimerStoreFields,
+  timedPlayData,
+} from "@lib/game/play-screen.data";
+import {
   playCommitDart,
   playAnimateBotDarts,
   playFoldBotQuickScoreVisit,
+  playInit,
   playRunBotVisualBoardVisit,
-  playToggleTimerPause,
   playUploadAndCompleteSession,
-  playVisitMarkers,
   runPlayAgain,
   isInputBlocked,
   undoBotAwareVisit,
@@ -55,7 +56,6 @@ import type {
   TurnFact,
 } from "@modules/types";
 import type {
-  BoardMarker,
   BotDartThrower,
   BotPacing,
   OneTwentyOneDurationType,
@@ -301,43 +301,24 @@ export function oneTwentyOnePlay() {
   let self: OneTwentyOnePlayContext;
 
   return {
+    ...playScreenState<OneTwentyOneEngine, OneTwentyOneResultsSnapshot>(),
+    ...playAgainStarterData(),
+    ...boardInputData(
+      (observation) => self.recordDart(observation),
+      () => self.$store.game.turns,
+    ),
+    ...playScreenActions(),
+    ...timedPlayData(),
+
     scoreInput: new ScoreInputBuffer({ maxLength: 3 }),
-    loading: false,
-    error: "",
-    finished: false,
-    hasActiveSession: false,
-    loadingReconciliation: false,
-    reconciliationFailed: false,
-    completionStatus: "pending" as
-      "pending" | "saving" | "succeeded" | "failed",
-    completionError: "",
-    playAgainError: "",
-    playAgainLoading: false,
-    resultsSnapshot: null as OneTwentyOneResultsSnapshot | null,
     pendingCheckoutScore: null as number | null,
     dartsAtDouble: null as DartCount | null,
     dartsToFinish: null as DartCount | null,
     pendingDartObservation: null as DartObservation | null,
     showDoubleConfirm: false,
     showSessionFinishConfirm: false,
-    ...playAgainStarterData(),
     botThrowing: false,
     botFlight: null,
-    engine: null as OneTwentyOneEngine | null,
-    timer: null as SegmentTimer | null,
-    hiddenTurnKey: null as string | null,
-    hiddenTimer: null as ReturnType<typeof setTimeout> | null,
-    ...boardInputData(
-      (observation) => self.recordDart(observation),
-      () => self.$store.game.turns,
-    ),
-
-    /** Overrides `boardInputData`'s own default — object-literal key order
-     * means this later definition wins. Delegates to `play-lifecycle.ts`'s
-     * shared implementation, mirrors `bobs27-play.data.ts`. */
-    visitMarkers(this: OneTwentyOnePlayContext): BoardMarker[] {
-      return playVisitMarkers(this);
-    },
 
     state(this: OneTwentyOnePlayContext): OneTwentyOneState | null {
       const config = this.$store.game.configSnapshot;
@@ -468,55 +449,13 @@ export function oneTwentyOnePlay() {
 
     async init(this: OneTwentyOnePlayContext) {
       self = this;
-      this.loadingReconciliation = true;
-      try {
-        const activeSessions = await fetchActiveSessions();
-        const result = await reconcileActiveSession(
-          GAME_TYPE_KEY,
-          this.$store.game.sessionId,
-          activeSessions,
-          this.$store.game,
-        );
-
-        this.reconciliationFailed = false;
-
-        if (result.action !== "match" || !result.activeSession) {
-          this.hasActiveSession = false;
-          return;
-        }
-
-        this.$store.game.setSessionModes(result.activeSession);
-
-        const config = this.$store.game.configSnapshot;
-        const engine = resumeEngine(this.$store.game);
-        if (!config || !engine) {
-          this.hasActiveSession = false;
-          return;
-        }
-        this.engine = engine;
-        this.$store.game.recordFacts(engine.facts());
-        this.timer = maybeResumeCountdown(this.$store.game, config, engine);
-
-        this.hasActiveSession = true;
-      } catch {
-        this.reconciliationFailed = true;
-        this.hasActiveSession = false;
-      } finally {
-        this.loadingReconciliation = false;
-      }
+      await playInit(this, GAME_TYPE_KEY, resumeEngine, {
+        onResumed: (engine, config) => {
+          this.timer = maybeResumeCountdown(this.$store.game, config, engine);
+        },
+        uploadIfComplete: false,
+      });
       if (this.hasActiveSession) await this.maybeRunBotVisit();
-    },
-
-    async retryReconciliation(this: OneTwentyOnePlayContext) {
-      await this.init();
-    },
-
-    destroy(this: OneTwentyOnePlayContext) {
-      this.timer?.stop();
-    },
-
-    togglePause(this: OneTwentyOnePlayContext) {
-      playToggleTimerPause(this);
     },
 
     /**
@@ -831,14 +770,6 @@ export function oneTwentyOnePlay() {
       return winner ? `${winner} checks out 170!` : "170 checked out!";
     },
 
-    async back(this: OneTwentyOnePlayContext) {
-      return playBack(this);
-    },
-
-    async abandonAndExit(this: OneTwentyOnePlayContext) {
-      return playAbandonAndExit(this, () => this.timer?.stop());
-    },
-
     /**
      * Replays the same configuration template the first session used,
      * against whichever ruleset version that session actually used —
@@ -861,10 +792,7 @@ export function oneTwentyOnePlay() {
         (engine) => (engine instanceof OneTwentyOneEngine ? engine : null),
         undefined,
         () => {
-          this.$store.game.timerRemainingMs = null;
-          this.$store.game.timerStartedAt = null;
-          this.$store.game.timerExpired = false;
-          this.$store.game.timerPaused = false;
+          resetTimerStoreFields(this);
           this.pendingCheckoutScore = null;
           this.pendingDartObservation = null;
           this.showDoubleConfirm = false;

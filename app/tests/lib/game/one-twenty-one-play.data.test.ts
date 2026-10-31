@@ -1510,3 +1510,34 @@ describe("oneTwentyOnePlay bot flight", () => {
     expect(typeof play.requestPlayAgain).toBe("function");
   });
 });
+
+describe("oneTwentyOnePlay shared play-screen parts", () => {
+  it("init resumes an already-expired MINUTES session with an expired engine and no timer", async () => {
+    vi.clearAllMocks();
+    segmentTimerInstances.length = 0;
+    const store = baseStore();
+    store.game.rulesetVersionKey = "121_V2";
+    store.game.configSnapshot = {
+      seats: SEATS,
+      durationType: "MINUTES",
+      durationValue: 15,
+    } as any;
+    store.game.timerExpired = true;
+    vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([
+      { sessionId: "session-1", gameTypeKey: "ONE_TWENTY_ONE" } as any,
+    ]);
+    const play = {
+      ...oneTwentyOnePlay(),
+      $store: store,
+    } as OneTwentyOnePlayContext;
+
+    await play.init();
+
+    expect(play.hasActiveSession).toBe(true);
+    expect(play.timer).toBeNull();
+    expect(segmentTimerInstances).toHaveLength(0);
+    expect(play.engine?.state().timerExpired).toBe(true);
+    expect(play.finished).toBe(false);
+    expect(sessionsApi.completeSession).not.toHaveBeenCalled();
+  });
+});
