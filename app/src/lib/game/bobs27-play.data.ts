@@ -1,4 +1,4 @@
-import { botThrowObservation } from "@lib/game/play-bot-seat";
+import { botSeatState, botThrowObservation } from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { matchWinnerName } from "@lib/game/match-result-text";
@@ -131,13 +131,7 @@ function throwBotDart(
   context: Bobs27PlayContext,
   botSeat: DartbotSeat,
 ): { observation: DartObservation; pacing: BotPacing } {
-  const state = context.state();
-  const seatState = state?.seats.find(
-    (seat) => seat.participantRef === botSeat.participantRef,
-  );
-  if (!state || !seatState) {
-    throw new Error("DartBot has no seat in this session's engine state");
-  }
+  const seatState = botSeatState(context.state(), botSeat);
   const target = targetAt(doublesPath(), seatState.targetIndex);
   return botThrowObservation(
     botSeat,

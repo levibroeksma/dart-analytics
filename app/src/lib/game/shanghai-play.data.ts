@@ -5,7 +5,7 @@ import {
   playScreenActions,
   forActiveSeat,
 } from "@lib/game/play-screen.data";
-import { BOT_PACING, botDartIndex } from "@lib/game/play-bot-seat";
+import { botSeatState, botThrowObservation } from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { matchWinnerName } from "@lib/game/match-result-text";
@@ -16,9 +16,6 @@ import {
   variantsPlayAgain,
 } from "@lib/game/play-lifecycle";
 import { accuracyDisplay } from "@lib/game/play-visit-stats";
-import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
-import { createDartRng } from "@modules/dartbot/rng.module";
-import { throwDart as botThrowDart } from "@modules/dartbot/throw-engine.module";
 import { chooseTarget } from "@modules/dartbot/strategy/dictated.strategy.module";
 import type {
   RulesetVersionKey,
@@ -170,30 +167,12 @@ function throwBotDart(
   context: ShanghaiPlayContext,
   botSeat: DartbotSeat,
 ): { observation: DartObservation; pacing: BotPacing } {
-  const state = context.state();
-  const seatState = state?.seats.find(
-    (seat) => seat.participantRef === botSeat.participantRef,
-  );
-  if (!state || !seatState) {
-    throw new Error("DartBot has no seat in this session's engine state");
-  }
-  const profile = skillProfileForLevel(botSeat.dartbot.level);
-  const dartIndex = botDartIndex(
+  const seatState = botSeatState(context.state(), botSeat);
+  return botThrowObservation(
+    botSeat,
     context.$store.game.turns,
-    botSeat.participantRef,
+    chooseTarget({ target: activeTargetOf(seatState) }),
   );
-  const rng = createDartRng(botSeat.dartbot.seed, dartIndex);
-  const intent = chooseTarget({ target: activeTargetOf(seatState) });
-  const thrown = botThrowDart(intent, profile, rng);
-  return {
-    observation: {
-      hitTargetNumber: thrown.hit.targetNumber,
-      hitZoneKey: thrown.hit.zoneKey,
-      locationX: thrown.landing.x,
-      locationY: thrown.landing.y,
-    },
-    pacing: BOT_PACING,
-  };
 }
 
 export function shanghaiPlay() {

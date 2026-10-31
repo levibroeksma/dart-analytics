@@ -5,7 +5,7 @@ import {
   playScreenActions,
   forActiveSeat,
 } from "@lib/game/play-screen.data";
-import { BOT_PACING, botDartIndex } from "@lib/game/play-bot-seat";
+import { botSeatState, botThrowObservation } from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { singlesTrainingResultsTitle } from "@lib/game/singles-training-results-title";
@@ -22,9 +22,6 @@ import {
   runPlayAgain,
 } from "@lib/game/play-lifecycle";
 import { targetOrderFor } from "@lib/game/target-order";
-import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
-import { createDartRng } from "@modules/dartbot/rng.module";
-import { throwDart as botThrowDart } from "@modules/dartbot/throw-engine.module";
 import { chooseTarget } from "@modules/dartbot/strategy/dictated.strategy.module";
 import { orderModeLabel } from "@lib/game/play-subtitle";
 import type {
@@ -327,35 +324,17 @@ function throwBotDart(
   context: SinglesTrainingPlayContext,
   botSeat: DartbotSeat,
 ): { observation: DartObservation; pacing: BotPacing } {
-  const config = context.$store.game.configSnapshot;
-  const state = context.state();
-  const seatState = state?.seats.find(
-    (seat) => seat.participantRef === botSeat.participantRef,
-  );
-  if (!config || !state || !seatState) {
-    throw new Error("DartBot has no seat in this session's engine state");
-  }
-  const profile = skillProfileForLevel(botSeat.dartbot.level);
-  const dartIndex = botDartIndex(
-    context.$store.game.turns,
-    botSeat.participantRef,
-  );
-  const rng = createDartRng(botSeat.dartbot.seed, dartIndex);
+  const seatState = botSeatState(context.state(), botSeat);
+  const config = context.$store.game.configSnapshot!;
   const target = targetAt(
     numbersPath(config.targetOrder),
     seatState.targetIndex,
   );
-  const intent = chooseTarget({ target });
-  const thrown = botThrowDart(intent, profile, rng);
-  return {
-    observation: {
-      hitTargetNumber: thrown.hit.targetNumber,
-      hitZoneKey: thrown.hit.zoneKey,
-      locationX: thrown.landing.x,
-      locationY: thrown.landing.y,
-    },
-    pacing: BOT_PACING,
-  };
+  return botThrowObservation(
+    botSeat,
+    context.$store.game.turns,
+    chooseTarget({ target }),
+  );
 }
 
 export function singlesTrainingPlay() {

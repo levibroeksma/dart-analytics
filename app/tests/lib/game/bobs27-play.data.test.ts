@@ -1241,3 +1241,30 @@ describe("bobs27 active-seat accessors", () => {
     expect(read).toHaveBeenCalledWith("seat-active");
   });
 });
+
+describe("bobs27 bot dart without a bot seat in state", () => {
+  it("rejects the bot visit and clears botThrowing", async () => {
+    const play = makePlay();
+    Object.defineProperty(play.$store.game, "seats", {
+      value: [
+        {
+          participantRef: "bot-x",
+          participantTypeKey: "DARTBOT",
+          sideKey: "B",
+          dartbot: { level: 5, seed: 1 },
+        },
+      ],
+    });
+    play.engine = {
+      state: () => ({ activeParticipantRef: "bot-x" }),
+    } as never;
+    vi.spyOn(play, "state").mockReturnValue({
+      activeParticipantRef: "bot-x",
+      seats: [],
+    } as never);
+    await expect(play.maybeRunBotVisit()).rejects.toThrow(
+      "DartBot has no seat in this session's engine state",
+    );
+    expect(play.botThrowing).toBe(false);
+  });
+});
