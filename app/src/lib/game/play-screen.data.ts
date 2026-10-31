@@ -83,8 +83,8 @@ export function playScreenState<TEngine, TResults>() {
 }
 
 /**
- * The navigation and recovery actions every play page shares. `abandonAndExit`
- * stops the page's countdown, when it has one, once the session is abandoned.
+ * The navigation and recovery actions every play page shares. A timed page
+ * spreads `timedPlayData()` after this, so its `abandonAndExit` wins.
  */
 export function playScreenActions() {
   return {
@@ -100,8 +100,8 @@ export function playScreenActions() {
       return playVisitMarkers(this);
     },
 
-    abandonAndExit(this: ScreenContext & { timer?: SegmentTimer | null }) {
-      return playAbandonAndExit(this, () => this.timer?.stop());
+    abandonAndExit(this: ScreenContext) {
+      return playAbandonAndExit(this);
     },
   };
 }
@@ -110,8 +110,10 @@ export function playScreenActions() {
  * The visual-board record cycle: board input wired to `recordDart`, plus
  * `init`, `recordDart`, `commitDart`, `undoVisit` and the lifecycle's
  * `visitMarkers`. Each step re-enters `maybeRunBotVisit` when the page has
- * one. `init` binds the board's commit to this page, so a page that overrides
- * `init` must still run this one.
+ * one. `afterInit` runs after `playInit` and before the bot visit, for a
+ * page's own post-resume step such as a countdown. `init` binds the board's
+ * commit to this page: a factory that overrides `init` must call through to
+ * this one, or board taps break.
  */
 export function boardPlayActions<
   TConfig,
@@ -119,6 +121,7 @@ export function boardPlayActions<
 >(spec: {
   gameTypeKey: string;
   resume: (game: PlayStoreContext<TConfig>["game"]) => TEngine | null;
+  afterInit?(context: BoardPlayContext<TConfig, TEngine>): void | Promise<void>;
 }) {
   let self: BoardPlayContext<TConfig, TEngine>;
 
@@ -131,6 +134,7 @@ export function boardPlayActions<
     async init(this: BoardPlayContext<TConfig, TEngine>) {
       self = this;
       await playInit(this, spec.gameTypeKey, spec.resume);
+      await spec.afterInit?.(this);
       await this.maybeRunBotVisit?.();
     },
 
@@ -196,7 +200,11 @@ export function botVisualBoardData<TContext>(
   };
 }
 
-/** A MINUTES-mode countdown's state and its pause and teardown actions. */
+/**
+ * A MINUTES-mode countdown's state and its pause, teardown and abandon
+ * actions. Spread after `playScreenActions()`; its `abandonAndExit` stops
+ * the countdown once the session is abandoned.
+ */
 export function timedPlayData() {
   return {
     timer: null as SegmentTimer | null,
@@ -207,6 +215,10 @@ export function timedPlayData() {
 
     destroy(this: { timer: SegmentTimer | null }) {
       this.timer?.stop();
+    },
+
+    abandonAndExit(this: ScreenContext & { timer: SegmentTimer | null }) {
+      return playAbandonAndExit(this, () => this.timer?.stop());
     },
   };
 }

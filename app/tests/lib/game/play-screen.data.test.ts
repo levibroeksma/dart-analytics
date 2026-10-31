@@ -107,10 +107,17 @@ function lifecycle(seats: readonly SeatFact[] = [PLAYER]) {
 
 const resume = vi.fn(() => null);
 
-function boardScreen(seats: readonly SeatFact[] = [PLAYER]) {
+function boardScreen(
+  seats: readonly SeatFact[] = [PLAYER],
+  afterInit?: () => void | Promise<void>,
+) {
   const { init: _init, ...base } = lifecycle(seats);
   return Object.assign(
-    boardPlayActions<unknown, Engine>({ gameTypeKey: "TEST", resume }),
+    boardPlayActions<unknown, Engine>({
+      gameTypeKey: "TEST",
+      resume,
+      afterInit,
+    }),
     base,
     { engine: {} as Engine | null },
   );
@@ -160,21 +167,11 @@ describe("playScreenActions", () => {
     expect(playVisitMarkers).toHaveBeenCalledWith(ctx);
   });
 
-  it("abandonAndExit stops a present timer once abandoned", async () => {
-    const timer = fakeTimer();
-    const ctx = Object.assign(playScreenActions(), lifecycle(), { timer });
-    await ctx.abandonAndExit();
-    const [context, onAbandoned] = vi.mocked(playAbandonAndExit).mock.calls[0];
-    expect(context).toBe(ctx);
-    await onAbandoned?.();
-    expect(timer.stop).toHaveBeenCalledOnce();
-  });
-
-  it("abandonAndExit does not throw without a timer", async () => {
+  it("abandonAndExit abandons with no callback", async () => {
     const ctx = Object.assign(playScreenActions(), lifecycle());
-    await ctx.abandonAndExit();
-    const [, onAbandoned] = vi.mocked(playAbandonAndExit).mock.calls[0];
-    expect(() => onAbandoned?.()).not.toThrow();
+    await expect(ctx.abandonAndExit()).resolves.toBeUndefined();
+    expect(vi.mocked(playAbandonAndExit).mock.calls[0]).toEqual([ctx]);
+    expect(vi.mocked(playAbandonAndExit).mock.calls[0][0]).toBe(ctx);
   });
 });
 
@@ -199,6 +196,43 @@ describe("boardPlayActions", () => {
     await vi.waitFor(() =>
       expect(playCommitDart).toHaveBeenCalledWith(ctx, MISS),
     );
+  });
+
+  it("a board tap after init with an afterInit reaches recordDart", async () => {
+    const afterInit = vi.fn();
+    const ctx = boardScreen([PLAYER], afterInit);
+    await ctx.init();
+    ctx.recordUnseen.call(ctx as never);
+    await vi.waitFor(() =>
+      expect(playCommitDart).toHaveBeenCalledWith(ctx, MISS),
+    );
+    expect(afterInit).toHaveBeenCalledOnce();
+  });
+
+  it("afterInit runs after playInit and before the bot visit", async () => {
+    const order: string[] = [];
+    vi.mocked(playInit).mockImplementationOnce(async () => {
+      order.push("playInit");
+    });
+    const ctx = Object.assign(
+      boardScreen([PLAYER], () => {
+        order.push("afterInit");
+      }),
+      {
+        maybeRunBotVisit: vi.fn(async () => {
+          order.push("bot");
+        }),
+      },
+    );
+    await ctx.init();
+    expect(order).toEqual(["playInit", "afterInit", "bot"]);
+  });
+
+  it("afterInit receives the page context", async () => {
+    const afterInit = vi.fn();
+    const ctx = boardScreen([PLAYER], afterInit);
+    await ctx.init();
+    expect(afterInit.mock.calls[0][0]).toBe(ctx);
   });
 
   it("recordDart ignores a dart without an engine or once finished", async () => {
@@ -300,6 +334,30 @@ describe("timedPlayData", () => {
     const ctx = Object.assign(timedPlayData(), lifecycle());
     ctx.togglePause();
     expect(playToggleTimerPause).toHaveBeenCalledWith(ctx);
+  });
+
+  it("abandonAndExit stops a present timer once abandoned", async () => {
+    const timer = fakeTimer();
+    const ctx = Object.assign(
+      playScreenActions(),
+      timedPlayData(),
+      lifecycle(),
+      {
+        timer,
+      },
+    );
+    await ctx.abandonAndExit();
+    const [context, onAbandoned] = vi.mocked(playAbandonAndExit).mock.calls[0];
+    expect(context).toBe(ctx);
+    await onAbandoned?.();
+    expect(timer.stop).toHaveBeenCalledOnce();
+  });
+
+  it("abandonAndExit does not throw before a timer starts", async () => {
+    const ctx = Object.assign(timedPlayData(), lifecycle());
+    await ctx.abandonAndExit();
+    const [, onAbandoned] = vi.mocked(playAbandonAndExit).mock.calls[0];
+    expect(() => onAbandoned?.()).not.toThrow();
   });
 
   it("destroy stops a present timer and tolerates none", () => {
