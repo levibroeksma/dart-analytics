@@ -277,3 +277,22 @@ describe("subtitle", () => {
     expect(ctx.subtitle.call(ctx)).toBe("SOLO · 12 OBJECTIVES");
   });
 });
+
+describe("mickeyMousePlay shared play-screen parts", () => {
+  it("recordDart before init ignores the dart", async () => {
+    const ctx = makeContext();
+    const commit = vi.spyOn(ctx, "commitDart").mockResolvedValue(undefined);
+    await ctx.recordDart(obs(20, "SINGLE"));
+    expect(commit).not.toHaveBeenCalled();
+    expect(ctx.$store.game.turns).toEqual([]);
+    expect(ctx.engine).toBeNull();
+  });
+
+  it("recordDart after finish ignores the dart", async () => {
+    const ctx = await started();
+    const commit = vi.spyOn(ctx, "commitDart").mockResolvedValue(undefined);
+    ctx.finished = true;
+    await ctx.recordDart(obs(20, "SINGLE"));
+    expect(commit).not.toHaveBeenCalled();
+  });
+});
