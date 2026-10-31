@@ -445,3 +445,20 @@ describe("baseball per-seat accessors for an unknown seat", () => {
     expect(play[name]("nobody")).toBe(blank);
   });
 });
+
+describe("baseball when the active ref has no seat", () => {
+  async function ghostTurn() {
+    const play = makeContext();
+    await play.init.call(play);
+    vi.spyOn(play, "state").mockReturnValue({
+      activeParticipantRef: "ghost",
+      seats: [],
+    } as never);
+    return play;
+  }
+
+  it("active-seat reads are blank", async () => {
+    const play = await ghostTurn();
+    expect(play.subtitle()).toBe("");
+  });
+});

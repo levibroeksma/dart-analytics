@@ -4,6 +4,7 @@ import {
   playScreenActions,
   forActiveSeat,
   seatStateFor,
+  activeSeatStateOf,
 } from "@lib/game/play-screen.data";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { matchWinnerName } from "@lib/game/match-result-text";
@@ -91,9 +92,7 @@ export function baseballPlay() {
 
     /** Play-header subtitle: `INNING 3 OF 9`; blank before config loads. */
     subtitle(this: BaseballPlayContext): string {
-      const state = this.state();
-      const seat =
-        state && seatStateFor(this.state(), state.activeParticipantRef);
+      const seat = activeSeatStateOf(this.state());
       return seat ? `INNING ${inningOf(seat)} OF ${BASEBALL_INNINGS}` : "";
     },
 

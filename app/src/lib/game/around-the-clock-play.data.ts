@@ -20,6 +20,7 @@ import {
   resumeVersionedEngine,
 } from "@lib/game/play-lifecycle";
 import {
+  activeSeatStateOf,
   boardPlayActions,
   botVisualBoardData,
   playScreenActions,
@@ -279,13 +280,7 @@ export function aroundTheClockPlay() {
     activeSeatState(
       this: AroundTheClockPlayContext,
     ): AroundTheClockSeatState | null {
-      const state = this.state();
-      if (!state) return null;
-      return (
-        state.seats.find(
-          (seat) => seat.participantRef === state.activeParticipantRef,
-        ) ?? null
-      );
+      return activeSeatStateOf(this.state()) ?? null;
     },
 
     currentTargetLabelFor(

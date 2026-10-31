@@ -26,6 +26,7 @@ import {
   undoToActiveSeat,
 } from "@lib/game/play-lifecycle";
 import {
+  activeSeatStateOf,
   boardPlayActions,
   botVisualBoardData,
   forActiveSeat,
@@ -430,5 +431,22 @@ describe("seatStateFor", () => {
     expect(seatStateFor({ seats }, "nobody")).toBeUndefined();
     expect(seatStateFor(null, "seat-a")).toBeUndefined();
     expect(seatStateFor(undefined, "seat-a")).toBeUndefined();
+  });
+});
+
+describe("activeSeatStateOf", () => {
+  const seats = [{ participantRef: "seat-a" }, { participantRef: "seat-b" }];
+
+  it("finds the seat whose turn it is", () => {
+    expect(activeSeatStateOf({ activeParticipantRef: "seat-b", seats })).toBe(
+      seats[1],
+    );
+  });
+
+  it("is undefined before state exists or for a ref with no seat", () => {
+    expect(activeSeatStateOf(null)).toBeUndefined();
+    expect(
+      activeSeatStateOf({ activeParticipantRef: "ghost", seats }),
+    ).toBeUndefined();
   });
 });

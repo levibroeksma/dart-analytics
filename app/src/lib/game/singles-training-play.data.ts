@@ -1,4 +1,5 @@
 import {
+  activeSeatStateOf,
   playScreenState,
   boardPlayActions,
   botVisualBoardData,
@@ -388,10 +389,7 @@ export function singlesTrainingPlay() {
 
     isBullVisit(this: SinglesTrainingPlayContext): boolean {
       const config = this.$store.game.configSnapshot;
-      const state = this.state();
-      const seat = state?.seats.find(
-        (candidate) => candidate.participantRef === state.activeParticipantRef,
-      );
+      const seat = activeSeatStateOf(this.state());
       if (!config || !seat) return false;
       return (
         targetAt(numbersPath(config.targetOrder), seat.targetIndex).kind ===
@@ -477,10 +475,7 @@ export function singlesTrainingPlay() {
       ring: "SINGLE" | "DOUBLE" | "TREBLE" | "MISS",
     ) {
       const config = this.$store.game.configSnapshot;
-      const state = this.state();
-      const seat = state?.seats.find(
-        (candidate) => candidate.participantRef === state.activeParticipantRef,
-      );
+      const seat = activeSeatStateOf(this.state());
       if (!this.engine || !config || !seat || this.finished) return;
       const target = targetAt(
         numbersPath(config.targetOrder),

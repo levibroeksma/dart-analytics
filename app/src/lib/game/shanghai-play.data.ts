@@ -1,4 +1,5 @@
 import {
+  activeSeatStateOf,
   playScreenState,
   boardPlayActions,
   botVisualBoardData,
@@ -192,10 +193,7 @@ export function shanghaiPlay() {
 
     /** Play-header subtitle: `ROUND 7 OF 20` (the range's length);  blank before config loads. */
     subtitle(this: ShanghaiPlayContext): string {
-      const state = this.state();
-      const seat = state?.seats.find(
-        (candidate) => candidate.participantRef === state.activeParticipantRef,
-      );
+      const seat = activeSeatStateOf(this.state());
       if (!seat) return "";
       return `ROUND ${Math.min(roundOf(seat), roundCountOf(seat))} OF ${roundCountOf(seat)}`;
     },
@@ -244,10 +242,7 @@ export function shanghaiPlay() {
       ring: "SINGLE" | "DOUBLE" | "TREBLE" | "MISS",
     ) {
       if (!this.engine) return;
-      const state = this.state();
-      const activeSeat = state?.seats.find(
-        (seat) => seat.participantRef === state.activeParticipantRef,
-      );
+      const activeSeat = activeSeatStateOf(this.state());
       if (!activeSeat) return;
       const observation: DartObservation =
         ring === "MISS"

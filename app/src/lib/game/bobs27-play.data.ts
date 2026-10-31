@@ -9,6 +9,7 @@ import {
 } from "@lib/game/doubles-path-play";
 import { accuracyDisplay } from "@lib/game/play-visit-stats";
 import {
+  activeSeatStateOf,
   boardPlayActions,
   botVisualBoardData,
   playScreenActions,
@@ -150,10 +151,7 @@ export function bobs27Play() {
 
     /** Play-header subtitle: `ROUND 4 OF 21` along the doubles path; blank before config loads. */
     subtitle(this: Bobs27PlayContext): string {
-      const state = this.state();
-      const seat = state?.seats.find(
-        (candidate) => candidate.participantRef === state.activeParticipantRef,
-      );
+      const seat = activeSeatStateOf(this.state());
       if (!seat) return "";
       const rounds = doublesPath().length;
       return `ROUND ${Math.min(seat.targetIndex + 1, rounds)} OF ${rounds}`;
@@ -190,10 +188,7 @@ export function bobs27Play() {
      * `commitDart`, exactly as the board's per-dart `recordDart` does. */
     async recordTap(this: Bobs27PlayContext, hit: boolean) {
       if (!this.engine || this.finished) return;
-      const state = this.state();
-      const activeSeat = state?.seats.find(
-        (seat) => seat.participantRef === state.activeParticipantRef,
-      );
+      const activeSeat = activeSeatStateOf(this.state());
       if (!activeSeat) return;
       const target = targetAt(doublesPath(), activeSeat.targetIndex);
       await this.commitDart(doublesPathObservation(target, hit));

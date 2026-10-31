@@ -1,4 +1,5 @@
 import {
+  activeSeatStateOf,
   playScreenState,
   boardPlayActions,
   botVisualBoardData,
@@ -183,10 +184,7 @@ export function doublesTrainingPlay() {
      * `commitDart`. */
     async recordTap(this: DoublesTrainingPlayContext, hit: boolean) {
       const config = this.$store.game.configSnapshot;
-      const state = this.state();
-      const seat = state?.seats.find(
-        (candidate) => candidate.participantRef === state.activeParticipantRef,
-      );
+      const seat = activeSeatStateOf(this.state());
       if (!this.engine || !config || !seat || this.finished) return;
       const target = targetAt(
         doublesPath(config.targetOrder),

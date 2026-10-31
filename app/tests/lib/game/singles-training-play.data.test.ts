@@ -1791,3 +1791,27 @@ describe("singles-training per-seat accessors for an unknown seat", () => {
     expect(play[name]("nobody")).toBe(blank);
   });
 });
+
+describe("singles-training when the active ref has no seat", () => {
+  async function ghostTurn() {
+    const play = makePlay();
+    await play.init.call(play);
+    vi.spyOn(play, "state").mockReturnValue({
+      activeParticipantRef: "ghost",
+      seats: [],
+    } as never);
+    return play;
+  }
+
+  it("active-seat reads are blank", async () => {
+    const play = await ghostTurn();
+    expect(play.isBullVisit()).toBe(false);
+  });
+
+  it("recordTap commits nothing", async () => {
+    const play = await ghostTurn();
+    const commit = vi.spyOn(play, "commitDart").mockResolvedValue(undefined);
+    await play.recordTap("MISS");
+    expect(commit).not.toHaveBeenCalled();
+  });
+});

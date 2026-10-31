@@ -244,6 +244,16 @@ export function seatStateFor<TSeat extends { participantRef: string }>(
   return state?.seats.find((seat) => seat.participantRef === seatRef);
 }
 
+/** The seat whose turn it is; undefined before state exists. */
+export function activeSeatStateOf<TSeat extends { participantRef: string }>(
+  state:
+    | { activeParticipantRef: string; seats: readonly TSeat[] }
+    | null
+    | undefined,
+): TSeat | undefined {
+  return state ? seatStateFor(state, state.activeParticipantRef) : undefined;
+}
+
 /** Stops and drops the countdown and clears the store's timer fields before a replay. */
 export function resetTimerForPlayAgain(context: TimerStoreContext): void {
   context.timer?.stop();

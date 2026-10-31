@@ -1232,3 +1232,22 @@ describe("doubles-training per-seat accessors for an unknown seat", () => {
     expect(play[name]("nobody")).toBe(blank);
   });
 });
+
+describe("doubles-training when the active ref has no seat", () => {
+  async function ghostTurn() {
+    const play = makePlay();
+    await play.init.call(play);
+    vi.spyOn(play, "state").mockReturnValue({
+      activeParticipantRef: "ghost",
+      seats: [],
+    } as never);
+    return play;
+  }
+
+  it("recordTap commits nothing", async () => {
+    const play = await ghostTurn();
+    const commit = vi.spyOn(play, "commitDart").mockResolvedValue(undefined);
+    await play.recordTap(false);
+    expect(commit).not.toHaveBeenCalled();
+  });
+});
