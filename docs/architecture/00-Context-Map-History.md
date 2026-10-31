@@ -17,7 +17,7 @@ updated: 2026-10-31
 
 # Version History
 
-> **Version:** 1.194.0 (2026-10-31 — Edit-time rules, slim rule files: D513 in `decisions/context-system.md` (edit-time hooks + one-time owner-approved strip of dated provenance tails and history prose from all 12 `CLAUDE.md` files; rules and invariants unchanged; root keeps the condensed migration carve-out and worktree rules); `docs/CLAUDE.md` step 1 and `context-maintenance` step 2 now grep the File Inventory instead of reading it whole; `.claude/hooks/edit-gate.py`, `scripts/test-edit-gate.sh` and `scripts/test-check-file-mode.sh` registered in `00-File-Inventory.md`; pack budgets unchanged, within tolerance.)
+> **Version:** 1.194.0 (2026-10-31 — Edit-time rules, slim rule files: D514 in `decisions/context-system.md` (edit-time hooks + one-time owner-approved strip of dated provenance tails and history prose from all 12 `CLAUDE.md` files; rules and invariants unchanged; root keeps the condensed migration carve-out and worktree rules); `docs/CLAUDE.md` step 1 and `context-maintenance` step 2 now grep the File Inventory instead of reading it whole; `.claude/hooks/edit-gate.py`, `scripts/test-edit-gate.sh` and `scripts/test-check-file-mode.sh` registered in `00-File-Inventory.md`; pack budgets unchanged, within tolerance.)
 
 > **Version:** 1.193.0 (2026-10-29 — `04-Architecture-patterns.md` version-line diet (#1146): the line keeps only the current version; 41 earlier versions move to the new § Architecture Patterns Version History below; pack budgets re-synced in `00-Context-Map.md`.)
 
