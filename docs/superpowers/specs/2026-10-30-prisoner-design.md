@@ -1,7 +1,7 @@
 # Prisoner — Design
 
 Date: 2026-10-30
-Status: design, awaiting approval
+Status: PR 1 (kernel hooks `reduceDart`/`decidedWinner`, policy, engine, validator, seed `0056`) implemented 2026-10-31, D516; PR 2 (app wiring) pending
 Parent: `2026-10-27-elimination-kernel-design.md` (Prisoner gets its own spec)
 Rules input: `docs/game-rules/rulesets/prisoner.md` (V1 rows only)
 
@@ -34,7 +34,7 @@ Killer and Follow the Leader. Two seats, visual board only.
   shared)` exist (Follow the Leader). `shared` changes only at a visit's close.
 - Win is `eliminationWinner`: the last seat not out.
 - Shell `isVisitOpen(turn, state, config)` sees folded state, open turn
-  included. Three-dart validator caps a turn at 3 darts.
+  included. The three-dart validator has no dart-count cap.
 - `SEAT_CAPS` defaults to 1; floors in `SEAT_FLOORS`. `RULESET_CAPABILITIES`
   lists mode pairs per ruleset; each lists `DETAILED_DARTS` or `QUICK_SCORE`
   beside `VISUAL_BOARD`, so none is board-only yet.
@@ -83,7 +83,8 @@ held** (starts 3).
   `budget := held`. The first seat with budget > 0 becomes the active seat.
   Two seats both fully sitting out resolve by the same walk.
 - **A visit can exceed 3 darts.** Held can reach 6 with two seats. The turn
-  dart cap rises to 6 for this ruleset (§6).
+  has no cap in the three-dart validator; Prisoner's validator adds a cap of
+  6 darts per turn (§6).
 - **Bull prisoners are not tracked on the board**, only counted per seat for
   the result.
 - **Closure is stored, never inferred**, as Follow the Leader: `completedAt`
@@ -124,8 +125,10 @@ imprisoned; `lodged` per number; the open visit's darts left. Derived from
 `turns`/`darts`.
 
 `isVisitOpen`: open while the turn has fewer darts than the thrower's budget,
-the game is not decided, and the seat is not out. Refusal after `COMPLETE`
-and for a keypad `SINGLE` dart.
+the game is not decided, and the seat is not out. Refusal after `COMPLETE`.
+The engine does not refuse a keypad `SINGLE`: under `coordinateCapture` every
+dart resolves from its coordinates, and an unlocated `SINGLE` is a no-effect
+dart. Only the validator refuses it (§6).
 
 ## 6. Capture (Hard Invariants)
 
@@ -137,8 +140,10 @@ and for a keypad `SINGLE` dart.
   zone (`INNER_SINGLE`, `OUTER_SINGLE`, `DOUBLE`, `TREBLE`, `OUTER_BULL`,
   `INNER_BULL`, `MISS`), `score` = board score. A skipped visit writes
   nothing: it is derived.
-- **Validator:** composes the three-dart validator with a 6-dart cap and a
-  refusal of the unbanded `SINGLE` zone. The plan checks no database
+- **Validator:** the three-dart validator has no dart-count cap. Prisoner's
+  validator adds a cap of 6 darts per turn and refuses the unbanded `SINGLE`
+  zone, then delegates; it overrides `validateConfig` to accept only
+  `ANALYTICS + VISUAL_BOARD`. The plan checks no database
   constraint caps darts per turn; if one does, a migration is owed and
   P10 is revisited.
 - **Derived, never stored:** target, held, sitting, budget, lodged,
