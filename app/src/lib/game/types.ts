@@ -395,6 +395,18 @@ export type PlayAgainOverrides<TConfig> = {
   wire: Record<string, unknown>;
 };
 
+/**
+ * `playInit`'s options. `onResumed` runs once a matched session's engine is
+ * rebuilt and its facts mirrored, before `hasActiveSession` turns true (e.g.
+ * to resume a countdown). `uploadIfComplete` (default `true`) controls
+ * whether an engine that resumes already complete is finished and uploaded
+ * straight away.
+ */
+export type PlayInitOptions<TConfig, TEngine> = {
+  onResumed?: (engine: TEngine, config: Seated<TConfig>) => void;
+  uploadIfComplete?: boolean;
+};
+
 /** One seat's own results stats, replayed from its own completed visits in
  * `turns`. `total` is that seat's final score (from `finalState`, not
  * recomputed); the rest are derived by the shared `play-visit-stats.ts`

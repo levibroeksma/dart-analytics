@@ -41,6 +41,7 @@ import type {
   BotQuickScoreThrower,
   GamePreviewSegment,
   PlayAgainOverrides,
+  PlayInitOptions,
   PlayLifecycleContext,
   PlayStoreContext,
 } from "./types";
@@ -116,6 +117,7 @@ export async function playInit<
   context: PlayLifecycleContext<TConfig, TEngine, TResults>,
   gameTypeKey: string,
   resumeEngine: (game: PlayStoreContext<TConfig>["game"]) => TEngine | null,
+  options: PlayInitOptions<TConfig, TEngine> = {},
 ): Promise<void> {
   context.loadingReconciliation = true;
   try {
@@ -144,9 +146,10 @@ export async function playInit<
     }
     context.engine = engine;
     context.$store.game.recordFacts(engine.facts());
+    options.onResumed?.(engine, config);
     context.hasActiveSession = true;
 
-    if (engine.isComplete()) {
+    if (options.uploadIfComplete !== false && engine.isComplete()) {
       context.finished = true;
       context.completionStatus = "pending";
       await context.uploadAndCompleteSession();

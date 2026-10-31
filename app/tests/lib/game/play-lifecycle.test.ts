@@ -353,6 +353,84 @@ describe("playInit", () => {
     expect(context.completionStatus).toBe("succeeded");
     expect(completeSession).toHaveBeenCalledWith("s1", "COMPLETED");
   });
+
+  function completeContext(): Ctx {
+    const base = makeContext();
+    return makeContext({
+      $store: {
+        ...base.$store,
+        game: {
+          ...base.$store.game,
+          turns: [
+            {
+              clientKey: "t1",
+              stageClientKey: "block-1",
+              participantRef: "participant-1",
+              sequence: 1,
+              completedAt: "2026-08-14T00:00:00.000Z",
+              totalScore: 99,
+              darts: [],
+            },
+          ],
+        },
+      },
+    });
+  }
+
+  it("runs onResumed after recordFacts and before hasActiveSession is set", async () => {
+    const context = makeContext();
+    const seen: { recorded: number; active: boolean; label: string }[] = [];
+
+    await playInit(context, GAME_TYPE_KEY, resumeEngine, {
+      onResumed: (engine, config) => {
+        expect(engine).toBe(context.engine);
+        seen.push({
+          recorded: vi.mocked(context.$store.game.recordFacts).mock.calls
+            .length,
+          active: context.hasActiveSession,
+          label: config.label,
+        });
+      },
+    });
+
+    expect(seen).toEqual([{ recorded: 1, active: false, label: "fake" }]);
+    expect(context.hasActiveSession).toBe(true);
+  });
+
+  it("does not run onResumed when there is no matching session", async () => {
+    vi.mocked(fetchActiveSessions).mockResolvedValue([]);
+    const context = makeContext();
+    const onResumed = vi.fn();
+
+    await playInit(context, GAME_TYPE_KEY, resumeEngine, { onResumed });
+
+    expect(onResumed).not.toHaveBeenCalled();
+  });
+
+  it("leaves a complete engine un-uploaded under uploadIfComplete: false", async () => {
+    const context = completeContext();
+
+    await playInit(context, GAME_TYPE_KEY, resumeEngine, {
+      uploadIfComplete: false,
+    });
+
+    expect(context.engine!.isComplete()).toBe(true);
+    expect(context.hasActiveSession).toBe(true);
+    expect(context.finished).toBe(false);
+    expect(context.uploadAndCompleteSession).not.toHaveBeenCalled();
+    expect(appendBatch).not.toHaveBeenCalled();
+  });
+
+  it("still uploads a complete engine when options omit uploadIfComplete", async () => {
+    const context = completeContext();
+
+    await playInit(context, GAME_TYPE_KEY, resumeEngine, {
+      onResumed: () => {},
+    });
+
+    expect(context.finished).toBe(true);
+    expect(context.uploadAndCompleteSession).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("playRetryReconciliation", () => {
