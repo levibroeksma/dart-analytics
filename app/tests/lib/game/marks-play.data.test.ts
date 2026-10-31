@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   duelWinningSideKey,
+  marksNumberTargets,
+  marksObjectiveLabel,
   marksPlayAccessors,
   marksPreviewSegments,
   marksTapObservation,
@@ -353,5 +355,24 @@ describe("resumeMarksEngine", () => {
         isFake,
       ),
     ).toBeNull();
+  });
+});
+
+describe("marksObjectiveLabel", () => {
+  it("names the ring objectives, the bull and plain numbers", () => {
+    expect(marksObjectiveLabel("DOUBLES")).toBe("Doubles");
+    expect(marksObjectiveLabel("TRIPLES")).toBe("Triples");
+    expect(marksObjectiveLabel(25)).toBe("Bull");
+    expect(marksObjectiveLabel(17)).toBe("17");
+  });
+});
+
+describe("marksNumberTargets", () => {
+  it("keeps the numeric objectives in order, labelled, and drops the ring ones", () => {
+    expect(marksNumberTargets([20, 19, "DOUBLES", "TRIPLES", 25])).toEqual([
+      { number: 20, label: "20" },
+      { number: 19, label: "19" },
+      { number: 25, label: "Bull" },
+    ]);
   });
 });

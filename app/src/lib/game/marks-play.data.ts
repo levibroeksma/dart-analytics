@@ -15,6 +15,7 @@ import type {
   MarksObjectiveRow,
   MarksRing,
   PlayStoreContext,
+  TacticsTapTarget,
 } from "./types";
 
 type MarksTapContext = {
@@ -52,6 +53,24 @@ export function marksTapObservation(
     locationX: null,
     locationY: null,
   };
+}
+
+/** A marks objective's row label: Doubles, Triples, Bull, or the number. */
+export function marksObjectiveLabel(
+  objective: number | "DOUBLES" | "TRIPLES",
+): string {
+  if (objective === "DOUBLES") return "Doubles";
+  if (objective === "TRIPLES") return "Triples";
+  return objective === BULL_TARGET_NUMBER ? "Bull" : String(objective);
+}
+
+/** The recreational input's number buttons: each numeric objective, labelled, in order. */
+export function marksNumberTargets(
+  objectives: readonly (number | "DOUBLES" | "TRIPLES")[],
+): TacticsTapTarget[] {
+  return objectives
+    .filter((objective): objective is number => typeof objective === "number")
+    .map((number) => ({ number, label: marksObjectiveLabel(number) }));
 }
 
 /** Tapping the selected ring again returns to SINGLE. */

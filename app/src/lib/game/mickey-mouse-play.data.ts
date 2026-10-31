@@ -1,5 +1,4 @@
 import { playAgainStarterData } from "@lib/game/play-again-starter";
-import { BULL_TARGET_NUMBER } from "@modules/game/board-progression.module";
 import {
   playUploadAndCompleteSession,
   runPlayAgain,
@@ -11,6 +10,8 @@ import {
 } from "@lib/game/play-screen.data";
 import {
   duelWinningSideKey,
+  marksNumberTargets,
+  marksObjectiveLabel,
   marksPlayAccessors,
   marksPreviewSegments,
   recordMarksMiss,
@@ -19,11 +20,7 @@ import {
   toggleMarksRing,
 } from "@lib/game/marks-play.data";
 import type { RulesetVersionKey } from "@lib/types";
-import type {
-  MickeyMouseObjective,
-  MickeyMouseSeatState,
-  MickeyMouseState,
-} from "@modules/types";
+import type { MickeyMouseSeatState, MickeyMouseState } from "@modules/types";
 import type {
   Bobs27PreviewSegment,
   MickeyMousePlayContext,
@@ -47,15 +44,9 @@ import {
 const GAME_TYPE_KEY = "MICKEY_MOUSE";
 const RESUMABLE = new Set<RulesetVersionKey>(["MICKEY_MOUSE_V1"]);
 
-function objectiveLabel(objective: MickeyMouseObjective): string {
-  if (objective === "DOUBLES") return "Doubles";
-  if (objective === "TRIPLES") return "Triples";
-  return objective === BULL_TARGET_NUMBER ? "Bull" : String(objective);
-}
-
-const NUMBER_TARGETS: MickeyMouseTapTarget[] = MICKEY_MOUSE_OBJECTIVES.filter(
-  (objective): objective is number => typeof objective === "number",
-).map((number) => ({ number, label: objectiveLabel(number) }));
+const NUMBER_TARGETS: MickeyMouseTapTarget[] = marksNumberTargets(
+  MICKEY_MOUSE_OBJECTIVES,
+);
 
 const LOW_TARGETS: MickeyMouseTapTarget[] = Array.from(
   { length: 11 },
@@ -110,7 +101,7 @@ export function mickeyMousePlay() {
       );
     },
 
-    ...marksPlayAccessors(MICKEY_MOUSE_OBJECTIVES, objectiveLabel),
+    ...marksPlayAccessors(MICKEY_MOUSE_OBJECTIVES, marksObjectiveLabel),
 
     previewSegments(this: MickeyMousePlayContext): Bobs27PreviewSegment[] {
       return marksPreviewSegments(

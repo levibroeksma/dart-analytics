@@ -296,3 +296,15 @@ describe("mickeyMousePlay shared play-screen parts", () => {
     expect(commit).not.toHaveBeenCalled();
   });
 });
+
+describe("mickeyMousePlay shared marks labels", () => {
+  it("labels each number tap target the way its objective row is labelled", async () => {
+    const ctx = await started();
+    const rowLabels = new Set(
+      ctx.objectiveRowsFor("participant-1").map((row) => row.label),
+    );
+    for (const target of ctx.tapTargets()) {
+      expect(rowLabels.has(target.label)).toBe(true);
+    }
+  });
+});
