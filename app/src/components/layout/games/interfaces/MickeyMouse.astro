@@ -1,0 +1,19 @@
+---
+interface Props {
+  [key: string]: unknown;
+}
+
+// Props
+const { ...props }: Props = Astro.props;
+
+// Components
+import MarksPlayScreen from "@components/layout/games/MarksPlayScreen.astro";
+import MickeyMouseRecreationalInput from "@components/layout/games/MickeyMouseRecreationalInput.astro";
+---
+
+<MarksPlayScreen {...props}>
+  <MickeyMouseRecreationalInput
+    x-show="$store.game.inputModeKey !== 'VISUAL_BOARD'"
+    x-cloak
+  />
+</MarksPlayScreen>

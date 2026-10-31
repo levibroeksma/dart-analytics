@@ -1,0 +1,33 @@
+---
+export const prerender = true;
+import GameLayout from "@layouts/GameLayout.astro";
+import MickeyMouse from "@components/layout/games/interfaces/MickeyMouse.astro";
+import MickeyMouseResults from "@components/layout/games/result-modals/MickeyMouseResults.astro";
+import NoSessionPanel from "@components/layout/games/NoSessionPanel.astro";
+import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocked.astro";
+---
+
+<GameLayout
+  title="Mickey Mouse — Play"
+  gameTitle="Mickey Mouse"
+  gameSubtitleExpr="hasActiveSession ? subtitle() : ''"
+  x-data="mickeyMousePlay()"
+  @confirm-exit.window="abandonAndExit()"
+>
+  <div class="flex flex-col flex-1 min-h-0">
+    {/* Loading / reconciliation-blocked */}
+    <ReconciliationBlocked />
+
+    {/* No active session view */}
+    <NoSessionPanel href="/games/mickey-mouse/setup" />
+
+    {/* Gameplay view */}
+    <MickeyMouse
+      x-show="!finished && hasActiveSession"
+      x-cloak
+    />
+
+    {/* Results modal (overlay) */}
+    <MickeyMouseResults />
+  </div>
+</GameLayout>

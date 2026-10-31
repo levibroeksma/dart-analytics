@@ -1,0 +1,55 @@
+---
+/**
+ * Mickey Mouse's tap input in an `input-well`. Row 1: `RingKeyRow`.
+ * Row 2: `tapTargets()` and MISS — four columns on a single (20–12, Bull),
+ * seven once D or T is armed and 11…1 join. Target labels are 24px on four
+ * columns and 16px on seven, so BULL and MISS fit the narrow keys. Treble
+ * cannot apply to the bull, so BULL is disabled while T is armed.
+ */
+interface Props {
+  [key: string]: unknown;
+}
+
+// Props
+const { ...props }: Props = Astro.props;
+
+// Components
+import InputButton from "./InputButton.astro";
+import RingKeyRow from "./RingKeyRow.astro";
+---
+
+<div
+  class="input-well flex flex-col"
+  {...props}
+>
+  <RingKeyRow />
+  <div
+    class="grid min-h-0 flex-2 auto-rows-fr gap-2"
+    :class="$ringKeyActive(ring, 'S') ? 'grid-cols-4' : 'grid-cols-7'"
+  >
+    <template
+      x-for="target in tapTargets()"
+      :key="target.number"
+    >
+      <InputButton
+        class="uppercase"
+        :disabled="finished || (target.number === 25 && ring === 'TREBLE')"
+        @click="recordTarget(target.number)"
+      >
+        <span
+          :class="$ringKeyActive(ring, 'S') ? 'text-2xl' : 'text-base'"
+          x-text="target.label"
+        ></span>
+      </InputButton>
+    </template>
+    <InputButton
+      class="text-soft-foreground"
+      :disabled="finished"
+      @click="recordMiss()"
+    >
+      <span :class="$ringKeyActive(ring, 'S') ? 'text-2xl' : 'text-base'">
+        MISS
+      </span>
+    </InputButton>
+  </div>
+</div>

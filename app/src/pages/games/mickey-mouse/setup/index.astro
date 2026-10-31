@@ -1,0 +1,12 @@
+---
+export const prerender = true;
+import GameSetupPage from "@components/layout/games/setup/GameSetupPage.astro";
+import MickeyMouseSetupForm from "@components/layout/games/setup/MickeyMouseSetupForm.astro";
+---
+
+<GameSetupPage
+  title="Mickey Mouse"
+  x-data="mickeyMouseSetup()"
+>
+  <MickeyMouseSetupForm />
+</GameSetupPage>
