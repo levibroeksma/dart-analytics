@@ -23,12 +23,12 @@ describe("factory surface", () => {
     });
   }
 
-  it("has no getters", () => {
-    for (const factory of Object.values(FACTORIES)) {
+  for (const [name, factory] of Object.entries(FACTORIES)) {
+    it(`${name} has no getters`, () => {
       const obj = factory();
       for (const key of Object.keys(obj)) {
         expect(Object.getOwnPropertyDescriptor(obj, key)?.get).toBeUndefined();
       }
-    }
-  });
+    });
+  }
 });
