@@ -34,6 +34,7 @@ describe("HEATMAP_ONLY_LAYOUTS", () => {
         "FOLLOW_THE_LEADER_V1",
         "KILLER_V1",
         "MICKEY_MOUSE_V1",
+        "PRISONER_V1",
         "SHANGHAI_V1",
         "SINGLES_V1",
         "TACTICS_V1",

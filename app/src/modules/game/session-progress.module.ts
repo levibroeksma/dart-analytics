@@ -36,6 +36,7 @@ import {
   foldBaseballState,
 } from "@modules/game/baseball.engine.module";
 import { foldFollowTheLeaderState } from "@modules/game/follow-the-leader.engine.module";
+import { foldPrisonerState } from "@modules/game/prisoner.engine.module";
 import { foldKillerState } from "@modules/game/killer.engine.module";
 import {
   foldAroundTheClockState,
@@ -63,6 +64,7 @@ import type {
   FiveOhOneAnySnapshot,
   FollowTheLeaderSnapshot,
   KillerSnapshot,
+  PrisonerSnapshot,
   ScoreTrainingSnapshot,
   Seated,
   SeatFact,
@@ -239,6 +241,17 @@ function followTheLeader(
   };
 }
 
+function prisoner(
+  config: Seated<PrisonerSnapshot>,
+  facts: EngineFacts,
+): SessionProgress {
+  const seat = activeOf(foldPrisonerState(facts, config));
+  return {
+    detail: joinSubtitle(["1v1", "Prisoner"]),
+    big: big(seat?.held, "DARTS"),
+  };
+}
+
 function scoreTraining(
   config: Seated<ScoreTrainingSnapshot>,
   facts: EngineFacts,
@@ -346,6 +359,7 @@ const SUMMARIZERS: Readonly<Record<string, Summarizer>> = {
   BASEBALL_V1: baseball,
   KILLER_V1: killer,
   FOLLOW_THE_LEADER_V1: followTheLeader,
+  PRISONER_V1: prisoner,
   SCORE_TRAINING_V1: scoreTraining,
   SINGLES_V1: singles,
   SINGLES_V2: singles,

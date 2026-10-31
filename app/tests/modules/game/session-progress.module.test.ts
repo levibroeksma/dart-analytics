@@ -13,6 +13,7 @@ import { tacticsEngineFactory } from "@modules/game/tactics.engine.module";
 import { mickeyMouseEngineFactory } from "@modules/game/mickey-mouse.engine.module";
 import { killerEngineFactory } from "@modules/game/killer.engine.module";
 import { followTheLeaderEngineFactory } from "@modules/game/follow-the-leader.engine.module";
+import { prisonerEngineFactory } from "@modules/game/prisoner.engine.module";
 import { baseballEngineFactory } from "@modules/game/baseball.engine.module";
 import { scoreTrainingEngineFactory } from "@modules/game/score-training.engine.module";
 import { singlesTrainingEngineFactory } from "@modules/game/singles-training.engine.module";
@@ -28,10 +29,12 @@ import {
   aroundTheClockV2EngineFactory,
   aroundTheClockV3EngineFactory,
 } from "@modules/game/around-the-clock.engine.module";
+import { zoneCentroid } from "@lib/game/board/board-geometry.module";
 import type { DartObservation, EngineFacts } from "@modules/types";
 import type {
   AroundTheClockV2Snapshot,
   FiveOhOneSnapshot,
+  PrisonerSnapshot,
   SeatFact,
   Seated,
 } from "@lib/types";
@@ -972,6 +975,50 @@ describe("summarizeProgress — FOLLOW_THE_LEADER_V1", () => {
     expect(summarizeProgress("FOLLOW_THE_LEADER_V1", config, facts)).toEqual({
       detail: "1v1 · Follow the Leader",
       big: { value: "2", label: "LIVES" },
+    });
+  });
+});
+
+describe("summarizeProgress — PRISONER_V1", () => {
+  const config: Seated<PrisonerSnapshot> = {
+    darts: 3,
+    seats: [
+      {
+        participantRef: "p1",
+        displayName: "L",
+        sideKey: "A",
+        participantTypeKey: "PLAYER",
+      },
+      {
+        participantRef: "p2",
+        displayName: "G",
+        sideKey: "B",
+        participantTypeKey: "GUEST",
+      },
+    ],
+  };
+
+  it("opens on the first seat's three held darts", () => {
+    expect(summarizeProgress("PRISONER_V1", config, EMPTY_FACTS)).toEqual({
+      detail: "1v1 · Prisoner",
+      big: { value: "3", label: "DARTS" },
+    });
+  });
+
+  it("shows the thrower's darts held mid-visit after a dart is prisoned", () => {
+    const point = zoneCentroid(1, "INNER_SINGLE");
+    if (!point) throw new Error("no centroid");
+    const facts = factsAfter(prisonerEngineFactory, config, [
+      {
+        hitTargetNumber: 1,
+        hitZoneKey: "INNER_SINGLE" as const,
+        locationX: point.x,
+        locationY: point.y,
+      },
+    ]);
+    expect(summarizeProgress("PRISONER_V1", config, facts)).toEqual({
+      detail: "1v1 · Prisoner",
+      big: { value: "2", label: "DARTS" },
     });
   });
 });
