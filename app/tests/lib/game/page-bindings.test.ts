@@ -97,6 +97,75 @@ function skipBraces(src: string, i: number): number {
   return i;
 }
 
+/** Value after `=` at `i`: quoted text is readable; `{...}` and bare values are skipped. */
+function readAttrValue(
+  src: string,
+  i: number,
+): { value: string | null; end: number } {
+  const q = src[i];
+  if (q === '"' || q === "'") {
+    const end = src.indexOf(q, i + 1);
+    return { value: src.slice(i + 1, end), end: end + 1 };
+  }
+  if (q === "{") return { value: null, end: skipBraces(src, i) };
+  const bare = /^[^\s>]+/.exec(src.slice(i));
+  return { value: null, end: i + (bare ? bare[0].length : 0) };
+}
+
+/** One `name` or `name=value` attribute at `i`, or null when no name starts there. */
+function readAttr(src: string, i: number): { attr: Attr; end: number } | null {
+  const an = /^[^\s=>/]+/.exec(src.slice(i, i + 200));
+  if (!an) return null;
+  const at = i + an[0].length;
+  if (src[at] !== "=") return { attr: { name: an[0], value: null }, end: at };
+  const { value, end } = readAttrValue(src, at + 1);
+  return { attr: { name: an[0], value }, end };
+}
+
+/** Attributes from `i` up to and including the tag's `>` or `/>`. */
+function readAttrs(
+  src: string,
+  start: number,
+): { attrs: Attr[]; selfClose: boolean; end: number } {
+  const attrs: Attr[] = [];
+  let i = start;
+  while (i < src.length) {
+    while (/\s/.test(src[i] ?? "")) i++;
+    if (src.startsWith("/>", i)) return { attrs, selfClose: true, end: i + 2 };
+    if (src[i] === ">") return { attrs, selfClose: false, end: i + 1 };
+    if (src[i] === "{") {
+      i = skipBraces(src, i);
+      continue;
+    }
+    const read = readAttr(src, i);
+    if (!read) {
+      i++;
+      continue;
+    }
+    attrs.push(read.attr);
+    i = read.end;
+  }
+  return { attrs, selfClose: false, end: i };
+}
+
+/** Tag whose `<` is at `lt`; null when no tag name follows. */
+function readTag(src: string, lt: number): { tag: Tag; end: number } | null {
+  const closing = src[lt + 1] === "/";
+  const nameStart = lt + (closing ? 2 : 1);
+  const nm = /^[A-Za-z][\w.:-]*/.exec(src.slice(nameStart, nameStart + 80));
+  if (!nm) return null;
+  const { attrs, selfClose, end } = readAttrs(src, nameStart + nm[0].length);
+  return { tag: { name: nm[0], attrs, closing, selfClose }, end };
+}
+
+function hasRawBody(tag: Tag): boolean {
+  return (
+    !tag.closing &&
+    !tag.selfClose &&
+    (tag.name === "script" || tag.name === "style")
+  );
+}
+
 /** Minimal tag tokenizer: quote- and brace-aware, skips comments and script/style bodies. */
 function* tags(src: string): Generator<Tag> {
   let i = 0;
@@ -107,59 +176,15 @@ function* tags(src: string): Generator<Tag> {
       i = src.indexOf("-->", lt) + 3 || src.length;
       continue;
     }
-    const closing = src[lt + 1] === "/";
-    const nameStart = lt + (closing ? 2 : 1);
-    const nm = /^[A-Za-z][\w.:-]*/.exec(src.slice(nameStart, nameStart + 80));
-    if (!nm) {
+    const read = readTag(src, lt);
+    if (!read) {
       i = lt + 1;
       continue;
     }
-    const name = nm[0];
-    i = nameStart + name.length;
-    const attrs: Attr[] = [];
-    let selfClose = false;
-    while (i < src.length) {
-      while (/\s/.test(src[i] ?? "")) i++;
-      if (src.startsWith("/>", i)) {
-        selfClose = true;
-        i += 2;
-        break;
-      }
-      if (src[i] === ">") {
-        i++;
-        break;
-      }
-      if (src[i] === "{") {
-        i = skipBraces(src, i);
-        continue;
-      }
-      const an = /^[^\s=>/]+/.exec(src.slice(i, i + 200));
-      if (!an) {
-        i++;
-        continue;
-      }
-      i += an[0].length;
-      let value: string | null = null;
-      if (src[i] === "=") {
-        i++;
-        const q = src[i];
-        if (q === '"' || q === "'") {
-          const end = src.indexOf(q, i + 1);
-          value = src.slice(i + 1, end);
-          i = end + 1;
-        } else if (q === "{") {
-          const end = skipBraces(src, i);
-          i = end; // dynamic value: not statically readable
-        } else {
-          const um = /^[^\s>]+/.exec(src.slice(i));
-          i += um ? um[0].length : 0;
-        }
-      }
-      attrs.push({ name: an[0], value });
-    }
-    yield { name, attrs, closing, selfClose };
-    if (!closing && (name === "script" || name === "style") && !selfClose) {
-      i = src.indexOf(`</${name}`, i);
+    i = read.end;
+    yield read.tag;
+    if (hasRawBody(read.tag)) {
+      i = src.indexOf(`</${read.tag.name}`, i);
       if (i < 0) return;
     }
   }
@@ -180,6 +205,70 @@ function splitFrontmatter(source: string): { front: string; body: string } {
     : { front: "", body: source };
 }
 
+/** `import Name from "x.astro"` entries of a frontmatter, resolved to absolute paths. */
+function astroImports(file: string, front: string): Map<string, string> {
+  const imports = new Map<string, string>();
+  const re = /import\s+(\w+)\s+from\s+["']([^"']+\.astro)["']/g;
+  for (const m of front.matchAll(re)) {
+    const target = resolveImport(file, m[2]);
+    if (target) imports.set(m[1], target);
+  }
+  return imports;
+}
+
+/** Add the call names found in a tag's Alpine attributes. */
+function addCalls(tag: Tag, out: Set<string>): void {
+  for (const a of tag.attrs) {
+    if (a.value == null || a.name === "x-data" || !ATTR_NAME.test(a.name))
+      continue;
+    for (const c of a.value.matchAll(CALL)) {
+      if (!JS_GLOBALS.has(c[1])) out.add(c[1]);
+    }
+  }
+}
+
+/** Element nesting plus the nested-`x-data` skip state while walking one file. */
+class ScopeWalk {
+  private stack: string[] = [];
+  private skipBelow = -1; // stack length at which a nested scope ends; -1 = not skipping
+  private rootSeen: boolean;
+  constructor(private isPage: boolean) {
+    this.rootSeen = !isPage;
+  }
+
+  private close(tag: Tag): void {
+    const at = this.stack.lastIndexOf(tag.name);
+    if (at >= 0) this.stack.length = at;
+    if (this.skipBelow >= 0 && this.stack.length < this.skipBelow)
+      this.skipBelow = -1;
+  }
+
+  private declaresNestedScope(tag: Tag): boolean {
+    const hasData = tag.attrs.some((a) => a.name === "x-data");
+    const nested = hasData && (this.rootSeen || !this.isPage);
+    if (hasData) this.rootSeen = true;
+    return nested;
+  }
+
+  /** True when the tag's attributes and component import belong to this file's scope. */
+  visit(tag: Tag): boolean {
+    if (tag.closing) {
+      this.close(tag);
+      return false;
+    }
+    const skipping = this.skipBelow >= 0;
+    const nested = this.declaresNestedScope(tag);
+    const open = !tag.selfClose && !VOID.has(tag.name);
+    if (open) this.stack.push(tag.name);
+    if (skipping) return false;
+    if (nested) {
+      if (open) this.skipBelow = this.stack.length;
+      return false;
+    }
+    return true;
+  }
+}
+
 /**
  * Alpine call names (`foo(` not `.foo(`) in x-* / @* / :* / *Expr attribute values of a
  * page and every .astro component reached through its imports. An element that declares its
@@ -195,43 +284,11 @@ function collectCalls(
   if (seen.has(file) || !existsSync(file)) return;
   seen.add(file);
   const { front, body } = splitFrontmatter(readFileSync(file, "utf8"));
-
-  const imports = new Map<string, string>();
-  for (const m of front.matchAll(
-    /import\s+(\w+)\s+from\s+["']([^"']+\.astro)["']/g,
-  )) {
-    const target = resolveImport(file, m[2]);
-    if (target) imports.set(m[1], target);
-  }
-
-  let rootSeen = !isPage;
-  const stack: string[] = [];
-  let skipBelow = -1; // stack length at which a nested scope ends; -1 = not skipping
+  const imports = astroImports(file, front);
+  const walk = new ScopeWalk(isPage);
   for (const tag of tags(body)) {
-    if (tag.closing) {
-      const at = stack.lastIndexOf(tag.name);
-      if (at >= 0) stack.length = at;
-      if (skipBelow >= 0 && stack.length < skipBelow) skipBelow = -1;
-      continue;
-    }
-    const skipping = skipBelow >= 0;
-    const hasData = tag.attrs.some((a) => a.name === "x-data");
-    const nested = hasData && (rootSeen || !isPage);
-    if (hasData && !rootSeen) rootSeen = true;
-    const open = !tag.selfClose && !VOID.has(tag.name);
-    if (open) stack.push(tag.name);
-    if (skipping) continue;
-    if (nested) {
-      if (open) skipBelow = stack.length;
-      continue;
-    }
-    for (const a of tag.attrs) {
-      if (a.value == null || a.name === "x-data" || !ATTR_NAME.test(a.name))
-        continue;
-      for (const c of a.value.matchAll(CALL)) {
-        if (!JS_GLOBALS.has(c[1])) out.add(c[1]);
-      }
-    }
+    if (!walk.visit(tag)) continue;
+    addCalls(tag, out);
     const target = imports.get(tag.name);
     if (target) collectCalls(target, false, seen, out);
   }
