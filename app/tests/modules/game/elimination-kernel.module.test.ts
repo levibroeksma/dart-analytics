@@ -8,6 +8,12 @@ import type { ClosedVisit, DartObservation, TurnFact } from "@modules/types";
 import { killerHit } from "@modules/game/elimination-policies";
 import type { KillerExt } from "@modules/types";
 import type { SeatFact } from "@lib/types";
+import {
+  FollowTheLeaderEngine,
+  foldFollowTheLeaderState,
+} from "@modules/game/follow-the-leader.engine.module";
+import type { FollowTheLeaderAction } from "@modules/types";
+import type { FollowTheLeaderSnapshot, Seated } from "@lib/types";
 
 type Ext = Record<string, never>;
 
@@ -440,5 +446,139 @@ describe("elimination kernel decided winner", () => {
       dartRules([], (_seats, shared) => (shared.darts === 2 ? "B" : null)),
     );
     expect(m.winningSideKey).toBe("B");
+  });
+});
+
+describe("elimination kernel Follow the Leader regression", () => {
+  const config: Seated<FollowTheLeaderSnapshot> = {
+    lives: 3,
+    seats: [
+      { ...seat(1), displayName: "Levi" },
+      { ...seat(2), displayName: "Guest", participantTypeKey: "GUEST" },
+      { ...seat(3), displayName: "Third", participantTypeKey: "GUEST" },
+    ],
+  };
+  const hit = (n: number, zone: DartObservation["hitZoneKey"]) => ({
+    ...miss,
+    hitTargetNumber: n,
+    hitZoneKey: zone,
+  });
+  const STOP: FollowTheLeaderAction = { kind: "STOP" };
+  const KEEP: FollowTheLeaderAction = { kind: "KEEP" };
+  const cycle = [d(20), miss, miss, miss, miss, miss, miss];
+  const inputs = [
+    hit(18, "TREBLE"),
+    hit(18, "TREBLE"),
+    STOP,
+    hit(5, "OUTER_SINGLE"),
+    miss,
+    miss,
+    hit(1, "OUTER_SINGLE"),
+    hit(2, "OUTER_SINGLE"),
+    miss,
+    KEEP,
+    d(20),
+    d(20),
+    STOP,
+    ...cycle,
+    ...cycle,
+    ...cycle,
+    ...cycle,
+  ];
+
+  const foldAfter = (count: number) => {
+    const engine = new FollowTheLeaderEngine(config);
+    for (const input of inputs.slice(0, count)) {
+      try {
+        engine.record(input);
+      } catch {
+        continue;
+      }
+    }
+    return foldFollowTheLeaderState(engine.facts(), config);
+  };
+
+  const live = (ref: string, sideKey: string, lives: number) => ({
+    participantRef: ref,
+    sideKey,
+    lives,
+    out: false,
+  });
+  const outSeat = (ref: string, sideKey: string) => ({
+    participantRef: ref,
+    sideKey,
+    lives: 0,
+    out: true,
+  });
+  const base = {
+    matched: false,
+    canStop: false,
+    leaderRef: "p1",
+    phase: "LEAD",
+    activeParticipantRef: "p1",
+  };
+
+  it("folds a multi-visit log to its pre-change results", () => {
+    expect(foldAfter(6)).toStrictEqual({
+      ...base,
+      status: "IN_PROGRESS",
+      winningSideKey: null,
+      outOrder: [],
+      seats: [live("p1", "A", 3), live("p2", "B", 3), live("p3", "C", 2)],
+      target: { number: 18, ring: "TREBLE" },
+      keepAllowed: false,
+    });
+    expect(foldAfter(15)).toStrictEqual({
+      ...base,
+      status: "IN_PROGRESS",
+      winningSideKey: null,
+      outOrder: [],
+      seats: [live("p1", "A", 3), live("p2", "B", 2), live("p3", "C", 1)],
+      target: { number: 1, ring: "SINGLE" },
+      keepAllowed: true,
+    });
+    expect(foldAfter(31)).toStrictEqual({
+      ...base,
+      status: "COMPLETE",
+      winningSideKey: "A",
+      outOrder: ["p3", "p2"],
+      seats: [live("p1", "A", 3), outSeat("p2", "B"), outSeat("p3", "C")],
+      target: { number: 20, ring: "DOUBLE" },
+      keepAllowed: false,
+    });
+  });
+});
+
+describe("elimination kernel decided winner latched in ext", () => {
+  type Latch = { target: number };
+  type Frozen = EliminationRules<Latch, undefined>;
+  const latchRules: Frozen = {
+    startingLives: 2,
+    initExt: () => ({ target: 0 }),
+    onDart: () => [],
+    reduceDart: (thrower, _seats, shared, dart) => ({
+      changes:
+        thrower.ext.target === 21 || dart.hitTargetNumber === null
+          ? []
+          : [
+              {
+                participantRef: thrower.participantRef,
+                ext: { target: dart.hitTargetNumber },
+              },
+            ],
+      shared,
+    }),
+    decidedWinner: (seatList) =>
+      seatList.find((s) => s.ext.target === 21)?.sideKey ?? null,
+  };
+
+  it("a decisive dart followed by more darts still completes with its winner", () => {
+    const m = foldElimination(
+      [turn("p1", [d(21), miss, d(3)], true), turn("p2", [d(4), d(5)], false)],
+      seats3,
+      latchRules,
+    );
+    expect(m.seats[0].ext.target).toBe(21);
+    expect(m).toMatchObject({ status: "COMPLETE", winningSideKey: "A" });
   });
 });
