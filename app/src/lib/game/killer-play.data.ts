@@ -1,5 +1,10 @@
+import {
+  playScreenState,
+  boardPlayActions,
+  playScreenActions,
+} from "@lib/game/play-screen.data";
 import { getEngineFactory } from "@modules/game/engine.registry";
-import { boardInputData } from "@lib/game/board-input.data";
+
 import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { matchWinnerName } from "@lib/game/match-result-text";
 import {
@@ -13,27 +18,15 @@ import {
   toggleMarksRing,
 } from "@lib/game/marks-play.data";
 import {
-  playAbandonAndExit,
-  playBack,
-  playCommitDart,
-  playInit,
   playPreviewSegments,
-  playRetryReconciliation,
-  playUndoVisit,
   playUploadAndCompleteSession,
-  playVisitMarkers,
   runPlayAgain,
   variantsPlayAgain,
 } from "@lib/game/play-lifecycle";
 import { joinSubtitle } from "@lib/game/play-subtitle";
 import type { KillerSnapshot, RulesetVersionKey } from "@lib/types";
+import type { KillerSeatState, KillerState } from "@modules/types";
 import type {
-  DartObservation,
-  KillerSeatState,
-  KillerState,
-} from "@modules/types";
-import type {
-  BoardMarker,
   GamePreviewSegment,
   KillerPlayContext,
   KillerResultsSnapshot,
@@ -72,35 +65,14 @@ function seatOf(
     ?.seats.find((candidate) => candidate.participantRef === seatRef);
 }
 
-/**
- * `self` exists only so `boardInputData`'s `onCommit` callback can reach
- * this page's own `recordDart` with the live, reactive `this`.
- */
 export function killerPlay() {
-  let self: KillerPlayContext;
-
   return {
-    loading: false,
-    error: "",
-    finished: false,
-    hasActiveSession: false,
-    loadingReconciliation: false,
-    reconciliationFailed: false,
-    completionStatus: "pending" as
-      "pending" | "saving" | "succeeded" | "failed",
-    completionError: "",
-    playAgainError: "",
-    playAgainLoading: false,
-    resultsSnapshot: null as KillerResultsSnapshot | null,
+    ...playScreenState<KillerEngine, KillerResultsSnapshot>(),
     ...playAgainStarterData(),
-    hiddenTurnKey: null as string | null,
-    hiddenTimer: null as ReturnType<typeof setTimeout> | null,
-    engine: null as KillerEngine | null,
+    ...boardPlayActions({ gameTypeKey: GAME_TYPE_KEY, resume: resumeEngine }),
+    ...playScreenActions(),
+
     ring: "SINGLE" as MarksRing,
-    ...boardInputData(
-      (observation) => self.recordDart(observation),
-      () => self.$store.game.turns,
-    ),
 
     state(this: KillerPlayContext): KillerState | null {
       const config = this.$store.game.configSnapshot;
@@ -169,15 +141,6 @@ export function killerPlay() {
       );
     },
 
-    async init(this: KillerPlayContext) {
-      self = this;
-      await playInit(this, GAME_TYPE_KEY, resumeEngine);
-    },
-
-    retryReconciliation(this: KillerPlayContext) {
-      return playRetryReconciliation(this);
-    },
-
     /** Tapping the selected ring again returns to SINGLE. */
     setRing(this: KillerPlayContext, ring: MarksRing) {
       toggleMarksRing(this, ring);
@@ -196,24 +159,6 @@ export function killerPlay() {
     /** A dart off every number: counts as thrown, changes nothing. */
     async recordMiss(this: KillerPlayContext) {
       await recordMarksMiss(this);
-    },
-
-    async recordDart(this: KillerPlayContext, observation: DartObservation) {
-      if (!this.engine || this.finished) return;
-      await this.commitDart(observation);
-    },
-
-    async commitDart(this: KillerPlayContext, observation: DartObservation) {
-      await playCommitDart(this, observation);
-    },
-
-    /** The board markers for the last visit's located darts; none once that visit's reveal has cleared. */
-    visitMarkers(this: KillerPlayContext): BoardMarker[] {
-      return playVisitMarkers(this);
-    },
-
-    async undoVisit(this: KillerPlayContext) {
-      playUndoVisit(this);
     },
 
     uploadAndCompleteSession(this: KillerPlayContext): Promise<void> {
@@ -240,14 +185,6 @@ export function killerPlay() {
       const snapshot = this.resultsSnapshot;
       if (!snapshot) return "";
       return outOrderNames(snapshot.outOrder, this.$store.game.seats);
-    },
-
-    back(this: KillerPlayContext) {
-      return playBack(this);
-    },
-
-    abandonAndExit(this: KillerPlayContext) {
-      return playAbandonAndExit(this);
     },
 
     /** Replays the same preset, resending lives and seat numbers with the starter's number first. */
