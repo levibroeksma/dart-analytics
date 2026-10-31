@@ -1863,3 +1863,32 @@ describe("singles-training previewSegments seat round", () => {
     expect(play.previewSegments()[0].status).toBe("hit");
   });
 });
+
+describe("singles-training ring count accessors", () => {
+  const names = [
+    "missCount",
+    "singleCount",
+    "doubleCount",
+    "trebleCount",
+  ] as const;
+
+  it.each(names)(
+    "%s and its per-seat pair are 0 before config loads",
+    (name) => {
+      const play = makePlay({ configSnapshot: null });
+      expect(play[name]()).toBe("0");
+      expect(play[`${name}For`]("participant-1")).toBe("0");
+    },
+  );
+
+  it("a TREBLE tap on the target counts one treble for the seat", async () => {
+    const play = makePlay();
+    await play.init.call(play);
+    await play.recordTap("TREBLE");
+    const seatRef = play.$store.game.turns[0].participantRef;
+    expect(play.trebleCount()).toBe("1");
+    expect(play.trebleCountFor(seatRef)).toBe("1");
+    expect(play.singleCountFor(seatRef)).toBe("0");
+    expect(play.missCountFor("nobody")).toBe("0");
+  });
+});

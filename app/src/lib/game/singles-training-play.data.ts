@@ -141,6 +141,15 @@ function targetHitCounts(
   return { singles, doubles, trebles, misses };
 }
 
+/** One `targetHitCounts` tally over `turns` for display; "0" before config loads. */
+function ringCountLabel(
+  config: SinglesConfigSnapshot | null,
+  turns: readonly TurnFact[],
+  tally: keyof ReturnType<typeof targetHitCounts>,
+): string {
+  return config ? String(targetHitCounts(turns, config)[tally]) : "0";
+}
+
 /** Mirrors the engine's own (unexported) `scoringModeOf` — same
  * module-boundary duplication as `SINGLE_ZONE_KEYS` above. */
 function scoringModeOf(config: SinglesConfigSnapshot): "STANDARD" | "ACCURACY" {
@@ -372,67 +381,63 @@ export function singlesTrainingPlay() {
     },
 
     missCountFor(this: SinglesTrainingPlayContext, seatRef: string): string {
-      const config = this.$store.game.configSnapshot;
-      if (!config) return "0";
-      return String(
-        targetHitCounts(
-          this.$store.game.turns.filter((t) => t.participantRef === seatRef),
-          config,
-        ).misses,
+      return ringCountLabel(
+        this.$store.game.configSnapshot,
+        this.$store.game.turns.filter((t) => t.participantRef === seatRef),
+        "misses",
       );
     },
     missCount(this: SinglesTrainingPlayContext): string {
-      const config = this.$store.game.configSnapshot;
-      if (!config) return "0";
-      return String(targetHitCounts(this.$store.game.turns, config).misses);
+      return ringCountLabel(
+        this.$store.game.configSnapshot,
+        this.$store.game.turns,
+        "misses",
+      );
     },
 
     singleCountFor(this: SinglesTrainingPlayContext, seatRef: string): string {
-      const config = this.$store.game.configSnapshot;
-      if (!config) return "0";
-      return String(
-        targetHitCounts(
-          this.$store.game.turns.filter((t) => t.participantRef === seatRef),
-          config,
-        ).singles,
+      return ringCountLabel(
+        this.$store.game.configSnapshot,
+        this.$store.game.turns.filter((t) => t.participantRef === seatRef),
+        "singles",
       );
     },
     singleCount(this: SinglesTrainingPlayContext): string {
-      const config = this.$store.game.configSnapshot;
-      if (!config) return "0";
-      return String(targetHitCounts(this.$store.game.turns, config).singles);
+      return ringCountLabel(
+        this.$store.game.configSnapshot,
+        this.$store.game.turns,
+        "singles",
+      );
     },
 
     doubleCountFor(this: SinglesTrainingPlayContext, seatRef: string): string {
-      const config = this.$store.game.configSnapshot;
-      if (!config) return "0";
-      return String(
-        targetHitCounts(
-          this.$store.game.turns.filter((t) => t.participantRef === seatRef),
-          config,
-        ).doubles,
+      return ringCountLabel(
+        this.$store.game.configSnapshot,
+        this.$store.game.turns.filter((t) => t.participantRef === seatRef),
+        "doubles",
       );
     },
     doubleCount(this: SinglesTrainingPlayContext): string {
-      const config = this.$store.game.configSnapshot;
-      if (!config) return "0";
-      return String(targetHitCounts(this.$store.game.turns, config).doubles);
+      return ringCountLabel(
+        this.$store.game.configSnapshot,
+        this.$store.game.turns,
+        "doubles",
+      );
     },
 
     trebleCountFor(this: SinglesTrainingPlayContext, seatRef: string): string {
-      const config = this.$store.game.configSnapshot;
-      if (!config) return "0";
-      return String(
-        targetHitCounts(
-          this.$store.game.turns.filter((t) => t.participantRef === seatRef),
-          config,
-        ).trebles,
+      return ringCountLabel(
+        this.$store.game.configSnapshot,
+        this.$store.game.turns.filter((t) => t.participantRef === seatRef),
+        "trebles",
       );
     },
     trebleCount(this: SinglesTrainingPlayContext): string {
-      const config = this.$store.game.configSnapshot;
-      if (!config) return "0";
-      return String(targetHitCounts(this.$store.game.turns, config).trebles);
+      return ringCountLabel(
+        this.$store.game.configSnapshot,
+        this.$store.game.turns,
+        "trebles",
+      );
     },
 
     async recordTap(
