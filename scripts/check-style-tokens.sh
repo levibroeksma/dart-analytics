@@ -26,18 +26,36 @@
 #   left-[-45%] / -mt-4 / -rotate-45 OK; grid-cols-[13] not matched. Mid-attribute
 #   occurrences (preceded by whitespace, not just quote/start) are caught too.
 set -u
-cd "$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
+cd "${CHECK_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || echo .)}"
+
+# Per-file mode: relpaths as args (relative to the root) scan only those files.
+# ARBITRARY_ALLOW rows key on relpath, so they apply unchanged; the stale-row
+# check needs the whole tree and is skipped.
+FILE_MODE=0
+TARGETS=(app/src)
+STYLE_TARGETS=(app/src/styles)
+if [ "$#" -gt 0 ]; then
+  FILE_MODE=1
+  TARGETS=()
+  STYLE_TARGETS=()
+  for a in "$@"; do
+    [ -f "$a" ] || continue
+    TARGETS+=("$a")
+    case "$a" in app/src/styles/*.css) STYLE_TARGETS+=("$a") ;; esac
+  done
+  [ "${#TARGETS[@]}" -eq 0 ] && exit 0
+fi
 
 FAIL=0
 
-REST_SPREAD=$(grep -rnE '\{\.\.\.rest\}' app/src --include="*.astro")
+REST_SPREAD=$(grep -rnHE '\{\.\.\.rest\}' "${TARGETS[@]}" --include="*.astro")
 if [ -n "$REST_SPREAD" ]; then
   echo "FAIL: {...rest} found — forward leftover attributes as {...props} instead:" >&2
   echo "$REST_SPREAD" >&2
   FAIL=1
 fi
 
-RAW_PALETTE=$(grep -rnE '\b(bg-bg[a-z0-9-]*|text-fg[a-z0-9-]*)\b' app/src --include="*.astro" --include="*.css")
+RAW_PALETTE=$(grep -rnHE '\b(bg-bg[a-z0-9-]*|text-fg[a-z0-9-]*)\b' "${TARGETS[@]}" --include="*.astro" --include="*.css")
 if [ -n "$RAW_PALETTE" ]; then
   echo "FAIL: raw palette utility found — use semantic tokens (surface/foreground/muted*/accent*/states) instead:" >&2
   echo "$RAW_PALETTE" >&2
@@ -47,21 +65,21 @@ fi
 IMPORTANT_MODIFIER=$(
   {
     # Prefix form: !utility (banned since D175)
-    grep -rnE '(^|[^:])class="[^"]*![a-z]|(^|[^:])class='\''[^'\'']*![a-z]|(^|[^:])class=\{`[^`]*![a-z]' \
-      app/src --include="*.astro" --include="*.css" || true
-    grep -rnE '["'\''`]![a-z][a-z0-9]*(-[a-z0-9./%-]+|-\[[^]]+\]|\[[^]]+\])' \
-      app/src --include="*.astro" --include="*.css" || true
-    grep -rnE 'cn\([^)]*["'\''`]![a-z]+["'\''`]' \
-      app/src --include="*.astro" || true
+    grep -rnHE '(^|[^:])class="[^"]*![a-z]|(^|[^:])class='\''[^'\'']*![a-z]|(^|[^:])class=\{`[^`]*![a-z]' \
+      "${TARGETS[@]}" --include="*.astro" --include="*.css" || true
+    grep -rnHE '["'\''`]![a-z][a-z0-9]*(-[a-z0-9./%-]+|-\[[^]]+\]|\[[^]]+\])' \
+      "${TARGETS[@]}" --include="*.astro" --include="*.css" || true
+    grep -rnHE 'cn\([^)]*["'\''`]![a-z]+["'\''`]' \
+      "${TARGETS[@]}" --include="*.astro" || true
     # Suffix form: utility! (banned since D226 — supersedes D175's endorsement)
-    grep -rnE '(^|[^:])class="[^"]*[a-zA-Z0-9_./%]!([[:space:]]|")' \
-      app/src --include="*.astro" --include="*.css" || true
-    grep -rnE "(^|[^:])class='[^']*[a-zA-Z0-9_./%]!([[:space:]]|')" \
-      app/src --include="*.astro" --include="*.css" || true
-    grep -rnE '(^|[^:])class=\{`[^`]*[a-zA-Z0-9_./%]!([[:space:]]|`)' \
-      app/src --include="*.astro" --include="*.css" || true
-    grep -rnE 'cn\([^)]*["'\''`][a-zA-Z0-9_./%-]+!["'\''`]' \
-      app/src --include="*.astro" || true
+    grep -rnHE '(^|[^:])class="[^"]*[a-zA-Z0-9_./%]!([[:space:]]|")' \
+      "${TARGETS[@]}" --include="*.astro" --include="*.css" || true
+    grep -rnHE "(^|[^:])class='[^']*[a-zA-Z0-9_./%]!([[:space:]]|')" \
+      "${TARGETS[@]}" --include="*.astro" --include="*.css" || true
+    grep -rnHE '(^|[^:])class=\{`[^`]*[a-zA-Z0-9_./%]!([[:space:]]|`)' \
+      "${TARGETS[@]}" --include="*.astro" --include="*.css" || true
+    grep -rnHE 'cn\([^)]*["'\''`][a-zA-Z0-9_./%-]+!["'\''`]' \
+      "${TARGETS[@]}" --include="*.astro" || true
   } | sort -u
 )
 if [ -n "$IMPORTANT_MODIFIER" ]; then
@@ -70,7 +88,7 @@ if [ -n "$IMPORTANT_MODIFIER" ]; then
   FAIL=1
 fi
 
-NEG_ARBITRARY=$(grep -rnE '(^|[[:space:]"'\''`=(])-[a-z][a-z0-9]*(-[a-z0-9]+)*-\[[^]]+\]' app/src --include="*.astro" --include="*.css")
+NEG_ARBITRARY=$(grep -rnHE '(^|[[:space:]"'\''`=(])-[a-z][a-z0-9]*(-[a-z0-9]+)*-\[[^]]+\]' "${TARGETS[@]}" --include="*.astro" --include="*.css")
 if [ -n "$NEG_ARBITRARY" ]; then
   echo "FAIL: leading-dash arbitrary utility (-prop-[…]) found — put the minus inside the brackets (prop-[-…]):" >&2
   echo "$NEG_ARBITRARY" >&2
@@ -104,8 +122,8 @@ ARBITRARY_ALLOW=(
 )
 ARB_HITS=$(
   {
-    grep -rnoE "$ARB_RE" app/src --include="*.astro" --include="*.ts" --exclude="*.test.ts" || true
-    grep -rnE '@apply' app/src/styles --include="*.css" | while IFS= read -r line; do
+    grep -rnHoE "$ARB_RE" "${TARGETS[@]}" --include="*.astro" --include="*.ts" --exclude="*.test.ts" || true
+    { [ "${#STYLE_TARGETS[@]}" -gt 0 ] && grep -rnHE '@apply' "${STYLE_TARGETS[@]}" --include="*.css" || true; } | while IFS= read -r line; do
       loc=${line%%:*}
       rest=${line#*:}
       num=${rest%%:*}
@@ -131,6 +149,7 @@ while IFS= read -r hit; do
 done <<< "$ARB_HITS"
 ARB_STALE=""
 for row in ${ARBITRARY_ALLOW[@]+"${ARBITRARY_ALLOW[@]}"}; do
+  [ "$FILE_MODE" -eq 1 ] && break
   printf '%s' "$ARB_USED" | grep -qxF -- "$row" || ARB_STALE="$ARB_STALE$row"$'\n'
 done
 if [ -n "$ARB_BAD" ]; then
@@ -157,7 +176,7 @@ fi
 OVERLAY_ALLOW="app/src/components/ui/Modal.astro"
 OVERLAY_PENDING=(
 )
-OVERLAY_FILES=$(grep -rlE 'fixed inset-0|role="dialog"' app/src --include="*.astro" | sort)
+OVERLAY_FILES=$(grep -rlE 'fixed inset-0|role="dialog"' "${TARGETS[@]}" --include="*.astro" | sort)
 OVERLAY_BAD=""
 for f in $OVERLAY_FILES; do
   [ "$f" = "$OVERLAY_ALLOW" ] && continue
@@ -176,4 +195,5 @@ fi
 if [ "$FAIL" -ne 0 ]; then
   exit 1
 fi
+[ "$FILE_MODE" -eq 1 ] && exit 0
 echo "OK: no {...rest}, raw bg-bg*/text-fg*, important modifier (prefix or suffix), leading-dash arbitrary (-prop-[…]) or unlisted arbitrary value under app/src."

@@ -1,6 +1,6 @@
 # Agent Rules — `app/src/services/`
 
-Scope: the service layer — domain workflows between route handlers and repositories. Load the "New API endpoint" or "API middleware / layering change" context pack from `docs/architecture/00-Context-Map.md` before changing anything here. Global app rules and the validation procedure live in `app/CLAUDE.md`. (2026-09-18)
+Scope: the service layer — domain workflows between route handlers and repositories. Load the "New API endpoint" or "API middleware / layering change" context pack from `docs/architecture/00-Context-Map.md` before changing anything here. Global app rules and the validation procedure live in `app/CLAUDE.md`.
 
 ## Rules
 
