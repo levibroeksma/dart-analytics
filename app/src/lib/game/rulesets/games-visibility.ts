@@ -133,6 +133,14 @@ export const GAME_CARDS: readonly GameCardDescriptor[] = [
     title: "Follow the Leader",
     caption: "Hit the bed they set, or lose a life.",
   },
+  {
+    rulesetVersionKey: "PRISONER_V1",
+    gameTypeKey: "PRISONER",
+    group: "CLASSICS",
+    href: "/games/prisoner/setup",
+    title: "Prisoner",
+    caption: "Hit your number. Lose darts to the prison.",
+  },
 ];
 
 /**

@@ -15,6 +15,8 @@ list; `scripts/check-game-wiring.sh` is the gate that holds it.
 
 **Follow the Leader** is the exemplar for play-pad buttons over the shell's `visitActions` (Stop after a match, a Keep/Set prompt) (`follow-the-leader-play.data.ts`, D510).
 
+**Prisoner** is the exemplar for an ANALYTICS-only game: its card is absent under Recreational (`games-visibility.ts` filters on the capture-mode pair), and its setup, play data and results helpers are board-only (`prisoner-play.data.ts`).
+
 **Reference exemplar: Bob's 27.** When a step below says "copy the existing
 shape", copy Bob's 27's — `bobs27-setup.data.ts`, `bobs27.validator.ts`,
 `bobs27.engine.module.ts`. One named game, so "copy an existing game" has one
