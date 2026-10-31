@@ -1,4 +1,4 @@
-import { BOT_PACING, botDartIndex, findBotSeat } from "@lib/game/play-bot-seat";
+import { BOT_PACING, botDartIndex } from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { matchWinnerName } from "@lib/game/match-result-text";
@@ -14,22 +14,19 @@ import {
   startCountdown,
 } from "@lib/game/play-countdown";
 import {
-  playAbandonAndExit,
-  playBack,
-  playCommitDart,
-  playInit,
   playPreviewSegments,
-  playRetryReconciliation,
-  playRunBotVisualBoardVisit,
-  playToggleTimerPause,
-  playUndoVisit,
   playUploadAndCompleteSession,
-  playVisitMarkers,
   runPlayAgain,
-  undoToActiveSeat,
   variantsPlayAgain,
 } from "@lib/game/play-lifecycle";
-import { boardInputData } from "@lib/game/board-input.data";
+import {
+  boardPlayActions,
+  botVisualBoardData,
+  playScreenActions,
+  playScreenState,
+  resetTimerForPlayAgain,
+  timedPlayData,
+} from "@lib/game/play-screen.data";
 import { accuracyDisplay } from "@lib/game/play-visit-stats";
 import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
 import { createDartRng } from "@modules/dartbot/rng.module";
@@ -55,8 +52,6 @@ import type {
   AroundTheClockPreviewSegment,
   AroundTheClockResultsSnapshot,
   AroundTheClockSeatResult,
-  BoardMarker,
-  BotDartThrower,
   BotPacing,
 } from "./types";
 
@@ -262,33 +257,42 @@ function throwBotDart(
   };
 }
 
-export function aroundTheClockPlay() {
-  let self: AroundTheClockPlayContext;
+/**
+ * A timed run resumes its countdown after `playInit`. Expiry lands in the
+ * store flag the `$watch` reads: a run whose open visit is already closed
+ * finishes there; one mid-visit finishes on that visit's last dart, via
+ * `playCommitDart`'s own `isComplete()` check.
+ */
+async function resumeCountdown(
+  context: AroundTheClockPlayContext,
+): Promise<void> {
+  const timed = timedConfig(context.$store.game.configSnapshot);
+  if (timed && context.engine && !context.finished) {
+    context.timer = maybeResumeCountdown(
+      context.$store.game,
+      timed,
+      context.engine,
+    );
+    context.$watch("$store.game.timerExpired", () => context.finishIfExpired());
+    await context.finishIfExpired();
+  }
+}
 
+export function aroundTheClockPlay() {
   return {
-    loading: false,
-    error: "",
-    finished: false,
-    hasActiveSession: false,
-    loadingReconciliation: false,
-    reconciliationFailed: false,
-    completionStatus: "pending" as
-      "pending" | "saving" | "succeeded" | "failed",
-    completionError: "",
-    playAgainError: "",
-    playAgainLoading: false,
-    resultsSnapshot: null as AroundTheClockPlayContext["resultsSnapshot"],
-    hiddenTurnKey: null as string | null,
-    hiddenTimer: null as ReturnType<typeof setTimeout> | null,
+    ...playScreenState<
+      AroundTheClockEngine,
+      AroundTheClockPlayContext["resultsSnapshot"]
+    >(),
     ...playAgainStarterData(),
-    botThrowing: false,
-    botFlight: null,
-    timer: null as AroundTheClockPlayContext["timer"],
-    engine: null as AroundTheClockEngine | null,
-    ...boardInputData(
-      (observation) => self.recordDart(observation),
-      () => self.$store.game.turns,
-    ),
+    ...boardPlayActions({
+      gameTypeKey: GAME_TYPE_KEY,
+      resume: resumeEngine,
+      afterInit: resumeCountdown,
+    }),
+    ...botVisualBoardData(throwBotDart),
+    ...playScreenActions(),
+    ...timedPlayData(),
 
     state(this: AroundTheClockPlayContext): AroundTheClockState | null {
       const config = this.$store.game.configSnapshot;
@@ -436,41 +440,11 @@ export function aroundTheClockPlay() {
       return previewSegmentsFor(config, seatTurns, this.hiddenTurnKey);
     },
 
-    /**
-     * A timed run resumes its countdown after `playInit`. Expiry lands in the
-     * store flag the `$watch` reads: a run whose open visit is already closed
-     * finishes there; one mid-visit finishes on that visit's last dart, via
-     * `playCommitDart`'s own `isComplete()` check.
-     */
-    async init(this: AroundTheClockPlayContext) {
-      self = this;
-      await playInit(this, GAME_TYPE_KEY, resumeEngine);
-      const timed = timedConfig(this.$store.game.configSnapshot);
-      if (timed && this.engine && !this.finished) {
-        this.timer = maybeResumeCountdown(this.$store.game, timed, this.engine);
-        this.$watch("$store.game.timerExpired", () => this.finishIfExpired());
-        await this.finishIfExpired();
-      }
-      await this.maybeRunBotVisit();
-    },
-
     async finishIfExpired(this: AroundTheClockPlayContext) {
       if (this.finished || !this.engine?.isComplete()) return;
       this.finished = true;
       this.completionStatus = "pending";
       await this.uploadAndCompleteSession();
-    },
-
-    togglePause(this: AroundTheClockPlayContext) {
-      playToggleTimerPause(this);
-    },
-
-    destroy(this: AroundTheClockPlayContext) {
-      this.timer?.stop();
-    },
-
-    retryReconciliation(this: AroundTheClockPlayContext) {
-      return playRetryReconciliation(this);
     },
 
     async recordTap(
@@ -507,51 +481,6 @@ export function aroundTheClockPlay() {
       await this.commitDart(observation);
     },
 
-    async commitDart(
-      this: AroundTheClockPlayContext,
-      observation: DartObservation,
-    ) {
-      await playCommitDart(this, observation);
-      await this.maybeRunBotVisit();
-    },
-
-    async maybeRunBotVisit(this: AroundTheClockPlayContext) {
-      const botSeat = findBotSeat(this.$store.game.seats);
-      if (!botSeat) return;
-      const thrower: BotDartThrower = () => throwBotDart(this, botSeat);
-      await playRunBotVisualBoardVisit(this, botSeat.participantRef, thrower);
-    },
-
-    async recordDart(
-      this: AroundTheClockPlayContext,
-      observation: DartObservation,
-    ) {
-      if (!this.engine || this.finished) return;
-      await this.commitDart(observation);
-    },
-
-    /**
-     * Overrides `boardInputData`'s own `visitMarkers` — object-literal key
-     * order means this later definition wins, so the shared module needs no
-     * change. Delegates to `play-lifecycle.ts`'s shared implementation.
-     */
-    visitMarkers(this: AroundTheClockPlayContext): BoardMarker[] {
-      return playVisitMarkers(this);
-    },
-
-    async undoVisit(this: AroundTheClockPlayContext) {
-      const botSeat = findBotSeat(this.$store.game.seats);
-      if (botSeat) {
-        const humanSeat = this.$store.game.seats.find(
-          (seat) => seat.participantTypeKey === "PLAYER",
-        )!;
-        undoToActiveSeat(this, humanSeat.participantRef);
-      } else {
-        playUndoVisit(this);
-      }
-      await this.maybeRunBotVisit();
-    },
-
     uploadAndCompleteSession(this: AroundTheClockPlayContext): Promise<void> {
       const config = this.$store.game.configSnapshot;
       return playUploadAndCompleteSession(this, (finalState) => ({
@@ -577,14 +506,6 @@ export function aroundTheClockPlay() {
         : `${winner} wins — fewest darts!`;
     },
 
-    back(this: AroundTheClockPlayContext) {
-      return playBack(this);
-    },
-
-    abandonAndExit(this: AroundTheClockPlayContext) {
-      return playAbandonAndExit(this, () => this.timer?.stop());
-    },
-
     /**
      * Replays under the session's own key. V2 resends every variant as
      * overrides (V1 has none) and restarts a timed run's countdown.
@@ -599,14 +520,7 @@ export function aroundTheClockPlay() {
         key,
         (engine) => (engine instanceof AroundTheClockEngine ? engine : null),
         key === "AROUND_THE_CLOCK_V1" ? undefined : variantsPlayAgain(key),
-        () => {
-          this.timer?.stop();
-          this.timer = null;
-          this.$store.game.timerRemainingMs = null;
-          this.$store.game.timerStartedAt = null;
-          this.$store.game.timerExpired = false;
-          this.$store.game.timerPaused = false;
-        },
+        () => resetTimerForPlayAgain(this),
         (engine) => {
           const timed = timedConfig(this.$store.game.configSnapshot);
           if (timed) {

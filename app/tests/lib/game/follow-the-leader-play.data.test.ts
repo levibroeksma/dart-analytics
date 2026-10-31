@@ -582,3 +582,31 @@ describe("followTheLeaderPlay play again", () => {
     expect(ctx.setChosen).toBe(false);
   });
 });
+
+describe("follow-the-leader shared play-screen parts", () => {
+  it("recordDart before init ignores the dart", async () => {
+    const play = makeContext();
+    const commit = vi.spyOn(play, "commitDart").mockResolvedValue(undefined);
+    await play.recordDart({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    expect(commit).not.toHaveBeenCalled();
+  });
+
+  it("recordDart after finish ignores the dart", async () => {
+    const play = makeContext();
+    const commit = vi.spyOn(play, "commitDart").mockResolvedValue(undefined);
+    play.engine = {} as never;
+    play.finished = true;
+    await play.recordDart({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    expect(commit).not.toHaveBeenCalled();
+  });
+});
