@@ -2267,3 +2267,31 @@ describe("tuodPlay bot flight", () => {
     expect(typeof play.requestPlayAgain).toBe("function");
   });
 });
+
+describe("tuodPlay shared play-screen parts", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    segmentTimerInstances.length = 0;
+    vi.mocked(fetchActiveSessions).mockResolvedValue([{ ...ACTIVE_SESSION }]);
+  });
+
+  it("init resumes an already-expired MINUTES session with an expired engine and no timer", async () => {
+    const store = gameStub({
+      configSnapshot: minutes(15),
+      timerRemainingMs: 0,
+      timerExpired: true,
+    });
+    const component = {
+      ...tuodPlay(),
+      $store: { game: store, settings: settingsStub() },
+    };
+    await component.init.call(component);
+
+    expect(component.hasActiveSession).toBe(true);
+    expect(component.timer).toBeNull();
+    expect(segmentTimerInstances).toHaveLength(0);
+    expect(component.engine?.state().timerExpired).toBe(true);
+    expect(component.finished).toBe(false);
+    expect(completeSession).not.toHaveBeenCalled();
+  });
+});

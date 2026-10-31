@@ -6,20 +6,20 @@ import {
   checkoutPathFor,
   checkoutPathWithin,
 } from "@modules/game/checkout-path.module";
-import { SegmentTimer } from "@modules/ui/segment-timer.module";
-import { fetchActiveSessions } from "@client/api/sessions";
-import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { boardInputData } from "@lib/game/board-input.data";
 import {
+  playScreenActions,
+  playScreenState,
+  resetTimerStoreFields,
+  timedPlayData,
+} from "@lib/game/play-screen.data";
+import {
   armHiddenTimer,
-  playAbandonAndExit,
-  playBack,
   playAnimateBotDarts,
   playFoldBotQuickScoreVisit,
+  playInit,
   playRunBotVisualBoardVisit,
-  playToggleTimerPause,
   playUploadAndCompleteSession,
-  playVisitMarkers,
   resumeGameEngine,
   runPlayAgain,
   isInputBlocked,
@@ -62,7 +62,6 @@ import type {
   TuodState,
 } from "@modules/types";
 import type {
-  BoardMarker,
   BotDartThrower,
   BotPacing,
   TuodPlayContext,
@@ -211,18 +210,15 @@ export function tuodPlay() {
   let self: TuodPlayContext;
 
   return {
-    loading: false,
-    error: "",
-    finished: false,
-    hasActiveSession: false,
-    loadingReconciliation: false,
-    reconciliationFailed: false,
-    completionStatus: "pending" as
-      "pending" | "saving" | "succeeded" | "failed",
-    completionError: "",
-    playAgainError: "",
-    playAgainLoading: false,
-    resultsSnapshot: null as TuodResultsSnapshot | null,
+    ...playScreenState<TuodEngine, TuodResultsSnapshot>(),
+    ...playAgainStarterData(),
+    ...boardInputData(
+      (observation) => self.recordDart(observation),
+      () => self.$store.game.turns,
+    ),
+    ...playScreenActions(),
+    ...timedPlayData(),
+
     scoreInput: new ScoreInputBuffer({ maxLength: 3 }),
     pendingAttempt: null as TuodAttemptInput | null,
     pendingCheckoutScore: null as number | null,
@@ -231,24 +227,8 @@ export function tuodPlay() {
     dartsToFinish: null as DartCount | null,
     showDoubleConfirm: false,
     showFinishConfirm: false,
-    ...playAgainStarterData(),
     botThrowing: false,
     botFlight: null,
-    engine: null as TuodEngine | null,
-    timer: null as SegmentTimer | null,
-    hiddenTurnKey: null as string | null,
-    hiddenTimer: null as ReturnType<typeof setTimeout> | null,
-    ...boardInputData(
-      (observation) => self.recordDart(observation),
-      () => self.$store.game.turns,
-    ),
-
-    /** Overrides `boardInputData`'s own default — object-literal key order
-     * means this later definition wins. Delegates to `play-lifecycle.ts`'s
-     * shared implementation, mirrors `bobs27-play.data.ts`. */
-    visitMarkers(this: TuodPlayContext): BoardMarker[] {
-      return playVisitMarkers(this);
-    },
 
     /**
      * Folds the store's own fact log — never `engine.state()` — so every
@@ -387,61 +367,24 @@ export function tuodPlay() {
      */
     async init(this: TuodPlayContext) {
       self = this;
-      this.loadingReconciliation = true;
-      try {
-        const activeSessions = await fetchActiveSessions();
-        const result = await reconcileActiveSession(
-          GAME_TYPE_KEY,
-          this.$store.game.sessionId,
-          activeSessions,
-          this.$store.game,
-        );
-
-        this.reconciliationFailed = false;
-
-        if (result.action !== "match" || !result.activeSession) {
-          this.hasActiveSession = false;
-          return;
-        }
-
-        this.$store.game.setSessionModes(result.activeSession);
-
-        const config = this.$store.game.configSnapshot;
-        const engine = resumeGameEngine<TuodSnapshot, TuodEngine>(
-          this.$store.game,
-          RULESET_VERSION_KEY,
-          (candidate): candidate is TuodEngine =>
-            candidate instanceof TuodEngine,
-        );
-        if (!config || !engine) {
-          this.hasActiveSession = false;
-          return;
-        }
-        this.engine = engine;
-        this.$store.game.recordFacts(engine.facts());
-
-        this.timer = maybeResumeCountdown(this.$store.game, config, engine);
-
-        this.hasActiveSession = true;
-      } catch {
-        this.reconciliationFailed = true;
-        this.hasActiveSession = false;
-      } finally {
-        this.loadingReconciliation = false;
-      }
+      await playInit(
+        this,
+        GAME_TYPE_KEY,
+        (game) =>
+          resumeGameEngine<TuodSnapshot, TuodEngine>(
+            game,
+            RULESET_VERSION_KEY,
+            (candidate): candidate is TuodEngine =>
+              candidate instanceof TuodEngine,
+          ),
+        {
+          onResumed: (engine, config) => {
+            this.timer = maybeResumeCountdown(this.$store.game, config, engine);
+          },
+          uploadIfComplete: false,
+        },
+      );
       if (this.hasActiveSession) await this.maybeRunBotVisit();
-    },
-
-    async retryReconciliation(this: TuodPlayContext) {
-      await this.init();
-    },
-
-    destroy(this: TuodPlayContext) {
-      this.timer?.stop();
-    },
-
-    togglePause(this: TuodPlayContext) {
-      playToggleTimerPause(this);
     },
 
     /**
@@ -724,14 +667,6 @@ export function tuodPlay() {
       return winner ? `${winner} wins — highest target!` : "Game Summary";
     },
 
-    async back(this: TuodPlayContext) {
-      return playBack(this);
-    },
-
-    async abandonAndExit(this: TuodPlayContext) {
-      return playAbandonAndExit(this, () => this.timer?.stop());
-    },
-
     /**
      * Replays with the session's own duration as an override — the same
      * carry-over `score-training-play.data.ts`'s `playAgain()` does.
@@ -751,10 +686,7 @@ export function tuodPlay() {
           wire: { duration_value: config.durationValue },
         }),
         () => {
-          this.$store.game.timerRemainingMs = null;
-          this.$store.game.timerStartedAt = null;
-          this.$store.game.timerExpired = false;
-          this.$store.game.timerPaused = false;
+          resetTimerStoreFields(this);
           this.pendingAttempt = null;
           this.pendingDartObservation = null;
           this.showFinishConfirm = false;
