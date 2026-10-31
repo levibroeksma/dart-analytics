@@ -95,5 +95,16 @@ run "$T" "$(payload Write "$T/$A" 'content=<div x-bind:class="y"></div>')"
 expect_allow "scripts missing fails open"
 rm -rf "$T"
 
+# Worktree: no override, CLAUDE_PROJECT_DIR is the outer copy, file is in a
+# nested git repo -> root comes from git, so the check still applies.
+T=$(mktemp -d)
+N="$T/.worktrees/w"
+mkdir -p "$N"
+git -C "$N" init -q
+ln -s "$ROOT/scripts" "$N/scripts"
+OUT="$(payload Write "$N/$A" 'content=<div x-bind:class="y"></div>' | env -u EDIT_GATE_ROOT CLAUDE_PROJECT_DIR="$T" python3 "$HOOK" 2>/dev/null)"; CODE=$?
+expect_deny "worktree file uses nested git root"
+rm -rf "$T"
+
 echo "edit-gate: $PASSED passed, $FAILED failed"
 [ "$FAILED" -eq 0 ]

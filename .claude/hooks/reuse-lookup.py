@@ -125,6 +125,24 @@ def watched(rel):
     return rel.endswith((".astro", ".ts")) and any(rel.startswith(f"app/src/{d}/") for d in dirs)
 
 
+def project_root(file_path, override):
+    if os.environ.get(override):
+        return os.path.realpath(os.environ[override])
+    d = os.path.dirname(os.path.realpath(file_path))
+    while not os.path.isdir(d) and os.path.dirname(d) != d:
+        d = os.path.dirname(d)
+    try:
+        proc = subprocess.run(
+            ["git", "-C", d, "rev-parse", "--show-toplevel"],
+            capture_output=True, text=True, timeout=2,
+        )
+        if proc.returncode == 0 and proc.stdout.strip():
+            return os.path.realpath(proc.stdout.strip())
+    except (OSError, subprocess.SubprocessError):
+        pass
+    return os.path.realpath(os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd())
+
+
 def main():
     payload = json.load(sys.stdin)
     if payload.get("tool_name") != "Write":
@@ -133,9 +151,7 @@ def main():
     file_path = tool_input.get("file_path")
     if not file_path:
         return
-    root = os.path.realpath(
-        os.environ.get("REUSE_ROOT") or os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
-    )
+    root = project_root(file_path, "REUSE_ROOT")
     rel = os.path.relpath(os.path.realpath(file_path), root).replace(os.sep, "/")
     if rel.startswith("../") or rel == ".." or not watched(rel):
         return

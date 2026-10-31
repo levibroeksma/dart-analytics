@@ -78,5 +78,15 @@ run "$P"; expect_allow "unwatched dir passes"
 
 run "not json"; expect_allow "bad stdin fails open"
 
+# Worktree: no override, CLAUDE_PROJECT_DIR is the outer copy, file is in a
+# nested git repo -> root comes from git, so the lookup still applies there.
+N="$T/.worktrees/w"
+mkdir -p "$N"
+cp -r "$T/docs" "$T/app" "$N/"
+git -C "$N" init -q && git -C "$N" add -A
+P=$(payload "$N/app/src/components/ui/StatusBadge.astro" "<div/>" s7)
+OUT="$(printf '%s' "$P" | env -u REUSE_ROOT CLAUDE_PROJECT_DIR="$T" TMPDIR="$TMP" python3 "$HOOK" 2>/dev/null)"; CODE=$?
+expect_deny "worktree new file uses nested git root" "Badge.astro" "app/src/components/ui/Badge.astro"
+
 echo "reuse-lookup: $PASSED passed, $FAILED failed"
 [ "$FAILED" -eq 0 ]
