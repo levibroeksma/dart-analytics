@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Clone-group ratchet (rule of three; D512). `fallow dupes` groups are keyed by the
+# Clone-group ratchet (rule of three; D513). `fallow dupes` groups are keyed by the
 # sorted unique file set of their instances; scripts/dupes-baseline.txt holds
 # `<count>\t<key>` per key. Fails when a key's count rises or a new key
 # appears ("new clone group"), and when a baseline count exceeds the current

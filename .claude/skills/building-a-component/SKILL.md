@@ -11,7 +11,7 @@ Guide only. Enforcement lives elsewhere; this skill points, never restates.
 ## Steps
 
 1. **Look up.** Grep `docs/architecture/07-Frontend/08-Component-Inventory.md` for the UI shape (never read whole). Also check `components/ui/` and `components/forms/`.
-2. **Reuse, or say why not.** A fitting component is used as-is. If none fits, state in one line why, then propose a new shared component rather than inline markup. Third copy of a shape triggers extraction: `.claude/rules/reuse.md` (D512).
+2. **Reuse, or say why not.** A fitting component is used as-is. If none fits, state in one line why, then propose a new shared component rather than inline markup. Third copy of a shape triggers extraction: `.claude/rules/reuse.md` (D513).
 3. **Apply the checklist** (pointers, not rules):
 
 | Concern | Canonical source |

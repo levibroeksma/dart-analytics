@@ -2,7 +2,7 @@
 paths: ["app/src/**"]
 ---
 
-# Rule of three (D512)
+# Rule of three (D513)
 
 Writing the same markup shape, type, or logic block a third time: stop. Extract a shared component, helper, or type first, then migrate the other two copies to it.
 

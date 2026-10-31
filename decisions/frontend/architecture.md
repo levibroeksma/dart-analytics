@@ -108,7 +108,7 @@ Reason: `sessions.ts` owns `SessionApiError` and imports `apiRequest`, so puttin
 Consequences: `@client/api` now has a third entry point beside `client.ts` and `types.ts`, and a helper that composes the other two belongs there rather than in `client.ts` — `client.ts` stays the transport (auth, retry, envelope construction) and imports only `@client/auth/client` and `./types`. The fallow gate never ran on the branch before this, because CI's type gate failed first and stops the job; the cycle was therefore introduced and merged-ready without any gate having had the chance to object.
 Supersedes: none.
 
-### D512 — Rule of three, enforced by a clone-group ratchet
+### D513 — Rule of three, enforced by a clone-group ratchet
 Status: Accepted · Date: 2026-10-30
 Decision: a third copy of a markup shape, type or logic block is extracted into a shared component/helper/type before it lands, and the other two copies migrate to it (`.claude/rules/reuse.md`, scoped to `app/src/**`). `scripts/check-dupes.sh` runs `fallow dupes` and keys each clone group by the sorted unique file set of its instances; `scripts/dupes-baseline.txt` holds `<count>\t<key>` rows. The gate fails when a key's count rises or a new key appears, and when a baseline count exceeds the current one (ratchet: the baseline only shrinks). It also fails if fallow omits groups. `bash scripts/check-dupes.sh --update` rewrites the baseline. CI runs it in `quality.yml` after the stale-usage gate.
 Reason: the edit-time rules spec wanted "new clone group fails" without a second checkout. A committed baseline gives the same result, runs locally, and needs no merge-base diff in CI. Keying by file set rather than fragment hash means editing inside an existing clone does not read as new.

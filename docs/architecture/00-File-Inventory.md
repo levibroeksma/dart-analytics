@@ -318,13 +318,13 @@ Registered for discoverability, not as reading material — the rules live in `0
 | `scripts/engine-kernels.txt` | Registry: every engine's rule-kernel family, status, rules file (Pattern 18 §Rule-kernel families, D467, 2026-10-17) | canonical |
 | `scripts/check-engine-kernels.sh` | Guard: the registry lists every engine and matches its kernel import and its rules file's `Kernel:` header (D467, 2026-10-17); accepts an exercise's `@modules/game/` kernel import (2026-10-17) | canonical |
 | `scripts/test-check-engine-kernels.sh` | Fixture test for `check-engine-kernels.sh` (D467, 2026-10-17) | canonical |
-| `scripts/check-dupes.sh` | Clone-group ratchet: keys `fallow dupes` groups by file set against `scripts/dupes-baseline.txt`; fails on a new/raised group or a lowerable baseline row (D512, 2026-10-30) | canonical |
-| `scripts/test-check-dupes.sh` | Fixture test for `check-dupes.sh` (D512, 2026-10-30) | canonical |
+| `scripts/check-dupes.sh` | Clone-group ratchet: keys `fallow dupes` groups by file set against `scripts/dupes-baseline.txt`; fails on a new/raised group or a lowerable baseline row (D513, 2026-10-30) | canonical |
+| `scripts/test-check-dupes.sh` | Fixture test for `check-dupes.sh` (D513, 2026-10-30) | canonical |
 | `scripts/test-check-file-mode.sh` | Fixture test for the per-file mode (`CHECK_ROOT=<dir> bash scripts/check-X.sh <relpath>...`) of the five edit-time gate scripts (2026-10-30) | canonical |
 | `scripts/test-edit-gate.sh` | Fixture test for `.claude/hooks/edit-gate.py`: blocks an edit that adds a gate violation, allows a clean or pre-existing one, fails open (2026-10-30) | canonical |
 | `scripts/test-reuse-lookup.sh` | Fixture test for `.claude/hooks/reuse-lookup.py`: inventory and graph matches, once-per-session, overwrite, unwatched path, bad stdin (2026-10-30) | canonical |
-| `scripts/dupes-baseline.txt` | Committed `<count>\t<file set>` baseline read by `check-dupes.sh`; only ever shrinks (D512, 2026-10-30) | canonical |
-| `.claude/rules/reuse.md` | Path-scoped rule (`app/src/**`): rule of three, extract on the third copy; points at the component inventory and `check-dupes.sh` (D512, 2026-10-30) | canonical |
+| `scripts/dupes-baseline.txt` | Committed `<count>\t<file set>` baseline read by `check-dupes.sh`; only ever shrinks (D513, 2026-10-30) | canonical |
+| `.claude/rules/reuse.md` | Path-scoped rule (`app/src/**`): rule of three, extract on the third copy; points at the component inventory and `check-dupes.sh` (D513, 2026-10-30) | canonical |
 | `scripts/check-game-wiring.sh` | Guard: every `registry.ts` key has a validator, a capability declaration, and — unless engine-only — data files, pages and Alpine registrations; engine-only derived from `games-visibility.ts`, both slugs derived, blind spots documented in its header (2026-08-19) | canonical |
 | `scripts/check-refinement-coverage.sh` | Guard: refinements in `types.ts` match the refinement contract; blind spots documented in its header | canonical |
 | `scripts/check-type-barrels.sh` | Guard: no inline exported `type`/`interface` in implementation files, every `types.ts`/`interfaces.ts` raised by its parent, no aliased or relative barrel **type** import deeper than the importing file's own folder or the area root (value imports exempt, D156); blind spots documented in its header (2026-07-26) | canonical |
