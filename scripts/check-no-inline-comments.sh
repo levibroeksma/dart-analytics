@@ -39,9 +39,19 @@
 # open instead of an increment of the return-type depth counter. Not present
 # in this codebase's current style as of this writing.
 set -euo pipefail
-cd "$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
+cd "${CHECK_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || echo .)}"
 
-python3 - <<'PY'
+# Per-file mode: relpaths as args (relative to the root) scan only those files.
+FILE_MODE=0
+TARGETS=(app/src)
+if [ "$#" -gt 0 ]; then
+  FILE_MODE=1
+  TARGETS=()
+  for a in "$@"; do [ -f "$a" ] && TARGETS+=("$a"); done
+  [ "${#TARGETS[@]}" -eq 0 ] && exit 0
+fi
+
+python3 - "$FILE_MODE" "${TARGETS[@]}" <<'PY'
 import re
 import sys
 from pathlib import Path
@@ -185,11 +195,19 @@ def scan(path: Path) -> None:
         i += 1
 
 
+file_mode = sys.argv[1] == "1"
+candidates = (
+    [Path(a) for a in sys.argv[2:] if a.endswith(".ts")]
+    if file_mode
+    else sorted(ROOT.rglob("*.ts"))
+)
 files = [
     p
-    for p in sorted(ROOT.rglob("*.ts"))
+    for p in sorted(candidates)
     if not any(str(p).startswith(prefix) for prefix in EXEMPT_PREFIXES)
 ]
+if file_mode and not files:
+    sys.exit(0)
 if not files:
     print("FAIL: no .ts files found under app/src", file=sys.stderr)
     sys.exit(1)
@@ -200,6 +218,9 @@ for p in files:
 if fail:
     sys.exit(1)
 
+if file_mode:
+    sys.exit(0)
+
 print(f"OK: no inline // or non-JSDoc /* */ comments inside function/method bodies across {len(files)} file(s) under app/src.")
 PY
 
@@ -207,8 +228,9 @@ PY
 # JSDoc explains the code's why, not the plan step or review round that
 # produced it. Applies to .ts and .astro under app/src.
 history_re='ruling R|controller ruling|plan decision|Task [0-9]|fix-round|reviewer finding'
-if hits=$(grep -rnE --include='*.ts' --include='*.astro' "$history_re" app/src); then
+if hits=$(grep -rnHE --include='*.ts' --include='*.astro' "$history_re" "${TARGETS[@]}"); then
   echo "$hits" | sed 's/^/FAIL: plan\/review-history citation in comment (D255): /' >&2
   exit 1
 fi
+[ "$FILE_MODE" -eq 1 ] && exit 0
 echo "OK: no plan/review-history citations under app/src."

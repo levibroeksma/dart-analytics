@@ -61,6 +61,16 @@ bash scripts/check-constraint-mirror.sh
 bash scripts/check-no-inline-comments.sh
 bash scripts/check-style-tokens.sh
 bash scripts/check-game-wiring.sh
+bash scripts/check-dupes.sh
+```
+
+## If `.claude/hooks/` or `scripts/` changed, also run
+
+```bash
+bash scripts/test-check-file-mode.sh
+bash scripts/test-edit-gate.sh
+bash scripts/test-reuse-lookup.sh
+bash scripts/test-check-dupes.sh
 ```
 
 ## If `database/` changed, also run

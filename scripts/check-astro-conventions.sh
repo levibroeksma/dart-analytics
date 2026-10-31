@@ -5,9 +5,19 @@
 # 3) no fused `x-cloak:<attr>` (Prettier glues a bare `:class` onto x-cloak)
 # 4) no long-form `x-bind:` (D100); inside `{}` use a spread: {...{ ":class": expr }}
 set -euo pipefail
-cd "$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
+cd "${CHECK_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || echo .)}"
 
-python3 - "$@" <<'PY'
+# Per-file mode: relpaths as args (relative to the root) scan only those files.
+FILE_MODE=0
+TARGETS=(app/src)
+if [ "$#" -gt 0 ]; then
+  FILE_MODE=1
+  TARGETS=()
+  for a in "$@"; do [ -f "$a" ] && TARGETS+=("$a"); done
+  [ "${#TARGETS[@]}" -eq 0 ] && exit 0
+fi
+
+python3 - "$FILE_MODE" "${TARGETS[@]}" <<'PY'
 from __future__ import annotations
 
 import re
@@ -96,7 +106,13 @@ def check_file(path: Path) -> None:
 
 def main() -> int:
     global fail
-    files = sorted(ROOT.rglob("*.astro"))
+    file_mode = sys.argv[1] == "1"
+    if file_mode:
+        files = sorted(Path(a) for a in sys.argv[2:] if a.endswith(".astro"))
+    else:
+        files = sorted(ROOT.rglob("*.astro"))
+    if not files and file_mode:
+        return 0
     if not files:
         print("FAIL: no .astro files under app/src", file=sys.stderr)
         return 1
@@ -104,6 +120,8 @@ def main() -> int:
         check_file(path)
     if fail:
         return 1
+    if file_mode:
+        return 0
     print("OK: Astro x-show/x-cloak pairing, no fused x-cloak:, no x-bind:, no template HTML comments.")
     return 0
 

@@ -49,6 +49,12 @@ jobs:
         run: bash scripts/check-no-inline-comments.sh
       - name: Style-tokens gate
         run: bash scripts/check-style-tokens.sh
+      - name: Gate per-file mode fixtures
+        run: bash scripts/test-check-file-mode.sh
+      - name: Edit-gate hook fixtures
+        run: bash scripts/test-edit-gate.sh
+      - name: Reuse-lookup hook fixtures
+        run: bash scripts/test-reuse-lookup.sh
 
       - name: Game-rules gate
         run: bash scripts/check-game-rules.sh && bash scripts/test-check-game-rules.sh
@@ -89,6 +95,9 @@ jobs:
         run: npm run check
       - name: Stale-usage gate
         run: bash ../scripts/fallow-gate.sh
+      - name: Clone-group ratchet
+        working-directory: ${{ github.workspace }}
+        run: bash scripts/check-dupes.sh && bash scripts/test-check-dupes.sh
       - name: Unit tests
         run: npm test
       - name: Build gate
