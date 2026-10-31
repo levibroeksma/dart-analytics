@@ -1024,6 +1024,22 @@ export type FollowTheLeaderShared = {
 /** Follow the Leader seats carry no extras. */
 export type FollowTheLeaderExt = Record<string, never>;
 
+/** Prisoner's seat extras: its target (21 once 20 is completed), darts sitting out this visit, the visit's dart budget, and the prisoners captured and darts imprisoned so far. */
+export type PrisonerExt = {
+  target: number;
+  missed: number;
+  sitting: number;
+  budget: number;
+  captured: number;
+  imprisoned: number;
+};
+
+/** Prisoner's game state beyond seats: prisoners lodged per number, and the seat next to throw. */
+export type PrisonerShared = {
+  lodged: Readonly<Record<number, number>>;
+  next: string | null;
+};
+
 /** One Follow the Leader seat as the play screen reads it: lives and whether it is out. */
 export type FollowTheLeaderSeatState = SeatState & {
   lives: number;
