@@ -1,20 +1,16 @@
+import {
+  playScreenState,
+  boardPlayActions,
+  botVisualBoardData,
+  playScreenActions,
+} from "@lib/game/play-screen.data";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { BULL_TARGET_NUMBER } from "@modules/game/board-progression.module";
-import { boardInputData } from "@lib/game/board-input.data";
-import { botThrowObservation, findBotSeat } from "@lib/game/play-bot-seat";
+import { botThrowObservation } from "@lib/game/play-bot-seat";
 import { chooseTarget } from "@modules/dartbot/strategy/marks.strategy.module";
 import {
-  playAbandonAndExit,
-  playBack,
-  playCommitDart,
-  playInit,
-  playRetryReconciliation,
-  playRunBotVisualBoardVisit,
-  playUndoVisit,
   playUploadAndCompleteSession,
-  playVisitMarkers,
   runPlayAgain,
-  undoToActiveSeat,
 } from "@lib/game/play-lifecycle";
 import {
   duelWinningSideKey,
@@ -27,19 +23,13 @@ import {
 } from "@lib/game/marks-play.data";
 import type { DartbotSeat, RulesetVersionKey } from "@lib/types";
 import type { MarksView } from "@modules/interfaces";
+import type { CricketSeatState, CricketState } from "@modules/types";
 import type {
-  CricketSeatState,
-  CricketState,
-  DartObservation,
-} from "@modules/types";
-import type {
-  BoardMarker,
   Bobs27PreviewSegment,
   CricketPlayContext,
   CricketResultsSnapshot,
   CricketRing,
   CricketSeatResult,
-  BotDartThrower,
 } from "./types";
 
 // Value import, not `import type`: the class is the narrowing target below,
@@ -124,38 +114,15 @@ function throwBotDart(context: CricketPlayContext, botSeat: DartbotSeat) {
   return botThrowObservation(botSeat, context.$store.game.turns, intent);
 }
 
-/**
- * `self` exists only so `boardInputData`'s `onCommit` callback can reach this
- * page's own `recordDart` with the live, reactive `this` — see
- * `five-oh-one-play.data.ts`'s identical comment for the full reasoning.
- */
 export function cricketPlay() {
-  let self: CricketPlayContext;
-
   return {
-    loading: false,
-    error: "",
-    finished: false,
-    hasActiveSession: false,
-    loadingReconciliation: false,
-    reconciliationFailed: false,
-    completionStatus: "pending" as
-      "pending" | "saving" | "succeeded" | "failed",
-    completionError: "",
-    playAgainError: "",
-    playAgainLoading: false,
-    resultsSnapshot: null as CricketResultsSnapshot | null,
-    hiddenTurnKey: null as string | null,
-    hiddenTimer: null as ReturnType<typeof setTimeout> | null,
-    engine: null as CricketEngine | null,
-    ring: "SINGLE" as CricketRing,
-    botThrowing: false,
-    botFlight: null,
+    ...playScreenState<CricketEngine, CricketResultsSnapshot>(),
     ...playAgainStarterData(),
-    ...boardInputData(
-      (observation) => self.recordDart(observation),
-      () => self.$store.game.turns,
-    ),
+    ...boardPlayActions({ gameTypeKey: GAME_TYPE_KEY, resume: resumeEngine }),
+    ...botVisualBoardData(throwBotDart),
+    ...playScreenActions(),
+
+    ring: "SINGLE" as CricketRing,
 
     state(this: CricketPlayContext): CricketState | null {
       const config = this.$store.game.configSnapshot;
@@ -176,23 +143,6 @@ export function cricketPlay() {
       );
     },
 
-    /** Overrides `boardInputData`'s own `visitMarkers` — object-literal key
-     * order means this later definition wins, so the shared module needs no
-     * change. Delegates to `play-lifecycle.ts`'s shared implementation. */
-    visitMarkers(this: CricketPlayContext): BoardMarker[] {
-      return playVisitMarkers(this);
-    },
-
-    async init(this: CricketPlayContext) {
-      self = this;
-      await playInit(this, GAME_TYPE_KEY, resumeEngine);
-      await this.maybeRunBotVisit();
-    },
-
-    retryReconciliation(this: CricketPlayContext) {
-      return playRetryReconciliation(this);
-    },
-
     /** Tapping the selected ring again returns to SINGLE. */
     setRing(this: CricketPlayContext, ring: CricketRing) {
       toggleMarksRing(this, ring);
@@ -210,46 +160,8 @@ export function cricketPlay() {
       await recordMarksMiss(this);
     },
 
-    async recordDart(this: CricketPlayContext, observation: DartObservation) {
-      if (!this.engine || this.finished) return;
-      await this.commitDart(observation);
-    },
-
-    async commitDart(this: CricketPlayContext, observation: DartObservation) {
-      await playCommitDart(this, observation);
-      await this.maybeRunBotVisit();
-    },
-
-    async maybeRunBotVisit(this: CricketPlayContext) {
-      const botSeat = findBotSeat(this.$store.game.seats);
-      if (!botSeat) return;
-      const thrower: BotDartThrower = () => throwBotDart(this, botSeat);
-      await playRunBotVisualBoardVisit(this, botSeat.participantRef, thrower);
-    },
-
-    async undoVisit(this: CricketPlayContext) {
-      const botSeat = findBotSeat(this.$store.game.seats);
-      if (botSeat) {
-        const humanSeat = this.$store.game.seats.find(
-          (seat) => seat.participantTypeKey === "PLAYER",
-        )!;
-        undoToActiveSeat(this, humanSeat.participantRef);
-      } else {
-        playUndoVisit(this);
-      }
-      await this.maybeRunBotVisit();
-    },
-
     uploadAndCompleteSession(this: CricketPlayContext): Promise<void> {
       return playUploadAndCompleteSession(this, computeStats);
-    },
-
-    back(this: CricketPlayContext) {
-      return playBack(this);
-    },
-
-    abandonAndExit(this: CricketPlayContext) {
-      return playAbandonAndExit(this);
     },
 
     /**

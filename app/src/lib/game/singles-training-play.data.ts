@@ -1,4 +1,10 @@
-import { BOT_PACING, botDartIndex, findBotSeat } from "@lib/game/play-bot-seat";
+import {
+  playScreenState,
+  boardPlayActions,
+  botVisualBoardData,
+  playScreenActions,
+} from "@lib/game/play-screen.data";
+import { BOT_PACING, botDartIndex } from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { singlesTrainingResultsTitle } from "@lib/game/singles-training-results-title";
@@ -8,21 +14,12 @@ import {
   numbersPath,
   targetAt,
 } from "@modules/game/board-progression.module";
-import { boardInputData } from "@lib/game/board-input.data";
+
 import { accuracyDisplay } from "@lib/game/play-visit-stats";
 import {
-  playAbandonAndExit,
-  playBack,
-  playCommitDart,
-  playInit,
   playPreviewSegments,
-  playRetryReconciliation,
-  playRunBotVisualBoardVisit,
-  playUndoVisit,
   playUploadAndCompleteSession,
-  playVisitMarkers,
   runPlayAgain,
-  undoToActiveSeat,
 } from "@lib/game/play-lifecycle";
 import { targetOrderFor } from "@lib/game/target-order";
 import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
@@ -47,8 +44,6 @@ import type {
   TurnFact,
 } from "@modules/types";
 import type {
-  BoardMarker,
-  BotDartThrower,
   BotPacing,
   SinglesPreviewSegment,
   SinglesTrainingPlayContext,
@@ -364,31 +359,15 @@ function throwBotDart(
 }
 
 export function singlesTrainingPlay() {
-  let self: SinglesTrainingPlayContext;
-
   return {
-    loading: false,
-    error: "",
-    finished: false,
-    hasActiveSession: false,
-    loadingReconciliation: false,
-    reconciliationFailed: false,
-    completionStatus: "pending" as
-      "pending" | "saving" | "succeeded" | "failed",
-    completionError: "",
-    playAgainError: "",
-    playAgainLoading: false,
-    resultsSnapshot: null as SinglesTrainingResultsSnapshot | null,
-    hiddenTurnKey: null as string | null,
-    hiddenTimer: null as ReturnType<typeof setTimeout> | null,
+    ...playScreenState<SinglesTrainingEngine, SinglesTrainingResultsSnapshot>(),
     ...playAgainStarterData(),
-    botThrowing: false,
-    botFlight: null,
-    engine: null as SinglesTrainingEngine | null,
-    ...boardInputData(
-      (observation) => self.recordDart(observation),
-      () => self.$store.game.turns,
-    ),
+    ...boardPlayActions<
+      SinglesSnapshot | SinglesV2Snapshot,
+      SinglesTrainingEngine
+    >({ gameTypeKey: GAME_TYPE_KEY, resume: resumeEngine }),
+    ...botVisualBoardData(throwBotDart),
+    ...playScreenActions(),
 
     state(this: SinglesTrainingPlayContext): SinglesTrainingState | null {
       const config = this.$store.game.configSnapshot;
@@ -529,16 +508,6 @@ export function singlesTrainingPlay() {
       return String(targetHitCounts(this.$store.game.turns, config).trebles);
     },
 
-    async init(this: SinglesTrainingPlayContext) {
-      self = this;
-      await playInit(this, GAME_TYPE_KEY, resumeEngine);
-      await this.maybeRunBotVisit();
-    },
-
-    retryReconciliation(this: SinglesTrainingPlayContext) {
-      return playRetryReconciliation(this);
-    },
-
     async recordTap(
       this: SinglesTrainingPlayContext,
       ring: "SINGLE" | "DOUBLE" | "TREBLE" | "MISS",
@@ -557,49 +526,6 @@ export function singlesTrainingPlay() {
       await this.commitDart(tapObservation(target, ring));
     },
 
-    async commitDart(
-      this: SinglesTrainingPlayContext,
-      observation: DartObservation,
-    ) {
-      await playCommitDart(this, observation);
-      await this.maybeRunBotVisit();
-    },
-
-    async maybeRunBotVisit(this: SinglesTrainingPlayContext) {
-      const botSeat = findBotSeat(this.$store.game.seats);
-      if (!botSeat) return;
-      const thrower: BotDartThrower = () => throwBotDart(this, botSeat);
-      await playRunBotVisualBoardVisit(this, botSeat.participantRef, thrower);
-    },
-
-    async recordDart(
-      this: SinglesTrainingPlayContext,
-      observation: DartObservation,
-    ) {
-      if (!this.engine || this.finished) return;
-      await this.commitDart(observation);
-    },
-
-    /** Overrides `boardInputData`'s own `visitMarkers` — object-literal key
-     * order means this later definition wins, so the shared module needs no
-     * change. Delegates to `play-lifecycle.ts`'s shared implementation. */
-    visitMarkers(this: SinglesTrainingPlayContext): BoardMarker[] {
-      return playVisitMarkers(this);
-    },
-
-    async undoVisit(this: SinglesTrainingPlayContext) {
-      const botSeat = findBotSeat(this.$store.game.seats);
-      if (botSeat) {
-        const humanSeat = this.$store.game.seats.find(
-          (seat) => seat.participantTypeKey === "PLAYER",
-        )!;
-        undoToActiveSeat(this, humanSeat.participantRef);
-      } else {
-        playUndoVisit(this);
-      }
-      await this.maybeRunBotVisit();
-    },
-
     uploadAndCompleteSession(this: SinglesTrainingPlayContext): Promise<void> {
       const config = this.$store.game.configSnapshot;
       return playUploadAndCompleteSession(this, (finalState) => ({
@@ -615,14 +541,6 @@ export function singlesTrainingPlay() {
         this.$store.game.seats,
         this.resultsSnapshot,
       );
-    },
-
-    back(this: SinglesTrainingPlayContext) {
-      return playBack(this);
-    },
-
-    abandonAndExit(this: SinglesTrainingPlayContext) {
-      return playAbandonAndExit(this);
     },
 
     playAgain(this: SinglesTrainingPlayContext) {

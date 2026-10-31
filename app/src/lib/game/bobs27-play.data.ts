@@ -1,4 +1,4 @@
-import { botThrowObservation, findBotSeat } from "@lib/game/play-bot-seat";
+import { botThrowObservation } from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { matchWinnerName } from "@lib/game/match-result-text";
@@ -8,20 +8,16 @@ import {
   doublesPathPreviewSegments,
   doublesPathTargetLabel,
 } from "@lib/game/doubles-path-play";
-import { boardInputData } from "@lib/game/board-input.data";
 import { accuracyDisplay } from "@lib/game/play-visit-stats";
 import {
-  playAbandonAndExit,
-  playBack,
-  playCommitDart,
-  playInit,
-  playRetryReconciliation,
-  playRunBotVisualBoardVisit,
-  playUndoVisit,
+  boardPlayActions,
+  botVisualBoardData,
+  playScreenActions,
+  playScreenState,
+} from "@lib/game/play-screen.data";
+import {
   playUploadAndCompleteSession,
-  playVisitMarkers,
   runPlayAgain,
-  undoToActiveSeat,
   variantsPlayAgain,
 } from "@lib/game/play-lifecycle";
 import { chooseTarget } from "@modules/dartbot/strategy/dictated.strategy.module";
@@ -36,7 +32,7 @@ import type {
   DartObservation,
   TurnFact,
 } from "@modules/types";
-import type { BoardMarker, BotDartThrower, BotPacing } from "./types";
+import type { BotPacing } from "./types";
 import type {
   Bobs27PlayContext,
   Bobs27PreviewSegment,
@@ -149,37 +145,13 @@ function throwBotDart(
   );
 }
 
-/**
- * `self` exists only so `boardInputData`'s `onCommit` callback can reach this
- * page's own `recordDart` with the live, reactive `this` — see
- * `five-oh-one-play.data.ts`'s identical comment for the full reasoning.
- */
 export function bobs27Play() {
-  let self: Bobs27PlayContext;
-
   return {
-    loading: false,
-    error: "",
-    finished: false,
-    hasActiveSession: false,
-    loadingReconciliation: false,
-    reconciliationFailed: false,
-    completionStatus: "pending" as
-      "pending" | "saving" | "succeeded" | "failed",
-    completionError: "",
-    playAgainError: "",
-    playAgainLoading: false,
-    resultsSnapshot: null as Bobs27ResultsSnapshot | null,
-    hiddenTurnKey: null as string | null,
-    hiddenTimer: null as ReturnType<typeof setTimeout> | null,
+    ...playScreenState<Bobs27Engine, Bobs27ResultsSnapshot>(),
     ...playAgainStarterData(),
-    botThrowing: false,
-    botFlight: null,
-    engine: null as Bobs27Engine | null,
-    ...boardInputData(
-      (observation) => self.recordDart(observation),
-      () => self.$store.game.turns,
-    ),
+    ...boardPlayActions({ gameTypeKey: GAME_TYPE_KEY, resume: resumeEngine }),
+    ...botVisualBoardData(throwBotDart),
+    ...playScreenActions(),
 
     state(this: Bobs27PlayContext): Bobs27State | null {
       const config = this.$store.game.configSnapshot;
@@ -237,23 +209,6 @@ export function bobs27Play() {
       );
     },
 
-    /** Overrides `boardInputData`'s own `visitMarkers` — object-literal key
-     * order means this later definition wins, so the shared module needs no
-     * change. Delegates to `play-lifecycle.ts`'s shared implementation. */
-    visitMarkers(this: Bobs27PlayContext): BoardMarker[] {
-      return playVisitMarkers(this);
-    },
-
-    async init(this: Bobs27PlayContext) {
-      self = this;
-      await playInit(this, GAME_TYPE_KEY, resumeEngine);
-      await this.maybeRunBotVisit();
-    },
-
-    retryReconciliation(this: Bobs27PlayContext) {
-      return playRetryReconciliation(this);
-    },
-
     /** The recreational tap row's entry point: synthesizes the observation
      * for a hit or miss on the current target and funnels it through
      * `commitDart`, exactly as the board's per-dart `recordDart` does. */
@@ -266,36 +221,6 @@ export function bobs27Play() {
       if (!activeSeat) return;
       const target = targetAt(doublesPath(), activeSeat.targetIndex);
       await this.commitDart(doublesPathObservation(target, hit));
-    },
-
-    async recordDart(this: Bobs27PlayContext, observation: DartObservation) {
-      if (!this.engine || this.finished) return;
-      await this.commitDart(observation);
-    },
-
-    async commitDart(this: Bobs27PlayContext, observation: DartObservation) {
-      await playCommitDart(this, observation);
-      await this.maybeRunBotVisit();
-    },
-
-    async maybeRunBotVisit(this: Bobs27PlayContext) {
-      const botSeat = findBotSeat(this.$store.game.seats);
-      if (!botSeat) return;
-      const thrower: BotDartThrower = () => throwBotDart(this, botSeat);
-      await playRunBotVisualBoardVisit(this, botSeat.participantRef, thrower);
-    },
-
-    async undoVisit(this: Bobs27PlayContext) {
-      const botSeat = findBotSeat(this.$store.game.seats);
-      if (botSeat) {
-        const humanSeat = this.$store.game.seats.find(
-          (seat) => seat.participantTypeKey === "PLAYER",
-        )!;
-        undoToActiveSeat(this, humanSeat.participantRef);
-      } else {
-        playUndoVisit(this);
-      }
-      await this.maybeRunBotVisit();
     },
 
     uploadAndCompleteSession(this: Bobs27PlayContext): Promise<void> {
@@ -316,14 +241,6 @@ export function bobs27Play() {
       return this.$store.game.configSnapshot?.mode === "EASY"
         ? "Run complete!"
         : "Winner!";
-    },
-
-    back(this: Bobs27PlayContext) {
-      return playBack(this);
-    },
-
-    abandonAndExit(this: Bobs27PlayContext) {
-      return playAbandonAndExit(this);
     },
 
     /**

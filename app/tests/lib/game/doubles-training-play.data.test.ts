@@ -1120,3 +1120,18 @@ describe("doublesTrainingPlay bot flight", () => {
     expect(typeof play.requestPlayAgain).toBe("function");
   });
 });
+
+describe("doubles-training shared play-screen parts", () => {
+  it("recordDart before init ignores the dart", async () => {
+    const play = makePlay();
+    const before = [...play.$store.game.turns];
+    await play.recordDart({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    expect(play.$store.game.turns).toEqual(before);
+    expect(play.engine).toBeNull();
+  });
+});

@@ -1,4 +1,10 @@
-import { BOT_PACING, botDartIndex, findBotSeat } from "@lib/game/play-bot-seat";
+import {
+  playScreenState,
+  boardPlayActions,
+  botVisualBoardData,
+  playScreenActions,
+} from "@lib/game/play-screen.data";
+import { BOT_PACING, botDartIndex } from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { matchWinnerName } from "@lib/game/match-result-text";
@@ -8,19 +14,10 @@ import {
   doublesPathPreviewSegments,
   doublesPathTargetLabel,
 } from "@lib/game/doubles-path-play";
-import { boardInputData } from "@lib/game/board-input.data";
+
 import {
-  playAbandonAndExit,
-  playBack,
-  playCommitDart,
-  playInit,
-  playRetryReconciliation,
-  playRunBotVisualBoardVisit,
-  playUndoVisit,
   playUploadAndCompleteSession,
-  playVisitMarkers,
   runPlayAgain,
-  undoToActiveSeat,
 } from "@lib/game/play-lifecycle";
 import { targetOrderFor } from "@lib/game/target-order";
 import { accuracyDisplay } from "@lib/game/play-visit-stats";
@@ -36,8 +33,6 @@ import type {
   DoublesTrainingState,
 } from "@modules/types";
 import type {
-  BoardMarker,
-  BotDartThrower,
   BotPacing,
   DoublesPreviewSegment,
   DoublesTrainingPlayContext,
@@ -139,31 +134,12 @@ function throwBotDart(
 }
 
 export function doublesTrainingPlay() {
-  let self: DoublesTrainingPlayContext;
-
   return {
-    loading: false,
-    error: "",
-    finished: false,
-    hasActiveSession: false,
-    loadingReconciliation: false,
-    reconciliationFailed: false,
-    completionStatus: "pending" as
-      "pending" | "saving" | "succeeded" | "failed",
-    completionError: "",
-    playAgainError: "",
-    playAgainLoading: false,
-    resultsSnapshot: null as DoublesTrainingResultsSnapshot | null,
-    hiddenTurnKey: null as string | null,
-    hiddenTimer: null as ReturnType<typeof setTimeout> | null,
+    ...playScreenState<DoublesTrainingEngine, DoublesTrainingResultsSnapshot>(),
     ...playAgainStarterData(),
-    botThrowing: false,
-    botFlight: null,
-    engine: null as DoublesTrainingEngine | null,
-    ...boardInputData(
-      (observation) => self.recordDart(observation),
-      () => self.$store.game.turns,
-    ),
+    ...boardPlayActions({ gameTypeKey: GAME_TYPE_KEY, resume: resumeEngine }),
+    ...botVisualBoardData(throwBotDart),
+    ...playScreenActions(),
 
     state(this: DoublesTrainingPlayContext): DoublesTrainingState | null {
       const config = this.$store.game.configSnapshot;
@@ -237,16 +213,6 @@ export function doublesTrainingPlay() {
       );
     },
 
-    async init(this: DoublesTrainingPlayContext) {
-      self = this;
-      await playInit(this, GAME_TYPE_KEY, resumeEngine);
-      await this.maybeRunBotVisit();
-    },
-
-    retryReconciliation(this: DoublesTrainingPlayContext) {
-      return playRetryReconciliation(this);
-    },
-
     /** The recreational tap row's entry point: synthesizes the observation
      * for a hit or miss on the current target and funnels it through
      * `commitDart`. */
@@ -262,49 +228,6 @@ export function doublesTrainingPlay() {
         seat.targetIndex,
       );
       await this.commitDart(doublesPathObservation(target, hit));
-    },
-
-    async commitDart(
-      this: DoublesTrainingPlayContext,
-      observation: DartObservation,
-    ) {
-      await playCommitDart(this, observation);
-      await this.maybeRunBotVisit();
-    },
-
-    async maybeRunBotVisit(this: DoublesTrainingPlayContext) {
-      const botSeat = findBotSeat(this.$store.game.seats);
-      if (!botSeat) return;
-      const thrower: BotDartThrower = () => throwBotDart(this, botSeat);
-      await playRunBotVisualBoardVisit(this, botSeat.participantRef, thrower);
-    },
-
-    async recordDart(
-      this: DoublesTrainingPlayContext,
-      observation: DartObservation,
-    ) {
-      if (!this.engine || this.finished) return;
-      await this.commitDart(observation);
-    },
-
-    /** Overrides `boardInputData`'s own `visitMarkers` — object-literal key
-     * order means this later definition wins, so the shared module needs no
-     * change. Delegates to `play-lifecycle.ts`'s shared implementation. */
-    visitMarkers(this: DoublesTrainingPlayContext): BoardMarker[] {
-      return playVisitMarkers(this);
-    },
-
-    async undoVisit(this: DoublesTrainingPlayContext) {
-      const botSeat = findBotSeat(this.$store.game.seats);
-      if (botSeat) {
-        const humanSeat = this.$store.game.seats.find(
-          (seat) => seat.participantTypeKey === "PLAYER",
-        )!;
-        undoToActiveSeat(this, humanSeat.participantRef);
-      } else {
-        playUndoVisit(this);
-      }
-      await this.maybeRunBotVisit();
     },
 
     uploadAndCompleteSession(this: DoublesTrainingPlayContext): Promise<void> {
@@ -323,14 +246,6 @@ export function doublesTrainingPlay() {
         this.resultsSnapshot?.winningSideKey ?? null,
       );
       return winner ? `${winner} wins — most doubles hit!` : "Session complete";
-    },
-
-    back(this: DoublesTrainingPlayContext) {
-      return playBack(this);
-    },
-
-    abandonAndExit(this: DoublesTrainingPlayContext) {
-      return playAbandonAndExit(this);
     },
 
     playAgain(this: DoublesTrainingPlayContext) {

@@ -1,29 +1,31 @@
-import { BOT_PACING, botDartIndex, findBotSeat } from "@lib/game/play-bot-seat";
+import {
+  playScreenState,
+  boardPlayActions,
+  botVisualBoardData,
+  playScreenActions,
+} from "@lib/game/play-screen.data";
+import { BOT_PACING, botDartIndex } from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { matchWinnerName } from "@lib/game/match-result-text";
 import {
-  playAbandonAndExit,
-  playBack,
-  playCommitDart,
-  playInit,
   playPreviewSegments,
-  playRetryReconciliation,
-  playRunBotVisualBoardVisit,
-  playUndoVisit,
   playUploadAndCompleteSession,
-  playVisitMarkers,
   runPlayAgain,
   variantsPlayAgain,
-  undoToActiveSeat,
 } from "@lib/game/play-lifecycle";
-import { boardInputData } from "@lib/game/board-input.data";
+
 import { accuracyDisplay } from "@lib/game/play-visit-stats";
 import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
 import { createDartRng } from "@modules/dartbot/rng.module";
 import { throwDart as botThrowDart } from "@modules/dartbot/throw-engine.module";
 import { chooseTarget } from "@modules/dartbot/strategy/dictated.strategy.module";
-import type { RulesetVersionKey, DartbotSeat } from "@lib/types";
+import type {
+  RulesetVersionKey,
+  DartbotSeat,
+  ShanghaiSnapshot,
+  ShanghaiV2Snapshot,
+} from "@lib/types";
 import type {
   DartObservation,
   ShanghaiSeatState,
@@ -31,8 +33,6 @@ import type {
   TurnFact,
 } from "@modules/types";
 import type {
-  BoardMarker,
-  BotDartThrower,
   BotPacing,
   ShanghaiPlayContext,
   ShanghaiPreviewSegment,
@@ -197,31 +197,18 @@ function throwBotDart(
 }
 
 export function shanghaiPlay() {
-  let self: ShanghaiPlayContext;
-
   return {
-    loading: false,
-    error: "",
-    finished: false,
-    hasActiveSession: false,
-    loadingReconciliation: false,
-    reconciliationFailed: false,
-    completionStatus: "pending" as
-      "pending" | "saving" | "succeeded" | "failed",
-    completionError: "",
-    playAgainError: "",
-    playAgainLoading: false,
-    resultsSnapshot: null as ShanghaiPlayContext["resultsSnapshot"],
-    hiddenTurnKey: null as string | null,
-    hiddenTimer: null as ReturnType<typeof setTimeout> | null,
+    ...playScreenState<
+      ShanghaiEngine,
+      ShanghaiPlayContext["resultsSnapshot"]
+    >(),
     ...playAgainStarterData(),
-    botThrowing: false,
-    botFlight: null,
-    engine: null as ShanghaiEngine | null,
-    ...boardInputData(
-      (observation) => self.recordDart(observation),
-      () => self.$store.game.turns,
-    ),
+    ...boardPlayActions<ShanghaiSnapshot | ShanghaiV2Snapshot, ShanghaiEngine>({
+      gameTypeKey: GAME_TYPE_KEY,
+      resume: resumeEngine,
+    }),
+    ...botVisualBoardData(throwBotDart),
+    ...playScreenActions(),
 
     state(this: ShanghaiPlayContext): ShanghaiState | null {
       const config = this.$store.game.configSnapshot;
@@ -293,16 +280,6 @@ export function shanghaiPlay() {
       );
     },
 
-    async init(this: ShanghaiPlayContext) {
-      self = this;
-      await playInit(this, GAME_TYPE_KEY, resumeEngine);
-      await this.maybeRunBotVisit();
-    },
-
-    retryReconciliation(this: ShanghaiPlayContext) {
-      return playRetryReconciliation(this);
-    },
-
     async recordTap(
       this: ShanghaiPlayContext,
       ring: "SINGLE" | "DOUBLE" | "TREBLE" | "MISS",
@@ -330,45 +307,6 @@ export function shanghaiPlay() {
       await this.commitDart(observation);
     },
 
-    async commitDart(this: ShanghaiPlayContext, observation: DartObservation) {
-      await playCommitDart(this, observation);
-      await this.maybeRunBotVisit();
-    },
-
-    async maybeRunBotVisit(this: ShanghaiPlayContext) {
-      const botSeat = findBotSeat(this.$store.game.seats);
-      if (!botSeat) return;
-      const thrower: BotDartThrower = () => throwBotDart(this, botSeat);
-      await playRunBotVisualBoardVisit(this, botSeat.participantRef, thrower);
-    },
-
-    async recordDart(this: ShanghaiPlayContext, observation: DartObservation) {
-      if (!this.engine || this.finished) return;
-      await this.commitDart(observation);
-    },
-
-    /**
-     * Overrides `boardInputData`'s own `visitMarkers` — object-literal key
-     * order means this later definition wins, so the shared module needs no
-     * change. Delegates to `play-lifecycle.ts`'s shared implementation.
-     */
-    visitMarkers(this: ShanghaiPlayContext): BoardMarker[] {
-      return playVisitMarkers(this);
-    },
-
-    async undoVisit(this: ShanghaiPlayContext) {
-      const botSeat = findBotSeat(this.$store.game.seats);
-      if (botSeat) {
-        const humanSeat = this.$store.game.seats.find(
-          (seat) => seat.participantTypeKey === "PLAYER",
-        )!;
-        undoToActiveSeat(this, humanSeat.participantRef);
-      } else {
-        playUndoVisit(this);
-      }
-      await this.maybeRunBotVisit();
-    },
-
     uploadAndCompleteSession(this: ShanghaiPlayContext): Promise<void> {
       const turns = this.$store.game.turns;
       return playUploadAndCompleteSession(this, (finalState) => ({
@@ -390,14 +328,6 @@ export function shanghaiPlay() {
       const isShanghai = this.resultsSnapshot.status === "SHANGHAI";
       if (!winner) return isShanghai ? "Shanghai!" : "Session complete";
       return isShanghai ? `${winner} hits a Shanghai!` : `${winner} wins!`;
-    },
-
-    back(this: ShanghaiPlayContext) {
-      return playBack(this);
-    },
-
-    abandonAndExit(this: ShanghaiPlayContext) {
-      return playAbandonAndExit(this);
     },
 
     playAgain(this: ShanghaiPlayContext) {
