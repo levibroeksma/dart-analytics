@@ -20,6 +20,8 @@ import { cricketSetup } from "@lib/game/cricket-setup.data";
 import { cricketPlay } from "@lib/game/cricket-play.data";
 import { tacticsSetup } from "@lib/game/tactics-setup.data";
 import { tacticsPlay } from "@lib/game/tactics-play.data";
+import { mickeyMouseSetup } from "@lib/game/mickey-mouse-setup.data";
+import { mickeyMousePlay } from "@lib/game/mickey-mouse-play.data";
 import { baseballSetup } from "@lib/game/baseball-setup.data";
 import { baseballPlay } from "@lib/game/baseball-play.data";
 import { killerSetup } from "@lib/game/killer-setup.data";
@@ -74,6 +76,8 @@ export function registerRouteData(Alpine: Alpine) {
   Alpine.data("cricketPlay", cricketPlay);
   Alpine.data("tacticsSetup", tacticsSetup);
   Alpine.data("tacticsPlay", tacticsPlay);
+  Alpine.data("mickeyMouseSetup", mickeyMouseSetup);
+  Alpine.data("mickeyMousePlay", mickeyMousePlay);
   Alpine.data("baseballSetup", baseballSetup);
   Alpine.data("baseballPlay", baseballPlay);
   Alpine.data("killerSetup", killerSetup);

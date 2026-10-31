@@ -1,7 +1,9 @@
 1	src/components/layout/games/FollowTheLeaderRecreationalInput.astro | src/components/layout/games/KillerRecreationalInput.astro
+1	src/components/layout/games/MickeyMouseRecreationalInput.astro | src/components/layout/games/TacticsRecreationalInput.astro
 1	src/components/layout/games/interfaces/Baseball.astro | src/components/layout/games/interfaces/Shanghai.astro
 1	src/components/layout/games/interfaces/OneTwentyOne.astro | src/components/layout/games/interfaces/TenUpOneDown.astro
 1	src/components/layout/games/result-modals/FollowTheLeaderResults.astro | src/components/layout/games/result-modals/KillerResults.astro
+1	src/components/layout/games/result-modals/MickeyMouseResults.astro | src/components/layout/games/result-modals/TacticsResults.astro
 1	src/components/layout/games/setup/DurationField.astro | src/components/layout/games/setup/OneTwentyOneSetupForm.astro
 1	src/lib/client/api/sessions.ts | src/lib/client/api/training-sessions.ts
 2	src/lib/client/api/statistics.ts
@@ -22,6 +24,7 @@
 3	src/lib/game/five-oh-one-play.data.ts | src/lib/game/one-twenty-one-play.data.ts | src/lib/game/tuod-play.data.ts
 1	src/lib/game/five-oh-one-setup.data.ts | src/lib/game/one-twenty-one-setup.data.ts | src/lib/game/score-training-setup.data.ts | src/lib/game/setup-controller.ts | src/lib/game/tuod-setup.data.ts
 1	src/lib/game/five-oh-one-setup.data.ts | src/lib/game/score-training-setup.data.ts | src/lib/game/tuod-setup.data.ts
+1	src/lib/game/mickey-mouse-play.data.ts | src/lib/game/tactics-play.data.ts
 1	src/lib/game/one-twenty-one-duration.ts | src/lib/game/score-training-duration.ts | src/lib/game/tuod-duration.ts
 3	src/lib/game/one-twenty-one-play.data.ts | src/lib/game/score-training-play.data.ts | src/lib/game/tuod-play.data.ts
 1	src/lib/game/one-twenty-one-play.data.ts | src/lib/game/shanghai-play.data.ts | src/lib/game/singles-training-play.data.ts

@@ -13,6 +13,7 @@ import type { TuodEngine } from "@modules/game/tuod.engine.module";
 import type { FiveOhOneEngine } from "@modules/game/five-oh-one.engine.module";
 import type { Bobs27Engine } from "@modules/game/bobs27.engine.module";
 import type { CricketEngine } from "@modules/game/cricket.engine.module";
+import type { MickeyMouseEngine } from "@modules/game/mickey-mouse.engine.module";
 import type { TacticsEngine } from "@modules/game/tactics.engine.module";
 import type { BaseballEngine } from "@modules/game/baseball.engine.module";
 import type { KillerEngine } from "@modules/game/killer.engine.module";
@@ -29,6 +30,8 @@ import type {
   Bobs27State,
   CheckoutDartOptions,
   CricketState,
+  MickeyMouseObjective,
+  MickeyMouseState,
   TacticsObjective,
   TacticsState,
   BaseballState,
@@ -63,6 +66,7 @@ import type {
   FiveOhOneAnySnapshot,
   Bobs27Snapshot,
   CricketSnapshot,
+  MickeyMouseSnapshot,
   TacticsSnapshot,
   BaseballSnapshot,
   KillerSnapshot,
@@ -656,6 +660,8 @@ export type Bobs27SetupContext = PresetSetupContext & { easy: boolean };
 export type CricketSetupContext = PresetSetupContext;
 export type TacticsSetupContext = PresetSetupContext;
 
+export type MickeyMouseSetupContext = PresetSetupContext;
+
 export type SinglesTrainingSetupContext = PresetSetupContext & {
   orderMode: TargetOrderMode;
   difficulty: "EASY" | "HARD" | "EXTREME";
@@ -1070,6 +1076,72 @@ export type TacticsPlayContext = PlayLifecycleContext<
   back(this: TacticsPlayContext): Promise<void>;
   playAgain(this: TacticsPlayContext): Promise<void>;
   abandonAndExit(this: TacticsPlayContext): Promise<void>;
+};
+
+/** The ring the Mickey Mouse recreational input applies to the next number tap. */
+export type MickeyMouseRing = MarksRing;
+
+/** One button of the Mickey Mouse tap grid: a board number and its label. */
+export type MickeyMouseTapTarget = TacticsTapTarget;
+
+/** One row of the Mickey Mouse play board. */
+export type MickeyMouseObjectiveRow = MarksObjectiveRow<MickeyMouseObjective>;
+
+export type MickeyMouseSeatResult = {
+  participantRef: string;
+  sideKey: string;
+  darts: number;
+  dartsToClose: (number | null)[];
+};
+
+export type MickeyMouseResultsSnapshot = {
+  status: "COMPLETE";
+  winningSideKey: string | null;
+  seats: MickeyMouseSeatResult[];
+};
+
+export type MickeyMousePlayContext = PlayLifecycleContext<
+  MickeyMouseSnapshot,
+  MickeyMouseEngine,
+  MickeyMouseResultsSnapshot
+> & {
+  ring: MickeyMouseRing;
+  starterOpen: boolean;
+  playAgainStarter: 0 | 1 | null;
+  requestPlayAgain(): unknown;
+  playAgainStarterOptions(): StarterStepOptions;
+  visitMarkers(this: MickeyMousePlayContext): BoardMarker[];
+  state(this: MickeyMousePlayContext): MickeyMouseState | null;
+  subtitle(this: MickeyMousePlayContext): string;
+  objectiveRowsFor(
+    this: MickeyMousePlayContext,
+    ref: string | undefined,
+  ): MickeyMouseObjectiveRow[];
+  pointsFor(this: MickeyMousePlayContext, ref: string | undefined): string;
+  closedCountFor(this: MickeyMousePlayContext, ref: string | undefined): string;
+  dartsThrownFor(this: MickeyMousePlayContext, ref: string | undefined): string;
+  dartsThrown(this: MickeyMousePlayContext): string;
+  previewSegments(this: MickeyMousePlayContext): Bobs27PreviewSegment[];
+  init(this: MickeyMousePlayContext): Promise<void>;
+  retryReconciliation(this: MickeyMousePlayContext): Promise<void>;
+  setRing(this: MickeyMousePlayContext, ring: MickeyMouseRing): void;
+  recordTarget(this: MickeyMousePlayContext, number: number): Promise<void>;
+  tapTargets(this: MickeyMousePlayContext): MickeyMouseTapTarget[];
+  recordMiss(this: MickeyMousePlayContext): Promise<void>;
+  recordDart(
+    this: MickeyMousePlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
+  commitDart(
+    this: MickeyMousePlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
+  undoVisit(this: MickeyMousePlayContext): Promise<void>;
+  uploadAndCompleteSession(this: MickeyMousePlayContext): Promise<void>;
+  resultsTitle(this: MickeyMousePlayContext): string;
+  back(this: MickeyMousePlayContext): Promise<void>;
+  playAgain(this: MickeyMousePlayContext): Promise<void>;
+  abandonAndExit(this: MickeyMousePlayContext): Promise<void>;
 };
 
 export type BaseballSetupContext = PresetSetupContext;
