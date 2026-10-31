@@ -26,9 +26,10 @@ function applyDuelDart<TSeat extends MarksDuelSeat>(
   seat: TSeat,
   opponent: TSeat,
   hit: MarksHit,
+  dip: MarksHit,
   valueOf: (objectiveIndex: number) => number | null,
 ): TSeat {
-  const { fields, spare } = tallyMarksDart(seat, hit);
+  const { fields, spare } = tallyMarksDart(seat, hit, dip);
   const value =
     hit && opponent.marks[hit.objectiveIndex] < MARKS_TO_CLOSE
       ? valueOf(hit.objectiveIndex)
@@ -53,7 +54,11 @@ function soloDart<TSeat extends MarksDuelSeat>(
 ): TSeat {
   return {
     ...seat,
-    ...applyMarksDart(seat, rules.hitOf(seat, null, observation)),
+    ...applyMarksDart(
+      seat,
+      rules.hitOf(seat, null, observation),
+      rules.dipOf?.(seat, observation) ?? null,
+    ),
   };
 }
 
@@ -79,6 +84,7 @@ export function foldMarksDuel<TSeat extends MarksDuelSeat>(
         states[index],
         opponent,
         rules.hitOf(states[index], opponent, toObservation(dart)),
+        rules.dipOf?.(states[index], toObservation(dart)) ?? null,
         rules.valueOf,
       );
       states[index] = next;
@@ -152,6 +158,7 @@ export function marksWouldComplete<TSeat extends MarksDuelSeat>(
       seat,
       opponent,
       rules.hitOf(seat, opponent, observation),
+      rules.dipOf?.(seat, observation) ?? null,
       rules.valueOf,
     );
     return next.status === "COMPLETE" && next.points >= opponent.points;

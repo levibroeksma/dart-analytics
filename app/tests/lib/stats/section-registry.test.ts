@@ -371,6 +371,11 @@ describe("statistics section registry", () => {
     expect(tagsForGameType("CRICKET")).toEqual(new Set(["board"]));
   });
 
+  it("gives Mickey Mouse no result direction and only the board tag", () => {
+    expect(RESULT_DIRECTION.MICKEY_MOUSE).toBeNull();
+    expect(tagsForGameType("MICKEY_MOUSE")).toEqual(new Set(["board"]));
+  });
+
   it("gives Tactics no result direction and only the board tag", () => {
     expect(RESULT_DIRECTION.TACTICS).toBeNull();
     expect(tagsForGameType("TACTICS")).toEqual(new Set(["board"]));

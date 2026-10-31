@@ -83,7 +83,9 @@ FROM (
             ('KILLER_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
             ('KILLER_V1', 'ANALYTICS', 'VISUAL_BOARD'),
             ('FOLLOW_THE_LEADER_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
-            ('FOLLOW_THE_LEADER_V1', 'ANALYTICS', 'VISUAL_BOARD')
+            ('FOLLOW_THE_LEADER_V1', 'ANALYTICS', 'VISUAL_BOARD'),
+            ('MICKEY_MOUSE_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
+            ('MICKEY_MOUSE_V1', 'ANALYTICS', 'VISUAL_BOARD')
     ) AS declared(ruleset_key, capture_key, input_key)
     JOIN ruleset_versions rv ON rv.implementation_key = declared.ruleset_key
     JOIN capture_modes cm ON cm.implementation_key = declared.capture_key

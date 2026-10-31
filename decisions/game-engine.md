@@ -662,3 +662,10 @@ Decision: `tuodSpec` refuses a dart, a keypad total and `wouldComplete()` once `
 Reason: a solo ROUNDS session took attempts past its budget for any caller that skipped `isComplete()` (#1119); the 2026-09-02 solo exemption was needed only for MINUTES expiry. An open board turn's `totalScore` read 0 or the darts' sum depending on undo history (#1118).
 Consequences: no migration. TUOD's solo golden traces stop at the round budget. Score Training and 121 set `liveTotal` and are unchanged.
 Supersedes: none.
+
+### D515 — Mickey Mouse V1 is its own ruleset on the Marks kernel; the kernel gains `dipOf`
+Status: Accepted · Date: 2026-10-30
+Decision: `MICKEY_MOUSE_V1` is a one-seat Marks game with twelve objectives (20…12, Doubles, Triples, Bull) and no points. `MarksRules.dipOf?(seat, observation)` returns a second `MarksHit` a dart earns on another objective; `tallyMarksDart`/`applyMarksDart` take it as an optional `dip`, applied after the primary hit under the same cap, with `spare` and treble tallies from the primary hit only. A double or treble on a number already closed still marks Doubles or Triples; on 1–11 it marks only the category. Overflow marks are dropped. Mickey Mouse is not a Tactics variant.
+Reason: the double-dip needs two marks from one dart, which `MarksHit` could not express; the kernel rule M4 lands a feature with its first caller. The rules doc left the closed-number and Tactics-variant questions open; the plan's calls C1–C6 settle them.
+Consequences: Cricket and Tactics set no `dipOf` and their goldens do not change. Scored Mickey Mouse (V2+) revisits the duel path when a scoring dip is written. Plan: `docs/superpowers/plans/2026-10-30-mickey-mouse-v1.md`.
+Supersedes: none.

@@ -423,6 +423,9 @@ export const CricketConfig = z.object({}).strict();
 /** Tactics V1 locks every rule (objectives, marks, D/T rule, solo seat) — nothing to configure. */
 export const TacticsConfig = z.object({}).strict();
 
+/** Mickey Mouse V1 locks every rule (twelve objectives, marks, double-dip, solo seat) — nothing to configure. */
+export const MickeyMouseConfig = z.object({}).strict();
+
 /** Baseball Darts V1 locks every rule (nine innings, runs by ring, solo seat) — nothing to configure. */
 export const BaseballConfig = z.object({}).strict();
 
@@ -522,7 +525,8 @@ export type RulesetVersionKey =
   | "TACTICS_V2"
   | "BASEBALL_V1"
   | "KILLER_V1"
-  | "FOLLOW_THE_LEADER_V1";
+  | "FOLLOW_THE_LEADER_V1"
+  | "MICKEY_MOUSE_V1";
 
 /** A game page's route segment (`10-Statistics/00-Overview.md` §6): one key per game, spanning its ruleset versions. */
 export type GameTypeKey =
@@ -539,7 +543,8 @@ export type GameTypeKey =
   | "TACTICS"
   | "BASEBALL"
   | "KILLER"
-  | "FOLLOW_THE_LEADER";
+  | "FOLLOW_THE_LEADER"
+  | "MICKEY_MOUSE";
 
 /** A fact tag a ruleset version's engine produces (`10-Statistics/00-Overview.md` §3). */
 export type StatsTag =
@@ -578,6 +583,7 @@ export const RULESET_CONFIGS: Record<RulesetVersionKey, z.ZodTypeAny> = {
   BASEBALL_V1: BaseballConfig,
   KILLER_V1: KillerConfig,
   FOLLOW_THE_LEADER_V1: FollowTheLeaderConfig,
+  MICKEY_MOUSE_V1: MickeyMouseConfig,
 };
 
 export type ScoreTrainingConfigData = z.infer<typeof ScoreTrainingConfig>;
@@ -743,6 +749,9 @@ export type CricketSnapshot = Record<string, never>;
 /** Tactics V1 has nothing to configure — no fields to carry. */
 export type TacticsSnapshot = Record<string, never>;
 
+/** Mickey Mouse V1 has nothing to configure — no fields to carry. */
+export type MickeyMouseSnapshot = Record<string, never>;
+
 /** Baseball Darts V1 has nothing to configure — no fields to carry. */
 export type BaseballSnapshot = Record<string, never>;
 
@@ -800,7 +809,9 @@ export type ConfigSnapshotFor<K extends RulesetVersionKey> =
                                           ? KillerSnapshot
                                           : K extends "FOLLOW_THE_LEADER_V1"
                                             ? FollowTheLeaderSnapshot
-                                            : BaseballSnapshot;
+                                            : K extends "MICKEY_MOUSE_V1"
+                                              ? MickeyMouseSnapshot
+                                              : BaseballSnapshot;
 
 /**
  * One boundary probe: a complete, parseable config plus the label the contract
