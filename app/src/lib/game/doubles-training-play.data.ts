@@ -86,13 +86,14 @@ function resumeEngine(
 }
 
 /**
- * The real per-dart thrower: the shipped skill curve, seeded RNG, dictated
- * strategy and throw engine, combined the same way `bobs27-play.data.ts`
- * already does. The target path reads `config.targetOrder` rather than the
+ * The real per-dart thrower: reads the target off the bot's own seat state,
+ * then `botThrowObservation` runs the shipped pipeline (skill curve, seeded
+ * RNG, dictated strategy, throw engine). The target path reads `config.targetOrder` rather than the
  * default ascending doubles path, since Doubles Training's order mode is
- * itself configurable. `dartIndex` is re-derived from the fact log on every
- * call — never held on this closure — so an undone bot visit re-throws
- * identically from the same seed (`08-DartBot.md` §Determinism and Replay).
+ * itself configurable. `dartIndex` is
+ * re-derived from the fact log on every call — never held on this closure —
+ * so an undone bot visit re-throws identically from the same seed
+ * (`08-DartBot.md` §Determinism and Replay).
  */
 function throwBotDart(
   context: DoublesTrainingPlayContext,

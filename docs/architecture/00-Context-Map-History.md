@@ -17,6 +17,8 @@ updated: 2026-10-31
 
 # Version History
 
+> **Version:** 1.196.0 (2026-10-31 — Duplication backlog Phase 1a, shared play-screen parts: D516 in `decisions/frontend/architecture.md`; `play-screen.data.ts` and `target-practice-play.ts` registered in `00-File-Inventory.md`, `play-lifecycle.ts` gains `resumeVersionedEngine`, `play-bot-seat.ts` gains `botSeatState`, ten visual-board play factory rows reworded; `04-Architecture-patterns.md` Pattern 19 names the parts and spread order; `scripts/dupes-baseline.txt` lowered)
+
 > **Version:** 1.195.0 (2026-10-30 — Mickey Mouse V1 engine (PR 1, engine-only): D515 in `decisions/game-engine.md`; the Marks kernel gains `MarksRules.dipOf`; `mickey-mouse.engine.module.ts`, `mickey-mouse.validator.ts`, seed `0056` + verification `0056`, `0007` ledger (52 triples) registered in `00-File-Inventory.md`; `04-Architecture-patterns.md` 1.11.27.)
 
 > **Version:** 1.194.0 (2026-10-31 — Edit-time rules, slim rule files: D514 in `decisions/context-system.md` (edit-time hooks + one-time owner-approved strip of dated provenance tails and history prose from all 12 `CLAUDE.md` files; rules and invariants unchanged; root keeps the condensed migration carve-out and worktree rules); `docs/CLAUDE.md` step 1 and `context-maintenance` step 2 now grep the File Inventory instead of reading it whole; `.claude/hooks/edit-gate.py`, `scripts/test-edit-gate.sh` and `scripts/test-check-file-mode.sh` registered in `00-File-Inventory.md`; pack budgets unchanged, within tolerance.)

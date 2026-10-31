@@ -149,12 +149,12 @@ function resumeEngine(
 }
 
 /**
- * The real per-dart thrower: phases 1–3's shipped pipeline (skill curve,
- * seeded RNG, dictated strategy, throw engine), combined the same way
- * `bobs27-play.data.ts` already does. `dartIndex` is re-derived from the
- * fact log on every call — never held on this closure — so an undone bot
- * visit re-throws identically from the same seed (`08-DartBot.md`
- * §Determinism and Replay).
+ * The real per-dart thrower: reads the target off the bot's own seat state,
+ * then `botThrowObservation` runs the shipped pipeline (skill curve, seeded
+ * RNG, dictated strategy, throw engine). `dartIndex` is
+ * re-derived from the fact log on every call — never held on this closure —
+ * so an undone bot visit re-throws identically from the same seed
+ * (`08-DartBot.md` §Determinism and Replay).
  */
 function throwBotDart(
   context: ShanghaiPlayContext,

@@ -2,7 +2,7 @@
 status: canonical
 scope: architecture/patterns
 read-when: solving recurring design problems
-updated: 2026-10-30
+updated: 2026-10-31
 -->
 
 # Architecture Patterns
@@ -939,6 +939,17 @@ VisitPreview.astro
 - `VisitPreview.astro` stays markup-only, reading `previewSegments()` off
   the page's own Alpine scope — it never depends on which classifier the
   page used.
+
+- Visual-board play factories compose shared parts from
+  `app/src/lib/game/play-screen.data.ts` instead of re-declaring lifecycle
+  members. Spread order: `playScreenState`, `playAgainStarterData`,
+  `boardPlayActions`, `botVisualBoardData`, `playScreenActions`,
+  `timedPlayData`, then the factory's own members. Later keys override
+  earlier ones. An overridden `init` must call through to the part's `init`,
+  or use `boardPlayActions`'s `afterInit` callback. Parts are plain
+  objects — no getters (a spread would freeze them). The factory-surface
+  snapshot and the page-bindings test guard the Alpine template contract
+  (D516).
 
 ## Rule
 
