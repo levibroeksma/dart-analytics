@@ -1,6 +1,6 @@
 # Agent Rules — `app/src/stores/`
 
-Scope: Alpine stores. Load the "Frontend gameplay / session features" context pack from `docs/architecture/00-Context-Map.md` before changing anything here. Global app rules and the validation procedure live in `app/CLAUDE.md`. (2026-09-18)
+Scope: Alpine stores. Load the "Frontend gameplay / session features" context pack from `docs/architecture/00-Context-Map.md` before changing anything here. Global app rules and the validation procedure live in `app/CLAUDE.md`.
 
 ## Rules
 

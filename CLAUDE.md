@@ -1,6 +1,6 @@
 # Agent Operating Manual — Dart Analytics
 
-> Router file — auto-loaded every session. Every rule lives in exactly one place; this file tells you where. (2026-07-15)
+> Router file — auto-loaded every session. Every rule lives in exactly one place; this file tells you where.
 
 ---
 
@@ -33,7 +33,7 @@ Personal darts scoring app with long-term progression tracking. Architecture-fir
 
 # Superpowers Skills
 
-Process skills come from the official `superpowers` plugin (`superpowers@claude-plugins-official`, declared in `.claude/settings.json`) and are invoked under their `superpowers:` prefix. In cloud sessions the `SessionStart` hook (`.claude/hooks/session-start.sh`) installs the plugin when absent (2026-10-10, D441). They are not vendored into `.claude/skills/` — that directory holds only this repo's own skills. Never copy a plugin skill into the repo to edit it; carry the deviation in the paired file below instead, which is always a *delta* — never a copy of upstream text that can drift. (2026-09-18, D311)
+Process skills come from the official `superpowers` plugin (`superpowers@claude-plugins-official`, declared in `.claude/settings.json`) and are invoked under their `superpowers:` prefix. In cloud sessions the `SessionStart` hook (`.claude/hooks/session-start.sh`) installs the plugin when absent. They are not vendored into `.claude/skills/` — that directory holds only this repo's own skills. Never copy a plugin skill into the repo to edit it; carry the deviation in the paired file below instead, which is always a *delta* — never a copy of upstream text that can drift.
 
 Where a plugin skill and this repo disagree, load both — the plugin skill for the procedure, the pairing for what this repo does differently:
 
@@ -45,7 +45,7 @@ Where a plugin skill and this repo disagree, load both — the plugin skill for 
 | `superpowers:executing-plans`, `superpowers:subagent-driven-development` | `capturing-discovered-work` skill | incidental findings become GitHub issues; they are never fixed in the same pass |
 | `superpowers:brainstorming` | `authoring-game-rules` skill | for a game, exercise, routine or trivia tool, the rules document is authored first and is brainstorming's *input* — this skill owns the V1 cut test and the defer list, brainstorming still owns the spec (D322) |
 
-`superpowers:brainstorming` and `superpowers:using-git-worktrees` run as written, unmodified — see the commit and worktree invariants below, which were aligned to them rather than the reverse. (2026-09-18, D312)
+`superpowers:brainstorming` and `superpowers:using-git-worktrees` run as written, unmodified — the commit and worktree invariants below are aligned to them.
 
 ---
 
@@ -63,10 +63,10 @@ The authority order for conflicts is defined once, in the context map. Docs win 
 
 A committed codebase knowledge graph lives at `graphify-out/graph.json` (AST-only; built with the `graphifyy` CLI — PyPI package `graphifyy`, repo `Graphify-Labs/graphify`).
 
-- **Consult the committed file before broad grep/exploration.** `graphify-out/graph.json` is in the repo and queryable with the tools every session already has — grep it for an entity, or use the `graph-lookup` skill's recipe. Never read it whole: 7.7 MB is roughly 1.9M tokens, and `.claude/settings.json` denies the read (D314). Use it to orient across app code + SQL schema + docs, then read the specific files it points to.
-- **The CLI is optional.** Where `graphify` is installed, `graphify query "<question>"`, `graphify path "<A>" "<B>"` and `graphify explain "<entity>"` are the nicer interface to the same file. It is not present in the session container, so nothing in this manual depends on it — see `.claude/skills/graph-lookup/references/building.md` for a local install.
+- **Consult the committed file before broad grep/exploration.** Grep it for an entity, or use the `graph-lookup` skill's recipe. Never read it whole (~1.9M tokens; `.claude/settings.json` denies the read). Use it to orient across app code + SQL schema + docs, then read the specific files it points to.
+- **The CLI is optional**: where installed, `graphify query "<question>"`, `graphify path "<A>" "<B>"` and `graphify explain "<entity>"` read the same file. It is not in the session container; nothing here depends on it. Local install: `.claude/skills/graph-lookup/references/building.md`.
 - **The graph is a map, not authority.** On any conflict, the authority order in `00-Context-Map.md` wins; verify a graph answer against the cited file before acting.
-- **Freshness is CI-owned; landing it is one human merge**: `.github/workflows/graph.yml` rebuilds the graph on every merge to `main`, pushes it to `chore/graph-refresh` and opens a PR. The bot's commit is unsigned and `main`'s ruleset requires verified signatures, so only a bypass actor can merge it — no amount of approval lets it land itself (D289). If the PR cannot be opened at all, the workflow files a `graph: refresh PR could not be opened` issue rather than passing silently (D287). Either way it is not a local completion-report item.
+- **Freshness is CI-owned**: `.github/workflows/graph.yml` rebuilds the graph on every merge to `main`, pushes it to `chore/graph-refresh` and opens a PR, which only a bypass actor can merge (its commit is unsigned; `main` requires verified signatures). If the PR cannot be opened, the workflow files a `graph: refresh PR could not be opened` issue. Not a local completion-report item.
 - **Scope caveat:** `.astro` files are only partially parsed (no tree-sitter grammar); TS/JS/SQL/Markdown are fully covered.
 
 ---
@@ -75,20 +75,20 @@ A committed codebase knowledge graph lives at `graphify-out/graph.json` (AST-onl
 
 - Completed gameplay is immutable; corrections create new records.
 - Store facts; statistics live in views (`v_*`) only — never persisted.
-- An engine-only task must still prove its state shape can be persisted: name the capture/input mode, the stage type, and the `turns`/`darts` mapping in the spec before implementation. Deferring persistence is allowed; choosing a state shape that cannot express it is not. (2026-07-26)
+- An engine-only task must still prove its state shape can be persisted: name the capture/input mode, the stage type, and the `turns`/`darts` mapping in the spec before implementation. Deferring persistence is allowed; choosing a state shape that cannot express it is not.
 - IDs: UUIDv7 for domain entities (app/Worker generated), SMALLINT for seeded lookups. The database never generates ids.
 - Runtime tables never FK-reference templates; configuration is copied as a snapshot.
-- Never modify applied migrations (`0001`–`0046`); new schema change = new numbered migration + spec update. The one carve-out (D344): a migration may be corrected in place while it is still unmerged **and** both `npm run db:status` and `npm run db:status:prod` report it pending — proof, not judgement. A session with no `DATABASE_URL` cannot run that proof and so cannot use the carve-out; inferring "unapplied" from that silence is what the rule forbids. `0040` and `0041` were applied on 2026-09-20; `0043` merged to `main` 2026-09-26 with a green `deploy` workflow run (`rehearse`/`migrate`/`deploy`) as the proof it applied to production; `0044` merged to `main` 2026-09-27 (PR #632) with a green `deploy` workflow run (run 36351454413, `rehearse`/`migrate`/`deploy`) as the same proof; `0045` merged to `main` 2026-09-28 (PR #641, commit a07b472f) with a green `deploy` workflow run (run 36467604857, `rehearse`/`migrate`/`deploy`) as the same proof; `0046` merged to `main` 2026-10-08 (PR #831, commit 205b6452) with a green `deploy` workflow run (run 37795623810, `rehearse`/`migrate`/`deploy`) as the same proof, so the whole chain through `0046` is now closed to in-place edits. (2026-09-19; rewritten 2026-09-20, D344; extended to 0043, 2026-09-26, D367; extended to 0044, 2026-09-28, D371; extended to 0045, 2026-09-29, D372; extended to 0046, 2026-10-10, D377)
+- Never modify applied migrations; new schema change = new numbered migration + spec update. Applied migrations `0001`–`0046` are closed to edits. Sole carve-out (D344): a migration may be corrected in place while it is still unmerged **and** both `npm run db:status` and `npm run db:status:prod` report it pending — proof, not judgement. No `DATABASE_URL` means no proof and no carve-out; never infer "unapplied" from that silence.
 - Reads via views, writes to runtime tables in transactions; gameplay is uploaded in batches.
 - Every task uses a dedicated branch; never merge to `main` directly; do not commit unless the user asks. A completed task's branch is integrated into `main` via PR promptly — long-lived divergence from `main` is a defect.
-- One exception to "do not commit unless the user asks": the design doc `superpowers:brainstorming` produces. That skill runs unmodified — it writes the spec to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commits it, without asking. That tree is non-canonical source material (see the context map), so no File Inventory row is owed per spec. Nothing else commits itself. (2026-09-18, D312)
-- At most one open task branch may target another task branch. A third stacked branch means the first must land, or the work merges into one branch. Mechanically enforced on every PR by the `branch-stack-cap` job in `.github/workflows/pr-gates.yml`. (2026-07-26; gate added 2026-07-28)
-- Task branches may be worked in a git worktree under `.worktrees/` or checked out directly in the main working copy; both are allowed. A worktree is cleaned up once its branch lands — a worktree left behind after its PR merges is a defect. The path is `.worktrees/` because that is one of the two prefixes `superpowers:finishing-a-development-branch` claims ownership of at cleanup; anything else it leaves in place, so the old `.claude/worktrees/` silently defeated the rule. `scripts/check-worktree-location.sh` enforces the path and warns when a merged branch still holds one. (2026-09-17, D293; path moved 2026-09-18, D312, supersedes D102; gate added 2026-09-18, D319)
-- Start a task worktree by launching the session in one: `claude --worktree <name>`. The `WorktreeCreate` hook declared in `.claude/settings.json` (`.claude/hooks/worktree-create.sh`) places it at `.worktrees/<name>` branched from `origin/main`, so the mandated path is what the tool does by default rather than something to correct afterwards. A name shaped like `chore/foo` becomes that branch verbatim; a bare name becomes `worktree-<name>`; reusing a name reopens the existing worktree. Creating one by hand with `git worktree add .worktrees/<name> -b <branch> origin/main` stays valid. (2026-09-19, D324)
-- Entering a worktree mid-session costs an approval prompt every single time, and no permission rule or "don't ask again" suppresses it — Claude Code always asks before entering a path outside `.claude/worktrees/`, which is the path this repo forbids. So launching into the worktree is the default and `EnterWorktree`'s `path` argument is the fallback for a worktree that already exists. Do **not** use `EnterWorktree`'s `name` argument. (2026-09-18, D319; 2026-09-19, D324) The `Read(./.worktrees/**/*)` deny in `.claude/settings.json` resolves against the session's current directory, so it blocks worktree files only while the session still sits in the main copy — and it covers Bash `cat`/`head`/`sed` too. Entering with `path` is what lifts it; `cd`-ing into a worktree, or reading one from the main copy, hits the deny by design. (2026-09-18, D320)
+- One exception to "do not commit unless the user asks": `superpowers:brainstorming` writes its design doc to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commits it, without asking. That tree is non-canonical (see the context map), so no File Inventory row is owed per spec. Nothing else commits itself.
+- At most one open task branch may target another task branch. A third stacked branch means the first must land, or the work merges into one branch. Enforced by the `branch-stack-cap` job in `.github/workflows/pr-gates.yml`.
+- Task branches may be worked in a git worktree under `.worktrees/` or checked out directly in the main working copy. Worktrees live only under `.worktrees/` (the prefix `superpowers:finishing-a-development-branch` cleans up) and are removed once their branch lands — one left behind after its PR merges is a defect. `scripts/check-worktree-location.sh` enforces the path and warns on merged branches still holding one.
+- Start a task worktree by launching into it: `claude --worktree <name>`. The `WorktreeCreate` hook (`.claude/hooks/worktree-create.sh`, declared in `.claude/settings.json`) places it at `.worktrees/<name>` branched from `origin/main`. A name shaped like `chore/foo` becomes that branch verbatim; a bare name becomes `worktree-<name>`; reusing a name reopens the existing worktree. `git worktree add .worktrees/<name> -b <branch> origin/main` by hand is also valid.
+- Mid-session, enter an existing worktree with `EnterWorktree`'s `path` argument (it prompts every time); never use its `name` argument. The `Read(./.worktrees/**/*)` deny in `.claude/settings.json` blocks worktree files — Bash `cat`/`head`/`sed` included — while the session sits in the main copy; entering with `path` lifts it, `cd`-ing in does not.
 - Minimal diffs; validate and fix docs with targeted edits — never regenerate them.
-- When a test's subject is removed or migrated, the test must be deleted or re-pointed at the same guarantee — never re-pointed at a different input so it keeps passing. A green suite after a constraint is removed is a failure to detect, not evidence of safety. (2026-07-26)
-- Discovered work is not a work item. Anything you notice that the task did not ask you to change — a bug, a stale doc, a contradicting rule, a dead file — is captured as a GitHub issue (`discovered-work` label) per the `capturing-discovered-work` skill, and named in the completion report; it is never fixed in the same pass. Acting on one requires explicit user permission, always. This governs *incidental* discovery only: work a task step names, including adjacent edits that work genuinely requires, proceeds as normal. (2026-08-19; GitHub-issue mechanism 2026-09-13, D273, supersedes D214)
+- When a test's subject is removed or migrated, the test must be deleted or re-pointed at the same guarantee — never re-pointed at a different input so it keeps passing. A green suite after a constraint is removed is a failure to detect, not evidence of safety.
+- Discovered work is not a work item. Anything you notice that the task did not ask you to change — a bug, a stale doc, a contradicting rule, a dead file — is captured as a GitHub issue (`discovered-work` label) per the `capturing-discovered-work` skill, and named in the completion report; it is never fixed in the same pass. Acting on one requires explicit user permission, always. This governs *incidental* discovery only: work a task step names, including adjacent edits that work genuinely requires, proceeds as normal.
 
 ---
 
@@ -96,9 +96,9 @@ A committed codebase knowledge graph lives at `graphify-out/graph.json` (AST-onl
 
 The context system is part of every deliverable. Before claiming any task done, run the `context-maintenance` skill.
 
-A change that leaves the context map, CLAUDE.md files, decision ledger, or knowledge graph stale is incomplete, even if the code works. (procedure moved to `.claude/skills/context-maintenance/SKILL.md`, 2026-07-28)
+A change that leaves the context map, CLAUDE.md files, decision ledger, or knowledge graph stale is incomplete, even if the code works.
 
-Decisions are append-only and domain-scoped: never edit or delete an existing block in `decisions/**`; a reversal is a new decision citing `Supersedes:` in the domain file it belongs to, per `DECISIONS.md`'s routing table. (2026-08-02)
+Decisions are append-only and domain-scoped: never edit or delete an existing block in `decisions/**`; a reversal is a new decision citing `Supersedes:` in the domain file it belongs to, per `DECISIONS.md`'s routing table.
 
 ---
 
