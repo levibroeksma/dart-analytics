@@ -394,3 +394,16 @@ describe("killer resume", () => {
     expect(foreign.engine).toBeNull();
   });
 });
+
+describe("killer per-seat accessors for an unknown seat", () => {
+  it.each([
+    ["livesLabelFor", ""],
+    ["numberLabelFor", ""],
+    ["statusLabelFor", ""],
+  ] as const)("%s is its blank value", async (name, blank) => {
+    const play = makeContext();
+    await play.init.call(play);
+    expect(play.state()).not.toBeNull();
+    expect(play[name]("nobody")).toBe(blank);
+  });
+});

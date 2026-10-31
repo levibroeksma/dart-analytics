@@ -32,6 +32,7 @@ import {
   playScreenActions,
   playScreenState,
   resetTimerForPlayAgain,
+  seatStateFor,
   timedPlayData,
 } from "@lib/game/play-screen.data";
 import type { DartbotSeat, PlayStoreContext, SeatFact } from "@lib/types";
@@ -412,5 +413,22 @@ describe("forActiveSeat", () => {
     const read = vi.fn((seatRef: string) => seatRef);
     expect(forActiveSeat({ state: () => null }, read, "0")).toBe("0");
     expect(read).not.toHaveBeenCalled();
+  });
+});
+
+describe("seatStateFor", () => {
+  const seats = [
+    { participantRef: "seat-a", score: 1 },
+    { participantRef: "seat-b", score: 2 },
+  ];
+
+  it("finds the seat by ref", () => {
+    expect(seatStateFor({ seats }, "seat-b")).toBe(seats[1]);
+  });
+
+  it("is undefined for an unknown ref or a missing state", () => {
+    expect(seatStateFor({ seats }, "nobody")).toBeUndefined();
+    expect(seatStateFor(null, "seat-a")).toBeUndefined();
+    expect(seatStateFor(undefined, "seat-a")).toBeUndefined();
   });
 });

@@ -3,6 +3,7 @@ import {
   boardPlayActions,
   playScreenActions,
   forActiveSeat,
+  seatStateFor,
 } from "@lib/game/play-screen.data";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { matchWinnerName } from "@lib/game/match-result-text";
@@ -72,16 +73,6 @@ function resumeEngine(
   );
 }
 
-/** A seat in the folded state by ref. */
-function seatOf(
-  context: BaseballPlayContext,
-  seatRef: string,
-): BaseballSeatState | undefined {
-  return context
-    .state()
-    ?.seats.find((candidate) => candidate.participantRef === seatRef);
-}
-
 export function baseballPlay() {
   return {
     ...playScreenState<BaseballEngine, BaseballResultsSnapshot>(),
@@ -101,12 +92,13 @@ export function baseballPlay() {
     /** Play-header subtitle: `INNING 3 OF 9`; blank before config loads. */
     subtitle(this: BaseballPlayContext): string {
       const state = this.state();
-      const seat = state && seatOf(this, state.activeParticipantRef);
+      const seat =
+        state && seatStateFor(this.state(), state.activeParticipantRef);
       return seat ? `INNING ${inningOf(seat)} OF ${BASEBALL_INNINGS}` : "";
     },
 
     currentTargetLabelFor(this: BaseballPlayContext, seatRef: string): string {
-      const seat = seatOf(this, seatRef);
+      const seat = seatStateFor(this.state(), seatRef);
       return seat ? String(inningOf(seat)) : "";
     },
 
@@ -115,7 +107,7 @@ export function baseballPlay() {
     },
 
     inningLabelFor(this: BaseballPlayContext, seatRef: string): string {
-      const seat = seatOf(this, seatRef);
+      const seat = seatStateFor(this.state(), seatRef);
       return seat ? `${inningOf(seat)}/${BASEBALL_INNINGS}` : "";
     },
 
@@ -124,7 +116,7 @@ export function baseballPlay() {
     },
 
     currentScoreFor(this: BaseballPlayContext, seatRef: string): string {
-      const seat = seatOf(this, seatRef);
+      const seat = seatStateFor(this.state(), seatRef);
       return seat ? String(seat.runs) : "";
     },
 

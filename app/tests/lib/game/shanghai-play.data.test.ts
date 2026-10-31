@@ -1640,3 +1640,16 @@ describe("shanghai resume", () => {
     expect(foreign.engine).toBeNull();
   });
 });
+
+describe("shanghai per-seat accessors for an unknown seat", () => {
+  it.each([
+    ["currentTargetLabelFor", ""],
+    ["roundLabelFor", ""],
+    ["currentScoreFor", ""],
+  ] as const)("%s is its blank value", async (name, blank) => {
+    const play = makePlay();
+    await play.init.call(play);
+    expect(play.state()).not.toBeNull();
+    expect(play[name]("nobody")).toBe(blank);
+  });
+});

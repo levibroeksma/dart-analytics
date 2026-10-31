@@ -4,6 +4,7 @@ import {
   botVisualBoardData,
   playScreenActions,
   forActiveSeat,
+  seatStateFor,
 } from "@lib/game/play-screen.data";
 import { botSeatState, botThrowObservation } from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
@@ -137,9 +138,7 @@ export function doublesTrainingPlay() {
       seatRef: string,
     ): string {
       const config = this.$store.game.configSnapshot;
-      const seat = this.state()?.seats.find(
-        (candidate) => candidate.participantRef === seatRef,
-      );
+      const seat = seatStateFor(this.state(), seatRef);
       if (!config || !seat) return "";
       return doublesPathTargetLabel(
         targetAt(doublesPath(config.targetOrder), seat.targetIndex),
@@ -151,9 +150,7 @@ export function doublesTrainingPlay() {
     },
 
     hitCountFor(this: DoublesTrainingPlayContext, seatRef: string): string {
-      const seat = this.state()?.seats.find(
-        (candidate) => candidate.participantRef === seatRef,
-      );
+      const seat = seatStateFor(this.state(), seatRef);
       return String(
         seat?.outcomes.filter((outcome) => outcome.hit).length ?? 0,
       );
@@ -164,9 +161,7 @@ export function doublesTrainingPlay() {
     },
 
     missCountFor(this: DoublesTrainingPlayContext, seatRef: string): string {
-      const seat = this.state()?.seats.find(
-        (candidate) => candidate.participantRef === seatRef,
-      );
+      const seat = seatStateFor(this.state(), seatRef);
       return String(
         seat?.outcomes.filter((outcome) => !outcome.hit).length ?? 0,
       );

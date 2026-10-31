@@ -1280,3 +1280,15 @@ describe("bobs27 resume", () => {
     expect(foreign.engine).toBeNull();
   });
 });
+
+describe("bobs27 per-seat accessors for an unknown seat", () => {
+  it.each([
+    ["currentTargetLabelFor", ""],
+    ["currentScoreFor", ""],
+  ] as const)("%s is its blank value", async (name, blank) => {
+    const play = makePlay();
+    await play.init.call(play);
+    expect(play.state()).not.toBeNull();
+    expect(play[name]("nobody")).toBe(blank);
+  });
+});

@@ -4,6 +4,7 @@ import {
   botVisualBoardData,
   playScreenActions,
   forActiveSeat,
+  seatStateFor,
 } from "@lib/game/play-screen.data";
 import { botSeatState, botThrowObservation } from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
@@ -362,9 +363,7 @@ export function singlesTrainingPlay() {
       seatRef: string,
     ): string {
       const config = this.$store.game.configSnapshot;
-      const seat = this.state()?.seats.find(
-        (candidate) => candidate.participantRef === seatRef,
-      );
+      const seat = seatStateFor(this.state(), seatRef);
       if (!config || !seat) return "";
       return boardTargetLabel(
         targetAt(numbersPath(config.targetOrder), seat.targetIndex),
@@ -379,9 +378,7 @@ export function singlesTrainingPlay() {
       this: SinglesTrainingPlayContext,
       seatRef: string,
     ): string {
-      const seat = this.state()?.seats.find(
-        (candidate) => candidate.participantRef === seatRef,
-      );
+      const seat = seatStateFor(this.state(), seatRef);
       return seat ? String(seat.totalPoints) : "";
     },
 

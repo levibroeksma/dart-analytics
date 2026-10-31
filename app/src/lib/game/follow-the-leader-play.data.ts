@@ -22,6 +22,7 @@ import {
   playScreenActions,
   playScreenState,
   forActiveSeat,
+  seatStateFor,
 } from "@lib/game/play-screen.data";
 import { joinSubtitle } from "@lib/game/play-subtitle";
 import { bedOf, sameBed } from "@modules/game/follow-the-leader-policy";
@@ -34,7 +35,6 @@ import type {
   BedFact,
   DartObservation,
   FollowTheLeaderAction,
-  FollowTheLeaderSeatState,
   FollowTheLeaderState,
 } from "@modules/types";
 import type {
@@ -58,15 +58,6 @@ function bedLabel(bed: BedFact | null): string {
   if (bed.ring === "OUTER_BULL") return "Outer bull";
   if (bed.ring === "INNER_BULL") return "Inner bull";
   return `${RING_WORDS[bed.ring]} ${bed.number}`;
-}
-
-function seatOf(
-  context: FollowTheLeaderPlayContext,
-  seatRef: string,
-): FollowTheLeaderSeatState | undefined {
-  return context
-    .state()
-    ?.seats.find((candidate) => candidate.participantRef === seatRef);
 }
 
 function resumeEngine(
@@ -162,7 +153,7 @@ export function followTheLeaderPlay() {
     },
 
     livesLabelFor(this: FollowTheLeaderPlayContext, seatRef: string): string {
-      const seat = seatOf(this, seatRef);
+      const seat = seatStateFor(this.state(), seatRef);
       return seat ? String(seat.lives) : "";
     },
 
@@ -172,7 +163,7 @@ export function followTheLeaderPlay() {
 
     /** `OUT` once eliminated, `LEADER` for the seat that set the target, else `—`. */
     statusLabelFor(this: FollowTheLeaderPlayContext, seatRef: string): string {
-      const seat = seatOf(this, seatRef);
+      const seat = seatStateFor(this.state(), seatRef);
       if (!seat) return "";
       if (seat.out) return "OUT";
       return this.state()?.leaderRef === seatRef ? "LEADER" : "—";

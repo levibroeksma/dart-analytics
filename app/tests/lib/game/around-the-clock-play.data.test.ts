@@ -1564,3 +1564,15 @@ describe("around-the-clock resume", () => {
     expect(foreign.engine).toBeNull();
   });
 });
+
+describe("around-the-clock per-seat accessors for an unknown seat", () => {
+  it.each([
+    ["currentTargetLabelFor", ""],
+    ["hitsToGoFor", ""],
+  ] as const)("%s is its blank value", async (name, blank) => {
+    const play = makePlay();
+    await play.init.call(play);
+    expect(play.state()).not.toBeNull();
+    expect(play[name]("nobody")).toBe(blank);
+  });
+});

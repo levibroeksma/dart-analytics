@@ -236,6 +236,14 @@ export function forActiveSeat<T>(
   return state ? read(state.activeParticipantRef) : fallback;
 }
 
+/** The seat with `seatRef` in a folded state; undefined for a null state or an unknown ref. */
+export function seatStateFor<TSeat extends { participantRef: string }>(
+  state: { seats: readonly TSeat[] } | null | undefined,
+  seatRef: string,
+): TSeat | undefined {
+  return state?.seats.find((seat) => seat.participantRef === seatRef);
+}
+
 /** Stops and drops the countdown and clears the store's timer fields before a replay. */
 export function resetTimerForPlayAgain(context: TimerStoreContext): void {
   context.timer?.stop();

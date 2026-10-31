@@ -27,6 +27,7 @@ import {
   resetTimerForPlayAgain,
   timedPlayData,
   forActiveSeat,
+  seatStateFor,
 } from "@lib/game/play-screen.data";
 import { accuracyDisplay } from "@lib/game/play-visit-stats";
 import { chooseTarget } from "@modules/dartbot/strategy/dictated.strategy.module";
@@ -291,9 +292,7 @@ export function aroundTheClockPlay() {
       this: AroundTheClockPlayContext,
       seatRef: string,
     ): string {
-      const seat = this.state()?.seats.find(
-        (candidate) => candidate.participantRef === seatRef,
-      );
+      const seat = seatStateFor(this.state(), seatRef);
       if (!seat) return "";
       return labelOf(
         rulesOf(this.$store.game.configSnapshot!),
@@ -377,9 +376,7 @@ export function aroundTheClockPlay() {
     /** Hits the seat still needs in its open visit (`2 to hit`); blank on Easy, where any hit advances. */
     hitsToGoFor(this: AroundTheClockPlayContext, seatRef: string): string {
       const config = this.$store.game.configSnapshot;
-      const seat = this.state()?.seats.find(
-        (candidate) => candidate.participantRef === seatRef,
-      );
+      const seat = seatStateFor(this.state(), seatRef);
       if (!config || !seat) return "";
       const { hitsRequired } = rulesOf(config);
       if (hitsRequired === 0) return "";

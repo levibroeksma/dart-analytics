@@ -4,6 +4,7 @@ import {
   botVisualBoardData,
   playScreenActions,
   forActiveSeat,
+  seatStateFor,
 } from "@lib/game/play-screen.data";
 import { botSeatState, botThrowObservation } from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
@@ -200,9 +201,7 @@ export function shanghaiPlay() {
     },
 
     currentTargetLabelFor(this: ShanghaiPlayContext, seatRef: string): string {
-      const seat = this.state()?.seats.find(
-        (candidate) => candidate.participantRef === seatRef,
-      );
+      const seat = seatStateFor(this.state(), seatRef);
       return seat ? String(activeNumberOf(seat)) : "";
     },
 
@@ -211,9 +210,7 @@ export function shanghaiPlay() {
     },
 
     roundLabelFor(this: ShanghaiPlayContext, seatRef: string): string {
-      const seat = this.state()?.seats.find(
-        (candidate) => candidate.participantRef === seatRef,
-      );
+      const seat = seatStateFor(this.state(), seatRef);
       return seat ? `${roundOf(seat)}/${roundCountOf(seat)}` : "";
     },
 
@@ -222,9 +219,7 @@ export function shanghaiPlay() {
     },
 
     currentScoreFor(this: ShanghaiPlayContext, seatRef: string): string {
-      const seat = this.state()?.seats.find(
-        (candidate) => candidate.participantRef === seatRef,
-      );
+      const seat = seatStateFor(this.state(), seatRef);
       return seat ? String(seat.totalScore) : "";
     },
 

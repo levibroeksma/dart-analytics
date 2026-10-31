@@ -638,3 +638,15 @@ describe("follow-the-leader active-seat accessors", () => {
     expect(read).toHaveBeenCalledWith("seat-active");
   });
 });
+
+describe("follow-the-leader per-seat accessors for an unknown seat", () => {
+  it.each([
+    ["livesLabelFor", ""],
+    ["statusLabelFor", ""],
+  ] as const)("%s is its blank value", async (name, blank) => {
+    const play = makeContext();
+    await play.init.call(play);
+    expect(play.state()).not.toBeNull();
+    expect(play[name]("nobody")).toBe(blank);
+  });
+});

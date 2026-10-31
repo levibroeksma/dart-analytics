@@ -3,6 +3,7 @@ import {
   boardPlayActions,
   playScreenActions,
   forActiveSeat,
+  seatStateFor,
 } from "@lib/game/play-screen.data";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { matchWinnerName } from "@lib/game/match-result-text";
@@ -25,7 +26,7 @@ import {
 } from "@lib/game/play-lifecycle";
 import { joinSubtitle } from "@lib/game/play-subtitle";
 import type { KillerSnapshot, RulesetVersionKey } from "@lib/types";
-import type { KillerSeatState, KillerState } from "@modules/types";
+import type { KillerState } from "@modules/types";
 import type {
   GamePreviewSegment,
   KillerPlayContext,
@@ -49,16 +50,6 @@ function resumeEngine(
     RULESET_VERSION_KEY,
     (engine): engine is KillerEngine => engine instanceof KillerEngine,
   );
-}
-
-/** A seat in the folded state by ref. */
-function seatOf(
-  context: KillerPlayContext,
-  seatRef: string,
-): KillerSeatState | undefined {
-  return context
-    .state()
-    ?.seats.find((candidate) => candidate.participantRef === seatRef);
 }
 
 export function killerPlay() {
@@ -92,7 +83,7 @@ export function killerPlay() {
     },
 
     livesLabelFor(this: KillerPlayContext, seatRef: string): string {
-      const seat = seatOf(this, seatRef);
+      const seat = seatStateFor(this.state(), seatRef);
       return seat ? String(seat.lives) : "";
     },
 
@@ -101,7 +92,7 @@ export function killerPlay() {
     },
 
     numberLabelFor(this: KillerPlayContext, seatRef: string): string {
-      const seat = seatOf(this, seatRef);
+      const seat = seatStateFor(this.state(), seatRef);
       return seat ? String(seat.number) : "";
     },
 
@@ -111,7 +102,7 @@ export function killerPlay() {
 
     /** `OUT` once eliminated, `KILLER` while armed, else `—`. */
     statusLabelFor(this: KillerPlayContext, seatRef: string): string {
-      const seat = seatOf(this, seatRef);
+      const seat = seatStateFor(this.state(), seatRef);
       if (!seat) return "";
       if (seat.out) return "OUT";
       return seat.killer ? "KILLER" : "—";

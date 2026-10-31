@@ -1779,3 +1779,15 @@ describe("singles-training resume", () => {
     expect(foreign.engine).toBeNull();
   });
 });
+
+describe("singles-training per-seat accessors for an unknown seat", () => {
+  it.each([
+    ["currentTargetLabelFor", ""],
+    ["currentPointsFor", ""],
+  ] as const)("%s is its blank value", async (name, blank) => {
+    const play = makePlay();
+    await play.init.call(play);
+    expect(play.state()).not.toBeNull();
+    expect(play[name]("nobody")).toBe(blank);
+  });
+});
