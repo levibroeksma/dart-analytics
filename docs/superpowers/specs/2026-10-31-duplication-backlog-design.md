@@ -1,6 +1,6 @@
 # Duplication Backlog — Design
 
-Date: 2026-10-31. Status: draft, awaiting owner approval.
+Date: 2026-10-31. Status: owner answers folded in 2026-10-31; awaiting approval.
 
 ## Intent
 
@@ -74,7 +74,7 @@ Extract local helpers within each file, or a shared helper where the clone cross
 
 - TDD per `app/CLAUDE.md`: Phase 0 tests go first; each extracted helper gets its own test.
 - `validate:app`, `run-all-gates`, `check-dupes.sh` green per PR; baseline only goes down.
-- One PR per phase (or per family within Phase 1); sequential, rebased on `main` after each merge (branch-stack cap: at most one stacked branch).
+- One PR per phase (or per family within Phase 1); sequential. Owner reviews and merges each PR (merging is blocked for Claude); work stops at each PR until it lands, then the next branch starts from `main`. At most one open PR beyond the one under review (branch-stack cap).
 - *(Claude's call)* A clone kept on purpose: its issue is closed as "not planned" with the reason; the row stays in the baseline and is listed in the final PR.
 - Context maintenance per PR: `app/src/lib/game` docs/CLAUDE.md and `07-Frontend` pattern docs describe the play-screen base once; decision recorded for the base pattern; File Inventory rows for new files; component inventory for new components.
 - Incidental findings → `discovered-work` issues, not fixed in pass.
