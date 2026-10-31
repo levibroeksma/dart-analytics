@@ -215,7 +215,8 @@ describe("boardPlayActions", () => {
       order.push("playInit");
     });
     const ctx = Object.assign(
-      boardScreen([PLAYER], () => {
+      boardScreen([PLAYER], async () => {
+        await Promise.resolve();
         order.push("afterInit");
       }),
       {
@@ -250,6 +251,13 @@ describe("boardPlayActions", () => {
     await ctx.commitDart(MISS);
     expect(playCommitDart).toHaveBeenCalledWith(ctx, MISS);
     expect(ctx.maybeRunBotVisit).toHaveBeenCalledOnce();
+  });
+
+  it("commitDart without a bot visit commits and stops", async () => {
+    const ctx = boardScreen();
+    await ctx.commitDart(MISS);
+    expect(playCommitDart).toHaveBeenCalledWith(ctx, MISS);
+    expect(playCommitDart).toHaveBeenCalledOnce();
   });
 
   it("undoVisit without a bot visit calls plain undo", async () => {
