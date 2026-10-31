@@ -104,6 +104,15 @@ git -C "$N" init -q
 ln -s "$ROOT/scripts" "$N/scripts"
 OUT="$(payload Write "$N/$A" 'content=<div x-bind:class="y"></div>' | env -u EDIT_GATE_ROOT CLAUDE_PROJECT_DIR="$T" python3 "$HOOK" 2>/dev/null)"; CODE=$?
 expect_deny "worktree file uses nested git root"
+
+# The exact command .claude/settings.json runs: deny survives `|| true`;
+# a missing hook file fails open.
+CMD="$(jq -r '.hooks.PreToolUse[].hooks[].command | select(test("edit-gate"))' "$ROOT/.claude/settings.json")"
+P="$(payload Write "$N/$A" 'content=<div x-bind:class="y"></div>')"
+OUT="$(printf '%s' "$P" | env -u EDIT_GATE_ROOT CLAUDE_PROJECT_DIR="$ROOT" bash -c "$CMD" 2>/dev/null)"; CODE=$?
+expect_deny "settings command keeps deny"
+OUT="$(printf '%s' "$P" | env -u EDIT_GATE_ROOT CLAUDE_PROJECT_DIR="$T" bash -c "$CMD" 2>/dev/null)"; CODE=$?
+expect_allow "settings command, hook file absent, fails open"
 rm -rf "$T"
 
 echo "edit-gate: $PASSED passed, $FAILED failed"

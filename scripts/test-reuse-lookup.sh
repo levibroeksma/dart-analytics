@@ -88,5 +88,15 @@ P=$(payload "$N/app/src/components/ui/StatusBadge.astro" "<div/>" s7)
 OUT="$(printf '%s' "$P" | env -u REUSE_ROOT CLAUDE_PROJECT_DIR="$T" TMPDIR="$TMP" python3 "$HOOK" 2>/dev/null)"; CODE=$?
 expect_deny "worktree new file uses nested git root" "Badge.astro" "app/src/components/ui/Badge.astro"
 
+# The exact command .claude/settings.json runs: deny survives `|| true`;
+# a missing hook file fails open.
+CMD="$(jq -r '.hooks.PreToolUse[].hooks[].command | select(test("reuse-lookup"))' "$ROOT/.claude/settings.json")"
+P=$(payload "$N/app/src/components/ui/StatusBadge.astro" "<div/>" s8)
+OUT="$(printf '%s' "$P" | env -u REUSE_ROOT CLAUDE_PROJECT_DIR="$ROOT" TMPDIR="$TMP" bash -c "$CMD" 2>/dev/null)"; CODE=$?
+expect_deny "settings command keeps deny" "Badge.astro"
+P=$(payload "$N/app/src/components/ui/StatusBadge.astro" "<div/>" s9)
+OUT="$(printf '%s' "$P" | env -u REUSE_ROOT CLAUDE_PROJECT_DIR="$T" TMPDIR="$TMP" bash -c "$CMD" 2>/dev/null)"; CODE=$?
+expect_allow "settings command, hook file absent, fails open"
+
 echo "reuse-lookup: $PASSED passed, $FAILED failed"
 [ "$FAILED" -eq 0 ]

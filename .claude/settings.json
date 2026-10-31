@@ -67,7 +67,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/edit-gate.py\""
+            "command": "[ -f \"$CLAUDE_PROJECT_DIR/.claude/hooks/edit-gate.py\" ] && python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/edit-gate.py\" || true"
           }
         ]
       },
@@ -76,7 +76,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/reuse-lookup.py\""
+            "command": "[ -f \"$CLAUDE_PROJECT_DIR/.claude/hooks/reuse-lookup.py\" ] && python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/reuse-lookup.py\" || true"
           }
         ]
       }
