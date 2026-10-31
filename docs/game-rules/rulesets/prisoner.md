@@ -12,7 +12,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
 | Two seats | V1 | 1v1 | User decision of 2026-10-30: V1 seats exactly two, as Killer and Follow the Leader. The engine is written for any seat count |
-| Three or four seats | Deferred | 2+ | Blocked on: setup and the play screen seat two; only 501 has multi-guest setup, and every other ruleset is capped at two (`app/src/services/session-seats.service.ts:19-41`) |
+| Three or four seats | Deferred | 2+ | Blocked on: setup and the play screen seat two; only 501 has multi-guest setup, and every other ruleset is capped at two (`app/src/services/session-seats.service.ts:19-41`); the validator's cap of 6 darts per turn is a two-seat number (seats × 3) and must scale |
 | More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts:7`); the source scales to ten and suggests 4–8 or more |
 | Teams | Deferred | 2+ | Blocked on: a session allows one seat per side; 2v2 is rejected (`app/src/services/session-seats.service.ts:87-88`). The source lists Prisoner as a team game but gives no team rule |
 | Config screen (presets shown) | V1 | All | |

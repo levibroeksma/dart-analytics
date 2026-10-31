@@ -38,7 +38,9 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 - The source lists Coach and Horses, Beds and Bulls, The Game and Tactics as
   regional names. This repo's Tactics (`tactics.md`) is a different objective
   set — 20–15, Doubles, Triples and bull, with points and an auto rule instead
-  of a double-dip — see Open questions.
+  of a double-dip. Mickey Mouse stays its own ruleset, not a Tactics variant:
+  the objective set, the double-dip and the absence of points all differ
+  (D515).
 - Standard dartboard scoring is assumed.
 
 ## Tags
@@ -84,6 +86,9 @@ Up to **three darts**, then play passes.
 - **Bull:** outer bull 1 mark, inner bull 2. The bull never marks Doubles.
 - **Double-dip:** "A single dart can count toward more than one category
   simultaneously" — a treble 20 closes 20 and marks Triples.
+- A double or treble on a number already closed still marks Doubles or
+  Triples; closing a number never switches a ring category off. On 1–11 it
+  marks only the category (D515).
 - Marks past three on a closed category are lost.
 
 ### Ends when
@@ -138,8 +143,4 @@ Mickey Mouse is unbuilt; this is the capture shape its V1 is designed for.
 
 ## Open questions
 
-- A double or treble on an already closed number: does it still mark Doubles
-  or Triples? The source states the double-dip but not this case.
-- The source names Tactics as the same game. Keep Mickey Mouse as its own
-  ruleset, or make it a Tactics variant (wider number set, double-dip, no
-  points)?
+None.

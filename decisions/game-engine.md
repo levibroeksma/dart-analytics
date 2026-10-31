@@ -656,17 +656,30 @@ Reason: the prompt and Stop lived only in the tap pad, which a VISUAL_BOARD sess
 Consequences: no migration; capabilities unchanged. Refines D510's play UI.
 Supersedes: none.
 
+### D512 — Ten Up One Down: a played solo ROUNDS session refuses input; undo keeps an open board turn's total at 0
+Status: Accepted · Date: 2026-10-30
+Decision: `tuodSpec` refuses a dart, a keypad total and `wouldComplete()` once `inputClosed` reads true: a decided 1v1 match, or a solo ROUNDS session whose attempts reach `durationValue`. A solo MINUTES session never reads closed there; its timer ends it through `isComplete()`. `DartGameSpec.refusal` now takes the config as a second argument. The game shell resets the trailing turn's `totalScore` to 0 after an `undo()` that leaves it open, for a `coordinateCapture` spec without `liveTotal`, so a reopened turn matches one never closed.
+Reason: a solo ROUNDS session took attempts past its budget for any caller that skipped `isComplete()` (#1119); the 2026-09-02 solo exemption was needed only for MINUTES expiry. An open board turn's `totalScore` read 0 or the darts' sum depending on undo history (#1118).
+Consequences: no migration. TUOD's solo golden traces stop at the round budget. Score Training and 121 set `liveTotal` and are unchanged.
+Supersedes: none.
+
+### D515 — Mickey Mouse V1 is its own ruleset on the Marks kernel; the kernel gains `dipOf`
+Status: Accepted · Date: 2026-10-30
+Decision: `MICKEY_MOUSE_V1` is a one-seat Marks game with twelve objectives (20…12, Doubles, Triples, Bull) and no points. `MarksRules.dipOf?(seat, observation)` returns a second `MarksHit` a dart earns on another objective; `tallyMarksDart`/`applyMarksDart` take it as an optional `dip`, applied after the primary hit under the same cap, with `spare` and treble tallies from the primary hit only. A double or treble on a number already closed still marks Doubles or Triples; on 1–11 it marks only the category. Overflow marks are dropped. Mickey Mouse is not a Tactics variant.
+Reason: the double-dip needs two marks from one dart, which `MarksHit` could not express; the kernel rule M4 lands a feature with its first caller. The rules doc left the closed-number and Tactics-variant questions open; the plan's calls C1–C6 settle them.
+Consequences: Cricket and Tactics set no `dipOf` and their goldens do not change. Scored Mickey Mouse (V2+) revisits the duel path when a scoring dip is written. Plan: `docs/superpowers/plans/2026-10-30-mickey-mouse-v1.md`.
+
 ### D516 — Prisoner V1 engine: the Elimination kernel grows `reduceDart` and `decidedWinner`; `lives` is darts held; board-only capability
 Status: Accepted · Date: 2026-10-31
 Decision: `EliminationRules` gains two more optional members, so Killer's and Follow the Leader's folds are unchanged (pinned by their regression tests). `reduceDart(thrower, seats, shared, dart)` returns the dart's `VisitOutcome` and replaces `onDart` when present (`onDart` stays required; Prisoner passes `() => []`); it lets one dart change `shared`. `decidedWinner(seats, shared)` returns a side key or `null`; a non-null result beats last-seat-standing and is judged on the final folded state. Prisoner (`prisoner-policy.ts`, `prisoner.engine.module.ts`) latches a completed 20 as the seat's `ext.target = 21`, which `decidedWinner` reads. `lives` is darts held (start `darts`, prison −1, capture +1, out at 0). Key `PRISONER_V1`, `SHARED` stage, two seats (one PLAYER, one guest), no DartBot, config `{ darts: 3 }`, `STATS_TAGS` `["board"]`. Capability is `ANALYTICS + VISUAL_BOARD` only, with `coordinateCapture`; no `RECREATIONAL` row. `prisonerValidator` overrides `validateConfig` to refuse any other capture/input pair, and `validateBatch` adds a cap of 6 darts per turn and refuses unbanded `SINGLE`, then delegates to the three-dart validator (which has no dart-count cap). Budget and skip resolve in `onVisitClose`: the closing seat sets `sitting := missed`, `budget := lives − sitting`, `missed := 0`; the walk over later seats (closing seat last) clears `sitting` and sets `budget := lives` on any seat still in with budget 0, until one has budget above 0; `activeOverride` returns that seat. A skipped visit writes nothing. Replay labels: `Advance`, `Capture`, `Advance and capture`, `Prison`, `Miss`.
 Reason: a per-dart outcome that also touches `shared`, and a win that is not "last one standing", fit neither `onDart` nor the end-of-fold rota. Holding darts as `lives` reuses the kernel's out rule and clamp. No migration: no DB CHECK or Zod bound caps darts per turn.
-Consequences: seed `0056` adds the `PRISONER` game type, `PRISONER_V1` and a `{"darts": 3}` preset, with a `0007` capability row (51) and tag rows in `0042`; `prisoner.md` gains `Game type:` and keeps `Current version: none (V1 in design)` until PR 2 (app wiring: seat floor and cap, setup, play, results, card). Spec: `docs/superpowers/specs/2026-10-30-prisoner-design.md` (its §3a/§5/§6 corrected here).
+Consequences: seed `0057` adds the `PRISONER` game type, `PRISONER_V1` and a `{"darts": 3}` preset, with a `0007` capability row (53) and tag rows in `0042`; `prisoner.md` gains `Game type:` and keeps `Current version: none (V1 in design)` until PR 2 (app wiring: seat floor and cap, setup, play, results, card). Spec: `docs/superpowers/specs/2026-10-30-prisoner-design.md` (its §3a/§5/§6 corrected here).
 Rulings (planning 2026-10-31, where the rules file is silent):
 
 | Ruling | Reading |
 | ------ | ------- |
 | Win by 20 | `ext.target` becomes 21 on completing 20; the game ends at once and no further dart is accepted |
-| Dart resolution | `OUTER_SINGLE` of the target is a valid hit; `INNER_SINGLE` is prison only on the target number; bulls are prison; `MISS` counts toward `missed`; double, treble and every other dart is a plain miss with no penalty |
+| Dart resolution | An `OUTER_SINGLE` of any number is a valid hit: it captures when a prisoner is lodged on that number and advances only when it is the target; `INNER_SINGLE` is prison only on the target number; bulls are prison; `MISS` counts toward `missed`; double, treble and every other dart is a plain miss with no penalty |
 | Own-target hit | A valid hit on a target that holds a prisoner advances and captures; a capture on a non-target number does not advance; one hit takes one prisoner |
 | Bull | Held −1, nothing lodged, nothing capturable |
 | Last held dart | Prisoned at 0 held, the seat is out at once; a capture earlier in the visit keeps it in |

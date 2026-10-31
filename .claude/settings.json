@@ -61,6 +61,24 @@
             "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/block-main-commit.py\""
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -f \"$CLAUDE_PROJECT_DIR/.claude/hooks/edit-gate.py\" ] && python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/edit-gate.py\" || true"
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -f \"$CLAUDE_PROJECT_DIR/.claude/hooks/reuse-lookup.py\" ] && python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/reuse-lookup.py\" || true"
+          }
+        ]
       }
     ],
     "Stop": [

@@ -152,6 +152,12 @@ export const GAME_FIXTURES: Record<GameTypeKey, GameFixture> = {
     configuration: {},
     script: UNIVERSAL_SCRIPT,
   },
+  MICKEY_MOUSE: {
+    rulesetVersionKey: "MICKEY_MOUSE_V1",
+    stageTypeKey: "EXERCISE_BLOCK",
+    configuration: {},
+    script: UNIVERSAL_SCRIPT,
+  },
   KILLER: {
     rulesetVersionKey: "KILLER_V1",
     stageTypeKey: "EXERCISE_BLOCK",

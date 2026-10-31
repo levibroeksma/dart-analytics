@@ -25,6 +25,10 @@ import {
   initialTacticsState,
   TacticsEngine,
 } from "@modules/game/tactics.engine.module";
+import {
+  initialMickeyMouseState,
+  MickeyMouseEngine,
+} from "@modules/game/mickey-mouse.engine.module";
 import type { Bobs27State } from "@modules/types";
 import {
   PLAYER_ONE,
@@ -254,6 +258,69 @@ describe("REPLAY_PRESENTERS.TACTICS", () => {
     const [turn] = engine.facts().turns;
     const line = REPLAY_PRESENTERS.TACTICS.session(
       [{ turn, before: initialTacticsState(config), after: engine.state() }],
+      config,
+    );
+    expect(line.entries).toEqual([
+      { participantId: "p1", label: "Darts", value: "3" },
+    ]);
+  });
+});
+
+describe("REPLAY_PRESENTERS.MICKEY_MOUSE", () => {
+  const config = {
+    seats: [
+      {
+        participantRef: "p1",
+        displayName: "L",
+        sideKey: "A",
+        participantTypeKey: "PLAYER" as const,
+      },
+    ],
+  };
+  const t20 = {
+    hitTargetNumber: 20,
+    hitZoneKey: "TREBLE" as const,
+    locationX: null,
+    locationY: null,
+  };
+  const miss = {
+    hitTargetNumber: null,
+    hitZoneKey: "MISS" as const,
+    locationX: null,
+    locationY: null,
+  };
+
+  function playedVisit() {
+    const engine = new MickeyMouseEngine(config);
+    engine.record(t20);
+    engine.record(miss);
+    engine.record(miss);
+    return engine;
+  }
+
+  it("shows marks including the dip and the closed count", () => {
+    const engine = playedVisit();
+    const [turn] = engine.facts().turns;
+    const cells = REPLAY_PRESENTERS.MICKEY_MOUSE.turn(
+      { turn, before: initialMickeyMouseState(config), after: engine.state() },
+      config,
+    );
+    expect(
+      cells.map((cell) => (cell.kind === "value" ? cell.value : "")),
+    ).toEqual(["4", "1/12"]);
+  });
+
+  it("ends the session line on darts thrown", () => {
+    const engine = playedVisit();
+    const [turn] = engine.facts().turns;
+    const line = REPLAY_PRESENTERS.MICKEY_MOUSE.session(
+      [
+        {
+          turn,
+          before: initialMickeyMouseState(config),
+          after: engine.state(),
+        },
+      ],
       config,
     );
     expect(line.entries).toEqual([

@@ -1,5 +1,5 @@
 -- ============================================================
--- Verification: 0056_prisoner_capability_checks.sql
+-- Verification: 0057_prisoner_capability_checks.sql
 --
 -- Mirrors 0010_around_the_clock_capability_checks.sql's shape, re-scoped for the
 -- additive PRISONER_V1 row appended to 0007_ruleset_
@@ -19,10 +19,10 @@
 -- PRISONER_V1's own addition.
 --
 -- Usage:
---   psql "$DATABASE_URL" -f database/verification/0056_prisoner_capability_checks.sql
+--   psql "$DATABASE_URL" -f database/verification/0057_prisoner_capability_checks.sql
 --
 -- Expected: every result row reads PASS. Run only after
--- `npm run db:seed` has applied seeds/0007 and seeds/0056.
+-- `npm run db:seed` has applied seeds/0007 and seeds/0057.
 -- ============================================================
 BEGIN;
 

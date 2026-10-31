@@ -1,0 +1,73 @@
+1	src/components/layout/games/FollowTheLeaderRecreationalInput.astro | src/components/layout/games/KillerRecreationalInput.astro
+1	src/components/layout/games/interfaces/Baseball.astro | src/components/layout/games/interfaces/Shanghai.astro
+1	src/components/layout/games/interfaces/OneTwentyOne.astro | src/components/layout/games/interfaces/TenUpOneDown.astro
+1	src/components/layout/games/result-modals/FollowTheLeaderResults.astro | src/components/layout/games/result-modals/KillerResults.astro
+1	src/components/layout/games/setup/DurationField.astro | src/components/layout/games/setup/OneTwentyOneSetupForm.astro
+1	src/lib/client/api/sessions.ts | src/lib/client/api/training-sessions.ts
+2	src/lib/client/api/statistics.ts
+1	src/lib/game/around-the-clock-duration.ts | src/lib/game/one-twenty-one-duration.ts | src/lib/game/score-training-duration.ts | src/lib/game/tuod-duration.ts
+1	src/lib/game/around-the-clock-play.data.ts | src/lib/game/bobs27-play.data.ts
+1	src/lib/game/around-the-clock-play.data.ts | src/lib/game/bobs27-play.data.ts | src/lib/game/cricket-play.data.ts | src/lib/game/doubles-training-play.data.ts | src/lib/game/shanghai-play.data.ts | src/lib/game/singles-training-play.data.ts
+1	src/lib/game/around-the-clock-play.data.ts | src/lib/game/bobs27-play.data.ts | src/lib/game/marks-play.data.ts
+1	src/lib/game/around-the-clock-play.data.ts | src/lib/game/bobs27-play.data.ts | src/lib/game/shanghai-play.data.ts
+2	src/lib/game/around-the-clock-play.data.ts | src/lib/game/doubles-training-play.data.ts | src/lib/game/shanghai-play.data.ts | src/lib/game/singles-training-play.data.ts
+1	src/lib/game/around-the-clock-play.data.ts | src/lib/game/doubles-training-play.data.ts | src/lib/game/singles-training-play.data.ts
+1	src/lib/game/around-the-clock-play.data.ts | src/lib/game/shanghai-play.data.ts
+1	src/lib/game/baseball-play.data.ts | src/lib/game/doubles-training-play.data.ts | src/lib/game/killer-play.data.ts
+1	src/lib/game/bobs27-play.data.ts | src/lib/game/cricket-play.data.ts
+2	src/lib/game/doubles-training-play.data.ts | src/lib/game/singles-training-play.data.ts
+1	src/lib/game/five-oh-one-play.data.ts
+7	src/lib/game/five-oh-one-play.data.ts | src/lib/game/one-twenty-one-play.data.ts
+1	src/lib/game/five-oh-one-play.data.ts | src/lib/game/one-twenty-one-play.data.ts | src/lib/game/score-training-play.data.ts | src/lib/game/tuod-play.data.ts
+3	src/lib/game/five-oh-one-play.data.ts | src/lib/game/one-twenty-one-play.data.ts | src/lib/game/tuod-play.data.ts
+1	src/lib/game/five-oh-one-setup.data.ts | src/lib/game/one-twenty-one-setup.data.ts | src/lib/game/score-training-setup.data.ts | src/lib/game/setup-controller.ts | src/lib/game/tuod-setup.data.ts
+1	src/lib/game/five-oh-one-setup.data.ts | src/lib/game/score-training-setup.data.ts | src/lib/game/tuod-setup.data.ts
+1	src/lib/game/one-twenty-one-duration.ts | src/lib/game/score-training-duration.ts | src/lib/game/tuod-duration.ts
+3	src/lib/game/one-twenty-one-play.data.ts | src/lib/game/score-training-play.data.ts | src/lib/game/tuod-play.data.ts
+1	src/lib/game/one-twenty-one-play.data.ts | src/lib/game/shanghai-play.data.ts | src/lib/game/singles-training-play.data.ts
+2	src/lib/game/one-twenty-one-play.data.ts | src/lib/game/tuod-play.data.ts
+1	src/lib/game/one-twenty-one-setup.data.ts | src/lib/game/score-training-setup.data.ts | src/lib/game/tuod-setup.data.ts
+1	src/lib/game/play-countdown.ts | src/lib/training/trivia/quick-subtract-play.data.ts
+1	src/lib/game/play-visit-stats.ts | src/modules/stats/visit-stats.module.ts
+3	src/lib/game/rulesets/types.ts
+1	src/lib/game/score-training-play.data.ts | src/lib/game/singles-training-play.data.ts
+5	src/lib/game/score-training-play.data.ts | src/lib/game/tuod-play.data.ts
+2	src/lib/game/score-training-setup.data.ts | src/lib/game/tuod-setup.data.ts
+1	src/lib/game/shanghai-play.data.ts | src/lib/game/singles-training-play.data.ts
+2	src/lib/stats/merge-metrics.ts
+1	src/modules/game/bobs27.engine.module.ts | src/modules/game/singles-training.engine.module.ts
+1	src/modules/stats/sections/atc-darts-per-target.module.ts | src/modules/stats/sections/training-result.module.ts
+1	src/modules/stats/sections/bust-rate.module.ts | src/modules/stats/sections/checkout-path.module.ts | src/modules/stats/sections/checkout-rate.module.ts
+1	src/modules/stats/sections/bust-rate.module.ts | src/modules/stats/sections/checkout-path.module.ts | src/modules/stats/sections/checkout-rate.module.ts | src/modules/stats/sections/double-performance.module.ts
+2	src/modules/stats/sections/checkout-path.module.ts | src/modules/stats/sections/checkout-rate.module.ts
+1	src/modules/stats/sections/completion.module.ts | src/modules/stats/sections/session-result.module.ts
+1	src/modules/stats/sections/grouping.module.ts | src/modules/stats/sections/loose-darts.module.ts | src/modules/stats/sections/scoring-trend.module.ts | src/modules/stats/sections/target-accuracy.module.ts | src/modules/stats/sections/treble-rate.module.ts | src/modules/stats/sections/volume.module.ts
+1	src/modules/stats/sections/grouping.module.ts | src/modules/stats/sections/loose-darts.module.ts | src/modules/stats/sections/target-accuracy.module.ts
+1	src/modules/stats/sections/leg-stats.module.ts | src/modules/stats/sections/series.module.ts
+2	src/modules/stats/sections/loose-darts.module.ts | src/modules/stats/sections/target-accuracy.module.ts
+1	src/modules/stats/sections/routine-completion.module.ts | src/modules/stats/sections/routine-volume.module.ts
+1	src/modules/stats/sections/routine-completion.module.ts | src/modules/stats/sections/routine-volume.module.ts | src/modules/stats/sections/step-volume.module.ts
+1	src/modules/stats/sections/scoring-trend.module.ts | src/modules/stats/sections/treble-rate.module.ts
+1	src/modules/stats/sections/series.module.ts | src/modules/stats/sections/training-result.module.ts
+1	src/modules/training/exercises/bull-up.engine.module.ts | src/modules/training/exercises/bullseye-checkout.engine.module.ts | src/modules/training/exercises/double-pattern.engine.module.ts | src/modules/training/exercises/switching.engine.module.ts
+1	src/modules/training/exercises/bullseye-checkout.engine.module.ts | src/modules/training/exercises/double-pattern.engine.module.ts | src/modules/training/exercises/switching.engine.module.ts
+1	src/modules/training/exercises/double-pattern.engine.module.ts | src/modules/training/exercises/switching.engine.module.ts
+1	src/modules/training/exercises/switching-chain.engine.module.ts | src/modules/training/exercises/target-scoring.engine.module.ts
+1	src/modules/training/routines/routine-summary.module.ts
+2	src/pages/api/routines/[routineId].ts | src/pages/api/schedules/[scheduleId]/index.ts
+1	src/pages/api/routines/index.ts | src/pages/api/schedules/index.ts
+2	src/pages/api/statistics/types.ts
+1	src/repositories/interfaces.ts | src/services/session.service.ts
+1	src/repositories/routine.repository.ts | src/repositories/training-session.repository.ts
+1	src/repositories/schedule.repository.ts
+1	src/repositories/session.repository.ts
+11	src/repositories/statistics.repository.ts
+1	src/services/routine.service.ts
+1	src/services/rulesets/one-twenty-one/one-twenty-one.validator.ts | src/services/rulesets/three-dart.validator.ts
+1	src/services/rulesets/score-training/score-training.validator.ts | src/services/rulesets/tuod/tuod.validator.ts
+1	src/services/statistics.service.ts
+6	src/stores/game-stats.store.ts
+4	src/styles/global.css
+1	tests/integration/card-tags.itest.ts | tests/integration/template-difficulty-axis.itest.ts
+1	tests/lib/stats/replay-games.ts | tests/lib/stats/replay-step-games.ts
+1	tests/lib/stats/replay-step-games.ts

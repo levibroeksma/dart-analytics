@@ -30,6 +30,12 @@ import type {
   TurnFact,
 } from "./types";
 
+/** Resets the trailing turn's `totalScore` to 0 while it is still open. */
+function clearOpenTotal(turns: TurnFact[]): void {
+  const last = turns.at(-1);
+  if (last && last.completedAt === null) last.totalScore = 0;
+}
+
 /**
  * Builds a `GameEngine` class from `spec`, over one `EXERCISE_BLOCK` stage
  * unless `stageFor` names the stage each state plays in.
@@ -40,7 +46,8 @@ import type {
  * `visitInput` writes a keypad total as one closed dartless turn and undoes
  * whole turns; `coordinateCapture` resolves each dart from its coordinates
  * instead of its hit fields, leaving an open turn's total unwritten unless the
- * spec sets `liveTotal`, which keeps it at the darts' sum; `complete`
+ * spec sets `liveTotal`, which keeps it at the darts' sum (an `undo()` that
+ * reopens a turn leaves it unwritten too); `complete`
  * replaces the default `isComplete()` (any status other than `IN_PROGRESS`)
  * and reads the state when `expireTimer()` last ran. `stageFor` opens a new
  * stage after a closing record, counts turn `sequence` within each stage, and
@@ -168,7 +175,7 @@ export function dartGameEngineClass<
 
     private recordDart(observation: DartObservation): TState {
       const before = this.deriveState();
-      const refusal = spec.refusal(before);
+      const refusal = spec.refusal(before, this.config);
       if (refusal !== null) throw new Error(refusal);
       const count = this.turns.length;
       const turn = openOrCreateTurn(
@@ -203,6 +210,12 @@ export function dartGameEngineClass<
     }
 
     undo(): boolean {
+      const undone = this.undoUnit();
+      if (spec.coordinateCapture && !spec.liveTotal) clearOpenTotal(this.turns);
+      return undone;
+    }
+
+    private undoUnit(): boolean {
       const last = this.turns.at(-1);
       if (spec.visitActions && last && this.closedByAction(last))
         return this.undoAction(last);

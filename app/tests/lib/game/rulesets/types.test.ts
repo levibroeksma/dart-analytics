@@ -9,6 +9,7 @@ import {
   Bobs27V2Config,
   CricketConfig,
   TacticsConfig,
+  MickeyMouseConfig,
   AroundTheClockV2Config,
   AroundTheClockV3Config,
   FiveOhOneConfig,
@@ -819,6 +820,14 @@ describe("FollowTheLeaderConfig", () => {
     expect(
       FollowTheLeaderConfig.safeParse({ lives: 3, rule: "NUMBER" }).success,
     ).toBe(false);
+  });
+});
+
+describe("MickeyMouseConfig", () => {
+  it("registers MICKEY_MOUSE_V1 on a strict empty config", () => {
+    expect(RULESET_CONFIGS.MICKEY_MOUSE_V1).toBe(MickeyMouseConfig);
+    expect(MickeyMouseConfig.safeParse({}).success).toBe(true);
+    expect(MickeyMouseConfig.safeParse({ mode: "X" }).success).toBe(false);
   });
 });
 

@@ -1,7 +1,7 @@
 # Prisoner — Design
 
 Date: 2026-10-30
-Status: PR 1 (kernel hooks `reduceDart`/`decidedWinner`, policy, engine, validator, seed `0056`) implemented 2026-10-31, D516; PR 2 (app wiring) pending
+Status: PR 1 (kernel hooks `reduceDart`/`decidedWinner`, policy, engine, validator, seed `0057`) implemented 2026-10-31, D516; PR 2 (app wiring) pending
 Parent: `2026-10-27-elimination-kernel-design.md` (Prisoner gets its own spec)
 Rules input: `docs/game-rules/rulesets/prisoner.md` (V1 rows only)
 
@@ -84,7 +84,10 @@ held** (starts 3).
   Two seats both fully sitting out resolve by the same walk.
 - **A visit can exceed 3 darts.** Held can reach 6 with two seats. The turn
   has no cap in the three-dart validator; Prisoner's validator adds a cap of
-  6 darts per turn (§6).
+  6 darts per turn (§6). The largest live visit is 5 darts: a seat holding 6
+  means the other seat holds 0 and is out, so the game is over and the cap
+  never binds. The cap of 6 is a two-seat number (seats × 3); it must scale
+  when 3–4 seats land.
 - **Bull prisoners are not tracked on the board**, only counted per seat for
   the result.
 - **Closure is stored, never inferred**, as Follow the Leader: `completedAt`

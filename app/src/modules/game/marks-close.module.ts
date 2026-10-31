@@ -48,29 +48,32 @@ export function initialMarksSeat(
  * Adds one dart's marks to a seat's bookkeeping. Marks add to their objective,
  * capped at 3; the overflow comes back as `spare`. Every dart counts as thrown.
  * Hits are tallied per objective and as trebles (3-mark hits), uncapped.
+ * A `dip` is a second mark the same dart earns on another objective, under the
+ * same cap; `spare` and the treble count come from `hit` only.
  */
 export function tallyMarksDart(
   state: MarksSeatState,
   hit: MarksHit,
+  dip: MarksHit = null,
 ): MarksTally {
   const dartsThrown = state.dartsThrown + 1;
   const marks = [...state.marks];
   const closedAtDart = [...state.closedAtDart];
   const objectiveHits = [...state.objectiveHits];
-  let spare = 0;
-  if (hit) {
-    const index = hit.objectiveIndex;
-    const total = marks[index] + hit.marks;
-    objectiveHits[index] += 1;
-    marks[index] = Math.min(MARKS_TO_CLOSE, total);
-    spare = Math.max(0, total - MARKS_TO_CLOSE);
+  const mark = ({ objectiveIndex, marks: added }: NonNullable<MarksHit>) => {
+    const total = marks[objectiveIndex] + added;
+    objectiveHits[objectiveIndex] += 1;
+    marks[objectiveIndex] = Math.min(MARKS_TO_CLOSE, total);
     if (
-      state.marks[index] < MARKS_TO_CLOSE &&
-      marks[index] === MARKS_TO_CLOSE
+      state.marks[objectiveIndex] < MARKS_TO_CLOSE &&
+      marks[objectiveIndex] === MARKS_TO_CLOSE
     ) {
-      closedAtDart[index] = dartsThrown;
+      closedAtDart[objectiveIndex] = dartsThrown;
     }
-  }
+    return Math.max(0, total - MARKS_TO_CLOSE);
+  };
+  const spare = hit ? mark(hit) : 0;
+  if (dip) mark(dip);
   return {
     fields: {
       marks,
@@ -94,9 +97,10 @@ export function tallyMarksDart(
 export function applyMarksDart(
   state: MarksSeatState,
   hit: MarksHit,
+  dip: MarksHit = null,
 ): MarksSeatState {
   refuseWhenEnded(state.status !== "IN_PROGRESS", "game has ended");
-  const { fields } = tallyMarksDart(state, hit);
+  const { fields } = tallyMarksDart(state, hit, dip);
   const complete = fields.marks.every((count) => count === MARKS_TO_CLOSE);
   const visitDarts = state.dartsThisVisit + 1;
   return {

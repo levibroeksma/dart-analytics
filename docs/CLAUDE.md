@@ -1,10 +1,10 @@
 # Agent Rules — `docs/`
 
-Scope: all documentation under `docs/` (foundation docs, database handbook, API/frontend docs; `docs/superpowers/` is historical, `docs/game-rules/` is non-canonical pre-spec source material — see `docs/game-rules/README.md`), plus the repo-root decision ledger `decisions/**` and its router `DECISIONS.md`. Global rules, authority order, and context packs live in `docs/architecture/00-Context-Map.md` — not repeated here. SQL migration/seed rules live in `database/CLAUDE.md`. (2026-07-14; decisions/** scope added 2026-08-02)
+Scope: all documentation under `docs/` (foundation docs, database handbook, API/frontend docs; `docs/superpowers/` is historical, `docs/game-rules/` is non-canonical pre-spec source material — see `docs/game-rules/README.md`), plus the repo-root decision ledger `decisions/**` and its router `DECISIONS.md`. Global rules, authority order, and context packs live in `docs/architecture/00-Context-Map.md` — not repeated here. SQL migration/seed rules live in `database/CLAUDE.md`.
 
 ## Editing Workflow
 
-1. Identify the canonical target doc for the change (use `docs/architecture/00-File-Inventory.md`).
+1. Identify the canonical target doc for the change: grep `docs/architecture/00-File-Inventory.md` for the row; Read with offset/limit; never read it whole.
 2. Apply a minimal diff in the canonical doc first; align secondary docs to it.
 3. Propagate only required consistency edits.
 
