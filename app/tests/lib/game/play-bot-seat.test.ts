@@ -4,10 +4,11 @@ import {
   botDartIndex,
   botDartObservationAt,
   botQuickScoreDartIndex,
+  botSeatState,
   botThrowObservation,
   findBotSeat,
 } from "@lib/game/play-bot-seat";
-import type { SeatFact } from "@lib/types";
+import type { DartbotSeat, SeatFact } from "@lib/types";
 import type { TurnFact } from "@modules/types";
 
 const humanSeat = {
@@ -122,5 +123,29 @@ describe("botDartObservationAt", () => {
     expect(botDartObservationAt(dartbot, 0, intent)).not.toEqual(
       botDartObservationAt(dartbot, 5, intent),
     );
+  });
+});
+
+describe("botSeatState", () => {
+  const bot = botSeat as DartbotSeat;
+
+  it("returns the bot's own seat", () => {
+    const seats = [
+      { participantRef: "p1", targetIndex: 0 },
+      { participantRef: "bot1", targetIndex: 4 },
+    ];
+    expect(botSeatState({ seats }, bot)).toBe(seats[1]);
+  });
+
+  it("throws when there is no state", () => {
+    expect(() => botSeatState(null, bot)).toThrow(
+      "DartBot has no seat in this session's engine state",
+    );
+  });
+
+  it("throws when the state holds no seat for the bot", () => {
+    expect(() =>
+      botSeatState({ seats: [{ participantRef: "p1" }] }, bot),
+    ).toThrow("DartBot has no seat in this session's engine state");
   });
 });

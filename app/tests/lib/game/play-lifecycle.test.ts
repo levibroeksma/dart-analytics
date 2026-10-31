@@ -55,6 +55,7 @@ import {
   playUploadAndCompleteSession,
   playVisitMarkers,
   resumeGameEngine,
+  resumeVersionedEngine,
   runPlayAgain,
   variantsPlayAgain,
   undoBotAwareVisit,
@@ -2270,6 +2271,51 @@ describe("resumeGameEngine", () => {
     } as unknown as Parameters<typeof resumeGameEngine>[0];
     expect(
       resumeGameEngine(game, "SCORE_TRAINING_V1", (_c): _c is never => false),
+    ).toBeNull();
+  });
+});
+
+describe("resumeVersionedEngine", () => {
+  const isFake = (candidate: unknown): candidate is FakeEngine =>
+    candidate instanceof FakeEngine;
+  const resumable = new Set([RULESET_VERSION_KEY]);
+  const game = (over: object) =>
+    ({
+      configSnapshot: {},
+      rulesetVersionKey: RULESET_VERSION_KEY,
+      stages: [],
+      turns: [],
+      ...over,
+    }) as unknown as Parameters<typeof resumeVersionedEngine>[0];
+
+  it("builds the engine with the stored key's own factory", () => {
+    expect(resumeVersionedEngine(game({}), resumable, isFake)).toBeInstanceOf(
+      FakeEngine,
+    );
+  });
+
+  it("returns null without a snapshot or a stored key", () => {
+    expect(
+      resumeVersionedEngine(game({ configSnapshot: null }), resumable, isFake),
+    ).toBeNull();
+    expect(
+      resumeVersionedEngine(
+        game({ rulesetVersionKey: null }),
+        resumable,
+        isFake,
+      ),
+    ).toBeNull();
+  });
+
+  it("returns null for a key outside the resumable set", () => {
+    expect(
+      resumeVersionedEngine(game({}), new Set(["TUOD_V1"]) as never, isFake),
+    ).toBeNull();
+  });
+
+  it("returns null when the guard rejects the built engine", () => {
+    expect(
+      resumeVersionedEngine(game({}), resumable, (_c): _c is never => false),
     ).toBeNull();
   });
 });

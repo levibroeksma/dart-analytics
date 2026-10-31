@@ -114,3 +114,10 @@ Decision: a third copy of a markup shape, type or logic block is extracted into 
 Reason: the edit-time rules spec wanted "new clone group fails" without a second checkout. A committed baseline gives the same result, runs locally, and needs no merge-base diff in CI. Keying by file set rather than fragment hash means editing inside an existing clone does not read as new.
 Consequences: baseline starts at 114 groups across 70 file sets (4.9% duplicated lines). A clone added to a file set that already has groups raises its count and fails; an offsetting removal in the same set hides it. Each clone family has a `discovered-work` backlog issue; none were fixed here.
 Supersedes: none.
+
+### D516 — Play factories compose shared play-screen parts
+Status: Accepted · Date: 2026-10-31
+Decision: visual-board play factories (around-the-clock, baseball, bobs27, cricket, doubles-training, follow-the-leader, killer, shanghai, singles-training, tactics) spread shared parts from `app/src/lib/game/play-screen.data.ts` — `playScreenState`, `boardPlayActions`, `botVisualBoardData`, `playScreenActions`, `timedPlayData` — instead of re-declaring lifecycle members. Variation goes through separate parts, typed callbacks (`afterInit`) or later-declared overrides, never boolean flags. The factory-surface snapshot plus the page-bindings test guard the Alpine template contract.
+Reason: ten factories carried near-identical `init`/`commitDart`/`undoVisit`/bot-loop members; the clone groups were the largest family in the D513 baseline. Parts keep each factory's own members visible while the shared body lives once. Flags would rebuild the divergence inside one function.
+Consequences: spread order is fixed (later keys override earlier), an overridden `init` calls through to the part's `init` or uses `afterInit`, and parts hold no getters. A change to a part is covered by the snapshot of every factory's key surface. The duplication baseline under D513 dropped by the clone groups that spanned these files.
+Supersedes: none.

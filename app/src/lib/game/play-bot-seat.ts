@@ -44,6 +44,23 @@ export function botQuickScoreDartIndex(
 }
 
 /**
+ * The bot's own seat in the folded engine state. Throws when there is no
+ * state or the state holds no seat for the bot.
+ */
+export function botSeatState<TSeat extends { participantRef: string }>(
+  state: { seats: readonly TSeat[] } | null,
+  botSeat: DartbotSeat,
+): TSeat {
+  const seatState = state?.seats.find(
+    (seat) => seat.participantRef === botSeat.participantRef,
+  );
+  if (!seatState) {
+    throw new Error("DartBot has no seat in this session's engine state");
+  }
+  return seatState;
+}
+
+/**
  * Throws one dart for a DartBot seat at `intent`: the level's skill profile,
  * a generator seeded at the bot's next dart index (re-derived from the fact
  * log, so an undone or resumed visit re-throws identically), and the shared
