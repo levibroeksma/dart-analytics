@@ -1,5 +1,7 @@
+1	src/components/layout/games/FollowTheLeaderRecreationalInput.astro | src/components/layout/games/KillerRecreationalInput.astro
 1	src/components/layout/games/interfaces/Baseball.astro | src/components/layout/games/interfaces/Shanghai.astro
 1	src/components/layout/games/interfaces/OneTwentyOne.astro | src/components/layout/games/interfaces/TenUpOneDown.astro
+1	src/components/layout/games/result-modals/FollowTheLeaderResults.astro | src/components/layout/games/result-modals/KillerResults.astro
 1	src/components/layout/games/setup/DurationField.astro | src/components/layout/games/setup/OneTwentyOneSetupForm.astro
 1	src/lib/client/api/sessions.ts | src/lib/client/api/training-sessions.ts
 2	src/lib/client/api/statistics.ts
@@ -67,4 +69,5 @@
 6	src/stores/game-stats.store.ts
 4	src/styles/global.css
 1	tests/integration/card-tags.itest.ts | tests/integration/template-difficulty-axis.itest.ts
+1	tests/lib/stats/replay-games.ts | tests/lib/stats/replay-step-games.ts
 1	tests/lib/stats/replay-step-games.ts

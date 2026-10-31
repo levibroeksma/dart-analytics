@@ -35,6 +35,7 @@ function batchWithTurns(darts: DartFactInput[][]) {
           participantRef: "p1",
           sequence: i + 1,
           totalScore: turnDarts.reduce((total, dart) => total + dart.score, 0),
+          kept: false,
           completedAt: null,
           darts: turnDarts,
         })),
@@ -123,6 +124,7 @@ describe("bobs27Validator.validateBatch", () => {
               participantRef: "p1",
               sequence: 1,
               totalScore: 60,
+              kept: false,
               completedAt: "2026-08-05T12:00:00.000Z",
               darts: [
                 {

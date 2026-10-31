@@ -9,6 +9,10 @@ import {
 } from "@modules/game/baseball.engine.module";
 import { KillerEngine } from "@modules/game/killer.engine.module";
 import {
+  foldFollowTheLeaderState,
+  FollowTheLeaderEngine,
+} from "@modules/game/follow-the-leader.engine.module";
+import {
   CricketEngine,
   initialCricketState,
 } from "@modules/game/cricket.engine.module";
@@ -723,6 +727,105 @@ describe("REPLAY_PRESENTERS.KILLER", () => {
     expect(line.entries).toEqual([
       { participantId: "p1", label: "Lives", value: "3" },
       { participantId: "p2", label: "Lives", value: "1" },
+    ]);
+  });
+});
+
+describe("REPLAY_PRESENTERS.FOLLOW_THE_LEADER", () => {
+  const config = {
+    lives: 3 as const,
+    seats: [
+      {
+        participantRef: "p1",
+        displayName: "L",
+        sideKey: "A",
+        participantTypeKey: "PLAYER" as const,
+      },
+      {
+        participantRef: "p2",
+        displayName: "G",
+        sideKey: "B",
+        participantTypeKey: "GUEST" as const,
+      },
+    ],
+  };
+  const hit = (
+    hitTargetNumber: number | null,
+    hitZoneKey: "TREBLE" | "OUTER_SINGLE" | "MISS",
+  ) => ({ hitTargetNumber, hitZoneKey, locationX: null, locationY: null });
+  const t18 = hit(18, "TREBLE");
+  const s18 = hit(18, "OUTER_SINGLE");
+
+  const miss = hit(null, "MISS");
+
+  function stepsFor(record: (engine: FollowTheLeaderEngine) => void) {
+    const engine = new FollowTheLeaderEngine(config);
+    record(engine);
+    const { stages, turns } = engine.facts();
+    return turns.map((turn, i) => ({
+      turn,
+      before: foldFollowTheLeaderState(
+        { stages, turns: turns.slice(0, i) },
+        config,
+      ),
+      after: foldFollowTheLeaderState(
+        { stages, turns: turns.slice(0, i + 1) },
+        config,
+      ),
+    }));
+  }
+
+  function steps() {
+    return stepsFor((engine) => {
+      for (const input of [t18, s18, s18, s18, { kind: "KEEP" as const }, t18])
+        engine.record(input);
+      engine.record({ kind: "STOP" });
+    });
+  }
+
+  it("shows Retry for a setting dart that landed off the board", () => {
+    const retries = stepsFor((engine) => {
+      for (const input of [miss, t18, s18, s18, s18, miss, t18])
+        engine.record(input);
+    }).map((step) => REPLAY_PRESENTERS.FOLLOW_THE_LEADER.turn(step, config)[1]);
+    expect(retries).toEqual([
+      { kind: "value", label: "Result", value: "Retry" },
+      { kind: "value", label: "Result", value: "Set" },
+      { kind: "value", label: "Result", value: "Fail" },
+      { kind: "value", label: "Result", value: "Retry" },
+      { kind: "value", label: "Result", value: "Set" },
+    ]);
+  });
+
+  it("shows the thrower's lives and the visit's result", () => {
+    const cells = steps().map((step) =>
+      REPLAY_PRESENTERS.FOLLOW_THE_LEADER.turn(step, config),
+    );
+    expect(cells).toEqual([
+      [
+        { kind: "value", label: "Lives", value: "3" },
+        { kind: "value", label: "Result", value: "Set" },
+      ],
+      [
+        { kind: "value", label: "Lives", value: "2" },
+        { kind: "value", label: "Result", value: "Fail" },
+      ],
+      [
+        { kind: "value", label: "Lives", value: "3" },
+        { kind: "value", label: "Result", value: "Keep" },
+      ],
+      [
+        { kind: "value", label: "Lives", value: "2" },
+        { kind: "value", label: "Result", value: "Match" },
+      ],
+    ]);
+  });
+
+  it("ends the session line on lives", () => {
+    const line = REPLAY_PRESENTERS.FOLLOW_THE_LEADER.session(steps(), config);
+    expect(line.entries).toEqual([
+      { participantId: "p1", label: "Lives", value: "3" },
+      { participantId: "p2", label: "Lives", value: "2" },
     ]);
   });
 });

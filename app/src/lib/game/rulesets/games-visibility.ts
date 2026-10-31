@@ -125,6 +125,14 @@ export const GAME_CARDS: readonly GameCardDescriptor[] = [
     title: "Killer",
     caption: "Hit your double, then hunt theirs.",
   },
+  {
+    rulesetVersionKey: "FOLLOW_THE_LEADER_V1",
+    gameTypeKey: "FOLLOW_THE_LEADER",
+    group: "CLASSICS",
+    href: "/games/follow-the-leader/setup",
+    title: "Follow the Leader",
+    caption: "Hit the bed they set, or lose a life.",
+  },
 ];
 
 /**

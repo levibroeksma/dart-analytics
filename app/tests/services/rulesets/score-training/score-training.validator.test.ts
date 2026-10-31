@@ -182,6 +182,7 @@ describe("scoreTrainingValidator.validateBatch", () => {
             participantRef: "p1",
             sequence: i + 1,
             totalScore,
+            kept: false,
             completedAt: null,
             darts: [] as DartFactInput[],
           })),
@@ -261,6 +262,7 @@ describe("scoreTrainingValidator.validateBatch", () => {
               participantRef: "p2",
               sequence: 1,
               totalScore: 45,
+              kept: false,
               completedAt: null,
               darts: [] as DartFactInput[],
             },
@@ -292,6 +294,7 @@ describe("scoreTrainingValidator.validateBatch", () => {
               participantRef: "p2",
               sequence: 1,
               totalScore: 45,
+              kept: false,
               completedAt: null,
               darts: [] as DartFactInput[],
             },
@@ -338,6 +341,7 @@ describe("scoreTrainingValidator.validateBatch", () => {
               participantRef: "p1",
               sequence: 1,
               totalScore: 60,
+              kept: false,
               completedAt: "2026-08-05T12:00:00.000Z",
               darts: [
                 {

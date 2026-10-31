@@ -663,6 +663,7 @@ export type TurnFact = {
   sequence: number;
   completedAt: string | null;
   totalScore: number;
+  kept?: boolean;
   darts: DartFact[];
 };
 
@@ -955,9 +956,23 @@ export type SeatChange<TExt> = {
   ext?: TExt;
 };
 
+/** A closed visit as an Elimination ruleset sees it: who threw, the darts, and whether the visit was kept. */
+export type ClosedVisit = {
+  participantRef: string;
+  darts: readonly DartObservation[];
+  kept: boolean;
+};
+
+/** What a closed visit causes: seat changes, and the next shared state. */
+export type VisitOutcome<TExt, TShared> = {
+  changes: readonly SeatChange<TExt>[];
+  shared: TShared;
+};
+
 /** An Elimination match folded from its darts: seats, out order, outcome and the seat to throw. */
-export type EliminationMatch<TExt> = {
+export type EliminationMatch<TExt, TShared = undefined> = {
   seats: EliminationSeat<TExt>[];
+  shared: TShared;
   outOrder: string[];
   status: "IN_PROGRESS" | "COMPLETE";
   winningSideKey: string | null;
@@ -991,3 +1006,48 @@ export type KillerState = MultiSeatState<KillerSeatState> & {
   outOrder: string[];
   seats: KillerSeatState[];
 };
+
+/** A board bed: number and ring; both bulls carry a null number and the single beds are one ring. */
+export type BedFact = {
+  number: number | null;
+  ring: "SINGLE" | "DOUBLE" | "TREBLE" | "OUTER_BULL" | "INNER_BULL";
+};
+
+/** Follow the Leader's game state beyond seats: the target, its leader, seats that failed since, and a seat owed a re-throw. */
+export type FollowTheLeaderShared = {
+  target: BedFact | null;
+  leaderRef: string | null;
+  failed: string[];
+  retryRef: string | null;
+};
+
+/** Follow the Leader seats carry no extras. */
+export type FollowTheLeaderExt = Record<string, never>;
+
+/** One Follow the Leader seat as the play screen reads it: lives and whether it is out. */
+export type FollowTheLeaderSeatState = SeatState & {
+  lives: number;
+  out: boolean;
+};
+
+/**
+ * Follow the Leader's folded state: seats, out order and outcome, plus the
+ * target, its leader, the visit phase (`OPENING` before any target, `LEAD`
+ * at the leader's turn, else `MATCH`), whether the open visit matched, and
+ * whether Stop and Keep are offered now.
+ */
+export type FollowTheLeaderState = MultiSeatState<FollowTheLeaderSeatState> & {
+  status: "IN_PROGRESS" | "COMPLETE";
+  winningSideKey: string | null;
+  outOrder: string[];
+  seats: FollowTheLeaderSeatState[];
+  target: BedFact | null;
+  leaderRef: string | null;
+  phase: "OPENING" | "MATCH" | "LEAD";
+  matched: boolean;
+  canStop: boolean;
+  keepAllowed: boolean;
+};
+
+/** A Follow the Leader visit action: close the open visit after a match, or keep the target without throwing. */
+export type FollowTheLeaderAction = { kind: "STOP" } | { kind: "KEEP" };

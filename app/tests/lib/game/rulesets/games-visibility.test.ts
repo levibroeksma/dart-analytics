@@ -37,6 +37,7 @@ describe("visibleGames", () => {
       "AROUND_THE_CLOCK_V3",
       "BASEBALL_V1",
       "KILLER_V1",
+      "FOLLOW_THE_LEADER_V1",
     ]);
   });
 
@@ -57,6 +58,7 @@ describe("visibleGames", () => {
         "AROUND_THE_CLOCK_V3",
         "BASEBALL_V1",
         "KILLER_V1",
+        "FOLLOW_THE_LEADER_V1",
         "CRICKET_V1",
         "TACTICS_V1",
         "TUOD_V1",
@@ -126,6 +128,7 @@ describe("groupedGames", () => {
           "AROUND_THE_CLOCK_V3",
           "BASEBALL_V1",
           "KILLER_V1",
+          "FOLLOW_THE_LEADER_V1",
         ],
       ],
     ]);
@@ -231,6 +234,22 @@ describe("the Nine Lives card", () => {
     ).toMatchObject({
       href: "/games/around-the-clock/setup",
       title: "Around the Clock",
+    });
+  });
+});
+
+describe("the Follow the Leader card", () => {
+  it("is in CLASSICS with its title, caption and setup href", () => {
+    expect(
+      GAME_CARDS.find(
+        (game) => game.rulesetVersionKey === "FOLLOW_THE_LEADER_V1",
+      ),
+    ).toMatchObject({
+      gameTypeKey: "FOLLOW_THE_LEADER",
+      group: "CLASSICS",
+      title: "Follow the Leader",
+      caption: "Hit the bed they set, or lose a life.",
+      href: "/games/follow-the-leader/setup",
     });
   });
 });

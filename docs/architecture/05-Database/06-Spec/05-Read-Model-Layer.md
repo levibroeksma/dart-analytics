@@ -125,7 +125,7 @@ Reconstructs the exact gameplay sequence of a session.
 
 ## Exposes
 
-Stage identity (stage_id, parent_stage_id) for tree reconstruction, stage sequence and stage type key, turn sequence, participant name, turn total score, dart number, intended target + zone key, hit target + zone key, score. <!-- 2026-07-13 --> Migration `0044` adds `participant_id`, `participant_type_key` (from the new `participant_types` join) and dart landing coordinates `location_x`/`location_y` (already reached by `0016`'s LEFT JOIN to `darts`; the columns themselves are `0017`'s). <!-- 2026-09-27 -->
+Stage identity (stage_id, parent_stage_id) for tree reconstruction, stage sequence and stage type key, turn sequence, participant name, turn total score, dart number, intended target + zone key, hit target + zone key, score. <!-- 2026-07-13 --> Migration `0044` adds `participant_id`, `participant_type_key` (from the new `participant_types` join) and dart landing coordinates `location_x`/`location_y` (already reached by `0016`'s LEFT JOIN to `darts`; the columns themselves are `0017`'s). <!-- 2026-09-27 --> Migration `0053` adds the turn's `kept` flag (`turns.kept`, `0051`) last, so a replay rebuilds a Follow the Leader keep; no new join, row count unchanged. <!-- 2026-10-30 -->
 
 ## Design Rationale
 

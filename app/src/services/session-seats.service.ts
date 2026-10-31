@@ -33,6 +33,7 @@ const SEAT_CAPS: Record<string, number> = {
   SHANGHAI_V3: 2,
   BASEBALL_V1: 2,
   KILLER_V1: 2,
+  FOLLOW_THE_LEADER_V1: 2,
   SCORE_TRAINING_V1: 2,
   SINGLES_V1: 2,
   SINGLES_V3: 2,
@@ -43,7 +44,10 @@ const SEAT_CAPS: Record<string, number> = {
  * The fewest seats a session may request, keyed by ruleset version. A ruleset
  * with no entry defaults to 1. An omitted seat list counts as one seat.
  */
-const SEAT_FLOORS: Record<string, number> = { KILLER_V1: 2 };
+const SEAT_FLOORS: Record<string, number> = {
+  KILLER_V1: 2,
+  FOLLOW_THE_LEADER_V1: 2,
+};
 
 function floorMessage(rulesetVersionKey: string, floor: number): string {
   return `${rulesetVersionKey} needs at least ${floor} seats.`;

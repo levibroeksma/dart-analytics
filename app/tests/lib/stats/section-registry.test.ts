@@ -386,6 +386,11 @@ describe("statistics section registry", () => {
     expect(tagsForGameType("KILLER")).toEqual(new Set(["board"]));
   });
 
+  it("gives Follow the Leader no result direction and only the board tag", () => {
+    expect(RESULT_DIRECTION.FOLLOW_THE_LEADER).toBeNull();
+    expect(tagsForGameType("FOLLOW_THE_LEADER")).toEqual(new Set(["board"]));
+  });
+
   it("tagsForGameType unions the tags of every ruleset version", () => {
     expect(tagsForGameType("DOUBLES_TRAINING")).toEqual(
       new Set(["board", "intent-stored", "target-sequence"]),

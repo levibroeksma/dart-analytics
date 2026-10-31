@@ -45,6 +45,7 @@ function applyDuelDart<TSeat extends MarksDuelSeat>(
   };
 }
 
+/** Applies one dart to a seat on its own, with no opponent to score against. */
 function soloDart<TSeat extends MarksDuelSeat>(
   seat: TSeat,
   observation: DartObservation,
@@ -132,7 +133,8 @@ export function foldMarks<TSeat extends MarksDuelSeat>(
  * Whether one more dart by the active seat ends the game: alone, it closes
  * the seat out while every other seat is already complete; in a duel, it
  * leaves the thrower closed out with points at least equal to the
- * opponent's. False once the game has ended.
+ * opponent's. False once the game has ended, or when the active seat is
+ * already closed out.
  */
 export function marksWouldComplete<TSeat extends MarksDuelSeat>(
   state: MarksGameState<TSeat>,
@@ -155,6 +157,7 @@ export function marksWouldComplete<TSeat extends MarksDuelSeat>(
     return next.status === "COMPLETE" && next.points >= opponent.points;
   }
   return (
+    seat.status !== "COMPLETE" &&
     soloDart(seat, observation, rules).status === "COMPLETE" &&
     state.seats.every((other, i) => i === index || other.status === "COMPLETE")
   );
