@@ -17,7 +17,7 @@ updated: 2026-10-31
 
 # Version History
 
-> **Version:** 1.196.0 (2026-10-31 — Duplication backlog Phase 1a, shared play-screen parts: D516 in `decisions/frontend/architecture.md`; `play-screen.data.ts` and `target-practice-play.ts` registered in `00-File-Inventory.md`, `play-lifecycle.ts` gains `resumeVersionedEngine`, `play-bot-seat.ts` gains `botSeatState`, ten visual-board play factory rows reworded; `04-Architecture-patterns.md` Pattern 19 names the parts and spread order; `scripts/dupes-baseline.txt` lowered)
+> **Version:** 1.196.0 (2026-10-31 — Duplication backlog Phase 1a, shared play-screen parts: D516 in `decisions/frontend/architecture.md`; `play-screen.data.ts` and `target-practice-play.ts` registered in `00-File-Inventory.md`, `play-lifecycle.ts` gains `resumeVersionedEngine`, `play-bot-seat.ts` gains `botSeatState`, ten visual-board play factory rows reworded; `04-Architecture-patterns.md` Pattern 17 (now 1.11.28) names the parts and spread order; `scripts/dupes-baseline.txt` lowered)
 
 > **Version:** 1.195.0 (2026-10-30 — Mickey Mouse V1 engine (PR 1, engine-only): D515 in `decisions/game-engine.md`; the Marks kernel gains `MarksRules.dipOf`; `mickey-mouse.engine.module.ts`, `mickey-mouse.validator.ts`, seed `0056` + verification `0056`, `0007` ledger (52 triples) registered in `00-File-Inventory.md`; `04-Architecture-patterns.md` 1.11.27.)
 
@@ -619,6 +619,7 @@ updated: 2026-10-31
 > Earlier `04-Architecture-patterns.md` versions, newest first, moved out of
 > its version line (2026-10-29, #1146). Append new entries at the top of this list.
 
+- 1.11.27 — Pattern 18: Marks kernel gains `dipOf`, a dart's second mark; Mickey Mouse bound 2026-10-30, D515
 - 1.11.26 — Pattern 18: Elimination kernel gains `onVisitClose`, the `shared` slot and `activeOverride`; the game shell gains `visitActions`; Follow the Leader bound 2026-10-30, D509
 - 1.11.25 — version line holds only the current version; earlier versions move to this history 2026-10-29, #1146
 - 1.11.24 — Pattern 18: Marks kernel built, Tactics and Cricket bound through `foldMarks` on the game shell; `MarksEngine` deleted 2026-10-29, D506

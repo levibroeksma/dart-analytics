@@ -7,7 +7,7 @@ updated: 2026-10-31
 
 # Architecture Patterns
 
-> **Version:** 1.11.27 (Pattern 18: Marks kernel gains `dipOf`, a dart's second mark; Mickey Mouse bound 2026-10-30, D515)
+> **Version:** 1.11.28 (Pattern 17: play-screen parts for play-page `*.data.ts` factories 2026-10-31, D516)
 >
 > A bump replaces this line; the outgoing version goes at the top of that history section, never chained here.
 >
@@ -748,6 +748,16 @@ Module (*.module.ts, *.engine.module.ts, *.payload.module.ts)
 - `$persist` only in `*.store.ts`.
 - Modules never import `@client/api` or Alpine.
 - Client recovery never abandons on session mismatch; setup asks the player first (D460, supersedes D88). (2026-10-13)
+- Visual-board play factories compose shared parts from
+  `app/src/lib/game/play-screen.data.ts` instead of re-declaring lifecycle
+  members. Spread order: `playScreenState`, `playAgainStarterData`,
+  `boardPlayActions`, `botVisualBoardData`, `playScreenActions`,
+  `timedPlayData`, then the factory's own members. Later keys override
+  earlier ones. An overridden `init` must call through to the part's `init`,
+  or use `boardPlayActions`'s `afterInit` callback. Parts are plain
+  objects — no getters (a spread would freeze them). The factory-surface
+  snapshot and the page-bindings test guard the Alpine template contract
+  (D516).
 
 ## Rule
 
@@ -939,17 +949,6 @@ VisitPreview.astro
 - `VisitPreview.astro` stays markup-only, reading `previewSegments()` off
   the page's own Alpine scope — it never depends on which classifier the
   page used.
-
-- Visual-board play factories compose shared parts from
-  `app/src/lib/game/play-screen.data.ts` instead of re-declaring lifecycle
-  members. Spread order: `playScreenState`, `playAgainStarterData`,
-  `boardPlayActions`, `botVisualBoardData`, `playScreenActions`,
-  `timedPlayData`, then the factory's own members. Later keys override
-  earlier ones. An overridden `init` must call through to the part's `init`,
-  or use `boardPlayActions`'s `afterInit` callback. Parts are plain
-  objects — no getters (a spread would freeze them). The factory-surface
-  snapshot and the page-bindings test guard the Alpine template contract
-  (D516).
 
 ## Rule
 
