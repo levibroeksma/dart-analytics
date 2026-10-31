@@ -1,20 +1,20 @@
 import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
-import { SegmentTimer } from "@modules/ui/segment-timer.module";
-import { fetchActiveSessions } from "@client/api/sessions";
-import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { boardInputData } from "@lib/game/board-input.data";
+import {
+  playScreenActions,
+  playScreenState,
+  resetTimerStoreFields,
+  timedPlayData,
+} from "@lib/game/play-screen.data";
 import { matchWinnerName } from "@lib/game/match-result-text";
 import {
   armHiddenTimer,
-  playAbandonAndExit,
-  playBack,
   playAnimateBotDarts,
   playFoldBotQuickScoreVisit,
+  playInit,
   playRunBotVisualBoardVisit,
-  playToggleTimerPause,
   playUploadAndCompleteSession,
-  playVisitMarkers,
   resumeGameEngine,
   runPlayAgain,
   isInputBlocked,
@@ -56,7 +56,6 @@ import type {
   TurnFact,
 } from "@modules/types";
 import type {
-  BoardMarker,
   BotDartThrower,
   BotPacing,
   ScoreTrainingPlayContext,
@@ -170,40 +169,21 @@ export function scoreTrainingPlay() {
   let self: ScoreTrainingPlayContext;
 
   return {
-    scoreInput: new ScoreInputBuffer({ maxLength: 3 }),
-    loading: false,
-    error: "",
-    finished: false,
-    hasActiveSession: false,
-    loadingReconciliation: false,
-    reconciliationFailed: false,
-    completionStatus: "pending" as
-      "pending" | "saving" | "succeeded" | "failed",
-    completionError: "",
-    playAgainError: "",
-    playAgainLoading: false,
-    resultsSnapshot: null as ScoreTrainingResultsSnapshot | null,
-    pendingFinishScore: null as number | null,
-    pendingDartObservation: null as DartObservation | null,
-    showFinishConfirm: false,
+    ...playScreenState<ScoreTrainingEngine, ScoreTrainingResultsSnapshot>(),
     ...playAgainStarterData(),
-    botThrowing: false,
-    botFlight: null,
-    engine: null as ScoreTrainingEngine | null,
-    timer: null as SegmentTimer | null,
-    hiddenTurnKey: null as string | null,
-    hiddenTimer: null as ReturnType<typeof setTimeout> | null,
     ...boardInputData(
       (observation) => self.recordDart(observation),
       () => self.$store.game.turns,
     ),
+    ...playScreenActions(),
+    ...timedPlayData(),
 
-    /** Overrides `boardInputData`'s own default — object-literal key order
-     * means this later definition wins. Delegates to `play-lifecycle.ts`'s
-     * shared implementation, mirrors `bobs27-play.data.ts`. */
-    visitMarkers(this: ScoreTrainingPlayContext): BoardMarker[] {
-      return playVisitMarkers(this);
-    },
+    scoreInput: new ScoreInputBuffer({ maxLength: 3 }),
+    pendingFinishScore: null as number | null,
+    pendingDartObservation: null as DartObservation | null,
+    showFinishConfirm: false,
+    botThrowing: false,
+    botFlight: null,
 
     state(this: ScoreTrainingPlayContext): ScoreTrainingState | null {
       const config = this.$store.game.configSnapshot;
@@ -300,64 +280,24 @@ export function scoreTrainingPlay() {
      */
     async init(this: ScoreTrainingPlayContext) {
       self = this;
-      this.loadingReconciliation = true;
-      try {
-        const activeSessions = await fetchActiveSessions();
-        const result = await reconcileActiveSession(
-          GAME_TYPE_KEY,
-          this.$store.game.sessionId,
-          activeSessions,
-          this.$store.game,
-        );
-
-        this.reconciliationFailed = false;
-
-        if (result.action !== "match" || !result.activeSession) {
-          this.hasActiveSession = false;
-          return;
-        }
-
-        this.$store.game.setSessionModes(result.activeSession);
-
-        const config = this.$store.game.configSnapshot;
-        const engine = resumeGameEngine<
-          ScoreTrainingSnapshot,
-          ScoreTrainingEngine
-        >(
-          this.$store.game,
-          RULESET_VERSION_KEY,
-          (candidate): candidate is ScoreTrainingEngine =>
-            candidate instanceof ScoreTrainingEngine,
-        );
-        if (!config || !engine) {
-          this.hasActiveSession = false;
-          return;
-        }
-        this.engine = engine;
-        this.$store.game.recordFacts(engine.facts());
-
-        this.timer = maybeResumeCountdown(this.$store.game, config, engine);
-
-        this.hasActiveSession = true;
-      } catch {
-        this.reconciliationFailed = true;
-        this.hasActiveSession = false;
-      } finally {
-        this.loadingReconciliation = false;
-      }
+      await playInit(
+        this,
+        GAME_TYPE_KEY,
+        (game) =>
+          resumeGameEngine<ScoreTrainingSnapshot, ScoreTrainingEngine>(
+            game,
+            RULESET_VERSION_KEY,
+            (candidate): candidate is ScoreTrainingEngine =>
+              candidate instanceof ScoreTrainingEngine,
+          ),
+        {
+          onResumed: (engine, config) => {
+            this.timer = maybeResumeCountdown(this.$store.game, config, engine);
+          },
+          uploadIfComplete: false,
+        },
+      );
       if (this.hasActiveSession) await this.maybeRunBotVisit();
-    },
-
-    async retryReconciliation(this: ScoreTrainingPlayContext) {
-      await this.init();
-    },
-
-    destroy(this: ScoreTrainingPlayContext) {
-      this.timer?.stop();
-    },
-
-    togglePause(this: ScoreTrainingPlayContext) {
-      playToggleTimerPause(this);
     },
 
     /**
@@ -577,14 +517,6 @@ export function scoreTrainingPlay() {
       return winner ? `${winner} wins — highest total!` : "Game Summary";
     },
 
-    async back(this: ScoreTrainingPlayContext) {
-      return playBack(this);
-    },
-
-    async abandonAndExit(this: ScoreTrainingPlayContext) {
-      return playAbandonAndExit(this, () => this.timer?.stop());
-    },
-
     /**
      * Replays the same configuration template the first session used, with
      * the current duration value as an override. Delegates to
@@ -601,10 +533,7 @@ export function scoreTrainingPlay() {
           wire: { duration_value: config.durationValue },
         }),
         () => {
-          this.$store.game.timerRemainingMs = null;
-          this.$store.game.timerStartedAt = null;
-          this.$store.game.timerExpired = false;
-          this.$store.game.timerPaused = false;
+          resetTimerStoreFields(this);
           this.pendingFinishScore = null;
           this.pendingDartObservation = null;
           this.showFinishConfirm = false;
