@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { ringTapObservation } from "@lib/game/target-practice-play";
-import type { BoardTarget } from "@modules/types";
+import {
+  lastTurnSeatRound,
+  ringTapObservation,
+} from "@lib/game/target-practice-play";
+import type { BoardTarget, TurnFact } from "@modules/types";
 
 const NUMBER_TARGET: BoardTarget = { kind: "NUMBER", number: 7 };
 const BULL_TARGET: BoardTarget = { kind: "BULL" };
@@ -46,5 +49,32 @@ describe("ringTapObservation", () => {
 
   it("a TREBLE tap on the bull stands for no dart", () => {
     expect(ringTapObservation(BULL_TARGET, "TREBLE")).toBeNull();
+  });
+});
+
+describe("lastTurnSeatRound", () => {
+  const turn = (participantRef: string) => ({ participantRef }) as TurnFact;
+
+  it("is 0 before any turn", () => {
+    expect(lastTurnSeatRound([])).toBe(0);
+  });
+
+  it("counts only the last turn's own seat in a solo session", () => {
+    expect(lastTurnSeatRound([turn("a"), turn("a"), turn("a")])).toBe(2);
+  });
+
+  it("ignores the other seat's interleaved turns", () => {
+    expect(
+      lastTurnSeatRound([
+        turn("a"),
+        turn("b"),
+        turn("a"),
+        turn("b"),
+        turn("a"),
+      ]),
+    ).toBe(2);
+    expect(
+      lastTurnSeatRound([turn("a"), turn("b"), turn("a"), turn("b")]),
+    ).toBe(1);
   });
 });

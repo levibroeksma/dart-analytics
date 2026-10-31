@@ -9,7 +9,10 @@ import {
 } from "@lib/game/play-screen.data";
 import { botSeatState, botThrowObservation } from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
-import { ringTapObservation } from "@lib/game/target-practice-play";
+import {
+  lastTurnSeatRound,
+  ringTapObservation,
+} from "@lib/game/target-practice-play";
 import { matchWinnerName } from "@lib/game/match-result-text";
 import {
   playPreviewSegments,
@@ -77,11 +80,7 @@ function previewSegmentsFor(
   hiddenTurnKey: string | null,
   rangeStart: number,
 ): ShanghaiPreviewSegment[] {
-  const lastTurn = turns.at(-1);
-  const seatRoundIndex = lastTurn
-    ? turns.filter((turn) => turn.participantRef === lastTurn.participantRef)
-        .length - 1
-    : 0;
+  const seatRoundIndex = lastTurnSeatRound(turns);
   return playPreviewSegments(turns, hiddenTurnKey, (dart) => {
     const targetNumber = numberAtRound(rangeStart, seatRoundIndex);
     return dart.hitTargetNumber === targetNumber ? "hit" : "miss";

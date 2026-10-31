@@ -1705,3 +1705,23 @@ describe("shanghai recordTap ring mapping", () => {
     });
   });
 });
+
+describe("shanghai previewSegments seat round", () => {
+  it("is three empty segments before any turn", async () => {
+    const play = makePlay();
+    await play.init.call(play);
+    expect(play.$store.game.turns).toEqual([]);
+    expect(play.previewSegments().map((segment) => segment.status)).toEqual([
+      "empty",
+      "empty",
+      "empty",
+    ]);
+  });
+
+  it("marks a dart on the first round's number as a hit", async () => {
+    const play = makePlay();
+    await play.init.call(play);
+    await play.recordTap("SINGLE");
+    expect(play.previewSegments()[0].status).toBe("hit");
+  });
+});

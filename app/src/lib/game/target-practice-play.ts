@@ -1,5 +1,5 @@
 import { BULL_TARGET_NUMBER } from "@modules/game/board-progression.module";
-import type { BoardTarget, DartObservation } from "@modules/types";
+import type { BoardTarget, DartObservation, TurnFact } from "@modules/types";
 
 /** A recreational tap row's ring button. */
 type TapRing = "SINGLE" | "DOUBLE" | "TREBLE" | "MISS";
@@ -38,4 +38,17 @@ export function ringTapObservation(
     locationX: null,
     locationY: null,
   };
+}
+
+/**
+ * The round index of the last turn within its own seat's turns; 0 before any
+ * turn. A 1v1 session interleaves both seats' turns, so `turns.length - 1`
+ * is wrong there.
+ */
+export function lastTurnSeatRound(turns: readonly TurnFact[]): number {
+  const lastTurn = turns.at(-1);
+  return lastTurn
+    ? turns.filter((turn) => turn.participantRef === lastTurn.participantRef)
+        .length - 1
+    : 0;
 }

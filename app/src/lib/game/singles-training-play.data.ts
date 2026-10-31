@@ -9,7 +9,10 @@ import {
 } from "@lib/game/play-screen.data";
 import { botSeatState, botThrowObservation } from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
-import { ringTapObservation } from "@lib/game/target-practice-play";
+import {
+  lastTurnSeatRound,
+  ringTapObservation,
+} from "@lib/game/target-practice-play";
 import { singlesTrainingResultsTitle } from "@lib/game/singles-training-results-title";
 import {
   BULL_TARGET_NUMBER,
@@ -200,11 +203,7 @@ function previewSegmentsFor(
   hiddenTurnKey: string | null,
 ): SinglesPreviewSegment[] {
   if (!config) return [...EMPTY_SEGMENTS];
-  const lastTurn = turns.at(-1);
-  const seatRoundIndex = lastTurn
-    ? turns.filter((turn) => turn.participantRef === lastTurn.participantRef)
-        .length - 1
-    : 0;
+  const seatRoundIndex = lastTurnSeatRound(turns);
   return playPreviewSegments(turns, hiddenTurnKey, (dart) => {
     const target = targetAt(numbersPath(config.targetOrder), seatRoundIndex);
     return trainingPointsFor(target, config, dart) > 0 ? "hit" : "miss";
