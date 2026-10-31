@@ -46,6 +46,14 @@ export const GAME_CARDS: readonly GameCardDescriptor[] = [
     caption: "Close 20 to 15, the bull, doubles and trebles.",
   },
   {
+    rulesetVersionKey: "MICKEY_MOUSE_V1",
+    gameTypeKey: "MICKEY_MOUSE",
+    group: "MATCH_PLAY",
+    href: "/games/mickey-mouse/setup",
+    title: "Mickey Mouse",
+    caption: "Close 20 to 12, doubles, trebles and the bull.",
+  },
+  {
     rulesetVersionKey: "SCORE_TRAINING_V1",
     gameTypeKey: "SCORE_TRAINING",
     group: "TRAINING",

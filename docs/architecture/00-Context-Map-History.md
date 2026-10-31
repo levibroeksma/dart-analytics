@@ -17,7 +17,9 @@ updated: 2026-10-31
 
 # Version History
 
-> **Version:** 1.196.0 (2026-10-31 — Duplication backlog Phase 1a, shared play-screen parts: D516 in `decisions/frontend/architecture.md`; `play-screen.data.ts` and `target-practice-play.ts` registered in `00-File-Inventory.md`, `play-lifecycle.ts` gains `resumeVersionedEngine`, `play-bot-seat.ts` gains `botSeatState`, ten visual-board play factory rows reworded; `04-Architecture-patterns.md` Pattern 17 (now 1.11.28) names the parts and spread order; `scripts/dupes-baseline.txt` lowered)
+> **Version:** 1.197.0 (2026-10-31 — Duplication backlog Phase 1a, shared play-screen parts: D516 in `decisions/frontend/architecture.md`; `play-screen.data.ts` and `target-practice-play.ts` registered in `00-File-Inventory.md`, `play-lifecycle.ts` gains `resumeVersionedEngine`, `play-bot-seat.ts` gains `botSeatState`, ten visual-board play factory rows reworded; `04-Architecture-patterns.md` Pattern 17 (now 1.11.28) names the parts and spread order; `scripts/dupes-baseline.txt` lowered)
+
+> **Version:** 1.196.0 (2026-10-31 — Mickey Mouse V1 screens (PR 2): setup and play pages, `mickeyMouseSetup`/`mickeyMousePlay`, tap input, results and the `/games` card; `mickey-mouse.md` now `Current version: V1`; rows in `00-File-Inventory.md` and `07-Frontend/08-Component-Inventory.md`; no new decision.)
 
 > **Version:** 1.195.0 (2026-10-30 — Mickey Mouse V1 engine (PR 1, engine-only): D515 in `decisions/game-engine.md`; the Marks kernel gains `MarksRules.dipOf`; `mickey-mouse.engine.module.ts`, `mickey-mouse.validator.ts`, seed `0056` + verification `0056`, `0007` ledger (52 triples) registered in `00-File-Inventory.md`; `04-Architecture-patterns.md` 1.11.27.)
 
