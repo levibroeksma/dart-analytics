@@ -257,8 +257,14 @@ function ownSeat(state: TuodState, participantRef: string): TuodSeatState {
   return state.seats.find((seat) => seat.participantRef === participantRef)!;
 }
 
-function matchDecided(state: TuodState): boolean {
-  return state.seats.length > 1 && state.status !== "IN_PROGRESS";
+/**
+ * Whether the session takes no more input: a decided 1v1 match, or a solo
+ * ROUNDS session whose budget is played. A solo MINUTES session never reads
+ * closed here; its timer ends it through `isComplete()`.
+ */
+function inputClosed(state: TuodState, config: Seated<TuodSnapshot>): boolean {
+  if (state.seats.length > 1) return state.status !== "IN_PROGRESS";
+  return durationSeatComplete(config, state.seats[0].attempts, false);
 }
 
 /**
@@ -318,7 +324,7 @@ function tuodVisitRefusal(
   config: Seated<TuodSnapshot>,
   open: TurnFact | null,
 ): string | null {
-  if (matchDecided(state)) return SESSION_COMPLETE;
+  if (inputClosed(state, config)) return SESSION_COMPLETE;
   if (open !== null) return OPEN_VISIT_REFUSAL;
   if (!isTuodSuccess(input)) return null;
   return checkoutDartsRejection(
@@ -335,7 +341,7 @@ function wouldCompleteSession(
   config: Seated<TuodSnapshot>,
   open: TurnFact | null,
 ): boolean {
-  if (matchDecided(state)) return false;
+  if (inputClosed(state, config)) return false;
   const seat = ownSeat(state, state.activeParticipantRef);
   if (isDartObservationInput(input)) {
     const resolved = resolveObservation(input);
@@ -367,7 +373,8 @@ const tuodSpec: DartGameSpec<
   rulesetVersionKey: "TUOD_V1",
   stageOwnership: "PER_SEAT",
   fold: foldTuodState,
-  refusal: (state) => (matchDecided(state) ? SESSION_COMPLETE : null),
+  refusal: (state, config) =>
+    inputClosed(state, config) ? SESSION_COMPLETE : null,
   isVisitOpen: isTuodVisitOpen,
   wouldComplete: wouldCompleteSession,
   closedVisitTotal: settledTotal,
