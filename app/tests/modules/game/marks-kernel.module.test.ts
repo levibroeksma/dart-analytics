@@ -448,6 +448,23 @@ describe("dipOf", () => {
     expect(fold.seats[0].points).toBe(0);
   });
 
+  it("1v1: points come from the hit only, never from a dip's overflow", () => {
+    const scoring: MarksRules<MarksDuelSeat> = {
+      ...dipRules,
+      valueOf: (index) => [20, 19, 10][index],
+    };
+    const fold = foldMarksDuel(
+      [
+        visit("a", [20, "TREBLE"], [20, "TREBLE"], [20, "TREBLE"]),
+        visit("a", [20, "TREBLE"]),
+      ],
+      seats,
+      scoring,
+    );
+    expect(fold.seats[0].marks).toEqual([3, 0, 3]);
+    expect(fold.seats[0].points).toBe(180);
+  });
+
   it("rules without dipOf fold as before", () => {
     const state = foldMarks(factsOf(visit("a", [20, "TREBLE"])), [A], spec);
     expect(state.seats[0].marks).toEqual([3, 0, 0]);

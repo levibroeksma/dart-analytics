@@ -78,7 +78,7 @@ describe("mickeyMouseValidator.validateConfig", () => {
 });
 
 describe("mickeyMouseValidator.validateBatch", () => {
-  it("accepts a short closing visit", () => {
+  it("accepts a full visit followed by a one-dart visit", () => {
     expect(
       validate([[t20, { ...t20, sequence: 2 }, { ...t20, sequence: 3 }], [t20]])
         .valid,

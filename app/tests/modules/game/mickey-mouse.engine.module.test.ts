@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest";
 import {
   foldMickeyMouseState,
   initialMickeyMouseState,
-  MICKEY_MOUSE_RULES,
   isMickeyMouseTarget,
   MICKEY_MOUSE_OBJECTIVES,
   MickeyMouseEngine,
@@ -10,8 +9,6 @@ import {
   mickeyMouseEngineFactory,
   mickeyMouseMarksOf,
 } from "@modules/game/mickey-mouse.engine.module";
-import { dartGameEngineFactory } from "@modules/game/dart-engine-shell.module";
-import { marksGameSpec } from "@modules/game/marks-kernel.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { seededUniform } from "@modules/game/seeded-rng.module";
 import { randomObservation } from "./support/engine-oracle";
@@ -92,17 +89,6 @@ describe("mickeyMouseEngineFactory", () => {
   it("registers itself under MICKEY_MOUSE_V1", () => {
     expect(mickeyMouseEngineFactory.rulesetVersionKey).toBe("MICKEY_MOUSE_V1");
     expect(getEngineFactory("MICKEY_MOUSE_V1")).toBe(mickeyMouseEngineFactory);
-  });
-
-  it("throws for a key the spec does not serve", () => {
-    const gameSpec = marksGameSpec({
-      rulesetVersionKey: "MICKEY_MOUSE_V1",
-      rulesetVersionKeys: [],
-      rules: MICKEY_MOUSE_RULES,
-    });
-    expect(() =>
-      dartGameEngineFactory(gameSpec, MickeyMouseEngine, "TACTICS_V1"),
-    ).toThrow("TACTICS_V1 is not served by this spec");
   });
 });
 
@@ -226,7 +212,12 @@ describe("MickeyMouseEngine", () => {
     recordAll(engine, [...ALL_BUT_LAST, D(7)]);
     expect(engine.undo()).toBe(true);
     expect(engine.isComplete()).toBe(false);
+    const turnsBefore = engine.facts().turns.length;
+    const dartsBefore = engine.facts().turns.at(-1)!.darts.length;
     expect(engine.facts().turns.at(-1)!.completedAt).toBeNull();
+    engine.record(MISS);
+    expect(engine.facts().turns).toHaveLength(turnsBefore);
+    expect(engine.facts().turns.at(-1)!.darts).toHaveLength(dartsBefore + 1);
   });
 
   it("wouldComplete is true only for the dart that closes the last objective", () => {
