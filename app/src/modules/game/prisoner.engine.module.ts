@@ -11,6 +11,7 @@ import {
   prisonerWinner,
   resolveDart,
   resolveVisit,
+  WON_TARGET,
 } from "./prisoner-policy";
 import type { DartGameSpec, EliminationRules } from "./interfaces";
 import type {
@@ -28,7 +29,6 @@ type Config = Seated<PrisonerSnapshot>;
 type Seat = EliminationSeat<PrisonerExt>;
 
 const GAME_ENDED = endedRefusal("game has ended");
-const WON_TARGET = 21;
 
 /** Prisoner V1 as Elimination rules: darts held are lives, every dart resolved in order (`resolveDart`), the budget and skip walk at visit close (`resolveVisit`). */
 function prisonerRules(

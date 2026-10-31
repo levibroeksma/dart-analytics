@@ -6,6 +6,7 @@ import {
   prisonerDartResults,
 } from "@modules/game/prisoner.engine.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
+import { WON_TARGET } from "@modules/game/prisoner-policy";
 import { zoneCentroid } from "@lib/game/board/board-geometry.module";
 import type {
   DartObservation,
@@ -244,7 +245,7 @@ describe("prisoner engine", () => {
       wonBy: "COMPLETED_20",
       dartsLeft: 0,
     });
-    expect(seatOf(won, "p1").target).toBe(21);
+    expect(seatOf(won, "p1").target).toBe(WON_TARGET);
     const last = engine.facts().turns.at(-1);
     expect(last?.darts).toHaveLength(1);
     expect(last?.completedAt).not.toBeNull();

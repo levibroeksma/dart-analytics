@@ -29,7 +29,8 @@ const NO_EFFECT: DartEffect = {
   lodge: null,
 };
 
-const WON_TARGET = 21;
+/** The target a seat reaches on completing 20: it has won. */
+export const WON_TARGET = 21;
 
 /** A seat's extras at the start: target 1, the dart budget, every counter 0. */
 export function initialPrisonerExt(darts: number): PrisonerExt {

@@ -4,6 +4,7 @@ import {
   prisonerWinner,
   resolveDart,
   resolveVisit,
+  WON_TARGET,
 } from "@modules/game/prisoner-policy";
 import type {
   ClosedVisit,
@@ -181,9 +182,10 @@ describe("resolveDart", () => {
     }
   });
 
-  it("completing 20 sets the target to 21", () => {
+  it("completing 20 sets the target to WON_TARGET (21)", () => {
     const out = resolveDart(A({ target: 20 }), shared(), outer(20));
-    expect(out.changes[0].ext?.target).toBe(21);
+    expect(WON_TARGET).toBe(21);
+    expect(out.changes[0].ext?.target).toBe(WON_TARGET);
   });
 
   it("S5: inner then outer of target 5 in one visit nets held 0, target 6", () => {
