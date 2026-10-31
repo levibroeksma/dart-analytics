@@ -98,6 +98,29 @@ function applyChanges<TExt>(
   return { seats: after, newlyOut };
 }
 
+/** The seats and shared after one dart; `reduceDart`, when present, replaces `onDart` and also moves `shared`. */
+function foldDart<TExt, TShared>(
+  state: { seats: EliminationSeat<TExt>[]; shared: TShared },
+  throwerRef: string,
+  dart: DartObservation,
+  rules: EliminationRules<TExt, TShared>,
+): { seats: EliminationSeat<TExt>[]; shared: TShared; newlyOut: string[] } {
+  if (!rules.reduceDart) {
+    const after = applyEliminationDart(state.seats, throwerRef, dart, rules);
+    const newlyOut = after
+      .filter((seat, i) => seat.out && !state.seats[i].out)
+      .map((seat) => seat.participantRef);
+    return { seats: after, shared: state.shared, newlyOut };
+  }
+  const thrower = state.seats.find(
+    (seat) => seat.participantRef === throwerRef,
+  );
+  if (!thrower) throw new Error(`Unknown thrower ${throwerRef}`);
+  const outcome = rules.reduceDart(thrower, state.seats, state.shared, dart);
+  const applied = applyChanges([...state.seats], outcome.changes);
+  return { ...applied, shared: outcome.shared };
+}
+
 /**
  * Folds every dart of every turn, the open one included, into an
  * Elimination match. A visit is open while its turn has no `completedAt`;
@@ -113,16 +136,15 @@ export function foldElimination<TExt, TShared = undefined>(
   const outOrder: string[] = [];
   for (const turn of turns) {
     for (const dart of turn.darts) {
-      const after = applyEliminationDart(
-        seats,
+      const step = foldDart(
+        { seats, shared },
         turn.participantRef,
         dart,
         rules,
       );
-      after.forEach((seat, i) => {
-        if (seat.out && !seats[i].out) outOrder.push(seat.participantRef);
-      });
-      seats = after;
+      outOrder.push(...step.newlyOut);
+      seats = step.seats;
+      shared = step.shared;
     }
     if (turn.completedAt !== null && rules.onVisitClose) {
       const outcome = rules.onVisitClose(
@@ -140,9 +162,11 @@ export function foldElimination<TExt, TShared = undefined>(
       shared = outcome.shared;
     }
   }
-  const winningSideKey = eliminationWinner(
-    seats.map((seat) => ({ sideKey: seat.sideKey, failed: seat.out })),
-  );
+  const winningSideKey =
+    rules.decidedWinner?.(seats, shared) ??
+    eliminationWinner(
+      seats.map((seat) => ({ sideKey: seat.sideKey, failed: seat.out })),
+    );
   return {
     seats,
     shared,

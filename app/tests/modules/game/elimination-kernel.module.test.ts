@@ -11,10 +11,14 @@ import type { SeatFact } from "@lib/types";
 
 type Ext = Record<string, never>;
 
-const rules: EliminationRules<Ext> = {
+const baseRules = {
   startingLives: 2,
-  initExt: () => ({}),
-  onDart: (_thrower, seats, dart) =>
+  initExt: (): Ext => ({}),
+  onDart: (
+    _thrower: unknown,
+    seats: readonly { participantRef: string }[],
+    dart: DartObservation,
+  ) =>
     dart.hitZoneKey === "DOUBLE" && dart.hitTargetNumber !== null
       ? [
           {
@@ -24,6 +28,7 @@ const rules: EliminationRules<Ext> = {
         ]
       : [],
 };
+const rules: EliminationRules<Ext> = baseRules;
 
 const seat = (n: number): SeatFact => ({
   participantRef: `p${n}`,
@@ -163,7 +168,7 @@ const hookRules = (
   override?: EliminationRules<Ext, Shared>["activeOverride"],
   seen: ClosedVisit[] = [],
 ): EliminationRules<Ext, Shared> => ({
-  ...rules,
+  ...baseRules,
   initShared: () => ({ closes: 0 }),
   onVisitClose: (visit, seatList, shared) => {
     seen.push(visit);
@@ -328,5 +333,112 @@ describe("elimination kernel Killer regression", () => {
     const { shared, ...match } = foldElimination(log(), seats2, killerRules);
     expect(shared).toBeUndefined();
     expect(match).toStrictEqual(KILLER_EXPECTED);
+  });
+});
+
+type DartShared = { darts: number; atClose: number | null };
+
+const dartRules = (
+  seen: number[] = [],
+  decided?: EliminationRules<Ext, DartShared>["decidedWinner"],
+): EliminationRules<Ext, DartShared> => ({
+  ...baseRules,
+  initShared: () => ({ darts: 0, atClose: null }),
+  reduceDart: (_thrower, seatList, shared, dart) => {
+    seen.push(shared.darts);
+    const hit = dart.hitZoneKey === "DOUBLE" && dart.hitTargetNumber !== null;
+    return {
+      changes: hit
+        ? [
+            {
+              participantRef:
+                seatList[dart.hitTargetNumber! - 1].participantRef,
+              livesDelta: -1,
+            },
+          ]
+        : [],
+      shared: { ...shared, darts: shared.darts + 1 },
+    };
+  },
+  onVisitClose: (_visit, _seatList, shared) => ({
+    changes: [],
+    shared: { ...shared, atClose: shared.darts },
+  }),
+  decidedWinner: decided,
+});
+
+describe("elimination kernel per-dart hook", () => {
+  it("runs for every dart of every turn, the open one included, threading shared", () => {
+    const seen: number[] = [];
+    const m = foldElimination(
+      [turn("p1", [d(2), miss], true), turn("p2", [miss], false)],
+      seats3,
+      dartRules(seen),
+    );
+    expect(seen).toEqual([0, 1, 2]);
+    expect(m.shared.darts).toBe(3);
+  });
+
+  it("hands the per-dart shared on to onVisitClose", () => {
+    const m = foldElimination(
+      [turn("p1", [miss, miss, miss], true), turn("p2", [miss], false)],
+      seats3,
+      dartRules(),
+    );
+    expect(m.shared).toEqual({ darts: 4, atClose: 3 });
+  });
+
+  it("applies its changes through clamp, out rules and out order", () => {
+    const m = foldElimination(
+      [turn("p1", [d(2), d(2), d(2)], true)],
+      seats3,
+      dartRules(),
+    );
+    expect(m.seats[1]).toMatchObject({ lives: 0, out: true });
+    expect(m.outOrder).toEqual(["p2"]);
+  });
+
+  it("is used in place of onDart when both are present", () => {
+    const m = foldElimination([turn("p1", [d(2)], true)], seats3, {
+      ...dartRules(),
+      onDart: () => [{ participantRef: "p3", livesDelta: -1 }],
+    });
+    expect(m.seats.map((s) => s.lives)).toEqual([2, 1, 2]);
+  });
+});
+
+describe("elimination kernel decided winner", () => {
+  it("a decided side wins with every seat still in", () => {
+    const m = foldElimination(
+      [turn("p1", [miss], true)],
+      seats3,
+      dartRules([], () => "C"),
+    );
+    expect(m.seats.every((s) => !s.out)).toBe(true);
+    expect(m).toMatchObject({ status: "COMPLETE", winningSideKey: "C" });
+  });
+
+  it("null falls back to last seat standing", () => {
+    const open = foldElimination(
+      [],
+      seats3,
+      dartRules([], () => null),
+    );
+    expect(open).toMatchObject({ status: "IN_PROGRESS", winningSideKey: null });
+    const last = foldElimination(
+      [turn("p1", [d(2), d(2)], true)],
+      seats2,
+      dartRules([], () => null),
+    );
+    expect(last).toMatchObject({ status: "COMPLETE", winningSideKey: "A" });
+  });
+
+  it("sees the folded seats and shared", () => {
+    const m = foldElimination(
+      [turn("p1", [miss, miss], true)],
+      seats2,
+      dartRules([], (_seats, shared) => (shared.darts === 2 ? "B" : null)),
+    );
+    expect(m.winningSideKey).toBe("B");
   });
 });
