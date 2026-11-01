@@ -82,7 +82,11 @@ import {
 } from "@modules/game/tuod.engine.module";
 import type { GameEngine, GameEngineFactory } from "@modules/interfaces";
 import { tuodPlay } from "@lib/game/tuod-play.data";
-import { BOT_PACING } from "@lib/game/play-bot-seat";
+import {
+  BOT_PACING,
+  botDartObservationAt,
+  x01BotIntent,
+} from "@lib/game/play-bot-seat";
 import type { TuodPlayContext, TuodSnapshot, Seated } from "@lib/types";
 import type {
   DartFact,
@@ -1069,6 +1073,31 @@ describe("tuodPlay", () => {
       expect(play.$store.game.turns.length).toBe(1);
     });
 
+    it("a MINUTES playAgain stops the old countdown and starts a fresh one", async () => {
+      const play = makePlay({ configSnapshot: minutes(7) });
+      const old = { stop: vi.fn() } as never as SegmentTimer;
+      play.timer = old;
+      segmentTimerInstances.length = 0;
+      vi.mocked(createSession).mockResolvedValue({
+        sessionId: "new-session",
+        participants: [
+          {
+            ref: "new-participant",
+            displayName: "Player",
+            participantTypeKey: "PLAYER",
+          },
+        ],
+      } as Awaited<ReturnType<typeof createSession>>);
+
+      await play.playAgain();
+
+      expect(old.stop).toHaveBeenCalledOnce();
+      expect(segmentTimerInstances).toHaveLength(1);
+      expect(play.timer).toBe(segmentTimerInstances[0]);
+      expect(segmentTimerInstances[0].start).toHaveBeenCalledOnce();
+      expect(play.$store.game.timerRemainingMs).toBe(7 * 60000);
+    });
+
     it("playAgain double-fire while in flight only creates one session", async () => {
       const play = makePlay();
       play.completionStatus = "succeeded";
@@ -1302,6 +1331,17 @@ describe("tuodPlay", () => {
       expect(component.showDoubleConfirm).toBe(false);
       expect(component.scoreInput.value).toBe("41");
       expect(component.dartsToFinish).toBeNull();
+    });
+
+    it("cancelCheckout with no parked total leaves the open dialog and the keypad alone", async () => {
+      const { component } = await playing();
+      component.showDoubleConfirm = true;
+      component.scoreInput.setValue("12");
+
+      component.cancelCheckout.call(component);
+
+      expect(component.showDoubleConfirm).toBe(true);
+      expect(component.scoreInput.value).toBe("12");
     });
 
     it("surfaces the engine's rejection when the dart counts cannot be true", async () => {
@@ -2016,6 +2056,31 @@ describe("tuodPlay — DartBot opponent", () => {
     expect(play.state()!.activeParticipantRef).toBe(HUMAN_REF);
   });
 
+  it("under VISUAL_BOARD, the bot's first dart aims at its own ladder target's checkout", async () => {
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      {
+        ...ACTIVE_SESSION,
+        sessionId: "session-1",
+        captureModeKey: "ANALYTICS",
+        inputModeKey: "VISUAL_BOARD",
+      },
+    ]);
+    const play = makePlay();
+    await play.init.call(play);
+
+    await play.recordAttempt.call(play, { checkedOut: false });
+
+    const first = play.$store.game.turns.find(
+      (turn) => turn.participantRef === BOT_REF,
+    )!.darts[0];
+    const botSeat = seatsWithBot()[1] as never;
+    const intent = x01BotIntent(41, botSeat);
+    expect(intent).not.toEqual({ targetNumber: 20, zoneKey: "TREBLE" });
+    const expected = botDartObservationAt(botSeat, 0, intent);
+    expect(first.locationX).toBe(expected.locationX);
+    expect(first.locationY).toBe(expected.locationY);
+  });
+
   it("under VISUAL_BOARD, the bot's session-ending dart completes the session", async () => {
     vi.mocked(fetchActiveSessions).mockResolvedValue([
       {
@@ -2041,6 +2106,57 @@ describe("tuodPlay — DartBot opponent", () => {
 
     expect(play.finished).toBe(true);
     expect(completeSession).toHaveBeenCalledWith("session-1", "COMPLETED");
+  });
+
+  it("a bot seated first throws the opening visit on init, then hands over", async () => {
+    vi.useFakeTimers();
+    const play = makePlay({
+      configSnapshot: { ...botConfig(), seats: [...seatsWithBot()].reverse() },
+    });
+    const started = play.init.call(play);
+    await vi.runAllTimersAsync();
+    await started;
+    vi.useRealTimers();
+
+    expect(
+      play.$store.game.turns.filter((turn) => turn.participantRef === BOT_REF),
+    ).toHaveLength(1);
+    expect(play.state()!.activeParticipantRef).toBe(HUMAN_REF);
+  });
+
+  it("after init, a board tap records through the live component's recordDart", async () => {
+    const play = makePlay();
+    await play.init.call(play);
+    const recordDart = vi
+      .spyOn(play, "recordDart")
+      .mockResolvedValue(undefined);
+    const point = {
+      x: 0,
+      y: 0,
+      matrixTransform: () => ({ x: point.x, y: point.y }),
+    };
+    const matrix = { inverse: () => matrix };
+    Object.assign(play, {
+      $refs: {
+        board: { createSVGPoint: () => point, getScreenCTM: () => matrix },
+      },
+    });
+    Object.assign(play.$store, { boardInput: { handedness: "RIGHT" } });
+
+    const taps = play as unknown as {
+      onPointerDown(event: never): void;
+      onPointerUp(): void;
+    };
+    taps.onPointerDown({
+      clientX: 0,
+      clientY: -102,
+      preventDefault: vi.fn(),
+    } as never);
+    taps.onPointerUp();
+
+    expect(recordDart).toHaveBeenCalledOnce();
+    expect(recordDart.mock.calls[0][0].hitZoneKey).toBe("TREBLE");
+    expect(recordDart.mock.contexts[0]).toBe(play);
   });
 
   it("clears the loading state before the bot opens the match", async () => {
@@ -2074,6 +2190,22 @@ describe("tuodPlay — DartBot opponent", () => {
     );
     expect(botTurn).toBeDefined();
     expect(botTurn!.darts).toEqual([]);
+  });
+
+  it("under QUICK_SCORE, a bot visit cut short mid-flight records nothing", async () => {
+    vi.useFakeTimers();
+    const play = makePlay();
+    await play.init.call(play);
+    const visit = play.recordAttempt.call(play, { checkedOut: false });
+    play.finished = true;
+    await vi.runAllTimersAsync();
+    await visit;
+    vi.useRealTimers();
+
+    expect(
+      play.$store.game.turns.filter((turn) => turn.participantRef === BOT_REF),
+    ).toHaveLength(0);
+    expect(play.botFlight).toBeNull();
   });
 
   it("under QUICK_SCORE, each bot attempt draws fresh dart indices", async () => {
@@ -2265,5 +2397,52 @@ describe("tuodPlay bot flight", () => {
     expect(play.starterOpen).toBe(false);
     expect(play.playAgainStarter).toBeNull();
     expect(typeof play.requestPlayAgain).toBe("function");
+  });
+});
+
+describe("tuodPlay shared play-screen parts", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    segmentTimerInstances.length = 0;
+    vi.mocked(fetchActiveSessions).mockResolvedValue([{ ...ACTIVE_SESSION }]);
+  });
+
+  it("init resumes a running MINUTES countdown from its stored remaining time", async () => {
+    segmentTimerInstances.length = 0;
+    const store = gameStub({
+      configSnapshot: minutes(15),
+      timerRemainingMs: 120000,
+    });
+    const component = {
+      ...tuodPlay(),
+      $store: { game: store, settings: settingsStub() },
+    };
+    await component.init.call(component);
+
+    expect(component.hasActiveSession).toBe(true);
+    expect(segmentTimerInstances).toHaveLength(1);
+    expect(component.timer).toBe(segmentTimerInstances[0]);
+    expect(segmentTimerInstances[0].options.totalMinutes).toBe(2);
+    expect(store.timerRemainingMs).toBe(120000);
+  });
+
+  it("init resumes an already-expired MINUTES session with an expired engine and no timer", async () => {
+    const store = gameStub({
+      configSnapshot: minutes(15),
+      timerRemainingMs: 0,
+      timerExpired: true,
+    });
+    const component = {
+      ...tuodPlay(),
+      $store: { game: store, settings: settingsStub() },
+    };
+    await component.init.call(component);
+
+    expect(component.hasActiveSession).toBe(true);
+    expect(component.timer).toBeNull();
+    expect(segmentTimerInstances).toHaveLength(0);
+    expect(component.engine?.state().timerExpired).toBe(true);
+    expect(component.finished).toBe(false);
+    expect(completeSession).not.toHaveBeenCalled();
   });
 });

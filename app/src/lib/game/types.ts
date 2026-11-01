@@ -300,7 +300,7 @@ export type ExpirableEngine = { expireTimer(): void };
 /** The config fields the MINUTES branch reads. */
 export type CountdownConfig = {
   durationType: string;
-  durationValue: number;
+  durationValue: number | null;
 };
 
 /**
@@ -393,6 +393,18 @@ export type PlayLifecycleContext<
 export type PlayAgainOverrides<TConfig> = {
   snapshot: TConfig;
   wire: Record<string, unknown>;
+};
+
+/**
+ * `playInit`'s options. `onResumed` runs once a matched session's engine is
+ * rebuilt and its facts mirrored, before `hasActiveSession` turns true (e.g.
+ * to resume a countdown). `uploadIfComplete` (default `true`) controls
+ * whether an engine that resumes already complete is finished and uploaded
+ * straight away.
+ */
+export type PlayInitOptions<TConfig, TEngine> = {
+  onResumed?: (engine: TEngine, config: Seated<TConfig>) => void;
+  uploadIfComplete?: boolean;
 };
 
 /** One seat's own results stats, replayed from its own completed visits in

@@ -11,6 +11,8 @@ import {
 } from "@lib/game/play-lifecycle";
 import {
   duelWinningSideKey,
+  marksNumberTargets,
+  marksObjectiveLabel,
   marksPlayAccessors,
   marksPreviewSegments,
   recordMarksMiss,
@@ -19,11 +21,7 @@ import {
   toggleMarksRing,
 } from "@lib/game/marks-play.data";
 import type { RulesetVersionKey } from "@lib/types";
-import type {
-  TacticsObjective,
-  TacticsSeatState,
-  TacticsState,
-} from "@modules/types";
+import type { TacticsSeatState, TacticsState } from "@modules/types";
 import type {
   Bobs27PreviewSegment,
   TacticsPlayContext,
@@ -48,15 +46,8 @@ import { marksPerRound } from "@modules/game/marks-close.module";
 const GAME_TYPE_KEY = "TACTICS";
 const RESUMABLE = new Set<RulesetVersionKey>(["TACTICS_V1", "TACTICS_V2"]);
 
-function objectiveLabel(objective: TacticsObjective): string {
-  if (objective === "DOUBLES") return "Doubles";
-  if (objective === "TRIPLES") return "Triples";
-  return objective === BULL_TARGET_NUMBER ? "Bull" : String(objective);
-}
-
-const NUMBER_TARGETS: TacticsTapTarget[] = TACTICS_OBJECTIVES.filter(
-  (objective): objective is number => typeof objective === "number",
-).map((number) => ({ number, label: objectiveLabel(number) }));
+const NUMBER_TARGETS: TacticsTapTarget[] =
+  marksNumberTargets(TACTICS_OBJECTIVES);
 
 const LOW_TARGETS: TacticsTapTarget[] = Array.from({ length: 14 }, (_, i) => ({
   number: 14 - i,
@@ -112,7 +103,7 @@ export function tacticsPlay() {
       );
     },
 
-    ...marksPlayAccessors(TACTICS_OBJECTIVES, objectiveLabel),
+    ...marksPlayAccessors(TACTICS_OBJECTIVES, marksObjectiveLabel),
 
     previewSegments(this: TacticsPlayContext): Bobs27PreviewSegment[] {
       return marksPreviewSegments(

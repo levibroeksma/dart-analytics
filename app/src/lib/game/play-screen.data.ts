@@ -1,8 +1,17 @@
 import { boardInputData } from "@lib/game/board-input.data";
-import { findBotSeat } from "@lib/game/play-bot-seat";
+import {
+  botDartObservationAt,
+  botThrowObservation,
+  findBotSeat,
+  x01BotIntent,
+} from "@lib/game/play-bot-seat";
+import { playAgainStarterData } from "@lib/game/play-again-starter";
+import { maybeResumeCountdown } from "@lib/game/play-countdown";
+import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import {
   playAbandonAndExit,
   playBack,
+  playBotQuickScoreVisit,
   playCommitDart,
   playInit,
   playRetryReconciliation,
@@ -10,16 +19,25 @@ import {
   playToggleTimerPause,
   playUndoVisit,
   playVisitMarkers,
-  undoToActiveSeat,
+  undoPastBot,
 } from "@lib/game/play-lifecycle";
-import type { DartbotSeat } from "@lib/types";
-import type { GameEngine } from "@modules/interfaces";
-import type { DartObservation, MultiSeatState } from "@modules/types";
+import type { DartbotSeat, Seated } from "@lib/types";
+import type { GameEngine, GameEngineFactory } from "@modules/interfaces";
+import type {
+  CheckoutDartOptions,
+  DartCount,
+  DartObservation,
+  EngineFacts,
+  MultiSeatState,
+  TurnFact,
+} from "@modules/types";
 import type { SegmentTimer } from "@modules/ui/segment-timer.module";
 import type {
   BoardMarker,
   BotDartThrower,
   BotFlight,
+  CountdownConfig,
+  ExpirableEngine,
   PlayLifecycleContext,
   PlayStoreContext,
 } from "./types";
@@ -46,6 +64,40 @@ type BoardPlayContext<
   recordDart(observation: DartObservation): Promise<void>;
   commitDart(observation: DartObservation): Promise<void>;
   maybeRunBotVisit?(): Promise<void>;
+};
+
+const X01_DARTS_PER_VISIT = 3;
+
+type CheckoutConfirmContext = {
+  error: string;
+  pendingCheckoutScore: number | null;
+  dartsAtDouble: DartCount | null;
+  dartsToFinish: DartCount | null;
+  showDoubleConfirm: boolean;
+  scoreInput: { clear(): void; setValue(value: string): void };
+  checkoutDartOptions(): CheckoutDartOptions;
+};
+
+type CheckoutVisitContext = Omit<
+  CheckoutConfirmContext,
+  "showDoubleConfirm" | "checkoutDartOptions"
+> & {
+  loading: boolean;
+  finished: boolean;
+  completionStatus: string;
+  engine: {
+    record(input: {
+      scoreAttempted: number;
+      finishedOnDouble: boolean;
+      dartsUsed?: DartCount;
+      dartsAtDouble?: DartCount;
+    }): unknown;
+    isComplete(): boolean;
+    facts(): EngineFacts;
+  } | null;
+  $store: { game: { recordFacts(facts: EngineFacts): void } };
+  uploadAndCompleteSession(): Promise<void>;
+  maybeRunBotVisit(): Promise<void>;
 };
 
 type TimerStoreContext = {
@@ -107,6 +159,30 @@ export function playScreenActions() {
 }
 
 /**
+ * Board input that commits each tap to the bound page's `recordDart`. The
+ * page's `init` calls `bind(this)`: the board's callback is built before
+ * Alpine wraps the factory's object, so only the `this` Alpine passes to
+ * `init` is the live, reactive component.
+ */
+export function boundBoardInput<
+  TContext extends {
+    recordDart(observation: DartObservation): void | Promise<void>;
+    $store: { game: { turns: TurnFact[] } };
+  },
+>() {
+  let self: TContext;
+  return {
+    data: boardInputData(
+      (observation) => self.recordDart(observation),
+      () => self.$store.game.turns,
+    ),
+    bind(context: TContext) {
+      self = context;
+    },
+  };
+}
+
+/**
  * The visual-board record cycle: board input wired to `recordDart`, plus
  * `init`, `recordDart`, `commitDart`, `undoVisit` and the lifecycle's
  * `visitMarkers`. Each step re-enters `maybeRunBotVisit` when the page has
@@ -123,16 +199,13 @@ export function boardPlayActions<
   resume: (game: PlayStoreContext<TConfig>["game"]) => TEngine | null;
   afterInit?(context: BoardPlayContext<TConfig, TEngine>): void | Promise<void>;
 }) {
-  let self: BoardPlayContext<TConfig, TEngine>;
+  const board = boundBoardInput<BoardPlayContext<TConfig, TEngine>>();
 
   return {
-    ...boardInputData(
-      (observation) => self.recordDart(observation),
-      () => self.$store.game.turns,
-    ),
+    ...board.data,
 
     async init(this: BoardPlayContext<TConfig, TEngine>) {
-      self = this;
+      board.bind(this);
       await playInit(this, spec.gameTypeKey, spec.resume);
       await spec.afterInit?.(this);
       await this.maybeRunBotVisit?.();
@@ -159,15 +232,7 @@ export function boardPlayActions<
         playUndoVisit(this);
         return;
       }
-      const seats = this.$store.game.seats;
-      if (findBotSeat(seats)) {
-        const humanSeat = seats.find(
-          (seat) => seat.participantTypeKey === "PLAYER",
-        )!;
-        undoToActiveSeat(this, humanSeat.participantRef);
-      } else {
-        playUndoVisit(this);
-      }
+      if (!undoPastBot(this)) playUndoVisit(this);
       await this.maybeRunBotVisit();
     },
 
@@ -224,6 +289,21 @@ export function timedPlayData() {
 }
 
 /**
+ * A timed keypad page's shared screen: lifecycle state and actions, the
+ * replay starter, the countdown and a three-digit keypad buffer. Spread
+ * after the board input, so the lifecycle's `visitMarkers` wins.
+ */
+export function timedScoreScreenData<TEngine, TResults>() {
+  return {
+    ...playScreenState<TEngine, TResults>(),
+    ...playAgainStarterData(),
+    ...playScreenActions(),
+    ...timedPlayData(),
+    scoreInput: new ScoreInputBuffer({ maxLength: 3 }),
+  };
+}
+
+/**
  * `read` for the seat whose turn it is, or `fallback` before the engine state
  * exists. Pairs each per-seat `xFor(seatRef)` with its active-seat `x()`.
  */
@@ -254,12 +334,251 @@ export function activeSeatStateOf<TSeat extends { participantRef: string }>(
   return state ? seatStateFor(state, state.activeParticipantRef) : undefined;
 }
 
-/** Stops and drops the countdown and clears the store's timer fields before a replay. */
-export function resetTimerForPlayAgain(context: TimerStoreContext): void {
-  context.timer?.stop();
-  context.timer = null;
+/** Clears the store's countdown fields; the page's own timer object is left as is. */
+export function resetTimerStoreFields(
+  context: Pick<TimerStoreContext, "$store">,
+): void {
   context.$store.game.timerRemainingMs = null;
   context.$store.game.timerStartedAt = null;
   context.$store.game.timerExpired = false;
   context.$store.game.timerPaused = false;
+}
+
+/** Stops and drops the countdown and clears the store's timer fields before a replay. */
+export function resetTimerForPlayAgain(context: TimerStoreContext): void {
+  context.timer?.stop();
+  context.timer = null;
+  resetTimerStoreFields(context);
+}
+
+/** The checkout confirm's dart counts, undefined while unanswered. */
+export function checkoutDartCounts(
+  context: Pick<CheckoutConfirmContext, "dartsAtDouble" | "dartsToFinish">,
+): { dartsUsed: DartCount | undefined; dartsAtDouble: DartCount | undefined } {
+  return {
+    dartsUsed: context.dartsToFinish ?? undefined,
+    dartsAtDouble: context.dartsAtDouble ?? undefined,
+  };
+}
+
+/** Parks `score` behind the double-out confirm, preselecting the first dart-count options. */
+export function openCheckoutConfirm(
+  context: CheckoutConfirmContext,
+  score: number,
+): void {
+  context.error = "";
+  context.pendingCheckoutScore = score;
+  context.scoreInput.clear();
+  const options = context.checkoutDartOptions();
+  context.dartsAtDouble = options.atDouble[0];
+  context.dartsToFinish = options.toFinish[0];
+  context.showDoubleConfirm = true;
+}
+
+/**
+ * Returns the parked checkout score to the keypad and clears the confirm's
+ * fields; false, changing nothing, when no score is parked.
+ */
+export function restoreCheckoutScore(
+  context: Omit<
+    CheckoutConfirmContext,
+    "error" | "showDoubleConfirm" | "checkoutDartOptions"
+  >,
+): boolean {
+  if (context.pendingCheckoutScore == null) return false;
+  context.scoreInput.setValue(String(context.pendingCheckoutScore));
+  context.pendingCheckoutScore = null;
+  context.dartsAtDouble = null;
+  context.dartsToFinish = null;
+  return true;
+}
+
+/**
+ * Records one x01 visit total, with the confirm's dart counts on a
+ * double-out, mirrors the facts, then finishes and uploads a completing
+ * visit or hands over to the bot. An engine rejection surfaces as `error`.
+ */
+export async function recordCheckoutVisit(
+  context: CheckoutVisitContext,
+  score: number,
+  finishedOnDouble: boolean,
+): Promise<void> {
+  const engine = context.engine;
+  if (!engine) return;
+  const darts = finishedOnDouble ? checkoutDartCounts(context) : {};
+  try {
+    engine.record({ scoreAttempted: score, finishedOnDouble, ...darts });
+  } catch (err: unknown) {
+    context.error = (err as Error).message;
+    context.loading = false;
+    return;
+  }
+  context.error = "";
+  context.scoreInput.clear();
+  context.dartsAtDouble = null;
+  context.dartsToFinish = null;
+  context.$store.game.recordFacts(engine.facts());
+  context.loading = false;
+
+  if (engine.isComplete()) {
+    context.finished = true;
+    context.completionStatus = "pending";
+    await context.uploadAndCompleteSession();
+    return;
+  }
+  await context.maybeRunBotVisit();
+}
+
+/**
+ * "Yes" on the double-out confirm: records the parked score as a double-out,
+ * or, when that would end the session, closes this confirm and calls
+ * `deferToFinishConfirm` with the score still parked for the second dialog.
+ */
+export async function confirmCheckout(
+  context: Pick<
+    CheckoutConfirmContext,
+    | "pendingCheckoutScore"
+    | "dartsAtDouble"
+    | "dartsToFinish"
+    | "showDoubleConfirm"
+  > & {
+    finished: boolean;
+    engine: {
+      wouldComplete(input: {
+        scoreAttempted: number;
+        finishedOnDouble: boolean;
+        dartsUsed?: DartCount;
+        dartsAtDouble?: DartCount;
+      }): boolean;
+    } | null;
+    recordVisit(score: number, finishedOnDouble: boolean): Promise<void>;
+  },
+  deferToFinishConfirm: () => void,
+): Promise<void> {
+  if (!context.engine || context.finished || !context.showDoubleConfirm) return;
+  if (context.pendingCheckoutScore == null) return;
+  const score = context.pendingCheckoutScore;
+
+  if (
+    context.engine.wouldComplete({
+      scoreAttempted: score,
+      finishedOnDouble: true,
+      ...checkoutDartCounts(context),
+    })
+  ) {
+    context.showDoubleConfirm = false;
+    deferToFinishConfirm();
+    return;
+  }
+
+  context.pendingCheckoutScore = null;
+  context.showDoubleConfirm = false;
+  await context.recordVisit(score, true);
+}
+
+/**
+ * A seated DartBot's x01 visit, each dart aimed at its remaining score: under
+ * QUICK_SCORE folded on a scratch engine (`scratchRemaining` reads it) and
+ * recorded as one total, a double-out when it hits the live `remainingFor`
+ * exactly; otherwise thrown dart by dart on the visual board.
+ */
+export async function playX01BotVisit<
+  TConfig,
+  TEngine extends GameEngine<DartObservation, MultiSeatState>,
+  TResults,
+  TInput,
+  TState,
+>(
+  context: PlayLifecycleContext<TConfig, TEngine, TResults> & {
+    botThrowing: boolean;
+    botFlight?: BotFlight | null;
+    recordVisit(score: number, finishedOnDouble: boolean): Promise<void>;
+  },
+  botSeat: DartbotSeat,
+  spec: {
+    factory: GameEngineFactory<NoInfer<Seated<TConfig>>, TInput, TState>;
+    remainingFor(seatRef: string): number;
+    scratchRemaining(state: TState, seatRef: string): number;
+  },
+): Promise<void> {
+  const botRef = botSeat.participantRef;
+  if (context.$store.game.inputModeKey === "QUICK_SCORE") {
+    const remainingBefore = spec.remainingFor(botRef);
+    const total = await playBotQuickScoreVisit(
+      context,
+      botSeat,
+      spec.factory,
+      (state, dartIndex) =>
+        botDartObservationAt(
+          botSeat,
+          dartIndex,
+          x01BotIntent(spec.scratchRemaining(state, botRef), botSeat),
+        ),
+      X01_DARTS_PER_VISIT,
+    );
+    if (total === null) return;
+    await context.recordVisit(total, total === remainingBefore);
+    return;
+  }
+
+  await playRunBotVisualBoardVisit(context, botRef, () =>
+    botThrowObservation(
+      botSeat,
+      context.$store.game.turns,
+      x01BotIntent(spec.remainingFor(botRef), botSeat),
+    ),
+  );
+}
+
+/**
+ * A MINUTES-capable page's `init`: `playInit` with no complete-engine upload,
+ * the countdown resumed from `countdownConfigOf(config)` on a matched
+ * session, then the bot's visit once a session is active.
+ */
+export async function playTimedInit<
+  TConfig,
+  TEngine extends GameEngine<DartObservation, unknown> & ExpirableEngine,
+  TResults,
+>(
+  context: PlayLifecycleContext<TConfig, TEngine, TResults> & {
+    timer: SegmentTimer | null;
+    maybeRunBotVisit(): Promise<void>;
+  },
+  gameTypeKey: string,
+  resume: (game: PlayStoreContext<TConfig>["game"]) => TEngine | null,
+  countdownConfigOf: (config: Seated<TConfig>) => CountdownConfig,
+): Promise<void> {
+  await playInit(context, gameTypeKey, resume, {
+    onResumed: (engine, config) => {
+      context.timer = maybeResumeCountdown(
+        context.$store.game,
+        countdownConfigOf(config),
+        engine,
+      );
+    },
+    uploadIfComplete: false,
+  });
+  if (context.hasActiveSession) await context.maybeRunBotVisit();
+}
+
+/** A bot's visual-board visit whose session-ending dart waits on the engine's `wouldComplete`. */
+export function playRunGatedBotVisit<
+  TConfig,
+  TEngine extends GameEngine<DartObservation, MultiSeatState>,
+  TResults,
+>(
+  context: PlayLifecycleContext<TConfig, TEngine, TResults> & {
+    botThrowing: boolean;
+    botFlight?: BotFlight | null;
+  },
+  botSeat: DartbotSeat,
+  thrower: BotDartThrower,
+): Promise<void> {
+  return playRunBotVisualBoardVisit(
+    context,
+    botSeat.participantRef,
+    thrower,
+    undefined,
+    (observation) => context.engine!.wouldComplete(observation),
+  );
 }

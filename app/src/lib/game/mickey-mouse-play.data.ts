@@ -1,19 +1,17 @@
 import { playAgainStarterData } from "@lib/game/play-again-starter";
-import { BULL_TARGET_NUMBER } from "@modules/game/board-progression.module";
-import { boardInputData } from "@lib/game/board-input.data";
 import {
-  playAbandonAndExit,
-  playBack,
-  playCommitDart,
-  playInit,
-  playRetryReconciliation,
-  playUndoVisit,
   playUploadAndCompleteSession,
-  playVisitMarkers,
   runPlayAgain,
 } from "@lib/game/play-lifecycle";
 import {
+  boardPlayActions,
+  playScreenActions,
+  playScreenState,
+} from "@lib/game/play-screen.data";
+import {
   duelWinningSideKey,
+  marksNumberTargets,
+  marksObjectiveLabel,
   marksPlayAccessors,
   marksPreviewSegments,
   recordMarksMiss,
@@ -22,14 +20,8 @@ import {
   toggleMarksRing,
 } from "@lib/game/marks-play.data";
 import type { RulesetVersionKey } from "@lib/types";
+import type { MickeyMouseSeatState, MickeyMouseState } from "@modules/types";
 import type {
-  DartObservation,
-  MickeyMouseObjective,
-  MickeyMouseSeatState,
-  MickeyMouseState,
-} from "@modules/types";
-import type {
-  BoardMarker,
   Bobs27PreviewSegment,
   MickeyMousePlayContext,
   MickeyMouseResultsSnapshot,
@@ -52,15 +44,9 @@ import {
 const GAME_TYPE_KEY = "MICKEY_MOUSE";
 const RESUMABLE = new Set<RulesetVersionKey>(["MICKEY_MOUSE_V1"]);
 
-function objectiveLabel(objective: MickeyMouseObjective): string {
-  if (objective === "DOUBLES") return "Doubles";
-  if (objective === "TRIPLES") return "Triples";
-  return objective === BULL_TARGET_NUMBER ? "Bull" : String(objective);
-}
-
-const NUMBER_TARGETS: MickeyMouseTapTarget[] = MICKEY_MOUSE_OBJECTIVES.filter(
-  (objective): objective is number => typeof objective === "number",
-).map((number) => ({ number, label: objectiveLabel(number) }));
+const NUMBER_TARGETS: MickeyMouseTapTarget[] = marksNumberTargets(
+  MICKEY_MOUSE_OBJECTIVES,
+);
 
 const LOW_TARGETS: MickeyMouseTapTarget[] = Array.from(
   { length: 11 },
@@ -98,36 +84,13 @@ function resumeEngine(
   );
 }
 
-/**
- * `self` exists only so `boardInputData`'s `onCommit` callback can reach this
- * page's own `recordDart` with the live, reactive `this` — see
- * `five-oh-one-play.data.ts`'s identical comment for the full reasoning.
- */
 export function mickeyMousePlay() {
-  let self: MickeyMousePlayContext;
-
   return {
-    loading: false,
-    error: "",
-    finished: false,
-    hasActiveSession: false,
-    loadingReconciliation: false,
-    reconciliationFailed: false,
-    completionStatus: "pending" as
-      "pending" | "saving" | "succeeded" | "failed",
-    completionError: "",
-    playAgainError: "",
-    playAgainLoading: false,
+    ...playScreenState<MickeyMouseEngine, MickeyMouseResultsSnapshot>(),
     ...playAgainStarterData(),
-    resultsSnapshot: null as MickeyMouseResultsSnapshot | null,
-    hiddenTurnKey: null as string | null,
-    hiddenTimer: null as ReturnType<typeof setTimeout> | null,
-    engine: null as MickeyMouseEngine | null,
+    ...boardPlayActions({ gameTypeKey: GAME_TYPE_KEY, resume: resumeEngine }),
+    ...playScreenActions(),
     ring: "SINGLE" as MickeyMouseRing,
-    ...boardInputData(
-      (observation) => self.recordDart(observation),
-      () => self.$store.game.turns,
-    ),
 
     state(this: MickeyMousePlayContext): MickeyMouseState | null {
       const config = this.$store.game.configSnapshot;
@@ -138,7 +101,7 @@ export function mickeyMousePlay() {
       );
     },
 
-    ...marksPlayAccessors(MICKEY_MOUSE_OBJECTIVES, objectiveLabel),
+    ...marksPlayAccessors(MICKEY_MOUSE_OBJECTIVES, marksObjectiveLabel),
 
     previewSegments(this: MickeyMousePlayContext): Bobs27PreviewSegment[] {
       return marksPreviewSegments(
@@ -146,22 +109,6 @@ export function mickeyMousePlay() {
         this.hiddenTurnKey,
         isMickeyMouseTarget,
       );
-    },
-
-    /** Overrides `boardInputData`'s own `visitMarkers` — object-literal key
-     * order means this later definition wins, so the shared module needs no
-     * change. Delegates to `play-lifecycle.ts`'s shared implementation. */
-    visitMarkers(this: MickeyMousePlayContext): BoardMarker[] {
-      return playVisitMarkers(this);
-    },
-
-    async init(this: MickeyMousePlayContext) {
-      self = this;
-      await playInit(this, GAME_TYPE_KEY, resumeEngine);
-    },
-
-    retryReconciliation(this: MickeyMousePlayContext) {
-      return playRetryReconciliation(this);
     },
 
     /** Tapping the selected ring again returns to SINGLE. */
@@ -189,35 +136,8 @@ export function mickeyMousePlay() {
       await recordMarksMiss(this);
     },
 
-    async recordDart(
-      this: MickeyMousePlayContext,
-      observation: DartObservation,
-    ) {
-      if (!this.engine || this.finished) return;
-      await this.commitDart(observation);
-    },
-
-    async commitDart(
-      this: MickeyMousePlayContext,
-      observation: DartObservation,
-    ) {
-      await playCommitDart(this, observation);
-    },
-
-    async undoVisit(this: MickeyMousePlayContext) {
-      playUndoVisit(this);
-    },
-
     uploadAndCompleteSession(this: MickeyMousePlayContext): Promise<void> {
       return playUploadAndCompleteSession(this, computeStats);
-    },
-
-    back(this: MickeyMousePlayContext) {
-      return playBack(this);
-    },
-
-    abandonAndExit(this: MickeyMousePlayContext) {
-      return playAbandonAndExit(this);
     },
 
     /**

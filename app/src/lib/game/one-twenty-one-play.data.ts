@@ -1,41 +1,31 @@
-import {
-  BOT_PACING,
-  botDartIndex,
-  botQuickScoreDartIndex,
-  findBotSeat,
-} from "@lib/game/play-bot-seat";
-import { playAgainStarterData } from "@lib/game/play-again-starter";
-import { ScoreInputBuffer } from "@modules/game/score-input.module";
+import { activeBotTurn } from "@lib/game/play-bot-seat";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { foldOneTwentyOneState } from "@modules/game/one-twenty-one.engine.module";
-import type { SegmentTimer } from "@modules/ui/segment-timer.module";
 import {
   checkoutPathFor,
   checkoutPathWithin,
 } from "@modules/game/checkout-path.module";
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
-import { formatRemaining, startCountdown } from "@lib/game/play-countdown";
-import { boardInputData } from "@lib/game/board-input.data";
-import { fetchActiveSessions } from "@client/api/sessions";
-import { reconcileActiveSession } from "@lib/game/session-recovery";
+import { formatRemaining, restartCountdown } from "@lib/game/play-countdown";
 import {
-  playAbandonAndExit,
-  playBack,
+  boundBoardInput,
+  confirmCheckout,
+  openCheckoutConfirm,
+  playTimedInit,
+  playX01BotVisit,
+  recordCheckoutVisit,
+  resetTimerStoreFields,
+  restoreCheckoutScore,
+  seatStateFor,
+  timedScoreScreenData,
+} from "@lib/game/play-screen.data";
+import {
   playCommitDart,
-  playAnimateBotDarts,
-  playFoldBotQuickScoreVisit,
-  playRunBotVisualBoardVisit,
-  playToggleTimerPause,
   playUploadAndCompleteSession,
-  playVisitMarkers,
   runPlayAgain,
   isInputBlocked,
   undoBotAwareVisit,
 } from "@lib/game/play-lifecycle";
-import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
-import { createDartRng } from "@modules/dartbot/rng.module";
-import { throwDart as botThrowDart } from "@modules/dartbot/throw-engine.module";
-import { chooseTarget } from "@modules/dartbot/strategy/x01.strategy.module";
 import {
   checkoutPercentageDisplay,
   dartsLeftForSeat,
@@ -44,7 +34,7 @@ import { joinSubtitle } from "@lib/game/play-subtitle";
 import { classifyDoubleAttempts } from "@modules/game/double-attempt.module";
 import { oneTwentyOneCheckoutVisits } from "@modules/game/checkout-visits.module";
 import { matchWinnerName } from "@lib/game/match-result-text";
-import type { DartbotSeat, RulesetVersionKey } from "@lib/types";
+import type { RulesetVersionKey } from "@lib/types";
 import type {
   CheckoutDartOptions,
   DartCount,
@@ -55,9 +45,7 @@ import type {
   TurnFact,
 } from "@modules/types";
 import type {
-  BoardMarker,
-  BotDartThrower,
-  BotPacing,
+  CountdownConfig,
   OneTwentyOneDurationType,
   OneTwentyOnePlayContext,
   OneTwentyOneResultsSnapshot,
@@ -78,56 +66,6 @@ const DARTS_PER_VISIT = 3;
 
 /** Three visits make one 121 attempt, so an attempt is nine darts. */
 const DARTS_PER_ATTEMPT = 3 * DARTS_PER_VISIT;
-
-function throwOneDart(
-  remaining: number,
-  botSeat: DartbotSeat,
-  dartIndex: number,
-): DartObservation {
-  const profile = skillProfileForLevel(botSeat.dartbot.level);
-  const rng = createDartRng(botSeat.dartbot.seed, dartIndex);
-  const intent = chooseTarget(
-    { remaining, checkoutPath: checkoutPathFor(remaining) },
-    profile.decisionQuality,
-  );
-  const thrown = botThrowDart(intent, profile, rng);
-  return {
-    hitTargetNumber: thrown.hit.targetNumber,
-    hitZoneKey: thrown.hit.zoneKey,
-    locationX: thrown.landing.x,
-    locationY: thrown.landing.y,
-  };
-}
-
-/** VISUAL_BOARD thrower: reads the real engine's own live `state()` —
- * `remainingInAttemptFor` already folds an open visit's running total. */
-function throwBotDart(
-  context: OneTwentyOnePlayContext,
-  botSeat: DartbotSeat,
-): { observation: DartObservation; pacing: BotPacing } {
-  const remaining = context.remainingInAttemptFor(botSeat.participantRef);
-  const dartIndex = botDartIndex(
-    context.$store.game.turns,
-    botSeat.participantRef,
-  );
-  return {
-    observation: throwOneDart(remaining, botSeat, dartIndex),
-    pacing: BOT_PACING,
-  };
-}
-
-/** QUICK_SCORE thrower: `state` is the scratch engine's own live state,
- * never the real engine's — mirrors `five-oh-one-play.data.ts`. */
-function throwBotQuickScoreDart(
-  state: OneTwentyOneState,
-  botSeat: DartbotSeat,
-  dartIndex: number,
-): DartObservation {
-  const remaining = state.seats.find(
-    (seat) => seat.participantRef === botSeat.participantRef,
-  )!.remainingInAttempt;
-  return throwOneDart(remaining, botSeat, dartIndex);
-}
 
 const RESUMABLE_RULESET_VERSIONS = new Set(["121_V1", "121_V2"]);
 
@@ -177,49 +115,16 @@ function durationValueOf(
   return null;
 }
 
-/**
- * `init()`'s own MINUTES branch, extracted so the caller reads as one
- * decision (resume, mark already-expired, or do nothing) instead of three
- * nested conditionals. Marks the engine expired in place — via a side
- * effect, not a return value — since that outcome has nothing to hand back
- * to the caller.
- */
-function maybeResumeCountdown(
-  game: OneTwentyOnePlayContext["$store"]["game"],
+/** The config's countdown fields, in the shape `play-countdown.ts` reads. */
+function countdownConfigOf(
   config: NonNullable<
     OneTwentyOnePlayContext["$store"]["game"]["configSnapshot"]
   >,
-  engine: OneTwentyOneEngine,
-): SegmentTimer | null {
-  if (durationTypeOf(config) !== "MINUTES") return null;
-  if (game.timerExpired) {
-    engine.expireTimer();
-    return null;
-  }
-  const durationValue = durationValueOf(config);
-  if (durationValue == null) return null;
-  const timer = startCountdown(game, durationValue, engine);
-  if (game.timerPaused) {
-    timer.stop();
-  }
-  return timer;
-}
-
-/**
- * `playAgain()`'s own MINUTES branch — always a fresh segment, since the
- * caller has already cleared the store's timer fields for the new session.
- */
-function maybeStartFreshCountdown(
-  game: OneTwentyOnePlayContext["$store"]["game"],
-  config: NonNullable<
-    OneTwentyOnePlayContext["$store"]["game"]["configSnapshot"]
-  >,
-  engine: OneTwentyOneEngine,
-): SegmentTimer | null {
-  if (durationTypeOf(config) !== "MINUTES") return null;
-  const durationValue = durationValueOf(config);
-  if (durationValue == null) return null;
-  return startCountdown(game, durationValue, engine);
+): CountdownConfig {
+  return {
+    durationType: durationTypeOf(config),
+    durationValue: durationValueOf(config),
+  };
 }
 
 /**
@@ -291,53 +196,21 @@ function computeStats(
   };
 }
 
-/**
- * `self` exists only so `boardInputData`'s `onCommit` callback can reach this
- * page's own `recordDart` with the live, reactive `this` Alpine binds to
- * every directive-driven call — mirrors `five-oh-one-play.data.ts`'s own
- * `self` pattern.
- */
+/** `init` binds the board input to the live component (`boundBoardInput`). */
 export function oneTwentyOnePlay() {
-  let self: OneTwentyOnePlayContext;
+  const board = boundBoardInput<OneTwentyOnePlayContext>();
 
   return {
-    scoreInput: new ScoreInputBuffer({ maxLength: 3 }),
-    loading: false,
-    error: "",
-    finished: false,
-    hasActiveSession: false,
-    loadingReconciliation: false,
-    reconciliationFailed: false,
-    completionStatus: "pending" as
-      "pending" | "saving" | "succeeded" | "failed",
-    completionError: "",
-    playAgainError: "",
-    playAgainLoading: false,
-    resultsSnapshot: null as OneTwentyOneResultsSnapshot | null,
+    ...board.data,
+    ...timedScoreScreenData<OneTwentyOneEngine, OneTwentyOneResultsSnapshot>(),
     pendingCheckoutScore: null as number | null,
     dartsAtDouble: null as DartCount | null,
     dartsToFinish: null as DartCount | null,
     pendingDartObservation: null as DartObservation | null,
     showDoubleConfirm: false,
     showSessionFinishConfirm: false,
-    ...playAgainStarterData(),
     botThrowing: false,
     botFlight: null,
-    engine: null as OneTwentyOneEngine | null,
-    timer: null as SegmentTimer | null,
-    hiddenTurnKey: null as string | null,
-    hiddenTimer: null as ReturnType<typeof setTimeout> | null,
-    ...boardInputData(
-      (observation) => self.recordDart(observation),
-      () => self.$store.game.turns,
-    ),
-
-    /** Overrides `boardInputData`'s own default — object-literal key order
-     * means this later definition wins. Delegates to `play-lifecycle.ts`'s
-     * shared implementation, mirrors `bobs27-play.data.ts`. */
-    visitMarkers(this: OneTwentyOnePlayContext): BoardMarker[] {
-      return playVisitMarkers(this);
-    },
 
     state(this: OneTwentyOnePlayContext): OneTwentyOneState | null {
       const config = this.$store.game.configSnapshot;
@@ -467,56 +340,8 @@ export function oneTwentyOnePlay() {
     },
 
     async init(this: OneTwentyOnePlayContext) {
-      self = this;
-      this.loadingReconciliation = true;
-      try {
-        const activeSessions = await fetchActiveSessions();
-        const result = await reconcileActiveSession(
-          GAME_TYPE_KEY,
-          this.$store.game.sessionId,
-          activeSessions,
-          this.$store.game,
-        );
-
-        this.reconciliationFailed = false;
-
-        if (result.action !== "match" || !result.activeSession) {
-          this.hasActiveSession = false;
-          return;
-        }
-
-        this.$store.game.setSessionModes(result.activeSession);
-
-        const config = this.$store.game.configSnapshot;
-        const engine = resumeEngine(this.$store.game);
-        if (!config || !engine) {
-          this.hasActiveSession = false;
-          return;
-        }
-        this.engine = engine;
-        this.$store.game.recordFacts(engine.facts());
-        this.timer = maybeResumeCountdown(this.$store.game, config, engine);
-
-        this.hasActiveSession = true;
-      } catch {
-        this.reconciliationFailed = true;
-        this.hasActiveSession = false;
-      } finally {
-        this.loadingReconciliation = false;
-      }
-      if (this.hasActiveSession) await this.maybeRunBotVisit();
-    },
-
-    async retryReconciliation(this: OneTwentyOnePlayContext) {
-      await this.init();
-    },
-
-    destroy(this: OneTwentyOnePlayContext) {
-      this.timer?.stop();
-    },
-
-    togglePause(this: OneTwentyOnePlayContext) {
-      playToggleTimerPause(this);
+      board.bind(this);
+      await playTimedInit(this, GAME_TYPE_KEY, resumeEngine, countdownConfigOf);
     },
 
     /**
@@ -542,82 +367,19 @@ export function oneTwentyOnePlay() {
       finishedOnDouble: boolean,
     ) {
       if (!this.engine || this.$store.game.timerPaused) return;
-      const darts = finishedOnDouble
-        ? {
-            dartsUsed: this.dartsToFinish ?? undefined,
-            dartsAtDouble: this.dartsAtDouble ?? undefined,
-          }
-        : {};
-      try {
-        this.engine.record({
-          scoreAttempted: score,
-          finishedOnDouble,
-          ...darts,
-        });
-      } catch (err: unknown) {
-        this.error = (err as Error).message;
-        this.loading = false;
-        return;
-      }
-      this.error = "";
-      this.scoreInput.clear();
-      this.dartsAtDouble = null;
-      this.dartsToFinish = null;
-      this.$store.game.recordFacts(this.engine.facts());
-      this.loading = false;
-
-      if (this.engine.isComplete()) {
-        this.finished = true;
-        this.completionStatus = "pending";
-        await this.uploadAndCompleteSession();
-        return;
-      }
-      await this.maybeRunBotVisit();
+      await recordCheckoutVisit(this, score, finishedOnDouble);
     },
 
     async maybeRunBotVisit(this: OneTwentyOnePlayContext) {
-      const botSeat = findBotSeat(this.$store.game.seats);
-      if (
-        !botSeat ||
-        !this.engine ||
-        this.finished ||
-        this.$store.game.timerPaused
-      )
-        return;
-      const state = this.state();
-      if (!state || state.activeParticipantRef !== botSeat.participantRef)
-        return;
-
-      if (this.$store.game.inputModeKey === "QUICK_SCORE") {
-        const remainingBefore = this.remainingInAttemptFor(
-          botSeat.participantRef,
-        );
-        let dartIndex = botQuickScoreDartIndex(
-          this.$store.game.turns,
-          botSeat.participantRef,
-          DARTS_PER_VISIT,
-        );
-        const fold = playFoldBotQuickScoreVisit(
-          oneTwentyOneEngineFactory,
-          this.$store.game.configSnapshot!,
-          this.engine.facts(),
-          (scratchState) =>
-            throwBotQuickScoreDart(scratchState, botSeat, dartIndex++),
-          DARTS_PER_VISIT,
-        );
-        if (
-          !(await playAnimateBotDarts(this, botSeat.participantRef, fold.darts))
-        )
-          return;
-        await this.recordVisit(
-          fold.totalScore,
-          fold.totalScore === remainingBefore,
-        );
-        return;
-      }
-
-      const thrower: BotDartThrower = () => throwBotDart(this, botSeat);
-      await playRunBotVisualBoardVisit(this, botSeat.participantRef, thrower);
+      if (this.$store.game.timerPaused) return;
+      const turn = activeBotTurn(this);
+      if (!turn) return;
+      await playX01BotVisit(this, turn.botSeat, {
+        factory: oneTwentyOneEngineFactory,
+        remainingFor: (seatRef) => this.remainingInAttemptFor(seatRef),
+        scratchRemaining: (state, seatRef) =>
+          seatStateFor(state, seatRef)!.remainingInAttempt,
+      });
     },
 
     /**
@@ -691,13 +453,7 @@ export function oneTwentyOnePlay() {
         checkoutPathFor(remaining) !== null;
 
       if (isCheckoutAttempt) {
-        this.error = "";
-        this.pendingCheckoutScore = score;
-        this.scoreInput.clear();
-        const options = this.checkoutDartOptions();
-        this.dartsAtDouble = options.atDouble[0];
-        this.dartsToFinish = options.toFinish[0];
-        this.showDoubleConfirm = true;
+        openCheckoutConfirm(this, score);
         this.loading = false;
         return;
       }
@@ -713,36 +469,15 @@ export function oneTwentyOnePlay() {
      * recording right away, mirroring `five-oh-one-play.data.ts`'s
      * `confirmDouble`.
      */
-    async confirmDouble(this: OneTwentyOnePlayContext) {
-      if (!this.engine || this.finished || !this.showDoubleConfirm) return;
-      if (this.pendingCheckoutScore == null) return;
-      const score = this.pendingCheckoutScore;
-
-      if (
-        this.engine.wouldComplete({
-          scoreAttempted: score,
-          finishedOnDouble: true,
-          dartsUsed: this.dartsToFinish ?? undefined,
-          dartsAtDouble: this.dartsAtDouble ?? undefined,
-        })
-      ) {
-        this.showDoubleConfirm = false;
+    confirmDouble(this: OneTwentyOnePlayContext) {
+      return confirmCheckout(this, () => {
         this.showSessionFinishConfirm = true;
-        return;
-      }
-
-      this.pendingCheckoutScore = null;
-      this.showDoubleConfirm = false;
-      await this.recordVisit(score, true);
+      });
     },
 
     cancelCheckout(this: OneTwentyOnePlayContext) {
-      if (!this.showDoubleConfirm || this.pendingCheckoutScore == null) return;
-      this.scoreInput.setValue(String(this.pendingCheckoutScore));
-      this.pendingCheckoutScore = null;
-      this.dartsAtDouble = null;
-      this.dartsToFinish = null;
-      this.showDoubleConfirm = false;
+      if (!this.showDoubleConfirm) return;
+      if (restoreCheckoutScore(this)) this.showDoubleConfirm = false;
     },
 
     /**
@@ -785,12 +520,7 @@ export function oneTwentyOnePlay() {
         return;
       }
 
-      if (this.pendingCheckoutScore == null) return;
-      this.scoreInput.setValue(String(this.pendingCheckoutScore));
-      this.pendingCheckoutScore = null;
-      this.dartsAtDouble = null;
-      this.dartsToFinish = null;
-      this.showSessionFinishConfirm = false;
+      if (restoreCheckoutScore(this)) this.showSessionFinishConfirm = false;
     },
 
     undoVisit(this: OneTwentyOnePlayContext) {
@@ -831,14 +561,6 @@ export function oneTwentyOnePlay() {
       return winner ? `${winner} checks out 170!` : "170 checked out!";
     },
 
-    async back(this: OneTwentyOnePlayContext) {
-      return playBack(this);
-    },
-
-    async abandonAndExit(this: OneTwentyOnePlayContext) {
-      return playAbandonAndExit(this, () => this.timer?.stop());
-    },
-
     /**
      * Replays the same configuration template the first session used,
      * against whichever ruleset version that session actually used —
@@ -861,29 +583,20 @@ export function oneTwentyOnePlay() {
         (engine) => (engine instanceof OneTwentyOneEngine ? engine : null),
         undefined,
         () => {
-          this.$store.game.timerRemainingMs = null;
-          this.$store.game.timerStartedAt = null;
-          this.$store.game.timerExpired = false;
-          this.$store.game.timerPaused = false;
+          resetTimerStoreFields(this);
           this.pendingCheckoutScore = null;
           this.pendingDartObservation = null;
           this.showDoubleConfirm = false;
           this.showSessionFinishConfirm = false;
           this.scoreInput.clear();
         },
-        (engine) => {
-          const config = this.$store.game.configSnapshot;
-          if (!config) return;
-          const freshTimer = maybeStartFreshCountdown(
-            this.$store.game,
-            config,
+        (engine) =>
+          restartCountdown(
+            this,
+            this.$store.game.configSnapshot &&
+              countdownConfigOf(this.$store.game.configSnapshot),
             engine,
-          );
-          if (freshTimer) {
-            this.timer?.stop();
-            this.timer = freshTimer;
-          }
-        },
+          ),
       );
     },
   };

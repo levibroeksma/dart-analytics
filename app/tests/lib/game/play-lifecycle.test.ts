@@ -45,6 +45,7 @@ import {
   playBack,
   playCommitDart,
   playInit,
+  playBotQuickScoreVisit,
   playFoldBotQuickScoreVisit,
   playPreviewSegments,
   playRetryReconciliation,
@@ -59,6 +60,7 @@ import {
   runPlayAgain,
   variantsPlayAgain,
   undoBotAwareVisit,
+  undoPastBot,
   undoToActiveSeat,
 } from "@lib/game/play-lifecycle";
 import type {
@@ -72,6 +74,7 @@ import type {
   BotDartThrower,
   BotFlight,
   BotPacing,
+  DartbotSeat,
   PlayLifecycleContext,
   RulesetVersionKey,
   SeatFact,
@@ -352,6 +355,84 @@ describe("playInit", () => {
     expect(context.finished).toBe(true);
     expect(context.completionStatus).toBe("succeeded");
     expect(completeSession).toHaveBeenCalledWith("s1", "COMPLETED");
+  });
+
+  function completeContext(): Ctx {
+    const base = makeContext();
+    return makeContext({
+      $store: {
+        ...base.$store,
+        game: {
+          ...base.$store.game,
+          turns: [
+            {
+              clientKey: "t1",
+              stageClientKey: "block-1",
+              participantRef: "participant-1",
+              sequence: 1,
+              completedAt: "2026-08-14T00:00:00.000Z",
+              totalScore: 99,
+              darts: [],
+            },
+          ],
+        },
+      },
+    });
+  }
+
+  it("runs onResumed after recordFacts and before hasActiveSession is set", async () => {
+    const context = makeContext();
+    const seen: { recorded: number; active: boolean; label: string }[] = [];
+
+    await playInit(context, GAME_TYPE_KEY, resumeEngine, {
+      onResumed: (engine, config) => {
+        expect(engine).toBe(context.engine);
+        seen.push({
+          recorded: vi.mocked(context.$store.game.recordFacts).mock.calls
+            .length,
+          active: context.hasActiveSession,
+          label: config.label,
+        });
+      },
+    });
+
+    expect(seen).toEqual([{ recorded: 1, active: false, label: "fake" }]);
+    expect(context.hasActiveSession).toBe(true);
+  });
+
+  it("does not run onResumed when there is no matching session", async () => {
+    vi.mocked(fetchActiveSessions).mockResolvedValue([]);
+    const context = makeContext();
+    const onResumed = vi.fn();
+
+    await playInit(context, GAME_TYPE_KEY, resumeEngine, { onResumed });
+
+    expect(onResumed).not.toHaveBeenCalled();
+  });
+
+  it("leaves a complete engine un-uploaded under uploadIfComplete: false", async () => {
+    const context = completeContext();
+
+    await playInit(context, GAME_TYPE_KEY, resumeEngine, {
+      uploadIfComplete: false,
+    });
+
+    expect(context.engine!.isComplete()).toBe(true);
+    expect(context.hasActiveSession).toBe(true);
+    expect(context.finished).toBe(false);
+    expect(context.uploadAndCompleteSession).not.toHaveBeenCalled();
+    expect(appendBatch).not.toHaveBeenCalled();
+  });
+
+  it("still uploads a complete engine when options omit uploadIfComplete", async () => {
+    const context = completeContext();
+
+    await playInit(context, GAME_TYPE_KEY, resumeEngine, {
+      onResumed: () => {},
+    });
+
+    expect(context.finished).toBe(true);
+    expect(context.uploadAndCompleteSession).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -1056,6 +1137,40 @@ function makeUndoContext(
     maybeRunBotVisit: vi.fn(async () => {}),
   };
 }
+
+describe("undoPastBot", () => {
+  it("with a bot seated, pops back to the human's turn and reports it handled", () => {
+    const engine = new BotFakeEngine(TWO_BOT_SEATS);
+    engine.record(dartAt(20));
+    engine.record(dartAt(19));
+    const context = makeBotContext(engine, TWO_BOT_SEATS);
+
+    expect(undoPastBot(context)).toBe(true);
+    expect(engine.facts().turns).toHaveLength(0);
+    expect(context.$store.game.turns).toHaveLength(0);
+  });
+
+  it("targets the PLAYER seat, not the first seat, when the bot is listed first", () => {
+    const seats = [BOT_SEAT, HUMAN_SEAT];
+    const engine = new BotFakeEngine(seats);
+    engine.record(dartAt(20));
+    engine.record(dartAt(19));
+    const context = makeBotContext(engine, seats);
+
+    expect(undoPastBot(context)).toBe(true);
+    expect(engine.facts().turns).toHaveLength(1);
+    expect(engine.state().activeParticipantRef).toBe(HUMAN_REF);
+  });
+
+  it("without a bot, does nothing and reports it unhandled", () => {
+    const engine = new BotFakeEngine([HUMAN_SEAT]);
+    engine.record(dartAt(20));
+    const context = makeBotContext(engine, [HUMAN_SEAT]);
+
+    expect(undoPastBot(context)).toBe(false);
+    expect(engine.facts().turns).toHaveLength(1);
+  });
+});
 
 describe("undoBotAwareVisit", () => {
   it("in a bot session, rewinds to the human's seat across the bot's turn", () => {
@@ -2423,5 +2538,86 @@ describe("variantsPlayAgain", () => {
       duration_value: null,
       lives: 3,
     });
+  });
+});
+
+describe("playBotQuickScoreVisit", () => {
+  const botFactory = {
+    rulesetVersionKey: "BOBS27_V1",
+    create: (config: { seats: readonly SeatFact[] }, facts?: EngineFacts) =>
+      new BotFakeEngine(config.seats, undefined, facts),
+  } as never;
+
+  function botTurnContext() {
+    const engine = new BotFakeEngine(TWO_BOT_SEATS);
+    engine.record(dartAt(20));
+    engine.record(dartAt(19));
+    engine.record(dartAt(18));
+    return makeBotContext(engine, TWO_BOT_SEATS);
+  }
+
+  it("folds the bot's visit from its next QUICK_SCORE dart index, flies it, and returns the total", async () => {
+    vi.useFakeTimers();
+    const context = botTurnContext();
+    const indices: number[] = [];
+    const turnsBefore = context.$store.game.turns.length;
+
+    const visit = playBotQuickScoreVisit(
+      context,
+      BOT_SEAT as DartbotSeat,
+      botFactory,
+      (state: MultiSeatState, dartIndex: number) => {
+        expect(state.activeParticipantRef).toBe(BOT_REF);
+        indices.push(dartIndex);
+        return dartAt(17);
+      },
+      3,
+    );
+    await vi.runAllTimersAsync();
+
+    expect(await visit).toBe(17);
+    expect(indices).toEqual([3]);
+    expect(context.$store.game.turns).toHaveLength(turnsBefore);
+    expect(context.botFlight).toBeNull();
+    vi.useRealTimers();
+  });
+
+  it("returns null and throws nothing before the engine or config exists", async () => {
+    const throwDart = vi.fn(() => dartAt(17));
+    const noEngine = botTurnContext();
+    noEngine.engine = null;
+    const noConfig = botTurnContext();
+    noConfig.$store.game.configSnapshot = null;
+
+    for (const context of [noEngine, noConfig]) {
+      expect(
+        await playBotQuickScoreVisit(
+          context,
+          BOT_SEAT as DartbotSeat,
+          botFactory,
+          throwDart,
+          3,
+        ),
+      ).toBeNull();
+    }
+    expect(throwDart).not.toHaveBeenCalled();
+  });
+
+  it("returns null when the flight is cut short", async () => {
+    vi.useFakeTimers();
+    const context = botTurnContext();
+    context.finished = true;
+
+    const visit = playBotQuickScoreVisit(
+      context,
+      BOT_SEAT as DartbotSeat,
+      botFactory,
+      () => dartAt(17),
+      3,
+    );
+    await vi.runAllTimersAsync();
+
+    expect(await visit).toBeNull();
+    vi.useRealTimers();
   });
 });

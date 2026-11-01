@@ -14,7 +14,11 @@ import {
 import { buildEventsBatch } from "@modules/game/events.payload.module";
 import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { markersForTurns } from "@lib/game/board-input.data";
-import { BOT_PACING, findBotSeat } from "@lib/game/play-bot-seat";
+import {
+  BOT_PACING,
+  botQuickScoreDartIndex,
+  findBotSeat,
+} from "@lib/game/play-bot-seat";
 import {
   botFlightSchedule,
   dartLabel,
@@ -39,8 +43,10 @@ import type {
   BotPacing,
   BotQuickScoreFold,
   BotQuickScoreThrower,
+  DartbotSeat,
   GamePreviewSegment,
   PlayAgainOverrides,
+  PlayInitOptions,
   PlayLifecycleContext,
   PlayStoreContext,
 } from "./types";
@@ -116,6 +122,7 @@ export async function playInit<
   context: PlayLifecycleContext<TConfig, TEngine, TResults>,
   gameTypeKey: string,
   resumeEngine: (game: PlayStoreContext<TConfig>["game"]) => TEngine | null,
+  options: PlayInitOptions<TConfig, TEngine> = {},
 ): Promise<void> {
   context.loadingReconciliation = true;
   try {
@@ -144,9 +151,10 @@ export async function playInit<
     }
     context.engine = engine;
     context.$store.game.recordFacts(engine.facts());
+    options.onResumed?.(engine, config);
     context.hasActiveSession = true;
 
-    if (engine.isComplete()) {
+    if (options.uploadIfComplete !== false && engine.isComplete()) {
       context.finished = true;
       context.completionStatus = "pending";
       await context.uploadAndCompleteSession();
@@ -320,6 +328,22 @@ export function undoToActiveSeat<
 }
 
 /**
+ * With a DartBot seated, pops back to the human seat's own turn and returns
+ * true; returns false, having done nothing, when no bot is seated.
+ */
+export function undoPastBot<
+  TConfig,
+  TEngine extends GameEngine<DartObservation, MultiSeatState>,
+  TResults,
+>(context: PlayLifecycleContext<TConfig, TEngine, TResults>): boolean {
+  const seats = context.$store.game.seats;
+  if (!findBotSeat(seats)) return false;
+  const humanSeat = seats.find((seat) => seat.participantTypeKey === "PLAYER")!;
+  undoToActiveSeat(context, humanSeat.participantRef);
+  return true;
+}
+
+/**
  * The play-page input guard: true once the session is finished, while the
  * segment timer is paused, or while any of the caller's own confirm dialogs
  * is open. Each page passes its own confirm flags.
@@ -357,13 +381,7 @@ export function undoBotAwareVisit<
   },
 ): void {
   if (!context.engine) return;
-  const seats = context.$store.game.seats;
-  if (findBotSeat(seats)) {
-    const humanSeat = seats.find(
-      (seat) => seat.participantTypeKey === "PLAYER",
-    )!;
-    undoToActiveSeat(context, humanSeat.participantRef);
-  } else {
+  if (!undoPastBot(context)) {
     if (!context.engine.undo()) return;
     clearHiddenTimer(context);
     context.$store.game.recordFacts(context.engine.facts());
@@ -582,6 +600,45 @@ export function playFoldBotQuickScoreVisit<TConfig, TInput, TState>(
     dartsThrown: visitTurn.darts.length,
     darts,
   };
+}
+
+/**
+ * A seated DartBot's whole QUICK_SCORE visit: folds it on a scratch engine
+ * from the bot's next QUICK_SCORE dart index (`throwDart` gets each dart's
+ * index), then flies the darts on the board. Resolves the visit's total for
+ * the page to record, or null when the flight was cut short.
+ */
+export async function playBotQuickScoreVisit<
+  TConfig,
+  TEngine extends GameEngine<DartObservation, MultiSeatState>,
+  TResults,
+  TInput,
+  TState,
+>(
+  context: PlayLifecycleContext<TConfig, TEngine, TResults> & {
+    botFlight?: BotFlight | null;
+  },
+  botSeat: DartbotSeat,
+  factory: GameEngineFactory<NoInfer<Seated<TConfig>>, TInput, TState>,
+  throwDart: (state: TState, dartIndex: number) => DartObservation,
+  dartsPerVisit: number,
+): Promise<number | null> {
+  if (!context.engine || !context.$store.game.configSnapshot) return null;
+  let dartIndex = botQuickScoreDartIndex(
+    context.$store.game.turns,
+    botSeat.participantRef,
+    dartsPerVisit,
+  );
+  const fold = playFoldBotQuickScoreVisit(
+    factory,
+    context.$store.game.configSnapshot,
+    context.engine.facts(),
+    (state) => throwDart(state, dartIndex++),
+    dartsPerVisit,
+  );
+  if (!(await playAnimateBotDarts(context, botSeat.participantRef, fold.darts)))
+    return null;
+  return fold.totalScore;
 }
 
 /**

@@ -1,21 +1,29 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { Mock } from "vitest";
+import {
+  botDartObservationAt,
+  botThrowObservation,
+  x01BotIntent,
+} from "@lib/game/play-bot-seat";
 
 vi.mock("@lib/game/play-lifecycle", () => ({
   playInit: vi.fn(async () => {}),
   playCommitDart: vi.fn(async () => {}),
   playUndoVisit: vi.fn(),
-  undoToActiveSeat: vi.fn(),
+  undoPastBot: vi.fn(() => false),
   playVisitMarkers: vi.fn(() => []),
   playBack: vi.fn(async () => {}),
   playAbandonAndExit: vi.fn(async () => {}),
   playRetryReconciliation: vi.fn(async () => {}),
   playRunBotVisualBoardVisit: vi.fn(async () => {}),
+  playBotQuickScoreVisit: vi.fn(async () => null),
   playToggleTimerPause: vi.fn(),
 }));
 
 import {
   playAbandonAndExit,
   playBack,
+  playBotQuickScoreVisit,
   playCommitDart,
   playInit,
   playRetryReconciliation,
@@ -23,18 +31,29 @@ import {
   playToggleTimerPause,
   playUndoVisit,
   playVisitMarkers,
-  undoToActiveSeat,
+  undoPastBot,
 } from "@lib/game/play-lifecycle";
 import {
   activeSeatStateOf,
   boardPlayActions,
+  boundBoardInput,
+  checkoutDartCounts,
+  confirmCheckout,
+  openCheckoutConfirm,
+  playRunGatedBotVisit,
+  playTimedInit,
+  playX01BotVisit,
+  recordCheckoutVisit,
+  restoreCheckoutScore,
   botVisualBoardData,
   forActiveSeat,
   playScreenActions,
   playScreenState,
   resetTimerForPlayAgain,
+  resetTimerStoreFields,
   seatStateFor,
   timedPlayData,
+  timedScoreScreenData,
 } from "@lib/game/play-screen.data";
 import type { DartbotSeat, PlayStoreContext, SeatFact } from "@lib/types";
 import type { GameEngine } from "@modules/interfaces";
@@ -268,16 +287,16 @@ describe("boardPlayActions", () => {
     await ctx.undoVisit();
     expect(playUndoVisit).toHaveBeenCalledWith(ctx);
     expect(vi.mocked(playUndoVisit).mock.calls[0][0]).toBe(ctx);
-    expect(undoToActiveSeat).not.toHaveBeenCalled();
+    expect(undoPastBot).not.toHaveBeenCalled();
   });
 
-  it("undoVisit with a bot seat undoes to the PLAYER seat, then reruns the bot", async () => {
+  it("undoVisit with a bot seat delegates to undoPastBot, then reruns the bot", async () => {
     const ctx = Object.assign(boardScreen([BOT, PLAYER]), {
       maybeRunBotVisit: vi.fn(async () => {}),
     });
+    vi.mocked(undoPastBot).mockReturnValueOnce(true);
     await ctx.undoVisit();
-    expect(undoToActiveSeat).toHaveBeenCalledWith(ctx, "p1");
-    expect(vi.mocked(undoToActiveSeat).mock.calls[0][0]).toBe(ctx);
+    expect(vi.mocked(undoPastBot).mock.calls[0][0]).toBe(ctx);
     expect(playUndoVisit).not.toHaveBeenCalled();
     expect(ctx.maybeRunBotVisit).toHaveBeenCalledOnce();
   });
@@ -286,9 +305,10 @@ describe("boardPlayActions", () => {
     const ctx = Object.assign(boardScreen([PLAYER]), {
       maybeRunBotVisit: vi.fn(async () => {}),
     });
+    vi.mocked(undoPastBot).mockReturnValueOnce(false);
     await ctx.undoVisit();
+    expect(vi.mocked(undoPastBot).mock.calls[0][0]).toBe(ctx);
     expect(playUndoVisit).toHaveBeenCalledWith(ctx);
-    expect(undoToActiveSeat).not.toHaveBeenCalled();
     expect(ctx.maybeRunBotVisit).toHaveBeenCalledOnce();
   });
 
@@ -402,6 +422,23 @@ describe("resetTimerForPlayAgain", () => {
   });
 });
 
+describe("resetTimerStoreFields", () => {
+  it("clears the store's timer fields and leaves the timer object alone", () => {
+    const timer = fakeTimer();
+    const ctx: {
+      timer: SegmentTimer | null;
+      $store: ReturnType<typeof store>;
+    } = { timer, $store: store([PLAYER]) };
+    resetTimerStoreFields(ctx);
+    expect(timer.stop).not.toHaveBeenCalled();
+    expect(ctx.timer).toBe(timer);
+    expect(ctx.$store.game.timerRemainingMs).toBeNull();
+    expect(ctx.$store.game.timerStartedAt).toBeNull();
+    expect(ctx.$store.game.timerExpired).toBe(false);
+    expect(ctx.$store.game.timerPaused).toBe(false);
+  });
+});
+
 describe("forActiveSeat", () => {
   it("reads the active seat's ref", () => {
     const read = vi.fn((seatRef: string) => `label:${seatRef}`);
@@ -448,5 +485,423 @@ describe("activeSeatStateOf", () => {
     expect(
       activeSeatStateOf({ activeParticipantRef: "ghost", seats }),
     ).toBeUndefined();
+  });
+});
+
+function checkoutScreen() {
+  const facts = { stages: [], turns: [] };
+  return {
+    error: "stale",
+    loading: true,
+    finished: false,
+    completionStatus: "pending" as string,
+    pendingCheckoutScore: null as number | null,
+    dartsAtDouble: null as 1 | 2 | 3 | null,
+    dartsToFinish: null as 1 | 2 | 3 | null,
+    showDoubleConfirm: false,
+    scoreInput: { clear: vi.fn(), setValue: vi.fn() },
+    checkoutDartOptions: vi.fn(() => ({
+      toFinish: [2, 3] as (1 | 2 | 3)[],
+      atDouble: [1, 2] as (1 | 2 | 3)[],
+    })),
+    engine: {
+      record: vi.fn(),
+      isComplete: vi.fn(() => false),
+      facts: vi.fn(() => facts),
+    },
+    $store: { game: { recordFacts: vi.fn() } },
+    uploadAndCompleteSession: vi.fn(async () => {}),
+    maybeRunBotVisit: vi.fn(async () => {}),
+  };
+}
+
+describe("checkoutDartCounts", () => {
+  it("reads the confirm's dart counts, undefined while unset", () => {
+    const ctx = checkoutScreen();
+    expect(checkoutDartCounts(ctx)).toEqual({
+      dartsUsed: undefined,
+      dartsAtDouble: undefined,
+    });
+    ctx.dartsToFinish = 3;
+    ctx.dartsAtDouble = 1;
+    expect(checkoutDartCounts(ctx)).toEqual({ dartsUsed: 3, dartsAtDouble: 1 });
+  });
+});
+
+describe("openCheckoutConfirm", () => {
+  it("parks the score, clears the keypad and preselects the first dart options", () => {
+    const ctx = checkoutScreen();
+    openCheckoutConfirm(ctx, 40);
+    expect(ctx).toMatchObject({
+      error: "",
+      pendingCheckoutScore: 40,
+      dartsToFinish: 2,
+      dartsAtDouble: 1,
+      showDoubleConfirm: true,
+      loading: true,
+    });
+    expect(ctx.scoreInput.clear).toHaveBeenCalledOnce();
+  });
+});
+
+describe("restoreCheckoutScore", () => {
+  it("puts the parked score back in the keypad and clears the confirm's fields", () => {
+    const ctx = checkoutScreen();
+    ctx.pendingCheckoutScore = 40;
+    ctx.dartsToFinish = 2;
+    ctx.dartsAtDouble = 1;
+    expect(restoreCheckoutScore(ctx)).toBe(true);
+    expect(ctx.scoreInput.setValue).toHaveBeenCalledWith("40");
+    expect(ctx).toMatchObject({
+      pendingCheckoutScore: null,
+      dartsToFinish: null,
+      dartsAtDouble: null,
+    });
+  });
+
+  it("does nothing without a parked score", () => {
+    const ctx = checkoutScreen();
+    ctx.dartsToFinish = 2;
+    expect(restoreCheckoutScore(ctx)).toBe(false);
+    expect(ctx.scoreInput.setValue).not.toHaveBeenCalled();
+    expect(ctx.dartsToFinish).toBe(2);
+  });
+});
+
+describe("recordCheckoutVisit", () => {
+  it("records a plain visit with no dart counts, mirrors the facts and hands over to the bot", async () => {
+    const ctx = checkoutScreen();
+    ctx.dartsToFinish = 3;
+    await recordCheckoutVisit(ctx, 60, false);
+    expect(ctx.engine.record).toHaveBeenCalledWith({
+      scoreAttempted: 60,
+      finishedOnDouble: false,
+    });
+    expect(ctx).toMatchObject({
+      error: "",
+      loading: false,
+      dartsToFinish: null,
+      dartsAtDouble: null,
+    });
+    expect(ctx.scoreInput.clear).toHaveBeenCalledOnce();
+    expect(ctx.$store.game.recordFacts).toHaveBeenCalledWith(
+      ctx.engine.facts(),
+    );
+    expect(ctx.maybeRunBotVisit).toHaveBeenCalledOnce();
+    expect(ctx.uploadAndCompleteSession).not.toHaveBeenCalled();
+  });
+
+  it("records a double-out with the confirm's dart counts", async () => {
+    const ctx = checkoutScreen();
+    ctx.dartsToFinish = 2;
+    ctx.dartsAtDouble = 1;
+    await recordCheckoutVisit(ctx, 40, true);
+    expect(ctx.engine.record).toHaveBeenCalledWith({
+      scoreAttempted: 40,
+      finishedOnDouble: true,
+      dartsUsed: 2,
+      dartsAtDouble: 1,
+    });
+  });
+
+  it("finishes and uploads a completing visit instead of running the bot", async () => {
+    const ctx = checkoutScreen();
+    ctx.engine.isComplete.mockReturnValue(true);
+    ctx.completionStatus = "failed";
+    await recordCheckoutVisit(ctx, 40, true);
+    expect(ctx.finished).toBe(true);
+    expect(ctx.completionStatus).toBe("pending");
+    expect(ctx.uploadAndCompleteSession).toHaveBeenCalledOnce();
+    expect(ctx.maybeRunBotVisit).not.toHaveBeenCalled();
+  });
+
+  it("does nothing before the engine exists", async () => {
+    const ctx = { ...checkoutScreen(), engine: null };
+    await recordCheckoutVisit(ctx, 60, false);
+    expect(ctx.error).toBe("stale");
+    expect(ctx.$store.game.recordFacts).not.toHaveBeenCalled();
+    expect(ctx.maybeRunBotVisit).not.toHaveBeenCalled();
+  });
+
+  it("surfaces an engine rejection and records nothing", async () => {
+    const ctx = checkoutScreen();
+    ctx.engine.record.mockImplementation(() => {
+      throw new Error("bust");
+    });
+    await recordCheckoutVisit(ctx, 200, false);
+    expect(ctx.error).toBe("bust");
+    expect(ctx.loading).toBe(false);
+    expect(ctx.scoreInput.clear).not.toHaveBeenCalled();
+    expect(ctx.$store.game.recordFacts).not.toHaveBeenCalled();
+    expect(ctx.maybeRunBotVisit).not.toHaveBeenCalled();
+  });
+});
+
+describe("confirmCheckout", () => {
+  function confirmScreen(wouldComplete: boolean) {
+    return {
+      finished: false,
+      showDoubleConfirm: true,
+      pendingCheckoutScore: 40 as number | null,
+      dartsToFinish: 2 as 1 | 2 | 3 | null,
+      dartsAtDouble: 1 as 1 | 2 | 3 | null,
+      engine: {
+        wouldComplete: vi.fn((_input: object) => wouldComplete),
+      } as { wouldComplete: (input: object) => boolean } | null,
+      recordVisit: vi.fn(async () => {}),
+    };
+  }
+
+  it("records a non-ending checkout as a double-out and closes the confirm", async () => {
+    const ctx = confirmScreen(false);
+    const defer = vi.fn();
+    await confirmCheckout(ctx, defer);
+    expect(ctx.engine!.wouldComplete).toHaveBeenCalledWith({
+      scoreAttempted: 40,
+      finishedOnDouble: true,
+      dartsUsed: 2,
+      dartsAtDouble: 1,
+    });
+    expect(ctx.recordVisit).toHaveBeenCalledWith(40, true);
+    expect(ctx.pendingCheckoutScore).toBeNull();
+    expect(ctx.showDoubleConfirm).toBe(false);
+    expect(defer).not.toHaveBeenCalled();
+  });
+
+  it("defers a session-ending checkout to the finish confirm, keeping the score parked", async () => {
+    const ctx = confirmScreen(true);
+    const defer = vi.fn();
+    await confirmCheckout(ctx, defer);
+    expect(defer).toHaveBeenCalledOnce();
+    expect(ctx.showDoubleConfirm).toBe(false);
+    expect(ctx.pendingCheckoutScore).toBe(40);
+    expect(ctx.recordVisit).not.toHaveBeenCalled();
+  });
+
+  it("does nothing while closed, finished, engineless or with no parked score", async () => {
+    const defer = vi.fn();
+    const closed = { ...confirmScreen(false), showDoubleConfirm: false };
+    const finished = { ...confirmScreen(false), finished: true };
+    const engineless = { ...confirmScreen(false), engine: null };
+    const unparked = { ...confirmScreen(false), pendingCheckoutScore: null };
+    for (const ctx of [closed, finished, engineless, unparked]) {
+      await confirmCheckout(ctx, defer);
+      expect(ctx.recordVisit).not.toHaveBeenCalled();
+    }
+    expect(defer).not.toHaveBeenCalled();
+    expect(unparked.showDoubleConfirm).toBe(true);
+  });
+});
+
+describe("boundBoardInput", () => {
+  type Page = {
+    recordDart: Mock<(observation: DartObservation) => Promise<void>>;
+    $store: { game: { turns: TurnFact[] } };
+  };
+
+  it("commits a board tap to the bound page's recordDart", () => {
+    const board = boundBoardInput<Page>();
+    const live: Page = {
+      recordDart: vi.fn(async (_observation: DartObservation) => {}),
+      $store: { game: { turns: [] } },
+    };
+    const tapped = Object.assign({}, board.data, {
+      $refs: { board: fakeBoard() },
+      $store: { boardInput: { handedness: "RIGHT" as const } },
+    });
+    board.bind(live);
+
+    tapped.onPointerDown({
+      clientX: 0,
+      clientY: -102,
+      preventDefault: vi.fn(),
+    } as never);
+    tapped.onPointerUp();
+
+    expect(live.recordDart).toHaveBeenCalledOnce();
+    expect(live.recordDart.mock.calls[0][0].hitZoneKey).toBe("TREBLE");
+  });
+});
+
+describe("timedScoreScreenData", () => {
+  it("composes the lifecycle state, replay starter, actions, countdown and keypad", () => {
+    const data = timedScoreScreenData();
+    expect(data).toMatchObject({
+      ...playScreenState(),
+      starterOpen: false,
+      timer: null,
+    });
+    for (const key of [
+      "back",
+      "retryReconciliation",
+      "visitMarkers",
+      "requestPlayAgain",
+      "togglePause",
+      "destroy",
+    ]) {
+      expect(typeof (data as Record<string, unknown>)[key]).toBe("function");
+    }
+    expect(data.scoreInput.value).toBe("");
+  });
+
+  it("uses the countdown's abandonAndExit, which stops the timer", async () => {
+    const timer = { stop: vi.fn() } as unknown as SegmentTimer;
+    const ctx = Object.assign(timedScoreScreenData(), lifecycle(), { timer });
+    await ctx.abandonAndExit();
+    const [context, onAbandoned] = vi.mocked(playAbandonAndExit).mock.calls[0];
+    expect(context).toBe(ctx);
+    await onAbandoned?.();
+    expect(timer.stop).toHaveBeenCalledOnce();
+  });
+
+  it("gives each page its own keypad buffer", () => {
+    expect(timedScoreScreenData().scoreInput).not.toBe(
+      timedScoreScreenData().scoreInput,
+    );
+  });
+});
+
+describe("playX01BotVisit", () => {
+  function x01Screen(inputModeKey: string) {
+    const ctx = Object.assign(lifecycle([PLAYER, BOT]), {
+      botThrowing: false,
+      botFlight: null,
+      recordVisit: vi.fn(async () => {}),
+    });
+    ctx.$store.game.inputModeKey = inputModeKey;
+    return ctx;
+  }
+  const factory = { create: vi.fn() } as never;
+  const spec = {
+    factory,
+    remainingFor: vi.fn(() => 40),
+    scratchRemaining: vi.fn(() => 32),
+  };
+
+  it("under VISUAL_BOARD, throws each dart at the x01 aim for the live remaining score", async () => {
+    const ctx = x01Screen("VISUAL_BOARD");
+    await playX01BotVisit(ctx, BOT, spec);
+    const [context, botRef, thrower] = vi.mocked(playRunBotVisualBoardVisit)
+      .mock.calls[0];
+    expect(context).toBe(ctx);
+    expect(botRef).toBe("b1");
+    expect(thrower()).toEqual(
+      botThrowObservation(BOT, ctx.$store.game.turns, x01BotIntent(40, BOT)),
+    );
+    expect(spec.remainingFor).toHaveBeenCalledWith("b1");
+    expect(playBotQuickScoreVisit).not.toHaveBeenCalled();
+  });
+
+  it("under QUICK_SCORE, folds the visit against the scratch remaining score and records it as a double-out when it checks out", async () => {
+    const ctx = x01Screen("QUICK_SCORE");
+    vi.mocked(playBotQuickScoreVisit).mockResolvedValueOnce(40);
+    await playX01BotVisit(ctx, BOT, spec);
+    const [context, botSeat, passedFactory, throwDart, dartsPerVisit] =
+      vi.mocked(playBotQuickScoreVisit).mock.calls[0];
+    expect(context).toBe(ctx);
+    expect(botSeat).toBe(BOT);
+    expect(passedFactory).toBe(factory);
+    expect(dartsPerVisit).toBe(3);
+    const scratch = { activeParticipantRef: "b1", seats: [] };
+    expect(throwDart(scratch, 4)).toEqual(
+      botDartObservationAt(BOT, 4, x01BotIntent(32, BOT)),
+    );
+    expect(spec.scratchRemaining).toHaveBeenCalledWith(scratch, "b1");
+    expect(ctx.recordVisit).toHaveBeenCalledWith(40, true);
+    expect(playRunBotVisualBoardVisit).not.toHaveBeenCalled();
+  });
+
+  it("under QUICK_SCORE, records a visit short of the remaining score as no checkout", async () => {
+    const ctx = x01Screen("QUICK_SCORE");
+    vi.mocked(playBotQuickScoreVisit).mockResolvedValueOnce(26);
+    await playX01BotVisit(ctx, BOT, spec);
+    expect(ctx.recordVisit).toHaveBeenCalledWith(26, false);
+  });
+
+  it("under QUICK_SCORE, records nothing when the flight was cut short", async () => {
+    const ctx = x01Screen("QUICK_SCORE");
+    vi.mocked(playBotQuickScoreVisit).mockResolvedValueOnce(null);
+    await playX01BotVisit(ctx, BOT, spec);
+    expect(ctx.recordVisit).not.toHaveBeenCalled();
+  });
+});
+
+describe("playTimedInit", () => {
+  function timedScreen() {
+    return Object.assign(lifecycle([PLAYER]), {
+      timer: null as SegmentTimer | null,
+      maybeRunBotVisit: vi.fn(async () => {}),
+    });
+  }
+
+  it("runs playInit without the complete-engine upload, then the bot once a session is active", async () => {
+    const ctx = timedScreen();
+    vi.mocked(playInit).mockImplementationOnce(async (context) => {
+      context.hasActiveSession = true;
+    });
+    await playTimedInit(
+      ctx as never,
+      "TUOD",
+      resume,
+      (config) => config as never,
+    );
+    const [context, key, passedResume, options] =
+      vi.mocked(playInit).mock.calls[0];
+    expect(context).toBe(ctx);
+    expect(key).toBe("TUOD");
+    expect(passedResume).toBe(resume);
+    expect(options?.uploadIfComplete).toBe(false);
+    expect(ctx.maybeRunBotVisit).toHaveBeenCalledOnce();
+  });
+
+  it("skips the bot when no session was resumed", async () => {
+    const ctx = timedScreen();
+    await playTimedInit(
+      ctx as never,
+      "TUOD",
+      resume,
+      (config) => config as never,
+    );
+    expect(ctx.maybeRunBotVisit).not.toHaveBeenCalled();
+  });
+
+  it("on resume, hands the mapped countdown config to the shared countdown", async () => {
+    const ctx = timedScreen();
+    ctx.$store.game.timerExpired = true;
+    const countdownConfigOf = vi.fn(() => ({
+      durationType: "MINUTES",
+      durationValue: 5,
+    }));
+    await playTimedInit(ctx as never, "TUOD", resume, countdownConfigOf);
+    const options = vi.mocked(playInit).mock.calls[0][3]!;
+    const engine = { expireTimer: vi.fn() };
+    const config = { seats: [PLAYER] };
+    ctx.timer = fakeTimer();
+    options.onResumed!(engine as never, config as never);
+    expect(countdownConfigOf).toHaveBeenCalledWith(config);
+    expect(engine.expireTimer).toHaveBeenCalledOnce();
+    expect(ctx.timer).toBeNull();
+  });
+});
+
+describe("playRunGatedBotVisit", () => {
+  it("runs the bot's visual-board visit with the engine's wouldComplete as the finish gate", async () => {
+    const ctx = Object.assign(lifecycle([PLAYER, BOT]), {
+      botThrowing: false,
+      botFlight: null,
+    });
+    const wouldComplete = vi.fn(() => true);
+    ctx.engine = { wouldComplete } as never;
+    const thrower = vi.fn();
+    await playRunGatedBotVisit(ctx, BOT, thrower);
+    const [context, botRef, passedThrower, wait, gate] = vi.mocked(
+      playRunBotVisualBoardVisit,
+    ).mock.calls[0];
+    expect(context).toBe(ctx);
+    expect(botRef).toBe("b1");
+    expect(passedThrower).toBe(thrower);
+    expect(wait).toBeUndefined();
+    expect(gate!(MISS)).toBe(true);
+    expect(wouldComplete).toHaveBeenCalledWith(MISS);
   });
 });
