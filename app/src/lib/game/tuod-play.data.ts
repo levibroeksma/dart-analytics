@@ -42,7 +42,7 @@ import {
 import {
   formatRemaining,
   maybeResumeCountdown,
-  startCountdown,
+  restartCountdown,
 } from "@lib/game/play-countdown";
 import { classifyDoubleAttempts } from "@modules/game/double-attempt.module";
 import { tuodCheckoutVisits } from "@modules/game/checkout-visits.module";
@@ -691,17 +691,8 @@ export function tuodPlay() {
           this.pendingDartObservation = null;
           this.showFinishConfirm = false;
         },
-        (engine) => {
-          const config = this.$store.game.configSnapshot;
-          if (config?.durationType === "MINUTES") {
-            this.timer?.stop();
-            this.timer = startCountdown(
-              this.$store.game,
-              config.durationValue,
-              engine,
-            );
-          }
-        },
+        (engine) =>
+          restartCountdown(this, this.$store.game.configSnapshot, engine),
       );
     },
   };

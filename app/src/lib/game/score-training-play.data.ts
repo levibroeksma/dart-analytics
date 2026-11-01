@@ -42,7 +42,7 @@ import {
 import {
   formatRemaining,
   maybeResumeCountdown,
-  startCountdown,
+  restartCountdown,
 } from "@lib/game/play-countdown";
 import type {
   DartbotSeat,
@@ -539,17 +539,8 @@ export function scoreTrainingPlay() {
           this.showFinishConfirm = false;
           this.scoreInput.clear();
         },
-        (engine) => {
-          const config = this.$store.game.configSnapshot;
-          if (config?.durationType === "MINUTES") {
-            this.timer?.stop();
-            this.timer = startCountdown(
-              this.$store.game,
-              config.durationValue,
-              engine,
-            );
-          }
-        },
+        (engine) =>
+          restartCountdown(this, this.$store.game.configSnapshot, engine),
       );
     },
   };

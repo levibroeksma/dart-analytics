@@ -8,13 +8,16 @@ import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { foldOneTwentyOneState } from "@modules/game/one-twenty-one.engine.module";
-import type { SegmentTimer } from "@modules/ui/segment-timer.module";
 import {
   checkoutPathFor,
   checkoutPathWithin,
 } from "@modules/game/checkout-path.module";
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
-import { formatRemaining, startCountdown } from "@lib/game/play-countdown";
+import {
+  formatRemaining,
+  maybeResumeCountdown,
+  restartCountdown,
+} from "@lib/game/play-countdown";
 import { boardInputData } from "@lib/game/board-input.data";
 import {
   playScreenActions,
@@ -58,6 +61,7 @@ import type {
 import type {
   BotDartThrower,
   BotPacing,
+  CountdownConfig,
   OneTwentyOneDurationType,
   OneTwentyOnePlayContext,
   OneTwentyOneResultsSnapshot,
@@ -177,49 +181,16 @@ function durationValueOf(
   return null;
 }
 
-/**
- * `init()`'s own MINUTES branch, extracted so the caller reads as one
- * decision (resume, mark already-expired, or do nothing) instead of three
- * nested conditionals. Marks the engine expired in place — via a side
- * effect, not a return value — since that outcome has nothing to hand back
- * to the caller.
- */
-function maybeResumeCountdown(
-  game: OneTwentyOnePlayContext["$store"]["game"],
+/** The config's countdown fields, in the shape `play-countdown.ts` reads. */
+function countdownConfigOf(
   config: NonNullable<
     OneTwentyOnePlayContext["$store"]["game"]["configSnapshot"]
   >,
-  engine: OneTwentyOneEngine,
-): SegmentTimer | null {
-  if (durationTypeOf(config) !== "MINUTES") return null;
-  if (game.timerExpired) {
-    engine.expireTimer();
-    return null;
-  }
-  const durationValue = durationValueOf(config);
-  if (durationValue == null) return null;
-  const timer = startCountdown(game, durationValue, engine);
-  if (game.timerPaused) {
-    timer.stop();
-  }
-  return timer;
-}
-
-/**
- * `playAgain()`'s own MINUTES branch — always a fresh segment, since the
- * caller has already cleared the store's timer fields for the new session.
- */
-function maybeStartFreshCountdown(
-  game: OneTwentyOnePlayContext["$store"]["game"],
-  config: NonNullable<
-    OneTwentyOnePlayContext["$store"]["game"]["configSnapshot"]
-  >,
-  engine: OneTwentyOneEngine,
-): SegmentTimer | null {
-  if (durationTypeOf(config) !== "MINUTES") return null;
-  const durationValue = durationValueOf(config);
-  if (durationValue == null) return null;
-  return startCountdown(game, durationValue, engine);
+): CountdownConfig {
+  return {
+    durationType: durationTypeOf(config),
+    durationValue: durationValueOf(config),
+  };
 }
 
 /**
@@ -451,7 +422,11 @@ export function oneTwentyOnePlay() {
       self = this;
       await playInit(this, GAME_TYPE_KEY, resumeEngine, {
         onResumed: (engine, config) => {
-          this.timer = maybeResumeCountdown(this.$store.game, config, engine);
+          this.timer = maybeResumeCountdown(
+            this.$store.game,
+            countdownConfigOf(config),
+            engine,
+          );
         },
         uploadIfComplete: false,
       });
@@ -799,19 +774,13 @@ export function oneTwentyOnePlay() {
           this.showSessionFinishConfirm = false;
           this.scoreInput.clear();
         },
-        (engine) => {
-          const config = this.$store.game.configSnapshot;
-          if (!config) return;
-          const freshTimer = maybeStartFreshCountdown(
-            this.$store.game,
-            config,
+        (engine) =>
+          restartCountdown(
+            this,
+            this.$store.game.configSnapshot &&
+              countdownConfigOf(this.$store.game.configSnapshot),
             engine,
-          );
-          if (freshTimer) {
-            this.timer?.stop();
-            this.timer = freshTimer;
-          }
-        },
+          ),
       );
     },
   };

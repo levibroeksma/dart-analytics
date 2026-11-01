@@ -300,7 +300,7 @@ export type ExpirableEngine = { expireTimer(): void };
 /** The config fields the MINUTES branch reads. */
 export type CountdownConfig = {
   durationType: string;
-  durationValue: number;
+  durationValue: number | null;
 };
 
 /**

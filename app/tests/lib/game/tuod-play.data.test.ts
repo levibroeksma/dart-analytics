@@ -1069,6 +1069,31 @@ describe("tuodPlay", () => {
       expect(play.$store.game.turns.length).toBe(1);
     });
 
+    it("a MINUTES playAgain stops the old countdown and starts a fresh one", async () => {
+      const play = makePlay({ configSnapshot: minutes(7) });
+      const old = { stop: vi.fn() } as never as SegmentTimer;
+      play.timer = old;
+      segmentTimerInstances.length = 0;
+      vi.mocked(createSession).mockResolvedValue({
+        sessionId: "new-session",
+        participants: [
+          {
+            ref: "new-participant",
+            displayName: "Player",
+            participantTypeKey: "PLAYER",
+          },
+        ],
+      } as Awaited<ReturnType<typeof createSession>>);
+
+      await play.playAgain();
+
+      expect(old.stop).toHaveBeenCalledOnce();
+      expect(segmentTimerInstances).toHaveLength(1);
+      expect(play.timer).toBe(segmentTimerInstances[0]);
+      expect(segmentTimerInstances[0].start).toHaveBeenCalledOnce();
+      expect(play.$store.game.timerRemainingMs).toBe(7 * 60000);
+    });
+
     it("playAgain double-fire while in flight only creates one session", async () => {
       const play = makePlay();
       play.completionStatus = "succeeded";

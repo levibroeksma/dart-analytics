@@ -919,6 +919,37 @@ describe("oneTwentyOnePlay — 121_V2 resume/replay and round/time UI", () => {
   });
 
   describe("playAgain — version-aware", () => {
+    it("a MINUTES replay stops the old countdown and starts a fresh one", async () => {
+      store.game.rulesetVersionKey = "121_V2";
+      store.game.configSnapshot = {
+        seats: SEATS,
+        durationType: "MINUTES",
+        durationValue: 10,
+      } as any;
+      const play = createPlay();
+      const old = { stop: vi.fn() } as any;
+      play.timer = old;
+      segmentTimerInstances.length = 0;
+      vi.mocked(sessionsApi.createSession).mockResolvedValue({
+        sessionId: "new-session-id",
+        participants: [
+          {
+            ref: "participant-1",
+            displayName: "Levi",
+            participantTypeKey: "PLAYER",
+          },
+        ],
+      } as any);
+
+      await play.playAgain();
+
+      expect(old.stop).toHaveBeenCalledOnce();
+      expect(segmentTimerInstances).toHaveLength(1);
+      expect(play.timer).toBe(segmentTimerInstances[0]);
+      expect(segmentTimerInstances[0].start).toHaveBeenCalledOnce();
+      expect(store.game.timerRemainingMs).toBe(10 * 60000);
+    });
+
     it("replays a 121_V2 session against 121_V2, carrying its own duration config", async () => {
       store.game.rulesetVersionKey = "121_V2";
       store.game.configSnapshot = {
