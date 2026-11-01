@@ -8,21 +8,12 @@
 1	src/lib/client/api/sessions.ts | src/lib/client/api/training-sessions.ts
 2	src/lib/client/api/statistics.ts
 1	src/lib/game/around-the-clock-duration.ts | src/lib/game/one-twenty-one-duration.ts | src/lib/game/score-training-duration.ts | src/lib/game/tuod-duration.ts
-1	src/lib/game/five-oh-one-play.data.ts
-7	src/lib/game/five-oh-one-play.data.ts | src/lib/game/one-twenty-one-play.data.ts
-1	src/lib/game/five-oh-one-play.data.ts | src/lib/game/one-twenty-one-play.data.ts | src/lib/game/score-training-play.data.ts | src/lib/game/tuod-play.data.ts
-3	src/lib/game/five-oh-one-play.data.ts | src/lib/game/one-twenty-one-play.data.ts | src/lib/game/tuod-play.data.ts
 1	src/lib/game/five-oh-one-setup.data.ts | src/lib/game/one-twenty-one-setup.data.ts | src/lib/game/score-training-setup.data.ts | src/lib/game/setup-controller.ts | src/lib/game/tuod-setup.data.ts
 1	src/lib/game/five-oh-one-setup.data.ts | src/lib/game/score-training-setup.data.ts | src/lib/game/tuod-setup.data.ts
-1	src/lib/game/mickey-mouse-play.data.ts | src/lib/game/tactics-play.data.ts
 1	src/lib/game/one-twenty-one-duration.ts | src/lib/game/score-training-duration.ts | src/lib/game/tuod-duration.ts
-3	src/lib/game/one-twenty-one-play.data.ts | src/lib/game/score-training-play.data.ts | src/lib/game/tuod-play.data.ts
-2	src/lib/game/one-twenty-one-play.data.ts | src/lib/game/tuod-play.data.ts
 1	src/lib/game/one-twenty-one-setup.data.ts | src/lib/game/score-training-setup.data.ts | src/lib/game/tuod-setup.data.ts
-1	src/lib/game/play-countdown.ts | src/lib/training/trivia/quick-subtract-play.data.ts
 1	src/lib/game/play-visit-stats.ts | src/modules/stats/visit-stats.module.ts
 3	src/lib/game/rulesets/types.ts
-5	src/lib/game/score-training-play.data.ts | src/lib/game/tuod-play.data.ts
 2	src/lib/game/score-training-setup.data.ts | src/lib/game/tuod-setup.data.ts
 2	src/lib/stats/merge-metrics.ts
 1	src/modules/game/bobs27.engine.module.ts | src/modules/game/singles-training.engine.module.ts

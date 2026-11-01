@@ -121,3 +121,10 @@ Decision: visual-board play factories (around-the-clock, baseball, bobs27, crick
 Reason: ten factories carried near-identical `init`/`commitDart`/`undoVisit`/bot-loop members; the clone groups were the largest family in the D513 baseline. Parts keep each factory's own members visible while the shared body lives once. Flags would rebuild the divergence inside one function.
 Consequences: spread order is fixed (later keys override earlier), an overridden `init` calls through to the part's `init` or uses `afterInit`, and parts hold no getters. A change to a part is covered by the snapshot of every factory's key surface. The duplication baseline under D513 dropped by the clone groups that spanned these files.
 Supersedes: none.
+
+### D517 — Score-input and Mickey Mouse play factories join the shared parts
+Status: Accepted · Date: 2026-11-01
+Decision: five-oh-one, one-twenty-one, score-training, tuod and mickey-mouse play factories spread the D516 parts (`playScreenState`, `playScreenActions`, `playAgainStarterData`, `timedPlayData` for the timed three, `boardPlayActions` for Mickey Mouse). All 15 `lib/game` play factories now compose the parts. `playInit` takes `PlayInitOptions` (`onResumed`, `uploadIfComplete`); the 501-family shapes that differ per game stay own members but share typed helpers (`playBotQuickScoreVisit`, `undoPastBot`, `playX01BotVisit`, `confirmCheckout`, `playTimedInit`, `playRunGatedBotVisit`, `restartCountdown`). `resetTimerStoreFields` is the store-only half of `resetTimerForPlayAgain`, used where the old code did not stop the timer object.
+Reason: the remaining clone groups in the D513 baseline were the 501/121/score-training/tuod family and the Mickey Mouse copy of the baseball shape. Callbacks and spec objects of game functions keep the variation visible without per-game flags.
+Consequences: baseline 63 → 54 rows; no factory surface changed (snapshot untouched). Quick-subtract shares `play-countdown.ts` helpers; its surface is unchanged.
+Supersedes: none. Extends D516.
