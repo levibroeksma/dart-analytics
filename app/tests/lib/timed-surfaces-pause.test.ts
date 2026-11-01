@@ -36,7 +36,19 @@ describe("timed surfaces pause", () => {
   it.each(timed.map(({ file, source }) => [file, source]))(
     "%s owns a togglePause for the timer it starts",
     (_file, source) => {
-      expect(source).toMatch(/togglePause\s*[(:]/);
+      expect(source).toMatch(
+        /togglePause\s*[(:]|\.\.\.timedPlayData\(|\.\.\.timedScoreScreenData</,
+      );
     },
   );
+
+  it("timedScoreScreenData carries timedPlayData's togglePause", () => {
+    const parts = readFileSync(join(LIB, "game/play-screen.data.ts"), "utf8");
+    const body = parts.slice(
+      parts.indexOf("export function timedScoreScreenData"),
+    );
+    expect(body.slice(0, body.indexOf("\n}\n"))).toMatch(
+      /\.\.\.timedPlayData\(\)/,
+    );
+  });
 });

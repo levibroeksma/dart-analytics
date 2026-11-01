@@ -1,49 +1,39 @@
-import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { matchWinnerName } from "@lib/game/match-result-text";
-import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
 import {
   checkoutPathFor,
   checkoutPathWithin,
 } from "@modules/game/checkout-path.module";
-import { SegmentTimer } from "@modules/ui/segment-timer.module";
-import { fetchActiveSessions } from "@client/api/sessions";
-import { reconcileActiveSession } from "@lib/game/session-recovery";
-import { boardInputData } from "@lib/game/board-input.data";
+import {
+  boundBoardInput,
+  checkoutDartCounts,
+  openCheckoutConfirm,
+  playRunGatedBotVisit,
+  playTimedInit,
+  resetTimerStoreFields,
+  restoreCheckoutScore,
+  timedScoreScreenData,
+} from "@lib/game/play-screen.data";
 import {
   armHiddenTimer,
-  playAbandonAndExit,
-  playBack,
-  playAnimateBotDarts,
-  playFoldBotQuickScoreVisit,
-  playRunBotVisualBoardVisit,
-  playToggleTimerPause,
   playUploadAndCompleteSession,
-  playVisitMarkers,
   resumeGameEngine,
   runPlayAgain,
   isInputBlocked,
   undoBotAwareVisit,
+  playBotQuickScoreVisit,
 } from "@lib/game/play-lifecycle";
-import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
-import { createDartRng } from "@modules/dartbot/rng.module";
-import { throwDart as botThrowDart } from "@modules/dartbot/throw-engine.module";
-import { chooseTarget } from "@modules/dartbot/strategy/x01.strategy.module";
 import {
   checkoutPercentageDisplay,
   dartsLeftForSeat,
 } from "@lib/game/play-visit-stats";
 import {
-  BOT_PACING,
-  botDartIndex,
-  botQuickScoreDartIndex,
-  findBotSeat,
+  activeBotTurn,
+  botDartObservationAt,
+  botThrowObservation,
+  x01BotIntent,
 } from "@lib/game/play-bot-seat";
-import {
-  formatRemaining,
-  maybeResumeCountdown,
-  startCountdown,
-} from "@lib/game/play-countdown";
+import { formatRemaining, restartCountdown } from "@lib/game/play-countdown";
 import { classifyDoubleAttempts } from "@modules/game/double-attempt.module";
 import { tuodCheckoutVisits } from "@modules/game/checkout-visits.module";
 import type {
@@ -62,8 +52,6 @@ import type {
   TuodState,
 } from "@modules/types";
 import type {
-  BoardMarker,
-  BotDartThrower,
   BotPacing,
   TuodPlayContext,
   TuodResultsSnapshot,
@@ -74,7 +62,7 @@ import type {
 // and importing it also runs the module's side effect, which registers
 // tuodEngineFactory so the registry can resolve this page's own
 // RULESET_VERSION_KEY. `tuodEngineFactory` is imported directly (not via the
-// type-erased registry) so `playFoldBotQuickScoreVisit`'s `TState` infers as
+// type-erased registry) so the bot QUICK_SCORE visit's `TState` infers as
 // `TuodState` with no cast at the call site.
 import {
   TuodEngine,
@@ -86,26 +74,6 @@ const GAME_TYPE_KEY = "TUOD";
 const RULESET_VERSION_KEY: RulesetVersionKey = "TUOD_V1";
 
 const DARTS_PER_VISIT = 3;
-
-function throwOneDart(
-  remaining: number,
-  botSeat: DartbotSeat,
-  dartIndex: number,
-): DartObservation {
-  const profile = skillProfileForLevel(botSeat.dartbot.level);
-  const rng = createDartRng(botSeat.dartbot.seed, dartIndex);
-  const intent = chooseTarget(
-    { remaining, checkoutPath: checkoutPathFor(remaining) },
-    profile.decisionQuality,
-  );
-  const thrown = botThrowDart(intent, profile, rng);
-  return {
-    hitTargetNumber: thrown.hit.targetNumber,
-    hitZoneKey: thrown.hit.zoneKey,
-    locationX: thrown.landing.x,
-    locationY: thrown.landing.y,
-  };
-}
 
 /** VISUAL_BOARD thrower: TUOD's "remaining" for a fresh attempt is the
  * seat's own `currentTarget` — an attempt always starts at the ladder
@@ -120,14 +88,11 @@ function throwBotDart(
     ?.seats.find(
       (candidate) => candidate.participantRef === botSeat.participantRef,
     );
-  const dartIndex = botDartIndex(
+  return botThrowObservation(
+    botSeat,
     context.$store.game.turns,
-    botSeat.participantRef,
+    x01BotIntent(seat?.currentTarget ?? 0, botSeat),
   );
-  return {
-    observation: throwOneDart(seat?.currentTarget ?? 0, botSeat, dartIndex),
-    pacing: BOT_PACING,
-  };
 }
 
 /** QUICK_SCORE thrower: `state` is the scratch engine's own live state,
@@ -140,7 +105,11 @@ function throwBotQuickScoreDart(
   const remaining = state.seats.find(
     (seat) => seat.participantRef === botSeat.participantRef,
   )!.currentTarget;
-  return throwOneDart(remaining, botSeat, dartIndex);
+  return botDartObservationAt(
+    botSeat,
+    dartIndex,
+    x01BotIntent(remaining, botSeat),
+  );
 }
 
 function statsFor(
@@ -201,29 +170,13 @@ function canSubmitVisit(context: TuodPlayContext): boolean {
   );
 }
 
-/**
- * `self` exists only so `boardInputData`'s `onCommit` callback can reach this
- * page's own `recordDart` with the live, reactive `this` Alpine binds to every
- * directive-driven call — mirrors `one-twenty-one-play.data.ts`'s own `self`
- * pattern.
- */
+/** `init` binds the board input to the live component (`boundBoardInput`). */
 export function tuodPlay() {
-  let self: TuodPlayContext;
+  const board = boundBoardInput<TuodPlayContext>();
 
   return {
-    loading: false,
-    error: "",
-    finished: false,
-    hasActiveSession: false,
-    loadingReconciliation: false,
-    reconciliationFailed: false,
-    completionStatus: "pending" as
-      "pending" | "saving" | "succeeded" | "failed",
-    completionError: "",
-    playAgainError: "",
-    playAgainLoading: false,
-    resultsSnapshot: null as TuodResultsSnapshot | null,
-    scoreInput: new ScoreInputBuffer({ maxLength: 3 }),
+    ...board.data,
+    ...timedScoreScreenData<TuodEngine, TuodResultsSnapshot>(),
     pendingAttempt: null as TuodAttemptInput | null,
     pendingCheckoutScore: null as number | null,
     pendingDartObservation: null as DartObservation | null,
@@ -231,24 +184,8 @@ export function tuodPlay() {
     dartsToFinish: null as DartCount | null,
     showDoubleConfirm: false,
     showFinishConfirm: false,
-    ...playAgainStarterData(),
     botThrowing: false,
     botFlight: null,
-    engine: null as TuodEngine | null,
-    timer: null as SegmentTimer | null,
-    hiddenTurnKey: null as string | null,
-    hiddenTimer: null as ReturnType<typeof setTimeout> | null,
-    ...boardInputData(
-      (observation) => self.recordDart(observation),
-      () => self.$store.game.turns,
-    ),
-
-    /** Overrides `boardInputData`'s own default — object-literal key order
-     * means this later definition wins. Delegates to `play-lifecycle.ts`'s
-     * shared implementation, mirrors `bobs27-play.data.ts`. */
-    visitMarkers(this: TuodPlayContext): BoardMarker[] {
-      return playVisitMarkers(this);
-    },
 
     /**
      * Folds the store's own fact log — never `engine.state()` — so every
@@ -386,62 +323,19 @@ export function tuodPlay() {
      * outcome shows no session; nothing is abandoned here (D460).
      */
     async init(this: TuodPlayContext) {
-      self = this;
-      this.loadingReconciliation = true;
-      try {
-        const activeSessions = await fetchActiveSessions();
-        const result = await reconcileActiveSession(
-          GAME_TYPE_KEY,
-          this.$store.game.sessionId,
-          activeSessions,
-          this.$store.game,
-        );
-
-        this.reconciliationFailed = false;
-
-        if (result.action !== "match" || !result.activeSession) {
-          this.hasActiveSession = false;
-          return;
-        }
-
-        this.$store.game.setSessionModes(result.activeSession);
-
-        const config = this.$store.game.configSnapshot;
-        const engine = resumeGameEngine<TuodSnapshot, TuodEngine>(
-          this.$store.game,
-          RULESET_VERSION_KEY,
-          (candidate): candidate is TuodEngine =>
-            candidate instanceof TuodEngine,
-        );
-        if (!config || !engine) {
-          this.hasActiveSession = false;
-          return;
-        }
-        this.engine = engine;
-        this.$store.game.recordFacts(engine.facts());
-
-        this.timer = maybeResumeCountdown(this.$store.game, config, engine);
-
-        this.hasActiveSession = true;
-      } catch {
-        this.reconciliationFailed = true;
-        this.hasActiveSession = false;
-      } finally {
-        this.loadingReconciliation = false;
-      }
-      if (this.hasActiveSession) await this.maybeRunBotVisit();
-    },
-
-    async retryReconciliation(this: TuodPlayContext) {
-      await this.init();
-    },
-
-    destroy(this: TuodPlayContext) {
-      this.timer?.stop();
-    },
-
-    togglePause(this: TuodPlayContext) {
-      playToggleTimerPause(this);
+      board.bind(this);
+      await playTimedInit(
+        this,
+        GAME_TYPE_KEY,
+        (game) =>
+          resumeGameEngine<TuodSnapshot, TuodEngine>(
+            game,
+            RULESET_VERSION_KEY,
+            (candidate): candidate is TuodEngine =>
+              candidate instanceof TuodEngine,
+          ),
+        (config) => config,
+      );
     },
 
     /**
@@ -464,13 +358,7 @@ export function tuodPlay() {
         )?.currentTarget ?? 0;
 
       if (score === target && checkoutPathFor(target) !== null) {
-        this.error = "";
-        this.pendingCheckoutScore = score;
-        this.scoreInput.clear();
-        const options = this.checkoutDartOptions();
-        this.dartsAtDouble = options.atDouble[0];
-        this.dartsToFinish = options.toFinish[0];
-        this.showDoubleConfirm = true;
+        openCheckoutConfirm(this, score);
         return;
       }
 
@@ -485,8 +373,7 @@ export function tuodPlay() {
       await this.recordAttempt({
         checkedOut: true,
         finishedOnDouble: true,
-        dartsUsed: this.dartsToFinish ?? undefined,
-        dartsAtDouble: this.dartsAtDouble ?? undefined,
+        ...checkoutDartCounts(this),
       });
     },
 
@@ -495,12 +382,8 @@ export function tuodPlay() {
      * goes back into the keypad, so a mistyped entry is not lost.
      */
     cancelCheckout(this: TuodPlayContext) {
-      if (!this.showDoubleConfirm || this.pendingCheckoutScore == null) return;
-      this.scoreInput.setValue(String(this.pendingCheckoutScore));
-      this.pendingCheckoutScore = null;
-      this.dartsAtDouble = null;
-      this.dartsToFinish = null;
-      this.showDoubleConfirm = false;
+      if (!this.showDoubleConfirm) return;
+      if (restoreCheckoutScore(this)) this.showDoubleConfirm = false;
     },
 
     /**
@@ -545,53 +428,33 @@ export function tuodPlay() {
     },
 
     async maybeRunBotVisit(this: TuodPlayContext) {
-      const botSeat = findBotSeat(this.$store.game.seats);
-      if (
-        !botSeat ||
-        !this.engine ||
-        this.finished ||
-        this.$store.game.timerPaused
-      )
-        return;
-      const state = this.state();
-      if (!state || state.activeParticipantRef !== botSeat.participantRef)
-        return;
+      if (this.$store.game.timerPaused) return;
+      const turn = activeBotTurn(this);
+      if (!turn) return;
+      const { botSeat, state } = turn;
 
       if (this.$store.game.inputModeKey === "QUICK_SCORE") {
         const target = state.seats.find(
           (seat) => seat.participantRef === botSeat.participantRef,
         )!.currentTarget;
-        let dartIndex = botQuickScoreDartIndex(
-          this.$store.game.turns,
-          botSeat.participantRef,
-          DARTS_PER_VISIT,
-        );
-        const fold = playFoldBotQuickScoreVisit(
+        const total = await playBotQuickScoreVisit(
+          this,
+          botSeat,
           tuodEngineFactory,
-          this.$store.game.configSnapshot!,
-          this.engine.facts(),
-          (scratchState) =>
-            throwBotQuickScoreDart(scratchState, botSeat, dartIndex++),
+          (scratchState, dartIndex) =>
+            throwBotQuickScoreDart(scratchState, botSeat, dartIndex),
           DARTS_PER_VISIT,
         );
-        if (
-          !(await playAnimateBotDarts(this, botSeat.participantRef, fold.darts))
-        )
-          return;
+        if (total === null) return;
         await this.recordAttempt({
-          checkedOut: fold.totalScore === target,
-          finishedOnDouble: fold.totalScore === target,
+          checkedOut: total === target,
+          finishedOnDouble: total === target,
         });
         return;
       }
 
-      const thrower: BotDartThrower = () => throwBotDart(this, botSeat);
-      await playRunBotVisualBoardVisit(
-        this,
-        botSeat.participantRef,
-        thrower,
-        undefined,
-        (observation) => this.engine!.wouldComplete(observation),
+      await playRunGatedBotVisit(this, botSeat, () =>
+        throwBotDart(this, botSeat),
       );
     },
 
@@ -724,14 +587,6 @@ export function tuodPlay() {
       return winner ? `${winner} wins — highest target!` : "Game Summary";
     },
 
-    async back(this: TuodPlayContext) {
-      return playBack(this);
-    },
-
-    async abandonAndExit(this: TuodPlayContext) {
-      return playAbandonAndExit(this, () => this.timer?.stop());
-    },
-
     /**
      * Replays with the session's own duration as an override — the same
      * carry-over `score-training-play.data.ts`'s `playAgain()` does.
@@ -751,25 +606,13 @@ export function tuodPlay() {
           wire: { duration_value: config.durationValue },
         }),
         () => {
-          this.$store.game.timerRemainingMs = null;
-          this.$store.game.timerStartedAt = null;
-          this.$store.game.timerExpired = false;
-          this.$store.game.timerPaused = false;
+          resetTimerStoreFields(this);
           this.pendingAttempt = null;
           this.pendingDartObservation = null;
           this.showFinishConfirm = false;
         },
-        (engine) => {
-          const config = this.$store.game.configSnapshot;
-          if (config?.durationType === "MINUTES") {
-            this.timer?.stop();
-            this.timer = startCountdown(
-              this.$store.game,
-              config.durationValue,
-              engine,
-            );
-          }
-        },
+        (engine) =>
+          restartCountdown(this, this.$store.game.configSnapshot, engine),
       );
     },
   };

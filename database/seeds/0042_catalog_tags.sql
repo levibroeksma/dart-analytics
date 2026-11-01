@@ -294,6 +294,38 @@ SELECT * FROM (VALUES
   ((SELECT id FROM game_types WHERE implementation_key = 'KILLER'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 32, FALSE, now())
 ) AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)
 WHERE v.game_type_id IS NOT NULL;
+-- game MICKEY_MOUSE
+INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
+  ((SELECT id FROM game_types WHERE implementation_key = 'MICKEY_MOUSE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 1, TRUE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'MICKEY_MOUSE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 3, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'MICKEY_MOUSE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 5, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'MICKEY_MOUSE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 9, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'MICKEY_MOUSE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 12, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'MICKEY_MOUSE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 13, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'MICKEY_MOUSE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 14, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'MICKEY_MOUSE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 15, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'MICKEY_MOUSE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 19, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'MICKEY_MOUSE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 22, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'MICKEY_MOUSE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 32, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'MICKEY_MOUSE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 38, FALSE, now())
+) AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+WHERE v.game_type_id IS NOT NULL;
+INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
+  ((SELECT id FROM game_types WHERE implementation_key = 'MICKEY_MOUSE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 1, TRUE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'MICKEY_MOUSE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 3, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'MICKEY_MOUSE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 5, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'MICKEY_MOUSE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 9, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'MICKEY_MOUSE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 12, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'MICKEY_MOUSE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 13, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'MICKEY_MOUSE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 14, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'MICKEY_MOUSE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 15, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'MICKEY_MOUSE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 19, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'MICKEY_MOUSE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 22, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'MICKEY_MOUSE'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 32, FALSE, now())
+) AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+WHERE v.game_type_id IS NOT NULL;
 -- game ONE_TWENTY_ONE
 INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at)
 SELECT * FROM (VALUES

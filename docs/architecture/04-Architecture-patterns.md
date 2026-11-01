@@ -7,7 +7,7 @@ updated: 2026-10-31
 
 # Architecture Patterns
 
-> **Version:** 1.11.28 (Pattern 18: Elimination kernel gains `reduceDart` and `decidedWinner`; Prisoner bound 2026-10-31, D516)
+> **Version:** 1.11.30 (Pattern 18: Elimination kernel gains `reduceDart` and `decidedWinner`; Prisoner bound 2026-11-01, D518)
 >
 > A bump replaces this line; the outgoing version goes at the top of that history section, never chained here.
 >
@@ -748,6 +748,26 @@ Module (*.module.ts, *.engine.module.ts, *.payload.module.ts)
 - `$persist` only in `*.store.ts`.
 - Modules never import `@client/api` or Alpine.
 - Client recovery never abandons on session mismatch; setup asks the player first (D460, supersedes D88). (2026-10-13)
+- Visual-board play factories compose shared parts from
+  `app/src/lib/game/play-screen.data.ts` instead of re-declaring lifecycle
+  members. Spread order: `playScreenState`, `playAgainStarterData`,
+  `boardPlayActions`, `botVisualBoardData`, `playScreenActions`,
+  `timedPlayData`, then the factory's own members. Later keys override
+  earlier ones. An overridden `init` must call through to the part's `init`,
+  or use `boardPlayActions`'s `afterInit` callback. Parts are plain
+  objects — no getters (a spread would freeze them). The factory-surface
+  snapshot and the page-bindings test guard the Alpine template contract
+  (D516).
+- The score-input factories (five-oh-one, one-twenty-one, score-training,
+  tuod) and mickey-mouse use the same parts; mickey-mouse takes
+  `boardPlayActions` whole. The four score-input factories keep their own
+  `recordDart`/`commitDart`/`undoVisit`/`maybeRunBotVisit` (they differ per
+  game) and share `playInit`'s `onResumed`/`uploadIfComplete` options plus
+  the checkout, bot-visit and timed-init helpers in `play-screen.data.ts`.
+  Helpers take callbacks or a spec object of game functions; the one
+  boolean is `playInit`'s `uploadIfComplete`, a lifecycle switch whose
+  default (upload) is the rule and whose `false` marks the four games
+  that finish through their own visit path (D517).
 
 ## Rule
 
