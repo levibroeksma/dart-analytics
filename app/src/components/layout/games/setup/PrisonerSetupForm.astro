@@ -1,0 +1,50 @@
+---
+// Components
+import InfoSection from "@components/ui/InfoSection.astro";
+import SetupShell from "./SetupShell.astro";
+import SettingSectionShell from "./SettingSectionShell.astro";
+import LockedRows from "./LockedRows.astro";
+import UserSection from "./UserSection.astro";
+
+// Data
+const lockedRows = [
+  { label: "DARTS", value: "3 each" },
+  { label: "SCORING RING", value: "Outer single only" },
+  { label: "CAPTURE MODE", value: "Analytics, visual board" },
+];
+const infoSection = {
+  title: "Prisoner rules",
+  description:
+    "Go 1 to 20, one number at a time, three darts each. Hit the outer single of your number to advance. Hit its inner single or either bull and that dart is imprisoned: you lose it. Inner singles stay on the board; bull prisoners are gone for good. An outer single of a number holding a prisoner captures one, and the dart joins your arsenal next visit. A bounce-out or miss sits that dart out your next visit. At zero darts you are out. Complete 20 or be the last seat holding darts to win. Doubles and trebles are plain misses. 1v1 against a guest. Locked rules.",
+};
+---
+
+<SetupShell
+  title="Prisoner"
+  startBlockedExpr="!canStart()"
+>
+  <UserSection allowGuests />
+  <SettingSectionShell>
+    <LockedRows rows={lockedRows} />
+    <p
+      class="text-sm text-muted-foreground"
+      x-show="$store.settings.captureModeKey === 'RECREATIONAL'"
+      x-cloak
+    >
+      Prisoner needs the visual board. Recreational mode plays in Analytics
+      capture.
+    </p>
+    <p
+      class="text-sm text-muted-foreground"
+      x-show="!canStart()"
+      x-cloak
+    >
+      Add a guest to play Prisoner.
+    </p>
+  </SettingSectionShell>
+  <InfoSection
+    title={infoSection.title}
+    description={infoSection.description}
+    open
+  />
+</SetupShell>

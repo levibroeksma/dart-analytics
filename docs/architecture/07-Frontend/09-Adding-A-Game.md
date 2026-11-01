@@ -2,7 +2,7 @@
 status: canonical
 scope: the file fan-out a new game requires, and the shapes it must reuse
 read-when: adding a game, or changing anything a game is wired into
-updated: 2026-10-17
+updated: 2026-10-31
 -->
 
 # Adding a Game
@@ -14,6 +14,8 @@ list; `scripts/check-game-wiring.sh` is the gate that holds it.
 **Killer** is the `SHARED`-stage shell exemplar for a player-chosen config value (seat numbers) carried through the starter step and Play Again (`killer-setup.data.ts`, D505).
 
 **Follow the Leader** is the exemplar for play-pad buttons over the shell's `visitActions` (Stop after a match, a Keep/Set prompt) (`follow-the-leader-play.data.ts`, D510).
+
+**Prisoner** is the exemplar for an ANALYTICS-only game: its card is absent under Recreational (`games-visibility.ts` filters on the capture-mode pair), and its setup, play data and results helpers are board-only (`prisoner-play.data.ts`).
 
 **Reference exemplar: Bob's 27.** When a step below says "copy the existing
 shape", copy Bob's 27's — `bobs27-setup.data.ts`, `bobs27.validator.ts`,

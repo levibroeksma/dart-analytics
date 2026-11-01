@@ -1,6 +1,6 @@
 # Prisoner
 
-Current version: none (V1 in design)
+Current version: V1 (shipped 2026-10-31)
 Entry points: standalone
 Game type: `PRISONER`
 Kernel: ELIMINATION

@@ -1,0 +1,33 @@
+---
+export const prerender = true;
+import GameLayout from "@layouts/GameLayout.astro";
+import Prisoner from "@components/layout/games/interfaces/Prisoner.astro";
+import PrisonerResults from "@components/layout/games/result-modals/PrisonerResults.astro";
+import NoSessionPanel from "@components/layout/games/NoSessionPanel.astro";
+import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocked.astro";
+---
+
+<GameLayout
+  title="Prisoner — Play"
+  gameTitle="Prisoner"
+  gameSubtitleExpr="hasActiveSession ? subtitle() : ''"
+  x-data="prisonerPlay()"
+  @confirm-exit.window="abandonAndExit()"
+>
+  <div class="flex flex-col flex-1 min-h-0">
+    {/* Loading / reconciliation-blocked */}
+    <ReconciliationBlocked />
+
+    {/* No active session view */}
+    <NoSessionPanel href="/games/prisoner/setup" />
+
+    {/* Gameplay view */}
+    <Prisoner
+      x-show="!finished && hasActiveSession"
+      x-cloak
+    />
+
+    {/* Results modal (overlay) */}
+    <PrisonerResults />
+  </div>
+</GameLayout>

@@ -1,0 +1,88 @@
+---
+/**
+ * Prisoner's play interface (visual board only). Above the board: the
+ * active seat's target banner, its darts held and left, and the prisoners
+ * lodged per number. Each seat's card shows its held darts, target, darts
+ * left and darts sitting out.
+ */
+interface Props {
+  [key: string]: unknown;
+}
+
+// Props
+const { ...props }: Props = Astro.props;
+
+// Components
+import SeatedPlayScreen from "@components/layout/games/SeatedPlayScreen.astro";
+---
+
+<SeatedPlayScreen
+  big={{ isTarget: false, value: (c) => c("heldLabel") }}
+  tiles={[
+    { label: "Target", value: (c) => c("targetLabel") },
+    { label: "Left", value: (c) => c("dartsLeftLabel") },
+    { label: "Sitting", value: (c) => c("sittingLabel") },
+  ]}
+  idle={{ label: "Target", value: (c) => c("targetLabel") }}
+  boardShowExpr="showBoard()"
+  {...props}
+>
+  <div
+    class="glass flex shrink-0 flex-col gap-2 rounded-board p-2.5"
+    aria-live="polite"
+  >
+    <div class="flex items-baseline justify-between gap-3">
+      <div class="flex flex-col">
+        <span
+          class="font-mono text-eyebrow font-semibold uppercase text-muted-foreground"
+          >Target</span
+        >
+        <span
+          class="font-display text-xl text-foreground"
+          x-text="targetLabel() || '—'"
+        ></span>
+      </div>
+      <div class="flex gap-4 font-mono text-eyebrow uppercase">
+        <span class="text-muted-foreground"
+          >Held <span
+            class="text-foreground"
+            x-text="heldLabel()"
+          ></span></span
+        >
+        <span class="text-muted-foreground"
+          >Left <span
+            class="text-foreground"
+            x-text="dartsLeftLabel()"
+          ></span></span
+        >
+        <span class="text-muted-foreground"
+          >Sitting <span
+            class="text-foreground"
+            x-text="sittingLabel()"
+          ></span></span
+        >
+      </div>
+    </div>
+    <div class="flex flex-wrap items-center gap-2">
+      <span
+        class="font-mono text-eyebrow font-semibold uppercase text-muted-foreground"
+        >Prison</span
+      >
+      <span
+        class="text-sm text-muted-foreground"
+        x-show="lodgedList().length === 0"
+        x-cloak
+        >Empty</span
+      >
+      <template
+        x-for="entry in lodgedList()"
+        :key="entry.number"
+      >
+        <span
+          class="rounded-key bg-white/10 px-2 py-0.5 font-mono text-sm text-foreground"
+          x-text="entry.number + ' × ' + entry.count"
+        ></span>
+      </template>
+    </div>
+  </div>
+</SeatedPlayScreen>

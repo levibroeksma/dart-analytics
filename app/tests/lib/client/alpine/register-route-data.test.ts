@@ -32,6 +32,8 @@ import { killerSetup } from "@lib/game/killer-setup.data";
 import { killerPlay } from "@lib/game/killer-play.data";
 import { followTheLeaderSetup } from "@lib/game/follow-the-leader-setup.data";
 import { followTheLeaderPlay } from "@lib/game/follow-the-leader-play.data";
+import { prisonerSetup } from "@lib/game/prisoner-setup.data";
+import { prisonerPlay } from "@lib/game/prisoner-play.data";
 
 describe("registerRouteData", () => {
   it.each([
@@ -47,6 +49,8 @@ describe("registerRouteData", () => {
     ["killerPlay", killerPlay],
     ["followTheLeaderSetup", followTheLeaderSetup],
     ["followTheLeaderPlay", followTheLeaderPlay],
+    ["prisonerSetup", prisonerSetup],
+    ["prisonerPlay", prisonerPlay],
   ])("registers %s as an Alpine data factory", (name, factory) => {
     const data = vi.fn();
     registerRouteData({ data } as unknown as Alpine);

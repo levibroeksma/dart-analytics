@@ -18,6 +18,7 @@ import type { TacticsEngine } from "@modules/game/tactics.engine.module";
 import type { BaseballEngine } from "@modules/game/baseball.engine.module";
 import type { KillerEngine } from "@modules/game/killer.engine.module";
 import type { FollowTheLeaderEngine } from "@modules/game/follow-the-leader.engine.module";
+import type { PrisonerEngine } from "@modules/game/prisoner.engine.module";
 import type { SinglesTrainingEngine } from "@modules/game/singles-training.engine.module";
 import type { DoublesTrainingEngine } from "@modules/game/doubles-training.engine.module";
 import type { ShanghaiEngine } from "@modules/game/shanghai.engine.module";
@@ -38,6 +39,7 @@ import type {
   KillerState,
   FollowTheLeaderAction,
   FollowTheLeaderState,
+  PrisonerState,
   DartCount,
   DartObservation,
   DoublesTrainingState,
@@ -71,6 +73,7 @@ import type {
   BaseballSnapshot,
   KillerSnapshot,
   FollowTheLeaderSnapshot,
+  PrisonerSnapshot,
   SinglesSnapshot,
   SinglesV2Snapshot,
   DoublesTrainingSnapshot,
@@ -1228,6 +1231,11 @@ export type FollowTheLeaderSetupContext = PresetSetupContext & {
   canStart(): boolean;
 };
 
+/** Prisoner setup: Start needs a guest seated. */
+export type PrisonerSetupContext = PresetSetupContext & {
+  canStart(): boolean;
+};
+
 /** One seat's Killer result: its number, lives left and taken, darts to become killer (null if never) and whether it went out. */
 export type KillerSeatResult = {
   participantRef: string;
@@ -1322,6 +1330,88 @@ export type FollowTheLeaderPlayContext = PlayLifecycleContext<
   back(this: FollowTheLeaderPlayContext): Promise<void>;
   playAgain(this: FollowTheLeaderPlayContext): Promise<void>;
   abandonAndExit(this: FollowTheLeaderPlayContext): Promise<void>;
+};
+
+/** One seat's Prisoner result: where its target ended, darts held, prisoners captured, darts imprisoned and whether it went out. */
+export type PrisonerSeatResult = {
+  participantRef: string;
+  sideKey: string;
+  target: number;
+  held: number;
+  captured: number;
+  imprisoned: number;
+  out: boolean;
+};
+
+/** Stored final snapshot of a Prisoner session; `winningSideKey` is null when no side won, `wonBy` names how it was won. */
+export type PrisonerResultsSnapshot = {
+  status: "COMPLETE";
+  winningSideKey: string | null;
+  wonBy: PrisonerState["wonBy"];
+  outOrder: string[];
+  seats: PrisonerSeatResult[];
+};
+
+/** One seat's display row in the Prisoner results modal. */
+export type PrisonerResultRow = {
+  name: string;
+  target: string;
+  held: number;
+  captured: number;
+  imprisoned: number;
+  out: boolean;
+  winner: boolean;
+};
+
+/** One number holding prisoners, for the lodged list. */
+export type PrisonerLodgedEntry = { number: number; count: number };
+
+/** Alpine context of the Prisoner play page: play lifecycle plus board entry, per-seat labels and the lodged list. */
+export type PrisonerPlayContext = PlayLifecycleContext<
+  PrisonerSnapshot,
+  PrisonerEngine,
+  PrisonerResultsSnapshot
+> & {
+  starterOpen: boolean;
+  playAgainStarter: 0 | 1 | null;
+  requestPlayAgain(): unknown;
+  playAgainStarterOptions(): StarterStepOptions;
+  recordUnseen(this: PrisonerPlayContext): void;
+  state(this: PrisonerPlayContext): PrisonerState | null;
+  visitMarkers(this: PrisonerPlayContext): BoardMarker[];
+  recordDart(
+    this: PrisonerPlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
+  commitDart(
+    this: PrisonerPlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
+  isBullVisit(this: PrisonerPlayContext): boolean;
+  showBoard(this: PrisonerPlayContext): boolean;
+  targetLabelFor(this: PrisonerPlayContext, seatRef: string): string;
+  targetLabel(this: PrisonerPlayContext): string;
+  heldLabelFor(this: PrisonerPlayContext, seatRef: string): string;
+  heldLabel(this: PrisonerPlayContext): string;
+  sittingLabelFor(this: PrisonerPlayContext, seatRef: string): string;
+  sittingLabel(this: PrisonerPlayContext): string;
+  capturedLabelFor(this: PrisonerPlayContext, seatRef: string): string;
+  imprisonedLabelFor(this: PrisonerPlayContext, seatRef: string): string;
+  dartsLeftLabelFor(this: PrisonerPlayContext, seatRef: string): string;
+  dartsLeftLabel(this: PrisonerPlayContext): string;
+  lodgedList(this: PrisonerPlayContext): PrisonerLodgedEntry[];
+  subtitle(this: PrisonerPlayContext): string;
+  init(this: PrisonerPlayContext): Promise<void>;
+  retryReconciliation(this: PrisonerPlayContext): Promise<void>;
+  undoVisit(this: PrisonerPlayContext): Promise<void>;
+  uploadAndCompleteSession(this: PrisonerPlayContext): Promise<void>;
+  resultsTitle(this: PrisonerPlayContext): string;
+  outOrderLabel(this: PrisonerPlayContext): string;
+  wonByLabel(this: PrisonerPlayContext): string;
+  resultRows(this: PrisonerPlayContext): PrisonerResultRow[];
+  back(this: PrisonerPlayContext): Promise<void>;
+  playAgain(this: PrisonerPlayContext): Promise<void>;
+  abandonAndExit(this: PrisonerPlayContext): Promise<void>;
 };
 
 /** Alpine context of the Killer play page: play lifecycle plus starter-step state. */

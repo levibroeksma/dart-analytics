@@ -3,7 +3,7 @@
 import InfoSection from "@components/ui/InfoSection.astro";
 import SetupShell from "./SetupShell.astro";
 import SettingSectionShell from "./SettingSectionShell.astro";
-import SettingLabel from "./SettingLabel.astro";
+import LockedRows from "./LockedRows.astro";
 import UserSection from "./UserSection.astro";
 
 // Data
@@ -25,14 +25,7 @@ const infoSection = {
 >
   <UserSection allowGuests />
   <SettingSectionShell>
-    {
-      lockedRows.map((row) => (
-        <div class="flex flex-col gap-2">
-          <SettingLabel text={row.label} />
-          <p class="text-sm text-foreground">{row.value}</p>
-        </div>
-      ))
-    }
+    <LockedRows rows={lockedRows} />
     <p
       class="text-sm text-muted-foreground"
       x-show="!canStart()"

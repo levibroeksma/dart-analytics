@@ -13,8 +13,8 @@ import {
 // Every card in GAME_CARDS is a ruleset that has a real setup route, so a key
 // asserted here is a card that can actually render. Visibility is keyed on
 // capture mode alone, not the exact declared pair (see `visibleGames`'s own
-// doc comment for why). Every carded ruleset now declares a pair under both
-// RECREATIONAL and ANALYTICS. Descriptions are meant to be short, so they stay
+// doc comment for why). Every carded ruleset declares an ANALYTICS pair; all
+// but `PRISONER_V1` also declare a RECREATIONAL one. Descriptions are meant to be short, so they stay
 // on a single line in the ui
 
 describe("visibleGames", () => {
@@ -60,6 +60,7 @@ describe("visibleGames", () => {
         "BASEBALL_V1",
         "KILLER_V1",
         "FOLLOW_THE_LEADER_V1",
+        "PRISONER_V1",
         "CRICKET_V1",
         "TACTICS_V1",
         "MICKEY_MOUSE_V1",
@@ -90,7 +91,15 @@ describe("visibleGames", () => {
     const keys = visibleGames("RECREATIONAL", null).map(
       (game) => game.rulesetVersionKey,
     );
-    expect(keys).toEqual(GAME_CARDS.map((game) => game.rulesetVersionKey));
+    expect(keys).toEqual(
+      GAME_CARDS.map((game) => game.rulesetVersionKey).filter(
+        (key) => key !== "PRISONER_V1",
+      ),
+    );
+    const analytics = visibleGames("ANALYTICS", null).map(
+      (game) => game.rulesetVersionKey,
+    );
+    expect(analytics).toEqual(GAME_CARDS.map((game) => game.rulesetVersionKey));
   });
 
   it("gives every card a setup href and copy", () => {
@@ -100,6 +109,32 @@ describe("visibleGames", () => {
       expect(game.caption.length).toBeGreaterThan(0);
       expect(game.caption).not.toMatch(/\n/);
     }
+  });
+});
+
+describe("Prisoner card", () => {
+  it("is a Classics card for the setup route, ordered last", () => {
+    expect(GAME_CARDS[GAME_CARDS.length - 1]).toMatchObject({
+      rulesetVersionKey: "PRISONER_V1",
+      group: "CLASSICS",
+      href: "/games/prisoner/setup",
+      title: "Prisoner",
+      caption: "Hit your number. Lose darts to the prison.",
+    });
+  });
+
+  it("is absent under Recreational, which has no ANALYTICS pair for it", () => {
+    expect(
+      visibleGames("RECREATIONAL", null).map((g) => g.rulesetVersionKey),
+    ).not.toContain("PRISONER_V1");
+  });
+
+  it("is shown under Recreational only while it has an active session", () => {
+    expect(
+      visibleGames("RECREATIONAL", "PRISONER_V1").map(
+        (g) => g.rulesetVersionKey,
+      ),
+    ).toContain("PRISONER_V1");
   });
 });
 
@@ -134,6 +169,7 @@ describe("groupedGames", () => {
           "BASEBALL_V1",
           "KILLER_V1",
           "FOLLOW_THE_LEADER_V1",
+          "PRISONER_V1",
         ],
       ],
     ]);

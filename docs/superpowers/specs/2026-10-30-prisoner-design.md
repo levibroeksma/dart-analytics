@@ -1,7 +1,7 @@
 # Prisoner — Design
 
 Date: 2026-10-30
-Status: PR 1 (kernel hooks `reduceDart`/`decidedWinner`, policy, engine, validator, seed `0057`) implemented 2026-10-31, D518; PR 2 (app wiring) pending
+Status: PR 1 (kernel hooks `reduceDart`/`decidedWinner`, policy, engine, validator, seed `0057`) implemented 2026-10-31, D518; PR 2 (app wiring) built 2026-10-31
 Parent: `2026-10-27-elimination-kernel-design.md` (Prisoner gets its own spec)
 Rules input: `docs/game-rules/rulesets/prisoner.md` (V1 rows only)
 
@@ -154,6 +154,8 @@ dart. Only the validator refuses it (§6).
 - **Known limitation:** a bounce-out and an off-board dart are both `MISS`.
 
 ## 7. App wiring
+
+Status: PR 2 built 2026-10-31.
 
 Full touch list of `07-Frontend/09-Adding-A-Game.md`, one commit (wiring
 gate), as Follow the Leader. Slug `prisoner`.

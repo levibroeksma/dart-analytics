@@ -55,6 +55,37 @@ describe("rejectSeatRequest", () => {
     ).toBe("FOLLOW_THE_LEADER_V1 supports at most 2 seats.");
   });
 
+  it("refuses an omitted seat list for PRISONER_V1", () => {
+    expect(rejectSeatRequest(undefined, "PRISONER_V1")).toBe(
+      "PRISONER_V1 needs at least 2 seats.",
+    );
+  });
+
+  it("refuses a lone PLAYER seat for PRISONER_V1", () => {
+    expect(rejectSeatRequest([player], "PRISONER_V1")).toBe(
+      "PRISONER_V1 needs at least 2 seats.",
+    );
+  });
+
+  it("accepts PLAYER + GUEST for PRISONER_V1", () => {
+    expect(rejectSeatRequest([player, guest], "PRISONER_V1")).toBeNull();
+  });
+
+  it("refuses three seats for PRISONER_V1", () => {
+    expect(
+      rejectSeatRequest(
+        [player, guest, { ...guest, sideKey: "C" }],
+        "PRISONER_V1",
+      ),
+    ).toBe("PRISONER_V1 supports at most 2 seats.");
+  });
+
+  it("refuses a DARTBOT seat for PRISONER_V1", () => {
+    expect(rejectSeatRequest([player, bot], "PRISONER_V1")).toMatch(
+      /does not support a DartBot opponent/,
+    );
+  });
+
   it("accepts PLAYER + GUEST for KILLER_V1", () => {
     expect(rejectSeatRequest([player, guest], "KILLER_V1")).toBeNull();
   });

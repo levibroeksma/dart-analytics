@@ -1,0 +1,24 @@
+---
+/**
+ * Read-only label/value rows for a game whose setup rules are fixed.
+ * @param {{ label: string; value: string }[]} rows Rows in display order (labels in caps)
+ */
+interface Props {
+  rows: { label: string; value: string }[];
+}
+
+// Components
+import SettingLabel from "./SettingLabel.astro";
+
+// Props
+const { rows }: Props = Astro.props;
+---
+
+{
+  rows.map((row) => (
+    <div class="flex flex-col gap-2">
+      <SettingLabel text={row.label} />
+      <p class="text-sm text-foreground">{row.value}</p>
+    </div>
+  ))
+}
