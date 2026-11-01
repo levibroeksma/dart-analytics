@@ -10,7 +10,7 @@ import {
   playToggleTimerPause,
   playUndoVisit,
   playVisitMarkers,
-  undoToActiveSeat,
+  undoPastBot,
 } from "@lib/game/play-lifecycle";
 import type { DartbotSeat } from "@lib/types";
 import type { GameEngine } from "@modules/interfaces";
@@ -159,15 +159,7 @@ export function boardPlayActions<
         playUndoVisit(this);
         return;
       }
-      const seats = this.$store.game.seats;
-      if (findBotSeat(seats)) {
-        const humanSeat = seats.find(
-          (seat) => seat.participantTypeKey === "PLAYER",
-        )!;
-        undoToActiveSeat(this, humanSeat.participantRef);
-      } else {
-        playUndoVisit(this);
-      }
+      if (!undoPastBot(this)) playUndoVisit(this);
       await this.maybeRunBotVisit();
     },
 

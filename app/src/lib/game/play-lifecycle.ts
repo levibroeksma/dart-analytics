@@ -328,6 +328,22 @@ export function undoToActiveSeat<
 }
 
 /**
+ * With a DartBot seated, pops back to the human seat's own turn and returns
+ * true; returns false, having done nothing, when no bot is seated.
+ */
+export function undoPastBot<
+  TConfig,
+  TEngine extends GameEngine<DartObservation, MultiSeatState>,
+  TResults,
+>(context: PlayLifecycleContext<TConfig, TEngine, TResults>): boolean {
+  const seats = context.$store.game.seats;
+  if (!findBotSeat(seats)) return false;
+  const humanSeat = seats.find((seat) => seat.participantTypeKey === "PLAYER")!;
+  undoToActiveSeat(context, humanSeat.participantRef);
+  return true;
+}
+
+/**
  * The play-page input guard: true once the session is finished, while the
  * segment timer is paused, or while any of the caller's own confirm dialogs
  * is open. Each page passes its own confirm flags.
@@ -365,13 +381,7 @@ export function undoBotAwareVisit<
   },
 ): void {
   if (!context.engine) return;
-  const seats = context.$store.game.seats;
-  if (findBotSeat(seats)) {
-    const humanSeat = seats.find(
-      (seat) => seat.participantTypeKey === "PLAYER",
-    )!;
-    undoToActiveSeat(context, humanSeat.participantRef);
-  } else {
+  if (!undoPastBot(context)) {
     if (!context.engine.undo()) return;
     clearHiddenTimer(context);
     context.$store.game.recordFacts(context.engine.facts());

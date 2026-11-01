@@ -5,6 +5,7 @@ vi.mock("@lib/game/play-lifecycle", () => ({
   playCommitDart: vi.fn(async () => {}),
   playUndoVisit: vi.fn(),
   undoToActiveSeat: vi.fn(),
+  undoPastBot: vi.fn(() => false),
   playVisitMarkers: vi.fn(() => []),
   playBack: vi.fn(async () => {}),
   playAbandonAndExit: vi.fn(async () => {}),
@@ -23,6 +24,7 @@ import {
   playToggleTimerPause,
   playUndoVisit,
   playVisitMarkers,
+  undoPastBot,
   undoToActiveSeat,
 } from "@lib/game/play-lifecycle";
 import {
@@ -276,9 +278,9 @@ describe("boardPlayActions", () => {
     const ctx = Object.assign(boardScreen([BOT, PLAYER]), {
       maybeRunBotVisit: vi.fn(async () => {}),
     });
+    vi.mocked(undoPastBot).mockReturnValueOnce(true);
     await ctx.undoVisit();
-    expect(undoToActiveSeat).toHaveBeenCalledWith(ctx, "p1");
-    expect(vi.mocked(undoToActiveSeat).mock.calls[0][0]).toBe(ctx);
+    expect(vi.mocked(undoPastBot).mock.calls[0][0]).toBe(ctx);
     expect(playUndoVisit).not.toHaveBeenCalled();
     expect(ctx.maybeRunBotVisit).toHaveBeenCalledOnce();
   });
@@ -287,9 +289,10 @@ describe("boardPlayActions", () => {
     const ctx = Object.assign(boardScreen([PLAYER]), {
       maybeRunBotVisit: vi.fn(async () => {}),
     });
+    vi.mocked(undoPastBot).mockReturnValueOnce(false);
     await ctx.undoVisit();
+    expect(vi.mocked(undoPastBot).mock.calls[0][0]).toBe(ctx);
     expect(playUndoVisit).toHaveBeenCalledWith(ctx);
-    expect(undoToActiveSeat).not.toHaveBeenCalled();
     expect(ctx.maybeRunBotVisit).toHaveBeenCalledOnce();
   });
 

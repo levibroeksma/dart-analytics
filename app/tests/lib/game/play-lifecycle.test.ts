@@ -60,6 +60,7 @@ import {
   runPlayAgain,
   variantsPlayAgain,
   undoBotAwareVisit,
+  undoPastBot,
   undoToActiveSeat,
 } from "@lib/game/play-lifecycle";
 import type {
@@ -1136,6 +1137,40 @@ function makeUndoContext(
     maybeRunBotVisit: vi.fn(async () => {}),
   };
 }
+
+describe("undoPastBot", () => {
+  it("with a bot seated, pops back to the human's turn and reports it handled", () => {
+    const engine = new BotFakeEngine(TWO_BOT_SEATS);
+    engine.record(dartAt(20));
+    engine.record(dartAt(19));
+    const context = makeBotContext(engine, TWO_BOT_SEATS);
+
+    expect(undoPastBot(context)).toBe(true);
+    expect(engine.facts().turns).toHaveLength(0);
+    expect(context.$store.game.turns).toHaveLength(0);
+  });
+
+  it("targets the PLAYER seat, not the first seat, when the bot is listed first", () => {
+    const seats = [BOT_SEAT, HUMAN_SEAT];
+    const engine = new BotFakeEngine(seats);
+    engine.record(dartAt(20));
+    engine.record(dartAt(19));
+    const context = makeBotContext(engine, seats);
+
+    expect(undoPastBot(context)).toBe(true);
+    expect(engine.facts().turns).toHaveLength(1);
+    expect(engine.state().activeParticipantRef).toBe(HUMAN_REF);
+  });
+
+  it("without a bot, does nothing and reports it unhandled", () => {
+    const engine = new BotFakeEngine([HUMAN_SEAT]);
+    engine.record(dartAt(20));
+    const context = makeBotContext(engine, [HUMAN_SEAT]);
+
+    expect(undoPastBot(context)).toBe(false);
+    expect(engine.facts().turns).toHaveLength(1);
+  });
+});
 
 describe("undoBotAwareVisit", () => {
   it("in a bot session, rewinds to the human's seat across the bot's turn", () => {
