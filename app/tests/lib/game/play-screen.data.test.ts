@@ -42,6 +42,8 @@ import {
   checkoutDartCounts,
   confirmCheckout,
   openCheckoutConfirm,
+  playRunGatedBotVisit,
+  playTimedInit,
   playX01BotVisit,
   recordCheckoutVisit,
   restoreCheckoutScore,
@@ -823,5 +825,85 @@ describe("playX01BotVisit", () => {
     vi.mocked(playBotQuickScoreVisit).mockResolvedValueOnce(null);
     await playX01BotVisit(ctx, BOT, spec);
     expect(ctx.recordVisit).not.toHaveBeenCalled();
+  });
+});
+
+describe("playTimedInit", () => {
+  function timedScreen() {
+    return Object.assign(lifecycle([PLAYER]), {
+      timer: null as SegmentTimer | null,
+      maybeRunBotVisit: vi.fn(async () => {}),
+    });
+  }
+
+  it("runs playInit without the complete-engine upload, then the bot once a session is active", async () => {
+    const ctx = timedScreen();
+    vi.mocked(playInit).mockImplementationOnce(async (context) => {
+      context.hasActiveSession = true;
+    });
+    await playTimedInit(
+      ctx as never,
+      "TUOD",
+      resume,
+      (config) => config as never,
+    );
+    const [context, key, passedResume, options] =
+      vi.mocked(playInit).mock.calls[0];
+    expect(context).toBe(ctx);
+    expect(key).toBe("TUOD");
+    expect(passedResume).toBe(resume);
+    expect(options?.uploadIfComplete).toBe(false);
+    expect(ctx.maybeRunBotVisit).toHaveBeenCalledOnce();
+  });
+
+  it("skips the bot when no session was resumed", async () => {
+    const ctx = timedScreen();
+    await playTimedInit(
+      ctx as never,
+      "TUOD",
+      resume,
+      (config) => config as never,
+    );
+    expect(ctx.maybeRunBotVisit).not.toHaveBeenCalled();
+  });
+
+  it("on resume, hands the mapped countdown config to the shared countdown", async () => {
+    const ctx = timedScreen();
+    ctx.$store.game.timerExpired = true;
+    const countdownConfigOf = vi.fn(() => ({
+      durationType: "MINUTES",
+      durationValue: 5,
+    }));
+    await playTimedInit(ctx as never, "TUOD", resume, countdownConfigOf);
+    const options = vi.mocked(playInit).mock.calls[0][3]!;
+    const engine = { expireTimer: vi.fn() };
+    const config = { seats: [PLAYER] };
+    ctx.timer = fakeTimer();
+    options.onResumed!(engine as never, config as never);
+    expect(countdownConfigOf).toHaveBeenCalledWith(config);
+    expect(engine.expireTimer).toHaveBeenCalledOnce();
+    expect(ctx.timer).toBeNull();
+  });
+});
+
+describe("playRunGatedBotVisit", () => {
+  it("runs the bot's visual-board visit with the engine's wouldComplete as the finish gate", async () => {
+    const ctx = Object.assign(lifecycle([PLAYER, BOT]), {
+      botThrowing: false,
+      botFlight: null,
+    });
+    const wouldComplete = vi.fn(() => true);
+    ctx.engine = { wouldComplete } as never;
+    const thrower = vi.fn();
+    await playRunGatedBotVisit(ctx, BOT, thrower);
+    const [context, botRef, passedThrower, wait, gate] = vi.mocked(
+      playRunBotVisualBoardVisit,
+    ).mock.calls[0];
+    expect(context).toBe(ctx);
+    expect(botRef).toBe("b1");
+    expect(passedThrower).toBe(thrower);
+    expect(wait).toBeUndefined();
+    expect(gate!(MISS)).toBe(true);
+    expect(wouldComplete).toHaveBeenCalledWith(MISS);
   });
 });

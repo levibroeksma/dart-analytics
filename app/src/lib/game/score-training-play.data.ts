@@ -1,6 +1,8 @@
 import { boardInputData } from "@lib/game/board-input.data";
 import {
   boundBoardInput,
+  playRunGatedBotVisit,
+  playTimedInit,
   resetTimerStoreFields,
   timedScoreScreenData,
 } from "@lib/game/play-screen.data";
@@ -8,8 +10,6 @@ import { matchWinnerName } from "@lib/game/match-result-text";
 import {
   armHiddenTimer,
   playFoldBotQuickScoreVisit,
-  playInit,
-  playRunBotVisualBoardVisit,
   playUploadAndCompleteSession,
   resumeGameEngine,
   runPlayAgain,
@@ -32,11 +32,7 @@ import {
   botDartObservationAt,
   botThrowObservation,
 } from "@lib/game/play-bot-seat";
-import {
-  formatRemaining,
-  maybeResumeCountdown,
-  restartCountdown,
-} from "@lib/game/play-countdown";
+import { formatRemaining, restartCountdown } from "@lib/game/play-countdown";
 import type {
   DartbotSeat,
   RulesetVersionKey,
@@ -49,7 +45,6 @@ import type {
   TurnFact,
 } from "@modules/types";
 import type {
-  BotDartThrower,
   BotPacing,
   ScoreTrainingPlayContext,
   ScoreTrainingResultsSnapshot,
@@ -229,7 +224,7 @@ export function scoreTrainingPlay() {
      */
     async init(this: ScoreTrainingPlayContext) {
       board.bind(this);
-      await playInit(
+      await playTimedInit(
         this,
         GAME_TYPE_KEY,
         (game) =>
@@ -239,14 +234,8 @@ export function scoreTrainingPlay() {
             (candidate): candidate is ScoreTrainingEngine =>
               candidate instanceof ScoreTrainingEngine,
           ),
-        {
-          onResumed: (engine, config) => {
-            this.timer = maybeResumeCountdown(this.$store.game, config, engine);
-          },
-          uploadIfComplete: false,
-        },
+        (config) => config,
       );
-      if (this.hasActiveSession) await this.maybeRunBotVisit();
     },
 
     /**
@@ -367,13 +356,8 @@ export function scoreTrainingPlay() {
         return;
       }
 
-      const thrower: BotDartThrower = () => throwBotDart(this, botSeat);
-      await playRunBotVisualBoardVisit(
-        this,
-        botSeat.participantRef,
-        thrower,
-        undefined,
-        (observation) => this.engine!.wouldComplete(observation),
+      await playRunGatedBotVisit(this, botSeat, () =>
+        throwBotDart(this, botSeat),
       );
     },
 

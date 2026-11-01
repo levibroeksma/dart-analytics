@@ -6,6 +6,7 @@ import {
   x01BotIntent,
 } from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
+import { maybeResumeCountdown } from "@lib/game/play-countdown";
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import {
   playAbandonAndExit,
@@ -35,6 +36,8 @@ import type {
   BoardMarker,
   BotDartThrower,
   BotFlight,
+  CountdownConfig,
+  ExpirableEngine,
   PlayLifecycleContext,
   PlayStoreContext,
 } from "./types";
@@ -524,5 +527,58 @@ export async function playX01BotVisit<
       context.$store.game.turns,
       x01BotIntent(spec.remainingFor(botRef), botSeat),
     ),
+  );
+}
+
+/**
+ * A MINUTES-capable page's `init`: `playInit` with no complete-engine upload,
+ * the countdown resumed from `countdownConfigOf(config)` on a matched
+ * session, then the bot's visit once a session is active.
+ */
+export async function playTimedInit<
+  TConfig,
+  TEngine extends GameEngine<DartObservation, unknown> & ExpirableEngine,
+  TResults,
+>(
+  context: PlayLifecycleContext<TConfig, TEngine, TResults> & {
+    timer: SegmentTimer | null;
+    maybeRunBotVisit(): Promise<void>;
+  },
+  gameTypeKey: string,
+  resume: (game: PlayStoreContext<TConfig>["game"]) => TEngine | null,
+  countdownConfigOf: (config: Seated<TConfig>) => CountdownConfig,
+): Promise<void> {
+  await playInit(context, gameTypeKey, resume, {
+    onResumed: (engine, config) => {
+      context.timer = maybeResumeCountdown(
+        context.$store.game,
+        countdownConfigOf(config),
+        engine,
+      );
+    },
+    uploadIfComplete: false,
+  });
+  if (context.hasActiveSession) await context.maybeRunBotVisit();
+}
+
+/** A bot's visual-board visit whose session-ending dart waits on the engine's `wouldComplete`. */
+export function playRunGatedBotVisit<
+  TConfig,
+  TEngine extends GameEngine<DartObservation, MultiSeatState>,
+  TResults,
+>(
+  context: PlayLifecycleContext<TConfig, TEngine, TResults> & {
+    botThrowing: boolean;
+    botFlight?: BotFlight | null;
+  },
+  botSeat: DartbotSeat,
+  thrower: BotDartThrower,
+): Promise<void> {
+  return playRunBotVisualBoardVisit(
+    context,
+    botSeat.participantRef,
+    thrower,
+    undefined,
+    (observation) => context.engine!.wouldComplete(observation),
   );
 }

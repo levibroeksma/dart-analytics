@@ -1669,6 +1669,33 @@ describe("oneTwentyOnePlay bot flight", () => {
 });
 
 describe("oneTwentyOnePlay shared play-screen parts", () => {
+  it("init resumes a running MINUTES countdown from its stored remaining time", async () => {
+    vi.clearAllMocks();
+    segmentTimerInstances.length = 0;
+    const store = baseStore();
+    store.game.rulesetVersionKey = "121_V2";
+    store.game.configSnapshot = {
+      seats: SEATS,
+      durationType: "MINUTES",
+      durationValue: 15,
+    } as any;
+    store.game.timerRemainingMs = 120000;
+    vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([
+      { sessionId: "session-1", gameTypeKey: "ONE_TWENTY_ONE" } as any,
+    ]);
+    const play = {
+      ...oneTwentyOnePlay(),
+      $store: store,
+    } as OneTwentyOnePlayContext;
+
+    await play.init();
+
+    expect(play.hasActiveSession).toBe(true);
+    expect(segmentTimerInstances).toHaveLength(1);
+    expect(play.timer).toBe(segmentTimerInstances[0]);
+    expect(segmentTimerInstances[0].options.totalMinutes).toBe(2);
+  });
+
   it("init resumes an already-expired MINUTES session with an expired engine and no timer", async () => {
     vi.clearAllMocks();
     segmentTimerInstances.length = 0;

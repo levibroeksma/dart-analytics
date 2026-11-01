@@ -9,6 +9,8 @@ import {
   boundBoardInput,
   checkoutDartCounts,
   openCheckoutConfirm,
+  playRunGatedBotVisit,
+  playTimedInit,
   resetTimerStoreFields,
   restoreCheckoutScore,
   timedScoreScreenData,
@@ -16,8 +18,6 @@ import {
 import {
   armHiddenTimer,
   playFoldBotQuickScoreVisit,
-  playInit,
-  playRunBotVisualBoardVisit,
   playUploadAndCompleteSession,
   resumeGameEngine,
   runPlayAgain,
@@ -35,11 +35,7 @@ import {
   botThrowObservation,
   x01BotIntent,
 } from "@lib/game/play-bot-seat";
-import {
-  formatRemaining,
-  maybeResumeCountdown,
-  restartCountdown,
-} from "@lib/game/play-countdown";
+import { formatRemaining, restartCountdown } from "@lib/game/play-countdown";
 import { classifyDoubleAttempts } from "@modules/game/double-attempt.module";
 import { tuodCheckoutVisits } from "@modules/game/checkout-visits.module";
 import type {
@@ -58,7 +54,6 @@ import type {
   TuodState,
 } from "@modules/types";
 import type {
-  BotDartThrower,
   BotPacing,
   TuodPlayContext,
   TuodResultsSnapshot,
@@ -331,7 +326,7 @@ export function tuodPlay() {
      */
     async init(this: TuodPlayContext) {
       board.bind(this);
-      await playInit(
+      await playTimedInit(
         this,
         GAME_TYPE_KEY,
         (game) =>
@@ -341,14 +336,8 @@ export function tuodPlay() {
             (candidate): candidate is TuodEngine =>
               candidate instanceof TuodEngine,
           ),
-        {
-          onResumed: (engine, config) => {
-            this.timer = maybeResumeCountdown(this.$store.game, config, engine);
-          },
-          uploadIfComplete: false,
-        },
+        (config) => config,
       );
-      if (this.hasActiveSession) await this.maybeRunBotVisit();
     },
 
     /**
@@ -466,13 +455,8 @@ export function tuodPlay() {
         return;
       }
 
-      const thrower: BotDartThrower = () => throwBotDart(this, botSeat);
-      await playRunBotVisualBoardVisit(
-        this,
-        botSeat.participantRef,
-        thrower,
-        undefined,
-        (observation) => this.engine!.wouldComplete(observation),
+      await playRunGatedBotVisit(this, botSeat, () =>
+        throwBotDart(this, botSeat),
       );
     },
 

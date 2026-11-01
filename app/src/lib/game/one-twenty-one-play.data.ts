@@ -6,16 +6,13 @@ import {
   checkoutPathWithin,
 } from "@modules/game/checkout-path.module";
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
-import {
-  formatRemaining,
-  maybeResumeCountdown,
-  restartCountdown,
-} from "@lib/game/play-countdown";
+import { formatRemaining, restartCountdown } from "@lib/game/play-countdown";
 import { boardInputData } from "@lib/game/board-input.data";
 import {
   boundBoardInput,
   confirmCheckout,
   openCheckoutConfirm,
+  playTimedInit,
   playX01BotVisit,
   recordCheckoutVisit,
   resetTimerStoreFields,
@@ -25,7 +22,6 @@ import {
 } from "@lib/game/play-screen.data";
 import {
   playCommitDart,
-  playInit,
   playUploadAndCompleteSession,
   runPlayAgain,
   isInputBlocked,
@@ -346,17 +342,7 @@ export function oneTwentyOnePlay() {
 
     async init(this: OneTwentyOnePlayContext) {
       board.bind(this);
-      await playInit(this, GAME_TYPE_KEY, resumeEngine, {
-        onResumed: (engine, config) => {
-          this.timer = maybeResumeCountdown(
-            this.$store.game,
-            countdownConfigOf(config),
-            engine,
-          );
-        },
-        uploadIfComplete: false,
-      });
-      if (this.hasActiveSession) await this.maybeRunBotVisit();
+      await playTimedInit(this, GAME_TYPE_KEY, resumeEngine, countdownConfigOf);
     },
 
     /**

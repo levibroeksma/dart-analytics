@@ -2406,6 +2406,25 @@ describe("tuodPlay shared play-screen parts", () => {
     vi.mocked(fetchActiveSessions).mockResolvedValue([{ ...ACTIVE_SESSION }]);
   });
 
+  it("init resumes a running MINUTES countdown from its stored remaining time", async () => {
+    segmentTimerInstances.length = 0;
+    const store = gameStub({
+      configSnapshot: minutes(15),
+      timerRemainingMs: 120000,
+    });
+    const component = {
+      ...tuodPlay(),
+      $store: { game: store, settings: settingsStub() },
+    };
+    await component.init.call(component);
+
+    expect(component.hasActiveSession).toBe(true);
+    expect(segmentTimerInstances).toHaveLength(1);
+    expect(component.timer).toBe(segmentTimerInstances[0]);
+    expect(segmentTimerInstances[0].options.totalMinutes).toBe(2);
+    expect(store.timerRemainingMs).toBe(120000);
+  });
+
   it("init resumes an already-expired MINUTES session with an expired engine and no timer", async () => {
     const store = gameStub({
       configSnapshot: minutes(15),
