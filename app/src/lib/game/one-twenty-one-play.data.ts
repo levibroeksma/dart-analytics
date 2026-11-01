@@ -20,7 +20,7 @@ import {
 } from "@lib/game/play-countdown";
 import { boardInputData } from "@lib/game/board-input.data";
 import {
-  checkoutDartCounts,
+  confirmCheckout,
   openCheckoutConfirm,
   playScreenActions,
   playScreenState,
@@ -555,26 +555,10 @@ export function oneTwentyOnePlay() {
      * recording right away, mirroring `five-oh-one-play.data.ts`'s
      * `confirmDouble`.
      */
-    async confirmDouble(this: OneTwentyOnePlayContext) {
-      if (!this.engine || this.finished || !this.showDoubleConfirm) return;
-      if (this.pendingCheckoutScore == null) return;
-      const score = this.pendingCheckoutScore;
-
-      if (
-        this.engine.wouldComplete({
-          scoreAttempted: score,
-          finishedOnDouble: true,
-          ...checkoutDartCounts(this),
-        })
-      ) {
-        this.showDoubleConfirm = false;
+    confirmDouble(this: OneTwentyOnePlayContext) {
+      return confirmCheckout(this, () => {
         this.showSessionFinishConfirm = true;
-        return;
-      }
-
-      this.pendingCheckoutScore = null;
-      this.showDoubleConfirm = false;
-      await this.recordVisit(score, true);
+      });
     },
 
     cancelCheckout(this: OneTwentyOnePlayContext) {

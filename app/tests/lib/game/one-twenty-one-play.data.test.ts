@@ -253,6 +253,18 @@ describe("oneTwentyOnePlay", () => {
       expect(store.game.turns).toHaveLength(0);
     });
 
+    it("confirmDouble with no parked score records nothing and keeps the dialog open", async () => {
+      const play = createPlay({ showDoubleConfirm: true });
+      await play.init();
+      play.showDoubleConfirm = true;
+
+      await play.confirmDouble();
+
+      expect(play.showDoubleConfirm).toBe(true);
+      expect(play.showSessionFinishConfirm).toBe(false);
+      expect(store.game.turns).toHaveLength(0);
+    });
+
     it("cancelCheckout with no parked score leaves the open dialog and the keypad alone", () => {
       const play = createPlay({ showDoubleConfirm: true });
       play.scoreInput.setValue("12");

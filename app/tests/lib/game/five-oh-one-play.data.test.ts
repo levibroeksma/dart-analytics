@@ -501,6 +501,19 @@ describe("cancelCheckout", () => {
     expect(play.$store.game.turns).toHaveLength(priorTurns.length);
   });
 
+  it("confirmDouble with no parked score records nothing and keeps the dialog open", async () => {
+    const play = makePlay();
+    await play.init.call(play);
+    play.showDoubleConfirm = true;
+    const turns = play.$store.game.turns.length;
+
+    await play.confirmDouble.call(play);
+
+    expect(play.showDoubleConfirm).toBe(true);
+    expect(play.showMatchFinishConfirm).toBe(false);
+    expect(play.$store.game.turns).toHaveLength(turns);
+  });
+
   it("with no parked score, leaves the open dialog and the keypad alone", async () => {
     const play = makePlay();
     await play.init.call(play);

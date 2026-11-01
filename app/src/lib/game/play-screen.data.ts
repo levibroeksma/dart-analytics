@@ -378,3 +378,50 @@ export async function recordCheckoutVisit(
   }
   await context.maybeRunBotVisit();
 }
+
+/**
+ * "Yes" on the double-out confirm: records the parked score as a double-out,
+ * or, when that would end the session, closes this confirm and calls
+ * `deferToFinishConfirm` with the score still parked for the second dialog.
+ */
+export async function confirmCheckout(
+  context: Pick<
+    CheckoutConfirmContext,
+    | "pendingCheckoutScore"
+    | "dartsAtDouble"
+    | "dartsToFinish"
+    | "showDoubleConfirm"
+  > & {
+    finished: boolean;
+    engine: {
+      wouldComplete(input: {
+        scoreAttempted: number;
+        finishedOnDouble: boolean;
+        dartsUsed?: DartCount;
+        dartsAtDouble?: DartCount;
+      }): boolean;
+    } | null;
+    recordVisit(score: number, finishedOnDouble: boolean): Promise<void>;
+  },
+  deferToFinishConfirm: () => void,
+): Promise<void> {
+  if (!context.engine || context.finished || !context.showDoubleConfirm) return;
+  if (context.pendingCheckoutScore == null) return;
+  const score = context.pendingCheckoutScore;
+
+  if (
+    context.engine.wouldComplete({
+      scoreAttempted: score,
+      finishedOnDouble: true,
+      ...checkoutDartCounts(context),
+    })
+  ) {
+    context.showDoubleConfirm = false;
+    deferToFinishConfirm();
+    return;
+  }
+
+  context.pendingCheckoutScore = null;
+  context.showDoubleConfirm = false;
+  await context.recordVisit(score, true);
+}

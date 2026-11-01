@@ -15,7 +15,7 @@ import {
 } from "@modules/game/checkout-path.module";
 import { boardInputData } from "@lib/game/board-input.data";
 import {
-  checkoutDartCounts,
+  confirmCheckout,
   openCheckoutConfirm,
   playScreenActions,
   playScreenState,
@@ -576,26 +576,10 @@ export function fiveOhOnePlay() {
      * `pendingCheckoutScore` is deliberately left set for that second dialog
      * to record or restore.
      */
-    async confirmDouble(this: FiveOhOnePlayContext) {
-      if (!this.engine || this.finished || !this.showDoubleConfirm) return;
-      if (this.pendingCheckoutScore == null) return;
-      const score = this.pendingCheckoutScore;
-
-      if (
-        this.engine.wouldComplete({
-          scoreAttempted: score,
-          finishedOnDouble: true,
-          ...checkoutDartCounts(this),
-        })
-      ) {
-        this.showDoubleConfirm = false;
+    confirmDouble(this: FiveOhOnePlayContext) {
+      return confirmCheckout(this, () => {
         this.showMatchFinishConfirm = true;
-        return;
-      }
-
-      this.pendingCheckoutScore = null;
-      this.showDoubleConfirm = false;
-      await this.recordVisit(score, true);
+      });
     },
 
     /**

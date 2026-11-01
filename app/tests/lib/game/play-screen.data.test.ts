@@ -31,6 +31,7 @@ import {
   activeSeatStateOf,
   boardPlayActions,
   checkoutDartCounts,
+  confirmCheckout,
   openCheckoutConfirm,
   recordCheckoutVisit,
   restoreCheckoutScore,
@@ -622,5 +623,61 @@ describe("recordCheckoutVisit", () => {
     expect(ctx.scoreInput.clear).not.toHaveBeenCalled();
     expect(ctx.$store.game.recordFacts).not.toHaveBeenCalled();
     expect(ctx.maybeRunBotVisit).not.toHaveBeenCalled();
+  });
+});
+
+describe("confirmCheckout", () => {
+  function confirmScreen(wouldComplete: boolean) {
+    return {
+      finished: false,
+      showDoubleConfirm: true,
+      pendingCheckoutScore: 40 as number | null,
+      dartsToFinish: 2 as 1 | 2 | 3 | null,
+      dartsAtDouble: 1 as 1 | 2 | 3 | null,
+      engine: {
+        wouldComplete: vi.fn((_input: object) => wouldComplete),
+      } as { wouldComplete: (input: object) => boolean } | null,
+      recordVisit: vi.fn(async () => {}),
+    };
+  }
+
+  it("records a non-ending checkout as a double-out and closes the confirm", async () => {
+    const ctx = confirmScreen(false);
+    const defer = vi.fn();
+    await confirmCheckout(ctx, defer);
+    expect(ctx.engine!.wouldComplete).toHaveBeenCalledWith({
+      scoreAttempted: 40,
+      finishedOnDouble: true,
+      dartsUsed: 2,
+      dartsAtDouble: 1,
+    });
+    expect(ctx.recordVisit).toHaveBeenCalledWith(40, true);
+    expect(ctx.pendingCheckoutScore).toBeNull();
+    expect(ctx.showDoubleConfirm).toBe(false);
+    expect(defer).not.toHaveBeenCalled();
+  });
+
+  it("defers a session-ending checkout to the finish confirm, keeping the score parked", async () => {
+    const ctx = confirmScreen(true);
+    const defer = vi.fn();
+    await confirmCheckout(ctx, defer);
+    expect(defer).toHaveBeenCalledOnce();
+    expect(ctx.showDoubleConfirm).toBe(false);
+    expect(ctx.pendingCheckoutScore).toBe(40);
+    expect(ctx.recordVisit).not.toHaveBeenCalled();
+  });
+
+  it("does nothing while closed, finished, engineless or with no parked score", async () => {
+    const defer = vi.fn();
+    const closed = { ...confirmScreen(false), showDoubleConfirm: false };
+    const finished = { ...confirmScreen(false), finished: true };
+    const engineless = { ...confirmScreen(false), engine: null };
+    const unparked = { ...confirmScreen(false), pendingCheckoutScore: null };
+    for (const ctx of [closed, finished, engineless, unparked]) {
+      await confirmCheckout(ctx, defer);
+      expect(ctx.recordVisit).not.toHaveBeenCalled();
+    }
+    expect(defer).not.toHaveBeenCalled();
+    expect(unparked.showDoubleConfirm).toBe(true);
   });
 });
