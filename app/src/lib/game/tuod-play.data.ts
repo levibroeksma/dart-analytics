@@ -4,7 +4,6 @@ import {
   checkoutPathFor,
   checkoutPathWithin,
 } from "@modules/game/checkout-path.module";
-import { boardInputData } from "@lib/game/board-input.data";
 import {
   boundBoardInput,
   checkoutDartCounts,
@@ -17,7 +16,6 @@ import {
 } from "@lib/game/play-screen.data";
 import {
   armHiddenTimer,
-  playFoldBotQuickScoreVisit,
   playUploadAndCompleteSession,
   resumeGameEngine,
   runPlayAgain,

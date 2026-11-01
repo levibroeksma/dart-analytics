@@ -8,7 +8,6 @@ import {
   checkoutPathFor,
   checkoutPathWithin,
 } from "@modules/game/checkout-path.module";
-import { boardInputData } from "@lib/game/board-input.data";
 import {
   boundBoardInput,
   confirmCheckout,
@@ -28,7 +27,6 @@ import {
 } from "@lib/game/five-oh-one-match";
 import {
   playCommitDart,
-  playFoldBotQuickScoreVisit,
   playInit,
   playUploadAndCompleteSession,
   runPlayAgain,

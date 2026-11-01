@@ -2156,6 +2156,7 @@ describe("tuodPlay — DartBot opponent", () => {
 
     expect(recordDart).toHaveBeenCalledOnce();
     expect(recordDart.mock.calls[0][0].hitZoneKey).toBe("TREBLE");
+    expect(recordDart.mock.contexts[0]).toBe(play);
   });
 
   it("clears the loading state before the bot opens the match", async () => {

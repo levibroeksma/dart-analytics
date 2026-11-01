@@ -7,7 +7,6 @@ import {
 } from "@modules/game/checkout-path.module";
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
 import { formatRemaining, restartCountdown } from "@lib/game/play-countdown";
-import { boardInputData } from "@lib/game/board-input.data";
 import {
   boundBoardInput,
   confirmCheckout,
