@@ -290,7 +290,7 @@ describe("boardPlayActions", () => {
     expect(undoPastBot).not.toHaveBeenCalled();
   });
 
-  it("undoVisit with a bot seat undoes to the PLAYER seat, then reruns the bot", async () => {
+  it("undoVisit with a bot seat delegates to undoPastBot, then reruns the bot", async () => {
     const ctx = Object.assign(boardScreen([BOT, PLAYER]), {
       maybeRunBotVisit: vi.fn(async () => {}),
     });

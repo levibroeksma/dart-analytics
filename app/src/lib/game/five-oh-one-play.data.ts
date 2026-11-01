@@ -65,7 +65,7 @@ import type {
 // and importing it also runs the module's side effect, which registers
 // fiveOhOneEngineFactory so the registry can resolve this page's own
 // RULESET_VERSION_KEYS. `fiveOhOneEngineFactory` is imported directly (not via
-// the type-erased registry) so `playFoldBotQuickScoreVisit`'s `TState` infers
+// the type-erased registry) so the bot QUICK_SCORE visit's `TState` infers
 // as `FiveOhOneState` with no cast at the call site.
 import {
   FiveOhOneEngine,

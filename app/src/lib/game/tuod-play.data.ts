@@ -62,7 +62,7 @@ import type {
 // and importing it also runs the module's side effect, which registers
 // tuodEngineFactory so the registry can resolve this page's own
 // RULESET_VERSION_KEY. `tuodEngineFactory` is imported directly (not via the
-// type-erased registry) so `playFoldBotQuickScoreVisit`'s `TState` infers as
+// type-erased registry) so the bot QUICK_SCORE visit's `TState` infers as
 // `TuodState` with no cast at the call site.
 import {
   TuodEngine,

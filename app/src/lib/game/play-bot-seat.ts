@@ -106,7 +106,7 @@ export function botThrowObservation(
 
 /**
  * The observation of one bot dart at an explicit `dartIndex`, for a caller
- * whose index is not the fact log's (501's QUICK_SCORE scratch visit).
+ * whose index is not the fact log's (the X01 QUICK_SCORE scratch visit).
  */
 export function botDartObservationAt(
   botSeat: DartbotSeat,
