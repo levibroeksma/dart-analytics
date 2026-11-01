@@ -1,5 +1,7 @@
 import { boardInputData } from "@lib/game/board-input.data";
 import { findBotSeat } from "@lib/game/play-bot-seat";
+import { playAgainStarterData } from "@lib/game/play-again-starter";
+import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import {
   playAbandonAndExit,
   playBack,
@@ -20,6 +22,7 @@ import type {
   DartObservation,
   EngineFacts,
   MultiSeatState,
+  TurnFact,
 } from "@modules/types";
 import type { SegmentTimer } from "@modules/ui/segment-timer.module";
 import type {
@@ -145,6 +148,30 @@ export function playScreenActions() {
 }
 
 /**
+ * Board input that commits each tap to the bound page's `recordDart`. The
+ * page's `init` calls `bind(this)`: the board's callback is built before
+ * Alpine wraps the factory's object, so only the `this` Alpine passes to
+ * `init` is the live, reactive component.
+ */
+export function boundBoardInput<
+  TContext extends {
+    recordDart(observation: DartObservation): void | Promise<void>;
+    $store: { game: { turns: TurnFact[] } };
+  },
+>() {
+  let self: TContext;
+  return {
+    data: boardInputData(
+      (observation) => self.recordDart(observation),
+      () => self.$store.game.turns,
+    ),
+    bind(context: TContext) {
+      self = context;
+    },
+  };
+}
+
+/**
  * The visual-board record cycle: board input wired to `recordDart`, plus
  * `init`, `recordDart`, `commitDart`, `undoVisit` and the lifecycle's
  * `visitMarkers`. Each step re-enters `maybeRunBotVisit` when the page has
@@ -161,16 +188,13 @@ export function boardPlayActions<
   resume: (game: PlayStoreContext<TConfig>["game"]) => TEngine | null;
   afterInit?(context: BoardPlayContext<TConfig, TEngine>): void | Promise<void>;
 }) {
-  let self: BoardPlayContext<TConfig, TEngine>;
+  const board = boundBoardInput<BoardPlayContext<TConfig, TEngine>>();
 
   return {
-    ...boardInputData(
-      (observation) => self.recordDart(observation),
-      () => self.$store.game.turns,
-    ),
+    ...board.data,
 
     async init(this: BoardPlayContext<TConfig, TEngine>) {
-      self = this;
+      board.bind(this);
       await playInit(this, spec.gameTypeKey, spec.resume);
       await spec.afterInit?.(this);
       await this.maybeRunBotVisit?.();
@@ -250,6 +274,21 @@ export function timedPlayData() {
     abandonAndExit(this: ScreenContext & { timer: SegmentTimer | null }) {
       return playAbandonAndExit(this, () => this.timer?.stop());
     },
+  };
+}
+
+/**
+ * A timed keypad page's shared screen: lifecycle state and actions, the
+ * replay starter, the countdown and a three-digit keypad buffer. Spread
+ * after the board input, so the lifecycle's `visitMarkers` wins.
+ */
+export function timedScoreScreenData<TEngine, TResults>() {
+  return {
+    ...playScreenState<TEngine, TResults>(),
+    ...playAgainStarterData(),
+    ...playScreenActions(),
+    ...timedPlayData(),
+    scoreInput: new ScoreInputBuffer({ maxLength: 3 }),
   };
 }
 

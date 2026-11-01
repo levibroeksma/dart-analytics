@@ -1875,6 +1875,40 @@ describe("DartBot opponent", () => {
     expect(play.state()!.activeParticipantRef).toBe(HUMAN_REF);
   });
 
+  it("after init, a board tap records through the live component's recordDart", async () => {
+    const play = makePlay({ configSnapshot: botConfig() });
+    await play.init.call(play);
+    const recordDart = vi
+      .spyOn(play, "recordDart")
+      .mockResolvedValue(undefined);
+    const point = {
+      x: 0,
+      y: 0,
+      matrixTransform: () => ({ x: point.x, y: point.y }),
+    };
+    const matrix = { inverse: () => matrix };
+    Object.assign(play, {
+      $refs: {
+        board: { createSVGPoint: () => point, getScreenCTM: () => matrix },
+      },
+    });
+    Object.assign(play.$store, { boardInput: { handedness: "RIGHT" } });
+
+    const taps = play as unknown as {
+      onPointerDown(event: never): void;
+      onPointerUp(): void;
+    };
+    taps.onPointerDown({
+      clientX: 0,
+      clientY: -102,
+      preventDefault: vi.fn(),
+    } as never);
+    taps.onPointerUp();
+
+    expect(recordDart).toHaveBeenCalledOnce();
+    expect(recordDart.mock.calls[0][0].hitZoneKey).toBe("TREBLE");
+  });
+
   it("clears the loading state before the bot opens the match", async () => {
     const play = makePlay({ configSnapshot: botConfig() });
     let release: (() => void) | undefined;

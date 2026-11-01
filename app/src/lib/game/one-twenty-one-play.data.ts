@@ -4,8 +4,6 @@ import {
   botThrowObservation,
   x01BotIntent,
 } from "@lib/game/play-bot-seat";
-import { playAgainStarterData } from "@lib/game/play-again-starter";
-import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { foldOneTwentyOneState } from "@modules/game/one-twenty-one.engine.module";
 import {
@@ -20,14 +18,13 @@ import {
 } from "@lib/game/play-countdown";
 import { boardInputData } from "@lib/game/board-input.data";
 import {
+  boundBoardInput,
   confirmCheckout,
   openCheckoutConfirm,
-  playScreenActions,
-  playScreenState,
   recordCheckoutVisit,
   resetTimerStoreFields,
   restoreCheckoutScore,
-  timedPlayData,
+  timedScoreScreenData,
 } from "@lib/game/play-screen.data";
 import {
   playCommitDart,
@@ -244,26 +241,13 @@ function computeStats(
   };
 }
 
-/**
- * `self` exists only so `boardInputData`'s `onCommit` callback can reach this
- * page's own `recordDart` with the live, reactive `this` Alpine binds to
- * every directive-driven call — mirrors `five-oh-one-play.data.ts`'s own
- * `self` pattern.
- */
+/** `init` binds the board input to the live component (`boundBoardInput`). */
 export function oneTwentyOnePlay() {
-  let self: OneTwentyOnePlayContext;
+  const board = boundBoardInput<OneTwentyOnePlayContext>();
 
   return {
-    ...playScreenState<OneTwentyOneEngine, OneTwentyOneResultsSnapshot>(),
-    ...playAgainStarterData(),
-    ...boardInputData(
-      (observation) => self.recordDart(observation),
-      () => self.$store.game.turns,
-    ),
-    ...playScreenActions(),
-    ...timedPlayData(),
-
-    scoreInput: new ScoreInputBuffer({ maxLength: 3 }),
+    ...board.data,
+    ...timedScoreScreenData<OneTwentyOneEngine, OneTwentyOneResultsSnapshot>(),
     pendingCheckoutScore: null as number | null,
     dartsAtDouble: null as DartCount | null,
     dartsToFinish: null as DartCount | null,
@@ -401,7 +385,7 @@ export function oneTwentyOnePlay() {
     },
 
     async init(this: OneTwentyOnePlayContext) {
-      self = this;
+      board.bind(this);
       await playInit(this, GAME_TYPE_KEY, resumeEngine, {
         onResumed: (engine, config) => {
           this.timer = maybeResumeCountdown(

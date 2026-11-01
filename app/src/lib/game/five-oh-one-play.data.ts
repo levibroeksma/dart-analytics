@@ -15,6 +15,7 @@ import {
 } from "@modules/game/checkout-path.module";
 import { boardInputData } from "@lib/game/board-input.data";
 import {
+  boundBoardInput,
   confirmCheckout,
   openCheckoutConfirm,
   playScreenActions,
@@ -267,32 +268,14 @@ function buildResultsSnapshot(
   };
 }
 
-/**
- * `self` exists only so `boardInputData`'s `onCommit` callback can reach this
- * page's own `recordDart` with the live, reactive `this` Alpine binds to
- * every directive-driven call (`@click="…"`, `init()`). `onCommit` is built
- * once, synchronously, while this factory's returned object literal is still
- * being constructed — at that point Alpine has not yet wrapped it in
- * `reactive()`, so a callback written as `(observation) => this.recordDart(…)`
- * right here would close over the wrong `this` (this factory's own call-time
- * receiver, never the component) and silently stop updating the DOM for
- * every local field `recordDart` touches (`finished`, `showMatchFinishConfirm`,
- * `pendingDartObservation`, `error`) — the store mirror would still update,
- * masking the bug in anything that only inspects `$store.game`. `init()` runs
- * through Alpine's own evaluator after the wrap, so assigning `self = this`
- * there captures the real reactive instance in time for the first possible
- * board press, which cannot happen before `hasActiveSession` flips true.
- */
+/** `init` binds the board input to the live component (`boundBoardInput`). */
 export function fiveOhOnePlay() {
-  let self: FiveOhOnePlayContext;
+  const board = boundBoardInput<FiveOhOnePlayContext>();
 
   return {
     ...playScreenState<FiveOhOneEngine, FiveOhOneResultsSnapshot>(),
     ...playAgainStarterData(),
-    ...boardInputData(
-      (observation) => self.recordDart(observation),
-      () => self.$store.game.turns,
-    ),
+    ...board.data,
     ...playScreenActions(),
 
     scoreInput: new ScoreInputBuffer({ maxLength: 3 }),
@@ -463,7 +446,7 @@ export function fiveOhOnePlay() {
     },
 
     async init(this: FiveOhOnePlayContext) {
-      self = this;
+      board.bind(this);
       await playInit(this, GAME_TYPE_KEY, resumeEngine, {
         uploadIfComplete: false,
       });

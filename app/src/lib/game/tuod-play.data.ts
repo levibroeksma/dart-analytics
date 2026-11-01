@@ -1,6 +1,4 @@
-import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { matchWinnerName } from "@lib/game/match-result-text";
-import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
 import {
   checkoutPathFor,
@@ -8,13 +6,12 @@ import {
 } from "@modules/game/checkout-path.module";
 import { boardInputData } from "@lib/game/board-input.data";
 import {
+  boundBoardInput,
   checkoutDartCounts,
   openCheckoutConfirm,
-  playScreenActions,
-  playScreenState,
   resetTimerStoreFields,
   restoreCheckoutScore,
-  timedPlayData,
+  timedScoreScreenData,
 } from "@lib/game/play-screen.data";
 import {
   armHiddenTimer,
@@ -180,26 +177,13 @@ function canSubmitVisit(context: TuodPlayContext): boolean {
   );
 }
 
-/**
- * `self` exists only so `boardInputData`'s `onCommit` callback can reach this
- * page's own `recordDart` with the live, reactive `this` Alpine binds to every
- * directive-driven call — mirrors `one-twenty-one-play.data.ts`'s own `self`
- * pattern.
- */
+/** `init` binds the board input to the live component (`boundBoardInput`). */
 export function tuodPlay() {
-  let self: TuodPlayContext;
+  const board = boundBoardInput<TuodPlayContext>();
 
   return {
-    ...playScreenState<TuodEngine, TuodResultsSnapshot>(),
-    ...playAgainStarterData(),
-    ...boardInputData(
-      (observation) => self.recordDart(observation),
-      () => self.$store.game.turns,
-    ),
-    ...playScreenActions(),
-    ...timedPlayData(),
-
-    scoreInput: new ScoreInputBuffer({ maxLength: 3 }),
+    ...board.data,
+    ...timedScoreScreenData<TuodEngine, TuodResultsSnapshot>(),
     pendingAttempt: null as TuodAttemptInput | null,
     pendingCheckoutScore: null as number | null,
     pendingDartObservation: null as DartObservation | null,
@@ -346,7 +330,7 @@ export function tuodPlay() {
      * outcome shows no session; nothing is abandoned here (D460).
      */
     async init(this: TuodPlayContext) {
-      self = this;
+      board.bind(this);
       await playInit(
         this,
         GAME_TYPE_KEY,

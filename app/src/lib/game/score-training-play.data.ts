@@ -1,11 +1,8 @@
-import { playAgainStarterData } from "@lib/game/play-again-starter";
-import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { boardInputData } from "@lib/game/board-input.data";
 import {
-  playScreenActions,
-  playScreenState,
+  boundBoardInput,
   resetTimerStoreFields,
-  timedPlayData,
+  timedScoreScreenData,
 } from "@lib/game/play-screen.data";
 import { matchWinnerName } from "@lib/game/match-result-text";
 import {
@@ -121,37 +118,16 @@ function botSeatToThrow(context: ScoreTrainingPlayContext): DartbotSeat | null {
   return activeBotTurn(context)?.botSeat ?? null;
 }
 
-/**
- * `self` exists only so `boardInputData`'s `onCommit` callback can reach this
- * page's own `recordDart` with the live, reactive `this` Alpine binds to every
- * directive-driven call (`@click="…"`, `init()`). `onCommit` is built once,
- * synchronously, while this factory's returned object literal is still being
- * constructed — at that point Alpine has not yet wrapped it in `reactive()`,
- * so a callback written as `(observation) => this.recordDart(…)` right here
- * would close over the wrong `this` (this factory's own call-time receiver,
- * never the component) and silently stop updating the DOM for every local
- * field `recordDart` touches (`showFinishConfirm`, `pendingDartObservation`,
- * `error`) — the store mirror would still update, masking the bug in anything
- * that only inspects `$store.game`. `init()` runs through Alpine's own
- * evaluator after the wrap, so assigning `self = this` there captures the real
- * reactive instance in time for the first possible board press, which cannot
- * happen before `hasActiveSession` flips true. Mirrors
- * `five-oh-one-play.data.ts`.
- */
+/** `init` binds the board input to the live component (`boundBoardInput`). */
 export function scoreTrainingPlay() {
-  let self: ScoreTrainingPlayContext;
+  const board = boundBoardInput<ScoreTrainingPlayContext>();
 
   return {
-    ...playScreenState<ScoreTrainingEngine, ScoreTrainingResultsSnapshot>(),
-    ...playAgainStarterData(),
-    ...boardInputData(
-      (observation) => self.recordDart(observation),
-      () => self.$store.game.turns,
-    ),
-    ...playScreenActions(),
-    ...timedPlayData(),
-
-    scoreInput: new ScoreInputBuffer({ maxLength: 3 }),
+    ...board.data,
+    ...timedScoreScreenData<
+      ScoreTrainingEngine,
+      ScoreTrainingResultsSnapshot
+    >(),
     pendingFinishScore: null as number | null,
     pendingDartObservation: null as DartObservation | null,
     showFinishConfirm: false,
@@ -252,7 +228,7 @@ export function scoreTrainingPlay() {
      * abandoned here (D460).
      */
     async init(this: ScoreTrainingPlayContext) {
-      self = this;
+      board.bind(this);
       await playInit(
         this,
         GAME_TYPE_KEY,

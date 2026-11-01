@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { Mock } from "vitest";
 
 vi.mock("@lib/game/play-lifecycle", () => ({
   playInit: vi.fn(async () => {}),
@@ -30,6 +31,7 @@ import {
 import {
   activeSeatStateOf,
   boardPlayActions,
+  boundBoardInput,
   checkoutDartCounts,
   confirmCheckout,
   openCheckoutConfirm,
@@ -43,6 +45,7 @@ import {
   resetTimerStoreFields,
   seatStateFor,
   timedPlayData,
+  timedScoreScreenData,
 } from "@lib/game/play-screen.data";
 import type { DartbotSeat, PlayStoreContext, SeatFact } from "@lib/types";
 import type { GameEngine } from "@modules/interfaces";
@@ -679,5 +682,86 @@ describe("confirmCheckout", () => {
     }
     expect(defer).not.toHaveBeenCalled();
     expect(unparked.showDoubleConfirm).toBe(true);
+  });
+});
+
+function fakeBoardElement(): SVGSVGElement {
+  const matrix = { inverse: () => matrix, a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 };
+  const point = {
+    x: 0,
+    y: 0,
+    matrixTransform: () => ({ x: point.x, y: point.y }),
+  };
+  return {
+    createSVGPoint: () => point,
+    getScreenCTM: () => matrix,
+  } as unknown as SVGSVGElement;
+}
+
+describe("boundBoardInput", () => {
+  type Page = {
+    recordDart: Mock<(observation: DartObservation) => Promise<void>>;
+    $store: { game: { turns: TurnFact[] } };
+  };
+
+  it("commits a board tap to the bound page's recordDart", () => {
+    const board = boundBoardInput<Page>();
+    const live: Page = {
+      recordDart: vi.fn(async (_observation: DartObservation) => {}),
+      $store: { game: { turns: [] } },
+    };
+    const tapped = Object.assign({}, board.data, {
+      $refs: { board: fakeBoardElement() },
+      $store: { boardInput: { handedness: "RIGHT" as const } },
+    });
+    board.bind(live);
+
+    tapped.onPointerDown({
+      clientX: 0,
+      clientY: -102,
+      preventDefault: vi.fn(),
+    } as never);
+    tapped.onPointerUp();
+
+    expect(live.recordDart).toHaveBeenCalledOnce();
+    expect(live.recordDart.mock.calls[0][0].hitZoneKey).toBe("TREBLE");
+  });
+});
+
+describe("timedScoreScreenData", () => {
+  it("composes the lifecycle state, replay starter, actions, countdown and keypad", () => {
+    const data = timedScoreScreenData();
+    expect(data).toMatchObject({
+      ...playScreenState(),
+      starterOpen: false,
+      timer: null,
+    });
+    for (const key of [
+      "back",
+      "retryReconciliation",
+      "visitMarkers",
+      "requestPlayAgain",
+      "togglePause",
+      "destroy",
+    ]) {
+      expect(typeof (data as Record<string, unknown>)[key]).toBe("function");
+    }
+    expect(data.scoreInput.value).toBe("");
+  });
+
+  it("uses the countdown's abandonAndExit, which stops the timer", async () => {
+    const timer = { stop: vi.fn() } as unknown as SegmentTimer;
+    const ctx = Object.assign(timedScoreScreenData(), lifecycle(), { timer });
+    await ctx.abandonAndExit();
+    const [context, onAbandoned] = vi.mocked(playAbandonAndExit).mock.calls[0];
+    expect(context).toBe(ctx);
+    await onAbandoned?.();
+    expect(timer.stop).toHaveBeenCalledOnce();
+  });
+
+  it("gives each page its own keypad buffer", () => {
+    expect(timedScoreScreenData().scoreInput).not.toBe(
+      timedScoreScreenData().scoreInput,
+    );
   });
 });
