@@ -15,7 +15,6 @@ import {
 } from "@lib/game/play-screen.data";
 import {
   armHiddenTimer,
-  playAnimateBotDarts,
   playFoldBotQuickScoreVisit,
   playInit,
   playRunBotVisualBoardVisit,
@@ -24,6 +23,7 @@ import {
   runPlayAgain,
   isInputBlocked,
   undoBotAwareVisit,
+  playBotQuickScoreVisit,
 } from "@lib/game/play-lifecycle";
 import {
   checkoutPercentageDisplay,
@@ -31,7 +31,6 @@ import {
 } from "@lib/game/play-visit-stats";
 import {
   botDartObservationAt,
-  botQuickScoreDartIndex,
   botThrowObservation,
   findBotSeat,
   x01BotIntent,
@@ -482,26 +481,18 @@ export function tuodPlay() {
         const target = state.seats.find(
           (seat) => seat.participantRef === botSeat.participantRef,
         )!.currentTarget;
-        let dartIndex = botQuickScoreDartIndex(
-          this.$store.game.turns,
-          botSeat.participantRef,
-          DARTS_PER_VISIT,
-        );
-        const fold = playFoldBotQuickScoreVisit(
+        const total = await playBotQuickScoreVisit(
+          this,
+          botSeat,
           tuodEngineFactory,
-          this.$store.game.configSnapshot!,
-          this.engine.facts(),
-          (scratchState) =>
-            throwBotQuickScoreDart(scratchState, botSeat, dartIndex++),
+          (scratchState, dartIndex) =>
+            throwBotQuickScoreDart(scratchState, botSeat, dartIndex),
           DARTS_PER_VISIT,
         );
-        if (
-          !(await playAnimateBotDarts(this, botSeat.participantRef, fold.darts))
-        )
-          return;
+        if (total === null) return;
         await this.recordAttempt({
-          checkedOut: fold.totalScore === target,
-          finishedOnDouble: fold.totalScore === target,
+          checkedOut: total === target,
+          finishedOnDouble: total === target,
         });
         return;
       }

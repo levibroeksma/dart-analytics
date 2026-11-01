@@ -2130,6 +2130,22 @@ describe("tuodPlay — DartBot opponent", () => {
     expect(botTurn!.darts).toEqual([]);
   });
 
+  it("under QUICK_SCORE, a bot visit cut short mid-flight records nothing", async () => {
+    vi.useFakeTimers();
+    const play = makePlay();
+    await play.init.call(play);
+    const visit = play.recordAttempt.call(play, { checkedOut: false });
+    play.finished = true;
+    await vi.runAllTimersAsync();
+    await visit;
+    vi.useRealTimers();
+
+    expect(
+      play.$store.game.turns.filter((turn) => turn.participantRef === BOT_REF),
+    ).toHaveLength(0);
+    expect(play.botFlight).toBeNull();
+  });
+
   it("under QUICK_SCORE, each bot attempt draws fresh dart indices", async () => {
     const play = makePlay();
     await play.init.call(play);

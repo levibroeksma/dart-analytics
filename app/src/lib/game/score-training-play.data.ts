@@ -10,7 +10,6 @@ import {
 import { matchWinnerName } from "@lib/game/match-result-text";
 import {
   armHiddenTimer,
-  playAnimateBotDarts,
   playFoldBotQuickScoreVisit,
   playInit,
   playRunBotVisualBoardVisit,
@@ -19,6 +18,7 @@ import {
   runPlayAgain,
   isInputBlocked,
   undoBotAwareVisit,
+  playBotQuickScoreVisit,
 } from "@lib/game/play-lifecycle";
 import { chooseTarget } from "@modules/dartbot/strategy/scoring.strategy.module";
 import {
@@ -32,7 +32,6 @@ import {
 } from "@lib/game/play-visit-stats";
 import {
   botDartObservationAt,
-  botQuickScoreDartIndex,
   botThrowObservation,
   findBotSeat,
 } from "@lib/game/play-bot-seat";
@@ -376,24 +375,17 @@ export function scoreTrainingPlay() {
       if (!botSeat || !this.engine) return;
 
       if (this.$store.game.inputModeKey === "QUICK_SCORE") {
-        let dartIndex = botQuickScoreDartIndex(
-          this.$store.game.turns,
-          botSeat.participantRef,
-          DARTS_PER_VISIT,
-        );
-        const fold = playFoldBotQuickScoreVisit(
+        const total = await playBotQuickScoreVisit(
+          this,
+          botSeat,
           scoreTrainingEngineFactory,
-          this.$store.game.configSnapshot!,
-          this.engine.facts(),
-          () => botDartObservationAt(botSeat, dartIndex++, chooseTarget()),
+          (_state, dartIndex) =>
+            botDartObservationAt(botSeat, dartIndex, chooseTarget()),
           DARTS_PER_VISIT,
         );
-        if (
-          !(await playAnimateBotDarts(this, botSeat.participantRef, fold.darts))
-        )
-          return;
-        const completes = this.engine.wouldComplete(fold.totalScore);
-        this.engine.record(fold.totalScore);
+        if (total === null) return;
+        const completes = this.engine.wouldComplete(total);
+        this.engine.record(total);
         this.$store.game.recordFacts(this.engine.facts());
         if (!completes) return;
         this.finished = true;

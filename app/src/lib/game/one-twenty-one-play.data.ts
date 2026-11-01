@@ -1,6 +1,5 @@
 import {
   botDartObservationAt,
-  botQuickScoreDartIndex,
   botThrowObservation,
   findBotSeat,
   x01BotIntent,
@@ -28,14 +27,13 @@ import {
 } from "@lib/game/play-screen.data";
 import {
   playCommitDart,
-  playAnimateBotDarts,
-  playFoldBotQuickScoreVisit,
   playInit,
   playRunBotVisualBoardVisit,
   playUploadAndCompleteSession,
   runPlayAgain,
   isInputBlocked,
   undoBotAwareVisit,
+  playBotQuickScoreVisit,
 } from "@lib/game/play-lifecycle";
 import {
   checkoutPercentageDisplay,
@@ -486,27 +484,16 @@ export function oneTwentyOnePlay() {
         const remainingBefore = this.remainingInAttemptFor(
           botSeat.participantRef,
         );
-        let dartIndex = botQuickScoreDartIndex(
-          this.$store.game.turns,
-          botSeat.participantRef,
-          DARTS_PER_VISIT,
-        );
-        const fold = playFoldBotQuickScoreVisit(
+        const total = await playBotQuickScoreVisit(
+          this,
+          botSeat,
           oneTwentyOneEngineFactory,
-          this.$store.game.configSnapshot!,
-          this.engine.facts(),
-          (scratchState) =>
-            throwBotQuickScoreDart(scratchState, botSeat, dartIndex++),
+          (scratchState, dartIndex) =>
+            throwBotQuickScoreDart(scratchState, botSeat, dartIndex),
           DARTS_PER_VISIT,
         );
-        if (
-          !(await playAnimateBotDarts(this, botSeat.participantRef, fold.darts))
-        )
-          return;
-        await this.recordVisit(
-          fold.totalScore,
-          fold.totalScore === remainingBefore,
-        );
+        if (total === null) return;
+        await this.recordVisit(total, total === remainingBefore);
         return;
       }
 
