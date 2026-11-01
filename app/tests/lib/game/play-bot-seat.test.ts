@@ -1,13 +1,19 @@
 import { describe, expect, it } from "vitest";
 import {
+  activeBotTurn,
   BOT_PACING,
   botDartIndex,
   botDartObservationAt,
   botQuickScoreDartIndex,
+  botSeatState,
   botThrowObservation,
   findBotSeat,
+  x01BotIntent,
 } from "@lib/game/play-bot-seat";
-import type { SeatFact } from "@lib/types";
+import { chooseTarget } from "@modules/dartbot/strategy/x01.strategy.module";
+import { checkoutPathFor } from "@modules/game/checkout-path.module";
+import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
+import type { DartbotSeat, SeatFact } from "@lib/types";
 import type { TurnFact } from "@modules/types";
 
 const humanSeat = {
@@ -122,5 +128,89 @@ describe("botDartObservationAt", () => {
     expect(botDartObservationAt(dartbot, 0, intent)).not.toEqual(
       botDartObservationAt(dartbot, 5, intent),
     );
+  });
+});
+
+describe("botSeatState", () => {
+  const bot = botSeat as DartbotSeat;
+
+  it("returns the bot's own seat", () => {
+    const seats = [
+      { participantRef: "p1", targetIndex: 0 },
+      { participantRef: "bot1", targetIndex: 4 },
+    ];
+    expect(botSeatState({ seats }, bot)).toBe(seats[1]);
+  });
+
+  it("throws when there is no state", () => {
+    expect(() => botSeatState(null, bot)).toThrow(
+      "DartBot has no seat in this session's engine state",
+    );
+  });
+
+  it("throws when the state holds no seat for the bot", () => {
+    expect(() =>
+      botSeatState({ seats: [{ participantRef: "p1" }] }, bot),
+    ).toThrow("DartBot has no seat in this session's engine state");
+  });
+});
+
+describe("x01BotIntent", () => {
+  it("aims the x01 strategy at the remaining score with the level's decision quality", () => {
+    for (const level of [1, 5, 10]) {
+      const seat = {
+        ...botSeat,
+        dartbot: { level, seed: 1 },
+      } as unknown as DartbotSeat;
+      for (const remaining of [170, 40, 501, 1]) {
+        expect(x01BotIntent(remaining, seat)).toEqual(
+          chooseTarget(
+            { remaining, checkoutPath: checkoutPathFor(remaining) },
+            skillProfileForLevel(level).decisionQuality,
+          ),
+        );
+      }
+    }
+  });
+
+  it("routes a checkout for a strong bot on a finishable score", () => {
+    const seat = {
+      ...botSeat,
+      dartbot: { level: 10, seed: 1 },
+    } as unknown as DartbotSeat;
+    expect(x01BotIntent(40, seat)).not.toEqual(x01BotIntent(501, seat));
+  });
+});
+
+describe("activeBotTurn", () => {
+  const seats = [humanSeat, botSeat];
+
+  function screen(activeParticipantRef: string | null) {
+    return {
+      engine: {},
+      finished: false,
+      $store: { game: { seats } },
+      state: () =>
+        activeParticipantRef === null ? null : { activeParticipantRef },
+    };
+  }
+
+  it("returns the bot seat and the state on the bot's turn", () => {
+    const turn = activeBotTurn(screen("bot1"));
+    expect(turn?.botSeat).toBe(botSeat);
+    expect(turn?.state).toEqual({ activeParticipantRef: "bot1" });
+  });
+
+  it("is null on the human's turn, before state, without an engine, once finished, or with no bot seated", () => {
+    expect(activeBotTurn(screen("p1"))).toBeNull();
+    expect(activeBotTurn(screen(null))).toBeNull();
+    expect(activeBotTurn({ ...screen("bot1"), engine: null })).toBeNull();
+    expect(activeBotTurn({ ...screen("bot1"), finished: true })).toBeNull();
+    expect(
+      activeBotTurn({
+        ...screen("bot1"),
+        $store: { game: { seats: [humanSeat] } },
+      }),
+    ).toBeNull();
   });
 });

@@ -24,6 +24,8 @@ import { cricketSetup } from "@lib/game/cricket-setup.data";
 import { cricketPlay } from "@lib/game/cricket-play.data";
 import { tacticsSetup } from "@lib/game/tactics-setup.data";
 import { tacticsPlay } from "@lib/game/tactics-play.data";
+import { mickeyMouseSetup } from "@lib/game/mickey-mouse-setup.data";
+import { mickeyMousePlay } from "@lib/game/mickey-mouse-play.data";
 import { baseballSetup } from "@lib/game/baseball-setup.data";
 import { baseballPlay } from "@lib/game/baseball-play.data";
 import { killerSetup } from "@lib/game/killer-setup.data";
@@ -37,6 +39,8 @@ describe("registerRouteData", () => {
     ["cricketPlay", cricketPlay],
     ["tacticsSetup", tacticsSetup],
     ["tacticsPlay", tacticsPlay],
+    ["mickeyMouseSetup", mickeyMouseSetup],
+    ["mickeyMousePlay", mickeyMousePlay],
     ["baseballSetup", baseballSetup],
     ["baseballPlay", baseballPlay],
     ["killerSetup", killerSetup],

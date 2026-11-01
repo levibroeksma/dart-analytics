@@ -1,0 +1,22 @@
+---
+// Components
+import InfoSection from "@components/ui/InfoSection.astro";
+import SetupShell from "./SetupShell.astro";
+import UserSection from "./UserSection.astro";
+
+// Data
+const infoSection = {
+  title: "Mickey Mouse rules",
+  description:
+    "Alone, close 20, 19, 18, 17, 16, 15, 14, 13, 12, Doubles, Triples and the bull — three marks each — in as few darts as you can. A single marks once, a double twice, a treble three times; the outer bull marks once, the bullseye twice. A double or treble on 12 to 20 also marks Doubles or Triples, even when that number is closed; on 1 to 11 it marks only Doubles or Triples. Misses and singles on 1 to 11 mark nothing. No points. Locked rules.",
+};
+---
+
+<SetupShell title="Mickey Mouse">
+  <UserSection />
+  <InfoSection
+    title={infoSection.title}
+    description={infoSection.description}
+    open
+  />
+</SetupShell>

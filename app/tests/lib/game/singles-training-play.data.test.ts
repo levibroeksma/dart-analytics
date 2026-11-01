@@ -1681,3 +1681,214 @@ describe("singlesTrainingPlay bot flight", () => {
     expect(typeof play.requestPlayAgain).toBe("function");
   });
 });
+
+describe("singles-training shared play-screen parts", () => {
+  it("recordDart before init ignores the dart", async () => {
+    const play = makePlay();
+    const commit = vi.spyOn(play, "commitDart").mockResolvedValue(undefined);
+    const before = [...play.$store.game.turns];
+    await play.recordDart({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    expect(commit).not.toHaveBeenCalled();
+    expect(play.$store.game.turns).toEqual(before);
+    expect(play.engine).toBeNull();
+  });
+
+  it("recordDart after finish ignores the dart", async () => {
+    const play = makePlay();
+    const commit = vi.spyOn(play, "commitDart").mockResolvedValue(undefined);
+    play.engine = {} as never;
+    play.finished = true;
+    await play.recordDart({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    expect(commit).not.toHaveBeenCalled();
+  });
+});
+
+describe("singles-training active-seat accessors", () => {
+  const pairs = [
+    ["currentTargetLabel", "currentTargetLabelFor", ""],
+    ["currentPoints", "currentPointsFor", ""],
+  ] as const;
+
+  it.each(pairs)(
+    "%s() is its fallback before state exists",
+    (name, forName, fallback) => {
+      const play = makePlay();
+      vi.spyOn(play, "state").mockReturnValue(null);
+      const read = vi.spyOn(play, forName);
+      expect(play[name]()).toBe(fallback);
+      expect(read).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(pairs)("%s() reads %s for the active seat", (name, forName) => {
+    const play = makePlay();
+    vi.spyOn(play, "state").mockReturnValue({
+      activeParticipantRef: "seat-active",
+    } as never);
+    const read = vi.spyOn(play, forName).mockReturnValue("from-seat");
+    expect(play[name]()).toBe("from-seat");
+    expect(read).toHaveBeenCalledWith("seat-active");
+  });
+});
+
+describe("singles-training bot dart without a bot seat in state", () => {
+  it("rejects the bot visit and clears botThrowing", async () => {
+    const play = makePlay();
+    Object.defineProperty(play.$store.game, "seats", {
+      value: [
+        {
+          participantRef: "bot-x",
+          participantTypeKey: "DARTBOT",
+          sideKey: "B",
+          dartbot: { level: 5, seed: 1 },
+        },
+      ],
+    });
+    play.engine = {
+      state: () => ({ activeParticipantRef: "bot-x" }),
+    } as never;
+    vi.spyOn(play, "state").mockReturnValue({
+      activeParticipantRef: "bot-x",
+      seats: [],
+    } as never);
+    await expect(play.maybeRunBotVisit()).rejects.toThrow(
+      "DartBot has no seat in this session's engine state",
+    );
+    expect(play.botThrowing).toBe(false);
+  });
+});
+
+describe("singles-training resume", () => {
+  it("init builds the engine for its own key and none for another game's", async () => {
+    const own = makePlay();
+    await own.init.call(own);
+    expect(own.engine).not.toBeNull();
+
+    const foreign = makePlay({ rulesetVersionKey: "TUOD_V1" });
+    await foreign.init.call(foreign);
+    expect(foreign.engine).toBeNull();
+  });
+});
+
+describe("singles-training per-seat accessors for an unknown seat", () => {
+  it.each([
+    ["currentTargetLabelFor", ""],
+    ["currentPointsFor", ""],
+  ] as const)("%s is its blank value", async (name, blank) => {
+    const play = makePlay();
+    await play.init.call(play);
+    expect(play.state()).not.toBeNull();
+    expect(play[name]("nobody")).toBe(blank);
+  });
+});
+
+describe("singles-training when the active ref has no seat", () => {
+  async function ghostTurn() {
+    const play = makePlay();
+    await play.init.call(play);
+    vi.spyOn(play, "state").mockReturnValue({
+      activeParticipantRef: "ghost",
+      seats: [],
+    } as never);
+    return play;
+  }
+
+  it("active-seat reads are blank", async () => {
+    const play = await ghostTurn();
+    expect(play.isBullVisit()).toBe(false);
+  });
+
+  it("recordTap commits nothing", async () => {
+    const play = await ghostTurn();
+    const commit = vi.spyOn(play, "commitDart").mockResolvedValue(undefined);
+    await play.recordTap("MISS");
+    expect(commit).not.toHaveBeenCalled();
+  });
+});
+
+describe("singles-training recordTap ring mapping", () => {
+  it("a MISS tap commits a dart with no target number", async () => {
+    const play = makePlay();
+    await play.init.call(play);
+    const commit = vi.spyOn(play, "commitDart").mockResolvedValue(undefined);
+    await play.recordTap("MISS");
+    expect(commit).toHaveBeenCalledWith({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+  });
+
+  it("a TREBLE tap commits the treble on the current number", async () => {
+    const play = makePlay();
+    await play.init.call(play);
+    const commit = vi.spyOn(play, "commitDart").mockResolvedValue(undefined);
+    await play.recordTap("TREBLE");
+    expect(commit).toHaveBeenCalledWith({
+      hitTargetNumber: Number(play.currentTargetLabel()),
+      hitZoneKey: "TREBLE",
+      locationX: null,
+      locationY: null,
+    });
+  });
+});
+
+describe("singles-training previewSegments seat round", () => {
+  it("is three empty segments before any turn", async () => {
+    const play = makePlay();
+    await play.init.call(play);
+    expect(play.$store.game.turns).toEqual([]);
+    expect(play.previewSegments().map((segment) => segment.status)).toEqual([
+      "empty",
+      "empty",
+      "empty",
+    ]);
+  });
+
+  it("marks a dart on the first round's number as a hit", async () => {
+    const play = makePlay();
+    await play.init.call(play);
+    await play.recordTap("SINGLE");
+    expect(play.previewSegments()[0].status).toBe("hit");
+  });
+});
+
+describe("singles-training ring count accessors", () => {
+  const names = [
+    "missCount",
+    "singleCount",
+    "doubleCount",
+    "trebleCount",
+  ] as const;
+
+  it.each(names)(
+    "%s and its per-seat pair are 0 before config loads",
+    (name) => {
+      const play = makePlay({ configSnapshot: null });
+      expect(play[name]()).toBe("0");
+      expect(play[`${name}For`]("participant-1")).toBe("0");
+    },
+  );
+
+  it("a TREBLE tap on the target counts one treble for the seat", async () => {
+    const play = makePlay();
+    await play.init.call(play);
+    await play.recordTap("TREBLE");
+    const seatRef = play.$store.game.turns[0].participantRef;
+    expect(play.trebleCount()).toBe("1");
+    expect(play.trebleCountFor(seatRef)).toBe("1");
+    expect(play.singleCountFor(seatRef)).toBe("0");
+    expect(play.missCountFor("nobody")).toBe("0");
+  });
+});

@@ -1,7 +1,7 @@
 import { matchWinnerName } from "@lib/game/match-result-text";
 import { joinSubtitle } from "@lib/game/play-subtitle";
 import { BULL_TARGET_NUMBER } from "@modules/game/board-progression.module";
-import { getEngineFactory } from "@modules/game/engine.registry";
+import { resumeVersionedEngine } from "@lib/game/play-lifecycle";
 import { openVisit } from "@modules/game/turn-log.module";
 import type { RulesetVersionKey } from "@lib/types";
 import type {
@@ -15,6 +15,7 @@ import type {
   MarksObjectiveRow,
   MarksRing,
   PlayStoreContext,
+  TacticsTapTarget,
 } from "./types";
 
 type MarksTapContext = {
@@ -52,6 +53,24 @@ export function marksTapObservation(
     locationX: null,
     locationY: null,
   };
+}
+
+/** A marks objective's row label: Doubles, Triples, Bull, or the number. */
+export function marksObjectiveLabel(
+  objective: number | "DOUBLES" | "TRIPLES",
+): string {
+  if (objective === "DOUBLES") return "Doubles";
+  if (objective === "TRIPLES") return "Triples";
+  return objective === BULL_TARGET_NUMBER ? "Bull" : String(objective);
+}
+
+/** The recreational input's number buttons: each numeric objective, labelled, in order. */
+export function marksNumberTargets(
+  objectives: readonly (number | "DOUBLES" | "TRIPLES")[],
+): TacticsTapTarget[] {
+  return objectives
+    .filter((objective): objective is number => typeof objective === "number")
+    .map((number) => ({ number, label: marksObjectiveLabel(number) }));
 }
 
 /** Tapping the selected ring again returns to SINGLE. */
@@ -118,21 +137,7 @@ export function resumeMarksEngine<TEngine>(
   resumable: ReadonlySet<RulesetVersionKey>,
   isEngine: (engine: unknown) => engine is TEngine,
 ): TEngine | null {
-  const { configSnapshot, rulesetVersionKey } = game;
-  if (
-    !configSnapshot ||
-    !rulesetVersionKey ||
-    !resumable.has(rulesetVersionKey)
-  ) {
-    return null;
-  }
-  const factory = getEngineFactory(rulesetVersionKey);
-  if (!factory) return null;
-  const engine = factory.create(configSnapshot, {
-    stages: game.stages,
-    turns: game.turns,
-  });
-  return isEngine(engine) ? engine : null;
+  return resumeVersionedEngine(game, resumable, isEngine);
 }
 
 type SeatsState = { seats: readonly MarksSeatState[] } | null;

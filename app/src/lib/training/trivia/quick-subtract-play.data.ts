@@ -1,14 +1,9 @@
 import { QuickSubtractGame } from "@modules/training/trivia/quick-subtract.module";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
+import { formatSeconds } from "@lib/game/play-countdown";
 import type { AnswerResult, Calculation } from "@modules/interfaces";
 import type { GameStatus } from "@modules/types";
-
-function formatSeconds(totalSeconds: number): string {
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-}
 
 export function quickSubtractPlay() {
   return {

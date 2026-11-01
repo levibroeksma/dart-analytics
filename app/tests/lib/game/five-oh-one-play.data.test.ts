@@ -500,6 +500,31 @@ describe("cancelCheckout", () => {
     expect(play.scoreInput.value).toBe("40");
     expect(play.$store.game.turns).toHaveLength(priorTurns.length);
   });
+
+  it("confirmDouble with no parked score records nothing and keeps the dialog open", async () => {
+    const play = makePlay();
+    await play.init.call(play);
+    play.showDoubleConfirm = true;
+    const turns = play.$store.game.turns.length;
+
+    await play.confirmDouble.call(play);
+
+    expect(play.showDoubleConfirm).toBe(true);
+    expect(play.showMatchFinishConfirm).toBe(false);
+    expect(play.$store.game.turns).toHaveLength(turns);
+  });
+
+  it("with no parked score, leaves the open dialog and the keypad alone", async () => {
+    const play = makePlay();
+    await play.init.call(play);
+    play.showDoubleConfirm = true;
+    play.scoreInput.setValue("12");
+
+    play.cancelCheckout.call(play);
+
+    expect(play.showDoubleConfirm).toBe(true);
+    expect(play.scoreInput.value).toBe("12");
+  });
 });
 
 describe("undoVisit", () => {
@@ -1801,6 +1826,90 @@ describe("DartBot opponent", () => {
     expect(first.locationY).toBe(expected.locationY);
   });
 
+  it("under VISUAL_BOARD, a bot on a finishable score aims its first dart at the checkout double", async () => {
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      {
+        ...ACTIVE_SESSION,
+        captureModeKey: "ANALYTICS",
+        inputModeKey: "VISUAL_BOARD",
+      },
+    ]);
+    const play = makePlay({
+      configSnapshot: { ...botConfig(), startingScore: 40 },
+    });
+    await play.init.call(play);
+    const miss = {
+      hitTargetNumber: null,
+      hitZoneKey: "MISS" as const,
+      locationX: null,
+      locationY: null,
+    };
+    await play.recordDart.call(play, miss);
+    await play.recordDart.call(play, miss);
+    await play.recordDart.call(play, miss);
+
+    const first = play.$store.game.turns.find(
+      (turn) => turn.participantRef === BOT_REF,
+    )!.darts[0];
+    const expected = botDartObservationAt(seatsWithBot()[1] as never, 0, {
+      targetNumber: 20,
+      zoneKey: "DOUBLE",
+    });
+    expect(first.locationX).toBe(expected.locationX);
+    expect(first.locationY).toBe(expected.locationY);
+  });
+
+  it("a bot seated first throws the opening visit on init, then hands over", async () => {
+    vi.useFakeTimers();
+    const play = makePlay({
+      configSnapshot: { ...botConfig(), seats: [...seatsWithBot()].reverse() },
+    });
+    const started = play.init.call(play);
+    await vi.runAllTimersAsync();
+    await started;
+    vi.useRealTimers();
+
+    expect(
+      play.$store.game.turns.filter((turn) => turn.participantRef === BOT_REF),
+    ).toHaveLength(1);
+    expect(play.state()!.activeParticipantRef).toBe(HUMAN_REF);
+  });
+
+  it("after init, a board tap records through the live component's recordDart", async () => {
+    const play = makePlay({ configSnapshot: botConfig() });
+    await play.init.call(play);
+    const recordDart = vi
+      .spyOn(play, "recordDart")
+      .mockResolvedValue(undefined);
+    const point = {
+      x: 0,
+      y: 0,
+      matrixTransform: () => ({ x: point.x, y: point.y }),
+    };
+    const matrix = { inverse: () => matrix };
+    Object.assign(play, {
+      $refs: {
+        board: { createSVGPoint: () => point, getScreenCTM: () => matrix },
+      },
+    });
+    Object.assign(play.$store, { boardInput: { handedness: "RIGHT" } });
+
+    const taps = play as unknown as {
+      onPointerDown(event: never): void;
+      onPointerUp(): void;
+    };
+    taps.onPointerDown({
+      clientX: 0,
+      clientY: -102,
+      preventDefault: vi.fn(),
+    } as never);
+    taps.onPointerUp();
+
+    expect(recordDart).toHaveBeenCalledOnce();
+    expect(recordDart.mock.calls[0][0].hitZoneKey).toBe("TREBLE");
+    expect(recordDart.mock.contexts[0]).toBe(play);
+  });
+
   it("clears the loading state before the bot opens the match", async () => {
     const play = makePlay({ configSnapshot: botConfig() });
     let release: (() => void) | undefined;
@@ -1833,6 +1942,41 @@ describe("DartBot opponent", () => {
     );
     expect(botTurn).toBeDefined();
     expect(botTurn!.darts).toEqual([]);
+  });
+
+  it("under QUICK_SCORE, the bot's visit records as a double-out exactly when it takes out its remaining 40", async () => {
+    vi.useFakeTimers();
+    const play = makePlay({
+      configSnapshot: { ...botConfig(), startingScore: 40 },
+    });
+    await play.init.call(play);
+    const recordVisit = vi.spyOn(play, "recordVisit");
+    play.scoreInput.setValue("26");
+    const visit = play.submitVisit.call(play);
+    await vi.runAllTimersAsync();
+    await visit;
+    vi.useRealTimers();
+
+    const botCall = recordVisit.mock.calls.at(-1)!;
+    expect(recordVisit.mock.calls.length).toBeGreaterThanOrEqual(2);
+    expect(botCall[1]).toBe(botCall[0] === 40);
+  });
+
+  it("under QUICK_SCORE, a bot visit cut short mid-flight records nothing", async () => {
+    vi.useFakeTimers();
+    const play = makePlay({ configSnapshot: botConfig() });
+    await play.init.call(play);
+    play.scoreInput.setValue("26");
+    const visit = play.submitVisit.call(play);
+    play.finished = true;
+    await vi.runAllTimersAsync();
+    await visit;
+    vi.useRealTimers();
+
+    expect(
+      play.$store.game.turns.filter((turn) => turn.participantRef === BOT_REF),
+    ).toHaveLength(0);
+    expect(play.botFlight).toBeNull();
   });
 
   it("under QUICK_SCORE, each bot visit draws fresh dart indices", async () => {
@@ -2118,5 +2262,20 @@ describe("fiveOhOnePlay bot flight", () => {
     expect(play.starterOpen).toBe(false);
     expect(play.playAgainStarter).toBeNull();
     expect(typeof play.requestPlayAgain).toBe("function");
+  });
+});
+
+describe("five-oh-one shared play-screen parts", () => {
+  it("retryReconciliation re-runs init after a failed fetch", async () => {
+    vi.mocked(fetchActiveSessions).mockRejectedValueOnce(new Error("offline"));
+    const play = makePlay();
+    await play.init.call(play);
+    expect(play.reconciliationFailed).toBe(true);
+    expect(play.hasActiveSession).toBe(false);
+
+    await play.retryReconciliation.call(play);
+    expect(play.reconciliationFailed).toBe(false);
+    expect(play.hasActiveSession).toBe(true);
+    expect(play.engine).not.toBeNull();
   });
 });

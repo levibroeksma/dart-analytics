@@ -1,19 +1,18 @@
+import {
+  playScreenState,
+  boardPlayActions,
+  playScreenActions,
+} from "@lib/game/play-screen.data";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { BULL_TARGET_NUMBER } from "@modules/game/board-progression.module";
-import { boardInputData } from "@lib/game/board-input.data";
 import {
-  playAbandonAndExit,
-  playBack,
-  playCommitDart,
-  playInit,
-  playRetryReconciliation,
-  playUndoVisit,
   playUploadAndCompleteSession,
-  playVisitMarkers,
   runPlayAgain,
 } from "@lib/game/play-lifecycle";
 import {
   duelWinningSideKey,
+  marksNumberTargets,
+  marksObjectiveLabel,
   marksPlayAccessors,
   marksPreviewSegments,
   recordMarksMiss,
@@ -22,14 +21,8 @@ import {
   toggleMarksRing,
 } from "@lib/game/marks-play.data";
 import type { RulesetVersionKey } from "@lib/types";
+import type { TacticsSeatState, TacticsState } from "@modules/types";
 import type {
-  DartObservation,
-  TacticsObjective,
-  TacticsSeatState,
-  TacticsState,
-} from "@modules/types";
-import type {
-  BoardMarker,
   Bobs27PreviewSegment,
   TacticsPlayContext,
   TacticsResultsSnapshot,
@@ -53,15 +46,8 @@ import { marksPerRound } from "@modules/game/marks-close.module";
 const GAME_TYPE_KEY = "TACTICS";
 const RESUMABLE = new Set<RulesetVersionKey>(["TACTICS_V1", "TACTICS_V2"]);
 
-function objectiveLabel(objective: TacticsObjective): string {
-  if (objective === "DOUBLES") return "Doubles";
-  if (objective === "TRIPLES") return "Triples";
-  return objective === BULL_TARGET_NUMBER ? "Bull" : String(objective);
-}
-
-const NUMBER_TARGETS: TacticsTapTarget[] = TACTICS_OBJECTIVES.filter(
-  (objective): objective is number => typeof objective === "number",
-).map((number) => ({ number, label: objectiveLabel(number) }));
+const NUMBER_TARGETS: TacticsTapTarget[] =
+  marksNumberTargets(TACTICS_OBJECTIVES);
 
 const LOW_TARGETS: TacticsTapTarget[] = Array.from({ length: 14 }, (_, i) => ({
   number: 14 - i,
@@ -99,36 +85,14 @@ function resumeEngine(
   );
 }
 
-/**
- * `self` exists only so `boardInputData`'s `onCommit` callback can reach this
- * page's own `recordDart` with the live, reactive `this` — see
- * `five-oh-one-play.data.ts`'s identical comment for the full reasoning.
- */
 export function tacticsPlay() {
-  let self: TacticsPlayContext;
-
   return {
-    loading: false,
-    error: "",
-    finished: false,
-    hasActiveSession: false,
-    loadingReconciliation: false,
-    reconciliationFailed: false,
-    completionStatus: "pending" as
-      "pending" | "saving" | "succeeded" | "failed",
-    completionError: "",
-    playAgainError: "",
-    playAgainLoading: false,
+    ...playScreenState<TacticsEngine, TacticsResultsSnapshot>(),
     ...playAgainStarterData(),
-    resultsSnapshot: null as TacticsResultsSnapshot | null,
-    hiddenTurnKey: null as string | null,
-    hiddenTimer: null as ReturnType<typeof setTimeout> | null,
-    engine: null as TacticsEngine | null,
+    ...boardPlayActions({ gameTypeKey: GAME_TYPE_KEY, resume: resumeEngine }),
+    ...playScreenActions(),
+
     ring: "SINGLE" as TacticsRing,
-    ...boardInputData(
-      (observation) => self.recordDart(observation),
-      () => self.$store.game.turns,
-    ),
 
     state(this: TacticsPlayContext): TacticsState | null {
       const config = this.$store.game.configSnapshot;
@@ -139,7 +103,7 @@ export function tacticsPlay() {
       );
     },
 
-    ...marksPlayAccessors(TACTICS_OBJECTIVES, objectiveLabel),
+    ...marksPlayAccessors(TACTICS_OBJECTIVES, marksObjectiveLabel),
 
     previewSegments(this: TacticsPlayContext): Bobs27PreviewSegment[] {
       return marksPreviewSegments(
@@ -147,22 +111,6 @@ export function tacticsPlay() {
         this.hiddenTurnKey,
         isTacticsTarget,
       );
-    },
-
-    /** Overrides `boardInputData`'s own `visitMarkers` — object-literal key
-     * order means this later definition wins, so the shared module needs no
-     * change. Delegates to `play-lifecycle.ts`'s shared implementation. */
-    visitMarkers(this: TacticsPlayContext): BoardMarker[] {
-      return playVisitMarkers(this);
-    },
-
-    async init(this: TacticsPlayContext) {
-      self = this;
-      await playInit(this, GAME_TYPE_KEY, resumeEngine);
-    },
-
-    retryReconciliation(this: TacticsPlayContext) {
-      return playRetryReconciliation(this);
     },
 
     /** Tapping the selected ring again returns to SINGLE. */
@@ -190,29 +138,8 @@ export function tacticsPlay() {
       await recordMarksMiss(this);
     },
 
-    async recordDart(this: TacticsPlayContext, observation: DartObservation) {
-      if (!this.engine || this.finished) return;
-      await this.commitDart(observation);
-    },
-
-    async commitDart(this: TacticsPlayContext, observation: DartObservation) {
-      await playCommitDart(this, observation);
-    },
-
-    async undoVisit(this: TacticsPlayContext) {
-      playUndoVisit(this);
-    },
-
     uploadAndCompleteSession(this: TacticsPlayContext): Promise<void> {
       return playUploadAndCompleteSession(this, computeStats);
-    },
-
-    back(this: TacticsPlayContext) {
-      return playBack(this);
-    },
-
-    abandonAndExit(this: TacticsPlayContext) {
-      return playAbandonAndExit(this);
     },
 
     /**

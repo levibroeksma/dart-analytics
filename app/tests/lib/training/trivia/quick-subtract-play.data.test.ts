@@ -102,6 +102,12 @@ describe("quickSubtractPlay", () => {
     expect(ctx.formattedRemaining()).toBe("00:09");
   });
 
+  it("formattedElapsed() keeps both minute digits past ten minutes", () => {
+    const ctx = quickSubtractPlay();
+    ctx.elapsedTime = 754;
+    expect(ctx.formattedElapsed()).toBe("12:34");
+  });
+
   it("timer mode's onComplete syncs status to finished, not just the underlying game", () => {
     vi.spyOn(Math, "random").mockReturnValue(0);
     const ctx = quickSubtractPlay();

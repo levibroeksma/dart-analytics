@@ -1,10 +1,4 @@
-import {
-  BOT_PACING,
-  botDartIndex,
-  botDartObservationAt,
-  botQuickScoreDartIndex,
-  findBotSeat,
-} from "@lib/game/play-bot-seat";
+import { activeBotTurn } from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
@@ -14,9 +8,17 @@ import {
   checkoutPathFor,
   checkoutPathWithin,
 } from "@modules/game/checkout-path.module";
-import { fetchActiveSessions } from "@client/api/sessions";
-import { reconcileActiveSession } from "@lib/game/session-recovery";
-import { boardInputData } from "@lib/game/board-input.data";
+import {
+  boundBoardInput,
+  confirmCheckout,
+  openCheckoutConfirm,
+  playScreenActions,
+  playScreenState,
+  playX01BotVisit,
+  recordCheckoutVisit,
+  restoreCheckoutScore,
+  seatStateFor,
+} from "@lib/game/play-screen.data";
 import {
   fiveOhOneSubtitle,
   legBarCount,
@@ -24,19 +26,12 @@ import {
   setScoreText,
 } from "@lib/game/five-oh-one-match";
 import {
-  playAbandonAndExit,
-  playBack,
   playCommitDart,
-  playAnimateBotDarts,
-  playFoldBotQuickScoreVisit,
-  playRunBotVisualBoardVisit,
+  playInit,
   playUploadAndCompleteSession,
-  playVisitMarkers,
   runPlayAgain,
   undoBotAwareVisit,
 } from "@lib/game/play-lifecycle";
-import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
-import { chooseTarget } from "@modules/dartbot/strategy/x01.strategy.module";
 import {
   checkoutPercentageDisplay,
   dartsLeftForSeat,
@@ -51,7 +46,6 @@ import { matchWinnerName } from "@lib/game/match-result-text";
 import type {
   FiveOhOneAnySnapshot,
   RulesetVersionKey,
-  DartbotSeat,
   SeatFact,
 } from "@lib/types";
 import type {
@@ -62,9 +56,6 @@ import type {
   TurnFact,
 } from "@modules/types";
 import type {
-  BoardMarker,
-  BotDartThrower,
-  BotPacing,
   FiveOhOnePlayContext,
   FiveOhOneSeatResult,
   FiveOhOneResultsSnapshot,
@@ -74,7 +65,7 @@ import type {
 // and importing it also runs the module's side effect, which registers
 // fiveOhOneEngineFactory so the registry can resolve this page's own
 // RULESET_VERSION_KEYS. `fiveOhOneEngineFactory` is imported directly (not via
-// the type-erased registry) so `playFoldBotQuickScoreVisit`'s `TState` infers
+// the type-erased registry) so the bot QUICK_SCORE visit's `TState` infers
 // as `FiveOhOneState` with no cast at the call site.
 import {
   FiveOhOneEngine,
@@ -123,55 +114,6 @@ function playAgainWire(config: FiveOhOneAnySnapshot): Record<string, unknown> {
     sets: config.sets,
     win_by_two: config.winByTwo,
   };
-}
-
-const DARTS_PER_VISIT = 3;
-
-function throwOneDart(
-  remaining: number,
-  botSeat: DartbotSeat,
-  dartIndex: number,
-): DartObservation {
-  const intent = chooseTarget(
-    { remaining, checkoutPath: checkoutPathFor(remaining) },
-    skillProfileForLevel(botSeat.dartbot.level).decisionQuality,
-  );
-  return botDartObservationAt(botSeat, dartIndex, intent);
-}
-
-/** VISUAL_BOARD thrower: reads the real engine's own live `state()`, exactly
- * as `bobs27-play.data.ts`'s `throwBotDart` does — `foldFiveOhOneState`
- * already folds an open visit's running total, so `remainingScoreFor` is
- * live per dart, not just per visit. */
-function throwBotDart(
-  context: FiveOhOnePlayContext,
-  botSeat: DartbotSeat,
-): { observation: DartObservation; pacing: BotPacing } {
-  const remaining = context.remainingScoreFor(botSeat.participantRef);
-  const dartIndex = botDartIndex(
-    context.$store.game.turns,
-    botSeat.participantRef,
-  );
-  return {
-    observation: throwOneDart(remaining, botSeat, dartIndex),
-    pacing: BOT_PACING,
-  };
-}
-
-/**
- * QUICK_SCORE thrower: `state` is the scratch engine's own live state
- * (`playFoldBotQuickScoreVisit`), never the real engine's —
- * the real engine is never told about darts mid-visit under QUICK_SCORE.
- */
-function throwBotQuickScoreDart(
-  state: FiveOhOneState,
-  botSeat: DartbotSeat,
-  dartIndex: number,
-): DartObservation {
-  const remaining = state.seats.find(
-    (seat) => seat.participantRef === botSeat.participantRef,
-  )!.remainingScore;
-  return throwOneDart(remaining, botSeat, dartIndex);
 }
 
 function bestLegFor(
@@ -278,62 +220,25 @@ function buildResultsSnapshot(
   };
 }
 
-/**
- * `self` exists only so `boardInputData`'s `onCommit` callback can reach this
- * page's own `recordDart` with the live, reactive `this` Alpine binds to
- * every directive-driven call (`@click="…"`, `init()`). `onCommit` is built
- * once, synchronously, while this factory's returned object literal is still
- * being constructed — at that point Alpine has not yet wrapped it in
- * `reactive()`, so a callback written as `(observation) => this.recordDart(…)`
- * right here would close over the wrong `this` (this factory's own call-time
- * receiver, never the component) and silently stop updating the DOM for
- * every local field `recordDart` touches (`finished`, `showMatchFinishConfirm`,
- * `pendingDartObservation`, `error`) — the store mirror would still update,
- * masking the bug in anything that only inspects `$store.game`. `init()` runs
- * through Alpine's own evaluator after the wrap, so assigning `self = this`
- * there captures the real reactive instance in time for the first possible
- * board press, which cannot happen before `hasActiveSession` flips true.
- */
+/** `init` binds the board input to the live component (`boundBoardInput`). */
 export function fiveOhOnePlay() {
-  let self: FiveOhOnePlayContext;
+  const board = boundBoardInput<FiveOhOnePlayContext>();
 
   return {
+    ...playScreenState<FiveOhOneEngine, FiveOhOneResultsSnapshot>(),
+    ...playAgainStarterData(),
+    ...board.data,
+    ...playScreenActions(),
+
     scoreInput: new ScoreInputBuffer({ maxLength: 3 }),
-    loading: false,
-    error: "",
-    finished: false,
-    hasActiveSession: false,
-    loadingReconciliation: false,
-    reconciliationFailed: false,
-    completionStatus: "pending" as
-      "pending" | "saving" | "succeeded" | "failed",
-    completionError: "",
-    playAgainError: "",
-    playAgainLoading: false,
-    resultsSnapshot: null as FiveOhOneResultsSnapshot | null,
     pendingCheckoutScore: null as number | null,
     dartsAtDouble: null as DartCount | null,
     dartsToFinish: null as DartCount | null,
     pendingDartObservation: null as DartObservation | null,
     showDoubleConfirm: false,
     showMatchFinishConfirm: false,
-    ...playAgainStarterData(),
     botThrowing: false,
     botFlight: null,
-    engine: null as FiveOhOneEngine | null,
-    hiddenTurnKey: null as string | null,
-    hiddenTimer: null as ReturnType<typeof setTimeout> | null,
-    ...boardInputData(
-      (observation) => self.recordDart(observation),
-      () => self.$store.game.turns,
-    ),
-
-    /** Overrides `boardInputData`'s own default — object-literal key order
-     * means this later definition wins. Delegates to `play-lifecycle.ts`'s
-     * shared implementation, mirrors `bobs27-play.data.ts`. */
-    visitMarkers(this: FiveOhOnePlayContext): BoardMarker[] {
-      return playVisitMarkers(this);
-    },
 
     turnsInCurrentLeg(this: FiveOhOnePlayContext): TurnFact[] {
       const openLeg = this.$store.game.stages
@@ -382,12 +287,7 @@ export function fiveOhOnePlay() {
     },
 
     remainingScoreFor(this: FiveOhOnePlayContext, seatRef: string): number {
-      const state = this.state();
-      if (!state) return 0;
-      const seat = state.seats.find(
-        (candidate) => candidate.participantRef === seatRef,
-      );
-      return seat?.remainingScore ?? 0;
+      return seatStateFor(this.state(), seatRef)?.remainingScore ?? 0;
     },
 
     remainingScore(this: FiveOhOnePlayContext): number {
@@ -474,9 +374,7 @@ export function fiveOhOnePlay() {
     legsWonFor(this: FiveOhOnePlayContext, seatRef: string): number {
       const state = this.state();
       if (!state) return 0;
-      const seat = state.seats.find(
-        (candidate) => candidate.participantRef === seatRef,
-      );
+      const seat = seatStateFor(state, seatRef);
       const side = state.sides.find(
         (candidate) => candidate.sideKey === seat?.sideKey,
       );
@@ -500,46 +398,11 @@ export function fiveOhOnePlay() {
     },
 
     async init(this: FiveOhOnePlayContext) {
-      self = this;
-      this.loadingReconciliation = true;
-      try {
-        const activeSessions = await fetchActiveSessions();
-        const result = await reconcileActiveSession(
-          GAME_TYPE_KEY,
-          this.$store.game.sessionId,
-          activeSessions,
-          this.$store.game,
-        );
-
-        this.reconciliationFailed = false;
-
-        if (result.action !== "match" || !result.activeSession) {
-          this.hasActiveSession = false;
-          return;
-        }
-
-        this.$store.game.setSessionModes(result.activeSession);
-
-        const config = this.$store.game.configSnapshot;
-        const engine = resumeEngine(this.$store.game);
-        if (!config || !engine) {
-          this.hasActiveSession = false;
-          return;
-        }
-        this.engine = engine;
-        this.$store.game.recordFacts(engine.facts());
-        this.hasActiveSession = true;
-      } catch {
-        this.reconciliationFailed = true;
-        this.hasActiveSession = false;
-      } finally {
-        this.loadingReconciliation = false;
-      }
+      board.bind(this);
+      await playInit(this, GAME_TYPE_KEY, resumeEngine, {
+        uploadIfComplete: false,
+      });
       if (this.hasActiveSession) await this.maybeRunBotVisit();
-    },
-
-    async retryReconciliation(this: FiveOhOnePlayContext) {
-      await this.init();
     },
 
     /**
@@ -554,37 +417,7 @@ export function fiveOhOnePlay() {
       finishedOnDouble: boolean,
     ) {
       if (!this.engine) return;
-      const darts = finishedOnDouble
-        ? {
-            dartsUsed: this.dartsToFinish ?? undefined,
-            dartsAtDouble: this.dartsAtDouble ?? undefined,
-          }
-        : {};
-      try {
-        this.engine.record({
-          scoreAttempted: score,
-          finishedOnDouble,
-          ...darts,
-        });
-      } catch (err: unknown) {
-        this.error = (err as Error).message;
-        this.loading = false;
-        return;
-      }
-      this.error = "";
-      this.scoreInput.clear();
-      this.dartsAtDouble = null;
-      this.dartsToFinish = null;
-      this.$store.game.recordFacts(this.engine.facts());
-      this.loading = false;
-
-      if (this.engine.isComplete()) {
-        this.finished = true;
-        this.completionStatus = "pending";
-        await this.uploadAndCompleteSession();
-        return;
-      }
-      await this.maybeRunBotVisit();
+      await recordCheckoutVisit(this, score, finishedOnDouble);
     },
 
     /**
@@ -660,13 +493,7 @@ export function fiveOhOnePlay() {
         checkoutPathFor(remaining) !== null;
 
       if (isCheckoutAttempt) {
-        this.error = "";
-        this.pendingCheckoutScore = score;
-        this.scoreInput.clear();
-        const options = this.checkoutDartOptions();
-        this.dartsAtDouble = options.atDouble[0];
-        this.dartsToFinish = options.toFinish[0];
-        this.showDoubleConfirm = true;
+        openCheckoutConfirm(this, score);
         this.loading = false;
         return;
       }
@@ -684,27 +511,10 @@ export function fiveOhOnePlay() {
      * `pendingCheckoutScore` is deliberately left set for that second dialog
      * to record or restore.
      */
-    async confirmDouble(this: FiveOhOnePlayContext) {
-      if (!this.engine || this.finished || !this.showDoubleConfirm) return;
-      if (this.pendingCheckoutScore == null) return;
-      const score = this.pendingCheckoutScore;
-
-      if (
-        this.engine.wouldComplete({
-          scoreAttempted: score,
-          finishedOnDouble: true,
-          dartsUsed: this.dartsToFinish ?? undefined,
-          dartsAtDouble: this.dartsAtDouble ?? undefined,
-        })
-      ) {
-        this.showDoubleConfirm = false;
+    confirmDouble(this: FiveOhOnePlayContext) {
+      return confirmCheckout(this, () => {
         this.showMatchFinishConfirm = true;
-        return;
-      }
-
-      this.pendingCheckoutScore = null;
-      this.showDoubleConfirm = false;
-      await this.recordVisit(score, true);
+      });
     },
 
     /**
@@ -713,12 +523,8 @@ export function fiveOhOnePlay() {
      * into the keypad so a mistyped entry is not lost.
      */
     cancelCheckout(this: FiveOhOnePlayContext) {
-      if (!this.showDoubleConfirm || this.pendingCheckoutScore == null) return;
-      this.scoreInput.setValue(String(this.pendingCheckoutScore));
-      this.pendingCheckoutScore = null;
-      this.dartsAtDouble = null;
-      this.dartsToFinish = null;
-      this.showDoubleConfirm = false;
+      if (!this.showDoubleConfirm) return;
+      if (restoreCheckoutScore(this)) this.showDoubleConfirm = false;
     },
 
     /**
@@ -761,49 +567,18 @@ export function fiveOhOnePlay() {
         return;
       }
 
-      if (this.pendingCheckoutScore == null) return;
-      this.scoreInput.setValue(String(this.pendingCheckoutScore));
-      this.pendingCheckoutScore = null;
-      this.dartsAtDouble = null;
-      this.dartsToFinish = null;
-      this.showMatchFinishConfirm = false;
+      if (restoreCheckoutScore(this)) this.showMatchFinishConfirm = false;
     },
 
     async maybeRunBotVisit(this: FiveOhOnePlayContext) {
-      const botSeat = findBotSeat(this.$store.game.seats);
-      if (!botSeat || !this.engine || this.finished) return;
-      const state = this.state();
-      if (!state || state.activeParticipantRef !== botSeat.participantRef)
-        return;
-
-      if (this.$store.game.inputModeKey === "QUICK_SCORE") {
-        const remainingBefore = this.remainingScoreFor(botSeat.participantRef);
-        let dartIndex = botQuickScoreDartIndex(
-          this.$store.game.turns,
-          botSeat.participantRef,
-          DARTS_PER_VISIT,
-        );
-        const fold = playFoldBotQuickScoreVisit(
-          fiveOhOneEngineFactory,
-          this.$store.game.configSnapshot!,
-          this.engine.facts(),
-          (scratchState) =>
-            throwBotQuickScoreDart(scratchState, botSeat, dartIndex++),
-          DARTS_PER_VISIT,
-        );
-        if (
-          !(await playAnimateBotDarts(this, botSeat.participantRef, fold.darts))
-        )
-          return;
-        await this.recordVisit(
-          fold.totalScore,
-          fold.totalScore === remainingBefore,
-        );
-        return;
-      }
-
-      const thrower: BotDartThrower = () => throwBotDart(this, botSeat);
-      await playRunBotVisualBoardVisit(this, botSeat.participantRef, thrower);
+      const turn = activeBotTurn(this);
+      if (!turn) return;
+      await playX01BotVisit(this, turn.botSeat, {
+        factory: fiveOhOneEngineFactory,
+        remainingFor: (seatRef) => this.remainingScoreFor(seatRef),
+        scratchRemaining: (state, seatRef) =>
+          seatStateFor(state, seatRef)!.remainingScore,
+      });
     },
 
     undoVisit(this: FiveOhOnePlayContext) {
@@ -840,14 +615,6 @@ export function fiveOhOnePlay() {
         this.resultsSnapshot?.winningSideKey ?? null,
       );
       return winner ? `${winner} wins the match!` : "Match complete";
-    },
-
-    async back(this: FiveOhOnePlayContext) {
-      return playBack(this);
-    },
-
-    async abandonAndExit(this: FiveOhOnePlayContext) {
-      return playAbandonAndExit(this);
     },
 
     /**

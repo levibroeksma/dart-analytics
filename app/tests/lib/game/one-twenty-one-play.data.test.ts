@@ -17,7 +17,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // Confirmed these assertions (including the VISUAL_BOARD checkoutPercentage
 // test) still hold unchanged.
 import { oneTwentyOnePlay } from "@lib/game/one-twenty-one-play.data";
-import { BOT_PACING } from "@lib/game/play-bot-seat";
+import {
+  BOT_PACING,
+  botDartObservationAt,
+  x01BotIntent,
+} from "@lib/game/play-bot-seat";
 import {
   oneTwentyOneEngineFactory,
   oneTwentyOneV2EngineFactory,
@@ -247,6 +251,28 @@ describe("oneTwentyOnePlay", () => {
       expect(play.scoreInput.value).toBe("40");
       expect(play.showDoubleConfirm).toBe(false);
       expect(store.game.turns).toHaveLength(0);
+    });
+
+    it("confirmDouble with no parked score records nothing and keeps the dialog open", async () => {
+      const play = createPlay({ showDoubleConfirm: true });
+      await play.init();
+      play.showDoubleConfirm = true;
+
+      await play.confirmDouble();
+
+      expect(play.showDoubleConfirm).toBe(true);
+      expect(play.showSessionFinishConfirm).toBe(false);
+      expect(store.game.turns).toHaveLength(0);
+    });
+
+    it("cancelCheckout with no parked score leaves the open dialog and the keypad alone", () => {
+      const play = createPlay({ showDoubleConfirm: true });
+      play.scoreInput.setValue("12");
+
+      play.cancelCheckout();
+
+      expect(play.showDoubleConfirm).toBe(true);
+      expect(play.scoreInput.value).toBe("12");
     });
   });
 
@@ -919,6 +945,37 @@ describe("oneTwentyOnePlay — 121_V2 resume/replay and round/time UI", () => {
   });
 
   describe("playAgain — version-aware", () => {
+    it("a MINUTES replay stops the old countdown and starts a fresh one", async () => {
+      store.game.rulesetVersionKey = "121_V2";
+      store.game.configSnapshot = {
+        seats: SEATS,
+        durationType: "MINUTES",
+        durationValue: 10,
+      } as any;
+      const play = createPlay();
+      const old = { stop: vi.fn() } as any;
+      play.timer = old;
+      segmentTimerInstances.length = 0;
+      vi.mocked(sessionsApi.createSession).mockResolvedValue({
+        sessionId: "new-session-id",
+        participants: [
+          {
+            ref: "participant-1",
+            displayName: "Levi",
+            participantTypeKey: "PLAYER",
+          },
+        ],
+      } as any);
+
+      await play.playAgain();
+
+      expect(old.stop).toHaveBeenCalledOnce();
+      expect(segmentTimerInstances).toHaveLength(1);
+      expect(play.timer).toBe(segmentTimerInstances[0]);
+      expect(segmentTimerInstances[0].start).toHaveBeenCalledOnce();
+      expect(store.game.timerRemainingMs).toBe(10 * 60000);
+    });
+
     it("replays a 121_V2 session against 121_V2, carrying its own duration config", async () => {
       store.game.rulesetVersionKey = "121_V2";
       store.game.configSnapshot = {
@@ -1311,6 +1368,76 @@ describe("oneTwentyOnePlay — DartBot opponent", () => {
     expect(play.state()!.activeParticipantRef).toBe(HUMAN_REF);
   });
 
+  it("under VISUAL_BOARD, the bot's first dart is the x01 strategy's draw for its remaining 121", async () => {
+    store.game.inputModeKey = "VISUAL_BOARD";
+    const play = createPlay();
+    await play.init();
+
+    await play.recordVisit(26, false);
+
+    const first = store.game.turns.find(
+      (turn) => turn.participantRef === BOT_REF,
+    )!.darts[0];
+    const botSeat = seatsWithBot()[1] as never;
+    const expected = botDartObservationAt(
+      botSeat,
+      0,
+      x01BotIntent(121, botSeat),
+    );
+    expect(first.locationX).toBe(expected.locationX);
+    expect(first.locationY).toBe(expected.locationY);
+  });
+
+  it("a bot seated first throws the opening visit on init, then hands over", async () => {
+    vi.useFakeTimers();
+    store.game.configSnapshot = { seats: [...seatsWithBot()].reverse() };
+    const play = createPlay();
+    const started = play.init();
+    await vi.runAllTimersAsync();
+    await started;
+    vi.useRealTimers();
+
+    expect(
+      store.game.turns.filter((turn) => turn.participantRef === BOT_REF),
+    ).toHaveLength(1);
+    expect(play.state()!.activeParticipantRef).toBe(HUMAN_REF);
+  });
+
+  it("after init, a board tap records through the live component's recordDart", async () => {
+    const play = createPlay();
+    await play.init();
+    const recordDart = vi
+      .spyOn(play, "recordDart")
+      .mockResolvedValue(undefined);
+    const point = {
+      x: 0,
+      y: 0,
+      matrixTransform: () => ({ x: point.x, y: point.y }),
+    };
+    const matrix = { inverse: () => matrix };
+    Object.assign(play, {
+      $refs: {
+        board: { createSVGPoint: () => point, getScreenCTM: () => matrix },
+      },
+    });
+    Object.assign(play.$store, { boardInput: { handedness: "RIGHT" } });
+
+    const taps = play as unknown as {
+      onPointerDown(event: never): void;
+      onPointerUp(): void;
+    };
+    taps.onPointerDown({
+      clientX: 0,
+      clientY: -102,
+      preventDefault: vi.fn(),
+    } as never);
+    taps.onPointerUp();
+
+    expect(recordDart).toHaveBeenCalledOnce();
+    expect(recordDart.mock.calls[0][0].hitZoneKey).toBe("TREBLE");
+    expect(recordDart.mock.contexts[0]).toBe(play);
+  });
+
   it("clears the loading state before the bot opens the match", async () => {
     const play = createPlay();
     let release: (() => void) | undefined;
@@ -1342,6 +1469,37 @@ describe("oneTwentyOnePlay — DartBot opponent", () => {
     );
     expect(botTurn).toBeDefined();
     expect(botTurn!.darts).toEqual([]);
+  });
+
+  it("under QUICK_SCORE, the bot's visit records as a double-out exactly when it takes out its remaining 121", async () => {
+    vi.useFakeTimers();
+    const play = createPlay();
+    await play.init();
+    const recordVisit = vi.spyOn(play, "recordVisit");
+    const visit = play.recordVisit(26, false);
+    await vi.runAllTimersAsync();
+    await visit;
+    vi.useRealTimers();
+
+    const botCall = recordVisit.mock.calls.at(-1)!;
+    expect(recordVisit.mock.calls.length).toBeGreaterThanOrEqual(2);
+    expect(botCall[1]).toBe(botCall[0] === 121);
+  });
+
+  it("under QUICK_SCORE, a bot visit cut short mid-flight records nothing", async () => {
+    vi.useFakeTimers();
+    const play = createPlay();
+    await play.init();
+    const visit = play.recordVisit(26, false);
+    play.finished = true;
+    await vi.runAllTimersAsync();
+    await visit;
+    vi.useRealTimers();
+
+    expect(
+      store.game.turns.filter((turn) => turn.participantRef === BOT_REF),
+    ).toHaveLength(0);
+    expect(play.botFlight).toBeNull();
   });
 
   it("under QUICK_SCORE, each bot visit draws fresh dart indices", async () => {
@@ -1508,5 +1666,63 @@ describe("oneTwentyOnePlay bot flight", () => {
     expect(play.starterOpen).toBe(false);
     expect(play.playAgainStarter).toBeNull();
     expect(typeof play.requestPlayAgain).toBe("function");
+  });
+});
+
+describe("oneTwentyOnePlay shared play-screen parts", () => {
+  it("init resumes a running MINUTES countdown from its stored remaining time", async () => {
+    vi.clearAllMocks();
+    segmentTimerInstances.length = 0;
+    const store = baseStore();
+    store.game.rulesetVersionKey = "121_V2";
+    store.game.configSnapshot = {
+      seats: SEATS,
+      durationType: "MINUTES",
+      durationValue: 15,
+    } as any;
+    store.game.timerRemainingMs = 120000;
+    vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([
+      { sessionId: "session-1", gameTypeKey: "ONE_TWENTY_ONE" } as any,
+    ]);
+    const play = {
+      ...oneTwentyOnePlay(),
+      $store: store,
+    } as OneTwentyOnePlayContext;
+
+    await play.init();
+
+    expect(play.hasActiveSession).toBe(true);
+    expect(segmentTimerInstances).toHaveLength(1);
+    expect(play.timer).toBe(segmentTimerInstances[0]);
+    expect(segmentTimerInstances[0].options.totalMinutes).toBe(2);
+  });
+
+  it("init resumes an already-expired MINUTES session with an expired engine and no timer", async () => {
+    vi.clearAllMocks();
+    segmentTimerInstances.length = 0;
+    const store = baseStore();
+    store.game.rulesetVersionKey = "121_V2";
+    store.game.configSnapshot = {
+      seats: SEATS,
+      durationType: "MINUTES",
+      durationValue: 15,
+    } as any;
+    store.game.timerExpired = true;
+    vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([
+      { sessionId: "session-1", gameTypeKey: "ONE_TWENTY_ONE" } as any,
+    ]);
+    const play = {
+      ...oneTwentyOnePlay(),
+      $store: store,
+    } as OneTwentyOnePlayContext;
+
+    await play.init();
+
+    expect(play.hasActiveSession).toBe(true);
+    expect(play.timer).toBeNull();
+    expect(segmentTimerInstances).toHaveLength(0);
+    expect(play.engine?.state().timerExpired).toBe(true);
+    expect(play.finished).toBe(false);
+    expect(sessionsApi.completeSession).not.toHaveBeenCalled();
   });
 });

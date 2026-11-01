@@ -1,7 +1,7 @@
 # Prisoner — Design
 
 Date: 2026-10-30
-Status: PR 1 (kernel hooks `reduceDart`/`decidedWinner`, policy, engine, validator, seed `0057`) implemented 2026-10-31, D516; PR 2 (app wiring) pending
+Status: PR 1 (kernel hooks `reduceDart`/`decidedWinner`, policy, engine, validator, seed `0057`) implemented 2026-10-31, D518; PR 2 (app wiring) pending
 Parent: `2026-10-27-elimination-kernel-design.md` (Prisoner gets its own spec)
 Rules input: `docs/game-rules/rulesets/prisoner.md` (V1 rows only)
 

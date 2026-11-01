@@ -1,11 +1,15 @@
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
 import type { CountdownConfig, CountdownGame, ExpirableEngine } from "./types";
 
-export function formatRemaining(ms: number | null | undefined): string {
-  const totalSeconds = Math.max(0, Math.floor((ms ?? 0) / 1000));
+/** `mm:ss` for a whole number of seconds. */
+export function formatSeconds(totalSeconds: number): string {
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+export function formatRemaining(ms: number | null | undefined): string {
+  return formatSeconds(Math.max(0, Math.floor((ms ?? 0) / 1000)));
 }
 
 /**
@@ -46,10 +50,8 @@ export function startCountdown<
 }
 
 /**
- * `init()`'s own MINUTES branch, extracted so init() reads as one decision
- * (resume, mark already-expired, or do nothing) instead of nested
- * conditionals — mirrors `one-twenty-one-play.data.ts`'s own
- * `maybeResumeCountdown`.
+ * `init()`'s MINUTES branch: resume the countdown, mark an already-expired
+ * session's engine expired, or do nothing (no MINUTES mode, or no duration).
  */
 export function maybeResumeCountdown<
   TGame extends CountdownGame,
@@ -60,9 +62,31 @@ export function maybeResumeCountdown<
     engine.expireTimer();
     return null;
   }
+  if (config.durationValue == null) return null;
   const timer = startCountdown(game, config.durationValue, engine);
   if (game.timerPaused) {
     timer.stop();
   }
   return timer;
+}
+
+/**
+ * `playAgain()`'s MINUTES branch: stops the page's countdown and starts a new
+ * one from the store's timer fields, which the replay's reset has cleared.
+ * Leaves the timer alone without a MINUTES config and duration.
+ */
+export function restartCountdown<TEngine extends ExpirableEngine>(
+  context: { timer: SegmentTimer | null; $store: { game: CountdownGame } },
+  config: CountdownConfig | null,
+  engine: TEngine,
+): void {
+  if (config?.durationType !== "MINUTES" || config.durationValue == null) {
+    return;
+  }
+  context.timer?.stop();
+  context.timer = startCountdown(
+    context.$store.game,
+    config.durationValue,
+    engine,
+  );
 }
