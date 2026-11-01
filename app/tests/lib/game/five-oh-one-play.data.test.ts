@@ -500,6 +500,18 @@ describe("cancelCheckout", () => {
     expect(play.scoreInput.value).toBe("40");
     expect(play.$store.game.turns).toHaveLength(priorTurns.length);
   });
+
+  it("with no parked score, leaves the open dialog and the keypad alone", async () => {
+    const play = makePlay();
+    await play.init.call(play);
+    play.showDoubleConfirm = true;
+    play.scoreInput.setValue("12");
+
+    play.cancelCheckout.call(play);
+
+    expect(play.showDoubleConfirm).toBe(true);
+    expect(play.scoreInput.value).toBe("12");
+  });
 });
 
 describe("undoVisit", () => {

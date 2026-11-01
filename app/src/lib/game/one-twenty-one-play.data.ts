@@ -20,9 +20,13 @@ import {
 } from "@lib/game/play-countdown";
 import { boardInputData } from "@lib/game/board-input.data";
 import {
+  checkoutDartCounts,
+  openCheckoutConfirm,
   playScreenActions,
   playScreenState,
+  recordCheckoutVisit,
   resetTimerStoreFields,
+  restoreCheckoutScore,
   timedPlayData,
 } from "@lib/game/play-screen.data";
 import {
@@ -434,37 +438,7 @@ export function oneTwentyOnePlay() {
       finishedOnDouble: boolean,
     ) {
       if (!this.engine || this.$store.game.timerPaused) return;
-      const darts = finishedOnDouble
-        ? {
-            dartsUsed: this.dartsToFinish ?? undefined,
-            dartsAtDouble: this.dartsAtDouble ?? undefined,
-          }
-        : {};
-      try {
-        this.engine.record({
-          scoreAttempted: score,
-          finishedOnDouble,
-          ...darts,
-        });
-      } catch (err: unknown) {
-        this.error = (err as Error).message;
-        this.loading = false;
-        return;
-      }
-      this.error = "";
-      this.scoreInput.clear();
-      this.dartsAtDouble = null;
-      this.dartsToFinish = null;
-      this.$store.game.recordFacts(this.engine.facts());
-      this.loading = false;
-
-      if (this.engine.isComplete()) {
-        this.finished = true;
-        this.completionStatus = "pending";
-        await this.uploadAndCompleteSession();
-        return;
-      }
-      await this.maybeRunBotVisit();
+      await recordCheckoutVisit(this, score, finishedOnDouble);
     },
 
     async maybeRunBotVisit(this: OneTwentyOnePlayContext) {
@@ -572,13 +546,7 @@ export function oneTwentyOnePlay() {
         checkoutPathFor(remaining) !== null;
 
       if (isCheckoutAttempt) {
-        this.error = "";
-        this.pendingCheckoutScore = score;
-        this.scoreInput.clear();
-        const options = this.checkoutDartOptions();
-        this.dartsAtDouble = options.atDouble[0];
-        this.dartsToFinish = options.toFinish[0];
-        this.showDoubleConfirm = true;
+        openCheckoutConfirm(this, score);
         this.loading = false;
         return;
       }
@@ -603,8 +571,7 @@ export function oneTwentyOnePlay() {
         this.engine.wouldComplete({
           scoreAttempted: score,
           finishedOnDouble: true,
-          dartsUsed: this.dartsToFinish ?? undefined,
-          dartsAtDouble: this.dartsAtDouble ?? undefined,
+          ...checkoutDartCounts(this),
         })
       ) {
         this.showDoubleConfirm = false;
@@ -618,12 +585,8 @@ export function oneTwentyOnePlay() {
     },
 
     cancelCheckout(this: OneTwentyOnePlayContext) {
-      if (!this.showDoubleConfirm || this.pendingCheckoutScore == null) return;
-      this.scoreInput.setValue(String(this.pendingCheckoutScore));
-      this.pendingCheckoutScore = null;
-      this.dartsAtDouble = null;
-      this.dartsToFinish = null;
-      this.showDoubleConfirm = false;
+      if (!this.showDoubleConfirm) return;
+      if (restoreCheckoutScore(this)) this.showDoubleConfirm = false;
     },
 
     /**
@@ -666,12 +629,7 @@ export function oneTwentyOnePlay() {
         return;
       }
 
-      if (this.pendingCheckoutScore == null) return;
-      this.scoreInput.setValue(String(this.pendingCheckoutScore));
-      this.pendingCheckoutScore = null;
-      this.dartsAtDouble = null;
-      this.dartsToFinish = null;
-      this.showSessionFinishConfirm = false;
+      if (restoreCheckoutScore(this)) this.showSessionFinishConfirm = false;
     },
 
     undoVisit(this: OneTwentyOnePlayContext) {

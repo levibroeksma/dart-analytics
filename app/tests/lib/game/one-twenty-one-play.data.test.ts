@@ -252,6 +252,16 @@ describe("oneTwentyOnePlay", () => {
       expect(play.showDoubleConfirm).toBe(false);
       expect(store.game.turns).toHaveLength(0);
     });
+
+    it("cancelCheckout with no parked score leaves the open dialog and the keypad alone", () => {
+      const play = createPlay({ showDoubleConfirm: true });
+      play.scoreInput.setValue("12");
+
+      play.cancelCheckout();
+
+      expect(play.showDoubleConfirm).toBe(true);
+      expect(play.scoreInput.value).toBe("12");
+    });
   });
 
   describe("undoVisit", () => {

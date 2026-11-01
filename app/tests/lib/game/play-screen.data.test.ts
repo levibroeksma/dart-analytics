@@ -30,6 +30,10 @@ import {
 import {
   activeSeatStateOf,
   boardPlayActions,
+  checkoutDartCounts,
+  openCheckoutConfirm,
+  recordCheckoutVisit,
+  restoreCheckoutScore,
   botVisualBoardData,
   forActiveSeat,
   playScreenActions,
@@ -469,5 +473,154 @@ describe("activeSeatStateOf", () => {
     expect(
       activeSeatStateOf({ activeParticipantRef: "ghost", seats }),
     ).toBeUndefined();
+  });
+});
+
+function checkoutScreen() {
+  const facts = { stages: [], turns: [] };
+  return {
+    error: "stale",
+    loading: true,
+    finished: false,
+    completionStatus: "pending" as string,
+    pendingCheckoutScore: null as number | null,
+    dartsAtDouble: null as 1 | 2 | 3 | null,
+    dartsToFinish: null as 1 | 2 | 3 | null,
+    showDoubleConfirm: false,
+    scoreInput: { clear: vi.fn(), setValue: vi.fn() },
+    checkoutDartOptions: vi.fn(() => ({
+      toFinish: [2, 3] as (1 | 2 | 3)[],
+      atDouble: [1, 2] as (1 | 2 | 3)[],
+    })),
+    engine: {
+      record: vi.fn(),
+      isComplete: vi.fn(() => false),
+      facts: vi.fn(() => facts),
+    },
+    $store: { game: { recordFacts: vi.fn() } },
+    uploadAndCompleteSession: vi.fn(async () => {}),
+    maybeRunBotVisit: vi.fn(async () => {}),
+  };
+}
+
+describe("checkoutDartCounts", () => {
+  it("reads the confirm's dart counts, undefined while unset", () => {
+    const ctx = checkoutScreen();
+    expect(checkoutDartCounts(ctx)).toEqual({
+      dartsUsed: undefined,
+      dartsAtDouble: undefined,
+    });
+    ctx.dartsToFinish = 3;
+    ctx.dartsAtDouble = 1;
+    expect(checkoutDartCounts(ctx)).toEqual({ dartsUsed: 3, dartsAtDouble: 1 });
+  });
+});
+
+describe("openCheckoutConfirm", () => {
+  it("parks the score, clears the keypad and preselects the first dart options", () => {
+    const ctx = checkoutScreen();
+    openCheckoutConfirm(ctx, 40);
+    expect(ctx).toMatchObject({
+      error: "",
+      pendingCheckoutScore: 40,
+      dartsToFinish: 2,
+      dartsAtDouble: 1,
+      showDoubleConfirm: true,
+      loading: true,
+    });
+    expect(ctx.scoreInput.clear).toHaveBeenCalledOnce();
+  });
+});
+
+describe("restoreCheckoutScore", () => {
+  it("puts the parked score back in the keypad and clears the confirm's fields", () => {
+    const ctx = checkoutScreen();
+    ctx.pendingCheckoutScore = 40;
+    ctx.dartsToFinish = 2;
+    ctx.dartsAtDouble = 1;
+    expect(restoreCheckoutScore(ctx)).toBe(true);
+    expect(ctx.scoreInput.setValue).toHaveBeenCalledWith("40");
+    expect(ctx).toMatchObject({
+      pendingCheckoutScore: null,
+      dartsToFinish: null,
+      dartsAtDouble: null,
+    });
+  });
+
+  it("does nothing without a parked score", () => {
+    const ctx = checkoutScreen();
+    ctx.dartsToFinish = 2;
+    expect(restoreCheckoutScore(ctx)).toBe(false);
+    expect(ctx.scoreInput.setValue).not.toHaveBeenCalled();
+    expect(ctx.dartsToFinish).toBe(2);
+  });
+});
+
+describe("recordCheckoutVisit", () => {
+  it("records a plain visit with no dart counts, mirrors the facts and hands over to the bot", async () => {
+    const ctx = checkoutScreen();
+    ctx.dartsToFinish = 3;
+    await recordCheckoutVisit(ctx, 60, false);
+    expect(ctx.engine.record).toHaveBeenCalledWith({
+      scoreAttempted: 60,
+      finishedOnDouble: false,
+    });
+    expect(ctx).toMatchObject({
+      error: "",
+      loading: false,
+      dartsToFinish: null,
+      dartsAtDouble: null,
+    });
+    expect(ctx.scoreInput.clear).toHaveBeenCalledOnce();
+    expect(ctx.$store.game.recordFacts).toHaveBeenCalledWith(
+      ctx.engine.facts(),
+    );
+    expect(ctx.maybeRunBotVisit).toHaveBeenCalledOnce();
+    expect(ctx.uploadAndCompleteSession).not.toHaveBeenCalled();
+  });
+
+  it("records a double-out with the confirm's dart counts", async () => {
+    const ctx = checkoutScreen();
+    ctx.dartsToFinish = 2;
+    ctx.dartsAtDouble = 1;
+    await recordCheckoutVisit(ctx, 40, true);
+    expect(ctx.engine.record).toHaveBeenCalledWith({
+      scoreAttempted: 40,
+      finishedOnDouble: true,
+      dartsUsed: 2,
+      dartsAtDouble: 1,
+    });
+  });
+
+  it("finishes and uploads a completing visit instead of running the bot", async () => {
+    const ctx = checkoutScreen();
+    ctx.engine.isComplete.mockReturnValue(true);
+    ctx.completionStatus = "failed";
+    await recordCheckoutVisit(ctx, 40, true);
+    expect(ctx.finished).toBe(true);
+    expect(ctx.completionStatus).toBe("pending");
+    expect(ctx.uploadAndCompleteSession).toHaveBeenCalledOnce();
+    expect(ctx.maybeRunBotVisit).not.toHaveBeenCalled();
+  });
+
+  it("does nothing before the engine exists", async () => {
+    const ctx = { ...checkoutScreen(), engine: null };
+    await recordCheckoutVisit(ctx, 60, false);
+    expect(ctx.error).toBe("stale");
+    expect(ctx.$store.game.recordFacts).not.toHaveBeenCalled();
+    expect(ctx.maybeRunBotVisit).not.toHaveBeenCalled();
+  });
+
+  it("surfaces an engine rejection and records nothing", async () => {
+    const ctx = checkoutScreen();
+    ctx.engine.record.mockImplementation(() => {
+      throw new Error("bust");
+    });
+    await recordCheckoutVisit(ctx, 200, false);
+    expect(ctx.error).toBe("bust");
+    expect(ctx.loading).toBe(false);
+    expect(ctx.scoreInput.clear).not.toHaveBeenCalled();
+    expect(ctx.$store.game.recordFacts).not.toHaveBeenCalled();
+    expect(ctx.maybeRunBotVisit).not.toHaveBeenCalled();
   });
 });

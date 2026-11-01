@@ -1333,6 +1333,17 @@ describe("tuodPlay", () => {
       expect(component.dartsToFinish).toBeNull();
     });
 
+    it("cancelCheckout with no parked total leaves the open dialog and the keypad alone", async () => {
+      const { component } = await playing();
+      component.showDoubleConfirm = true;
+      component.scoreInput.setValue("12");
+
+      component.cancelCheckout.call(component);
+
+      expect(component.showDoubleConfirm).toBe(true);
+      expect(component.scoreInput.value).toBe("12");
+    });
+
     it("surfaces the engine's rejection when the dart counts cannot be true", async () => {
       const { store, component } = await playing();
       component.scoreInput.setValue("41");

@@ -14,7 +14,14 @@ import {
   checkoutPathWithin,
 } from "@modules/game/checkout-path.module";
 import { boardInputData } from "@lib/game/board-input.data";
-import { playScreenActions, playScreenState } from "@lib/game/play-screen.data";
+import {
+  checkoutDartCounts,
+  openCheckoutConfirm,
+  playScreenActions,
+  playScreenState,
+  recordCheckoutVisit,
+  restoreCheckoutScore,
+} from "@lib/game/play-screen.data";
 import {
   fiveOhOneSubtitle,
   legBarCount,
@@ -481,37 +488,7 @@ export function fiveOhOnePlay() {
       finishedOnDouble: boolean,
     ) {
       if (!this.engine) return;
-      const darts = finishedOnDouble
-        ? {
-            dartsUsed: this.dartsToFinish ?? undefined,
-            dartsAtDouble: this.dartsAtDouble ?? undefined,
-          }
-        : {};
-      try {
-        this.engine.record({
-          scoreAttempted: score,
-          finishedOnDouble,
-          ...darts,
-        });
-      } catch (err: unknown) {
-        this.error = (err as Error).message;
-        this.loading = false;
-        return;
-      }
-      this.error = "";
-      this.scoreInput.clear();
-      this.dartsAtDouble = null;
-      this.dartsToFinish = null;
-      this.$store.game.recordFacts(this.engine.facts());
-      this.loading = false;
-
-      if (this.engine.isComplete()) {
-        this.finished = true;
-        this.completionStatus = "pending";
-        await this.uploadAndCompleteSession();
-        return;
-      }
-      await this.maybeRunBotVisit();
+      await recordCheckoutVisit(this, score, finishedOnDouble);
     },
 
     /**
@@ -587,13 +564,7 @@ export function fiveOhOnePlay() {
         checkoutPathFor(remaining) !== null;
 
       if (isCheckoutAttempt) {
-        this.error = "";
-        this.pendingCheckoutScore = score;
-        this.scoreInput.clear();
-        const options = this.checkoutDartOptions();
-        this.dartsAtDouble = options.atDouble[0];
-        this.dartsToFinish = options.toFinish[0];
-        this.showDoubleConfirm = true;
+        openCheckoutConfirm(this, score);
         this.loading = false;
         return;
       }
@@ -620,8 +591,7 @@ export function fiveOhOnePlay() {
         this.engine.wouldComplete({
           scoreAttempted: score,
           finishedOnDouble: true,
-          dartsUsed: this.dartsToFinish ?? undefined,
-          dartsAtDouble: this.dartsAtDouble ?? undefined,
+          ...checkoutDartCounts(this),
         })
       ) {
         this.showDoubleConfirm = false;
@@ -640,12 +610,8 @@ export function fiveOhOnePlay() {
      * into the keypad so a mistyped entry is not lost.
      */
     cancelCheckout(this: FiveOhOnePlayContext) {
-      if (!this.showDoubleConfirm || this.pendingCheckoutScore == null) return;
-      this.scoreInput.setValue(String(this.pendingCheckoutScore));
-      this.pendingCheckoutScore = null;
-      this.dartsAtDouble = null;
-      this.dartsToFinish = null;
-      this.showDoubleConfirm = false;
+      if (!this.showDoubleConfirm) return;
+      if (restoreCheckoutScore(this)) this.showDoubleConfirm = false;
     },
 
     /**
@@ -688,12 +654,7 @@ export function fiveOhOnePlay() {
         return;
       }
 
-      if (this.pendingCheckoutScore == null) return;
-      this.scoreInput.setValue(String(this.pendingCheckoutScore));
-      this.pendingCheckoutScore = null;
-      this.dartsAtDouble = null;
-      this.dartsToFinish = null;
-      this.showMatchFinishConfirm = false;
+      if (restoreCheckoutScore(this)) this.showMatchFinishConfirm = false;
     },
 
     async maybeRunBotVisit(this: FiveOhOnePlayContext) {

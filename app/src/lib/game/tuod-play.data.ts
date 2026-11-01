@@ -8,9 +8,12 @@ import {
 } from "@modules/game/checkout-path.module";
 import { boardInputData } from "@lib/game/board-input.data";
 import {
+  checkoutDartCounts,
+  openCheckoutConfirm,
   playScreenActions,
   playScreenState,
   resetTimerStoreFields,
+  restoreCheckoutScore,
   timedPlayData,
 } from "@lib/game/play-screen.data";
 import {
@@ -384,13 +387,7 @@ export function tuodPlay() {
         )?.currentTarget ?? 0;
 
       if (score === target && checkoutPathFor(target) !== null) {
-        this.error = "";
-        this.pendingCheckoutScore = score;
-        this.scoreInput.clear();
-        const options = this.checkoutDartOptions();
-        this.dartsAtDouble = options.atDouble[0];
-        this.dartsToFinish = options.toFinish[0];
-        this.showDoubleConfirm = true;
+        openCheckoutConfirm(this, score);
         return;
       }
 
@@ -405,8 +402,7 @@ export function tuodPlay() {
       await this.recordAttempt({
         checkedOut: true,
         finishedOnDouble: true,
-        dartsUsed: this.dartsToFinish ?? undefined,
-        dartsAtDouble: this.dartsAtDouble ?? undefined,
+        ...checkoutDartCounts(this),
       });
     },
 
@@ -415,12 +411,8 @@ export function tuodPlay() {
      * goes back into the keypad, so a mistyped entry is not lost.
      */
     cancelCheckout(this: TuodPlayContext) {
-      if (!this.showDoubleConfirm || this.pendingCheckoutScore == null) return;
-      this.scoreInput.setValue(String(this.pendingCheckoutScore));
-      this.pendingCheckoutScore = null;
-      this.dartsAtDouble = null;
-      this.dartsToFinish = null;
-      this.showDoubleConfirm = false;
+      if (!this.showDoubleConfirm) return;
+      if (restoreCheckoutScore(this)) this.showDoubleConfirm = false;
     },
 
     /**

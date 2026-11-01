@@ -14,7 +14,13 @@ import {
 } from "@lib/game/play-lifecycle";
 import type { DartbotSeat } from "@lib/types";
 import type { GameEngine } from "@modules/interfaces";
-import type { DartObservation, MultiSeatState } from "@modules/types";
+import type {
+  CheckoutDartOptions,
+  DartCount,
+  DartObservation,
+  EngineFacts,
+  MultiSeatState,
+} from "@modules/types";
 import type { SegmentTimer } from "@modules/ui/segment-timer.module";
 import type {
   BoardMarker,
@@ -46,6 +52,38 @@ type BoardPlayContext<
   recordDart(observation: DartObservation): Promise<void>;
   commitDart(observation: DartObservation): Promise<void>;
   maybeRunBotVisit?(): Promise<void>;
+};
+
+type CheckoutConfirmContext = {
+  error: string;
+  pendingCheckoutScore: number | null;
+  dartsAtDouble: DartCount | null;
+  dartsToFinish: DartCount | null;
+  showDoubleConfirm: boolean;
+  scoreInput: { clear(): void; setValue(value: string): void };
+  checkoutDartOptions(): CheckoutDartOptions;
+};
+
+type CheckoutVisitContext = Omit<
+  CheckoutConfirmContext,
+  "showDoubleConfirm" | "checkoutDartOptions"
+> & {
+  loading: boolean;
+  finished: boolean;
+  completionStatus: string;
+  engine: {
+    record(input: {
+      scoreAttempted: number;
+      finishedOnDouble: boolean;
+      dartsUsed?: DartCount;
+      dartsAtDouble?: DartCount;
+    }): unknown;
+    isComplete(): boolean;
+    facts(): EngineFacts;
+  } | null;
+  $store: { game: { recordFacts(facts: EngineFacts): void } };
+  uploadAndCompleteSession(): Promise<void>;
+  maybeRunBotVisit(): Promise<void>;
 };
 
 type TimerStoreContext = {
@@ -261,4 +299,82 @@ export function resetTimerForPlayAgain(context: TimerStoreContext): void {
   context.timer?.stop();
   context.timer = null;
   resetTimerStoreFields(context);
+}
+
+/** The checkout confirm's dart counts, undefined while unanswered. */
+export function checkoutDartCounts(
+  context: Pick<CheckoutConfirmContext, "dartsAtDouble" | "dartsToFinish">,
+): { dartsUsed: DartCount | undefined; dartsAtDouble: DartCount | undefined } {
+  return {
+    dartsUsed: context.dartsToFinish ?? undefined,
+    dartsAtDouble: context.dartsAtDouble ?? undefined,
+  };
+}
+
+/** Parks `score` behind the double-out confirm, preselecting the first dart-count options. */
+export function openCheckoutConfirm(
+  context: CheckoutConfirmContext,
+  score: number,
+): void {
+  context.error = "";
+  context.pendingCheckoutScore = score;
+  context.scoreInput.clear();
+  const options = context.checkoutDartOptions();
+  context.dartsAtDouble = options.atDouble[0];
+  context.dartsToFinish = options.toFinish[0];
+  context.showDoubleConfirm = true;
+}
+
+/**
+ * Returns the parked checkout score to the keypad and clears the confirm's
+ * fields; false, changing nothing, when no score is parked.
+ */
+export function restoreCheckoutScore(
+  context: Omit<
+    CheckoutConfirmContext,
+    "error" | "showDoubleConfirm" | "checkoutDartOptions"
+  >,
+): boolean {
+  if (context.pendingCheckoutScore == null) return false;
+  context.scoreInput.setValue(String(context.pendingCheckoutScore));
+  context.pendingCheckoutScore = null;
+  context.dartsAtDouble = null;
+  context.dartsToFinish = null;
+  return true;
+}
+
+/**
+ * Records one x01 visit total, with the confirm's dart counts on a
+ * double-out, mirrors the facts, then finishes and uploads a completing
+ * visit or hands over to the bot. An engine rejection surfaces as `error`.
+ */
+export async function recordCheckoutVisit(
+  context: CheckoutVisitContext,
+  score: number,
+  finishedOnDouble: boolean,
+): Promise<void> {
+  const engine = context.engine;
+  if (!engine) return;
+  const darts = finishedOnDouble ? checkoutDartCounts(context) : {};
+  try {
+    engine.record({ scoreAttempted: score, finishedOnDouble, ...darts });
+  } catch (err: unknown) {
+    context.error = (err as Error).message;
+    context.loading = false;
+    return;
+  }
+  context.error = "";
+  context.scoreInput.clear();
+  context.dartsAtDouble = null;
+  context.dartsToFinish = null;
+  context.$store.game.recordFacts(engine.facts());
+  context.loading = false;
+
+  if (engine.isComplete()) {
+    context.finished = true;
+    context.completionStatus = "pending";
+    await context.uploadAndCompleteSession();
+    return;
+  }
+  await context.maybeRunBotVisit();
 }
