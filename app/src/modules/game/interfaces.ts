@@ -242,4 +242,14 @@ export interface EliminationRules<TExt, TShared = undefined> {
     seats: readonly EliminationSeat<TExt>[],
     shared: TShared,
   ): string | null;
+  reduceDart?(
+    thrower: EliminationSeat<TExt>,
+    seats: readonly EliminationSeat<TExt>[],
+    shared: TShared,
+    dart: DartObservation,
+  ): VisitOutcome<TExt, TShared>;
+  decidedWinner?(
+    seats: readonly EliminationSeat<TExt>[],
+    shared: TShared,
+  ): string | null;
 }

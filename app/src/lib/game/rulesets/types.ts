@@ -500,6 +500,13 @@ export const FollowTheLeaderConfig = z
   })
   .strict();
 
+/** Prisoner V1: three darts each, locked; defaults so the seeded preset parses. */
+export const PrisonerConfig = z
+  .object({
+    darts: z.literal(3).default(3),
+  })
+  .strict();
+
 export type RulesetVersionKey =
   | "SCORE_TRAINING_V1"
   | "BOBS27_V1"
@@ -526,7 +533,8 @@ export type RulesetVersionKey =
   | "BASEBALL_V1"
   | "KILLER_V1"
   | "FOLLOW_THE_LEADER_V1"
-  | "MICKEY_MOUSE_V1";
+  | "MICKEY_MOUSE_V1"
+  | "PRISONER_V1";
 
 /** A game page's route segment (`10-Statistics/00-Overview.md` §6): one key per game, spanning its ruleset versions. */
 export type GameTypeKey =
@@ -544,7 +552,8 @@ export type GameTypeKey =
   | "BASEBALL"
   | "KILLER"
   | "FOLLOW_THE_LEADER"
-  | "MICKEY_MOUSE";
+  | "MICKEY_MOUSE"
+  | "PRISONER";
 
 /** A fact tag a ruleset version's engine produces (`10-Statistics/00-Overview.md` §3). */
 export type StatsTag =
@@ -584,6 +593,7 @@ export const RULESET_CONFIGS: Record<RulesetVersionKey, z.ZodTypeAny> = {
   KILLER_V1: KillerConfig,
   FOLLOW_THE_LEADER_V1: FollowTheLeaderConfig,
   MICKEY_MOUSE_V1: MickeyMouseConfig,
+  PRISONER_V1: PrisonerConfig,
 };
 
 export type ScoreTrainingConfigData = z.infer<typeof ScoreTrainingConfig>;
@@ -602,6 +612,8 @@ export type ShanghaiV3ConfigData = z.infer<typeof ShanghaiV3Config>;
 export type KillerConfigData = z.infer<typeof KillerConfig>;
 
 export type FollowTheLeaderConfigData = z.infer<typeof FollowTheLeaderConfig>;
+
+export type PrisonerConfigData = z.infer<typeof PrisonerConfig>;
 
 export type ScoreTrainingSnapshot = {
   durationType: ScoreTrainingConfigData["duration_type"];
@@ -766,6 +778,11 @@ export type FollowTheLeaderSnapshot = {
   lives: FollowTheLeaderConfigData["lives"];
 };
 
+/** Prisoner V1: the darts each seat starts holding. */
+export type PrisonerSnapshot = {
+  darts: PrisonerConfigData["darts"];
+};
+
 export type ConfigSnapshotFor<K extends RulesetVersionKey> =
   K extends "SCORE_TRAINING_V1"
     ? ScoreTrainingSnapshot
@@ -811,7 +828,9 @@ export type ConfigSnapshotFor<K extends RulesetVersionKey> =
                                             ? FollowTheLeaderSnapshot
                                             : K extends "MICKEY_MOUSE_V1"
                                               ? MickeyMouseSnapshot
-                                              : BaseballSnapshot;
+                                              : K extends "PRISONER_V1"
+                                                ? PrisonerSnapshot
+                                                : BaseballSnapshot;
 
 /**
  * One boundary probe: a complete, parseable config plus the label the contract
