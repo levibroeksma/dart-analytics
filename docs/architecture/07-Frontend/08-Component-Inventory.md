@@ -2,7 +2,7 @@
 status: canonical
 scope: shared Astro component inventory
 read-when: before writing markup for any recurring UI shape
-updated: 2026-10-31
+updated: 2026-11-01
 -->
 
 # Component Inventory
@@ -134,6 +134,7 @@ evaluated in the page's own Alpine scope.
 | `GuestSection.astro` | Runtime guest list (avatar + remove badge per guest) plus `AddGuestButton`; `UserSection` renders `GuestNameModal`/`OpponentChooserModal` after its `glass` card so the sheets are not trapped by its backdrop filter (D430, 2026-10-08) | none (reads `guests`, calls `removeGuest(i)` on the page scope) |
 | `OpponentChooserModal.astro` | Guest/DartBot opponent chooser in a `Modal` sheet: two inlay rows, then — for DartBot — a level step (shared `RangeSlider` 1–15 bound to `pendingBotLevel`, two `StatTile`s for the simulated average/checkout range from `allLevelSelectStats()`, Back/Add DartBot); `addBot()` seats at that level (restyled to the design, D429, 2026-10-08) | none (reads `showOpponentChooser`/`showBotLevelPicker`/`pendingBotLevel` from the page scope) |
 | `SettingLabel.astro` | Mono caps label above one setup control, optional `setting-badge` chip (e.g. `ANALYTICS`) (D430, 2026-10-08) | `text`, `badge` |
+| `LockedRows.astro` | Read-only `SettingLabel` + value rows for a game with fixed setup rules; used by Follow the Leader and Prisoner | `rows` |
 | `SettingSectionShell.astro` | `glass` settings card with a Michroma title wrapping a setup form's controls (D430, 2026-10-08) | none |
 | `SetupShell.astro` | Page shell for every game setup screen: `PageHeader` (glass back link + centred Michroma title, D476, 2026-10-21), owns the form's error alert; start is `SlideToStart` (D430, 2026-10-08) Submit runs `beginStart()`: with an opponent it opens `StarterStep` first (D464, 2026-10-16). Optional `startBlockedExpr` (default `"false"`) is OR'd into the slide's `disabledExpr` and the submit guard (Killer, D505, 2026-10-28). | `title`, `startBlockedExpr` |
 | `Toggle.astro` | Segmented option control bound via `x-modelable`: `inset-well` track, `glass-blue` pill; `options[].disabled` renders dimmed, unclickable, `aria-disabled` (D430, 2026-10-08) | `options`, `orientation` (`horizontal`/`vertical`), `initial`, `hint` |
