@@ -31,9 +31,9 @@ import {
   visitScoreBandCounts,
 } from "@lib/game/play-visit-stats";
 import {
+  activeBotTurn,
   botDartObservationAt,
   botThrowObservation,
-  findBotSeat,
 } from "@lib/game/play-bot-seat";
 import {
   formatRemaining,
@@ -117,11 +117,8 @@ function statsFor(
  * seat is the bot's — otherwise null.
  */
 function botSeatToThrow(context: ScoreTrainingPlayContext): DartbotSeat | null {
-  const botSeat = findBotSeat(context.$store.game.seats);
-  if (!botSeat || !context.engine || context.finished) return null;
   if (context.$store.game.timerPaused) return null;
-  const active = context.state()?.activeParticipantRef;
-  return active === botSeat.participantRef ? botSeat : null;
+  return activeBotTurn(context)?.botSeat ?? null;
 }
 
 /**

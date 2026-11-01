@@ -1,7 +1,7 @@
 import {
+  activeBotTurn,
   botDartObservationAt,
   botThrowObservation,
-  findBotSeat,
   x01BotIntent,
 } from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
@@ -21,6 +21,7 @@ import {
   playScreenState,
   recordCheckoutVisit,
   restoreCheckoutScore,
+  seatStateFor,
 } from "@lib/game/play-screen.data";
 import {
   fiveOhOneSubtitle,
@@ -351,12 +352,7 @@ export function fiveOhOnePlay() {
     },
 
     remainingScoreFor(this: FiveOhOnePlayContext, seatRef: string): number {
-      const state = this.state();
-      if (!state) return 0;
-      const seat = state.seats.find(
-        (candidate) => candidate.participantRef === seatRef,
-      );
-      return seat?.remainingScore ?? 0;
+      return seatStateFor(this.state(), seatRef)?.remainingScore ?? 0;
     },
 
     remainingScore(this: FiveOhOnePlayContext): number {
@@ -443,9 +439,7 @@ export function fiveOhOnePlay() {
     legsWonFor(this: FiveOhOnePlayContext, seatRef: string): number {
       const state = this.state();
       if (!state) return 0;
-      const seat = state.seats.find(
-        (candidate) => candidate.participantRef === seatRef,
-      );
+      const seat = seatStateFor(state, seatRef);
       const side = state.sides.find(
         (candidate) => candidate.sideKey === seat?.sideKey,
       );
@@ -658,11 +652,9 @@ export function fiveOhOnePlay() {
     },
 
     async maybeRunBotVisit(this: FiveOhOnePlayContext) {
-      const botSeat = findBotSeat(this.$store.game.seats);
-      if (!botSeat || !this.engine || this.finished) return;
-      const state = this.state();
-      if (!state || state.activeParticipantRef !== botSeat.participantRef)
-        return;
+      const turn = activeBotTurn(this);
+      if (!turn) return;
+      const { botSeat } = turn;
 
       if (this.$store.game.inputModeKey === "QUICK_SCORE") {
         const remainingBefore = this.remainingScoreFor(botSeat.participantRef);

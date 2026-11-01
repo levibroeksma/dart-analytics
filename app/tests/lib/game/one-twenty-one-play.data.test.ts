@@ -1376,6 +1376,21 @@ describe("oneTwentyOnePlay — DartBot opponent", () => {
     expect(first.locationY).toBe(expected.locationY);
   });
 
+  it("a bot seated first throws the opening visit on init, then hands over", async () => {
+    vi.useFakeTimers();
+    store.game.configSnapshot = { seats: [...seatsWithBot()].reverse() };
+    const play = createPlay();
+    const started = play.init();
+    await vi.runAllTimersAsync();
+    await started;
+    vi.useRealTimers();
+
+    expect(
+      store.game.turns.filter((turn) => turn.participantRef === BOT_REF),
+    ).toHaveLength(1);
+    expect(play.state()!.activeParticipantRef).toBe(HUMAN_REF);
+  });
+
   it("clears the loading state before the bot opens the match", async () => {
     const play = createPlay();
     let release: (() => void) | undefined;

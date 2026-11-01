@@ -33,9 +33,9 @@ import {
   dartsLeftForSeat,
 } from "@lib/game/play-visit-stats";
 import {
+  activeBotTurn,
   botDartObservationAt,
   botThrowObservation,
-  findBotSeat,
   x01BotIntent,
 } from "@lib/game/play-bot-seat";
 import {
@@ -457,17 +457,10 @@ export function tuodPlay() {
     },
 
     async maybeRunBotVisit(this: TuodPlayContext) {
-      const botSeat = findBotSeat(this.$store.game.seats);
-      if (
-        !botSeat ||
-        !this.engine ||
-        this.finished ||
-        this.$store.game.timerPaused
-      )
-        return;
-      const state = this.state();
-      if (!state || state.activeParticipantRef !== botSeat.participantRef)
-        return;
+      if (this.$store.game.timerPaused) return;
+      const turn = activeBotTurn(this);
+      if (!turn) return;
+      const { botSeat, state } = turn;
 
       if (this.$store.game.inputModeKey === "QUICK_SCORE") {
         const target = state.seats.find(

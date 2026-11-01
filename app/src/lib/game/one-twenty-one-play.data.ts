@@ -1,7 +1,7 @@
 import {
+  activeBotTurn,
   botDartObservationAt,
   botThrowObservation,
-  findBotSeat,
   x01BotIntent,
 } from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
@@ -442,17 +442,10 @@ export function oneTwentyOnePlay() {
     },
 
     async maybeRunBotVisit(this: OneTwentyOnePlayContext) {
-      const botSeat = findBotSeat(this.$store.game.seats);
-      if (
-        !botSeat ||
-        !this.engine ||
-        this.finished ||
-        this.$store.game.timerPaused
-      )
-        return;
-      const state = this.state();
-      if (!state || state.activeParticipantRef !== botSeat.participantRef)
-        return;
+      if (this.$store.game.timerPaused) return;
+      const turn = activeBotTurn(this);
+      if (!turn) return;
+      const { botSeat } = turn;
 
       if (this.$store.game.inputModeKey === "QUICK_SCORE") {
         const remainingBefore = this.remainingInAttemptFor(

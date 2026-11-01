@@ -20,6 +20,27 @@ export function findBotSeat(
   );
 }
 
+/**
+ * The seated DartBot and the folded state when it is the bot's turn on a
+ * live, unfinished session; null otherwise.
+ */
+export function activeBotTurn<
+  TState extends { activeParticipantRef: string },
+>(context: {
+  engine: unknown;
+  finished: boolean;
+  $store: { game: { seats: readonly SeatFact[] } };
+  state(): TState | null;
+}): { botSeat: DartbotSeat; state: TState } | null {
+  const botSeat = findBotSeat(context.$store.game.seats);
+  if (!botSeat || !context.engine || context.finished) return null;
+  const state = context.state();
+  if (!state || state.activeParticipantRef !== botSeat.participantRef) {
+    return null;
+  }
+  return { botSeat, state };
+}
+
 export function botDartIndex(
   turns: readonly TurnFact[],
   botRef: string,

@@ -2502,6 +2502,22 @@ describe("scoreTrainingPlay — DartBot opponent", () => {
     expect(wouldComplete.mock.calls.length).toBeGreaterThan(1);
   });
 
+  it("a bot seated first throws the opening visit on init, then hands over", async () => {
+    vi.useFakeTimers();
+    const play = makePlay({
+      configSnapshot: { ...botConfig(), seats: [...seatsWithBot()].reverse() },
+    });
+    const started = play.init.call(play);
+    await vi.runAllTimersAsync();
+    await started;
+    vi.useRealTimers();
+
+    expect(
+      play.$store.game.turns.filter((turn) => turn.participantRef === BOT_REF),
+    ).toHaveLength(1);
+    expect(play.state()!.activeParticipantRef).toBe(HUMAN_REF);
+  });
+
   it("clears the loading state before the bot opens the match", async () => {
     const play = makePlay();
     let release: (() => void) | undefined;

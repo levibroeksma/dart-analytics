@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  activeBotTurn,
   BOT_PACING,
   botDartIndex,
   botDartObservationAt,
@@ -178,5 +179,38 @@ describe("x01BotIntent", () => {
       dartbot: { level: 10, seed: 1 },
     } as unknown as DartbotSeat;
     expect(x01BotIntent(40, seat)).not.toEqual(x01BotIntent(501, seat));
+  });
+});
+
+describe("activeBotTurn", () => {
+  const seats = [humanSeat, botSeat];
+
+  function screen(activeParticipantRef: string | null) {
+    return {
+      engine: {},
+      finished: false,
+      $store: { game: { seats } },
+      state: () =>
+        activeParticipantRef === null ? null : { activeParticipantRef },
+    };
+  }
+
+  it("returns the bot seat and the state on the bot's turn", () => {
+    const turn = activeBotTurn(screen("bot1"));
+    expect(turn?.botSeat).toBe(botSeat);
+    expect(turn?.state).toEqual({ activeParticipantRef: "bot1" });
+  });
+
+  it("is null on the human's turn, before state, without an engine, once finished, or with no bot seated", () => {
+    expect(activeBotTurn(screen("p1"))).toBeNull();
+    expect(activeBotTurn(screen(null))).toBeNull();
+    expect(activeBotTurn({ ...screen("bot1"), engine: null })).toBeNull();
+    expect(activeBotTurn({ ...screen("bot1"), finished: true })).toBeNull();
+    expect(
+      activeBotTurn({
+        ...screen("bot1"),
+        $store: { game: { seats: [humanSeat] } },
+      }),
+    ).toBeNull();
   });
 });
