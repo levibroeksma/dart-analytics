@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { Mock } from "vitest";
+import {
+  botDartObservationAt,
+  botThrowObservation,
+  x01BotIntent,
+} from "@lib/game/play-bot-seat";
 
 vi.mock("@lib/game/play-lifecycle", () => ({
   playInit: vi.fn(async () => {}),
@@ -12,12 +17,14 @@ vi.mock("@lib/game/play-lifecycle", () => ({
   playAbandonAndExit: vi.fn(async () => {}),
   playRetryReconciliation: vi.fn(async () => {}),
   playRunBotVisualBoardVisit: vi.fn(async () => {}),
+  playBotQuickScoreVisit: vi.fn(async () => null),
   playToggleTimerPause: vi.fn(),
 }));
 
 import {
   playAbandonAndExit,
   playBack,
+  playBotQuickScoreVisit,
   playCommitDart,
   playInit,
   playRetryReconciliation,
@@ -35,6 +42,7 @@ import {
   checkoutDartCounts,
   confirmCheckout,
   openCheckoutConfirm,
+  playX01BotVisit,
   recordCheckoutVisit,
   restoreCheckoutScore,
   botVisualBoardData,
@@ -685,19 +693,6 @@ describe("confirmCheckout", () => {
   });
 });
 
-function fakeBoardElement(): SVGSVGElement {
-  const matrix = { inverse: () => matrix, a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 };
-  const point = {
-    x: 0,
-    y: 0,
-    matrixTransform: () => ({ x: point.x, y: point.y }),
-  };
-  return {
-    createSVGPoint: () => point,
-    getScreenCTM: () => matrix,
-  } as unknown as SVGSVGElement;
-}
-
 describe("boundBoardInput", () => {
   type Page = {
     recordDart: Mock<(observation: DartObservation) => Promise<void>>;
@@ -711,7 +706,7 @@ describe("boundBoardInput", () => {
       $store: { game: { turns: [] } },
     };
     const tapped = Object.assign({}, board.data, {
-      $refs: { board: fakeBoardElement() },
+      $refs: { board: fakeBoard() },
       $store: { boardInput: { handedness: "RIGHT" as const } },
     });
     board.bind(live);
@@ -763,5 +758,70 @@ describe("timedScoreScreenData", () => {
     expect(timedScoreScreenData().scoreInput).not.toBe(
       timedScoreScreenData().scoreInput,
     );
+  });
+});
+
+describe("playX01BotVisit", () => {
+  function x01Screen(inputModeKey: string) {
+    const ctx = Object.assign(lifecycle([PLAYER, BOT]), {
+      botThrowing: false,
+      botFlight: null,
+      recordVisit: vi.fn(async () => {}),
+    });
+    ctx.$store.game.inputModeKey = inputModeKey;
+    return ctx;
+  }
+  const factory = { create: vi.fn() } as never;
+  const spec = {
+    factory,
+    remainingFor: vi.fn(() => 40),
+    scratchRemaining: vi.fn(() => 32),
+  };
+
+  it("under VISUAL_BOARD, throws each dart at the x01 aim for the live remaining score", async () => {
+    const ctx = x01Screen("VISUAL_BOARD");
+    await playX01BotVisit(ctx, BOT, spec);
+    const [context, botRef, thrower] = vi.mocked(playRunBotVisualBoardVisit)
+      .mock.calls[0];
+    expect(context).toBe(ctx);
+    expect(botRef).toBe("b1");
+    expect(thrower()).toEqual(
+      botThrowObservation(BOT, ctx.$store.game.turns, x01BotIntent(40, BOT)),
+    );
+    expect(spec.remainingFor).toHaveBeenCalledWith("b1");
+    expect(playBotQuickScoreVisit).not.toHaveBeenCalled();
+  });
+
+  it("under QUICK_SCORE, folds the visit against the scratch remaining score and records it as a double-out when it checks out", async () => {
+    const ctx = x01Screen("QUICK_SCORE");
+    vi.mocked(playBotQuickScoreVisit).mockResolvedValueOnce(40);
+    await playX01BotVisit(ctx, BOT, spec);
+    const [context, botSeat, passedFactory, throwDart, dartsPerVisit] =
+      vi.mocked(playBotQuickScoreVisit).mock.calls[0];
+    expect(context).toBe(ctx);
+    expect(botSeat).toBe(BOT);
+    expect(passedFactory).toBe(factory);
+    expect(dartsPerVisit).toBe(3);
+    const scratch = { activeParticipantRef: "b1", seats: [] };
+    expect(throwDart(scratch, 4)).toEqual(
+      botDartObservationAt(BOT, 4, x01BotIntent(32, BOT)),
+    );
+    expect(spec.scratchRemaining).toHaveBeenCalledWith(scratch, "b1");
+    expect(ctx.recordVisit).toHaveBeenCalledWith(40, true);
+    expect(playRunBotVisualBoardVisit).not.toHaveBeenCalled();
+  });
+
+  it("under QUICK_SCORE, records a visit short of the remaining score as no checkout", async () => {
+    const ctx = x01Screen("QUICK_SCORE");
+    vi.mocked(playBotQuickScoreVisit).mockResolvedValueOnce(26);
+    await playX01BotVisit(ctx, BOT, spec);
+    expect(ctx.recordVisit).toHaveBeenCalledWith(26, false);
+  });
+
+  it("under QUICK_SCORE, records nothing when the flight was cut short", async () => {
+    const ctx = x01Screen("QUICK_SCORE");
+    vi.mocked(playBotQuickScoreVisit).mockResolvedValueOnce(null);
+    await playX01BotVisit(ctx, BOT, spec);
+    expect(ctx.recordVisit).not.toHaveBeenCalled();
   });
 });

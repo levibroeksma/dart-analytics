@@ -1470,6 +1470,21 @@ describe("oneTwentyOnePlay — DartBot opponent", () => {
     expect(botTurn!.darts).toEqual([]);
   });
 
+  it("under QUICK_SCORE, the bot's visit records as a double-out exactly when it takes out its remaining 121", async () => {
+    vi.useFakeTimers();
+    const play = createPlay();
+    await play.init();
+    const recordVisit = vi.spyOn(play, "recordVisit");
+    const visit = play.recordVisit(26, false);
+    await vi.runAllTimersAsync();
+    await visit;
+    vi.useRealTimers();
+
+    const botCall = recordVisit.mock.calls.at(-1)!;
+    expect(recordVisit.mock.calls.length).toBeGreaterThanOrEqual(2);
+    expect(botCall[1]).toBe(botCall[0] === 121);
+  });
+
   it("under QUICK_SCORE, a bot visit cut short mid-flight records nothing", async () => {
     vi.useFakeTimers();
     const play = createPlay();

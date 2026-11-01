@@ -1,9 +1,4 @@
-import {
-  activeBotTurn,
-  botDartObservationAt,
-  botThrowObservation,
-  x01BotIntent,
-} from "@lib/game/play-bot-seat";
+import { activeBotTurn } from "@lib/game/play-bot-seat";
 import { getEngineFactory } from "@modules/game/engine.registry";
 import { foldOneTwentyOneState } from "@modules/game/one-twenty-one.engine.module";
 import {
@@ -21,20 +16,20 @@ import {
   boundBoardInput,
   confirmCheckout,
   openCheckoutConfirm,
+  playX01BotVisit,
   recordCheckoutVisit,
   resetTimerStoreFields,
   restoreCheckoutScore,
+  seatStateFor,
   timedScoreScreenData,
 } from "@lib/game/play-screen.data";
 import {
   playCommitDart,
   playInit,
-  playRunBotVisualBoardVisit,
   playUploadAndCompleteSession,
   runPlayAgain,
   isInputBlocked,
   undoBotAwareVisit,
-  playBotQuickScoreVisit,
 } from "@lib/game/play-lifecycle";
 import {
   checkoutPercentageDisplay,
@@ -44,7 +39,7 @@ import { joinSubtitle } from "@lib/game/play-subtitle";
 import { classifyDoubleAttempts } from "@modules/game/double-attempt.module";
 import { oneTwentyOneCheckoutVisits } from "@modules/game/checkout-visits.module";
 import { matchWinnerName } from "@lib/game/match-result-text";
-import type { DartbotSeat, RulesetVersionKey } from "@lib/types";
+import type { RulesetVersionKey } from "@lib/types";
 import type {
   CheckoutDartOptions,
   DartCount,
@@ -55,8 +50,6 @@ import type {
   TurnFact,
 } from "@modules/types";
 import type {
-  BotDartThrower,
-  BotPacing,
   CountdownConfig,
   OneTwentyOneDurationType,
   OneTwentyOnePlayContext,
@@ -78,39 +71,6 @@ const DARTS_PER_VISIT = 3;
 
 /** Three visits make one 121 attempt, so an attempt is nine darts. */
 const DARTS_PER_ATTEMPT = 3 * DARTS_PER_VISIT;
-
-/** VISUAL_BOARD thrower: reads the real engine's own live `state()` —
- * `remainingInAttemptFor` already folds an open visit's running total. */
-function throwBotDart(
-  context: OneTwentyOnePlayContext,
-  botSeat: DartbotSeat,
-): { observation: DartObservation; pacing: BotPacing } {
-  return botThrowObservation(
-    botSeat,
-    context.$store.game.turns,
-    x01BotIntent(
-      context.remainingInAttemptFor(botSeat.participantRef),
-      botSeat,
-    ),
-  );
-}
-
-/** QUICK_SCORE thrower: `state` is the scratch engine's own live state,
- * never the real engine's — mirrors `five-oh-one-play.data.ts`. */
-function throwBotQuickScoreDart(
-  state: OneTwentyOneState,
-  botSeat: DartbotSeat,
-  dartIndex: number,
-): DartObservation {
-  const remaining = state.seats.find(
-    (seat) => seat.participantRef === botSeat.participantRef,
-  )!.remainingInAttempt;
-  return botDartObservationAt(
-    botSeat,
-    dartIndex,
-    x01BotIntent(remaining, botSeat),
-  );
-}
 
 const RESUMABLE_RULESET_VERSIONS = new Set(["121_V1", "121_V2"]);
 
@@ -429,27 +389,12 @@ export function oneTwentyOnePlay() {
       if (this.$store.game.timerPaused) return;
       const turn = activeBotTurn(this);
       if (!turn) return;
-      const { botSeat } = turn;
-
-      if (this.$store.game.inputModeKey === "QUICK_SCORE") {
-        const remainingBefore = this.remainingInAttemptFor(
-          botSeat.participantRef,
-        );
-        const total = await playBotQuickScoreVisit(
-          this,
-          botSeat,
-          oneTwentyOneEngineFactory,
-          (scratchState, dartIndex) =>
-            throwBotQuickScoreDart(scratchState, botSeat, dartIndex),
-          DARTS_PER_VISIT,
-        );
-        if (total === null) return;
-        await this.recordVisit(total, total === remainingBefore);
-        return;
-      }
-
-      const thrower: BotDartThrower = () => throwBotDart(this, botSeat);
-      await playRunBotVisualBoardVisit(this, botSeat.participantRef, thrower);
+      await playX01BotVisit(this, turn.botSeat, {
+        factory: oneTwentyOneEngineFactory,
+        remainingFor: (seatRef) => this.remainingInAttemptFor(seatRef),
+        scratchRemaining: (state, seatRef) =>
+          seatStateFor(state, seatRef)!.remainingInAttempt,
+      });
     },
 
     /**

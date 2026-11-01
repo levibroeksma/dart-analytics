@@ -1,9 +1,4 @@
-import {
-  activeBotTurn,
-  botDartObservationAt,
-  botThrowObservation,
-  x01BotIntent,
-} from "@lib/game/play-bot-seat";
+import { activeBotTurn } from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import { checkoutDartOptions } from "@modules/game/checkout-darts.module";
@@ -20,6 +15,7 @@ import {
   openCheckoutConfirm,
   playScreenActions,
   playScreenState,
+  playX01BotVisit,
   recordCheckoutVisit,
   restoreCheckoutScore,
   seatStateFor,
@@ -34,11 +30,9 @@ import {
   playCommitDart,
   playFoldBotQuickScoreVisit,
   playInit,
-  playRunBotVisualBoardVisit,
   playUploadAndCompleteSession,
   runPlayAgain,
   undoBotAwareVisit,
-  playBotQuickScoreVisit,
 } from "@lib/game/play-lifecycle";
 import {
   checkoutPercentageDisplay,
@@ -54,7 +48,6 @@ import { matchWinnerName } from "@lib/game/match-result-text";
 import type {
   FiveOhOneAnySnapshot,
   RulesetVersionKey,
-  DartbotSeat,
   SeatFact,
 } from "@lib/types";
 import type {
@@ -65,8 +58,6 @@ import type {
   TurnFact,
 } from "@modules/types";
 import type {
-  BotDartThrower,
-  BotPacing,
   FiveOhOnePlayContext,
   FiveOhOneSeatResult,
   FiveOhOneResultsSnapshot,
@@ -125,43 +116,6 @@ function playAgainWire(config: FiveOhOneAnySnapshot): Record<string, unknown> {
     sets: config.sets,
     win_by_two: config.winByTwo,
   };
-}
-
-const DARTS_PER_VISIT = 3;
-
-/** VISUAL_BOARD thrower: reads the real engine's own live `state()`, exactly
- * as `bobs27-play.data.ts`'s `throwBotDart` does — `foldFiveOhOneState`
- * already folds an open visit's running total, so `remainingScoreFor` is
- * live per dart, not just per visit. */
-function throwBotDart(
-  context: FiveOhOnePlayContext,
-  botSeat: DartbotSeat,
-): { observation: DartObservation; pacing: BotPacing } {
-  return botThrowObservation(
-    botSeat,
-    context.$store.game.turns,
-    x01BotIntent(context.remainingScoreFor(botSeat.participantRef), botSeat),
-  );
-}
-
-/**
- * QUICK_SCORE thrower: `state` is the scratch engine's own live state
- * (`playFoldBotQuickScoreVisit`), never the real engine's —
- * the real engine is never told about darts mid-visit under QUICK_SCORE.
- */
-function throwBotQuickScoreDart(
-  state: FiveOhOneState,
-  botSeat: DartbotSeat,
-  dartIndex: number,
-): DartObservation {
-  const remaining = state.seats.find(
-    (seat) => seat.participantRef === botSeat.participantRef,
-  )!.remainingScore;
-  return botDartObservationAt(
-    botSeat,
-    dartIndex,
-    x01BotIntent(remaining, botSeat),
-  );
 }
 
 function bestLegFor(
@@ -621,25 +575,12 @@ export function fiveOhOnePlay() {
     async maybeRunBotVisit(this: FiveOhOnePlayContext) {
       const turn = activeBotTurn(this);
       if (!turn) return;
-      const { botSeat } = turn;
-
-      if (this.$store.game.inputModeKey === "QUICK_SCORE") {
-        const remainingBefore = this.remainingScoreFor(botSeat.participantRef);
-        const total = await playBotQuickScoreVisit(
-          this,
-          botSeat,
-          fiveOhOneEngineFactory,
-          (scratchState, dartIndex) =>
-            throwBotQuickScoreDart(scratchState, botSeat, dartIndex),
-          DARTS_PER_VISIT,
-        );
-        if (total === null) return;
-        await this.recordVisit(total, total === remainingBefore);
-        return;
-      }
-
-      const thrower: BotDartThrower = () => throwBotDart(this, botSeat);
-      await playRunBotVisualBoardVisit(this, botSeat.participantRef, thrower);
+      await playX01BotVisit(this, turn.botSeat, {
+        factory: fiveOhOneEngineFactory,
+        remainingFor: (seatRef) => this.remainingScoreFor(seatRef),
+        scratchRemaining: (state, seatRef) =>
+          seatStateFor(state, seatRef)!.remainingScore,
+      });
     },
 
     undoVisit(this: FiveOhOnePlayContext) {

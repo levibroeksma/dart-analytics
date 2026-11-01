@@ -1,10 +1,16 @@
 import { boardInputData } from "@lib/game/board-input.data";
-import { findBotSeat } from "@lib/game/play-bot-seat";
+import {
+  botDartObservationAt,
+  botThrowObservation,
+  findBotSeat,
+  x01BotIntent,
+} from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
 import {
   playAbandonAndExit,
   playBack,
+  playBotQuickScoreVisit,
   playCommitDart,
   playInit,
   playRetryReconciliation,
@@ -14,8 +20,8 @@ import {
   playVisitMarkers,
   undoPastBot,
 } from "@lib/game/play-lifecycle";
-import type { DartbotSeat } from "@lib/types";
-import type { GameEngine } from "@modules/interfaces";
+import type { DartbotSeat, Seated } from "@lib/types";
+import type { GameEngine, GameEngineFactory } from "@modules/interfaces";
 import type {
   CheckoutDartOptions,
   DartCount,
@@ -56,6 +62,8 @@ type BoardPlayContext<
   commitDart(observation: DartObservation): Promise<void>;
   maybeRunBotVisit?(): Promise<void>;
 };
+
+const X01_DARTS_PER_VISIT = 3;
 
 type CheckoutConfirmContext = {
   error: string;
@@ -463,4 +471,58 @@ export async function confirmCheckout(
   context.pendingCheckoutScore = null;
   context.showDoubleConfirm = false;
   await context.recordVisit(score, true);
+}
+
+/**
+ * A seated DartBot's x01 visit, each dart aimed at its remaining score: under
+ * QUICK_SCORE folded on a scratch engine (`scratchRemaining` reads it) and
+ * recorded as one total, a double-out when it hits the live `remainingFor`
+ * exactly; otherwise thrown dart by dart on the visual board.
+ */
+export async function playX01BotVisit<
+  TConfig,
+  TEngine extends GameEngine<DartObservation, MultiSeatState>,
+  TResults,
+  TInput,
+  TState,
+>(
+  context: PlayLifecycleContext<TConfig, TEngine, TResults> & {
+    botThrowing: boolean;
+    botFlight?: BotFlight | null;
+    recordVisit(score: number, finishedOnDouble: boolean): Promise<void>;
+  },
+  botSeat: DartbotSeat,
+  spec: {
+    factory: GameEngineFactory<NoInfer<Seated<TConfig>>, TInput, TState>;
+    remainingFor(seatRef: string): number;
+    scratchRemaining(state: TState, seatRef: string): number;
+  },
+): Promise<void> {
+  const botRef = botSeat.participantRef;
+  if (context.$store.game.inputModeKey === "QUICK_SCORE") {
+    const remainingBefore = spec.remainingFor(botRef);
+    const total = await playBotQuickScoreVisit(
+      context,
+      botSeat,
+      spec.factory,
+      (state, dartIndex) =>
+        botDartObservationAt(
+          botSeat,
+          dartIndex,
+          x01BotIntent(spec.scratchRemaining(state, botRef), botSeat),
+        ),
+      X01_DARTS_PER_VISIT,
+    );
+    if (total === null) return;
+    await context.recordVisit(total, total === remainingBefore);
+    return;
+  }
+
+  await playRunBotVisualBoardVisit(context, botRef, () =>
+    botThrowObservation(
+      botSeat,
+      context.$store.game.turns,
+      x01BotIntent(spec.remainingFor(botRef), botSeat),
+    ),
+  );
 }

@@ -1943,6 +1943,24 @@ describe("DartBot opponent", () => {
     expect(botTurn!.darts).toEqual([]);
   });
 
+  it("under QUICK_SCORE, the bot's visit records as a double-out exactly when it takes out its remaining 40", async () => {
+    vi.useFakeTimers();
+    const play = makePlay({
+      configSnapshot: { ...botConfig(), startingScore: 40 },
+    });
+    await play.init.call(play);
+    const recordVisit = vi.spyOn(play, "recordVisit");
+    play.scoreInput.setValue("26");
+    const visit = play.submitVisit.call(play);
+    await vi.runAllTimersAsync();
+    await visit;
+    vi.useRealTimers();
+
+    const botCall = recordVisit.mock.calls.at(-1)!;
+    expect(recordVisit.mock.calls.length).toBeGreaterThanOrEqual(2);
+    expect(botCall[1]).toBe(botCall[0] === 40);
+  });
+
   it("under QUICK_SCORE, a bot visit cut short mid-flight records nothing", async () => {
     vi.useFakeTimers();
     const play = makePlay({ configSnapshot: botConfig() });
