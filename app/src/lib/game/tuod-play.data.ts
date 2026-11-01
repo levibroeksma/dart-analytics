@@ -25,19 +25,16 @@ import {
   isInputBlocked,
   undoBotAwareVisit,
 } from "@lib/game/play-lifecycle";
-import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
-import { createDartRng } from "@modules/dartbot/rng.module";
-import { throwDart as botThrowDart } from "@modules/dartbot/throw-engine.module";
-import { chooseTarget } from "@modules/dartbot/strategy/x01.strategy.module";
 import {
   checkoutPercentageDisplay,
   dartsLeftForSeat,
 } from "@lib/game/play-visit-stats";
 import {
-  BOT_PACING,
-  botDartIndex,
+  botDartObservationAt,
   botQuickScoreDartIndex,
+  botThrowObservation,
   findBotSeat,
+  x01BotIntent,
 } from "@lib/game/play-bot-seat";
 import {
   formatRemaining,
@@ -86,26 +83,6 @@ const RULESET_VERSION_KEY: RulesetVersionKey = "TUOD_V1";
 
 const DARTS_PER_VISIT = 3;
 
-function throwOneDart(
-  remaining: number,
-  botSeat: DartbotSeat,
-  dartIndex: number,
-): DartObservation {
-  const profile = skillProfileForLevel(botSeat.dartbot.level);
-  const rng = createDartRng(botSeat.dartbot.seed, dartIndex);
-  const intent = chooseTarget(
-    { remaining, checkoutPath: checkoutPathFor(remaining) },
-    profile.decisionQuality,
-  );
-  const thrown = botThrowDart(intent, profile, rng);
-  return {
-    hitTargetNumber: thrown.hit.targetNumber,
-    hitZoneKey: thrown.hit.zoneKey,
-    locationX: thrown.landing.x,
-    locationY: thrown.landing.y,
-  };
-}
-
 /** VISUAL_BOARD thrower: TUOD's "remaining" for a fresh attempt is the
  * seat's own `currentTarget` — an attempt always starts at the ladder
  * target, unlike 121/501's visit-to-visit carry. Reads the typed state
@@ -119,14 +96,11 @@ function throwBotDart(
     ?.seats.find(
       (candidate) => candidate.participantRef === botSeat.participantRef,
     );
-  const dartIndex = botDartIndex(
+  return botThrowObservation(
+    botSeat,
     context.$store.game.turns,
-    botSeat.participantRef,
+    x01BotIntent(seat?.currentTarget ?? 0, botSeat),
   );
-  return {
-    observation: throwOneDart(seat?.currentTarget ?? 0, botSeat, dartIndex),
-    pacing: BOT_PACING,
-  };
 }
 
 /** QUICK_SCORE thrower: `state` is the scratch engine's own live state,
@@ -139,7 +113,11 @@ function throwBotQuickScoreDart(
   const remaining = state.seats.find(
     (seat) => seat.participantRef === botSeat.participantRef,
   )!.currentTarget;
-  return throwOneDart(remaining, botSeat, dartIndex);
+  return botDartObservationAt(
+    botSeat,
+    dartIndex,
+    x01BotIntent(remaining, botSeat),
+  );
 }
 
 function statsFor(

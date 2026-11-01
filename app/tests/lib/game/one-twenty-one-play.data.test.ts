@@ -17,7 +17,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // Confirmed these assertions (including the VISUAL_BOARD checkoutPercentage
 // test) still hold unchanged.
 import { oneTwentyOnePlay } from "@lib/game/one-twenty-one-play.data";
-import { BOT_PACING } from "@lib/game/play-bot-seat";
+import {
+  BOT_PACING,
+  botDartObservationAt,
+  x01BotIntent,
+} from "@lib/game/play-bot-seat";
 import {
   oneTwentyOneEngineFactory,
   oneTwentyOneV2EngineFactory,
@@ -1340,6 +1344,26 @@ describe("oneTwentyOnePlay — DartBot opponent", () => {
     );
     expect(botTurns.length).toBeGreaterThan(0);
     expect(play.state()!.activeParticipantRef).toBe(HUMAN_REF);
+  });
+
+  it("under VISUAL_BOARD, the bot's first dart is the x01 strategy's draw for its remaining 121", async () => {
+    store.game.inputModeKey = "VISUAL_BOARD";
+    const play = createPlay();
+    await play.init();
+
+    await play.recordVisit(26, false);
+
+    const first = store.game.turns.find(
+      (turn) => turn.participantRef === BOT_REF,
+    )!.darts[0];
+    const botSeat = seatsWithBot()[1] as never;
+    const expected = botDartObservationAt(
+      botSeat,
+      0,
+      x01BotIntent(121, botSeat),
+    );
+    expect(first.locationX).toBe(expected.locationX);
+    expect(first.locationY).toBe(expected.locationY);
   });
 
   it("clears the loading state before the bot opens the match", async () => {

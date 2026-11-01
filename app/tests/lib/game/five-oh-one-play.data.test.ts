@@ -1801,6 +1801,39 @@ describe("DartBot opponent", () => {
     expect(first.locationY).toBe(expected.locationY);
   });
 
+  it("under VISUAL_BOARD, a bot on a finishable score aims its first dart at the checkout double", async () => {
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      {
+        ...ACTIVE_SESSION,
+        captureModeKey: "ANALYTICS",
+        inputModeKey: "VISUAL_BOARD",
+      },
+    ]);
+    const play = makePlay({
+      configSnapshot: { ...botConfig(), startingScore: 40 },
+    });
+    await play.init.call(play);
+    const miss = {
+      hitTargetNumber: null,
+      hitZoneKey: "MISS" as const,
+      locationX: null,
+      locationY: null,
+    };
+    await play.recordDart.call(play, miss);
+    await play.recordDart.call(play, miss);
+    await play.recordDart.call(play, miss);
+
+    const first = play.$store.game.turns.find(
+      (turn) => turn.participantRef === BOT_REF,
+    )!.darts[0];
+    const expected = botDartObservationAt(seatsWithBot()[1] as never, 0, {
+      targetNumber: 20,
+      zoneKey: "DOUBLE",
+    });
+    expect(first.locationX).toBe(expected.locationX);
+    expect(first.locationY).toBe(expected.locationY);
+  });
+
   it("clears the loading state before the bot opens the match", async () => {
     const play = makePlay({ configSnapshot: botConfig() });
     let release: (() => void) | undefined;

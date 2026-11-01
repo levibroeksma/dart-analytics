@@ -1,9 +1,9 @@
 import {
-  BOT_PACING,
-  botDartIndex,
   botDartObservationAt,
   botQuickScoreDartIndex,
+  botThrowObservation,
   findBotSeat,
+  x01BotIntent,
 } from "@lib/game/play-bot-seat";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
 import { ScoreInputBuffer } from "@modules/game/score-input.module";
@@ -32,8 +32,6 @@ import {
   runPlayAgain,
   undoBotAwareVisit,
 } from "@lib/game/play-lifecycle";
-import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
-import { chooseTarget } from "@modules/dartbot/strategy/x01.strategy.module";
 import {
   checkoutPercentageDisplay,
   dartsLeftForSeat,
@@ -123,18 +121,6 @@ function playAgainWire(config: FiveOhOneAnySnapshot): Record<string, unknown> {
 
 const DARTS_PER_VISIT = 3;
 
-function throwOneDart(
-  remaining: number,
-  botSeat: DartbotSeat,
-  dartIndex: number,
-): DartObservation {
-  const intent = chooseTarget(
-    { remaining, checkoutPath: checkoutPathFor(remaining) },
-    skillProfileForLevel(botSeat.dartbot.level).decisionQuality,
-  );
-  return botDartObservationAt(botSeat, dartIndex, intent);
-}
-
 /** VISUAL_BOARD thrower: reads the real engine's own live `state()`, exactly
  * as `bobs27-play.data.ts`'s `throwBotDart` does — `foldFiveOhOneState`
  * already folds an open visit's running total, so `remainingScoreFor` is
@@ -143,15 +129,11 @@ function throwBotDart(
   context: FiveOhOnePlayContext,
   botSeat: DartbotSeat,
 ): { observation: DartObservation; pacing: BotPacing } {
-  const remaining = context.remainingScoreFor(botSeat.participantRef);
-  const dartIndex = botDartIndex(
+  return botThrowObservation(
+    botSeat,
     context.$store.game.turns,
-    botSeat.participantRef,
+    x01BotIntent(context.remainingScoreFor(botSeat.participantRef), botSeat),
   );
-  return {
-    observation: throwOneDart(remaining, botSeat, dartIndex),
-    pacing: BOT_PACING,
-  };
 }
 
 /**
@@ -167,7 +149,11 @@ function throwBotQuickScoreDart(
   const remaining = state.seats.find(
     (seat) => seat.participantRef === botSeat.participantRef,
   )!.remainingScore;
-  return throwOneDart(remaining, botSeat, dartIndex);
+  return botDartObservationAt(
+    botSeat,
+    dartIndex,
+    x01BotIntent(remaining, botSeat),
+  );
 }
 
 function bestLegFor(

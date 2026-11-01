@@ -20,9 +20,6 @@ import {
   isInputBlocked,
   undoBotAwareVisit,
 } from "@lib/game/play-lifecycle";
-import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
-import { createDartRng } from "@modules/dartbot/rng.module";
-import { throwDart as botThrowDart } from "@modules/dartbot/throw-engine.module";
 import { chooseTarget } from "@modules/dartbot/strategy/scoring.strategy.module";
 import {
   completedVisitsTotal,
@@ -34,9 +31,9 @@ import {
   visitScoreBandCounts,
 } from "@lib/game/play-visit-stats";
 import {
-  BOT_PACING,
-  botDartIndex,
+  botDartObservationAt,
   botQuickScoreDartIndex,
+  botThrowObservation,
   findBotSeat,
 } from "@lib/game/play-bot-seat";
 import {
@@ -80,35 +77,15 @@ const RULESET_VERSION_KEY: RulesetVersionKey = "SCORE_TRAINING_V1";
 
 const DARTS_PER_VISIT = 3;
 
-/** No `remaining`/checkout view — `chooseTarget()` always fires treble 20. */
-function throwOneDart(
-  botSeat: DartbotSeat,
-  dartIndex: number,
-): DartObservation {
-  const profile = skillProfileForLevel(botSeat.dartbot.level);
-  const rng = createDartRng(botSeat.dartbot.seed, dartIndex);
-  const intent = chooseTarget();
-  const thrown = botThrowDart(intent, profile, rng);
-  return {
-    hitTargetNumber: thrown.hit.targetNumber,
-    hitZoneKey: thrown.hit.zoneKey,
-    locationX: thrown.landing.x,
-    locationY: thrown.landing.y,
-  };
-}
-
 function throwBotDart(
   context: ScoreTrainingPlayContext,
   botSeat: DartbotSeat,
 ): { observation: DartObservation; pacing: BotPacing } {
-  const dartIndex = botDartIndex(
+  return botThrowObservation(
+    botSeat,
     context.$store.game.turns,
-    botSeat.participantRef,
+    chooseTarget(),
   );
-  return {
-    observation: throwOneDart(botSeat, dartIndex),
-    pacing: BOT_PACING,
-  };
 }
 
 /**
@@ -408,7 +385,7 @@ export function scoreTrainingPlay() {
           scoreTrainingEngineFactory,
           this.$store.game.configSnapshot!,
           this.engine.facts(),
-          () => throwOneDart(botSeat, dartIndex++),
+          () => botDartObservationAt(botSeat, dartIndex++, chooseTarget()),
           DARTS_PER_VISIT,
         );
         if (

@@ -75,7 +75,7 @@ import {
 } from "@modules/game/score-training.engine.module";
 import type { GameEngine, GameEngineFactory } from "@modules/interfaces";
 import { scoreTrainingPlay } from "@lib/game/score-training-play.data";
-import { BOT_PACING } from "@lib/game/play-bot-seat";
+import { BOT_PACING, botDartObservationAt } from "@lib/game/play-bot-seat";
 import type { ScoreTrainingPlayContext } from "@lib/types";
 import type { ScoreTrainingSnapshot, Seated } from "@lib/types";
 import type {
@@ -2449,6 +2449,32 @@ describe("scoreTrainingPlay — DartBot opponent", () => {
     );
     expect(botTurns.length).toBeGreaterThan(0);
     expect(play.state()!.activeParticipantRef).toBe(HUMAN_REF);
+  });
+
+  it("under VISUAL_BOARD, the bot's first dart is the seeded draw for treble 20", async () => {
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      {
+        ...ACTIVE_SESSION,
+        sessionId: "session-1",
+        captureModeKey: "ANALYTICS",
+        inputModeKey: "VISUAL_BOARD",
+      },
+    ]);
+    const play = makePlay();
+    await play.init.call(play);
+    play.scoreInput.setValue("26");
+
+    await play.submitVisit.call(play);
+
+    const first = play.$store.game.turns.find(
+      (turn) => turn.participantRef === BOT_REF,
+    )!.darts[0];
+    const expected = botDartObservationAt(seatsWithBot()[1] as never, 0, {
+      targetNumber: 20,
+      zoneKey: "TREBLE",
+    });
+    expect(first.locationX).toBe(expected.locationX);
+    expect(first.locationY).toBe(expected.locationY);
   });
 
   it("under VISUAL_BOARD, the bot's visit asks the engine's pre-record wouldComplete rather than a post-record read", async () => {

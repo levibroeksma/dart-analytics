@@ -2,6 +2,8 @@ import type { BotPacing, DartbotSeat, SeatFact } from "@lib/types";
 import { createDartRng } from "@modules/dartbot/rng.module";
 import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
 import { throwDart } from "@modules/dartbot/throw-engine.module";
+import { chooseTarget } from "@modules/dartbot/strategy/x01.strategy.module";
+import { checkoutPathFor } from "@modules/game/checkout-path.module";
 import type { DartObservation, ThrowIntent, TurnFact } from "@modules/types";
 
 /** The DartBot's per-dart pacing in every game: think, then hold the landed dart (08-DartBot.md). */
@@ -99,4 +101,15 @@ export function botDartObservationAt(
     locationX: thrown.landing.x,
     locationY: thrown.landing.y,
   };
+}
+
+/** The x01 strategy's aim for a bot seat `remaining` short of its finish, at the level's decision quality. */
+export function x01BotIntent(
+  remaining: number,
+  botSeat: DartbotSeat,
+): ThrowIntent {
+  return chooseTarget(
+    { remaining, checkoutPath: checkoutPathFor(remaining) },
+    skillProfileForLevel(botSeat.dartbot.level).decisionQuality,
+  );
 }

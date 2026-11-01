@@ -7,7 +7,11 @@ import {
   botSeatState,
   botThrowObservation,
   findBotSeat,
+  x01BotIntent,
 } from "@lib/game/play-bot-seat";
+import { chooseTarget } from "@modules/dartbot/strategy/x01.strategy.module";
+import { checkoutPathFor } from "@modules/game/checkout-path.module";
+import { skillProfileForLevel } from "@modules/dartbot/skill-profile.module";
 import type { DartbotSeat, SeatFact } from "@lib/types";
 import type { TurnFact } from "@modules/types";
 
@@ -147,5 +151,32 @@ describe("botSeatState", () => {
     expect(() =>
       botSeatState({ seats: [{ participantRef: "p1" }] }, bot),
     ).toThrow("DartBot has no seat in this session's engine state");
+  });
+});
+
+describe("x01BotIntent", () => {
+  it("aims the x01 strategy at the remaining score with the level's decision quality", () => {
+    for (const level of [1, 5, 10]) {
+      const seat = {
+        ...botSeat,
+        dartbot: { level, seed: 1 },
+      } as unknown as DartbotSeat;
+      for (const remaining of [170, 40, 501, 1]) {
+        expect(x01BotIntent(remaining, seat)).toEqual(
+          chooseTarget(
+            { remaining, checkoutPath: checkoutPathFor(remaining) },
+            skillProfileForLevel(level).decisionQuality,
+          ),
+        );
+      }
+    }
+  });
+
+  it("routes a checkout for a strong bot on a finishable score", () => {
+    const seat = {
+      ...botSeat,
+      dartbot: { level: 10, seed: 1 },
+    } as unknown as DartbotSeat;
+    expect(x01BotIntent(40, seat)).not.toEqual(x01BotIntent(501, seat));
   });
 });

@@ -82,7 +82,11 @@ import {
 } from "@modules/game/tuod.engine.module";
 import type { GameEngine, GameEngineFactory } from "@modules/interfaces";
 import { tuodPlay } from "@lib/game/tuod-play.data";
-import { BOT_PACING } from "@lib/game/play-bot-seat";
+import {
+  BOT_PACING,
+  botDartObservationAt,
+  x01BotIntent,
+} from "@lib/game/play-bot-seat";
 import type { TuodPlayContext, TuodSnapshot, Seated } from "@lib/types";
 import type {
   DartFact,
@@ -2039,6 +2043,31 @@ describe("tuodPlay — DartBot opponent", () => {
     );
     expect(botTurns.length).toBeGreaterThan(0);
     expect(play.state()!.activeParticipantRef).toBe(HUMAN_REF);
+  });
+
+  it("under VISUAL_BOARD, the bot's first dart aims at its own ladder target's checkout", async () => {
+    vi.mocked(fetchActiveSessions).mockResolvedValue([
+      {
+        ...ACTIVE_SESSION,
+        sessionId: "session-1",
+        captureModeKey: "ANALYTICS",
+        inputModeKey: "VISUAL_BOARD",
+      },
+    ]);
+    const play = makePlay();
+    await play.init.call(play);
+
+    await play.recordAttempt.call(play, { checkedOut: false });
+
+    const first = play.$store.game.turns.find(
+      (turn) => turn.participantRef === BOT_REF,
+    )!.darts[0];
+    const botSeat = seatsWithBot()[1] as never;
+    const intent = x01BotIntent(41, botSeat);
+    expect(intent).not.toEqual({ targetNumber: 20, zoneKey: "TREBLE" });
+    const expected = botDartObservationAt(botSeat, 0, intent);
+    expect(first.locationX).toBe(expected.locationX);
+    expect(first.locationY).toBe(expected.locationY);
   });
 
   it("under VISUAL_BOARD, the bot's session-ending dart completes the session", async () => {
