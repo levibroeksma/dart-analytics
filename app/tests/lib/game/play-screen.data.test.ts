@@ -10,7 +10,6 @@ vi.mock("@lib/game/play-lifecycle", () => ({
   playInit: vi.fn(async () => {}),
   playCommitDart: vi.fn(async () => {}),
   playUndoVisit: vi.fn(),
-  undoToActiveSeat: vi.fn(),
   undoPastBot: vi.fn(() => false),
   playVisitMarkers: vi.fn(() => []),
   playBack: vi.fn(async () => {}),
@@ -33,7 +32,6 @@ import {
   playUndoVisit,
   playVisitMarkers,
   undoPastBot,
-  undoToActiveSeat,
 } from "@lib/game/play-lifecycle";
 import {
   activeSeatStateOf,
@@ -289,7 +287,7 @@ describe("boardPlayActions", () => {
     await ctx.undoVisit();
     expect(playUndoVisit).toHaveBeenCalledWith(ctx);
     expect(vi.mocked(playUndoVisit).mock.calls[0][0]).toBe(ctx);
-    expect(undoToActiveSeat).not.toHaveBeenCalled();
+    expect(undoPastBot).not.toHaveBeenCalled();
   });
 
   it("undoVisit with a bot seat undoes to the PLAYER seat, then reruns the bot", async () => {
