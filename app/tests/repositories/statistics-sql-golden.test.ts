@@ -184,4 +184,62 @@ describe("statistics readers rendered SQL", () => {
       await render((db) => findX01CheckoutDarts(db, PLAYER)),
     ).toMatchSnapshot();
   });
+
+  describe.each(["standalone", "routine"] as const)("context %s", (context) => {
+    const ctx = { ...scope, context };
+    const none = { bucket: "none" as const, tz: undefined };
+    it("findX01FoldRows", async () => {
+      expect(
+        await render((db) => findX01FoldRows(db, { ...ctx, ...none })),
+      ).toMatchSnapshot();
+    });
+    it("findBucketedSessionAggregates", async () => {
+      expect(
+        await render((db) =>
+          findBucketedSessionAggregates(db, { ...ctx, ...none }),
+        ),
+      ).toMatchSnapshot();
+    });
+    it("findGameSessionsPage", async () => {
+      expect(
+        await render((db) => findGameSessionsPage(db, { ...ctx, limit: 25 })),
+      ).toMatchSnapshot();
+    });
+    it("countGameSessions", async () => {
+      expect(
+        await render((db) => countGameSessions(db, ctx)),
+      ).toMatchSnapshot();
+    });
+  });
+
+  it("findGameSessionsPage with several statuses", async () => {
+    expect(
+      await render((db) =>
+        findGameSessionsPage(db, {
+          ...scope,
+          statuses: ["COMPLETED", "ABANDONED"],
+          limit: 25,
+        }),
+      ),
+    ).toMatchSnapshot();
+  });
+
+  describe("routineStep scope", () => {
+    const routineStep = { routineKey: "warmup", stepKey: "step-1" };
+    const none = { bucket: "none" as const, tz: undefined };
+    it("findX01FoldRows", async () => {
+      expect(
+        await render((db) =>
+          findX01FoldRows(db, { ...scope, ...none, routineStep }),
+        ),
+      ).toMatchSnapshot();
+    });
+    it("findBucketedSessionAggregates", async () => {
+      expect(
+        await render((db) =>
+          findBucketedSessionAggregates(db, { ...scope, ...none, routineStep }),
+        ),
+      ).toMatchSnapshot();
+    });
+  });
 });
