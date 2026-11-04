@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
-# SessionStart: install the superpowers plugin in cloud sessions (D311).
+# SessionStart: ask for the design-sync check (D521), then install the
+# superpowers plugin in cloud sessions (D311).
+#
+# The design-sync line goes to stdout, which Claude Code adds to the session
+# context. The skill stays silent when the Artifact tool or the artifact is
+# out of reach.
+echo "Design sync (D521): before your first answer, run the session-start check in .claude/skills/syncing-design-system/SKILL.md section 3 quietly; stay silent without access."
 #
 # settings.json declares the marketplace and enables the plugin, but a fresh
 # cloud container has nothing installed, so the superpowers: skills the

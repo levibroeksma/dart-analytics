@@ -2,6 +2,8 @@
 
 Date: 2026-10-26 · Branch: `feat/design-sync` · Status: draft, awaiting approval
 
+Superseded in part on 2026-11-04 by `2026-11-04-design-system-artifact-sync-design.md` (D521): the design side is now the Design System artifact.
+
 ## Intent
 
 Keep the Claude Design project **"Darts Analytics Design System"** (`92d6fa0d-31bc-4ef3-9737-a4854ce14886`, type `PROJECT_TYPE_DESIGN_SYSTEM`) and this codebase in sync, in both directions, and keep them that way.
