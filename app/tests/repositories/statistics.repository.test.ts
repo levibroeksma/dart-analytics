@@ -3204,6 +3204,26 @@ describe("findStepSessionPage", () => {
     expect(statements[0].params).toContain(26);
   });
 
+  it("orders by exactly the keyset findGameSessionsPage orders by, on its own view", async () => {
+    const orderOf = (sql: string) =>
+      sql.split(/ order by /i)[1].split(/ limit /i)[0];
+    const step = renderingDb([]);
+    await findStepSessionPage(step.db, baseQuery);
+    const game = renderingDb([]);
+    await findGameSessionsPage(game.db, {
+      ...baseQuery,
+      gameTypeKey: "501",
+      context: "all",
+    });
+
+    expect(orderOf(onlyStatement(step.statements))).toBe(
+      '"v_stats_routine_step_facts"."completed_at" desc, "v_stats_routine_step_facts"."session_id" desc',
+    );
+    expect(orderOf(onlyStatement(game.statements))).toBe(
+      '"v_stats_session_facts"."completed_at" desc, "v_stats_session_facts"."session_id" desc',
+    );
+  });
+
   it("adds the keyset predicate when a cursor is given", async () => {
     const { db, statements } = renderingDb([]);
     await findStepSessionPage(db, {

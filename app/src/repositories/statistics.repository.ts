@@ -966,6 +966,11 @@ export async function findHomeHeatmapCells(
   );
 }
 
+/** Newest-first keyset order: `completed_at DESC, session_id DESC`. */
+function newestFirst(t: { completedAt: Column; sessionId: Column }): SQL[] {
+  return [desc(t.completedAt), desc(t.sessionId)];
+}
+
 /** The non-null timing columns every session row carries. */
 function mapSessionTimings(row: {
   startedAt: string | null;
@@ -1072,10 +1077,7 @@ export async function findGameSessionsPage(
     })
     .from(vStatsSessionFacts)
     .where(and(...conditions))
-    .orderBy(
-      desc(vStatsSessionFacts.completedAt),
-      desc(vStatsSessionFacts.sessionId),
-    )
+    .orderBy(...newestFirst(vStatsSessionFacts))
     .limit(q.limit + 1);
 
   return rows.map((row) => {
@@ -2186,10 +2188,7 @@ export async function findStepSessionPage(
     })
     .from(vStatsRoutineStepFacts)
     .where(and(...conditions))
-    .orderBy(
-      desc(vStatsRoutineStepFacts.completedAt),
-      desc(vStatsRoutineStepFacts.sessionId),
-    )
+    .orderBy(...newestFirst(vStatsRoutineStepFacts))
     .limit(q.limit + 1);
 
   return rows.map((row) => {
