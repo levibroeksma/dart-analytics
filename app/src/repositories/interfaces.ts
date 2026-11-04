@@ -83,6 +83,19 @@ export interface RoutineStepTemplateRow {
   stepConfiguration: unknown;
 }
 
+/** The nine `v_routine_execution` step columns as selected, before narrowing. */
+export interface RoutineStepViewRow {
+  sequenceNumber: number | null;
+  exerciseTypeKey: string | null;
+  exerciseRulesetVersionKey: string | null;
+  gameTypeKey: string | null;
+  gameRulesetVersionKey: string | null;
+  durationTypeKey: string | null;
+  durationValue: number | null;
+  defaultConfiguration: unknown;
+  stepConfiguration: unknown;
+}
+
 export interface BatchInsertStage {
   id: string;
   parentStageId: string | null;

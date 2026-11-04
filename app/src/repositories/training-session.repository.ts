@@ -7,7 +7,7 @@ import {
   vRoutineExecution,
   vTrainingCompletions,
 } from "@db/schema";
-import { nonNull } from "./row-helpers";
+import { mapRoutineStepRow, nonNull } from "./row-helpers";
 import type {
   RoutineStepTemplateRow,
   TrainingCompletionRow,
@@ -68,17 +68,7 @@ export async function findRoutineTemplateSteps(
   return {
     routineTemplateId: nonNull(first.routineTemplateId, "routine_id"),
     routineName: nonNull(first.routineName, "routine_name"),
-    steps: rows.map((row) => ({
-      sequenceNumber: nonNull(row.sequenceNumber, "sequence_number"),
-      exerciseTypeKey: nonNull(row.exerciseTypeKey, "exercise_type_key"),
-      exerciseRulesetVersionKey: row.exerciseRulesetVersionKey,
-      gameTypeKey: row.gameTypeKey,
-      gameRulesetVersionKey: row.gameRulesetVersionKey,
-      durationTypeKey: nonNull(row.durationTypeKey, "duration_type_key"),
-      durationValue: nonNull(row.durationValue, "duration_value"),
-      defaultConfiguration: row.defaultConfiguration,
-      stepConfiguration: row.stepConfiguration,
-    })),
+    steps: rows.map((row) => mapRoutineStepRow(row)),
   };
 }
 

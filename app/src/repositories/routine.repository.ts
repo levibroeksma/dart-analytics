@@ -7,7 +7,7 @@ import {
   vExerciseTemplateCatalog,
   vRoutineExecution,
 } from "@db/schema";
-import { nonNull } from "./row-helpers";
+import { mapRoutineStepRow, nonNull } from "./row-helpers";
 import type {
   ExerciseTemplateCatalogRow,
   RoutineExecutionRow,
@@ -72,18 +72,10 @@ export async function findRoutineExecutionRows(
     routineDescription: row.routineDescription,
     isSystemTemplate: nonNull(row.isSystemTemplate, "is_system_template"),
     playerId: row.playerId,
-    sequenceNumber: nonNull(row.sequenceNumber, "sequence_number"),
     exerciseTemplateId: nonNull(row.exerciseTemplateId, "exercise_template_id"),
     exerciseName: nonNull(row.exerciseName, "exercise_name"),
     exerciseDescription: row.exerciseDescription,
-    exerciseTypeKey: nonNull(row.exerciseTypeKey, "exercise_type_key"),
-    exerciseRulesetVersionKey: row.exerciseRulesetVersionKey,
-    gameTypeKey: row.gameTypeKey,
-    gameRulesetVersionKey: row.gameRulesetVersionKey,
-    durationTypeKey: nonNull(row.durationTypeKey, "duration_type_key"),
-    durationValue: nonNull(row.durationValue, "duration_value"),
-    defaultConfiguration: row.defaultConfiguration,
-    stepConfiguration: row.stepConfiguration,
+    ...mapRoutineStepRow(row),
   }));
 }
 
