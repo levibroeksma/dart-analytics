@@ -1,3 +1,4 @@
+import { clampToBounds } from "./duration-clamp";
 import type { ScoreTrainingDurationType } from "./types";
 
 export function scoreTrainingDurationBounds(type: ScoreTrainingDurationType): {
@@ -15,15 +16,5 @@ export function clampScoreTrainingDuration(
   type: ScoreTrainingDurationType,
   value: unknown,
 ): { value: number; clamped: boolean } {
-  const { min, max } = scoreTrainingDurationBounds(type);
-  const numeric = typeof value === "number" ? value : Number.NaN;
-  if (!Number.isFinite(numeric)) {
-    return { value: min, clamped: true };
-  }
-  const floored = Math.floor(numeric);
-  const clampedValue = Math.min(max, Math.max(min, floored));
-  return {
-    value: clampedValue,
-    clamped: clampedValue !== numeric,
-  };
+  return clampToBounds(scoreTrainingDurationBounds(type), value);
 }

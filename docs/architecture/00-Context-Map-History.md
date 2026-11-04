@@ -2,7 +2,7 @@
 status: historical
 scope: context-map version history and point-in-time task records
 read-when: never during a task — provenance only
-updated: 2026-10-31
+updated: 2026-11-04
 -->
 
 # Context Map History
@@ -16,6 +16,8 @@ updated: 2026-10-31
 ---
 
 # Version History
+
+> **Version:** 1.201.0 (2026-11-04 — Duplication backlog Phase 2, setup screens (PR D): D519 in `decisions/frontend/architecture.md`; `duration-clamp.ts` and `duration-setup.data.ts` registered in `00-File-Inventory.md`, `setup-controller.ts` row gains `startPresetSession`, `DurationSoloFields.astro` registered; `09-Adding-A-Game.md` opt-out paragraph rewritten (121 added, `startPresetSession` named); `PresetSetupContext` doc comment updated; `scripts/dupes-baseline.txt` lowered 54 → 47)
 
 > **Version:** 1.200.0 (2026-11-01 — Prisoner V1 playable (PR 2): setup, play, results, ANALYTICS-only card; `00-File-Inventory.md`, `09-Adding-A-Game.md`.)
 

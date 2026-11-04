@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { clampToBounds } from "@lib/game/duration-clamp";
 import {
   AROUND_THE_CLOCK_DEFAULT_MINUTES,
   aroundTheClockDurationBounds,
@@ -52,4 +53,15 @@ describe("ATC default minutes export", () => {
     expect(AROUND_THE_CLOCK_DEFAULT_MINUTES).toBeGreaterThanOrEqual(min);
     expect(AROUND_THE_CLOCK_DEFAULT_MINUTES).toBeLessThanOrEqual(max);
   });
+});
+
+describe("clampAroundTheClockDuration delegation", () => {
+  it.each([2, 5.7, 31, Number.NaN, "x"])(
+    "matches clampToBounds for %s",
+    (v) => {
+      expect(clampAroundTheClockDuration(v)).toEqual(
+        clampToBounds(aroundTheClockDurationBounds(), v),
+      );
+    },
+  );
 });

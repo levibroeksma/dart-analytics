@@ -152,6 +152,27 @@ export type SetupSessionContext = {
   removeBot(this: SetupSessionContext): void;
 };
 
+/**
+ * The setup contract `durationSetupData` supplies: a ROUNDS/timed mode picker
+ * backed by presets whose configuration names `duration_type` and
+ * `duration_value`, locked to ROUNDS once a guest or bot is seated.
+ */
+export type DurationSetupContext<TType extends string> = SetupSessionContext & {
+  presets: ConfigurationPresetData[];
+  durationType: TType;
+  durationValue: number | string | null;
+  $watch(key: "durationType", callback: (value: TType) => void): void;
+  init(this: DurationSetupContext<TType>): Promise<void>;
+  selectMode(this: DurationSetupContext<TType>, type: TType): void;
+  presetForMode(
+    this: DurationSetupContext<TType>,
+    type: TType,
+  ): ConfigurationPresetData | undefined;
+  addGuest(this: DurationSetupContext<TType>): void;
+  addBot(this: DurationSetupContext<TType>): void;
+  forceRoundsIfGuested(this: DurationSetupContext<TType>): void;
+};
+
 export type TuodSetupContext = SetupSessionContext & {
   presets: ConfigurationPresetData[];
   durationType: TuodDurationType;
@@ -630,10 +651,11 @@ export type FiveOhOneSetupContext = SetupSessionContext & {
  * an `orderMode` field — Singles and Doubles Training), which is why
  * `createPresetSetupController` can serve all five from one implementation.
  *
- * `501`, Score Training, and 121 (V2 onward) deliberately keep hand-written
- * contexts: each replaces `start` wholesale (preset selection, leg counts, a
- * clamped custom starting score or duration value), so routing them through
- * the factory would need one hook per branch. See
+ * `501`, Score Training, TUOD, and 121 (V2 onward) deliberately keep
+ * hand-written contexts: each has its own pre-steps (preset selection, leg
+ * counts, a clamped custom starting score or duration value), so routing them
+ * through the factory would need one hook per branch. They still end in
+ * `startPresetSession`, as the factory's `start` does. See
  * `docs/architecture/07-Frontend/09-Adding-A-Game.md`.
  *
  * The `this` parameters name this base type rather than a self-type

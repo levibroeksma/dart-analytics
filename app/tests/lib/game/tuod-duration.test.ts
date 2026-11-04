@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { clampToBounds } from "@lib/game/duration-clamp";
 import { clampTuodDuration, tuodDurationBounds } from "@lib/game/tuod-duration";
 
 describe("tuodDurationBounds", () => {
@@ -66,4 +67,17 @@ describe("clampTuodDuration", () => {
       clamped: true,
     });
   });
+});
+
+describe("clampTuodDuration delegation", () => {
+  it.each(["ROUNDS", "MINUTES"] as const)(
+    "matches clampToBounds for %s",
+    (type) => {
+      for (const v of [0, 5.7, 101, Number.NaN, "x"]) {
+        expect(clampTuodDuration(type, v)).toEqual(
+          clampToBounds(tuodDurationBounds(type), v),
+        );
+      }
+    },
+  );
 });

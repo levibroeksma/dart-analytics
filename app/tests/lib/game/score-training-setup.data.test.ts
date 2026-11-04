@@ -236,6 +236,14 @@ describe("scoreTrainingSetup", () => {
   });
 
   describe("init duration defaults", () => {
+    it("starts on ROUNDS at Score Training's own fallbacks before init", () => {
+      const setup = createSetup();
+      expect(setup.durationType).toBe("ROUNDS");
+      expect(setup.durationValue).toBe(10);
+      setup.selectMode("MINUTES");
+      expect(setup.durationValue).toBe(5);
+    });
+
     it("defaults to ROUNDS and the rounds preset duration_value", async () => {
       const setup = createSetup();
       vi.mocked(presetsApi.fetchConfigurationPresets).mockResolvedValue([
@@ -549,6 +557,26 @@ describe("scoreTrainingSetup", () => {
       expect(setup.showActiveSessionModal).toBe(true);
       expect(setup.activeSession).toMatchObject({ sessionId: "active-1" });
       expect(setup.loading).toBe(false);
+    });
+
+    it("sets the start error, clears loading and stays on setup when create fails for any other reason", async () => {
+      const setup = createSetup({
+        presets: [ROUND_PRESET, MINUTES_PRESET],
+        durationType: "ROUNDS",
+        durationValue: 20,
+      });
+      setup.error = "stale";
+      vi.mocked(sessionsApi.createSession).mockRejectedValue(new Error("boom"));
+      vi.stubGlobal("location", { href: "" });
+
+      await setup.start();
+
+      expect(sessionsApi.createSession).toHaveBeenCalledTimes(1);
+      expect(sessionsApi.fetchActiveSessions).not.toHaveBeenCalled();
+      expect(store.game.startSession).not.toHaveBeenCalled();
+      expect(setup.error).toBe("Could not start the session. Try again.");
+      expect(setup.loading).toBe(false);
+      expect(location.href).toBe("");
     });
 
     it("threads a PLAYER seat A and the guest as seat B once a guest is added", async () => {

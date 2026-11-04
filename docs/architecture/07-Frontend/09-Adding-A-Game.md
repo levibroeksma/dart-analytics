@@ -158,16 +158,27 @@ the preset configuration before `toSnapshot` **and** sent as `createSession`'s
 
 `label` is copy, not a key — it reads `Bob's 27`, not `BOBS27`.
 
-**Opted out: `501`, Score Training, and TUOD.** `501` and Score Training
-replace `start` wholesale — preset selection, leg counts, a custom starting
-score with clamping. Routing them through the factory would need one hook per
-branch, which is the factory dissolving into its callers. TUOD opts out for a
-different reason: the factory assumes exactly one seeded preset per game
-(`this.presets[0]`), and TUOD seeds two — 10 Rounds and 10 Minutes — the
-player must pick between. All three keep hand-written controllers and
-hand-written `*SetupContext` types. This is a decision, not an oversight: do
-not migrate them, and do not conclude from them that the factory is optional
-for a new preset-driven game.
+**Opted out: `501`, `121`, Score Training, and TUOD.** `501` and Score
+Training keep their own pre-steps (preset selection, leg counts, a custom
+starting score with clamping, a duration clamp), then call
+`startPresetSession`. `121` and TUOD also keep their own pre-steps (a
+guest-forced format, a duration clamp). Routing them through the factory would
+need one hook per branch, which is the factory dissolving into its callers.
+TUOD opts out for a further reason: the factory assumes exactly one seeded
+preset per game (`this.presets[0]`), and TUOD seeds two — 10 Rounds and 10
+Minutes — the player must pick between. All four keep hand-written
+controllers and hand-written `*SetupContext` types. This is a decision, not an
+oversight: do not migrate them, and do not conclude from them that the factory
+is optional for a new preset-driven game.
+
+Every preset setup, factory-built or hand-written, ends in
+`startPresetSession(ctx, spec)` (`lib/game/setup-controller.ts`): it owns the
+loading flag, the config snapshot, the create-session call, the
+`SESSION_ALREADY_ACTIVE` retry and the error message. A hand-written `start`
+does its own pre-steps, then calls it with the ruleset key and optional
+`overrides`. Do not re-write that body. Score Training and TUOD also spread
+`durationSetupData` (`lib/game/duration-setup.data.ts`) for the ROUNDS/MINUTES
+state; 121 keeps its own because its default and guest lock are TARGET (D519).
 
 Opting out of the factory does not opt out of `createSetupSession`
 (`lib/game/setup-session.ts`). Every setup controller, factory-built or
