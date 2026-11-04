@@ -196,6 +196,8 @@ describe("/api/schedules/[scheduleId]", () => {
     } as any);
     expect(response.status).toBe(204);
     expect(await response.text()).toBe("");
+    expect(response.headers.get("X-Request-Id")).toBe("req-1");
+    expect(service.deleteSchedule).toHaveBeenCalledWith("p1", "sch-1");
   });
 
   it("DELETE maps NOT_FOUND to 404", async () => {
