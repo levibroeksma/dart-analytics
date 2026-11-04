@@ -3025,6 +3025,21 @@ describe("findStepBuckets", () => {
 
     expect(result).toEqual([]);
   });
+
+  it("drops the zero-session bucket=none row with no group by in the rendered SQL (bucketWindow pin)", async () => {
+    const { db, statements } = renderingDb([
+      [baseQuery.from, baseQuery.to, 0, "0", "0"],
+    ]);
+
+    const result = await findStepBuckets(db, {
+      ...baseQuery,
+      bucket: "none",
+      tz: undefined,
+    });
+
+    expect(result).toEqual([]);
+    expect(onlyStatement(statements)).not.toMatch(/group by/i);
+  });
 });
 
 describe("findStepSessionPage", () => {
