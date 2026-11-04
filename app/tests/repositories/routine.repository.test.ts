@@ -84,6 +84,36 @@ describe("findRoutineExecutionRows", () => {
       /exercise_name/,
     );
   });
+
+  it("maps every view column onto the row, narrowing the step's non-null keys", async () => {
+    const row = {
+      routineId: "rt-1",
+      routineName: "Mine",
+      routineDescription: null,
+      isSystemTemplate: false,
+      playerId: "p1",
+      sequenceNumber: 2,
+      exerciseTemplateId: "et-1",
+      exerciseName: "Warm up",
+      exerciseDescription: null,
+      exerciseTypeKey: "GAME",
+      exerciseRulesetVersionKey: null,
+      gameTypeKey: "TUOD",
+      gameRulesetVersionKey: "TUOD_V1",
+      durationTypeKey: "MINUTES",
+      durationValue: 10,
+      defaultConfiguration: { a: 1 },
+      stepConfiguration: { b: 2 },
+    };
+    const db = { select: vi.fn(() => fakeSelect([row])) } as any;
+    expect(await findRoutineExecutionRows(db, "p1")).toEqual([row]);
+    const nullDuration = {
+      select: vi.fn(() => fakeSelect([{ ...row, durationValue: null }])),
+    } as any;
+    await expect(findRoutineExecutionRows(nullDuration, "p1")).rejects.toThrow(
+      /duration_value/,
+    );
+  });
 });
 
 describe("findExerciseTemplateCatalog", () => {

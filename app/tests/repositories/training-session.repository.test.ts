@@ -239,6 +239,36 @@ describe("findRoutineTemplateSteps", () => {
       /duration_type_key/,
     );
   });
+
+  it("maps each step to exactly the nine step keys, in order, narrowing sequence_number", async () => {
+    const db = {
+      select: vi.fn(() =>
+        fakeSelect([{ ...stepRows[0], gameRulesetVersionKey: null }]),
+      ),
+    } as any;
+    const { findRoutineTemplateSteps } =
+      await import("@repositories/training-session.repository");
+    const result = await findRoutineTemplateSteps(db, "rt-1", "p1");
+    expect(Object.keys(result!.steps[0])).toEqual([
+      "sequenceNumber",
+      "exerciseTypeKey",
+      "exerciseRulesetVersionKey",
+      "gameTypeKey",
+      "gameRulesetVersionKey",
+      "durationTypeKey",
+      "durationValue",
+      "defaultConfiguration",
+      "stepConfiguration",
+    ]);
+    const nullSequence = {
+      select: vi.fn(() =>
+        fakeSelect([{ ...stepRows[0], sequenceNumber: null }]),
+      ),
+    } as any;
+    await expect(
+      findRoutineTemplateSteps(nullSequence, "rt-1", "p1"),
+    ).rejects.toThrow(/sequence_number/);
+  });
 });
 
 const insertedValuesByTable = new Map<unknown, unknown>();
