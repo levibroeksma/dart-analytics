@@ -1,5 +1,5 @@
 /**
- * Lock model for the Claude Design sync: per-item hashes at the last sync,
+ * Lock model for the design-system sync: per-item hashes at the last sync,
  * the owner's decision, and the classifier that turns a fresh comparison into
  * a status plus a proposed direction. The lock is a direction hint only;
  * comparable items are matched by comparing the two sides directly.
@@ -49,8 +49,8 @@ export interface ComponentPair {
 }
 
 export interface Lock {
-  projectId: string;
-  projectUpdatedAt: string | null;
+  artifactUrl: string;
+  lastChangeAt: string | null;
   pairs: ComponentPair[];
   items: LockEntry[];
 }
@@ -118,7 +118,12 @@ export function classify(
  * @returns The parsed lock.
  */
 export function readLock(path: string): Lock {
-  return JSON.parse(readFileSync(path, "utf8")) as Lock;
+  const lock = JSON.parse(readFileSync(path, "utf8")) as Record<
+    string,
+    unknown
+  >;
+  if ("projectId" in lock) throw new Error("lock: run migrate-lock");
+  return lock as unknown as Lock;
 }
 
 /**

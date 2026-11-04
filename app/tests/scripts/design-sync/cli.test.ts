@@ -22,8 +22,8 @@ const setup = (paths: string[] = ["tokens/colors.css"]) => {
     ":root { --accent: #38bdf8; --bg: #000000; }",
   );
   writeLock(lockPath, {
-    projectId: "p",
-    projectUpdatedAt: null,
+    artifactUrl: "https://claude.ai/artifact/x",
+    lastChangeAt: null,
     pairs: [],
     items: [],
   });
@@ -31,18 +31,41 @@ const setup = (paths: string[] = ["tokens/colors.css"]) => {
 };
 
 describe("design-sync cli", () => {
-  it("aborts when the mirror lacks an in-scope file", () => {
-    const opts = setup(["tokens/colors.css", "tokens/spacing.css"]);
+  it("mirror check uses the artifact layout", () => {
+    const opts = setup(["tokens.json"]);
     expect(() => runDiff({ area: "tokens", ...opts })).toThrow(
-      "mirror incomplete: tokens/spacing.css",
+      "mirror incomplete: tokens.json",
     );
+  });
+
+  it("record --last-change-at stores lastChangeAt", () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const opts = setup();
+    const code = main([
+      "record",
+      "--area",
+      "tokens",
+      "--mirror",
+      opts.mirror,
+      "--lock",
+      opts.lockPath,
+      "--ids",
+      "var:--accent",
+      "--decision",
+      "code-wins",
+      "--last-change-at",
+      "2026-11-04T10:00:00Z",
+    ]);
+    log.mockRestore();
+    expect(code).toBe(0);
+    expect(readLock(opts.lockPath).lastChangeAt).toBe("2026-11-04T10:00:00Z");
   });
 
   it("aborts when the mirror holds an in-scope file the project no longer lists", () => {
     const opts = setup();
-    put(opts.mirror, "tokens/old.css", ":root { --old: 1px; }");
-    expect(() => runDiff({ area: "tokens", ...opts })).toThrow(
-      "mirror stale: tokens/old.css",
+    put(opts.mirror, "assets/icons/old.svg", "<svg/>");
+    expect(() => runDiff({ area: "assets", ...opts })).toThrow(
+      "mirror stale: assets/icons/old.svg",
     );
   });
 
@@ -96,10 +119,10 @@ describe("design-sync cli", () => {
       ...opts,
       ids: ["var:--accent"],
       decision: "accepted-divergence",
-      updatedAt: "2026-10-26T10:00:00Z",
+      lastChangeAt: "2026-11-04T10:00:00Z",
     });
     const lock = readLock(opts.lockPath);
-    expect(lock.projectUpdatedAt).toBe("2026-10-26T10:00:00Z");
+    expect(lock.lastChangeAt).toBe("2026-11-04T10:00:00Z");
     expect(lock.items[0]).toMatchObject({
       id: "var:--accent",
       area: "tokens",

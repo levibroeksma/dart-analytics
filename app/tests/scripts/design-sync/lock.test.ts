@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -26,8 +26,8 @@ const E = (
 });
 
 const lock = (items: LockEntry[]): Lock => ({
-  projectId: "p",
-  projectUpdatedAt: null,
+  artifactUrl: "https://claude.ai/artifact/x",
+  lastChangeAt: null,
   pairs: [],
   items,
 });
@@ -95,11 +95,34 @@ describe("design-sync lock", () => {
     writeLock(path, lock([b, a]));
     const text = readFileSync(path, "utf8");
     expect(text.endsWith("}\n")).toBe(true);
-    expect(text).toContain('\n  "projectId"');
+    expect(text).toContain('\n  "artifactUrl"');
     expect(readLock(path).items.map((i) => i.id)).toEqual([
       "var:--a",
       "var:--b",
     ]);
+  });
+
+  it("reads artifactUrl and lastChangeAt", () => {
+    const path = join(mkdtempSync(join(tmpdir(), "ds-lock-")), "lock.json");
+    writeLock(path, { ...lock([]), lastChangeAt: "2026-11-04T10:00:00Z" });
+    expect(readLock(path)).toMatchObject({
+      artifactUrl: "https://claude.ai/artifact/x",
+      lastChangeAt: "2026-11-04T10:00:00Z",
+    });
+  });
+
+  it("readLock asks for migrate-lock on an old lock", () => {
+    const path = join(mkdtempSync(join(tmpdir(), "ds-lock-")), "lock.json");
+    writeFileSync(
+      path,
+      JSON.stringify({
+        projectId: "p",
+        projectUpdatedAt: null,
+        pairs: [],
+        items: [],
+      }),
+    );
+    expect(() => readLock(path)).toThrow("lock: run migrate-lock");
   });
 
   it("upsertEntries replaces by id", () => {

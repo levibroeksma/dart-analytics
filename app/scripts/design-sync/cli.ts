@@ -1,13 +1,14 @@
 /**
- * Claude Design sync CLI: compare one area of a mirrored design system with
+ * Design-system sync CLI: compare one area of a mirrored design system with
  * the codebase (`diff`) and record the owner's decisions in the lock (`record`).
- * The mirror is filled by Claude via DesignSync; this script never calls it.
- * Spec: docs/superpowers/specs/2026-10-26-design-system-sync-design.md
+ * The mirror is the Design System artifact's `project/` folder, saved by
+ * Claude with the Artifact tool; this script never calls it.
+ * Spec: docs/superpowers/specs/2026-11-04-design-system-artifact-sync-design.md
  * Decision: D499
  *
  * Run (from app/):
  *   npm run design:sync -- diff --area tokens --mirror <dir>
- *   npm run design:sync -- record --area tokens --mirror <dir> --ids a,b --decision code-wins [--updated-at <iso>]
+ *   npm run design:sync -- record --area tokens --mirror <dir> --ids a,b --decision code-wins [--last-change-at <iso>]
  */
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -37,9 +38,9 @@ const LOCK_PATH = join(REPO_ROOT, "docs/design-system/design-sync.lock.json");
 const CODE_CSS = "app/src/styles/global.css";
 
 const IN_SCOPE: Record<Area, RegExp> = {
-  tokens: /^(tokens\/[^/]+\.css|styles\.css)$/,
+  tokens: /^tokens\.json$/,
   assets: /^assets\/(brand\/[^/]+|icons\/.+)$/,
-  components: /^components\/.+\.(jsx|d\.ts|prompt\.md|card\.html)$/,
+  components: /^components\/[A-Z][^/]*\/.+\.(jsx|d\.ts|md|html)$/,
 };
 
 export interface AreaOptions {
@@ -52,7 +53,7 @@ export interface AreaOptions {
 export interface RecordOptions extends AreaOptions {
   ids: string[];
   decision: Decision;
-  updatedAt?: string;
+  lastChangeAt?: string;
 }
 
 export interface DiffReport {
@@ -158,7 +159,7 @@ export function runDiff(opts: AreaOptions): DiffReport {
 /**
  * Record the owner's decision for ids, using their hashes as they are now.
  *
- * @param opts - Area options plus ids, decision and optional project updatedAt.
+ * @param opts - Area options plus ids, decision and optional artifact lastChange.at.
  * @returns The lock entries written.
  */
 export function runRecord(opts: RecordOptions): LockEntry[] {
@@ -178,7 +179,7 @@ export function runRecord(opts: RecordOptions): LockEntry[] {
     };
   });
   const lock = upsertEntries(readLock(opts.lockPath), entries);
-  if (opts.updatedAt) lock.projectUpdatedAt = opts.updatedAt;
+  if (opts.lastChangeAt) lock.lastChangeAt = opts.lastChangeAt;
   writeLock(opts.lockPath, lock);
   return entries;
 }
@@ -233,7 +234,7 @@ export function main(argv: string[]): number {
         ...opts,
         ids,
         decision,
-        updatedAt: f.get("updated-at"),
+        lastChangeAt: f.get("last-change-at"),
       });
       console.log(JSON.stringify(entries, null, 2));
       return 0;
