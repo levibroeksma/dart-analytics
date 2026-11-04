@@ -49,16 +49,19 @@ export interface IdempotencyRecord {
  * reproduces the single-PLAYER session this used to take four separate fields
  * for; several are what lets one session hold a guest alongside its owner.
  */
+/** One seat's `participants` row. */
+export interface SessionParticipantRecord {
+  id: string;
+  participantTypeId: number;
+  playerId: string | null;
+  displayName: string;
+}
+
 export interface CreateSessionRecordsInput {
   activityId: string;
   sessionId: string;
   configurationId: string;
-  participants: {
-    id: string;
-    participantTypeId: number;
-    playerId: string | null;
-    displayName: string;
-  }[];
+  participants: SessionParticipantRecord[];
   playerId: string;
   gameTypeId?: string;
   rulesetVersionId?: string;
