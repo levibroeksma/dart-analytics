@@ -1,7 +1,7 @@
 import { isCheckoutReachable } from "@modules/game/checkout-reachability.module";
 import { checkoutDarts } from "@modules/game/double-attempt.module";
 import { isFinishingDart } from "@modules/game/highest-checkout.module";
-import { closeBuckets } from "./series.module";
+import { visitBuckets } from "./series.module";
 import type {
   BucketedSession,
   CheckoutPathMetrics,
@@ -39,12 +39,6 @@ function isFinishedVisit(visit: StagedVisit): boolean {
   );
 }
 
-type BucketAccumulator = {
-  end: string;
-  metrics: CheckoutPathMetrics;
-  sampleSize: number;
-};
-
 /**
  * Folds session checkout visits into `checkout-path` buckets: for every
  * chance visit (the same predicate as `checkout-rate`), the route its darts
@@ -55,30 +49,17 @@ export function checkoutPathBuckets(
   sessions: readonly BucketedSession[],
   ctx: { to: string; now: Date },
 ): SeriesBucket<CheckoutPathMetrics>[] {
-  const buckets = new Map<string, BucketAccumulator>();
-
-  for (const session of sessions) {
-    const bucket = buckets.get(session.bucketStart) ?? {
-      end: session.bucketEnd,
-      metrics: {},
-      sampleSize: 0,
-    };
-    for (const visit of session.visits) {
-      if (!isCheckoutReachable(visit.startingRemaining, CHANCE_DARTS)) {
-        continue;
-      }
-      const remainingKey = String(visit.startingRemaining);
-      const routes = bucket.metrics[remainingKey] ?? {};
+  return visitBuckets<CheckoutPathMetrics[string]>(sessions, ctx, {
+    include: (visit) =>
+      isCheckoutReachable(visit.startingRemaining, CHANCE_DARTS),
+    keyOf: (visit) => String(visit.startingRemaining),
+    empty: () => ({}),
+    add: (routes, visit) => {
       const route = routeLabel(visit.darts);
       const existing = routes[route] ?? { visits: 0, finished: 0 };
       existing.visits += 1;
       if (isFinishedVisit(visit)) existing.finished += 1;
       routes[route] = existing;
-      bucket.metrics[remainingKey] = routes;
-      bucket.sampleSize += 1;
-    }
-    buckets.set(session.bucketStart, bucket);
-  }
-
-  return closeBuckets(buckets, ctx, { dropEmpty: true });
+    },
+  });
 }

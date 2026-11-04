@@ -167,3 +167,38 @@ describe("trainingResultBuckets", () => {
     });
   });
 });
+
+describe("trainingResultBuckets bucket series", () => {
+  it("returns an empty series for no sessions", () => {
+    expect(trainingResultBuckets([], CTX)).toEqual([]);
+  });
+
+  it("orders buckets by start ascending and stamps closure", () => {
+    const later = rowsFor(
+      {
+        sessionId: "later",
+        bucketStart: "2026-10-01T00:00:00.000Z",
+        bucketEnd: "2026-11-01T00:00:00.000Z",
+      },
+      [hit(1, "TREBLE")],
+    );
+    const earlier = rowsFor({ sessionId: "earlier" }, [hit(1, "TREBLE")]);
+
+    const { sessions } = sessionSteps([...later, ...earlier]);
+    const series = trainingResultBuckets(sessions, {
+      to: "2026-11-01T00:00:00.000Z",
+      now: new Date("2026-10-15T00:00:00.000Z"),
+    });
+
+    expect(
+      series.map(({ start, closed, sampleSize }) => ({
+        start,
+        closed,
+        sampleSize,
+      })),
+    ).toEqual([
+      { start: "2026-09-01T00:00:00.000Z", closed: true, sampleSize: 1 },
+      { start: "2026-10-01T00:00:00.000Z", closed: false, sampleSize: 1 },
+    ]);
+  });
+});

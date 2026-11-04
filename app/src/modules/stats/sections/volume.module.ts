@@ -1,4 +1,4 @@
-import { isClosed } from "./series.module";
+import { bucketFor, closeBuckets } from "./series.module";
 import type {
   ContextSplit,
   StatsBucketRow,
@@ -21,33 +21,17 @@ export function volumeBuckets(
   >();
 
   for (const row of rows) {
-    const bucket = buckets.get(row.bucketStart) ?? {
-      end: row.bucketEnd,
-      metrics: {
-        sessions: emptySplit(),
-        darts: emptySplit(),
-        durationSeconds: emptySplit(),
-      },
-      sampleSize: 0,
-    };
+    const bucket = bucketFor(buckets, row, () => ({
+      sessions: emptySplit(),
+      darts: emptySplit(),
+      durationSeconds: emptySplit(),
+    }));
     const key = row.contextKey === "ROUTINE" ? "routine" : "standalone";
     bucket.sampleSize += row.sessions;
     bucket.metrics.sessions[key] += row.sessions;
     bucket.metrics.darts[key] += row.dartSum;
     bucket.metrics.durationSeconds[key] += row.durationSum;
-    buckets.set(row.bucketStart, bucket);
   }
 
-  return Array.from(buckets.keys())
-    .sort()
-    .map((start) => {
-      const bucket = buckets.get(start)!;
-      return {
-        start,
-        end: bucket.end,
-        closed: isClosed(bucket.end, ctx.to, ctx.now),
-        sampleSize: bucket.sampleSize,
-        metrics: bucket.metrics,
-      };
-    });
+  return closeBuckets(buckets, ctx);
 }

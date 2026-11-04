@@ -1,7 +1,9 @@
 import { describe, it, expect } from "vitest";
 import {
+  bucketFor,
   closeBuckets,
   isClosed,
+  rowBuckets,
   encodeCursor,
   decodeCursor,
   encodeDataVersion,
@@ -136,5 +138,139 @@ describe("closeBuckets", () => {
     expect(
       closeBuckets(buckets, ctx, { dropEmpty: true }).map((b) => b.start),
     ).toEqual(["2026-06-08"]);
+  });
+});
+
+describe("bucketFor", () => {
+  const row = (bucketStart: string, bucketEnd: string) => ({
+    bucketStart,
+    bucketEnd,
+  });
+
+  it("creates an empty accumulator under the row's start on first sight", () => {
+    const buckets = new Map<
+      string,
+      { end: string; sampleSize: number; metrics: { n: number } }
+    >();
+    const bucket = bucketFor(
+      buckets,
+      row("2026-06-01", "2026-06-08T00:00:00.000Z"),
+      () => ({ n: 0 }),
+    );
+    expect(bucket).toEqual({
+      end: "2026-06-08T00:00:00.000Z",
+      sampleSize: 0,
+      metrics: { n: 0 },
+    });
+    expect(buckets.get("2026-06-01")).toBe(bucket);
+  });
+
+  it("returns the same accumulator for a repeated start, keeping its first end", () => {
+    const buckets = new Map<
+      string,
+      { end: string; sampleSize: number; metrics: { n: number } }
+    >();
+    const first = bucketFor(
+      buckets,
+      row("2026-06-01", "2026-06-08T00:00:00.000Z"),
+      () => ({ n: 0 }),
+    );
+    first.sampleSize += 2;
+    const second = bucketFor(
+      buckets,
+      row("2026-06-01", "2026-06-09T00:00:00.000Z"),
+      () => ({ n: 0 }),
+    );
+    expect(second).toBe(first);
+    expect(second.sampleSize).toBe(2);
+    expect(second.end).toBe("2026-06-08T00:00:00.000Z");
+    expect(buckets.size).toBe(1);
+  });
+
+  it("keeps separate accumulators for different starts", () => {
+    const buckets = new Map<
+      string,
+      { end: string; sampleSize: number; metrics: { n: number } }
+    >();
+    const a = bucketFor(
+      buckets,
+      row("2026-06-01", "2026-06-08T00:00:00.000Z"),
+      () => ({ n: 0 }),
+    );
+    const b = bucketFor(
+      buckets,
+      row("2026-06-08", "2026-06-15T00:00:00.000Z"),
+      () => ({ n: 0 }),
+    );
+    expect(a).not.toBe(b);
+    expect(a.metrics).not.toBe(b.metrics);
+    expect(buckets.size).toBe(2);
+  });
+});
+
+describe("rowBuckets", () => {
+  const ctx = {
+    to: "2026-03-01T00:00:00.000Z",
+    now: new Date("2026-02-15T00:00:00.000Z"),
+  };
+  const rows = [
+    {
+      bucketStart: "2026-02-01T00:00:00.000Z",
+      bucketEnd: "2026-03-01T00:00:00.000Z",
+      n: 2,
+    },
+    {
+      bucketStart: "2026-01-01T00:00:00.000Z",
+      bucketEnd: "2026-02-01T00:00:00.000Z",
+      n: 5,
+    },
+  ];
+
+  it("gives [] for no rows", () => {
+    expect(rowBuckets([], ctx, () => ({ sampleSize: 0, metrics: {} }))).toEqual(
+      [],
+    );
+  });
+
+  it("sorts by start, stamps closure and takes sample size and metrics from read", () => {
+    const buckets = rowBuckets(rows, ctx, (row) => ({
+      sampleSize: row.n,
+      metrics: { n: row.n },
+    }));
+
+    expect(buckets).toEqual([
+      {
+        start: "2026-01-01T00:00:00.000Z",
+        end: "2026-02-01T00:00:00.000Z",
+        closed: true,
+        sampleSize: 5,
+        metrics: { n: 5 },
+      },
+      {
+        start: "2026-02-01T00:00:00.000Z",
+        end: "2026-03-01T00:00:00.000Z",
+        closed: false,
+        sampleSize: 2,
+        metrics: { n: 2 },
+      },
+    ]);
+    expect(Object.keys(buckets[0]!)).toEqual([
+      "start",
+      "end",
+      "closed",
+      "sampleSize",
+      "metrics",
+    ]);
+  });
+
+  it("leaves the input order alone and never merges rows with one start", () => {
+    const twin = [rows[0]!, { ...rows[0]!, n: 7 }];
+    const buckets = rowBuckets(twin, ctx, (row) => ({
+      sampleSize: row.n,
+      metrics: null,
+    }));
+
+    expect(buckets.map((bucket) => bucket.sampleSize)).toEqual([2, 7]);
+    expect(rows.map((row) => row.n)).toEqual([2, 5]);
   });
 });

@@ -175,3 +175,59 @@ describe("legStatsBuckets", () => {
     expect(legStatsBuckets([s], CTX)).toEqual([]);
   });
 });
+
+describe("legStatsBuckets bucket series", () => {
+  it("gives no buckets for no sessions", () => {
+    expect(legStatsBuckets([], CTX)).toEqual([]);
+  });
+
+  it("sorts, folds a repeated start, keeps the first end and drops empty buckets", () => {
+    const opener = bucketedSession({
+      sessionId: "opener",
+      bucketStart: "2026-01-01T00:00:00.000Z",
+      bucketEnd: "2026-02-01T00:00:00.000Z",
+      visits: [visit("leg-1", 9, false)],
+    });
+    const later = bucketedSession({
+      sessionId: "later",
+      bucketStart: "2026-02-01T00:00:00.000Z",
+      bucketEnd: "2026-03-01T00:00:00.000Z",
+      visits: [visit("leg-1", 12, true)],
+    });
+    const folded = bucketedSession({
+      sessionId: "folded",
+      bucketStart: "2026-01-01T00:00:00.000Z",
+      bucketEnd: "2026-01-15T00:00:00.000Z",
+      visits: [visit("leg-1", 15, true)],
+    });
+    const empty = bucketedSession({
+      sessionId: "empty",
+      bucketStart: "2025-12-01T00:00:00.000Z",
+      bucketEnd: "2026-01-01T00:00:00.000Z",
+      visits: [visit("leg-1", 9, false)],
+    });
+
+    expect(legStatsBuckets([opener, later, folded, empty], CTX)).toEqual([
+      {
+        start: "2026-01-01T00:00:00.000Z",
+        end: "2026-02-01T00:00:00.000Z",
+        closed: true,
+        sampleSize: 1,
+        metrics: {
+          legs: { "15": 1 },
+          bestLeg: { darts: 15, sessionId: "folded" },
+        },
+      },
+      {
+        start: "2026-02-01T00:00:00.000Z",
+        end: "2026-03-01T00:00:00.000Z",
+        closed: false,
+        sampleSize: 1,
+        metrics: {
+          legs: { "12": 1 },
+          bestLeg: { darts: 12, sessionId: "later" },
+        },
+      },
+    ]);
+  });
+});

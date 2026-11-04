@@ -1,4 +1,8 @@
-import type { SessionListCursor } from "@modules/types";
+import type {
+  BucketedSession,
+  SessionListCursor,
+  StagedVisit,
+} from "@modules/types";
 import type { SeriesBucket } from "@lib/types";
 
 /**
@@ -37,6 +41,27 @@ export function isClosed(bucketEnd: string, to: string, now: Date): boolean {
 }
 
 /**
+ * Gets or creates the start-keyed accumulator `row` falls in: a new one takes
+ * the row's `bucketEnd`, no samples and `emptyMetrics()`. The caller mutates
+ * the returned accumulator in place.
+ */
+export function bucketFor<M>(
+  buckets: Map<string, { end: string; sampleSize: number; metrics: M }>,
+  row: { bucketStart: string; bucketEnd: string },
+  emptyMetrics: () => NoInfer<M>,
+): { end: string; sampleSize: number; metrics: M } {
+  const existing = buckets.get(row.bucketStart);
+  if (existing) return existing;
+  const created = {
+    end: row.bucketEnd,
+    sampleSize: 0,
+    metrics: emptyMetrics(),
+  };
+  buckets.set(row.bucketStart, created);
+  return created;
+}
+
+/**
  * Turns a section's start-keyed accumulators into its ordered series:
  * sorted by bucket start, each stamped with closure. `dropEmpty` omits buckets
  * that took no sample.
@@ -56,6 +81,68 @@ export function closeBuckets<M>(
       sampleSize: bucket.sampleSize,
       metrics: bucket.metrics,
     }));
+}
+
+/**
+ * Reshapes rows that already are one bucket each (grouped in SQL) into the
+ * ordered series: sorted by `bucketStart` with `localeCompare`, each stamped
+ * with closure, `read` giving the row's sample size and metrics.
+ */
+export function rowBuckets<
+  R extends { bucketStart: string; bucketEnd: string },
+  M,
+>(
+  rows: readonly R[],
+  ctx: { to: string; now: Date },
+  read: (row: R) => { sampleSize: number; metrics: M },
+): SeriesBucket<M>[] {
+  return rows
+    .slice()
+    .sort((a, b) => a.bucketStart.localeCompare(b.bucketStart))
+    .map((row) => {
+      const { sampleSize, metrics } = read(row);
+      return {
+        start: row.bucketStart,
+        end: row.bucketEnd,
+        closed: isClosed(row.bucketEnd, ctx.to, ctx.now),
+        sampleSize,
+        metrics,
+      };
+    });
+}
+
+/**
+ * Folds sessions' visits into start-keyed buckets of keyed entries: every
+ * session opens its bucket, each visit `include` admits gets-or-creates the
+ * entry at `keyOf(visit)` from `empty()`, is passed to `add`, and counts one
+ * sample. Buckets with no sample are dropped.
+ */
+export function visitBuckets<E>(
+  sessions: readonly BucketedSession[],
+  ctx: { to: string; now: Date },
+  spec: {
+    include: (visit: StagedVisit) => boolean;
+    keyOf: (visit: StagedVisit) => string;
+    empty: () => E;
+    add: (entry: E, visit: StagedVisit) => void;
+  },
+): SeriesBucket<Record<string, E>>[] {
+  const buckets = new Map<
+    string,
+    { end: string; sampleSize: number; metrics: Record<string, E> }
+  >();
+  for (const session of sessions) {
+    const bucket = bucketFor(buckets, session, () => ({}));
+    for (const visit of session.visits) {
+      if (!spec.include(visit)) continue;
+      const key = spec.keyOf(visit);
+      const entry = bucket.metrics[key] ?? spec.empty();
+      spec.add(entry, visit);
+      bucket.metrics[key] = entry;
+      bucket.sampleSize += 1;
+    }
+  }
+  return closeBuckets(buckets, ctx, { dropEmpty: true });
 }
 
 /** Opaque, server-owned session-list cursor (`06-API/03-Shared-Conventions.md` §Pagination). */

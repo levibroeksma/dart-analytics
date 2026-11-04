@@ -225,14 +225,38 @@ function mergeCountRecord<V extends Record<string, number>>(
   return result;
 }
 
-/** `checkout-path`'s two levels of keying: outer `startingRemaining`, inner route label. */
-function mergeCheckoutPath(
-  a: ServerSectionMetrics["checkout-path"],
-  b: ServerSectionMetrics["checkout-path"],
-): ServerSectionMetrics["checkout-path"] {
-  const result: ServerSectionMetrics["checkout-path"] = {};
+/**
+ * Sums two records of `mergeCountRecord` records, two levels deep: outer
+ * `startingRemaining`/inner route label (`checkout-path`), outer
+ * `configGroupKey`/inner aim (`atc-darts-per-target`, phase-4 decision 13).
+ */
+function mergeNestedCountRecord<V extends Record<string, number>>(
+  a: Record<string, Record<string, V>>,
+  b: Record<string, Record<string, V>>,
+): Record<string, Record<string, V>> {
+  const result: Record<string, Record<string, V>> = {};
   for (const key of unionKeys(a, b)) {
     result[key] = mergeCountRecord(a[key] ?? {}, b[key] ?? {});
+  }
+  return result;
+}
+
+/** Merges two records key by key: a key on one side only keeps that side's value as is; a key on both goes through `merge`. */
+function mergePresentSides<V>(
+  a: Record<string, V>,
+  b: Record<string, V>,
+  merge: (left: V, right: V) => V,
+): Record<string, V> {
+  const result: Record<string, V> = {};
+  for (const key of unionKeys(a, b)) {
+    const left = a[key];
+    const right = b[key];
+    result[key] =
+      left === undefined
+        ? right!
+        : right === undefined
+          ? left
+          : merge(left, right);
   }
   return result;
 }
@@ -279,18 +303,6 @@ function mergeMissDirection(
   return result;
 }
 
-/** `atc-darts-per-target`'s two levels of keying: outer `configGroupKey`, inner aim (phase-4 decision 13). */
-function mergeAtcDartsPerTarget(
-  a: ServerSectionMetrics["atc-darts-per-target"],
-  b: ServerSectionMetrics["atc-darts-per-target"],
-): ServerSectionMetrics["atc-darts-per-target"] {
-  const result: ServerSectionMetrics["atc-darts-per-target"] = {};
-  for (const key of unionKeys(a, b)) {
-    result[key] = mergeCountRecord(a[key] ?? {}, b[key] ?? {});
-  }
-  return result;
-}
-
 /** One `scoreAfter` target's counts: `runs`/`sum` add, `min`/`max` merge to the smaller/larger side (phase-4 decision 15). */
 function mergeScoreAfterEntry(
   a: { runs: number; sum: number; min: number; max: number },
@@ -308,18 +320,7 @@ function mergeScoreAfter(
   a: Bobs27SurvivalGroupMetrics["scoreAfter"],
   b: Bobs27SurvivalGroupMetrics["scoreAfter"],
 ): Bobs27SurvivalGroupMetrics["scoreAfter"] {
-  const result: Bobs27SurvivalGroupMetrics["scoreAfter"] = {};
-  for (const key of unionKeys(a, b)) {
-    const left = a[key];
-    const right = b[key];
-    result[key] =
-      left === undefined
-        ? right!
-        : right === undefined
-          ? left
-          : mergeScoreAfterEntry(left, right);
-  }
-  return result;
+  return mergePresentSides(a, b, mergeScoreAfterEntry);
 }
 
 /** One config group's Bob's 27 survival counts: everything additive except `scoreAfter`'s `min`/`max` (phase-4 decision 15). */
@@ -341,18 +342,7 @@ function mergeBobs27Survival(
   a: ServerSectionMetrics["bobs27-survival"],
   b: ServerSectionMetrics["bobs27-survival"],
 ): ServerSectionMetrics["bobs27-survival"] {
-  const result: ServerSectionMetrics["bobs27-survival"] = {};
-  for (const key of unionKeys(a, b)) {
-    const left = a[key];
-    const right = b[key];
-    result[key] =
-      left === undefined
-        ? right!
-        : right === undefined
-          ? left
-          : mergeBobs27Group(left, right);
-  }
-  return result;
+  return mergePresentSides(a, b, mergeBobs27Group);
 }
 
 /** `shanghai-count`'s three additive fields: `sessions`, `shanghais` and the `byRound` histogram (phase-4 decision 12). */
@@ -444,13 +434,13 @@ const MERGERS: {
   "double-performance": mergeCountRecord,
   "bust-rate": mergeCountRecord,
   "leg-stats": mergeLegStats,
-  "checkout-path": mergeCheckoutPath,
+  "checkout-path": mergeNestedCountRecord,
   "ladder-progress": mergeLadderProgress,
   "target-accuracy": mergeCountRecord,
   confusion: mergeCountRecord,
   "loose-darts": mergeCountRecord,
   "miss-direction": mergeMissDirection,
-  "atc-darts-per-target": mergeAtcDartsPerTarget,
+  "atc-darts-per-target": mergeNestedCountRecord,
   "bobs27-survival": mergeBobs27Survival,
   "shanghai-count": mergeShanghaiCount,
   "training-result": mergeTrainingResult,

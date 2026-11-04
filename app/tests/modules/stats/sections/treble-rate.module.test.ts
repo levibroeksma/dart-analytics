@@ -71,3 +71,49 @@ describe("trebleRateBuckets", () => {
     ).toHaveLength(2);
   });
 });
+
+describe("trebleRateBuckets bucket series", () => {
+  const ctx = {
+    to: "2026-03-01T00:00:00.000Z",
+    now: new Date("2026-02-15T00:00:00.000Z"),
+  };
+
+  it("returns an empty series for no rows", () => {
+    expect(trebleRateBuckets([], ctx)).toEqual([]);
+  });
+
+  it("orders buckets by start ascending, folds a repeated start, and stamps closure", () => {
+    const series = trebleRateBuckets(
+      [
+        row({
+          bucketStart: "2026-02-01T00:00:00.000Z",
+          bucketEnd: "2026-03-01T00:00:00.000Z",
+        }),
+        row({
+          bucketStart: "2026-01-01T00:00:00.000Z",
+          bucketEnd: "2026-02-01T00:00:00.000Z",
+        }),
+        row({
+          bucketStart: "2026-02-01T00:00:00.000Z",
+          bucketEnd: "2026-03-01T00:00:00.000Z",
+        }),
+      ],
+      ctx,
+    );
+    expect(
+      series.map(({ start, end, closed }) => ({ start, end, closed })),
+    ).toEqual([
+      {
+        start: "2026-01-01T00:00:00.000Z",
+        end: "2026-02-01T00:00:00.000Z",
+        closed: true,
+      },
+      {
+        start: "2026-02-01T00:00:00.000Z",
+        end: "2026-03-01T00:00:00.000Z",
+        closed: false,
+      },
+    ]);
+    expect(series[1]!.sampleSize).toBe(2 * series[0]!.sampleSize);
+  });
+});

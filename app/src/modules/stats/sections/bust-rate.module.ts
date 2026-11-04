@@ -4,7 +4,7 @@ import {
   FINISHING_ZONES,
   isFinishingDart,
 } from "@modules/game/highest-checkout.module";
-import { closeBuckets } from "./series.module";
+import { visitBuckets } from "./series.module";
 import type {
   BucketedSession,
   BustRateMetrics,
@@ -40,12 +40,6 @@ function bustedVisit(visit: StagedVisit): boolean {
   return false;
 }
 
-type BucketAccumulator = {
-  end: string;
-  metrics: BustRateMetrics;
-  sampleSize: number;
-};
-
 /**
  * Folds session checkout visits into `bust-rate` buckets (phase-3 decision
  * 6): every visit whose `startingRemaining` is at most 180 is counted, and a
@@ -57,25 +51,13 @@ export function bustRateBuckets(
   sessions: readonly BucketedSession[],
   ctx: { to: string; now: Date },
 ): SeriesBucket<BustRateMetrics>[] {
-  const buckets = new Map<string, BucketAccumulator>();
-
-  for (const session of sessions) {
-    const bucket = buckets.get(session.bucketStart) ?? {
-      end: session.bucketEnd,
-      metrics: {},
-      sampleSize: 0,
-    };
-    for (const visit of session.visits) {
-      if (visit.startingRemaining > BUST_ELIGIBLE_MAX_REMAINING) continue;
-      const key = String(visit.startingRemaining);
-      const existing = bucket.metrics[key] ?? { visits: 0, busts: 0 };
-      existing.visits += 1;
-      if (bustedVisit(visit)) existing.busts += 1;
-      bucket.metrics[key] = existing;
-      bucket.sampleSize += 1;
-    }
-    buckets.set(session.bucketStart, bucket);
-  }
-
-  return closeBuckets(buckets, ctx, { dropEmpty: true });
+  return visitBuckets(sessions, ctx, {
+    include: (visit) => visit.startingRemaining <= BUST_ELIGIBLE_MAX_REMAINING,
+    keyOf: (visit) => String(visit.startingRemaining),
+    empty: () => ({ visits: 0, busts: 0 }),
+    add: (entry, visit) => {
+      entry.visits += 1;
+      if (bustedVisit(visit)) entry.busts += 1;
+    },
+  });
 }

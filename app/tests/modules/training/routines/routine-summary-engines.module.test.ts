@@ -467,3 +467,27 @@ describe("summarise* over a real engine run", () => {
     ]);
   });
 });
+
+describe("multi-pass closing rows (passRows)", () => {
+  const closing = [
+    { label: "Passes", value: "0" },
+    { label: "Darts", value: "0" },
+    { label: "Hit rate", value: "—" },
+  ];
+
+  it("ends Hit Count, SwitchBlade and Halve-It with passes, darts and hit rate", () => {
+    const hitCount = hitCountEngineFactory.create({
+      targets: [{ kind: "BULL" }],
+      dartsPerTarget: 3,
+    });
+    expect(summariseHitCount(hitCount.state()).rows.slice(-3)).toEqual(closing);
+    expect(
+      summariseSwitchblade(
+        switchbladeEngineFactory.create({}).state(),
+      ).rows.slice(-3),
+    ).toEqual(closing);
+    expect(
+      summariseHalveIt(halveItEngineFactory.create({}).state()).rows.slice(-3),
+    ).toEqual(closing);
+  });
+});

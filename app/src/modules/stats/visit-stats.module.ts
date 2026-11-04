@@ -1,3 +1,4 @@
+import { tallyScoreBands } from "@lib/game/play-visit-stats";
 import type { PlayerVisitFactRow, ScoreBandCounts } from "./types";
 
 /** The real dart count where it's known, else the visit's configured max, else 3. */
@@ -10,23 +11,20 @@ export function totalDartsThrown(rows: readonly PlayerVisitFactRow[]): number {
   return rows.reduce((sum, row) => sum + effectiveDartsForVisit(row), 0);
 }
 
+const SCORE_BANDS = [
+  { min: 100, key: "hundredPlus" },
+  { min: 120, key: "oneTwentyPlus" },
+  { min: 140, key: "oneFortyPlus" },
+  { min: 180, key: "oneEighties" },
+] as const;
+
 export function scoreBandCounts(
   rows: readonly PlayerVisitFactRow[],
 ): ScoreBandCounts {
-  const counts: ScoreBandCounts = {
-    hundredPlus: 0,
-    oneTwentyPlus: 0,
-    oneFortyPlus: 0,
-    oneEighties: 0,
-  };
-  for (const row of rows) {
-    const score = row.totalScore;
-    if (score >= 180) counts.oneEighties += 1;
-    else if (score >= 140) counts.oneFortyPlus += 1;
-    else if (score >= 120) counts.oneTwentyPlus += 1;
-    else if (score >= 100) counts.hundredPlus += 1;
-  }
-  return counts;
+  return tallyScoreBands(
+    rows.map((row) => row.totalScore),
+    SCORE_BANDS,
+  );
 }
 
 export function medianVisitScore(rows: readonly PlayerVisitFactRow[]): number {

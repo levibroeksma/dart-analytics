@@ -1,7 +1,7 @@
 import { isCheckoutReachable } from "@modules/game/checkout-reachability.module";
 import { checkoutDarts } from "@modules/game/double-attempt.module";
 import { isFinishingDart } from "@modules/game/highest-checkout.module";
-import { closeBuckets } from "./series.module";
+import { visitBuckets } from "./series.module";
 import type {
   BucketedSession,
   CheckoutRateMetrics,
@@ -19,12 +19,6 @@ function isFinishedVisit(visit: StagedVisit): boolean {
   );
 }
 
-type BucketAccumulator = {
-  end: string;
-  metrics: CheckoutRateMetrics;
-  sampleSize: number;
-};
-
 /**
  * Folds session checkout visits into `checkout-rate` buckets (phase-3
  * decision 4): a chance is a visit whose `startingRemaining` is reachable
@@ -36,27 +30,14 @@ export function checkoutRateBuckets(
   sessions: readonly BucketedSession[],
   ctx: { to: string; now: Date },
 ): SeriesBucket<CheckoutRateMetrics>[] {
-  const buckets = new Map<string, BucketAccumulator>();
-
-  for (const session of sessions) {
-    const bucket = buckets.get(session.bucketStart) ?? {
-      end: session.bucketEnd,
-      metrics: {},
-      sampleSize: 0,
-    };
-    for (const visit of session.visits) {
-      if (!isCheckoutReachable(visit.startingRemaining, CHANCE_DARTS)) {
-        continue;
-      }
-      const key = String(visit.startingRemaining);
-      const existing = bucket.metrics[key] ?? { chances: 0, finished: 0 };
-      existing.chances += 1;
-      if (isFinishedVisit(visit)) existing.finished += 1;
-      bucket.metrics[key] = existing;
-      bucket.sampleSize += 1;
-    }
-    buckets.set(session.bucketStart, bucket);
-  }
-
-  return closeBuckets(buckets, ctx, { dropEmpty: true });
+  return visitBuckets(sessions, ctx, {
+    include: (visit) =>
+      isCheckoutReachable(visit.startingRemaining, CHANCE_DARTS),
+    keyOf: (visit) => String(visit.startingRemaining),
+    empty: () => ({ chances: 0, finished: 0 }),
+    add: (entry, visit) => {
+      entry.chances += 1;
+      if (isFinishedVisit(visit)) entry.finished += 1;
+    },
+  });
 }
