@@ -32,7 +32,7 @@ const BANDS = [60, 100, 140] as const;
 
 const scope = {
   playerId: PLAYER,
-  gameTypeKey: "X01" as const,
+  gameTypeKey: "501" as const,
   from: FROM,
   to: TO,
   statuses: ["COMPLETED"],
@@ -48,7 +48,7 @@ const routineScope = {
 const stepScope = { ...routineScope, stepKey: "step-1" };
 const homeScope = {
   playerId: PLAYER,
-  gameTypeKeys: ["X01" as const],
+  gameTypeKeys: ["501" as const],
   from: FROM,
   to: TO,
 };
