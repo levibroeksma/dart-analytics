@@ -975,14 +975,27 @@ type GameSessionsFilter = {
   context: ContextFilter;
 };
 
-/** The population a game's session list pages over: terminal sessions with darts, before any cursor. */
-function gameSessionConditions(q: GameSessionsFilter) {
+/** One game's terminal sessions of `statuses` completed in `[from, to)`. */
+function gameWindowConditions(q: {
+  playerId: string;
+  gameTypeKey: GameTypeKey;
+  from: string;
+  to: string;
+  statuses: string[];
+}): SQL[] {
   return [
     eq(vStatsSessionFacts.playerId, q.playerId),
     eq(vStatsSessionFacts.gameTypeKey, q.gameTypeKey),
     gte(vStatsSessionFacts.completedAt, q.from),
     lt(vStatsSessionFacts.completedAt, q.to),
     inArray(vStatsSessionFacts.statusKey, q.statuses),
+  ];
+}
+
+/** The population a game's session list pages over: terminal sessions with darts, before any cursor. */
+function gameSessionConditions(q: GameSessionsFilter) {
+  return [
+    ...gameWindowConditions(q),
     gt(vStatsSessionFacts.dartCount, 0),
     contextCondition(q.context),
   ];
@@ -1138,11 +1151,7 @@ export async function findBucketedSessionAggregates(
   },
 ): Promise<StatsBucketRow[]> {
   const conditions = [
-    eq(vStatsSessionFacts.playerId, q.playerId),
-    eq(vStatsSessionFacts.gameTypeKey, q.gameTypeKey),
-    gte(vStatsSessionFacts.completedAt, q.from),
-    lt(vStatsSessionFacts.completedAt, q.to),
-    inArray(vStatsSessionFacts.statusKey, q.statuses),
+    ...gameWindowConditions(q),
     contextCondition(q.context),
     q.routineStep === undefined
       ? undefined

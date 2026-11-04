@@ -466,6 +466,32 @@ describe("countGameSessions", () => {
     expect(sql).not.toMatch(/limit/);
     expect(total).toBe(56);
   });
+
+  it("opens its WHERE with the same player, game, window and status predicates findBucketedSessionAggregates opens with", async () => {
+    const whereOf = (sql: string) =>
+      sql
+        .split(/ where /i)[1]
+        .split(/ group by /i)[0]
+        .replace(/\$\d+/g, "$");
+    const counted = renderingDb([["0"]]);
+    await countGameSessions(counted.db, { ...baseQuery, context: "routine" });
+    const bucketed = renderingDb([]);
+    await findBucketedSessionAggregates(bucketed.db, {
+      ...baseQuery,
+      context: "routine",
+      bucket: "none",
+      tz: undefined,
+    });
+    const window =
+      '"v_stats_session_facts"."player_id" = $ and "v_stats_session_facts"."game_type_key" = $ and "v_stats_session_facts"."completed_at" >= $ and "v_stats_session_facts"."completed_at" < $ and "v_stats_session_facts"."status_key" in ($)';
+
+    expect(
+      whereOf(onlyStatement(counted.statements)).startsWith(`(${window} and `),
+    ).toBe(true);
+    expect(
+      whereOf(onlyStatement(bucketed.statements)).startsWith(`(${window} and `),
+    ).toBe(true);
+  });
 });
 
 describe("findGameDataVersion", () => {
