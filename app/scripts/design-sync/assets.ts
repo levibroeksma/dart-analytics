@@ -15,6 +15,10 @@ const TAG =
   /<([a-zA-Z][\w:.-]*)((?:\s+[^\s=>/]+\s*=\s*(?:"[^"]*"|'[^']*'))*)\s*(\/?)>/g;
 const ATTR = /([^\s=>/]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g;
 const HEX = /#[0-9a-f]{3,8}\b/gi;
+const C2PA_METADATA =
+  /<metadata>\s*<c2pa:manifest>[\s\S]*?<\/c2pa:manifest>\s*<\/metadata>/g;
+const WHITESPACE_REF = /&#(?:x0*(?:9|a|d|20)|0*(?:9|10|13|32));/gi;
+const EMPTY_PAIR = /<([a-zA-Z][\w:.-]*)([^<>]*?)><\/\1>/g;
 const CODE_BRAND_DIRS = ["app/src/assets", "app/public"];
 const BRAND_EXT = /\.(svg|png)$/i;
 
@@ -22,15 +26,22 @@ const BRAND_EXT = /\.(svg|png)$/i;
  * Canonicalise SVG markup so formatting-only differences hash the same.
  *
  * @param svg - SVG source.
- * @returns Markup without prologue/comments, sorted attributes, no inter-tag whitespace.
+ * @returns Markup without prologue/comments/c2pa provenance, sorted attributes,
+ *   no inter-tag whitespace, empty pairs self-closed.
  */
 export function normaliseSvg(svg: string): string {
   return svg
     .replace(/\r\n?/g, "\n")
     .replace(/<\?xml[\s\S]*?\?>/g, "")
     .replace(/<!--[\s\S]*?-->/g, "")
+    .replace(C2PA_METADATA, "")
+    .replace(
+      />([^<]*)</g,
+      (_m, text: string) => `>${text.replace(WHITESPACE_REF, " ")}<`,
+    )
     .replace(TAG, (_m, name: string, attrs: string, selfClose: string) => {
       const pairs = [...attrs.matchAll(ATTR)]
+        .filter(([, key]) => key !== "xmlns:c2pa")
         .map(
           ([, key, dq, sq]) =>
             `${key}="${(dq ?? sq)
@@ -42,6 +53,7 @@ export function normaliseSvg(svg: string): string {
       return `<${[name, ...pairs].join(" ")}${selfClose ? "/" : ""}>`;
     })
     .replace(/>\s+</g, "><")
+    .replace(EMPTY_PAIR, "<$1$2/>")
     .trim();
 }
 

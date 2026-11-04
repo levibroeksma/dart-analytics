@@ -25,6 +25,26 @@ describe("design-sync assets", () => {
     );
   });
 
+  it("ignores Claude Design's c2pa provenance metadata", () => {
+    const stamped = CHECK_CODE.replace(
+      'viewBox="0 0 24 24">',
+      'viewBox="0 0 24 24" xmlns:c2pa="http://c2pa.org/manifest"><metadata><c2pa:manifest>AAAWgmp1bWI=</c2pa:manifest></metadata>',
+    );
+    expect(normaliseSvg(stamped)).toBe(normaliseSvg(CHECK_CODE));
+  });
+
+  it("treats whitespace character references between tags as whitespace", () => {
+    expect(normaliseSvg('<svg>\n&#x9;<path d="M0 0"/>&#10;&#xD;\n</svg>')).toBe(
+      normaliseSvg('<svg>\n\t<path d="M0 0"/>\n</svg>'),
+    );
+  });
+
+  it("treats an empty element pair as self-closing", () => {
+    expect(normaliseSvg('<svg><path d="M0 0"></path></svg>')).toBe(
+      normaliseSvg('<svg><path d="M0 0" /></svg>'),
+    );
+  });
+
   it("keeps a changed path as a difference", () => {
     expect(normaliseSvg(CHECK_CODE)).not.toBe(
       normaliseSvg(CHECK_CODE.replace("M1 1", "M1 3")),
