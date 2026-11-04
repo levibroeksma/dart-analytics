@@ -1,8 +1,7 @@
 import { checkoutDarts } from "@modules/game/double-attempt.module";
 import { isFinishingDart } from "@modules/game/highest-checkout.module";
-import { isClosed } from "./series.module";
+import { bucketFor, closeBuckets } from "./series.module";
 import type {
-  BestLeg,
   BucketedSession,
   LegStatsMetrics,
   SessionCheckoutVisits,
@@ -41,13 +40,6 @@ export function legDarts(session: SessionCheckoutVisits): number[] {
   return darts;
 }
 
-type BucketAccumulator = {
-  end: string;
-  legs: Record<string, number>;
-  bestLeg: BestLeg | null;
-  sampleSize: number;
-};
-
 /**
  * Folds session checkout visits into `leg-stats` buckets (phase-3 decision
  * 7): a darts-per-leg histogram plus the
@@ -59,34 +51,28 @@ export function legStatsBuckets(
   sessions: readonly BucketedSession[],
   ctx: { to: string; now: Date },
 ): SeriesBucket<LegStatsMetrics>[] {
-  const buckets = new Map<string, BucketAccumulator>();
+  const buckets = new Map<
+    string,
+    { end: string; sampleSize: number; metrics: LegStatsMetrics }
+  >();
 
   for (const session of sessions) {
-    const bucket = buckets.get(session.bucketStart) ?? {
-      end: session.bucketEnd,
+    const bucket = bucketFor(buckets, session, () => ({
       legs: {},
       bestLeg: null,
-      sampleSize: 0,
-    };
+    }));
     for (const darts of legDarts(session)) {
       const key = String(darts);
-      bucket.legs[key] = (bucket.legs[key] ?? 0) + 1;
+      bucket.metrics.legs[key] = (bucket.metrics.legs[key] ?? 0) + 1;
       bucket.sampleSize += 1;
-      if (bucket.bestLeg === null || darts < bucket.bestLeg.darts) {
-        bucket.bestLeg = { darts, sessionId: session.sessionId };
+      if (
+        bucket.metrics.bestLeg === null ||
+        darts < bucket.metrics.bestLeg.darts
+      ) {
+        bucket.metrics.bestLeg = { darts, sessionId: session.sessionId };
       }
     }
-    buckets.set(session.bucketStart, bucket);
   }
 
-  return Array.from(buckets.entries())
-    .filter(([, bucket]) => bucket.sampleSize > 0)
-    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
-    .map(([start, bucket]) => ({
-      start,
-      end: bucket.end,
-      closed: isClosed(bucket.end, ctx.to, ctx.now),
-      sampleSize: bucket.sampleSize,
-      metrics: { legs: bucket.legs, bestLeg: bucket.bestLeg },
-    }));
+  return closeBuckets(buckets, ctx, { dropEmpty: true });
 }

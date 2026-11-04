@@ -167,3 +167,38 @@ describe("doublePerformanceBuckets series order", () => {
     ]);
   });
 });
+
+describe("doublePerformanceBuckets bucket series", () => {
+  it("gives no buckets for no sessions", () => {
+    expect(doublePerformanceBuckets([], CTX)).toEqual([]);
+  });
+
+  it("keeps the first session's end for a bucket it opened with no attempt, and drops a bucket with none", () => {
+    const opener = session({
+      sessionId: "opener",
+      bucketEnd: "2026-01-20T00:00:00.000Z",
+      visits: [visit(100, [dart(20, "SINGLE", 20)])],
+    });
+    const scored = session({
+      sessionId: "scored",
+      visits: [visit(32, [dart(16, "DOUBLE", 32)])],
+    });
+    const empty = session({
+      sessionId: "empty",
+      bucketStart: "2026-02-01T00:00:00.000Z",
+      bucketEnd: "2026-03-01T00:00:00.000Z",
+      visits: [],
+    });
+
+    const buckets = doublePerformanceBuckets([opener, scored, empty], CTX);
+
+    expect(buckets.map((bucket) => [bucket.start, bucket.end])).toEqual([
+      ["2026-01-01T00:00:00.000Z", "2026-01-20T00:00:00.000Z"],
+    ]);
+    expect(buckets[0]!.closed).toBe(true);
+    expect(buckets[0]!.sampleSize).toBe(1);
+    expect(buckets[0]!.metrics).toEqual({
+      "DOUBLE:16": { attempts: 1, hits: 1 },
+    });
+  });
+});

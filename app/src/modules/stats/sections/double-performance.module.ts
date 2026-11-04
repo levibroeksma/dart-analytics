@@ -3,7 +3,7 @@ import {
   checkoutDarts,
   classifyDart,
 } from "@modules/game/double-attempt.module";
-import { closeBuckets } from "./series.module";
+import { bucketFor, closeBuckets } from "./series.module";
 import type {
   BucketedSession,
   DoublePerformanceMetrics,
@@ -71,13 +71,8 @@ export function doublePerformanceBuckets(
   const buckets = new Map<string, BucketAccumulator>();
 
   for (const session of sessions) {
-    const bucket = buckets.get(session.bucketStart) ?? {
-      end: session.bucketEnd,
-      metrics: {},
-      sampleSize: 0,
-    };
+    const bucket = bucketFor(buckets, session, () => ({}));
     for (const visit of session.visits) foldVisitIntoBucket(bucket, visit);
-    buckets.set(session.bucketStart, bucket);
   }
 
   return closeBuckets(buckets, ctx, { dropEmpty: true });
