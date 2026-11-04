@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { clampToBounds } from "@lib/game/duration-clamp";
 import {
   clampScoreTrainingDuration,
   scoreTrainingDurationBounds,
@@ -63,4 +64,17 @@ describe("clampScoreTrainingDuration", () => {
       clamped: true,
     });
   });
+});
+
+describe("clampScoreTrainingDuration delegation", () => {
+  it.each(["ROUNDS", "MINUTES"] as const)(
+    "matches clampToBounds for %s",
+    (type) => {
+      for (const v of [0, 5.7, 101, Number.NaN, "x"]) {
+        expect(clampScoreTrainingDuration(type, v)).toEqual(
+          clampToBounds(scoreTrainingDurationBounds(type), v),
+        );
+      }
+    },
+  );
 });
