@@ -410,6 +410,74 @@ describe("findGameSessionsPage", () => {
     );
   });
 
+  it.each([
+    ["started_at", 4],
+    ["completed_at", 5],
+    ["duration_seconds", 6],
+    ["turn_count", 7],
+    ["dart_count", 8],
+  ])(
+    "throws naming %s when that timing column arrives null",
+    async (column, index) => {
+      const row: unknown[] = [
+        "s1",
+        "501_V1",
+        "COMPLETED",
+        "STANDALONE",
+        "2026-01-01T00:00:00.000Z",
+        "2026-01-01T00:05:00.000Z",
+        300,
+        9,
+        27,
+        501,
+      ];
+      row[index] = null;
+      const { db } = renderingDb([row]);
+      await expect(findGameSessionsPage(db, baseQuery)).rejects.toThrow(
+        new RegExp(`\\b${column}\\b`),
+      );
+    },
+  );
+
+  it("maps the timing columns in place, between neverStarted and countedScore", async () => {
+    const { db } = renderingDb([
+      [
+        "s1",
+        "501_V1",
+        "COMPLETED",
+        "STANDALONE",
+        "2026-01-01T00:00:00.000Z",
+        "2026-01-01T00:05:00.000Z",
+        300,
+        9,
+        27,
+        501,
+      ],
+    ]);
+    const [row] = await findGameSessionsPage(db, baseQuery);
+    expect(Object.keys(row)).toEqual([
+      "sessionId",
+      "rulesetVersionKey",
+      "statusKey",
+      "contextKey",
+      "neverStarted",
+      "startedAt",
+      "completedAt",
+      "durationSeconds",
+      "turnCount",
+      "dartCount",
+      "countedScore",
+    ]);
+    expect(row).toMatchObject({
+      neverStarted: false,
+      startedAt: "2026-01-01T00:00:00.000Z",
+      completedAt: "2026-01-01T00:05:00.000Z",
+      durationSeconds: 300,
+      turnCount: 9,
+      dartCount: 27,
+    });
+  });
+
   it("marks a turn-free abandoned row as neverStarted", async () => {
     const fromCalls: unknown[] = [];
     const rows = [
@@ -3148,6 +3216,35 @@ describe("findStepSessionPage", () => {
       expect.arrayContaining(["2026-01-15T00:00:00.000Z", "s1"]),
     );
   });
+
+  it.each([
+    ["started_at", 4],
+    ["completed_at", 5],
+    ["duration_seconds", 6],
+    ["turn_count", 7],
+    ["dart_count", 8],
+  ])(
+    "throws naming %s when that timing column arrives null",
+    async (column, index) => {
+      const row: unknown[] = [
+        "s1",
+        null,
+        "SWITCHING_V1",
+        "COMPLETED",
+        "2026-01-01T00:00:00.000Z",
+        "2026-01-01T00:05:00.000Z",
+        300,
+        9,
+        27,
+        120,
+      ];
+      row[index] = null;
+      const { db } = renderingDb([row]);
+      await expect(findStepSessionPage(db, baseQuery)).rejects.toThrow(
+        new RegExp(`\\b${column}\\b`),
+      );
+    },
+  );
 
   it("marks a turn-free abandoned row as neverStarted", async () => {
     const chain = {

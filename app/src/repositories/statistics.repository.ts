@@ -966,6 +966,29 @@ export async function findHomeHeatmapCells(
   );
 }
 
+/** The non-null timing columns every session row carries. */
+function mapSessionTimings(row: {
+  startedAt: string | null;
+  completedAt: string | null;
+  durationSeconds: number | null;
+  turnCount: number | null;
+  dartCount: number | null;
+}): {
+  startedAt: string;
+  completedAt: string;
+  durationSeconds: number;
+  turnCount: number;
+  dartCount: number;
+} {
+  return {
+    startedAt: nonNull(row.startedAt, "started_at"),
+    completedAt: nonNull(row.completedAt, "completed_at"),
+    durationSeconds: nonNull(row.durationSeconds, "duration_seconds"),
+    turnCount: nonNull(row.turnCount, "turn_count"),
+    dartCount: nonNull(row.dartCount, "dart_count"),
+  };
+}
+
 type GameSessionsFilter = {
   playerId: string;
   gameTypeKey: GameTypeKey;
@@ -1057,18 +1080,14 @@ export async function findGameSessionsPage(
 
   return rows.map((row) => {
     const statusKey = nonNull(row.statusKey, "status_key");
-    const turnCount = nonNull(row.turnCount, "turn_count");
+    const timings = mapSessionTimings(row);
     return {
       sessionId: nonNull(row.sessionId, "session_id"),
       rulesetVersionKey: nonNull(row.rulesetVersionKey, "ruleset_version_key"),
       statusKey,
       contextKey: nonNull(row.contextKey, "context_key"),
-      neverStarted: statusKey === "ABANDONED" && turnCount === 0,
-      startedAt: nonNull(row.startedAt, "started_at"),
-      completedAt: nonNull(row.completedAt, "completed_at"),
-      durationSeconds: nonNull(row.durationSeconds, "duration_seconds"),
-      turnCount,
-      dartCount: nonNull(row.dartCount, "dart_count"),
+      neverStarted: statusKey === "ABANDONED" && timings.turnCount === 0,
+      ...timings,
       countedScore: nonNull(row.countedScore, "counted_score"),
     };
   });
@@ -1305,11 +1324,7 @@ function mapReplaySessionJoinRow(row: {
     activityId: nonNull(row.activityId, "activity_id"),
     routineStepSequenceNumber: row.routineStepSequenceNumber,
     configuration: row.configuration as Record<string, unknown> | null,
-    startedAt: nonNull(row.startedAt, "started_at"),
-    completedAt: nonNull(row.completedAt, "completed_at"),
-    durationSeconds: nonNull(row.durationSeconds, "duration_seconds"),
-    turnCount: nonNull(row.turnCount, "turn_count"),
-    dartCount: nonNull(row.dartCount, "dart_count"),
+    ...mapSessionTimings(row),
     exerciseTypeKey: row.exerciseTypeKey ?? "GAME",
     exerciseRulesetVersionKey: row.exerciseRulesetVersionKey,
     routineKey: row.routineKey,
@@ -1355,11 +1370,7 @@ function mapReplayStepFactsRow(row: {
     activityId: nonNull(row.activityId, "activity_id"),
     routineStepSequenceNumber: nonNull(row.sequenceNumber, "sequence_number"),
     configuration: row.configuration as Record<string, unknown> | null,
-    startedAt: nonNull(row.startedAt, "started_at"),
-    completedAt: nonNull(row.completedAt, "completed_at"),
-    durationSeconds: nonNull(row.durationSeconds, "duration_seconds"),
-    turnCount: nonNull(row.turnCount, "turn_count"),
-    dartCount: nonNull(row.dartCount, "dart_count"),
+    ...mapSessionTimings(row),
     exerciseTypeKey: nonNull(row.exerciseTypeKey, "exercise_type_key"),
     exerciseRulesetVersionKey: row.exerciseRulesetVersionKey,
     routineKey: nonNull(row.routineKey, "routine_key"),
@@ -2183,7 +2194,7 @@ export async function findStepSessionPage(
 
   return rows.map((row) => {
     const statusKey = nonNull(row.statusKey, "status_key");
-    const turnCount = nonNull(row.turnCount, "turn_count");
+    const timings = mapSessionTimings(row);
     return {
       sessionId: nonNull(row.sessionId, "session_id"),
       rulesetVersionKey: row.rulesetVersionKey,
@@ -2192,12 +2203,8 @@ export async function findStepSessionPage(
       neverStarted:
         row.exerciseRulesetVersionKey === "WARM_UP_V1"
           ? null
-          : statusKey === "ABANDONED" && turnCount === 0,
-      startedAt: nonNull(row.startedAt, "started_at"),
-      completedAt: nonNull(row.completedAt, "completed_at"),
-      durationSeconds: nonNull(row.durationSeconds, "duration_seconds"),
-      turnCount,
-      dartCount: nonNull(row.dartCount, "dart_count"),
+          : statusKey === "ABANDONED" && timings.turnCount === 0,
+      ...timings,
       countedScore: nonNull(row.countedScore, "counted_score"),
     };
   });
