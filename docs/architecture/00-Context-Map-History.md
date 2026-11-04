@@ -17,6 +17,8 @@ updated: 2026-11-04
 
 # Version History
 
+> **Version:** 1.202.0 (2026-11-04 — Duplication backlog Phase 2, stats sections (PR E): D520 in `decisions/frontend/architecture.md`; `series.module.ts` row gains `bucketFor`/`visitBuckets`/`rowBuckets`, `merge-metrics.ts` row names its internal helpers; `tallyScoreBands` (`lib/game/play-visit-stats.ts`) and routine-summary `passRows` recorded in D520 only; `scripts/dupes-baseline.txt` lowered 41 → 32)
+
 > **Version:** 1.201.0 (2026-11-04 — Duplication backlog Phase 2, setup screens (PR D): D519 in `decisions/frontend/architecture.md`; `duration-clamp.ts` and `duration-setup.data.ts` registered in `00-File-Inventory.md`, `setup-controller.ts` row gains `startPresetSession`, `DurationSoloFields.astro` registered; `09-Adding-A-Game.md` opt-out paragraph rewritten (121 added, `startPresetSession` named); `PresetSetupContext` doc comment updated; `scripts/dupes-baseline.txt` lowered 54 → 47)
 
 > **Version:** 1.200.0 (2026-11-01 — Prisoner V1 playable (PR 2): setup, play, results, ANALYTICS-only card; `00-File-Inventory.md`, `09-Adding-A-Game.md`.)
