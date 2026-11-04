@@ -2,17 +2,11 @@ import {
   fetchConfigurationPresets,
   type ConfigurationPresetData,
 } from "@client/api/configuration-templates";
-import { createSession, fetchActiveSessions } from "@client/api/sessions";
+import { fetchActiveSessions } from "@client/api/sessions";
 import { clampOneTwentyOneDuration } from "@lib/game/one-twenty-one-duration";
+import { startPresetSession } from "@lib/game/setup-controller";
 import { createSetupSession } from "@lib/game/setup-session";
-import { toSnapshot } from "@lib/game/rulesets/config-codec";
 import { addBotOpponent, addTypedGuest } from "@lib/game/guest-list";
-import {
-  participantsFromGuests,
-  starterFirst,
-  resolveSessionModePair,
-  startSessionInput,
-} from "@lib/game/session-mode-resolution";
 import type { RulesetVersionKey } from "@lib/types";
 import type {
   OneTwentyOneDurationType,
@@ -63,16 +57,17 @@ function guested(ctx: OneTwentyOneSetupContext): boolean {
 }
 
 /**
- * The `overrides` record `start()` sends: none for a guested 1v1 (`121_V1`
- * has no duration concept), or the clamped duration override for solo play.
+ * The `overrides` record `start()` sends: none (`undefined`) for a guested
+ * 1v1 (`121_V1` has no duration concept), or the clamped duration override
+ * for solo play.
  * Clamps `ctx.durationValue` as a side effect, matching `start()`'s own
  * prior behavior.
  */
 function resolveStartOverrides(
   ctx: OneTwentyOneSetupContext,
   guested: boolean,
-): Record<string, unknown> {
-  if (guested) return {};
+): Record<string, unknown> | undefined {
+  if (guested) return undefined;
   if (ctx.durationType === "TARGET") {
     return { duration_type: ctx.durationType };
   }
@@ -176,55 +171,13 @@ export function oneTwentyOneSetup() {
 
       const overrides = resolveStartOverrides(this, isGuested);
 
-      this.loading = true;
-      this.error = "";
-      try {
-        const wire = {
-          ...(preset.configuration as Record<string, unknown>),
-          ...overrides,
-        };
-        const configSnapshot = toSnapshot(rulesetVersionKey, wire);
-        const modePair = resolveSessionModePair(
-          rulesetVersionKey,
-          this.$store.settings,
-        );
-        const participants = starterFirst(
-          participantsFromGuests(this.guests, this.bot),
-          this.starterIndex,
-        );
-        const session = await createSession({
-          gameTypeKey: GAME_TYPE_KEY,
-          rulesetVersionKey,
-          captureModeKey: modePair.captureModeKey,
-          inputModeKey: modePair.inputModeKey,
-          config: {
-            source: "template",
-            templateRef: preset.configurationTemplateId,
-            ...(isGuested ? {} : { overrides }),
-          },
-          participants,
-        });
-        this.$store.game.startSession(
-          startSessionInput({
-            gameTypeKey: GAME_TYPE_KEY,
-            rulesetVersionKey,
-            session,
-            templateRef: preset.configurationTemplateId,
-            configSnapshot,
-            modePair,
-          }),
-        );
-        globalThis.location.href = "/games/121/play";
-      } catch (err: unknown) {
-        const code = (err as { code?: string }).code;
-        if (code === "SESSION_ALREADY_ACTIVE") {
-          await this.retryReconciliation();
-          return;
-        }
-        this.error = "Could not start the session. Try again.";
-      } finally {
-        this.loading = false;
-      }
+      await startPresetSession(this, {
+        gameTypeKey: GAME_TYPE_KEY,
+        rulesetVersionKey,
+        playHref: "/games/121/play",
+        preset,
+        overrides,
+      });
     },
   };
 }
