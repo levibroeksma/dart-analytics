@@ -1,5 +1,5 @@
 import { configGroupKey } from "@lib/stats/config-group";
-import { isClosed } from "./series.module";
+import { bucketFor, closeBuckets } from "./series.module";
 import type { SeriesBucket } from "@lib/types";
 import type {
   DoublesTrainingSeatState,
@@ -63,11 +63,7 @@ export function trainingResultBuckets(
     const headline = headlineOf(session);
     if (headline === null) continue;
 
-    const bucket = buckets.get(session.bucketStart) ?? {
-      end: session.bucketEnd,
-      metrics: {},
-      sampleSize: 0,
-    };
+    const bucket = bucketFor(buckets, session, () => ({}));
 
     const groupKey = configGroupKey(CONFIG_SENSITIVE, session);
     const group = bucket.metrics[groupKey] ?? {
@@ -80,17 +76,7 @@ export function trainingResultBuckets(
     group.best = Math.max(group.best, headline);
     bucket.metrics[groupKey] = group;
     bucket.sampleSize += 1;
-
-    buckets.set(session.bucketStart, bucket);
   }
 
-  return Array.from(buckets.entries())
-    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
-    .map(([start, bucket]) => ({
-      start,
-      end: bucket.end,
-      closed: isClosed(bucket.end, ctx.to, ctx.now),
-      sampleSize: bucket.sampleSize,
-      metrics: bucket.metrics,
-    }));
+  return closeBuckets(buckets, ctx);
 }

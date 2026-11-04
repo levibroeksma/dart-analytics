@@ -10,19 +10,13 @@
 3	src/lib/game/rulesets/types.ts
 2	src/lib/stats/merge-metrics.ts
 1	src/modules/game/bobs27.engine.module.ts | src/modules/game/singles-training.engine.module.ts
-1	src/modules/stats/sections/atc-darts-per-target.module.ts | src/modules/stats/sections/training-result.module.ts
 1	src/modules/stats/sections/bust-rate.module.ts | src/modules/stats/sections/checkout-path.module.ts | src/modules/stats/sections/checkout-rate.module.ts
 1	src/modules/stats/sections/bust-rate.module.ts | src/modules/stats/sections/checkout-path.module.ts | src/modules/stats/sections/checkout-rate.module.ts | src/modules/stats/sections/double-performance.module.ts
 2	src/modules/stats/sections/checkout-path.module.ts | src/modules/stats/sections/checkout-rate.module.ts
-1	src/modules/stats/sections/completion.module.ts | src/modules/stats/sections/session-result.module.ts
-1	src/modules/stats/sections/grouping.module.ts | src/modules/stats/sections/loose-darts.module.ts | src/modules/stats/sections/scoring-trend.module.ts | src/modules/stats/sections/target-accuracy.module.ts | src/modules/stats/sections/treble-rate.module.ts | src/modules/stats/sections/volume.module.ts
-1	src/modules/stats/sections/grouping.module.ts | src/modules/stats/sections/loose-darts.module.ts | src/modules/stats/sections/target-accuracy.module.ts
 1	src/modules/stats/sections/leg-stats.module.ts | src/modules/stats/sections/series.module.ts
-2	src/modules/stats/sections/loose-darts.module.ts | src/modules/stats/sections/target-accuracy.module.ts
+1	src/modules/stats/sections/loose-darts.module.ts | src/modules/stats/sections/target-accuracy.module.ts
 1	src/modules/stats/sections/routine-completion.module.ts | src/modules/stats/sections/routine-volume.module.ts
 1	src/modules/stats/sections/routine-completion.module.ts | src/modules/stats/sections/routine-volume.module.ts | src/modules/stats/sections/step-volume.module.ts
-1	src/modules/stats/sections/scoring-trend.module.ts | src/modules/stats/sections/treble-rate.module.ts
-1	src/modules/stats/sections/series.module.ts | src/modules/stats/sections/training-result.module.ts
 1	src/modules/training/exercises/bull-up.engine.module.ts | src/modules/training/exercises/bullseye-checkout.engine.module.ts | src/modules/training/exercises/double-pattern.engine.module.ts | src/modules/training/exercises/switching.engine.module.ts
 1	src/modules/training/exercises/bullseye-checkout.engine.module.ts | src/modules/training/exercises/double-pattern.engine.module.ts | src/modules/training/exercises/switching.engine.module.ts
 1	src/modules/training/exercises/double-pattern.engine.module.ts | src/modules/training/exercises/switching.engine.module.ts

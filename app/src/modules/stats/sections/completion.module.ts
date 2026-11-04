@@ -1,4 +1,4 @@
-import { isClosed } from "./series.module";
+import { bucketFor, closeBuckets } from "./series.module";
 import type { CompletionMetrics, StatsBucketRow } from "@modules/types";
 import type { SeriesBucket } from "@lib/types";
 
@@ -19,16 +19,12 @@ export function completionBuckets(
   >();
 
   for (const row of rows) {
-    const bucket = buckets.get(row.bucketStart) ?? {
-      end: row.bucketEnd,
-      metrics: {
-        completed: 0,
-        abandoned: 0,
-        neverStarted: 0,
-        abandonedTurns: 0,
-      },
-      sampleSize: 0,
-    };
+    const bucket = bucketFor(buckets, row, () => ({
+      completed: 0,
+      abandoned: 0,
+      neverStarted: 0,
+      abandonedTurns: 0,
+    }));
     bucket.sampleSize += row.sessions;
     if (row.statusKey === "COMPLETED") {
       bucket.metrics.completed += row.sessions;
@@ -38,19 +34,7 @@ export function completionBuckets(
       bucket.metrics.abandoned += row.sessions;
       bucket.metrics.abandonedTurns += row.turnSum;
     }
-    buckets.set(row.bucketStart, bucket);
   }
 
-  return Array.from(buckets.keys())
-    .sort()
-    .map((start) => {
-      const bucket = buckets.get(start)!;
-      return {
-        start,
-        end: bucket.end,
-        closed: isClosed(bucket.end, ctx.to, ctx.now),
-        sampleSize: bucket.sampleSize,
-        metrics: bucket.metrics,
-      };
-    });
+  return closeBuckets(buckets, ctx);
 }
