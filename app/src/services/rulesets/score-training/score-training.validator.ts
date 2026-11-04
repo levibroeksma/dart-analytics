@@ -13,9 +13,11 @@ import {
   validateVisualBoardTurns,
 } from "../visual-board.validator";
 import type { EventsBatchRequestInput } from "@routes/types";
+import { validateModeGatedConfig } from "../mode-gated-config";
 import type {
   BatchValidationResult,
   ConfigValidationResult,
+  ModedBatchValidationInput,
 } from "@services/types";
 
 const DEFAULT_MAX_VISIT_SCORE = 180;
@@ -55,19 +57,12 @@ export const scoreTrainingValidator: RulesetValidator = {
     captureModeKey,
     inputModeKey,
   }): ConfigValidationResult {
-    if (!isQuickScoreOrVisualBoardCapture(captureModeKey, inputModeKey)) {
-      return {
-        valid: false,
-        issues: [
-          `Score Training V1 only supports ${QUICK_SCORE_OR_VISUAL_BOARD_MODES}`,
-        ],
-      };
-    }
-    const parsed = ScoreTrainingConfig.safeParse(config);
-    if (!parsed.success) {
-      return { valid: false, issues: parsed.error.issues };
-    }
-    return { valid: true, config: parsed.data };
+    return validateModeGatedConfig(
+      ScoreTrainingConfig,
+      config,
+      isQuickScoreOrVisualBoardCapture(captureModeKey, inputModeKey),
+      `Score Training V1 only supports ${QUICK_SCORE_OR_VISUAL_BOARD_MODES}`,
+    );
   },
 
   validateBatch({
@@ -76,13 +71,7 @@ export const scoreTrainingValidator: RulesetValidator = {
     existingTurnCounts,
     captureModeKey,
     inputModeKey,
-  }: {
-    config: Record<string, unknown>;
-    batch: EventsBatchRequestInput;
-    existingTurnCounts: ExistingTurnCounts;
-    captureModeKey: string;
-    inputModeKey: string;
-  }): BatchValidationResult {
+  }: ModedBatchValidationInput): BatchValidationResult {
     if (isVisualBoardCapture(captureModeKey, inputModeKey)) {
       const turns = validateVisualBoardTurns(
         batch,

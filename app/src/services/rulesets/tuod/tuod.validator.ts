@@ -1,5 +1,4 @@
 import { TuodConfig } from "@lib/types";
-import type { ExistingTurnCounts } from "@repositories/interfaces";
 import type { RulesetValidator } from "@services/interfaces";
 import {
   QUICK_SCORE_OR_VISUAL_BOARD_MODES,
@@ -12,10 +11,11 @@ import {
   isVisualBoardCapture,
   validateVisualBoardTurns,
 } from "../visual-board.validator";
-import type { EventsBatchRequestInput } from "@routes/types";
+import { validateModeGatedConfig } from "../mode-gated-config";
 import type {
   BatchValidationResult,
   ConfigValidationResult,
+  ModedBatchValidationInput,
 } from "@services/types";
 
 /** The highest three-dart double-out finish on a standard board (T20 T20 D25). */
@@ -59,17 +59,12 @@ export const tuodValidator: RulesetValidator = {
     captureModeKey,
     inputModeKey,
   }): ConfigValidationResult {
-    if (!isQuickScoreOrVisualBoardCapture(captureModeKey, inputModeKey)) {
-      return {
-        valid: false,
-        issues: [`TUOD V1 only supports ${QUICK_SCORE_OR_VISUAL_BOARD_MODES}`],
-      };
-    }
-    const parsed = TuodConfig.safeParse(config);
-    if (!parsed.success) {
-      return { valid: false, issues: parsed.error.issues };
-    }
-    return { valid: true, config: parsed.data };
+    return validateModeGatedConfig(
+      TuodConfig,
+      config,
+      isQuickScoreOrVisualBoardCapture(captureModeKey, inputModeKey),
+      `TUOD V1 only supports ${QUICK_SCORE_OR_VISUAL_BOARD_MODES}`,
+    );
   },
 
   validateBatch({
@@ -78,13 +73,7 @@ export const tuodValidator: RulesetValidator = {
     existingTurnCounts,
     captureModeKey,
     inputModeKey,
-  }: {
-    config: Record<string, unknown>;
-    batch: EventsBatchRequestInput;
-    existingTurnCounts: ExistingTurnCounts;
-    captureModeKey: string;
-    inputModeKey: string;
-  }): BatchValidationResult {
+  }: ModedBatchValidationInput): BatchValidationResult {
     if (isVisualBoardCapture(captureModeKey, inputModeKey)) {
       return validateVisualBoardTurns(batch, maxTurnScore(config));
     }
