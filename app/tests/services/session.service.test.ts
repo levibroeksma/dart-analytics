@@ -514,6 +514,45 @@ describe("createSession", () => {
     });
   });
 
+  it("on a race, inserts exactly the session record fields and re-reads the same player and game type", async () => {
+    vi.mocked(repo.findActiveSessionForGameType)
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce(undefined);
+    vi.mocked(repo.insertSessionRecords).mockRejectedValue(
+      Object.assign(new Error("duplicate key"), {
+        code: "23505",
+        constraint: "uq_sessions_single_active",
+      }),
+    );
+    const result = await createSession("player-1", inlineRequest);
+    expect(result).toEqual({ ok: false, code: "INTERNAL_ERROR" });
+    const [record] = vi.mocked(repo.insertSessionRecords).mock.calls[0]!;
+    expect(Object.keys(record)).toEqual([
+      "activityId",
+      "sessionId",
+      "configurationId",
+      "participants",
+      "playerId",
+      "gameTypeId",
+      "rulesetVersionId",
+      "captureModeId",
+      "inputModeId",
+      "activeStatusId",
+      "exerciseTypeId",
+      "configuration",
+    ]);
+    expect(Object.keys(record.participants[0]!)).toEqual([
+      "id",
+      "participantTypeId",
+      "playerId",
+      "displayName",
+    ]);
+    const lookups = vi.mocked(repo.findActiveSessionForGameType).mock.calls;
+    expect(lookups).toHaveLength(2);
+    expect(lookups[1]!.slice(1)).toEqual(lookups[0]!.slice(1));
+    expect(lookups[1]![1]).toBe("player-1");
+  });
+
   it("re-throws a non-conflict insert error for the middleware boundary", async () => {
     vi.mocked(repo.insertSessionRecords).mockRejectedValue(
       new Error("Connection terminated"),

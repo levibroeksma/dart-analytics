@@ -42,7 +42,10 @@ import type {
   UpdateSessionRequestInput,
 } from "@routes/types";
 import type { RulesetVersionKey } from "@lib/types";
-import type { SessionRow } from "@repositories/interfaces";
+import type {
+  CreateSessionRecordsInput,
+  SessionRow,
+} from "@repositories/interfaces";
 import type {
   AppendBatchResult,
   CreateSessionResult,
@@ -202,23 +205,18 @@ async function resolveSessionConfiguration(
  */
 async function insertSessionWithActiveGuard(
   db: ReturnType<typeof getDb>,
-  params: {
-    sessionId: string;
-    participants: {
-      id: string;
-      participantTypeId: number;
-      playerId: string | null;
-      displayName: string;
-    }[];
-    playerId: string;
-    gameTypeId: string;
-    rulesetVersionId: string;
-    captureModeId: number;
-    inputModeId: number;
-    activeStatusId: number;
-    exerciseTypeId: string;
-    configuration: Record<string, unknown>;
-  },
+  params: Pick<
+    Required<CreateSessionRecordsInput>,
+    | "sessionId"
+    | "participants"
+    | "playerId"
+    | "gameTypeId"
+    | "rulesetVersionId"
+    | "captureModeId"
+    | "inputModeId"
+    | "activeStatusId"
+    | "exerciseTypeId"
+  > & { configuration: Record<string, unknown> },
 ): Promise<ServiceResult<{ sessionId: string }>> {
   try {
     await insertSessionRecords({
