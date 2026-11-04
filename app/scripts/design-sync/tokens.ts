@@ -13,6 +13,8 @@ export interface ParsedToken {
   kind: TokenKind;
   name: string;
   value: string;
+  /** The declaration's value as written (whitespace collapsed), var tokens only. */
+  raw?: string;
 }
 
 type Context = "top" | "vars";
@@ -128,7 +130,11 @@ function varToken(text: string): ParsedToken | null {
   const value = normaliseCss(text.slice(colon + 1));
   const ref = PASSTHROUGH.exec(value);
   if (ref && name.endsWith(`-${ref[1]}`)) return null;
-  return { id: `var:${name}`, kind: "var", name, value };
+  const raw = text
+    .slice(colon + 1)
+    .replace(/\s+/g, " ")
+    .trim();
+  return { id: `var:${name}`, kind: "var", name, value, raw };
 }
 
 function bodyToken(kind: TokenKind, name: string, body: string): ParsedToken {

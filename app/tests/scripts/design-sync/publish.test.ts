@@ -62,6 +62,16 @@ describe("design-sync publish plan", () => {
     });
   });
 
+  it("conflicts when the item's area is marked ready", () => {
+    const r = reports([
+      item("var:--a", "tokens", "mismatch", "code-to-design"),
+    ]);
+    expect(publishPlan(r, [{ id: "area:tokens" }], ["var:--a"])).toEqual({
+      ...empty,
+      conflicts: ["var:--a"],
+    });
+  });
+
   it("conflicts when main deleted a synced item", () => {
     const r = reports([
       item("icon:x.svg", "assets", "mismatch", "code-to-design", "design"),

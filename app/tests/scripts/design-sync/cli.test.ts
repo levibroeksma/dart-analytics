@@ -282,6 +282,68 @@ describe("design-sync cli", () => {
     });
   });
 
+  it("runPublishPlan never publishes an accepted divergence", () => {
+    const opts = setup();
+    runRecord({
+      area: "tokens",
+      ...opts,
+      ids: ["var:--accent"],
+      decision: "accepted-divergence",
+    });
+    put(
+      opts.repoRoot,
+      "app/src/styles/global.css",
+      ":root { --accent: #7dd3fc; --bg: #000000; }",
+    );
+    expect(runPublishPlan(opts)).toEqual({
+      publish: [],
+      conflicts: [],
+      newOnMain: [],
+    });
+  });
+
+  it("runPublishPlan does not list an accepted code-only token as new", () => {
+    const opts = setup();
+    const css = (v: string) =>
+      `:root { --accent: #0ea5e9; --bg: #000; --extra: ${v}; }`;
+    put(opts.repoRoot, "app/src/styles/global.css", css("1rem"));
+    runRecord({
+      area: "tokens",
+      ...opts,
+      ids: ["var:--extra"],
+      decision: "accepted-divergence",
+    });
+    put(opts.repoRoot, "app/src/styles/global.css", css("2rem"));
+    expect(runPublishPlan(opts).newOnMain).toEqual([]);
+  });
+
+  it("marks an unrepresentable code value code-only even with a design twin", () => {
+    const opts = setup();
+    put(
+      opts.repoRoot,
+      "app/src/styles/global.css",
+      ":root { --accent: color-mix(in oklch, var(--bg) 40%, white); --bg: #000; }",
+    );
+    const accent = runDiff({ area: "tokens", ...opts }).items.find(
+      (i) => i.id === "var:--accent",
+    );
+    expect(accent).toMatchObject({ status: "code-only", proposal: null });
+  });
+
+  it("runWriteTokens takes the :root value, not a scoped override or comment", () => {
+    const opts = setup();
+    put(
+      opts.repoRoot,
+      "app/src/styles/global.css",
+      ":root { --accent: oklch(70% 0.1 230); --bg: #000; }\n.tab { --accent: var(--sky); }\n/* --accent: red; */",
+    );
+    runWriteTokens(opts, ["var:--accent"]);
+    const doc = JSON.parse(
+      readFileSync(join(opts.mirror, "tokens.json"), "utf8"),
+    );
+    expect(doc.color.tokens[0].value).toBe("oklch(70% 0.1 230)");
+  });
+
   it("runWriteTokens writes the code's raw values into the mirror", () => {
     const opts = setup();
     put(

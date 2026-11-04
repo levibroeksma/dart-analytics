@@ -119,7 +119,7 @@ function tokenItems(
       code: c ? { path: CODE_CSS, hash: sha256(c.value) } : null,
       comparable: true,
     };
-    if (!d && c && !representable(c.value)) item.codeOnly = true;
+    if (c && !representable(c.value)) item.codeOnly = true;
     return item;
   });
   return { items, values };
@@ -205,21 +205,22 @@ export function runReady(opts: MirrorOptions): ReadyPlan {
  * @returns The after-merge publish plan.
  */
 export function runPublishPlan(opts: MirrorOptions): PublishPlan {
-  const reports = (["tokens", "assets"] as const).map((area) =>
-    runDiff({ ...opts, area }),
+  const items = readLock(opts.lockPath).items;
+  const accepted = new Set(
+    items.filter((e) => e.decision === "accepted-divergence").map((e) => e.id),
   );
-  const locked = readLock(opts.lockPath).items.map((e) => e.id);
-  return publishPlan(reports, readMarks(opts.mirror), locked);
-}
-
-function rawCodeValue(css: string, prop: string): string {
-  const escaped = prop.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const matches = [
-    ...css.matchAll(new RegExp(`(?<![\\w-])${escaped}\\s*:\\s*([^;}]+)`, "g")),
-  ];
-  const last = matches.at(-1);
-  if (!last) throw new Error(`no code value for ${prop}`);
-  return last[1].replace(/\s+/g, " ").trim();
+  const reports = (["tokens", "assets"] as const).map((area) => {
+    const report = runDiff({ ...opts, area });
+    return {
+      ...report,
+      items: report.items.filter((i) => !accepted.has(i.id)),
+    };
+  });
+  return publishPlan(
+    reports,
+    readMarks(opts.mirror),
+    items.map((e) => e.id),
+  );
 }
 
 /**
@@ -229,12 +230,15 @@ function rawCodeValue(css: string, prop: string): string {
  * @param ids - `var:` ids to write.
  */
 export function runWriteTokens(opts: MirrorOptions, ids: string[]): void {
-  const css = readFileSync(join(opts.repoRoot, CODE_CSS), "utf8");
+  const code = byId(
+    parseTokens(readFileSync(join(opts.repoRoot, CODE_CSS), "utf8")),
+  );
   const updates: Record<string, string> = {};
   for (const id of ids) {
     if (!id.startsWith("var:")) throw new Error(`not a token: ${id}`);
-    const prop = id.slice(4);
-    updates[prop] = rawCodeValue(css, prop);
+    const raw = code.get(id)?.raw;
+    if (raw === undefined) throw new Error(`no code value for ${id}`);
+    updates[id.slice(4)] = raw;
   }
   const path = join(opts.mirror, DESIGN_TOKENS);
   writeFileSync(path, writeTokensJson(readFileSync(path, "utf8"), updates));

@@ -19,6 +19,7 @@ const PUBLISHED_AREAS = new Set(["tokens", "assets"]);
  *
  * @param reports - Diff reports, compared against `main`'s code.
  * @param marks - The artifact's ready marks.
+ * @param reports - Accepted divergences already left out by the caller.
  * @param lockedIds - Ids the lock has an entry for.
  * @returns Ids to publish, conflicts for the owner, and new items on main.
  */
@@ -42,9 +43,9 @@ export function publishPlan(
         plan.conflicts.push(item.id);
       } else if (item.proposal === "code-to-design") {
         const deleted = !item.code;
-        plan[marked.has(item.id) || deleted ? "conflicts" : "publish"].push(
-          item.id,
-        );
+        const isMarked =
+          marked.has(item.id) || marked.has(`area:${report.area}`);
+        plan[isMarked || deleted ? "conflicts" : "publish"].push(item.id);
       }
     }
   }

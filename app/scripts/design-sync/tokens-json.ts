@@ -18,7 +18,8 @@ interface JsonFamily {
 }
 
 const ALIAS = /^\{([A-Za-z0-9][A-Za-z0-9_.-]*)\}$/;
-const FUNCTIONS = /\b(var|color-mix|calc)\(/i;
+const FUNCTIONS = /\b(var|color-mix|calc|url)\(|-gradient\(/i;
+const PURE_ALIAS = /^var\(--([A-Za-z0-9][A-Za-z0-9_.-]*)\)$/;
 const NAMED_COLOURS = new Set(
   (
     "transparent currentcolor aliceblue antiquewhite aqua aquamarine azure beige bisque black " +
@@ -116,8 +117,10 @@ export function writeTokensJson(
   } catch (error) {
     throw new Error(`tokens.json: ${(error as Error).message}`);
   }
-  for (const [prop, value] of Object.entries(updates)) {
+  for (const [prop, raw] of Object.entries(updates)) {
     const name = prop.replace(/^--/, "");
+    const alias = PURE_ALIAS.exec(raw.trim());
+    const value = alias ? `{${alias[1]}}` : raw;
     if (!setValue(doc, name, value)) {
       throw new Error(`tokens.json: no token ${name}`);
     }
@@ -160,13 +163,15 @@ function setValue(
 }
 
 /**
- * Whether `tokens.json` can hold a code value: no `var()`, `color-mix()` or
- * `calc()`, and not a named colour.
+ * Whether `tokens.json` can hold a code value: a plain `var(--x)` alias, or a
+ * value with no `var()`, `color-mix()`, `calc()`, `url()` or gradient that
+ * is not a named colour.
  *
  * @param value - A normalised CSS value.
  * @returns False when the artifact's format would drop the value.
  */
 export function representable(value: string): boolean {
+  if (PURE_ALIAS.test(value.trim())) return true;
   if (FUNCTIONS.test(value)) return false;
   return !NAMED_COLOURS.has(value.trim().toLowerCase());
 }

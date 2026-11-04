@@ -107,6 +107,14 @@ describe("design-sync tokens.json", () => {
     expect(out.color.tokens[0].value).toEqual({ dark: "#111", light: "#fff" });
   });
 
+  it("writes a var() alias as {name}", () => {
+    const text = JSON.stringify({
+      color: { tokens: [{ name: "f", value: "#000" }] },
+    });
+    const out = JSON.parse(writeTokensJson(text, { "--f": "var(--accent)" }));
+    expect(out.color.tokens[0].value).toBe("{accent}");
+  });
+
   it("writes type families by --font-<key>", () => {
     const text = JSON.stringify({ type: { families: { display: "A" } } });
     const out = JSON.parse(writeTokensJson(text, { "--font-display": "B" }));
@@ -125,7 +133,10 @@ describe("design-sync tokens.json", () => {
 
   it.each([
     ["color-mix(in oklch, red, blue)", false],
-    ["var(--x)", false],
+    ["var(--x)", true],
+    ["var(--x) 50%", false],
+    ["url(data:image/svg+xml,x)", false],
+    ["linear-gradient(90deg, #000, #fff)", false],
     ["calc(1rem + 2px)", false],
     ["transparent", false],
     ["currentColor", false],

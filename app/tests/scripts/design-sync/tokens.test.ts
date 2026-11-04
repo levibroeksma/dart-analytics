@@ -9,6 +9,14 @@ describe("design-sync tokens", () => {
     expect(t.map((x) => x.id)).toEqual(["var:--accent", "var:--radius-row"]);
   });
 
+  it("keeps a custom property's value as written", () => {
+    const [t] = parseTokens(
+      ":root{--font-display: 'Bebas Neue',\n  sans-serif;}",
+    );
+    expect(t.value).toBe("'bebas neue', sans-serif");
+    expect(t.raw).toBe("'Bebas Neue', sans-serif");
+  });
+
   it("treats code @utility and design .class as the same rule id", () => {
     expect(
       parseTokens("@utility glass { backdrop-filter: blur(8px); }")[0].id,
