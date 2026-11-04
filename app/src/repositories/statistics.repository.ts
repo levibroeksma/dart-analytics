@@ -892,9 +892,7 @@ async function selectHeatmapCells(
 /**
  * Non-empty `HEATMAP_CELL_MM` grid cells over `v_stats_dart_facts` — feeds
  * `heatmap` (phase-2 decision 6). `target` narrows to darts aimed at one
- * target when the section's optional `target` parameter is set. Groups by
- * select position: re-binding `cellMm` in the GROUP BY would not match the
- * SELECT's own parameter (42803).
+ * target when the section's optional `target` parameter is set.
  */
 export async function findHeatmapCells(
   db: Db,
