@@ -1,4 +1,5 @@
 import type { ZodTypeAny } from "zod";
+import type { ExistingTurnCounts } from "@repositories/interfaces";
 import type { EventsBatchRequestInput } from "@routes/types";
 
 export type ConfigValidationResult =
@@ -15,6 +16,27 @@ export type BatchValidationResult =
         | "BATCH_REFERENCE_MISSING";
       issues?: unknown;
     };
+
+/**
+ * What `RulesetValidator.validateBatch` receives. `captureModeKey`/
+ * `inputModeKey` are optional because most rulesets support exactly one mode
+ * pair and never branch on it in `validateBatch` — only a ruleset that
+ * supports more than one pair (501, Score Training) needs them to pick
+ * between a coordinate validator and a visit-total one.
+ */
+export type BatchValidationInput = {
+  config: Record<string, unknown>;
+  batch: EventsBatchRequestInput;
+  existingTurnCounts: ExistingTurnCounts;
+  captureModeKey?: string;
+  inputModeKey?: string;
+};
+
+/** `BatchValidationInput` for a ruleset that branches on its mode pair. */
+export type ModedBatchValidationInput = BatchValidationInput & {
+  captureModeKey: string;
+  inputModeKey: string;
+};
 
 /**
  * What `createThreeDartValidator` needs to know about one ruleset. Three

@@ -1,5 +1,4 @@
 import { FiveOhOneConfig, FiveOhOneV2Config } from "@lib/types";
-import type { ExistingTurnCounts } from "@repositories/interfaces";
 import type { RulesetValidator } from "@services/interfaces";
 import {
   QUICK_SCORE_OR_VISUAL_BOARD_MODES,
@@ -11,10 +10,11 @@ import {
   isVisualBoardCapture,
   validateVisualBoardTurns,
 } from "../visual-board.validator";
-import type { EventsBatchRequestInput } from "@routes/types";
+import { validateModeGatedConfig } from "../mode-gated-config";
 import type {
   BatchValidationResult,
   ConfigValidationResult,
+  ModedBatchValidationInput,
 } from "@services/types";
 
 const DEFAULT_MAX_VISIT_SCORE = 180;
@@ -24,13 +24,7 @@ function validateBatch({
   batch,
   captureModeKey,
   inputModeKey,
-}: {
-  config: Record<string, unknown>;
-  batch: EventsBatchRequestInput;
-  existingTurnCounts: ExistingTurnCounts;
-  captureModeKey: string;
-  inputModeKey: string;
-}): BatchValidationResult {
+}: ModedBatchValidationInput): BatchValidationResult {
   if (isVisualBoardCapture(captureModeKey, inputModeKey)) {
     return validateVisualBoardTurns(
       batch,
@@ -68,19 +62,12 @@ function createFiveOhOneValidator(
       captureModeKey,
       inputModeKey,
     }): ConfigValidationResult {
-      if (!isQuickScoreOrVisualBoardCapture(captureModeKey, inputModeKey)) {
-        return {
-          valid: false,
-          issues: [
-            `${label} only supports ${QUICK_SCORE_OR_VISUAL_BOARD_MODES}`,
-          ],
-        };
-      }
-      const parsed = schema.safeParse(config);
-      if (!parsed.success) {
-        return { valid: false, issues: parsed.error.issues };
-      }
-      return { valid: true, config: parsed.data };
+      return validateModeGatedConfig(
+        schema,
+        config,
+        isQuickScoreOrVisualBoardCapture(captureModeKey, inputModeKey),
+        `${label} only supports ${QUICK_SCORE_OR_VISUAL_BOARD_MODES}`,
+      );
     },
     validateBatch,
   };
