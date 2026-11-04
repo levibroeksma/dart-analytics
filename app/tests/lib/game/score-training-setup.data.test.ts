@@ -236,6 +236,14 @@ describe("scoreTrainingSetup", () => {
   });
 
   describe("init duration defaults", () => {
+    it("starts on ROUNDS at Score Training's own fallbacks before init", () => {
+      const setup = createSetup();
+      expect(setup.durationType).toBe("ROUNDS");
+      expect(setup.durationValue).toBe(10);
+      setup.selectMode("MINUTES");
+      expect(setup.durationValue).toBe(5);
+    });
+
     it("defaults to ROUNDS and the rounds preset duration_value", async () => {
       const setup = createSetup();
       vi.mocked(presetsApi.fetchConfigurationPresets).mockResolvedValue([

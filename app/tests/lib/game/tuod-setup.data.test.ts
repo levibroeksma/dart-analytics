@@ -63,6 +63,14 @@ describe("tuodSetup", () => {
   }
 
   describe("init", () => {
+    it("starts on ROUNDS at TUOD's own fallbacks before init", () => {
+      const setup = createSetup();
+      expect(setup.durationType).toBe("ROUNDS");
+      expect(setup.durationValue).toBe(10);
+      setup.selectMode("MINUTES");
+      expect(setup.durationValue).toBe(10);
+    });
+
     it("loads both presets and defaults to ROUNDS", async () => {
       const setup = createSetup();
       vi.mocked(presetsApi.fetchConfigurationPresets).mockResolvedValue([

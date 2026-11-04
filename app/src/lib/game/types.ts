@@ -149,6 +149,27 @@ export type SetupSessionContext = {
   removeBot(this: SetupSessionContext): void;
 };
 
+/**
+ * The setup contract `durationSetupData` supplies: a ROUNDS/timed mode picker
+ * backed by presets whose configuration names `duration_type` and
+ * `duration_value`, locked to ROUNDS once a guest or bot is seated.
+ */
+export type DurationSetupContext<TType extends string> = SetupSessionContext & {
+  presets: ConfigurationPresetData[];
+  durationType: TType;
+  durationValue: number | string | null;
+  $watch(key: "durationType", callback: (value: TType) => void): void;
+  init(this: DurationSetupContext<TType>): Promise<void>;
+  selectMode(this: DurationSetupContext<TType>, type: TType): void;
+  presetForMode(
+    this: DurationSetupContext<TType>,
+    type: TType,
+  ): ConfigurationPresetData | undefined;
+  addGuest(this: DurationSetupContext<TType>): void;
+  addBot(this: DurationSetupContext<TType>): void;
+  forceRoundsIfGuested(this: DurationSetupContext<TType>): void;
+};
+
 export type TuodSetupContext = SetupSessionContext & {
   presets: ConfigurationPresetData[];
   durationType: TuodDurationType;
