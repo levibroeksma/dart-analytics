@@ -136,3 +136,39 @@ describe("checkoutRateBuckets series order", () => {
     ]);
   });
 });
+
+describe("checkoutRateBuckets empty and ineligible sessions", () => {
+  it("returns [] for no sessions", () => {
+    expect(checkoutRateBuckets([], CTX)).toEqual([]);
+  });
+
+  it("drops a bucket with only ineligible visits and keeps the first session's bucketEnd", () => {
+    const ineligibleFirst = session({
+      sessionId: "a",
+      visits: [visit(169, [dart(null, "MISS", 0)])],
+    });
+    const eligible = session({
+      sessionId: "b",
+      bucketEnd: "2026-09-01T00:00:00.000Z",
+      visits: [visit(40, [dart(20, "DOUBLE", 40)])],
+    });
+    const onlyIneligible = session({
+      sessionId: "c",
+      bucketStart: "2026-03-01T00:00:00.000Z",
+      bucketEnd: "2026-04-01T00:00:00.000Z",
+      visits: [visit(169, [dart(null, "MISS", 0)])],
+    });
+
+    expect(
+      checkoutRateBuckets([ineligibleFirst, eligible, onlyIneligible], CTX),
+    ).toEqual([
+      {
+        start: "2026-01-01T00:00:00.000Z",
+        end: "2026-02-01T00:00:00.000Z",
+        closed: true,
+        sampleSize: 1,
+        metrics: { "40": { chances: 1, finished: 1 } },
+      },
+    ]);
+  });
+});

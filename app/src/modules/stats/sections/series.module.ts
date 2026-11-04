@@ -1,4 +1,8 @@
-import type { SessionListCursor } from "@modules/types";
+import type {
+  BucketedSession,
+  SessionListCursor,
+  StagedVisit,
+} from "@modules/types";
 import type { SeriesBucket } from "@lib/types";
 
 /**
@@ -77,6 +81,40 @@ export function closeBuckets<M>(
       sampleSize: bucket.sampleSize,
       metrics: bucket.metrics,
     }));
+}
+
+/**
+ * Folds sessions' visits into start-keyed buckets of keyed entries: every
+ * session opens its bucket, each visit `include` admits gets-or-creates the
+ * entry at `keyOf(visit)` from `empty()`, is passed to `add`, and counts one
+ * sample. Buckets with no sample are dropped.
+ */
+export function visitBuckets<E>(
+  sessions: readonly BucketedSession[],
+  ctx: { to: string; now: Date },
+  spec: {
+    include: (visit: StagedVisit) => boolean;
+    keyOf: (visit: StagedVisit) => string;
+    empty: () => E;
+    add: (entry: E, visit: StagedVisit) => void;
+  },
+): SeriesBucket<Record<string, E>>[] {
+  const buckets = new Map<
+    string,
+    { end: string; sampleSize: number; metrics: Record<string, E> }
+  >();
+  for (const session of sessions) {
+    const bucket = bucketFor(buckets, session, () => ({}));
+    for (const visit of session.visits) {
+      if (!spec.include(visit)) continue;
+      const key = spec.keyOf(visit);
+      const entry = bucket.metrics[key] ?? spec.empty();
+      spec.add(entry, visit);
+      bucket.metrics[key] = entry;
+      bucket.sampleSize += 1;
+    }
+  }
+  return closeBuckets(buckets, ctx, { dropEmpty: true });
 }
 
 /** Opaque, server-owned session-list cursor (`06-API/03-Shared-Conventions.md` §Pagination). */
