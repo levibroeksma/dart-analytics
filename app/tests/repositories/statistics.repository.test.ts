@@ -1340,7 +1340,10 @@ describe("findVisitScoring", () => {
         visitRank: {},
       })),
     };
-    const outer = { from: vi.fn().mockResolvedValue([row]) };
+    const outer = {
+      from: vi.fn().mockReturnThis(),
+      groupBy: vi.fn().mockResolvedValue([row]),
+    };
     const db = {
       select: vi.fn().mockReturnValueOnce(inner).mockReturnValueOnce(outer),
     } as any;
@@ -2973,7 +2976,8 @@ describe("findStepBuckets", () => {
   it("parses the sum strings to numbers", async () => {
     const chain = {
       from: vi.fn().mockReturnThis(),
-      where: vi.fn().mockResolvedValue([
+      where: vi.fn().mockReturnThis(),
+      groupBy: vi.fn().mockResolvedValue([
         {
           bucketStart: "2026-01-01T00:00:00.000Z",
           bucketEnd: "2026-02-01T00:00:00.000Z",
@@ -3005,7 +3009,8 @@ describe("findStepBuckets", () => {
   it("returns no bucket on bucket=none when no session is in scope, like the game readers", async () => {
     const chain = {
       from: vi.fn().mockReturnThis(),
-      where: vi.fn().mockResolvedValue([
+      where: vi.fn().mockReturnThis(),
+      groupBy: vi.fn().mockResolvedValue([
         {
           bucketStart: "2026-01-01T00:00:00.000Z",
           bucketEnd: "2026-02-01T00:00:00.000Z",
