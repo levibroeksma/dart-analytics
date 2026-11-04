@@ -1,16 +1,16 @@
 /**
- * Pair design-system components with app components for the Claude Design
- * sync. React and Astro are never compared line by line, so items are not
+ * Pair design-system components (one folder per component in the Design
+ * System artifact: `components/<Name>/`) with app components. React and Astro are never compared line by line, so items are not
  * comparable: the hashes only tell which side changed since the last sync.
- * Spec: docs/superpowers/specs/2026-10-26-design-system-sync-design.md
+ * Spec: docs/superpowers/specs/2026-11-04-design-system-artifact-sync-design.md
  * Decision: D499
  */
-import { existsSync, readFileSync } from "node:fs";
-import { basename, join } from "node:path";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { basename, dirname, join } from "node:path";
 import { listFiles } from "./files";
 import { sha256, type ComponentPair, type Side, type SyncItem } from "./lock";
 
-const DESIGN_EXTS = [".jsx", ".d.ts", ".prompt.md"];
+const NOT_COMPONENTS = new Set(["Cover"]);
 const CODE_DIRS = ["app/src/components/ui", "app/src/components/forms"];
 
 /** Side for the files that exist, or null when none do (deleted or renamed). */
@@ -21,12 +21,13 @@ function sideOf(root: string, path: string, files: string[]): Side | null {
   return { path, hash: sha256(text.join("")) };
 }
 
+/** `components/<Name>/<Name>` → its source, types and guide; never preview.html. */
+function designFiles(stem: string): string[] {
+  return [`${stem}.jsx`, `${stem}.d.ts`, `${dirname(stem)}/README.md`];
+}
+
 function designSide(root: string, stem: string): Side | null {
-  return sideOf(
-    root,
-    stem,
-    DESIGN_EXTS.map((ext) => stem + ext),
-  );
+  return sideOf(root, stem, designFiles(stem));
 }
 
 function codeSide(root: string, paths: string[]): Side | null {
@@ -34,12 +35,15 @@ function codeSide(root: string, paths: string[]): Side | null {
 }
 
 function designStems(designRoot: string): string[] {
-  const stems = new Set<string>();
-  for (const rel of listFiles(join(designRoot, "components"))) {
-    const ext = DESIGN_EXTS.find((e) => rel.endsWith(e));
-    if (ext) stems.add(`components/${rel.slice(0, -ext.length)}`);
-  }
-  return [...stems];
+  const dir = join(designRoot, "components");
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir, { withFileTypes: true })
+    .filter((d) => d.isDirectory() && /^[A-Z]/.test(d.name))
+    .filter((d) => !NOT_COMPONENTS.has(d.name))
+    .map((d) => `components/${d.name}/${d.name}`)
+    .filter((stem) =>
+      designFiles(stem).some((p) => existsSync(join(designRoot, p))),
+    );
 }
 
 /**

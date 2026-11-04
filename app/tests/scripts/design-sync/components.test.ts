@@ -13,12 +13,15 @@ const put = (root: string, rel: string, text: string): void => {
 const setup = () => {
   const design = mkdtempSync(join(tmpdir(), "ds-design-"));
   const repo = mkdtempSync(join(tmpdir(), "ds-repo-"));
-  put(design, "components/buttons/Button.jsx", "J");
-  put(design, "components/buttons/Button.d.ts", "D");
-  put(design, "components/buttons/Button.prompt.md", "P");
-  put(design, "components/buttons/buttons.card.html", "<!-- @dsCard -->");
-  put(design, "components/feedback/Skeleton.jsx", "S");
-  put(design, "components/feedback/Skeleton.d.ts", "SD");
+  put(design, "components/Button/Button.jsx", "J");
+  put(design, "components/Button/Button.d.ts", "D");
+  put(design, "components/Button/README.md", "P");
+  put(design, "components/Button/preview.html", "<!-- @dsCard -->");
+  put(design, "components/Skeleton/Skeleton.jsx", "S");
+  put(design, "components/Skeleton/Skeleton.d.ts", "SD");
+  put(design, "components/Cover/preview.html", "<!-- @dsCard -->");
+  put(design, "components/lib/react.js", "R");
+  put(design, "components/buttons/Legacy.jsx", "L");
   put(repo, "app/src/components/ui/Button.astro", "A");
   put(repo, "app/src/components/ui/ButtonGroup.astro", "B");
   put(repo, "app/src/components/forms/Toggle.astro", "T");
@@ -30,7 +33,7 @@ describe("design-sync components", () => {
     const { design, repo } = setup();
     const items = componentItems(design, repo, [
       {
-        design: "components/buttons/Button",
+        design: "components/Button/Button",
         code: [
           "app/src/components/ui/Button.astro",
           "app/src/components/ui/ButtonGroup.astro",
@@ -48,7 +51,7 @@ describe("design-sync components", () => {
       true,
     );
     expect(byId["component:Button"].design).toEqual({
-      path: "components/buttons/Button",
+      path: "components/Button/Button",
       hash: sha256("JDP"),
     });
     expect(byId["component:Button"].code).toEqual({
@@ -62,7 +65,19 @@ describe("design-sync components", () => {
     );
   });
 
-  it("hashes the design files that exist when .prompt.md is missing", () => {
+  it("ignores preview.html changes", () => {
+    const { design, repo } = setup();
+    const before = componentItems(design, repo, []).find(
+      (i) => i.id === "component:Button",
+    );
+    put(design, "components/Button/preview.html", "<!-- changed -->");
+    const after = componentItems(design, repo, []).find(
+      (i) => i.id === "component:Button",
+    );
+    expect(after?.design).toEqual(before?.design);
+  });
+
+  it("hashes the design files that exist when README.md is missing", () => {
     const { design, repo } = setup();
     const skeleton = componentItems(design, repo, []).find(
       (i) => i.id === "component:Skeleton",
@@ -74,7 +89,7 @@ describe("design-sync components", () => {
     const { design, repo } = setup();
     const items = componentItems(design, repo, [
       {
-        design: "components/buttons/Gone",
+        design: "components/Gone/Gone",
         code: ["app/src/components/ui/Renamed.astro"],
       },
     ]);
