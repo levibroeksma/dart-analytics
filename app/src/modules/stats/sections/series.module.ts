@@ -84,6 +84,34 @@ export function closeBuckets<M>(
 }
 
 /**
+ * Reshapes rows that already are one bucket each (grouped in SQL) into the
+ * ordered series: sorted by `bucketStart` with `localeCompare`, each stamped
+ * with closure, `read` giving the row's sample size and metrics.
+ */
+export function rowBuckets<
+  R extends { bucketStart: string; bucketEnd: string },
+  M,
+>(
+  rows: readonly R[],
+  ctx: { to: string; now: Date },
+  read: (row: R) => { sampleSize: number; metrics: M },
+): SeriesBucket<M>[] {
+  return rows
+    .slice()
+    .sort((a, b) => a.bucketStart.localeCompare(b.bucketStart))
+    .map((row) => {
+      const { sampleSize, metrics } = read(row);
+      return {
+        start: row.bucketStart,
+        end: row.bucketEnd,
+        closed: isClosed(row.bucketEnd, ctx.to, ctx.now),
+        sampleSize,
+        metrics,
+      };
+    });
+}
+
+/**
  * Folds sessions' visits into start-keyed buckets of keyed entries: every
  * session opens its bucket, each visit `include` admits gets-or-creates the
  * entry at `keyOf(visit)` from `empty()`, is passed to `add`, and counts one

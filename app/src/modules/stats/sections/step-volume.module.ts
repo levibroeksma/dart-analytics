@@ -1,4 +1,4 @@
-import { isClosed } from "./series.module";
+import { rowBuckets } from "./series.module";
 import type { StepBucketRow, StepVolumeMetrics } from "@modules/types";
 import type { SeriesBucket } from "@lib/types";
 
@@ -15,18 +15,12 @@ export function stepVolumeBuckets(
   rows: readonly StepBucketRow[],
   ctx: { to: string; now: Date },
 ): SeriesBucket<StepVolumeMetrics>[] {
-  return rows
-    .slice()
-    .sort((a, b) => a.bucketStart.localeCompare(b.bucketStart))
-    .map((row) => ({
-      start: row.bucketStart,
-      end: row.bucketEnd,
-      closed: isClosed(row.bucketEnd, ctx.to, ctx.now),
-      sampleSize: row.sessions,
-      metrics: {
-        sessions: row.sessions,
-        durationSeconds: row.durationSum,
-        darts: row.darts,
-      },
-    }));
+  return rowBuckets(rows, ctx, (row) => ({
+    sampleSize: row.sessions,
+    metrics: {
+      sessions: row.sessions,
+      durationSeconds: row.durationSum,
+      darts: row.darts,
+    },
+  }));
 }

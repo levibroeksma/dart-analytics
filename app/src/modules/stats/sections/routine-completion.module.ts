@@ -1,4 +1,4 @@
-import { isClosed } from "./series.module";
+import { rowBuckets } from "./series.module";
 import type {
   RoutineCompletionMetrics,
   RoutineRunBucketRow,
@@ -16,19 +16,13 @@ export function routineCompletionBuckets(
   rows: readonly RoutineRunBucketRow[],
   ctx: { to: string; now: Date },
 ): SeriesBucket<RoutineCompletionMetrics>[] {
-  return rows
-    .slice()
-    .sort((a, b) => a.bucketStart.localeCompare(b.bucketStart))
-    .map((row) => ({
-      start: row.bucketStart,
-      end: row.bucketEnd,
-      closed: isClosed(row.bucketEnd, ctx.to, ctx.now),
-      sampleSize: row.runs,
-      metrics: {
-        completed: row.completed,
-        abandoned: row.abandoned,
-        neverStarted: row.neverStarted,
-        stepsCompletedAtAbandon: row.stepsCompletedAtAbandon,
-      },
-    }));
+  return rowBuckets(rows, ctx, (row) => ({
+    sampleSize: row.runs,
+    metrics: {
+      completed: row.completed,
+      abandoned: row.abandoned,
+      neverStarted: row.neverStarted,
+      stepsCompletedAtAbandon: row.stepsCompletedAtAbandon,
+    },
+  }));
 }

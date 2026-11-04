@@ -71,3 +71,35 @@ describe("routineCompletionBuckets", () => {
     ]);
   });
 });
+
+describe("routineCompletionBuckets bucket series", () => {
+  const ctx = {
+    to: "2026-02-01T00:00:00.000Z",
+    now: new Date("2026-03-01T00:00:00.000Z"),
+  };
+
+  it("gives [] for no rows", () => {
+    expect(routineCompletionBuckets([], ctx)).toEqual([]);
+  });
+
+  it("keeps two rows with one start as two buckets and leaves the input order alone", () => {
+    const rows = [
+      row({ bucketStart: "2026-02-01T00:00:00.000Z" }),
+      row({ bucketStart: "2026-01-01T00:00:00.000Z" }),
+      row({ bucketStart: "2026-02-01T00:00:00.000Z" }),
+    ];
+
+    const buckets = routineCompletionBuckets(rows, ctx);
+
+    expect(buckets.map((bucket) => bucket.start)).toEqual([
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+    ]);
+    expect(rows.map((r) => r.bucketStart)).toEqual([
+      "2026-02-01T00:00:00.000Z",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+    ]);
+  });
+});

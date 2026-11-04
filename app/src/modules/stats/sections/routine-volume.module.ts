@@ -1,4 +1,4 @@
-import { isClosed } from "./series.module";
+import { rowBuckets } from "./series.module";
 import type { RoutineRunBucketRow, RoutineVolumeMetrics } from "@modules/types";
 import type { SeriesBucket } from "@lib/types";
 
@@ -16,20 +16,14 @@ export function routineVolumeBuckets(
   rows: readonly RoutineRunBucketRow[],
   ctx: { to: string; now: Date },
 ): SeriesBucket<RoutineVolumeMetrics>[] {
-  return rows
-    .slice()
-    .sort((a, b) => a.bucketStart.localeCompare(b.bucketStart))
-    .map((row) => ({
-      start: row.bucketStart,
-      end: row.bucketEnd,
-      closed: isClosed(row.bucketEnd, ctx.to, ctx.now),
-      sampleSize: row.runs,
-      metrics: {
-        runs: row.runs,
-        durationSeconds: row.durationSum,
-        minDurationSeconds: row.durationMin,
-        maxDurationSeconds: row.durationMax,
-        darts: row.darts,
-      },
-    }));
+  return rowBuckets(rows, ctx, (row) => ({
+    sampleSize: row.runs,
+    metrics: {
+      runs: row.runs,
+      durationSeconds: row.durationSum,
+      minDurationSeconds: row.durationMin,
+      maxDurationSeconds: row.durationMax,
+      darts: row.darts,
+    },
+  }));
 }

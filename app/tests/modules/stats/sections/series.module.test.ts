@@ -3,6 +3,7 @@ import {
   bucketFor,
   closeBuckets,
   isClosed,
+  rowBuckets,
   encodeCursor,
   decodeCursor,
   encodeDataVersion,
@@ -204,5 +205,72 @@ describe("bucketFor", () => {
     expect(a).not.toBe(b);
     expect(a.metrics).not.toBe(b.metrics);
     expect(buckets.size).toBe(2);
+  });
+});
+
+describe("rowBuckets", () => {
+  const ctx = {
+    to: "2026-03-01T00:00:00.000Z",
+    now: new Date("2026-02-15T00:00:00.000Z"),
+  };
+  const rows = [
+    {
+      bucketStart: "2026-02-01T00:00:00.000Z",
+      bucketEnd: "2026-03-01T00:00:00.000Z",
+      n: 2,
+    },
+    {
+      bucketStart: "2026-01-01T00:00:00.000Z",
+      bucketEnd: "2026-02-01T00:00:00.000Z",
+      n: 5,
+    },
+  ];
+
+  it("gives [] for no rows", () => {
+    expect(rowBuckets([], ctx, () => ({ sampleSize: 0, metrics: {} }))).toEqual(
+      [],
+    );
+  });
+
+  it("sorts by start, stamps closure and takes sample size and metrics from read", () => {
+    const buckets = rowBuckets(rows, ctx, (row) => ({
+      sampleSize: row.n,
+      metrics: { n: row.n },
+    }));
+
+    expect(buckets).toEqual([
+      {
+        start: "2026-01-01T00:00:00.000Z",
+        end: "2026-02-01T00:00:00.000Z",
+        closed: true,
+        sampleSize: 5,
+        metrics: { n: 5 },
+      },
+      {
+        start: "2026-02-01T00:00:00.000Z",
+        end: "2026-03-01T00:00:00.000Z",
+        closed: false,
+        sampleSize: 2,
+        metrics: { n: 2 },
+      },
+    ]);
+    expect(Object.keys(buckets[0]!)).toEqual([
+      "start",
+      "end",
+      "closed",
+      "sampleSize",
+      "metrics",
+    ]);
+  });
+
+  it("leaves the input order alone and never merges rows with one start", () => {
+    const twin = [rows[0]!, { ...rows[0]!, n: 7 }];
+    const buckets = rowBuckets(twin, ctx, (row) => ({
+      sampleSize: row.n,
+      metrics: null,
+    }));
+
+    expect(buckets.map((bucket) => bucket.sampleSize)).toEqual([2, 7]);
+    expect(rows.map((row) => row.n)).toEqual([2, 5]);
   });
 });
