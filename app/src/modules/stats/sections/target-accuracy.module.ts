@@ -1,5 +1,5 @@
 import { isHit, intendedKey } from "./intent-cells.module";
-import { isClosed } from "./series.module";
+import { bucketFor, closeBuckets } from "./series.module";
 import type { IntentCellRow, TargetAccuracyMetrics } from "@modules/types";
 import type { SeriesBucket } from "@lib/types";
 
@@ -14,11 +14,7 @@ export function targetAccuracyBuckets(
   >();
 
   for (const row of rows) {
-    const bucket = buckets.get(row.bucketStart) ?? {
-      end: row.bucketEnd,
-      metrics: {},
-      sampleSize: 0,
-    };
+    const bucket = bucketFor(buckets, row, () => ({}));
     bucket.sampleSize += row.darts;
 
     const key = intendedKey(row);
@@ -26,20 +22,7 @@ export function targetAccuracyBuckets(
     existing.attempts += row.darts;
     if (isHit(row)) existing.hits += row.darts;
     bucket.metrics[key] = existing;
-
-    buckets.set(row.bucketStart, bucket);
   }
 
-  return Array.from(buckets.keys())
-    .sort()
-    .map((start) => {
-      const bucket = buckets.get(start)!;
-      return {
-        start,
-        end: bucket.end,
-        closed: isClosed(bucket.end, ctx.to, ctx.now),
-        sampleSize: bucket.sampleSize,
-        metrics: bucket.metrics,
-      };
-    });
+  return closeBuckets(buckets, ctx);
 }

@@ -37,6 +37,27 @@ export function isClosed(bucketEnd: string, to: string, now: Date): boolean {
 }
 
 /**
+ * Gets or creates the start-keyed accumulator `row` falls in: a new one takes
+ * the row's `bucketEnd`, no samples and `emptyMetrics()`. The caller mutates
+ * the returned accumulator in place.
+ */
+export function bucketFor<M>(
+  buckets: Map<string, { end: string; sampleSize: number; metrics: M }>,
+  row: { bucketStart: string; bucketEnd: string },
+  emptyMetrics: () => NoInfer<M>,
+): { end: string; sampleSize: number; metrics: M } {
+  const existing = buckets.get(row.bucketStart);
+  if (existing) return existing;
+  const created = {
+    end: row.bucketEnd,
+    sampleSize: 0,
+    metrics: emptyMetrics(),
+  };
+  buckets.set(row.bucketStart, created);
+  return created;
+}
+
+/**
  * Turns a section's start-keyed accumulators into its ordered series:
  * sorted by bucket start, each stamped with closure. `dropEmpty` omits buckets
  * that took no sample.

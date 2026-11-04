@@ -1,7 +1,7 @@
 import { SECTOR_ORDER } from "@lib/game/board/board-geometry.module";
 import { isAimHit } from "@lib/stats/target-key";
 import { intendedKey } from "./intent-cells.module";
-import { isClosed } from "./series.module";
+import { bucketFor, closeBuckets } from "./series.module";
 import type { IntentZoneKey, SeriesBucket } from "@lib/types";
 import type {
   DartZoneKey,
@@ -136,11 +136,7 @@ export function looseDartsBuckets(
   >();
 
   for (const row of rows) {
-    const bucket = buckets.get(row.bucketStart) ?? {
-      end: row.bucketEnd,
-      metrics: {},
-      sampleSize: 0,
-    };
+    const bucket = bucketFor(buckets, row, () => ({}));
     bucket.sampleSize += row.darts;
 
     const key = intendedKey(row);
@@ -160,20 +156,7 @@ export function looseDartsBuckets(
     else if (landing === "nearMiss") existing.nearMiss += row.darts;
     else existing.loose += row.darts;
     bucket.metrics[key] = existing;
-
-    buckets.set(row.bucketStart, bucket);
   }
 
-  return Array.from(buckets.keys())
-    .sort()
-    .map((start) => {
-      const bucket = buckets.get(start)!;
-      return {
-        start,
-        end: bucket.end,
-        closed: isClosed(bucket.end, ctx.to, ctx.now),
-        sampleSize: bucket.sampleSize,
-        metrics: bucket.metrics,
-      };
-    });
+  return closeBuckets(buckets, ctx);
 }

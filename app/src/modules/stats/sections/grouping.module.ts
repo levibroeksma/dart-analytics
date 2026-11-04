@@ -1,6 +1,6 @@
 import { zoneCentroid } from "@lib/game/board/board-geometry.module";
 import { intendedKey } from "./intent-cells.module";
-import { isClosed } from "./series.module";
+import { bucketFor, closeBuckets } from "./series.module";
 import type { BoardPoint, IntentZoneKey, SeriesBucket } from "@lib/types";
 import type {
   GroupingMetrics,
@@ -22,11 +22,7 @@ export function groupingBuckets(
   >();
 
   for (const row of rows) {
-    const bucket = buckets.get(row.bucketStart) ?? {
-      end: row.bucketEnd,
-      metrics: {},
-      sampleSize: 0,
-    };
+    const bucket = bucketFor(buckets, row, () => ({}));
     bucket.sampleSize += row.n;
 
     const key = intendedKey(row);
@@ -45,22 +41,9 @@ export function groupingBuckets(
     existing.sumYY += row.sumYY;
     existing.sumXY += row.sumXY;
     bucket.metrics[key] = existing;
-
-    buckets.set(row.bucketStart, bucket);
   }
 
-  return Array.from(buckets.keys())
-    .sort()
-    .map((start) => {
-      const bucket = buckets.get(start)!;
-      return {
-        start,
-        end: bucket.end,
-        closed: isClosed(bucket.end, ctx.to, ctx.now),
-        sampleSize: bucket.sampleSize,
-        metrics: bucket.metrics,
-      };
-    });
+  return closeBuckets(buckets, ctx);
 }
 
 /**
