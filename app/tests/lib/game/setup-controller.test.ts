@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { createPresetSetupController } from "@lib/game/setup-controller";
+import {
+  createPresetSetupController,
+  startPresetSession,
+} from "@lib/game/setup-controller";
 import type { PresetSetupContext } from "@lib/types";
 import * as sessionsApi from "@client/api/sessions";
 import * as presetsApi from "@client/api/configuration-templates";
@@ -436,6 +439,105 @@ describe("createPresetSetupController", () => {
       expect(sessionsApi.createSession).toHaveBeenLastCalledWith(
         expect.objectContaining({ rulesetVersionKey: "SINGLES_V1" }),
       );
+    });
+  });
+
+  describe("startPresetSession", () => {
+    const spec = {
+      gameTypeKey: "SINGLES_TRAINING",
+      rulesetVersionKey: "SINGLES_V1",
+      playHref: "/games/singles-training/play",
+      preset: SINGLES_PRESET,
+      overrides: { order_mode: "HIGH_TO_LOW" },
+    } as const;
+
+    it("creates the session with the overrides, starts the store and navigates", async () => {
+      const setup = plain();
+      vi.mocked(sessionsApi.createSession).mockResolvedValue(SESSION);
+
+      await startPresetSession(setup, spec);
+
+      const body = vi.mocked(sessionsApi.createSession).mock.calls[0][0];
+      expect(body).toEqual(
+        expect.objectContaining({
+          gameTypeKey: "SINGLES_TRAINING",
+          rulesetVersionKey: "SINGLES_V1",
+          config: {
+            source: "template",
+            templateRef: "tmpl-1",
+            overrides: { order_mode: "HIGH_TO_LOW" },
+          },
+        }),
+      );
+      expect(store.game.startSession).toHaveBeenCalledTimes(1);
+      const input = vi.mocked(store.game.startSession).mock.calls[0][0] as {
+        configSnapshot: { orderMode: string };
+      };
+      expect(input.configSnapshot.orderMode).toBe("HIGH_TO_LOW");
+      expect(globalThis.location.href).toBe("/games/singles-training/play");
+      expect(setup.loading).toBe(false);
+      expect(setup.error).toBe("");
+    });
+
+    it("omits the overrides key when none are given", async () => {
+      const setup = plain();
+      vi.mocked(sessionsApi.createSession).mockResolvedValue(SESSION);
+
+      await startPresetSession(setup, {
+        gameTypeKey: "SHANGHAI",
+        rulesetVersionKey: "SHANGHAI_V1",
+        playHref: "/games/shanghai/play",
+        preset: PRESET,
+      });
+
+      const body = vi.mocked(sessionsApi.createSession).mock.calls[0][0];
+      expect("overrides" in (body.config as object)).toBe(false);
+      expect(setup.loading).toBe(false);
+    });
+
+    it("retries reconciliation and sets no error on SESSION_ALREADY_ACTIVE", async () => {
+      const setup = plain();
+      setup.error = "stale";
+      const retry = vi.fn().mockResolvedValue(undefined);
+      setup.retryReconciliation = retry;
+      vi.mocked(sessionsApi.createSession).mockRejectedValue(
+        Object.assign(new Error("active"), { code: "SESSION_ALREADY_ACTIVE" }),
+      );
+
+      await startPresetSession(setup, spec);
+
+      expect(retry).toHaveBeenCalledTimes(1);
+      expect(setup.error).toBe("");
+      expect(setup.loading).toBe(false);
+      expect(globalThis.location.href).toBe("");
+    });
+
+    it("sets the start error on any other failure", async () => {
+      const setup = plain();
+      const retry = vi.fn();
+      setup.retryReconciliation = retry;
+      vi.mocked(sessionsApi.createSession).mockRejectedValue(new Error("boom"));
+
+      await startPresetSession(setup, spec);
+
+      expect(retry).not.toHaveBeenCalled();
+      expect(setup.error).toBe("Could not start the session. Try again.");
+      expect(setup.loading).toBe(false);
+      expect(store.game.startSession).not.toHaveBeenCalled();
+    });
+
+    it("holds loading true while createSession is in flight", async () => {
+      const setup = plain();
+      let seen: boolean | undefined;
+      vi.mocked(sessionsApi.createSession).mockImplementation(async () => {
+        seen = setup.loading;
+        return SESSION;
+      });
+
+      await startPresetSession(setup, spec);
+
+      expect(seen).toBe(true);
+      expect(setup.loading).toBe(false);
     });
   });
 });
