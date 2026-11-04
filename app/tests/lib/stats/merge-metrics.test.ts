@@ -464,3 +464,71 @@ describe("mergeMetrics", () => {
     expect(merged["START15|"]!.completed).toBe(1);
   });
 });
+
+describe("mergeMetrics nested count records (checkout-path, atc-darts-per-target)", () => {
+  it("unions outer and inner keys, a-side first, and copies a one-sided outer entry", () => {
+    const only = { "1": { darts: 2, cleared: 1 } };
+    const merged = mergeMetrics(
+      "atc-darts-per-target",
+      { b: { "S:2": { darts: 1, cleared: 0 } }, a: only },
+      {
+        c: { "3": { darts: 4, cleared: 1 } },
+        b: { "S:1": { darts: 1, cleared: 1 } },
+      },
+    );
+    expect(merged).toEqual({
+      b: { "S:2": { darts: 1, cleared: 0 }, "S:1": { darts: 1, cleared: 1 } },
+      a: { "1": { darts: 2, cleared: 1 } },
+      c: { "3": { darts: 4, cleared: 1 } },
+    });
+    expect(Object.keys(merged)).toEqual(["b", "a", "c"]);
+    expect(Object.keys(merged.b!)).toEqual(["S:2", "S:1"]);
+    expect(merged.a).not.toBe(only);
+  });
+
+  it("gives {} for two empty sides", () => {
+    expect(mergeMetrics("checkout-path", {}, {})).toEqual({});
+  });
+});
+
+describe("mergeMetrics one-sided keys (bobs27-survival, scoreAfter)", () => {
+  it("passes a one-sided group and scoreAfter entry through as the same object", () => {
+    const entry = { runs: 1, sum: 27, min: 27, max: 27 };
+    const group = {
+      runs: 1,
+      completed: 1,
+      reached: {},
+      died: {},
+      scoreAfter: { "INNER_BULL:25": entry },
+    };
+    const merged = mergeMetrics(
+      "bobs27-survival",
+      {
+        "START27|": {
+          runs: 1,
+          completed: 0,
+          reached: {},
+          died: {},
+          scoreAfter: { "DOUBLE:4": { runs: 1, sum: 3, min: 3, max: 3 } },
+        },
+      },
+      {
+        "START15|": group,
+        "START27|": {
+          runs: 1,
+          completed: 0,
+          reached: {},
+          died: {},
+          scoreAfter: { "INNER_BULL:25": entry },
+        },
+      },
+    );
+    expect(merged["START15|"]).toBe(group);
+    expect(merged["START27|"]!.scoreAfter["INNER_BULL:25"]).toBe(entry);
+    expect(Object.keys(merged)).toEqual(["START27|", "START15|"]);
+    expect(Object.keys(merged["START27|"]!.scoreAfter)).toEqual([
+      "DOUBLE:4",
+      "INNER_BULL:25",
+    ]);
+  });
+});
