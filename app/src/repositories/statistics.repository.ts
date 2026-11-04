@@ -860,6 +860,36 @@ export async function findMissSectors(
 }
 
 /**
+ * Located-dart counts per `cellMm` grid cell of `v_stats_dart_facts` under
+ * `where`. Groups by select position: re-binding `cellMm` in the GROUP BY
+ * would not match the SELECT's own parameter (42803).
+ */
+async function selectHeatmapCells(
+  db: Db,
+  cellMm: number,
+  where: SQL | undefined,
+): Promise<HeatmapCellRow[]> {
+  const ixExpr = sql<number>`FLOOR(${vStatsDartFacts.locationX} / ${cellMm})::integer`;
+  const iyExpr = sql<number>`FLOOR(${vStatsDartFacts.locationY} / ${cellMm})::integer`;
+
+  const rows = await db
+    .select({
+      ix: ixExpr,
+      iy: iyExpr,
+      darts: sql<number>`count(*)::integer`,
+    })
+    .from(vStatsDartFacts)
+    .where(where)
+    .groupBy(sql`1`, sql`2`);
+
+  return rows.map((row) => ({
+    ix: Number(nonNull(row.ix, "ix")),
+    iy: Number(nonNull(row.iy, "iy")),
+    darts: Number(nonNull(row.darts, "darts")),
+  }));
+}
+
+/**
  * Non-empty `HEATMAP_CELL_MM` grid cells over `v_stats_dart_facts` — feeds
  * `heatmap` (phase-2 decision 6). `target` narrows to darts aimed at one
  * target when the section's optional `target` parameter is set. Groups by
@@ -878,24 +908,7 @@ export async function findHeatmapCells(
     conditions.push(eq(vStatsDartFacts.intendedTargetNumber, q.target.number));
     conditions.push(eq(vStatsDartFacts.intendedZoneKey, q.target.zone));
   }
-  const ixExpr = sql<number>`FLOOR(${vStatsDartFacts.locationX} / ${q.cellMm})::integer`;
-  const iyExpr = sql<number>`FLOOR(${vStatsDartFacts.locationY} / ${q.cellMm})::integer`;
-
-  const rows = await db
-    .select({
-      ix: ixExpr,
-      iy: iyExpr,
-      darts: sql<number>`count(*)::integer`,
-    })
-    .from(vStatsDartFacts)
-    .where(and(...conditions))
-    .groupBy(sql`1`, sql`2`);
-
-  return rows.map((row) => ({
-    ix: Number(nonNull(row.ix, "ix")),
-    iy: Number(nonNull(row.iy, "iy")),
-    darts: Number(nonNull(row.darts, "darts")),
-  }));
+  return selectHeatmapCells(db, q.cellMm, and(...conditions));
 }
 
 function homeSessionWhere(scope: HomeScope) {
@@ -938,34 +951,19 @@ export async function findHomeHeatmapCells(
   db: Db,
   q: HomeScope & { cellMm: number },
 ): Promise<HeatmapCellRow[]> {
-  const ixExpr = sql<number>`FLOOR(${vStatsDartFacts.locationX} / ${q.cellMm})::integer`;
-  const iyExpr = sql<number>`FLOOR(${vStatsDartFacts.locationY} / ${q.cellMm})::integer`;
-
-  const rows = await db
-    .select({
-      ix: ixExpr,
-      iy: iyExpr,
-      darts: sql<number>`count(*)::integer`,
-    })
-    .from(vStatsDartFacts)
-    .where(
-      and(
-        eq(vStatsDartFacts.playerId, q.playerId),
-        inArray(vStatsDartFacts.gameTypeKey, q.gameTypeKeys),
-        gte(vStatsDartFacts.completedAt, q.from),
-        lt(vStatsDartFacts.completedAt, q.to),
-        eq(vStatsDartFacts.statusKey, "COMPLETED"),
-        isNotNull(vStatsDartFacts.locationX),
-        isNotNull(vStatsDartFacts.locationY),
-      ),
-    )
-    .groupBy(sql`1`, sql`2`);
-
-  return rows.map((row) => ({
-    ix: Number(nonNull(row.ix, "ix")),
-    iy: Number(nonNull(row.iy, "iy")),
-    darts: Number(nonNull(row.darts, "darts")),
-  }));
+  return selectHeatmapCells(
+    db,
+    q.cellMm,
+    and(
+      eq(vStatsDartFacts.playerId, q.playerId),
+      inArray(vStatsDartFacts.gameTypeKey, q.gameTypeKeys),
+      gte(vStatsDartFacts.completedAt, q.from),
+      lt(vStatsDartFacts.completedAt, q.to),
+      eq(vStatsDartFacts.statusKey, "COMPLETED"),
+      isNotNull(vStatsDartFacts.locationX),
+      isNotNull(vStatsDartFacts.locationY),
+    ),
+  );
 }
 
 type GameSessionsFilter = {

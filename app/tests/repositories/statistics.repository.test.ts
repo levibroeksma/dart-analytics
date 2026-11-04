@@ -1522,6 +1522,18 @@ describe("findHeatmapCells", () => {
     const [, groupBy = ""] = onlyStatement(statements).split(/ group by /i);
     expect(groupBy.trim()).toBe("1, 2");
   });
+
+  it("maps rows to numeric cells, throwing on a null cell column", async () => {
+    const mapped = renderingDb([["3", "-2", "7"]]);
+    await expect(
+      findHeatmapCells(mapped.db, { ...dartScope, cellMm: 5, target: null }),
+    ).resolves.toEqual([{ ix: 3, iy: -2, darts: 7 }]);
+
+    const broken = renderingDb([[3, null, 7]]);
+    await expect(
+      findHeatmapCells(broken.db, { ...dartScope, cellMm: 5, target: null }),
+    ).rejects.toThrow(/\biy\b/);
+  });
 });
 
 /**
@@ -3434,5 +3446,12 @@ describe("findHomeHeatmapCells", () => {
     const { db } = renderingDb([[-1, -26, "30"]]);
     const cells = await findHomeHeatmapCells(db, { ...homeScope, cellMm: 4 });
     expect(cells).toEqual([{ ix: -1, iy: -26, darts: 30 }]);
+  });
+
+  it("groups by the selected cell columns' positions, never a re-bound cellMm", async () => {
+    const { db, statements } = renderingDb([]);
+    await findHomeHeatmapCells(db, { ...homeScope, cellMm: 4 });
+    const [, groupBy = ""] = onlyStatement(statements).split(/ group by /i);
+    expect(groupBy.trim()).toBe("1, 2");
   });
 });
