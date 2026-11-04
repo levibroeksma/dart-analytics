@@ -648,10 +648,11 @@ export type FiveOhOneSetupContext = SetupSessionContext & {
  * an `orderMode` field — Singles and Doubles Training), which is why
  * `createPresetSetupController` can serve all five from one implementation.
  *
- * `501`, Score Training, and 121 (V2 onward) deliberately keep hand-written
- * contexts: each replaces `start` wholesale (preset selection, leg counts, a
- * clamped custom starting score or duration value), so routing them through
- * the factory would need one hook per branch. See
+ * `501`, Score Training, TUOD, and 121 (V2 onward) deliberately keep
+ * hand-written contexts: each has its own pre-steps (preset selection, leg
+ * counts, a clamped custom starting score or duration value), so routing them
+ * through the factory would need one hook per branch. They still end in
+ * `startPresetSession`, as the factory's `start` does. See
  * `docs/architecture/07-Frontend/09-Adding-A-Game.md`.
  *
  * The `this` parameters name this base type rather than a self-type
