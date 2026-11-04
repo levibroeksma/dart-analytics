@@ -815,19 +815,14 @@ async function resolveGameSectionRequest(
     return { error: resolvedTarget.error };
   }
 
-  const resolvedStatus = sectionStatuses(meta.includesAbandoned, q.status);
-  if ("error" in resolvedStatus) {
-    return { error: resolvedStatus.error };
+  const resolvedRange = await resolveSectionRange(db, meta, q);
+  if ("error" in resolvedRange) {
+    return { error: resolvedRange.error };
   }
 
-  const from =
-    q.bucket === "none"
-      ? q.from
-      : await findBucketFloor(db, q.from, q.bucket, q.tz!);
-
   return {
-    from,
-    statuses: resolvedStatus.statuses,
+    from: resolvedRange.from,
+    statuses: resolvedRange.statuses,
     target: resolvedTarget.target,
   };
 }

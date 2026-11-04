@@ -609,6 +609,14 @@ const ReplayStage = z.object({
   sequence: z.number().int(),
 });
 
+const SESSION_TIMING_FIELDS = {
+  startedAt: z.string().datetime({ offset: true }),
+  completedAt: z.string().datetime({ offset: true }),
+  durationSeconds: z.number().int(),
+  turnCount: z.number().int(),
+  dartCount: z.number().int(),
+};
+
 /**
  * Mirrors `ReplayHeader` (`@services/types`, D371 decision 5; D372
  * decision 11): `gameTypeKey`/`rulesetVersionKey` are `null` for a non-game
@@ -625,11 +633,7 @@ export const ReplayHeaderSchema = z.object({
   activityId: z.string().uuid(),
   routineStepSequenceNumber: z.number().int().nullable(),
   configuration: z.record(z.unknown()).nullable(),
-  startedAt: z.string().datetime({ offset: true }),
-  completedAt: z.string().datetime({ offset: true }),
-  durationSeconds: z.number().int(),
-  turnCount: z.number().int(),
-  dartCount: z.number().int(),
+  ...SESSION_TIMING_FIELDS,
   exerciseTypeKey: z.string(),
   exerciseRulesetVersionKey: z.string().nullable(),
   routineKey: z.string().nullable(),
@@ -675,11 +679,7 @@ const GameSessionListItem = z.object({
   statusKey: z.string(),
   contextKey: z.string(),
   neverStarted: z.boolean(),
-  startedAt: z.string().datetime({ offset: true }),
-  completedAt: z.string().datetime({ offset: true }),
-  durationSeconds: z.number().int(),
-  turnCount: z.number().int(),
-  dartCount: z.number().int(),
+  ...SESSION_TIMING_FIELDS,
   countedScore: z.number().int(),
 });
 
@@ -873,11 +873,7 @@ const StepSessionListItem = z.object({
   exerciseRulesetVersionKey: z.string().nullable(),
   statusKey: z.string(),
   neverStarted: z.boolean(),
-  startedAt: z.string().datetime({ offset: true }),
-  completedAt: z.string().datetime({ offset: true }),
-  durationSeconds: z.number().int(),
-  turnCount: z.number().int(),
-  dartCount: z.number().int(),
+  ...SESSION_TIMING_FIELDS,
   countedScore: z.number().int(),
 });
 
