@@ -1,4 +1,4 @@
-import { and, eq, isNull, or, sql } from "drizzle-orm";
+import { and, eq, isNull, or, sql, type SQL } from "drizzle-orm";
 import {
   activities,
   activityConfigurations,
@@ -307,10 +307,11 @@ export async function findActiveSessions(db: Db, playerId: string) {
   }));
 }
 
-export async function findActiveSessionForGameType(
+/** The player's first session matching every condition, scoped by `player_id` first. */
+async function findActiveSessionWhere(
   db: Db,
   playerId: string,
-  gameTypeId: string,
+  ...conditions: SQL[]
 ): Promise<ActiveSessionSummary | undefined> {
   const [row] = await db
     .select({
@@ -318,15 +319,22 @@ export async function findActiveSessionForGameType(
       startedAt: exerciseSessions.startedAt,
     })
     .from(exerciseSessions)
-    .where(
-      and(
-        eq(exerciseSessions.playerId, playerId),
-        eq(exerciseSessions.gameTypeId, gameTypeId),
-        isNull(exerciseSessions.completedAt),
-      ),
-    )
+    .where(and(eq(exerciseSessions.playerId, playerId), ...conditions))
     .limit(1);
   return row;
+}
+
+export async function findActiveSessionForGameType(
+  db: Db,
+  playerId: string,
+  gameTypeId: string,
+): Promise<ActiveSessionSummary | undefined> {
+  return findActiveSessionWhere(
+    db,
+    playerId,
+    eq(exerciseSessions.gameTypeId, gameTypeId),
+    isNull(exerciseSessions.completedAt),
+  );
 }
 
 /**
@@ -339,22 +347,13 @@ export async function findActiveSessionForExerciseType(
   playerId: string,
   exerciseTypeId: string,
 ): Promise<ActiveSessionSummary | undefined> {
-  const [row] = await db
-    .select({
-      sessionId: exerciseSessions.id,
-      startedAt: exerciseSessions.startedAt,
-    })
-    .from(exerciseSessions)
-    .where(
-      and(
-        eq(exerciseSessions.playerId, playerId),
-        eq(exerciseSessions.exerciseTypeId, exerciseTypeId),
-        isNull(exerciseSessions.gameTypeId),
-        isNull(exerciseSessions.completedAt),
-      ),
-    )
-    .limit(1);
-  return row;
+  return findActiveSessionWhere(
+    db,
+    playerId,
+    eq(exerciseSessions.exerciseTypeId, exerciseTypeId),
+    isNull(exerciseSessions.gameTypeId),
+    isNull(exerciseSessions.completedAt),
+  );
 }
 
 export async function findConfigurationPresets(

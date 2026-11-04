@@ -786,4 +786,15 @@ describe("session.repository rendered SQL", () => {
       'select "id", "started_at" from "exercise_sessions" where ("exercise_sessions"."player_id" = $1 and "exercise_sessions"."exercise_type_id" = $2 and "exercise_sessions"."game_type_id" is null and "exercise_sessions"."completed_at" is null) limit $3',
     );
   });
+
+  it("binds player, then the type key, then the single-row limit for both single-active lookups", async () => {
+    const { findActiveSessionForGameType, findActiveSessionForExerciseType } =
+      await import("@repositories/session.repository");
+    const game = renderingDb();
+    await findActiveSessionForGameType(game.db, "p1", "gt1");
+    expect(game.statements[0].params).toEqual(["p1", "gt1", 1]);
+    const exercise = renderingDb();
+    await findActiveSessionForExerciseType(exercise.db, "p1", "et1");
+    expect(exercise.statements[0].params).toEqual(["p1", "et1", 1]);
+  });
 });
