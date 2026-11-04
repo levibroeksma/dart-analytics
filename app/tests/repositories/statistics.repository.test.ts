@@ -3383,6 +3383,36 @@ describe("findStepScopeDartCount", () => {
     expect(sql).toMatch(/"step_key" = \$/);
   });
 
+  it("scopes with the same six predicates findStepBuckets, findStepFoldRows and findStepSessionPage scope with", async () => {
+    const whereOf = (sql: string) =>
+      sql
+        .split(/ where /i)[1]
+        .split(/ (?:group by|order by|limit) /i)[0]
+        .replace(/\$\d+/g, "$");
+    const scope =
+      '("v_stats_routine_step_facts"."player_id" = $ and "v_stats_routine_step_facts"."routine_key" = $ and "v_stats_routine_step_facts"."step_key" = $ and "v_stats_routine_step_facts"."completed_at" >= $ and "v_stats_routine_step_facts"."completed_at" < $ and "v_stats_routine_step_facts"."status_key" in ($)';
+    const bucketed = { ...stepScope, bucket: "none" as const, tz: undefined };
+    const counted = renderingDb([["0"]]);
+    await findStepScopeDartCount(counted.db, stepScope);
+    const buckets = renderingDb([]);
+    await findStepBuckets(buckets.db, bucketed);
+    const folds = renderingDb([]);
+    await findStepFoldRows(folds.db, bucketed);
+    const page = renderingDb([]);
+    await findStepSessionPage(page.db, {
+      ...stepScope,
+      limit: 25,
+      after: { completedAt: "2026-01-15T00:00:00.000Z", sessionId: "s1" },
+    });
+
+    expect(whereOf(onlyStatement(counted.statements))).toBe(`${scope})`);
+    expect(whereOf(onlyStatement(buckets.statements))).toBe(`${scope})`);
+    expect(whereOf(onlyStatement(folds.statements))).toBe(`${scope})`);
+    expect(
+      whereOf(onlyStatement(page.statements)).startsWith(`${scope} and `),
+    ).toBe(true);
+  });
+
   it("parses the sum from a string", async () => {
     const chain = {
       from: vi.fn().mockReturnThis(),

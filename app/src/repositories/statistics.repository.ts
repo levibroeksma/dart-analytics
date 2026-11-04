@@ -2077,6 +2077,18 @@ export async function findRoutineRunBuckets(
   );
 }
 
+/** One step's terminal sessions of `statuses` completed in `[from, to)`. */
+function stepScopeConditions(q: StepScope): SQL[] {
+  return [
+    eq(vStatsRoutineStepFacts.playerId, q.playerId),
+    eq(vStatsRoutineStepFacts.routineKey, q.routineKey),
+    eq(vStatsRoutineStepFacts.stepKey, q.stepKey),
+    gte(vStatsRoutineStepFacts.completedAt, q.from),
+    lt(vStatsRoutineStepFacts.completedAt, q.to),
+    inArray(vStatsRoutineStepFacts.statusKey, q.statuses),
+  ];
+}
+
 function mapStepBucketRow(row: {
   bucketStart: string | null;
   bucketEnd: string | null;
@@ -2107,14 +2119,7 @@ export async function findStepBuckets(
   db: Db,
   q: StepScope & { bucket: Bucket; tz: string | undefined },
 ): Promise<StepBucketRow[]> {
-  const whereClause = and(
-    eq(vStatsRoutineStepFacts.playerId, q.playerId),
-    eq(vStatsRoutineStepFacts.routineKey, q.routineKey),
-    eq(vStatsRoutineStepFacts.stepKey, q.stepKey),
-    gte(vStatsRoutineStepFacts.completedAt, q.from),
-    lt(vStatsRoutineStepFacts.completedAt, q.to),
-    inArray(vStatsRoutineStepFacts.statusKey, q.statuses),
-  );
+  const whereClause = and(...stepScopeConditions(q));
 
   const window = bucketWindow(vStatsRoutineStepFacts.completedAt, q);
 
@@ -2148,12 +2153,7 @@ export async function findStepSessionPage(
   },
 ): Promise<StepSessionRow[]> {
   const conditions = [
-    eq(vStatsRoutineStepFacts.playerId, q.playerId),
-    eq(vStatsRoutineStepFacts.routineKey, q.routineKey),
-    eq(vStatsRoutineStepFacts.stepKey, q.stepKey),
-    gte(vStatsRoutineStepFacts.completedAt, q.from),
-    lt(vStatsRoutineStepFacts.completedAt, q.to),
-    inArray(vStatsRoutineStepFacts.statusKey, q.statuses),
+    ...stepScopeConditions(q),
     q.after
       ? sql`(${vStatsRoutineStepFacts.completedAt}, ${vStatsRoutineStepFacts.sessionId}) < (${q.after.completedAt}, ${q.after.sessionId})`
       : undefined,
@@ -2298,14 +2298,7 @@ export async function findStepFoldRows(
   db: Db,
   q: StepScope & { bucket: Bucket; tz: string | undefined },
 ): Promise<StepFoldBucketRow[]> {
-  const whereClause = and(
-    eq(vStatsRoutineStepFacts.playerId, q.playerId),
-    eq(vStatsRoutineStepFacts.routineKey, q.routineKey),
-    eq(vStatsRoutineStepFacts.stepKey, q.stepKey),
-    gte(vStatsRoutineStepFacts.completedAt, q.from),
-    lt(vStatsRoutineStepFacts.completedAt, q.to),
-    inArray(vStatsRoutineStepFacts.statusKey, q.statuses),
-  );
+  const whereClause = and(...stepScopeConditions(q));
   const order = [
     vGameReplay.sessionId,
     vGameReplay.stageSequence,
@@ -2345,16 +2338,7 @@ export async function findStepScopeDartCount(
       dartCount: sql<string>`coalesce(sum(${vStatsRoutineStepFacts.dartCount}), 0)::integer`,
     })
     .from(vStatsRoutineStepFacts)
-    .where(
-      and(
-        eq(vStatsRoutineStepFacts.playerId, q.playerId),
-        eq(vStatsRoutineStepFacts.routineKey, q.routineKey),
-        eq(vStatsRoutineStepFacts.stepKey, q.stepKey),
-        gte(vStatsRoutineStepFacts.completedAt, q.from),
-        lt(vStatsRoutineStepFacts.completedAt, q.to),
-        inArray(vStatsRoutineStepFacts.statusKey, q.statuses),
-      ),
-    );
+    .where(and(...stepScopeConditions(q)));
 
   return Number(nonNull(row?.dartCount ?? null, "dart_count"));
 }
