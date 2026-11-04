@@ -42,13 +42,6 @@ export interface IdempotencyRecord {
   result: unknown;
 }
 
-/**
- * One session's rows, written in a single transaction.
- *
- * `participants` is every seat's participant row, in seat order. One entry
- * reproduces the single-PLAYER session this used to take four separate fields
- * for; several are what lets one session hold a guest alongside its owner.
- */
 /** One seat's `participants` row. */
 export interface SessionParticipantRecord {
   id: string;
@@ -57,6 +50,13 @@ export interface SessionParticipantRecord {
   displayName: string;
 }
 
+/**
+ * One session's rows, written in a single transaction.
+ *
+ * `participants` is every seat's participant row, in seat order. One entry
+ * reproduces the single-PLAYER session this used to take four separate fields
+ * for; several are what lets one session hold a guest alongside its owner.
+ */
 export interface CreateSessionRecordsInput {
   activityId: string;
   sessionId: string;
