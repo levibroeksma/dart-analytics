@@ -117,6 +117,8 @@ describe("/api/routines/[routineId]", () => {
     } as any);
     expect(response.status).toBe(204);
     expect(await response.text()).toBe("");
+    expect(response.headers.get("X-Request-Id")).toBe("req-1");
+    expect(service.deleteRoutine).toHaveBeenCalledWith("p1", "rt-1");
   });
 
   it("DELETE maps the read-only system routine to 422", async () => {
