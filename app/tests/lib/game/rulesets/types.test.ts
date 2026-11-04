@@ -4,6 +4,7 @@ import {
   BaseballConfig,
   KillerConfig,
   FollowTheLeaderConfig,
+  PrisonerConfig,
   Bobs27Config,
   Bobs27V2Config,
   CricketConfig,
@@ -827,5 +828,23 @@ describe("MickeyMouseConfig", () => {
     expect(RULESET_CONFIGS.MICKEY_MOUSE_V1).toBe(MickeyMouseConfig);
     expect(MickeyMouseConfig.safeParse({}).success).toBe(true);
     expect(MickeyMouseConfig.safeParse({ mode: "X" }).success).toBe(false);
+  });
+});
+
+describe("PrisonerConfig", () => {
+  it("is PRISONER_V1's schema", () => {
+    expect(RULESET_CONFIGS.PRISONER_V1).toBe(PrisonerConfig);
+  });
+
+  it("parses the seeded preset and defaults three darts", () => {
+    expect(PrisonerConfig.parse({ darts: 3 })).toEqual({ darts: 3 });
+    expect(PrisonerConfig.parse({})).toEqual({ darts: 3 });
+  });
+
+  it("locks three darts and no other key", () => {
+    expect(PrisonerConfig.safeParse({ darts: 4 }).success).toBe(false);
+    expect(
+      PrisonerConfig.safeParse({ darts: 3, rule: "DOUBLES" }).success,
+    ).toBe(false);
   });
 });

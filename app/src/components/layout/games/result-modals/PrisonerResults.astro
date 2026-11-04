@@ -1,0 +1,66 @@
+---
+import ResultsModalShell from "@components/layout/games/ResultsModalShell.astro";
+---
+
+<ResultsModalShell overline="Prisoner · Summary">
+  <h2
+    slot="title"
+    id="results-title"
+    class="text-balance font-display text-xl text-foreground"
+    x-text="resultsTitle()"
+  >
+  </h2>
+
+  <div
+    class="flex w-full items-baseline justify-between gap-4"
+    x-show="wonByLabel() !== ''"
+    x-cloak
+  >
+    <span
+      class="font-mono text-eyebrow font-semibold uppercase text-muted-foreground"
+      >Won by</span
+    >
+    <span
+      class="text-right text-sm text-foreground"
+      x-text="wonByLabel()"
+    ></span>
+  </div>
+
+  <ul class="inset-well flex w-full flex-col gap-3 rounded-2xl px-4 py-3">
+    <template x-for="row in resultRows()">
+      <li class="flex flex-col gap-1">
+        <div class="flex items-baseline justify-between gap-4">
+          <span
+            class="font-display text-sm"
+            :class="row.winner ? 'text-accent-bright' : 'text-foreground'"
+            x-text="row.name"
+          ></span>
+          <span
+            class="font-mono text-eyebrow font-semibold uppercase text-muted-foreground"
+            x-text="row.out ? 'Out' : row.target"
+          ></span>
+        </div>
+        <div class="flex justify-between gap-4 text-sm text-muted-foreground">
+          <span x-text="`${row.held} held`"></span>
+          <span x-text="`${row.captured} captured`"></span>
+          <span x-text="`${row.imprisoned} imprisoned`"></span>
+        </div>
+      </li>
+    </template>
+  </ul>
+
+  <div
+    class="flex w-full items-baseline justify-between gap-4"
+    x-show="outOrderLabel() !== ''"
+    x-cloak
+  >
+    <span
+      class="font-mono text-eyebrow font-semibold uppercase text-muted-foreground"
+      >Out order</span
+    >
+    <span
+      class="text-right text-sm text-foreground"
+      x-text="outOrderLabel()"
+    ></span>
+  </div>
+</ResultsModalShell>

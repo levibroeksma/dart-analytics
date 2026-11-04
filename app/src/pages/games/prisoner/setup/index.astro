@@ -1,0 +1,12 @@
+---
+export const prerender = true;
+import GameSetupPage from "@components/layout/games/setup/GameSetupPage.astro";
+import PrisonerSetupForm from "@components/layout/games/setup/PrisonerSetupForm.astro";
+---
+
+<GameSetupPage
+  title="Prisoner"
+  x-data="prisonerSetup()"
+>
+  <PrisonerSetupForm />
+</GameSetupPage>

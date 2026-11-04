@@ -14,6 +14,7 @@ import { cricketV2EngineFactory } from "@modules/game/cricket.engine.module";
 import { doublesTrainingEngineFactory } from "@modules/game/doubles-training.engine.module";
 import { fiveOhOneEngineFactory } from "@modules/game/five-oh-one.engine.module";
 import { oneTwentyOneEngineFactory } from "@modules/game/one-twenty-one.engine.module";
+import { prisonerEngineFactory } from "@modules/game/prisoner.engine.module";
 import { scoreTrainingEngineFactory } from "@modules/game/score-training.engine.module";
 import {
   shanghaiEngineFactory,
@@ -573,3 +574,20 @@ export const SCRIPTED_GAMES: [string, () => ScriptedGame][] = [
   ["Tactics 1v1", playTacticsDuel],
   ["Cricket 1v1", playCricketDuel],
 ];
+
+/**
+ * A Prisoner duel's first visits: A prisons on 1 then captures it with an
+ * advancing outer 1; B bounces one out and bulls one; A lodges on 5, which B
+ * captures off target; A's two misses sit out, so B throws twice in a row.
+ */
+export function playPrisoner(): ScriptedGame {
+  return scripted(prisonerEngineFactory, { seats: DUO_SEATS, darts: 3 }, [
+    [dart(1, "INNER_SINGLE"), dart(1, "OUTER_SINGLE"), dart(2, "OUTER_SINGLE")],
+    [dart(1, "OUTER_SINGLE"), MISS, dart(25, "OUTER_BULL")],
+    [dart(3, "OUTER_SINGLE"), dart(4, "OUTER_SINGLE"), dart(5, "INNER_SINGLE")],
+    [dart(5, "OUTER_SINGLE")],
+    [MISS, MISS],
+    [dart(2, "DOUBLE"), dart(2, "TREBLE"), dart(7, "INNER_SINGLE")],
+    [dart(2, "OUTER_SINGLE"), dart(3, "OUTER_SINGLE"), dart(4, "OUTER_SINGLE")],
+  ]);
+}

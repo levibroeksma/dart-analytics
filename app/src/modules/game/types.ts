@@ -1035,6 +1035,22 @@ export type FollowTheLeaderShared = {
 /** Follow the Leader seats carry no extras. */
 export type FollowTheLeaderExt = Record<string, never>;
 
+/** Prisoner's seat extras: its target (21 once 20 is completed), darts sitting out this visit, the visit's dart budget, and the prisoners captured and darts imprisoned so far. */
+export type PrisonerExt = {
+  target: number;
+  missed: number;
+  sitting: number;
+  budget: number;
+  captured: number;
+  imprisoned: number;
+};
+
+/** Prisoner's game state beyond seats: prisoners lodged per number, and the seat next to throw. */
+export type PrisonerShared = {
+  lodged: Readonly<Record<number, number>>;
+  next: string | null;
+};
+
 /** One Follow the Leader seat as the play screen reads it: lives and whether it is out. */
 export type FollowTheLeaderSeatState = SeatState & {
   lives: number;
@@ -1062,3 +1078,33 @@ export type FollowTheLeaderState = MultiSeatState<FollowTheLeaderSeatState> & {
 
 /** A Follow the Leader visit action: close the open visit after a match, or keep the target without throwing. */
 export type FollowTheLeaderAction = { kind: "STOP" } | { kind: "KEEP" };
+
+/**
+ * One Prisoner seat as the play screen reads it: target (21 once 20 is
+ * completed), darts held, darts sitting out its next visit, that visit's
+ * dart budget, whether it is out, and prisoners captured and darts imprisoned.
+ */
+export type PrisonerSeatState = SeatState & {
+  held: number;
+  out: boolean;
+  target: number;
+  sitting: number;
+  budget: number;
+  captured: number;
+  imprisoned: number;
+};
+
+/**
+ * Prisoner's folded state: seats, out order and outcome (`wonBy` names how
+ * the game was won), the prisoners lodged per number (numbers holding none
+ * left out), and the darts the active seat has left to throw this visit.
+ */
+export type PrisonerState = MultiSeatState<PrisonerSeatState> & {
+  status: "IN_PROGRESS" | "COMPLETE";
+  winningSideKey: string | null;
+  outOrder: string[];
+  seats: PrisonerSeatState[];
+  lodged: Record<number, number>;
+  dartsLeft: number;
+  wonBy: "COMPLETED_20" | "LAST_IN" | null;
+};

@@ -22,6 +22,7 @@ import {
 } from "@modules/game/cricket.engine.module";
 import { TACTICS_OBJECTIVES } from "@modules/game/tactics.engine.module";
 import { MICKEY_MOUSE_OBJECTIVES } from "@modules/game/mickey-mouse.engine.module";
+import { prisonerDartResults } from "@modules/game/prisoner.engine.module";
 import { foldSeatSteps } from "@modules/game/seat-state.module";
 import { activeTargetOf as shanghaiTargetOf } from "@modules/game/shanghai.engine.module";
 import {
@@ -53,6 +54,8 @@ import type {
   SeatState,
   ShanghaiSeatState,
   SinglesTrainingSeatState,
+  PrisonerSeatState,
+  PrisonerState,
   TuodSeatState,
   TurnFact,
 } from "@modules/types";
@@ -493,6 +496,32 @@ const FOLLOW_THE_LEADER: ReplayPresenter = {
 };
 
 /**
+ * Prisoner, read off the play page: the thrower's darts held after the
+ * visit and what each of its darts did; the session line is each seat's
+ * darts held.
+ */
+const PRISONER: ReplayPresenter = {
+  turn({ turn, before, after }) {
+    return [
+      valueCell(
+        "Darts",
+        seatIn<PrisonerSeatState>(after, turn.participantRef).held,
+      ),
+      valueCell(
+        "Result",
+        prisonerDartResults(
+          before as PrisonerState,
+          turn.participantRef,
+          observationsOf(turn),
+        ).join(", "),
+      ),
+    ];
+  },
+  session: (steps) =>
+    finalLine<PrisonerSeatState>(steps, "Darts", (seat) => seat.held),
+};
+
+/**
  * Each game's replay presenter (D371 decision 8): per turn, the values its
  * play page shows after the visit; per session, its outcome line.
  */
@@ -512,6 +541,7 @@ export const REPLAY_PRESENTERS: Record<GameTypeKey, ReplayPresenter> = {
   BASEBALL,
   KILLER,
   FOLLOW_THE_LEADER,
+  PRISONER,
 };
 
 /** No facts to fold: every dart exercise kind's per-turn headline and darts count read off `state` alone (`stepMetrics`'s `numberField` reads), never off `facts` -- only Switching's own "hits" key uses `facts`, and a turn cell never shows it (session() does, over the real facts). */

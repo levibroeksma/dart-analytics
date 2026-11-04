@@ -30,6 +30,7 @@ describe("RULESET_CAPABILITIES", () => {
       "FOLLOW_THE_LEADER_V1",
       "KILLER_V1",
       "MICKEY_MOUSE_V1",
+      "PRISONER_V1",
       "SCORE_TRAINING_V1",
       "SHANGHAI_V1",
       "SHANGHAI_V2",
@@ -169,6 +170,7 @@ describe("capableRulesets", () => {
       "FOLLOW_THE_LEADER_V1",
       "KILLER_V1",
       "MICKEY_MOUSE_V1",
+      "PRISONER_V1",
       "SCORE_TRAINING_V1",
       "SHANGHAI_V1",
       "SHANGHAI_V2",
@@ -415,5 +417,20 @@ describe("MICKEY_MOUSE_V1", () => {
 
   it("has no dartbot", () => {
     expect(supportsDartbot("MICKEY_MOUSE_V1")).toBe(false);
+  });
+});
+
+describe("PRISONER_V1", () => {
+  it("declares VISUAL_BOARD only, the board tag, game type PRISONER, no Dartbot", () => {
+    expect(RULESET_CAPABILITIES.PRISONER_V1).toEqual([
+      { captureModeKey: "ANALYTICS", inputModeKey: "VISUAL_BOARD" },
+    ]);
+    expect(supportsMode("PRISONER_V1", "RECREATIONAL", "DETAILED_DARTS")).toBe(
+      false,
+    );
+    expect(supportsCaptureMode("PRISONER_V1", "RECREATIONAL")).toBe(false);
+    expect(STATS_TAGS.PRISONER_V1).toEqual(["board"]);
+    expect(GAME_TYPE_BY_RULESET.PRISONER_V1).toBe("PRISONER");
+    expect(supportsDartbot("PRISONER_V1")).toBe(false);
   });
 });
