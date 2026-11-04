@@ -89,9 +89,19 @@ stale` checks stay.
   `{id, value}` items the CSS parser does, so diff/record/lock stay as they
   are. Name mapping between `tokens.json` names and `global.css` custom
   properties is 1:1 by name (no `--`). The type's format cannot hold some
-  values: `var()`, `color-mix()`, named colours, `calc()`. For those, code
-  keeps the source of truth (D504). The diff lists them as "code-only by
-  format" and never proposes deleting them.
+  values: `var()`, `color-mix()`, named colours, `calc()`. The page drops
+  them. The diff lists those tokens as "code-only by format": they never
+  sync, and the diff never proposes deleting them. D504's "identical on
+  both sides" holds for every token the format can hold.
+- **Lock migration (one time, first tokens run):** item ids stay as they
+  are (`var:`, `rule:`, `keyframes:`). `rule:` (`@utility`) and
+  `keyframes:` items have no place in `tokens.json`; they leave the tokens
+  area and become code-owned. Design hashes are re-baselined from
+  `tokens.json`: the run shows the owner every item whose value differs
+  from code, and records the rest as in sync. The owner signs off on that
+  run like any manual sync. The first plan task reads the real
+  `tokens.json` and `format.md` and fixes the reader's mapping (themes,
+  `type`, name prefixes) from them.
 - **Assets:** the SVG normaliser already on `chore/design-sync-assets`
   (ignores c2pa provenance blocks, whitespace character references, empty
   element pairs) carries over unchanged.
@@ -100,21 +110,32 @@ stale` checks stay.
   are folded into `components/<Comp>/` once (README replaces `.prompt.md`),
   then moved aside per the type's `craft.md`. Comparison stays by reading
   both sides and describing the differences (D499).
+- **Folding the components (owner, 2026-11-04):** the first plan task.
+  Claude Code moves each component into `components/<Comp>/`: `<Comp>.jsx`
+  (source), `<Comp>.d.ts` (types), `README.md` (from `.prompt.md`) and the
+  existing `preview.html`. It shows the owner the path list, publishes
+  once approved, and rewrites the lock's `pairs` keys to the new paths.
 
 ### The ready mark (design → code)
 
 - A file `project/sync-ready.json` in the artifact:
-  `{"v":1,"items":[{"id":"token:--accent","note":"…","at":"<ISO>","by":"…"}]}`.
-  `id` uses the lock's item ids (`token:…`, `icon:…`, `brand:…`,
+  `{"v":1,"items":[{"id":"var:--accent","note":"…","at":"<ISO>","by":"…"}]}`.
+  `id` uses the lock's item ids (`var:…`, `icon:…`, `brand:…`,
   `component:<Name>`). A whole area may be marked (`"id":"area:tokens"`).
+- A mark applies only to items present on both sides. A marked item that
+  exists on one side only (a new token, icon or component, or a deletion)
+  is listed for one owner decision, never applied by the mark (my call).
+- Marked ready, but `main` also changed the item since the lock: a
+  conflict for the owner, not applied (my call).
 - The owner sets it by telling Claude in the artifact ("this is final, send
   it to code"); Claude there appends the items and sets `lastChange`.
 - In Claude Code, a design-side check (below) reads `sync-ready.json`. For
   each marked item that differs from code: apply as design-wins through the
   normal repo flow on a branch `chore/design-sync-<date>`, tests and gates,
-  open a PR. Then publish `sync-ready.json` with those items removed and
-  record them in the lock as `design-wins`. Marked items that already match
-  are cleared silently.
+  open a PR, and record the items in the lock as `design-wins` on that
+  branch. Once the PR merges, the next check publishes `sync-ready.json`
+  with those items removed. Marked items that already match are cleared
+  silently.
 - Unmarked design-side differences are only listed, never applied.
 
 ### After merge (code → design)
@@ -122,9 +143,12 @@ stale` checks stay.
 - A code-side check compares `origin/main`'s hashes for every **synced**
   item (in the lock, not `accepted-divergence`) against the lock's code hash.
   Changed on `main` → publish the code's version to the artifact (tokens via
-  a rewritten whole `tokens.json` with only those entries changed; assets and
-  components as files), update the lock, commit the lock on a
+  a rewritten whole `tokens.json` with only those entries changed; assets as
+  files), update the lock, commit the lock on a
   `chore/design-sync-<date>` branch with a PR.
+- **Components are design → code only (owner, 2026-11-04).** A component
+  changed on `main` is listed for the owner, never published to the
+  artifact automatically.
 - **Guard:** if the item's design side also changed since the lock and is
   not marked ready, skip it and list it as a conflict for the owner.
 - New items on `main` that the lock has never seen are listed, not
@@ -140,6 +164,20 @@ stale` checks stay.
   lock; read further files only when one of those says something moved.
   Output is at most a few lines ("2 ready design changes → PR #…", "3 code
   changes published", "1 conflict: …"). No access → silent.
+- **Where the work runs (owner, 2026-11-04):** when either check finds work,
+  the session launches a background agent in a fresh
+  `.worktrees/design-sync-<date>` worktree cut from `origin/main`. The
+  first answer is not delayed, and the session's own checkout is never
+  touched. The ready mark (design → code) or the merge (code → design) is
+  the go-ahead, so D499's "no confirmer → skip" rule does not apply to
+  these two paths. It still applies to everything that needs a per-item
+  decision.
+- **No duplicates (my call):** if an open PR on a `chore/design-sync-*`
+  branch exists, both checks skip and say "design sync PR #… still open".
+  Ready marks are cleared only after that PR merges, not when it opens.
+  A closed, unmerged PR leaves the marks in place for the next run. A lock
+  file under `.worktrees/` marks a run in progress, so a second session
+  starting at the same time skips.
 - **Manual:** "sync the design system" runs the full D499 per-item flow,
   one area at a time.
 - `lastChange` replaces the Claude Design `updatedAt` signal (#1135 moot).
