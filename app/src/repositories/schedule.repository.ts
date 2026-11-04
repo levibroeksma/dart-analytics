@@ -1,4 +1,4 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, type SQL } from "drizzle-orm";
 import { getDb, withTransaction } from "@db/client";
 import {
   trainingScheduleDays,
@@ -14,6 +14,14 @@ type Db = ReturnType<typeof getDb>;
 type Tx = Parameters<typeof withTransaction>[0] extends (tx: infer T) => unknown
   ? T
   : never;
+
+/** The predicate that scopes a `training_schedules` write to the caller's own row. */
+function ownedSchedule(scheduleId: string, playerId: string): SQL {
+  return and(
+    eq(trainingSchedules.id, scheduleId),
+    eq(trainingSchedules.playerId, playerId),
+  ) as SQL;
+}
 
 /**
  * The caller's own schedules, optionally narrowed to one, in name order with
@@ -135,12 +143,7 @@ export async function updateScheduleRecord(
   const rows = await tx
     .update(trainingSchedules)
     .set({ name: input.name, updatedAt: new Date().toISOString() })
-    .where(
-      and(
-        eq(trainingSchedules.id, input.scheduleId),
-        eq(trainingSchedules.playerId, input.playerId),
-      ),
-    )
+    .where(ownedSchedule(input.scheduleId, input.playerId))
     .returning({ id: trainingSchedules.id });
   return rows.length === 1;
 }
@@ -189,12 +192,7 @@ export async function setActiveSchedule(
   const owned = await tx
     .select({ id: trainingSchedules.id })
     .from(trainingSchedules)
-    .where(
-      and(
-        eq(trainingSchedules.id, input.scheduleId),
-        eq(trainingSchedules.playerId, input.playerId),
-      ),
-    );
+    .where(ownedSchedule(input.scheduleId, input.playerId));
   if (owned.length !== 1) return false;
   await tx
     .update(trainingSchedules)
@@ -203,12 +201,7 @@ export async function setActiveSchedule(
   await tx
     .update(trainingSchedules)
     .set({ isActive: true, updatedAt: new Date().toISOString() })
-    .where(
-      and(
-        eq(trainingSchedules.id, input.scheduleId),
-        eq(trainingSchedules.playerId, input.playerId),
-      ),
-    );
+    .where(ownedSchedule(input.scheduleId, input.playerId));
   return true;
 }
 
@@ -220,12 +213,7 @@ export async function clearActiveSchedule(
   const rows = await db
     .update(trainingSchedules)
     .set({ isActive: false, updatedAt: new Date().toISOString() })
-    .where(
-      and(
-        eq(trainingSchedules.id, input.scheduleId),
-        eq(trainingSchedules.playerId, input.playerId),
-      ),
-    )
+    .where(ownedSchedule(input.scheduleId, input.playerId))
     .returning({ id: trainingSchedules.id });
   return rows.length === 1;
 }
@@ -238,12 +226,7 @@ export async function deleteScheduleRecord(
 ): Promise<boolean> {
   const rows = await db
     .delete(trainingSchedules)
-    .where(
-      and(
-        eq(trainingSchedules.id, scheduleId),
-        eq(trainingSchedules.playerId, playerId),
-      ),
-    )
+    .where(ownedSchedule(scheduleId, playerId))
     .returning({ id: trainingSchedules.id });
   return rows.length === 1;
 }
