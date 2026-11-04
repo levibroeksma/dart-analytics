@@ -286,6 +286,36 @@ describe("listExerciseTemplates", () => {
 });
 
 describe("createRoutine", () => {
+  it("answers INTERNAL_ERROR when the MINUTES duration type is missing, writing nothing", async () => {
+    vi.mocked(repo.findDurationTypeId).mockResolvedValue(undefined);
+    expect(await createRoutine("p1", VALID)).toEqual({
+      ok: false,
+      code: "INTERNAL_ERROR",
+      details: { reason: "reference data missing" },
+    });
+    expect(repo.findDurationTypeId).toHaveBeenCalledWith(
+      expect.anything(),
+      "MINUTES",
+    );
+    expect(withTransaction).not.toHaveBeenCalled();
+  });
+
+  it("reports a write issue before looking up the duration type", async () => {
+    vi.mocked(repo.findDurationTypeId).mockResolvedValue(undefined);
+    const result = await createRoutine("p1", {
+      ...VALID,
+      steps: [
+        {
+          exerciseTemplateId: "et-nodef",
+          durationTypeKey: "MINUTES",
+          durationValue: 30,
+        },
+      ],
+    });
+    expect(result).toMatchObject({ ok: false, code: "VALIDATION_FAILED" });
+    expect(repo.findDurationTypeId).not.toHaveBeenCalled();
+  });
+
   it("rejects an unknown or default-less template with the step index", async () => {
     const result = await createRoutine("p1", {
       ...VALID,
@@ -508,6 +538,28 @@ describe("createRoutine", () => {
 });
 
 describe("replaceRoutine", () => {
+  it("checks ownership first, then answers INTERNAL_ERROR when the duration type is missing", async () => {
+    vi.mocked(repo.findDurationTypeId).mockResolvedValue(undefined);
+    vi.mocked(repo.findRoutineExecutionRows).mockResolvedValue([
+      row({}),
+    ] as never);
+    expect(await replaceRoutine("p1", "rt-sys", VALID)).toEqual({
+      ok: false,
+      code: "VALIDATION_FAILED",
+      details: { reason: "system routine is read-only" },
+    });
+    expect(repo.findDurationTypeId).not.toHaveBeenCalled();
+    vi.mocked(repo.findRoutineExecutionRows).mockResolvedValue([
+      row({ routineId: "rt-own", isSystemTemplate: false, playerId: "p1" }),
+    ] as never);
+    expect(await replaceRoutine("p1", "rt-own", VALID)).toEqual({
+      ok: false,
+      code: "INTERNAL_ERROR",
+      details: { reason: "reference data missing" },
+    });
+    expect(withTransaction).not.toHaveBeenCalled();
+  });
+
   it("returns NOT_FOUND for a routine the caller cannot see", async () => {
     vi.mocked(repo.findRoutineExecutionRows).mockResolvedValue([]);
     expect(await replaceRoutine("p1", "rt-x", VALID)).toEqual({

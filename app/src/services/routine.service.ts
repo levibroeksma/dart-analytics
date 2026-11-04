@@ -239,12 +239,16 @@ function normalise(input: RoutineWriteInput): RoutineWriteInput {
   };
 }
 
-export async function createRoutine(
-  playerId: string,
-  rawInput: RoutineWriteInput,
-): Promise<ServiceResult<RoutineExecution>> {
-  const input = normalise(rawInput);
-  const db = getDb();
+type Db = ReturnType<typeof getDb>;
+
+/**
+ * The write pre-checks shared by create and replace: domain issues first,
+ * then the `MINUTES` duration type the steps are stored under.
+ */
+async function prepareRoutineWrite(
+  db: Db,
+  input: RoutineWriteInput,
+): Promise<{ durationTypeId: number } | ServiceResult<never>> {
   const issue = writeIssues(input, await findExerciseTemplateCatalog(db));
   if (issue) return issue;
   const durationTypeId = await findDurationTypeId(
@@ -258,6 +262,17 @@ export async function createRoutine(
       details: { reason: "reference data missing" },
     };
   }
+  return { durationTypeId };
+}
+
+export async function createRoutine(
+  playerId: string,
+  rawInput: RoutineWriteInput,
+): Promise<ServiceResult<RoutineExecution>> {
+  const input = normalise(rawInput);
+  const prepared = await prepareRoutineWrite(getDb(), input);
+  if ("ok" in prepared) return prepared;
+  const { durationTypeId } = prepared;
 
   const routineId = generateId();
   try {
@@ -299,20 +314,9 @@ export async function replaceRoutine(
   const input = normalise(rawInput);
   const blocked = await ownWritable(playerId, routineId);
   if (blocked) return blocked;
-  const db = getDb();
-  const issue = writeIssues(input, await findExerciseTemplateCatalog(db));
-  if (issue) return issue;
-  const durationTypeId = await findDurationTypeId(
-    db,
-    USER_STEP_DURATION_TYPE_KEY,
-  );
-  if (!durationTypeId) {
-    return {
-      ok: false,
-      code: "INTERNAL_ERROR",
-      details: { reason: "reference data missing" },
-    };
-  }
+  const prepared = await prepareRoutineWrite(getDb(), input);
+  if ("ok" in prepared) return prepared;
+  const { durationTypeId } = prepared;
 
   try {
     const updated = await withTransaction(async (tx) => {
