@@ -15,16 +15,14 @@
 1	src/modules/training/exercises/switching-chain.engine.module.ts | src/modules/training/exercises/target-scoring.engine.module.ts
 2	src/pages/api/routines/[routineId].ts | src/pages/api/schedules/[scheduleId]/index.ts
 1	src/pages/api/routines/index.ts | src/pages/api/schedules/index.ts
-2	src/pages/api/statistics/types.ts
 1	src/repositories/interfaces.ts | src/services/session.service.ts
 1	src/repositories/routine.repository.ts | src/repositories/training-session.repository.ts
 1	src/repositories/schedule.repository.ts
 1	src/repositories/session.repository.ts
-11	src/repositories/statistics.repository.ts
+1	src/repositories/statistics.repository.ts
 1	src/services/routine.service.ts
 1	src/services/rulesets/one-twenty-one/one-twenty-one.validator.ts | src/services/rulesets/three-dart.validator.ts
 1	src/services/rulesets/score-training/score-training.validator.ts | src/services/rulesets/tuod/tuod.validator.ts
-1	src/services/statistics.service.ts
 6	src/stores/game-stats.store.ts
 4	src/styles/global.css
 1	tests/integration/card-tags.itest.ts | tests/integration/template-difficulty-axis.itest.ts

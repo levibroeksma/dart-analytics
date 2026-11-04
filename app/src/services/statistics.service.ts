@@ -815,19 +815,14 @@ async function resolveGameSectionRequest(
     return { error: resolvedTarget.error };
   }
 
-  const resolvedStatus = sectionStatuses(meta.includesAbandoned, q.status);
-  if ("error" in resolvedStatus) {
-    return { error: resolvedStatus.error };
+  const resolvedRange = await resolveSectionRange(db, meta, q);
+  if ("error" in resolvedRange) {
+    return { error: resolvedRange.error };
   }
 
-  const from =
-    q.bucket === "none"
-      ? q.from
-      : await findBucketFloor(db, q.from, q.bucket, q.tz!);
-
   return {
-    from,
-    statuses: resolvedStatus.statuses,
+    from: resolvedRange.from,
+    statuses: resolvedRange.statuses,
     target: resolvedTarget.target,
   };
 }
@@ -900,11 +895,10 @@ async function loadDataVersion(
  * before it can read anything: whether `bucket` is allowed on this section,
  * which `status` values the request accepts, and the request's own `from`
  * (floored to the bucket start once bucketed, so the `range` a caller gets
- * back matches what was actually queried). Shared by both routine section
- * dispatch paths; the game dispatch runs the equivalent checks itself in
- * `resolveGameSectionRequest`, interleaved with its own `target` check
- * (`00-Overview.md` §5's original bucket-then-target-then-status order,
- * which a routine section never needs since it has no `target`).
+ * back matches what was actually queried). Shared by all three section
+ * dispatch paths (game and both routine paths); the game path runs its
+ * bucket and `target` checks first to keep `00-Overview.md` §5's
+ * bucket → target → status order (a routine section has no `target`).
  */
 async function resolveSectionRange(
   db: Db,

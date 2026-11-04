@@ -3079,6 +3079,27 @@ describe("getGameSection validation order", () => {
   });
 });
 
+describe("getGameSection bucket check ordering", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("names the bucket error first when bucket is unsupported and target is invalid", async () => {
+    const result = await getGameSection(playerId, "501", "heatmap", {
+      ...baseRangeQuery,
+      bucket: "week",
+      tz: "UTC",
+      target: "DOUBLE:16",
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.code).toBe("VALIDATION_FAILED");
+      expect(result.details?.reason).toBe(
+        "this section does not support bucket",
+      );
+    }
+  });
+});
+
 describe("listRoutineStepSessions", () => {
   beforeEach(() => vi.clearAllMocks());
 
