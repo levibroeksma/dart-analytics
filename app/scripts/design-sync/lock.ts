@@ -129,6 +129,38 @@ export function readLock(path: string): Lock {
 }
 
 /**
+ * Convert a Claude Design lock to the artifact layout: artifact keys instead
+ * of project keys, no `rule:`/`keyframes:` entries (code-owned now), and
+ * component pairs pointing at `components/<Name>/<Name>`.
+ *
+ * @param old - The parsed old lock.
+ * @param artifactUrl - The Design System artifact's URL.
+ * @returns The migrated lock plus counts of what changed.
+ */
+export function migrateLock(
+  old: unknown,
+  artifactUrl: string,
+): { lock: Lock; removed: number; pairsRewritten: number } {
+  const src = old as { pairs?: ComponentPair[]; items?: LockEntry[] };
+  const items = (src.items ?? []).filter(
+    (e) => !/^(rule|keyframes):/.test(e.id),
+  );
+  let pairsRewritten = 0;
+  const pairs = (src.pairs ?? []).map((p) => {
+    const m = p.design && /^components\/[^/]+\/([^/]+)$/.exec(p.design);
+    const design = m ? `components/${m[1]}/${m[1]}` : p.design;
+    if (design === p.design) return p;
+    pairsRewritten++;
+    return { ...p, design };
+  });
+  return {
+    lock: { artifactUrl, lastChangeAt: null, pairs, items },
+    removed: (src.items ?? []).length - items.length,
+    pairsRewritten,
+  };
+}
+
+/**
  * Write the lock with entries sorted by id, 2-space JSON, trailing newline.
  *
  * @param path - Lock file path.

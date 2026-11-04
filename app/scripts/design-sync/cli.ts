@@ -8,6 +8,7 @@
  *
  * Run (from app/):
  *   npm run design:sync -- diff --area tokens --mirror <dir>
+ *   npm run design:sync -- migrate-lock --artifact-url <url>
  *   npm run design:sync -- record --area tokens --mirror <dir> --ids a,b --decision code-wins [--last-change-at <iso>]
  */
 import { existsSync, readFileSync } from "node:fs";
@@ -20,6 +21,7 @@ import {
   AREAS,
   DECISIONS,
   classify,
+  migrateLock,
   readLock,
   sha256,
   upsertEntries,
@@ -201,6 +203,18 @@ export function main(argv: string[]): number {
   try {
     const [command, ...rest] = argv;
     const f = flags(rest);
+    if (command === "migrate-lock") {
+      const url = f.get("artifact-url");
+      if (!url) throw new Error("--artifact-url is required");
+      const lockPath = f.get("lock") ?? LOCK_PATH;
+      const { lock, removed, pairsRewritten } = migrateLock(
+        JSON.parse(readFileSync(lockPath, "utf8")),
+        url,
+      );
+      writeLock(lockPath, lock);
+      console.log(JSON.stringify({ removed, pairsRewritten }));
+      return 0;
+    }
     const area = f.get("area") as Area;
     if (!AREAS.includes(area)) throw new Error(`unknown --area: ${area}`);
     const mirror = f.get("mirror");

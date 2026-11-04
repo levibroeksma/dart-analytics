@@ -182,6 +182,57 @@ describe("design-sync cli", () => {
     expect(ids).toEqual(["var:--accent", "var:--bg"]);
   });
 
+  it("migrate-lock rewrites keys, drops rules, rewrites pairs", () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const lockPath = join(mkdtempSync(join(tmpdir(), "ds-lock-")), "l.json");
+    const entry = (id: string) => ({
+      id,
+      area: "tokens",
+      designHash: "d",
+      codeHash: "c",
+      decision: "code-wins",
+      date: "2026-10-26",
+    });
+    writeFileSync(
+      lockPath,
+      JSON.stringify({
+        projectId: "p",
+        projectUpdatedAt: "2026-10-26T10:00:00Z",
+        pairs: [
+          { design: "components/buttons/Button", code: ["a.astro"] },
+          { design: null, code: ["b.astro"] },
+        ],
+        items: [
+          entry("var:--accent"),
+          entry("rule:glass"),
+          entry("keyframes:skpulse"),
+        ],
+      }),
+    );
+    const code = main([
+      "migrate-lock",
+      "--artifact-url",
+      "https://claude.ai/artifact/A7QFuSqRwpqyoXUEm7XHsW",
+      "--lock",
+      lockPath,
+    ]);
+    expect(code).toBe(0);
+    expect(log).toHaveBeenCalledWith(
+      JSON.stringify({ removed: 2, pairsRewritten: 1 }),
+    );
+    log.mockRestore();
+    const lock = readLock(lockPath);
+    expect(lock).toEqual({
+      artifactUrl: "https://claude.ai/artifact/A7QFuSqRwpqyoXUEm7XHsW",
+      lastChangeAt: null,
+      pairs: [
+        { design: "components/Button/Button", code: ["a.astro"] },
+        { design: null, code: ["b.astro"] },
+      ],
+      items: [entry("var:--accent")],
+    });
+  });
+
   it("exits non-zero on an unknown area", () => {
     const err = vi.spyOn(console, "error").mockImplementation(() => {});
     const opts = setup();

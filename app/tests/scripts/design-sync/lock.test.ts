@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   classify,
+  migrateLock,
   readLock,
   upsertEntries,
   writeLock,
@@ -138,6 +139,20 @@ describe("design-sync lock", () => {
       }),
     );
     expect(() => readLock(path)).toThrow("lock: run migrate-lock");
+  });
+
+  it("migrateLock keeps pairs already in the folder layout", () => {
+    const { lock: next, pairsRewritten } = migrateLock(
+      {
+        projectId: "p",
+        pairs: [{ design: "components/Button/Button", code: ["a.astro"] }],
+        items: [],
+      },
+      "u",
+    );
+    expect(pairsRewritten).toBe(0);
+    expect(next.pairs[0].design).toBe("components/Button/Button");
+    expect(next).not.toHaveProperty("projectId");
   });
 
   it("upsertEntries replaces by id", () => {
