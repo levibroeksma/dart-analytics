@@ -305,6 +305,25 @@ describe("tuodSetup", () => {
       expect(setup.loading).toBe(false);
     });
 
+    it("sets the start error, clears loading and stays on setup when create fails for any other reason", async () => {
+      const setup = createSetup({
+        presets: [ROUND_PRESET, MINUTES_PRESET],
+        durationType: "ROUNDS",
+      });
+      setup.error = "stale";
+      vi.mocked(sessionsApi.createSession).mockRejectedValue(new Error("boom"));
+      vi.stubGlobal("location", { href: "" });
+
+      await setup.start();
+
+      expect(sessionsApi.createSession).toHaveBeenCalledTimes(1);
+      expect(sessionsApi.fetchActiveSessions).not.toHaveBeenCalled();
+      expect(store.game.startSession).not.toHaveBeenCalled();
+      expect(setup.error).toBe("Could not start the session. Try again.");
+      expect(setup.loading).toBe(false);
+      expect(location.href).toBe("");
+    });
+
     it("sends the player's chosen supported pair from settings", async () => {
       store.settings = {
         captureModeKey: "ANALYTICS",

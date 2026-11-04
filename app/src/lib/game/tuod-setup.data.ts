@@ -2,17 +2,11 @@ import {
   fetchConfigurationPresets,
   type ConfigurationPresetData,
 } from "@client/api/configuration-templates";
-import { createSession, fetchActiveSessions } from "@client/api/sessions";
+import { fetchActiveSessions } from "@client/api/sessions";
+import { startPresetSession } from "@lib/game/setup-controller";
 import { createSetupSession } from "@lib/game/setup-session";
-import { toSnapshot } from "@lib/game/rulesets/config-codec";
 import { addBotOpponent, addTypedGuest } from "@lib/game/guest-list";
 import { clampTuodDuration } from "@lib/game/tuod-duration";
-import {
-  participantsFromGuests,
-  starterFirst,
-  resolveSessionModePair,
-  startSessionInput,
-} from "@lib/game/session-mode-resolution";
 import type { TuodDurationType, TuodSetupContext } from "./types";
 
 const GAME_TYPE_KEY = "TUOD";
@@ -122,55 +116,13 @@ export function tuodSetup() {
       );
       this.durationValue = value;
 
-      this.loading = true;
-      this.error = "";
-      try {
-        const wire = {
-          ...(preset.configuration as Record<string, unknown>),
-          duration_value: value,
-        };
-        const configSnapshot = toSnapshot(RULESET_VERSION_KEY, wire);
-        const modePair = resolveSessionModePair(
-          RULESET_VERSION_KEY,
-          this.$store.settings,
-        );
-        const participants = starterFirst(
-          participantsFromGuests(this.guests, this.bot),
-          this.starterIndex,
-        );
-        const session = await createSession({
-          gameTypeKey: GAME_TYPE_KEY,
-          rulesetVersionKey: RULESET_VERSION_KEY,
-          captureModeKey: modePair.captureModeKey,
-          inputModeKey: modePair.inputModeKey,
-          config: {
-            source: "template",
-            templateRef: preset.configurationTemplateId,
-            overrides: { duration_value: value },
-          },
-          participants,
-        });
-        this.$store.game.startSession(
-          startSessionInput({
-            gameTypeKey: GAME_TYPE_KEY,
-            rulesetVersionKey: RULESET_VERSION_KEY,
-            session,
-            templateRef: preset.configurationTemplateId,
-            configSnapshot,
-            modePair,
-          }),
-        );
-        globalThis.location.href = "/games/tuod/play";
-      } catch (err: unknown) {
-        const code = (err as { code?: string }).code;
-        if (code === "SESSION_ALREADY_ACTIVE") {
-          await this.retryReconciliation();
-          return;
-        }
-        this.error = "Could not start the session. Try again.";
-      } finally {
-        this.loading = false;
-      }
+      await startPresetSession(this, {
+        gameTypeKey: GAME_TYPE_KEY,
+        rulesetVersionKey: RULESET_VERSION_KEY,
+        playHref: "/games/tuod/play",
+        preset,
+        overrides: { duration_value: value },
+      });
     },
   };
 }
