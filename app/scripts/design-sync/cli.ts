@@ -8,6 +8,7 @@
  *
  * Run (from app/):
  *   npm run design:sync -- diff --area tokens --mirror <dir>
+ *   npm run design:sync -- ready --mirror <dir>
  *   npm run design:sync -- migrate-lock --artifact-url <url>
  *   npm run design:sync -- record --area tokens --mirror <dir> --ids a,b --decision code-wins [--last-change-at <iso>]
  */
@@ -34,6 +35,7 @@ import {
 } from "./lock";
 import { parseTokens, type ParsedToken } from "./tokens";
 import { parseTokensJson, representable } from "./tokens-json";
+import { readMarks, readyPlan, type ReadyPlan } from "./ready";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, "../../..");
@@ -47,11 +49,14 @@ const IN_SCOPE: Record<Area, RegExp> = {
   components: /^components\/[A-Z][^/]*\/.+\.(jsx|d\.ts|md|html)$/,
 };
 
-export interface AreaOptions {
-  area: Area;
+export interface MirrorOptions {
   mirror: string;
   repoRoot: string;
   lockPath: string;
+}
+
+export interface AreaOptions extends MirrorOptions {
+  area: Area;
 }
 
 export interface RecordOptions extends AreaOptions {
@@ -178,6 +183,17 @@ export function runRecord(opts: RecordOptions): LockEntry[] {
   return entries;
 }
 
+/**
+ * Diff every area and sort the mirror's ready marks into a work list.
+ *
+ * @param opts - Mirror directory, repo root and lock path.
+ * @returns The ready plan.
+ */
+export function runReady(opts: MirrorOptions): ReadyPlan {
+  const reports = AREAS.map((area) => runDiff({ ...opts, area }));
+  return readyPlan(readMarks(opts.mirror), reports);
+}
+
 function flags(argv: string[]): Map<string, string> {
   const out = new Map<string, string>();
   for (let i = 0; i < argv.length; i++) {
@@ -215,16 +231,20 @@ export function main(argv: string[]): number {
       console.log(JSON.stringify({ removed, pairsRewritten }));
       return 0;
     }
-    const area = f.get("area") as Area;
-    if (!AREAS.includes(area)) throw new Error(`unknown --area: ${area}`);
     const mirror = f.get("mirror");
     if (!mirror) throw new Error("--mirror is required");
-    const opts: AreaOptions = {
-      area,
+    const base: MirrorOptions = {
       mirror: resolve(mirror),
       repoRoot: REPO_ROOT,
       lockPath: f.get("lock") ?? LOCK_PATH,
     };
+    if (command === "ready") {
+      console.log(JSON.stringify(runReady(base), null, 2));
+      return 0;
+    }
+    const area = f.get("area") as Area;
+    if (!AREAS.includes(area)) throw new Error(`unknown --area: ${area}`);
+    const opts: AreaOptions = { ...base, area };
     if (command === "diff") {
       console.log(JSON.stringify(runDiff(opts), null, 2));
       return 0;
@@ -246,7 +266,7 @@ export function main(argv: string[]): number {
       return 0;
     }
     throw new Error(
-      `unknown command: ${command ?? "(none)"} (use diff or record)`,
+      `unknown command: ${command ?? "(none)"} (use diff, record, ready or migrate-lock)`,
     );
   } catch (error) {
     console.error(`design-sync: ${(error as Error).message}`);

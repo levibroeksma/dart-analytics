@@ -2,7 +2,12 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
-import { main, runDiff, runRecord } from "../../../scripts/design-sync/cli";
+import {
+  main,
+  runDiff,
+  runReady,
+  runRecord,
+} from "../../../scripts/design-sync/cli";
 import { readLock, writeLock } from "../../../scripts/design-sync/lock";
 
 const put = (root: string, rel: string, text: string): void => {
@@ -230,6 +235,22 @@ describe("design-sync cli", () => {
         { design: null, code: ["b.astro"] },
       ],
       items: [entry("var:--accent")],
+    });
+  });
+
+  it("runReady sorts the mirror's marks across every area", () => {
+    const opts = setup();
+    put(
+      opts.mirror,
+      "sync-ready.json",
+      JSON.stringify({ v: 1, items: [{ id: "var:--accent" }, { id: "x" }] }),
+    );
+    expect(runReady(opts)).toEqual({
+      apply: [],
+      conflicts: ["var:--accent"],
+      oneSided: [],
+      inSync: [],
+      unknown: ["x"],
     });
   });
 
