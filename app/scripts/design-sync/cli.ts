@@ -9,10 +9,12 @@
  * Run (from app/):
  *   npm run design:sync -- diff --area tokens --mirror <dir>
  *   npm run design:sync -- ready --mirror <dir>
+ *   npm run design:sync -- publish-plan --mirror <dir>
+ *   npm run design:sync -- write-tokens --mirror <dir> --ids var:--a,var:--b
  *   npm run design:sync -- migrate-lock --artifact-url <url>
  *   npm run design:sync -- record --area tokens --mirror <dir> --ids a,b --decision code-wins [--last-change-at <iso>]
  */
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { assetItems } from "./assets";
@@ -34,7 +36,8 @@ import {
   type SyncItem,
 } from "./lock";
 import { parseTokens, type ParsedToken } from "./tokens";
-import { parseTokensJson, representable } from "./tokens-json";
+import { parseTokensJson, representable, writeTokensJson } from "./tokens-json";
+import { publishPlan, type PublishPlan } from "./publish";
 import { readMarks, readyPlan, type ReadyPlan } from "./ready";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -194,6 +197,49 @@ export function runReady(opts: MirrorOptions): ReadyPlan {
   return readyPlan(readMarks(opts.mirror), reports);
 }
 
+/**
+ * Diff tokens and assets against the checked-out code and list what changed
+ * on it since the lock (run on a checkout of `origin/main`).
+ *
+ * @param opts - Mirror directory, repo root and lock path.
+ * @returns The after-merge publish plan.
+ */
+export function runPublishPlan(opts: MirrorOptions): PublishPlan {
+  const reports = (["tokens", "assets"] as const).map((area) =>
+    runDiff({ ...opts, area }),
+  );
+  const locked = readLock(opts.lockPath).items.map((e) => e.id);
+  return publishPlan(reports, readMarks(opts.mirror), locked);
+}
+
+function rawCodeValue(css: string, prop: string): string {
+  const escaped = prop.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const matches = [
+    ...css.matchAll(new RegExp(`(?<![\\w-])${escaped}\\s*:\\s*([^;}]+)`, "g")),
+  ];
+  const last = matches.at(-1);
+  if (!last) throw new Error(`no code value for ${prop}`);
+  return last[1].replace(/\s+/g, " ").trim();
+}
+
+/**
+ * Write the code's values for token ids into the mirror's `tokens.json`.
+ *
+ * @param opts - Mirror directory, repo root and lock path.
+ * @param ids - `var:` ids to write.
+ */
+export function runWriteTokens(opts: MirrorOptions, ids: string[]): void {
+  const css = readFileSync(join(opts.repoRoot, CODE_CSS), "utf8");
+  const updates: Record<string, string> = {};
+  for (const id of ids) {
+    if (!id.startsWith("var:")) throw new Error(`not a token: ${id}`);
+    const prop = id.slice(4);
+    updates[prop] = rawCodeValue(css, prop);
+  }
+  const path = join(opts.mirror, DESIGN_TOKENS);
+  writeFileSync(path, writeTokensJson(readFileSync(path, "utf8"), updates));
+}
+
 function flags(argv: string[]): Map<string, string> {
   const out = new Map<string, string>();
   for (let i = 0; i < argv.length; i++) {
@@ -242,6 +288,16 @@ export function main(argv: string[]): number {
       console.log(JSON.stringify(runReady(base), null, 2));
       return 0;
     }
+    if (command === "publish-plan") {
+      console.log(JSON.stringify(runPublishPlan(base), null, 2));
+      return 0;
+    }
+    if (command === "write-tokens") {
+      const ids = (f.get("ids") ?? "").split(",").filter(Boolean);
+      if (ids.length === 0) throw new Error("--ids is required");
+      runWriteTokens(base, ids);
+      return 0;
+    }
     const area = f.get("area") as Area;
     if (!AREAS.includes(area)) throw new Error(`unknown --area: ${area}`);
     const opts: AreaOptions = { ...base, area };
@@ -266,7 +322,7 @@ export function main(argv: string[]): number {
       return 0;
     }
     throw new Error(
-      `unknown command: ${command ?? "(none)"} (use diff, record, ready or migrate-lock)`,
+      `unknown command: ${command ?? "(none)"} (use diff, record, ready, publish-plan, write-tokens or migrate-lock)`,
     );
   } catch (error) {
     console.error(`design-sync: ${(error as Error).message}`);

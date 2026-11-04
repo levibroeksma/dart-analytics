@@ -1,12 +1,20 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import {
   main,
   runDiff,
+  runPublishPlan,
   runReady,
   runRecord,
+  runWriteTokens,
 } from "../../../scripts/design-sync/cli";
 import { readLock, writeLock } from "../../../scripts/design-sync/lock";
 
@@ -252,6 +260,46 @@ describe("design-sync cli", () => {
       inSync: [],
       unknown: ["x"],
     });
+  });
+
+  it("runPublishPlan lists a token changed on main since the lock", () => {
+    const opts = setup();
+    runRecord({
+      area: "tokens",
+      ...opts,
+      ids: ["var:--accent"],
+      decision: "code-wins",
+    });
+    put(
+      opts.repoRoot,
+      "app/src/styles/global.css",
+      ":root { --accent: #7dd3fc; --bg: #000000; }",
+    );
+    expect(runPublishPlan(opts)).toEqual({
+      publish: ["var:--accent"],
+      conflicts: [],
+      newOnMain: [],
+    });
+  });
+
+  it("runWriteTokens writes the code's raw values into the mirror", () => {
+    const opts = setup();
+    put(
+      opts.repoRoot,
+      "app/src/styles/global.css",
+      ":root { --accent: oklch(70% 0.1 230); --bg: #000; --bg-accent: #111; }",
+    );
+    runWriteTokens(opts, ["var:--accent"]);
+    const doc = JSON.parse(
+      readFileSync(join(opts.mirror, "tokens.json"), "utf8"),
+    );
+    expect(doc.color.tokens[0]).toEqual({
+      name: "accent",
+      value: "oklch(70% 0.1 230)",
+    });
+    expect(() => runWriteTokens(opts, ["icon:x.svg"])).toThrow(
+      "not a token: icon:x.svg",
+    );
   });
 
   it("exits non-zero on an unknown area", () => {

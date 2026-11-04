@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   parseTokensJson,
   representable,
+  writeTokensJson,
 } from "../../../scripts/design-sync/tokens-json";
 
 const json = (o: unknown): string => JSON.stringify(o);
@@ -69,6 +70,53 @@ describe("design-sync tokens.json", () => {
         value: "'bebas neue', sans-serif",
       },
     ]);
+  });
+
+  it("replaces one value and keeps the rest", () => {
+    const text = JSON.stringify(
+      {
+        name: "x",
+        radius: {
+          note: "n",
+          tokens: [
+            { name: "radius", value: "0.5rem", usage: "Default." },
+            { name: "radius-pill", value: "999rem", usage: "Pills." },
+          ],
+        },
+      },
+      null,
+      2,
+    );
+    const out = writeTokensJson(text, { "--radius": "0.75rem" });
+    expect(out).toBe(text.replace('"0.5rem"', '"0.75rem"'));
+  });
+
+  it("keeps a trailing newline", () => {
+    const text = `${JSON.stringify({ r: { tokens: [{ name: "a", value: "1rem" }] } }, null, 2)}\n`;
+    expect(writeTokensJson(text, { "--a": "2rem" }).endsWith("}\n")).toBe(true);
+  });
+
+  it("replaces the first theme only", () => {
+    const text = JSON.stringify({
+      color: {
+        themes: [{ id: "dark" }, { id: "light" }],
+        tokens: [{ name: "bg", value: { dark: "#000", light: "#fff" } }],
+      },
+    });
+    const out = JSON.parse(writeTokensJson(text, { "--bg": "#111" }));
+    expect(out.color.tokens[0].value).toEqual({ dark: "#111", light: "#fff" });
+  });
+
+  it("writes type families by --font-<key>", () => {
+    const text = JSON.stringify({ type: { families: { display: "A" } } });
+    const out = JSON.parse(writeTokensJson(text, { "--font-display": "B" }));
+    expect(out.type.families.display).toBe("B");
+  });
+
+  it("throws on a missing name", () => {
+    expect(() => writeTokensJson("{}", { "--nope": "1rem" })).toThrow(
+      "tokens.json: no token nope",
+    );
   });
 
   it("throws on malformed json", () => {

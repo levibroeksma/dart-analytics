@@ -99,6 +99,67 @@ export function parseTokensJson(text: string): ParsedToken[] {
 }
 
 /**
+ * Set token values in `tokens.json`, keeping every other key, entry order and
+ * `usage` text. A theme map gets its first theme's value replaced only.
+ *
+ * @param text - The file's text.
+ * @param updates - New values by custom property (`--name`).
+ * @returns The file's new text, 2-space JSON, trailing newline as before.
+ */
+export function writeTokensJson(
+  text: string,
+  updates: Record<string, string>,
+): string {
+  let doc: Record<string, unknown>;
+  try {
+    doc = JSON.parse(text) as Record<string, unknown>;
+  } catch (error) {
+    throw new Error(`tokens.json: ${(error as Error).message}`);
+  }
+  for (const [prop, value] of Object.entries(updates)) {
+    const name = prop.replace(/^--/, "");
+    if (!setValue(doc, name, value)) {
+      throw new Error(`tokens.json: no token ${name}`);
+    }
+  }
+  const out = JSON.stringify(doc, null, 2);
+  return text.endsWith("\n") ? `${out}\n` : out;
+}
+
+function setValue(
+  doc: Record<string, unknown>,
+  name: string,
+  value: string,
+): boolean {
+  for (const [key, raw] of Object.entries(doc)) {
+    if (raw === null || typeof raw !== "object") continue;
+    if (key === "type") {
+      const families = (raw as { families?: Record<string, unknown> }).families;
+      const fontKey = name.replace(/^font-/, "");
+      if (name.startsWith("font-") && families && fontKey in families) {
+        families[fontKey] = value;
+        return true;
+      }
+      continue;
+    }
+    const family = raw as JsonFamily;
+    const token = family.tokens?.find((t) => t.name === name);
+    if (!token) continue;
+    if (token.value !== null && typeof token.value === "object") {
+      const map = token.value as Record<string, unknown>;
+      const theme = family.themes?.[0]?.id;
+      const target =
+        theme !== undefined && theme in map ? theme : Object.keys(map)[0];
+      map[target] = value;
+    } else {
+      token.value = value;
+    }
+    return true;
+  }
+  return false;
+}
+
+/**
  * Whether `tokens.json` can hold a code value: no `var()`, `color-mix()` or
  * `calc()`, and not a named colour.
  *
