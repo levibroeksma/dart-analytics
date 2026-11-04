@@ -53,6 +53,19 @@ function hitRateRow(hits: number, darts: number): RoutineStatRow {
   };
 }
 
+/** A multi-pass exercise's closing rows: passes, darts, then hit rate. */
+function passRows(
+  passes: number,
+  darts: number,
+  hits: number,
+): RoutineStatRow[] {
+  return [
+    { label: "Passes", value: String(passes) },
+    { label: "Darts", value: String(darts) },
+    hitRateRow(hits, darts),
+  ];
+}
+
 /**
  * Switching Standard scores a dart only when it lands on the target that dart was
  * thrown at, and every `DartFact` carries both numbers, so the hit count
@@ -299,9 +312,7 @@ export function summariseHitCount(state: HitCountState): RoutineStepSummary {
         label: `Hits on ${boardTargetLabel(entry.target)}`,
         value: String(entry.hits),
       })),
-      { label: "Passes", value: String(state.passes) },
-      { label: "Darts", value: String(darts) },
-      hitRateRow(hits, darts),
+      ...passRows(state.passes, darts, hits),
     ],
   };
 }
@@ -323,9 +334,7 @@ export function summariseSwitchblade(
         label: `Round ${index + 1}`,
         value: String(total),
       })),
-      { label: "Passes", value: String(state.passes) },
-      { label: "Darts", value: String(darts) },
-      hitRateRow(hits, darts),
+      ...passRows(state.passes, darts, hits),
     ],
   };
 }
@@ -380,9 +389,7 @@ export function summariseHalveIt(state: HalveItState): RoutineStepSummary {
         label: `Round ${index + 1} (${boardTargetLabel(entry.target)})`,
         value: String(entry.hits),
       })),
-      { label: "Passes", value: String(state.passes) },
-      { label: "Darts", value: String(darts) },
-      hitRateRow(hits, darts),
+      ...passRows(state.passes, darts, hits),
     ],
   };
 }
