@@ -88,6 +88,21 @@ describe("design-sync lock", () => {
     expect(result.proposal).toBe(proposal);
   });
 
+  it("classifies codeOnly items as code-only", () => {
+    const result = classify(
+      {
+        id: "var:--vignette",
+        area: "tokens",
+        design: null,
+        code: { path: "c", hash: "h1" },
+        comparable: true,
+        codeOnly: true,
+      },
+      undefined,
+    );
+    expect(result).toMatchObject({ status: "code-only", proposal: null });
+  });
+
   it("writeLock is stable: sorted ids, trailing newline", () => {
     const path = join(mkdtempSync(join(tmpdir(), "ds-lock-")), "lock.json");
     const b = { ...E("h1", "h1", "code-wins"), id: "var:--b" };

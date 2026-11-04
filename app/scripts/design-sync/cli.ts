@@ -31,11 +31,13 @@ import {
   type SyncItem,
 } from "./lock";
 import { parseTokens, type ParsedToken } from "./tokens";
+import { parseTokensJson, representable } from "./tokens-json";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, "../../..");
 const LOCK_PATH = join(REPO_ROOT, "docs/design-system/design-sync.lock.json");
 const CODE_CSS = "app/src/styles/global.css";
+const DESIGN_TOKENS = "tokens.json";
 
 const IN_SCOPE: Record<Area, RegExp> = {
   tokens: /^tokens\.json$/,
@@ -78,47 +80,37 @@ function assertMirror(area: Area, mirror: string): void {
   if (stale) throw new Error(`mirror stale: ${stale}`);
 }
 
-function tokensBySource(
-  root: string,
-  files: string[],
-): Map<string, { file: string; token: ParsedToken }> {
-  const out = new Map<string, { file: string; token: ParsedToken }>();
-  for (const file of files) {
-    for (const token of parseTokens(readFileSync(join(root, file), "utf8"))) {
-      out.set(token.id, { file, token });
-    }
-  }
-  return out;
+function byId(tokens: ParsedToken[]): Map<string, ParsedToken> {
+  return new Map(tokens.map((t) => [t.id, t]));
 }
 
 function tokenItems(
   mirror: string,
   repoRoot: string,
 ): { items: SyncItem[]; values: DiffReport["values"] } {
-  const designFiles = [
-    ...listFiles(join(mirror, "tokens"), false)
-      .filter((f) => f.endsWith(".css"))
-      .map((f) => `tokens/${f}`),
-    ...(existsSync(join(mirror, "styles.css")) ? ["styles.css"] : []),
-  ];
-  const design = tokensBySource(mirror, designFiles);
-  const code = tokensBySource(repoRoot, [CODE_CSS]);
+  const design = byId(
+    parseTokensJson(readFileSync(join(mirror, DESIGN_TOKENS), "utf8")),
+  );
+  const code = byId(
+    parseTokens(readFileSync(join(repoRoot, CODE_CSS), "utf8")).filter(
+      (t) => t.kind === "var",
+    ),
+  );
   const ids = [...new Set([...design.keys(), ...code.keys()])].sort();
   const values: DiffReport["values"] = {};
   const items = ids.map((id): SyncItem => {
     const d = design.get(id);
     const c = code.get(id);
-    values[id] = {
-      design: d?.token.value ?? null,
-      code: c?.token.value ?? null,
-    };
-    return {
+    values[id] = { design: d?.value ?? null, code: c?.value ?? null };
+    const item: SyncItem = {
       id,
       area: "tokens",
-      design: d ? { path: d.file, hash: sha256(d.token.value) } : null,
-      code: c ? { path: c.file, hash: sha256(c.token.value) } : null,
+      design: d ? { path: DESIGN_TOKENS, hash: sha256(d.value) } : null,
+      code: c ? { path: CODE_CSS, hash: sha256(c.value) } : null,
       comparable: true,
     };
+    if (!d && c && !representable(c.value)) item.codeOnly = true;
+    return item;
   });
   return { items, values };
 }

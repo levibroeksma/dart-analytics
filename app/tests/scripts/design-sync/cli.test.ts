@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
@@ -10,12 +10,22 @@ const put = (root: string, rel: string, text: string): void => {
   writeFileSync(join(root, rel), text);
 };
 
-const setup = (paths: string[] = ["tokens/colors.css"]) => {
+const TOKENS = JSON.stringify({
+  color: {
+    themes: [{ id: "dark" }],
+    tokens: [
+      { name: "accent", value: "#0EA5E9" },
+      { name: "bg", value: "#000" },
+    ],
+  },
+});
+
+const setup = (paths: string[] = ["tokens.json"]) => {
   const mirror = mkdtempSync(join(tmpdir(), "ds-mirror-"));
   const repo = mkdtempSync(join(tmpdir(), "ds-repo-"));
   const lockPath = join(repo, "lock.json");
   put(mirror, "_paths.json", JSON.stringify(paths));
-  put(mirror, "tokens/colors.css", ":root { --accent: #0EA5E9; --bg: #000; }");
+  put(mirror, "tokens.json", TOKENS);
   put(
     repo,
     "app/src/styles/global.css",
@@ -32,7 +42,8 @@ const setup = (paths: string[] = ["tokens/colors.css"]) => {
 
 describe("design-sync cli", () => {
   it("mirror check uses the artifact layout", () => {
-    const opts = setup(["tokens.json"]);
+    const opts = setup();
+    rmSync(join(opts.mirror, "tokens.json"));
     expect(() => runDiff({ area: "tokens", ...opts })).toThrow(
       "mirror incomplete: tokens.json",
     );
@@ -71,6 +82,7 @@ describe("design-sync cli", () => {
 
   it("does not require out-of-scope files", () => {
     const opts = setup([
+      "tokens.json",
       "tokens/colors.css",
       "Brand Style.dc.html",
       "app/src/icons/x.svg",
@@ -101,7 +113,7 @@ describe("design-sync cli", () => {
     const report = runDiff({ area: "tokens", ...setup() });
     const accent = report.items.find((i) => i.id === "var:--accent");
     expect(accent).toMatchObject({ status: "mismatch", proposal: "owner" });
-    expect(accent?.design?.path).toBe("tokens/colors.css");
+    expect(accent?.design?.path).toBe("tokens.json");
     expect(accent?.code?.path).toBe("app/src/styles/global.css");
     expect(report.values["var:--accent"]).toEqual({
       design: "#0ea5e9",
@@ -144,6 +156,30 @@ describe("design-sync cli", () => {
         decision: "code-wins",
       }),
     ).toThrow("unknown id: var:--nope");
+  });
+
+  it("marks unrepresentable code values code-only", () => {
+    const opts = setup();
+    put(
+      opts.repoRoot,
+      "app/src/styles/global.css",
+      ":root { --accent: #0ea5e9; --bg: #000; --vignette: radial-gradient(circle, color-mix(in oklch, var(--bg) 40%, transparent), transparent); }",
+    );
+    const v = runDiff({ area: "tokens", ...opts }).items.find(
+      (i) => i.id === "var:--vignette",
+    );
+    expect(v).toMatchObject({ status: "code-only", proposal: null });
+  });
+
+  it("drops rule and keyframes from the tokens area", () => {
+    const opts = setup();
+    put(
+      opts.repoRoot,
+      "app/src/styles/global.css",
+      ":root { --accent: #0ea5e9; --bg: #000; } @utility glass { color: red; } @keyframes skpulse { to { opacity: 1; } }",
+    );
+    const ids = runDiff({ area: "tokens", ...opts }).items.map((i) => i.id);
+    expect(ids).toEqual(["var:--accent", "var:--bg"]);
   });
 
   it("exits non-zero on an unknown area", () => {

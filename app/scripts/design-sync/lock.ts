@@ -24,6 +24,7 @@ export interface SyncItem {
   design: Side | null;
   code: Side | null;
   comparable: boolean;
+  codeOnly?: true;
 }
 
 export type Decision = "code-wins" | "design-wins" | "accepted-divergence";
@@ -58,7 +59,7 @@ export interface Lock {
 export type Proposal = "design-to-code" | "code-to-design" | "owner";
 
 export interface Classified extends SyncItem {
-  status: "in-sync" | "accepted" | "mismatch";
+  status: "in-sync" | "accepted" | "mismatch" | "code-only";
   proposal: Proposal | null;
 }
 
@@ -83,6 +84,7 @@ export function classify(
   item: SyncItem,
   entry: LockEntry | undefined,
 ): Classified {
+  if (item.codeOnly) return { ...item, status: "code-only", proposal: null };
   const designHash = item.design?.hash ?? null;
   const codeHash = item.code?.hash ?? null;
   const unchanged =
