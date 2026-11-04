@@ -153,6 +153,26 @@ export async function findLegFacts(
   }));
 }
 
+const X01_FOLD_COLUMNS = {
+  sessionId: vX01CheckoutDarts.sessionId,
+  gameTypeKey: vX01CheckoutDarts.gameTypeKey,
+  rulesetVersionKey: vX01CheckoutDarts.rulesetVersionKey,
+  configuration: vX01CheckoutDarts.configuration,
+  stageId: vX01CheckoutDarts.stageId,
+  stageSequence: vX01CheckoutDarts.stageSequence,
+  stageTypeKey: vX01CheckoutDarts.stageTypeKey,
+  parentStageId: vX01CheckoutDarts.parentStageId,
+  turnId: vX01CheckoutDarts.turnId,
+  turnSequence: vX01CheckoutDarts.turnSequence,
+  turnTotalScore: vX01CheckoutDarts.turnTotalScore,
+  turnCompletedAt: vX01CheckoutDarts.turnCompletedAt,
+  participantId: vX01CheckoutDarts.participantId,
+  dartNumber: vX01CheckoutDarts.dartNumber,
+  hitTargetNumber: vX01CheckoutDarts.hitTargetNumber,
+  hitZoneKey: vX01CheckoutDarts.hitZoneKey,
+  score: vX01CheckoutDarts.score,
+};
+
 /**
  * Reads every X01 checkout dart the player owns through
  * `v_x01_checkout_darts`, ordered so a session's rows arrive in stage, turn
@@ -163,25 +183,7 @@ export async function findX01CheckoutDarts(
   playerId: string,
 ): Promise<X01CheckoutDartRow[]> {
   const rows = await db
-    .select({
-      sessionId: vX01CheckoutDarts.sessionId,
-      gameTypeKey: vX01CheckoutDarts.gameTypeKey,
-      rulesetVersionKey: vX01CheckoutDarts.rulesetVersionKey,
-      configuration: vX01CheckoutDarts.configuration,
-      stageId: vX01CheckoutDarts.stageId,
-      stageSequence: vX01CheckoutDarts.stageSequence,
-      stageTypeKey: vX01CheckoutDarts.stageTypeKey,
-      parentStageId: vX01CheckoutDarts.parentStageId,
-      turnId: vX01CheckoutDarts.turnId,
-      turnSequence: vX01CheckoutDarts.turnSequence,
-      turnTotalScore: vX01CheckoutDarts.turnTotalScore,
-      turnCompletedAt: vX01CheckoutDarts.turnCompletedAt,
-      participantId: vX01CheckoutDarts.participantId,
-      dartNumber: vX01CheckoutDarts.dartNumber,
-      hitTargetNumber: vX01CheckoutDarts.hitTargetNumber,
-      hitZoneKey: vX01CheckoutDarts.hitZoneKey,
-      score: vX01CheckoutDarts.score,
-    })
+    .select(X01_FOLD_COLUMNS)
     .from(vX01CheckoutDarts)
     .where(eq(vX01CheckoutDarts.playerId, playerId))
     .orderBy(
@@ -391,26 +393,6 @@ export async function findScopeDartCount(
 
   return Number(nonNull(row?.dartCount ?? null, "dart_count"));
 }
-
-const X01_FOLD_COLUMNS = {
-  sessionId: vX01CheckoutDarts.sessionId,
-  gameTypeKey: vX01CheckoutDarts.gameTypeKey,
-  rulesetVersionKey: vX01CheckoutDarts.rulesetVersionKey,
-  configuration: vX01CheckoutDarts.configuration,
-  stageId: vX01CheckoutDarts.stageId,
-  stageSequence: vX01CheckoutDarts.stageSequence,
-  stageTypeKey: vX01CheckoutDarts.stageTypeKey,
-  parentStageId: vX01CheckoutDarts.parentStageId,
-  turnId: vX01CheckoutDarts.turnId,
-  turnSequence: vX01CheckoutDarts.turnSequence,
-  turnTotalScore: vX01CheckoutDarts.turnTotalScore,
-  turnCompletedAt: vX01CheckoutDarts.turnCompletedAt,
-  participantId: vX01CheckoutDarts.participantId,
-  dartNumber: vX01CheckoutDarts.dartNumber,
-  hitTargetNumber: vX01CheckoutDarts.hitTargetNumber,
-  hitZoneKey: vX01CheckoutDarts.hitZoneKey,
-  score: vX01CheckoutDarts.score,
-};
 
 /**
  * Reads every `v_x01_checkout_darts` dart the scope covers, inner-joined to

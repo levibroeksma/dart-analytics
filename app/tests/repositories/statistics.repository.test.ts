@@ -13,6 +13,7 @@ import {
   findHomeScoring,
   findHomeHeatmapCells,
   findScopeDartCount,
+  findX01CheckoutDarts,
   findX01FoldRows,
   findDartFoldRows,
   findVisitScoring,
@@ -328,6 +329,27 @@ describe("findX01CheckoutDarts", () => {
       identityOf(vX01CheckoutDarts.turnSequence),
       identityOf(vX01CheckoutDarts.dartNumber),
     ]);
+  });
+
+  it("selects the same v_x01_checkout_darts columns, in the same order, that findX01FoldRows leads with", async () => {
+    const own = renderingDb([]);
+    await findX01CheckoutDarts(own.db, "p1");
+    const fold = renderingDb([]);
+    await findX01FoldRows(fold.db, {
+      ...sessionScope,
+      bucket: "none",
+      tz: undefined,
+    });
+    const selectList = (sql: string) =>
+      sql
+        .slice("select ".length, sql.indexOf(" from "))
+        .replaceAll('"v_x01_checkout_darts".', "");
+    const ownColumns = selectList(onlyStatement(own.statements));
+
+    expect(ownColumns).toMatch(/^"session_id", .*"score"$/);
+    expect(
+      selectList(onlyStatement(fold.statements)).startsWith(`${ownColumns}, `),
+    ).toBe(true);
   });
 });
 
