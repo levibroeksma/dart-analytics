@@ -871,6 +871,25 @@ describe("fiveOhOneSetup", () => {
     expect(setup.loading).toBe(false);
   });
 
+  it("sets the start error, clears loading and stays on setup when create fails for any other reason", async () => {
+    const setup = createSetup({
+      presets: [QUICK_PLAY_PRESET, BEST_OF_5_PRESET, V2_PRESET],
+      legsToWin: 1,
+    });
+    setup.error = "stale";
+    vi.mocked(sessionsApi.createSession).mockRejectedValue(new Error("boom"));
+    vi.stubGlobal("location", { href: "" });
+
+    await setup.start();
+
+    expect(sessionsApi.createSession).toHaveBeenCalledTimes(1);
+    expect(sessionsApi.fetchActiveSessions).not.toHaveBeenCalled();
+    expect(store.game.startSession).not.toHaveBeenCalled();
+    expect(setup.error).toBe("Could not start the session. Try again.");
+    expect(setup.loading).toBe(false);
+    expect(location.href).toBe("");
+  });
+
   it("sends the chosen match format as V2 overrides", async () => {
     const setup = createSetup({
       presets: [QUICK_PLAY_PRESET, V2_PRESET],

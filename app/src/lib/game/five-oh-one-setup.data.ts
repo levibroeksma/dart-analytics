@@ -2,16 +2,10 @@ import {
   fetchConfigurationPresets,
   type ConfigurationPresetData,
 } from "@client/api/configuration-templates";
-import { createSession, fetchActiveSessions } from "@client/api/sessions";
+import { fetchActiveSessions } from "@client/api/sessions";
+import { startPresetSession } from "@lib/game/setup-controller";
 import { createSetupSession } from "@lib/game/setup-session";
-import { toSnapshot } from "@lib/game/rulesets/config-codec";
 import { addBotOpponent, addTypedGuest } from "@lib/game/guest-list";
-import {
-  participantsFromGuests,
-  starterFirst,
-  resolveSessionModePair,
-  startSessionInput,
-} from "@lib/game/session-mode-resolution";
 import {
   clampFiveOhOneLegs,
   FIVE_OH_ONE_LEGS_MAX,
@@ -206,10 +200,12 @@ export function fiveOhOneSetup() {
         this.scoreClampNotice = "";
       }
 
-      this.loading = true;
-      this.error = "";
-      try {
-        const overrides = buildFiveOhOneV2Wire({
+      await startPresetSession(this, {
+        gameTypeKey: GAME_TYPE_KEY,
+        rulesetVersionKey: RULESET_VERSION_KEY,
+        playHref: "/games/501/play",
+        preset,
+        overrides: buildFiveOhOneV2Wire({
           startingScore,
           matchMode: this.matchMode,
           count: legsValue,
@@ -219,53 +215,8 @@ export function fiveOhOneSetup() {
           winByTwo: this.winByTwo,
           marginScope: this.marginScope,
           cap: this.cap === null ? null : clampFiveOhOneLegs(this.cap).value,
-        });
-        const wire = {
-          ...(preset.configuration as Record<string, unknown>),
-          ...overrides,
-        };
-        const configSnapshot = toSnapshot(RULESET_VERSION_KEY, wire);
-        const modePair = resolveSessionModePair(
-          RULESET_VERSION_KEY,
-          this.$store.settings,
-        );
-        const participants = starterFirst(
-          participantsFromGuests(this.guests, this.bot),
-          this.starterIndex,
-        );
-        const session = await createSession({
-          gameTypeKey: GAME_TYPE_KEY,
-          rulesetVersionKey: RULESET_VERSION_KEY,
-          captureModeKey: modePair.captureModeKey,
-          inputModeKey: modePair.inputModeKey,
-          config: {
-            source: "template",
-            templateRef: preset.configurationTemplateId,
-            overrides,
-          },
-          participants,
-        });
-        this.$store.game.startSession(
-          startSessionInput({
-            gameTypeKey: GAME_TYPE_KEY,
-            rulesetVersionKey: RULESET_VERSION_KEY,
-            session,
-            templateRef: preset.configurationTemplateId,
-            configSnapshot,
-            modePair,
-          }),
-        );
-        globalThis.location.href = "/games/501/play";
-      } catch (err: unknown) {
-        const code = (err as { code?: string }).code;
-        if (code === "SESSION_ALREADY_ACTIVE") {
-          await this.retryReconciliation();
-          return;
-        }
-        this.error = "Could not start the session. Try again.";
-      } finally {
-        this.loading = false;
-      }
+        }),
+      });
     },
   };
 }
