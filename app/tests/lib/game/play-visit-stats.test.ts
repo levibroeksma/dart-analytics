@@ -9,6 +9,7 @@ import {
   firstNineAverageDisplay,
   highestVisitScore,
   visitScoreBandCounts,
+  tallyScoreBands,
   completedVisitsTotal,
   dartsLeftForSeat,
 } from "@lib/game/play-visit-stats";
@@ -403,5 +404,57 @@ describe("dartsLeftForSeat", () => {
 
   it("honours a non-default visit budget", () => {
     expect(dartsLeftForSeat([OPEN], "p1", 6)).toBe(4);
+  });
+});
+
+describe("tallyScoreBands", () => {
+  const bands = [
+    { min: 10, key: "low" },
+    { min: 20, key: "high" },
+  ] as const;
+
+  it("starts every band at 0, in the bands' order", () => {
+    const counts = tallyScoreBands([], bands);
+    expect(counts).toEqual({ low: 0, high: 0 });
+    expect(Object.keys(counts)).toEqual(["low", "high"]);
+  });
+
+  it("counts each score in only the highest band it meets", () => {
+    expect(tallyScoreBands([9, 10, 19, 20, 99], bands)).toEqual({
+      low: 2,
+      high: 2,
+    });
+  });
+
+  it("reads any iterable of scores", () => {
+    expect(tallyScoreBands(new Set([15, 25]), bands)).toEqual({
+      low: 1,
+      high: 1,
+    });
+  });
+});
+
+describe("visitScoreBandCounts key order and bounds", () => {
+  it("keys the bands lowest first and counts each threshold in its own band", () => {
+    const counts = visitScoreBandCounts(
+      [60, 99, 100, 119, 120, 139, 140, 179, 180].map((totalScore) => ({
+        totalScore,
+        completedAt: "2026-01-01T00:00:00.000Z",
+      })),
+    );
+    expect(Object.keys(counts)).toEqual([
+      "sixtyPlus",
+      "hundredPlus",
+      "oneTwentyPlus",
+      "oneFortyPlus",
+      "oneEighties",
+    ]);
+    expect(counts).toEqual({
+      sixtyPlus: 2,
+      hundredPlus: 2,
+      oneTwentyPlus: 2,
+      oneFortyPlus: 2,
+      oneEighties: 1,
+    });
   });
 });

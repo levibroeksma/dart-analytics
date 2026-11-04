@@ -138,6 +138,32 @@ export function completedVisitsTotal(turns: VisitLike[]): number {
 }
 
 /**
+ * Counts each score into exactly one band: the highest `min` it meets, none
+ * when it meets no `min`. `bands` run lowest `min` first, which is also the
+ * result's key order; every band starts at 0.
+ */
+export function tallyScoreBands<K extends string>(
+  scores: Iterable<number>,
+  bands: readonly { readonly min: number; readonly key: K }[],
+): Record<K, number> {
+  const counts = {} as Record<K, number>;
+  for (const band of bands) counts[band.key] = 0;
+  for (const score of scores) {
+    const band = bands.findLast((candidate) => score >= candidate.min);
+    if (band) counts[band.key] += 1;
+  }
+  return counts;
+}
+
+const VISIT_SCORE_BANDS = [
+  { min: 60, key: "sixtyPlus" },
+  { min: 100, key: "hundredPlus" },
+  { min: 120, key: "oneTwentyPlus" },
+  { min: 140, key: "oneFortyPlus" },
+  { min: 180, key: "oneEighties" },
+] as const;
+
+/**
  * Tallies completed visits into exactly one of four score bands — whichever
  * is the *highest* threshold that visit's total meets, never more than one
  * (D238/D242, Pattern 21). A 125 counts only as `oneTwentyPlus`, not also
@@ -152,22 +178,10 @@ export function visitScoreBandCounts(turns: VisitLike[]): {
   oneFortyPlus: number;
   oneEighties: number;
 } {
-  const counts = {
-    sixtyPlus: 0,
-    hundredPlus: 0,
-    oneTwentyPlus: 0,
-    oneFortyPlus: 0,
-    oneEighties: 0,
-  };
-  for (const turn of completedVisits(turns)) {
-    const score = turn.totalScore;
-    if (score >= 180) counts.oneEighties += 1;
-    else if (score >= 140) counts.oneFortyPlus += 1;
-    else if (score >= 120) counts.oneTwentyPlus += 1;
-    else if (score >= 100) counts.hundredPlus += 1;
-    else if (score >= 60) counts.sixtyPlus += 1;
-  }
-  return counts;
+  return tallyScoreBands(
+    completedVisits(turns).map((turn) => turn.totalScore),
+    VISIT_SCORE_BANDS,
+  );
 }
 
 /**

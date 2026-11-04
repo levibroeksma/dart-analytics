@@ -192,3 +192,25 @@ describe("firstNineCareerAverage", () => {
     expect(firstNineCareerAverage(rows)).toBe(52.5);
   });
 });
+
+describe("scoreBandCounts key order and bounds", () => {
+  it("keys the bands lowest first and never counts a 60-99 visit", () => {
+    const counts = scoreBandCounts(
+      [60, 99, 100, 139, 140, 179, 180, 200].map((totalScore) =>
+        visit({ totalScore }),
+      ),
+    );
+    expect(Object.keys(counts)).toEqual([
+      "hundredPlus",
+      "oneTwentyPlus",
+      "oneFortyPlus",
+      "oneEighties",
+    ]);
+    expect(counts).toEqual({
+      hundredPlus: 1,
+      oneTwentyPlus: 1,
+      oneFortyPlus: 2,
+      oneEighties: 2,
+    });
+  });
+});
