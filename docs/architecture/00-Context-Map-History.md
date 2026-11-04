@@ -17,7 +17,7 @@ updated: 2026-11-04
 
 # Version History
 
-> **Version:** 1.199.0 (2026-11-04 — Duplication backlog Phase 3a, setup screens (PR D): D519 in `decisions/frontend/architecture.md`; `duration-clamp.ts` and `duration-setup.data.ts` registered in `00-File-Inventory.md`, `setup-controller.ts` row gains `startPresetSession`, `DurationSoloFields.astro` registered; `09-Adding-A-Game.md` opt-out paragraph rewritten (121 added, `startPresetSession` named); `PresetSetupContext` doc comment updated; `scripts/dupes-baseline.txt` lowered 54 → 47)
+> **Version:** 1.199.0 (2026-11-04 — Duplication backlog Phase 2, setup screens (PR D): D519 in `decisions/frontend/architecture.md`; `duration-clamp.ts` and `duration-setup.data.ts` registered in `00-File-Inventory.md`, `setup-controller.ts` row gains `startPresetSession`, `DurationSoloFields.astro` registered; `09-Adding-A-Game.md` opt-out paragraph rewritten (121 added, `startPresetSession` named); `PresetSetupContext` doc comment updated; `scripts/dupes-baseline.txt` lowered 54 → 47)
 
 > **Version:** 1.198.0 (2026-11-01 — Duplication backlog Phase 1b, score-input play factories on the shared parts: D517 in `decisions/frontend/architecture.md`; `five-oh-one`, `one-twenty-one`, `score-training`, `tuod` and `mickey-mouse` play factories now spread `playScreenState`/`playScreenActions`/`playAgainStarterData`/`timedPlayData`; `play-lifecycle.ts` `playInit` gains `onResumed`/`uploadIfComplete` options and `playBotQuickScoreVisit`/`undoPastBot`; `play-screen.data.ts` gains the X01 checkout, bot and timed-init helpers; `play-countdown.ts` gains `formatSeconds`/`restartCountdown`; `04-Architecture-patterns.md` Pattern 17 (now 1.11.29) extended; `scripts/dupes-baseline.txt` lowered 63 → 54)
 

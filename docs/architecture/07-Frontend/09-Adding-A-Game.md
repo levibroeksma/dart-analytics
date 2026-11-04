@@ -157,8 +157,9 @@ the preset configuration before `toSnapshot` **and** sent as `createSession`'s
 `label` is copy, not a key — it reads `Bob's 27`, not `BOBS27`.
 
 **Opted out: `501`, `121`, Score Training, and TUOD.** `501` and Score
-Training replace `start` wholesale — preset selection, leg counts, a custom
-starting score with clamping. `121` and TUOD also keep their own pre-steps (a
+Training keep their own pre-steps (preset selection, leg counts, a custom
+starting score with clamping, a duration clamp), then call
+`startPresetSession`. `121` and TUOD also keep their own pre-steps (a
 guest-forced format, a duration clamp). Routing them through the factory would
 need one hook per branch, which is the factory dissolving into its callers.
 TUOD opts out for a further reason: the factory assumes exactly one seeded

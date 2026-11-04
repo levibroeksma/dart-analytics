@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clampToBounds } from "../../../src/lib/game/duration-clamp";
+import { clampToBounds } from "@lib/game/duration-clamp";
 
 const bounds = { min: 1, max: 10 };
 
