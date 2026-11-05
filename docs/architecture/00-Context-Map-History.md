@@ -17,7 +17,7 @@ updated: 2026-11-05
 
 # Version History
 
-> **Version:** 1.207.0 (2026-11-05 — Duplication backlog Phase 4c, engines, validators and the statistics repository self-clone (PR J): D528 in `decisions/frontend/architecture.md`; `scored-batch.validator.ts` row added to the File Inventory, shell, turn-log, seat-state, Target Scoring and TUOD rows noted; frontend architecture decisions token claim ~12.0k → ~12.8k; three `scripts/engine-kernels.txt` `PENDING` reasons re-checked (shell-bound, kernel unbound); `scripts/dupes-baseline.txt` lowered 7 → 0, now empty)
+> **Version:** 1.207.0 (2026-11-05 — Duplication backlog Phase 4c, engines, validators and the statistics repository self-clone (PR J): D528 in `decisions/game-engine.md`; `scored-batch.validator.ts` row added to the File Inventory, shell, turn-log, seat-state, Target Scoring and TUOD rows noted; game-engine decisions row 80 → 81 decisions, token claim ~44.1k → ~52.6k; three `scripts/engine-kernels.txt` `PENDING` reasons re-checked (shell-bound, kernel unbound); `scripts/dupes-baseline.txt` lowered 7 → 0, now empty)
 
 > **Version:** 1.206.0 (2026-11-05 — Duplication backlog Phase 4b, CSS tokens, `.astro` pairs and replay test helpers (PR I): D527 in `decisions/frontend/architecture.md`; six shared `components/layout/games/` components and `rolled-back.ts` registered in the File and Component Inventories; Component Inventory token claim ~9.5k → ~12.1k; `scripts/dupes-baseline.txt` lowered 17 → 7)
 
