@@ -51,6 +51,20 @@ describe("design-sync assets", () => {
     );
   });
 
+  it("reads only SVGs on the design side", () => {
+    const design = mkdtempSync(join(tmpdir(), "ds-design-"));
+    const repo = mkdtempSync(join(tmpdir(), "ds-repo-"));
+    put(design, "assets/icons/README.md", "notes");
+    put(design, "assets/icons/x.svg", CHECK_DESIGN);
+    put(design, "assets/brand/README.md", "notes");
+    put(design, "assets/brand/app-icon-512.png", "png");
+    put(design, "assets/brand/logo.svg", CHECK_DESIGN);
+    expect(assetItems(design, repo).map((i) => i.id)).toEqual([
+      "brand:logo.svg",
+      "icon:x.svg",
+    ]);
+  });
+
   it("pairs icons and brand files; one-sided files stay one-sided", () => {
     const design = mkdtempSync(join(tmpdir(), "ds-design-"));
     const repo = mkdtempSync(join(tmpdir(), "ds-repo-"));

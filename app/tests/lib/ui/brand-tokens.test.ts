@@ -24,7 +24,11 @@ describe("brand colour tokens", () => {
   });
 
   it.each([
-    ["placeholder", "oklch(48% 0 0)"],
+    ["placeholder", "oklch(58% 0 0)"],
+    ["muted", "oklch(65% 0 0)"],
+    ["faint-foreground", "oklch(58% 0 0)"],
+    ["chart-tick", "var(--muted)"],
+    ["on-accent", "oklch(18% 0.06 245)"],
     ["accent-deep-blue", "oklch(44.3% 0.11 240.79)"],
     ["scrim", "oklch(0% 0 0 / 0.6)"],
     ["skeleton", "oklch(100% 0 0 / 0.12)"],

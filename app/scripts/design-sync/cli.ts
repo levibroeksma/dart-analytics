@@ -48,7 +48,7 @@ const DESIGN_TOKENS = "tokens.json";
 
 const IN_SCOPE: Record<Area, RegExp> = {
   tokens: /^tokens\.json$/,
-  assets: /^assets\/(brand\/[^/]+|icons\/.+)$/,
+  assets: /^assets\/(brand\/[^/]+|icons\/.+)\.svg$/i,
   components: /^components\/[A-Z][^/]*\/.+\.(jsx|d\.ts|md|html)$/,
 };
 

@@ -21,6 +21,7 @@ const WHITESPACE_REF = /&#(?:x0*(?:9|a|d|20)|0*(?:9|10|13|32));/gi;
 const EMPTY_PAIR = /<([a-zA-Z][\w:.-]*)([^<>]*?)><\/\1>/g;
 const CODE_BRAND_DIRS = ["app/src/assets", "app/public"];
 const BRAND_EXT = /\.(svg|png)$/i;
+const DESIGN_EXT = /\.svg$/i;
 
 /**
  * Canonicalise SVG markup so formatting-only differences hash the same.
@@ -89,12 +90,14 @@ export function assetItems(designRoot: string, repoRoot: string): SyncItem[] {
   };
 
   for (const rel of listFiles(join(designRoot, "assets/icons"))) {
+    if (!DESIGN_EXT.test(rel)) continue;
     item(`icon:${rel}`).design = side(designRoot, `assets/icons/${rel}`);
   }
   for (const rel of listFiles(join(repoRoot, "app/src/icons"))) {
     item(`icon:${rel}`).code = side(repoRoot, `app/src/icons/${rel}`);
   }
   for (const rel of listFiles(join(designRoot, "assets/brand"), false)) {
+    if (!DESIGN_EXT.test(rel)) continue;
     item(`brand:${rel}`).design = side(designRoot, `assets/brand/${rel}`);
   }
   for (const dir of CODE_BRAND_DIRS) {

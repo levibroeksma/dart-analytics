@@ -104,6 +104,16 @@ describe("design-sync cli", () => {
     expect(() => runDiff({ area: "tokens", ...opts })).not.toThrow();
   });
 
+  it("does not require non-SVG files in the assets area", () => {
+    const opts = setup([
+      "assets/icons/README.md",
+      "assets/brand/app-icon-512.png",
+      "assets/icons/a.svg",
+    ]);
+    put(opts.mirror, "assets/icons/a.svg", "<svg/>");
+    expect(() => runDiff({ area: "assets", ...opts })).not.toThrow();
+  });
+
   it("treats listed directory paths as directories, not missing files", () => {
     const opts = setup([
       "assets/icons",
