@@ -564,8 +564,8 @@
       "id": "component:SheetActions",
       "area": "components",
       "designHash": "2e98020a875cec04afd4254e293a7271b34efbabd70060001c758c5156c7e7d6",
-      "codeHash": "a9bd90a58cebde0fbd96409d7fb6d49a78b04040f39442b75f9f53169a9880f8",
-      "decision": "accepted-divergence",
+      "codeHash": "0a196357f4e1070a32cfe73d9a316d3ff86a4eafc75a2a6d39dce35310476ac9",
+      "decision": "design-wins",
       "date": "2026-11-05"
     },
     {
