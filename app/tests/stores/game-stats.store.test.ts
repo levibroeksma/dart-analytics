@@ -329,6 +329,35 @@ describe("gameStatsStore", () => {
     expect(store.weakestTarget?.targetKey).toBe("DOUBLE:16");
   });
 
+  it("favoriteTarget/weakestTarget keep the first row of a rate tie and are null when none qualify", async () => {
+    readSection.mockImplementation((_player, _game, meta) => {
+      if (meta.id === "target-accuracy") {
+        return Promise.resolve(
+          series(
+            {
+              "DOUBLE:16": { attempts: 30, hits: 15 },
+              "DOUBLE:8": { attempts: 30, hits: 15 },
+            },
+            60,
+          ),
+        );
+      }
+      return Promise.resolve(series({}, 0));
+    });
+
+    const store = gameStatsStore();
+    store.gameTypeKey = "DOUBLES_TRAINING";
+    await store.load();
+
+    expect(store.favoriteTarget?.targetKey).toBe("DOUBLE:16");
+    expect(store.weakestTarget?.targetKey).toBe("DOUBLE:16");
+    expect(store.favoriteDouble).toBeNull();
+    expect(store.weakestDouble).toBeNull();
+    expect(store.doubleRows).toEqual([]);
+    expect(store.atcConfigGroups).toEqual([]);
+    expect(store.bobs27ConfigGroups).toEqual([]);
+  });
+
   it("changing heatmapTarget calls readSection for heatmap only", async () => {
     const store = gameStatsStore();
     store.gameTypeKey = "DOUBLES_TRAINING";
