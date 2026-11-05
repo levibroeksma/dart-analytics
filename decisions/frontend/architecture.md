@@ -5,7 +5,7 @@ read-when: why a frontend layering/folder-structure/barrel choice was made
 load-when: layering, folder structure, suffix, barrel, type import, error mapping, API client, types, interfaces, error, import direction, aliases
 depends-on: decisions/architecture.md
 related: decisions/api.md, decisions/frontend/alpine.md
-updated: 2026-09-20
+updated: 2026-11-05
 -->
 
 | # | Source | Decision | Rationale |

@@ -164,7 +164,7 @@ const VISIT_SCORE_BANDS = [
 ] as const;
 
 /**
- * Tallies completed visits into exactly one of four score bands — whichever
+ * Tallies completed visits into exactly one of five score bands — whichever
  * is the *highest* threshold that visit's total meets, never more than one
  * (D238/D242, Pattern 21). A 125 counts only as `oneTwentyPlus`, not also
  * `sixtyPlus`/`hundredPlus`; a 65 counts only as `sixtyPlus`; a 180 counts
