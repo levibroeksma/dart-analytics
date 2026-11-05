@@ -125,7 +125,7 @@
     {
       "design": "components/ScreenHeader/ScreenHeader",
       "code": [
-        "app/src/components/layout/games/setup/SetupShell.astro"
+        "app/src/components/layout/PageHeader.astro"
       ]
     },
     {
@@ -214,6 +214,438 @@
       "designHash": "f3dbbaea0c4801662fd3b80eabdf80cbdbe2b97bc45f732c6d128aa0bfeaf174",
       "codeHash": "f3dbbaea0c4801662fd3b80eabdf80cbdbe2b97bc45f732c6d128aa0bfeaf174",
       "decision": "code-wins",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:BoardMagnifier",
+      "area": "components",
+      "designHash": null,
+      "codeHash": "9c4e6536d0f7994ebf62a035d0e8c90f46c507395d90a14ccf76d8319413cfaf",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:BottomNav",
+      "area": "components",
+      "designHash": "ada7aa347c62456a8eee9ee5ef082629b6c21c51d38a928c2db79d92d9896a25",
+      "codeHash": "d75853b70bb4afbc8a311b0bd855c2ad8e2146bee511e23e16f1ceab0a020208",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:Button",
+      "area": "components",
+      "designHash": "16e9e852bfbca22450e36b41f8292c7f7a1c4a9792efcd59973368fc4034f0ae",
+      "codeHash": "59c8bed99b861259e71c815c79d38ef48a94e53e9b5fea8dcb4da21d6fa1eaf5",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:CardWrapper",
+      "area": "components",
+      "designHash": null,
+      "codeHash": "35848c4aa02052e54be6a531faadb591aacba894845028d34d9e91b04f5d4208",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:CatalogCard",
+      "area": "components",
+      "designHash": null,
+      "codeHash": "ca271a641a1ded5dc8c0535058b1acb67bbd461bb0db7ce70525d184a222a395",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:Chart",
+      "area": "components",
+      "designHash": null,
+      "codeHash": "915e93dec765c7fcb0eed8991fd13380916769ec66a81dac4d37a166c6b4c789",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:Checkbox",
+      "area": "components",
+      "designHash": "2e8889dc88830da1080fd1e8183c33b6b32e7c5a1d3dfeaee938e75e540928e2",
+      "codeHash": null,
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:CheckoutRoute",
+      "area": "components",
+      "designHash": "37866cd9e87dd909fc27f5ebb89f0204cb7acc060b1fddad427ce98f0aa1c2a6",
+      "codeHash": null,
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:ConfirmDialog",
+      "area": "components",
+      "designHash": "16558a2a420429239d516079c89c842664b8232d8fb46b32ef0fe41899c18e37",
+      "codeHash": "e3111e29dd898ba3afa4f88d220da31150afb829bef629ed433c243a3e08ffd4",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:DartBoard",
+      "area": "components",
+      "designHash": null,
+      "codeHash": "02bb3437d5138836c689148dca4b514eca799433755125494e4eabd4d5e1c260",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:DayState",
+      "area": "components",
+      "designHash": "ef831f6d6e709858d9c478c65f3622ff92eb6cccad94041bab9293ce791d3099",
+      "codeHash": "4ef6fc288e312f0e939c4c26b07f5f1f07c77916315700c1e084f1f173ea8d1f",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:DeckPager",
+      "area": "components",
+      "designHash": null,
+      "codeHash": "4afc954d654729f3cedd3d717f7c51a99416d48e298e215c0e1473bb30b575db",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:DeltaPill",
+      "area": "components",
+      "designHash": "2bb14be8f435b25dc70c03689a19817dd7651a80a842258814c3381c768db6dd",
+      "codeHash": null,
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:DifficultyLegend",
+      "area": "components",
+      "designHash": null,
+      "codeHash": "99e622b20bde8fadd9d879a28d6bc7c5887322ccc71c56adae919708fa5ecd2b",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:DifficultyMeter",
+      "area": "components",
+      "designHash": null,
+      "codeHash": "1584b3a11f01193baf99d12d6a0d77ac9e3df3744951f0d8b3ddf3a1b8bf9deb",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:ErrorAlert",
+      "area": "components",
+      "designHash": null,
+      "codeHash": "940702f5b028eb0e4e21f9314a463053082487139d258f18a73b81542079ee8b",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:ExpandingModal",
+      "area": "components",
+      "designHash": null,
+      "codeHash": "63c715a8dea80d3b09bd2cded83344f283fc869c68bf56840378cb0e8f620155",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:GameTitleBar",
+      "area": "components",
+      "designHash": "d34bdf096328d93125500386a445ebb35774c79fdb8ec8fb17b20e22ac1ac175",
+      "codeHash": null,
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:GlassCard",
+      "area": "components",
+      "designHash": "b5c37585ee71e37a9080b6c60d4ce7c3700f1e1285e78d86b92e066b3607763f",
+      "codeHash": null,
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:GrowingCard",
+      "area": "components",
+      "designHash": null,
+      "codeHash": "003349960e9a38177d18971c596679129bf57a055a392d5253ba26878b5e17d0",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:IconButton",
+      "area": "components",
+      "designHash": "5db556618f2519f7560926c56cc530e041f87154753dcec67dc744837caff17b",
+      "codeHash": "1f25aa987e3f7f410af4cdf97a7b1a10698a79dd0343955376e33fd52b8af58c",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:InfoSection",
+      "area": "components",
+      "designHash": null,
+      "codeHash": "2bf7b2fbf9103e7973b4801dc92035f7fd0bbe616f762c22e9e617021a4ab559",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:InlayRow",
+      "area": "components",
+      "designHash": "1c385451012d53c20d8cce35d58a93910df847b35233f2fea7082f0054698809",
+      "codeHash": "835f27319b3e916d1fae7c9b4761750d0d7cd0e81a994c8e83327b42b671e36f",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:Input",
+      "area": "components",
+      "designHash": "10933b7e1d1b560aaa921912e2a0953e35a16ef85d347b5cd1f274e5b8eba7e7",
+      "codeHash": "00757827da9f0c164d76551e923052d922c4240cc2b4523ebe232b4cf9794e6b",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:InputKey",
+      "area": "components",
+      "designHash": "0c04b79c27b521256296926dffa6a52bdf4a2d8974a09e971e234bdd3aecdf4c",
+      "codeHash": "c4590942d615363573739453aea67c628e465187997f4328b54880db29f81bc6",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:Keypad",
+      "area": "components",
+      "designHash": "2d96601183bfa238f29eb50a00feac989825fd210b83ca016e0cbcbf0bf1c515",
+      "codeHash": "8df6bbf543e9e4b5865faddfbfe55609a6294b7ce063bbb2d9eaa10395ad9605",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:LegsTrack",
+      "area": "components",
+      "designHash": "fef962934aa0c3b70c914c9ecacd6a96dbbd27af0a5a571723e98de5c414c548",
+      "codeHash": null,
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:Link",
+      "area": "components",
+      "designHash": null,
+      "codeHash": "3a23f61ac14ec62e72cbb8c3927b78e44398a708f15670be625e9b5262015db3",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:ListRow",
+      "area": "components",
+      "designHash": "e8dc4b58be0e0b91f0e8bc24bb65bb62ebc22a549ac7cf85ba5e0dfc63de410a",
+      "codeHash": null,
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:LogoutButton",
+      "area": "components",
+      "designHash": null,
+      "codeHash": "345b9aa9f91aa4eadba94ac72d4928876fa0830d779bcb709525005d1c4efad1",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:Pagination",
+      "area": "components",
+      "designHash": "17a129f57fe2809b1e096e5c01fad4b1848c32d324adb5dcdad67ee5f8ddd645",
+      "codeHash": "8e8d4bf3da71f0f9715c9453a29cc1946de7819291bca81066440080242b122c",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:PlayerSettingsCard",
+      "area": "components",
+      "designHash": null,
+      "codeHash": "c01fb61ef582a7a10d0031c824eb154f09f17c3583d5a5c4428ae37b98658b12",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:ProgressRing",
+      "area": "components",
+      "designHash": "759c2d3221abc683dc7123ca01cec8c74af8af402083108bd77dd5bb9c663527",
+      "codeHash": null,
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:RangeSlider",
+      "area": "components",
+      "designHash": "23a8bd408a39de8288ece404afdb65137973c5b6cc2744be3732ca103f0fd0cc",
+      "codeHash": "2074021828f7488f19aec207fba4d49fcd23febfb342f233d4ec2525b7442a41",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:SaveStatus",
+      "area": "components",
+      "designHash": "789d28fda1d3cf57810723be60ba83e5714de3600bf9f2fcfdcfe1c538063a36",
+      "codeHash": "8e8fd2b8a382537e7558ddd979da179aa251101c64afa754e82887e7f29fd3c5",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:ScoreDisplay",
+      "area": "components",
+      "designHash": "34136c5799dd91f3a2828e3bd07b6297c8e31bb054d4ee5d5d73d1277fe9966a",
+      "codeHash": "b9d05b4b398ec81622d35118fab7c3e055233b00182dbe0caa91b57b7efed209",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:ScreenHeader",
+      "area": "components",
+      "designHash": "c4661c72a8dac71dc1a30659e807224eadceebb1b8c3f68845c79e6d5500ad12",
+      "codeHash": "08fe17be67a2bec9cf71e790708ac5f05f57ac59edca6486bad27219f89cdb2b",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:SectionRing",
+      "area": "components",
+      "designHash": null,
+      "codeHash": "f29637c43ff9cf0aaa2b19e7f8b6510223a77f2368854845d9ca0b3ef197c166",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:SegmentBar",
+      "area": "components",
+      "designHash": "169cc7b2214c48f38827e16e9694aad9f75e59bad8cd7a995544aea950539637",
+      "codeHash": null,
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:SegmentedControl",
+      "area": "components",
+      "designHash": "04ce917b5b99db7b721ecdd70710a73096ac195f304f231ff9649a4637de9fb2",
+      "codeHash": "b98fb9a7cac1848b93741baa85cbe0b27c48da87db3207e57a322bf6d3b50214",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:Select",
+      "area": "components",
+      "designHash": "625d850c87a1fc5f64a03f4ac3b2c4a592f7917049c81cc1f0fe3f38deae0c22",
+      "codeHash": "26146aebd4297f993a8e88268f2c59116c33704c5091b6732db63ced22dc1303",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:SettingField",
+      "area": "components",
+      "designHash": "64eda0d2ba613bd226e2cb2ec054326c4ad9c8864d2252e966a12d5c8d4d8dee",
+      "codeHash": "b4df318d18c7c47a6514cedcaf36128ada24aed643d21907902c56c6b7f432aa",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:Sheet",
+      "area": "components",
+      "designHash": "1555dfb11a7c1f4f3647572251891d3e9f2acf105de0af522e518a6752659656",
+      "codeHash": "d21360de9e88562276d8f8c136bb852aabe26945737a829550f3362b88f49f09",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:SheetActions",
+      "area": "components",
+      "designHash": "2e98020a875cec04afd4254e293a7271b34efbabd70060001c758c5156c7e7d6",
+      "codeHash": "a9bd90a58cebde0fbd96409d7fb6d49a78b04040f39442b75f9f53169a9880f8",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:Skeleton",
+      "area": "components",
+      "designHash": "ffe962602b3e745cee2367e3605b2c679b058f9ab13331f57a5523af37d2559e",
+      "codeHash": null,
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:SlideToStart",
+      "area": "components",
+      "designHash": "cea86325fb43cef7f2cff413601520f0680be0bf32fbf2d6d3a6707e7daad94a",
+      "codeHash": "a12497cbc5b272f81def77d852c01088ad332be1c353e91ed8bca798ae4f262d",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:StatsDensityHeatmap",
+      "area": "components",
+      "designHash": null,
+      "codeHash": "7b545170d3b956a6c7c305ec5c1954bdde766c3357b9985e48dc05d39485158f",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:StatsHeatmap",
+      "area": "components",
+      "designHash": null,
+      "codeHash": "b91fb5bfbe5a3754ccfba3a17c5f2edc7761e9e70224cb0c4354d30a16d47461",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:StatTile",
+      "area": "components",
+      "designHash": "91988fe73998c6fc9b2004f71c02babb8e9898e6330c4b544b9f3c1b43e4e8bc",
+      "codeHash": "51b656430e6ce7246927b0d97c498b11b78811c0cb23664c403c738533d5bd29",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:Stepper",
+      "area": "components",
+      "designHash": "6aa0b04d7bd77eb662d331d46e217ffcf67ac7eabebe276e41a74ed8d1b853d3",
+      "codeHash": "e95aee855f5449064962a17496549a6ba70dac80c5b4b04c935f8d0388d291a9",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:Switch",
+      "area": "components",
+      "designHash": "4f5d31177ae3c1c623af0e79a00b6e1e0e7cadc1c6eec1ee6e3cb4b04f6bf8fb",
+      "codeHash": "63fc08cd5b68a1342ca12e80c00889f7ed9282f4907171526a866999488a9b24",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:Tag",
+      "area": "components",
+      "designHash": "10ed108257792ce1474f91dc15527973ac4b624ce5918de06d7ac716daf8da1e",
+      "codeHash": "a384f824b53c95d73fdf19e492dcce6f38fd7971e59457c4bd148a183e1f9aeb",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:TextArea",
+      "area": "components",
+      "designHash": "252486fdd98eb8c734d89824d48f910baa9fea4aed80bda67f05d3e0489489c6",
+      "codeHash": null,
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "component:VisitPreview",
+      "area": "components",
+      "designHash": "cf7e2f818dd6302a4f45c8abed889e71409113e1e217657a84c5a03ca91fc2b8",
+      "codeHash": "07a30820f2c4ae2e530f46e4754d5397de33778eb3210ab8ea16fefaebe495d3",
+      "decision": "accepted-divergence",
       "date": "2026-11-05"
     },
     {
