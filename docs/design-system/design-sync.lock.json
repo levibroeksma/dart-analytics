@@ -157,6 +157,24 @@
       "code": [
         "app/src/components/layout/games/StatTile.astro"
       ]
+    },
+    {
+      "design": "components/GameTitleBar/GameTitleBar",
+      "code": [
+        "app/src/layouts/GameLayout.astro"
+      ]
+    },
+    {
+      "design": "components/CheckoutRoute/CheckoutRoute",
+      "code": [
+        "app/src/components/layout/games/RouteChips.astro"
+      ]
+    },
+    {
+      "design": "components/LegsTrack/LegsTrack",
+      "code": [
+        "app/src/components/layout/games/LegBars.astro"
+      ]
     }
   ],
   "items": [
@@ -236,8 +254,8 @@
       "id": "component:Button",
       "area": "components",
       "designHash": "16e9e852bfbca22450e36b41f8292c7f7a1c4a9792efcd59973368fc4034f0ae",
-      "codeHash": "59c8bed99b861259e71c815c79d38ef48a94e53e9b5fea8dcb4da21d6fa1eaf5",
-      "decision": "accepted-divergence",
+      "codeHash": "8a4216636129605e04fb611dca35526eb0dfbce0135c4e8d35e562cb51848978",
+      "decision": "design-wins",
       "date": "2026-11-05"
     },
     {
@@ -276,7 +294,7 @@
       "id": "component:CheckoutRoute",
       "area": "components",
       "designHash": "37866cd9e87dd909fc27f5ebb89f0204cb7acc060b1fddad427ce98f0aa1c2a6",
-      "codeHash": null,
+      "codeHash": "3883c27ae73cdbf975a490ccc32d9dc55a7af83231daf13b944b3b97ef5ff201",
       "decision": "accepted-divergence",
       "date": "2026-11-05"
     },
@@ -356,7 +374,7 @@
       "id": "component:GameTitleBar",
       "area": "components",
       "designHash": "d34bdf096328d93125500386a445ebb35774c79fdb8ec8fb17b20e22ac1ac175",
-      "codeHash": null,
+      "codeHash": "96a88192b54b1c5856f047a5fc651c61f1ef5b17927a6511305d7e3bc0f5ee23",
       "decision": "accepted-divergence",
       "date": "2026-11-05"
     },
@@ -404,8 +422,8 @@
       "id": "component:Input",
       "area": "components",
       "designHash": "10933b7e1d1b560aaa921912e2a0953e35a16ef85d347b5cd1f274e5b8eba7e7",
-      "codeHash": "00757827da9f0c164d76551e923052d922c4240cc2b4523ebe232b4cf9794e6b",
-      "decision": "accepted-divergence",
+      "codeHash": "98c1defb350d5dbc8170b77d2389235af5215e1ca713e909a65d9b5783d810ff",
+      "decision": "design-wins",
       "date": "2026-11-05"
     },
     {
@@ -428,7 +446,7 @@
       "id": "component:LegsTrack",
       "area": "components",
       "designHash": "fef962934aa0c3b70c914c9ecacd6a96dbbd27af0a5a571723e98de5c414c548",
-      "codeHash": null,
+      "codeHash": "d47a23c17b3d62f191b9fe821ccf22e0a068e1af2aa29a27a7cf854cdb230517",
       "decision": "accepted-divergence",
       "date": "2026-11-05"
     },
@@ -460,8 +478,8 @@
       "id": "component:Pagination",
       "area": "components",
       "designHash": "17a129f57fe2809b1e096e5c01fad4b1848c32d324adb5dcdad67ee5f8ddd645",
-      "codeHash": "8e8d4bf3da71f0f9715c9453a29cc1946de7819291bca81066440080242b122c",
-      "decision": "accepted-divergence",
+      "codeHash": "49e9afec418e4b634182ea0393c7db714d0aa4839123ee3851c72c94310e6877",
+      "decision": "design-wins",
       "date": "2026-11-05"
     },
     {
@@ -492,8 +510,8 @@
       "id": "component:SaveStatus",
       "area": "components",
       "designHash": "789d28fda1d3cf57810723be60ba83e5714de3600bf9f2fcfdcfe1c538063a36",
-      "codeHash": "8e8fd2b8a382537e7558ddd979da179aa251101c64afa754e82887e7f29fd3c5",
-      "decision": "accepted-divergence",
+      "codeHash": "fb695d4e1b73c11049dc0cc7ee5b2fe67efeefb94987778a25efa2e139f648e6",
+      "decision": "design-wins",
       "date": "2026-11-05"
     },
     {
@@ -540,24 +558,24 @@
       "id": "component:Select",
       "area": "components",
       "designHash": "625d850c87a1fc5f64a03f4ac3b2c4a592f7917049c81cc1f0fe3f38deae0c22",
-      "codeHash": "26146aebd4297f993a8e88268f2c59116c33704c5091b6732db63ced22dc1303",
-      "decision": "accepted-divergence",
+      "codeHash": "3e767bd8c54871553f0b99373a47d8656fa6a0e7a2f2320dde6bd020173f8561",
+      "decision": "design-wins",
       "date": "2026-11-05"
     },
     {
       "id": "component:SettingField",
       "area": "components",
       "designHash": "64eda0d2ba613bd226e2cb2ec054326c4ad9c8864d2252e966a12d5c8d4d8dee",
-      "codeHash": "b4df318d18c7c47a6514cedcaf36128ada24aed643d21907902c56c6b7f432aa",
-      "decision": "accepted-divergence",
+      "codeHash": "f7c7bc0020840a8b42fe815ea41d3be1dc2f4731b3593cda4f9bd2471143f4e1",
+      "decision": "design-wins",
       "date": "2026-11-05"
     },
     {
       "id": "component:Sheet",
       "area": "components",
       "designHash": "1555dfb11a7c1f4f3647572251891d3e9f2acf105de0af522e518a6752659656",
-      "codeHash": "d21360de9e88562276d8f8c136bb852aabe26945737a829550f3362b88f49f09",
-      "decision": "accepted-divergence",
+      "codeHash": "b21380ad35422f6b3fab08d693b70b20ba19cbde54567279164eb02149fcface",
+      "decision": "design-wins",
       "date": "2026-11-05"
     },
     {
@@ -604,8 +622,8 @@
       "id": "component:StatTile",
       "area": "components",
       "designHash": "91988fe73998c6fc9b2004f71c02babb8e9898e6330c4b544b9f3c1b43e4e8bc",
-      "codeHash": "51b656430e6ce7246927b0d97c498b11b78811c0cb23664c403c738533d5bd29",
-      "decision": "accepted-divergence",
+      "codeHash": "ccf3cc91a33301331cd9a07f553c5308c3c1dd69a4a297c7c27e4cad746aa519",
+      "decision": "design-wins",
       "date": "2026-11-05"
     },
     {
@@ -644,8 +662,8 @@
       "id": "component:VisitPreview",
       "area": "components",
       "designHash": "cf7e2f818dd6302a4f45c8abed889e71409113e1e217657a84c5a03ca91fc2b8",
-      "codeHash": "07a30820f2c4ae2e530f46e4754d5397de33778eb3210ab8ea16fefaebe495d3",
-      "decision": "accepted-divergence",
+      "codeHash": "efd52c0a5326dba7f29a19de79cfe2ddd63d751a5c248148d38eb97e6f28c357",
+      "decision": "design-wins",
       "date": "2026-11-05"
     },
     {
@@ -857,6 +875,14 @@
       "date": "2026-10-28"
     },
     {
+      "id": "var:--animate-skpulse",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "0705088a9e4d40f8c46c96bcefcd0b482254fe7f33707463173a36d27a372cbb",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
       "id": "var:--background-image-blue-glass",
       "area": "tokens",
       "designHash": null,
@@ -951,6 +977,14 @@
       "codeHash": "43ebe6d116e6730a8f1c4b64d80630d75da0160f72336d0048eba493766726d3",
       "decision": "code-wins",
       "date": "2026-10-28"
+    },
+    {
+      "id": "var:--container-sheet",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "55c06ab5a89430739349bdc4c40a4e518176bf4532c535bbdcf024a4e7aa1350",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
     },
     {
       "id": "var:--dartboard-accent-single-dark",
@@ -1087,6 +1121,14 @@
       "codeHash": "1bff6286f4e6ab612769b65dd11f375e9567c454cfffaff73bb683d9e25c37a6",
       "decision": "design-wins",
       "date": "2026-10-28"
+    },
+    {
+      "id": "var:--error-tint",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "23a8762bb9a5f828fc378d507509c33ebd2a8e47dfb4115e401f652ae56e336a",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
     },
     {
       "id": "var:--faint-foreground",
@@ -2265,6 +2307,30 @@
       "date": "2026-11-05"
     },
     {
+      "id": "var:--text-overline",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "da30bdb4e95a51f706b9b3027e52007290ae98d05cac1dd96e84e95eabeb0e41",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "var:--text-overline--letter-spacing",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "4e52efcef77663f603cb105ed20cce666994d34fe15779c1b81b463b588f79b0",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "var:--text-overline--line-height",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "77ac319bfe1979e2d799d9e6987e65feb54f61511c03552ebae990826c208590",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
       "id": "var:--text-shadow-glow",
       "area": "tokens",
       "designHash": "30968107b08816212aacfda560a3481b736d9f1797d934856078852c3ecab9cb",
@@ -2301,6 +2367,30 @@
       "area": "tokens",
       "designHash": null,
       "codeHash": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "var:--text-stat-label",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "7b8ee66537dee68d092d43405601a5136286e0d372cf523b5a8ec4b229228f77",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "var:--text-stat-label--letter-spacing",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "52ab8565252e31ceadba56a24d084e220d8b0fda23428e73c5d467d9e70c346f",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "var:--text-stat-label--line-height",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "9c193c604ad7de942961af97b39ff541f2e611fdf0b93a3044e16dfbd808f41b",
       "decision": "accepted-divergence",
       "date": "2026-11-05"
     },

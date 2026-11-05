@@ -2,12 +2,12 @@
 /**
  * The open visit's darts as a `glass` strip. Each column has an 18px header
  * (HIT with a check, MISS with a cross, or DART n) over a 6px bar: accent for
- * a hit, white/22 for a miss, a well for an empty dart. The next dart's bar
- * takes `next-dart-ring` (`previewColumnState`). Reads `previewSegments()`
+ * a hit, `progress-todo` for a miss, a well for an empty dart. Columns are
+ * centred. The next dart's bar takes `next-dart-ring` (`previewColumnState`);
+ * empty darts after it render at half opacity. Reads `previewSegments()`
  * from the play scope. By default three columns (the games' strip).
  *
- * `labelled` is the exercise strip: one centred column per segment (any
- * count), each dart's `label` replacing HIT / DART n, and a `value` dart
+ * `labelled` is the exercise strip: one column per segment (any count), each dart's `label` replacing HIT / DART n, and a `value` dart
  * shown as its label alone with an accent bar.
  *
  * @param {boolean} [labelled] Exercise preview: per-dart labels, value darts, one column per segment
@@ -32,8 +32,8 @@ const rootAttrs = labelled
     }
   : {};
 const rootClass = `glass grid shrink-0 ${labelled ? "" : "grid-cols-3 "}gap-2 rounded-key px-4.5 py-3`;
-const columnClass = `flex min-w-0 flex-col ${labelled ? "items-center " : ""}gap-1.5`;
-const barClass = `h-1.5 ${labelled ? "w-full " : ""}rounded-full`;
+const columnClass = "flex min-w-0 flex-col items-center gap-2";
+const barClass = "h-1.5 w-full rounded-full";
 const filled = labelled
   ? "column.status === 'hit' || column.status === 'value'"
   : "column.status === 'hit'";
@@ -51,12 +51,15 @@ const emptyText = labelled
     x-for="(column, index) in $previewColumnState(previewSegments())"
     :key="index"
   >
-    <div class={columnClass}>
+    <div
+      class={columnClass}
+      :class="column.status === 'empty' && !column.next && 'opacity-50'"
+    >
       <div
-        class="flex h-4.5 items-center font-mono text-eyebrow font-semibold uppercase"
+        class="flex h-4.5 items-center font-mono text-eyebrow font-semibold uppercase tracking-widest"
       >
         <template x-if="column.status === 'hit'">
-          <span class="flex items-center gap-1 text-accent">
+          <span class="flex items-center gap-1.5 text-accent">
             <CheckIcon class="size-3.5" />
             {labelled ? <span x-text="column.label ?? 'HIT'" /> : "HIT"}
           </span>
@@ -72,14 +75,14 @@ const emptyText = labelled
           )
         }
         <template x-if="column.status === 'miss'">
-          <span class="flex items-center gap-1 text-muted">
+          <span class="flex items-center gap-1.5 text-dim-foreground">
             <CrossIcon class="size-3" />
             MISS
           </span>
         </template>
         <template x-if="column.status === 'empty'">
           <span
-            :class="column.next ? 'text-soft-foreground' : 'text-faint-foreground'"
+            :class="column.next ? 'text-chip-foreground' : 'text-faint-foreground'"
             x-text={emptyText}
           ></span>
         </template>
@@ -87,7 +90,7 @@ const emptyText = labelled
       <span
         class={barClass}
         {...{
-          ":class": `${filled} ? 'bg-accent' : column.status === 'miss' ? 'bg-white/22' : column.next ? 'next-dart-ring' : 'inset-well'`,
+          ":class": `${filled} ? 'bg-accent' : column.status === 'miss' ? 'bg-progress-todo' : column.next ? 'next-dart-ring' : 'inset-well'`,
         }}
       ></span>
     </div>

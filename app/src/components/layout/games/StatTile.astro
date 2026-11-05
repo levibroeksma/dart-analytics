@@ -1,6 +1,6 @@
 ---
 /**
- * Inlay stat tile — value over eyebrow label. With `skeletonWidth` the value
+ * Inlay stat tile — eyebrow label over value. With `skeletonWidth` the value
  * pulses until results are saved.
  * @param {string} labelExpr Alpine expression for the label
  * @param {string} valueExpr Alpine expression for the value
@@ -19,26 +19,24 @@ const { labelExpr, valueExpr, skeletonWidth }: Props = Astro.props;
 import ResultValue from "@components/layout/games/ResultValue.astro";
 ---
 
-<div
-  class="inset-well flex h-16 flex-col-reverse items-center justify-center gap-1.5 rounded-2xl"
->
+<div class="inset-well flex min-w-0 flex-col gap-2 rounded-inlay px-3 py-3.5">
   <dt
-    class="font-mono text-eyebrow font-semibold uppercase text-muted"
+    class="truncate font-mono text-stat-label font-semibold uppercase text-muted-foreground"
     x-text={labelExpr}
   >
   </dt>
   {
     skeletonWidth ? (
-      <dd class="leading-none">
+      <dd class="text-lg/tight">
         <ResultValue
-          class="font-display text-lg leading-none tabular-nums text-foreground"
+          class="font-display text-lg/tight tabular-nums text-foreground"
           valueExpr={valueExpr}
           skeletonWidth={skeletonWidth}
         />
       </dd>
     ) : (
       <dd
-        class="font-display text-lg leading-none tabular-nums text-foreground"
+        class="font-display text-lg/tight tabular-nums text-foreground"
         x-text={valueExpr}
       />
     )

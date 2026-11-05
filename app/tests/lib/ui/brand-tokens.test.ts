@@ -66,6 +66,8 @@ describe("brand type scale", () => {
     ["title", "1.625rem", "1.2", "0.02em"],
     ["value", "1.875rem", "1", "0"],
     ["stepper", "2rem", "1", "0"],
+    ["overline", "0.6875rem", "1.2", "0.12em"],
+    ["stat-label", "0.625rem", "1.3", "0.08em"],
     ["tile", "1.25rem", "1.2", "0"],
     ["card-title", "0.8125rem", "1.3", "0.06em"],
     ["control", "0.9375rem", "1.3", "0"],
@@ -217,6 +219,47 @@ function block(selector: string): string {
   if (start < 0) throw new Error(`${selector} not found`);
   return css.slice(start, css.indexOf("\n}", start) + 2);
 }
+
+describe("design sync components batch (#1230)", () => {
+  it.each([
+    ["color-saving", "var(--saving)"],
+    ["color-saved", "var(--saved)"],
+    ["color-dim-foreground", "var(--dim-foreground)"],
+    ["color-progress-todo", "var(--progress-todo)"],
+    ["animate-skpulse", "skpulse 1.4s ease-in-out infinite"],
+    ["container-sheet", "24.375rem"],
+    ["error-tint", "oklch(68% 0.15 30 / 0.08)"],
+  ])("defines --%s", (name, value) => {
+    expect(decl(name)).toBe(value);
+  });
+
+  it("btn-press-ring adds the press ring to the muted inlay while pressed", () => {
+    expect(block("@utility btn-press-ring")).toMatch(
+      /&:active:not\(:disabled\) \{\s*box-shadow:\s*var\(--inset-muted-shadow\),\s*var\(--press-ring\);/,
+    );
+  });
+
+  it("btn-press-glow brightens raised glass while pressed", () => {
+    expect(block("@utility btn-press-glow")).toMatch(
+      /&:active:not\(:disabled\) \{\s*filter: brightness\(1\.15\);/,
+    );
+  });
+
+  it("input is an inset well with the focus ring, a coral error tint and a muted disabled state", () => {
+    expect(css).toMatch(
+      /\.input \{\s*background: var\(--inset-bg\);\s*box-shadow: var\(--inset-shadow\);/,
+    );
+    expect(css).toMatch(
+      /\.input:focus \{\s*box-shadow:\s*var\(--inset-shadow\),\s*var\(--focus-ring\);/,
+    );
+    expect(css).toMatch(
+      /\.input-error,\s*\.input-error:focus \{\s*background: var\(--error-tint\);\s*box-shadow:\s*var\(--inset-shadow\),\s*var\(--error-ring\);/,
+    );
+    expect(css).toMatch(
+      /\.input:disabled \{\s*background: var\(--inset-muted-bg\);[^}]*opacity: 0\.6;/,
+    );
+  });
+});
 
 describe("brand surfaces", () => {
   it("glass has no drop shadow", () => {
@@ -500,7 +543,7 @@ describe("game play surfaces", () => {
       /inset 0 0 0 1px color-mix\(in oklch, var\(--accent\) 70%, transparent\)/,
     );
     expect(b).toMatch(
-      /0 0 10px color-mix\(in oklch, var\(--accent\) 30%, transparent\)/,
+      /0 0 6px color-mix\(in oklch, var\(--accent\) 30%, transparent\)/,
     );
   });
 

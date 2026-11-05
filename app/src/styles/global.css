@@ -59,6 +59,7 @@
   --error: oklch(68% 0.15 30);
   --error-hover: oklch(63% 0.15 30);
   --error-muted: oklch(68% 0.15 30 / 0.12);
+  --error-tint: oklch(68% 0.15 30 / 0.08);
   --error-foreground: oklch(96% 0.01 30);
   --error-strong: oklch(54% 0.15 30);
   --error-strong-hover: oklch(50% 0.15 30);
@@ -334,6 +335,10 @@
   --color-error-glass-icon: var(--error-glass-icon);
   --color-error-glass-foreground: var(--error-glass-foreground);
   --color-success: var(--success);
+  --color-saving: var(--saving);
+  --color-saved: var(--saved);
+  --color-dim-foreground: var(--dim-foreground);
+  --color-progress-todo: var(--progress-todo);
   --color-success-muted: var(--success-muted);
   --color-missed: var(--missed);
   --color-missed-muted: var(--missed-muted);
@@ -355,6 +360,12 @@
   --text-stepper: 2rem;
   --text-stepper--line-height: 1;
   --text-stepper--letter-spacing: 0;
+  --text-overline: 0.6875rem;
+  --text-overline--line-height: 1.2;
+  --text-overline--letter-spacing: 0.12em;
+  --text-stat-label: 0.625rem;
+  --text-stat-label--line-height: 1.3;
+  --text-stat-label--letter-spacing: 0.08em;
   --text-tile: 1.25rem;
   --text-tile--line-height: 1.2;
   --text-tile--letter-spacing: 0;
@@ -420,6 +431,8 @@
   --grid-template-columns-scoreboard: 1.3fr 1fr;
 
   --animate-sheet-in: sheet-in 300ms var(--ease-out);
+  --animate-skpulse: skpulse 1.4s ease-in-out infinite;
+  --container-sheet: 24.375rem;
 
   @keyframes sheet-in {
     from {
@@ -719,6 +732,18 @@
   box-shadow: var(--raised-shadow-lg);
   -webkit-backdrop-filter: var(--glass-blur);
   backdrop-filter: var(--glass-blur);
+}
+
+@utility btn-press-ring {
+  &:active:not(:disabled) {
+    box-shadow: var(--inset-muted-shadow), var(--press-ring);
+  }
+}
+
+@utility btn-press-glow {
+  &:active:not(:disabled) {
+    filter: brightness(1.15);
+  }
 }
 
 @utility glass-destructive {
@@ -1123,7 +1148,7 @@
   background: oklch(0% 0 0 / 0.35);
   box-shadow:
     inset 0 0 0 1px color-mix(in oklch, var(--accent) 70%, transparent),
-    0 0 10px color-mix(in oklch, var(--accent) 30%, transparent);
+    0 0 6px color-mix(in oklch, var(--accent) 30%, transparent);
 }
 
 @utility target-key-ring {
@@ -1337,28 +1362,27 @@
   }
 
   .input {
-    background: oklch(100% 0 0 / 0.04);
-    box-shadow: inset 0 1px 0 0 oklch(100% 0 0 / 0.04);
+    background: var(--inset-bg);
+    box-shadow: var(--inset-shadow);
+    caret-color: var(--accent);
     transition-timing-function: var(--ease-out);
   }
 
   .input:focus {
-    border-color: color-mix(in oklch, var(--accent) 65%, white);
-    background: oklch(100% 0 0 / 0.06);
-    box-shadow:
-      0 0 0 3px var(--accent-muted),
-      0 0 20px color-mix(in oklch, var(--accent) 18%, transparent);
+    box-shadow: var(--inset-shadow), var(--focus-ring);
   }
 
-  .input-error {
-    border-color: var(--error);
-  }
-
+  .input-error,
   .input-error:focus {
-    border-color: var(--error);
-    box-shadow:
-      0 0 0 3px var(--error-muted),
-      0 0 16px color-mix(in oklch, var(--error) 16%, transparent);
+    background: var(--error-tint);
+    box-shadow: var(--inset-shadow), var(--error-ring);
+  }
+
+  .input:disabled {
+    background: var(--inset-muted-bg);
+    box-shadow: inset 0 0 0 0.0625rem oklch(100% 0 0 / 0.04);
+    color: var(--muted-foreground);
+    opacity: 0.6;
   }
 
   .field-inset {

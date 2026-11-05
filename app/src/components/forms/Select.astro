@@ -1,6 +1,6 @@
 ---
 /**
- * Glass dropdown: a full-width 48px glass bar showing the picked label that
+ * Inset dropdown: a full-width 48px inset-well pill showing the picked label that
  * grows downward into a panel listing every option, and collapses back on
  * pick, outside click or Escape. The open panel overlays the content below.
  *
@@ -71,12 +71,12 @@ const wrapperClass = cn("relative h-12", classNameProp);
   @keydown.escape.window="open = false"
 >
   <div
-    class="glass group absolute inset-x-0 top-0 z-40 overflow-hidden rounded-3xl data-open:z-50"
+    class="inset-well group absolute inset-x-0 top-0 z-40 overflow-hidden rounded-full backdrop-blur-sm data-open:z-50 data-open:rounded-3xl"
     :data-open="open"
   >
     <Button
       variant="ghost"
-      class="h-12 w-full justify-between rounded-3xl px-4 text-sm font-normal text-foreground"
+      class="h-12 w-full justify-between rounded-full px-4.5 text-control font-medium text-foreground"
       loadingExpr="false"
       aria-haspopup="listbox"
       ariaLabel={ariaLabel}
@@ -113,7 +113,7 @@ const wrapperClass = cn("relative h-12", classNameProp);
             <button
               type="button"
               role="option"
-              class="flex w-full items-center justify-between rounded-2xl border border-transparent px-3 py-2.5 text-left text-sm text-foreground transition-colors duration-150 hover:glass-tinted"
+              class="flex w-full items-center justify-between rounded-inlay border border-transparent px-3 py-2.5 text-left text-sm text-foreground transition-colors duration-150 hover:glass-tinted"
               :class={pickedClass}
               :aria-selected={picked}
               @click={pick}

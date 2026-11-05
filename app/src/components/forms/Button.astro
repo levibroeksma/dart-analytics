@@ -3,6 +3,7 @@
  * Button with design-system variants.
  * @param {"button"|"submit"|"reset"} [type]
  * @param {"primary"|"secondary"|"ghost"|"error"|"dashed"|"sheet-muted"|"sheet-raised"|"sheet-destructive"} [variant]
+ * @param {"md"} [size] `md` is the 48px card action with a 12px radius; omitted, the variant's own height applies
  * @param {boolean} [icon] Equal padding on all sides (icon-only / square hit area)
  * @param {boolean} [disabled]
  * @param {string} [ariaLabel] Accessible name (required for icon-only)
@@ -21,6 +22,7 @@ interface Props {
     | "sheet-muted"
     | "sheet-raised"
     | "sheet-destructive";
+  size?: "md";
   icon?: boolean;
   grow?: boolean;
   disabled?: boolean;
@@ -41,6 +43,7 @@ const {
   type = "button",
   title,
   variant = "primary",
+  size,
   icon = false,
   grow = false,
   disabled = false,
@@ -67,10 +70,11 @@ const variantClasses = {
   error: "bg-error-strong text-error-foreground btn-error",
   dashed: "border-accent border-dashed bg-transparent text-muted-foreground",
   "sheet-muted":
-    "h-13 rounded-2xl text-control inset-well-muted text-muted-foreground",
-  "sheet-raised": "h-13 rounded-2xl text-control glass-button text-foreground",
+    "h-13 rounded-tile text-control inset-well-muted btn-press-ring text-muted-foreground",
+  "sheet-raised":
+    "h-13 rounded-tile text-control glass-button btn-press-glow text-foreground",
   "sheet-destructive":
-    "h-13 rounded-2xl text-control glass-destructive text-error-glass-foreground",
+    "h-13 rounded-tile text-control glass-destructive text-error-glass-foreground",
 }[variant];
 
 const className = cn(
@@ -78,6 +82,7 @@ const className = cn(
   !variant.startsWith("sheet-") && "border border-transparent",
   variantClasses,
   icon ? "p-2.5" : "px-4 py-2.5",
+  size === "md" && "h-12 rounded-button px-5 py-0",
   grow && "flex-1 min-w-0",
   classNameProp,
 );

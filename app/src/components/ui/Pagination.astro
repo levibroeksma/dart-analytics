@@ -1,6 +1,6 @@
 ---
 /**
- * Segmented pager: previous chevron, current page, next chevron, in one glass
+ * Pager: previous chevron, current page, next chevron, in one inset-well
  * pill. Every prop but `ariaLabel` is an Alpine expression read from the
  * enclosing scope. Without `totalExpr` only the current page shows, for a
  * cursor-paged list whose page count is unknown.
@@ -52,10 +52,11 @@ import ChevronDownIcon from "@icons/chevron-down.svg";
 
 // Styles
 const wrapperClass = cn(
-  "glass mx-auto flex w-fit items-stretch overflow-hidden rounded-xl",
+  "inset-well mx-auto flex w-fit items-center gap-1 rounded-full p-1",
   classNameProp,
 );
-const stepClass = "h-11 w-14 gap-0 rounded-none px-0";
+const stepClass =
+  "size-9 gap-0 rounded-full px-0 py-0 text-foreground disabled:opacity-35";
 ---
 
 <nav
@@ -73,12 +74,12 @@ const stepClass = "h-11 w-14 gap-0 rounded-none px-0";
   >
     <ChevronDownIcon
       slot="iconBefore"
-      class="size-5 rotate-90"
+      class="size-3.5 rotate-90"
       aria-hidden="true"
     />
   </Button>
   <p
-    class="flex min-w-24 items-center justify-center gap-1 border-x border-border px-4 text-sm tabular-nums"
+    class="flex min-w-24 items-center justify-center gap-1 px-3 text-sm tabular-nums"
     aria-live="polite"
   >
     <span
@@ -104,7 +105,7 @@ const stepClass = "h-11 w-14 gap-0 rounded-none px-0";
   >
     <ChevronDownIcon
       slot="iconBefore"
-      class="size-5 -rotate-90"
+      class="size-3.5 -rotate-90"
       aria-hidden="true"
     />
   </Button>
