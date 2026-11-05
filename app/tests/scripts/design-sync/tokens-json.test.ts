@@ -127,6 +127,23 @@ describe("design-sync tokens.json", () => {
     );
   });
 
+  it("skips entries without a name or a string value", () => {
+    const t = parseTokensJson(
+      json({
+        spacing: {
+          tokens: [
+            { name: "space-1", value: "0.25rem" },
+            { value: "1rem" },
+            { name: "space-2", value: 8 },
+          ],
+        },
+        name: "x",
+        notes: { note: "no tokens list" },
+      }),
+    );
+    expect(t.map((x) => x.id)).toEqual(["var:--space-1"]);
+  });
+
   it("throws on malformed json", () => {
     expect(() => parseTokensJson("{nope")).toThrow(/^tokens\.json: /);
   });

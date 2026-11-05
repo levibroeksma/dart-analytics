@@ -61,42 +61,53 @@ function firstThemeValue(value: unknown, theme: string | undefined): unknown {
     : Object.values(map)[0];
 }
 
+function parseDoc(text: string): Record<string, unknown> {
+  try {
+    return JSON.parse(text) as Record<string, unknown>;
+  } catch (error) {
+    throw new Error(`tokens.json: ${(error as Error).message}`);
+  }
+}
+
+/** Top-level families that hold `{tokens:[…]}`, plus `type` separately. */
+function families(doc: Record<string, unknown>): {
+  fonts: Record<string, unknown>;
+  lists: JsonFamily[];
+} {
+  const type = doc.type as { families?: Record<string, unknown> } | undefined;
+  const lists = Object.entries(doc)
+    .filter(
+      ([key, raw]) => key !== "type" && raw !== null && typeof raw === "object",
+    )
+    .map(([, raw]) => raw as JsonFamily)
+    .filter((family) => Array.isArray(family.tokens));
+  return { fonts: type?.families ?? {}, lists };
+}
+
+function familyTokens(family: JsonFamily): ParsedToken[] {
+  const theme = family.themes?.[0]?.id;
+  return (family.tokens ?? []).flatMap((token) => {
+    const value = firstThemeValue(token.value, theme);
+    return typeof token.name === "string" && typeof value === "string"
+      ? [varToken(token.name, value)]
+      : [];
+  });
+}
+
 /**
  * Parse `tokens.json` into `var:` tokens: every `{tokens:[…]}` family by
  * name, theme maps by their first theme, `{alias}` as `var(--alias)`, and
  * `type.families` as `--font-<key>`. Type styles are skipped.
  *
  * @param text - The file's text.
- * @returns Tokens in file order.
+ * @returns Tokens: fonts first, then each family in file order.
  */
 export function parseTokensJson(text: string): ParsedToken[] {
-  let doc: Record<string, unknown>;
-  try {
-    doc = JSON.parse(text) as Record<string, unknown>;
-  } catch (error) {
-    throw new Error(`tokens.json: ${(error as Error).message}`);
-  }
-  const out: ParsedToken[] = [];
-  for (const [key, raw] of Object.entries(doc)) {
-    if (raw === null || typeof raw !== "object") continue;
-    if (key === "type") {
-      const families = (raw as { families?: Record<string, unknown> }).families;
-      for (const [k, v] of Object.entries(families ?? {})) {
-        if (typeof v === "string") out.push(varToken(`font-${k}`, v));
-      }
-      continue;
-    }
-    const family = raw as JsonFamily;
-    if (!Array.isArray(family.tokens)) continue;
-    const theme = family.themes?.[0]?.id;
-    for (const token of family.tokens) {
-      const value = firstThemeValue(token.value, theme);
-      if (typeof token.name === "string" && typeof value === "string") {
-        out.push(varToken(token.name, value));
-      }
-    }
-  }
-  return out;
+  const { fonts, lists } = families(parseDoc(text));
+  const fontTokens = Object.entries(fonts).flatMap(([k, v]) =>
+    typeof v === "string" ? [varToken(`font-${k}`, v)] : [],
+  );
+  return [...fontTokens, ...lists.flatMap(familyTokens)];
 }
 
 /**
@@ -111,12 +122,7 @@ export function writeTokensJson(
   text: string,
   updates: Record<string, string>,
 ): string {
-  let doc: Record<string, unknown>;
-  try {
-    doc = JSON.parse(text) as Record<string, unknown>;
-  } catch (error) {
-    throw new Error(`tokens.json: ${(error as Error).message}`);
-  }
+  const doc = parseDoc(text);
   for (const [prop, raw] of Object.entries(updates)) {
     const name = prop.replace(/^--/, "");
     const alias = PURE_ALIAS.exec(raw.trim());
@@ -129,35 +135,38 @@ export function writeTokensJson(
   return text.endsWith("\n") ? `${out}\n` : out;
 }
 
+function setTokenValue(
+  family: JsonFamily,
+  token: JsonToken,
+  value: string,
+): void {
+  if (token.value === null || typeof token.value !== "object") {
+    token.value = value;
+    return;
+  }
+  const map = token.value as Record<string, unknown>;
+  const theme = family.themes?.[0]?.id;
+  map[theme !== undefined && theme in map ? theme : Object.keys(map)[0]] =
+    value;
+}
+
 function setValue(
   doc: Record<string, unknown>,
   name: string,
   value: string,
 ): boolean {
-  for (const [key, raw] of Object.entries(doc)) {
-    if (raw === null || typeof raw !== "object") continue;
-    if (key === "type") {
-      const families = (raw as { families?: Record<string, unknown> }).families;
-      const fontKey = name.replace(/^font-/, "");
-      if (name.startsWith("font-") && families && fontKey in families) {
-        families[fontKey] = value;
-        return true;
-      }
-      continue;
-    }
-    const family = raw as JsonFamily;
-    const token = family.tokens?.find((t) => t.name === name);
-    if (!token) continue;
-    if (token.value !== null && typeof token.value === "object") {
-      const map = token.value as Record<string, unknown>;
-      const theme = family.themes?.[0]?.id;
-      const target =
-        theme !== undefined && theme in map ? theme : Object.keys(map)[0];
-      map[target] = value;
-    } else {
-      token.value = value;
-    }
+  const { fonts, lists } = families(doc);
+  const fontKey = name.replace(/^font-/, "");
+  if (name.startsWith("font-") && fontKey in fonts) {
+    fonts[fontKey] = value;
     return true;
+  }
+  for (const family of lists) {
+    const token = family.tokens?.find((t) => t.name === name);
+    if (token) {
+      setTokenValue(family, token, value);
+      return true;
+    }
   }
   return false;
 }

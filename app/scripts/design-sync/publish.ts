@@ -5,6 +5,7 @@
  * Spec: docs/superpowers/specs/2026-11-04-design-system-artifact-sync-design.md
  */
 import type { DiffReport } from "./cli";
+import type { Classified } from "./lock";
 
 export interface PublishPlan {
   publish: string[];
@@ -33,21 +34,28 @@ export function publishPlan(
   const locked = new Set(lockedIds);
   for (const report of reports) {
     if (!PUBLISHED_AREAS.has(report.area)) continue;
+    const areaMarked = marked.has(`area:${report.area}`);
     for (const item of report.items) {
-      if (item.status !== "mismatch") continue;
-      if (!locked.has(item.id)) {
-        if (item.code && !item.design) plan.newOnMain.push(item.id);
-        continue;
-      }
-      if (item.proposal === "owner") {
-        plan.conflicts.push(item.id);
-      } else if (item.proposal === "code-to-design") {
-        const deleted = !item.code;
-        const isMarked =
-          marked.has(item.id) || marked.has(`area:${report.area}`);
-        plan[isMarked || deleted ? "conflicts" : "publish"].push(item.id);
-      }
+      const key = bucket(
+        item,
+        locked.has(item.id),
+        areaMarked || marked.has(item.id),
+      );
+      if (key) plan[key].push(item.id);
     }
   }
   return plan;
+}
+
+/** The list an item belongs in, or null when it needs nothing after a merge. */
+function bucket(
+  item: Classified,
+  isLocked: boolean,
+  isMarked: boolean,
+): keyof PublishPlan | null {
+  if (item.status !== "mismatch") return null;
+  if (!isLocked) return item.code && !item.design ? "newOnMain" : null;
+  if (item.proposal === "owner") return "conflicts";
+  if (item.proposal !== "code-to-design") return null;
+  return isMarked || !item.code ? "conflicts" : "publish";
 }

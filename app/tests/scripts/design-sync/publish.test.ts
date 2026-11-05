@@ -82,6 +82,11 @@ describe("design-sync publish plan", () => {
     });
   });
 
+  it("leaves a never-synced item on both sides to the manual flow", () => {
+    const r = reports([item("var:--a", "tokens", "mismatch", "owner")]);
+    expect(publishPlan(r, [], [])).toEqual(empty);
+  });
+
   it("never publishes components", () => {
     const r = reports([
       item("component:Button", "components", "mismatch", "code-to-design"),

@@ -259,6 +259,69 @@ function flags(argv: string[]): Map<string, string> {
   return out;
 }
 
+type Flags = Map<string, string>;
+
+const print = (value: unknown): void =>
+  console.log(JSON.stringify(value, null, 2));
+
+function idsFlag(f: Flags): string[] {
+  const ids = (f.get("ids") ?? "").split(",").filter(Boolean);
+  if (ids.length === 0) throw new Error("--ids is required");
+  return ids;
+}
+
+function mirrorOptions(f: Flags): MirrorOptions {
+  const mirror = f.get("mirror");
+  if (!mirror) throw new Error("--mirror is required");
+  return {
+    mirror: resolve(mirror),
+    repoRoot: REPO_ROOT,
+    lockPath: f.get("lock") ?? LOCK_PATH,
+  };
+}
+
+function areaOptions(f: Flags): AreaOptions {
+  const area = f.get("area") as Area;
+  if (!AREAS.includes(area)) throw new Error(`unknown --area: ${area}`);
+  return { ...mirrorOptions(f), area };
+}
+
+function migrateCommand(f: Flags): void {
+  const url = f.get("artifact-url");
+  if (!url) throw new Error("--artifact-url is required");
+  const lockPath = f.get("lock") ?? LOCK_PATH;
+  const { lock, removed, pairsRewritten } = migrateLock(
+    JSON.parse(readFileSync(lockPath, "utf8")),
+    url,
+  );
+  writeLock(lockPath, lock);
+  console.log(JSON.stringify({ removed, pairsRewritten }));
+}
+
+function recordCommand(f: Flags): void {
+  const decision = f.get("decision") as Decision;
+  if (!DECISIONS.includes(decision)) {
+    throw new Error(`unknown --decision: ${decision}`);
+  }
+  print(
+    runRecord({
+      ...areaOptions(f),
+      ids: idsFlag(f),
+      decision,
+      lastChangeAt: f.get("last-change-at"),
+    }),
+  );
+}
+
+const COMMANDS: Record<string, (f: Flags) => void> = {
+  "migrate-lock": migrateCommand,
+  ready: (f) => print(runReady(mirrorOptions(f))),
+  "publish-plan": (f) => print(runPublishPlan(mirrorOptions(f))),
+  "write-tokens": (f) => runWriteTokens(mirrorOptions(f), idsFlag(f)),
+  diff: (f) => print(runDiff(areaOptions(f))),
+  record: recordCommand,
+};
+
 /**
  * CLI entry point.
  *
@@ -268,66 +331,17 @@ function flags(argv: string[]): Map<string, string> {
 export function main(argv: string[]): number {
   try {
     const [command, ...rest] = argv;
-    const f = flags(rest);
-    if (command === "migrate-lock") {
-      const url = f.get("artifact-url");
-      if (!url) throw new Error("--artifact-url is required");
-      const lockPath = f.get("lock") ?? LOCK_PATH;
-      const { lock, removed, pairsRewritten } = migrateLock(
-        JSON.parse(readFileSync(lockPath, "utf8")),
-        url,
+    const run =
+      command !== undefined && Object.hasOwn(COMMANDS, command)
+        ? COMMANDS[command]
+        : undefined;
+    if (!run) {
+      throw new Error(
+        `unknown command: ${command ?? "(none)"} (use ${Object.keys(COMMANDS).join(", ")})`,
       );
-      writeLock(lockPath, lock);
-      console.log(JSON.stringify({ removed, pairsRewritten }));
-      return 0;
     }
-    const mirror = f.get("mirror");
-    if (!mirror) throw new Error("--mirror is required");
-    const base: MirrorOptions = {
-      mirror: resolve(mirror),
-      repoRoot: REPO_ROOT,
-      lockPath: f.get("lock") ?? LOCK_PATH,
-    };
-    if (command === "ready") {
-      console.log(JSON.stringify(runReady(base), null, 2));
-      return 0;
-    }
-    if (command === "publish-plan") {
-      console.log(JSON.stringify(runPublishPlan(base), null, 2));
-      return 0;
-    }
-    if (command === "write-tokens") {
-      const ids = (f.get("ids") ?? "").split(",").filter(Boolean);
-      if (ids.length === 0) throw new Error("--ids is required");
-      runWriteTokens(base, ids);
-      return 0;
-    }
-    const area = f.get("area") as Area;
-    if (!AREAS.includes(area)) throw new Error(`unknown --area: ${area}`);
-    const opts: AreaOptions = { ...base, area };
-    if (command === "diff") {
-      console.log(JSON.stringify(runDiff(opts), null, 2));
-      return 0;
-    }
-    if (command === "record") {
-      const decision = f.get("decision") as Decision;
-      if (!DECISIONS.includes(decision)) {
-        throw new Error(`unknown --decision: ${decision}`);
-      }
-      const ids = (f.get("ids") ?? "").split(",").filter(Boolean);
-      if (ids.length === 0) throw new Error("--ids is required");
-      const entries = runRecord({
-        ...opts,
-        ids,
-        decision,
-        lastChangeAt: f.get("last-change-at"),
-      });
-      console.log(JSON.stringify(entries, null, 2));
-      return 0;
-    }
-    throw new Error(
-      `unknown command: ${command ?? "(none)"} (use diff, record, ready, publish-plan, write-tokens or migrate-lock)`,
-    );
+    run(flags(rest));
+    return 0;
   } catch (error) {
     console.error(`design-sync: ${(error as Error).message}`);
     return 1;

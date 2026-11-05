@@ -4,7 +4,11 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import type { DiffReport } from "../../../scripts/design-sync/cli";
 import type { Classified } from "../../../scripts/design-sync/lock";
-import { readMarks, readyPlan } from "../../../scripts/design-sync/ready";
+import {
+  READY_FILE,
+  readMarks,
+  readyPlan,
+} from "../../../scripts/design-sync/ready";
 
 const side = { path: "p", hash: "h" };
 
@@ -109,16 +113,16 @@ describe("design-sync ready marks", () => {
   it("treats a missing or malformed file as no marks", () => {
     const dir = mkdtempSync(join(tmpdir(), "ds-ready-"));
     expect(readMarks(dir)).toEqual([]);
-    writeFileSync(join(dir, "sync-ready.json"), "{nope");
+    writeFileSync(join(dir, READY_FILE), "{nope");
     expect(readMarks(dir)).toEqual([]);
-    writeFileSync(join(dir, "sync-ready.json"), JSON.stringify({ v: 1 }));
+    writeFileSync(join(dir, READY_FILE), JSON.stringify({ v: 1 }));
     expect(readMarks(dir)).toEqual([]);
   });
 
   it("reads marks with their notes", () => {
     const dir = mkdtempSync(join(tmpdir(), "ds-ready-"));
     writeFileSync(
-      join(dir, "sync-ready.json"),
+      join(dir, READY_FILE),
       JSON.stringify({
         v: 1,
         items: [

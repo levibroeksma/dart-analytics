@@ -374,6 +374,18 @@ describe("design-sync cli", () => {
     );
   });
 
+  it.each([["toString"], ["nope"], [undefined]])(
+    "exits non-zero on unknown command %s",
+    (command) => {
+      const err = vi.spyOn(console, "error").mockImplementation(() => {});
+      expect(main(command === undefined ? [] : [command])).toBe(1);
+      expect(err).toHaveBeenCalledWith(
+        expect.stringMatching(/^design-sync: unknown command/),
+      );
+      err.mockRestore();
+    },
+  );
+
   it("exits non-zero on an unknown area", () => {
     const err = vi.spyOn(console, "error").mockImplementation(() => {});
     const opts = setup();

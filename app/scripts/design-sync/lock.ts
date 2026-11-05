@@ -85,32 +85,40 @@ export function classify(
   entry: LockEntry | undefined,
 ): Classified {
   if (item.codeOnly) return { ...item, status: "code-only", proposal: null };
-  const designHash = item.design?.hash ?? null;
-  const codeHash = item.code?.hash ?? null;
-  const unchanged =
-    entry !== undefined &&
-    entry.designHash === designHash &&
-    entry.codeHash === codeHash;
-  const sameNow =
-    item.comparable && designHash !== null && designHash === codeHash;
+  const status = settledStatus(item, entry);
+  if (status) return { ...item, status, proposal: null };
+  return { ...item, status: "mismatch", proposal: direction(item, entry) };
+}
 
-  if (
-    sameNow ||
-    (!item.comparable && unchanged && entry.decision !== "accepted-divergence")
-  ) {
-    return { ...item, status: "in-sync", proposal: null };
+/** `in-sync` or `accepted` when nothing needs deciding, else null. */
+function settledStatus(
+  item: SyncItem,
+  entry: LockEntry | undefined,
+): "in-sync" | "accepted" | null {
+  const [designHash, codeHash] = hashes(item);
+  if (item.comparable && designHash !== null && designHash === codeHash) {
+    return "in-sync";
   }
-  if (unchanged && entry.decision === "accepted-divergence") {
-    return { ...item, status: "accepted", proposal: null };
+  if (!entry) return null;
+  if (entry.designHash !== designHash || entry.codeHash !== codeHash) {
+    return null;
   }
-  if (!entry) return { ...item, status: "mismatch", proposal: "owner" };
+  if (entry.decision === "accepted-divergence") return "accepted";
+  return item.comparable ? null : "in-sync";
+}
 
+function hashes(item: SyncItem): [string | null, string | null] {
+  return [item.design?.hash ?? null, item.code?.hash ?? null];
+}
+
+/** Which side changed since the lock; `owner` when both or no entry. */
+function direction(item: SyncItem, entry: LockEntry | undefined): Proposal {
+  if (!entry) return "owner";
+  const [designHash, codeHash] = hashes(item);
   const designChanged = entry.designHash !== designHash;
   const codeChanged = entry.codeHash !== codeHash;
-  let proposal: Proposal = "owner";
-  if (designChanged && !codeChanged) proposal = "design-to-code";
-  if (codeChanged && !designChanged) proposal = "code-to-design";
-  return { ...item, status: "mismatch", proposal };
+  if (designChanged === codeChanged) return "owner";
+  return designChanged ? "design-to-code" : "code-to-design";
 }
 
 /**

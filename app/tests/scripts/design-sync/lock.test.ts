@@ -74,6 +74,23 @@ describe("design-sync lock", () => {
     ["h1", "h2", E("h1", "h2", "accepted-divergence"), true, "accepted", null],
     ["h1", "h2", undefined, false, "mismatch", "owner"],
     ["h1", "h2", E("h1", "h2", "code-wins"), false, "in-sync", null],
+    ["h1", "h2", E("h1", "h2", "accepted-divergence"), false, "accepted", null],
+    [
+      "h3",
+      "h2",
+      E("h1", "h2", "code-wins"),
+      false,
+      "mismatch",
+      "design-to-code",
+    ],
+    [
+      "h1",
+      "h3",
+      E("h1", "h2", "code-wins"),
+      false,
+      "mismatch",
+      "code-to-design",
+    ],
   ] as const)("classify %s/%s", (d, c, entry, comparable, status, proposal) => {
     const result = classify(
       {
