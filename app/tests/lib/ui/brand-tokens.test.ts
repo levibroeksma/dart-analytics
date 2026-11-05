@@ -610,3 +610,17 @@ describe("starter motion", () => {
     expect(crop).toMatch(/inset: -45\.65%/);
   });
 });
+
+describe("glass play symbol tokens", () => {
+  it.each([
+    ["play-glass-fill-top", "oklch(100% 0 0 / 0.3)"],
+    ["play-glass-fill-bottom", "oklch(100% 0 0 / 0.12)"],
+    ["play-glass-edge-top", "oklch(100% 0 0 / 0.7)"],
+    ["play-glass-edge-mid", "oklch(100% 0 0 / 0.1)"],
+    ["play-glass-edge-bottom", "oklch(100% 0 0 / 0.35)"],
+    [
+      "play-glass-shadow",
+      "drop-shadow(0 0.375rem 0.625rem oklch(0% 0 0 / 0.6))",
+    ],
+  ])("--%s is %s", (name, value) => expect(decl(name)).toBe(value));
+});
