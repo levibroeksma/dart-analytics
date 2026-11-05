@@ -1,25 +1,15 @@
 import type { BullUpConfigData } from "@lib/types";
 import { BullUpV1Config } from "@lib/training/exercises/rulesets/types";
-import type { DartObservation, EngineFacts, TurnFact } from "@modules/types";
+import type { EngineFacts, TurnFact } from "@modules/types";
+import type { DartExerciseSpec } from "@modules/interfaces";
+import { doubleTargetIntent } from "@modules/game/turn-log.module";
 import {
-  appendObservedDart,
-  cloneTurns,
-  doubleTargetIntent,
-  exerciseBlockStage,
-  openOrCreateTurn,
-  refuseWhenEnded,
-  undoLastDart,
-} from "@modules/game/turn-log.module";
-import { registerDartExerciseEngineFactory } from "./dart-engine.registry";
-import type {
-  DartExerciseEngine,
-  DartExerciseEngineFactory,
-} from "./interfaces";
-import { SOLO_PARTICIPANT_REF } from "./solo-participant.module";
+  dartExerciseEngineClass,
+  registerDartExercise,
+} from "./dart-exercise-shell.module";
 import type { BullUpState, BullUpTier } from "./types";
 
 const EXERCISE_RULESET_VERSION_KEY = "BULL_UP_V1" as const;
-const STAGE = exerciseBlockStage();
 /** Every throw is aimed at the bullseye. */
 const BULL_INTENT = doubleTargetIntent({ kind: "BULL" });
 
@@ -60,77 +50,23 @@ export function foldBullUpState(
   }, initial);
 }
 
-/**
- * Bull Up ("Bull Up Practice"): one dart per throw, always at the bull
- * (`docs/game-rules/training/exercises/bull-up-practice.md`). One
- * `TurnFact` is one throw of one dart, complete when written. Clockless:
- * completion arrives only through `expireTimer()` (D264).
- */
-export class BullUpEngine implements DartExerciseEngine<BullUpState> {
-  readonly exerciseRulesetVersionKey = EXERCISE_RULESET_VERSION_KEY;
-
-  private readonly turns: TurnFact[];
-  private complete = false;
-
-  constructor(config: BullUpConfigData, prior?: EngineFacts) {
-    BullUpV1Config.parse(config);
-    this.turns = prior ? cloneTurns(prior.turns) : [];
-  }
-
-  private deriveState(): BullUpState {
-    return foldBullUpState(
-      { stages: [{ ...STAGE }], turns: this.turns },
-      this.complete,
-    );
-  }
-
-  record(observation: DartObservation): BullUpState {
-    refuseWhenEnded(this.complete, "exercise is complete");
-    const turn = openOrCreateTurn(
-      this.turns,
-      STAGE.clientKey,
-      SOLO_PARTICIPANT_REF,
-      () => false,
-    );
-    appendObservedDart(turn, observation, BULL_INTENT);
-    turn.completedAt = new Date().toISOString();
-    return this.deriveState();
-  }
-
-  undo(): boolean {
-    if (this.complete) {
-      this.complete = false;
-      return true;
-    }
-    return undoLastDart(this.turns);
-  }
-
-  /** The step's countdown elapsed — the clock lives in the controller (D264). */
-  expireTimer(): void {
-    this.complete = true;
-  }
-
-  isComplete(): boolean {
-    return this.complete;
-  }
-
-  state(): BullUpState {
-    return this.deriveState();
-  }
-
-  facts(): EngineFacts {
-    return { stages: [{ ...STAGE }], turns: cloneTurns(this.turns) };
-  }
-}
-
-export const bullUpEngineFactory: DartExerciseEngineFactory<
-  BullUpConfigData,
-  BullUpState
-> = {
+const bullUpSpec: DartExerciseSpec<BullUpConfigData, BullUpState> = {
   exerciseRulesetVersionKey: EXERCISE_RULESET_VERSION_KEY,
-  create(config: BullUpConfigData, prior?: EngineFacts) {
-    return new BullUpEngine(config, prior);
-  },
+  parse: (config) => BullUpV1Config.parse(config),
+  fold: (facts, _config, expired) => foldBullUpState(facts, expired),
+  intent: () => BULL_INTENT,
+  isVisitOpen: () => false,
 };
 
-registerDartExerciseEngineFactory(bullUpEngineFactory);
+/**
+ * Bull Up ("Bull Up Practice"): one dart per throw, always at the bull
+ * (`docs/game-rules/training/exercises/bull-up-practice.md`), on the
+ * exercise shell. One `TurnFact` is one throw of one dart, complete when
+ * written. Clockless: completion arrives only through `expireTimer()` (D264).
+ */
+export class BullUpEngine extends dartExerciseEngineClass(bullUpSpec) {}
+
+export const bullUpEngineFactory = registerDartExercise(
+  bullUpSpec,
+  BullUpEngine,
+).factory;
