@@ -1,10 +1,11 @@
 ---
 /**
- * Resume affordance shown in place of the score/board input while a
- * MINUTES countdown is paused (#253): a round `glass-button` with an accent
- * play icon. It has the same `disabledExpr` contract as
- * `CountdownPauseControl`; `pausedExpr` and `toggleExpr` override the
- * `$store.game` defaults for a scope with its own pause.
+ * Paused rest screen for a MINUTES countdown (#253, #1210): a full-viewport
+ * overlay over the title bar and the score, with a glass play symbol at the
+ * viewport centre and a rotating tip card centred in the space above it.
+ * It has the same `disabledExpr` contract as `CountdownPauseControl`;
+ * `pausedExpr` and `toggleExpr` override the `$store.game` defaults for a
+ * scope with its own pause, and `tipKeyExpr` names the tips key.
  */
 interface Props {
   /** Alpine expression evaluating to a boolean; disables the resume button. */
@@ -13,6 +14,8 @@ interface Props {
   pausedExpr?: string;
   /** Alpine expression: the pause toggle call. */
   toggleExpr?: string;
+  /** Alpine expression: the ruleset or step key the tips match on. */
+  tipKeyExpr?: string;
 }
 
 // Props
@@ -20,33 +23,105 @@ const {
   disabledExpr,
   pausedExpr = "$store.game.timerPaused",
   toggleExpr = "togglePause()",
+  tipKeyExpr = "$store.game.rulesetVersionKey",
 }: Props = Astro.props;
 
 // Components
 import Button from "@components/forms/Button.astro";
 
-// Icons
-import PlayIcon from "@icons/play-solid.svg";
+const uid = crypto.randomUUID().slice(0, 8);
+const fillId = `paused-play-fill-${uid}`;
+const edgeId = `paused-play-edge-${uid}`;
+
+const PLAY_PATH =
+  "M7.5 5.147c0-.909 1.008-1.457 1.771-.964l10.157 6.553c.792.511.755 1.677-.066 2.137L9.34 19.4c-.797.446-1.777-.13-1.777-1.043z";
 ---
 
 <div
-  class="flex min-h-0 flex-1 items-center justify-center"
+  class="fixed inset-0 z-50 bg-surface"
+  x-data={`pausedTips(() => (${tipKeyExpr}))`}
+  x-effect={`(${pausedExpr}) ? start() : stop()`}
   x-show={pausedExpr}
   x-cloak
 >
+  <div class="absolute inset-x-4 top-0 bottom-1/2 mb-14 flex items-center">
+    <div
+      class="glass w-full rounded-2xl px-4 py-3 transition-opacity duration-300 ease-out motion-reduce:transition-none"
+      :class="visible ? 'opacity-100' : 'opacity-0'"
+    >
+      <p
+        class="font-mono text-eyebrow font-semibold uppercase tracking-widest text-accent"
+      >
+        Tip
+      </p>
+      <p
+        class="mt-1 text-sm text-muted"
+        x-text="tip"
+      >
+      </p>
+    </div>
+  </div>
   <Button
     type="button"
-    variant="sheet-raised"
+    variant="ghost"
     icon
     ariaLabel="Resume timer"
     loadingExpr="false"
-    class="size-24 rounded-full p-0"
+    class="absolute top-1/2 left-1/2 size-28 -translate-x-1/2 -translate-y-1/2 p-0 hover:bg-transparent"
     :disabled={disabledExpr}
     @click={toggleExpr}
   >
-    <PlayIcon
+    <svg
       slot="iconBefore"
-      class="size-10 text-accent"
-    />
+      class="size-full"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      style="filter: var(--play-glass-shadow)"
+    >
+      <defs>
+        <radialGradient
+          id={fillId}
+          cx="50%"
+          cy="0%"
+          r="110%"
+        >
+          <stop
+            offset="0"
+            style="stop-color: var(--play-glass-fill-top)"
+          ></stop>
+          <stop
+            offset="0.85"
+            style="stop-color: var(--play-glass-fill-bottom)"
+          ></stop>
+        </radialGradient>
+        <linearGradient
+          id={edgeId}
+          x1="0"
+          y1="0"
+          x2="0"
+          y2="1"
+        >
+          <stop
+            offset="0"
+            style="stop-color: var(--play-glass-edge-top)"
+          ></stop>
+          <stop
+            offset="0.5"
+            style="stop-color: var(--play-glass-edge-mid)"
+          ></stop>
+          <stop
+            offset="1"
+            style="stop-color: var(--play-glass-edge-bottom)"
+          ></stop>
+        </linearGradient>
+      </defs>
+      <path
+        d={PLAY_PATH}
+        fill={`url(#${fillId})`}
+        stroke={`url(#${edgeId})`}
+        stroke-width="0.5"
+        stroke-linejoin="round"
+      ></path>
+    </svg>
   </Button>
 </div>

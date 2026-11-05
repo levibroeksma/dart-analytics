@@ -4261,3 +4261,30 @@ describe("routinePlay — Doubles Snakes & Ladders play", () => {
     expect(sessionApi.appendBatch).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("routinePlay — tipKey", () => {
+  function withStep(step: Record<string, unknown>) {
+    const store = makeStore();
+    store.steps = [step] as never;
+    store.training = { state: () => ({ stepIndex: 0 }) } as never;
+    return store;
+  }
+
+  it("is the exercise key for a warm-up step", () => {
+    expect(withStep(STEPS[0]).tipKey()).toBe("WARM_UP");
+  });
+
+  it("is GAME:<ruleset> for a game step", () => {
+    const store = withStep({
+      ...STEPS[0],
+      exerciseTypeKey: "GAME",
+      exerciseRulesetVersionKey: null,
+      gameRulesetVersionKey: "TUOD_V1",
+    });
+    expect(store.tipKey()).toBe("GAME:TUOD_V1");
+  });
+
+  it("is null before steps load", () => {
+    expect(makeStore().tipKey()).toBeNull();
+  });
+});

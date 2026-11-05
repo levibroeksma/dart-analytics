@@ -197,6 +197,7 @@ export type RoutinePlayContext = {
   pauseLabel(this: RoutinePlayContext): string;
   togglePause(this: RoutinePlayContext): void;
   stepContextRow(this: RoutinePlayContext): SessionContextRow | null;
+  tipKey(this: RoutinePlayContext): string | null;
   startCurrentStep(this: RoutinePlayContext): Promise<void>;
   openStep(
     this: RoutinePlayContext,

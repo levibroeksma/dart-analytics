@@ -1,6 +1,6 @@
 {
   "artifactUrl": "https://claude.ai/artifact/A7QFuSqRwpqyoXUEm7XHsW",
-  "lastChangeAt": "2026-11-05T08:40:00Z",
+  "lastChangeAt": "2026-11-05T13:20:55Z",
   "pairs": [
     {
       "design": "components/Button/Button",
@@ -910,6 +910,54 @@
       "designHash": "728ac3bd48a543de84c396788fda710c8229e6afb10896eac5557f45aa6a2d14",
       "codeHash": "728ac3bd48a543de84c396788fda710c8229e6afb10896eac5557f45aa6a2d14",
       "decision": "design-wins",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "var:--play-glass-edge-bottom",
+      "area": "tokens",
+      "designHash": "6b240489b474ca582ac5bfaa9750574f51dccbf764a6e357b211dece59cb2745",
+      "codeHash": "6b240489b474ca582ac5bfaa9750574f51dccbf764a6e357b211dece59cb2745",
+      "decision": "code-wins",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "var:--play-glass-edge-mid",
+      "area": "tokens",
+      "designHash": "7fa69e89d99a77bb2cdf86a9ca377bfcb33c5c222e8ac20bae960d473a549622",
+      "codeHash": "7fa69e89d99a77bb2cdf86a9ca377bfcb33c5c222e8ac20bae960d473a549622",
+      "decision": "code-wins",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "var:--play-glass-edge-top",
+      "area": "tokens",
+      "designHash": "e5516055f3e632944e1130a52f657d62e2c01ac64c0731b8af7effa13c22eed4",
+      "codeHash": "e5516055f3e632944e1130a52f657d62e2c01ac64c0731b8af7effa13c22eed4",
+      "decision": "code-wins",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "var:--play-glass-fill-bottom",
+      "area": "tokens",
+      "designHash": "1c1e13152841514b779cba02d34c6452b282afdd66e2fa2d6a82f90f66184d00",
+      "codeHash": "1c1e13152841514b779cba02d34c6452b282afdd66e2fa2d6a82f90f66184d00",
+      "decision": "code-wins",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "var:--play-glass-fill-top",
+      "area": "tokens",
+      "designHash": "763910afd6a7a39a03953eff7ab4690a4f8bdbec2f0ab82ac9d6834781e6579c",
+      "codeHash": "763910afd6a7a39a03953eff7ab4690a4f8bdbec2f0ab82ac9d6834781e6579c",
+      "decision": "code-wins",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "var:--play-glass-shadow",
+      "area": "tokens",
+      "designHash": "6c213ecf794c44083572eb32f219e7b99948a439db302de1a571ac5577b54d4f",
+      "codeHash": "6c213ecf794c44083572eb32f219e7b99948a439db302de1a571ac5577b54d4f",
+      "decision": "code-wins",
       "date": "2026-11-05"
     },
     {

@@ -13,6 +13,7 @@ import { slideToStartData } from "@lib/ui/slide-to-start.data";
 import { seatMorph } from "@lib/ui/seat-morph.data";
 import { scoreTween } from "@lib/ui/score-tween.data";
 import { cardThrow } from "@lib/ui/card-throw.data";
+import { pausedTipsData } from "@lib/ui/paused-tips.data";
 import { initialsOf, playerCountLabel } from "@lib/ui/initials";
 import {
   bigValueSize,
@@ -57,6 +58,12 @@ describe("registerUiData", () => {
     const data = vi.fn();
     registerUiData({ data, magic: vi.fn() } as unknown as Alpine);
     expect(data).toHaveBeenCalledWith("cardThrow", cardThrow);
+  });
+
+  it("registers pausedTips as an Alpine data factory", () => {
+    const data = vi.fn();
+    registerUiData({ data, magic: vi.fn() } as unknown as Alpine);
+    expect(data).toHaveBeenCalledWith("pausedTips", pausedTipsData);
   });
 
   it("registers growingCard as an Alpine data factory", () => {
