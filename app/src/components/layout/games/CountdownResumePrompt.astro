@@ -26,6 +26,9 @@ const {
   tipKeyExpr = "$store.game.rulesetVersionKey",
 }: Props = Astro.props;
 
+// Components
+import Button from "@components/forms/Button.astro";
+
 const PLAY_PATH =
   "M7.5 5.147c0-.909 1.008-1.457 1.771-.964l10.157 6.553c.792.511.755 1.677-.066 2.137L9.34 19.4c-.797.446-1.777-.13-1.777-1.043z";
 ---
@@ -54,14 +57,18 @@ const PLAY_PATH =
       </p>
     </div>
   </div>
-  <button
+  <Button
     type="button"
-    aria-label="Resume timer"
-    class="absolute top-1/2 left-1/2 size-28 -translate-x-1/2 -translate-y-1/2 disabled:opacity-50"
+    variant="ghost"
+    icon
+    ariaLabel="Resume timer"
+    loadingExpr="false"
+    class="absolute top-1/2 left-1/2 size-28 -translate-x-1/2 -translate-y-1/2 p-0"
     :disabled={disabledExpr}
     @click={toggleExpr}
   >
     <svg
+      slot="iconBefore"
       class="size-full"
       viewBox="0 0 24 24"
       aria-hidden="true"
@@ -112,5 +119,5 @@ const PLAY_PATH =
         stroke-linejoin="round"
       ></path>
     </svg>
-  </button>
+  </Button>
 </div>

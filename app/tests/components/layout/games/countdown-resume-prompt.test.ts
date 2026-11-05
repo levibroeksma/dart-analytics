@@ -20,7 +20,13 @@ const PLAY_PATH =
 describe("CountdownResumePrompt", () => {
   it("covers the viewport", () => expect(source).toContain("fixed inset-0"));
   it("keeps the resume label", () =>
-    expect(source).toContain('aria-label="Resume timer"'));
+    expect(source).toContain('ariaLabel="Resume timer"'));
+  it("renders the action through Button.astro", () => {
+    expect(source).toContain(
+      'import Button from "@components/forms/Button.astro"',
+    );
+    expect(source).not.toMatch(/<button\b/);
+  });
   it("draws the glass play path", () => expect(source).toContain(PLAY_PATH));
   it("drops the old icon, circle and blue", () => {
     expect(source).not.toContain("play-solid.svg");
