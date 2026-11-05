@@ -1,7 +1,0 @@
-1	src/modules/game/bobs27.engine.module.ts | src/modules/game/singles-training.engine.module.ts
-1	src/modules/training/exercises/bull-up.engine.module.ts | src/modules/training/exercises/bullseye-checkout.engine.module.ts | src/modules/training/exercises/double-pattern.engine.module.ts | src/modules/training/exercises/switching.engine.module.ts
-1	src/modules/training/exercises/bullseye-checkout.engine.module.ts | src/modules/training/exercises/double-pattern.engine.module.ts | src/modules/training/exercises/switching.engine.module.ts
-1	src/modules/training/exercises/double-pattern.engine.module.ts | src/modules/training/exercises/switching.engine.module.ts
-1	src/modules/training/exercises/switching-chain.engine.module.ts | src/modules/training/exercises/target-scoring.engine.module.ts
-1	src/repositories/statistics.repository.ts
-1	src/services/rulesets/score-training/score-training.validator.ts | src/services/rulesets/tuod/tuod.validator.ts
