@@ -32,7 +32,6 @@ import { raceWinner, scoreCompareWinner } from "./match-outcome.module";
 import type { DartGameSpec, TrackRules } from "./interfaces";
 import type {
   BoardTarget,
-  DartIntent,
   DartObservation,
   EngineFacts,
   ShanghaiSeatState,
@@ -40,7 +39,7 @@ import type {
   ShanghaiTrackExt,
   TrackSeat,
 } from "./types";
-import { endedRefusal, visitOpenUnder } from "./turn-log.module";
+import { endedRefusal, NO_INTENT, visitOpenUnder } from "./turn-log.module";
 
 export { zoneBucketOf } from "./track-policies";
 
@@ -307,11 +306,6 @@ export function foldShanghaiState(
     seats,
   };
 }
-
-const NO_INTENT: DartIntent = {
-  intendedTargetNumber: null,
-  intendedZoneKey: null,
-};
 
 /** The match-ended message first — a Shanghai ends the match while another seat still reads `IN_PROGRESS` — then the seat's own. */
 const shanghaiRefusal = seatedRefusal<ShanghaiState>(

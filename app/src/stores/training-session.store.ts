@@ -1,10 +1,6 @@
-const COMPLETE_LABEL = "complete";
+import { formatSeconds } from "@lib/game/play-countdown";
 
-function formatElapsed(totalSeconds: number): string {
-  const minutes = Math.floor(Math.max(0, totalSeconds) / 60);
-  const seconds = Math.max(0, totalSeconds) % 60;
-  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-}
+const COMPLETE_LABEL = "complete";
 
 /**
  * The routine-wide clock and the step it is currently running, shared with
@@ -29,7 +25,7 @@ export function trainingSessionStore() {
     },
 
     get elapsedLabel(): string {
-      return formatElapsed(this.elapsedSeconds);
+      return formatSeconds(Math.max(0, this.elapsedSeconds));
     },
 
     startSession() {

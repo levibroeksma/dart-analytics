@@ -18,6 +18,16 @@ describe("trainingSessionStore", () => {
     expect(store.elapsedLabel).toBe("42:18");
   });
 
+  it("pads the routine clock and clamps a negative tick to 00:00", () => {
+    const store = trainingSessionStore();
+
+    store.tick(65);
+    expect(store.elapsedLabel).toBe("01:05");
+
+    store.tick(-5);
+    expect(store.elapsedLabel).toBe("00:00");
+  });
+
   it("names whatever step label it is given", () => {
     const store = trainingSessionStore();
     const labels = ["warm up", "switching", "doubles", "finishing"].map(
