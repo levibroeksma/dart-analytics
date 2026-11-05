@@ -16,6 +16,7 @@ import { checkoutPathFor } from "@modules/game/checkout-path.module";
 import { groupingSummary } from "@modules/stats/sections/grouping.module";
 import {
   bestRate,
+  foldSeriesByKey,
   hitRateRows,
   seriesKeys,
   sumInBand,
@@ -542,22 +543,18 @@ export function gameStatsStore() {
         CachedSeries<GroupingMetrics> | undefined;
       if (!series) return [];
 
-      const totals = new Map<string, GroupingMoment>();
-      for (const b of series.buckets) {
-        for (const [targetKey, m] of Object.entries(b.metrics)) {
-          const existing = totals.get(targetKey);
-          if (!existing) {
-            totals.set(targetKey, { ...m });
-            continue;
-          }
-          existing.n += m.n;
-          existing.sumX += m.sumX;
-          existing.sumY += m.sumY;
-          existing.sumXX += m.sumXX;
-          existing.sumYY += m.sumYY;
-          existing.sumXY += m.sumXY;
-        }
-      }
+      const totals = foldSeriesByKey<GroupingMoment>(
+        series,
+        (m) => ({ ...m }),
+        (into, m) => {
+          into.n += m.n;
+          into.sumX += m.sumX;
+          into.sumY += m.sumY;
+          into.sumXX += m.sumXX;
+          into.sumYY += m.sumYY;
+          into.sumXY += m.sumXY;
+        },
+      );
 
       return Array.from(totals.entries()).map(([targetKey, moment]) => {
         const parsed = parseTargetKey(targetKey);

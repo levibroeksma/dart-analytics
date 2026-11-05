@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   bestRate,
+  foldSeriesByKey,
   hitRateRows,
   seriesKeys,
   sumInBand,
@@ -69,6 +70,48 @@ describe("hitRateRows", () => {
 
   it("returns [] for an undefined series", () => {
     expect(hitRateRows(undefined)).toEqual([]);
+  });
+});
+
+describe("foldSeriesByKey", () => {
+  const init = (m: HitRateTotals): HitRateTotals => ({ ...m });
+  const merge = (into: HitRateTotals, m: HitRateTotals) => {
+    into.attempts += m.attempts;
+    into.hits += m.hits;
+  };
+
+  it("merges a key across buckets in first-seen order", () => {
+    const folded = foldSeriesByKey(
+      series<Record<string, HitRateTotals>>([
+        { A: { attempts: 1, hits: 1 }, B: { attempts: 2, hits: 0 } },
+        { A: { attempts: 3, hits: 2 }, C: { attempts: 1, hits: 1 } },
+      ]),
+      init,
+      merge,
+    );
+
+    expect(Array.from(folded.entries())).toEqual([
+      ["A", { attempts: 4, hits: 3 }],
+      ["B", { attempts: 2, hits: 0 }],
+      ["C", { attempts: 1, hits: 1 }],
+    ]);
+  });
+
+  it("starts each key from init, never aliasing the bucket's metric", () => {
+    const first = { attempts: 1, hits: 1 };
+    const input = series<Record<string, HitRateTotals>>([
+      { A: first },
+      { A: { attempts: 1, hits: 0 } },
+    ]);
+
+    const folded = foldSeriesByKey(input, init, merge);
+
+    expect(folded.get("A")).not.toBe(first);
+    expect(first).toEqual({ attempts: 1, hits: 1 });
+  });
+
+  it("returns an empty map for an undefined series", () => {
+    expect(foldSeriesByKey(undefined, init, merge).size).toBe(0);
   });
 });
 
