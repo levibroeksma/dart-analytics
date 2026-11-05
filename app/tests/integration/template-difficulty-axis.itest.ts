@@ -1,25 +1,10 @@
 import postgres from "postgres";
 import { describe, expect, it } from "vitest";
+import { rolledBack } from "./fixtures/rolled-back";
 
 if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is required");
 
 const sql = postgres(process.env.DATABASE_URL);
-
-class Rollback extends Error {}
-
-/** Runs `body` in a transaction and always rolls it back. */
-async function rolledBack(
-  body: (tx: postgres.TransactionSql) => Promise<void>,
-): Promise<void> {
-  await sql
-    .begin(async (tx) => {
-      await body(tx);
-      throw new Rollback();
-    })
-    .catch((error: unknown) => {
-      if (!(error instanceof Rollback)) throw error;
-    });
-}
 
 async function tagOnAxis(
   tx: postgres.TransactionSql,
@@ -43,7 +28,7 @@ describe("exercise_templates.difficulty_tag_id axis", () => {
   it("pins the generated axis column to the seeded DIFFICULTY axis", async () => {
     const [axis] = await sql<{ id: number }[]>`
       SELECT id FROM tag_axes WHERE implementation_key = 'DIFFICULTY'`;
-    await rolledBack(async (tx) => {
+    await rolledBack(sql, async (tx) => {
       const id = await aTemplateId(tx);
       await tx`UPDATE exercise_templates
         SET difficulty_tag_id = ${await tagOnAxis(tx, "DIFFICULTY")} WHERE id = ${id}`;
@@ -54,7 +39,7 @@ describe("exercise_templates.difficulty_tag_id axis", () => {
   });
 
   it("accepts a DIFFICULTY tag and a NULL difficulty", async () => {
-    await rolledBack(async (tx) => {
+    await rolledBack(sql, async (tx) => {
       const id = await aTemplateId(tx);
       await tx`UPDATE exercise_templates
         SET difficulty_tag_id = ${await tagOnAxis(tx, "DIFFICULTY")} WHERE id = ${id}`;
@@ -66,7 +51,7 @@ describe("exercise_templates.difficulty_tag_id axis", () => {
   });
 
   it("rejects a tag of any other axis", async () => {
-    await rolledBack(async (tx) => {
+    await rolledBack(sql, async (tx) => {
       const id = await aTemplateId(tx);
       const other = await tagOnAxis(tx, "DIFFICULTY", true);
       await tx`SAVEPOINT before_bad_tag`;

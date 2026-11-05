@@ -1,27 +1,12 @@
 import postgres from "postgres";
 import { describe, expect, it } from "vitest";
+import { rolledBack } from "./fixtures/rolled-back";
 
 if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is required");
 
 const sql = postgres(process.env.DATABASE_URL);
 
 const V3_ID = "0198f100-0000-7000-8000-000000000019";
-
-class Rollback extends Error {}
-
-/** Runs `body` in a transaction and always rolls it back. */
-async function rolledBack(
-  body: (tx: postgres.TransactionSql) => Promise<void>,
-): Promise<void> {
-  await sql
-    .begin(async (tx) => {
-      await body(tx);
-      throw new Rollback();
-    })
-    .catch((error: unknown) => {
-      if (!(error instanceof Rollback)) throw error;
-    });
-}
 
 async function withoutCardTags(tx: postgres.TransactionSql): Promise<void> {
   await tx`DELETE FROM ruleset_version_tags WHERE ruleset_version_id = ${V3_ID}`;
@@ -39,7 +24,7 @@ async function tagIds(
 
 describe("ruleset_version_tags", () => {
   it("surfaces a card's tags in v_catalog_tags as CARD rows", async () => {
-    await rolledBack(async (tx) => {
+    await rolledBack(sql, async (tx) => {
       await withoutCardTags(tx);
       const [difficulty] = await tagIds(tx, "DIFFICULTY");
       await tx`
@@ -61,7 +46,7 @@ describe("ruleset_version_tags", () => {
   });
 
   it("allows at most one primary tag per ruleset version", async () => {
-    await rolledBack(async (tx) => {
+    await rolledBack(sql, async (tx) => {
       await withoutCardTags(tx);
       const [first, second] = await tagIds(tx, "DIFFICULTY");
       await tx`

@@ -30,6 +30,7 @@ import type {
   ReplayHeaderSchemaData,
   ReplayTurnSchemaData,
 } from "@routes/types";
+import { replayTurns } from "./replay-turns";
 
 /**
  * Scripted games for the replay fold and presenter tests: each one is
@@ -130,17 +131,9 @@ function replayOf(
   const stageIds = new Map(
     facts.stages.map((stage, index) => [stage.clientKey, stageId(index)]),
   );
-  const turns = facts.turns.map((turn) => ({
-    stageId: stageIds.get(turn.stageClientKey)!,
-    turnSequence: turn.sequence,
-    participantId: turn.participantRef,
-    turnTotalScore: turn.totalScore,
-    kept: turn.kept ?? false,
-    darts: turn.darts.map(({ sequence, ...rest }) => ({
-      dartNumber: sequence,
-      ...rest,
-    })),
-  }));
+  const turns = replayTurns(facts.turns, (turn) =>
+    stageIds.get(turn.stageClientKey)!,
+  );
   const firstTurnOrder = [...new Set(turns.map((turn) => turn.participantId))];
   const { seats, ...snapshot } = config;
   return {
