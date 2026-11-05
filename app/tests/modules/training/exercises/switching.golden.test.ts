@@ -94,4 +94,9 @@ describe("Switching — golden", () => {
     expect(normalise(resumed.facts())).toEqual(normalise(continuous.facts()));
     expect(resumed.state()).toEqual(continuous.state());
   });
+
+  it("is built on the exercise shell", () => {
+    const engine = new SwitchingEngine(CONFIG);
+    expect(engine.spec.exerciseRulesetVersionKey).toBe("SWITCHING_V1");
+  });
 });

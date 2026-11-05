@@ -106,4 +106,9 @@ describe("Double Pattern — golden", () => {
     expect(normalise(resumed.facts())).toEqual(normalise(continuous.facts()));
     expect(resumed.state()).toEqual(continuous.state());
   });
+
+  it("is built on the exercise shell", () => {
+    const engine = new DoublePatternEngine(CONFIG);
+    expect(engine.spec.exerciseRulesetVersionKey).toBe("DOUBLE_PATTERN_V1");
+  });
 });

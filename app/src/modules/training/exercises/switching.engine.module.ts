@@ -1,29 +1,14 @@
 import type { SwitchingConfigData } from "@lib/types";
 import { SwitchingV1Config } from "@lib/training/exercises/rulesets/types";
-import type {
-  DartFact,
-  DartObservation,
-  EngineFacts,
-  TurnFact,
-} from "@modules/types";
+import type { DartFact, DartObservation, EngineFacts } from "@modules/types";
+import type { DartExerciseSpec } from "@modules/interfaces";
 import {
-  appendObservedDart,
-  cloneTurns,
-  exerciseBlockStage,
-  openOrCreateTurn,
-  refuseWhenEnded,
-  undoLastDart,
-} from "@modules/game/turn-log.module";
-import { registerDartExerciseEngineFactory } from "./dart-engine.registry";
-import type {
-  DartExerciseEngine,
-  DartExerciseEngineFactory,
-} from "./interfaces";
-import { SOLO_PARTICIPANT_REF } from "./solo-participant.module";
+  dartExerciseEngineClass,
+  registerDartExercise,
+} from "./dart-exercise-shell.module";
 import type { SwitchingState } from "./types";
 
 const EXERCISE_RULESET_VERSION_KEY = "SWITCHING_V1" as const;
-const STAGE = exerciseBlockStage();
 
 /**
  * Every `DartZoneKey` a single ring can produce, mirroring
@@ -127,98 +112,30 @@ export function foldSwitchingState(
 }
 
 /**
+ * One visit is one full pass through `config.targets`, so a visit stays
+ * open until the next dart is back on the first target.
+ */
+const switchingSpec: DartExerciseSpec<SwitchingConfigData, SwitchingState> = {
+  exerciseRulesetVersionKey: EXERCISE_RULESET_VERSION_KEY,
+  parse: (config) => SwitchingV1Config.parse(config),
+  fold: foldSwitchingState,
+  intent: (state) => ({
+    intendedTargetNumber: state.currentTargetNumber,
+    intendedZoneKey: INTENDED_ZONE_KEY,
+  }),
+  isVisitOpen: (_turn, state) => state.targetIndex !== 0,
+};
+
+/**
  * Switching: cycles a fixed target list dart by dart, scoring each dart by
  * the ring it hit relative to its own visit's current target
  * (09-Training/01-Routines.md §17, design spec 2026-09-11 §5.2). One visit —
- * one `TurnFact` — is one full pass through `config.targets`. The engine
- * owns no clock: completion arrives only through `expireTimer()`, called by
- * the (not yet built) controller driving the step's countdown, exactly like
- * `TuodEngine`/`ScoreTrainingEngine` (D264).
+ * one `TurnFact` — is one full pass through `config.targets`. On the
+ * exercise shell: completion arrives only through `expireTimer()` (D264).
  */
-export class SwitchingEngine implements DartExerciseEngine<SwitchingState> {
-  readonly exerciseRulesetVersionKey = EXERCISE_RULESET_VERSION_KEY;
+export class SwitchingEngine extends dartExerciseEngineClass(switchingSpec) {}
 
-  private readonly config: SwitchingConfigData;
-  private readonly turns: TurnFact[];
-  private complete = false;
-
-  constructor(config: SwitchingConfigData, prior?: EngineFacts) {
-    this.config = SwitchingV1Config.parse(config);
-    this.turns = prior ? cloneTurns(prior.turns) : [];
-  }
-
-  private deriveState(): SwitchingState {
-    return foldSwitchingState(
-      { stages: [{ ...STAGE }], turns: this.turns },
-      this.config,
-      this.complete,
-    );
-  }
-
-  record(observation: DartObservation): SwitchingState {
-    refuseWhenEnded(this.complete, "exercise is complete");
-    const turn = openOrCreateTurn(
-      this.turns,
-      STAGE.clientKey,
-      SOLO_PARTICIPANT_REF,
-      (last) => last.darts.length < this.config.targets.length,
-    );
-    const intendedTarget =
-      this.config.targets[
-        foldSwitchingState(
-          { stages: [{ ...STAGE }], turns: this.turns },
-          this.config,
-          false,
-        ).targetIndex
-      ];
-    appendObservedDart(turn, observation, {
-      intendedTargetNumber: intendedTarget,
-      intendedZoneKey: INTENDED_ZONE_KEY,
-    });
-    if (turn.darts.length === this.config.targets.length) {
-      turn.completedAt = new Date().toISOString();
-    }
-    return this.deriveState();
-  }
-
-  undo(): boolean {
-    if (this.complete) {
-      this.complete = false;
-      return true;
-    }
-    return undoLastDart(this.turns);
-  }
-
-  /**
-   * Records that the step's countdown has elapsed. The countdown itself
-   * lives in the controller, not the engine — mirrors
-   * `TuodEngine.expireTimer()` (D264).
-   */
-  expireTimer(): void {
-    this.complete = true;
-  }
-
-  isComplete(): boolean {
-    return this.complete;
-  }
-
-  state(): SwitchingState {
-    return this.deriveState();
-  }
-
-  facts(): EngineFacts {
-    return { stages: [{ ...STAGE }], turns: cloneTurns(this.turns) };
-  }
-}
-
-export const switchingEngineFactory: DartExerciseEngineFactory<
-  SwitchingConfigData,
-  SwitchingState
-> = {
-  exerciseRulesetVersionKey: EXERCISE_RULESET_VERSION_KEY,
-  create(config: SwitchingConfigData, prior?: EngineFacts) {
-    return new SwitchingEngine(config, prior);
-  },
-};
-
-registerDartExerciseEngineFactory(switchingEngineFactory);
+export const switchingEngineFactory = registerDartExercise(
+  switchingSpec,
+  SwitchingEngine,
+).factory;
