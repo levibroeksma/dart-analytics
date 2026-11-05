@@ -65,6 +65,7 @@ describe("brand type scale", () => {
     ["hero", "4.5rem", "1", "-0.02em"],
     ["title", "1.625rem", "1.2", "0.02em"],
     ["value", "1.875rem", "1", "0"],
+    ["stepper", "2rem", "1", "0"],
     ["tile", "1.25rem", "1.2", "0"],
     ["card-title", "0.8125rem", "1.3", "0.06em"],
     ["control", "0.9375rem", "1.3", "0"],
@@ -220,6 +221,15 @@ function block(selector: string): string {
 describe("brand surfaces", () => {
   it("glass has no drop shadow", () => {
     expect(block("@utility glass")).not.toMatch(/shadow-sm/);
+  });
+
+  it("glass-button-lg is the raised material with the large shadow and 8px blur", () => {
+    const b = block("@utility glass-button-lg");
+    expect(b).toMatch(/background: var\(--raised-bg\);/);
+    expect(b).toMatch(/border-top: var\(--raised-edge-top\);/);
+    expect(b).toMatch(/border-bottom: var\(--raised-edge-bottom\);/);
+    expect(b).toMatch(/box-shadow: var\(--raised-shadow-lg\);/);
+    expect(b).toMatch(/backdrop-filter: var\(--glass-blur\);/);
   });
 
   it.each([

@@ -36,11 +36,11 @@ const config = { min, max };
 
 // Styles
 const className = cn(
-  "glass-button flex w-16 flex-col items-center gap-0.5 rounded-full py-1.5",
+  "glass-button-lg flex w-16 flex-col items-center gap-0.5 rounded-full py-1.5",
   classNameProp,
 );
 const buttonClass =
-  "flex h-8 w-11 items-center justify-center rounded-full text-muted-foreground cursor-pointer disabled:cursor-not-allowed disabled:opacity-30";
+  "flex h-8 w-11 items-center justify-center rounded-full text-muted-foreground cursor-pointer disabled:cursor-not-allowed disabled:opacity-35";
 ---
 
 <div
@@ -65,7 +65,7 @@ const buttonClass =
     aria-valuemin={min}
     aria-valuemax={max}
     :aria-valuenow="current()"
-    class="py-1 font-mono text-value text-foreground"
+    class="py-1 font-mono text-stepper font-medium text-foreground"
     x-text="current()"
     @keydown="onKey($event)"
   ></span>
