@@ -28,6 +28,14 @@ describe("CountdownResumePrompt", () => {
     expect(source).not.toMatch(/<button\b/);
   });
   it("draws the glass play path", () => expect(source).toContain(PLAY_PATH));
+  it("gives each instance its own gradient ids", () => {
+    expect(source).not.toMatch(/id="paused-play-/);
+    expect(source).not.toMatch(/url\(#paused-play-/);
+    expect(source).toMatch(/id=\{fillId\}/);
+    expect(source).toMatch(/id=\{edgeId\}/);
+  });
+  it("shows no hover fill behind the symbol", () =>
+    expect(source).toContain("hover:bg-transparent"));
   it("drops the old icon, circle and blue", () => {
     expect(source).not.toContain("play-solid.svg");
     expect(source).not.toContain("text-accent ");

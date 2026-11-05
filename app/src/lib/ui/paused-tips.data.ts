@@ -12,6 +12,7 @@ export const TIP_FADE_MS = 300;
  */
 export function pausedTipsData(readKey: () => string | null | undefined) {
   let timer: ReturnType<typeof setTimeout> | null = null;
+  let last: string | null = null;
 
   const clear = () => {
     if (timer !== null) clearTimeout(timer);
@@ -23,9 +24,10 @@ export function pausedTipsData(readKey: () => string | null | undefined) {
     visible: false,
 
     show() {
-      this.tip = pickTip(readKey(), this.tip || null);
+      last = pickTip(readKey(), last);
+      this.tip = last;
       this.visible = true;
-      timer = setTimeout(() => this.change(), tipDisplayMs(this.tip));
+      timer = setTimeout(() => this.change(), tipDisplayMs(last));
     },
 
     change() {

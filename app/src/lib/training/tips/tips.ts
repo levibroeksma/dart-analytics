@@ -30,7 +30,7 @@ export const KEY_TIPS: Readonly<Record<string, readonly string[]>> = {
   TUOD: [
     "Learn your one-visit routes from 41 up to 61.",
     "A miss only costs 1 step. Throw with freedom.",
-    "Set up a double with your second dart, not your third.",
+    "Set up a double with your first dart, so 2 darts go at it.",
   ],
   QUICK_SUBTRACT: [
     "Subtract the tens first, then the units.",
@@ -65,12 +65,12 @@ export const KEY_TIPS: Readonly<Record<string, readonly string[]>> = {
   SCORE_THRESHOLD: [
     "Three steady darts beat one big treble.",
     "Aim for the treble and accept a single.",
-    "Plan to beat 65 with singles, so trebles are a bonus.",
+    "Three singles top out at 60. Reach 65 with a treble, a double or a bull.",
   ],
   BULLSEYE_CHECKOUT: [
     "Leave exactly 50 with your first 2 darts.",
     "Take the bull slowly. It is the dart that counts.",
-    "Use a single 19 or 31 to set up 50 when the treble misses.",
+    "Your first 2 darts need 31. Plan a backup, like 19 then 12, when one misses.",
   ],
   BULL_UP: [
     "Throw the bull with the same motion as every other dart.",
@@ -104,7 +104,7 @@ export const KEY_TIPS: Readonly<Record<string, readonly string[]>> = {
   ],
   HALVE_IT: [
     "One hit protects your total. Make the first dart count.",
-    "Play safe on hard targets. A single beats a halved score.",
+    "Play safe on hard targets. Any hit on the target beats a halved score.",
     "Change your aim to the target, not to your total.",
   ],
   DOUBLES_SNAKES_LADDERS: [

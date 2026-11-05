@@ -29,6 +29,10 @@ const {
 // Components
 import Button from "@components/forms/Button.astro";
 
+const uid = crypto.randomUUID().slice(0, 8);
+const fillId = `paused-play-fill-${uid}`;
+const edgeId = `paused-play-edge-${uid}`;
+
 const PLAY_PATH =
   "M7.5 5.147c0-.909 1.008-1.457 1.771-.964l10.157 6.553c.792.511.755 1.677-.066 2.137L9.34 19.4c-.797.446-1.777-.13-1.777-1.043z";
 ---
@@ -63,7 +67,7 @@ const PLAY_PATH =
     icon
     ariaLabel="Resume timer"
     loadingExpr="false"
-    class="absolute top-1/2 left-1/2 size-28 -translate-x-1/2 -translate-y-1/2 p-0"
+    class="absolute top-1/2 left-1/2 size-28 -translate-x-1/2 -translate-y-1/2 p-0 hover:bg-transparent"
     :disabled={disabledExpr}
     @click={toggleExpr}
   >
@@ -76,7 +80,7 @@ const PLAY_PATH =
     >
       <defs>
         <radialGradient
-          id="paused-play-fill"
+          id={fillId}
           cx="50%"
           cy="0%"
           r="110%"
@@ -91,7 +95,7 @@ const PLAY_PATH =
           ></stop>
         </radialGradient>
         <linearGradient
-          id="paused-play-edge"
+          id={edgeId}
           x1="0"
           y1="0"
           x2="0"
@@ -113,8 +117,8 @@ const PLAY_PATH =
       </defs>
       <path
         d={PLAY_PATH}
-        fill="url(#paused-play-fill)"
-        stroke="url(#paused-play-edge)"
+        fill={`url(#${fillId})`}
+        stroke={`url(#${edgeId})`}
         stroke-width="0.5"
         stroke-linejoin="round"
       ></path>

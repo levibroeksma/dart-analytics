@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { effect, reactive, ref } from "@vue/reactivity";
 import { TIP_FADE_MS, pausedTipsData } from "@lib/ui/paused-tips.data";
 import { GENERAL_TIPS } from "@lib/training/tips/tips";
 import { tipDisplayMs, tipsFor } from "@lib/training/tips/tip-pick";
@@ -95,5 +96,19 @@ describe("pausedTipsData", () => {
     tips.start();
     tips.destroy();
     expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("picks once per rotation under an Alpine-style effect", () => {
+    vi.stubGlobal("matchMedia", () => ({ matches: false }));
+    const random = vi.spyOn(Math, "random").mockReturnValue(0.5);
+    const tips = reactive(pausedTipsData(() => KEY));
+    const paused = ref(true);
+    effect(() => (paused.value ? tips.start() : tips.stop()));
+    const first = tips.tip;
+    const callsAfterStart = random.mock.calls.length;
+    vi.advanceTimersByTime(tipDisplayMs(first) + TIP_FADE_MS);
+    expect(random.mock.calls.length - callsAfterStart).toBe(2);
+    expect(tips.tip).not.toBe(first);
+    expect(vi.getTimerCount()).toBe(1);
   });
 });
