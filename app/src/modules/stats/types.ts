@@ -536,6 +536,17 @@ export type TargetAccuracyMetrics = Record<
   { attempts: number; hits: number }
 >;
 
+/** Attempts and hits at one target — the per-target entry `hitRateRows` sums. */
+export type HitRateTotals = { attempts: number; hits: number };
+
+/** One target's attempts, hits and hit rate (`0` at zero attempts), as `hitRateRows` returns it. */
+export type HitRateRow = {
+  targetKey: string;
+  attempts: number;
+  hits: number;
+  rate: number;
+};
+
 /** `confusion` section metrics — one bucket, keyed by `TargetKey` then by hit key (a `TargetKey`, or `MISS`). */
 export type ConfusionMetrics = Record<string, Record<string, number>>;
 

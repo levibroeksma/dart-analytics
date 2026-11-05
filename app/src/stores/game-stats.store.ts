@@ -14,6 +14,14 @@ import { parseTargetKey, targetLabel } from "@lib/stats/target-key";
 import { DOUBLES_PATH_KEYS } from "@lib/stats/heatmap-targets";
 import { checkoutPathFor } from "@modules/game/checkout-path.module";
 import { groupingSummary } from "@modules/stats/sections/grouping.module";
+import {
+  bestRate,
+  foldSeriesByKey,
+  hitRateRows,
+  seriesKeys,
+  sumInBand,
+  worstRate,
+} from "@modules/stats/sections/hit-rate-rows.module";
 import { fetchGameSection, fetchGameSessions } from "@client/api/statistics";
 import { readSection, readSessionPage } from "@client/stats-cache/cache";
 import { gameScopeKey } from "@modules/stats/routine-scope.module";
@@ -32,6 +40,7 @@ import type {
   GroupingMetrics,
   GroupingMoment,
   HeatmapMetrics,
+  HitRateRow,
   LadderProgressMetrics,
   LegStatsMetrics,
   LooseDartsMetrics,
@@ -493,52 +502,21 @@ export function gameStatsStore() {
     targetLabel,
 
     /** Per-target hit rate across every loaded bucket, weakest first. */
-    get accuracyRows(): {
-      targetKey: string;
-      attempts: number;
-      hits: number;
-      rate: number;
-    }[] {
-      const series = this.sections["target-accuracy"] as
-        CachedSeries<TargetAccuracyMetrics> | undefined;
-      if (!series) return [];
-
-      const totals = new Map<string, { attempts: number; hits: number }>();
-      for (const b of series.buckets) {
-        for (const [targetKey, m] of Object.entries(b.metrics)) {
-          const existing = totals.get(targetKey) ?? { attempts: 0, hits: 0 };
-          existing.attempts += m.attempts;
-          existing.hits += m.hits;
-          totals.set(targetKey, existing);
-        }
-      }
-
-      return Array.from(totals.entries())
-        .map(([targetKey, t]) => ({
-          targetKey,
-          attempts: t.attempts,
-          hits: t.hits,
-          rate: t.attempts === 0 ? 0 : t.hits / t.attempts,
-        }))
-        .sort((a, b) => a.rate - b.rate);
+    get accuracyRows(): HitRateRow[] {
+      return hitRateRows(
+        this.sections["target-accuracy"] as
+          CachedSeries<TargetAccuracyMetrics> | undefined,
+      );
     },
 
     /** The best-rate target with at least `MIN_TARGET_SAMPLE` attempts, or `null` when none qualify. */
-    get favoriteTarget() {
-      const qualifying = this.accuracyRows.filter(
-        (r) => r.attempts >= MIN_TARGET_SAMPLE,
-      );
-      if (qualifying.length === 0) return null;
-      return qualifying.reduce((best, r) => (r.rate > best.rate ? r : best));
+    get favoriteTarget(): HitRateRow | null {
+      return bestRate(this.accuracyRows, MIN_TARGET_SAMPLE);
     },
 
     /** The worst-rate target with at least `MIN_TARGET_SAMPLE` attempts, or `null` when none qualify. */
-    get weakestTarget() {
-      const qualifying = this.accuracyRows.filter(
-        (r) => r.attempts >= MIN_TARGET_SAMPLE,
-      );
-      if (qualifying.length === 0) return null;
-      return qualifying.reduce((worst, r) => (r.rate < worst.rate ? r : worst));
+    get weakestTarget(): HitRateRow | null {
+      return worstRate(this.accuracyRows, MIN_TARGET_SAMPLE);
     },
 
     /** The `n` most frequent non-hit landings for an intended target, from `confusion`'s single bucket. */
@@ -565,22 +543,18 @@ export function gameStatsStore() {
         CachedSeries<GroupingMetrics> | undefined;
       if (!series) return [];
 
-      const totals = new Map<string, GroupingMoment>();
-      for (const b of series.buckets) {
-        for (const [targetKey, m] of Object.entries(b.metrics)) {
-          const existing = totals.get(targetKey);
-          if (!existing) {
-            totals.set(targetKey, { ...m });
-            continue;
-          }
-          existing.n += m.n;
-          existing.sumX += m.sumX;
-          existing.sumY += m.sumY;
-          existing.sumXX += m.sumXX;
-          existing.sumYY += m.sumYY;
-          existing.sumXY += m.sumXY;
-        }
-      }
+      const totals = foldSeriesByKey<GroupingMoment>(
+        series,
+        (m) => ({ ...m }),
+        (into, m) => {
+          into.n += m.n;
+          into.sumX += m.sumX;
+          into.sumY += m.sumY;
+          into.sumXX += m.sumXX;
+          into.sumYY += m.sumYY;
+          into.sumXY += m.sumXY;
+        },
+      );
 
       return Array.from(totals.entries()).map(([targetKey, moment]) => {
         const parsed = parseTargetKey(targetKey);
@@ -685,16 +659,10 @@ export function gameStatsStore() {
       const series = this.sections["checkout-rate"] as
         CachedSeries<CheckoutRateMetrics> | undefined;
       return REMAINING_BANDS.map((band) => {
-        let chances = 0;
-        let finished = 0;
-        for (const b of series?.buckets ?? []) {
-          for (const [key, m] of Object.entries(b.metrics)) {
-            const remaining = Number(key);
-            if (remaining < band.low || remaining > band.high) continue;
-            chances += m.chances;
-            finished += m.finished;
-          }
-        }
+        const [chances = 0, finished = 0] = sumInBand(series, band, (m) => [
+          m.chances,
+          m.finished,
+        ]);
         return {
           label: band.label,
           chances,
@@ -714,16 +682,10 @@ export function gameStatsStore() {
       const series = this.sections["bust-rate"] as
         CachedSeries<BustRateMetrics> | undefined;
       return REMAINING_BANDS.map((band) => {
-        let visits = 0;
-        let busts = 0;
-        for (const b of series?.buckets ?? []) {
-          for (const [key, m] of Object.entries(b.metrics)) {
-            const remaining = Number(key);
-            if (remaining < band.low || remaining > band.high) continue;
-            visits += m.visits;
-            busts += m.busts;
-          }
-        }
+        const [visits = 0, busts = 0] = sumInBand(series, band, (m) => [
+          m.visits,
+          m.busts,
+        ]);
         return {
           label: band.label,
           visits,
@@ -791,52 +753,21 @@ export function gameStatsStore() {
     },
 
     /** Per-double hit rate across every loaded bucket, weakest first — `double-performance`'s analogue of `accuracyRows`. */
-    get doubleRows(): {
-      targetKey: string;
-      attempts: number;
-      hits: number;
-      rate: number;
-    }[] {
-      const series = this.sections["double-performance"] as
-        CachedSeries<DoublePerformanceMetrics> | undefined;
-      if (!series) return [];
-
-      const totals = new Map<string, { attempts: number; hits: number }>();
-      for (const b of series.buckets) {
-        for (const [targetKey, m] of Object.entries(b.metrics)) {
-          const existing = totals.get(targetKey) ?? { attempts: 0, hits: 0 };
-          existing.attempts += m.attempts;
-          existing.hits += m.hits;
-          totals.set(targetKey, existing);
-        }
-      }
-
-      return Array.from(totals.entries())
-        .map(([targetKey, t]) => ({
-          targetKey,
-          attempts: t.attempts,
-          hits: t.hits,
-          rate: t.attempts === 0 ? 0 : t.hits / t.attempts,
-        }))
-        .sort((a, b) => a.rate - b.rate);
+    get doubleRows(): HitRateRow[] {
+      return hitRateRows(
+        this.sections["double-performance"] as
+          CachedSeries<DoublePerformanceMetrics> | undefined,
+      );
     },
 
     /** The best-rate double with at least `MIN_TARGET_SAMPLE` attempts, or `null` when none qualify. */
-    get favoriteDouble() {
-      const qualifying = this.doubleRows.filter(
-        (r) => r.attempts >= MIN_TARGET_SAMPLE,
-      );
-      if (qualifying.length === 0) return null;
-      return qualifying.reduce((best, r) => (r.rate > best.rate ? r : best));
+    get favoriteDouble(): HitRateRow | null {
+      return bestRate(this.doubleRows, MIN_TARGET_SAMPLE);
     },
 
     /** The worst-rate double with at least `MIN_TARGET_SAMPLE` attempts, or `null` when none qualify. */
-    get weakestDouble() {
-      const qualifying = this.doubleRows.filter(
-        (r) => r.attempts >= MIN_TARGET_SAMPLE,
-      );
-      if (qualifying.length === 0) return null;
-      return qualifying.reduce((worst, r) => (r.rate < worst.rate ? r : worst));
+    get weakestDouble(): HitRateRow | null {
+      return worstRate(this.doubleRows, MIN_TARGET_SAMPLE);
     },
 
     /** The exact `startingRemaining` values `checkout-path` holds data for, highest first. */
@@ -1152,13 +1083,10 @@ export function gameStatsStore() {
 
     /** The config groups `atc-darts-per-target` has data for, across every loaded bucket. */
     get atcConfigGroups(): string[] {
-      const series = this.sections["atc-darts-per-target"] as
-        CachedSeries<AtcDartsPerTargetMetrics> | undefined;
-      const keys = new Set<string>();
-      for (const b of series?.buckets ?? []) {
-        for (const key of Object.keys(b.metrics)) keys.add(key);
-      }
-      return Array.from(keys).sort();
+      return seriesKeys(
+        this.sections["atc-darts-per-target"] as
+          CachedSeries<AtcDartsPerTargetMetrics> | undefined,
+      );
     },
 
     /** `atc-darts-per-target`'s darts-per-target for every aim in `group`, sorted along the path (target number ascending); `dartsPerTarget` is `null` for a target never cleared. */
@@ -1212,13 +1140,10 @@ export function gameStatsStore() {
 
     /** The config groups `bobs27-survival` has data for, across every loaded bucket. */
     get bobs27ConfigGroups(): string[] {
-      const series = this.sections["bobs27-survival"] as
-        CachedSeries<Bobs27SurvivalMetrics> | undefined;
-      const keys = new Set<string>();
-      for (const b of series?.buckets ?? []) {
-        for (const key of Object.keys(b.metrics)) keys.add(key);
-      }
-      return Array.from(keys).sort();
+      return seriesKeys(
+        this.sections["bobs27-survival"] as
+          CachedSeries<Bobs27SurvivalMetrics> | undefined,
+      );
     },
 
     /** `bobs27-survival`'s survival curve for one config group: `reached` runs and the average running score, along the path's own D1..BULL order (phase-4 decision 15). Every path position is present, `0`/`null` where the group has no data for it. */

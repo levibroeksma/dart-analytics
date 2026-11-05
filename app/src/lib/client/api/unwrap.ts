@@ -1,13 +1,12 @@
-import { SessionApiError } from "./sessions";
+import { SessionApiError } from "./session-api-error";
 import type { ApiResult } from "./types";
 
 /**
  * Returns a success envelope's data, or throws it as a `SessionApiError`.
  * Shared by every `client/api/*` module past one call site.
  *
- * Lives beside `client.ts` rather than in it: `sessions.ts` owns
- * `SessionApiError` and imports `apiRequest`, so a `client.ts` that reached
- * for the error class closed an import cycle the fallow gate rejects.
+ * Imports `SessionApiError` from its own module, so neither `sessions.ts`
+ * nor `client.ts` sits on an import cycle with this helper.
  */
 export function unwrapOrThrow<T>(result: ApiResult<T>): T {
   if (!result.ok) {

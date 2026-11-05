@@ -329,6 +329,35 @@ describe("gameStatsStore", () => {
     expect(store.weakestTarget?.targetKey).toBe("DOUBLE:16");
   });
 
+  it("favoriteTarget/weakestTarget keep the first row of a rate tie and are null when none qualify", async () => {
+    readSection.mockImplementation((_player, _game, meta) => {
+      if (meta.id === "target-accuracy") {
+        return Promise.resolve(
+          series(
+            {
+              "DOUBLE:16": { attempts: 30, hits: 15 },
+              "DOUBLE:8": { attempts: 30, hits: 15 },
+            },
+            60,
+          ),
+        );
+      }
+      return Promise.resolve(series({}, 0));
+    });
+
+    const store = gameStatsStore();
+    store.gameTypeKey = "DOUBLES_TRAINING";
+    await store.load();
+
+    expect(store.favoriteTarget?.targetKey).toBe("DOUBLE:16");
+    expect(store.weakestTarget?.targetKey).toBe("DOUBLE:16");
+    expect(store.favoriteDouble).toBeNull();
+    expect(store.weakestDouble).toBeNull();
+    expect(store.doubleRows).toEqual([]);
+    expect(store.atcConfigGroups).toEqual([]);
+    expect(store.bobs27ConfigGroups).toEqual([]);
+  });
+
   it("changing heatmapTarget calls readSection for heatmap only", async () => {
     const store = gameStatsStore();
     store.gameTypeKey = "DOUBLES_TRAINING";
@@ -422,6 +451,30 @@ describe("gameStatsStore", () => {
       (r: { targetKey: string }) => r.targetKey === "DOUBLE:16",
     )!;
     expect(row.summary!.n).toBe(4);
+  });
+
+  it("groupingRows sums a target's moment across buckets without mutating the loaded series", async () => {
+    const moment = { n: 2, sumX: 0, sumY: 0, sumXX: 4, sumYY: 4, sumXY: 0 };
+    const loaded = series({ "DOUBLE:16": moment }, 2);
+    loaded.buckets.push({
+      ...loaded.buckets[0],
+      start: "2026-02-01T00:00:00.000Z",
+      end: "2026-03-01T00:00:00.000Z",
+      metrics: { "DOUBLE:16": { ...moment } },
+    });
+    readSection.mockImplementation((_player, _game, meta) =>
+      Promise.resolve(meta.id === "grouping" ? loaded : series({}, 0)),
+    );
+
+    const store = gameStatsStore();
+    store.gameTypeKey = "DOUBLES_TRAINING";
+    await store.load();
+
+    expect(
+      store.groupingRows.map((r: { targetKey: string }) => r.targetKey),
+    ).toEqual(["DOUBLE:16"]);
+    expect(store.groupingRows[0].summary!.n).toBe(4);
+    expect(moment.n).toBe(2);
   });
 
   it("heatmapCells positions cells as board percentages, opacity scaled to the busiest cell", async () => {

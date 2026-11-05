@@ -1,7 +1,6 @@
 import { SECTOR_ORDER } from "@lib/game/board/board-geometry.module";
 import { isAimHit } from "@lib/stats/target-key";
-import { intendedKey } from "./intent-cells.module";
-import { bucketFor, closeBuckets } from "./series.module";
+import { intentCellBuckets } from "./intent-cells.module";
 import type { IntentZoneKey, SeriesBucket } from "@lib/types";
 import type {
   DartZoneKey,
@@ -130,33 +129,21 @@ export function looseDartsBuckets(
   rows: readonly IntentCellRow[],
   ctx: { to: string; now: Date },
 ): SeriesBucket<LooseDartsMetrics>[] {
-  const buckets = new Map<
-    string,
-    { end: string; metrics: LooseDartsMetrics; sampleSize: number }
-  >();
-
-  for (const row of rows) {
-    const bucket = bucketFor(buckets, row, () => ({}));
-    bucket.sampleSize += row.darts;
-
-    const key = intendedKey(row);
-    const existing = bucket.metrics[key] ?? {
-      onTarget: 0,
-      nearMiss: 0,
-      loose: 0,
-    };
-    const landing = classifyLanding(
-      {
-        number: row.intendedTargetNumber,
-        zone: row.intendedZoneKey as IntentZoneKey,
-      },
-      { number: row.hitTargetNumber, zone: row.hitZoneKey as DartZoneKey },
-    );
-    if (landing === "onTarget") existing.onTarget += row.darts;
-    else if (landing === "nearMiss") existing.nearMiss += row.darts;
-    else existing.loose += row.darts;
-    bucket.metrics[key] = existing;
-  }
-
-  return closeBuckets(buckets, ctx);
+  return intentCellBuckets(
+    rows,
+    ctx,
+    () => ({ onTarget: 0, nearMiss: 0, loose: 0 }),
+    (entry, row) => {
+      const landing = classifyLanding(
+        {
+          number: row.intendedTargetNumber,
+          zone: row.intendedZoneKey as IntentZoneKey,
+        },
+        { number: row.hitTargetNumber, zone: row.hitZoneKey as DartZoneKey },
+      );
+      if (landing === "onTarget") entry.onTarget += row.darts;
+      else if (landing === "nearMiss") entry.nearMiss += row.darts;
+      else entry.loose += row.darts;
+    },
+  );
 }

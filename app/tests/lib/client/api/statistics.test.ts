@@ -554,3 +554,147 @@ describe("fetchStatisticsHome", () => {
     );
   });
 });
+
+describe("statistics failure envelope", () => {
+  beforeEach(() => vi.resetAllMocks());
+
+  const range = {
+    from: "2026-01-01T00:00:00.000Z",
+    to: "2026-02-01T00:00:00.000Z",
+  };
+
+  it.each([
+    ["fetchGameSection", () => fetchGameSection("501", "completion", range)],
+    ["fetchStatisticsOverview", () => fetchStatisticsOverview()],
+    ["fetchStatisticsHome", () => fetchStatisticsHome("UTC")],
+    ["fetchGameSessions", () => fetchGameSessions("501", range)],
+    ["fetchSessionReplay", () => fetchSessionReplay("s1")],
+    ["fetchTrainedRoutines", () => fetchTrainedRoutines()],
+    ["fetchRoutineHeader", () => fetchRoutineHeader("R1")],
+    [
+      "fetchRoutineSection",
+      () => fetchRoutineSection("R1", "routine-volume", range),
+    ],
+    [
+      "fetchRoutineStepSection",
+      () => fetchRoutineStepSection("R1", "1-abc", "step-volume", range),
+    ],
+    [
+      "fetchRoutineStepSessions",
+      () => fetchRoutineStepSessions("R1", "1-abc", range),
+    ],
+  ])(
+    "%s throws a StatisticsApiError carrying code and message",
+    async (_name, call) => {
+      vi.mocked(apiRequest).mockResolvedValue({
+        ok: false,
+        requestId: "req-pin",
+        error: {
+          code: "NOT_FOUND",
+          message: "pin message",
+          retryable: false,
+          details: { reason: "pin" },
+        },
+      });
+      const error = await call().catch((e: unknown) => e);
+      expect(error).toBeInstanceOf(StatisticsApiError);
+      expect(error).toMatchObject({
+        name: "StatisticsApiError",
+        code: "NOT_FOUND",
+        message: "pin message",
+      });
+    },
+  );
+});
+
+describe("statistics paging query", () => {
+  beforeEach(() => vi.resetAllMocks());
+
+  const ok = {
+    ok: true as const,
+    requestId: "r1",
+    data: { items: [], nextCursor: null, dataVersion: "v1:0:0" },
+  };
+
+  it("fetchGameSessions appends limit then cursor after the range params", async () => {
+    vi.mocked(apiRequest).mockResolvedValue(ok);
+    await fetchGameSessions("501", {
+      from: "2026-01-01T00:00:00.000Z",
+      to: "2026-02-01T00:00:00.000Z",
+      status: "COMPLETED",
+      limit: 10,
+      cursor: "v1:abc:2",
+    });
+    const [path] = vi.mocked(apiRequest).mock.calls[0];
+    expect(path).toBe(
+      "/api/statistics/games/501/sessions?from=2026-01-01T00%3A00%3A00.000Z&to=2026-02-01T00%3A00%3A00.000Z&status=COMPLETED&limit=10&cursor=v1%3Aabc%3A2",
+    );
+  });
+
+  it("fetchRoutineStepSessions appends limit then cursor after from, to and status", async () => {
+    vi.mocked(apiRequest).mockResolvedValue(ok);
+    await fetchRoutineStepSessions("R1", "1-abc", {
+      from: "2026-01-01T00:00:00.000Z",
+      to: "2026-02-01T00:00:00.000Z",
+      status: "COMPLETED",
+      limit: 10,
+      cursor: "v1:abc:2",
+    });
+    const [path] = vi.mocked(apiRequest).mock.calls[0];
+    expect(path).toBe(
+      "/api/statistics/routines/R1/steps/1-abc/sessions?from=2026-01-01T00%3A00%3A00.000Z&to=2026-02-01T00%3A00%3A00.000Z&status=COMPLETED&limit=10&cursor=v1%3Aabc%3A2",
+    );
+  });
+
+  it("fetchSessionReplay omits limit and cursor that are undefined", async () => {
+    vi.mocked(apiRequest).mockResolvedValue(ok);
+    await fetchSessionReplay("s1", { limit: 5 });
+    const [path] = vi.mocked(apiRequest).mock.calls[0];
+    expect(path).toBe("/api/statistics/sessions/s1/replay?limit=5");
+  });
+});
+
+describe("statistics range query order", () => {
+  beforeEach(() => vi.resetAllMocks());
+
+  it("fetchGameSection sets every range param in a fixed order", async () => {
+    vi.mocked(apiRequest).mockResolvedValue({
+      ok: true,
+      requestId: "r1",
+      data: {},
+    });
+    await fetchGameSection("501", "completion", {
+      from: "F",
+      to: "T",
+      bucket: "month",
+      tz: "UTC",
+      status: "COMPLETED",
+      context: "ALL",
+      inputMode: "QUICK_SCORE",
+      target: "DOUBLE:16",
+    } as Parameters<typeof fetchGameSection>[2]);
+    const [path] = vi.mocked(apiRequest).mock.calls[0];
+    expect(path).toBe(
+      "/api/statistics/games/501/sections/completion?from=F&to=T&bucket=month&tz=UTC&status=COMPLETED&context=ALL&inputMode=QUICK_SCORE&target=DOUBLE%3A16",
+    );
+  });
+
+  it("fetchRoutineSection sets from, to, bucket, tz and status in a fixed order", async () => {
+    vi.mocked(apiRequest).mockResolvedValue({
+      ok: true,
+      requestId: "r1",
+      data: {},
+    });
+    await fetchRoutineSection("R1", "routine-volume", {
+      from: "F",
+      to: "T",
+      bucket: "month",
+      tz: "UTC",
+      status: "COMPLETED",
+    } as Parameters<typeof fetchRoutineSection>[2]);
+    const [path] = vi.mocked(apiRequest).mock.calls[0];
+    expect(path).toBe(
+      "/api/statistics/routines/R1/sections/routine-volume?from=F&to=T&bucket=month&tz=UTC&status=COMPLETED",
+    );
+  });
+});

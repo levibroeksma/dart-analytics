@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { unwrapOrThrow } from "@client/api/unwrap";
 import { SessionApiError } from "@client/api/sessions";
+import { SessionApiError as SessionApiErrorClass } from "@client/api/session-api-error";
 
 describe("unwrapOrThrow", () => {
   it("returns the data of a success envelope", () => {
@@ -40,5 +41,22 @@ describe("unwrapOrThrow", () => {
         details: { issues: ["x"] },
       });
     }
+  });
+
+  it("throws the one SessionApiError class, whether imported from sessions or session-api-error", () => {
+    expect(SessionApiError).toBe(SessionApiErrorClass);
+    const error = (() => {
+      try {
+        return unwrapOrThrow({
+          ok: false,
+          requestId: "r",
+          error: { code: "X", message: "m", retryable: false },
+        });
+      } catch (e) {
+        return e;
+      }
+    })();
+    expect(error).toBeInstanceOf(SessionApiError);
+    expect(error).toBeInstanceOf(SessionApiErrorClass);
   });
 });

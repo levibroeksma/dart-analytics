@@ -181,6 +181,30 @@ describe("looseDartsBuckets", () => {
     expect(entry).toEqual({ onTarget: 9, nearMiss: 12, loose: 9 });
   });
 
+  it("keeps one entry per intended target and sums every row's darts into sampleSize", () => {
+    const rows = [
+      row({ darts: 4 }),
+      row({
+        intendedTargetNumber: 20,
+        intendedZoneKey: "TREBLE",
+        hitTargetNumber: 1,
+        hitZoneKey: "TREBLE",
+        darts: 6,
+      }),
+    ];
+
+    const [bucket] = looseDartsBuckets(rows, {
+      to: "2026-02-01T00:00:00.000Z",
+      now: new Date("2026-03-01T00:00:00.000Z"),
+    });
+
+    expect(bucket!.sampleSize).toBe(10);
+    expect(bucket!.metrics).toEqual({
+      "DOUBLE:16": { onTarget: 4, nearMiss: 0, loose: 0 },
+      "TREBLE:20": { onTarget: 0, nearMiss: 6, loose: 0 },
+    });
+  });
+
   it("returns no buckets for an empty row set", () => {
     expect(
       looseDartsBuckets([], {

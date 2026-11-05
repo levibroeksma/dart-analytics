@@ -13,24 +13,33 @@ import { aroundTheClockDurationBounds } from "../around-the-clock-duration";
  * alone — it needs a whole-object refinement that reads `duration_type`
  * alongside `duration_value`.
  */
+function durationValueRefinement(
+  val: { duration_type: "ROUNDS" | "MINUTES"; duration_value: number },
+  ctx: z.RefinementCtx,
+): void {
+  const [min, max] = val.duration_type === "ROUNDS" ? [1, 100] : [3, 30];
+  if (val.duration_value < min || val.duration_value > max) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["duration_value"],
+      message: `duration_value must be between ${min} and ${max} for ${val.duration_type}`,
+    });
+  }
+}
+
+const maxDartsPerTurnField = z.number().int().min(1).max(3);
+
+const maxVisitScoreField = z.number().int().default(180);
+
 export const ScoreTrainingConfig = z
   .object({
     duration_type: z.enum(["ROUNDS", "MINUTES"]),
     duration_value: z.number().int().min(1),
-    max_darts_per_turn: z.number().int().min(1).max(3),
-    max_visit_score: z.number().int().default(180),
+    max_darts_per_turn: maxDartsPerTurnField,
+    max_visit_score: maxVisitScoreField,
   })
   .strict()
-  .superRefine((val, ctx) => {
-    const [min, max] = val.duration_type === "ROUNDS" ? [1, 100] : [3, 30];
-    if (val.duration_value < min || val.duration_value > max) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["duration_value"],
-        message: `duration_value must be between ${min} and ${max} for ${val.duration_type}`,
-      });
-    }
-  });
+  .superRefine(durationValueRefinement);
 
 export const Bobs27Config = z
   .object({
@@ -58,8 +67,8 @@ export const Bobs27V2Config = Bobs27Config.extend({
  * creation (`lib/game/target-order.ts`) and copied into the immutable
  * config snapshot, so undo/resume can never reshuffle mid-session.
  *
- * The `.superRefine` validating it is declared inline on each exported
- * config schema, not factored into a shared sub-schema — mechanically
+ * The `.superRefine(targetOrderRefinement)` validating it is called on each
+ * exported config schema, not on a shared sub-schema — mechanically
  * required, not a style choice: `scripts/check-refinement-coverage.sh`
  * attributes a `.superRefine(`/`.refine(` call to the nearest preceding
  * `export const NAME =`, so a refinement living on a non-exported helper
@@ -78,26 +87,43 @@ function isValidTargetOrder(value: number[]): boolean {
   return value.every((n) => TARGET_ORDER_VALUES.has(n));
 }
 
+function targetOrderRefinement(
+  val: { target_order: number[] },
+  ctx: z.RefinementCtx,
+): void {
+  if (!isValidTargetOrder(val.target_order)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["target_order"],
+      message:
+        "target_order must contain each of 1..20 and 25 (BULL) exactly once",
+    });
+  }
+}
+
+/** The point ladder every Singles Training version carries, in schema order. */
+const singlesPointsFields = {
+  points_single: z.number().int().default(1),
+  points_double: z.number().int().default(2),
+  points_treble: z.number().int().default(3),
+};
+
 export const SinglesConfig = z
   .object({
     order_mode: z.enum(["LOW_TO_HIGH", "HIGH_TO_LOW", "RANDOM"]),
     target_order: z.array(z.number().int()).length(21),
     difficulty: z.enum(["EASY"]),
-    points_single: z.number().int().default(1),
-    points_double: z.number().int().default(2),
-    points_treble: z.number().int().default(3),
+    ...singlesPointsFields,
   })
   .strict()
-  .superRefine((val, ctx) => {
-    if (!isValidTargetOrder(val.target_order)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["target_order"],
-        message:
-          "target_order must contain each of 1..20 and 25 (BULL) exactly once",
-      });
-    }
-  });
+  .superRefine(targetOrderRefinement);
+
+/** The leading fields Singles Training V2 and V3 share, in schema order. */
+const singlesV2CommonFields = {
+  order_mode: z.enum(["LOW_TO_HIGH", "HIGH_TO_LOW", "RANDOM"]),
+  target_order: z.array(z.number().int()).length(21),
+  difficulty: z.enum(["EASY", "HARD", "EXTREME"]),
+};
 
 /**
  * Singles Training V2 adds two mandatory-hit difficulties over V1: `HARD`
@@ -109,32 +135,18 @@ export const SinglesConfig = z
  * rather than an edit to `SinglesConfig`: V1 is already live against real
  * session data, exactly the same reasoning `ShanghaiV2Config`/
  * `OneTwentyOneV2Config` document for their own difficulty/duration
- * additions. Every other field is carried unchanged from V1 — the schema
- * duplicates them rather than being expressed as a diff, since Zod object
- * schemas do not compose that way and `target_order`'s own `superRefine`
- * must be re-declared per `check-refinement-coverage.sh`'s "nearest
- * preceding export" attribution rule.
+ * additions. Every other field is carried unchanged from V1, and
+ * `target_order`'s own `superRefine` must be re-declared per
+ * `check-refinement-coverage.sh`'s "nearest preceding export" attribution
+ * rule.
  */
 export const SinglesV2Config = z
   .object({
-    order_mode: z.enum(["LOW_TO_HIGH", "HIGH_TO_LOW", "RANDOM"]),
-    target_order: z.array(z.number().int()).length(21),
-    difficulty: z.enum(["EASY", "HARD", "EXTREME"]),
-    points_single: z.number().int().default(1),
-    points_double: z.number().int().default(2),
-    points_treble: z.number().int().default(3),
+    ...singlesV2CommonFields,
+    ...singlesPointsFields,
   })
   .strict()
-  .superRefine((val, ctx) => {
-    if (!isValidTargetOrder(val.target_order)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["target_order"],
-        message:
-          "target_order must contain each of 1..20 and 25 (BULL) exactly once",
-      });
-    }
-  });
+  .superRefine(targetOrderRefinement);
 
 /**
  * Singles Training V3 adds an Accuracy scoring mode over V2: `scoring_mode`
@@ -144,33 +156,18 @@ export const SinglesV2Config = z
  * new ruleset version rather than an edit to `SinglesV2Config`: V2 is
  * already live against real session data, same reasoning D243/D245/D247
  * document for their own rule-shape additions. Every other field is carried
- * unchanged from V2 — the schema duplicates them rather than being
- * expressed as a diff, since Zod object schemas do not compose that way and
- * `target_order`'s own `superRefine` must be re-declared per
- * `check-refinement-coverage.sh`'s "nearest preceding export" attribution
- * rule.
+ * unchanged from V2 (`singlesV2CommonFields`), and `target_order`'s own
+ * `superRefine` must be re-declared per `check-refinement-coverage.sh`'s
+ * "nearest preceding export" attribution rule.
  */
 export const SinglesV3Config = z
   .object({
-    order_mode: z.enum(["LOW_TO_HIGH", "HIGH_TO_LOW", "RANDOM"]),
-    target_order: z.array(z.number().int()).length(21),
-    difficulty: z.enum(["EASY", "HARD", "EXTREME"]),
+    ...singlesV2CommonFields,
     scoring_mode: z.enum(["STANDARD", "ACCURACY"]),
-    points_single: z.number().int().default(1),
-    points_double: z.number().int().default(2),
-    points_treble: z.number().int().default(3),
+    ...singlesPointsFields,
   })
   .strict()
-  .superRefine((val, ctx) => {
-    if (!isValidTargetOrder(val.target_order)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["target_order"],
-        message:
-          "target_order must contain each of 1..20 and 25 (BULL) exactly once",
-      });
-    }
-  });
+  .superRefine(targetOrderRefinement);
 
 export const DoublesTrainingConfig = z
   .object({
@@ -179,16 +176,21 @@ export const DoublesTrainingConfig = z
     target_order: z.array(z.number().int()).length(21),
   })
   .strict()
-  .superRefine((val, ctx) => {
-    if (!isValidTargetOrder(val.target_order)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["target_order"],
-        message:
-          "target_order must contain each of 1..20 and 25 (BULL) exactly once",
-      });
-    }
-  });
+  .superRefine(targetOrderRefinement);
+
+const startingScoreField = z.number().int().min(2).default(501);
+
+/**
+ * The fields 501 V1 and V2 share after `starting_score`, in schema order. V1
+ * puts its own `legs_to_win` between the two, so `starting_score` is a
+ * separate field const and the key order of both schemas is unchanged.
+ */
+const fiveOhOneCommonFields = {
+  check_in: z.enum(["STRAIGHT_IN"]),
+  check_out: z.enum(["DOUBLE_OUT"]),
+  max_darts_per_turn: maxDartsPerTurnField,
+  max_visit_score: maxVisitScoreField,
+};
 
 /**
  * `starting_score` has a floor of 2 — the minimum a double-out leg can ever
@@ -200,12 +202,9 @@ export const DoublesTrainingConfig = z
  */
 export const FiveOhOneConfig = z
   .object({
-    starting_score: z.number().int().min(2).default(501),
+    starting_score: startingScoreField,
     legs_to_win: z.number().int().min(1).max(20),
-    check_in: z.enum(["STRAIGHT_IN"]),
-    check_out: z.enum(["DOUBLE_OUT"]),
-    max_darts_per_turn: z.number().int().min(1).max(3),
-    max_visit_score: z.number().int().default(180),
+    ...fiveOhOneCommonFields,
   })
   .strict();
 
@@ -228,11 +227,8 @@ function raceTargetOf(race: { mode: "FIRST_TO" | "BEST_OF"; count: number }) {
  */
 export const FiveOhOneV2Config = z
   .object({
-    starting_score: z.number().int().min(2).default(501),
-    check_in: z.enum(["STRAIGHT_IN"]),
-    check_out: z.enum(["DOUBLE_OUT"]),
-    max_darts_per_turn: z.number().int().min(1).max(3),
-    max_visit_score: z.number().int().default(180),
+    starting_score: startingScoreField,
+    ...fiveOhOneCommonFields,
     legs: RaceSpecSchema,
     sets: RaceSpecSchema.nullable(),
     win_by_two: z
@@ -300,19 +296,10 @@ export const TuodConfig = z
     miss_penalty: z.number().int().min(1),
     duration_type: z.enum(["ROUNDS", "MINUTES"]),
     duration_value: z.number().int().min(1),
-    max_darts_per_turn: z.number().int().min(1).max(3),
+    max_darts_per_turn: maxDartsPerTurnField,
   })
   .strict()
-  .superRefine((val, ctx) => {
-    const [min, max] = val.duration_type === "ROUNDS" ? [1, 100] : [3, 30];
-    if (val.duration_value < min || val.duration_value > max) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["duration_value"],
-        message: `duration_value must be between ${min} and ${max} for ${val.duration_type}`,
-      });
-    }
-  });
+  .superRefine(durationValueRefinement);
 
 /**
  * Shanghai v1 locks every rule (round range, scoring, Shanghai instant-win)

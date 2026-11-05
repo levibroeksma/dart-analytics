@@ -4,7 +4,8 @@ import {
   parseTargetKey,
 } from "@lib/stats/target-key";
 import { aimedDarts } from "../derived-aims.module";
-import type { IntentZoneKey, TargetKey } from "@lib/types";
+import { bucketFor, closeBuckets } from "./series.module";
+import type { IntentZoneKey, SeriesBucket, TargetKey } from "@lib/types";
 import type { DartZoneKey, IntentCellRow, SessionSteps } from "@modules/types";
 
 /** The intended pair as a `TargetKey` (phase-2 decision 5). */
@@ -51,6 +52,35 @@ export function isHit(
     },
     { number: row.hitTargetNumber, zone: row.hitZoneKey as DartZoneKey },
   );
+}
+
+/**
+ * Folds `findIntentCells` rows into start-keyed buckets of per-target
+ * entries: each row counts its `darts` as samples, gets-or-creates the entry
+ * at `intendedKey(row)` from `empty()`, and is passed to `add`.
+ */
+export function intentCellBuckets<M>(
+  rows: readonly IntentCellRow[],
+  ctx: { to: string; now: Date },
+  empty: () => M,
+  add: (entry: M, row: IntentCellRow) => void,
+): SeriesBucket<Record<string, M>>[] {
+  const buckets = new Map<
+    string,
+    { end: string; metrics: Record<string, M>; sampleSize: number }
+  >();
+
+  for (const row of rows) {
+    const bucket = bucketFor(buckets, row, () => ({}));
+    bucket.sampleSize += row.darts;
+
+    const key = intendedKey(row);
+    const entry = bucket.metrics[key] ?? empty();
+    add(entry, row);
+    bucket.metrics[key] = entry;
+  }
+
+  return closeBuckets(buckets, ctx);
 }
 
 /**

@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   aimCellRows,
   intendedKey,
+  intentCellBuckets,
   hitKey,
   isHit,
 } from "@modules/stats/sections/intent-cells.module";
@@ -281,5 +282,53 @@ describe("aimCellRows", () => {
     });
 
     expect(bucket!.metrics["NUMBER:20"]).toEqual({ attempts: 3, hits: 2 });
+  });
+});
+
+describe("intentCellBuckets", () => {
+  it("folds rows into one entry per intended target and bucket via empty/add", () => {
+    const rows = [
+      row({ darts: 2 }),
+      row({ hitTargetNumber: 8, darts: 3 }),
+      row({ intendedTargetNumber: 20, intendedZoneKey: "TREBLE", darts: 4 }),
+      row({
+        bucketStart: "2026-02-01T00:00:00.000Z",
+        bucketEnd: "2026-03-01T00:00:00.000Z",
+        darts: 5,
+      }),
+    ];
+
+    const buckets = intentCellBuckets(
+      rows,
+      {
+        to: "2026-03-01T00:00:00.000Z",
+        now: new Date("2026-02-15T00:00:00.000Z"),
+      },
+      () => ({ rows: 0, darts: 0 }),
+      (entry, r) => {
+        entry.rows += 1;
+        entry.darts += r.darts;
+      },
+    );
+
+    expect(buckets).toEqual([
+      {
+        start: "2026-01-01T00:00:00.000Z",
+        end: "2026-02-01T00:00:00.000Z",
+        closed: true,
+        sampleSize: 9,
+        metrics: {
+          "DOUBLE:16": { rows: 2, darts: 5 },
+          "TREBLE:20": { rows: 1, darts: 4 },
+        },
+      },
+      {
+        start: "2026-02-01T00:00:00.000Z",
+        end: "2026-03-01T00:00:00.000Z",
+        closed: false,
+        sampleSize: 5,
+        metrics: { "DOUBLE:16": { rows: 1, darts: 5 } },
+      },
+    ]);
   });
 });

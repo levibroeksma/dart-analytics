@@ -11,6 +11,7 @@ import {
   listTrainingCompletions,
   resumeTraining,
 } from "@client/api/training-sessions";
+import { SessionApiError as SessionApiErrorClass } from "@client/api/session-api-error";
 import { SessionApiError } from "@client/api/sessions";
 
 describe("startTraining", () => {
@@ -222,5 +223,47 @@ describe("resumeTraining", () => {
     await expect(resumeTraining("act-1")).rejects.toBeInstanceOf(
       SessionApiError,
     );
+  });
+});
+
+describe("training-sessions failure envelope", () => {
+  beforeEach(() => vi.resetAllMocks());
+
+  it.each([
+    ["resumeTraining", () => resumeTraining("act-1")],
+    ["startTraining", () => startTraining({ routineTemplateId: "rt-1" })],
+    ["startTrainingStep", () => startTrainingStep("act-1", 1)],
+    ["completeTraining", () => completeTraining("act-1")],
+    ["abandonTraining", () => abandonTraining("act-1")],
+  ])(
+    "%s throws a SessionApiError carrying code, message, requestId and details",
+    async (_name, call) => {
+      vi.mocked(apiRequest).mockResolvedValue({
+        ok: false,
+        requestId: "req-pin",
+        error: {
+          code: "SESSION_ALREADY_COMPLETED",
+          message: "pin message",
+          retryable: false,
+          details: { reason: "pin" },
+        },
+      });
+      const error = await call().catch((e: unknown) => e);
+      expect(error).toBeInstanceOf(SessionApiError);
+      expect(error).toMatchObject({
+        name: "SessionApiError",
+        code: "SESSION_ALREADY_COMPLETED",
+        message: "pin message",
+        requestId: "req-pin",
+        details: { reason: "pin" },
+      });
+    },
+  );
+});
+
+describe("SessionApiError identity", () => {
+  it("is the same class from sessions and session-api-error", () => {
+    expect(SessionApiError).toBe(SessionApiErrorClass);
+    expect(new SessionApiErrorClass("X", "m")).toBeInstanceOf(SessionApiError);
   });
 });
