@@ -478,6 +478,72 @@ describe("findGameSessionsPage", () => {
     });
   });
 
+  const gameRow = (): unknown[] => [
+    "s1",
+    "501_V1",
+    "COMPLETED",
+    "STANDALONE",
+    "2026-01-01T00:00:00.000Z",
+    "2026-01-01T00:05:00.000Z",
+    300,
+    9,
+    27,
+    501,
+  ];
+
+  it("maps the full row shape in key order", async () => {
+    const { db } = renderingDb([gameRow()]);
+    const [row] = await findGameSessionsPage(db, baseQuery);
+    expect(JSON.stringify(row)).toBe(
+      JSON.stringify({
+        sessionId: "s1",
+        rulesetVersionKey: "501_V1",
+        statusKey: "COMPLETED",
+        contextKey: "STANDALONE",
+        neverStarted: false,
+        startedAt: "2026-01-01T00:00:00.000Z",
+        completedAt: "2026-01-01T00:05:00.000Z",
+        durationSeconds: 300,
+        turnCount: 9,
+        dartCount: 27,
+        countedScore: 501,
+      }),
+    );
+  });
+
+  it.each([
+    ["session_id", 0],
+    ["status_key", 2],
+  ])(
+    "throws naming %s when that column arrives null",
+    async (column, index) => {
+      const row = gameRow();
+      row[index] = null;
+      const { db } = renderingDb([row]);
+      await expect(findGameSessionsPage(db, baseQuery)).rejects.toThrow(
+        new RegExp(`\\b${column}\\b`),
+      );
+    },
+  );
+
+  it("names status_key before timings and session_id when all arrive null", async () => {
+    const row = gameRow().map(() => null);
+    const { db } = renderingDb([row]);
+    await expect(findGameSessionsPage(db, baseQuery)).rejects.toThrow(
+      /\bstatus_key\b/,
+    );
+  });
+
+  it("names timings before session_id when both arrive null", async () => {
+    const row = gameRow();
+    row[0] = null;
+    row[4] = null;
+    const { db } = renderingDb([row]);
+    await expect(findGameSessionsPage(db, baseQuery)).rejects.toThrow(
+      /\bstarted_at\b/,
+    );
+  });
+
   it("marks a turn-free abandoned row as neverStarted", async () => {
     const fromCalls: unknown[] = [];
     const rows = [
@@ -3265,6 +3331,72 @@ describe("findStepSessionPage", () => {
       );
     },
   );
+
+  const stepRow = (): unknown[] => [
+    "s1",
+    null,
+    "SWITCHING_V1",
+    "COMPLETED",
+    "2026-01-01T00:00:00.000Z",
+    "2026-01-01T00:05:00.000Z",
+    300,
+    9,
+    27,
+    120,
+  ];
+
+  it("maps the full row shape in key order", async () => {
+    const { db } = renderingDb([stepRow()]);
+    const [row] = await findStepSessionPage(db, baseQuery);
+    expect(JSON.stringify(row)).toBe(
+      JSON.stringify({
+        sessionId: "s1",
+        rulesetVersionKey: null,
+        exerciseRulesetVersionKey: "SWITCHING_V1",
+        statusKey: "COMPLETED",
+        neverStarted: false,
+        startedAt: "2026-01-01T00:00:00.000Z",
+        completedAt: "2026-01-01T00:05:00.000Z",
+        durationSeconds: 300,
+        turnCount: 9,
+        dartCount: 27,
+        countedScore: 120,
+      }),
+    );
+  });
+
+  it.each([
+    ["session_id", 0],
+    ["status_key", 3],
+  ])(
+    "throws naming %s when that column arrives null",
+    async (column, index) => {
+      const row = stepRow();
+      row[index] = null;
+      const { db } = renderingDb([row]);
+      await expect(findStepSessionPage(db, baseQuery)).rejects.toThrow(
+        new RegExp(`\\b${column}\\b`),
+      );
+    },
+  );
+
+  it("names status_key before timings and session_id when all arrive null", async () => {
+    const row = stepRow().map(() => null);
+    const { db } = renderingDb([row]);
+    await expect(findStepSessionPage(db, baseQuery)).rejects.toThrow(
+      /\bstatus_key\b/,
+    );
+  });
+
+  it("names timings before session_id when both arrive null", async () => {
+    const row = stepRow();
+    row[0] = null;
+    row[4] = null;
+    const { db } = renderingDb([row]);
+    await expect(findStepSessionPage(db, baseQuery)).rejects.toThrow(
+      /\bstarted_at\b/,
+    );
+  });
 
   it("marks a turn-free abandoned row as neverStarted", async () => {
     const chain = {
