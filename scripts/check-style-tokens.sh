@@ -173,13 +173,18 @@ fi
 # Overlay gate (D429): full-viewport overlays and dialog roles live only in
 # ui/Modal.astro — every modal renders through the sheet shell.
 # OVERLAY_PENDING is the migration ratchet; it must end empty.
+# OVERLAY_REST_SCREEN is the paused rest screen (#1210): a full-viewport
+# surface that is not a dialog, so it may use `fixed inset-0` but never
+# `role="dialog"`.
 OVERLAY_ALLOW="app/src/components/ui/Modal.astro"
+OVERLAY_REST_SCREEN="app/src/components/layout/games/CountdownResumePrompt.astro"
 OVERLAY_PENDING=(
 )
 OVERLAY_FILES=$(grep -rlE 'fixed inset-0|role="dialog"' "${TARGETS[@]}" --include="*.astro" | sort)
 OVERLAY_BAD=""
 for f in $OVERLAY_FILES; do
   [ "$f" = "$OVERLAY_ALLOW" ] && continue
+  [ "$f" = "$OVERLAY_REST_SCREEN" ] && ! grep -q 'role="dialog"' "$f" && continue
   skip=0
   for p in "${OVERLAY_PENDING[@]+"${OVERLAY_PENDING[@]}"}"; do
     [ "$f" = "$p" ] && skip=1

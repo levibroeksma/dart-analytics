@@ -1392,6 +1392,7 @@ exports[`factory surface > routinePlay 1`] = `
   "targetScoringMarkToBeat:function",
   "targetScoringTargetLabel:function",
   "timerPaused:boolean",
+  "tipKey:function",
   "togglePause:function",
   "training:object",
   "undoVisit:function",

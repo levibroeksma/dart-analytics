@@ -576,6 +576,12 @@ export function routinePlay() {
       return this.steps[stepIndex] ?? null;
     },
 
+    /** The paused-screen tips key of the current step (#1210). */
+    tipKey(this: RoutinePlayContext): string | null {
+      const step = this.currentStep();
+      return step ? stepAdapterKey(step) : null;
+    },
+
     header(this: RoutinePlayContext): RoutineHeader {
       const step = this.currentStep();
       return routineHeader({
