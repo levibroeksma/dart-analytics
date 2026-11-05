@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 vi.mock("@client/api/client", () => ({ apiRequest: vi.fn() }));
 
 import { apiRequest } from "@client/api/client";
+import { SessionApiError as SessionApiErrorClass } from "@client/api/session-api-error";
 import {
   createSession,
   appendBatch,
@@ -123,5 +124,72 @@ describe("fetchActiveSessions", () => {
     });
     const result = await fetchActiveSessions();
     expect(result).toEqual([]);
+  });
+});
+
+describe("createSession failure envelope", () => {
+  beforeEach(() => vi.resetAllMocks());
+
+  it("throws a SessionApiError carrying code, message, requestId and details", async () => {
+    vi.mocked(apiRequest).mockResolvedValue({
+      ok: false,
+      requestId: "req-pin",
+      error: {
+        code: "VALIDATION_FAILED",
+        message: "pin message",
+        retryable: false,
+        details: { reason: "pin" },
+      },
+    });
+    const error = await createSession({
+      gameTypeKey: "x",
+      rulesetVersionKey: "x",
+      captureModeKey: "x",
+      inputModeKey: "x",
+      config: { source: "inline", config: {} },
+    }).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(SessionApiError);
+    expect(error).toMatchObject({
+      name: "SessionApiError",
+      code: "VALIDATION_FAILED",
+      message: "pin message",
+      requestId: "req-pin",
+      details: { reason: "pin" },
+    });
+  });
+
+  it.each([
+    ["appendBatch", () => appendBatch("s1", "idem-1", { stages: [] })],
+    ["completeSession", () => completeSession("s1", "COMPLETED")],
+    ["fetchActiveSessions", () => fetchActiveSessions()],
+  ])(
+    "%s throws a SessionApiError with the envelope's fields",
+    async (_name, call) => {
+      vi.mocked(apiRequest).mockResolvedValue({
+        ok: false,
+        requestId: "req-pin",
+        error: {
+          code: "NOT_FOUND",
+          message: "pin message",
+          retryable: false,
+          details: { reason: "pin" },
+        },
+      });
+      const error = await call().catch((e: unknown) => e);
+      expect(error).toBeInstanceOf(SessionApiError);
+      expect(error).toMatchObject({
+        code: "NOT_FOUND",
+        message: "pin message",
+        requestId: "req-pin",
+        details: { reason: "pin" },
+      });
+    },
+  );
+});
+
+describe("SessionApiError identity", () => {
+  it("is the same class from sessions and session-api-error", () => {
+    expect(SessionApiError).toBe(SessionApiErrorClass);
+    expect(new SessionApiErrorClass("X", "m")).toBeInstanceOf(SessionApiError);
   });
 });

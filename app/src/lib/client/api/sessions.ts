@@ -1,4 +1,5 @@
 import { apiRequest } from "./client";
+import { unwrapOrThrow } from "./unwrap";
 import {
   CreateSessionRequest,
   type CreateSessionRequestInput,
@@ -10,25 +11,7 @@ import {
 
 export type { SessionActiveData };
 
-/**
- * `requestId` and `details` mirror the envelope's own fields (`ApiFailure`,
- * `client.ts`) so a generically-classified `INTERNAL_ERROR` — the server
- * logs its raw cause server-side only, never in the response body
- * (`middleware.ts`) — can still be traced back to that log line by
- * `requestId`, and a deliberately-returned `details.reason` isn't silently
- * dropped between the envelope and whatever displays this error.
- */
-export class SessionApiError extends Error {
-  constructor(
-    public readonly code: string,
-    message: string,
-    public readonly requestId?: string,
-    public readonly details?: Record<string, unknown>,
-  ) {
-    super(message);
-    this.name = "SessionApiError";
-  }
-}
+export { SessionApiError } from "./session-api-error";
 
 export async function createSession(
   body: CreateSessionRequestInput,
@@ -38,14 +21,7 @@ export async function createSession(
     method: "POST",
     body: JSON.stringify(payload),
   });
-  if (!result.ok)
-    throw new SessionApiError(
-      result.error.code,
-      result.error.message,
-      result.requestId,
-      result.error.details,
-    );
-  return result.data;
+  return unwrapOrThrow(result);
 }
 
 export async function appendBatch(
@@ -61,14 +37,7 @@ export async function appendBatch(
       headers: { "Idempotency-Key": idempotencyKey },
     },
   );
-  if (!result.ok)
-    throw new SessionApiError(
-      result.error.code,
-      result.error.message,
-      result.requestId,
-      result.error.details,
-    );
-  return result.data;
+  return unwrapOrThrow(result);
 }
 
 export async function completeSession(
@@ -83,24 +52,10 @@ export async function completeSession(
     method: "PATCH",
     body: JSON.stringify({ status }),
   });
-  if (!result.ok)
-    throw new SessionApiError(
-      result.error.code,
-      result.error.message,
-      result.requestId,
-      result.error.details,
-    );
-  return result.data;
+  return unwrapOrThrow(result);
 }
 
 export async function fetchActiveSessions(): Promise<SessionActiveData[]> {
   const result = await apiRequest<SessionActiveData[]>("/api/sessions/active");
-  if (!result.ok)
-    throw new SessionApiError(
-      result.error.code,
-      result.error.message,
-      result.requestId,
-      result.error.details,
-    );
-  return result.data;
+  return unwrapOrThrow(result);
 }
