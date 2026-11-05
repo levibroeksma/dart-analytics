@@ -1946,3 +1946,20 @@ describe("Singles Training — Track kernel boundaries", () => {
     }
   });
 });
+
+describe("SinglesTrainingEngine — three-dart visit boundary", () => {
+  it("closes a visit on its third dart and opens a new turn on the fourth", () => {
+    const engine = new SinglesTrainingEngine(config);
+    for (let thrown = 0; thrown < 3; thrown++)
+      engine.record(missObservationFor(engine.state().seats[0]));
+    const closed = engine.facts().turns;
+    expect(closed).toHaveLength(1);
+    expect(closed[0].darts).toHaveLength(3);
+    expect(closed[0].completedAt).not.toBeNull();
+    engine.record(missObservationFor(engine.state().seats[0]));
+    const reopened = engine.facts().turns;
+    expect(reopened).toHaveLength(2);
+    expect(reopened[1].darts).toHaveLength(1);
+    expect(reopened[1].completedAt).toBeNull();
+  });
+});

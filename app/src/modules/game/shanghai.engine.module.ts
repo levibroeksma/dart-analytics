@@ -12,7 +12,11 @@ import {
 } from "./dart-engine-shell.module";
 import { registerEngineFactory } from "./engine.registry";
 import { activeSeat } from "./seat-rota.module";
-import { activeSeatState, otherSeatsComplete } from "./seat-state.module";
+import {
+  activeSeatState,
+  otherSeatsComplete,
+  seatedRefusal,
+} from "./seat-state.module";
 import { applyTrackDart, foldTrackSeats } from "./track-kernel.module";
 import {
   advanceToEnd,
@@ -35,9 +39,8 @@ import type {
   ShanghaiState,
   ShanghaiTrackExt,
   TrackSeat,
-  TurnFact,
 } from "./types";
-import { endedRefusal } from "./turn-log.module";
+import { endedRefusal, visitOpenUnder } from "./turn-log.module";
 
 export { zoneBucketOf } from "./track-policies";
 
@@ -311,10 +314,10 @@ const NO_INTENT: DartIntent = {
 };
 
 /** The match-ended message first — a Shanghai ends the match while another seat still reads `IN_PROGRESS` — then the seat's own. */
-function shanghaiRefusal(state: ShanghaiState): string | null {
-  if (state.status !== "IN_PROGRESS") return MATCH_ENDED;
-  return activeSeatState(state).status === "IN_PROGRESS" ? null : SESSION_ENDED;
-}
+const shanghaiRefusal = seatedRefusal<ShanghaiState>(
+  MATCH_ENDED,
+  SESSION_ENDED,
+);
 
 /**
  * Whether `observation` would end the WHOLE match: it completes a Shanghai,
@@ -349,11 +352,6 @@ function scoreOf(state: ShanghaiState, participantRef: string): number {
   );
 }
 
-/** Three-dart visits: a turn takes darts until it holds three. */
-function isShanghaiVisitOpen(turn: TurnFact): boolean {
-  return turn.darts.length < 3;
-}
-
 /**
  * Shanghai's rules for the dart engine shell, V1 to V3. A closed visit
  * persists its counted total — the change it made to the seat's score — so
@@ -367,7 +365,7 @@ const shanghaiSpec: DartGameSpec<ShanghaiEngineConfig, ShanghaiState> = {
   fold: foldShanghaiState,
   refusal: shanghaiRefusal,
   intent: () => NO_INTENT,
-  isVisitOpen: isShanghaiVisitOpen,
+  isVisitOpen: visitOpenUnder(3),
   wouldComplete: wouldCompleteMatch,
   closedVisitTotal: (opened, closed, participantRef) =>
     scoreOf(closed, participantRef) - scoreOf(opened, participantRef),

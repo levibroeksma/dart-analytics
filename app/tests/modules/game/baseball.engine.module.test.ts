@@ -253,3 +253,19 @@ describe("baseball engine — 1v1", () => {
     expect(engine.state().winningSideKey).toBeNull();
   });
 });
+
+describe("BaseballEngine — three-dart visit boundary", () => {
+  it("closes a visit on its third dart and opens a new turn on the fourth", () => {
+    const engine = new BaseballEngine(config);
+    for (let thrown = 0; thrown < 3; thrown++) engine.record(MISS);
+    const closed = engine.facts().turns;
+    expect(closed).toHaveLength(1);
+    expect(closed[0].darts).toHaveLength(3);
+    expect(closed[0].completedAt).not.toBeNull();
+    engine.record(MISS);
+    const reopened = engine.facts().turns;
+    expect(reopened).toHaveLength(2);
+    expect(reopened[1].darts).toHaveLength(1);
+    expect(reopened[1].completedAt).toBeNull();
+  });
+});

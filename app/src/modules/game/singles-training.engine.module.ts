@@ -8,7 +8,11 @@ import type {
 import { numbersPath, targetAt } from "./board-progression.module";
 import { registerEngineFactory } from "./engine.registry";
 import { activeSeat } from "./seat-rota.module";
-import { activeSeatState, otherSeatsComplete } from "./seat-state.module";
+import {
+  activeSeatState,
+  otherSeatsComplete,
+  seatedRefusal,
+} from "./seat-state.module";
 import { eliminationWinner, scoreCompareOutcome } from "./match-outcome.module";
 import {
   dartGameEngineClass,
@@ -34,7 +38,7 @@ import type {
   SinglesTrainingState,
   TrackSeat,
 } from "./types";
-import { endedRefusal } from "./turn-log.module";
+import { endedRefusal, visitOpenUnder } from "./turn-log.module";
 
 type SinglesEngineConfig =
   | Seated<SinglesSnapshot>
@@ -270,14 +274,9 @@ const singlesSpec: DartGameSpec<SinglesEngineConfig, SinglesTrainingState> = {
   rulesetVersionKeys: ["SINGLES_V2", "SINGLES_V3"],
   stageOwnership: "PER_SEAT",
   fold: foldSinglesTrainingState,
-  refusal: (state) => {
-    if (state.status !== "IN_PROGRESS") return MATCH_ENDED;
-    return activeSeatState(state).status === "IN_PROGRESS"
-      ? null
-      : SESSION_DONE;
-  },
+  refusal: seatedRefusal(MATCH_ENDED, SESSION_DONE),
   intent: () => NO_INTENT,
-  isVisitOpen: (turn) => turn.darts.length < 3,
+  isVisitOpen: visitOpenUnder(3),
   wouldComplete: (state, observation, config) => {
     if (state.status !== "IN_PROGRESS") return false;
     const seat = activeSeatState(state);

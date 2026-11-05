@@ -1214,3 +1214,30 @@ describe("Bobs27Engine — Easy 1v1", () => {
     expect(state.winningSideKey).toBeNull();
   });
 });
+
+describe("Bobs27Engine — three-dart visit boundary", () => {
+  it("closes a visit on its third dart and opens a new turn on the fourth", () => {
+    const engine = new Bobs27Engine(config);
+    for (let thrown = 0; thrown < 3; thrown++)
+      engine.record({
+        hitTargetNumber: null,
+        hitZoneKey: "MISS",
+        locationX: null,
+        locationY: null,
+      });
+    const closed = engine.facts().turns;
+    expect(closed).toHaveLength(1);
+    expect(closed[0].darts).toHaveLength(3);
+    expect(closed[0].completedAt).not.toBeNull();
+    engine.record({
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      locationX: null,
+      locationY: null,
+    });
+    const reopened = engine.facts().turns;
+    expect(reopened).toHaveLength(2);
+    expect(reopened[1].darts).toHaveLength(1);
+    expect(reopened[1].completedAt).toBeNull();
+  });
+});

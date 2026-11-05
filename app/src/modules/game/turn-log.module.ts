@@ -384,6 +384,11 @@ export function undoLastDart(turns: TurnFact[]): boolean {
   return true;
 }
 
+/** The `isVisitOpen` for a visit capped at `darts` darts: open while it holds fewer. */
+export function visitOpenUnder(darts: number): (turn: TurnFact) => boolean {
+  return (turn) => turn.darts.length < darts;
+}
+
 /**
  * The refusal every engine raises for a dart recorded after it ended;
  * `noun` names what ended ("game has ended", "exercise is complete", …).
