@@ -43,6 +43,7 @@ Where a plugin skill and this repo disagree, load both — the plugin skill for 
 | `superpowers:test-driven-development` | `app/CLAUDE.md` §Test-Driven Development | the repo's red→green→refactor procedure and `npm test` commands (D99) |
 | `superpowers:verification-before-completion` | `run-all-gates` skill | which command actually proves a claim here |
 | `superpowers:executing-plans`, `superpowers:subagent-driven-development` | `capturing-discovered-work` skill | incidental findings become GitHub issues; they are never fixed in the same pass |
+| `superpowers:writing-plans`, `superpowers:executing-plans`, `superpowers:subagent-driven-development` | `syncing-design-system` skill § 11–12 | visual choices the spec leaves open follow the Design System artifact; before the PR, the owner is asked whether to run the design sync (D524) |
 | `superpowers:brainstorming` | `authoring-game-rules` skill | for a game, exercise, routine or trivia tool, the rules document is authored first and is brainstorming's *input* — this skill owns the V1 cut test and the defer list, brainstorming still owns the spec (D322) |
 
 `superpowers:brainstorming` and `superpowers:using-git-worktrees` run as written, unmodified — the commit and worktree invariants below are aligned to them.

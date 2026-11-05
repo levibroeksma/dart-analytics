@@ -119,3 +119,23 @@ Commit the lock with the area's code changes on the run's branch, run `run-all-g
 1. Fold components: for each `components/<group>/<Name>.{jsx,d.ts,prompt.md}`, write `components/<Name>/<Name>.jsx`, `<Name>.d.ts` and `README.md` (from `.prompt.md`) into the mirror; move the legacy files aside per the type's `craft.md`. The owner approves the path list before the publish.
 2. `npm run -s design:sync -- migrate-lock --artifact-url https://claude.ai/artifact/A7QFuSqRwpqyoXUEm7XHsW` (drops `rule:`/`keyframes:` entries, rewrites pairs).
 3. Re-baseline tokens with a manual run (§ 4–8).
+
+## 11. Design reference during plan work
+
+When `superpowers:writing-plans`, `superpowers:executing-plans` or `superpowers:subagent-driven-development` makes a visual choice the spec leaves open, the Design System artifact decides it. Visual choices are colour, type, spacing, radius, surface, motion, icon, component variant and state.
+
+1. Before the first UI task, the main session runs the access gate (§ 1). Without access, it uses `07-Style-Guide.md` and `app/src/styles/global.css`, and writes `Design reference: no artifact access` in the ledger.
+2. It reads the files the task needs with `Artifact read`: `project/tokens.json`, `project/components/<Name>/README.md` and `<Name>.jsx`, the matching `project/guidelines/*` card, and `project/assets/**` for icons.
+3. A subagent brief carries the excerpts it needs, such as token names and values or a component README. A subagent never has to read the artifact itself.
+4. Code uses existing tokens and components. A value that only the artifact has enters `global.css` as a token first (§ 6).
+5. If the artifact and the code disagree on a value the task uses, the code value stays. The agent notes the id for the question in § 12 and does not sync it inside the task.
+6. A choice the artifact does not answer follows the Style Guide, and the ledger records it as a ruling.
+
+## 12. Before a PR: ask about the design sync
+
+`finishing-a-dart-branch` calls this step before it pushes a branch that executed a superpowers plan.
+
+1. Ask the owner with `AskUserQuestion`, one question: "Run the design sync before the PR?" Name the ids noted under § 11 step 5 in the question.
+   - **Yes:** run the manual run (§ 4–8) on this branch, for the areas the owner picks. The lock and the code changes land in the same PR.
+   - **No:** open the PR without a sync. Name the noted ids in the PR body.
+2. With no interactive owner (a subagent or a non-interactive run), skip the question. Write `design sync not offered: no owner` in the PR body.

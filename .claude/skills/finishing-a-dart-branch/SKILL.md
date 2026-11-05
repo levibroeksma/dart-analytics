@@ -11,6 +11,10 @@ The delta only. Everything `superpowers:finishing-a-development-branch` says sti
 
 `npm test` alone does not prove this repo green. Invoke the `run-all-gates` skill — it dispatches the `check-*.sh` scripts and `validate:app` by changed area, and each result is reported explicitly. A gate failure stops the finish exactly as a test failure does.
 
+## Before Step 4: ask about the design sync
+
+When the branch executed a superpowers plan, ask the owner whether to run the design sync before the push: `syncing-design-system` skill § 12 (D524). A yes runs the sync on this branch, so its changes land in the same PR.
+
 ## Step 4: skip the menu — Option 2, every time
 
 Do not present the three options. Do not ask which one. Go straight to **Push and Create PR**.
