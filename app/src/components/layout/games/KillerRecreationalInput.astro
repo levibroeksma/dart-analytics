@@ -14,27 +14,13 @@ const { ...props }: Props = Astro.props;
 
 // Components
 import InputButton from "./InputButton.astro";
-import RingKeyRow from "./RingKeyRow.astro";
+import NumberPadRecreationalInput from "./NumberPadRecreationalInput.astro";
 ---
 
-<div
+<NumberPadRecreationalInput
   class="input-well flex flex-col"
   {...props}
 >
-  <RingKeyRow />
-  <div class="grid min-h-0 flex-4 auto-rows-fr grid-cols-5 gap-2">
-    <template
-      x-for="n in 20"
-      :key="n"
-    >
-      <InputButton
-        class="text-2xl"
-        :disabled="finished"
-        @click="recordNumber(n)"
-        x-text="n"
-      />
-    </template>
-  </div>
   <div class="grid min-h-0 flex-1 grid-cols-2 gap-2">
     <InputButton
       class="text-2xl uppercase"
@@ -51,4 +37,4 @@ import RingKeyRow from "./RingKeyRow.astro";
       MISS
     </InputButton>
   </div>
-</div>
+</NumberPadRecreationalInput>

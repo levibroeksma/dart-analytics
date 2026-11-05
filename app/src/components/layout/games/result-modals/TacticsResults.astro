@@ -1,7 +1,6 @@
 ---
 import ResultsModalShell from "@components/layout/games/ResultsModalShell.astro";
-import SinglePlayerSummary from "@components/layout/games/SinglePlayerSummary.astro";
-import TargetGrid from "@components/layout/games/TargetGrid.astro";
+import DartsToCloseSummary from "@components/layout/games/DartsToCloseSummary.astro";
 import ComparisonSummary from "@components/layout/games/ComparisonSummary.astro";
 
 const STAT_ROWS = [
@@ -44,13 +43,10 @@ const TARGET_LABELS = [
   >
   </h2>
 
-  <SinglePlayerSummary statRows={STAT_ROWS}>
-    <TargetGrid
-      labels={TARGET_LABELS}
-      valuesExpr="resultsSnapshot?.seats?.[0]?.dartsToClose"
-      cols={3}
-    />
-  </SinglePlayerSummary>
+  <DartsToCloseSummary
+    statRows={STAT_ROWS}
+    targetLabels={TARGET_LABELS}
+  />
   <ComparisonSummary
     statRows={DUEL_ROWS}
     winnerExpr="resultsSnapshot?.seats?.findIndex((seat) => seat.sideKey === resultsSnapshot?.winningSideKey) ?? -1"

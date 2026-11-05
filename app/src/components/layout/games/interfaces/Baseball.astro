@@ -7,24 +7,10 @@ interface Props {
 const { ...props }: Props = Astro.props;
 
 // Components
-import SeatedPlayScreen from "@components/layout/games/SeatedPlayScreen.astro";
-import VisitPreview from "@components/layout/games/VisitPreview.astro";
-import SinglesRecreationalInput from "@components/layout/games/SinglesRecreationalInput.astro";
+import RoundTargetPlayScreen from "@components/layout/games/RoundTargetPlayScreen.astro";
 ---
 
-<SeatedPlayScreen
-  big={{ isTarget: false, value: (c) => c("currentScore") }}
-  tiles={[
-    { label: "Inning", value: (c) => c("inningLabel") },
-    { label: "Target", value: (c) => c("currentTargetLabel") },
-  ]}
-  idle={{ label: "Target", value: (c) => c("currentTargetLabel") }}
+<RoundTargetPlayScreen
+  roundLabel={{ label: "Inning", key: "inningLabel" }}
   {...props}
->
-  <VisitPreview />
-
-  <SinglesRecreationalInput
-    x-show="$store.game.inputModeKey !== 'VISUAL_BOARD'"
-    x-cloak
-  />
-</SeatedPlayScreen>
+/>

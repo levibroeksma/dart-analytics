@@ -16,13 +16,14 @@ import type {
   ExerciseRulesetVersionKey,
   SwitchingConfigData,
 } from "@lib/types";
-import type { DartExerciseEngineFactory } from "@modules/interfaces";
-import type { DartExerciseKind, DartObservation } from "@modules/types";
 import type {
-  ReplayHeaderSchemaData,
-  ReplayTurnSchemaData,
-} from "@routes/types";
+  DartExerciseEngine,
+  DartExerciseEngineFactory,
+} from "@modules/interfaces";
+import type { DartExerciseKind, DartObservation } from "@modules/types";
+import type { ReplayHeaderSchemaData } from "@routes/types";
 import { replayHeader } from "./replay-games";
+import { replayTurns } from "./replay-turns";
 
 /**
  * A scripted non-game routine step, mirroring `replay-games.ts`'s scripted
@@ -72,6 +73,31 @@ const SWITCHING_CONFIG: SwitchingConfigData = {
 };
 
 /**
+ * Records `observations` through `engine`, then returns its final state and
+ * the header and turns the replay route would serve for the step:
+ * `headerArgs` plus the turn and dart counts over `stepHeader`'s defaults.
+ */
+function playSteps<TState>(
+  engine: DartExerciseEngine<TState>,
+  observations: readonly DartObservation[],
+  headerArgs: Partial<ReplayHeaderSchemaData>,
+) {
+  observations.forEach((observation) => engine.record(observation));
+  const finalState = engine.state();
+  const facts = engine.facts();
+
+  const turns = replayTurns(facts.turns, () => STEP_STAGE_ID);
+
+  const header = stepHeader({
+    ...headerArgs,
+    turnCount: turns.length,
+    dartCount: observations.length,
+  });
+
+  return { header, turns, finalState };
+}
+
+/**
  * A scripted Switching session: 3 real darts recorded through the actual
  * engine (treble 20, single 19, a miss), so `finalState` is the engine's own
  * ground truth and `header`/`turns` are the wire shape the replay route
@@ -99,29 +125,9 @@ export function playSwitching() {
       locationY: null,
     },
   ];
-  observations.forEach((observation) => engine.record(observation));
-  const finalState = engine.state();
-  const facts = engine.facts();
-
-  const turns: ReplayTurnSchemaData[] = facts.turns.map((turn) => ({
-    stageId: STEP_STAGE_ID,
-    turnSequence: turn.sequence,
-    participantId: turn.participantRef,
-    turnTotalScore: turn.totalScore,
-    kept: turn.kept ?? false,
-    darts: turn.darts.map(({ sequence, ...rest }) => ({
-      dartNumber: sequence,
-      ...rest,
-    })),
-  }));
-
-  const header = stepHeader({
+  return playSteps(engine, observations, {
     configuration: SWITCHING_CONFIG,
-    turnCount: turns.length,
-    dartCount: observations.length,
   });
-
-  return { header, turns, finalState };
 }
 
 /** One dart, as `routine-summary-engines.module.test.ts` builds it -- board coordinates never matter to a dart exercise engine's own scoring. */
@@ -356,29 +362,9 @@ const EXERCISE_FIXTURES: Record<
 export function playExerciseKind(kind: DartExerciseKind) {
   const fixture = EXERCISE_FIXTURES[kind];
   const engine = fixture.factory.create(fixture.config);
-  fixture.darts.forEach((observation) => engine.record(observation));
-  const finalState = engine.state();
-  const facts = engine.facts();
-
-  const turns: ReplayTurnSchemaData[] = facts.turns.map((turn) => ({
-    stageId: STEP_STAGE_ID,
-    turnSequence: turn.sequence,
-    participantId: turn.participantRef,
-    turnTotalScore: turn.totalScore,
-    kept: turn.kept ?? false,
-    darts: turn.darts.map(({ sequence, ...rest }) => ({
-      dartNumber: sequence,
-      ...rest,
-    })),
-  }));
-
-  const header = stepHeader({
+  return playSteps(engine, fixture.darts, {
     exerciseTypeKey: fixture.typeKey,
     exerciseRulesetVersionKey: fixture.rulesetKey,
     configuration: fixture.config,
-    turnCount: turns.length,
-    dartCount: fixture.darts.length,
   });
-
-  return { header, turns, finalState };
 }
