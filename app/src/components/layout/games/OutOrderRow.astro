@@ -1,0 +1,21 @@
+---
+/**
+ * Results-sheet "Out order" row: label left, the elimination order right
+ * (`outOrderLabel()`); hidden while the label is empty.
+ */
+---
+
+<div
+  class="flex w-full items-baseline justify-between gap-4"
+  x-show="outOrderLabel() !== ''"
+  x-cloak
+>
+  <span
+    class="font-mono text-eyebrow font-semibold uppercase text-muted-foreground"
+    >Out order</span
+  >
+  <span
+    class="text-right text-sm text-foreground"
+    x-text="outOrderLabel()"
+  ></span>
+</div>

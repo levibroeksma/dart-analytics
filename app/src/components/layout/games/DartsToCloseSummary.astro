@@ -1,0 +1,34 @@
+---
+/**
+ * Solo results block for a marks game: `SinglePlayerSummary` with a
+ * 3-column "Darts to close" `TargetGrid` read from seat 0's `dartsToClose`.
+ * @param {readonly object[]} statRows Rows passed to `SinglePlayerSummary`
+ * @param {readonly string[]} targetLabels Objective labels in display order
+ */
+interface Props {
+  statRows: readonly {
+    label: string;
+    key: string;
+    skeletonWidth: string;
+    fallback?: string;
+    hero?: boolean;
+    side?: boolean;
+  }[];
+  targetLabels: readonly string[];
+}
+
+// Props
+const { statRows, targetLabels }: Props = Astro.props;
+
+// Components
+import SinglePlayerSummary from "@components/layout/games/SinglePlayerSummary.astro";
+import TargetGrid from "@components/layout/games/TargetGrid.astro";
+---
+
+<SinglePlayerSummary statRows={statRows}>
+  <TargetGrid
+    labels={targetLabels}
+    valuesExpr="resultsSnapshot?.seats?.[0]?.dartsToClose"
+    cols={3}
+  />
+</SinglePlayerSummary>

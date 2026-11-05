@@ -1,6 +1,7 @@
 ---
 import ResultsModalShell from "@components/layout/games/ResultsModalShell.astro";
 import ComparisonSummary from "@components/layout/games/ComparisonSummary.astro";
+import OutOrderRow from "@components/layout/games/OutOrderRow.astro";
 
 const STAT_ROWS = [
   { label: "Lives left", key: "livesLeft", hero: true, skeletonWidth: "w-8" },
@@ -23,18 +24,5 @@ const WINNER_EXPR =
     statRows={STAT_ROWS}
     winnerExpr={WINNER_EXPR}
   />
-  <div
-    class="flex w-full items-baseline justify-between gap-4"
-    x-show="outOrderLabel() !== ''"
-    x-cloak
-  >
-    <span
-      class="font-mono text-eyebrow font-semibold uppercase text-muted-foreground"
-      >Out order</span
-    >
-    <span
-      class="text-right text-sm text-foreground"
-      x-text="outOrderLabel()"
-    ></span>
-  </div>
+  <OutOrderRow />
 </ResultsModalShell>
