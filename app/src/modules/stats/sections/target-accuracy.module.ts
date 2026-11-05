@@ -1,5 +1,4 @@
-import { isHit, intendedKey } from "./intent-cells.module";
-import { bucketFor, closeBuckets } from "./series.module";
+import { isHit, intentCellBuckets } from "./intent-cells.module";
 import type { IntentCellRow, TargetAccuracyMetrics } from "@modules/types";
 import type { SeriesBucket } from "@lib/types";
 
@@ -8,21 +7,13 @@ export function targetAccuracyBuckets(
   rows: readonly IntentCellRow[],
   ctx: { to: string; now: Date },
 ): SeriesBucket<TargetAccuracyMetrics>[] {
-  const buckets = new Map<
-    string,
-    { end: string; metrics: TargetAccuracyMetrics; sampleSize: number }
-  >();
-
-  for (const row of rows) {
-    const bucket = bucketFor(buckets, row, () => ({}));
-    bucket.sampleSize += row.darts;
-
-    const key = intendedKey(row);
-    const existing = bucket.metrics[key] ?? { attempts: 0, hits: 0 };
-    existing.attempts += row.darts;
-    if (isHit(row)) existing.hits += row.darts;
-    bucket.metrics[key] = existing;
-  }
-
-  return closeBuckets(buckets, ctx);
+  return intentCellBuckets(
+    rows,
+    ctx,
+    () => ({ attempts: 0, hits: 0 }),
+    (entry, row) => {
+      entry.attempts += row.darts;
+      if (isHit(row)) entry.hits += row.darts;
+    },
+  );
 }
