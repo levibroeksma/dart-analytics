@@ -34,7 +34,7 @@
 
 ---
 
-## Task H1: Client API error handling
+## Task 1 (H1): Client API error handling
 
 **Files:**
 - Create: `app/src/lib/client/api/session-api-error.ts`
@@ -52,7 +52,7 @@
 - [ ] **Step 4:** Add `unwrapStatistics` and `appendPage` to `statistics.ts`; migrate every call; run the suite.
 - [ ] **Step 5: Commit** per file (`refactor(client-api): …`).
 
-## Task H2: Stats store helpers
+## Task 2 (H2): Stats store helpers
 
 **Files:**
 - Create: `app/src/modules/stats/sections/hit-rate-rows.module.ts`
@@ -71,7 +71,7 @@
 - [ ] **Step 3:** Migrate the store getters one group at a time (accuracy/double rows, favorite/weakest ×4, bands ×2, config groups ×2), running `npx vitest run tests/stores/game-stats.store.test.ts tests/modules/stats` after each. `groupingRows` keeps its own fold (different accumulator) — leave it unless the residual group still trips the baseline, then report.
 - [ ] **Step 4: Commit** `refactor(stats): shared hit-rate rows and band sums for the game stats store`.
 
-## Task H3: Ruleset config schema fragments
+## Task 3 (H3): Ruleset config schema fragments
 
 **Files:**
 - Modify: `app/src/lib/game/rulesets/types.ts`
@@ -86,7 +86,7 @@
 - [ ] **Step 3:** Add the field fragments and migrate; re-run both.
 - [ ] **Step 4: Commit** `refactor(rulesets): shared duration refinement and config field fragments`.
 
-## Task H4: Intent-cell stats fold
+## Task 4 (H4): Intent-cell stats fold
 
 **Files:**
 - Modify: `app/src/modules/stats/sections/intent-cells.module.ts`, `target-accuracy.module.ts`, `loose-darts.module.ts`
@@ -99,7 +99,7 @@
 - [ ] **Step 2:** Implement; migrate both modules; run `npx vitest run tests/modules/stats`.
 - [ ] **Step 3: Commit** `refactor(stats): shared intent-cell fold for target-accuracy and loose-darts`.
 
-## Task H5: Close-out (PR H)
+## Task 5 (H5): Close-out (PR H)
 
 **Files:**
 - Modify: `scripts/dupes-baseline.txt`, a decision block in `decisions/frontend/architecture.md` or the domain file `DECISIONS.md` routes stats-client work to, `docs/architecture/00-File-Inventory.md`, `docs/architecture/00-Context-Map-History.md`
