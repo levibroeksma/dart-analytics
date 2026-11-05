@@ -1,9 +1,10 @@
-import { mkdtempSync, readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   classify,
+  migrateLock,
   readLock,
   upsertEntries,
   writeLock,
@@ -26,8 +27,8 @@ const E = (
 });
 
 const lock = (items: LockEntry[]): Lock => ({
-  projectId: "p",
-  projectUpdatedAt: null,
+  artifactUrl: "https://claude.ai/artifact/x",
+  lastChangeAt: null,
   pairs: [],
   items,
 });
@@ -73,6 +74,23 @@ describe("design-sync lock", () => {
     ["h1", "h2", E("h1", "h2", "accepted-divergence"), true, "accepted", null],
     ["h1", "h2", undefined, false, "mismatch", "owner"],
     ["h1", "h2", E("h1", "h2", "code-wins"), false, "in-sync", null],
+    ["h1", "h2", E("h1", "h2", "accepted-divergence"), false, "accepted", null],
+    [
+      "h3",
+      "h2",
+      E("h1", "h2", "code-wins"),
+      false,
+      "mismatch",
+      "design-to-code",
+    ],
+    [
+      "h1",
+      "h3",
+      E("h1", "h2", "code-wins"),
+      false,
+      "mismatch",
+      "code-to-design",
+    ],
   ] as const)("classify %s/%s", (d, c, entry, comparable, status, proposal) => {
     const result = classify(
       {
@@ -88,6 +106,21 @@ describe("design-sync lock", () => {
     expect(result.proposal).toBe(proposal);
   });
 
+  it("classifies codeOnly items as code-only", () => {
+    const result = classify(
+      {
+        id: "var:--vignette",
+        area: "tokens",
+        design: null,
+        code: { path: "c", hash: "h1" },
+        comparable: true,
+        codeOnly: true,
+      },
+      undefined,
+    );
+    expect(result).toMatchObject({ status: "code-only", proposal: null });
+  });
+
   it("writeLock is stable: sorted ids, trailing newline", () => {
     const path = join(mkdtempSync(join(tmpdir(), "ds-lock-")), "lock.json");
     const b = { ...E("h1", "h1", "code-wins"), id: "var:--b" };
@@ -95,11 +128,48 @@ describe("design-sync lock", () => {
     writeLock(path, lock([b, a]));
     const text = readFileSync(path, "utf8");
     expect(text.endsWith("}\n")).toBe(true);
-    expect(text).toContain('\n  "projectId"');
+    expect(text).toContain('\n  "artifactUrl"');
     expect(readLock(path).items.map((i) => i.id)).toEqual([
       "var:--a",
       "var:--b",
     ]);
+  });
+
+  it("reads artifactUrl and lastChangeAt", () => {
+    const path = join(mkdtempSync(join(tmpdir(), "ds-lock-")), "lock.json");
+    writeLock(path, { ...lock([]), lastChangeAt: "2026-11-04T10:00:00Z" });
+    expect(readLock(path)).toMatchObject({
+      artifactUrl: "https://claude.ai/artifact/x",
+      lastChangeAt: "2026-11-04T10:00:00Z",
+    });
+  });
+
+  it("readLock asks for migrate-lock on an old lock", () => {
+    const path = join(mkdtempSync(join(tmpdir(), "ds-lock-")), "lock.json");
+    writeFileSync(
+      path,
+      JSON.stringify({
+        projectId: "p",
+        projectUpdatedAt: null,
+        pairs: [],
+        items: [],
+      }),
+    );
+    expect(() => readLock(path)).toThrow("lock: run migrate-lock");
+  });
+
+  it("migrateLock keeps pairs already in the folder layout", () => {
+    const { lock: next, pairsRewritten } = migrateLock(
+      {
+        projectId: "p",
+        pairs: [{ design: "components/Button/Button", code: ["a.astro"] }],
+        items: [],
+      },
+      "u",
+    );
+    expect(pairsRewritten).toBe(0);
+    expect(next.pairs[0].design).toBe("components/Button/Button");
+    expect(next).not.toHaveProperty("projectId");
   });
 
   it("upsertEntries replaces by id", () => {

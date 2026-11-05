@@ -1,5 +1,5 @@
 /**
- * Lock model for the Claude Design sync: per-item hashes at the last sync,
+ * Lock model for the design-system sync: per-item hashes at the last sync,
  * the owner's decision, and the classifier that turns a fresh comparison into
  * a status plus a proposed direction. The lock is a direction hint only;
  * comparable items are matched by comparing the two sides directly.
@@ -24,6 +24,7 @@ export interface SyncItem {
   design: Side | null;
   code: Side | null;
   comparable: boolean;
+  codeOnly?: true;
 }
 
 export type Decision = "code-wins" | "design-wins" | "accepted-divergence";
@@ -49,8 +50,8 @@ export interface ComponentPair {
 }
 
 export interface Lock {
-  projectId: string;
-  projectUpdatedAt: string | null;
+  artifactUrl: string;
+  lastChangeAt: string | null;
   pairs: ComponentPair[];
   items: LockEntry[];
 }
@@ -58,7 +59,7 @@ export interface Lock {
 export type Proposal = "design-to-code" | "code-to-design" | "owner";
 
 export interface Classified extends SyncItem {
-  status: "in-sync" | "accepted" | "mismatch";
+  status: "in-sync" | "accepted" | "mismatch" | "code-only";
   proposal: Proposal | null;
 }
 
@@ -83,32 +84,41 @@ export function classify(
   item: SyncItem,
   entry: LockEntry | undefined,
 ): Classified {
-  const designHash = item.design?.hash ?? null;
-  const codeHash = item.code?.hash ?? null;
-  const unchanged =
-    entry !== undefined &&
-    entry.designHash === designHash &&
-    entry.codeHash === codeHash;
-  const sameNow =
-    item.comparable && designHash !== null && designHash === codeHash;
+  if (item.codeOnly) return { ...item, status: "code-only", proposal: null };
+  const status = settledStatus(item, entry);
+  if (status) return { ...item, status, proposal: null };
+  return { ...item, status: "mismatch", proposal: direction(item, entry) };
+}
 
-  if (
-    sameNow ||
-    (!item.comparable && unchanged && entry.decision !== "accepted-divergence")
-  ) {
-    return { ...item, status: "in-sync", proposal: null };
+/** `in-sync` or `accepted` when nothing needs deciding, else null. */
+function settledStatus(
+  item: SyncItem,
+  entry: LockEntry | undefined,
+): "in-sync" | "accepted" | null {
+  const [designHash, codeHash] = hashes(item);
+  if (item.comparable && designHash !== null && designHash === codeHash) {
+    return "in-sync";
   }
-  if (unchanged && entry.decision === "accepted-divergence") {
-    return { ...item, status: "accepted", proposal: null };
+  if (!entry) return null;
+  if (entry.designHash !== designHash || entry.codeHash !== codeHash) {
+    return null;
   }
-  if (!entry) return { ...item, status: "mismatch", proposal: "owner" };
+  if (entry.decision === "accepted-divergence") return "accepted";
+  return item.comparable ? null : "in-sync";
+}
 
+function hashes(item: SyncItem): [string | null, string | null] {
+  return [item.design?.hash ?? null, item.code?.hash ?? null];
+}
+
+/** Which side changed since the lock; `owner` when both or no entry. */
+function direction(item: SyncItem, entry: LockEntry | undefined): Proposal {
+  if (!entry) return "owner";
+  const [designHash, codeHash] = hashes(item);
   const designChanged = entry.designHash !== designHash;
   const codeChanged = entry.codeHash !== codeHash;
-  let proposal: Proposal = "owner";
-  if (designChanged && !codeChanged) proposal = "design-to-code";
-  if (codeChanged && !designChanged) proposal = "code-to-design";
-  return { ...item, status: "mismatch", proposal };
+  if (designChanged === codeChanged) return "owner";
+  return designChanged ? "design-to-code" : "code-to-design";
 }
 
 /**
@@ -118,7 +128,44 @@ export function classify(
  * @returns The parsed lock.
  */
 export function readLock(path: string): Lock {
-  return JSON.parse(readFileSync(path, "utf8")) as Lock;
+  const lock = JSON.parse(readFileSync(path, "utf8")) as Record<
+    string,
+    unknown
+  >;
+  if ("projectId" in lock) throw new Error("lock: run migrate-lock");
+  return lock as unknown as Lock;
+}
+
+/**
+ * Convert a Claude Design lock to the artifact layout: artifact keys instead
+ * of project keys, no `rule:`/`keyframes:` entries (code-owned now), and
+ * component pairs pointing at `components/<Name>/<Name>`.
+ *
+ * @param old - The parsed old lock.
+ * @param artifactUrl - The Design System artifact's URL.
+ * @returns The migrated lock plus counts of what changed.
+ */
+export function migrateLock(
+  old: unknown,
+  artifactUrl: string,
+): { lock: Lock; removed: number; pairsRewritten: number } {
+  const src = old as { pairs?: ComponentPair[]; items?: LockEntry[] };
+  const items = (src.items ?? []).filter(
+    (e) => !/^(rule|keyframes):/.test(e.id),
+  );
+  let pairsRewritten = 0;
+  const pairs = (src.pairs ?? []).map((p) => {
+    const m = p.design && /^components\/[^/]+\/([^/]+)$/.exec(p.design);
+    const design = m ? `components/${m[1]}/${m[1]}` : p.design;
+    if (design === p.design) return p;
+    pairsRewritten++;
+    return { ...p, design };
+  });
+  return {
+    lock: { artifactUrl, lastChangeAt: null, pairs, items },
+    removed: (src.items ?? []).length - items.length,
+    pairsRewritten,
+  };
 }
 
 /**

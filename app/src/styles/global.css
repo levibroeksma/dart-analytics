@@ -15,6 +15,7 @@
   --accent-bright: oklch(80% 0.13 237);
   --accent-foreground-muted: oklch(92% 0.01 240);
   --accent-deep-blue: oklch(44.3% 0.11 240.79);
+  --on-accent: oklch(18% 0.06 245);
   --deck-tint-layer: oklch(24% 0.06 241);
   --nav-bottom: max(0.5rem, calc(env(safe-area-inset-bottom) - 0.5rem));
   --nav-clearance: 5.5rem;
@@ -33,12 +34,12 @@
   --border-strong: oklch(100% 0 0 / 0.14);
   --skeleton: oklch(100% 0 0 / 0.12);
   --foreground: oklch(100% 0 0);
-  --muted: oklch(55% 0 0);
+  --muted: oklch(65% 0 0);
   --muted-foreground: oklch(70% 0 0);
   --soft-foreground: oklch(78% 0 0);
   --strong-foreground: oklch(86% 0 0);
-  --faint-foreground: oklch(50% 0 0);
-  --placeholder: oklch(48% 0 0);
+  --faint-foreground: oklch(58% 0 0);
+  --placeholder: oklch(58% 0 0);
   --scrim: oklch(0% 0 0 / 0.6);
 
   --error: oklch(68% 0.15 30);
@@ -81,7 +82,7 @@
   --progress-todo: oklch(100% 0 0 / 0.22);
   --progress-rest: oklch(100% 0 0 / 0.06);
   --chart-bar: oklch(44.3% 0.11 240.79 / 0.7);
-  --chart-tick: oklch(55% 0 0);
+  --chart-tick: var(--muted);
   --dartboard-accent-single-dark: oklch(100% 0 0 / 0.04);
   --dartboard-accent-single-light: oklch(68.5% 0.169 237.323 / 0.35);
   --dartboard-accent-wire-red: var(--accent);
