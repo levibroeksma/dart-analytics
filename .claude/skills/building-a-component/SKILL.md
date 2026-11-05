@@ -19,6 +19,7 @@ Guide only. Enforcement lives elsewhere; this skill points, never restates.
 | Alpine shorthand, spread bind for `{}` expressions, expression props | `docs/architecture/07-Frontend/03-Alpine-Patterns.md` §Binding Rules |
 | `x-show` + `x-cloak` pairing | `07-Frontend/05-Astro-Components.md` §Anti-Patterns; `07-Style-Guide.md` §Interactivity |
 | Class composition with `cn()` | `07-Frontend/05-Astro-Components.md` §Class Composition |
+| Looks, variants and states the spec leaves open | Design System artifact: `syncing-design-system` skill § 11 (D524) |
 | Colour, spacing, surfaces, motion tokens | `07-Frontend/07-Style-Guide.md` §Tokens |
 | Standalone actions via `Button.astro` | `app/src/components/CLAUDE.md` |
 

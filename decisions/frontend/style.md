@@ -288,3 +288,10 @@ Decision: the D499 sync runs against the Design System artifact `https://claude.
 Reason: standalone Claude Design moved its design systems to artifacts and refuses `DesignSync` writes; the owner wants experiments in the artifact to reach nothing until marked ready, and manual syncing to be rare.
 Consequences: `@utility` rules and keyframes leave the tokens area and are code-owned (`migrate-lock` drops their lock entries). The lock tracks `artifactUrl` and `lastChangeAt` instead of the project id and `updatedAt`. CI cannot run the sync; it needs a Claude session with artifact access.
 Supersedes: D499 in part (the Claude Design project and `DesignSync` as the design side; phase 1 manual-only).
+
+### D524 — Plan work takes visual choices from the Design System artifact and offers the sync before the PR
+Status: Accepted · Date: 2026-11-05
+Decision: when a superpowers plan is written or executed, every visual choice the spec leaves open follows the Design System artifact (`syncing-design-system` skill § 11). The main session reads the artifact and passes excerpts to subagents in their briefs. Where the artifact and the code disagree on a value the task uses, the code value stays and the id is noted. Before the PR, `finishing-a-dart-branch` asks the owner whether to run the design sync on the branch (§ 12).
+Reason: the owner wants plan work to look like the design system, and wants to choose per branch whether drift is reconciled in the same PR.
+Consequences: a session without artifact access falls back to the Style Guide and says so in the ledger. A non-interactive run cannot ask, so it notes that in the PR body.
+Supersedes: none. Extends D523.
