@@ -9,7 +9,6 @@ import {
   type AbandonTrainingResponseData,
   type TrainingCompletionListData,
 } from "./types";
-import { SessionApiError } from "./sessions";
 import { unwrapOrThrow } from "./unwrap";
 
 export async function startTraining(
@@ -20,14 +19,7 @@ export async function startTraining(
     "/api/training-sessions",
     { method: "POST", body: JSON.stringify(payload) },
   );
-  if (!result.ok)
-    throw new SessionApiError(
-      result.error.code,
-      result.error.message,
-      result.requestId,
-      result.error.details,
-    );
-  return result.data;
+  return unwrapOrThrow(result);
 }
 
 /**
@@ -42,14 +34,7 @@ export async function resumeTraining(
     `/api/training-sessions/${activityId}/resume`,
     { method: "POST", body: "{}" },
   );
-  if (!result.ok)
-    throw new SessionApiError(
-      result.error.code,
-      result.error.message,
-      result.requestId,
-      result.error.details,
-    );
-  return result.data;
+  return unwrapOrThrow(result);
 }
 
 export async function startTrainingStep(
@@ -60,14 +45,7 @@ export async function startTrainingStep(
     `/api/training-sessions/${activityId}/steps/${sequenceNumber}`,
     { method: "POST", body: "{}" },
   );
-  if (!result.ok)
-    throw new SessionApiError(
-      result.error.code,
-      result.error.message,
-      result.requestId,
-      result.error.details,
-    );
-  return result.data;
+  return unwrapOrThrow(result);
 }
 
 export async function completeTraining(
@@ -77,14 +55,7 @@ export async function completeTraining(
     `/api/training-sessions/${activityId}/complete`,
     { method: "PATCH" },
   );
-  if (!result.ok)
-    throw new SessionApiError(
-      result.error.code,
-      result.error.message,
-      result.requestId,
-      result.error.details,
-    );
-  return result.data;
+  return unwrapOrThrow(result);
 }
 
 export async function abandonTraining(
@@ -94,14 +65,7 @@ export async function abandonTraining(
     `/api/training-sessions/${activityId}/abandon`,
     { method: "PATCH" },
   );
-  if (!result.ok)
-    throw new SessionApiError(
-      result.error.code,
-      result.error.message,
-      result.requestId,
-      result.error.details,
-    );
-  return result.data;
+  return unwrapOrThrow(result);
 }
 
 /** The caller's completed trainings at or after `since` (an ISO instant). */
