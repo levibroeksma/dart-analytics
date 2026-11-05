@@ -32,14 +32,14 @@
     var(--accent-deep) 82%
   );
   --shadow-accent-glow:
-    inset 0 1px 0 oklch(100% 0 0 / 0.1),
-    0 0 20px 3px color-mix(in oklch, var(--accent) 12%, transparent),
-    inset 0 0 0 1px oklch(100% 0 0 / 0.06);
+    inset 0 0.0625rem 0 oklch(100% 0 0 / 0.1),
+    0 0 1.25rem 0.1875rem color-mix(in oklch, var(--accent) 12%, transparent),
+    inset 0 0 0 0.0625rem oklch(100% 0 0 / 0.06);
   --shadow-accent-glow-halo:
-    inset 0 1px 0 oklch(100% 0 0 / 0.1),
-    0 0 20px 3px color-mix(in oklch, var(--accent) 12%, transparent),
-    0 0 40px 20px color-mix(in oklch, var(--accent) 8%, transparent),
-    inset 0 0 0 1px oklch(100% 0 0 / 0.06);
+    inset 0 0.0625rem 0 oklch(100% 0 0 / 0.1),
+    0 0 1.25rem 0.1875rem color-mix(in oklch, var(--accent) 12%, transparent),
+    0 0 2.5rem 1.25rem color-mix(in oklch, var(--accent) 8%, transparent),
+    inset 0 0 0 0.0625rem oklch(100% 0 0 / 0.06);
 
   --surface: oklch(0% 0 0);
   --surface-raised: oklch(100% 0 0 / 0.04);
@@ -961,6 +961,8 @@
   --deck-return-duration: 500ms;
   --deck-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --deck-fade-duration: 150ms;
+  --deck-return-transition:
+    transform var(--deck-return-duration) var(--deck-ease), opacity 250ms ease;
   transform-origin: 50% 100%;
 }
 
@@ -992,18 +994,12 @@
   }
 }
 
-@utility deck-return-transition {
-  transition:
-    transform var(--deck-return-duration) var(--deck-ease),
-    opacity 250ms ease;
+@utility deck-entering {
+  transform: translateY(var(--deck-y)) scale(var(--deck-scale));
+  transition: var(--deck-return-transition);
   @media (prefers-reduced-motion: reduce) {
     transition: opacity var(--deck-fade-duration) linear;
   }
-}
-
-@utility deck-entering {
-  transform: translateY(var(--deck-y)) scale(var(--deck-scale));
-  @apply deck-return-transition;
 }
 
 @utility deck-leaving {
@@ -1021,7 +1017,10 @@
   opacity: 0;
   transform: translateX(-130%) translateY(var(--deck-y))
     scale(var(--deck-scale));
-  @apply deck-return-transition;
+  transition: var(--deck-return-transition);
+  @media (prefers-reduced-motion: reduce) {
+    transition: opacity var(--deck-fade-duration) linear;
+  }
 }
 
 @utility deck-parked {
