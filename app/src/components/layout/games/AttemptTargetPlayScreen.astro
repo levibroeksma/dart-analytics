@@ -1,0 +1,50 @@
+---
+/**
+ * Play screen for the attempt-target games (121, Ten Up One Down): the seat
+ * shell with the attempt's remaining score as the big target, the checkout
+ * route, the `Target` tile then the game's own tiles, the countdown prompt
+ * and the `ScoreInput` keypad.
+ * @param {Tile[]} tiles The game's tiles, appended after `Target`
+ * @param {string} finishConfirm The game's finish-confirm flag; it and
+ *   `showDoubleConfirm` block the keypad and the countdown prompt
+ */
+import type { Tile } from "@lib/interfaces";
+
+interface Props {
+  tiles: Tile[];
+  finishConfirm: string;
+  [key: string]: unknown;
+}
+
+// Props
+const { tiles, finishConfirm, ...props }: Props = Astro.props;
+
+// Components
+import SeatedPlayScreen from "@components/layout/games/SeatedPlayScreen.astro";
+import ScoreInput from "@components/layout/games/ScoreInput.astro";
+
+// Data
+const blocked = `showDoubleConfirm || ${finishConfirm}`;
+const paused = `${blocked} || finished || $store.game.timerPaused`;
+---
+
+<SeatedPlayScreen
+  big={{ isTarget: true, value: (c) => c("remainingInAttempt") }}
+  route={(c) => c("checkoutHint")}
+  tiles={[{ label: "Target", value: (c) => c("currentTargetLabel") }, ...tiles]}
+  countdownDisabled={`finished || ${blocked}`}
+  {...props}
+>
+  <ScoreInput
+    value="scoreInput.value"
+    digitHandler="scoreInput.appendDigit"
+    onDelete="scoreInput.deleteLast($event)"
+    onSubmit="submitVisit()"
+    submitDisabled={`!scoreInput.value || ${paused}`}
+    padDisabled={paused}
+    undoClick="undoVisit()"
+    undoDisabled={`!$store.game.turns.length || ${paused}`}
+    x-show="$store.game.inputModeKey !== 'VISUAL_BOARD' && !$store.game.timerPaused"
+    x-cloak
+  />
+</SeatedPlayScreen>

@@ -7,34 +7,17 @@ interface Props {
 const { ...props }: Props = Astro.props;
 
 // Components
-import SeatedPlayScreen from "@components/layout/games/SeatedPlayScreen.astro";
-import ScoreInput from "@components/layout/games/ScoreInput.astro";
+import AttemptTargetPlayScreen from "@components/layout/games/AttemptTargetPlayScreen.astro";
 ---
 
-<SeatedPlayScreen
-  big={{ isTarget: true, value: (c) => c("remainingInAttempt") }}
-  route={(c) => c("checkoutHint")}
+<AttemptTargetPlayScreen
   tiles={[
-    { label: "Target", value: (c) => c("currentTargetLabel") },
     {
       label: "Visit",
       value: (c) => `(${c("visitsThisAttempt")} + 1) + ' / 3'`,
     },
     { label: "Darts", value: (c) => c("dartsThisAttempt") },
   ]}
-  countdownDisabled="finished || showDoubleConfirm || showSessionFinishConfirm"
+  finishConfirm="showSessionFinishConfirm"
   {...props}
->
-  <ScoreInput
-    value="scoreInput.value"
-    digitHandler="scoreInput.appendDigit"
-    onDelete="scoreInput.deleteLast($event)"
-    onSubmit="submitVisit()"
-    submitDisabled="!scoreInput.value || showDoubleConfirm || showSessionFinishConfirm || finished || $store.game.timerPaused"
-    padDisabled="showDoubleConfirm || showSessionFinishConfirm || finished || $store.game.timerPaused"
-    undoClick="undoVisit()"
-    undoDisabled="!$store.game.turns.length || showDoubleConfirm || showSessionFinishConfirm || finished || $store.game.timerPaused"
-    x-show="$store.game.inputModeKey !== 'VISUAL_BOARD' && !$store.game.timerPaused"
-    x-cloak
-  />
-</SeatedPlayScreen>
+/>
