@@ -430,3 +430,85 @@ describe("tuodValidator.validateBatch — VISUAL_BOARD", () => {
     expect(result.valid).toBe(false);
   });
 });
+
+describe("tuodValidator.validateBatch — parity with score training (#1184)", () => {
+  const cases: Array<{
+    name: string;
+    totals: number[];
+    existing: Record<string, number>;
+    captureModeKey: string;
+    inputModeKey: string;
+    expected: unknown;
+  }> = [
+    {
+      name: "unsupported mode pair",
+      totals: [0],
+      existing: {},
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "DETAILED_DARTS",
+      expected: {
+        valid: false,
+        code: "VALIDATION_FAILED",
+        issues: ["unsupported mode pair ANALYTICS + DETAILED_DARTS"],
+      },
+    },
+    {
+      name: "over-max visit on the quick-score path",
+      totals: [132],
+      existing: {},
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
+      expected: {
+        valid: false,
+        code: "VALIDATION_FAILED",
+        issues: ["turn t1 totalScore must be between 0 and 131"],
+      },
+    },
+    {
+      name: "over-max visit on the visual-board path",
+      totals: [132],
+      existing: {},
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+      expected: {
+        valid: false,
+        code: "VALIDATION_FAILED",
+        issues: ["turn t1 totalScore must be between 0 and 131"],
+      },
+    },
+    {
+      name: "rounds limit exceeded on the quick-score path",
+      totals: [0],
+      existing: { p1: 10 },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
+      expected: {
+        valid: false,
+        code: "VALIDATION_FAILED",
+        issues: ["session is limited to 10 attempts"],
+      },
+    },
+    {
+      name: "rounds limit on the visual-board path (accepted)",
+      totals: [0],
+      existing: { p1: 10 },
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+      expected: { valid: true },
+    },
+  ];
+
+  it.each(cases)(
+    "$name",
+    ({ totals, existing, captureModeKey, inputModeKey, expected }) => {
+      const result = tuodValidator.validateBatch({
+        config: validConfig,
+        batch: batchWithTurns(totals),
+        existingTurnCounts: existing,
+        captureModeKey,
+        inputModeKey,
+      });
+      expect(result).toEqual(expected);
+    },
+  );
+});

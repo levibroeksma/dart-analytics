@@ -2,15 +2,9 @@ import { TuodConfig } from "@lib/types";
 import type { RulesetValidator } from "@services/interfaces";
 import {
   QUICK_SCORE_OR_VISUAL_BOARD_MODES,
-  exceedsRoundsLimit,
-  isQuickScoreCapture,
   isQuickScoreOrVisualBoardCapture,
-  validateQuickScoreTurns,
 } from "../quick-score.validator";
-import {
-  isVisualBoardCapture,
-  validateVisualBoardTurns,
-} from "../visual-board.validator";
+import { validateScoredBatch } from "../scored-batch.validator";
 import { validateModeGatedConfig } from "../mode-gated-config";
 import type {
   BatchValidationResult,
@@ -67,36 +61,11 @@ export const tuodValidator: RulesetValidator = {
     );
   },
 
-  validateBatch({
-    config,
-    batch,
-    existingTurnCounts,
-    captureModeKey,
-    inputModeKey,
-  }: ModedBatchValidationInput): BatchValidationResult {
-    if (isVisualBoardCapture(captureModeKey, inputModeKey)) {
-      return validateVisualBoardTurns(batch, maxTurnScore(config));
-    }
-
-    if (!isQuickScoreCapture(captureModeKey, inputModeKey)) {
-      return {
-        valid: false,
-        code: "VALIDATION_FAILED",
-        issues: [`unsupported mode pair ${captureModeKey} + ${inputModeKey}`],
-      };
-    }
-
-    const turns = validateQuickScoreTurns(batch, maxTurnScore(config));
-    if (!turns.valid) return turns;
-
-    if (exceedsRoundsLimit(config, batch, existingTurnCounts)) {
-      return {
-        valid: false,
-        code: "VALIDATION_FAILED",
-        issues: [`session is limited to ${config.duration_value} attempts`],
-      };
-    }
-
-    return { valid: true };
+  validateBatch(input: ModedBatchValidationInput): BatchValidationResult {
+    return validateScoredBatch(input, {
+      maxTurnScore: maxTurnScore(input.config),
+      limitNoun: "attempts",
+      limitOnVisualBoard: false,
+    });
   },
 };

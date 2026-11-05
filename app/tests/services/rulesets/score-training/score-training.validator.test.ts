@@ -398,3 +398,117 @@ describe("scoreTrainingValidator.validateBatch", () => {
     expect(result.valid).toBe(false);
   });
 });
+
+describe("scoreTrainingValidator.validateBatch — parity with tuod (#1184)", () => {
+  const config = {
+    duration_type: "ROUNDS",
+    duration_value: 2,
+    max_darts_per_turn: 3,
+  };
+
+  function dartlessBatch(totalScores: number[]) {
+    return {
+      stages: [
+        {
+          clientKey: "s1",
+          stageTypeKey: "EXERCISE_BLOCK",
+          parentClientKey: null,
+          sequence: 1,
+          turns: totalScores.map((totalScore, i) => ({
+            clientKey: `t${i + 1}`,
+            participantRef: "p1",
+            sequence: i + 1,
+            totalScore,
+            kept: false,
+            completedAt: null,
+            darts: [] as DartFactInput[],
+          })),
+        },
+      ],
+    };
+  }
+
+  const cases: Array<{
+    name: string;
+    totals: number[];
+    existing: Record<string, number>;
+    captureModeKey: string;
+    inputModeKey: string;
+    expected: unknown;
+  }> = [
+    {
+      name: "unsupported mode pair",
+      totals: [60],
+      existing: {},
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "DETAILED_DARTS",
+      expected: {
+        valid: false,
+        code: "VALIDATION_FAILED",
+        issues: ["unsupported mode pair ANALYTICS + DETAILED_DARTS"],
+      },
+    },
+    {
+      name: "over-max visit on the quick-score path",
+      totals: [181],
+      existing: {},
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
+      expected: {
+        valid: false,
+        code: "VALIDATION_FAILED",
+        issues: ["turn t1 totalScore must be between 0 and 180"],
+      },
+    },
+    {
+      name: "over-max visit on the visual-board path",
+      totals: [181],
+      existing: {},
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+      expected: {
+        valid: false,
+        code: "VALIDATION_FAILED",
+        issues: ["turn t1 totalScore must be between 0 and 180"],
+      },
+    },
+    {
+      name: "rounds limit exceeded on the quick-score path",
+      totals: [60],
+      existing: { p1: 2 },
+      captureModeKey: "RECREATIONAL",
+      inputModeKey: "QUICK_SCORE",
+      expected: {
+        valid: false,
+        code: "VALIDATION_FAILED",
+        issues: ["session is limited to 2 visits"],
+      },
+    },
+    {
+      name: "rounds limit exceeded on the visual-board path (rejected)",
+      totals: [60],
+      existing: { p1: 2 },
+      captureModeKey: "ANALYTICS",
+      inputModeKey: "VISUAL_BOARD",
+      expected: {
+        valid: false,
+        code: "VALIDATION_FAILED",
+        issues: ["session is limited to 2 visits"],
+      },
+    },
+  ];
+
+  it.each(cases)(
+    "$name",
+    ({ totals, existing, captureModeKey, inputModeKey, expected }) => {
+      const result = scoreTrainingValidator.validateBatch({
+        config,
+        batch: dartlessBatch(totals),
+        existingTurnCounts: existing,
+        captureModeKey,
+        inputModeKey,
+      });
+      expect(result).toEqual(expected);
+    },
+  );
+});
