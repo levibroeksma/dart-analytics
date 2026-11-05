@@ -1,0 +1,790 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`statistics readers rendered SQL > bucket none > findBucketedSessionAggregates 1`] = `
+[
+  {
+    "params": [
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "0190a000-0000-7000-8000-000000000001",
+      "501",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+    ],
+    "sql": "select $1::timestamptz, $2::timestamptz, "status_key", "context_key", "ruleset_version_key", ("turn_count" = 0), count(*), sum("turn_count"), sum("dart_count"), sum("duration_seconds"), sum("counted_score"), min("counted_score"), max("counted_score"), (array_agg("session_id" order by "counted_score" asc, "completed_at" asc))[1], (array_agg("session_id" order by "counted_score" desc, "completed_at" desc))[1], case when max("dart_count") > 0 then (array_agg("v_stats_session_facts"."session_id" order by "v_stats_session_facts"."counted_score"::numeric / nullif("v_stats_session_facts"."dart_count", 0) desc nulls last, "v_stats_session_facts"."completed_at" desc))[1] end, case when max("dart_count") > 0 then (array_agg("v_stats_session_facts"."counted_score" order by "v_stats_session_facts"."counted_score"::numeric / nullif("v_stats_session_facts"."dart_count", 0) desc nulls last, "v_stats_session_facts"."completed_at" desc))[1] end, case when max("dart_count") > 0 then (array_agg("v_stats_session_facts"."dart_count" order by "v_stats_session_facts"."counted_score"::numeric / nullif("v_stats_session_facts"."dart_count", 0) desc nulls last, "v_stats_session_facts"."completed_at" desc))[1] end, case when max("dart_count") > 0 then to_char(((array_agg("v_stats_session_facts"."completed_at" order by "v_stats_session_facts"."counted_score"::numeric / nullif("v_stats_session_facts"."dart_count", 0) desc nulls last, "v_stats_session_facts"."completed_at" desc))[1]) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') end from "v_stats_session_facts" where ("v_stats_session_facts"."player_id" = $3 and "v_stats_session_facts"."game_type_key" = $4 and "v_stats_session_facts"."completed_at" >= $5 and "v_stats_session_facts"."completed_at" < $6 and "v_stats_session_facts"."status_key" in ($7)) group by "v_stats_session_facts"."status_key", "v_stats_session_facts"."context_key", "v_stats_session_facts"."ruleset_version_key", ("v_stats_session_facts"."turn_count" = 0)",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > bucket none > findDartFoldRows 1`] = `
+[
+  {
+    "params": [
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "0190a000-0000-7000-8000-000000000001",
+      "501",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+      "VISUAL_BOARD",
+    ],
+    "sql": "select "v_stats_dart_facts"."session_id", "v_stats_dart_facts"."game_type_key", "v_stats_dart_facts"."ruleset_version_key", "v_stats_session_facts"."configuration", "v_stats_session_facts"."dart_count", "v_stats_dart_facts"."turn_sequence", "v_stats_dart_facts"."dart_number", "v_stats_dart_facts"."hit_target_number", "v_stats_dart_facts"."hit_zone_key", "v_stats_dart_facts"."intended_target_number", "v_stats_dart_facts"."intended_zone_key", "v_stats_dart_facts"."location_x", "v_stats_dart_facts"."location_y", $1::timestamptz, $2::timestamptz from "v_stats_dart_facts" inner join "v_stats_session_facts" on "v_stats_dart_facts"."session_id" = "v_stats_session_facts"."session_id" where ("v_stats_session_facts"."player_id" = $3 and "v_stats_session_facts"."game_type_key" = $4 and "v_stats_session_facts"."completed_at" >= $5 and "v_stats_session_facts"."completed_at" < $6 and "v_stats_session_facts"."status_key" in ($7) and "v_stats_session_facts"."input_mode_key" = $8) order by "v_stats_dart_facts"."session_id", "v_stats_dart_facts"."turn_sequence", "v_stats_dart_facts"."dart_number"",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > bucket none > findHitNumberCells 1`] = `
+[
+  {
+    "params": [
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "0190a000-0000-7000-8000-000000000001",
+      "501",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+    ],
+    "sql": "select $1::timestamptz, $2::timestamptz, coalesce("hit_target_number"::text, 'MISS'), count(*), count(*) filter (where "hit_zone_key" = 'TREBLE') from "v_stats_dart_facts" where ("v_stats_dart_facts"."player_id" = $3 and "v_stats_dart_facts"."game_type_key" = $4 and "v_stats_dart_facts"."completed_at" >= $5 and "v_stats_dart_facts"."completed_at" < $6 and "v_stats_dart_facts"."status_key" in ($7)) group by coalesce("v_stats_dart_facts"."hit_target_number"::text, 'MISS')",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > bucket none > findIntentCells 1`] = `
+[
+  {
+    "params": [
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "0190a000-0000-7000-8000-000000000001",
+      "501",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+    ],
+    "sql": "select $1::timestamptz, $2::timestamptz, "intended_target_number", "intended_zone_key", "hit_target_number", "hit_zone_key", count(*) from "v_stats_dart_facts" where (("v_stats_dart_facts"."player_id" = $3 and "v_stats_dart_facts"."game_type_key" = $4 and "v_stats_dart_facts"."completed_at" >= $5 and "v_stats_dart_facts"."completed_at" < $6 and "v_stats_dart_facts"."status_key" in ($7)) and "v_stats_dart_facts"."intended_target_number" is not null and "v_stats_dart_facts"."intended_zone_key" is not null) group by "v_stats_dart_facts"."intended_target_number", "v_stats_dart_facts"."intended_zone_key", "v_stats_dart_facts"."hit_target_number", "v_stats_dart_facts"."hit_zone_key"",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > bucket none > findIntentMoments 1`] = `
+[
+  {
+    "params": [
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "0190a000-0000-7000-8000-000000000001",
+      "501",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+    ],
+    "sql": "select $1::timestamptz, $2::timestamptz, "intended_target_number", "intended_zone_key", count(*), sum("location_x"), sum("location_y"), sum("location_x" * "location_x"), sum("location_y" * "location_y"), sum("location_x" * "location_y") from "v_stats_dart_facts" where (("v_stats_dart_facts"."player_id" = $3 and "v_stats_dart_facts"."game_type_key" = $4 and "v_stats_dart_facts"."completed_at" >= $5 and "v_stats_dart_facts"."completed_at" < $6 and "v_stats_dart_facts"."status_key" in ($7)) and "v_stats_dart_facts"."intended_target_number" is not null and "v_stats_dart_facts"."intended_zone_key" is not null) group by "v_stats_dart_facts"."intended_target_number", "v_stats_dart_facts"."intended_zone_key"",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > bucket none > findRoutineRunBuckets 1`] = `
+[
+  {
+    "params": [
+      "0190a000-0000-7000-8000-000000000001",
+      "warmup",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      [
+        "COMPLETED",
+      ],
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+    ],
+    "sql": "
+      WITH scoped AS (
+        SELECT *
+        FROM "v_stats_routine_run_facts"
+        WHERE "v_stats_routine_run_facts"."player_id" = $1
+          AND "v_stats_routine_run_facts"."routine_key" = $2
+          AND "v_stats_routine_run_facts"."completed_at" >= $3
+          AND "v_stats_routine_run_facts"."completed_at" < $4
+          AND "v_stats_routine_run_facts"."status_key" = ANY($5::text[])
+      )
+      SELECT
+        $6::timestamptz AS bucket_start,
+        $7::timestamptz AS bucket_end,
+        count(*)::integer AS runs,
+        coalesce(sum(duration_seconds), 0)::integer AS duration_sum,
+        coalesce(min(duration_seconds), 0)::integer AS duration_min,
+        coalesce(max(duration_seconds), 0)::integer AS duration_max,
+        coalesce(sum(dart_count), 0)::integer AS darts,
+        count(*) filter (where status_key = 'COMPLETED')::integer AS completed,
+        count(*) filter (where status_key = 'ABANDONED' AND steps_started > 0)::integer AS abandoned,
+        count(*) filter (where status_key = 'ABANDONED' AND steps_started = 0)::integer AS never_started,
+        (
+          SELECT coalesce(jsonb_object_agg(x.steps_completed::text, x.cnt), '{}'::jsonb)
+          FROM (
+            SELECT steps_completed, count(*)::integer AS cnt
+            FROM scoped
+            WHERE status_key = 'ABANDONED' AND steps_started > 0
+            GROUP BY steps_completed
+          ) x
+        ) AS steps_completed_at_abandon
+      FROM scoped
+    ",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > bucket none > findStepBuckets 1`] = `
+[
+  {
+    "params": [
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "0190a000-0000-7000-8000-000000000001",
+      "warmup",
+      "step-1",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+    ],
+    "sql": "select $1::timestamptz, $2::timestamptz, count(*), coalesce(sum("duration_seconds"), 0), coalesce(sum("dart_count"), 0) from "v_stats_routine_step_facts" where ("v_stats_routine_step_facts"."player_id" = $3 and "v_stats_routine_step_facts"."routine_key" = $4 and "v_stats_routine_step_facts"."step_key" = $5 and "v_stats_routine_step_facts"."completed_at" >= $6 and "v_stats_routine_step_facts"."completed_at" < $7 and "v_stats_routine_step_facts"."status_key" in ($8))",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > bucket none > findStepFoldRows 1`] = `
+[
+  {
+    "params": [
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "0190a000-0000-7000-8000-000000000001",
+      "warmup",
+      "step-1",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+    ],
+    "sql": "select "v_game_replay"."session_id", "v_stats_routine_step_facts"."completed_at", "v_stats_routine_step_facts"."exercise_ruleset_version_key", "v_stats_routine_step_facts"."configuration", "v_game_replay"."stage_id", "v_game_replay"."stage_sequence", "v_game_replay"."stage_type_key", "v_game_replay"."parent_stage_id", "v_game_replay"."turn_sequence", "v_game_replay"."participant_id", "v_game_replay"."participant_name", "v_game_replay"."participant_type_key", "v_game_replay"."turn_total_score", "v_game_replay"."dart_number", "v_game_replay"."intended_target_number", "v_game_replay"."intended_zone_key", "v_game_replay"."hit_target_number", "v_game_replay"."hit_zone_key", "v_game_replay"."score", "v_game_replay"."location_x", "v_game_replay"."location_y", "v_game_replay"."kept", $1::timestamptz, $2::timestamptz from "v_game_replay" inner join "v_stats_routine_step_facts" on "v_game_replay"."session_id" = "v_stats_routine_step_facts"."session_id" where ("v_stats_routine_step_facts"."player_id" = $3 and "v_stats_routine_step_facts"."routine_key" = $4 and "v_stats_routine_step_facts"."step_key" = $5 and "v_stats_routine_step_facts"."completed_at" >= $6 and "v_stats_routine_step_facts"."completed_at" < $7 and "v_stats_routine_step_facts"."status_key" in ($8)) order by "v_game_replay"."session_id", "v_game_replay"."stage_sequence", "v_game_replay"."turn_sequence", "v_game_replay"."dart_number"",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > bucket none > findVisitScoring 1`] = `
+[
+  {
+    "params": [
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      60,
+      100,
+      100,
+      140,
+      140,
+      "0190a000-0000-7000-8000-000000000001",
+      "501",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+      "VISUAL_BOARD",
+    ],
+    "sql": "select $1::timestamptz, $2::timestamptz, coalesce(sum("total_score"), 0), coalesce(sum("dart_count"), 0), coalesce(sum("total_score") filter (where "scoped_visits"."stage_type_key" in ('LEG', 'EXERCISE_BLOCK') and "visit_rank" <= 3), 0), coalesce(sum("dart_count") filter (where "scoped_visits"."stage_type_key" in ('LEG', 'EXERCISE_BLOCK') and "visit_rank" <= 3), 0), count(*) filter (where "total_score" >= $3 and "total_score" < $4), count(*) filter (where "total_score" >= $5 and "total_score" < $6), count(*) filter (where "total_score" >= $7) from (select "v_stats_session_facts"."completed_at", "v_player_visit_facts"."total_score", "v_player_visit_facts"."dart_count", "v_player_visit_facts"."stage_type_key", row_number() over (partition by "v_player_visit_facts"."stage_id" order by "v_player_visit_facts"."turn_sequence") as "visit_rank" from "v_player_visit_facts" inner join "v_stats_session_facts" on "v_player_visit_facts"."session_id" = "v_stats_session_facts"."session_id" where ("v_stats_session_facts"."player_id" = $8 and "v_stats_session_facts"."game_type_key" = $9 and "v_stats_session_facts"."completed_at" >= $10 and "v_stats_session_facts"."completed_at" < $11 and "v_stats_session_facts"."status_key" in ($12) and "v_stats_session_facts"."input_mode_key" = $13)) "scoped_visits"",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > bucket none > findX01FoldRows 1`] = `
+[
+  {
+    "params": [
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "0190a000-0000-7000-8000-000000000001",
+      "501",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+      "VISUAL_BOARD",
+    ],
+    "sql": "select "v_x01_checkout_darts"."session_id", "v_x01_checkout_darts"."game_type_key", "v_x01_checkout_darts"."ruleset_version_key", "v_x01_checkout_darts"."configuration", "v_x01_checkout_darts"."stage_id", "v_x01_checkout_darts"."stage_sequence", "v_x01_checkout_darts"."stage_type_key", "v_x01_checkout_darts"."parent_stage_id", "v_x01_checkout_darts"."turn_id", "v_x01_checkout_darts"."turn_sequence", "v_x01_checkout_darts"."turn_total_score", "v_x01_checkout_darts"."turn_completed_at", "v_x01_checkout_darts"."participant_id", "v_x01_checkout_darts"."dart_number", "v_x01_checkout_darts"."hit_target_number", "v_x01_checkout_darts"."hit_zone_key", "v_x01_checkout_darts"."score", $1::timestamptz, $2::timestamptz from "v_x01_checkout_darts" inner join "v_stats_session_facts" on "v_x01_checkout_darts"."session_id" = "v_stats_session_facts"."session_id" where ("v_stats_session_facts"."player_id" = $3 and "v_stats_session_facts"."game_type_key" = $4 and "v_stats_session_facts"."completed_at" >= $5 and "v_stats_session_facts"."completed_at" < $6 and "v_stats_session_facts"."status_key" in ($7) and "v_stats_session_facts"."input_mode_key" = $8) order by "v_x01_checkout_darts"."session_id", "v_x01_checkout_darts"."stage_sequence", "v_x01_checkout_darts"."turn_sequence", "v_x01_checkout_darts"."dart_number"",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > bucket week > findBucketedSessionAggregates 1`] = `
+[
+  {
+    "params": [
+      "0190a000-0000-7000-8000-000000000001",
+      "501",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+    ],
+    "sql": "select to_char(((date_trunc('week', "v_stats_session_facts"."completed_at" AT TIME ZONE 'Europe/Amsterdam') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), to_char((((date_trunc('week', "v_stats_session_facts"."completed_at" AT TIME ZONE 'Europe/Amsterdam') + interval '1 week') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), "status_key", "context_key", "ruleset_version_key", ("turn_count" = 0), count(*), sum("turn_count"), sum("dart_count"), sum("duration_seconds"), sum("counted_score"), min("counted_score"), max("counted_score"), (array_agg("session_id" order by "counted_score" asc, "completed_at" asc))[1], (array_agg("session_id" order by "counted_score" desc, "completed_at" desc))[1], case when max("dart_count") > 0 then (array_agg("v_stats_session_facts"."session_id" order by "v_stats_session_facts"."counted_score"::numeric / nullif("v_stats_session_facts"."dart_count", 0) desc nulls last, "v_stats_session_facts"."completed_at" desc))[1] end, case when max("dart_count") > 0 then (array_agg("v_stats_session_facts"."counted_score" order by "v_stats_session_facts"."counted_score"::numeric / nullif("v_stats_session_facts"."dart_count", 0) desc nulls last, "v_stats_session_facts"."completed_at" desc))[1] end, case when max("dart_count") > 0 then (array_agg("v_stats_session_facts"."dart_count" order by "v_stats_session_facts"."counted_score"::numeric / nullif("v_stats_session_facts"."dart_count", 0) desc nulls last, "v_stats_session_facts"."completed_at" desc))[1] end, case when max("dart_count") > 0 then to_char(((array_agg("v_stats_session_facts"."completed_at" order by "v_stats_session_facts"."counted_score"::numeric / nullif("v_stats_session_facts"."dart_count", 0) desc nulls last, "v_stats_session_facts"."completed_at" desc))[1]) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') end from "v_stats_session_facts" where ("v_stats_session_facts"."player_id" = $1 and "v_stats_session_facts"."game_type_key" = $2 and "v_stats_session_facts"."completed_at" >= $3 and "v_stats_session_facts"."completed_at" < $4 and "v_stats_session_facts"."status_key" in ($5)) group by to_char(((date_trunc('week', "v_stats_session_facts"."completed_at" AT TIME ZONE 'Europe/Amsterdam') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), to_char((((date_trunc('week', "v_stats_session_facts"."completed_at" AT TIME ZONE 'Europe/Amsterdam') + interval '1 week') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), "v_stats_session_facts"."status_key", "v_stats_session_facts"."context_key", "v_stats_session_facts"."ruleset_version_key", ("v_stats_session_facts"."turn_count" = 0)",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > bucket week > findDartFoldRows 1`] = `
+[
+  {
+    "params": [
+      "0190a000-0000-7000-8000-000000000001",
+      "501",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+      "VISUAL_BOARD",
+    ],
+    "sql": "select "v_stats_dart_facts"."session_id", "v_stats_dart_facts"."game_type_key", "v_stats_dart_facts"."ruleset_version_key", "v_stats_session_facts"."configuration", "v_stats_session_facts"."dart_count", "v_stats_dart_facts"."turn_sequence", "v_stats_dart_facts"."dart_number", "v_stats_dart_facts"."hit_target_number", "v_stats_dart_facts"."hit_zone_key", "v_stats_dart_facts"."intended_target_number", "v_stats_dart_facts"."intended_zone_key", "v_stats_dart_facts"."location_x", "v_stats_dart_facts"."location_y", to_char(((date_trunc('week', "v_stats_session_facts"."completed_at" AT TIME ZONE 'Europe/Amsterdam') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), to_char((((date_trunc('week', "v_stats_session_facts"."completed_at" AT TIME ZONE 'Europe/Amsterdam') + interval '1 week') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') from "v_stats_dart_facts" inner join "v_stats_session_facts" on "v_stats_dart_facts"."session_id" = "v_stats_session_facts"."session_id" where ("v_stats_session_facts"."player_id" = $1 and "v_stats_session_facts"."game_type_key" = $2 and "v_stats_session_facts"."completed_at" >= $3 and "v_stats_session_facts"."completed_at" < $4 and "v_stats_session_facts"."status_key" in ($5) and "v_stats_session_facts"."input_mode_key" = $6) order by "v_stats_dart_facts"."session_id", "v_stats_dart_facts"."turn_sequence", "v_stats_dart_facts"."dart_number"",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > bucket week > findHitNumberCells 1`] = `
+[
+  {
+    "params": [
+      "0190a000-0000-7000-8000-000000000001",
+      "501",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+    ],
+    "sql": "select to_char(((date_trunc('week', "v_stats_dart_facts"."completed_at" AT TIME ZONE 'Europe/Amsterdam') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), to_char((((date_trunc('week', "v_stats_dart_facts"."completed_at" AT TIME ZONE 'Europe/Amsterdam') + interval '1 week') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), coalesce("hit_target_number"::text, 'MISS'), count(*), count(*) filter (where "hit_zone_key" = 'TREBLE') from "v_stats_dart_facts" where ("v_stats_dart_facts"."player_id" = $1 and "v_stats_dart_facts"."game_type_key" = $2 and "v_stats_dart_facts"."completed_at" >= $3 and "v_stats_dart_facts"."completed_at" < $4 and "v_stats_dart_facts"."status_key" in ($5)) group by to_char(((date_trunc('week', "v_stats_dart_facts"."completed_at" AT TIME ZONE 'Europe/Amsterdam') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), to_char((((date_trunc('week', "v_stats_dart_facts"."completed_at" AT TIME ZONE 'Europe/Amsterdam') + interval '1 week') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), coalesce("v_stats_dart_facts"."hit_target_number"::text, 'MISS')",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > bucket week > findIntentCells 1`] = `
+[
+  {
+    "params": [
+      "0190a000-0000-7000-8000-000000000001",
+      "501",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+    ],
+    "sql": "select to_char(((date_trunc('week', "v_stats_dart_facts"."completed_at" AT TIME ZONE 'Europe/Amsterdam') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), to_char((((date_trunc('week', "v_stats_dart_facts"."completed_at" AT TIME ZONE 'Europe/Amsterdam') + interval '1 week') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), "intended_target_number", "intended_zone_key", "hit_target_number", "hit_zone_key", count(*) from "v_stats_dart_facts" where (("v_stats_dart_facts"."player_id" = $1 and "v_stats_dart_facts"."game_type_key" = $2 and "v_stats_dart_facts"."completed_at" >= $3 and "v_stats_dart_facts"."completed_at" < $4 and "v_stats_dart_facts"."status_key" in ($5)) and "v_stats_dart_facts"."intended_target_number" is not null and "v_stats_dart_facts"."intended_zone_key" is not null) group by to_char(((date_trunc('week', "v_stats_dart_facts"."completed_at" AT TIME ZONE 'Europe/Amsterdam') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), to_char((((date_trunc('week', "v_stats_dart_facts"."completed_at" AT TIME ZONE 'Europe/Amsterdam') + interval '1 week') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), "v_stats_dart_facts"."intended_target_number", "v_stats_dart_facts"."intended_zone_key", "v_stats_dart_facts"."hit_target_number", "v_stats_dart_facts"."hit_zone_key"",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > bucket week > findIntentMoments 1`] = `
+[
+  {
+    "params": [
+      "0190a000-0000-7000-8000-000000000001",
+      "501",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+    ],
+    "sql": "select to_char(((date_trunc('week', "v_stats_dart_facts"."completed_at" AT TIME ZONE 'Europe/Amsterdam') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), to_char((((date_trunc('week', "v_stats_dart_facts"."completed_at" AT TIME ZONE 'Europe/Amsterdam') + interval '1 week') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), "intended_target_number", "intended_zone_key", count(*), sum("location_x"), sum("location_y"), sum("location_x" * "location_x"), sum("location_y" * "location_y"), sum("location_x" * "location_y") from "v_stats_dart_facts" where (("v_stats_dart_facts"."player_id" = $1 and "v_stats_dart_facts"."game_type_key" = $2 and "v_stats_dart_facts"."completed_at" >= $3 and "v_stats_dart_facts"."completed_at" < $4 and "v_stats_dart_facts"."status_key" in ($5)) and "v_stats_dart_facts"."intended_target_number" is not null and "v_stats_dart_facts"."intended_zone_key" is not null) group by to_char(((date_trunc('week', "v_stats_dart_facts"."completed_at" AT TIME ZONE 'Europe/Amsterdam') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), to_char((((date_trunc('week', "v_stats_dart_facts"."completed_at" AT TIME ZONE 'Europe/Amsterdam') + interval '1 week') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), "v_stats_dart_facts"."intended_target_number", "v_stats_dart_facts"."intended_zone_key"",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > bucket week > findRoutineRunBuckets 1`] = `
+[
+  {
+    "params": [
+      "0190a000-0000-7000-8000-000000000001",
+      "warmup",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      [
+        "COMPLETED",
+      ],
+    ],
+    "sql": "
+    WITH scoped AS (
+      SELECT *,
+        to_char(((date_trunc('week', "v_stats_routine_run_facts"."completed_at" AT TIME ZONE 'Europe/Amsterdam') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS bucket_start,
+        to_char((((date_trunc('week', "v_stats_routine_run_facts"."completed_at" AT TIME ZONE 'Europe/Amsterdam') + interval '1 week') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS bucket_end
+      FROM "v_stats_routine_run_facts"
+      WHERE "v_stats_routine_run_facts"."player_id" = $1
+        AND "v_stats_routine_run_facts"."routine_key" = $2
+        AND "v_stats_routine_run_facts"."completed_at" >= $3
+        AND "v_stats_routine_run_facts"."completed_at" < $4
+        AND "v_stats_routine_run_facts"."status_key" = ANY($5::text[])
+    ),
+    hist AS (
+      SELECT bucket_start, jsonb_object_agg(steps_completed::text, cnt) AS agg
+      FROM (
+        SELECT bucket_start, steps_completed, count(*)::integer AS cnt
+        FROM scoped
+        WHERE status_key = 'ABANDONED' AND steps_started > 0
+        GROUP BY bucket_start, steps_completed
+      ) x
+      GROUP BY bucket_start
+    )
+    SELECT
+      scoped.bucket_start AS bucket_start,
+      scoped.bucket_end AS bucket_end,
+      count(*)::integer AS runs,
+      coalesce(sum(duration_seconds), 0)::integer AS duration_sum,
+      coalesce(min(duration_seconds), 0)::integer AS duration_min,
+      coalesce(max(duration_seconds), 0)::integer AS duration_max,
+      coalesce(sum(dart_count), 0)::integer AS darts,
+      count(*) filter (where status_key = 'COMPLETED')::integer AS completed,
+      count(*) filter (where status_key = 'ABANDONED' AND steps_started > 0)::integer AS abandoned,
+      count(*) filter (where status_key = 'ABANDONED' AND steps_started = 0)::integer AS never_started,
+      coalesce(hist.agg, '{}'::jsonb) AS steps_completed_at_abandon
+    FROM scoped
+    LEFT JOIN hist ON hist.bucket_start = scoped.bucket_start
+    GROUP BY scoped.bucket_start, scoped.bucket_end, hist.agg
+    ORDER BY scoped.bucket_start
+  ",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > bucket week > findStepBuckets 1`] = `
+[
+  {
+    "params": [
+      "0190a000-0000-7000-8000-000000000001",
+      "warmup",
+      "step-1",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+    ],
+    "sql": "select to_char(((date_trunc('week', "v_stats_routine_step_facts"."completed_at" AT TIME ZONE 'Europe/Amsterdam') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), to_char((((date_trunc('week', "v_stats_routine_step_facts"."completed_at" AT TIME ZONE 'Europe/Amsterdam') + interval '1 week') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), count(*), coalesce(sum("duration_seconds"), 0), coalesce(sum("dart_count"), 0) from "v_stats_routine_step_facts" where ("v_stats_routine_step_facts"."player_id" = $1 and "v_stats_routine_step_facts"."routine_key" = $2 and "v_stats_routine_step_facts"."step_key" = $3 and "v_stats_routine_step_facts"."completed_at" >= $4 and "v_stats_routine_step_facts"."completed_at" < $5 and "v_stats_routine_step_facts"."status_key" in ($6)) group by to_char(((date_trunc('week', "v_stats_routine_step_facts"."completed_at" AT TIME ZONE 'Europe/Amsterdam') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), to_char((((date_trunc('week', "v_stats_routine_step_facts"."completed_at" AT TIME ZONE 'Europe/Amsterdam') + interval '1 week') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > bucket week > findStepFoldRows 1`] = `
+[
+  {
+    "params": [
+      "0190a000-0000-7000-8000-000000000001",
+      "warmup",
+      "step-1",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+    ],
+    "sql": "select "v_game_replay"."session_id", "v_stats_routine_step_facts"."completed_at", "v_stats_routine_step_facts"."exercise_ruleset_version_key", "v_stats_routine_step_facts"."configuration", "v_game_replay"."stage_id", "v_game_replay"."stage_sequence", "v_game_replay"."stage_type_key", "v_game_replay"."parent_stage_id", "v_game_replay"."turn_sequence", "v_game_replay"."participant_id", "v_game_replay"."participant_name", "v_game_replay"."participant_type_key", "v_game_replay"."turn_total_score", "v_game_replay"."dart_number", "v_game_replay"."intended_target_number", "v_game_replay"."intended_zone_key", "v_game_replay"."hit_target_number", "v_game_replay"."hit_zone_key", "v_game_replay"."score", "v_game_replay"."location_x", "v_game_replay"."location_y", "v_game_replay"."kept", to_char(((date_trunc('week', "v_stats_routine_step_facts"."completed_at" AT TIME ZONE 'Europe/Amsterdam') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), to_char((((date_trunc('week', "v_stats_routine_step_facts"."completed_at" AT TIME ZONE 'Europe/Amsterdam') + interval '1 week') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') from "v_game_replay" inner join "v_stats_routine_step_facts" on "v_game_replay"."session_id" = "v_stats_routine_step_facts"."session_id" where ("v_stats_routine_step_facts"."player_id" = $1 and "v_stats_routine_step_facts"."routine_key" = $2 and "v_stats_routine_step_facts"."step_key" = $3 and "v_stats_routine_step_facts"."completed_at" >= $4 and "v_stats_routine_step_facts"."completed_at" < $5 and "v_stats_routine_step_facts"."status_key" in ($6)) order by "v_game_replay"."session_id", "v_game_replay"."stage_sequence", "v_game_replay"."turn_sequence", "v_game_replay"."dart_number"",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > bucket week > findVisitScoring 1`] = `
+[
+  {
+    "params": [
+      60,
+      100,
+      100,
+      140,
+      140,
+      "0190a000-0000-7000-8000-000000000001",
+      "501",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+      "VISUAL_BOARD",
+    ],
+    "sql": "select to_char(((date_trunc('week', "scoped_visits"."completed_at" AT TIME ZONE 'Europe/Amsterdam') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), to_char((((date_trunc('week', "scoped_visits"."completed_at" AT TIME ZONE 'Europe/Amsterdam') + interval '1 week') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), coalesce(sum("total_score"), 0), coalesce(sum("dart_count"), 0), coalesce(sum("total_score") filter (where "scoped_visits"."stage_type_key" in ('LEG', 'EXERCISE_BLOCK') and "visit_rank" <= 3), 0), coalesce(sum("dart_count") filter (where "scoped_visits"."stage_type_key" in ('LEG', 'EXERCISE_BLOCK') and "visit_rank" <= 3), 0), count(*) filter (where "total_score" >= $1 and "total_score" < $2), count(*) filter (where "total_score" >= $3 and "total_score" < $4), count(*) filter (where "total_score" >= $5) from (select "v_stats_session_facts"."completed_at", "v_player_visit_facts"."total_score", "v_player_visit_facts"."dart_count", "v_player_visit_facts"."stage_type_key", row_number() over (partition by "v_player_visit_facts"."stage_id" order by "v_player_visit_facts"."turn_sequence") as "visit_rank" from "v_player_visit_facts" inner join "v_stats_session_facts" on "v_player_visit_facts"."session_id" = "v_stats_session_facts"."session_id" where ("v_stats_session_facts"."player_id" = $6 and "v_stats_session_facts"."game_type_key" = $7 and "v_stats_session_facts"."completed_at" >= $8 and "v_stats_session_facts"."completed_at" < $9 and "v_stats_session_facts"."status_key" in ($10) and "v_stats_session_facts"."input_mode_key" = $11)) "scoped_visits" group by to_char(((date_trunc('week', "scoped_visits"."completed_at" AT TIME ZONE 'Europe/Amsterdam') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), to_char((((date_trunc('week', "scoped_visits"."completed_at" AT TIME ZONE 'Europe/Amsterdam') + interval '1 week') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > bucket week > findX01FoldRows 1`] = `
+[
+  {
+    "params": [
+      "0190a000-0000-7000-8000-000000000001",
+      "501",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+      "VISUAL_BOARD",
+    ],
+    "sql": "select "v_x01_checkout_darts"."session_id", "v_x01_checkout_darts"."game_type_key", "v_x01_checkout_darts"."ruleset_version_key", "v_x01_checkout_darts"."configuration", "v_x01_checkout_darts"."stage_id", "v_x01_checkout_darts"."stage_sequence", "v_x01_checkout_darts"."stage_type_key", "v_x01_checkout_darts"."parent_stage_id", "v_x01_checkout_darts"."turn_id", "v_x01_checkout_darts"."turn_sequence", "v_x01_checkout_darts"."turn_total_score", "v_x01_checkout_darts"."turn_completed_at", "v_x01_checkout_darts"."participant_id", "v_x01_checkout_darts"."dart_number", "v_x01_checkout_darts"."hit_target_number", "v_x01_checkout_darts"."hit_zone_key", "v_x01_checkout_darts"."score", to_char(((date_trunc('week', "v_stats_session_facts"."completed_at" AT TIME ZONE 'Europe/Amsterdam') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), to_char((((date_trunc('week', "v_stats_session_facts"."completed_at" AT TIME ZONE 'Europe/Amsterdam') + interval '1 week') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') from "v_x01_checkout_darts" inner join "v_stats_session_facts" on "v_x01_checkout_darts"."session_id" = "v_stats_session_facts"."session_id" where ("v_stats_session_facts"."player_id" = $1 and "v_stats_session_facts"."game_type_key" = $2 and "v_stats_session_facts"."completed_at" >= $3 and "v_stats_session_facts"."completed_at" < $4 and "v_stats_session_facts"."status_key" in ($5) and "v_stats_session_facts"."input_mode_key" = $6) order by "v_x01_checkout_darts"."session_id", "v_x01_checkout_darts"."stage_sequence", "v_x01_checkout_darts"."turn_sequence", "v_x01_checkout_darts"."dart_number"",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > context routine > countGameSessions 1`] = `
+[
+  {
+    "params": [
+      "0190a000-0000-7000-8000-000000000001",
+      "501",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+      0,
+      "ROUTINE",
+    ],
+    "sql": "select count(*) from "v_stats_session_facts" where ("v_stats_session_facts"."player_id" = $1 and "v_stats_session_facts"."game_type_key" = $2 and "v_stats_session_facts"."completed_at" >= $3 and "v_stats_session_facts"."completed_at" < $4 and "v_stats_session_facts"."status_key" in ($5) and "v_stats_session_facts"."dart_count" > $6 and "v_stats_session_facts"."context_key" = $7)",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > context routine > findBucketedSessionAggregates 1`] = `
+[
+  {
+    "params": [
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "0190a000-0000-7000-8000-000000000001",
+      "501",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+      "ROUTINE",
+    ],
+    "sql": "select $1::timestamptz, $2::timestamptz, "status_key", "context_key", "ruleset_version_key", ("turn_count" = 0), count(*), sum("turn_count"), sum("dart_count"), sum("duration_seconds"), sum("counted_score"), min("counted_score"), max("counted_score"), (array_agg("session_id" order by "counted_score" asc, "completed_at" asc))[1], (array_agg("session_id" order by "counted_score" desc, "completed_at" desc))[1], case when max("dart_count") > 0 then (array_agg("v_stats_session_facts"."session_id" order by "v_stats_session_facts"."counted_score"::numeric / nullif("v_stats_session_facts"."dart_count", 0) desc nulls last, "v_stats_session_facts"."completed_at" desc))[1] end, case when max("dart_count") > 0 then (array_agg("v_stats_session_facts"."counted_score" order by "v_stats_session_facts"."counted_score"::numeric / nullif("v_stats_session_facts"."dart_count", 0) desc nulls last, "v_stats_session_facts"."completed_at" desc))[1] end, case when max("dart_count") > 0 then (array_agg("v_stats_session_facts"."dart_count" order by "v_stats_session_facts"."counted_score"::numeric / nullif("v_stats_session_facts"."dart_count", 0) desc nulls last, "v_stats_session_facts"."completed_at" desc))[1] end, case when max("dart_count") > 0 then to_char(((array_agg("v_stats_session_facts"."completed_at" order by "v_stats_session_facts"."counted_score"::numeric / nullif("v_stats_session_facts"."dart_count", 0) desc nulls last, "v_stats_session_facts"."completed_at" desc))[1]) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') end from "v_stats_session_facts" where ("v_stats_session_facts"."player_id" = $3 and "v_stats_session_facts"."game_type_key" = $4 and "v_stats_session_facts"."completed_at" >= $5 and "v_stats_session_facts"."completed_at" < $6 and "v_stats_session_facts"."status_key" in ($7) and "v_stats_session_facts"."context_key" = $8) group by "v_stats_session_facts"."status_key", "v_stats_session_facts"."context_key", "v_stats_session_facts"."ruleset_version_key", ("v_stats_session_facts"."turn_count" = 0)",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > context routine > findGameSessionsPage 1`] = `
+[
+  {
+    "params": [
+      "0190a000-0000-7000-8000-000000000001",
+      "501",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+      0,
+      "ROUTINE",
+      26,
+    ],
+    "sql": "select "session_id", "ruleset_version_key", "status_key", "context_key", "started_at", "completed_at", "duration_seconds", "turn_count", "dart_count", "counted_score" from "v_stats_session_facts" where ("v_stats_session_facts"."player_id" = $1 and "v_stats_session_facts"."game_type_key" = $2 and "v_stats_session_facts"."completed_at" >= $3 and "v_stats_session_facts"."completed_at" < $4 and "v_stats_session_facts"."status_key" in ($5) and "v_stats_session_facts"."dart_count" > $6 and "v_stats_session_facts"."context_key" = $7) order by "v_stats_session_facts"."completed_at" desc, "v_stats_session_facts"."session_id" desc limit $8",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > context routine > findX01FoldRows 1`] = `
+[
+  {
+    "params": [
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "0190a000-0000-7000-8000-000000000001",
+      "501",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+      "VISUAL_BOARD",
+      "ROUTINE",
+    ],
+    "sql": "select "v_x01_checkout_darts"."session_id", "v_x01_checkout_darts"."game_type_key", "v_x01_checkout_darts"."ruleset_version_key", "v_x01_checkout_darts"."configuration", "v_x01_checkout_darts"."stage_id", "v_x01_checkout_darts"."stage_sequence", "v_x01_checkout_darts"."stage_type_key", "v_x01_checkout_darts"."parent_stage_id", "v_x01_checkout_darts"."turn_id", "v_x01_checkout_darts"."turn_sequence", "v_x01_checkout_darts"."turn_total_score", "v_x01_checkout_darts"."turn_completed_at", "v_x01_checkout_darts"."participant_id", "v_x01_checkout_darts"."dart_number", "v_x01_checkout_darts"."hit_target_number", "v_x01_checkout_darts"."hit_zone_key", "v_x01_checkout_darts"."score", $1::timestamptz, $2::timestamptz from "v_x01_checkout_darts" inner join "v_stats_session_facts" on "v_x01_checkout_darts"."session_id" = "v_stats_session_facts"."session_id" where ("v_stats_session_facts"."player_id" = $3 and "v_stats_session_facts"."game_type_key" = $4 and "v_stats_session_facts"."completed_at" >= $5 and "v_stats_session_facts"."completed_at" < $6 and "v_stats_session_facts"."status_key" in ($7) and "v_stats_session_facts"."input_mode_key" = $8 and "v_stats_session_facts"."context_key" = $9) order by "v_x01_checkout_darts"."session_id", "v_x01_checkout_darts"."stage_sequence", "v_x01_checkout_darts"."turn_sequence", "v_x01_checkout_darts"."dart_number"",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > context standalone > countGameSessions 1`] = `
+[
+  {
+    "params": [
+      "0190a000-0000-7000-8000-000000000001",
+      "501",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+      0,
+      "STANDALONE",
+    ],
+    "sql": "select count(*) from "v_stats_session_facts" where ("v_stats_session_facts"."player_id" = $1 and "v_stats_session_facts"."game_type_key" = $2 and "v_stats_session_facts"."completed_at" >= $3 and "v_stats_session_facts"."completed_at" < $4 and "v_stats_session_facts"."status_key" in ($5) and "v_stats_session_facts"."dart_count" > $6 and "v_stats_session_facts"."context_key" = $7)",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > context standalone > findBucketedSessionAggregates 1`] = `
+[
+  {
+    "params": [
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "0190a000-0000-7000-8000-000000000001",
+      "501",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+      "STANDALONE",
+    ],
+    "sql": "select $1::timestamptz, $2::timestamptz, "status_key", "context_key", "ruleset_version_key", ("turn_count" = 0), count(*), sum("turn_count"), sum("dart_count"), sum("duration_seconds"), sum("counted_score"), min("counted_score"), max("counted_score"), (array_agg("session_id" order by "counted_score" asc, "completed_at" asc))[1], (array_agg("session_id" order by "counted_score" desc, "completed_at" desc))[1], case when max("dart_count") > 0 then (array_agg("v_stats_session_facts"."session_id" order by "v_stats_session_facts"."counted_score"::numeric / nullif("v_stats_session_facts"."dart_count", 0) desc nulls last, "v_stats_session_facts"."completed_at" desc))[1] end, case when max("dart_count") > 0 then (array_agg("v_stats_session_facts"."counted_score" order by "v_stats_session_facts"."counted_score"::numeric / nullif("v_stats_session_facts"."dart_count", 0) desc nulls last, "v_stats_session_facts"."completed_at" desc))[1] end, case when max("dart_count") > 0 then (array_agg("v_stats_session_facts"."dart_count" order by "v_stats_session_facts"."counted_score"::numeric / nullif("v_stats_session_facts"."dart_count", 0) desc nulls last, "v_stats_session_facts"."completed_at" desc))[1] end, case when max("dart_count") > 0 then to_char(((array_agg("v_stats_session_facts"."completed_at" order by "v_stats_session_facts"."counted_score"::numeric / nullif("v_stats_session_facts"."dart_count", 0) desc nulls last, "v_stats_session_facts"."completed_at" desc))[1]) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') end from "v_stats_session_facts" where ("v_stats_session_facts"."player_id" = $3 and "v_stats_session_facts"."game_type_key" = $4 and "v_stats_session_facts"."completed_at" >= $5 and "v_stats_session_facts"."completed_at" < $6 and "v_stats_session_facts"."status_key" in ($7) and "v_stats_session_facts"."context_key" = $8) group by "v_stats_session_facts"."status_key", "v_stats_session_facts"."context_key", "v_stats_session_facts"."ruleset_version_key", ("v_stats_session_facts"."turn_count" = 0)",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > context standalone > findGameSessionsPage 1`] = `
+[
+  {
+    "params": [
+      "0190a000-0000-7000-8000-000000000001",
+      "501",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+      0,
+      "STANDALONE",
+      26,
+    ],
+    "sql": "select "session_id", "ruleset_version_key", "status_key", "context_key", "started_at", "completed_at", "duration_seconds", "turn_count", "dart_count", "counted_score" from "v_stats_session_facts" where ("v_stats_session_facts"."player_id" = $1 and "v_stats_session_facts"."game_type_key" = $2 and "v_stats_session_facts"."completed_at" >= $3 and "v_stats_session_facts"."completed_at" < $4 and "v_stats_session_facts"."status_key" in ($5) and "v_stats_session_facts"."dart_count" > $6 and "v_stats_session_facts"."context_key" = $7) order by "v_stats_session_facts"."completed_at" desc, "v_stats_session_facts"."session_id" desc limit $8",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > context standalone > findX01FoldRows 1`] = `
+[
+  {
+    "params": [
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "0190a000-0000-7000-8000-000000000001",
+      "501",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+      "VISUAL_BOARD",
+      "STANDALONE",
+    ],
+    "sql": "select "v_x01_checkout_darts"."session_id", "v_x01_checkout_darts"."game_type_key", "v_x01_checkout_darts"."ruleset_version_key", "v_x01_checkout_darts"."configuration", "v_x01_checkout_darts"."stage_id", "v_x01_checkout_darts"."stage_sequence", "v_x01_checkout_darts"."stage_type_key", "v_x01_checkout_darts"."parent_stage_id", "v_x01_checkout_darts"."turn_id", "v_x01_checkout_darts"."turn_sequence", "v_x01_checkout_darts"."turn_total_score", "v_x01_checkout_darts"."turn_completed_at", "v_x01_checkout_darts"."participant_id", "v_x01_checkout_darts"."dart_number", "v_x01_checkout_darts"."hit_target_number", "v_x01_checkout_darts"."hit_zone_key", "v_x01_checkout_darts"."score", $1::timestamptz, $2::timestamptz from "v_x01_checkout_darts" inner join "v_stats_session_facts" on "v_x01_checkout_darts"."session_id" = "v_stats_session_facts"."session_id" where ("v_stats_session_facts"."player_id" = $3 and "v_stats_session_facts"."game_type_key" = $4 and "v_stats_session_facts"."completed_at" >= $5 and "v_stats_session_facts"."completed_at" < $6 and "v_stats_session_facts"."status_key" in ($7) and "v_stats_session_facts"."input_mode_key" = $8 and "v_stats_session_facts"."context_key" = $9) order by "v_x01_checkout_darts"."session_id", "v_x01_checkout_darts"."stage_sequence", "v_x01_checkout_darts"."turn_sequence", "v_x01_checkout_darts"."dart_number"",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > countGameSessions 1`] = `
+[
+  {
+    "params": [
+      "0190a000-0000-7000-8000-000000000001",
+      "501",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+      0,
+    ],
+    "sql": "select count(*) from "v_stats_session_facts" where ("v_stats_session_facts"."player_id" = $1 and "v_stats_session_facts"."game_type_key" = $2 and "v_stats_session_facts"."completed_at" >= $3 and "v_stats_session_facts"."completed_at" < $4 and "v_stats_session_facts"."status_key" in ($5) and "v_stats_session_facts"."dart_count" > $6)",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > findGameSessionsPage with after 1`] = `
+[
+  {
+    "params": [
+      "0190a000-0000-7000-8000-000000000001",
+      "501",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+      0,
+      "2026-01-15T12:00:00.000Z",
+      "0190a000-0000-7000-8000-000000000002",
+      26,
+    ],
+    "sql": "select "session_id", "ruleset_version_key", "status_key", "context_key", "started_at", "completed_at", "duration_seconds", "turn_count", "dart_count", "counted_score" from "v_stats_session_facts" where ("v_stats_session_facts"."player_id" = $1 and "v_stats_session_facts"."game_type_key" = $2 and "v_stats_session_facts"."completed_at" >= $3 and "v_stats_session_facts"."completed_at" < $4 and "v_stats_session_facts"."status_key" in ($5) and "v_stats_session_facts"."dart_count" > $6 and ("v_stats_session_facts"."completed_at", "v_stats_session_facts"."session_id") < ($7, $8)) order by "v_stats_session_facts"."completed_at" desc, "v_stats_session_facts"."session_id" desc limit $9",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > findGameSessionsPage with several statuses 1`] = `
+[
+  {
+    "params": [
+      "0190a000-0000-7000-8000-000000000001",
+      "501",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+      "ABANDONED",
+      0,
+      26,
+    ],
+    "sql": "select "session_id", "ruleset_version_key", "status_key", "context_key", "started_at", "completed_at", "duration_seconds", "turn_count", "dart_count", "counted_score" from "v_stats_session_facts" where ("v_stats_session_facts"."player_id" = $1 and "v_stats_session_facts"."game_type_key" = $2 and "v_stats_session_facts"."completed_at" >= $3 and "v_stats_session_facts"."completed_at" < $4 and "v_stats_session_facts"."status_key" in ($5, $6) and "v_stats_session_facts"."dart_count" > $7) order by "v_stats_session_facts"."completed_at" desc, "v_stats_session_facts"."session_id" desc limit $8",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > findGameSessionsPage without after 1`] = `
+[
+  {
+    "params": [
+      "0190a000-0000-7000-8000-000000000001",
+      "501",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+      0,
+      26,
+    ],
+    "sql": "select "session_id", "ruleset_version_key", "status_key", "context_key", "started_at", "completed_at", "duration_seconds", "turn_count", "dart_count", "counted_score" from "v_stats_session_facts" where ("v_stats_session_facts"."player_id" = $1 and "v_stats_session_facts"."game_type_key" = $2 and "v_stats_session_facts"."completed_at" >= $3 and "v_stats_session_facts"."completed_at" < $4 and "v_stats_session_facts"."status_key" in ($5) and "v_stats_session_facts"."dart_count" > $6) order by "v_stats_session_facts"."completed_at" desc, "v_stats_session_facts"."session_id" desc limit $7",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > findHeatmapCells with null target 1`] = `
+[
+  {
+    "params": [
+      10,
+      10,
+      "0190a000-0000-7000-8000-000000000001",
+      "501",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+    ],
+    "sql": "select FLOOR("location_x" / $1)::integer, FLOOR("location_y" / $2)::integer, count(*)::integer from "v_stats_dart_facts" where ("v_stats_dart_facts"."player_id" = $3 and "v_stats_dart_facts"."game_type_key" = $4 and "v_stats_dart_facts"."completed_at" >= $5 and "v_stats_dart_facts"."completed_at" < $6 and "v_stats_dart_facts"."status_key" in ($7)) group by 1, 2",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > findHeatmapCells with set target 1`] = `
+[
+  {
+    "params": [
+      10,
+      10,
+      "0190a000-0000-7000-8000-000000000001",
+      "501",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+      20,
+      "TREBLE",
+    ],
+    "sql": "select FLOOR("location_x" / $1)::integer, FLOOR("location_y" / $2)::integer, count(*)::integer from "v_stats_dart_facts" where (("v_stats_dart_facts"."player_id" = $3 and "v_stats_dart_facts"."game_type_key" = $4 and "v_stats_dart_facts"."completed_at" >= $5 and "v_stats_dart_facts"."completed_at" < $6 and "v_stats_dart_facts"."status_key" in ($7)) and "v_stats_dart_facts"."intended_target_number" = $8 and "v_stats_dart_facts"."intended_zone_key" = $9) group by 1, 2",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > findHomeHeatmapCells 1`] = `
+[
+  {
+    "params": [
+      10,
+      10,
+      "0190a000-0000-7000-8000-000000000001",
+      "501",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+    ],
+    "sql": "select FLOOR("location_x" / $1)::integer, FLOOR("location_y" / $2)::integer, count(*)::integer from "v_stats_dart_facts" where ("v_stats_dart_facts"."player_id" = $3 and "v_stats_dart_facts"."game_type_key" in ($4) and "v_stats_dart_facts"."completed_at" >= $5 and "v_stats_dart_facts"."completed_at" < $6 and "v_stats_dart_facts"."status_key" = $7 and "v_stats_dart_facts"."location_x" is not null and "v_stats_dart_facts"."location_y" is not null) group by 1, 2",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > findHomeScoring 1`] = `
+[
+  {
+    "params": [
+      60,
+      100,
+      100,
+      140,
+      140,
+      "0190a000-0000-7000-8000-000000000001",
+      "501",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+      "VISUAL_BOARD",
+    ],
+    "sql": "select to_char(((date_trunc('day', "scoped_visits"."completed_at" AT TIME ZONE 'Europe/Amsterdam') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), to_char((((date_trunc('day', "scoped_visits"."completed_at" AT TIME ZONE 'Europe/Amsterdam') + interval '1 day') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), coalesce(sum("total_score"), 0), coalesce(sum("dart_count"), 0), coalesce(sum("total_score") filter (where "scoped_visits"."stage_type_key" in ('LEG', 'EXERCISE_BLOCK') and "visit_rank" <= 3), 0), coalesce(sum("dart_count") filter (where "scoped_visits"."stage_type_key" in ('LEG', 'EXERCISE_BLOCK') and "visit_rank" <= 3), 0), count(*) filter (where "total_score" >= $1 and "total_score" < $2), count(*) filter (where "total_score" >= $3 and "total_score" < $4), count(*) filter (where "total_score" >= $5) from (select "v_stats_session_facts"."completed_at", "v_player_visit_facts"."total_score", "v_player_visit_facts"."dart_count", "v_player_visit_facts"."stage_type_key", row_number() over (partition by "v_player_visit_facts"."stage_id" order by "v_player_visit_facts"."turn_sequence") as "visit_rank" from "v_player_visit_facts" inner join "v_stats_session_facts" on "v_player_visit_facts"."session_id" = "v_stats_session_facts"."session_id" where ("v_stats_session_facts"."player_id" = $6 and "v_stats_session_facts"."game_type_key" in ($7) and "v_stats_session_facts"."completed_at" >= $8 and "v_stats_session_facts"."completed_at" < $9 and "v_stats_session_facts"."status_key" = $10 and "v_stats_session_facts"."input_mode_key" = $11)) "scoped_visits" group by to_char(((date_trunc('day', "scoped_visits"."completed_at" AT TIME ZONE 'Europe/Amsterdam') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), to_char((((date_trunc('day', "scoped_visits"."completed_at" AT TIME ZONE 'Europe/Amsterdam') + interval '1 day') AT TIME ZONE 'Europe/Amsterdam')) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > findStepSessionPage with after 1`] = `
+[
+  {
+    "params": [
+      "0190a000-0000-7000-8000-000000000001",
+      "warmup",
+      "step-1",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+      "2026-01-15T12:00:00.000Z",
+      "0190a000-0000-7000-8000-000000000002",
+      26,
+    ],
+    "sql": "select "session_id", "ruleset_version_key", "exercise_ruleset_version_key", "status_key", "started_at", "completed_at", "duration_seconds", "turn_count", "dart_count", "counted_score" from "v_stats_routine_step_facts" where ("v_stats_routine_step_facts"."player_id" = $1 and "v_stats_routine_step_facts"."routine_key" = $2 and "v_stats_routine_step_facts"."step_key" = $3 and "v_stats_routine_step_facts"."completed_at" >= $4 and "v_stats_routine_step_facts"."completed_at" < $5 and "v_stats_routine_step_facts"."status_key" in ($6) and ("v_stats_routine_step_facts"."completed_at", "v_stats_routine_step_facts"."session_id") < ($7, $8)) order by "v_stats_routine_step_facts"."completed_at" desc, "v_stats_routine_step_facts"."session_id" desc limit $9",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > findStepSessionPage without after 1`] = `
+[
+  {
+    "params": [
+      "0190a000-0000-7000-8000-000000000001",
+      "warmup",
+      "step-1",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+      26,
+    ],
+    "sql": "select "session_id", "ruleset_version_key", "exercise_ruleset_version_key", "status_key", "started_at", "completed_at", "duration_seconds", "turn_count", "dart_count", "counted_score" from "v_stats_routine_step_facts" where ("v_stats_routine_step_facts"."player_id" = $1 and "v_stats_routine_step_facts"."routine_key" = $2 and "v_stats_routine_step_facts"."step_key" = $3 and "v_stats_routine_step_facts"."completed_at" >= $4 and "v_stats_routine_step_facts"."completed_at" < $5 and "v_stats_routine_step_facts"."status_key" in ($6)) order by "v_stats_routine_step_facts"."completed_at" desc, "v_stats_routine_step_facts"."session_id" desc limit $7",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > findX01CheckoutDarts 1`] = `
+[
+  {
+    "params": [
+      "0190a000-0000-7000-8000-000000000001",
+    ],
+    "sql": "select "session_id", "game_type_key", "ruleset_version_key", "configuration", "stage_id", "stage_sequence", "stage_type_key", "parent_stage_id", "turn_id", "turn_sequence", "turn_total_score", "turn_completed_at", "participant_id", "dart_number", "hit_target_number", "hit_zone_key", "score" from "v_x01_checkout_darts" where "v_x01_checkout_darts"."player_id" = $1 order by "v_x01_checkout_darts"."session_id", "v_x01_checkout_darts"."stage_sequence", "v_x01_checkout_darts"."turn_sequence", "v_x01_checkout_darts"."dart_number"",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > routineStep scope > findBucketedSessionAggregates 1`] = `
+[
+  {
+    "params": [
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "0190a000-0000-7000-8000-000000000001",
+      "501",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+      "0190a000-0000-7000-8000-000000000001",
+      "warmup",
+      "step-1",
+    ],
+    "sql": "select $1::timestamptz, $2::timestamptz, "status_key", "context_key", "ruleset_version_key", ("turn_count" = 0), count(*), sum("turn_count"), sum("dart_count"), sum("duration_seconds"), sum("counted_score"), min("counted_score"), max("counted_score"), (array_agg("session_id" order by "counted_score" asc, "completed_at" asc))[1], (array_agg("session_id" order by "counted_score" desc, "completed_at" desc))[1], case when max("dart_count") > 0 then (array_agg("v_stats_session_facts"."session_id" order by "v_stats_session_facts"."counted_score"::numeric / nullif("v_stats_session_facts"."dart_count", 0) desc nulls last, "v_stats_session_facts"."completed_at" desc))[1] end, case when max("dart_count") > 0 then (array_agg("v_stats_session_facts"."counted_score" order by "v_stats_session_facts"."counted_score"::numeric / nullif("v_stats_session_facts"."dart_count", 0) desc nulls last, "v_stats_session_facts"."completed_at" desc))[1] end, case when max("dart_count") > 0 then (array_agg("v_stats_session_facts"."dart_count" order by "v_stats_session_facts"."counted_score"::numeric / nullif("v_stats_session_facts"."dart_count", 0) desc nulls last, "v_stats_session_facts"."completed_at" desc))[1] end, case when max("dart_count") > 0 then to_char(((array_agg("v_stats_session_facts"."completed_at" order by "v_stats_session_facts"."counted_score"::numeric / nullif("v_stats_session_facts"."dart_count", 0) desc nulls last, "v_stats_session_facts"."completed_at" desc))[1]) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') end from "v_stats_session_facts" where ("v_stats_session_facts"."player_id" = $3 and "v_stats_session_facts"."game_type_key" = $4 and "v_stats_session_facts"."completed_at" >= $5 and "v_stats_session_facts"."completed_at" < $6 and "v_stats_session_facts"."status_key" in ($7) and "v_stats_session_facts"."session_id" IN (SELECT "v_stats_routine_step_facts"."session_id" FROM "v_stats_routine_step_facts" WHERE "v_stats_routine_step_facts"."player_id" = $8 AND "v_stats_routine_step_facts"."routine_key" = $9 AND "v_stats_routine_step_facts"."step_key" = $10)) group by "v_stats_session_facts"."status_key", "v_stats_session_facts"."context_key", "v_stats_session_facts"."ruleset_version_key", ("v_stats_session_facts"."turn_count" = 0)",
+  },
+]
+`;
+
+exports[`statistics readers rendered SQL > routineStep scope > findX01FoldRows 1`] = `
+[
+  {
+    "params": [
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "0190a000-0000-7000-8000-000000000001",
+      "501",
+      "2026-01-01T00:00:00.000Z",
+      "2026-02-01T00:00:00.000Z",
+      "COMPLETED",
+      "VISUAL_BOARD",
+      "0190a000-0000-7000-8000-000000000001",
+      "warmup",
+      "step-1",
+    ],
+    "sql": "select "v_x01_checkout_darts"."session_id", "v_x01_checkout_darts"."game_type_key", "v_x01_checkout_darts"."ruleset_version_key", "v_x01_checkout_darts"."configuration", "v_x01_checkout_darts"."stage_id", "v_x01_checkout_darts"."stage_sequence", "v_x01_checkout_darts"."stage_type_key", "v_x01_checkout_darts"."parent_stage_id", "v_x01_checkout_darts"."turn_id", "v_x01_checkout_darts"."turn_sequence", "v_x01_checkout_darts"."turn_total_score", "v_x01_checkout_darts"."turn_completed_at", "v_x01_checkout_darts"."participant_id", "v_x01_checkout_darts"."dart_number", "v_x01_checkout_darts"."hit_target_number", "v_x01_checkout_darts"."hit_zone_key", "v_x01_checkout_darts"."score", $1::timestamptz, $2::timestamptz from "v_x01_checkout_darts" inner join "v_stats_session_facts" on "v_x01_checkout_darts"."session_id" = "v_stats_session_facts"."session_id" where ("v_stats_session_facts"."player_id" = $3 and "v_stats_session_facts"."game_type_key" = $4 and "v_stats_session_facts"."completed_at" >= $5 and "v_stats_session_facts"."completed_at" < $6 and "v_stats_session_facts"."status_key" in ($7) and "v_stats_session_facts"."input_mode_key" = $8 and "v_stats_session_facts"."session_id" IN (SELECT "v_stats_routine_step_facts"."session_id" FROM "v_stats_routine_step_facts" WHERE "v_stats_routine_step_facts"."player_id" = $9 AND "v_stats_routine_step_facts"."routine_key" = $10 AND "v_stats_routine_step_facts"."step_key" = $11)) order by "v_x01_checkout_darts"."session_id", "v_x01_checkout_darts"."stage_sequence", "v_x01_checkout_darts"."turn_sequence", "v_x01_checkout_darts"."dart_number"",
+  },
+]
+`;

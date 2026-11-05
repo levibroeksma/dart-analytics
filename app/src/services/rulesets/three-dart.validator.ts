@@ -1,4 +1,3 @@
-import type { ExistingTurnCounts } from "@repositories/interfaces";
 import type { RulesetValidator } from "@services/interfaces";
 import {
   isVisualBoardCapture,
@@ -6,7 +5,9 @@ import {
   VISUAL_BOARD_MODES,
 } from "./visual-board.validator";
 import type { EventsBatchRequestInput } from "@routes/types";
+import { validateModeGatedConfig } from "./mode-gated-config";
 import type {
+  BatchValidationInput,
   BatchValidationResult,
   ConfigValidationResult,
   ThreeDartValidatorOptions,
@@ -122,32 +123,19 @@ export function createThreeDartValidator(
       captureModeKey,
       inputModeKey,
     }): ConfigValidationResult {
-      if (!isDetailedDartsOrVisualBoardCapture(captureModeKey, inputModeKey)) {
-        return {
-          valid: false,
-          issues: [
-            `${label} V1 only supports ${DETAILED_DARTS_MODES} or ${VISUAL_BOARD_MODES}`,
-          ],
-        };
-      }
-      const parsed = configSchema.safeParse(config);
-      if (!parsed.success) {
-        return { valid: false, issues: parsed.error.issues };
-      }
-      return { valid: true, config: parsed.data };
+      return validateModeGatedConfig(
+        configSchema,
+        config,
+        isDetailedDartsOrVisualBoardCapture(captureModeKey, inputModeKey),
+        `${label} V1 only supports ${DETAILED_DARTS_MODES} or ${VISUAL_BOARD_MODES}`,
+      );
     },
 
     validateBatch({
       batch,
       captureModeKey,
       inputModeKey,
-    }: {
-      config: Record<string, unknown>;
-      batch: EventsBatchRequestInput;
-      existingTurnCounts: ExistingTurnCounts;
-      captureModeKey?: string;
-      inputModeKey?: string;
-    }): BatchValidationResult {
+    }: BatchValidationInput): BatchValidationResult {
       const dartlessRejection = rejectDartlessTurn(batch, dartlessIssue);
       if (dartlessRejection) return dartlessRejection;
 

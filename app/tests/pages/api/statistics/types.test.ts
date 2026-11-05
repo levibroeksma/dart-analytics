@@ -1636,3 +1636,120 @@ describe("StatisticsHomeResponse", () => {
     ).toBe(false);
   });
 });
+
+describe("session timing schema key order", () => {
+  const timing = {
+    startedAt: "2026-01-01T00:00:00Z",
+    completedAt: "2026-01-01T00:05:00Z",
+    durationSeconds: 300,
+    turnCount: 10,
+    dartCount: 30,
+  };
+  const id = "018f1e2a-0000-7000-8000-000000000000";
+
+  it("keeps ReplayHeaderSchema key order", () => {
+    const parsed = ReplayHeaderSchema.parse({
+      sessionId: id,
+      gameTypeKey: null,
+      rulesetVersionKey: null,
+      inputModeKey: "DART_BY_DART",
+      statusKey: "COMPLETED",
+      contextKey: "STANDALONE",
+      activityId: id,
+      routineStepSequenceNumber: null,
+      configuration: null,
+      ...timing,
+      exerciseTypeKey: "GAME",
+      exerciseRulesetVersionKey: null,
+      routineKey: null,
+      stepKey: null,
+      participants: [],
+      stages: [],
+    });
+    expect(Object.keys(parsed)).toEqual([
+      "sessionId",
+      "gameTypeKey",
+      "rulesetVersionKey",
+      "inputModeKey",
+      "statusKey",
+      "contextKey",
+      "activityId",
+      "routineStepSequenceNumber",
+      "configuration",
+      "startedAt",
+      "completedAt",
+      "durationSeconds",
+      "turnCount",
+      "dartCount",
+      "exerciseTypeKey",
+      "exerciseRulesetVersionKey",
+      "routineKey",
+      "stepKey",
+      "participants",
+      "stages",
+    ]);
+  });
+
+  it("keeps game session list item key order", () => {
+    const parsed = GameSessionListResponse.parse({
+      items: [
+        {
+          sessionId: id,
+          rulesetVersionKey: "501_V1",
+          statusKey: "COMPLETED",
+          contextKey: "STANDALONE",
+          neverStarted: false,
+          ...timing,
+          countedScore: 501,
+        },
+      ],
+      nextCursor: null,
+      totalCount: 1,
+      dataVersion: "v1:1:0",
+    });
+    expect(Object.keys(parsed.items[0]!)).toEqual([
+      "sessionId",
+      "rulesetVersionKey",
+      "statusKey",
+      "contextKey",
+      "neverStarted",
+      "startedAt",
+      "completedAt",
+      "durationSeconds",
+      "turnCount",
+      "dartCount",
+      "countedScore",
+    ]);
+  });
+
+  it("keeps step session list item key order", () => {
+    const parsed = RoutineStepSessionListResponse.parse({
+      items: [
+        {
+          sessionId: id,
+          rulesetVersionKey: null,
+          exerciseRulesetVersionKey: "SWITCHING_V1",
+          statusKey: "COMPLETED",
+          neverStarted: false,
+          ...timing,
+          countedScore: 40,
+        },
+      ],
+      nextCursor: null,
+      dataVersion: "v1:5:0",
+    });
+    expect(Object.keys(parsed.items[0]!)).toEqual([
+      "sessionId",
+      "rulesetVersionKey",
+      "exerciseRulesetVersionKey",
+      "statusKey",
+      "neverStarted",
+      "startedAt",
+      "completedAt",
+      "durationSeconds",
+      "turnCount",
+      "dartCount",
+      "countedScore",
+    ]);
+  });
+});

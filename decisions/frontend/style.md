@@ -282,7 +282,7 @@ Decision: every token value in `global.css` `:root` and `@theme inline`, and in 
 Reason: the owner wants every value in tokens, identical on both sides, so a change is made once; rem keeps sizes tied to the root font size.
 Consequences: utilities still hard-code values that now have tokens (`glass*`, `inset-well*`, rings) and px inside `@utility` bodies; wiring them to the tokens is a follow-up. Existing px tables in the Style Guide read as 16px-base equivalents.
 
-### D521 — The design side is the Design System artifact; ready marks and merges drive the sync
+### D523 — The design side is the Design System artifact; ready marks and merges drive the sync
 Status: Accepted · Date: 2026-11-04
 Decision: the D499 sync runs against the Design System artifact `https://claude.ai/artifact/A7QFuSqRwpqyoXUEm7XHsW` through the Artifact tool, replacing the closed Claude Design project and `DesignSync`. `project/tokens.json` is the design-side token source (`var` tokens only; values its format cannot hold are `code-only`); components live one folder per component. Design → code runs automatically on the owner's ready mark in `project/sync-ready.json`; code → design runs automatically after a merge, for tokens and assets only (components are design → code only). Both run from a session-start check in a background worktree and end in a PR the owner merges. Everything else keeps the per-item decision.
 Reason: standalone Claude Design moved its design systems to artifacts and refuses `DesignSync` writes; the owner wants experiments in the artifact to reach nothing until marked ready, and manual syncing to be rare.

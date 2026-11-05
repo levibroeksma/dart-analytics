@@ -1,11 +1,11 @@
 ---
 name: syncing-design-system
-description: Use when the owner asks to sync the design system, at session start when the hook asks for the design-sync check, or when checking whether the "Darts Analytics Design System" artifact and the codebase have drifted. Reads and publishes the Design System artifact with the Artifact tool; applies ready-marked design changes and merged code changes automatically, everything else per item by the owner (D499, D521).
+description: Use when the owner asks to sync the design system, at session start when the hook asks for the design-sync check, or when checking whether the "Darts Analytics Design System" artifact and the codebase have drifted. Reads and publishes the Design System artifact with the Artifact tool; applies ready-marked design changes and merged code changes automatically, everything else per item by the owner (D499, D523).
 ---
 
 # Syncing the Design System
 
-Two-way sync between the Design System artifact **Darts Analytics Design System** and this codebase. Spec: `docs/superpowers/specs/2026-11-04-design-system-artifact-sync-design.md`. Decisions: D499, D521.
+Two-way sync between the Design System artifact **Darts Analytics Design System** and this codebase. Spec: `docs/superpowers/specs/2026-11-04-design-system-artifact-sync-design.md`. Decisions: D499, D523.
 
 - Artifact: `https://claude.ai/artifact/A7QFuSqRwpqyoXUEm7XHsW` (type Design System; files under `project/`)
 - Lock: `docs/design-system/design-sync.lock.json` (committed; a direction hint, never the truth)

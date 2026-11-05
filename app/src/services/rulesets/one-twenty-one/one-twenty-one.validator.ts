@@ -1,6 +1,5 @@
 import { OneTwentyOneConfig, OneTwentyOneV2Config } from "@lib/types";
 import type { z } from "zod";
-import type { ExistingTurnCounts } from "@repositories/interfaces";
 import type { RulesetValidator } from "@services/interfaces";
 import {
   QUICK_SCORE_OR_VISUAL_BOARD_MODES,
@@ -12,10 +11,11 @@ import {
   isVisualBoardCapture,
   validateVisualBoardTurns,
 } from "../visual-board.validator";
-import type { EventsBatchRequestInput } from "@routes/types";
+import { validateModeGatedConfig } from "../mode-gated-config";
 import type {
   BatchValidationResult,
   ConfigValidationResult,
+  ModedBatchValidationInput,
 } from "@services/types";
 
 /** The highest total a single 121 visit can legitimately carry — the highest three-dart score on a standard board (T20 T20 T20). */
@@ -40,30 +40,19 @@ function createOneTwentyOneValidator(
       captureModeKey,
       inputModeKey,
     }): ConfigValidationResult {
-      if (!isQuickScoreOrVisualBoardCapture(captureModeKey, inputModeKey)) {
-        return {
-          valid: false,
-          issues: [`121 only supports ${QUICK_SCORE_OR_VISUAL_BOARD_MODES}`],
-        };
-      }
-      const parsed = configSchema.safeParse(config);
-      if (!parsed.success) {
-        return { valid: false, issues: parsed.error.issues };
-      }
-      return { valid: true, config: parsed.data };
+      return validateModeGatedConfig(
+        configSchema,
+        config,
+        isQuickScoreOrVisualBoardCapture(captureModeKey, inputModeKey),
+        `121 only supports ${QUICK_SCORE_OR_VISUAL_BOARD_MODES}`,
+      );
     },
 
     validateBatch({
       batch,
       captureModeKey,
       inputModeKey,
-    }: {
-      config: Record<string, unknown>;
-      batch: EventsBatchRequestInput;
-      existingTurnCounts: ExistingTurnCounts;
-      captureModeKey: string;
-      inputModeKey: string;
-    }): BatchValidationResult {
+    }: ModedBatchValidationInput): BatchValidationResult {
       if (isVisualBoardCapture(captureModeKey, inputModeKey)) {
         return validateVisualBoardTurns(batch, MAX_VISIT_SCORE);
       }

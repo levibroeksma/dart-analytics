@@ -1,3 +1,5 @@
+import type { RoutineStepTemplateRow, RoutineStepViewRow } from "./interfaces";
+
 /**
  * Narrows one `<view>.<column>` select result from Drizzle's introspected
  * `T | null` to `T`. `drizzle-kit introspect` types every view column
@@ -13,4 +15,21 @@ export function nonNull<T>(value: T | null, column: string): T {
     throw new Error(`expected view column "${column}" to be non-null`);
   }
   return value;
+}
+
+/** One `v_routine_execution` row's nine step keys, narrowed (`nonNull`). */
+export function mapRoutineStepRow(
+  row: RoutineStepViewRow,
+): RoutineStepTemplateRow {
+  return {
+    sequenceNumber: nonNull(row.sequenceNumber, "sequence_number"),
+    exerciseTypeKey: nonNull(row.exerciseTypeKey, "exercise_type_key"),
+    exerciseRulesetVersionKey: row.exerciseRulesetVersionKey,
+    gameTypeKey: row.gameTypeKey,
+    gameRulesetVersionKey: row.gameRulesetVersionKey,
+    durationTypeKey: nonNull(row.durationTypeKey, "duration_type_key"),
+    durationValue: nonNull(row.durationValue, "duration_value"),
+    defaultConfiguration: row.defaultConfiguration,
+    stepConfiguration: row.stepConfiguration,
+  };
 }

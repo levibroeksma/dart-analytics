@@ -153,6 +153,26 @@ export async function findLegFacts(
   }));
 }
 
+const X01_FOLD_COLUMNS = {
+  sessionId: vX01CheckoutDarts.sessionId,
+  gameTypeKey: vX01CheckoutDarts.gameTypeKey,
+  rulesetVersionKey: vX01CheckoutDarts.rulesetVersionKey,
+  configuration: vX01CheckoutDarts.configuration,
+  stageId: vX01CheckoutDarts.stageId,
+  stageSequence: vX01CheckoutDarts.stageSequence,
+  stageTypeKey: vX01CheckoutDarts.stageTypeKey,
+  parentStageId: vX01CheckoutDarts.parentStageId,
+  turnId: vX01CheckoutDarts.turnId,
+  turnSequence: vX01CheckoutDarts.turnSequence,
+  turnTotalScore: vX01CheckoutDarts.turnTotalScore,
+  turnCompletedAt: vX01CheckoutDarts.turnCompletedAt,
+  participantId: vX01CheckoutDarts.participantId,
+  dartNumber: vX01CheckoutDarts.dartNumber,
+  hitTargetNumber: vX01CheckoutDarts.hitTargetNumber,
+  hitZoneKey: vX01CheckoutDarts.hitZoneKey,
+  score: vX01CheckoutDarts.score,
+};
+
 /**
  * Reads every X01 checkout dart the player owns through
  * `v_x01_checkout_darts`, ordered so a session's rows arrive in stage, turn
@@ -163,25 +183,7 @@ export async function findX01CheckoutDarts(
   playerId: string,
 ): Promise<X01CheckoutDartRow[]> {
   const rows = await db
-    .select({
-      sessionId: vX01CheckoutDarts.sessionId,
-      gameTypeKey: vX01CheckoutDarts.gameTypeKey,
-      rulesetVersionKey: vX01CheckoutDarts.rulesetVersionKey,
-      configuration: vX01CheckoutDarts.configuration,
-      stageId: vX01CheckoutDarts.stageId,
-      stageSequence: vX01CheckoutDarts.stageSequence,
-      stageTypeKey: vX01CheckoutDarts.stageTypeKey,
-      parentStageId: vX01CheckoutDarts.parentStageId,
-      turnId: vX01CheckoutDarts.turnId,
-      turnSequence: vX01CheckoutDarts.turnSequence,
-      turnTotalScore: vX01CheckoutDarts.turnTotalScore,
-      turnCompletedAt: vX01CheckoutDarts.turnCompletedAt,
-      participantId: vX01CheckoutDarts.participantId,
-      dartNumber: vX01CheckoutDarts.dartNumber,
-      hitTargetNumber: vX01CheckoutDarts.hitTargetNumber,
-      hitZoneKey: vX01CheckoutDarts.hitZoneKey,
-      score: vX01CheckoutDarts.score,
-    })
+    .select(X01_FOLD_COLUMNS)
     .from(vX01CheckoutDarts)
     .where(eq(vX01CheckoutDarts.playerId, playerId))
     .orderBy(
@@ -280,6 +282,39 @@ function bucketExprs(
 }
 
 /**
+ * A reader's bucket bounds and their GROUP BY terms. `bucket = none` binds
+ * `from`/`to` as the bounds and groups by nothing; any other bucket requires
+ * `tz` and takes the `bucketExprs` pair, grouped by that same pair.
+ */
+function bucketWindow(
+  completedAt: Column,
+  q: { from: string; to: string; bucket: Bucket; tz: string | undefined },
+): {
+  columns: { bucketStart: SQL<string>; bucketEnd: SQL<string> };
+  groupBy: SQL[];
+} {
+  if (q.bucket === "none") {
+    return {
+      columns: {
+        bucketStart: sql<string>`${q.from}::timestamptz`,
+        bucketEnd: sql<string>`${q.to}::timestamptz`,
+      },
+      groupBy: [],
+    };
+  }
+  const tz = nonNull(q.tz ?? null, "tz");
+  const { bucketStartExpr, bucketEndExpr } = bucketExprs(
+    completedAt,
+    q.bucket,
+    tz,
+  );
+  return {
+    columns: { bucketStart: bucketStartExpr, bucketEnd: bucketEndExpr },
+    groupBy: [bucketStartExpr, bucketEndExpr],
+  };
+}
+
+/**
  * A GAME routine step's session_id sub-select (D372 decision 5):
  * `dartScopeWhere`/`sessionScopeWhere` add this only when the caller's scope
  * carries a `routineStep`, so a game page's reader, which leaves the
@@ -359,26 +394,6 @@ export async function findScopeDartCount(
   return Number(nonNull(row?.dartCount ?? null, "dart_count"));
 }
 
-const X01_FOLD_COLUMNS = {
-  sessionId: vX01CheckoutDarts.sessionId,
-  gameTypeKey: vX01CheckoutDarts.gameTypeKey,
-  rulesetVersionKey: vX01CheckoutDarts.rulesetVersionKey,
-  configuration: vX01CheckoutDarts.configuration,
-  stageId: vX01CheckoutDarts.stageId,
-  stageSequence: vX01CheckoutDarts.stageSequence,
-  stageTypeKey: vX01CheckoutDarts.stageTypeKey,
-  parentStageId: vX01CheckoutDarts.parentStageId,
-  turnId: vX01CheckoutDarts.turnId,
-  turnSequence: vX01CheckoutDarts.turnSequence,
-  turnTotalScore: vX01CheckoutDarts.turnTotalScore,
-  turnCompletedAt: vX01CheckoutDarts.turnCompletedAt,
-  participantId: vX01CheckoutDarts.participantId,
-  dartNumber: vX01CheckoutDarts.dartNumber,
-  hitTargetNumber: vX01CheckoutDarts.hitTargetNumber,
-  hitZoneKey: vX01CheckoutDarts.hitZoneKey,
-  score: vX01CheckoutDarts.score,
-};
-
 /**
  * Reads every `v_x01_checkout_darts` dart the scope covers, inner-joined to
  * `v_stats_session_facts` under `sessionScopeWhere`, each row carrying the
@@ -397,36 +412,12 @@ export async function findX01FoldRows(
     vX01CheckoutDarts.turnSequence,
     vX01CheckoutDarts.dartNumber,
   ] as const;
-
-  if (q.bucket === "none") {
-    const rows = await db
-      .select({
-        ...X01_FOLD_COLUMNS,
-        bucketStart: sql<string>`${q.from}::timestamptz`,
-        bucketEnd: sql<string>`${q.to}::timestamptz`,
-      })
-      .from(vX01CheckoutDarts)
-      .innerJoin(
-        vStatsSessionFacts,
-        eq(vX01CheckoutDarts.sessionId, vStatsSessionFacts.sessionId),
-      )
-      .where(whereClause)
-      .orderBy(...order);
-    return rows as X01FoldRow[];
-  }
-
-  const tz = nonNull(q.tz ?? null, "tz");
-  const { bucketStartExpr, bucketEndExpr } = bucketExprs(
-    vStatsSessionFacts.completedAt,
-    q.bucket,
-    tz,
-  );
+  const window = bucketWindow(vStatsSessionFacts.completedAt, q);
 
   const rows = await db
     .select({
       ...X01_FOLD_COLUMNS,
-      bucketStart: bucketStartExpr,
-      bucketEnd: bucketEndExpr,
+      ...window.columns,
     })
     .from(vX01CheckoutDarts)
     .innerJoin(
@@ -514,36 +505,12 @@ export async function findDartFoldRows(
     vStatsDartFacts.turnSequence,
     vStatsDartFacts.dartNumber,
   ] as const;
-
-  if (q.bucket === "none") {
-    const rows = await db
-      .select({
-        ...DART_FOLD_COLUMNS,
-        bucketStart: sql<string>`${q.from}::timestamptz`,
-        bucketEnd: sql<string>`${q.to}::timestamptz`,
-      })
-      .from(vStatsDartFacts)
-      .innerJoin(
-        vStatsSessionFacts,
-        eq(vStatsDartFacts.sessionId, vStatsSessionFacts.sessionId),
-      )
-      .where(whereClause)
-      .orderBy(...order);
-    return rows.map(mapDartFoldRow);
-  }
-
-  const tz = nonNull(q.tz ?? null, "tz");
-  const { bucketStartExpr, bucketEndExpr } = bucketExprs(
-    vStatsSessionFacts.completedAt,
-    q.bucket,
-    tz,
-  );
+  const window = bucketWindow(vStatsSessionFacts.completedAt, q);
 
   const rows = await db
     .select({
       ...DART_FOLD_COLUMNS,
-      bucketStart: bucketStartExpr,
-      bucketEnd: bucketEndExpr,
+      ...window.columns,
     })
     .from(vStatsDartFacts)
     .innerJoin(
@@ -631,33 +598,15 @@ async function selectVisitScoring(
     tonForty: tonFortyExpr,
     oneEighty: oneEightyExpr,
   };
-
-  if (q.bucket === "none") {
-    const rows = await db
-      .select({
-        bucketStart: sql<string>`${q.from}::timestamptz`,
-        bucketEnd: sql<string>`${q.to}::timestamptz`,
-        ...sums,
-      })
-      .from(scoped);
-    return rows.map(mapVisitScoringRow);
-  }
-
-  const tz = nonNull(q.tz ?? null, "tz");
-  const { bucketStartExpr, bucketEndExpr } = bucketExprs(
-    scoped.completedAt,
-    q.bucket,
-    tz,
-  );
+  const window = bucketWindow(scoped.completedAt, q);
 
   const rows = await db
     .select({
-      bucketStart: bucketStartExpr,
-      bucketEnd: bucketEndExpr,
+      ...window.columns,
       ...sums,
     })
     .from(scoped)
-    .groupBy(bucketStartExpr, bucketEndExpr);
+    .groupBy(...window.groupBy);
   return rows.map(mapVisitScoringRow);
 }
 
@@ -709,39 +658,18 @@ export async function findHitNumberCells(
   const hitNumberExpr = sql<string>`coalesce(${vStatsDartFacts.hitTargetNumber}::text, 'MISS')`;
   const trebleExpr = sql<string>`count(*) filter (where ${vStatsDartFacts.hitZoneKey} = 'TREBLE')`;
 
-  if (q.bucket === "none") {
-    const rows = await db
-      .select({
-        bucketStart: sql<string>`${q.from}::timestamptz`,
-        bucketEnd: sql<string>`${q.to}::timestamptz`,
-        hitNumber: hitNumberExpr,
-        darts: count(),
-        trebles: trebleExpr,
-      })
-      .from(vStatsDartFacts)
-      .where(whereClause)
-      .groupBy(hitNumberExpr);
-    return rows.map(mapHitNumberCellRow);
-  }
-
-  const tz = nonNull(q.tz ?? null, "tz");
-  const { bucketStartExpr, bucketEndExpr } = bucketExprs(
-    vStatsDartFacts.completedAt,
-    q.bucket,
-    tz,
-  );
+  const window = bucketWindow(vStatsDartFacts.completedAt, q);
 
   const rows = await db
     .select({
-      bucketStart: bucketStartExpr,
-      bucketEnd: bucketEndExpr,
+      ...window.columns,
       hitNumber: hitNumberExpr,
       darts: count(),
       trebles: trebleExpr,
     })
     .from(vStatsDartFacts)
     .where(whereClause)
-    .groupBy(bucketStartExpr, bucketEndExpr, hitNumberExpr);
+    .groupBy(...window.groupBy, hitNumberExpr);
   return rows.map(mapHitNumberCellRow);
 }
 
@@ -784,39 +712,11 @@ export async function findIntentCells(
     isNotNull(vStatsDartFacts.intendedZoneKey),
   );
 
-  if (q.bucket === "none") {
-    const rows = await db
-      .select({
-        bucketStart: sql<string>`${q.from}::timestamptz`,
-        bucketEnd: sql<string>`${q.to}::timestamptz`,
-        intendedTargetNumber: vStatsDartFacts.intendedTargetNumber,
-        intendedZoneKey: vStatsDartFacts.intendedZoneKey,
-        hitTargetNumber: vStatsDartFacts.hitTargetNumber,
-        hitZoneKey: vStatsDartFacts.hitZoneKey,
-        darts: count(),
-      })
-      .from(vStatsDartFacts)
-      .where(whereClause)
-      .groupBy(
-        vStatsDartFacts.intendedTargetNumber,
-        vStatsDartFacts.intendedZoneKey,
-        vStatsDartFacts.hitTargetNumber,
-        vStatsDartFacts.hitZoneKey,
-      );
-    return rows.map(mapIntentCellRow);
-  }
-
-  const tz = nonNull(q.tz ?? null, "tz");
-  const { bucketStartExpr, bucketEndExpr } = bucketExprs(
-    vStatsDartFacts.completedAt,
-    q.bucket,
-    tz,
-  );
+  const window = bucketWindow(vStatsDartFacts.completedAt, q);
 
   const rows = await db
     .select({
-      bucketStart: bucketStartExpr,
-      bucketEnd: bucketEndExpr,
+      ...window.columns,
       intendedTargetNumber: vStatsDartFacts.intendedTargetNumber,
       intendedZoneKey: vStatsDartFacts.intendedZoneKey,
       hitTargetNumber: vStatsDartFacts.hitTargetNumber,
@@ -826,8 +726,7 @@ export async function findIntentCells(
     .from(vStatsDartFacts)
     .where(whereClause)
     .groupBy(
-      bucketStartExpr,
-      bucketEndExpr,
+      ...window.groupBy,
       vStatsDartFacts.intendedTargetNumber,
       vStatsDartFacts.intendedZoneKey,
       vStatsDartFacts.hitTargetNumber,
@@ -886,40 +785,11 @@ export async function findIntentMoments(
   const sumYYExpr = sql<string>`sum(${vStatsDartFacts.locationY} * ${vStatsDartFacts.locationY})`;
   const sumXYExpr = sql<string>`sum(${vStatsDartFacts.locationX} * ${vStatsDartFacts.locationY})`;
 
-  if (q.bucket === "none") {
-    const rows = await db
-      .select({
-        bucketStart: sql<string>`${q.from}::timestamptz`,
-        bucketEnd: sql<string>`${q.to}::timestamptz`,
-        intendedTargetNumber: vStatsDartFacts.intendedTargetNumber,
-        intendedZoneKey: vStatsDartFacts.intendedZoneKey,
-        n: count(),
-        sumX: sumXExpr,
-        sumY: sumYExpr,
-        sumXX: sumXXExpr,
-        sumYY: sumYYExpr,
-        sumXY: sumXYExpr,
-      })
-      .from(vStatsDartFacts)
-      .where(whereClause)
-      .groupBy(
-        vStatsDartFacts.intendedTargetNumber,
-        vStatsDartFacts.intendedZoneKey,
-      );
-    return rows.map(mapIntentMomentRow);
-  }
-
-  const tz = nonNull(q.tz ?? null, "tz");
-  const { bucketStartExpr, bucketEndExpr } = bucketExprs(
-    vStatsDartFacts.completedAt,
-    q.bucket,
-    tz,
-  );
+  const window = bucketWindow(vStatsDartFacts.completedAt, q);
 
   const rows = await db
     .select({
-      bucketStart: bucketStartExpr,
-      bucketEnd: bucketEndExpr,
+      ...window.columns,
       intendedTargetNumber: vStatsDartFacts.intendedTargetNumber,
       intendedZoneKey: vStatsDartFacts.intendedZoneKey,
       n: count(),
@@ -932,8 +802,7 @@ export async function findIntentMoments(
     .from(vStatsDartFacts)
     .where(whereClause)
     .groupBy(
-      bucketStartExpr,
-      bucketEndExpr,
+      ...window.groupBy,
       vStatsDartFacts.intendedTargetNumber,
       vStatsDartFacts.intendedZoneKey,
     );
@@ -991,11 +860,39 @@ export async function findMissSectors(
 }
 
 /**
+ * Located-dart counts per `cellMm` grid cell of `v_stats_dart_facts` under
+ * `where`. Groups by select position: re-binding `cellMm` in the GROUP BY
+ * would not match the SELECT's own parameter (42803).
+ */
+async function selectHeatmapCells(
+  db: Db,
+  cellMm: number,
+  where: SQL | undefined,
+): Promise<HeatmapCellRow[]> {
+  const ixExpr = sql<number>`FLOOR(${vStatsDartFacts.locationX} / ${cellMm})::integer`;
+  const iyExpr = sql<number>`FLOOR(${vStatsDartFacts.locationY} / ${cellMm})::integer`;
+
+  const rows = await db
+    .select({
+      ix: ixExpr,
+      iy: iyExpr,
+      darts: sql<number>`count(*)::integer`,
+    })
+    .from(vStatsDartFacts)
+    .where(where)
+    .groupBy(sql`1`, sql`2`);
+
+  return rows.map((row) => ({
+    ix: Number(nonNull(row.ix, "ix")),
+    iy: Number(nonNull(row.iy, "iy")),
+    darts: Number(nonNull(row.darts, "darts")),
+  }));
+}
+
+/**
  * Non-empty `HEATMAP_CELL_MM` grid cells over `v_stats_dart_facts` — feeds
  * `heatmap` (phase-2 decision 6). `target` narrows to darts aimed at one
- * target when the section's optional `target` parameter is set. Groups by
- * select position: re-binding `cellMm` in the GROUP BY would not match the
- * SELECT's own parameter (42803).
+ * target when the section's optional `target` parameter is set.
  */
 export async function findHeatmapCells(
   db: Db,
@@ -1009,24 +906,7 @@ export async function findHeatmapCells(
     conditions.push(eq(vStatsDartFacts.intendedTargetNumber, q.target.number));
     conditions.push(eq(vStatsDartFacts.intendedZoneKey, q.target.zone));
   }
-  const ixExpr = sql<number>`FLOOR(${vStatsDartFacts.locationX} / ${q.cellMm})::integer`;
-  const iyExpr = sql<number>`FLOOR(${vStatsDartFacts.locationY} / ${q.cellMm})::integer`;
-
-  const rows = await db
-    .select({
-      ix: ixExpr,
-      iy: iyExpr,
-      darts: sql<number>`count(*)::integer`,
-    })
-    .from(vStatsDartFacts)
-    .where(and(...conditions))
-    .groupBy(sql`1`, sql`2`);
-
-  return rows.map((row) => ({
-    ix: Number(nonNull(row.ix, "ix")),
-    iy: Number(nonNull(row.iy, "iy")),
-    darts: Number(nonNull(row.darts, "darts")),
-  }));
+  return selectHeatmapCells(db, q.cellMm, and(...conditions));
 }
 
 function homeSessionWhere(scope: HomeScope) {
@@ -1069,34 +949,47 @@ export async function findHomeHeatmapCells(
   db: Db,
   q: HomeScope & { cellMm: number },
 ): Promise<HeatmapCellRow[]> {
-  const ixExpr = sql<number>`FLOOR(${vStatsDartFacts.locationX} / ${q.cellMm})::integer`;
-  const iyExpr = sql<number>`FLOOR(${vStatsDartFacts.locationY} / ${q.cellMm})::integer`;
+  return selectHeatmapCells(
+    db,
+    q.cellMm,
+    and(
+      eq(vStatsDartFacts.playerId, q.playerId),
+      inArray(vStatsDartFacts.gameTypeKey, q.gameTypeKeys),
+      gte(vStatsDartFacts.completedAt, q.from),
+      lt(vStatsDartFacts.completedAt, q.to),
+      eq(vStatsDartFacts.statusKey, "COMPLETED"),
+      isNotNull(vStatsDartFacts.locationX),
+      isNotNull(vStatsDartFacts.locationY),
+    ),
+  );
+}
 
-  const rows = await db
-    .select({
-      ix: ixExpr,
-      iy: iyExpr,
-      darts: sql<number>`count(*)::integer`,
-    })
-    .from(vStatsDartFacts)
-    .where(
-      and(
-        eq(vStatsDartFacts.playerId, q.playerId),
-        inArray(vStatsDartFacts.gameTypeKey, q.gameTypeKeys),
-        gte(vStatsDartFacts.completedAt, q.from),
-        lt(vStatsDartFacts.completedAt, q.to),
-        eq(vStatsDartFacts.statusKey, "COMPLETED"),
-        isNotNull(vStatsDartFacts.locationX),
-        isNotNull(vStatsDartFacts.locationY),
-      ),
-    )
-    .groupBy(sql`1`, sql`2`);
+/** Newest-first keyset order: `completed_at DESC, session_id DESC`. */
+function newestFirst(t: { completedAt: Column; sessionId: Column }): SQL[] {
+  return [desc(t.completedAt), desc(t.sessionId)];
+}
 
-  return rows.map((row) => ({
-    ix: Number(nonNull(row.ix, "ix")),
-    iy: Number(nonNull(row.iy, "iy")),
-    darts: Number(nonNull(row.darts, "darts")),
-  }));
+/** The non-null timing columns every session row carries. */
+function mapSessionTimings(row: {
+  startedAt: string | null;
+  completedAt: string | null;
+  durationSeconds: number | null;
+  turnCount: number | null;
+  dartCount: number | null;
+}): {
+  startedAt: string;
+  completedAt: string;
+  durationSeconds: number;
+  turnCount: number;
+  dartCount: number;
+} {
+  return {
+    startedAt: nonNull(row.startedAt, "started_at"),
+    completedAt: nonNull(row.completedAt, "completed_at"),
+    durationSeconds: nonNull(row.durationSeconds, "duration_seconds"),
+    turnCount: nonNull(row.turnCount, "turn_count"),
+    dartCount: nonNull(row.dartCount, "dart_count"),
+  };
 }
 
 type GameSessionsFilter = {
@@ -1108,14 +1001,27 @@ type GameSessionsFilter = {
   context: ContextFilter;
 };
 
-/** The population a game's session list pages over: terminal sessions with darts, before any cursor. */
-function gameSessionConditions(q: GameSessionsFilter) {
+/** One game's terminal sessions of `statuses` completed in `[from, to)`. */
+function gameWindowConditions(q: {
+  playerId: string;
+  gameTypeKey: GameTypeKey;
+  from: string;
+  to: string;
+  statuses: string[];
+}): SQL[] {
   return [
     eq(vStatsSessionFacts.playerId, q.playerId),
     eq(vStatsSessionFacts.gameTypeKey, q.gameTypeKey),
     gte(vStatsSessionFacts.completedAt, q.from),
     lt(vStatsSessionFacts.completedAt, q.to),
     inArray(vStatsSessionFacts.statusKey, q.statuses),
+  ];
+}
+
+/** The population a game's session list pages over: terminal sessions with darts, before any cursor. */
+function gameSessionConditions(q: GameSessionsFilter) {
+  return [
+    ...gameWindowConditions(q),
     gt(vStatsSessionFacts.dartCount, 0),
     contextCondition(q.context),
   ];
@@ -1169,26 +1075,19 @@ export async function findGameSessionsPage(
     })
     .from(vStatsSessionFacts)
     .where(and(...conditions))
-    .orderBy(
-      desc(vStatsSessionFacts.completedAt),
-      desc(vStatsSessionFacts.sessionId),
-    )
+    .orderBy(...newestFirst(vStatsSessionFacts))
     .limit(q.limit + 1);
 
   return rows.map((row) => {
     const statusKey = nonNull(row.statusKey, "status_key");
-    const turnCount = nonNull(row.turnCount, "turn_count");
+    const timings = mapSessionTimings(row);
     return {
       sessionId: nonNull(row.sessionId, "session_id"),
       rulesetVersionKey: nonNull(row.rulesetVersionKey, "ruleset_version_key"),
       statusKey,
       contextKey: nonNull(row.contextKey, "context_key"),
-      neverStarted: statusKey === "ABANDONED" && turnCount === 0,
-      startedAt: nonNull(row.startedAt, "started_at"),
-      completedAt: nonNull(row.completedAt, "completed_at"),
-      durationSeconds: nonNull(row.durationSeconds, "duration_seconds"),
-      turnCount,
-      dartCount: nonNull(row.dartCount, "dart_count"),
+      neverStarted: statusKey === "ABANDONED" && timings.turnCount === 0,
+      ...timings,
       countedScore: nonNull(row.countedScore, "counted_score"),
     };
   });
@@ -1271,11 +1170,7 @@ export async function findBucketedSessionAggregates(
   },
 ): Promise<StatsBucketRow[]> {
   const conditions = [
-    eq(vStatsSessionFacts.playerId, q.playerId),
-    eq(vStatsSessionFacts.gameTypeKey, q.gameTypeKey),
-    gte(vStatsSessionFacts.completedAt, q.from),
-    lt(vStatsSessionFacts.completedAt, q.to),
-    inArray(vStatsSessionFacts.statusKey, q.statuses),
+    ...gameWindowConditions(q),
     contextCondition(q.context),
     q.routineStep === undefined
       ? undefined
@@ -1305,52 +1200,11 @@ export async function findBucketedSessionAggregates(
     string | null
   >`case when max(${vStatsSessionFacts.dartCount}) > 0 then ${isoUtcText(bestAvgPick(vStatsSessionFacts.completedAt))} end`;
 
-  if (q.bucket === "none") {
-    const rows = await db
-      .select({
-        bucketStart: sql<string>`${q.from}::timestamptz`,
-        bucketEnd: sql<string>`${q.to}::timestamptz`,
-        statusKey: vStatsSessionFacts.statusKey,
-        contextKey: vStatsSessionFacts.contextKey,
-        rulesetVersionKey: vStatsSessionFacts.rulesetVersionKey,
-        neverStarted: neverStartedExpr,
-        sessions: count(),
-        turnSum: sql<string>`sum(${vStatsSessionFacts.turnCount})`,
-        dartSum: sql<string>`sum(${vStatsSessionFacts.dartCount})`,
-        durationSum: sql<string>`sum(${vStatsSessionFacts.durationSeconds})`,
-        scoreSum: sql<string>`sum(${vStatsSessionFacts.countedScore})`,
-        scoreMin: sql<string>`min(${vStatsSessionFacts.countedScore})`,
-        scoreMax: sql<string>`max(${vStatsSessionFacts.countedScore})`,
-        minSessionId: minSessionIdExpr,
-        maxSessionId: maxSessionIdExpr,
-        bestAvgSessionId: bestAvgSessionIdExpr,
-        bestAvgPoints: bestAvgPointsExpr,
-        bestAvgDarts: bestAvgDartsExpr,
-        bestAvgCompletedAt: bestAvgCompletedAtExpr,
-      })
-      .from(vStatsSessionFacts)
-      .where(and(...conditions))
-      .groupBy(
-        vStatsSessionFacts.statusKey,
-        vStatsSessionFacts.contextKey,
-        vStatsSessionFacts.rulesetVersionKey,
-        neverStartedExpr,
-      );
-
-    return rows.map(mapBucketRow);
-  }
-
-  const tz = nonNull(q.tz ?? null, "tz");
-  const { bucketStartExpr, bucketEndExpr } = bucketExprs(
-    vStatsSessionFacts.completedAt,
-    q.bucket,
-    tz,
-  );
+  const window = bucketWindow(vStatsSessionFacts.completedAt, q);
 
   const rows = await db
     .select({
-      bucketStart: bucketStartExpr,
-      bucketEnd: bucketEndExpr,
+      ...window.columns,
       statusKey: vStatsSessionFacts.statusKey,
       contextKey: vStatsSessionFacts.contextKey,
       rulesetVersionKey: vStatsSessionFacts.rulesetVersionKey,
@@ -1372,8 +1226,7 @@ export async function findBucketedSessionAggregates(
     .from(vStatsSessionFacts)
     .where(and(...conditions))
     .groupBy(
-      bucketStartExpr,
-      bucketEndExpr,
+      ...window.groupBy,
       vStatsSessionFacts.statusKey,
       vStatsSessionFacts.contextKey,
       vStatsSessionFacts.rulesetVersionKey,
@@ -1471,11 +1324,7 @@ function mapReplaySessionJoinRow(row: {
     activityId: nonNull(row.activityId, "activity_id"),
     routineStepSequenceNumber: row.routineStepSequenceNumber,
     configuration: row.configuration as Record<string, unknown> | null,
-    startedAt: nonNull(row.startedAt, "started_at"),
-    completedAt: nonNull(row.completedAt, "completed_at"),
-    durationSeconds: nonNull(row.durationSeconds, "duration_seconds"),
-    turnCount: nonNull(row.turnCount, "turn_count"),
-    dartCount: nonNull(row.dartCount, "dart_count"),
+    ...mapSessionTimings(row),
     exerciseTypeKey: row.exerciseTypeKey ?? "GAME",
     exerciseRulesetVersionKey: row.exerciseRulesetVersionKey,
     routineKey: row.routineKey,
@@ -1521,11 +1370,7 @@ function mapReplayStepFactsRow(row: {
     activityId: nonNull(row.activityId, "activity_id"),
     routineStepSequenceNumber: nonNull(row.sequenceNumber, "sequence_number"),
     configuration: row.configuration as Record<string, unknown> | null,
-    startedAt: nonNull(row.startedAt, "started_at"),
-    completedAt: nonNull(row.completedAt, "completed_at"),
-    durationSeconds: nonNull(row.durationSeconds, "duration_seconds"),
-    turnCount: nonNull(row.turnCount, "turn_count"),
-    dartCount: nonNull(row.dartCount, "dart_count"),
+    ...mapSessionTimings(row),
     exerciseTypeKey: nonNull(row.exerciseTypeKey, "exercise_type_key"),
     exerciseRulesetVersionKey: row.exerciseRulesetVersionKey,
     routineKey: nonNull(row.routineKey, "routine_key"),
@@ -2243,6 +2088,18 @@ export async function findRoutineRunBuckets(
   );
 }
 
+/** One step's terminal sessions of `statuses` completed in `[from, to)`. */
+function stepScopeConditions(q: StepScope): SQL[] {
+  return [
+    eq(vStatsRoutineStepFacts.playerId, q.playerId),
+    eq(vStatsRoutineStepFacts.routineKey, q.routineKey),
+    eq(vStatsRoutineStepFacts.stepKey, q.stepKey),
+    gte(vStatsRoutineStepFacts.completedAt, q.from),
+    lt(vStatsRoutineStepFacts.completedAt, q.to),
+    inArray(vStatsRoutineStepFacts.statusKey, q.statuses),
+  ];
+}
+
 function mapStepBucketRow(row: {
   bucketStart: string | null;
   bucketEnd: string | null;
@@ -2273,48 +2130,24 @@ export async function findStepBuckets(
   db: Db,
   q: StepScope & { bucket: Bucket; tz: string | undefined },
 ): Promise<StepBucketRow[]> {
-  const whereClause = and(
-    eq(vStatsRoutineStepFacts.playerId, q.playerId),
-    eq(vStatsRoutineStepFacts.routineKey, q.routineKey),
-    eq(vStatsRoutineStepFacts.stepKey, q.stepKey),
-    gte(vStatsRoutineStepFacts.completedAt, q.from),
-    lt(vStatsRoutineStepFacts.completedAt, q.to),
-    inArray(vStatsRoutineStepFacts.statusKey, q.statuses),
-  );
+  const whereClause = and(...stepScopeConditions(q));
 
-  if (q.bucket === "none") {
-    const rows = await db
-      .select({
-        bucketStart: sql<string>`${q.from}::timestamptz`,
-        bucketEnd: sql<string>`${q.to}::timestamptz`,
-        sessions: count(),
-        durationSum: sql<string>`coalesce(sum(${vStatsRoutineStepFacts.durationSeconds}), 0)`,
-        darts: sql<string>`coalesce(sum(${vStatsRoutineStepFacts.dartCount}), 0)`,
-      })
-      .from(vStatsRoutineStepFacts)
-      .where(whereClause);
-    return rows.map(mapStepBucketRow).filter((row) => row.sessions > 0);
-  }
-
-  const tz = nonNull(q.tz ?? null, "tz");
-  const { bucketStartExpr, bucketEndExpr } = bucketExprs(
-    vStatsRoutineStepFacts.completedAt,
-    q.bucket,
-    tz,
-  );
+  const window = bucketWindow(vStatsRoutineStepFacts.completedAt, q);
 
   const rows = await db
     .select({
-      bucketStart: bucketStartExpr,
-      bucketEnd: bucketEndExpr,
+      ...window.columns,
       sessions: count(),
       durationSum: sql<string>`coalesce(sum(${vStatsRoutineStepFacts.durationSeconds}), 0)`,
       darts: sql<string>`coalesce(sum(${vStatsRoutineStepFacts.dartCount}), 0)`,
     })
     .from(vStatsRoutineStepFacts)
     .where(whereClause)
-    .groupBy(bucketStartExpr, bucketEndExpr);
-  return rows.map(mapStepBucketRow);
+    .groupBy(...window.groupBy);
+  const buckets = rows.map(mapStepBucketRow);
+  return q.bucket === "none"
+    ? buckets.filter((row) => row.sessions > 0)
+    : buckets;
 }
 
 /**
@@ -2331,12 +2164,7 @@ export async function findStepSessionPage(
   },
 ): Promise<StepSessionRow[]> {
   const conditions = [
-    eq(vStatsRoutineStepFacts.playerId, q.playerId),
-    eq(vStatsRoutineStepFacts.routineKey, q.routineKey),
-    eq(vStatsRoutineStepFacts.stepKey, q.stepKey),
-    gte(vStatsRoutineStepFacts.completedAt, q.from),
-    lt(vStatsRoutineStepFacts.completedAt, q.to),
-    inArray(vStatsRoutineStepFacts.statusKey, q.statuses),
+    ...stepScopeConditions(q),
     q.after
       ? sql`(${vStatsRoutineStepFacts.completedAt}, ${vStatsRoutineStepFacts.sessionId}) < (${q.after.completedAt}, ${q.after.sessionId})`
       : undefined,
@@ -2358,15 +2186,12 @@ export async function findStepSessionPage(
     })
     .from(vStatsRoutineStepFacts)
     .where(and(...conditions))
-    .orderBy(
-      desc(vStatsRoutineStepFacts.completedAt),
-      desc(vStatsRoutineStepFacts.sessionId),
-    )
+    .orderBy(...newestFirst(vStatsRoutineStepFacts))
     .limit(q.limit + 1);
 
   return rows.map((row) => {
     const statusKey = nonNull(row.statusKey, "status_key");
-    const turnCount = nonNull(row.turnCount, "turn_count");
+    const timings = mapSessionTimings(row);
     return {
       sessionId: nonNull(row.sessionId, "session_id"),
       rulesetVersionKey: row.rulesetVersionKey,
@@ -2375,12 +2200,8 @@ export async function findStepSessionPage(
       neverStarted:
         row.exerciseRulesetVersionKey === "WARM_UP_V1"
           ? null
-          : statusKey === "ABANDONED" && turnCount === 0,
-      startedAt: nonNull(row.startedAt, "started_at"),
-      completedAt: nonNull(row.completedAt, "completed_at"),
-      durationSeconds: nonNull(row.durationSeconds, "duration_seconds"),
-      turnCount,
-      dartCount: nonNull(row.dartCount, "dart_count"),
+          : statusKey === "ABANDONED" && timings.turnCount === 0,
+      ...timings,
       countedScore: nonNull(row.countedScore, "counted_score"),
     };
   });
@@ -2481,14 +2302,7 @@ export async function findStepFoldRows(
   db: Db,
   q: StepScope & { bucket: Bucket; tz: string | undefined },
 ): Promise<StepFoldBucketRow[]> {
-  const whereClause = and(
-    eq(vStatsRoutineStepFacts.playerId, q.playerId),
-    eq(vStatsRoutineStepFacts.routineKey, q.routineKey),
-    eq(vStatsRoutineStepFacts.stepKey, q.stepKey),
-    gte(vStatsRoutineStepFacts.completedAt, q.from),
-    lt(vStatsRoutineStepFacts.completedAt, q.to),
-    inArray(vStatsRoutineStepFacts.statusKey, q.statuses),
-  );
+  const whereClause = and(...stepScopeConditions(q));
   const order = [
     vGameReplay.sessionId,
     vGameReplay.stageSequence,
@@ -2496,35 +2310,12 @@ export async function findStepFoldRows(
     vGameReplay.dartNumber,
   ] as const;
 
-  if (q.bucket === "none") {
-    const rows = await db
-      .select({
-        ...STEP_FOLD_COLUMNS,
-        bucketStart: sql<string>`${q.from}::timestamptz`,
-        bucketEnd: sql<string>`${q.to}::timestamptz`,
-      })
-      .from(vGameReplay)
-      .innerJoin(
-        vStatsRoutineStepFacts,
-        eq(vGameReplay.sessionId, vStatsRoutineStepFacts.sessionId),
-      )
-      .where(whereClause)
-      .orderBy(...order);
-    return rows.map(mapStepFoldRow);
-  }
-
-  const tz = nonNull(q.tz ?? null, "tz");
-  const { bucketStartExpr, bucketEndExpr } = bucketExprs(
-    vStatsRoutineStepFacts.completedAt,
-    q.bucket,
-    tz,
-  );
+  const window = bucketWindow(vStatsRoutineStepFacts.completedAt, q);
 
   const rows = await db
     .select({
       ...STEP_FOLD_COLUMNS,
-      bucketStart: bucketStartExpr,
-      bucketEnd: bucketEndExpr,
+      ...window.columns,
     })
     .from(vGameReplay)
     .innerJoin(
@@ -2551,16 +2342,7 @@ export async function findStepScopeDartCount(
       dartCount: sql<string>`coalesce(sum(${vStatsRoutineStepFacts.dartCount}), 0)::integer`,
     })
     .from(vStatsRoutineStepFacts)
-    .where(
-      and(
-        eq(vStatsRoutineStepFacts.playerId, q.playerId),
-        eq(vStatsRoutineStepFacts.routineKey, q.routineKey),
-        eq(vStatsRoutineStepFacts.stepKey, q.stepKey),
-        gte(vStatsRoutineStepFacts.completedAt, q.from),
-        lt(vStatsRoutineStepFacts.completedAt, q.to),
-        inArray(vStatsRoutineStepFacts.statusKey, q.statuses),
-      ),
-    );
+    .where(and(...stepScopeConditions(q)));
 
   return Number(nonNull(row?.dartCount ?? null, "dart_count"));
 }

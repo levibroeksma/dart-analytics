@@ -264,6 +264,41 @@ describe("writes", () => {
     expect(statements[0].sql).toMatch(/"id" = \$\d+ and .*"player_id" = \$\d+/);
   });
 
+  it("every ownership write scopes by id then player_id, in that param order", async () => {
+    const update = renderingDb([{ id: "sch-1" }]);
+    await updateScheduleRecord(update.db, {
+      scheduleId: "sch-1",
+      playerId: "p1",
+      name: "New",
+    });
+    expect(update.statements[0].sql).toMatch(
+      /where \("training_schedules"\."id" = \$3 and "training_schedules"\."player_id" = \$4\)/,
+    );
+    expect(update.statements[0].params.slice(2)).toEqual(["sch-1", "p1"]);
+
+    const clear = renderingDb([{ id: "sch-1" }]);
+    await clearActiveSchedule(clear.db, {
+      playerId: "p1",
+      scheduleId: "sch-1",
+    });
+    expect(clear.statements[0].params.slice(-2)).toEqual(["sch-1", "p1"]);
+
+    const del = renderingDb([]);
+    await deleteScheduleRecord(del.db, "sch-1", "p1");
+    expect(del.statements[0].sql).toMatch(
+      /where \("training_schedules"\."id" = \$1 and "training_schedules"\."player_id" = \$2\)/,
+    );
+    expect(del.statements[0].params).toEqual(["sch-1", "p1"]);
+
+    const activate = renderingDb([{ id: "sch-1" }]);
+    await setActiveSchedule(activate.db, {
+      playerId: "p1",
+      scheduleId: "sch-1",
+    });
+    expect(activate.statements[0].params).toEqual(["sch-1", "p1"]);
+    expect(activate.statements[2].params.slice(-2)).toEqual(["sch-1", "p1"]);
+  });
+
   it("deleteScheduleRecord returns false when nothing matched", async () => {
     const { db, statements } = renderingDb([]);
     const deleted = await deleteScheduleRecord(db, "sch-1", "p1");

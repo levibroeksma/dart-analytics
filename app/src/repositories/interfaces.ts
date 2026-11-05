@@ -42,6 +42,14 @@ export interface IdempotencyRecord {
   result: unknown;
 }
 
+/** One seat's `participants` row. */
+export interface SessionParticipantRecord {
+  id: string;
+  participantTypeId: number;
+  playerId: string | null;
+  displayName: string;
+}
+
 /**
  * One session's rows, written in a single transaction.
  *
@@ -53,12 +61,7 @@ export interface CreateSessionRecordsInput {
   activityId: string;
   sessionId: string;
   configurationId: string;
-  participants: {
-    id: string;
-    participantTypeId: number;
-    playerId: string | null;
-    displayName: string;
-  }[];
+  participants: SessionParticipantRecord[];
   playerId: string;
   gameTypeId?: string;
   rulesetVersionId?: string;
@@ -79,6 +82,19 @@ export interface RoutineStepTemplateRow {
   gameRulesetVersionKey: string | null;
   durationTypeKey: string;
   durationValue: number;
+  defaultConfiguration: unknown;
+  stepConfiguration: unknown;
+}
+
+/** The nine `v_routine_execution` step columns as selected, before narrowing. */
+export interface RoutineStepViewRow {
+  sequenceNumber: number | null;
+  exerciseTypeKey: string | null;
+  exerciseRulesetVersionKey: string | null;
+  gameTypeKey: string | null;
+  gameRulesetVersionKey: string | null;
+  durationTypeKey: string | null;
+  durationValue: number | null;
   defaultConfiguration: unknown;
   stepConfiguration: unknown;
 }

@@ -2,7 +2,7 @@
 
 Date: 2026-10-26 · Branch: `feat/design-sync` · Status: draft, awaiting approval
 
-Superseded in part on 2026-11-04 by `2026-11-04-design-system-artifact-sync-design.md` (D521): the design side is now the Design System artifact.
+Superseded in part on 2026-11-04 by `2026-11-04-design-system-artifact-sync-design.md` (D523): the design side is now the Design System artifact.
 
 ## Intent
 

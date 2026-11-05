@@ -13,6 +13,7 @@ import {
   findHomeScoring,
   findHomeHeatmapCells,
   findScopeDartCount,
+  findX01CheckoutDarts,
   findX01FoldRows,
   findDartFoldRows,
   findVisitScoring,
@@ -329,6 +330,27 @@ describe("findX01CheckoutDarts", () => {
       identityOf(vX01CheckoutDarts.dartNumber),
     ]);
   });
+
+  it("selects the same v_x01_checkout_darts columns, in the same order, that findX01FoldRows leads with", async () => {
+    const own = renderingDb([]);
+    await findX01CheckoutDarts(own.db, "p1");
+    const fold = renderingDb([]);
+    await findX01FoldRows(fold.db, {
+      ...sessionScope,
+      bucket: "none",
+      tz: undefined,
+    });
+    const selectList = (sql: string) =>
+      sql
+        .slice("select ".length, sql.indexOf(" from "))
+        .replaceAll('"v_x01_checkout_darts".', "");
+    const ownColumns = selectList(onlyStatement(own.statements));
+
+    expect(ownColumns).toMatch(/^"session_id", .*"score"$/);
+    expect(
+      selectList(onlyStatement(fold.statements)).startsWith(`${ownColumns}, `),
+    ).toBe(true);
+  });
 });
 
 describe("findGameSessionsPage", () => {
@@ -388,6 +410,74 @@ describe("findGameSessionsPage", () => {
     );
   });
 
+  it.each([
+    ["started_at", 4],
+    ["completed_at", 5],
+    ["duration_seconds", 6],
+    ["turn_count", 7],
+    ["dart_count", 8],
+  ])(
+    "throws naming %s when that timing column arrives null",
+    async (column, index) => {
+      const row: unknown[] = [
+        "s1",
+        "501_V1",
+        "COMPLETED",
+        "STANDALONE",
+        "2026-01-01T00:00:00.000Z",
+        "2026-01-01T00:05:00.000Z",
+        300,
+        9,
+        27,
+        501,
+      ];
+      row[index] = null;
+      const { db } = renderingDb([row]);
+      await expect(findGameSessionsPage(db, baseQuery)).rejects.toThrow(
+        new RegExp(`\\b${column}\\b`),
+      );
+    },
+  );
+
+  it("maps the timing columns in place, between neverStarted and countedScore", async () => {
+    const { db } = renderingDb([
+      [
+        "s1",
+        "501_V1",
+        "COMPLETED",
+        "STANDALONE",
+        "2026-01-01T00:00:00.000Z",
+        "2026-01-01T00:05:00.000Z",
+        300,
+        9,
+        27,
+        501,
+      ],
+    ]);
+    const [row] = await findGameSessionsPage(db, baseQuery);
+    expect(Object.keys(row)).toEqual([
+      "sessionId",
+      "rulesetVersionKey",
+      "statusKey",
+      "contextKey",
+      "neverStarted",
+      "startedAt",
+      "completedAt",
+      "durationSeconds",
+      "turnCount",
+      "dartCount",
+      "countedScore",
+    ]);
+    expect(row).toMatchObject({
+      neverStarted: false,
+      startedAt: "2026-01-01T00:00:00.000Z",
+      completedAt: "2026-01-01T00:05:00.000Z",
+      durationSeconds: 300,
+      turnCount: 9,
+      dartCount: 27,
+    });
+  });
+
   it("marks a turn-free abandoned row as neverStarted", async () => {
     const fromCalls: unknown[] = [];
     const rows = [
@@ -443,6 +533,32 @@ describe("countGameSessions", () => {
     expect(sql).toMatch(/"dart_count" > \$/);
     expect(sql).not.toMatch(/limit/);
     expect(total).toBe(56);
+  });
+
+  it("opens its WHERE with the same player, game, window and status predicates findBucketedSessionAggregates opens with", async () => {
+    const whereOf = (sql: string) =>
+      sql
+        .split(/ where /i)[1]
+        .split(/ group by /i)[0]
+        .replace(/\$\d+/g, "$");
+    const counted = renderingDb([["0"]]);
+    await countGameSessions(counted.db, { ...baseQuery, context: "routine" });
+    const bucketed = renderingDb([]);
+    await findBucketedSessionAggregates(bucketed.db, {
+      ...baseQuery,
+      context: "routine",
+      bucket: "none",
+      tz: undefined,
+    });
+    const window =
+      '"v_stats_session_facts"."player_id" = $ and "v_stats_session_facts"."game_type_key" = $ and "v_stats_session_facts"."completed_at" >= $ and "v_stats_session_facts"."completed_at" < $ and "v_stats_session_facts"."status_key" in ($)';
+
+    expect(
+      whereOf(onlyStatement(counted.statements)).startsWith(`(${window} and `),
+    ).toBe(true);
+    expect(
+      whereOf(onlyStatement(bucketed.statements)).startsWith(`(${window} and `),
+    ).toBe(true);
   });
 });
 
@@ -1340,7 +1456,10 @@ describe("findVisitScoring", () => {
         visitRank: {},
       })),
     };
-    const outer = { from: vi.fn().mockResolvedValue([row]) };
+    const outer = {
+      from: vi.fn().mockReturnThis(),
+      groupBy: vi.fn().mockResolvedValue([row]),
+    };
     const db = {
       select: vi.fn().mockReturnValueOnce(inner).mockReturnValueOnce(outer),
     } as any;
@@ -1496,6 +1615,18 @@ describe("findHeatmapCells", () => {
     await findHeatmapCells(db, { ...dartScope, cellMm: 5, target: null });
     const [, groupBy = ""] = onlyStatement(statements).split(/ group by /i);
     expect(groupBy.trim()).toBe("1, 2");
+  });
+
+  it("maps rows to numeric cells, throwing on a null cell column", async () => {
+    const mapped = renderingDb([["3", "-2", "7"]]);
+    await expect(
+      findHeatmapCells(mapped.db, { ...dartScope, cellMm: 5, target: null }),
+    ).resolves.toEqual([{ ix: 3, iy: -2, darts: 7 }]);
+
+    const broken = renderingDb([[3, null, 7]]);
+    await expect(
+      findHeatmapCells(broken.db, { ...dartScope, cellMm: 5, target: null }),
+    ).rejects.toThrow(/\biy\b/);
   });
 });
 
@@ -2973,7 +3104,8 @@ describe("findStepBuckets", () => {
   it("parses the sum strings to numbers", async () => {
     const chain = {
       from: vi.fn().mockReturnThis(),
-      where: vi.fn().mockResolvedValue([
+      where: vi.fn().mockReturnThis(),
+      groupBy: vi.fn().mockResolvedValue([
         {
           bucketStart: "2026-01-01T00:00:00.000Z",
           bucketEnd: "2026-02-01T00:00:00.000Z",
@@ -3005,7 +3137,8 @@ describe("findStepBuckets", () => {
   it("returns no bucket on bucket=none when no session is in scope, like the game readers", async () => {
     const chain = {
       from: vi.fn().mockReturnThis(),
-      where: vi.fn().mockResolvedValue([
+      where: vi.fn().mockReturnThis(),
+      groupBy: vi.fn().mockResolvedValue([
         {
           bucketStart: "2026-01-01T00:00:00.000Z",
           bucketEnd: "2026-02-01T00:00:00.000Z",
@@ -3024,6 +3157,21 @@ describe("findStepBuckets", () => {
     });
 
     expect(result).toEqual([]);
+  });
+
+  it("drops the zero-session bucket=none row with no group by in the rendered SQL (bucketWindow pin)", async () => {
+    const { db, statements } = renderingDb([
+      [baseQuery.from, baseQuery.to, 0, "0", "0"],
+    ]);
+
+    const result = await findStepBuckets(db, {
+      ...baseQuery,
+      bucket: "none",
+      tz: undefined,
+    });
+
+    expect(result).toEqual([]);
+    expect(onlyStatement(statements)).not.toMatch(/group by/i);
   });
 });
 
@@ -3056,6 +3204,26 @@ describe("findStepSessionPage", () => {
     expect(statements[0].params).toContain(26);
   });
 
+  it("orders by exactly the keyset findGameSessionsPage orders by, on its own view", async () => {
+    const orderOf = (sql: string) =>
+      sql.split(/ order by /i)[1].split(/ limit /i)[0];
+    const step = renderingDb([]);
+    await findStepSessionPage(step.db, baseQuery);
+    const game = renderingDb([]);
+    await findGameSessionsPage(game.db, {
+      ...baseQuery,
+      gameTypeKey: "501",
+      context: "all",
+    });
+
+    expect(orderOf(onlyStatement(step.statements))).toBe(
+      '"v_stats_routine_step_facts"."completed_at" desc, "v_stats_routine_step_facts"."session_id" desc',
+    );
+    expect(orderOf(onlyStatement(game.statements))).toBe(
+      '"v_stats_session_facts"."completed_at" desc, "v_stats_session_facts"."session_id" desc',
+    );
+  });
+
   it("adds the keyset predicate when a cursor is given", async () => {
     const { db, statements } = renderingDb([]);
     await findStepSessionPage(db, {
@@ -3068,6 +3236,35 @@ describe("findStepSessionPage", () => {
       expect.arrayContaining(["2026-01-15T00:00:00.000Z", "s1"]),
     );
   });
+
+  it.each([
+    ["started_at", 4],
+    ["completed_at", 5],
+    ["duration_seconds", 6],
+    ["turn_count", 7],
+    ["dart_count", 8],
+  ])(
+    "throws naming %s when that timing column arrives null",
+    async (column, index) => {
+      const row: unknown[] = [
+        "s1",
+        null,
+        "SWITCHING_V1",
+        "COMPLETED",
+        "2026-01-01T00:00:00.000Z",
+        "2026-01-01T00:05:00.000Z",
+        300,
+        9,
+        27,
+        120,
+      ];
+      row[index] = null;
+      const { db } = renderingDb([row]);
+      await expect(findStepSessionPage(db, baseQuery)).rejects.toThrow(
+        new RegExp(`\\b${column}\\b`),
+      );
+    },
+  );
 
   it("marks a turn-free abandoned row as neverStarted", async () => {
     const chain = {
@@ -3303,6 +3500,36 @@ describe("findStepScopeDartCount", () => {
     expect(sql).toMatch(/"step_key" = \$/);
   });
 
+  it("scopes with the same six predicates findStepBuckets, findStepFoldRows and findStepSessionPage scope with", async () => {
+    const whereOf = (sql: string) =>
+      sql
+        .split(/ where /i)[1]
+        .split(/ (?:group by|order by|limit) /i)[0]
+        .replace(/\$\d+/g, "$");
+    const scope =
+      '("v_stats_routine_step_facts"."player_id" = $ and "v_stats_routine_step_facts"."routine_key" = $ and "v_stats_routine_step_facts"."step_key" = $ and "v_stats_routine_step_facts"."completed_at" >= $ and "v_stats_routine_step_facts"."completed_at" < $ and "v_stats_routine_step_facts"."status_key" in ($)';
+    const bucketed = { ...stepScope, bucket: "none" as const, tz: undefined };
+    const counted = renderingDb([["0"]]);
+    await findStepScopeDartCount(counted.db, stepScope);
+    const buckets = renderingDb([]);
+    await findStepBuckets(buckets.db, bucketed);
+    const folds = renderingDb([]);
+    await findStepFoldRows(folds.db, bucketed);
+    const page = renderingDb([]);
+    await findStepSessionPage(page.db, {
+      ...stepScope,
+      limit: 25,
+      after: { completedAt: "2026-01-15T00:00:00.000Z", sessionId: "s1" },
+    });
+
+    expect(whereOf(onlyStatement(counted.statements))).toBe(`${scope})`);
+    expect(whereOf(onlyStatement(buckets.statements))).toBe(`${scope})`);
+    expect(whereOf(onlyStatement(folds.statements))).toBe(`${scope})`);
+    expect(
+      whereOf(onlyStatement(page.statements)).startsWith(`${scope} and `),
+    ).toBe(true);
+  });
+
   it("parses the sum from a string", async () => {
     const chain = {
       from: vi.fn().mockReturnThis(),
@@ -3392,5 +3619,12 @@ describe("findHomeHeatmapCells", () => {
     const { db } = renderingDb([[-1, -26, "30"]]);
     const cells = await findHomeHeatmapCells(db, { ...homeScope, cellMm: 4 });
     expect(cells).toEqual([{ ix: -1, iy: -26, darts: 30 }]);
+  });
+
+  it("groups by the selected cell columns' positions, never a re-bound cellMm", async () => {
+    const { db, statements } = renderingDb([]);
+    await findHomeHeatmapCells(db, { ...homeScope, cellMm: 4 });
+    const [, groupBy = ""] = onlyStatement(statements).split(/ group by /i);
+    expect(groupBy.trim()).toBe("1, 2");
   });
 });
