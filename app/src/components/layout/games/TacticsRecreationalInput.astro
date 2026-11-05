@@ -14,42 +14,7 @@ interface Props {
 const { ...props }: Props = Astro.props;
 
 // Components
-import InputButton from "./InputButton.astro";
-import RingKeyRow from "./RingKeyRow.astro";
+import TargetTapRecreationalInput from "./TargetTapRecreationalInput.astro";
 ---
 
-<div
-  class="input-well flex flex-col"
-  {...props}
->
-  <RingKeyRow />
-  <div
-    class="grid min-h-0 flex-2 auto-rows-fr gap-2"
-    :class="$ringKeyActive(ring, 'S') ? 'grid-cols-4' : 'grid-cols-7'"
-  >
-    <template
-      x-for="target in tapTargets()"
-      :key="target.number"
-    >
-      <InputButton
-        class="uppercase"
-        :disabled="finished || (target.number === 25 && ring === 'TREBLE')"
-        @click="recordTarget(target.number)"
-      >
-        <span
-          :class="$ringKeyActive(ring, 'S') ? 'text-2xl' : 'text-base'"
-          x-text="target.label"
-        ></span>
-      </InputButton>
-    </template>
-    <InputButton
-      class="text-soft-foreground"
-      :disabled="finished"
-      @click="recordMiss()"
-    >
-      <span :class="$ringKeyActive(ring, 'S') ? 'text-2xl' : 'text-base'">
-        MISS
-      </span>
-    </InputButton>
-  </div>
-</div>
+<TargetTapRecreationalInput {...props} />
