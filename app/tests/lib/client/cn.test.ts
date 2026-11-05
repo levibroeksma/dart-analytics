@@ -83,6 +83,15 @@ describe("cn", () => {
     );
   });
 
+  it("keeps the Stepper's glass-button-lg and text-stepper beside the classes they sit with", () => {
+    expect(cn("glass-button-lg", "flex", "w-16", "rounded-full")).toBe(
+      "glass-button-lg flex w-16 rounded-full",
+    );
+    expect(cn("text-stepper", "font-medium", "text-foreground")).toBe(
+      "text-stepper font-medium text-foreground",
+    );
+  });
+
   it("keeps catalog-grid beside the stock grid utilities", () => {
     expect(cn("catalog-grid grid gap-3")).toBe("catalog-grid grid gap-3");
   });
