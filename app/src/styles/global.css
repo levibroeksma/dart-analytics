@@ -338,6 +338,9 @@
   --text-value: 1.875rem;
   --text-value--line-height: 1;
   --text-value--letter-spacing: 0;
+  --text-stepper: 2rem;
+  --text-stepper--line-height: 1;
+  --text-stepper--letter-spacing: 0;
   --text-tile: 1.25rem;
   --text-tile--line-height: 1.2;
   --text-tile--letter-spacing: 0;
@@ -692,6 +695,16 @@
   box-shadow:
     0 2px 8px oklch(0% 0 0 / 0.25),
     inset 0 1px 0 oklch(100% 0 0 / 0.12);
+}
+
+@utility glass-button-lg {
+  border-inline: 0;
+  background: var(--raised-bg);
+  border-top: var(--raised-edge-top);
+  border-bottom: var(--raised-edge-bottom);
+  box-shadow: var(--raised-shadow-lg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
 }
 
 @utility glass-destructive {

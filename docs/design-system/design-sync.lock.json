@@ -612,8 +612,8 @@
       "id": "component:Stepper",
       "area": "components",
       "designHash": "6aa0b04d7bd77eb662d331d46e217ffcf67ac7eabebe276e41a74ed8d1b853d3",
-      "codeHash": "e95aee855f5449064962a17496549a6ba70dac80c5b4b04c935f8d0388d291a9",
-      "decision": "accepted-divergence",
+      "codeHash": "afb726e450ebd0adbc80a28538023c9100cf7532fb0ea9370cc98cee602c5398",
+      "decision": "design-wins",
       "date": "2026-11-05"
     },
     {
@@ -2298,6 +2298,30 @@
     },
     {
       "id": "var:--text-stat--line-height",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "var:--text-stepper",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "bca5ebd7886ec04fc5f2570dda231a3630d7b3218ff6ba2d4e8811aee1f49610",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "var:--text-stepper--letter-spacing",
+      "area": "tokens",
+      "designHash": null,
+      "codeHash": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+      "decision": "accepted-divergence",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "var:--text-stepper--line-height",
       "area": "tokens",
       "designHash": null,
       "codeHash": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
