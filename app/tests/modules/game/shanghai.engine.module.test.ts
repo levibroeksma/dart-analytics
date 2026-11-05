@@ -1463,3 +1463,19 @@ describe("Shanghai — kernel seams", () => {
     ).toMatchObject({ targetIndex: 1, totalScore: 3, dartsThisVisit: [] });
   });
 });
+
+describe("ShanghaiEngine — three-dart visit boundary", () => {
+  it("closes a visit on its third dart and opens a new turn on the fourth", () => {
+    const engine = new ShanghaiEngine(config);
+    for (let thrown = 0; thrown < 3; thrown++) engine.record(missObservation());
+    const closed = engine.facts().turns;
+    expect(closed).toHaveLength(1);
+    expect(closed[0].darts).toHaveLength(3);
+    expect(closed[0].completedAt).not.toBeNull();
+    engine.record(missObservation());
+    const reopened = engine.facts().turns;
+    expect(reopened).toHaveLength(2);
+    expect(reopened[1].darts).toHaveLength(1);
+    expect(reopened[1].completedAt).toBeNull();
+  });
+});

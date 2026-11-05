@@ -1,29 +1,14 @@
 import type { DoublePatternConfigData } from "@lib/types";
 import { DoublePatternV1Config } from "@lib/training/exercises/rulesets/types";
-import type {
-  DartFact,
-  DartObservation,
-  EngineFacts,
-  TurnFact,
-} from "@modules/types";
+import type { DartFact, EngineFacts } from "@modules/types";
+import type { DartExerciseSpec } from "@modules/interfaces";
 import {
-  appendObservedDart,
-  cloneTurns,
-  exerciseBlockStage,
-  openOrCreateTurn,
-  refuseWhenEnded,
-  undoLastDart,
-} from "@modules/game/turn-log.module";
-import { registerDartExerciseEngineFactory } from "./dart-engine.registry";
-import type {
-  DartExerciseEngine,
-  DartExerciseEngineFactory,
-} from "./interfaces";
-import { SOLO_PARTICIPANT_REF } from "./solo-participant.module";
+  dartExerciseEngineClass,
+  registerDartExercise,
+} from "./dart-exercise-shell.module";
 import type { DoublePatternState } from "./types";
 
 const EXERCISE_RULESET_VERSION_KEY = "DOUBLE_PATTERN_V1" as const;
-const STAGE = exerciseBlockStage();
 
 type PatternPosition = { patternIndex: number; targetWithinPattern: number };
 
@@ -112,100 +97,36 @@ export function foldDoublePatternState(
 }
 
 /**
- * Double Pattern: cycles a fixed list of double-number patterns, one visit
- * per pattern — each visit throws as many darts as its own pattern has
- * entries (09-Training/01-Routines.md §17, design spec 2026-09-11 §5.3). Every
- * hit double scores 1 point; nothing else scores. The engine owns no clock:
- * completion arrives only through `expireTimer()` (D264), exactly like
- * `SwitchingEngine`.
+ * Each visit is one pattern, so a visit closes once the next dart starts a
+ * pattern; a closed visit is never reused.
  */
-export class DoublePatternEngine implements DartExerciseEngine<DoublePatternState> {
-  readonly exerciseRulesetVersionKey = EXERCISE_RULESET_VERSION_KEY;
-
-  private readonly config: DoublePatternConfigData;
-  private readonly turns: TurnFact[];
-  private complete = false;
-
-  constructor(config: DoublePatternConfigData, prior?: EngineFacts) {
-    this.config = DoublePatternV1Config.parse(config);
-    this.turns = prior ? cloneTurns(prior.turns) : [];
-  }
-
-  private dartsThrownSoFar(): number {
-    return this.turns.reduce((sum, turn) => sum + turn.darts.length, 0);
-  }
-
-  private deriveState(): DoublePatternState {
-    return foldDoublePatternState(
-      { stages: [{ ...STAGE }], turns: this.turns },
-      this.config,
-      this.complete,
-    );
-  }
-
-  record(observation: DartObservation): DoublePatternState {
-    refuseWhenEnded(this.complete, "exercise is complete");
-    const { patternIndex, targetWithinPattern } = positionFor(
-      this.config.patterns,
-      this.dartsThrownSoFar(),
-    );
-    const patternLength = this.config.patterns[patternIndex].length;
-    const intendedDouble =
-      this.config.patterns[patternIndex][targetWithinPattern];
-
-    const turn = openOrCreateTurn(
-      this.turns,
-      STAGE.clientKey,
-      SOLO_PARTICIPANT_REF,
-      (last) => last.completedAt === null,
-    );
-    appendObservedDart(turn, observation, {
-      intendedTargetNumber: intendedDouble,
-      intendedZoneKey: "DOUBLE",
-    });
-    if (turn.darts.length === patternLength) {
-      turn.completedAt = new Date().toISOString();
-    }
-    return this.deriveState();
-  }
-
-  undo(): boolean {
-    if (this.complete) {
-      this.complete = false;
-      return true;
-    }
-    return undoLastDart(this.turns);
-  }
-
-  /**
-   * Records that the step's countdown has elapsed — mirrors
-   * `TuodEngine.expireTimer()` (D264).
-   */
-  expireTimer(): void {
-    this.complete = true;
-  }
-
-  isComplete(): boolean {
-    return this.complete;
-  }
-
-  state(): DoublePatternState {
-    return this.deriveState();
-  }
-
-  facts(): EngineFacts {
-    return { stages: [{ ...STAGE }], turns: cloneTurns(this.turns) };
-  }
-}
-
-export const doublePatternEngineFactory: DartExerciseEngineFactory<
+const doublePatternSpec: DartExerciseSpec<
   DoublePatternConfigData,
   DoublePatternState
 > = {
   exerciseRulesetVersionKey: EXERCISE_RULESET_VERSION_KEY,
-  create(config: DoublePatternConfigData, prior?: EngineFacts) {
-    return new DoublePatternEngine(config, prior);
-  },
+  parse: (config) => DoublePatternV1Config.parse(config),
+  fold: foldDoublePatternState,
+  intent: (state) => ({
+    intendedTargetNumber: state.currentDoubleNumber,
+    intendedZoneKey: "DOUBLE",
+  }),
+  isVisitOpen: (turn, state) =>
+    turn.completedAt === null && state.targetWithinPattern !== 0,
 };
 
-registerDartExerciseEngineFactory(doublePatternEngineFactory);
+/**
+ * Double Pattern: cycles a fixed list of double-number patterns, one visit
+ * per pattern — each visit throws as many darts as its own pattern has
+ * entries (09-Training/01-Routines.md §17, design spec 2026-09-11 §5.3). Every
+ * hit double scores 1 point; nothing else scores. On the exercise shell:
+ * completion arrives only through `expireTimer()` (D264).
+ */
+export class DoublePatternEngine extends dartExerciseEngineClass(
+  doublePatternSpec,
+) {}
+
+export const doublePatternEngineFactory = registerDartExercise(
+  doublePatternSpec,
+  DoublePatternEngine,
+).factory;

@@ -1,18 +1,10 @@
 import { ScoreTrainingConfig } from "@lib/types";
-import type { ExistingTurnCounts } from "@repositories/interfaces";
 import type { RulesetValidator } from "@services/interfaces";
 import {
   QUICK_SCORE_OR_VISUAL_BOARD_MODES,
-  exceedsRoundsLimit,
-  isQuickScoreCapture,
   isQuickScoreOrVisualBoardCapture,
-  validateQuickScoreTurns,
 } from "../quick-score.validator";
-import {
-  isVisualBoardCapture,
-  validateVisualBoardTurns,
-} from "../visual-board.validator";
-import type { EventsBatchRequestInput } from "@routes/types";
+import { validateScoredBatch } from "../scored-batch.validator";
 import { validateModeGatedConfig } from "../mode-gated-config";
 import type {
   BatchValidationResult,
@@ -21,27 +13,6 @@ import type {
 } from "@services/types";
 
 const DEFAULT_MAX_VISIT_SCORE = 180;
-
-/**
- * The ROUNDS cap, as one expression both mode pairs reach. A visit is a visit
- * whichever way it was entered, so a session limited to N visits is limited to
- * N visits on the board too — the cap belongs to the config, not to the
- * capture mode.
- */
-function roundsLimitRejection(
-  config: Record<string, unknown>,
-  batch: EventsBatchRequestInput,
-  existingTurnCounts: ExistingTurnCounts,
-): BatchValidationResult {
-  if (exceedsRoundsLimit(config, batch, existingTurnCounts)) {
-    return {
-      valid: false,
-      code: "VALIDATION_FAILED",
-      issues: [`session is limited to ${config.duration_value} visits`],
-    };
-  }
-  return { valid: true };
-}
 
 /**
  * Score Training supports two mode pairs. Under RECREATIONAL + QUICK_SCORE
@@ -65,38 +36,13 @@ export const scoreTrainingValidator: RulesetValidator = {
     );
   },
 
-  validateBatch({
-    config,
-    batch,
-    existingTurnCounts,
-    captureModeKey,
-    inputModeKey,
-  }: ModedBatchValidationInput): BatchValidationResult {
-    if (isVisualBoardCapture(captureModeKey, inputModeKey)) {
-      const turns = validateVisualBoardTurns(
-        batch,
-        (config.max_visit_score as number | undefined) ??
-          DEFAULT_MAX_VISIT_SCORE,
-      );
-      if (!turns.valid) return turns;
-
-      return roundsLimitRejection(config, batch, existingTurnCounts);
-    }
-
-    if (!isQuickScoreCapture(captureModeKey, inputModeKey)) {
-      return {
-        valid: false,
-        code: "VALIDATION_FAILED",
-        issues: [`unsupported mode pair ${captureModeKey} + ${inputModeKey}`],
-      };
-    }
-
-    const maxVisitScore =
-      (config.max_visit_score as number | undefined) ?? DEFAULT_MAX_VISIT_SCORE;
-
-    const turns = validateQuickScoreTurns(batch, maxVisitScore);
-    if (!turns.valid) return turns;
-
-    return roundsLimitRejection(config, batch, existingTurnCounts);
+  validateBatch(input: ModedBatchValidationInput): BatchValidationResult {
+    return validateScoredBatch(input, {
+      maxTurnScore:
+        (input.config.max_visit_score as number | undefined) ??
+        DEFAULT_MAX_VISIT_SCORE,
+      limitNoun: "visits",
+      limitOnVisualBoard: true,
+    });
   },
 };

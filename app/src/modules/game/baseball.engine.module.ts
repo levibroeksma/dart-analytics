@@ -28,7 +28,7 @@ import type {
   SeatState,
   TrackSeat,
 } from "./types";
-import { endedRefusal } from "./turn-log.module";
+import { endedRefusal, visitOpenUnder } from "./turn-log.module";
 
 /** Nine innings; inning n aims at number n. */
 export const BASEBALL_INNINGS = 9;
@@ -200,7 +200,7 @@ const baseballSpec: DartGameSpec<Seated<BaseballSnapshot>, BaseballState> = {
   fold: foldBaseballState,
   refusal: (state) => (state.status === "IN_PROGRESS" ? null : GAME_ENDED),
   intent: () => NO_INTENT,
-  isVisitOpen: (turn) => turn.darts.length < 3,
+  isVisitOpen: visitOpenUnder(3),
   wouldComplete: closesLastInning,
   closedVisitTotal: (opened, closed, participantRef) =>
     runsOf(closed, participantRef) - runsOf(opened, participantRef),

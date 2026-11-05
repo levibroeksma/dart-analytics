@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   foldTargetScoringState,
+  scoringTrackRules,
   targetScoringIntent,
   targetScoringPoints,
   targetScoringTargetLabel,
@@ -9,7 +10,7 @@ import {
 } from "@modules/training/exercises/target-scoring.engine.module";
 import { getDartExerciseEngineFactory } from "@modules/training/exercises/dart-engine.registry";
 import type { TargetScoringConfigData } from "@lib/types";
-import type { DartObservation } from "@modules/types";
+import type { ChainTrackExt, DartObservation, TrackSeat } from "@modules/types";
 import { buildEventsBatch } from "@modules/game/events.payload.module";
 import { EventsBatchRequest } from "@pages/api/sessions/types";
 
@@ -364,5 +365,41 @@ describe("targetScoringIntent", () => {
       intendedTargetNumber: 25,
       intendedZoneKey: "INNER_BULL",
     });
+  });
+});
+
+describe("scoringTrackRules", () => {
+  const onDart = (seat: TrackSeat<ChainTrackExt>) => seat;
+  const rules = scoringTrackRules<ChainTrackExt>(
+    { targets: [20, 25] },
+    onDart,
+    "done",
+  );
+  const seatAt = (targetIndex: number, dartsThisVisit = 0) =>
+    ({ targetIndex, dartsThisVisit }) as TrackSeat<ChainTrackExt>;
+
+  it("carries the given done message and per-dart policy", () => {
+    expect(rules.doneMessage).toBe("done");
+    expect(rules.onDart).toBe(onDart);
+  });
+
+  it("aims at the config's targets in order", () => {
+    expect(rules.target(seatAt(0))).toEqual({ kind: "NUMBER", number: 20 });
+    expect(rules.target(seatAt(1))).toEqual({ kind: "BULL" });
+  });
+
+  it("hits and scores as targetScoringPoints, a miss scoring 0", () => {
+    const twenty = rules.target(seatAt(0));
+    const bull = rules.target(seatAt(1));
+    expect(rules.hit(twenty, dart(20, "TREBLE"))).toBe(true);
+    expect(rules.points(twenty, dart(20, "TREBLE"), true)).toBe(3);
+    expect(rules.hit(twenty, dart(20, "DOUBLE"))).toBe(false);
+    expect(rules.points(twenty, dart(20, "DOUBLE"), false)).toBe(0);
+    expect(rules.points(bull, dart(25, "OUTER_BULL"), true)).toBe(1);
+  });
+
+  it("closes a visit after three darts", () => {
+    expect(rules.visitOpen(seatAt(0, 2))).toBe(true);
+    expect(rules.visitOpen(seatAt(0, 3))).toBe(false);
   });
 });

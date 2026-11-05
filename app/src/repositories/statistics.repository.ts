@@ -969,14 +969,16 @@ function newestFirst(t: { completedAt: Column; sessionId: Column }): SQL[] {
   return [desc(t.completedAt), desc(t.sessionId)];
 }
 
-/** The non-null timing columns every session row carries. */
-function mapSessionTimings(row: {
+type SessionTimingsInput = {
   startedAt: string | null;
   completedAt: string | null;
   durationSeconds: number | null;
   turnCount: number | null;
   dartCount: number | null;
-}): {
+};
+
+/** The non-null timing columns every session row carries. */
+function mapSessionTimings(row: SessionTimingsInput): {
   startedAt: string;
   completedAt: string;
   durationSeconds: number;
@@ -989,6 +991,26 @@ function mapSessionTimings(row: {
     durationSeconds: nonNull(row.durationSeconds, "duration_seconds"),
     turnCount: nonNull(row.turnCount, "turn_count"),
     dartCount: nonNull(row.dartCount, "dart_count"),
+  };
+}
+
+/** The non-null session id, status and timings every session page row leads with. */
+function mapSessionHead(
+  row: {
+    sessionId: string | null;
+    statusKey: string | null;
+  } & SessionTimingsInput,
+): {
+  sessionId: string;
+  statusKey: string;
+  timings: ReturnType<typeof mapSessionTimings>;
+} {
+  const statusKey = nonNull(row.statusKey, "status_key");
+  const timings = mapSessionTimings(row);
+  return {
+    sessionId: nonNull(row.sessionId, "session_id"),
+    statusKey,
+    timings,
   };
 }
 
@@ -1079,10 +1101,9 @@ export async function findGameSessionsPage(
     .limit(q.limit + 1);
 
   return rows.map((row) => {
-    const statusKey = nonNull(row.statusKey, "status_key");
-    const timings = mapSessionTimings(row);
+    const { sessionId, statusKey, timings } = mapSessionHead(row);
     return {
-      sessionId: nonNull(row.sessionId, "session_id"),
+      sessionId,
       rulesetVersionKey: nonNull(row.rulesetVersionKey, "ruleset_version_key"),
       statusKey,
       contextKey: nonNull(row.contextKey, "context_key"),
@@ -2190,10 +2211,9 @@ export async function findStepSessionPage(
     .limit(q.limit + 1);
 
   return rows.map((row) => {
-    const statusKey = nonNull(row.statusKey, "status_key");
-    const timings = mapSessionTimings(row);
+    const { sessionId, statusKey, timings } = mapSessionHead(row);
     return {
-      sessionId: nonNull(row.sessionId, "session_id"),
+      sessionId,
       rulesetVersionKey: row.rulesetVersionKey,
       exerciseRulesetVersionKey: row.exerciseRulesetVersionKey,
       statusKey,

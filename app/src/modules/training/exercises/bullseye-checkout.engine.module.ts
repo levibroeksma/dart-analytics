@@ -1,25 +1,15 @@
 import type { BullseyeCheckoutConfigData } from "@lib/types";
 import { BullseyeCheckoutV1Config } from "@lib/training/exercises/rulesets/types";
-import type { DartObservation, EngineFacts, TurnFact } from "@modules/types";
+import type { EngineFacts, TurnFact } from "@modules/types";
+import type { DartExerciseSpec } from "@modules/interfaces";
+import { doubleTargetIntent, NO_INTENT } from "@modules/game/turn-log.module";
 import {
-  appendObservedDart,
-  cloneTurns,
-  doubleTargetIntent,
-  exerciseBlockStage,
-  openOrCreateTurn,
-  refuseWhenEnded,
-  undoLastDart,
-} from "@modules/game/turn-log.module";
-import { registerDartExerciseEngineFactory } from "./dart-engine.registry";
-import type {
-  DartExerciseEngine,
-  DartExerciseEngineFactory,
-} from "./interfaces";
-import { SOLO_PARTICIPANT_REF } from "./solo-participant.module";
+  dartExerciseEngineClass,
+  registerDartExercise,
+} from "./dart-exercise-shell.module";
 import type { BullseyeCheckoutState } from "./types";
 
 const EXERCISE_RULESET_VERSION_KEY = "BULLSEYE_CHECKOUT_V1" as const;
-const STAGE = exerciseBlockStage();
 const DARTS_PER_VISIT = 3;
 const BULLSEYE_SCORE = 50;
 /** Dart 3 is always thrown at the bull, whatever darts 1–2 did. */
@@ -104,84 +94,33 @@ export function foldBullseyeCheckoutState(
   };
 }
 
-/**
- * Bullseye Checkout ("Bullseye Checkouts"): every visit starts at 81, darts
- * 1–2 set up freely, dart 3 is thrown at the bull
- * (`docs/game-rules/training/exercises/bullseye-checkout.md`). One
- * `TurnFact` is one three-dart visit; only dart 3 carries an intent.
- * Clockless: completion arrives only through `expireTimer()` (D264).
- */
-export class BullseyeCheckoutEngine implements DartExerciseEngine<BullseyeCheckoutState> {
-  readonly exerciseRulesetVersionKey = EXERCISE_RULESET_VERSION_KEY;
-
-  private readonly config: BullseyeCheckoutConfigData;
-  private readonly turns: TurnFact[];
-  private complete = false;
-
-  constructor(config: BullseyeCheckoutConfigData, prior?: EngineFacts) {
-    this.config = BullseyeCheckoutV1Config.parse(config);
-    this.turns = prior ? cloneTurns(prior.turns) : [];
-  }
-
-  private deriveState(): BullseyeCheckoutState {
-    return foldBullseyeCheckoutState(
-      { stages: [{ ...STAGE }], turns: this.turns },
-      this.config,
-      this.complete,
-    );
-  }
-
-  record(observation: DartObservation): BullseyeCheckoutState {
-    refuseWhenEnded(this.complete, "exercise is complete");
-    const turn = openOrCreateTurn(
-      this.turns,
-      STAGE.clientKey,
-      SOLO_PARTICIPANT_REF,
-      (last) => last.darts.length < DARTS_PER_VISIT,
-    );
-    if (turn.darts.length === DARTS_PER_VISIT - 1) {
-      appendObservedDart(turn, observation, FINISHING_DART_INTENT);
-      turn.completedAt = new Date().toISOString();
-    } else {
-      appendObservedDart(turn, observation);
-    }
-    return this.deriveState();
-  }
-
-  undo(): boolean {
-    if (this.complete) {
-      this.complete = false;
-      return true;
-    }
-    return undoLastDart(this.turns);
-  }
-
-  /** The step's countdown elapsed — the clock lives in the controller (D264). */
-  expireTimer(): void {
-    this.complete = true;
-  }
-
-  isComplete(): boolean {
-    return this.complete;
-  }
-
-  state(): BullseyeCheckoutState {
-    return this.deriveState();
-  }
-
-  facts(): EngineFacts {
-    return { stages: [{ ...STAGE }], turns: cloneTurns(this.turns) };
-  }
-}
-
-export const bullseyeCheckoutEngineFactory: DartExerciseEngineFactory<
+const bullseyeCheckoutSpec: DartExerciseSpec<
   BullseyeCheckoutConfigData,
   BullseyeCheckoutState
 > = {
   exerciseRulesetVersionKey: EXERCISE_RULESET_VERSION_KEY,
-  create(config: BullseyeCheckoutConfigData, prior?: EngineFacts) {
-    return new BullseyeCheckoutEngine(config, prior);
-  },
+  parse: (config) => BullseyeCheckoutV1Config.parse(config),
+  fold: foldBullseyeCheckoutState,
+  intent: (state) =>
+    state.dartsInVisit === DARTS_PER_VISIT - 1
+      ? FINISHING_DART_INTENT
+      : NO_INTENT,
+  isVisitOpen: (turn) => turn.darts.length < DARTS_PER_VISIT,
 };
 
-registerDartExerciseEngineFactory(bullseyeCheckoutEngineFactory);
+/**
+ * Bullseye Checkout ("Bullseye Checkouts"): every visit starts at 81, darts
+ * 1–2 set up freely, dart 3 is thrown at the bull
+ * (`docs/game-rules/training/exercises/bullseye-checkout.md`), on the
+ * exercise shell. One `TurnFact` is one three-dart visit; only dart 3
+ * carries an intent. Clockless: completion arrives only through
+ * `expireTimer()` (D264).
+ */
+export class BullseyeCheckoutEngine extends dartExerciseEngineClass(
+  bullseyeCheckoutSpec,
+) {}
+
+export const bullseyeCheckoutEngineFactory = registerDartExercise(
+  bullseyeCheckoutSpec,
+  BullseyeCheckoutEngine,
+).factory;

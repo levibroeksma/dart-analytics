@@ -74,24 +74,40 @@ export function targetScoringIntent(target: number): DartIntent {
 }
 
 /**
- * Target Scoring's Track rules: the config's targets in order; a dart hits
- * when `targetScoringPoints` scores it and adds those points; `chainOnTarget`
- * builds the chain and cycles to the next target on a miss that ends one.
- * Visits close after three darts and carry no rule of their own.
+ * Track rules shared by the Target Scoring family: the config's targets in
+ * order; a dart hits when `targetScoringPoints` scores it and adds those
+ * points; visits close after three darts and carry no rule of their own.
+ * The caller supplies the per-dart policy and the refusal once done.
+ */
+export function scoringTrackRules<TExt>(
+  config: { targets: readonly number[] },
+  onDart: TrackRules<TExt>["onDart"],
+  doneMessage: string,
+): TrackRules<TExt> {
+  const pointsOn = (target: BoardTarget, observation: DartObservation) =>
+    targetScoringPoints(sectionOf(target), observation);
+  return {
+    doneMessage,
+    target: pathTarget(numbersPath(config.targets)),
+    hit: (target, observation) => pointsOn(target, observation) !== null,
+    points: (target, observation) => pointsOn(target, observation) ?? 0,
+    onDart,
+    visitOpen: closeAfter(DARTS_PER_VISIT),
+  };
+}
+
+/**
+ * Target Scoring's Track rules: `chainOnTarget` builds the chain and cycles
+ * to the next target on a miss that ends one.
  */
 function targetScoringRules(
   config: TargetScoringConfigData,
 ): TrackRules<ChainTrackExt> {
-  const pointsOn = (target: BoardTarget, observation: DartObservation) =>
-    targetScoringPoints(sectionOf(target), observation);
-  return {
-    doneMessage: DONE_MESSAGE,
-    target: pathTarget(numbersPath(config.targets)),
-    hit: (target, observation) => pointsOn(target, observation) !== null,
-    points: (target, observation) => pointsOn(target, observation) ?? 0,
-    onDart: chainOnTarget(config.targets.length),
-    visitOpen: closeAfter(DARTS_PER_VISIT),
-  };
+  return scoringTrackRules(
+    config,
+    chainOnTarget(config.targets.length),
+    DONE_MESSAGE,
+  );
 }
 
 function initialExt(config: TargetScoringConfigData): ChainTrackExt {

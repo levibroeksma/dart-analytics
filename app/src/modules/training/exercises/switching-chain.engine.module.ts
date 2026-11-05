@@ -1,55 +1,36 @@
 import type { SwitchingChainConfigData } from "@lib/types";
 import { SwitchingChainV1Config } from "@lib/training/exercises/rulesets/types";
-import type {
-  BoardTarget,
-  DartObservation,
-  EngineFacts,
-  SequenceTrackExt,
-  TrackSeat,
-} from "@modules/types";
+import type { EngineFacts, SequenceTrackExt, TrackSeat } from "@modules/types";
 import type { TrackRules } from "@modules/interfaces";
-import { numbersPath } from "@modules/game/board-progression.module";
-import {
-  closeAfter,
-  pathTarget,
-  resetOnMiss,
-  sectionOf,
-} from "@modules/game/track-policies";
+import { resetOnMiss } from "@modules/game/track-policies";
 import {
   dartExerciseEngineClass,
   registerDartExercise,
 } from "./dart-exercise-shell.module";
 import {
+  scoringTrackRules,
   targetScoringIntent,
-  targetScoringPoints,
 } from "./target-scoring.engine.module";
 import { trackExerciseSpec } from "./track-exercise-spec.module";
 import type { SwitchingChainState } from "./types";
 
 const EXERCISE_RULESET_VERSION_KEY = "SWITCHING_CHAIN_V1" as const;
-const DARTS_PER_VISIT = 3;
 const DONE_MESSAGE =
   "A Switching Chain seat never finishes; only the timer ends the exercise.";
 
 /**
- * Switching Chain's Track rules: the config's three targets in order,
- * scored as Target Scoring; `resetOnMiss` advances on a hit, wrapping after
- * the last, and restarts the sequence on a miss. Visits close after three
- * darts and carry no rule of their own.
+ * Switching Chain's Track rules: the config's three targets scored as
+ * Target Scoring; `resetOnMiss` advances on a hit, wrapping after the last,
+ * and restarts the sequence on a miss.
  */
 function switchingChainRules(
   config: SwitchingChainConfigData,
 ): TrackRules<SequenceTrackExt> {
-  const pointsOn = (target: BoardTarget, observation: DartObservation) =>
-    targetScoringPoints(sectionOf(target), observation);
-  return {
-    doneMessage: DONE_MESSAGE,
-    target: pathTarget(numbersPath(config.targets)),
-    hit: (target, observation) => pointsOn(target, observation) !== null,
-    points: (target, observation) => pointsOn(target, observation) ?? 0,
-    onDart: resetOnMiss(config.targets.length),
-    visitOpen: closeAfter(DARTS_PER_VISIT),
-  };
+  return scoringTrackRules(
+    config,
+    resetOnMiss(config.targets.length),
+    DONE_MESSAGE,
+  );
 }
 
 function initialExt(): SequenceTrackExt {

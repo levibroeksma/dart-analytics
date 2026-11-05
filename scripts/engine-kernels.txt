@@ -19,9 +19,9 @@ app/src/modules/game/singles-training.engine.module.ts | TRACK | KERNEL_BOUND | 
 app/src/modules/game/tactics.engine.module.ts | MARKS | KERNEL_BOUND | docs/game-rules/rulesets/tactics.md |
 app/src/modules/game/tuod.engine.module.ts | CHECKOUT | KERNEL_BOUND | docs/game-rules/rulesets/ten-up-one-down.md | Checkout kernel
 app/src/modules/training/exercises/bull-up.engine.module.ts | HAND_WRITTEN | HAND_WRITTEN | docs/game-rules/training/exercises/bull-up-practice.md | single target, counting only; a kernel adds nothing (Track spec §5)
-app/src/modules/training/exercises/bullseye-checkout.engine.module.ts | CHECKOUT | PENDING | docs/game-rules/training/exercises/bullseye-checkout.md | re-checked when its exercise shell is next touched (Checkout spec C6)
+app/src/modules/training/exercises/bullseye-checkout.engine.module.ts | CHECKOUT | PENDING | docs/game-rules/training/exercises/bullseye-checkout.md | shell-bound in duplication phase 4c (D528), kernel unbound: bull-only finish, no bust ladder; migrates with a later Checkout wave (Checkout spec C6)
 app/src/modules/training/exercises/checkout-sequence.engine.module.ts | CHECKOUT | KERNEL_BOUND | docs/game-rules/training/exercises/catch-40.md |
-app/src/modules/training/exercises/double-pattern.engine.module.ts | TRACK | PENDING | docs/game-rules/training/exercises/double-pattern.md | re-checked when its exercise shell is next touched (Track spec §5)
+app/src/modules/training/exercises/double-pattern.engine.module.ts | TRACK | PENDING | docs/game-rules/training/exercises/double-pattern.md | shell-bound in duplication phase 4c (D528), kernel unbound: no-behaviour-change scope; migrates with a later Track wave (Track spec §5)
 app/src/modules/training/exercises/doubles-lock.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/training/exercises/doubles-lock.md |
 app/src/modules/training/exercises/halve-it.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/training/exercises/halve-it.md |
 app/src/modules/training/exercises/hit-count.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/training/exercises/hit-count.md |
@@ -30,6 +30,6 @@ app/src/modules/training/exercises/score-threshold.engine.module.ts | VISIT_POIN
 app/src/modules/training/exercises/snakes-ladders.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/training/exercises/doubles-snakes-and-ladders.md |
 app/src/modules/training/exercises/switchblade.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/training/exercises/switchblade.md |
 app/src/modules/training/exercises/switching-chain.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/training/exercises/switching.md |
-app/src/modules/training/exercises/switching.engine.module.ts | TRACK | PENDING | docs/game-rules/training/exercises/switching.md | re-checked when its exercise shell is next touched (Track spec §5)
+app/src/modules/training/exercises/switching.engine.module.ts | TRACK | PENDING | docs/game-rules/training/exercises/switching.md | shell-bound in duplication phase 4c (D528), kernel unbound: no-behaviour-change scope; migrates with a later Track wave (Track spec §5)
 app/src/modules/training/exercises/target-scoring.engine.module.ts | TRACK | KERNEL_BOUND | docs/game-rules/training/exercises/target-scoring.md |
 app/src/modules/training/exercises/warm-up.engine.module.ts | HAND_WRITTEN | HAND_WRITTEN | docs/game-rules/training/exercises/warm-up.md | timed, dartless ExerciseEngine (umbrella spec §5)

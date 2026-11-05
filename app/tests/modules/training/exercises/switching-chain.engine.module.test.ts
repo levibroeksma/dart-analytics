@@ -189,7 +189,7 @@ describe("SwitchingChainEngine", () => {
     const engine = new SwitchingChainEngine(CONFIG);
     engine.expireTimer();
 
-    expect(() => engine.record(MISS)).toThrow();
+    expect(() => engine.record(MISS)).toThrow("exercise is complete");
   });
 
   it("rehydrates in-progress state from prior facts", () => {

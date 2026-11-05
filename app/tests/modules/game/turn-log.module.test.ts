@@ -18,6 +18,7 @@ import {
   resolveObservation,
   sumDartScores,
   turnsBeforeVisit,
+  visitOpenUnder,
   undoLastDart,
   undoLastUnit,
   undoStagedTurn,
@@ -553,5 +554,39 @@ describe("reopenClosedTurn", () => {
     ];
     reopenClosedTurn(turns, stages);
     expect(stages.map((st) => st.clientKey)).toEqual(["block-1"]);
+  });
+});
+
+describe("visitOpenUnder", () => {
+  function visit(count: number): TurnFact {
+    return {
+      clientKey: "turn-1",
+      stageClientKey: "block-1",
+      participantRef: "p1",
+      sequence: 1,
+      completedAt: null,
+      totalScore: 0,
+      darts: Array.from({ length: count }, (_, index) => ({
+        sequence: index + 1,
+        intendedTargetNumber: null,
+        intendedZoneKey: null,
+        hitTargetNumber: 20,
+        hitZoneKey: "SINGLE",
+        score: 20,
+        locationX: null,
+        locationY: null,
+      })),
+    };
+  }
+
+  it("keeps a visit open below the dart limit and closes it at the limit", () => {
+    const open = visitOpenUnder(3);
+    expect([0, 1, 2, 3, 4].map((count) => open(visit(count)))).toEqual([
+      true,
+      true,
+      true,
+      false,
+      false,
+    ]);
   });
 });

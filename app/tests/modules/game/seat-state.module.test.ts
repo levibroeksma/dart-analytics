@@ -6,6 +6,7 @@ import {
   foldSeatSteps,
   foldSeatStates,
   otherSeatsComplete,
+  seatedRefusal,
   toObservation,
 } from "@modules/game/seat-state.module";
 import type { SeatFact } from "@lib/types";
@@ -283,5 +284,41 @@ describe("toObservation", () => {
       locationX: 0.1,
       locationY: 0.2,
     });
+  });
+});
+
+describe("seatedRefusal", () => {
+  type Status = "IN_PROGRESS" | "WON" | "COMPLETE";
+  type State = {
+    status: Status;
+    activeParticipantRef: string;
+    seats: { participantRef: string; sideKey: string; status: Status }[];
+  };
+  const refusal = seatedRefusal<State>("match over", "seat over");
+
+  function state(match: Status, active: Status, other: Status): State {
+    return {
+      status: match,
+      activeParticipantRef: "p1",
+      seats: [
+        { participantRef: "p1", sideKey: "A", status: active },
+        { participantRef: "p2", sideKey: "B", status: other },
+      ],
+    };
+  }
+
+  it("accepts while the match and the active seat are in progress", () => {
+    expect(refusal(state("IN_PROGRESS", "IN_PROGRESS", "WON"))).toBeNull();
+  });
+
+  it("refuses with the seat message once only the active seat is done", () => {
+    expect(refusal(state("IN_PROGRESS", "WON", "IN_PROGRESS"))).toBe(
+      "seat over",
+    );
+  });
+
+  it("refuses with the match message first once the match has ended", () => {
+    expect(refusal(state("COMPLETE", "IN_PROGRESS", "WON"))).toBe("match over");
+    expect(refusal(state("COMPLETE", "WON", "WON"))).toBe("match over");
   });
 });

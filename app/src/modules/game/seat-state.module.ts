@@ -95,6 +95,22 @@ export function activeSeatState<TSeat extends SeatState>(
 }
 
 /**
+ * The `refusal` for a seated ruleset whose match can end while another seat
+ * still reads `IN_PROGRESS`: `matchEnded` once the match is over, else
+ * `seatDone` once the active seat has finished, else `null`.
+ */
+export function seatedRefusal<
+  TState extends MultiSeatState<SeatState & { status: string }> & {
+    status: string;
+  },
+>(matchEnded: string, seatDone: string): (state: TState) => string | null {
+  return (state) => {
+    if (state.status !== "IN_PROGRESS") return matchEnded;
+    return activeSeatState(state).status === "IN_PROGRESS" ? null : seatDone;
+  };
+}
+
+/**
  * Whether a duration-bounded seat has used up its own budget. A ROUNDS
  * session ends a seat the moment it has thrown its configured number of
  * turns; a MINUTES session ends every seat together when the wall clock

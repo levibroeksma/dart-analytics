@@ -7,8 +7,12 @@ import {
 } from "./board-progression.module";
 import { registerEngineFactory } from "./engine.registry";
 import { activeSeat } from "./seat-rota.module";
-import { activeSeatState } from "./seat-state.module";
-import { doubleTargetIntent, endedRefusal } from "./turn-log.module";
+import { activeSeatState, seatedRefusal } from "./seat-state.module";
+import {
+  doubleTargetIntent,
+  endedRefusal,
+  visitOpenUnder,
+} from "./turn-log.module";
 import { eliminationWinner, scoreCompareOutcome } from "./match-outcome.module";
 import {
   dartGameEngineClass,
@@ -239,15 +243,12 @@ const bobs27Spec: DartGameSpec<Seated<Bobs27Snapshot>, Bobs27State> = {
   rulesetVersionKeys: ["BOBS27_V2"],
   stageOwnership: "PER_SEAT",
   fold: foldBobs27State,
-  refusal: (state) => {
-    if (state.status !== "IN_PROGRESS") return MATCH_ENDED;
-    return activeSeatState(state).status === "IN_PROGRESS" ? null : GAME_ENDED;
-  },
+  refusal: seatedRefusal(MATCH_ENDED, GAME_ENDED),
   intent: (state) =>
     doubleTargetIntent(
       targetAt(doublesPath(), activeSeatState(state).targetIndex),
     ),
-  isVisitOpen: (turn) => turn.darts.length < 3,
+  isVisitOpen: visitOpenUnder(3),
   wouldComplete: (state, observation, config) => {
     if (state.status !== "IN_PROGRESS") return false;
     const seat = activeSeatState(state);
