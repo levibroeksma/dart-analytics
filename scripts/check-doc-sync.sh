@@ -38,6 +38,10 @@
 # alters nothing a doc can describe. Judged per file from `git diff -U0`.
 # Explicit path arguments carry no diff and are never exempted.
 #
+# NESTED CLAUDE.md DOES NOT TRIP IT (D529): a `CLAUDE.md` under a trigger path
+# is agent guidance, not the architecture the docs describe, so an edit to it
+# owes no doc. Explicit path arguments are never exempted, as for D444.
+#
 # ARGUMENTS: an optional list of changed paths, purely so the gate can be
 # aimed at a fixture set to prove it FAILS. A gate not proven to bite is not
 # a gate.
@@ -87,6 +91,7 @@ if [ -n "$TRIGGERED" ] && [ "$EXPLICIT" -eq 0 ]; then
   KEPT=""
   while IFS= read -r file; do
     case "$file" in
+      */CLAUDE.md) continue ;;
       *.ts | *.astro) code_changed_in "$file" || continue ;;
     esac
     KEPT="${KEPT:+$KEPT$'\n'}$file"
