@@ -21,7 +21,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Running total of points; 500 or more ends the game | V1 | All | |
 | Result readouts: visits and darts to target, best visit, Useful unlock rate | V1 | All | |
 | Standard dartboard scoring (assumed) | V1 | All | |
-| Multiplayer (2–4 seats) | V2+ | 2+ | Wanted, unscheduled: V1 is the single-player cut; a new ruleset defaults to one seat until it has an entry in `SEAT_CAPS` (`app/src/services/session-seats.service.ts:91`), and a session seats at most four (`:7`) |
+| Multiplayer (2–4 seats) | V2+ | 2+ | Wanted, unscheduled: V1 is the single-player cut; a new ruleset defaults to one seat until it has an entry in `SEAT_CAPS` (`app/src/services/session-seats.service.ts#SEAT_CAPS ?? 1`), and a session seats at most four (`#MAX_SEATS`) |
 | 19 Only | V2+ | All | Wanted, unscheduled: a rule switch of which segment is live; V1 locks it to 20 |
 | 19 and 20 | V2+ | All | Wanted, unscheduled: a rule switch of which segments are live; V1 locks it to 20 |
 | Adjusted target score | V2+ | All | Wanted, unscheduled: the source suggests 300 or 1000 for a shorter or longer game; V1 locks the target at 500 |

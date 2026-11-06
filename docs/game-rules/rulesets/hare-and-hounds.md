@@ -143,7 +143,7 @@ thrown.
   starting on 5 or on staggered positions; the Hare must outrun all of them,
   and the Hounds take turns in rotation with the Hare. **2+:** needs more than
   two seats, which a new ruleset does not allow until it has a `SEAT_CAPS`
-  entry (`app/src/services/session-seats.service.ts:91`).
+  entry (`app/src/services/session-seats.service.ts#SEAT_CAPS ?? 1`).
 
 ### Match structure
 

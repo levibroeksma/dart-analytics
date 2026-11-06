@@ -28,7 +28,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Cricket-Numbers Scram | V2+ | All | Wanted, unscheduled: a shorter target set is a rule switch V1 does not need |
 | Quick Scram | V2+ | All | Wanted, unscheduled: closing in ascending order is a rule switch V1 does not need |
 | Three-Player Scram | V2+ | 2+ | Wanted, unscheduled: one Stopper and two Scorers needs three seats and a round-by-round winner rule the source states in one line (see Open questions) |
-| Team Scram | Deferred | 2+ | Blocked on: a session allows one seat per side; 2v2 is rejected (`app/src/services/session-seats.service.ts:87-88`) |
+| Team Scram | Deferred | 2+ | Blocked on: a session allows one seat per side; 2v2 is rejected (`app/src/services/session-seats.service.ts#Only one seat per side`) |
 | Tiebreak phase | Deferred | 1v1 | Blocked on: one extra phase yields one Scorer total, so the source leaves who wins it undefined (see Open questions) |
 | Tiebreak by a bull throw | Deferred | 1v1 | Blocked on: "closest to the inner bull" is a measurement, which keypad capture cannot make, and a throw at a target belonging to no leg is a separate capture problem (`501.md` §Features, multiplayer note) |
 | Best-of series | V2+ | 1v1 | Wanted, unscheduled: match structure over several full games; V1 plays one game |
@@ -74,8 +74,8 @@ once; only Scorer points count.
 | Phases | 2 | Shown, locked |
 
 A new ruleset has no entry in `SEAT_CAPS` and defaults to one seat
-(`app/src/services/session-seats.service.ts:91`); Scram needs an entry of 2
-(`:7` holds the global ceiling of 4, one seat per side). The source lets the
+(`app/src/services/session-seats.service.ts#SEAT_CAPS ?? 1`); Scram needs an entry of 2
+(`#MAX_SEATS` holds the global ceiling of 4, one seat per side). The source lets the
 player nearest the bull choose a role; V1 sets the first Stopper here instead,
 because the bull throw is deferred.
 

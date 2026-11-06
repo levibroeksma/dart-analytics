@@ -22,7 +22,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Target picked by an electronic board | Dropped | All | Decided against: the source's machine pick is a random draw, which the app makes itself (the source itself suggests a random number generator for a bristle board); no electronic board is involved |
 | Sudden-death tiebreak round | V2+ | 2+ | Wanted, unscheduled: the source leaves "one extra round with a new random target, or accept the draw" to the players before the game, so it is a setting V1 does not need |
 | Solo play | V2+ | Single | Wanted, unscheduled: the source lists two players as the minimum; a solo run has no winner, so what its result shows is undecided |
-| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts:7`); the source's own maximum is also four |
+| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts#MAX_SEATS`); the source's own maximum is also four |
 
 ## Identity
 
@@ -61,7 +61,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 
 Seat order is fixed at setup, as 501 (`501.md` §Features); seat 1 throws
 first in every round. A new ruleset has no entry in `SEAT_CAPS` and defaults
-to one seat (`app/src/services/session-seats.service.ts:91`), so Ace needs an
+to one seat (`app/src/services/session-seats.service.ts#SEAT_CAPS ?? 1`), so Ace needs an
 entry of 4.
 
 ## How to play

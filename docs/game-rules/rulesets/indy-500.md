@@ -11,7 +11,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
 | Multiplayer (2–4 seats) | V1 | 2+ | |
-| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts:7`); the source allows six |
+| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts#MAX_SEATS`); the source allows six |
 | Config screen (presets shown) | V1 | All | |
 | Count up from 0 to exactly 500 | V1 | All | |
 | Visit = 3 darts, each scored as it lands | V1 | All | |
@@ -26,7 +26,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Custom Pit Stops | V2+ | All | Wanted, unscheduled: the source leaves the interval and the target (a double, say) to house rules; V1 fixes both |
 | Variable Pit Stops | V2+ | All | Wanted, unscheduled: thresholds drawn at random before the race need a draw the app would have to record, and V1 fixes them |
 | Best-of series | V2+ | 2+ | Wanted, unscheduled: V1 is one race; a series of races needs match structure on top |
-| Team Relay | Deferred | 2+ | Blocked on: a session allows one seat per side; teams are rejected (`app/src/services/session-seats.service.ts:87-88`) |
+| Team Relay | Deferred | 2+ | Blocked on: a session allows one seat per side; teams are rejected (`app/src/services/session-seats.service.ts#Only one seat per side`) |
 | First thrower by a throw at the bull | Deferred | 2+ | Blocked on: darts thrown at a target belonging to no leg are a separate capture problem (`501.md` §Features, multiplayer note) |
 
 ## Identity
@@ -70,7 +70,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 
 Seat order is fixed at setup, as 501 (`501.md` §Features); seat 1 throws
 first. A new ruleset defaults to one seat until it has an entry in `SEAT_CAPS`
-(`app/src/services/session-seats.service.ts:91`), so two or more seats need
+(`app/src/services/session-seats.service.ts#SEAT_CAPS ?? 1`), so two or more seats need
 that entry.
 
 ## How to play

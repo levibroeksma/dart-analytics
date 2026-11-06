@@ -11,7 +11,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
 | Two seats (1v1) | V1 | 1v1 | |
-| Teams | Deferred | 1v1 | Blocked on: a session allows one seat per side (`app/src/services/session-seats.service.ts:87-88`); the source plays two players or two teams |
+| Teams | Deferred | 1v1 | Blocked on: a session allows one seat per side (`app/src/services/session-seats.service.ts#Only one seat per side`); the source plays two players or two teams |
 | Config screen (presets shown) | V1 | All | |
 | Innings: two, and the seats swap batting and bowling roles | V1 | 1v1 | |
 | Seat 1 bats first | V1 | 1v1 | |
@@ -66,7 +66,7 @@ theirs.
 
 Seat order is fixed at setup, as 501 (`501.md` §Features). A new ruleset has no
 entry in `SEAT_CAPS` and defaults to one seat
-(`app/src/services/session-seats.service.ts:91`), so V1 needs an entry of 2.
+(`app/src/services/session-seats.service.ts#SEAT_CAPS ?? 1`), so V1 needs an entry of 2.
 
 ## How to play
 

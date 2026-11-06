@@ -12,7 +12,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | --- | --- | --- | --- |
 | Two seats (1v1) | V1 | 1v1 | |
 | Three or four seats | V2+ | 2+ | Wanted, unscheduled: the source metadata lists 2–4 players but its rules describe two players or two teams |
-| Teams | Deferred | 2+ | Blocked on: a session allows one seat per side (`app/src/services/session-seats.service.ts:87-88`) |
+| Teams | Deferred | 2+ | Blocked on: a session allows one seat per side (`app/src/services/session-seats.service.ts#Only one seat per side`) |
 | Config screen (presets shown) | V1 | All | |
 | Visit = 3 darts | V1 | All | |
 | Possession: a bull (outer or inner) gains it | V1 | All | |
@@ -69,7 +69,7 @@ or two-team" game; V1 seats two.
 Seat order is fixed at setup, as 501 (`501.md` §Features); seat 1 throws
 first. Neither seat starts in possession. A new ruleset has no entry in
 `SEAT_CAPS` and defaults to one seat
-(`app/src/services/session-seats.service.ts:91`), so V1 needs an entry of 2.
+(`app/src/services/session-seats.service.ts#SEAT_CAPS ?? 1`), so V1 needs an entry of 2.
 
 ## How to play
 

@@ -11,7 +11,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
 | Multiplayer (2–4 seats) | V1 | 2+ | |
-| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts:7`); the source suggests two to eight |
+| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts#MAX_SEATS`); the source suggests two to eight |
 | Config screen (presets shown) | V1 | All | |
 | Twenty holes: segments 1 to 20 in order; par is 0 | V1 | All | |
 | Eagle: a treble of the hole's number, −2 | V1 | All | |
@@ -55,7 +55,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 
 **2+:** finish all twenty holes with the lowest total. A total below zero is
 under par. A session seats at most four
-(`app/src/services/session-seats.service.ts:7`).
+(`app/src/services/session-seats.service.ts#MAX_SEATS`).
 
 ## Config & presets
 
@@ -68,7 +68,7 @@ under par. A session seats at most four
 
 Seat order is fixed at setup, as 501 (`501.md` §Features); seat 1 throws first
 on every hole. A new ruleset allows one seat until it is added to `SEAT_CAPS`
-(`app/src/services/session-seats.service.ts:91`).
+(`app/src/services/session-seats.service.ts#SEAT_CAPS ?? 1`).
 
 ## How to play
 

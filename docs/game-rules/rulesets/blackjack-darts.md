@@ -11,7 +11,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
 | Multiplayer (2–4 seats) | V1 | 2+ | |
-| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts:7`); the source allows up to eight |
+| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts#MAX_SEATS`); the source allows up to eight |
 | Config screen (presets shown) | V1 | All | |
 | One round: every seat throws one visit | V1 | All | |
 | Visit = up to 3 darts | V1 | All | |

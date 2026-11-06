@@ -11,7 +11,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
 | Two seats, one army each | V1 | 1v1 | |
-| Three or more seats | Deferred | 2+ | Blocked on: the source has two armies only, so a third seat has none. A session seats at most four (`app/src/services/session-seats.service.ts:7`) |
+| Three or more seats | Deferred | 2+ | Blocked on: the source has two armies only, so a third seat has none. A session seats at most four (`app/src/services/session-seats.service.ts#MAX_SEATS`) |
 | Config screen (presets shown) | V1 | All | |
 | Army: top half and bottom half of the board, ten numbers each | V1 | All | |
 | Seat 1 picks an army | V1 | 1v1 | |
@@ -21,7 +21,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Win: eliminate all ten of the opponent's soldiers | V1 | 1v1 | |
 | Last soldier lost to friendly fire loses the game | V1 | 1v1 | |
 | First thrower by a throw at the bull | Deferred | 1v1 | Blocked on: darts thrown at a target belonging to no leg are a separate capture problem (`501.md:17`) |
-| Team Warfare | Deferred | 2+ | Blocked on: a session allows one seat per side; teams are rejected (`app/src/services/session-seats.service.ts:87-88`) |
+| Team Warfare | Deferred | 2+ | Blocked on: a session allows one seat per side; teams are rejected (`app/src/services/session-seats.service.ts#Only one seat per side`) |
 | Fortified Soldiers | V2+ | 1v1 | Wanted, unscheduled: a lives count and ring-weighted hits are a rule switch V1 does not need |
 | Officers Only | V2+ | 1v1 | Wanted, unscheduled: counting doubles and trebles only is a rule switch V1 does not need |
 | Standard dartboard scoring (assumed) | V1 | All | |
@@ -133,7 +133,7 @@ Warfare is unbuilt; this is the capture shape its V1 is designed for.
 - **Army choice** is setup configuration, to be copied into the session's
   configuration snapshot with the seat list. It is a new per-seat field that
   `SeatFact` does not carry today; `composeSeatFacts`
-  (`app/src/services/session-seats.service.ts:107`) is where it would be
+  (`app/src/services/session-seats.service.ts#SEAT_CAPS`) is where it would be
   projected.
 - **Stage type:** one shared stage for the game — a dart removes the other
   seat's soldier, as 501's shared leg

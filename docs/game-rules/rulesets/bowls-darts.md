@@ -11,7 +11,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
 | Multiplayer (1v1) | V1 | 1v1 | |
-| Team Play: teams of two or more a side | Deferred | 2+ | Blocked on: a session takes one seat per side, and a side of two seats is rejected (`app/src/services/session-seats.service.ts:87-88`); the source plays 2 players "or 2 teams" |
+| Team Play: teams of two or more a side | Deferred | 2+ | Blocked on: a session takes one seat per side, and a side of two seats is rejected (`app/src/services/session-seats.service.ts#Only one seat per side`); the source plays 2 players "or 2 teams" |
 | Config screen (presets shown) | V1 | All | |
 | Target score: first to reach it wins, default 21 | V1 | All | |
 | End: one jack dart, then three darts a seat | V1 | All | |

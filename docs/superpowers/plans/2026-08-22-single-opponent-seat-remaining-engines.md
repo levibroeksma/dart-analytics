@@ -368,7 +368,7 @@ git commit -m "feat: activeSeat skips a completed seat when stage ownership is P
 ## Task 3: `SEAT_CAPS` replaces the single-ruleset gate
 
 **Files:**
-- Modify: `app/src/services/session-seats.service.ts:1-63`
+- Modify: `app/src/services/session-seats.service.ts#SEAT_CAPS`
 - Test: `app/tests/services/session-seats.service.test.ts` (extend)
 
 **Interfaces:**

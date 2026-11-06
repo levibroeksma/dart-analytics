@@ -26,7 +26,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Simplified Fleet | V2+ | 1v1 | Wanted, unscheduled: a smaller fleet is a configuration V1 locks to the full fleet |
 | Reply visit | V2+ | 1v1 | Wanted, unscheduled: the source offers the trailing seat a final visit for a possible draw as an alternative ending; V1 plays the other one |
 | Best of N match | V2+ | 1v1 | Wanted, unscheduled: match structure above one game is not needed to play one (source: best of 3 or 5, first thrower alternating) |
-| More than two seats | Deferred | 2+ | Blocked on: the source states two players are required, and its listing's 2–4 has no rules for the extra seats; a session also seats one until the ruleset has an entry in `SEAT_CAPS` (`app/src/services/session-seats.service.ts:91`) |
+| More than two seats | Deferred | 2+ | Blocked on: the source states two players are required, and its listing's 2–4 has no rules for the extra seats; a session also seats one until the ruleset has an entry in `SEAT_CAPS` (`app/src/services/session-seats.service.ts#SEAT_CAPS ?? 1`) |
 
 ## Identity
 

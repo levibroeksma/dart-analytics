@@ -160,7 +160,7 @@ Accuracy mode requires `ANALYTICS` + `VISUAL_BOARD` capture (coordinate capture 
   in full and a miss just scores 0, as Easy. In 1v1 the higher total wins and
   equal totals tie, as above; the source's extra tiebreak round is deferred.
   Seats stay as this file's — the source allows up to eight, but the cap is 2
-  (`app/src/services/session-seats.service.ts:31`).
+  (`app/src/services/session-seats.service.ts#SEAT_CAPS`).
 - **180 Around the Clock tiebreak round:** on equal totals, one more round at a
   single target number the two players agree on, scored as the variant. Deferred
   (see Features): the target is agreed, not derived.

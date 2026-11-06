@@ -11,7 +11,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
 | Two seats, head to head | V1 | 1v1 | |
-| More than two seats | Deferred | 2+ | Blocked on: the source credits surplus marks to "the opponent", one seat; which seat receives them with three or more is unstated. A session seats at most four (`app/src/services/session-seats.service.ts:7`) |
+| More than two seats | Deferred | 2+ | Blocked on: the source credits surplus marks to "the opponent", one seat; which seat receives them with three or more is unstated. A session seats at most four (`app/src/services/session-seats.service.ts#MAX_SEATS`) |
 | Config screen (presets shown) | V1 | All | |
 | Nine beds, numbers 1 to 9 | V1 | All | |
 | Marks by ring: single 1, double 2, treble 3 | V1 | All | |
@@ -24,7 +24,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | First thrower by a throw at the bull | Deferred | 1v1 | Blocked on: darts thrown at a target belonging to no leg are a separate capture problem (`501.md:17`) |
 | Extended Board | V2+ | All | Wanted, unscheduled: a longer bed range (up to 15 or another agreed range) is a configuration V1 locks at 1 to 9 |
 | No-Gift Variant | V2+ | All | Wanted, unscheduled: dropping the gifting rule is a rule switch V1 does not need; the source calls it the beginner form |
-| Team Shove Ha'penny | Deferred | 2+ | Blocked on: a session allows one seat per side; teams are rejected (`app/src/services/session-seats.service.ts:87-88`) |
+| Team Shove Ha'penny | Deferred | 2+ | Blocked on: a session allows one seat per side; teams are rejected (`app/src/services/session-seats.service.ts#Only one seat per side`) |
 | Standard dartboard scoring (assumed) | V1 | All | |
 
 ## Identity

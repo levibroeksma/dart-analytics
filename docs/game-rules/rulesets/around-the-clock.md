@@ -34,7 +34,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Timed run in 1v1 | V2+ | 1v1 | Wanted, unscheduled: one device alternates seats, and whether the clock is shared or per seat is undecided — Ten Up One Down keeps its timer single-player for the same reason (`ten-up-one-down.md` Ends when) |
 | Clock restart when time remains | V2 | Single | Scheduled for V2 (2026-09-23), with the timed run: finishing the path early must not end a timed run |
 | Runs as a routine step (timed) | V2 | Single | Scheduled for V2 (2026-09-23): the point of this version is use in training routines, via the `GAME` exercise type |
-| Car Rally (player-set course, two-hit obstacles) | V2+ | 1v1 | Wanted, unscheduled (2026-10-12): the variant stacks three switches on the shipped clock, kept here as one variant because the path/hit-advance structure is unchanged. The path comes only from `clockPath(pathDirection, oddsFirst)` (`app/src/modules/game/around-the-clock.engine.module.ts:62`), so a player-set course, a per-target hit count and a first-to-finish end (the engine resolves by fewest darts, `:269-277`) have nowhere to live. The source plays 2–6 players, so no Single; the repo caps this ruleset at 2 seats (`app/src/services/session-seats.service.ts:24-25`) and rejects teams (`:87-88`), so the source's Team Relay is out |
+| Car Rally (player-set course, two-hit obstacles) | V2+ | 1v1 | Wanted, unscheduled (2026-10-12): the variant stacks three switches on the shipped clock, kept here as one variant because the path/hit-advance structure is unchanged. The path comes only from `clockPath(pathDirection, oddsFirst)` (`app/src/modules/game/around-the-clock.engine.module.ts:62`), so a player-set course, a per-target hit count and a first-to-finish end (the engine resolves by fewest darts, `:269-277`) have nowhere to live. The source plays 2–6 players, so no Single; the repo caps this ruleset at 2 seats (`app/src/services/session-seats.service.ts#SEAT_CAPS`) and rejects teams (`#Only one seat per side`), so the source's Team Relay is out |
 | Three in a Bed (all 3 darts in one bed to advance) | V2+ | All | Wanted, unscheduled (2026-10-12): the variant stacks several switches, kept here as one variant because it is still a walk along an ordered list. It needs a stay-put fail (V2 only steps back), a strict same-ring bed, a 1…20 path with no bull, and a race end with a tiebreak — none of which `rulesOf` expresses (`around-the-clock.engine.module.ts:57-67`). The source plays 1–8 players; the repo caps this ruleset at 2 seats |
 | Track turns to completion | V1 | All | |
 | Track hit ratio | V1 | All | |
@@ -218,7 +218,7 @@ ratio.
   dart and the match ends there, darts unthrown and the other seat's visits
   unequalised; this replaces the fewest-darts finish for this variant only.
   Seats are 1v1 only — the source allows up to eight, the cap is 2
-  (`app/src/services/session-seats.service.ts:25`).
+  (`app/src/services/session-seats.service.ts#SEAT_CAPS`).
 - **Nine Lives (V3):** the player starts with three lives. A visit with no
   hit on the current target costs one life; a visit with any hit costs none,
   even when its later darts miss the new target. At zero lives the run ends
