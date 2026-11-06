@@ -7,14 +7,16 @@ import {
   svgOklchToSrgb,
 } from "../../scripts/generate-app-icons";
 
+const NO_FONTS = { font: { loadSystemFonts: false } };
+
 function renderSquarePixels(fill: string, size: number): Uint8Array {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}"><rect width="${size}" height="${size}" fill="${fill}"/></svg>`;
-  return new Resvg(svg).render().pixels;
+  return new Resvg(svg, NO_FONTS).render().pixels;
 }
 
 function renderSquarePng(fill: string, size: number): Buffer {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}"><rect width="${size}" height="${size}" fill="${fill}"/></svg>`;
-  return Buffer.from(new Resvg(svg).render().asPng());
+  return Buffer.from(new Resvg(svg, NO_FONTS).render().asPng());
 }
 
 describe("generate-app-icons helpers", () => {
