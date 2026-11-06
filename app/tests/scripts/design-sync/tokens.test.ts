@@ -65,6 +65,29 @@ describe("design-sync tokens", () => {
     ).toEqual([]);
   });
 
+  it("keeps colour aliases declared in :root", () => {
+    const t = parseTokens(
+      ":root{--title-foreground: var(--foreground); --caption-foreground: var(--muted-foreground);}",
+    );
+    expect(t.map((x) => x.id)).toEqual([
+      "var:--title-foreground",
+      "var:--caption-foreground",
+    ]);
+  });
+
+  it("keeps a non-namespace alias inside @theme", () => {
+    const ids = parseTokens(
+      "@theme inline{--title-foreground: var(--foreground);}",
+    ).map((x) => x.id);
+    expect(ids).toEqual(["var:--title-foreground"]);
+  });
+
+  it("reads px and rem spellings of one length as equal", () => {
+    expect(normaliseCss("20px")).toBe(normaliseCss("1.25rem"));
+    expect(normaliseCss("0 4px 0.5rem")).toBe(normaliseCss("0 0.25rem 8px"));
+    expect(normaliseCss("20px")).not.toBe(normaliseCss("1.5rem"));
+  });
+
   it("keeps ; and braces inside quotes and parentheses out of the structure", () => {
     const t = parseTokens(
       ':root{--icon: url(data:image/svg+xml;utf8,<svg>{}</svg>); --q: "a;}b"; --e: "🎯";}\n@utility x { content: "{"; }',

@@ -302,3 +302,9 @@ Decision: `CountdownResumePrompt` becomes a full-viewport rest screen (#1210). I
 Reason: the owner wants a calm pause with no numbers on screen and a short tip that helps the player train.
 Consequences: to leave a paused game, the player resumes first, because the rest screen covers the exit button. New tokens: `--play-glass-fill-top`, `--play-glass-fill-bottom`, `--play-glass-edge-top`, `--play-glass-edge-mid`, `--play-glass-edge-bottom`, `--play-glass-shadow`; the Design System artifact does not hold them yet. Statistics-based tips are a follow-up issue.
 Supersedes: D429 in part (the `fixed inset-0` allow-list gains the rest screen).
+
+### D530 — design-sync reads `px` as `rem` and keeps non-theme aliases
+Status: Accepted · Date: 2026-11-06
+Decision: `normaliseCss` spells every `px` length as `rem` (16px base). A `var(--x)` declaration is a passthrough, and dropped from the tokens diff, only inside `@theme` with a Tailwind namespace name (`--color-`, `--radius-`, …) ending in the referenced suffix; aliases in `:root` stay comparable.
+Reason: px/rem spellings of one length were reported as mismatches; `--title-foreground` and `--caption-foreground` were hidden from the sync.
+Consequences: `--title-foreground` and `--caption-foreground` now diff and need a re-record on the next sync run (#1132). A px that slips into the design side no longer shows as drift. Refines D499, D504.

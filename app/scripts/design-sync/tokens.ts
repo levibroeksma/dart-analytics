@@ -17,7 +17,7 @@ export interface ParsedToken {
   raw?: string;
 }
 
-type Context = "top" | "vars";
+type Context = "top" | "vars" | "theme";
 
 interface Statement {
   type: "decl";
@@ -33,12 +33,17 @@ interface Block {
 const SINGLE_CLASS = /^\.([a-z0-9_-]+)$/i;
 const QUOTED = /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g;
 const PASSTHROUGH = /^var\(--([a-z0-9_-]+)\)$/i;
+const THEME_NAMESPACE =
+  /^--(color|radius|font|text|shadow|spacing|animate|ease|breakpoint)-/;
+const PX_LENGTH = /(-?\d*\.?\d+)px\b/g;
+const REM_PX = 16;
 
 /**
  * Normalise a CSS value or declaration so formatting-only differences vanish.
  *
  * @param value - Raw CSS text.
- * @returns Lower-cased text with collapsed whitespace and no trailing `;`.
+ * @returns Lower-cased text with collapsed whitespace, no trailing `;` and
+ * `px` lengths spelled as `rem` (16px base).
  */
 export function normaliseCss(value: string): string {
   return value
@@ -51,7 +56,8 @@ export function normaliseCss(value: string): string {
     .replace(/\s+\)/g, ")")
     .replace(/\s*,\s*/g, ", ")
     .replace(/\s*:\s*/g, ": ")
-    .toLowerCase();
+    .toLowerCase()
+    .replace(PX_LENGTH, (_, n: string) => `${Number(n) / REM_PX}rem`);
 }
 
 /**
@@ -122,14 +128,23 @@ function normaliseBody(body: string): string {
   return [...decls, ...blocks].join("; ");
 }
 
-/** A custom property declaration as a token, or null for a passthrough alias. */
-function varToken(text: string): ParsedToken | null {
+/**
+ * A custom property declaration as a token, or null for a passthrough alias:
+ * only a Tailwind-namespaced `@theme` entry that re-exports its own suffix.
+ */
+function varToken(text: string, inTheme: boolean): ParsedToken | null {
   const colon = text.indexOf(":");
   if (!text.startsWith("--") || colon < 0) return null;
   const name = text.slice(0, colon).trim();
   const value = normaliseCss(text.slice(colon + 1));
   const ref = PASSTHROUGH.exec(value);
-  if (ref && name.endsWith(`-${ref[1]}`)) return null;
+  if (
+    inTheme &&
+    ref &&
+    THEME_NAMESPACE.test(name) &&
+    name.endsWith(`-${ref[1]}`)
+  )
+    return null;
   const raw = text
     .slice(colon + 1)
     .replace(/\s+/g, " ")
@@ -143,7 +158,8 @@ function bodyToken(kind: TokenKind, name: string, body: string): ParsedToken {
 
 /** Context a nested block is walked in, or null to skip it. */
 function nestedContext(prelude: string): Context | null {
-  if (prelude === ":root" || prelude.startsWith("@theme")) return "vars";
+  if (prelude === ":root") return "vars";
+  if (prelude.startsWith("@theme")) return "theme";
   if (prelude.startsWith("@layer base")) return null;
   return /^@(layer|media|supports)\b/.test(prelude) ? "top" : null;
 }
@@ -170,8 +186,8 @@ function blockTokens(block: Block, ctx: Context, out: ParsedToken[]): void {
 function walk(css: string, ctx: Context, out: ParsedToken[]): void {
   for (const part of split(css)) {
     if (part.type === "block") blockTokens(part, ctx, out);
-    else if (ctx === "vars") {
-      const token = varToken(part.text);
+    else if (ctx === "vars" || ctx === "theme") {
+      const token = varToken(part.text, ctx === "theme");
       if (token) out.push(token);
     }
   }
