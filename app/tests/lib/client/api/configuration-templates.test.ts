@@ -20,4 +20,19 @@ describe("fetchConfigurationPresets", () => {
       undefined,
     );
   });
+
+  it("throws a SessionApiError that keeps requestId and details", async () => {
+    vi.mocked(apiRequest).mockResolvedValue({
+      ok: false,
+      requestId: "r2",
+      error: { code: "VALIDATION_ERROR", message: "bad", details: [{ a: 1 }] },
+    } as never);
+
+    await expect(fetchConfigurationPresets("X")).rejects.toMatchObject({
+      code: "VALIDATION_ERROR",
+      message: "bad",
+      requestId: "r2",
+      details: [{ a: 1 }],
+    });
+  });
 });
