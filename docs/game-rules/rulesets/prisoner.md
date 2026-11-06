@@ -12,9 +12,9 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
 | Two seats | V1 | 1v1 | User decision of 2026-10-30: V1 seats exactly two, as Killer and Follow the Leader. The engine is written for any seat count |
-| Three or four seats | Deferred | 2+ | Blocked on: setup and the play screen seat two; only 501 has multi-guest setup, and every other ruleset is capped at two (`app/src/services/session-seats.service.ts:19-41`); the validator's cap of 6 darts per turn is a two-seat number (seats × 3) and must scale |
-| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts:7`); the source scales to ten and suggests 4–8 or more |
-| Teams | Deferred | 2+ | Blocked on: a session allows one seat per side; 2v2 is rejected (`app/src/services/session-seats.service.ts:87-88`). The source lists Prisoner as a team game but gives no team rule |
+| Three or four seats | Deferred | 2+ | Blocked on: setup and the play screen seat two; only 501 has multi-guest setup, and every other ruleset is capped at two (`app/src/services/session-seats.service.ts#SEAT_CAPS`); the validator's cap of 6 darts per turn is a two-seat number (seats × 3) and must scale |
+| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts#MAX_SEATS`); the source scales to ten and suggests 4–8 or more |
+| Teams | Deferred | 2+ | Blocked on: a session allows one seat per side; 2v2 is rejected (`app/src/services/session-seats.service.ts#Only one seat per side`). The source lists Prisoner as a team game but gives no team rule |
 | Config screen (presets shown) | V1 | All | |
 | Target order 1 → 20, one number at a time | V1 | All | |
 | Darts held: three each to start | V1 | All | |
@@ -79,9 +79,9 @@ prisoners as well as its opponent's.
 Seat order is fixed at setup, as 501 (`501.md` §Features); seat 1 throws
 first. The source has players "throw one dart at the bullseye" to pick the
 order; V1 does not (see Features). The source asks for "two or more"; the
-repo's session cap is four seats (`app/src/services/session-seats.service.ts:7`),
+repo's session cap is four seats (`app/src/services/session-seats.service.ts#MAX_SEATS`),
 and a ruleset with no `SEAT_CAPS` entry defaults to one seat until it is
-added (`app/src/services/session-seats.service.ts:91`).
+added (`app/src/services/session-seats.service.ts#SEAT_CAPS ?? 1`).
 
 Target order is numerical, 1, then 2, up to 20: user decision 2026-10-12. The
 source objective says "clockwise board order" while its setup and example

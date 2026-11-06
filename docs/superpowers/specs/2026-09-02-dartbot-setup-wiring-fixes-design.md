@@ -77,7 +77,7 @@ existing `isComplete()` check.
 ## Task 4 — F56: seat-fact fallbacks mislabel a bare DARTBOT seat
 
 `toSeatFacts` (`app/src/lib/game/session-mode-resolution.ts:58`) and
-`composeSeatFacts` (`app/src/services/session-seats.service.ts:102`) both
+`composeSeatFacts` (`app/src/services/session-seats.service.ts#SEAT_CAPS`) both
 guard their DARTBOT branch on `participantTypeKey/Id === DARTBOT &&
 <dartbot payload present>`, falling through to a PLAYER/GUEST branch when the
 payload is absent instead of erroring — the "two collapses point in opposite

@@ -11,7 +11,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
 | Multiplayer (2–4 seats) | V1 | 2+ | |
-| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts:7`); the source allows up to eight |
+| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts#MAX_SEATS`); the source allows up to eight |
 | Config screen (presets shown) | V1 | All | |
 | Course: the board's clockwise order, 20 then the bull | V1 | All | |
 | One advance per visit | V1 | All | |
@@ -68,7 +68,7 @@ first.
 
 Seat order is fixed at setup, as 501 (`501.md` §Features); seat 1 throws
 first. A new ruleset has no entry in `SEAT_CAPS` and defaults to one seat
-(`app/src/services/session-seats.service.ts:91`), so Steeplechase needs an
+(`app/src/services/session-seats.service.ts#SEAT_CAPS ?? 1`), so Steeplechase needs an
 entry of 4. V1 needs coordinate capture (see Capture).
 
 ## How to play

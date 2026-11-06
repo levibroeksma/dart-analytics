@@ -23,8 +23,8 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Bull in play | V2+ | All | Wanted, unscheduled: the source says "numbered segments" and its examples open with 20 areas, so V1 leaves the bull out; whether it counts is an open question |
 | Sudden-death tiebreak | Deferred | 2+ | Blocked on: the source leaves the tiebreak method for the players to agree before play, and its example needs a measured "closest to centre", which keypad capture cannot make |
 | Solo play | V2+ | Single | Wanted, unscheduled: the source's setup text says one to four players, its listing says two to four, so V1 plays 2–4 |
-| Doubles (teams) | Deferred | 2+ | Blocked on: a session allows one seat per side; 2v2 is rejected (`app/src/services/session-seats.service.ts:87-88`); the source allows 2–8 players in doubles |
-| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts:7`) |
+| Doubles (teams) | Deferred | 2+ | Blocked on: a session allows one seat per side; 2v2 is rejected (`app/src/services/session-seats.service.ts#Only one seat per side`); the source allows 2–8 players in doubles |
+| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts#MAX_SEATS`) |
 
 ## Identity
 
@@ -64,7 +64,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 
 Seat order is fixed at setup, as 501 (`501.md` §Features); seat 1 throws
 first. A new ruleset has no entry in `SEAT_CAPS` and defaults to one seat
-(`app/src/services/session-seats.service.ts:91`), so Shoot Out needs an entry
+(`app/src/services/session-seats.service.ts#SEAT_CAPS ?? 1`), so Shoot Out needs an entry
 of 4.
 
 ## How to play

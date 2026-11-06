@@ -12,8 +12,8 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
 | Single player | V1 | Single | |
-| Multiplayer (1v1): first to finish, or last standing, wins | V2 | 1v1 | Scheduled for V2 (2026-10-26): a second seat adds the race and elimination result and lifts `AROUND_THE_CLOCK_V3` from one seat to two in `SEAT_CAPS` (`app/src/services/session-seats.service.ts:29`). It ships in place: the config and snapshot do not change, so there is no new ruleset version |
-| More than two seats | Deferred | 2+ | Blocked on: the seat model supports one opponent (1v1) per ruleset (`app/src/services/session-seats.service.ts:11-18`); the source allows up to eight |
+| Multiplayer (1v1): first to finish, or last standing, wins | V2 | 1v1 | Scheduled for V2 (2026-10-26): a second seat adds the race and elimination result and lifts `AROUND_THE_CLOCK_V3` from one seat to two in `SEAT_CAPS` (`app/src/services/session-seats.service.ts#SEAT_CAPS`). It ships in place: the config and snapshot do not change, so there is no new ruleset version |
+| More than two seats | Deferred | 2+ | Blocked on: the seat model supports one opponent (1v1) per ruleset (`app/src/services/session-seats.service.ts#SEAT_CAPS`); the source allows up to eight |
 | Config screen (presets shown) | V1 | All | |
 | Three lives | V1 | All | |
 | Targets 1 up to 20, then the bull, in order | V1 | All | |

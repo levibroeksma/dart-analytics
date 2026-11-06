@@ -12,7 +12,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | --- | --- | --- | --- |
 | Single player (darts-to-finish personal best) | V1 | Single | |
 | Multiplayer (2–4 seats) | V1 | 2+ | |
-| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts:7`); the source allows six |
+| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts#MAX_SEATS`); the source allows six |
 | Config screen (presets shown) | V1 | All | |
 | Scorecard of 23 targets (1–20, Red Bull, Green Bull, Triple 20) | V1 | All | |
 | Any order: a hit on an open number marks it | V1 | All | |
@@ -27,7 +27,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Finish: all 23 targets; the result is darts thrown | V1 | Single | |
 | Handicap Mode | V2+ | 2+ | Wanted, unscheduled: a per-seat advantage set at config, and the source's relaxed-adjacency half is ambiguous (see Open questions) |
 | Strict-Bull Mode | V2+ | All | Wanted, unscheduled: a second bull rule set V1 does not need |
-| Team Mode | Deferred | 2+ | Blocked on: a session allows one seat per side (`app/src/services/session-seats.service.ts:87-88`) |
+| Team Mode | Deferred | 2+ | Blocked on: a session allows one seat per side (`app/src/services/session-seats.service.ts#Only one seat per side`) |
 | First thrower by a throw at the bull | Deferred | 2+ | Blocked on: darts thrown at a target belonging to no leg are a separate capture problem (`501.md` §Features, multiplayer note) |
 | Standard dartboard scoring (assumed) | V1 | All | |
 
@@ -71,7 +71,7 @@ Bull, Green Bull and Triple 20.
 Seat order is fixed at setup, as 501 (`501.md` §Features); seat 1 throws
 first. Every seat keeps its own scorecard; nothing one seat throws changes
 another's. No ruleset of this game is in the seat-cap table yet, so until it is
-added (`app/src/services/session-seats.service.ts:19-33`; unlisted default `:91`)
+added (`app/src/services/session-seats.service.ts#SEAT_CAPS`; unlisted default `#SEAT_CAPS ?? 1`)
 a session seats one.
 
 ## How to play

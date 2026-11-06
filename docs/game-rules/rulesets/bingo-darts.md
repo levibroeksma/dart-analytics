@@ -11,7 +11,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
 | Multiplayer (2–4 seats) | V1 | 2+ | |
-| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts:7`); the source allows up to eight |
+| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts#MAX_SEATS`); the source allows up to eight |
 | Config screen (presets shown) | V1 | All | |
 | Card: a personal set of numbers from 1–20, dealt at random | V1 | All | |
 | Short-Form Bingo (5-number card) | V1 | All | |
@@ -25,7 +25,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Long-Form Bingo | V2+ | All | Wanted, unscheduled: a longer card (up to 9 numbers) is a setting V1 does not need |
 | Sequential Bingo | V2+ | All | Wanted, unscheduled: a second closing rule — card order is binding — that V1 does not need |
 | Shared-Number Bingo | V2+ | 2+ | Wanted, unscheduled: one card for every seat instead of a dealt one; V1 plays without it |
-| Team Bingo | Deferred | 2+ | Blocked on: a session allows one seat per side; 2v2 is rejected (`app/src/services/session-seats.service.ts:88`) |
+| Team Bingo | Deferred | 2+ | Blocked on: a session allows one seat per side; 2v2 is rejected (`app/src/services/session-seats.service.ts#Only one seat per side`) |
 | First thrower by a throw at the bull | Deferred | 2+ | Blocked on: darts thrown at a target belonging to no leg are a separate capture problem (`501.md` §Features, multiplayer note) |
 | Standard dartboard scoring (assumed) | V1 | All | |
 
@@ -140,7 +140,7 @@ Bingo Darts is unbuilt; this is the capture shape its V1 is designed for.
 - **Seat cards** are setup configuration, to be copied into the session's
   configuration snapshot with the seat list. A card is a new per-seat field
   that `SeatFact` does not carry today; `composeSeatFacts`
-  (`app/src/services/session-seats.service.ts:107`) is where it would be
+  (`app/src/services/session-seats.service.ts#SEAT_CAPS`) is where it would be
   projected. The deal is a fact of the game, not a fold over darts.
 - **Stage type:** one shared stage for the game — the first seat to clear its
   card ends it for everyone, as 501's `SHARED` leg

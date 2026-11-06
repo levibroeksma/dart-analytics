@@ -11,7 +11,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
 | Multiplayer (2–4 seats) | V1 | 2+ | |
-| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts:7`); the source allows up to six |
+| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts#MAX_SEATS`); the source allows up to six |
 | Config screen (presets shown) | V1 | All | |
 | Stud Poker Darts: one visit of 3 darts per round, no re-throw | V1 | All | |
 | Cards: a dart in a 1–20 segment is that number once (single), twice (double) or three times (treble) | V1 | All | |

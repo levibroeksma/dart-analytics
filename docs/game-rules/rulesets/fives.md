@@ -11,7 +11,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
 | Multiplayer (2–4 seats) | V1 | 2+ | |
-| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts:7`); the source allows up to six |
+| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts#MAX_SEATS`); the source allows up to six |
 | Config screen (presets shown) | V1 | All | |
 | Fifty-One by Fives (formal name of this game, not a variant) | V1 | All | |
 | Visit = 3 darts, judged on its total | V1 | All | |
@@ -52,7 +52,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 ## Objective
 
 **2+:** be the first seat whose running total is exactly 51 fives points. A
-session seats at most four (`app/src/services/session-seats.service.ts:7`).
+session seats at most four (`app/src/services/session-seats.service.ts#MAX_SEATS`).
 
 ## Config & presets
 
@@ -65,7 +65,7 @@ session seats at most four (`app/src/services/session-seats.service.ts:7`).
 
 Seat order is fixed at setup, as 501 (`501.md` §Features); seat 1 throws
 first. A new ruleset allows one seat until it is added to `SEAT_CAPS`
-(`app/src/services/session-seats.service.ts:91`).
+(`app/src/services/session-seats.service.ts#SEAT_CAPS ?? 1`).
 
 ## How to play
 

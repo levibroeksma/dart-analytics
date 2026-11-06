@@ -11,7 +11,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
 | Two-seat match (1v1) | V1 | 1v1 | |
-| Doubles (2v2) | Deferred | 2+ | Blocked on: teams are unsupported — "Only one seat per side is supported; 2v2 is not implemented yet" (`app/src/services/session-seats.service.ts:87-88`); the source also plays 2 or 4 players, never 3 |
+| Doubles (2v2) | Deferred | 2+ | Blocked on: teams are unsupported — "Only one seat per side is supported; 2v2 is not implemented yet" (`app/src/services/session-seats.service.ts#Only one seat per side`); the source also plays 2 or 4 players, never 3 |
 | Config screen (presets shown) | V1 | All | |
 | Opening throw: highest single dart serves first | V1 | 1v1 | |
 | Point: server's visit, then receiver's visit | V1 | 1v1 | |
@@ -56,7 +56,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 **1v1:** win the set by taking four games (a tiebreak decides it at 3–3 in
 games); win the match by taking the majority of the configured sets. A session
 seats exactly two: the service allows at most four seats, one per side, and
-rejects teams (`app/src/services/session-seats.service.ts:7`, `:87-88`).
+rejects teams (`app/src/services/session-seats.service.ts#MAX_SEATS`, `#Only one seat per side`).
 
 ## Config & presets
 
@@ -73,8 +73,8 @@ rejects teams (`app/src/services/session-seats.service.ts:7`, `:87-88`).
 Sets default to 1 and may be 1, 3 or 5 (user decision 2026-10-12); a best-of-N
 match is won by the first seat to take (N+1)/2 sets. A new ruleset seats one
 player until it has an entry in `SEAT_CAPS`
-(`app/src/services/session-seats.service.ts:19`, read at `:91` with `?? 1`),
-and the service's own minimum is one seat (`:6`), so V1 needs an entry of 2
+(`app/src/services/session-seats.service.ts#SEAT_CAPS`, read with `?? 1`),
+and the service's own minimum is one seat (`#MIN_SEATS`), so V1 needs an entry of 2
 and a two-seat minimum enforced for this game.
 
 ## How to play
@@ -181,7 +181,7 @@ aces, and each seat's points won on serve and on return.
 
 - **Doubles (2v2)** — four players in two teams; "Teammates alternate as the
   thrower within their team's turn". Blocked on teams being unsupported
-  (`app/src/services/session-seats.service.ts:87-88`). The source has no
+  (`app/src/services/session-seats.service.ts#Only one seat per side`). The source has no
   3-player form.
 - The source calls best-of-3 "recommended for competitive pub play" and
   best-of-5 "suited to tournament finals"; both are selectable in V1.

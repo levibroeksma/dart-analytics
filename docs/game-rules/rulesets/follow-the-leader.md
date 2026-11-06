@@ -13,8 +13,8 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | --- | --- | --- | --- |
 | Multiplayer (2 seats) | V1 | 2+ | |
 | Three or four seats | Deferred | 2+ | Blocked on: setup seats one guest or bot (`app/src/lib/game/guest-list.ts:19`) and the play screen draws two seats (`app/src/components/layout/games/SplitScoreboard.astro:3`); the engine already takes four (user decision 2026-10-29) |
-| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts:7`); the source allows up to ten |
-| Team play | Deferred | 2+ | Blocked on: a session allows one seat per side; teams are rejected (`app/src/services/session-seats.service.ts:87-88`) |
+| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts#MAX_SEATS`); the source allows up to ten |
+| Team play | Deferred | 2+ | Blocked on: a session allows one seat per side; teams are rejected (`app/src/services/session-seats.service.ts#Only one seat per side`) |
 | Config screen (presets shown) | V1 | All | |
 | Opening dart: seat 1 throws one off-hand dart that sets the first target | V1 | All | |
 | First thrower by a throw at the bull | Deferred | 2+ | Blocked on: darts thrown at a target belonging to no leg are a separate capture problem (`501.md` §Features, multiplayer note); V1 opens on seat 1 |
@@ -66,7 +66,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 players but lists three as its minimum and "most enjoyable with 3 or more";
 this ruleset seats two in V1 and up to four later (see Open questions). A
 session seats at most
-four (`app/src/services/session-seats.service.ts:7`).
+four (`app/src/services/session-seats.service.ts#MAX_SEATS`).
 
 ## Config & presets
 
@@ -80,8 +80,8 @@ four (`app/src/services/session-seats.service.ts:7`).
 
 Seat order is fixed at setup, as 501 (`501.md` §Features); seat 1 opens and
 the order never changes. A new ruleset allows one seat until it gets an entry
-in `SEAT_CAPS` (`app/src/services/session-seats.service.ts:19`, default of 1 at
-`:91`), so V1 multiplayer needs that entry.
+in `SEAT_CAPS` (`app/src/services/session-seats.service.ts#SEAT_CAPS`, default of 1 at
+`#SEAT_CAPS ?? 1`), so V1 multiplayer needs that entry.
 
 ## How to play
 

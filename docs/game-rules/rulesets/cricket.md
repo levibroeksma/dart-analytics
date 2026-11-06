@@ -12,7 +12,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
 | Single player (practice / vs bot later) | V1 | Single | |
-| 1v1 multiplayer (two seats) | V2 | 1v1 | Ruleset version `CRICKET_V2` (2026-10-24), against a guest; solo stays `CRICKET_V1`, which has no `SEAT_CAPS` entry (`app/src/services/session-seats.service.ts:19`), so its cap stays 1 |
+| 1v1 multiplayer (two seats) | V2 | 1v1 | Ruleset version `CRICKET_V2` (2026-10-24), against a guest; solo stays `CRICKET_V1`, which has no `SEAT_CAPS` entry (`app/src/services/session-seats.service.ts#SEAT_CAPS`), so its cap stays 1 |
 | Multiplayer (2+ players) | V2+ | 2+ | Wanted, unscheduled: more than two seats — V2 caps a session at two seats, and the win and dead-number rules are written for one opponent |
 | Vs DartBot | V3 | 1v1 | Unblocked 2026-10-24: a marks strategy exists (`app/src/modules/dartbot/strategy/marks.strategy.module.ts`) and `RULESET_DARTBOT` admits `CRICKET_V2`; the bot is a seat on `CRICKET_V2`, not a new ruleset key |
 | Config screen (presets shown) | V1 | All | |
@@ -31,7 +31,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Random Cricket (6 random numbers from 1–20 + bull) | V2+ | All | Wanted, unscheduled: same engine blocker as Low-Pitch Cricket, plus the app must draw the set once at session start; solo needs no Multiplayer, points rules depend on it |
 | Wild Cricket (15–20 + bull + one random Wild number from 1–14) | V2+ | All | Wanted, unscheduled: same engine blocker, and an eighth objective the V1 set has no slot for; solo needs no Multiplayer, points rules depend on it |
 | Hidden Cricket (secret targets, Discovery bonus) | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer (the bonus is a race against opponents; the source describes no solo form), and needs a concealed drawn set plus a reveal rule that V1 has no place for |
-| Select-A-Cricket (each player picks own targets) | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer and Own / score on (the variant is about targets one player has and another lacks), and needs one objective set per seat; one seat per side only (`app/src/services/session-seats.service.ts:7`, `:87-88`) |
+| Select-A-Cricket (each player picks own targets) | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer and Own / score on (the variant is about targets one player has and another lacks), and needs one objective set per seat; one seat per side only (`app/src/services/session-seats.service.ts#MAX_SEATS`, `#Only one seat per side`) |
 | Reverse Cricket (ascending order 15 to bull, lowest score wins) | V2+ | 2+ | Wanted, unscheduled: depends on Multiplayer and on the Cut-throat variant row (its points go to opponents; Cut-throat's own scoring and win rules are an open question below), and adds ordered closing, which V1 does not have |
 | All Numbers Cricket (1–20 + bull) | V2+ | All | Wanted, unscheduled: an objective-set switch on the Classic rules; V1 needs only the one fixed set, and a solo close-out drill over 21 objectives is valid without Multiplayer |
 | Spanish Cricket (11–20 + bull) | V2+ | All | Wanted, unscheduled: an objective-set switch (eleven objectives); V1 needs only the one fixed set, and the solo close-out drill carries over unchanged |
@@ -275,5 +275,5 @@ V2+ variants and capture (design intent only):
   agreed before the match". Not decided.
 - All Numbers Cricket allows teams of two, up to 8 players; the repo seats at
   most 4, one seat per side, with teams rejected
-  (`app/src/services/session-seats.service.ts:7`, `:87-88`). Teams are already
+  (`app/src/services/session-seats.service.ts#MAX_SEATS`, `#Only one seat per side`). Teams are already
   listed under Variants as Team / more than two players.

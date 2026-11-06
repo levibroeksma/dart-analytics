@@ -70,7 +70,7 @@ with fewer pots if the opponent's fouls outweigh them.
 Seat order is fixed at setup, as 501 (`501.md` §Features); seat 1 throws first.
 
 A new ruleset allows one seat until it is added to the seat caps
-(`app/src/services/session-seats.service.ts:7` sets the maximum; the cap lookup
+(`app/src/services/session-seats.service.ts#MAX_SEATS` sets the maximum; the cap lookup
 defaults an unlisted ruleset to 1 at line 91), so the two-seat game is a
 requirement on that file, not something it does today.
 

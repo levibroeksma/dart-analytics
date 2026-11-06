@@ -11,7 +11,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
 | Two sides, one seat each | V1 | 1v1 | |
-| Teams | Deferred | 2+ | Blocked on: a session allows one seat per side; 2v2 is rejected (`app/src/services/session-seats.service.ts:87-88`) |
+| Teams | Deferred | 2+ | Blocked on: a session allows one seat per side; 2v2 is rejected (`app/src/services/session-seats.service.ts#Only one seat per side`) |
 | Config screen (presets shown) | V1 | All | |
 | 3×3 grid, centre square the inner bull | V1 | All | |
 | Preset grid: the source's example | V1 | All | |

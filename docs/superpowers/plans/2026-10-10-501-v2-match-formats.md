@@ -817,7 +817,7 @@ git commit -m "feat(501): per-set throw rotation and set-aware undo"
 - Modify: `app/src/modules/game/five-oh-one.engine.module.ts`
 - Modify: `app/src/modules/game/types.ts` (`FiveOhOneSideState`, `FiveOhOneState`)
 - Modify: `app/src/services/rulesets/five-oh-one/five-oh-one.validator.ts`, `app/src/services/rulesets/registry.ts`
-- Modify: `app/src/lib/game/rulesets/capabilities.ts` (:40, :71, :93, :202), `app/src/services/session-seats.service.ts:20`, `app/src/lib/stats/constants.ts:11`, `app/src/modules/game/session-progress.module.ts:245` (map entry only; text in Task 6)
+- Modify: `app/src/lib/game/rulesets/capabilities.ts` (:40, :71, :93, :202), `app/src/services/session-seats.service.ts#SEAT_CAPS`, `app/src/lib/stats/constants.ts:11`, `app/src/modules/game/session-progress.module.ts:245` (map entry only; text in Task 6)
 - Create: `database/seeds/0037_five_oh_one_v2_game_engine_reference.sql`, `database/verification/0037_five_oh_one_v2_capability_checks.sql`
 - Modify: `database/seeds/0007_ruleset_version_capabilities.sql`
 - Modify: `app/src/lib/game/five-oh-one-play.data.ts` (only: reference `"501_V2"` — see Step 3g)
@@ -1310,7 +1310,7 @@ export const fiveOhOneV2Validator = createFiveOhOneValidator("501 V2", FiveOhOne
 
 where `validateBatch` is the existing `validateBatch` method lifted unchanged to a module-level `function validateBatch({...}): BatchValidationResult`. Keep the existing JSDoc on the factory. Registry: `import { fiveOhOneV2Validator } from "./five-oh-one/five-oh-one.validator";` and `"501_V2": fiveOhOneV2Validator,` after `"501_V1"`.
 
-- [ ] **Step 3e: Key maps** — add a `"501_V2"` entry beside every `"501_V1"` entry, same value: `capabilities.ts` :40 (`[QUICK_SCORE, VISUAL_BOARD]`), :71 (`["board", "scoring", "checkout", "leg"]`), :93 (`"501"`), :202 (`true`; also add `501_V2` to the doc comment list at :179 that names `501_V1`); `session-seats.service.ts:20` (`4`); `lib/stats/constants.ts:11` (`"501_V2",`); `session-progress.module.ts:245` (`"501_V2": fiveOhOne,` — its config parameter type becomes `Seated<FiveOhOneAnySnapshot>`; the text change is Task 6). Leave `games-visibility.ts` for Task 8.
+- [ ] **Step 3e: Key maps** — add a `"501_V2"` entry beside every `"501_V1"` entry, same value: `capabilities.ts` :40 (`[QUICK_SCORE, VISUAL_BOARD]`), :71 (`["board", "scoring", "checkout", "leg"]`), :93 (`"501"`), :202 (`true`; also add `501_V2` to the doc comment list at :179 that names `501_V1`); `session-seats.service.ts#SEAT_CAPS` (`4`); `lib/stats/constants.ts:11` (`"501_V2",`); `session-progress.module.ts:245` (`"501_V2": fiveOhOne,` — its config parameter type becomes `Seated<FiveOhOneAnySnapshot>`; the text change is Task 6). Leave `games-visibility.ts` for Task 8.
 
 - [ ] **Step 3f: Seeds**
 

@@ -11,8 +11,8 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
 | Multiplayer (2–4 seats) | V1 | 2+ | |
-| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts:7`); the source allows six |
-| Teams | Deferred | 2+ | Blocked on: one seat per side only, teams rejected (`app/src/services/session-seats.service.ts:87-88`); the source lists Mulligan as a team game |
+| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts#MAX_SEATS`); the source allows six |
+| Teams | Deferred | 2+ | Blocked on: one seat per side only, teams rejected (`app/src/services/session-seats.service.ts#Only one seat per side`); the source lists Mulligan as a team game |
 | Config screen (presets shown) | V1 | All | |
 | Six target numbers, set in order on the config screen | V1 | All | |
 | Bull as the seventh and last target | V1 | All | |
@@ -71,7 +71,7 @@ four, so Mulligan has no single-player mode.
 Seat order is fixed at setup, as 501 (`501.md` §Features); seat 1 throws first.
 
 A new ruleset allows one seat until it is added to the seat caps
-(`app/src/services/session-seats.service.ts:7` sets the maximum; the cap lookup
+(`app/src/services/session-seats.service.ts#MAX_SEATS` sets the maximum; the cap lookup
 defaults an unlisted ruleset to 1 at line 91), so the 2–4 seat range is a
 requirement on that file, not something it does today.
 

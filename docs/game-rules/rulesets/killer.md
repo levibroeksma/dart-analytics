@@ -13,7 +13,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | --- | --- | --- | --- |
 | Multiplayer (2 seats) | V1 | 2+ | |
 | Three or four seats | Deferred | 2+ | Blocked on: setup seats one guest or bot (`app/src/lib/game/guest-list.ts:19`) and the play screen draws two seats (`app/src/components/layout/games/SplitScoreboard.astro:3`); the engine already takes four (user decision 2026-10-27) |
-| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts:7`); the source calls 3–8 best and allows up to 20 |
+| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts#MAX_SEATS`); the source calls 3–8 best and allows up to 20 |
 | Config screen (presets shown) | V1 | All | |
 | Seat numbers: one per seat, 1–20, no two alike, set at setup | V1 | All | |
 | Number by a weak-hand throw | Deferred | 2+ | Blocked on: darts thrown at a target belonging to no leg are a separate capture problem (`501.md` §Features, multiplayer note), and the app cannot tell which hand threw |
@@ -28,7 +28,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Self-hit life penalty | V2+ | All | Wanted, unscheduled: a house rule on top of the status loss, not needed to play |
 | Blind Killer | V2+ | 2+ | Wanted, unscheduled: secret numbers need hidden information on one shared device |
 | 5-Lives Killer | V2+ | All | Wanted, unscheduled: a starting count is a configuration V1 locks |
-| Team Killer | Deferred | 2+ | Blocked on: a session allows one seat per side; 2v2 is rejected (`app/src/services/session-seats.service.ts:87-88`) |
+| Team Killer | Deferred | 2+ | Blocked on: a session allows one seat per side; 2v2 is rejected (`app/src/services/session-seats.service.ts#Only one seat per side`) |
 | Killer Cricket | V2+ | All | Wanted, unscheduled: three hits on your own number to become a Killer is a rule switch V1 does not need |
 | Survivor (any ring takes lives: single 1, double 2, treble 3) | V2+ | 2+ | Wanted, unscheduled: V1 counts doubles only, so scaling lives by ring, and a self-hit costing lives, is a second damage rule V1 does not need |
 | Standard dartboard scoring (assumed) | V1 | All | |
@@ -150,7 +150,7 @@ Killer is unbuilt; this is the capture shape its V1 is designed for.
   `score` = the dart's **board** score.
 - **Seat numbers** are setup configuration, copied into the session's
   configuration snapshot with the seat list (`composeSeatFacts`,
-  `app/src/services/session-seats.service.ts:106`).
+  `app/src/services/session-seats.service.ts#SEAT_CAPS`).
 - **Stage type:** one shared stage for the game — a dart changes another
   seat's lives, as 501's `SHARED` leg
   (`app/src/modules/game/five-oh-one.engine.module.ts:428`).

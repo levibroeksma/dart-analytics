@@ -11,7 +11,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
 | Multiplayer (2–4 seats) | V1 | 2+ | |
-| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts:7`); the source allows up to eight |
+| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts#MAX_SEATS`); the source allows up to eight |
 | Config screen (presets shown) | V1 | All | |
 | Nine holes: hole n targets number n | V1 | All | |
 | Visit = one hole: one to three darts, stop after any | V1 | All | |
@@ -23,7 +23,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | 18-Hole Golf Darts | V2+ | All | Wanted, unscheduled: a longer round is a length V1 locks |
 | 20-Hole Golf Darts | V2+ | All | Wanted, unscheduled: a longer round is a length V1 locks |
 | Fat and Thin Singles | V2+ | All | Wanted, unscheduled: a scoring switch V1 does not need; V1 gives both single beds 3 strokes |
-| Team/Scramble | Deferred | 2+ | Blocked on: a session allows one seat per side; teams are rejected (`app/src/services/session-seats.service.ts:87-88`) |
+| Team/Scramble | Deferred | 2+ | Blocked on: a session allows one seat per side; teams are rejected (`app/src/services/session-seats.service.ts#Only one seat per side`) |
 | First thrower by a throw at the bull | Deferred | 2+ | Blocked on: darts thrown at a target belonging to no leg are a separate capture problem (`501.md` §Features, multiplayer note) |
 | Standard dartboard scoring (assumed) | V1 | All | |
 
@@ -67,7 +67,7 @@ or more players; a session seats at most four.
 Seat order is fixed at setup, as 501 (`501.md` §Features); seat 1 throws first
 on every hole and the order never changes. A new ruleset allows one seat until
 it gets an entry in `SEAT_CAPS`
-(`app/src/services/session-seats.service.ts:19`, default of 1 at `:91`), so
+(`app/src/services/session-seats.service.ts#SEAT_CAPS`, default of 1 at `#SEAT_CAPS ?? 1`), so
 V1 multiplayer needs that entry.
 
 ## How to play

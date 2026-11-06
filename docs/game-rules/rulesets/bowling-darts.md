@@ -11,7 +11,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
 | Multiplayer (2–4 seats) | V1 | 2+ | |
-| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts:7`); the source allows up to eight |
+| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts#MAX_SEATS`); the source allows up to eight |
 | Config screen (presets shown) | V1 | All | |
 | Alley number: one number, 1–20, agreed before play | V1 | All | |
 | Pin values: triple 10, double 9, inner single 7, outer single 3, any other dart a Gutter at 0 | V1 | All | |
@@ -71,8 +71,8 @@ agrees the alley number "before play begins" and gives it no default, so V1
 asks for a pick. The alley is one number for the whole game and for every seat.
 
 A new ruleset has no entry in `SEAT_CAPS`, so a session seats one player until
-one is added (`app/src/services/session-seats.service.ts:91`); the four-seat
-cap above is the file-wide ceiling (`:7`).
+one is added (`app/src/services/session-seats.service.ts#SEAT_CAPS ?? 1`); the four-seat
+cap above is the file-wide ceiling (`#MAX_SEATS`).
 
 ## How to play
 

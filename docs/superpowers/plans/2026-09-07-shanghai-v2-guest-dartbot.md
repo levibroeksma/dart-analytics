@@ -144,7 +144,7 @@ EOF
 ### Task 2: `SEAT_CAPS` admits `SHANGHAI_V2` at 2 seats
 
 **Files:**
-- Modify: `app/src/services/session-seats.service.ts:11-29`
+- Modify: `app/src/services/session-seats.service.ts#SEAT_CAPS`
 - Test: `app/tests/services/session-seats.service.test.ts:99-192`
 
 **Interfaces:**

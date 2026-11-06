@@ -11,7 +11,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
 | Head-to-head (1v1) | V1 | 1v1 | |
-| More than two seats | V2+ | 2+ | Wanted, unscheduled: the source does not say which seat is the Stopper once three or four play, and a new ruleset seats one until it has an entry in `SEAT_CAPS` (`app/src/services/session-seats.service.ts:91`) |
+| More than two seats | V2+ | 2+ | Wanted, unscheduled: the source does not say which seat is the Stopper once three or four play, and a new ruleset seats one until it has an entry in `SEAT_CAPS` (`app/src/services/session-seats.service.ts#SEAT_CAPS ?? 1`) |
 | Config screen (presets shown) | V1 | All | |
 | Wagering version: the Scorer gives a Nomination, the Stopper accepts or passes | V1 | 1v1 | |
 | Scorer and Stopper swap every round | V1 | 1v1 | |

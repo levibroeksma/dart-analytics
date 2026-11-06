@@ -11,7 +11,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
 | Multiplayer (3–4 seats) | V1 | 2+ | |
-| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts:7`); the source calls 4–8 best |
+| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts#MAX_SEATS`); the source calls 4–8 best |
 | Config screen (presets shown) | V1 | All | |
 | Visit = 3 darts, scored as the board total | V1 | All | |
 | Opening visit: sets the first target, no strike | V1 | All | |
@@ -120,11 +120,11 @@ Winner, the order seats went out, each seat's strikes and visit average.
   board game; only its manual-scoring rules are taken, with lives kept on
   the scoreboard as the source itself suggests for steel tip. The source's
   doubles format (teams) waits on teams: a session allows one seat per side
-  (`app/src/services/session-seats.service.ts:87-88`).
+  (`app/src/services/session-seats.service.ts#Only one seat per side`).
 
 **2+:** the source seats two to four players, so a two-seat game is allowed
 here, unlike Knockout V1's three (see Open questions); a session seats at most
-four (`app/src/services/session-seats.service.ts:7`).
+four (`app/src/services/session-seats.service.ts#MAX_SEATS`).
 
 ### Match structure
 

@@ -12,7 +12,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
 | Single player | V1 | Single | |
-| Multiplayer (2–4 seats): first to close all twelve wins | V2+ | 2+ | Wanted, unscheduled: a solo run is playable without it; with no points, seats never interact, so a second seat adds only a first-to-close result and a `SEAT_CAPS` entry (`app/src/services/session-seats.service.ts:19`) |
+| Multiplayer (2–4 seats): first to close all twelve wins | V2+ | 2+ | Wanted, unscheduled: a solo run is playable without it; with no points, seats never interact, so a second seat adds only a first-to-close result and a `SEAT_CAPS` entry (`app/src/services/session-seats.service.ts#SEAT_CAPS`) |
 | Config screen (presets shown) | V1 | All | |
 | Twelve categories: 20 down to 12, Doubles, Triples, Bull | V1 | All | |
 | Close in any order | V1 | All | |

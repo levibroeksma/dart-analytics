@@ -12,8 +12,8 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
 | Single player | V1 | Single | |
-| Multiplayer (1v1): most runs wins | V2 | 1v1 | Scheduled for V2 (2026-10-26): a second seat adds the compare-runs result and a `SEAT_CAPS` entry for `BASEBALL_V1` (`app/src/services/session-seats.service.ts:34`). It ships in place: the config and snapshot do not change, so there is no new ruleset version. Equal runs after inning 9 is a tie |
-| More than two seats | Deferred | 2+ | Blocked on: the seat model supports one opponent (1v1) per ruleset (`app/src/services/session-seats.service.ts:11-18`); the source allows up to eight |
+| Multiplayer (1v1): most runs wins | V2 | 1v1 | Scheduled for V2 (2026-10-26): a second seat adds the compare-runs result and a `SEAT_CAPS` entry for `BASEBALL_V1` (`app/src/services/session-seats.service.ts#SEAT_CAPS`). It ships in place: the config and snapshot do not change, so there is no new ruleset version. Equal runs after inning 9 is a tie |
+| More than two seats | Deferred | 2+ | Blocked on: the seat model supports one opponent (1v1) per ruleset (`app/src/services/session-seats.service.ts#SEAT_CAPS`); the source allows up to eight |
 | Config screen (presets shown) | V1 | All | |
 | Innings: nine, inning n targets number n | V1 | All | |
 | One visit per inning | V1 | All | |
@@ -24,7 +24,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Bullseye Tiebreaker | V2+ | 2+ | Wanted, unscheduled: V2 ends a tie as a tie; the tiebreaker needs a bull-only phase after inning 9 that the nine-number path has no place for |
 | 7th Inning Stretch | V2+ | All | Wanted, unscheduled: a scoring switch V1 does not need |
 | Bullseye Baseball | V2+ | All | Wanted, unscheduled: a scoring gate V1 does not need; V1 already scores no runs on the bull, so the gate only adds the unlock rule |
-| Team Play | Deferred | 2+ | Blocked on: a session allows one seat per side; 2v2 is rejected (`app/src/services/session-seats.service.ts:87-88`) |
+| Team Play | Deferred | 2+ | Blocked on: a session allows one seat per side; 2v2 is rejected (`app/src/services/session-seats.service.ts#Only one seat per side`) |
 | Standard dartboard scoring (assumed) | V1 | All | |
 
 ## Identity

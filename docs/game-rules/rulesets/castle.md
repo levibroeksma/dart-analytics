@@ -11,7 +11,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
 | Multiplayer (2–4 seats) | V1 | 2+ | |
-| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts:7`); the source's listing allows up to 8 and its text up to 20 |
+| More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts#MAX_SEATS`); the source's listing allows up to 8 and its text up to 20 |
 | Config screen (presets shown) | V1 | All | |
 | Seat numbers: one per seat, 1–20, no two alike, set at setup | V1 | All | |
 | Visit = 3 darts, each free to build or attack | V1 | All | |
@@ -25,7 +25,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Short Castle | V2+ | All | Wanted, unscheduled: the brick target is a setting V1 locks at 15 (source: 10) |
 | Grand Castle | V2+ | All | Wanted, unscheduled: the brick target is a setting V1 locks at 15 (source: 20) |
 | Bullseye Finish | V2+ | All | Wanted, unscheduled: a second finishing rule (15 bricks, then a bull) with its own state; V1 wins on the 15th brick |
-| Team Castle | Deferred | 2+ | Blocked on: a session allows one seat per side; teams are rejected (`app/src/services/session-seats.service.ts:87-88`) |
+| Team Castle | Deferred | 2+ | Blocked on: a session allows one seat per side; teams are rejected (`app/src/services/session-seats.service.ts#Only one seat per side`) |
 | Best of N match | V2+ | 2+ | Wanted, unscheduled: match structure above a single game is not needed to play one |
 | Number by a weak-hand throw | Deferred | 2+ | Blocked on: the app cannot tell which hand threw, and a throw at a target that belongs to no leg yet is a separate capture problem (`501.md` §Features, multiplayer note); V1 sets numbers on the config screen |
 
@@ -67,7 +67,7 @@ first. The source picks numbers by a closest-to-bull throw, a random draw, or
 claiming the number a dart hit; V1 sets them on the config screen instead.
 Short Castle and Grand Castle unlock the last row (see Later versions). A new
 ruleset has no entry in `SEAT_CAPS` and defaults to one seat
-(`app/src/services/session-seats.service.ts:91`), so V1 multiplayer needs an
+(`app/src/services/session-seats.service.ts#SEAT_CAPS ?? 1`), so V1 multiplayer needs an
 entry of 4.
 
 ## How to play
