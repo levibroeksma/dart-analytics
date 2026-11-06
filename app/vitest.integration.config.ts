@@ -4,7 +4,7 @@ import { defineConfig } from "vitest/config";
 import base from "./vitest.config";
 import { databaseUrlEnv } from "./scripts/integration-env";
 
-const envFile = (): Record<string, string> =>
+const envFile = (): Record<string, string | undefined> =>
   existsSync(".env") ? parseEnv(readFileSync(".env", "utf8")) : {};
 
 /**

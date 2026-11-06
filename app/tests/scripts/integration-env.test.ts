@@ -24,4 +24,8 @@ describe("databaseUrlEnv", () => {
   it("ignores an empty DATABASE_URL in the env file", () => {
     expect(databaseUrlEnv({ DATABASE_URL: "" }, {})).toEqual({});
   });
+
+  it("ignores a DATABASE_URL that parsed to undefined", () => {
+    expect(databaseUrlEnv({ DATABASE_URL: undefined }, {})).toEqual({});
+  });
 });

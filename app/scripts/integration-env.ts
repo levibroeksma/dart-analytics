@@ -7,7 +7,7 @@
  * @returns `{ DATABASE_URL }` to add to the test env, or `{}`.
  */
 export function databaseUrlEnv(
-  fileEnv: Record<string, string>,
+  fileEnv: Record<string, string | undefined>,
   processEnv: Record<string, string | undefined>,
 ): Record<string, string> {
   const url = fileEnv.DATABASE_URL;
