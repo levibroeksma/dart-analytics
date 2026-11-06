@@ -92,6 +92,25 @@ describe("cn", () => {
     );
   });
 
+  it("keeps the #1230 batch tokens beside the classes they sit with", () => {
+    expect(cn("text-overline", "font-semibold", "text-saving")).toBe(
+      "text-overline font-semibold text-saving",
+    );
+    expect(cn("text-stat-label", "text-muted-foreground")).toBe(
+      "text-stat-label text-muted-foreground",
+    );
+    expect(cn("animate-skpulse", "bg-saving")).toBe(
+      "animate-skpulse bg-saving",
+    );
+    expect(cn("inset-well-muted", "btn-press-ring", "rounded-tile")).toBe(
+      "inset-well-muted btn-press-ring rounded-tile",
+    );
+  });
+
+  it("lets max-w-sheet replace a stock max width", () => {
+    expect(cn("max-w-lg", "max-w-sheet")).toBe("max-w-sheet");
+  });
+
   it("keeps catalog-grid beside the stock grid utilities", () => {
     expect(cn("catalog-grid grid gap-3")).toBe("catalog-grid grid gap-3");
   });
@@ -224,6 +243,7 @@ describe("cn token registry stays in lockstep with global.css", () => {
     },
     spacing: { prefix: "h", stock: "h-4" },
     animate: { prefix: "animate", stock: "animate-spin" },
+    container: { prefix: "max-w", stock: "max-w-lg" },
     "grid-template-columns": { prefix: "grid-cols", stock: "grid-cols-2" },
     "background-image": {
       prefix: "bg",

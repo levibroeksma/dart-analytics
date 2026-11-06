@@ -14,24 +14,25 @@ const { statusExpr = "completionStatus" }: Props = Astro.props;
 ---
 
 <span
-  class="inline-flex h-5 items-center gap-2 self-center font-mono text-eyebrow-lg font-semibold uppercase"
+  class="inline-flex h-5 items-center gap-2 self-center font-mono text-overline font-semibold uppercase"
+  role="status"
   x-show={`${statusExpr} !== 'failed'`}
   x-cloak
 >
   <span
-    class="inline-flex items-center gap-2 text-error"
+    class="inline-flex items-center gap-2 text-saving"
     x-show={`${statusExpr} !== 'succeeded'`}
     x-cloak
   >
-    <span class="size-1.5 animate-pulse rounded-full bg-error"></span>
+    <span class="size-1.5 animate-skpulse rounded-full bg-saving"></span>
     Saving…
   </span>
   <span
-    class="inline-flex items-center gap-2 text-success"
+    class="inline-flex items-center gap-2 text-saved"
     x-show={`${statusExpr} === 'succeeded'`}
     x-cloak
   >
-    <span class="size-1.5 rounded-full bg-success"></span>
+    <span class="size-1.5 rounded-full bg-saved"></span>
     Saved
   </span>
 </span>

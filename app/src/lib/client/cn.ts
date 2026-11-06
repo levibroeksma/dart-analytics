@@ -16,6 +16,7 @@ const twMerge = extendTailwindMerge({
       "text-shadow": [...MERGE_TOKENS["text-shadow"]],
       spacing: [...MERGE_TOKENS.spacing],
       animate: [...MERGE_TOKENS.animate],
+      container: [...MERGE_TOKENS.container],
     },
     classGroups: {
       ...utilityGroups,

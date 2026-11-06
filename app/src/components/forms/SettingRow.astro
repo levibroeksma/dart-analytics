@@ -3,8 +3,9 @@
  * Mono eyebrow label over an inset field. View mode is a button showing
  * `valueExpr` (falling back to `emptyText` when empty) with a pencil;
  * tapping it swaps to an inset input bound to `modelExpr`, which runs
- * `saveExpr` and flips back to view mode on blur or Enter. With `maxlength`,
- * editing shows a `n / max` hint under the input. While `skeletonExpr` is
+ * `saveExpr` and flips back to view mode on blur or Enter. Editing shows a
+ * hint under the input, prefixed with an `n / max` count when `maxlength`
+ * is set. While `skeletonExpr` is
  * true the value renders as a pulsing bar of `skeletonWidth`, inside the
  * same field, so the row keeps its size when data arrives.
  * @param {string} id
@@ -17,7 +18,7 @@
  * @param {boolean} [numeric] Use `x-model.number` instead of `x-model`
  * @param {"numeric"} [inputmode] Passed through to the input
  * @param {boolean} [required]
- * @param {number} [maxlength] Input length cap; also enables the counter hint
+ * @param {number} [maxlength] Input length cap; adds a count to the hint
  * @param {string} [disabledExpr] Alpine expression; defaults to `"false"`
  * @param {string} [skeletonExpr] Alpine expression; defaults to `"false"`
  * @param {string} [skeletonWidth] Width class for the placeholder bar
@@ -80,10 +81,11 @@ const skeletonClass = cn(
   "inline-block h-lh animate-pulse rounded-md bg-foreground/12 align-top",
   skeletonWidth,
 );
+const hintText = "saves when you leave the field";
 const hintExpr =
   maxlength === undefined
-    ? undefined
-    : `String(${modelExpr} ?? "").length + " / ${maxlength} · saves when you leave the field"`;
+    ? JSON.stringify(hintText)
+    : `String(${modelExpr} ?? "").length + " / ${maxlength} · ${hintText}"`;
 const displayExpr = emptyText
   ? `(${valueExpr}) || ${JSON.stringify(emptyText)}`
   : valueExpr;
@@ -143,7 +145,7 @@ const openExpr = `if (${skeletonExpr}) return; editing = true; openValue = ${mod
     >
       <span
         slot="iconBefore"
-        class="min-w-0 truncate text-control font-normal"
+        class="min-w-0 truncate text-control font-medium"
       >
         <span
           x-show={`!(${skeletonExpr})`}
@@ -171,7 +173,7 @@ const openExpr = `if (${skeletonExpr}) return; editing = true; openValue = ${mod
       placeholder={placeholder}
       required={required}
       maxlength={maxlength}
-      class={cn(fieldClass, "py-0 text-control")}
+      class={cn(fieldClass, "py-0 text-control font-medium")}
       x-show="editing"
       x-cloak
       x-ref="input"
@@ -181,14 +183,10 @@ const openExpr = `if (${skeletonExpr}) return; editing = true; openValue = ${mod
       @keydown.enter.prevent="commit()"
     />
   </div>
-  {
-    hintExpr && (
-      <span
-        class="px-0.5 text-xs/tight text-muted"
-        x-show="editing"
-        x-cloak
-        x-text={hintExpr}
-      />
-    )
-  }
+  <span
+    class="px-0.5 font-mono text-caption font-medium text-muted"
+    x-show="editing"
+    x-cloak
+    x-text={hintExpr}
+  ></span>
 </div>
