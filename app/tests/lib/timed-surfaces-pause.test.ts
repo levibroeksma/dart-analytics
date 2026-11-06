@@ -3,7 +3,7 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 
 const LIB = join(__dirname, "../../src/lib");
-const TIMER_START = /new SegmentTimer\(|startCountdown\(/;
+const TIMER_START = /new SegmentTimer\(|\b(?:re)?startCountdown\(/;
 const HELPER = "game/play-countdown.ts";
 
 function sourceFiles(dir: string): string[] {
