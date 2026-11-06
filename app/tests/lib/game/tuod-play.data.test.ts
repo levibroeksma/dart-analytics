@@ -225,13 +225,13 @@ const ACTIVE_SESSION = {
   startedAt: "now",
 } as const;
 
-describe("tuodPlay", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    segmentTimerInstances.length = 0;
-    vi.mocked(fetchActiveSessions).mockResolvedValue([{ ...ACTIVE_SESSION }]);
-  });
+beforeEach(() => {
+  vi.clearAllMocks();
+  segmentTimerInstances.length = 0;
+  vi.mocked(fetchActiveSessions).mockResolvedValue([{ ...ACTIVE_SESSION }]);
+});
 
+describe("tuodPlay", () => {
   it("records a checked-out attempt: the turn total is the target it was thrown at", async () => {
     const store = gameStub();
     const component = {
