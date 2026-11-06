@@ -4,12 +4,6 @@ import { describe, it, expect } from "vitest";
 
 import { FACTORIES } from "./support/factories";
 
-/**
- * Names called inside a page's Alpine attributes that a nested `x-data` scope
- * supplies (nested x-data subtrees are skipped automatically, so this is rarely needed) (not the page factory). Keyed by page path under src/pages; one line each.
- */
-const NESTED: Record<string, string[]> = {};
-
 /** Pre-existing unresolved bindings on main — "issue pending". Keyed by page path. */
 const PENDING: Record<string, string[]> = {};
 
@@ -25,13 +19,10 @@ const JS_GLOBALS = new Set([
   "parseInt",
   "parseFloat",
   "isNaN",
-  // CSS functions inside :style template strings, not Alpine calls
-  "translate",
-  "rotate",
-  "scale",
-  "calc",
-  "var",
 ]);
+
+/** CSS functions inside `:style` template strings, not Alpine calls. */
+const CSS_FUNCTIONS = new Set(["translate", "rotate", "scale", "calc", "var"]);
 
 const SRC = resolve(__dirname, "../../../src");
 const PAGES_ROOT = join(SRC, "pages");
@@ -221,8 +212,11 @@ function addCalls(tag: Tag, out: Set<string>): void {
   for (const a of tag.attrs) {
     if (a.value == null || a.name === "x-data" || !ATTR_NAME.test(a.name))
       continue;
+    const inStyle = a.name === ":style";
     for (const c of a.value.matchAll(CALL)) {
-      if (!JS_GLOBALS.has(c[1])) out.add(c[1]);
+      if (JS_GLOBALS.has(c[1]) || (inStyle && CSS_FUNCTIONS.has(c[1])))
+        continue;
+      out.add(c[1]);
     }
   }
 }
@@ -300,6 +294,29 @@ function calledNames(page: string): Set<string> {
   return out;
 }
 
+describe("addCalls", () => {
+  const tag = (name: string, value: string): Tag => ({
+    name: "div",
+    attrs: [{ name, value }],
+    closing: false,
+    selfClose: false,
+  });
+  const namesIn = (name: string, value: string) => {
+    const out = new Set<string>();
+    addCalls(tag(name, value), out);
+    return [...out];
+  };
+
+  it("ignores CSS functions inside :style", () => {
+    expect(namesIn(":style", "`translate(${x()}px) scale(1)`")).toEqual(["x"]);
+  });
+
+  it("does not ignore a CSS function name in any other attribute", () => {
+    expect(namesIn("x-text", "scale()")).toEqual(["scale"]);
+    expect(namesIn("@click", "translate()")).toEqual(["translate"]);
+  });
+});
+
 // Limit: only call syntax (`name(`) is checked. Property reads (`x-text="total"`) and
 // dynamic `attr={...}` values are not, so a missing data property goes unnoticed.
 describe("page Alpine bindings resolve to factory keys", () => {
@@ -322,10 +339,7 @@ describe("page Alpine bindings resolve to factory keys", () => {
       );
 
       const keys = new Set(Object.keys(factory()));
-      const allowed = new Set([
-        ...(NESTED[rel] ?? []),
-        ...(PENDING[rel] ?? []),
-      ]);
+      const allowed = new Set(PENDING[rel] ?? []);
       const unresolved = [...names].filter(
         (n) => !keys.has(n) && !allowed.has(n),
       );
