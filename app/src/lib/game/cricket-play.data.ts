@@ -5,7 +5,6 @@ import {
   playScreenActions,
 } from "@lib/game/play-screen.data";
 import { playAgainStarterData } from "@lib/game/play-again-starter";
-import { BULL_TARGET_NUMBER } from "@modules/game/board-progression.module";
 import { botThrowObservation } from "@lib/game/play-bot-seat";
 import { chooseTarget } from "@modules/dartbot/strategy/marks.strategy.module";
 import {
@@ -14,6 +13,7 @@ import {
 } from "@lib/game/play-lifecycle";
 import {
   duelWinningSideKey,
+  marksObjectiveLabel,
   marksPlayAccessors,
   marksPreviewSegments,
   recordMarksMiss,
@@ -46,10 +46,6 @@ import {
 
 const GAME_TYPE_KEY = "CRICKET";
 const RESUMABLE = new Set<RulesetVersionKey>(["CRICKET_V1", "CRICKET_V2"]);
-
-function objectiveLabel(objective: number): string {
-  return objective === BULL_TARGET_NUMBER ? "Bull" : String(objective);
-}
 
 /** One seat's results row: darts, MPR to 2 dp, treble hits, the dart each objective closed on. */
 export function cricketSeatResult(seat: CricketSeatState): CricketSeatResult {
@@ -133,7 +129,7 @@ export function cricketPlay() {
       );
     },
 
-    ...marksPlayAccessors(CRICKET_OBJECTIVES, objectiveLabel),
+    ...marksPlayAccessors(CRICKET_OBJECTIVES, marksObjectiveLabel),
 
     previewSegments(this: CricketPlayContext): Bobs27PreviewSegment[] {
       return marksPreviewSegments(
