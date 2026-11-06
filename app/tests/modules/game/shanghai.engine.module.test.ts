@@ -15,6 +15,7 @@ import {
   zoneBucketOf,
 } from "@modules/game/shanghai.engine.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
+import { NO_INTENT } from "@modules/game/turn-log.module";
 import type {
   DartObservation,
   DartZoneKey,
@@ -1315,8 +1316,8 @@ describe("Shanghai dart facts", () => {
     });
 
     const dart = engine.facts().turns[0].darts[0];
-    expect(dart.intendedTargetNumber).toBeNull();
-    expect(dart.intendedZoneKey).toBeNull();
+    expect(dart.intendedTargetNumber).toBe(NO_INTENT.intendedTargetNumber);
+    expect(dart.intendedZoneKey).toBe(NO_INTENT.intendedZoneKey);
     expect(dart.score).toBe(3);
     expect(engine.facts().turns[0].totalScore).toBe(3);
   });
