@@ -112,4 +112,55 @@ describe("pausedTipsData", () => {
     expect(tips.tip).not.toBe(first);
     expect(vi.getTimerCount()).toBe(1);
   });
+
+  describe("focus isolation", () => {
+    function page() {
+      document.body.innerHTML = `
+        <header id="bar"><button>menu</button></header>
+        <main id="play"><section id="board"></section>
+          <div id="wrap"><div id="overlay"><button id="resume">go</button></div><p id="aside">x</p></div>
+        </main>`;
+      const overlay = document.getElementById("overlay")!;
+      const tips = Object.assign(setup(), { $el: overlay });
+      return { overlay, tips };
+    }
+    const inert = (id: string) =>
+      document.getElementById(id)!.hasAttribute("inert");
+
+    it("start makes everything outside the overlay inert", () => {
+      const { tips } = page();
+      tips.start();
+      expect(inert("bar")).toBe(true);
+      expect(inert("board")).toBe(true);
+      expect(inert("aside")).toBe(true);
+      expect(inert("overlay")).toBe(false);
+      expect(inert("wrap")).toBe(false);
+      expect(inert("play")).toBe(false);
+    });
+
+    it("stop lifts only what start marked", () => {
+      const { tips } = page();
+      document.getElementById("board")!.setAttribute("inert", "");
+      tips.start();
+      tips.stop();
+      expect(inert("bar")).toBe(false);
+      expect(inert("aside")).toBe(false);
+      expect(inert("board")).toBe(true);
+    });
+
+    it("destroy lifts the isolation", () => {
+      const { tips } = page();
+      tips.start();
+      tips.destroy();
+      expect(inert("bar")).toBe(false);
+    });
+
+    it("start twice does not mark the first pass's elements as owned by others", () => {
+      const { tips } = page();
+      tips.start();
+      tips.start();
+      tips.stop();
+      expect(inert("bar")).toBe(false);
+    });
+  });
 });

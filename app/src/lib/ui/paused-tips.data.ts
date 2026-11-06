@@ -5,14 +5,41 @@ import { prefersReducedMotion } from "@lib/ui/motion";
 export const TIP_FADE_MS = 300;
 
 /**
+ * Sets `inert` on every sibling along the path from `root` up to the body, so
+ * keyboard focus cannot reach content the paused screen covers. Returns the
+ * elements it marked; an element already `inert` is left to its owner.
+ */
+function isolate(root: Element): Element[] {
+  const marked: Element[] = [];
+  for (let node = root; node.parentElement; node = node.parentElement) {
+    for (const sibling of node.parentElement.children) {
+      if (sibling === node || sibling.hasAttribute("inert")) continue;
+      if (["SCRIPT", "STYLE", "LINK"].includes(sibling.tagName)) continue;
+      sibling.setAttribute("inert", "");
+      marked.push(sibling);
+    }
+  }
+  return marked;
+}
+
+/**
  * Alpine factory for the paused-screen tip: `start()` shows a tip for the
  * key `readKey()` returns and changes it after `tipDisplayMs(tip)`, with a
  * `TIP_FADE_MS` fade-out unless the user prefers reduced motion. `stop()`
  * ends the rotation; the last tip is remembered so the next one differs.
+ * While started it also makes everything outside the screen `inert`; `stop()`
+ * and `destroy()` lift that. The screen is not a dialog (D526), so it carries
+ * no dialog role.
  */
 export function pausedTipsData(readKey: () => string | null | undefined) {
   let timer: ReturnType<typeof setTimeout> | null = null;
   let last: string | null = null;
+  let marked: Element[] = [];
+
+  const release = () => {
+    for (const element of marked) element.removeAttribute("inert");
+    marked = [];
+  };
 
   const clear = () => {
     if (timer !== null) clearTimeout(timer);
@@ -41,15 +68,20 @@ export function pausedTipsData(readKey: () => string | null | undefined) {
 
     start() {
       clear();
+      release();
+      const root = (this as { $el?: Element }).$el;
+      if (root) marked = isolate(root);
       this.show();
     },
 
     stop() {
       clear();
+      release();
     },
 
     destroy() {
       clear();
+      release();
     },
   };
 }

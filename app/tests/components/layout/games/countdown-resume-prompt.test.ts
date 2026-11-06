@@ -19,6 +19,8 @@ const PLAY_PATH =
 
 describe("CountdownResumePrompt", () => {
   it("covers the viewport", () => expect(source).toContain("fixed inset-0"));
+  it("caps the tip card width and centres it", () =>
+    expect(source).toMatch(/glass mx-auto w-full max-w-md/));
   it("keeps the resume label", () =>
     expect(source).toContain('ariaLabel="Resume timer"'));
   it("renders the action through Button.astro", () => {
