@@ -3,7 +3,8 @@
  * Presentational — GameSetupPage owns showActiveSessionModal (x-if).
  * Custom two-action footer (not cancel/confirm) on Modal shell. A session
  * this device does not hold (`activeSessionLocal` false) cannot be
- * continued here: the footer offers Back instead (D460).
+ * continued here: the footer offers Back instead (D460). Only Start new
+ * spins on `loading`; Continue and Back only navigate.
  */
 interface Props {
   gameTitle?: string;
@@ -76,6 +77,7 @@ import SheetActions from "@components/ui/SheetActions.astro";
       title="Continue"
       @click="continueSession()"
       :disabled="loading"
+      loadingExpr="false"
       x-show="activeSessionLocal"
       x-cloak
       grow
@@ -86,6 +88,7 @@ import SheetActions from "@components/ui/SheetActions.astro";
       title="Back"
       @click="leaveSetup()"
       :disabled="loading"
+      loadingExpr="false"
       x-show="!activeSessionLocal"
       x-cloak
       grow
