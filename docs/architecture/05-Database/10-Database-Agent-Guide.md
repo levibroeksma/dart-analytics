@@ -2,7 +2,7 @@
 status: canonical
 scope: database/agent-rules
 read-when: before any SQL, migration, seed, or view work
-updated: 2026-09-28
+updated: 2026-11-07
 -->
 
 # Database Agent Guide
@@ -91,7 +91,7 @@ No `multiplier` column (derived from zone). Recreational capture may omit dart r
 ## 6. Migrations
 
 - One responsibility per file
-- Four-digit prefix: `0001`–`0042` current chain
+- Four-digit prefix; next free number after the highest in `database/migrations/`
 - Schema in migrations; reference data in seeds
 - **Never modify an applied migration** — create a migration with the next unused number instead
 - Before first deployment only: in-place correction of unapplied migrations is permitted
