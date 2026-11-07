@@ -49,6 +49,15 @@ const RULESET_VERSION_KEY: RulesetVersionKey = "FOLLOW_THE_LEADER_V1";
 const STOP_REFUSED = "Stop needs a match first";
 const KEEP_REFUSED = "Keep not allowed";
 const OPENING_NOTICE = "Opening dart: throw it with your off hand.";
+const SETTING_NOTICE =
+  "Your turn to set: throw one dart to set the new target.";
+const RETHROW_NOTICE =
+  "That dart missed the board. Throw again to set the target.";
+const EMPTY_SEGMENTS: GamePreviewSegment[] = [
+  { status: "empty" },
+  { status: "empty" },
+  { status: "empty" },
+];
 
 const RING_WORDS = { SINGLE: "Single", DOUBLE: "Double", TREBLE: "Treble" };
 
@@ -146,6 +155,18 @@ export function followTheLeaderPlay() {
       return this.phase() === "OPENING" ? OPENING_NOTICE : "";
     },
 
+    /** The leader's setting-turn cue: one dart sets the target, thrown again after an off-board dart; blank otherwise. */
+    settingNotice(this: FollowTheLeaderPlayContext): string {
+      if (this.phase() !== "LEAD" || this.showKeepPrompt()) return "";
+      const state = this.state();
+      const last = this.$store.game.turns.at(-1);
+      const rethrow =
+        !!last &&
+        last.participantRef === state?.activeParticipantRef &&
+        last.darts.length === 1;
+      return rethrow ? RETHROW_NOTICE : SETTING_NOTICE;
+    },
+
     /** Play-header subtitle: `TARGET: Treble 18`; blank until a target is set. */
     subtitle(this: FollowTheLeaderPlayContext): string {
       const label = this.targetLabel();
@@ -177,9 +198,16 @@ export function followTheLeaderPlay() {
       return false;
     },
 
-    /** The open (or last) visit's darts: a dart in the target bed is a hit, anything else a miss. */
+    /** The open (or last) visit's darts: a dart in the target bed is a hit, anything else a miss; a setting dart carries no verdict, so its slots stay empty. */
     previewSegments(this: FollowTheLeaderPlayContext): GamePreviewSegment[] {
-      const target = this.state()?.target ?? null;
+      const state = this.state();
+      const target = state?.target ?? null;
+      const last = this.$store.game.turns.at(-1);
+      const settingTurn =
+        !!last &&
+        last.darts.length === 1 &&
+        (state?.leaderRef == null || last.participantRef === state.leaderRef);
+      if (settingTurn) return EMPTY_SEGMENTS.map((segment) => ({ ...segment }));
       return playPreviewSegments(
         this.$store.game.turns,
         this.hiddenTurnKey,

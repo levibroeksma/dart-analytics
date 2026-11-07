@@ -645,6 +645,7 @@ updated: 2026-11-07
 | `10-Database-Agent-Guide.md` | Migration prefix rule no longer hard-codes the chain range (#1262). 2026-11-07 | historical |
 | `FollowTheLeaderRecreationalInput.astro` | Tap pad rows get the shared `gap-2`; BULL/MISS row no longer flush (#1160). 2026-11-07 | historical |
 | `page-bindings.test.ts`, `support/factories.ts` | Page-bindings test checks routine steps' nested `x-data="game"` scopes against the step's game factory (#1196). 2026-11-07 | historical |
+| `follow-the-leader-play.data.ts`, `FollowTheLeader.astro`, `00-File-Inventory.md` | Leader gets a setting-turn and re-throw cue; setting darts no longer coloured hit/miss in the preview (#1159). 2026-11-07 | historical |
 
 ---
 

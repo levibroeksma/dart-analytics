@@ -78,6 +78,13 @@ import UndoIcon from "@icons/undo.svg";
       x-text="openingNotice()"
     >
     </p>
+    <p
+      class="text-sm text-muted-foreground"
+      x-show="settingNotice() !== ''"
+      x-cloak
+      x-text="settingNotice()"
+    >
+    </p>
     <div
       class="flex min-h-0 flex-1 flex-col gap-3"
       aria-live="polite"
