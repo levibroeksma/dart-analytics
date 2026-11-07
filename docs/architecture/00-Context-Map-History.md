@@ -642,6 +642,7 @@ updated: 2026-11-07
 | `app/scripts/design-sync/*` (`tokens-json.ts`, `ready.ts`, `publish.ts`, lock keys, component folders), `.claude/skills/syncing-design-system/SKILL.md`, `.claude/hooks/session-start.sh`, `decisions/frontend/style.md` (D523, D524), `07-Style-Guide.md`, `00-File-Inventory.md`, root `CLAUDE.md` | Design-system sync moves from the closed Claude Design project to the Design System artifact: `tokens.json` reader, ready-mark and after-merge work lists, session-start check; plan work takes open visual choices from the artifact and asks about the sync before the PR (`finishing-a-dart-branch`, `building-a-component`, root `CLAUDE.md`). 2026-11-04 | historical |
 | root `CLAUDE.md` (migrations `0001`–`0053` closed to edits), `decisions/database.md` (D532) | Closed migration range extended past `0046` after a green production `migrate` run (#1191). 2026-11-07 | historical |
 | `paused-tips.data.ts`, `tip-pick.ts`, `CountdownResumePrompt.astro`, `global.css`, `merge-tokens.ts`, `decisions/frontend/style.md` (D533), `07-Style-Guide.md`, `00-File-Inventory.md` | Paused-screen tips: 1.5 s longer, slide out left and in from the right (#1237). 2026-11-07 | historical |
+| `10-Database-Agent-Guide.md` | Migration prefix rule no longer hard-codes the chain range (#1262). 2026-11-07 | historical |
 
 ---
 
