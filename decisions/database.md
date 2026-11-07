@@ -268,3 +268,10 @@ Decision: migration `0050_template_difficulty_axis.sql` adds `uq_tags_id_axis` (
 Reason: the `0047` foreign key accepted any tag, and a wrong value silently fell back to the type's difficulty in `v_exercise_template_catalog`; only seeded system templates were guarded, so a future user template was not. A composite key enforces it in the schema, where a verification script would only report it.
 Consequences: the axis id 4 is hard-coded in the generated column, safe because lookup ids are seeded and never reassigned; the integration test asserts it equals the `DIFFICULTY` row. No data change and no API change. Proof: `app/tests/integration/template-difficulty-axis.itest.ts`.
 Supersedes: none.
+
+### D532 — Migrations `0001`–`0053` are closed to in-place edits
+Status: Accepted · Date: 2026-11-07
+Decision: root `CLAUDE.md` names `0001`–`0053` as applied and closed to edits (was `0001`–`0046`). The D344 carve-out still governs anything later: unmerged and pending on both `db:status` and `db:status:prod`.
+Reason: closes #1191. Migrations `0047`–`0053` reached production. Proof: `deploy` run 41235057275 (2026-10-31, `main` at 7fb1c12, after `0053` merged in #1157) ran the `migrate` job green, including "Confirm nothing is left pending".
+Consequences: an edit to `0047`–`0053` is now a new numbered migration. The range is still hard-coded and goes stale with each deployed migration; the next one to deploy extends it with the same proof.
+Supersedes: none.
