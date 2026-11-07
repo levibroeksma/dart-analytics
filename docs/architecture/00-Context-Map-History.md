@@ -2,7 +2,7 @@
 status: historical
 scope: context-map version history and point-in-time task records
 read-when: never during a task — provenance only
-updated: 2026-11-05
+updated: 2026-11-07
 -->
 
 # Context Map History
@@ -640,6 +640,7 @@ updated: 2026-11-05
 | `follow-the-leader-play.data.ts`, `types.ts`, `FollowTheLeader.astro`, `FollowTheLeaderRecreationalInput.astro`, `SeatedPlayScreen.astro` (`boardShowExpr`, `boardActions`), `BoardInputPanel.astro` (`actions` slot), `follow-the-leader.md`, `00-File-Inventory.md`, `08-Component-Inventory.md`, `decisions/game-engine.md` (D511) | Follow the Leader PR 2 final-review fixes: Stop and Keep/Set in both input modes, undo on the prompt, fixed STOP column, a11y (2026-10-30) | historical |
 | `prisoner-setup.data.ts`, `prisoner-play.data.ts`, `prisoner-results.ts`, `Prisoner*.astro`, `types.ts`, `games-visibility.ts` (ANALYTICS-only card), `register-route-data.ts`, pages `games/prisoner/*`, `prisoner.md`, `00-File-Inventory.md`, `09-Adding-A-Game.md` | Prisoner V1 playable: setup, play, results, card hidden under Recreational. Prisoner PR 2 (2026-10-31) | historical |
 | `app/scripts/design-sync/*` (`tokens-json.ts`, `ready.ts`, `publish.ts`, lock keys, component folders), `.claude/skills/syncing-design-system/SKILL.md`, `.claude/hooks/session-start.sh`, `decisions/frontend/style.md` (D523, D524), `07-Style-Guide.md`, `00-File-Inventory.md`, root `CLAUDE.md` | Design-system sync moves from the closed Claude Design project to the Design System artifact: `tokens.json` reader, ready-mark and after-merge work lists, session-start check; plan work takes open visual choices from the artifact and asks about the sync before the PR (`finishing-a-dart-branch`, `building-a-component`, root `CLAUDE.md`). 2026-11-04 | historical |
+| root `CLAUDE.md` (migrations `0001`–`0053` closed to edits), `decisions/database.md` (D532) | Closed migration range extended past `0046` after a green production `migrate` run (#1191). 2026-11-07 | historical |
 
 ---
 
