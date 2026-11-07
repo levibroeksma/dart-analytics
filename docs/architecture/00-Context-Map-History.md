@@ -644,6 +644,7 @@ updated: 2026-11-07
 | `paused-tips.data.ts`, `tip-pick.ts`, `CountdownResumePrompt.astro`, `global.css`, `merge-tokens.ts`, `decisions/frontend/style.md` (D533), `07-Style-Guide.md`, `00-File-Inventory.md` | Paused-screen tips: 1.5 s longer, slide out left and in from the right (#1237). 2026-11-07 | historical |
 | `10-Database-Agent-Guide.md` | Migration prefix rule no longer hard-codes the chain range (#1262). 2026-11-07 | historical |
 | `FollowTheLeaderRecreationalInput.astro` | Tap pad rows get the shared `gap-2`; BULL/MISS row no longer flush (#1160). 2026-11-07 | historical |
+| `page-bindings.test.ts`, `support/factories.ts` | Page-bindings test checks routine steps' nested `x-data="game"` scopes against the step's game factory (#1196). 2026-11-07 | historical |
 
 ---
 

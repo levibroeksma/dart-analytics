@@ -70,3 +70,11 @@ export const FACTORIES: Record<string, () => object> = {
   quickSubtractPlay,
   routinePlay,
 };
+
+/** The game factory a routine step's nested `x-data="game"` scope wraps, keyed by `panel`. */
+export const ROUTINE_GAME_FACTORIES: Record<string, () => object> = {
+  tuod: tuodPlay,
+  "score-training": scoreTrainingPlay,
+  "one-twenty-one": oneTwentyOnePlay,
+  "around-the-clock": aroundTheClockPlay,
+};

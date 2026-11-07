@@ -2,7 +2,7 @@ import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { describe, it, expect } from "vitest";
 
-import { FACTORIES } from "./support/factories";
+import { FACTORIES, ROUTINE_GAME_FACTORIES } from "./support/factories";
 
 /** Pre-existing unresolved bindings on main — "issue pending". Keyed by page path. */
 const PENDING: Record<string, string[]> = {};
@@ -221,10 +221,25 @@ function addCalls(tag: Tag, out: Set<string>): void {
   }
 }
 
-/** Element nesting plus the nested-`x-data` skip state while walking one file. */
+type Scope =
+  { kind: "own" } | { kind: "skip" } | { kind: "game"; panel: string };
+
+type Calls = { own: Set<string>; nested: Map<string, Set<string>> };
+
+const OWN: Scope = { kind: "own" };
+const SKIP: Scope = { kind: "skip" };
+const PANEL = /panel === '([\w-]+)'/;
+
+/**
+ * Element nesting plus the nested-`x-data` scope state while walking one file. A nested
+ * `x-data="game"` is a routine step's game scope, resolved by the enclosing `panel === '…'`
+ * template; any other nested `x-data` is a scope the test cannot resolve and is skipped.
+ */
 class ScopeWalk {
   private stack: string[] = [];
-  private skipBelow = -1; // stack length at which a nested scope ends; -1 = not skipping
+  private scopeBelow = -1; // stack length at which a nested scope ends; -1 = not nested
+  private scope: Scope = OWN;
+  private panel = "";
   private rootSeen: boolean;
   constructor(private isPage: boolean) {
     this.rootSeen = !isPage;
@@ -233,63 +248,89 @@ class ScopeWalk {
   private close(tag: Tag): void {
     const at = this.stack.lastIndexOf(tag.name);
     if (at >= 0) this.stack.length = at;
-    if (this.skipBelow >= 0 && this.stack.length < this.skipBelow)
-      this.skipBelow = -1;
+    if (this.scopeBelow >= 0 && this.stack.length < this.scopeBelow) {
+      this.scopeBelow = -1;
+      this.scope = OWN;
+    }
   }
 
-  private declaresNestedScope(tag: Tag): boolean {
-    const hasData = tag.attrs.some((a) => a.name === "x-data");
-    const nested = hasData && (this.rootSeen || !this.isPage);
-    if (hasData) this.rootSeen = true;
-    return nested;
+  private declaresNestedScope(tag: Tag): Attr | null {
+    const data = tag.attrs.find((a) => a.name === "x-data") ?? null;
+    const nested = data !== null && (this.rootSeen || !this.isPage);
+    if (data) this.rootSeen = true;
+    return nested ? data : null;
   }
 
-  /** True when the tag's attributes and component import belong to this file's scope. */
-  visit(tag: Tag): boolean {
+  private trackPanel(tag: Tag): void {
+    const match = PANEL.exec(
+      tag.attrs.find((a) => a.name === "x-if")?.value ?? "",
+    );
+    if (match) this.panel = match[1];
+  }
+
+  /** The scope the tag's attributes and component import belong to; null for a closing tag. */
+  visit(tag: Tag): Scope | null {
     if (tag.closing) {
       this.close(tag);
-      return false;
+      return null;
     }
-    const skipping = this.skipBelow >= 0;
+    this.trackPanel(tag);
+    const inherited = this.scopeBelow >= 0 ? this.scope : null;
     const nested = this.declaresNestedScope(tag);
     const open = !tag.selfClose && !VOID.has(tag.name);
     if (open) this.stack.push(tag.name);
-    if (skipping) return false;
-    if (nested) {
-      if (open) this.skipBelow = this.stack.length;
-      return false;
-    }
-    return true;
+    if (inherited) return inherited;
+    if (!nested) return OWN;
+    this.scope =
+      nested.value === "game" ? { kind: "game", panel: this.panel } : SKIP;
+    if (open) this.scopeBelow = this.stack.length;
+    return this.scope;
   }
+}
+
+/** The call set a tag in `scope` writes to; null when the scope is skipped. */
+function callsFor(scope: Scope, out: Calls): Set<string> | null {
+  if (scope.kind === "own") return out.own;
+  if (scope.kind === "skip") return null;
+  const set = out.nested.get(scope.panel) ?? new Set<string>();
+  out.nested.set(scope.panel, set);
+  return set;
 }
 
 /**
  * Alpine call names (`foo(` not `.foo(`) in x-* / @* / :* / *Expr attribute values of a
- * page and every .astro component reached through its imports. An element that declares its
- * own `x-data` (other than the page's root one) starts a different scope: its attributes,
- * children and component import are skipped.
+ * page and every .astro component reached through its imports, split by scope: the page's
+ * own, and each routine step's nested `x-data="game"` (keyed by panel). Any other nested
+ * `x-data` starts a scope whose attributes, children and component import are skipped.
  */
 function collectCalls(
   file: string,
   isPage: boolean,
   seen: Set<string>,
-  out: Set<string>,
+  out: Calls,
+  inherited: Scope = OWN,
 ): void {
-  if (seen.has(file) || !existsSync(file)) return;
-  seen.add(file);
+  const key = `${JSON.stringify(inherited)}:${file}`;
+  if (seen.has(key) || !existsSync(file)) return;
+  seen.add(key);
   const { front, body } = splitFrontmatter(readFileSync(file, "utf8"));
   const imports = astroImports(file, front);
   const walk = new ScopeWalk(isPage);
   for (const tag of tags(body)) {
-    if (!walk.visit(tag)) continue;
-    addCalls(tag, out);
+    const own = walk.visit(tag);
+    if (!own) continue;
+    const scope =
+      own.kind === "skip" || inherited.kind === "own" ? own : inherited;
+    const calls = callsFor(scope, out);
+    if (!calls) continue;
+    addCalls(tag, calls);
     const target = imports.get(tag.name);
-    if (target) collectCalls(target, false, seen, out);
+    if (target) collectCalls(target, false, seen, out, scope);
   }
 }
 
-function calledNames(page: string): Set<string> {
-  const out = new Set<string>();
+function calledNames(page: string): Calls {
+  const out: Calls = { own: new Set(), nested: new Map() };
   collectCalls(page, true, new Set(), out);
   return out;
 }
@@ -324,6 +365,15 @@ describe("page Alpine bindings resolve to factory keys", () => {
     expect(PAGES.length).toBeGreaterThanOrEqual(30);
   });
 
+  it("scans every routine step's nested game scope", () => {
+    const page = PAGES.find((p) => p.endsWith("routines/play/index.astro"));
+    const { nested } = calledNames(page!);
+    expect([...nested.keys()].sort()).toEqual(
+      Object.keys(ROUTINE_GAME_FACTORIES).sort(),
+    );
+    for (const names of nested.values()) expect(names.size).toBeGreaterThan(0);
+  });
+
   for (const page of PAGES) {
     const rel = page.slice(PAGES_ROOT.length + 1);
     it(rel, () => {
@@ -333,17 +383,27 @@ describe("page Alpine bindings resolve to factory keys", () => {
       const factory = FACTORIES[factoryName!];
       expect(factory, `factory ${factoryName} registered`).toBeDefined();
 
-      const names = calledNames(page);
-      expect(names.size, "non-vacuity: page yields call names").toBeGreaterThan(
+      const { own, nested } = calledNames(page);
+      expect(own.size, "non-vacuity: page yields call names").toBeGreaterThan(
         0,
       );
 
       const keys = new Set(Object.keys(factory()));
       const allowed = new Set(PENDING[rel] ?? []);
-      const unresolved = [...names].filter(
+      const unresolved = [...own].filter(
         (n) => !keys.has(n) && !allowed.has(n),
       );
       expect(unresolved, rel).toEqual([]);
+
+      for (const [panel, names] of nested) {
+        const gameFactory = ROUTINE_GAME_FACTORIES[panel];
+        expect(gameFactory, `game factory for panel ${panel}`).toBeDefined();
+        const scopeKeys = new Set([...keys, ...Object.keys(gameFactory())]);
+        const missing = [...names].filter(
+          (n) => !scopeKeys.has(n) && !allowed.has(n),
+        );
+        expect(missing, `${rel} panel ${panel}`).toEqual([]);
+      }
     });
   }
 });
