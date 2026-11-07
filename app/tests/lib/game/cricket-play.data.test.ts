@@ -153,6 +153,13 @@ describe("cricketPlay", () => {
     });
   });
 
+  it("labels the objective rows 20 down to 15, then Bull", async () => {
+    const ctx = await started();
+    expect(
+      ctx.objectiveRowsFor("participant-1").map((row) => row.label),
+    ).toEqual(["20", "19", "18", "17", "16", "15", "Bull"]);
+  });
+
   it("setRing toggles a selected ring back to SINGLE", async () => {
     const ctx = await started();
     ctx.setRing("DOUBLE");
