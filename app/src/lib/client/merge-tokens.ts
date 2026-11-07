@@ -147,6 +147,8 @@ export const UTILITY_GROUPS: Readonly<Record<string, string | null>> = {
   "key-press": null,
   "next-dart-ring": null,
   "target-key-ring": null,
+  "tip-slide-out": null,
+  "tip-slide-in": null,
   "pip-on": null,
   "board-dim": null,
   "highlight-glow": null,

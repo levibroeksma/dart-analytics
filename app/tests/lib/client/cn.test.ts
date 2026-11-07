@@ -60,6 +60,12 @@ describe("cn", () => {
     ).toBe("deck-card deck-depth-2 deck-parked");
   });
 
+  it("keeps the tip slide utilities beside the deck card and the stock classes", () => {
+    expect(cn("glass deck-card w-full tip-slide-out tip-slide-in")).toBe(
+      "glass deck-card w-full tip-slide-out tip-slide-in",
+    );
+  });
+
   it("lets a later seat layer fade replace an earlier one", () => {
     expect(cn("seat-layer-out", "seat-layer-in")).toBe("seat-layer-in");
   });

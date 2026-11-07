@@ -46,8 +46,8 @@ const PLAY_PATH =
 >
   <div class="absolute inset-x-4 top-0 bottom-1/2 mb-14 flex items-center">
     <div
-      class="glass mx-auto w-full max-w-md rounded-2xl px-4 py-3 transition-opacity duration-300 ease-out motion-reduce:transition-none"
-      :class="visible ? 'opacity-100' : 'opacity-0'"
+      class="glass deck-card mx-auto w-full max-w-md rounded-2xl px-4 py-3"
+      :class="{ 'tip-slide-out': slide === 'out', 'tip-slide-in': slide === 'in' }"
     >
       <p
         class="font-mono text-eyebrow font-semibold uppercase tracking-widest text-accent"

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import Alpine from "alpinejs";
-import { TIP_FADE_MS, pausedTipsData } from "@lib/ui/paused-tips.data";
+import { TIP_SLIDE_MS, pausedTipsData } from "@lib/ui/paused-tips.data";
 import { GENERAL_TIPS } from "@lib/training/tips/tips";
 import { tipDisplayMs, tipsFor } from "@lib/training/tips/tip-pick";
 
@@ -34,7 +34,7 @@ describe("pausedTipsData", () => {
     const tips = setup();
     tips.start();
     const first = tips.tip;
-    vi.advanceTimersByTime(tipDisplayMs(first) + TIP_FADE_MS);
+    vi.advanceTimersByTime(tipDisplayMs(first) + TIP_SLIDE_MS);
     expect(tips.tip).not.toBe(first);
     expect(tips.visible).toBe(true);
   });
@@ -48,13 +48,22 @@ describe("pausedTipsData", () => {
     expect(tips.visible).toBe(true);
   });
 
-  it("fades out before the change", () => {
+  it("slides out to the left before the change", () => {
     const tips = setup();
     tips.start();
     const first = tips.tip;
     vi.advanceTimersByTime(tipDisplayMs(first));
     expect(tips.visible).toBe(false);
+    expect(tips.slide).toBe("out");
     expect(tips.tip).toBe(first);
+  });
+
+  it("slides the next tip in from the right, not the first", () => {
+    const tips = setup();
+    tips.start();
+    expect(tips.slide).toBe("rest");
+    vi.advanceTimersByTime(tipDisplayMs(tips.tip) + TIP_SLIDE_MS);
+    expect(tips.slide).toBe("in");
   });
 
   it("stop clears the timer", () => {
@@ -83,12 +92,13 @@ describe("pausedTipsData", () => {
     expect(tips.tip).not.toBe(first);
   });
 
-  it("reduced motion swaps without fading", () => {
+  it("reduced motion swaps without sliding", () => {
     const tips = setup(true);
     tips.start();
     const first = tips.tip;
     vi.advanceTimersByTime(tipDisplayMs(first));
     expect(tips.visible).toBe(true);
+    expect(tips.slide).toBe("rest");
     expect(tips.tip).not.toBe(first);
   });
 
@@ -107,7 +117,7 @@ describe("pausedTipsData", () => {
     Alpine.effect(() => (paused.value ? tips.start() : tips.stop()));
     const first = tips.tip;
     const callsAfterStart = random.mock.calls.length;
-    await vi.advanceTimersByTimeAsync(tipDisplayMs(first) + TIP_FADE_MS);
+    await vi.advanceTimersByTimeAsync(tipDisplayMs(first) + TIP_SLIDE_MS);
     expect(random.mock.calls.length - callsAfterStart).toBe(2);
     expect(tips.tip).not.toBe(first);
     expect(vi.getTimerCount()).toBe(1);

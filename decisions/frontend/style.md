@@ -308,3 +308,10 @@ Status: Accepted · Date: 2026-11-06
 Decision: `normaliseCss` spells every `px` length as `rem` (16px base). A `var(--x)` declaration is a passthrough, and dropped from the tokens diff, only inside `@theme` with a Tailwind namespace name (`--color-`, `--radius-`, …) ending in the referenced suffix; aliases in `:root` stay comparable.
 Reason: px/rem spellings of one length were reported as mismatches; `--title-foreground` and `--caption-foreground` were hidden from the sync.
 Consequences: `--title-foreground` and `--caption-foreground` now diff and need a re-record on the next sync run (#1132). A px that slips into the design side no longer shows as drift. Refines D499, D504.
+
+### D533 — Paused-screen tips last 1.5 s longer and slide like the card deck
+Status: Accepted · Date: 2026-11-07
+Decision: the tip display time gains 1.5 s: 4 s plus 60 ms per character, clamped to 6.5–13.5 s. The tip card no longer fades. It slides out to the left (`translateX(-130%) rotate(-6deg)`, `--deck-out-*` timing, `TIP_SLIDE_MS` 440 ms), then the next tip slides in from the right (`tip-slide-in`, `--deck-rise-*` timing). The first tip of a pause just appears. Reduced motion swaps the tip in place.
+Reason: the owner asked for it (#1237): the tips were slightly too short, and the deck's exit motion fits the screen better than a fade.
+Consequences: new utilities `tip-slide-out`, `tip-slide-in` and keyframes `tip-slide-in` in `global.css`, registered in `merge-tokens.ts`; the Design System artifact does not hold them. Not checked in a browser.
+Supersedes: D526 in part (tip timing and its fade).

@@ -20,7 +20,13 @@ const PLAY_PATH =
 describe("CountdownResumePrompt", () => {
   it("covers the viewport", () => expect(source).toContain("fixed inset-0"));
   it("caps the tip card width and centres it", () =>
-    expect(source).toMatch(/glass mx-auto w-full max-w-md/));
+    expect(source).toMatch(/glass deck-card mx-auto w-full max-w-md/));
+  it("slides the tip card out and in like the card deck", () => {
+    expect(source).toContain("deck-card");
+    expect(source).toContain("'tip-slide-out': slide === 'out'");
+    expect(source).toContain("'tip-slide-in': slide === 'in'");
+    expect(source).not.toContain("opacity-0");
+  });
   it("keeps the resume label", () =>
     expect(source).toContain('ariaLabel="Resume timer"'));
   it("renders the action through Button.astro", () => {

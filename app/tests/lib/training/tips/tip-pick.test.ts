@@ -90,10 +90,10 @@ describe("pickTip", () => {
 
 describe("tipDisplayMs", () => {
   it.each([
-    [0, 5000],
-    [50, 5500],
-    [120, 9700],
-    [400, 12000],
+    [0, 6500],
+    [50, 7000],
+    [120, 11200],
+    [400, 13500],
   ])("%i chars → %i ms", (n, ms) =>
     expect(tipDisplayMs("a".repeat(n))).toBe(ms),
   );
