@@ -1,8 +1,8 @@
 import { pickTip, tipDisplayMs } from "@lib/training/tips/tip-pick";
 import { prefersReducedMotion } from "@lib/ui/motion";
 
-/** How long the tip card fades out before the next tip shows. */
-export const TIP_FADE_MS = 300;
+/** How long the tip card slides out to the left before the next tip shows. */
+export const TIP_SLIDE_MS = 440;
 
 /**
  * Sets `inert` on every sibling along the path from `root` up to the body, so
@@ -24,8 +24,10 @@ function isolate(root: Element): Element[] {
 
 /**
  * Alpine factory for the paused-screen tip: `start()` shows a tip for the
- * key `readKey()` returns and changes it after `tipDisplayMs(tip)`, with a
- * `TIP_FADE_MS` fade-out unless the user prefers reduced motion. `stop()`
+ * key `readKey()` returns and changes it after `tipDisplayMs(tip)`: the card
+ * slides out to the left for `TIP_SLIDE_MS`, then the next tip slides in from
+ * the right (`slide`: `rest`, `out`, `in`). With reduced motion the tip swaps
+ * in place. `stop()`
  * ends the rotation; the last tip is remembered so the next one differs.
  * While started it also makes everything outside the screen `inert`; `stop()`
  * and `destroy()` lift that. The screen is not a dialog (D526), so it carries
@@ -49,10 +51,17 @@ export function pausedTipsData(readKey: () => string | null | undefined) {
   return {
     tip: "",
     visible: false,
+    entering: false,
 
-    show() {
+    get slide(): "rest" | "out" | "in" {
+      if (!this.visible) return "out";
+      return this.entering ? "in" : "rest";
+    },
+
+    show(entering = false) {
       last = pickTip(readKey(), last);
       this.tip = last;
+      this.entering = entering;
       this.visible = true;
       timer = setTimeout(() => this.change(), tipDisplayMs(last));
     },
@@ -63,7 +72,7 @@ export function pausedTipsData(readKey: () => string | null | undefined) {
         return;
       }
       this.visible = false;
-      timer = setTimeout(() => this.show(), TIP_FADE_MS);
+      timer = setTimeout(() => this.show(true), TIP_SLIDE_MS);
     },
 
     start() {

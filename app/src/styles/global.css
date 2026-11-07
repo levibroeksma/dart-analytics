@@ -1051,6 +1051,35 @@
   }
 }
 
+@keyframes tip-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(130%) rotate(6deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@utility tip-slide-out {
+  opacity: 0;
+  transform: translateX(-130%) rotate(-6deg);
+  transition:
+    transform var(--deck-out-duration) var(--deck-out-ease),
+    opacity 300ms ease-in 140ms;
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+@utility tip-slide-in {
+  animation: tip-slide-in var(--deck-rise-duration) var(--deck-ease) both;
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
 @utility deck-exiting {
   opacity: 0;
   transform: translateX(-130%) translateY(var(--deck-y))

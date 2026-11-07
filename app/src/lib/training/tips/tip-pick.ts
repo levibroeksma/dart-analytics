@@ -1,9 +1,9 @@
 import { GENERAL_TIPS, KEY_TIPS } from "./tips";
 
-const TIP_BASE_MS = 2500;
+const TIP_BASE_MS = 4000;
 const TIP_PER_CHAR_MS = 60;
-const TIP_MIN_MS = 5000;
-const TIP_MAX_MS = 12000;
+const TIP_MIN_MS = 6500;
+const TIP_MAX_MS = 13500;
 export const TIP_MAX_CHARS = 120;
 
 const KEY_TIP_SHARE = 2 / 3;
