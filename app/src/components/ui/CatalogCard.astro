@@ -5,16 +5,13 @@
  * slot holds the config well.
  * @param {"game"|"exercise"} variant
  * @param {string} [href] Destination of a `game` card
- * @param {string} [tagsLoadingExpr] Alpine expression, true while the card's
- *   tags and difficulty meter are still loading; shows pulsing placeholders
  * Slots: `title`, `meter`, `caption`, `tags`, default (body).
  */
-type Props = { tagsLoadingExpr?: string } & (
-  { variant: "game"; href: string } | { variant: "exercise"; href?: undefined }
-);
+type Props =
+  { variant: "game"; href: string } | { variant: "exercise"; href?: undefined };
 
 // Props
-const { variant, href, tagsLoadingExpr }: Props = Astro.props;
+const { variant, href }: Props = Astro.props;
 
 // Icons
 import dartAccentUrl from "@icons/dart-accent.svg?url";
@@ -48,14 +45,6 @@ const activate = `activate($event, ${JSON.stringify(href ?? "")})`;
         <span class="font-display text-control font-normal">
           <slot name="title" />
         </span>
-        {tagsLoadingExpr && (
-          <span
-            class="h-3.5 w-5.5 shrink-0 animate-pulse rounded-sm bg-white/12"
-            aria-hidden="true"
-            x-cloak
-            {...{ "x-show": tagsLoadingExpr }}
-          />
-        )}
         <slot name="meter" />
       </div>
       <p class="relative z-1 text-xs font-normal text-muted-foreground">
@@ -63,22 +52,6 @@ const activate = `activate($event, ${JSON.stringify(href ?? "")})`;
       </p>
       <slot />
       <div class="relative z-1 mt-auto flex flex-wrap gap-1.5">
-        {tagsLoadingExpr && (
-          <>
-            <span
-              class="h-5.25 w-14 animate-pulse rounded-full bg-white/12"
-              aria-hidden="true"
-              x-cloak
-              {...{ "x-show": tagsLoadingExpr }}
-            />
-            <span
-              class="h-5.25 w-18 animate-pulse rounded-full bg-white/12"
-              aria-hidden="true"
-              x-cloak
-              {...{ "x-show": tagsLoadingExpr }}
-            />
-          </>
-        )}
         <slot name="tags" />
       </div>
     </a>
@@ -88,36 +61,12 @@ const activate = `activate($event, ${JSON.stringify(href ?? "")})`;
         <span class="font-display text-control font-normal">
           <slot name="title" />
         </span>
-        {tagsLoadingExpr && (
-          <span
-            class="h-3.5 w-5.5 shrink-0 animate-pulse rounded-sm bg-white/12"
-            aria-hidden="true"
-            x-cloak
-            {...{ "x-show": tagsLoadingExpr }}
-          />
-        )}
         <slot name="meter" />
       </div>
       <p class="text-xs font-normal text-muted-foreground">
         <slot name="caption" />
       </p>
       <div class="flex flex-wrap gap-1.5">
-        {tagsLoadingExpr && (
-          <>
-            <span
-              class="h-5.25 w-14 animate-pulse rounded-full bg-white/12"
-              aria-hidden="true"
-              x-cloak
-              {...{ "x-show": tagsLoadingExpr }}
-            />
-            <span
-              class="h-5.25 w-18 animate-pulse rounded-full bg-white/12"
-              aria-hidden="true"
-              x-cloak
-              {...{ "x-show": tagsLoadingExpr }}
-            />
-          </>
-        )}
         <slot name="tags" />
       </div>
       <slot />

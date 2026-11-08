@@ -95,17 +95,22 @@ describe("catalog primitives (static source)", () => {
     expect(src).toMatch(/variant:\s*"game";\s*href:\s*string/);
   });
 
-  it("CatalogCard shows a pulsing tag and meter placeholder while tagsLoadingExpr holds (#1052)", () => {
-    const src = read("src/components/ui/CatalogCard.astro");
-    expect(src).toMatch(/tagsLoadingExpr\?: string/);
-    expect(src).toMatch(/\{\.\.\.\{ "x-show": tagsLoadingExpr \}\}/);
+  it("CatalogCardPlaceholder pulses and shows only while its expression holds (#1052)", () => {
+    const src = read("src/components/ui/CatalogCardPlaceholder.astro");
     expect(src).toMatch(/animate-pulse/);
+    expect(src).toMatch(/\{\.\.\.\{ "x-show": showExpr \}\}/);
+    expect(src).toMatch(/x-cloak/);
     expect(src).toMatch(/aria-hidden="true"/);
   });
 
-  it("games page holds the card placeholders on tagsLoading (#1052)", () => {
+  it("games page fills the meter and tags slots with placeholders on tagsLoading (#1052)", () => {
     const src = read("src/pages/games/index.astro");
-    expect(src).toMatch(/tagsLoadingExpr="tagsLoading"/);
+    expect(src).toMatch(
+      /<CatalogCardPlaceholder\s+slot="meter"\s+part="meter"\s+showExpr="tagsLoading"/,
+    );
+    expect(src).toMatch(
+      /<CatalogCardPlaceholder\s+slot="tags"\s+part="tags"\s+showExpr="tagsLoading"/,
+    );
   });
 
   it("ExercisePicker renders placeholder cards while the catalog loads (#1052)", () => {

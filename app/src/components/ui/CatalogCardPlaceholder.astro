@@ -1,0 +1,33 @@
+---
+/**
+ * Pulsing placeholder for a `CatalogCard`'s late-arriving parts: the difficulty
+ * meter, or the tag pills. Hidden until `showExpr` (an Alpine expression)
+ * is true. Decorative, so `aria-hidden`.
+ * @param {"meter"|"tags"} part Which part the placeholder stands in for
+ * @param {string} showExpr Alpine expression, true while the part is loading
+ */
+interface Props {
+  part: "meter" | "tags";
+  showExpr: string;
+}
+
+// Props
+const { part, showExpr }: Props = Astro.props;
+
+// Styles
+const shapes =
+  part === "meter"
+    ? ["h-3.5 w-5.5 rounded-sm"]
+    : ["h-5.25 w-14 rounded-full", "h-5.25 w-18 rounded-full"];
+---
+
+{
+  shapes.map((shape) => (
+    <span
+      class={`shrink-0 animate-pulse bg-white/12 ${shape}`}
+      aria-hidden="true"
+      x-cloak
+      {...{ "x-show": showExpr }}
+    />
+  ))
+}

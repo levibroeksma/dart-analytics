@@ -623,7 +623,7 @@ Registered for discoverability, not as reading material — the view contract li
 | File | Answers | Status |
 | ---- | ------- | ------ |
 | `app/src/components/ui/GrowingCard.astro` | In-flow glass card that grows into an overlay covering the viewport inset by 1rem and shrinks back; see `07-Frontend/08-Component-Inventory.md` for props (2026-10-05) | canonical |
-| `app/src/components/ui/CatalogCard.astro`, `Tag.astro`, `DifficultyMeter.astro`, `DifficultyLegend.astro`, `app/src/icons/dart-accent.svg` | catalog card primitives for the Games screen (and the exercise picker): card shell with the dart throw, axis-coloured tag pill, four-bar meter and its legend; see `07-Frontend/08-Component-Inventory.md` (2026-10-19) | canonical |
+| `app/src/components/ui/CatalogCard.astro`, `CatalogCardPlaceholder.astro` (2026-11-08), `Tag.astro`, `DifficultyMeter.astro`, `DifficultyLegend.astro`, `app/src/icons/dart-accent.svg` | catalog card primitives for the Games screen (and the exercise picker): card shell with the dart throw, axis-coloured tag pill, four-bar meter and its legend; see `07-Frontend/08-Component-Inventory.md` (2026-10-19) | canonical |
 | `app/src/lib/ui/card-throw.data.ts`, `app/src/lib/ui/motion.ts` | `cardThrow()` Alpine factory (hover slide, throw, then navigate; modifier-click and reduced motion navigate at once) and the shared `prefersReducedMotion()` helper (2026-10-19) | canonical |
 | `app/src/lib/ui/growing-card.data.ts` | The `growingCard()` Alpine factory: `expand` (dispatches `expand`, no-op while open)/`collapse` pin the card `fixed` between its in-flow box and the inset viewport box, the slot holds its height while open, `settle(event)` clears inline styles after the closing `height` transition (2026-10-05) | canonical |
 
