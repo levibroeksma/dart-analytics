@@ -646,6 +646,7 @@ updated: 2026-11-07
 | `FollowTheLeaderRecreationalInput.astro` | Tap pad rows get the shared `gap-2`; BULL/MISS row no longer flush (#1160). 2026-11-07 | historical |
 | `page-bindings.test.ts`, `support/factories.ts` | Page-bindings test checks routine steps' nested `x-data="game"` scopes against the step's game factory (#1196). 2026-11-07 | historical |
 | `follow-the-leader-play.data.ts`, `FollowTheLeader.astro`, `00-File-Inventory.md` | Leader gets a setting-turn and re-throw cue; setting darts no longer coloured hit/miss in the preview (#1159). 2026-11-07 | historical |
+| `database/verification/*_capability_checks.sql` (15 scripts) | Steps drive from a one-row `VALUES` + `LEFT JOIN ruleset_versions`, so a missing ruleset row reads FAIL instead of vanishing from a green summary (#1121). 2026-11-08 | historical |
 
 ---
 
