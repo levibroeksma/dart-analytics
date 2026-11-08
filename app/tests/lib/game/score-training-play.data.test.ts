@@ -1,4 +1,12 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  expectTypeOf,
+  vi,
+  beforeEach,
+  afterEach,
+} from "vitest";
 
 // F27 Task 1: score-training-play.data.ts now imports currentFacts from
 // play-lifecycle.ts instead of defining its own copy. Confirmed these
@@ -73,6 +81,7 @@ import {
   ScoreTrainingEngine,
   scoreTrainingEngineFactory,
 } from "@modules/game/score-training.engine.module";
+import type { BotFlight } from "@lib/types";
 import type { GameEngine, GameEngineFactory } from "@modules/interfaces";
 import { scoreTrainingPlay } from "@lib/game/score-training-play.data";
 import { BOT_PACING, botDartObservationAt } from "@lib/game/play-bot-seat";
@@ -2730,5 +2739,13 @@ describe("scoreTrainingPlay shared play-screen parts", () => {
     expect(component.engine?.state().timerExpired).toBe(true);
     expect(component.finished).toBe(false);
     expect(completeSession).not.toHaveBeenCalled();
+  });
+});
+
+describe("scoreTrainingPlay botFlight", () => {
+  it("starts null and is typed as a BotFlight slot", () => {
+    const play = scoreTrainingPlay();
+    expect(play.botFlight).toBeNull();
+    expectTypeOf(play.botFlight).toEqualTypeOf<BotFlight | null>();
   });
 });

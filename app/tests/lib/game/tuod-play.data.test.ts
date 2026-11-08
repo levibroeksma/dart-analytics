@@ -1,4 +1,12 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  expectTypeOf,
+  vi,
+  beforeEach,
+  afterEach,
+} from "vitest";
 
 // F27 Task 1: tuod-play.data.ts now imports currentFacts from
 // play-lifecycle.ts instead of defining its own copy. Confirmed these
@@ -80,6 +88,7 @@ import {
   TuodEngine,
   tuodEngineFactory,
 } from "@modules/game/tuod.engine.module";
+import type { BotFlight } from "@lib/types";
 import type { GameEngine, GameEngineFactory } from "@modules/interfaces";
 import { tuodPlay } from "@lib/game/tuod-play.data";
 import {
@@ -2444,5 +2453,13 @@ describe("tuodPlay shared play-screen parts", () => {
     expect(component.engine?.state().timerExpired).toBe(true);
     expect(component.finished).toBe(false);
     expect(completeSession).not.toHaveBeenCalled();
+  });
+});
+
+describe("tuodPlay botFlight", () => {
+  it("starts null and is typed as a BotFlight slot", () => {
+    const play = tuodPlay();
+    expect(play.botFlight).toBeNull();
+    expectTypeOf(play.botFlight).toEqualTypeOf<BotFlight | null>();
   });
 });

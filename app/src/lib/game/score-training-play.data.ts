@@ -47,6 +47,7 @@ import type {
   ScoreTrainingPlayContext,
   ScoreTrainingResultsSnapshot,
   ScoreTrainingSeatResult,
+  BotFlight,
 } from "./types";
 
 // Value import, not `import type`: the class is the narrowing target below,
@@ -125,7 +126,7 @@ export function scoreTrainingPlay() {
     pendingDartObservation: null as DartObservation | null,
     showFinishConfirm: false,
     botThrowing: false,
-    botFlight: null,
+    botFlight: null as BotFlight | null,
 
     state(this: ScoreTrainingPlayContext): ScoreTrainingState | null {
       const config = this.$store.game.configSnapshot;

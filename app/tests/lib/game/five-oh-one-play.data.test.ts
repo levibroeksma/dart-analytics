@@ -1,4 +1,12 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  expectTypeOf,
+  vi,
+  beforeEach,
+  afterEach,
+} from "vitest";
 
 // F27 Task 1: five-oh-one-play.data.ts now imports currentFacts from
 // play-lifecycle.ts instead of defining its own copy. Confirmed these
@@ -61,6 +69,7 @@ import {
 } from "@modules/game/five-oh-one.engine.module";
 import { fiveOhOnePlay } from "@lib/game/five-oh-one-play.data";
 import { BOT_PACING, botDartObservationAt } from "@lib/game/play-bot-seat";
+import type { BotFlight } from "@lib/types";
 import type { FiveOhOnePlayContext } from "@lib/types";
 import type {
   DartFact,
@@ -2277,5 +2286,13 @@ describe("five-oh-one shared play-screen parts", () => {
     expect(play.reconciliationFailed).toBe(false);
     expect(play.hasActiveSession).toBe(true);
     expect(play.engine).not.toBeNull();
+  });
+});
+
+describe("fiveOhOnePlay botFlight", () => {
+  it("starts null and is typed as a BotFlight slot", () => {
+    const play = fiveOhOnePlay();
+    expect(play.botFlight).toBeNull();
+    expectTypeOf(play.botFlight).toEqualTypeOf<BotFlight | null>();
   });
 });

@@ -59,6 +59,7 @@ import type {
   FiveOhOnePlayContext,
   FiveOhOneSeatResult,
   FiveOhOneResultsSnapshot,
+  BotFlight,
 } from "./types";
 
 // Value import, not `import type`: the class is the narrowing target below,
@@ -237,7 +238,7 @@ export function fiveOhOnePlay() {
     showDoubleConfirm: false,
     showMatchFinishConfirm: false,
     botThrowing: false,
-    botFlight: null,
+    botFlight: null as BotFlight | null,
 
     turnsInCurrentLeg(this: FiveOhOnePlayContext): TurnFact[] {
       const openLeg = this.$store.game.stages
