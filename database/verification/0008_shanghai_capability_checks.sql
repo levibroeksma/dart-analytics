@@ -49,13 +49,13 @@ SELECT '1',
         WHEN rv.id IS NULL THEN 'no ruleset_versions row for SHANGHAI_V1'
         ELSE 'lookups resolved but no matching ruleset_version_capabilities row'
     END
-FROM ruleset_versions rv
+FROM (VALUES ('SHANGHAI_V1')) AS k(implementation_key)
+    LEFT JOIN ruleset_versions rv ON rv.implementation_key = k.implementation_key
     LEFT JOIN capture_modes cm ON cm.implementation_key = 'RECREATIONAL'
     LEFT JOIN input_modes im ON im.implementation_key = 'DETAILED_DARTS'
     LEFT JOIN ruleset_version_capabilities c ON c.ruleset_version_id = rv.id
     AND c.capture_mode_id = cm.id
-    AND c.input_mode_id = im.id
-WHERE rv.implementation_key = 'SHANGHAI_V1';
+    AND c.input_mode_id = im.id;
 
 -- ------------------------------------------------------------
 -- Step 2: no live exercise_sessions row is left undeclared.
