@@ -49,22 +49,27 @@ function cardSet(
  *
  * The catalog tags load in parallel with the sessions and never gate
  * `loading()`: the cards render their title at once and the pills and meter
- * fill in when the tags arrive. A failed tags fetch leaves `catalogTags` null,
- * so `gameTags` is empty and `gameLevel` null — cards stay usable untagged.
+ * fill in when the tags arrive; `tagsLoading` holds their skeleton until the
+ * fetch settles. A failed tags fetch leaves `catalogTags` null, so `gameTags`
+ * is empty and `gameLevel` null — cards stay usable untagged.
  */
 export function gamesIndex() {
   return {
     activeRulesetKeys: [] as string[],
     sessionsLoading: true,
     catalogTags: null as CatalogTagsResponse | null,
+    tagsLoading: true,
 
     /** The tags fetch's rejection is swallowed on purpose: cards degrade to untagged. */
     async init(this: GamesIndexContext) {
       void fetchCatalogTags().then(
         (tags) => {
           this.catalogTags = tags;
+          this.tagsLoading = false;
         },
-        () => {},
+        () => {
+          this.tagsLoading = false;
+        },
       );
       await this.$store.activeSessions.load();
       this.activeRulesetKeys = this.$store.activeSessions.sessions

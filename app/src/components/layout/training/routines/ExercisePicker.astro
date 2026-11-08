@@ -3,7 +3,8 @@
  * The exercise catalog as one `CatalogCard variant="exercise"` per type
  * (`routineBuilder().groups()`): name, blurb and tags, with a config well
  * holding one row per template (difficulty meter, label, level name and a
- * `+` button). Tapping `+` appends a step (`routineBuilder().addStep`) and
+ * `+` button), with three pulsing placeholder cards while `loading` (#1052).
+ * Tapping `+` appends a step (`routineBuilder().addStep`) and
  * does nothing else. Reads `groups()`/`steps`/`maxSteps` from the parent
  * scope (`maxSteps` is `routineBuilder()`'s reactive mirror of
  * `MAX_BUILDER_STEPS`, not a frontmatter import — see the note below).
@@ -42,6 +43,8 @@ const levelNameExpr = `entry.level ? (${JSON.stringify(DIFFICULTY_LEVEL_NAMES)})
     <h2 class="font-display text-control text-foreground">Add an exercise</h2>
     <span
       class="font-mono text-eyebrow font-semibold uppercase text-muted"
+      x-show="!loading"
+      x-cloak
       x-text="`${groups().length} ${groups().length === 1 ? 'type' : 'types'}`"
     >
     </span>
@@ -50,6 +53,27 @@ const levelNameExpr = `entry.level ? (${JSON.stringify(DIFFICULTY_LEVEL_NAMES)})
     <DifficultyLegend />
   </div>
   <div class="catalog-grid grid items-start gap-3">
+    {
+      [0, 1, 2].map(() => (
+        <div
+          class="catalog-card"
+          x-show="loading"
+          x-cloak
+          aria-hidden="true"
+        >
+          <div class="flex items-start justify-between gap-3">
+            <div class="h-5 w-32 animate-pulse rounded-md bg-white/12" />
+            <div class="h-3.5 w-5.5 animate-pulse rounded-sm bg-white/12" />
+          </div>
+          <div class="h-3.5 w-48 animate-pulse rounded bg-white/12" />
+          <div class="flex flex-wrap gap-1.5">
+            <div class="h-5.25 w-14 animate-pulse rounded-full bg-white/12" />
+            <div class="h-5.25 w-18 animate-pulse rounded-full bg-white/12" />
+          </div>
+          <div class="h-12 animate-pulse rounded-lg bg-white/12" />
+        </div>
+      ))
+    }
     <template
       x-for="group in groups()"
       :key="group.key"

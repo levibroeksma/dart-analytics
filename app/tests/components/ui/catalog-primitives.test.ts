@@ -95,6 +95,28 @@ describe("catalog primitives (static source)", () => {
     expect(src).toMatch(/variant:\s*"game";\s*href:\s*string/);
   });
 
+  it("CatalogCard shows a pulsing tag and meter placeholder while tagsLoadingExpr holds (#1052)", () => {
+    const src = read("src/components/ui/CatalogCard.astro");
+    expect(src).toMatch(/tagsLoadingExpr\?: string/);
+    expect(src).toMatch(/\{\.\.\.\{ "x-show": tagsLoadingExpr \}\}/);
+    expect(src).toMatch(/animate-pulse/);
+    expect(src).toMatch(/aria-hidden="true"/);
+  });
+
+  it("games page holds the card placeholders on tagsLoading (#1052)", () => {
+    const src = read("src/pages/games/index.astro");
+    expect(src).toMatch(/tagsLoadingExpr="tagsLoading"/);
+  });
+
+  it("ExercisePicker renders placeholder cards while the catalog loads (#1052)", () => {
+    const src = read(
+      "src/components/layout/training/routines/ExercisePicker.astro",
+    );
+    expect(src).toMatch(/x-show="loading"/);
+    expect(src).toMatch(/animate-pulse/);
+    expect(src).toMatch(/x-show="!loading"/);
+  });
+
   it("only motion.ts under lib/ui mentions prefers-reduced-motion", () => {
     const dir = join(appRoot, "src/lib/ui");
     const offenders = readdirSync(dir)
