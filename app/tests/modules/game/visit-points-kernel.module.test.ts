@@ -30,6 +30,9 @@ describe("visit points kernel", () => {
       openTotal: 0,
       dartsInVisit: 0,
       dartsThrown: 0,
+      voids: 0,
+      busts: 0,
+      scoringVisits: 0,
     });
   });
 
@@ -45,6 +48,9 @@ describe("visit points kernel", () => {
       openTotal: 0,
       dartsInVisit: 0,
       dartsThrown: 3,
+      voids: 0,
+      busts: 0,
+      scoringVisits: 1,
     });
   });
 
@@ -58,6 +64,9 @@ describe("visit points kernel", () => {
       openTotal: 60,
       dartsInVisit: 2,
       dartsThrown: 5,
+      voids: 0,
+      busts: 0,
+      scoringVisits: 1,
     });
   });
 
@@ -84,5 +93,83 @@ describe("visit points kernel", () => {
     expect(applyVisitPointsTurn(seat, dartsTurn([60, 1]), RULES)).toMatchObject(
       { visits: 1, openTotal: 61, dartsInVisit: 2 },
     );
+  });
+
+  describe("voids and goal", () => {
+    const FIVES: VisitPointsRules = {
+      dartsPerVisit: 3,
+      points: (t) => (t % 5 === 0 ? t / 5 : 0),
+      voids: (darts) => darts.some((dart) => dart.score === 0),
+      goal: 51,
+    };
+    const visit = (scores: number[]) => dartsTurn(scores);
+    const atPoints = (points: number) =>
+      Array.from({ length: points }, () => visit([1, 2, 2]));
+
+    it("a void visit books nothing but keeps its total", () => {
+      expect(foldVisitPoints([visit([20, 25, 0])], FIVES)).toMatchObject({
+        visits: 1,
+        points: 0,
+        lastVisitTotal: 45,
+        voids: 1,
+        busts: 0,
+        scoringVisits: 0,
+      });
+    });
+
+    it("the same total on the board scores its points", () => {
+      expect(foldVisitPoints([visit([20, 20, 5])], FIVES)).toMatchObject({
+        points: 9,
+        voids: 0,
+        scoringVisits: 1,
+      });
+    });
+
+    it("a visit past the goal busts and the points stay", () => {
+      const seat = foldVisitPoints(
+        [...atPoints(50), visit([5, 10, 10])],
+        FIVES,
+      );
+      expect(seat).toMatchObject({ points: 50, busts: 1, voids: 0 });
+      expect(seat.scoringVisits).toBe(50);
+    });
+
+    it("a visit that reaches the goal exactly scores", () => {
+      expect(
+        foldVisitPoints([...atPoints(50), visit([1, 2, 2])], FIVES),
+      ).toMatchObject({ points: 51, busts: 0, scoringVisits: 51 });
+    });
+
+    it("a non-divisible total is a plain zero, neither void nor bust", () => {
+      expect(foldVisitPoints([visit([20, 20, 3])], FIVES)).toMatchObject({
+        visits: 1,
+        points: 0,
+        voids: 0,
+        busts: 0,
+        scoringVisits: 0,
+      });
+    });
+
+    it("an open visit moves no counter", () => {
+      expect(foldVisitPoints([visit([0, 0])], FIVES)).toMatchObject({
+        visits: 0,
+        voids: 0,
+        busts: 0,
+        scoringVisits: 0,
+        dartsInVisit: 2,
+      });
+    });
+
+    it("a keypad visit is never void", () => {
+      expect(foldVisitPoints([keypadTurn(0)], FIVES)).toMatchObject({
+        voids: 0,
+      });
+    });
+
+    it("without voids or goal the counters stay zero", () => {
+      expect(
+        foldVisitPoints([visit([0, 0, 0]), visit([60, 60, 60])], RULES),
+      ).toMatchObject({ points: 180, voids: 0, busts: 0 });
+    });
   });
 });

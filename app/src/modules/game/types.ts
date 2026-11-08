@@ -934,6 +934,8 @@ export type CheckoutSeat<TExt> = {
  * One seat on the Visit points kernel: closed `visits` and their summed
  * `points`, the latest closed total, and the open visit's dart sum and
  * dart count (`openTotal`/`dartsInVisit`, both 0 when none is open).
+ * `voids` and `busts` count closed visits the rules voided or busted;
+ * `scoringVisits` counts closed visits that booked points.
  */
 export type VisitPointsSeat = {
   visits: number;
@@ -942,6 +944,9 @@ export type VisitPointsSeat = {
   openTotal: number;
   dartsInVisit: number;
   dartsThrown: number;
+  voids: number;
+  busts: number;
+  scoringVisits: number;
 };
 
 /**
