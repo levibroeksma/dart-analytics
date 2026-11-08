@@ -94,8 +94,8 @@ FROM (
 -- session. Neither session is committed — both live inside the
 -- savepoints below and the whole script ends in ROLLBACK.
 --
--- TUOD_V1 declares exactly one capability row: RECREATIONAL +
--- QUICK_SCORE (seed 0007). ANALYTICS + VISUAL_BOARD is not
+-- TUOD_V1 declares RECREATIONAL + QUICK_SCORE and ANALYTICS +
+-- VISUAL_BOARD (seed 0007). ANALYTICS + QUICK_SCORE is not
 -- declared for TUOD_V1, which is what makes it the undeclared
 -- case. Both candidate inserts share every other column so a
 -- failure can only come from fk_sessions_capability, not from
@@ -121,7 +121,6 @@ DECLARE
     tuod_game_type_id UUID;
     active_status_id SMALLINT;
     analytics_capture_id SMALLINT;
-    visual_board_input_id SMALLINT;
     recreational_capture_id SMALLINT;
     quick_score_input_id SMALLINT;
 BEGIN
@@ -139,11 +138,6 @@ BEGIN
     INTO analytics_capture_id
     FROM capture_modes
     WHERE implementation_key = 'ANALYTICS';
-
-    SELECT id
-    INTO visual_board_input_id
-    FROM input_modes
-    WHERE implementation_key = 'VISUAL_BOARD';
 
     SELECT id
     INTO recreational_capture_id
@@ -192,7 +186,7 @@ BEGIN
         );
 
     -- ------------------------------------------------------------
-    -- Step 2: TUOD_V1 + ANALYTICS + VISUAL_BOARD is undeclared.
+    -- Step 2: TUOD_V1 + ANALYTICS + QUICK_SCORE is undeclared.
     -- The insert must be refused by fk_sessions_capability.
     -- ------------------------------------------------------------
     BEGIN
@@ -216,7 +210,7 @@ BEGIN
                 (SELECT id FROM exercise_types WHERE implementation_key = 'GAME'),
                 tuod_game_type_id,
                 analytics_capture_id,
-                visual_board_input_id,
+                quick_score_input_id,
                 active_status_id,
                 tuod_ruleset_id,
                 now(),
@@ -225,7 +219,7 @@ BEGIN
         INSERT INTO verification_results
         VALUES (
                 '2',
-                'TUOD_V1 + ANALYTICS + VISUAL_BOARD (undeclared) is refused',
+                'TUOD_V1 + ANALYTICS + QUICK_SCORE (undeclared) is refused',
                 'FAIL',
                 'insert was accepted'
             );
@@ -234,7 +228,7 @@ BEGIN
         INSERT INTO verification_results
         VALUES (
                 '2',
-                'TUOD_V1 + ANALYTICS + VISUAL_BOARD (undeclared) is refused',
+                'TUOD_V1 + ANALYTICS + QUICK_SCORE (undeclared) is refused',
                 'PASS',
                 SQLERRM
             );

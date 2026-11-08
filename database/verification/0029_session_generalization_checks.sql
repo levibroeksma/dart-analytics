@@ -116,6 +116,8 @@ BEGIN
     END;
 END $$;
 
+-- Step 1 already holds this player's open warm-up session, so this
+-- row is completed to stay clear of uq_sessions_single_active.
 DO $$
 DECLARE f RECORD;
 BEGIN
@@ -123,11 +125,11 @@ BEGIN
     BEGIN
         INSERT INTO exercise_sessions (
             id, activity_id, player_id, exercise_type_id, exercise_ruleset_version_id,
-            capture_mode_id, input_mode_id, status_id, started_at, created_at
+            capture_mode_id, input_mode_id, status_id, started_at, completed_at, created_at
         )
         VALUES (
             '01999400-0000-7000-8000-0000000000f4', f.activity_id, f.player_id, f.warm_up_type_id,
-            f.warm_up_ruleset_id, f.analytics_id, f.detailed_id, f.active_status_id, now(), now()
+            f.warm_up_ruleset_id, f.analytics_id, f.detailed_id, f.active_status_id, now(), now(), now()
         );
         INSERT INTO verification_results VALUES ('4', 'capture pair without a game pair is accepted', 'PASS', NULL);
     EXCEPTION WHEN others THEN
