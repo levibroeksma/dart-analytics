@@ -370,16 +370,12 @@ describe("targetScoringIntent", () => {
 
 describe("scoringTrackRules", () => {
   const onDart = (seat: TrackSeat<ChainTrackExt>) => seat;
-  const rules = scoringTrackRules<ChainTrackExt>(
-    { targets: [20, 25] },
-    onDart,
-    "done",
-  );
+  const rules = scoringTrackRules<ChainTrackExt>({ targets: [20, 25] }, onDart);
   const seatAt = (targetIndex: number, dartsThisVisit = 0) =>
     ({ targetIndex, dartsThisVisit }) as TrackSeat<ChainTrackExt>;
 
-  it("carries the given done message and per-dart policy", () => {
-    expect(rules.doneMessage).toBe("done");
+  it("carries the given per-dart policy and no done message", () => {
+    expect(rules.doneMessage).toBeUndefined();
     expect(rules.onDart).toBe(onDart);
   });
 

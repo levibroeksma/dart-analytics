@@ -35,14 +35,16 @@ export function initialTrackSeat<TExt>(
  * `visitOpen` turns false run `onVisitClose` and reset the visit counters.
  * Every rule a ruleset makes lives in `rules`; this function branches only
  * on the visit boundary.
- * @throws `rules.doneMessage` when the seat is not `IN_PROGRESS`.
+ * @throws `rules.doneMessage`, when set, if the seat is not `IN_PROGRESS`.
  */
 export function applyTrackDart<TExt, TTarget extends TrackTarget = BoardTarget>(
   seat: TrackSeat<TExt>,
   observation: DartObservation,
   rules: TrackRules<TExt, TTarget>,
 ): TrackSeat<TExt> {
-  if (seat.status !== "IN_PROGRESS") throw new Error(rules.doneMessage);
+  if (rules.doneMessage !== undefined && seat.status !== "IN_PROGRESS") {
+    throw new Error(rules.doneMessage);
+  }
   const target = rules.target(seat);
   const hit = rules.hit(target, observation);
   const dart: JudgedDart<TTarget> = {

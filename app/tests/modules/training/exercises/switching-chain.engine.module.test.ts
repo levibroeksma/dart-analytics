@@ -192,6 +192,18 @@ describe("SwitchingChainEngine", () => {
     expect(() => engine.record(MISS)).toThrow("exercise is complete");
   });
 
+  it("keeps recording through hits, misses and full sequences until the timer ends it", () => {
+    const engine = new SwitchingChainEngine(CONFIG);
+    const hits = [dart(20, "TREBLE"), dart(19, "TREBLE"), dart(18, "TREBLE")];
+    for (let visit = 0; visit < 20; visit += 1) {
+      play(engine, visit % 2 === 0 ? hits : [MISS, MISS, MISS]);
+    }
+
+    expect(engine.state().status).toBe("IN_PROGRESS");
+    engine.expireTimer();
+    expect(engine.state().status).toBe("COMPLETE");
+  });
+
   it("rehydrates in-progress state from prior facts", () => {
     const engine = new SwitchingChainEngine(CONFIG);
     play(engine, [dart(20, "TREBLE"), MISS, dart(20, "SINGLE")]);

@@ -136,6 +136,12 @@ describe("track kernel", () => {
     ).toThrow("done");
   });
 
+  it("applies a dart to a finished seat when the rules name no doneMessage", () => {
+    const { doneMessage: _drop, ...open } = toy;
+    const seat = applyTrackDart({ ...fresh(), status: "DONE" }, MISS, open);
+    expect(seat.dartsThisVisit).toBe(1);
+  });
+
   it("foldTrackSeats folds each seat only over its own turns", () => {
     const turn = (participantRef: string, darts: DartObservation[]) =>
       ({ participantRef, darts }) as unknown as TurnFact;

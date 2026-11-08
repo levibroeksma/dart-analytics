@@ -15,8 +15,6 @@ import { trackExerciseSpec } from "./track-exercise-spec.module";
 import type { SwitchingChainState } from "./types";
 
 const EXERCISE_RULESET_VERSION_KEY = "SWITCHING_CHAIN_V1" as const;
-const DONE_MESSAGE =
-  "A Switching Chain seat never finishes; only the timer ends the exercise.";
 
 /**
  * Switching Chain's Track rules: the config's three targets scored as
@@ -26,11 +24,7 @@ const DONE_MESSAGE =
 function switchingChainRules(
   config: SwitchingChainConfigData,
 ): TrackRules<SequenceTrackExt> {
-  return scoringTrackRules(
-    config,
-    resetOnMiss(config.targets.length),
-    DONE_MESSAGE,
-  );
+  return scoringTrackRules(config, resetOnMiss(config.targets.length));
 }
 
 function initialExt(): SequenceTrackExt {

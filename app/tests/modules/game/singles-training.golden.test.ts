@@ -110,3 +110,32 @@ describe("Singles Training — golden trace", () => {
     });
   }
 });
+
+describe("Singles Training — refusal order", () => {
+  it("never refuses a dart while the match is in progress", () => {
+    for (const { key, config } of Object.values(CONFIGS)) {
+      for (let seed = 1; seed <= 100; seed += 1) {
+        const engine = new SinglesTrainingEngine(config, undefined, key);
+        const observe = aimedSinglesObservation(config);
+        const rand = seededUniform(seed, 0);
+        for (let i = 0; i < 400 && !engine.isComplete(); i += 1) {
+          expect(() => engine.record(observe(rand, engine))).not.toThrow();
+        }
+      }
+    }
+  }, 30_000);
+
+  it("refuses with the match-ended message once the match is over", () => {
+    const { key, config } = CONFIGS["v2 hard duo"];
+    const engine = new SinglesTrainingEngine(config, undefined, key);
+    const observe = aimedSinglesObservation(config);
+    const rand = seededUniform(3, 0);
+    for (let i = 0; i < 400 && !engine.isComplete(); i += 1) {
+      engine.record(observe(rand, engine));
+    }
+    expect(engine.state().status).not.toBe("IN_PROGRESS");
+    expect(() => engine.record(observe(rand, engine))).toThrow(
+      "Cannot record a dart once the match has ended; undo first to correct it.",
+    );
+  });
+});

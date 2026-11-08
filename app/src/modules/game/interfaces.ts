@@ -181,7 +181,8 @@ export interface DartGameEngineClass<
  * what happens per dart and when a visit closes.
  */
 export interface TrackRules<TExt, TTarget extends TrackTarget = BoardTarget> {
-  readonly doneMessage: string;
+  /** Refusal thrown for a dart on a seat that is not `IN_PROGRESS`; omit when the seat never leaves it. */
+  readonly doneMessage?: string;
   /** Every seat's score before its first dart; 0 when absent. */
   readonly startScore?: number;
   target(seat: TrackSeat<TExt>): TTarget;
