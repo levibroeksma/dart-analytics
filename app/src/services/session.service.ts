@@ -470,14 +470,42 @@ export function canonicalize(value: unknown): unknown {
   return value;
 }
 
-export async function hashBatchPayload(
-  batch: EventsBatchRequestInput,
-): Promise<string> {
-  const bytes = new TextEncoder().encode(JSON.stringify(canonicalize(batch)));
+async function sha256Hex(value: unknown): Promise<string> {
+  const bytes = new TextEncoder().encode(JSON.stringify(canonicalize(value)));
   const digest = await crypto.subtle.digest("SHA-256", bytes);
   return [...new Uint8Array(digest)]
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
+}
+
+/**
+ * Hash of the parsed batch exactly as parsed, schema defaults included. This
+ * is what a record stored after migration `0051` and before the defaults were
+ * left out of `hashBatchPayload` holds.
+ */
+export function hashBatchPayloadWithDefaults(
+  batch: EventsBatchRequestInput,
+): Promise<string> {
+  return sha256Hex(batch);
+}
+
+/**
+ * Hash of the batch as a client would send it: a turn's defaulted
+ * `kept: false` is left out, so a batch hashes the same whether or not the
+ * client sends the field.
+ */
+export function hashBatchPayload(
+  batch: EventsBatchRequestInput,
+): Promise<string> {
+  return sha256Hex({
+    ...batch,
+    stages: batch.stages.map((stage) => ({
+      ...stage,
+      turns: stage.turns.map(({ kept, ...turn }) =>
+        kept ? { ...turn, kept } : turn,
+      ),
+    })),
+  });
 }
 
 function collectDartZoneKeys(batch: EventsBatchRequestInput): string[] {
@@ -720,7 +748,11 @@ export async function appendBatch(
     idempotencyKey,
   );
   if (existingIdempotency) {
-    if (existingIdempotency.normalizedPayloadHash !== hash) {
+    const stored = existingIdempotency.normalizedPayloadHash;
+    if (
+      stored !== hash &&
+      stored !== (await hashBatchPayloadWithDefaults(batch))
+    ) {
       return {
         ok: false,
         code: "IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_PAYLOAD",

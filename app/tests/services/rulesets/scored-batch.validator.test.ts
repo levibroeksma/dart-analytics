@@ -54,12 +54,10 @@ function run(
 const limitedVisits: ScoredBatchOptions = {
   maxTurnScore: 100,
   limitNoun: "visits",
-  limitOnVisualBoard: true,
 };
-const quickOnlyAttempts: ScoredBatchOptions = {
+const limitedAttempts: ScoredBatchOptions = {
   maxTurnScore: 100,
   limitNoun: "attempts",
-  limitOnVisualBoard: false,
 };
 
 describe("validateScoredBatch", () => {
@@ -91,7 +89,7 @@ describe("validateScoredBatch", () => {
 
   it.each([
     ["visits", limitedVisits],
-    ["attempts", quickOnlyAttempts],
+    ["attempts", limitedAttempts],
   ])("names the ROUNDS cap in %s on the quick-score path", (noun, options) => {
     expect(run(QUICK, [10], { p1: 1 }, options)).toEqual({ valid: true });
     expect(run(QUICK, [10], { p1: 2 }, options)).toEqual({
@@ -101,17 +99,15 @@ describe("validateScoredBatch", () => {
     });
   });
 
-  it("applies the ROUNDS cap on the visual-board path when limitOnVisualBoard", () => {
-    expect(run(VISUAL, [10], { p1: 2 }, limitedVisits)).toEqual({
+  it.each([
+    ["visits", limitedVisits],
+    ["attempts", limitedAttempts],
+  ])("names the ROUNDS cap in %s on the visual-board path", (noun, options) => {
+    expect(run(VISUAL, [10], { p1: 1 }, options)).toEqual({ valid: true });
+    expect(run(VISUAL, [10], { p1: 2 }, options)).toEqual({
       valid: false,
       code: "VALIDATION_FAILED",
-      issues: ["session is limited to 2 visits"],
-    });
-  });
-
-  it("skips the ROUNDS cap on the visual-board path when not limitOnVisualBoard", () => {
-    expect(run(VISUAL, [10], { p1: 2 }, quickOnlyAttempts)).toEqual({
-      valid: true,
+      issues: [`session is limited to 2 ${noun}`],
     });
   });
 

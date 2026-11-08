@@ -706,3 +706,10 @@ Decision: `TrackRules.doneMessage` is optional; `applyTrackDart` throws it only 
 Reason: #1243. The removed messages and the Singles seat branch were unreachable. A seeded random-play test pins that Singles never refuses a dart while the match is in progress (HARD/EXTREME ends the match at once and seats run in lockstep). Bob's 27 with three seats reaches the seat branch (an out seat keeps its turn while the match runs), which `bobs27.golden.test.ts` already pins.
 Consequences: `scoringTrackRules(config, onDart)` loses its message parameter. The other "never finishes" Track exercises (Hit Count, SwitchBlade, Doubles Lock, Halve-It) still set a message and could drop it the same way.
 Supersedes: none. Narrows D528's `seatedRefusal` to Bob's 27 and Shanghai.
+
+### D537 — The ROUNDS cap applies on both capture paths of Score Training and TUOD
+Status: Accepted · Date: 2026-11-08
+Decision: `validateScoredBatch` rejects a batch that pushes a seat past a ROUNDS session's `duration_value` on the quick-score and the visual-board path, for both rulesets. `ScoredBatchOptions` drops `limitOnVisualBoard`.
+Reason: #1242. TUOD applied the cap on the quick-score path only, an asymmetry D528 kept as it was. The cap is a rule of the session, not of the capture mode, and the engine refuses the same darts on either path.
+Consequences: a TUOD visual-board batch past its attempt count is now refused with `session is limited to N attempts`. Score Training is unchanged.
+Supersedes: none. Narrows D528's `limitOnVisualBoard` option.

@@ -65,7 +65,6 @@ export const tuodValidator: RulesetValidator = {
     return validateScoredBatch(input, {
       maxTurnScore: maxTurnScore(input.config),
       limitNoun: "attempts",
-      limitOnVisualBoard: false,
     });
   },
 };

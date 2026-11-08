@@ -35,18 +35,17 @@ function roundsLimitRejection(
  * `validateBatch` for a ruleset whose turns are visit totals under
  * RECREATIONAL + QUICK_SCORE or coordinate darts (or dartless keypad visits)
  * under ANALYTICS + VISUAL_BOARD, each bounded by `maxTurnScore`. Any other
- * mode pair is refused. The ROUNDS cap always applies on the quick-score path
- * and on the visual-board path only when `limitOnVisualBoard`.
+ * mode pair is refused. The ROUNDS cap applies on both capture paths.
  */
 export function validateScoredBatch(
   input: ModedBatchValidationInput,
-  { maxTurnScore, limitNoun, limitOnVisualBoard }: ScoredBatchOptions,
+  { maxTurnScore, limitNoun }: ScoredBatchOptions,
 ): BatchValidationResult {
   const { batch, captureModeKey, inputModeKey } = input;
 
   if (isVisualBoardCapture(captureModeKey, inputModeKey)) {
     const turns = validateVisualBoardTurns(batch, maxTurnScore);
-    if (!turns.valid || !limitOnVisualBoard) return turns;
+    if (!turns.valid) return turns;
     return roundsLimitRejection(input, limitNoun);
   }
 

@@ -17,6 +17,8 @@ updated: 2026-11-07
 
 # Version History
 
+> **Version:** 1.209.0 (2026-11-08 — TUOD rounds cap on both capture paths (#1242), idempotency hash omits defaulted `kept` (#1155): D537 in `decisions/game-engine.md`, D536 in `decisions/api.md`; `scored-batch.validator.ts` and `tuod.validator.ts` rows updated)
+
 > **Version:** 1.208.0 (2026-11-08 — Dead refusal messages removed (#1243): D535 in `decisions/game-engine.md`; `track-kernel.module.ts` row notes optional `TrackRules.doneMessage`; game-engine decisions row 81 → 82 decisions)
 
 > **Version:** 1.207.0 (2026-11-05 — Duplication backlog Phase 4c, engines, validators and the statistics repository self-clone (PR J): D528 in `decisions/game-engine.md`; `scored-batch.validator.ts` row added to the File Inventory, shell, turn-log, seat-state, Target Scoring and TUOD rows noted; game-engine decisions row 80 → 81 decisions, token claim ~44.1k → ~52.6k; three `scripts/engine-kernels.txt` `PENDING` reasons re-checked (shell-bound, kernel unbound); `scripts/dupes-baseline.txt` lowered 7 → 0, now empty)

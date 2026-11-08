@@ -489,12 +489,16 @@ describe("tuodValidator.validateBatch — parity with score training (#1184)", (
       },
     },
     {
-      name: "rounds limit on the visual-board path (accepted)",
+      name: "rounds limit exceeded on the visual-board path",
       totals: [0],
       existing: { p1: 10 },
       captureModeKey: "ANALYTICS",
       inputModeKey: "VISUAL_BOARD",
-      expected: { valid: true },
+      expected: {
+        valid: false,
+        code: "VALIDATION_FAILED",
+        issues: ["session is limited to 10 attempts"],
+      },
     },
   ];
 
