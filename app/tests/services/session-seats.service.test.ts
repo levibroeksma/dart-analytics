@@ -535,7 +535,7 @@ describe("rejectSeatRequest — FIVES_V1", () => {
     );
   });
 
-  it("accepts two to four seats and refuses a fifth", () => {
+  it("accepts two to four seats; a fifth is over the session maximum", () => {
     expect(rejectSeatRequest([owner, seat("B")], "FIVES_V1")).toBeNull();
     expect(
       rejectSeatRequest([owner, seat("B"), seat("C"), seat("D")], "FIVES_V1"),
@@ -545,6 +545,6 @@ describe("rejectSeatRequest — FIVES_V1", () => {
         [owner, seat("B"), seat("C"), seat("D"), seat("E")],
         "FIVES_V1",
       ),
-    ).toContain("supports at most 4 seats");
+    ).toBe("A session needs between 1 and 4 seats.");
   });
 });
