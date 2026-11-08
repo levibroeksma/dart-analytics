@@ -1,8 +1,17 @@
 import type postgres from "postgres";
 
-class Rollback extends Error {}
+/** Thrown inside a transaction to force its rollback; callers swallow it. */
+export class Rollback extends Error {}
 
-/** Runs `body` in a transaction on `sql` and always rolls it back. */
+/**
+ * Runs `body` in a transaction on `sql` and always rolls it back.
+ *
+ * For raw `postgres.js` tagged SQL on a caller-owned client, where a rejected
+ * statement surfaces the driver's error (`constraint_name`). Code that needs a
+ * drizzle handle, with nested transactions as savepoints, uses `inRolledBackTx`
+ * in `itest-db.ts`, which owns its client. They cannot share a body: drizzle
+ * over a `TransactionSql` does not support nested `transaction()` here (#1238).
+ */
 export async function rolledBack(
   sql: postgres.Sql,
   body: (tx: postgres.TransactionSql) => Promise<void>,

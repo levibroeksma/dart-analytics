@@ -1,6 +1,7 @@
 import { drizzle, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "@db/schema";
+import { Rollback } from "./rolled-back";
 
 /** The transaction handle every integration-suite insert and read uses. */
 export type Db = PostgresJsDatabase<typeof schema>;
@@ -10,13 +11,15 @@ export function uuid(n: number): string {
   return `01990000-0000-7000-8000-${n.toString(16).padStart(12, "0")}`;
 }
 
-class Rollback extends Error {}
-
 /**
  * Runs `body` in a transaction that always rolls back, so no row survives.
  * `publish` receives the transaction handle on entry and `null` once the
  * transaction has closed, before the client ends. `H` is the handle type the
  * caller's code expects (the repositories type theirs as neon-http).
+ *
+ * For a drizzle handle on a client this helper owns. Raw tagged SQL on a client
+ * the caller owns uses `rolledBack` in `rolled-back.ts`; both throw the same
+ * `Rollback` marker (#1238).
  */
 export async function inRolledBackTx<T, H = Db>(
   body: (db: H) => Promise<T>,
