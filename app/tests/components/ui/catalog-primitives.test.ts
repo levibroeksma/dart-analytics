@@ -95,6 +95,33 @@ describe("catalog primitives (static source)", () => {
     expect(src).toMatch(/variant:\s*"game";\s*href:\s*string/);
   });
 
+  it("CatalogCardPlaceholder pulses and shows only while its expression holds (#1052)", () => {
+    const src = read("src/components/ui/CatalogCardPlaceholder.astro");
+    expect(src).toMatch(/animate-pulse/);
+    expect(src).toMatch(/\{\.\.\.\{ "x-show": showExpr \}\}/);
+    expect(src).toMatch(/x-cloak/);
+    expect(src).toMatch(/aria-hidden="true"/);
+  });
+
+  it("games page fills the meter and tags slots with placeholders on tagsLoading (#1052)", () => {
+    const src = read("src/pages/games/index.astro");
+    expect(src).toMatch(
+      /<CatalogCardPlaceholder\s+slot="meter"\s+part="meter"\s+showExpr="tagsLoading"/,
+    );
+    expect(src).toMatch(
+      /<CatalogCardPlaceholder\s+slot="tags"\s+part="tags"\s+showExpr="tagsLoading"/,
+    );
+  });
+
+  it("ExercisePicker renders placeholder cards while the catalog loads (#1052)", () => {
+    const src = read(
+      "src/components/layout/training/routines/ExercisePicker.astro",
+    );
+    expect(src).toMatch(/x-show="loading"/);
+    expect(src).toMatch(/animate-pulse/);
+    expect(src).toMatch(/x-show="!loading"/);
+  });
+
   it("only motion.ts under lib/ui mentions prefers-reduced-motion", () => {
     const dir = join(appRoot, "src/lib/ui");
     const offenders = readdirSync(dir)

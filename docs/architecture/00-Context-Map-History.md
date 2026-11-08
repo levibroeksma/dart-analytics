@@ -651,6 +651,7 @@ updated: 2026-11-07
 | `database/verification/{0020,0029,0035}_*.sql` | Fresh-DB failures fixed: 0020 undeclared case is TUOD_V1 + ANALYTICS + QUICK_SCORE; 0029 step 4 row is completed (clear of `uq_sessions_single_active`); 0035 step 9 counts distinct types, not rows (#1154). 2026-11-08 | historical |
 | `database/migrations/0054_active_sessions_resume_fields.sql`, verification `0054`, `session.repository.ts` (`findActiveSessions`), `schema.ts`, `decisions/database.md` (D534) | `v_active_sessions` gains `is_routine_step` and `configuration`; the repository join is removed (#893). 2026-11-08 | historical |
 | `app/tests/integration/fixtures/{itest-db,rolled-back}.ts` | One shared `Rollback` marker; each helper documents when to use it. Merging the bodies breaks nested transactions, so they stay two (#1238). 2026-11-08 | historical |
+| `CatalogCardPlaceholder.astro`, `ExercisePicker.astro`, `pages/games/index.astro`, `games-index.data.ts` (`tagsLoading`), tests, `08-Component-Inventory.md` | Pulsing placeholders for game-card tags/meter and for the exercise picker while they load (#1052). Not checked in a browser. 2026-11-08 | historical |
 
 ---
 

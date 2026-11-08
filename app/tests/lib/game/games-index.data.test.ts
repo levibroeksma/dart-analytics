@@ -282,6 +282,36 @@ describe("gamesIndex", () => {
       expect(page.gameTags("CRICKET")).toEqual([]);
     });
 
+    it("shows the tags skeleton until the tags settle, then clears it", async () => {
+      vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([]);
+      let resolveTags: (v: CatalogTagsResponse) => void = () => {};
+      vi.mocked(catalogApi.fetchCatalogTags).mockReturnValue(
+        new Promise((resolve) => {
+          resolveTags = resolve;
+        }),
+      );
+      const page = createPage();
+      expect(page.tagsLoading).toBe(true);
+      await page.init();
+      expect(page.tagsLoading).toBe(true);
+
+      resolveTags(catalogTags());
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(page.tagsLoading).toBe(false);
+    });
+
+    it("clears the tags skeleton when the tags fetch fails", async () => {
+      vi.mocked(sessionsApi.fetchActiveSessions).mockResolvedValue([]);
+      vi.mocked(catalogApi.fetchCatalogTags).mockRejectedValue(
+        new Error("offline"),
+      );
+      const page = createPage();
+      await page.init();
+      await Promise.resolve();
+      expect(page.tagsLoading).toBe(false);
+    });
+
     it("starts the tags fetch before the sessions fetch settles", async () => {
       let resolveSessions: (v: never[]) => void = () => {};
       vi.mocked(sessionsApi.fetchActiveSessions).mockReturnValue(

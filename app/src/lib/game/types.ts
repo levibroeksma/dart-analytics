@@ -1867,6 +1867,7 @@ export type GamesIndexContext = {
   activeRulesetKeys: string[];
   sessionsLoading: boolean;
   catalogTags: CatalogTagsResponse | null;
+  tagsLoading: boolean;
   $store: {
     settings: {
       captureModeKey: string;
