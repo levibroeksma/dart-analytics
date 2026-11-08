@@ -86,7 +86,9 @@ scores.
 If any of the three darts lands off the scoring surface of the board — "bounces
 out or lands off the board" — the whole visit scores 0, whatever the other darts
 hit. Because of this, the visit that brings a seat to 51 has all three darts on
-the board.
+the board. An off-board dart is recorded as a `MISS` zone dart with score 0 and
+no landing coordinate, also under VISUAL_BOARD; every on-board dart scores at
+least 1, so a dart with score 0 voids the visit.
 
 ### Bust
 
@@ -95,7 +97,9 @@ void and the total stays as it was.
 
 ### Finishing
 
-A visit that brings the running total to exactly 51 wins at once.
+A visit that brings the running total to exactly 51 wins at once, before any
+later seat has thrown that round; seat 1 therefore has a first-throw edge, as in
+501.
 
 ### Ends when
 
@@ -159,8 +163,3 @@ Fives is unbuilt; this is the capture shape its V1 is designed for.
 
 - The source summary says "First to 50"; its objective, rules and the formal
   name say 51. V1 reads 51.
-- Does the leg end the moment a seat reaches 51, before the later seats have
-  thrown that round? The source says the first to reach 51 wins. Read here as:
-  yes, so seat 1 has a first-throw edge.
-- A dart that bounces out: the source counts it as off the board. How is it
-  recorded — a `MISS` zone dart with no landing coordinate under VISUAL_BOARD?

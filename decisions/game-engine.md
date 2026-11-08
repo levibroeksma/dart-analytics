@@ -713,3 +713,10 @@ Decision: `validateScoredBatch` rejects a batch that pushes a seat past a ROUNDS
 Reason: #1242. TUOD applied the cap on the quick-score path only, an asymmetry D528 kept as it was. The cap is a rule of the session, not of the capture mode, and the engine refuses the same darts on either path.
 Consequences: a TUOD visual-board batch past its attempt count is now refused with `session is limited to N attempts`. Score Training is unchanged.
 Supersedes: none. Narrows D528's `limitOnVisualBoard` option.
+
+### D538 — The Visit points kernel gains `voids` and `goal`; Fives V1 is the first caller
+Status: Accepted · Date: 2026-11-08
+Decision: `VisitPointsRules` gains optional `voids(darts)` (a closed visit that books no points whatever its total) and `goal` (a closed visit whose points would take the seat above it is a bust and books nothing). `VisitPointsSeat` gains `voids`, `busts` and `scoringVisits`. A dart with board score 0 is off the board, so Fives voids a visit on any score-0 dart. The leg ends the moment a seat reaches 51, so seat 1 has a first-throw edge. An off-board dart is a `MISS` zone dart with no landing coordinate. A void and a bust are counted apart; a total not divisible by 5 is a plain zero.
+Reason: Visit-points spec V2: a rule lands with its first caller. Fives needs exact-goal, void and bust; no new dart fact is needed because every on-board dart scores at least 1.
+Consequences: Score Training and Score Threshold set neither rule and fold as before. Fives is a `SHARED`-leg `DartGameSpec`, 2–4 seats, darts only (QUICK_SCORE cannot show an off-board dart).
+Supersedes: none.
