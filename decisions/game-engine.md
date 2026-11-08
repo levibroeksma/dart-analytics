@@ -720,3 +720,10 @@ Decision: `VisitPointsRules` gains optional `voids(darts)` (a closed visit that 
 Reason: Visit-points spec V2: a rule lands with its first caller. Fives needs exact-goal, void and bust; no new dart fact is needed because every on-board dart scores at least 1.
 Consequences: Score Training and Score Threshold set neither rule and fold as before. Fives is a `SHARED`-leg `DartGameSpec`, 2–4 seats, darts only (QUICK_SCORE cannot show an off-board dart).
 Supersedes: none.
+
+### D539 — Fives stores an off-board dart as a `MISS` dart with or without a coordinate; its stage is an `EXERCISE_BLOCK`
+Status: Accepted · Date: 2026-11-08
+Decision: An off-board Fives dart is a `MISS` zone dart with score 0. Under VISUAL_BOARD a tap outside the double ring keeps the coordinate the board read; a bounce-out has none. Either voids the visit. The game's one shared stage is written as an `EXERCISE_BLOCK`, not a `LEG`.
+Reason: Review of the engine PR. D538 said a Fives off-board dart has no landing coordinate and the rules doc said a shared `LEG`; `board-input.module.ts` stores the tap position of an off-ring dart and the game shell opens an `EXERCISE_BLOCK` stage.
+Consequences: Voiding reads the dart's score, so it is unaffected. The rules doc and capture section now match the code.
+Supersedes: none. Narrows D538's "no landing coordinate" clause.

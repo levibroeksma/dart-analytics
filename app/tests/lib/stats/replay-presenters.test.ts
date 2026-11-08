@@ -793,6 +793,38 @@ describe("REPLAY_PRESENTERS.FIVES", () => {
     ).toEqual(["40", "Void", "0"]);
   });
 
+  it("marks an overshooting visit Bust and keeps the total", () => {
+    const t20 = {
+      hitTargetNumber: 20,
+      hitZoneKey: "TREBLE" as const,
+      locationX: null,
+      locationY: null,
+    };
+    const missVisit = [hit(null, "MISS"), hit(null, "MISS"), hit(null, "MISS")];
+    const at50 = [
+      t20,
+      t20,
+      t20,
+      ...missVisit,
+      t20,
+      hit(5, "OUTER_SINGLE"),
+      hit(5, "OUTER_SINGLE"),
+      ...missVisit,
+    ];
+    const engine = new FivesEngine(config);
+    for (const dart of at50) engine.record(dart);
+    const before = engine.state();
+    for (const n of [10, 10, 5]) engine.record(hit(n, "OUTER_SINGLE"));
+    const turn = engine.facts().turns.at(-1)!;
+    const cells = REPLAY_PRESENTERS.FIVES.turn(
+      { turn, before, after: engine.state() },
+      config,
+    );
+    expect(
+      cells.map((cell) => (cell.kind === "value" ? cell.value : "")),
+    ).toEqual(["25", "Bust", "50"]);
+  });
+
   it("shows a plain zero for a total that does not divide by 5", () => {
     expect(
       cellsAfter([

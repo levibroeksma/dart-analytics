@@ -155,6 +155,18 @@ describe("fives engine", () => {
     expect(engine.isComplete()).toBe(false);
   });
 
+  it("after an undone win the seat throws on and can win again", () => {
+    const engine = engineAfter([...A_AT_36, t(15), s(20), s(10)]);
+    engine.undo();
+    engine.record(s(10));
+    expect(engine.state()).toMatchObject({
+      status: "COMPLETE",
+      winningSideKey: "A",
+    });
+    const rebuilt = fivesEngineFactory.create(duel, engine.facts());
+    expect(rebuilt.state()).toEqual(engine.state());
+  });
+
   it("a visit past 51 busts: the total stays and the bust counts", () => {
     const state = engineAfter([...A_AT_50, s(10), s(10), s(5)]).state();
     expect(seatOf(state, "p1")).toMatchObject({
