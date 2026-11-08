@@ -1361,8 +1361,10 @@ export const vActiveSessions = pgView("v_active_sessions", {
   inputModeKey: text("input_mode_key"),
   rulesetVersionKey: text("ruleset_version_key"),
   startedAt: timestamp("started_at", { withTimezone: true, mode: "string" }),
+  isRoutineStep: boolean("is_routine_step"),
+  configuration: jsonb(),
 }).as(
-  sql`SELECT es.id AS session_id, es.player_id, gt.implementation_key AS game_type_key, gt.name AS game_type_name, cm.implementation_key AS capture_mode_key, im.implementation_key AS input_mode_key, rv.implementation_key AS ruleset_version_key, es.started_at FROM exercise_sessions es LEFT JOIN game_types gt ON gt.id = es.game_type_id LEFT JOIN capture_modes cm ON cm.id = es.capture_mode_id LEFT JOIN input_modes im ON im.id = es.input_mode_id LEFT JOIN ruleset_versions rv ON rv.id = es.ruleset_version_id JOIN game_statuses gs ON gs.id = es.status_id WHERE gs.implementation_key = 'ACTIVE'::text`,
+  sql`SELECT es.id AS session_id, es.player_id, gt.implementation_key AS game_type_key, gt.name AS game_type_name, cm.implementation_key AS capture_mode_key, im.implementation_key AS input_mode_key, rv.implementation_key AS ruleset_version_key, es.started_at, es.routine_step_sequence_number IS NOT NULL AS is_routine_step, ec.configuration FROM exercise_sessions es LEFT JOIN game_types gt ON gt.id = es.game_type_id LEFT JOIN capture_modes cm ON cm.id = es.capture_mode_id LEFT JOIN input_modes im ON im.id = es.input_mode_id LEFT JOIN ruleset_versions rv ON rv.id = es.ruleset_version_id LEFT JOIN exercise_configurations ec ON ec.exercise_session_id = es.id JOIN game_statuses gs ON gs.id = es.status_id WHERE gs.implementation_key = 'ACTIVE'::text`,
 );
 
 export const vCatalogTags = pgView("v_catalog_tags", {

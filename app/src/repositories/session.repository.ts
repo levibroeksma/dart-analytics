@@ -271,12 +271,11 @@ export async function findIdempotencyRecord(
 }
 
 /**
- * Active (unfinished) sessions for a player, read from `v_active_sessions` and
- * joined to the runtime tables for two extra columns.
+ * Active (unfinished) sessions for a player, read from `v_active_sessions` alone.
  *
- * `isRoutineStep` is `routine_step_sequence_number IS NOT NULL` on
- * `exercise_sessions` (migration 0029; standalone sessions leave it NULL).
- * `configuration` is the session's configuration snapshot, NULL if absent.
+ * `isRoutineStep` is true for a routine step (migration 0054; standalone
+ * sessions are false). `configuration` is the session's configuration snapshot,
+ * NULL if absent.
  */
 export async function findActiveSessions(db: Db, playerId: string) {
   const rows = await db
@@ -288,21 +287,14 @@ export async function findActiveSessions(db: Db, playerId: string) {
       inputModeKey: vActiveSessions.inputModeKey,
       rulesetVersionKey: vActiveSessions.rulesetVersionKey,
       startedAt: vActiveSessions.startedAt,
-      isRoutineStep: sql<boolean>`${exerciseSessions.routineStepSequenceNumber} IS NOT NULL`,
-      configuration: exerciseConfigurations.configuration,
+      isRoutineStep: vActiveSessions.isRoutineStep,
+      configuration: vActiveSessions.configuration,
     })
     .from(vActiveSessions)
-    .innerJoin(
-      exerciseSessions,
-      eq(exerciseSessions.id, vActiveSessions.sessionId),
-    )
-    .leftJoin(
-      exerciseConfigurations,
-      eq(exerciseConfigurations.exerciseSessionId, vActiveSessions.sessionId),
-    )
     .where(eq(vActiveSessions.playerId, playerId));
   return rows.map((row) => ({
     ...row,
+    isRoutineStep: row.isRoutineStep === true,
     configuration: row.configuration as Record<string, unknown> | null,
   }));
 }

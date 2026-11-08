@@ -661,22 +661,32 @@ describe("findActiveSessions projection", () => {
     );
   });
 
-  it("inner-joins exercise_sessions and left-joins exercise_configurations on the session id", async () => {
+  it("reads the view alone: no join, filtered by player", async () => {
     const { db, statements } = renderingDb();
     const { findActiveSessions } =
       await import("@repositories/session.repository");
     await findActiveSessions(db, "p1");
     const rendered = onlyStatement(statements);
-    expect(rendered).toContain(
-      'inner join "exercise_sessions" on "exercise_sessions"."id" = "v_active_sessions"."session_id"',
-    );
-    expect(rendered).toContain(
-      'left join "exercise_configurations" on "exercise_configurations"."exercise_session_id" = "v_active_sessions"."session_id"',
-    );
-    expect(rendered).toContain(
-      '"exercise_sessions"."routine_step_sequence_number" IS NOT NULL',
-    );
+    expect(rendered).not.toContain("join");
+    expect(rendered).not.toContain("exercise_sessions");
+    expect(rendered).not.toContain("exercise_configurations");
+    expect(rendered).toContain('"is_routine_step"');
+    expect(rendered).toContain('"configuration"');
+    expect(rendered).toContain('from "v_active_sessions"');
     expect(rendered).toContain('where "v_active_sessions"."player_id" = $1');
+  });
+
+  it("returns a strict boolean isRoutineStep and a record-or-null configuration", async () => {
+    const rows = [
+      { sessionId: "s1", isRoutineStep: true, configuration: { a: 1 } },
+      { sessionId: "s2", isRoutineStep: false, configuration: null },
+    ];
+    const db = { select: vi.fn(() => fakeSelect(rows)) } as any;
+    const { findActiveSessions } =
+      await import("@repositories/session.repository");
+    const result = await findActiveSessions(db, "p1");
+    expect(result.map((r) => r.isRoutineStep)).toEqual([true, false]);
+    expect(result.map((r) => r.configuration)).toEqual([{ a: 1 }, null]);
   });
 });
 
