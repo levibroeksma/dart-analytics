@@ -39,6 +39,10 @@ import { foldFollowTheLeaderState } from "@modules/game/follow-the-leader.engine
 import { foldPrisonerState } from "@modules/game/prisoner.engine.module";
 import { foldKillerState } from "@modules/game/killer.engine.module";
 import {
+  FIVES_TARGET,
+  foldFivesState,
+} from "@modules/game/fives.engine.module";
+import {
   foldAroundTheClockState,
   rulesOf,
 } from "@modules/game/around-the-clock.engine.module";
@@ -63,6 +67,7 @@ import type {
   DoublesTrainingSnapshot,
   FiveOhOneAnySnapshot,
   FollowTheLeaderSnapshot,
+  FivesSnapshot,
   KillerSnapshot,
   PrisonerSnapshot,
   ScoreTrainingSnapshot,
@@ -230,6 +235,19 @@ function killer(
   };
 }
 
+function fives(
+  config: Seated<FivesSnapshot>,
+  facts: EngineFacts,
+): SessionProgress {
+  return {
+    detail: joinSubtitle([
+      `${config.seats.length} players`,
+      `First to ${FIVES_TARGET}`,
+    ]),
+    big: big(activeOf(foldFivesState(facts, config))?.total, "POINTS"),
+  };
+}
+
 function followTheLeader(
   config: Seated<FollowTheLeaderSnapshot>,
   facts: EngineFacts,
@@ -358,6 +376,7 @@ const SUMMARIZERS: Readonly<Record<string, Summarizer>> = {
   MICKEY_MOUSE_V1: mickeyMouse,
   BASEBALL_V1: baseball,
   KILLER_V1: killer,
+  FIVES_V1: fives,
   FOLLOW_THE_LEADER_V1: followTheLeader,
   PRISONER_V1: prisoner,
   SCORE_TRAINING_V1: scoreTraining,

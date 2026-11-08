@@ -8,6 +8,7 @@ import {
   BaseballEngine,
   initialBaseballState,
 } from "@modules/game/baseball.engine.module";
+import { FivesEngine } from "@modules/game/fives.engine.module";
 import { KillerEngine } from "@modules/game/killer.engine.module";
 import {
   foldPrisonerState,
@@ -735,6 +736,91 @@ describe("REPLAY_PRESENTERS two-seat Baseball and Nine Lives", () => {
       value: "Out",
     });
     expect(entries[0]!.value).not.toBe("Out");
+  });
+});
+
+describe("REPLAY_PRESENTERS.FIVES", () => {
+  const config = {
+    seats: [
+      {
+        participantRef: "p1",
+        displayName: "L",
+        sideKey: "A",
+        participantTypeKey: "PLAYER" as const,
+      },
+      {
+        participantRef: "p2",
+        displayName: "G",
+        sideKey: "B",
+        participantTypeKey: "GUEST" as const,
+      },
+    ],
+  };
+  const hit = (
+    hitTargetNumber: number | null,
+    hitZoneKey: "OUTER_SINGLE" | "MISS",
+  ) => ({ hitTargetNumber, hitZoneKey, locationX: null, locationY: null });
+
+  function cellsAfter(darts: ReturnType<typeof hit>[]) {
+    const engine = new FivesEngine(config);
+    for (const dart of darts) engine.record(dart);
+    const [turn] = engine.facts().turns;
+    const before = new FivesEngine(config).state();
+    const cells = REPLAY_PRESENTERS.FIVES.turn(
+      { turn, before, after: engine.state() },
+      config,
+    );
+    return cells.map((cell) => (cell.kind === "value" ? cell.value : ""));
+  }
+
+  it("shows the visit total, its fives points and the running total", () => {
+    expect(
+      cellsAfter([
+        hit(20, "OUTER_SINGLE"),
+        hit(20, "OUTER_SINGLE"),
+        hit(5, "OUTER_SINGLE"),
+      ]),
+    ).toEqual(["45", "+9", "9"]);
+  });
+
+  it("marks an off-board visit Void", () => {
+    expect(
+      cellsAfter([
+        hit(20, "OUTER_SINGLE"),
+        hit(20, "OUTER_SINGLE"),
+        hit(null, "MISS"),
+      ]),
+    ).toEqual(["40", "Void", "0"]);
+  });
+
+  it("shows a plain zero for a total that does not divide by 5", () => {
+    expect(
+      cellsAfter([
+        hit(20, "OUTER_SINGLE"),
+        hit(20, "OUTER_SINGLE"),
+        hit(3, "OUTER_SINGLE"),
+      ]),
+    ).toEqual(["43", "0", "0"]);
+  });
+
+  it("ends the session line on each seat's total", () => {
+    const engine = new FivesEngine(config);
+    for (const n of [20, 20, 5]) engine.record(hit(n, "OUTER_SINGLE"));
+    const [turn] = engine.facts().turns;
+    const line = REPLAY_PRESENTERS.FIVES.session(
+      [
+        {
+          turn,
+          before: new FivesEngine(config).state(),
+          after: engine.state(),
+        },
+      ],
+      config,
+    );
+    expect(line.entries).toEqual([
+      { participantId: "p1", label: "Total", value: "9" },
+      { participantId: "p2", label: "Total", value: "0" },
+    ]);
   });
 });
 

@@ -47,6 +47,7 @@ import type {
   FiveOhOneState,
   FollowTheLeaderSeatState,
   FollowTheLeaderState,
+  FivesSeatState,
   KillerSeatState,
   MultiSeatState,
   OneTwentyOneSeatState,
@@ -454,6 +455,36 @@ const KILLER: ReplayPresenter = {
 };
 
 /**
+ * What a Fives visit did to its thrower: `Void` for an off-board dart,
+ * `Bust` for an overshoot, else the fives points it booked (`0` when its
+ * total does not divide by 5).
+ */
+function fivesResult(prior: FivesSeatState, seat: FivesSeatState): string {
+  if (seat.voids > prior.voids) return "Void";
+  if (seat.busts > prior.busts) return "Bust";
+  const booked = seat.total - prior.total;
+  return booked > 0 ? `+${booked}` : "0";
+}
+
+/**
+ * Fives, read off the play page: the visit's total, what it booked and the
+ * running total toward 51; the session line is each seat's total.
+ */
+const FIVES: ReplayPresenter = {
+  turn({ turn, before, after }) {
+    const prior = seatIn<FivesSeatState>(before, turn.participantRef);
+    const seat = seatIn<FivesSeatState>(after, turn.participantRef);
+    return [
+      valueCell("Visit", turn.totalScore),
+      valueCell("Result", fivesResult(prior, seat)),
+      valueCell("Total", seat.total),
+    ];
+  },
+  session: (steps) =>
+    finalLine<FivesSeatState>(steps, "Total", (seat) => seat.total),
+};
+
+/**
  * What one Follow the Leader turn did: `Keep`, `Fail` when the thrower lost
  * a life, `Retry` when a setting dart landed off the board and is thrown
  * again, `Set` when it set the target, else `Match`.
@@ -542,6 +573,7 @@ export const REPLAY_PRESENTERS: Record<GameTypeKey, ReplayPresenter> = {
   KILLER,
   FOLLOW_THE_LEADER,
   PRISONER,
+  FIVES,
 };
 
 /** No facts to fold: every dart exercise kind's per-turn headline and darts count read off `state` alone (`stepMetrics`'s `numberField` reads), never off `facts` -- only Switching's own "hits" key uses `facts`, and a turn cell never shows it (session() does, over the real facts). */

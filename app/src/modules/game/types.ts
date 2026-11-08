@@ -1023,6 +1023,28 @@ export type KillerState = MultiSeatState<KillerSeatState> & {
   seats: KillerSeatState[];
 };
 
+/**
+ * One Fives seat: its running `total` of fives points, closed `visits`, the
+ * `voids` and `busts` among them, the `scoringVisits` that booked points, and
+ * the open visit's dart sum and count.
+ */
+export type FivesSeatState = SeatState & {
+  total: number;
+  visits: number;
+  voids: number;
+  busts: number;
+  scoringVisits: number;
+  openTotal: number;
+  dartsInVisit: number;
+};
+
+/** Fives' folded state: seats and the outcome; the first seat to exactly 51 wins at once. */
+export type FivesState = MultiSeatState<FivesSeatState> & {
+  status: "IN_PROGRESS" | "COMPLETE";
+  winningSideKey: string | null;
+  seats: FivesSeatState[];
+};
+
 /** A board bed: number and ring; both bulls carry a null number and the single beds are one ring. */
 export type BedFact = {
   number: number | null;

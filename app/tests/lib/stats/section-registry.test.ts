@@ -386,6 +386,11 @@ describe("statistics section registry", () => {
     expect(tagsForGameType("BASEBALL")).toEqual(new Set(["board"]));
   });
 
+  it("gives Fives no result direction and only the board tag", () => {
+    expect(RESULT_DIRECTION.FIVES).toBeNull();
+    expect(tagsForGameType("FIVES")).toEqual(new Set(["board"]));
+  });
+
   it("gives Killer no result direction and only the board tag", () => {
     expect(RESULT_DIRECTION.KILLER).toBeNull();
     expect(tagsForGameType("KILLER")).toEqual(new Set(["board"]));
