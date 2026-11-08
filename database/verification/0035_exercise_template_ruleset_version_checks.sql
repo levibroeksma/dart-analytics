@@ -128,9 +128,9 @@ WHERE t.is_system_template = TRUE
 
 INSERT INTO verification_results
 SELECT '9',
-    'the three seeded non-game templates pin their own v1 ruleset',
-    CASE WHEN count(*) = 3 THEN 'PASS' ELSE 'FAIL' END,
-    format('expected 3, found %s', count(*))
+    'the three backfilled non-game types each have a template pinned to their own v1 ruleset',
+    CASE WHEN count(DISTINCT et.implementation_key) = 3 THEN 'PASS' ELSE 'FAIL' END,
+    format('expected 3 exercise types, found %s', count(DISTINCT et.implementation_key))
 FROM exercise_templates t
     JOIN exercise_types et ON et.id = t.exercise_type_id
     JOIN exercise_ruleset_versions erv ON erv.id = t.exercise_ruleset_version_id

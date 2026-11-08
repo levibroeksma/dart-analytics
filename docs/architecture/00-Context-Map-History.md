@@ -648,6 +648,7 @@ updated: 2026-11-07
 | `follow-the-leader-play.data.ts`, `FollowTheLeader.astro`, `00-File-Inventory.md` | Leader gets a setting-turn and re-throw cue; setting darts no longer coloured hit/miss in the preview (#1159). 2026-11-07 | historical |
 | `database/verification/*_capability_checks.sql` (15 scripts) | Steps drive from a one-row `VALUES` + `LEFT JOIN ruleset_versions`, so a missing ruleset row reads FAIL instead of vanishing from a green summary (#1121). 2026-11-08 | historical |
 | `app/src/lib/game/{five-oh-one,one-twenty-one,tuod,score-training}-play.data.ts` | `botFlight: null as BotFlight \| null`, matching `botVisualBoardData` (#1207). 2026-11-08 | historical |
+| `database/verification/{0020,0029,0035}_*.sql` | Fresh-DB failures fixed: 0020 undeclared case is TUOD_V1 + ANALYTICS + QUICK_SCORE; 0029 step 4 row is completed (clear of `uq_sessions_single_active`); 0035 step 9 counts distinct types, not rows (#1154). 2026-11-08 | historical |
 
 ---
 
