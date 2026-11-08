@@ -1338,6 +1338,7 @@ export type FollowTheLeaderPlayContext = PlayLifecycleContext<
   targetLabel(this: FollowTheLeaderPlayContext): string;
   leaderName(this: FollowTheLeaderPlayContext): string;
   openingNotice(this: FollowTheLeaderPlayContext): string;
+  settingNotice(this: FollowTheLeaderPlayContext): string;
   livesLabelFor(this: FollowTheLeaderPlayContext, seatRef: string): string;
   livesLabel(this: FollowTheLeaderPlayContext): string;
   statusLabelFor(this: FollowTheLeaderPlayContext, seatRef: string): string;

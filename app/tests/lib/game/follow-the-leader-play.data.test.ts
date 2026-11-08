@@ -247,6 +247,71 @@ describe("followTheLeaderPlay entry", () => {
   });
 });
 
+describe("followTheLeaderPlay setting turn", () => {
+  it("shows no setting cue at the opening, in a match visit or at the prompt", async () => {
+    const ctx = await started();
+    expect(ctx.settingNotice()).toBe("");
+    await ctx.recordDart(t(18));
+    expect(ctx.settingNotice()).toBe("");
+    await throwAll(ctx, [miss, miss, miss]);
+    expect(ctx.showKeepPrompt()).toBe(true);
+    expect(ctx.settingNotice()).toBe("");
+  });
+
+  it("tells the leader to throw one dart to set the new target", async () => {
+    const ctx = await atKeepPrompt();
+    ctx.chooseSet();
+    expect(ctx.phase()).toBe("LEAD");
+    expect(ctx.settingNotice()).toMatch(/one dart/i);
+    expect(ctx.settingNotice()).toMatch(/set/i);
+  });
+
+  it("tells the leader to throw again after an off-board setting dart", async () => {
+    const ctx = await atKeepPrompt();
+    ctx.chooseSet();
+    await ctx.recordDart(miss);
+    expect(ctx.phase()).toBe("LEAD");
+    expect(ctx.settingNotice()).toMatch(/again/i);
+    expect(ctx.settingNotice()).toMatch(/board/i);
+  });
+
+  it("clears the cue once the setting dart lands", async () => {
+    const ctx = await atKeepPrompt();
+    ctx.chooseSet();
+    await ctx.recordDart(t(20));
+    expect(ctx.phase()).toBe("MATCH");
+    expect(ctx.settingNotice()).toBe("");
+  });
+
+  it("leaves a setting dart uncoloured in the preview", async () => {
+    const ctx = await started();
+    await ctx.recordDart(t(18));
+    expect(ctx.previewSegments().map((segment) => segment.status)).toEqual([
+      "empty",
+      "empty",
+      "empty",
+    ]);
+    const leader = await atKeepPrompt();
+    leader.chooseSet();
+    await leader.recordDart(dart(18, "OUTER_SINGLE"));
+    expect(leader.previewSegments().map((segment) => segment.status)).toEqual([
+      "empty",
+      "empty",
+      "empty",
+    ]);
+  });
+
+  it("leaves an off-board opening dart uncoloured in the preview", async () => {
+    const ctx = await started();
+    await ctx.recordDart(miss);
+    expect(ctx.previewSegments().map((segment) => segment.status)).toEqual([
+      "empty",
+      "empty",
+      "empty",
+    ]);
+  });
+});
+
 describe("followTheLeaderPlay stop", () => {
   it("refuses to stop before a match and records nothing", async () => {
     const ctx = await started();

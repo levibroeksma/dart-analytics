@@ -698,6 +698,7 @@ exports[`factory surface > followTheLeaderPlay 1`] = `
   "ring:string",
   "setChosen:boolean",
   "setRing:function",
+  "settingNotice:function",
   "showBoard:function",
   "showKeepPrompt:function",
   "showPad:function",
