@@ -1,4 +1,12 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  expectTypeOf,
+  vi,
+  beforeEach,
+  afterEach,
+} from "vitest";
 // F27 Task 1: one-twenty-one-play.data.ts now imports currentFacts from
 // play-lifecycle.ts instead of defining its own copy. Confirmed these
 // assertions still hold unchanged.
@@ -26,6 +34,7 @@ import {
   oneTwentyOneEngineFactory,
   oneTwentyOneV2EngineFactory,
 } from "@modules/game/one-twenty-one.engine.module";
+import type { BotFlight } from "@lib/types";
 import type { OneTwentyOnePlayContext } from "@lib/types";
 import type { DartFact, TurnFact } from "@modules/types";
 import * as sessionsApi from "@client/api/sessions";
@@ -1724,5 +1733,13 @@ describe("oneTwentyOnePlay shared play-screen parts", () => {
     expect(play.engine?.state().timerExpired).toBe(true);
     expect(play.finished).toBe(false);
     expect(sessionsApi.completeSession).not.toHaveBeenCalled();
+  });
+});
+
+describe("oneTwentyOnePlay botFlight", () => {
+  it("starts null and is typed as a BotFlight slot", () => {
+    const play = oneTwentyOnePlay();
+    expect(play.botFlight).toBeNull();
+    expectTypeOf(play.botFlight).toEqualTypeOf<BotFlight | null>();
   });
 });

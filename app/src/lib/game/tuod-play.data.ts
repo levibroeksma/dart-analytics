@@ -56,6 +56,7 @@ import type {
   TuodPlayContext,
   TuodResultsSnapshot,
   TuodSeatResult,
+  BotFlight,
 } from "./types";
 
 // Value import, not `import type`: the class is the narrowing target below,
@@ -184,7 +185,7 @@ export function tuodPlay() {
     showDoubleConfirm: false,
     showFinishConfirm: false,
     botThrowing: false,
-    botFlight: null,
+    botFlight: null as BotFlight | null,
 
     /**
      * Folds the store's own fact log — never `engine.state()` — so every

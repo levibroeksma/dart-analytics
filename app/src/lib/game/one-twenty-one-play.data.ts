@@ -50,6 +50,7 @@ import type {
   OneTwentyOnePlayContext,
   OneTwentyOneResultsSnapshot,
   OneTwentyOneSeatResult,
+  BotFlight,
 } from "./types";
 
 // Value import, not `import type`: the class is the narrowing target below,
@@ -210,7 +211,7 @@ export function oneTwentyOnePlay() {
     showDoubleConfirm: false,
     showSessionFinishConfirm: false,
     botThrowing: false,
-    botFlight: null,
+    botFlight: null as BotFlight | null,
 
     state(this: OneTwentyOnePlayContext): OneTwentyOneState | null {
       const config = this.$store.game.configSnapshot;
