@@ -45,6 +45,7 @@ import {
   appendBatch,
   canonicalize,
   hashBatchPayload,
+  hashBatchPayloadWithDefaults,
   createSession,
   updateSessionStatus,
   listActiveSessions,
@@ -638,9 +639,42 @@ function sampleBatch(
 
 describe("canonicalize / hashBatchPayload", () => {
   it("produces the same hash regardless of key order", async () => {
-    const a = await hashBatchPayload({ stages: [{ b: 1, a: 2 }] } as never);
-    const b = await hashBatchPayload({ stages: [{ a: 2, b: 1 }] } as never);
-    expect(a).toBe(b);
+    const batch = sampleBatch();
+    const reordered = {
+      stages: batch.stages.map((stage) => ({
+        turns: stage.turns,
+        sequence: stage.sequence,
+        parentClientKey: stage.parentClientKey,
+        stageTypeKey: stage.stageTypeKey,
+        clientKey: stage.clientKey,
+      })),
+    };
+    expect(await hashBatchPayload(reordered)).toBe(
+      await hashBatchPayload(batch),
+    );
+  });
+
+  it("hashes a turn without kept the same as one with the default kept: false", async () => {
+    const withKept = sampleBatch();
+    const withoutKept = structuredClone(withKept);
+    delete (withoutKept.stages[0].turns[0] as { kept?: boolean }).kept;
+    expect(await hashBatchPayload(withoutKept as never)).toBe(
+      await hashBatchPayload(withKept),
+    );
+  });
+
+  it("hashes kept: true differently from the default", async () => {
+    const kept = sampleBatch();
+    kept.stages[0].turns[0].kept = true;
+    expect(await hashBatchPayload(kept)).not.toBe(
+      await hashBatchPayload(sampleBatch()),
+    );
+  });
+
+  it("keeps the defaults in hashBatchPayloadWithDefaults", async () => {
+    expect(await hashBatchPayloadWithDefaults(sampleBatch())).not.toBe(
+      await hashBatchPayload(sampleBatch()),
+    );
   });
 
   it("produces different hashes for different payloads", async () => {
@@ -1060,6 +1094,20 @@ describe("appendBatch", () => {
     const hash = await hashBatchPayload(batch);
     vi.mocked(repo.findIdempotencyRecord).mockResolvedValue({
       normalizedPayloadHash: hash,
+      result: { created: { stages: 1, turns: 1, darts: 0 } },
+    });
+    const result = await appendBatch("player-1", "session-1", "idem-1", batch);
+    expect(result).toEqual({
+      ok: true,
+      data: { created: { stages: 1, turns: 1, darts: 0 } },
+    });
+    expect(repo.insertBatchRecords).not.toHaveBeenCalled();
+  });
+
+  it("returns the stored result when the stored hash kept the default fields", async () => {
+    const batch = sampleBatch();
+    vi.mocked(repo.findIdempotencyRecord).mockResolvedValue({
+      normalizedPayloadHash: await hashBatchPayloadWithDefaults(batch),
       result: { created: { stages: 1, turns: 1, darts: 0 } },
     });
     const result = await appendBatch("player-1", "session-1", "idem-1", batch);

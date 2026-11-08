@@ -42,7 +42,6 @@ export const scoreTrainingValidator: RulesetValidator = {
         (input.config.max_visit_score as number | undefined) ??
         DEFAULT_MAX_VISIT_SCORE,
       limitNoun: "visits",
-      limitOnVisualBoard: true,
     });
   },
 };

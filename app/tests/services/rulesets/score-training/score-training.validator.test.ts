@@ -485,7 +485,7 @@ describe("scoreTrainingValidator.validateBatch — parity with tuod (#1184)", ()
       },
     },
     {
-      name: "rounds limit exceeded on the visual-board path (rejected)",
+      name: "rounds limit exceeded on the visual-board path",
       totals: [60],
       existing: { p1: 2 },
       captureModeKey: "ANALYTICS",

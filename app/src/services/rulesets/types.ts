@@ -70,11 +70,10 @@ export type RoundTotalRule = (
 
 /**
  * What `validateScoredBatch` needs to know about one visit-total ruleset:
- * the highest total one turn may carry, the noun the ROUNDS-cap rejection
- * names, and whether that cap also applies under ANALYTICS + VISUAL_BOARD.
+ * the highest total one turn may carry and the noun the ROUNDS-cap rejection
+ * names.
  */
 export type ScoredBatchOptions = {
   maxTurnScore: number;
   limitNoun: "visits" | "attempts";
-  limitOnVisualBoard: boolean;
 };
