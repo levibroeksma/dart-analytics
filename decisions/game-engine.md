@@ -699,3 +699,10 @@ Status: Accepted · Date: 2026-11-06
 Decision: an engine that records no aimed target returns the `NO_INTENT` exported by `modules/game/turn-log.module.ts`; no engine declares its own copy.
 Reason: Shanghai kept a local copy identical to the shared constant (#1244); two definitions of "no intention" can drift apart.
 Consequences: `shanghai.engine.module.ts` imports the shared constant; a change to the pair is made in one place.
+
+### D535 — Track done message is optional; Singles Training refuses at the match level only
+Status: Accepted · Date: 2026-11-08
+Decision: `TrackRules.doneMessage` is optional; `applyTrackDart` throws it only when set. Target Scoring and Switching's Chain set none, since their seats never leave `IN_PROGRESS` and the exercise shell refuses a finished exercise first. Singles Training's `refusal` checks the match status alone. Bob's 27 and Shanghai keep `seatedRefusal`.
+Reason: #1243. The removed messages and the Singles seat branch were unreachable. A seeded random-play test pins that Singles never refuses a dart while the match is in progress (HARD/EXTREME ends the match at once and seats run in lockstep). Bob's 27 with three seats reaches the seat branch (an out seat keeps its turn while the match runs), which `bobs27.golden.test.ts` already pins.
+Consequences: `scoringTrackRules(config, onDart)` loses its message parameter. The other "never finishes" Track exercises (Hit Count, SwitchBlade, Doubles Lock, Halve-It) still set a message and could drop it the same way.
+Supersedes: none. Narrows D528's `seatedRefusal` to Bob's 27 and Shanghai.

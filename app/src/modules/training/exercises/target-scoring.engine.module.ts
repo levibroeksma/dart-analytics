@@ -29,8 +29,6 @@ import type { TargetScoringState } from "./types";
 
 const EXERCISE_RULESET_VERSION_KEY = "TARGET_SCORING_V1" as const;
 const DARTS_PER_VISIT = 3;
-const DONE_MESSAGE =
-  "A Target Scoring seat never finishes; only the timer ends the exercise.";
 
 const SINGLE_ZONE_KEYS = new Set(["SINGLE", "INNER_SINGLE", "OUTER_SINGLE"]);
 
@@ -77,17 +75,16 @@ export function targetScoringIntent(target: number): DartIntent {
  * Track rules shared by the Target Scoring family: the config's targets in
  * order; a dart hits when `targetScoringPoints` scores it and adds those
  * points; visits close after three darts and carry no rule of their own.
- * The caller supplies the per-dart policy and the refusal once done.
+ * The caller supplies the per-dart policy. A seat never leaves
+ * `IN_PROGRESS`, so the rules carry no done message.
  */
 export function scoringTrackRules<TExt>(
   config: { targets: readonly number[] },
   onDart: TrackRules<TExt>["onDart"],
-  doneMessage: string,
 ): TrackRules<TExt> {
   const pointsOn = (target: BoardTarget, observation: DartObservation) =>
     targetScoringPoints(sectionOf(target), observation);
   return {
-    doneMessage,
     target: pathTarget(numbersPath(config.targets)),
     hit: (target, observation) => pointsOn(target, observation) !== null,
     points: (target, observation) => pointsOn(target, observation) ?? 0,
@@ -103,11 +100,7 @@ export function scoringTrackRules<TExt>(
 function targetScoringRules(
   config: TargetScoringConfigData,
 ): TrackRules<ChainTrackExt> {
-  return scoringTrackRules(
-    config,
-    chainOnTarget(config.targets.length),
-    DONE_MESSAGE,
-  );
+  return scoringTrackRules(config, chainOnTarget(config.targets.length));
 }
 
 function initialExt(config: TargetScoringConfigData): ChainTrackExt {

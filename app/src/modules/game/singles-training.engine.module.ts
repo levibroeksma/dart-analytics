@@ -8,11 +8,7 @@ import type {
 import { numbersPath, targetAt } from "./board-progression.module";
 import { registerEngineFactory } from "./engine.registry";
 import { activeSeat } from "./seat-rota.module";
-import {
-  activeSeatState,
-  otherSeatsComplete,
-  seatedRefusal,
-} from "./seat-state.module";
+import { activeSeatState, otherSeatsComplete } from "./seat-state.module";
 import { eliminationWinner, scoreCompareOutcome } from "./match-outcome.module";
 import {
   dartGameEngineClass,
@@ -265,16 +261,15 @@ const NO_INTENT: DartIntent = {
 
 /**
  * Singles Training's rules for the dart engine shell, serving V1–V3: 21
- * targets, three darts each, scored per ring. Refused at the match level
- * first — HARD/EXTREME elimination can end the match while another seat is
- * still `IN_PROGRESS` — then at the seat level.
+ * targets, three darts each, scored per ring. Refused once the match has
+ * ended.
  */
 const singlesSpec: DartGameSpec<SinglesEngineConfig, SinglesTrainingState> = {
   rulesetVersionKey: "SINGLES_V1",
   rulesetVersionKeys: ["SINGLES_V2", "SINGLES_V3"],
   stageOwnership: "PER_SEAT",
   fold: foldSinglesTrainingState,
-  refusal: seatedRefusal(MATCH_ENDED, SESSION_DONE),
+  refusal: (state) => (state.status === "IN_PROGRESS" ? null : MATCH_ENDED),
   intent: () => NO_INTENT,
   isVisitOpen: visitOpenUnder(3),
   wouldComplete: (state, observation, config) => {
