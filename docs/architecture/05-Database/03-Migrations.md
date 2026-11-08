@@ -1192,6 +1192,16 @@ Contains:
 
 `migrate:down` drops the view and recreates `0044`'s definition. `database/verification/0053_replay_view_kept_checks.sql` (4 checks) passed on the scratch database, as did `db:drift:ci`. <!-- 2026-10-30 -->
 
+## 0054_active_sessions_resume_fields.sql
+
+Widen `v_active_sessions` with `is_routine_step` and `configuration`, so `findActiveSessions` reads the resume deck from the view alone instead of joining `exercise_sessions` and `exercise_configurations` in the repository (D442, #893). <!-- 2026-11-08 -->
+
+Contains:
+
+- rewritten `v_active_sessions` (`CREATE OR REPLACE`): adds `is_routine_step` (`routine_step_sequence_number IS NOT NULL`) and `configuration` last; one new `LEFT JOIN exercise_configurations`, unique per session (`uq_exercise_configuration_session`), so no fan-out and row count unchanged.
+
+`migrate:down` drops the view and recreates `0033`'s definition. `database/verification/0054_active_sessions_resume_fields_checks.sql` (4 checks) passed on the scratch database, as did a rollback and re-apply, `db:drift:ci` and `db:introspect`. <!-- 2026-11-08 -->
+
 # Schema Changes
 
 
