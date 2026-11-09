@@ -299,13 +299,18 @@ export const SwitchbladeV1Config = EmptyV1Config;
 export type SwitchbladeConfigData = z.infer<typeof SwitchbladeV1Config>;
 
 /**
- * Doubles Lock v1: D20 down to D1; two or three hits lock the double for a
- * 50 or 100 bonus, a blank visit retreats to the last lock
- * (`docs/game-rules/training/exercises/doubles-lock.md`). Path, threshold
- * and bonus are locked and duration is the routine step's, so the config
- * is the empty object.
+ * Doubles Lock: the ladder's doubles and their order; two or three hits
+ * lock the double for a 50 or 100 bonus, a blank visit retreats to the last
+ * lock (`docs/game-rules/training/exercises/doubles-lock.md`). Both keys
+ * are optional and the empty object is the D20 to D1 ladder; threshold and
+ * bonus are locked and duration is the routine step's.
  */
-export const DoublesLockV1Config = EmptyV1Config;
+export const DoublesLockV1Config = z
+  .object({
+    order: z.enum(["DESCENDING", "ASCENDING"]).optional(),
+    doubles: z.enum(["ALL", "EVEN"]).optional(),
+  })
+  .strict();
 
 export type DoublesLockConfigData = z.infer<typeof DoublesLockV1Config>;
 

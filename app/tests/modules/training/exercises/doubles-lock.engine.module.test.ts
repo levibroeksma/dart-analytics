@@ -3,6 +3,7 @@ import {
   DOUBLES_LOCK_BONUS,
   DOUBLES_LOCK_PATH,
   DoublesLockEngine,
+  doublesLockPath,
   doublesLockEngineFactory,
   foldDoublesLockState,
 } from "@modules/training/exercises/doubles-lock.engine.module";
@@ -281,5 +282,75 @@ describe("Doubles Lock engine", () => {
     expect(
       EventsBatchRequest.safeParse(buildEventsBatch(engine.facts())).success,
     ).toBe(true);
+  });
+
+  describe("path variants", () => {
+    const nums = (config: Parameters<typeof doublesLockPath>[0]) =>
+      doublesLockPath(config).map((t) => (t.kind === "DOUBLE" ? t.number : 0));
+
+    it("builds the four paths", () => {
+      expect(nums({ order: "DESCENDING", doubles: "ALL" })).toEqual(LADDER);
+      expect(nums({ order: "ASCENDING", doubles: "ALL" })).toEqual(
+        [...LADDER].reverse(),
+      );
+      expect(nums({ order: "DESCENDING", doubles: "EVEN" })).toEqual([
+        20, 18, 16, 14, 12, 10, 8, 6, 4, 2,
+      ]);
+      expect(nums({ order: "ASCENDING", doubles: "EVEN" })).toEqual([
+        2, 4, 6, 8, 10, 12, 14, 16, 18, 20,
+      ]);
+    });
+
+    it("the empty config is the V1 ladder", () => {
+      expect(new DoublesLockEngine({}).state().currentDouble).toEqual(
+        double(20),
+      );
+      expect(doublesLockPath({})).toEqual(DOUBLES_LOCK_PATH);
+    });
+
+    it("ascending starts on D1 and retreats to D1 before any lock", () => {
+      const engine = new DoublesLockEngine({ order: "ASCENDING" });
+      expect(engine.state().currentDouble).toEqual(double(1));
+      const state = play(engine, [D(1), MISS, MISS, ...times(3, MISS)]);
+      expect(state.currentDouble).toEqual(double(1));
+      expect(state.dartsThisPass).toBe(6);
+    });
+
+    it("even-only skips the odd doubles and retreats to the last lock", () => {
+      const state = play(new DoublesLockEngine({ doubles: "EVEN" }), [
+        D(20),
+        D(20),
+        MISS,
+        D(18),
+        MISS,
+        MISS,
+        ...times(3, MISS),
+      ]);
+      expect(state.lastLock).toEqual(double(20));
+      expect(state.currentDouble).toEqual(double(20));
+    });
+
+    it("a pass ends past the last double of the path", () => {
+      const state = play(
+        new DoublesLockEngine({ order: "ASCENDING", doubles: "EVEN" }),
+        [2, 4, 6, 8, 10, 12, 14, 16, 18, 20].flatMap((n) => times(3, D(n))),
+      );
+      expect(state.passes).toBe(1);
+      expect(state.dartsPerPass).toEqual([30]);
+      expect(state.currentDouble).toEqual(double(2));
+      expect(state.lastLock).toBeNull();
+      expect(state.locks).toBe(10);
+      expect(state.bonus).toBe(1000);
+    });
+
+    it("folds a variant log from its config", () => {
+      const config = { order: "ASCENDING", doubles: "EVEN" } as const;
+      const engine = new DoublesLockEngine(config);
+      const state = play(engine, [D(2), D(2), MISS, D(4), MISS, MISS]);
+      expect(foldDoublesLockState(engine.facts(), config, false)).toEqual(
+        state,
+      );
+      expect(state.lastLock).toEqual(double(2));
+    });
   });
 });
