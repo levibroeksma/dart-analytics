@@ -24,6 +24,10 @@ const infoSection = {
   startBlockedExpr="!canStart()"
 >
   <UserSection allowGuests />
+  <InfoSection
+    title={infoSection.title}
+    description={infoSection.description}
+  />
   <SettingSectionShell>
     <div class="flex flex-col gap-2">
       <SettingLabel text="YOU" />
@@ -56,9 +60,4 @@ const infoSection = {
     >
     </p>
   </SettingSectionShell>
-  <InfoSection
-    title={infoSection.title}
-    description={infoSection.description}
-    open
-  />
 </SetupShell>
