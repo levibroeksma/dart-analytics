@@ -1,6 +1,6 @@
 ---
 name: run-all-gates
-description: Use before claiming any Dart Analytics task done that touched app/, database/, or docs/ — dispatches the right check-*.sh scripts and validate:app/database checklist by changed area and reports each script's pass/fail explicitly.
+description: Use before claiming any Dart Analytics task done that touched app/, database/, docs/, scripts/ or .claude/ — dispatches the right check-*.sh scripts and validate:app/database checklist by changed area and reports each script's pass/fail explicitly.
 ---
 
 # Run All Gates
@@ -72,6 +72,10 @@ bash scripts/test-edit-gate.sh
 bash scripts/test-reuse-lookup.sh
 bash scripts/test-check-dupes.sh
 ```
+
+## If `.claude/skills/` or `.claude/rules/` changed
+
+The "Always run" list already holds `check-skill-pointers.sh`: every new `SKILL.md` or rule file needs a row in `00-File-Inventory.md`, or `quality / structure` fails in CI. Add the row in the same commit.
 
 ## If `database/` changed, also run
 
