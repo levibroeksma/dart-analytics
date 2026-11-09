@@ -1,13 +1,18 @@
 ---
 // Components
-import Switch from "@components/forms/Switch.astro";
 import InfoSection from "@components/ui/InfoSection.astro";
 import SetupShell from "./SetupShell.astro";
 import SettingSectionShell from "./SettingSectionShell.astro";
+import SettingLabel from "./SettingLabel.astro";
+import Toggle from "./Toggle.astro";
 import UserSection from "./UserSection.astro";
 import { supportsDartbot } from "@lib/game/rulesets/capabilities";
 
 // Data
+const modeOpts = [
+  { value: "CLASSIC", label: "Classic" },
+  { value: "EASY", label: "Easy" },
+];
 const infoSection = {
   title: "Bob's 27 rules",
   description:
@@ -23,13 +28,16 @@ const infoSection = {
   <InfoSection
     title={infoSection.title}
     description={infoSection.description}
-    open
   />
   <SettingSectionShell>
-    <Switch
-      label="Easy mode"
-      hint="Nobody is eliminated. The score may go negative."
-      x-model="easy"
-    />
+    <div class="flex flex-col gap-2">
+      <SettingLabel text="MODE" />
+      <Toggle
+        orientation="horizontal"
+        options={modeOpts}
+        x-model="mode"
+        class="w-full"
+      />
+    </div>
   </SettingSectionShell>
 </SetupShell>

@@ -313,7 +313,7 @@ describe("bobs27Setup", () => {
       const setup = createSetup({ presets: [STANDARD_PRESET] });
       vi.mocked(sessionsApi.createSession).mockResolvedValue(created);
       vi.stubGlobal("location", { href: "" });
-      expect(setup.easy).toBe(false);
+      expect(setup.mode).toBe("CLASSIC");
 
       await setup.start();
 
@@ -326,7 +326,7 @@ describe("bobs27Setup", () => {
     });
 
     it("starts BOBS27_V2 with the mode override when Easy is on", async () => {
-      const setup = createSetup({ presets: [STANDARD_PRESET], easy: true });
+      const setup = createSetup({ presets: [STANDARD_PRESET], mode: "EASY" });
       vi.mocked(sessionsApi.createSession).mockResolvedValue(created);
       vi.stubGlobal("location", { href: "" });
 
