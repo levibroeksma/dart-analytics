@@ -68,6 +68,7 @@ bash scripts/check-dupes.sh
 
 ```bash
 bash scripts/test-check-file-mode.sh
+bash scripts/test-check-test-repointing.sh
 bash scripts/test-edit-gate.sh
 bash scripts/test-reuse-lookup.sh
 bash scripts/test-check-dupes.sh

@@ -19,6 +19,12 @@ set -euo pipefail
 # the pre-commit gate chain is unwired there. Point git at it directly.
 git config core.hooksPath .husky 2>/dev/null || true
 
+# A fresh container has no app/node_modules: vitest, astro check and the
+# pre-commit lint-staged step all fail until `npm ci` runs.
+if [ ! -d app/node_modules ] && [ -f app/package-lock.json ]; then
+  (cd app && npm ci --no-audit --no-fund >&2) || true
+fi
+
 PLUGIN="superpowers@claude-plugins-official"
 
 if claude plugin list 2>/dev/null | grep -q "$PLUGIN"; then

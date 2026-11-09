@@ -2,7 +2,7 @@
 status: canonical
 scope: the file fan-out a new game requires, and the shapes it must reuse
 read-when: adding a game, or changing anything a game is wired into
-updated: 2026-10-31
+updated: 2026-11-09
 -->
 
 # Adding a Game
@@ -96,6 +96,11 @@ page legitimately has none of.
 
 Check `08-Component-Inventory.md` before hand-rolling markup — `SeatedPlayScreen`, `GameSetupPage`, `SetupShell`,
 `UserSection`, `InfoSection`, `SettingSectionShell`, `Toggle`, `DurationField` already exist.
+
+Setup form shape (2026-11-09):
+
+1. `InfoSection` folds. `open` (always expanded) is only for a setup with no controls; `scripts/check-astro-conventions.sh` enforces it.
+2. A choice between named modes (Classic / Easy, Rounds / Time) is a horizontal `Toggle` under a `SettingLabel`; `Switch` is for one on/off option (checkout hints, Odds first).
 
 ### `app/src/pages/games/<route-slug>/`
 

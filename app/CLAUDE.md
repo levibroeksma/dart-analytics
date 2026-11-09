@@ -10,6 +10,8 @@ Local setup: `app/.env.example`, `app/README.md`. Neon local env: `npm run env:d
 
 `db:status` is not proof the database matches `database/migrations/` — dbmate enumerates the migration _files_ and reports each one's applied flag, so a `schema_migrations` row with no file is invisible to it and it still prints `Pending: 0`. `npm run db:drift` is what proves it: applied versions against the files in both directions, plus live `v_*` views against the ones the chain's `migrate:up` regions leave behind. It runs inside `validate:app` between `db:migrate` and `db:introspect`, so a drifted database cannot be introspected into `app/src/db/schema.ts`.
 
+To see a page, run `node scripts/screenshot-page.mjs <route> [out.png] [--click text]...` from `app/`, then Read the PNG: it needs no database or login and stubs the API (empty data).
+
 When starting the dev server, use background mode:
 
 ```
@@ -48,7 +50,7 @@ Freshness is CI-owned; nothing here is a local task. Looking something up: the `
 - Prettier + `prettier-plugin-astro` (`singleAttributePerLine: true`).
 - `npm run format` (write) · `npm run format:check` (CI Format gate — not part of `validate:app`).
 - Format on save via `app/.vscode/settings.json`.
-- **pre-commit:** husky + lint-staged run Prettier `--write` on staged files (`cd app && npx lint-staged`), then all 14 structural gates (file-locations, agent-mirrors, skill-pointers, astro-class-composition, astro-conventions, game-engines, refinement-coverage, type-barrels, alias-sync, constraint-mirror, no-inline-comments, style-tokens, game-wiring, test-coverage) run from repo root under `set -e`. Hooks install via `npm install` (`prepare` → repo-root `.husky/`).
+- **pre-commit:** husky + lint-staged run Prettier `--write` on staged files (`cd app && npx lint-staged`), then the structural gates (file-locations, agent-mirrors, skill-pointers, astro-class-composition, astro-conventions, game-engines, refinement-coverage, type-barrels, alias-sync, constraint-mirror, no-inline-comments, style-tokens, game-wiring, test-coverage) run from repo root, silent on pass (one summary line) and printing the failing gate's output on failure. Hooks install via `npm install` (`prepare` → repo-root `.husky/`).
 - **Before every PR create or update (mandatory):** run `cd app && npm run format`, commit any formatting diffs, and confirm `npm run format:check` is clean. Applies to all app work — not only multi-task plan completion. Skipping this fails the CI Format gate.
 
 ## Test-Driven Development (mandatory)

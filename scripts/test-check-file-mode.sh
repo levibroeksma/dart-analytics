@@ -36,6 +36,14 @@ expect fail "astro-conventions: x-bind" "$T" astro-conventions "x-bind" $A
 T=$(tree $A '<div :class="y"></div>')
 expect pass "astro-conventions: :class" "$T" astro-conventions - $A
 
+S=app/src/components/layout/games/setup/XSetupForm.astro
+T=$(tree $S $'---\n---\n<InfoSection title="t" description="d" open />\n<SettingSectionShell><Switch label="x" /></SettingSectionShell>')
+expect fail "astro-conventions: setup open with controls" "$T" astro-conventions "let it fold" $S
+T=$(tree $S $'---\n---\n<InfoSection title="t" description="d" open />\n<LockedRows rows={[]} />')
+expect pass "astro-conventions: setup open without controls" "$T" astro-conventions - $S
+T=$(tree $S $'---\n---\n<InfoSection title="t" description="d" />\n<SettingSectionShell><Switch label="x" /></SettingSectionShell>')
+expect pass "astro-conventions: setup folded info with controls" "$T" astro-conventions - $S
+
 T=$(tree $A '<div class:list={["a"]}></div>')
 expect fail "astro-class-composition: class:list" "$T" astro-class-composition "class:list" $A
 T=$(tree $A '<div class={cn("a")}></div>')
