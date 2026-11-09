@@ -45,22 +45,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Diff app/tests for changed assertions with no changed describe/it title
+      - name: Diff app/tests for changed assertions with no changed describe/it title (scripts/check-test-repointing.sh)
         id: scan
         env:
           BASE_REF: ${{ github.event.pull_request.base.ref }}
         run: |
           git fetch origin "$BASE_REF" || true
-          CHANGED_FILES=$(git diff --name-only "origin/$BASE_REF"...HEAD -- 'app/tests/**/*.test.ts' 'app/tests/**/*.itest.ts' || true)
-          : > /tmp/flagged.txt
-          for f in $CHANGED_FILES; do
-            ASSERTION_HUNKS=$(git diff -U0 "origin/$BASE_REF"...HEAD -- "$f" | grep -E '^\+.*(\.toBe\(|\.toEqual\(|\.parse\(|expect\()' || true)
-            if [ -z "$ASSERTION_HUNKS" ]; then continue; fi
-            TITLE_HUNKS=$(git diff -U0 "origin/$BASE_REF"...HEAD -- "$f" | grep -E '^[+-].*\b(describe|it)\(' || true)
-            if [ -z "$TITLE_HUNKS" ]; then
-              echo "$f: assertion literal(s) changed, no describe/it title changed in the same diff" >> /tmp/flagged.txt
-            fi
-          done
+          bash scripts/check-test-repointing.sh "origin/$BASE_REF" > /tmp/flagged.txt
           if [ -s /tmp/flagged.txt ]; then
             echo "flagged=true" >> "$GITHUB_OUTPUT"
           else

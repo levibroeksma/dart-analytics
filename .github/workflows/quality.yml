@@ -51,6 +51,8 @@ jobs:
         run: bash scripts/check-style-tokens.sh
       - name: Gate per-file mode fixtures
         run: bash scripts/test-check-file-mode.sh
+      - name: Test-repointing check fixtures
+        run: bash scripts/test-check-test-repointing.sh
       - name: Edit-gate hook fixtures
         run: bash scripts/test-edit-gate.sh
       - name: Reuse-lookup hook fixtures

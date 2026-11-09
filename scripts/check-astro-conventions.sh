@@ -4,6 +4,8 @@
 # 2) no HTML comments <!-- --> in the template region (after frontmatter)
 # 3) no fused `x-cloak:<attr>` (Prettier glues a bare `:class` onto x-cloak)
 # 4) no long-form `x-bind:` (D100); inside `{}` use a spread: {...{ ":class": expr }}
+# 5) a games/setup/*SetupForm.astro with controls folds its InfoSection (no `open`)
+#    (09-Adding-A-Game)
 set -euo pipefail
 cd "${CHECK_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || echo .)}"
 
@@ -78,6 +80,7 @@ def check_file(path: Path) -> None:
     global fail
     text = path.read_text(encoding="utf-8")
     template = template_region(text)
+    check_setup_form(path, text, template)
     # HTML comments in template
     for m in re.finditer(r"<!--", template):
         line = template.count("\n", 0, m.start()) + 1
@@ -104,6 +107,25 @@ def check_file(path: Path) -> None:
             fail = 1
 
 
+SETUP_CONTROLS = re.compile(
+    r"<(Switch|Toggle|Select|RangeSlider|Stepper|Input|DurationField|DurationSoloFields)\b"
+)
+
+
+def check_setup_form(path: Path, text: str, template: str) -> None:
+    global fail
+    if not (path.name.endswith("SetupForm.astro") and "games/setup" in path.as_posix()):
+        return
+    info = re.search(r"<InfoSection\b[^>]*>", template, re.S)
+    if not info:
+        return
+    offset = text.find(template)
+    line = text.count("\n", 0, offset + info.start()) + 1 if offset >= 0 else 1
+    if re.search(r"\sopen\b", info.group(0)) and SETUP_CONTROLS.search(template):
+        print(f"FAIL: {path}:{line}: InfoSection `open` on a setup form with controls; let it fold", file=sys.stderr)
+        fail = 1
+
+
 def main() -> int:
     global fail
     file_mode = sys.argv[1] == "1"
@@ -122,7 +144,7 @@ def main() -> int:
         return 1
     if file_mode:
         return 0
-    print("OK: Astro x-show/x-cloak pairing, no fused x-cloak:, no x-bind:, no template HTML comments.")
+    print("OK: Astro x-show/x-cloak pairing, no fused x-cloak:, no x-bind:, no template HTML comments, setup-form InfoSection folds.")
     return 0
 
 

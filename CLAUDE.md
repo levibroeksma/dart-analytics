@@ -16,18 +16,7 @@ Personal darts scoring app with long-term progression tracking. Architecture-fir
 
 # Behaviour Constraints
 
-- Extreme concision: all interactions, commits, plans.
-- Sacrifice grammar & pleasantries for brevity.
-- Prefer short words; avoid polysyllabic synonyms.
-- No recaps; go straight to the point.
-
----
-
-# Output Acknowledgment
-
-- No acknowledgment sentences on initial responses.
-- Reply "On it." or "Starting search." then execute immediately.
-- Forbidden: transitional phrases ("I can help...", "Let me...", etc.).
+Concision and acknowledgment rules live in one place: the `UserPromptSubmit` hook in `.claude/settings.json`, injected on every prompt. Not restated here.
 
 ---
 

@@ -2,7 +2,7 @@
 status: historical
 scope: context-map version history and point-in-time task records
 read-when: never during a task — provenance only
-updated: 2026-11-07
+updated: 2026-11-09
 -->
 
 # Context Map History
@@ -16,6 +16,8 @@ updated: 2026-11-07
 ---
 
 # Version History
+
+> **Version:** 1.212.0 (2026-11-09 — Session retro fixes: `check-astro-conventions.sh` rejects an `open` `InfoSection` on a setup form with controls; `session-start.sh` runs `npm ci` in cloud sessions; pre-commit gates silent on pass; `check-test-repointing.sh` skips pure subject renames; `app/scripts/screenshot-page.mjs` visual check; concision rule single-sourced in the `UserPromptSubmit` hook; Component Inventory read-by-section pointer; setup-form shape in `09-Adding-A-Game.md`)
 
 > **Version:** 1.211.0 (2026-11-09 — Fives V1 screens (PR 2): `fives-{seats,setup,play}` in `lib/game`, `Fives*` components and pages, games-visibility card, `register-route-data.ts`; `fives.md` ships V1 on two seats (three or four deferred behind the one-guest setup and two-seat scoreboard, as Killer); `FIVES_RULES` exported)
 
