@@ -1,6 +1,6 @@
 # Doubles Lock
 
-Current version: V1 (shipped 2026-10-18)
+Current version: V2 (shipped 2026-11-09)
 Entry points: routine step
 Kernel: TRACK
 
@@ -20,8 +20,8 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 | Time-bound run | V1 | All | |
 | Passes, best-pass darts, bonus points and locks readouts | V1 | All | |
 | Strict Lock variant | V2+ | All | Wanted, unscheduled: three hits to lock is a rule narrowing, not needed to play |
-| Even Doubles Only variant | V2+ | All | Wanted, unscheduled: a shorter target list is a configuration narrowing |
-| Ascending Order variant | V2+ | All | Wanted, unscheduled: D1 up to D20 is a configuration of the path |
+| Even Doubles Only variant | V2 | All | Shipped as `DoublesLockV1Config.doubles = EVEN`, an optional key on the existing `DOUBLES_LOCK_V1` ruleset, so no new ruleset version; a shorter target list is a configuration narrowing |
+| Ascending Order variant | V2 | All | Shipped as `DoublesLockV1Config.order = ASCENDING`, same ruleset; D1 up to D20 is a configuration of the path |
 | Head-to-head | V2+ | 1v1 | Wanted, unscheduled: exercise engines run a single solo seat (`app/src/modules/training/exercises/solo-participant.module.ts`) |
 | Standalone entry | V2+ | All | Wanted, unscheduled: no exercise has a standalone play page — `app/src/pages/training/` holds only `index.astro`, `quick-subtract/`, `routines/` and `schedules/` |
 
@@ -67,7 +67,7 @@ Version and `Applies to` vocabulary: see `../../templates/GAME_RULESET_TEMPLATE.
 | Setting | Preset | On config screen |
 | --- | --- | --- |
 | Duration | 15 minutes | Routine step configuration |
-| Path | D20 → D1 | Shown, locked |
+| Path | D20 → D1 | Routine step configuration: order (descending, ascending) and doubles (all, even); each combination is a system template |
 | Lock threshold | 2 hits | Shown, locked |
 | Bonus | 3 hits 100, 2 hits 50 | Shown, locked |
 
@@ -86,6 +86,8 @@ defaults. The 15-minute preset is a draft value, not sourced.
 - Three darts at the current double. Only the double counts.
 
 ### Progress
+
+- **Path variants (V2):** the rules below hold on any path. "D20" and "past D1" read as the path's first and last double; the retreat before any lock goes to the path's first double.
 
 - **3 hits:** advance, **lock** the double, +100 bonus.
 - **2 hits:** advance, lock the double, +50 bonus.
@@ -109,8 +111,8 @@ defaults. The 15-minute preset is a draft value, not sourced.
 ### Variants
 
 - **Strict Lock variant** — only three hits lock.
-- **Even Doubles Only variant** — D20, D18, … D2.
-- **Ascending Order variant** — D1 up to D20.
+- **Even Doubles Only variant** (V2) — D20, D18, … D2.
+- **Ascending Order variant** (V2) — D1 up to D20. Combines with Even Doubles Only: D2, D4, … D20.
 - **Head-to-head** — two players walk the ladder; fewer darts wins.
 
 ### Other
@@ -143,8 +145,8 @@ defaults. The 15-minute preset is a draft value, not sourced.
 | **Retreat** | V1 | A blank visit's move back to the last locked double, or D20 before any lock |
 | **Lock bonus** | V1 | 100 for three hits, 50 for two, on every lock |
 | **Strict Lock variant** | V2+ | Only three hits lock |
-| **Even Doubles Only variant** | V2+ | The ten even doubles |
-| **Ascending Order variant** | V2+ | D1 up to D20 |
+| **Even Doubles Only variant** | V2 | The ten even doubles |
+| **Ascending Order variant** | V2 | D1 up to D20 |
 | **Head-to-head** | V2+ | Two players, fewer darts wins |
 | **Standalone entry** | V2+ | Playing a run outside a routine |
 

@@ -79,7 +79,7 @@ GROUP BY e.ruleset_key;
 INSERT INTO verification_results
 SELECT '4',
     format('v_exercise_template_catalog offers %s', e.type_key),
-    CASE WHEN count(c.exercise_type_key) = 1 THEN 'PASS' ELSE 'FAIL' END,
+    CASE WHEN count(c.exercise_type_key) >= 1 THEN 'PASS' ELSE 'FAIL' END,
     format('%s catalog row(s)', count(c.exercise_type_key))
 FROM expected e
     LEFT JOIN v_exercise_template_catalog c ON c.exercise_type_key = e.type_key

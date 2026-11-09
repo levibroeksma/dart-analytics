@@ -373,11 +373,27 @@ describe("SwitchbladeV1Config", () => {
 });
 
 describe("DoublesLockV1Config", () => {
-  it("accepts the empty config — path and bonus are fixed", () => {
-    expect(DoublesLockV1Config.safeParse({}).success).toBe(true);
+  it("accepts the empty config, which is the V1 ladder", () => {
+    expect(DoublesLockV1Config.parse({})).toEqual({});
   });
 
-  it("rejects any key", () => {
+  it("accepts each path variant", () => {
+    for (const order of ["DESCENDING", "ASCENDING"]) {
+      for (const doubles of ["ALL", "EVEN"]) {
+        expect(DoublesLockV1Config.safeParse({ order, doubles }).success).toBe(
+          true,
+        );
+      }
+    }
+  });
+
+  it("rejects an unknown value or key", () => {
+    expect(DoublesLockV1Config.safeParse({ order: "SIDEWAYS" }).success).toBe(
+      false,
+    );
+    expect(DoublesLockV1Config.safeParse({ doubles: "ODD" }).success).toBe(
+      false,
+    );
     expect(DoublesLockV1Config.safeParse({ lockHits: 3 }).success).toBe(false);
     expect(DoublesLockV1Config.safeParse({ path: [] }).success).toBe(false);
   });
@@ -391,7 +407,6 @@ describe("EmptyV1Config", () => {
   it("is the one schema behind every empty-config ruleset", () => {
     expect(BullUpV1Config).toBe(EmptyV1Config);
     expect(SwitchbladeV1Config).toBe(EmptyV1Config);
-    expect(DoublesLockV1Config).toBe(EmptyV1Config);
   });
 
   it("accepts {} and rejects any key", () => {

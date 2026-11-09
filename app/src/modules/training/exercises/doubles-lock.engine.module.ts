@@ -29,15 +29,26 @@ const DARTS_PER_VISIT = 3;
 const DONE_MESSAGE =
   "A Doubles Lock seat never finishes; only the timer ends the exercise.";
 
+/**
+ * The ladder a config walks: every double or the ten even ones, D20 down
+ * or D1 up. The empty config is D20 down to D1.
+ */
+export function doublesLockPath(
+  config: DoublesLockConfigData,
+): readonly BoardTarget[] {
+  const numbers = Array.from({ length: 20 }, (_, i) => 20 - i).filter(
+    (n) => config.doubles !== "EVEN" || n % 2 === 0,
+  );
+  return doublesPath(
+    config.order === "ASCENDING" ? numbers.reverse() : numbers,
+  );
+}
+
 /** The ladder: D20 down to D1. */
-export const DOUBLES_LOCK_PATH: readonly BoardTarget[] = doublesPath(
-  Array.from({ length: 20 }, (_, i) => 20 - i),
-);
+export const DOUBLES_LOCK_PATH: readonly BoardTarget[] = doublesLockPath({});
 
 /** Two hits lock for 50, three for 100. */
 export const DOUBLES_LOCK_BONUS: LockBonus = { 2: 50, 3: 100 };
-
-const LAST_INDEX = DOUBLES_LOCK_PATH.length - 1;
 
 function tallyPassDarts(
   seat: TrackSeat<DoublesLockTrackExt>,
@@ -53,9 +64,10 @@ function tallyPassDarts(
 
 function closePass(
   seat: TrackSeat<DoublesLockTrackExt>,
+  lastIndex: number,
 ): TrackSeat<DoublesLockTrackExt> {
-  if (seat.targetIndex <= LAST_INDEX) return seat;
-  const wrapped = passOnWrap<DoublesLockTrackExt>(LAST_INDEX)(seat);
+  if (seat.targetIndex <= lastIndex) return seat;
+  const wrapped = passOnWrap<DoublesLockTrackExt>(lastIndex)(seat);
   return {
     ...wrapped,
     ext: {
@@ -68,20 +80,24 @@ function closePass(
 }
 
 /**
- * Doubles Lock's Track rules: the ladder's doubles in order; a dart hits
+ * Doubles Lock's Track rules: the config's doubles in order; a dart hits
  * only in the double (`isHitOn`) and scores nothing per dart. At a visit's
  * close the pass's darts are tallied, `lockCheckpoint` locks, advances or
- * retreats, and past D1 `closePass` starts a new pass with no lock.
+ * retreats, and past the last double `closePass` starts a new pass with no lock.
  */
-function doublesLockRules(): TrackRules<DoublesLockTrackExt> {
+function doublesLockRules(
+  config: DoublesLockConfigData,
+): TrackRules<DoublesLockTrackExt> {
+  const path = doublesLockPath(config);
   const lock = lockCheckpoint<DoublesLockTrackExt>(DOUBLES_LOCK_BONUS);
   return {
     doneMessage: DONE_MESSAGE,
-    target: pathTarget(DOUBLES_LOCK_PATH),
+    target: pathTarget(path),
     hit: isHitOn,
     points: noPoints,
     visitOpen: closeAfter(DARTS_PER_VISIT),
-    onVisitClose: (seat) => closePass(lock(tallyPassDarts(seat))),
+    onVisitClose: (seat) =>
+      closePass(lock(tallyPassDarts(seat)), path.length - 1),
   };
 }
 
@@ -94,16 +110,17 @@ function onIntendedDouble(dart: DartFact): boolean {
 
 function projectDoublesLock(
   seat: TrackSeat<DoublesLockTrackExt>,
-  _config: DoublesLockConfigData,
+  config: DoublesLockConfigData,
   complete: boolean,
   facts: EngineFacts,
 ): DoublesLockState {
   const darts = facts.turns.flatMap((turn) => turn.darts);
   const { lastLock, dartsPerPass } = seat.ext;
+  const path = doublesLockPath(config);
   return {
-    currentDouble: DOUBLES_LOCK_PATH[seat.targetIndex],
+    currentDouble: path[seat.targetIndex],
     targetIndex: seat.targetIndex,
-    lastLock: lastLock === null ? null : DOUBLES_LOCK_PATH[lastLock],
+    lastLock: lastLock === null ? null : path[lastLock],
     bonus: seat.score,
     locks: seat.ext.locks,
     passes: seat.ext.passes,

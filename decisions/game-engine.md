@@ -727,3 +727,10 @@ Decision: An off-board Fives dart is a `MISS` zone dart with score 0. Under VISU
 Reason: Review of the engine PR. D538 said a Fives off-board dart has no landing coordinate and the rules doc said a shared `LEG`; `board-input.module.ts` stores the tap position of an off-ring dart and the game shell opens an `EXERCISE_BLOCK` stage.
 Consequences: Voiding reads the dart's score, so it is unaffected. The rules doc and capture section now match the code.
 Supersedes: none. Narrows D538's "no landing coordinate" clause.
+
+### D541 — Doubles Lock path variants widen `DOUBLES_LOCK_V1`'s config; no V2 ruleset key
+Status: Accepted · Date: 2026-11-09
+Decision: `DoublesLockV1Config` takes optional `order` (`DESCENDING`|`ASCENDING`) and `doubles` (`ALL`|`EVEN`); `{}` stays the D20 to D1 ladder. The engine derives its path from config (`doublesLockPath`). Even Doubles Only and Ascending Order ship as system templates (seed `0059`) pinned to the existing `DOUBLES_LOCK_V1` row.
+Reason: a variant that only narrows or reorders the target list changes no rule. Stored sessions and templates hold `{}`, which parses to the same behaviour, so replay is unchanged and no second engine factory, ruleset row, adapter or resume wiring is needed. The rules doc's `V2` is a feature version, not a ruleset key.
+Consequences: Strict Lock (changes the lock rule) and Head-to-head stay `V2+` and would need a new ruleset key. A second template per type breaks the one-catalog-row-per-type assumption in `0047_exercise_type_seed_checks.sql` step 4, now `>= 1`.
+Supersedes: none.

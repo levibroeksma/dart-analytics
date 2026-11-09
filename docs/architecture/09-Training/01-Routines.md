@@ -953,13 +953,13 @@ Configuration:
 ```text
 duration: 15m
 
-path (fixed): D20 D19 … D1
+path: D20 D19 … D1 (default); order DESCENDING|ASCENDING, doubles ALL|EVEN
 lock: 2 hits +50, 3 hits +100
 ```
 
 One visit of three darts at the current double; only the double counts. One hit advances; two or three lock the double for the bonus and advance; a blank visit retreats to the last locked double, or D20 before any lock in the pass. Past D1 the ladder restarts at D20 with no lock, until the time runs out. Rules: `docs/game-rules/training/exercises/doubles-lock.md`.
 
-**Implemented** (`DOUBLES_LOCK_V1`, `app/src/modules/training/exercises/doubles-lock.engine.module.ts`, seed `0040`): empty configuration (path, threshold and bonus are fixed in V1), bound to the Track kernel through `trackExerciseSpec` (D469) with `isHitOn`, `noPoints`, `lockCheckpoint({2: 50, 3: 100})` and `passOnWrap(19)` composed with a pass reset. Each dart carries the current double (`DOUBLE`); `score` is the board score. One turn per visit. State carries the bonus and locks over every pass, the current double, the last lock, passes, darts per pass and the best (fewest) pass. Time-bound only. Capture pair and upload path match Target Scoring (D277). Routine step only in V1 (2026-10-18).
+**Implemented** (`DOUBLES_LOCK_V1`, `app/src/modules/training/exercises/doubles-lock.engine.module.ts`, seed `0040`): optional configuration `order` (`DESCENDING`|`ASCENDING`) and `doubles` (`ALL`|`EVEN`), the empty object being the D20 to D1 ladder; threshold and bonus are fixed. Seed `0059` adds the Even, Ascending and Even Ascending system templates on the same `DOUBLES_LOCK_V1` key (2026-11-09). Bound to the Track kernel through `trackExerciseSpec` (D469) with `isHitOn`, `noPoints`, `lockCheckpoint({2: 50, 3: 100})` and `passOnWrap` at the path's last index composed with a pass reset. Each dart carries the current double (`DOUBLE`); `score` is the board score. One turn per visit. State carries the bonus and locks over every pass, the current double, the last lock, passes, darts per pass and the best (fewest) pass. Time-bound only. Capture pair and upload path match Target Scoring (D277). Routine step only in V1 (2026-10-18).
 
 ## Halve-It
 
