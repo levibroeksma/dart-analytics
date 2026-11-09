@@ -28,6 +28,7 @@ describe("visibleGames", () => {
       "CRICKET_V1",
       "TACTICS_V1",
       "MICKEY_MOUSE_V1",
+      "FIVES_V1",
       "SCORE_TRAINING_V1",
       "SINGLES_V1",
       "DOUBLES_TRAINING_V1",
@@ -64,6 +65,7 @@ describe("visibleGames", () => {
         "CRICKET_V1",
         "TACTICS_V1",
         "MICKEY_MOUSE_V1",
+        "FIVES_V1",
         "TUOD_V1",
       ].sort(),
     );
@@ -148,7 +150,14 @@ describe("groupedGames", () => {
     ).toEqual([
       [
         "MATCH PLAY",
-        ["501_V2", "121_V1", "CRICKET_V1", "TACTICS_V1", "MICKEY_MOUSE_V1"],
+        [
+          "501_V2",
+          "121_V1",
+          "CRICKET_V1",
+          "TACTICS_V1",
+          "MICKEY_MOUSE_V1",
+          "FIVES_V1",
+        ],
       ],
       [
         "TRAINING",

@@ -29,7 +29,7 @@ export function fivesPoints(total: number): number {
 }
 
 /** Fives V1 as Visit points rules: a dart scoring 0 is off the board and voids the visit; passing 51 busts. */
-const FIVES_RULES: VisitPointsRules = {
+export const FIVES_RULES: VisitPointsRules = {
   dartsPerVisit: DARTS_PER_VISIT,
   goal: FIVES_TARGET,
   points: fivesPoints,

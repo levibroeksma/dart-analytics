@@ -1,0 +1,16 @@
+---
+/**
+ * Fives' tap input: `NumberBullMissRecreationalInput`. MISS is a dart off the board and voids the visit.
+ */
+interface Props {
+  [key: string]: unknown;
+}
+
+// Props
+const { ...props }: Props = Astro.props;
+
+// Components
+import NumberBullMissRecreationalInput from "./NumberBullMissRecreationalInput.astro";
+---
+
+<NumberBullMissRecreationalInput {...props} />

@@ -1,7 +1,8 @@
 # Fives
 
-Current version: none (V1 in design)
+Current version: V1 (shipped 2026-11-09)
 Entry points: standalone
+Game type: `FIVES`
 Kernel: VISIT_POINTS
 
 ## Features
@@ -10,7 +11,8 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
-| Multiplayer (2–4 seats) | V1 | 2+ | |
+| Multiplayer (2 seats) | V1 | 2+ | |
+| Three or four seats | Deferred | 2+ | Blocked on: setup seats one guest or bot (`app/src/lib/game/guest-list.ts:19`) and the play screen draws two seats (`app/src/components/layout/games/SplitScoreboard.astro:3`); the engine already takes four |
 | More than four seats | Deferred | 2+ | Blocked on: a session seats at most four (`app/src/services/session-seats.service.ts#MAX_SEATS`); the source allows up to six |
 | Config screen (presets shown) | V1 | All | |
 | Fifty-One by Fives (formal name of this game, not a variant) | V1 | All | |
@@ -58,7 +60,7 @@ session seats at most four (`app/src/services/session-seats.service.ts#MAX_SEATS
 
 | Setting | Preset | On config screen |
 | --- | --- | --- |
-| Players | 2 seats (min 2, max 4) | Editable |
+| Players | 2 seats (min 2; the engine takes up to 4) | Editable |
 | Target | 51 | Shown, locked |
 | Off-board dart | Voids the visit | Shown, locked |
 | Overshoot | Bust | Shown, locked |
@@ -131,7 +133,7 @@ Winner, each seat's final total, visits taken, scoring visits, voids and busts.
 
 ## Capture
 
-Fives is unbuilt; this is the capture shape its V1 is designed for.
+Fives V1's capture shape.
 
 - **Capture / input mode:** RECREATIONAL + DETAILED_DARTS (a row per dart);
   also ANALYTICS + VISUAL_BOARD, the same darts with landing coordinates.

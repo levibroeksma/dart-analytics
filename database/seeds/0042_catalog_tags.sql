@@ -242,6 +242,30 @@ SELECT * FROM (VALUES
   ((SELECT id FROM game_types WHERE implementation_key = 'DOUBLES_TRAINING'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 32, FALSE, now())
 ) AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)
 WHERE v.game_type_id IS NOT NULL;
+-- game FIVES
+INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
+  ((SELECT id FROM game_types WHERE implementation_key = 'FIVES'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 7, TRUE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'FIVES'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 12, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'FIVES'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 14, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'FIVES'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 15, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'FIVES'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 18, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'FIVES'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 24, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'FIVES'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 32, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'FIVES'), (SELECT id FROM tag_contexts WHERE implementation_key = 'STANDALONE'), 38, FALSE, now())
+) AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+WHERE v.game_type_id IS NOT NULL;
+INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+SELECT * FROM (VALUES
+  ((SELECT id FROM game_types WHERE implementation_key = 'FIVES'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 7, TRUE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'FIVES'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 12, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'FIVES'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 14, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'FIVES'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 15, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'FIVES'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 18, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'FIVES'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 24, FALSE, now()),
+  ((SELECT id FROM game_types WHERE implementation_key = 'FIVES'), (SELECT id FROM tag_contexts WHERE implementation_key = 'ROUTINE_STEP'), 32, FALSE, now())
+) AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)
+WHERE v.game_type_id IS NOT NULL;
 -- game FOLLOW_THE_LEADER
 INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at)
 SELECT * FROM (VALUES

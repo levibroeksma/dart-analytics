@@ -1,9 +1,6 @@
 ---
 /**
- * Killer's tap input in an `input-well`. Row 1: `RingKeyRow`.
- * Row 2: the numbers 1–20 on a five-column grid. Row 3: BULL and MISS on a
- * two-column grid. Treble cannot apply to the bull, so BULL is disabled
- * while T is armed.
+ * Killer's tap input: `NumberBullMissRecreationalInput`.
  */
 interface Props {
   [key: string]: unknown;
@@ -13,28 +10,7 @@ interface Props {
 const { ...props }: Props = Astro.props;
 
 // Components
-import InputButton from "./InputButton.astro";
-import NumberPadRecreationalInput from "./NumberPadRecreationalInput.astro";
+import NumberBullMissRecreationalInput from "./NumberBullMissRecreationalInput.astro";
 ---
 
-<NumberPadRecreationalInput
-  class="input-well flex flex-col"
-  {...props}
->
-  <div class="grid min-h-0 flex-1 grid-cols-2 gap-2">
-    <InputButton
-      class="text-2xl uppercase"
-      :disabled="finished || ring === 'TREBLE'"
-      @click="recordBull()"
-    >
-      BULL
-    </InputButton>
-    <InputButton
-      class="text-2xl text-soft-foreground"
-      :disabled="finished"
-      @click="recordMiss()"
-    >
-      MISS
-    </InputButton>
-  </div>
-</NumberPadRecreationalInput>
+<NumberBullMissRecreationalInput {...props} />

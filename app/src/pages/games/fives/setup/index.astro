@@ -1,0 +1,12 @@
+---
+export const prerender = true;
+import GameSetupPage from "@components/layout/games/setup/GameSetupPage.astro";
+import FivesSetupForm from "@components/layout/games/setup/FivesSetupForm.astro";
+---
+
+<GameSetupPage
+  title="Fives"
+  x-data="fivesSetup()"
+>
+  <FivesSetupForm />
+</GameSetupPage>

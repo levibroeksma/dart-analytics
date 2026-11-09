@@ -17,6 +17,8 @@ updated: 2026-11-07
 
 # Version History
 
+> **Version:** 1.211.0 (2026-11-09 — Fives V1 screens (PR 2): `fives-{seats,setup,play}` in `lib/game`, `Fives*` components and pages, games-visibility card, `register-route-data.ts`; `fives.md` ships V1 on two seats (three or four deferred behind the one-guest setup and two-seat scoreboard, as Killer); `FIVES_RULES` exported)
+
 > **Version:** 1.210.0 (2026-11-08 — Fives V1 engine (PR 1, engine-only): D538, D539 in `decisions/game-engine.md`; the Visit points kernel gains `voids`, `goal` and the `voids`/`busts`/`scoringVisits` seat counters; `fives.engine.module.ts`, `fives.validator.ts`, seed `0058` + verification `0058`, `0007` ledger rows, `SEAT_CAPS` 4 / `SEAT_FLOORS` 2; `04-Architecture-patterns.md` 1.11.31)
 
 > **Version:** 1.209.0 (2026-11-08 — TUOD rounds cap on both capture paths (#1242), idempotency hash omits defaulted `kept` (#1155): D537 in `decisions/game-engine.md`, D536 in `decisions/api.md`; `scored-batch.validator.ts` and `tuod.validator.ts` rows updated)

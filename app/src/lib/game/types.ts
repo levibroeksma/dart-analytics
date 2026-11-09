@@ -17,6 +17,7 @@ import type { MickeyMouseEngine } from "@modules/game/mickey-mouse.engine.module
 import type { TacticsEngine } from "@modules/game/tactics.engine.module";
 import type { BaseballEngine } from "@modules/game/baseball.engine.module";
 import type { KillerEngine } from "@modules/game/killer.engine.module";
+import type { FivesEngine } from "@modules/game/fives.engine.module";
 import type { FollowTheLeaderEngine } from "@modules/game/follow-the-leader.engine.module";
 import type { PrisonerEngine } from "@modules/game/prisoner.engine.module";
 import type { SinglesTrainingEngine } from "@modules/game/singles-training.engine.module";
@@ -37,6 +38,7 @@ import type {
   TacticsState,
   BaseballState,
   KillerState,
+  FivesState,
   FollowTheLeaderAction,
   FollowTheLeaderState,
   PrisonerState,
@@ -72,6 +74,7 @@ import type {
   TacticsSnapshot,
   BaseballSnapshot,
   KillerSnapshot,
+  FivesSnapshot,
   FollowTheLeaderSnapshot,
   PrisonerSnapshot,
   SinglesSnapshot,
@@ -1248,6 +1251,11 @@ export type KillerSetupContext = PresetSetupContext & {
   startBlockedReason(): string;
 };
 
+/** Fives setup: Start needs a guest seated (the setup screens seat one guest). */
+export type FivesSetupContext = PresetSetupContext & {
+  canStart(): boolean;
+};
+
 /** Follow the Leader setup: Start needs a guest seated. */
 export type FollowTheLeaderSetupContext = PresetSetupContext & {
   canStart(): boolean;
@@ -1275,6 +1283,31 @@ export type KillerResultsSnapshot = {
   winningSideKey: string | null;
   outOrder: string[];
   seats: KillerSeatResult[];
+};
+
+/** One seat's Fives result: running total, visits taken, scoring visits, voids and busts. */
+export type FivesSeatResult = {
+  participantRef: string;
+  sideKey: string;
+  total: number;
+  visits: number;
+  scoringVisits: number;
+  voids: number;
+  busts: number;
+};
+
+/** Stored final snapshot of a Fives session; `winningSideKey` is null when no side won. */
+export type FivesResultsSnapshot = {
+  status: "COMPLETE";
+  winningSideKey: string | null;
+  seats: FivesSeatResult[];
+};
+
+/** A seat's last closed visit: its dart total, the fives points it booked and how it scored. */
+export type FivesLastVisit = {
+  total: number;
+  points: number;
+  kind: "SCORE" | "ZERO" | "VOID" | "BUST";
 };
 
 /** One seat's Follow the Leader result: lives left and whether it went out. */
@@ -1435,6 +1468,50 @@ export type PrisonerPlayContext = PlayLifecycleContext<
   back(this: PrisonerPlayContext): Promise<void>;
   playAgain(this: PrisonerPlayContext): Promise<void>;
   abandonAndExit(this: PrisonerPlayContext): Promise<void>;
+};
+
+/** Alpine context of the Fives play page: play lifecycle plus starter-step state. */
+export type FivesPlayContext = PlayLifecycleContext<
+  FivesSnapshot,
+  FivesEngine,
+  FivesResultsSnapshot
+> & {
+  starterOpen: boolean;
+  playAgainStarter: 0 | 1 | null;
+  requestPlayAgain(): unknown;
+  playAgainStarterOptions(): StarterStepOptions;
+  ring: MarksRing;
+  setRing(this: FivesPlayContext, ring: MarksRing): void;
+  state(this: FivesPlayContext): FivesState | null;
+  visitMarkers(this: FivesPlayContext): BoardMarker[];
+  recordDart(
+    this: FivesPlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
+  commitDart(
+    this: FivesPlayContext,
+    observation: DartObservation,
+  ): Promise<void>;
+  isBullVisit(this: FivesPlayContext): boolean;
+  previewSegments(this: FivesPlayContext): GamePreviewSegment[];
+  recordNumber(this: FivesPlayContext, n: number): Promise<void>;
+  recordBull(this: FivesPlayContext): Promise<void>;
+  recordMiss(this: FivesPlayContext): Promise<void>;
+  totalLabelFor(this: FivesPlayContext, seatRef: string): string;
+  totalLabel(this: FivesPlayContext): string;
+  visitLabelFor(this: FivesPlayContext, seatRef: string): string;
+  visitLabel(this: FivesPlayContext): string;
+  lastLabelFor(this: FivesPlayContext, seatRef: string): string;
+  lastLabel(this: FivesPlayContext): string;
+  subtitle(this: FivesPlayContext): string;
+  init(this: FivesPlayContext): Promise<void>;
+  retryReconciliation(this: FivesPlayContext): Promise<void>;
+  undoVisit(this: FivesPlayContext): Promise<void>;
+  uploadAndCompleteSession(this: FivesPlayContext): Promise<void>;
+  resultsTitle(this: FivesPlayContext): string;
+  back(this: FivesPlayContext): Promise<void>;
+  playAgain(this: FivesPlayContext): Promise<void>;
+  abandonAndExit(this: FivesPlayContext): Promise<void>;
 };
 
 /** Alpine context of the Killer play page: play lifecycle plus starter-step state. */
