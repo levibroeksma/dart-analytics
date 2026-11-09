@@ -30,6 +30,8 @@ import { baseballSetup } from "@lib/game/baseball-setup.data";
 import { baseballPlay } from "@lib/game/baseball-play.data";
 import { killerSetup } from "@lib/game/killer-setup.data";
 import { killerPlay } from "@lib/game/killer-play.data";
+import { fivesSetup } from "@lib/game/fives-setup.data";
+import { fivesPlay } from "@lib/game/fives-play.data";
 import { followTheLeaderSetup } from "@lib/game/follow-the-leader-setup.data";
 import { followTheLeaderPlay } from "@lib/game/follow-the-leader-play.data";
 import { prisonerSetup } from "@lib/game/prisoner-setup.data";
@@ -47,6 +49,8 @@ describe("registerRouteData", () => {
     ["baseballPlay", baseballPlay],
     ["killerSetup", killerSetup],
     ["killerPlay", killerPlay],
+    ["fivesSetup", fivesSetup],
+    ["fivesPlay", fivesPlay],
     ["followTheLeaderSetup", followTheLeaderSetup],
     ["followTheLeaderPlay", followTheLeaderPlay],
     ["prisonerSetup", prisonerSetup],

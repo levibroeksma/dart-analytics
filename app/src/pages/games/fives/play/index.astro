@@ -1,0 +1,33 @@
+---
+export const prerender = true;
+import GameLayout from "@layouts/GameLayout.astro";
+import Fives from "@components/layout/games/interfaces/Fives.astro";
+import FivesResults from "@components/layout/games/result-modals/FivesResults.astro";
+import NoSessionPanel from "@components/layout/games/NoSessionPanel.astro";
+import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocked.astro";
+---
+
+<GameLayout
+  title="Fives — Play"
+  gameTitle="Fives"
+  gameSubtitleExpr="hasActiveSession ? subtitle() : ''"
+  x-data="fivesPlay()"
+  @confirm-exit.window="abandonAndExit()"
+>
+  <div class="flex flex-col flex-1 min-h-0">
+    {/* Loading / reconciliation-blocked */}
+    <ReconciliationBlocked />
+
+    {/* No active session view */}
+    <NoSessionPanel href="/games/fives/setup" />
+
+    {/* Gameplay view */}
+    <Fives
+      x-show="!finished && hasActiveSession"
+      x-cloak
+    />
+
+    {/* Results modal (overlay) */}
+    <FivesResults />
+  </div>
+</GameLayout>

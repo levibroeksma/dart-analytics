@@ -54,6 +54,14 @@ export const GAME_CARDS: readonly GameCardDescriptor[] = [
     caption: "Close 20 to 12, doubles, trebles and the bull.",
   },
   {
+    rulesetVersionKey: "FIVES_V1",
+    gameTypeKey: "FIVES",
+    group: "MATCH_PLAY",
+    href: "/games/fives/setup",
+    title: "Fives",
+    caption: "First to exactly 51. Only totals divisible by 5 score.",
+  },
+  {
     rulesetVersionKey: "SCORE_TRAINING_V1",
     gameTypeKey: "SCORE_TRAINING",
     group: "TRAINING",

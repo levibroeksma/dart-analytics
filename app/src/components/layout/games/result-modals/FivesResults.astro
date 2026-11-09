@@ -1,0 +1,35 @@
+---
+import ResultsModalShell from "@components/layout/games/ResultsModalShell.astro";
+import ComparisonSummary from "@components/layout/games/ComparisonSummary.astro";
+
+const STAT_ROWS = [
+  { label: "Total", key: "total", hero: true, skeletonWidth: "w-8" },
+  { label: "Visits", key: "visits", side: true, skeletonWidth: "w-6" },
+  {
+    label: "Scoring visits",
+    key: "scoringVisits",
+    side: true,
+    skeletonWidth: "w-6",
+  },
+  { label: "Voids", key: "voids", side: true, skeletonWidth: "w-6" },
+  { label: "Busts", key: "busts", side: true, skeletonWidth: "w-6" },
+] as const;
+
+const WINNER_EXPR =
+  "resultsSnapshot?.seats?.findIndex((seat) => seat.sideKey === resultsSnapshot?.winningSideKey) ?? -1";
+---
+
+<ResultsModalShell overline="Fives · Summary">
+  <h2
+    slot="title"
+    id="results-title"
+    class="text-balance font-display text-xl text-foreground"
+    x-text="resultsTitle()"
+  >
+  </h2>
+
+  <ComparisonSummary
+    statRows={STAT_ROWS}
+    winnerExpr={WINNER_EXPR}
+  />
+</ResultsModalShell>

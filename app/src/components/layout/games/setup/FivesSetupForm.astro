@@ -1,0 +1,42 @@
+---
+// Components
+import InfoSection from "@components/ui/InfoSection.astro";
+import SetupShell from "./SetupShell.astro";
+import SettingSectionShell from "./SettingSectionShell.astro";
+import LockedRows from "./LockedRows.astro";
+import UserSection from "./UserSection.astro";
+
+// Data
+const lockedRows = [
+  { label: "TARGET", value: "51" },
+  { label: "OFF-BOARD DART", value: "Voids the visit" },
+  { label: "OVERSHOOT", value: "Bust" },
+];
+const infoSection = {
+  title: "Fives rules",
+  description:
+    "Add up the three darts of a visit. Only a total divisible by 5 scores, and it scores the total divided by 5. First to exactly 51 points wins. A dart off the board voids the visit; a visit that would pass 51 is a bust and scores nothing. 1v1 against a guest. Locked rules.",
+};
+---
+
+<SetupShell
+  title="Fives"
+  startBlockedExpr="!canStart()"
+>
+  <UserSection allowGuests />
+  <SettingSectionShell>
+    <LockedRows rows={lockedRows} />
+    <p
+      class="text-sm text-muted-foreground"
+      x-show="!canStart()"
+      x-cloak
+    >
+      Add a guest to play Fives.
+    </p>
+  </SettingSectionShell>
+  <InfoSection
+    title={infoSection.title}
+    description={infoSection.description}
+    open
+  />
+</SetupShell>

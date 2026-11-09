@@ -26,6 +26,8 @@ import { baseballSetup } from "@lib/game/baseball-setup.data";
 import { baseballPlay } from "@lib/game/baseball-play.data";
 import { killerSetup } from "@lib/game/killer-setup.data";
 import { killerPlay } from "@lib/game/killer-play.data";
+import { fivesSetup } from "@lib/game/fives-setup.data";
+import { fivesPlay } from "@lib/game/fives-play.data";
 import { followTheLeaderSetup } from "@lib/game/follow-the-leader-setup.data";
 import { followTheLeaderPlay } from "@lib/game/follow-the-leader-play.data";
 import { prisonerSetup } from "@lib/game/prisoner-setup.data";
@@ -84,6 +86,8 @@ export function registerRouteData(Alpine: Alpine) {
   Alpine.data("baseballPlay", baseballPlay);
   Alpine.data("killerSetup", killerSetup);
   Alpine.data("killerPlay", killerPlay);
+  Alpine.data("fivesSetup", fivesSetup);
+  Alpine.data("fivesPlay", fivesPlay);
   Alpine.data("followTheLeaderSetup", followTheLeaderSetup);
   Alpine.data("followTheLeaderPlay", followTheLeaderPlay);
   Alpine.data("prisonerSetup", prisonerSetup);
