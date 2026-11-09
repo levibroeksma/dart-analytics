@@ -22,7 +22,8 @@ Do not present the three options. Do not ask which one. Go straight to **Push an
 The Hard Invariant in root `CLAUDE.md` already requires every completed task's branch to reach `main` via PR promptly, so there is no choice left to offer. Option 1 (merge locally) is forbidden outright — `main` is never merged into directly.
 
 - **Open the PR, don't just push.** After `git push -u origin <branch>`, create the PR immediately; check for a PR template first.
-- **Drive it to green.** Where the harness offers `subscribe_pr_activity`, call it on the new PR right away. Either way the posture is "PRs you created — yours to drive": for every CI failure or review comment, push a fix or reply explaining why not. Never leave a wake silent.
+- **Watch it from creation.** Call `subscribe_pr_activity` on the new PR in the same step that opens it, never later and never only when asked (D540). Stay subscribed until the PR is merged or closed. Where the harness has no such tool, say so in the completion report.
+- **Drive it to green.** The posture is "PRs you created — yours to drive": for every CI failure or review comment, push a fix or reply explaining why not. Never leave a wake silent.
 - **Never `--no-verify`.** A pre-commit or pre-push hook failure is fixed at its cause and re-staged, never bypassed.
 
 ## Step 6: cleanup

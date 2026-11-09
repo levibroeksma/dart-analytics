@@ -293,3 +293,10 @@ Decision: `scripts/check-doc-sync.sh` drops any triggered path ending in `/CLAUD
 Reason: a `CLAUDE.md` under `app/src/modules/*/` holds agent edit-time rules and file lists, not the architecture `docs/architecture/` describes. Adding `switching-chain` to the training module's file list (#1244) failed the gate with no doc to update; satisfying it would need an edit that describes nothing. D444 named narrowing the gate in its own change as the remedy.
 Consequences: calibration re-run on the 71 first-parent commits reachable from `origin/main` (the clone's depth): old and new gate agree on all 71, so no historical verdict flips. Fixtures: `check-doc-sync.sh app/src/modules/training/CLAUDE.md` still fails (explicit paths are never exempted); a staged edit to that file alone passes; the same edit with `app/src/modules/game/x.ts` code staged still fails on the code file. A `CLAUDE.md` that changes a rule other docs restate is still worth a doc edit, and nothing here stops one.
 Supersedes: none
+
+### D540 — Every PR a session creates is watched from creation
+Status: Accepted · Date: 2026-11-09
+Decision: a session subscribes to a PR it creates (`subscribe_pr_activity`) in the same step that opens it, and stays subscribed until the PR is merged or closed. Root `CLAUDE.md` Hard Invariants carry the rule; `finishing-a-dart-branch` § Step 4 carries the procedure and drops its "where the harness offers" condition. A harness without the tool is named in the completion report.
+Reason: `finishing-a-dart-branch` made the subscription conditional on the harness and left the session to offer it after the fact, so whether a PR was watched depended on someone asking; a red CI run or a review comment on an unwatched PR waits on a person. The harness already makes a PR the session created "yours to drive"; a subscription is what delivers the events that duty needs.
+Consequences: the session no longer asks whether to watch. Events on a watched PR wake the session, so a long-running session pays for each wake. This rule's own change ships on a fresh branch off `origin/main`, not stacked on a feature branch.
+Supersedes: none
