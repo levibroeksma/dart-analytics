@@ -6,6 +6,7 @@
     "scripts/seed.ts",
     "scripts/smoke.ts",
     "scripts/seed-dev-auth.ts",
+    "scripts/screenshot-page.mjs",
     "src/lib/client/alpine/app.factory.ts",
     "src/types/api/index.ts",
     // services/ area-root types.ts barrel (type-raising convention, docs/architecture/06-API/03-Shared-Conventions.md);
