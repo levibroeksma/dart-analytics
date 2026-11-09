@@ -45,6 +45,7 @@ const GAME_KEYS = {
   TACTICS: true,
   BASEBALL: true,
   KILLER: true,
+  FIVES: true,
   FOLLOW_THE_LEADER: true,
   MICKEY_MOUSE: true,
   PRISONER: true,

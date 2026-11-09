@@ -33,6 +33,7 @@ const SEAT_CAPS: Record<string, number> = {
   SHANGHAI_V3: 2,
   BASEBALL_V1: 2,
   KILLER_V1: 2,
+  FIVES_V1: 4,
   FOLLOW_THE_LEADER_V1: 2,
   PRISONER_V1: 2,
   SCORE_TRAINING_V1: 2,
@@ -47,6 +48,7 @@ const SEAT_CAPS: Record<string, number> = {
  */
 const SEAT_FLOORS: Record<string, number> = {
   KILLER_V1: 2,
+  FIVES_V1: 2,
   FOLLOW_THE_LEADER_V1: 2,
   PRISONER_V1: 2,
 };

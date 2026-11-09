@@ -17,7 +17,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 | Visit = 3 darts, judged on its total | V1 | All | |
 | Fives points: a total divisible by 5 scores total ÷ 5 | V1 | All | |
 | Void: any dart off the board voids the visit | V1 | All | |
-| Bust: a visit that would pass 51 is void | V1 | All | |
+| Bust: a visit that would pass 51 scores nothing | V1 | All | |
 | Win: first to exactly 51 | V1 | All | |
 | Standard dartboard scoring (assumed) | V1 | All | |
 | Alternate Target | V2+ | All | Wanted, unscheduled: the source plays to 61 or 101 with identical rules; V1 locks 51, the formal name's number |
@@ -86,21 +86,26 @@ scores.
 If any of the three darts lands off the scoring surface of the board — "bounces
 out or lands off the board" — the whole visit scores 0, whatever the other darts
 hit. Because of this, the visit that brings a seat to 51 has all three darts on
-the board.
+the board. An off-board dart is recorded as a `MISS` zone dart with score 0 and
+a landing coordinate only where the board read one (a tap outside the double
+ring keeps its coordinate, a bounce-out has none); every on-board dart scores at
+least 1, so a dart with score 0 voids the visit.
 
 ### Bust
 
-If the visit's fives points would take the running total above 51, the visit is
-void and the total stays as it was.
+If the visit's fives points would take the running total above 51, the visit
+scores nothing and the total stays as it was (counted as a bust, apart from a
+void).
 
 ### Finishing
 
-A visit that brings the running total to exactly 51 wins at once.
+A visit that brings the running total to exactly 51 wins at once, before any
+later seat has thrown that round; seat 1 therefore has a first-throw edge, as in
+501.
 
 ### Ends when
 
-A seat reaches exactly 51; it wins at once, and later seats do not throw
-(see Open questions).
+A seat reaches exactly 51; it wins at once, and later seats do not throw.
 
 ### Result
 
@@ -136,10 +141,9 @@ Fives is unbuilt; this is the capture shape its V1 is designed for.
   landed; an off-board dart is a `MISS` zone dart
   (`database/seeds/0001_reference_data.sql:432`) with `score` 0. `score` = the
   dart's **board** score — never fives points.
-- **Stage type:** one shared `LEG` for the game — the first seat to 51 ends it
-  for everyone, as 501's `SHARED` leg
-  (`app/src/modules/game/five-oh-one.engine.module.ts:428`). One `turns` row per
-  visit, one `darts` row per dart.
+- **Stage type:** one shared stage for the game (the engine writes it as an
+  `EXERCISE_BLOCK`) — the first seat to 51 ends it for everyone. One `turns` row
+  per visit, one `darts` row per dart.
 - **Derived, never stored:** the visit total, fives points, each seat's running
   total (a fold over visits with voids and busts scoring nothing), the winner.
 
@@ -150,7 +154,7 @@ Fives is unbuilt; this is the capture shape its V1 is designed for.
 | **Fifty-One by Fives** | V1 | The formal name of this game; the target is 51 |
 | **Fives points** | V1 | A divisible-by-5 visit total ÷ 5 |
 | **Void** | V1 | An off-board dart: the visit scores 0 |
-| **Bust** | V1 | A visit that would pass 51; void |
+| **Bust** | V1 | A visit that would pass 51; it scores nothing |
 | **Alternate Target** | V2+ | A target other than 51 |
 | **No-Bust** | V2+ | Reach or pass the target to win |
 | **No Void for Missed Board** | V2+ | An off-board dart counts for nothing; the others score |
@@ -159,8 +163,3 @@ Fives is unbuilt; this is the capture shape its V1 is designed for.
 
 - The source summary says "First to 50"; its objective, rules and the formal
   name say 51. V1 reads 51.
-- Does the leg end the moment a seat reaches 51, before the later seats have
-  thrown that round? The source says the first to reach 51 wins. Read here as:
-  yes, so seat 1 has a first-throw edge.
-- A dart that bounces out: the source counts it as off the board. How is it
-  recorded — a `MISS` zone dart with no landing coordinate under VISUAL_BOARD?

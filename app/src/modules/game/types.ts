@@ -934,6 +934,8 @@ export type CheckoutSeat<TExt> = {
  * One seat on the Visit points kernel: closed `visits` and their summed
  * `points`, the latest closed total, and the open visit's dart sum and
  * dart count (`openTotal`/`dartsInVisit`, both 0 when none is open).
+ * `voids` and `busts` count closed visits the rules voided or busted;
+ * `scoringVisits` counts closed visits that booked points.
  */
 export type VisitPointsSeat = {
   visits: number;
@@ -942,6 +944,9 @@ export type VisitPointsSeat = {
   openTotal: number;
   dartsInVisit: number;
   dartsThrown: number;
+  voids: number;
+  busts: number;
+  scoringVisits: number;
 };
 
 /**
@@ -1016,6 +1021,28 @@ export type KillerState = MultiSeatState<KillerSeatState> & {
   winningSideKey: string | null;
   outOrder: string[];
   seats: KillerSeatState[];
+};
+
+/**
+ * One Fives seat: its running `total` of fives points, closed `visits`, the
+ * `voids` and `busts` among them, the `scoringVisits` that booked points, and
+ * the open visit's dart sum and count.
+ */
+export type FivesSeatState = SeatState & {
+  total: number;
+  visits: number;
+  voids: number;
+  busts: number;
+  scoringVisits: number;
+  openTotal: number;
+  dartsInVisit: number;
+};
+
+/** Fives' folded state: seats and the outcome; the first seat to exactly 51 wins at once. */
+export type FivesState = MultiSeatState<FivesSeatState> & {
+  status: "IN_PROGRESS" | "COMPLETE";
+  winningSideKey: string | null;
+  seats: FivesSeatState[];
 };
 
 /** A board bed: number and ring; both bulls carry a null number and the single beds are one ring. */

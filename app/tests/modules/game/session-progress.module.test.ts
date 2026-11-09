@@ -11,6 +11,7 @@ import {
 import { cricketEngineFactory } from "@modules/game/cricket.engine.module";
 import { tacticsEngineFactory } from "@modules/game/tactics.engine.module";
 import { mickeyMouseEngineFactory } from "@modules/game/mickey-mouse.engine.module";
+import { fivesEngineFactory } from "@modules/game/fives.engine.module";
 import { killerEngineFactory } from "@modules/game/killer.engine.module";
 import { followTheLeaderEngineFactory } from "@modules/game/follow-the-leader.engine.module";
 import { prisonerEngineFactory } from "@modules/game/prisoner.engine.module";
@@ -836,6 +837,50 @@ describe("summarizeProgress — BOBS27_V2", () => {
     expect(summarizeProgress("BOBS27_V2", config, EMPTY_FACTS)).toEqual({
       detail: "Double 1 of 21",
       big: { value: "-5", label: "POINTS" },
+    });
+  });
+});
+
+describe("summarizeProgress — FIVES_V1", () => {
+  const config = {
+    seats: [YOU, { ...YOU, participantRef: "p2", sideKey: "B" }],
+  };
+  const hit = (number: number, zone: "OUTER_SINGLE" | "TREBLE") => ({
+    hitTargetNumber: number,
+    hitZoneKey: zone,
+    locationX: null,
+    locationY: null,
+  });
+
+  it("opens on the first seat at zero toward 51", () => {
+    expect(summarizeProgress("FIVES_V1", config, EMPTY_FACTS)).toEqual({
+      detail: "2 players · First to 51",
+      big: { value: "0", label: "POINTS" },
+    });
+  });
+
+  it("reads the active seat's total after a scoring visit", () => {
+    const facts = factsAfter(fivesEngineFactory, config, [
+      hit(20, "OUTER_SINGLE"),
+      hit(20, "OUTER_SINGLE"),
+      hit(5, "OUTER_SINGLE"),
+      hit(20, "OUTER_SINGLE"),
+    ]);
+    expect(summarizeProgress("FIVES_V1", config, facts)).toEqual({
+      detail: "2 players · First to 51",
+      big: { value: "0", label: "POINTS" },
+    });
+    const afterBoth = factsAfter(fivesEngineFactory, config, [
+      hit(20, "OUTER_SINGLE"),
+      hit(20, "OUTER_SINGLE"),
+      hit(5, "OUTER_SINGLE"),
+      hit(1, "OUTER_SINGLE"),
+      hit(1, "OUTER_SINGLE"),
+      hit(1, "OUTER_SINGLE"),
+    ]);
+    expect(summarizeProgress("FIVES_V1", config, afterBoth)?.big).toEqual({
+      value: "9",
+      label: "POINTS",
     });
   });
 });

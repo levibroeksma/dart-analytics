@@ -27,6 +27,7 @@ describe("RULESET_CAPABILITIES", () => {
       "CRICKET_V1",
       "CRICKET_V2",
       "DOUBLES_TRAINING_V1",
+      "FIVES_V1",
       "FOLLOW_THE_LEADER_V1",
       "KILLER_V1",
       "MICKEY_MOUSE_V1",
@@ -103,6 +104,7 @@ describe("supportsMode", () => {
     "KILLER_V1",
     "FOLLOW_THE_LEADER_V1",
     "MICKEY_MOUSE_V1",
+    "FIVES_V1",
   ] as const)(
     "gives %s RECREATIONAL + DETAILED_DARTS, not ANALYTICS + DETAILED_DARTS",
     (rulesetVersionKey) => {
@@ -167,6 +169,7 @@ describe("capableRulesets", () => {
       "CRICKET_V1",
       "CRICKET_V2",
       "DOUBLES_TRAINING_V1",
+      "FIVES_V1",
       "FOLLOW_THE_LEADER_V1",
       "KILLER_V1",
       "MICKEY_MOUSE_V1",
@@ -432,5 +435,23 @@ describe("PRISONER_V1", () => {
     expect(STATS_TAGS.PRISONER_V1).toEqual(["board"]);
     expect(GAME_TYPE_BY_RULESET.PRISONER_V1).toBe("PRISONER");
     expect(supportsDartbot("PRISONER_V1")).toBe(false);
+  });
+});
+
+describe("FIVES_V1", () => {
+  it("takes the board-read pairs only", () => {
+    expect(RULESET_CAPABILITIES.FIVES_V1).toEqual(
+      RULESET_CAPABILITIES.TACTICS_V1,
+    );
+    expect(supportsMode("FIVES_V1", "RECREATIONAL", "QUICK_SCORE")).toBe(false);
+  });
+
+  it("belongs to the FIVES game type with the board tag", () => {
+    expect(GAME_TYPE_BY_RULESET.FIVES_V1).toBe("FIVES");
+    expect(STATS_TAGS.FIVES_V1).toEqual(["board"]);
+  });
+
+  it("has no dartbot", () => {
+    expect(supportsDartbot("FIVES_V1")).toBe(false);
   });
 });

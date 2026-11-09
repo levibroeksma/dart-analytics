@@ -517,3 +517,34 @@ describe("rejectSeatRequest — KILLER_V1", () => {
     ).toContain("supports at most 2 seats");
   });
 });
+
+describe("rejectSeatRequest — FIVES_V1", () => {
+  const seat = (sideKey: string) => ({
+    participantTypeKey: "GUEST" as const,
+    sideKey,
+    displayName: `Seat ${sideKey}`,
+  });
+  const owner = { ...seat("A"), participantTypeKey: "PLAYER" as const };
+
+  it("needs at least two seats", () => {
+    expect(rejectSeatRequest(undefined, "FIVES_V1")).toBe(
+      "FIVES_V1 needs at least 2 seats.",
+    );
+    expect(rejectSeatRequest([owner], "FIVES_V1")).toBe(
+      "FIVES_V1 needs at least 2 seats.",
+    );
+  });
+
+  it("accepts two to four seats; a fifth is over the session maximum", () => {
+    expect(rejectSeatRequest([owner, seat("B")], "FIVES_V1")).toBeNull();
+    expect(
+      rejectSeatRequest([owner, seat("B"), seat("C"), seat("D")], "FIVES_V1"),
+    ).toBeNull();
+    expect(
+      rejectSeatRequest(
+        [owner, seat("B"), seat("C"), seat("D"), seat("E")],
+        "FIVES_V1",
+      ),
+    ).toBe("A session needs between 1 and 4 seats.");
+  });
+});

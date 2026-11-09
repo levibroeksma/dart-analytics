@@ -5,6 +5,7 @@ import type {
   CheckoutSeat,
   DartObservation,
   ClosedVisit,
+  DartFact,
   EliminationSeat,
   EngineFacts,
   JudgedDart,
@@ -212,11 +213,15 @@ export interface CheckoutRules<TExt> {
 
 /**
  * A Visit points ruleset (`visit-points-kernel.module.ts`): how many darts
- * close a visit, and the points a closed visit's total earns.
+ * close a visit, and the points a closed visit's total earns. `voids` marks
+ * a closed visit that books nothing whatever its total; `goal` makes a visit
+ * that would take the seat's points above it a bust.
  */
 export interface VisitPointsRules {
   readonly dartsPerVisit: number;
+  readonly goal?: number;
   points(visitTotal: number): number;
+  voids?(darts: readonly DartFact[]): boolean;
 }
 
 /**

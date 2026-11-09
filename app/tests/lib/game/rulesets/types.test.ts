@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   AroundTheClockConfig,
   BaseballConfig,
+  FivesConfig,
   KillerConfig,
   FollowTheLeaderConfig,
   PrisonerConfig,
@@ -846,5 +847,13 @@ describe("PrisonerConfig", () => {
     expect(
       PrisonerConfig.safeParse({ darts: 3, rule: "DOUBLES" }).success,
     ).toBe(false);
+  });
+});
+
+describe("FivesConfig", () => {
+  it("is FIVES_V1's strict empty schema", () => {
+    expect(RULESET_CONFIGS.FIVES_V1).toBe(FivesConfig);
+    expect(FivesConfig.safeParse({}).success).toBe(true);
+    expect(FivesConfig.safeParse({ target: 61 }).success).toBe(false);
   });
 });
