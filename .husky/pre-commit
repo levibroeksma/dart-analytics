@@ -7,8 +7,12 @@ if [ "$BRANCH" = "main" ] || [ "$BRANCH" = "master" ]; then
   exit 1
 fi
 
-cd app && npx lint-staged
-cd .. && bash scripts/check-file-locations.sh \
+if [ -d app/node_modules ]; then
+  (cd app && npx lint-staged)
+else
+  echo "SKIP: app/node_modules absent — lint-staged not run." >&2
+fi
+bash scripts/check-file-locations.sh \
        && bash scripts/check-agent-mirrors.sh \
        && bash scripts/check-skill-pointers.sh \
        && bash scripts/check-worktree-location.sh \

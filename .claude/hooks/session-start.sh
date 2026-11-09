@@ -15,6 +15,10 @@ set -euo pipefail
 
 [ "${CLAUDE_CODE_REMOTE:-}" = "true" ] || exit 0
 
+# Husky's prepare script never runs in a cloud container (no npm install), so
+# the pre-commit gate chain is unwired there. Point git at it directly.
+git config core.hooksPath .husky 2>/dev/null || true
+
 PLUGIN="superpowers@claude-plugins-official"
 
 if claude plugin list 2>/dev/null | grep -q "$PLUGIN"; then
