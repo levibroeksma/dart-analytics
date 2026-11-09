@@ -300,3 +300,10 @@ Decision: a session subscribes to a PR it creates (`subscribe_pr_activity`) in t
 Reason: `finishing-a-dart-branch` made the subscription conditional on the harness and left the session to offer it after the fact, so whether a PR was watched depended on someone asking; a red CI run or a review comment on an unwatched PR waits on a person. The harness already makes a PR the session created "yours to drive"; a subscription is what delivers the events that duty needs.
 Consequences: green CI ends the watch, so a review comment or a failure that arrives later is not heard unless the owner asks; this narrows the harness default, which keeps a PR subscribed until it merges or closes. The session no longer asks whether to watch. Events on a watched PR wake the session, so a long-running session pays for each wake. This rule's own change ships on a fresh branch off `origin/main`, not stacked on a feature branch.
 Supersedes: none
+
+### D542 — Owner-requested third-party skills may be vendored; a Stop hook's commit request counts as asking
+Status: Accepted · Date: 2026-11-09
+Decision: root `CLAUDE.md` still bars vendoring plugin skills into `.claude/skills/`, but allows third-party skills the owner asked to install, each with a File Inventory row naming its source commit. A Stop hook that asks the session to commit and push counts as the user asking: the session commits on the task branch and pushes to it. Amends the Superpowers Skills paragraph and the commit invariant; D311 stands for plugin skills.
+Reason: `/retro` was installed at project level, which contradicted "holds only this repo's own skills". A Stop hook asked for a commit and push while the invariant said not to commit unless asked; the session had to guess which one governed.
+Consequences: vendored copies carry no drift check, so upstream changes land unobserved, the failure D311 recorded for plugin skills; the source commit in the inventory row is the only provenance. A Stop hook can now trigger a commit without a typed request, so a hook that asks for one must come from the owner's own settings.
+Supersedes: none
