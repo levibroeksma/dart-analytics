@@ -162,7 +162,8 @@ discovered once the game is built.
 - **Capture / input mode:** RECREATIONAL + QUICK_SCORE (visit totals, no dart
   rows), RECREATIONAL + DETAILED_DARTS (a row per dart thrown), or ANALYTICS
   (full intention and result per dart)
-- **One dart's fact:** what the intended target and ring are, what the hit
+- **One dart's fact:** what the intended target and ring are (a target
+  number needs a ring; both empty is the safe default), what the hit
   records, and what `score` holds — always the dart's **board** score, never a
   game-specific point value
 - **Stage type:** which stage the game creates (`LEG`, `ROUND`,
