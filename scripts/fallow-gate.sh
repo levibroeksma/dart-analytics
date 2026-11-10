@@ -38,7 +38,7 @@ cd "$(git rev-parse --show-toplevel 2>/dev/null || echo .)/app" || exit 1
 TMP="$(mktemp "${TMPDIR:-/tmp}/fallow-gate.XXXXXX")"
 trap 'rm -f "$TMP" "$TMP.json"' EXIT
 
-npx fallow 2>&1 | tee "$TMP"
+npx --no-install fallow 2>&1 | tee "$TMP"
 STATUS="${PIPESTATUS[0]}"
 
 [ "$STATUS" = "0" ] && exit 0
@@ -59,7 +59,7 @@ if (threshold === 0) {
 NODE
 fi
 
-npx fallow health --format json >"$TMP.json" 2>/dev/null || true
+npx --no-install fallow health --format json >"$TMP.json" 2>/dev/null || true
 
 node - "$TMP.json" <<'NODE'
 const fs = require('node:fs');
