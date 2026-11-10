@@ -35,6 +35,8 @@ jobs:
         run: bash scripts/check-decision-ids.sh
       - name: History-version order gate
         run: bash scripts/check-history-versions.sh && bash scripts/test-check-history-versions.sh
+      - name: Test-coverage window and scaffold fixtures
+        run: bash scripts/test-check-test-coverage.sh && bash scripts/test-scaffold-game-screens.sh
       - name: Game-engine contract gate
         run: bash scripts/check-game-engines.sh
       - name: Engine-kernel family gate

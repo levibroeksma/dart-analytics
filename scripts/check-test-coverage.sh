@@ -56,8 +56,10 @@
 # be aimed at a fixture set to prove it FAILS. A gate not proven to bite is
 # not a gate. With no arguments it derives the change set itself: staged files
 # when a commit is in progress (pre-commit), otherwise the diff against the
-# merge base with $TEST_COVERAGE_BASE_REF (default origin/main) for CI. CI
-# must check out with fetch-depth: 0 or that merge base does not exist locally.
+# merge base with $TEST_COVERAGE_BASE_REF (default origin/main) for CI, plus
+# the working tree on top of it — unstaged edits and untracked files count, so
+# a run before `git add` sees the same change set the commit will. CI must
+# check out with fetch-depth: 0 or that merge base does not exist locally.
 #
 # PER-COMMIT WINDOW (#301): the staged form judges one commit alone. A plan
 # that lands a shared schema/fixture change and its test fixups in one commit,
@@ -90,7 +92,10 @@ else
     echo "OK: test-coverage — no change set to check (no staged files, no merge base with $BASE_REF)."
     exit 0
   fi
-  CHANGED=$(git diff --name-only --diff-filter=ACMR "$MERGE_BASE"..HEAD)
+  CHANGED=$( {
+    git diff --name-only --diff-filter=ACMR "$MERGE_BASE"
+    git ls-files --others --exclude-standard
+  } | sort -u)
   BEFORE_REF="$MERGE_BASE"
 fi
 

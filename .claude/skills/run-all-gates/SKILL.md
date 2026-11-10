@@ -37,7 +37,7 @@ bash scripts/test-check-seed-ids.sh
 
 `check-doc-sync.sh` fails when the change set touches `database/migrations/`, `app/src/services/` or a domain subdirectory of `app/src/modules/` (`game`, `training`, `dartbot`, `stats`) with no edit under `docs/architecture/` or `decisions/`. It reads the change set the same way `check-test-coverage.sh` does — staged files mid-commit, otherwise the diff against the merge base with `origin/main` (override with `DOC_SYNC_BASE_REF`). `docs/superpowers/` does not satisfy it: specs and plans are non-canonical (D312). It is absent from `.husky/pre-commit` on purpose — mid-branch it would fail the code commit that precedes the docs commit.
 
-`check-test-coverage.sh` reads the change set itself — staged files mid-commit, otherwise the diff against the merge base with `origin/main` (override with `TEST_COVERAGE_BASE_REF`). It fails when a runtime source file changed and no test importing it changed with it, so run it before the commit that would trip it, not after.
+`check-test-coverage.sh` reads the change set itself — staged files mid-commit, otherwise the working tree against the merge base with `origin/main` (committed, unstaged and untracked files; override the base with `TEST_COVERAGE_BASE_REF`). It fails when a runtime source file changed and no test importing it changed with it, so run it before the commit that would trip it, not after.
 
 `check-skill-pointers.sh` asserts that every `.claude/skills/*/SKILL.md` and `.claude/rules/*.md` has a row in `00-File-Inventory.md`, and that every `superpowers:<name>` named in a live tracked Markdown file resolves under the installed plugin cache. That last check prints `SKIP` and passes when the cache is absent — CI installs no plugins, so it is a local-only check by design; the registration checks run everywhere.
 
@@ -80,6 +80,8 @@ bash scripts/test-check-test-repointing.sh
 bash scripts/test-edit-gate.sh
 bash scripts/test-reuse-lookup.sh
 bash scripts/test-check-dupes.sh
+bash scripts/test-check-test-coverage.sh
+bash scripts/test-scaffold-game-screens.sh
 ```
 
 ## If `.claude/skills/` or `.claude/rules/` changed
