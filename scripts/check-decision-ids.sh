@@ -2,9 +2,8 @@
 # Decision-id integrity gate — durable guard for the split ledger under
 # decisions/** (root CLAUDE.md Context Maintenance; DECISIONS.md is the
 # router — see DECISIONS.md's own header and decisions/context-system.md).
-# Unlike scripts/verify-decision-split.sh (proves the one-time migration was
-# lossless against a /tmp snapshot, and legitimately SKIPs once that snapshot
-# is gone), this gate needs no snapshot and is meant to keep passing forever.
+# It needs no snapshot of the pre-split ledger and is meant to keep passing
+# forever; the one-time migration scripts were removed (D550).
 #
 # Six checks, each anchored on POSITION, never on the bare token `D\d+`:
 #   1. Uniqueness    — every id row (`^| D\d+ |`) or block heading

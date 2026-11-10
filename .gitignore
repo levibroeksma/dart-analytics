@@ -37,3 +37,5 @@ app/src/db/meta/
 
 # neonctl writes a root context file (orgId); only app/.neon is tracked (#853)
 /.neon
+
+__pycache__/

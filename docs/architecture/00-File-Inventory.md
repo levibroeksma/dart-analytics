@@ -381,6 +381,7 @@ Registered for discoverability, not as reading material — the rules live in `0
 | `scripts/test-check-file-mode.sh` | Fixture test for the per-file mode (`CHECK_ROOT=<dir> bash scripts/check-X.sh <relpath>...`) of the five edit-time gate scripts (2026-10-30) | canonical |
 | `scripts/check-test-repointing.sh` | Non-blocking D148 nudge: lists changed test files whose assertions changed with no `describe`/`it` title changed; a pure `expect(...)` subject rename is skipped; run by the `test-repointing-heuristic` job in `pr-gates.yml` (2026-11-09) | canonical |
 | `scripts/test-check-test-repointing.sh` | Fixture test for `check-test-repointing.sh`: literal changed, subject renamed only, title changed, no assertion change (2026-11-09) | canonical |
+| `scripts/test-block-main-commit.sh` | Fixture test for `.claude/hooks/block-main-commit.py`: 11 command forms on `main` and on a task branch (D550, 2026-11-10) | canonical |
 | `scripts/test-edit-gate.sh` | Fixture test for `.claude/hooks/edit-gate.py`: blocks an edit that adds a gate violation, allows a clean or pre-existing one, fails open (2026-10-30) | canonical |
 | `scripts/test-reuse-lookup.sh` | Fixture test for `.claude/hooks/reuse-lookup.py`: inventory and graph matches, once-per-session, overwrite, unwatched path, bad stdin (2026-10-30) | canonical |
 | `scripts/dupes-baseline.txt` | Committed `<count>\t<file set>` baseline read by `check-dupes.sh`; only ever shrinks (D513, 2026-10-30) | canonical |
@@ -766,14 +767,11 @@ Registered for discoverability — regenerate committed outputs via `npm run ico
 
 ### Decision ledger migration tooling (2026-08-02, spent — 2026-08-03)
 
-Registered for discoverability and provenance, not as reading material: `scripts/split-decisions.sh` ran once (2026-08-02) to produce the `decisions/**` tree above and now hard-fails if re-run (the ledger it reads from holds zero rows); `scripts/verify-decision-split.sh` proves that one run was lossless against an ephemeral `/tmp` snapshot and legitimately SKIPs once that snapshot is gone; `scripts/decision-map.txt` and `scripts/decision-front-matter.txt` were that run's inputs. None of the four is the ongoing guard — `scripts/check-decision-ids.sh` (registered under Cross-cutting mechanical guards below) is.
+Registered for provenance, not as reading material: `scripts/decision-map.txt` was an input of the one-time ledger split (2026-08-02); the split scripts and the front-matter sidecar were removed once spent (D550). The ongoing guard is `scripts/check-decision-ids.sh` (registered under Cross-cutting mechanical guards below).
 
 | File | Answers | Status |
 | ---- | ------- | ------ |
-| `scripts/split-decisions.sh` | Spent one-shot migration script: wrote `decisions/**` from `DECISIONS.md` + the map + the front-matter sidecar (2026-08-02) | historical |
-| `scripts/verify-decision-split.sh` | Spent one-shot verifier: proves that migration was lossless against a `/tmp` snapshot (SKIPs once the snapshot is gone) | historical |
 | `scripts/decision-map.txt` | Spent migration input: id → target-file assignment as it stood at the 2026-08-02 split | historical |
-| `scripts/decision-front-matter.txt` | Spent migration input: per-target-file front-matter blocks as they stood at the 2026-08-02 split | historical |
 
 ---
 

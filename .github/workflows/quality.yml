@@ -59,6 +59,8 @@ jobs:
         run: bash scripts/test-check-test-repointing.sh
       - name: Edit-gate hook fixtures
         run: bash scripts/test-edit-gate.sh
+      - name: Main-commit hook fixtures
+        run: bash scripts/test-block-main-commit.sh
       - name: Reuse-lookup hook fixtures
         run: bash scripts/test-reuse-lookup.sh
 

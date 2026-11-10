@@ -17,6 +17,8 @@ updated: 2026-11-09
 
 # Version History
 
+> **Version:** 1.224.0 (2026-11-10 — Quality plan 3: `block-main-commit.py` reads multi-line, parenthesised and `git -C`/`-c` commands, with a fixture test; `checks.yml` and `integration.yml` run on PRs to any base; committed `scripts/__pycache__` removed; seven scripts made executable; the spent ledger-split scripts deleted (D550).)
+
 > **Version:** 1.223.0 (2026-11-10 — Quality plan 2: `scripts/check-quality-benchmarks.sh` ratchets 8 fallow numbers against `scripts/quality-benchmarks.json` (health score 87.6, target 95.0); `app/.fallowrc.score.jsonc` scores production code only; wired into `quality.yml` and `run-all-gates` (D549).)
 
 > **Version:** 1.222.0 (2026-11-10 — Quality plan 1: `fallow` pinned at 3.42.0 as an `app/` devDependency; `fallow-gate.sh` and `check-dupes.sh` run `npx --no-install fallow`; three clone groups folded (`schedule.service.ts`, `routine-summary.module.ts`, `DurationField.astro`); stale `.fallowrc.jsonc` rows removed (D548).)

@@ -79,6 +79,7 @@ bash scripts/check-quality-benchmarks.sh
 bash scripts/test-check-file-mode.sh
 bash scripts/test-check-test-repointing.sh
 bash scripts/test-edit-gate.sh
+bash scripts/test-block-main-commit.sh
 bash scripts/test-reuse-lookup.sh
 bash scripts/test-check-dupes.sh
 bash scripts/test-check-quality-benchmarks.sh
