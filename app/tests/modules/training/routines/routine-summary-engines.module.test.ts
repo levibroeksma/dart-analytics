@@ -285,6 +285,34 @@ describe("summarise* over a real engine run", () => {
     });
   });
 
+  it("Catch 40 and Random Checkout list the same checkout rows in the same order, Catch 40 after Points", () => {
+    const sequence = checkoutSequenceEngineFactory.create({
+      firstOutshot: 61,
+      lastOutshot: 100,
+      dartLimit: 6,
+    });
+    const random = randomCheckoutEngineFactory.create({
+      minStart: 40,
+      maxStart: 170,
+      drawSeed: 774,
+    });
+    const labels = (rows: { label: string }[]) => rows.map((row) => row.label);
+
+    expect(labels(summariseCheckoutSequence(sequence.state()).rows)).toEqual([
+      "Points",
+      "Checkouts",
+      "Attempts",
+      "Checkout rate",
+      "Darts",
+    ]);
+    expect(labels(summariseRandomCheckout(random.state()).rows)).toEqual([
+      "Checkouts",
+      "Attempts",
+      "Checkout rate",
+      "Darts",
+    ]);
+  });
+
   it("summariseHitCount reads hits, per-target hits, passes, darts and rate", () => {
     const engine = hitCountEngineFactory.create({
       targets: [

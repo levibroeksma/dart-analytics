@@ -120,17 +120,14 @@ function normalise(input: ScheduleWriteInput): ScheduleWriteInput {
   return { ...input, name: input.name.trim() };
 }
 
-export async function createSchedule(
+async function writeSchedule(
+  writeRecord: typeof insertScheduleRecord,
   playerId: string,
-  rawInput: ScheduleWriteInput,
+  scheduleId: string,
+  input: ScheduleWriteInput,
 ): Promise<ServiceResult<Schedule>> {
-  const input = normalise(rawInput);
-  const issue = await validateDays(playerId, input.days);
-  if (issue) return issue;
-
-  const scheduleId = generateId();
   await withTransaction(async (tx) => {
-    await insertScheduleRecord(tx, { scheduleId, playerId, name: input.name });
+    await writeRecord(tx, { scheduleId, playerId, name: input.name });
     await replaceScheduleDayRecords(tx, {
       scheduleId,
       days: input.days.map((day) => ({
@@ -141,6 +138,18 @@ export async function createSchedule(
     });
   });
   return getSchedule(playerId, scheduleId);
+}
+
+export async function createSchedule(
+  playerId: string,
+  rawInput: ScheduleWriteInput,
+): Promise<ServiceResult<Schedule>> {
+  const input = normalise(rawInput);
+  const issue = await validateDays(playerId, input.days);
+  if (issue) return issue;
+
+  const scheduleId = generateId();
+  return writeSchedule(insertScheduleRecord, playerId, scheduleId, input);
 }
 
 export async function replaceSchedule(
@@ -154,18 +163,7 @@ export async function replaceSchedule(
   const issue = await validateDays(playerId, input.days);
   if (issue) return issue;
 
-  await withTransaction(async (tx) => {
-    await updateScheduleRecord(tx, { scheduleId, playerId, name: input.name });
-    await replaceScheduleDayRecords(tx, {
-      scheduleId,
-      days: input.days.map((day) => ({
-        id: generateId(),
-        dayOfWeek: day.dayOfWeek,
-        routineTemplateId: day.routineTemplateId,
-      })),
-    });
-  });
-  return getSchedule(playerId, scheduleId);
+  return writeSchedule(updateScheduleRecord, playerId, scheduleId, input);
 }
 
 export async function activateSchedule(

@@ -260,6 +260,23 @@ describe("replaceSchedule", () => {
       expect.objectContaining({ scheduleId: "sch-1" }),
     );
   });
+
+  it("writes one day record per input day, each with a fresh id", async () => {
+    vi.mocked(repo.findScheduleRows).mockResolvedValue([
+      scheduleRow({ scheduleId: "sch-1" }),
+    ]);
+    vi.mocked(repo.findScheduleDayRows).mockResolvedValue([]);
+    await replaceSchedule("p1", "sch-1", VALID_INPUT);
+    const [, written] = vi.mocked(repo.replaceScheduleDayRecords).mock.calls[0];
+    expect(written).toEqual({
+      scheduleId: "sch-1",
+      days: [
+        { id: expect.any(String), dayOfWeek: 1, routineTemplateId: "rt-1" },
+        { id: expect.any(String), dayOfWeek: 3, routineTemplateId: "rt-2" },
+      ],
+    });
+    expect(new Set(written.days.map((day) => day.id)).size).toBe(2);
+  });
 });
 
 describe("activateSchedule", () => {
