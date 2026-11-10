@@ -79,19 +79,18 @@ describe("capability constant and verification script agree", () => {
     expect(verificationTripleLists()[index]).toEqual(declaredTriples());
   });
 
-  it("hardcodes the declared triple count in every assertion", () => {
+  it("declares the triple count once and every assertion reads it", () => {
     const sql = readFileSync(verificationPath, "utf8");
     const n = declaredTriples().length;
 
-    expect(sql).toContain(`'seed inserted exactly the ${n} declared rows'`);
-    expect(sql).toContain(`format('expected ${n}, found %s', count(*))`);
-    expect(sql).toContain(`'all ${n} declared triples were actually checked'`);
-    expect(sql).toContain(`format('%s of ${n} triple checks ran', count(*))`);
-    const countChecks = sql.match(/WHEN count\(\*\) = \d+ THEN 'PASS'/g) ?? [];
-    expect(
-      countChecks.filter(
-        (check) => check === `WHEN count(*) = ${n} THEN 'PASS'`,
-      ),
-    ).toHaveLength(2);
+    expect(sql).toContain(`INSERT INTO expected_triples VALUES (${n});`);
+    const reads = sql.match(/\(SELECT n FROM expected_triples\)/g) ?? [];
+    expect(reads).toHaveLength(4);
+    const countChecks =
+      sql.match(
+        /WHEN count\(\*\) = \(SELECT n FROM expected_triples\) THEN 'PASS'/g,
+      ) ?? [];
+    expect(countChecks).toHaveLength(2);
+    expect(sql).not.toMatch(/WHEN count\(\*\) = [1-9]\d* THEN 'PASS'/);
   });
 });
