@@ -1,3 +1,4 @@
+import { bull500Unlocked } from "@modules/game/bull-500.engine.module";
 import { doublesPathTargetLabel } from "@lib/game/doubles-path-play";
 import { dartExerciseKindOf } from "@lib/stats/section-registry";
 import {
@@ -49,6 +50,7 @@ import type {
   FollowTheLeaderState,
   AceSeatState,
   FivesSeatState,
+  Bull500SeatState,
   KillerSeatState,
   MultiSeatState,
   OneTwentyOneSeatState,
@@ -456,34 +458,39 @@ const KILLER: ReplayPresenter = {
 };
 
 /**
- * What a Fives visit did to its thrower: `Void` for an off-board dart,
- * `Bust` for an overshoot, else the fives points it booked (`0` when its
- * total does not divide by 5).
+ * A running-total race read off the play page: the visit's figure (its dart
+ * sum unless `visit` says otherwise), what `result` says it did, and the
+ * running total; the session line is each seat's total.
  */
-function fivesResult(prior: FivesSeatState, seat: FivesSeatState): string {
+function totalRacePresenter<TSeat extends SeatState & { total: number }>(
+  result: (turn: TurnFact, prior: TSeat, seat: TSeat) => string,
+  visit: (turn: TurnFact, prior: TSeat, seat: TSeat) => number = (turn) =>
+    turn.totalScore,
+): ReplayPresenter {
+  return {
+    turn({ turn, before, after }) {
+      const prior = seatIn<TSeat>(before, turn.participantRef);
+      const seat = seatIn<TSeat>(after, turn.participantRef);
+      return [
+        valueCell("Visit", visit(turn, prior, seat)),
+        valueCell("Result", result(turn, prior, seat)),
+        valueCell("Total", seat.total),
+      ];
+    },
+    session: (steps) => finalLine<TSeat>(steps, "Total", (seat) => seat.total),
+  };
+}
+
+/**
+ * Fives: `Void` for an off-board dart, `Bust` for an overshoot, else the
+ * fives points the visit booked (`0` when its total does not divide by 5).
+ */
+const FIVES = totalRacePresenter<FivesSeatState>((_turn, prior, seat) => {
   if (seat.voids > prior.voids) return "Void";
   if (seat.busts > prior.busts) return "Bust";
   const booked = seat.total - prior.total;
   return booked > 0 ? `+${booked}` : "0";
-}
-
-/**
- * Fives, read off the play page: the visit's total, what it booked and the
- * running total toward 51; the session line is each seat's total.
- */
-const FIVES: ReplayPresenter = {
-  turn({ turn, before, after }) {
-    const prior = seatIn<FivesSeatState>(before, turn.participantRef);
-    const seat = seatIn<FivesSeatState>(after, turn.participantRef);
-    return [
-      valueCell("Visit", turn.totalScore),
-      valueCell("Result", fivesResult(prior, seat)),
-      valueCell("Total", seat.total),
-    ];
-  },
-  session: (steps) =>
-    finalLine<FivesSeatState>(steps, "Total", (seat) => seat.total),
-};
+});
 
 /**
  * Ace, read off the play page: the visit's board total, the Ace points it
@@ -504,6 +511,19 @@ const ACE: ReplayPresenter = {
   session: (steps) =>
     finalLine<AceSeatState>(steps, "Total", (seat) => seat.total),
 };
+
+/**
+ * Bull 500: the visit's figure is the points it booked, never the dart sum
+ * (a bull stores 25 or 50). `Locked` when no bull was hit, `Bull` when one was
+ * hit but no scoring dart followed, else `Scored`.
+ */
+const BULL_500 = totalRacePresenter<Bull500SeatState>(
+  (turn, prior, seat) => {
+    if (seat.total > prior.total) return "Scored";
+    return bull500Unlocked(turn.darts) ? "Bull" : "Locked";
+  },
+  (_turn, prior, seat) => seat.total - prior.total,
+);
 
 /**
  * What one Follow the Leader turn did: `Keep`, `Fail` when the thrower lost
@@ -596,6 +616,7 @@ export const REPLAY_PRESENTERS: Record<GameTypeKey, ReplayPresenter> = {
   PRISONER,
   FIVES,
   ACE,
+  BULL_500,
 };
 
 /** No facts to fold: every dart exercise kind's per-turn headline and darts count read off `state` alone (`stepMetrics`'s `numberField` reads), never off `facts` -- only Switching's own "hits" key uses `facts`, and a turn cell never shows it (session() does, over the real facts). */

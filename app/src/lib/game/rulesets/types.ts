@@ -428,6 +428,14 @@ export const AceConfig = z
 /** Fives V1 locks every rule (target 51, void on an off-board dart, bust on overshoot) — nothing to configure. */
 export const FivesConfig = z.object({}).strict();
 
+/** Bull 500 V1 locks its target and live number; the config only carries them. */
+export const Bull500Config = z
+  .object({
+    target: z.literal(500),
+    live_number: z.literal(20),
+  })
+  .strict();
+
 /** Baseball Darts V1 locks every rule (nine innings, runs by ring, solo seat) — nothing to configure. */
 export const BaseballConfig = z.object({}).strict();
 
@@ -538,7 +546,8 @@ export type RulesetVersionKey =
   | "MICKEY_MOUSE_V1"
   | "PRISONER_V1"
   | "FIVES_V1"
-  | "ACE_V1";
+  | "ACE_V1"
+  | "BULL_500_V1";
 
 /** A game page's route segment (`10-Statistics/00-Overview.md` §6): one key per game, spanning its ruleset versions. */
 export type GameTypeKey =
@@ -559,7 +568,8 @@ export type GameTypeKey =
   | "MICKEY_MOUSE"
   | "PRISONER"
   | "FIVES"
-  | "ACE";
+  | "ACE"
+  | "BULL_500";
 
 /** A fact tag a ruleset version's engine produces (`10-Statistics/00-Overview.md` §3). */
 export type StatsTag =
@@ -602,6 +612,7 @@ export const RULESET_CONFIGS: Record<RulesetVersionKey, z.ZodTypeAny> = {
   PRISONER_V1: PrisonerConfig,
   FIVES_V1: FivesConfig,
   ACE_V1: AceConfig,
+  BULL_500_V1: Bull500Config,
 };
 
 export type ScoreTrainingConfigData = z.infer<typeof ScoreTrainingConfig>;
@@ -783,6 +794,9 @@ export type AceSnapshot = {
 /** Fives V1 has nothing to configure — no fields to carry. */
 export type FivesSnapshot = Record<string, never>;
 
+/** Bull 500 V1: target 500 on the 20, both locked. */
+export type Bull500Snapshot = { target: 500; live_number: 20 };
+
 /** Baseball Darts V1 has nothing to configure — no fields to carry. */
 export type BaseballSnapshot = Record<string, never>;
 
@@ -853,7 +867,9 @@ export type ConfigSnapshotFor<K extends RulesetVersionKey> =
                                                   ? FivesSnapshot
                                                   : K extends "ACE_V1"
                                                     ? AceSnapshot
-                                                    : BaseballSnapshot;
+                                                    : K extends "BULL_500_V1"
+                                                      ? Bull500Snapshot
+                                                      : BaseballSnapshot;
 
 /**
  * One boundary probe: a complete, parseable config plus the label the contract

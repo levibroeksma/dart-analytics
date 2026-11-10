@@ -391,6 +391,11 @@ describe("statistics section registry", () => {
     expect(tagsForGameType("ACE")).toEqual(new Set(["board"]));
   });
 
+  it("gives Bull 500 no result direction and only the board tag", () => {
+    expect(RESULT_DIRECTION.BULL_500).toBeNull();
+    expect(tagsForGameType("BULL_500")).toEqual(new Set(["board"]));
+  });
+
   it("gives Fives no result direction and only the board tag", () => {
     expect(RESULT_DIRECTION.FIVES).toBeNull();
     expect(tagsForGameType("FIVES")).toEqual(new Set(["board"]));

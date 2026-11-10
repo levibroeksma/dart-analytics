@@ -741,3 +741,17 @@ Decision: `VisitPointsRules` is `points(visitTotal)` or `visitPoints(darts, visi
 Reason: Visit-points spec V2: a rule lands with its first caller. Ace's points need the round's target, which the total-only `points` cannot see; one new setting stays inside the fit rule. The ruleset's open questions (uniform draw, repeats) take its proposed reading.
 Consequences: Existing callers set `points` and fold as before. Ace is a `PER_SEAT` `DartGameSpec` on the game shell, 2-4 seats, darts only. A dart's stored `score` is its board score; Ace points, round targets and totals are derived on read.
 Supersedes: none.
+
+### D545 — Bull 500 V1 scores through the kernel's `visitPoints`; the engine ends the game, `goal` stays unset
+Status: Accepted · Date: 2026-11-10
+Decision: Bull 500 sets `VisitPointsRules.visitPoints` (D543) to `bull500VisitPoints(darts)`, ignoring the visit index, and leaves `goal` unset, because `goal` makes an overshoot a bust and Bull 500 lets the total pass 500; the engine ends the game at the close of the visit whose total is 500 or more. A bull is `hitTargetNumber` 25; a live dart is a non-bull dart on the 20; darts to target is `dartsThrown`; the useful unlock rate is computed in the results presenter, not the kernel. `visitRaceVisitOpen` and `visitRaceWouldComplete` give Fives and Bull 500 their `isVisitOpen` and `wouldComplete`. Bull 500 is single-seat, so `SEAT_CAPS` and `SEAT_FLOORS` get no entry.
+Reason: Bull 500 scores by dart order (a bull unlocks, then only the 20 counts); no function of the dart sum can express that, and D543's `visitPoints` already scores a visit from its darts, so no second kernel hook is added.
+Consequences: Score Training, Score Threshold, Fives and Ace fold as before. Bull 500 is a `PER_SEAT` `DartGameSpec`, darts only (QUICK_SCORE cannot show bull order).
+Supersedes: none.
+
+### D546 — Bull 500 stores no dart intent
+Status: Accepted · Date: 2026-11-10
+Decision: Bull 500 darts carry `intendedTargetNumber` and `intendedZoneKey` both `null`. The aim (the bull until the visit unlocks, then the 20) is derived from the dart order. The replay's Visit figure is the points a visit booked, not its dart sum, and its Result reads `Locked` (no bull), `Bull` (a bull and no scoring dart) or `Scored`. A dart unlocks only as number 25 in an `OUTER_BULL` or `INNER_BULL` zone.
+Reason: whole-branch review. The first design stored number 25, then 20, with no ring; `chk_dart_target_consistency` (migration `0007`) and the API `DartFact` schema refuse a number with a null ring, so no game could upload. The rules file left the 20's ring free, so no ring can be named.
+Consequences: a test now runs the engine's darts through the API `DartFact` schema. Option not taken: a stored ring (`INNER_BULL`, then `TREBLE`), which contradicts the rules file's free ring.
+Supersedes: none. Narrows the intent clause of the Bull 500 spec §3a/§5 (D545 is unchanged).
