@@ -867,9 +867,9 @@ export type ConfigSnapshotFor<K extends RulesetVersionKey> =
                                                   ? FivesSnapshot
                                                   : K extends "ACE_V1"
                                                     ? AceSnapshot
-                                                  : K extends "BULL_500_V1"
-                                                    ? Bull500Snapshot
-                                                    : BaseballSnapshot;
+                                                    : K extends "BULL_500_V1"
+                                                      ? Bull500Snapshot
+                                                      : BaseballSnapshot;
 
 /**
  * One boundary probe: a complete, parseable config plus the label the contract

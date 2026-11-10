@@ -51,7 +51,7 @@ describe("bull 500 constants", () => {
     expect(BULL_500_TARGET).toBe(500);
     expect(BULL_500_LIVE_NUMBER).toBe(20);
     expect(BULL_500_RULES.dartsPerVisit).toBe(3);
-    expect(BULL_500_RULES.pointsOf).toBe(bull500VisitPoints);
+    expect(BULL_500_RULES.visitPoints).toBe(bull500VisitPoints);
   });
 });
 

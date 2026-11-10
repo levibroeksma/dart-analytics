@@ -62,8 +62,7 @@ export function bull500VisitPoints(darts: readonly DartFact[]): number {
 /** Bull 500 V1 as Visit points rules: points come from the ordered darts. */
 export const BULL_500_RULES: VisitPointsRules = {
   dartsPerVisit: DARTS_PER_VISIT,
-  points: (total) => total,
-  pointsOf: bull500VisitPoints,
+  visitPoints: bull500VisitPoints,
 };
 
 function isClosed(turn: { darts: readonly DartFact[] }): boolean {
