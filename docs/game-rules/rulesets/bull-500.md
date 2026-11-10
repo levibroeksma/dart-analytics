@@ -138,9 +138,9 @@ Bull 500 is unbuilt; this is the capture shape its V1 is designed for.
 - **Capture / input mode:** RECREATIONAL + DETAILED_DARTS or ANALYTICS +
   VISUAL_BOARD. A visit total cannot say whether the bull came first, so
   QUICK_SCORE cannot carry this game.
-- **One dart's fact:** intended number is the bull until the visit unlocks,
-  then the 20; the rules leave the ring on the 20 free, so no intended ring
-  is stored after the unlock. Hit = number and zone where it landed. `score`
+- **One dart's fact:** no intent is stored: the aim (the bull until the visit
+  unlocks, then the 20) follows from the dart order, and a target number
+  without a ring cannot be saved (`chk_dart_target_consistency`). Hit = number and zone where it landed. `score`
   = the dart's **board** score — a bull stores 25 or 50, not the 0 points it
   is worth here. Game points are never stored.
 - **Stage type:** one `EXERCISE_BLOCK` stage for the game

@@ -17,7 +17,6 @@ import type {
   Bull500SeatState,
   Bull500State,
   DartFact,
-  DartIntent,
   EngineFacts,
 } from "./types";
 
@@ -32,7 +31,10 @@ export const BULL_500_LIVE_NUMBER = 20;
 const DARTS_PER_VISIT = 3;
 
 function isBull(dart: DartFact): boolean {
-  return dart.hitTargetNumber === BULL_TARGET_NUMBER;
+  return (
+    dart.hitTargetNumber === BULL_TARGET_NUMBER &&
+    (dart.hitZoneKey === "OUTER_BULL" || dart.hitZoneKey === "INNER_BULL")
+  );
 }
 
 /** Whether a bull (outer or inner) is among a visit's darts. */
@@ -111,19 +113,6 @@ export function foldBull500State(
   };
 }
 
-/** The intent of the next dart: the bull until the visit unlocks, then the 20, never a ring. */
-function bull500Intent(state: Bull500State): DartIntent {
-  const seat = state.seats.find(
-    (candidate) => candidate.participantRef === state.activeParticipantRef,
-  )!;
-  return {
-    intendedTargetNumber: seat.unlocked
-      ? BULL_500_LIVE_NUMBER
-      : BULL_TARGET_NUMBER,
-    intendedZoneKey: null,
-  };
-}
-
 /**
  * Bull 500's rules for the dart engine shell over one `PER_SEAT` stage
  * (`bull-500.md`): three darts a visit, always all three, including the
@@ -134,7 +123,6 @@ const bull500Spec: DartGameSpec<Seated<Bull500Snapshot>, Bull500State> = {
   stageOwnership: "PER_SEAT",
   fold: foldBull500State,
   refusal: (state) => (state.status === "IN_PROGRESS" ? null : GAME_ENDED),
-  intent: bull500Intent,
   isVisitOpen: visitRaceVisitOpen(DARTS_PER_VISIT),
   wouldComplete: visitRaceWouldComplete(
     DARTS_PER_VISIT,

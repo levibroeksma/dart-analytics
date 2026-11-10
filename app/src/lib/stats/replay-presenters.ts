@@ -458,19 +458,21 @@ const KILLER: ReplayPresenter = {
 };
 
 /**
- * A running-total race read off the play page: the visit's dart sum, what
- * `result` says it did, and the running total; the session line is each
- * seat's total.
+ * A running-total race read off the play page: the visit's figure (its dart
+ * sum unless `visit` says otherwise), what `result` says it did, and the
+ * running total; the session line is each seat's total.
  */
 function totalRacePresenter<TSeat extends SeatState & { total: number }>(
   result: (turn: TurnFact, prior: TSeat, seat: TSeat) => string,
+  visit: (turn: TurnFact, prior: TSeat, seat: TSeat) => number = (turn) =>
+    turn.totalScore,
 ): ReplayPresenter {
   return {
     turn({ turn, before, after }) {
       const prior = seatIn<TSeat>(before, turn.participantRef);
       const seat = seatIn<TSeat>(after, turn.participantRef);
       return [
-        valueCell("Visit", turn.totalScore),
+        valueCell("Visit", visit(turn, prior, seat)),
         valueCell("Result", result(turn, prior, seat)),
         valueCell("Total", seat.total),
       ];
@@ -511,14 +513,17 @@ const ACE: ReplayPresenter = {
 };
 
 /**
- * Bull 500: `Locked` when no bull was hit, else the points the visit booked
- * (`0` for a bull that left no scoring dart).
+ * Bull 500: the visit's figure is the points it booked, never the dart sum
+ * (a bull stores 25 or 50). `Locked` when no bull was hit, `Bull` when one was
+ * hit but no scoring dart followed, else `Scored`.
  */
-const BULL_500 = totalRacePresenter<Bull500SeatState>((turn, prior, seat) => {
-  const booked = seat.total - prior.total;
-  if (booked > 0) return `+${booked}`;
-  return bull500Unlocked(turn.darts) ? "0" : "Locked";
-});
+const BULL_500 = totalRacePresenter<Bull500SeatState>(
+  (turn, prior, seat) => {
+    if (seat.total > prior.total) return "Scored";
+    return bull500Unlocked(turn.darts) ? "Bull" : "Locked";
+  },
+  (_turn, prior, seat) => seat.total - prior.total,
+);
 
 /**
  * What one Follow the Leader turn did: `Keep`, `Fail` when the thrower lost

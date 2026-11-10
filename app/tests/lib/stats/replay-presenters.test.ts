@@ -773,10 +773,10 @@ describe("REPLAY_PRESENTERS.BULL_500", () => {
     return cells.map((cell) => (cell.kind === "value" ? cell.value : ""));
   }
 
-  it("shows the visit total, the points it booked and the running total", () => {
+  it("shows the points the visit booked, Scored, and the running total", () => {
     expect(cellsAfter([bull, t20, hit(20, "OUTER_SINGLE")])).toEqual([
-      "105",
-      "+80",
+      "80",
+      "Scored",
       "80",
     ]);
   });
@@ -788,13 +788,13 @@ describe("REPLAY_PRESENTERS.BULL_500", () => {
         hit(20, "OUTER_SINGLE"),
         hit(20, "OUTER_SINGLE"),
       ]),
-    ).toEqual(["60", "Locked", "0"]);
+    ).toEqual(["0", "Locked", "0"]);
   });
 
-  it("shows a plain zero for a bull that left no scoring dart", () => {
+  it("marks a bull that left no scoring dart Bull", () => {
     expect(cellsAfter([hit(null, "MISS"), hit(null, "MISS"), bull])).toEqual([
-      "25",
       "0",
+      "Bull",
       "0",
     ]);
   });
@@ -813,7 +813,7 @@ describe("REPLAY_PRESENTERS.BULL_500", () => {
     );
     expect(
       cells.map((cell) => (cell.kind === "value" ? cell.value : "")),
-    ).toEqual(["65", "+40", "120"]);
+    ).toEqual(["40", "Scored", "120"]);
   });
 
   it("ends the session line on the seat's total", () => {

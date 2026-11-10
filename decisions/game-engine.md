@@ -748,3 +748,10 @@ Decision: `VisitPointsRules` gains optional `pointsOf(darts)`: a closed darted v
 Reason: Visit-points spec V2: a rule lands with its first caller. Bull 500 scores by dart order (a bull unlocks, then only the 20 counts); no function of the dart sum can express that.
 Consequences: Score Training, Score Threshold and Fives set no `pointsOf` and fold as before. Bull 500 is a `PER_SEAT` `DartGameSpec`, darts only (QUICK_SCORE cannot show bull order).
 Supersedes: none.
+
+### D544 — Bull 500 stores no dart intent
+Status: Accepted · Date: 2026-11-10
+Decision: Bull 500 darts carry `intendedTargetNumber` and `intendedZoneKey` both `null`. The aim (the bull until the visit unlocks, then the 20) is derived from the dart order. The replay's Visit figure is the points a visit booked, not its dart sum, and its Result reads `Locked` (no bull), `Bull` (a bull and no scoring dart) or `Scored`. A dart unlocks only as number 25 in an `OUTER_BULL` or `INNER_BULL` zone.
+Reason: whole-branch review. The first design stored number 25, then 20, with no ring; `chk_dart_target_consistency` (migration `0007`) and the API `DartFact` schema refuse a number with a null ring, so no game could upload. The rules file left the 20's ring free, so no ring can be named.
+Consequences: a test now runs the engine's darts through the API `DartFact` schema. Option not taken: a stored ring (`INNER_BULL`, then `TREBLE`), which contradicts the rules file's free ring.
+Supersedes: none. Narrows the intent clause of the Bull 500 spec §3a/§5 (D543 is unchanged).

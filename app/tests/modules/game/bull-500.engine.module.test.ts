@@ -12,6 +12,7 @@ import {
 import { boardScore } from "@modules/game/board-progression.module";
 import { dartGameEngineFactory } from "@modules/game/dart-engine-shell.module";
 import { getEngineFactory } from "@modules/game/engine.registry";
+import { DartFact as DartFactSchema } from "@routes/sessions/types";
 import { seededUniform } from "@modules/game/seeded-rng.module";
 import { randomObservation } from "./support/engine-oracle";
 import type {
@@ -84,6 +85,11 @@ describe("bull500VisitPoints", () => {
 });
 
 describe("bull500Unlocked", () => {
+  it("ignores a bull number stored with a MISS zone", () => {
+    expect(bull500Unlocked([dart(25, "MISS")])).toBe(false);
+    expect(bull500VisitPoints([dart(25, "MISS"), t(20), t(20)])).toBe(0);
+  });
+
   it("is true when an outer or inner bull is among the darts", () => {
     expect(bull500Unlocked([s(20), outerBull])).toBe(true);
     expect(bull500Unlocked([innerBull])).toBe(true);
@@ -286,16 +292,58 @@ describe("bull 500 engine", () => {
     expect(engine.wouldComplete(os(20))).toBe(false);
   });
 
-  it("intends the bull until the visit unlocks, then the 20, with no ring", () => {
-    const [first] = engineAfter([os(1), oBull, os(20), os(1)]).facts().turns;
-    expect(first.darts.map((dart) => dart.intendedTargetNumber)).toEqual([
-      25, 25, 20,
-    ]);
-    const second = engineAfter([os(1), oBull, os(20), os(1)]).facts().turns[1];
-    expect(second.darts[0].intendedTargetNumber).toBe(25);
-    expect(first.darts.every((dart) => dart.intendedZoneKey === null)).toBe(
-      true,
-    );
+  it("stores no intent: the aim is derived from the dart order", () => {
+    const [first, second] = engineAfter([os(1), oBull, os(20), os(1)]).facts()
+      .turns;
+    for (const dart of [...first.darts, ...second.darts]) {
+      expect(dart).toMatchObject({
+        intendedTargetNumber: null,
+        intendedZoneKey: null,
+      });
+    }
+  });
+
+  it("writes darts the API schema accepts, intent and bull included", () => {
+    const darts = engineAfter([os(1), iBull, ot(20), oMiss]).facts().turns[0]
+      .darts;
+    expect(darts).toHaveLength(3);
+    for (const dart of darts) {
+      expect(DartFactSchema.safeParse(dart).success).toBe(true);
+    }
+  });
+
+  it("replays a full game to 500 as a golden trace", () => {
+    const engine = new Bull500Engine(solo);
+    const visits = [
+      [os(1), os(2), os(3)],
+      [oBull, ot(20), ot(20)],
+      [ot(20), oBull, os(20)],
+      [oBull, os(19), ot(20)],
+      [oBull, ot(20), oBull],
+      [iBull, ot(20), ot(20)],
+      [oBull, os(20), oMiss],
+    ];
+    const totals: number[] = [];
+    for (const visit of visits) {
+      for (const dart of visit) engine.record(dart);
+      totals.push(seatOf(engine.state()).total);
+    }
+    expect(totals).toEqual([0, 120, 140, 200, 260, 380, 400]);
+    expect(engine.state().status).toBe("IN_PROGRESS");
+    for (const dart of [oBull, ot(20), ot(20)]) engine.record(dart);
+    expect(engine.state()).toMatchObject({
+      status: "COMPLETE",
+      winningSideKey: "A",
+      seats: [
+        {
+          total: 520,
+          visits: 8,
+          dartsThrown: 24,
+          bestVisit: 120,
+          scoringVisits: 7,
+        },
+      ],
+    });
   });
 
   it("stores a bull with its board score, never game points", () => {
