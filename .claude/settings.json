@@ -16,6 +16,7 @@
     "allow": [
       "Bash(npm run:*)",
       "Bash(npx fallow:*)",
+      "Bash(npx --no-install fallow:*)",
       "Bash(npx astro:*)",
       "Bash(astro:*)",
       "Bash(drizzle-kit introspect:*)",
