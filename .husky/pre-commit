@@ -35,6 +35,8 @@ scripts/check-game-rules.sh
 scripts/test-check-game-rules.sh
 scripts/check-tag-seeds.sh
 scripts/test-check-tag-seeds.sh
+scripts/check-seed-ids.sh
+scripts/test-check-seed-ids.sh
 scripts/check-test-coverage.sh
 "
 COUNT=0

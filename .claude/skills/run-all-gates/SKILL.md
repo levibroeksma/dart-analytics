@@ -25,7 +25,11 @@ bash scripts/check-game-rules.sh
 bash scripts/test-check-game-rules.sh
 bash scripts/check-tag-seeds.sh
 bash scripts/test-check-tag-seeds.sh
+bash scripts/check-seed-ids.sh
+bash scripts/test-check-seed-ids.sh
 ```
+
+`check-seed-ids.sh` fails when two `database/seeds/*.sql` files define the same id in one table: the seeds insert with `ON CONFLICT DO NOTHING`, so the later row is dropped silently and only a read of it fails. A new game's seed takes the next free id per prefix (`0198f000` game types, `0198f100` ruleset versions, `0198f300` templates).
 
 `check-tag-seeds.sh` fails when the committed catalog tag seed (`database/seeds/0042_catalog_tags.sql`) is out of date with the rules docs. It runs `check-game-rules.sh` first, then `generate-tag-seed.ts --check` (needs `app/` dependencies for `tsx`). Fix drift with `npm run tags:generate` (in `app/`). Generator warnings such as `no tag source` are printed, not failing. `test-check-tag-seeds.sh` proves the drift detection on a one-byte-edited copy.
 
