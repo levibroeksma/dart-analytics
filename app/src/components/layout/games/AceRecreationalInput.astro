@@ -1,0 +1,16 @@
+---
+/**
+ * Ace's tap input: `NumberBullMissRecreationalInput`. Any board number and ring can be tapped; MISS is a dart that scores nothing.
+ */
+interface Props {
+  [key: string]: unknown;
+}
+
+// Props
+const { ...props }: Props = Astro.props;
+
+// Components
+import NumberBullMissRecreationalInput from "./NumberBullMissRecreationalInput.astro";
+---
+
+<NumberBullMissRecreationalInput {...props} />

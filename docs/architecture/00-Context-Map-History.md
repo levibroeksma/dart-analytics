@@ -17,7 +17,9 @@ updated: 2026-11-09
 
 # Version History
 
-> **Version:** 1.216.0 (2026-11-10 — Session retro fixes: `check-seed-ids.sh` + fixture test (pre-commit, `quality.yml`); `local-pg.sh` throwaway Postgres; `db:drift`/`db:seed`/`db:verify` read `.env` only if present; ruleset-count assertion derived from `RULESET_CONFIGS`, one `0007` triple count; `integration.yml` adds the `github-actions` reporter)
+> **Version:** 1.217.0 (2026-11-10 — Session retro fixes: `check-seed-ids.sh` + fixture test (pre-commit, `quality.yml`); `local-pg.sh` throwaway Postgres; `db:drift`/`db:seed`/`db:verify` read `.env` only if present; ruleset-count assertion derived from `RULESET_CONFIGS`, one `0007` triple count; `integration.yml` adds the `github-actions` reporter)
+>
+> **Version:** 1.216.0 (2026-11-10 — Ace V1 screens (PR 2): `ace-{seats,setup,play}` in `lib/game`, `Ace*` components and pages, games-page card, `register-route-data.ts`; `ACE_ROUNDS_MIN`/`ACE_ROUNDS_MAX` in `rulesets/types.ts`; the draw seed is minted at Start and on Play Again and sent as a config override; `ace.md` ships V1 on two seats (three or four deferred behind the one-guest setup and two-seat scoreboard, as Fives))
 >
 > **Version:** 1.215.0 (2026-11-10 — Bull 500 V1 engine (PR 1, engine-only): D545, D546 in `decisions/game-engine.md`; scored through the kernel's `visitPoints` (no new kernel hook); `bull-500.engine.module.ts`, `bull-500.validator.ts`, seed `0061` + verification `0061`, `0007` ledger rows (59 triples); `04-Architecture-patterns.md` 1.11.33)
 >

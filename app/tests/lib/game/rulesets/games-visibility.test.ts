@@ -29,6 +29,7 @@ describe("visibleGames", () => {
       "TACTICS_V1",
       "MICKEY_MOUSE_V1",
       "FIVES_V1",
+      "ACE_V1",
       "SCORE_TRAINING_V1",
       "SINGLES_V1",
       "DOUBLES_TRAINING_V1",
@@ -66,6 +67,7 @@ describe("visibleGames", () => {
         "TACTICS_V1",
         "MICKEY_MOUSE_V1",
         "FIVES_V1",
+        "ACE_V1",
         "TUOD_V1",
       ].sort(),
     );
@@ -157,6 +159,7 @@ describe("groupedGames", () => {
           "TACTICS_V1",
           "MICKEY_MOUSE_V1",
           "FIVES_V1",
+          "ACE_V1",
         ],
       ],
       [

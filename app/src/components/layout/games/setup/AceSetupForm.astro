@@ -1,0 +1,55 @@
+---
+// Components
+import InfoSection from "@components/ui/InfoSection.astro";
+import Stepper from "@components/forms/Stepper.astro";
+import SetupShell from "./SetupShell.astro";
+import SettingSectionShell from "./SettingSectionShell.astro";
+import SettingLabel from "./SettingLabel.astro";
+import LockedRows from "./LockedRows.astro";
+import UserSection from "./UserSection.astro";
+
+// Lib
+import { ACE_ROUNDS_MAX, ACE_ROUNDS_MIN } from "@lib/game/rulesets/types";
+
+// Data
+const lockedRows = [
+  { label: "TARGETS", value: "1–20 and the bull, drawn each round" },
+  { label: "SCORING", value: "Single 1, double 2, treble 3; bull 4 or 6" },
+];
+const infoSection = {
+  title: "Ace rules",
+  description:
+    "Each round the app draws one target, and every player throws a visit of three darts at it. Only darts on the target score: single 1, double 2, treble 3; the outer bull 4, the inner bull 6. Anything else scores 0. The highest total after the last round wins; equal totals share the win. 1v1 against a guest.",
+};
+---
+
+<SetupShell
+  title="Ace"
+  startBlockedExpr="!canStart()"
+>
+  <UserSection allowGuests />
+  <InfoSection
+    title={infoSection.title}
+    description={infoSection.description}
+  />
+  <SettingSectionShell>
+    <div class="flex flex-col gap-2">
+      <SettingLabel text="ROUNDS" />
+      <Stepper
+        min={ACE_ROUNDS_MIN}
+        max={ACE_ROUNDS_MAX}
+        ariaLabel="Rounds"
+        x-model="rounds"
+        class="self-start"
+      />
+    </div>
+    <LockedRows rows={lockedRows} />
+    <p
+      class="text-sm text-muted-foreground"
+      x-show="!canStart()"
+      x-cloak
+    >
+      Add a guest to play Ace.
+    </p>
+  </SettingSectionShell>
+</SetupShell>

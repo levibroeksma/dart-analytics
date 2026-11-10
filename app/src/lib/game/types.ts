@@ -18,6 +18,7 @@ import type { TacticsEngine } from "@modules/game/tactics.engine.module";
 import type { BaseballEngine } from "@modules/game/baseball.engine.module";
 import type { KillerEngine } from "@modules/game/killer.engine.module";
 import type { FivesEngine } from "@modules/game/fives.engine.module";
+import type { AceEngine } from "@modules/game/ace.engine.module";
 import type { FollowTheLeaderEngine } from "@modules/game/follow-the-leader.engine.module";
 import type { PrisonerEngine } from "@modules/game/prisoner.engine.module";
 import type { SinglesTrainingEngine } from "@modules/game/singles-training.engine.module";
@@ -39,6 +40,7 @@ import type {
   BaseballState,
   KillerState,
   FivesState,
+  AceState,
   FollowTheLeaderAction,
   FollowTheLeaderState,
   PrisonerState,
@@ -75,6 +77,7 @@ import type {
   BaseballSnapshot,
   KillerSnapshot,
   FivesSnapshot,
+  AceSnapshot,
   FollowTheLeaderSnapshot,
   PrisonerSnapshot,
   SinglesSnapshot,
@@ -1258,6 +1261,12 @@ export type FivesSetupContext = PresetSetupContext & {
   canStart(): boolean;
 };
 
+/** Ace setup: the editable round count; Start needs a guest seated (the setup screens seat one guest). */
+export type AceSetupContext = PresetSetupContext & {
+  rounds: number;
+  canStart(): boolean;
+};
+
 /** Follow the Leader setup: Start needs a guest seated. */
 export type FollowTheLeaderSetupContext = PresetSetupContext & {
   canStart(): boolean;
@@ -1310,6 +1319,30 @@ export type FivesLastVisit = {
   total: number;
   points: number;
   kind: "SCORE" | "ZERO" | "VOID" | "BUST";
+};
+
+/** One seat's Ace result: running total, rounds that scored and its best round. */
+export type AceSeatResult = {
+  participantRef: string;
+  sideKey: string;
+  total: number;
+  scoringVisits: number;
+  bestRound: number;
+};
+
+/** One Ace round: its 1-based number, the target and each seat's points, in seat order. */
+export type AceRoundResult = {
+  round: number;
+  target: number;
+  points: number[];
+};
+
+/** Stored final snapshot of an Ace session; `winningSideKey` is null on a shared win. */
+export type AceResultsSnapshot = {
+  status: "COMPLETE";
+  winningSideKey: string | null;
+  seats: AceSeatResult[];
+  rounds: AceRoundResult[];
 };
 
 /** One seat's Follow the Leader result: lives left and whether it went out. */
@@ -1515,6 +1548,50 @@ export type FivesPlayContext = PlayLifecycleContext<
   playAgain(this: FivesPlayContext): Promise<void>;
   abandonAndExit(this: FivesPlayContext): Promise<void>;
 };
+
+/** Alpine context of the Ace play page: play lifecycle plus starter-step state. */
+export type AcePlayContext = PlayLifecycleContext<
+  AceSnapshot,
+  AceEngine,
+  AceResultsSnapshot
+> & {
+  starterOpen: boolean;
+  playAgainStarter: 0 | 1 | null;
+  requestPlayAgain(): unknown;
+  playAgainStarterOptions(): StarterStepOptions;
+  ring: MarksRing;
+  setRing(this: AcePlayContext, ring: MarksRing): void;
+  state(this: AcePlayContext): AceState | null;
+  visitMarkers(this: AcePlayContext): BoardMarker[];
+  recordDart(this: AcePlayContext, observation: DartObservation): Promise<void>;
+  commitDart(this: AcePlayContext, observation: DartObservation): Promise<void>;
+  isBullVisit(this: AcePlayContext): boolean;
+  previewSegments(this: AcePlayContext): GamePreviewSegment[];
+  recordNumber(this: AcePlayContext, n: number): Promise<void>;
+  recordBull(this: AcePlayContext): Promise<void>;
+  recordMiss(this: AcePlayContext): Promise<void>;
+  targetLabelFor(this: AcePlayContext, seatRef: string): string;
+  targetLabel(this: AcePlayContext): string;
+  totalLabelFor(this: AcePlayContext, seatRef: string): string;
+  totalLabel(this: AcePlayContext): string;
+  visitLabelFor(this: AcePlayContext, seatRef: string): string;
+  visitLabel(this: AcePlayContext): string;
+  lastLabelFor(this: AcePlayContext, seatRef: string): string;
+  lastLabel(this: AcePlayContext): string;
+  subtitle(this: AcePlayContext): string;
+  init(this: AcePlayContext): Promise<void>;
+  retryReconciliation(this: AcePlayContext): Promise<void>;
+  undoVisit(this: AcePlayContext): Promise<void>;
+  uploadAndCompleteSession(this: AcePlayContext): Promise<void>;
+  resultsTitle(this: AcePlayContext): string;
+  roundRows(this: AcePlayContext): AceRoundRow[];
+  back(this: AcePlayContext): Promise<void>;
+  playAgain(this: AcePlayContext): Promise<void>;
+  abandonAndExit(this: AcePlayContext): Promise<void>;
+};
+
+/** One row of the Ace results' round list: `R3 · 17` beside the seats' points (`3 – 1`). */
+export type AceRoundRow = { label: string; points: string };
 
 /** Alpine context of the Killer play page: play lifecycle plus starter-step state. */
 export type KillerPlayContext = PlayLifecycleContext<

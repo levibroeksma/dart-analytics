@@ -16,6 +16,8 @@ import { killerPlay } from "@lib/game/killer-play.data";
 import { killerSetup } from "@lib/game/killer-setup.data";
 import { fivesPlay } from "@lib/game/fives-play.data";
 import { fivesSetup } from "@lib/game/fives-setup.data";
+import { acePlay } from "@lib/game/ace-play.data";
+import { aceSetup } from "@lib/game/ace-setup.data";
 import { mickeyMousePlay } from "@lib/game/mickey-mouse-play.data";
 import { mickeyMouseSetup } from "@lib/game/mickey-mouse-setup.data";
 import { oneTwentyOnePlay } from "@lib/game/one-twenty-one-play.data";
@@ -55,6 +57,8 @@ export const FACTORIES: Record<string, () => object> = {
   killerSetup,
   fivesPlay,
   fivesSetup,
+  acePlay,
+  aceSetup,
   mickeyMousePlay,
   mickeyMouseSetup,
   oneTwentyOnePlay,
