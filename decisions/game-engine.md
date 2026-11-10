@@ -741,3 +741,10 @@ Decision: `VisitPointsRules` is `points(visitTotal)` or `visitPoints(darts, visi
 Reason: Visit-points spec V2: a rule lands with its first caller. Ace's points need the round's target, which the total-only `points` cannot see; one new setting stays inside the fit rule. The ruleset's open questions (uniform draw, repeats) take its proposed reading.
 Consequences: Existing callers set `points` and fold as before. Ace is a `PER_SEAT` `DartGameSpec` on the game shell, 2-4 seats, darts only. A dart's stored `score` is its board score; Ace points, round targets and totals are derived on read.
 Supersedes: none.
+
+### D545 — The Visit points kernel gains `pointsOf`; Bull 500 V1 is the first caller
+Status: Accepted · Date: 2026-11-10
+Decision: `VisitPointsRules` gains optional `pointsOf(darts)`: a closed darted visit's points from its ordered darts, replacing `points(total)`; `voids`, `goal` and the counters apply after it. Bull 500 sets `pointsOf` and leaves `goal` unset, because `goal` makes an overshoot a bust and Bull 500 lets the total pass 500; the engine ends the game at the close of the visit whose total is 500 or more. A bull is `hitTargetNumber` 25; a live dart is a non-bull dart on the 20; darts to target is `dartsThrown`; the useful unlock rate is computed in the results presenter, not the kernel. Bull 500 is single-seat, so `SEAT_CAPS` and `SEAT_FLOORS` get no entry.
+Reason: Visit-points spec V2: a rule lands with its first caller. Bull 500 scores by dart order (a bull unlocks, then only the 20 counts); no function of the dart sum can express that.
+Consequences: Score Training, Score Threshold and Fives set no `pointsOf` and fold as before. Bull 500 is a `PER_SEAT` `DartGameSpec`, darts only (QUICK_SCORE cannot show bull order).
+Supersedes: none.

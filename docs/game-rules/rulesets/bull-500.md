@@ -98,7 +98,8 @@ The visit's points are added to the running total. The total never goes down.
 
 At the end of the visit in which the running total reaches 500 or more. The
 total need not land on 500; going over is fine. The visit is still thrown in
-full, so every dart of the finishing visit counts. V1 has no visit limit.
+full, so every dart of the finishing visit counts. V1 has no visit limit. (The source says both "exactly 500" and that passing 500
+ends the game; V1 follows the second.)
 
 ### Result
 
@@ -165,12 +166,5 @@ Bull 500 is unbuilt; this is the capture shape its V1 is designed for.
 
 ## Open questions
 
-- The source's objective says "exactly 500"; its winning section says exact
-  landing is not required and passing 500 ends the game. V1 follows the
-  winning section: 500 or more.
-- The source's setup says "2 or more players", its listing says one to four.
-  V1 plays one seat; multiplayer is V2+.
-- Does the finishing visit count in full? V1 reads "upon completion of that
-  player's turn" as yes: every dart of that visit counts.
 - Takeover rule: does the first bull of the game set the holder? May the
   holder's own bull on a later visit change anything?
