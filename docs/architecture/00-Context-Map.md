@@ -2,7 +2,7 @@
 status: canonical
 scope: repository-wide context routing
 read-when: start of every task (via root CLAUDE.md protocol)
-updated: 2026-11-09
+updated: 2026-11-10
 -->
 # Context Map
 
@@ -43,6 +43,7 @@ Load exactly the pack for your task type. Do not preload anything else. Escalate
 | New game engine | `04-Architecture-patterns.md` §Pattern 18, `07-Frontend/04-Modules-And-OOP.md`, `05-Database/10-Database-Agent-Guide.md` §"Add a new game type", the game's `docs/game-rules/rulesets/` doc | ~11.0k |
 | Architecture question / new pattern | `01-Principles.md`, `04-Architecture-patterns.md` | ~10.9k |
 | Workflow / process question | `03-Engineering-Workflow.md` | ~2.2k |
+| Tooling / quality audit (hooks, gate scripts, CI, fallow) | `.claude/skills/run-all-gates/SKILL.md` (which gate runs where), `.claude/skills/validate-app/references/fallow-scoring.md`, then `.claude/settings.json`, `.husky/pre-commit`, `.github/workflows/quality.yml`; procedure: `auditing-the-codebase` skill | ~2.9k |
 | "Why was X decided?" | `DECISIONS.md` (router — Source key, routing table, Deferred list, how-to-add-a-decision); then load only the domain file(s) your task needs from its routing table, e.g. `decisions/database.md`; deeper lineage: git history. Per-task total varies with domain: each decision file's size is its `~Tokens` figure in the File Inventory; the single figure in the last column below prices only the router + the one example file named above. | ~20k |
 | Bug in migration chain | `05-Database/03-Migrations.md`, full chain `database/migrations/0001`–`0054`; never patch applied files | ~14.4k |
 | Issue-driven UI polish | `07-Frontend/10-Frontend-Agent-Guide.md`, `07-Frontend/07-Style-Guide.md`, `07-Frontend/08-Component-Inventory.md`, `app/CLAUDE.md` | ~18.1k |

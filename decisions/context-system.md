@@ -314,3 +314,10 @@ Decision: root `CLAUDE.md` drops "do not commit unless the user asks". A complet
 Reason: the invariant said not to commit unless asked while `finishing-a-dart-branch` said to push and open a PR every time; the owner had to ask for the PR on a finished task. Separately, a fix pushed while CI ran woke the session with failures of the head it had just replaced.
 Consequences: a session commits and pushes finished work with no typed request; the branch rules (dedicated branch, never `main`, never `--no-verify`) are unchanged. Historical plans under `docs/superpowers/plans/` still say "do not commit unless the user asks"; they are non-canonical and left as written.
 Supersedes: none
+
+### D547 — An audit asks the owner before it plans; fallow's scoring is a repo reference; the cloud environment allows `fallow.tools`
+Status: Accepted · Date: 2026-11-10
+Decision: (1) New skill `auditing-the-codebase`, paired with `superpowers:brainstorming` and `superpowers:writing-plans` in root `CLAUDE.md`: an audit writes its findings spec first and puts every open owner decision in one `AskUserQuestion` before any plan is written. (2) New `.claude/skills/validate-app/references/fallow-scoring.md` holds the health-score penalties, the maintainability formula and the config keys that move the score, reached from `validate-app`. (3) The Context Map gains a "Tooling / quality audit" pack. (4) Cloud sessions for this repository run in a personal `dart-analytics` environment whose only extra allowed host is `fallow.tools`.
+Reason: the 2026-11-10 quality audit (PR #1307) wrote eight plans on two assumptions the owner had not seen, rebuilt fallow's formulas from probe projects because the docs host was blocked, and found its files by sweep because no pack named them.
+Consequences: an audit session stops once for owner input; when the owner is away it plans on the recommended defaults and reports the open decisions first. The scoring reference is a cache of an external page and names the formula version it matches (3); a fallow upgrade that changes `health_score.formula_version` makes it stale.
+Supersedes: none
