@@ -17,7 +17,7 @@ updated: 2026-11-09
 
 # Version History
 
-> **Version:** 1.217.0 (2026-11-10 — History-version guard: `scripts/check-history-versions.sh` + fixture test fail a duplicate or ascending version at or above 1.200.0; `.gitattributes` unions `00-Context-Map-History.md` on a local merge so parallel PRs no longer conflict there; wired into pre-commit, `quality.yml`, `run-all-gates`)
+> **Version:** 1.218.0 (2026-11-10 — History-version guard: `scripts/check-history-versions.sh` + fixture test fail a duplicate or ascending version at or above 1.200.0; `.gitattributes` unions `00-Context-Map-History.md` on a local merge so parallel PRs no longer conflict there; wired into pre-commit, `quality.yml`, `run-all-gates`)
 
 > **Version:** 1.217.0 (2026-11-10 — Session retro fixes: `check-seed-ids.sh` + fixture test (pre-commit, `quality.yml`); `local-pg.sh` throwaway Postgres; `db:drift`/`db:seed`/`db:verify` read `.env` only if present; ruleset-count assertion derived from `RULESET_CONFIGS`, one `0007` triple count; `integration.yml` adds the `github-actions` reporter)
 >
