@@ -50,6 +50,31 @@ families), and the engine gets a row in `scripts/engine-kernels.txt`. A
 game whose family has a built kernel is a kernel-config mapper, not a
 hand-written reducer. `HAND_WRITTEN` needs the fit rule's justification.
 
+## Engine-only PR (kernel-bound)
+
+A game landing engine-first, screens in a second PR, trips five things no
+other page records:
+
+- **`Current version:`** stays `none (V1 in design)` until the screens ship;
+  `check-game-rules.sh` accepts only that or `V<n> (shipped YYYY-MM-DD)`.
+- **`Game type:`** the rules file header (`Game type: \`ACE\``) feeds tag
+  generation; without it `npm run tags:generate` skips the game.
+- **Config and snapshot types** live in `lib/game/rulesets/types.ts`, not the
+  engine module; config keys are snake_case.
+- **Seed numbers collide across parallel branches.** Take the next unused
+  number after `git fetch origin main`, not after your own branch's tail.
+- **`createThreeDartValidator` caps nothing per turn.** Add a darts-per-turn
+  assertion by composing it (below) when the engine closes a visit at a count.
+
+A dart's intended target number needs an intended zone: a target with no ring
+is refused by the API and `chk_dart_target_consistency`. A game whose aim is
+not a ring stores no intent (both null). `engine-dart-facts-api.test.ts` fails
+any engine that breaks this, and a new engine joins it automatically.
+
+Run `bash scripts/check-dupes.sh` in the engine task, not the last one: it
+is not a pre-commit gate, and a clone group forces a refactor of the shared
+kernel plus covering test edits (`check-test-coverage.sh`).
+
 ## The touch list
 
 Rows marked **shared** are files that already exist and that every game edits.

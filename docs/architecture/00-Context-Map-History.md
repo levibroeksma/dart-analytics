@@ -17,6 +17,8 @@ updated: 2026-11-09
 
 # Version History
 
+> **Version:** 1.214.0 (2026-11-10 — Session retro fixes: `engine-dart-facts-api.test.ts` runs every registered engine's darts through the API `DartFact` schema; `09-Adding-A-Game.md` §Engine-only PR (kernel-bound); ruleset template Capture note on target number needing a ring)
+>
 > **Version:** 1.213.0 (2026-11-10 — Ace V1 engine (PR 1, engine-only): D543 in `decisions/game-engine.md`; the Visit points kernel gains `visitPoints`; `ace.engine.module.ts`, `ace.validator.ts`, seed `0060` + verification `0060`, `0007` ledger rows (57 triples), `SEAT_CAPS` 4 / `SEAT_FLOORS` 2; `04-Architecture-patterns.md` 1.11.32)
 
 > **Version:** 1.212.0 (2026-11-09 — Session retro fixes: `check-astro-conventions.sh` rejects an `open` `InfoSection` on a setup form with controls; `session-start.sh` runs `npm ci` in cloud sessions; pre-commit gates silent on pass; `check-test-repointing.sh` skips pure subject renames; `app/scripts/screenshot-page.mjs` visual check; concision rule single-sourced in the `UserPromptSubmit` hook; Component Inventory read-by-section pointer; setup-form shape in `09-Adding-A-Game.md`)
