@@ -1,3 +1,4 @@
+import { bull500Unlocked } from "@modules/game/bull-500.engine.module";
 import { doublesPathTargetLabel } from "@lib/game/doubles-path-play";
 import { dartExerciseKindOf } from "@lib/stats/section-registry";
 import {
@@ -49,6 +50,7 @@ import type {
   FollowTheLeaderState,
   AceSeatState,
   FivesSeatState,
+  Bull500SeatState,
   KillerSeatState,
   MultiSeatState,
   OneTwentyOneSeatState,
@@ -506,6 +508,38 @@ const ACE: ReplayPresenter = {
 };
 
 /**
+ * What a Bull 500 visit did to its thrower: `Locked` when no bull was hit,
+ * else the points it booked (`0` for a bull that left no scoring dart).
+ */
+function bull500Result(
+  turn: TurnFact,
+  prior: Bull500SeatState,
+  seat: Bull500SeatState,
+): string {
+  const booked = seat.total - prior.total;
+  if (booked > 0) return `+${booked}`;
+  return bull500Unlocked(turn.darts) ? "0" : "Locked";
+}
+
+/**
+ * Bull 500, read off the play page: the visit's dart sum, what it booked and
+ * the running total toward 500; the session line is the seat's total.
+ */
+const BULL_500: ReplayPresenter = {
+  turn({ turn, before, after }) {
+    const prior = seatIn<Bull500SeatState>(before, turn.participantRef);
+    const seat = seatIn<Bull500SeatState>(after, turn.participantRef);
+    return [
+      valueCell("Visit", turn.totalScore),
+      valueCell("Result", bull500Result(turn, prior, seat)),
+      valueCell("Total", seat.total),
+    ];
+  },
+  session: (steps) =>
+    finalLine<Bull500SeatState>(steps, "Total", (seat) => seat.total),
+};
+
+/**
  * What one Follow the Leader turn did: `Keep`, `Fail` when the thrower lost
  * a life, `Retry` when a setting dart landed off the board and is thrown
  * again, `Set` when it set the target, else `Match`.
@@ -596,6 +630,7 @@ export const REPLAY_PRESENTERS: Record<GameTypeKey, ReplayPresenter> = {
   PRISONER,
   FIVES,
   ACE,
+  BULL_500,
 };
 
 /** No facts to fold: every dart exercise kind's per-turn headline and darts count read off `state` alone (`stepMetrics`'s `numberField` reads), never off `facts` -- only Switching's own "hits" key uses `facts`, and a turn cell never shows it (session() does, over the real facts). */

@@ -164,6 +164,12 @@ export const GAME_FIXTURES: Record<GameTypeKey, GameFixture> = {
     configuration: { lives: 3, seat_numbers: [20, 19] },
     script: UNIVERSAL_SCRIPT,
   },
+  BULL_500: {
+    rulesetVersionKey: "BULL_500_V1",
+    stageTypeKey: "EXERCISE_BLOCK",
+    configuration: { target: 500, live_number: 20 },
+    script: UNIVERSAL_SCRIPT,
+  },
   FIVES: {
     rulesetVersionKey: "FIVES_V1",
     stageTypeKey: "LEG",

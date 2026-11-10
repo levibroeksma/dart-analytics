@@ -47,6 +47,7 @@ const GAME_KEYS = {
   KILLER: true,
   FIVES: true,
   ACE: true,
+  BULL_500: true,
   FOLLOW_THE_LEADER: true,
   MICKEY_MOUSE: true,
   PRISONER: true,

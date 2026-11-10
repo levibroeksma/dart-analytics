@@ -9,6 +9,7 @@ import {
   initialBaseballState,
 } from "@modules/game/baseball.engine.module";
 import { AceEngine, aceTargetFor } from "@modules/game/ace.engine.module";
+import { Bull500Engine } from "@modules/game/bull-500.engine.module";
 import { FivesEngine } from "@modules/game/fives.engine.module";
 import { KillerEngine } from "@modules/game/killer.engine.module";
 import {
@@ -737,6 +738,84 @@ describe("REPLAY_PRESENTERS two-seat Baseball and Nine Lives", () => {
       value: "Out",
     });
     expect(entries[0]!.value).not.toBe("Out");
+  });
+});
+
+describe("REPLAY_PRESENTERS.BULL_500", () => {
+  const config = {
+    target: 500 as const,
+    live_number: 20 as const,
+    seats: [
+      {
+        participantRef: "p1",
+        displayName: "L",
+        sideKey: "A",
+        participantTypeKey: "PLAYER" as const,
+      },
+    ],
+  };
+  const hit = (
+    hitTargetNumber: number | null,
+    hitZoneKey: "OUTER_SINGLE" | "TREBLE" | "OUTER_BULL" | "MISS",
+  ) => ({ hitTargetNumber, hitZoneKey, locationX: null, locationY: null });
+  const bull = hit(25, "OUTER_BULL");
+  const t20 = hit(20, "TREBLE");
+
+  function cellsAfter(darts: ReturnType<typeof hit>[]) {
+    const engine = new Bull500Engine(config);
+    for (const dart of darts) engine.record(dart);
+    const [turn] = engine.facts().turns;
+    const before = new Bull500Engine(config).state();
+    const cells = REPLAY_PRESENTERS.BULL_500.turn(
+      { turn, before, after: engine.state() },
+      config,
+    );
+    return cells.map((cell) => (cell.kind === "value" ? cell.value : ""));
+  }
+
+  it("shows the visit total, the points it booked and the running total", () => {
+    expect(cellsAfter([bull, t20, hit(20, "OUTER_SINGLE")])).toEqual([
+      "105",
+      "+80",
+      "80",
+    ]);
+  });
+
+  it("marks a visit with no bull Locked", () => {
+    expect(
+      cellsAfter([
+        hit(20, "OUTER_SINGLE"),
+        hit(20, "OUTER_SINGLE"),
+        hit(20, "OUTER_SINGLE"),
+      ]),
+    ).toEqual(["60", "Locked", "0"]);
+  });
+
+  it("shows a plain zero for a bull that left no scoring dart", () => {
+    expect(cellsAfter([hit(null, "MISS"), hit(null, "MISS"), bull])).toEqual([
+      "25",
+      "0",
+      "0",
+    ]);
+  });
+
+  it("ends the session line on the seat's total", () => {
+    const engine = new Bull500Engine(config);
+    for (const dart of [bull, t20, t20]) engine.record(dart);
+    const [turn] = engine.facts().turns;
+    const line = REPLAY_PRESENTERS.BULL_500.session(
+      [
+        {
+          turn,
+          before: new Bull500Engine(config).state(),
+          after: engine.state(),
+        },
+      ],
+      config,
+    );
+    expect(line.entries).toEqual([
+      { participantId: "p1", label: "Total", value: "120" },
+    ]);
   });
 });
 

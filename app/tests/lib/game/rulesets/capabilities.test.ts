@@ -25,6 +25,7 @@ describe("RULESET_CAPABILITIES", () => {
       "BASEBALL_V1",
       "BOBS27_V1",
       "BOBS27_V2",
+      "BULL_500_V1",
       "CRICKET_V1",
       "CRICKET_V2",
       "DOUBLES_TRAINING_V1",
@@ -107,6 +108,7 @@ describe("supportsMode", () => {
     "MICKEY_MOUSE_V1",
     "FIVES_V1",
     "ACE_V1",
+    "BULL_500_V1",
   ] as const)(
     "gives %s RECREATIONAL + DETAILED_DARTS, not ANALYTICS + DETAILED_DARTS",
     (rulesetVersionKey) => {
@@ -169,6 +171,7 @@ describe("capableRulesets", () => {
       "BASEBALL_V1",
       "BOBS27_V1",
       "BOBS27_V2",
+      "BULL_500_V1",
       "CRICKET_V1",
       "CRICKET_V2",
       "DOUBLES_TRAINING_V1",
@@ -474,5 +477,25 @@ describe("FIVES_V1", () => {
 
   it("has no dartbot", () => {
     expect(supportsDartbot("FIVES_V1")).toBe(false);
+  });
+});
+
+describe("BULL_500_V1", () => {
+  it("takes the board-read pairs only", () => {
+    expect(RULESET_CAPABILITIES.BULL_500_V1).toEqual(
+      RULESET_CAPABILITIES.TACTICS_V1,
+    );
+    expect(supportsMode("BULL_500_V1", "RECREATIONAL", "QUICK_SCORE")).toBe(
+      false,
+    );
+  });
+
+  it("belongs to the BULL_500 game type with the board tag", () => {
+    expect(GAME_TYPE_BY_RULESET.BULL_500_V1).toBe("BULL_500");
+    expect(STATS_TAGS.BULL_500_V1).toEqual(["board"]);
+  });
+
+  it("has no dartbot", () => {
+    expect(supportsDartbot("BULL_500_V1")).toBe(false);
   });
 });

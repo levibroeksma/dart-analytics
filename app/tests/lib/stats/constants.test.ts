@@ -29,6 +29,7 @@ describe("HEATMAP_ONLY_LAYOUTS", () => {
         "AROUND_THE_CLOCK_V1",
         "BASEBALL_V1",
         "BOBS27_V1",
+        "BULL_500_V1",
         "CRICKET_V1",
         "CRICKET_V2",
         "DOUBLES_TRAINING_V1",

@@ -1070,6 +1070,29 @@ export type AceState = MultiSeatState<AceSeatState> & {
   seats: AceSeatState[];
 };
 
+/**
+ * One seat of a Bull 500 game: the running total (points, never board
+ * scores), closed visits and darts thrown, the best visit, visits that
+ * scored, and the open visit's dart sum, dart count and unlock state.
+ */
+export type Bull500SeatState = SeatState & {
+  total: number;
+  visits: number;
+  dartsThrown: number;
+  bestVisit: number;
+  scoringVisits: number;
+  openTotal: number;
+  dartsInVisit: number;
+  unlocked: boolean;
+};
+
+/** Bull 500's folded state: the seat and the outcome; the game ends at the close of the visit that reaches 500. */
+export type Bull500State = MultiSeatState<Bull500SeatState> & {
+  status: "IN_PROGRESS" | "COMPLETE";
+  winningSideKey: string | null;
+  seats: Bull500SeatState[];
+};
+
 /** A board bed: number and ring; both bulls carry a null number and the single beds are one ring. */
 export type BedFact = {
   number: number | null;
