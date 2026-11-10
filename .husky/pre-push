@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+set -e
+
+if [ -d app/node_modules ]; then
+  (cd app && npm test)
+else
+  echo "SKIP: app/node_modules absent — full suite not run." >&2
+fi

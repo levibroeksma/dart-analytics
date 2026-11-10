@@ -16,8 +16,9 @@
 --      precondition migration 0020's composite FK requires
 --   4. the table holds exactly the triples declared in
 --      app/src/lib/game/rulesets/capabilities.ts, no more and
---      no fewer (parity — a later test proves code and seed
---      agree; this proves seed and live data agree)
+--      no fewer (parity — `capability-seed-parity.test.ts` proves
+--      code and seed agree and pins the `expected_triples` count;
+--      this proves seed and live data agree)
 --
 -- This script does not build its own fixture: unlike
 -- 0018_visual_board_checks.sql it asserts against the

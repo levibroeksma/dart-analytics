@@ -17,6 +17,8 @@ updated: 2026-11-09
 
 # Version History
 
+> **Version:** 1.220.0 (2026-11-10 — Session retro fixes: `.husky/pre-push` runs the full `npm test` before a push; `quality.yml` unit-test step adds the `github-actions` reporter; `app/tests/CLAUDE.md` asserts on extracted values, not whole file text; `pr-gates.yml` test-repointing nudge edits its marker comment in place instead of posting one per push; the `0007` verification header names `capability-seed-parity.test.ts`)
+
 > **Version:** 1.219.0 (2026-11-10 — Session retro fixes: `check-test-coverage.sh` judges the working tree (unstaged and untracked count) with `test-check-test-coverage.sh`; `scaffold-game-screens.sh` + fixture test; `09-Adding-A-Game.md` gains §Screens PR, the shared test registries and §Docs owed)
 
 > **Version:** 1.218.0 (2026-11-10 — History-version guard: `scripts/check-history-versions.sh` + fixture test fail a duplicate or ascending version at or above 1.200.0; `.gitattributes` unions `00-Context-Map-History.md` on a local merge so parallel PRs no longer conflict there; wired into pre-commit, `quality.yml`, `run-all-gates`)
