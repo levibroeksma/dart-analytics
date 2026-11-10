@@ -17,6 +17,8 @@ updated: 2026-11-09
 
 # Version History
 
+> **Version:** 1.221.0 (2026-11-10 — Audit retro fixes: new `auditing-the-codebase` skill (owner decisions before plans, paired in root `CLAUDE.md`); new `validate-app/references/fallow-scoring.md` (score and MI formulas from the fallow docs); Context Map gains the "Tooling / quality audit" pack; D547)
+
 > **Version:** 1.220.0 (2026-11-10 — Session retro fixes: `.husky/pre-push` runs the full `npm test` before a push; `quality.yml` unit-test step adds the `github-actions` reporter; `app/tests/CLAUDE.md` asserts on extracted values, not whole file text; `pr-gates.yml` test-repointing nudge edits its marker comment in place instead of posting one per push; the `0007` verification header names `capability-seed-parity.test.ts`)
 
 > **Version:** 1.219.0 (2026-11-10 — Session retro fixes: `check-test-coverage.sh` judges the working tree (unstaged and untracked count) with `test-check-test-coverage.sh`; `scaffold-game-screens.sh` + fixture test; `09-Adding-A-Game.md` gains §Screens PR, the shared test registries and §Docs owed)
