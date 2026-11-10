@@ -1,0 +1,12 @@
+{
+  // Score production code only (owner decision, spec § 2). The gate config still analyses tests.
+  "extends": "./.fallowrc.jsonc",
+  "health": {
+    "ignore": [
+      "src/middleware.ts",
+      "src/lib/auth/verify-jwt.ts",
+      "src/db/schema.ts",
+      "tests/**",
+    ],
+  },
+}

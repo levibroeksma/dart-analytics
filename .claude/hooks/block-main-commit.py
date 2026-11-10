@@ -44,16 +44,18 @@ if not command:
 branch = current_branch()
 on_main = branch in ("main", "master")
 
-# Anchored to a command boundary (string start or a shell separator) so the
-# hook reads actual git invocations, not prose mentioning "git commit" or
-# "git push" inside a commit message body passed via heredoc/quoted string.
-BOUNDARY = r"(?:\A|[;&|]\s*)"
-is_commit = re.search(BOUNDARY + r"git\s+commit\b", command) is not None
-is_merge = re.search(BOUNDARY + r"git\s+merge\b", command) is not None
-is_push = re.search(BOUNDARY + r"git\s+push\b", command) is not None
+# Anchored to a command boundary (string start, a shell separator, a newline
+# or an opening parenthesis) so the hook reads actual git invocations, not
+# prose mentioning "git commit" or "git push" inside a quoted message. GIT
+# allows global options between `git` and the subcommand (`git -C . commit`).
+BOUNDARY = r"(?:\A|[;&|\n(]\s*)"
+GIT = r"git(?:\s+-[cC]\s+\S+)*\s+"
+is_commit = re.search(BOUNDARY + GIT + r"commit\b", command) is not None
+is_merge = re.search(BOUNDARY + GIT + r"merge\b", command) is not None
+is_push = re.search(BOUNDARY + GIT + r"push\b", command) is not None
 # Only the `git push` segment names a push target; `gh pr create --base main`
-# chained after it must not count (#824).
-push_segments = re.findall(BOUNDARY + r"(git\s+push\b[^;&|]*)", command)
+# chained after it, or on the next line, must not count (#824).
+push_segments = re.findall(BOUNDARY + r"(" + GIT + r"push\b[^;&|\n]*)", command)
 pushes_to_main = any(
     re.search(r"(^|[\s:])(main|master)(\s|$)", seg) for seg in push_segments
 )

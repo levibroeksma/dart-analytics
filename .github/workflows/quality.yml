@@ -59,6 +59,8 @@ jobs:
         run: bash scripts/test-check-test-repointing.sh
       - name: Edit-gate hook fixtures
         run: bash scripts/test-edit-gate.sh
+      - name: Main-commit hook fixtures
+        run: bash scripts/test-block-main-commit.sh
       - name: Reuse-lookup hook fixtures
         run: bash scripts/test-reuse-lookup.sh
 
@@ -107,6 +109,9 @@ jobs:
       - name: Clone-group ratchet
         working-directory: ${{ github.workspace }}
         run: bash scripts/check-dupes.sh && bash scripts/test-check-dupes.sh
+      - name: Quality-benchmark ratchet
+        working-directory: ${{ github.workspace }}
+        run: bash scripts/check-quality-benchmarks.sh && bash scripts/test-check-quality-benchmarks.sh
       - name: Unit tests
         run: npm test -- --reporter=default --reporter=github-actions
       - name: Build gate

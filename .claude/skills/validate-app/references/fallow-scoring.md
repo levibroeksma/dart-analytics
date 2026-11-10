@@ -54,6 +54,7 @@ Files with no functions are left out. Fan-out counts imported modules, not names
 | Score and penalties | `npx --no-install fallow health --score --format json -q 2>/dev/null \| jq .health_score` |
 | Score, counts, per-file MI | add `--file-scores`; read `.vital_signs`, `.file_scores[]` |
 | The functions that failed the gate | `bash ../scripts/fallow-gate.sh` (prints the `findings` array) |
+| The 8 benchmark numbers against their recorded values | `bash ../scripts/check-quality-benchmarks.sh` (score read with `-c .fallowrc.score.jsonc`: tests excluded) |
 | Clone groups per mode | `npx --no-install fallow dupes --mode <mild\|weak\|semantic> --format json --no-fragments -q` |
 | One rule explained offline | `npx --no-install fallow explain <issue-type>` |
 

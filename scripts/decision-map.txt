@@ -1,10 +1,7 @@
 # Input to the one-shot decision-ledger split (2026-08-02). SPENT migration
 # tooling, retained for provenance only — do not hand-edit to re-file a
-# decision: re-running scripts/split-decisions.sh now fails ("no | D<n> |
-# rows found in DECISIONS.md", since the router holds zero rows), and
-# scripts/verify-decision-split.sh's Map-drift check compares id *sets*
-# only, so editing this file to reflect a re-file has no detectable effect
-# either way. Re-filing an id between domain files today means moving its
+# decision: the split scripts that read it are removed (D550), so editing
+# this file to reflect a re-file has no effect. Re-filing an id between domain files today means moving its
 # row directly in decisions/**; the ongoing guard for the result is
 # scripts/check-decision-ids.sh, not this map or its verifier.
 # IDs are unpadded here (01, 40, 183) but keep original padding in DECISIONS.md rows (D01, D40, D183).

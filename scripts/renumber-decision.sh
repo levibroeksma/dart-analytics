@@ -7,8 +7,8 @@
 # no gate catches.
 #
 # The blast radius also includes the id gate's own oracle: scripts/decision-
-# row-hashes.tsv, scripts/decision-map.txt, scripts/split-decisions.sh, and
-# the three decision scripts' own headers all cite ids as prose or data. The
+# row-hashes.tsv, scripts/decision-map.txt, and
+# the decision scripts' own headers all cite ids as prose or data. The
 # own-block guard below makes this mostly unreachable in practice — every id
 # those files cite has main's own block behind it, so none of them can ever be
 # OLD — but that is worth saying rather than leaving implicit.
