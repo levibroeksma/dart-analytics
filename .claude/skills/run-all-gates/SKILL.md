@@ -70,6 +70,7 @@ bash scripts/check-no-inline-comments.sh
 bash scripts/check-style-tokens.sh
 bash scripts/check-game-wiring.sh
 bash scripts/check-dupes.sh
+bash scripts/check-quality-benchmarks.sh
 ```
 
 ## If `.claude/hooks/` or `scripts/` changed, also run
@@ -80,6 +81,7 @@ bash scripts/test-check-test-repointing.sh
 bash scripts/test-edit-gate.sh
 bash scripts/test-reuse-lookup.sh
 bash scripts/test-check-dupes.sh
+bash scripts/test-check-quality-benchmarks.sh
 bash scripts/test-check-test-coverage.sh
 bash scripts/test-scaffold-game-screens.sh
 ```

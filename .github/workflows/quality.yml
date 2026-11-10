@@ -107,6 +107,9 @@ jobs:
       - name: Clone-group ratchet
         working-directory: ${{ github.workspace }}
         run: bash scripts/check-dupes.sh && bash scripts/test-check-dupes.sh
+      - name: Quality-benchmark ratchet
+        working-directory: ${{ github.workspace }}
+        run: bash scripts/check-quality-benchmarks.sh && bash scripts/test-check-quality-benchmarks.sh
       - name: Unit tests
         run: npm test -- --reporter=default --reporter=github-actions
       - name: Build gate
