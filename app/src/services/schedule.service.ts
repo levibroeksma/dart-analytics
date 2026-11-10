@@ -121,7 +121,7 @@ function normalise(input: ScheduleWriteInput): ScheduleWriteInput {
 }
 
 async function writeSchedule(
-  writeRecord: typeof insertScheduleRecord,
+  writeRecord: typeof insertScheduleRecord | typeof updateScheduleRecord,
   playerId: string,
   scheduleId: string,
   input: ScheduleWriteInput,
