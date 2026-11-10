@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { RULESET_CAPABILITIES } from "@lib/game/rulesets/capabilities";
+import { RULESET_CONFIGS } from "@lib/game/rulesets/types";
 import type { RulesetVersionKey } from "@lib/types";
 import { getRulesetValidator } from "@services/rulesets/registry";
 
@@ -78,7 +79,9 @@ function undeclaredPairs(rulesetVersionKey: RulesetVersionKey): string[] {
  */
 describe("capability constant and ruleset validators agree", () => {
   it("covers every ruleset", () => {
-    expect(rulesetKeys.length).toBe(30);
+    expect([...rulesetKeys].sort()).toEqual(
+      Object.keys(RULESET_CONFIGS).sort(),
+    );
   });
 
   it.each(rulesetKeys)("%s accepts every pair it declares", (rulesetKey) => {

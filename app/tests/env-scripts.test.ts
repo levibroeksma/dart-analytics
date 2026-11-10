@@ -30,3 +30,18 @@ describe("Neon env scripts", () => {
     );
   });
 });
+
+/**
+ * `--env-file=.env` aborts when the file is absent, so a session that exports
+ * `DATABASE_URL` itself (a container, a local Postgres) could not run these
+ * scripts without creating an empty `.env` first.
+ */
+describe("database scripts without a .env file", () => {
+  it.each(["db:drift", "db:seed", "db:verify"])(
+    "%s reads .env only when it exists",
+    (name) => {
+      expect(scripts[name]).toContain("--env-file-if-exists=.env");
+      expect(scripts[name]).not.toContain("--env-file=.env");
+    },
+  );
+});
