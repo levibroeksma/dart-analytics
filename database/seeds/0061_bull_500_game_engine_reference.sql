@@ -9,11 +9,11 @@
 -- version, or preset to start a session from — POST /api/sessions
 -- has nothing to look up for BULL_500_V1.
 --
--- UUID allocation (continues the 0003 range, next after 0058's
--- Fives rows):
--- - 0198f000-...-000000000012 game_types              (BULL_500)
--- - 0198f100-...-000000000029 ruleset_versions        (BULL_500_V1)
--- - 0198f300-...-000000000020 configuration_templates (Bull 500)
+-- UUID allocation (continues the 0003 range, next after 0060's
+-- Ace rows):
+-- - 0198f000-...-000000000013 game_types              (BULL_500)
+-- - 0198f100-...-00000000002a ruleset_versions        (BULL_500_V1)
+-- - 0198f300-...-000000000021 configuration_templates (Bull 500)
 --
 -- Configuration JSONB follows the ruleset configuration schema
 -- (app/src/lib/game/rulesets/types.ts) — Bull500Config is a strict
@@ -42,7 +42,7 @@ INSERT INTO game_types (
         updated_at
     )
 VALUES (
-        '0198f000-0000-7000-8000-000000000012',
+        '0198f000-0000-7000-8000-000000000013',
         'BULL_500',
         'Bull 500',
         'Hit the bull, then score on the 20. Each visit starts locked; a bull unlocks it; first to 500 points.',
@@ -62,8 +62,8 @@ INSERT INTO ruleset_versions (
         created_at
     )
 VALUES (
-        '0198f100-0000-7000-8000-000000000029',
-        '0198f000-0000-7000-8000-000000000012',
+        '0198f100-0000-7000-8000-00000000002a',
+        '0198f000-0000-7000-8000-000000000013',
         'BULL_500_V1',
         1,
         'Initial Bull 500 ruleset: one seat, target 500 on the 20, a bull unlocks each visit and scores nothing; the game ends at the close of the visit that reaches 500.',
@@ -84,8 +84,8 @@ INSERT INTO configuration_templates (
         updated_at
     )
 VALUES (
-        '0198f300-0000-7000-8000-000000000020',
-        '0198f000-0000-7000-8000-000000000012',
+        '0198f300-0000-7000-8000-000000000021',
+        '0198f000-0000-7000-8000-000000000013',
         NULL,
         'Bull 500',
         'Target 500, a bull unlocks the 20, one seat.',
