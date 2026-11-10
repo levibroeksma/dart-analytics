@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   AroundTheClockConfig,
   BaseballConfig,
+  ACE_ROUNDS_MAX,
+  ACE_ROUNDS_MIN,
   AceConfig,
   Bull500Config,
   FivesConfig,
@@ -853,6 +855,18 @@ describe("PrisonerConfig", () => {
 });
 
 describe("AceConfig", () => {
+  it("bounds the rounds by the exported limits", () => {
+    expect([ACE_ROUNDS_MIN, ACE_ROUNDS_MAX]).toEqual([3, 12]);
+    for (const [rounds, ok] of [
+      [ACE_ROUNDS_MIN - 1, false],
+      [ACE_ROUNDS_MIN, true],
+      [ACE_ROUNDS_MAX, true],
+      [ACE_ROUNDS_MAX + 1, false],
+    ] as const) {
+      expect(AceConfig.safeParse({ rounds, drawSeed: 1 }).success).toBe(ok);
+    }
+  });
+
   it("is ACE_V1's schema: rounds 3-12 and a draw seed", () => {
     expect(RULESET_CONFIGS.ACE_V1).toBe(AceConfig);
     expect(AceConfig.safeParse({ rounds: 8, drawSeed: 1 }).success).toBe(true);

@@ -62,6 +62,14 @@ export const GAME_CARDS: readonly GameCardDescriptor[] = [
     caption: "First to exactly 51. Only totals divisible by 5 score.",
   },
   {
+    rulesetVersionKey: "ACE_V1",
+    gameTypeKey: "ACE",
+    group: "MATCH_PLAY",
+    href: "/games/ace/setup",
+    title: "Ace",
+    caption: "Hit the round's drawn target. Highest total wins.",
+  },
+  {
     rulesetVersionKey: "SCORE_TRAINING_V1",
     gameTypeKey: "SCORE_TRAINING",
     group: "TRAINING",

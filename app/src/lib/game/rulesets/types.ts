@@ -413,6 +413,9 @@ export const TacticsConfig = z.object({}).strict();
 /** Mickey Mouse V1 locks every rule (twelve objectives, marks, double-dip, solo seat) — nothing to configure. */
 export const MickeyMouseConfig = z.object({}).strict();
 
+export const ACE_ROUNDS_MIN = 3;
+export const ACE_ROUNDS_MAX = 12;
+
 /**
  * Ace V1 (`docs/game-rules/rulesets/ace.md`): `rounds` is the editable round
  * count, 3-12; `drawSeed` is minted per game and keys every round's target
@@ -420,7 +423,7 @@ export const MickeyMouseConfig = z.object({}).strict();
  */
 export const AceConfig = z
   .object({
-    rounds: z.number().int().min(3).max(12),
+    rounds: z.number().int().min(ACE_ROUNDS_MIN).max(ACE_ROUNDS_MAX),
     drawSeed: z.number().int().min(0).max(0xffffffff),
   })
   .strict();

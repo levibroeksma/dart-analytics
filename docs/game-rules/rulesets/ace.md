@@ -1,6 +1,6 @@
 # Ace
 
-Current version: none (V1 in design)
+Current version: V1 (shipped 2026-11-10)
 Entry points: standalone
 Game type: `ACE`
 Kernel: VISIT_POINTS
@@ -11,7 +11,8 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 
 | Feature | Version | Applies to | Reason |
 | --- | --- | --- | --- |
-| Multiplayer (2–4 seats) | V1 | 2+ | |
+| Multiplayer (2 seats) | V1 | 2+ | |
+| Three or four seats | Deferred | 2+ | Blocked on: setup seats one guest or bot (`app/src/lib/game/guest-list.ts:19`) and the play screen draws two seats (`app/src/components/layout/games/SplitScoreboard.astro:3`); the engine already takes four |
 | Config screen (presets shown) | V1 | All | |
 | Fixed number of rounds, 3 to 12 | V1 | All | |
 | Target drawn by the app each round | V1 | All | |
@@ -55,7 +56,7 @@ Version and `Applies to` vocabulary: see `../templates/GAME_RULESET_TEMPLATE.md`
 
 | Setting | Preset | On config screen |
 | --- | --- | --- |
-| Players | 2 seats (min 2, max 4) | Editable |
+| Players | 2 seats (min 2; the engine takes up to 4) | Editable |
 | Rounds | 8 (min 3, max 12) | Editable |
 | Targets drawn from | 1–20 and the bull | Shown, locked |
 | Draw seed | minted per game | Not shown |

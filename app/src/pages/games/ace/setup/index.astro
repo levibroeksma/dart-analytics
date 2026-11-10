@@ -1,0 +1,12 @@
+---
+export const prerender = true;
+import GameSetupPage from "@components/layout/games/setup/GameSetupPage.astro";
+import AceSetupForm from "@components/layout/games/setup/AceSetupForm.astro";
+---
+
+<GameSetupPage
+  title="Ace"
+  x-data="aceSetup()"
+>
+  <AceSetupForm />
+</GameSetupPage>
