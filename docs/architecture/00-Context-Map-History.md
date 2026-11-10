@@ -17,6 +17,8 @@ updated: 2026-11-09
 
 # Version History
 
+> **Version:** 1.215.0 (2026-11-10 — Ace V1 screens (PR 2): `ace-{seats,setup,play}` in `lib/game`, `Ace*` components and pages, games-page card, `register-route-data.ts`; `ACE_ROUNDS_MIN`/`ACE_ROUNDS_MAX` in `rulesets/types.ts`; the draw seed is minted at Start and on Play Again and sent as a config override; `ace.md` ships V1 on two seats (three or four deferred behind the one-guest setup and two-seat scoreboard, as Fives))
+
 > **Version:** 1.214.0 (2026-11-10 — Session retro fixes: `engine-dart-facts-api.test.ts` runs every registered engine's darts through the API `DartFact` schema; `09-Adding-A-Game.md` §Engine-only PR (kernel-bound); ruleset template Capture note on target number needing a ring)
 >
 > **Version:** 1.213.0 (2026-11-10 — Ace V1 engine (PR 1, engine-only): D543 in `decisions/game-engine.md`; the Visit points kernel gains `visitPoints`; `ace.engine.module.ts`, `ace.validator.ts`, seed `0060` + verification `0060`, `0007` ledger rows (57 triples), `SEAT_CAPS` 4 / `SEAT_FLOORS` 2; `04-Architecture-patterns.md` 1.11.32)

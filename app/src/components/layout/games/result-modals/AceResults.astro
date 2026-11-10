@@ -1,0 +1,48 @@
+---
+import ResultsModalShell from "@components/layout/games/ResultsModalShell.astro";
+import ComparisonSummary from "@components/layout/games/ComparisonSummary.astro";
+
+const STAT_ROWS = [
+  { label: "Total", key: "total", hero: true, skeletonWidth: "w-8" },
+  {
+    label: "Scoring rounds",
+    key: "scoringVisits",
+    side: true,
+    skeletonWidth: "w-6",
+  },
+  { label: "Best round", key: "bestRound", side: true, skeletonWidth: "w-6" },
+] as const;
+
+const WINNER_EXPR =
+  "resultsSnapshot?.seats?.findIndex((seat) => seat.sideKey === resultsSnapshot?.winningSideKey) ?? -1";
+---
+
+<ResultsModalShell overline="Ace · Summary">
+  <h2
+    slot="title"
+    id="results-title"
+    class="text-balance font-display text-xl text-foreground"
+    x-text="resultsTitle()"
+  >
+  </h2>
+
+  <ComparisonSummary
+    statRows={STAT_ROWS}
+    winnerExpr={WINNER_EXPR}
+  />
+
+  <ul class="inset-well flex w-full flex-col gap-2 rounded-2xl px-4 py-3">
+    <template x-for="row in roundRows()">
+      <li class="flex items-baseline justify-between gap-4 text-sm">
+        <span
+          class="font-mono text-eyebrow font-semibold uppercase text-muted-foreground"
+          x-text="row.label"
+        ></span>
+        <span
+          class="font-mono text-foreground"
+          x-text="row.points"
+        ></span>
+      </li>
+    </template>
+  </ul>
+</ResultsModalShell>

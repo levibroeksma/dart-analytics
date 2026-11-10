@@ -1,0 +1,33 @@
+---
+export const prerender = true;
+import GameLayout from "@layouts/GameLayout.astro";
+import Ace from "@components/layout/games/interfaces/Ace.astro";
+import AceResults from "@components/layout/games/result-modals/AceResults.astro";
+import NoSessionPanel from "@components/layout/games/NoSessionPanel.astro";
+import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocked.astro";
+---
+
+<GameLayout
+  title="Ace — Play"
+  gameTitle="Ace"
+  gameSubtitleExpr="hasActiveSession ? subtitle() : ''"
+  x-data="acePlay()"
+  @confirm-exit.window="abandonAndExit()"
+>
+  <div class="flex flex-col flex-1 min-h-0">
+    {/* Loading / reconciliation-blocked */}
+    <ReconciliationBlocked />
+
+    {/* No active session view */}
+    <NoSessionPanel href="/games/ace/setup" />
+
+    {/* Gameplay view */}
+    <Ace
+      x-show="!finished && hasActiveSession"
+      x-cloak
+    />
+
+    {/* Results modal (overlay) */}
+    <AceResults />
+  </div>
+</GameLayout>
