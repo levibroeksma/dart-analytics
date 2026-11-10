@@ -240,6 +240,18 @@ export function summariseBullUp(state: BullUpState): RoutineStepSummary {
   };
 }
 
+function checkoutRows(checkouts: number, attempts: number, darts: number) {
+  return [
+    { label: "Checkouts", value: String(checkouts) },
+    { label: "Attempts", value: String(attempts) },
+    {
+      label: "Checkout rate",
+      value: attempts === 0 ? NO_VALUE : accuracyDisplay(checkouts, attempts),
+    },
+    { label: "Darts", value: String(darts) },
+  ];
+}
+
 /**
  * Catch 40's result is its points total, with how many outshots checked out
  * of how many were attempted. An attempt open at expiry is not counted, so
@@ -258,13 +270,7 @@ export function summariseCheckoutSequence(
     label: "Catch 40",
     rows: [
       { label: "Points", value: String(points) },
-      { label: "Checkouts", value: String(checkouts) },
-      { label: "Attempts", value: String(attempts) },
-      {
-        label: "Checkout rate",
-        value: attempts === 0 ? NO_VALUE : accuracyDisplay(checkouts, attempts),
-      },
-      { label: "Darts", value: String(darts) },
+      ...checkoutRows(checkouts, attempts, darts),
     ],
   };
 }
@@ -285,15 +291,7 @@ export function summariseRandomCheckout(
   return {
     stepKey: "RANDOM_CHECKOUT",
     label: "Random Checkout",
-    rows: [
-      { label: "Checkouts", value: String(checkouts) },
-      { label: "Attempts", value: String(attempts) },
-      {
-        label: "Checkout rate",
-        value: attempts === 0 ? NO_VALUE : accuracyDisplay(checkouts, attempts),
-      },
-      { label: "Darts", value: String(darts) },
-    ],
+    rows: checkoutRows(checkouts, attempts, darts),
   };
 }
 

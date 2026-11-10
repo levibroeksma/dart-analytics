@@ -321,3 +321,10 @@ Decision: (1) New skill `auditing-the-codebase`, paired with `superpowers:brains
 Reason: the 2026-11-10 quality audit (PR #1307) wrote eight plans on two assumptions the owner had not seen, rebuilt fallow's formulas from probe projects because the docs host was blocked, and found its files by sweep because no pack named them.
 Consequences: an audit session stops once for owner input; when the owner is away it plans on the recommended defaults and reports the open decisions first. The scoring reference is a cache of an external page and names the formula version it matches (3); a fallow upgrade that changes `health_score.formula_version` makes it stale.
 Supersedes: none
+
+### D548 — fallow is a pinned devDependency; every gate runs the installed binary
+Status: Accepted · Date: 2026-11-10
+Decision: `fallow` is an exact-version devDependency of `app/` (3.42.0). `scripts/fallow-gate.sh` and `scripts/check-dupes.sh` call `npx --no-install fallow`. A fallow upgrade is its own PR: bump the pin, rerun `bash scripts/check-dupes.sh` and the fallow gate, and re-read `validate-app/references/fallow-scoring.md` if `health_score.formula_version` changed.
+Reason: `npx fallow` took the newest release on each run, so the gate's rules changed without a commit; `check-dupes.sh` pinned 3.38.0, which reported 0 clone groups where 3.42.0 reported 3, so the ratchet passed while clones existed.
+Consequences: the three clone groups are folded and `scripts/dupes-baseline.txt` stays empty; without `app/node_modules` both scripts fail instead of downloading. `app/.fallowrc.jsonc` loses its stale `thresholdOverrides` and four `ignoreDependencies` rows and names `neon` in `ignoreBinaries`.
+Supersedes: none

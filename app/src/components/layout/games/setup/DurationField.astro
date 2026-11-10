@@ -9,15 +9,13 @@
  * @param {{ min: number; max: number }} minutes Minutes slider bounds
  * @param {string} soloHint Hint under the solo sliders
  */
-interface Props {
-  formatOptions: { value: string; label: string }[];
-  rounds: { min: number; max: number };
-  minutes: { min: number; max: number };
-  soloHint: string;
-}
+type Props = ComponentProps<typeof DurationSoloFields>;
 
 // Props
 const { formatOptions, rounds, minutes, soloHint }: Props = Astro.props;
+
+// Types
+import type { ComponentProps } from "astro/types";
 
 // Components
 import DurationSoloFields from "./DurationSoloFields.astro";

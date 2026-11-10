@@ -17,6 +17,8 @@ updated: 2026-11-09
 
 # Version History
 
+> **Version:** 1.222.0 (2026-11-10 — Quality plan 1: `fallow` pinned at 3.42.0 as an `app/` devDependency; `fallow-gate.sh` and `check-dupes.sh` run `npx --no-install fallow`; three clone groups folded (`schedule.service.ts`, `routine-summary.module.ts`, `DurationField.astro`); stale `.fallowrc.jsonc` rows removed (D548).)
+
 > **Version:** 1.221.0 (2026-11-10 — Audit retro fixes: new `auditing-the-codebase` skill (owner decisions before plans, paired in root `CLAUDE.md`); new `validate-app/references/fallow-scoring.md` (score and MI formulas from the fallow docs); Context Map gains the "Tooling / quality audit" pack; D547)
 
 > **Version:** 1.220.0 (2026-11-10 — Session retro fixes: `.husky/pre-push` runs the full `npm test` before a push; `quality.yml` unit-test step adds the `github-actions` reporter; `app/tests/CLAUDE.md` asserts on extracted values, not whole file text; `pr-gates.yml` test-repointing nudge edits its marker comment in place instead of posting one per push; the `0007` verification header names `capability-seed-parity.test.ts`)

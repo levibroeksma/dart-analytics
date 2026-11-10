@@ -25,12 +25,9 @@
     "@astrojs/cloudflare",
     "@tailwindcss/vite",
     "postgres",
-    "jose",
-    // Offline brand asset generators (`icons:generate` / `logo:generate`) — not Worker runtime
-    "@resvg/resvg-js",
-    "culori",
-    "opentype.js",
   ],
+  // neonctl is installed on the machine, not by npm
+  "ignoreBinaries": ["neon"],
   "duplicates": {
     "ignore": ["src/db/schema.ts"],
   },
@@ -69,17 +66,5 @@
   ],
   "health": {
     "ignore": ["src/middleware.ts", "src/lib/auth/verify-jwt.ts"],
-    "thresholdOverrides": [
-      {
-        "files": ["src/components/ui/CardWrapper.astro"],
-        "maxCrap": 100,
-        "reason": "Glass card markup; complexity tracked for PR2 split",
-      },
-      {
-        "files": ["src/components/layout/games/ScoreInput.astro"],
-        "maxCrap": 60,
-        "reason": "Play UI template; pre-existing layout complexity",
-      },
-    ],
   },
 }
