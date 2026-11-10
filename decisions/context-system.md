@@ -342,3 +342,10 @@ Decision: (1) `.claude/hooks/block-main-commit.py` treats a newline and `(` as c
 Reason: the hook saw only commands starting the string or following `;&|`, so `git add .` then `git commit` on the next line, `git -C . commit` and `(git commit)` passed on `main`; a newline also did not end a push segment, so `gh pr create --base main` on the next line was read as a push target. A stacked PR, which the repo allows one deep, ran no quality job. The split scripts ran once on 2026-08-02, refuse to run again and were wired nowhere.
 Consequences: husky remains the second guard for commits; the hook is the only guard for the push form. Stacked PRs cost one more CI run each. The split's history is in git and in the decisions that describe it.
 Supersedes: none
+
+### D551 — Pre-commit gates are path-scoped from one table; a wiring gate keeps the gate lists in step
+Status: Accepted · Date: 2026-11-10
+Decision: `.husky/pre-commit` runs `scripts/run-precommit-gates.sh`, which reads `scripts/precommit-gates.tsv` (`<script><TAB><regex>`). A row with a regex runs only when a staged path matches: `check-type-barrels.sh` on `app/src`, `app/tests`, `app/tsconfig.json`; the two game-rules gates on `docs/game-rules/`; the two tag-seed gates on `docs/game-rules/`, `database/seeds/`, `app/scripts/tags/`. Each regex includes the gate's own script. `scripts/check-gate-wiring.sh` fails when a `check-*.sh` or `test-*.sh` is missing from CI or from the `run-all-gates` skill, when a table row names a missing script, and when a `check-*.sh` is in neither the table nor the script's `NOT_IN_PRECOMMIT` list, which states a reason per entry.
+Reason: every commit ran 25 gates in about 110 s, 100 s of it in five gates that read only a few trees; four hand-kept lists (pre-commit, `quality.yml`, the skill, `edit-gate.py`) had nothing checking them, and `check-engine-kernels.sh` was missing from the skill.
+Consequences: `quality.yml` still runs every gate on every PR, so scoping delays a failure to CI and never hides one. A docs-only commit takes about 4 s. A new gate script fails pre-commit and CI until it is wired in all three places.
+Supersedes: none

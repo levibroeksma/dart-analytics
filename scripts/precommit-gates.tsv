@@ -1,0 +1,30 @@
+# Pre-commit gates, in run order: <script><TAB><regex>. A gate with a regex runs
+# only when a staged path matches it; no regex means every commit. CI
+# (quality.yml) runs every gate on every PR, so scoping delays a failure and
+# never hides one. Each regex includes the gate's own script path.
+scripts/check-file-locations.sh	
+scripts/check-agent-mirrors.sh	
+scripts/check-skill-pointers.sh	
+scripts/check-worktree-location.sh	
+scripts/check-gate-wiring.sh	
+scripts/check-history-versions.sh	
+scripts/test-check-history-versions.sh	
+scripts/check-astro-class-composition.sh	
+scripts/check-astro-conventions.sh	
+scripts/check-game-engines.sh	
+scripts/check-engine-kernels.sh	
+scripts/test-check-engine-kernels.sh	
+scripts/check-refinement-coverage.sh	
+scripts/check-type-barrels.sh	^(app/src/|app/tests/|app/tsconfig\.json|scripts/check-type-barrels\.sh)
+scripts/check-alias-sync.sh	
+scripts/check-constraint-mirror.sh	
+scripts/check-no-inline-comments.sh	
+scripts/check-style-tokens.sh	
+scripts/check-game-wiring.sh	
+scripts/check-game-rules.sh	^(docs/game-rules/|scripts/(test-)?check-game-rules\.sh)
+scripts/test-check-game-rules.sh	^(docs/game-rules/|scripts/(test-)?check-game-rules\.sh)
+scripts/check-tag-seeds.sh	^(docs/game-rules/|database/seeds/|app/scripts/(tags/|generate-tag-seed)|scripts/(test-)?check-(tag-seeds|game-rules)\.sh)
+scripts/test-check-tag-seeds.sh	^(docs/game-rules/|database/seeds/|app/scripts/(tags/|generate-tag-seed)|scripts/(test-)?check-(tag-seeds|game-rules)\.sh)
+scripts/check-seed-ids.sh	
+scripts/test-check-seed-ids.sh	
+scripts/check-test-coverage.sh	

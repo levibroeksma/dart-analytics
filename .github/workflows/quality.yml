@@ -61,6 +61,8 @@ jobs:
         run: bash scripts/test-edit-gate.sh
       - name: Main-commit hook fixtures
         run: bash scripts/test-block-main-commit.sh
+      - name: Gate-wiring gate and pre-commit scope fixtures
+        run: bash scripts/check-gate-wiring.sh && bash scripts/test-precommit-scope.sh
       - name: Reuse-lookup hook fixtures
         run: bash scripts/test-reuse-lookup.sh
 
