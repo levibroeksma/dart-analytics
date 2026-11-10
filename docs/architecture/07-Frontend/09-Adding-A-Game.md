@@ -61,8 +61,10 @@ other page records:
   generation; without it `npm run tags:generate` skips the game.
 - **Config and snapshot types** live in `lib/game/rulesets/types.ts`, not the
   engine module; config keys are snake_case.
-- **Seed numbers collide across parallel branches.** Take the next unused
-  number after `git fetch origin main`, not after your own branch's tail.
+- **Seed numbers and ids collide across parallel branches.** Take the next
+  unused number, and the next free id per prefix, after `git fetch origin main`,
+  not after your own branch's tail. `check-seed-ids.sh` fails a reused id, which
+  `ON CONFLICT DO NOTHING` would otherwise drop without an error.
 - **`createThreeDartValidator` caps nothing per turn.** Add a darts-per-turn
   assertion by composing it (below) when the engine closes a visit at a count.
 

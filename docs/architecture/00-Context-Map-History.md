@@ -17,6 +17,8 @@ updated: 2026-11-09
 
 # Version History
 
+> **Version:** 1.216.0 (2026-11-10 — Session retro fixes: `check-seed-ids.sh` + fixture test (pre-commit, `quality.yml`); `local-pg.sh` throwaway Postgres; `db:drift`/`db:seed`/`db:verify` read `.env` only if present; ruleset-count assertion derived from `RULESET_CONFIGS`, one `0007` triple count; `integration.yml` adds the `github-actions` reporter)
+>
 > **Version:** 1.215.0 (2026-11-10 — Bull 500 V1 engine (PR 1, engine-only): D545, D546 in `decisions/game-engine.md`; scored through the kernel's `visitPoints` (no new kernel hook); `bull-500.engine.module.ts`, `bull-500.validator.ts`, seed `0061` + verification `0061`, `0007` ledger rows (59 triples); `04-Architecture-patterns.md` 1.11.33)
 >
 > **Version:** 1.214.0 (2026-11-10 — Session retro fixes: `engine-dart-facts-api.test.ts` runs every registered engine's darts through the API `DartFact` schema; `09-Adding-A-Game.md` §Engine-only PR (kernel-bound); ruleset template Capture note on target number needing a ring)

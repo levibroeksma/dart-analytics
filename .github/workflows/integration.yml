@@ -74,8 +74,11 @@ jobs:
           npm run db:migrate:ci
           npm run db:status:ci
       # postgres-js reads `sslmode=<anything>` as "use SSL", so the suite gets
-      # the same database without the query string.
+      # the same database without the query string. The github-actions reporter
+      # turns each failure into an annotation on the check run, so the failing
+      # assertion is readable without paging the job log, whose tail is the
+      # service container's teardown output.
       - name: Statistics SQL executes
         env:
           DATABASE_URL: postgres://postgres:ci@localhost:5432/integration
-        run: npm run test:integration
+        run: npm run test:integration -- --reporter=default --reporter=github-actions

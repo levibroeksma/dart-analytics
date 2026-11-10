@@ -42,6 +42,10 @@ CREATE TEMP TABLE verification_results (
     detail TEXT
 ) ON COMMIT DROP;
 
+-- The one count a new ruleset edits: how many triples 0007 declares.
+CREATE TEMP TABLE expected_triples (n INTEGER NOT NULL) ON COMMIT DROP;
+INSERT INTO expected_triples VALUES (59);
+
 -- ------------------------------------------------------------
 -- Step 1: the seed inserted a non-zero, exact row count.
 --
@@ -51,12 +55,12 @@ CREATE TEMP TABLE verification_results (
 -- ------------------------------------------------------------
 INSERT INTO verification_results
 SELECT '1',
-    'seed inserted exactly the 59 declared rows',
+    'seed inserted exactly the declared rows',
     CASE
-        WHEN count(*) = 59 THEN 'PASS'
+        WHEN count(*) = (SELECT n FROM expected_triples) THEN 'PASS'
         ELSE 'FAIL'
     END,
-    format('expected 59, found %s', count(*))
+    format('expected %s, found %s', (SELECT n FROM expected_triples), count(*))
 FROM ruleset_version_capabilities;
 
 -- ------------------------------------------------------------
@@ -160,12 +164,12 @@ FROM (
 -- silently read as fewer triples checked, not FAIL.
 INSERT INTO verification_results
 SELECT '2',
-    'all 59 declared triples were actually checked',
+    'all declared triples were actually checked',
     CASE
-        WHEN count(*) = 59 THEN 'PASS'
+        WHEN count(*) = (SELECT n FROM expected_triples) THEN 'PASS'
         ELSE 'FAIL'
     END,
-    format('%s of 59 triple checks ran', count(*))
+    format('%s of %s triple checks ran', count(*), (SELECT n FROM expected_triples))
 FROM verification_results
 WHERE step = '2';
 
