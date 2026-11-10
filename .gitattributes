@@ -1,1 +1,2 @@
 .husky/* text eol=lf
+docs/architecture/00-Context-Map-History.md merge=union
