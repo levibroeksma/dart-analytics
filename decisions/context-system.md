@@ -307,3 +307,10 @@ Decision: root `CLAUDE.md` still bars vendoring plugin skills into `.claude/skil
 Reason: `/retro` was installed at project level, which contradicted "holds only this repo's own skills". A Stop hook asked for a commit and push while the invariant said not to commit unless asked; the session had to guess which one governed.
 Consequences: vendored copies carry no drift check, so upstream changes land unobserved, the failure D311 recorded for plugin skills; the source commit in the inventory row is the only provenance. A Stop hook can now trigger a commit without a typed request, so a hook that asks for one must come from the owner's own settings.
 Supersedes: none
+
+### D544 — Completed work always ends in a PR; the commit invariant no longer waits for a request
+Status: Accepted · Date: 2026-11-10
+Decision: root `CLAUDE.md` drops "do not commit unless the user asks". A completed task is committed on its branch, pushed and opened as a PR without being asked, then watched until CI is fully green on the current head and unsubscribed (D540). `finishing-a-dart-branch` § Step 4 gains one line: a `check_run` event whose `head_sha` is not the branch HEAD is superseded, so the session waits for the run on the current head. Amends D542's commit invariant and the brainstorming exception, which are folded into the one finishing rule.
+Reason: the invariant said not to commit unless asked while `finishing-a-dart-branch` said to push and open a PR every time; the owner had to ask for the PR on a finished task. Separately, a fix pushed while CI ran woke the session with failures of the head it had just replaced.
+Consequences: a session commits and pushes finished work with no typed request; the branch rules (dedicated branch, never `main`, never `--no-verify`) are unchanged. Historical plans under `docs/superpowers/plans/` still say "do not commit unless the user asks"; they are non-canonical and left as written.
+Supersedes: none
