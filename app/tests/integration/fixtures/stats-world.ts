@@ -210,7 +210,7 @@ export async function seedStatsWorld(db: Db): Promise<StatsWorld> {
   for (const [index, game] of games.entries()) {
     const fixture = GAME_FIXTURES[game];
     gameSessions[game] = await insertSession(db, {
-      base: 0xa1000 + index * 0x100,
+      base: 0xa4000 + index * 0x100,
       activityId: STANDALONE_ACTIVITY_ID,
       playerId: FIXTURE_PLAYER,
       exerciseTypeKey: "GAME",
