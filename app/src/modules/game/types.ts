@@ -1045,6 +1045,31 @@ export type FivesState = MultiSeatState<FivesSeatState> & {
   seats: FivesSeatState[];
 };
 
+/**
+ * One Ace seat: its running `total` of Ace points over its closed `visits`
+ * (rounds), the open visit's `openPoints` and `dartsInVisit`, and the
+ * `scoringVisits` that booked a point.
+ */
+export type AceSeatState = SeatState & {
+  total: number;
+  visits: number;
+  scoringVisits: number;
+  openPoints: number;
+  dartsInVisit: number;
+};
+
+/**
+ * Ace's folded state: `target` is the number (25 for the bull) the active
+ * seat throws at, `null` once the game is over; equal highest totals are a
+ * `TIE`, the shared win.
+ */
+export type AceState = MultiSeatState<AceSeatState> & {
+  status: "IN_PROGRESS" | "COMPLETE" | "TIE";
+  winningSideKey: string | null;
+  target: number | null;
+  seats: AceSeatState[];
+};
+
 /** A board bed: number and ring; both bulls carry a null number and the single beds are one ring. */
 export type BedFact = {
   number: number | null;

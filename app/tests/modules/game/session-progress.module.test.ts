@@ -11,6 +11,10 @@ import {
 import { cricketEngineFactory } from "@modules/game/cricket.engine.module";
 import { tacticsEngineFactory } from "@modules/game/tactics.engine.module";
 import { mickeyMouseEngineFactory } from "@modules/game/mickey-mouse.engine.module";
+import {
+  aceEngineFactory,
+  aceTargetFor,
+} from "@modules/game/ace.engine.module";
 import { fivesEngineFactory } from "@modules/game/fives.engine.module";
 import { killerEngineFactory } from "@modules/game/killer.engine.module";
 import { followTheLeaderEngineFactory } from "@modules/game/follow-the-leader.engine.module";
@@ -881,6 +885,47 @@ describe("summarizeProgress — FIVES_V1", () => {
     expect(summarizeProgress("FIVES_V1", config, afterBoth)?.big).toEqual({
       value: "9",
       label: "POINTS",
+    });
+  });
+});
+
+describe("summarizeProgress — ACE_V1", () => {
+  const config = {
+    rounds: 8,
+    drawSeed: 7,
+    seats: [YOU, { ...YOU, participantRef: "p2", sideKey: "B" }],
+  };
+  const target = aceTargetFor(config.drawSeed, 0);
+  const onTarget =
+    target === 25
+      ? { hitTargetNumber: 25, hitZoneKey: "INNER_BULL" as const }
+      : { hitTargetNumber: target, hitZoneKey: "TREBLE" as const };
+  const miss = { hitTargetNumber: null, hitZoneKey: "MISS" as const };
+  const dart = (shot: typeof miss | typeof onTarget) => ({
+    ...shot,
+    locationX: null,
+    locationY: null,
+  });
+
+  it("opens on round 1 of the configured rounds at zero", () => {
+    expect(summarizeProgress("ACE_V1", config, EMPTY_FACTS)).toEqual({
+      detail: "2 players · Round 1 of 8",
+      big: { value: "0", label: "POINTS" },
+    });
+  });
+
+  it("follows the active seat's total and round", () => {
+    const facts = factsAfter(aceEngineFactory, config, [
+      dart(onTarget),
+      dart(miss),
+      dart(miss),
+      dart(miss),
+      dart(miss),
+      dart(miss),
+    ]);
+    expect(summarizeProgress("ACE_V1", config, facts)).toEqual({
+      detail: "2 players · Round 2 of 8",
+      big: { value: String(target === 25 ? 6 : 3), label: "POINTS" },
     });
   });
 });

@@ -172,4 +172,51 @@ describe("visit points kernel", () => {
       ).toMatchObject({ points: 180, voids: 0, busts: 0 });
     });
   });
+  describe("visitPoints", () => {
+    const PER_VISIT: VisitPointsRules = {
+      dartsPerVisit: 3,
+      visitPoints: (darts, visitIndex) =>
+        darts.filter((dart) => dart.hitTargetNumber === visitIndex + 1).length,
+    };
+    const hit = (numbers: (number | null)[]): TurnFact =>
+      ({
+        completedAt: "t",
+        totalScore: 0,
+        darts: numbers.map((hitTargetNumber) => ({
+          score: 0,
+          hitTargetNumber,
+        })),
+      }) as unknown as TurnFact;
+
+    it("scores a closed visit from its darts and its zero-based index", () => {
+      expect(
+        foldVisitPoints([hit([1, 1, 5]), hit([2, 1, 2])], PER_VISIT),
+      ).toMatchObject({ visits: 2, points: 4, scoringVisits: 2 });
+    });
+
+    it("a visit scoring zero is not a scoring visit", () => {
+      expect(foldVisitPoints([hit([9, 9, 9])], PER_VISIT)).toMatchObject({
+        visits: 1,
+        points: 0,
+        scoringVisits: 0,
+      });
+    });
+
+    it("an open visit books nothing and does not advance the index", () => {
+      expect(
+        foldVisitPoints([hit([1, 1, 5]), hit([2, 2])], PER_VISIT),
+      ).toMatchObject({ visits: 1, points: 2, dartsInVisit: 2 });
+    });
+
+    it("voids and goal still apply to the visit's points", () => {
+      const rules: VisitPointsRules = {
+        ...PER_VISIT,
+        goal: 2,
+        voids: (darts) => darts.some((dart) => dart.hitTargetNumber === null),
+      };
+      expect(
+        foldVisitPoints([hit([1, 1, null]), hit([2, 2, 2])], rules),
+      ).toMatchObject({ points: 0, voids: 1, busts: 1 });
+    });
+  });
 });

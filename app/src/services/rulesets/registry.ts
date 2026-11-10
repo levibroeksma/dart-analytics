@@ -6,6 +6,7 @@ import { bobs27Validator } from "./bobs27/bobs27.validator";
 import { bobs27V2Validator } from "./bobs27/bobs27.validator";
 import { cricketValidator } from "./cricket/cricket.validator";
 import { killerValidator } from "./killer/killer.validator";
+import { aceValidator } from "./ace/ace.validator";
 import { fivesValidator } from "./fives/fives.validator";
 import { followTheLeaderValidator } from "./follow-the-leader/follow-the-leader.validator";
 import { prisonerValidator } from "./prisoner/prisoner.validator";
@@ -53,6 +54,7 @@ const REGISTRY: Record<string, RulesetValidator> = {
   BASEBALL_V1: baseballValidator,
   KILLER_V1: killerValidator,
   FIVES_V1: fivesValidator,
+  ACE_V1: aceValidator,
   FOLLOW_THE_LEADER_V1: followTheLeaderValidator,
   PRISONER_V1: prisonerValidator,
 };

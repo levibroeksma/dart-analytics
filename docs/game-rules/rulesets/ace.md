@@ -2,6 +2,7 @@
 
 Current version: none (V1 in design)
 Entry points: standalone
+Game type: `ACE`
 Kernel: VISIT_POINTS
 
 ## Features
@@ -112,7 +113,7 @@ tiebreak round.
 
 ## Capture
 
-Ace is unbuilt; this is the capture shape its V1 is designed for.
+The V1 engine (`app/src/modules/game/ace.engine.module.ts`) stores this shape.
 
 - **Capture / input mode:** RECREATIONAL + DETAILED_DARTS or
   ANALYTICS + VISUAL_BOARD — whether a dart scored, and for how much, depends
@@ -127,10 +128,10 @@ Ace is unbuilt; this is the capture shape its V1 is designed for.
   derives from it, as Random Checkout's `drawSeed`
   (`../training/exercises/random-checkout.md` §Capture). Without it the game
   cannot be replayed.
-- **Stage type:** one stage per seat for the whole game — no seat's darts
-  change another's — as Around the Clock's per-seat ownership
-  (`app/src/modules/game/around-the-clock.engine.module.ts:322`). The round
-  number comes from the visit order, not a stage per round.
+- **Stage type:** one `EXERCISE_BLOCK` stage for the whole game, `PER_SEAT`
+  turn ownership — no seat's darts change another's — as Around the Clock
+  (`app/src/modules/game/around-the-clock.engine.module.ts`). The round number
+  comes from a seat's visit order, not a stage per round (D543).
 - **Derived, never stored:** each round's target, each dart's Ace points, round
   scores, running totals, the winner.
 
@@ -144,10 +145,8 @@ Ace is unbuilt; this is the capture shape its V1 is designed for.
 
 ## Open questions
 
-- Is the draw uniform over all 21 targets, and may the same target come up
-  twice? The source says only "randomly selects" and "a new random target".
-  Proposed reading: uniform, with repeats allowed, since each round is a fresh
-  draw.
+- Resolved (D543): the draw is uniform over all 21 targets and the same target
+  may come up twice, since each round is a fresh draw.
 - The source puts the sudden-death-or-draw choice to the players before the
   game. V1 plays the draw; does that choice become a config setting later?
 - Solo play: what would a solo result show, with no opponent to beat?

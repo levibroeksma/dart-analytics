@@ -47,6 +47,7 @@ import type {
   FiveOhOneState,
   FollowTheLeaderSeatState,
   FollowTheLeaderState,
+  AceSeatState,
   FivesSeatState,
   KillerSeatState,
   MultiSeatState,
@@ -485,6 +486,26 @@ const FIVES: ReplayPresenter = {
 };
 
 /**
+ * Ace, read off the play page: the visit's board total, the Ace points it
+ * booked on the round's target and the running total; the session line is
+ * each seat's total.
+ */
+const ACE: ReplayPresenter = {
+  turn({ turn, before, after }) {
+    const prior = seatIn<AceSeatState>(before, turn.participantRef);
+    const seat = seatIn<AceSeatState>(after, turn.participantRef);
+    const booked = seat.total - prior.total;
+    return [
+      valueCell("Visit", turn.totalScore),
+      valueCell("Result", booked > 0 ? `+${booked}` : "0"),
+      valueCell("Total", seat.total),
+    ];
+  },
+  session: (steps) =>
+    finalLine<AceSeatState>(steps, "Total", (seat) => seat.total),
+};
+
+/**
  * What one Follow the Leader turn did: `Keep`, `Fail` when the thrower lost
  * a life, `Retry` when a setting dart landed off the board and is thrown
  * again, `Set` when it set the target, else `Match`.
@@ -574,6 +595,7 @@ export const REPLAY_PRESENTERS: Record<GameTypeKey, ReplayPresenter> = {
   FOLLOW_THE_LEADER,
   PRISONER,
   FIVES,
+  ACE,
 };
 
 /** No facts to fold: every dart exercise kind's per-turn headline and darts count read off `state` alone (`stepMetrics`'s `numberField` reads), never off `facts` -- only Switching's own "hits" key uses `facts`, and a turn cell never shows it (session() does, over the real facts). */

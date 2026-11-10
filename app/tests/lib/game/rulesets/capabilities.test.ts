@@ -18,6 +18,7 @@ describe("RULESET_CAPABILITIES", () => {
       "121_V2",
       "501_V1",
       "501_V2",
+      "ACE_V1",
       "AROUND_THE_CLOCK_V1",
       "AROUND_THE_CLOCK_V2",
       "AROUND_THE_CLOCK_V3",
@@ -105,6 +106,7 @@ describe("supportsMode", () => {
     "FOLLOW_THE_LEADER_V1",
     "MICKEY_MOUSE_V1",
     "FIVES_V1",
+    "ACE_V1",
   ] as const)(
     "gives %s RECREATIONAL + DETAILED_DARTS, not ANALYTICS + DETAILED_DARTS",
     (rulesetVersionKey) => {
@@ -160,6 +162,7 @@ describe("capableRulesets", () => {
       "121_V2",
       "501_V1",
       "501_V2",
+      "ACE_V1",
       "AROUND_THE_CLOCK_V1",
       "AROUND_THE_CLOCK_V2",
       "AROUND_THE_CLOCK_V3",
@@ -435,6 +438,24 @@ describe("PRISONER_V1", () => {
     expect(STATS_TAGS.PRISONER_V1).toEqual(["board"]);
     expect(GAME_TYPE_BY_RULESET.PRISONER_V1).toBe("PRISONER");
     expect(supportsDartbot("PRISONER_V1")).toBe(false);
+  });
+});
+
+describe("ACE_V1", () => {
+  it("takes the board-read pairs only", () => {
+    expect(RULESET_CAPABILITIES.ACE_V1).toEqual(
+      RULESET_CAPABILITIES.TACTICS_V1,
+    );
+    expect(supportsMode("ACE_V1", "RECREATIONAL", "QUICK_SCORE")).toBe(false);
+  });
+
+  it("belongs to the ACE game type with the board tag", () => {
+    expect(GAME_TYPE_BY_RULESET.ACE_V1).toBe("ACE");
+    expect(STATS_TAGS.ACE_V1).toEqual(["board"]);
+  });
+
+  it("has no dartbot", () => {
+    expect(supportsDartbot("ACE_V1")).toBe(false);
   });
 });
 

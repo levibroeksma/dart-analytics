@@ -170,6 +170,12 @@ export const GAME_FIXTURES: Record<GameTypeKey, GameFixture> = {
     configuration: {},
     script: UNIVERSAL_SCRIPT,
   },
+  ACE: {
+    rulesetVersionKey: "ACE_V1",
+    stageTypeKey: "EXERCISE_BLOCK",
+    configuration: { rounds: 8, drawSeed: 1 },
+    script: UNIVERSAL_SCRIPT,
+  },
   FOLLOW_THE_LEADER: {
     rulesetVersionKey: "FOLLOW_THE_LEADER_V1",
     stageTypeKey: "EXERCISE_BLOCK",

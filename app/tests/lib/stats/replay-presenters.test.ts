@@ -8,6 +8,7 @@ import {
   BaseballEngine,
   initialBaseballState,
 } from "@modules/game/baseball.engine.module";
+import { AceEngine, aceTargetFor } from "@modules/game/ace.engine.module";
 import { FivesEngine } from "@modules/game/fives.engine.module";
 import { KillerEngine } from "@modules/game/killer.engine.module";
 import {
@@ -851,6 +852,84 @@ describe("REPLAY_PRESENTERS.FIVES", () => {
     );
     expect(line.entries).toEqual([
       { participantId: "p1", label: "Total", value: "9" },
+      { participantId: "p2", label: "Total", value: "0" },
+    ]);
+  });
+});
+
+describe("REPLAY_PRESENTERS.ACE", () => {
+  const config = {
+    rounds: 3,
+    drawSeed: 7,
+    seats: [
+      {
+        participantRef: "p1",
+        displayName: "L",
+        sideKey: "A",
+        participantTypeKey: "PLAYER" as const,
+      },
+      {
+        participantRef: "p2",
+        displayName: "G",
+        sideKey: "B",
+        participantTypeKey: "GUEST" as const,
+      },
+    ],
+  };
+  const target = aceTargetFor(config.drawSeed, 0);
+  const onTarget =
+    target === 25
+      ? { hitTargetNumber: 25, hitZoneKey: "INNER_BULL" as const }
+      : { hitTargetNumber: target, hitZoneKey: "TREBLE" as const };
+  const miss = {
+    hitTargetNumber: null,
+    hitZoneKey: "MISS" as const,
+  };
+  const throwDarts = (darts: (typeof miss | typeof onTarget)[]) => {
+    const engine = new AceEngine(config);
+    for (const dart of darts)
+      engine.record({ ...dart, locationX: null, locationY: null });
+    return engine;
+  };
+
+  it("shows the board total, the Ace points booked and the running total", () => {
+    const engine = throwDarts([onTarget, miss, miss]);
+    const [turn] = engine.facts().turns;
+    const cells = REPLAY_PRESENTERS.ACE.turn(
+      { turn, before: new AceEngine(config).state(), after: engine.state() },
+      config,
+    );
+    const points = target === 25 ? 6 : 3;
+    expect(
+      cells.map((cell) => (cell.kind === "value" ? cell.value : "")),
+    ).toEqual([String(turn.totalScore), `+${points}`, String(points)]);
+  });
+
+  it("shows a plain zero for a visit that missed the target", () => {
+    const engine = throwDarts([miss, miss, miss]);
+    const [turn] = engine.facts().turns;
+    const cells = REPLAY_PRESENTERS.ACE.turn(
+      { turn, before: new AceEngine(config).state(), after: engine.state() },
+      config,
+    );
+    expect(
+      cells.map((cell) => (cell.kind === "value" ? cell.value : "")),
+    ).toEqual(["0", "0", "0"]);
+  });
+
+  it("ends the session line on each seat's total", () => {
+    const engine = throwDarts([onTarget, miss, miss]);
+    const [turn] = engine.facts().turns;
+    const line = REPLAY_PRESENTERS.ACE.session(
+      [{ turn, before: new AceEngine(config).state(), after: engine.state() }],
+      config,
+    );
+    expect(line.entries).toEqual([
+      {
+        participantId: "p1",
+        label: "Total",
+        value: String(target === 25 ? 6 : 3),
+      },
       { participantId: "p2", label: "Total", value: "0" },
     ]);
   });

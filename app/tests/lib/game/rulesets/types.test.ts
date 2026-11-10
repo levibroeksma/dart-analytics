@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   AroundTheClockConfig,
   BaseballConfig,
+  AceConfig,
   FivesConfig,
   KillerConfig,
   FollowTheLeaderConfig,
@@ -846,6 +847,21 @@ describe("PrisonerConfig", () => {
     expect(PrisonerConfig.safeParse({ darts: 4 }).success).toBe(false);
     expect(
       PrisonerConfig.safeParse({ darts: 3, rule: "DOUBLES" }).success,
+    ).toBe(false);
+  });
+});
+
+describe("AceConfig", () => {
+  it("is ACE_V1's schema: rounds 3-12 and a draw seed", () => {
+    expect(RULESET_CONFIGS.ACE_V1).toBe(AceConfig);
+    expect(AceConfig.safeParse({ rounds: 8, drawSeed: 1 }).success).toBe(true);
+    expect(AceConfig.safeParse({ rounds: 2, drawSeed: 1 }).success).toBe(false);
+    expect(AceConfig.safeParse({ rounds: 13, drawSeed: 1 }).success).toBe(
+      false,
+    );
+    expect(AceConfig.safeParse({ rounds: 8 }).success).toBe(false);
+    expect(
+      AceConfig.safeParse({ rounds: 8, drawSeed: 1, extra: 1 }).success,
     ).toBe(false);
   });
 });

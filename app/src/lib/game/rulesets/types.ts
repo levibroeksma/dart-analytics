@@ -413,6 +413,18 @@ export const TacticsConfig = z.object({}).strict();
 /** Mickey Mouse V1 locks every rule (twelve objectives, marks, double-dip, solo seat) — nothing to configure. */
 export const MickeyMouseConfig = z.object({}).strict();
 
+/**
+ * Ace V1 (`docs/game-rules/rulesets/ace.md`): `rounds` is the editable round
+ * count, 3-12; `drawSeed` is minted per game and keys every round's target
+ * draw (as Random Checkout's, D424). The target pool is locked.
+ */
+export const AceConfig = z
+  .object({
+    rounds: z.number().int().min(3).max(12),
+    drawSeed: z.number().int().min(0).max(0xffffffff),
+  })
+  .strict();
+
 /** Fives V1 locks every rule (target 51, void on an off-board dart, bust on overshoot) — nothing to configure. */
 export const FivesConfig = z.object({}).strict();
 
@@ -525,7 +537,8 @@ export type RulesetVersionKey =
   | "FOLLOW_THE_LEADER_V1"
   | "MICKEY_MOUSE_V1"
   | "PRISONER_V1"
-  | "FIVES_V1";
+  | "FIVES_V1"
+  | "ACE_V1";
 
 /** A game page's route segment (`10-Statistics/00-Overview.md` §6): one key per game, spanning its ruleset versions. */
 export type GameTypeKey =
@@ -545,7 +558,8 @@ export type GameTypeKey =
   | "FOLLOW_THE_LEADER"
   | "MICKEY_MOUSE"
   | "PRISONER"
-  | "FIVES";
+  | "FIVES"
+  | "ACE";
 
 /** A fact tag a ruleset version's engine produces (`10-Statistics/00-Overview.md` §3). */
 export type StatsTag =
@@ -587,6 +601,7 @@ export const RULESET_CONFIGS: Record<RulesetVersionKey, z.ZodTypeAny> = {
   MICKEY_MOUSE_V1: MickeyMouseConfig,
   PRISONER_V1: PrisonerConfig,
   FIVES_V1: FivesConfig,
+  ACE_V1: AceConfig,
 };
 
 export type ScoreTrainingConfigData = z.infer<typeof ScoreTrainingConfig>;
@@ -757,6 +772,14 @@ export type TacticsSnapshot = Record<string, never>;
 /** Mickey Mouse V1 has nothing to configure — no fields to carry. */
 export type MickeyMouseSnapshot = Record<string, never>;
 
+export type AceConfigData = z.infer<typeof AceConfig>;
+
+/** Ace V1: the round count and the draw seed the config carries verbatim. */
+export type AceSnapshot = {
+  rounds: AceConfigData["rounds"];
+  drawSeed: AceConfigData["drawSeed"];
+};
+
 /** Fives V1 has nothing to configure — no fields to carry. */
 export type FivesSnapshot = Record<string, never>;
 
@@ -828,7 +851,9 @@ export type ConfigSnapshotFor<K extends RulesetVersionKey> =
                                                 ? PrisonerSnapshot
                                                 : K extends "FIVES_V1"
                                                   ? FivesSnapshot
-                                                  : BaseballSnapshot;
+                                                  : K extends "ACE_V1"
+                                                    ? AceSnapshot
+                                                    : BaseballSnapshot;
 
 /**
  * One boundary probe: a complete, parseable config plus the label the contract
