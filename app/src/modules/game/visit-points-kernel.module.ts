@@ -1,4 +1,10 @@
-import type { TurnFact, VisitPointsSeat } from "@modules/types";
+import { boardScore } from "./board-progression.module";
+import type {
+  DartFact,
+  DartObservation,
+  TurnFact,
+  VisitPointsSeat,
+} from "@modules/types";
 import type { VisitPointsRules } from "@modules/interfaces";
 
 /** The seat before any turn: no visits, no points, no open visit. */
@@ -68,4 +74,69 @@ export function foldVisitPoints(
     (seat, turn) => applyVisitPointsTurn(seat, turn, rules),
     INITIAL_VISIT_POINTS_SEAT,
   );
+}
+
+/**
+ * The darts a visit would hold if `observation` closed it: the open turn's
+ * darts plus the new one, or `null` when the open turn is not one dart short
+ * of `dartsPerVisit`. Only the fields a `VisitPointsRules` reads are set.
+ */
+export function closingVisitDarts(
+  open: TurnFact | null,
+  observation: DartObservation,
+  dartsPerVisit: number,
+): DartFact[] | null {
+  if (open?.darts.length !== dartsPerVisit - 1) return null;
+  return [
+    ...open.darts,
+    {
+      hitTargetNumber: observation.hitTargetNumber,
+      hitZoneKey: observation.hitZoneKey,
+      score: boardScore(observation.hitTargetNumber, observation.hitZoneKey),
+    } as DartFact,
+  ];
+}
+
+/** The folded state a visit-race spec reads: an outcome, the active seat and each seat's running total. */
+type VisitRaceState = {
+  status: string;
+  activeParticipantRef: string;
+  seats: readonly { participantRef: string; total: number }[];
+};
+
+/**
+ * `DartGameSpec.isVisitOpen` for a visit-race game: a turn takes darts until
+ * it holds `dartsPerVisit`, and only while the game is `IN_PROGRESS`.
+ */
+export function visitRaceVisitOpen(
+  dartsPerVisit: number,
+): (turn: TurnFact, state: VisitRaceState) => boolean {
+  return (turn, state) =>
+    turn.completedAt === null &&
+    turn.darts.length < dartsPerVisit &&
+    state.status === "IN_PROGRESS";
+}
+
+/**
+ * `DartGameSpec.wouldComplete` for a visit-race game: only the dart that
+ * closes the active seat's open visit can end it, and `finishes` judges the
+ * seat's total before the visit against the visit's darts.
+ */
+export function visitRaceWouldComplete(
+  dartsPerVisit: number,
+  finishes: (seatTotal: number, visitDarts: readonly DartFact[]) => boolean,
+): (
+  state: VisitRaceState,
+  observation: DartObservation,
+  config: unknown,
+  open: TurnFact | null,
+) => boolean {
+  return (state, observation, _config, open) => {
+    const darts = closingVisitDarts(open, observation, dartsPerVisit);
+    if (state.status !== "IN_PROGRESS" || darts === null) return false;
+    const seat = state.seats.find(
+      (candidate) => candidate.participantRef === state.activeParticipantRef,
+    )!;
+    return finishes(seat.total, darts);
+  };
 }

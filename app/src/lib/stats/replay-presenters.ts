@@ -458,34 +458,37 @@ const KILLER: ReplayPresenter = {
 };
 
 /**
- * What a Fives visit did to its thrower: `Void` for an off-board dart,
- * `Bust` for an overshoot, else the fives points it booked (`0` when its
- * total does not divide by 5).
+ * A running-total race read off the play page: the visit's dart sum, what
+ * `result` says it did, and the running total; the session line is each
+ * seat's total.
  */
-function fivesResult(prior: FivesSeatState, seat: FivesSeatState): string {
+function totalRacePresenter<TSeat extends SeatState & { total: number }>(
+  result: (turn: TurnFact, prior: TSeat, seat: TSeat) => string,
+): ReplayPresenter {
+  return {
+    turn({ turn, before, after }) {
+      const prior = seatIn<TSeat>(before, turn.participantRef);
+      const seat = seatIn<TSeat>(after, turn.participantRef);
+      return [
+        valueCell("Visit", turn.totalScore),
+        valueCell("Result", result(turn, prior, seat)),
+        valueCell("Total", seat.total),
+      ];
+    },
+    session: (steps) => finalLine<TSeat>(steps, "Total", (seat) => seat.total),
+  };
+}
+
+/**
+ * Fives: `Void` for an off-board dart, `Bust` for an overshoot, else the
+ * fives points the visit booked (`0` when its total does not divide by 5).
+ */
+const FIVES = totalRacePresenter<FivesSeatState>((_turn, prior, seat) => {
   if (seat.voids > prior.voids) return "Void";
   if (seat.busts > prior.busts) return "Bust";
   const booked = seat.total - prior.total;
   return booked > 0 ? `+${booked}` : "0";
-}
-
-/**
- * Fives, read off the play page: the visit's total, what it booked and the
- * running total toward 51; the session line is each seat's total.
- */
-const FIVES: ReplayPresenter = {
-  turn({ turn, before, after }) {
-    const prior = seatIn<FivesSeatState>(before, turn.participantRef);
-    const seat = seatIn<FivesSeatState>(after, turn.participantRef);
-    return [
-      valueCell("Visit", turn.totalScore),
-      valueCell("Result", fivesResult(prior, seat)),
-      valueCell("Total", seat.total),
-    ];
-  },
-  session: (steps) =>
-    finalLine<FivesSeatState>(steps, "Total", (seat) => seat.total),
-};
+});
 
 /**
  * Ace, read off the play page: the visit's board total, the Ace points it
@@ -508,36 +511,14 @@ const ACE: ReplayPresenter = {
 };
 
 /**
- * What a Bull 500 visit did to its thrower: `Locked` when no bull was hit,
- * else the points it booked (`0` for a bull that left no scoring dart).
+ * Bull 500: `Locked` when no bull was hit, else the points the visit booked
+ * (`0` for a bull that left no scoring dart).
  */
-function bull500Result(
-  turn: TurnFact,
-  prior: Bull500SeatState,
-  seat: Bull500SeatState,
-): string {
+const BULL_500 = totalRacePresenter<Bull500SeatState>((turn, prior, seat) => {
   const booked = seat.total - prior.total;
   if (booked > 0) return `+${booked}`;
   return bull500Unlocked(turn.darts) ? "0" : "Locked";
-}
-
-/**
- * Bull 500, read off the play page: the visit's dart sum, what it booked and
- * the running total toward 500; the session line is the seat's total.
- */
-const BULL_500: ReplayPresenter = {
-  turn({ turn, before, after }) {
-    const prior = seatIn<Bull500SeatState>(before, turn.participantRef);
-    const seat = seatIn<Bull500SeatState>(after, turn.participantRef);
-    return [
-      valueCell("Visit", turn.totalScore),
-      valueCell("Result", bull500Result(turn, prior, seat)),
-      valueCell("Total", seat.total),
-    ];
-  },
-  session: (steps) =>
-    finalLine<Bull500SeatState>(steps, "Total", (seat) => seat.total),
-};
+});
 
 /**
  * What one Follow the Leader turn did: `Keep`, `Fail` when the thrower lost

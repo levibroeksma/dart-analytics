@@ -1,12 +1,16 @@
 import type { Bull500Snapshot, Seated } from "@lib/types";
-import { BULL_TARGET_NUMBER, boardScore } from "./board-progression.module";
+import { BULL_TARGET_NUMBER } from "./board-progression.module";
 import {
   dartGameEngineClass,
   dartGameEngineFactory,
 } from "./dart-engine-shell.module";
 import { registerEngineFactory } from "./engine.registry";
 import { endedRefusal } from "./turn-log.module";
-import { foldVisitPoints } from "./visit-points-kernel.module";
+import {
+  foldVisitPoints,
+  visitRaceVisitOpen,
+  visitRaceWouldComplete,
+} from "./visit-points-kernel.module";
 import { activeSeat } from "./seat-rota.module";
 import type { DartGameSpec, VisitPointsRules } from "./interfaces";
 import type {
@@ -131,26 +135,11 @@ const bull500Spec: DartGameSpec<Seated<Bull500Snapshot>, Bull500State> = {
   fold: foldBull500State,
   refusal: (state) => (state.status === "IN_PROGRESS" ? null : GAME_ENDED),
   intent: bull500Intent,
-  isVisitOpen: (turn, state) =>
-    turn.completedAt === null &&
-    turn.darts.length < DARTS_PER_VISIT &&
-    state.status === "IN_PROGRESS",
-  wouldComplete: (state, observation, _config, open) => {
-    if (state.status !== "IN_PROGRESS") return false;
-    if (open?.darts.length !== DARTS_PER_VISIT - 1) return false;
-    const seat = state.seats.find(
-      (candidate) => candidate.participantRef === state.activeParticipantRef,
-    )!;
-    const darts = [
-      ...open.darts,
-      {
-        hitTargetNumber: observation.hitTargetNumber,
-        hitZoneKey: observation.hitZoneKey,
-        score: boardScore(observation.hitTargetNumber, observation.hitZoneKey),
-      } as DartFact,
-    ];
-    return seat.total + bull500VisitPoints(darts) >= BULL_500_TARGET;
-  },
+  isVisitOpen: visitRaceVisitOpen(DARTS_PER_VISIT),
+  wouldComplete: visitRaceWouldComplete(
+    DARTS_PER_VISIT,
+    (total, darts) => total + bull500VisitPoints(darts) >= BULL_500_TARGET,
+  ),
 };
 
 /** Bull 500 engine (Pattern 18), built by the dart engine shell on the Visit points kernel. */

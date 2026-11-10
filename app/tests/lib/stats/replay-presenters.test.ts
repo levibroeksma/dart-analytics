@@ -799,6 +799,23 @@ describe("REPLAY_PRESENTERS.BULL_500", () => {
     ]);
   });
 
+  it("books a later visit against the total the earlier visits left", () => {
+    const engine = new Bull500Engine(config);
+    for (const dart of [bull, t20, hit(20, "OUTER_SINGLE")])
+      engine.record(dart);
+    const afterFirst = engine.state();
+    for (const dart of [bull, hit(20, "OUTER_SINGLE"), hit(20, "OUTER_SINGLE")])
+      engine.record(dart);
+    const turn = engine.facts().turns[1];
+    const cells = REPLAY_PRESENTERS.BULL_500.turn(
+      { turn, before: afterFirst, after: engine.state() },
+      config,
+    );
+    expect(
+      cells.map((cell) => (cell.kind === "value" ? cell.value : "")),
+    ).toEqual(["65", "+40", "120"]);
+  });
+
   it("ends the session line on the seat's total", () => {
     const engine = new Bull500Engine(config);
     for (const dart of [bull, t20, t20]) engine.record(dart);

@@ -2,12 +2,12 @@
 status: canonical
 scope: architecture/patterns
 read-when: solving recurring design problems
-updated: 2026-10-31
+updated: 2026-11-10
 -->
 
 # Architecture Patterns
 
-> **Version:** 1.11.32 (Pattern 18: Visit points kernel gains `visitPoints`; Ace bound 2026-11-10, D543)
+> **Version:** 1.11.33 (Pattern 18: Bull 500 bound on `visitPoints`, `PER_SEAT` single seat, 2026-11-10, D545)
 >
 > A bump replaces this line; the outgoing version goes at the top of that history section, never chained here.
 >
@@ -845,7 +845,7 @@ hand-written opt-out:
 | --- | --- | --- | --- |
 | `TRACK` | walk a target path; hit test, points, visit judgement, seat end | `modules/game/track-kernel.module.ts` (policies: `track-policies.ts`) | built — Doubles Training, Bob's 27, Singles Training, Around the Clock, Shanghai, Target Scoring bound (D468); Target Scoring, Hit Count, SwitchBlade, Doubles Lock, Halve-It, Doubles Snakes & Ladders bound through `trackExerciseSpec` (D469, D478, #993); a dart exercise may declare `ends(state)` to finish on its own state, which the shell then completes (D479, 2026-10-22); Baseball Darts bound through the game shell (2026-10-18). `TrackRules` takes an optional target type, defaulting to `BoardTarget`; a ruleset aiming at a zone (`ANY_DOUBLE`, `ANY_TREBLE`) passes `TrackTarget` (D478, 2026-10-21) |
 | `CHECKOUT` | finish a target score under bust rules; attempt budget; ladder moves | `modules/game/checkout-kernel.module.ts` (policies: `checkout-policies.ts`) | built — Checkout Sequence, Random Checkout, Ten Up One Down (2026-10-27) and 121 (2026-10-28) bound (D500) |
-| `VISIT_POINTS` | points from a visit's darts; goal, bust, void, compare as callers need them | `modules/game/visit-points-kernel.module.ts` | built — Score Threshold bound through `foldVisitPoints` on the exercise shell (D502, 2026-10-27); Score Training on the game shell (D503, 2026-10-28); `voids` (a visit that books nothing) and `goal` (an overshoot is a bust) land with Fives on the game shell, a `SHARED`-stage 2–4 seat spec (D538, 2026-11-08); `visitPoints` (a visit scored from its darts and round index) lands with Ace, a `PER_SEAT` 2–4 seat spec with a seeded target per round (D543, 2026-11-10) |
+| `VISIT_POINTS` | points from a visit's darts; goal, bust, void, compare as callers need them | `modules/game/visit-points-kernel.module.ts` | built — Score Threshold bound through `foldVisitPoints` on the exercise shell (D502, 2026-10-27); Score Training on the game shell (D503, 2026-10-28); `voids` (a visit that books nothing) and `goal` (an overshoot is a bust) land with Fives on the game shell, a `SHARED`-stage 2–4 seat spec (D538, 2026-11-08); `visitPoints` (a visit scored from its darts and round index) lands with Ace, a `PER_SEAT` 2–4 seat spec with a seeded target per round (D543, 2026-11-10); Bull 500 scores by dart order through `visitPoints` (ignoring the index) as a `PER_SEAT` single-seat spec (D545, 2026-11-10) |
 | `MARKS` | marks on categories; close order; closed-number scoring | `modules/game/marks-kernel.module.ts` (primitives: `marks-close.module.ts`) | built — Tactics, Cricket and Mickey Mouse bound through `foldMarks` on the game shell via `marksGameSpec`; `MarksEngine` deleted (D506, 2026-10-29); `dipOf` gives a dart a second mark (D515, 2026-10-30) |
 | `ELIMINATION` | lives, cross-seat effects, last standing | `modules/game/elimination-kernel.module.ts` (policies: `elimination-policies.ts`) | built — Killer bound through `foldElimination` on the game shell, the first `SHARED`-stage shell engine; a visit is open while its turn has no `completedAt` (D501, 2026-10-27); Follow the Leader bound on the same shell, resolving a visit at close: optional `onVisitClose` (a closed turn → seat changes and the next `shared` state), `initShared` (target and leader live in `shared`, not in a seat) and `activeOverride` (rota stays on a seat owed a re-throw); the shell's `visitActions` (STOP, KEEP) close or write a turn, and `turns.kept` stores a keep (D509, 2026-10-29); Prisoner bound on the same shell with two more optional hooks: `reduceDart` (one dart's `VisitOutcome`, may change `shared`; replaces `onDart`) and `decidedWinner` (a ruleset-decided side key beats last-seat-standing, judged on the final folded state), `lives` being darts held (D516, 2026-10-31) |
 | `HAND_WRITTEN` | opt-out: 501 (match format), Warm-Up (dartless), Bull-Up (counting only), the simulations | — | — |

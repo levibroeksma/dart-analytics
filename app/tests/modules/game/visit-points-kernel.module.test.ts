@@ -1,6 +1,9 @@
 import { describe, it, expect } from "vitest";
 import {
   applyVisitPointsTurn,
+  closingVisitDarts,
+  visitRaceVisitOpen,
+  visitRaceWouldComplete,
   foldVisitPoints,
 } from "@modules/game/visit-points-kernel.module";
 import type { VisitPointsRules } from "@modules/interfaces";
@@ -217,6 +220,72 @@ describe("visit points kernel", () => {
       expect(
         foldVisitPoints([hit([1, 1, null]), hit([2, 2, 2])], rules),
       ).toMatchObject({ points: 0, voids: 1, busts: 1 });
+    });
+  });
+
+  describe("closingVisitDarts", () => {
+    const observation = {
+      hitTargetNumber: 20,
+      hitZoneKey: "TREBLE" as const,
+      locationX: null,
+      locationY: null,
+    };
+
+    it("is null without an open turn or when the turn is not one dart short", () => {
+      expect(closingVisitDarts(null, observation, 3)).toBeNull();
+      expect(closingVisitDarts(dartsTurn([5]), observation, 3)).toBeNull();
+      expect(
+        closingVisitDarts(dartsTurn([5, 5, 5]), observation, 3),
+      ).toBeNull();
+    });
+
+    it("appends the observation, scored on the board, to the open darts", () => {
+      const darts = closingVisitDarts(dartsTurn([5, 7]), observation, 3);
+      expect(darts?.map((dart) => dart.score)).toEqual([5, 7, 60]);
+      expect(darts?.[2]).toMatchObject({
+        hitTargetNumber: 20,
+        hitZoneKey: "TREBLE",
+      });
+    });
+  });
+
+  describe("visit race helpers", () => {
+    const state = (status: string) => ({
+      status,
+      activeParticipantRef: "p2",
+      seats: [
+        { participantRef: "p1", total: 10 },
+        { participantRef: "p2", total: 40 },
+      ],
+    });
+    const observation = {
+      hitTargetNumber: 20,
+      hitZoneKey: "TREBLE" as const,
+      locationX: null,
+      locationY: null,
+    };
+
+    it("visitRaceVisitOpen closes at the dart count or when the game ends", () => {
+      const open = visitRaceVisitOpen(3);
+      expect(open(dartsTurn([1, 2]), state("IN_PROGRESS"))).toBe(true);
+      expect(open(dartsTurn([1, 2, 3]), state("IN_PROGRESS"))).toBe(false);
+      expect(open(dartsTurn([1]), state("COMPLETE"))).toBe(false);
+    });
+
+    it("visitRaceWouldComplete judges the active seat's total against the closing darts", () => {
+      const seen: [number, number[]][] = [];
+      const would = visitRaceWouldComplete(3, (total, darts) => {
+        seen.push([total, darts.map((dart) => dart.score)]);
+        return total + 60 >= 100;
+      });
+      const open = dartsTurn([5, 7]);
+      expect(would(state("IN_PROGRESS"), observation, null, open)).toBe(true);
+      expect(seen).toEqual([[40, [5, 7, 60]]]);
+      expect(would(state("COMPLETE"), observation, null, open)).toBe(false);
+      expect(
+        would(state("IN_PROGRESS"), observation, null, dartsTurn([5])),
+      ).toBe(false);
+      expect(would(state("IN_PROGRESS"), observation, null, null)).toBe(false);
     });
   });
 });

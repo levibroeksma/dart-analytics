@@ -280,6 +280,12 @@ describe("bull 500 engine", () => {
     expect(afterMiss.wouldComplete(oMiss)).toBe(false);
   });
 
+  it("wouldComplete is false once the game is complete", () => {
+    const engine = engineAfter([...AT_480, oBull, ot(20), ot(20)]);
+    expect(engine.isComplete()).toBe(true);
+    expect(engine.wouldComplete(os(20))).toBe(false);
+  });
+
   it("intends the bull until the visit unlocks, then the 20, with no ring", () => {
     const [first] = engineAfter([os(1), oBull, os(20), os(1)]).facts().turns;
     expect(first.darts.map((dart) => dart.intendedTargetNumber)).toEqual([
