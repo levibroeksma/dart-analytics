@@ -90,7 +90,9 @@ FROM (
             ('FIVES_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
             ('FIVES_V1', 'ANALYTICS', 'VISUAL_BOARD'),
             ('ACE_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
-            ('ACE_V1', 'ANALYTICS', 'VISUAL_BOARD')
+            ('ACE_V1', 'ANALYTICS', 'VISUAL_BOARD'),
+            ('BULL_500_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
+            ('BULL_500_V1', 'ANALYTICS', 'VISUAL_BOARD')
     ) AS declared(ruleset_key, capture_key, input_key)
     JOIN ruleset_versions rv ON rv.implementation_key = declared.ruleset_key
     JOIN capture_modes cm ON cm.implementation_key = declared.capture_key

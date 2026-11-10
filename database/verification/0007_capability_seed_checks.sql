@@ -51,12 +51,12 @@ CREATE TEMP TABLE verification_results (
 -- ------------------------------------------------------------
 INSERT INTO verification_results
 SELECT '1',
-    'seed inserted exactly the 57 declared rows',
+    'seed inserted exactly the 59 declared rows',
     CASE
-        WHEN count(*) = 57 THEN 'PASS'
+        WHEN count(*) = 59 THEN 'PASS'
         ELSE 'FAIL'
     END,
-    format('expected 57, found %s', count(*))
+    format('expected 59, found %s', count(*))
 FROM ruleset_version_capabilities;
 
 -- ------------------------------------------------------------
@@ -144,7 +144,9 @@ FROM (
             ('FIVES_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
             ('FIVES_V1', 'ANALYTICS', 'VISUAL_BOARD'),
             ('ACE_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
-            ('ACE_V1', 'ANALYTICS', 'VISUAL_BOARD')
+            ('ACE_V1', 'ANALYTICS', 'VISUAL_BOARD'),
+            ('BULL_500_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
+            ('BULL_500_V1', 'ANALYTICS', 'VISUAL_BOARD')
     ) AS declared(ruleset_key, capture_key, input_key)
     LEFT JOIN ruleset_versions rv ON rv.implementation_key = declared.ruleset_key
     LEFT JOIN capture_modes cm ON cm.implementation_key = declared.capture_key
@@ -158,12 +160,12 @@ FROM (
 -- silently read as fewer triples checked, not FAIL.
 INSERT INTO verification_results
 SELECT '2',
-    'all 57 declared triples were actually checked',
+    'all 59 declared triples were actually checked',
     CASE
-        WHEN count(*) = 57 THEN 'PASS'
+        WHEN count(*) = 59 THEN 'PASS'
         ELSE 'FAIL'
     END,
-    format('%s of 57 triple checks ran', count(*))
+    format('%s of 59 triple checks ran', count(*))
 FROM verification_results
 WHERE step = '2';
 
@@ -288,7 +290,9 @@ WHERE NOT EXISTS (
                     ('FIVES_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
                     ('FIVES_V1', 'ANALYTICS', 'VISUAL_BOARD'),
                     ('ACE_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
-                    ('ACE_V1', 'ANALYTICS', 'VISUAL_BOARD')
+                    ('ACE_V1', 'ANALYTICS', 'VISUAL_BOARD'),
+                    ('BULL_500_V1', 'RECREATIONAL', 'DETAILED_DARTS'),
+                    ('BULL_500_V1', 'ANALYTICS', 'VISUAL_BOARD')
             ) AS declared(ruleset_key, capture_key, input_key)
         WHERE declared.ruleset_key = rv.implementation_key
             AND declared.capture_key = cm.implementation_key
