@@ -165,6 +165,8 @@ export function aceRoundScores(
     }));
 }
 
+const isLive = (state: AceState): boolean => state.status === "IN_PROGRESS";
+
 /**
  * Ace's rules for the dart engine shell, one `PER_SEAT` stage per seat
  * (`ace.md`): three darts a visit, no early close.
@@ -173,14 +175,14 @@ const aceSpec: DartGameSpec<Seated<AceSnapshot>, AceState> = {
   rulesetVersionKey: "ACE_V1",
   stageOwnership: "PER_SEAT",
   fold: foldAceState,
-  refusal: (state) => (state.status === "IN_PROGRESS" ? null : GAME_ENDED),
+  refusal: (state) => (isLive(state) ? null : GAME_ENDED),
   intent: () => NO_INTENT,
   isVisitOpen: (turn, state) =>
+    isLive(state) &&
     turn.completedAt === null &&
-    turn.darts.length < DARTS_PER_VISIT &&
-    state.status === "IN_PROGRESS",
+    turn.darts.length < DARTS_PER_VISIT,
   wouldComplete: (state, _observation, config, open) => {
-    if (state.status !== "IN_PROGRESS") return false;
+    if (!isLive(state)) return false;
     if ((open?.darts.length ?? 0) !== DARTS_PER_VISIT - 1) return false;
     const rounds = config.rounds;
     return state.seats.every(

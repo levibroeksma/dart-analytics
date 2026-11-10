@@ -157,6 +157,17 @@ describe("ace engine", () => {
     expect(engine.wouldComplete(miss)).toBe(true);
   });
 
+  it("a finished game neither completes again nor accepts another dart", () => {
+    const engine = new AceEngine(configOf(2, 3));
+    for (let i = 0; i < 18; i++) engine.record(miss);
+    expect(engine.isComplete()).toBe(true);
+    expect(engine.wouldComplete(miss)).toBe(false);
+    expect(() => engine.record(miss)).toThrow();
+    expect(engine.state().seats.every((seat) => seat.dartsInVisit === 0)).toBe(
+      true,
+    );
+  });
+
   it("undo reopens a completed game", () => {
     const config = configOf(2, 3);
     const engine = new AceEngine(config);
