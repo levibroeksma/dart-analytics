@@ -15,6 +15,7 @@ import {
   aceEngineFactory,
   aceTargetFor,
 } from "@modules/game/ace.engine.module";
+import { bull500EngineFactory } from "@modules/game/bull-500.engine.module";
 import { fivesEngineFactory } from "@modules/game/fives.engine.module";
 import { killerEngineFactory } from "@modules/game/killer.engine.module";
 import { followTheLeaderEngineFactory } from "@modules/game/follow-the-leader.engine.module";
@@ -841,6 +842,42 @@ describe("summarizeProgress — BOBS27_V2", () => {
     expect(summarizeProgress("BOBS27_V2", config, EMPTY_FACTS)).toEqual({
       detail: "Double 1 of 21",
       big: { value: "-5", label: "POINTS" },
+    });
+  });
+});
+
+describe("summarizeProgress — BULL_500_V1", () => {
+  const config = {
+    target: 500 as const,
+    live_number: 20 as const,
+    seats: [YOU],
+  };
+  const hit = (
+    number: number | null,
+    zone: "OUTER_SINGLE" | "OUTER_BULL" | "MISS",
+  ) => ({
+    hitTargetNumber: number,
+    hitZoneKey: zone,
+    locationX: null,
+    locationY: null,
+  });
+
+  it("opens on zero toward 500", () => {
+    expect(summarizeProgress("BULL_500_V1", config, EMPTY_FACTS)).toEqual({
+      detail: "Solo · First to 500",
+      big: { value: "0", label: "POINTS" },
+    });
+  });
+
+  it("reads the running total after a scoring visit", () => {
+    const facts = factsAfter(bull500EngineFactory, config, [
+      hit(25, "OUTER_BULL"),
+      hit(20, "OUTER_SINGLE"),
+      hit(20, "OUTER_SINGLE"),
+    ]);
+    expect(summarizeProgress("BULL_500_V1", config, facts)?.big).toEqual({
+      value: "40",
+      label: "POINTS",
     });
   });
 });

@@ -1,20 +1,18 @@
 import type { FivesSnapshot, Seated } from "@lib/types";
 import { registerEngineFactory } from "./engine.registry";
 import { NO_INTENT, endedRefusal } from "./turn-log.module";
-import { boardScore } from "./board-progression.module";
 import {
   dartGameEngineClass,
   dartGameEngineFactory,
 } from "./dart-engine-shell.module";
-import { foldVisitPoints } from "./visit-points-kernel.module";
+import {
+  foldVisitPoints,
+  visitRaceVisitOpen,
+  visitRaceWouldComplete,
+} from "./visit-points-kernel.module";
 import { activeSeat } from "./seat-rota.module";
 import type { DartGameSpec, VisitPointsRules } from "./interfaces";
-import type {
-  DartFact,
-  EngineFacts,
-  FivesSeatState,
-  FivesState,
-} from "./types";
+import type { EngineFacts, FivesSeatState, FivesState } from "./types";
 
 /** The running total a seat must reach exactly to win. */
 export const FIVES_TARGET = 51;
@@ -83,26 +81,12 @@ const fivesSpec: DartGameSpec<Seated<FivesSnapshot>, FivesState> = {
   fold: foldFivesState,
   refusal: (state) => (state.status === "IN_PROGRESS" ? null : GAME_ENDED),
   intent: () => NO_INTENT,
-  isVisitOpen: (turn, state) =>
-    turn.completedAt === null &&
-    turn.darts.length < DARTS_PER_VISIT &&
-    state.status === "IN_PROGRESS",
-  wouldComplete: (state, observation, _config, open) => {
-    if (state.status !== "IN_PROGRESS") return false;
-    if (open?.darts.length !== DARTS_PER_VISIT - 1) return false;
-    const seat = state.seats.find(
-      (candidate) => candidate.participantRef === state.activeParticipantRef,
-    )!;
-    const darts = [
-      ...open.darts,
-      {
-        score: boardScore(observation.hitTargetNumber, observation.hitZoneKey),
-      } as DartFact,
-    ];
-    const total = darts.reduce((sum, dart) => sum + dart.score, 0);
-    const earned = FIVES_RULES.voids!(darts) ? 0 : fivesPoints(total);
-    return seat.total + earned === FIVES_TARGET;
-  },
+  isVisitOpen: visitRaceVisitOpen(DARTS_PER_VISIT),
+  wouldComplete: visitRaceWouldComplete(DARTS_PER_VISIT, (total, darts) => {
+    const visitTotal = darts.reduce((sum, dart) => sum + dart.score, 0);
+    const earned = FIVES_RULES.voids!(darts) ? 0 : fivesPoints(visitTotal);
+    return total + earned === FIVES_TARGET;
+  }),
 };
 
 /** Fives engine (Pattern 18), built by the dart engine shell on the Visit points kernel. */

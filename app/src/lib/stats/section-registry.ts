@@ -405,6 +405,7 @@ export const RESULT_DIRECTION: Readonly<Record<GameTypeKey, ResultDirection>> =
     KILLER: null,
     FIVES: null,
     ACE: null,
+    BULL_500: null,
     FOLLOW_THE_LEADER: null,
     PRISONER: null,
   };

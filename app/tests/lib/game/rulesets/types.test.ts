@@ -5,6 +5,7 @@ import {
   ACE_ROUNDS_MAX,
   ACE_ROUNDS_MIN,
   AceConfig,
+  Bull500Config,
   FivesConfig,
   KillerConfig,
   FollowTheLeaderConfig,
@@ -885,5 +886,25 @@ describe("FivesConfig", () => {
     expect(RULESET_CONFIGS.FIVES_V1).toBe(FivesConfig);
     expect(FivesConfig.safeParse({}).success).toBe(true);
     expect(FivesConfig.safeParse({ target: 61 }).success).toBe(false);
+  });
+});
+
+describe("Bull500Config", () => {
+  it("is BULL_500_V1's strict locked schema", () => {
+    expect(RULESET_CONFIGS.BULL_500_V1).toBe(Bull500Config);
+    expect(
+      Bull500Config.safeParse({ target: 500, live_number: 20 }).success,
+    ).toBe(true);
+    expect(Bull500Config.safeParse({}).success).toBe(false);
+    expect(
+      Bull500Config.safeParse({ target: 300, live_number: 20 }).success,
+    ).toBe(false);
+    expect(
+      Bull500Config.safeParse({ target: 500, live_number: 19 }).success,
+    ).toBe(false);
+    expect(
+      Bull500Config.safeParse({ target: 500, live_number: 20, extra: 1 })
+        .success,
+    ).toBe(false);
   });
 });

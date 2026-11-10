@@ -210,6 +210,20 @@ describe("fives engine", () => {
     expect(new FivesEngine(duel).wouldComplete(s(10))).toBe(false);
   });
 
+  it("wouldComplete judges the active seat's own total, not the first seat's", () => {
+    const engine = engineAfter([
+      ...missVisit,
+      ...A_AT_36.slice(0, 3),
+      ...missVisit,
+      t(15),
+      s(20),
+    ]);
+    expect(engine.state().activeParticipantRef).toBe("p2");
+    expect(seatOf(engine.state(), "p1").total).toBe(0);
+    expect(engine.wouldComplete(s(10))).toBe(true);
+    expect(engine.wouldComplete(s(11))).toBe(false);
+  });
+
   it("writes NO_INTENT and the board score", () => {
     const [first] = engineAfter([t(20)]).facts().turns[0].darts;
     expect(first).toMatchObject({

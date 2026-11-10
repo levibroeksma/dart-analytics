@@ -44,6 +44,10 @@ import {
   foldFivesState,
 } from "@modules/game/fives.engine.module";
 import {
+  BULL_500_TARGET,
+  foldBull500State,
+} from "@modules/game/bull-500.engine.module";
+import {
   foldAroundTheClockState,
   rulesOf,
 } from "@modules/game/around-the-clock.engine.module";
@@ -70,6 +74,7 @@ import type {
   FollowTheLeaderSnapshot,
   AceSnapshot,
   FivesSnapshot,
+  Bull500Snapshot,
   KillerSnapshot,
   PrisonerSnapshot,
   ScoreTrainingSnapshot,
@@ -262,6 +267,16 @@ function ace(config: Seated<AceSnapshot>, facts: EngineFacts): SessionProgress {
   };
 }
 
+function bull500(
+  config: Seated<Bull500Snapshot>,
+  facts: EngineFacts,
+): SessionProgress {
+  return {
+    detail: joinSubtitle(["Solo", `First to ${BULL_500_TARGET}`]),
+    big: big(activeOf(foldBull500State(facts, config))?.total, "POINTS"),
+  };
+}
+
 function followTheLeader(
   config: Seated<FollowTheLeaderSnapshot>,
   facts: EngineFacts,
@@ -392,6 +407,7 @@ const SUMMARIZERS: Readonly<Record<string, Summarizer>> = {
   KILLER_V1: killer,
   FIVES_V1: fives,
   ACE_V1: ace,
+  BULL_500_V1: bull500,
   FOLLOW_THE_LEADER_V1: followTheLeader,
   PRISONER_V1: prisoner,
   SCORE_TRAINING_V1: scoreTraining,
