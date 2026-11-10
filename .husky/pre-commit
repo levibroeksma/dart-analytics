@@ -17,6 +17,8 @@ scripts/check-file-locations.sh
 scripts/check-agent-mirrors.sh
 scripts/check-skill-pointers.sh
 scripts/check-worktree-location.sh
+scripts/check-history-versions.sh
+scripts/test-check-history-versions.sh
 scripts/check-astro-class-composition.sh
 scripts/check-astro-conventions.sh
 scripts/check-game-engines.sh

@@ -33,6 +33,8 @@ jobs:
         run: bash scripts/check-context-budget.sh
       - name: Decision-id integrity gate
         run: bash scripts/check-decision-ids.sh
+      - name: History-version order gate
+        run: bash scripts/check-history-versions.sh && bash scripts/test-check-history-versions.sh
       - name: Game-engine contract gate
         run: bash scripts/check-game-engines.sh
       - name: Engine-kernel family gate

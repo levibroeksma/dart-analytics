@@ -17,6 +17,8 @@ updated: 2026-11-09
 
 # Version History
 
+> **Version:** 1.218.0 (2026-11-10 — History-version guard: `scripts/check-history-versions.sh` + fixture test fail a duplicate or ascending version at or above 1.200.0; `.gitattributes` unions `00-Context-Map-History.md` on a local merge so parallel PRs no longer conflict there; wired into pre-commit, `quality.yml`, `run-all-gates`)
+
 > **Version:** 1.217.0 (2026-11-10 — Session retro fixes: `check-seed-ids.sh` + fixture test (pre-commit, `quality.yml`); `local-pg.sh` throwaway Postgres; `db:drift`/`db:seed`/`db:verify` read `.env` only if present; ruleset-count assertion derived from `RULESET_CONFIGS`, one `0007` triple count; `integration.yml` adds the `github-actions` reporter)
 >
 > **Version:** 1.216.0 (2026-11-10 — Ace V1 screens (PR 2): `ace-{seats,setup,play}` in `lib/game`, `Ace*` components and pages, games-page card, `register-route-data.ts`; `ACE_ROUNDS_MIN`/`ACE_ROUNDS_MAX` in `rulesets/types.ts`; the draw seed is minted at Start and on Play Again and sent as a config override; `ace.md` ships V1 on two seats (three or four deferred behind the one-guest setup and two-seat scoreboard, as Fives))
