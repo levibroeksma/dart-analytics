@@ -12,40 +12,4 @@ if [ -d app/node_modules ]; then
 else
   echo "SKIP: app/node_modules absent — lint-staged not run." >&2
 fi
-GATES="
-scripts/check-file-locations.sh
-scripts/check-agent-mirrors.sh
-scripts/check-skill-pointers.sh
-scripts/check-worktree-location.sh
-scripts/check-history-versions.sh
-scripts/test-check-history-versions.sh
-scripts/check-astro-class-composition.sh
-scripts/check-astro-conventions.sh
-scripts/check-game-engines.sh
-scripts/check-engine-kernels.sh
-scripts/test-check-engine-kernels.sh
-scripts/check-refinement-coverage.sh
-scripts/check-type-barrels.sh
-scripts/check-alias-sync.sh
-scripts/check-constraint-mirror.sh
-scripts/check-no-inline-comments.sh
-scripts/check-style-tokens.sh
-scripts/check-game-wiring.sh
-scripts/check-game-rules.sh
-scripts/test-check-game-rules.sh
-scripts/check-tag-seeds.sh
-scripts/test-check-tag-seeds.sh
-scripts/check-seed-ids.sh
-scripts/test-check-seed-ids.sh
-scripts/check-test-coverage.sh
-"
-COUNT=0
-for gate in $GATES; do
-  if ! OUT=$(bash "$gate" 2>&1); then
-    echo "$OUT" >&2
-    echo "pre-commit: $gate failed" >&2
-    exit 1
-  fi
-  COUNT=$((COUNT + 1))
-done
-echo "pre-commit: $COUNT gates passed"
+sh scripts/run-precommit-gates.sh

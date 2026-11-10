@@ -17,6 +17,7 @@ bash scripts/check-agent-mirrors.sh
 bash scripts/check-file-locations.sh
 bash scripts/check-skill-pointers.sh
 bash scripts/check-worktree-location.sh
+bash scripts/check-gate-wiring.sh
 bash scripts/check-test-coverage.sh
 bash scripts/check-doc-sync.sh
 bash scripts/check-history-versions.sh
@@ -62,6 +63,8 @@ cd app && npm run validate:app && cd ..
 bash scripts/check-astro-class-composition.sh
 bash scripts/check-astro-conventions.sh
 bash scripts/check-game-engines.sh
+bash scripts/check-engine-kernels.sh
+bash scripts/test-check-engine-kernels.sh
 bash scripts/check-refinement-coverage.sh
 bash scripts/check-type-barrels.sh
 bash scripts/check-alias-sync.sh
@@ -80,6 +83,7 @@ bash scripts/test-check-file-mode.sh
 bash scripts/test-check-test-repointing.sh
 bash scripts/test-edit-gate.sh
 bash scripts/test-block-main-commit.sh
+bash scripts/test-precommit-scope.sh
 bash scripts/test-reuse-lookup.sh
 bash scripts/test-check-dupes.sh
 bash scripts/test-check-quality-benchmarks.sh

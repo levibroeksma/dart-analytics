@@ -381,6 +381,10 @@ Registered for discoverability, not as reading material — the rules live in `0
 | `scripts/test-check-file-mode.sh` | Fixture test for the per-file mode (`CHECK_ROOT=<dir> bash scripts/check-X.sh <relpath>...`) of the five edit-time gate scripts (2026-10-30) | canonical |
 | `scripts/check-test-repointing.sh` | Non-blocking D148 nudge: lists changed test files whose assertions changed with no `describe`/`it` title changed; a pure `expect(...)` subject rename is skipped; run by the `test-repointing-heuristic` job in `pr-gates.yml` (2026-11-09) | canonical |
 | `scripts/test-check-test-repointing.sh` | Fixture test for `check-test-repointing.sh`: literal changed, subject renamed only, title changed, no assertion change (2026-11-09) | canonical |
+| `scripts/precommit-gates.tsv` | The pre-commit gate table: `<script><TAB><regex>`; a row with a regex runs only when a staged path matches (D551, 2026-11-10) | canonical |
+| `scripts/run-precommit-gates.sh` | Runs the gate table for `.husky/pre-commit`; prints `<ran> gates passed, <skipped> skipped by path` (D551, 2026-11-10) | canonical |
+| `scripts/test-precommit-scope.sh` | Fixture test for the gate table's path scoping (D551, 2026-11-10) | canonical |
+| `scripts/check-gate-wiring.sh` | Gate-wiring gate: every `check-*.sh` / `test-*.sh` is named in CI and the `run-all-gates` skill; pre-commit rows resolve; a `check-*.sh` outside pre-commit carries a reason (D551, 2026-11-10) | canonical |
 | `scripts/test-block-main-commit.sh` | Fixture test for `.claude/hooks/block-main-commit.py`: 11 command forms on `main` and on a task branch (D550, 2026-11-10) | canonical |
 | `scripts/test-edit-gate.sh` | Fixture test for `.claude/hooks/edit-gate.py`: blocks an edit that adds a gate violation, allows a clean or pre-existing one, fails open (2026-10-30) | canonical |
 | `scripts/test-reuse-lookup.sh` | Fixture test for `.claude/hooks/reuse-lookup.py`: inventory and graph matches, once-per-session, overwrite, unwatched path, bad stdin (2026-10-30) | canonical |
