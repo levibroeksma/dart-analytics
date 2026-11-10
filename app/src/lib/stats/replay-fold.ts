@@ -7,6 +7,7 @@ import "@modules/game/five-oh-one.engine.module";
 import "@modules/game/follow-the-leader.engine.module";
 import "@modules/game/killer.engine.module";
 import "@modules/game/fives.engine.module";
+import "@modules/game/ace.engine.module";
 import "@modules/game/one-twenty-one.engine.module";
 import "@modules/game/prisoner.engine.module";
 import "@modules/game/score-training.engine.module";

@@ -18,7 +18,8 @@ const INITIAL_VISIT_POINTS_SEAT: VisitPointsSeat = Object.freeze({
  * The Visit points kernel's one reducer (Pattern 18 §Rule-kernel families).
  * A turn's total is its dart sum, or its stored `totalScore` when it has no
  * darts (a keypad visit). A turn closes at `rules.dartsPerVisit` darts or
- * when dartless, and adds `rules.points(total)`; a shorter turn is the open
+ * when dartless, and adds `rules.points(total)` — or `rules.visitPoints` of
+ * its darts and the seat's zero-based visit index; a shorter turn is the open
  * visit, counted in `openTotal`/`dartsInVisit` but not yet scored. A visit
  * `rules.voids` marks books nothing; one that would pass `rules.goal` is a
  * bust and books nothing.
@@ -38,7 +39,11 @@ export function applyVisitPointsTurn(
     return { ...seat, openTotal: total, dartsInVisit: darts, dartsThrown };
   }
   const voided = rules.voids?.(turn.darts) ?? false;
-  const earned = voided ? 0 : rules.points(total);
+  const earned = voided
+    ? 0
+    : rules.visitPoints
+      ? rules.visitPoints(turn.darts, seat.visits)
+      : rules.points(total);
   const busted = rules.goal !== undefined && seat.points + earned > rules.goal;
   const booked = busted ? 0 : earned;
   return {

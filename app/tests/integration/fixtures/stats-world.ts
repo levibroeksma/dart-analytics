@@ -170,6 +170,12 @@ export const GAME_FIXTURES: Record<GameTypeKey, GameFixture> = {
     configuration: {},
     script: UNIVERSAL_SCRIPT,
   },
+  ACE: {
+    rulesetVersionKey: "ACE_V1",
+    stageTypeKey: "EXERCISE_BLOCK",
+    configuration: { rounds: 8, drawSeed: 1 },
+    script: UNIVERSAL_SCRIPT,
+  },
   FOLLOW_THE_LEADER: {
     rulesetVersionKey: "FOLLOW_THE_LEADER_V1",
     stageTypeKey: "EXERCISE_BLOCK",
@@ -204,7 +210,7 @@ export async function seedStatsWorld(db: Db): Promise<StatsWorld> {
   for (const [index, game] of games.entries()) {
     const fixture = GAME_FIXTURES[game];
     gameSessions[game] = await insertSession(db, {
-      base: 0xa1000 + index * 0x100,
+      base: 0xa4000 + index * 0x100,
       activityId: STANDALONE_ACTIVITY_ID,
       playerId: FIXTURE_PLAYER,
       exerciseTypeKey: "GAME",

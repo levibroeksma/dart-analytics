@@ -518,6 +518,28 @@ describe("rejectSeatRequest — KILLER_V1", () => {
   });
 });
 
+describe("rejectSeatRequest — ACE_V1", () => {
+  const seat = (sideKey: string) => ({
+    participantTypeKey: "GUEST" as const,
+    sideKey,
+    displayName: `Seat ${sideKey}`,
+  });
+  const owner = { ...seat("A"), participantTypeKey: "PLAYER" as const };
+
+  it("needs at least two seats", () => {
+    expect(rejectSeatRequest([owner], "ACE_V1")).toBe(
+      "ACE_V1 needs at least 2 seats.",
+    );
+  });
+
+  it("accepts two to four seats", () => {
+    expect(rejectSeatRequest([owner, seat("B")], "ACE_V1")).toBeNull();
+    expect(
+      rejectSeatRequest([owner, seat("B"), seat("C"), seat("D")], "ACE_V1"),
+    ).toBeNull();
+  });
+});
+
 describe("rejectSeatRequest — FIVES_V1", () => {
   const seat = (sideKey: string) => ({
     participantTypeKey: "GUEST" as const,
