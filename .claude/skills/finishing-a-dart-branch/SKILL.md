@@ -24,6 +24,7 @@ The Hard Invariant in root `CLAUDE.md` already requires every completed task's b
 - **Open the PR, don't just push.** After `git push -u origin <branch>`, create the PR immediately; check for a PR template first.
 - **Watch it from creation.** Call `subscribe_pr_activity` on the new PR in the same step that opens it, never later and never only when asked (D540). While subscribed, fix every gate or test failure and push until CI is fully green on the current head (reproduce, fix, run the check locally first); then call `unsubscribe_pr_activity`. Never unsubscribe on a red or pending run. Where the harness has no such tool, say so in the completion report.
 - **Drive it to green.** The posture is "PRs you created — yours to drive": for every CI failure or review comment, push a fix or reply explaining why not. Never leave a wake silent.
+- **Judge a failure by its head.** A `check_run` event names its `head_sha`. When that is not the branch's current HEAD, the run is superseded by a later push: wait for the run on the current head instead of investigating the old one.
 - **Never `--no-verify`.** A pre-commit or pre-push hook failure is fixed at its cause and re-staged, never bypassed.
 
 ## Step 6: cleanup
