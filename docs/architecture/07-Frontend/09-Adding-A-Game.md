@@ -2,7 +2,7 @@
 status: canonical
 scope: the file fan-out a new game requires, and the shapes it must reuse
 read-when: adding a game, or changing anything a game is wired into
-updated: 2026-11-09
+updated: 2026-11-10
 -->
 
 # Adding a Game
@@ -76,6 +76,20 @@ any engine that breaks this, and a new engine joins it automatically.
 Run `bash scripts/check-dupes.sh` in the engine task, not the last one: it
 is not a pre-commit gate, and a clone group forces a refactor of the shared
 kernel plus covering test edits (`check-test-coverage.sh`).
+
+## Screens PR (kernel-bound)
+
+The second PR of an engine-first game is the previous game's screens commit
+with the names changed. `git show --stat c097cae` (Fives) lists every file it
+touched; `bash scripts/scaffold-game-screens.sh <Pascal> <code-slug> <route-slug>`
+writes the nine screen files from it (it does not touch the shared registries
+or the tests below).
+
+A game seats two players on screen: setup seats one guest or bot
+(`lib/game/guest-list.ts`) and the play screen draws two seats
+(`SplitScoreboard.astro`), whatever the engine takes. A 2+ seat game ships 1v1,
+and its rules file records `Three or four seats | Deferred | 2+ | Blocked on: …`
+with the wording `fives.md` uses.
 
 ## The touch list
 
@@ -151,7 +165,18 @@ Setup form shape (2026-11-09):
 | `lib/game/<code-slug>-setup.data.test.ts` | Setup. *Engine-only skips.* |
 | `lib/game/<code-slug>-play.data.test.ts` | Play. *Engine-only skips.* |
 | `app/tests/lib/game/rulesets/capabilities.test.ts` | **shared** |
-| `app/tests/lib/game/rulesets/games-visibility.test.ts` | **shared**. *Engine-only skips.* |
+| `app/tests/lib/game/rulesets/games-visibility.test.ts` | **shared**: the key joins each list the card appears in (all cards, ANALYTICS-capable, grouped). *Engine-only skips.* |
+| `app/tests/lib/client/alpine/register-route-data.test.ts` | **shared** — the two controllers in its registration list. *Engine-only skips.* |
+| `app/tests/lib/game/support/factories.ts` | **shared** — the two controllers in `FACTORIES`; then `cd app && npx vitest run tests/lib/game -u` writes their `factory-surface` snapshot. *Engine-only skips.* |
+
+### Docs owed
+
+| File | What goes in it |
+| ---- | --------------- |
+| `00-File-Inventory.md` | Rows for the data files, the components and the two pages |
+| `07-Frontend/08-Component-Inventory.md` | A row for each new input component |
+| `00-Context-Map-History.md` | One entry above the newest version; `check-history-versions.sh` fails a duplicate |
+| `docs/game-rules/rulesets/<game>.md` | `Current version: V1 (shipped YYYY-MM-DD)`, the `Blocked on:` row for seats |
 
 ### `database/`
 
