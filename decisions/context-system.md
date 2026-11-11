@@ -370,3 +370,10 @@ Decision: `scripts/check-html-parity.sh` builds the app and compares every prere
 Reason: `.astro` markup has no unit-test runner here (D101), so a template split had no proof beyond reading the diff. All 49 pages prerender and no component has a scoped style, so the build output is a complete record of the markup.
 Consequences: a markup refactor is done when the script prints `html parity: 49 files identical`. It cannot see a component no page renders, markup built by a client script, or a hashed asset. Two builds of one tree differed on six pages before the id mask.
 Supersedes: none
+
+### D555 — Three skills carry the quality refactor shapes; an edit-time hook reports a new long function
+Status: Accepted · Date: 2026-11-11
+Decision: (1) Skills `refactoring-without-behaviour-change` (paired with `superpowers:test-driven-development` in root `CLAUDE.md`), `composing-alpine-factories` (path-scoped to `*.data.ts` and `stores/`) and `checking-quality-benchmarks` (reads a gate failure; `run-all-gates` points at it). (2) `.claude/hooks/unit-size-note.py` runs after every Edit/Write under `app/src`: it analyses the edited file alone, and its HEAD version alone, with the pinned fallow, and adds one context line when the count of functions over 60 lines went up. It never blocks and exits 0 on any error. (3) The plan's `fallow audit --gate new-only` CI step is not added.
+Reason: the quality-benchmark gate reports a long function only in CI, after the work is done; the hook reports it while the file is open. `fallow audit` was probed with a new 70-line function and did not flag it (unit size is not an audit finding); what it does flag, the fallow gate and the clone ratchet already block.
+Consequences: an agent sees the limit at edit time, about 0.3 s per edit. The blocker stays `check-quality-benchmarks.sh` in `quality / app`. A file with no `app/node_modules` gets no note.
+Supersedes: none

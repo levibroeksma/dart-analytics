@@ -40,7 +40,10 @@
       "Read(./app/src/db/schema.ts)"
     ]
   },
-  "claudeMdExcludes": ["**/.worktrees/**", "**/.claude/worktrees/**"],
+  "claudeMdExcludes": [
+    "**/.worktrees/**",
+    "**/.claude/worktrees/**"
+  ],
   "hooks": {
     "WorktreeCreate": [
       {
@@ -111,6 +114,17 @@
             "type": "command",
             "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-start.sh\"",
             "statusMessage": "Installing superpowers plugin"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -f \"$CLAUDE_PROJECT_DIR/.claude/hooks/unit-size-note.py\" ] && python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/unit-size-note.py\" || true"
           }
         ]
       }

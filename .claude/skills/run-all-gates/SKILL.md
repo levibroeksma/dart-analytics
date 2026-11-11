@@ -85,6 +85,7 @@ bash scripts/test-edit-gate.sh
 bash scripts/test-block-main-commit.sh
 bash scripts/test-precommit-scope.sh
 bash scripts/test-check-html-parity.sh
+bash scripts/test-unit-size-note.sh
 bash scripts/test-reuse-lookup.sh
 bash scripts/test-check-dupes.sh
 bash scripts/test-check-quality-benchmarks.sh
@@ -115,6 +116,8 @@ Durable id-integrity guard for the split ledger (uniqueness, no id regression ag
 ## If only `docs/` changed
 
 The "Always run" scripts above already cover doc consistency (context map, links, token budget). No additional scripts apply — also review `docs/CLAUDE.md`'s Editing Workflow by hand (canonical-doc-first, cascade to secondary docs), which is not mechanized. If the changed docs are under `decisions/` or `DECISIONS.md`, see the section above instead.
+
+A fallow, clone or benchmark gate failed: load the `checking-quality-benchmarks` skill before changing anything.
 
 ## Reporting
 

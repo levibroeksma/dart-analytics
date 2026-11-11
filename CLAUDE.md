@@ -30,6 +30,7 @@ Where a plugin skill and this repo disagree, load both — the plugin skill for 
 | ------------ | --------- | ------------- |
 | `superpowers:finishing-a-development-branch` | `finishing-a-dart-branch` skill | Step 4's menu is skipped — Option 2 (push + PR), every time |
 | `superpowers:test-driven-development` | `app/CLAUDE.md` §Test-Driven Development | the repo's red→green→refactor procedure and `npm test` commands (D99) |
+| `superpowers:test-driven-development` | `refactoring-without-behaviour-change` skill | for a refactor, the red step is a characterization test that passes on the old code (D555) |
 | `superpowers:verification-before-completion` | `run-all-gates` skill | which command actually proves a claim here |
 | `superpowers:executing-plans`, `superpowers:subagent-driven-development` | `capturing-discovered-work` skill | incidental findings become GitHub issues; they are never fixed in the same pass |
 | `superpowers:writing-plans`, `superpowers:executing-plans`, `superpowers:subagent-driven-development` | `syncing-design-system` skill § 11–12 | visual choices the spec leaves open follow the Design System artifact; before the PR, the owner is asked whether to run the design sync (D524) |
