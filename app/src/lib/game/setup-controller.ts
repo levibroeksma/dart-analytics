@@ -93,6 +93,23 @@ export function createPresetSetupController<Ctx extends PresetSetupContext>(
   };
 }
 
+/** The play snapshot of a preset: its configuration with the overrides, when given, laid over it. */
+function presetSnapshot(
+  rulesetVersionKey: RulesetVersionKey,
+  preset: ConfigurationPresetData,
+  overrides: Record<string, unknown> | undefined,
+) {
+  return toSnapshot(
+    rulesetVersionKey,
+    overrides
+      ? {
+          ...(preset.configuration as Record<string, unknown>),
+          ...overrides,
+        }
+      : preset.configuration,
+  );
+}
+
 /**
  * Starts a session from one configuration preset: snapshot the preset's
  * configuration with `overrides` laid over it, create the session, push it
@@ -119,15 +136,7 @@ export async function startPresetSession<Ctx extends PresetSetupContext>(
   ctx.loading = true;
   ctx.error = "";
   try {
-    const configSnapshot = toSnapshot(
-      rulesetVersionKey,
-      overrides
-        ? {
-            ...(preset.configuration as Record<string, unknown>),
-            ...overrides,
-          }
-        : preset.configuration,
-    );
+    const configSnapshot = presetSnapshot(rulesetVersionKey, preset, overrides);
     const modePair = resolveSessionModePair(
       rulesetVersionKey,
       ctx.$store.settings,

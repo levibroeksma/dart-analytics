@@ -142,6 +142,71 @@ export function magnifierPlacement(
 
 const DEFAULT_MAGNIFIER_SIZE = 120;
 
+/** One press in flight: where it is, where its magnifier sits, and whether it is live. */
+type PressState = {
+  point: BoardCoordinate | null;
+  placement: MagnifierPlacement | null;
+  side: MagnifierSide | null;
+  active: boolean;
+  readonly magnifierSize: number;
+  readonly handedness: NonNullable<BoardInputOptions["handedness"]>;
+};
+
+/** Moves the press to the pointer; false when the pointer has no board point. The magnifier side is chosen once per press. */
+function trackPress(
+  state: PressState,
+  options: BoardInputOptions,
+  pointer: BoardPointer,
+): boolean {
+  const board = options.toBoard(pointer);
+  if (!board) return false;
+
+  state.point = board;
+  const viewport = options.viewport ?? { width: 0, height: 0 };
+  if (!state.side) {
+    state.side = resolveMagnifierSide(
+      pointer,
+      viewport,
+      state.handedness,
+      state.magnifierSize,
+    );
+  }
+  state.placement = clampMagnifierPlacement(
+    pointer,
+    viewport,
+    state.side,
+    state.magnifierSize,
+  );
+  return true;
+}
+
+/** Ends the press: inert, nothing to preview. */
+function resetPress(state: PressState): void {
+  state.active = false;
+  state.point = null;
+  state.placement = null;
+  state.side = null;
+}
+
+/** Ends the press and commits the dart at its last point; a press with no point commits nothing. */
+function releasePress(state: PressState, options: BoardInputOptions): void {
+  if (!state.active || !state.point) {
+    resetPress(state);
+    return;
+  }
+
+  const hit = classify(state.point.x, state.point.y);
+  const committed = state.point;
+  resetPress(state);
+
+  options.onCommit({
+    hitTargetNumber: hit.targetNumber,
+    hitZoneKey: hit.zoneKey,
+    locationX: committed.x,
+    locationY: committed.y,
+  });
+}
+
 /**
  * The press-drag-release cycle over the board.
  *
@@ -157,87 +222,54 @@ const DEFAULT_MAGNIFIER_SIZE = 120;
  * report a live press it cannot honour.
  */
 export function boardInput(options: BoardInputOptions): BoardInputController {
-  const magnifierSize = options.magnifierSize ?? DEFAULT_MAGNIFIER_SIZE;
-  const handedness = options.handedness ?? "RIGHT";
-
-  let point: BoardCoordinate | null = null;
-  let placement: MagnifierPlacement | null = null;
-  let side: MagnifierSide | null = null;
-  let active = false;
-
-  function track(pointer: BoardPointer): boolean {
-    const board = options.toBoard(pointer);
-    if (!board) return false;
-
-    point = board;
-    const viewport = options.viewport ?? { width: 0, height: 0 };
-    if (!side) {
-      side = resolveMagnifierSide(pointer, viewport, handedness, magnifierSize);
-    }
-    placement = clampMagnifierPlacement(pointer, viewport, side, magnifierSize);
-    return true;
-  }
-
-  function reset(): void {
-    active = false;
-    point = null;
-    placement = null;
-    side = null;
-  }
+  const state: PressState = {
+    point: null,
+    placement: null,
+    side: null,
+    active: false,
+    magnifierSize: options.magnifierSize ?? DEFAULT_MAGNIFIER_SIZE,
+    handedness: options.handedness ?? "RIGHT",
+  };
 
   return {
     get active() {
-      return active;
+      return state.active;
     },
     get preview() {
-      return point ? classify(point.x, point.y) : null;
+      return state.point ? classify(state.point.x, state.point.y) : null;
     },
     get point() {
-      return point;
+      return state.point;
     },
     get placement() {
-      return placement;
+      return state.placement;
     },
     get magnifierSize() {
-      return magnifierSize;
+      return state.magnifierSize;
     },
     get pxPerMm() {
       return options.pxPerMm ? options.pxPerMm() : DEFAULT_PX_PER_MM;
     },
 
     press(pointer) {
-      active = track(pointer);
+      state.active = trackPress(state, options, pointer);
     },
 
     move(pointer) {
-      if (!active) return;
-      track(pointer);
+      if (!state.active) return;
+      trackPress(state, options, pointer);
     },
 
     release() {
-      if (!active || !point) {
-        reset();
-        return;
-      }
-
-      const hit = classify(point.x, point.y);
-      const committed = point;
-      reset();
-
-      options.onCommit({
-        hitTargetNumber: hit.targetNumber,
-        hitZoneKey: hit.zoneKey,
-        locationX: committed.x,
-        locationY: committed.y,
-      });
+      releasePress(state, options);
     },
 
     cancel() {
-      reset();
+      resetPress(state);
     },
 
     commitUnseen() {
-      reset();
+      resetPress(state);
       options.onCommit({
         hitTargetNumber: null,
         hitZoneKey: "MISS",

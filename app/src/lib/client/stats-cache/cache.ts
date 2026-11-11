@@ -475,6 +475,51 @@ function regroupMonthsIntoYears<M>(
     })) as CachedSeries<M>["buckets"];
 }
 
+/** Fetches one chunk window from the server and stores it once the window has closed. */
+async function fetchChunk<M>(
+  db: IDBDatabase,
+  fetcher: SeriesFetcher<M>,
+  now: Date,
+  chunk: {
+    key: string;
+    requestBucket: Bucket;
+    window: { from: string; to: string };
+  },
+): Promise<CachedSeries<M>> {
+  const { key, requestBucket, window } = chunk;
+  const response = await fetcher({
+    from: window.from,
+    to: window.to,
+    bucket: requestBucket,
+  });
+  if (Date.parse(window.to) <= now.getTime()) {
+    await putRecord(
+      db,
+      SECTION_RESULTS,
+      chunkKey(key, requestBucket, window.from),
+      response,
+    );
+  }
+  return response;
+}
+
+/** The buckets of the whole range: one merged bucket for `none`, months regrouped for `year`, else every chunk's buckets in start order. */
+function rangeBuckets<M>(
+  bucket: Bucket,
+  merge: (a: unknown, b: unknown) => unknown,
+  windows: ReturnType<typeof chunkWindows>,
+  chunks: CachedSeries<M>[],
+  tz: string,
+) {
+  if (bucket === "none") return mergeNoneChunks(merge, chunks);
+  if (bucket === "year") {
+    return regroupMonthsIntoYears(merge, windows, chunks, tz);
+  }
+  return chunks
+    .flatMap((chunk) => chunk.buckets)
+    .sort((a, b) => a.start.localeCompare(b.start));
+}
+
 /**
  * `readSection`'s path for a server-computed section (`00-Overview.md` §4,
  * phase-3 decision 2): the request splits into `chunkWindows`, each chunk is
@@ -520,32 +565,16 @@ async function readServerSection<M>(
       dataVersion = cachedChunk.dataVersion;
       continue;
     }
-    const window = windows[index]!;
-    const response = await fetcher({
-      from: window.from,
-      to: window.to,
-      bucket: requestBucket,
+    const response = await fetchChunk(db, fetcher, now, {
+      key,
+      requestBucket,
+      window: windows[index]!,
     });
     dataVersion = response.dataVersion;
-    if (Date.parse(window.to) <= now.getTime()) {
-      await putRecord(
-        db,
-        SECTION_RESULTS,
-        chunkKey(key, requestBucket, window.from),
-        response,
-      );
-    }
     chunks.push(response);
   }
 
-  const buckets =
-    q.bucket === "none"
-      ? mergeNoneChunks(merge, chunks)
-      : q.bucket === "year"
-        ? regroupMonthsIntoYears(merge, windows, chunks, tz)
-        : chunks
-            .flatMap((chunk) => chunk.buckets)
-            .sort((a, b) => a.start.localeCompare(b.start));
+  const buckets = rangeBuckets(q.bucket, merge, windows, chunks, tz);
 
   const skippedSessions = chunks.reduce(
     (total, chunk) => total + (chunk.skippedSessions ?? 0),

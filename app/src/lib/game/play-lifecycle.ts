@@ -807,6 +807,84 @@ export function variantsPlayAgain<
   };
 }
 
+/** Builds the request and creates the play-again session; a failure in either writes `playAgainError` and returns null. */
+async function createPlayAgainSession(
+  context: { playAgainError: string },
+  buildRequest: () => Parameters<typeof createSession>[0],
+) {
+  try {
+    return await createSession(buildRequest());
+  } catch (err: unknown) {
+    const code = (err as { code?: unknown }).code;
+    context.playAgainError =
+      typeof code === "string"
+        ? `Could not start a new session (${code}). Try again.`
+        : "Could not start a new session. Try again.";
+    return null;
+  }
+}
+
+/** Clears the finished game's result state so the page shows a live session again. */
+function resetForNewSession(
+  context: Parameters<typeof clearHiddenTimer>[0] & {
+    finished: boolean;
+    completionStatus: string;
+    completionError: string;
+    resultsSnapshot: unknown;
+    error: string;
+    hasActiveSession: boolean;
+  },
+): void {
+  context.finished = false;
+  context.completionStatus = "pending";
+  context.completionError = "";
+  context.resultsSnapshot = null;
+  clearHiddenTimer(context);
+  context.error = "";
+  context.hasActiveSession = true;
+}
+
+/** The create-session `config` for a replay of a template: the template ref, plus the wire overrides when the game sends any. */
+function playAgainConfig<TWire>(templateRef: string, wire: TWire | undefined) {
+  return wire === undefined
+    ? { source: "template" as const, templateRef }
+    : { source: "template" as const, templateRef, overrides: wire };
+}
+
+/** Points the page at the new session: the store's id, snapshot and modes, a cleared starter choice, and a live (unfinished) page state. */
+function adoptSession<
+  TConfig extends object,
+  TEngine extends GameEngine<DartObservation, unknown>,
+  TResults,
+>(
+  context: PlayLifecycleContext<TConfig, TEngine, TResults>,
+  sessionId: string,
+  seatedSnapshot: Seated<TConfig>,
+  modePair: ReturnType<typeof resolveSessionModePair>,
+): void {
+  context.playAgainStarter = null;
+  context.$store.game.sessionId = sessionId;
+  context.$store.game.idempotencyKey = null;
+  context.$store.game.configSnapshot = seatedSnapshot;
+  context.$store.game.setSessionModes(modePair);
+  resetForNewSession(context);
+}
+
+/** Makes `engine` the page's engine and mirrors its facts into the store. */
+function installEngine<
+  TConfig extends object,
+  TEngine extends GameEngine<DartObservation, unknown>,
+  TResults,
+>(
+  context: PlayLifecycleContext<TConfig, TEngine, TResults>,
+  engine: TEngine,
+  afterEngineReady?: (engine: TEngine) => void,
+): void {
+  context.engine = engine;
+  context.$store.game.recordFacts(engine.facts());
+  afterEngineReady?.(engine);
+}
+
 /**
  * Replays the same configuration template the first session used. With no
  * `buildOverrides` the replay sends no overrides, so a ruleset whose setup
@@ -844,58 +922,31 @@ export async function runPlayAgain<
     context.$store.settings,
   );
   const overrides = buildOverrides ? buildOverrides(config) : null;
-  const nextConfigSnapshot = overrides ? overrides.snapshot : config;
 
   try {
-    let session;
-    try {
-      session = await createSession({
-        gameTypeKey,
-        rulesetVersionKey,
-        captureModeKey: modePair.captureModeKey,
-        inputModeKey: modePair.inputModeKey,
-        config: overrides
-          ? { source: "template", templateRef, overrides: overrides.wire }
-          : { source: "template", templateRef },
-        participants: starterFirst(
-          participantsFromSeats(config.seats),
-          context.playAgainStarter ?? 0,
-        ),
-      });
-    } catch (err: unknown) {
-      const code = (err as { code?: unknown }).code;
-      context.playAgainError =
-        typeof code === "string"
-          ? `Could not start a new session (${code}). Try again.`
-          : "Could not start a new session. Try again.";
-      return;
-    }
+    const session = await createPlayAgainSession(context, () => ({
+      gameTypeKey,
+      rulesetVersionKey,
+      captureModeKey: modePair.captureModeKey,
+      inputModeKey: modePair.inputModeKey,
+      config: playAgainConfig(templateRef, overrides?.wire),
+      participants: starterFirst(
+        participantsFromSeats(config.seats),
+        context.playAgainStarter ?? 0,
+      ),
+    }));
+    if (!session) return;
 
     const seatedSnapshot = reseatSnapshot(
-      nextConfigSnapshot,
+      overrides ? overrides.snapshot : config,
       session.participants,
     ) as Seated<TConfig>;
 
-    context.playAgainStarter = null;
-    context.$store.game.sessionId = session.sessionId;
-    context.$store.game.idempotencyKey = null;
-    context.$store.game.configSnapshot = seatedSnapshot;
-    context.$store.game.setSessionModes(modePair);
-
-    context.finished = false;
-    context.completionStatus = "pending";
-    context.completionError = "";
-    context.resultsSnapshot = null;
-    clearHiddenTimer(context);
-    context.error = "";
-    context.hasActiveSession = true;
+    adoptSession(context, session.sessionId, seatedSnapshot, modePair);
     resetLocalState?.();
 
     const engine = narrowEngine(factory.create(seatedSnapshot));
-    if (!engine) return;
-    context.engine = engine;
-    context.$store.game.recordFacts(engine.facts());
-    afterEngineReady?.(engine);
+    if (engine) installEngine(context, engine, afterEngineReady);
   } finally {
     context.playAgainLoading = false;
   }

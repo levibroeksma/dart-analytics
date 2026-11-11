@@ -58,6 +58,16 @@ describe("dartGameEngineClass", () => {
     });
   });
 
+  it("keeps two instances of one class apart and exposes the spec on each", () => {
+    const first = new Toy({ limit: 10 });
+    const second = new Toy({ limit: 10 });
+    first.record(T20);
+    expect(first.facts().turns).toHaveLength(1);
+    expect(second.facts().turns).toHaveLength(0);
+    expect(first.spec).toBe(spec);
+    expect(first.facts().stages).toEqual(second.facts().stages);
+  });
+
   it("refuses with the spec's message and leaves facts untouched", () => {
     const engine = new Toy({ limit: 1 });
     engine.record(T20);

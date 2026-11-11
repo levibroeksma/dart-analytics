@@ -1,4 +1,9 @@
-import type { DartObservation, EngineFacts, TurnFact } from "@modules/types";
+import type {
+  DartObservation,
+  EngineFacts,
+  StageFact,
+  TurnFact,
+} from "@modules/types";
 import {
   appendObservedDart,
   cloneTurns,
@@ -16,6 +21,82 @@ import type {
 import { registerDartExerciseEngineFactory } from "./dart-engine.registry";
 import { SOLO_PARTICIPANT_REF } from "./solo-participant.module";
 
+/** The engine every shell-built exercise class extends: one spec, one block stage, the recorded turns. */
+class DartShellExerciseEngine<
+  TConfig,
+  TState,
+> implements TimedDartExerciseEngine<TConfig, TState> {
+  readonly exerciseRulesetVersionKey: DartExerciseSpec<
+    TConfig,
+    TState
+  >["exerciseRulesetVersionKey"];
+  private readonly config: TConfig;
+  private readonly turns: TurnFact[];
+  private expired = false;
+
+  constructor(
+    readonly spec: DartExerciseSpec<TConfig, TState>,
+    private readonly blockStage: StageFact,
+    config: TConfig,
+    prior?: EngineFacts,
+  ) {
+    this.exerciseRulesetVersionKey = spec.exerciseRulesetVersionKey;
+    this.config = spec.parse(config);
+    this.turns = prior ? cloneTurns(prior.turns) : [];
+  }
+
+  private deriveState(): TState {
+    return this.spec.fold(
+      { stages: [{ ...this.blockStage }], turns: this.turns },
+      this.config,
+      this.expired,
+    );
+  }
+
+  record(observation: DartObservation): TState {
+    refuseWhenEnded(this.isComplete(), "exercise is complete");
+    const before = this.deriveState();
+    const intent = this.spec.intent(before, this.config);
+    const turn = openOrCreateTurn(
+      this.turns,
+      this.blockStage.clientKey,
+      SOLO_PARTICIPANT_REF,
+      (last) => this.spec.isVisitOpen(last, before),
+    );
+    appendObservedDart(turn, observation, intent);
+    if (!this.spec.isVisitOpen(turn, this.deriveState()))
+      turn.completedAt = new Date().toISOString();
+    return this.deriveState();
+  }
+
+  undo(): boolean {
+    if (this.expired) {
+      this.expired = false;
+      return true;
+    }
+    return undoLastDart(this.turns);
+  }
+
+  expireTimer(): void {
+    this.expired = true;
+  }
+
+  isComplete(): boolean {
+    return this.expired || (this.spec.ends?.(this.deriveState()) ?? false);
+  }
+
+  state(): TState {
+    return this.deriveState();
+  }
+
+  facts(): EngineFacts {
+    return {
+      stages: [{ ...this.blockStage }],
+      turns: cloneTurns(this.turns),
+    };
+  }
+}
+
 /**
  * Builds a `DartExerciseEngine` class over one `EXERCISE_BLOCK` stage.
  * Complete once `expireTimer()` is called or the spec's `ends` holds;
@@ -27,64 +108,9 @@ export function dartExerciseEngineClass<TConfig, TState>(
   spec: DartExerciseSpec<TConfig, TState>,
 ): DartExerciseEngineClass<TConfig, TState> {
   const stage = exerciseBlockStage();
-  return class implements TimedDartExerciseEngine<TConfig, TState> {
-    readonly spec = spec;
-    readonly exerciseRulesetVersionKey = spec.exerciseRulesetVersionKey;
-    private readonly config: TConfig;
-    private readonly turns: TurnFact[];
-    private expired = false;
-
+  return class extends DartShellExerciseEngine<TConfig, TState> {
     constructor(config: TConfig, prior?: EngineFacts) {
-      this.config = spec.parse(config);
-      this.turns = prior ? cloneTurns(prior.turns) : [];
-    }
-
-    private deriveState(): TState {
-      return spec.fold(
-        { stages: [{ ...stage }], turns: this.turns },
-        this.config,
-        this.expired,
-      );
-    }
-
-    record(observation: DartObservation): TState {
-      refuseWhenEnded(this.isComplete(), "exercise is complete");
-      const before = this.deriveState();
-      const intent = spec.intent(before, this.config);
-      const turn = openOrCreateTurn(
-        this.turns,
-        stage.clientKey,
-        SOLO_PARTICIPANT_REF,
-        (last) => spec.isVisitOpen(last, before),
-      );
-      appendObservedDart(turn, observation, intent);
-      if (!spec.isVisitOpen(turn, this.deriveState()))
-        turn.completedAt = new Date().toISOString();
-      return this.deriveState();
-    }
-
-    undo(): boolean {
-      if (this.expired) {
-        this.expired = false;
-        return true;
-      }
-      return undoLastDart(this.turns);
-    }
-
-    expireTimer(): void {
-      this.expired = true;
-    }
-
-    isComplete(): boolean {
-      return this.expired || (spec.ends?.(this.deriveState()) ?? false);
-    }
-
-    state(): TState {
-      return this.deriveState();
-    }
-
-    facts(): EngineFacts {
-      return { stages: [{ ...stage }], turns: cloneTurns(this.turns) };
+      super(spec, stage, config, prior);
     }
   };
 }

@@ -416,6 +416,8 @@ describe("readSection (server)", () => {
     expect(result.buckets[0]!.sampleSize).toBe(2);
     expect(result.buckets[0]!.start).toBe("2026-01-01T00:00:00.000Z");
     expect(result.buckets[0]!.end).toBe("2026-03-01T00:00:00.000Z");
+    expect(result.bucket).toBe("none");
+    expect(result.tz).toBeNull();
   });
 
   it("regroups a year view's month chunks and requests them at month granularity", async () => {

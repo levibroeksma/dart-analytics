@@ -492,6 +492,10 @@ describe("createPresetSetupController", () => {
 
       const body = vi.mocked(sessionsApi.createSession).mock.calls[0][0];
       expect("overrides" in (body.config as object)).toBe(false);
+      expect(body.config).toEqual({
+        source: "template",
+        templateRef: PRESET.configurationTemplateId,
+      });
       expect(setup.loading).toBe(false);
     });
 

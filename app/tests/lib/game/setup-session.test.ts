@@ -28,6 +28,39 @@ describe("createSetupSession", () => {
     } as SetupSessionContext;
   }
 
+  it("lists its state first, then the starter, active-session and leave methods, in a fixed order", () => {
+    expect(
+      Object.keys(createSetupSession({ gameTypeKey: "TEST", playHref: "/p" })),
+    ).toEqual([
+      "loading",
+      "error",
+      "activeSession",
+      "activeSessionLocal",
+      "showActiveSessionModal",
+      "loadingReconciliation",
+      "guests",
+      "showAddGuestModal",
+      "newGuestName",
+      "bot",
+      "showOpponentChooser",
+      "pendingBotLevel",
+      "showBotLevelPicker",
+      "starterOpen",
+      "starterIndex",
+      "beginStart",
+      "resolveStarter",
+      "cancelStarter",
+      "starterOptions",
+      "reconcile",
+      "retryReconciliation",
+      "continueSession",
+      "leaveSetup",
+      "abandonSession",
+      "removeGuest",
+      "removeBot",
+    ]);
+  });
+
   it("returns fresh state per call", () => {
     const a = create();
     const b = create();
