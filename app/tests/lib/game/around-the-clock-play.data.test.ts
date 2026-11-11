@@ -58,6 +58,7 @@ import type {
   SeatFact,
 } from "@lib/types";
 import type { DartFact, StageFact, TurnFact } from "@modules/types";
+import { shapeOf } from "../../support/factory-shape";
 
 const SEATS = [
   {
@@ -1626,5 +1627,83 @@ describe("around-the-clock recordTap ring mapping", () => {
       locationX: null,
       locationY: null,
     });
+  });
+});
+
+describe("aroundTheClockPlay shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(aroundTheClockPlay())).toMatchInlineSnapshot(`
+      [
+        "loading",
+        "error",
+        "finished",
+        "hasActiveSession",
+        "loadingReconciliation",
+        "reconciliationFailed",
+        "completionStatus",
+        "completionError",
+        "playAgainError",
+        "playAgainLoading",
+        "resultsSnapshot",
+        "hiddenTurnKey",
+        "hiddenTimer",
+        "engine",
+        "starterOpen",
+        "playAgainStarter",
+        "requestPlayAgain()",
+        "playAgainStarterOptions()",
+        "input",
+        "board",
+        "pointerX",
+        "pointerY",
+        "syncBoard()",
+        "magnifierAnchor()",
+        "magnifierBox()",
+        "magnifierBoard()",
+        "magnifierRead()",
+        "onPointerDown()",
+        "onPointerMove()",
+        "onPointerUp()",
+        "onPointerCancel()",
+        "recordUnseen()",
+        "visitMarkers()",
+        "init()",
+        "recordDart()",
+        "commitDart()",
+        "undoVisit()",
+        "botThrowing",
+        "botFlight",
+        "maybeRunBotVisit()",
+        "back()",
+        "retryReconciliation()",
+        "abandonAndExit()",
+        "timer",
+        "togglePause()",
+        "destroy()",
+        "state()",
+        "activeSeatState()",
+        "currentTargetLabelFor()",
+        "currentTargetLabel()",
+        "turnsSoFarFor()",
+        "turnsSoFar()",
+        "accuracyFor()",
+        "accuracy()",
+        "isBullVisit()",
+        "hasLives()",
+        "isTimed()",
+        "laps()",
+        "livesLeft()",
+        "remainingLabel()",
+        "subtitle()",
+        "hitsToGoFor()",
+        "hitsToGo()",
+        "previewSegments()",
+        "finishIfExpired()",
+        "recordTap()",
+        "uploadAndCompleteSession()",
+        "resultsTitle()",
+        "playAgain()",
+      ]
+    `);
   });
 });

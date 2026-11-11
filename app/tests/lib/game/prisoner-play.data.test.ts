@@ -26,6 +26,7 @@ import type {
   StageFact,
   TurnFact,
 } from "@modules/types";
+import { shapeOf } from "../../support/factory-shape";
 
 const SEATS = [
   {
@@ -401,5 +402,75 @@ describe("prisonerPlay abandon and play again", () => {
     ctx.requestPlayAgain();
     expect(ctx.starterOpen).toBe(true);
     expect(ctx.playAgainStarterOptions().sides()).toEqual(["You", "Guest"]);
+  });
+});
+
+describe("prisonerPlay shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(prisonerPlay())).toMatchInlineSnapshot(`
+      [
+        "loading",
+        "error",
+        "finished",
+        "hasActiveSession",
+        "loadingReconciliation",
+        "reconciliationFailed",
+        "completionStatus",
+        "completionError",
+        "playAgainError",
+        "playAgainLoading",
+        "resultsSnapshot",
+        "starterOpen",
+        "playAgainStarter",
+        "requestPlayAgain()",
+        "playAgainStarterOptions()",
+        "hiddenTurnKey",
+        "hiddenTimer",
+        "engine",
+        "input",
+        "board",
+        "pointerX",
+        "pointerY",
+        "syncBoard()",
+        "magnifierAnchor()",
+        "magnifierBox()",
+        "magnifierBoard()",
+        "magnifierRead()",
+        "onPointerDown()",
+        "onPointerMove()",
+        "onPointerUp()",
+        "onPointerCancel()",
+        "recordUnseen()",
+        "visitMarkers()",
+        "state()",
+        "showBoard()",
+        "isBullVisit()",
+        "targetLabelFor()",
+        "targetLabel()",
+        "subtitle()",
+        "heldLabelFor()",
+        "heldLabel()",
+        "sittingLabelFor()",
+        "sittingLabel()",
+        "capturedLabelFor()",
+        "imprisonedLabelFor()",
+        "dartsLeftLabelFor()",
+        "dartsLeftLabel()",
+        "lodgedList()",
+        "init()",
+        "retryReconciliation()",
+        "recordDart()",
+        "commitDart()",
+        "undoVisit()",
+        "uploadAndCompleteSession()",
+        "resultsTitle()",
+        "outOrderLabel()",
+        "wonByLabel()",
+        "resultRows()",
+        "back()",
+        "abandonAndExit()",
+        "playAgain()",
+      ]
+    `);
   });
 });

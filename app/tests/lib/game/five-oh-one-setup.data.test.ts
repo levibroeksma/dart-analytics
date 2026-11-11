@@ -7,6 +7,7 @@ import {
 import type { FiveOhOneSetupContext } from "@lib/types";
 import * as sessionsApi from "@client/api/sessions";
 import * as presetsApi from "@client/api/configuration-templates";
+import { shapeOf } from "../../support/factory-shape";
 
 vi.mock("@client/api/sessions");
 vi.mock("@client/api/configuration-templates");
@@ -1070,5 +1071,62 @@ describe("fiveOhOneSetup", () => {
 
       expect(setup.bot).toBeNull();
     });
+  });
+});
+
+describe("fiveOhOneSetup shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(fiveOhOneSetup())).toMatchInlineSnapshot(`
+      [
+        "loading",
+        "error",
+        "activeSession",
+        "activeSessionLocal",
+        "showActiveSessionModal",
+        "loadingReconciliation",
+        "guests",
+        "showAddGuestModal",
+        "newGuestName",
+        "bot",
+        "showOpponentChooser",
+        "pendingBotLevel",
+        "showBotLevelPicker",
+        "starterOpen",
+        "starterIndex",
+        "beginStart()",
+        "resolveStarter()",
+        "cancelStarter()",
+        "starterOptions()",
+        "reconcile()",
+        "retryReconciliation()",
+        "continueSession()",
+        "leaveSetup()",
+        "abandonSession()",
+        "removeGuest()",
+        "removeBot()",
+        "presets",
+        "startingScoreOption",
+        "startingScoreValue",
+        "scoreClampNotice",
+        "matchMode",
+        "matchUnit",
+        "legsToWin",
+        "legsPerSetMode",
+        "legsPerSet",
+        "winByTwo",
+        "marginScope",
+        "cap",
+        "autoCap",
+        "legsPlayedNotice()",
+        "legsPerSetPlayedNotice()",
+        "capMin()",
+        "syncCap()",
+        "init()",
+        "basePreset()",
+        "addGuest()",
+        "addBot()",
+        "start()",
+      ]
+    `);
   });
 });

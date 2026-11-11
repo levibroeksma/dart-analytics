@@ -37,6 +37,7 @@ import type {
   ShanghaiPlayContext,
 } from "@lib/types";
 import type { DartFact, StageFact, TurnFact } from "@modules/types";
+import { shapeOf } from "../../support/factory-shape";
 
 const SEATS = [
   {
@@ -1723,5 +1724,71 @@ describe("shanghai previewSegments seat round", () => {
     await play.init.call(play);
     await play.recordTap("SINGLE");
     expect(play.previewSegments()[0].status).toBe("hit");
+  });
+});
+
+describe("shanghaiPlay shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(shanghaiPlay())).toMatchInlineSnapshot(`
+      [
+        "loading",
+        "error",
+        "finished",
+        "hasActiveSession",
+        "loadingReconciliation",
+        "reconciliationFailed",
+        "completionStatus",
+        "completionError",
+        "playAgainError",
+        "playAgainLoading",
+        "resultsSnapshot",
+        "hiddenTurnKey",
+        "hiddenTimer",
+        "engine",
+        "starterOpen",
+        "playAgainStarter",
+        "requestPlayAgain()",
+        "playAgainStarterOptions()",
+        "input",
+        "board",
+        "pointerX",
+        "pointerY",
+        "syncBoard()",
+        "magnifierAnchor()",
+        "magnifierBox()",
+        "magnifierBoard()",
+        "magnifierRead()",
+        "onPointerDown()",
+        "onPointerMove()",
+        "onPointerUp()",
+        "onPointerCancel()",
+        "recordUnseen()",
+        "visitMarkers()",
+        "init()",
+        "recordDart()",
+        "commitDart()",
+        "undoVisit()",
+        "botThrowing",
+        "botFlight",
+        "maybeRunBotVisit()",
+        "back()",
+        "retryReconciliation()",
+        "abandonAndExit()",
+        "state()",
+        "subtitle()",
+        "currentTargetLabelFor()",
+        "currentTargetLabel()",
+        "roundLabelFor()",
+        "roundLabel()",
+        "currentScoreFor()",
+        "currentScore()",
+        "isBullVisit()",
+        "previewSegments()",
+        "recordTap()",
+        "uploadAndCompleteSession()",
+        "resultsTitle()",
+        "playAgain()",
+      ]
+    `);
   });
 });

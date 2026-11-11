@@ -11,6 +11,7 @@ import * as schedulesApi from "@client/api/schedules";
 import { SessionApiError } from "@client/api/sessions";
 import { scheduleEditor } from "@lib/training/schedules/schedule-editor.data";
 import type { ScheduleEditorContext } from "@lib/types";
+import { shapeOf } from "../../../support/factory-shape";
 
 const ROUTINES = {
   items: [
@@ -224,5 +225,35 @@ describe("scheduleEditor (edit)", () => {
     await e.init();
     expect(e.error).toBe("Could not load this schedule.");
     expect(e.routines).toEqual(ROUTINES.items);
+  });
+});
+
+describe("scheduleEditor shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(scheduleEditor("create"))).toMatchInlineSnapshot(`
+      [
+        "mode",
+        "scheduleId",
+        "loading",
+        "saving",
+        "error",
+        "serverIssues",
+        "name",
+        "rows",
+        "routines",
+        "maxNameLength",
+        "navigate()",
+        "init()",
+        "loadExisting()",
+        "routineLabel()",
+        "routineOptions()",
+        "weekdayLabel()",
+        "nameValid()",
+        "canSave()",
+        "payload()",
+        "save()",
+        "cancel()",
+      ]
+    `);
   });
 });

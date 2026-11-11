@@ -38,6 +38,7 @@ import type { BotFlight } from "@lib/types";
 import type { OneTwentyOnePlayContext } from "@lib/types";
 import type { DartFact, TurnFact } from "@modules/types";
 import * as sessionsApi from "@client/api/sessions";
+import { shapeOf } from "../../support/factory-shape";
 
 const dartRngIndices = vi.hoisted(() => [] as number[]);
 vi.mock("@modules/dartbot/rng.module", async (importOriginal) => {
@@ -1741,5 +1742,90 @@ describe("oneTwentyOnePlay botFlight", () => {
     const play = oneTwentyOnePlay();
     expect(play.botFlight).toBeNull();
     expectTypeOf(play.botFlight).toEqualTypeOf<BotFlight | null>();
+  });
+});
+
+describe("oneTwentyOnePlay shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(oneTwentyOnePlay())).toMatchInlineSnapshot(`
+      [
+        "input",
+        "board",
+        "pointerX",
+        "pointerY",
+        "syncBoard()",
+        "magnifierAnchor()",
+        "magnifierBox()",
+        "magnifierBoard()",
+        "magnifierRead()",
+        "onPointerDown()",
+        "onPointerMove()",
+        "onPointerUp()",
+        "onPointerCancel()",
+        "recordUnseen()",
+        "visitMarkers()",
+        "loading",
+        "error",
+        "finished",
+        "hasActiveSession",
+        "loadingReconciliation",
+        "reconciliationFailed",
+        "completionStatus",
+        "completionError",
+        "playAgainError",
+        "playAgainLoading",
+        "resultsSnapshot",
+        "hiddenTurnKey",
+        "hiddenTimer",
+        "engine",
+        "starterOpen",
+        "playAgainStarter",
+        "requestPlayAgain()",
+        "playAgainStarterOptions()",
+        "back()",
+        "retryReconciliation()",
+        "abandonAndExit()",
+        "timer",
+        "togglePause()",
+        "destroy()",
+        "scoreInput",
+        "pendingCheckoutScore",
+        "dartsAtDouble",
+        "dartsToFinish",
+        "pendingDartObservation",
+        "showDoubleConfirm",
+        "showSessionFinishConfirm",
+        "botThrowing",
+        "botFlight",
+        "state()",
+        "remainingInAttemptFor()",
+        "remainingInAttempt()",
+        "currentTargetLabelFor()",
+        "currentTargetLabel()",
+        "visitsThisAttemptFor()",
+        "visitsThisAttempt()",
+        "checkoutHintFor()",
+        "checkoutHint()",
+        "dartsThisAttemptFor()",
+        "dartsThisAttempt()",
+        "subtitle()",
+        "remainingLabel()",
+        "init()",
+        "checkoutDartOptions()",
+        "recordVisit()",
+        "maybeRunBotVisit()",
+        "recordDart()",
+        "commitDart()",
+        "submitVisit()",
+        "confirmDouble()",
+        "cancelCheckout()",
+        "confirmSessionFinish()",
+        "cancelSessionFinish()",
+        "undoVisit()",
+        "uploadAndCompleteSession()",
+        "resultsTitle()",
+        "playAgain()",
+      ]
+    `);
   });
 });

@@ -5,6 +5,7 @@ import type { LocalGame, ResumeDeckContext } from "@lib/types";
 import * as sessionsApi from "@client/api/sessions";
 import { activeSessionsStore } from "@stores/active-sessions.store";
 import { gamesIndex } from "@lib/game/games-index.data";
+import { shapeOf } from "../../support/factory-shape";
 
 vi.mock("@client/api/sessions");
 vi.mock("@modules/game/session-progress.module", () => ({
@@ -555,5 +556,37 @@ describe("resumeDeck", () => {
       resumeDeck().navigate("/games/501/setup");
       expect(location.href).toBe("/games/501/setup");
     });
+  });
+});
+
+describe("resumeDeck shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(resumeDeck())).toMatchInlineSnapshot(`
+      [
+        "cards",
+        "index",
+        "phase",
+        "loading",
+        "failed",
+        "swipeX",
+        "swipeY",
+        "from",
+        "direction",
+        "animTimers",
+        "init()",
+        "top()",
+        "position()",
+        "deckSlots()",
+        "deckView()",
+        "visible()",
+        "next()",
+        "prev()",
+        "swipeStart()",
+        "swipeEnd()",
+        "swipeCancel()",
+        "resume()",
+        "navigate()",
+      ]
+    `);
   });
 });
