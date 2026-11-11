@@ -17,6 +17,8 @@ updated: 2026-11-09
 
 # Version History
 
+> **Version:** 1.229.0 (2026-11-11 — Quality plan 8: skills `refactoring-without-behaviour-change`, `composing-alpine-factories`, `checking-quality-benchmarks`; PostToolUse hook `unit-size-note.py` reports a new function over 60 lines at edit time, with a fixture test in `quality / structure` (D555).)
+
 > **Version:** 1.228.0 (2026-11-11 — Quality plan 7, part 1: `scripts/check-html-parity.sh` compares every prerendered page byte for byte with a saved base (run by hand around a markup refactor); new `PlayPageShell.astro` carries the body 17 game play pages repeated; `DartBoard.astro` draws its 20 segments from `lib/ui/dart-board-segments.ts` in one loop (679 → 133 lines) (D554).)
 
 > **Version:** 1.227.0 (2026-11-10 — Quality plan 6, part 1: 35 Alpine factories spread module-level method groups (`03-Alpine-Patterns.md` § Method groups, 0.4.0); `tests/support/factory-shape.ts` pins each factory's key order and instance isolation; `large_functions_src` 87 → 55, health score 88.7 → 92.0 (D553).)

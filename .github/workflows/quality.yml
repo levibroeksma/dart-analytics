@@ -61,6 +61,8 @@ jobs:
         run: bash scripts/test-edit-gate.sh
       - name: Main-commit hook fixtures
         run: bash scripts/test-block-main-commit.sh
+      - name: Unit-size hook fixtures
+        run: bash scripts/test-unit-size-note.sh
       - name: HTML-parity fixtures
         run: bash scripts/test-check-html-parity.sh
       - name: Gate-wiring gate and pre-commit scope fixtures
