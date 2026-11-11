@@ -2921,6 +2921,16 @@ describe("findRoutineRunBuckets", () => {
     expect(sql).toMatch(/routine_key/);
   });
 
+  it("drops the single whole-range row when it holds no run, on bucket=none", async () => {
+    const { db } = renderingDb([{ runs: 0 }]);
+    const rows = await findRoutineRunBuckets(db, {
+      ...baseQuery,
+      bucket: "none",
+      tz: undefined,
+    });
+    expect(rows).toEqual([]);
+  });
+
   it("renders the exact bucketExprs form for bucket_end (interval added inside the single AT TIME ZONE wrap, not outside it)", async () => {
     const { db, statements } = renderingDb([]);
     await findRoutineRunBuckets(db, {

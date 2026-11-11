@@ -62,6 +62,24 @@ describe("insertBatchRecords rendered SQL", () => {
       'insert into "session_write_idempotency" ("id", "session_id", "idempotency_key", "normalized_payload_hash", "result", "created_at") values ($1, $2, $3, $4, $5, $6)',
     ]);
   });
+
+  it("writes only the idempotency record for a batch with no stages and no turns", async () => {
+    const { insertBatchRecords } =
+      await import("@repositories/session.repository");
+    const before = rendered.statements.length;
+    const result = await insertBatchRecords({
+      ...BATCH,
+      stages: [],
+      turns: [],
+    } as never);
+
+    expect(result).toEqual({ stages: 0, turns: 0, darts: 0 });
+    expect(
+      rendered.statements
+        .slice(before)
+        .map((statement) => /^insert into "(\w+)"/.exec(statement.sql)?.[1]),
+    ).toEqual(["session_write_idempotency"]);
+  });
 });
 
 describe("finishSessionRecords rendered SQL", () => {

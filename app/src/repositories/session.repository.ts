@@ -456,59 +456,73 @@ export async function findExerciseRulesetVersionId(
   return row?.id;
 }
 
+/** The `exercise_stages` rows of a batch. */
+function batchStageRows(input: BatchInsertInput, now: string) {
+  return input.stages.map((stage) => ({
+    id: stage.id,
+    exerciseSessionId: input.sessionId,
+    parentStageId: stage.parentStageId,
+    stageTypeId: stage.stageTypeId,
+    sequenceNumber: stage.sequenceNumber,
+    createdAt: now,
+  }));
+}
+
+/** The `turns` rows of a batch. */
+function batchTurnRows(input: BatchInsertInput, now: string) {
+  return input.turns.map((turn) => ({
+    id: turn.id,
+    exerciseStageId: turn.stageId,
+    participantId: turn.participantId,
+    sequenceNumber: turn.sequenceNumber,
+    totalScore: turn.totalScore,
+    kept: turn.kept,
+    completedAt: turn.completedAt,
+    createdAt: now,
+  }));
+}
+
+/** The `darts` rows of a batch, every turn's darts in turn order. */
+function batchDartRows(input: BatchInsertInput, now: string) {
+  return input.turns.flatMap((turn) =>
+    turn.darts.map((dart) => ({
+      id: dart.id,
+      turnId: turn.id,
+      dartNumber: dart.dartNumber,
+      intendedTargetNumber: dart.intendedTargetNumber,
+      intendedZoneId: dart.intendedZoneId,
+      hitTargetNumber: dart.hitTargetNumber,
+      hitZoneId: dart.hitZoneId,
+      score: dart.score,
+      locationX: toNumericString(dart.locationX),
+      locationY: toNumericString(dart.locationY),
+      createdAt: now,
+    })),
+  );
+}
+
 export async function insertBatchRecords(
   input: BatchInsertInput,
 ): Promise<{ stages: number; turns: number; darts: number }> {
   return withTransaction(async (tx) => {
     const now = new Date().toISOString();
+    const stageRows = batchStageRows(input, now);
+    const turnRows = batchTurnRows(input, now);
+    const dartRows = batchDartRows(input, now);
+    const created = {
+      stages: stageRows.length,
+      turns: turnRows.length,
+      darts: dartRows.length,
+    };
 
-    if (input.stages.length > 0) {
-      await tx.insert(exerciseStages).values(
-        input.stages.map((stage) => ({
-          id: stage.id,
-          exerciseSessionId: input.sessionId,
-          parentStageId: stage.parentStageId,
-          stageTypeId: stage.stageTypeId,
-          sequenceNumber: stage.sequenceNumber,
-          createdAt: now,
-        })),
-      );
+    if (stageRows.length > 0) {
+      await tx.insert(exerciseStages).values(stageRows);
     }
-
-    if (input.turns.length > 0) {
-      await tx.insert(turns).values(
-        input.turns.map((turn) => ({
-          id: turn.id,
-          exerciseStageId: turn.stageId,
-          participantId: turn.participantId,
-          sequenceNumber: turn.sequenceNumber,
-          totalScore: turn.totalScore,
-          kept: turn.kept,
-          completedAt: turn.completedAt,
-          createdAt: now,
-        })),
-      );
+    if (turnRows.length > 0) {
+      await tx.insert(turns).values(turnRows);
     }
-
-    const allDarts = input.turns.flatMap((turn) =>
-      turn.darts.map((dart) => ({ ...dart, turnId: turn.id })),
-    );
-    if (allDarts.length > 0) {
-      await tx.insert(darts).values(
-        allDarts.map((dart) => ({
-          id: dart.id,
-          turnId: dart.turnId,
-          dartNumber: dart.dartNumber,
-          intendedTargetNumber: dart.intendedTargetNumber,
-          intendedZoneId: dart.intendedZoneId,
-          hitTargetNumber: dart.hitTargetNumber,
-          hitZoneId: dart.hitZoneId,
-          score: dart.score,
-          locationX: toNumericString(dart.locationX),
-          locationY: toNumericString(dart.locationY),
-          createdAt: now,
-        })),
-      );
+    if (dartRows.length > 0) {
+      await tx.insert(darts).values(dartRows);
     }
 
     await tx.insert(sessionWriteIdempotency).values({
@@ -516,21 +530,11 @@ export async function insertBatchRecords(
       sessionId: input.sessionId,
       idempotencyKey: input.idempotencyKey,
       normalizedPayloadHash: input.normalizedPayloadHash,
-      result: {
-        created: {
-          stages: input.stages.length,
-          turns: input.turns.length,
-          darts: allDarts.length,
-        },
-      },
+      result: { created },
       createdAt: now,
     });
 
-    return {
-      stages: input.stages.length,
-      turns: input.turns.length,
-      darts: allDarts.length,
-    };
+    return created;
   });
 }
 
