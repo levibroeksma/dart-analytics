@@ -379,6 +379,7 @@ describe("createRoutine", () => {
         max: 30,
       },
     });
+    expect(repo.insertRoutineTemplateRecord).not.toHaveBeenCalled();
   });
 
   it("rejects a GAME step whose ruleset is not routine-eligible", async () => {

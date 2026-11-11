@@ -575,8 +575,11 @@ describe("listGameSessions", () => {
       cursor: "%%%",
     });
 
-    expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.code).toBe("VALIDATION_FAILED");
+    expect(result).toEqual({
+      ok: false,
+      code: "VALIDATION_FAILED",
+      details: { reason: "cursor is malformed" },
+    });
     expect(repo.findGameSessionsPage).not.toHaveBeenCalled();
   });
 });
