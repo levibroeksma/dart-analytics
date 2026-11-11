@@ -1160,6 +1160,46 @@ export async function findBucketFloor(
   return nonNull(rows[0]?.floor ?? null, "floor");
 }
 
+const neverStartedExpr = sql<boolean>`(${vStatsSessionFacts.turnCount} = 0)`;
+const minSessionIdExpr = sql<string>`(array_agg(${vStatsSessionFacts.sessionId} order by ${vStatsSessionFacts.countedScore} asc, ${vStatsSessionFacts.completedAt} asc))[1]`;
+const maxSessionIdExpr = sql<string>`(array_agg(${vStatsSessionFacts.sessionId} order by ${vStatsSessionFacts.countedScore} desc, ${vStatsSessionFacts.completedAt} desc))[1]`;
+const bestAvgOrder = sql`${vStatsSessionFacts.countedScore}::numeric / nullif(${vStatsSessionFacts.dartCount}, 0) desc nulls last, ${vStatsSessionFacts.completedAt} desc`;
+const bestAvgPick = (column: Column) =>
+  sql`(array_agg(${column} order by ${bestAvgOrder}))[1]`;
+const bestAvgSessionIdExpr = sql<
+  string | null
+>`case when max(${vStatsSessionFacts.dartCount}) > 0 then ${bestAvgPick(vStatsSessionFacts.sessionId)} end`;
+const bestAvgPointsExpr = sql<
+  string | null
+>`case when max(${vStatsSessionFacts.dartCount}) > 0 then ${bestAvgPick(vStatsSessionFacts.countedScore)} end`;
+const bestAvgDartsExpr = sql<
+  string | null
+>`case when max(${vStatsSessionFacts.dartCount}) > 0 then ${bestAvgPick(vStatsSessionFacts.dartCount)} end`;
+const bestAvgCompletedAtExpr = sql<
+  string | null
+>`case when max(${vStatsSessionFacts.dartCount}) > 0 then ${isoUtcText(bestAvgPick(vStatsSessionFacts.completedAt))} end`;
+
+/** The grouped columns and aggregates `findBucketedSessionAggregates` selects beside its bucket window. */
+const SESSION_AGGREGATE_COLUMNS = {
+  statusKey: vStatsSessionFacts.statusKey,
+  contextKey: vStatsSessionFacts.contextKey,
+  rulesetVersionKey: vStatsSessionFacts.rulesetVersionKey,
+  neverStarted: neverStartedExpr,
+  sessions: count(),
+  turnSum: sql<string>`sum(${vStatsSessionFacts.turnCount})`,
+  dartSum: sql<string>`sum(${vStatsSessionFacts.dartCount})`,
+  durationSum: sql<string>`sum(${vStatsSessionFacts.durationSeconds})`,
+  scoreSum: sql<string>`sum(${vStatsSessionFacts.countedScore})`,
+  scoreMin: sql<string>`min(${vStatsSessionFacts.countedScore})`,
+  scoreMax: sql<string>`max(${vStatsSessionFacts.countedScore})`,
+  minSessionId: minSessionIdExpr,
+  maxSessionId: maxSessionIdExpr,
+  bestAvgSessionId: bestAvgSessionIdExpr,
+  bestAvgPoints: bestAvgPointsExpr,
+  bestAvgDarts: bestAvgDartsExpr,
+  bestAvgCompletedAt: bestAvgCompletedAtExpr,
+};
+
 /**
  * One shared aggregate query for `completion`, `volume` and
  * `session-result`: groups a game's terminal sessions by bucket, status,
@@ -1202,47 +1242,12 @@ export async function findBucketedSessionAggregates(
         ),
   ].filter((condition) => condition !== undefined);
 
-  const neverStartedExpr = sql<boolean>`(${vStatsSessionFacts.turnCount} = 0)`;
-  const minSessionIdExpr = sql<string>`(array_agg(${vStatsSessionFacts.sessionId} order by ${vStatsSessionFacts.countedScore} asc, ${vStatsSessionFacts.completedAt} asc))[1]`;
-  const maxSessionIdExpr = sql<string>`(array_agg(${vStatsSessionFacts.sessionId} order by ${vStatsSessionFacts.countedScore} desc, ${vStatsSessionFacts.completedAt} desc))[1]`;
-  const bestAvgOrder = sql`${vStatsSessionFacts.countedScore}::numeric / nullif(${vStatsSessionFacts.dartCount}, 0) desc nulls last, ${vStatsSessionFacts.completedAt} desc`;
-  const bestAvgPick = (column: Column) =>
-    sql`(array_agg(${column} order by ${bestAvgOrder}))[1]`;
-  const bestAvgSessionIdExpr = sql<
-    string | null
-  >`case when max(${vStatsSessionFacts.dartCount}) > 0 then ${bestAvgPick(vStatsSessionFacts.sessionId)} end`;
-  const bestAvgPointsExpr = sql<
-    string | null
-  >`case when max(${vStatsSessionFacts.dartCount}) > 0 then ${bestAvgPick(vStatsSessionFacts.countedScore)} end`;
-  const bestAvgDartsExpr = sql<
-    string | null
-  >`case when max(${vStatsSessionFacts.dartCount}) > 0 then ${bestAvgPick(vStatsSessionFacts.dartCount)} end`;
-  const bestAvgCompletedAtExpr = sql<
-    string | null
-  >`case when max(${vStatsSessionFacts.dartCount}) > 0 then ${isoUtcText(bestAvgPick(vStatsSessionFacts.completedAt))} end`;
-
   const window = bucketWindow(vStatsSessionFacts.completedAt, q);
 
   const rows = await db
     .select({
       ...window.columns,
-      statusKey: vStatsSessionFacts.statusKey,
-      contextKey: vStatsSessionFacts.contextKey,
-      rulesetVersionKey: vStatsSessionFacts.rulesetVersionKey,
-      neverStarted: neverStartedExpr,
-      sessions: count(),
-      turnSum: sql<string>`sum(${vStatsSessionFacts.turnCount})`,
-      dartSum: sql<string>`sum(${vStatsSessionFacts.dartCount})`,
-      durationSum: sql<string>`sum(${vStatsSessionFacts.durationSeconds})`,
-      scoreSum: sql<string>`sum(${vStatsSessionFacts.countedScore})`,
-      scoreMin: sql<string>`min(${vStatsSessionFacts.countedScore})`,
-      scoreMax: sql<string>`max(${vStatsSessionFacts.countedScore})`,
-      minSessionId: minSessionIdExpr,
-      maxSessionId: maxSessionIdExpr,
-      bestAvgSessionId: bestAvgSessionIdExpr,
-      bestAvgPoints: bestAvgPointsExpr,
-      bestAvgDarts: bestAvgDartsExpr,
-      bestAvgCompletedAt: bestAvgCompletedAtExpr,
+      ...SESSION_AGGREGATE_COLUMNS,
     })
     .from(vStatsSessionFacts)
     .where(and(...conditions))
@@ -1399,6 +1404,49 @@ function mapReplayStepFactsRow(row: {
   };
 }
 
+/** The session facts `findReplaySession` reads, joined to the routine step the session played under. */
+const REPLAY_SESSION_COLUMNS = {
+  sessionId: vStatsSessionFacts.sessionId,
+  gameTypeKey: vStatsSessionFacts.gameTypeKey,
+  rulesetVersionKey: vStatsSessionFacts.rulesetVersionKey,
+  inputModeKey: vStatsSessionFacts.inputModeKey,
+  statusKey: vStatsSessionFacts.statusKey,
+  contextKey: vStatsSessionFacts.contextKey,
+  activityId: vStatsSessionFacts.activityId,
+  routineStepSequenceNumber: vStatsSessionFacts.routineStepSequenceNumber,
+  configuration: vStatsSessionFacts.configuration,
+  startedAt: vStatsSessionFacts.startedAt,
+  completedAt: vStatsSessionFacts.completedAt,
+  durationSeconds: vStatsSessionFacts.durationSeconds,
+  turnCount: vStatsSessionFacts.turnCount,
+  dartCount: vStatsSessionFacts.dartCount,
+  exerciseTypeKey: vStatsRoutineStepFacts.exerciseTypeKey,
+  exerciseRulesetVersionKey: vStatsRoutineStepFacts.exerciseRulesetVersionKey,
+  routineKey: vStatsRoutineStepFacts.routineKey,
+  stepKey: vStatsRoutineStepFacts.stepKey,
+};
+
+/** The step facts `findReplaySession` falls back to when the session has no `v_stats_session_facts` row. */
+const REPLAY_STEP_FACTS_COLUMNS = {
+  sessionId: vStatsRoutineStepFacts.sessionId,
+  activityId: vStatsRoutineStepFacts.activityId,
+  routineKey: vStatsRoutineStepFacts.routineKey,
+  stepKey: vStatsRoutineStepFacts.stepKey,
+  sequenceNumber: vStatsRoutineStepFacts.sequenceNumber,
+  exerciseTypeKey: vStatsRoutineStepFacts.exerciseTypeKey,
+  exerciseRulesetVersionKey: vStatsRoutineStepFacts.exerciseRulesetVersionKey,
+  gameTypeKey: vStatsRoutineStepFacts.gameTypeKey,
+  rulesetVersionKey: vStatsRoutineStepFacts.rulesetVersionKey,
+  inputModeKey: vStatsRoutineStepFacts.inputModeKey,
+  statusKey: vStatsRoutineStepFacts.statusKey,
+  configuration: vStatsRoutineStepFacts.configuration,
+  startedAt: vStatsRoutineStepFacts.startedAt,
+  completedAt: vStatsRoutineStepFacts.completedAt,
+  durationSeconds: vStatsRoutineStepFacts.durationSeconds,
+  turnCount: vStatsRoutineStepFacts.turnCount,
+  dartCount: vStatsRoutineStepFacts.dartCount,
+};
+
 /**
  * The replay gate (D371 decision 2, D372 decision 11): one row scoped to
  * `player_id`/`session_id`, carrying the header's decision-5 fields plus
@@ -1427,27 +1475,7 @@ export async function findReplaySession(
   sessionId: string,
 ): Promise<ReplaySessionRow | null> {
   const rows = await db
-    .select({
-      sessionId: vStatsSessionFacts.sessionId,
-      gameTypeKey: vStatsSessionFacts.gameTypeKey,
-      rulesetVersionKey: vStatsSessionFacts.rulesetVersionKey,
-      inputModeKey: vStatsSessionFacts.inputModeKey,
-      statusKey: vStatsSessionFacts.statusKey,
-      contextKey: vStatsSessionFacts.contextKey,
-      activityId: vStatsSessionFacts.activityId,
-      routineStepSequenceNumber: vStatsSessionFacts.routineStepSequenceNumber,
-      configuration: vStatsSessionFacts.configuration,
-      startedAt: vStatsSessionFacts.startedAt,
-      completedAt: vStatsSessionFacts.completedAt,
-      durationSeconds: vStatsSessionFacts.durationSeconds,
-      turnCount: vStatsSessionFacts.turnCount,
-      dartCount: vStatsSessionFacts.dartCount,
-      exerciseTypeKey: vStatsRoutineStepFacts.exerciseTypeKey,
-      exerciseRulesetVersionKey:
-        vStatsRoutineStepFacts.exerciseRulesetVersionKey,
-      routineKey: vStatsRoutineStepFacts.routineKey,
-      stepKey: vStatsRoutineStepFacts.stepKey,
-    })
+    .select(REPLAY_SESSION_COLUMNS)
     .from(vStatsSessionFacts)
     .leftJoin(
       vStatsRoutineStepFacts,
@@ -1465,26 +1493,7 @@ export async function findReplaySession(
   if (row !== undefined) return mapReplaySessionJoinRow(row);
 
   const stepRows = await db
-    .select({
-      sessionId: vStatsRoutineStepFacts.sessionId,
-      activityId: vStatsRoutineStepFacts.activityId,
-      routineKey: vStatsRoutineStepFacts.routineKey,
-      stepKey: vStatsRoutineStepFacts.stepKey,
-      sequenceNumber: vStatsRoutineStepFacts.sequenceNumber,
-      exerciseTypeKey: vStatsRoutineStepFacts.exerciseTypeKey,
-      exerciseRulesetVersionKey:
-        vStatsRoutineStepFacts.exerciseRulesetVersionKey,
-      gameTypeKey: vStatsRoutineStepFacts.gameTypeKey,
-      rulesetVersionKey: vStatsRoutineStepFacts.rulesetVersionKey,
-      inputModeKey: vStatsRoutineStepFacts.inputModeKey,
-      statusKey: vStatsRoutineStepFacts.statusKey,
-      configuration: vStatsRoutineStepFacts.configuration,
-      startedAt: vStatsRoutineStepFacts.startedAt,
-      completedAt: vStatsRoutineStepFacts.completedAt,
-      durationSeconds: vStatsRoutineStepFacts.durationSeconds,
-      turnCount: vStatsRoutineStepFacts.turnCount,
-      dartCount: vStatsRoutineStepFacts.dartCount,
-    })
+    .select(REPLAY_STEP_FACTS_COLUMNS)
     .from(vStatsRoutineStepFacts)
     .where(
       and(
@@ -1824,6 +1833,38 @@ export async function findRoutineHeader(
   };
 }
 
+const exerciseTypeKeyExpr = sql<string>`min(${vStatsRoutineStepFacts.exerciseTypeKey})`;
+const exerciseRulesetVersionKeyExpr = sql<
+  string | null
+>`min(${vStatsRoutineStepFacts.exerciseRulesetVersionKey})`;
+const gameTypeKeyExpr = sql<
+  string | null
+>`min(${vStatsRoutineStepFacts.gameTypeKey})`;
+const rulesetVersionKeyExpr = sql<
+  string | null
+>`min(${vStatsRoutineStepFacts.rulesetVersionKey})`;
+const durationSecondsExpr = sql<
+  number | null
+>`min((${vStatsRoutineStepFacts.step} ->> 'durationSeconds')::integer)`;
+const firstSeenAtExpr = sql<string>`min(${vStatsRoutineStepFacts.completedAt})`;
+const lastSeenAtExpr = sql<string>`max(${vStatsRoutineStepFacts.completedAt})`;
+const isCurrentAtSequenceExpr = sql<boolean>`(max(${vStatsRoutineStepFacts.completedAt}) = max(max(${vStatsRoutineStepFacts.completedAt})) over (partition by ${vStatsRoutineStepFacts.sequenceNumber}))`;
+
+/** The per-step aggregates `findRoutineStepDescriptors` selects. */
+const ROUTINE_STEP_DESCRIPTOR_COLUMNS = {
+  stepKey: vStatsRoutineStepFacts.stepKey,
+  sequenceNumber: vStatsRoutineStepFacts.sequenceNumber,
+  exerciseTypeKey: exerciseTypeKeyExpr,
+  exerciseRulesetVersionKey: exerciseRulesetVersionKeyExpr,
+  gameTypeKey: gameTypeKeyExpr,
+  rulesetVersionKey: rulesetVersionKeyExpr,
+  durationSeconds: durationSecondsExpr,
+  sessionCount: count(),
+  firstSeenAt: firstSeenAtExpr,
+  lastSeenAt: lastSeenAtExpr,
+  isCurrentAtSequence: isCurrentAtSequenceExpr,
+};
+
 /**
  * Every step index the routine has ever run, grouped by `step_key` over
  * `v_stats_routine_step_facts` (D372 decisions 2, 9) — a step's
@@ -1850,37 +1891,8 @@ export async function findRoutineStepDescriptors(
   routineKey: string,
   latestStepCount: number | null,
 ): Promise<RoutineStepDescriptorRow[]> {
-  const exerciseTypeKeyExpr = sql<string>`min(${vStatsRoutineStepFacts.exerciseTypeKey})`;
-  const exerciseRulesetVersionKeyExpr = sql<
-    string | null
-  >`min(${vStatsRoutineStepFacts.exerciseRulesetVersionKey})`;
-  const gameTypeKeyExpr = sql<
-    string | null
-  >`min(${vStatsRoutineStepFacts.gameTypeKey})`;
-  const rulesetVersionKeyExpr = sql<
-    string | null
-  >`min(${vStatsRoutineStepFacts.rulesetVersionKey})`;
-  const durationSecondsExpr = sql<
-    number | null
-  >`min((${vStatsRoutineStepFacts.step} ->> 'durationSeconds')::integer)`;
-  const firstSeenAtExpr = sql<string>`min(${vStatsRoutineStepFacts.completedAt})`;
-  const lastSeenAtExpr = sql<string>`max(${vStatsRoutineStepFacts.completedAt})`;
-  const isCurrentAtSequenceExpr = sql<boolean>`(max(${vStatsRoutineStepFacts.completedAt}) = max(max(${vStatsRoutineStepFacts.completedAt})) over (partition by ${vStatsRoutineStepFacts.sequenceNumber}))`;
-
   const rows = await db
-    .select({
-      stepKey: vStatsRoutineStepFacts.stepKey,
-      sequenceNumber: vStatsRoutineStepFacts.sequenceNumber,
-      exerciseTypeKey: exerciseTypeKeyExpr,
-      exerciseRulesetVersionKey: exerciseRulesetVersionKeyExpr,
-      gameTypeKey: gameTypeKeyExpr,
-      rulesetVersionKey: rulesetVersionKeyExpr,
-      durationSeconds: durationSecondsExpr,
-      sessionCount: count(),
-      firstSeenAt: firstSeenAtExpr,
-      lastSeenAt: lastSeenAtExpr,
-      isCurrentAtSequence: isCurrentAtSequenceExpr,
-    })
+    .select(ROUTINE_STEP_DESCRIPTOR_COLUMNS)
     .from(vStatsRoutineStepFacts)
     .where(
       and(
@@ -1992,34 +2004,10 @@ function mapRoutineRunBucketRow(row: {
   };
 }
 
-/**
- * One shared aggregate query for `routine-volume` and `routine-completion`
- * over `v_stats_routine_run_facts` (D372 decision 6): one row per bucket, with
- * `completed`/`abandoned`/`never_started` as `FILTER`-restricted counts that
- * partition the bucket's runs -- `never_started` is an `ABANDONED` run with
- * zero step sessions, so `abandoned` excludes it the same way
- * `completionBuckets` partitions the game session equivalent (D367 decision
- * 5). `steps_completed_at_abandon` is a grouped sub-select over only the
- * *started* abandons (`steps_started > 0`) -- a never-started run has no
- * step to have completed, so it is excluded from the histogram the same way
- * it is excluded from `abandoned`. `bucket = none` groups the whole scope as
- * one bucket, so the histogram is one plain scalar subquery; that ungrouped
- * aggregate returns a row even over no runs, so a zero-run row is dropped
- * and an empty scope yields no bucket, as the grouped game readers do. The
- * bucketed branch pre-groups the histogram into a `hist` CTE (one row per
- * `bucket_start`) and `LEFT JOIN`s it back -- a per-bucket grouped join, not
- * a per-row correlated `LATERAL`, since the histogram is identical for every
- * row of one bucket. Bucket boundaries come from the shared `bucketExprs`,
- * so `bucketEnd` keeps its DST-safe interval-inside-the-zone ordering.
- */
-export async function findRoutineRunBuckets(
-  db: Db,
-  q: RoutineScope & { bucket: Bucket; tz: string | undefined },
-): Promise<RoutineRunBucketRow[]> {
+/** The one-row statement for an unbucketed range: the whole `[from, to)` window as a single bucket. */
+function routineRunRangeStatement(q: RoutineScope): SQL {
   const statusesArray = sql`${sql.param(q.statuses)}::text[]`;
-
-  if (q.bucket === "none") {
-    const statement = sql`
+  return sql`
       WITH scoped AS (
         SELECT *
         FROM ${vStatsRoutineRunFacts}
@@ -2051,20 +2039,19 @@ export async function findRoutineRunBuckets(
         ) AS steps_completed_at_abandon
       FROM scoped
     `;
-    const result = await db.execute(statement);
-    return executedRows<Parameters<typeof mapRoutineRunBucketRow>[0]>(result)
-      .map(mapRoutineRunBucketRow)
-      .filter((row) => row.runs > 0);
-  }
+}
 
-  const tz = nonNull(q.tz ?? null, "tz");
+/** The statement for a bucketed range: one row per bucket that holds a run, in bucket order. */
+function routineRunBucketedStatement(
+  q: RoutineScope & { bucket: Exclude<Bucket, "none">; tz: string | undefined },
+): SQL {
+  const statusesArray = sql`${sql.param(q.statuses)}::text[]`;
   const { bucketStartExpr, bucketEndExpr } = bucketExprs(
     vStatsRoutineRunFacts.completedAt,
     q.bucket,
-    tz,
+    nonNull(q.tz ?? null, "tz"),
   );
-
-  const statement = sql`
+  return sql`
     WITH scoped AS (
       SELECT *,
         ${bucketStartExpr} AS bucket_start,
@@ -2103,7 +2090,42 @@ export async function findRoutineRunBuckets(
     GROUP BY scoped.bucket_start, scoped.bucket_end, hist.agg
     ORDER BY scoped.bucket_start
   `;
-  const result = await db.execute(statement);
+}
+
+/**
+ * One shared aggregate query for `routine-volume` and `routine-completion`
+ * over `v_stats_routine_run_facts` (D372 decision 6): one row per bucket, with
+ * `completed`/`abandoned`/`never_started` as `FILTER`-restricted counts that
+ * partition the bucket's runs -- `never_started` is an `ABANDONED` run with
+ * zero step sessions, so `abandoned` excludes it the same way
+ * `completionBuckets` partitions the game session equivalent (D367 decision
+ * 5). `steps_completed_at_abandon` is a grouped sub-select over only the
+ * *started* abandons (`steps_started > 0`) -- a never-started run has no
+ * step to have completed, so it is excluded from the histogram the same way
+ * it is excluded from `abandoned`. `bucket = none` groups the whole scope as
+ * one bucket, so the histogram is one plain scalar subquery; that ungrouped
+ * aggregate returns a row even over no runs, so a zero-run row is dropped
+ * and an empty scope yields no bucket, as the grouped game readers do. The
+ * bucketed branch pre-groups the histogram into a `hist` CTE (one row per
+ * `bucket_start`) and `LEFT JOIN`s it back -- a per-bucket grouped join, not
+ * a per-row correlated `LATERAL`, since the histogram is identical for every
+ * row of one bucket. Bucket boundaries come from the shared `bucketExprs`,
+ * so `bucketEnd` keeps its DST-safe interval-inside-the-zone ordering.
+ */
+export async function findRoutineRunBuckets(
+  db: Db,
+  q: RoutineScope & { bucket: Bucket; tz: string | undefined },
+): Promise<RoutineRunBucketRow[]> {
+  if (q.bucket === "none") {
+    const result = await db.execute(routineRunRangeStatement(q));
+    return executedRows<Parameters<typeof mapRoutineRunBucketRow>[0]>(result)
+      .map(mapRoutineRunBucketRow)
+      .filter((row) => row.runs > 0);
+  }
+
+  const result = await db.execute(
+    routineRunBucketedStatement({ ...q, bucket: q.bucket }),
+  );
   return executedRows<Parameters<typeof mapRoutineRunBucketRow>[0]>(result).map(
     mapRoutineRunBucketRow,
   );

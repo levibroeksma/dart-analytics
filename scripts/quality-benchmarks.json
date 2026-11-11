@@ -18,7 +18,7 @@
     },
     "large_functions_src": {
       "dir": "max",
-      "now": 103,
+      "now": 97,
       "target": 20
     },
     "large_test_bodies": {
@@ -38,7 +38,7 @@
     },
     "dup_pct_semantic": {
       "dir": "max",
-      "now": 18.3,
+      "now": 18.2,
       "target": 12.0
     }
   }
