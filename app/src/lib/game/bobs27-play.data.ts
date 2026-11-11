@@ -132,6 +132,99 @@ function throwBotDart(
   );
 }
 
+/** `bobs27Play`'s methods; each reads its instance through `this`. */
+const bobs27PlayMethods = {
+  state(this: Bobs27PlayContext): Bobs27State | null {
+    const config = this.$store.game.configSnapshot;
+    if (!config) return null;
+    return foldBobs27State(
+      { stages: this.$store.game.stages, turns: this.$store.game.turns },
+      config,
+    );
+  },
+
+  /** Play-header subtitle: `ROUND 4 OF 21` along the doubles path; blank before config loads. */
+  subtitle(this: Bobs27PlayContext): string {
+    const seat = activeSeatStateOf(this.state());
+    if (!seat) return "";
+    const rounds = doublesPath().length;
+    return `ROUND ${Math.min(seat.targetIndex + 1, rounds)} OF ${rounds}`;
+  },
+
+  currentTargetLabelFor(this: Bobs27PlayContext, seatRef: string): string {
+    const seat = seatStateFor(this.state(), seatRef);
+    if (!seat) return "";
+    return doublesPathTargetLabel(targetAt(doublesPath(), seat.targetIndex));
+  },
+
+  currentTargetLabel(this: Bobs27PlayContext): string {
+    return forActiveSeat(this, (ref) => this.currentTargetLabelFor(ref), "");
+  },
+
+  currentScoreFor(this: Bobs27PlayContext, seatRef: string): string {
+    const seat = seatStateFor(this.state(), seatRef);
+    return seat ? String(seat.score) : "";
+  },
+
+  currentScore(this: Bobs27PlayContext): string {
+    return forActiveSeat(this, (ref) => this.currentScoreFor(ref), "");
+  },
+
+  previewSegments(this: Bobs27PlayContext): Bobs27PreviewSegment[] {
+    return doublesPathPreviewSegments(
+      this.$store.game.turns,
+      this.hiddenTurnKey,
+    );
+  },
+
+  /** The recreational tap row's entry point: synthesizes the observation
+   * for a hit or miss on the current target and funnels it through
+   * `commitDart`, exactly as the board's per-dart `recordDart` does. */
+  async recordTap(this: Bobs27PlayContext, hit: boolean) {
+    if (!this.engine || this.finished) return;
+    const activeSeat = activeSeatStateOf(this.state());
+    if (!activeSeat) return;
+    const target = targetAt(doublesPath(), activeSeat.targetIndex);
+    await this.commitDart(doublesPathObservation(target, hit));
+  },
+
+  uploadAndCompleteSession(this: Bobs27PlayContext): Promise<void> {
+    return playUploadAndCompleteSession(this, (finalState) =>
+      computeStats(finalState, this.$store.game.turns),
+    );
+  },
+
+  resultsTitle(this: Bobs27PlayContext): string {
+    const winner = matchWinnerName(
+      this.$store.game.seats,
+      this.resultsSnapshot?.winningSideKey ?? null,
+    );
+    if (winner) return `${winner} wins!`;
+    const status = this.resultsSnapshot?.status;
+    if (status === "TIE") return "It's a tie!";
+    if (status === "LOST") return "Game over!";
+    return this.$store.game.configSnapshot?.mode === "EASY"
+      ? "Run complete!"
+      : "Winner!";
+  },
+
+  /**
+   * Replays under the session's own key; Easy resends its mode as an
+   * override.
+   */
+  playAgain(this: Bobs27PlayContext) {
+    const key = this.$store.game.rulesetVersionKey;
+    if (!key) return Promise.resolve();
+    return runPlayAgain(
+      this,
+      GAME_TYPE_KEY,
+      key,
+      (engine) => (engine instanceof Bobs27Engine ? engine : null),
+      key === "BOBS27_V2" ? variantsPlayAgain<Bobs27Snapshot>(key) : undefined,
+    );
+  },
+};
+
 export function bobs27Play() {
   return {
     ...playScreenState<Bobs27Engine, Bobs27ResultsSnapshot>(),
@@ -139,97 +232,6 @@ export function bobs27Play() {
     ...boardPlayActions({ gameTypeKey: GAME_TYPE_KEY, resume: resumeEngine }),
     ...botVisualBoardData(throwBotDart),
     ...playScreenActions(),
-
-    state(this: Bobs27PlayContext): Bobs27State | null {
-      const config = this.$store.game.configSnapshot;
-      if (!config) return null;
-      return foldBobs27State(
-        { stages: this.$store.game.stages, turns: this.$store.game.turns },
-        config,
-      );
-    },
-
-    /** Play-header subtitle: `ROUND 4 OF 21` along the doubles path; blank before config loads. */
-    subtitle(this: Bobs27PlayContext): string {
-      const seat = activeSeatStateOf(this.state());
-      if (!seat) return "";
-      const rounds = doublesPath().length;
-      return `ROUND ${Math.min(seat.targetIndex + 1, rounds)} OF ${rounds}`;
-    },
-
-    currentTargetLabelFor(this: Bobs27PlayContext, seatRef: string): string {
-      const seat = seatStateFor(this.state(), seatRef);
-      if (!seat) return "";
-      return doublesPathTargetLabel(targetAt(doublesPath(), seat.targetIndex));
-    },
-
-    currentTargetLabel(this: Bobs27PlayContext): string {
-      return forActiveSeat(this, (ref) => this.currentTargetLabelFor(ref), "");
-    },
-
-    currentScoreFor(this: Bobs27PlayContext, seatRef: string): string {
-      const seat = seatStateFor(this.state(), seatRef);
-      return seat ? String(seat.score) : "";
-    },
-
-    currentScore(this: Bobs27PlayContext): string {
-      return forActiveSeat(this, (ref) => this.currentScoreFor(ref), "");
-    },
-
-    previewSegments(this: Bobs27PlayContext): Bobs27PreviewSegment[] {
-      return doublesPathPreviewSegments(
-        this.$store.game.turns,
-        this.hiddenTurnKey,
-      );
-    },
-
-    /** The recreational tap row's entry point: synthesizes the observation
-     * for a hit or miss on the current target and funnels it through
-     * `commitDart`, exactly as the board's per-dart `recordDart` does. */
-    async recordTap(this: Bobs27PlayContext, hit: boolean) {
-      if (!this.engine || this.finished) return;
-      const activeSeat = activeSeatStateOf(this.state());
-      if (!activeSeat) return;
-      const target = targetAt(doublesPath(), activeSeat.targetIndex);
-      await this.commitDart(doublesPathObservation(target, hit));
-    },
-
-    uploadAndCompleteSession(this: Bobs27PlayContext): Promise<void> {
-      return playUploadAndCompleteSession(this, (finalState) =>
-        computeStats(finalState, this.$store.game.turns),
-      );
-    },
-
-    resultsTitle(this: Bobs27PlayContext): string {
-      const winner = matchWinnerName(
-        this.$store.game.seats,
-        this.resultsSnapshot?.winningSideKey ?? null,
-      );
-      if (winner) return `${winner} wins!`;
-      const status = this.resultsSnapshot?.status;
-      if (status === "TIE") return "It's a tie!";
-      if (status === "LOST") return "Game over!";
-      return this.$store.game.configSnapshot?.mode === "EASY"
-        ? "Run complete!"
-        : "Winner!";
-    },
-
-    /**
-     * Replays under the session's own key; Easy resends its mode as an
-     * override.
-     */
-    playAgain(this: Bobs27PlayContext) {
-      const key = this.$store.game.rulesetVersionKey;
-      if (!key) return Promise.resolve();
-      return runPlayAgain(
-        this,
-        GAME_TYPE_KEY,
-        key,
-        (engine) => (engine instanceof Bobs27Engine ? engine : null),
-        key === "BOBS27_V2"
-          ? variantsPlayAgain<Bobs27Snapshot>(key)
-          : undefined,
-      );
-    },
+    ...bobs27PlayMethods,
   };
 }

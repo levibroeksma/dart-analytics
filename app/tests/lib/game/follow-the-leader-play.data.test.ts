@@ -30,7 +30,7 @@ import type {
   StageFact,
   TurnFact,
 } from "@modules/types";
-import { shapeOf } from "../../support/factory-shape";
+import { shapeOf, sharedStateKeys } from "../../support/factory-shape";
 
 const SEATS = [
   {
@@ -719,83 +719,12 @@ describe("follow-the-leader per-seat accessors for an unknown seat", () => {
 
 describe("followTheLeaderPlay shape", () => {
   it("keeps its keys, in order", () => {
-    expect(shapeOf(followTheLeaderPlay())).toMatchInlineSnapshot(`
-      [
-        "loading",
-        "error",
-        "finished",
-        "hasActiveSession",
-        "loadingReconciliation",
-        "reconciliationFailed",
-        "completionStatus",
-        "completionError",
-        "playAgainError",
-        "playAgainLoading",
-        "resultsSnapshot",
-        "hiddenTurnKey",
-        "hiddenTimer",
-        "engine",
-        "starterOpen",
-        "playAgainStarter",
-        "requestPlayAgain()",
-        "playAgainStarterOptions()",
-        "input",
-        "board",
-        "pointerX",
-        "pointerY",
-        "syncBoard()",
-        "magnifierAnchor()",
-        "magnifierBox()",
-        "magnifierBoard()",
-        "magnifierRead()",
-        "onPointerDown()",
-        "onPointerMove()",
-        "onPointerUp()",
-        "onPointerCancel()",
-        "recordUnseen()",
-        "visitMarkers()",
-        "init()",
-        "recordDart()",
-        "commitDart()",
-        "undoVisit()",
-        "back()",
-        "retryReconciliation()",
-        "abandonAndExit()",
-        "ring",
-        "setChosen",
-        "state()",
-        "phase()",
-        "canStop()",
-        "keepAllowed()",
-        "showKeepPrompt()",
-        "showPad()",
-        "usesBoard()",
-        "showTapPad()",
-        "showBoard()",
-        "targetLabel()",
-        "leaderName()",
-        "openingNotice()",
-        "settingNotice()",
-        "subtitle()",
-        "livesLabelFor()",
-        "livesLabel()",
-        "statusLabelFor()",
-        "statusLabel()",
-        "isBullVisit()",
-        "previewSegments()",
-        "setRing()",
-        "recordNumber()",
-        "recordBull()",
-        "recordMiss()",
-        "commitAction()",
-        "stop()",
-        "keep()",
-        "chooseSet()",
-        "uploadAndCompleteSession()",
-        "resultsTitle()",
-        "outOrderLabel()",
-        "playAgain()",
-      ]
-    `);
+    expect(shapeOf(followTheLeaderPlay())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(
+      sharedStateKeys(followTheLeaderPlay(), followTheLeaderPlay()),
+    ).toMatchInlineSnapshot(`[]`);
   });
 });

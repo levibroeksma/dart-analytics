@@ -20,7 +20,7 @@ import { baseballEngineFactory } from "@modules/game/baseball.engine.module";
 import { baseballPlay, baseballSeatResult } from "@lib/game/baseball-play.data";
 import type { BaseballPlayContext, BaseballSnapshot, Seated } from "@lib/types";
 import type { StageFact, TurnFact } from "@modules/types";
-import { shapeOf } from "../../support/factory-shape";
+import { shapeOf, sharedStateKeys } from "../../support/factory-shape";
 
 const SEATS = [
   {
@@ -494,63 +494,12 @@ describe("baseball recordTap ring mapping", () => {
 
 describe("baseballPlay shape", () => {
   it("keeps its keys, in order", () => {
-    expect(shapeOf(baseballPlay())).toMatchInlineSnapshot(`
-      [
-        "loading",
-        "error",
-        "finished",
-        "hasActiveSession",
-        "loadingReconciliation",
-        "reconciliationFailed",
-        "completionStatus",
-        "completionError",
-        "playAgainError",
-        "playAgainLoading",
-        "resultsSnapshot",
-        "hiddenTurnKey",
-        "hiddenTimer",
-        "engine",
-        "starterOpen",
-        "playAgainStarter",
-        "requestPlayAgain()",
-        "playAgainStarterOptions()",
-        "input",
-        "board",
-        "pointerX",
-        "pointerY",
-        "syncBoard()",
-        "magnifierAnchor()",
-        "magnifierBox()",
-        "magnifierBoard()",
-        "magnifierRead()",
-        "onPointerDown()",
-        "onPointerMove()",
-        "onPointerUp()",
-        "onPointerCancel()",
-        "recordUnseen()",
-        "visitMarkers()",
-        "init()",
-        "recordDart()",
-        "commitDart()",
-        "undoVisit()",
-        "back()",
-        "retryReconciliation()",
-        "abandonAndExit()",
-        "state()",
-        "subtitle()",
-        "currentTargetLabelFor()",
-        "currentTargetLabel()",
-        "inningLabelFor()",
-        "inningLabel()",
-        "currentScoreFor()",
-        "currentScore()",
-        "isBullVisit()",
-        "previewSegments()",
-        "recordTap()",
-        "uploadAndCompleteSession()",
-        "resultsTitle()",
-        "playAgain()",
-      ]
-    `);
+    expect(shapeOf(baseballPlay())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(
+      sharedStateKeys(baseballPlay(), baseballPlay()),
+    ).toMatchInlineSnapshot(`[]`);
   });
 });

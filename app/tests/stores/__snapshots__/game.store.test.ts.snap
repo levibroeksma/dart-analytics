@@ -1,0 +1,30 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`gameStore shape > keeps its keys, in order 1`] = `
+[
+  "_v",
+  "gameTypeKey",
+  "rulesetVersionKey",
+  "sessionId",
+  "captureModeKey",
+  "inputModeKey",
+  "configSnapshot",
+  "seats get",
+  "templateRef",
+  "stages",
+  "turns",
+  "timerRemainingMs",
+  "timerStartedAt",
+  "timerExpired",
+  "timerPaused",
+  "idempotencyKey",
+  "loading",
+  "init()",
+  "startSession()",
+  "setSessionModes()",
+  "recordFacts()",
+  "contextRow()",
+  "contextRowParts()",
+  "reset()",
+]
+`;

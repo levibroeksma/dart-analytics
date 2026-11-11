@@ -168,6 +168,119 @@ function throwBotDart(
   );
 }
 
+/** `shanghaiPlay`'s methods; each reads its instance through `this`. */
+const shanghaiPlayMethods = {
+  state(this: ShanghaiPlayContext): ShanghaiState | null {
+    const config = this.$store.game.configSnapshot;
+    if (!config) return null;
+    return foldShanghaiState(
+      { stages: this.$store.game.stages, turns: this.$store.game.turns },
+      config,
+    );
+  },
+
+  /** Play-header subtitle: `ROUND 7 OF 20` (the range's length);  blank before config loads. */
+  subtitle(this: ShanghaiPlayContext): string {
+    const seat = activeSeatStateOf(this.state());
+    if (!seat) return "";
+    return `ROUND ${Math.min(roundOf(seat), roundCountOf(seat))} OF ${roundCountOf(seat)}`;
+  },
+
+  currentTargetLabelFor(this: ShanghaiPlayContext, seatRef: string): string {
+    const seat = seatStateFor(this.state(), seatRef);
+    return seat ? String(activeNumberOf(seat)) : "";
+  },
+
+  currentTargetLabel(this: ShanghaiPlayContext): string {
+    return forActiveSeat(this, (ref) => this.currentTargetLabelFor(ref), "");
+  },
+
+  roundLabelFor(this: ShanghaiPlayContext, seatRef: string): string {
+    const seat = seatStateFor(this.state(), seatRef);
+    return seat ? `${roundOf(seat)}/${roundCountOf(seat)}` : "";
+  },
+
+  roundLabel(this: ShanghaiPlayContext): string {
+    return forActiveSeat(this, (ref) => this.roundLabelFor(ref), "");
+  },
+
+  currentScoreFor(this: ShanghaiPlayContext, seatRef: string): string {
+    const seat = seatStateFor(this.state(), seatRef);
+    return seat ? String(seat.totalScore) : "";
+  },
+
+  currentScore(this: ShanghaiPlayContext): string {
+    return forActiveSeat(this, (ref) => this.currentScoreFor(ref), "");
+  },
+
+  isBullVisit(this: ShanghaiPlayContext): boolean {
+    return false;
+  },
+
+  previewSegments(this: ShanghaiPlayContext): ShanghaiPreviewSegment[] {
+    return previewSegmentsFor(
+      this.$store.game.turns,
+      this.hiddenTurnKey,
+      this.state()?.seats[0]?.rangeStart ?? 1,
+    );
+  },
+
+  async recordTap(
+    this: ShanghaiPlayContext,
+    ring: "SINGLE" | "DOUBLE" | "TREBLE" | "MISS",
+  ) {
+    if (!this.engine) return;
+    const activeSeat = activeSeatStateOf(this.state());
+    if (!activeSeat) return;
+    const observation = ringTapObservation(
+      { kind: "NUMBER", number: activeNumberOf(activeSeat) },
+      ring,
+    );
+    if (observation) await this.commitDart(observation);
+  },
+
+  uploadAndCompleteSession(this: ShanghaiPlayContext): Promise<void> {
+    const turns = this.$store.game.turns;
+    return playUploadAndCompleteSession(this, (finalState) => ({
+      status: finalState.status as "SHANGHAI" | "COMPLETE" | "TIE",
+      winningSideKey: finalState.winningSideKey,
+      seats: finalState.seats.map((seat) => statsFor(seat, turns)),
+    }));
+  },
+
+  resultsTitle(this: ShanghaiPlayContext): string {
+    if (!(this.completionStatus === "succeeded" && this.resultsSnapshot)) {
+      return "Session complete";
+    }
+    if (this.resultsSnapshot.status === "TIE") return "Tie — same score!";
+    const winner = matchWinnerName(
+      this.$store.game.seats,
+      this.resultsSnapshot.winningSideKey,
+    );
+    const isShanghai = this.resultsSnapshot.status === "SHANGHAI";
+    if (!winner) return isShanghai ? "Shanghai!" : "Session complete";
+    return isShanghai ? `${winner} hits a Shanghai!` : `${winner} wins!`;
+  },
+
+  playAgain(this: ShanghaiPlayContext) {
+    const rulesetVersionKey = this.$store.game.rulesetVersionKey;
+    if (
+      !rulesetVersionKey ||
+      !RESUMABLE_RULESET_VERSIONS.has(rulesetVersionKey)
+    )
+      return;
+    return runPlayAgain(
+      this,
+      GAME_TYPE_KEY,
+      rulesetVersionKey,
+      (engine) => (engine instanceof ShanghaiEngine ? engine : null),
+      rulesetVersionKey === "SHANGHAI_V1"
+        ? undefined
+        : variantsPlayAgain(rulesetVersionKey),
+    );
+  },
+};
+
 export function shanghaiPlay() {
   return {
     ...playScreenState<
@@ -181,115 +294,6 @@ export function shanghaiPlay() {
     }),
     ...botVisualBoardData(throwBotDart),
     ...playScreenActions(),
-
-    state(this: ShanghaiPlayContext): ShanghaiState | null {
-      const config = this.$store.game.configSnapshot;
-      if (!config) return null;
-      return foldShanghaiState(
-        { stages: this.$store.game.stages, turns: this.$store.game.turns },
-        config,
-      );
-    },
-
-    /** Play-header subtitle: `ROUND 7 OF 20` (the range's length);  blank before config loads. */
-    subtitle(this: ShanghaiPlayContext): string {
-      const seat = activeSeatStateOf(this.state());
-      if (!seat) return "";
-      return `ROUND ${Math.min(roundOf(seat), roundCountOf(seat))} OF ${roundCountOf(seat)}`;
-    },
-
-    currentTargetLabelFor(this: ShanghaiPlayContext, seatRef: string): string {
-      const seat = seatStateFor(this.state(), seatRef);
-      return seat ? String(activeNumberOf(seat)) : "";
-    },
-
-    currentTargetLabel(this: ShanghaiPlayContext): string {
-      return forActiveSeat(this, (ref) => this.currentTargetLabelFor(ref), "");
-    },
-
-    roundLabelFor(this: ShanghaiPlayContext, seatRef: string): string {
-      const seat = seatStateFor(this.state(), seatRef);
-      return seat ? `${roundOf(seat)}/${roundCountOf(seat)}` : "";
-    },
-
-    roundLabel(this: ShanghaiPlayContext): string {
-      return forActiveSeat(this, (ref) => this.roundLabelFor(ref), "");
-    },
-
-    currentScoreFor(this: ShanghaiPlayContext, seatRef: string): string {
-      const seat = seatStateFor(this.state(), seatRef);
-      return seat ? String(seat.totalScore) : "";
-    },
-
-    currentScore(this: ShanghaiPlayContext): string {
-      return forActiveSeat(this, (ref) => this.currentScoreFor(ref), "");
-    },
-
-    isBullVisit(this: ShanghaiPlayContext): boolean {
-      return false;
-    },
-
-    previewSegments(this: ShanghaiPlayContext): ShanghaiPreviewSegment[] {
-      return previewSegmentsFor(
-        this.$store.game.turns,
-        this.hiddenTurnKey,
-        this.state()?.seats[0]?.rangeStart ?? 1,
-      );
-    },
-
-    async recordTap(
-      this: ShanghaiPlayContext,
-      ring: "SINGLE" | "DOUBLE" | "TREBLE" | "MISS",
-    ) {
-      if (!this.engine) return;
-      const activeSeat = activeSeatStateOf(this.state());
-      if (!activeSeat) return;
-      const observation = ringTapObservation(
-        { kind: "NUMBER", number: activeNumberOf(activeSeat) },
-        ring,
-      );
-      if (observation) await this.commitDart(observation);
-    },
-
-    uploadAndCompleteSession(this: ShanghaiPlayContext): Promise<void> {
-      const turns = this.$store.game.turns;
-      return playUploadAndCompleteSession(this, (finalState) => ({
-        status: finalState.status as "SHANGHAI" | "COMPLETE" | "TIE",
-        winningSideKey: finalState.winningSideKey,
-        seats: finalState.seats.map((seat) => statsFor(seat, turns)),
-      }));
-    },
-
-    resultsTitle(this: ShanghaiPlayContext): string {
-      if (!(this.completionStatus === "succeeded" && this.resultsSnapshot)) {
-        return "Session complete";
-      }
-      if (this.resultsSnapshot.status === "TIE") return "Tie — same score!";
-      const winner = matchWinnerName(
-        this.$store.game.seats,
-        this.resultsSnapshot.winningSideKey,
-      );
-      const isShanghai = this.resultsSnapshot.status === "SHANGHAI";
-      if (!winner) return isShanghai ? "Shanghai!" : "Session complete";
-      return isShanghai ? `${winner} hits a Shanghai!` : `${winner} wins!`;
-    },
-
-    playAgain(this: ShanghaiPlayContext) {
-      const rulesetVersionKey = this.$store.game.rulesetVersionKey;
-      if (
-        !rulesetVersionKey ||
-        !RESUMABLE_RULESET_VERSIONS.has(rulesetVersionKey)
-      )
-        return;
-      return runPlayAgain(
-        this,
-        GAME_TYPE_KEY,
-        rulesetVersionKey,
-        (engine) => (engine instanceof ShanghaiEngine ? engine : null),
-        rulesetVersionKey === "SHANGHAI_V1"
-          ? undefined
-          : variantsPlayAgain(rulesetVersionKey),
-      );
-    },
+    ...shanghaiPlayMethods,
   };
 }

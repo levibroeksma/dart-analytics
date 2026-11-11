@@ -79,7 +79,7 @@ import type {
   TurnFact,
 } from "@modules/types";
 import type { FiveOhOneSnapshot, Seated } from "@lib/types";
-import { shapeOf } from "../../support/factory-shape";
+import { shapeOf, sharedStateKeys } from "../../support/factory-shape";
 
 const SEATS = [
   {
@@ -2300,85 +2300,12 @@ describe("fiveOhOnePlay botFlight", () => {
 
 describe("fiveOhOnePlay shape", () => {
   it("keeps its keys, in order", () => {
-    expect(shapeOf(fiveOhOnePlay())).toMatchInlineSnapshot(`
-      [
-        "loading",
-        "error",
-        "finished",
-        "hasActiveSession",
-        "loadingReconciliation",
-        "reconciliationFailed",
-        "completionStatus",
-        "completionError",
-        "playAgainError",
-        "playAgainLoading",
-        "resultsSnapshot",
-        "hiddenTurnKey",
-        "hiddenTimer",
-        "engine",
-        "starterOpen",
-        "playAgainStarter",
-        "requestPlayAgain()",
-        "playAgainStarterOptions()",
-        "input",
-        "board",
-        "pointerX",
-        "pointerY",
-        "syncBoard()",
-        "magnifierAnchor()",
-        "magnifierBox()",
-        "magnifierBoard()",
-        "magnifierRead()",
-        "onPointerDown()",
-        "onPointerMove()",
-        "onPointerUp()",
-        "onPointerCancel()",
-        "recordUnseen()",
-        "visitMarkers()",
-        "back()",
-        "retryReconciliation()",
-        "abandonAndExit()",
-        "scoreInput",
-        "pendingCheckoutScore",
-        "dartsAtDouble",
-        "dartsToFinish",
-        "pendingDartObservation",
-        "showDoubleConfirm",
-        "showMatchFinishConfirm",
-        "botThrowing",
-        "botFlight",
-        "turnsInCurrentLeg()",
-        "state()",
-        "subtitle()",
-        "setsTally()",
-        "legsToWin()",
-        "remainingScoreFor()",
-        "remainingScore()",
-        "checkoutHintFor()",
-        "checkoutHint()",
-        "dartsThrownThisLegFor()",
-        "dartsThrownThisLeg()",
-        "averageFor()",
-        "average()",
-        "previousScoreFor()",
-        "previousScore()",
-        "legsWonFor()",
-        "checkoutDartOptions()",
-        "init()",
-        "recordVisit()",
-        "recordDart()",
-        "commitDart()",
-        "submitVisit()",
-        "confirmDouble()",
-        "cancelCheckout()",
-        "confirmMatchFinish()",
-        "cancelMatchFinish()",
-        "maybeRunBotVisit()",
-        "undoVisit()",
-        "uploadAndCompleteSession()",
-        "resultsTitle()",
-        "playAgain()",
-      ]
-    `);
+    expect(shapeOf(fiveOhOnePlay())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(
+      sharedStateKeys(fiveOhOnePlay(), fiveOhOnePlay()),
+    ).toMatchInlineSnapshot(`[]`);
   });
 });

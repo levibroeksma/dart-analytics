@@ -1,6 +1,6 @@
 import { DOUBLES_PATH_KEYS } from "@lib/stats/heatmap-targets";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { shapeOf } from "../support/factory-shape";
+import { shapeOf, sharedStateKeys } from "../support/factory-shape";
 
 const readSection = vi.fn();
 const readSessionPage = vi.fn();
@@ -1245,78 +1245,12 @@ describe("selectGame with a dedicated layout", () => {
 
 describe("gameStatsStore shape", () => {
   it("keeps its keys, in order", () => {
-    expect(shapeOf(gameStatsStore())).toMatchInlineSnapshot(`
-      [
-        "gameTypeKey",
-        "range",
-        "sections",
-        "sessions",
-        "nextCursor",
-        "loading",
-        "error",
-        "sectionErrors",
-        "heatmapTarget",
-        "init()",
-        "selectGame()",
-        "failedSectionsMessage get",
-        "load()",
-        "fetchCheckoutPath()",
-        "selectHeatmapTarget()",
-        "loadHeatmap()",
-        "loadMoreSessions()",
-        "completionTotals get",
-        "abandonRate get",
-        "volumeTotals get",
-        "sessionResultRows get",
-        "targetLabel()",
-        "accuracyRows get",
-        "favoriteTarget get",
-        "weakestTarget get",
-        "confusionTop()",
-        "groupingRows get",
-        "missRose()",
-        "heatmapCells get",
-        "looseDartsTrend get",
-        "checkoutRateBands get",
-        "bustRateBands get",
-        "checkoutRateTrend get",
-        "bustRateTrend get",
-        "trebleRateTrend get",
-        "doubleRows get",
-        "favoriteDouble get",
-        "weakestDouble get",
-        "checkoutPathRemainings get",
-        "pathsFor()",
-        "chartRouteFor()",
-        "ladderSummary get",
-        "legHistogram get",
-        "bestLeg get",
-        "bestLegSessionId get",
-        "averageLegDarts get",
-        "scoringTrendTotals get",
-        "threeDartAverage get",
-        "firstNineAverage get",
-        "bandCounts get",
-        "scoringTrendHasData get",
-        "scoringTrendChart get",
-        "trebleRateTotals get",
-        "trebleRate()",
-        "trebleRateAll get",
-        "ringSplit()",
-        "skippedSessionsFor()",
-        "trainingResultRows get",
-        "trainingResultUnit get",
-        "atcConfigGroups get",
-        "dartsPerTargetForGroup()",
-        "slowestTargets()",
-        "bobs27ConfigGroups get",
-        "survivalCurve()",
-        "bobs27DeadliestTarget()",
-        "bobs27AverageScore()",
-        "shanghaiRateTrend get",
-        "shanghaiByNumber get",
-        "pointsPerRound get",
-      ]
-    `);
+    expect(shapeOf(gameStatsStore())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(
+      sharedStateKeys(gameStatsStore(), gameStatsStore()),
+    ).toMatchInlineSnapshot(`[]`);
   });
 });

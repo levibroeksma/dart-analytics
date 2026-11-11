@@ -15,7 +15,7 @@ import { SessionApiError } from "@client/api/sessions";
 import * as builderModule from "@lib/training/routines/routine-builder.data";
 import { routineBuilder } from "@lib/training/routines/routine-builder.data";
 import type { RoutineBuilderContext } from "@lib/types";
-import { shapeOf } from "../../../support/factory-shape";
+import { shapeOf, sharedStateKeys } from "../../../support/factory-shape";
 
 const CATALOG = [
   {
@@ -511,52 +511,12 @@ describe("routineBuilder step bounds", () => {
 
 describe("routineBuilder shape", () => {
   it("keeps its keys, in order", () => {
-    expect(shapeOf(routineBuilder("create"))).toMatchInlineSnapshot(`
-      [
-        "mode",
-        "routineId",
-        "loading",
-        "saving",
-        "attemptedSave",
-        "moveAnnouncement",
-        "error",
-        "serverIssues",
-        "name",
-        "description",
-        "catalog",
-        "catalogTags",
-        "steps",
-        "minMinutes",
-        "maxMinutes",
-        "maxSteps",
-        "stepMinMinutes",
-        "stepMaxMinutes",
-        "maxNameLength",
-        "maxDescriptionLength",
-        "groups()",
-        "clearServerIssues()",
-        "navigate()",
-        "init()",
-        "loadExisting()",
-        "addStep()",
-        "removeStep()",
-        "moveStep()",
-        "nudgeStep()",
-        "setMinutes()",
-        "durationResult()",
-        "totalMinutes()",
-        "stepMinFor()",
-        "stepMaxFor()",
-        "gameStepIssues()",
-        "durationIssues()",
-        "nameValid()",
-        "canSave()",
-        "saveDisabled()",
-        "payload()",
-        "save()",
-        "resetForm()",
-        "cancel()",
-      ]
-    `);
+    expect(shapeOf(routineBuilder("create"))).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(
+      sharedStateKeys(routineBuilder("create"), routineBuilder("create")),
+    ).toMatchInlineSnapshot(`[]`);
   });
 });

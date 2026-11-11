@@ -20,7 +20,7 @@ import {
   MY_SCHEDULE_NAME,
 } from "@lib/training/schedules/my-schedule.data";
 import type { MyScheduleFormContext } from "@lib/types";
-import { shapeOf } from "../../../support/factory-shape";
+import { shapeOf, sharedStateKeys } from "../../../support/factory-shape";
 
 const ROUTINE = (routineId: string) => ({
   routineId,
@@ -188,31 +188,12 @@ describe("myScheduleForm", () => {
 
 describe("myScheduleForm shape", () => {
   it("keeps its keys, in order", () => {
-    expect(shapeOf(myScheduleForm())).toMatchInlineSnapshot(`
-      [
-        "loading",
-        "saving",
-        "error",
-        "serverIssues",
-        "scheduleId",
-        "name",
-        "rows",
-        "routines",
-        "selectedIndex",
-        "init()",
-        "applySchedule()",
-        "resetForm()",
-        "dayInitial()",
-        "dayLabel()",
-        "selectedDayLabel()",
-        "selectDay()",
-        "hasRoutine()",
-        "isRoutineSelected()",
-        "toggleRoutine()",
-        "canSave()",
-        "payload()",
-        "save()",
-      ]
-    `);
+    expect(shapeOf(myScheduleForm())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(
+      sharedStateKeys(myScheduleForm(), myScheduleForm()),
+    ).toMatchInlineSnapshot(`[]`);
   });
 });

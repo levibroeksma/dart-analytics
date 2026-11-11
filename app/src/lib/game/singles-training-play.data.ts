@@ -305,6 +305,188 @@ function throwBotDart(
   );
 }
 
+/** `singlesTrainingPlay`'s methods; each reads its instance through `this`. */
+const singlesTrainingPlayMethods = {
+  state(this: SinglesTrainingPlayContext): SinglesTrainingState | null {
+    const config = this.$store.game.configSnapshot;
+    if (!config) return null;
+    return foldSinglesTrainingState(
+      { stages: this.$store.game.stages, turns: this.$store.game.turns },
+      config,
+    );
+  },
+
+  /** Play-header subtitle: the target order in setup wording, `RANDOM ORDER` for Random; blank before config loads. */
+  subtitle(this: SinglesTrainingPlayContext): string {
+    const config = this.$store.game.configSnapshot;
+    if (!config) return "";
+    const label = orderModeLabel(config.orderMode);
+    return config.orderMode === "RANDOM" ? `${label} ORDER` : label;
+  },
+
+  currentTargetLabelFor(
+    this: SinglesTrainingPlayContext,
+    seatRef: string,
+  ): string {
+    const config = this.$store.game.configSnapshot;
+    const seat = seatStateFor(this.state(), seatRef);
+    if (!config || !seat) return "";
+    return boardTargetLabel(
+      targetAt(numbersPath(config.targetOrder), seat.targetIndex),
+    );
+  },
+
+  currentTargetLabel(this: SinglesTrainingPlayContext): string {
+    return forActiveSeat(this, (ref) => this.currentTargetLabelFor(ref), "");
+  },
+
+  currentPointsFor(this: SinglesTrainingPlayContext, seatRef: string): string {
+    const seat = seatStateFor(this.state(), seatRef);
+    return seat ? String(seat.totalPoints) : "";
+  },
+
+  currentPoints(this: SinglesTrainingPlayContext): string {
+    return forActiveSeat(this, (ref) => this.currentPointsFor(ref), "");
+  },
+
+  isBullVisit(this: SinglesTrainingPlayContext): boolean {
+    const config = this.$store.game.configSnapshot;
+    const seat = activeSeatStateOf(this.state());
+    if (!config || !seat) return false;
+    return (
+      targetAt(numbersPath(config.targetOrder), seat.targetIndex).kind ===
+      "BULL"
+    );
+  },
+
+  previewSegments(this: SinglesTrainingPlayContext): SinglesPreviewSegment[] {
+    if (!this.engine) return [...EMPTY_SEGMENTS];
+    return previewSegmentsFor(
+      this.$store.game.turns,
+      this.$store.game.configSnapshot,
+      this.hiddenTurnKey,
+    );
+  },
+
+  missCountFor(this: SinglesTrainingPlayContext, seatRef: string): string {
+    return ringCountLabel(
+      this.$store.game.configSnapshot,
+      this.$store.game.turns.filter((t) => t.participantRef === seatRef),
+      "misses",
+    );
+  },
+  missCount(this: SinglesTrainingPlayContext): string {
+    return ringCountLabel(
+      this.$store.game.configSnapshot,
+      this.$store.game.turns,
+      "misses",
+    );
+  },
+
+  singleCountFor(this: SinglesTrainingPlayContext, seatRef: string): string {
+    return ringCountLabel(
+      this.$store.game.configSnapshot,
+      this.$store.game.turns.filter((t) => t.participantRef === seatRef),
+      "singles",
+    );
+  },
+  singleCount(this: SinglesTrainingPlayContext): string {
+    return ringCountLabel(
+      this.$store.game.configSnapshot,
+      this.$store.game.turns,
+      "singles",
+    );
+  },
+
+  doubleCountFor(this: SinglesTrainingPlayContext, seatRef: string): string {
+    return ringCountLabel(
+      this.$store.game.configSnapshot,
+      this.$store.game.turns.filter((t) => t.participantRef === seatRef),
+      "doubles",
+    );
+  },
+  doubleCount(this: SinglesTrainingPlayContext): string {
+    return ringCountLabel(
+      this.$store.game.configSnapshot,
+      this.$store.game.turns,
+      "doubles",
+    );
+  },
+
+  trebleCountFor(this: SinglesTrainingPlayContext, seatRef: string): string {
+    return ringCountLabel(
+      this.$store.game.configSnapshot,
+      this.$store.game.turns.filter((t) => t.participantRef === seatRef),
+      "trebles",
+    );
+  },
+  trebleCount(this: SinglesTrainingPlayContext): string {
+    return ringCountLabel(
+      this.$store.game.configSnapshot,
+      this.$store.game.turns,
+      "trebles",
+    );
+  },
+
+  async recordTap(
+    this: SinglesTrainingPlayContext,
+    ring: "SINGLE" | "DOUBLE" | "TREBLE" | "MISS",
+  ) {
+    const config = this.$store.game.configSnapshot;
+    const seat = activeSeatStateOf(this.state());
+    if (!this.engine || !config || !seat || this.finished) return;
+    const target = targetAt(numbersPath(config.targetOrder), seat.targetIndex);
+    const observation = ringTapObservation(target, ring);
+    if (observation) await this.commitDart(observation);
+  },
+
+  uploadAndCompleteSession(this: SinglesTrainingPlayContext): Promise<void> {
+    const config = this.$store.game.configSnapshot;
+    return playUploadAndCompleteSession(this, (finalState) => ({
+      winningSideKey: finalState.winningSideKey,
+      seats: finalState.seats.map((seat) =>
+        statsFor(seat, finalState, this.$store.game.turns, config),
+      ),
+    }));
+  },
+
+  resultsTitle(this: SinglesTrainingPlayContext): string {
+    return singlesTrainingResultsTitle(
+      this.$store.game.seats,
+      this.resultsSnapshot,
+    );
+  },
+
+  playAgain(this: SinglesTrainingPlayContext) {
+    const rulesetVersionKey = this.$store.game.rulesetVersionKey;
+    if (
+      !rulesetVersionKey ||
+      !RESUMABLE_RULESET_VERSIONS.has(rulesetVersionKey)
+    )
+      return;
+    return runPlayAgain(
+      this,
+      GAME_TYPE_KEY,
+      rulesetVersionKey,
+      (engine) => (engine instanceof SinglesTrainingEngine ? engine : null),
+      (priorConfig) => {
+        const targetOrder = targetOrderFor(priorConfig.orderMode);
+        return {
+          snapshot: { ...priorConfig, targetOrder },
+          wire: {
+            order_mode: priorConfig.orderMode,
+            target_order: targetOrder,
+            difficulty: priorConfig.difficulty,
+            ...("scoringMode" in priorConfig
+              ? { scoring_mode: priorConfig.scoringMode }
+              : {}),
+          },
+        };
+      },
+    );
+  },
+};
+
 export function singlesTrainingPlay() {
   return {
     ...playScreenState<SinglesTrainingEngine, SinglesTrainingResultsSnapshot>(),
@@ -315,190 +497,6 @@ export function singlesTrainingPlay() {
     >({ gameTypeKey: GAME_TYPE_KEY, resume: resumeEngine }),
     ...botVisualBoardData(throwBotDart),
     ...playScreenActions(),
-
-    state(this: SinglesTrainingPlayContext): SinglesTrainingState | null {
-      const config = this.$store.game.configSnapshot;
-      if (!config) return null;
-      return foldSinglesTrainingState(
-        { stages: this.$store.game.stages, turns: this.$store.game.turns },
-        config,
-      );
-    },
-
-    /** Play-header subtitle: the target order in setup wording, `RANDOM ORDER` for Random; blank before config loads. */
-    subtitle(this: SinglesTrainingPlayContext): string {
-      const config = this.$store.game.configSnapshot;
-      if (!config) return "";
-      const label = orderModeLabel(config.orderMode);
-      return config.orderMode === "RANDOM" ? `${label} ORDER` : label;
-    },
-
-    currentTargetLabelFor(
-      this: SinglesTrainingPlayContext,
-      seatRef: string,
-    ): string {
-      const config = this.$store.game.configSnapshot;
-      const seat = seatStateFor(this.state(), seatRef);
-      if (!config || !seat) return "";
-      return boardTargetLabel(
-        targetAt(numbersPath(config.targetOrder), seat.targetIndex),
-      );
-    },
-
-    currentTargetLabel(this: SinglesTrainingPlayContext): string {
-      return forActiveSeat(this, (ref) => this.currentTargetLabelFor(ref), "");
-    },
-
-    currentPointsFor(
-      this: SinglesTrainingPlayContext,
-      seatRef: string,
-    ): string {
-      const seat = seatStateFor(this.state(), seatRef);
-      return seat ? String(seat.totalPoints) : "";
-    },
-
-    currentPoints(this: SinglesTrainingPlayContext): string {
-      return forActiveSeat(this, (ref) => this.currentPointsFor(ref), "");
-    },
-
-    isBullVisit(this: SinglesTrainingPlayContext): boolean {
-      const config = this.$store.game.configSnapshot;
-      const seat = activeSeatStateOf(this.state());
-      if (!config || !seat) return false;
-      return (
-        targetAt(numbersPath(config.targetOrder), seat.targetIndex).kind ===
-        "BULL"
-      );
-    },
-
-    previewSegments(this: SinglesTrainingPlayContext): SinglesPreviewSegment[] {
-      if (!this.engine) return [...EMPTY_SEGMENTS];
-      return previewSegmentsFor(
-        this.$store.game.turns,
-        this.$store.game.configSnapshot,
-        this.hiddenTurnKey,
-      );
-    },
-
-    missCountFor(this: SinglesTrainingPlayContext, seatRef: string): string {
-      return ringCountLabel(
-        this.$store.game.configSnapshot,
-        this.$store.game.turns.filter((t) => t.participantRef === seatRef),
-        "misses",
-      );
-    },
-    missCount(this: SinglesTrainingPlayContext): string {
-      return ringCountLabel(
-        this.$store.game.configSnapshot,
-        this.$store.game.turns,
-        "misses",
-      );
-    },
-
-    singleCountFor(this: SinglesTrainingPlayContext, seatRef: string): string {
-      return ringCountLabel(
-        this.$store.game.configSnapshot,
-        this.$store.game.turns.filter((t) => t.participantRef === seatRef),
-        "singles",
-      );
-    },
-    singleCount(this: SinglesTrainingPlayContext): string {
-      return ringCountLabel(
-        this.$store.game.configSnapshot,
-        this.$store.game.turns,
-        "singles",
-      );
-    },
-
-    doubleCountFor(this: SinglesTrainingPlayContext, seatRef: string): string {
-      return ringCountLabel(
-        this.$store.game.configSnapshot,
-        this.$store.game.turns.filter((t) => t.participantRef === seatRef),
-        "doubles",
-      );
-    },
-    doubleCount(this: SinglesTrainingPlayContext): string {
-      return ringCountLabel(
-        this.$store.game.configSnapshot,
-        this.$store.game.turns,
-        "doubles",
-      );
-    },
-
-    trebleCountFor(this: SinglesTrainingPlayContext, seatRef: string): string {
-      return ringCountLabel(
-        this.$store.game.configSnapshot,
-        this.$store.game.turns.filter((t) => t.participantRef === seatRef),
-        "trebles",
-      );
-    },
-    trebleCount(this: SinglesTrainingPlayContext): string {
-      return ringCountLabel(
-        this.$store.game.configSnapshot,
-        this.$store.game.turns,
-        "trebles",
-      );
-    },
-
-    async recordTap(
-      this: SinglesTrainingPlayContext,
-      ring: "SINGLE" | "DOUBLE" | "TREBLE" | "MISS",
-    ) {
-      const config = this.$store.game.configSnapshot;
-      const seat = activeSeatStateOf(this.state());
-      if (!this.engine || !config || !seat || this.finished) return;
-      const target = targetAt(
-        numbersPath(config.targetOrder),
-        seat.targetIndex,
-      );
-      const observation = ringTapObservation(target, ring);
-      if (observation) await this.commitDart(observation);
-    },
-
-    uploadAndCompleteSession(this: SinglesTrainingPlayContext): Promise<void> {
-      const config = this.$store.game.configSnapshot;
-      return playUploadAndCompleteSession(this, (finalState) => ({
-        winningSideKey: finalState.winningSideKey,
-        seats: finalState.seats.map((seat) =>
-          statsFor(seat, finalState, this.$store.game.turns, config),
-        ),
-      }));
-    },
-
-    resultsTitle(this: SinglesTrainingPlayContext): string {
-      return singlesTrainingResultsTitle(
-        this.$store.game.seats,
-        this.resultsSnapshot,
-      );
-    },
-
-    playAgain(this: SinglesTrainingPlayContext) {
-      const rulesetVersionKey = this.$store.game.rulesetVersionKey;
-      if (
-        !rulesetVersionKey ||
-        !RESUMABLE_RULESET_VERSIONS.has(rulesetVersionKey)
-      )
-        return;
-      return runPlayAgain(
-        this,
-        GAME_TYPE_KEY,
-        rulesetVersionKey,
-        (engine) => (engine instanceof SinglesTrainingEngine ? engine : null),
-        (priorConfig) => {
-          const targetOrder = targetOrderFor(priorConfig.orderMode);
-          return {
-            snapshot: { ...priorConfig, targetOrder },
-            wire: {
-              order_mode: priorConfig.orderMode,
-              target_order: targetOrder,
-              difficulty: priorConfig.difficulty,
-              ...("scoringMode" in priorConfig
-                ? { scoring_mode: priorConfig.scoringMode }
-                : {}),
-            },
-          };
-        },
-      );
-    },
+    ...singlesTrainingPlayMethods,
   };
 }

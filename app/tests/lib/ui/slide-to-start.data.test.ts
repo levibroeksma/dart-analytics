@@ -7,7 +7,7 @@ import {
   shouldFire,
   slideToStartData,
 } from "@lib/ui/slide-to-start.data";
-import { shapeOf } from "../../support/factory-shape";
+import { shapeOf, sharedStateKeys } from "../../support/factory-shape";
 
 describe("dragFraction / shouldFire", () => {
   it("clamps to 0–1", () => {
@@ -188,22 +188,12 @@ describe("slideToStartData", () => {
 
 describe("slideToStartData shape", () => {
   it("keeps its keys, in order", () => {
-    expect(shapeOf(slideToStartData())).toMatchInlineSnapshot(`
-      [
-        "fraction",
-        "dragging",
-        "fired",
-        "disabled",
-        "failed",
-        "init()",
-        "begin()",
-        "move()",
-        "end()",
-        "onKey()",
-        "onClick()",
-        "fire()",
-        "reset()",
-      ]
-    `);
+    expect(shapeOf(slideToStartData())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(
+      sharedStateKeys(slideToStartData(), slideToStartData()),
+    ).toMatchInlineSnapshot(`[]`);
   });
 });

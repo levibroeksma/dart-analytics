@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { shapeOf } from "../support/factory-shape";
+import { shapeOf, sharedStateKeys } from "../support/factory-shape";
 
 const fetchProfile = vi.fn();
 const saveProfile = vi.fn();
@@ -187,19 +187,12 @@ describe("profileStore", () => {
 
 describe("profileStore shape", () => {
   it("keeps its keys, in order", () => {
-    expect(shapeOf(profileStore())).toMatchInlineSnapshot(`
-      [
-        "displayName",
-        "dartsDescription",
-        "dartsWeightGrams",
-        "loading",
-        "loaded",
-        "error",
-        "weightLabel get",
-        "init()",
-        "load()",
-        "save()",
-      ]
-    `);
+    expect(shapeOf(profileStore())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(
+      sharedStateKeys(profileStore(), profileStore()),
+    ).toMatchInlineSnapshot(`[]`);
   });
 });

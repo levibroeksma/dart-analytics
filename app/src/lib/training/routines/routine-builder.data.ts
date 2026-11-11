@@ -71,6 +71,242 @@ function formatServerIssues(
   return [extras.length > 0 ? `${reason} (${extras.join(", ")})` : reason];
 }
 
+/** `routineBuilder`'s methods, group 1 of 2; each reads its instance through `this`. */
+const routineBuilderMethods1 = {
+  groups(this: RoutineBuilderContext) {
+    return groupCatalog(this.catalog, this.catalogTags);
+  },
+};
+
+/** `routineBuilder`'s methods, group 2 of 2; each reads its instance through `this`. */
+const routineBuilderMethods2 = {
+  navigate(path: string) {
+    globalThis.location.href = path;
+  },
+
+  async init(this: RoutineBuilderContext) {
+    this.loading = true;
+    this.error = "";
+    try {
+      const [catalog, catalogTags] = await Promise.all([
+        listExerciseTemplates(),
+        fetchCatalogTags().catch(() => null),
+      ]);
+      this.catalog = catalog;
+      this.catalogTags = catalogTags;
+    } catch {
+      this.error = "Could not load the exercise catalog.";
+      this.loading = false;
+      return;
+    }
+    if (this.mode === "edit") {
+      try {
+        await this.loadExisting();
+      } catch {
+        this.error = "Could not load this routine.";
+      }
+    }
+    this.loading = false;
+  },
+
+  async loadExisting(this: RoutineBuilderContext) {
+    const routineId = routineIdFromLocation();
+    if (!routineId) {
+      this.error = "No routine selected.";
+      return;
+    }
+    const routine = await getRoutine(routineId);
+    if (routine.isSystemTemplate) {
+      this.error = "A system routine cannot be edited. Build your own instead.";
+      return;
+    }
+    this.routineId = routine.routineId;
+    this.name = routine.routineName;
+    this.description = routine.description ?? "";
+    this.steps = routine.steps.map((step) => ({
+      key: stepKey(),
+      exerciseTemplateId: step.exerciseTemplateId,
+      name: step.exerciseName,
+      exerciseTypeKey: step.exerciseTypeKey,
+      durationValue: step.durationValue,
+    }));
+  },
+
+  addStep(
+    this: RoutineBuilderContext,
+    entry: ExerciseTemplateCatalogEntryData,
+  ) {
+    if (this.steps.length >= MAX_BUILDER_STEPS) return;
+    this.serverIssues = [];
+    this.steps = [
+      ...this.steps,
+      {
+        key: stepKey(),
+        exerciseTemplateId: entry.exerciseTemplateId,
+        name: entry.name,
+        exerciseTypeKey: entry.exerciseTypeKey,
+        durationValue: DEFAULT_STEP_MINUTES,
+      },
+    ];
+  },
+
+  removeStep(this: RoutineBuilderContext, index: number) {
+    this.serverIssues = [];
+    this.steps = this.steps.filter((_, i) => i !== index);
+  },
+
+  moveStep(this: RoutineBuilderContext, key: string, position: number) {
+    const from = this.steps.findIndex((step) => step.key === key);
+    if (from === -1) return;
+    const to = Math.min(Math.max(position, 0), this.steps.length - 1);
+    if (to === from) return;
+    this.serverIssues = [];
+    const next = [...this.steps];
+    next.splice(to, 0, ...next.splice(from, 1));
+    this.steps = next;
+    this.moveAnnouncement = `${next[to].name}, position ${to + 1} of ${next.length}`;
+  },
+
+  nudgeStep(this: RoutineBuilderContext, key: string, delta: number) {
+    const from = this.steps.findIndex((step) => step.key === key);
+    if (from === -1) return;
+    this.moveStep(key, from + delta);
+  },
+
+  setMinutes(this: RoutineBuilderContext, index: number, value: number) {
+    const step = this.steps[index];
+    if (!step) return;
+    this.serverIssues = [];
+    this.steps = this.steps.map((s, i) =>
+      i === index ? { ...s, durationValue: clampMinutes(Number(value)) } : s,
+    );
+  },
+
+  durationResult(this: RoutineBuilderContext) {
+    return validateRoutineDuration(
+      this.steps.map((step, index) => ({
+        sequenceNumber: index + 1,
+        durationTypeKey: "MINUTES" as const,
+        durationValue: step.durationValue,
+      })),
+      { minMinutes: MIN_USER_ROUTINE_MINUTES },
+    );
+  },
+
+  totalMinutes(this: RoutineBuilderContext): number {
+    return this.steps.reduce((sum, step) => sum + step.durationValue, 0);
+  },
+
+  stepMinFor(this: RoutineBuilderContext, step: BuilderStep): number {
+    return step.exerciseTypeKey === "GAME"
+      ? tuodDurationBounds("MINUTES").min
+      : this.stepMinMinutes;
+  },
+
+  stepMaxFor(this: RoutineBuilderContext, step: BuilderStep): number {
+    return step.exerciseTypeKey === "GAME"
+      ? tuodDurationBounds("MINUTES").max
+      : this.stepMaxMinutes;
+  },
+
+  gameStepIssues(this: RoutineBuilderContext): string[] {
+    const { min, max } = tuodDurationBounds("MINUTES");
+    return this.steps.flatMap((step, index) =>
+      step.exerciseTypeKey === "GAME" &&
+      (step.durationValue < min || step.durationValue > max)
+        ? [
+            `step ${index + 1} (${step.name}) must be between ${min} and ${max} minutes`,
+          ]
+        : [],
+    );
+  },
+
+  durationIssues(this: RoutineBuilderContext): string[] {
+    const result = this.durationResult();
+    return [...this.gameStepIssues(), ...(result.ok ? [] : result.issues)];
+  },
+
+  nameValid(this: RoutineBuilderContext): boolean {
+    const trimmed = this.name.trim();
+    return trimmed.length > 0 && trimmed.length <= MAX_NAME_LENGTH;
+  },
+
+  canSave(this: RoutineBuilderContext): boolean {
+    if (this.saving || this.loading) return false;
+    if (this.mode === "edit" && !this.routineId) return false;
+    return (
+      this.nameValid() &&
+      this.durationResult().ok &&
+      this.gameStepIssues().length === 0
+    );
+  },
+
+  saveDisabled(this: RoutineBuilderContext): boolean {
+    if (this.saving || this.loading) return true;
+    if (this.mode === "edit" && !this.routineId) return true;
+    return !this.nameValid();
+  },
+
+  payload(this: RoutineBuilderContext) {
+    return {
+      name: this.name.trim(),
+      description: this.description.trim() || null,
+      steps: this.steps.map((step) => ({
+        exerciseTemplateId: step.exerciseTemplateId,
+        durationTypeKey: "MINUTES" as const,
+        durationValue: step.durationValue,
+      })),
+    };
+  },
+
+  async save(this: RoutineBuilderContext) {
+    this.attemptedSave = true;
+    if (!this.canSave()) return;
+    this.saving = true;
+    this.error = "";
+    this.serverIssues = [];
+    try {
+      const saved =
+        this.mode === "edit" && this.routineId
+          ? await updateRoutine(this.routineId, this.payload())
+          : await createRoutine(this.payload());
+      this.navigate(routineDetailPath(saved.routineId));
+    } catch (err) {
+      if (err instanceof SessionApiError && err.code === "VALIDATION_FAILED") {
+        this.serverIssues = formatServerIssues(err.details);
+      } else {
+        this.error =
+          "Could not save the routine. Check your connection and retry.";
+      }
+    } finally {
+      this.saving = false;
+    }
+  },
+
+  async resetForm(this: RoutineBuilderContext) {
+    this.error = "";
+    this.serverIssues = [];
+    this.attemptedSave = false;
+    if (this.mode === "edit" && this.routineId) {
+      try {
+        await this.loadExisting();
+      } catch {
+        this.error = "Could not load this routine.";
+      }
+      return;
+    }
+    this.name = "";
+    this.description = "";
+    this.steps = [];
+  },
+
+  cancel(this: RoutineBuilderContext) {
+    this.navigate(
+      this.routineId ? routineDetailPath(this.routineId) : "/training",
+    );
+  },
+};
+
 /**
  * Builder state for the create modal on `/training` and the `/edit` page.
  * Pre-validates with
@@ -99,243 +335,11 @@ export function routineBuilder(mode: "create" | "edit") {
     stepMaxMinutes: MAX_STEP_MINUTES,
     maxNameLength: MAX_NAME_LENGTH,
     maxDescriptionLength: MAX_DESCRIPTION_LENGTH,
-
-    groups(this: RoutineBuilderContext) {
-      return groupCatalog(this.catalog, this.catalogTags);
-    },
+    ...routineBuilderMethods1,
 
     clearServerIssues() {
       this.serverIssues = [];
     },
-
-    navigate(path: string) {
-      globalThis.location.href = path;
-    },
-
-    async init(this: RoutineBuilderContext) {
-      this.loading = true;
-      this.error = "";
-      try {
-        const [catalog, catalogTags] = await Promise.all([
-          listExerciseTemplates(),
-          fetchCatalogTags().catch(() => null),
-        ]);
-        this.catalog = catalog;
-        this.catalogTags = catalogTags;
-      } catch {
-        this.error = "Could not load the exercise catalog.";
-        this.loading = false;
-        return;
-      }
-      if (this.mode === "edit") {
-        try {
-          await this.loadExisting();
-        } catch {
-          this.error = "Could not load this routine.";
-        }
-      }
-      this.loading = false;
-    },
-
-    async loadExisting(this: RoutineBuilderContext) {
-      const routineId = routineIdFromLocation();
-      if (!routineId) {
-        this.error = "No routine selected.";
-        return;
-      }
-      const routine = await getRoutine(routineId);
-      if (routine.isSystemTemplate) {
-        this.error =
-          "A system routine cannot be edited. Build your own instead.";
-        return;
-      }
-      this.routineId = routine.routineId;
-      this.name = routine.routineName;
-      this.description = routine.description ?? "";
-      this.steps = routine.steps.map((step) => ({
-        key: stepKey(),
-        exerciseTemplateId: step.exerciseTemplateId,
-        name: step.exerciseName,
-        exerciseTypeKey: step.exerciseTypeKey,
-        durationValue: step.durationValue,
-      }));
-    },
-
-    addStep(
-      this: RoutineBuilderContext,
-      entry: ExerciseTemplateCatalogEntryData,
-    ) {
-      if (this.steps.length >= MAX_BUILDER_STEPS) return;
-      this.serverIssues = [];
-      this.steps = [
-        ...this.steps,
-        {
-          key: stepKey(),
-          exerciseTemplateId: entry.exerciseTemplateId,
-          name: entry.name,
-          exerciseTypeKey: entry.exerciseTypeKey,
-          durationValue: DEFAULT_STEP_MINUTES,
-        },
-      ];
-    },
-
-    removeStep(this: RoutineBuilderContext, index: number) {
-      this.serverIssues = [];
-      this.steps = this.steps.filter((_, i) => i !== index);
-    },
-
-    moveStep(this: RoutineBuilderContext, key: string, position: number) {
-      const from = this.steps.findIndex((step) => step.key === key);
-      if (from === -1) return;
-      const to = Math.min(Math.max(position, 0), this.steps.length - 1);
-      if (to === from) return;
-      this.serverIssues = [];
-      const next = [...this.steps];
-      next.splice(to, 0, ...next.splice(from, 1));
-      this.steps = next;
-      this.moveAnnouncement = `${next[to].name}, position ${to + 1} of ${next.length}`;
-    },
-
-    nudgeStep(this: RoutineBuilderContext, key: string, delta: number) {
-      const from = this.steps.findIndex((step) => step.key === key);
-      if (from === -1) return;
-      this.moveStep(key, from + delta);
-    },
-
-    setMinutes(this: RoutineBuilderContext, index: number, value: number) {
-      const step = this.steps[index];
-      if (!step) return;
-      this.serverIssues = [];
-      this.steps = this.steps.map((s, i) =>
-        i === index ? { ...s, durationValue: clampMinutes(Number(value)) } : s,
-      );
-    },
-
-    durationResult(this: RoutineBuilderContext) {
-      return validateRoutineDuration(
-        this.steps.map((step, index) => ({
-          sequenceNumber: index + 1,
-          durationTypeKey: "MINUTES" as const,
-          durationValue: step.durationValue,
-        })),
-        { minMinutes: MIN_USER_ROUTINE_MINUTES },
-      );
-    },
-
-    totalMinutes(this: RoutineBuilderContext): number {
-      return this.steps.reduce((sum, step) => sum + step.durationValue, 0);
-    },
-
-    stepMinFor(this: RoutineBuilderContext, step: BuilderStep): number {
-      return step.exerciseTypeKey === "GAME"
-        ? tuodDurationBounds("MINUTES").min
-        : this.stepMinMinutes;
-    },
-
-    stepMaxFor(this: RoutineBuilderContext, step: BuilderStep): number {
-      return step.exerciseTypeKey === "GAME"
-        ? tuodDurationBounds("MINUTES").max
-        : this.stepMaxMinutes;
-    },
-
-    gameStepIssues(this: RoutineBuilderContext): string[] {
-      const { min, max } = tuodDurationBounds("MINUTES");
-      return this.steps.flatMap((step, index) =>
-        step.exerciseTypeKey === "GAME" &&
-        (step.durationValue < min || step.durationValue > max)
-          ? [
-              `step ${index + 1} (${step.name}) must be between ${min} and ${max} minutes`,
-            ]
-          : [],
-      );
-    },
-
-    durationIssues(this: RoutineBuilderContext): string[] {
-      const result = this.durationResult();
-      return [...this.gameStepIssues(), ...(result.ok ? [] : result.issues)];
-    },
-
-    nameValid(this: RoutineBuilderContext): boolean {
-      const trimmed = this.name.trim();
-      return trimmed.length > 0 && trimmed.length <= MAX_NAME_LENGTH;
-    },
-
-    canSave(this: RoutineBuilderContext): boolean {
-      if (this.saving || this.loading) return false;
-      if (this.mode === "edit" && !this.routineId) return false;
-      return (
-        this.nameValid() &&
-        this.durationResult().ok &&
-        this.gameStepIssues().length === 0
-      );
-    },
-
-    saveDisabled(this: RoutineBuilderContext): boolean {
-      if (this.saving || this.loading) return true;
-      if (this.mode === "edit" && !this.routineId) return true;
-      return !this.nameValid();
-    },
-
-    payload(this: RoutineBuilderContext) {
-      return {
-        name: this.name.trim(),
-        description: this.description.trim() || null,
-        steps: this.steps.map((step) => ({
-          exerciseTemplateId: step.exerciseTemplateId,
-          durationTypeKey: "MINUTES" as const,
-          durationValue: step.durationValue,
-        })),
-      };
-    },
-
-    async save(this: RoutineBuilderContext) {
-      this.attemptedSave = true;
-      if (!this.canSave()) return;
-      this.saving = true;
-      this.error = "";
-      this.serverIssues = [];
-      try {
-        const saved =
-          this.mode === "edit" && this.routineId
-            ? await updateRoutine(this.routineId, this.payload())
-            : await createRoutine(this.payload());
-        this.navigate(routineDetailPath(saved.routineId));
-      } catch (err) {
-        if (
-          err instanceof SessionApiError &&
-          err.code === "VALIDATION_FAILED"
-        ) {
-          this.serverIssues = formatServerIssues(err.details);
-        } else {
-          this.error =
-            "Could not save the routine. Check your connection and retry.";
-        }
-      } finally {
-        this.saving = false;
-      }
-    },
-
-    async resetForm(this: RoutineBuilderContext) {
-      this.error = "";
-      this.serverIssues = [];
-      this.attemptedSave = false;
-      if (this.mode === "edit" && this.routineId) {
-        try {
-          await this.loadExisting();
-        } catch {
-          this.error = "Could not load this routine.";
-        }
-        return;
-      }
-      this.name = "";
-      this.description = "";
-      this.steps = [];
-    },
-
-    cancel(this: RoutineBuilderContext) {
-      this.navigate(
-        this.routineId ? routineDetailPath(this.routineId) : "/training",
-      );
-    },
+    ...routineBuilderMethods2,
   };
 }

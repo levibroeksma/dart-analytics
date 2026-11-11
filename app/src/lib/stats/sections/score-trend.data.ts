@@ -54,6 +54,15 @@ function localTz(): string {
   return Intl.DateTimeFormat().resolvedOptions().timeZone;
 }
 
+/** `scoreTrendSection`'s methods; each reads its instance through `this`. */
+const scoreTrendSectionMethods = {
+  init(this: WatchesRange) {
+    this.$watch("rangeKey", () => void this.load());
+    void this.load();
+    void this.loadPersonalBest();
+  },
+};
+
 /**
  * Score Training's score-trend section: fetches `scoring-trend` on mount and
  * on every change of the page-level `rangeKey` it inherits from the statistics
@@ -80,12 +89,7 @@ export function scoreTrendSection() {
     get period(): TrendRangeKey {
       return (this as unknown as PageScope).$data.rangeKey;
     },
-
-    init(this: WatchesRange) {
-      this.$watch("rangeKey", () => void this.load());
-      void this.load();
-      void this.loadPersonalBest();
-    },
+    ...scoreTrendSectionMethods,
 
     async load(now: Date = new Date()) {
       const mine = ++ticket;

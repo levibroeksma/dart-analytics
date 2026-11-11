@@ -19,6 +19,14 @@ import type { ConfigSnapshot } from "./types";
  */
 const STORE_VERSION = 3;
 
+/** `gameStore`'s methods; each reads its instance through `this`. */
+const gameStoreMethods = {
+  /** The row's left-hand parts, empty ones dropped; read by `InlayRow`. */
+  contextRowParts(row: SessionContextRow | null): string[] {
+    return contextRowParts(row);
+  },
+};
+
 /**
  * Game-agnostic session state: which ruleset is being played, the snapshot of
  * its configuration, and the engine's fact log. The engine owns that log; this
@@ -163,11 +171,7 @@ export function gameStore(persist: PersistFactory) {
         { expectedSessionId, fallbackTitle },
       );
     },
-
-    /** The row's left-hand parts, empty ones dropped; read by `InlayRow`. */
-    contextRowParts(row: SessionContextRow | null): string[] {
-      return contextRowParts(row);
-    },
+    ...gameStoreMethods,
 
     reset() {
       this.gameTypeKey = null;

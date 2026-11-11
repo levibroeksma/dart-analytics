@@ -252,6 +252,207 @@ async function resumeCountdown(
   }
 }
 
+/** `aroundTheClockPlay`'s methods; each reads its instance through `this`. */
+const aroundTheClockPlayMethods = {
+  state(this: AroundTheClockPlayContext): AroundTheClockState | null {
+    const config = this.$store.game.configSnapshot;
+    if (!config) return null;
+    return foldAroundTheClockState(
+      { stages: this.$store.game.stages, turns: this.$store.game.turns },
+      config,
+      this.$store.game.timerExpired ?? false,
+    );
+  },
+
+  activeSeatState(
+    this: AroundTheClockPlayContext,
+  ): AroundTheClockSeatState | null {
+    return activeSeatStateOf(this.state()) ?? null;
+  },
+
+  currentTargetLabelFor(
+    this: AroundTheClockPlayContext,
+    seatRef: string,
+  ): string {
+    const seat = seatStateFor(this.state(), seatRef);
+    if (!seat) return "";
+    return labelOf(rulesOf(this.$store.game.configSnapshot!), seat.targetIndex);
+  },
+
+  currentTargetLabel(this: AroundTheClockPlayContext): string {
+    return forActiveSeat(this, (ref) => this.currentTargetLabelFor(ref), "");
+  },
+
+  turnsSoFarFor(this: AroundTheClockPlayContext, seatRef: string): string {
+    return String(
+      this.$store.game.turns.filter((turn) => turn.participantRef === seatRef)
+        .length,
+    );
+  },
+
+  turnsSoFar(this: AroundTheClockPlayContext): string {
+    return forActiveSeat(this, (ref) => this.turnsSoFarFor(ref), "0");
+  },
+
+  accuracyFor(this: AroundTheClockPlayContext, seatRef: string): string {
+    const config = this.$store.game.configSnapshot!;
+    const turns = this.$store.game.turns.filter(
+      (turn) => turn.participantRef === seatRef,
+    );
+    return accuracyDisplay(countHits(config, turns), countDarts(turns));
+  },
+
+  accuracy(this: AroundTheClockPlayContext): string {
+    return forActiveSeat(this, (ref) => this.accuracyFor(ref), "0.00%");
+  },
+
+  isBullVisit(this: AroundTheClockPlayContext): boolean {
+    const seat = this.activeSeatState();
+    if (!seat) return false;
+    const config = this.$store.game.configSnapshot!;
+    return targetAt(rulesOf(config).path, seat.targetIndex).kind === "BULL";
+  },
+
+  hasLives(this: AroundTheClockPlayContext): boolean {
+    const config = this.$store.game.configSnapshot;
+    return config !== null && "lives" in config;
+  },
+
+  isTimed(this: AroundTheClockPlayContext): boolean {
+    return timedConfig(this.$store.game.configSnapshot) !== null;
+  },
+
+  laps(this: AroundTheClockPlayContext): number {
+    return this.activeSeatState()?.laps ?? 0;
+  },
+
+  livesLeft(this: AroundTheClockPlayContext): string {
+    const lives = this.activeSeatState()?.lives;
+    return lives === undefined ? "" : String(lives);
+  },
+
+  remainingLabel(this: AroundTheClockPlayContext): string {
+    return formatRemaining(this.$store.game.timerRemainingMs);
+  },
+
+  /**
+   * Play-header subtitle: lap and path ends (`LAP 2 · 1 → 20`). The path
+   * ends in BULL; its last number is the one before it. Blank before
+   * config loads.
+   */
+  subtitle(this: AroundTheClockPlayContext): string {
+    const config = this.$store.game.configSnapshot;
+    if (!config) return "";
+    const numbers = rulesOf(config).path.flatMap((target) =>
+      target.kind === "BULL" ? [] : [target.number],
+    );
+    return joinSubtitle([
+      `LAP ${this.laps() + 1}`,
+      `${numbers[0]} → ${numbers.at(-1)}`,
+    ]);
+  },
+
+  /** Hits the seat still needs in its open visit (`2 to hit`); blank on Easy, where any hit advances. */
+  hitsToGoFor(this: AroundTheClockPlayContext, seatRef: string): string {
+    const config = this.$store.game.configSnapshot;
+    const seat = seatStateFor(this.state(), seatRef);
+    if (!config || !seat) return "";
+    const { hitsRequired } = rulesOf(config);
+    if (hitsRequired === 0) return "";
+    return `${Math.max(hitsRequired - seat.hitsThisVisit, 0)} to hit`;
+  },
+
+  hitsToGo(this: AroundTheClockPlayContext): string {
+    return forActiveSeat(this, (ref) => this.hitsToGoFor(ref), "");
+  },
+
+  previewSegments(
+    this: AroundTheClockPlayContext,
+  ): AroundTheClockPreviewSegment[] {
+    const config = this.$store.game.configSnapshot;
+    if (!this.engine || !config) return [...EMPTY_SEGMENTS];
+    const turns = this.$store.game.turns;
+    const lastParticipantRef = turns.at(-1)?.participantRef;
+    const seatTurns = turns.filter(
+      (turn) => turn.participantRef === lastParticipantRef,
+    );
+    return previewSegmentsFor(config, seatTurns, this.hiddenTurnKey);
+  },
+
+  async finishIfExpired(this: AroundTheClockPlayContext) {
+    if (this.finished || !this.engine?.isComplete()) return;
+    this.finished = true;
+    this.completionStatus = "pending";
+    await this.uploadAndCompleteSession();
+  },
+
+  async recordTap(
+    this: AroundTheClockPlayContext,
+    ring: "SINGLE" | "DOUBLE" | "TREBLE" | "MISS",
+  ) {
+    if (!this.engine || this.finished) return;
+    const seat = this.activeSeatState();
+    if (!seat) return;
+    const config = this.$store.game.configSnapshot!;
+    const target = targetAt(rulesOf(config).path, seat.targetIndex);
+    const observation = ringTapObservation(target, ring);
+    if (observation) await this.commitDart(observation);
+  },
+
+  uploadAndCompleteSession(this: AroundTheClockPlayContext): Promise<void> {
+    const config = this.$store.game.configSnapshot;
+    return playUploadAndCompleteSession(this, (finalState) => ({
+      winningSideKey: finalState.winningSideKey,
+      status: (finalState.status ?? "COMPLETE") as "COMPLETE" | "TIE",
+      seats: finalState.seats.map((seat) =>
+        statsFor(seat, this.$store.game.turns, config),
+      ),
+    }));
+  },
+
+  resultsTitle(this: AroundTheClockPlayContext): string {
+    const solo = soloTitle(this.resultsSnapshot);
+    if (solo) return solo;
+    if (this.resultsSnapshot?.status === "TIE") return "Tie — same darts!";
+    const winner = matchWinnerName(
+      this.$store.game.seats,
+      this.resultsSnapshot?.winningSideKey ?? null,
+    );
+    if (!winner) return "Session complete";
+    return this.hasLives()
+      ? `${winner} wins!`
+      : `${winner} wins — fewest darts!`;
+  },
+
+  /**
+   * Replays under the session's own key. V2 resends every variant as
+   * overrides (V1 has none) and restarts a timed run's countdown.
+   */
+  playAgain(this: AroundTheClockPlayContext) {
+    const config = this.$store.game.configSnapshot;
+    if (!config) return Promise.resolve();
+    const key = rulesetKeyOf(config);
+    return runPlayAgain(
+      this,
+      GAME_TYPE_KEY,
+      key,
+      (engine) => (engine instanceof AroundTheClockEngine ? engine : null),
+      key === "AROUND_THE_CLOCK_V1" ? undefined : variantsPlayAgain(key),
+      () => resetTimerForPlayAgain(this),
+      (engine) => {
+        const timed = timedConfig(this.$store.game.configSnapshot);
+        if (timed) {
+          this.timer = startCountdown(
+            this.$store.game,
+            timed.durationValue,
+            engine,
+          );
+        }
+      },
+    );
+  },
+};
+
 export function aroundTheClockPlay() {
   return {
     ...playScreenState<
@@ -267,206 +468,6 @@ export function aroundTheClockPlay() {
     ...botVisualBoardData(throwBotDart),
     ...playScreenActions(),
     ...timedPlayData(),
-
-    state(this: AroundTheClockPlayContext): AroundTheClockState | null {
-      const config = this.$store.game.configSnapshot;
-      if (!config) return null;
-      return foldAroundTheClockState(
-        { stages: this.$store.game.stages, turns: this.$store.game.turns },
-        config,
-        this.$store.game.timerExpired ?? false,
-      );
-    },
-
-    activeSeatState(
-      this: AroundTheClockPlayContext,
-    ): AroundTheClockSeatState | null {
-      return activeSeatStateOf(this.state()) ?? null;
-    },
-
-    currentTargetLabelFor(
-      this: AroundTheClockPlayContext,
-      seatRef: string,
-    ): string {
-      const seat = seatStateFor(this.state(), seatRef);
-      if (!seat) return "";
-      return labelOf(
-        rulesOf(this.$store.game.configSnapshot!),
-        seat.targetIndex,
-      );
-    },
-
-    currentTargetLabel(this: AroundTheClockPlayContext): string {
-      return forActiveSeat(this, (ref) => this.currentTargetLabelFor(ref), "");
-    },
-
-    turnsSoFarFor(this: AroundTheClockPlayContext, seatRef: string): string {
-      return String(
-        this.$store.game.turns.filter((turn) => turn.participantRef === seatRef)
-          .length,
-      );
-    },
-
-    turnsSoFar(this: AroundTheClockPlayContext): string {
-      return forActiveSeat(this, (ref) => this.turnsSoFarFor(ref), "0");
-    },
-
-    accuracyFor(this: AroundTheClockPlayContext, seatRef: string): string {
-      const config = this.$store.game.configSnapshot!;
-      const turns = this.$store.game.turns.filter(
-        (turn) => turn.participantRef === seatRef,
-      );
-      return accuracyDisplay(countHits(config, turns), countDarts(turns));
-    },
-
-    accuracy(this: AroundTheClockPlayContext): string {
-      return forActiveSeat(this, (ref) => this.accuracyFor(ref), "0.00%");
-    },
-
-    isBullVisit(this: AroundTheClockPlayContext): boolean {
-      const seat = this.activeSeatState();
-      if (!seat) return false;
-      const config = this.$store.game.configSnapshot!;
-      return targetAt(rulesOf(config).path, seat.targetIndex).kind === "BULL";
-    },
-
-    hasLives(this: AroundTheClockPlayContext): boolean {
-      const config = this.$store.game.configSnapshot;
-      return config !== null && "lives" in config;
-    },
-
-    isTimed(this: AroundTheClockPlayContext): boolean {
-      return timedConfig(this.$store.game.configSnapshot) !== null;
-    },
-
-    laps(this: AroundTheClockPlayContext): number {
-      return this.activeSeatState()?.laps ?? 0;
-    },
-
-    livesLeft(this: AroundTheClockPlayContext): string {
-      const lives = this.activeSeatState()?.lives;
-      return lives === undefined ? "" : String(lives);
-    },
-
-    remainingLabel(this: AroundTheClockPlayContext): string {
-      return formatRemaining(this.$store.game.timerRemainingMs);
-    },
-
-    /**
-     * Play-header subtitle: lap and path ends (`LAP 2 · 1 → 20`). The path
-     * ends in BULL; its last number is the one before it. Blank before
-     * config loads.
-     */
-    subtitle(this: AroundTheClockPlayContext): string {
-      const config = this.$store.game.configSnapshot;
-      if (!config) return "";
-      const numbers = rulesOf(config).path.flatMap((target) =>
-        target.kind === "BULL" ? [] : [target.number],
-      );
-      return joinSubtitle([
-        `LAP ${this.laps() + 1}`,
-        `${numbers[0]} → ${numbers.at(-1)}`,
-      ]);
-    },
-
-    /** Hits the seat still needs in its open visit (`2 to hit`); blank on Easy, where any hit advances. */
-    hitsToGoFor(this: AroundTheClockPlayContext, seatRef: string): string {
-      const config = this.$store.game.configSnapshot;
-      const seat = seatStateFor(this.state(), seatRef);
-      if (!config || !seat) return "";
-      const { hitsRequired } = rulesOf(config);
-      if (hitsRequired === 0) return "";
-      return `${Math.max(hitsRequired - seat.hitsThisVisit, 0)} to hit`;
-    },
-
-    hitsToGo(this: AroundTheClockPlayContext): string {
-      return forActiveSeat(this, (ref) => this.hitsToGoFor(ref), "");
-    },
-
-    previewSegments(
-      this: AroundTheClockPlayContext,
-    ): AroundTheClockPreviewSegment[] {
-      const config = this.$store.game.configSnapshot;
-      if (!this.engine || !config) return [...EMPTY_SEGMENTS];
-      const turns = this.$store.game.turns;
-      const lastParticipantRef = turns.at(-1)?.participantRef;
-      const seatTurns = turns.filter(
-        (turn) => turn.participantRef === lastParticipantRef,
-      );
-      return previewSegmentsFor(config, seatTurns, this.hiddenTurnKey);
-    },
-
-    async finishIfExpired(this: AroundTheClockPlayContext) {
-      if (this.finished || !this.engine?.isComplete()) return;
-      this.finished = true;
-      this.completionStatus = "pending";
-      await this.uploadAndCompleteSession();
-    },
-
-    async recordTap(
-      this: AroundTheClockPlayContext,
-      ring: "SINGLE" | "DOUBLE" | "TREBLE" | "MISS",
-    ) {
-      if (!this.engine || this.finished) return;
-      const seat = this.activeSeatState();
-      if (!seat) return;
-      const config = this.$store.game.configSnapshot!;
-      const target = targetAt(rulesOf(config).path, seat.targetIndex);
-      const observation = ringTapObservation(target, ring);
-      if (observation) await this.commitDart(observation);
-    },
-
-    uploadAndCompleteSession(this: AroundTheClockPlayContext): Promise<void> {
-      const config = this.$store.game.configSnapshot;
-      return playUploadAndCompleteSession(this, (finalState) => ({
-        winningSideKey: finalState.winningSideKey,
-        status: (finalState.status ?? "COMPLETE") as "COMPLETE" | "TIE",
-        seats: finalState.seats.map((seat) =>
-          statsFor(seat, this.$store.game.turns, config),
-        ),
-      }));
-    },
-
-    resultsTitle(this: AroundTheClockPlayContext): string {
-      const solo = soloTitle(this.resultsSnapshot);
-      if (solo) return solo;
-      if (this.resultsSnapshot?.status === "TIE") return "Tie — same darts!";
-      const winner = matchWinnerName(
-        this.$store.game.seats,
-        this.resultsSnapshot?.winningSideKey ?? null,
-      );
-      if (!winner) return "Session complete";
-      return this.hasLives()
-        ? `${winner} wins!`
-        : `${winner} wins — fewest darts!`;
-    },
-
-    /**
-     * Replays under the session's own key. V2 resends every variant as
-     * overrides (V1 has none) and restarts a timed run's countdown.
-     */
-    playAgain(this: AroundTheClockPlayContext) {
-      const config = this.$store.game.configSnapshot;
-      if (!config) return Promise.resolve();
-      const key = rulesetKeyOf(config);
-      return runPlayAgain(
-        this,
-        GAME_TYPE_KEY,
-        key,
-        (engine) => (engine instanceof AroundTheClockEngine ? engine : null),
-        key === "AROUND_THE_CLOCK_V1" ? undefined : variantsPlayAgain(key),
-        () => resetTimerForPlayAgain(this),
-        (engine) => {
-          const timed = timedConfig(this.$store.game.configSnapshot);
-          if (timed) {
-            this.timer = startCountdown(
-              this.$store.game,
-              timed.durationValue,
-              engine,
-            );
-          }
-        },
-      );
-    },
+    ...aroundTheClockPlayMethods,
   };
 }

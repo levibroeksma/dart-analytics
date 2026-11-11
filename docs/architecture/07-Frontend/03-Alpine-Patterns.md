@@ -2,12 +2,12 @@
 status: canonical
 scope: frontend/alpine-patterns
 read-when: Alpine stores, data components, persist
-updated: 2026-10-08
+updated: 2026-11-10
 -->
 
 # Frontend Alpine Patterns
 
-> **Version:** 0.3.0
+> **Version:** 0.4.0
 >
 > Alpine.js entry factory, store/data patterns, and `$persist` rules.
 >
@@ -138,6 +138,35 @@ export function registerRouteData(Alpine: Alpine) {
 | **`x-data` invocation** | Always `x-data="componentState()"` — never `x-data="componentState"` |
 | **Store registration** | `Alpine.store('name', storeFactory(persist))` — invoke factory so `init()` runs |
 | **No Alpine in modules** | `modules/` never import Alpine |
+
+## Method groups (D553)
+
+A factory keeps its state in the returned literal and spreads its methods from a module-level constant in the same file. The factory stays short; each method is one unit.
+
+```ts
+/** `acePlay`'s methods; each reads its instance through `this`. */
+const acePlayMethods = {
+  state(this: AcePlayContext): AceState | null { … },
+  subtitle(this: AcePlayContext): string { … },
+};
+
+export function acePlay() {
+  return {
+    ...playScreenState<AceEngine, AceResultsSnapshot>(),
+    ring: "SINGLE" as MarksRing,
+    ...acePlayMethods,
+  };
+}
+```
+
+Rules:
+
+- **State per call.** Arrays, objects, Maps, engines and timer handles are created inside the factory. A group holds functions only.
+- **Getters and closures stay.** A getter or setter, and a method that reads a factory parameter or local, stays in the factory literal.
+- **Key order kept.** A group is spread where its methods stood, so a later key overrides an earlier one as before.
+- **`this` is declared.** Each group method names its context type (`this: AcePlayContext`). A factory whose methods rely on the literal's inferred `this` needs a context type first.
+
+Each factory's test pins both with `tests/support/factory-shape.ts`: `shapeOf(factory())` (keys in order) and `sharedStateKeys(factory(), factory())` (expected `[]`).
 
 ## Alpine v3 directive syntax (mandatory)
 

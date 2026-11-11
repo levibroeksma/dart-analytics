@@ -93,7 +93,7 @@ import type {
   StageFact,
   TurnFact,
 } from "@modules/types";
-import { shapeOf } from "../../support/factory-shape";
+import { shapeOf, sharedStateKeys } from "../../support/factory-shape";
 
 const SEATS = [
   {
@@ -2753,74 +2753,12 @@ describe("scoreTrainingPlay botFlight", () => {
 
 describe("scoreTrainingPlay shape", () => {
   it("keeps its keys, in order", () => {
-    expect(shapeOf(scoreTrainingPlay())).toMatchInlineSnapshot(`
-      [
-        "input",
-        "board",
-        "pointerX",
-        "pointerY",
-        "syncBoard()",
-        "magnifierAnchor()",
-        "magnifierBox()",
-        "magnifierBoard()",
-        "magnifierRead()",
-        "onPointerDown()",
-        "onPointerMove()",
-        "onPointerUp()",
-        "onPointerCancel()",
-        "recordUnseen()",
-        "visitMarkers()",
-        "loading",
-        "error",
-        "finished",
-        "hasActiveSession",
-        "loadingReconciliation",
-        "reconciliationFailed",
-        "completionStatus",
-        "completionError",
-        "playAgainError",
-        "playAgainLoading",
-        "resultsSnapshot",
-        "hiddenTurnKey",
-        "hiddenTimer",
-        "engine",
-        "starterOpen",
-        "playAgainStarter",
-        "requestPlayAgain()",
-        "playAgainStarterOptions()",
-        "back()",
-        "retryReconciliation()",
-        "abandonAndExit()",
-        "timer",
-        "togglePause()",
-        "destroy()",
-        "scoreInput",
-        "pendingFinishScore",
-        "pendingDartObservation",
-        "showFinishConfirm",
-        "botThrowing",
-        "botFlight",
-        "state()",
-        "totalScoreFor()",
-        "subtitle()",
-        "threeDartAverageFor()",
-        "dartsThrownThisLegFor()",
-        "previousScoreThisLegFor()",
-        "remainingLabel()",
-        "threeDartAverage()",
-        "dartsThrownThisLeg()",
-        "previousScoreThisLeg()",
-        "init()",
-        "submitVisit()",
-        "recordDart()",
-        "maybeRunBotVisit()",
-        "confirmFinish()",
-        "cancelFinish()",
-        "undoVisit()",
-        "uploadAndCompleteSession()",
-        "resultsTitle()",
-        "playAgain()",
-      ]
-    `);
+    expect(shapeOf(scoreTrainingPlay())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(
+      sharedStateKeys(scoreTrainingPlay(), scoreTrainingPlay()),
+    ).toMatchInlineSnapshot(`[]`);
   });
 });

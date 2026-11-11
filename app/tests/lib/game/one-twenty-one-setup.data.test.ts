@@ -3,7 +3,7 @@ import { oneTwentyOneSetup } from "@lib/game/one-twenty-one-setup.data";
 import type { OneTwentyOneSetupContext } from "@lib/types";
 import * as sessionsApi from "@client/api/sessions";
 import * as presetsApi from "@client/api/configuration-templates";
-import { shapeOf } from "../../support/factory-shape";
+import { shapeOf, sharedStateKeys } from "../../support/factory-shape";
 
 vi.mock("@client/api/sessions");
 vi.mock("@client/api/configuration-templates");
@@ -810,45 +810,12 @@ describe("oneTwentyOneSetup — guests", () => {
 
 describe("oneTwentyOneSetup shape", () => {
   it("keeps its keys, in order", () => {
-    expect(shapeOf(oneTwentyOneSetup())).toMatchInlineSnapshot(`
-      [
-        "loading",
-        "error",
-        "activeSession",
-        "activeSessionLocal",
-        "showActiveSessionModal",
-        "loadingReconciliation",
-        "guests",
-        "showAddGuestModal",
-        "newGuestName",
-        "bot",
-        "showOpponentChooser",
-        "pendingBotLevel",
-        "showBotLevelPicker",
-        "starterOpen",
-        "starterIndex",
-        "beginStart()",
-        "resolveStarter()",
-        "cancelStarter()",
-        "starterOptions()",
-        "reconcile()",
-        "retryReconciliation()",
-        "continueSession()",
-        "leaveSetup()",
-        "abandonSession()",
-        "removeGuest()",
-        "removeBot()",
-        "presets",
-        "durationType",
-        "durationValue",
-        "init()",
-        "presetForMode()",
-        "selectMode()",
-        "addGuest()",
-        "addBot()",
-        "forceTargetIfGuested()",
-        "start()",
-      ]
-    `);
+    expect(shapeOf(oneTwentyOneSetup())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(
+      sharedStateKeys(oneTwentyOneSetup(), oneTwentyOneSetup()),
+    ).toMatchInlineSnapshot(`[]`);
   });
 });

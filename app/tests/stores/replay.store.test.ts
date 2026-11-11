@@ -9,7 +9,7 @@ import {
   playFiveOhOne,
   type ScriptedGame,
 } from "../lib/stats/replay-games";
-import { shapeOf } from "../support/factory-shape";
+import { shapeOf, sharedStateKeys } from "../support/factory-shape";
 
 const readReplayPage = vi.fn();
 const apiRequest = vi.fn();
@@ -456,33 +456,12 @@ describe("replayStore", () => {
 
 describe("replayStore shape", () => {
   it("keeps its keys, in order", () => {
-    expect(shapeOf(replayStore())).toMatchInlineSnapshot(`
-      [
-        "sessionId",
-        "header",
-        "turns",
-        "nextCursor",
-        "fold",
-        "loading",
-        "error",
-        "selectedIndex",
-        "open()",
-        "loadNext()",
-        "loadPage()",
-        "append()",
-        "select()",
-        "presenter get",
-        "exerciseTitle get",
-        "derivedAvailable get",
-        "errorMessage get",
-        "participantName()",
-        "cellsOf()",
-        "turnView()",
-        "stageGroups get",
-        "sessionLine get",
-        "curveRows get",
-        "selectedMarkers get",
-      ]
-    `);
+    expect(shapeOf(replayStore())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(sharedStateKeys(replayStore(), replayStore())).toMatchInlineSnapshot(
+      `[]`,
+    );
   });
 });

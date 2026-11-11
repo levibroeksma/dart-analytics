@@ -1,0 +1,28 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`gameSessionList shape > keeps its keys, in order 1`] = `
+[
+  "loading",
+  "error",
+  "items",
+  "nextCursor",
+  "totalCount",
+  "pageIndex",
+  "cursors",
+  "period get",
+  "init()",
+  "gameTypeKey get",
+  "fetchPage()",
+  "load()",
+  "goTo()",
+  "next()",
+  "previous()",
+  "rows get",
+  "caption()",
+  "hasNext get",
+  "hasPrevious get",
+  "pageNumber get",
+  "totalPages get",
+  "isEmpty get",
+]
+`;

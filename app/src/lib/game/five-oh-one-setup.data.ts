@@ -96,6 +96,110 @@ export function buildFiveOhOneV2Wire(
   };
 }
 
+/** `fiveOhOneSetup`'s methods; each reads its instance through `this`. */
+const fiveOhOneSetupMethods = {
+  legsPlayedNotice(this: FiveOhOneSetupContext): string {
+    return playedNotice(this.matchMode, this.legsToWin);
+  },
+
+  legsPerSetPlayedNotice(this: FiveOhOneSetupContext): string {
+    return playedNotice(this.legsPerSetMode, this.legsPerSet);
+  },
+
+  /** Legs a side needs per leg race: the cap stepper's floor and the base of its default. */
+  capMin(this: FiveOhOneSetupContext): number {
+    const setsOn = this.matchUnit === "SETS";
+    const mode = setsOn ? this.legsPerSetMode : this.matchMode;
+    const raw = setsOn ? this.legsPerSet : this.legsToWin;
+    return legTargetOf(mode, oddFor(mode, clampFiveOhOneLegs(raw).value));
+  },
+
+  /** Keeps the cap at target + 2 until the player edits it; an edited cap is left alone. */
+  syncCap(this: FiveOhOneSetupContext) {
+    if (this.cap !== null && this.cap !== this.autoCap) return;
+    const next = this.capMin() + 2;
+    this.cap = next;
+    this.autoCap = next;
+  },
+
+  async init(this: FiveOhOneSetupContext) {
+    this.loadingReconciliation = true;
+    try {
+      const [presets, activeSessions] = await Promise.all([
+        fetchConfigurationPresets(GAME_TYPE_KEY),
+        fetchActiveSessions(),
+      ]);
+      this.presets = presets;
+      this.legsToWin = FIVE_OH_ONE_LEGS_MIN;
+      await this.reconcile(activeSessions);
+    } catch {
+      this.showActiveSessionModal = false;
+      this.error = "Could not load setup. Check your connection and try again.";
+    } finally {
+      this.loadingReconciliation = false;
+    }
+  },
+
+  /**
+   * The V2-shaped template whose configuration is copied under the
+   * player's chosen match format; V1 presets carry `legs_to_win`, which the
+   * strict V2 schema rejects.
+   */
+  basePreset(this: FiveOhOneSetupContext) {
+    return this.presets.find(isV2Preset);
+  },
+
+  addGuest(this: FiveOhOneSetupContext) {
+    addTypedGuest(this);
+  },
+
+  addBot(this: FiveOhOneSetupContext) {
+    addBotOpponent(this);
+  },
+
+  async start(this: FiveOhOneSetupContext) {
+    const preset = this.basePreset();
+    if (!preset) {
+      this.error = "Could not find a preset for 501.";
+      return;
+    }
+    const { value: legsValue } = clampFiveOhOneLegs(this.legsToWin);
+    this.legsToWin = legsValue;
+
+    let startingScore: number;
+    if (this.startingScoreOption === "CUSTOM") {
+      const { value: scoreValue, clamped: scoreClamped } =
+        clampFiveOhOneStartingScore(this.startingScoreValue);
+      this.startingScoreValue = scoreValue;
+      this.scoreClampNotice = scoreClamped
+        ? FIVE_OH_ONE_STARTING_SCORE_NOTICE
+        : "";
+      startingScore = scoreValue;
+    } else {
+      startingScore = Number(this.startingScoreOption);
+      this.scoreClampNotice = "";
+    }
+
+    await startPresetSession(this, {
+      gameTypeKey: GAME_TYPE_KEY,
+      rulesetVersionKey: RULESET_VERSION_KEY,
+      playHref: "/games/501/play",
+      preset,
+      overrides: buildFiveOhOneV2Wire({
+        startingScore,
+        matchMode: this.matchMode,
+        count: legsValue,
+        matchUnit: this.matchUnit,
+        legsPerSetMode: this.legsPerSetMode,
+        legsPerSet: clampFiveOhOneLegs(this.legsPerSet).value,
+        winByTwo: this.winByTwo,
+        marginScope: this.marginScope,
+        cap: this.cap === null ? null : clampFiveOhOneLegs(this.cap).value,
+      }),
+    });
+  },
+};
+
 export function fiveOhOneSetup() {
   return {
     ...createSetupSession({
@@ -116,107 +220,6 @@ export function fiveOhOneSetup() {
     marginScope: "EVERY_SET" as "EVERY_SET" | "DECIDING_SET",
     cap: null as number | string | null,
     autoCap: null as number | null,
-
-    legsPlayedNotice(this: FiveOhOneSetupContext): string {
-      return playedNotice(this.matchMode, this.legsToWin);
-    },
-
-    legsPerSetPlayedNotice(this: FiveOhOneSetupContext): string {
-      return playedNotice(this.legsPerSetMode, this.legsPerSet);
-    },
-
-    /** Legs a side needs per leg race: the cap stepper's floor and the base of its default. */
-    capMin(this: FiveOhOneSetupContext): number {
-      const setsOn = this.matchUnit === "SETS";
-      const mode = setsOn ? this.legsPerSetMode : this.matchMode;
-      const raw = setsOn ? this.legsPerSet : this.legsToWin;
-      return legTargetOf(mode, oddFor(mode, clampFiveOhOneLegs(raw).value));
-    },
-
-    /** Keeps the cap at target + 2 until the player edits it; an edited cap is left alone. */
-    syncCap(this: FiveOhOneSetupContext) {
-      if (this.cap !== null && this.cap !== this.autoCap) return;
-      const next = this.capMin() + 2;
-      this.cap = next;
-      this.autoCap = next;
-    },
-
-    async init(this: FiveOhOneSetupContext) {
-      this.loadingReconciliation = true;
-      try {
-        const [presets, activeSessions] = await Promise.all([
-          fetchConfigurationPresets(GAME_TYPE_KEY),
-          fetchActiveSessions(),
-        ]);
-        this.presets = presets;
-        this.legsToWin = FIVE_OH_ONE_LEGS_MIN;
-        await this.reconcile(activeSessions);
-      } catch {
-        this.showActiveSessionModal = false;
-        this.error =
-          "Could not load setup. Check your connection and try again.";
-      } finally {
-        this.loadingReconciliation = false;
-      }
-    },
-
-    /**
-     * The V2-shaped template whose configuration is copied under the
-     * player's chosen match format; V1 presets carry `legs_to_win`, which the
-     * strict V2 schema rejects.
-     */
-    basePreset(this: FiveOhOneSetupContext) {
-      return this.presets.find(isV2Preset);
-    },
-
-    addGuest(this: FiveOhOneSetupContext) {
-      addTypedGuest(this);
-    },
-
-    addBot(this: FiveOhOneSetupContext) {
-      addBotOpponent(this);
-    },
-
-    async start(this: FiveOhOneSetupContext) {
-      const preset = this.basePreset();
-      if (!preset) {
-        this.error = "Could not find a preset for 501.";
-        return;
-      }
-      const { value: legsValue } = clampFiveOhOneLegs(this.legsToWin);
-      this.legsToWin = legsValue;
-
-      let startingScore: number;
-      if (this.startingScoreOption === "CUSTOM") {
-        const { value: scoreValue, clamped: scoreClamped } =
-          clampFiveOhOneStartingScore(this.startingScoreValue);
-        this.startingScoreValue = scoreValue;
-        this.scoreClampNotice = scoreClamped
-          ? FIVE_OH_ONE_STARTING_SCORE_NOTICE
-          : "";
-        startingScore = scoreValue;
-      } else {
-        startingScore = Number(this.startingScoreOption);
-        this.scoreClampNotice = "";
-      }
-
-      await startPresetSession(this, {
-        gameTypeKey: GAME_TYPE_KEY,
-        rulesetVersionKey: RULESET_VERSION_KEY,
-        playHref: "/games/501/play",
-        preset,
-        overrides: buildFiveOhOneV2Wire({
-          startingScore,
-          matchMode: this.matchMode,
-          count: legsValue,
-          matchUnit: this.matchUnit,
-          legsPerSetMode: this.legsPerSetMode,
-          legsPerSet: clampFiveOhOneLegs(this.legsPerSet).value,
-          winByTwo: this.winByTwo,
-          marginScope: this.marginScope,
-          cap: this.cap === null ? null : clampFiveOhOneLegs(this.cap).value,
-        }),
-      });
-    },
+    ...fiveOhOneSetupMethods,
   };
 }
