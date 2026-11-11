@@ -263,6 +263,11 @@ export async function getHomeStats(
 
 type Db = ReturnType<typeof getDb>;
 
+/** A `VALIDATION_FAILED` result carrying one reason. */
+function validationFailed(reason: string): ServiceResult<never> {
+  return { ok: false, code: "VALIDATION_FAILED", details: { reason } };
+}
+
 /**
  * Everything a section's `load` might need, resolved once by `getGameSection`
  * before dispatch. Each `load` reads only the fields its reader takes.
@@ -719,11 +724,7 @@ export async function listGameSessions(
 ): Promise<ServiceResult<GameSessionList>> {
   const cursor = decodeSessionCursor(q.cursor);
   if (!cursor.ok) {
-    return {
-      ok: false,
-      code: "VALIDATION_FAILED",
-      details: { reason: cursor.reason },
-    };
+    return validationFailed(cursor.reason);
   }
 
   const db = getDb();
@@ -1032,6 +1033,19 @@ async function loadGameSectionResponse(
   } as SeriesResponse;
 }
 
+/** The part of a section context read off the query: range end, bucket, time zone, and the context a routine step forces to `"routine"`. */
+function queryScope(
+  q: StatisticsRangeQueryData,
+  routineStep: RoutineStepScope | undefined,
+): Pick<SectionContext, "to" | "bucket" | "tz" | "context"> {
+  return {
+    to: q.to,
+    bucket: q.bucket,
+    tz: q.bucket === "none" ? undefined : q.tz,
+    context: routineStep === undefined ? q.context : "routine",
+  };
+}
+
 /**
  * Dispatches one section result through the registry (`00-Overview.md` §2, §6),
  * in three phases: resolve the request (`resolveGameSectionRequest`), resolve
@@ -1064,25 +1078,14 @@ async function dispatchGameSection(
     q,
   );
   if ("error" in resolvedRequest) {
-    return {
-      ok: false,
-      code: "VALIDATION_FAILED",
-      details: { reason: resolvedRequest.error },
-    };
+    return validationFailed(resolvedRequest.error);
   }
-  const { from, statuses, target } = resolvedRequest;
-
   const sectionContext: SectionContext = {
     playerId,
     gameTypeKey,
-    from,
-    to: q.to,
-    bucket: q.bucket,
-    tz: q.bucket === "none" ? undefined : q.tz,
-    statuses,
-    context: routineStep === undefined ? q.context : "routine",
-    target,
+    ...resolvedRequest,
     routineStep,
+    ...queryScope(q, routineStep),
   };
 
   const resolvedSite = await resolveGameSectionSite(
@@ -1093,11 +1096,7 @@ async function dispatchGameSection(
     sectionContext,
   );
   if ("error" in resolvedSite) {
-    return {
-      ok: false,
-      code: "VALIDATION_FAILED",
-      details: { reason: resolvedSite.error },
-    };
+    return validationFailed(resolvedSite.error);
   }
 
   const response = await loadGameSectionResponse(
@@ -1166,19 +1165,11 @@ export async function getSessionReplay(
   if (q.cursor !== null) {
     const decoded = decodeReplayCursor(q.cursor);
     if (decoded === null) {
-      return {
-        ok: false,
-        code: "VALIDATION_FAILED",
-        details: { reason: "cursor is malformed" },
-      };
+      return validationFailed("cursor is malformed");
     }
     const position = stageIds.indexOf(decoded.stageId) + 1;
     if (position === 0) {
-      return {
-        ok: false,
-        code: "VALIDATION_FAILED",
-        details: { reason: "cursor stage does not belong to this session" },
-      };
+      return validationFailed("cursor stage does not belong to this session");
     }
     after = { position, turnSequence: decoded.turnSequence };
   }
@@ -1218,11 +1209,7 @@ export async function getSessionReplay(
 
 /** `VALIDATION_FAILED` for a `routineKey` that fails `isRoutineKey` -- shared by every routine-scoped entry point, so a malformed key never even reaches the database. */
 function malformedRoutineKey(): ServiceResult<never> {
-  return {
-    ok: false,
-    code: "VALIDATION_FAILED",
-    details: { reason: "routineKey is malformed" },
-  };
+  return validationFailed("routineKey is malformed");
 }
 
 /** The routine-ownership gate every routine-scoped entry point runs first: `NOT_FOUND` for a routine the player has never trained, so no further reader ever runs against it. */
@@ -1289,6 +1276,29 @@ export async function getRoutineHeader(
   };
 }
 
+/** Shapes the run buckets for a run-surface routine section; a step-surface id is a programming error. */
+function routineRunSectionBuckets(
+  sectionId: RoutineSectionMeta["id"],
+  rows: Awaited<ReturnType<typeof findRoutineRunBuckets>>,
+  shapeCtx: { to: string; now: Date },
+): SeriesBucket<unknown>[] {
+  switch (sectionId) {
+    case "routine-volume":
+      return routineVolumeBuckets(rows, shapeCtx);
+    case "routine-completion":
+      return routineCompletionBuckets(rows, shapeCtx);
+    case "step-volume":
+    case "step-result":
+      throw new Error(
+        `sectionsForRoutine() returned a step-surface section "${sectionId}"`,
+      );
+    default: {
+      const exhaustive: never = sectionId;
+      throw new Error(`unhandled routine section "${String(exhaustive)}"`);
+    }
+  }
+}
+
 /**
  * One routine's run-level section (`routine-volume`/`routine-completion`):
  * both share `findRoutineRunBuckets`'s one aggregate query, differing only
@@ -1315,11 +1325,7 @@ export async function getRoutineSection(
 
   const resolvedRange = await resolveSectionRange(db, meta, q);
   if ("error" in resolvedRange) {
-    return {
-      ok: false,
-      code: "VALIDATION_FAILED",
-      details: { reason: resolvedRange.error },
-    };
+    return validationFailed(resolvedRange.error);
   }
   const { from, statuses } = resolvedRange;
 
@@ -1336,25 +1342,7 @@ export async function getRoutineSection(
     }),
   ]);
 
-  const shapeCtx = { to: q.to, now };
-  let buckets: SeriesBucket<unknown>[];
-  switch (meta.id) {
-    case "routine-volume":
-      buckets = routineVolumeBuckets(rows, shapeCtx);
-      break;
-    case "routine-completion":
-      buckets = routineCompletionBuckets(rows, shapeCtx);
-      break;
-    case "step-volume":
-    case "step-result":
-      throw new Error(
-        `sectionsForRoutine() returned a step-surface section "${meta.id}"`,
-      );
-    default: {
-      const exhaustive: never = meta.id;
-      throw new Error(`unhandled routine section "${String(exhaustive)}"`);
-    }
-  }
+  const buckets = routineRunSectionBuckets(meta.id, rows, { to: q.to, now });
 
   return {
     ok: true,
@@ -1386,11 +1374,7 @@ async function resolveRoutineStep(
     parsedStepKey === null ||
     !Number.isSafeInteger(parsedStepKey.sequenceNumber)
   ) {
-    return {
-      ok: false,
-      code: "VALIDATION_FAILED",
-      details: { reason: "stepKey is malformed" },
-    };
+    return validationFailed("stepKey is malformed");
   }
 
   const headerResult = await requireRoutineHeader(db, playerId, routineKey);
@@ -1409,6 +1393,98 @@ async function resolveRoutineStep(
   }
 
   return { ok: true, data: { header, step } };
+}
+
+/** The game-section query a GAME routine step reads with: the caller's range, routine context, board input, no target. */
+function gameStepQuery(q: RoutineSectionQuery): StatisticsRangeQueryData {
+  return {
+    from: q.from,
+    to: q.to,
+    tz: q.tz,
+    bucket: q.bucket,
+    status: q.status,
+    context: "routine",
+    inputMode: "VISUAL_BOARD",
+    target: undefined,
+  };
+}
+
+type StepSectionLoad = {
+  stepScope: StepScope;
+  bucketArgs: { bucket: RoutineSectionQuery["bucket"]; tz: string | undefined };
+  shapeCtx: { to: string; now: Date };
+};
+
+type StepSectionData = {
+  buckets: SeriesBucket<unknown>[];
+  dataVersion: string;
+};
+
+/** `step-volume`: the step's own buckets beside the routine's data version. */
+async function loadStepVolume(
+  db: Db,
+  load: StepSectionLoad,
+): Promise<StepSectionData> {
+  const { playerId, routineKey } = load.stepScope;
+  const [rows, dataVersion] = await Promise.all([
+    findStepBuckets(db, { ...load.stepScope, ...load.bucketArgs }),
+    routineDataVersion(db, playerId, routineKey),
+  ]);
+  return { buckets: stepVolumeBuckets(rows, load.shapeCtx), dataVersion };
+}
+
+/** `step-result`: refuses a scope over `MAX_FOLD_DARTS` before reading the fold rows. */
+async function loadStepResult(
+  db: Db,
+  step: Parameters<typeof dartExerciseKindOf>[0],
+  load: StepSectionLoad,
+): Promise<ServiceResult<StepSectionData>> {
+  const { playerId, routineKey } = load.stepScope;
+  const dartCount = await findStepScopeDartCount(db, load.stepScope);
+  if (dartCount > MAX_FOLD_DARTS) {
+    return validationFailed(foldBoundMessage(dartCount));
+  }
+  const kind = dartExerciseKindOf(step);
+  if (kind === null) {
+    throw new Error(
+      `step-result dispatched for a step whose exerciseTypeKey "${step.exerciseTypeKey}" is not a dart exercise kind`,
+    );
+  }
+  const [rows, dataVersion] = await Promise.all([
+    findStepFoldRows(db, { ...load.stepScope, ...load.bucketArgs }),
+    routineDataVersion(db, playerId, routineKey),
+  ]);
+  return {
+    ok: true,
+    data: {
+      buckets: stepResultBuckets(kind, rows, load.shapeCtx),
+      dataVersion,
+    },
+  };
+}
+
+/** Loads a step-surface routine section; a run-surface id is a programming error. */
+async function loadStepSection(
+  db: Db,
+  sectionId: RoutineSectionMeta["id"],
+  step: Parameters<typeof dartExerciseKindOf>[0],
+  load: StepSectionLoad,
+): Promise<ServiceResult<StepSectionData>> {
+  switch (sectionId) {
+    case "step-volume":
+      return { ok: true, data: await loadStepVolume(db, load) };
+    case "step-result":
+      return loadStepResult(db, step, load);
+    case "routine-volume":
+    case "routine-completion":
+      throw new Error(
+        `sectionsForStep() returned a run-surface section "${sectionId}"`,
+      );
+    default: {
+      const exhaustive: never = sectionId;
+      throw new Error(`unhandled routine section "${String(exhaustive)}"`);
+    }
+  }
 }
 
 /**
@@ -1440,21 +1516,11 @@ export async function getRoutineStepSection(
   const classification = sectionsForStep(step);
 
   if (classification.kind === "game") {
-    const gameQuery: StatisticsRangeQueryData = {
-      from: q.from,
-      to: q.to,
-      tz: q.tz,
-      bucket: q.bucket,
-      status: q.status,
-      context: "routine",
-      inputMode: "VISUAL_BOARD",
-      target: undefined,
-    };
     return dispatchGameSection(
       playerId,
       classification.gameTypeKey,
       sectionId as SectionId,
-      gameQuery,
+      gameStepQuery(q),
       now,
       { routineKey, stepKey },
     );
@@ -1469,75 +1535,20 @@ export async function getRoutineStepSection(
 
   const resolvedRange = await resolveSectionRange(db, routineSectionMeta, q);
   if ("error" in resolvedRange) {
-    return {
-      ok: false,
-      code: "VALIDATION_FAILED",
-      details: { reason: resolvedRange.error },
-    };
+    return validationFailed(resolvedRange.error);
   }
   const { from, statuses } = resolvedRange;
 
-  const stepScope: StepScope = {
-    playerId,
-    routineKey,
-    stepKey,
-    from,
-    to: q.to,
-    statuses,
-  };
-  const bucketArgs = {
-    bucket: q.bucket,
-    tz: q.bucket === "none" ? undefined : q.tz,
-  };
-
-  let buckets: SeriesBucket<unknown>[];
-  let dataVersion: string;
-  switch (routineSectionMeta.id) {
-    case "step-volume": {
-      const [rows, version] = await Promise.all([
-        findStepBuckets(db, { ...stepScope, ...bucketArgs }),
-        routineDataVersion(db, playerId, routineKey),
-      ]);
-      buckets = stepVolumeBuckets(rows, { to: q.to, now });
-      dataVersion = version;
-      break;
-    }
-    case "step-result": {
-      const dartCount = await findStepScopeDartCount(db, stepScope);
-      if (dartCount > MAX_FOLD_DARTS) {
-        return {
-          ok: false,
-          code: "VALIDATION_FAILED",
-          details: { reason: foldBoundMessage(dartCount) },
-        };
-      }
-      const kind = dartExerciseKindOf(step);
-      if (kind === null) {
-        throw new Error(
-          `step-result dispatched for a step whose exerciseTypeKey "${step.exerciseTypeKey}" is not a dart exercise kind`,
-        );
-      }
-      const [rows, version] = await Promise.all([
-        findStepFoldRows(db, { ...stepScope, ...bucketArgs }),
-        routineDataVersion(db, playerId, routineKey),
-      ]);
-      buckets = stepResultBuckets(kind, rows, {
-        to: q.to,
-        now,
-      });
-      dataVersion = version;
-      break;
-    }
-    case "routine-volume":
-    case "routine-completion":
-      throw new Error(
-        `sectionsForStep() returned a run-surface section "${routineSectionMeta.id}"`,
-      );
-    default: {
-      const exhaustive: never = routineSectionMeta.id;
-      throw new Error(`unhandled routine section "${String(exhaustive)}"`);
-    }
-  }
+  const loaded = await loadStepSection(db, routineSectionMeta.id, step, {
+    stepScope: { playerId, routineKey, stepKey, from, to: q.to, statuses },
+    bucketArgs: {
+      bucket: q.bucket,
+      tz: q.bucket === "none" ? undefined : q.tz,
+    },
+    shapeCtx: { to: q.to, now },
+  });
+  if (!loaded.ok) return loaded;
+  const { buckets, dataVersion } = loaded.data;
 
   return {
     ok: true,
@@ -1562,11 +1573,7 @@ export async function listRoutineStepSessions(
 
   const cursor = decodeSessionCursor(q.cursor);
   if (!cursor.ok) {
-    return {
-      ok: false,
-      code: "VALIDATION_FAILED",
-      details: { reason: cursor.reason },
-    };
+    return validationFailed(cursor.reason);
   }
 
   const [rows, dataVersion] = await Promise.all([

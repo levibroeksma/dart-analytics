@@ -129,6 +129,37 @@ export async function listExerciseTemplates(): Promise<
   };
 }
 
+/** A game step's own failure: a game with no routine hook, or minutes outside the hook's bounds. */
+function gameStepIssue(
+  template: ExerciseTemplateCatalogRow,
+  step: RoutineWriteInput["steps"][number],
+  stepNumber: number,
+): ServiceResult<never> | undefined {
+  const hook = routineGameStepHook(template.gameRulesetVersionKey);
+  if (!hook) {
+    return {
+      ok: false,
+      code: "VALIDATION_FAILED",
+      details: { reason: GAME_NOT_ROUTINE_ELIGIBLE, step: stepNumber },
+    };
+  }
+  if (
+    step.durationValue < hook.minuteBounds.min ||
+    step.durationValue > hook.minuteBounds.max
+  ) {
+    return {
+      ok: false,
+      code: "VALIDATION_FAILED",
+      details: {
+        reason: "game step minutes out of bounds",
+        step: stepNumber,
+        ...hook.minuteBounds,
+      },
+    };
+  }
+  return undefined;
+}
+
 /**
  * Domain checks the request schema cannot make: catalog membership, the
  * game step's timed bound, and the routine's total (the `0038` trigger is
@@ -151,31 +182,8 @@ function writeIssues(
       };
     }
     if (template.exerciseTypeKey === "GAME") {
-      const hook = routineGameStepHook(template.gameRulesetVersionKey);
-      if (!hook) {
-        return {
-          ok: false,
-          code: "VALIDATION_FAILED",
-          details: {
-            reason: GAME_NOT_ROUTINE_ELIGIBLE,
-            step: index + 1,
-          },
-        };
-      }
-      if (
-        step.durationValue < hook.minuteBounds.min ||
-        step.durationValue > hook.minuteBounds.max
-      ) {
-        return {
-          ok: false,
-          code: "VALIDATION_FAILED",
-          details: {
-            reason: "game step minutes out of bounds",
-            step: index + 1,
-            ...hook.minuteBounds,
-          },
-        };
-      }
+      const issue = gameStepIssue(template, step, index + 1);
+      if (issue) return issue;
     }
   }
   const duration = validateRoutineDuration(
