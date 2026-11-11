@@ -33,12 +33,12 @@
     },
     "dup_pct_weak": {
       "dir": "max",
-      "now": 2.1,
+      "now": 1.8,
       "target": 1.0
     },
     "dup_pct_semantic": {
       "dir": "max",
-      "now": 18,
+      "now": 17.8,
       "target": 12.0
     }
   }

@@ -29,3 +29,15 @@ export type CardThrowDeps = {
   reducedMotion?: () => boolean;
   schedule?: (fn: () => void, ms: number) => void;
 };
+
+/** One numbered board segment as `DartBoard.astro` draws it: its tone, the SVG path of each ring, and where its number sits. */
+export type BoardSegment = {
+  tone: "dark" | "light";
+  singleBig: string;
+  singleSmall: string;
+  treble: string;
+  double: string;
+  labelX: string;
+  labelY: string;
+  label: string;
+};
