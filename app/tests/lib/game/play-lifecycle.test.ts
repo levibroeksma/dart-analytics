@@ -1900,6 +1900,8 @@ describe("runPlayAgain", () => {
       "Could not start a new session. Try again.",
     );
     expect(context.finished).toBe(true);
+    expect(context.completionStatus).toBe("succeeded");
+    expect(context.playAgainLoading).toBe(false);
   });
 
   it("names the error code when session creation is rejected with one", async () => {

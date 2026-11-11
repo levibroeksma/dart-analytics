@@ -7,6 +7,107 @@ import { reconcileActiveSession } from "@lib/game/session-recovery";
 import { DEFAULT_BOT_LEVEL } from "@lib/game/rulesets/capabilities";
 import type { SetupSessionContext, StarterStepOptions } from "./types";
 
+/** The who-throws-first step: open it, resolve it, cancel it. */
+const STARTER_METHODS = {
+  beginStart(this: SetupSessionContext) {
+    if (this.guests.length === 0 && !this.bot) return this.start();
+    this.starterOpen = true;
+  },
+
+  resolveStarter(this: SetupSessionContext, starterIndex: 0 | 1) {
+    this.starterIndex = starterIndex;
+    this.starterOpen = false;
+    return this.start();
+  },
+
+  cancelStarter(this: SetupSessionContext) {
+    this.starterOpen = false;
+  },
+
+  starterOptions(this: SetupSessionContext): StarterStepOptions {
+    return {
+      sides: () => [
+        this.$store.profile?.displayName || "You",
+        this.bot ? "Dartbot" : (this.guests[0]?.displayName ?? ""),
+      ],
+      opponentIsBot: () => this.bot !== null,
+      onResolve: (starterIndex) => void this.resolveStarter(starterIndex),
+      onCancel: () => this.cancelStarter(),
+    };
+  },
+};
+
+/** The active-session modal for one game: reconcile against the server's list, retry, continue to play. */
+function activeSessionMethods(gameTypeKey: string, playHref: string) {
+  return {
+    async reconcile(
+      this: SetupSessionContext,
+      activeSessions: SessionActiveData[],
+    ) {
+      const result = await reconcileActiveSession(
+        gameTypeKey,
+        this.$store.game.sessionId,
+        activeSessions,
+        this.$store.game,
+      );
+
+      if (result.action === "no_active") {
+        this.showActiveSessionModal = false;
+      } else {
+        this.activeSession = result.activeSession;
+        this.activeSessionLocal = result.action === "match";
+        this.showActiveSessionModal = true;
+      }
+    },
+
+    async retryReconciliation(this: SetupSessionContext) {
+      this.loadingReconciliation = true;
+      try {
+        const activeSessions = await fetchActiveSessions();
+        await this.reconcile(activeSessions);
+      } finally {
+        this.loadingReconciliation = false;
+      }
+    },
+
+    continueSession(this: SetupSessionContext) {
+      this.showActiveSessionModal = false;
+      globalThis.location.href = playHref;
+    },
+  };
+}
+
+/** Leaving setup, abandoning the active session, and unseating the opponent. */
+const LEAVE_METHODS = {
+  leaveSetup(this: SetupSessionContext) {
+    globalThis.location.href = "/games";
+  },
+
+  async abandonSession(this: SetupSessionContext) {
+    if (!this.activeSession || this.loading) return;
+    this.loading = true;
+    this.error = "";
+    try {
+      await completeSession(this.activeSession.sessionId, "ABANDONED");
+      if (this.activeSessionLocal) this.$store.game.reset();
+      this.showActiveSessionModal = false;
+      this.activeSession = null;
+    } catch {
+      this.error = "Could not abandon session. Try again.";
+    } finally {
+      this.loading = false;
+    }
+  },
+
+  removeGuest(this: SetupSessionContext, index: number) {
+    this.guests.splice(index, 1);
+  },
+
+  removeBot(this: SetupSessionContext) {
+    this.bot = null;
+  },
+};
+
 /**
  * The part of every setup controller that never varies by game: the modal,
  * alert and guest/bot chooser state, and the methods that reconcile a
@@ -48,94 +149,8 @@ export function createSetupSession(options: {
     starterOpen: false,
     starterIndex: 0 as 0 | 1,
 
-    beginStart(this: SetupSessionContext) {
-      if (this.guests.length === 0 && !this.bot) return this.start();
-      this.starterOpen = true;
-    },
-
-    resolveStarter(this: SetupSessionContext, starterIndex: 0 | 1) {
-      this.starterIndex = starterIndex;
-      this.starterOpen = false;
-      return this.start();
-    },
-
-    cancelStarter(this: SetupSessionContext) {
-      this.starterOpen = false;
-    },
-
-    starterOptions(this: SetupSessionContext): StarterStepOptions {
-      return {
-        sides: () => [
-          this.$store.profile?.displayName || "You",
-          this.bot ? "Dartbot" : (this.guests[0]?.displayName ?? ""),
-        ],
-        opponentIsBot: () => this.bot !== null,
-        onResolve: (starterIndex) => void this.resolveStarter(starterIndex),
-        onCancel: () => this.cancelStarter(),
-      };
-    },
-
-    async reconcile(
-      this: SetupSessionContext,
-      activeSessions: SessionActiveData[],
-    ) {
-      const result = await reconcileActiveSession(
-        gameTypeKey,
-        this.$store.game.sessionId,
-        activeSessions,
-        this.$store.game,
-      );
-
-      if (result.action === "no_active") {
-        this.showActiveSessionModal = false;
-      } else {
-        this.activeSession = result.activeSession;
-        this.activeSessionLocal = result.action === "match";
-        this.showActiveSessionModal = true;
-      }
-    },
-
-    async retryReconciliation(this: SetupSessionContext) {
-      this.loadingReconciliation = true;
-      try {
-        const activeSessions = await fetchActiveSessions();
-        await this.reconcile(activeSessions);
-      } finally {
-        this.loadingReconciliation = false;
-      }
-    },
-
-    continueSession(this: SetupSessionContext) {
-      this.showActiveSessionModal = false;
-      globalThis.location.href = playHref;
-    },
-
-    leaveSetup(this: SetupSessionContext) {
-      globalThis.location.href = "/games";
-    },
-
-    async abandonSession(this: SetupSessionContext) {
-      if (!this.activeSession || this.loading) return;
-      this.loading = true;
-      this.error = "";
-      try {
-        await completeSession(this.activeSession.sessionId, "ABANDONED");
-        if (this.activeSessionLocal) this.$store.game.reset();
-        this.showActiveSessionModal = false;
-        this.activeSession = null;
-      } catch {
-        this.error = "Could not abandon session. Try again.";
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    removeGuest(this: SetupSessionContext, index: number) {
-      this.guests.splice(index, 1);
-    },
-
-    removeBot(this: SetupSessionContext) {
-      this.bot = null;
-    },
+    ...STARTER_METHODS,
+    ...activeSessionMethods(gameTypeKey, playHref),
+    ...LEAVE_METHODS,
   };
 }

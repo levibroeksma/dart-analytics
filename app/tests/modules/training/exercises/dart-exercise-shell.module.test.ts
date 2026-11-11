@@ -40,6 +40,18 @@ describe("dartExerciseEngineClass", () => {
     expect(turns[0].completedAt).not.toBeNull();
   });
 
+  it("keeps two instances of one class apart and exposes the spec on each", () => {
+    const first = new Toy({ n: 1 });
+    const second = new Toy({ n: 1 });
+    first.record(T20);
+    first.expireTimer();
+    expect(first.facts().turns).toHaveLength(1);
+    expect(second.facts().turns).toHaveLength(0);
+    expect(second.isComplete()).toBe(false);
+    expect(first.spec).toBe(spec);
+    expect(first.facts().stages).toEqual(second.facts().stages);
+  });
+
   it("expireTimer completes; record then throws and leaves facts alone", () => {
     const e = new Toy({ n: 1 });
     e.record(T20);

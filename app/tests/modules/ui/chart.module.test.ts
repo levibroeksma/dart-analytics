@@ -359,6 +359,7 @@ describe("createTooltip", () => {
     });
 
     const el = host.children[0];
+    expect(host.children).toHaveLength(1);
     expect(el.className).toContain("glass-tinted");
     expect(el.className).toContain("pointer-events-none");
     expect(el.className).toContain("w-max");

@@ -438,6 +438,10 @@ describe("boardInput", () => {
       locationX: null,
       locationY: null,
     });
+    expect(commits).toHaveLength(1);
+    expect(input.active).toBe(false);
+    expect(input.point).toBeNull();
+    expect(input.placement).toBeNull();
   });
 
   it("exposes a magnifier placement while active", () => {

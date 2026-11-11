@@ -272,6 +272,22 @@ function clampLeft(caretX: number, width?: number, hostWidth?: number): number {
   return Math.max(half, Math.min(caretX, hostWidth - half));
 }
 
+/** One tooltip line: an optional colour dot, then the text. */
+function tooltipRow(doc: Document, text: string, color?: string): HTMLElement {
+  const line = doc.createElement("div");
+  line.className = "flex items-center gap-1.5";
+  if (color) {
+    const dot = doc.createElement("span");
+    dot.className = "size-2 rounded-full";
+    dot.style.backgroundColor = color;
+    line.appendChild(dot);
+  }
+  const label = doc.createElement("span");
+  label.textContent = text;
+  line.appendChild(label);
+  return line;
+}
+
 /**
  * An HTML tooltip for Chart.js's `external` hook: one absolutely positioned
  * element inside `host`, carrying the theme's tooltip class. Text only, set
@@ -294,21 +310,8 @@ export function createTooltip(
     return created;
   };
 
-  const row = (text: string, color?: string): HTMLElement => {
-    const doc = host.ownerDocument;
-    const line = doc.createElement("div");
-    line.className = "flex items-center gap-1.5";
-    if (color) {
-      const dot = doc.createElement("span");
-      dot.className = "size-2 rounded-full";
-      dot.style.backgroundColor = color;
-      line.appendChild(dot);
-    }
-    const label = doc.createElement("span");
-    label.textContent = text;
-    line.appendChild(label);
-    return line;
-  };
+  const row = (text: string, color?: string): HTMLElement =>
+    tooltipRow(host.ownerDocument, text, color);
 
   const external: ChartTooltipHandler = ({ tooltip }) => {
     const node = element();
