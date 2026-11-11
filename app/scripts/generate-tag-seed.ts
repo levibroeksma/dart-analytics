@@ -68,18 +68,20 @@ function cardStandaloneBlocks(key: string, blocks: TagBlock[]): TagBlock[] {
   return standalone;
 }
 
-export function buildSeedSql(input: SeedInput): {
-  sql: string;
-  warnings: string[];
+type LinkTable =
+  "game_type_tags" | "exercise_type_tags" | "ruleset_version_tags";
+type TypeTable = "game_types" | "exercise_types" | "ruleset_versions";
+type TagLinkRow = { id: number; primary: boolean };
+
+/** Numbers every tag in axis order and renders its `tags` row. */
+function buildTagRows(axes: SeedInput["axes"]): {
+  tagId: Map<string, number>;
+  tagRows: string[];
 } {
-  const { axes } = input;
-  const warnings: string[] = [];
   const tagId = new Map<string, number>();
-  const axisId = new Map<string, number>();
   const tagRows: string[] = [];
   let nextTag = 1;
   axes.forEach((axis, ai) => {
-    axisId.set(axis.key, ai + 1);
     axis.values.forEach((v, vi) => {
       tagId.set(`${axis.key}:${v.key}`, nextTag);
       tagRows.push(
@@ -88,13 +90,17 @@ export function buildSeedSql(input: SeedInput): {
       nextTag++;
     });
   });
+  return { tagId, tagRows };
+}
 
-  const guardedInsert = (
-    table: "exercise_type_tags" | "ruleset_version_tags",
-    column: "exercise_type_id" | "ruleset_version_id",
-    typeSel: string,
-    rows: { id: number; primary: boolean }[],
-  ): string =>
+/** A link insert that skips a type the database does not hold. */
+function guardedInsert(
+  table: "exercise_type_tags" | "ruleset_version_tags",
+  column: "exercise_type_id" | "ruleset_version_id",
+  typeSel: string,
+  rows: TagLinkRow[],
+): string {
+  return (
     `INSERT INTO ${table} (${column}, tag_id, is_primary, created_at)\n` +
     `SELECT * FROM (VALUES\n` +
     rows
@@ -104,77 +110,104 @@ export function buildSeedSql(input: SeedInput): {
       )
       .join(",\n") +
     `\n) AS v (${column}, tag_id, is_primary, created_at)\n` +
-    `WHERE v.${column} IS NOT NULL;`;
+    `WHERE v.${column} IS NOT NULL;`
+  );
+}
 
-  const linkInserts = (
-    table: "game_type_tags" | "exercise_type_tags" | "ruleset_version_tags",
-    typeTable: "game_types" | "exercise_types" | "ruleset_versions",
-    typeKey: string,
-    blocks: TagBlock[],
-  ): string[] => {
-    const out: string[] = [];
-    const ordered = [...blocks].sort(
-      (a, b) =>
-        CONTEXTS.findIndex((c) => c.key === a.context) -
-        CONTEXTS.findIndex((c) => c.key === b.context),
+/** The `game_type_tags` insert of one context block. */
+function gameTagInsert(
+  typeSel: string,
+  context: string,
+  rows: TagLinkRow[],
+): string {
+  const ctx = `(SELECT id FROM tag_contexts WHERE implementation_key = ${q(context)})`;
+  return (
+    `INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at)\n` +
+    `SELECT * FROM (VALUES\n` +
+    rows
+      .map(
+        (r) =>
+          `  (${typeSel}, ${ctx}, ${r.id}, ${r.primary ? "TRUE" : "FALSE"}, now())`,
+      )
+      .join(",\n") +
+    `\n) AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)\n` +
+    `WHERE v.game_type_id IS NOT NULL;`
+  );
+}
+
+/** One validated insert per context block of a type, in context order. */
+function linkInserts(
+  seed: { axes: SeedInput["axes"]; tagId: Map<string, number> },
+  table: LinkTable,
+  typeTable: TypeTable,
+  typeKey: string,
+  blocks: TagBlock[],
+): string[] {
+  const out: string[] = [];
+  const ordered = [...blocks].sort(
+    (a, b) =>
+      CONTEXTS.findIndex((c) => c.key === a.context) -
+      CONTEXTS.findIndex((c) => c.key === b.context),
+  );
+  for (const block of ordered) {
+    validateBlock(
+      block,
+      seed.axes,
+      `${typeTable} ${typeKey} (${block.context})`,
+      table === "exercise_type_tags" ? "exercise" : "game",
     );
-    for (const block of ordered) {
-      validateBlock(
-        block,
-        axes,
-        `${typeTable} ${typeKey} (${block.context})`,
-        table === "exercise_type_tags" ? "exercise" : "game",
-      );
-      const multiLabelled =
-        block.context === "ROUTINE_STEP" && block.difficultyLabels.length > 1;
-      const rows = block.tags
-        .filter((t) => !(multiLabelled && t.axis === "DIFFICULTY"))
-        .map((t) => ({ ...t, id: tagId.get(`${t.axis}:${t.key}`) as number }))
-        .sort((a, b) => a.id - b.id);
-      const typeSel = `(SELECT id FROM ${typeTable} WHERE implementation_key = ${q(typeKey)})`;
-      if (table === "game_type_tags") {
-        const ctx = `(SELECT id FROM tag_contexts WHERE implementation_key = ${q(block.context)})`;
-        out.push(
-          `INSERT INTO game_type_tags (game_type_id, tag_context_id, tag_id, is_primary, created_at)\n` +
-            `SELECT * FROM (VALUES\n` +
-            rows
-              .map(
-                (r) =>
-                  `  (${typeSel}, ${ctx}, ${r.id}, ${r.primary ? "TRUE" : "FALSE"}, now())`,
-              )
-              .join(",\n") +
-            `\n) AS v (game_type_id, tag_context_id, tag_id, is_primary, created_at)\n` +
-            `WHERE v.game_type_id IS NOT NULL;`,
-        );
-      } else if (table === "exercise_type_tags") {
-        out.push(guardedInsert(table, "exercise_type_id", typeSel, rows));
-      } else {
-        out.push(guardedInsert(table, "ruleset_version_id", typeSel, rows));
-      }
+    const multiLabelled =
+      block.context === "ROUTINE_STEP" && block.difficultyLabels.length > 1;
+    const rows = block.tags
+      .filter((t) => !(multiLabelled && t.axis === "DIFFICULTY"))
+      .map((t) => ({
+        ...t,
+        id: seed.tagId.get(`${t.axis}:${t.key}`) as number,
+      }))
+      .sort((a, b) => a.id - b.id);
+    const typeSel = `(SELECT id FROM ${typeTable} WHERE implementation_key = ${q(typeKey)})`;
+    if (table === "game_type_tags") {
+      out.push(gameTagInsert(typeSel, block.context, rows));
+    } else if (table === "exercise_type_tags") {
+      out.push(guardedInsert(table, "exercise_type_id", typeSel, rows));
+    } else {
+      out.push(guardedInsert(table, "ruleset_version_id", typeSel, rows));
     }
-    return out;
-  };
+  }
+  return out;
+}
 
-  const noSource = new Set<string>();
+type SeedContext = {
+  axes: SeedInput["axes"];
+  tagId: Map<string, number>;
+  noSource: Set<string>;
+};
+
+/** The game inserts, by key; a game whose rules file has no `## Tags` section is recorded as having no source. */
+function gameSectionSql(input: SeedInput, seed: SeedContext): string[] {
   const gameSql: string[] = [];
   for (const key of [...input.games.keys()].sort()) {
     const raw = input.games.get(key) as TagBlock[];
     if (raw.length === 0) {
-      noSource.add(key); // rules file without a ## Tags section
+      seed.noSource.add(key);
       continue;
     }
     const blocks = withRoutineStep(raw);
     gameSql.push(
       `-- game ${key}`,
-      ...linkInserts("game_type_tags", "game_types", key, blocks),
+      ...linkInserts(seed, "game_type_tags", "game_types", key, blocks),
     );
   }
+  return gameSql;
+}
 
+/** The exercise inserts, by key; an exercise's tags must be one flat ROUTINE_STEP table. */
+function exerciseSectionSql(input: SeedInput, seed: SeedContext): string[] {
   const exerciseSql: string[] = [];
   for (const key of [...input.exercises.keys()].sort()) {
     const blocks = input.exercises.get(key) as TagBlock[];
     if (blocks.length === 0) {
-      noSource.add(key);
+      seed.noSource.add(key);
       continue;
     }
     if (blocks.some((b) => b.context !== "ROUTINE_STEP")) {
@@ -184,10 +217,14 @@ export function buildSeedSql(input: SeedInput): {
     }
     exerciseSql.push(
       `-- exercise ${key}`,
-      ...linkInserts("exercise_type_tags", "exercise_types", key, blocks),
+      ...linkInserts(seed, "exercise_type_tags", "exercise_types", key, blocks),
     );
   }
+  return exerciseSql;
+}
 
+/** The card inserts, by key, from each card's Standalone blocks. */
+function cardSectionSql(input: SeedInput, seed: SeedContext): string[] {
   const cardSql: string[] = [];
   for (const key of [...input.cards.keys()].sort()) {
     const standalone = cardStandaloneBlocks(
@@ -197,6 +234,7 @@ export function buildSeedSql(input: SeedInput): {
     cardSql.push(
       `-- card ${key}`,
       ...linkInserts(
+        seed,
         "ruleset_version_tags",
         "ruleset_versions",
         key,
@@ -204,14 +242,18 @@ export function buildSeedSql(input: SeedInput): {
       ),
     );
   }
+  return cardSql;
+}
 
-  for (const key of [...(input.dbExerciseKeys ?? [])].sort()) {
-    if (key === "GAME" || input.exercises.has(key)) continue;
-    noSource.add(key);
-  }
-  warnings.push(...[...noSource].sort().map((k) => `no tag source: ${k}`));
-
-  const lines = [
+/** The seed file's lines: header, lookup upserts, link-table refill. */
+function seedLines(
+  axes: SeedInput["axes"],
+  tagRows: string[],
+  gameSql: string[],
+  exerciseSql: string[],
+  cardSql: string[],
+): string[] {
+  return [
     "-- GENERATED — do not edit. Run `npm run tags:generate` (app/).",
     "-- Source: docs/game-rules/TAGS.md and the `## Tags` tables of the playable",
     "-- rules files. Drift is gated by `npm run tags:generate -- --check`.",
@@ -247,6 +289,27 @@ export function buildSeedSql(input: SeedInput): {
     "COMMIT;",
     "",
   ];
+}
+
+export function buildSeedSql(input: SeedInput): {
+  sql: string;
+  warnings: string[];
+} {
+  const { axes } = input;
+  const { tagId, tagRows } = buildTagRows(axes);
+  const seed: SeedContext = { axes, tagId, noSource: new Set<string>() };
+
+  const gameSql = gameSectionSql(input, seed);
+  const exerciseSql = exerciseSectionSql(input, seed);
+  const cardSql = cardSectionSql(input, seed);
+
+  for (const key of [...(input.dbExerciseKeys ?? [])].sort()) {
+    if (key === "GAME" || input.exercises.has(key)) continue;
+    seed.noSource.add(key);
+  }
+  const warnings = [...seed.noSource].sort().map((k) => `no tag source: ${k}`);
+
+  const lines = seedLines(axes, tagRows, gameSql, exerciseSql, cardSql);
   return { sql: lines.join("\n"), warnings };
 }
 

@@ -3,12 +3,12 @@
   "rows": {
     "health_score": {
       "dir": "min",
-      "now": 88.5,
+      "now": 88.7,
       "target": 95.0
     },
     "mi_average": {
       "dir": "min",
-      "now": 91.0,
+      "now": 91.1,
       "target": 91.0
     },
     "mi_lowest_file": {
@@ -18,7 +18,7 @@
     },
     "large_functions_src": {
       "dir": "max",
-      "now": 89,
+      "now": 87,
       "target": 20
     },
     "large_test_bodies": {

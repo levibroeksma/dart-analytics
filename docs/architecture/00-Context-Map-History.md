@@ -17,6 +17,8 @@ updated: 2026-11-09
 
 # Version History
 
+> **Version:** 1.226.0 (2026-11-10 — Quality plan 5: 27 functions over 60 lines in `services/`, `repositories/`, `modules/`, `lib/` and `app/scripts/` split by extract-function; no contract change; `large_functions_src` 114 → 87, health score 87.6 → 88.7 (D552).)
+
 > **Version:** 1.225.0 (2026-11-10 — Quality plan 4: the pre-commit gate list moves to `scripts/precommit-gates.tsv`, run by `scripts/run-precommit-gates.sh`; five slow gates run only when a staged path matches (docs-only commit ≈ 4 s, was ≈ 110 s); new `scripts/check-gate-wiring.sh` keeps CI, the `run-all-gates` skill and the table in step (D551).)
 
 > **Version:** 1.224.0 (2026-11-10 — Quality plan 3: `block-main-commit.py` reads multi-line, parenthesised and `git -C`/`-c` commands, with a fixture test; `checks.yml` and `integration.yml` run on PRs to any base; committed `scripts/__pycache__` removed; seven scripts made executable; the spent ledger-split scripts deleted (D550).)

@@ -349,3 +349,10 @@ Decision: `.husky/pre-commit` runs `scripts/run-precommit-gates.sh`, which reads
 Reason: every commit ran 25 gates in about 110 s, 100 s of it in five gates that read only a few trees; four hand-kept lists (pre-commit, `quality.yml`, the skill, `edit-gate.py`) had nothing checking them, and `check-engine-kernels.sh` was missing from the skill.
 Consequences: `quality.yml` still runs every gate on every PR, so scoping delays a failure to CI and never hides one. A docs-only commit takes about 4 s. A new gate script fails pre-commit and CI until it is wired in all three places.
 Supersedes: none
+
+### D552 — Long service, repository, module and script functions are split by extraction only
+Status: Accepted · Date: 2026-11-10
+Decision: the 27 functions over 60 lines outside Alpine factories and Astro templates are split into unexported helpers in the same file: `session.service.ts`, `training-session.service.ts`, `statistics.service.ts`, `routine.service.ts`, `statistics.repository.ts`, `session.repository.ts`, `dart-engine-shell.module.ts`, `dart-exercise-shell.module.ts`, `board-input.module.ts`, `chart.module.ts`, `setup-session.ts`, `setup-controller.ts`, `play-lifecycle.ts`, `stats-cache/cache.ts`, `scripts/generate-tag-seed.ts`, `scripts/dartbot-level-curve-recalibration.ts`. Every exported name, signature and result is unchanged. Three shapes recur: a query's fixed select-column object becomes a module constant; a factory that returned a class now returns a three-line subclass of a module-level class; a factory that returned one object literal spreads module-level method groups in the original key order.
+Reason: unit size was the health score's one capped penalty (10.0); these functions carried validation, record building and response shaping in one body.
+Consequences: `large_functions_src` 114 → 87 and health score 87.6 → 88.7, both recorded in `scripts/quality-benchmarks.json`. The statistics SQL golden test, the tag-seed byte check and the integration suite pass unchanged. No file, export or shared helper was added (rule of three, D513).
+Supersedes: none

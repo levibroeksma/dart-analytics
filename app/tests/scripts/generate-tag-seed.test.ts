@@ -62,6 +62,14 @@ describe("buildSeedSql", () => {
     expect(sql).toMatch(
       /INSERT INTO tag_contexts[\s\S]*ON CONFLICT \(id\) DO UPDATE/,
     );
+    expect(sql.startsWith("-- GENERATED")).toBe(true);
+    expect(sql.endsWith("COMMIT;\n")).toBe(true);
+    expect(sql.indexOf("INSERT INTO tag_axes")).toBeLessThan(
+      sql.indexOf("INSERT INTO tag_contexts"),
+    );
+    expect(sql.indexOf("INSERT INTO tag_contexts")).toBeLessThan(
+      sql.indexOf("INSERT INTO tags "),
+    );
   });
 
   it("emits card tags into ruleset_version_tags guarded by the ruleset existing", () => {
