@@ -341,7 +341,13 @@ describe("createSession", () => {
   it("rejects an unknown gameTypeKey/rulesetVersionKey combination", async () => {
     vi.mocked(repo.findGameTypeAndRuleset).mockResolvedValue(undefined);
     const result = await createSession("player-1", inlineRequest);
-    expect(result).toMatchObject({ ok: false, code: "VALIDATION_FAILED" });
+    expect(result).toEqual({
+      ok: false,
+      code: "VALIDATION_FAILED",
+      details: { reason: "unknown gameTypeKey/rulesetVersionKey combination" },
+    });
+    expect(repo.findCaptureModeId).not.toHaveBeenCalled();
+    expect(repo.findActiveSessionForGameType).not.toHaveBeenCalled();
   });
 
   it("rejects an invalid inline config via the ruleset validator", async () => {

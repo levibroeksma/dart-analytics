@@ -72,23 +72,32 @@ export function isActiveSessionConflict(error: unknown): boolean {
   });
 }
 
+type CreateSessionLookups = {
+  captureModeId: number;
+  inputModeId: number;
+  activeStatusId: number;
+  playerParticipantTypeId: number;
+  guestParticipantTypeId: number;
+  dartbotParticipantTypeId: number;
+  displayName: string;
+  exerciseTypeId: string;
+};
+
+/** A `VALIDATION_FAILED` result carrying one reason. */
+function validationFailed(reason: string) {
+  return {
+    ok: false as const,
+    code: "VALIDATION_FAILED" as const,
+    details: { reason },
+  };
+}
+
 /** Loads lookup ids and player display metadata required to create a session. */
 async function loadCreateSessionLookups(
   db: ReturnType<typeof getDb>,
   playerId: string,
   input: CreateSessionRequestInput,
-): Promise<
-  ServiceResult<{
-    captureModeId: number;
-    inputModeId: number;
-    activeStatusId: number;
-    playerParticipantTypeId: number;
-    guestParticipantTypeId: number;
-    dartbotParticipantTypeId: number;
-    displayName: string;
-    exerciseTypeId: string;
-  }>
-> {
+): Promise<ServiceResult<CreateSessionLookups>> {
   const [
     captureModeId,
     inputModeId,
@@ -108,18 +117,8 @@ async function loadCreateSessionLookups(
     findPlayerDisplayName(db, playerId),
     findExerciseTypeId(db, "GAME"),
   ]);
-  if (!captureModeId)
-    return {
-      ok: false,
-      code: "VALIDATION_FAILED",
-      details: { reason: "unknown captureModeKey" },
-    };
-  if (!inputModeId)
-    return {
-      ok: false,
-      code: "VALIDATION_FAILED",
-      details: { reason: "unknown inputModeKey" },
-    };
+  if (!captureModeId) return validationFailed("unknown captureModeKey");
+  if (!inputModeId) return validationFailed("unknown inputModeKey");
   if (
     !activeStatusId ||
     !playerParticipantTypeId ||
@@ -320,32 +319,28 @@ function buildSeatPlan(
   });
 }
 
-export async function createSession(
-  playerId: string,
+/**
+ * Resolves the game type, ruleset and validator a create request names and
+ * checks its mode pair and seats, reporting the first failure.
+ */
+async function resolveCreateSessionRuleset(
+  db: ReturnType<typeof getDb>,
   input: CreateSessionRequestInput,
-): Promise<ServiceResult<CreateSessionResult>> {
-  const db = getDb();
-
+) {
   const gameTypeRuleset = await findGameTypeAndRuleset(
     db,
     input.gameTypeKey,
     input.rulesetVersionKey,
   );
   if (!gameTypeRuleset) {
-    return {
-      ok: false,
-      code: "VALIDATION_FAILED",
-      details: { reason: "unknown gameTypeKey/rulesetVersionKey combination" },
-    };
+    return validationFailed(
+      "unknown gameTypeKey/rulesetVersionKey combination",
+    );
   }
 
   const validator = getRulesetValidator(input.rulesetVersionKey);
   if (!validator) {
-    return {
-      ok: false,
-      code: "VALIDATION_FAILED",
-      details: { reason: "no validator registered for rulesetVersionKey" },
-    };
+    return validationFailed("no validator registered for rulesetVersionKey");
   }
 
   if (
@@ -355,39 +350,72 @@ export async function createSession(
       input.inputModeKey,
     )
   ) {
-    return {
-      ok: false,
-      code: "VALIDATION_FAILED",
-      details: {
-        reason: `${input.rulesetVersionKey} does not declare captureModeKey ${input.captureModeKey} + inputModeKey ${input.inputModeKey}`,
-      },
-    };
+    return validationFailed(
+      `${input.rulesetVersionKey} does not declare captureModeKey ${input.captureModeKey} + inputModeKey ${input.inputModeKey}`,
+    );
   }
 
   const seatRejection = rejectSeatRequest(
     input.participants,
     input.rulesetVersionKey,
   );
-  if (seatRejection) {
-    return {
-      ok: false,
-      code: "VALIDATION_FAILED",
-      details: { reason: seatRejection },
-    };
-  }
+  if (seatRejection) return validationFailed(seatRejection);
+
+  return { ok: true as const, data: { gameTypeRuleset, validator } };
+}
+
+/** The `SESSION_ALREADY_ACTIVE` failure when the player has an active session of the game type, else null. */
+async function rejectActiveSession(
+  db: ReturnType<typeof getDb>,
+  playerId: string,
+  gameTypeId: string,
+) {
+  const existingActive = await findActiveSessionForGameType(
+    db,
+    playerId,
+    gameTypeId,
+  );
+  if (!existingActive) return null;
+  return {
+    ok: false as const,
+    code: "SESSION_ALREADY_ACTIVE" as const,
+    details: {
+      sessionId: existingActive.sessionId,
+      startedAt: existingActive.startedAt,
+    },
+  };
+}
+
+/** The create response: the session id and each seat as the client sees it. */
+function toCreateSessionResult(
+  sessionId: string,
+  seats: ReturnType<typeof composeSeatFacts>,
+): CreateSessionResult {
+  return {
+    sessionId,
+    participants: seats.map((seat) => ({
+      ref: seat.participantRef,
+      participantTypeKey: seat.participantTypeKey,
+      displayName: seat.displayName,
+      ...(seat.participantTypeKey === "DARTBOT"
+        ? { dartbot: seat.dartbot }
+        : {}),
+    })),
+  };
+}
+
+export async function createSession(
+  playerId: string,
+  input: CreateSessionRequestInput,
+): Promise<ServiceResult<CreateSessionResult>> {
+  const db = getDb();
+
+  const ruleset = await resolveCreateSessionRuleset(db, input);
+  if (!ruleset.ok) return ruleset;
+  const { gameTypeRuleset, validator } = ruleset.data;
 
   const lookups = await loadCreateSessionLookups(db, playerId, input);
   if (!lookups.ok) return lookups;
-  const {
-    captureModeId,
-    inputModeId,
-    activeStatusId,
-    playerParticipantTypeId,
-    guestParticipantTypeId,
-    dartbotParticipantTypeId,
-    displayName,
-    exerciseTypeId,
-  } = lookups.data;
 
   const configuration = await resolveSessionConfiguration(
     db,
@@ -398,29 +426,15 @@ export async function createSession(
   );
   if (!configuration.ok) return configuration;
 
-  const existingActive = await findActiveSessionForGameType(
+  const activeRejection = await rejectActiveSession(
     db,
     playerId,
     gameTypeRuleset.gameTypeId,
   );
-  if (existingActive) {
-    return {
-      ok: false,
-      code: "SESSION_ALREADY_ACTIVE",
-      details: {
-        sessionId: existingActive.sessionId,
-        startedAt: existingActive.startedAt,
-      },
-    };
-  }
+  if (activeRejection) return activeRejection;
 
   const sessionId = generateId();
-  const seatPlan = buildSeatPlan(input, playerId, {
-    playerParticipantTypeId,
-    guestParticipantTypeId,
-    dartbotParticipantTypeId,
-    displayName,
-  });
+  const seatPlan = buildSeatPlan(input, playerId, lookups.data);
   const seats = composeSeatFacts(seatPlan);
 
   const inserted = await insertSessionWithActiveGuard(db, {
@@ -434,27 +448,17 @@ export async function createSession(
     playerId,
     gameTypeId: gameTypeRuleset.gameTypeId,
     rulesetVersionId: gameTypeRuleset.rulesetVersionId,
-    captureModeId,
-    inputModeId,
-    activeStatusId,
-    exerciseTypeId,
+    captureModeId: lookups.data.captureModeId,
+    inputModeId: lookups.data.inputModeId,
+    activeStatusId: lookups.data.activeStatusId,
+    exerciseTypeId: lookups.data.exerciseTypeId,
     configuration: { ...configuration.data.config, seats },
   });
   if (!inserted.ok) return inserted;
 
   return {
     ok: true,
-    data: {
-      sessionId: inserted.data.sessionId,
-      participants: seats.map((seat) => ({
-        ref: seat.participantRef,
-        participantTypeKey: seat.participantTypeKey,
-        displayName: seat.displayName,
-        ...(seat.participantTypeKey === "DARTBOT"
-          ? { dartbot: seat.dartbot }
-          : {}),
-      })),
-    },
+    data: toCreateSessionResult(inserted.data.sessionId, seats),
   };
 }
 
@@ -724,6 +728,28 @@ async function validateBatchAgainstRuleset(
       };
 }
 
+/**
+ * The stored result of a batch already written under this idempotency key,
+ * or a failure when the key is reused with a different payload.
+ */
+async function replayIdempotentBatch(
+  existing: { normalizedPayloadHash: string; result: unknown },
+  hash: string,
+  batch: EventsBatchRequestInput,
+): Promise<ServiceResult<AppendBatchResult>> {
+  const stored = existing.normalizedPayloadHash;
+  if (
+    stored !== hash &&
+    stored !== (await hashBatchPayloadWithDefaults(batch))
+  ) {
+    return {
+      ok: false,
+      code: "IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_PAYLOAD",
+    };
+  }
+  return { ok: true, data: existing.result as AppendBatchResult };
+}
+
 export async function appendBatch(
   playerId: string,
   sessionId: string,
@@ -748,17 +774,7 @@ export async function appendBatch(
     idempotencyKey,
   );
   if (existingIdempotency) {
-    const stored = existingIdempotency.normalizedPayloadHash;
-    if (
-      stored !== hash &&
-      stored !== (await hashBatchPayloadWithDefaults(batch))
-    ) {
-      return {
-        ok: false,
-        code: "IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_PAYLOAD",
-      };
-    }
-    return { ok: true, data: existingIdempotency.result as AppendBatchResult };
+    return replayIdempotentBatch(existingIdempotency, hash, batch);
   }
 
   const participantIds = await findSessionParticipantIds(db, sessionId);
