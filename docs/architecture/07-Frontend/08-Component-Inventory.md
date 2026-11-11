@@ -105,6 +105,7 @@ evaluated in the page's own Alpine scope.
 | `LegBars.astro` | One seat's legs: a 4px pill per leg to win (accent once won), or a mono `won/target` counter above five legs (`legBarStates`, D432, 2026-10-08) | `wonExpr`, `toWinExpr` |
 | `MarkRows.astro` | Cricket/Tactics/Mickey Mouse mark rows (via `MarksPlayScreen`): label + three pips (`pip-on`), closed rows at 50%, a row both seats closed struck through across label and pips, `aria-label` per row (D432, 2026-10-24) | none (reads the `rowsExpr` accessor, `objectiveRowsFor(rowsRef)`) |
 | `NoSessionPanel.astro` | Empty state when no session is active | `href` |
+| `PlayPageShell.astro` | Body of a game play page: reconciliation-blocked panel, no-session panel, then the slotted interface and results modal | `setupHref` |
 | `PlayStatTile.astro` | Inset play stat: value over a mono caps label in a 76px tile, or a 44px label/value row with `compact` (D432, 2026-10-08) | `label`, `valueExpr`, `compact`, `highlight` (lit value, `accent-bright`), `fit` (flexes to share its column, max 76px; 2026-10-13) |
 | `ReconciliationBlocked.astro` | Blocked-upload explanation panel | none |
 | `ResultsModalShell.astro` | Shared results-sheet chrome: `Modal` sheet, mandatory `SaveStatus` row (failed → error + Retry), play-again error, Back to games / Rematch buttons; named `title` slot plus a default slot for stat rows (D437, 2026-10-09) Rematch on two seats opens `StarterStep` first (`requestPlayAgain`, `playAgainStarterData()`; D464, 2026-10-16). | `overline` |

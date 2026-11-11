@@ -7,8 +7,7 @@ import CheckoutConfirm from "@components/layout/games/CheckoutConfirm.astro";
 import ConfirmDialog from "@components/ui/ConfirmDialog.astro";
 import InlayRow from "@components/ui/InlayRow.astro";
 import OneTwentyOneResults from "@components/layout/games/result-modals/OneTwentyOneResults.astro";
-import NoSessionPanel from "@components/layout/games/NoSessionPanel.astro";
-import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocked.astro";
+import PlayPageShell from "@components/layout/games/PlayPageShell.astro";
 ---
 
 <GameLayout
@@ -22,13 +21,7 @@ import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocke
     slot="header-end"
     disabledExpr="finished || showDoubleConfirm || showSessionFinishConfirm"
   />
-  <div class="flex flex-col flex-1 min-h-0">
-    {/* Loading / reconciliation-blocked */}
-    <ReconciliationBlocked />
-
-    {/* No active session view */}
-    <NoSessionPanel href="/games/121/setup" />
-
+  <PlayPageShell setupHref="/games/121/setup">
     {/* Gameplay view */}
     <OneTwentyOne
       x-show="!finished && hasActiveSession"
@@ -71,5 +64,5 @@ import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocke
 
     {/* Results modal (overlay) */}
     <OneTwentyOneResults />
-  </div>
+  </PlayPageShell>
 </GameLayout>

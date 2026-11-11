@@ -39,3 +39,6 @@ app/src/db/meta/
 /.neon
 
 __pycache__/
+
+# check-html-parity.sh keeps the pre-refactor HTML here
+app/.parity/

@@ -385,6 +385,8 @@ Registered for discoverability, not as reading material — the rules live in `0
 | `scripts/run-precommit-gates.sh` | Runs the gate table for `.husky/pre-commit`; prints `<ran> gates passed, <skipped> skipped by path` (D551, 2026-11-10) | canonical |
 | `scripts/test-precommit-scope.sh` | Fixture test for the gate table's path scoping (D551, 2026-11-10) | canonical |
 | `scripts/check-gate-wiring.sh` | Gate-wiring gate: every `check-*.sh` / `test-*.sh` is named in CI and the `run-all-gates` skill; pre-commit rows resolve; a `check-*.sh` outside pre-commit carries a reason (D551, 2026-11-10) | canonical |
+| `scripts/check-html-parity.sh` | HTML parity check for markup-only refactors: builds, compares every prerendered page byte for byte with a base saved by `--save`; run by hand, not a CI gate (D554, 2026-11-11) | canonical |
+| `scripts/test-check-html-parity.sh` | Fixture test for `check-html-parity.sh` (D554, 2026-11-11) | canonical |
 | `scripts/test-block-main-commit.sh` | Fixture test for `.claude/hooks/block-main-commit.py`: 11 command forms on `main` and on a task branch (D550, 2026-11-10) | canonical |
 | `scripts/test-edit-gate.sh` | Fixture test for `.claude/hooks/edit-gate.py`: blocks an edit that adds a gate violation, allows a clean or pre-existing one, fails open (2026-10-30) | canonical |
 | `scripts/test-reuse-lookup.sh` | Fixture test for `.claude/hooks/reuse-lookup.py`: inventory and graph matches, once-per-session, overwrite, unwatched path, bad stdin (2026-10-30) | canonical |
