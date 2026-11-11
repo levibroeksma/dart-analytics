@@ -278,19 +278,11 @@ function searchLevel1(
   return { scale, average };
 }
 
-function main(): void {
-  const original = recalibrationBase();
-  const live = LEVEL_SKILL_TABLE as Record<number, SkillProfile>;
-
-  const base = scaleOutlierRates(
-    original,
-    MID_ANCHOR.outlierRate / original[ANCHOR_MID]!.outlierRate,
-    [1, 2, 3, 4, 5],
-  );
-
-  const level1Result = searchLevel1(base[1]!, live, original[1]!);
-  const level1New = scaleCurve(base[1]!, level1Result.scale);
-
+/** Scales level 15, installs it in the live table and simulates it; throws when its average leaves the allowed band. */
+function fitLevel15(
+  original: ReturnType<typeof recalibrationBase>,
+  live: Record<number, SkillProfile>,
+) {
   const level15New = scaleCurve(original[15]!, LEVEL_15_SCALE);
   live[15] = { ...original[15]!, ...level15New };
   const level15Stats = simulateTierStats(15, SEARCH_SEED, SEARCH_VISITS);
@@ -302,7 +294,15 @@ function main(): void {
       `level 15 average ${level15Stats.threeDartAverage} outside [${LEVEL_15_AVG_MIN}, ${LEVEL_15_AVG_MAX}] at scale ${LEVEL_15_SCALE}`,
     );
   }
+  return { level15New, level15Stats };
+}
 
+/** The 15-level curve table: the three anchors, every other level interpolated between them, then the bias-Y repair. */
+function buildCurveTable(
+  base: ReturnType<typeof scaleOutlierRates>,
+  level1New: CurveFields,
+  level15New: CurveFields,
+): Record<number, CurveFields> {
   const table: Record<number, CurveFields> = {
     [ANCHOR_LOW]: level1New,
     [ANCHOR_MID]: MID_ANCHOR,
@@ -331,6 +331,24 @@ function main(): void {
   BIAS_Y_REPAIR.levels.forEach((level, i) => {
     table[level] = { ...table[level]!, biasYMm: repairedY[i]! };
   });
+  return table;
+}
+
+function main(): void {
+  const original = recalibrationBase();
+  const live = LEVEL_SKILL_TABLE as Record<number, SkillProfile>;
+
+  const base = scaleOutlierRates(
+    original,
+    MID_ANCHOR.outlierRate / original[ANCHOR_MID]!.outlierRate,
+    [1, 2, 3, 4, 5],
+  );
+
+  const level1Result = searchLevel1(base[1]!, live, original[1]!);
+  const level1New = scaleCurve(base[1]!, level1Result.scale);
+
+  const { level15New, level15Stats } = fitLevel15(original, live);
+  const table = buildCurveTable(base, level1New, level15New);
 
   console.log(
     JSON.stringify(

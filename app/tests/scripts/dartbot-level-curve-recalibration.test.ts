@@ -24,6 +24,13 @@ describe("scaleCurve", () => {
       biasYMm: 8,
       outlierRate: 0.04,
     });
+    expect(base).toEqual({
+      sigmaAlongMm: 10,
+      sigmaAcrossMm: 8,
+      biasXMm: 3,
+      biasYMm: 4,
+      outlierRate: 0.02,
+    });
   });
 
   it("preserves bias direction (scaling x and y by the same factor never rotates)", () => {
