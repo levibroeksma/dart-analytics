@@ -1,0 +1,18 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`gamesIndex shape > keeps its keys, in order 1`] = `
+[
+  "activeRulesetKeys",
+  "sessionsLoading",
+  "catalogTags",
+  "tagsLoading",
+  "init()",
+  "gameTags()",
+  "gameLevel()",
+  "loading()",
+  "isVisible()",
+  "analyticsMode()",
+  "groupVisible()",
+  "noneVisible()",
+]
+`;

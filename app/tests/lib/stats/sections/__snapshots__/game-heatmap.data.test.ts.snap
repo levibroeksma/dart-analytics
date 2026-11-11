@@ -1,0 +1,17 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`gameHeatmapSection shape > keeps its keys, in order 1`] = `
+[
+  "loading",
+  "error",
+  "bucket",
+  "target",
+  "period get",
+  "gameTypeKey get",
+  "targetOptions get",
+  "init()",
+  "load()",
+  "stamps get",
+  "isEmpty get",
+]
+`;

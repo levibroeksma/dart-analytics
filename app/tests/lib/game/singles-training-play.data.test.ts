@@ -36,7 +36,7 @@ import type {
   SinglesTrainingPlayContext,
 } from "@lib/types";
 import type { DartFact, StageFact, TurnFact } from "@modules/types";
-import { shapeOf } from "../../support/factory-shape";
+import { shapeOf, sharedStateKeys } from "../../support/factory-shape";
 
 const SEATS = [
   {
@@ -1896,72 +1896,12 @@ describe("singles-training ring count accessors", () => {
 
 describe("singlesTrainingPlay shape", () => {
   it("keeps its keys, in order", () => {
-    expect(shapeOf(singlesTrainingPlay())).toMatchInlineSnapshot(`
-      [
-        "loading",
-        "error",
-        "finished",
-        "hasActiveSession",
-        "loadingReconciliation",
-        "reconciliationFailed",
-        "completionStatus",
-        "completionError",
-        "playAgainError",
-        "playAgainLoading",
-        "resultsSnapshot",
-        "hiddenTurnKey",
-        "hiddenTimer",
-        "engine",
-        "starterOpen",
-        "playAgainStarter",
-        "requestPlayAgain()",
-        "playAgainStarterOptions()",
-        "input",
-        "board",
-        "pointerX",
-        "pointerY",
-        "syncBoard()",
-        "magnifierAnchor()",
-        "magnifierBox()",
-        "magnifierBoard()",
-        "magnifierRead()",
-        "onPointerDown()",
-        "onPointerMove()",
-        "onPointerUp()",
-        "onPointerCancel()",
-        "recordUnseen()",
-        "visitMarkers()",
-        "init()",
-        "recordDart()",
-        "commitDart()",
-        "undoVisit()",
-        "botThrowing",
-        "botFlight",
-        "maybeRunBotVisit()",
-        "back()",
-        "retryReconciliation()",
-        "abandonAndExit()",
-        "state()",
-        "subtitle()",
-        "currentTargetLabelFor()",
-        "currentTargetLabel()",
-        "currentPointsFor()",
-        "currentPoints()",
-        "isBullVisit()",
-        "previewSegments()",
-        "missCountFor()",
-        "missCount()",
-        "singleCountFor()",
-        "singleCount()",
-        "doubleCountFor()",
-        "doubleCount()",
-        "trebleCountFor()",
-        "trebleCount()",
-        "recordTap()",
-        "uploadAndCompleteSession()",
-        "resultsTitle()",
-        "playAgain()",
-      ]
-    `);
+    expect(shapeOf(singlesTrainingPlay())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(
+      sharedStateKeys(singlesTrainingPlay(), singlesTrainingPlay()),
+    ).toMatchInlineSnapshot(`[]`);
   });
 });

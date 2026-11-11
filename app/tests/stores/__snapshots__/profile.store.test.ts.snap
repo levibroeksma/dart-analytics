@@ -1,0 +1,16 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`profileStore shape > keeps its keys, in order 1`] = `
+[
+  "displayName",
+  "dartsDescription",
+  "dartsWeightGrams",
+  "loading",
+  "loaded",
+  "error",
+  "weightLabel get",
+  "init()",
+  "load()",
+  "save()",
+]
+`;

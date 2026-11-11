@@ -37,6 +37,54 @@ export function shouldFire(fraction: number): boolean {
   return fraction >= SLIDE_THRESHOLD;
 }
 
+/** `slideToStartData`'s methods, group 1 of 2; each reads its instance through `this`. */
+const slideToStartDataMethods1 = {
+  init(this: SlideToStartContext) {
+    this.$watch("disabled", (value) => {
+      if (!value && this.fired && this.failed) this.reset();
+    });
+  },
+};
+
+/** `slideToStartData`'s methods, group 2 of 2; each reads its instance through `this`. */
+const slideToStartDataMethods2 = {
+  end(this: SlideToStartContext) {
+    if (!this.dragging) return;
+    this.dragging = false;
+    if (shouldFire(this.fraction)) {
+      this.fire();
+      return;
+    }
+    this.fraction = 0;
+  },
+
+  onKey(this: SlideToStartContext, event: SlideKey) {
+    if (this.disabled || this.fired) return;
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    this.fire();
+  },
+
+  onClick(this: SlideToStartContext, event: SlideClick) {
+    if (this.disabled || this.fired || event.detail !== 0) return;
+    this.fire();
+  },
+
+  fire(this: SlideToStartContext) {
+    this.fraction = 1;
+    this.fired = true;
+    this.$root.closest("form")?.requestSubmit();
+    setTimeout(() => {
+      if (!this.disabled && this.fired) this.reset();
+    }, SLIDE_RESET_MS);
+  },
+
+  reset(this: SlideToStartContext) {
+    this.fired = false;
+    this.fraction = 0;
+  },
+};
+
 /**
  * Alpine factory for `SlideToStart.astro`. Drag past `SLIDE_THRESHOLD` or
  * press Enter/Space (or an assistive-tech click, `detail === 0`) to
@@ -55,12 +103,7 @@ export function slideToStartData() {
     fired: false,
     disabled: false,
     failed: false,
-
-    init(this: SlideToStartContext) {
-      this.$watch("disabled", (value) => {
-        if (!value && this.fired && this.failed) this.reset();
-      });
-    },
+    ...slideToStartDataMethods1,
 
     begin(this: SlideToStartContext, event: SlidePointer) {
       if (this.disabled || this.fired) return;
@@ -76,41 +119,6 @@ export function slideToStartData() {
       if (!this.dragging) return;
       this.fraction = dragFraction(event.clientX - startX, travel);
     },
-
-    end(this: SlideToStartContext) {
-      if (!this.dragging) return;
-      this.dragging = false;
-      if (shouldFire(this.fraction)) {
-        this.fire();
-        return;
-      }
-      this.fraction = 0;
-    },
-
-    onKey(this: SlideToStartContext, event: SlideKey) {
-      if (this.disabled || this.fired) return;
-      if (event.key !== "Enter" && event.key !== " ") return;
-      event.preventDefault();
-      this.fire();
-    },
-
-    onClick(this: SlideToStartContext, event: SlideClick) {
-      if (this.disabled || this.fired || event.detail !== 0) return;
-      this.fire();
-    },
-
-    fire(this: SlideToStartContext) {
-      this.fraction = 1;
-      this.fired = true;
-      this.$root.closest("form")?.requestSubmit();
-      setTimeout(() => {
-        if (!this.disabled && this.fired) this.reset();
-      }, SLIDE_RESET_MS);
-    },
-
-    reset(this: SlideToStartContext) {
-      this.fired = false;
-      this.fraction = 0;
-    },
+    ...slideToStartDataMethods2,
   };
 }

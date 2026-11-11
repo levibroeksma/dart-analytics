@@ -112,6 +112,113 @@ function throwBotDart(
   );
 }
 
+/** `doublesTrainingPlay`'s methods; each reads its instance through `this`. */
+const doublesTrainingPlayMethods = {
+  state(this: DoublesTrainingPlayContext): DoublesTrainingState | null {
+    const config = this.$store.game.configSnapshot;
+    if (!config) return null;
+    return foldDoublesTrainingState(
+      { stages: this.$store.game.stages, turns: this.$store.game.turns },
+      config,
+    );
+  },
+
+  /** Play-header subtitle: the session's target order in setup wording (`LOW → HIGH`); blank before config loads. */
+  subtitle(this: DoublesTrainingPlayContext): string {
+    const config = this.$store.game.configSnapshot;
+    return config ? orderModeLabel(config.orderMode) : "";
+  },
+
+  currentTargetLabelFor(
+    this: DoublesTrainingPlayContext,
+    seatRef: string,
+  ): string {
+    const config = this.$store.game.configSnapshot;
+    const seat = seatStateFor(this.state(), seatRef);
+    if (!config || !seat) return "";
+    return doublesPathTargetLabel(
+      targetAt(doublesPath(config.targetOrder), seat.targetIndex),
+    );
+  },
+
+  currentTargetLabel(this: DoublesTrainingPlayContext): string {
+    return forActiveSeat(this, (ref) => this.currentTargetLabelFor(ref), "");
+  },
+
+  hitCountFor(this: DoublesTrainingPlayContext, seatRef: string): string {
+    const seat = seatStateFor(this.state(), seatRef);
+    return String(seat?.outcomes.filter((outcome) => outcome.hit).length ?? 0);
+  },
+
+  hitCount(this: DoublesTrainingPlayContext): string {
+    return forActiveSeat(this, (ref) => this.hitCountFor(ref), "0");
+  },
+
+  missCountFor(this: DoublesTrainingPlayContext, seatRef: string): string {
+    const seat = seatStateFor(this.state(), seatRef);
+    return String(seat?.outcomes.filter((outcome) => !outcome.hit).length ?? 0);
+  },
+
+  missCount(this: DoublesTrainingPlayContext): string {
+    return forActiveSeat(this, (ref) => this.missCountFor(ref), "0");
+  },
+
+  previewSegments(this: DoublesTrainingPlayContext): DoublesPreviewSegment[] {
+    return doublesPathPreviewSegments(
+      this.$store.game.turns,
+      this.hiddenTurnKey,
+    );
+  },
+
+  /** The recreational tap row's entry point: synthesizes the observation
+   * for a hit or miss on the current target and funnels it through
+   * `commitDart`. */
+  async recordTap(this: DoublesTrainingPlayContext, hit: boolean) {
+    const config = this.$store.game.configSnapshot;
+    const seat = activeSeatStateOf(this.state());
+    if (!this.engine || !config || !seat || this.finished) return;
+    const target = targetAt(doublesPath(config.targetOrder), seat.targetIndex);
+    await this.commitDart(doublesPathObservation(target, hit));
+  },
+
+  uploadAndCompleteSession(this: DoublesTrainingPlayContext): Promise<void> {
+    return playUploadAndCompleteSession(this, (finalState) => ({
+      status: finalState.status === "TIE" ? "TIE" : "COMPLETE",
+      winningSideKey: finalState.winningSideKey,
+      seats: finalState.seats.map((seat) => statsFor(seat)),
+    }));
+  },
+
+  resultsTitle(this: DoublesTrainingPlayContext): string {
+    if (this.resultsSnapshot?.status === "TIE")
+      return "Tie — same doubles hit!";
+    const winner = matchWinnerName(
+      this.$store.game.seats,
+      this.resultsSnapshot?.winningSideKey ?? null,
+    );
+    return winner ? `${winner} wins — most doubles hit!` : "Session complete";
+  },
+
+  playAgain(this: DoublesTrainingPlayContext) {
+    return runPlayAgain(
+      this,
+      GAME_TYPE_KEY,
+      RULESET_VERSION_KEY,
+      (engine) => (engine instanceof DoublesTrainingEngine ? engine : null),
+      (priorConfig) => {
+        const targetOrder = targetOrderFor(priorConfig.orderMode);
+        return {
+          snapshot: { ...priorConfig, targetOrder },
+          wire: {
+            order_mode: priorConfig.orderMode,
+            target_order: targetOrder,
+          },
+        };
+      },
+    );
+  },
+};
+
 export function doublesTrainingPlay() {
   return {
     ...playScreenState<DoublesTrainingEngine, DoublesTrainingResultsSnapshot>(),
@@ -119,116 +226,6 @@ export function doublesTrainingPlay() {
     ...boardPlayActions({ gameTypeKey: GAME_TYPE_KEY, resume: resumeEngine }),
     ...botVisualBoardData(throwBotDart),
     ...playScreenActions(),
-
-    state(this: DoublesTrainingPlayContext): DoublesTrainingState | null {
-      const config = this.$store.game.configSnapshot;
-      if (!config) return null;
-      return foldDoublesTrainingState(
-        { stages: this.$store.game.stages, turns: this.$store.game.turns },
-        config,
-      );
-    },
-
-    /** Play-header subtitle: the session's target order in setup wording (`LOW → HIGH`); blank before config loads. */
-    subtitle(this: DoublesTrainingPlayContext): string {
-      const config = this.$store.game.configSnapshot;
-      return config ? orderModeLabel(config.orderMode) : "";
-    },
-
-    currentTargetLabelFor(
-      this: DoublesTrainingPlayContext,
-      seatRef: string,
-    ): string {
-      const config = this.$store.game.configSnapshot;
-      const seat = seatStateFor(this.state(), seatRef);
-      if (!config || !seat) return "";
-      return doublesPathTargetLabel(
-        targetAt(doublesPath(config.targetOrder), seat.targetIndex),
-      );
-    },
-
-    currentTargetLabel(this: DoublesTrainingPlayContext): string {
-      return forActiveSeat(this, (ref) => this.currentTargetLabelFor(ref), "");
-    },
-
-    hitCountFor(this: DoublesTrainingPlayContext, seatRef: string): string {
-      const seat = seatStateFor(this.state(), seatRef);
-      return String(
-        seat?.outcomes.filter((outcome) => outcome.hit).length ?? 0,
-      );
-    },
-
-    hitCount(this: DoublesTrainingPlayContext): string {
-      return forActiveSeat(this, (ref) => this.hitCountFor(ref), "0");
-    },
-
-    missCountFor(this: DoublesTrainingPlayContext, seatRef: string): string {
-      const seat = seatStateFor(this.state(), seatRef);
-      return String(
-        seat?.outcomes.filter((outcome) => !outcome.hit).length ?? 0,
-      );
-    },
-
-    missCount(this: DoublesTrainingPlayContext): string {
-      return forActiveSeat(this, (ref) => this.missCountFor(ref), "0");
-    },
-
-    previewSegments(this: DoublesTrainingPlayContext): DoublesPreviewSegment[] {
-      return doublesPathPreviewSegments(
-        this.$store.game.turns,
-        this.hiddenTurnKey,
-      );
-    },
-
-    /** The recreational tap row's entry point: synthesizes the observation
-     * for a hit or miss on the current target and funnels it through
-     * `commitDart`. */
-    async recordTap(this: DoublesTrainingPlayContext, hit: boolean) {
-      const config = this.$store.game.configSnapshot;
-      const seat = activeSeatStateOf(this.state());
-      if (!this.engine || !config || !seat || this.finished) return;
-      const target = targetAt(
-        doublesPath(config.targetOrder),
-        seat.targetIndex,
-      );
-      await this.commitDart(doublesPathObservation(target, hit));
-    },
-
-    uploadAndCompleteSession(this: DoublesTrainingPlayContext): Promise<void> {
-      return playUploadAndCompleteSession(this, (finalState) => ({
-        status: finalState.status === "TIE" ? "TIE" : "COMPLETE",
-        winningSideKey: finalState.winningSideKey,
-        seats: finalState.seats.map((seat) => statsFor(seat)),
-      }));
-    },
-
-    resultsTitle(this: DoublesTrainingPlayContext): string {
-      if (this.resultsSnapshot?.status === "TIE")
-        return "Tie — same doubles hit!";
-      const winner = matchWinnerName(
-        this.$store.game.seats,
-        this.resultsSnapshot?.winningSideKey ?? null,
-      );
-      return winner ? `${winner} wins — most doubles hit!` : "Session complete";
-    },
-
-    playAgain(this: DoublesTrainingPlayContext) {
-      return runPlayAgain(
-        this,
-        GAME_TYPE_KEY,
-        RULESET_VERSION_KEY,
-        (engine) => (engine instanceof DoublesTrainingEngine ? engine : null),
-        (priorConfig) => {
-          const targetOrder = targetOrderFor(priorConfig.orderMode);
-          return {
-            snapshot: { ...priorConfig, targetOrder },
-            wire: {
-              order_mode: priorConfig.orderMode,
-              target_order: targetOrder,
-            },
-          };
-        },
-      );
-    },
+    ...doublesTrainingPlayMethods,
   };
 }

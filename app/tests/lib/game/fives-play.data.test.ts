@@ -27,7 +27,7 @@ import type {
   StageFact,
   TurnFact,
 } from "@modules/types";
-import { shapeOf } from "../../support/factory-shape";
+import { shapeOf, sharedStateKeys } from "../../support/factory-shape";
 
 const SEATS = [
   {
@@ -347,67 +347,12 @@ describe("fives resume", () => {
 
 describe("fivesPlay shape", () => {
   it("keeps its keys, in order", () => {
-    expect(shapeOf(fivesPlay())).toMatchInlineSnapshot(`
-      [
-        "loading",
-        "error",
-        "finished",
-        "hasActiveSession",
-        "loadingReconciliation",
-        "reconciliationFailed",
-        "completionStatus",
-        "completionError",
-        "playAgainError",
-        "playAgainLoading",
-        "resultsSnapshot",
-        "hiddenTurnKey",
-        "hiddenTimer",
-        "engine",
-        "starterOpen",
-        "playAgainStarter",
-        "requestPlayAgain()",
-        "playAgainStarterOptions()",
-        "input",
-        "board",
-        "pointerX",
-        "pointerY",
-        "syncBoard()",
-        "magnifierAnchor()",
-        "magnifierBox()",
-        "magnifierBoard()",
-        "magnifierRead()",
-        "onPointerDown()",
-        "onPointerMove()",
-        "onPointerUp()",
-        "onPointerCancel()",
-        "recordUnseen()",
-        "visitMarkers()",
-        "init()",
-        "recordDart()",
-        "commitDart()",
-        "undoVisit()",
-        "back()",
-        "retryReconciliation()",
-        "abandonAndExit()",
-        "ring",
-        "state()",
-        "subtitle()",
-        "totalLabelFor()",
-        "totalLabel()",
-        "visitLabelFor()",
-        "visitLabel()",
-        "lastLabelFor()",
-        "lastLabel()",
-        "isBullVisit()",
-        "previewSegments()",
-        "setRing()",
-        "recordNumber()",
-        "recordBull()",
-        "recordMiss()",
-        "uploadAndCompleteSession()",
-        "resultsTitle()",
-        "playAgain()",
-      ]
-    `);
+    expect(shapeOf(fivesPlay())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(sharedStateKeys(fivesPlay(), fivesPlay())).toMatchInlineSnapshot(
+      `[]`,
+    );
   });
 });

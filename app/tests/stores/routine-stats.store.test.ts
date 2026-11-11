@@ -7,7 +7,7 @@ import {
   stepScopeKey,
 } from "@modules/stats/routine-scope.module";
 import type { RoutineHeaderSchemaData } from "@client/api/types";
-import { shapeOf } from "../support/factory-shape";
+import { shapeOf, sharedStateKeys } from "../support/factory-shape";
 
 const readSection = vi.fn();
 const readSessionPage = vi.fn();
@@ -966,50 +966,12 @@ describe("Snakes & Ladders rounds-to-finish label", () => {
 
 describe("routineStatsStore shape", () => {
   it("keeps its keys, in order", () => {
-    expect(shapeOf(routineStatsStore())).toMatchInlineSnapshot(`
-      [
-        "routines",
-        "routineKey",
-        "header",
-        "stepKey",
-        "showEarlierSteps",
-        "range",
-        "routineSections",
-        "stepSections",
-        "stepSessions",
-        "nextCursor",
-        "loading",
-        "error",
-        "activated",
-        "initialTab",
-        "restore",
-        "init()",
-        "activate()",
-        "isSelected()",
-        "selectRoutine()",
-        "readRoutineSections()",
-        "resetStep()",
-        "selectStep()",
-        "readStepSections()",
-        "readStepSessionPage()",
-        "loadMoreStepSessions()",
-        "currentSteps get",
-        "earlierSteps get",
-        "shownEarlierSteps get",
-        "selectedStep get",
-        "stepKind get",
-        "stepLabel()",
-        "stepDetail()",
-        "metricLabel()",
-        "routineVolumeTotals get",
-        "routineCompletionTotals get",
-        "abandonPoints get",
-        "stepVolumeTotals get",
-        "selectedExerciseKind get",
-        "stepResultTotals get",
-        "stepRates get",
-        "stepHeadline get",
-      ]
-    `);
+    expect(shapeOf(routineStatsStore())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(
+      sharedStateKeys(routineStatsStore(), routineStatsStore()),
+    ).toMatchInlineSnapshot(`[]`);
   });
 });

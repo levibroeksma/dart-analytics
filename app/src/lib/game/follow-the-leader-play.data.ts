@@ -80,6 +80,251 @@ function resumeEngine(
   );
 }
 
+/** `followTheLeaderPlay`'s methods; each reads its instance through `this`. */
+const followTheLeaderPlayMethods = {
+  state(this: FollowTheLeaderPlayContext): FollowTheLeaderState | null {
+    const config = this.$store.game.configSnapshot;
+    if (!config) return null;
+    return foldFollowTheLeaderState(
+      { stages: this.$store.game.stages, turns: this.$store.game.turns },
+      config,
+    );
+  },
+
+  phase(this: FollowTheLeaderPlayContext) {
+    return this.state()?.phase ?? "";
+  },
+
+  canStop(this: FollowTheLeaderPlayContext): boolean {
+    return this.state()?.canStop ?? false;
+  },
+
+  keepAllowed(this: FollowTheLeaderPlayContext): boolean {
+    return this.state()?.keepAllowed ?? false;
+  },
+
+  showKeepPrompt(this: FollowTheLeaderPlayContext): boolean {
+    return this.keepAllowed() && !this.setChosen && !this.finished;
+  },
+
+  showPad(this: FollowTheLeaderPlayContext): boolean {
+    return !this.showKeepPrompt();
+  },
+
+  usesBoard(this: FollowTheLeaderPlayContext): boolean {
+    return this.$store.game.inputModeKey === "VISUAL_BOARD";
+  },
+
+  /** The keypad shows in a keypad session whenever the Keep/Set prompt does not. */
+  showTapPad(this: FollowTheLeaderPlayContext): boolean {
+    return !this.usesBoard() && this.showPad();
+  },
+
+  /** The visual board shows in an active, unpaused board session whenever the Keep/Set prompt does not. */
+  showBoard(this: FollowTheLeaderPlayContext): boolean {
+    return (
+      this.usesBoard() &&
+      this.showPad() &&
+      !this.finished &&
+      !this.$store.game.timerPaused &&
+      this.hasActiveSession
+    );
+  },
+
+  targetLabel(this: FollowTheLeaderPlayContext): string {
+    return bedLabel(this.state()?.target ?? null);
+  },
+
+  leaderName(this: FollowTheLeaderPlayContext): string {
+    const leaderRef = this.state()?.leaderRef;
+    if (!leaderRef) return "";
+    return (
+      this.$store.game.seats.find((seat) => seat.participantRef === leaderRef)
+        ?.displayName ?? ""
+    );
+  },
+
+  openingNotice(this: FollowTheLeaderPlayContext): string {
+    return this.phase() === "OPENING" ? OPENING_NOTICE : "";
+  },
+
+  /** The leader's setting-turn cue: one dart sets the target, thrown again after an off-board dart; blank otherwise. */
+  settingNotice(this: FollowTheLeaderPlayContext): string {
+    if (this.phase() !== "LEAD" || this.showKeepPrompt()) return "";
+    const state = this.state();
+    const last = this.$store.game.turns.at(-1);
+    const rethrow =
+      !!last &&
+      last.participantRef === state?.activeParticipantRef &&
+      last.darts.length === 1;
+    return rethrow ? RETHROW_NOTICE : SETTING_NOTICE;
+  },
+
+  /** Play-header subtitle: `TARGET: Treble 18`; blank until a target is set. */
+  subtitle(this: FollowTheLeaderPlayContext): string {
+    const label = this.targetLabel();
+    return joinSubtitle(label ? [`TARGET: ${label}`] : []);
+  },
+
+  livesLabelFor(this: FollowTheLeaderPlayContext, seatRef: string): string {
+    const seat = seatStateFor(this.state(), seatRef);
+    return seat ? String(seat.lives) : "";
+  },
+
+  livesLabel(this: FollowTheLeaderPlayContext): string {
+    return forActiveSeat(this, (ref) => this.livesLabelFor(ref), "");
+  },
+
+  /** `OUT` once eliminated, `LEADER` for the seat that set the target, else `—`. */
+  statusLabelFor(this: FollowTheLeaderPlayContext, seatRef: string): string {
+    const seat = seatStateFor(this.state(), seatRef);
+    if (!seat) return "";
+    if (seat.out) return "OUT";
+    return this.state()?.leaderRef === seatRef ? "LEADER" : "—";
+  },
+
+  statusLabel(this: FollowTheLeaderPlayContext): string {
+    return forActiveSeat(this, (ref) => this.statusLabelFor(ref), "");
+  },
+
+  isBullVisit(): boolean {
+    return false;
+  },
+
+  /** The open (or last) visit's darts: a dart in the target bed is a hit, anything else a miss; a setting dart carries no verdict, so its slots stay empty. */
+  previewSegments(this: FollowTheLeaderPlayContext): GamePreviewSegment[] {
+    const state = this.state();
+    const target = state?.target ?? null;
+    const last = this.$store.game.turns.at(-1);
+    const settingTurn =
+      !!last &&
+      last.darts.length === 1 &&
+      (state?.leaderRef == null || last.participantRef === state.leaderRef);
+    if (settingTurn) return EMPTY_SEGMENTS.map((segment) => ({ ...segment }));
+    return playPreviewSegments(
+      this.$store.game.turns,
+      this.hiddenTurnKey,
+      (dart: DartObservation) => {
+        const bed = bedOf(dart);
+        return bed && target && sameBed(bed, target) ? "hit" : "miss";
+      },
+    );
+  },
+
+  setRing(this: FollowTheLeaderPlayContext, ring: MarksRing) {
+    toggleMarksRing(this, ring);
+  },
+
+  async recordNumber(this: FollowTheLeaderPlayContext, n: number) {
+    await recordMarksTap(this, n);
+  },
+
+  async recordBull(this: FollowTheLeaderPlayContext) {
+    await recordMarksTap(this, 25);
+  },
+
+  async recordMiss(this: FollowTheLeaderPlayContext) {
+    await recordMarksMiss(this);
+  },
+
+  async commitDart(
+    this: FollowTheLeaderPlayContext,
+    observation: DartObservation,
+  ) {
+    if (this.showKeepPrompt()) return;
+    const before = this.$store.game.turns;
+    await playCommitDart(this, observation);
+    if (this.$store.game.turns !== before) this.setChosen = false;
+  },
+
+  async commitAction(
+    this: FollowTheLeaderPlayContext,
+    action: FollowTheLeaderAction,
+  ) {
+    if (!this.engine || this.finished) return;
+    if (this.$store.game.timerPaused) return;
+    try {
+      this.engine.record(action);
+    } catch (err: unknown) {
+      this.error = (err as Error).message;
+      return;
+    }
+    this.error = "";
+    this.setChosen = false;
+    const facts = this.engine.facts();
+    this.$store.game.recordFacts(facts);
+    armHiddenTimer(this, facts.turns);
+    if (this.engine.isComplete()) {
+      this.finished = true;
+      this.completionStatus = "pending";
+      await this.uploadAndCompleteSession();
+    }
+  },
+
+  async stop(this: FollowTheLeaderPlayContext) {
+    if (!this.canStop()) {
+      this.error = STOP_REFUSED;
+      return;
+    }
+    await this.commitAction({ kind: "STOP" });
+  },
+
+  async keep(this: FollowTheLeaderPlayContext) {
+    if (!this.keepAllowed()) {
+      this.error = KEEP_REFUSED;
+      return;
+    }
+    await this.commitAction({ kind: "KEEP" });
+  },
+
+  chooseSet(this: FollowTheLeaderPlayContext) {
+    this.setChosen = true;
+  },
+
+  async undoVisit(this: FollowTheLeaderPlayContext) {
+    if (!this.engine || this.finished) return;
+    if (!this.engine.undo()) return;
+    clearHiddenTimer(this);
+    this.$store.game.recordFacts(this.engine.facts());
+    this.error = "";
+    this.setChosen = false;
+  },
+
+  uploadAndCompleteSession(this: FollowTheLeaderPlayContext): Promise<void> {
+    return playUploadAndCompleteSession(this, followTheLeaderResultsSnapshot);
+  },
+
+  resultsTitle(this: FollowTheLeaderPlayContext): string {
+    const snapshot = this.resultsSnapshot;
+    if (!snapshot) return "Session complete";
+    const winner = matchWinnerName(
+      this.$store.game.seats,
+      snapshot.winningSideKey,
+    );
+    return winner ? `${winner} wins!` : "Session complete";
+  },
+
+  outOrderLabel(this: FollowTheLeaderPlayContext): string {
+    const snapshot = this.resultsSnapshot;
+    if (!snapshot) return "";
+    return outOrderNames(snapshot.outOrder, this.$store.game.seats);
+  },
+
+  /** Replays the same preset, seating the chosen starter first and resending lives. */
+  playAgain(this: FollowTheLeaderPlayContext) {
+    return runPlayAgain(
+      this,
+      GAME_TYPE_KEY,
+      RULESET_VERSION_KEY,
+      (engine) => (engine instanceof FollowTheLeaderEngine ? engine : null),
+      variantsPlayAgain(RULESET_VERSION_KEY),
+      () => {
+        this.setChosen = false;
+      },
+    );
+  },
+};
+
 export function followTheLeaderPlay() {
   return {
     ...playScreenState<FollowTheLeaderEngine, FollowTheLeaderResultsSnapshot>(),
@@ -88,247 +333,6 @@ export function followTheLeaderPlay() {
     ...playScreenActions(),
     ring: "SINGLE" as MarksRing,
     setChosen: false,
-
-    state(this: FollowTheLeaderPlayContext): FollowTheLeaderState | null {
-      const config = this.$store.game.configSnapshot;
-      if (!config) return null;
-      return foldFollowTheLeaderState(
-        { stages: this.$store.game.stages, turns: this.$store.game.turns },
-        config,
-      );
-    },
-
-    phase(this: FollowTheLeaderPlayContext) {
-      return this.state()?.phase ?? "";
-    },
-
-    canStop(this: FollowTheLeaderPlayContext): boolean {
-      return this.state()?.canStop ?? false;
-    },
-
-    keepAllowed(this: FollowTheLeaderPlayContext): boolean {
-      return this.state()?.keepAllowed ?? false;
-    },
-
-    showKeepPrompt(this: FollowTheLeaderPlayContext): boolean {
-      return this.keepAllowed() && !this.setChosen && !this.finished;
-    },
-
-    showPad(this: FollowTheLeaderPlayContext): boolean {
-      return !this.showKeepPrompt();
-    },
-
-    usesBoard(this: FollowTheLeaderPlayContext): boolean {
-      return this.$store.game.inputModeKey === "VISUAL_BOARD";
-    },
-
-    /** The keypad shows in a keypad session whenever the Keep/Set prompt does not. */
-    showTapPad(this: FollowTheLeaderPlayContext): boolean {
-      return !this.usesBoard() && this.showPad();
-    },
-
-    /** The visual board shows in an active, unpaused board session whenever the Keep/Set prompt does not. */
-    showBoard(this: FollowTheLeaderPlayContext): boolean {
-      return (
-        this.usesBoard() &&
-        this.showPad() &&
-        !this.finished &&
-        !this.$store.game.timerPaused &&
-        this.hasActiveSession
-      );
-    },
-
-    targetLabel(this: FollowTheLeaderPlayContext): string {
-      return bedLabel(this.state()?.target ?? null);
-    },
-
-    leaderName(this: FollowTheLeaderPlayContext): string {
-      const leaderRef = this.state()?.leaderRef;
-      if (!leaderRef) return "";
-      return (
-        this.$store.game.seats.find((seat) => seat.participantRef === leaderRef)
-          ?.displayName ?? ""
-      );
-    },
-
-    openingNotice(this: FollowTheLeaderPlayContext): string {
-      return this.phase() === "OPENING" ? OPENING_NOTICE : "";
-    },
-
-    /** The leader's setting-turn cue: one dart sets the target, thrown again after an off-board dart; blank otherwise. */
-    settingNotice(this: FollowTheLeaderPlayContext): string {
-      if (this.phase() !== "LEAD" || this.showKeepPrompt()) return "";
-      const state = this.state();
-      const last = this.$store.game.turns.at(-1);
-      const rethrow =
-        !!last &&
-        last.participantRef === state?.activeParticipantRef &&
-        last.darts.length === 1;
-      return rethrow ? RETHROW_NOTICE : SETTING_NOTICE;
-    },
-
-    /** Play-header subtitle: `TARGET: Treble 18`; blank until a target is set. */
-    subtitle(this: FollowTheLeaderPlayContext): string {
-      const label = this.targetLabel();
-      return joinSubtitle(label ? [`TARGET: ${label}`] : []);
-    },
-
-    livesLabelFor(this: FollowTheLeaderPlayContext, seatRef: string): string {
-      const seat = seatStateFor(this.state(), seatRef);
-      return seat ? String(seat.lives) : "";
-    },
-
-    livesLabel(this: FollowTheLeaderPlayContext): string {
-      return forActiveSeat(this, (ref) => this.livesLabelFor(ref), "");
-    },
-
-    /** `OUT` once eliminated, `LEADER` for the seat that set the target, else `—`. */
-    statusLabelFor(this: FollowTheLeaderPlayContext, seatRef: string): string {
-      const seat = seatStateFor(this.state(), seatRef);
-      if (!seat) return "";
-      if (seat.out) return "OUT";
-      return this.state()?.leaderRef === seatRef ? "LEADER" : "—";
-    },
-
-    statusLabel(this: FollowTheLeaderPlayContext): string {
-      return forActiveSeat(this, (ref) => this.statusLabelFor(ref), "");
-    },
-
-    isBullVisit(): boolean {
-      return false;
-    },
-
-    /** The open (or last) visit's darts: a dart in the target bed is a hit, anything else a miss; a setting dart carries no verdict, so its slots stay empty. */
-    previewSegments(this: FollowTheLeaderPlayContext): GamePreviewSegment[] {
-      const state = this.state();
-      const target = state?.target ?? null;
-      const last = this.$store.game.turns.at(-1);
-      const settingTurn =
-        !!last &&
-        last.darts.length === 1 &&
-        (state?.leaderRef == null || last.participantRef === state.leaderRef);
-      if (settingTurn) return EMPTY_SEGMENTS.map((segment) => ({ ...segment }));
-      return playPreviewSegments(
-        this.$store.game.turns,
-        this.hiddenTurnKey,
-        (dart: DartObservation) => {
-          const bed = bedOf(dart);
-          return bed && target && sameBed(bed, target) ? "hit" : "miss";
-        },
-      );
-    },
-
-    setRing(this: FollowTheLeaderPlayContext, ring: MarksRing) {
-      toggleMarksRing(this, ring);
-    },
-
-    async recordNumber(this: FollowTheLeaderPlayContext, n: number) {
-      await recordMarksTap(this, n);
-    },
-
-    async recordBull(this: FollowTheLeaderPlayContext) {
-      await recordMarksTap(this, 25);
-    },
-
-    async recordMiss(this: FollowTheLeaderPlayContext) {
-      await recordMarksMiss(this);
-    },
-
-    async commitDart(
-      this: FollowTheLeaderPlayContext,
-      observation: DartObservation,
-    ) {
-      if (this.showKeepPrompt()) return;
-      const before = this.$store.game.turns;
-      await playCommitDart(this, observation);
-      if (this.$store.game.turns !== before) this.setChosen = false;
-    },
-
-    async commitAction(
-      this: FollowTheLeaderPlayContext,
-      action: FollowTheLeaderAction,
-    ) {
-      if (!this.engine || this.finished) return;
-      if (this.$store.game.timerPaused) return;
-      try {
-        this.engine.record(action);
-      } catch (err: unknown) {
-        this.error = (err as Error).message;
-        return;
-      }
-      this.error = "";
-      this.setChosen = false;
-      const facts = this.engine.facts();
-      this.$store.game.recordFacts(facts);
-      armHiddenTimer(this, facts.turns);
-      if (this.engine.isComplete()) {
-        this.finished = true;
-        this.completionStatus = "pending";
-        await this.uploadAndCompleteSession();
-      }
-    },
-
-    async stop(this: FollowTheLeaderPlayContext) {
-      if (!this.canStop()) {
-        this.error = STOP_REFUSED;
-        return;
-      }
-      await this.commitAction({ kind: "STOP" });
-    },
-
-    async keep(this: FollowTheLeaderPlayContext) {
-      if (!this.keepAllowed()) {
-        this.error = KEEP_REFUSED;
-        return;
-      }
-      await this.commitAction({ kind: "KEEP" });
-    },
-
-    chooseSet(this: FollowTheLeaderPlayContext) {
-      this.setChosen = true;
-    },
-
-    async undoVisit(this: FollowTheLeaderPlayContext) {
-      if (!this.engine || this.finished) return;
-      if (!this.engine.undo()) return;
-      clearHiddenTimer(this);
-      this.$store.game.recordFacts(this.engine.facts());
-      this.error = "";
-      this.setChosen = false;
-    },
-
-    uploadAndCompleteSession(this: FollowTheLeaderPlayContext): Promise<void> {
-      return playUploadAndCompleteSession(this, followTheLeaderResultsSnapshot);
-    },
-
-    resultsTitle(this: FollowTheLeaderPlayContext): string {
-      const snapshot = this.resultsSnapshot;
-      if (!snapshot) return "Session complete";
-      const winner = matchWinnerName(
-        this.$store.game.seats,
-        snapshot.winningSideKey,
-      );
-      return winner ? `${winner} wins!` : "Session complete";
-    },
-
-    outOrderLabel(this: FollowTheLeaderPlayContext): string {
-      const snapshot = this.resultsSnapshot;
-      if (!snapshot) return "";
-      return outOrderNames(snapshot.outOrder, this.$store.game.seats);
-    },
-
-    /** Replays the same preset, seating the chosen starter first and resending lives. */
-    playAgain(this: FollowTheLeaderPlayContext) {
-      return runPlayAgain(
-        this,
-        GAME_TYPE_KEY,
-        RULESET_VERSION_KEY,
-        (engine) => (engine instanceof FollowTheLeaderEngine ? engine : null),
-        variantsPlayAgain(RULESET_VERSION_KEY),
-        () => {
-          this.setChosen = false;
-        },
-      );
-    },
+    ...followTheLeaderPlayMethods,
   };
 }

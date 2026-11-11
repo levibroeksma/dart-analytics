@@ -1379,7 +1379,7 @@ describe("tuodPlay", () => {
 });
 
 import type { DartObservation } from "@modules/types";
-import { shapeOf } from "../../support/factory-shape";
+import { shapeOf, sharedStateKeys } from "../../support/factory-shape";
 
 const SEATS = [
   {
@@ -2467,86 +2467,10 @@ describe("tuodPlay botFlight", () => {
 
 describe("tuodPlay shape", () => {
   it("keeps its keys, in order", () => {
-    expect(shapeOf(tuodPlay())).toMatchInlineSnapshot(`
-      [
-        "input",
-        "board",
-        "pointerX",
-        "pointerY",
-        "syncBoard()",
-        "magnifierAnchor()",
-        "magnifierBox()",
-        "magnifierBoard()",
-        "magnifierRead()",
-        "onPointerDown()",
-        "onPointerMove()",
-        "onPointerUp()",
-        "onPointerCancel()",
-        "recordUnseen()",
-        "visitMarkers()",
-        "loading",
-        "error",
-        "finished",
-        "hasActiveSession",
-        "loadingReconciliation",
-        "reconciliationFailed",
-        "completionStatus",
-        "completionError",
-        "playAgainError",
-        "playAgainLoading",
-        "resultsSnapshot",
-        "hiddenTurnKey",
-        "hiddenTimer",
-        "engine",
-        "starterOpen",
-        "playAgainStarter",
-        "requestPlayAgain()",
-        "playAgainStarterOptions()",
-        "back()",
-        "retryReconciliation()",
-        "abandonAndExit()",
-        "timer",
-        "togglePause()",
-        "destroy()",
-        "scoreInput",
-        "pendingAttempt",
-        "pendingCheckoutScore",
-        "pendingDartObservation",
-        "dartsAtDouble",
-        "dartsToFinish",
-        "showDoubleConfirm",
-        "showFinishConfirm",
-        "botThrowing",
-        "botFlight",
-        "state()",
-        "currentTargetLabelFor()",
-        "currentTargetLabel()",
-        "remainingInAttemptFor()",
-        "remainingInAttempt()",
-        "subtitle()",
-        "attemptsFor()",
-        "attempts()",
-        "successFailureFor()",
-        "successFailure()",
-        "checkoutHintFor()",
-        "checkoutHint()",
-        "remainingLabel()",
-        "checkoutDartOptions()",
-        "init()",
-        "submitVisit()",
-        "confirmDouble()",
-        "cancelCheckout()",
-        "recordAttempt()",
-        "maybeRunBotVisit()",
-        "recordDart()",
-        "commitDart()",
-        "confirmFinish()",
-        "cancelFinish()",
-        "undoVisit()",
-        "uploadAndCompleteSession()",
-        "resultsTitle()",
-        "playAgain()",
-      ]
-    `);
+    expect(shapeOf(tuodPlay())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(sharedStateKeys(tuodPlay(), tuodPlay())).toMatchInlineSnapshot(`[]`);
   });
 });

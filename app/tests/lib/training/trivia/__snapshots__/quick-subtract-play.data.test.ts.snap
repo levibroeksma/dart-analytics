@@ -1,0 +1,30 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`quickSubtractPlay shape > keeps its keys, in order 1`] = `
+[
+  "status",
+  "current",
+  "scoreInput",
+  "correctAnswers",
+  "attempts",
+  "incorrectAnswers",
+  "elapsedTime",
+  "remainingTime",
+  "lastAnswer",
+  "paused",
+  "runMode",
+  "game",
+  "formattedElapsed()",
+  "formattedRemaining()",
+  "pausable()",
+  "pauseLabel()",
+  "togglePause()",
+  "syncFromGame()",
+  "startCount()",
+  "startTimer()",
+  "submit()",
+  "reset()",
+  "destroy()",
+  "exit()",
+]
+`;

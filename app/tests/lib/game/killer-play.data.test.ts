@@ -27,7 +27,7 @@ import type {
   StageFact,
   TurnFact,
 } from "@modules/types";
-import { shapeOf } from "../../support/factory-shape";
+import { shapeOf, sharedStateKeys } from "../../support/factory-shape";
 
 const SEATS = [
   {
@@ -411,68 +411,12 @@ describe("killer per-seat accessors for an unknown seat", () => {
 
 describe("killerPlay shape", () => {
   it("keeps its keys, in order", () => {
-    expect(shapeOf(killerPlay())).toMatchInlineSnapshot(`
-      [
-        "loading",
-        "error",
-        "finished",
-        "hasActiveSession",
-        "loadingReconciliation",
-        "reconciliationFailed",
-        "completionStatus",
-        "completionError",
-        "playAgainError",
-        "playAgainLoading",
-        "resultsSnapshot",
-        "hiddenTurnKey",
-        "hiddenTimer",
-        "engine",
-        "starterOpen",
-        "playAgainStarter",
-        "requestPlayAgain()",
-        "playAgainStarterOptions()",
-        "input",
-        "board",
-        "pointerX",
-        "pointerY",
-        "syncBoard()",
-        "magnifierAnchor()",
-        "magnifierBox()",
-        "magnifierBoard()",
-        "magnifierRead()",
-        "onPointerDown()",
-        "onPointerMove()",
-        "onPointerUp()",
-        "onPointerCancel()",
-        "recordUnseen()",
-        "visitMarkers()",
-        "init()",
-        "recordDart()",
-        "commitDart()",
-        "undoVisit()",
-        "back()",
-        "retryReconciliation()",
-        "abandonAndExit()",
-        "ring",
-        "state()",
-        "subtitle()",
-        "livesLabelFor()",
-        "livesLabel()",
-        "numberLabelFor()",
-        "numberLabel()",
-        "statusLabelFor()",
-        "statusLabel()",
-        "isBullVisit()",
-        "previewSegments()",
-        "setRing()",
-        "recordNumber()",
-        "recordBull()",
-        "recordMiss()",
-        "uploadAndCompleteSession()",
-        "resultsTitle()",
-        "outOrderLabel()",
-        "playAgain()",
-      ]
-    `);
+    expect(shapeOf(killerPlay())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(sharedStateKeys(killerPlay(), killerPlay())).toMatchInlineSnapshot(
+      `[]`,
+    );
   });
 });

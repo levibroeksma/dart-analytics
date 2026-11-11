@@ -57,6 +57,171 @@ function targetText(seat: PrisonerSeatState): string {
   return prisonerTargetText(seat.target);
 }
 
+/** `prisonerPlay`'s methods, group 1 of 2; each reads its instance through `this`. */
+const prisonerPlayMethods1 = {
+  state(this: PrisonerPlayContext): PrisonerState | null {
+    const config = this.$store.game.configSnapshot;
+    if (!config) return null;
+    return foldPrisonerState(
+      { stages: this.$store.game.stages, turns: this.$store.game.turns },
+      config,
+    );
+  },
+
+  /** The visual board shows in an active, unpaused, unfinished session; Prisoner is board-only. */
+  showBoard(this: PrisonerPlayContext): boolean {
+    return (
+      !this.finished && !this.$store.game.timerPaused && this.hasActiveSession
+    );
+  },
+
+  isBullVisit(): boolean {
+    return false;
+  },
+
+  targetLabelFor(this: PrisonerPlayContext, seatRef: string): string {
+    const seat = seatOf(this, seatRef);
+    return seat ? targetText(seat) : "";
+  },
+
+  targetLabel(this: PrisonerPlayContext): string {
+    const state = this.state();
+    return state ? this.targetLabelFor(state.activeParticipantRef) : "";
+  },
+
+  /** Play-header subtitle: `TARGET: Outer 7` for the active seat; blank before config loads. */
+  subtitle(this: PrisonerPlayContext): string {
+    const label = this.targetLabel();
+    return joinSubtitle(label ? [`TARGET: ${label}`] : []);
+  },
+
+  heldLabelFor(this: PrisonerPlayContext, seatRef: string): string {
+    const seat = seatOf(this, seatRef);
+    return seat ? String(seat.held) : "";
+  },
+
+  heldLabel(this: PrisonerPlayContext): string {
+    const state = this.state();
+    return state ? this.heldLabelFor(state.activeParticipantRef) : "";
+  },
+
+  sittingLabelFor(this: PrisonerPlayContext, seatRef: string): string {
+    const seat = seatOf(this, seatRef);
+    return seat ? String(seat.sitting) : "";
+  },
+
+  sittingLabel(this: PrisonerPlayContext): string {
+    const state = this.state();
+    return state ? this.sittingLabelFor(state.activeParticipantRef) : "";
+  },
+
+  capturedLabelFor(this: PrisonerPlayContext, seatRef: string): string {
+    const seat = seatOf(this, seatRef);
+    return seat ? String(seat.captured) : "";
+  },
+
+  imprisonedLabelFor(this: PrisonerPlayContext, seatRef: string): string {
+    const seat = seatOf(this, seatRef);
+    return seat ? String(seat.imprisoned) : "";
+  },
+
+  /** Darts a seat has to throw: the active seat's remainder this visit, a waiting seat's next-visit budget. */
+  dartsLeftLabelFor(this: PrisonerPlayContext, seatRef: string): string {
+    const state = this.state();
+    const seat = seatOf(this, seatRef);
+    if (!state || !seat) return "";
+    const active = state.activeParticipantRef === seatRef;
+    return String(active ? state.dartsLeft : seat.budget);
+  },
+
+  dartsLeftLabel(this: PrisonerPlayContext): string {
+    const state = this.state();
+    return state ? this.dartsLeftLabelFor(state.activeParticipantRef) : "";
+  },
+
+  /** The numbers holding prisoners, ascending, each with its count. */
+  lodgedList(this: PrisonerPlayContext): PrisonerLodgedEntry[] {
+    const state = this.state();
+    if (!state) return [];
+    return Object.entries(state.lodged)
+      .map(([number, count]) => ({ number: Number(number), count }))
+      .sort((a, b) => a.number - b.number);
+  },
+};
+
+/** `prisonerPlay`'s methods, group 2 of 2; each reads its instance through `this`. */
+const prisonerPlayMethods2 = {
+  retryReconciliation(this: PrisonerPlayContext) {
+    return playRetryReconciliation(this);
+  },
+
+  async recordDart(this: PrisonerPlayContext, observation: DartObservation) {
+    if (!this.engine || this.finished) return;
+    await this.commitDart(observation);
+  },
+
+  async commitDart(this: PrisonerPlayContext, observation: DartObservation) {
+    await playCommitDart(this, observation);
+  },
+
+  /** The board markers for the last visit's located darts; none once that visit's reveal has cleared. */
+  visitMarkers(this: PrisonerPlayContext): BoardMarker[] {
+    return playVisitMarkers(this);
+  },
+
+  async undoVisit(this: PrisonerPlayContext) {
+    playUndoVisit(this);
+  },
+
+  uploadAndCompleteSession(this: PrisonerPlayContext): Promise<void> {
+    return playUploadAndCompleteSession(this, prisonerResultsSnapshot);
+  },
+
+  resultsTitle(this: PrisonerPlayContext): string {
+    const snapshot = this.resultsSnapshot;
+    if (!snapshot) return "Session complete";
+    const winner = matchWinnerName(
+      this.$store.game.seats,
+      snapshot.winningSideKey,
+    );
+    return winner ? `${winner} wins!` : "Session complete";
+  },
+
+  /** Eliminated seats' names in elimination order; blank before the results exist. */
+  outOrderLabel(this: PrisonerPlayContext): string {
+    const snapshot = this.resultsSnapshot;
+    if (!snapshot) return "";
+    return outOrderNames(snapshot.outOrder, this.$store.game.seats);
+  },
+
+  wonByLabel(this: PrisonerPlayContext): string {
+    return prisonerWonByLabel(this.resultsSnapshot);
+  },
+
+  resultRows(this: PrisonerPlayContext): PrisonerResultRow[] {
+    return prisonerResultRows(this.resultsSnapshot, this.$store.game.seats);
+  },
+
+  back(this: PrisonerPlayContext) {
+    return playBack(this);
+  },
+
+  abandonAndExit(this: PrisonerPlayContext) {
+    return playAbandonAndExit(this);
+  },
+
+  /** Replays the same preset, seating the chosen starter first. */
+  playAgain(this: PrisonerPlayContext) {
+    return runPlayAgain(
+      this,
+      GAME_TYPE_KEY,
+      RULESET_VERSION_KEY,
+      (engine) => (engine instanceof PrisonerEngine ? engine : null),
+      variantsPlayAgain(RULESET_VERSION_KEY),
+    );
+  },
+};
+
 /**
  * `self` exists only so `boardInputData`'s `onCommit` callback can reach
  * this page's own `recordDart` with the live, reactive `this`.
@@ -85,95 +250,7 @@ export function prisonerPlay() {
       (observation) => self.recordDart(observation),
       () => self.$store.game.turns,
     ),
-
-    state(this: PrisonerPlayContext): PrisonerState | null {
-      const config = this.$store.game.configSnapshot;
-      if (!config) return null;
-      return foldPrisonerState(
-        { stages: this.$store.game.stages, turns: this.$store.game.turns },
-        config,
-      );
-    },
-
-    /** The visual board shows in an active, unpaused, unfinished session; Prisoner is board-only. */
-    showBoard(this: PrisonerPlayContext): boolean {
-      return (
-        !this.finished && !this.$store.game.timerPaused && this.hasActiveSession
-      );
-    },
-
-    isBullVisit(): boolean {
-      return false;
-    },
-
-    targetLabelFor(this: PrisonerPlayContext, seatRef: string): string {
-      const seat = seatOf(this, seatRef);
-      return seat ? targetText(seat) : "";
-    },
-
-    targetLabel(this: PrisonerPlayContext): string {
-      const state = this.state();
-      return state ? this.targetLabelFor(state.activeParticipantRef) : "";
-    },
-
-    /** Play-header subtitle: `TARGET: Outer 7` for the active seat; blank before config loads. */
-    subtitle(this: PrisonerPlayContext): string {
-      const label = this.targetLabel();
-      return joinSubtitle(label ? [`TARGET: ${label}`] : []);
-    },
-
-    heldLabelFor(this: PrisonerPlayContext, seatRef: string): string {
-      const seat = seatOf(this, seatRef);
-      return seat ? String(seat.held) : "";
-    },
-
-    heldLabel(this: PrisonerPlayContext): string {
-      const state = this.state();
-      return state ? this.heldLabelFor(state.activeParticipantRef) : "";
-    },
-
-    sittingLabelFor(this: PrisonerPlayContext, seatRef: string): string {
-      const seat = seatOf(this, seatRef);
-      return seat ? String(seat.sitting) : "";
-    },
-
-    sittingLabel(this: PrisonerPlayContext): string {
-      const state = this.state();
-      return state ? this.sittingLabelFor(state.activeParticipantRef) : "";
-    },
-
-    capturedLabelFor(this: PrisonerPlayContext, seatRef: string): string {
-      const seat = seatOf(this, seatRef);
-      return seat ? String(seat.captured) : "";
-    },
-
-    imprisonedLabelFor(this: PrisonerPlayContext, seatRef: string): string {
-      const seat = seatOf(this, seatRef);
-      return seat ? String(seat.imprisoned) : "";
-    },
-
-    /** Darts a seat has to throw: the active seat's remainder this visit, a waiting seat's next-visit budget. */
-    dartsLeftLabelFor(this: PrisonerPlayContext, seatRef: string): string {
-      const state = this.state();
-      const seat = seatOf(this, seatRef);
-      if (!state || !seat) return "";
-      const active = state.activeParticipantRef === seatRef;
-      return String(active ? state.dartsLeft : seat.budget);
-    },
-
-    dartsLeftLabel(this: PrisonerPlayContext): string {
-      const state = this.state();
-      return state ? this.dartsLeftLabelFor(state.activeParticipantRef) : "";
-    },
-
-    /** The numbers holding prisoners, ascending, each with its count. */
-    lodgedList(this: PrisonerPlayContext): PrisonerLodgedEntry[] {
-      const state = this.state();
-      if (!state) return [];
-      return Object.entries(state.lodged)
-        .map(([number, count]) => ({ number: Number(number), count }))
-        .sort((a, b) => a.number - b.number);
-    },
+    ...prisonerPlayMethods1,
 
     async init(this: PrisonerPlayContext) {
       self = this;
@@ -186,75 +263,6 @@ export function prisonerPlay() {
         ),
       );
     },
-
-    retryReconciliation(this: PrisonerPlayContext) {
-      return playRetryReconciliation(this);
-    },
-
-    async recordDart(this: PrisonerPlayContext, observation: DartObservation) {
-      if (!this.engine || this.finished) return;
-      await this.commitDart(observation);
-    },
-
-    async commitDart(this: PrisonerPlayContext, observation: DartObservation) {
-      await playCommitDart(this, observation);
-    },
-
-    /** The board markers for the last visit's located darts; none once that visit's reveal has cleared. */
-    visitMarkers(this: PrisonerPlayContext): BoardMarker[] {
-      return playVisitMarkers(this);
-    },
-
-    async undoVisit(this: PrisonerPlayContext) {
-      playUndoVisit(this);
-    },
-
-    uploadAndCompleteSession(this: PrisonerPlayContext): Promise<void> {
-      return playUploadAndCompleteSession(this, prisonerResultsSnapshot);
-    },
-
-    resultsTitle(this: PrisonerPlayContext): string {
-      const snapshot = this.resultsSnapshot;
-      if (!snapshot) return "Session complete";
-      const winner = matchWinnerName(
-        this.$store.game.seats,
-        snapshot.winningSideKey,
-      );
-      return winner ? `${winner} wins!` : "Session complete";
-    },
-
-    /** Eliminated seats' names in elimination order; blank before the results exist. */
-    outOrderLabel(this: PrisonerPlayContext): string {
-      const snapshot = this.resultsSnapshot;
-      if (!snapshot) return "";
-      return outOrderNames(snapshot.outOrder, this.$store.game.seats);
-    },
-
-    wonByLabel(this: PrisonerPlayContext): string {
-      return prisonerWonByLabel(this.resultsSnapshot);
-    },
-
-    resultRows(this: PrisonerPlayContext): PrisonerResultRow[] {
-      return prisonerResultRows(this.resultsSnapshot, this.$store.game.seats);
-    },
-
-    back(this: PrisonerPlayContext) {
-      return playBack(this);
-    },
-
-    abandonAndExit(this: PrisonerPlayContext) {
-      return playAbandonAndExit(this);
-    },
-
-    /** Replays the same preset, seating the chosen starter first. */
-    playAgain(this: PrisonerPlayContext) {
-      return runPlayAgain(
-        this,
-        GAME_TYPE_KEY,
-        RULESET_VERSION_KEY,
-        (engine) => (engine instanceof PrisonerEngine ? engine : null),
-        variantsPlayAgain(RULESET_VERSION_KEY),
-      );
-    },
+    ...prisonerPlayMethods2,
   };
 }

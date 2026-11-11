@@ -75,115 +75,119 @@ function resumeEngine(
   );
 }
 
+/** `baseballPlay`'s methods; each reads its instance through `this`. */
+const baseballPlayMethods = {
+  state(this: BaseballPlayContext): BaseballState | null {
+    const config = this.$store.game.configSnapshot;
+    if (!config) return null;
+    return foldBaseballState(
+      { stages: this.$store.game.stages, turns: this.$store.game.turns },
+      config,
+    );
+  },
+
+  /** Play-header subtitle: `INNING 3 OF 9`; blank before config loads. */
+  subtitle(this: BaseballPlayContext): string {
+    const seat = activeSeatStateOf(this.state());
+    return seat ? `INNING ${inningOf(seat)} OF ${BASEBALL_INNINGS}` : "";
+  },
+
+  currentTargetLabelFor(this: BaseballPlayContext, seatRef: string): string {
+    const seat = seatStateFor(this.state(), seatRef);
+    return seat ? String(inningOf(seat)) : "";
+  },
+
+  currentTargetLabel(this: BaseballPlayContext): string {
+    return forActiveSeat(this, (ref) => this.currentTargetLabelFor(ref), "");
+  },
+
+  inningLabelFor(this: BaseballPlayContext, seatRef: string): string {
+    const seat = seatStateFor(this.state(), seatRef);
+    return seat ? `${inningOf(seat)}/${BASEBALL_INNINGS}` : "";
+  },
+
+  inningLabel(this: BaseballPlayContext): string {
+    return forActiveSeat(this, (ref) => this.inningLabelFor(ref), "");
+  },
+
+  currentScoreFor(this: BaseballPlayContext, seatRef: string): string {
+    const seat = seatStateFor(this.state(), seatRef);
+    return seat ? String(seat.runs) : "";
+  },
+
+  currentScore(this: BaseballPlayContext): string {
+    return forActiveSeat(this, (ref) => this.currentScoreFor(ref), "");
+  },
+
+  isBullVisit(): boolean {
+    return false;
+  },
+
+  /** The open (or last) visit's darts against its own inning's number. */
+  previewSegments(this: BaseballPlayContext): GamePreviewSegment[] {
+    const turns = this.$store.game.turns;
+    const lastSeat = turns.at(-1)?.participantRef;
+    const inning = turns.filter(
+      (turn) => turn.participantRef === lastSeat,
+    ).length;
+    return playPreviewSegments(turns, this.hiddenTurnKey, (dart) =>
+      dart.hitTargetNumber === inning ? "hit" : "miss",
+    );
+  },
+
+  /** The recreational tap: S/D/T on the inning's number, or MISS. */
+  async recordTap(
+    this: BaseballPlayContext,
+    ring: "SINGLE" | "DOUBLE" | "TREBLE" | "MISS",
+  ) {
+    const state = this.state();
+    if (!this.engine || !state) return;
+    const inning = Number(
+      this.currentTargetLabelFor(state.activeParticipantRef),
+    );
+    const observation = ringTapObservation(
+      { kind: "NUMBER", number: inning },
+      ring,
+    );
+    if (observation) await this.commitDart(observation);
+  },
+
+  uploadAndCompleteSession(this: BaseballPlayContext): Promise<void> {
+    const turns = this.$store.game.turns;
+    return playUploadAndCompleteSession(this, (finalState) => ({
+      status: finalState.status === "TIE" ? "TIE" : "COMPLETE",
+      winningSideKey: finalState.winningSideKey,
+      seats: finalState.seats.map((seat) => baseballSeatResult(seat, turns)),
+    }));
+  },
+
+  resultsTitle(this: BaseballPlayContext): string {
+    const snapshot = this.resultsSnapshot;
+    if (!snapshot || snapshot.seats.length === 1) {
+      return "Nine innings played";
+    }
+    if (snapshot.status === "TIE") return "Tie — same runs!";
+    const winner = matchWinnerName(
+      this.$store.game.seats,
+      snapshot.winningSideKey,
+    );
+    return winner ? `${winner} wins!` : "Session complete";
+  },
+
+  /** Replays the same preset with no overrides — the ruleset has nothing to set. */
+  playAgain(this: BaseballPlayContext) {
+    return runPlayAgain(this, GAME_TYPE_KEY, RULESET_VERSION_KEY, (engine) =>
+      engine instanceof BaseballEngine ? engine : null,
+    );
+  },
+};
+
 export function baseballPlay() {
   return {
     ...playScreenState<BaseballEngine, BaseballResultsSnapshot>(),
     ...playAgainStarterData(),
     ...boardPlayActions({ gameTypeKey: GAME_TYPE_KEY, resume: resumeEngine }),
     ...playScreenActions(),
-
-    state(this: BaseballPlayContext): BaseballState | null {
-      const config = this.$store.game.configSnapshot;
-      if (!config) return null;
-      return foldBaseballState(
-        { stages: this.$store.game.stages, turns: this.$store.game.turns },
-        config,
-      );
-    },
-
-    /** Play-header subtitle: `INNING 3 OF 9`; blank before config loads. */
-    subtitle(this: BaseballPlayContext): string {
-      const seat = activeSeatStateOf(this.state());
-      return seat ? `INNING ${inningOf(seat)} OF ${BASEBALL_INNINGS}` : "";
-    },
-
-    currentTargetLabelFor(this: BaseballPlayContext, seatRef: string): string {
-      const seat = seatStateFor(this.state(), seatRef);
-      return seat ? String(inningOf(seat)) : "";
-    },
-
-    currentTargetLabel(this: BaseballPlayContext): string {
-      return forActiveSeat(this, (ref) => this.currentTargetLabelFor(ref), "");
-    },
-
-    inningLabelFor(this: BaseballPlayContext, seatRef: string): string {
-      const seat = seatStateFor(this.state(), seatRef);
-      return seat ? `${inningOf(seat)}/${BASEBALL_INNINGS}` : "";
-    },
-
-    inningLabel(this: BaseballPlayContext): string {
-      return forActiveSeat(this, (ref) => this.inningLabelFor(ref), "");
-    },
-
-    currentScoreFor(this: BaseballPlayContext, seatRef: string): string {
-      const seat = seatStateFor(this.state(), seatRef);
-      return seat ? String(seat.runs) : "";
-    },
-
-    currentScore(this: BaseballPlayContext): string {
-      return forActiveSeat(this, (ref) => this.currentScoreFor(ref), "");
-    },
-
-    isBullVisit(): boolean {
-      return false;
-    },
-
-    /** The open (or last) visit's darts against its own inning's number. */
-    previewSegments(this: BaseballPlayContext): GamePreviewSegment[] {
-      const turns = this.$store.game.turns;
-      const lastSeat = turns.at(-1)?.participantRef;
-      const inning = turns.filter(
-        (turn) => turn.participantRef === lastSeat,
-      ).length;
-      return playPreviewSegments(turns, this.hiddenTurnKey, (dart) =>
-        dart.hitTargetNumber === inning ? "hit" : "miss",
-      );
-    },
-
-    /** The recreational tap: S/D/T on the inning's number, or MISS. */
-    async recordTap(
-      this: BaseballPlayContext,
-      ring: "SINGLE" | "DOUBLE" | "TREBLE" | "MISS",
-    ) {
-      const state = this.state();
-      if (!this.engine || !state) return;
-      const inning = Number(
-        this.currentTargetLabelFor(state.activeParticipantRef),
-      );
-      const observation = ringTapObservation(
-        { kind: "NUMBER", number: inning },
-        ring,
-      );
-      if (observation) await this.commitDart(observation);
-    },
-
-    uploadAndCompleteSession(this: BaseballPlayContext): Promise<void> {
-      const turns = this.$store.game.turns;
-      return playUploadAndCompleteSession(this, (finalState) => ({
-        status: finalState.status === "TIE" ? "TIE" : "COMPLETE",
-        winningSideKey: finalState.winningSideKey,
-        seats: finalState.seats.map((seat) => baseballSeatResult(seat, turns)),
-      }));
-    },
-
-    resultsTitle(this: BaseballPlayContext): string {
-      const snapshot = this.resultsSnapshot;
-      if (!snapshot || snapshot.seats.length === 1) {
-        return "Nine innings played";
-      }
-      if (snapshot.status === "TIE") return "Tie — same runs!";
-      const winner = matchWinnerName(
-        this.$store.game.seats,
-        snapshot.winningSideKey,
-      );
-      return winner ? `${winner} wins!` : "Session complete";
-    },
-
-    /** Replays the same preset with no overrides — the ruleset has nothing to set. */
-    playAgain(this: BaseballPlayContext) {
-      return runPlayAgain(this, GAME_TYPE_KEY, RULESET_VERSION_KEY, (engine) =>
-        engine instanceof BaseballEngine ? engine : null,
-      );
-    },
+    ...baseballPlayMethods,
   };
 }

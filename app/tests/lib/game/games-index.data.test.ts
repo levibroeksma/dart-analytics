@@ -6,7 +6,7 @@ import * as catalogApi from "@client/api/catalog";
 import { cardTags } from "@lib/catalog/tags";
 import type { CatalogTag, CatalogTagsResponse } from "@lib/types";
 import { activeSessionsStore } from "@stores/active-sessions.store";
-import { shapeOf } from "../../support/factory-shape";
+import { shapeOf, sharedStateKeys } from "../../support/factory-shape";
 
 vi.mock("@client/api/sessions");
 vi.mock("@client/api/catalog");
@@ -332,21 +332,12 @@ describe("gamesIndex", () => {
 
 describe("gamesIndex shape", () => {
   it("keeps its keys, in order", () => {
-    expect(shapeOf(gamesIndex())).toMatchInlineSnapshot(`
-      [
-        "activeRulesetKeys",
-        "sessionsLoading",
-        "catalogTags",
-        "tagsLoading",
-        "init()",
-        "gameTags()",
-        "gameLevel()",
-        "loading()",
-        "isVisible()",
-        "analyticsMode()",
-        "groupVisible()",
-        "noneVisible()",
-      ]
-    `);
+    expect(shapeOf(gamesIndex())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(sharedStateKeys(gamesIndex(), gamesIndex())).toMatchInlineSnapshot(
+      `[]`,
+    );
   });
 });

@@ -191,6 +191,112 @@ export function toResumeCards(
     });
 }
 
+/** `resumeDeck`'s methods; each reads its instance through `this`. */
+const resumeDeckMethods = {
+  async init(this: ResumeDeckContext) {
+    this.loading = true;
+    await this.$store.activeSessions.load();
+    this.failed = this.$store.activeSessions.failed;
+    this.cards = toResumeCards(
+      this.$store.activeSessions.sessions,
+      this.$store.game,
+      new Date(),
+    );
+    this.loading = false;
+  },
+
+  top(this: ResumeDeckContext) {
+    return this.cards[this.index] ?? null;
+  },
+
+  position(this: ResumeDeckContext) {
+    return `${this.index + 1} / ${this.cards.length}`;
+  },
+
+  deckSlots(this: ResumeDeckContext): DeckSlot[] {
+    const count = this.cards.length;
+    const visible = Math.min(count, MAX_VISIBLE_CARDS);
+    const at = (offset: number) => (this.index + offset) % count;
+    const slot = (position: number, depth: number, state: DeckSlotState) =>
+      ({
+        card: this.cards[position]!,
+        depth,
+        state,
+      }) as DeckSlot;
+    if (this.phase === "idle" || this.from === null || !this.direction) {
+      return Array.from({ length: visible }, (_, k) => slot(at(k), k, "rest"));
+    }
+    const step = {
+      at,
+      slot,
+      visible,
+      count,
+      from: this.from,
+      phase: this.phase,
+    };
+    return this.direction === "next" ? nextSlots(step) : prevSlots(step);
+  },
+
+  /** `deckSlots()` in list order, the order the cards render in. */
+  deckView(this: ResumeDeckContext): DeckSlot[] {
+    const position = (slot: DeckSlot) => this.cards.indexOf(slot.card);
+    return this.deckSlots().sort((a, b) => position(a) - position(b));
+  },
+
+  visible(this: ResumeDeckContext) {
+    return !this.failed && !this.loading && this.cards.length > 0;
+  },
+
+  next(this: ResumeDeckContext) {
+    if (this.phase !== "idle" || this.cards.length <= 1) return;
+    const from = this.index;
+    this.index = (this.index + 1) % this.cards.length;
+    beginStep(this, "next", from);
+  },
+
+  prev(this: ResumeDeckContext) {
+    if (this.phase !== "idle" || this.cards.length <= 1) return;
+    const count = this.cards.length;
+    this.index = (this.index - 1 + count) % count;
+    beginStep(this, "prev", this.index);
+  },
+
+  swipeStart(this: ResumeDeckContext, event: PointerEvent) {
+    if ((event.target as Element | null)?.closest?.("button")) return;
+    this.swipeX = event.clientX;
+    this.swipeY = event.clientY;
+  },
+
+  swipeEnd(this: ResumeDeckContext, event: PointerEvent) {
+    const startX = this.swipeX;
+    const startY = this.swipeY;
+    this.swipeX = null;
+    this.swipeY = null;
+    if (startX === null || startY === null) return;
+    const dx = event.clientX - startX;
+    const dy = event.clientY - startY;
+    if (Math.abs(dx) < SWIPE_THRESHOLD_PX || Math.abs(dx) <= Math.abs(dy)) {
+      return;
+    }
+    if (dx < 0) this.next();
+    else this.prev();
+  },
+
+  swipeCancel(this: ResumeDeckContext) {
+    this.swipeX = null;
+    this.swipeY = null;
+  },
+
+  resume(this: ResumeDeckContext) {
+    const card = this.top();
+    if (card) this.navigate(card.href);
+  },
+
+  navigate(path: string) {
+    globalThis.location.href = path;
+  },
+};
+
 /**
  * Home resume-deck state: the player's active sessions as a stack of cards
  * with the top one resumable.
@@ -216,110 +322,6 @@ export function resumeDeck() {
     from: null as number | null,
     direction: null as DeckDirection | null,
     animTimers: [] as ReturnType<typeof setTimeout>[],
-
-    async init(this: ResumeDeckContext) {
-      this.loading = true;
-      await this.$store.activeSessions.load();
-      this.failed = this.$store.activeSessions.failed;
-      this.cards = toResumeCards(
-        this.$store.activeSessions.sessions,
-        this.$store.game,
-        new Date(),
-      );
-      this.loading = false;
-    },
-
-    top(this: ResumeDeckContext) {
-      return this.cards[this.index] ?? null;
-    },
-
-    position(this: ResumeDeckContext) {
-      return `${this.index + 1} / ${this.cards.length}`;
-    },
-
-    deckSlots(this: ResumeDeckContext): DeckSlot[] {
-      const count = this.cards.length;
-      const visible = Math.min(count, MAX_VISIBLE_CARDS);
-      const at = (offset: number) => (this.index + offset) % count;
-      const slot = (position: number, depth: number, state: DeckSlotState) =>
-        ({
-          card: this.cards[position]!,
-          depth,
-          state,
-        }) as DeckSlot;
-      if (this.phase === "idle" || this.from === null || !this.direction) {
-        return Array.from({ length: visible }, (_, k) =>
-          slot(at(k), k, "rest"),
-        );
-      }
-      const step = {
-        at,
-        slot,
-        visible,
-        count,
-        from: this.from,
-        phase: this.phase,
-      };
-      return this.direction === "next" ? nextSlots(step) : prevSlots(step);
-    },
-
-    /** `deckSlots()` in list order, the order the cards render in. */
-    deckView(this: ResumeDeckContext): DeckSlot[] {
-      const position = (slot: DeckSlot) => this.cards.indexOf(slot.card);
-      return this.deckSlots().sort((a, b) => position(a) - position(b));
-    },
-
-    visible(this: ResumeDeckContext) {
-      return !this.failed && !this.loading && this.cards.length > 0;
-    },
-
-    next(this: ResumeDeckContext) {
-      if (this.phase !== "idle" || this.cards.length <= 1) return;
-      const from = this.index;
-      this.index = (this.index + 1) % this.cards.length;
-      beginStep(this, "next", from);
-    },
-
-    prev(this: ResumeDeckContext) {
-      if (this.phase !== "idle" || this.cards.length <= 1) return;
-      const count = this.cards.length;
-      this.index = (this.index - 1 + count) % count;
-      beginStep(this, "prev", this.index);
-    },
-
-    swipeStart(this: ResumeDeckContext, event: PointerEvent) {
-      if ((event.target as Element | null)?.closest?.("button")) return;
-      this.swipeX = event.clientX;
-      this.swipeY = event.clientY;
-    },
-
-    swipeEnd(this: ResumeDeckContext, event: PointerEvent) {
-      const startX = this.swipeX;
-      const startY = this.swipeY;
-      this.swipeX = null;
-      this.swipeY = null;
-      if (startX === null || startY === null) return;
-      const dx = event.clientX - startX;
-      const dy = event.clientY - startY;
-      if (Math.abs(dx) < SWIPE_THRESHOLD_PX || Math.abs(dx) <= Math.abs(dy)) {
-        return;
-      }
-      if (dx < 0) this.next();
-      else this.prev();
-    },
-
-    swipeCancel(this: ResumeDeckContext) {
-      this.swipeX = null;
-      this.swipeY = null;
-    },
-
-    resume(this: ResumeDeckContext) {
-      const card = this.top();
-      if (card) this.navigate(card.href);
-    },
-
-    navigate(path: string) {
-      globalThis.location.href = path;
-    },
+    ...resumeDeckMethods,
   };
 }

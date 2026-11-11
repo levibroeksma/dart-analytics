@@ -39,7 +39,7 @@ import type {
   StageFact,
   TurnFact,
 } from "@modules/types";
-import { shapeOf } from "../../support/factory-shape";
+import { shapeOf, sharedStateKeys } from "../../support/factory-shape";
 
 const SEATS = [
   {
@@ -750,67 +750,12 @@ describe("cricket shared play-screen parts", () => {
 
 describe("cricketPlay shape", () => {
   it("keeps its keys, in order", () => {
-    expect(shapeOf(cricketPlay())).toMatchInlineSnapshot(`
-      [
-        "loading",
-        "error",
-        "finished",
-        "hasActiveSession",
-        "loadingReconciliation",
-        "reconciliationFailed",
-        "completionStatus",
-        "completionError",
-        "playAgainError",
-        "playAgainLoading",
-        "resultsSnapshot",
-        "hiddenTurnKey",
-        "hiddenTimer",
-        "engine",
-        "starterOpen",
-        "playAgainStarter",
-        "requestPlayAgain()",
-        "playAgainStarterOptions()",
-        "input",
-        "board",
-        "pointerX",
-        "pointerY",
-        "syncBoard()",
-        "magnifierAnchor()",
-        "magnifierBox()",
-        "magnifierBoard()",
-        "magnifierRead()",
-        "onPointerDown()",
-        "onPointerMove()",
-        "onPointerUp()",
-        "onPointerCancel()",
-        "recordUnseen()",
-        "visitMarkers()",
-        "init()",
-        "recordDart()",
-        "commitDart()",
-        "undoVisit()",
-        "botThrowing",
-        "botFlight",
-        "maybeRunBotVisit()",
-        "back()",
-        "retryReconciliation()",
-        "abandonAndExit()",
-        "ring",
-        "state()",
-        "subtitle()",
-        "objectiveRowsFor()",
-        "pointsFor()",
-        "closedCountFor()",
-        "dartsThrownFor()",
-        "dartsThrown()",
-        "resultsTitle()",
-        "previewSegments()",
-        "setRing()",
-        "recordObjective()",
-        "recordMiss()",
-        "uploadAndCompleteSession()",
-        "playAgain()",
-      ]
-    `);
+    expect(shapeOf(cricketPlay())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(sharedStateKeys(cricketPlay(), cricketPlay())).toMatchInlineSnapshot(
+      `[]`,
+    );
   });
 });

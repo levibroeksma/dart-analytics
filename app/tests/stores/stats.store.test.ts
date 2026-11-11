@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { shapeOf } from "../support/factory-shape";
+import { shapeOf, sharedStateKeys } from "../support/factory-shape";
 
 const fetchStatisticsOverview = vi.fn();
 
@@ -83,33 +83,12 @@ describe("statsStore", () => {
 
 describe("statsStore shape", () => {
   it("keeps its keys, in order", () => {
-    expect(shapeOf(statsStore())).toMatchInlineSnapshot(`
-      [
-        "totalGamesPlayed",
-        "totalPlayTimeSeconds",
-        "favoriteGameTypeKey",
-        "currentPlayStreakDays",
-        "longestStreakHint",
-        "totalDartsThrown",
-        "hundredPlusCount",
-        "oneTwentyPlusCount",
-        "oneFortyPlusCount",
-        "oneEightiesCount",
-        "medianVisitScore",
-        "highestGameAverage",
-        "firstNineCareerAverage",
-        "scoringAverageExcludingDoubles",
-        "bestLegDarts",
-        "averageDartsPerLeg",
-        "checkoutPercentage",
-        "highestCheckoutValue",
-        "highestCheckoutHint",
-        "highestCheckoutSessionId",
-        "loading",
-        "error",
-        "init()",
-        "load()",
-      ]
-    `);
+    expect(shapeOf(statsStore())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(sharedStateKeys(statsStore(), statsStore())).toMatchInlineSnapshot(
+      `[]`,
+    );
   });
 });

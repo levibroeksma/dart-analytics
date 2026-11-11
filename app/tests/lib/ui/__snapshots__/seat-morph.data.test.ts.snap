@@ -1,0 +1,11 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`seatMorph shape > keeps its keys, in order 1`] = `
+[
+  "captured",
+  "init()",
+  "cards()",
+  "capture()",
+  "morph()",
+]
+`;

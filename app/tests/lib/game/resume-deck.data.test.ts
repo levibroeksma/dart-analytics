@@ -5,7 +5,7 @@ import type { LocalGame, ResumeDeckContext } from "@lib/types";
 import * as sessionsApi from "@client/api/sessions";
 import { activeSessionsStore } from "@stores/active-sessions.store";
 import { gamesIndex } from "@lib/game/games-index.data";
-import { shapeOf } from "../../support/factory-shape";
+import { shapeOf, sharedStateKeys } from "../../support/factory-shape";
 
 vi.mock("@client/api/sessions");
 vi.mock("@modules/game/session-progress.module", () => ({
@@ -561,32 +561,12 @@ describe("resumeDeck", () => {
 
 describe("resumeDeck shape", () => {
   it("keeps its keys, in order", () => {
-    expect(shapeOf(resumeDeck())).toMatchInlineSnapshot(`
-      [
-        "cards",
-        "index",
-        "phase",
-        "loading",
-        "failed",
-        "swipeX",
-        "swipeY",
-        "from",
-        "direction",
-        "animTimers",
-        "init()",
-        "top()",
-        "position()",
-        "deckSlots()",
-        "deckView()",
-        "visible()",
-        "next()",
-        "prev()",
-        "swipeStart()",
-        "swipeEnd()",
-        "swipeCancel()",
-        "resume()",
-        "navigate()",
-      ]
-    `);
+    expect(shapeOf(resumeDeck())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(sharedStateKeys(resumeDeck(), resumeDeck())).toMatchInlineSnapshot(
+      `[]`,
+    );
   });
 });

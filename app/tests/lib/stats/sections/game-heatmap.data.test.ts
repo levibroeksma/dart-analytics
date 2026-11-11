@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { shapeOf } from "../../../support/factory-shape";
+import { shapeOf, sharedStateKeys } from "../../../support/factory-shape";
 
 const loadGameSection = vi.fn();
 
@@ -215,20 +215,12 @@ describe("gameHeatmapSection", () => {
 
 describe("gameHeatmapSection shape", () => {
   it("keeps its keys, in order", () => {
-    expect(shapeOf(gameHeatmapSection())).toMatchInlineSnapshot(`
-      [
-        "loading",
-        "error",
-        "bucket",
-        "target",
-        "period get",
-        "gameTypeKey get",
-        "targetOptions get",
-        "init()",
-        "load()",
-        "stamps get",
-        "isEmpty get",
-      ]
-    `);
+    expect(shapeOf(gameHeatmapSection())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(
+      sharedStateKeys(gameHeatmapSection(), gameHeatmapSection()),
+    ).toMatchInlineSnapshot(`[]`);
   });
 });

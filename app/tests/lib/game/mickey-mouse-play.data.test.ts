@@ -27,7 +27,7 @@ import type {
   Seated,
 } from "@lib/types";
 import type { DartZoneKey, StageFact, TurnFact } from "@modules/types";
-import { shapeOf } from "../../support/factory-shape";
+import { shapeOf, sharedStateKeys } from "../../support/factory-shape";
 
 const SEATS = [
   {
@@ -312,65 +312,12 @@ describe("mickeyMousePlay shared marks labels", () => {
 
 describe("mickeyMousePlay shape", () => {
   it("keeps its keys, in order", () => {
-    expect(shapeOf(mickeyMousePlay())).toMatchInlineSnapshot(`
-      [
-        "loading",
-        "error",
-        "finished",
-        "hasActiveSession",
-        "loadingReconciliation",
-        "reconciliationFailed",
-        "completionStatus",
-        "completionError",
-        "playAgainError",
-        "playAgainLoading",
-        "resultsSnapshot",
-        "hiddenTurnKey",
-        "hiddenTimer",
-        "engine",
-        "starterOpen",
-        "playAgainStarter",
-        "requestPlayAgain()",
-        "playAgainStarterOptions()",
-        "input",
-        "board",
-        "pointerX",
-        "pointerY",
-        "syncBoard()",
-        "magnifierAnchor()",
-        "magnifierBox()",
-        "magnifierBoard()",
-        "magnifierRead()",
-        "onPointerDown()",
-        "onPointerMove()",
-        "onPointerUp()",
-        "onPointerCancel()",
-        "recordUnseen()",
-        "visitMarkers()",
-        "init()",
-        "recordDart()",
-        "commitDart()",
-        "undoVisit()",
-        "back()",
-        "retryReconciliation()",
-        "abandonAndExit()",
-        "ring",
-        "state()",
-        "subtitle()",
-        "objectiveRowsFor()",
-        "pointsFor()",
-        "closedCountFor()",
-        "dartsThrownFor()",
-        "dartsThrown()",
-        "resultsTitle()",
-        "previewSegments()",
-        "setRing()",
-        "tapTargets()",
-        "recordTarget()",
-        "recordMiss()",
-        "uploadAndCompleteSession()",
-        "playAgain()",
-      ]
-    `);
+    expect(shapeOf(mickeyMousePlay())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(
+      sharedStateKeys(mickeyMousePlay(), mickeyMousePlay()),
+    ).toMatchInlineSnapshot(`[]`);
   });
 });

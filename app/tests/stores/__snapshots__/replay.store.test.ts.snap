@@ -1,0 +1,30 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`replayStore shape > keeps its keys, in order 1`] = `
+[
+  "sessionId",
+  "header",
+  "turns",
+  "nextCursor",
+  "fold",
+  "loading",
+  "error",
+  "selectedIndex",
+  "open()",
+  "loadNext()",
+  "loadPage()",
+  "append()",
+  "select()",
+  "presenter get",
+  "exerciseTitle get",
+  "derivedAvailable get",
+  "errorMessage get",
+  "participantName()",
+  "cellsOf()",
+  "turnView()",
+  "stageGroups get",
+  "sessionLine get",
+  "curveRows get",
+  "selectedMarkers get",
+]
+`;

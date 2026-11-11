@@ -217,6 +217,20 @@ function errorMessage(cause: unknown): string {
   return cause instanceof Error ? cause.message : "load failed";
 }
 
+/** `gameStatsStore`'s methods, group 1 of 2; each reads its instance through `this`. */
+const gameStatsStoreMethods1 = {
+  /** Registered on every page, so it fetches nothing; `/statistics` loads through `selectGame`. */
+  init(): void {},
+};
+
+/** `gameStatsStore`'s methods, group 2 of 2; each reads its instance through `this`. */
+const gameStatsStoreMethods2 = {
+  /** The conventional three-dart-or-fewer chart route for `remaining`, for comparison against `pathsFor` — `null` for a bogey or unreachable number. */
+  chartRouteFor(remaining: number): readonly string[] | null {
+    return checkoutPathFor(remaining);
+  },
+};
+
 /**
  * Game statistics page state: the completion, volume and session-result
  * sections plus the session list, all read through the IndexedDB cache
@@ -235,9 +249,7 @@ export function gameStatsStore() {
     error: null as string | null,
     sectionErrors: {} as Partial<Record<SectionId, string>>,
     heatmapTarget: null as TargetKey | null,
-
-    /** Registered on every page, so it fetches nothing; `/statistics` loads through `selectGame`. */
-    init(): void {},
+    ...gameStatsStoreMethods1,
 
     /** Resolves the picked ruleset version to its game type, then reloads; a dedicated-layout game loads its own sections. */
     selectGame(rulesetVersionKey: string) {
@@ -799,11 +811,7 @@ export function gameStatsStore() {
         }))
         .sort((a, b) => b.visits - a.visits);
     },
-
-    /** The conventional three-dart-or-fewer chart route for `remaining`, for comparison against `pathsFor` — `null` for a bogey or unreachable number. */
-    chartRouteFor(remaining: number): readonly string[] | null {
-      return checkoutPathFor(remaining);
-    },
+    ...gameStatsStoreMethods2,
 
     /** `ladder-progress` totals: per-`LADDER_BAND_SIZE` success rate, the highest target attempted, and the after-a-miss recovery rate. */
     get ladderSummary(): {

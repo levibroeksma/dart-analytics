@@ -1,0 +1,28 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`myScheduleForm shape > keeps its keys, in order 1`] = `
+[
+  "loading",
+  "saving",
+  "error",
+  "serverIssues",
+  "scheduleId",
+  "name",
+  "rows",
+  "routines",
+  "selectedIndex",
+  "init()",
+  "applySchedule()",
+  "resetForm()",
+  "dayInitial()",
+  "dayLabel()",
+  "selectedDayLabel()",
+  "selectDay()",
+  "hasRoutine()",
+  "isRoutineSelected()",
+  "toggleRoutine()",
+  "canSave()",
+  "payload()",
+  "save()",
+]
+`;

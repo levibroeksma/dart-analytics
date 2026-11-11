@@ -29,6 +29,62 @@ const DAY_CLASSES: Record<DayStatus, string> = {
 const LOADING_DAY_CLASS =
   "size-8.5 animate-pulse border-2 border-white/12 text-faint-foreground";
 
+/** `trainingWeek`'s methods; each reads its instance through `this`. */
+const trainingWeekMethods = {
+  applySaved(this: TrainingWeekContext, schedule: ScheduleData) {
+    this.schedule = schedule;
+  },
+
+  status(this: TrainingWeekContext, index: number) {
+    return dayStatus(index, this.today, this.schedule, this.completions);
+  },
+
+  dayClass(this: TrainingWeekContext, index: number) {
+    if (this.loading) return LOADING_DAY_CLASS;
+    return DAY_CLASSES[this.status(index)];
+  },
+
+  counts(this: TrainingWeekContext) {
+    return weekCounts(this.today, this.schedule, this.completions);
+  },
+
+  hasSchedule(this: TrainingWeekContext) {
+    return this.schedule !== null;
+  },
+
+  navigate(path: string) {
+    globalThis.location.href = path;
+  },
+
+  todayEntry(this: TrainingWeekContext): ScheduleDayEntry | null {
+    return (
+      this.schedule?.days.find((day) => day.dayOfWeek === this.today + 1) ??
+      null
+    );
+  },
+
+  canStart(this: TrainingWeekContext): boolean {
+    return (
+      !this.loading &&
+      this.todayEntry() !== null &&
+      this.status(this.today) !== "done"
+    );
+  },
+
+  start(this: TrainingWeekContext) {
+    const entry = this.todayEntry();
+    if (entry) this.navigate(routinePlayPath(entry.routineId));
+  },
+
+  letter(index: number) {
+    return (WEEKDAYS[index] ?? "").charAt(0).toLowerCase();
+  },
+
+  dayLabel(this: TrainingWeekContext, index: number) {
+    return `${WEEKDAYS[index] ?? ""}, ${this.status(index)}`;
+  },
+};
+
 /**
  * `/training`'s "My schedule" card: the active schedule and this ISO week's
  * completions, read into a per-day status (done, missed, today, scheduled,
@@ -59,58 +115,6 @@ export function trainingWeek() {
         this.loading = false;
       }
     },
-
-    applySaved(this: TrainingWeekContext, schedule: ScheduleData) {
-      this.schedule = schedule;
-    },
-
-    status(this: TrainingWeekContext, index: number) {
-      return dayStatus(index, this.today, this.schedule, this.completions);
-    },
-
-    dayClass(this: TrainingWeekContext, index: number) {
-      if (this.loading) return LOADING_DAY_CLASS;
-      return DAY_CLASSES[this.status(index)];
-    },
-
-    counts(this: TrainingWeekContext) {
-      return weekCounts(this.today, this.schedule, this.completions);
-    },
-
-    hasSchedule(this: TrainingWeekContext) {
-      return this.schedule !== null;
-    },
-
-    navigate(path: string) {
-      globalThis.location.href = path;
-    },
-
-    todayEntry(this: TrainingWeekContext): ScheduleDayEntry | null {
-      return (
-        this.schedule?.days.find((day) => day.dayOfWeek === this.today + 1) ??
-        null
-      );
-    },
-
-    canStart(this: TrainingWeekContext): boolean {
-      return (
-        !this.loading &&
-        this.todayEntry() !== null &&
-        this.status(this.today) !== "done"
-      );
-    },
-
-    start(this: TrainingWeekContext) {
-      const entry = this.todayEntry();
-      if (entry) this.navigate(routinePlayPath(entry.routineId));
-    },
-
-    letter(index: number) {
-      return (WEEKDAYS[index] ?? "").charAt(0).toLowerCase();
-    },
-
-    dayLabel(this: TrainingWeekContext, index: number) {
-      return `${WEEKDAYS[index] ?? ""}, ${this.status(index)}`;
-    },
+    ...trainingWeekMethods,
   };
 }

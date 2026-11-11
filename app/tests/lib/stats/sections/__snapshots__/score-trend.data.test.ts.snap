@@ -1,0 +1,27 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`scoreTrendSection shape > keeps its keys, in order 1`] = `
+[
+  "loading",
+  "error",
+  "bucket",
+  "tz",
+  "current",
+  "previous",
+  "hasPrevious",
+  "personalBest",
+  "personalBestLoading",
+  "period get",
+  "init()",
+  "load()",
+  "loadPersonalBest()",
+  "personalBestAverage get",
+  "personalBestDate get",
+  "averages get",
+  "previousAverages get",
+  "threeDartDeltaPercent get",
+  "firstNineDeltaPercent get",
+  "isEmpty get",
+  "chart get",
+]
+`;
