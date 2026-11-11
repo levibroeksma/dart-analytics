@@ -35,6 +35,7 @@ import type {
   StageFact,
   TurnFact,
 } from "@modules/types";
+import { shapeOf } from "../../support/factory-shape";
 
 const SEATS = [
   {
@@ -1314,5 +1315,68 @@ describe("bobs27 when the active ref has no seat", () => {
     const commit = vi.spyOn(play, "commitDart").mockResolvedValue(undefined);
     await play.recordTap(false);
     expect(commit).not.toHaveBeenCalled();
+  });
+});
+
+describe("bobs27Play shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(bobs27Play())).toMatchInlineSnapshot(`
+      [
+        "loading",
+        "error",
+        "finished",
+        "hasActiveSession",
+        "loadingReconciliation",
+        "reconciliationFailed",
+        "completionStatus",
+        "completionError",
+        "playAgainError",
+        "playAgainLoading",
+        "resultsSnapshot",
+        "hiddenTurnKey",
+        "hiddenTimer",
+        "engine",
+        "starterOpen",
+        "playAgainStarter",
+        "requestPlayAgain()",
+        "playAgainStarterOptions()",
+        "input",
+        "board",
+        "pointerX",
+        "pointerY",
+        "syncBoard()",
+        "magnifierAnchor()",
+        "magnifierBox()",
+        "magnifierBoard()",
+        "magnifierRead()",
+        "onPointerDown()",
+        "onPointerMove()",
+        "onPointerUp()",
+        "onPointerCancel()",
+        "recordUnseen()",
+        "visitMarkers()",
+        "init()",
+        "recordDart()",
+        "commitDart()",
+        "undoVisit()",
+        "botThrowing",
+        "botFlight",
+        "maybeRunBotVisit()",
+        "back()",
+        "retryReconciliation()",
+        "abandonAndExit()",
+        "state()",
+        "subtitle()",
+        "currentTargetLabelFor()",
+        "currentTargetLabel()",
+        "currentScoreFor()",
+        "currentScore()",
+        "previewSegments()",
+        "recordTap()",
+        "uploadAndCompleteSession()",
+        "resultsTitle()",
+        "playAgain()",
+      ]
+    `);
   });
 });

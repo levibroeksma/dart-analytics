@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { shapeOf } from "../support/factory-shape";
 
 const fetchStatisticsOverview = vi.fn();
 
@@ -77,5 +78,38 @@ describe("statsStore", () => {
     expect(store.totalGamesPlayed).toBe("");
     expect(store.error).not.toBeNull();
     expect(store.loading).toBe(false);
+  });
+});
+
+describe("statsStore shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(statsStore())).toMatchInlineSnapshot(`
+      [
+        "totalGamesPlayed",
+        "totalPlayTimeSeconds",
+        "favoriteGameTypeKey",
+        "currentPlayStreakDays",
+        "longestStreakHint",
+        "totalDartsThrown",
+        "hundredPlusCount",
+        "oneTwentyPlusCount",
+        "oneFortyPlusCount",
+        "oneEightiesCount",
+        "medianVisitScore",
+        "highestGameAverage",
+        "firstNineCareerAverage",
+        "scoringAverageExcludingDoubles",
+        "bestLegDarts",
+        "averageDartsPerLeg",
+        "checkoutPercentage",
+        "highestCheckoutValue",
+        "highestCheckoutHint",
+        "highestCheckoutSessionId",
+        "loading",
+        "error",
+        "init()",
+        "load()",
+      ]
+    `);
   });
 });

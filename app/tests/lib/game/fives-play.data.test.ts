@@ -27,6 +27,7 @@ import type {
   StageFact,
   TurnFact,
 } from "@modules/types";
+import { shapeOf } from "../../support/factory-shape";
 
 const SEATS = [
   {
@@ -341,5 +342,72 @@ describe("fives resume", () => {
     const foreign = makeContext({ rulesetVersionKey: "TUOD_V1" });
     await foreign.init.call(foreign);
     expect(foreign.engine).toBeNull();
+  });
+});
+
+describe("fivesPlay shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(fivesPlay())).toMatchInlineSnapshot(`
+      [
+        "loading",
+        "error",
+        "finished",
+        "hasActiveSession",
+        "loadingReconciliation",
+        "reconciliationFailed",
+        "completionStatus",
+        "completionError",
+        "playAgainError",
+        "playAgainLoading",
+        "resultsSnapshot",
+        "hiddenTurnKey",
+        "hiddenTimer",
+        "engine",
+        "starterOpen",
+        "playAgainStarter",
+        "requestPlayAgain()",
+        "playAgainStarterOptions()",
+        "input",
+        "board",
+        "pointerX",
+        "pointerY",
+        "syncBoard()",
+        "magnifierAnchor()",
+        "magnifierBox()",
+        "magnifierBoard()",
+        "magnifierRead()",
+        "onPointerDown()",
+        "onPointerMove()",
+        "onPointerUp()",
+        "onPointerCancel()",
+        "recordUnseen()",
+        "visitMarkers()",
+        "init()",
+        "recordDart()",
+        "commitDart()",
+        "undoVisit()",
+        "back()",
+        "retryReconciliation()",
+        "abandonAndExit()",
+        "ring",
+        "state()",
+        "subtitle()",
+        "totalLabelFor()",
+        "totalLabel()",
+        "visitLabelFor()",
+        "visitLabel()",
+        "lastLabelFor()",
+        "lastLabel()",
+        "isBullVisit()",
+        "previewSegments()",
+        "setRing()",
+        "recordNumber()",
+        "recordBull()",
+        "recordMiss()",
+        "uploadAndCompleteSession()",
+        "resultsTitle()",
+        "playAgain()",
+      ]
+    `);
   });
 });

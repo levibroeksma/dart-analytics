@@ -39,6 +39,7 @@ import type {
   StageFact,
   TurnFact,
 } from "@modules/types";
+import { shapeOf } from "../../support/factory-shape";
 
 const SEATS = [
   {
@@ -744,5 +745,72 @@ describe("cricket shared play-screen parts", () => {
       locationY: null,
     });
     expect(commit).not.toHaveBeenCalled();
+  });
+});
+
+describe("cricketPlay shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(cricketPlay())).toMatchInlineSnapshot(`
+      [
+        "loading",
+        "error",
+        "finished",
+        "hasActiveSession",
+        "loadingReconciliation",
+        "reconciliationFailed",
+        "completionStatus",
+        "completionError",
+        "playAgainError",
+        "playAgainLoading",
+        "resultsSnapshot",
+        "hiddenTurnKey",
+        "hiddenTimer",
+        "engine",
+        "starterOpen",
+        "playAgainStarter",
+        "requestPlayAgain()",
+        "playAgainStarterOptions()",
+        "input",
+        "board",
+        "pointerX",
+        "pointerY",
+        "syncBoard()",
+        "magnifierAnchor()",
+        "magnifierBox()",
+        "magnifierBoard()",
+        "magnifierRead()",
+        "onPointerDown()",
+        "onPointerMove()",
+        "onPointerUp()",
+        "onPointerCancel()",
+        "recordUnseen()",
+        "visitMarkers()",
+        "init()",
+        "recordDart()",
+        "commitDart()",
+        "undoVisit()",
+        "botThrowing",
+        "botFlight",
+        "maybeRunBotVisit()",
+        "back()",
+        "retryReconciliation()",
+        "abandonAndExit()",
+        "ring",
+        "state()",
+        "subtitle()",
+        "objectiveRowsFor()",
+        "pointsFor()",
+        "closedCountFor()",
+        "dartsThrownFor()",
+        "dartsThrown()",
+        "resultsTitle()",
+        "previewSegments()",
+        "setRing()",
+        "recordObjective()",
+        "recordMiss()",
+        "uploadAndCompleteSession()",
+        "playAgain()",
+      ]
+    `);
   });
 });

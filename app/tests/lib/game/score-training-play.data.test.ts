@@ -93,6 +93,7 @@ import type {
   StageFact,
   TurnFact,
 } from "@modules/types";
+import { shapeOf } from "../../support/factory-shape";
 
 const SEATS = [
   {
@@ -2747,5 +2748,79 @@ describe("scoreTrainingPlay botFlight", () => {
     const play = scoreTrainingPlay();
     expect(play.botFlight).toBeNull();
     expectTypeOf(play.botFlight).toEqualTypeOf<BotFlight | null>();
+  });
+});
+
+describe("scoreTrainingPlay shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(scoreTrainingPlay())).toMatchInlineSnapshot(`
+      [
+        "input",
+        "board",
+        "pointerX",
+        "pointerY",
+        "syncBoard()",
+        "magnifierAnchor()",
+        "magnifierBox()",
+        "magnifierBoard()",
+        "magnifierRead()",
+        "onPointerDown()",
+        "onPointerMove()",
+        "onPointerUp()",
+        "onPointerCancel()",
+        "recordUnseen()",
+        "visitMarkers()",
+        "loading",
+        "error",
+        "finished",
+        "hasActiveSession",
+        "loadingReconciliation",
+        "reconciliationFailed",
+        "completionStatus",
+        "completionError",
+        "playAgainError",
+        "playAgainLoading",
+        "resultsSnapshot",
+        "hiddenTurnKey",
+        "hiddenTimer",
+        "engine",
+        "starterOpen",
+        "playAgainStarter",
+        "requestPlayAgain()",
+        "playAgainStarterOptions()",
+        "back()",
+        "retryReconciliation()",
+        "abandonAndExit()",
+        "timer",
+        "togglePause()",
+        "destroy()",
+        "scoreInput",
+        "pendingFinishScore",
+        "pendingDartObservation",
+        "showFinishConfirm",
+        "botThrowing",
+        "botFlight",
+        "state()",
+        "totalScoreFor()",
+        "subtitle()",
+        "threeDartAverageFor()",
+        "dartsThrownThisLegFor()",
+        "previousScoreThisLegFor()",
+        "remainingLabel()",
+        "threeDartAverage()",
+        "dartsThrownThisLeg()",
+        "previousScoreThisLeg()",
+        "init()",
+        "submitVisit()",
+        "recordDart()",
+        "maybeRunBotVisit()",
+        "confirmFinish()",
+        "cancelFinish()",
+        "undoVisit()",
+        "uploadAndCompleteSession()",
+        "resultsTitle()",
+        "playAgain()",
+      ]
+    `);
   });
 });

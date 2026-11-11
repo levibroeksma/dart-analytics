@@ -6,6 +6,7 @@ import * as catalogApi from "@client/api/catalog";
 import { cardTags } from "@lib/catalog/tags";
 import type { CatalogTag, CatalogTagsResponse } from "@lib/types";
 import { activeSessionsStore } from "@stores/active-sessions.store";
+import { shapeOf } from "../../support/factory-shape";
 
 vi.mock("@client/api/sessions");
 vi.mock("@client/api/catalog");
@@ -326,5 +327,26 @@ describe("gamesIndex", () => {
       resolveSessions([]);
       await init;
     });
+  });
+});
+
+describe("gamesIndex shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(gamesIndex())).toMatchInlineSnapshot(`
+      [
+        "activeRulesetKeys",
+        "sessionsLoading",
+        "catalogTags",
+        "tagsLoading",
+        "init()",
+        "gameTags()",
+        "gameLevel()",
+        "loading()",
+        "isVisible()",
+        "analyticsMode()",
+        "groupVisible()",
+        "noneVisible()",
+      ]
+    `);
   });
 });

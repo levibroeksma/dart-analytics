@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import type { Persist } from "@alpinejs/persist";
 import { gameStore } from "@stores/game.store";
 import type { EngineFacts } from "@modules/types";
+import { shapeOf } from "../support/factory-shape";
 
 /**
  * Mirrors @alpinejs/persist: one persist() closure shares `alias` across .as()
@@ -419,5 +420,38 @@ describe("setSessionModes", () => {
       }),
     ).toEqual(["501", "Round 3"]);
     expect(store.contextRowParts(null)).toEqual([]);
+  });
+});
+
+describe("gameStore shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(gameStore(stubPersistFactory()))).toMatchInlineSnapshot(`
+      [
+        "_v",
+        "gameTypeKey",
+        "rulesetVersionKey",
+        "sessionId",
+        "captureModeKey",
+        "inputModeKey",
+        "configSnapshot",
+        "seats get",
+        "templateRef",
+        "stages",
+        "turns",
+        "timerRemainingMs",
+        "timerStartedAt",
+        "timerExpired",
+        "timerPaused",
+        "idempotencyKey",
+        "loading",
+        "init()",
+        "startSession()",
+        "setSessionModes()",
+        "recordFacts()",
+        "contextRow()",
+        "contextRowParts()",
+        "reset()",
+      ]
+    `);
   });
 });

@@ -8,6 +8,7 @@ vi.mock("@client/api/schedules", () => ({
 import * as api from "@client/api/schedules";
 import { schedulesIndex } from "@lib/training/schedules/schedules-index.data";
 import type { SchedulesIndexContext } from "@lib/types";
+import { shapeOf } from "../../../support/factory-shape";
 
 const A = { scheduleId: "a", name: "A", isActive: true, dayCount: 3 };
 const B = { scheduleId: "b", name: "B", isActive: false, dayCount: 2 };
@@ -86,5 +87,24 @@ describe("schedulesIndex", () => {
     const data: SchedulesIndexContext = schedulesIndex();
     await data.init();
     expect(data.error).toContain("Could not load");
+  });
+});
+
+describe("schedulesIndex shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(schedulesIndex())).toMatchInlineSnapshot(`
+      [
+        "loading",
+        "error",
+        "schedules",
+        "busyId",
+        "navigate()",
+        "init()",
+        "refresh()",
+        "editHref()",
+        "activate()",
+        "deactivate()",
+      ]
+    `);
   });
 });

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { shapeOf } from "../support/factory-shape";
 
 const fetchProfile = vi.fn();
 const saveProfile = vi.fn();
@@ -181,5 +182,24 @@ describe("profileStore", () => {
         expect(store.weightLabel).toBe("");
       }
     });
+  });
+});
+
+describe("profileStore shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(profileStore())).toMatchInlineSnapshot(`
+      [
+        "displayName",
+        "dartsDescription",
+        "dartsWeightGrams",
+        "loading",
+        "loaded",
+        "error",
+        "weightLabel get",
+        "init()",
+        "load()",
+        "save()",
+      ]
+    `);
   });
 });

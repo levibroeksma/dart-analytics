@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { shapeOf } from "../../../support/factory-shape";
 
 const loadGameSection = vi.fn();
 
@@ -284,5 +285,35 @@ describe("scoreTrendSection personal best", () => {
     await vi.waitFor(() => expect(s.personalBestLoading).toBe(false));
     expect(s.error).toBeNull();
     expect(s.personalBestAverage).toBeNull();
+  });
+});
+
+describe("scoreTrendSection shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(scoreTrendSection())).toMatchInlineSnapshot(`
+      [
+        "loading",
+        "error",
+        "bucket",
+        "tz",
+        "current",
+        "previous",
+        "hasPrevious",
+        "personalBest",
+        "personalBestLoading",
+        "period get",
+        "init()",
+        "load()",
+        "loadPersonalBest()",
+        "personalBestAverage get",
+        "personalBestDate get",
+        "averages get",
+        "previousAverages get",
+        "threeDartDeltaPercent get",
+        "firstNineDeltaPercent get",
+        "isEmpty get",
+        "chart get",
+      ]
+    `);
   });
 });

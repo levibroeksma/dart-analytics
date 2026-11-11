@@ -2,6 +2,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { quickSubtractPlay } from "@lib/training/trivia/quick-subtract-play.data";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
+import { shapeOf } from "../../../support/factory-shape";
 
 describe("quickSubtractPlay", () => {
   beforeEach(() => {
@@ -199,5 +200,38 @@ describe("quickSubtractPlay", () => {
       ctx.reset();
       expect(ctx.paused).toBe(false);
     });
+  });
+});
+
+describe("quickSubtractPlay shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(quickSubtractPlay())).toMatchInlineSnapshot(`
+      [
+        "status",
+        "current",
+        "scoreInput",
+        "correctAnswers",
+        "attempts",
+        "incorrectAnswers",
+        "elapsedTime",
+        "remainingTime",
+        "lastAnswer",
+        "paused",
+        "runMode",
+        "game",
+        "formattedElapsed()",
+        "formattedRemaining()",
+        "pausable()",
+        "pauseLabel()",
+        "togglePause()",
+        "syncFromGame()",
+        "startCount()",
+        "startTimer()",
+        "submit()",
+        "reset()",
+        "destroy()",
+        "exit()",
+      ]
+    `);
   });
 });

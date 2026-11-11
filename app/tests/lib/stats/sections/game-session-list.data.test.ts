@@ -14,6 +14,7 @@ const { gameSessionList } =
   await import("@lib/stats/sections/game-session-list.data");
 
 import { gameScopeKey } from "@modules/stats/routine-scope.module";
+import { shapeOf } from "../../../support/factory-shape";
 
 const NOW = new Date("2026-10-01T10:00:00.000Z");
 const DAY = 86_400_000;
@@ -180,5 +181,36 @@ describe("gameSessionList", () => {
     const { s } = section();
     await s.load(NOW);
     expect(s.isEmpty).toBe(true);
+  });
+});
+
+describe("gameSessionList shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(gameSessionList())).toMatchInlineSnapshot(`
+      [
+        "loading",
+        "error",
+        "items",
+        "nextCursor",
+        "totalCount",
+        "pageIndex",
+        "cursors",
+        "period get",
+        "init()",
+        "gameTypeKey get",
+        "fetchPage()",
+        "load()",
+        "goTo()",
+        "next()",
+        "previous()",
+        "rows get",
+        "caption()",
+        "hasNext get",
+        "hasPrevious get",
+        "pageNumber get",
+        "totalPages get",
+        "isEmpty get",
+      ]
+    `);
   });
 });

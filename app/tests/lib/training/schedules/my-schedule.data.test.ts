@@ -20,6 +20,7 @@ import {
   MY_SCHEDULE_NAME,
 } from "@lib/training/schedules/my-schedule.data";
 import type { MyScheduleFormContext } from "@lib/types";
+import { shapeOf } from "../../../support/factory-shape";
 
 const ROUTINE = (routineId: string) => ({
   routineId,
@@ -182,5 +183,36 @@ describe("myScheduleForm", () => {
     await data.resetForm();
     expect(data.hasRoutine(0)).toBe(false);
     expect(data.hasRoutine(2)).toBe(true);
+  });
+});
+
+describe("myScheduleForm shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(myScheduleForm())).toMatchInlineSnapshot(`
+      [
+        "loading",
+        "saving",
+        "error",
+        "serverIssues",
+        "scheduleId",
+        "name",
+        "rows",
+        "routines",
+        "selectedIndex",
+        "init()",
+        "applySchedule()",
+        "resetForm()",
+        "dayInitial()",
+        "dayLabel()",
+        "selectedDayLabel()",
+        "selectDay()",
+        "hasRoutine()",
+        "isRoutineSelected()",
+        "toggleRoutine()",
+        "canSave()",
+        "payload()",
+        "save()",
+      ]
+    `);
   });
 });
