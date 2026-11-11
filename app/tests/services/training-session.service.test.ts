@@ -102,6 +102,8 @@ describe("startTraining", () => {
       code: "VALIDATION_FAILED",
       details: { reason: "unknown routineTemplateId" },
     });
+    expect(trainingRepo.findOpenTrainingActivity).not.toHaveBeenCalled();
+    expect(trainingRepo.insertTrainingActivity).not.toHaveBeenCalled();
     expect(trainingRepo.findRoutineTemplateSteps).toHaveBeenCalledWith(
       expect.anything(),
       "rt-1",

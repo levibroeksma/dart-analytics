@@ -185,6 +185,68 @@ function invalidReason(
     : "invalid step configuration";
 }
 
+/** The `INTERNAL_ERROR` result for a lookup row the seeds should have provided. */
+function referenceDataMissing() {
+  return {
+    ok: false as const,
+    code: "INTERNAL_ERROR" as const,
+    details: { reason: "reference data missing" },
+  };
+}
+
+/** The `SESSION_ALREADY_ACTIVE` result naming the player's open training activity. */
+function openActivityFailure(open: {
+  activityId: string;
+  startedAt: string;
+  routineName: string;
+}) {
+  return {
+    ok: false as const,
+    code: "SESSION_ALREADY_ACTIVE" as const,
+    details: {
+      activityId: open.activityId,
+      startedAt: open.startedAt,
+      routineName: open.routineName,
+    },
+  };
+}
+
+/** Resolves every template step to its merged configuration and collects the steps whose configuration is invalid. */
+function resolveTrainingSteps(rows: RoutineStepTemplateRow[]) {
+  const steps: TrainingStepResolved[] = [];
+  const invalid: { sequenceNumber: number; issues: unknown[] }[] = [];
+  for (const row of rows) {
+    const configuration = mergedConfiguration(row);
+    injectGameStepDuration(row, configuration);
+    injectDrawSeed(row, configuration);
+    const issues = stepConfigurationIssues(row, configuration);
+    if (issues) invalid.push({ sequenceNumber: row.sequenceNumber, issues });
+    steps.push(resolveStep(row, configuration));
+  }
+  return { steps, invalid };
+}
+
+/**
+ * Inserts the training activity unless the player already has an open one,
+ * in one transaction; returns the open activity when there is one.
+ */
+function insertActivityUnlessOpen(
+  activity: Omit<
+    Parameters<typeof insertTrainingActivity>[1],
+    "configurationId"
+  >,
+) {
+  return withTransaction(async (tx) => {
+    const existing = await findOpenTrainingActivity(tx, activity.playerId);
+    if (existing) return existing;
+    await insertTrainingActivity(tx, {
+      ...activity,
+      configurationId: generateId(),
+    });
+    return undefined;
+  });
+}
+
 /**
  * Starts a routine unless the player already has one open, in which case the
  * answer is `SESSION_ALREADY_ACTIVE` naming it so the player can resume or
@@ -212,23 +274,10 @@ export async function startTraining(
 
   const activeStatusId = await findGameStatusId(db, "ACTIVE");
   if (!activeStatusId) {
-    return {
-      ok: false,
-      code: "INTERNAL_ERROR",
-      details: { reason: "reference data missing" },
-    };
+    return referenceDataMissing();
   }
 
-  const steps: TrainingStepResolved[] = [];
-  const invalid: { sequenceNumber: number; issues: unknown[] }[] = [];
-  for (const row of resolved.steps) {
-    const configuration = mergedConfiguration(row);
-    injectGameStepDuration(row, configuration);
-    injectDrawSeed(row, configuration);
-    const issues = stepConfigurationIssues(row, configuration);
-    if (issues) invalid.push({ sequenceNumber: row.sequenceNumber, issues });
-    steps.push(resolveStep(row, configuration));
-  }
+  const { steps, invalid } = resolveTrainingSteps(resolved.steps);
   if (invalid.length > 0) {
     return {
       ok: false,
@@ -238,33 +287,17 @@ export async function startTraining(
   }
 
   const activityId = generateId();
-  const open = await withTransaction(async (tx) => {
-    const existing = await findOpenTrainingActivity(tx, playerId);
-    if (existing) return existing;
-    await insertTrainingActivity(tx, {
-      activityId,
-      playerId,
-      activeStatusId,
-      configurationId: generateId(),
-      configuration: {
-        routineTemplateId: resolved.routineTemplateId,
-        routineName: resolved.routineName,
-        steps,
-      },
-    });
-    return undefined;
+  const open = await insertActivityUnlessOpen({
+    activityId,
+    playerId,
+    activeStatusId,
+    configuration: {
+      routineTemplateId: resolved.routineTemplateId,
+      routineName: resolved.routineName,
+      steps,
+    },
   });
-  if (open) {
-    return {
-      ok: false,
-      code: "SESSION_ALREADY_ACTIVE",
-      details: {
-        activityId: open.activityId,
-        startedAt: open.startedAt,
-        routineName: open.routineName,
-      },
-    };
-  }
+  if (open) return openActivityFailure(open);
 
   return {
     ok: true,
@@ -335,11 +368,7 @@ async function resolveGameStepStart(
   const captureModeId = await findCaptureModeId(db, ROUTINE_CAPTURE_MODE_KEY);
   const inputModeId = await findInputModeId(db, ROUTINE_INPUT_MODE_KEY);
   if (!exerciseTypeId || !gameLookup || !captureModeId || !inputModeId) {
-    return {
-      ok: false,
-      code: "INTERNAL_ERROR",
-      details: { reason: "reference data missing" },
-    };
+    return referenceDataMissing();
   }
   return {
     ok: true,
@@ -514,11 +543,7 @@ async function startNonGameStep(
   const { db, step } = ctx;
   const refs = await resolveNonGameReferences(db, step);
   if (!refs) {
-    return {
-      ok: false,
-      code: "INTERNAL_ERROR",
-      details: { reason: "reference data missing" },
-    };
+    return referenceDataMissing();
   }
   try {
     await withTransaction((tx) =>
@@ -553,6 +578,36 @@ async function startNonGameStep(
   };
 }
 
+/** The step-start context: fresh participant and session ids and the player's one seat. */
+function buildStepStartContext(
+  base: Pick<
+    StepStartContext,
+    | "db"
+    | "playerId"
+    | "activityId"
+    | "sequenceNumber"
+    | "step"
+    | "activeStatusId"
+  >,
+  player: { playerParticipantTypeId: number; displayName: string },
+): StepStartContext {
+  const participantId = generateId();
+  return {
+    ...base,
+    sessionId: generateId(),
+    participantId,
+    displayName: player.displayName,
+    participants: [
+      {
+        id: participantId,
+        participantTypeId: player.playerParticipantTypeId,
+        playerId: base.playerId,
+        displayName: player.displayName,
+      },
+    ],
+  };
+}
+
 export async function startTrainingStep(
   playerId: string,
   activityId: string,
@@ -583,33 +638,13 @@ export async function startTrainingStep(
   const playerParticipantTypeId = await findParticipantTypeId(db, "PLAYER");
   const displayName = await findPlayerDisplayName(db, playerId);
   if (!activeStatusId || !playerParticipantTypeId || !displayName) {
-    return {
-      ok: false,
-      code: "INTERNAL_ERROR",
-      details: { reason: "reference data missing" },
-    };
+    return referenceDataMissing();
   }
 
-  const participantId = generateId();
-  const ctx: StepStartContext = {
-    db,
-    playerId,
-    activityId,
-    sequenceNumber,
-    step,
-    activeStatusId,
-    sessionId: generateId(),
-    participantId,
-    displayName,
-    participants: [
-      {
-        id: participantId,
-        participantTypeId: playerParticipantTypeId,
-        playerId,
-        displayName,
-      },
-    ],
-  };
+  const ctx = buildStepStartContext(
+    { db, playerId, activityId, sequenceNumber, step, activeStatusId },
+    { playerParticipantTypeId, displayName },
+  );
 
   return step.exerciseTypeKey === GAME_EXERCISE_TYPE_KEY
     ? startGameStep(ctx)
@@ -632,11 +667,7 @@ async function transitionTrainingActivity(
   const statusId = await findGameStatusId(db, statusKey);
   const activeStatusId = await findGameStatusId(db, "ACTIVE");
   if (!statusId || !activeStatusId) {
-    return {
-      ok: false,
-      code: "INTERNAL_ERROR",
-      details: { reason: "reference data missing" },
-    };
+    return referenceDataMissing();
   }
   const updated = await withTransaction(async (tx) => {
     const row = await updateActivityStatusRecord(tx, {
@@ -680,6 +711,18 @@ export async function abandonTraining(
   return transitionTrainingActivity(playerId, activityId, "ABANDONED");
 }
 
+/** How many steps, from the first, are finished before the first unfinished one. */
+function countLeadingCompletedSteps(
+  steps: TrainingStepResolved[],
+  completedSequenceNumbers: number[],
+): number {
+  const finished = new Set(completedSequenceNumbers);
+  const firstUnfinished = steps.findIndex(
+    (step) => !finished.has(step.sequenceNumber),
+  );
+  return firstUnfinished === -1 ? steps.length : firstUnfinished;
+}
+
 /**
  * Reopens the caller's open routine at its first unfinished step. The step
  * session left half-played is abandoned, so that step starts fresh; the
@@ -704,11 +747,7 @@ export async function resumeTraining(
   const completedStatusId = await findGameStatusId(db, "COMPLETED");
   const abandonedStatusId = await findGameStatusId(db, "ABANDONED");
   if (!activeStatusId || !completedStatusId || !abandonedStatusId) {
-    return {
-      ok: false,
-      code: "INTERNAL_ERROR",
-      details: { reason: "reference data missing" },
-    };
+    return referenceDataMissing();
   }
 
   const current = await findActivityStatus(db, activityId, playerId);
@@ -723,18 +762,14 @@ export async function resumeTraining(
   await withTransaction((tx) =>
     closeOpenStepSessions(tx, { activityId, abandonedStatusId }),
   );
-  const finished = new Set(
+  const steps = snapshot.steps as TrainingStepResolved[];
+  const completedStepCount = countLeadingCompletedSteps(
+    steps,
     await findCompletedStepSequenceNumbers(db, {
       activityId,
       completedStatusId,
     }),
   );
-  const steps = snapshot.steps as TrainingStepResolved[];
-  const firstUnfinished = steps.findIndex(
-    (step) => !finished.has(step.sequenceNumber),
-  );
-  const completedStepCount =
-    firstUnfinished === -1 ? steps.length : firstUnfinished;
   if (completedStepCount === steps.length) {
     await transitionTrainingActivity(playerId, activityId, "COMPLETED");
   }
