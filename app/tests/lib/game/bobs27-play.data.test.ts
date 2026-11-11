@@ -35,6 +35,7 @@ import type {
   StageFact,
   TurnFact,
 } from "@modules/types";
+import { shapeOf, sharedStateKeys } from "../../support/factory-shape";
 
 const SEATS = [
   {
@@ -1314,5 +1315,17 @@ describe("bobs27 when the active ref has no seat", () => {
     const commit = vi.spyOn(play, "commitDart").mockResolvedValue(undefined);
     await play.recordTap(false);
     expect(commit).not.toHaveBeenCalled();
+  });
+});
+
+describe("bobs27Play shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(bobs27Play())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(sharedStateKeys(bobs27Play(), bobs27Play())).toMatchInlineSnapshot(
+      `[]`,
+    );
   });
 });

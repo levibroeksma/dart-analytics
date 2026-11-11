@@ -156,6 +156,64 @@ export function markersForTurns(turns: TurnFact[]): BoardMarker[] {
     }));
 }
 
+/** `boardInputData`'s methods, group 1 of 2; each reads its instance through `this`. */
+const boardInputDataMethods1 = {
+  syncBoard(this: BoardInputDataContext) {
+    const controller = this.input;
+    if (!controller) {
+      this.board = idleView();
+      return;
+    }
+    this.board = {
+      active: controller.active,
+      point: controller.point,
+      preview: controller.preview,
+      placement: controller.placement,
+      magnifierSize: controller.magnifierSize,
+      pxPerMm: controller.pxPerMm,
+    };
+  },
+
+  magnifierAnchor(this: BoardInputDataContext): Record<string, string> {
+    return magnifierAnchorStyle(this.board, this.pointerX, this.pointerY);
+  },
+
+  magnifierBox(this: BoardInputDataContext): Record<string, string> {
+    return {
+      width: `${this.board.magnifierSize}px`,
+      height: `${this.board.magnifierSize}px`,
+    };
+  },
+
+  magnifierBoard(this: BoardInputDataContext): string {
+    return magnifierBoardStyle(this.board);
+  },
+
+  magnifierRead(this: BoardInputDataContext): string {
+    return magnifierRead(this.board);
+  },
+};
+
+/** `boardInputData`'s methods, group 2 of 2; each reads its instance through `this`. */
+const boardInputDataMethods2 = {
+  onPointerMove(this: BoardInputDataContext, event: PointerEvent) {
+    this.pointerX = event.clientX;
+    this.pointerY = event.clientY;
+    this.input?.move(event);
+    this.syncBoard();
+  },
+
+  onPointerUp(this: BoardInputDataContext) {
+    this.input?.release();
+    this.syncBoard();
+  },
+
+  onPointerCancel(this: BoardInputDataContext) {
+    this.input?.cancel();
+    this.syncBoard();
+  },
+};
+
 /**
  * Bridges pointer events on the board SVG to the pure input controller.
  * A new controller is built on every press (see `freshController`), so a
@@ -176,41 +234,7 @@ export function boardInputData(
     board: idleView(),
     pointerX: 0,
     pointerY: 0,
-
-    syncBoard(this: BoardInputDataContext) {
-      const controller = this.input;
-      if (!controller) {
-        this.board = idleView();
-        return;
-      }
-      this.board = {
-        active: controller.active,
-        point: controller.point,
-        preview: controller.preview,
-        placement: controller.placement,
-        magnifierSize: controller.magnifierSize,
-        pxPerMm: controller.pxPerMm,
-      };
-    },
-
-    magnifierAnchor(this: BoardInputDataContext): Record<string, string> {
-      return magnifierAnchorStyle(this.board, this.pointerX, this.pointerY);
-    },
-
-    magnifierBox(this: BoardInputDataContext): Record<string, string> {
-      return {
-        width: `${this.board.magnifierSize}px`,
-        height: `${this.board.magnifierSize}px`,
-      };
-    },
-
-    magnifierBoard(this: BoardInputDataContext): string {
-      return magnifierBoardStyle(this.board);
-    },
-
-    magnifierRead(this: BoardInputDataContext): string {
-      return magnifierRead(this.board);
-    },
+    ...boardInputDataMethods1,
 
     onPointerDown(this: BoardInputDataContext, event: PointerEvent) {
       event.preventDefault();
@@ -225,23 +249,7 @@ export function boardInputData(
       controller.press(event);
       this.syncBoard();
     },
-
-    onPointerMove(this: BoardInputDataContext, event: PointerEvent) {
-      this.pointerX = event.clientX;
-      this.pointerY = event.clientY;
-      this.input?.move(event);
-      this.syncBoard();
-    },
-
-    onPointerUp(this: BoardInputDataContext) {
-      this.input?.release();
-      this.syncBoard();
-    },
-
-    onPointerCancel(this: BoardInputDataContext) {
-      this.input?.cancel();
-      this.syncBoard();
-    },
+    ...boardInputDataMethods2,
 
     recordUnseen(this: BoardInputDataContext) {
       const controller =

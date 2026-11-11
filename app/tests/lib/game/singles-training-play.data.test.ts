@@ -36,6 +36,7 @@ import type {
   SinglesTrainingPlayContext,
 } from "@lib/types";
 import type { DartFact, StageFact, TurnFact } from "@modules/types";
+import { shapeOf, sharedStateKeys } from "../../support/factory-shape";
 
 const SEATS = [
   {
@@ -1890,5 +1891,17 @@ describe("singles-training ring count accessors", () => {
     expect(play.trebleCountFor(seatRef)).toBe("1");
     expect(play.singleCountFor(seatRef)).toBe("0");
     expect(play.missCountFor("nobody")).toBe("0");
+  });
+});
+
+describe("singlesTrainingPlay shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(singlesTrainingPlay())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(
+      sharedStateKeys(singlesTrainingPlay(), singlesTrainingPlay()),
+    ).toMatchInlineSnapshot(`[]`);
   });
 });

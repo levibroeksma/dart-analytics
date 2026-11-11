@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { shapeOf, sharedStateKeys } from "../../../support/factory-shape";
 
 const loadGameSection = vi.fn();
 
@@ -284,5 +285,17 @@ describe("scoreTrendSection personal best", () => {
     await vi.waitFor(() => expect(s.personalBestLoading).toBe(false));
     expect(s.error).toBeNull();
     expect(s.personalBestAverage).toBeNull();
+  });
+});
+
+describe("scoreTrendSection shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(scoreTrendSection())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(
+      sharedStateKeys(scoreTrendSection(), scoreTrendSection()),
+    ).toMatchInlineSnapshot(`[]`);
   });
 });

@@ -15,6 +15,7 @@ import { SessionApiError } from "@client/api/sessions";
 import * as builderModule from "@lib/training/routines/routine-builder.data";
 import { routineBuilder } from "@lib/training/routines/routine-builder.data";
 import type { RoutineBuilderContext } from "@lib/types";
+import { shapeOf, sharedStateKeys } from "../../../support/factory-shape";
 
 const CATALOG = [
   {
@@ -505,5 +506,17 @@ describe("routineBuilder step bounds", () => {
     expect(b.stepMaxFor(warmUp!)).toBe(b.stepMaxMinutes);
     expect(b.stepMinFor(game!)).toBe(3);
     expect(b.stepMaxFor(game!)).toBe(30);
+  });
+});
+
+describe("routineBuilder shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(routineBuilder("create"))).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(
+      sharedStateKeys(routineBuilder("create"), routineBuilder("create")),
+    ).toMatchInlineSnapshot(`[]`);
   });
 });

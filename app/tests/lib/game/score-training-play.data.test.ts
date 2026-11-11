@@ -93,6 +93,7 @@ import type {
   StageFact,
   TurnFact,
 } from "@modules/types";
+import { shapeOf, sharedStateKeys } from "../../support/factory-shape";
 
 const SEATS = [
   {
@@ -2747,5 +2748,17 @@ describe("scoreTrainingPlay botFlight", () => {
     const play = scoreTrainingPlay();
     expect(play.botFlight).toBeNull();
     expectTypeOf(play.botFlight).toEqualTypeOf<BotFlight | null>();
+  });
+});
+
+describe("scoreTrainingPlay shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(scoreTrainingPlay())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(
+      sharedStateKeys(scoreTrainingPlay(), scoreTrainingPlay()),
+    ).toMatchInlineSnapshot(`[]`);
   });
 });

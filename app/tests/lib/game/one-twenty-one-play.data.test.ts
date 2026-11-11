@@ -38,6 +38,7 @@ import type { BotFlight } from "@lib/types";
 import type { OneTwentyOnePlayContext } from "@lib/types";
 import type { DartFact, TurnFact } from "@modules/types";
 import * as sessionsApi from "@client/api/sessions";
+import { shapeOf, sharedStateKeys } from "../../support/factory-shape";
 
 const dartRngIndices = vi.hoisted(() => [] as number[]);
 vi.mock("@modules/dartbot/rng.module", async (importOriginal) => {
@@ -1741,5 +1742,17 @@ describe("oneTwentyOnePlay botFlight", () => {
     const play = oneTwentyOnePlay();
     expect(play.botFlight).toBeNull();
     expectTypeOf(play.botFlight).toEqualTypeOf<BotFlight | null>();
+  });
+});
+
+describe("oneTwentyOnePlay shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(oneTwentyOnePlay())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(
+      sharedStateKeys(oneTwentyOnePlay(), oneTwentyOnePlay()),
+    ).toMatchInlineSnapshot(`[]`);
   });
 });

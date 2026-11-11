@@ -2,6 +2,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { quickSubtractPlay } from "@lib/training/trivia/quick-subtract-play.data";
 import { SegmentTimer } from "@modules/ui/segment-timer.module";
+import { shapeOf, sharedStateKeys } from "../../../support/factory-shape";
 
 describe("quickSubtractPlay", () => {
   beforeEach(() => {
@@ -199,5 +200,17 @@ describe("quickSubtractPlay", () => {
       ctx.reset();
       expect(ctx.paused).toBe(false);
     });
+  });
+});
+
+describe("quickSubtractPlay shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(quickSubtractPlay())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(
+      sharedStateKeys(quickSubtractPlay(), quickSubtractPlay()),
+    ).toMatchInlineSnapshot(`[]`);
   });
 });

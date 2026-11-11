@@ -1,0 +1,19 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`slideToStartData shape > keeps its keys, in order 1`] = `
+[
+  "fraction",
+  "dragging",
+  "fired",
+  "disabled",
+  "failed",
+  "init()",
+  "begin()",
+  "move()",
+  "end()",
+  "onKey()",
+  "onClick()",
+  "fire()",
+  "reset()",
+]
+`;

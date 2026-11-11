@@ -58,6 +58,7 @@ import type {
   SeatFact,
 } from "@lib/types";
 import type { DartFact, StageFact, TurnFact } from "@modules/types";
+import { shapeOf, sharedStateKeys } from "../../support/factory-shape";
 
 const SEATS = [
   {
@@ -1626,5 +1627,17 @@ describe("around-the-clock recordTap ring mapping", () => {
       locationX: null,
       locationY: null,
     });
+  });
+});
+
+describe("aroundTheClockPlay shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(aroundTheClockPlay())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(
+      sharedStateKeys(aroundTheClockPlay(), aroundTheClockPlay()),
+    ).toMatchInlineSnapshot(`[]`);
   });
 });

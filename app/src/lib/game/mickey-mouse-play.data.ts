@@ -84,6 +84,70 @@ function resumeEngine(
   );
 }
 
+/** `mickeyMousePlay`'s methods, group 1 of 2; each reads its instance through `this`. */
+const mickeyMousePlayMethods1 = {
+  state(this: MickeyMousePlayContext): MickeyMouseState | null {
+    const config = this.$store.game.configSnapshot;
+    if (!config) return null;
+    return foldMickeyMouseState(
+      { stages: this.$store.game.stages, turns: this.$store.game.turns },
+      config,
+    );
+  },
+};
+
+/** `mickeyMousePlay`'s methods, group 2 of 2; each reads its instance through `this`. */
+const mickeyMousePlayMethods2 = {
+  previewSegments(this: MickeyMousePlayContext): Bobs27PreviewSegment[] {
+    return marksPreviewSegments(
+      this.$store.game.turns,
+      this.hiddenTurnKey,
+      isMickeyMouseTarget,
+    );
+  },
+
+  /** Tapping the selected ring again returns to SINGLE. */
+  setRing(this: MickeyMousePlayContext, ring: MickeyMouseRing) {
+    toggleMarksRing(this, ring);
+  },
+
+  /** The buttons the recreational input shows: 20–12 and Bull, plus 11…1
+   * once Double or Treble is selected so a D/T on any number can be entered. */
+  tapTargets(this: MickeyMousePlayContext): MickeyMouseTapTarget[] {
+    return this.ring === "SINGLE"
+      ? NUMBER_TARGETS
+      : [...NUMBER_TARGETS, ...LOW_TARGETS];
+  },
+
+  /** The recreational input's entry point: a tap on a board number with the
+   * selected ring. The ring resets after every tap; Treble on the bull
+   * (which has no such ring) records a single bull. */
+  async recordTarget(this: MickeyMousePlayContext, number: number) {
+    await recordMarksTap(this, number);
+  },
+
+  /** A dart off every objective: counts as thrown, marks nothing. */
+  async recordMiss(this: MickeyMousePlayContext) {
+    await recordMarksMiss(this);
+  },
+
+  uploadAndCompleteSession(this: MickeyMousePlayContext): Promise<void> {
+    return playUploadAndCompleteSession(this, computeStats);
+  },
+
+  /**
+   * Replays the same configuration template the first session used, under
+   * the session's own ruleset key, with no overrides.
+   */
+  playAgain(this: MickeyMousePlayContext) {
+    const key = this.$store.game.rulesetVersionKey;
+    if (!key) return Promise.resolve();
+    return runPlayAgain(this, GAME_TYPE_KEY, key, (engine) =>
+      engine instanceof MickeyMouseEngine ? engine : null,
+    );
+  },
+};
+
 export function mickeyMousePlay() {
   return {
     ...playScreenState<MickeyMouseEngine, MickeyMouseResultsSnapshot>(),
@@ -91,65 +155,9 @@ export function mickeyMousePlay() {
     ...boardPlayActions({ gameTypeKey: GAME_TYPE_KEY, resume: resumeEngine }),
     ...playScreenActions(),
     ring: "SINGLE" as MickeyMouseRing,
-
-    state(this: MickeyMousePlayContext): MickeyMouseState | null {
-      const config = this.$store.game.configSnapshot;
-      if (!config) return null;
-      return foldMickeyMouseState(
-        { stages: this.$store.game.stages, turns: this.$store.game.turns },
-        config,
-      );
-    },
+    ...mickeyMousePlayMethods1,
 
     ...marksPlayAccessors(MICKEY_MOUSE_OBJECTIVES, marksObjectiveLabel),
-
-    previewSegments(this: MickeyMousePlayContext): Bobs27PreviewSegment[] {
-      return marksPreviewSegments(
-        this.$store.game.turns,
-        this.hiddenTurnKey,
-        isMickeyMouseTarget,
-      );
-    },
-
-    /** Tapping the selected ring again returns to SINGLE. */
-    setRing(this: MickeyMousePlayContext, ring: MickeyMouseRing) {
-      toggleMarksRing(this, ring);
-    },
-
-    /** The buttons the recreational input shows: 20–12 and Bull, plus 11…1
-     * once Double or Treble is selected so a D/T on any number can be entered. */
-    tapTargets(this: MickeyMousePlayContext): MickeyMouseTapTarget[] {
-      return this.ring === "SINGLE"
-        ? NUMBER_TARGETS
-        : [...NUMBER_TARGETS, ...LOW_TARGETS];
-    },
-
-    /** The recreational input's entry point: a tap on a board number with the
-     * selected ring. The ring resets after every tap; Treble on the bull
-     * (which has no such ring) records a single bull. */
-    async recordTarget(this: MickeyMousePlayContext, number: number) {
-      await recordMarksTap(this, number);
-    },
-
-    /** A dart off every objective: counts as thrown, marks nothing. */
-    async recordMiss(this: MickeyMousePlayContext) {
-      await recordMarksMiss(this);
-    },
-
-    uploadAndCompleteSession(this: MickeyMousePlayContext): Promise<void> {
-      return playUploadAndCompleteSession(this, computeStats);
-    },
-
-    /**
-     * Replays the same configuration template the first session used, under
-     * the session's own ruleset key, with no overrides.
-     */
-    playAgain(this: MickeyMousePlayContext) {
-      const key = this.$store.game.rulesetVersionKey;
-      if (!key) return Promise.resolve();
-      return runPlayAgain(this, GAME_TYPE_KEY, key, (engine) =>
-        engine instanceof MickeyMouseEngine ? engine : null,
-      );
-    },
+    ...mickeyMousePlayMethods2,
   };
 }

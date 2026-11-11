@@ -26,6 +26,122 @@ function restRows(): ScheduleEditorRow[] {
   }));
 }
 
+/** `scheduleEditor`'s methods; each reads its instance through `this`. */
+const scheduleEditorMethods = {
+  navigate(path: string) {
+    globalThis.location.href = path;
+  },
+
+  async init(this: ScheduleEditorContext) {
+    this.loading = true;
+    this.error = "";
+    try {
+      this.routines = (await listRoutines()).items;
+    } catch {
+      this.error = "Could not load the routine catalog.";
+      this.loading = false;
+      return;
+    }
+    if (this.mode === "edit") {
+      try {
+        await this.loadExisting();
+      } catch {
+        this.error = "Could not load this schedule.";
+      }
+    }
+    this.loading = false;
+  },
+
+  async loadExisting(this: ScheduleEditorContext) {
+    const scheduleId = scheduleIdFromLocation();
+    if (!scheduleId) {
+      this.error = "No schedule selected.";
+      return;
+    }
+    const schedule = await getSchedule(scheduleId);
+    this.scheduleId = schedule.scheduleId;
+    this.name = schedule.name;
+    this.rows = restRows().map((row) => {
+      const day = schedule.days.find((d) => d.dayOfWeek === row.dayOfWeek);
+      return day ? { ...row, routineTemplateId: day.routineId } : row;
+    });
+  },
+
+  routineLabel(routine: RoutineSummaryData): string {
+    return `${routine.routineName} (${routine.totalMinutes} min)`;
+  },
+
+  routineOptions(this: ScheduleEditorContext): ScheduleRoutineOption[] {
+    return [
+      { value: null, label: "Rest" },
+      ...this.routines.map((routine) => ({
+        value: routine.routineId,
+        label: this.routineLabel(routine),
+      })),
+    ];
+  },
+
+  weekdayLabel(index: number): string {
+    return WEEKDAY_LABELS[index] ?? "";
+  },
+
+  nameValid(this: ScheduleEditorContext): boolean {
+    const trimmed = this.name.trim();
+    return trimmed.length > 0 && trimmed.length <= this.maxNameLength;
+  },
+
+  canSave(this: ScheduleEditorContext): boolean {
+    if (this.saving || this.loading) return false;
+    if (this.mode === "edit" && !this.scheduleId) return false;
+    return this.nameValid();
+  },
+
+  /**
+   * Treats any falsy `routineTemplateId` as rest, not only `null`, so a
+   * row the user set back to Rest is dropped too.
+   */
+  payload(this: ScheduleEditorContext) {
+    return {
+      name: this.name.trim(),
+      days: this.rows
+        .filter(
+          (row): row is ScheduleEditorRow & { routineTemplateId: string } =>
+            Boolean(row.routineTemplateId),
+        )
+        .map((row) => ({
+          dayOfWeek: row.dayOfWeek,
+          routineTemplateId: row.routineTemplateId,
+        })),
+    };
+  },
+
+  async save(this: ScheduleEditorContext) {
+    if (!this.canSave()) return;
+    this.saving = true;
+    this.error = "";
+    this.serverIssues = [];
+    try {
+      this.mode === "edit" && this.scheduleId
+        ? await updateSchedule(this.scheduleId, this.payload())
+        : await createSchedule(this.payload());
+      this.navigate("/training/schedules");
+    } catch (err) {
+      if (err instanceof SessionApiError && err.code === "VALIDATION_FAILED") {
+        this.serverIssues = formatScheduleIssues(err.details);
+      } else {
+        this.error =
+          "Could not save this schedule. Check your connection and retry.";
+      }
+    } finally {
+      this.saving = false;
+    }
+  },
+
+  cancel(this: ScheduleEditorContext) {
+    this.navigate("/training/schedules");
+  },
+};
+
 /**
  * Editor state for `/training/schedules/new` and `/edit`. Seven rows,
  * Monday..Sunday, each holding a routine id or `null` for rest; only the
@@ -44,121 +160,6 @@ export function scheduleEditor(mode: "create" | "edit") {
     rows: restRows(),
     routines: [] as RoutineSummaryData[],
     maxNameLength: MAX_SCHEDULE_NAME_LENGTH,
-
-    navigate(path: string) {
-      globalThis.location.href = path;
-    },
-
-    async init(this: ScheduleEditorContext) {
-      this.loading = true;
-      this.error = "";
-      try {
-        this.routines = (await listRoutines()).items;
-      } catch {
-        this.error = "Could not load the routine catalog.";
-        this.loading = false;
-        return;
-      }
-      if (this.mode === "edit") {
-        try {
-          await this.loadExisting();
-        } catch {
-          this.error = "Could not load this schedule.";
-        }
-      }
-      this.loading = false;
-    },
-
-    async loadExisting(this: ScheduleEditorContext) {
-      const scheduleId = scheduleIdFromLocation();
-      if (!scheduleId) {
-        this.error = "No schedule selected.";
-        return;
-      }
-      const schedule = await getSchedule(scheduleId);
-      this.scheduleId = schedule.scheduleId;
-      this.name = schedule.name;
-      this.rows = restRows().map((row) => {
-        const day = schedule.days.find((d) => d.dayOfWeek === row.dayOfWeek);
-        return day ? { ...row, routineTemplateId: day.routineId } : row;
-      });
-    },
-
-    routineLabel(routine: RoutineSummaryData): string {
-      return `${routine.routineName} (${routine.totalMinutes} min)`;
-    },
-
-    routineOptions(this: ScheduleEditorContext): ScheduleRoutineOption[] {
-      return [
-        { value: null, label: "Rest" },
-        ...this.routines.map((routine) => ({
-          value: routine.routineId,
-          label: this.routineLabel(routine),
-        })),
-      ];
-    },
-
-    weekdayLabel(index: number): string {
-      return WEEKDAY_LABELS[index] ?? "";
-    },
-
-    nameValid(this: ScheduleEditorContext): boolean {
-      const trimmed = this.name.trim();
-      return trimmed.length > 0 && trimmed.length <= this.maxNameLength;
-    },
-
-    canSave(this: ScheduleEditorContext): boolean {
-      if (this.saving || this.loading) return false;
-      if (this.mode === "edit" && !this.scheduleId) return false;
-      return this.nameValid();
-    },
-
-    /**
-     * Treats any falsy `routineTemplateId` as rest, not only `null`, so a
-     * row the user set back to Rest is dropped too.
-     */
-    payload(this: ScheduleEditorContext) {
-      return {
-        name: this.name.trim(),
-        days: this.rows
-          .filter(
-            (row): row is ScheduleEditorRow & { routineTemplateId: string } =>
-              Boolean(row.routineTemplateId),
-          )
-          .map((row) => ({
-            dayOfWeek: row.dayOfWeek,
-            routineTemplateId: row.routineTemplateId,
-          })),
-      };
-    },
-
-    async save(this: ScheduleEditorContext) {
-      if (!this.canSave()) return;
-      this.saving = true;
-      this.error = "";
-      this.serverIssues = [];
-      try {
-        this.mode === "edit" && this.scheduleId
-          ? await updateSchedule(this.scheduleId, this.payload())
-          : await createSchedule(this.payload());
-        this.navigate("/training/schedules");
-      } catch (err) {
-        if (
-          err instanceof SessionApiError &&
-          err.code === "VALIDATION_FAILED"
-        ) {
-          this.serverIssues = formatScheduleIssues(err.details);
-        } else {
-          this.error =
-            "Could not save this schedule. Check your connection and retry.";
-        }
-      } finally {
-        this.saving = false;
-      }
-    },
-
-    cancel(this: ScheduleEditorContext) {
-      this.navigate("/training/schedules");
-    },
+    ...scheduleEditorMethods,
   };
 }

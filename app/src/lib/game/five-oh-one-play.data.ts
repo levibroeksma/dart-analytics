@@ -220,6 +220,398 @@ function buildResultsSnapshot(
   };
 }
 
+/** `fiveOhOnePlay`'s methods, group 1 of 2; each reads its instance through `this`. */
+const fiveOhOnePlayMethods1 = {
+  turnsInCurrentLeg(this: FiveOhOnePlayContext): TurnFact[] {
+    const openLeg = this.$store.game.stages
+      .filter((stage) => stage.stageTypeKey === "LEG")
+      .at(-1);
+    if (!openLeg) return [];
+    return this.$store.game.turns.filter(
+      (turn) => turn.stageClientKey === openLeg.clientKey,
+    );
+  },
+
+  /**
+   * Folds the store's own fact log — never `engine.state()` — so every
+   * Alpine display expression that calls this re-renders when
+   * `recordFacts` writes a new turn. The engine is a plain class instance;
+   * its internal mutations carry no Alpine reactivity (see
+   * `07-Frontend/03-Alpine-Patterns.md`'s reactive-store convention).
+   */
+  state(this: FiveOhOnePlayContext): FiveOhOneState | null {
+    const config = this.$store.game.configSnapshot;
+    if (!config) return null;
+    return foldFiveOhOneState(
+      { stages: this.$store.game.stages, turns: this.$store.game.turns },
+      config,
+    );
+  },
+
+  /** Play-header subtitle: the open set and leg and the match target (`SET 1 · LEG 2 · FIRST TO 3 SETS`, or `LEG 2 · FIRST TO 3` without sets); blank before config loads. */
+  subtitle(this: FiveOhOnePlayContext): string {
+    const config = this.$store.game.configSnapshot;
+    if (!config) return "";
+    return fiveOhOneSubtitle(config, this.$store.game.stages, this.state());
+  },
+
+  /** Sets won per seat (`"2–1"`) for the scoreboard tally; blank without sets or before config loads. */
+  setsTally(this: FiveOhOnePlayContext): string {
+    const config = this.$store.game.configSnapshot;
+    if (!config) return "";
+    return setScoreText(config, this.state(), this.$store.game.seats);
+  },
+
+  /** Leg bars to draw for the current set; 0 before config loads. */
+  legsToWin(this: FiveOhOnePlayContext): number {
+    const config = this.$store.game.configSnapshot;
+    return config ? legBarCount(config, this.state()) : 0;
+  },
+
+  remainingScoreFor(this: FiveOhOnePlayContext, seatRef: string): number {
+    return seatStateFor(this.state(), seatRef)?.remainingScore ?? 0;
+  },
+
+  remainingScore(this: FiveOhOnePlayContext): number {
+    const state = this.state();
+    if (!state) return 0;
+    return this.remainingScoreFor(state.activeParticipantRef);
+  },
+
+  /**
+   * The finish route for the seat's remaining score, blank when no route
+   * fits the darts its open visit has left (#498). A seat with no open
+   * visit reads the full visit budget, so an idle seat still shows the
+   * conventional route.
+   */
+  checkoutHintFor(this: FiveOhOnePlayContext, seatRef: string): string {
+    if (this.$store.checkoutHints?.enabled === false) return "";
+    const dartsLeft = dartsLeftForSeat(
+      this.turnsInCurrentLeg(),
+      seatRef,
+      this.$store.game.configSnapshot?.maxDartsPerTurn ?? 3,
+    );
+    const path = checkoutPathWithin(this.remainingScoreFor(seatRef), dartsLeft);
+    return path ? path.join(" ") : "";
+  },
+
+  checkoutHint(this: FiveOhOnePlayContext): string {
+    const state = this.state();
+    if (!state) return "";
+    return this.checkoutHintFor(state.activeParticipantRef);
+  },
+
+  dartsThrownThisLegFor(this: FiveOhOnePlayContext, seatRef: string): number {
+    const maxDartsPerTurn =
+      this.$store.game.configSnapshot?.maxDartsPerTurn ?? 3;
+    const seatTurns = this.turnsInCurrentLeg().filter(
+      (turn) => turn.participantRef === seatRef,
+    );
+    return dartsThrownCount(seatTurns, maxDartsPerTurn);
+  },
+
+  dartsThrownThisLeg(this: FiveOhOnePlayContext): number {
+    const maxDartsPerTurn =
+      this.$store.game.configSnapshot?.maxDartsPerTurn ?? 3;
+    return dartsThrownCount(this.turnsInCurrentLeg(), maxDartsPerTurn);
+  },
+
+  /**
+   * Match-wide, not leg-scoped: unlike darts thrown, the average and the
+   * previous visit's score are a running read on the player across the
+   * whole match, so they must survive a leg boundary rather than reset to
+   * zero the instant a new leg's stage opens.
+   */
+  averageFor(this: FiveOhOnePlayContext, seatRef: string): string {
+    const maxDartsPerTurn =
+      this.$store.game.configSnapshot?.maxDartsPerTurn ?? 3;
+    const seatTurns = this.$store.game.turns.filter(
+      (turn) => turn.participantRef === seatRef,
+    );
+    return threeDartAverageDisplay(seatTurns, maxDartsPerTurn);
+  },
+
+  average(this: FiveOhOnePlayContext): string {
+    const state = this.state();
+    if (!state) return "0.0";
+    return this.averageFor(state.activeParticipantRef);
+  },
+
+  previousScoreFor(this: FiveOhOnePlayContext, seatRef: string): string {
+    const seatTurns = this.$store.game.turns.filter(
+      (turn) => turn.participantRef === seatRef,
+    );
+    return previousScoreDisplay(seatTurns);
+  },
+
+  previousScore(this: FiveOhOnePlayContext): string {
+    const state = this.state();
+    if (!state) return "—";
+    return this.previousScoreFor(state.activeParticipantRef);
+  },
+
+  legsWonFor(this: FiveOhOnePlayContext, seatRef: string): number {
+    const state = this.state();
+    if (!state) return 0;
+    const seat = seatStateFor(state, seatRef);
+    const side = state.sides.find(
+      (candidate) => candidate.sideKey === seat?.sideKey,
+    );
+    return side?.legsWon ?? 0;
+  },
+
+  /**
+   * Which dart counts the checkout confirm may offer. The remaining score
+   * the visit finished is exactly `pendingCheckoutScore` — `submitVisit`
+   * only defers a visit that takes the leg to zero — so the options are read
+   * off the deferred score rather than off `remainingScore()`, which the
+   * dialog is open precisely to avoid moving yet.
+   */
+  checkoutDartOptions(this: FiveOhOnePlayContext): CheckoutDartOptions {
+    const maxDartsPerTurn =
+      this.$store.game.configSnapshot?.maxDartsPerTurn ?? 3;
+    return checkoutDartOptions(this.pendingCheckoutScore ?? 0, maxDartsPerTurn);
+  },
+};
+
+/** `fiveOhOnePlay`'s methods, group 2 of 2; each reads its instance through `this`. */
+const fiveOhOnePlayMethods2 = {
+  /**
+   * Folds one visit into the engine's fact log, then checks for a match
+   * win. Shared by the plain-reduction path (`submitVisit`) and both
+   * checkout confirm (`confirmDouble`) so the
+   * record → mirror → complete sequence exists exactly once.
+   */
+  async recordVisit(
+    this: FiveOhOnePlayContext,
+    score: number,
+    finishedOnDouble: boolean,
+  ) {
+    if (!this.engine) return;
+    await recordCheckoutVisit(this, score, finishedOnDouble);
+  },
+
+  /**
+   * The board's per-dart counterpart to `recordVisit`: every dart the
+   * player throws, including an unseen one, arrives here from
+   * `boardInputData`'s `onCommit`. Unlike a quick-score visit, the board
+   * observation already carries the zone a dart actually landed in, so
+   * there is never a checkout that is ambiguous between a double and a
+   * bust the way `submitVisit`'s typed total is — `showDoubleConfirm`
+   * never opens for a dart. A dart that would complete the whole match is
+   * still gated behind `showMatchFinishConfirm`, because recording it
+   * uploads and completes the session immediately and that step is
+   * irreversible; a leg-only checkout or a bust commits straight away.
+   */
+  async recordDart(this: FiveOhOnePlayContext, observation: DartObservation) {
+    if (
+      !this.engine ||
+      this.finished ||
+      this.showDoubleConfirm ||
+      this.showMatchFinishConfirm
+    )
+      return;
+
+    if (this.engine.wouldComplete(observation)) {
+      this.pendingDartObservation = observation;
+      this.showMatchFinishConfirm = true;
+      return;
+    }
+
+    await this.commitDart(observation);
+  },
+
+  async commitDart(
+    this: FiveOhOnePlayContext,
+    observation: DartObservation,
+  ): Promise<void> {
+    await playCommitDart(this, observation);
+    await this.maybeRunBotVisit();
+  },
+
+  /**
+   * 501 is double-out but this app only captures a visit's total, not
+   * individual darts — so when the entered score would bring the leg's
+   * remaining total to exactly 0, the app cannot know from the number
+   * alone whether the last dart was a double (a win) or not (a bust).
+   * `isCheckoutAttempt` gates a "Finished on a double?" confirm before
+   * anything is recorded; every other visit records immediately.
+   *
+   * `checkoutPathFor` narrows that gate to remainders a double-out finish
+   * can actually reach: the seven bogey numbers and 171-180 have no legal
+   * finish route, so a "Yes" answer there could never be true. Those visits
+   * skip the dialog and fall straight through to `recordVisit` as a bust,
+   * which the engine's own bust rule already produces for a zeroing visit
+   * with `finishedOnDouble: false`.
+   */
+  async submitVisit(this: FiveOhOnePlayContext) {
+    if (
+      !this.engine ||
+      this.finished ||
+      this.showDoubleConfirm ||
+      this.showMatchFinishConfirm
+    )
+      return;
+    this.loading = true;
+
+    const score = Number(this.scoreInput.value);
+    const config = this.$store.game.configSnapshot;
+    const remaining = this.remainingScore();
+    const isCheckoutAttempt =
+      !!config &&
+      remaining - score === 0 &&
+      score <= config.maxVisitScore &&
+      checkoutPathFor(remaining) !== null;
+
+    if (isCheckoutAttempt) {
+      openCheckoutConfirm(this, score);
+      this.loading = false;
+      return;
+    }
+
+    await this.recordVisit(score, false);
+  },
+
+  /**
+   * "Yes" on the double-out confirm. A checkout that only wins a leg
+   * records immediately, same as before this dialog existed. A checkout
+   * that wins the whole match is irreversible once uploaded — `recordVisit`
+   * marks the session `finished` and `PATCH COMPLETED`s it — so this asks
+   * `engine.wouldComplete` (a pure predicate, matches D181: match-win, not
+   * leg-win) and opens a second confirm instead of recording right away.
+   * `pendingCheckoutScore` is deliberately left set for that second dialog
+   * to record or restore.
+   */
+  confirmDouble(this: FiveOhOnePlayContext) {
+    return confirmCheckout(this, () => {
+      this.showMatchFinishConfirm = true;
+    });
+  },
+
+  /**
+   * Cancel on the double-out confirm. Mirrors Score Training's
+   * `cancelFinish`: nothing is recorded, and the pending score is restored
+   * into the keypad so a mistyped entry is not lost.
+   */
+  cancelCheckout(this: FiveOhOnePlayContext) {
+    if (!this.showDoubleConfirm) return;
+    if (restoreCheckoutScore(this)) this.showDoubleConfirm = false;
+  },
+
+  /**
+   * Confirm on the second, match-ending dialog: records whichever the
+   * player was deferred on — the board's dart (`recordDart`'s gate) or the
+   * keypad's checkout (`confirmDouble`'s deferral) — which drives
+   * `commitDart`'s or `recordVisit`'s own completion check and upload.
+   */
+  async confirmMatchFinish(this: FiveOhOnePlayContext) {
+    if (!this.engine || this.finished || !this.showMatchFinishConfirm) return;
+
+    if (this.pendingDartObservation) {
+      const observation = this.pendingDartObservation;
+      this.pendingDartObservation = null;
+      this.showMatchFinishConfirm = false;
+      await this.commitDart(observation);
+      return;
+    }
+
+    if (this.pendingCheckoutScore == null) return;
+    const score = this.pendingCheckoutScore;
+    this.pendingCheckoutScore = null;
+    this.showMatchFinishConfirm = false;
+    await this.recordVisit(score, true);
+  },
+
+  /**
+   * Cancel on the second, match-ending dialog. Same contract as
+   * `cancelCheckout` for the keypad's deferred score: nothing is recorded,
+   * and the score returns to the keypad rather than being lost. A deferred
+   * dart has no keypad buffer to return to — the player simply throws
+   * again — so it is just discarded.
+   */
+  cancelMatchFinish(this: FiveOhOnePlayContext) {
+    if (!this.showMatchFinishConfirm) return;
+
+    if (this.pendingDartObservation) {
+      this.pendingDartObservation = null;
+      this.showMatchFinishConfirm = false;
+      return;
+    }
+
+    if (restoreCheckoutScore(this)) this.showMatchFinishConfirm = false;
+  },
+
+  async maybeRunBotVisit(this: FiveOhOnePlayContext) {
+    const turn = activeBotTurn(this);
+    if (!turn) return;
+    await playX01BotVisit(this, turn.botSeat, {
+      factory: fiveOhOneEngineFactory,
+      remainingFor: (seatRef) => this.remainingScoreFor(seatRef),
+      scratchRemaining: (state, seatRef) =>
+        seatStateFor(state, seatRef)!.remainingScore,
+    });
+  },
+
+  undoVisit(this: FiveOhOnePlayContext) {
+    if (this.finished || this.showDoubleConfirm || this.showMatchFinishConfirm)
+      return;
+    undoBotAwareVisit(this);
+  },
+
+  /**
+   * Uploads the fact log, then marks the session COMPLETED. Delegates to
+   * `play-lifecycle.ts`'s shared `playUploadAndCompleteSession`. Unlike
+   * 121/Score Training/TUOD's own local snapshot builders, this file's own
+   * `buildResultsSnapshot` reads `winningSideKey`/`legsWonFor` off the
+   * context directly rather than off a passed `finalState`, so it is
+   * wrapped rather than passed straight through — `resolveFinalState` here
+   * only signals "state is available", matching this file's own
+   * `state()`.
+   */
+  async uploadAndCompleteSession(this: FiveOhOnePlayContext): Promise<void> {
+    return playUploadAndCompleteSession(
+      this,
+      () => buildResultsSnapshot(this),
+      () => this.state(),
+    );
+  },
+
+  resultsTitle(this: FiveOhOnePlayContext): string {
+    const winner = matchWinnerName(
+      this.$store.game.seats,
+      this.resultsSnapshot?.winningSideKey ?? null,
+    );
+    return winner ? `${winner} wins the match!` : "Match complete";
+  },
+
+  /**
+   * Replays the same configuration template the first session used, with
+   * the current legs-to-win as an override. Delegates to
+   * `play-lifecycle.ts`'s shared `runPlayAgain`.
+   */
+  async playAgain(this: FiveOhOnePlayContext) {
+    const rulesetVersionKey = this.$store.game.rulesetVersionKey;
+    if (!rulesetVersionKey) return;
+    if (!RULESET_VERSION_KEYS.includes(rulesetVersionKey)) return;
+    await runPlayAgain(
+      this,
+      GAME_TYPE_KEY,
+      rulesetVersionKey,
+      (engine) => (engine instanceof FiveOhOneEngine ? engine : null),
+      (config) => ({
+        snapshot: config,
+        wire: playAgainWire(config),
+      }),
+      () => {
+        this.pendingCheckoutScore = null;
+        this.showDoubleConfirm = false;
+        this.showMatchFinishConfirm = false;
+        this.scoreInput.clear();
+      },
+    );
+  },
+};
+
 /** `init` binds the board input to the live component (`boundBoardInput`). */
 export function fiveOhOnePlay() {
   const board = boundBoardInput<FiveOhOnePlayContext>();
@@ -239,163 +631,7 @@ export function fiveOhOnePlay() {
     showMatchFinishConfirm: false,
     botThrowing: false,
     botFlight: null as BotFlight | null,
-
-    turnsInCurrentLeg(this: FiveOhOnePlayContext): TurnFact[] {
-      const openLeg = this.$store.game.stages
-        .filter((stage) => stage.stageTypeKey === "LEG")
-        .at(-1);
-      if (!openLeg) return [];
-      return this.$store.game.turns.filter(
-        (turn) => turn.stageClientKey === openLeg.clientKey,
-      );
-    },
-
-    /**
-     * Folds the store's own fact log — never `engine.state()` — so every
-     * Alpine display expression that calls this re-renders when
-     * `recordFacts` writes a new turn. The engine is a plain class instance;
-     * its internal mutations carry no Alpine reactivity (see
-     * `07-Frontend/03-Alpine-Patterns.md`'s reactive-store convention).
-     */
-    state(this: FiveOhOnePlayContext): FiveOhOneState | null {
-      const config = this.$store.game.configSnapshot;
-      if (!config) return null;
-      return foldFiveOhOneState(
-        { stages: this.$store.game.stages, turns: this.$store.game.turns },
-        config,
-      );
-    },
-
-    /** Play-header subtitle: the open set and leg and the match target (`SET 1 · LEG 2 · FIRST TO 3 SETS`, or `LEG 2 · FIRST TO 3` without sets); blank before config loads. */
-    subtitle(this: FiveOhOnePlayContext): string {
-      const config = this.$store.game.configSnapshot;
-      if (!config) return "";
-      return fiveOhOneSubtitle(config, this.$store.game.stages, this.state());
-    },
-
-    /** Sets won per seat (`"2–1"`) for the scoreboard tally; blank without sets or before config loads. */
-    setsTally(this: FiveOhOnePlayContext): string {
-      const config = this.$store.game.configSnapshot;
-      if (!config) return "";
-      return setScoreText(config, this.state(), this.$store.game.seats);
-    },
-
-    /** Leg bars to draw for the current set; 0 before config loads. */
-    legsToWin(this: FiveOhOnePlayContext): number {
-      const config = this.$store.game.configSnapshot;
-      return config ? legBarCount(config, this.state()) : 0;
-    },
-
-    remainingScoreFor(this: FiveOhOnePlayContext, seatRef: string): number {
-      return seatStateFor(this.state(), seatRef)?.remainingScore ?? 0;
-    },
-
-    remainingScore(this: FiveOhOnePlayContext): number {
-      const state = this.state();
-      if (!state) return 0;
-      return this.remainingScoreFor(state.activeParticipantRef);
-    },
-
-    /**
-     * The finish route for the seat's remaining score, blank when no route
-     * fits the darts its open visit has left (#498). A seat with no open
-     * visit reads the full visit budget, so an idle seat still shows the
-     * conventional route.
-     */
-    checkoutHintFor(this: FiveOhOnePlayContext, seatRef: string): string {
-      if (this.$store.checkoutHints?.enabled === false) return "";
-      const dartsLeft = dartsLeftForSeat(
-        this.turnsInCurrentLeg(),
-        seatRef,
-        this.$store.game.configSnapshot?.maxDartsPerTurn ?? 3,
-      );
-      const path = checkoutPathWithin(
-        this.remainingScoreFor(seatRef),
-        dartsLeft,
-      );
-      return path ? path.join(" ") : "";
-    },
-
-    checkoutHint(this: FiveOhOnePlayContext): string {
-      const state = this.state();
-      if (!state) return "";
-      return this.checkoutHintFor(state.activeParticipantRef);
-    },
-
-    dartsThrownThisLegFor(this: FiveOhOnePlayContext, seatRef: string): number {
-      const maxDartsPerTurn =
-        this.$store.game.configSnapshot?.maxDartsPerTurn ?? 3;
-      const seatTurns = this.turnsInCurrentLeg().filter(
-        (turn) => turn.participantRef === seatRef,
-      );
-      return dartsThrownCount(seatTurns, maxDartsPerTurn);
-    },
-
-    dartsThrownThisLeg(this: FiveOhOnePlayContext): number {
-      const maxDartsPerTurn =
-        this.$store.game.configSnapshot?.maxDartsPerTurn ?? 3;
-      return dartsThrownCount(this.turnsInCurrentLeg(), maxDartsPerTurn);
-    },
-
-    /**
-     * Match-wide, not leg-scoped: unlike darts thrown, the average and the
-     * previous visit's score are a running read on the player across the
-     * whole match, so they must survive a leg boundary rather than reset to
-     * zero the instant a new leg's stage opens.
-     */
-    averageFor(this: FiveOhOnePlayContext, seatRef: string): string {
-      const maxDartsPerTurn =
-        this.$store.game.configSnapshot?.maxDartsPerTurn ?? 3;
-      const seatTurns = this.$store.game.turns.filter(
-        (turn) => turn.participantRef === seatRef,
-      );
-      return threeDartAverageDisplay(seatTurns, maxDartsPerTurn);
-    },
-
-    average(this: FiveOhOnePlayContext): string {
-      const state = this.state();
-      if (!state) return "0.0";
-      return this.averageFor(state.activeParticipantRef);
-    },
-
-    previousScoreFor(this: FiveOhOnePlayContext, seatRef: string): string {
-      const seatTurns = this.$store.game.turns.filter(
-        (turn) => turn.participantRef === seatRef,
-      );
-      return previousScoreDisplay(seatTurns);
-    },
-
-    previousScore(this: FiveOhOnePlayContext): string {
-      const state = this.state();
-      if (!state) return "—";
-      return this.previousScoreFor(state.activeParticipantRef);
-    },
-
-    legsWonFor(this: FiveOhOnePlayContext, seatRef: string): number {
-      const state = this.state();
-      if (!state) return 0;
-      const seat = seatStateFor(state, seatRef);
-      const side = state.sides.find(
-        (candidate) => candidate.sideKey === seat?.sideKey,
-      );
-      return side?.legsWon ?? 0;
-    },
-
-    /**
-     * Which dart counts the checkout confirm may offer. The remaining score
-     * the visit finished is exactly `pendingCheckoutScore` — `submitVisit`
-     * only defers a visit that takes the leg to zero — so the options are read
-     * off the deferred score rather than off `remainingScore()`, which the
-     * dialog is open precisely to avoid moving yet.
-     */
-    checkoutDartOptions(this: FiveOhOnePlayContext): CheckoutDartOptions {
-      const maxDartsPerTurn =
-        this.$store.game.configSnapshot?.maxDartsPerTurn ?? 3;
-      return checkoutDartOptions(
-        this.pendingCheckoutScore ?? 0,
-        maxDartsPerTurn,
-      );
-    },
+    ...fiveOhOnePlayMethods1,
 
     async init(this: FiveOhOnePlayContext) {
       board.bind(this);
@@ -404,244 +640,6 @@ export function fiveOhOnePlay() {
       });
       if (this.hasActiveSession) await this.maybeRunBotVisit();
     },
-
-    /**
-     * Folds one visit into the engine's fact log, then checks for a match
-     * win. Shared by the plain-reduction path (`submitVisit`) and both
-     * checkout confirm (`confirmDouble`) so the
-     * record → mirror → complete sequence exists exactly once.
-     */
-    async recordVisit(
-      this: FiveOhOnePlayContext,
-      score: number,
-      finishedOnDouble: boolean,
-    ) {
-      if (!this.engine) return;
-      await recordCheckoutVisit(this, score, finishedOnDouble);
-    },
-
-    /**
-     * The board's per-dart counterpart to `recordVisit`: every dart the
-     * player throws, including an unseen one, arrives here from
-     * `boardInputData`'s `onCommit`. Unlike a quick-score visit, the board
-     * observation already carries the zone a dart actually landed in, so
-     * there is never a checkout that is ambiguous between a double and a
-     * bust the way `submitVisit`'s typed total is — `showDoubleConfirm`
-     * never opens for a dart. A dart that would complete the whole match is
-     * still gated behind `showMatchFinishConfirm`, because recording it
-     * uploads and completes the session immediately and that step is
-     * irreversible; a leg-only checkout or a bust commits straight away.
-     */
-    async recordDart(this: FiveOhOnePlayContext, observation: DartObservation) {
-      if (
-        !this.engine ||
-        this.finished ||
-        this.showDoubleConfirm ||
-        this.showMatchFinishConfirm
-      )
-        return;
-
-      if (this.engine.wouldComplete(observation)) {
-        this.pendingDartObservation = observation;
-        this.showMatchFinishConfirm = true;
-        return;
-      }
-
-      await this.commitDart(observation);
-    },
-
-    async commitDart(
-      this: FiveOhOnePlayContext,
-      observation: DartObservation,
-    ): Promise<void> {
-      await playCommitDart(this, observation);
-      await this.maybeRunBotVisit();
-    },
-
-    /**
-     * 501 is double-out but this app only captures a visit's total, not
-     * individual darts — so when the entered score would bring the leg's
-     * remaining total to exactly 0, the app cannot know from the number
-     * alone whether the last dart was a double (a win) or not (a bust).
-     * `isCheckoutAttempt` gates a "Finished on a double?" confirm before
-     * anything is recorded; every other visit records immediately.
-     *
-     * `checkoutPathFor` narrows that gate to remainders a double-out finish
-     * can actually reach: the seven bogey numbers and 171-180 have no legal
-     * finish route, so a "Yes" answer there could never be true. Those visits
-     * skip the dialog and fall straight through to `recordVisit` as a bust,
-     * which the engine's own bust rule already produces for a zeroing visit
-     * with `finishedOnDouble: false`.
-     */
-    async submitVisit(this: FiveOhOnePlayContext) {
-      if (
-        !this.engine ||
-        this.finished ||
-        this.showDoubleConfirm ||
-        this.showMatchFinishConfirm
-      )
-        return;
-      this.loading = true;
-
-      const score = Number(this.scoreInput.value);
-      const config = this.$store.game.configSnapshot;
-      const remaining = this.remainingScore();
-      const isCheckoutAttempt =
-        !!config &&
-        remaining - score === 0 &&
-        score <= config.maxVisitScore &&
-        checkoutPathFor(remaining) !== null;
-
-      if (isCheckoutAttempt) {
-        openCheckoutConfirm(this, score);
-        this.loading = false;
-        return;
-      }
-
-      await this.recordVisit(score, false);
-    },
-
-    /**
-     * "Yes" on the double-out confirm. A checkout that only wins a leg
-     * records immediately, same as before this dialog existed. A checkout
-     * that wins the whole match is irreversible once uploaded — `recordVisit`
-     * marks the session `finished` and `PATCH COMPLETED`s it — so this asks
-     * `engine.wouldComplete` (a pure predicate, matches D181: match-win, not
-     * leg-win) and opens a second confirm instead of recording right away.
-     * `pendingCheckoutScore` is deliberately left set for that second dialog
-     * to record or restore.
-     */
-    confirmDouble(this: FiveOhOnePlayContext) {
-      return confirmCheckout(this, () => {
-        this.showMatchFinishConfirm = true;
-      });
-    },
-
-    /**
-     * Cancel on the double-out confirm. Mirrors Score Training's
-     * `cancelFinish`: nothing is recorded, and the pending score is restored
-     * into the keypad so a mistyped entry is not lost.
-     */
-    cancelCheckout(this: FiveOhOnePlayContext) {
-      if (!this.showDoubleConfirm) return;
-      if (restoreCheckoutScore(this)) this.showDoubleConfirm = false;
-    },
-
-    /**
-     * Confirm on the second, match-ending dialog: records whichever the
-     * player was deferred on — the board's dart (`recordDart`'s gate) or the
-     * keypad's checkout (`confirmDouble`'s deferral) — which drives
-     * `commitDart`'s or `recordVisit`'s own completion check and upload.
-     */
-    async confirmMatchFinish(this: FiveOhOnePlayContext) {
-      if (!this.engine || this.finished || !this.showMatchFinishConfirm) return;
-
-      if (this.pendingDartObservation) {
-        const observation = this.pendingDartObservation;
-        this.pendingDartObservation = null;
-        this.showMatchFinishConfirm = false;
-        await this.commitDart(observation);
-        return;
-      }
-
-      if (this.pendingCheckoutScore == null) return;
-      const score = this.pendingCheckoutScore;
-      this.pendingCheckoutScore = null;
-      this.showMatchFinishConfirm = false;
-      await this.recordVisit(score, true);
-    },
-
-    /**
-     * Cancel on the second, match-ending dialog. Same contract as
-     * `cancelCheckout` for the keypad's deferred score: nothing is recorded,
-     * and the score returns to the keypad rather than being lost. A deferred
-     * dart has no keypad buffer to return to — the player simply throws
-     * again — so it is just discarded.
-     */
-    cancelMatchFinish(this: FiveOhOnePlayContext) {
-      if (!this.showMatchFinishConfirm) return;
-
-      if (this.pendingDartObservation) {
-        this.pendingDartObservation = null;
-        this.showMatchFinishConfirm = false;
-        return;
-      }
-
-      if (restoreCheckoutScore(this)) this.showMatchFinishConfirm = false;
-    },
-
-    async maybeRunBotVisit(this: FiveOhOnePlayContext) {
-      const turn = activeBotTurn(this);
-      if (!turn) return;
-      await playX01BotVisit(this, turn.botSeat, {
-        factory: fiveOhOneEngineFactory,
-        remainingFor: (seatRef) => this.remainingScoreFor(seatRef),
-        scratchRemaining: (state, seatRef) =>
-          seatStateFor(state, seatRef)!.remainingScore,
-      });
-    },
-
-    undoVisit(this: FiveOhOnePlayContext) {
-      if (
-        this.finished ||
-        this.showDoubleConfirm ||
-        this.showMatchFinishConfirm
-      )
-        return;
-      undoBotAwareVisit(this);
-    },
-
-    /**
-     * Uploads the fact log, then marks the session COMPLETED. Delegates to
-     * `play-lifecycle.ts`'s shared `playUploadAndCompleteSession`. Unlike
-     * 121/Score Training/TUOD's own local snapshot builders, this file's own
-     * `buildResultsSnapshot` reads `winningSideKey`/`legsWonFor` off the
-     * context directly rather than off a passed `finalState`, so it is
-     * wrapped rather than passed straight through — `resolveFinalState` here
-     * only signals "state is available", matching this file's own
-     * `state()`.
-     */
-    async uploadAndCompleteSession(this: FiveOhOnePlayContext): Promise<void> {
-      return playUploadAndCompleteSession(
-        this,
-        () => buildResultsSnapshot(this),
-        () => this.state(),
-      );
-    },
-
-    resultsTitle(this: FiveOhOnePlayContext): string {
-      const winner = matchWinnerName(
-        this.$store.game.seats,
-        this.resultsSnapshot?.winningSideKey ?? null,
-      );
-      return winner ? `${winner} wins the match!` : "Match complete";
-    },
-
-    /**
-     * Replays the same configuration template the first session used, with
-     * the current legs-to-win as an override. Delegates to
-     * `play-lifecycle.ts`'s shared `runPlayAgain`.
-     */
-    async playAgain(this: FiveOhOnePlayContext) {
-      const rulesetVersionKey = this.$store.game.rulesetVersionKey;
-      if (!rulesetVersionKey) return;
-      if (!RULESET_VERSION_KEYS.includes(rulesetVersionKey)) return;
-      await runPlayAgain(
-        this,
-        GAME_TYPE_KEY,
-        rulesetVersionKey,
-        (engine) => (engine instanceof FiveOhOneEngine ? engine : null),
-        (config) => ({
-          snapshot: config,
-          wire: playAgainWire(config),
-        }),
-        () => {
-          this.pendingCheckoutScore = null;
-          this.showDoubleConfirm = false;
-          this.showMatchFinishConfirm = false;
-          this.scoreInput.clear();
-        },
-      );
-    },
+    ...fiveOhOnePlayMethods2,
   };
 }

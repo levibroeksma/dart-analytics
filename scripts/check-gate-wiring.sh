@@ -26,6 +26,7 @@ check-decision-ids.sh      silent unless decisions/** changed
 check-dupes.sh             needs fallow
 check-quality-benchmarks.sh needs fallow
 check-test-repointing.sh   advisory, diff-based (pr-gates.yml)
+check-html-parity.sh       compares against a base built from another commit; run by hand
 "
 
 FAIL=0

@@ -1379,6 +1379,7 @@ describe("tuodPlay", () => {
 });
 
 import type { DartObservation } from "@modules/types";
+import { shapeOf, sharedStateKeys } from "../../support/factory-shape";
 
 const SEATS = [
   {
@@ -2461,5 +2462,15 @@ describe("tuodPlay botFlight", () => {
     const play = tuodPlay();
     expect(play.botFlight).toBeNull();
     expectTypeOf(play.botFlight).toEqualTypeOf<BotFlight | null>();
+  });
+});
+
+describe("tuodPlay shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(tuodPlay())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(sharedStateKeys(tuodPlay(), tuodPlay())).toMatchInlineSnapshot(`[]`);
   });
 });

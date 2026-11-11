@@ -30,6 +30,7 @@ import type {
   StageFact,
   TurnFact,
 } from "@modules/types";
+import { shapeOf, sharedStateKeys } from "../../support/factory-shape";
 
 const SEATS = [
   {
@@ -713,5 +714,17 @@ describe("follow-the-leader per-seat accessors for an unknown seat", () => {
     await play.init.call(play);
     expect(play.state()).not.toBeNull();
     expect(play[name]("nobody")).toBe(blank);
+  });
+});
+
+describe("followTheLeaderPlay shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(followTheLeaderPlay())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(
+      sharedStateKeys(followTheLeaderPlay(), followTheLeaderPlay()),
+    ).toMatchInlineSnapshot(`[]`);
   });
 });

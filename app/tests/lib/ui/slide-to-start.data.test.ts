@@ -7,6 +7,7 @@ import {
   shouldFire,
   slideToStartData,
 } from "@lib/ui/slide-to-start.data";
+import { shapeOf, sharedStateKeys } from "../../support/factory-shape";
 
 describe("dragFraction / shouldFire", () => {
   it("clamps to 0–1", () => {
@@ -182,5 +183,17 @@ describe("slideToStartData", () => {
     ctx.disabled = true;
     ctx.onClick({ detail: 0 });
     expect(requestSubmit).not.toHaveBeenCalled();
+  });
+});
+
+describe("slideToStartData shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(slideToStartData())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(
+      sharedStateKeys(slideToStartData(), slideToStartData()),
+    ).toMatchInlineSnapshot(`[]`);
   });
 });

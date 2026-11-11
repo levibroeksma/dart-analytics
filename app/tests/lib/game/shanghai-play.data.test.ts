@@ -37,6 +37,7 @@ import type {
   ShanghaiPlayContext,
 } from "@lib/types";
 import type { DartFact, StageFact, TurnFact } from "@modules/types";
+import { shapeOf, sharedStateKeys } from "../../support/factory-shape";
 
 const SEATS = [
   {
@@ -1723,5 +1724,17 @@ describe("shanghai previewSegments seat round", () => {
     await play.init.call(play);
     await play.recordTap("SINGLE");
     expect(play.previewSegments()[0].status).toBe("hit");
+  });
+});
+
+describe("shanghaiPlay shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(shanghaiPlay())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(
+      sharedStateKeys(shanghaiPlay(), shanghaiPlay()),
+    ).toMatchInlineSnapshot(`[]`);
   });
 });

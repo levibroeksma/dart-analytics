@@ -85,6 +85,70 @@ function resumeEngine(
   );
 }
 
+/** `tacticsPlay`'s methods, group 1 of 2; each reads its instance through `this`. */
+const tacticsPlayMethods1 = {
+  state(this: TacticsPlayContext): TacticsState | null {
+    const config = this.$store.game.configSnapshot;
+    if (!config) return null;
+    return foldTacticsState(
+      { stages: this.$store.game.stages, turns: this.$store.game.turns },
+      config,
+    );
+  },
+};
+
+/** `tacticsPlay`'s methods, group 2 of 2; each reads its instance through `this`. */
+const tacticsPlayMethods2 = {
+  previewSegments(this: TacticsPlayContext): Bobs27PreviewSegment[] {
+    return marksPreviewSegments(
+      this.$store.game.turns,
+      this.hiddenTurnKey,
+      isTacticsTarget,
+    );
+  },
+
+  /** Tapping the selected ring again returns to SINGLE. */
+  setRing(this: TacticsPlayContext, ring: TacticsRing) {
+    toggleMarksRing(this, ring);
+  },
+
+  /** The buttons the recreational input shows: 20–15 and Bull, plus 14…1
+   * once Double or Treble is selected so a D/T on any number can be entered. */
+  tapTargets(this: TacticsPlayContext): TacticsTapTarget[] {
+    return this.ring === "SINGLE"
+      ? NUMBER_TARGETS
+      : [...NUMBER_TARGETS, ...LOW_TARGETS];
+  },
+
+  /** The recreational input's entry point: a tap on a board number with the
+   * selected ring. The ring resets after every tap; Treble on the bull
+   * (which has no such ring) records a single bull. */
+  async recordTarget(this: TacticsPlayContext, number: number) {
+    await recordMarksTap(this, number);
+  },
+
+  /** A dart off every objective: counts as thrown, marks nothing. */
+  async recordMiss(this: TacticsPlayContext) {
+    await recordMarksMiss(this);
+  },
+
+  uploadAndCompleteSession(this: TacticsPlayContext): Promise<void> {
+    return playUploadAndCompleteSession(this, computeStats);
+  },
+
+  /**
+   * Replays the same configuration template the first session used, under
+   * the session's own ruleset key, with no overrides.
+   */
+  playAgain(this: TacticsPlayContext) {
+    const key = this.$store.game.rulesetVersionKey;
+    if (!key) return Promise.resolve();
+    return runPlayAgain(this, GAME_TYPE_KEY, key, (engine) =>
+      engine instanceof TacticsEngine ? engine : null,
+    );
+  },
+};
+
 export function tacticsPlay() {
   return {
     ...playScreenState<TacticsEngine, TacticsResultsSnapshot>(),
@@ -93,65 +157,9 @@ export function tacticsPlay() {
     ...playScreenActions(),
 
     ring: "SINGLE" as TacticsRing,
-
-    state(this: TacticsPlayContext): TacticsState | null {
-      const config = this.$store.game.configSnapshot;
-      if (!config) return null;
-      return foldTacticsState(
-        { stages: this.$store.game.stages, turns: this.$store.game.turns },
-        config,
-      );
-    },
+    ...tacticsPlayMethods1,
 
     ...marksPlayAccessors(TACTICS_OBJECTIVES, marksObjectiveLabel),
-
-    previewSegments(this: TacticsPlayContext): Bobs27PreviewSegment[] {
-      return marksPreviewSegments(
-        this.$store.game.turns,
-        this.hiddenTurnKey,
-        isTacticsTarget,
-      );
-    },
-
-    /** Tapping the selected ring again returns to SINGLE. */
-    setRing(this: TacticsPlayContext, ring: TacticsRing) {
-      toggleMarksRing(this, ring);
-    },
-
-    /** The buttons the recreational input shows: 20–15 and Bull, plus 14…1
-     * once Double or Treble is selected so a D/T on any number can be entered. */
-    tapTargets(this: TacticsPlayContext): TacticsTapTarget[] {
-      return this.ring === "SINGLE"
-        ? NUMBER_TARGETS
-        : [...NUMBER_TARGETS, ...LOW_TARGETS];
-    },
-
-    /** The recreational input's entry point: a tap on a board number with the
-     * selected ring. The ring resets after every tap; Treble on the bull
-     * (which has no such ring) records a single bull. */
-    async recordTarget(this: TacticsPlayContext, number: number) {
-      await recordMarksTap(this, number);
-    },
-
-    /** A dart off every objective: counts as thrown, marks nothing. */
-    async recordMiss(this: TacticsPlayContext) {
-      await recordMarksMiss(this);
-    },
-
-    uploadAndCompleteSession(this: TacticsPlayContext): Promise<void> {
-      return playUploadAndCompleteSession(this, computeStats);
-    },
-
-    /**
-     * Replays the same configuration template the first session used, under
-     * the session's own ruleset key, with no overrides.
-     */
-    playAgain(this: TacticsPlayContext) {
-      const key = this.$store.game.rulesetVersionKey;
-      if (!key) return Promise.resolve();
-      return runPlayAgain(this, GAME_TYPE_KEY, key, (engine) =>
-        engine instanceof TacticsEngine ? engine : null,
-      );
-    },
+    ...tacticsPlayMethods2,
   };
 }

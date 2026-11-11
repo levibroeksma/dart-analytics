@@ -1,0 +1,27 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`scheduleEditor shape > keeps its keys, in order 1`] = `
+[
+  "mode",
+  "scheduleId",
+  "loading",
+  "saving",
+  "error",
+  "serverIssues",
+  "name",
+  "rows",
+  "routines",
+  "maxNameLength",
+  "navigate()",
+  "init()",
+  "loadExisting()",
+  "routineLabel()",
+  "routineOptions()",
+  "weekdayLabel()",
+  "nameValid()",
+  "canSave()",
+  "payload()",
+  "save()",
+  "cancel()",
+]
+`;

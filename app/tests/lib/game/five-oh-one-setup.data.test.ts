@@ -7,6 +7,7 @@ import {
 import type { FiveOhOneSetupContext } from "@lib/types";
 import * as sessionsApi from "@client/api/sessions";
 import * as presetsApi from "@client/api/configuration-templates";
+import { shapeOf, sharedStateKeys } from "../../support/factory-shape";
 
 vi.mock("@client/api/sessions");
 vi.mock("@client/api/configuration-templates");
@@ -1070,5 +1071,17 @@ describe("fiveOhOneSetup", () => {
 
       expect(setup.bot).toBeNull();
     });
+  });
+});
+
+describe("fiveOhOneSetup shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(fiveOhOneSetup())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(
+      sharedStateKeys(fiveOhOneSetup(), fiveOhOneSetup()),
+    ).toMatchInlineSnapshot(`[]`);
   });
 });

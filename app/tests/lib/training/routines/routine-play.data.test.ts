@@ -70,6 +70,7 @@ import { playAbandonAndExit } from "@lib/game/play-lifecycle";
 import { playAudioCue } from "@modules/ui/audio-cue.module";
 import { foldTuodState } from "@modules/game/tuod.engine.module";
 import type { RoutinePlayContext, Seated, TuodSnapshot } from "@lib/types";
+import { shapeOf, sharedStateKeys } from "../../../support/factory-shape";
 
 function makeStore(): RoutinePlayContext {
   return {
@@ -4286,5 +4287,17 @@ describe("routinePlay — tipKey", () => {
 
   it("is null before steps load", () => {
     expect(makeStore().tipKey()).toBeNull();
+  });
+});
+
+describe("routinePlay shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(routinePlay())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(sharedStateKeys(routinePlay(), routinePlay())).toMatchInlineSnapshot(
+      `[]`,
+    );
   });
 });

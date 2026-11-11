@@ -1,0 +1,29 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`resumeDeck shape > keeps its keys, in order 1`] = `
+[
+  "cards",
+  "index",
+  "phase",
+  "loading",
+  "failed",
+  "swipeX",
+  "swipeY",
+  "from",
+  "direction",
+  "animTimers",
+  "init()",
+  "top()",
+  "position()",
+  "deckSlots()",
+  "deckView()",
+  "visible()",
+  "next()",
+  "prev()",
+  "swipeStart()",
+  "swipeEnd()",
+  "swipeCancel()",
+  "resume()",
+  "navigate()",
+]
+`;

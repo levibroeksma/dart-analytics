@@ -9,6 +9,7 @@ import { getRoutine, deleteRoutine } from "@client/api/routines";
 import { fetchCatalogTags } from "@client/api/catalog";
 import { routineDetail } from "@lib/training/routines/routine-detail.data";
 import type { RoutineDetailContext } from "@lib/types";
+import { shapeOf, sharedStateKeys } from "../../../support/factory-shape";
 
 const ROUTINE = {
   routineId: "o",
@@ -198,5 +199,17 @@ describe("routineDetail", () => {
     expect(data.catalogTags).toBeNull();
     expect(data.error).toBe("");
     expect(data.stepTag(ROUTINE.steps[0])).toBeNull();
+  });
+});
+
+describe("routineDetail shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(routineDetail())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(
+      sharedStateKeys(routineDetail(), routineDetail()),
+    ).toMatchInlineSnapshot(`[]`);
   });
 });

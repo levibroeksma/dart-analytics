@@ -110,6 +110,62 @@ function throwBotDart(context: CricketPlayContext, botSeat: DartbotSeat) {
   return botThrowObservation(botSeat, context.$store.game.turns, intent);
 }
 
+/** `cricketPlay`'s methods, group 1 of 2; each reads its instance through `this`. */
+const cricketPlayMethods1 = {
+  state(this: CricketPlayContext): CricketState | null {
+    const config = this.$store.game.configSnapshot;
+    if (!config) return null;
+    return foldCricketState(
+      { stages: this.$store.game.stages, turns: this.$store.game.turns },
+      config,
+    );
+  },
+};
+
+/** `cricketPlay`'s methods, group 2 of 2; each reads its instance through `this`. */
+const cricketPlayMethods2 = {
+  previewSegments(this: CricketPlayContext): Bobs27PreviewSegment[] {
+    return marksPreviewSegments(
+      this.$store.game.turns,
+      this.hiddenTurnKey,
+      (observation) => cricketMarksOf(observation) !== null,
+    );
+  },
+
+  /** Tapping the selected ring again returns to SINGLE. */
+  setRing(this: CricketPlayContext, ring: CricketRing) {
+    toggleMarksRing(this, ring);
+  },
+
+  /** The recreational input's entry point: a tap on an objective with the
+   * selected ring. The ring resets after every tap; Treble on the bull
+   * (which has no such ring) records a single bull. */
+  async recordObjective(this: CricketPlayContext, objective: number) {
+    await recordMarksTap(this, objective);
+  },
+
+  /** A dart off every objective: counts as thrown, marks nothing. */
+  async recordMiss(this: CricketPlayContext) {
+    await recordMarksMiss(this);
+  },
+
+  uploadAndCompleteSession(this: CricketPlayContext): Promise<void> {
+    return playUploadAndCompleteSession(this, computeStats);
+  },
+
+  /**
+   * Replays the same configuration template the first session used, under
+   * the session's own ruleset key, with no overrides.
+   */
+  playAgain(this: CricketPlayContext) {
+    const key = this.$store.game.rulesetVersionKey;
+    if (!key) return Promise.resolve();
+    return runPlayAgain(this, GAME_TYPE_KEY, key, (engine) =>
+      engine instanceof CricketEngine ? engine : null,
+    );
+  },
+};
+
 export function cricketPlay() {
   return {
     ...playScreenState<CricketEngine, CricketResultsSnapshot>(),
@@ -119,57 +175,9 @@ export function cricketPlay() {
     ...playScreenActions(),
 
     ring: "SINGLE" as CricketRing,
-
-    state(this: CricketPlayContext): CricketState | null {
-      const config = this.$store.game.configSnapshot;
-      if (!config) return null;
-      return foldCricketState(
-        { stages: this.$store.game.stages, turns: this.$store.game.turns },
-        config,
-      );
-    },
+    ...cricketPlayMethods1,
 
     ...marksPlayAccessors(CRICKET_OBJECTIVES, marksObjectiveLabel),
-
-    previewSegments(this: CricketPlayContext): Bobs27PreviewSegment[] {
-      return marksPreviewSegments(
-        this.$store.game.turns,
-        this.hiddenTurnKey,
-        (observation) => cricketMarksOf(observation) !== null,
-      );
-    },
-
-    /** Tapping the selected ring again returns to SINGLE. */
-    setRing(this: CricketPlayContext, ring: CricketRing) {
-      toggleMarksRing(this, ring);
-    },
-
-    /** The recreational input's entry point: a tap on an objective with the
-     * selected ring. The ring resets after every tap; Treble on the bull
-     * (which has no such ring) records a single bull. */
-    async recordObjective(this: CricketPlayContext, objective: number) {
-      await recordMarksTap(this, objective);
-    },
-
-    /** A dart off every objective: counts as thrown, marks nothing. */
-    async recordMiss(this: CricketPlayContext) {
-      await recordMarksMiss(this);
-    },
-
-    uploadAndCompleteSession(this: CricketPlayContext): Promise<void> {
-      return playUploadAndCompleteSession(this, computeStats);
-    },
-
-    /**
-     * Replays the same configuration template the first session used, under
-     * the session's own ruleset key, with no overrides.
-     */
-    playAgain(this: CricketPlayContext) {
-      const key = this.$store.game.rulesetVersionKey;
-      if (!key) return Promise.resolve();
-      return runPlayAgain(this, GAME_TYPE_KEY, key, (engine) =>
-        engine instanceof CricketEngine ? engine : null,
-      );
-    },
+    ...cricketPlayMethods2,
   };
 }

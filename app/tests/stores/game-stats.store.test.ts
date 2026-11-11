@@ -1,5 +1,6 @@
 import { DOUBLES_PATH_KEYS } from "@lib/stats/heatmap-targets";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { shapeOf, sharedStateKeys } from "../support/factory-shape";
 
 const readSection = vi.fn();
 const readSessionPage = vi.fn();
@@ -1239,5 +1240,17 @@ describe("selectGame with a dedicated layout", () => {
     expect(readSection).not.toHaveBeenCalled();
     expect(readSessionPage).not.toHaveBeenCalled();
     expect(store.loading).toBe(false);
+  });
+});
+
+describe("gameStatsStore shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(gameStatsStore())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(
+      sharedStateKeys(gameStatsStore(), gameStatsStore()),
+    ).toMatchInlineSnapshot(`[]`);
   });
 });

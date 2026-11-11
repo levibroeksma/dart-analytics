@@ -1,6 +1,8 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { BOARD_SEGMENTS } from "@lib/ui/dart-board-segments";
+import type { BoardSegment } from "@lib/types";
 
 const svgPath = fileURLToPath(
   new URL("../../../../src/assets/dartboard.svg", import.meta.url),
@@ -12,10 +14,11 @@ const svg = readFileSync(svgPath, "utf8");
 const astro = readFileSync(astroPath, "utf8");
 
 /**
- * DartBoard.astro inlines its own copy of the `<g class="dartboard-group">`
- * markup instead of importing dartboard.svg, so nothing forces the two to
- * agree. This suite extracts the meaningful content of that group from both
- * files — ids, classes, path outlines, circle radii, label text, all in
+ * DartBoard.astro draws its own `<g class="dartboard-group">` instead of
+ * importing dartboard.svg: one segment template looped over `BOARD_SEGMENTS`,
+ * then the bull. Nothing forces that to agree with the SVG. This suite
+ * expands the loop with the segment data, exactly as the build does, then
+ * extracts the meaningful content of the group from both files — ids, classes, path outlines, circle radii, label text, all in
  * document order — and diffs it directly. A future edit landing in only one
  * copy fails here instead of silently mis-scoring darts in that sector.
  *
@@ -69,13 +72,38 @@ function textContentsIn(group: string): string[] {
   );
 }
 
+/**
+ * The group as the build renders it: the `BOARD_SEGMENTS.map(...)` block
+ * replaced by its template once per segment, each `{segment.x}` filled in.
+ */
+function expandSegmentLoop(group: string): string {
+  const loop = group.match(
+    /\{\s*BOARD_SEGMENTS\.map\(\(segment\) => \(([\s\S]*?)\)\)\s*\}/,
+  );
+  if (!loop) throw new Error("BOARD_SEGMENTS.map(...) block not found");
+  const template = loop[1];
+  const rendered = BOARD_SEGMENTS.map((segment) =>
+    template
+      .replace("{`segment ${segment.tone}`}", `"segment ${segment.tone}"`)
+      .replace(/\{segment\.(\w+)\}/g, (_, key: keyof BoardSegment) =>
+        key === "label" ? segment.label : `"${segment[key]}"`,
+      ),
+  );
+  return group.replace(loop[0], rendered.join("\n"));
+}
+
 const svgGroup = extractDartboardGroup(svg);
-const astroGroup = extractDartboardGroup(astro);
+const astroGroup = expandSegmentLoop(extractDartboardGroup(astro));
 
 describe("DartBoard.astro matches dartboard.svg", () => {
   it("uses the coordinate space the coordinate transform expects", () => {
     const viewBox = astro.match(/<svg\s[^>]*viewBox="([^"]+)"/)?.[1];
     expect(viewBox).toBe("-220,-220,440,440");
+  });
+
+  it("loops over all twenty segments, leaving no unfilled placeholder", () => {
+    expect(BOARD_SEGMENTS).toHaveLength(20);
+    expect(astroGroup).not.toMatch(/\{segment\b/);
   });
 
   it("carries no id, so a page can mount several boards (#645)", () => {

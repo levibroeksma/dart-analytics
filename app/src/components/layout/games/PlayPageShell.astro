@@ -1,0 +1,26 @@
+---
+/**
+ * The body every game play page shares: the reconciliation-blocked panel,
+ * the no-session panel, then the game's interface and results modal.
+ * Reads the play screen's Alpine scope from the surrounding `GameLayout`.
+ * @param {string} setupHref Where "Configure new session" leads
+ */
+interface Props {
+  setupHref: string;
+}
+
+// Props
+const { setupHref }: Props = Astro.props;
+
+// Components
+import NoSessionPanel from "./NoSessionPanel.astro";
+import ReconciliationBlocked from "./ReconciliationBlocked.astro";
+---
+
+<div class="flex flex-col flex-1 min-h-0">
+  <ReconciliationBlocked />
+
+  <NoSessionPanel href={setupHref} />
+
+  <slot />
+</div>

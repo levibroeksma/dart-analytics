@@ -5,6 +5,7 @@ import {
   flipFrame,
   seatMorph,
 } from "@lib/ui/seat-morph.data";
+import { shapeOf, sharedStateKeys } from "../../support/factory-shape";
 
 type FakeEl = {
   offsetHeight: number;
@@ -152,5 +153,20 @@ describe("seatMorph", () => {
     morph.morph();
     expect(card.animate).not.toHaveBeenCalled();
     expect(score.animate).not.toHaveBeenCalled();
+  });
+});
+
+describe("seatMorph shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(seatMorph(() => "a"))).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(
+      sharedStateKeys(
+        seatMorph(() => "a"),
+        seatMorph(() => "a"),
+      ),
+    ).toMatchInlineSnapshot(`[]`);
   });
 });

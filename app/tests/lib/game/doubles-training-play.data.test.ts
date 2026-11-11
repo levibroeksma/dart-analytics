@@ -27,6 +27,7 @@ import type {
   SeatFact,
 } from "@lib/types";
 import type { DartFact, StageFact, TurnFact } from "@modules/types";
+import { shapeOf, sharedStateKeys } from "../../support/factory-shape";
 
 const SEATS = [
   {
@@ -1249,5 +1250,17 @@ describe("doubles-training when the active ref has no seat", () => {
     const commit = vi.spyOn(play, "commitDart").mockResolvedValue(undefined);
     await play.recordTap(false);
     expect(commit).not.toHaveBeenCalled();
+  });
+});
+
+describe("doublesTrainingPlay shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(doublesTrainingPlay())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(
+      sharedStateKeys(doublesTrainingPlay(), doublesTrainingPlay()),
+    ).toMatchInlineSnapshot(`[]`);
   });
 });

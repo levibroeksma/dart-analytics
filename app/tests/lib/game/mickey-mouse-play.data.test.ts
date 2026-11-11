@@ -27,6 +27,7 @@ import type {
   Seated,
 } from "@lib/types";
 import type { DartZoneKey, StageFact, TurnFact } from "@modules/types";
+import { shapeOf, sharedStateKeys } from "../../support/factory-shape";
 
 const SEATS = [
   {
@@ -306,5 +307,17 @@ describe("mickeyMousePlay shared marks labels", () => {
     for (const target of ctx.tapTargets()) {
       expect(rowLabels.has(target.label)).toBe(true);
     }
+  });
+});
+
+describe("mickeyMousePlay shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(mickeyMousePlay())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(
+      sharedStateKeys(mickeyMousePlay(), mickeyMousePlay()),
+    ).toMatchInlineSnapshot(`[]`);
   });
 });

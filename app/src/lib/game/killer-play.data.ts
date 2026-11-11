@@ -52,6 +52,137 @@ function resumeEngine(
   );
 }
 
+/** `killerPlay`'s methods; each reads its instance through `this`. */
+const killerPlayMethods = {
+  state(this: KillerPlayContext): KillerState | null {
+    const config = this.$store.game.configSnapshot;
+    if (!config) return null;
+    return foldKillerState(
+      { stages: this.$store.game.stages, turns: this.$store.game.turns },
+      config,
+    );
+  },
+
+  /** Play-header subtitle: `YOU: 20 · GUEST: 19`; blank before config loads. */
+  subtitle(this: KillerPlayContext): string {
+    const config = this.$store.game.configSnapshot;
+    if (!config) return "";
+    return joinSubtitle(
+      config.seats.map(
+        (seat, i) =>
+          `${seat.displayName.toUpperCase()}: ${config.seatNumbers[i]}`,
+      ),
+    );
+  },
+
+  livesLabelFor(this: KillerPlayContext, seatRef: string): string {
+    const seat = seatStateFor(this.state(), seatRef);
+    return seat ? String(seat.lives) : "";
+  },
+
+  livesLabel(this: KillerPlayContext): string {
+    return forActiveSeat(this, (ref) => this.livesLabelFor(ref), "");
+  },
+
+  numberLabelFor(this: KillerPlayContext, seatRef: string): string {
+    const seat = seatStateFor(this.state(), seatRef);
+    return seat ? String(seat.number) : "";
+  },
+
+  numberLabel(this: KillerPlayContext): string {
+    return forActiveSeat(this, (ref) => this.numberLabelFor(ref), "");
+  },
+
+  /** `OUT` once eliminated, `KILLER` while armed, else `—`. */
+  statusLabelFor(this: KillerPlayContext, seatRef: string): string {
+    const seat = seatStateFor(this.state(), seatRef);
+    if (!seat) return "";
+    if (seat.out) return "OUT";
+    return seat.killer ? "KILLER" : "—";
+  },
+
+  statusLabel(this: KillerPlayContext): string {
+    return forActiveSeat(this, (ref) => this.statusLabelFor(ref), "");
+  },
+
+  isBullVisit(): boolean {
+    return false;
+  },
+
+  /** The open (or last) visit's darts: a double is a hit, anything else a miss. */
+  previewSegments(this: KillerPlayContext): GamePreviewSegment[] {
+    return playPreviewSegments(
+      this.$store.game.turns,
+      this.hiddenTurnKey,
+      (dart) => (dart.hitZoneKey === "DOUBLE" ? "hit" : "miss"),
+    );
+  },
+
+  /** Tapping the selected ring again returns to SINGLE. */
+  setRing(this: KillerPlayContext, ring: MarksRing) {
+    toggleMarksRing(this, ring);
+  },
+
+  /** A tap on a board number with the selected ring; the ring then resets. */
+  async recordNumber(this: KillerPlayContext, n: number) {
+    await recordMarksTap(this, n);
+  },
+
+  /** A tap on the bull with the selected ring (treble records a single bull). */
+  async recordBull(this: KillerPlayContext) {
+    await recordMarksTap(this, 25);
+  },
+
+  /** A dart off every number: counts as thrown, changes nothing. */
+  async recordMiss(this: KillerPlayContext) {
+    await recordMarksMiss(this);
+  },
+
+  uploadAndCompleteSession(this: KillerPlayContext): Promise<void> {
+    return playUploadAndCompleteSession(this, (finalState) => ({
+      status: "COMPLETE",
+      winningSideKey: finalState.winningSideKey,
+      outOrder: [...finalState.outOrder],
+      seats: finalState.seats.map(killerSeatResult),
+    }));
+  },
+
+  resultsTitle(this: KillerPlayContext): string {
+    const snapshot = this.resultsSnapshot;
+    if (!snapshot) return "Session complete";
+    const winner = matchWinnerName(
+      this.$store.game.seats,
+      snapshot.winningSideKey,
+    );
+    return winner ? `${winner} wins!` : "Session complete";
+  },
+
+  /** Eliminated seats' names in elimination order; blank before the results exist. */
+  outOrderLabel(this: KillerPlayContext): string {
+    const snapshot = this.resultsSnapshot;
+    if (!snapshot) return "";
+    return outOrderNames(snapshot.outOrder, this.$store.game.seats);
+  },
+
+  /** Replays the same preset, resending lives and seat numbers with the starter's number first. */
+  playAgain(this: KillerPlayContext) {
+    return runPlayAgain(
+      this,
+      GAME_TYPE_KEY,
+      RULESET_VERSION_KEY,
+      (engine) => (engine instanceof KillerEngine ? engine : null),
+      (prior) =>
+        variantsPlayAgain<KillerSnapshot>(RULESET_VERSION_KEY)({
+          ...prior,
+          seatNumbers: starterFirstNumbers(
+            prior.seatNumbers,
+            this.playAgainStarter ?? 0,
+          ),
+        }),
+    );
+  },
+};
+
 export function killerPlay() {
   return {
     ...playScreenState<KillerEngine, KillerResultsSnapshot>(),
@@ -60,133 +191,6 @@ export function killerPlay() {
     ...playScreenActions(),
 
     ring: "SINGLE" as MarksRing,
-
-    state(this: KillerPlayContext): KillerState | null {
-      const config = this.$store.game.configSnapshot;
-      if (!config) return null;
-      return foldKillerState(
-        { stages: this.$store.game.stages, turns: this.$store.game.turns },
-        config,
-      );
-    },
-
-    /** Play-header subtitle: `YOU: 20 · GUEST: 19`; blank before config loads. */
-    subtitle(this: KillerPlayContext): string {
-      const config = this.$store.game.configSnapshot;
-      if (!config) return "";
-      return joinSubtitle(
-        config.seats.map(
-          (seat, i) =>
-            `${seat.displayName.toUpperCase()}: ${config.seatNumbers[i]}`,
-        ),
-      );
-    },
-
-    livesLabelFor(this: KillerPlayContext, seatRef: string): string {
-      const seat = seatStateFor(this.state(), seatRef);
-      return seat ? String(seat.lives) : "";
-    },
-
-    livesLabel(this: KillerPlayContext): string {
-      return forActiveSeat(this, (ref) => this.livesLabelFor(ref), "");
-    },
-
-    numberLabelFor(this: KillerPlayContext, seatRef: string): string {
-      const seat = seatStateFor(this.state(), seatRef);
-      return seat ? String(seat.number) : "";
-    },
-
-    numberLabel(this: KillerPlayContext): string {
-      return forActiveSeat(this, (ref) => this.numberLabelFor(ref), "");
-    },
-
-    /** `OUT` once eliminated, `KILLER` while armed, else `—`. */
-    statusLabelFor(this: KillerPlayContext, seatRef: string): string {
-      const seat = seatStateFor(this.state(), seatRef);
-      if (!seat) return "";
-      if (seat.out) return "OUT";
-      return seat.killer ? "KILLER" : "—";
-    },
-
-    statusLabel(this: KillerPlayContext): string {
-      return forActiveSeat(this, (ref) => this.statusLabelFor(ref), "");
-    },
-
-    isBullVisit(): boolean {
-      return false;
-    },
-
-    /** The open (or last) visit's darts: a double is a hit, anything else a miss. */
-    previewSegments(this: KillerPlayContext): GamePreviewSegment[] {
-      return playPreviewSegments(
-        this.$store.game.turns,
-        this.hiddenTurnKey,
-        (dart) => (dart.hitZoneKey === "DOUBLE" ? "hit" : "miss"),
-      );
-    },
-
-    /** Tapping the selected ring again returns to SINGLE. */
-    setRing(this: KillerPlayContext, ring: MarksRing) {
-      toggleMarksRing(this, ring);
-    },
-
-    /** A tap on a board number with the selected ring; the ring then resets. */
-    async recordNumber(this: KillerPlayContext, n: number) {
-      await recordMarksTap(this, n);
-    },
-
-    /** A tap on the bull with the selected ring (treble records a single bull). */
-    async recordBull(this: KillerPlayContext) {
-      await recordMarksTap(this, 25);
-    },
-
-    /** A dart off every number: counts as thrown, changes nothing. */
-    async recordMiss(this: KillerPlayContext) {
-      await recordMarksMiss(this);
-    },
-
-    uploadAndCompleteSession(this: KillerPlayContext): Promise<void> {
-      return playUploadAndCompleteSession(this, (finalState) => ({
-        status: "COMPLETE",
-        winningSideKey: finalState.winningSideKey,
-        outOrder: [...finalState.outOrder],
-        seats: finalState.seats.map(killerSeatResult),
-      }));
-    },
-
-    resultsTitle(this: KillerPlayContext): string {
-      const snapshot = this.resultsSnapshot;
-      if (!snapshot) return "Session complete";
-      const winner = matchWinnerName(
-        this.$store.game.seats,
-        snapshot.winningSideKey,
-      );
-      return winner ? `${winner} wins!` : "Session complete";
-    },
-
-    /** Eliminated seats' names in elimination order; blank before the results exist. */
-    outOrderLabel(this: KillerPlayContext): string {
-      const snapshot = this.resultsSnapshot;
-      if (!snapshot) return "";
-      return outOrderNames(snapshot.outOrder, this.$store.game.seats);
-    },
-
-    /** Replays the same preset, resending lives and seat numbers with the starter's number first. */
-    playAgain(this: KillerPlayContext) {
-      return runPlayAgain(
-        this,
-        GAME_TYPE_KEY,
-        RULESET_VERSION_KEY,
-        (engine) => (engine instanceof KillerEngine ? engine : null),
-        (prior) =>
-          variantsPlayAgain<KillerSnapshot>(RULESET_VERSION_KEY)({
-            ...prior,
-            seatNumbers: starterFirstNumbers(
-              prior.seatNumbers,
-              this.playAgainStarter ?? 0,
-            ),
-          }),
-      );
-    },
+    ...killerPlayMethods,
   };
 }

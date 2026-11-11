@@ -1,0 +1,28 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`routineDetail shape > keeps its keys, in order 1`] = `
+[
+  "loading",
+  "error",
+  "routine",
+  "deleting",
+  "deleteBusy",
+  "starting",
+  "catalogTags",
+  "navigate()",
+  "init()",
+  "totalMinutes()",
+  "durationLabel()",
+  "stepWeight()",
+  "stepTone()",
+  "stepTag()",
+  "stepDuration()",
+  "canEdit()",
+  "playPath()",
+  "editPath()",
+  "start()",
+  "requestDelete()",
+  "cancelDelete()",
+  "confirmDelete()",
+]
+`;

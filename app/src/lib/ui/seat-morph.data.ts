@@ -62,6 +62,67 @@ function visibleTwin(card: MorphElement, twin: string): MorphElement | null {
   );
 }
 
+/** `seatMorph`'s methods; each reads its instance through `this`. */
+const seatMorphMethods = {
+  cards(this: SeatMorphContext): MorphElement[] {
+    return Array.from(this.$root.querySelectorAll("[data-seat-card]"));
+  },
+
+  capture(this: SeatMorphContext) {
+    this.captured = this.cards().map((card) => {
+      const twins: CardCapture["twins"] = {};
+      for (const twin of TWINS) {
+        const el = visibleTwin(card, twin);
+        if (el) twins[twin] = relativeBox(el, card);
+      }
+      return { height: card.offsetHeight, twins };
+    });
+  },
+
+  morph(this: SeatMorphContext) {
+    if (prefersReducedMotion()) {
+      this.capture();
+      return;
+    }
+    const timing = { duration: TURN_MS, easing: TURN_EASE };
+    const cards = this.cards();
+    const heights = cards.map((card) => card.offsetHeight);
+    this.$root.style.setProperty("--seat-full", `${Math.max(0, ...heights)}px`);
+    const moves = cards.map((card, index) => {
+      const before = this.captured[index];
+      const lasts = TWINS.flatMap((twin) => {
+        const el = visibleTwin(card, twin);
+        return el ? [{ twin, el, last: relativeBox(el, card) }] : [];
+      });
+      return { card, before, height: heights[index]!, lasts };
+    });
+    this.captured = moves.map(({ height, lasts }) => ({
+      height,
+      twins: Object.fromEntries(lasts.map(({ twin, last }) => [twin, last])),
+    }));
+    for (const { card, before, height, lasts } of moves) {
+      if (before && before.height !== height) {
+        card.animate(
+          [{ height: `${before.height}px` }, { height: `${height}px` }],
+          timing,
+        );
+      }
+      for (const { twin, el, last } of lasts) {
+        const first = before?.twins[twin];
+        if (!first) continue;
+        el.animate(
+          [
+            flipFrame(first, last),
+            { transform: "none", transformOrigin: "0 0" },
+          ],
+          timing,
+        );
+      }
+    }
+    setTimeout(() => this.$root.style.removeProperty("--seat-full"), TURN_MS);
+  },
+};
+
 /**
  * Alpine factory for `SplitScoreboard`'s turn switch. Each seat card
  * (`[data-seat-card]`) lays out both its panel and its bar layer at once and
@@ -81,66 +142,6 @@ export function seatMorph(activeKey: () => unknown) {
       this.$nextTick(() => this.capture());
       this.$watch(activeKey, () => this.$nextTick(() => this.morph()));
     },
-
-    cards(this: SeatMorphContext): MorphElement[] {
-      return Array.from(this.$root.querySelectorAll("[data-seat-card]"));
-    },
-
-    capture(this: SeatMorphContext) {
-      this.captured = this.cards().map((card) => {
-        const twins: CardCapture["twins"] = {};
-        for (const twin of TWINS) {
-          const el = visibleTwin(card, twin);
-          if (el) twins[twin] = relativeBox(el, card);
-        }
-        return { height: card.offsetHeight, twins };
-      });
-    },
-
-    morph(this: SeatMorphContext) {
-      if (prefersReducedMotion()) {
-        this.capture();
-        return;
-      }
-      const timing = { duration: TURN_MS, easing: TURN_EASE };
-      const cards = this.cards();
-      const heights = cards.map((card) => card.offsetHeight);
-      this.$root.style.setProperty(
-        "--seat-full",
-        `${Math.max(0, ...heights)}px`,
-      );
-      const moves = cards.map((card, index) => {
-        const before = this.captured[index];
-        const lasts = TWINS.flatMap((twin) => {
-          const el = visibleTwin(card, twin);
-          return el ? [{ twin, el, last: relativeBox(el, card) }] : [];
-        });
-        return { card, before, height: heights[index]!, lasts };
-      });
-      this.captured = moves.map(({ height, lasts }) => ({
-        height,
-        twins: Object.fromEntries(lasts.map(({ twin, last }) => [twin, last])),
-      }));
-      for (const { card, before, height, lasts } of moves) {
-        if (before && before.height !== height) {
-          card.animate(
-            [{ height: `${before.height}px` }, { height: `${height}px` }],
-            timing,
-          );
-        }
-        for (const { twin, el, last } of lasts) {
-          const first = before?.twins[twin];
-          if (!first) continue;
-          el.animate(
-            [
-              flipFrame(first, last),
-              { transform: "none", transformOrigin: "0 0" },
-            ],
-            timing,
-          );
-        }
-      }
-      setTimeout(() => this.$root.style.removeProperty("--seat-full"), TURN_MS);
-    },
+    ...seatMorphMethods,
   };
 }

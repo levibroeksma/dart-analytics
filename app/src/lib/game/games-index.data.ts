@@ -23,6 +23,74 @@ function cardSet(
   return own ?? tags?.games[gameTypeKey]?.standalone;
 }
 
+/** `gamesIndex`'s methods; each reads its instance through `this`. */
+const gamesIndexMethods = {
+  /** The tags fetch's rejection is swallowed on purpose: cards degrade to untagged. */
+  async init(this: GamesIndexContext) {
+    void fetchCatalogTags().then(
+      (tags) => {
+        this.catalogTags = tags;
+        this.tagsLoading = false;
+      },
+      () => {
+        this.tagsLoading = false;
+      },
+    );
+    await this.$store.activeSessions.load();
+    this.activeRulesetKeys = this.$store.activeSessions.sessions
+      .map((session) => session.rulesetVersionKey)
+      .filter((key) => key !== null);
+    this.sessionsLoading = false;
+  },
+
+  gameTags(
+    this: GamesIndexContext,
+    gameTypeKey: string,
+    cardKey?: string,
+  ): CatalogTag[] {
+    const set = cardSet(this.catalogTags, gameTypeKey, cardKey);
+    return set ? cardTags(set, "game") : [];
+  },
+
+  gameLevel(
+    this: GamesIndexContext,
+    gameTypeKey: string,
+    cardKey?: string,
+  ): DifficultyLevel | null {
+    return (
+      cardSet(this.catalogTags, gameTypeKey, cardKey)?.difficultyLevel ?? null
+    );
+  },
+
+  loading(this: GamesIndexContext) {
+    return this.sessionsLoading || this.$store.settings.loading === true;
+  },
+
+  isVisible(this: GamesIndexContext, rulesetVersionKey: RulesetVersionKey) {
+    const activeKey = this.activeRulesetKeys.includes(rulesetVersionKey)
+      ? rulesetVersionKey
+      : null;
+    return visibleGames(this.$store.settings.captureModeKey, activeKey).some(
+      (game) => game.rulesetVersionKey === rulesetVersionKey,
+    );
+  },
+
+  analyticsMode(this: GamesIndexContext) {
+    return this.$store.settings.captureModeKey === ANALYTICS_CAPTURE_MODE_KEY;
+  },
+
+  groupVisible(this: GamesIndexContext, groupKey: GameGroupKey) {
+    return GAME_CARDS.some(
+      (game) =>
+        game.group === groupKey && this.isVisible(game.rulesetVersionKey),
+    );
+  },
+
+  noneVisible(this: GamesIndexContext) {
+    return GAME_CARDS.every((game) => !this.isVisible(game.rulesetVersionKey));
+  },
+};
+
 /**
  * Games-page state: which cards the player's current app mode leaves visible.
  *
@@ -59,72 +127,6 @@ export function gamesIndex() {
     sessionsLoading: true,
     catalogTags: null as CatalogTagsResponse | null,
     tagsLoading: true,
-
-    /** The tags fetch's rejection is swallowed on purpose: cards degrade to untagged. */
-    async init(this: GamesIndexContext) {
-      void fetchCatalogTags().then(
-        (tags) => {
-          this.catalogTags = tags;
-          this.tagsLoading = false;
-        },
-        () => {
-          this.tagsLoading = false;
-        },
-      );
-      await this.$store.activeSessions.load();
-      this.activeRulesetKeys = this.$store.activeSessions.sessions
-        .map((session) => session.rulesetVersionKey)
-        .filter((key) => key !== null);
-      this.sessionsLoading = false;
-    },
-
-    gameTags(
-      this: GamesIndexContext,
-      gameTypeKey: string,
-      cardKey?: string,
-    ): CatalogTag[] {
-      const set = cardSet(this.catalogTags, gameTypeKey, cardKey);
-      return set ? cardTags(set, "game") : [];
-    },
-
-    gameLevel(
-      this: GamesIndexContext,
-      gameTypeKey: string,
-      cardKey?: string,
-    ): DifficultyLevel | null {
-      return (
-        cardSet(this.catalogTags, gameTypeKey, cardKey)?.difficultyLevel ?? null
-      );
-    },
-
-    loading(this: GamesIndexContext) {
-      return this.sessionsLoading || this.$store.settings.loading === true;
-    },
-
-    isVisible(this: GamesIndexContext, rulesetVersionKey: RulesetVersionKey) {
-      const activeKey = this.activeRulesetKeys.includes(rulesetVersionKey)
-        ? rulesetVersionKey
-        : null;
-      return visibleGames(this.$store.settings.captureModeKey, activeKey).some(
-        (game) => game.rulesetVersionKey === rulesetVersionKey,
-      );
-    },
-
-    analyticsMode(this: GamesIndexContext) {
-      return this.$store.settings.captureModeKey === ANALYTICS_CAPTURE_MODE_KEY;
-    },
-
-    groupVisible(this: GamesIndexContext, groupKey: GameGroupKey) {
-      return GAME_CARDS.some(
-        (game) =>
-          game.group === groupKey && this.isVisible(game.rulesetVersionKey),
-      );
-    },
-
-    noneVisible(this: GamesIndexContext) {
-      return GAME_CARDS.every(
-        (game) => !this.isVisible(game.rulesetVersionKey),
-      );
-    },
+    ...gamesIndexMethods,
   };
 }

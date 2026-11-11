@@ -39,6 +39,7 @@ import type {
   StageFact,
   TurnFact,
 } from "@modules/types";
+import { shapeOf, sharedStateKeys } from "../../support/factory-shape";
 
 const SEATS = [
   {
@@ -744,5 +745,17 @@ describe("cricket shared play-screen parts", () => {
       locationY: null,
     });
     expect(commit).not.toHaveBeenCalled();
+  });
+});
+
+describe("cricketPlay shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(cricketPlay())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(sharedStateKeys(cricketPlay(), cricketPlay())).toMatchInlineSnapshot(
+      `[]`,
+    );
   });
 });

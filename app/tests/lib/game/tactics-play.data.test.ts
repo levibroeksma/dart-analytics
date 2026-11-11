@@ -26,6 +26,7 @@ import {
 import { tacticsPlay, tacticsSeatResult } from "@lib/game/tactics-play.data";
 import type { TacticsPlayContext, TacticsSnapshot, Seated } from "@lib/types";
 import type { DartZoneKey, StageFact, TurnFact } from "@modules/types";
+import { shapeOf, sharedStateKeys } from "../../support/factory-shape";
 
 const SEATS = [
   {
@@ -574,5 +575,17 @@ describe("tacticsPlay shared marks labels", () => {
     for (const target of ctx.tapTargets()) {
       expect(rowLabels.has(target.label)).toBe(true);
     }
+  });
+});
+
+describe("tacticsPlay shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(tacticsPlay())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(sharedStateKeys(tacticsPlay(), tacticsPlay())).toMatchInlineSnapshot(
+      `[]`,
+    );
   });
 });

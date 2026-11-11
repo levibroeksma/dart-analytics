@@ -79,6 +79,7 @@ import type {
   TurnFact,
 } from "@modules/types";
 import type { FiveOhOneSnapshot, Seated } from "@lib/types";
+import { shapeOf, sharedStateKeys } from "../../support/factory-shape";
 
 const SEATS = [
   {
@@ -2294,5 +2295,17 @@ describe("fiveOhOnePlay botFlight", () => {
     const play = fiveOhOnePlay();
     expect(play.botFlight).toBeNull();
     expectTypeOf(play.botFlight).toEqualTypeOf<BotFlight | null>();
+  });
+});
+
+describe("fiveOhOnePlay shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(fiveOhOnePlay())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(
+      sharedStateKeys(fiveOhOnePlay(), fiveOhOnePlay()),
+    ).toMatchInlineSnapshot(`[]`);
   });
 });

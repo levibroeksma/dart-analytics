@@ -1,0 +1,30 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`statsStore shape > keeps its keys, in order 1`] = `
+[
+  "totalGamesPlayed",
+  "totalPlayTimeSeconds",
+  "favoriteGameTypeKey",
+  "currentPlayStreakDays",
+  "longestStreakHint",
+  "totalDartsThrown",
+  "hundredPlusCount",
+  "oneTwentyPlusCount",
+  "oneFortyPlusCount",
+  "oneEightiesCount",
+  "medianVisitScore",
+  "highestGameAverage",
+  "firstNineCareerAverage",
+  "scoringAverageExcludingDoubles",
+  "bestLegDarts",
+  "averageDartsPerLeg",
+  "checkoutPercentage",
+  "highestCheckoutValue",
+  "highestCheckoutHint",
+  "highestCheckoutSessionId",
+  "loading",
+  "error",
+  "init()",
+  "load()",
+]
+`;

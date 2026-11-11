@@ -84,6 +84,7 @@ bash scripts/test-check-test-repointing.sh
 bash scripts/test-edit-gate.sh
 bash scripts/test-block-main-commit.sh
 bash scripts/test-precommit-scope.sh
+bash scripts/test-check-html-parity.sh
 bash scripts/test-reuse-lookup.sh
 bash scripts/test-check-dupes.sh
 bash scripts/test-check-quality-benchmarks.sh

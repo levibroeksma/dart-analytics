@@ -29,6 +29,7 @@ import type {
   StageFact,
   TurnFact,
 } from "@modules/types";
+import { shapeOf, sharedStateKeys } from "../../support/factory-shape";
 
 const SEATS = [
   {
@@ -387,5 +388,15 @@ describe("ace resume", () => {
     const foreign = makeContext({ rulesetVersionKey: "TUOD_V1" });
     await foreign.init.call(foreign);
     expect(foreign.engine).toBeNull();
+  });
+});
+
+describe("acePlay shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(acePlay())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(sharedStateKeys(acePlay(), acePlay())).toMatchInlineSnapshot(`[]`);
   });
 });

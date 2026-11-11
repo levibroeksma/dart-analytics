@@ -8,6 +8,7 @@ import { getActiveSchedule } from "@client/api/schedules";
 import { listTrainingCompletions } from "@client/api/training-sessions";
 import { trainingWeek } from "@lib/training/schedules/training-week.data";
 import type { TrainingWeekContext } from "@lib/types";
+import { shapeOf, sharedStateKeys } from "../../../support/factory-shape";
 
 const SCHEDULE = {
   scheduleId: "s1",
@@ -199,5 +200,17 @@ describe("trainingWeek", () => {
     expect(week.loading).toBe(false);
     expect(week.hasSchedule()).toBe(false);
     expect(week.counts()).toEqual({ done: 0, missed: 0, toGo: 0 });
+  });
+});
+
+describe("trainingWeek shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(trainingWeek())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(
+      sharedStateKeys(trainingWeek(), trainingWeek()),
+    ).toMatchInlineSnapshot(`[]`);
   });
 });

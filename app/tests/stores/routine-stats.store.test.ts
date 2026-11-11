@@ -7,6 +7,7 @@ import {
   stepScopeKey,
 } from "@modules/stats/routine-scope.module";
 import type { RoutineHeaderSchemaData } from "@client/api/types";
+import { shapeOf, sharedStateKeys } from "../support/factory-shape";
 
 const readSection = vi.fn();
 const readSessionPage = vi.fn();
@@ -960,5 +961,17 @@ describe("Snakes & Ladders rounds-to-finish label", () => {
     expect(routineStatsStore().metricLabel("finishRounds")).toBe(
       "Rounds to finish",
     );
+  });
+});
+
+describe("routineStatsStore shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(routineStatsStore())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(
+      sharedStateKeys(routineStatsStore(), routineStatsStore()),
+    ).toMatchInlineSnapshot(`[]`);
   });
 });

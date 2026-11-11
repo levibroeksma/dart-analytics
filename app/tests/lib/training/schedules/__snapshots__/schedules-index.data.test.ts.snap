@@ -1,0 +1,16 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`schedulesIndex shape > keeps its keys, in order 1`] = `
+[
+  "loading",
+  "error",
+  "schedules",
+  "busyId",
+  "navigate()",
+  "init()",
+  "refresh()",
+  "editHref()",
+  "activate()",
+  "deactivate()",
+]
+`;

@@ -79,6 +79,99 @@ function resolveStartOverrides(
   return { duration_type: ctx.durationType, duration_value: value };
 }
 
+/** `oneTwentyOneSetup`'s methods; each reads its instance through `this`. */
+const oneTwentyOneSetupMethods = {
+  async init(this: OneTwentyOneSetupContext) {
+    this.$watch("durationType", (type) => {
+      this.selectMode(type);
+    });
+
+    this.loadingReconciliation = true;
+    try {
+      const [presets, activeSessions] = await Promise.all([
+        fetchConfigurationPresets(GAME_TYPE_KEY),
+        fetchActiveSessions(),
+      ]);
+
+      this.presets = presets;
+      this.durationType = "TARGET";
+      this.durationValue = null;
+
+      await this.reconcile(activeSessions);
+    } catch {
+      this.showActiveSessionModal = false;
+      this.error = "Could not load setup. Check your connection and try again.";
+    } finally {
+      this.loadingReconciliation = false;
+    }
+  },
+
+  presetForMode(
+    this: OneTwentyOneSetupContext,
+    type: OneTwentyOneDurationType,
+  ) {
+    return this.presets.find((p) => {
+      const cfg = p.configuration as { duration_type?: string } | null;
+      return cfg?.duration_type === type;
+    });
+  },
+
+  selectMode(this: OneTwentyOneSetupContext, type: OneTwentyOneDurationType) {
+    this.durationType = type;
+    this.durationValue =
+      type === "TARGET"
+        ? null
+        : (durationValueOf(this.presetForMode(type)) ??
+          FALLBACK_DURATION[type]);
+  },
+
+  addGuest(this: OneTwentyOneSetupContext) {
+    if (addTypedGuest(this)) this.forceTargetIfGuested();
+  },
+
+  addBot(this: OneTwentyOneSetupContext) {
+    if (addBotOpponent(this)) this.forceTargetIfGuested();
+  },
+
+  /**
+   * ROUNDS/MINUTES have no established 1v1 win condition (see the design
+   * spec's Decisions section) — mirrors `scoreTrainingSetup()`'s own
+   * `forceRoundsIfGuested`.
+   */
+  forceTargetIfGuested(this: OneTwentyOneSetupContext) {
+    if (guested(this)) this.durationType = "TARGET";
+  },
+
+  /**
+   * Unreachable while this game has an ACTIVE session, held here or
+   * elsewhere: the setup modal hides the picker until the player
+   * continues or abandons it (single active session, D118; D460).
+   */
+  async start(this: OneTwentyOneSetupContext) {
+    if (this.loading) return;
+    const isGuested = guested(this);
+    const rulesetVersionKey: RulesetVersionKey = isGuested
+      ? "121_V1"
+      : "121_V2";
+
+    const preset = resolveStartPreset(this, isGuested);
+    if (!preset) {
+      this.error = "Could not find a preset for this mode.";
+      return;
+    }
+
+    const overrides = resolveStartOverrides(this, isGuested);
+
+    await startPresetSession(this, {
+      gameTypeKey: GAME_TYPE_KEY,
+      rulesetVersionKey,
+      playHref: "/games/121/play",
+      preset,
+      overrides,
+    });
+  },
+};
+
 export function oneTwentyOneSetup() {
   return {
     ...createSetupSession({
@@ -88,96 +181,6 @@ export function oneTwentyOneSetup() {
     presets: [] as ConfigurationPresetData[],
     durationType: "TARGET" as OneTwentyOneDurationType,
     durationValue: null as number | string | null,
-
-    async init(this: OneTwentyOneSetupContext) {
-      this.$watch("durationType", (type) => {
-        this.selectMode(type);
-      });
-
-      this.loadingReconciliation = true;
-      try {
-        const [presets, activeSessions] = await Promise.all([
-          fetchConfigurationPresets(GAME_TYPE_KEY),
-          fetchActiveSessions(),
-        ]);
-
-        this.presets = presets;
-        this.durationType = "TARGET";
-        this.durationValue = null;
-
-        await this.reconcile(activeSessions);
-      } catch {
-        this.showActiveSessionModal = false;
-        this.error =
-          "Could not load setup. Check your connection and try again.";
-      } finally {
-        this.loadingReconciliation = false;
-      }
-    },
-
-    presetForMode(
-      this: OneTwentyOneSetupContext,
-      type: OneTwentyOneDurationType,
-    ) {
-      return this.presets.find((p) => {
-        const cfg = p.configuration as { duration_type?: string } | null;
-        return cfg?.duration_type === type;
-      });
-    },
-
-    selectMode(this: OneTwentyOneSetupContext, type: OneTwentyOneDurationType) {
-      this.durationType = type;
-      this.durationValue =
-        type === "TARGET"
-          ? null
-          : (durationValueOf(this.presetForMode(type)) ??
-            FALLBACK_DURATION[type]);
-    },
-
-    addGuest(this: OneTwentyOneSetupContext) {
-      if (addTypedGuest(this)) this.forceTargetIfGuested();
-    },
-
-    addBot(this: OneTwentyOneSetupContext) {
-      if (addBotOpponent(this)) this.forceTargetIfGuested();
-    },
-
-    /**
-     * ROUNDS/MINUTES have no established 1v1 win condition (see the design
-     * spec's Decisions section) — mirrors `scoreTrainingSetup()`'s own
-     * `forceRoundsIfGuested`.
-     */
-    forceTargetIfGuested(this: OneTwentyOneSetupContext) {
-      if (guested(this)) this.durationType = "TARGET";
-    },
-
-    /**
-     * Unreachable while this game has an ACTIVE session, held here or
-     * elsewhere: the setup modal hides the picker until the player
-     * continues or abandons it (single active session, D118; D460).
-     */
-    async start(this: OneTwentyOneSetupContext) {
-      if (this.loading) return;
-      const isGuested = guested(this);
-      const rulesetVersionKey: RulesetVersionKey = isGuested
-        ? "121_V1"
-        : "121_V2";
-
-      const preset = resolveStartPreset(this, isGuested);
-      if (!preset) {
-        this.error = "Could not find a preset for this mode.";
-        return;
-      }
-
-      const overrides = resolveStartOverrides(this, isGuested);
-
-      await startPresetSession(this, {
-        gameTypeKey: GAME_TYPE_KEY,
-        rulesetVersionKey,
-        playHref: "/games/121/play",
-        preset,
-        overrides,
-      });
-    },
+    ...oneTwentyOneSetupMethods,
   };
 }

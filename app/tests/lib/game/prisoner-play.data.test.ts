@@ -26,6 +26,7 @@ import type {
   StageFact,
   TurnFact,
 } from "@modules/types";
+import { shapeOf, sharedStateKeys } from "../../support/factory-shape";
 
 const SEATS = [
   {
@@ -401,5 +402,17 @@ describe("prisonerPlay abandon and play again", () => {
     ctx.requestPlayAgain();
     expect(ctx.starterOpen).toBe(true);
     expect(ctx.playAgainStarterOptions().sides()).toEqual(["You", "Guest"]);
+  });
+});
+
+describe("prisonerPlay shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(prisonerPlay())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(
+      sharedStateKeys(prisonerPlay(), prisonerPlay()),
+    ).toMatchInlineSnapshot(`[]`);
   });
 });

@@ -9,6 +9,7 @@ import {
   playFiveOhOne,
   type ScriptedGame,
 } from "../lib/stats/replay-games";
+import { shapeOf, sharedStateKeys } from "../support/factory-shape";
 
 const readReplayPage = vi.fn();
 const apiRequest = vi.fn();
@@ -450,5 +451,17 @@ describe("replayStore", () => {
 
     store.select(1);
     expect(store.selectedMarkers).toEqual([]);
+  });
+});
+
+describe("replayStore shape", () => {
+  it("keeps its keys, in order", () => {
+    expect(shapeOf(replayStore())).toMatchSnapshot();
+  });
+
+  it("shares no per-instance state between two instances", () => {
+    expect(sharedStateKeys(replayStore(), replayStore())).toMatchInlineSnapshot(
+      `[]`,
+    );
   });
 });

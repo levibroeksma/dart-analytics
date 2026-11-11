@@ -3,8 +3,7 @@ export const prerender = true;
 import GameLayout from "@layouts/GameLayout.astro";
 import Bobs27 from "@components/layout/games/interfaces/Bobs27.astro";
 import Bobs27Results from "@components/layout/games/result-modals/Bobs27Results.astro";
-import NoSessionPanel from "@components/layout/games/NoSessionPanel.astro";
-import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocked.astro";
+import PlayPageShell from "@components/layout/games/PlayPageShell.astro";
 ---
 
 <GameLayout
@@ -14,13 +13,7 @@ import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocke
   x-data="bobs27Play()"
   @confirm-exit.window="abandonAndExit()"
 >
-  <div class="flex flex-col flex-1 min-h-0">
-    {/* Loading / reconciliation-blocked */}
-    <ReconciliationBlocked />
-
-    {/* No active session view */}
-    <NoSessionPanel href="/games/bobs27/setup" />
-
+  <PlayPageShell setupHref="/games/bobs27/setup">
     {/* Gameplay view */}
     <Bobs27
       x-show="!finished && hasActiveSession"
@@ -29,5 +22,5 @@ import ReconciliationBlocked from "@components/layout/games/ReconciliationBlocke
 
     {/* Results modal (overlay) */}
     <Bobs27Results />
-  </div>
+  </PlayPageShell>
 </GameLayout>
