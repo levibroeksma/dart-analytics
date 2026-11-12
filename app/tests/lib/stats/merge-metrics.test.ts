@@ -162,6 +162,20 @@ describe("mergeMetrics", () => {
     });
   });
 
+  it("merges two chunks of a double-preference section, counts summed", () => {
+    const a = { "DOUBLE:9|STATE": { left: 1, splitAway: 0 } };
+    const b = {
+      "DOUBLE:9|STATE": { left: 2, splitAway: 1 },
+      "DOUBLE:9|NEAREST": { attempts: 1, hits: 1 },
+      AMBIGUOUS: { darts: 1 },
+    };
+    expect(mergeMetrics("double-preference", a, b)).toEqual({
+      "DOUBLE:9|STATE": { left: 3, splitAway: 1 },
+      "DOUBLE:9|NEAREST": { attempts: 1, hits: 1 },
+      AMBIGUOUS: { darts: 1 },
+    });
+  });
+
   it("sums double-performance leaves", () => {
     const merged = mergeMetrics(
       "double-performance",

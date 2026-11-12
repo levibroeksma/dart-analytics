@@ -7,6 +7,7 @@ import type {
   DoublePerformanceSeriesResponseData,
   AimDriftSeriesResponseData,
   DoubleAccuracySeriesResponseData,
+  DoublePreferenceSeriesResponseData,
   LargeTargetAccuracySeriesResponseData,
   GroupingSeriesResponseData,
   HeatmapSeriesResponseData,
@@ -82,6 +83,7 @@ export type GameSectionResponseData =
   | LargeTargetAccuracySeriesResponseData
   | AimDriftSeriesResponseData
   | DoubleAccuracySeriesResponseData
+  | DoublePreferenceSeriesResponseData
   | CheckoutPathSeriesResponseData
   | BustRateSeriesResponseData
   | LegStatsSeriesResponseData

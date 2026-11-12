@@ -7,7 +7,13 @@ import {
 import type { BucketedSession, StagedVisit } from "@modules/types";
 import { candidatesFor } from "./x01-aim-candidates.module";
 import { isInferredAimHit, resolveAim } from "./x01-aim-resolution.module";
-import type { InferredDart, InferredSession, InferredVisit } from "./types";
+import type { TargetKey } from "@lib/types";
+import type {
+  AimCandidate,
+  InferredDart,
+  InferredSession,
+  InferredVisit,
+} from "./types";
 
 function hasUnlocatedDart(session: BucketedSession): boolean {
   return session.visits.some((visit) =>
@@ -15,6 +21,11 @@ function hasUnlocatedDart(session: BucketedSession): boolean {
       (dart) => dart.locationX === null || dart.locationY === null,
     ),
   );
+}
+
+function finishKeyOf(candidates: readonly AimCandidate[]): TargetKey | null {
+  const aim = candidates.find((entry) => entry.basis === "FINISH")?.aim;
+  return aim === undefined || aim.kind === "WIRE" ? null : aim.key;
 }
 
 function inferredVisit(visit: StagedVisit): InferredVisit {
@@ -47,6 +58,7 @@ function inferredVisit(visit: StagedVisit): InferredVisit {
       y,
       score: dart.score,
       candidateKeys: candidates.map((entry) => entry.aim.key),
+      finishKey: finishKeyOf(candidates),
     });
 
     if (isFinishingDart(remaining, dart)) {

@@ -21,6 +21,7 @@ import {
   LargeTargetAccuracySeriesResponse,
   AimDriftSeriesResponse,
   DoubleAccuracySeriesResponse,
+  DoublePreferenceSeriesResponse,
   CheckoutPathSeriesResponse,
   BustRateSeriesResponse,
   LegStatsSeriesResponse,
@@ -765,6 +766,32 @@ describe("checkout family series responses", () => {
           metrics: {
             "DOUBLE:16|SOLE|HIT": { darts: 2 },
             "DOUBLE:16|SOLE|MISS|OUTSIDE|3": { darts: 1 },
+            AMBIGUOUS: { darts: 1 },
+          },
+        },
+      ],
+      skippedSessions: 0,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("parses a double-preference series response with an AMBIGUOUS row", () => {
+    const result = DoublePreferenceSeriesResponse.safeParse({
+      sectionId: "double-preference",
+      sectionVersion: 1,
+      dataVersion: "v1:1:0",
+      bucket: "none",
+      tz: null,
+      range: { from: "2026-01-01T00:00:00Z", to: "2026-02-01T00:00:00Z" },
+      buckets: [
+        {
+          start: "2026-01-01T00:00:00Z",
+          end: "2026-02-01T00:00:00Z",
+          closed: true,
+          sampleSize: 1,
+          metrics: {
+            "DOUBLE:9|STATE": { left: 2, splitAway: 1 },
+            "DOUBLE:9|NEAREST": { attempts: 1, hits: 1 },
             AMBIGUOUS: { darts: 1 },
           },
         },

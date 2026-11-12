@@ -1067,6 +1067,7 @@ export type InferredDart = {
   y: number;
   score: number;
   candidateKeys: readonly AimKey[];
+  finishKey: TargetKey | null;
 };
 
 /** One 501 visit walked dart by dart; `remainingAfter` equals `startingRemaining` for a `BUST`. */
