@@ -43,4 +43,15 @@ describe("doubleAccuracyBuckets", () => {
     );
     expect(bucket).toBeUndefined();
   });
+
+  it("counts a bull finish under the inner-bull key", () => {
+    const [bucket] = doubleAccuracyBuckets(
+      inferred([visit(50, [at(0, 0, "INNER_BULL", 25, 50)])]),
+      CTX,
+    );
+    expect(bucket!.metrics).toEqual({
+      "INNER_BULL:25|NEAREST|HIT": { darts: 1 },
+    });
+    expect(bucket!.sampleSize).toBe(1);
+  });
 });

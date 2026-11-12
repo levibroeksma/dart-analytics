@@ -4,10 +4,12 @@ import {
   AMBIGUOUS_KEY,
   aimCountBuckets,
   aimKey,
+  countAimed,
+  sumSessionDarts,
 } from "@modules/stats/sections/aim-count.module";
 import { mergeMetrics } from "@lib/stats/merge-metrics";
 import { largeTargetAccuracyBuckets } from "@modules/stats/sections/large-target-accuracy.module";
-import type { InferredSession } from "@modules/types";
+import type { AimCountMetrics, InferredSession } from "@modules/types";
 import { CTX, dart, inferred, visit } from "../support/x01-inferred-fixtures";
 
 function inMonth(sessions: InferredSession[], month: "01" | "02") {
@@ -23,6 +25,27 @@ describe("aim-count helpers", () => {
     expect(aimKey("TREBLE:20", "NEAREST")).toBe("TREBLE:20|NEAREST");
     expect(aimKey("DOUBLE:16", 3)).toBe("DOUBLE:16|3");
     expect(AMBIGUOUS_KEY).toBe("AMBIGUOUS");
+  });
+
+  it("sums a fold over every dart of every visit", () => {
+    const [session] = inferred([
+      visit(501, [dart("TREBLE", 20, 60), dart("TREBLE", 20, 60)]),
+      visit(381, [dart("TREBLE", 20, 60)]),
+    ]);
+    expect(sumSessionDarts(session!, () => 2)).toBe(6);
+  });
+
+  it("counts a dart without an aim as ambiguous and returns an aimed dart's count", () => {
+    const [ambiguous] = inferred([visit(433, [dart("OUTER_SINGLE", 1, 1)])])[0]!
+      .visits[0]!.darts;
+    const [aimed] = inferred([visit(501, [dart("TREBLE", 20, 60)])])[0]!
+      .visits[0]!.darts;
+    const metrics: AimCountMetrics = {};
+    expect(countAimed(metrics, ambiguous!, () => 5)).toBe(0);
+    expect(
+      countAimed(metrics, aimed!, (aim) => (aim.key === "TREBLE:20" ? 1 : 9)),
+    ).toBe(1);
+    expect(metrics).toEqual({ [AMBIGUOUS_KEY]: { darts: 1 } });
   });
 
   it("adds counts onto a row, creating it when absent", () => {

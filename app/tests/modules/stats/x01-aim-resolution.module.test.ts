@@ -39,6 +39,7 @@ describe("resolveAim", () => {
     [496, 2, at("TREBLE", 7), "TREBLE:19", "LARGE_TARGET", "NEAREST"],
     [169, 3, at("TREBLE", 18), "TREBLE:18", "LARGE_TARGET", "NEAREST"],
     [402, 3, polar(10, MID_TREBLE), "TREBLE:20", "LARGE_TARGET", "NEAREST"],
+    [18, 3, at("DOUBLE", 9), "DOUBLE:9", "FINISH", "NEAREST"],
     [18, 3, at("OUTER_SINGLE", 14), "DOUBLE:9", "FINISH", "NEAREST"],
     [18, 3, at("OUTER_SINGLE", 2), "SINGLE:2", "SPLIT", "NEAREST"],
     [18, 3, at("OUTER_SINGLE", 15), "SINGLE:2", "SPLIT", "NEAREST"],

@@ -87,4 +87,16 @@ describe("inferredSessions", () => {
     expect(sessions[0]!.visits[0]!.darts[0]!.finishKey).toBe("DOUBLE:9");
     expect(sessions[0]!.visits[1]!.darts[0]!.finishKey).toBeNull();
   });
+
+  it("marks a resolved aim the dart missed as not hit", () => {
+    const { sessions } = inferredSessions([
+      session([visit(32, [dart("OUTER_SINGLE", 16, 16)])]),
+    ]);
+    const thrown = sessions[0]!.visits[0]!.darts[0]!;
+    expect([thrown.aim?.key, thrown.resolution, thrown.hit]).toEqual([
+      "DOUBLE:16",
+      "SOLE",
+      false,
+    ]);
+  });
 });

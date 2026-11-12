@@ -1,6 +1,11 @@
 import { bucketFor, closeBuckets } from "./series.module";
-import type { AimCountMetrics, InferredSession } from "@modules/types";
-import type { SeriesBucket } from "@lib/types";
+import type {
+  AimCountBuckets,
+  AimCountMetrics,
+  InferredAim,
+  InferredDart,
+  InferredSession,
+} from "@modules/types";
 
 /** The row an ambiguous dart is counted under -- it has no aim to key by. */
 export const AMBIGUOUS_KEY = "AMBIGUOUS";
@@ -23,6 +28,34 @@ export function addCounts(
   metrics[key] = row;
 }
 
+/** Sums `fold` over every dart of every visit in `session`. */
+export function sumSessionDarts(
+  session: InferredSession,
+  fold: (dart: InferredDart) => number,
+): number {
+  let sample = 0;
+  for (const visit of session.visits) {
+    for (const dart of visit.darts) sample += fold(dart);
+  }
+  return sample;
+}
+
+/**
+ * Counts a dart with no aim under `AMBIGUOUS_KEY` and returns `0`; a dart
+ * with an aim returns `count(aim)`, its sample-size contribution.
+ */
+export function countAimed(
+  metrics: AimCountMetrics,
+  dart: InferredDart,
+  count: (aim: InferredAim) => number,
+): number {
+  if (dart.aim === null) {
+    addCounts(metrics, AMBIGUOUS_KEY, { darts: 1 });
+    return 0;
+  }
+  return count(dart.aim);
+}
+
 /**
  * Folds inferred sessions into start-keyed aim-count buckets: one metrics
  * accumulator per bucket, `fold` adding a session's counts to it and returning
@@ -33,7 +66,7 @@ export function aimCountBuckets(
   sessions: readonly InferredSession[],
   ctx: { to: string; now: Date },
   fold: (metrics: AimCountMetrics, session: InferredSession) => number,
-): SeriesBucket<AimCountMetrics>[] {
+): AimCountBuckets {
   const buckets = new Map<
     string,
     { end: string; sampleSize: number; metrics: AimCountMetrics }

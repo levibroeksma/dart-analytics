@@ -154,6 +154,7 @@ import type {
   SectionMeta,
   Series,
   SeriesBucket,
+  StatsTag,
   StatusFilter,
 } from "@lib/types";
 import type {
@@ -837,6 +838,53 @@ function isInferredAimKey(value: string): value is AimKey {
   return parsed !== null && INFERRED_AIM_ZONES.includes(parsed.zone);
 }
 
+/** `sectionTarget`'s result: the parsed target, or `{ error }`. */
+type SectionTargetResult =
+  | {
+      target: { number: number; zone: IntentZoneKey } | null;
+      inferredAim: AimKey | null;
+    }
+  | { error: string };
+
+/** An `intent-stored` game's target: any `TargetKey`. */
+function storedTarget(targetParam: string): SectionTargetResult {
+  const stored = parseTargetKey(targetParam);
+  if (stored === null) {
+    return { error: "target must be a TargetKey on this game" };
+  }
+  return { target: stored, inferredAim: null };
+}
+
+/** An `intent-inferred` game's target: an inferred aim key. */
+function inferredTarget(targetParam: string): SectionTargetResult {
+  if (!isInferredAimKey(targetParam)) {
+    return { error: "target must be an inferred aim key on this game" };
+  }
+  return { target: null, inferredAim: targetParam };
+}
+
+/** An `intent-derived` game's target: `NUMBER:n` or `BULL:25`. */
+function derivedTarget(targetParam: string): SectionTargetResult {
+  const parsed = parseTargetKey(targetParam);
+  if (parsed === null || (parsed.zone !== "NUMBER" && parsed.zone !== "BULL")) {
+    return { error: "target must be NUMBER:n or BULL:25 on this game" };
+  }
+  return { target: parsed, inferredAim: null };
+}
+
+/** Parses `targetParam` by the first intent tag the game carries, stored before inferred before derived. */
+function targetForTags(
+  tags: ReadonlySet<StatsTag>,
+  targetParam: string,
+): SectionTargetResult {
+  if (tags.has("intent-stored")) return storedTarget(targetParam);
+  if (tags.has("intent-inferred")) return inferredTarget(targetParam);
+  if (!tags.has("intent-derived")) {
+    return { error: "target requires an intent-stored game" };
+  }
+  return derivedTarget(targetParam);
+}
+
 /**
  * Resolves the `target` query param against a section's declared `params`
  * and the game's tags (phase-2 decision 5); `{ error }` on either mismatch,
@@ -846,38 +894,12 @@ function sectionTarget(
   meta: SectionMeta,
   gameTypeKey: GameTypeKey,
   targetParam: string | undefined,
-):
-  | {
-      target: { number: number; zone: IntentZoneKey } | null;
-      inferredAim: AimKey | null;
-    }
-  | { error: string } {
+): SectionTargetResult {
   if (targetParam === undefined) return { target: null, inferredAim: null };
   if (!meta.params.includes("target")) {
     return { error: "this section does not accept target" };
   }
-  const tags = tagsForGameType(gameTypeKey);
-  if (tags.has("intent-stored")) {
-    const stored = parseTargetKey(targetParam);
-    if (stored === null) {
-      return { error: "target must be a TargetKey on this game" };
-    }
-    return { target: stored, inferredAim: null };
-  }
-  if (tags.has("intent-inferred")) {
-    if (!isInferredAimKey(targetParam)) {
-      return { error: "target must be an inferred aim key on this game" };
-    }
-    return { target: null, inferredAim: targetParam };
-  }
-  if (!tags.has("intent-derived")) {
-    return { error: "target requires an intent-stored game" };
-  }
-  const parsed = parseTargetKey(targetParam);
-  if (parsed === null || (parsed.zone !== "NUMBER" && parsed.zone !== "BULL")) {
-    return { error: "target must be NUMBER:n or BULL:25 on this game" };
-  }
-  return { target: parsed, inferredAim: null };
+  return targetForTags(tagsForGameType(gameTypeKey), targetParam);
 }
 
 /** `resolveGameSectionRequest`'s success shape: everything `dispatchGameSection` needs to build its `SectionContext` once every check has passed. */

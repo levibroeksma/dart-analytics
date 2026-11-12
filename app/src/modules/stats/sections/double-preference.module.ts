@@ -1,45 +1,43 @@
 import {
   addCounts,
-  AMBIGUOUS_KEY,
   aimCountBuckets,
   aimKey,
+  countAimed,
+  sumSessionDarts,
 } from "./aim-count.module";
 import type {
+  AimCountBuckets,
   AimCountMetrics,
   InferredDart,
   InferredSession,
 } from "@modules/types";
-import type { SeriesBucket } from "@lib/types";
 
 function isSplitAway(dart: InferredDart): boolean {
   return dart.aim !== null && dart.basis !== "FINISH";
+}
+
+function countFinishDart(metrics: AimCountMetrics, dart: InferredDart): number {
+  const finish = dart.finishKey;
+  if (finish === null) return 0;
+  addCounts(metrics, aimKey(finish, "STATE"), {
+    left: dart.dartNumber === 1 ? 1 : 0,
+    splitAway: isSplitAway(dart) ? 1 : 0,
+  });
+  return countAimed(metrics, dart, () => {
+    if (dart.basis !== "FINISH") return 0;
+    addCounts(metrics, aimKey(finish, dart.resolution), {
+      attempts: 1,
+      hits: dart.hit ? 1 : 0,
+    });
+    return 1;
+  });
 }
 
 function foldSession(
   metrics: AimCountMetrics,
   session: InferredSession,
 ): number {
-  let sample = 0;
-  for (const visit of session.visits) {
-    for (const dart of visit.darts) {
-      const finish = dart.finishKey;
-      if (finish === null) continue;
-      addCounts(metrics, aimKey(finish, "STATE"), {
-        left: dart.dartNumber === 1 ? 1 : 0,
-        splitAway: isSplitAway(dart) ? 1 : 0,
-      });
-      if (dart.aim === null) {
-        addCounts(metrics, AMBIGUOUS_KEY, { darts: 1 });
-      } else if (dart.basis === "FINISH") {
-        addCounts(metrics, aimKey(finish, dart.resolution), {
-          attempts: 1,
-          hits: dart.hit ? 1 : 0,
-        });
-        sample += 1;
-      }
-    }
-  }
-  return sample;
+  return sumSessionDarts(session, (dart) => countFinishDart(metrics, dart));
 }
 
 /**
@@ -52,6 +50,6 @@ function foldSession(
 export function doublePreferenceBuckets(
   sessions: readonly InferredSession[],
   ctx: { to: string; now: Date },
-): SeriesBucket<AimCountMetrics>[] {
+): AimCountBuckets {
   return aimCountBuckets(sessions, ctx, foldSession);
 }

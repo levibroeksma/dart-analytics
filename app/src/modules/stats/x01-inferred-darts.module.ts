@@ -4,16 +4,16 @@ import {
   FINISHING_ZONES,
   isFinishingDart,
 } from "@modules/game/highest-checkout.module";
-import type { BucketedSession, StagedVisit } from "@modules/types";
-import { candidatesFor } from "./x01-aim-candidates.module";
-import { isInferredAimHit, resolveAim } from "./x01-aim-resolution.module";
-import type { TargetKey } from "@lib/types";
 import type {
   AimCandidate,
+  BucketedSession,
   InferredDart,
   InferredSession,
   InferredVisit,
-} from "./types";
+  StagedVisit,
+} from "@modules/types";
+import { candidatesFor } from "./x01-aim-candidates.module";
+import { isInferredAimHit, resolveAim } from "./x01-aim-resolution.module";
 
 function hasUnlocatedDart(session: BucketedSession): boolean {
   return session.visits.some((visit) =>
@@ -23,7 +23,9 @@ function hasUnlocatedDart(session: BucketedSession): boolean {
   );
 }
 
-function finishKeyOf(candidates: readonly AimCandidate[]): TargetKey | null {
+function finishKeyOf(
+  candidates: readonly AimCandidate[],
+): InferredDart["finishKey"] {
   const aim = candidates.find((entry) => entry.basis === "FINISH")?.aim;
   return aim === undefined || aim.kind === "WIRE" ? null : aim.key;
 }

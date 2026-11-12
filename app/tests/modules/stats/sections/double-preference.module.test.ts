@@ -19,4 +19,12 @@ describe("doublePreferenceBuckets", () => {
       "DOUBLE:16|SOLE": { attempts: 1, hits: 0 },
     });
   });
+
+  it("leaves darts with no finish available out", () => {
+    const buckets = doublePreferenceBuckets(
+      inferred([visit(501, [dart("TREBLE", 20, 60)])]),
+      CTX,
+    );
+    expect(buckets).toEqual([]);
+  });
 });

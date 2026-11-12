@@ -1,15 +1,16 @@
 import { SECTOR_ORDER } from "@lib/game/board/board-geometry.module";
 import type {
+  AimCountBuckets,
   AimCountMetrics,
   InferredDart,
   InferredSession,
 } from "@modules/types";
-import type { SeriesBucket } from "@lib/types";
 import {
   addCounts,
-  AMBIGUOUS_KEY,
   aimCountBuckets,
   aimKey,
+  countAimed,
+  sumSessionDarts,
 } from "./aim-count.module";
 
 type Landing =
@@ -42,16 +43,10 @@ function foldSession(
   metrics: AimCountMetrics,
   session: InferredSession,
 ): number {
-  let sample = 0;
-  for (const visit of session.visits) {
-    for (const dart of visit.darts) {
-      if (dart.basis !== "LARGE_TARGET") continue;
-      const aim = dart.aim;
-      if (aim === null) {
-        addCounts(metrics, AMBIGUOUS_KEY, { darts: 1 });
-        continue;
-      }
-      if (!("number" in aim)) continue;
+  return sumSessionDarts(session, (dart) => {
+    if (dart.basis !== "LARGE_TARGET") return 0;
+    return countAimed(metrics, dart, (aim) => {
+      if (!("number" in aim)) return 0;
       addCounts(metrics, aimKey(aim.key, dart.resolution), {
         darts: 1,
         trebles: 0,
@@ -61,10 +56,9 @@ function foldSession(
         other: 0,
         [landingOf(dart, aim.number)]: 1,
       });
-      sample += 1;
-    }
-  }
-  return sample;
+      return 1;
+    });
+  });
 }
 
 /**
@@ -77,6 +71,6 @@ function foldSession(
 export function largeTargetAccuracyBuckets(
   sessions: readonly InferredSession[],
   ctx: { to: string; now: Date },
-): SeriesBucket<AimCountMetrics>[] {
+): AimCountBuckets {
   return aimCountBuckets(sessions, ctx, foldSession);
 }

@@ -2,6 +2,7 @@ import type {
   AimKey,
   ContextFilter,
   GameTypeKey,
+  SeriesBucket,
   TargetKey,
   WireKey,
 } from "@lib/types";
@@ -650,6 +651,9 @@ export type BucketedSession = SessionCheckoutVisits & {
 
 /** Metrics shape of every inferred-aim section: rows keyed by aim (and resolution), each a record of counts. */
 export type AimCountMetrics = Record<string, Record<string, number>>;
+
+/** An inferred-aim section's series: one `AimCountMetrics` bucket per period. */
+export type AimCountBuckets = SeriesBucket<AimCountMetrics>[];
 
 /** `checkout-rate` section metrics — one bucket, keyed by the exact `startingRemaining` (phase-3 decision 4). */
 export type CheckoutRateMetrics = Record<
