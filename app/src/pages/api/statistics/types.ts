@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { parseTargetKey } from "@lib/stats/target-key";
+import { parseTargetKey, parseWireKey } from "@lib/stats/target-key";
 
 /** Contract: docs/architecture/06-API/04-Endpoint-Contracts.md §Statistics Overview. */
 export const StatisticsOverviewResponse = z.object({
@@ -169,9 +169,12 @@ export const StatisticsRangeQuery = z
       .string()
       .optional()
       .refine(
-        (value) => value === undefined || parseTargetKey(value) !== null,
+        (value) =>
+          value === undefined ||
+          parseTargetKey(value) !== null ||
+          parseWireKey(value) !== null,
         {
-          message: "target must be a valid TargetKey",
+          message: "target must be a valid TargetKey or WireKey",
         },
       ),
   })

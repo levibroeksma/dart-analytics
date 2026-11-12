@@ -245,6 +245,28 @@ describe("StatisticsRangeQuery", () => {
     }
   });
 
+  it("accepts a board-adjacent wire target", () => {
+    const result = StatisticsRangeQuery.safeParse({
+      from: "2026-01-01T00:00:00+01:00",
+      to: "2026-09-01T00:00:00+01:00",
+      target: "WIRE:6-10",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.target).toBe("WIRE:6-10");
+  });
+
+  it("rejects a wire target between non-adjacent numbers, naming target", () => {
+    const result = StatisticsRangeQuery.safeParse({
+      from: "2026-01-01T00:00:00+01:00",
+      to: "2026-09-01T00:00:00+01:00",
+      target: "WIRE:6-11",
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.path).toEqual(["target"]);
+    }
+  });
+
   it("omits target when not given", () => {
     const result = StatisticsRangeQuery.safeParse({
       from: "2026-01-01T00:00:00+01:00",
