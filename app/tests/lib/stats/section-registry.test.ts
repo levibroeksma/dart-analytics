@@ -73,6 +73,7 @@ describe("statistics section registry", () => {
       "aim-drift",
       "double-accuracy",
       "double-preference",
+      "setup-success",
       "heatmap",
       "session-result",
       "completion",
@@ -85,6 +86,7 @@ describe("statistics section registry", () => {
     expect(sectionsForGame("501")).toContain("aim-drift");
     expect(sectionsForGame("501")).toContain("double-accuracy");
     expect(sectionsForGame("501")).toContain("double-preference");
+    expect(sectionsForGame("501")).toContain("setup-success");
     expect(sectionsForGame("ONE_TWENTY_ONE")).not.toContain(
       "large-target-accuracy",
     );

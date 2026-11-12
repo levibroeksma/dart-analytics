@@ -176,6 +176,20 @@ describe("mergeMetrics", () => {
     });
   });
 
+  it("merges two chunks of a setup-success section, counts summed", () => {
+    const a = { "ROUTE|TREBLE|SOLE": { attempts: 1, hits: 0 } };
+    const b = {
+      "ROUTE|TREBLE|SOLE": { attempts: 2, hits: 1 },
+      VISITS: { visits: 1, goodLeaves: 1 },
+      AMBIGUOUS: { darts: 1 },
+    };
+    expect(mergeMetrics("setup-success", a, b)).toEqual({
+      "ROUTE|TREBLE|SOLE": { attempts: 3, hits: 1 },
+      VISITS: { visits: 1, goodLeaves: 1 },
+      AMBIGUOUS: { darts: 1 },
+    });
+  });
+
   it("sums double-performance leaves", () => {
     const merged = mergeMetrics(
       "double-performance",

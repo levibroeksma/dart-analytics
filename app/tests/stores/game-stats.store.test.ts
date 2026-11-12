@@ -110,13 +110,13 @@ describe("gameStatsStore", () => {
 
     await store.load();
 
-    // 15 sections for 501 (`section-registry.ts`): the checkout family
+    // 16 sections for 501 (`section-registry.ts`): the checkout family
     // (scoring-trend, checkout-rate, double-performance, checkout-path,
-    // bust-rate, leg-stats, treble-rate), large-target-accuracy, aim-drift, double-accuracy, double-preference, plus phase 1's heatmap,
+    // bust-rate, leg-stats, treble-rate), large-target-accuracy, aim-drift, double-accuracy, double-preference, setup-success, plus phase 1's heatmap,
     // session-result, completion and volume. `checkout-path` is fetched
     // through its own dedicated `readSection` call (not bucketable), so the
-    // count is still 15, not 14.
-    expect(readSection).toHaveBeenCalledTimes(15);
+    // count is still 16, not 15.
+    expect(readSection).toHaveBeenCalledTimes(16);
     const sectionIds = readSection.mock.calls.map((call) => call[2].id).sort();
     expect(sectionIds).toEqual([
       "aim-drift",
@@ -132,6 +132,7 @@ describe("gameStatsStore", () => {
       "leg-stats",
       "scoring-trend",
       "session-result",
+      "setup-success",
       "treble-rate",
       "volume",
     ]);

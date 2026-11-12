@@ -61,6 +61,7 @@ import { completionBuckets } from "@modules/stats/sections/completion.module";
 import { confusionBuckets } from "@modules/stats/sections/confusion.module";
 import { doubleAccuracyBuckets } from "@modules/stats/sections/double-accuracy.module";
 import { doublePreferenceBuckets } from "@modules/stats/sections/double-preference.module";
+import { setupSuccessBuckets } from "@modules/stats/sections/setup-success.module";
 import { aimDriftBuckets } from "@modules/stats/sections/aim-drift.module";
 import { largeTargetAccuracyBuckets } from "@modules/stats/sections/large-target-accuracy.module";
 import { inferredSessions } from "@modules/stats/x01-inferred-darts.module";
@@ -657,6 +658,7 @@ const HANDLERS: Record<
   "aim-drift": { server: aimHandler(aimDriftBuckets) },
   "double-accuracy": { server: aimHandler(doubleAccuracyBuckets) },
   "double-preference": { server: aimHandler(doublePreferenceBuckets) },
+  "setup-success": { server: aimHandler(setupSuccessBuckets) },
   "checkout-path": { server: foldHandler(checkoutPathBuckets) },
   "bust-rate": { server: foldHandler(bustRateBuckets) },
   "leg-stats": { server: foldHandler(legStatsBuckets) },
