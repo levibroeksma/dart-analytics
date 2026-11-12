@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
+import { zoneCentroid } from "@lib/game/board/board-geometry.module";
 import { inferredSessions } from "@modules/stats/x01-inferred-darts.module";
-import { dart, session, visit } from "./support/x01-inferred-fixtures";
+import {
+  ambiguousDart,
+  dart,
+  session,
+  visit,
+} from "./support/x01-inferred-fixtures";
 
 describe("inferredSessions", () => {
   it("walks a visit, recomputing remaining and darts left per dart", () => {
@@ -96,6 +102,20 @@ describe("inferredSessions", () => {
     expect([thrown.aim?.key, thrown.resolution, thrown.hit]).toEqual([
       "DOUBLE:16",
       "SOLE",
+      false,
+    ]);
+  });
+
+  it("gives an ambiguous dart no aim and no hit", () => {
+    const d9 = zoneCentroid(9, "DOUBLE")!;
+    const s2 = zoneCentroid(2, "OUTER_SINGLE")!;
+    const { sessions } = inferredSessions([
+      session([visit(18, [ambiguousDart(18, d9, s2, "FINISH")])]),
+    ]);
+    const thrown = sessions[0]!.visits[0]!.darts[0]!;
+    expect([thrown.resolution, thrown.aim, thrown.hit]).toEqual([
+      "AMBIGUOUS",
+      null,
       false,
     ]);
   });

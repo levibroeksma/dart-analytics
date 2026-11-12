@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { setupSuccessBuckets } from "@modules/stats/sections/setup-success.module";
-import { CTX, dart, inferred, visit } from "../support/x01-inferred-fixtures";
+import { zoneCentroid } from "@lib/game/board/board-geometry.module";
+import {
+  ambiguousDart,
+  CTX,
+  dart,
+  inferred,
+  visit,
+} from "../support/x01-inferred-fixtures";
 
 describe("setupSuccessBuckets", () => {
   it("counts setup darts per basis and kind, and good leaves per visit", () => {
@@ -46,5 +53,35 @@ describe("setupSuccessBuckets", () => {
       CTX,
     );
     expect(buckets).toEqual([]);
+  });
+
+  it("counts a dart ambiguous between D9 and S2 with the split nearer under AMBIGUOUS only", () => {
+    const d9 = zoneCentroid(9, "DOUBLE")!;
+    const s2 = zoneCentroid(2, "OUTER_SINGLE")!;
+    const sessions = inferred([
+      visit(18, [ambiguousDart(18, d9, s2, "SPLIT")]),
+      visit(100, [dart("TREBLE", 20, 60)]),
+    ]);
+    const thrown = sessions[0]!.visits[0]!.darts[0]!;
+    expect([thrown.resolution, thrown.basis]).toEqual(["AMBIGUOUS", "SPLIT"]);
+    const [bucket] = setupSuccessBuckets(sessions, CTX);
+    const aimRows = Object.keys(bucket!.metrics).filter(
+      (key) => key !== "AMBIGUOUS" && key !== "VISITS",
+    );
+    expect(aimRows).toEqual(["ROUTE|TREBLE|SOLE"]);
+    expect(bucket!.metrics.AMBIGUOUS).toEqual({ darts: 1 });
+    expect(bucket!.sampleSize).toBe(1);
+  });
+
+  it("leaves a dart ambiguous between D9 and S2 with the double nearer out", () => {
+    const d9 = zoneCentroid(9, "DOUBLE")!;
+    const s2 = zoneCentroid(2, "OUTER_SINGLE")!;
+    const sessions = inferred([
+      visit(18, [ambiguousDart(18, d9, s2, "FINISH")]),
+    ]);
+    const thrown = sessions[0]!.visits[0]!.darts[0]!;
+    expect([thrown.resolution, thrown.basis]).toEqual(["AMBIGUOUS", "FINISH"]);
+    const [bucket] = setupSuccessBuckets(sessions, CTX);
+    expect(bucket?.metrics.AMBIGUOUS).toBeUndefined();
   });
 });
