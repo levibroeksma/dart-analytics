@@ -65,6 +65,7 @@ export const SECTIONS: Readonly<Record<SectionId, SectionMeta>> = {
   "double-performance": {
     id: "double-performance",
     version: 1,
+    excludedGames: ["501"],
     requires: ["checkout"],
     computeSite: "server",
     bucketable: true,
@@ -75,6 +76,7 @@ export const SECTIONS: Readonly<Record<SectionId, SectionMeta>> = {
   "checkout-path": {
     id: "checkout-path",
     version: 1,
+    excludedGames: ["501"],
     requires: ["checkout"],
     computeSite: "server",
     bucketable: false,
@@ -105,6 +107,7 @@ export const SECTIONS: Readonly<Record<SectionId, SectionMeta>> = {
   "treble-rate": {
     id: "treble-rate",
     version: 1,
+    excludedGames: ["501"],
     requires: ["scoring", "board"],
     computeSite: "sql",
     bucketable: true,
@@ -275,7 +278,10 @@ export const SECTIONS: Readonly<Record<SectionId, SectionMeta>> = {
     version: 2,
     requires: ["board"],
     computeSite: "sql",
-    siteByTagWhenFiltered: DERIVED_ON_SERVER,
+    siteByTagWhenFiltered: {
+      ...DERIVED_ON_SERVER,
+      "intent-inferred": "server",
+    },
     bucketable: false,
     includesAbandoned: false,
     configSensitive: [],
@@ -304,6 +310,7 @@ export const SECTIONS: Readonly<Record<SectionId, SectionMeta>> = {
   volume: {
     id: "volume",
     version: 1,
+    excludedGames: ["501"],
     requires: [],
     computeSite: "sql",
     bucketable: true,
@@ -353,6 +360,7 @@ function offersSection(
   meta: SectionMeta,
 ): boolean {
   if (meta.games && !meta.games.includes(gameTypeKey)) return false;
+  if (meta.excludedGames?.includes(gameTypeKey)) return false;
   return meta.requires.every((requirement) =>
     requirementMet(tags, requirement),
   );
@@ -361,13 +369,29 @@ function offersSection(
 /**
  * Reorders a game's page after Shanghai's catalog order, which puts
  * `session-result` right after `shanghai-count` (`01-Section-Catalog.md` §2,
- * phase-4 decision 11). Every entry is a permutation of the tag- and
- * game-gated set for that game (`section-registry.test.ts` asserts this) —
+ * phase-4 decision 11), and 501's inferred-aim page (x01 inferred-aim design
+ * §5), which interleaves the aim sections with the checkout family. Every
+ * entry is a permutation of the tag- and game-gated set for that game
+ * (`section-registry.test.ts` asserts this) —
  * an override can reorder a page but never add or drop a section from it.
  */
 export const PAGE_ORDER_OVERRIDES: Partial<
   Record<GameTypeKey, readonly SectionId[]>
 > = {
+  "501": [
+    "scoring-trend",
+    "large-target-accuracy",
+    "aim-drift",
+    "checkout-rate",
+    "double-accuracy",
+    "double-preference",
+    "setup-success",
+    "bust-rate",
+    "leg-stats",
+    "heatmap",
+    "session-result",
+    "completion",
+  ],
   SHANGHAI: [
     "target-accuracy",
     "shanghai-count",
