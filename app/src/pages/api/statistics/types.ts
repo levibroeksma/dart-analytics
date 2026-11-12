@@ -472,6 +472,15 @@ export const AimDriftSeriesResponse = SeriesBase.extend({
 });
 export type AimDriftSeriesResponseData = z.infer<typeof AimDriftSeriesResponse>;
 
+export const DoubleAccuracySeriesResponse = SeriesBase.extend({
+  sectionId: z.literal("double-accuracy"),
+  buckets: z.array(BucketBase.extend({ metrics: AimCountMetrics })),
+  ...SkippedSessions,
+});
+export type DoubleAccuracySeriesResponseData = z.infer<
+  typeof DoubleAccuracySeriesResponse
+>;
+
 export const CheckoutPathSeriesResponse = SeriesBase.extend({
   sectionId: z.literal("checkout-path"),
   buckets: z.array(BucketBase.extend({ metrics: CheckoutPathMetrics })),

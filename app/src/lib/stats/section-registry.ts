@@ -134,6 +134,17 @@ export const SECTIONS: Readonly<Record<SectionId, SectionMeta>> = {
     configSensitive: [],
     params: [],
   },
+  "double-accuracy": {
+    id: "double-accuracy",
+    version: 1,
+    requires: ["intent-inferred"],
+    games: ["501"],
+    computeSite: "server",
+    bucketable: true,
+    includesAbandoned: false,
+    configSensitive: [],
+    params: [],
+  },
   "atc-darts-per-target": {
     id: "atc-darts-per-target",
     version: 1,

@@ -20,6 +20,7 @@ import {
   DoublePerformanceSeriesResponse,
   LargeTargetAccuracySeriesResponse,
   AimDriftSeriesResponse,
+  DoubleAccuracySeriesResponse,
   CheckoutPathSeriesResponse,
   BustRateSeriesResponse,
   LegStatsSeriesResponse,
@@ -738,6 +739,32 @@ describe("checkout family series responses", () => {
           sampleSize: 4,
           metrics: {
             "LARGE_TARGET|TREBLE:20|1|NEAREST": { n: 3, sumDx: -1.5, sumDy: 2 },
+            AMBIGUOUS: { darts: 1 },
+          },
+        },
+      ],
+      skippedSessions: 0,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("parses a double-accuracy series response with an AMBIGUOUS row", () => {
+    const result = DoubleAccuracySeriesResponse.safeParse({
+      sectionId: "double-accuracy",
+      sectionVersion: 1,
+      dataVersion: "v1:1:0",
+      bucket: "none",
+      tz: null,
+      range: { from: "2026-01-01T00:00:00Z", to: "2026-02-01T00:00:00Z" },
+      buckets: [
+        {
+          start: "2026-01-01T00:00:00Z",
+          end: "2026-02-01T00:00:00Z",
+          closed: true,
+          sampleSize: 3,
+          metrics: {
+            "DOUBLE:16|SOLE|HIT": { darts: 2 },
+            "DOUBLE:16|SOLE|MISS|OUTSIDE|3": { darts: 1 },
             AMBIGUOUS: { darts: 1 },
           },
         },

@@ -148,6 +148,20 @@ describe("mergeMetrics", () => {
     });
   });
 
+  it("merges two chunks of a double-accuracy section, counts summed", () => {
+    const a = { "DOUBLE:16|SOLE|HIT": { darts: 1 } };
+    const b = {
+      "DOUBLE:16|SOLE|HIT": { darts: 2 },
+      "DOUBLE:16|SOLE|MISS|OUTSIDE|3": { darts: 1 },
+      AMBIGUOUS: { darts: 1 },
+    };
+    expect(mergeMetrics("double-accuracy", a, b)).toEqual({
+      "DOUBLE:16|SOLE|HIT": { darts: 3 },
+      "DOUBLE:16|SOLE|MISS|OUTSIDE|3": { darts: 1 },
+      AMBIGUOUS: { darts: 1 },
+    });
+  });
+
   it("sums double-performance leaves", () => {
     const merged = mergeMetrics(
       "double-performance",

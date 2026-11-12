@@ -434,6 +434,7 @@ const MERGERS: {
   "double-performance": mergeCountRecord,
   "large-target-accuracy": mergeCountRecord,
   "aim-drift": mergeCountRecord,
+  "double-accuracy": mergeCountRecord,
   "bust-rate": mergeCountRecord,
   "leg-stats": mergeLegStats,
   "checkout-path": mergeNestedCountRecord,
