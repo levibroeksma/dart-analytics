@@ -15,7 +15,11 @@ import {
   sectionsForStep,
   tagsForGameType,
 } from "@lib/stats/section-registry";
-import { parseTargetKey, formatTargetKey } from "@lib/stats/target-key";
+import {
+  parseTargetKey,
+  parseWireKey,
+  formatTargetKey,
+} from "@lib/stats/target-key";
 import { classifyDoubleAttempts } from "@modules/game/double-attempt.module";
 import { highestCheckout } from "@modules/game/highest-checkout.module";
 import {
@@ -71,6 +75,7 @@ import {
   HEATMAP_CELL_MM,
   heatmapBuckets,
   heatmapCellRowsFromAims,
+  inferredHeatmapCellRows,
 } from "@modules/stats/sections/heatmap.module";
 import { aimCellRows } from "@modules/stats/sections/intent-cells.module";
 import { ladderProgressBuckets } from "@modules/stats/sections/ladder-progress.module";
@@ -137,6 +142,7 @@ import {
   findX01FoldRows,
 } from "@repositories/statistics.repository";
 import type {
+  AimKey,
   Bucket,
   ComputeSite,
   ContextFilter,
@@ -149,7 +155,6 @@ import type {
   Series,
   SeriesBucket,
   StatusFilter,
-  TargetKey,
 } from "@lib/types";
 import type {
   SessionListQueryData,
@@ -289,6 +294,8 @@ type SectionContext = {
   statuses: string[];
   context: ContextFilter;
   target: { number: number; zone: IntentZoneKey } | null;
+  /** The validated `target` on an `intent-inferred` game, kept as its key since `target` cannot hold a wire; `null` on every other game or when no target was sent. */
+  inferredAim: AimKey | null;
   /** Narrows every reader this context feeds to one GAME routine step's own sessions; `undefined` for a standalone game page. */
   routineStep?: RoutineStepScope;
 };
@@ -298,7 +305,7 @@ type ShapeContext = {
   from: string;
   to: string;
   now: Date;
-  target: TargetKey | null;
+  target: AimKey | null;
 };
 
 /**
@@ -530,6 +537,15 @@ function foldHandler(
   };
 }
 
+/** `foldLoad`'s sessions walked into `InferredSession`s; an undecodable snapshot or an unlocated dart counts its session as skipped. */
+async function inferredLoad(
+  db: Db,
+  ctx: SectionContext,
+): Promise<{ sessions: InferredSession[]; skippedSessions: number }> {
+  const { sessions } = await foldLoad(db, ctx);
+  return inferredSessions(sessions);
+}
+
 /**
  * Adapts an `InferredSession` shape function -- every intent-inferred 501
  * section -- into a `SectionHandler` sharing `foldLoad`, so sessions with an
@@ -543,9 +559,8 @@ function aimHandler(
 ): SectionHandler {
   return {
     load: async (db, ctx) => {
-      const { sessions } = await foldLoad(db, ctx);
-      const { sessions: walked, skippedSessions } = inferredSessions(sessions);
-      return { rows: walked, skippedSessions };
+      const { sessions, skippedSessions } = await inferredLoad(db, ctx);
+      return { rows: sessions, skippedSessions };
     },
     shape: (rows, ctx) => shape(rows as InferredSession[], ctx),
   };
@@ -578,15 +593,33 @@ function targetAccuracyFromSessions(
   return targetAccuracyBuckets(aimCellRows(sessions), ctx);
 }
 
-/** `heatmap`'s `server`-site shape (Group C): a derived game's darts aimed at the requested target, binned like the SQL cells. */
-function heatmapFromSessions(
-  sessions: readonly SessionSteps<unknown>[],
-  ctx: ShapeContext,
-): SeriesBucket<unknown>[] {
-  const target = ctx.target === null ? null : parseTargetKey(ctx.target);
-  if (target === null) return [];
-  return heatmapBuckets(heatmapCellRowsFromAims(sessions, target), ctx);
-}
+/**
+ * `heatmap`'s `server`-site handler, binning cells at load time: on an
+ * `intent-inferred` game (the only one `inferredAim` is set on) through
+ * `inferredLoad` and the darts resolved to that aim (x01 inferred-aim design
+ * §5), on a derived game (Group C) through `stepsLoad` and the darts whose
+ * recovered aim matches `target`.
+ */
+const heatmapServerHandler: SectionHandler = {
+  load: async (db, ctx) => {
+    if (ctx.inferredAim !== null) {
+      const { sessions, skippedSessions } = await inferredLoad(db, ctx);
+      return {
+        rows: inferredHeatmapCellRows(sessions, ctx.inferredAim),
+        skippedSessions,
+      };
+    }
+    const { sessions, skippedSessions } = await stepsLoad(db, ctx);
+    return {
+      rows:
+        ctx.target === null
+          ? []
+          : heatmapCellRowsFromAims(sessions, ctx.target),
+      skippedSessions,
+    };
+  },
+  shape: (rows, ctx) => heatmapBuckets(rows as HeatmapCellRow[], ctx),
+};
 
 /** `confusion`'s `server`-site shape (phase-4 decision 1): the fold's recovered aims, fed through phase-2's own bucket function. */
 function confusionFromSessions(
@@ -647,7 +680,7 @@ const HANDLERS: Record<
   },
   heatmap: {
     sql: handler(loadHeatmapCells, heatmapBuckets),
-    server: stepsHandler(heatmapFromSessions),
+    server: heatmapServerHandler,
   },
   "scoring-trend": { sql: handler(loadVisitScoring, scoringTrendBuckets) },
   "treble-rate": { sql: handler(loadHitNumberCells, trebleRateBuckets) },
@@ -788,6 +821,22 @@ export async function listGameSessions(
   };
 }
 
+/** The zones an inferred 501 aim can carry (`InferredAim`), each paired with its number by `parseTargetKey`'s own range rules. */
+const INFERRED_AIM_ZONES: readonly IntentZoneKey[] = [
+  "TREBLE",
+  "SINGLE",
+  "DOUBLE",
+  "INNER_BULL",
+  "OUTER_BULL",
+];
+
+/** Whether `value` is a key an inferred 501 aim can resolve to: `TREBLE:n`, `SINGLE:n`, `DOUBLE:n`, `INNER_BULL:25`, `OUTER_BULL:25` or a board-adjacent `WIRE:a-b`. */
+function isInferredAimKey(value: string): value is AimKey {
+  if (parseWireKey(value) !== null) return true;
+  const parsed = parseTargetKey(value);
+  return parsed !== null && INFERRED_AIM_ZONES.includes(parsed.zone);
+}
+
 /**
  * Resolves the `target` query param against a section's declared `params`
  * and the game's tags (phase-2 decision 5); `{ error }` on either mismatch,
@@ -798,15 +847,24 @@ function sectionTarget(
   gameTypeKey: GameTypeKey,
   targetParam: string | undefined,
 ):
-  | { target: { number: number; zone: IntentZoneKey } | null }
+  | {
+      target: { number: number; zone: IntentZoneKey } | null;
+      inferredAim: AimKey | null;
+    }
   | { error: string } {
-  if (targetParam === undefined) return { target: null };
+  if (targetParam === undefined) return { target: null, inferredAim: null };
   if (!meta.params.includes("target")) {
     return { error: "this section does not accept target" };
   }
   const tags = tagsForGameType(gameTypeKey);
   if (tags.has("intent-stored")) {
-    return { target: parseTargetKey(targetParam) };
+    return { target: parseTargetKey(targetParam), inferredAim: null };
+  }
+  if (tags.has("intent-inferred")) {
+    if (!isInferredAimKey(targetParam)) {
+      return { error: "target must be an inferred aim key on this game" };
+    }
+    return { target: null, inferredAim: targetParam };
   }
   if (!tags.has("intent-derived")) {
     return { error: "target requires an intent-stored game" };
@@ -815,7 +873,7 @@ function sectionTarget(
   if (parsed === null || (parsed.zone !== "NUMBER" && parsed.zone !== "BULL")) {
     return { error: "target must be NUMBER:n or BULL:25 on this game" };
   }
-  return { target: parsed };
+  return { target: parsed, inferredAim: null };
 }
 
 /** `resolveGameSectionRequest`'s success shape: everything `dispatchGameSection` needs to build its `SectionContext` once every check has passed. */
@@ -823,6 +881,7 @@ type ResolvedGameSectionRequest = {
   from: string;
   statuses: string[];
   target: { number: number; zone: IntentZoneKey } | null;
+  inferredAim: AimKey | null;
 };
 
 /**
@@ -858,6 +917,7 @@ async function resolveGameSectionRequest(
     from: resolvedRange.from,
     statuses: resolvedRange.statuses,
     target: resolvedTarget.target,
+    inferredAim: resolvedTarget.inferredAim,
   };
 }
 
@@ -998,7 +1058,7 @@ async function resolveGameSectionSite(
   meta: SectionMeta,
   ctx: SectionContext,
 ): Promise<{ handler: SectionHandler } | { error: string }> {
-  const hasTarget = ctx.target !== null;
+  const hasTarget = ctx.target !== null || ctx.inferredAim !== null;
   const site = sectionSite(meta, gameTypeKey, hasTarget);
   const sectionHandler = resolveSectionHandler(
     sectionId,
@@ -1040,10 +1100,11 @@ async function loadGameSectionResponse(
     handler.load(db, ctx),
   ]);
 
-  const targetKey: TargetKey | null =
-    ctx.target === null
+  const targetKey: AimKey | null =
+    ctx.inferredAim ??
+    (ctx.target === null
       ? null
-      : formatTargetKey(ctx.target.number, ctx.target.zone);
+      : formatTargetKey(ctx.target.number, ctx.target.zone));
 
   const buckets = handler.shape(loadResult.rows, {
     from: ctx.from,

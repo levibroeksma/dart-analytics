@@ -71,6 +71,7 @@ import {
   sectionsForGame,
 } from "@lib/stats/section-registry";
 import { SCORE_BANDS } from "@modules/stats/sections/scoring-trend.module";
+import { zoneCentroid } from "@lib/game/board/board-geometry.module";
 import type { GameTypeKey } from "@lib/types";
 import type { RoutineSectionQuery } from "@services/types";
 
@@ -608,7 +609,7 @@ describe("getGameSection", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("rejects a status the section does not accept", async () => {
-    const result = await getGameSection(playerId, "501", "volume", {
+    const result = await getGameSection(playerId, "TUOD", "volume", {
       ...baseRangeQuery,
       status: "abandoned",
     });
@@ -643,7 +644,7 @@ describe("getGameSection", () => {
     const original = SECTIONS.volume.bucketable;
     (SECTIONS.volume as { bucketable: boolean }).bucketable = false;
     try {
-      const result = await getGameSection(playerId, "501", "volume", {
+      const result = await getGameSection(playerId, "TUOD", "volume", {
         ...baseRangeQuery,
         bucket: "month",
         tz: "Europe/Amsterdam",
@@ -709,7 +710,7 @@ describe("getGameSection", () => {
     });
     vi.mocked(repo.findBucketedSessionAggregates).mockResolvedValue([]);
 
-    const result = await getGameSection(playerId, "501", "volume", {
+    const result = await getGameSection(playerId, "TUOD", "volume", {
       ...baseRangeQuery,
       from: "2026-01-15T00:00:00.000Z",
       bucket: "month",
@@ -917,7 +918,7 @@ describe("getGameSection", () => {
   });
 
   it("rejects a target on a game without intent-stored", async () => {
-    const result = await getGameSection(playerId, "501", "heatmap", {
+    const result = await getGameSection(playerId, "TUOD", "heatmap", {
       ...baseRangeQuery,
       status: "completed",
       target: "DOUBLE:16",
@@ -1125,12 +1126,19 @@ describe("getGameSection dispatches the checkout family", () => {
       maxCompletedAt: null,
     });
     vi.mocked(repo.findScopeDartCount).mockResolvedValue(1);
-    vi.mocked(repo.findX01FoldRows).mockResolvedValue([makeFoldRow()] as never);
+    vi.mocked(repo.findX01FoldRows).mockResolvedValue([
+      makeTuodFoldRow(),
+    ] as never);
 
-    const result = await getGameSection(playerId, "501", "double-performance", {
-      ...baseRangeQuery,
-      status: "completed",
-    });
+    const result = await getGameSection(
+      playerId,
+      "TUOD",
+      "double-performance",
+      {
+        ...baseRangeQuery,
+        status: "completed",
+      },
+    );
 
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -1354,9 +1362,11 @@ describe("getGameSection dispatches the checkout family", () => {
       maxCompletedAt: null,
     });
     vi.mocked(repo.findScopeDartCount).mockResolvedValue(1);
-    vi.mocked(repo.findX01FoldRows).mockResolvedValue([makeFoldRow()] as never);
+    vi.mocked(repo.findX01FoldRows).mockResolvedValue([
+      makeTuodFoldRow(),
+    ] as never);
 
-    const result = await getGameSection(playerId, "501", "checkout-path", {
+    const result = await getGameSection(playerId, "TUOD", "checkout-path", {
       ...baseRangeQuery,
       status: "completed",
     });
@@ -1499,10 +1509,15 @@ describe("getGameSection dispatches the checkout family", () => {
       },
     ]);
 
-    const result = await getGameSection(playerId, "501", "treble-rate", {
-      ...baseRangeQuery,
-      status: "completed",
-    });
+    const result = await getGameSection(
+      playerId,
+      "SCORE_TRAINING",
+      "treble-rate",
+      {
+        ...baseRangeQuery,
+        status: "completed",
+      },
+    );
 
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -1559,7 +1574,7 @@ describe("getGameSection dispatches the checkout family", () => {
   });
 
   it("rejects bucket=month on checkout-path (not bucketable)", async () => {
-    const result = await getGameSection(playerId, "501", "checkout-path", {
+    const result = await getGameSection(playerId, "TUOD", "checkout-path", {
       ...baseRangeQuery,
       bucket: "month",
       tz: "Europe/Amsterdam",
@@ -1982,6 +1997,83 @@ describe("getGameSection dispatches derived-intent and game-specific sections (p
     expect(result.ok).toBe(true);
     expect(repo.findHeatmapCells).toHaveBeenCalled();
     expect(repo.findDartFoldRows).not.toHaveBeenCalled();
+  });
+
+  it("folds a WIRE target heatmap on 501 through the inferred fold and echoes the key", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 1,
+      maxCompletedAt: null,
+    });
+    vi.mocked(repo.findScopeDartCount).mockResolvedValue(1);
+    const point = zoneCentroid(10, "OUTER_SINGLE")!;
+    vi.mocked(repo.findX01FoldRows).mockResolvedValue([
+      makeFoldRow({
+        configuration: { ...FOLD_501_CONFIG, starting_score: 42 },
+        turnTotalScore: 10,
+        hitTargetNumber: 10,
+        hitZoneKey: "OUTER_SINGLE",
+        score: 10,
+        locationX: point.x,
+        locationY: point.y,
+      }),
+    ] as never);
+
+    const result = await getGameSection(playerId, "501", "heatmap", {
+      ...baseRangeQuery,
+      status: "completed",
+      target: "WIRE:6-10",
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.buckets[0]!.metrics).toEqual({
+        cellMm: 5,
+        target: "WIRE:6-10",
+        cells: [[Math.floor(point.x / 5), Math.floor(point.y / 5), 1]],
+      });
+    }
+    expect(repo.findX01FoldRows).toHaveBeenCalled();
+    expect(repo.findHeatmapCells).not.toHaveBeenCalled();
+  });
+
+  it("rejects a heatmap target on 501 that is not an inferred aim key", async () => {
+    const result = await getGameSection(playerId, "501", "heatmap", {
+      ...baseRangeQuery,
+      status: "completed",
+      target: "NUMBER:20",
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.code).toBe("VALIDATION_FAILED");
+      expect(result.details?.reason).toBe(
+        "target must be an inferred aim key on this game",
+      );
+    }
+    expect(repo.findX01FoldRows).not.toHaveBeenCalled();
+  });
+
+  it("keeps the unfiltered heatmap on 501 in SQL", async () => {
+    vi.mocked(repo.findHeatmapCells).mockResolvedValue([]);
+
+    const result = await getGameSection(playerId, "501", "heatmap", {
+      ...baseRangeQuery,
+      status: "completed",
+    });
+
+    expect(result.ok).toBe(true);
+    expect(repo.findHeatmapCells).toHaveBeenCalled();
+    expect(repo.findX01FoldRows).not.toHaveBeenCalled();
+  });
+
+  it("returns NOT_FOUND for double-performance on 501 (excluded from the 501 page)", async () => {
+    const result = await getGameSection(playerId, "501", "double-performance", {
+      ...baseRangeQuery,
+      status: "completed",
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.code).toBe("NOT_FOUND");
   });
 
   it("resolves a heatmap handler on every derived game with and without a target", () => {
@@ -3150,7 +3242,10 @@ describe("getRoutineStepSection", () => {
   it("delegates a GAME step to the game section path with context 'routine' and the exact routineStep, and keys dataVersion under the routine", async () => {
     vi.mocked(repo.findRoutineHeader).mockResolvedValue(makeRoutineHeaderRow());
     vi.mocked(repo.findRoutineStepDescriptors).mockResolvedValue([
-      makeGameStepDescriptorRow(),
+      makeGameStepDescriptorRow({
+        gameTypeKey: "TUOD",
+        rulesetVersionKey: "TUOD_V1",
+      }),
     ]);
     vi.mocked(repo.findRoutineDataVersion).mockResolvedValue({
       runCount: 9,
@@ -3293,7 +3388,7 @@ describe("getGameSection validation order", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("checks target before status when both are invalid, naming the target error", async () => {
-    const result = await getGameSection(playerId, "501", "heatmap", {
+    const result = await getGameSection(playerId, "TUOD", "heatmap", {
       ...baseRangeQuery,
       target: "DOUBLE:16",
       status: "abandoned",

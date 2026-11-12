@@ -110,6 +110,8 @@ export interface SectionMeta {
   siteByTagWhenFiltered?: Partial<Record<StatsTag, ComputeSite>>;
   /** Narrows this section to named games on top of `requires` (phase-4 decision 10); absent means every game whose tags satisfy `requires`. */
   games?: readonly GameTypeKey[];
+  /** Drops this section from the named games' pages even when `requires` and `games` admit it (x01 inferred-aim design §5); absent means no game is excluded. */
+  excludedGames?: readonly GameTypeKey[];
 }
 
 /**

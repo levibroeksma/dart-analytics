@@ -110,22 +110,14 @@ describe("gameStatsStore", () => {
 
     await store.load();
 
-    // 16 sections for 501 (`section-registry.ts`): the checkout family
-    // (scoring-trend, checkout-rate, double-performance, checkout-path,
-    // bust-rate, leg-stats, treble-rate), large-target-accuracy, aim-drift, double-accuracy, double-preference, setup-success, plus phase 1's heatmap,
-    // session-result, completion and volume. `checkout-path` is fetched
-    // through its own dedicated `readSection` call (not bucketable), so the
-    // count is still 16, not 15.
-    expect(readSection).toHaveBeenCalledTimes(16);
+    expect(readSection).toHaveBeenCalledTimes(12);
     const sectionIds = readSection.mock.calls.map((call) => call[2].id).sort();
     expect(sectionIds).toEqual([
       "aim-drift",
       "bust-rate",
-      "checkout-path",
       "checkout-rate",
       "completion",
       "double-accuracy",
-      "double-performance",
       "double-preference",
       "heatmap",
       "large-target-accuracy",
@@ -133,8 +125,6 @@ describe("gameStatsStore", () => {
       "scoring-trend",
       "session-result",
       "setup-success",
-      "treble-rate",
-      "volume",
     ]);
     // Controller ruling R4: every call passes a `{ key, gameTypeKey }` scope,
     // not the bare `gameTypeKey` string phase 1 used.
@@ -170,7 +160,7 @@ describe("gameStatsStore", () => {
       dataVersion: "v1",
     });
     const store = gameStatsStore();
-    store.gameTypeKey = "501";
+    store.gameTypeKey = "TUOD";
 
     await store.load();
 
@@ -647,6 +637,10 @@ describe("gameStatsStore", () => {
     expect(store.bustRateTrend).toEqual([
       { start: "2026-01-01T00:00:00.000Z", rate: null },
     ]);
+
+    store.gameTypeKey = "SCORE_TRAINING";
+    await store.load();
+
     expect(store.trebleRateTrend).toEqual([
       { start: "2026-01-01T00:00:00.000Z", rate: 0.5 },
     ]);
@@ -670,7 +664,7 @@ describe("gameStatsStore", () => {
     });
 
     const store = gameStatsStore();
-    store.gameTypeKey = "501";
+    store.gameTypeKey = "TUOD";
     await store.load();
 
     expect(store.favoriteDouble?.targetKey).toBe("DOUBLE:8");
@@ -710,7 +704,7 @@ describe("gameStatsStore", () => {
     });
 
     const store = gameStatsStore();
-    store.gameTypeKey = "501";
+    store.gameTypeKey = "TUOD";
     await store.load();
 
     expect(store.pathsFor(170)).toEqual([
@@ -1132,7 +1126,7 @@ describe("gameStatsStore", () => {
     });
 
     const store = gameStatsStore();
-    store.gameTypeKey = "501";
+    store.gameTypeKey = "SCORE_TRAINING";
     await store.load();
 
     expect(store.trebleRate("20")).toBeCloseTo(10 / 40);

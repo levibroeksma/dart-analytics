@@ -23,6 +23,7 @@ function tagDerivedSections(gameTypeKey: GameTypeKey): SectionId[] {
   return (Object.keys(SECTIONS) as SectionId[]).filter((id) => {
     const meta = SECTIONS[id];
     if (meta.games && !meta.games.includes(gameTypeKey)) return false;
+    if (meta.excludedGames?.includes(gameTypeKey)) return false;
     return meta.requires.every((requirement) =>
       typeof requirement === "string"
         ? tags.has(requirement)
@@ -63,22 +64,44 @@ describe("statistics section registry", () => {
   it("orders a game's sections per the catalog", () => {
     expect(sectionsForGame("501")).toEqual([
       "scoring-trend",
-      "checkout-rate",
-      "double-performance",
-      "checkout-path",
-      "bust-rate",
-      "leg-stats",
-      "treble-rate",
       "large-target-accuracy",
       "aim-drift",
+      "checkout-rate",
       "double-accuracy",
       "double-preference",
       "setup-success",
+      "bust-rate",
+      "leg-stats",
       "heatmap",
       "session-result",
       "completion",
-      "volume",
     ]);
+  });
+
+  it("lays out the 501 page", () => {
+    const page = sectionsForGame("501");
+    expect(page.slice(0, 10)).toEqual([
+      "scoring-trend",
+      "large-target-accuracy",
+      "aim-drift",
+      "checkout-rate",
+      "double-accuracy",
+      "double-preference",
+      "setup-success",
+      "bust-rate",
+      "leg-stats",
+      "heatmap",
+    ]);
+    for (const gone of [
+      "treble-rate",
+      "volume",
+      "checkout-path",
+      "double-performance",
+    ]) {
+      expect(page).not.toContain(gone);
+    }
+    expect(sectionsForGame("ONE_TWENTY_ONE")).toContain("double-performance");
+    expect(sectionsForGame("SCORE_TRAINING")).toContain("treble-rate");
   });
 
   it("offers the inferred-aim section on 501 only", () => {

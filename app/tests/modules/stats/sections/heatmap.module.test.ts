@@ -3,7 +3,9 @@ import {
   HEATMAP_CELL_MM,
   heatmapBuckets,
   heatmapCellRowsFromAims,
+  inferredHeatmapCellRows,
 } from "@modules/stats/sections/heatmap.module";
+import { dart, inferred, visit } from "../support/x01-inferred-fixtures";
 import { sessionSteps } from "@modules/stats/derived-aims.module";
 import type { DartFoldRow, HeatmapCellRow } from "@modules/types";
 
@@ -124,5 +126,21 @@ describe("heatmapCellRowsFromAims", () => {
     expect(
       heatmapCellRowsFromAims(sessions, { number: 25, zone: "BULL" }),
     ).toEqual([]);
+  });
+});
+
+describe("inferredHeatmapCellRows", () => {
+  it("bins only darts resolved to the requested inferred aim", () => {
+    const sessions = inferred([
+      visit(48, [dart("OUTER_SINGLE", 16, 16)]),
+      visit(501, [dart("TREBLE", 20, 60)]),
+    ]);
+    expect(
+      inferredHeatmapCellRows(sessions, "WIRE:8-16").reduce(
+        (n, c) => n + c.darts,
+        0,
+      ),
+    ).toBe(1);
+    expect(inferredHeatmapCellRows(sessions, "TREBLE:19")).toEqual([]);
   });
 });
