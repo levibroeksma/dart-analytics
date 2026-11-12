@@ -70,6 +70,7 @@ describe("statistics section registry", () => {
       "leg-stats",
       "treble-rate",
       "large-target-accuracy",
+      "aim-drift",
       "heatmap",
       "session-result",
       "completion",
@@ -79,6 +80,7 @@ describe("statistics section registry", () => {
 
   it("offers the inferred-aim section on 501 only", () => {
     expect(sectionsForGame("501")).toContain("large-target-accuracy");
+    expect(sectionsForGame("501")).toContain("aim-drift");
     expect(sectionsForGame("ONE_TWENTY_ONE")).not.toContain(
       "large-target-accuracy",
     );

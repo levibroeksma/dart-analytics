@@ -1184,6 +1184,47 @@ describe("getGameSection dispatches the checkout family", () => {
     }
   });
 
+  it("dispatches aim-drift through the inferred fold, counting unlocated sessions as skipped", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 2,
+      maxCompletedAt: null,
+    });
+    vi.mocked(repo.findScopeDartCount).mockResolvedValue(2);
+    vi.mocked(repo.findX01FoldRows).mockResolvedValue([
+      makeFoldRow({
+        sessionId: "located",
+        turnId: "t-located",
+        turnTotalScore: 60,
+        configuration: { ...FOLD_501_CONFIG, starting_score: 501 },
+        hitTargetNumber: 20,
+        hitZoneKey: "TREBLE",
+        score: 60,
+        locationX: 0,
+        locationY: -103,
+      }),
+      makeFoldRow({
+        sessionId: "unlocated",
+        turnId: "t-unlocated",
+        locationX: null,
+        locationY: null,
+      }),
+    ] as never);
+
+    const result = await getGameSection(playerId, "501", "aim-drift", {
+      ...baseRangeQuery,
+      status: "completed",
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.sectionId).toBe("aim-drift");
+      expect(result.data.buckets.length).toBeGreaterThan(0);
+      expect(
+        (result.data as { skippedSessions?: number }).skippedSessions,
+      ).toBe(1);
+    }
+  });
+
   it("dispatches checkout-path through the fold", async () => {
     vi.mocked(repo.findGameDataVersion).mockResolvedValue({
       count: 1,

@@ -134,6 +134,20 @@ describe("mergeMetrics", () => {
     });
   });
 
+  it("merges two chunks of an aim-drift section, moments summed", () => {
+    const a = {
+      "LARGE_TARGET|TREBLE:20|1|NEAREST": { n: 1, sumDx: -2, sumDxDx: 4 },
+    };
+    const b = {
+      "LARGE_TARGET|TREBLE:20|1|NEAREST": { n: 2, sumDx: 3, sumDxDx: 5 },
+      AMBIGUOUS: { darts: 1 },
+    };
+    expect(mergeMetrics("aim-drift", a, b)).toEqual({
+      "LARGE_TARGET|TREBLE:20|1|NEAREST": { n: 3, sumDx: 1, sumDxDx: 9 },
+      AMBIGUOUS: { darts: 1 },
+    });
+  });
+
   it("sums double-performance leaves", () => {
     const merged = mergeMetrics(
       "double-performance",

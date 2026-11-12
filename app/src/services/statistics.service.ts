@@ -59,6 +59,7 @@ import { checkoutPathBuckets } from "@modules/stats/sections/checkout-path.modul
 import { checkoutRateBuckets } from "@modules/stats/sections/checkout-rate.module";
 import { completionBuckets } from "@modules/stats/sections/completion.module";
 import { confusionBuckets } from "@modules/stats/sections/confusion.module";
+import { aimDriftBuckets } from "@modules/stats/sections/aim-drift.module";
 import { largeTargetAccuracyBuckets } from "@modules/stats/sections/large-target-accuracy.module";
 import { inferredSessions } from "@modules/stats/x01-inferred-darts.module";
 import { doublePerformanceBuckets } from "@modules/stats/sections/double-performance.module";
@@ -651,6 +652,7 @@ const HANDLERS: Record<
   "checkout-rate": { server: foldHandler(checkoutRateBuckets) },
   "double-performance": { server: foldHandler(doublePerformanceBuckets) },
   "large-target-accuracy": { server: aimHandler(largeTargetAccuracyBuckets) },
+  "aim-drift": { server: aimHandler(aimDriftBuckets) },
   "checkout-path": { server: foldHandler(checkoutPathBuckets) },
   "bust-rate": { server: foldHandler(bustRateBuckets) },
   "leg-stats": { server: foldHandler(legStatsBuckets) },
