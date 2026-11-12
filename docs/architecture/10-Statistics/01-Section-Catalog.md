@@ -2,12 +2,12 @@
 status: canonical
 scope: architecture/statistics/sections
 read-when: adding, changing, or choosing insight sections for a statistics game page
-updated: 2026-10-07
+updated: 2026-11-12
 -->
 
 # Statistics — Section Catalog
 
-> **Version:** 1.6.12 (2026-10-05, D414; prior 1.6.11 2026-10-04, D413; prior 1.6.10 2026-10-04, D412; prior 1.6.9 2026-10-04, D411; prior 1.6.8 2026-10-04, D410; prior 1.6.7 2026-10-04, D408; prior 1.6.6 2026-10-04, D407; prior 1.6.5 2026-10-04, D406; prior 1.6.4 2026-10-03, D402; prior 1.6.3 2026-10-03, D401; prior 1.6.2 2026-10-03, D399; prior 1.6.1 2026-10-03, D397; prior 1.6.0 2026-10-03, D396)
+> **Version:** 1.7.0 (2026-11-12, D555; prior 1.6.12 2026-10-05, D414; prior 1.6.11 2026-10-04, D413; prior 1.6.10 2026-10-04, D412; prior 1.6.9 2026-10-04, D411; prior 1.6.8 2026-10-04, D410; prior 1.6.7 2026-10-04, D408; prior 1.6.6 2026-10-04, D407; prior 1.6.5 2026-10-04, D406; prior 1.6.4 2026-10-03, D402; prior 1.6.3 2026-10-03, D401; prior 1.6.2 2026-10-03, D399; prior 1.6.1 2026-10-03, D397; prior 1.6.0 2026-10-03, D396)
 >
 > The shared insight-section library and the section list of each game page.
 > Registry fields, tags, compute sites and the query contract are defined once in
@@ -17,7 +17,9 @@ updated: 2026-10-07
 > `double-performance`, `checkout-path`, `bust-rate`, `leg-stats`,
 > `ladder-progress`, `scoring-trend`, `treble-rate`, `shanghai-count`,
 > `atc-darts-per-target`, `bobs27-survival` and `training-result` are **built**
-> (phase 1 + 2 + 3 + 4, #738); every other section below is still designed, not built. Phase 4
+> (phase 1 + 2 + 3 + 4, #738), and so are the five 501 inferred-aim sections
+> (`large-target-accuracy`, `aim-drift`, `double-accuracy`,
+> `double-preference`, `setup-success`, D555); every other section below is still designed, not built. Phase 4
 > (D370) also widens `target-accuracy`, `confusion`, `miss-direction` and
 > `loose-darts` onto the `intent-derived` family (Singles Training, Shanghai,
 > Around the Clock) — those four were already built in phase 2 for
@@ -33,7 +35,7 @@ Sections are reusable across games; a page picks them by capability tag
 
 | Section | Requires | Site | Reason for site | Bucketable | Insight |
 | ------- | -------- | ---- | --------------- | ---------- | ------- |
-| `heatmap` | `board` | sql | grid binning of coordinates collapses months of darts to a fixed grid | no | where darts land in the range; filter by target where intent exists; on Singles, Shanghai and Around the Clock a filtered request folds server-side (D408) |
+| `heatmap` | `board` | sql | grid binning of coordinates collapses months of darts to a fixed grid | no | where darts land in the range; filter by target where intent exists; on Singles, Shanghai and Around the Clock a filtered request folds server-side (D408); on 501 the filter is an inferred aim key, `WIRE:a-b` included, and folds server-side over the darts resolved to it (D555) |
 | `grouping` | `board` + `intent-stored` | sql | position moment sums (Σx, Σy, Σx², Σy², Σxy) re-aggregate exactly across buckets; mean/spread/bias are derived isomorphically against `zoneCentroid` (D368) | yes | spread size and bias per target ("pulls low-left on D16") |
 | `miss-direction` | `board` + `intent-*` | sql (stored) / server (derived) | angle sectors are arithmetic against reference points TS binds as parameters (D368); derived intent needs the engine fold | no | direction of misses per target, inside/within/outside the intended ring band |
 | `loose-darts` | `board` + `intent-*` (stored: sql; derived: server) | sql (stored) / server (derived) | SQL counts intended × hit cells; TS classifies each aggregated cell with board geometry, so geometry stays single-sourced (D368) | yes | loose-dart rate per target and its trend |
@@ -44,6 +46,11 @@ Sections are reusable across games; a page picks them by capability tag
 | `checkout-rate` | `checkout` | server | remaining score is a ladder fold (`checkout-visits.module.ts`); a chance is counted per visit, not per dart (D369) | yes | checkout % overall and by remaining-score band |
 | `double-performance` | `checkout` | server | double attempts need remaining-before-dart (`double-attempt.module.ts`); counted per dart, keyed per double the remaining requires (D369) | yes | darts at double, hit rate per double, **favorite double** (best rate above a minimum sample) |
 | `checkout-path` | `checkout` | server | route per remaining needs the fold | no | **preferred path by setup shot**: from remaining X, the route taken and how often it finished |
+| `large-target-accuracy` | `intent-inferred` (501) | server | needs the remaining-score fold and the aim resolver | yes | per treble aim (`TREBLE:20/19/18`): treble, single, left/right neighbour or elsewhere; the switch count off T20 |
+| `aim-drift` | `intent-inferred` (501) | server | needs the remaining-score fold and the aim resolver | yes | bias and spread of the landing from the aim point, per basis, aim and dart in the visit ("my first dart drifts left") |
+| `double-accuracy` | `intent-inferred` (501) | server | needs the remaining-score fold and the aim resolver | yes | hit rate per finishing double (and bull), each miss by band (inside/within/outside) and compass sector |
+| `double-preference` | `intent-inferred` (501) | server | needs the remaining-score fold and the aim resolver | yes | per finishing double: how often it was left, how often split away from, beside its attempts and hits |
+| `setup-success` | `intent-inferred` (501) | server | needs the remaining-score fold and the aim resolver | yes | setup-dart hit rate per basis and aim kind; share of open visits that leave a good leave |
 | `bust-rate` | `checkout` | server | bust is a fold outcome; the shared double-out rule only — a ruleset's early-bust forfeit (121's final-visit rule, TUOD's one-dart rule) is not counted (D369) | yes | busts per remaining-score band |
 | `leg-stats` | `leg` | server | finished legs need the checkout fold; `v_player_leg_facts` has no winner column and counts lost 1v1 legs and the abandoned final leg as legs, which breaks "darts per leg"/"best leg" (D369) | yes | darts per leg, best leg (with its session, version 2, D397), distribution |
 | `ladder-progress` | `ladder` | server | target per attempt is a ladder fold | yes | highest target reached, success rate per target band, recovery after a miss |
@@ -59,13 +66,23 @@ game (Doubles Training, Bob's 27) keeps the `sql` site from phase 2.
 `sectionSite(meta, gameTypeKey)` is the one place that resolves it, read by
 both the service dispatcher and the client's chunking choice.
 
+The five `intent-inferred` sections are gated to 501 by `games` and read the
+X01 checkout fold through the session walker (`x01-inferred-darts.module.ts`),
+bounded by `MAX_FOLD_DARTS` like the checkout family (D555). A session whose
+snapshot does not decode, or holding any dart without coordinates, is skipped
+whole and counted in `skippedSessions`. Rules, `LEAVE_RANK` and
+`isGoodLeave` live in `x01-aim-candidates.module.ts`; `AMBIGUITY_RATIO =
+0.75` and `resolveAim` in `x01-aim-resolution.module.ts`. A change to any of
+them bumps the `version` of every section that reads the resolver.
+
 `completion` is the only section with `includesAbandoned = true`.
 `session-result`, `completion`, `volume`, `heatmap`, `target-accuracy`,
 `confusion`, `grouping`, `miss-direction`, `loose-darts`, `checkout-rate`,
 `double-performance`, `checkout-path`, `bust-rate`, `leg-stats`,
 `ladder-progress`, `scoring-trend`, `treble-rate`, `shanghai-count`,
-`atc-darts-per-target` and `bobs27-survival` are built (phase 1 + 2 + 3 + 4);
-every other row above is planned.
+`atc-darts-per-target` and `bobs27-survival` are built (phase 1 + 2 + 3 + 4),
+as are the five `intent-inferred` sections (D555); every other row above is
+planned.
 
 ## 1.1 Loose darts
 
@@ -156,7 +173,7 @@ replay route (`02-Replay.md`).
 
 | Game (ruleset family) | Sections |
 | --------------------- | -------- |
-| **501** | scoring-trend, checkout-rate, double-performance, checkout-path, bust-rate, leg-stats, treble-rate, heatmap, session-result, completion, volume |
+| **501** | scoring-trend, large-target-accuracy, aim-drift, checkout-rate, double-accuracy, double-preference, setup-success, bust-rate, leg-stats, heatmap, session-result, completion (`PAGE_ORDER_OVERRIDES`, D555) |
 | **121** | ladder-progress, checkout-rate, double-performance, checkout-path, bust-rate, heatmap, session-result, completion, volume |
 | **Ten Up One Down** | ladder-progress, checkout-rate, double-performance, checkout-path, bust-rate, heatmap, session-result, completion, volume |
 | **Score Training** | scoring-trend, treble-rate, heatmap, completion |
@@ -168,8 +185,15 @@ replay route (`02-Replay.md`).
 
 Score Training renders a dedicated layout on `/statistics` (`ScoreTrainingStatsOverview.astro`) instead of the generic cards: an ordered list of self-fetching section components. Built so far: `scoring-trend` as the score-trend section (reads the page-level Period select Last 30 Days / Last 90 Days / Last Year / All Time, shared by every section, D386; period 3-dart and first-nine averages with percent change vs the preceding equal period; no band counts), plus a "Personal best" card (the cards are square glass; grid rows: 3-dart average, first nine / personal best, session result, D404): the highest single-session 3-dart average and the date it was set, from one all-time un-bucketed `session-result` request made on mount only — a per-session ratio, so a 5-minute and a 100-visit session compare fairly (D390). First nine is the owner's first three visits of each `LEG` or `EXERCISE_BLOCK` stage. `heatmap` as the heatmap section (`GameHeatmapSection.astro`): one un-bucketed request over the period's current span only (the trend's boundary to now; all time from the trend's all-time start), no target, rendered as a density layer — radial stamps per 5 mm cell accumulated on a canvas and recoloured blue→green→yellow→red — through `StatsDensityHeatmap.astro` rather than the per-cell squares of `StatsHeatmap.astro` (D387). `treble-rate` is not rendered on Score Training (D404). Score Training has no `session-result` section: sessions differ in length and mode, so a mean score across them says nothing (D402). `completion` as the session-result doughnut (`GameCompletionSection.astro`, a `Chart.astro` doughnut): a square glass card in the overview's 2x2 grid with a thick ring (cutout 34%, D402), of completed (green) against abandoned (red) games, with the abandon rate as abandoned over started; never-started sessions are never shown or counted (D401). `volume` has no Score Training section (D401). The replay list is its own section (`gameSessionList()`, `GameSessionList.astro`): completed sessions only, 10 per page with previous/next over the current period, each a card like the game cards with a play icon that grows into its replay (D414, 2026-10-05), inside a glass container (`ReplayCard.astro`, reusable across statistics pages, D401). Dartless sessions are left out of the list (D405). Page order: 2x2 grid (averages, personal best, completion), scoring-trend chart, heatmap, replay. Temporarily, the Routines tab and every game not named below show a placeholder on `/statistics` (D385). 501, 121, Ten Up One Down, Singles Training, Shanghai, Around the Clock, Doubles Training and Bob's 27 render the session-result donut, the heatmap and the replay list (`HeatmapStatsOverview.astro`, `HEATMAP_ONLY_LAYOUTS`, D406, D407, D410): the same `GameCompletionSection` donut (same design and logic, in the left cell of a two-column grid above the heatmap, D411), `GameHeatmapSection` and `GameSessionList` as Score Training, resolved from the page-level game and period; their captions show darts and minutes, the 3-dart average being Score Training's alone. Doubles Training and Bob's 27 add a target picker ("All targets" plus D1..D20 and the bull, `heatmap-targets.ts`); a pick sends `target`, one request per target, and a game change resets it. 121 adds a "Personal best finish" card (`PersonalBestFinishCard.astro`) in the right cell beside the donut: one all-time un-bucketed `ladder-progress` request on mount only, the highest `maxTarget` minus one, `—` until one exists (D412). Singles, Shanghai and Around the Clock show the pooled heatmap with no per-target filter, since their aim is derived and `target` is rejected there (deferred).
 
+501 drops `treble-rate` (it counts landed trebles, so a T19 thrown at T20
+reads as a treble; `large-target-accuracy` replaces it), `volume`,
+`checkout-path` and `double-performance` (`double-accuracy` replaces it; two
+definitions of a double attempt on one page would disagree) through
+`excludedGames` (D555). The live in-game checkout % keeps `classifyDart`.
+
 X01 and Score Training carry no `grouping`/`miss-direction`/`loose-darts`: they
-store no intent (`00-Overview.md` §3). Singles Training, Shanghai and Around
+store no intent (`00-Overview.md` §3); 501's inferred aim is served by its own
+five sections, not by these. Singles Training, Shanghai and Around
 the Clock carry `miss-direction`/`loose-darts`/`target-accuracy`/`confusion`
 (derived, `server`) but never `grouping`: a whole-number aim has no aim
 point, so a spread around the wedge measures ring choice, not skill (D370
@@ -179,7 +203,9 @@ decision 6).
 
 `SectionMeta.games` gates each of these to exactly the named game(s), on top
 of its tags (D370 decision 10); `PAGE_ORDER_OVERRIDES` places `shanghai-count`
-and `session-result` in Shanghai's page order (decision 11).
+and `session-result` in Shanghai's page order (decision 11). The five
+`intent-inferred` sections are gated to 501 the same way; their rows sit in §1,
+their metrics at the end of this section.
 
 | Section | Game | Site | Reason for site | Insight |
 | ------- | ---- | ---- | ---------------- | ------- |
@@ -218,6 +244,43 @@ Metrics (all additive; grouped by `configGroupKey`, D370 decision 13):
   `completed` counts a session whose last step's seat status is `WON`.
   `configSensitive: ["ruleset_version_key", "start_score",
   "miss_penalty_multiplier", "bull_hit_value"]`.
+
+501 inferred-aim metrics (D555). Each is `AimCountMetrics =
+Record<rowKey, Record<field, number>>` per bucket, merged across chunks by
+summing (`mergeCountRecord`); a row key joins its parts with `|`. `<aim>` is
+an inferred aim key (`TREBLE:n`, `SINGLE:n`, `DOUBLE:n`, `INNER_BULL:25`,
+`OUTER_BULL:25`, `WIRE:a-b`); `<resolution>` is `SOLE` or `NEAREST`; `<basis>`
+is `LARGE_TARGET`, `ROUTE`, `SETUP`, `FINISH` or `SPLIT`. Every section counts
+its ambiguous darts under `AMBIGUOUS: { darts }` and never in an aim row; a
+bucket holding only that row is kept, so chunks merge losslessly. All five are
+version 1 and `configSensitive: []`; `sampleSize` is the resolved darts
+(`double-preference`: the `FINISH` attempts).
+
+- **`large-target-accuracy`** (basis `LARGE_TARGET`): `<aim>|<resolution>` →
+  `{ darts, trebles, singles, neighbourLeft, neighbourRight, other }`.
+  `singles` is either single ring of the aim's number; a neighbour is any
+  ring of the number before (`neighbourLeft`) or after (`neighbourRight`) it
+  in `SECTOR_ORDER`; the number's double, the bull and `MISS` are `other`.
+- **`aim-drift`** (every resolved dart, hits included):
+  `<basis>|<aim>|<dartNumber>|<resolution>` → `{ n, sumDx, sumDy, sumDxDx,
+  sumDyDy, sumDxDy }`, `(dx, dy)` = landing − `aimPoint(aim)` in mm.
+- **`double-accuracy`** (basis `FINISH`, aim `DOUBLE:n` or `INNER_BULL:25`):
+  `<aim>|<resolution>|HIT` or
+  `<aim>|<resolution>|MISS|<INSIDE|WITHIN|OUTSIDE>|<sector>` → `{ darts }`.
+  The band is the double ring (the inner bull's disc for the bull) by radius
+  (`radialClass`); `sector` is 0–7, `missSector` of the offset from the aim
+  point, as in `miss-direction`.
+- **`double-preference`** (every dart with a `FINISH` candidate, cases B and
+  C): `<finish>|STATE` → `{ left, splitAway }`, `left` counting the visit's
+  first dart and `splitAway` the darts resolved to the other candidate;
+  `<finish>|<resolution>` → `{ attempts, hits }` for darts resolved to the
+  finish. `<finish>` is `DOUBLE:n` or `INNER_BULL:25`.
+- **`setup-success`** (bases `ROUTE`, `SETUP`, `SPLIT`):
+  `<basis>|<kind>|<resolution>` → `{ attempts, hits }`, `<kind>` the aim's
+  `InferredAim.kind` (`TREBLE`, `SINGLE`, `DOUBLE`, `BULL`, `OUTER_BULL`,
+  `WIRE`); and `VISITS` → `{ visits, goodLeaves }` over visits that end open
+  (not finished, not bust) with the last dart's basis not `LARGE_TARGET`,
+  `goodLeaves` counting those whose remaining is a good leave (`isGoodLeave`).
 
 ## 2.2 Ruleset versions
 
