@@ -1,4 +1,9 @@
-import type { ContextFilter, GameTypeKey, TargetKey } from "@lib/types";
+import type {
+  ContextFilter,
+  GameTypeKey,
+  TargetKey,
+  WireKey,
+} from "@lib/types";
 import type {
   CheckoutVisitTotals,
   DartFact,
@@ -1009,4 +1014,37 @@ export type StepResultMetric = {
   headlineMax: number | null;
   sessions: number;
   skippedSessions: number;
+};
+
+/** Which 501 candidate rule produced an inferred aim (x01 inferred-aim design §4.4). */
+export type AimBasis = "LARGE_TARGET" | "ROUTE" | "SETUP" | "FINISH" | "SPLIT";
+
+/** How a dart's aim was chosen among its candidates (x01 inferred-aim design §4.5). */
+export type AimResolution = "SOLE" | "NEAREST" | "AMBIGUOUS";
+
+/** An aim inferred for a 501 dart, one variant per aim kind (x01 inferred-aim design §4.2). */
+export type InferredAim =
+  | { kind: "TREBLE" | "SINGLE" | "DOUBLE"; number: number; key: TargetKey }
+  | { kind: "BULL" | "OUTER_BULL"; key: TargetKey }
+  | { kind: "WIRE"; numbers: readonly [number, number]; key: WireKey };
+
+/** One aim a dart may have been thrown at; `weight` scales its distance at resolution. */
+export type AimCandidate = {
+  aim: InferredAim;
+  basis: AimBasis;
+  weight: number;
+};
+
+/** What the candidate rules read for one dart; `earlierDartsInVisit` is unused in V1. */
+export type AimContext = {
+  remaining: number;
+  dartsLeft: 1 | 2 | 3;
+  earlierDartsInVisit: readonly DartFact[];
+};
+
+/** A dart's resolved aim; `aim` is `null` exactly when `resolution` is `AMBIGUOUS`. */
+export type ResolvedAim = {
+  aim: InferredAim | null;
+  basis: AimBasis;
+  resolution: AimResolution;
 };
