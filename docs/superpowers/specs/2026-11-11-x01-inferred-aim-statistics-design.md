@@ -26,7 +26,9 @@ Date: 2026-11-11, hardened 2026-11-12 · Status: design, awaiting owner approval
 >    §4.8's "one module".
 > 6. An ambiguous dart is counted under each section's `AMBIGUOUS` row, and
 >    a bucket holding only that row is kept (`aimCountBuckets`), so chunk
->    merges stay lossless.
+>    merges stay lossless. It still counts toward `double-preference`'s
+>    `left` (a state fact) and may appear in more than one section's
+>    `AMBIGUOUS` row.
 
 First of a series, in the owner's order: 501 → 121 → Cricket & Tactics → Score
 Training → Singles Training → Doubles Training. Each later game gets its own
