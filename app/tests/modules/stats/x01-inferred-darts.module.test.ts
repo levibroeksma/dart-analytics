@@ -76,4 +76,15 @@ describe("inferredSessions", () => {
       "SINGLE:2",
     ]);
   });
+
+  it("exposes the finish candidate's key, null when none holds a finish", () => {
+    const { sessions } = inferredSessions([
+      session([
+        visit(18, [dart("OUTER_SINGLE", 2, 2)]),
+        visit(501, [dart("TREBLE", 20, 60)]),
+      ]),
+    ]);
+    expect(sessions[0]!.visits[0]!.darts[0]!.finishKey).toBe("DOUBLE:9");
+    expect(sessions[0]!.visits[1]!.darts[0]!.finishKey).toBeNull();
+  });
 });

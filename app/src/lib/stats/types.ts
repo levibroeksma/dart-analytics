@@ -45,7 +45,8 @@ export type SectionId =
   | "training-result"
   | "large-target-accuracy"
   | "aim-drift"
-  | "double-accuracy";
+  | "double-accuracy"
+  | "double-preference";
 
 /**
  * The declared-intent zones a target key can name (`01-Section-Catalog.md`
@@ -187,7 +188,8 @@ export type ServerSectionId =
   | "heatmap"
   | "large-target-accuracy"
   | "aim-drift"
-  | "double-accuracy";
+  | "double-accuracy"
+  | "double-preference";
 
 /** Each server section's own metrics shape, keyed by its id — what `mergeMetrics` (`lib/stats/merge-metrics.ts`) folds over. */
 export type ServerSectionMetrics = {
@@ -208,6 +210,7 @@ export type ServerSectionMetrics = {
   "large-target-accuracy": AimCountMetrics;
   "aim-drift": AimCountMetrics;
   "double-accuracy": AimCountMetrics;
+  "double-preference": AimCountMetrics;
   heatmap: HeatmapMetrics;
 };
 
