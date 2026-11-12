@@ -4,6 +4,9 @@ import {
   SECTOR_WIDTH_DEGREES,
   areBoardNeighbours,
   classify,
+  distanceToBed,
+  distanceToDisc,
+  sharedEdgePoint,
   wedgeNearestPoint,
   zoneCentroid,
 } from "@lib/game/board/board-geometry.module";
@@ -209,5 +212,65 @@ describe("wedgeNearestPoint", () => {
     const point = wedgeNearestPoint(20, { x: 0, y: -5 });
     expect(point.x).toBeCloseTo(0, 6);
     expect(point.y).toBeCloseTo(-BOARD_RADII_MM.outerBull, 6);
+  });
+});
+
+describe("bed distance and shared edge", () => {
+  const T = BOARD_RADII_MM;
+
+  it("is 0 inside the bed", () => {
+    expect(
+      distanceToBed(
+        zoneCentroid(20, "TREBLE")!,
+        20,
+        T.trebleInner,
+        T.trebleOuter,
+      ),
+    ).toBe(0);
+  });
+
+  it("measures a purely radial gap", () => {
+    expect(
+      distanceToBed({ x: 0, y: -134.5 }, 20, T.trebleInner, T.trebleOuter),
+    ).toBeCloseTo(27.5, 5);
+  });
+
+  it("measures an angular gap to the edge ray", () => {
+    const r = 103;
+    const deg = 18 * (Math.PI / 180);
+    const point = { x: r * Math.sin(deg), y: -r * Math.cos(deg) };
+    expect(distanceToBed(point, 20, T.trebleInner, T.trebleOuter)).toBeCloseTo(
+      r * Math.sin((9 * Math.PI) / 180),
+      3,
+    );
+  });
+
+  it("is symmetric between T20 and T18 from the centre of the 1", () => {
+    const p = zoneCentroid(1, "TREBLE")!;
+    expect(distanceToBed(p, 20, T.trebleInner, T.trebleOuter)).toBeCloseTo(
+      distanceToBed(p, 18, T.trebleInner, T.trebleOuter),
+      6,
+    );
+  });
+
+  it("places the shared edge point between the sectors", () => {
+    const p = sharedEdgePoint(20, 1, 134.5);
+    expect(Math.hypot(p.x, p.y)).toBeCloseTo(134.5, 6);
+    expect((Math.atan2(p.x, -p.y) * 180) / Math.PI).toBeCloseTo(9, 6);
+  });
+
+  it("throws for sectors that are not adjacent", () => {
+    expect(() => sharedEdgePoint(20, 3, 100)).toThrow();
+  });
+
+  it("measures to a disc", () => {
+    expect(distanceToDisc({ x: 0, y: -20 }, 0, T.innerBull)).toBeCloseTo(
+      20 - T.innerBull,
+      6,
+    );
+  });
+
+  it("is 0 inside a disc", () => {
+    expect(distanceToDisc({ x: 0, y: -1 }, 0, T.innerBull)).toBe(0);
   });
 });

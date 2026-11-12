@@ -196,3 +196,66 @@ export function wedgeNearestPoint(
   const edgeBearing = center + Math.sign(delta) * halfWidth;
   return pointAtBearing(edgeBearing, radius);
 }
+
+function radialGap(radius: number, rInner: number, rOuter: number): number {
+  if (radius < rInner) return rInner - radius;
+  if (radius > rOuter) return radius - rOuter;
+  return 0;
+}
+
+/**
+ * Millimetres from `point` to the nearest point of the annular sector of
+ * `number` between `rInner` and `rOuter`; `0` when the point lies inside it.
+ */
+export function distanceToBed(
+  point: BoardPoint,
+  number: number,
+  rInner: number,
+  rOuter: number,
+): number {
+  const index = SECTOR_ORDER.indexOf(number);
+  if (index < 0) {
+    throw new Error(`${number} is not a board number`);
+  }
+
+  const center = index * SECTOR_WIDTH_DEGREES;
+  const halfWidth = SECTOR_WIDTH_DEGREES / 2;
+  const delta = angleDelta(bearingDegrees(point.x, point.y), center);
+  const radius = radiusOf(point.x, point.y);
+
+  if (Math.abs(delta) <= halfWidth) {
+    return radialGap(radius, rInner, rOuter);
+  }
+
+  const edge = pointAtBearing(center + Math.sign(delta) * halfWidth, 1);
+  const along = point.x * edge.x + point.y * edge.y;
+  const clamped = Math.min(rOuter, Math.max(rInner, along));
+  return Math.hypot(point.x - edge.x * clamped, point.y - edge.y * clamped);
+}
+
+/** Millimetres from `point` to the full ring between `rInner` and `rOuter` (the bulls); `0` inside. */
+export function distanceToDisc(
+  point: BoardPoint,
+  rInner: number,
+  rOuter: number,
+): number {
+  return radialGap(radiusOf(point.x, point.y), rInner, rOuter);
+}
+
+/** The point at `radius` on the edge ray shared by adjacent sectors `a` and `b`; throws when they are not neighbours. */
+export function sharedEdgePoint(
+  a: number,
+  b: number,
+  radius: number,
+): BoardPoint {
+  if (!areBoardNeighbours(a, b)) {
+    throw new Error(`${a} and ${b} are not adjacent board numbers`);
+  }
+
+  const size = SECTOR_ORDER.length;
+  const indexA = SECTOR_ORDER.indexOf(a);
+  const indexB = SECTOR_ORDER.indexOf(b);
+  const lower = (indexA + 1) % size === indexB ? indexA : indexB;
+  const bearing = lower * SECTOR_WIDTH_DEGREES + SECTOR_WIDTH_DEGREES / 2;
+  return pointAtBearing(bearing, radius);
+}
