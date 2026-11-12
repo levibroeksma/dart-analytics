@@ -1225,6 +1225,47 @@ describe("getGameSection dispatches the checkout family", () => {
     }
   });
 
+  it("dispatches double-accuracy through the inferred fold, counting unlocated sessions as skipped", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 2,
+      maxCompletedAt: null,
+    });
+    vi.mocked(repo.findScopeDartCount).mockResolvedValue(2);
+    vi.mocked(repo.findX01FoldRows).mockResolvedValue([
+      makeFoldRow({
+        sessionId: "located",
+        turnId: "t-located",
+        turnTotalScore: 40,
+        configuration: { ...FOLD_501_CONFIG, starting_score: 40 },
+        hitTargetNumber: 20,
+        hitZoneKey: "DOUBLE",
+        score: 40,
+        locationX: 0,
+        locationY: -166,
+      }),
+      makeFoldRow({
+        sessionId: "unlocated",
+        turnId: "t-unlocated",
+        locationX: null,
+        locationY: null,
+      }),
+    ] as never);
+
+    const result = await getGameSection(playerId, "501", "double-accuracy", {
+      ...baseRangeQuery,
+      status: "completed",
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.sectionId).toBe("double-accuracy");
+      expect(result.data.buckets.length).toBeGreaterThan(0);
+      expect(
+        (result.data as { skippedSessions?: number }).skippedSessions,
+      ).toBe(1);
+    }
+  });
+
   it("dispatches checkout-path through the fold", async () => {
     vi.mocked(repo.findGameDataVersion).mockResolvedValue({
       count: 1,

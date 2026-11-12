@@ -26,10 +26,19 @@ export function at(
   x: number,
   y: number,
   zone: DartZoneKey,
-  n: number,
+  n: number | null,
   score: number,
 ): DartFact {
-  return { ...dart(zone, n, score), locationX: x, locationY: y };
+  return {
+    sequence: 1,
+    intendedTargetNumber: null,
+    intendedZoneKey: null,
+    hitTargetNumber: n,
+    hitZoneKey: zone,
+    score,
+    locationX: x,
+    locationY: y,
+  };
 }
 
 export function visit(
@@ -68,4 +77,11 @@ export const CTX = {
 
 export function inferred(visits: StagedVisit[]): InferredSession[] {
   return inferredSessions([session(visits)]).sessions;
+}
+
+export function scale(
+  point: { x: number; y: number },
+  k: number,
+): { x: number; y: number } {
+  return { x: point.x * k, y: point.y * k };
 }
