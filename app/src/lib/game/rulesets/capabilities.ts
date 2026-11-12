@@ -82,8 +82,8 @@ export const RULESET_CAPABILITIES: Readonly<
 export const STATS_TAGS: Readonly<
   Record<RulesetVersionKey, readonly StatsTag[]>
 > = {
-  "501_V1": ["board", "scoring", "checkout", "leg"],
-  "501_V2": ["board", "scoring", "checkout", "leg"],
+  "501_V1": ["board", "scoring", "checkout", "leg", "intent-inferred"],
+  "501_V2": ["board", "scoring", "checkout", "leg", "intent-inferred"],
   SCORE_TRAINING_V1: ["board", "scoring"],
   TUOD_V1: ["board", "checkout", "ladder"],
   "121_V1": ["board", "checkout", "ladder"],

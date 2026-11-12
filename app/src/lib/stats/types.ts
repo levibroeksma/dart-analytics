@@ -1,4 +1,5 @@
 import type {
+  AimCountMetrics,
   AtcDartsPerTargetMetrics,
   Bobs27SurvivalMetrics,
   BustRateMetrics,
@@ -41,7 +42,8 @@ export type SectionId =
   | "atc-darts-per-target"
   | "bobs27-survival"
   | "shanghai-count"
-  | "training-result";
+  | "training-result"
+  | "large-target-accuracy";
 
 /**
  * The declared-intent zones a target key can name (`01-Section-Catalog.md`
@@ -180,7 +182,8 @@ export type ServerSectionId =
   | "bobs27-survival"
   | "shanghai-count"
   | "training-result"
-  | "heatmap";
+  | "heatmap"
+  | "large-target-accuracy";
 
 /** Each server section's own metrics shape, keyed by its id — what `mergeMetrics` (`lib/stats/merge-metrics.ts`) folds over. */
 export type ServerSectionMetrics = {
@@ -198,6 +201,7 @@ export type ServerSectionMetrics = {
   "bobs27-survival": Bobs27SurvivalMetrics;
   "shanghai-count": ShanghaiCountMetrics;
   "training-result": TrainingResultMetrics;
+  "large-target-accuracy": AimCountMetrics;
   heatmap: HeatmapMetrics;
 };
 

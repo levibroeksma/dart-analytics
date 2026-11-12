@@ -69,11 +69,22 @@ describe("statistics section registry", () => {
       "bust-rate",
       "leg-stats",
       "treble-rate",
+      "large-target-accuracy",
       "heatmap",
       "session-result",
       "completion",
       "volume",
     ]);
+  });
+
+  it("offers the inferred-aim section on 501 only", () => {
+    expect(sectionsForGame("501")).toContain("large-target-accuracy");
+    expect(sectionsForGame("ONE_TWENTY_ONE")).not.toContain(
+      "large-target-accuracy",
+    );
+    expect(sectionSite(SECTIONS["large-target-accuracy"], "501")).toBe(
+      "server",
+    );
   });
 
   it("orders the ladder games' sections per the catalog", () => {
@@ -421,7 +432,7 @@ describe("statistics section registry", () => {
       new Set(["board", "intent-stored", "target-sequence"]),
     );
     expect(tagsForGameType("501")).toEqual(
-      new Set(["board", "scoring", "checkout", "leg"]),
+      new Set(["board", "scoring", "checkout", "leg", "intent-inferred"]),
     );
   });
 

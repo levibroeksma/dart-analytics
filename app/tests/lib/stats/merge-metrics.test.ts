@@ -119,6 +119,21 @@ describe("mergeMetrics", () => {
     });
   });
 
+  it("merges two chunks of an aim-count section, AMBIGUOUS row included", () => {
+    const a = {
+      "TREBLE:20|NEAREST": { darts: 2, trebles: 1 },
+      AMBIGUOUS: { darts: 1 },
+    };
+    const b = {
+      "TREBLE:20|NEAREST": { darts: 3, trebles: 0 },
+      AMBIGUOUS: { darts: 2 },
+    };
+    expect(mergeMetrics("large-target-accuracy", a, b)).toEqual({
+      "TREBLE:20|NEAREST": { darts: 5, trebles: 1 },
+      AMBIGUOUS: { darts: 3 },
+    });
+  });
+
   it("sums double-performance leaves", () => {
     const merged = mergeMetrics(
       "double-performance",
