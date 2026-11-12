@@ -1,6 +1,9 @@
-import { zoneCentroid } from "@lib/game/board/board-geometry.module";
+import { classify, zoneCentroid } from "@lib/game/board/board-geometry.module";
+import { candidatesFor } from "@modules/stats/x01-aim-candidates.module";
+import { resolveAim } from "@modules/stats/x01-aim-resolution.module";
 import { inferredSessions } from "@modules/stats/x01-inferred-darts.module";
 import type {
+  AimBasis,
   BucketedSession,
   DartFact,
   DartZoneKey,
@@ -84,4 +87,46 @@ export function scale(
   k: number,
 ): { x: number; y: number } {
   return { x: point.x * k, y: point.y * k };
+}
+
+/**
+ * A first dart at `remaining` landing between `from` and `to` where the two
+ * candidates are near-equidistant, just on the side whose basis is `nearer`:
+ * bisects the segment for the point where the nearest candidate's basis flips,
+ * then steps a hair towards `nearer`. Callers assert the resolution is
+ * `AMBIGUOUS` before relying on it.
+ */
+export function ambiguousDart(
+  remaining: number,
+  from: { x: number; y: number },
+  to: { x: number; y: number },
+  nearer: AimBasis,
+): DartFact {
+  const candidates = candidatesFor({
+    remaining,
+    dartsLeft: 3,
+    earlierDartsInVisit: [],
+  });
+  const pointAt = (t: number) => ({
+    x: from.x + (to.x - from.x) * t,
+    y: from.y + (to.y - from.y) * t,
+  });
+  const basisAt = (t: number) => resolveAim(candidates, pointAt(t)).basis;
+  const fromBasis = basisAt(0);
+  let low = 0;
+  let high = 1;
+  for (let step = 0; step < 60; step += 1) {
+    const mid = (low + high) / 2;
+    if (basisAt(mid) === fromBasis) low = mid;
+    else high = mid;
+  }
+  const point = pointAt(nearer === fromBasis ? low - 0.001 : high + 0.001);
+  const landed = classify(point.x, point.y);
+  return at(
+    point.x,
+    point.y,
+    landed.zoneKey,
+    landed.targetNumber,
+    landed.score,
+  );
 }

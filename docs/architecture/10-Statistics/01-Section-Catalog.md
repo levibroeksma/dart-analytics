@@ -250,9 +250,16 @@ Record<rowKey, Record<field, number>>` per bucket, merged across chunks by
 summing (`mergeCountRecord`); a row key joins its parts with `|`. `<aim>` is
 an inferred aim key (`TREBLE:n`, `SINGLE:n`, `DOUBLE:n`, `INNER_BULL:25`,
 `OUTER_BULL:25`, `WIRE:a-b`); `<resolution>` is `SOLE` or `NEAREST`; `<basis>`
-is `LARGE_TARGET`, `ROUTE`, `SETUP`, `FINISH` or `SPLIT`. Every section counts
-its ambiguous darts under `AMBIGUOUS: { darts }` and never in an aim row; a
-bucket holding only that row is kept, so chunks merge losslessly. All five are
+is `LARGE_TARGET`, `ROUTE`, `SETUP`, `FINISH` or `SPLIT`. An ambiguous dart
+has `aim: null`, `hit: false` and its nearest candidate's basis; it is never in
+an aim row, and adds `AMBIGUOUS: { darts: 1 }` once to each section that takes
+it: `large-target-accuracy` when that basis is `LARGE_TARGET`,
+`double-accuracy` when `FINISH`, `setup-success` when `ROUTE`, `SETUP` or
+`SPLIT`, `aim-drift` always, and `double-preference` whenever the dart has a
+`FINISH` candidate (cases B and C), whatever its nearest basis; there it also
+adds to `<finish>|STATE` (`left` 1 on the visit's first dart, `splitAway` 0)
+and to no `<finish>|<resolution>` row. A bucket holding only `AMBIGUOUS` (or
+`STATE`) rows is kept, so chunks merge losslessly. All five are
 version 1 and `configSensitive: []`; `sampleSize` is the resolved darts
 (`double-preference`: the `FINISH` attempts).
 

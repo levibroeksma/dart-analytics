@@ -17,7 +17,7 @@ updated: 2026-11-12
 
 # Version History
 
-> **Version:** 1.229.0 (2026-11-12 — 501 inferred-aim statistics: `intent-inferred` tag and five 501-only `server` sections (`large-target-accuracy`, `aim-drift`, `double-accuracy`, `double-preference`, `setup-success`) over a read-time aim resolver, inferred-aim `heatmap` filter, `excludedGames`; `10-Statistics/00-Overview.md` and `01-Section-Catalog.md` 1.7.0; File Inventory gains the nine new modules (D555).)
+> **Version:** 1.229.0 (2026-11-12 — 501 inferred-aim statistics: `intent-inferred` tag and five 501-only `server` sections (`large-target-accuracy`, `aim-drift`, `double-accuracy`, `double-preference`, `setup-success`) over a read-time aim resolver, inferred-aim `heatmap` filter, `excludedGames`; `10-Statistics/00-Overview.md` and `01-Section-Catalog.md` 1.7.0; `06-API/04-Endpoint-Contracts.md` 1.18.0; File Inventory gains the nine new modules (D555).)
 
 > **Version:** 1.228.0 (2026-11-11 — Quality plan 7, part 1: `scripts/check-html-parity.sh` compares every prerendered page byte for byte with a saved base (run by hand around a markup refactor); new `PlayPageShell.astro` carries the body 17 game play pages repeated; `DartBoard.astro` draws its 20 segments from `lib/ui/dart-board-segments.ts` in one loop (679 → 133 lines) (D554).)
 

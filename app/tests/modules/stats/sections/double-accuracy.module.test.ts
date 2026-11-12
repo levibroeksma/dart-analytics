@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { zoneCentroid } from "@lib/game/board/board-geometry.module";
 import { doubleAccuracyBuckets } from "@modules/stats/sections/double-accuracy.module";
 import {
+  ambiguousDart,
   at,
   CTX,
   dart,
@@ -53,5 +54,34 @@ describe("doubleAccuracyBuckets", () => {
       "INNER_BULL:25|NEAREST|HIT": { darts: 1 },
     });
     expect(bucket!.sampleSize).toBe(1);
+  });
+
+  it("counts a dart ambiguous between D9 and S2 with the double nearer under AMBIGUOUS only", () => {
+    const d9 = zoneCentroid(9, "DOUBLE")!;
+    const s2 = zoneCentroid(2, "OUTER_SINGLE")!;
+    const ambiguous = ambiguousDart(18, d9, s2, "FINISH");
+    const sessions = inferred([
+      visit(18, [ambiguous]),
+      visit(32, [dart("DOUBLE", 16, 32)]),
+    ]);
+    const thrown = sessions[0]!.visits[0]!.darts[0]!;
+    expect([thrown.resolution, thrown.basis]).toEqual(["AMBIGUOUS", "FINISH"]);
+    const [bucket] = doubleAccuracyBuckets(sessions, CTX);
+    expect(bucket!.metrics).toEqual({
+      "DOUBLE:16|SOLE|HIT": { darts: 1 },
+      AMBIGUOUS: { darts: 1 },
+    });
+    expect(bucket!.sampleSize).toBe(1);
+  });
+
+  it("leaves a dart ambiguous between D9 and S2 with the split nearer out", () => {
+    const d9 = zoneCentroid(9, "DOUBLE")!;
+    const s2 = zoneCentroid(2, "OUTER_SINGLE")!;
+    const sessions = inferred([
+      visit(18, [ambiguousDart(18, d9, s2, "SPLIT")]),
+    ]);
+    const thrown = sessions[0]!.visits[0]!.darts[0]!;
+    expect([thrown.resolution, thrown.basis]).toEqual(["AMBIGUOUS", "SPLIT"]);
+    expect(doubleAccuracyBuckets(sessions, CTX)).toEqual([]);
   });
 });

@@ -21,7 +21,7 @@ Date: 2026-11-11, hardened 2026-11-12 · Status: design, awaiting owner approval
 > 4. **§3 skip rule:** a session is skipped when its snapshot does not decode
 >    or any dart lacks coordinates. The `dart_count` comparison is dropped:
 >    the fold view does not filter darts.
-> 5. `AMBIGUITY_RATIO` is exported from `x01-aim-resolution.module.ts`, not
+> 5. `AMBIGUITY_RATIO` lives in `x01-aim-resolution.module.ts`, not
 >    with the rules and leave rank (`x01-aim-candidates.module.ts`), against
 >    §4.8's "one module".
 > 6. An ambiguous dart is counted under each section's `AMBIGUOUS` row, and
