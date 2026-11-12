@@ -917,6 +917,45 @@ describe("getGameSection", () => {
     expect(call.target).toEqual({ number: 16, zone: "DOUBLE" });
   });
 
+  it("rejects a wire target on an intent-stored game instead of dropping it", async () => {
+    const result = await getGameSection(
+      playerId,
+      "DOUBLES_TRAINING",
+      "heatmap",
+      {
+        ...baseRangeQuery,
+        status: "completed",
+        target: "WIRE:6-10",
+      },
+    );
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.code).toBe("VALIDATION_FAILED");
+      expect(result.details?.reason).toBe(
+        "target must be a TargetKey on this game",
+      );
+    }
+    expect(repo.findHeatmapCells).not.toHaveBeenCalled();
+  });
+
+  it("rejects a wire target on a game without an intent tag", async () => {
+    const result = await getGameSection(playerId, "TUOD", "heatmap", {
+      ...baseRangeQuery,
+      status: "completed",
+      target: "WIRE:6-10",
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.code).toBe("VALIDATION_FAILED");
+      expect(result.details?.reason).toBe(
+        "target requires an intent-stored game",
+      );
+    }
+    expect(repo.findHeatmapCells).not.toHaveBeenCalled();
+  });
+
   it("rejects a target on a game without intent-stored", async () => {
     const result = await getGameSection(playerId, "TUOD", "heatmap", {
       ...baseRangeQuery,
