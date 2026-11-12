@@ -1202,6 +1202,16 @@ Contains:
 
 `migrate:down` drops the view and recreates `0033`'s definition. `database/verification/0054_active_sessions_resume_fields_checks.sql` (4 checks) passed on the scratch database, as did a rollback and re-apply, `db:drift:ci` and `db:introspect`. <!-- 2026-11-08 -->
 
+## 0055_x01_checkout_darts_coordinates.sql
+
+Widen `v_x01_checkout_darts` with each dart's `location_x` and `location_y`, so the inferred-aim statistics fold reads landing coordinates from the same rows as the checkout fold. Facts only: an inferred aim is derived in the application and never stored. <!-- 2026-11-12 -->
+
+Contains:
+
+- rewritten `v_x01_checkout_darts` (`CREATE OR REPLACE`): adds `location_x` and `location_y` last, after `score`; both are `darts` columns the view's `FROM darts` already reaches, so no new join and the row count is unchanged; the view comment names them.
+
+`migrate:down` drops the view and recreates `0039`'s definition. `database/verification/0055_x01_checkout_darts_coordinates_checks.sql` (4 checks) passed on the scratch database, as did a rollback and re-apply and `db:drift:ci`. <!-- 2026-11-12 -->
+
 # Schema Changes
 
 

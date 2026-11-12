@@ -82,6 +82,8 @@ export type X01CheckoutDartRow = {
   hitTargetNumber: number | null;
   hitZoneKey: DartFact["hitZoneKey"];
   score: number;
+  locationX: number | null;
+  locationY: number | null;
 };
 
 /**

@@ -53,9 +53,24 @@ function row(overrides: Partial<X01CheckoutDartRow>): X01CheckoutDartRow {
     hitTargetNumber: 20,
     hitZoneKey: "TREBLE",
     score: 60,
+    locationX: null,
+    locationY: null,
     ...overrides,
   };
 }
+
+describe("sessionCheckoutVisits coordinates", () => {
+  it("carries each dart's landing coordinates into the folded visit", () => {
+    const rows = [
+      row({ dartNumber: 1, score: 60, locationX: 1.5, locationY: -103 }),
+    ];
+    const [session] = sessionCheckoutVisits(rows, new Map());
+    expect(session!.visits[0]!.darts[0]).toMatchObject({
+      locationX: 1.5,
+      locationY: -103,
+    });
+  });
+});
 
 describe("checkoutVisitsWithSession", () => {
   it("tags each visit with its session id", () => {
@@ -371,6 +386,8 @@ function rowsFor(
         hitTargetNumber: dartFact.hitTargetNumber,
         hitZoneKey: dartFact.hitZoneKey,
         score: dartFact.score,
+        locationX: dartFact.locationX,
+        locationY: dartFact.locationY,
       }));
     })
     .sort(

@@ -135,8 +135,8 @@ function turnsOf(
       hitTargetNumber: row.hitTargetNumber,
       hitZoneKey: row.hitZoneKey,
       score: row.score,
-      locationX: null,
-      locationY: null,
+      locationX: row.locationX,
+      locationY: row.locationY,
     });
   }
   for (const staged of byId.values()) {
