@@ -490,6 +490,15 @@ export type DoublePreferenceSeriesResponseData = z.infer<
   typeof DoublePreferenceSeriesResponse
 >;
 
+export const SetupSuccessSeriesResponse = SeriesBase.extend({
+  sectionId: z.literal("setup-success"),
+  buckets: z.array(BucketBase.extend({ metrics: AimCountMetrics })),
+  ...SkippedSessions,
+});
+export type SetupSuccessSeriesResponseData = z.infer<
+  typeof SetupSuccessSeriesResponse
+>;
+
 export const CheckoutPathSeriesResponse = SeriesBase.extend({
   sectionId: z.literal("checkout-path"),
   buckets: z.array(BucketBase.extend({ metrics: CheckoutPathMetrics })),
