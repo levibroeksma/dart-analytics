@@ -10,7 +10,7 @@ import type { DartZoneKey } from "@modules/types";
 import type { AimCandidate, InferredAim, ResolvedAim } from "./types";
 
 /** Above this `d1 / d2` a multi-candidate dart has no aim (x01 inferred-aim design §4.5). */
-export const AMBIGUITY_RATIO = 0.75;
+const AMBIGUITY_RATIO = 0.75;
 
 const OUTER_SINGLE_MID_RADIUS =
   (BOARD_RADII_MM.trebleOuter + BOARD_RADII_MM.doubleInner) / 2;
@@ -59,7 +59,7 @@ function distanceToSingleBands(point: BoardPoint, number: number): number {
 }
 
 /** Millimetres from `point` to the nearest point of `aim`'s hit region; `0` inside it. */
-export function aimDistance(aim: InferredAim, point: BoardPoint): number {
+function aimDistance(aim: InferredAim, point: BoardPoint): number {
   switch (aim.kind) {
     case "TREBLE":
       return distanceToBed(

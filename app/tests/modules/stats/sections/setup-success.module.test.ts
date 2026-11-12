@@ -36,4 +36,15 @@ describe("setupSuccessBuckets", () => {
     });
     expect(bucket!.metrics.VISITS).toEqual({ visits: 2, goodLeaves: 2 });
   });
+
+  it("adds no visit row for a finished or busted visit", () => {
+    const buckets = setupSuccessBuckets(
+      inferred([
+        visit(40, [dart("DOUBLE", 20, 40)]),
+        visit(16, [dart("OUTER_SINGLE", 16, 16)]),
+      ]),
+      CTX,
+    );
+    expect(buckets).toEqual([]);
+  });
 });

@@ -1,18 +1,19 @@
 import { BOARD_RADII_MM } from "@lib/game/board/board-geometry.module";
 import {
   addCounts,
-  AMBIGUOUS_KEY,
   aimCountBuckets,
   aimKey,
+  countAimed,
+  sumSessionDarts,
 } from "./aim-count.module";
 import { missSector, radialClass } from "./miss-direction.module";
 import { aimPoint } from "../x01-aim-resolution.module";
 import type {
+  AimCountBuckets,
   AimCountMetrics,
   InferredDart,
   InferredSession,
 } from "@modules/types";
-import type { SeriesBucket } from "@lib/types";
 
 function missKey(dart: InferredDart, key: string): string {
   const aim = dart.aim!;
@@ -30,23 +31,16 @@ function foldSession(
   metrics: AimCountMetrics,
   session: InferredSession,
 ): number {
-  let sample = 0;
-  for (const visit of session.visits) {
-    for (const dart of visit.darts) {
-      if (dart.basis !== "FINISH") continue;
-      const aim = dart.aim;
-      if (aim === null) {
-        addCounts(metrics, AMBIGUOUS_KEY, { darts: 1 });
-        continue;
-      }
+  return sumSessionDarts(session, (dart) => {
+    if (dart.basis !== "FINISH") return 0;
+    return countAimed(metrics, dart, (aim) => {
       const key = dart.hit
         ? aimKey(aim.key, dart.resolution, "HIT")
         : missKey(dart, aim.key);
       addCounts(metrics, key, { darts: 1 });
-      sample += 1;
-    }
-  }
-  return sample;
+      return 1;
+    });
+  });
 }
 
 /**
@@ -59,6 +53,6 @@ function foldSession(
 export function doubleAccuracyBuckets(
   sessions: readonly InferredSession[],
   ctx: { to: string; now: Date },
-): SeriesBucket<AimCountMetrics>[] {
+): AimCountBuckets {
   return aimCountBuckets(sessions, ctx, foldSession);
 }

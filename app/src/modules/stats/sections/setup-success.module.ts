@@ -1,19 +1,47 @@
 import {
   addCounts,
-  AMBIGUOUS_KEY,
   aimCountBuckets,
   aimKey,
+  countAimed,
 } from "./aim-count.module";
 import { isGoodLeave } from "../x01-aim-candidates.module";
 import type {
   AimBasis,
+  AimCountBuckets,
   AimCountMetrics,
+  InferredDart,
   InferredSession,
+  InferredVisit,
 } from "@modules/types";
-import type { SeriesBucket } from "@lib/types";
 
 const VISITS_KEY = "VISITS";
 const SETUP_BASES: readonly AimBasis[] = ["ROUTE", "SETUP", "SPLIT"];
+
+function countOpenVisit(metrics: AimCountMetrics, visit: InferredVisit): void {
+  const last = visit.darts[visit.darts.length - 1];
+  if (
+    visit.outcome !== "OPEN" ||
+    last === undefined ||
+    last.basis === "LARGE_TARGET"
+  ) {
+    return;
+  }
+  addCounts(metrics, VISITS_KEY, {
+    visits: 1,
+    goodLeaves: isGoodLeave(visit.remainingAfter) ? 1 : 0,
+  });
+}
+
+function countSetupDart(metrics: AimCountMetrics, dart: InferredDart): number {
+  if (!SETUP_BASES.includes(dart.basis)) return 0;
+  return countAimed(metrics, dart, (aim) => {
+    addCounts(metrics, aimKey(dart.basis, aim.kind, dart.resolution), {
+      attempts: 1,
+      hits: dart.hit ? 1 : 0,
+    });
+    return 1;
+  });
+}
 
 function foldSession(
   metrics: AimCountMetrics,
@@ -21,29 +49,8 @@ function foldSession(
 ): number {
   let sample = 0;
   for (const visit of session.visits) {
-    const last = visit.darts[visit.darts.length - 1];
-    if (
-      visit.outcome === "OPEN" &&
-      last !== undefined &&
-      last.basis !== "LARGE_TARGET"
-    ) {
-      addCounts(metrics, VISITS_KEY, {
-        visits: 1,
-        goodLeaves: isGoodLeave(visit.remainingAfter) ? 1 : 0,
-      });
-    }
-    for (const dart of visit.darts) {
-      if (!SETUP_BASES.includes(dart.basis)) continue;
-      if (dart.aim === null) {
-        addCounts(metrics, AMBIGUOUS_KEY, { darts: 1 });
-        continue;
-      }
-      addCounts(metrics, aimKey(dart.basis, dart.aim.kind, dart.resolution), {
-        attempts: 1,
-        hits: dart.hit ? 1 : 0,
-      });
-      sample += 1;
-    }
+    countOpenVisit(metrics, visit);
+    for (const dart of visit.darts) sample += countSetupDart(metrics, dart);
   }
   return sample;
 }
@@ -58,6 +65,6 @@ function foldSession(
 export function setupSuccessBuckets(
   sessions: readonly InferredSession[],
   ctx: { to: string; now: Date },
-): SeriesBucket<AimCountMetrics>[] {
+): AimCountBuckets {
   return aimCountBuckets(sessions, ctx, foldSession);
 }

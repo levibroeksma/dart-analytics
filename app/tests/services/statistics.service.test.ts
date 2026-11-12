@@ -1987,7 +1987,9 @@ describe("getGameSection dispatches derived-intent and game-specific sections (p
       expect(result.ok).toBe(false);
       if (!result.ok) {
         expect(result.code).toBe("VALIDATION_FAILED");
-        expect(result.details?.reason).toContain("target");
+        expect(result.details?.reason).toBe(
+          "target must be NUMBER:n or BULL:25 on this game",
+        );
       }
     }
     expect(repo.findHeatmapCells).not.toHaveBeenCalled();
