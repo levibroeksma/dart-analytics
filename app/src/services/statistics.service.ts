@@ -858,7 +858,11 @@ function sectionTarget(
   }
   const tags = tagsForGameType(gameTypeKey);
   if (tags.has("intent-stored")) {
-    return { target: parseTargetKey(targetParam), inferredAim: null };
+    const stored = parseTargetKey(targetParam);
+    if (stored === null) {
+      return { error: "target must be a TargetKey on this game" };
+    }
+    return { target: stored, inferredAim: null };
   }
   if (tags.has("intent-inferred")) {
     if (!isInferredAimKey(targetParam)) {
