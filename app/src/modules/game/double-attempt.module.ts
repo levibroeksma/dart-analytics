@@ -1,4 +1,4 @@
-import { SECTOR_ORDER } from "@lib/game/board/board-geometry.module";
+import { areBoardNeighbours } from "@lib/game/board/board-geometry.module";
 import { resolveCheckoutAttempt } from "./checkout-bust.module";
 import type {
   CheckoutVisitDarts,
@@ -37,13 +37,7 @@ function isDirectlyFinishable(remaining: number): boolean {
 
 /** Whether board segments `a` and `b` are the same segment or immediate neighbours. */
 function isBoardAdjacentOrSame(a: number, b: number): boolean {
-  if (a === b) return true;
-  const size = SECTOR_ORDER.length;
-  const indexA = SECTOR_ORDER.indexOf(a);
-  const indexB = SECTOR_ORDER.indexOf(b);
-  if (indexA < 0 || indexB < 0) return false;
-  const diff = (indexA - indexB + size) % size;
-  return diff === 1 || diff === size - 1;
+  return a === b || areBoardNeighbours(a, b);
 }
 
 /**

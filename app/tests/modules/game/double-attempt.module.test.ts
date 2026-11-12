@@ -184,6 +184,10 @@ describe("classifyDoubleAttempts", () => {
     expect(classifyDart(40, dart(5, "INNER_SINGLE", 5))).toBe("MISS");
   });
 
+  it("counts an outer S1, the other neighbour of 20, as a miss at 40 left", () => {
+    expect(classifyDart(40, dart(1, "OUTER_SINGLE", 1))).toBe("MISS");
+  });
+
   it("counts reference dart #5 (40 left, T20 for 60, busts) as a miss", () => {
     expect(classifyDart(40, dart(20, "TREBLE", 60))).toBe("MISS");
   });

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   BOARD_RADII_MM,
   SECTOR_WIDTH_DEGREES,
+  areBoardNeighbours,
   classify,
   wedgeNearestPoint,
   zoneCentroid,
@@ -162,6 +163,19 @@ describe("zoneCentroid", () => {
 
   it("still has no centroid for an unbanded single", () => {
     expect(zoneCentroid(20, "SINGLE")).toBeNull();
+  });
+});
+
+describe("areBoardNeighbours", () => {
+  it("is true for numbers side by side, including the 5 to 20 wrap", () => {
+    expect(areBoardNeighbours(6, 10)).toBe(true);
+    expect(areBoardNeighbours(5, 20)).toBe(true);
+  });
+
+  it("is false for numbers apart, equal numbers and unknown numbers", () => {
+    expect(areBoardNeighbours(6, 11)).toBe(false);
+    expect(areBoardNeighbours(6, 6)).toBe(false);
+    expect(areBoardNeighbours(6, 21)).toBe(false);
   });
 });
 

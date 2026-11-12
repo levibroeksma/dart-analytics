@@ -27,7 +27,10 @@ function centroidOf(
 }
 
 const NUMBERED_RING_RADII: Record<
-  Exclude<IntentZoneKey, "INNER_BULL" | "OUTER_BULL" | "NUMBER" | "BULL">,
+  Exclude<
+    IntentZoneKey,
+    "INNER_BULL" | "OUTER_BULL" | "NUMBER" | "BULL" | "SINGLE"
+  >,
   { rInner: number; rOuter: number }
 > = {
   DOUBLE: {

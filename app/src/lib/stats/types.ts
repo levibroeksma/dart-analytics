@@ -54,6 +54,7 @@ export type IntentZoneKey =
   | "TREBLE"
   | "INNER_SINGLE"
   | "OUTER_SINGLE"
+  | "SINGLE"
   | "INNER_BULL"
   | "OUTER_BULL"
   | "NUMBER"
@@ -61,6 +62,12 @@ export type IntentZoneKey =
 
 /** `<ZONE_KEY>:<number>` — the record key for every intent-cell metric (00-Overview.md §5, phase-2 decision 5). */
 export type TargetKey = `${IntentZoneKey}:${number}`;
+
+/** `WIRE:a-b` — an aim between two board-adjacent numbers, written with `a < b` (`formatWireKey`). */
+export type WireKey = `WIRE:${number}-${number}`;
+
+/** Any aim a stats record can be keyed by: a single target or a wire between two neighbours. */
+export type AimKey = TargetKey | WireKey;
 
 /** Where a section's numbers are computed (`00-Overview.md` §4). */
 export type ComputeSite = "sql" | "server" | "client";
