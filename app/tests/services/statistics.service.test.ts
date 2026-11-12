@@ -214,6 +214,8 @@ describe("getStatisticsOverview", () => {
         hitTargetNumber: 20,
         hitZoneKey: "DOUBLE",
         score: 40,
+        locationX: null,
+        locationY: null,
       },
     ]);
 
@@ -276,6 +278,8 @@ describe("getStatisticsOverview", () => {
         hitTargetNumber: 20,
         hitZoneKey: "TREBLE",
         score: 60,
+        locationX: null,
+        locationY: null,
       },
       {
         sessionId: "s-501",
@@ -303,6 +307,8 @@ describe("getStatisticsOverview", () => {
         hitTargetNumber: 20,
         hitZoneKey: "DOUBLE",
         score: 40,
+        locationX: null,
+        locationY: null,
       },
       {
         sessionId: "s-tuod",
@@ -330,6 +336,8 @@ describe("getStatisticsOverview", () => {
         hitTargetNumber: 20,
         hitZoneKey: "DOUBLE",
         score: 40,
+        locationX: null,
+        locationY: null,
       },
       {
         sessionId: "s-121",
@@ -349,6 +357,8 @@ describe("getStatisticsOverview", () => {
         hitTargetNumber: 19,
         hitZoneKey: "TREBLE",
         score: 57,
+        locationX: null,
+        locationY: null,
       },
       {
         sessionId: "s-121",
@@ -368,6 +378,8 @@ describe("getStatisticsOverview", () => {
         hitTargetNumber: 14,
         hitZoneKey: "TREBLE",
         score: 42,
+        locationX: null,
+        locationY: null,
       },
       {
         sessionId: "s-121",
@@ -387,6 +399,8 @@ describe("getStatisticsOverview", () => {
         hitTargetNumber: null,
         hitZoneKey: "MISS",
         score: 0,
+        locationX: null,
+        locationY: null,
       },
       {
         sessionId: "s-121",
@@ -406,6 +420,8 @@ describe("getStatisticsOverview", () => {
         hitTargetNumber: 11,
         hitZoneKey: "DOUBLE",
         score: 22,
+        locationX: null,
+        locationY: null,
       },
     ]);
 
@@ -445,6 +461,8 @@ describe("getStatisticsOverview", () => {
         hitTargetNumber: 20,
         hitZoneKey: "DOUBLE",
         score: 40,
+        locationX: null,
+        locationY: null,
       },
       {
         sessionId: "s-good",
@@ -472,6 +490,8 @@ describe("getStatisticsOverview", () => {
         hitTargetNumber: 20,
         hitZoneKey: "DOUBLE",
         score: 40,
+        locationX: null,
+        locationY: null,
       },
     ]);
 

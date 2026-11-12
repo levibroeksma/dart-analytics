@@ -254,8 +254,12 @@ describe("findX01CheckoutDarts", () => {
       hitTargetNumber: 20,
       hitZoneKey: "TREBLE",
       score: 60,
+      locationX: 1.5,
+      locationY: -103,
     };
-    const query = fakeOrderedQuery([row]);
+    const query = fakeOrderedQuery([
+      { ...row, locationX: "1.50", locationY: "-103.00" },
+    ]);
     const db = { select: vi.fn(() => query) } as any;
     const { vX01CheckoutDarts } = await import("@db/schema");
     const { findX01CheckoutDarts } =
@@ -346,7 +350,9 @@ describe("findX01CheckoutDarts", () => {
         .replaceAll('"v_x01_checkout_darts".', "");
     const ownColumns = selectList(onlyStatement(own.statements));
 
-    expect(ownColumns).toMatch(/^"session_id", .*"score"$/);
+    expect(ownColumns).toMatch(
+      /^"session_id", .*"score", "location_x", "location_y"$/,
+    );
     expect(
       selectList(onlyStatement(fold.statements)).startsWith(`${ownColumns}, `),
     ).toBe(true);
@@ -1238,6 +1244,8 @@ describe("findX01FoldRows", () => {
       hitTargetNumber: 20,
       hitZoneKey: "TREBLE",
       score: 60,
+      locationX: 1.5,
+      locationY: -103,
       bucketStart: "2026-01-01T00:00:00.000Z",
       bucketEnd: "2026-02-01T00:00:00.000Z",
     };
@@ -1256,6 +1264,37 @@ describe("findX01FoldRows", () => {
     });
 
     expect(result).toEqual([row]);
+  });
+
+  it("selects location_x and location_y and parses their NUMERIC strings", async () => {
+    const { db, statements } = renderingDb([]);
+    await findX01FoldRows(db, {
+      ...sessionScope,
+      bucket: "none",
+      tz: undefined,
+    });
+    expect(onlyStatement(statements)).toMatch(
+      /"v_x01_checkout_darts"\."location_x".*"v_x01_checkout_darts"\."location_y"/,
+    );
+
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      innerJoin: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockResolvedValue([
+        { sessionId: "s1", locationX: "1.50", locationY: "-103.00" },
+        { sessionId: "s1", locationX: null, locationY: null },
+      ]),
+    };
+    const result = await findX01FoldRows(
+      { select: vi.fn(() => chain) } as any,
+      { ...sessionScope, bucket: "none", tz: undefined },
+    );
+
+    expect(result.map((r) => [r.locationX, r.locationY])).toEqual([
+      [1.5, -103],
+      [null, null],
+    ]);
   });
 });
 

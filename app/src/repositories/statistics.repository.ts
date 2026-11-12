@@ -171,7 +171,17 @@ const X01_FOLD_COLUMNS = {
   hitTargetNumber: vX01CheckoutDarts.hitTargetNumber,
   hitZoneKey: vX01CheckoutDarts.hitZoneKey,
   score: vX01CheckoutDarts.score,
+  locationX: vX01CheckoutDarts.locationX,
+  locationY: vX01CheckoutDarts.locationY,
 };
+
+/**
+ * `location_x`/`location_y` are `NUMERIC(6, 2)` and arrive as strings through
+ * node-postgres, so the X01 fold rows parse them here.
+ */
+function landingOf(value: string | number | null): number | null {
+  return value === null ? null : Number(value);
+}
 
 /**
  * Reads every X01 checkout dart the player owns through
@@ -211,6 +221,8 @@ export async function findX01CheckoutDarts(
     hitTargetNumber: row.hitTargetNumber,
     hitZoneKey: row.hitZoneKey as X01CheckoutDartRow["hitZoneKey"],
     score: nonNull(row.score, "score"),
+    locationX: landingOf(row.locationX),
+    locationY: landingOf(row.locationY),
   }));
 }
 
@@ -426,7 +438,11 @@ export async function findX01FoldRows(
     )
     .where(whereClause)
     .orderBy(...order);
-  return rows as X01FoldRow[];
+  return rows.map((row) => ({
+    ...row,
+    locationX: landingOf(row.locationX),
+    locationY: landingOf(row.locationY),
+  })) as X01FoldRow[];
 }
 
 const DART_FOLD_COLUMNS = {

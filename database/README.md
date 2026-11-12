@@ -13,7 +13,7 @@ This directory contains SQL source-of-truth artifacts used by the application.
 
 ```text
 database/
-├── migrations/     # ordered schema migrations (0001–0054)
+├── migrations/     # ordered schema migrations (0001–0055)
 ├── seeds/          # controlled reference/system data
 └── verification/   # rollback-safe checks run against a live database
 ```
@@ -188,6 +188,7 @@ These are not a substitute for the Vitest suite: they cover the SQL layer, which
 | `verification/0046_replay_stages_view_checks.sql` | migration `0046`: `v_replay_stages` lists a parent stage that holds no turn (which `v_game_replay` omits), carries `parent_stage_id`/`stage_sequence`/`stage_type_key` on its child, and is scoped by `player_id` |
 | `verification/0053_replay_view_kept_checks.sql` | migration `0053`: `v_game_replay` returns a kept turn (the Follow the Leader leader's dartless keep) as one row with `kept = true` and NULL dart columns, a thrown turn's dart rows with `kept = false`, and one row per kept turn plus one per dart, anti-vacuity guard (4 checks) (2026-10-30) |
 | `verification/0054_active_sessions_resume_fields_checks.sql` | migration `0054`: `v_active_sessions` reads `is_routine_step` and `configuration` per session (routine step true/NULL, standalone game false/snapshot), no fan-out (4 checks) |
+| `verification/0055_x01_checkout_darts_coordinates_checks.sql` | migration `0055`: `v_x01_checkout_darts` exposes `location_x`/`location_y`, a located dart returns its coordinates and an unlocated one NULL, one row per dart, anti-vacuity guard (4 checks) |
 
 ## References
 
