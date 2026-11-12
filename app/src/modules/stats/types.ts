@@ -1,4 +1,5 @@
 import type {
+  AimKey,
   ContextFilter,
   GameTypeKey,
   TargetKey,
@@ -1047,4 +1048,36 @@ export type ResolvedAim = {
   aim: InferredAim | null;
   basis: AimBasis;
   resolution: AimResolution;
+};
+
+/** One 501 dart with its inferred aim and where it landed (x01 inferred-aim design §4). */
+export type InferredDart = {
+  remaining: number;
+  dartNumber: 1 | 2 | 3;
+  basis: AimBasis;
+  resolution: AimResolution;
+  aim: InferredAim | null;
+  hit: boolean;
+  hitNumber: number | null;
+  hitZone: DartZoneKey;
+  x: number;
+  y: number;
+  score: number;
+  candidateKeys: readonly AimKey[];
+};
+
+/** One 501 visit walked dart by dart; `remainingAfter` equals `startingRemaining` for a `BUST`. */
+export type InferredVisit = {
+  startingRemaining: number;
+  outcome: "FINISHED" | "BUST" | "OPEN";
+  remainingAfter: number;
+  darts: readonly InferredDart[];
+};
+
+/** One session's inferred visits, kept with its bucket window. */
+export type InferredSession = {
+  sessionId: string;
+  bucketStart: string;
+  bucketEnd: string;
+  visits: readonly InferredVisit[];
 };
