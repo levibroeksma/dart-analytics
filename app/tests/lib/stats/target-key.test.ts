@@ -2,8 +2,10 @@ import { describe, it, expect } from "vitest";
 import {
   aimMatchesTarget,
   formatTargetKey,
+  formatWireKey,
   isAimHit,
   parseTargetKey,
+  parseWireKey,
   targetLabel,
 } from "@lib/stats/target-key";
 
@@ -159,5 +161,25 @@ describe("aimMatchesTarget", () => {
     const bull = { number: 25, zone: "BULL" } as const;
     expect(aimMatchesTarget("BULL:25", bull)).toBe(true);
     expect(aimMatchesTarget("NUMBER:20", bull)).toBe(false);
+  });
+});
+
+describe("aim keys", () => {
+  it("formats and parses a wire key", () => {
+    expect(formatWireKey(10, 6)).toBe("WIRE:6-10");
+    expect(formatWireKey(20, 5)).toBe("WIRE:5-20");
+    expect(parseWireKey("WIRE:6-10")).toEqual([6, 10]);
+    expect(parseWireKey("WIRE:10-6")).toBeNull();
+    expect(parseWireKey("WIRE:6-11")).toBeNull();
+    expect(() => formatWireKey(6, 11)).toThrow();
+  });
+
+  it("labels the new keys", () => {
+    expect(targetLabel("WIRE:6-10")).toBe("6/10");
+    expect(targetLabel("SINGLE:9")).toBe("S9");
+  });
+
+  it("parses a single key", () => {
+    expect(parseTargetKey("SINGLE:9")).toEqual({ number: 9, zone: "SINGLE" });
   });
 });

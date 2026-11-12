@@ -45,6 +45,10 @@ describe("missReferences", () => {
     expect(refs).toHaveLength(82);
   });
 
+  it("has no row for the undivided SINGLE aim, which has no ring band", () => {
+    expect(refs.some((r) => (r.zoneKey as string) === "SINGLE")).toBe(false);
+  });
+
   it("gives DOUBLE:20 the geometric centroid and 162/170 radii", () => {
     const ref = refs.find(
       (r) => r.targetNumber === 20 && r.zoneKey === "DOUBLE",

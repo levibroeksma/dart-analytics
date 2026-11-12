@@ -24,6 +24,16 @@ export const SECTOR_ORDER: readonly number[] = [
 
 export const SECTOR_WIDTH_DEGREES = 360 / SECTOR_ORDER.length;
 
+/** Whether two distinct board numbers sit side by side on the board, wrapping from 5 back to 20. Equal or unknown numbers are not neighbours. */
+export function areBoardNeighbours(a: number, b: number): boolean {
+  const indexA = SECTOR_ORDER.indexOf(a);
+  const indexB = SECTOR_ORDER.indexOf(b);
+  if (indexA < 0 || indexB < 0) return false;
+  const size = SECTOR_ORDER.length;
+  const diff = (indexA - indexB + size) % size;
+  return diff === 1 || diff === size - 1;
+}
+
 function radiusOf(x: number, y: number): number {
   return Math.sqrt(x * x + y * y);
 }

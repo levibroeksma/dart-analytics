@@ -1,11 +1,13 @@
 import type { DartZoneKey } from "@modules/types";
-import type { IntentZoneKey, TargetKey } from "./types";
+import { areBoardNeighbours } from "@lib/game/board/board-geometry.module";
+import type { IntentZoneKey, TargetKey, WireKey } from "./types";
 
 const NUMBERED_ZONES: readonly IntentZoneKey[] = [
   "DOUBLE",
   "TREBLE",
   "INNER_SINGLE",
   "OUTER_SINGLE",
+  "SINGLE",
   "NUMBER",
 ];
 const BULL_ZONES: readonly IntentZoneKey[] = [
@@ -41,8 +43,32 @@ export function parseTargetKey(
   return null;
 }
 
-/** Display label for a `TargetKey` (`DOUBLE:16` -> `D16`); an unparsable key comes back unchanged. */
+/** Builds the `WIRE:a-b` key for two board-adjacent numbers, ordered with the smaller first; throws when they are not neighbours. */
+export function formatWireKey(a: number, b: number): WireKey {
+  const low = Math.min(a, b);
+  const high = Math.max(a, b);
+  if (!areBoardNeighbours(low, high)) {
+    throw new RangeError(
+      `WIRE needs board-adjacent numbers, got ${a} and ${b}`,
+    );
+  }
+  return `WIRE:${low}-${high}`;
+}
+
+/** Parses a `WireKey` into its two numbers, smaller first; `null` unless both are board-adjacent and written `a < b`. */
+export function parseWireKey(value: string): readonly [number, number] | null {
+  const match = /^WIRE:(\d+)-(\d+)$/.exec(value);
+  if (match === null) return null;
+  const low = Number(match[1]);
+  const high = Number(match[2]);
+  if (low >= high || !areBoardNeighbours(low, high)) return null;
+  return [low, high];
+}
+
+/** Display label for a `TargetKey` (`DOUBLE:16` -> `D16`) or `WireKey` (`WIRE:6-10` -> `6/10`); an unparsable key comes back unchanged. */
 export function targetLabel(value: string): string {
+  const wire = parseWireKey(value);
+  if (wire !== null) return `${wire[0]}/${wire[1]}`;
   const parsed = parseTargetKey(value);
   if (parsed === null) return value;
   const { number, zone } = parsed;
@@ -55,6 +81,8 @@ export function targetLabel(value: string): string {
       return `${number} inner`;
     case "OUTER_SINGLE":
       return `${number} outer`;
+    case "SINGLE":
+      return `S${number}`;
     case "NUMBER":
       return String(number);
     case "INNER_BULL":
