@@ -171,6 +171,57 @@ describe("GET /api/statistics/games/:gameTypeKey/sections/:sectionId", () => {
     );
   });
 
+  it("passes a wire target through to the service for the 501 heatmap", async () => {
+    vi.mocked(getGameSection).mockResolvedValue({
+      ok: true,
+      data: {
+        sectionId: "heatmap",
+        sectionVersion: 2,
+        dataVersion: "v1:1:0",
+        bucket: "none",
+        tz: null,
+        range: {
+          from: "2026-01-01T00:00:00+01:00",
+          to: "2026-02-01T00:00:00+01:00",
+        },
+        buckets: [],
+      } as never,
+    });
+
+    const response = await GET({
+      locals,
+      params: { gameTypeKey: "501", sectionId: "heatmap" },
+      url: makeUrl("501", "heatmap", {
+        from: "2026-01-01T00:00:00+01:00",
+        to: "2026-02-01T00:00:00+01:00",
+        target: "WIRE:6-10",
+      }),
+    } as never);
+
+    expect(response.status).toBe(200);
+    expect(getGameSection).toHaveBeenCalledWith(
+      "player-1",
+      "501",
+      "heatmap",
+      expect.objectContaining({ target: "WIRE:6-10" }),
+    );
+  });
+
+  it("rejects a wire target between non-adjacent numbers before the service runs", async () => {
+    const response = await GET({
+      locals,
+      params: { gameTypeKey: "501", sectionId: "heatmap" },
+      url: makeUrl("501", "heatmap", {
+        from: "2026-01-01T00:00:00+01:00",
+        to: "2026-02-01T00:00:00+01:00",
+        target: "WIRE:6-11",
+      }),
+    } as never);
+
+    expect(response.status).toBe(422);
+    expect(getGameSection).not.toHaveBeenCalled();
+  });
+
   it("dispatches checkout-rate through the service and returns a validated series", async () => {
     const seriesResponse: CheckoutRateSeriesResponseData = {
       sectionId: "checkout-rate",
