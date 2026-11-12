@@ -43,7 +43,8 @@ export type SectionId =
   | "bobs27-survival"
   | "shanghai-count"
   | "training-result"
-  | "large-target-accuracy";
+  | "large-target-accuracy"
+  | "aim-drift";
 
 /**
  * The declared-intent zones a target key can name (`01-Section-Catalog.md`
@@ -183,7 +184,8 @@ export type ServerSectionId =
   | "shanghai-count"
   | "training-result"
   | "heatmap"
-  | "large-target-accuracy";
+  | "large-target-accuracy"
+  | "aim-drift";
 
 /** Each server section's own metrics shape, keyed by its id — what `mergeMetrics` (`lib/stats/merge-metrics.ts`) folds over. */
 export type ServerSectionMetrics = {
@@ -202,6 +204,7 @@ export type ServerSectionMetrics = {
   "shanghai-count": ShanghaiCountMetrics;
   "training-result": TrainingResultMetrics;
   "large-target-accuracy": AimCountMetrics;
+  "aim-drift": AimCountMetrics;
   heatmap: HeatmapMetrics;
 };
 

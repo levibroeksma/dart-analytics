@@ -22,6 +22,16 @@ export function dart(zone: DartZoneKey, n: number, score: number): DartFact {
   };
 }
 
+export function at(
+  x: number,
+  y: number,
+  zone: DartZoneKey,
+  n: number,
+  score: number,
+): DartFact {
+  return { ...dart(zone, n, score), locationX: x, locationY: y };
+}
+
 export function visit(
   startingRemaining: number,
   darts: DartFact[],

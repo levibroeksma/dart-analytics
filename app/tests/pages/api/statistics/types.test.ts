@@ -19,6 +19,7 @@ import {
   CheckoutRateSeriesResponse,
   DoublePerformanceSeriesResponse,
   LargeTargetAccuracySeriesResponse,
+  AimDriftSeriesResponse,
   CheckoutPathSeriesResponse,
   BustRateSeriesResponse,
   LegStatsSeriesResponse,
@@ -712,6 +713,31 @@ describe("checkout family series responses", () => {
           sampleSize: 4,
           metrics: {
             "TREBLE:20|NEAREST": { darts: 3, trebles: 1 },
+            AMBIGUOUS: { darts: 1 },
+          },
+        },
+      ],
+      skippedSessions: 0,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("parses a aim-drift series response with an AMBIGUOUS row", () => {
+    const result = AimDriftSeriesResponse.safeParse({
+      sectionId: "aim-drift",
+      sectionVersion: 1,
+      dataVersion: "v1:1:0",
+      bucket: "none",
+      tz: null,
+      range: { from: "2026-01-01T00:00:00Z", to: "2026-02-01T00:00:00Z" },
+      buckets: [
+        {
+          start: "2026-01-01T00:00:00Z",
+          end: "2026-02-01T00:00:00Z",
+          closed: true,
+          sampleSize: 4,
+          metrics: {
+            "LARGE_TARGET|TREBLE:20|1|NEAREST": { n: 3, sumDx: -1.5, sumDy: 2 },
             AMBIGUOUS: { darts: 1 },
           },
         },
