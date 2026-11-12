@@ -5,7 +5,18 @@ import {
   aimCountBuckets,
   aimKey,
 } from "@modules/stats/sections/aim-count.module";
+import { mergeMetrics } from "@lib/stats/merge-metrics";
+import { largeTargetAccuracyBuckets } from "@modules/stats/sections/large-target-accuracy.module";
+import type { InferredSession } from "@modules/types";
 import { CTX, dart, inferred, visit } from "../support/x01-inferred-fixtures";
+
+function inMonth(sessions: InferredSession[], month: "01" | "02") {
+  return sessions.map((s) => ({
+    ...s,
+    bucketStart: `2026-${month}-01T00:00:00.000Z`,
+    bucketEnd: `2026-${month === "01" ? "02" : "03"}-01T00:00:00.000Z`,
+  }));
+}
 
 describe("aim-count helpers", () => {
   it("joins key parts with a pipe", () => {
@@ -29,5 +40,42 @@ describe("aim-count helpers", () => {
     });
     expect(bucket!.sampleSize).toBe(2);
     expect(aimCountBuckets(sessions, CTX, () => 0)).toEqual([]);
+  });
+
+  it("keeps a bucket holding only ambiguous counts", () => {
+    const sessions = inferred([visit(433, [dart("OUTER_SINGLE", 1, 1)])]);
+    const [bucket] = aimCountBuckets(sessions, CTX, (metrics) => {
+      addCounts(metrics, AMBIGUOUS_KEY, { darts: 1 });
+      return 0;
+    });
+    expect(bucket!.sampleSize).toBe(0);
+    expect(bucket!.metrics).toEqual({ AMBIGUOUS: { darts: 1 } });
+  });
+
+  it("merges two month chunks into the combined request, ambiguous-only month included", () => {
+    const january = inMonth(
+      inferred([visit(501, [dart("TREBLE", 20, 60)])]),
+      "01",
+    );
+    const february = inMonth(
+      inferred([visit(433, [dart("OUTER_SINGLE", 1, 1)])]),
+      "02",
+    );
+    const chunks = [january, february].map((chunk) =>
+      largeTargetAccuracyBuckets(chunk, CTX),
+    );
+    expect(chunks[1]).toHaveLength(1);
+    expect(chunks[1]![0]!.sampleSize).toBe(0);
+    const merged = mergeMetrics(
+      "large-target-accuracy",
+      chunks[0]![0]!.metrics,
+      chunks[1]![0]!.metrics,
+    );
+    const combined = largeTargetAccuracyBuckets(
+      inMonth([...january, ...february], "01"),
+      CTX,
+    );
+    expect(merged).toEqual(combined[0]!.metrics);
+    expect(merged.AMBIGUOUS).toEqual({ darts: 1 });
   });
 });

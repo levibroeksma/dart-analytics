@@ -26,7 +26,8 @@ export function addCounts(
 /**
  * Folds inferred sessions into start-keyed aim-count buckets: one metrics
  * accumulator per bucket, `fold` adding a session's counts to it and returning
- * the session's sample-size contribution. Buckets with no sample are dropped.
+ * the session's sample-size contribution. A bucket is kept while it holds any
+ * row, so an ambiguous-only bucket (sample 0) survives and chunks merge losslessly.
  */
 export function aimCountBuckets(
   sessions: readonly InferredSession[],
@@ -41,5 +42,8 @@ export function aimCountBuckets(
     const bucket = bucketFor(buckets, session, () => ({}));
     bucket.sampleSize += fold(bucket.metrics, session);
   }
-  return closeBuckets(buckets, ctx, { dropEmpty: true });
+  for (const [start, bucket] of buckets) {
+    if (Object.keys(bucket.metrics).length === 0) buckets.delete(start);
+  }
+  return closeBuckets(buckets, ctx);
 }
