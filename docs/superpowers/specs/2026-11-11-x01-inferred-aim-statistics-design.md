@@ -2,6 +2,32 @@
 
 Date: 2026-11-11, hardened 2026-11-12 · Status: design, awaiting owner approval · Scope: 501 only
 
+> **Status note (2026-11-12, D555):** built by
+> `docs/superpowers/plans/2026-11-12-x01-inferred-aim-statistics-backend.md`
+> (backend only; the page UI is a follow-up plan). The canonical record is
+> `docs/architecture/10-Statistics/00-Overview.md` §3 and
+> `01-Section-Catalog.md` §1–§2.1. Where this text and the build differ, the
+> build wins:
+>
+> 1. **§3 "No migration":** one view migration, `0055`, adds `location_x`,
+>    `location_y` to `v_x01_checkout_darts`. Still no table, column or stored
+>    aim.
+> 2. **§5, §6 rows 3 and 5:** no existing section gains `intent-inferred`.
+>    Row 3 is the new `aim-drift`, row 5 the new `double-accuracy`
+>    (`target-accuracy`, `miss-direction` and `grouping` cannot carry basis,
+>    resolution or a wire key).
+> 3. **§4.2 footnote:** a single aim is the new zone key `SINGLE:n`;
+>    `NUMBER:n` keeps its "any ring" meaning.
+> 4. **§3 skip rule:** a session is skipped when its snapshot does not decode
+>    or any dart lacks coordinates. The `dart_count` comparison is dropped:
+>    the fold view does not filter darts.
+> 5. `AMBIGUITY_RATIO` is exported from `x01-aim-resolution.module.ts`, not
+>    with the rules and leave rank (`x01-aim-candidates.module.ts`), against
+>    §4.8's "one module".
+> 6. An ambiguous dart is counted under each section's `AMBIGUOUS` row, and
+>    a bucket holding only that row is kept (`aimCountBuckets`), so chunk
+>    merges stay lossless.
+
 First of a series, in the owner's order: 501 → 121 → Cricket & Tactics → Score
 Training → Singles Training → Doubles Training. Each later game gets its own
 spec; 121 is expected to reuse §4.

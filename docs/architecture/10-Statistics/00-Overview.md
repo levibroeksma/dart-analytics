@@ -2,12 +2,12 @@
 status: canonical
 scope: architecture/statistics
 read-when: designing or building any detailed statistics page, insight section, statistics endpoint, or the statistics client cache
-updated: 2026-10-05
+updated: 2026-11-12
 -->
 
 # Statistics — Overview
 
-> **Version:** 1.6.0 (2026-09-29, D364/D365/D366/D367/D368/D369/D370/D371/D372)
+> **Version:** 1.7.0 (2026-11-12, D555; prior 1.6.0 2026-09-29, D364/D365/D366/D367/D368/D369/D370/D371/D372)
 >
 > Architecture for the detailed per-game statistics pages on `/statistics`.
 > Design record: `docs/superpowers/specs/2026-09-26-statistics-pages-architecture-design.md`.
@@ -28,7 +28,10 @@ updated: 2026-10-05
 > (`02-Replay.md`), and phase 6 (D372): the Routines tab — routine and step
 > identity from the snapshot (§8), the run- and step-level sections
 > (`01-Section-Catalog.md` §3), a GAME step's own game sections, and
-> training-step replay. Still designed, not built: thin per-section views
+> training-step replay. 501 inferred aim (D555, after the phases): the
+> `intent-inferred` tag and five 501-only `server` sections
+> (`01-Section-Catalog.md` §1, §2.1) plus the inferred-aim `heatmap` filter.
+> Still designed, not built: thin per-section views
 > (§10) and the `facts` cache store (§7).
 
 | File | Covers |
@@ -72,6 +75,7 @@ favorite double, …). Each section is one entry in a typed registry
 | `computeSite` | `sql` \| `server` \| `client` (§4) | picked per section by cost, recorded with a reason |
 | `siteByTag` | `Partial<Record<StatsTag, ComputeSite>>`, optional | overrides `computeSite` when the game carries that tag; `sectionSite(meta, gameTypeKey)` is the one resolver the service and client both read (D370 decision 5) |
 | `games` | `readonly GameTypeKey[]`, optional | narrows a section to named games on top of its tags — how a game-specific section (`bobs27-survival`, …) attaches to exactly one game (D370 decision 10) |
+| `excludedGames` | `readonly GameTypeKey[]`, optional | drops a section from the named games' pages although its tags admit it — 501 drops `treble-rate`, `volume`, `checkout-path`, `double-performance` (D555) |
 | `bucketable` | supports `bucket` (§5) | enables MoM / YoY series |
 | `includesAbandoned` | whether abandoned sessions enter the population | partial games never skew averages by accident |
 | `configSensitive` | snapshot fields the result is grouped by (e.g. `ruleset_version_key`, `starting_score`) | unlike configurations are never blended |
@@ -84,8 +88,9 @@ No new route, no contract change elsewhere.
 
 **Page order overrides (D370 decision 11):** `PAGE_ORDER_OVERRIDES:
 Partial<Record<GameTypeKey, readonly SectionId[]>>` lets one game reorder its
-own tag-derived section list — today only Shanghai, whose page puts
-`session-result` right after `shanghai-count` (`01-Section-Catalog.md` §2). An
+own tag-derived section list — Shanghai, whose page puts
+`session-result` right after `shanghai-count`, and 501, whose aim sections
+interleave with the checkout family (`01-Section-Catalog.md` §2, D555). An
 override may only reorder: a test asserts every override is a permutation of
 the same game's tag-derived set, so it can never add or drop a section.
 
@@ -101,6 +106,7 @@ The page renders the intersection.
 | `board` | landing coordinates per dart | all |
 | `intent-stored` | `intended_target_number`/`intended_zone` stored per dart | Doubles Training, Bob's 27 |
 | `intent-derived` | the aimed target is implicit and recovered by an engine fold | Singles, Shanghai, Around the Clock |
+| `intent-inferred` | an aim inferred at read time from the remaining score plus the landing point; never stored (D555) | 501 |
 | `scoring` | face-value visit scoring | 501, Score Training |
 | `checkout` | double-out remaining-score ladder | 501, 121, TUOD |
 | `leg` | `LEG` stages | 501 |
@@ -114,7 +120,12 @@ intent columns `NULL` by design — every ring on the current number is a valid
 aim, and `chk_dart_target_consistency` (`0007`) rejects a number without a
 zone — so its aimed number is recovered from the visit index, the same way as
 Shanghai and Around the Clock. Sections needing intent are not offered where
-neither tag applies; inferring an aim would fabricate a fact.
+no intent tag applies; inferring an aim would fabricate a fact. The one
+explicit exception is 501 (`intent-inferred`, D555): its aim is inferred
+from the remaining score and landing point (`x01-aim-candidates.module.ts`,
+`x01-aim-resolution.module.ts`), every inferred aim carries its basis and
+resolution, an ambiguous dart gets no aim, and only 501's own sections read
+it — `intent-inferred` admits none of the `intent-*` sections.
 
 **`intent-derived`'s aim zones (D370 decision 2):** the target key format
 (`01-Section-Catalog.md` §1.2, `<ZONE_KEY>:<number>`) gains two zones beyond
@@ -178,7 +189,7 @@ silently ignored.
 | `context` | `all` (default for game pages) \| `standalone` \| `routine` | §8 |
 | `inputMode` | `VISUAL_BOARD` (only value in this version) | reserved for recreational sections |
 | `limit`, `cursor` | per `06-API/03-Shared-Conventions.md` §Pagination | every list or raw-row endpoint. The session list orders by `(completed_at DESC, session_id DESC)`; the opaque cursor encodes both (D367 decision 4). |
-| `target` | `<ZONE_KEY>:<number>` (a `TargetKey`, e.g. `DOUBLE:16`) | Only a section that declares `params: ["target"]` accepts it, on a game with the `intent-stored` tag (D368 decision 5), or on an `intent-derived` game with `NUMBER:n` / `BULL:25` only (D408, resolved by the server fold); joins the client cache's `paramsKey`. Anything else is `VALIDATION_FAILED`. Only `heatmap` declares it. |
+| `target` | `<ZONE_KEY>:<number>` (a `TargetKey`, e.g. `DOUBLE:16`) | Only a section that declares `params: ["target"]` accepts it, on a game with the `intent-stored` tag (D368 decision 5), or on an `intent-derived` game with `NUMBER:n` / `BULL:25` only (D408, resolved by the server fold), or on an `intent-inferred` game with an inferred aim key — `TREBLE:n`, `SINGLE:n`, `DOUBLE:n`, `INNER_BULL:25`, `OUTER_BULL:25` or `WIRE:a-b` — matching the darts resolved to that aim (D555, server fold); joins the client cache's `paramsKey`. Anything else is `VALIDATION_FAILED`. Only `heatmap` declares it. |
 
 **Bucket widening (D367 decision 2):** a bucketed request's `from` is floored
 to the start of its own bucket in `tz` before the query runs, and the server
@@ -459,3 +470,9 @@ Each phase is its own spec, plan, and migration.
    a GAME step's own game sections, `step-result`/`step-volume` for a
    non-game step, the step session list, and training-step replay, all under
    a fixed `context = routine` (§8).
+7. **Done** (501 inferred aim, 2026-11-12, D555): the `intent-inferred`
+   tag, `large-target-accuracy`, `aim-drift`, `double-accuracy`,
+   `double-preference`, `setup-success` and the inferred-aim `heatmap`
+   filter; migration `0055` adds landing coordinates to
+   `v_x01_checkout_darts`. Spec:
+   `docs/superpowers/specs/2026-11-11-x01-inferred-aim-statistics-design.md`.
