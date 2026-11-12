@@ -1,323 +1,354 @@
 # 501 Statistics — Inferred Aim and Page Design
 
-Date: 2026-11-11 · Status: design, awaiting owner approval · Scope: 501 only
+Date: 2026-11-11, hardened 2026-11-12 · Status: design, awaiting owner approval · Scope: 501 only
 
-First of a series. Order agreed with the owner: 501 → 121 → Cricket & Tactics →
-Score Training → Singles Training → Doubles Training. Every other game is out of
-scope. 121 is expected to reuse this document's aim model; each later game gets
-its own brainstorm and spec.
+First of a series, in the owner's order: 501 → 121 → Cricket & Tactics → Score
+Training → Singles Training → Doubles Training. Each later game gets its own
+spec; 121 is expected to reuse §4.
 
 ---
 
 ## 1. Intent
 
-The owner wants the 501 statistics page to show **progression over time** and
-**patterns that tell them what to train**. Their examples:
+The 501 statistics page shows **progression over time** and **patterns that
+tell the owner what to train**. The owner's examples:
 
 - "My first dart drifts left of the target."
 - "When I aim at a double I land inside more often than outside."
-- "I turn towards D16/D20 because they're said to be better, but I might hit
-  D12 or D6 better." The answer should feed better setup decisions in real
-  games.
+- "I turn towards D16/D20, but I might hit D12 or D6 better", to make better
+  setup decisions in real games.
 
-Every one of these needs to know **what the dart was aimed at**. 501 stores no
-aim (`darts.intended_*` is `NULL`; `10-Statistics/00-Overview.md` §3). The
-owner's decision: **derive the aim**. It will never be airtight, but it can get
-close. V1 covers whole beds and conventional checkout play, and is designed to
-be refined.
+Each needs the dart's **aim**. 501 stores none (`darts.intended_*` is `NULL`).
+The owner's decision: **infer the aim** from game state plus landing point.
+V1 covers whole beds and conventional checkout play, and is built to be
+refined (§4.8).
 
 ## 2. Goals, non-goals, anti-goals
 
 **Goals**
 
-- A pure, deterministic aim resolver for 501 darts. It is built as a set of
-  rules that can be extended without type changes (§4.7).
-- A 501 statistics page with the eleven sections in §6, each bucketable for
-  month-over-month progression where its metric is additive.
-- Every inferred aim carries *how* it was inferred, so a figure can be filtered
-  by basis and the owner can judge how far to trust it.
+- A pure, deterministic aim resolver (§4), extensible without type changes.
+- The eleven-section 501 page (§6), every aim metric additive and bucketable.
+- Every inferred aim carries its **basis** (which rule) and **resolution**
+  (how it was chosen), and every aim metric is keyed by both (§5).
 
 **Non-goals (V1)**
 
-- Opponent score, match pressure or personal preference as inputs (§4.6
-  reserves the hook).
-- Treble wires, bull/25 wires, bull-finish alternatives beyond the chart route.
-- Any game other than 501. Capture modes other than `VISUAL_BOARD`.
+- Opponent score, pressure or personal preference as inputs (hook: §4.8).
+- Treble wires, bull/25 wires, inner-vs-outer single aims.
+- Games other than 501; capture modes other than `VISUAL_BOARD`.
 - Persisting inferred aims.
 
-**Anti-goals (a failure even if it "works")**
+**Anti-goals** (a failure even when it runs)
 
-- **Circular accuracy:** a dart must never be counted as "aimed where it
-  landed". The landing point may only *choose between* candidates the
-  situation already produced (§4.4).
-- **Forced guesses:** a dart that cannot be assigned honestly is left out of
-  every aim-based figure, never assigned anyway (§4.5).
-- **Silent bias:** where a known bias exists (§4.5), the card shows its size.
+- **Circular accuracy.** The landing point only chooses between candidates the
+  game state already produced (§4.5). It never produces one.
+- **Forced guesses.** An ambiguous dart leaves every aim metric (§4.6).
+- **Silent bias.** A card states the size of any known bias (§4.6).
 
 ## 3. Constraints
 
-- **Store facts, derive meaning:** inferred aims are computed at read time and
-  never written. No migration, no new table, `darts.intended_*` stays `NULL`
-  for 501.
-- **Hard invariant, persistence shape:** capture mode `ANALYTICS` +
-  `VISUAL_BOARD`; stage type `LEG`; one `turns` row per visit, one `darts` row
-  per dart with `location_x/y`. No change to any of these.
-- **Compute site:** the resolver needs the remaining-score fold, so every
-  section that uses it is a `server` section. It is bounded by
-  `MAX_FOLD_DARTS` and fetched in chunk windows (`00-Overview.md` §4), the same
-  as the existing checkout family (`x01-checkout-sessions.module.ts`).
-- **Additive components only** (`00-Overview.md` §5.1).
-- **Honest replay** (`01-Section-Catalog.md` §1.2, D370 decision 4). A session
-  is skipped and counted in `skippedSessions` when:
-  - its snapshot doesn't decode, or its fold row count disagrees with
-    `dart_count`; or
-  - any dart lacks coordinates, because the landing point is needed to resolve
-    candidates.
-- **Rule source:** the conventional route table is `checkoutPathFor` /
-  `checkoutPathWithin` (`modules/game/checkout-path.module.ts`), never a second
-  copy. Board geometry is `lib/game/board/board-geometry.module.ts`
-  (`SECTOR_ORDER`, `BOARD_RADII_MM`, `zoneCentroid`).
-- **Docs authority:** this design adds a third intent family beside
-  `intent-stored` and `intent-derived` (§5). The statement in `00-Overview.md`
-  §3 that inferring an aim "would fabricate a fact" is narrowed, not ignored.
-  Implementation records a new decision that cites what it supersedes, and
-  updates `00-Overview.md` §3 and `01-Section-Catalog.md` §1–§2.
+- **Read-time only.** No migration, no table, no stored aim.
+- **Persistence shape, unchanged:** capture `ANALYTICS` + `VISUAL_BOARD`; stage
+  type `LEG`; one `turns` row per visit; one `darts` row per dart with
+  `location_x/y`.
+- **Population:** the owner's own darts (`v_stats_dart_facts`) in completed
+  sessions of the 501 game pair, both play contexts, all ruleset versions
+  pooled (fact-shaped, D369 decision 9). 501 is double-out only.
+- **Compute site `server`** for every section that uses the resolver: it needs
+  the remaining-score fold. Bounded by `MAX_FOLD_DARTS`, fetched in chunk
+  windows, like the checkout family (`x01-checkout-sessions.module.ts`).
+- **Additive components only** (`10-Statistics/00-Overview.md` §5.1).
+- **Honest replay** (D370 decision 4). A session is skipped whole and counted
+  in `skippedSessions` when its snapshot does not decode, its fold row count
+  differs from `dart_count`, or any dart lacks coordinates.
+- **Single sources:**
+  - Routes: `checkoutPathFor` / `checkoutPathWithin`
+    (`modules/game/checkout-path.module.ts`).
+  - Remaining before each dart: `checkoutDarts`
+    (`modules/game/double-attempt.module.ts`).
+  - Geometry: `lib/game/board/board-geometry.module.ts` (`SECTOR_ORDER`,
+    `BOARD_RADII_MM`, `zoneCentroid`).
+- **Docs to change at implementation.** This design adds a third intent family
+  and narrows `00-Overview.md` §3's "inferring an aim would fabricate a fact".
+  Record a new decision citing what it supersedes; update `00-Overview.md` §3
+  (tag table) and `01-Section-Catalog.md` §1–§2 (library, 501 page list).
 
 ---
 
-## 4. The aim model (decided with the owner)
+## 4. The aim model
 
 ### 4.1 Inputs per dart
 
-The aim for a dart is worked out from:
+| Input | Source |
+| ----- | ------ |
+| `r` — remaining before the dart | `checkoutDarts`; always `r ≥ 2` |
+| `dartsLeft` — darts left in the visit, this one included | `4 − dart_number` (3, 2 or 1) |
+| landing point | `location_x`, `location_y` |
 
-- the **remaining score before the dart**, from `checkoutDarts`
-  (`double-attempt.module.ts`);
-- the **darts left in the visit**, counting this one (3, 2 or 1);
-- the **landing point** (`location_x`, `location_y`).
-
-The landing point is used **only** to choose between candidates (§4.4).
+The dart that busts a visit is resolved like any other; a bust ends the visit,
+so no dart follows it.
 
 ### 4.2 Aim kinds
 
-| Kind | Example | Hit when the dart lands in | Aim point (for drift) |
-| ---- | ------- | -------------------------- | --------------------- |
-| Treble bed | T20 | `TREBLE` of n | `zoneCentroid(n, "TREBLE")` |
-| Single bed | S9 | any single ring of n (inner or outer) | `zoneCentroid(n, "OUTER_SINGLE")`, the "large" single |
-| Double bed | D16 | `DOUBLE` of n | `zoneCentroid(n, "DOUBLE")` |
-| Bull | BULL | `INNER_BULL` | `{0,0}` |
-| Wire | 6/10 | any single ring of either number | on the shared sector edge, at the outer-single mid radius (`(trebleOuter + doubleInner) / 2`) |
+| Kind | `TargetKey` | Hit region | Aim point |
+| ---- | ----------- | ---------- | --------- |
+| Treble | `TREBLE:n` | `TREBLE` of n | `zoneCentroid(n, "TREBLE")` |
+| Single | `NUMBER:n`¹ | both single rings of n | `zoneCentroid(n, "OUTER_SINGLE")` |
+| Double | `DOUBLE:n` | `DOUBLE` of n | `zoneCentroid(n, "DOUBLE")` |
+| Bull | `INNER_BULL:25` | `INNER_BULL` | `{0, 0}` |
+| Outer bull | `OUTER_BULL:25` | `OUTER_BULL` | `{0, 0}` |
+| Wire | `WIRE:a-b` | both single rings of a and of b | on the shared sector edge at radius `(trebleOuter + doubleInner) / 2` |
 
-A wire is always two **board-adjacent** numbers, single rings only, in V1.
+¹ Open naming point for the builder: `NUMBER:n` already means "any ring of n"
+for `intent-derived` games (`isAimHit`). A single aim hits single rings only,
+so it needs its own zone key (e.g. `SINGLE:n`) or `isAimHit` must branch on
+the tag. Pick one; the hit region above is fixed.
 
-### 4.3 Candidate rules
+- **Hit** = the landing zone is in the hit region. Everything else is a miss,
+  including the treble or double of a single aim's number.
+- **Wire:** `a`, `b` are board-adjacent (`SECTOR_ORDER`, wrapping 5–20),
+  written `a < b`. `targetLabel` renders `6/10`.
+- A route label maps to a kind: `T20` → Treble, `20` → Single, `D20` → Double,
+  `BULL` → Bull, `25` → Outer bull.
 
-For each dart, produce candidates from the rules below. The rules are not "first
-match wins": a dart can collect candidates from several rules (finish + split).
+### 4.3 Definitions
 
-Definitions:
+- **`conv`** = `checkoutPathFor(r)`; `null` above 170 and on bogey numbers.
+- **`fit`** = `checkoutPathWithin(r, dartsLeft)`.
+- **`finishable(r)`**: `r` even with `2 ≤ r ≤ 40`, or `r = 50`.
+- **Good leave**: `L` with `4 ≤ L ≤ 40` and `L % 4 = 0`. An inside miss into
+  the single still leaves an even number.
+- **Leave rank**: the count of times `L` halves evenly; ties go to the higher
+  `L`. Order: 32 > 16 > 40 > 24 > 8 > 36 > 28 > 20 > 12 > 4. One exported data
+  table; §4.8 replaces it later.
+- **Wire merge** of a single candidate `s`: among the two board neighbours `n`
+  of `s` with `r − n` a good leave, take the best-ranked. If one exists, the
+  candidate becomes `WIRE` of `s` and `n`; otherwise it stays `NUMBER:s`.
+  A wire replaces its single: the two cannot be told apart by landing.
 
-- `finishable(r)`: `r` is even with `2 ≤ r ≤ 40`, or `r = 50`.
-- **Good leave:** an even `L` with `4 ≤ L ≤ 40` and `L % 4 = 0`. A dart that
-  misses inside into the single still leaves an even number, so another double.
-  The owner's V1 list (D20, D16, D18, D8, D10, D12) is a subset; D14, D6, D4
-  and D2 qualify too.
-- **Leave rank:** how many clean halvings the leave allows (2-adic valuation),
-  ties broken by the higher leave: 32 (5) > 16 (4) > 40, 24, 8 (3) > 36, 28,
-  20, 12, 4 (2). "D16/D8 outranks D20/D10/D5" — owner. Held as a data table so it
-  can be overridden later (§4.7).
+### 4.4 Candidate rules
 
-| Rule | When | Candidates | Basis tag |
-| ---- | ---- | ---------- | --------- |
-| **Large target** | no route fits the darts left (`checkoutPathWithin(r, dartsLeft) = null`) and `r > 170`, or `r` is a bogey number | T20, T19, T18 (equal weight) | `LARGE_TARGET` |
-| **Route** | a route fits the darts left and its first dart is not a one-dart finish | the route's first dart; if it is a single, merged into a wire when a board neighbour also leaves a good leave (best-ranked neighbour) | `ROUTE` |
-| **Setup** | `r ≤ 170`, not a bogey, but no route fits the darts left | the conventional route's first dart (`checkoutPathFor(r)[0]`), with the same wire merge | `SETUP` |
-| **Finish** | `finishable(r)` | the double for `r` (or BULL for 50) | `FINISH` |
-| **Split** | `finishable(r)`, `r` is not a good leave, and some single `s < r` leaves a good leave | the single leaving the best-ranked good leave; merged into a wire when a board neighbour also leaves a good leave | `SPLIT` |
+Exactly one **case** applies per dart; a case can yield several candidates.
+All candidates carry weight 1 in V1.
 
-Notes from the owner conversation:
+| Case | Condition | Candidates → basis |
+| ---- | --------- | ------------------ |
+| A | `conv = null` | `TREBLE:20`, `TREBLE:19`, `TREBLE:18` → `LARGE_TARGET` |
+| B | `finishable(r)`, `r ≠ 50` | `DOUBLE:(r/2)` → `FINISH`; plus the split candidate below → `SPLIT` |
+| C | `r = 50` | `INNER_BULL:25` → `FINISH`; plus `NUMBER:10` (`conv[0]`) → `ROUTE` when `dartsLeft ≥ 2`, `SETUP` when 1 |
+| D | otherwise, `fit ≠ null` | `fit[0]`, wire-merged when a single → `ROUTE` |
+| E | otherwise (`fit = null`) | `conv[0]`, wire-merged when a single → `SETUP` |
 
-- **No situational filtering.** Splits are offered whatever the darts left,
-  opponent or pressure: "I might go straight for D11, in another scenario
-  split the same score". The landing point decides.
-- **A wire replaces its two single candidates**, because aiming at S16 alone
-  and aiming at the 8/16 wire cannot be told apart from where the dart landed.
-- **At 50**, the chart route (S10 → D20) and BULL are both candidates. They are
-  far apart on the board.
-- **Switching** (blocked 20, or "the 20 just ain't landing") needs no rule of
-  its own. The large-target candidate set plus landing resolution detects it.
+**Split candidate (case B):** exists when `r` is not a good leave and some
+single `s` (1–20, `s < r`) leaves a good leave. Take the `s` whose leave ranks
+best, then wire-merge it.
 
-### 4.4 Resolution
+Consequences, stated so they are not rediscovered:
 
-1. One candidate → that is the aim (`resolution: "SOLE"`). The landing point
-   plays no part.
-2. Several candidates → measure the distance from the landing point to each
-   candidate's aim point. For a bed this means the nearest point of the bed;
-   for a wire, the nearest point of the two-bed union. Divide each distance by
-   the candidate's weight; V1 weights are all 1. The nearest wins
-   (`resolution: "NEAREST"`).
-3. If the runner-up is nearly as close, the dart is `AMBIGUOUS` (§4.5): the
-   test is `nearest / runnerUp > AMBIGUITY_RATIO`.
+- Splits are offered whatever `dartsLeft` is. The owner sometimes goes
+  straight for D11 and sometimes splits the same score; the landing decides.
+- A good-leave double (32, 36, 40, 16, …) has one candidate: the double.
+- Switching to 19s or 18s (blocked 20, or the 20 not landing) is case A plus
+  resolution. It needs no rule.
+- A route or setup whose first dart is a treble has that treble as its only
+  candidate. 120 with three darts is `TREBLE:20`; a 19 thrown there counts as
+  a T20 miss (§9).
 
-`AMBIGUITY_RATIO` is a section-module constant; changing it bumps the
-section `version`. Default **0.75** (my call). It is calibrated by the fixtures
-in §7: a dart in the middle of the 1 at 402 is ambiguous; a dart in the 1 right
-against the 20 wire resolves to T20.
+### 4.5 Resolution
 
-### 4.5 Ambiguous darts (owner's decision)
+`distance(candidate)` = distance in mm from the landing point to the nearest
+point of the candidate's **hit region** (§4.2); 0 inside it. Hit regions of one
+dart's candidates never overlap. A dart off the board resolves like any other.
 
-- **Kept** in the heatmap (unfiltered), scoring, checkout %, bust rate and leg
-  stats, which do not depend on aim.
-- **Left out** of every aim-based figure: accuracy per target, drift,
-  inside/outside, split and wire success, and heatmap filtered by aim.
-- Every aim-based card shows the count it left out.
-- **Known bias:** ambiguous darts are always misses, so T20 and T18 hit rates
-  read slightly high, mostly from darts in the middle of the 1. The T20 card
-  names that count ("N darts in the 1 not assigned").
+1. One candidate → `resolution = SOLE`. The landing point is not read.
+2. Else order candidates by `distance / weight`, nearest first, as `d1`, `d2`.
+3. `d1 / d2 > AMBIGUITY_RATIO` → `resolution = AMBIGUOUS`, no aim.
+4. Otherwise the nearest is the aim, `resolution = NEAREST`.
 
-### 4.6 Worked scenarios (owner-confirmed)
+`AMBIGUITY_RATIO = 0.75`, one exported constant. It must satisfy both
+calibration fixtures in §7; tune it only within them.
 
-These double as the resolver's acceptance tests.
+### 4.6 Ambiguous darts (owner's decision)
 
-| # | Remaining | Darts left | Landing / context | Derived aim | Basis |
-| - | --------- | ---------- | ----------------- | ----------- | ----- |
-| 1 | 501 | 3 | in or around T20 | T20 | LARGE_TARGET |
-| 2 | 402 | 3 | in or around the 19 bed | T19 (a switch) | LARGE_TARGET |
-| 3 | 501 | 3 → 2 | dart 1 in the 5, dart 2 in T7 close to T19 | T20 (missed), then T19 (a switch) | LARGE_TARGET |
-| 4 | any > 170 | – | middle of the 1 | AMBIGUOUS (T20 vs T18) | LARGE_TARGET |
-| 5 | 100 | 3 | any | T20 | ROUTE |
-| 6 | 81 | 3 | any | T15 | ROUTE |
-| 7 | 41 | 2 | any | S9 | ROUTE |
-| 8 | 41 | 1 | any | S9 (leaves 32) | SETUP |
-| 9 | 60 | 1 | any | S20 (leaves 40) | SETUP |
-| 10 | 99 | 2 | any | T19 | SETUP |
-| 11 | 169 | 3 | any | T20 / T19 / T18 by landing | LARGE_TARGET |
-| 12 | 36 | 1 | any | D18 | FINISH (36 is a good leave → no split) |
-| 13 | 16 | 2 | after D16 missed inside (S16) | D8 | FINISH |
-| 14 | 20 | 2 | after D20 missed inside (S20) | D10 | FINISH |
-| 15 | 18 | any | near D9 / in 14 or 12 | D9 | FINISH |
-| 16 | 18 | any | in S2, or in 15 or 10 | S2 (hit, or a missed split) | SPLIT |
-| 17 | 34 | any | in S2 | S2 → leaves 32 (avoids the odd 17 after an inside miss) | SPLIT |
-| 18 | 22 | any | in 6 or 10 | wire 6/10 (leaves 16 or 12) | SPLIT |
-| 19 | 22 | any | near D11 | D11 | FINISH |
-| 20 | 14 | any | in 6 or 10 | wire 6/10 (leaves 8 or 4) | SPLIT |
-| 21 | 39 | any | in 7 or 19 | wire 7/19 (leaves 32 or 20) | ROUTE |
-| 22 | 42 | any | in 6 or 10 | wire 6/10 (leaves 36 or 32) | ROUTE |
-| 23 | 46 | any | in 6 or 10 | wire 6/10 (leaves 40 or 36) | ROUTE |
-| 24 | 48 | any | in 8 or 16 | wire 8/16 (leaves 40 or 32) | ROUTE |
+- **In** every figure that needs no aim: unfiltered heatmap, scoring, checkout
+  rate, bust rate, leg stats.
+- **Out** of every aim metric, and counted per section as `ambiguous`.
+- **Known bias:** an ambiguous dart is always a miss, so T20 and T18 hit rates
+  read slightly high, mostly from darts in the middle of the 1. The
+  large-target card shows that count.
 
-**Generated, not yet confirmed by the owner.** These come out of the rules
-mechanically. The builder implements the rules, not this list, and flags any
-row the rules don't produce:
+### 4.7 Acceptance fixtures
 
-| Remaining | Generated |
-| --------- | --------- |
-| 6 | D3 or split S2 → 4 |
-| 10 | D5 or split S2 → 8 |
-| 23 | route, wire 7/19 → 16 or 4 |
-| 26 | D13 or split wire 10/6 → 16 or 20 |
-| 28 | D14 only (28 is a good leave) |
-| 30 | D15 or split S14 → 16 |
-| 35 | route, wire 3/19 → 32 or 16 |
-| 38 | D19 or split wire 6/10 → 32 or 28 |
-| 43 | route, wire 3/19 → 40 or 24 |
-| 50–60 | route single → 40, no wire |
+Owner-confirmed. Each row is a resolver test. "Lands" names a bed; the fixture
+coordinate is that bed's `zoneCentroid`. "–" = the landing does not matter
+(sole candidate): assert the result for at least two far-apart landings.
 
-### 4.7 Extension points (designed in, not built)
+| # | `r` | `dartsLeft` | Lands | Aim | Basis | Resolution |
+| - | --- | ----------- | ----- | --- | ----- | ---------- |
+| 1 | 501 | 3 | T20 | `TREBLE:20`, hit | `LARGE_TARGET` | `NEAREST` |
+| 2 | 402 | 3 | outer single 19 | `TREBLE:19`, miss | `LARGE_TARGET` | `NEAREST` |
+| 3 | 501 | 3 | outer single 5 | `TREBLE:20`, miss | `LARGE_TARGET` | `NEAREST` |
+| 4 | 496 | 2 | T7 | `TREBLE:19`, miss | `LARGE_TARGET` | `NEAREST` |
+| 5 | 402 | 3 | T1 | none | `LARGE_TARGET` | `AMBIGUOUS` |
+| 6 | 169 | 3 | T18 | `TREBLE:18`, hit | `LARGE_TARGET` | `NEAREST` |
+| 7 | 100 | 3 | – | `TREBLE:20` | `ROUTE` | `SOLE` |
+| 8 | 81 | 3 | – | `TREBLE:15` | `ROUTE` | `SOLE` |
+| 9 | 41 | 2 | – | `NUMBER:9` | `ROUTE` | `SOLE` |
+| 10 | 41 | 1 | – | `NUMBER:9` | `SETUP` | `SOLE` |
+| 11 | 60 | 1 | – | `NUMBER:20` | `SETUP` | `SOLE` |
+| 12 | 99 | 2 | – | `TREBLE:19` | `SETUP` | `SOLE` |
+| 13 | 120 | 3 | – | `TREBLE:20` | `ROUTE` | `SOLE` |
+| 14 | 36 | 1 | – | `DOUBLE:18` | `FINISH` | `SOLE` |
+| 15 | 16 | 2 | – | `DOUBLE:8` | `FINISH` | `SOLE` |
+| 16 | 20 | 2 | – | `DOUBLE:10` | `FINISH` | `SOLE` |
+| 17 | 18 | 3 | outer single 14 | `DOUBLE:9`, miss | `FINISH` | `NEAREST` |
+| 18 | 18 | 3 | outer single 2 | `NUMBER:2`, hit | `SPLIT` | `NEAREST` |
+| 19 | 18 | 3 | outer single 15 | `NUMBER:2`, miss | `SPLIT` | `NEAREST` |
+| 20 | 18 | 3 | outer single 10 | `NUMBER:2`, miss | `SPLIT` | `NEAREST` |
+| 21 | 34 | 1 | outer single 2 | `NUMBER:2`, hit | `SPLIT` | `NEAREST` |
+| 22 | 22 | 2 | outer single 10 | `WIRE:6-10`, hit | `SPLIT` | `NEAREST` |
+| 23 | 22 | 2 | D11 | `DOUBLE:11`, hit | `FINISH` | `NEAREST` |
+| 24 | 14 | 2 | outer single 6 | `WIRE:6-10`, hit | `SPLIT` | `NEAREST` |
+| 25 | 39 | 3 | – | `WIRE:7-19` | `ROUTE` | `SOLE` |
+| 26 | 42 | 3 | – | `WIRE:6-10` | `ROUTE` | `SOLE` |
+| 27 | 46 | 3 | – | `WIRE:6-10` | `ROUTE` | `SOLE` |
+| 28 | 48 | 3 | – | `WIRE:8-16` | `ROUTE` | `SOLE` |
+| 29 | 50 | 3 | inner bull | `INNER_BULL:25`, hit | `FINISH` | `NEAREST` |
+| 30 | 50 | 3 | outer single 10 | `NUMBER:10`, hit | `ROUTE` | `NEAREST` |
 
-| Refinement | Where it plugs in |
-| ---------- | ----------------- |
-| Per-player route preference ("81 → T19, D12") | a candidate rule ahead of `ROUTE`, or an override table consulted by `ROUTE` |
-| Per-player leave ranking from their own hit rates (the D12/D6 point) | replaces the leave-rank table |
-| Opponent on a finish, pressure, personal preference | candidate `weight` (§4.4 step 2) |
-| Treble wires, bull/25 options, inner/outer single aims | new aim kinds in the union and a new candidate rule |
-| Stickiness after a switch | weight adjustment from earlier resolved darts in the leg |
+**Rule output the owner has not confirmed.** Implement the rules, then report
+every row below that the rules do not reproduce; do not bend the rules to
+match:
 
-Shape (illustrative, the builder names files):
+| `r` | Candidates |
+| --- | ---------- |
+| 6 | `DOUBLE:3`, `NUMBER:2` |
+| 10 | `DOUBLE:5`, `NUMBER:2` |
+| 23 | `WIRE:7-19` |
+| 26 | `DOUBLE:13`, `WIRE:6-10` |
+| 28 | `DOUBLE:14` |
+| 30 | `DOUBLE:15`, `NUMBER:14` |
+| 35 | `WIRE:3-19` |
+| 38 | `DOUBLE:19`, `WIRE:6-10` |
+| 43 | `WIRE:3-19` |
+| 51–60 | the route single, never a wire |
 
-- `InferredAim`: a discriminated union over the kinds in §4.2.
+### 4.8 Extension points (designed in, not built)
+
+| Refinement | Plugs in at |
+| ---------- | ----------- |
+| Per-player route preference (81 → T19, D12) | a route table consulted before `conv`/`fit` |
+| Leave rank from the player's own double hit rates | the leave-rank table |
+| Opponent on a finish, pressure, preference; stickiness after a switch | candidate `weight` (§4.5 step 2) |
+| Treble wires, bull/25 options, inner/outer single aims | a new aim kind plus a candidate rule |
+
+Required shape (names are the builder's):
+
+- `InferredAim`: a discriminated union over §4.2's kinds.
 - `AimCandidate = { aim, basis, weight }`.
-- `CandidateRule = (ctx: AimContext) => readonly AimCandidate[]`, where
-  `AimContext` holds `{ remaining, dartsLeft, earlierDartsInVisit }`.
-- `resolveAim(candidates, landing) → { aim, basis, resolution }`, with
-  `resolution` one of `SOLE`, `NEAREST` or `AMBIGUOUS`.
-- The rule list is an ordered array exported from one module, so 121 can reuse
-  or swap rules.
+- `AimContext = { remaining, dartsLeft, earlierDartsInVisit }`.
+  `earlierDartsInVisit` is unused in V1 and present for the weight refinements.
+- `candidatesFor(ctx) → readonly AimCandidate[]`: reads no landing point.
+- `resolveAim(candidates, landing) → { aim | null, basis, resolution }`.
+- Rules, leave rank and `AMBIGUITY_RATIO` are exported from one module so 121
+  can reuse or swap them.
 
 ---
 
 ## 5. Statistics layer integration
 
-- **New capability tag:** `intent-inferred` ("aim inferred from game state
-  plus landing"), declared for 501 beside `RULESET_CAPABILITIES`.
-- **Requirements:** sections that require `intent-*` gain it in their `anyOf`
-  only where the section is meaningful for inferred aims (see §6).
+- **Tag:** `intent-inferred`, declared for 501 beside `RULESET_CAPABILITIES`.
+  Kept apart from `intent-derived`: there the engine knows the aim.
 - **Site:** `siteByTag["intent-inferred"] = "server"`.
-- **Target keys:** `TargetKey` (`lib/stats/types.ts`) gains a wire form,
-  `WIRE:<a>-<b>` with `a`, `b` board-adjacent and written in `SECTOR_ORDER`
-  order. `parseTargetKey`, `targetLabel` (`6/10`) and `isAimHit` handle it.
-  The existing zones cover single, treble, double and bull.
-- **Resolution data:** every inferred-aim result carries
-  `{ ambiguous: number }` beside `skippedSessions`.
-- **`grouping` on 501:** allowed. D370 decision 6 forbids it only for
-  whole-number aims, which have no aim point; every inferred aim has one.
+- **Existing sections that gain the tag:** `target-accuracy`,
+  `miss-direction`, `grouping`, and `heatmap`'s `target` param. `grouping` is
+  valid here: every inferred aim has an aim point (D370 decision 6 excludes
+  only whole-number aims). `confusion` and `loose-darts` stay off 501.
+- **Target keys:** `TargetKey` gains `WIRE:a-b` (§4.2) in `parseTargetKey`,
+  `targetLabel` and `isAimHit`.
+- **Contract, every aim metric:** counts are keyed by `basis` and by
+  `resolution` (`SOLE` | `NEAREST`); the client sums them by default. The
+  result also carries `ambiguous` and `skippedSessions`. V1 adds no `basis`
+  query parameter.
+- **Versioning:** a change to the rules, the leave rank or `AMBIGUITY_RATIO`
+  bumps the `version` of every section that reads the resolver.
 
-## 6. The 501 page (owner-approved section list, in page order)
+## 6. The 501 page
 
-| # | Section | Shows | Basis | Status |
-| - | ------- | ----- | ----- | ------ |
-| 1 | `scoring-trend` | 3-dart average, first-nine average, 100+/140+/180 | facts | exists |
-| 2 | Large-target accuracy (new, e.g. `large-target-accuracy`) | per T20/T19/T18: treble %, any-segment %, miss neighbours; switch count (darts resolved to T19/T18); ambiguous count | `LARGE_TARGET` | new |
-| 3 | Drift by dart number (new, or `grouping` with a `dartNumber` split) | mean offset and spread from the aim point for dart 1/2/3, per aim (T20 first) — "dart 1 drifts left" | any resolved aim | new |
-| 4 | `checkout-rate` | checkout % by remaining band, darts at double | facts + fold | exists |
-| 5 | Doubles (`target-accuracy` + `miss-direction` on `FINISH` aims) | hit % per double; inside / outside / left / right of the wire | `FINISH` | partly new |
-| 6 | Preferred vs best double (new) | per double: how often you leave it (visits starting on its finish) vs your hit % on it | `FINISH` | new |
-| 7 | Setups and splits (new) | split, route-single and wire hit %; how often a setup visit ends on a good leave | `ROUTE`, `SETUP`, `SPLIT` | new |
-| 8 | `bust-rate` | busts per remaining band | fold | exists |
-| 9 | `leg-stats` | darts per leg, best leg, distribution | fold | exists |
-| 10 | `heatmap` | density; with a `target` filter by inferred aim (T20, D16, `WIRE:6-10`, …) | any resolved aim | partly new |
-| 11 | `completion` + session list | finished vs abandoned; replay links | facts | exists |
+Owner-approved, in page order. Every new section is bucketable and returns the
+components listed.
 
-**Leaving 501's page:** `treble-rate`, because it counts landed trebles and a
-T19 hit while aiming T20 is not a treble on the aim (row 2 replaces it);
-`volume`, which is low value; and `checkout-path` as a card (row 7 covers
-setups). The existing `double-performance` either becomes row 5 or is retired
-for 501; that is the builder's call. Do not render both.
+| # | Section | Components | Darts counted |
+| - | ------- | ---------- | ------------- |
+| 1 | `scoring-trend` (exists) | unchanged | all |
+| 2 | `large-target-accuracy` (new) | per aim (`TREBLE:20/19/18`): `darts`, `trebles`, `singles` (same number), `neighbourLeft`, `neighbourRight` (any ring of the adjacent number), `other` | basis `LARGE_TARGET` |
+| 3 | `drift` (new, or `grouping` extended) | per aim × `dart_number` (1–3): `n`, `Σdx`, `Σdy`, `Σdx²`, `Σdy²`, `Σdxdy`, with `(dx, dy)` = landing − aim point, mm | every resolved dart, hits included |
+| 4 | `checkout-rate` (exists) | unchanged | fold |
+| 5 | `target-accuracy` + `miss-direction` | per double: `attempts`, `hits`, and `miss-direction`'s existing inside / within / outside and angle-sector classes | basis `FINISH` |
+| 6 | `double-preference` (new) | per double: `left` (visits whose first dart had that double as its `FINISH` candidate), `attempts`, `hits`, `splitAway` (darts at that score resolved to `SPLIT`) | cases B and C |
+| 7 | `setup-success` (new) | per basis (`ROUTE`, `SETUP`, `SPLIT`) × kind (treble, single, wire, outer bull): `attempts`, `hits`; and `visits`, `goodLeaves` over visits that end unfinished and unbusted with the last dart not `LARGE_TARGET`, `goodLeaves` counting those ending on a good leave | bases `ROUTE`, `SETUP`, `SPLIT` |
+| 8 | `bust-rate` (exists) | unchanged | fold |
+| 9 | `leg-stats` (exists) | unchanged | fold |
+| 10 | `heatmap` (exists) | unchanged; with `target` = any inferred-aim key, only darts resolved to that aim | all / resolved |
+| 11 | `completion` + session list (exist) | unchanged | – |
 
-**Progression:** every new metric is returned as additive components (`hits`,
-`attempts`; `Σx, Σy, Σx², Σy², Σxy, n` for drift, as `grouping` already does)
-and is bucketable.
+Card reading, fixed by the owner's intent:
+
+- Row 2 shows hit % per target and the **switch count** (`darts` on
+  `TREBLE:19` + `TREBLE:18`).
+- Row 3 defaults to `TREBLE:20` and compares dart 1, 2 and 3.
+- Row 6 puts "how often I leave it" beside "how well I hit it" per double.
+
+**Off 501's page:** `treble-rate` (counts landed trebles, so a T19 while
+aiming T20 scores as a treble; row 2 replaces it), `volume`, `checkout-path`,
+and `double-performance` (row 5 replaces it; rendering both would show two
+definitions of a double attempt). The live in-game checkout % keeps
+`classifyDart` unchanged.
 
 ## 7. Testing
 
-- The resolver is a pure function tested against every row of §4.6, using
-  coordinates built from `zoneCentroid` / edge points, plus:
-  - the mid-1 ambiguity case and the 1-near-20-wire case (calibrates
-    `AMBIGUITY_RATIO`);
-  - a sweep over 2–170 × darts-left 1–3 asserting: every candidate set is
-    non-empty; wire numbers are board-adjacent; no candidate is a bust;
-  - the property that the landing point never *creates* a candidate.
-- Section modules are tested with fixture sessions, following the existing
-  `modules/stats/sections` tests.
+- **Resolver:** every row of §4.7's fixture table.
+- **Calibration of `AMBIGUITY_RATIO`**, case A, landing at the treble mid
+  radius:
+  - bearing 18° (centre of the 1) → `AMBIGUOUS`;
+  - bearing 10° (in the 1, 1° from the 20 wire) → `TREBLE:20`, `NEAREST`.
+- **Sweep** `r` 2–501 × `dartsLeft` 1–3:
+  - the candidate list is non-empty;
+  - every wire pair is board-adjacent;
+  - no candidate's hit busts (`r − value ≥ 2`, or `= 0` on a double or bull);
+  - hit regions within one list are disjoint.
+- **Purity:** `candidatesFor` takes no landing argument (type-level).
+- **Sections:** fixture sessions, following the existing
+  `app/tests/modules/stats/sections` tests; one fixture holds an ambiguous
+  dart and asserts it is in rows 1 and 10 (unfiltered) and absent from rows 2,
+  3, 5, 6, 7.
+- **Skip:** a session with one coordinate-less dart lands in
+  `skippedSessions`.
 
 ## 8. Left to the builder
 
-- Module/file names, and whether rows 3 and 5 extend existing sections or are
-  new ones.
-- `AMBIGUITY_RATIO` fine-tuning within the fixtures.
-- Card layout. It follows the existing statistics overview components and, where
-  the spec is silent, the Design System artifact (`syncing-design-system`
-  §11–12).
-- How the "left out" counts read on each card.
+- File and symbol names; the single-aim zone key (§4.2 footnote).
+- Whether row 3 extends `grouping` or is a new section.
+- Card layout, following the existing statistics overview components and the
+  Design System artifact (`syncing-design-system` §11–12).
+- The wording of the `ambiguous` and `skippedSessions` counts on cards.
 
-## 9. Calls I made (not discussed with the owner)
+## 9. Calls made without the owner
 
-- Wire aim point at the outer-single mid radius on the shared edge.
-- Single aim hits on either single ring; its drift point is the outer single.
-- Large target applies only where no route or setup applies. Routes and setups
-  whose first dart is a treble have that treble as their sole candidate (no
-  T19/T18 alternative). For example, 120 with 3 darts → T20 only.
-- `AMBIGUITY_RATIO = 0.75` default.
-- New tag `intent-inferred` rather than widening `intent-derived`. The meanings
-  differ: engine-known aim vs inferred aim.
-- Sessions with any coordinate-less dart are skipped whole.
+Check these while reading; each is stated where it applies.
+
+1. Wire aim point: on the shared edge, mid outer single (§4.2).
+2. A single aim hits either single ring; its aim point is the outer single
+   (§4.2).
+3. T19/T18 are candidates only in case A. A treble-first route or setup has
+   one candidate, so a deliberate 19 at 120 counts as a T20 miss (§4.4).
+4. At 50, both the bull and S10 are candidates (§4.4 case C).
+5. `AMBIGUITY_RATIO = 0.75`, and resolution measures distance to the hit
+   region, not to the aim point (§4.5).
+6. Leave-rank tie-break: the higher leave (§4.3).
+7. A session with any coordinate-less dart is skipped whole (§3).
+8. `double-performance` leaves the 501 page; the in-game checkout % keeps its
+   own attempt rule, so the two can differ (§6).
+9. Aim metrics are keyed by basis and resolution; no `basis` query parameter
+   in V1 (§5).
