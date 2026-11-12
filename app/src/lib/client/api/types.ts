@@ -5,6 +5,7 @@ import type {
   CompletionSeriesResponseData,
   ConfusionSeriesResponseData,
   DoublePerformanceSeriesResponseData,
+  LargeTargetAccuracySeriesResponseData,
   GroupingSeriesResponseData,
   HeatmapSeriesResponseData,
   LadderProgressSeriesResponseData,
@@ -76,6 +77,7 @@ export type GameSectionResponseData =
   | LadderProgressSeriesResponseData
   | CheckoutRateSeriesResponseData
   | DoublePerformanceSeriesResponseData
+  | LargeTargetAccuracySeriesResponseData
   | CheckoutPathSeriesResponseData
   | BustRateSeriesResponseData
   | LegStatsSeriesResponseData

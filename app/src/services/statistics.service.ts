@@ -59,6 +59,8 @@ import { checkoutPathBuckets } from "@modules/stats/sections/checkout-path.modul
 import { checkoutRateBuckets } from "@modules/stats/sections/checkout-rate.module";
 import { completionBuckets } from "@modules/stats/sections/completion.module";
 import { confusionBuckets } from "@modules/stats/sections/confusion.module";
+import { largeTargetAccuracyBuckets } from "@modules/stats/sections/large-target-accuracy.module";
+import { inferredSessions } from "@modules/stats/x01-inferred-darts.module";
 import { doublePerformanceBuckets } from "@modules/stats/sections/double-performance.module";
 import { groupingBuckets } from "@modules/stats/sections/grouping.module";
 import {
@@ -151,6 +153,7 @@ import type {
 } from "@routes/types";
 import type {
   BucketedSession,
+  InferredSession,
   DartScope,
   HeatmapCellRow,
   HomeStats,
@@ -524,6 +527,27 @@ function foldHandler(
 }
 
 /**
+ * Adapts an `InferredSession` shape function -- every intent-inferred 501
+ * section -- into a `SectionHandler` sharing `foldLoad`, so sessions with an
+ * undecodable snapshot or an unlocated dart reach `skippedSessions`.
+ */
+function aimHandler(
+  shape: (
+    sessions: readonly InferredSession[],
+    ctx: ShapeContext,
+  ) => SeriesBucket<unknown>[],
+): SectionHandler {
+  return {
+    load: async (db, ctx) => {
+      const { sessions } = await foldLoad(db, ctx);
+      const { sessions: walked, skippedSessions } = inferredSessions(sessions);
+      return { rows: walked, skippedSessions };
+    },
+    shape: (rows, ctx) => shape(rows as InferredSession[], ctx),
+  };
+}
+
+/**
  * The shared load for every derived-intent and game-specific server section: every `v_stats_dart_facts` dart the scope covers
  * (`findDartFoldRows`), folded per session through its
  * own engine reducer (`sessionSteps`, `derived-aims.module.ts`) — mirroring
@@ -626,6 +650,7 @@ const HANDLERS: Record<
   "ladder-progress": { server: foldHandler(ladderProgressBuckets) },
   "checkout-rate": { server: foldHandler(checkoutRateBuckets) },
   "double-performance": { server: foldHandler(doublePerformanceBuckets) },
+  "large-target-accuracy": { server: aimHandler(largeTargetAccuracyBuckets) },
   "checkout-path": { server: foldHandler(checkoutPathBuckets) },
   "bust-rate": { server: foldHandler(bustRateBuckets) },
   "leg-stats": { server: foldHandler(legStatsBuckets) },

@@ -648,6 +648,9 @@ export type BucketedSession = SessionCheckoutVisits & {
   bucketEnd: string;
 };
 
+/** Metrics shape of every inferred-aim section: rows keyed by aim (and resolution), each a record of counts. */
+export type AimCountMetrics = Record<string, Record<string, number>>;
+
 /** `checkout-rate` section metrics — one bucket, keyed by the exact `startingRemaining` (phase-3 decision 4). */
 export type CheckoutRateMetrics = Record<
   string,

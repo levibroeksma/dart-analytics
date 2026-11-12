@@ -1,8 +1,10 @@
 import { zoneCentroid } from "@lib/game/board/board-geometry.module";
+import { inferredSessions } from "@modules/stats/x01-inferred-darts.module";
 import type {
   BucketedSession,
   DartFact,
   DartZoneKey,
+  InferredSession,
   StagedVisit,
 } from "@modules/types";
 
@@ -47,4 +49,13 @@ export function session(
     bucketEnd: "2026-02-01T00:00:00.000Z",
     visits,
   };
+}
+
+export const CTX = {
+  to: "2026-02-01T00:00:00.000Z",
+  now: new Date("2026-03-01T00:00:00.000Z"),
+};
+
+export function inferred(visits: StagedVisit[]): InferredSession[] {
+  return inferredSessions([session(visits)]).sessions;
 }

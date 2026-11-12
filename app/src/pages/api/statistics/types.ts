@@ -391,6 +391,8 @@ const CheckoutRateMetrics = ValueRecord(
 
 const DoublePerformanceMetrics = TargetRecord(HitCount);
 
+const AimCountMetrics = z.record(z.string(), z.record(z.string(), z.number()));
+
 /** The inner key is a route label: dart labels in throw order (`checkout-path.module.ts`). */
 const CheckoutPathMetrics = ValueRecord(
   z.record(
@@ -452,6 +454,15 @@ export const DoublePerformanceSeriesResponse = SeriesBase.extend({
 });
 export type DoublePerformanceSeriesResponseData = z.infer<
   typeof DoublePerformanceSeriesResponse
+>;
+
+export const LargeTargetAccuracySeriesResponse = SeriesBase.extend({
+  sectionId: z.literal("large-target-accuracy"),
+  buckets: z.array(BucketBase.extend({ metrics: AimCountMetrics })),
+  ...SkippedSessions,
+});
+export type LargeTargetAccuracySeriesResponseData = z.infer<
+  typeof LargeTargetAccuracySeriesResponse
 >;
 
 export const CheckoutPathSeriesResponse = SeriesBase.extend({

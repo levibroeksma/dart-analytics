@@ -583,6 +583,7 @@ export type StatsTag =
   | "ladder"
   | "intent-stored"
   | "intent-derived"
+  | "intent-inferred"
   | "target-sequence";
 
 export const RULESET_CONFIGS: Record<RulesetVersionKey, z.ZodTypeAny> = {
