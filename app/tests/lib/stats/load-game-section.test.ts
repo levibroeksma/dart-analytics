@@ -51,6 +51,18 @@ describe("loadGameSection", () => {
     );
   });
 
+  it("loadGameSection forwards variation to the fetch and the cache query", async () => {
+    await loadGameSection("501", "scoring-trend", { ...range, variation: 301 });
+    expect(readSection.mock.calls[0][3]).toMatchObject({ variation: 301 });
+    const fetcher = readSection.mock.calls[0][4] as (span: unknown) => unknown;
+    fetcher({ from: range.from, to: range.to });
+    expect(fetchGameSection).toHaveBeenCalledWith(
+      "501",
+      "scoring-trend",
+      expect.objectContaining({ variation: 301 }),
+    );
+  });
+
   it("returns the cache's series", async () => {
     readSection.mockResolvedValue({ buckets: [{ start: "x" }] });
     await expect(

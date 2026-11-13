@@ -8,6 +8,7 @@ import {
   fetchStatisticsHome,
   fetchGameSessions,
   fetchGameSection,
+  fetchGameVariations,
   fetchSessionReplay,
   fetchTrainedRoutines,
   fetchRoutineHeader,
@@ -150,6 +151,21 @@ describe("fetchGameSection", () => {
     const [path] = vi.mocked(apiRequest).mock.calls[0];
     expect(path).toContain("/api/statistics/games/501/sections/completion?");
     expect(path).toContain("bucket=month");
+  });
+
+  it("fetchGameSection puts variation=301 in the query string", async () => {
+    vi.mocked(apiRequest).mockResolvedValue({
+      ok: true,
+      requestId: "r1",
+      data: {},
+    });
+    await fetchGameSection("501", "completion", {
+      from: "2026-01-01T00:00:00.000Z",
+      to: "2026-02-01T00:00:00.000Z",
+      variation: 301,
+    });
+    const [path] = vi.mocked(apiRequest).mock.calls[0];
+    expect(path).toContain("variation=301");
   });
 
   it("throws StatisticsApiError on failure", async () => {
@@ -695,6 +711,23 @@ describe("statistics range query order", () => {
     const [path] = vi.mocked(apiRequest).mock.calls[0];
     expect(path).toBe(
       "/api/statistics/routines/R1/sections/routine-volume?from=F&to=T&bucket=month&tz=UTC&status=COMPLETED",
+    );
+  });
+});
+
+describe("fetchGameVariations", () => {
+  beforeEach(() => vi.resetAllMocks());
+
+  it("fetchGameVariations calls /api/statistics/games/501/variations", async () => {
+    const data = { variations: [{ startingScore: 501, sessions: 2 }] };
+    vi.mocked(apiRequest).mockResolvedValue({
+      ok: true,
+      requestId: "r1",
+      data,
+    });
+    await expect(fetchGameVariations("501")).resolves.toEqual(data);
+    expect(vi.mocked(apiRequest).mock.calls[0][0]).toBe(
+      "/api/statistics/games/501/variations",
     );
   });
 });

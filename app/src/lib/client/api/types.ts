@@ -58,6 +58,7 @@ export type GameStatsRangeParams = {
   context?: string;
   inputMode?: string;
   target?: string;
+  variation?: number;
 };
 
 /** `fetchSessionReplay`'s params: `cursor`/`limit` are omitted from the query when absent, letting the server default `limit`. */
@@ -94,7 +95,7 @@ export type GameSectionResponseData =
 /** The range/bucket/status parameters a routine or routine-step section request builds — `GameStatsRangeParams` minus `context`, `inputMode` and `target`, which `RoutineStatsQuery`'s `.strict()` never accepts (D372 decision 4), so the two shapes cannot drift apart. */
 export type RoutineSectionParams = Omit<
   GameStatsRangeParams,
-  "context" | "inputMode" | "target"
+  "context" | "inputMode" | "target" | "variation"
 >;
 
 /** `fetchRoutineStepSessions`'s params: `RoutineSessionsQuery`'s own fields — no `bucket`/`tz`/`context`/`inputMode` (D372 decision 4). */
@@ -139,6 +140,7 @@ export {
   type StatisticsOverviewResponseData,
   type StatisticsHomeResponseData,
   type GameSessionListResponseData,
+  type GameVariationsResponseData,
   type ReplayPageSchemaData,
   ReplaySessionIdParam,
   type CompletionSeriesResponseData,
