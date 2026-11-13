@@ -4,7 +4,7 @@ import {
   aimKey,
   countAimed,
 } from "./aim-count.module";
-import { isGoodLeave } from "../x01-aim-candidates.module";
+import { isGoodLeave } from "../x01-leave-rank.module";
 import type {
   AimBasis,
   AimCountBuckets,
@@ -17,32 +17,38 @@ import type {
 const VISITS_KEY = "VISITS";
 const SETUP_BASES: readonly AimBasis[] = ["ROUTE", "SETUP", "SPLIT"];
 
+/** Whether `visit` stayed open after a last dart thrown at something other than a large target. */
+function isOpenSetupVisit(visit: InferredVisit): boolean {
+  const last = visit.darts.at(-1);
+  return (
+    visit.outcome === "OPEN" &&
+    last !== undefined &&
+    last.basis !== "LARGE_TARGET"
+  );
+}
+
+/** Counts `visit` on the `VISITS` row, and whether it left a good leave, when it is an open setup visit. */
 function countOpenVisit(metrics: AimCountMetrics, visit: InferredVisit): void {
-  const last = visit.darts[visit.darts.length - 1];
-  if (
-    visit.outcome !== "OPEN" ||
-    last === undefined ||
-    last.basis === "LARGE_TARGET"
-  ) {
-    return;
-  }
+  if (!isOpenSetupVisit(visit)) return;
   addCounts(metrics, VISITS_KEY, {
     visits: 1,
-    goodLeaves: isGoodLeave(visit.remainingAfter) ? 1 : 0,
+    goodLeaves: Number(isGoodLeave(visit.remainingAfter)),
   });
 }
 
+/** Counts a resolved setup dart (route, setup or split) as an attempt, and whether it hit. */
 function countSetupDart(metrics: AimCountMetrics, dart: InferredDart): number {
   if (!SETUP_BASES.includes(dart.basis)) return 0;
   return countAimed(metrics, dart, (aim) => {
     addCounts(metrics, aimKey(dart.basis, aim.kind, dart.resolution), {
       attempts: 1,
-      hits: dart.hit ? 1 : 0,
+      hits: Number(dart.hit),
     });
     return 1;
   });
 }
 
+/** Counts each open setup visit of `session` and each of its setup darts. */
 function foldSession(
   metrics: AimCountMetrics,
   session: InferredSession,

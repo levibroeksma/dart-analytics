@@ -24,14 +24,25 @@ export const SECTOR_ORDER: readonly number[] = [
 
 export const SECTOR_WIDTH_DEGREES = 360 / SECTOR_ORDER.length;
 
+/** Every score one dart can check out under double-out: each double, 2 to 40, and the inner bull's 50. */
+export const DOUBLE_OUT_FINISHES: ReadonlySet<number> = new Set([
+  2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40,
+  50,
+]);
+
+/** The two numbers either side of board number `number`, anticlockwise first, wrapping from 5 back to 20. */
+export function boardNeighbours(number: number): readonly [number, number] {
+  const index = SECTOR_ORDER.indexOf(number);
+  const size = SECTOR_ORDER.length;
+  return [
+    SECTOR_ORDER[(index - 1 + size) % size]!,
+    SECTOR_ORDER[(index + 1) % size]!,
+  ];
+}
+
 /** Whether two distinct board numbers sit side by side on the board, wrapping from 5 back to 20. Equal or unknown numbers are not neighbours. */
 export function areBoardNeighbours(a: number, b: number): boolean {
-  const indexA = SECTOR_ORDER.indexOf(a);
-  const indexB = SECTOR_ORDER.indexOf(b);
-  if (indexA < 0 || indexB < 0) return false;
-  const size = SECTOR_ORDER.length;
-  const diff = (indexA - indexB + size) % size;
-  return diff === 1 || diff === size - 1;
+  return SECTOR_ORDER.includes(a) && boardNeighbours(a).includes(b);
 }
 
 function radiusOf(x: number, y: number): number {
@@ -197,6 +208,7 @@ export function wedgeNearestPoint(
   return pointAtBearing(edgeBearing, radius);
 }
 
+/** Millimetres from `radius` to the band `[rInner, rOuter]`; `0` inside it. */
 function radialGap(radius: number, rInner: number, rOuter: number): number {
   if (radius < rInner) return rInner - radius;
   if (radius > rOuter) return radius - rOuter;

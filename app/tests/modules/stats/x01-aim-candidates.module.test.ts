@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseWireKey } from "@lib/stats/target-key";
-import {
-  candidatesFor,
-  isGoodLeave,
-  LEAVE_RANK,
-} from "@modules/stats/x01-aim-candidates.module";
+import { candidatesFor } from "@modules/stats/x01-aim-candidates.module";
 import type { InferredAim } from "@modules/types";
 
 function keys(r: number, dartsLeft: 1 | 2 | 3): string[] {
@@ -113,11 +109,5 @@ describe("candidatesFor", () => {
           );
         }
       }
-  });
-
-  it("ranks leaves", () => {
-    expect(LEAVE_RANK).toEqual([32, 16, 40, 24, 8, 36, 28, 20, 12, 4]);
-    expect([4, 12, 40].every(isGoodLeave)).toBe(true);
-    expect([2, 6, 34, 44, 50].some(isGoodLeave)).toBe(false);
   });
 });

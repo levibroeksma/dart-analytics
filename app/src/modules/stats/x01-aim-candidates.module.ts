@@ -1,5 +1,6 @@
 import {
-  areBoardNeighbours,
+  boardNeighbours,
+  DOUBLE_OUT_FINISHES,
   SECTOR_ORDER,
 } from "@lib/game/board/board-geometry.module";
 import { formatTargetKey, formatWireKey } from "@lib/stats/target-key";
@@ -8,35 +9,19 @@ import {
   checkoutPathWithin,
 } from "@modules/game/checkout-path.module";
 import type { AimBasis, AimCandidate, AimContext, InferredAim } from "./types";
+import { bestLeavingScore, isGoodLeave } from "./x01-leave-rank.module";
 
-/** Good leaves, best first: by how many times each halves evenly, ties to the higher (x01 inferred-aim design §4.3). */
-export const LEAVE_RANK: readonly number[] = [
-  32, 16, 40, 24, 8, 36, 28, 20, 12, 4,
-];
-
-/** Whether `leave` is a good leave: a multiple of 4 from 4 to 40. */
-export function isGoodLeave(leave: number): boolean {
-  return LEAVE_RANK.includes(leave);
-}
-
-function rankOf(leave: number): number {
-  return LEAVE_RANK.indexOf(leave);
-}
-
+/** A candidate for `aim` under `basis`, at the default weight. */
 function candidate(aim: InferredAim, basis: AimBasis): AimCandidate {
   return { aim, basis, weight: 1 };
 }
 
-function trebleAim(number: number): InferredAim {
-  return { kind: "TREBLE", number, key: formatTargetKey(number, "TREBLE") };
-}
-
-function singleAim(number: number): InferredAim {
-  return { kind: "SINGLE", number, key: formatTargetKey(number, "SINGLE") };
-}
-
-function doubleAim(number: number): InferredAim {
-  return { kind: "DOUBLE", number, key: formatTargetKey(number, "DOUBLE") };
+/** A treble, single or double aim on `number`. */
+function ringAim(
+  kind: "TREBLE" | "SINGLE" | "DOUBLE",
+  number: number,
+): InferredAim {
+  return { kind, number, key: formatTargetKey(number, kind) };
 }
 
 const BULL_AIM: InferredAim = {
@@ -49,17 +34,25 @@ const OUTER_BULL_AIM: InferredAim = {
   key: formatTargetKey(25, "OUTER_BULL"),
 };
 
+/** The route labels that name a bull rather than a number. */
+const BULL_LABEL_AIMS: ReadonlyMap<string, InferredAim> = new Map([
+  ["BULL", BULL_AIM],
+  ["25", OUTER_BULL_AIM],
+]);
+
+/** The ring a numbered route label's prefix names; a label without one is a single. */
+const LABEL_PREFIX_KINDS: ReadonlyMap<string, "TREBLE" | "DOUBLE"> = new Map([
+  ["T", "TREBLE"],
+  ["D", "DOUBLE"],
+]);
+
 /** The aim a route label names: `T20` treble, `20` single, `D20` double, `BULL` bull, `25` outer bull. */
 function aimOfLabel(label: string): InferredAim {
-  if (label === "BULL") return BULL_AIM;
-  if (label === "25") return OUTER_BULL_AIM;
-  if (label.startsWith("T")) return trebleAim(Number(label.slice(1)));
-  if (label.startsWith("D")) return doubleAim(Number(label.slice(1)));
-  return singleAim(Number(label));
-}
-
-function boardNeighboursOf(number: number): readonly number[] {
-  return SECTOR_ORDER.filter((other) => areBoardNeighbours(number, other));
+  const bull = BULL_LABEL_AIMS.get(label);
+  if (bull !== undefined) return bull;
+  const kind = LABEL_PREFIX_KINDS.get(label.charAt(0));
+  if (kind === undefined) return ringAim("SINGLE", Number(label));
+  return ringAim(kind, Number(label.slice(1)));
 }
 
 /**
@@ -68,10 +61,8 @@ function boardNeighboursOf(number: number): readonly number[] {
  * single itself.
  */
 function wireMerge(single: number, remaining: number): InferredAim {
-  const best = boardNeighboursOf(single)
-    .filter((neighbour) => isGoodLeave(remaining - neighbour))
-    .sort((a, b) => rankOf(remaining - a) - rankOf(remaining - b))[0];
-  if (best === undefined) return singleAim(single);
+  const best = bestLeavingScore(boardNeighbours(single), remaining);
+  if (best === undefined) return ringAim("SINGLE", single);
   const low = Math.min(single, best);
   const high = Math.max(single, best);
   return { kind: "WIRE", numbers: [low, high], key: formatWireKey(low, high) };
@@ -83,40 +74,28 @@ function mergedAimOfLabel(label: string, remaining: number): InferredAim {
   return aim.kind === "SINGLE" ? wireMerge(aim.number, remaining) : aim;
 }
 
-function isFinishable(remaining: number): boolean {
-  return (
-    (remaining % 2 === 0 && remaining >= 2 && remaining <= 40) ||
-    remaining === 50
-  );
+/** The single (1–20) whose leave ranks best, when `remaining` is not itself a good leave. */
+function splitSingle(remaining: number): number | undefined {
+  if (isGoodLeave(remaining)) return undefined;
+  return bestLeavingScore(SECTOR_ORDER, remaining);
 }
 
-/** The single (1–20, below `remaining`) whose leave ranks best, when `remaining` is not itself a good leave. */
-function splitSingle(remaining: number): number | null {
-  if (isGoodLeave(remaining)) return null;
-  let best: number | null = null;
-  for (let single = 1; single <= 20 && single < remaining; single++) {
-    const leave = remaining - single;
-    if (!isGoodLeave(leave)) continue;
-    if (best === null || rankOf(leave) < rankOf(remaining - best)) {
-      best = single;
-    }
-  }
-  return best;
-}
+/** Case A: no checkout route exists, so the dart went at a large target, T20, T19 or T18. */
+const LARGE_TARGET_CANDIDATES: readonly AimCandidate[] = [
+  candidate(ringAim("TREBLE", 20), "LARGE_TARGET"),
+  candidate(ringAim("TREBLE", 19), "LARGE_TARGET"),
+  candidate(ringAim("TREBLE", 18), "LARGE_TARGET"),
+];
 
-function largeTargetCase(): readonly AimCandidate[] {
-  return [20, 19, 18].map((number) =>
-    candidate(trebleAim(number), "LARGE_TARGET"),
-  );
-}
-
+/** Case B: a double finish is on; a single that splits to a better leave is the other candidate. */
 function finishCase(remaining: number): readonly AimCandidate[] {
-  const finish = candidate(doubleAim(remaining / 2), "FINISH");
+  const finish = candidate(ringAim("DOUBLE", remaining / 2), "FINISH");
   const split = splitSingle(remaining);
-  if (split === null) return [finish];
+  if (split === undefined) return [finish];
   return [finish, candidate(wireMerge(split, remaining), "SPLIT")];
 }
 
+/** Case C: 50 left, so the bull finish against the route's first dart, a route when two darts remain, else a setup. */
 function bullCase(
   route: readonly string[],
   dartsLeft: number,
@@ -128,18 +107,13 @@ function bullCase(
   ];
 }
 
-function routeCase(
-  fit: readonly string[],
-  remaining: number,
-): readonly AimCandidate[] {
-  return [candidate(mergedAimOfLabel(fit[0] as string, remaining), "ROUTE")];
-}
-
-function setupCase(
+/** Cases D and E: the first dart of a checkout `route`, wire-merged, as the sole candidate under `basis`. */
+function routeLeadCase(
   route: readonly string[],
   remaining: number,
+  basis: AimBasis,
 ): readonly AimCandidate[] {
-  return [candidate(mergedAimOfLabel(route[0] as string, remaining), "SETUP")];
+  return [candidate(mergedAimOfLabel(route[0] as string, remaining), basis)];
 }
 
 /**
@@ -150,10 +124,10 @@ function setupCase(
 export function candidatesFor(ctx: AimContext): readonly AimCandidate[] {
   const { remaining, dartsLeft } = ctx;
   const route = checkoutPathFor(remaining);
-  if (route === null) return largeTargetCase();
+  if (route === null) return LARGE_TARGET_CANDIDATES;
   if (remaining === 50) return bullCase(route, dartsLeft);
-  if (isFinishable(remaining)) return finishCase(remaining);
+  if (DOUBLE_OUT_FINISHES.has(remaining)) return finishCase(remaining);
   const fit = checkoutPathWithin(remaining, dartsLeft);
-  if (fit !== null) return routeCase(fit, remaining);
-  return setupCase(route, remaining);
+  if (fit !== null) return routeLeadCase(fit, remaining, "ROUTE");
+  return routeLeadCase(route, remaining, "SETUP");
 }

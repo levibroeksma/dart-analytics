@@ -1,13 +1,11 @@
-import { BOARD_RADII_MM } from "@lib/game/board/board-geometry.module";
 import {
   addCounts,
-  aimCountBuckets,
+  aimCountDartBuckets,
   aimKey,
   countAimed,
-  sumSessionDarts,
 } from "./aim-count.module";
 import { missSector, radialClass } from "./miss-direction.module";
-import { aimPoint } from "../x01-aim-resolution.module";
+import { aimBands, aimPoint } from "../x01-aim-resolution.module";
 import type {
   AimCountBuckets,
   AimCountMetrics,
@@ -15,31 +13,28 @@ import type {
   InferredSession,
 } from "@modules/types";
 
+/** The miss row key for `dart`: inside or beyond the aim's band, and its compass sector from the aim point. */
 function missKey(dart: InferredDart, key: string): string {
   const aim = dart.aim!;
   const point = aimPoint(aim);
-  const [rInner, rOuter] =
-    aim.kind === "BULL"
-      ? [0, BOARD_RADII_MM.innerBull]
-      : [BOARD_RADII_MM.doubleInner, BOARD_RADII_MM.doubleOuter];
+  const [rInner, rOuter] = aimBands(aim)[0]!;
   const radial = radialClass(Math.hypot(dart.x, dart.y), rInner, rOuter);
   const sector = missSector(dart.x - point.x, dart.y - point.y);
   return aimKey(key, dart.resolution, "MISS", radial, sector);
 }
 
-function foldSession(
+/** Counts a resolved `FINISH` dart as a hit or a classified miss. */
+function countFinishAttempt(
   metrics: AimCountMetrics,
-  session: InferredSession,
+  dart: InferredDart,
 ): number {
-  return sumSessionDarts(session, (dart) => {
-    if (dart.basis !== "FINISH") return 0;
-    return countAimed(metrics, dart, (aim) => {
-      const key = dart.hit
-        ? aimKey(aim.key, dart.resolution, "HIT")
-        : missKey(dart, aim.key);
-      addCounts(metrics, key, { darts: 1 });
-      return 1;
-    });
+  if (dart.basis !== "FINISH") return 0;
+  return countAimed(metrics, dart, (aim) => {
+    const key = dart.hit
+      ? aimKey(aim.key, dart.resolution, "HIT")
+      : missKey(dart, aim.key);
+    addCounts(metrics, key, { darts: 1 });
+    return 1;
   });
 }
 
@@ -54,5 +49,5 @@ export function doubleAccuracyBuckets(
   sessions: readonly InferredSession[],
   ctx: { to: string; now: Date },
 ): AimCountBuckets {
-  return aimCountBuckets(sessions, ctx, foldSession);
+  return aimCountDartBuckets(sessions, ctx, countFinishAttempt);
 }

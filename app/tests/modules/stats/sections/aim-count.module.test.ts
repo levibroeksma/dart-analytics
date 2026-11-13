@@ -3,6 +3,7 @@ import {
   addCounts,
   AMBIGUOUS_KEY,
   aimCountBuckets,
+  aimCountDartBuckets,
   aimKey,
   countAimed,
   sumSessionDarts,
@@ -100,5 +101,33 @@ describe("aim-count helpers", () => {
     );
     expect(merged).toEqual(combined[0]!.metrics);
     expect(merged.AMBIGUOUS).toEqual({ darts: 1 });
+  });
+
+  it("folds dart by dart through aimCountDartBuckets", () => {
+    const sessions = inferred([
+      visit(501, [dart("TREBLE", 20, 60), dart("TREBLE", 20, 60)]),
+      visit(433, [dart("OUTER_SINGLE", 1, 1)]),
+    ]);
+    const [bucket] = aimCountDartBuckets(sessions, CTX, (metrics, thrown) =>
+      countAimed(metrics, thrown, (aim) => {
+        addCounts(metrics, aim.key, { darts: 1 });
+        return 1;
+      }),
+    );
+    expect(bucket!.metrics).toEqual({
+      "TREBLE:20": { darts: 2 },
+      AMBIGUOUS: { darts: 1 },
+    });
+    expect(bucket!.sampleSize).toBe(2);
+  });
+
+  it("counts a large-target dart on the left neighbour under neighbourLeft", () => {
+    const sessions = inferred([visit(501, [dart("OUTER_SINGLE", 5, 5)])]);
+    const [bucket] = largeTargetAccuracyBuckets(sessions, CTX);
+    expect(bucket!.metrics["TREBLE:20|NEAREST"]).toMatchObject({
+      darts: 1,
+      neighbourLeft: 1,
+      neighbourRight: 0,
+    });
   });
 });

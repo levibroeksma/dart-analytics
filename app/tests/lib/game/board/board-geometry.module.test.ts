@@ -3,6 +3,8 @@ import {
   BOARD_RADII_MM,
   SECTOR_WIDTH_DEGREES,
   areBoardNeighbours,
+  boardNeighbours,
+  DOUBLE_OUT_FINISHES,
   classify,
   distanceToBed,
   distanceToDisc,
@@ -272,5 +274,35 @@ describe("bed distance and shared edge", () => {
 
   it("is 0 inside a disc", () => {
     expect(distanceToDisc({ x: 0, y: -1 }, 0, T.innerBull)).toBe(0);
+  });
+});
+
+describe("boardNeighbours", () => {
+  it("returns the anticlockwise then the clockwise neighbour", () => {
+    expect(boardNeighbours(20)).toEqual([5, 1]);
+    expect(boardNeighbours(6)).toEqual([13, 10]);
+  });
+
+  it("wraps at both ends of the sector order", () => {
+    expect(boardNeighbours(5)).toEqual([12, 20]);
+  });
+
+  it("agrees with areBoardNeighbours, which rejects equal and unknown numbers", () => {
+    expect(areBoardNeighbours(20, 5)).toBe(true);
+    expect(areBoardNeighbours(20, 20)).toBe(false);
+    expect(areBoardNeighbours(25, 20)).toBe(false);
+    expect(areBoardNeighbours(20, 25)).toBe(false);
+  });
+});
+
+describe("DOUBLE_OUT_FINISHES", () => {
+  it("holds every double and the inner bull, nothing else", () => {
+    expect([...DOUBLE_OUT_FINISHES].sort((a, b) => a - b)).toEqual([
+      2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38,
+      40, 50,
+    ]);
+    expect([1, 41, 42, 25, 60].some((n) => DOUBLE_OUT_FINISHES.has(n))).toBe(
+      false,
+    );
   });
 });

@@ -1,9 +1,8 @@
 import {
   addCounts,
-  aimCountBuckets,
+  aimCountDartBuckets,
   aimKey,
   countAimed,
-  sumSessionDarts,
 } from "./aim-count.module";
 import type {
   AimCountBuckets,
@@ -12,32 +11,27 @@ import type {
   InferredSession,
 } from "@modules/types";
 
+/** Whether `dart` was resolved to an aim other than the finish it had on. */
 function isSplitAway(dart: InferredDart): boolean {
   return dart.aim !== null && dart.basis !== "FINISH";
 }
 
+/** Counts a dart with a finish on: its `STATE` row always, its attempt row when the finish was the aim. */
 function countFinishDart(metrics: AimCountMetrics, dart: InferredDart): number {
   const finish = dart.finishKey;
   if (finish === null) return 0;
   addCounts(metrics, aimKey(finish, "STATE"), {
-    left: dart.dartNumber === 1 ? 1 : 0,
-    splitAway: isSplitAway(dart) ? 1 : 0,
+    left: Number(dart.dartNumber === 1),
+    splitAway: Number(isSplitAway(dart)),
   });
   return countAimed(metrics, dart, () => {
     if (dart.basis !== "FINISH") return 0;
     addCounts(metrics, aimKey(finish, dart.resolution), {
       attempts: 1,
-      hits: dart.hit ? 1 : 0,
+      hits: Number(dart.hit),
     });
     return 1;
   });
-}
-
-function foldSession(
-  metrics: AimCountMetrics,
-  session: InferredSession,
-): number {
-  return sumSessionDarts(session, (dart) => countFinishDart(metrics, dart));
 }
 
 /**
@@ -51,5 +45,5 @@ export function doublePreferenceBuckets(
   sessions: readonly InferredSession[],
   ctx: { to: string; now: Date },
 ): AimCountBuckets {
-  return aimCountBuckets(sessions, ctx, foldSession);
+  return aimCountDartBuckets(sessions, ctx, countFinishDart);
 }
