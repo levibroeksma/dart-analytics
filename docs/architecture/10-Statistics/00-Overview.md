@@ -249,7 +249,7 @@ view-backed end to end (D63).
 | `GET routines/:routineKey/sections/:sectionId` | one run-level section (`routine-volume`, `routine-completion`) | built (phase 6, D372) |
 | `GET routines/:routineKey/steps/:stepKey/sections/:sectionId` | one step section: a GAME step's own game sections, else `step-result`/`step-volume` (`01-Section-Catalog.md` §3) | built (phase 6, D372) |
 | `GET routines/:routineKey/steps/:stepKey/sessions` | the step's paginated session list, newest first, each row linking to its replay | built (phase 6, D372) |
-| `GET games/501/variations` | the owner's 501 variations, `{ variations: { startingScore: number; sessions: number }[] }`: completed `VISUAL_BOARD` sessions of the `501` game, grouped by starting score; `501` is always listed (zero sessions if none), ordered `501` first, then ascending; takes no query parameters | built (D556) |
+| `GET games/501/variations` | the owner's 501 variations, `{ variations: { startingScore: number; sessions: number }[] }`: completed `VISUAL_BOARD` sessions of the `501` game, grouped by starting score, so the dropdown counts are all-time and do not follow the selected period (the sections do); `501` is always listed (zero sessions if none), ordered `501` first, then ascending; takes no query parameters | built (D556) |
 | `GET home?tz=` | the Home page's first-9 average (30 days against the 30 before), seven daily averages and landing cells, over completed `501` and Score Training board sessions; a fixed-window summary, so the §5 range contract does not apply | built (#808, D493, 2026-10-25) |
 
 The route segment is `:gameTypeKey` (`game_types.implementation_key`), not
