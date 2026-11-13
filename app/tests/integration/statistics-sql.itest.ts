@@ -60,6 +60,13 @@ const RANGES = [
   { ...RANGE, bucket: "month" as const, tz: "Europe/Amsterdam" },
 ];
 const GAME_QUERY = { context: "all", inputMode: "VISUAL_BOARD" } as const;
+const STATS_WORLD_501_START = 170;
+
+function gameQuery(game: GameTypeKey) {
+  return game === "501"
+    ? { ...GAME_QUERY, variation: STATS_WORLD_501_START }
+    : GAME_QUERY;
+}
 const ABSENT_PLAYER = "01990000-0000-7000-8000-00000000ffff";
 const PLAYERS = [ABSENT_PLAYER, FIXTURE_PLAYER];
 
@@ -176,13 +183,13 @@ function gameCalls(player: string, game: GameTypeKey): Call[] {
     run: () =>
       stats.listGameSessions(player, game, {
         ...RANGES[0],
-        ...GAME_QUERY,
+        ...gameQuery(game),
         limit: 5,
       }),
   };
   const sections = sectionsForGame(game).flatMap((id) =>
     perRange(`${game}/${id} ${player}`, player, (range) =>
-      stats.getGameSection(player, game, id, { ...range, ...GAME_QUERY }),
+      stats.getGameSection(player, game, id, { ...range, ...gameQuery(game) }),
     ),
   );
   return [sessions, ...sections];
@@ -279,7 +286,7 @@ describe("statistics SQL executes against Postgres", () => {
         );
         const listed = await stats.listGameSessions(FIXTURE_PLAYER, game, {
           ...RANGES[0],
-          ...GAME_QUERY,
+          ...gameQuery(game),
           limit: 5,
         });
         if (!listed.ok) {
@@ -299,7 +306,7 @@ describe("statistics SQL executes against Postgres", () => {
           throw new Error(`${game} does not offer ${section}`);
         const result = await stats.getGameSection(FIXTURE_PLAYER, game, id, {
           ...RANGES[0],
-          ...GAME_QUERY,
+          ...gameQuery(game),
         });
         expect(
           totalSampleSize(result),
@@ -318,6 +325,38 @@ describe("statistics SQL executes against Postgres", () => {
       const result = await sweep(db, calls);
       expect(result.failed).toEqual([]);
       expect(result.skipped).toEqual([]);
+    });
+  });
+
+  it("filters 501 by starting score against Postgres and lists the variations", async () => {
+    await inStatsTx(async (db) => {
+      await seedStatsWorld(db);
+
+      const variations = await stats.listGameVariations(FIXTURE_PLAYER, "501");
+      if (!variations.ok) {
+        throw new Error(`variations: ${JSON.stringify(variations)}`);
+      }
+      const [preset, custom] = variations.data.variations;
+      expect(preset).toEqual({ startingScore: 501, sessions: 0 });
+      expect(custom?.startingScore).toBe(STATS_WORLD_501_START);
+      expect(custom?.sessions).toBeGreaterThanOrEqual(1);
+      expect(variations.data.variations).toHaveLength(2);
+
+      const sessionsAt = async (variation: number | undefined) => {
+        const listed = await stats.listGameSessions(FIXTURE_PLAYER, "501", {
+          ...RANGES[0],
+          ...GAME_QUERY,
+          limit: 5,
+          variation,
+        });
+        if (!listed.ok) throw new Error(JSON.stringify(listed));
+        return listed.data.items.length;
+      };
+      expect(await sessionsAt(STATS_WORLD_501_START)).toBe(
+        Math.min(custom?.sessions ?? 0, 5),
+      );
+      expect(await sessionsAt(undefined)).toBe(0);
+      expect(await sessionsAt(301)).toBe(0);
     });
   });
 
