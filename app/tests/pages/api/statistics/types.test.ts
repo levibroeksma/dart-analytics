@@ -5,6 +5,7 @@ import {
   StatisticsHomeResponse,
   StatisticsRangeQuery,
   SessionListQuery,
+  GameVariationsResponse,
   MAX_BUCKETS,
   GameSessionListResponse,
   CompletionSeriesResponse,
@@ -1907,5 +1908,54 @@ describe("session timing schema key order", () => {
       "dartCount",
       "countedScore",
     ]);
+  });
+});
+
+describe("StatisticsRangeQuery variation", () => {
+  const base = {
+    from: "2026-01-01T00:00:00+01:00",
+    to: "2026-09-01T00:00:00+01:00",
+  };
+
+  it("parses a numeric variation", () => {
+    const result = StatisticsRangeQuery.safeParse({
+      ...base,
+      variation: "301",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.variation).toBe(301);
+  });
+
+  it("leaves variation undefined when absent", () => {
+    const result = StatisticsRangeQuery.safeParse(base);
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.variation).toBeUndefined();
+  });
+
+  it.each(["", "abc", "1", "1000", "301.5"])(
+    "rejects variation %j",
+    (variation) => {
+      expect(
+        StatisticsRangeQuery.safeParse({ ...base, variation }).success,
+      ).toBe(false);
+    },
+  );
+});
+
+describe("GameVariationsResponse", () => {
+  it("accepts a variations list", () => {
+    expect(
+      GameVariationsResponse.safeParse({
+        variations: [{ startingScore: 501, sessions: 0 }],
+      }).success,
+    ).toBe(true);
+  });
+
+  it("rejects a negative session count", () => {
+    expect(
+      GameVariationsResponse.safeParse({
+        variations: [{ startingScore: 501, sessions: -1 }],
+      }).success,
+    ).toBe(false);
   });
 });

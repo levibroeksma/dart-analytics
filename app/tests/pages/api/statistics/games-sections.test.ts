@@ -322,4 +322,43 @@ describe("GET /api/statistics/games/:gameTypeKey/sections/:sectionId", () => {
       }),
     );
   });
+
+  it("passes a numeric variation to the service", async () => {
+    vi.mocked(getGameSection).mockResolvedValue({
+      ok: false,
+      code: "NOT_FOUND",
+    });
+
+    await GET({
+      locals,
+      params: { gameTypeKey: "501", sectionId: "completion" },
+      url: makeUrl("501", "completion", {
+        from: "2026-01-01T00:00:00+01:00",
+        to: "2026-02-01T00:00:00+01:00",
+        variation: "301",
+      }),
+    } as never);
+
+    expect(getGameSection).toHaveBeenCalledWith(
+      "player-1",
+      "501",
+      "completion",
+      expect.objectContaining({ variation: 301 }),
+    );
+  });
+
+  it("422s on an out-of-range variation", async () => {
+    const response = await GET({
+      locals,
+      params: { gameTypeKey: "501", sectionId: "completion" },
+      url: makeUrl("501", "completion", {
+        from: "2026-01-01T00:00:00+01:00",
+        to: "2026-02-01T00:00:00+01:00",
+        variation: "1",
+      }),
+    } as never);
+
+    expect(response.status).toBe(422);
+    expect(getGameSection).not.toHaveBeenCalled();
+  });
 });

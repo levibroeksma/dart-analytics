@@ -13,6 +13,7 @@ const PICKED_KEYS = [
   "status",
   "context",
   "inputMode",
+  "variation",
   "limit",
   "cursor",
 ] as const;
