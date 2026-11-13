@@ -234,6 +234,7 @@ export type DartScope = {
   statuses: string[];
   context: ContextFilter;
   routineStep?: RoutineStepScope;
+  variation?: number;
 };
 
 /**
@@ -250,6 +251,7 @@ export type SessionScope = {
   statuses: string[];
   context: ContextFilter;
   routineStep?: RoutineStepScope;
+  variation?: number;
 };
 
 /**
