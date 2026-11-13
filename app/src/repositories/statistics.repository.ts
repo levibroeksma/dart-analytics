@@ -362,6 +362,15 @@ function dartVariationCondition(
     : sql`${vStatsDartFacts.sessionId} IN (SELECT ${vStatsSessionFacts.sessionId} FROM ${vStatsSessionFacts} WHERE ${vStatsSessionFacts.playerId} = ${playerId} AND ${variationExpr()} = ${variation})`;
 }
 
+/** Home counts only real 501 games: a `501`-game session must start from 501; other game types pass. */
+function homePinCondition() {
+  return sql`(${vStatsSessionFacts.gameTypeKey} <> '501' OR ${variationExpr()} = 501)`;
+}
+
+function homeDartPinCondition(playerId: string) {
+  return sql`(${vStatsDartFacts.gameTypeKey} <> '501' OR ${dartVariationCondition(playerId, 501)})`;
+}
+
 /** The shared filter every dart-level reader applies to `v_stats_dart_facts`. */
 function dartScopeWhere(scope: DartScope) {
   const conditions = [
@@ -957,6 +966,7 @@ function homeSessionWhere(scope: HomeScope) {
     lt(vStatsSessionFacts.completedAt, scope.to),
     eq(vStatsSessionFacts.statusKey, "COMPLETED"),
     eq(vStatsSessionFacts.inputModeKey, "VISUAL_BOARD"),
+    homePinCondition(),
   );
 }
 
@@ -1000,6 +1010,7 @@ export async function findHomeHeatmapCells(
       eq(vStatsDartFacts.statusKey, "COMPLETED"),
       isNotNull(vStatsDartFacts.locationX),
       isNotNull(vStatsDartFacts.locationY),
+      homeDartPinCondition(q.playerId),
     ),
   );
 }
