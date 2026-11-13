@@ -7,7 +7,7 @@ updated: 2026-11-12
 
 # API Endpoint Contracts
 
-> **Version:** 1.18.0 (501 inferred-aim sections `large-target-accuracy`/`aim-drift`/`double-accuracy`/`double-preference`/`setup-success` and their `AimCountMetrics` shape, the inferred-aim `target` rule, and the four sections 501 no longer offers added to "Statistics Games", additive; D555, 2026-11-12; prior 1.17.0 `GET /api/statistics/home` added, additive; D493, 2026-10-25; prior 1.16.4 `SessionActive` gains `isRoutineStep` and `progress`, additive; D442, 2026-10-10; prior 1.16.3 frozen `GET /api/sessions/:sessionId/replay` and its `ReplayEntry` schema dropped unbuilt; D403, 2026-10-04; prior 1.16.2 `StatisticsOverviewResponse.highestCheckout` gains `sessionId`; D398, 2026-10-03; prior 1.16.1 `leg-stats` metrics gain `bestLeg` and move to section version 2; D397, 2026-10-03; prior 1.16.0 statistics phase 6 shipped: new "Statistics Routines" section — the five `GET /api/statistics/routines*` routes' path keys, `.strict()` queries, `TrainedRoutine`/`RoutineHeader`/`RoutineStepDescriptor`, the four routine section metric shapes and the step session list, `private, no-store` and errors; "Statistics Replay" widened to non-game training step sessions — the gate's `v_stats_routine_step_facts` fallback, `ReplayHeader`'s nullable `gameTypeKey`/`rulesetVersionKey` and its four new step fields; D372, 2026-09-29; prior 1.15.0 statistics phase 5 shipped: new "Statistics Replay" section — `GET /api/statistics/sessions/:sessionId/replay`'s gate, turn-count pages (default 30, cap 120), `v1:<stageId>:<turnSequence>` cursor, first-page `ReplayHeader`, rejected parameters, `private, no-store` `Cache-Control` and errors; the frozen `ReplayEntry` route noted as unbuilt, tracked by issue #636; D371, 2026-09-28; prior 1.14.0 statistics phase 3 shipped: `checkout-rate`/`double-performance`/`checkout-path`/`bust-rate`/`ladder-progress`/`leg-stats` (`server` folds, bounded by `MAX_FOLD_DARTS = 5_000`) and `scoring-trend`/`treble-rate` (`sql`) added to `GET .../sections/:sectionId` for 501/121/TUOD/Score Training; a `server` section over the cap answers `VALIDATION_FAILED` naming it; D369, 2026-09-26; prior 1.13.0 statistics phase 2 shipped: `heatmap`/`target-accuracy`/`confusion`/`grouping`/`miss-direction`/`loose-darts` added to `GET .../sections/:sectionId`, backed by `v_stats_dart_facts` (`0043`); the shared query gains an optional `target` parameter gated by registry `params` and the `intent-stored` tag; D368, 2026-09-26; prior 1.12.0 statistics phase 1 shipped: `GET /api/statistics/games/:gameTypeKey/sessions` and `/sections/:sectionId` added, backed by `v_stats_session_facts` (`0043`), D367, 2026-09-26; prior 1.11.0 `GET /api/training-sessions/completed` added, D353, 2026-09-22; prior 1.10.0 Participants (v1) note restated as shipped — guest/DartBot seats are no longer deferred, D350, supersedes D61, 2026-09-21; prior 1.9.0 weekly training schedules shipped, closing Task 3 of `docs/superpowers/plans/2026-09-18-weekly-training-schedules.md`: new "Training Schedules" section for `/api/schedules` — list, get, active, create, replace, activate, deactivate, delete — against `v_training_schedules`/`v_training_schedule_days`; `DELETE /api/routines/:routineId` documented gaining the `"routine in use"` rejection; the list's `name`/`scheduleId` order and activate's ownership-first transaction added from code review before merge; D342/D343, 2026-09-20; prior 1.8.0 `StatisticsOverviewResponse.doubleAccuracy` renamed `checkoutPercentage`, backed by `v_x01_checkout_darts` — doc-only bump under the freeze-semantics rule, 2026-09-19; prior 1.7.0 custom-routine-builder shipped, closing issue #483: the three `GET /api/routines*`/`/exercise-templates` reads and the Custom Routine Write Contracts section drop their "(not implemented)"/"(planned, unbuilt)" tags, `v_routine_execution`'s list/detail paragraph restated as built, `CreateRoutineRequest`/`UpdateRoutineRequest`/`ExerciseTemplateCatalogEntry` marked shipped, and a note added that a real-but-not-offerable `exerciseTemplateId` answers with the same "unknown exerciseTemplateId" reason as a genuinely unknown one, 2026-09-19; prior 1.6.0 `VISUAL_BOARD` added to the `inputModeKey` contract and the capability pairing corrected, issue #341; activity grouping restated as shipped — D301, 2026-09-17; prior 1.5.0 Statistics Overview, 2026-09-06)
+> **Version:** 1.19.0 (`variation` query parameter on 501 sections and sessions, and `GET /api/statistics/games/501/variations` added to "Statistics Games", additive; D556, 2026-11-13; prior 1.18.0 (501 inferred-aim sections `large-target-accuracy`/`aim-drift`/`double-accuracy`/`double-preference`/`setup-success` and their `AimCountMetrics` shape, the inferred-aim `target` rule, and the four sections 501 no longer offers added to "Statistics Games", additive; D555, 2026-11-12; prior 1.17.0 `GET /api/statistics/home` added, additive; D493, 2026-10-25; prior 1.16.4 `SessionActive` gains `isRoutineStep` and `progress`, additive; D442, 2026-10-10; prior 1.16.3 frozen `GET /api/sessions/:sessionId/replay` and its `ReplayEntry` schema dropped unbuilt; D403, 2026-10-04; prior 1.16.2 `StatisticsOverviewResponse.highestCheckout` gains `sessionId`; D398, 2026-10-03; prior 1.16.1 `leg-stats` metrics gain `bestLeg` and move to section version 2; D397, 2026-10-03; prior 1.16.0 statistics phase 6 shipped: new "Statistics Routines" section — the five `GET /api/statistics/routines*` routes' path keys, `.strict()` queries, `TrainedRoutine`/`RoutineHeader`/`RoutineStepDescriptor`, the four routine section metric shapes and the step session list, `private, no-store` and errors; "Statistics Replay" widened to non-game training step sessions — the gate's `v_stats_routine_step_facts` fallback, `ReplayHeader`'s nullable `gameTypeKey`/`rulesetVersionKey` and its four new step fields; D372, 2026-09-29; prior 1.15.0 statistics phase 5 shipped: new "Statistics Replay" section — `GET /api/statistics/sessions/:sessionId/replay`'s gate, turn-count pages (default 30, cap 120), `v1:<stageId>:<turnSequence>` cursor, first-page `ReplayHeader`, rejected parameters, `private, no-store` `Cache-Control` and errors; the frozen `ReplayEntry` route noted as unbuilt, tracked by issue #636; D371, 2026-09-28; prior 1.14.0 statistics phase 3 shipped: `checkout-rate`/`double-performance`/`checkout-path`/`bust-rate`/`ladder-progress`/`leg-stats` (`server` folds, bounded by `MAX_FOLD_DARTS = 5_000`) and `scoring-trend`/`treble-rate` (`sql`) added to `GET .../sections/:sectionId` for 501/121/TUOD/Score Training; a `server` section over the cap answers `VALIDATION_FAILED` naming it; D369, 2026-09-26; prior 1.13.0 statistics phase 2 shipped: `heatmap`/`target-accuracy`/`confusion`/`grouping`/`miss-direction`/`loose-darts` added to `GET .../sections/:sectionId`, backed by `v_stats_dart_facts` (`0043`); the shared query gains an optional `target` parameter gated by registry `params` and the `intent-stored` tag; D368, 2026-09-26; prior 1.12.0 statistics phase 1 shipped: `GET /api/statistics/games/:gameTypeKey/sessions` and `/sections/:sectionId` added, backed by `v_stats_session_facts` (`0043`), D367, 2026-09-26; prior 1.11.0 `GET /api/training-sessions/completed` added, D353, 2026-09-22; prior 1.10.0 Participants (v1) note restated as shipped — guest/DartBot seats are no longer deferred, D350, supersedes D61, 2026-09-21; prior 1.9.0 weekly training schedules shipped, closing Task 3 of `docs/superpowers/plans/2026-09-18-weekly-training-schedules.md`: new "Training Schedules" section for `/api/schedules` — list, get, active, create, replace, activate, deactivate, delete — against `v_training_schedules`/`v_training_schedule_days`; `DELETE /api/routines/:routineId` documented gaining the `"routine in use"` rejection; the list's `name`/`scheduleId` order and activate's ownership-first transaction added from code review before merge; D342/D343, 2026-09-20; prior 1.8.0 `StatisticsOverviewResponse.doubleAccuracy` renamed `checkoutPercentage`, backed by `v_x01_checkout_darts` — doc-only bump under the freeze-semantics rule, 2026-09-19; prior 1.7.0 custom-routine-builder shipped, closing issue #483: the three `GET /api/routines*`/`/exercise-templates` reads and the Custom Routine Write Contracts section drop their "(not implemented)"/"(planned, unbuilt)" tags, `v_routine_execution`'s list/detail paragraph restated as built, `CreateRoutineRequest`/`UpdateRoutineRequest`/`ExerciseTemplateCatalogEntry` marked shipped, and a note added that a real-but-not-offerable `exerciseTemplateId` answers with the same "unknown exerciseTemplateId" reason as a genuinely unknown one, 2026-09-19; prior 1.6.0 `VISUAL_BOARD` added to the `inputModeKey` contract and the capability pairing corrected, issue #341; activity grouping restated as shipped — D301, 2026-09-17; prior 1.5.0 Statistics Overview, 2026-09-06)
 >
 > Per-domain request/response contracts for the v1 API surface.
 > Subordinate to the frozen contract in `00-Overview.md`. Shared conventions (envelope, headers,
@@ -433,6 +433,7 @@ const StatisticsRangeQuery = z.object({
   context: z.enum(["all", "standalone", "routine"]).default("all"),
   inputMode: z.literal("VISUAL_BOARD").default("VISUAL_BOARD"),
   target: z.string().optional(), // "<ZONE_KEY>:<number>" or "WIRE:a-b"; D368 decision 5, D555
+  variation: z.coerce.number().int().min(2).max(999).optional(), // 501 only; D556
 });
 ```
 
@@ -459,6 +460,16 @@ game without `intent-inferred` — is `VALIDATION_FAILED` ("target must be an
 inferred aim key on this game"). The filtered heatmap keeps only the darts
 resolved to that aim (an ambiguous dart is in none) and runs at the `server`
 site, so it is gated by `MAX_FOLD_DARTS` and carries `skippedSessions`.
+
+`variation` (D556) is the integer `starting_score` of the 501 variation to read.
+It is accepted on game type `501` only; any other game, and every routine route,
+rejects it with `VALIDATION_FAILED`. A non-numeric, empty or out-of-range value
+(valid range: an integer 2–999, the setup form's bounds) is `VALIDATION_FAILED`.
+Absent `variation` on a non-routine `501` request means `501`; with `routineStep`
+set, no variation filter applies. A session with no config snapshot or no
+`starting_score` counts as `501`. A valid variation with no sessions returns the
+normal empty result, never an error. `dataVersion` is unchanged (game-wide). It
+applies to every 501 section, the aim-filtered heatmap and the session list.
 
 ### `GET .../sessions`
 
@@ -805,7 +816,29 @@ still returned. Row semantics, which ambiguous darts each section takes, and
 
 **Errors (both routes):** `NOT_FOUND` (unknown `gameTypeKey` or `sectionId`),
 `VALIDATION_FAILED` (query, per the rules above — including an unsupported or
-misapplied `target`), plus the standard protected-route failures.
+misapplied `target` or `variation`), plus the standard protected-route failures.
+
+### `GET /api/statistics/games/501/variations`
+
+The owner's 501 variations (D556). Protected route class, read-only,
+view-backed through `v_stats_session_facts`, `private, no-store`. Takes no query
+parameters (anything else is `VALIDATION_FAILED`).
+
+```typescript
+const GameVariationsResponse = z.object({
+  variations: z.array(
+    z.object({
+      startingScore: z.number().int(), // COALESCE(configuration->>'starting_score', 501)
+      sessions: z.number().int().nonnegative(), // completed sessions in that variation
+    }),
+  ),
+});
+```
+
+The list covers completed `VISUAL_BOARD` sessions of the `501` game for the
+owner. `501` is always listed, with `sessions: 0` when there are none. Order is
+`501` first, then ascending by score. Two sessions stored as `501` (preset or
+typed custom score) give one entry.
 
 ---
 

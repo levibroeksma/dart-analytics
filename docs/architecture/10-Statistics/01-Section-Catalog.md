@@ -2,12 +2,12 @@
 status: canonical
 scope: architecture/statistics/sections
 read-when: adding, changing, or choosing insight sections for a statistics game page
-updated: 2026-11-12
+updated: 2026-11-13
 -->
 
 # Statistics — Section Catalog
 
-> **Version:** 1.7.0 (2026-11-12, D555; prior 1.6.12 2026-10-05, D414; prior 1.6.11 2026-10-04, D413; prior 1.6.10 2026-10-04, D412; prior 1.6.9 2026-10-04, D411; prior 1.6.8 2026-10-04, D410; prior 1.6.7 2026-10-04, D408; prior 1.6.6 2026-10-04, D407; prior 1.6.5 2026-10-04, D406; prior 1.6.4 2026-10-03, D402; prior 1.6.3 2026-10-03, D401; prior 1.6.2 2026-10-03, D399; prior 1.6.1 2026-10-03, D397; prior 1.6.0 2026-10-03, D396)
+> **Version:** 1.8.0 (2026-11-13, D556; prior 1.7.0 2026-11-12, D555; prior 1.6.12 2026-10-05, D414; prior 1.6.11 2026-10-04, D413; prior 1.6.10 2026-10-04, D412; prior 1.6.9 2026-10-04, D411; prior 1.6.8 2026-10-04, D410; prior 1.6.7 2026-10-04, D408; prior 1.6.6 2026-10-04, D407; prior 1.6.5 2026-10-04, D406; prior 1.6.4 2026-10-03, D402; prior 1.6.3 2026-10-03, D401; prior 1.6.2 2026-10-03, D399; prior 1.6.1 2026-10-03, D397; prior 1.6.0 2026-10-03, D396)
 >
 > The shared insight-section library and the section list of each game page.
 > Registry fields, tags, compute sites and the query contract are defined once in
@@ -200,6 +200,8 @@ point, so a spread around the wedge measures ring choice, not skill (D370
 decision 6).
 
 ## 2.1 Game-specific sections
+
+**501 variation filter (D556).** The `variation` parameter (`00-Overview.md` §5) applies to every 501 section on the page, the aim-filtered heatmap and the session list: each reads only sessions whose `COALESCE(configuration->>'starting_score', 501)` equals the selected variation, `501` by default. It is a read-time filter on the stored starting score, not a section tag or a stored column; routine-step reads (§3) are exempt because a step key never mixes configurations. Entries come from `GET games/501/variations`.
 
 `SectionMeta.games` gates each of these to exactly the named game(s), on top
 of its tags (D370 decision 10); `PAGE_ORDER_OVERRIDES` places `shanghai-count`
