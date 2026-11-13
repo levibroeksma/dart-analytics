@@ -165,6 +165,7 @@ export const StatisticsRangeQuery = z
     ...RANGE_FIELDS,
     context: z.enum(["all", "standalone", "routine"]).default("all"),
     inputMode: z.literal("VISUAL_BOARD").default("VISUAL_BOARD"),
+    variation: z.coerce.number().int().min(2).max(999).optional(),
     target: z
       .string()
       .optional()
@@ -934,3 +935,13 @@ export const RoutineStepSessionListResponse = z.object({
 export type RoutineStepSessionListResponseData = z.infer<
   typeof RoutineStepSessionListResponse
 >;
+
+/** Contract: docs/architecture/06-API/04-Endpoint-Contracts.md §Statistics Games, `GET .../games/501/variations`. */
+export const GameVariationsResponse = z.object({
+  variations: z.array(
+    z.object({
+      startingScore: z.number().int(),
+      sessions: z.number().int().nonnegative(),
+    }),
+  ),
+});

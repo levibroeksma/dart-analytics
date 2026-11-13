@@ -101,4 +101,48 @@ describe("GET /api/statistics/games/:gameTypeKey/sessions", () => {
       }),
     );
   });
+
+  it("passes a numeric variation to the service", async () => {
+    vi.mocked(listGameSessions).mockResolvedValue({
+      ok: true,
+      data: {
+        items: [],
+        nextCursor: null,
+        totalCount: 0,
+        dataVersion: "v1:0:0",
+      },
+    });
+
+    const response = await GET({
+      locals,
+      params: { gameTypeKey: "501" },
+      url: makeUrl("501", {
+        from: "2026-01-01T00:00:00+01:00",
+        to: "2026-02-01T00:00:00+01:00",
+        variation: "301",
+      }),
+    } as never);
+
+    expect(response.status).toBe(200);
+    expect(listGameSessions).toHaveBeenCalledWith(
+      "player-1",
+      "501",
+      expect.objectContaining({ variation: 301 }),
+    );
+  });
+
+  it("422s on an out-of-range variation", async () => {
+    const response = await GET({
+      locals,
+      params: { gameTypeKey: "501" },
+      url: makeUrl("501", {
+        from: "2026-01-01T00:00:00+01:00",
+        to: "2026-02-01T00:00:00+01:00",
+        variation: "1000",
+      }),
+    } as never);
+
+    expect(response.status).toBe(422);
+    expect(listGameSessions).not.toHaveBeenCalled();
+  });
 });

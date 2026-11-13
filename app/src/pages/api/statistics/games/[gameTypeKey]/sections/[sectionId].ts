@@ -18,6 +18,7 @@ const PICKED_KEYS = [
   "status",
   "context",
   "inputMode",
+  "variation",
   "target",
 ] as const;
 

@@ -12,6 +12,7 @@ vi.mock("@repositories/statistics.repository", () => ({
   findGameSessionsPage: vi.fn(),
   countGameSessions: vi.fn(),
   findGameDataVersion: vi.fn(),
+  findGameVariations: vi.fn(),
   findBucketFloor: vi.fn(),
   findBucketedSessionAggregates: vi.fn(),
   findIntentCells: vi.fn(),
@@ -44,6 +45,8 @@ import {
   getHomeStats,
   listGameSessions,
   getGameSection,
+  listGameVariations,
+  resolveVariation,
   getSessionReplay,
   resolveSectionHandler,
   listTrainedRoutines,
@@ -602,6 +605,160 @@ describe("listGameSessions", () => {
       details: { reason: "cursor is malformed" },
     });
     expect(repo.findGameSessionsPage).not.toHaveBeenCalled();
+  });
+});
+
+describe("resolveVariation", () => {
+  const step = { routineKey: "r", stepKey: "s" };
+
+  it.each([
+    ["501", undefined, undefined, { variation: 501 }],
+    ["501", 301, undefined, { variation: 301 }],
+    ["TUOD", undefined, undefined, { variation: undefined }],
+    ["501", undefined, step, { variation: undefined }],
+  ] as const)("%s requested %s step %j", (game, requested, routine, want) => {
+    expect(resolveVariation(game, requested, routine)).toEqual(want);
+  });
+
+  it.each([
+    ["TUOD", 301, undefined],
+    ["501", 301, step],
+  ] as const)("rejects %s requested %s step %j", (game, requested, routine) => {
+    expect(resolveVariation(game, requested, routine)).toHaveProperty("error");
+  });
+});
+
+describe("getGameSection variation", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  function sectionVariation() {
+    const call = vi.mocked(repo.findBucketedSessionAggregates).mock.calls[0]!;
+    return (call[1] as { variation?: number }).variation;
+  }
+
+  async function read(game: GameTypeKey, variation?: number) {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 0,
+      maxCompletedAt: null,
+    });
+    vi.mocked(repo.findBucketedSessionAggregates).mockResolvedValue([]);
+    return getGameSection(playerId, game, "completion", {
+      ...baseRangeQuery,
+      status: "all",
+      variation,
+    });
+  }
+
+  it("reads only the requested variation on 501", async () => {
+    await read("501", 301);
+    expect(sectionVariation()).toBe(301);
+  });
+
+  it("defaults to 501 on 501", async () => {
+    await read("501");
+    expect(sectionVariation()).toBe(501);
+  });
+
+  it("passes no variation on another game", async () => {
+    await read("TUOD");
+    expect(sectionVariation()).toBeUndefined();
+  });
+
+  it("rejects a variation on another game", async () => {
+    const result = await read("TUOD", 301);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.code).toBe("VALIDATION_FAILED");
+    expect(repo.findBucketedSessionAggregates).not.toHaveBeenCalled();
+  });
+});
+
+describe("listGameSessions variation", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  async function list(game: GameTypeKey, variation?: number) {
+    vi.mocked(repo.findGameSessionsPage).mockResolvedValue([]);
+    vi.mocked(repo.countGameSessions).mockResolvedValue(0);
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 0,
+      maxCompletedAt: null,
+    });
+    const result = await listGameSessions(playerId, game, {
+      ...baseRangeQuery,
+      limit: 25,
+      variation,
+    });
+    const filter = vi.mocked(repo.countGameSessions).mock.calls[0]?.[1];
+    return { result, variation: (filter as { variation?: number })?.variation };
+  }
+
+  it("filters 501 by the requested variation", async () => {
+    expect((await list("501", 301)).variation).toBe(301);
+  });
+
+  it("defaults 501 to 501", async () => {
+    expect((await list("501")).variation).toBe(501);
+  });
+
+  it("passes no variation on another game", async () => {
+    expect((await list("TUOD")).variation).toBeUndefined();
+  });
+
+  it("rejects a variation on another game", async () => {
+    const { result } = await list("TUOD", 301);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.code).toBe("VALIDATION_FAILED");
+  });
+});
+
+describe("listGameVariations", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("puts 501 first, then ascending", async () => {
+    vi.mocked(repo.findGameVariations).mockResolvedValue([
+      { startingScore: 301, sessions: 1 },
+      { startingScore: 501, sessions: 3 },
+      { startingScore: 701, sessions: 2 },
+    ]);
+    const result = await listGameVariations(playerId, "501");
+    expect(result).toEqual({
+      ok: true,
+      data: {
+        variations: [
+          { startingScore: 501, sessions: 3 },
+          { startingScore: 301, sessions: 1 },
+          { startingScore: 701, sessions: 2 },
+        ],
+      },
+    });
+  });
+
+  it("always lists 501, with zero sessions when absent", async () => {
+    vi.mocked(repo.findGameVariations).mockResolvedValue([
+      { startingScore: 301, sessions: 1 },
+    ]);
+    const result = await listGameVariations(playerId, "501");
+    expect(result.ok && result.data.variations).toEqual([
+      { startingScore: 501, sessions: 0 },
+      { startingScore: 301, sessions: 1 },
+    ]);
+  });
+
+  it("keeps one entry for the already-grouped 501 row", async () => {
+    vi.mocked(repo.findGameVariations).mockResolvedValue([
+      { startingScore: 501, sessions: 2 },
+    ]);
+    const result = await listGameVariations(playerId, "501");
+    expect(result.ok && result.data.variations).toEqual([
+      { startingScore: 501, sessions: 2 },
+    ]);
+  });
+
+  it("is NOT_FOUND for another game", async () => {
+    expect(await listGameVariations(playerId, "TUOD")).toEqual({
+      ok: false,
+      code: "NOT_FOUND",
+    });
+    expect(repo.findGameVariations).not.toHaveBeenCalled();
   });
 });
 

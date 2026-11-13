@@ -110,6 +110,7 @@ import {
   findBucketedSessionAggregates,
   findDartFoldRows,
   findGameDataVersion,
+  findGameVariations,
   countGameSessions,
   findGameSessionsPage,
   findHeatmapCells,
@@ -165,6 +166,7 @@ import type {
   BucketedSession,
   InferredSession,
   DartScope,
+  GameVariation,
   HeatmapCellRow,
   HomeStats,
   HitNumberCellRow,
@@ -299,6 +301,8 @@ type SectionContext = {
   inferredAim: AimKey | null;
   /** Narrows every reader this context feeds to one GAME routine step's own sessions; `undefined` for a standalone game page. */
   routineStep?: RoutineStepScope;
+  /** The 501 starting score every reader this context feeds is narrowed to; `undefined` on every other game and for a routine step. */
+  variation?: number;
 };
 
 /** A section's shape function's context: the shared `{ to, now }` plus what the two non-bucketable, un-keyed sections need. */
@@ -371,6 +375,7 @@ function dartScope(ctx: SectionContext): DartScope {
     statuses: ctx.statuses,
     context: ctx.context,
     routineStep: ctx.routineStep,
+    variation: ctx.variation,
   };
 }
 
@@ -438,6 +443,7 @@ function sectionScope(ctx: SectionContext): SessionScope {
     statuses: ctx.statuses,
     context: ctx.context,
     routineStep: ctx.routineStep,
+    variation: ctx.variation,
   };
 }
 
@@ -783,6 +789,24 @@ function pageSessions<T extends SessionListRow>(
   return { items, nextCursor };
 }
 
+const DEFAULT_VARIATION = 501;
+
+/**
+ * The variation a 501 read narrows to (D556): the requested starting score,
+ * `501` when none was sent, nothing for a routine step or any other game --
+ * which reject a requested one.
+ */
+export function resolveVariation(
+  gameTypeKey: GameTypeKey,
+  requested: number | undefined,
+  routineStep: RoutineStepScope | undefined,
+): { variation: number | undefined } | { error: string } {
+  const applies = gameTypeKey === "501" && routineStep === undefined;
+  if (applies) return { variation: requested ?? DEFAULT_VARIATION };
+  if (requested === undefined) return { variation: undefined };
+  return { error: "variation applies to the 501 game only" };
+}
+
 /** A game's paginated session list (`00-Overview.md` §6), newest first. */
 export async function listGameSessions(
   playerId: string,
@@ -794,6 +818,11 @@ export async function listGameSessions(
     return validationFailed(cursor.reason);
   }
 
+  const resolved = resolveVariation(gameTypeKey, q.variation, undefined);
+  if ("error" in resolved) {
+    return validationFailed(resolved.error);
+  }
+
   const db = getDb();
   const filter = {
     playerId,
@@ -802,6 +831,7 @@ export async function listGameSessions(
     to: q.to,
     statuses: listStatuses(q.status),
     context: q.context,
+    variation: resolved.variation,
   };
   const [rows, totalCount, dataVersionInput] = await Promise.all([
     findGameSessionsPage(db, { ...filter, limit: q.limit, after: cursor.data }),
@@ -908,6 +938,7 @@ type ResolvedGameSectionRequest = {
   statuses: string[];
   target: { number: number; zone: IntentZoneKey } | null;
   inferredAim: AimKey | null;
+  variation: number | undefined;
 };
 
 /**
@@ -924,7 +955,17 @@ async function resolveGameSectionRequest(
   meta: SectionMeta,
   gameTypeKey: GameTypeKey,
   q: StatisticsRangeQueryData,
+  routineStep: RoutineStepScope | undefined,
 ): Promise<ResolvedGameSectionRequest | { error: string }> {
+  const resolvedVariation = resolveVariation(
+    gameTypeKey,
+    q.variation,
+    routineStep,
+  );
+  if ("error" in resolvedVariation) {
+    return { error: resolvedVariation.error };
+  }
+
   if (q.bucket !== "none" && !meta.bucketable) {
     return { error: "this section does not support bucket" };
   }
@@ -944,6 +985,7 @@ async function resolveGameSectionRequest(
     statuses: resolvedRange.statuses,
     target: resolvedTarget.target,
     inferredAim: resolvedTarget.inferredAim,
+    variation: resolvedVariation.variation,
   };
 }
 
@@ -1196,6 +1238,7 @@ async function dispatchGameSection(
     meta,
     gameTypeKey,
     q,
+    routineStep,
   );
   if ("error" in resolvedRequest) {
     return validationFailed(resolvedRequest.error);
@@ -1715,5 +1758,26 @@ export async function listRoutineStepSessions(
   return {
     ok: true,
     data: { items, nextCursor, dataVersion },
+  };
+}
+
+/** The owner's variations of a game (D556): `501` always first, then ascending; `NOT_FOUND` for any other game. */
+export async function listGameVariations(
+  playerId: string,
+  gameTypeKey: GameTypeKey,
+): Promise<ServiceResult<{ variations: GameVariation[] }>> {
+  if (gameTypeKey !== "501") {
+    return { ok: false, code: "NOT_FOUND" };
+  }
+  const rows = await findGameVariations(getDb(), playerId, gameTypeKey);
+  const isHome = (row: GameVariation) =>
+    row.startingScore === DEFAULT_VARIATION;
+  const home = rows.find(isHome) ?? {
+    startingScore: DEFAULT_VARIATION,
+    sessions: 0,
+  };
+  return {
+    ok: true,
+    data: { variations: [home, ...rows.filter((r) => !isHome(r))] },
   };
 }
