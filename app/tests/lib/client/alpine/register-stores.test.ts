@@ -35,7 +35,9 @@ describe("registerStores", () => {
       "game",
       "boardInput",
       "checkoutHints",
+      "statsVariation",
     ]);
     expect(stores.checkoutHints).toEqual({ enabled: true });
+    expect((stores.statsVariation as { value: number }).value).toBe(501);
   });
 });

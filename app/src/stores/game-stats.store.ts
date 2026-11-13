@@ -12,6 +12,7 @@ import {
 import { CACHE_PLAYER_ID, loadGameSection } from "@lib/stats/load-game-section";
 import { parseTargetKey, targetLabel } from "@lib/stats/target-key";
 import { DOUBLES_PATH_KEYS } from "@lib/stats/heatmap-targets";
+import { variationParam } from "@lib/stats/variation";
 import { checkoutPathFor } from "@modules/game/checkout-path.module";
 import { groupingSummary } from "@modules/stats/sections/grouping.module";
 import {
@@ -249,6 +250,7 @@ export function gameStatsStore() {
     error: null as string | null,
     sectionErrors: {} as Partial<Record<SectionId, string>>,
     heatmapTarget: null as TargetKey | null,
+    variation: 501,
     ...gameStatsStoreMethods1,
 
     /** Resolves the picked ruleset version to its game type, then reloads; a dedicated-layout game loads its own sections. */
@@ -277,10 +279,12 @@ export function gameStatsStore() {
       this.loading = true;
       this.error = null;
       const gameTypeKey = this.gameTypeKey;
+      const variation = variationParam(gameTypeKey, this.variation);
       const query = {
         ...this.range,
         context: "all" as const,
         inputMode: "VISUAL_BOARD",
+        variation,
       };
       const ids = sectionsForGame(gameTypeKey);
       const settled = await Promise.allSettled(
@@ -288,7 +292,10 @@ export function gameStatsStore() {
           if (id === "checkout-path")
             return this.fetchCheckoutPath(gameTypeKey);
           const range = sectionRange(SECTIONS[id], this.range);
-          return loadGameSection<unknown>(gameTypeKey, id, range);
+          return loadGameSection<unknown>(gameTypeKey, id, {
+            ...range,
+            variation,
+          });
         }),
       );
       const sections: Partial<Record<SectionId, SectionView>> = {};
@@ -308,7 +315,11 @@ export function gameStatsStore() {
         const page = await readSessionPage<
           GameSessionListResponseData["items"][number]
         >(CACHE_PLAYER_ID, gameScopeKey(gameTypeKey), query, () =>
-          fetchGameSessions(gameTypeKey, { ...this.range, limit: 25 }),
+          fetchGameSessions(gameTypeKey, {
+            ...this.range,
+            limit: 25,
+            variation,
+          }),
         );
         this.sessions = page.items;
         this.nextCursor = page.nextCursor;
@@ -333,6 +344,7 @@ export function gameStatsStore() {
         bucket: "none" as const,
         context: "all" as const,
         inputMode: "VISUAL_BOARD",
+        variation: variationParam(gameTypeKey, this.variation),
       };
       return readSection<CheckoutPathMetrics>(
         CACHE_PLAYER_ID,
@@ -360,7 +372,11 @@ export function gameStatsStore() {
       const result = await loadGameSection<HeatmapMetrics>(
         gameTypeKey,
         "heatmap",
-        { ...range, target },
+        {
+          ...range,
+          target,
+          variation: variationParam(gameTypeKey, this.variation),
+        },
       );
       this.sections = { ...this.sections, heatmap: result };
     },
@@ -369,16 +385,23 @@ export function gameStatsStore() {
       if (this.nextCursor === null) return;
       const gameTypeKey = this.gameTypeKey;
       const cursor = this.nextCursor;
+      const variation = variationParam(gameTypeKey, this.variation);
       const query = {
         ...this.range,
         context: "all" as const,
         inputMode: "VISUAL_BOARD",
+        variation,
         cursor,
       };
       const page = await readSessionPage<
         GameSessionListResponseData["items"][number]
       >(CACHE_PLAYER_ID, gameScopeKey(gameTypeKey), query, () =>
-        fetchGameSessions(gameTypeKey, { ...this.range, limit: 25, cursor }),
+        fetchGameSessions(gameTypeKey, {
+          ...this.range,
+          limit: 25,
+          cursor,
+          variation,
+        }),
       );
       this.sessions = [...this.sessions, ...page.items];
       this.nextCursor = page.nextCursor;

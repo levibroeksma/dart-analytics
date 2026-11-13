@@ -1,6 +1,7 @@
 import { GAME_TYPE_BY_RULESET } from "@lib/game/rulesets/capabilities";
 import { loadGameSection } from "@lib/stats/load-game-section";
 import { heatmapWindow } from "@lib/stats/sections/score-trend-window";
+import { variationParam } from "@lib/stats/variation";
 import type {
   GameTypeKey,
   RulesetVersionKey,
@@ -9,19 +10,30 @@ import type {
   TrendRangeKey,
 } from "@lib/types";
 
-type PageScope = { $data: { rangeKey: TrendRangeKey; game: string } };
+type PageScope = {
+  $data: { rangeKey: TrendRangeKey; game: string; variation: number };
+};
 
 type WatchesRange = {
-  $watch(key: "rangeKey" | "game", callback: () => void): void;
+  $watch(key: "rangeKey" | "game" | "variation", callback: () => void): void;
   load(): Promise<void>;
 };
+
+const PAGE_FILTERS = ["rangeKey", "game", "variation"] as const;
+
+/** Reloads `section` on every change of the page-level `rangeKey`, `game` or `variation`. */
+export function reloadOnPageFilters(section: WatchesRange): void {
+  for (const key of PAGE_FILTERS)
+    section.$watch(key, () => void section.load());
+}
 
 /**
  * The shared fetch half of a game-page section over the page-level period:
  * one un-bucketed `sectionId` request for the page-level `game` (a ruleset
  * version key, resolved to its game type) over the current period on mount
- * and on every `rangeKey` or `game` change, with a ticket that drops a stale
- * response. A section factory spreads it and adds its derived getters.
+ * and on every `rangeKey`, `game` or `variation` change, with a ticket that
+ * drops a stale response. A section factory spreads it and adds its derived
+ * getters.
  */
 export function periodSection<M>(sectionId: SectionId) {
   let ticket = 0;
@@ -40,8 +52,7 @@ export function periodSection<M>(sectionId: SectionId) {
     },
 
     init(this: WatchesRange) {
-      this.$watch("rangeKey", () => void this.load());
-      this.$watch("game", () => void this.load());
+      reloadOnPageFilters(this);
       void this.load();
     },
 
@@ -61,6 +72,10 @@ export function periodSection<M>(sectionId: SectionId) {
           from: window.from,
           to: window.to,
           bucket: "none",
+          variation: variationParam(
+            gameTypeKey,
+            (this as unknown as PageScope).$data.variation,
+          ),
         });
         if (mine !== ticket) return;
         this.buckets = series.buckets;

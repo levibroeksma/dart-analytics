@@ -49,6 +49,7 @@ import { gameHeatmapSection } from "@lib/stats/sections/game-heatmap.data";
 import { gameCompletionSection } from "@lib/stats/sections/game-completion.data";
 import { personalBestFinishSection } from "@lib/stats/sections/personal-best-finish.data";
 import { gameSessionList } from "@lib/stats/sections/game-session-list.data";
+import { gameVariations } from "@lib/stats/sections/game-variations.data";
 import { routineBuilder } from "@lib/training/routines/routine-builder.data";
 import { schedulesIndex } from "@lib/training/schedules/schedules-index.data";
 import { scheduleEditor } from "@lib/training/schedules/schedule-editor.data";
@@ -108,6 +109,7 @@ export function registerRouteData(Alpine: Alpine) {
   Alpine.data("gameCompletionSection", gameCompletionSection);
   Alpine.data("personalBestFinishSection", personalBestFinishSection);
   Alpine.data("gameSessionList", gameSessionList);
+  Alpine.data("gameVariations", gameVariations);
   Alpine.data("routineBuilder", routineBuilder);
   Alpine.data("schedulesIndex", schedulesIndex);
   Alpine.data("scheduleEditor", scheduleEditor);
