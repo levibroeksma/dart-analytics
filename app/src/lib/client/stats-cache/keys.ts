@@ -9,5 +9,6 @@ export function paramsKey(q: StatsCacheParams): string {
     context: q.context,
     inputMode: q.inputMode,
     ...(q.target === undefined ? {} : { target: q.target }),
+    ...(q.variation === undefined ? {} : { variation: q.variation }),
   });
 }

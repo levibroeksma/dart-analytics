@@ -14,6 +14,7 @@ export type StatsCacheParams = {
   context: ContextFilter;
   inputMode: string;
   target?: string;
+  variation?: number;
 };
 
 /**

@@ -3,6 +3,7 @@ import type {
   ApiResult,
   GameSectionResponseData,
   GameSessionListResponseData,
+  GameVariationsResponseData,
   GameStatsRangeParams,
   ReplayPageSchemaData,
   ReplaySessionParams,
@@ -66,6 +67,7 @@ function rangeSearchParams(q: GameStatsRangeParams): URLSearchParams {
   if (q.context !== undefined) params.set("context", q.context);
   if (q.inputMode !== undefined) params.set("inputMode", q.inputMode);
   if (q.target !== undefined) params.set("target", q.target);
+  if (q.variation !== undefined) params.set("variation", String(q.variation));
   return params;
 }
 
@@ -92,6 +94,16 @@ export async function fetchGameSection(
 
   const result = await apiRequest<GameSectionResponseData>(
     `/api/statistics/games/${gameTypeKey}/sections/${sectionId}?${params.toString()}`,
+  );
+  return unwrapStatistics(result);
+}
+
+/** The owner's 501 variations with their session counts, `501` first. */
+export async function fetchGameVariations(
+  gameTypeKey: string,
+): Promise<GameVariationsResponseData> {
+  const result = await apiRequest<GameVariationsResponseData>(
+    `/api/statistics/games/${encodeURIComponent(gameTypeKey)}/variations`,
   );
   return unwrapStatistics(result);
 }
