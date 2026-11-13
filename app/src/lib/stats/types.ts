@@ -378,6 +378,7 @@ export type GameSectionRange = {
   bucket: Bucket;
   tz?: string;
   target?: string;
+  variation?: number;
 };
 
 export type TrendRangeKey = "30d" | "90d" | "1y" | "all";

@@ -35,6 +35,18 @@ describe("paramsKey", () => {
     );
   });
 
+  it("paramsKey differs between variation 301 and 501", () => {
+    expect(paramsKey({ ...base, variation: 301 })).not.toBe(
+      paramsKey({ ...base, variation: 501 }),
+    );
+  });
+
+  it("paramsKey is unchanged when variation is undefined", () => {
+    expect(paramsKey({ ...base, variation: undefined })).toBe(
+      '{"bucket":"month","tz":"Europe/Amsterdam","status":"completed","context":"all","inputMode":"VISUAL_BOARD"}',
+    );
+  });
+
   it("differs for a different target", () => {
     expect(paramsKey({ ...base, target: "DOUBLE:16" })).not.toBe(
       paramsKey({ ...base, target: "DOUBLE:8" }),

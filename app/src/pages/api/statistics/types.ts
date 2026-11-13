@@ -945,3 +945,4 @@ export const GameVariationsResponse = z.object({
     }),
   ),
 });
+export type GameVariationsResponseData = z.infer<typeof GameVariationsResponse>;
