@@ -252,6 +252,58 @@ describe("gameStatsStore", () => {
     expect(store.abandonRate).toBe(0.4);
   });
 
+  it("load passes variation to every section read on 501 and omits it on TUOD", async () => {
+    const empty = series(
+      { completed: 0, abandoned: 0, neverStarted: 0, abandonedTurns: 0 },
+      0,
+    );
+    readSection.mockImplementation(
+      (_p: string, _s: unknown, _m: unknown, _q: unknown, fetcher) => {
+        void fetcher({ from: "a", to: "b" });
+        return Promise.resolve(empty);
+      },
+    );
+    readSessionPage.mockImplementation(
+      (_p: string, _s: string, _q: unknown, fetcher: () => unknown) => {
+        void fetcher();
+        return Promise.resolve({
+          items: [],
+          nextCursor: "c",
+          dataVersion: "v1",
+        });
+      },
+    );
+    const store = gameStatsStore();
+    store.gameTypeKey = "501";
+    store.variation = 301;
+    await store.load();
+    await store.loadHeatmap();
+    await store.loadMoreSessions();
+    const queries = [
+      ...readSection.mock.calls.map((call) => call[3]),
+      ...readSessionPage.mock.calls.map((call) => call[2]),
+      ...fetchGameSection.mock.calls.map((call) => call[2]),
+      ...fetchGameSessions.mock.calls.map((call) => call[1]),
+    ];
+    expect(queries.length).toBeGreaterThan(20);
+    for (const query of queries) expect(query.variation).toBe(301);
+
+    readSection.mockClear();
+    readSessionPage.mockClear();
+    fetchGameSection.mockClear();
+    fetchGameSessions.mockClear();
+    store.gameTypeKey = "TUOD";
+    await store.load();
+    const tuod = [
+      ...readSection.mock.calls.map((call) => call[3]),
+      ...readSessionPage.mock.calls.map((call) => call[2]),
+      ...fetchGameSection.mock.calls.map((call) => call[2]),
+      ...fetchGameSessions.mock.calls.map((call) => call[1]),
+    ];
+    expect(tuod.length).toBeGreaterThan(0);
+    for (const query of tuod) expect(query.variation).toBeUndefined();
+  });
+
   it("loadMoreSessions appends and stops at nextCursor: null", async () => {
     const store = gameStatsStore();
     readSessionPage.mockResolvedValueOnce({

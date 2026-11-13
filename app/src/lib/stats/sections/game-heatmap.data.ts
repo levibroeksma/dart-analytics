@@ -3,6 +3,7 @@ import { BOARD_RADII_MM } from "@lib/game/board/board-geometry.module";
 import { heatmapTargetOptions } from "@lib/stats/heatmap-targets";
 import { loadGameSection } from "@lib/stats/load-game-section";
 import { heatmapWindow } from "@lib/stats/sections/score-trend-window";
+import { variationParam } from "@lib/stats/variation";
 import { heatStamps } from "@modules/stats/sections/heatmap-density.module";
 import type {
   RulesetVersionKey,
@@ -12,10 +13,15 @@ import type {
 } from "@lib/types";
 import type { HeatStamp, HeatmapMetrics } from "@modules/types";
 
-type PageScope = { $data: { rangeKey: TrendRangeKey; game: string } };
+type PageScope = {
+  $data: { rangeKey: TrendRangeKey; game: string; variation: number };
+};
 
 type WatchesRange = {
-  $watch(key: "rangeKey" | "game" | "target", callback: () => void): void;
+  $watch(
+    key: "rangeKey" | "game" | "target" | "variation",
+    callback: () => void,
+  ): void;
   target: TargetKey | null;
   load(): Promise<void>;
 };
@@ -25,7 +31,7 @@ const BOARD_SPAN_MM = BOARD_RADII_MM.surroundOuter * 2;
 /**
  * The heatmap section of a game's `/statistics` layout: fetches `heatmap` for
  * the page-level `game` (a ruleset version key, resolved to its game type) on
- * mount and on every change of it or of `rangeKey`, over the period's current
+ * mount and on every change of it, `rangeKey` or `variation`, over the period's current
  * span only, and derives the density stamps the board canvas draws. Games with
  * stored intent (`HEATMAP_TARGET_GAMES`) also get a `target` picker: one
  * request per target, "All targets" (`null`) sends none.
@@ -55,6 +61,7 @@ export function gameHeatmapSection() {
     init(this: WatchesRange) {
       this.$watch("rangeKey", () => void this.load());
       this.$watch("target", () => void this.load());
+      this.$watch("variation", () => void this.load());
       this.$watch("game", () => {
         if (this.target === null) void this.load();
         else this.target = null;
@@ -81,6 +88,10 @@ export function gameHeatmapSection() {
             from: window.from,
             to: window.to,
             bucket: "none",
+            variation: variationParam(
+              gameTypeKey,
+              (this as unknown as PageScope).$data.variation,
+            ),
             ...(this.target === null ? {} : { target: this.target }),
           },
         );

@@ -16,11 +16,12 @@ function section() {
   const page = {
     rangeKey: "30d" as "30d" | "90d" | "1y" | "all",
     game: "SCORE_TRAINING_V1",
+    variation: 501,
   };
   const own = periodSection<{ n: number }>("completion");
   const s = Object.assign(own, {
     $data: page,
-    $watch: (key: "rangeKey" | "game", cb: () => void) => {
+    $watch: (key: "rangeKey" | "game" | "variation", cb: () => void) => {
       watchers[key] = cb;
     },
   });
@@ -150,5 +151,50 @@ describe("periodSection", () => {
     });
     await first;
     expect(s.buckets[0].metrics.n).toBe(2);
+  });
+
+  it("refetches with variation=301 after the page variation changes", async () => {
+    const { s, watchers, page } = section();
+    page.game = "501_V1";
+    s.init();
+    await vi.waitFor(() => expect(s.loading).toBe(false));
+    expect(loadGameSection.mock.calls[0][2].variation).toBe(501);
+    page.variation = 301;
+    watchers.variation();
+    await vi.waitFor(() => expect(loadGameSection).toHaveBeenCalledTimes(2));
+    expect(loadGameSection.mock.calls[1][2].variation).toBe(301);
+  });
+
+  it("drops a stale response after a quick 301 → 501 switch", async () => {
+    let resolveFirst: (v: unknown) => void = () => {};
+    const row = (n: number) => ({
+      start: "a",
+      end: "b",
+      closed: true,
+      sampleSize: 1,
+      metrics: { n },
+    });
+    loadGameSection
+      .mockImplementationOnce(
+        () => new Promise((resolve) => (resolveFirst = resolve)),
+      )
+      .mockResolvedValueOnce({ buckets: [row(501)] });
+    const { s, page } = section();
+    page.game = "501_V1";
+    page.variation = 301;
+    const first = s.load(NOW);
+    page.variation = 501;
+    await s.load(NOW);
+    resolveFirst({ buckets: [row(301)] });
+    await first;
+    expect(s.buckets[0].metrics.n).toBe(501);
+  });
+
+  it("does not send variation for a non-501 game", async () => {
+    const { s, page } = section();
+    page.game = "TUOD_V1";
+    page.variation = 301;
+    await s.load(NOW);
+    expect(loadGameSection.mock.calls[0][2].variation).toBeUndefined();
   });
 });

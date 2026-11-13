@@ -11,6 +11,7 @@ import { replayStore } from "@stores/replay.store";
 import { routineStatsStore } from "@stores/routine-stats.store";
 import { settingsStore } from "@stores/settings.store";
 import { statsStore } from "@stores/stats.store";
+import { statsVariationStore } from "@stores/stats-variation.store";
 import { trainingSessionStore } from "@stores/training-session.store";
 
 export function registerStores(Alpine: Alpine) {
@@ -31,4 +32,5 @@ export function registerStores(Alpine: Alpine) {
   Alpine.store("game", gameStore(persist));
   Alpine.store("boardInput", boardInputStore(persist));
   Alpine.store("checkoutHints", checkoutHintsStore(persist));
+  Alpine.store("statsVariation", statsVariationStore(persist));
 }

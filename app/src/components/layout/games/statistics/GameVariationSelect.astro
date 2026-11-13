@@ -1,0 +1,29 @@
+---
+/**
+ * The 501 `/statistics` "Variations" picker: a mono eyebrow label over a
+ * `Select` listing the owner's starting scores with session counts, from
+ * `gameVariations()`. The pick is the page scope's `variation`, so every
+ * section on the page refetches when it changes.
+ */
+import Select from "@components/forms/Select.astro";
+
+const labelClass =
+  "px-0.5 font-mono text-eyebrow font-semibold text-muted-foreground uppercase";
+---
+
+<div
+  class="space-y-2"
+  x-data="gameVariations()"
+>
+  <span
+    class={labelClass}
+    aria-hidden="true"
+  >
+    Variations
+  </span>
+  <Select
+    optionsExpr="options"
+    model="variation"
+    ariaLabel="Variations"
+  />
+</div>

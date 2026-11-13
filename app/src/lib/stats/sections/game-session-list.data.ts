@@ -4,6 +4,8 @@ import { readSessionPage } from "@client/stats-cache/cache";
 import { CACHE_PLAYER_ID } from "@lib/stats/load-game-section";
 import { gameScopeKey } from "@modules/stats/routine-scope.module";
 import { heatmapWindow } from "@lib/stats/sections/score-trend-window";
+import { variationParam } from "@lib/stats/variation";
+import { reloadOnPageFilters } from "@lib/stats/sections/period-section";
 import { sessionRow } from "@lib/stats/sections/score-summaries";
 import type { GameSessionListResponseData } from "@client/api/types";
 import type { RulesetVersionKey, TrendRangeKey } from "@lib/types";
@@ -11,10 +13,12 @@ import type { RulesetVersionKey, TrendRangeKey } from "@lib/types";
 type SessionListItem = GameSessionListResponseData["items"][number];
 type SessionRow = ReturnType<typeof sessionRow>;
 
-type PageScope = { $data: { rangeKey: TrendRangeKey; game: string } };
+type PageScope = {
+  $data: { rangeKey: TrendRangeKey; game: string; variation: number };
+};
 
 type WatchesRange = {
-  $watch(key: "rangeKey" | "game", callback: () => void): void;
+  $watch(key: "rangeKey" | "game" | "variation", callback: () => void): void;
   load(): Promise<void>;
 };
 
@@ -29,7 +33,7 @@ function localTz(): string {
  * of the page-level game and period, newest first, 10 per page through the
  * IndexedDB cache, each a card that grows into its replay. The list endpoint leaves out
  * sessions with no darts. Pages are walked with `next()` and `previous()`; a
- * change of `rangeKey` or `game` reloads from the first page.
+ * change of `rangeKey`, `game` or `variation` reloads from the first page.
  */
 export function gameSessionList() {
   let ticket = 0;
@@ -48,8 +52,7 @@ export function gameSessionList() {
     },
 
     init(this: WatchesRange) {
-      this.$watch("rangeKey", () => void this.load());
-      this.$watch("game", () => void this.load());
+      reloadOnPageFilters(this);
       void this.load();
     },
 
@@ -60,10 +63,15 @@ export function gameSessionList() {
 
     async fetchPage(cursor?: string) {
       const gameTypeKey = this.gameTypeKey;
+      const variation = variationParam(
+        gameTypeKey,
+        (this as unknown as PageScope).$data.variation,
+      );
       const params = {
         ...span,
         status: "completed" as const,
         limit: PAGE_SIZE,
+        variation,
       };
       return readSessionPage<SessionListItem>(
         CACHE_PLAYER_ID,
@@ -74,6 +82,7 @@ export function gameSessionList() {
           context: "all",
           status: "completed",
           inputMode: "VISUAL_BOARD",
+          variation,
           cursor,
         },
         () =>

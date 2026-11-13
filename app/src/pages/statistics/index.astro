@@ -5,8 +5,10 @@ import Select from "@components/forms/Select.astro";
 import Toggle from "@components/layout/games/setup/Toggle.astro";
 import ScoreTrainingStatsOverview from "@components/layout/games/statistics/ScoreTrainingStatsOverview.astro";
 import HeatmapStatsOverview from "@components/layout/games/statistics/HeatmapStatsOverview.astro";
+import GameVariationSelect from "@components/layout/games/statistics/GameVariationSelect.astro";
 import { HEATMAP_ONLY_LAYOUTS } from "@lib/stats/constants";
 import { primaryCards } from "@lib/game/rulesets/games-visibility";
+import { GAME_TYPE_BY_RULESET } from "@lib/game/rulesets/capabilities";
 import { TREND_RANGE_OPTIONS } from "@lib/stats/sections/score-trend-window";
 
 const tabOptions = [
@@ -18,7 +20,12 @@ const gameOptions = primaryCards().map((game) => ({
   label: game.title,
 }));
 const heatmapOnly = JSON.stringify([...HEATMAP_ONLY_LAYOUTS]);
-const scope = `{ tab: $store.routineStats.initialTab, game: ${JSON.stringify(gameOptions[0]?.value ?? "")}, rangeKey: "30d" }`;
+const x01Rulesets = JSON.stringify(
+  Object.entries(GAME_TYPE_BY_RULESET)
+    .filter(([, gameTypeKey]) => gameTypeKey === "501")
+    .map(([rulesetVersionKey]) => rulesetVersionKey),
+);
+const scope = `{ tab: $store.routineStats.initialTab, game: ${JSON.stringify(gameOptions[0]?.value ?? "")}, rangeKey: "30d", variation: $store.statsVariation.value }`;
 ---
 
 <AppLayout title="Statistics">
@@ -52,6 +59,9 @@ const scope = `{ tab: $store.routineStats.initialTab, game: ${JSON.stringify(gam
             ariaLabel="Period"
           />
         </div>
+        <template x-if={`${x01Rulesets}.includes(game)`}>
+          <GameVariationSelect />
+        </template>
         <template x-if="game === 'SCORE_TRAINING_V1'">
           <ScoreTrainingStatsOverview />
         </template>
