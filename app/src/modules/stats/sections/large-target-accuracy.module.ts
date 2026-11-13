@@ -1,63 +1,62 @@
-import { SECTOR_ORDER } from "@lib/game/board/board-geometry.module";
+import { boardNeighbours } from "@lib/game/board/board-geometry.module";
 import type {
   AimCountBuckets,
   AimCountMetrics,
+  DartZoneKey,
   InferredDart,
   InferredSession,
 } from "@modules/types";
 import {
   addCounts,
-  aimCountBuckets,
+  aimCountDartBuckets,
   aimKey,
   countAimed,
-  sumSessionDarts,
 } from "./aim-count.module";
 
+/** The column a large-target dart lands in. */
 type Landing =
   "trebles" | "singles" | "neighbourLeft" | "neighbourRight" | "other";
 
-function neighbours(number: number): readonly [number, number] {
-  const index = SECTOR_ORDER.indexOf(number);
-  const size = SECTOR_ORDER.length;
-  return [
-    SECTOR_ORDER[(index - 1 + size) % size]!,
-    SECTOR_ORDER[(index + 1) % size]!,
-  ];
-}
+/** Where a dart on the aimed number landed, by zone; any other zone on that number is `other`. */
+const SAME_NUMBER_LANDINGS: Partial<Record<DartZoneKey, Landing>> = {
+  TREBLE: "trebles",
+  INNER_SINGLE: "singles",
+  OUTER_SINGLE: "singles",
+};
 
+/** Where a dart off the aimed number landed, by its index in `boardNeighbours`; any other number is `other`. */
+const NEIGHBOUR_LANDINGS: readonly Landing[] = [
+  "neighbourLeft",
+  "neighbourRight",
+];
+
+/** Which landing column a dart thrown at treble `aimNumber` counts under. */
 function landingOf(dart: InferredDart, aimNumber: number): Landing {
-  const [left, right] = neighbours(aimNumber);
   if (dart.hitNumber === aimNumber) {
-    if (dart.hitZone === "TREBLE") return "trebles";
-    if (dart.hitZone === "INNER_SINGLE" || dart.hitZone === "OUTER_SINGLE") {
-      return "singles";
-    }
-    return "other";
+    return SAME_NUMBER_LANDINGS[dart.hitZone] ?? "other";
   }
-  if (dart.hitNumber === left) return "neighbourLeft";
-  if (dart.hitNumber === right) return "neighbourRight";
-  return "other";
+  const side = boardNeighbours(aimNumber).indexOf(dart.hitNumber as number);
+  return NEIGHBOUR_LANDINGS[side] ?? "other";
 }
 
-function foldSession(
+/** Counts a resolved `LARGE_TARGET` dart under its landing column. */
+function countLargeTargetDart(
   metrics: AimCountMetrics,
-  session: InferredSession,
+  dart: InferredDart,
 ): number {
-  return sumSessionDarts(session, (dart) => {
-    if (dart.basis !== "LARGE_TARGET") return 0;
-    return countAimed(metrics, dart, (aim) => {
-      if (!("number" in aim)) return 0;
-      addCounts(metrics, aimKey(aim.key, dart.resolution), {
-        darts: 1,
-        trebles: 0,
-        singles: 0,
-        neighbourLeft: 0,
-        neighbourRight: 0,
-        other: 0,
-        [landingOf(dart, aim.number)]: 1,
-      });
-      return 1;
+  if (dart.basis !== "LARGE_TARGET") return 0;
+  return countAimed(metrics, dart, (aim) => {
+    if (!("number" in aim)) return 0;
+    addCounts(metrics, aimKey(aim.key, dart.resolution), {
+      darts: 1,
+      trebles: 0,
+      singles: 0,
+      neighbourLeft: 0,
+      neighbourRight: 0,
+      other: 0,
+      [landingOf(dart, aim.number)]: 1,
     });
+    return 1;
   });
 }
 
@@ -72,5 +71,5 @@ export function largeTargetAccuracyBuckets(
   sessions: readonly InferredSession[],
   ctx: { to: string; now: Date },
 ): AimCountBuckets {
-  return aimCountBuckets(sessions, ctx, foldSession);
+  return aimCountDartBuckets(sessions, ctx, countLargeTargetDart);
 }

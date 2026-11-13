@@ -69,4 +69,9 @@ describe("doublePreferenceBuckets", () => {
     });
     expect(bucket!.sampleSize).toBe(0);
   });
+
+  it("adds nothing for a dart thrown with no finish on", () => {
+    const sessions = inferred([visit(501, [dart("TREBLE", 20, 60)])]);
+    expect(doublePreferenceBuckets(sessions, CTX)).toEqual([]);
+  });
 });

@@ -1,4 +1,7 @@
-import { areBoardNeighbours } from "@lib/game/board/board-geometry.module";
+import {
+  areBoardNeighbours,
+  DOUBLE_OUT_FINISHES,
+} from "@lib/game/board/board-geometry.module";
 import { resolveCheckoutAttempt } from "./checkout-bust.module";
 import type {
   CheckoutVisitDarts,
@@ -24,17 +27,6 @@ const SECTOR_ZONES: ReadonlySet<DartZoneKey> = new Set([
   "TREBLE",
 ]);
 
-/**
- * Whether `remaining` could be finished by one dart alone -- the exact set
- * of "this could have been the last dart" states, with no route/chart
- * lookup: every dart that actually finishes a double-out leg satisfies this
- * by construction (an even number a double can reach, or the bull).
- */
-function isDirectlyFinishable(remaining: number): boolean {
-  if (remaining === 50) return true;
-  return remaining % 2 === 0 && remaining >= 2 && remaining <= 40;
-}
-
 /** Whether board segments `a` and `b` are the same segment or immediate neighbours. */
 function isBoardAdjacentOrSame(a: number, b: number): boolean {
   return a === b || areBoardNeighbours(a, b);
@@ -42,6 +34,9 @@ function isBoardAdjacentOrSame(a: number, b: number): boolean {
 
 /**
  * One dart's classification against the remaining score it was thrown at.
+ * Only a `remaining` one dart alone could finish (`DOUBLE_OUT_FINISHES`) can
+ * be attempted -- the exact set of "this could have been the last dart"
+ * states, with no route/chart lookup.
  *
  * Order matters. A dart that busts the visit is always an attempt, because
  * no one lays up into a bust -- so the bust test runs before the rules that
@@ -53,7 +48,7 @@ function isBoardAdjacentOrSame(a: number, b: number): boolean {
  * band it was, so it stays excluded at 50.
  */
 export function classifyDart(remaining: number, dart: DartFact): DartOutcome {
-  if (!isDirectlyFinishable(remaining)) return "NOT_ATTEMPT";
+  if (!DOUBLE_OUT_FINISHES.has(remaining)) return "NOT_ATTEMPT";
 
   const endedOnDouble =
     dart.hitZoneKey === "DOUBLE" || dart.hitZoneKey === "INNER_BULL";

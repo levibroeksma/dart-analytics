@@ -242,3 +242,17 @@ describe("checkoutDarts", () => {
     ]);
   });
 });
+
+describe("classifyDart finishable gate", () => {
+  it("is never an attempt above 40 (bar 50) or on an odd remaining", () => {
+    expect(classifyDart(42, dart(20, "DOUBLE", 40))).toBe("NOT_ATTEMPT");
+    expect(classifyDart(41, dart(20, "DOUBLE", 40))).toBe("NOT_ATTEMPT");
+    expect(classifyDart(1, dart(null, "MISS", 0))).toBe("NOT_ATTEMPT");
+  });
+
+  it("is an attempt on every double score and the bull", () => {
+    expect(classifyDart(2, dart(1, "DOUBLE", 2))).toBe("HIT");
+    expect(classifyDart(40, dart(null, "MISS", 0))).toBe("MISS");
+    expect(classifyDart(50, dart(25, "INNER_BULL", 50))).toBe("HIT");
+  });
+});

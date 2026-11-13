@@ -84,4 +84,9 @@ describe("doubleAccuracyBuckets", () => {
     expect([thrown.resolution, thrown.basis]).toEqual(["AMBIGUOUS", "SPLIT"]);
     expect(doubleAccuracyBuckets(sessions, CTX)).toEqual([]);
   });
+
+  it("ignores a dart thrown with no finish on", () => {
+    const sessions = inferred([visit(501, [dart("TREBLE", 20, 60)])]);
+    expect(doubleAccuracyBuckets(sessions, CTX)).toEqual([]);
+  });
 });

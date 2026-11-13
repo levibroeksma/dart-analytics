@@ -2,7 +2,7 @@
 status: canonical
 scope: canonical file inventory — what each document answers
 read-when: a context pack demonstrably lacks the answer
-updated: 2026-11-05
+updated: 2026-11-13
 -->
 
 > Escalation target for `00-Context-Map.md`. Packs come first; open this
@@ -548,17 +548,18 @@ Registered for discoverability — the design lives in `10-Statistics/00-Overvie
 
 | File | Answers | Status | ~Tokens |
 | ---- | ------- | ------ | ------- |
-| `app/src/modules/stats/x01-aim-candidates.module.ts` | `candidatesFor()` — a 501 dart's aim candidates from remaining score and darts left (cases A–E, wire merge); `LEAVE_RANK`, `isGoodLeave()` (D555) | canonical | ~1.3k |
-| `app/src/modules/stats/x01-aim-resolution.module.ts` | `resolveAim()` (`SOLE`/`NEAREST`/`AMBIGUOUS`), `AMBIGUITY_RATIO = 0.75`, `aimPoint()`, `aimDistance()`, `isInferredAimHit()` (D555) | canonical | ~1.1k |
+| `app/src/modules/stats/x01-aim-candidates.module.ts` | `candidatesFor()` — a 501 dart's aim candidates from remaining score and darts left (cases A–E, wire merge) (D555) | canonical | ~1.2k |
+| `app/src/modules/stats/x01-leave-rank.module.ts` | `LEAVE_RANK`, `isGoodLeave()`, `bestLeavingScore()` — the good-leave ranking the candidate rules and `setup-success` share (D555) | canonical | ~0.2k |
+| `app/src/modules/stats/x01-aim-resolution.module.ts` | `resolveAim()` (`SOLE`/`NEAREST`/`AMBIGUOUS`), `AMBIGUITY_RATIO = 0.75`, `aimPoint()`, `aimBands()`, `isInferredAimHit()` (D555) | canonical | ~1.1k |
 | `app/src/modules/stats/x01-inferred-darts.module.ts` | `inferredSessions()` — walks `foldLoad`'s sessions into `InferredDart`s per visit; skips undecodable or coordinate-less sessions into `skippedSessions` (D555) | canonical | ~0.9k |
-| `app/src/modules/stats/sections/aim-count.module.ts` | `aimKey()`, `addCounts()`, `AMBIGUOUS_KEY`, `aimCountBuckets()` — the shared row-key builder and bucket fold of the five inferred-aim sections; keeps ambiguous-only buckets (D555) | canonical | ~0.6k |
+| `app/src/modules/stats/sections/aim-count.module.ts` | `aimKey()`, `addCounts()`, `AMBIGUOUS_KEY`, `aimCountBuckets()`, `aimCountDartBuckets()` — the shared row-key builder and bucket fold of the five inferred-aim sections; keeps ambiguous-only buckets (D555) | canonical | ~0.8k |
 | `app/src/modules/stats/sections/large-target-accuracy.module.ts` | `largeTargetAccuracyBuckets()` — treble aims: trebles, singles, neighbours, other (D555) | canonical | ~0.6k |
 | `app/src/modules/stats/sections/aim-drift.module.ts` | `aimDriftBuckets()` — offset moment sums from the aim point per basis, aim, dart number (D555) | canonical | ~0.4k |
 | `app/src/modules/stats/sections/double-accuracy.module.ts` | `doubleAccuracyBuckets()` — finish hits and misses by band and sector (D555) | canonical | ~0.5k |
 | `app/src/modules/stats/sections/double-preference.module.ts` | `doublePreferenceBuckets()` — per finish: left, split away, attempts, hits (D555) | canonical | ~0.4k |
 | `app/src/modules/stats/sections/setup-success.module.ts` | `setupSuccessBuckets()` — setup-dart hits per basis and aim kind; open visits and good leaves (D555) | canonical | ~0.5k |
 
-`app/src/lib/stats/target-key.ts` and `app/src/lib/stats/types.ts` (`SINGLE` zone, `WIRE:a-b`, `AimKey`, `excludedGames`), `app/src/lib/stats/section-registry.ts` (five entries, 501 `PAGE_ORDER_OVERRIDES`), `app/src/lib/stats/merge-metrics.ts`, `app/src/lib/game/board/board-geometry.module.ts` (`distanceToBed()`, `distanceToDisc()`, `sharedEdgePoint()`), `app/src/modules/stats/sections/heatmap.module.ts` (`inferredHeatmapCellRows()`), `app/src/services/statistics.service.ts`, `app/src/repositories/statistics.repository.ts`, `app/src/pages/api/statistics/types.ts` and `app/src/lib/game/rulesets/capabilities.ts` are modified, not added — no new row.
+`app/src/lib/stats/target-key.ts` and `app/src/lib/stats/types.ts` (`SINGLE` zone, `WIRE:a-b`, `AimKey`, `excludedGames`), `app/src/lib/stats/section-registry.ts` (five entries, 501 `PAGE_ORDER_OVERRIDES`), `app/src/lib/stats/merge-metrics.ts`, `app/src/lib/game/board/board-geometry.module.ts` (`distanceToBed()`, `distanceToDisc()`, `sharedEdgePoint()`, `boardNeighbours()`, `DOUBLE_OUT_FINISHES`), `app/src/modules/game/double-attempt.module.ts` (reads `DOUBLE_OUT_FINISHES`), `app/src/modules/stats/sections/heatmap.module.ts` (`inferredHeatmapCellRows()`), `app/src/services/statistics.service.ts`, `app/src/repositories/statistics.repository.ts`, `app/src/pages/api/statistics/types.ts` and `app/src/lib/game/rulesets/capabilities.ts` are modified, not added — no new row.
 
 ## Chart module (2026-09-30)
 

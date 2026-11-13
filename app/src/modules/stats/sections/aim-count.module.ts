@@ -80,3 +80,14 @@ export function aimCountBuckets(
   }
   return closeBuckets(buckets, ctx);
 }
+
+/** `aimCountBuckets` for a section that counts dart by dart: `foldDart` adds one dart's counts and returns its sample-size contribution. */
+export function aimCountDartBuckets(
+  sessions: readonly InferredSession[],
+  ctx: { to: string; now: Date },
+  foldDart: (metrics: AimCountMetrics, dart: InferredDart) => number,
+): AimCountBuckets {
+  return aimCountBuckets(sessions, ctx, (metrics, session) =>
+    sumSessionDarts(session, (dart) => foldDart(metrics, dart)),
+  );
+}

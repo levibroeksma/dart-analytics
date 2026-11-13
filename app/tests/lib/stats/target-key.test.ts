@@ -183,3 +183,33 @@ describe("aim keys", () => {
     expect(parseTargetKey("SINGLE:9")).toEqual({ number: 9, zone: "SINGLE" });
   });
 });
+
+describe("target key edge cases", () => {
+  it("rejects a non-integer, a non-numeric or an absent number", () => {
+    expect(parseTargetKey("DOUBLE:16.5")).toBeNull();
+    expect(parseTargetKey("DOUBLE:abc")).toBeNull();
+    expect(parseTargetKey("DOUBLE")).toBeNull();
+    expect(parseTargetKey("")).toBeNull();
+  });
+
+  it("BULL:25 is hit by either bull ring whatever the number, and nothing else", () => {
+    const bull = { number: 25, zone: "BULL" } as const;
+    expect(isAimHit(bull, { number: 25, zone: "OUTER_BULL" })).toBe(true);
+    expect(isAimHit(bull, { number: null, zone: "INNER_BULL" })).toBe(true);
+    expect(isAimHit(bull, { number: 25, zone: "MISS" })).toBe(false);
+  });
+
+  it("a stored zone needs the same number and the same zone", () => {
+    const aim = { number: 16, zone: "DOUBLE" } as const;
+    expect(isAimHit(aim, { number: 16, zone: "DOUBLE" })).toBe(true);
+    expect(isAimHit(aim, { number: 16, zone: "TREBLE" })).toBe(false);
+    expect(isAimHit(aim, { number: 8, zone: "DOUBLE" })).toBe(false);
+  });
+
+  it("matches a non-NUMBER target by its exact zone only", () => {
+    const bull = { number: 25, zone: "BULL" } as const;
+    expect(aimMatchesTarget("BULL:25", bull)).toBe(true);
+    expect(aimMatchesTarget("INNER_BULL:25", bull)).toBe(false);
+    expect(aimMatchesTarget("not-a-key", bull)).toBe(false);
+  });
+});

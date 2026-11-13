@@ -119,4 +119,28 @@ describe("inferredSessions", () => {
       false,
     ]);
   });
+
+  it("stops walking at the finishing dart", () => {
+    const { sessions } = inferredSessions([
+      session([visit(40, [dart("DOUBLE", 20, 40), dart("TREBLE", 20, 60)])]),
+    ]);
+    const walked = sessions[0]!.visits[0]!;
+    expect([
+      walked.outcome,
+      walked.remainingAfter,
+      walked.darts.length,
+    ]).toEqual(["FINISHED", 0, 1]);
+  });
+
+  it("leaves an unfinished visit open at its new remaining", () => {
+    const { sessions } = inferredSessions([
+      session([visit(501, [dart("TREBLE", 20, 60), dart("TREBLE", 19, 57)])]),
+    ]);
+    const walked = sessions[0]!.visits[0]!;
+    expect([
+      walked.outcome,
+      walked.remainingAfter,
+      walked.darts.length,
+    ]).toEqual(["OPEN", 384, 2]);
+  });
 });

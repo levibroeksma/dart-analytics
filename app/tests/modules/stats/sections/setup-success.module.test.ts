@@ -84,4 +84,9 @@ describe("setupSuccessBuckets", () => {
     const [bucket] = setupSuccessBuckets(sessions, CTX);
     expect(bucket?.metrics.AMBIGUOUS).toBeUndefined();
   });
+
+  it("adds no visit row for an open visit without darts", () => {
+    const sessions = inferred([visit(100, [])]);
+    expect(setupSuccessBuckets(sessions, CTX)).toEqual([]);
+  });
 });

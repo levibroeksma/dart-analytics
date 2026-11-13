@@ -56,4 +56,18 @@ describe("aimDriftBuckets", () => {
     expect(bucket!.metrics).toEqual({ AMBIGUOUS: { darts: 1 } });
     expect(bucket!.sampleSize).toBe(0);
   });
+
+  it("sums a dart's offset from its aim point", () => {
+    const t20 = zoneCentroid(20, "TREBLE")!;
+    const sessions = inferred([
+      visit(501, [at(t20.x + 1, t20.y + 2, "TREBLE", 20, 60)]),
+    ]);
+    const [bucket] = aimDriftBuckets(sessions, CTX);
+    const row = bucket!.metrics["LARGE_TARGET|TREBLE:20|1|NEAREST"]!;
+    expect(row.n).toBe(1);
+    expect(row.sumDx).toBeCloseTo(1, 9);
+    expect(row.sumDy).toBeCloseTo(2, 9);
+    expect(row.sumDxDy).toBeCloseTo(2, 9);
+    expect(row.sumDyDy).toBeCloseTo(4, 9);
+  });
 });

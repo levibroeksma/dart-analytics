@@ -7,6 +7,7 @@ import type { BoardPoint } from "@lib/types";
 import type { DartZoneKey } from "@modules/types";
 import { candidatesFor } from "@modules/stats/x01-aim-candidates.module";
 import {
+  aimBands,
   aimPoint,
   isInferredAimHit,
   resolveAim,
@@ -127,5 +128,27 @@ describe("resolveAim", () => {
       (BOARD_RADII_MM.trebleOuter + BOARD_RADII_MM.doubleInner) / 2,
       6,
     );
+  });
+
+  it("gives each aim kind its hit region's radial bands", () => {
+    const R = BOARD_RADII_MM;
+    const [finish] = candidatesFor({
+      remaining: 40,
+      dartsLeft: 3,
+      earlierDartsInVisit: [],
+    });
+    const [bull] = candidatesFor({
+      remaining: 50,
+      dartsLeft: 3,
+      earlierDartsInVisit: [],
+    });
+    const [treble] = candidatesFor({
+      remaining: 501,
+      dartsLeft: 3,
+      earlierDartsInVisit: [],
+    });
+    expect(aimBands(finish!.aim)).toEqual([[R.doubleInner, R.doubleOuter]]);
+    expect(aimBands(bull!.aim)).toEqual([[0, R.innerBull]]);
+    expect(aimBands(treble!.aim)).toEqual([[R.trebleInner, R.trebleOuter]]);
   });
 });
