@@ -65,13 +65,22 @@ describe("gameVariations", () => {
     expect(page.variation).toBe(501);
   });
 
-  it("lists 501 alone when the read fails", async () => {
+  it("keeps the remembered variation when the options read fails", async () => {
     fetchGameVariations.mockRejectedValue(new Error("offline"));
     const { s, page } = section(301);
     await s.load();
-    expect(s.options).toEqual([{ value: 501, label: "501" }]);
-    expect(page.variation).toBe(501);
+    expect(s.options).toEqual([{ value: 301, label: "301" }]);
+    expect(page.variation).toBe(301);
     expect(s.loading).toBe(false);
+  });
+
+  it("keeps the loaded options when a reload fails", async () => {
+    const { s, page } = section(301);
+    await s.load();
+    fetchGameVariations.mockRejectedValue(new Error("offline"));
+    await s.load();
+    expect(s.options).toHaveLength(3);
+    expect(page.variation).toBe(301);
   });
 
   it("a game change resets the selection to 501", async () => {
