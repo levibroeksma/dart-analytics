@@ -4,6 +4,7 @@ import {
   countGameSessions,
   findGameSessionsPage,
   findGameDataVersion,
+  findGameVariations,
   findBucketedSessionAggregates,
   findBucketFloor,
   findIntentCells,
@@ -3807,5 +3808,104 @@ describe("findHomeHeatmapCells", () => {
     await findHomeHeatmapCells(db, { ...homeScope, cellMm: 4 });
     const [, groupBy = ""] = onlyStatement(statements).split(/ group by /i);
     expect(groupBy.trim()).toBe("1, 2");
+  });
+});
+
+describe("variation predicate", () => {
+  const bucketQuery = {
+    playerId: "p1",
+    gameTypeKey: "501" as const,
+    from: "2026-01-01T00:00:00.000Z",
+    to: "2026-02-01T00:00:00.000Z",
+    bucket: "none" as const,
+    tz: undefined,
+    statuses: ["COMPLETED"],
+    context: "all" as const,
+  };
+  const startingScore = /coalesce\(.*'starting_score'.*501\)/is;
+
+  it("sessionScopeWhere adds the starting-score predicate when variation is set", async () => {
+    const withVariation = renderingDb([["0"]]);
+    await findScopeDartCount(withVariation.db, {
+      ...sessionScope,
+      variation: 301,
+    });
+    expect(onlyStatement(withVariation.statements)).toMatch(startingScore);
+    expect(withVariation.statements[0].params).toContain(301);
+
+    const without = renderingDb([["0"]]);
+    await findScopeDartCount(without.db, sessionScope);
+    const sql = onlyStatement(without.statements);
+    expect(sql).not.toMatch(/coalesce\(\(/i);
+    expect(sql).not.toContain("starting_score");
+  });
+
+  it("dartScopeWhere filters dart facts through a session sub-select", async () => {
+    const { db, statements } = renderingDb([]);
+    await findIntentCells(db, {
+      ...dartScope,
+      gameTypeKey: "501",
+      bucket: "none",
+      tz: undefined,
+      variation: 301,
+    });
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(
+      /"v_stats_dart_facts"\."session_id" in \(select "v_stats_session_facts"\."session_id" from "v_stats_session_facts"/i,
+    );
+    expect(sql).toMatch(startingScore);
+    expect(statements[0].params).toEqual(expect.arrayContaining(["p1", 301]));
+  });
+
+  it("dartScopeWhere renders no starting-score predicate when variation is unset", async () => {
+    const { db, statements } = renderingDb([]);
+    await findIntentCells(db, { ...dartScope, bucket: "none", tz: undefined });
+    expect(onlyStatement(statements)).not.toContain("starting_score");
+  });
+
+  it("gameSessionConditions and bucketed aggregates carry the predicate", async () => {
+    const base = {
+      playerId: "p1",
+      gameTypeKey: "501" as const,
+      from: "2026-01-01T00:00:00.000Z",
+      to: "2026-02-01T00:00:00.000Z",
+      statuses: ["COMPLETED"],
+      context: "all" as const,
+      variation: 301,
+    };
+    const count = renderingDb([["0"]]);
+    await countGameSessions(count.db, base);
+    const page = renderingDb([]);
+    await findGameSessionsPage(page.db, { ...base, limit: 10 });
+    const bucketed = renderingDb([]);
+    await findBucketedSessionAggregates(bucketed.db, {
+      ...bucketQuery,
+      variation: 301,
+    });
+    for (const { db: _db, statements } of [count, page, bucketed]) {
+      expect(onlyStatement(statements)).toMatch(startingScore);
+      expect(statements[0].params).toContain(301);
+    }
+  });
+
+  it("findGameVariations groups by coalesced starting score", async () => {
+    const { db, statements } = renderingDb([
+      ["301", "4"],
+      ["501", "9"],
+    ]);
+    const rows = await findGameVariations(db, "p1", "501");
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('"v_stats_session_facts"');
+    expect(sql).toMatch(/group by coalesce\(/i);
+    expect(sql).toMatch(/"status_key" = \$/);
+    expect(sql).toMatch(/"input_mode_key" = \$/);
+    expect(statements[0].params).toEqual(
+      expect.arrayContaining(["p1", "501", "COMPLETED", "VISUAL_BOARD"]),
+    );
+    expect(sql).toMatch(/order by coalesce\(.*\) asc/is);
+    expect(rows).toEqual([
+      { startingScore: 301, sessions: 4 },
+      { startingScore: 501, sessions: 9 },
+    ]);
   });
 });
