@@ -1091,3 +1091,6 @@ export type InferredSession = {
   bucketEnd: string;
   visits: readonly InferredVisit[];
 };
+
+/** One 501 variation of a game with its completed session count (D556). */
+export type GameVariation = { startingScore: number; sessions: number };
