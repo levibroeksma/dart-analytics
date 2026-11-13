@@ -1,5 +1,6 @@
 import {
   and,
+  asc,
   count,
   desc,
   eq,
@@ -340,6 +341,27 @@ function routineStepCondition(
   return sql`${sessionIdColumn} IN (SELECT ${vStatsRoutineStepFacts.sessionId} FROM ${vStatsRoutineStepFacts} WHERE ${vStatsRoutineStepFacts.playerId} = ${playerId} AND ${vStatsRoutineStepFacts.routineKey} = ${scope.routineKey} AND ${vStatsRoutineStepFacts.stepKey} = ${scope.stepKey})`;
 }
 
+/** The starting score of a session's configuration snapshot; a missing snapshot or key counts as 501. */
+function variationExpr() {
+  return sql`coalesce((${vStatsSessionFacts.configuration} ->> 'starting_score')::int, 501)`;
+}
+
+function variationCondition(variation: number | undefined) {
+  return variation === undefined
+    ? undefined
+    : sql`${variationExpr()} = ${variation}`;
+}
+
+/** Dart facts carry no snapshot, so the variation filters through a session_id sub-select. */
+function dartVariationCondition(
+  playerId: string,
+  variation: number | undefined,
+) {
+  return variation === undefined
+    ? undefined
+    : sql`${vStatsDartFacts.sessionId} IN (SELECT ${vStatsSessionFacts.sessionId} FROM ${vStatsSessionFacts} WHERE ${vStatsSessionFacts.playerId} = ${playerId} AND ${variationExpr()} = ${variation})`;
+}
+
 /** The shared filter every dart-level reader applies to `v_stats_dart_facts`. */
 function dartScopeWhere(scope: DartScope) {
   const conditions = [
@@ -358,6 +380,7 @@ function dartScopeWhere(scope: DartScope) {
           scope.playerId,
           scope.routineStep,
         ),
+    dartVariationCondition(scope.playerId, scope.variation),
   ].filter((condition) => condition !== undefined);
   return and(...conditions);
 }
@@ -383,6 +406,7 @@ function sessionScopeWhere(scope: SessionScope) {
           scope.playerId,
           scope.routineStep,
         ),
+    variationCondition(scope.variation),
   ].filter((condition) => condition !== undefined);
   return and(...conditions);
 }
@@ -1037,6 +1061,7 @@ type GameSessionsFilter = {
   to: string;
   statuses: string[];
   context: ContextFilter;
+  variation?: number;
 };
 
 /** One game's terminal sessions of `statuses` completed in `[from, to)`. */
@@ -1062,7 +1087,8 @@ function gameSessionConditions(q: GameSessionsFilter) {
     ...gameWindowConditions(q),
     gt(vStatsSessionFacts.dartCount, 0),
     contextCondition(q.context),
-  ];
+    variationCondition(q.variation),
+  ].filter((condition) => condition !== undefined);
 }
 
 /** Counts the sessions `findGameSessionsPage` pages over, ignoring any cursor. */
@@ -1128,6 +1154,32 @@ export async function findGameSessionsPage(
       countedScore: nonNull(row.countedScore, "counted_score"),
     };
   });
+}
+
+/** The owner's completed VISUAL_BOARD sessions of a game, counted per starting score, ascending. */
+export async function findGameVariations(
+  db: Db,
+  playerId: string,
+  gameTypeKey: GameTypeKey,
+): Promise<{ startingScore: number; sessions: number }[]> {
+  const startingScore = variationExpr();
+  const rows = await db
+    .select({ startingScore: sql<number>`${startingScore}`, sessions: count() })
+    .from(vStatsSessionFacts)
+    .where(
+      and(
+        eq(vStatsSessionFacts.playerId, playerId),
+        eq(vStatsSessionFacts.gameTypeKey, gameTypeKey),
+        eq(vStatsSessionFacts.statusKey, "COMPLETED"),
+        eq(vStatsSessionFacts.inputModeKey, "VISUAL_BOARD"),
+      ),
+    )
+    .groupBy(startingScore)
+    .orderBy(asc(startingScore));
+  return rows.map((row) => ({
+    startingScore: Number(row.startingScore),
+    sessions: Number(row.sessions),
+  }));
 }
 
 /** The `dataVersion` inputs (`10-Statistics/00-Overview.md` §7): the population's size and its most recent completion. */
@@ -1244,11 +1296,13 @@ export async function findBucketedSessionAggregates(
     statuses: string[];
     context: ContextFilter;
     routineStep?: RoutineStepScope;
+    variation?: number;
   },
 ): Promise<StatsBucketRow[]> {
   const conditions = [
     ...gameWindowConditions(q),
     contextCondition(q.context),
+    variationCondition(q.variation),
     q.routineStep === undefined
       ? undefined
       : routineStepCondition(
