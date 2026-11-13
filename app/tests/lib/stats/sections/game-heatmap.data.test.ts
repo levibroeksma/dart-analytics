@@ -37,6 +37,7 @@ function section() {
   const page = {
     rangeKey: "30d" as "30d" | "90d" | "1y" | "all",
     game: "SCORE_TRAINING_V1",
+    variation: 501,
   };
   const own = gameHeatmapSection();
   const scope = new Proxy(page, {
@@ -46,7 +47,10 @@ function section() {
   });
   const s = Object.assign(own, {
     $data: scope,
-    $watch: (key: "rangeKey" | "game" | "target", cb: () => void) => {
+    $watch: (
+      key: "rangeKey" | "game" | "target" | "variation",
+      cb: () => void,
+    ) => {
       watchers[key] = cb;
     },
   });
@@ -210,6 +214,46 @@ describe("gameHeatmapSection", () => {
     resolveFirst(series([]));
     await first;
     expect(s.stamps).toHaveLength(1);
+  });
+});
+
+describe("gameHeatmapSection variation", () => {
+  it("refetches with variation=301 after the page variation changes", async () => {
+    const { s, watchers, page } = section();
+    page.game = "501_V1";
+    s.init();
+    await vi.waitFor(() => expect(s.loading).toBe(false));
+    expect(loadGameSection.mock.calls[0][2].variation).toBe(501);
+    page.variation = 301;
+    watchers.variation();
+    await vi.waitFor(() => expect(loadGameSection).toHaveBeenCalledTimes(2));
+    expect(loadGameSection.mock.calls[1][2].variation).toBe(301);
+  });
+
+  it("drops a stale response after a quick 301 → 501 switch", async () => {
+    let resolveFirst: (v: unknown) => void = () => {};
+    loadGameSection
+      .mockImplementationOnce(
+        () => new Promise((resolve) => (resolveFirst = resolve)),
+      )
+      .mockResolvedValueOnce(series([[1, 1, 1]]));
+    const { s, page } = section();
+    page.game = "501_V1";
+    page.variation = 301;
+    const first = s.load(NOW);
+    page.variation = 501;
+    await s.load(NOW);
+    resolveFirst(series([]));
+    await first;
+    expect(s.stamps).toHaveLength(1);
+  });
+
+  it("does not send variation for a non-501 game", async () => {
+    const { s, page } = section();
+    page.game = "TUOD_V1";
+    page.variation = 301;
+    await s.load(NOW);
+    expect(loadGameSection.mock.calls[0][2].variation).toBeUndefined();
   });
 });
 

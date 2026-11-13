@@ -445,7 +445,7 @@ Registered for discoverability — the design lives in `10-Statistics/00-Overvie
 | `app/src/components/layout/games/statistics/GameHeatmapSection.astro` | Heatmap section shared by every game's `/statistics` layout: density layer of where darts landed over the page-level game and period, own fetch via `gameHeatmapSection()` (D387, 2026-10-02; generalised D406, 2026-10-04; target picker D407) | canonical |
 | `app/src/components/layout/games/statistics/HeatmapStatsOverview.astro` | Layout of the games in `HEATMAP_ONLY_LAYOUTS`: the session-result donut (with 121's personal best finish card beside it, D412), the heatmap section and the replay list (D406, D410, D411, D412, 2026-10-04) | canonical |
 | `app/src/lib/stats/sections/game-heatmap.data.ts` | `gameHeatmapSection()` Alpine factory: fetches `heatmap` un-bucketed over the period's current span for the page-level `game` (ruleset version resolved to its game type) on mount and on `rangeKey`, `game` or `target` change, derives `stamps` via `heatStamps()`, exposes the target picker's `targetOptions` (D387, 2026-10-02; generalised D406, 2026-10-04; target D407) | canonical |
-| `app/src/lib/stats/sections/period-section.ts` | `periodSection()`: the shared fetch half of a game-page stat section — one un-bucketed request for the page-level `game` over the current period on mount and on `rangeKey` or `game` change, stale-response ticket (D399, D411, 2026-10-04) | canonical |
+| `app/src/lib/stats/sections/period-section.ts` | `periodSection()`: the shared fetch half of a game-page stat section — one un-bucketed request for the page-level `game` over the current period on mount and on `rangeKey`, `game` or `variation` change (`reloadOnPageFilters()`, shared with `gameSessionList()`), stale-response ticket (D399, D411, 2026-10-04; `variation` D556, 2026-11-13) | canonical |
 | `app/src/lib/stats/sections/score-summaries.ts` | Pure folds for the Score Training stat sections: `completionSummary()`, and `sessionRow()` for the session list; their result types are raised through the stats types barrel (D399, 2026-10-03) | canonical |
 | `app/src/lib/stats/sections/game-completion.data.ts` | `gameCompletionSection()` (donut arcs, D401, D402; game-agnostic, D411) Alpine factories: `periodSection()` plus a `summary` getter (D399, 2026-10-03) | canonical |
 | `app/src/lib/stats/sections/game-session-list.data.ts` | `gameSessionList()` Alpine factory: pages the completed sessions of the page-level game and period through `readSessionPage`, 10 per page with `next()`/`previous()`, reloading on `rangeKey` or `game` change (D399, D401, D410, 2026-10-04) | canonical |
@@ -558,6 +558,21 @@ Registered for discoverability — the design lives in `10-Statistics/00-Overvie
 | `app/src/modules/stats/sections/double-accuracy.module.ts` | `doubleAccuracyBuckets()` — finish hits and misses by band and sector (D555) | canonical | ~0.5k |
 | `app/src/modules/stats/sections/double-preference.module.ts` | `doublePreferenceBuckets()` — per finish: left, split away, attempts, hits (D555) | canonical | ~0.4k |
 | `app/src/modules/stats/sections/setup-success.module.ts` | `setupSuccessBuckets()` — setup-dart hits per basis and aim kind; open visits and good leaves (D555) | canonical | ~0.5k |
+
+## 501 variation filter (2026-11-13)
+
+Registered for discoverability — the design lives in `10-Statistics/00-Overview.md` §5/§6 and `01-Section-Catalog.md` §2.1, the API contract in `06-API/04-Endpoint-Contracts.md` §Statistics Games, the decision in `decisions/api.md` D556
+
+| File | Answers | Status | ~Tokens |
+| ---- | ------- | ------ | ------- |
+| `app/src/pages/api/statistics/games/[gameTypeKey]/variations.ts` | `GET games/501/variations` route: the owner's starting scores with completed-session counts, `501` first (D556) | canonical | ~0.17k |
+| `app/src/lib/stats/variation.ts` | `variationParam()` — the `variation` to send: the pick for game `501`, else `undefined` (D556) | canonical | ~0.08k |
+| `app/src/stores/stats-variation.store.ts` | `statsVariation` Alpine store: one `$persist` `value` field (default `501`) and `set()`; the remembered variation (D556) | canonical | ~0.16k |
+| `app/src/lib/stats/sections/game-variations.data.ts` | `gameVariations()` Alpine factory: the picker's `options` (`"<score> (<sessions>)"`), falls back to `501` when the remembered score is absent or the read fails, resets to `501` on a game change, writes the pick to `$store.statsVariation` (D556) | canonical | ~0.5k |
+| `app/src/components/layout/games/statistics/GameVariationSelect.astro` | The 501 `/statistics` "Variations" picker: eyebrow label over `Select` bound to the page scope's `variation` (D556) | canonical | ~0.17k |
+| `app/tests/lib/stats/variation.test.ts`, `app/tests/pages/api/statistics/games-variations.test.ts`, `app/tests/stores/stats-variation.store.test.ts`, `app/tests/lib/stats/sections/game-variations.data.test.ts` | Tests for the route, `variationParam()`, the store and the picker factory (D556) | canonical | — |
+
+`periodSection()`, `gameHeatmapSection()`, `gameSessionList()` and the `gameStats` store watch or carry `variation`; `/statistics` mounts `GameVariationSelect` for the `501` rulesets (D556).
 
 `app/src/lib/stats/target-key.ts` and `app/src/lib/stats/types.ts` (`SINGLE` zone, `WIRE:a-b`, `AimKey`, `excludedGames`), `app/src/lib/stats/section-registry.ts` (five entries, 501 `PAGE_ORDER_OVERRIDES`), `app/src/lib/stats/merge-metrics.ts`, `app/src/lib/game/board/board-geometry.module.ts` (`distanceToBed()`, `distanceToDisc()`, `sharedEdgePoint()`, `boardNeighbours()`, `DOUBLE_OUT_FINISHES`), `app/src/modules/game/double-attempt.module.ts` (reads `DOUBLE_OUT_FINISHES`), `app/src/modules/stats/sections/heatmap.module.ts` (`inferredHeatmapCellRows()`), `app/src/services/statistics.service.ts`, `app/src/repositories/statistics.repository.ts`, `app/src/pages/api/statistics/types.ts` and `app/src/lib/game/rulesets/capabilities.ts` are modified, not added — no new row.
 

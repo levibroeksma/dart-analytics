@@ -41,11 +41,15 @@ function page(ids: string[], nextCursor: string | null, totalCount?: number) {
 
 function section(game = "SCORE_TRAINING_V1") {
   const watchers: Record<string, () => void> = {};
-  const data = { rangeKey: "30d" as "30d" | "90d" | "1y" | "all", game };
+  const data = {
+    rangeKey: "30d" as "30d" | "90d" | "1y" | "all",
+    game,
+    variation: 501,
+  };
   const own = gameSessionList();
   const s = Object.assign(own, {
     $data: data,
-    $watch: (key: "rangeKey" | "game", cb: () => void) => {
+    $watch: (key: "rangeKey" | "game" | "variation", cb: () => void) => {
       watchers[key] = cb;
     },
   });
@@ -181,6 +185,45 @@ describe("gameSessionList", () => {
     const { s } = section();
     await s.load(NOW);
     expect(s.isEmpty).toBe(true);
+  });
+});
+
+describe("gameSessionList variation", () => {
+  it("refetches with variation=301 after the page variation changes", async () => {
+    const { s, watchers, data } = section("501_V1");
+    s.init();
+    await vi.waitFor(() => expect(s.loading).toBe(false));
+    expect(fetchGameSessions.mock.calls[0][1].variation).toBe(501);
+    data.variation = 301;
+    watchers.variation();
+    await vi.waitFor(() => expect(fetchGameSessions).toHaveBeenCalledTimes(2));
+    expect(fetchGameSessions.mock.calls[1][1].variation).toBe(301);
+    expect(readSessionPage.mock.calls[1][2].variation).toBe(301);
+  });
+
+  it("drops a stale response after a quick 301 → 501 switch", async () => {
+    let resolveFirst: (v: unknown) => void = () => {};
+    fetchGameSessions
+      .mockImplementationOnce(
+        () => new Promise((resolve) => (resolveFirst = resolve)),
+      )
+      .mockResolvedValueOnce(page(["new"], null));
+    const { s, data } = section("501_V1");
+    data.variation = 301;
+    const first = s.load(NOW);
+    data.variation = 501;
+    await s.load(NOW);
+    resolveFirst(page(["old"], null));
+    await first;
+    expect(s.rows.map((r) => r.id)).toEqual(["new"]);
+  });
+
+  it("does not send variation for a non-501 game", async () => {
+    const { s, data } = section("TUOD_V1");
+    data.variation = 301;
+    await s.load(NOW);
+    expect(fetchGameSessions.mock.calls[0][1].variation).toBeUndefined();
+    expect(readSessionPage.mock.calls[0][2].variation).toBeUndefined();
   });
 });
 
