@@ -17,6 +17,8 @@ updated: 2026-11-13
 
 # Version History
 
+> **Version:** 1.231.0 (2026-11-13 — 501 variation filter contract, docs first: `variation` query parameter and `GET games/501/variations` documented; `10-Statistics/00-Overview.md` and `01-Section-Catalog.md` 1.8.0; `06-API/04-Endpoint-Contracts.md` 1.19.0; File Inventory rows land with the files in a later task (D556).)
+
 > **Version:** 1.230.0 (2026-11-13 — 501 inferred-aim modules restructured for maintainability, behaviour unchanged: new `x01-leave-rank.module.ts` (`LEAVE_RANK`, `isGoodLeave()`, `bestLeavingScore()`); zone tables replace switches in `target-key.ts` and `x01-aim-resolution.module.ts` (`aimBands()`); `boardNeighbours()` and `DOUBLE_OUT_FINISHES` in `board-geometry.module.ts`; `aimCountDartBuckets()` shared by four sections; `mi_average` back to 91.1 (D555).)
 
 > **Version:** 1.229.0 (2026-11-12 — 501 inferred-aim statistics: `intent-inferred` tag and five 501-only `server` sections (`large-target-accuracy`, `aim-drift`, `double-accuracy`, `double-preference`, `setup-success`) over a read-time aim resolver, inferred-aim `heatmap` filter, `excludedGames`; `10-Statistics/00-Overview.md` and `01-Section-Catalog.md` 1.7.0; `06-API/04-Endpoint-Contracts.md` 1.18.0; File Inventory gains the nine new modules (D555).)
