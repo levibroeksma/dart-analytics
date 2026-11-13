@@ -442,3 +442,10 @@ Decision: a `variation` query parameter (integer 2–999, the `starting_score`) 
 Reason: a 301 or custom-score game skews 501 averages, checkout rates and leg lengths. The variation is already stored as `starting_score` in the session snapshot, so by the principle "store what happened, derive what it means" it is derived in the read layer: no migration, no column. Rejecting rather than ignoring the parameter on other games keeps a request from silently dropping the filter. Treating an absent snapshot or score as 501 matches every pre-variation game.
 Consequences: `10-Statistics/00-Overview.md` 1.8.0 (§5 parameter row, §6 route row), `01-Section-Catalog.md` 1.8.0 (§2.1 paragraph) and `06-API/04-Endpoint-Contracts.md` 1.19.0 are updated. `dataVersion` over-invalidates when a game in another variation completes; accepted. The home page's first-9 average still mixes variations (out of scope). Spec: `docs/superpowers/specs/2026-11-13-x01-variation-filter-design.md`; plan: `docs/superpowers/plans/2026-11-13-x01-variation-filter.md`.
 Supersedes: none.
+
+### D557 — Home stats are pinned to starting score 501 for the 501 game
+Status: Accepted · Date: 2026-11-13
+Decision: the Home reads (`findHomeScoring`, `findHomeHeatmapCells`) count a `501`-game session only when `COALESCE(configuration ->> 'starting_score', 501) = 501`; the predicate applies to `game_type_key = '501'` rows only, so Score Training is not narrowed. Dart facts filter through the same session sub-select as the variation filter.
+Reason: a 301, 701 or custom game mixed into the Home first-9 average and heatmap is the same clutter D556 removed from the 501 page; the owner wants Home to describe real 501 games.
+Consequences: `10-Statistics/00-Overview.md` 1.9.0 (§6 `GET home` row). Read-time and derived, nothing stored; no migration.
+Supersedes: none.
