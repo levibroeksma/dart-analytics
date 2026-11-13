@@ -447,5 +447,5 @@ Supersedes: none.
 Status: Accepted · Date: 2026-11-13
 Decision: the Home reads (`findHomeScoring`, `findHomeHeatmapCells`) count a `501`-game session only when `COALESCE(configuration ->> 'starting_score', 501) = 501`; the predicate applies to `game_type_key = '501'` rows only, so Score Training is not narrowed. Dart facts filter through the same session sub-select as the variation filter.
 Reason: a 301, 701 or custom game mixed into the Home first-9 average and heatmap is the same clutter D556 removed from the 501 page; the owner wants Home to describe real 501 games.
-Consequences: `10-Statistics/00-Overview.md` 1.9.0 (§6 `GET home` row). Read-time and derived, nothing stored; no migration.
+Consequences: `10-Statistics/00-Overview.md` 1.9.0 (§6 `GET home` row) and `06-API/04-Endpoint-Contracts.md` 1.20.0 (the Home endpoint scope). Read-time and derived, nothing stored; no migration.
 Supersedes: none.

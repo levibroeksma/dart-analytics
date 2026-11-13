@@ -3838,6 +3838,7 @@ describe("home 501 pin", () => {
     );
     expect(sql).toMatch(/coalesce\(.*'starting_score'.*501\)/is);
     expect(statements[0].params).toEqual(expect.arrayContaining(["p1", 501]));
+    expect(statements[0].params).toContain("SCORE_TRAINING");
   });
 });
 
