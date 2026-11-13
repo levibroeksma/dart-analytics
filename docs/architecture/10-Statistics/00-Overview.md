@@ -7,7 +7,7 @@ updated: 2026-11-13
 
 # Statistics — Overview
 
-> **Version:** 1.8.0 (2026-11-13, D556: `variation` query parameter and `GET games/501/variations`; prior 1.7.0 2026-11-12, D555; prior 1.6.0 2026-09-29, D364/D365/D366/D367/D368/D369/D370/D371/D372)
+> **Version:** 1.9.0 (2026-11-13, D557: Home pinned to starting score 501; prior 1.8.0 D556: `variation` query parameter and `GET games/501/variations`; prior 1.7.0 2026-11-12, D555; prior 1.6.0 2026-09-29, D364/D365/D366/D367/D368/D369/D370/D371/D372)
 >
 > Architecture for the detailed per-game statistics pages on `/statistics`.
 > Design record: `docs/superpowers/specs/2026-09-26-statistics-pages-architecture-design.md`.
@@ -250,7 +250,7 @@ view-backed end to end (D63).
 | `GET routines/:routineKey/steps/:stepKey/sections/:sectionId` | one step section: a GAME step's own game sections, else `step-result`/`step-volume` (`01-Section-Catalog.md` §3) | built (phase 6, D372) |
 | `GET routines/:routineKey/steps/:stepKey/sessions` | the step's paginated session list, newest first, each row linking to its replay | built (phase 6, D372) |
 | `GET games/501/variations` | the owner's 501 variations, `{ variations: { startingScore: number; sessions: number }[] }`: completed `VISUAL_BOARD` sessions of the `501` game, grouped by starting score, so the dropdown counts are all-time and do not follow the selected period (the sections do); `501` is always listed (zero sessions if none), ordered `501` first, then ascending; takes no query parameters | built (D556) |
-| `GET home?tz=` | the Home page's first-9 average (30 days against the 30 before), seven daily averages and landing cells, over completed `501` and Score Training board sessions; a fixed-window summary, so the §5 range contract does not apply | built (#808, D493, 2026-10-25) |
+| `GET home?tz=` | the Home page's first-9 average (30 days against the 30 before), seven daily averages and landing cells, over completed `501` and Score Training board sessions, the `501` game counted only when its starting score is 501 (absent counts as 501; 301, 701 and custom are excluded from both the averages and the cells, D557); a fixed-window summary, so the §5 range contract does not apply | built (#808, D493, 2026-10-25) |
 
 The route segment is `:gameTypeKey` (`game_types.implementation_key`), not
 `:rulesetKey` (D367 decision 1): a game page spans ruleset versions (e.g.

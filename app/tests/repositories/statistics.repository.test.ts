@@ -3811,6 +3811,36 @@ describe("findHomeHeatmapCells", () => {
   });
 });
 
+describe("home 501 pin", () => {
+  const pinned =
+    /"game_type_key" <> '501' or coalesce\(.*'starting_score'.*501\) = 501\)/is;
+
+  it("findHomeScoring pins 501-game sessions to starting score 501 only", async () => {
+    const { db, statements } = renderingDb([]);
+    await findHomeScoring(db, {
+      ...homeScope,
+      tz: "Europe/Amsterdam",
+      bands: [100, 140, 180],
+    });
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(pinned);
+    expect(sql).toMatch(/"v_stats_session_facts"\."game_type_key" <> '501'/i);
+    expect(statements[0].params).toContain("SCORE_TRAINING");
+  });
+
+  it("findHomeHeatmapCells pins 501 darts through a session sub-select", async () => {
+    const { db, statements } = renderingDb([]);
+    await findHomeHeatmapCells(db, { ...homeScope, cellMm: 4 });
+    const sql = onlyStatement(statements);
+    expect(sql).toMatch(/"v_stats_dart_facts"\."game_type_key" <> '501' or /i);
+    expect(sql).toMatch(
+      /"v_stats_dart_facts"\."session_id" in \(select "v_stats_session_facts"\."session_id" from "v_stats_session_facts"/i,
+    );
+    expect(sql).toMatch(/coalesce\(.*'starting_score'.*501\)/is);
+    expect(statements[0].params).toEqual(expect.arrayContaining(["p1", 501]));
+  });
+});
+
 describe("variation predicate", () => {
   const bucketQuery = {
     playerId: "p1",

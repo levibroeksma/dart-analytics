@@ -1,6 +1,6 @@
 # 501 variation filter — design
 
-Status: draft, awaiting owner approval. Date: 2026-11-13.
+Status: approved, implemented (D556; Home pinned to 501, D557). Date: 2026-11-13.
 Input to: the 501 statistics page UI plan (follows `2026-11-11-x01-inferred-aim-statistics-design.md`).
 
 ## Intent
@@ -75,4 +75,4 @@ Derive in the read layer; no migration is expected, because `v_stats_session_fac
 
 ## Open items for the owner
 
-- Home page: `HOME_GAME_TYPES` includes 501, so the first-9 average there still mixes in 301/custom games. Out of scope here; it is the same clutter problem. Decide whether it gets the same treatment, and whether to pin it to 501 only.
+- Resolved (D557): the Home page is pinned to 501. Its first-9 average, daily averages and landing heatmap count a `501`-game session only when its starting score is 501 (absent counts as 501); Score Training is unaffected.
