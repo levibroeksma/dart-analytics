@@ -51,6 +51,15 @@ Derive in the read layer; no migration is expected, because `v_stats_session_fac
 - **Client cache**: `variation` joins `paramsKey`, so each variation caches separately. The cache-layer change is small but mandatory: without it, switching variation would serve the wrong cached series.
 - **Store/UI**: `game-stats.store.ts` holds the selected variation and the list; changing it reloads every section through the existing chunked fetch path. The dropdown reuses an existing select primitive from `components/forms/` (builder checks `08-Component-Inventory.md`; proposes a new component only if nothing fits). Visual details follow the Design System artifact.
 
+## Scope details (settled after the builder check)
+
+- **Game guard.** Every statistics route is keyed by `:gameTypeKey` and every view read already filters on `game_type_key`, so the `COALESCE(…, 501)` default only ever applies inside 501 sessions. The `variation` parameter is accepted only when `gameTypeKey = 501`.
+- **Reads that need the predicate.** The shared scope builders (`dartScopeWhere`, `sessionScopeWhere`, `gameSessionConditions`) cover `v_stats_dart_facts` and `v_stats_session_facts`. `v_x01_checkout_darts` exposes `configuration` directly. The visit, leg and bucketed-aggregate reads (`findVisitFacts`, `findLegFacts`, `findBucketedSessionAggregates`) must be checked: where a view lacks the snapshot, join `v_stats_session_facts` on `session_id`, as `findX01FoldRows` already does. That needs no migration. A view change (0056) is the fallback only if a join cannot work.
+- **Routes.** One family: `GET games/501/sections/:sectionId` and `GET games/501/sessions` (plus the new variations read). The heatmap is a section on the same route. No POST bodies. The chunked client fetch passes `variation` like any other query field.
+- **Dropdown count.** The count is the number of completed sessions in that variation. Sections that include abandoned sessions still apply the filter to them; the list count does not include abandoned sessions (the anti-goal about matching counts refers to the completed-session population).
+- **Values.** A positive integer ≥ 2 that has no sessions returns the normal empty series, not an error. A non-numeric, empty, or < 2 value is `VALIDATION_FAILED`.
+- **Order of work.** Docs first, with or alongside the code (repo rule). The builder allocates the decision id in `decisions/api.md`.
+
 ## Constraints
 
 - Controller → Service → Repository layering; reads via `v_*` views only.
