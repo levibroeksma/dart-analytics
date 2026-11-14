@@ -62,7 +62,7 @@ Components are the homepage and statistics ones that exist
      in percentage points against the preceding period.
    - Bust %: `busts / visits` over `bust-rate`; hint likewise. A fall is green.
    - Best leg: all time, fewest darts, from `leg-stats.bestLeg` (`{ darts,
-     sessionId }`); hint is the date; tap opens that session's replay via the
+     sessionId }`); hint is "Tap to replay" (`bestLeg` carries `darts` and `sessionId` only, no date); tap opens that session's replay via the
      existing replay route (`02-Replay.md`, `replay-route.ts`; the session,
      not the leg). Ignores the Period select (owner: "of all time"), not the
      variation.
@@ -71,7 +71,7 @@ Components are the homepage and statistics ones that exist
 
    | Card | Headline | Overlay |
    | ---- | -------- | ------- |
-   | Treble accuracy (`large-target-accuracy`) | Treble hit % on T20 | One row per aim T20/T19/T18: treble, single, left neighbour, right neighbour, elsewhere; the switch-off-T20 count |
+   | Treble accuracy (`large-target-accuracy`) | Treble hit % on T20 | One row per aim T20/T19/T18: treble, single, left neighbour, right neighbour, elsewhere; no switch-off-T20 count (the metrics hold none; the catalog line is stale) |
    | Aim drift (`aim-drift`) | 1st-dart drift as "4 mm left, 2 mm low" | All three darts of the visit, mean offset and spread, per basis |
    | Doubles (`double-accuracy`) | Overall double hit % with best and worst double named | Every double and the bull: hit %, misses by band (inside / within / outside) and direction sector |
    | Double preference (`double-preference`) | The most-left double and its split-away rate | Every double: left, split away, attempts, hits |
@@ -96,8 +96,12 @@ Components are the homepage and statistics ones that exist
    sample size. Minimum sample: a card shows "—" as headline under 30 darts
    (card level); an overlay row under 10 darts shows its count and no rate.
    Both are one constant each.
-6. **Heatmap** with an aim picker: all aims, then the inferred aim keys
-   seen in the data, `WIRE:a-b` included (D555). Reuses `GameHeatmapSection`.
+6. **Heatmap** with an aim picker: "All aims", then the distinct aim keys in
+   the already-loaded `aim-drift` response (it covers every resolved dart
+   and aim kind), `WIRE:a-b` included. No new endpoint: the server already
+   folds the `target` filter over inferred aim keys on 501 (D555). The work is
+   client-side: `game-heatmap.data.ts` and `heatmap-targets.ts` gain the
+   501 aim options (slice 4).
 7. **Session list** unchanged.
 
 Headlines compare with no preceding period: aim cards show the period only
