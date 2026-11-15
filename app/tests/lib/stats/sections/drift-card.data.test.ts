@@ -39,7 +39,7 @@ describe("driftCardSection", () => {
     expect(s.caption).toBe("1st dart drift, 40 darts");
     expect(s.table[0]).toEqual({
       label: "Dart 1",
-      n: 40,
+      count: 40,
       cells: ["-4.0 mm", "2.0 mm", "3.9 mm"],
     });
     expect(s.table[1].cells).toEqual(["—", "—", "—"]);

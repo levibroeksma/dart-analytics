@@ -1,5 +1,6 @@
 import { MIN_ROW_SAMPLE, MIN_TARGET_SAMPLE } from "@lib/stats/constants";
-import { ambiguousDarts, poolRows, rateOf } from "./aim-rows";
+import { poolRows } from "./aim-pool";
+import { ambiguousDarts, rateOf } from "./aim-rows";
 import type { AimRows, TrebleCard, TrebleRow } from "./types";
 
 const AIMS: TrebleRow["aim"][] = ["TREBLE:20", "TREBLE:19", "TREBLE:18"];

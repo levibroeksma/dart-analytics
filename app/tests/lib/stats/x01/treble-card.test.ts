@@ -88,4 +88,12 @@ describe("trebleCard", () => {
     });
     expect(card.rows[1]).toMatchObject({ darts: 10, treble: 0.5, other: 0 });
   });
+
+  it("lists the three aims in T20, T19, T18 order", () => {
+    expect(trebleCard({}).rows.map((r) => r.aim)).toEqual([
+      "TREBLE:20",
+      "TREBLE:19",
+      "TREBLE:18",
+    ]);
+  });
 });

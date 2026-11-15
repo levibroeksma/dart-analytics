@@ -68,3 +68,66 @@ export type DriftCard = {
   byBasis: (DriftRow & { basis: string })[];
   ambiguous: number;
 };
+
+/** One double's overlay row: hits, misses by distance band and by direction sector (0-7). */
+export type DoubleRow = {
+  aim: string;
+  label: string;
+  darts: number;
+  hits: number;
+  rate: number | null;
+  inside: number;
+  within: number;
+  outside: number;
+  sectors: number[];
+};
+
+/** The doubles card: overall hit share as headline, best and worst double as caption. */
+export type DoublesCard = {
+  headline: number | null;
+  caption: string | null;
+  darts: number;
+  rows: DoubleRow[];
+  ambiguous: number;
+};
+
+/** One double's left-and-split overlay row. */
+export type PreferenceRow = {
+  finish: string;
+  label: string;
+  left: number;
+  splitAway: number;
+  splitRate: number | null;
+  attempts: number;
+  hits: number;
+};
+
+/** The double preference card: the double most often left and how often its leave was split away. */
+export type PreferenceCard = {
+  headline: string | null;
+  left: number;
+  rows: PreferenceRow[];
+  ambiguous: number;
+};
+
+/** One setup group: a basis and aim kind. */
+export type SetupGroup = {
+  basis: string;
+  kind: string;
+  attempts: number;
+  hits: number;
+  rate: number | null;
+};
+
+/** The setup card: setup-dart hit share as headline, good-leave share beside it. */
+export type SetupCard = {
+  headline: number | null;
+  attempts: number;
+  goodLeave: number | null;
+  visits: number;
+  groups: SetupGroup[];
+  ambiguous: number;
+};
+
+/** One overlay table line: a label, its sample count and the formatted cells. */
+export type AimTableRow = { label: string; count: number; cells: string[] };

@@ -1,0 +1,52 @@
+---
+/**
+ * One 501 aim card with its data scope: mounts the Alpine factory, an error
+ * alert, the `AimCard` and an overlay table over the factory's `table` lines,
+ * then a footer line. The factory exposes `headline`, `caption`, `table`,
+ * `loading`, `error` and `card`.
+ * @param {string} factory Alpine data factory name
+ * @param {string} title Card title
+ * @param {string} titleId Id of the title element
+ * @param {string[]} headers Overlay column headers, the first for the row label
+ * @param {string} footerExpr Alpine expression yielding the overlay footer text
+ */
+import ErrorAlert from "@components/ui/ErrorAlert.astro";
+import AimCard from "./AimCard.astro";
+import AimTable from "./AimTable.astro";
+
+interface Props {
+  factory: string;
+  title: string;
+  titleId: string;
+  headers: string[];
+  footerExpr: string;
+}
+
+// Props
+const { factory, title, titleId, headers, footerExpr }: Props = Astro.props;
+---
+
+<div
+  class="flex flex-col gap-2"
+  x-data={`${factory}()`}
+>
+  <ErrorAlert
+    showExpr="error !== null"
+    textExpr="error"
+  />
+  <AimCard
+    title={title}
+    titleId={titleId}
+    headlineExpr="headline"
+    captionExpr="caption"
+    loadingExpr="loading"
+    errorExpr="error"
+  >
+    <AimTable headers={headers} />
+    <p
+      class="text-caption text-muted"
+      x-text={footerExpr}
+    >
+    </p>
+  </AimCard>
+</div>

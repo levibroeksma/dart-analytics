@@ -573,7 +573,7 @@ Registered for discoverability — the design lives in `10-Statistics/00-Overvie
 | `app/src/lib/stats/x01/periods.ts` | `splitByBoundary()` — generic split of a bucketed series at a period boundary; `null` boundary means no previous period (D558) | canonical | ~0.16k |
 | `app/src/lib/stats/x01/summaries.ts` | Pure 501 page derivations: `checkoutRate()`, `bustRate()`, `dartsPerLeg()`, `bestLegOf()`, `pointDelta()` (D558) | canonical | ~0.7k |
 | `app/src/lib/stats/x01/format.ts` | `formatRate()`, `formatPointDelta()`, `formatDelta()` — dash for null, signed deltas (D558) | canonical | ~0.2k |
-| `app/src/lib/stats/x01/types.ts` | `Rate`, `SplitPeriods` and `OverviewSections` types of the 501 page helpers, raised through `lib/stats/types.ts` (D558) | canonical | ~0.5k |
+| `app/src/lib/stats/x01/types.ts` | `Rate`, `SplitPeriods` and `OverviewSections` types of the 501 page helpers, raised through `lib/stats/types.ts` (D558) | canonical | ~0.9k |
 | `app/src/lib/stats/x01/overview-fetch.ts` | `fetchOverviewSections()` (scoring as one doubled-window request, checkout, bust and leg-stats as two unbucketed requests each, failures named) and `fetchBestLeg()` (all-time unbucketed `leg-stats`) for the 501 page (D558) | canonical | ~1.01k |
 | `app/src/lib/stats/sections/x01-overview.data.ts` | `x01Overview()` Alpine factory: state, methods and getters for the averages row and tiles over `fetchOverviewSections()` and `fetchBestLeg()`; a failed read is named in `error` (D558) | canonical | ~1.44k |
 | `app/src/components/layout/games/statistics/X01StatsOverview.astro` | The 501 `/statistics` layout: error line, averages row, tiles row, heatmap, session list (D558) | canonical | ~0.5k |
@@ -582,18 +582,34 @@ Registered for discoverability — the design lives in `10-Statistics/00-Overvie
 | `app/src/components/layout/games/statistics/X01TilesRow.astro` | Homepage-style tiles: checkout %, bust %, best leg (D558) | canonical | ~0.21k |
 | `app/src/components/layout/games/statistics/BestLegTile.astro` | Best-leg tile: a `GrowingCard` that grows into the best leg's session replay, a plain dash tile when there is none (D558) | canonical | ~0.5k |
 | `app/src/stores/x01-quality.store.ts` | `x01Quality` Alpine store: the largest `skippedSessions` any loaded aim section reported (D558) | canonical | ~0.14k |
-| `app/src/lib/stats/x01/aim-rows.ts` | `sumAimRows()`, `rateOf()`, `ambiguousDarts()`, `poolRows()`: field-wise reductions of aim-section rows (D558) | canonical | ~0.35k |
+| `app/src/lib/stats/x01/aim-rows.ts` | `sumAimRows()`, `rateOf()`, `ambiguousDarts()`, `poolRows()`: field-wise reductions of aim-section rows (D558) | canonical | ~0.2k |
 | `app/src/lib/stats/x01/aim-label.ts` | `aimLabel()`: board target key to short label (`TREBLE:20` to `T20`) (D558) | canonical | ~0.12k |
 | `app/src/lib/stats/x01/treble-card.ts` | `trebleCard()`: T20 treble share headline and the three-aim overlay rows from `large-target-accuracy` rows (D558) | canonical | ~0.3k |
-| `app/src/lib/stats/x01/drift-card.ts` | `driftCard()` and `describeDrift()`: dart-1 drift sentence headline, per-dart and per-basis mean offset and spread from `aim-drift` rows (D558) | canonical | ~0.64k |
+| `app/src/lib/stats/x01/drift-card.ts` | `driftCard()` and `describeDrift()`: dart-1 drift sentence headline, per-dart and per-basis mean offset and spread from `aim-drift` rows (D558) | canonical | ~0.2k |
 | `app/src/lib/stats/x01/drift-describe.ts` | `describeDrift()`: mean offset in mm as "4 mm left, 2 mm low" (D558) | canonical | ~0.14k |
+| `app/src/lib/stats/x01/aim-pool.ts` | `addFields()`, `poolRows()`: field-wise pooling of aim rows (D558) | canonical | ~0.162k |
+| `app/src/lib/stats/x01/aim-tally.ts` | `tallyRows()`, `sumBy()`: group `|`-keyed aim rows into per-id accumulators (D558) | canonical | ~0.244k |
+| `app/src/lib/stats/x01/drift-row.ts` | `dartRow()`, `basisRows()`, `keyOf()`: pooled drift rows per dart number and basis (D558) | canonical | ~0.423k |
+| `app/src/lib/stats/x01/drift-line.ts` | `driftLine()`: one aim-drift overlay line in mm (D558) | canonical | ~0.11k |
+| `app/src/lib/stats/x01/doubles-card.ts` | `doublesCard()`: overall double hit share, best and worst double, per-double overlay rows (D558) | canonical | ~0.227k |
+| `app/src/lib/stats/x01/doubles-tally.ts` | `tallyDoubles()`: per-double hits and misses by band and sector from `double-accuracy` rows (D558) | canonical | ~0.302k |
+| `app/src/lib/stats/x01/doubles-caption.ts` | `doublesCaption()`: "Best D16 · worst D3" among rated doubles (D558) | canonical | ~0.142k |
+| `app/src/lib/stats/x01/preference-card.ts` | `preferenceCard()`: the most-left double and its split-away rate (D558) | canonical | ~0.22k |
+| `app/src/lib/stats/x01/preference-tally.ts` | `tallyPreference()`: per-double left, split-away, attempts and hits (D558) | canonical | ~0.214k |
+| `app/src/lib/stats/x01/setup-card.ts` | `setupCard()`: setup-dart hit share and good-leave share (D558) | canonical | ~0.23k |
+| `app/src/lib/stats/x01/setup-tally.ts` | `tallySetup()`: attempts and hits per basis and aim kind (D558) | canonical | ~0.147k |
+| `app/src/lib/stats/sections/doubles-card.data.ts` | `doublesCardSection()` Alpine factory for the doubles card (D558) | canonical | ~0.29k |
+| `app/src/lib/stats/sections/preference-card.data.ts` | `preferenceCardSection()` Alpine factory for the double preference card (D558) | canonical | ~0.291k |
+| `app/src/lib/stats/sections/setup-card.data.ts` | `setupCardSection()` Alpine factory for the setup card (D558) | canonical | ~0.281k |
+| `app/src/components/layout/games/statistics/AimCardSection.astro` | One aim card with its data scope: factory, error alert, `AimCard`, overlay table and footer (D558) | canonical | ~0.339k |
+| `app/src/components/layout/games/statistics/AimTable.astro` | Overlay table over a factory's `table` lines (D558) | canonical | ~0.225k |
+| `app/tests/support/aim-card-scope.ts` | `loadedAimCard()`, `oneBucket()`: fake Alpine scope and section mock for aim-card factory tests (D558) | canonical | ~0.182k |
+| `app/tests/lib/stats/x01/aim-pool.test.ts`, `app/tests/lib/stats/x01/aim-tally.test.ts`, `app/tests/lib/stats/x01/drift-row.test.ts`, `app/tests/lib/stats/x01/drift-line.test.ts`, `app/tests/lib/stats/x01/doubles-card.test.ts`, `app/tests/lib/stats/x01/doubles-tally.test.ts`, `app/tests/lib/stats/x01/doubles-caption.test.ts`, `app/tests/lib/stats/x01/preference-card.test.ts`, `app/tests/lib/stats/x01/preference-tally.test.ts`, `app/tests/lib/stats/x01/setup-card.test.ts`, `app/tests/lib/stats/x01/setup-tally.test.ts`, `app/tests/lib/stats/sections/doubles-card.data.test.ts`, `app/tests/lib/stats/sections/preference-card.data.test.ts`, `app/tests/lib/stats/sections/setup-card.data.test.ts` | Tests for the doubles, double preference and setup cards and their helpers (D558) | canonical | ~5k |
 | `app/src/lib/stats/sections/aim-section.ts` | `aimSection()`: `periodSection` plus summed `rows` and the `skippedSessions` report to `x01Quality` (D558) | canonical | ~0.34k |
 | `app/src/lib/stats/sections/treble-card.data.ts` | `trebleCardSection()` Alpine factory for the treble accuracy card (D558) | canonical | ~0.3k |
 | `app/src/lib/stats/sections/drift-card.data.ts` | `driftCardSection()` Alpine factory for the aim drift card (D558) | canonical | ~0.32k |
 | `app/src/components/layout/games/statistics/AimCard.astro` | `GrowingCard` aim card: headline and caption on the face, slot as the overlay (D558) | canonical | ~0.59k |
 | `app/src/components/layout/games/statistics/X01DataQualityLine.astro` | Muted line: sessions the aim sections could not analyse (D558) | canonical | ~0.08k |
-| `app/src/components/layout/games/statistics/TrebleOverlay.astro` | Treble accuracy overlay table (D558) | canonical | ~0.25k |
-| `app/src/components/layout/games/statistics/DriftOverlay.astro` | Aim drift overlay table (D558) | canonical | ~0.25k |
 | `app/tests/lib/stats/x01/aim-rows.test.ts`, `app/tests/lib/stats/x01/aim-label.test.ts`, `app/tests/lib/stats/x01/treble-card.test.ts`, `app/tests/lib/stats/x01/drift-card.test.ts`, `app/tests/lib/stats/x01/drift-describe.test.ts`, `app/tests/lib/stats/sections/aim-section.test.ts`, `app/tests/lib/stats/sections/treble-card.data.test.ts`, `app/tests/lib/stats/sections/drift-card.data.test.ts`, `app/tests/stores/x01-quality.store.test.ts` | Tests for the aim helpers, the two cards, `aimSection()` and the quality store (D558) | canonical | ~3k |
 | `app/tests/lib/stats/x01/periods.test.ts`, `app/tests/lib/stats/x01/summaries.test.ts`, `app/tests/lib/stats/x01/format.test.ts`, `app/tests/lib/stats/x01/overview-fetch.test.ts`, `app/tests/lib/stats/sections/x01-overview.data.test.ts` | Tests for the 501 page helpers and the `x01Overview()` factory (D558) | canonical | ~2.5k |
 | `app/tests/lib/stats/variation.test.ts`, `app/tests/pages/api/statistics/games-variations.test.ts`, `app/tests/stores/stats-variation.store.test.ts`, `app/tests/lib/stats/sections/game-variations.data.test.ts` | Tests for the route, `variationParam()`, the store and the picker factory (D556) | canonical | — |

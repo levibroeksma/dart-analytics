@@ -1,14 +1,7 @@
 import type { SeriesBucket } from "@lib/types";
 import type { AimCountMetrics } from "@modules/types";
+import { addFields } from "./aim-pool";
 import type { AimRows } from "./types";
-
-function addFields(
-  target: Record<string, number>,
-  fields: Record<string, number>,
-): void {
-  for (const [field, value] of Object.entries(fields))
-    target[field] = (target[field] ?? 0) + value;
-}
 
 /** Field-wise sum of every bucket's rows. */
 export function sumAimRows(
@@ -29,15 +22,4 @@ export function rateOf(numerator: number, denominator: number): number | null {
 /** Darts the section could not attribute to an aim. */
 export function ambiguousDarts(rows: AimRows): number {
   return rows.AMBIGUOUS?.darts ?? 0;
-}
-
-/** Rows whose key passes `matches`, summed field-wise into one row. */
-export function poolRows(
-  rows: AimRows,
-  matches: (key: string) => boolean,
-): Record<string, number> {
-  const pooled: Record<string, number> = {};
-  for (const [key, fields] of Object.entries(rows))
-    if (matches(key)) addFields(pooled, fields);
-  return pooled;
 }

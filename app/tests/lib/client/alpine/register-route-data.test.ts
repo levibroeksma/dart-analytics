@@ -12,7 +12,10 @@ import { personalBestFinishSection } from "@lib/stats/sections/personal-best-fin
 import { gameCompletionSection } from "@lib/stats/sections/game-completion.data";
 import { gameSessionList } from "@lib/stats/sections/game-session-list.data";
 import { gameVariations } from "@lib/stats/sections/game-variations.data";
+import { doublesCardSection } from "@lib/stats/sections/doubles-card.data";
 import { driftCardSection } from "@lib/stats/sections/drift-card.data";
+import { preferenceCardSection } from "@lib/stats/sections/preference-card.data";
+import { setupCardSection } from "@lib/stats/sections/setup-card.data";
 import { trebleCardSection } from "@lib/stats/sections/treble-card.data";
 import { x01Overview } from "@lib/stats/sections/x01-overview.data";
 import { routineBuilder } from "@lib/training/routines/routine-builder.data";
@@ -113,6 +116,9 @@ describe("registerRouteData", () => {
     ["x01Overview", x01Overview],
     ["trebleCardSection", trebleCardSection],
     ["driftCardSection", driftCardSection],
+    ["doublesCardSection", doublesCardSection],
+    ["preferenceCardSection", preferenceCardSection],
+    ["setupCardSection", setupCardSection],
   ])("registers %s as an Alpine data factory", (name, factory) => {
     const data = vi.fn();
     registerRouteData({ data } as unknown as Alpine);
@@ -134,6 +140,9 @@ describe("registerRouteData", () => {
       "x01Overview",
       "trebleCardSection",
       "driftCardSection",
+      "doublesCardSection",
+      "preferenceCardSection",
+      "setupCardSection",
     ])
       expect(names.filter((n) => n === name)).toHaveLength(1);
   });

@@ -40,7 +40,7 @@ describe("trebleCardSection", () => {
     expect(s.caption).toBe("T20 treble rate, 40 darts");
     expect(s.table[0]).toEqual({
       label: "T20",
-      darts: 40,
+      count: 40,
       cells: ["20.0%", "40.0%", "12.5%", "10.0%", "17.5%"],
     });
     expect(s.table[1].cells).toEqual(["—", "—", "—", "—", "—"]);

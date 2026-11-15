@@ -1,0 +1,39 @@
+---
+/**
+ * Overlay table of an aim card over the enclosing factory's `table` lines:
+ * label with its sample count, then one cell per column.
+ * @param {string[]} headers Column headers, the first for the row label
+ */
+interface Props {
+  headers: string[];
+}
+
+// Props
+const { headers }: Props = Astro.props;
+---
+
+<table class="w-full text-caption">
+  <thead>
+    <tr class="text-left font-mono text-eyebrow text-muted-foreground">
+      {headers.map((header) => <th scope="col">{header}</th>)}
+    </tr>
+  </thead>
+  <tbody>
+    <template
+      x-for="row in table"
+      :key="row.label"
+    >
+      <tr>
+        <th
+          scope="row"
+          class="text-left font-mono"
+          x-text="`${row.label} (${row.count})`"
+        >
+        </th>
+        <template x-for="cell in row.cells">
+          <td x-text="cell"></td>
+        </template>
+      </tr>
+    </template>
+  </tbody>
+</table>
