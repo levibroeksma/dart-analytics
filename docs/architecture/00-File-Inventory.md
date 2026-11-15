@@ -573,10 +573,10 @@ Registered for discoverability — the design lives in `10-Statistics/00-Overvie
 | `app/src/lib/stats/x01/periods.ts` | `splitByBoundary()` — generic split of a bucketed series at a period boundary; `null` boundary means no previous period (D558) | canonical | ~0.16k |
 | `app/src/lib/stats/x01/summaries.ts` | Pure 501 page derivations: `checkoutRate()`, `bustRate()`, `dartsPerLeg()`, `bestLegOf()`, `pointDelta()` (D558) | canonical | ~0.7k |
 | `app/src/lib/stats/x01/format.ts` | `formatRate()`, `formatPointDelta()`, `formatDelta()` — dash for null, signed deltas (D558) | canonical | ~0.2k |
-| `app/src/lib/stats/x01/types.ts` | `Rate`, `SplitPeriods` and `OverviewSections` types of the 501 page helpers, raised through `lib/stats/types.ts` (D558) | canonical | ~0.22k |
+| `app/src/lib/stats/x01/types.ts` | `Rate`, `SplitPeriods` and `OverviewSections` types of the 501 page helpers, raised through `lib/stats/types.ts` (D558) | canonical | ~0.5k |
 | `app/src/lib/stats/x01/overview-fetch.ts` | `fetchOverviewSections()` (scoring as one doubled-window request, checkout, bust and leg-stats as two unbucketed requests each, failures named) and `fetchBestLeg()` (all-time unbucketed `leg-stats`) for the 501 page (D558) | canonical | ~1.01k |
 | `app/src/lib/stats/sections/x01-overview.data.ts` | `x01Overview()` Alpine factory: state, methods and getters for the averages row and tiles over `fetchOverviewSections()` and `fetchBestLeg()`; a failed read is named in `error` (D558) | canonical | ~1.44k |
-| `app/src/components/layout/games/statistics/X01StatsOverview.astro` | The 501 `/statistics` layout: error line, averages row, tiles row, heatmap, session list (D558) | canonical | ~0.21k |
+| `app/src/components/layout/games/statistics/X01StatsOverview.astro` | The 501 `/statistics` layout: error line, averages row, tiles row, heatmap, session list (D558) | canonical | ~0.5k |
 | `app/src/components/layout/games/statistics/X01AveragesRow.astro` | Three `ScoreAverageCard` squares: 3-dart average, first nine, darts per leg (inverted delta) (D558) | canonical | ~0.2k |
 | `app/src/components/layout/games/statistics/X01StatTile.astro` | One homepage-style 501 tile: mono key, value, hint, pulse bars while loading (D558) | canonical | ~0.37k |
 | `app/src/components/layout/games/statistics/X01TilesRow.astro` | Homepage-style tiles: checkout %, bust %, best leg (D558) | canonical | ~0.21k |
