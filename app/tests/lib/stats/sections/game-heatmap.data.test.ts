@@ -32,6 +32,9 @@ function series(cells: [number, number, number][]) {
   };
 }
 
+const heatmapCalls = () =>
+  loadGameSection.mock.calls.filter((call) => call[1] === "heatmap");
+
 function section() {
   const watchers: Record<string, () => void> = {};
   const page = {
@@ -106,8 +109,8 @@ describe("gameHeatmapSection", () => {
     await vi.waitFor(() => expect(s.loading).toBe(false));
     page.game = "501_V1";
     watchers.game();
-    await vi.waitFor(() => expect(loadGameSection).toHaveBeenCalledTimes(2));
-    expect(loadGameSection.mock.calls[1][0]).toBe("501");
+    await vi.waitFor(() => expect(heatmapCalls()).toHaveLength(2));
+    expect(heatmapCalls()[1][0]).toBe("501");
   });
 
   it("offers target options only for stored-intent games", () => {
@@ -223,11 +226,11 @@ describe("gameHeatmapSection variation", () => {
     page.game = "501_V1";
     s.init();
     await vi.waitFor(() => expect(s.loading).toBe(false));
-    expect(loadGameSection.mock.calls[0][2].variation).toBe(501);
+    expect(heatmapCalls()[0][2].variation).toBe(501);
     page.variation = 301;
     watchers.variation();
-    await vi.waitFor(() => expect(loadGameSection).toHaveBeenCalledTimes(2));
-    expect(loadGameSection.mock.calls[1][2].variation).toBe(301);
+    await vi.waitFor(() => expect(heatmapCalls()).toHaveLength(2));
+    expect(heatmapCalls()[1][2].variation).toBe(301);
   });
 
   it("drops a stale response after a quick 301 → 501 switch", async () => {
@@ -266,5 +269,107 @@ describe("gameHeatmapSection shape", () => {
     expect(
       sharedStateKeys(gameHeatmapSection(), gameHeatmapSection()),
     ).toMatchInlineSnapshot(`[]`);
+  });
+});
+
+function driftSeries(keys: string[]) {
+  return {
+    buckets: [
+      {
+        start: "a",
+        end: "b",
+        closed: true,
+        sampleSize: 1,
+        metrics: Object.fromEntries(keys.map((key) => [key, { n: 1 }])),
+      },
+    ],
+  };
+}
+
+function answer(keys: string[]) {
+  loadGameSection.mockImplementation(async (_game: string, id: string) =>
+    id === "aim-drift" ? driftSeries(keys) : series([]),
+  );
+}
+
+describe("gameHeatmapSection 501 aim picker", () => {
+  it("offers the aims found in aim-drift after All aims", async () => {
+    answer(["FINISH|DOUBLE:16|1|SOLE", "SETUP|TREBLE:20|1|SOLE"]);
+    const { s, page } = section();
+    page.game = "501_V1";
+    s.init();
+    await vi.waitFor(() => expect(s.targetOptions).toHaveLength(3));
+    expect(s.targetOptions.map((o) => o.label)).toEqual([
+      "All aims",
+      "T20",
+      "D16",
+    ]);
+  });
+
+  it("sends the picked aim key as target on the heatmap request", async () => {
+    answer(["SETUP|TREBLE:20|1|SOLE"]);
+    const { s, watchers, page } = section();
+    page.game = "501_V1";
+    s.init();
+    await vi.waitFor(() => expect(s.targetOptions).toHaveLength(2));
+    s.target = "TREBLE:20";
+    watchers.target();
+    await vi.waitFor(() => expect(heatmapCalls()).toHaveLength(2));
+    expect(heatmapCalls()[1][2].target).toBe("TREBLE:20");
+  });
+
+  it("clears a picked aim that a variation change removes", async () => {
+    answer(["SETUP|TREBLE:20|1|SOLE"]);
+    const { s, watchers, page } = section();
+    page.game = "501_V1";
+    s.init();
+    await vi.waitFor(() => expect(s.targetOptions).toHaveLength(2));
+    s.target = "TREBLE:20";
+    answer(["FINISH|DOUBLE:16|1|SOLE"]);
+    page.variation = 301;
+    watchers.variation();
+    await vi.waitFor(() =>
+      expect(s.targetOptions.map((o) => o.label)).toEqual(["All aims", "D16"]),
+    );
+    expect(s.target).toBeNull();
+  });
+
+  it("has no picker when the aim read fails", async () => {
+    loadGameSection.mockImplementation(async (_game: string, id: string) => {
+      if (id === "aim-drift") throw new Error("boom");
+      return series([]);
+    });
+    const { s, page } = section();
+    page.game = "501_V1";
+    s.init();
+    await vi.waitFor(() => expect(s.loading).toBe(false));
+    expect(s.targetOptions).toEqual([]);
+  });
+
+  it("makes no aim-drift request for another game", async () => {
+    const { s } = section();
+    s.init();
+    await vi.waitFor(() => expect(s.loading).toBe(false));
+    expect(
+      loadGameSection.mock.calls.filter((c) => c[1] === "aim-drift"),
+    ).toHaveLength(0);
+  });
+
+  it("a stale option read does not overwrite a newer one", async () => {
+    let resolveFirst: (v: unknown) => void = () => {};
+    loadGameSection.mockImplementation(async (_game: string, id: string) => {
+      if (id !== "aim-drift") return series([]);
+      return driftSeries(["SETUP|TREBLE:20|1|SOLE"]);
+    });
+    const { s, page } = section();
+    page.game = "501_V1";
+    loadGameSection.mockImplementationOnce(
+      () => new Promise((resolve) => (resolveFirst = resolve)),
+    );
+    const first = s.loadAimOptions(NOW);
+    await s.loadAimOptions(NOW);
+    resolveFirst(driftSeries(["FINISH|DOUBLE:16|1|SOLE"]));
+    await first;
+    expect(s.targetOptions.map((o) => o.label)).toEqual(["All aims", "T20"]);
   });
 });
