@@ -45,4 +45,19 @@ describe("driftCardSection", () => {
     expect(s.table[1].cells).toEqual(["—", "—", "—"]);
     expect(s.table.at(-1)?.label).toBe("FINISH · dart 1");
   });
+
+  it("lists the per-dart lines before the per-basis lines", async () => {
+    const s = Object.assign(driftCardSection(), {
+      $data: { rangeKey: "30d", game: "501_V1", variation: 501 },
+      $watch: () => {},
+      $store: { x01Quality: x01QualityStore() },
+    });
+    await s.load();
+    expect(s.table.map((line) => line.label)).toEqual([
+      "Dart 1",
+      "Dart 2",
+      "Dart 3",
+      "FINISH · dart 1",
+    ]);
+  });
 });

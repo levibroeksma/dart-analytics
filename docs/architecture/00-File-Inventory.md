@@ -584,8 +584,9 @@ Registered for discoverability — the design lives in `10-Statistics/00-Overvie
 | `app/src/stores/x01-quality.store.ts` | `x01Quality` Alpine store: the largest `skippedSessions` any loaded aim section reported (D558) | canonical | ~0.14k |
 | `app/src/lib/stats/x01/aim-rows.ts` | `sumAimRows()`, `rateOf()`, `ambiguousDarts()`, `poolRows()`: field-wise reductions of aim-section rows (D558) | canonical | ~0.35k |
 | `app/src/lib/stats/x01/aim-label.ts` | `aimLabel()`: board target key to short label (`TREBLE:20` to `T20`) (D558) | canonical | ~0.12k |
-| `app/src/lib/stats/x01/treble-card.ts` | `trebleCard()`: T20 treble share headline and the three-aim overlay rows from `large-target-accuracy` rows (D558) | canonical | ~0.39k |
+| `app/src/lib/stats/x01/treble-card.ts` | `trebleCard()`: T20 treble share headline and the three-aim overlay rows from `large-target-accuracy` rows (D558) | canonical | ~0.3k |
 | `app/src/lib/stats/x01/drift-card.ts` | `driftCard()` and `describeDrift()`: dart-1 drift sentence headline, per-dart and per-basis mean offset and spread from `aim-drift` rows (D558) | canonical | ~0.64k |
+| `app/src/lib/stats/x01/drift-describe.ts` | `describeDrift()`: mean offset in mm as "4 mm left, 2 mm low" (D558) | canonical | ~0.14k |
 | `app/src/lib/stats/sections/aim-section.ts` | `aimSection()`: `periodSection` plus summed `rows` and the `skippedSessions` report to `x01Quality` (D558) | canonical | ~0.34k |
 | `app/src/lib/stats/sections/treble-card.data.ts` | `trebleCardSection()` Alpine factory for the treble accuracy card (D558) | canonical | ~0.3k |
 | `app/src/lib/stats/sections/drift-card.data.ts` | `driftCardSection()` Alpine factory for the aim drift card (D558) | canonical | ~0.32k |
@@ -593,7 +594,7 @@ Registered for discoverability — the design lives in `10-Statistics/00-Overvie
 | `app/src/components/layout/games/statistics/X01DataQualityLine.astro` | Muted line: sessions the aim sections could not analyse (D558) | canonical | ~0.08k |
 | `app/src/components/layout/games/statistics/TrebleOverlay.astro` | Treble accuracy overlay table (D558) | canonical | ~0.25k |
 | `app/src/components/layout/games/statistics/DriftOverlay.astro` | Aim drift overlay table (D558) | canonical | ~0.25k |
-| `app/tests/lib/stats/x01/aim-rows.test.ts`, `app/tests/lib/stats/x01/aim-label.test.ts`, `app/tests/lib/stats/x01/treble-card.test.ts`, `app/tests/lib/stats/x01/drift-card.test.ts`, `app/tests/lib/stats/sections/aim-section.test.ts`, `app/tests/lib/stats/sections/treble-card.data.test.ts`, `app/tests/lib/stats/sections/drift-card.data.test.ts`, `app/tests/stores/x01-quality.store.test.ts` | Tests for the aim helpers, the two cards, `aimSection()` and the quality store (D558) | canonical | ~3k |
+| `app/tests/lib/stats/x01/aim-rows.test.ts`, `app/tests/lib/stats/x01/aim-label.test.ts`, `app/tests/lib/stats/x01/treble-card.test.ts`, `app/tests/lib/stats/x01/drift-card.test.ts`, `app/tests/lib/stats/x01/drift-describe.test.ts`, `app/tests/lib/stats/sections/aim-section.test.ts`, `app/tests/lib/stats/sections/treble-card.data.test.ts`, `app/tests/lib/stats/sections/drift-card.data.test.ts`, `app/tests/stores/x01-quality.store.test.ts` | Tests for the aim helpers, the two cards, `aimSection()` and the quality store (D558) | canonical | ~3k |
 | `app/tests/lib/stats/x01/periods.test.ts`, `app/tests/lib/stats/x01/summaries.test.ts`, `app/tests/lib/stats/x01/format.test.ts`, `app/tests/lib/stats/x01/overview-fetch.test.ts`, `app/tests/lib/stats/sections/x01-overview.data.test.ts` | Tests for the 501 page helpers and the `x01Overview()` factory (D558) | canonical | ~2.5k |
 | `app/tests/lib/stats/variation.test.ts`, `app/tests/pages/api/statistics/games-variations.test.ts`, `app/tests/stores/stats-variation.store.test.ts`, `app/tests/lib/stats/sections/game-variations.data.test.ts` | Tests for the route, `variationParam()`, the store and the picker factory (D556) | canonical | — |
 

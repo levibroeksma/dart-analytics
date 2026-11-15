@@ -74,4 +74,18 @@ describe("trebleCard", () => {
       other: null,
     });
   });
+
+  it("a row at exactly the row floor shows its rates", () => {
+    const card = trebleCard({
+      "TREBLE:19|SOLE": {
+        darts: 10,
+        trebles: 5,
+        singles: 3,
+        neighbourLeft: 1,
+        neighbourRight: 1,
+        other: 0,
+      },
+    });
+    expect(card.rows[1]).toMatchObject({ darts: 10, treble: 0.5, other: 0 });
+  });
 });

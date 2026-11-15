@@ -1,20 +1,12 @@
 import { MIN_ROW_SAMPLE, MIN_TARGET_SAMPLE } from "@lib/stats/constants";
 import { ambiguousDarts, poolRows } from "./aim-rows";
+import { describeDrift } from "./drift-describe";
 import type { AimRows, DriftCard, DriftRow } from "./types";
 
 const DARTS: DriftRow["dart"][] = [1, 2, 3];
 
-function words(mm: number, negative: string, positive: string): string | null {
-  const rounded = Math.round(Math.abs(mm));
-  if (rounded === 0) return null;
-  return `${rounded} mm ${mm < 0 ? negative : positive}`;
-}
-
-/** "4 mm left, 2 mm low"; an axis that rounds to zero is omitted, both zero reads "on target". Board y grows downward, so positive dy is low. */
-export function describeDrift(meanDx: number, meanDy: number): string {
-  const parts = [words(meanDx, "left", "right"), words(meanDy, "high", "low")];
-  const text = parts.filter((part) => part !== null).join(", ");
-  return text === "" ? "on target" : text;
+function variance(sumSquares: number, mean: number, n: number): number {
+  return Math.max(0, sumSquares / n - mean ** 2);
 }
 
 function driftRow(dart: DriftRow["dart"], f: Record<string, number>): DriftRow {
@@ -23,51 +15,49 @@ function driftRow(dart: DriftRow["dart"], f: Record<string, number>): DriftRow {
     return { dart, n, meanDx: null, meanDy: null, spread: null };
   const meanDx = f.sumDx / n;
   const meanDy = f.sumDy / n;
-  const varX = Math.max(0, f.sumDxDx / n - meanDx ** 2);
-  const varY = Math.max(0, f.sumDyDy / n - meanDy ** 2);
-  return { dart, n, meanDx, meanDy, spread: Math.sqrt(varX + varY) };
+  const spread = Math.sqrt(
+    variance(f.sumDxDx, meanDx, n) + variance(f.sumDyDy, meanDy, n),
+  );
+  return { dart, n, meanDx, meanDy, spread };
 }
 
-function parts(key: string): { basis: string; dart: string } {
+function keyOf(key: string): { basis: string; dart: string } {
   const [basis = "", , dart = ""] = key.split("|");
   return { basis, dart };
 }
 
+function dartRow(rows: AimRows, dart: DriftRow["dart"], basis?: string) {
+  const matches = (key: string) => {
+    const k = keyOf(key);
+    return (
+      k.dart === String(dart) && (basis === undefined || k.basis === basis)
+    );
+  };
+  return driftRow(dart, poolRows(rows, matches));
+}
+
 function basisRows(rows: AimRows): (DriftRow & { basis: string })[] {
-  const bases = [...new Set(Object.keys(rows).map((k) => parts(k).basis))]
-    .filter((basis) => basis !== "AMBIGUOUS" && basis !== "")
-    .sort();
-  return bases.flatMap((basis) =>
-    DARTS.map((dart) => ({
-      basis,
-      ...driftRow(
-        dart,
-        poolRows(rows, (k) => {
-          const p = parts(k);
-          return p.basis === basis && p.dart === String(dart);
-        }),
+  const bases = new Set(Object.keys(rows).map((key) => keyOf(key).basis));
+  bases.delete("AMBIGUOUS");
+  return [...bases]
+    .sort()
+    .flatMap((basis) =>
+      DARTS.map((dart) => ({ basis, ...dartRow(rows, dart, basis) })).filter(
+        (row) => row.n > 0,
       ),
-    })).filter((row) => row.n > 0),
-  );
+    );
 }
 
 /** The aim drift card over summed `aim-drift` rows, pooled over aim and resolution. */
 export function driftCard(rows: AimRows): DriftCard {
-  const byDart = DARTS.map((dart) =>
-    driftRow(
-      dart,
-      poolRows(rows, (k) => parts(k).dart === String(dart)),
-    ),
-  );
-  const first = byDart[0];
-  const headline =
-    first.n < MIN_TARGET_SAMPLE ||
-    first.meanDx === null ||
-    first.meanDy === null
+  const byDart = DARTS.map((dart) => dartRow(rows, dart));
+  const [first] = byDart;
+  const sentence =
+    first.meanDx === null || first.meanDy === null
       ? null
       : describeDrift(first.meanDx, first.meanDy);
   return {
-    headline,
+    headline: first.n < MIN_TARGET_SAMPLE ? null : sentence,
     n: first.n,
     byDart,
     byBasis: basisRows(rows),

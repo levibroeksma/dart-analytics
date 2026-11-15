@@ -30,11 +30,10 @@ export function driftCardSection() {
       return `1st dart drift, ${this.card.n} darts`;
     },
     get table() {
+      const { byDart, byBasis } = this.card;
       return [
-        ...this.card.byDart.map((row) => line(row, `Dart ${row.dart}`)),
-        ...this.card.byBasis.map((row) =>
-          line(row, `${row.basis} · dart ${row.dart}`),
-        ),
+        ...byDart.map((row) => line(row, `Dart ${row.dart}`)),
+        ...byBasis.map((row) => line(row, `${row.basis} · dart ${row.dart}`)),
       ];
     },
   };

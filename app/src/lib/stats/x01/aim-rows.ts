@@ -2,17 +2,22 @@ import type { SeriesBucket } from "@lib/types";
 import type { AimCountMetrics } from "@modules/types";
 import type { AimRows } from "./types";
 
+function addFields(
+  target: Record<string, number>,
+  fields: Record<string, number>,
+): void {
+  for (const [field, value] of Object.entries(fields))
+    target[field] = (target[field] ?? 0) + value;
+}
+
 /** Field-wise sum of every bucket's rows. */
 export function sumAimRows(
   buckets: readonly SeriesBucket<AimCountMetrics>[],
 ): AimRows {
   const total: AimRows = {};
   for (const bucket of buckets)
-    for (const [key, fields] of Object.entries(bucket.metrics)) {
-      const row = (total[key] ??= {});
-      for (const [field, value] of Object.entries(fields))
-        row[field] = (row[field] ?? 0) + value;
-    }
+    for (const [key, fields] of Object.entries(bucket.metrics))
+      addFields((total[key] ??= {}), fields);
   return total;
 }
 
@@ -26,15 +31,13 @@ export function ambiguousDarts(rows: AimRows): number {
   return rows.AMBIGUOUS?.darts ?? 0;
 }
 
-/** Rows whose key starts with `prefix`, summed field-wise into one row. */
+/** Rows whose key passes `matches`, summed field-wise into one row. */
 export function poolRows(
   rows: AimRows,
   matches: (key: string) => boolean,
 ): Record<string, number> {
   const pooled: Record<string, number> = {};
   for (const [key, fields] of Object.entries(rows))
-    if (matches(key))
-      for (const [field, value] of Object.entries(fields))
-        pooled[field] = (pooled[field] ?? 0) + value;
+    if (matches(key)) addFields(pooled, fields);
   return pooled;
 }

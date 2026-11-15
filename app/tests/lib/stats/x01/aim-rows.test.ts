@@ -43,4 +43,9 @@ describe("aim rows", () => {
       ),
     ).toEqual({ n: 3 });
   });
+
+  it("sums an empty series to no rows and pools nothing when nothing matches", () => {
+    expect(sumAimRows([])).toEqual({});
+    expect(poolRows({ "A|1": { n: 1 } }, () => false)).toEqual({});
+  });
 });
