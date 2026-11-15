@@ -449,3 +449,10 @@ Decision: the Home reads (`findHomeScoring`, `findHomeHeatmapCells`) count a `50
 Reason: a 301, 701 or custom game mixed into the Home first-9 average and heatmap is the same clutter D556 removed from the 501 page; the owner wants Home to describe real 501 games.
 Consequences: `10-Statistics/00-Overview.md` 1.9.0 (§6 `GET home` row) and `06-API/04-Endpoint-Contracts.md` 1.20.0 (the Home endpoint scope). Read-time and derived, nothing stored; no migration.
 Supersedes: none.
+
+### D558 — The 501 statistics page is its own layout: averages row and tiles first, delta against the preceding period, completion dropped
+Status: Accepted · Date: 2026-11-15
+Decision: `/statistics` renders `X01StatsOverview.astro` for `X01_LAYOUTS` (`501_V1`, `501_V2`), no longer the heatmap-only layout. It shows an averages row (3-dart average, first nine, darts per leg) and a tiles row (checkout %, bust %, best leg), then the heatmap and the session list; the completion donut is not shown on 501. Every value follows the page-level Period and the variation. Each value compares with the preceding equal period from one bucketed request over the doubled `trendWindow`; All Time has no previous period, so no delta. Darts per leg and bust % are lower-is-better. Best leg is all time, shown with the variation, and opens its session's replay. Count minimums for later cards: a card headline needs `MIN_TARGET_SAMPLE` (30) darts, a breakdown row `MIN_ROW_SAMPLE` (10) to show a rate.
+Reason: the owner wants the 501 data readable at a glance and judged completion irrelevant; the aim cards follow in later slices of `2026-11-14-x01-statistics-page-design.md`.
+Consequences: `10-Statistics/01-Section-Catalog.md` 1.9.0 (§2 layout paragraph). No endpoint, section or migration changes. `HEATMAP_ONLY_LAYOUTS` loses the two 501 keys.
+Supersedes: none.
