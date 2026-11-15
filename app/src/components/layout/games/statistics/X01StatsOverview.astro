@@ -8,9 +8,7 @@
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
 import X01AveragesRow from "./X01AveragesRow.astro";
 import X01TilesRow from "./X01TilesRow.astro";
-import AimCard from "./AimCard.astro";
-import TrebleOverlay from "./TrebleOverlay.astro";
-import DriftOverlay from "./DriftOverlay.astro";
+import AimCardSection from "./AimCardSection.astro";
 import X01DataQualityLine from "./X01DataQualityLine.astro";
 import GameHeatmapSection from "./GameHeatmapSection.astro";
 import GameSessionList from "./GameSessionList.astro";
@@ -29,44 +27,41 @@ import GameSessionList from "./GameSessionList.astro";
     <X01TilesRow />
   </div>
   <X01DataQualityLine />
-  <div
-    class="flex flex-col gap-2"
-    x-data="trebleCardSection()"
-  >
-    <ErrorAlert
-      showExpr="error !== null"
-      textExpr="error"
-    />
-    <AimCard
-      title="TREBLE ACCURACY"
-      titleId="treble-card-title"
-      headlineExpr="headline"
-      captionExpr="caption"
-      loadingExpr="loading"
-      errorExpr="error"
-    >
-      <TrebleOverlay />
-    </AimCard>
-  </div>
-  <div
-    class="flex flex-col gap-2"
-    x-data="driftCardSection()"
-  >
-    <ErrorAlert
-      showExpr="error !== null"
-      textExpr="error"
-    />
-    <AimCard
-      title="AIM DRIFT"
-      titleId="drift-card-title"
-      headlineExpr="headline"
-      captionExpr="caption"
-      loadingExpr="loading"
-      errorExpr="error"
-    >
-      <DriftOverlay />
-    </AimCard>
-  </div>
+  <AimCardSection
+    factory="trebleCardSection"
+    title="TREBLE ACCURACY"
+    titleId="treble-card-title"
+    headers={["Aim", "Treble", "Single", "Left", "Right", "Other"]}
+    footerExpr="`${card.ambiguous} ambiguous darts · ${card.darts} T20 darts`"
+  />
+  <AimCardSection
+    factory="driftCardSection"
+    title="AIM DRIFT"
+    titleId="drift-card-title"
+    headers={["Dart", "Across", "Down", "Spread"]}
+    footerExpr="`${card.ambiguous} ambiguous darts · ${card.n} 1st-dart samples. Across: negative is left. Down: positive is low.`"
+  />
+  <AimCardSection
+    factory="doublesCardSection"
+    title="DOUBLES"
+    titleId="doubles-card-title"
+    headers={["Double", "Hit", "Misses in/within/out", "Miss sectors 0-7"]}
+    footerExpr="`${card.ambiguous} ambiguous darts · ${card.darts} double darts`"
+  />
+  <AimCardSection
+    factory="preferenceCardSection"
+    title="DOUBLE PREFERENCE"
+    titleId="preference-card-title"
+    headers={["Double", "Split away", "Split rate", "Hits/attempts"]}
+    footerExpr="`${card.ambiguous} ambiguous darts · ${card.left} visits left on a double`"
+  />
+  <AimCardSection
+    factory="setupCardSection"
+    title="SETUP"
+    titleId="setup-card-title"
+    headers={["Basis · aim", "Hit", "Hits/attempts"]}
+    footerExpr="`${card.ambiguous} ambiguous darts · ${card.attempts} setup darts`"
+  />
   <GameHeatmapSection />
   <GameSessionList />
 </div>

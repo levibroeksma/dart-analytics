@@ -2,7 +2,7 @@ import { aimSection } from "@lib/stats/sections/aim-section";
 import { aimLabel } from "@lib/stats/x01/aim-label";
 import { formatRate } from "@lib/stats/x01/format";
 import { trebleCard } from "@lib/stats/x01/treble-card";
-import type { AimRows, TrebleCard } from "@lib/types";
+import type { AimRows, AimTableRow, TrebleCard } from "@lib/types";
 
 /** Alpine scope of the treble accuracy card: `large-target-accuracy` reduced to its card. */
 export function trebleCardSection() {
@@ -17,10 +17,10 @@ export function trebleCardSection() {
     get caption(): string {
       return `T20 treble rate, ${this.card.darts} darts`;
     },
-    get table(): { label: string; darts: number; cells: string[] }[] {
+    get table(): AimTableRow[] {
       return this.card.rows.map((row) => ({
         label: aimLabel(row.aim),
-        darts: row.darts,
+        count: row.darts,
         cells: [row.treble, row.single, row.left, row.right, row.other].map(
           formatRate,
         ),

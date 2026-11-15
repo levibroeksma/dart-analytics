@@ -60,4 +60,15 @@ describe("driftCard", () => {
     expect(card.ambiguous).toBe(5);
     expect(card.byBasis).toEqual([]);
   });
+
+  it("lists per-basis rows only for bases with samples, in name order", () => {
+    const card = driftCard({
+      "SETUP|TREBLE:20|2|SOLE": row(12, 0, 0),
+      "FINISH|DOUBLE:16|1|SOLE": row(40, -160, 80),
+    });
+    expect(card.byBasis.map((r) => `${r.basis}${r.dart}`)).toEqual([
+      "FINISH1",
+      "SETUP2",
+    ]);
+  });
 });
