@@ -50,3 +50,21 @@ export type TrebleCard = {
   rows: TrebleRow[];
   ambiguous: number;
 };
+
+/** Mean landing offset and spread of one dart number, in mm; stats are `null` under the row sample floor. */
+export type DriftRow = {
+  dart: 1 | 2 | 3;
+  n: number;
+  meanDx: number | null;
+  meanDy: number | null;
+  spread: number | null;
+};
+
+/** The aim drift card: dart-1 drift sentence as headline, per-dart and per-basis rows as overlay. */
+export type DriftCard = {
+  headline: string | null;
+  n: number;
+  byDart: DriftRow[];
+  byBasis: (DriftRow & { basis: string })[];
+  ambiguous: number;
+};
