@@ -8,6 +8,10 @@
 import ErrorAlert from "@components/ui/ErrorAlert.astro";
 import X01AveragesRow from "./X01AveragesRow.astro";
 import X01TilesRow from "./X01TilesRow.astro";
+import AimCard from "./AimCard.astro";
+import TrebleOverlay from "./TrebleOverlay.astro";
+import DriftOverlay from "./DriftOverlay.astro";
+import X01DataQualityLine from "./X01DataQualityLine.astro";
 import GameHeatmapSection from "./GameHeatmapSection.astro";
 import GameSessionList from "./GameSessionList.astro";
 ---
@@ -23,6 +27,45 @@ import GameSessionList from "./GameSessionList.astro";
     />
     <X01AveragesRow />
     <X01TilesRow />
+  </div>
+  <X01DataQualityLine />
+  <div
+    class="flex flex-col gap-2"
+    x-data="trebleCardSection()"
+  >
+    <ErrorAlert
+      showExpr="error !== null"
+      textExpr="error"
+    />
+    <AimCard
+      title="TREBLE ACCURACY"
+      titleId="treble-card-title"
+      headlineExpr="headline"
+      captionExpr="caption"
+      loadingExpr="loading"
+      errorExpr="error"
+    >
+      <TrebleOverlay />
+    </AimCard>
+  </div>
+  <div
+    class="flex flex-col gap-2"
+    x-data="driftCardSection()"
+  >
+    <ErrorAlert
+      showExpr="error !== null"
+      textExpr="error"
+    />
+    <AimCard
+      title="AIM DRIFT"
+      titleId="drift-card-title"
+      headlineExpr="headline"
+      captionExpr="caption"
+      loadingExpr="loading"
+      errorExpr="error"
+    >
+      <DriftOverlay />
+    </AimCard>
   </div>
   <GameHeatmapSection />
   <GameSessionList />

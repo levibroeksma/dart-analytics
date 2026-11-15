@@ -1,0 +1,14 @@
+---
+/**
+ * Muted line naming how many sessions the aim sections could not analyse.
+ * Reads the `x01Quality` store; hidden at zero.
+ */
+---
+
+<p
+  class="px-1 text-caption text-muted"
+  x-show="$store.x01Quality.skipped > 0"
+  x-cloak
+  x-text="`${$store.x01Quality.skipped} sessions could not be analysed`"
+>
+</p>

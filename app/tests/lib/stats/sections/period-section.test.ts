@@ -198,3 +198,15 @@ describe("periodSection", () => {
     expect(loadGameSection.mock.calls[0][2].variation).toBeUndefined();
   });
 });
+
+describe("periodSection skippedSessions", () => {
+  it("carries the series skipped count and resets on the next load", async () => {
+    loadGameSection.mockResolvedValueOnce({ buckets: [], skippedSessions: 4 });
+    const { s } = section();
+    await s.load(NOW);
+    expect(s.skippedSessions).toBe(4);
+    loadGameSection.mockResolvedValueOnce({ buckets: [] });
+    await s.load(NOW);
+    expect(s.skippedSessions).toBe(0);
+  });
+});

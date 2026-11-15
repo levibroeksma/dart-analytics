@@ -32,6 +32,7 @@ describe("registerStores", () => {
       "replay",
       "trainingSession",
       "activeSessions",
+      "x01Quality",
       "game",
       "boardInput",
       "checkoutHints",

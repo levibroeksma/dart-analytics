@@ -50,6 +50,8 @@ import { gameCompletionSection } from "@lib/stats/sections/game-completion.data"
 import { personalBestFinishSection } from "@lib/stats/sections/personal-best-finish.data";
 import { gameSessionList } from "@lib/stats/sections/game-session-list.data";
 import { gameVariations } from "@lib/stats/sections/game-variations.data";
+import { driftCardSection } from "@lib/stats/sections/drift-card.data";
+import { trebleCardSection } from "@lib/stats/sections/treble-card.data";
 import { x01Overview } from "@lib/stats/sections/x01-overview.data";
 import { routineBuilder } from "@lib/training/routines/routine-builder.data";
 import { schedulesIndex } from "@lib/training/schedules/schedules-index.data";
@@ -68,6 +70,8 @@ function registerStatisticsData(Alpine: Alpine) {
   Alpine.data("gameSessionList", gameSessionList);
   Alpine.data("gameVariations", gameVariations);
   Alpine.data("x01Overview", x01Overview);
+  Alpine.data("trebleCardSection", trebleCardSection);
+  Alpine.data("driftCardSection", driftCardSection);
 }
 
 export function registerRouteData(Alpine: Alpine) {

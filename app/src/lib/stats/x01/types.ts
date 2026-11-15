@@ -28,3 +28,43 @@ export type OverviewSections = {
   hasPrevious: boolean;
   failed: string[];
 };
+
+/** Summed aim-section rows: row key to field counts. */
+export type AimRows = Record<string, Record<string, number>>;
+
+/** One treble aim's overlay row; shares are `null` under the row sample floor. */
+export type TrebleRow = {
+  aim: "TREBLE:20" | "TREBLE:19" | "TREBLE:18";
+  darts: number;
+  treble: number | null;
+  single: number | null;
+  left: number | null;
+  right: number | null;
+  other: number | null;
+};
+
+/** The treble accuracy card: T20 hit share as headline, the three trebles as overlay rows. */
+export type TrebleCard = {
+  headline: number | null;
+  darts: number;
+  rows: TrebleRow[];
+  ambiguous: number;
+};
+
+/** Mean landing offset and spread of one dart number, in mm; stats are `null` under the row sample floor. */
+export type DriftRow = {
+  dart: 1 | 2 | 3;
+  n: number;
+  meanDx: number | null;
+  meanDy: number | null;
+  spread: number | null;
+};
+
+/** The aim drift card: dart-1 drift sentence as headline, per-dart and per-basis rows as overlay. */
+export type DriftCard = {
+  headline: string | null;
+  n: number;
+  byDart: DriftRow[];
+  byBasis: (DriftRow & { basis: string })[];
+  ambiguous: number;
+};
