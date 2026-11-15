@@ -10,6 +10,7 @@
  * @param {string} averageExpr Alpine expression yielding the average or `null`
  * @param {string} [deltaExpr] Alpine expression yielding the percent delta or `null`
  * @param {string} [subtextExpr] Alpine expression yielding a caption string or `null`; shown instead of the delta
+ * @param {boolean} [invertDelta] A fall is the good direction (darts per leg): a delta at or below zero is green
  * @param {string} [loadingExpr] Alpine expression for this card's loading flag (defaults to the section's `loading`)
  */
 interface Props {
@@ -17,6 +18,7 @@ interface Props {
   averageExpr: string;
   deltaExpr?: string;
   subtextExpr?: string;
+  invertDelta?: boolean;
   loadingExpr?: string;
 }
 
@@ -26,6 +28,7 @@ const {
   averageExpr,
   deltaExpr,
   subtextExpr,
+  invertDelta = false,
   loadingExpr = "loading",
 }: Props = Astro.props;
 
@@ -38,7 +41,7 @@ const showDelta = deltaExpr
   ? `!${loadingExpr} && ${deltaExpr} !== null`
   : "false";
 const deltaClass = deltaExpr
-  ? `${deltaExpr} >= 0 ? 'text-success' : 'text-error'`
+  ? `${deltaExpr} ${invertDelta ? "<=" : ">="} 0 ? 'text-success' : 'text-error'`
   : "";
 const deltaText = deltaExpr
   ? `${deltaExpr} === null ? '' : (${deltaExpr} >= 0 ? '+' : '') + ${deltaExpr}.toFixed(1) + '%'`

@@ -4,6 +4,7 @@ import AppLayout from "@layouts/AppLayout.astro";
 import Select from "@components/forms/Select.astro";
 import Toggle from "@components/layout/games/setup/Toggle.astro";
 import ScoreTrainingStatsOverview from "@components/layout/games/statistics/ScoreTrainingStatsOverview.astro";
+import X01StatsOverview from "@components/layout/games/statistics/X01StatsOverview.astro";
 import HeatmapStatsOverview from "@components/layout/games/statistics/HeatmapStatsOverview.astro";
 import GameVariationSelect from "@components/layout/games/statistics/GameVariationSelect.astro";
 import { HEATMAP_ONLY_LAYOUTS } from "@lib/stats/constants";
@@ -62,6 +63,9 @@ const scope = `{ tab: $store.routineStats.initialTab, game: ${JSON.stringify(gam
         <template x-if={`${x01Rulesets}.includes(game)`}>
           <GameVariationSelect />
         </template>
+        <template x-if={`${x01Rulesets}.includes(game)`}>
+          <X01StatsOverview />
+        </template>
         <template x-if="game === 'SCORE_TRAINING_V1'">
           <ScoreTrainingStatsOverview />
         </template>
@@ -69,7 +73,7 @@ const scope = `{ tab: $store.routineStats.initialTab, game: ${JSON.stringify(gam
           <HeatmapStatsOverview />
         </template>
         <template
-          x-if={`game !== 'SCORE_TRAINING_V1' && !${heatmapOnly}.includes(game)`}
+          x-if={`game !== 'SCORE_TRAINING_V1' && !${x01Rulesets}.includes(game) && !${heatmapOnly}.includes(game)`}
         >
           <p class="glass rounded-2xl p-4 text-sm text-muted-foreground">
             Statistics for this game are being rebuilt.

@@ -6,10 +6,14 @@ export const DEDICATED_STATS_LAYOUTS: ReadonlySet<string> = new Set([
   "SCORE_TRAINING_V1",
 ]);
 
+/** The minimum attempt count before one row of a card's breakdown shows a rate; smaller rows show their count only. */
+export const MIN_ROW_SAMPLE = 10;
+
+/** Ruleset versions whose `/statistics` view is the 501 layout (`X01StatsOverview.astro`): averages, tiles, aim cards, heatmap and session list. */
+export const X01_LAYOUTS: ReadonlySet<string> = new Set(["501_V1", "501_V2"]);
+
 /** Ruleset versions whose `/statistics` view is the plain heatmap alone (`HeatmapStatsOverview.astro`): board games, with a target picker where the heatmap takes a `target` (`heatmap-targets.ts`). */
 export const HEATMAP_ONLY_LAYOUTS: ReadonlySet<string> = new Set([
-  "501_V1",
-  "501_V2",
   "121_V1",
   "TUOD_V1",
   "SINGLES_V1",

@@ -1,0 +1,48 @@
+---
+/**
+ * 501 tiles row in the homepage `CareerTiles` style (mono key, display value,
+ * muted hint): checkout %, bust % and best leg. Reads the enclosing
+ * `x01Overview()` scope. The hints of checkout and bust are the change in
+ * percentage points against the preceding period; a loading tile shows a
+ * pulse bar in place of its value.
+ */
+import BestLegTile from "./BestLegTile.astro";
+---
+
+<div class="grid grid-cols-3 gap-2.5">
+  <div class="glass flex flex-col gap-1.5 rounded-xl px-3 py-3.5">
+    <span
+      class="truncate font-mono text-eyebrow font-semibold text-muted-foreground"
+    >
+      CHECKOUT
+    </span>
+    <span
+      class="font-display text-lg"
+      x-text="checkoutValue"
+    >
+    </span>
+    <span
+      class="min-h-lh text-caption text-muted"
+      x-text="checkoutHint"
+    >
+    </span>
+  </div>
+  <div class="glass flex flex-col gap-1.5 rounded-xl px-3 py-3.5">
+    <span
+      class="truncate font-mono text-eyebrow font-semibold text-muted-foreground"
+    >
+      BUST
+    </span>
+    <span
+      class="font-display text-lg"
+      x-text="bustValue"
+    >
+    </span>
+    <span
+      class="min-h-lh text-caption text-muted"
+      x-text="bustHint"
+    >
+    </span>
+  </div>
+  <BestLegTile />
+</div>

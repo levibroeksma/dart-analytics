@@ -1,0 +1,29 @@
+---
+/**
+ * The 501 statistics layout: averages row, tiles row, then the heatmap and the
+ * session list. One `x01Overview()` scope feeds the first two rows; the
+ * heatmap and the session list own their fetches. Completion is not shown on
+ * 501 (spec `2026-11-14-x01-statistics-page-design.md`).
+ */
+import ErrorAlert from "@components/ui/ErrorAlert.astro";
+import X01AveragesRow from "./X01AveragesRow.astro";
+import X01TilesRow from "./X01TilesRow.astro";
+import GameHeatmapSection from "./GameHeatmapSection.astro";
+import GameSessionList from "./GameSessionList.astro";
+---
+
+<div class="flex flex-col gap-2">
+  <div
+    class="flex flex-col gap-2"
+    x-data="x01Overview()"
+  >
+    <ErrorAlert
+      showExpr="error"
+      textExpr="error"
+    />
+    <X01AveragesRow />
+    <X01TilesRow />
+  </div>
+  <GameHeatmapSection />
+  <GameSessionList />
+</div>

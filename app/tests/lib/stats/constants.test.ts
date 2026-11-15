@@ -2,7 +2,9 @@ import { describe, it, expect } from "vitest";
 import {
   DEDICATED_STATS_LAYOUTS,
   HEATMAP_ONLY_LAYOUTS,
+  MIN_ROW_SAMPLE,
   MIN_TARGET_SAMPLE,
+  X01_LAYOUTS,
 } from "@lib/stats/constants";
 
 describe("MIN_TARGET_SAMPLE", () => {
@@ -23,8 +25,6 @@ describe("HEATMAP_ONLY_LAYOUTS", () => {
     expect([...HEATMAP_ONLY_LAYOUTS].sort()).toEqual(
       [
         "121_V1",
-        "501_V1",
-        "501_V2",
         "ACE_V1",
         "AROUND_THE_CLOCK_V1",
         "BASEBALL_V1",
@@ -47,5 +47,23 @@ describe("HEATMAP_ONLY_LAYOUTS", () => {
     );
     for (const key of HEATMAP_ONLY_LAYOUTS)
       expect(DEDICATED_STATS_LAYOUTS.has(key)).toBe(false);
+  });
+});
+
+describe("X01_LAYOUTS", () => {
+  it("holds the 501 ruleset versions, outside the heatmap-only and dedicated sets", () => {
+    expect([...X01_LAYOUTS].sort()).toEqual(["501_V1", "501_V2"]);
+    for (const key of X01_LAYOUTS) {
+      expect(HEATMAP_ONLY_LAYOUTS.has(key)).toBe(false);
+      expect(DEDICATED_STATS_LAYOUTS.has(key)).toBe(false);
+    }
+  });
+});
+
+describe("MIN_ROW_SAMPLE", () => {
+  it("is a positive integer below MIN_TARGET_SAMPLE", () => {
+    expect(Number.isInteger(MIN_ROW_SAMPLE)).toBe(true);
+    expect(MIN_ROW_SAMPLE).toBeGreaterThan(0);
+    expect(MIN_ROW_SAMPLE).toBeLessThan(MIN_TARGET_SAMPLE);
   });
 });
