@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { shapeOf, sharedStateKeys } from "../../../support/factory-shape";
 
 const loadGameSection = vi.fn();
 
@@ -349,5 +350,43 @@ describe("x01Overview watchers", () => {
     expect(callsFor("leg-stats").some(([, , r]) => r.bucket === "none")).toBe(
       true,
     );
+  });
+});
+
+describe("x01Overview factory shape", () => {
+  it("exposes its methods and its derived values as accessors, not copied values", () => {
+    const shape = shapeOf(x01Overview());
+    for (const method of ["init()", "load()", "loadBestLeg()"])
+      expect(shape).toContain(method);
+    for (const accessor of [
+      "error get",
+      "threeDart get",
+      "checkoutHint get",
+      "bestLegSessionId get",
+      "isEmpty get",
+    ])
+      expect(shape).toContain(accessor);
+  });
+
+  it("creates its state per call: two instances share no object", () => {
+    expect(sharedStateKeys(x01Overview(), x01Overview())).toEqual([]);
+  });
+
+  it("recomputes a derived value after state changes", () => {
+    const { s } = overview();
+    expect(s.checkoutValue).toBe("—");
+    s.checkout = {
+      current: [
+        {
+          start: CURRENT[0],
+          end: CURRENT[1],
+          closed: true,
+          sampleSize: 1,
+          metrics: { "40": { chances: 10, finished: 5 } },
+        },
+      ],
+      previous: [],
+    };
+    expect(s.checkoutValue).toBe("50.0%");
   });
 });

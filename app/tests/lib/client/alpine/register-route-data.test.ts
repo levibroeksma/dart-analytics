@@ -115,6 +115,23 @@ describe("registerRouteData", () => {
     expect(data).toHaveBeenCalledWith(name, factory);
   });
 
+  it("registers every statistics page factory in one pass", () => {
+    const data = vi.fn();
+    registerRouteData({ data } as unknown as Alpine);
+    const names = data.mock.calls.map(([name]) => name);
+    for (const name of [
+      "statisticsRoutines",
+      "scoreTrendSection",
+      "gameHeatmapSection",
+      "gameCompletionSection",
+      "personalBestFinishSection",
+      "gameSessionList",
+      "gameVariations",
+      "x01Overview",
+    ])
+      expect(names.filter((n) => n === name)).toHaveLength(1);
+  });
+
   it("registers statisticsRoutines as an Alpine data factory", () => {
     const data = vi.fn();
     registerRouteData({ data } as unknown as Alpine);
