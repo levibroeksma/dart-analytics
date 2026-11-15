@@ -1,14 +1,17 @@
 import { GAME_TYPE_BY_RULESET } from "@lib/game/rulesets/capabilities";
 import { BOARD_RADII_MM } from "@lib/game/board/board-geometry.module";
+import { X01_LAYOUTS } from "@lib/stats/constants";
 import { heatmapTargetOptions } from "@lib/stats/heatmap-targets";
 import { loadGameSection } from "@lib/stats/load-game-section";
 import { heatmapWindow } from "@lib/stats/sections/score-trend-window";
 import { variationParam } from "@lib/stats/variation";
+import { fetchAimOptions } from "@lib/stats/x01/aim-options-fetch";
 import { heatStamps } from "@modules/stats/sections/heatmap-density.module";
 import type {
+  AimKey,
+  HeatmapTargetOption,
   RulesetVersionKey,
   SeriesBucket,
-  TargetKey,
   TrendRangeKey,
 } from "@lib/types";
 import type { HeatStamp, HeatmapMetrics } from "@modules/types";
@@ -22,8 +25,10 @@ type WatchesRange = {
     key: "rangeKey" | "game" | "target" | "variation",
     callback: () => void,
   ): void;
-  target: TargetKey | null;
+  target: AimKey | null;
   load(): Promise<void>;
+  loadAimOptions(): Promise<void>;
+  reload(): void;
 };
 
 const BOARD_SPAN_MM = BOARD_RADII_MM.surroundOuter * 2;
@@ -38,11 +43,13 @@ const BOARD_SPAN_MM = BOARD_RADII_MM.surroundOuter * 2;
  */
 export function gameHeatmapSection() {
   let ticket = 0;
+  let optionsTicket = 0;
   return {
     loading: true,
     error: null as string | null,
     bucket: null as SeriesBucket<HeatmapMetrics> | null,
-    target: null as TargetKey | null,
+    target: null as AimKey | null,
+    aimOptions: [] as HeatmapTargetOption[],
 
     get period(): TrendRangeKey {
       return (this as unknown as PageScope).$data.rangeKey;
@@ -53,20 +60,52 @@ export function gameHeatmapSection() {
       return GAME_TYPE_BY_RULESET[key as RulesetVersionKey];
     },
 
-    get targetOptions() {
-      return heatmapTargetOptions(this.gameTypeKey);
+    get isX01(): boolean {
+      return X01_LAYOUTS.has((this as unknown as PageScope).$data.game);
+    },
+
+    get targetOptions(): HeatmapTargetOption[] {
+      return this.isX01
+        ? this.aimOptions
+        : heatmapTargetOptions(this.gameTypeKey);
     },
 
     /** A game change clears the target: the previous game's target may not exist in the next one. */
     init(this: WatchesRange) {
-      this.$watch("rangeKey", () => void this.load());
+      this.$watch("rangeKey", () => this.reload());
       this.$watch("target", () => void this.load());
-      this.$watch("variation", () => void this.load());
+      this.$watch("variation", () => this.reload());
       this.$watch("game", () => {
+        void this.loadAimOptions();
         if (this.target === null) void this.load();
         else this.target = null;
       });
       void this.load();
+      void this.loadAimOptions();
+    },
+
+    reload(this: Pick<WatchesRange, "load" | "loadAimOptions">) {
+      void this.load();
+      void this.loadAimOptions();
+    },
+
+    /** On 501, reads the aim options for the period and variation and drops a picked aim that is no longer among them. */
+    async loadAimOptions(now: Date = new Date()) {
+      const mine = ++optionsTicket;
+      if (!this.isX01) {
+        this.aimOptions = [];
+        return;
+      }
+      const scope = (this as unknown as PageScope).$data;
+      const options = await fetchAimOptions(
+        this.period,
+        scope.variation,
+        now,
+      ).catch(() => [] as HeatmapTargetOption[]);
+      if (mine !== optionsTicket) return;
+      this.aimOptions = options;
+      if (!options.some((option) => option.value === this.target))
+        this.target = null;
     },
 
     async load(now: Date = new Date()) {

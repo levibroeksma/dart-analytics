@@ -587,6 +587,9 @@ Registered for discoverability — the design lives in `10-Statistics/00-Overvie
 | `app/src/lib/stats/x01/treble-card.ts` | `trebleCard()`: T20 treble share headline and the three-aim overlay rows from `large-target-accuracy` rows (D558) | canonical | ~0.3k |
 | `app/src/lib/stats/x01/drift-card.ts` | `driftCard()` and `describeDrift()`: dart-1 drift sentence headline, per-dart and per-basis mean offset and spread from `aim-drift` rows (D558) | canonical | ~0.2k |
 | `app/src/lib/stats/x01/drift-describe.ts` | `describeDrift()`: mean offset in mm as "4 mm left, 2 mm low" (D558) | canonical | ~0.14k |
+| `app/src/lib/stats/x01/aim-options.ts` | `aimOptionsFromDrift()`: the 501 heatmap picker's "All aims" plus each distinct aim of `aim-drift` rows, by kind and number (D558) | canonical | ~0.283k |
+| `app/src/lib/stats/x01/aim-options-fetch.ts` | `fetchAimOptions()`: the un-bucketed 501 `aim-drift` read for a period and variation, reduced to picker options (D558) | canonical | ~0.239k |
+| `app/tests/lib/stats/x01/aim-options.test.ts`, `app/tests/lib/stats/x01/aim-options-fetch.test.ts` | Tests for the 501 heatmap aim options (D558) | canonical | ~1.6k |
 | `app/src/lib/stats/x01/aim-pool.ts` | `addFields()`, `poolRows()`: field-wise pooling of aim rows (D558) | canonical | ~0.162k |
 | `app/src/lib/stats/x01/aim-tally.ts` | `tallyRows()`, `sumBy()`: group `|`-keyed aim rows into per-id accumulators (D558) | canonical | ~0.244k |
 | `app/src/lib/stats/x01/drift-row.ts` | `dartRow()`, `basisRows()`, `keyOf()`: pooled drift rows per dart number and basis (D558) | canonical | ~0.423k |
