@@ -1,8 +1,11 @@
 import { describe, it, expect } from "vitest";
+import { GAME_TYPE_BY_RULESET } from "@lib/game/rulesets/capabilities";
 import {
   DEDICATED_STATS_LAYOUTS,
   HEATMAP_ONLY_LAYOUTS,
+  MIN_ROW_SAMPLE,
   MIN_TARGET_SAMPLE,
+  X01_LAYOUTS,
 } from "@lib/stats/constants";
 
 describe("MIN_TARGET_SAMPLE", () => {
@@ -23,8 +26,6 @@ describe("HEATMAP_ONLY_LAYOUTS", () => {
     expect([...HEATMAP_ONLY_LAYOUTS].sort()).toEqual(
       [
         "121_V1",
-        "501_V1",
-        "501_V2",
         "ACE_V1",
         "AROUND_THE_CLOCK_V1",
         "BASEBALL_V1",
@@ -47,5 +48,33 @@ describe("HEATMAP_ONLY_LAYOUTS", () => {
     );
     for (const key of HEATMAP_ONLY_LAYOUTS)
       expect(DEDICATED_STATS_LAYOUTS.has(key)).toBe(false);
+  });
+});
+
+describe("X01_LAYOUTS", () => {
+  it("holds the 501 ruleset versions, outside the heatmap-only and dedicated sets", () => {
+    expect([...X01_LAYOUTS].sort()).toEqual(["501_V1", "501_V2"]);
+    for (const key of X01_LAYOUTS) {
+      expect(HEATMAP_ONLY_LAYOUTS.has(key)).toBe(false);
+      expect(DEDICATED_STATS_LAYOUTS.has(key)).toBe(false);
+    }
+  });
+});
+
+describe("X01_LAYOUTS against the ruleset table", () => {
+  it("names exactly the ruleset versions of game type 501", () => {
+    const keys = Object.entries(GAME_TYPE_BY_RULESET)
+      .filter(([, gameTypeKey]) => gameTypeKey === "501")
+      .map(([rulesetVersionKey]) => rulesetVersionKey)
+      .sort();
+    expect([...X01_LAYOUTS].sort()).toEqual(keys);
+  });
+});
+
+describe("MIN_ROW_SAMPLE", () => {
+  it("is a positive integer below MIN_TARGET_SAMPLE", () => {
+    expect(Number.isInteger(MIN_ROW_SAMPLE)).toBe(true);
+    expect(MIN_ROW_SAMPLE).toBeGreaterThan(0);
+    expect(MIN_ROW_SAMPLE).toBeLessThan(MIN_TARGET_SAMPLE);
   });
 });

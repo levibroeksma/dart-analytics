@@ -1,0 +1,28 @@
+---
+/**
+ * 501 averages row: 3-dart average, first nine and darts per leg as square
+ * glass cards, each with the percent change against the preceding period.
+ * Reads the enclosing `x01Overview()` scope. Darts per leg is lower-is-better,
+ * so its fall renders green.
+ */
+import ScoreAverageCard from "./ScoreAverageCard.astro";
+---
+
+<div class="grid grid-cols-3 gap-2">
+  <ScoreAverageCard
+    label="3-dart avg"
+    averageExpr="threeDart"
+    deltaExpr="threeDartDelta"
+  />
+  <ScoreAverageCard
+    label="First nine"
+    averageExpr="firstNine"
+    deltaExpr="firstNineDelta"
+  />
+  <ScoreAverageCard
+    label="Darts / leg"
+    averageExpr="legAverage"
+    deltaExpr="legAverageDelta"
+    invertDelta
+  />
+</div>

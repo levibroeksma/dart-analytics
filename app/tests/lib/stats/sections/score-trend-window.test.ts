@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { splitByBoundary } from "@lib/stats/x01/periods";
 import {
   bestSessionAverage,
   formatShortDate,
@@ -178,6 +179,14 @@ describe("splitPeriods", () => {
       previous: [a],
       current: [b],
     });
+  });
+
+  it("splits exactly as the generic splitByBoundary does", () => {
+    for (const boundary of [null, "2026-08-15T00:00:00.000Z"]) {
+      expect(splitPeriods([a, b], boundary)).toEqual(
+        splitByBoundary([a, b], boundary),
+      );
+    }
   });
 
   it("puts every bucket in current when there is no boundary", () => {

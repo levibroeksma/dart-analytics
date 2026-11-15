@@ -1,0 +1,26 @@
+---
+/**
+ * 501 tiles row: checkout %, bust % and best leg. Reads the enclosing
+ * `x01Overview()` scope. The hint of checkout and bust is the change in
+ * percentage points against the preceding period, green for the good
+ * direction (a rise in checkout, a fall in bust).
+ */
+import BestLegTile from "./BestLegTile.astro";
+import X01StatTile from "./X01StatTile.astro";
+---
+
+<div class="grid grid-cols-3 gap-2.5">
+  <X01StatTile
+    label="CHECKOUT"
+    valueExpr="checkoutValue"
+    hintExpr="checkoutHint"
+    hintClassExpr="checkoutDelta === null ? 'text-muted' : (checkoutDelta >= 0 ? 'text-success' : 'text-error')"
+  />
+  <X01StatTile
+    label="BUST"
+    valueExpr="bustValue"
+    hintExpr="bustHint"
+    hintClassExpr="bustDelta === null ? 'text-muted' : (bustDelta <= 0 ? 'text-success' : 'text-error')"
+  />
+  <BestLegTile />
+</div>

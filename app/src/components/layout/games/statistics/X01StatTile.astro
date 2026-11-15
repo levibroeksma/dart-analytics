@@ -1,0 +1,63 @@
+---
+/**
+ * One 501 tile in the homepage `CareerTiles` style: mono key, display value,
+ * muted hint. Reads the enclosing `x01Overview()` scope; a pulse bar stands in
+ * for the value and the hint while `loading`.
+ * @param {string} label Tile key
+ * @param {string} valueExpr Alpine expression yielding the value text
+ * @param {string} hintExpr Alpine expression yielding the hint text
+ * @param {string} hintClassExpr Alpine expression yielding the hint's colour classes
+ */
+interface Props {
+  label: string;
+  valueExpr: string;
+  hintExpr: string;
+  hintClassExpr: string;
+}
+
+// Props
+const { label, valueExpr, hintExpr, hintClassExpr }: Props = Astro.props;
+
+// Lib
+import { cn } from "@client/cn";
+
+// Styles
+const skeleton =
+  "inline-block h-lh animate-pulse rounded-md bg-muted-foreground/80 align-top";
+---
+
+<div class="glass flex flex-col gap-1.5 rounded-xl px-3 py-3.5">
+  <span
+    class="truncate font-mono text-eyebrow font-semibold text-muted-foreground"
+  >
+    {label}
+  </span>
+  <span class="font-display text-lg">
+    <span
+      class={cn(skeleton, "w-12")}
+      x-show="loading"
+      x-cloak
+    >
+    </span>
+    <span
+      x-show="!loading"
+      x-cloak
+      x-text={valueExpr}
+    >
+    </span>
+  </span>
+  <span
+    class="min-h-lh text-caption"
+    x-show="!loading"
+    x-cloak
+    x-text={hintExpr}
+    {...{ ":class": hintClassExpr }}
+  >
+  </span>
+  <span
+    class={cn(skeleton, "w-10 text-caption")}
+    x-show="loading"
+    x-cloak
+  >
+  </span>
+</div>

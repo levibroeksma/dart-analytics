@@ -1,0 +1,79 @@
+---
+/**
+ * 501 best-leg tile: the fewest darts in a finished leg, all time and for the
+ * selected variation. With a best leg the tile is a `GrowingCard` that grows
+ * into that session's replay (as `ReplayCard.astro`); with none it is a plain
+ * tile showing a pulse bar while the read is in flight and a dash after. Reads the enclosing `x01Overview()` scope.
+ */
+import Button from "@components/forms/Button.astro";
+import GrowingCard from "@components/ui/GrowingCard.astro";
+import SessionReplay from "@components/layout/statistics/SessionReplay.astro";
+---
+
+<template x-if="bestLegSessionId !== null">
+  <GrowingCard
+    class="gap-1.5 rounded-xl px-3 py-3.5"
+    @expand="$store.replay.open(bestLegSessionId)"
+  >
+    <div
+      class="flex flex-col gap-1.5"
+      x-show="!open"
+      x-cloak
+    >
+      <span
+        class="truncate font-mono text-eyebrow font-semibold text-muted-foreground"
+      >
+        BEST LEG
+      </span>
+      <span
+        class="font-display text-lg"
+        x-text="bestLegValue"
+      >
+      </span>
+      <span class="text-caption text-muted">Tap to replay</span>
+    </div>
+    <Button
+      variant="ghost"
+      class="ml-auto size-10 shrink-0 cursor-pointer gap-0 rounded-full p-0 text-3xl font-normal text-foreground"
+      loadingExpr="false"
+      ariaLabel="Close replay"
+      x-show="open"
+      x-cloak
+      @click.stop="collapse()"
+    >
+      <span
+        slot="iconBefore"
+        class="rotate-45"
+      >
+        +
+      </span>
+    </Button>
+    <template x-if="open">
+      <SessionReplay />
+    </template>
+  </GrowingCard>
+</template>
+<template x-if="bestLegSessionId === null">
+  <div class="glass flex flex-col gap-1.5 rounded-xl px-3 py-3.5">
+    <span
+      class="truncate font-mono text-eyebrow font-semibold text-muted-foreground"
+    >
+      BEST LEG
+    </span>
+    <span class="font-display text-lg">
+      <span
+        class="inline-block h-lh w-12 animate-pulse rounded-md bg-muted-foreground/80 align-top"
+        x-show="bestLegLoading"
+        x-cloak
+      >
+      </span>
+      <span
+        x-show="!bestLegLoading"
+        x-cloak
+        x-text="bestLegValue"
+      >
+      </span>
+    </span>
+    <span class="min-h-lh text-caption text-muted"></span>
+  </div>
+</template>

@@ -1,3 +1,4 @@
+import { splitByBoundary } from "@lib/stats/x01/periods";
 import type {
   ChartSeries,
   ChartSpec,
@@ -194,12 +195,7 @@ export function splitPeriods(
   buckets: readonly TrendSeriesBucket[],
   boundary: string | null,
 ): TrendPeriods {
-  if (boundary === null) return { previous: [], current: [...buckets] };
-  const edge = Date.parse(boundary);
-  return {
-    previous: buckets.filter((b) => Date.parse(b.end) <= edge),
-    current: buckets.filter((b) => Date.parse(b.end) > edge),
-  };
+  return splitByBoundary(buckets, boundary);
 }
 
 function threeDartAverage(points: number, darts: number): number | null {
