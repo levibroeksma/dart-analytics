@@ -409,6 +409,7 @@ export type TrendPeriods = {
   current: SeriesBucket<ScoringTrendMetrics>[];
 };
 export * from "./sections/types";
+export * from "./x01/types";
 
 /** Where a replay's back link returns on `/statistics`: the Routines tab's routine and, when known, its step. */
 export type RoutinesLocation = { routineKey: string; stepKey: string | null };
