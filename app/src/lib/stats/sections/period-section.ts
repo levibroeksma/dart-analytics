@@ -41,6 +41,7 @@ export function periodSection<M>(sectionId: SectionId) {
     loading: true,
     error: null as string | null,
     buckets: [] as SeriesBucket<M>[],
+    skippedSessions: 0,
 
     period(): TrendRangeKey {
       return (this as unknown as PageScope).$data.rangeKey;
@@ -61,6 +62,7 @@ export function periodSection<M>(sectionId: SectionId) {
       this.loading = true;
       this.error = null;
       this.buckets = [];
+      this.skippedSessions = 0;
       const gameTypeKey = this.gameTypeKey();
       if (gameTypeKey === undefined) {
         this.loading = false;
@@ -79,6 +81,7 @@ export function periodSection<M>(sectionId: SectionId) {
         });
         if (mine !== ticket) return;
         this.buckets = series.buckets;
+        this.skippedSessions = series.skippedSessions ?? 0;
       } catch (cause) {
         if (mine !== ticket) return;
         this.error = cause instanceof Error ? cause.message : "load failed";

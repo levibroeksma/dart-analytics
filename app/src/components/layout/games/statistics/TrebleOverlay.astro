@@ -1,0 +1,42 @@
+---
+/**
+ * Treble accuracy overlay: one row per treble aim with the five shares, then
+ * the ambiguous-dart count. Reads the enclosing `trebleCardSection()` scope.
+ */
+---
+
+<table class="w-full text-caption">
+  <thead>
+    <tr class="text-left font-mono text-eyebrow text-muted-foreground">
+      <th scope="col">Aim</th>
+      <th scope="col">Treble</th>
+      <th scope="col">Single</th>
+      <th scope="col">Left</th>
+      <th scope="col">Right</th>
+      <th scope="col">Other</th>
+    </tr>
+  </thead>
+  <tbody>
+    <template
+      x-for="row in table"
+      :key="row.label"
+    >
+      <tr>
+        <th
+          scope="row"
+          class="text-left font-mono"
+          x-text="`${row.label} (${row.darts})`"
+        >
+        </th>
+        <template x-for="cell in row.cells">
+          <td x-text="cell"></td>
+        </template>
+      </tr>
+    </template>
+  </tbody>
+</table>
+<p
+  class="text-caption text-muted"
+  x-text="`${card.ambiguous} ambiguous darts · ${card.darts} T20 darts`"
+>
+</p>

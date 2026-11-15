@@ -28,3 +28,25 @@ export type OverviewSections = {
   hasPrevious: boolean;
   failed: string[];
 };
+
+/** Summed aim-section rows: row key to field counts. */
+export type AimRows = Record<string, Record<string, number>>;
+
+/** One treble aim's overlay row; shares are `null` under the row sample floor. */
+export type TrebleRow = {
+  aim: "TREBLE:20" | "TREBLE:19" | "TREBLE:18";
+  darts: number;
+  treble: number | null;
+  single: number | null;
+  left: number | null;
+  right: number | null;
+  other: number | null;
+};
+
+/** The treble accuracy card: T20 hit share as headline, the three trebles as overlay rows. */
+export type TrebleCard = {
+  headline: number | null;
+  darts: number;
+  rows: TrebleRow[];
+  ambiguous: number;
+};

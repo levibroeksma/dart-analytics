@@ -1,0 +1,95 @@
+---
+/**
+ * A 501 aim card: headline on the face, breakdown in the overlay the card
+ * grows into on tap. The default slot is the overlay body. Expressions read
+ * the enclosing section scope.
+ * @param {string} title Card title
+ * @param {string} titleId Id of the title element, for the overlay's label
+ * @param {string} headlineExpr Alpine expression yielding the headline text
+ * @param {string} captionExpr Alpine expression yielding the caption text
+ * @param {string} loadingExpr Alpine expression: the section is loading
+ * @param {string} errorExpr Alpine expression: the section's error, or null
+ */
+import Button from "@components/forms/Button.astro";
+import GrowingCard from "@components/ui/GrowingCard.astro";
+
+interface Props {
+  title: string;
+  titleId: string;
+  headlineExpr: string;
+  captionExpr: string;
+  loadingExpr: string;
+  errorExpr: string;
+}
+
+// Props
+const {
+  title,
+  titleId,
+  headlineExpr,
+  captionExpr,
+  loadingExpr,
+  errorExpr,
+}: Props = Astro.props;
+---
+
+<GrowingCard class="gap-1.5 rounded-xl px-3 py-3.5">
+  <div class="flex items-center gap-2">
+    <span
+      id={titleId}
+      class="truncate font-mono text-eyebrow font-semibold text-muted-foreground"
+    >
+      {title}
+    </span>
+    <Button
+      variant="ghost"
+      class="ml-auto size-10 shrink-0 cursor-pointer gap-0 rounded-full p-0 text-3xl font-normal text-foreground"
+      loadingExpr="false"
+      ariaLabel={`Close ${title}`}
+      x-show="open"
+      x-cloak
+      @click.stop="collapse()"
+    >
+      <span
+        slot="iconBefore"
+        class="rotate-45"
+      >
+        +
+      </span>
+    </Button>
+  </div>
+  <div
+    class="flex flex-col gap-1.5"
+    x-show="!open"
+    x-cloak
+  >
+    <span class="font-display text-lg">
+      <span
+        class="inline-block h-lh w-12 animate-pulse rounded-md bg-muted-foreground/80 align-top"
+        x-show={loadingExpr}
+        x-cloak
+      >
+      </span>
+      <span
+        x-show={`!(${loadingExpr})`}
+        x-cloak
+        x-text={`(${errorExpr}) !== null ? '—' : ${headlineExpr}`}
+      >
+      </span>
+    </span>
+    <span
+      class="min-h-lh text-caption text-muted"
+      x-show={`!(${loadingExpr})`}
+      x-cloak
+      x-text={captionExpr}
+    >
+    </span>
+  </div>
+  <div
+    class="flex flex-col gap-2"
+    x-show="open"
+    x-cloak
+  >
+    <slot />
+  </div>
+</GrowingCard>

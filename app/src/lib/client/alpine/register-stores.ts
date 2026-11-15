@@ -13,6 +13,7 @@ import { settingsStore } from "@stores/settings.store";
 import { statsStore } from "@stores/stats.store";
 import { statsVariationStore } from "@stores/stats-variation.store";
 import { trainingSessionStore } from "@stores/training-session.store";
+import { x01QualityStore } from "@stores/x01-quality.store";
 
 export function registerStores(Alpine: Alpine) {
   Alpine.store("auth", authStore());
@@ -24,6 +25,7 @@ export function registerStores(Alpine: Alpine) {
   Alpine.store("replay", replayStore());
   Alpine.store("trainingSession", trainingSessionStore());
   Alpine.store("activeSessions", activeSessionsStore());
+  Alpine.store("x01Quality", x01QualityStore());
   /**
    * Alpine's `$persist` getter returns a fresh persist() per access —
    * required so each store field gets its own `.as()` alias closure.
