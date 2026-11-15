@@ -12,6 +12,7 @@ import { personalBestFinishSection } from "@lib/stats/sections/personal-best-fin
 import { gameCompletionSection } from "@lib/stats/sections/game-completion.data";
 import { gameSessionList } from "@lib/stats/sections/game-session-list.data";
 import { gameVariations } from "@lib/stats/sections/game-variations.data";
+import { x01Overview } from "@lib/stats/sections/x01-overview.data";
 import { routineBuilder } from "@lib/training/routines/routine-builder.data";
 import { schedulesIndex } from "@lib/training/schedules/schedules-index.data";
 import { scheduleEditor } from "@lib/training/schedules/schedule-editor.data";
@@ -107,6 +108,7 @@ describe("registerRouteData", () => {
     ["personalBestFinishSection", personalBestFinishSection],
     ["gameSessionList", gameSessionList],
     ["gameVariations", gameVariations],
+    ["x01Overview", x01Overview],
   ])("registers %s as an Alpine data factory", (name, factory) => {
     const data = vi.fn();
     registerRouteData({ data } as unknown as Alpine);
