@@ -2,47 +2,68 @@
 /**
  * 501 tiles row in the homepage `CareerTiles` style (mono key, display value,
  * muted hint): checkout %, bust % and best leg. Reads the enclosing
- * `x01Overview()` scope. The hints of checkout and bust are the change in
- * percentage points against the preceding period; a loading tile shows a
- * pulse bar in place of its value.
+ * `x01Overview()` scope. The hint of checkout and bust is the change in
+ * percentage points against the preceding period, green for the good
+ * direction (a rise in checkout, a fall in bust). While loading, a pulse bar
+ * stands in for the value and the hint.
  */
+import { cn } from "@client/cn";
 import BestLegTile from "./BestLegTile.astro";
+
+const tileClass = "glass flex flex-col gap-1.5 rounded-xl px-3 py-3.5";
+const keyClass =
+  "truncate font-mono text-eyebrow font-semibold text-muted-foreground";
+const skeleton =
+  "inline-block h-lh animate-pulse rounded-md bg-muted-foreground/80 align-top";
+const tiles = [
+  {
+    key: "CHECKOUT",
+    value: "checkoutValue",
+    hint: "checkoutHint",
+    hintClass:
+      "checkoutDelta === null ? 'text-muted' : (checkoutDelta >= 0 ? 'text-success' : 'text-error')",
+  },
+  {
+    key: "BUST",
+    value: "bustValue",
+    hint: "bustHint",
+    hintClass:
+      "bustDelta === null ? 'text-muted' : (bustDelta <= 0 ? 'text-success' : 'text-error')",
+  },
+];
 ---
 
 <div class="grid grid-cols-3 gap-2.5">
-  <div class="glass flex flex-col gap-1.5 rounded-xl px-3 py-3.5">
-    <span
-      class="truncate font-mono text-eyebrow font-semibold text-muted-foreground"
-    >
-      CHECKOUT
-    </span>
-    <span
-      class="font-display text-lg"
-      x-text="checkoutValue"
-    >
-    </span>
-    <span
-      class="min-h-lh text-caption text-muted"
-      x-text="checkoutHint"
-    >
-    </span>
-  </div>
-  <div class="glass flex flex-col gap-1.5 rounded-xl px-3 py-3.5">
-    <span
-      class="truncate font-mono text-eyebrow font-semibold text-muted-foreground"
-    >
-      BUST
-    </span>
-    <span
-      class="font-display text-lg"
-      x-text="bustValue"
-    >
-    </span>
-    <span
-      class="min-h-lh text-caption text-muted"
-      x-text="bustHint"
-    >
-    </span>
-  </div>
+  {
+    tiles.map((tile) => (
+      <div class={tileClass}>
+        <span class={keyClass}>{tile.key}</span>
+        <span class="font-display text-lg">
+          <span
+            class={cn(skeleton, "w-12")}
+            x-show="loading"
+            x-cloak
+          />
+          <span
+            x-show="!loading"
+            x-cloak
+            x-text={tile.value}
+          />
+        </span>
+        <span
+          class="min-h-lh text-caption"
+          x-show="!loading"
+          x-cloak
+          x-text={tile.hint}
+          {...{ ":class": tile.hintClass }}
+        />
+        <span
+          class={cn(skeleton, "w-10 text-caption")}
+          x-show="loading"
+          x-cloak
+        />
+      </div>
+    ))
+  }
   <BestLegTile />
 </div>

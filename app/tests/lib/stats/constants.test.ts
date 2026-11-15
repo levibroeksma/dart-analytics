@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { GAME_TYPE_BY_RULESET } from "@lib/game/rulesets/capabilities";
 import {
   DEDICATED_STATS_LAYOUTS,
   HEATMAP_ONLY_LAYOUTS,
@@ -57,6 +58,16 @@ describe("X01_LAYOUTS", () => {
       expect(HEATMAP_ONLY_LAYOUTS.has(key)).toBe(false);
       expect(DEDICATED_STATS_LAYOUTS.has(key)).toBe(false);
     }
+  });
+});
+
+describe("X01_LAYOUTS against the ruleset table", () => {
+  it("names exactly the ruleset versions of game type 501", () => {
+    const keys = Object.entries(GAME_TYPE_BY_RULESET)
+      .filter(([, gameTypeKey]) => gameTypeKey === "501")
+      .map(([rulesetVersionKey]) => rulesetVersionKey)
+      .sort();
+    expect([...X01_LAYOUTS].sort()).toEqual(keys);
   });
 });
 

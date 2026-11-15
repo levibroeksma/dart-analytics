@@ -3,7 +3,7 @@
  * 501 best-leg tile: the fewest darts in a finished leg, all time and for the
  * selected variation. With a best leg the tile is a `GrowingCard` that grows
  * into that session's replay (as `ReplayCard.astro`); with none it is a plain
- * tile showing a dash. Reads the enclosing `x01Overview()` scope.
+ * tile showing a pulse bar while the read is in flight and a dash after. Reads the enclosing `x01Overview()` scope.
  */
 import Button from "@components/forms/Button.astro";
 import GrowingCard from "@components/ui/GrowingCard.astro";
@@ -60,10 +60,19 @@ import SessionReplay from "@components/layout/statistics/SessionReplay.astro";
     >
       BEST LEG
     </span>
-    <span
-      class="font-display text-lg"
-      x-text="bestLegValue"
-    >
+    <span class="font-display text-lg">
+      <span
+        class="inline-block h-lh w-12 animate-pulse rounded-md bg-muted-foreground/80 align-top"
+        x-show="bestLegLoading"
+        x-cloak
+      >
+      </span>
+      <span
+        x-show="!bestLegLoading"
+        x-cloak
+        x-text="bestLegValue"
+      >
+      </span>
     </span>
     <span class="min-h-lh text-caption text-muted"></span>
   </div>

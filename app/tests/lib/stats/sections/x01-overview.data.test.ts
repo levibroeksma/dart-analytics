@@ -30,10 +30,19 @@ type Responses = Record<string, unknown[]>;
 
 function respond(map: Responses) {
   loadGameSection.mockImplementation(
-    async (_game: string, id: string, range: { bucket: string }) => ({
-      buckets:
-        range.bucket === "none" ? (map[`${id}:best`] ?? []) : (map[id] ?? []),
-    }),
+    async (
+      _game: string,
+      id: string,
+      range: { bucket: string; from: string; to: string },
+    ) => {
+      if (range.bucket !== "none") return { buckets: map[id] ?? [] };
+      if (range.from < "2017-01-01")
+        return { buckets: map[`${id}:best`] ?? [] };
+      const within = (map[id] ?? []) as { end: string }[];
+      return {
+        buckets: within.filter((b) => b.end > range.from && b.end <= range.to),
+      };
+    },
   );
 }
 
@@ -68,21 +77,40 @@ beforeEach(() => {
 });
 
 describe("x01Overview load", () => {
-  it("requests the four sections for 501 over a doubled day window with the variation", async () => {
+  it("reads scoring as one doubled day window and the server sections as two unbucketed windows", async () => {
     const { s } = overview();
     await s.load(NOW);
-    for (const id of [
-      "scoring-trend",
-      "checkout-rate",
-      "bust-rate",
-      "leg-stats",
-    ]) {
-      expect(callsFor(id)).toHaveLength(1);
-      const [game, , range] = callsFor(id)[0];
-      expect(game).toBe("501");
-      expect(range.bucket).toBe("day");
-      expect(range.variation).toBe(501);
-      expect(range.from).toBe("2026-08-02T10:00:00.000Z");
+    const scoringCalls = callsFor("scoring-trend");
+    expect(scoringCalls).toHaveLength(1);
+    expect(scoringCalls[0][2]).toMatchObject({
+      bucket: "day",
+      variation: 501,
+      from: "2026-08-02T10:00:00.000Z",
+    });
+    for (const id of ["checkout-rate", "bust-rate", "leg-stats"]) {
+      const windows = callsFor(id).map(([game, , r]) => [
+        game,
+        r.bucket,
+        r.variation,
+        r.from,
+        r.to,
+      ]);
+      expect(windows).toEqual([
+        [
+          "501",
+          "none",
+          501,
+          "2026-09-01T10:00:00.000Z",
+          "2026-10-01T10:01:00.000Z",
+        ],
+        [
+          "501",
+          "none",
+          501,
+          "2026-08-02T10:00:00.000Z",
+          "2026-09-01T10:00:00.000Z",
+        ],
+      ]);
     }
   });
 
@@ -123,7 +151,9 @@ describe("x01Overview load", () => {
     await s.load(NOW);
     expect(s.checkoutValue).toBe("30.0%");
     expect(s.checkoutHint).toBe("+5.0 pp");
+    expect(s.checkoutDelta).toBeCloseTo(5, 9);
     expect(s.bustValue).toBe("15.0%");
+    expect(s.bustDelta).toBeCloseTo(5, 9);
     expect(s.bustHint).toBe("+5.0 pp");
   });
 
@@ -139,6 +169,8 @@ describe("x01Overview load", () => {
     await s.load(NOW);
     expect(s.threeDart).toBe(60);
     expect(s.threeDartDelta).toBeNull();
+    expect(callsFor("checkout-rate")).toHaveLength(1);
+    expect(s.checkoutDelta).toBeNull();
     expect(s.checkoutHint).toBe("");
     expect(s.bustHint).toBe("");
   });
@@ -168,7 +200,7 @@ describe("x01Overview load", () => {
     );
     const { s } = overview();
     await s.load(NOW);
-    expect(s.error).toContain("bust-rate");
+    expect(s.error).toBe("Could not load: bust");
     expect(s.bustValue).toBe("—");
     expect(s.checkoutValue).toBe("30.0%");
     expect(s.loading).toBe(false);
@@ -219,7 +251,74 @@ describe("x01Overview best leg", () => {
   });
 });
 
+describe("x01Overview best leg failure and staleness", () => {
+  it("names a failed best-leg read in the error and shows a dash", async () => {
+    respond({});
+    const base = loadGameSection.getMockImplementation()!;
+    loadGameSection.mockImplementation((game, id, range) =>
+      range.from < "2017-01-01"
+        ? Promise.reject(new Error("boom"))
+        : base(game, id, range),
+    );
+    const { s } = overview();
+    await s.load(NOW);
+    await s.loadBestLeg(NOW);
+    expect(s.error).toBe("Could not load: best leg");
+    expect(s.bestLegValue).toBe("—");
+    expect(s.bestLegLoading).toBe(false);
+  });
+
+  it("is not tappable while loading: no session id until the read lands", async () => {
+    let release!: (value: unknown) => void;
+    respond({});
+    loadGameSection.mockImplementationOnce(
+      () => new Promise((resolve) => (release = resolve)),
+    );
+    const { s } = overview();
+    s.bestLeg = { darts: 21, sessionId: "old" };
+    const pending = s.loadBestLeg(NOW);
+    expect(s.bestLegLoading).toBe(true);
+    expect(s.bestLegSessionId).toBeNull();
+    release({
+      buckets: [
+        bucket(CURRENT, { legs: {}, bestLeg: { darts: 15, sessionId: "new" } }),
+      ],
+    });
+    await pending;
+    expect(s.bestLegSessionId).toBe("new");
+  });
+
+  it("drops a stale best-leg response resolved after a newer one", async () => {
+    let releaseFirst!: (value: unknown) => void;
+    respond({});
+    loadGameSection.mockImplementationOnce(
+      () => new Promise((resolve) => (releaseFirst = resolve)),
+    );
+    const { s } = overview();
+    const first = s.loadBestLeg(NOW);
+    respond({
+      "leg-stats:best": [
+        bucket(CURRENT, { legs: {}, bestLeg: { darts: 15, sessionId: "new" } }),
+      ],
+    });
+    await s.loadBestLeg(NOW);
+    releaseFirst({
+      buckets: [
+        bucket(CURRENT, { legs: {}, bestLeg: { darts: 9, sessionId: "old" } }),
+      ],
+    });
+    await first;
+    expect(s.bestLegSessionId).toBe("new");
+  });
+});
+
 describe("x01Overview watchers", () => {
+  it("watches rangeKey and variation only: every request is 501 whichever ruleset version is picked", () => {
+    const { s, watchers } = overview();
+    s.init();
+    expect(Object.keys(watchers).sort()).toEqual(["rangeKey", "variation"]);
+  });
+
   it("reloads sections on rangeKey but not best leg", async () => {
     const { s, watchers } = overview();
     s.init();
@@ -227,12 +326,12 @@ describe("x01Overview watchers", () => {
     const before = callsFor("leg-stats").length;
     watchers.rangeKey();
     await vi.waitFor(() =>
-      expect(callsFor("leg-stats")).toHaveLength(before + 1),
+      expect(callsFor("leg-stats")).toHaveLength(before + 2),
     );
     expect(
       callsFor("leg-stats")
         .slice(before)
-        .every(([, , r]) => r.bucket !== "none"),
+        .every(([, , r]) => r.from >= "2017-01-01"),
     ).toBe(true);
   });
 
@@ -243,7 +342,7 @@ describe("x01Overview watchers", () => {
     loadGameSection.mockClear();
     page.variation = 301;
     watchers.variation();
-    await vi.waitFor(() => expect(loadGameSection).toHaveBeenCalledTimes(5));
+    await vi.waitFor(() => expect(loadGameSection).toHaveBeenCalledTimes(8));
     expect(
       loadGameSection.mock.calls.every(([, , r]) => r.variation === 301),
     ).toBe(true);
