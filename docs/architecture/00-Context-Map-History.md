@@ -17,6 +17,8 @@ updated: 2026-11-13
 
 # Version History
 
+> **Version:** 1.233.0 (2026-11-16 — Retro fixes: `.husky/pre-push` runs `check-quality-benchmarks.sh` after `npm test` when the pushed range touches `app/src/`; `check-context-budget.sh --update` rewrites drifting File Inventory `~Nk` claims (D559); new `test-check-context-budget.sh` wired in `quality.yml`, `precommit-gates.tsv`, `run-all-gates`)
+
 > **Version:** 1.232.0 (2026-11-13 — 501 variation filter built: `GET games/501/variations` route, `variationParam()`, `statsVariation` store, `gameVariations()` and `GameVariationSelect.astro` on `/statistics`; every 501 section, the heatmap and the session list refetch on a `variation` change; File Inventory gains the "501 variation filter" section; Overview §6 row marked built (D556).)
 
 > **Version:** 1.231.0 (2026-11-13 — 501 variation filter contract, docs first: `variation` query parameter and `GET games/501/variations` documented; `10-Statistics/00-Overview.md` and `01-Section-Catalog.md` 1.8.0; `06-API/04-Endpoint-Contracts.md` 1.19.0; File Inventory rows land with the files in a later task (D556).)

@@ -10,7 +10,7 @@ PASSED=0
 FAILED=0
 D="$(mktemp -d)"
 trap 'rm -rf "$D"' EXIT
-SCOPED="check-type-barrels.sh check-game-rules.sh test-check-game-rules.sh check-tag-seeds.sh test-check-tag-seeds.sh"
+SCOPED="check-type-barrels.sh check-game-rules.sh test-check-game-rules.sh check-tag-seeds.sh test-check-tag-seeds.sh test-check-context-budget.sh"
 ALWAYS="$(grep -cvE '^#|^$|	.' "$ROOT/scripts/precommit-gates.tsv")"
 
 ok() { PASSED=$((PASSED + 1)); }
@@ -32,6 +32,9 @@ if has check-game-rules.sh && has test-check-game-rules.sh && has check-tag-seed
 
 plan "scripts/check-type-barrels.sh"
 if has check-type-barrels.sh; then ok; else bad "a gate's own script path runs that gate"; fi
+
+plan "scripts/check-context-budget.sh"
+if has test-check-context-budget.sh && ! has check-type-barrels.sh; then ok; else bad "context-budget script path runs its fixture test"; fi
 
 plan ""
 if [ "$(count)" = "$ALWAYS" ]; then ok; else bad "empty staged list runs only the always-gates"; fi

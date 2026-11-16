@@ -12,7 +12,8 @@ Identifies and runs the gate scripts that apply to what changed, and reports eve
 ```bash
 bash scripts/check-context-map.sh
 bash scripts/check-doc-links.sh
-bash scripts/check-context-budget.sh
+bash scripts/check-context-budget.sh   # --update rewrites drifting File Inventory ~Nk claims
+bash scripts/test-check-context-budget.sh
 bash scripts/check-agent-mirrors.sh
 bash scripts/check-file-locations.sh
 bash scripts/check-skill-pointers.sh
