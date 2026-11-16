@@ -30,7 +30,7 @@ jobs:
       - name: Doc-links gate
         run: bash scripts/check-doc-links.sh
       - name: Context-budget gate
-        run: bash scripts/check-context-budget.sh
+        run: bash scripts/check-context-budget.sh && bash scripts/test-check-context-budget.sh
       - name: Decision-id integrity gate
         run: bash scripts/check-decision-ids.sh
       - name: History-version order gate

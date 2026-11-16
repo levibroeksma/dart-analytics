@@ -370,3 +370,10 @@ Decision: `scripts/check-html-parity.sh` builds the app and compares every prere
 Reason: `.astro` markup has no unit-test runner here (D101), so a template split had no proof beyond reading the diff. All 49 pages prerender and no component has a scoped style, so the build output is a complete record of the markup.
 Consequences: a markup refactor is done when the script prints `html parity: 49 files identical`. It cannot see a component no page renders, markup built by a client script, or a hashed asset. Two builds of one tree differed on six pages before the id mask.
 Supersedes: none
+
+### D559 — `check-context-budget.sh --update` rewrites File Inventory size claims only
+Status: Accepted · Date: 2026-11-16
+Decision: `scripts/check-context-budget.sh --update` rewrites the claimed `~Nk` of every File Inventory row (`FILE_ROW`) that fails the 20% test to the computed `chars/4/1000`, formatted by `fmt_k()`. Rows within tolerance are untouched. `00-Context-Map.md` pack totals are never rewritten; they stay human-authored. Without the flag the script behaves as before. `CONTEXT_BUDGET_ROOT` replaces the repo root for `scripts/test-check-context-budget.sh`.
+Reason: the failure message already printed the computed value, yet each fix was a manual `wc -c` and `sed` edit, repeated after every code simplification in the 501 statistics retro (at least seven failures).
+Consequences: narrows D133's "never rewrites the map" to the Context Map; the inventory is now rewritable on request. The test runs in `quality / structure` and, scoped by path, in pre-commit.
+Supersedes: none

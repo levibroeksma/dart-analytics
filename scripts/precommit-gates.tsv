@@ -28,3 +28,4 @@ scripts/test-check-tag-seeds.sh	^(docs/game-rules/|database/seeds/|app/scripts/(
 scripts/check-seed-ids.sh	
 scripts/test-check-seed-ids.sh	
 scripts/check-test-coverage.sh	
+scripts/test-check-context-budget.sh	^scripts/(test-)?check-context-budget\.sh

@@ -3,10 +3,15 @@
 # Compares human-authored ~Nk values in 00-Context-Map.md to chars/4 estimates.
 # Never rewrites the map. Per-file tolerance 20%; per-pack tolerance 30% (approx
 # when non-.md entries are skipped). See D133.
+#   bash scripts/check-context-budget.sh            check
+#   bash scripts/check-context-budget.sh --update   rewrite the claimed ~Nk of
+#     each File Inventory row that fails the 20% test to the computed value;
+#     rows within tolerance and every Context Map pack total stay untouched
+#     (D559). CONTEXT_BUDGET_ROOT=<dir> replaces the repo root (fixtures).
 set -euo pipefail
-cd "$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
+cd "${CONTEXT_BUDGET_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || echo .)}"
 
-python3 - <<'PY'
+python3 - "$@" <<'PY'
 from __future__ import annotations
 
 import re
@@ -18,6 +23,7 @@ MAP = Path("docs/architecture/00-Context-Map.md")
 INVENTORY = Path("docs/architecture/00-File-Inventory.md")
 ARCH = Path("docs/architecture")
 FAIL = 0
+UPDATE = "--update" in sys.argv[1:]
 
 FILE_ROW = re.compile(
     r"\|\s*`([^`]+)`\s*\|[^|]*\|[^|]*\|\s*(~[\d.]+k)\s*\|"
@@ -85,17 +91,19 @@ def resolve_pack_md(ref: str) -> Path | None:
     return None
 
 
-def check_files(text: str) -> None:
+def check_files(text: str) -> str:
     # Only scan File Inventory section (after "# File Inventory")
     if "# File Inventory" not in text:
         err("00-File-Inventory.md missing # File Inventory heading")
-        return
-    inv = text.split("# File Inventory", 1)[1]
+        return text
+    inv_start = text.index("# File Inventory") + len("# File Inventory")
+    inv = text[inv_start:]
     # stop before Non-Canonical / later sections that lack ~Tokens
     for stop in ("# Non-Canonical Source Material", "# Current Implementation State", "# Maintenance Protocol"):
         if stop in inv:
             inv = inv.split(stop, 1)[0]
             break
+    edits: list[tuple[int, int, str]] = []
     for m in FILE_ROW.finditer(inv):
         ref, claimed_s = m.group(1), m.group(2)
         path = resolve_inventory_path(ref)
@@ -108,11 +116,17 @@ def check_files(text: str) -> None:
             err(f"{ref}: computed token estimate is 0")
             continue
         drift = abs(claimed - computed) / computed
-        if drift > 0.20:
+        if drift > 0.20 and UPDATE:
+            edits.append((inv_start + m.start(2), inv_start + m.end(2), fmt_k(computed)))
+            print(f"UPDATED: {ref} {claimed_s} -> {fmt_k(computed)}")
+        elif drift > 0.20:
             err(
                 f"{ref} claimed={claimed_s} computed={fmt_k(computed)} "
                 f"(drift={drift:.0%} > 20%)"
             )
+    for start, end, new in reversed(edits):
+        text = text[:start] + new + text[end:]
+    return text
 
 
 def check_packs(text: str) -> None:
@@ -155,7 +169,10 @@ def main() -> int:
     if not INVENTORY.is_file():
         err(f"missing {INVENTORY}")
         return 1
-    check_files(INVENTORY.read_text(encoding="utf-8"))
+    original = INVENTORY.read_text(encoding="utf-8")
+    updated = check_files(original)
+    if updated != original:
+        INVENTORY.write_text(updated, encoding="utf-8")
     check_packs(MAP.read_text(encoding="utf-8"))
     if FAIL:
         return 1
