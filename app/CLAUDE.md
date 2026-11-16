@@ -51,6 +51,7 @@ Freshness is CI-owned; nothing here is a local task. Looking something up: the `
 - `npm run format` (write) · `npm run format:check` (CI Format gate — not part of `validate:app`).
 - Format on save via `app/.vscode/settings.json`.
 - **pre-commit:** husky + lint-staged run Prettier `--write` on staged files (`cd app && npx lint-staged`), then the structural gates (file-locations, agent-mirrors, skill-pointers, astro-class-composition, astro-conventions, game-engines, refinement-coverage, type-barrels, alias-sync, constraint-mirror, no-inline-comments, style-tokens, game-wiring, test-coverage) run from repo root (the list is `scripts/precommit-gates.tsv`; a row with a regex runs only when a staged path matches, D551), silent on pass (one summary line) and printing the failing gate's output on failure. Hooks install via `npm install` (`prepare` → repo-root `.husky/`).
+- **pre-push:** `.husky/pre-push` runs `npm test`, then `scripts/check-quality-benchmarks.sh` when the pushed range touches `app/src/` (the CI ratchet, failing locally with its `regressed:` line instead of after the push).
 - **Before every PR create or update (mandatory):** run `cd app && npm run format`, commit any formatting diffs, and confirm `npm run format:check` is clean. Applies to all app work — not only multi-task plan completion. Skipping this fails the CI Format gate.
 
 ## Test-Driven Development (mandatory)
