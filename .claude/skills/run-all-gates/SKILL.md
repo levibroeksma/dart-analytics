@@ -76,6 +76,8 @@ bash scripts/check-dupes.sh
 bash scripts/check-quality-benchmarks.sh
 ```
 
+`.husky/pre-push` runs `npm test`, then `check-quality-benchmarks.sh` when the pushed range touches `app/src/` (about 20–30 s; skipped with `SKIP:` when `app/node_modules` is absent).
+
 ## If `.claude/hooks/` or `scripts/` changed, also run
 
 ```bash
