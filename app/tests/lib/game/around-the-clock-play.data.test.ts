@@ -250,6 +250,34 @@ describe("currentTargetLabel / turnsSoFar / isBullVisit", () => {
   });
 });
 
+describe("title", () => {
+  it("names Around the Clock for a plain run", () => {
+    const play = makePlay();
+    expect(play.title.call(play)).toBe("Around the Clock");
+  });
+
+  it("names Nine Lives once lives are on", () => {
+    const play = makePlay({
+      configSnapshot: {
+        seats: SEATS,
+        pathDirection: "LOW_TO_HIGH",
+        oddsFirst: false,
+        segmentRule: "ANY",
+        difficulty: "EASY",
+        durationType: "UNTIMED",
+        durationValue: null,
+        lives: 3,
+      },
+    });
+    expect(play.title.call(play)).toBe("Nine Lives");
+  });
+
+  it("falls back to Around the Clock before config loads", () => {
+    const play = makePlay({ configSnapshot: null });
+    expect(play.title.call(play)).toBe("Around the Clock");
+  });
+});
+
 describe("subtitle", () => {
   it("is blank before config loads", () => {
     const play = makePlay({ configSnapshot: null });

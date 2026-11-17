@@ -1967,6 +1967,7 @@ export type AroundTheClockPlayContext = PlayLifecycleContext<
   laps(this: AroundTheClockPlayContext): number;
   livesLeft(this: AroundTheClockPlayContext): string;
   remainingLabel(this: AroundTheClockPlayContext): string;
+  title(this: AroundTheClockPlayContext): string;
   subtitle(this: AroundTheClockPlayContext): string;
   hitsToGoFor(this: AroundTheClockPlayContext, seatRef: string): string;
   hitsToGo(this: AroundTheClockPlayContext): string;
