@@ -2,7 +2,10 @@ import { GAME_TYPE_BY_RULESET } from "@lib/game/rulesets/capabilities";
 import { NEAR_MISS_MM } from "@lib/stats/constants";
 import { loadTargetInputs } from "@lib/stats/doubles/doubles-training-fetch";
 import { trackRowKeys } from "@lib/stats/heatmap-targets";
-import { reloadOnPageFilters } from "@lib/stats/sections/period-section";
+import {
+  latestCardLoad,
+  reloadOnPageFilters,
+} from "@lib/stats/sections/period-section";
 import { trackGamesCard } from "@lib/stats/track/track-games-card";
 import { trackTable, trackTiles } from "@lib/stats/track/track-games-lines";
 import type {
@@ -13,13 +16,6 @@ import type {
   TrackTile,
   TrendRangeKey,
 } from "@lib/types";
-
-type CardScope = {
-  $data: { rangeKey: TrendRangeKey; game: string };
-  loading: boolean;
-  error: string | null;
-  card: TrackGamesCard;
-};
 
 const EMPTY_TRACK_CARD: TrackGamesCard = {
   best: null,
@@ -49,7 +45,6 @@ async function fetchTrackCard(
 
 /** Alpine scope of the Track games card: the page game's per-target `target-accuracy`, `miss-direction` and `loose-darts` over the page period, as tiles and a sortable table. */
 export function trackGamesCardSection() {
-  let ticket = 0;
   return {
     loading: true,
     error: null as string | null,
@@ -61,20 +56,7 @@ export function trackGamesCardSection() {
       void this.load();
     },
 
-    async load(this: CardScope, now: Date = new Date()) {
-      const mine = ++ticket;
-      this.loading = true;
-      this.error = null;
-      const result = await fetchTrackCard(
-        this.$data.game,
-        this.$data.rangeKey,
-        now,
-      );
-      if (mine !== ticket) return;
-      this.card = result.card;
-      this.error = result.error;
-      this.loading = false;
-    },
+    load: latestCardLoad(fetchTrackCard),
 
     setSort(sort: TrackSort) {
       this.sort = sort;

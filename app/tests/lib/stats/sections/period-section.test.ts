@@ -6,7 +6,8 @@ vi.mock("@lib/stats/load-game-section", () => ({
   loadGameSection: (...args: unknown[]) => loadGameSection(...args),
 }));
 
-const { periodSection } = await import("@lib/stats/sections/period-section");
+const { latestCardLoad, periodSection } =
+  await import("@lib/stats/sections/period-section");
 
 const NOW = new Date("2026-10-01T10:00:00.000Z");
 const DAY = 86_400_000;
@@ -208,5 +209,51 @@ describe("periodSection skippedSessions", () => {
     loadGameSection.mockResolvedValueOnce({ buckets: [] });
     await s.load(NOW);
     expect(s.skippedSessions).toBe(0);
+  });
+});
+
+describe("latestCardLoad", () => {
+  function cardScope() {
+    return {
+      $data: { rangeKey: "30d" as const, game: "SHANGHAI_V1" },
+      loading: false,
+      error: "old" as string | null,
+      card: "empty",
+    };
+  }
+
+  it("passes the page game and period, then lands the card", async () => {
+    const fetchCard = vi.fn().mockResolvedValue({ card: "full", error: null });
+    const scope = cardScope();
+    await latestCardLoad(fetchCard).call(scope, NOW);
+    expect(fetchCard).toHaveBeenCalledWith("SHANGHAI_V1", "30d", NOW);
+    expect(scope).toMatchObject({ card: "full", error: null, loading: false });
+  });
+
+  it("lands the error beside an empty card", async () => {
+    const fetchCard = vi
+      .fn()
+      .mockResolvedValue({ card: "empty", error: "boom" });
+    const scope = cardScope();
+    await latestCardLoad(fetchCard).call(scope, NOW);
+    expect(scope).toMatchObject({ error: "boom", loading: false });
+  });
+
+  it("drops a response that arrives after a newer load", async () => {
+    let release: (value: { card: string; error: null }) => void = () => {};
+    const slow = new Promise<{ card: string; error: null }>(
+      (resolve) => (release = resolve),
+    );
+    const fetchCard = vi
+      .fn()
+      .mockReturnValueOnce(slow)
+      .mockResolvedValue({ card: "new", error: null });
+    const load = latestCardLoad(fetchCard);
+    const scope = cardScope();
+    const first = load.call(scope, NOW);
+    await load.call(scope, NOW);
+    release({ card: "stale", error: null });
+    await first;
+    expect(scope.card).toBe("new");
   });
 });

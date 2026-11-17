@@ -132,4 +132,14 @@ describe("doublesTrainingCardSection", () => {
     expect(s.error).toBeNull();
     expect(s.card.favourite?.aim).toBe("DOUBLE:16");
   });
+
+  it("reads over the period the page holds when it loads", async () => {
+    respond(D16);
+    const s = scope();
+    s.$data.rangeKey = "90d" as never;
+    await s.load(NOW);
+    const window = heatmapWindow("90d", NOW);
+    for (const call of loadGameSection.mock.calls)
+      expect(call[2]).toMatchObject({ ...window, bucket: "none" });
+  });
 });

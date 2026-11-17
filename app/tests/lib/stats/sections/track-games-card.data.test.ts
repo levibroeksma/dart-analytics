@@ -142,4 +142,14 @@ describe("trackGamesCardSection", () => {
     expect(s.error).toBeNull();
     expect(s.card.rows).toEqual([]);
   });
+
+  it("reads over the period the page holds when it loads", async () => {
+    respond(SAMPLE);
+    const s = scope();
+    s.$data.rangeKey = "90d" as never;
+    await s.load(NOW);
+    const window = heatmapWindow("90d", NOW);
+    for (const call of loadGameSection.mock.calls)
+      expect(call[2]).toMatchObject({ ...window, bucket: "none" });
+  });
 });

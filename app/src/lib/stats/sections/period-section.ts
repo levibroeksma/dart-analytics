@@ -91,3 +91,37 @@ export function periodSection<M>(sectionId: SectionId) {
     },
   };
 }
+
+type CardResult<C> = { card: C; error: string | null };
+
+type CardScope<C> = {
+  $data: { rangeKey: TrendRangeKey; game: string };
+  loading: boolean;
+  error: string | null;
+  card: C;
+};
+
+/**
+ * The `load` of a card section that reads over the page period: `fetchCard`
+ * runs for the page `game` and `rangeKey`, and its card and error land on the
+ * scope unless a newer load started meanwhile (a stale response is dropped).
+ */
+export function latestCardLoad<C>(
+  fetchCard: (
+    game: string,
+    rangeKey: TrendRangeKey,
+    now: Date,
+  ) => Promise<CardResult<C>>,
+) {
+  let ticket = 0;
+  return async function load(this: CardScope<C>, now: Date = new Date()) {
+    const mine = ++ticket;
+    this.loading = true;
+    this.error = null;
+    const result = await fetchCard(this.$data.game, this.$data.rangeKey, now);
+    if (mine !== ticket) return;
+    this.card = result.card;
+    this.error = result.error;
+    this.loading = false;
+  };
+}
