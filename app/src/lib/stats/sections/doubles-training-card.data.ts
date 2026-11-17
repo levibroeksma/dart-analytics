@@ -15,7 +15,7 @@ import type {
 } from "@lib/types";
 
 type CardScope = {
-  $data: { rangeKey: TrendRangeKey; game: string; variation: number };
+  $data: { rangeKey: TrendRangeKey };
   loading: boolean;
   error: string | null;
   card: DoublesTrainingCard;
@@ -38,7 +38,7 @@ export function doublesTrainingCardSection() {
       const mine = ++ticket;
       this.loading = true;
       this.error = null;
-      const result = await loadDoublesTrainingCard(this.$data, now);
+      const result = await loadDoublesTrainingCard(this.$data.rangeKey, now);
       if (mine !== ticket) return;
       this.card = result.card;
       this.error = result.error;

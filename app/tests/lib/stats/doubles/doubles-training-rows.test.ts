@@ -21,7 +21,7 @@ describe("tallyDoublesTraining", () => {
       ],
       loose: [],
     });
-    expect(rows.get("DOUBLE:20")).toMatchObject({
+    expect(rows[0]).toMatchObject({
       high: 1,
       right: 3,
       low: 1,
@@ -49,6 +49,6 @@ describe("tallyDoublesTraining", () => {
       ],
       loose: [bucket({ "DOUBLE:9": { onTarget: 0, nearMiss: 2, loose: 1 } })],
     });
-    expect([...rows.keys()].sort()).toEqual(["DOUBLE:1", "INNER_BULL:25"]);
+    expect(rows.map((row) => row.aim)).toEqual(["DOUBLE:1", "INNER_BULL:25"]);
   });
 });

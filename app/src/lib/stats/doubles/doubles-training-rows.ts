@@ -1,3 +1,4 @@
+import { MIN_ROW_SAMPLE } from "@lib/stats/constants";
 import { targetLabel } from "@lib/stats/target-key";
 import type { SeriesBucket } from "@lib/types";
 import type { DoublesTrainingInput, DoublesTrainingRow } from "./types";
@@ -65,10 +66,14 @@ function sumAccuracy(
     }
 }
 
-/** The input's three sections summed into one row per double with darts, keyed by target key. */
+function order(aim: string): number {
+  return Number(aim.slice(aim.indexOf(":") + 1));
+}
+
+/** The input's three sections summed into one row per double with darts, in number order with the bull last. */
 export function tallyDoublesTraining(
   input: DoublesTrainingInput,
-): Map<string, DoublesTrainingRow> {
+): DoublesTrainingRow[] {
   const byAim = new Map<string, DoublesTrainingRow>();
   sumAccuracy(byAim, input);
   foldKnownRows(byAim, input.misses, (row, entries) => {
@@ -81,5 +86,8 @@ export function tallyDoublesTraining(
     row.nearMiss += nearMiss;
     row.loose += loose;
   });
-  return byAim;
+  const rows = [...byAim.values()].sort((a, b) => order(a.aim) - order(b.aim));
+  for (const row of rows)
+    row.rate = row.darts < MIN_ROW_SAMPLE ? null : row.hits / row.darts;
+  return rows;
 }

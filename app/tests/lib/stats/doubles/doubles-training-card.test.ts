@@ -74,6 +74,19 @@ describe("doublesTrainingCard", () => {
     expect(card.favourite?.aim).toBe("DOUBLE:2");
   });
 
+  it("has no favourite while every double is under thirty darts", () => {
+    const card = doublesTrainingCard({
+      accuracy: accuracy({
+        "DOUBLE:1": { attempts: 29, hits: 29 },
+        "DOUBLE:2": { attempts: 12, hits: 6 },
+      }),
+      misses: [],
+      loose: [],
+    });
+    expect(card.favourite).toBeNull();
+    expect(card.rows.map((row) => row.rate)).toEqual([1, 0.5]);
+  });
+
   it("breaks a rate tie by darts, then by the lower number", () => {
     const byDarts = doublesTrainingCard({
       accuracy: accuracy({

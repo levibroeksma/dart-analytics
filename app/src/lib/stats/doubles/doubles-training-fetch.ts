@@ -1,7 +1,5 @@
-import { GAME_TYPE_BY_RULESET } from "@lib/game/rulesets/capabilities";
 import { loadGameSection } from "@lib/stats/load-game-section";
 import { heatmapWindow } from "@lib/stats/sections/score-trend-window";
-import { variationParam } from "@lib/stats/variation";
 import type {
   DoublesTrainingCard,
   RulesetVersionKey,
@@ -14,38 +12,26 @@ import type {
 } from "@modules/types";
 import { doublesTrainingCard } from "./doubles-training-card";
 
-/** The Doubles Training card as the page loads it, with the failure message when a section could not be read. */
+const GAME = "DOUBLES_TRAINING";
+
+/** The card shown while loading, with no darts, or after a failed read. */
 export const EMPTY_CARD: DoublesTrainingCard = {
   favourite: null,
   darts: 0,
   rows: [],
 };
 
-/** Reads `target-accuracy`, `miss-direction` and `loose-darts` un-bucketed over the page period and joins them; an unknown game or a failed read gives the empty card, with the message on failure. */
+/** Reads `target-accuracy`, `miss-direction` and `loose-darts` un-bucketed over the page period and joins them; a failed read gives the empty card with the message. */
 export async function loadDoublesTrainingCard(
-  data: { rangeKey: TrendRangeKey; game: string; variation: number },
+  rangeKey: TrendRangeKey,
   now: Date,
 ): Promise<{ card: DoublesTrainingCard; error: string | null }> {
-  const gameTypeKey = GAME_TYPE_BY_RULESET[data.game as RulesetVersionKey];
-  if (gameTypeKey === undefined) return { card: EMPTY_CARD, error: null };
-  const range = {
-    ...heatmapWindow(data.rangeKey, now),
-    bucket: "none" as const,
-    variation: variationParam(gameTypeKey, data.variation),
-  };
+  const range = { ...heatmapWindow(rangeKey, now), bucket: "none" as const };
   try {
     const [accuracy, misses, loose] = await Promise.all([
-      loadGameSection<TargetAccuracyMetrics>(
-        gameTypeKey,
-        "target-accuracy",
-        range,
-      ),
-      loadGameSection<MissDirectionMetrics>(
-        gameTypeKey,
-        "miss-direction",
-        range,
-      ),
-      loadGameSection<LooseDartsMetrics>(gameTypeKey, "loose-darts", range),
+      loadGameSection<TargetAccuracyMetrics>(GAME, "target-accuracy", range),
+      loadGameSection<MissDirectionMetrics>(GAME, "miss-direction", range),
+      loadGameSection<LooseDartsMetrics>(GAME, "loose-darts", range),
     ]);
     const card = doublesTrainingCard({
       accuracy: accuracy.buckets,
