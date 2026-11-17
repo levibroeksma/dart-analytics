@@ -152,4 +152,21 @@ describe("trackGamesCardSection", () => {
     for (const call of loadGameSection.mock.calls)
       expect(call[2]).toMatchObject({ ...window, bucket: "none" });
   });
+
+  it("shows no table rows and no dart total while a load is pending", async () => {
+    respond(SAMPLE);
+    const s = scope();
+    await s.load(NOW);
+    expect(s.table).toHaveLength(4);
+    let release: (value: unknown) => void = () => {};
+    const slow = new Promise((resolve) => (release = resolve));
+    loadGameSection.mockImplementationOnce(() => slow);
+    const pending = s.load(NOW);
+    expect(s.loading).toBe(true);
+    expect(s.table).toEqual([]);
+    expect(s.footer).toBe("");
+    release(series({}));
+    await pending;
+    expect(s.footer).toBe("0 darts · near miss within 20 mm");
+  });
 });

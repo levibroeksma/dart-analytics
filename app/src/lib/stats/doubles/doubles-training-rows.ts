@@ -89,7 +89,9 @@ export function tallyDoublesTraining(
     row.nearMiss += nearMiss;
     row.loose += loose;
   });
-  const rows = [...byAim.values()].sort((a, b) => order(a.aim) - order(b.aim));
+  const rows = [...byAim.values()].sort(
+    (a, b) => order(a.aim) - order(b.aim) || a.aim.localeCompare(b.aim),
+  );
   for (const row of rows)
     row.rate = row.darts < MIN_ROW_SAMPLE ? null : row.hits / row.darts;
   return rows;

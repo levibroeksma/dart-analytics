@@ -67,11 +67,13 @@ export function trackGamesCardSection() {
     },
 
     get table(): AimTableRow[] {
-      return trackTable(this.card, this.sort);
+      return this.loading ? [] : trackTable(this.card, this.sort);
     },
 
     get footer(): string {
-      return `${this.card.darts} darts · near miss within ${NEAR_MISS_MM} mm`;
+      return this.loading
+        ? ""
+        : `${this.card.darts} darts · near miss within ${NEAR_MISS_MM} mm`;
     },
   };
 }
