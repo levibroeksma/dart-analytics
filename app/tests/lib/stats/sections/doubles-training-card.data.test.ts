@@ -124,6 +124,15 @@ describe("doublesTrainingCardSection", () => {
     expect(s.card.rows.map((row) => row.aim)).toEqual(["DOUBLE:1"]);
   });
 
+  it("finishes loading with no error after a good read", async () => {
+    respond(D16);
+    const s = scope();
+    await s.load(NOW);
+    expect(s.loading).toBe(false);
+    expect(s.error).toBeNull();
+    expect(s.card.favourite?.aim).toBe("DOUBLE:16");
+  });
+
   it("stays empty for an unknown game", async () => {
     const s = scope("NOT_A_GAME");
     await s.load(NOW);

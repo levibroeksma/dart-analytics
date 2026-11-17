@@ -145,6 +145,24 @@ describe("doublesTrainingCard", () => {
     });
   });
 
+  it("keeps a rate tie in number order whatever the key order", () => {
+    const card = doublesTrainingCard({
+      accuracy: accuracy({
+        "DOUBLE:12": { attempts: 30, hits: 15 },
+        "DOUBLE:4": { attempts: 30, hits: 15 },
+        "DOUBLE:9": { attempts: 30, hits: 15 },
+      }),
+      misses: [],
+      loose: [],
+    });
+    expect(card.rows.map((row) => row.aim)).toEqual([
+      "DOUBLE:4",
+      "DOUBLE:9",
+      "DOUBLE:12",
+    ]);
+    expect(card.favourite?.aim).toBe("DOUBLE:4");
+  });
+
   it("ignores other keys and sorts the bull last", () => {
     const card = doublesTrainingCard({
       accuracy: accuracy({
