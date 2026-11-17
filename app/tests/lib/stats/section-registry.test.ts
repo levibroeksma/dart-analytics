@@ -265,7 +265,9 @@ describe("statistics section registry", () => {
       expect(SECTIONS[id].computeSite).toBe("sql");
       expect(SECTIONS[id].includesAbandoned).toBe(false);
       expect(SECTIONS[id].configSensitive).toEqual([]);
-      expect(SECTIONS[id].version).toBe(id === "heatmap" ? 2 : 1);
+      expect(SECTIONS[id].version).toBe(
+        id === "heatmap" || id === "loose-darts" ? 2 : 1,
+      );
     }
   });
 
@@ -708,5 +710,11 @@ describe("sectionsForStep (composite kinds)", () => {
     });
 
     expect(result.sections.map((meta) => meta.id)).toEqual(["step-volume"]);
+  });
+});
+
+describe("loose-darts", () => {
+  it("is at version 2 after the distance near-miss rule", () => {
+    expect(SECTIONS["loose-darts"].version).toBe(2);
   });
 });

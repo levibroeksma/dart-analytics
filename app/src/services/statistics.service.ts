@@ -5,6 +5,7 @@ import {
   shapeHomeStats,
 } from "@modules/stats/home-stats.module";
 import { getDb } from "@db/client";
+import { MAX_LANDING_DARTS } from "@lib/stats/constants";
 import {
   dartExerciseKindOf,
   MAX_FOLD_DARTS,
@@ -121,6 +122,7 @@ import {
   findHomeHeatmapCells,
   findHitNumberCells,
   findIntentCells,
+  findIntentLandings,
   findIntentMoments,
   findLegFacts,
   findMissSectors,
@@ -173,6 +175,7 @@ import type {
   HeatmapCellRow,
   HomeStats,
   HitNumberCellRow,
+  AimLanding,
   IntentCellRow,
   IntentMomentRow,
   MissSectorRow,
@@ -398,6 +401,17 @@ function loadIntentCells(
   ctx: SectionContext,
 ): Promise<IntentCellRow[]> {
   return findIntentCells(db, {
+    ...dartScope(ctx),
+    bucket: ctx.bucket,
+    tz: ctx.tz,
+  });
+}
+
+function loadIntentLandings(
+  db: Db,
+  ctx: SectionContext,
+): Promise<AimLanding[]> {
+  return findIntentLandings(db, {
     ...dartScope(ctx),
     bucket: ctx.bucket,
     tz: ctx.tz,
@@ -680,7 +694,7 @@ const HANDLERS: Record<
     server: stepsHandler(confusionFromSessions),
   },
   "loose-darts": {
-    sql: handler(loadIntentCells, looseDartsBuckets),
+    sql: handler(loadIntentLandings, looseDartsBuckets),
     server: stepsHandler(looseDartsFromSessions),
   },
   grouping: { sql: handler(loadIntentMoments, groupingBuckets) },
@@ -1012,6 +1026,19 @@ async function foldBoundReason(
   return foldBoundMessage(dartCount);
 }
 
+/** The `VALIDATION_FAILED` reason when a `loose-darts` read at the `sql` site would load more than `MAX_LANDING_DARTS` per-dart rows; `null` otherwise. */
+async function landingBoundReason(
+  db: Db,
+  sectionId: SectionId,
+  site: ComputeSite,
+  ctx: SectionContext,
+): Promise<string | null> {
+  if (sectionId !== "loose-darts" || site !== "sql") return null;
+  const dartCount = await findScopeDartCount(db, sectionScope(ctx));
+  if (dartCount <= MAX_LANDING_DARTS) return null;
+  return `range holds ${dartCount} darts; loose-darts reads at most ${MAX_LANDING_DARTS} — request a shorter range`;
+}
+
 /** The `MAX_FOLD_DARTS` gate's own `VALIDATION_FAILED` reason, shared by every server-folded section — game or routine step. */
 function foldBoundMessage(dartCount: number): string {
   return `range holds ${dartCount} darts; server sections fold at most ${MAX_FOLD_DARTS} — request a shorter range`;
@@ -1140,7 +1167,9 @@ async function resolveGameSectionSite(
     throw new Error(`no ${site} handler registered for section "${sectionId}"`);
   }
 
-  const foldError = await foldBoundReason(db, site, ctx);
+  const foldError =
+    (await foldBoundReason(db, site, ctx)) ??
+    (await landingBoundReason(db, sectionId, site, ctx));
   if (foldError !== null) {
     return { error: foldError };
   }

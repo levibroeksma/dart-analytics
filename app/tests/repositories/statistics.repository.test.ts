@@ -8,6 +8,7 @@ import {
   findBucketedSessionAggregates,
   findBucketFloor,
   findIntentCells,
+  findIntentLandings,
   findIntentMoments,
   findMissSectors,
   findHeatmapCells,
@@ -916,6 +917,55 @@ const dartScope = {
   statuses: ["COMPLETED"],
   context: "all" as const,
 };
+
+describe("findIntentLandings", () => {
+  it("selects one row per dart from v_stats_dart_facts with no grouping", async () => {
+    const { db, statements } = renderingDb([]);
+    await findIntentLandings(db, {
+      ...dartScope,
+      bucket: "none",
+      tz: undefined,
+    });
+    const sql = onlyStatement(statements);
+    expect(sql).toContain('"v_stats_dart_facts"');
+    expect(sql).toContain('"intended_zone_key" is not null');
+    expect(sql).not.toMatch(/\bgroup by\b/i);
+  });
+
+  it("maps string coordinates to numbers and a missing coordinate to null", async () => {
+    const { chain } = fakeSelect([
+      {
+        bucketStart: "2026-01-01T00:00:00.000Z",
+        bucketEnd: "2026-02-01T00:00:00.000Z",
+        intendedTargetNumber: 16,
+        intendedZoneKey: "DOUBLE",
+        hitTargetNumber: null,
+        hitZoneKey: "MISS",
+        locationX: "166.50",
+        locationY: null,
+      },
+    ]);
+    const db = { select: vi.fn(() => chain) } as any;
+
+    const [landing] = await findIntentLandings(db, {
+      ...dartScope,
+      bucket: "none",
+      tz: undefined,
+    });
+
+    expect(landing).toEqual({
+      bucketStart: "2026-01-01T00:00:00.000Z",
+      bucketEnd: "2026-02-01T00:00:00.000Z",
+      intendedTargetNumber: 16,
+      intendedZoneKey: "DOUBLE",
+      hitTargetNumber: null,
+      hitZoneKey: "MISS",
+      darts: 1,
+      x: 166.5,
+      y: null,
+    });
+  });
+});
 
 describe("findIntentCells", () => {
   it("selects from v_stats_dart_facts", async () => {

@@ -16,6 +16,7 @@ vi.mock("@repositories/statistics.repository", () => ({
   findBucketFloor: vi.fn(),
   findBucketedSessionAggregates: vi.fn(),
   findIntentCells: vi.fn(),
+  findIntentLandings: vi.fn(),
   findIntentMoments: vi.fn(),
   findMissSectors: vi.fn(),
   findHeatmapCells: vi.fn(),
@@ -67,6 +68,7 @@ import type {
   ReplaySessionRow,
   ReplayStageRow,
 } from "@modules/types";
+import { MAX_LANDING_DARTS } from "@lib/stats/constants";
 import {
   SECTIONS,
   MAX_FOLD_DARTS,
@@ -947,21 +949,16 @@ describe("getGameSection", () => {
     if (result.ok) expect(result.data.sectionId).toBe("confusion");
   });
 
-  it("dispatches loose-darts through findIntentCells", async () => {
+  it("dispatches loose-darts through findIntentLandings and classifies a miss within 20 mm as a near miss", async () => {
     vi.mocked(repo.findGameDataVersion).mockResolvedValue({
       count: 1,
       maxCompletedAt: null,
     });
-    vi.mocked(repo.findIntentCells).mockResolvedValue([
-      {
-        bucketStart: baseRangeQuery.from,
-        bucketEnd: baseRangeQuery.to,
-        intendedTargetNumber: 16,
-        intendedZoneKey: "DOUBLE",
-        hitTargetNumber: 16,
-        hitZoneKey: "DOUBLE",
-        darts: 5,
-      },
+    vi.mocked(repo.findScopeDartCount).mockResolvedValue(3);
+    vi.mocked(repo.findIntentLandings).mockResolvedValue([
+      landingRow({ hitTargetNumber: 20, hitZoneKey: "DOUBLE", x: 0, y: -166 }),
+      landingRow({ x: 0, y: -185 }),
+      landingRow({ x: 0, y: -230 }),
     ]);
 
     const result = await getGameSection(
@@ -972,7 +969,47 @@ describe("getGameSection", () => {
     );
 
     expect(result.ok).toBe(true);
-    if (result.ok) expect(result.data.sectionId).toBe("loose-darts");
+    if (result.ok) {
+      expect(result.data.sectionId).toBe("loose-darts");
+      expect(result.data.buckets[0]!.metrics).toEqual({
+        "DOUBLE:20": { onTarget: 1, nearMiss: 1, loose: 1 },
+      });
+    }
+    expect(repo.findIntentCells).not.toHaveBeenCalled();
+  });
+
+  it("serves loose-darts at exactly MAX_LANDING_DARTS and refuses one dart more", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 1,
+      maxCompletedAt: null,
+    });
+    vi.mocked(repo.findIntentLandings).mockResolvedValue([]);
+
+    vi.mocked(repo.findScopeDartCount).mockResolvedValue(MAX_LANDING_DARTS);
+    const atCap = await getGameSection(
+      playerId,
+      "DOUBLES_TRAINING",
+      "loose-darts",
+      { ...baseRangeQuery, status: "completed" },
+    );
+    expect(atCap.ok).toBe(true);
+
+    vi.mocked(repo.findIntentLandings).mockClear();
+    vi.mocked(repo.findScopeDartCount).mockResolvedValue(MAX_LANDING_DARTS + 1);
+    const overCap = await getGameSection(
+      playerId,
+      "DOUBLES_TRAINING",
+      "loose-darts",
+      { ...baseRangeQuery, status: "completed" },
+    );
+    expect(overCap.ok).toBe(false);
+    if (!overCap.ok) {
+      expect(overCap.code).toBe("VALIDATION_FAILED");
+      expect(overCap.details?.reason).toBe(
+        `range holds ${MAX_LANDING_DARTS + 1} darts; loose-darts reads at most ${MAX_LANDING_DARTS} — request a shorter range`,
+      );
+    }
+    expect(repo.findIntentLandings).not.toHaveBeenCalled();
   });
 
   it("dispatches grouping through findIntentMoments", async () => {
@@ -1782,6 +1819,22 @@ describe("getGameSection dispatches the checkout family", () => {
     expect(repo.findScopeDartCount).not.toHaveBeenCalled();
   });
 });
+
+/** One `findIntentLandings` row aimed at DOUBLE:20 and landing as a miss at (0, -185), 15 mm past the double. */
+function landingRow(overrides: Record<string, unknown> = {}) {
+  return {
+    bucketStart: baseRangeQuery.from,
+    bucketEnd: baseRangeQuery.to,
+    intendedTargetNumber: 20,
+    intendedZoneKey: "DOUBLE",
+    hitTargetNumber: null,
+    hitZoneKey: "MISS",
+    darts: 1,
+    x: 0,
+    y: -185,
+    ...overrides,
+  };
+}
 
 /** One `findDartFoldRows` row for a Shanghai session: one dart at the first target, number 1. */
 function makeShanghaiFoldRow(overrides: Record<string, unknown> = {}) {
