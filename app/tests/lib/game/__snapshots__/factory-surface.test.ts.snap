@@ -169,6 +169,7 @@ exports[`factory surface > aroundTheClockPlay 1`] = `
   "subtitle:function",
   "syncBoard:function",
   "timer:object",
+  "title:function",
   "togglePause:function",
   "turnsSoFar:function",
   "turnsSoFarFor:function",

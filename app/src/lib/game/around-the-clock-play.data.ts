@@ -335,6 +335,11 @@ const aroundTheClockPlayMethods = {
     return formatRemaining(this.$store.game.timerRemainingMs);
   },
 
+  /** Play-header title: Nine Lives when lives are on, else the game's own. */
+  title(this: AroundTheClockPlayContext): string {
+    return this.hasLives() ? "Nine Lives" : "Around the Clock";
+  },
+
   /**
    * Play-header subtitle: lap and path ends (`LAP 2 · 1 → 20`). The path
    * ends in BULL; its last number is the one before it. Blank before
