@@ -56,11 +56,21 @@ export function heatmapTargetOptions(
   ];
 }
 
-/** The target keys a game's picker offers, without "All targets": the rows of a per-target card. */
+const OUTER_SINGLE_KEYS: readonly TargetKey[] = Array.from(
+  { length: 20 },
+  (_, i) => formatTargetKey(i + 1, "OUTER_SINGLE"),
+);
+
+/** Aim keys a game's fold emits beyond its picker keys: Around the Clock's outer-single segment rule aims at `OUTER_SINGLE:n`. */
+const EXTRA_ROW_KEYS: Readonly<Record<string, readonly TargetKey[]>> = {
+  AROUND_THE_CLOCK: OUTER_SINGLE_KEYS,
+};
+
+/** The target keys of a per-target card's rows: the picker's keys without "All targets", plus the aims its fold emits beyond them. */
 export function trackRowKeys(
   gameTypeKey: GameTypeKey | undefined,
 ): ReadonlySet<string> {
-  const keys = new Set<string>();
+  const keys = new Set<string>(EXTRA_ROW_KEYS[gameTypeKey ?? ""] ?? []);
   for (const { value } of heatmapTargetOptions(gameTypeKey))
     if (value !== null) keys.add(value);
   return keys;

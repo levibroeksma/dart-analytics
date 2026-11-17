@@ -48,6 +48,7 @@ describe("heatmap-targets", () => {
     expect(trackRowKeys("SINGLES_TRAINING").size).toBe(21);
     expect(trackRowKeys("SINGLES_TRAINING").has("BULL:25")).toBe(true);
     expect([...trackRowKeys("BOBS27")]).toEqual([...DOUBLES_PATH_KEYS]);
+    expect(trackRowKeys("AROUND_THE_CLOCK").size).toBe(41);
     expect(trackRowKeys("501").size).toBe(0);
     expect(trackRowKeys(undefined).size).toBe(0);
   });
