@@ -1,15 +1,10 @@
-import { MIN_ROW_SAMPLE, MIN_TARGET_SAMPLE } from "@lib/stats/constants";
-import { rateOf } from "@lib/stats/x01/aim-rows";
+import { MIN_TARGET_SAMPLE } from "@lib/stats/constants";
 import { tallyDoublesTraining } from "./doubles-training-rows";
 import type {
   DoublesTrainingCard,
   DoublesTrainingInput,
   DoublesTrainingRow,
 } from "./types";
-
-function order(aim: string): number {
-  return Number(aim.slice(aim.indexOf(":") + 1));
-}
 
 /** The first row, in number order, with the best hit rate among rows of at least `MIN_TARGET_SAMPLE` darts, ties to more darts. */
 function favouriteOf(rows: DoublesTrainingRow[]): DoublesTrainingRow | null {
@@ -23,10 +18,7 @@ function favouriteOf(rows: DoublesTrainingRow[]): DoublesTrainingRow | null {
 export function doublesTrainingCard(
   input: DoublesTrainingInput,
 ): DoublesTrainingCard {
-  const byAim = tallyDoublesTraining(input);
-  const rows = [...byAim.values()].sort((a, b) => order(a.aim) - order(b.aim));
-  for (const row of rows)
-    row.rate = row.darts < MIN_ROW_SAMPLE ? null : rateOf(row.hits, row.darts);
+  const rows = tallyDoublesTraining(input);
   return {
     favourite: favouriteOf(rows),
     darts: rows.reduce((sum, row) => sum + row.darts, 0),

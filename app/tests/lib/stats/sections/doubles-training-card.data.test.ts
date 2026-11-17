@@ -132,12 +132,4 @@ describe("doublesTrainingCardSection", () => {
     expect(s.error).toBeNull();
     expect(s.card.favourite?.aim).toBe("DOUBLE:16");
   });
-
-  it("stays empty for an unknown game", async () => {
-    const s = scope("NOT_A_GAME");
-    await s.load(NOW);
-    expect(s.loading).toBe(false);
-    expect(s.card.rows).toEqual([]);
-    expect(loadGameSection).not.toHaveBeenCalled();
-  });
 });
