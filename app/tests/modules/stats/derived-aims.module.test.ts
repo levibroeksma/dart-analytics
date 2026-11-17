@@ -4,6 +4,7 @@ import {
   applySinglesTrainingDart,
   initialSinglesTrainingState,
 } from "@modules/game/singles-training.engine.module";
+import { aceTargetFor } from "@modules/game/ace.engine.module";
 import { zoneBucketOf } from "@modules/game/shanghai.engine.module";
 import {
   isClockHit,
@@ -660,5 +661,79 @@ describe("sessionSteps — Nine Lives 1v1", () => {
     expect(duel.skippedSessions).toBe(0);
     expect(duel.sessions[0]!.steps).toEqual(solo.sessions[0]!.steps);
     expect(duel.sessions[0]!.steps.length).toBe(darts.length);
+  });
+});
+
+describe("sessionSteps + aimedDarts — Ace", () => {
+  const meta = { gameTypeKey: "ACE" as const, rulesetVersionKey: "ACE_V1" };
+  const aceConfig = (drawSeed: number) => ({
+    rounds: 8,
+    drawSeed,
+    seats: SEATS,
+  });
+  const keyOf = (target: number) =>
+    target === 25 ? "BULL:25" : `NUMBER:${target}`;
+  const seedWithRoundZero = (wanted: (target: number) => boolean) =>
+    Array.from({ length: 5000 }, (_, seed) => seed).find((seed) =>
+      wanted(aceTargetFor(seed, 0)),
+    )!;
+
+  it("aims each owner visit of three darts at its round's drawn target, whatever the turnSequence gaps", () => {
+    const seed = 4242;
+    const turns = [1, 1, 1, 3, 3, 3, 5];
+    const rows = turns.map((turnSequence, index) =>
+      row({
+        ...meta,
+        configuration: aceConfig(seed),
+        sessionDartCount: turns.length,
+        turnSequence,
+        dartNumber: (index % 3) + 1,
+        hitTargetNumber: null,
+        hitZoneKey: "MISS",
+      }),
+    );
+
+    const { sessions, skippedSessions } = sessionSteps(rows);
+    expect(skippedSessions).toBe(0);
+    expect(aimedDarts(sessions[0]!).map((d) => d.aim)).toEqual([
+      ...Array(3).fill(keyOf(aceTargetFor(seed, 0))),
+      ...Array(3).fill(keyOf(aceTargetFor(seed, 1))),
+      keyOf(aceTargetFor(seed, 2)),
+    ]);
+  });
+
+  it("counts both bull rings as hits on a bull round", () => {
+    const seed = seedWithRoundZero((target) => target === 25);
+    const rows = rowsFor({ ...meta, configuration: aceConfig(seed) }, [
+      hit(25, "OUTER_BULL"),
+      hit(25, "INNER_BULL"),
+      hit(20, "SINGLE"),
+    ]);
+
+    const darts = aimedDarts(sessionSteps(rows).sessions[0]!);
+    expect(darts.map((d) => d.aim)).toEqual(["BULL:25", "BULL:25", "BULL:25"]);
+    expect(darts.map((d) => d.hit)).toEqual([true, true, false]);
+  });
+
+  it("counts any ring of the round's number as a hit and a neighbour as a miss", () => {
+    const seed = seedWithRoundZero((target) => target !== 25 && target < 20);
+    const target = aceTargetFor(seed, 0);
+    const rows = rowsFor({ ...meta, configuration: aceConfig(seed) }, [
+      hit(target, "TREBLE"),
+      hit(target, "DOUBLE"),
+      hit(target + 1, "SINGLE"),
+    ]);
+
+    const darts = aimedDarts(sessionSteps(rows).sessions[0]!);
+    expect(darts.map((d) => d.hit)).toEqual([true, true, false]);
+  });
+
+  it("skips a session whose snapshot has no draw seed", () => {
+    const rows = rowsFor(
+      { ...meta, configuration: { rounds: 8, seats: SEATS } },
+      [miss(), miss(), miss()],
+    );
+
+    expect(sessionSteps(rows).skippedSessions).toBe(1);
   });
 });

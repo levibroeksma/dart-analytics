@@ -11,6 +11,7 @@ export const HEATMAP_TARGET_GAMES: ReadonlySet<string> = new Set([
   "SINGLES_TRAINING",
   "SHANGHAI",
   "AROUND_THE_CLOCK",
+  "ACE",
 ]);
 
 const NUMBER_KEYS: readonly TargetKey[] = Array.from({ length: 20 }, (_, i) =>
@@ -24,6 +25,7 @@ const DERIVED_KEYS: Readonly<Record<string, readonly TargetKey[]>> = {
   SINGLES_TRAINING: [...NUMBER_KEYS, BULL_KEY],
   AROUND_THE_CLOCK: [...NUMBER_KEYS, BULL_KEY],
   SHANGHAI: NUMBER_KEYS,
+  ACE: [...NUMBER_KEYS, BULL_KEY],
 };
 
 /**

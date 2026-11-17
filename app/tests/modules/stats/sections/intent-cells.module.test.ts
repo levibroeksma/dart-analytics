@@ -9,6 +9,7 @@ import {
 } from "@modules/stats/sections/intent-cells.module";
 import { targetAccuracyBuckets } from "@modules/stats/sections/target-accuracy.module";
 import { sessionSteps } from "@modules/stats/derived-aims.module";
+import { aceTargetFor } from "@modules/game/ace.engine.module";
 import { isHitOn } from "@modules/game/board-progression.module";
 import type {
   BoardTarget,
@@ -370,5 +371,38 @@ describe("intentCellBuckets", () => {
     );
 
     expect(seen).toEqual([12.5]);
+  });
+});
+
+describe("aimCellRows — Ace", () => {
+  it("feeds target-accuracy one attempt per owner dart at the round's drawn target", () => {
+    const drawSeed = 4242;
+    const target = aceTargetFor(drawSeed, 0);
+    const rows = [
+      aimCellHit(target, "TREBLE"),
+      aimCellHit(target === 25 ? 20 : target === 20 ? 1 : target + 1, "SINGLE"),
+      aimCellHit(target, target === 25 ? "OUTER_BULL" : "DOUBLE"),
+    ].map((observation) =>
+      aimCellFoldRow({
+        sessionId: "session-ace",
+        gameTypeKey: "ACE",
+        rulesetVersionKey: "ACE_V1",
+        configuration: { rounds: 8, drawSeed, seats: AIM_CELL_SEATS },
+        sessionDartCount: 3,
+        hitTargetNumber: observation.hitTargetNumber,
+        hitZoneKey: observation.hitZoneKey,
+      }),
+    );
+
+    const [bucket] = targetAccuracyBuckets(
+      aimCellRows(sessionSteps(rows).sessions),
+      {
+        to: "2026-10-01T00:00:00.000Z",
+        now: new Date("2026-11-01T00:00:00.000Z"),
+      },
+    );
+
+    const key = target === 25 ? "BULL:25" : `NUMBER:${target}`;
+    expect(bucket!.metrics[key]).toEqual({ attempts: 3, hits: 2 });
   });
 });

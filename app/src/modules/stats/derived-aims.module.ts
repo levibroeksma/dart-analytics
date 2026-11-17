@@ -1,3 +1,4 @@
+import { aceTargetFor } from "@modules/game/ace.engine.module";
 import { BULL_TARGET_NUMBER } from "@modules/game/board-progression.module";
 import {
   activeTargetOf as activeTargetOfAroundTheClock,
@@ -90,7 +91,17 @@ type Walker = (
   darts: readonly DartObservation[],
 ) => readonly SeatFoldStep<unknown>[];
 
+const ACE_DARTS_PER_VISIT = 3;
+
+/** An Ace seat as the stats fold sees it: the owner's darts thrown so far, from which the round follows. */
+type AceDartCount = { darts: number };
+
 const WALKERS: Partial<Record<GameTypeKey, Walker>> = {
+  ACE(_config, darts) {
+    return foldSeatSteps<AceDartCount>(darts, { darts: 0 }, (state) => ({
+      darts: state.darts + 1,
+    }));
+  },
   SINGLES_TRAINING(config, darts) {
     const singlesConfig = config as Parameters<
       typeof applySinglesTrainingDart
@@ -206,17 +217,30 @@ export function sessionSteps(rows: readonly DartFoldRow[]): {
   return { sessions, skippedSessions };
 }
 
-/** The three games `aimedDarts` recovers an aim for (phase-4 decision 1). */
-type DerivedGame = "SINGLES_TRAINING" | "SHANGHAI" | "AROUND_THE_CLOCK";
+/** The games `aimedDarts` recovers an aim for (phase-4 decision 1, D563). */
+type DerivedGame = "SINGLES_TRAINING" | "SHANGHAI" | "AROUND_THE_CLOCK" | "ACE";
 
 /** Which of the three derived-intent games a session's own ruleset belongs to, or `null` for any other (Bob's 27 included). */
 function derivedGameOf(rulesetVersionKey: string): DerivedGame | null {
   if (rulesetVersionKey.startsWith("SINGLES_")) return "SINGLES_TRAINING";
   if (rulesetVersionKey.startsWith("SHANGHAI_")) return "SHANGHAI";
+  if (rulesetVersionKey.startsWith("ACE_")) return "ACE";
   if (rulesetVersionKey.startsWith("AROUND_THE_CLOCK_")) {
     return "AROUND_THE_CLOCK";
   }
   return null;
+}
+
+/** The target Ace drew for the round of the owner's next dart: three darts a visit, one visit a round. */
+function aceRoundTarget(
+  before: AceDartCount,
+  config: DecodedSnapshot,
+): BoardTarget {
+  const round = Math.floor(before.darts / ACE_DARTS_PER_VISIT);
+  const target = aceTargetFor(config.drawSeed as number, round);
+  return target === BULL_TARGET_NUMBER
+    ? { kind: "BULL" }
+    : { kind: "NUMBER", number: target };
 }
 
 function activeTargetFor(
@@ -232,6 +256,9 @@ function activeTargetFor(
   }
   if (game === "SHANGHAI") {
     return activeTargetOfShanghai(before as ShanghaiSeatState);
+  }
+  if (game === "ACE") {
+    return aceRoundTarget(before as AceDartCount, config);
   }
   return activeTargetOfAroundTheClock(
     before as AroundTheClockSeatState,
@@ -299,8 +326,8 @@ function coordinateOf(value: number | null): number {
 }
 
 /**
- * Recovers every dart's aim in one Singles Training, Shanghai or Around the
- * Clock session's fold (phase-4 decision 1): the engine's own active target
+ * Recovers every dart's aim in one Singles Training, Shanghai, Around the
+ * Clock or Ace session's fold (phase-4 decision 1): the engine's own active target
  * before the dart, mapped to an aim key, and whether the dart hit it
  * (`isAimHit`, phase-4 decision 2). Any other game's session — Bob's 27
  * included — yields nothing; its stored intent is read some other way.
