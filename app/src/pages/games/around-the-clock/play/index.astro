@@ -9,7 +9,7 @@ import PlayPageShell from "@components/layout/games/PlayPageShell.astro";
 
 <GameLayout
   title="Around the Clock — Play"
-  gameTitle="Around the Clock"
+  gameTitleExpr="title()"
   gameSubtitleExpr="hasActiveSession ? subtitle() : ''"
   x-data="aroundTheClockPlay()"
   @confirm-exit.window="abandonAndExit()"

@@ -62,6 +62,7 @@ exports[`aroundTheClockPlay shape > keeps its keys, in order 1`] = `
   "laps()",
   "livesLeft()",
   "remainingLabel()",
+  "title()",
   "subtitle()",
   "hitsToGoFor()",
   "hitsToGo()",
