@@ -238,6 +238,7 @@ that split (2026-09-19, closes issue #423).
 
 | Component | Purpose | Key props |
 | --------- | ------- | --------- |
+| `DoublesTrainingStatsOverview.astro` | Doubles Training `/statistics` layout: completion tile, a DOUBLES `AimCardSection` over the page Period, the heatmap and the replay list (D561) | none |
 | `ReplayCard.astro` | Session replay card for any statistics page: a `GrowingCard` row with a play icon that grows into the session's replay (`SessionReplay.astro`), opening it on `$store.replay`; for use inside an Alpine `x-for` (2026-10-03, D401; grows in place 2026-10-05, D414) | `sessionIdExpr`, `titleExpr`, `captionExpr` |
 | `SessionReplay.astro` | One session's replay read from `$store.replay`: header, result, score curve, board with the selected turn's darts, turns by stage, Load more; rendered inside an open `ReplayCard` (2026-10-05, D414) | — |
 | `RoutineStepButton.astro` | One row of the Routines tab's step list: the step's label and its detail (session count, configured minutes, last run date), marked while it is the selected step; a click selects it. Renders inside an `x-for` whose item is `step`, for both the current steps and "Earlier versions" (2026-09-29, D372) | none — reads `step` from the enclosing `x-for` and `$store.routineStats` |

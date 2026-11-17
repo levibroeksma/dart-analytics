@@ -603,6 +603,11 @@ Registered for discoverability — the design lives in `10-Statistics/00-Overvie
 | `app/src/lib/stats/x01/setup-card.ts` | `setupCard()`: setup-dart hit share and good-leave share (D558) | canonical | ~0.23k |
 | `app/src/lib/stats/x01/setup-tally.ts` | `tallySetup()`: attempts and hits per basis and aim kind (D558) | canonical | ~0.147k |
 | `app/src/lib/stats/sections/doubles-card.data.ts` | `doublesCardSection()` Alpine factory for the doubles card (D558) | canonical | ~0.29k |
+| `app/src/lib/stats/doubles/doubles-training-card.ts` | `doublesTrainingCard()`: joins `target-accuracy`, `miss-direction` and `loose-darts` into per-double rows and the favourite double (D561) | canonical | ~0.9k |
+| `app/src/lib/stats/doubles/types.ts` | Types of the Doubles Training card: `DoublesTrainingRow`, `DoublesTrainingInput`, `DoublesTrainingCard` (D561) | canonical | ~0.3k |
+| `app/src/lib/stats/sections/doubles-training-card.data.ts` | `doublesTrainingCardSection()` Alpine factory: the three sections over the page Period, as one card (D561) | canonical | ~0.9k |
+| `app/src/components/layout/games/statistics/DoublesTrainingStatsOverview.astro` | The Doubles Training `/statistics` layout: completion tile, DOUBLES card, heatmap, replay list (D561) | canonical |
+| `app/tests/lib/stats/doubles/doubles-training-card.test.ts`, `app/tests/lib/stats/sections/doubles-training-card.data.test.ts` | Tests of the Doubles Training card derivation and its Alpine scope (D561) | canonical | ~1.0k |
 | `app/src/lib/stats/sections/preference-card.data.ts` | `preferenceCardSection()` Alpine factory for the double preference card (D558) | canonical | ~0.291k |
 | `app/src/lib/stats/sections/setup-card.data.ts` | `setupCardSection()` Alpine factory for the setup card (D558) | canonical | ~0.281k |
 | `app/src/components/layout/games/statistics/AimCardSection.astro` | One aim card with its data scope: factory, error alert, `AimCard`, overlay table and footer (D558) | canonical | ~0.339k |

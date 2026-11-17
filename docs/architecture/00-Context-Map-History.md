@@ -17,6 +17,8 @@ updated: 2026-11-13
 
 # Version History
 
+> **Version:** 1.235.0 (2026-11-17 — Doubles Training statistics page (D561): dedicated layout `DoublesTrainingStatsOverview.astro` and `DOUBLES_TRAINING_LAYOUTS`; new `lib/stats/doubles/` card derivation and `doublesTrainingCardSection()`; `01-Section-Catalog.md` 1.11.0.)
+
 > **Version:** 1.234.0 (2026-11-17 — `loose-darts` near-miss distance rule (D560): a missed dart within 20 mm of the aimed bed is a near miss; new `lib/game/board/aim-distance.module.ts`, `NEAR_MISS_MM`, `MAX_LANDING_DARTS`, `findIntentLandings`; `01-Section-Catalog.md` 1.10.0 §1.1 rewritten; section `loose-darts` version 2)
 
 > **Version:** 1.233.0 (2026-11-16 — Retro fixes: `.husky/pre-push` runs `check-quality-benchmarks.sh` after `npm test` when the pushed range touches `app/src/`; `check-context-budget.sh --update` rewrites drifting File Inventory `~Nk` claims (D559); new `test-check-context-budget.sh` wired in `quality.yml`, `precommit-gates.tsv`, `run-all-gates`)
