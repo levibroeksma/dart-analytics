@@ -21,6 +21,12 @@ function series<M>(metrics: M) {
   };
 }
 
+function failLooseDarts(reason: unknown) {
+  loadGameSection.mockImplementation((_game: string, sectionId: string) =>
+    sectionId === "loose-darts" ? Promise.reject(reason) : series({}),
+  );
+}
+
 describe("loadDoublesTrainingCard", () => {
   beforeEach(() => loadGameSection.mockReset());
 
@@ -45,7 +51,7 @@ describe("loadDoublesTrainingCard", () => {
   });
 
   it("gives the empty card and the message when a section fails", async () => {
-    loadGameSection.mockRejectedValue(new Error("range too wide"));
+    failLooseDarts(new Error("range too wide"));
     expect(await loadDoublesTrainingCard(data, NOW)).toEqual({
       card: EMPTY_CARD,
       error: "range too wide",
@@ -53,7 +59,7 @@ describe("loadDoublesTrainingCard", () => {
   });
 
   it("falls back to a generic message for a non-error rejection", async () => {
-    loadGameSection.mockRejectedValue("boom");
+    failLooseDarts("boom");
     expect((await loadDoublesTrainingCard(data, NOW)).error).toBe(
       "load failed",
     );
