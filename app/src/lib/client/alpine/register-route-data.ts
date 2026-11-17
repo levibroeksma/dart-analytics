@@ -53,6 +53,7 @@ import { gameVariations } from "@lib/stats/sections/game-variations.data";
 import { doublesCardSection } from "@lib/stats/sections/doubles-card.data";
 import { doublesTrainingCardSection } from "@lib/stats/sections/doubles-training-card.data";
 import { trackGamesCardSection } from "@lib/stats/sections/track-games-card.data";
+import { aceComparisonSection } from "@lib/stats/sections/ace-comparison.data";
 import { driftCardSection } from "@lib/stats/sections/drift-card.data";
 import { preferenceCardSection } from "@lib/stats/sections/preference-card.data";
 import { setupCardSection } from "@lib/stats/sections/setup-card.data";
@@ -80,6 +81,7 @@ function registerStatisticsData(Alpine: Alpine) {
   Alpine.data("doublesCardSection", doublesCardSection);
   Alpine.data("doublesTrainingCardSection", doublesTrainingCardSection);
   Alpine.data("trackGamesCardSection", trackGamesCardSection);
+  Alpine.data("aceComparisonSection", aceComparisonSection);
   Alpine.data("preferenceCardSection", preferenceCardSection);
   Alpine.data("setupCardSection", setupCardSection);
 }

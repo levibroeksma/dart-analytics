@@ -22,13 +22,12 @@ export const EMPTY_CARD: DoublesTrainingCard = {
   rows: [],
 };
 
-/** Reads `target-accuracy`, `miss-direction` and `loose-darts` un-bucketed over the page period for a game; any failed read rejects. */
-export async function loadTargetInputs(
+/** Reads `target-accuracy`, `miss-direction` and `loose-darts` un-bucketed over `span` for a game; any failed read rejects. */
+export async function loadTargetInputsOver(
   gameTypeKey: GameTypeKey,
-  rangeKey: TrendRangeKey,
-  now: Date,
+  span: { from: string; to: string },
 ): Promise<DoublesTrainingInput> {
-  const range = { ...heatmapWindow(rangeKey, now), bucket: "none" as const };
+  const range = { ...span, bucket: "none" as const };
   const [accuracy, misses, loose] = await Promise.all([
     loadGameSection<TargetAccuracyMetrics>(
       gameTypeKey,
@@ -43,6 +42,15 @@ export async function loadTargetInputs(
     misses: misses.buckets,
     loose: loose.buckets,
   };
+}
+
+/** `loadTargetInputsOver` the page period (`heatmapWindow`). */
+export function loadTargetInputs(
+  gameTypeKey: GameTypeKey,
+  rangeKey: TrendRangeKey,
+  now: Date,
+): Promise<DoublesTrainingInput> {
+  return loadTargetInputsOver(gameTypeKey, heatmapWindow(rangeKey, now));
 }
 
 /** Joins the Doubles Training sections over the page period; a failed read gives the empty card with the message. */
