@@ -1,4 +1,5 @@
 import { MIN_ROW_SAMPLE } from "@lib/stats/constants";
+import { DOUBLES_PATH_KEYS } from "@lib/stats/heatmap-targets";
 import { targetLabel } from "@lib/stats/target-key";
 import type { SeriesBucket } from "@lib/types";
 import type { DoublesTrainingInput, DoublesTrainingRow } from "./types";
@@ -19,7 +20,7 @@ const RADIAL_FIELD = {
   OUTSIDE: "outside",
 } as const;
 
-const DOUBLE_KEY = /^(DOUBLE:(?:[1-9]|1\d|20)|INNER_BULL:25)$/;
+const DOUBLES_KEYS: ReadonlySet<string> = new Set(DOUBLES_PATH_KEYS);
 
 const ZERO_COUNTS = {
   darts: 0,
@@ -55,10 +56,11 @@ function foldKnownRows<M>(
 function sumAccuracy(
   rows: Map<string, DoublesTrainingRow>,
   input: DoublesTrainingInput,
+  keys: ReadonlySet<string>,
 ): void {
   for (const { metrics } of input.accuracy)
     for (const [key, { attempts, hits }] of Object.entries(metrics)) {
-      if (!DOUBLE_KEY.test(key)) continue;
+      if (!keys.has(key)) continue;
       const row = rows.get(key) ?? blank(key);
       row.darts += attempts;
       row.hits += hits;
@@ -70,12 +72,13 @@ function order(aim: string): number {
   return Number(aim.slice(aim.indexOf(":") + 1));
 }
 
-/** The input's three sections summed into one row per double with darts, in number order with the bull last. */
+/** The input's three sections summed into one row per key of `keys` (the doubles by default) with darts, in number order with the bull last. */
 export function tallyDoublesTraining(
   input: DoublesTrainingInput,
+  keys: ReadonlySet<string> = DOUBLES_KEYS,
 ): DoublesTrainingRow[] {
   const byAim = new Map<string, DoublesTrainingRow>();
-  sumAccuracy(byAim, input);
+  sumAccuracy(byAim, input, keys);
   foldKnownRows(byAim, input.misses, (row, entries) => {
     for (const { sector, radial, darts } of entries) {
       row[SECTOR_FIELD[sector]] += darts;

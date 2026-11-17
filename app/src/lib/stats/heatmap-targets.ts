@@ -55,3 +55,13 @@ export function heatmapTargetOptions(
     })),
   ];
 }
+
+/** The target keys a game's picker offers, without "All targets": the rows of a per-target card. */
+export function trackRowKeys(
+  gameTypeKey: GameTypeKey | undefined,
+): ReadonlySet<string> {
+  const keys = new Set<string>();
+  for (const { value } of heatmapTargetOptions(gameTypeKey))
+    if (value !== null) keys.add(value);
+  return keys;
+}

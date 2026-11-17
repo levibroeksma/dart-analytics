@@ -51,4 +51,23 @@ describe("tallyDoublesTraining", () => {
     });
     expect(rows.map((row) => row.aim)).toEqual(["DOUBLE:1", "INNER_BULL:25"]);
   });
+
+  it("keeps only the rows of a given key set", () => {
+    const rows = tallyDoublesTraining(
+      {
+        accuracy: [
+          bucket({
+            "NUMBER:3": { attempts: 12, hits: 6 },
+            "NUMBER:4": { attempts: 12, hits: 6 },
+            "DOUBLE:3": { attempts: 12, hits: 6 },
+            "BULL:25": { attempts: 12, hits: 6 },
+          }),
+        ],
+        misses: [],
+        loose: [],
+      },
+      new Set(["NUMBER:3", "BULL:25"]),
+    );
+    expect(rows.map((row) => row.label)).toEqual(["3", "Bull"]);
+  });
 });

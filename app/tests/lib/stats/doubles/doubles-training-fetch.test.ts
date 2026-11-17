@@ -5,7 +5,7 @@ vi.mock("@lib/stats/load-game-section", () => ({
   loadGameSection: (...args: unknown[]) => loadGameSection(...args),
 }));
 
-const { EMPTY_CARD, loadDoublesTrainingCard } =
+const { EMPTY_CARD, loadDoublesTrainingCard, loadTargetInputs } =
   await import("@lib/stats/doubles/doubles-training-fetch");
 
 const NOW = new Date("2026-11-17T12:00:00Z");
@@ -47,6 +47,34 @@ describe("loadDoublesTrainingCard", () => {
     failLooseDarts("boom");
     expect((await loadDoublesTrainingCard("30d", NOW)).error).toBe(
       "load failed",
+    );
+  });
+});
+
+describe("loadTargetInputs", () => {
+  beforeEach(() => loadGameSection.mockReset());
+
+  it("reads the three sections un-bucketed for the game", async () => {
+    loadGameSection.mockImplementation((_game: string, sectionId: string) =>
+      series({ id: sectionId }),
+    );
+    const inputs = await loadTargetInputs("SHANGHAI", "30d", NOW);
+    const calls = loadGameSection.mock.calls;
+    expect(calls.map((call) => [call[0], call[1]])).toEqual([
+      ["SHANGHAI", "target-accuracy"],
+      ["SHANGHAI", "miss-direction"],
+      ["SHANGHAI", "loose-darts"],
+    ]);
+    expect(calls[0]![2]).toMatchObject({ bucket: "none" });
+    expect(inputs.accuracy[0]!.metrics).toEqual({ id: "target-accuracy" });
+    expect(inputs.misses[0]!.metrics).toEqual({ id: "miss-direction" });
+    expect(inputs.loose[0]!.metrics).toEqual({ id: "loose-darts" });
+  });
+
+  it("rejects when one section fails", async () => {
+    failLooseDarts(new Error("range too wide"));
+    await expect(loadTargetInputs("SHANGHAI", "30d", NOW)).rejects.toThrow(
+      "range too wide",
     );
   });
 });
