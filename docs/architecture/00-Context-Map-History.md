@@ -17,6 +17,8 @@ updated: 2026-11-13
 
 # Version History
 
+> **Version:** 1.236.0 (2026-11-17 — Track games statistics page (D562): shared layout `TrackGamesStatsOverview.astro` and `TRACK_LAYOUTS` for Singles Training, Shanghai, Around the Clock and Bob's 27; new `lib/stats/track/` card derivation, `trackGamesCardSection()`, `trackRowKeys`, `loadTargetInputs`; `01-Section-Catalog.md` 1.12.0.)
+
 > **Version:** 1.235.0 (2026-11-17 — Doubles Training statistics page (D561): dedicated layout `DoublesTrainingStatsOverview.astro` and `DOUBLES_TRAINING_LAYOUTS`; new `lib/stats/doubles/` card derivation and `doublesTrainingCardSection()`; `01-Section-Catalog.md` 1.11.0.)
 
 > **Version:** 1.234.0 (2026-11-17 — `loose-darts` near-miss distance rule (D560): a missed dart within 20 mm of the aimed bed is a near miss; new `lib/game/board/aim-distance.module.ts`, `NEAR_MISS_MM`, `MAX_LANDING_DARTS`, `findIntentLandings`; `01-Section-Catalog.md` 1.10.0 §1.1 rewritten; section `loose-darts` version 2)
