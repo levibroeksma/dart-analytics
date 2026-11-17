@@ -6,7 +6,12 @@ import {
 import { aimedDarts } from "../derived-aims.module";
 import { bucketFor, closeBuckets } from "./series.module";
 import type { IntentZoneKey, SeriesBucket, TargetKey } from "@lib/types";
-import type { DartZoneKey, IntentCellRow, SessionSteps } from "@modules/types";
+import type {
+  AimLanding,
+  DartZoneKey,
+  IntentCellRow,
+  SessionSteps,
+} from "@modules/types";
 
 /** The intended pair as a `TargetKey` (phase-2 decision 5). */
 export function intendedKey(
@@ -126,4 +131,32 @@ export function aimCellRows(
   }
 
   return Array.from(cells.values());
+}
+
+/** One `AimLanding` per aimed dart across `sessions`: the recovered aim, the landing pair and the landing point. */
+export function aimLandingRows(
+  sessions: readonly SessionSteps<unknown>[],
+): AimLanding[] {
+  const rows: AimLanding[] = [];
+
+  for (const session of sessions) {
+    for (const dart of aimedDarts(session)) {
+      const aim = parseTargetKey(dart.aim);
+      if (aim === null) continue;
+
+      rows.push({
+        bucketStart: session.bucketStart,
+        bucketEnd: session.bucketEnd,
+        intendedTargetNumber: aim.number,
+        intendedZoneKey: aim.zone,
+        hitTargetNumber: dart.hitNumber,
+        hitZoneKey: dart.hitZone,
+        darts: 1,
+        x: dart.x,
+        y: dart.y,
+      });
+    }
+  }
+
+  return rows;
 }
