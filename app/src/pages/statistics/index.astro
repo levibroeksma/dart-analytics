@@ -5,9 +5,14 @@ import Select from "@components/forms/Select.astro";
 import Toggle from "@components/layout/games/setup/Toggle.astro";
 import ScoreTrainingStatsOverview from "@components/layout/games/statistics/ScoreTrainingStatsOverview.astro";
 import X01StatsOverview from "@components/layout/games/statistics/X01StatsOverview.astro";
+import DoublesTrainingStatsOverview from "@components/layout/games/statistics/DoublesTrainingStatsOverview.astro";
 import HeatmapStatsOverview from "@components/layout/games/statistics/HeatmapStatsOverview.astro";
 import GameVariationSelect from "@components/layout/games/statistics/GameVariationSelect.astro";
-import { HEATMAP_ONLY_LAYOUTS, X01_LAYOUTS } from "@lib/stats/constants";
+import {
+  DOUBLES_TRAINING_LAYOUTS,
+  HEATMAP_ONLY_LAYOUTS,
+  X01_LAYOUTS,
+} from "@lib/stats/constants";
 import { primaryCards } from "@lib/game/rulesets/games-visibility";
 import { TREND_RANGE_OPTIONS } from "@lib/stats/sections/score-trend-window";
 
@@ -20,6 +25,7 @@ const gameOptions = primaryCards().map((game) => ({
   label: game.title,
 }));
 const heatmapOnly = JSON.stringify([...HEATMAP_ONLY_LAYOUTS]);
+const doublesTrainingRulesets = JSON.stringify([...DOUBLES_TRAINING_LAYOUTS]);
 const x01Rulesets = JSON.stringify([...X01_LAYOUTS]);
 const scope = `{ tab: $store.routineStats.initialTab, game: ${JSON.stringify(gameOptions[0]?.value ?? "")}, rangeKey: "30d", variation: $store.statsVariation.value }`;
 ---
@@ -64,11 +70,14 @@ const scope = `{ tab: $store.routineStats.initialTab, game: ${JSON.stringify(gam
         <template x-if="game === 'SCORE_TRAINING_V1'">
           <ScoreTrainingStatsOverview />
         </template>
+        <template x-if={`${doublesTrainingRulesets}.includes(game)`}>
+          <DoublesTrainingStatsOverview />
+        </template>
         <template x-if={`${heatmapOnly}.includes(game)`}>
           <HeatmapStatsOverview />
         </template>
         <template
-          x-if={`game !== 'SCORE_TRAINING_V1' && !${x01Rulesets}.includes(game) && !${heatmapOnly}.includes(game)`}
+          x-if={`game !== 'SCORE_TRAINING_V1' && !${x01Rulesets}.includes(game) && !${doublesTrainingRulesets}.includes(game) && !${heatmapOnly}.includes(game)`}
         >
           <p class="glass rounded-2xl p-4 text-sm text-muted-foreground">
             Statistics for this game are being rebuilt.

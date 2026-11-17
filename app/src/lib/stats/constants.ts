@@ -18,6 +18,11 @@ export const MAX_LANDING_DARTS = 50_000;
 /** Ruleset versions whose `/statistics` view is the 501 layout (`X01StatsOverview.astro`): averages, tiles, aim cards, heatmap and session list. */
 export const X01_LAYOUTS: ReadonlySet<string> = new Set(["501_V1", "501_V2"]);
 
+/** Ruleset versions whose `/statistics` view is the Doubles Training layout (`DoublesTrainingStatsOverview.astro`): the doubles card, then the heatmap and session list. */
+export const DOUBLES_TRAINING_LAYOUTS: ReadonlySet<string> = new Set([
+  "DOUBLES_TRAINING_V1",
+]);
+
 /** Ruleset versions whose `/statistics` view is the plain heatmap alone (`HeatmapStatsOverview.astro`): board games, with a target picker where the heatmap takes a `target` (`heatmap-targets.ts`). */
 export const HEATMAP_ONLY_LAYOUTS: ReadonlySet<string> = new Set([
   "121_V1",
@@ -37,6 +42,5 @@ export const HEATMAP_ONLY_LAYOUTS: ReadonlySet<string> = new Set([
   "BULL_500_V1",
   "FOLLOW_THE_LEADER_V1",
   "PRISONER_V1",
-  "DOUBLES_TRAINING_V1",
   "BOBS27_V1",
 ]);
