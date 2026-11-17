@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   aimCellRows,
+  aimLandingRows,
   intendedKey,
   intentCellBuckets,
   hitKey,
@@ -282,6 +283,26 @@ describe("aimCellRows", () => {
     });
 
     expect(bucket!.metrics["NUMBER:20"]).toEqual({ attempts: 3, hits: 2 });
+  });
+});
+
+describe("aimLandingRows", () => {
+  it("returns one row per dart carrying its landing point", () => {
+    const rows = aimCellRowsFor([
+      { ...aimCellHit(20, "TREBLE"), locationX: 1.5, locationY: -102 },
+      { ...aimCellHit(20, "TREBLE"), locationX: -2, locationY: -103 },
+    ]);
+    const { sessions } = sessionSteps(rows);
+
+    const landings = aimLandingRows(sessions);
+
+    expect(landings).toHaveLength(2);
+    expect(landings.map((l) => [l.x, l.y, l.darts])).toEqual([
+      [1.5, -102, 1],
+      [-2, -103, 1],
+    ]);
+    expect(landings[0]!.intendedZoneKey).toBe("NUMBER");
+    expect(landings[0]!.intendedTargetNumber).toBe(20);
   });
 });
 

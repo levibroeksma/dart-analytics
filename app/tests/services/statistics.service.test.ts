@@ -1937,6 +1937,43 @@ describe("getGameSection dispatches derived-intent and game-specific sections (p
     expect(repo.findIntentCells).not.toHaveBeenCalled();
   });
 
+  it("dispatches loose-darts on SHANGHAI through the fold and classifies misses by distance", async () => {
+    vi.mocked(repo.findGameDataVersion).mockResolvedValue({
+      count: 2,
+      maxCompletedAt: null,
+    });
+    vi.mocked(repo.findScopeDartCount).mockResolvedValue(2);
+    vi.mocked(repo.findDartFoldRows).mockResolvedValue([
+      makeShanghaiFoldRow({
+        sessionId: "s-near",
+        hitTargetNumber: null,
+        hitZoneKey: "MISS",
+        locationX: 54.08,
+        locationY: -166.43,
+      }),
+      makeShanghaiFoldRow({
+        sessionId: "s-far",
+        hitTargetNumber: null,
+        hitZoneKey: "MISS",
+        locationX: 64.89,
+        locationY: -199.72,
+      }),
+    ] as never);
+
+    const result = await getGameSection(playerId, "SHANGHAI", "loose-darts", {
+      ...baseRangeQuery,
+      status: "completed",
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.buckets[0]!.metrics).toEqual({
+        "NUMBER:1": { onTarget: 0, nearMiss: 1, loose: 1 },
+      });
+    }
+    expect(repo.findIntentCells).not.toHaveBeenCalled();
+  });
+
   it("dispatches miss-direction through findDartFoldRows on AROUND_THE_CLOCK (server site, decision 7)", async () => {
     vi.mocked(repo.findGameDataVersion).mockResolvedValue({
       count: 1,

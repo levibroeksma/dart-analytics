@@ -77,7 +77,10 @@ import {
   heatmapCellRowsFromAims,
   inferredHeatmapCellRows,
 } from "@modules/stats/sections/heatmap.module";
-import { aimCellRows } from "@modules/stats/sections/intent-cells.module";
+import {
+  aimCellRows,
+  aimLandingRows,
+} from "@modules/stats/sections/intent-cells.module";
 import { ladderProgressBuckets } from "@modules/stats/sections/ladder-progress.module";
 import { legStatsBuckets } from "@modules/stats/sections/leg-stats.module";
 import { looseDartsBuckets } from "@modules/stats/sections/loose-darts.module";
@@ -641,7 +644,7 @@ function looseDartsFromSessions(
   sessions: readonly SessionSteps<unknown>[],
   ctx: ShapeContext,
 ): SeriesBucket<unknown>[] {
-  return looseDartsBuckets(aimCellRows(sessions), ctx);
+  return looseDartsBuckets(aimLandingRows(sessions), ctx);
 }
 
 /** `miss-direction`'s `server`-site shape (phase-4 decision 7): the fold's missed aimed darts, fed through phase-2's own bucket function. */
