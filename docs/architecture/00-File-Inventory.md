@@ -605,7 +605,7 @@ Registered for discoverability — the design lives in `10-Statistics/00-Overvie
 | `app/src/lib/stats/sections/doubles-card.data.ts` | `doublesCardSection()` Alpine factory for the doubles card (D558) | canonical | ~0.29k |
 | `app/src/lib/stats/doubles/doubles-training-card.ts` | `doublesTrainingCard()`: the tallied rows, their total darts and the favourite double (D561) | canonical | ~0.3k |
 | `app/src/lib/stats/doubles/doubles-training-rows.ts` | `tallyDoublesTraining()`: sums `target-accuracy`, `miss-direction` and `loose-darts` into one row per double and the double bull, in number order with the rate floor (D561) | canonical | ~0.6k |
-| `app/src/lib/stats/doubles/doubles-training-fetch.ts` | `loadDoublesTrainingCard()`: the three sections un-bucketed over the page Period, joined; the empty card with the message on a failed read (D561) | canonical | ~0.5k |
+| `app/src/lib/stats/doubles/doubles-training-fetch.ts` | `loadDoublesTrainingCard()`: the three sections un-bucketed over the page Period, joined; the empty card with the message on a failed read (D561) | canonical | ~0.4k |
 | `app/src/lib/stats/doubles/doubles-training-lines.ts` | Headline, caption and overlay table lines of the Doubles Training card (D561) | canonical | ~0.35k |
 | `app/src/lib/stats/doubles/types.ts` | Types of the Doubles Training card: `DoublesTrainingRow`, `DoublesTrainingInput`, `DoublesTrainingCard` (D561) | canonical | ~0.3k |
 | `app/src/lib/stats/sections/doubles-training-card.data.ts` | `doublesTrainingCardSection()` Alpine factory: the card over the page Period (D561) | canonical | ~0.4k |
