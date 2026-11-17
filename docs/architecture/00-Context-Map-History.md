@@ -17,6 +17,8 @@ updated: 2026-11-13
 
 # Version History
 
+> **Version:** 1.237.0 (2026-11-17 — Ace statistics page (D563): `ACE_V1` gains `intent-derived` and an `ACE` walker in `derived-aims.module.ts`; layout `AceStatsOverview.astro` and `ACE_LAYOUTS`; new `lib/stats/ace/` comparison, `aceComparisonSection()`, `precedingWindow()`, `loadTargetInputsOver()`; shared `TrackTargetsCard.astro` and `StatTileRow.astro`; `01-Section-Catalog.md` 1.13.0.)
+
 > **Version:** 1.236.0 (2026-11-17 — Track games statistics page (D562): shared layout `TrackGamesStatsOverview.astro` and `TRACK_LAYOUTS` for Singles Training, Shanghai, Around the Clock and Bob's 27; new `lib/stats/track/` card derivation, `trackGamesCardSection()`, `trackRowKeys`, `loadTargetInputs`; `01-Section-Catalog.md` 1.12.0.)
 
 > **Version:** 1.235.0 (2026-11-17 — Doubles Training statistics page (D561): dedicated layout `DoublesTrainingStatsOverview.astro` and `DOUBLES_TRAINING_LAYOUTS`; new `lib/stats/doubles/` card derivation and `doublesTrainingCardSection()`; `01-Section-Catalog.md` 1.11.0.)
