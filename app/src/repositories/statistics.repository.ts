@@ -36,6 +36,7 @@ import type {
   HeatmapCellRow,
   HomeScope,
   HitNumberCellRow,
+  AimLanding,
   IntentCellRow,
   IntentMomentRow,
   MissReference,
@@ -755,12 +756,6 @@ export async function findIntentCells(
   db: Db,
   q: DartScope & { bucket: Bucket; tz: string | undefined },
 ): Promise<IntentCellRow[]> {
-  const whereClause = and(
-    dartScopeWhere(q),
-    isNotNull(vStatsDartFacts.intendedTargetNumber),
-    isNotNull(vStatsDartFacts.intendedZoneKey),
-  );
-
   const window = bucketWindow(vStatsDartFacts.completedAt, q);
 
   const rows = await db
@@ -773,7 +768,7 @@ export async function findIntentCells(
       darts: count(),
     })
     .from(vStatsDartFacts)
-    .where(whereClause)
+    .where(intentDartWhere(q))
     .groupBy(
       ...window.groupBy,
       vStatsDartFacts.intendedTargetNumber,
@@ -782,6 +777,45 @@ export async function findIntentCells(
       vStatsDartFacts.hitZoneKey,
     );
   return rows.map(mapIntentCellRow);
+}
+
+function intentDartWhere(q: DartScope) {
+  return and(
+    dartScopeWhere(q),
+    isNotNull(vStatsDartFacts.intendedTargetNumber),
+    isNotNull(vStatsDartFacts.intendedZoneKey),
+  );
+}
+
+/**
+ * One row per dart with a stored number-and-zone intent, carrying the
+ * landing point (`location_x`/`location_y`, null when never recorded) --
+ * feeds `loose-darts`, whose near-miss rule needs distance rather than the
+ * intended-by-hit counts of `findIntentCells`.
+ */
+export async function findIntentLandings(
+  db: Db,
+  q: DartScope & { bucket: Bucket; tz: string | undefined },
+): Promise<AimLanding[]> {
+  const window = bucketWindow(vStatsDartFacts.completedAt, q);
+
+  const rows = await db
+    .select({
+      ...window.columns,
+      intendedTargetNumber: vStatsDartFacts.intendedTargetNumber,
+      intendedZoneKey: vStatsDartFacts.intendedZoneKey,
+      hitTargetNumber: vStatsDartFacts.hitTargetNumber,
+      hitZoneKey: vStatsDartFacts.hitZoneKey,
+      locationX: vStatsDartFacts.locationX,
+      locationY: vStatsDartFacts.locationY,
+    })
+    .from(vStatsDartFacts)
+    .where(intentDartWhere(q));
+  return rows.map((row) => ({
+    ...mapIntentCellRow({ ...row, darts: 1 }),
+    x: landingOf(row.locationX),
+    y: landingOf(row.locationY),
+  }));
 }
 
 function mapIntentMomentRow(row: {

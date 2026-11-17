@@ -264,7 +264,7 @@ export const SECTIONS: Readonly<Record<SectionId, SectionMeta>> = {
   },
   "loose-darts": {
     id: "loose-darts",
-    version: 1,
+    version: 2,
     requires: ["board", INTENT_ANY_OF],
     siteByTag: DERIVED_ON_SERVER,
     computeSite: "sql",
