@@ -1,0 +1,32 @@
+---
+/**
+ * The Ace statistics layout: the completion tile, the target hit rate, drift
+ * and near miss tiles against the preceding period, the Track targets card,
+ * then the heatmap and the session list (D563).
+ */
+import GameCompletionSection from "./GameCompletionSection.astro";
+import GameHeatmapSection from "./GameHeatmapSection.astro";
+import GameSessionList from "./GameSessionList.astro";
+import StatTileRow from "./StatTileRow.astro";
+import TrackTargetsCard from "./TrackTargetsCard.astro";
+import ErrorAlert from "@components/ui/ErrorAlert.astro";
+---
+
+<div class="flex flex-col gap-2">
+  <div class="grid grid-cols-2 gap-2">
+    <GameCompletionSection />
+  </div>
+  <div
+    class="flex flex-col gap-2"
+    x-data="aceComparisonSection()"
+  >
+    <ErrorAlert
+      showExpr="error !== null"
+      textExpr="error"
+    />
+    <StatTileRow />
+  </div>
+  <TrackTargetsCard />
+  <GameHeatmapSection />
+  <GameSessionList />
+</div>

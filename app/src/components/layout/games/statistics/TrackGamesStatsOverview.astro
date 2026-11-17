@@ -1,115 +1,20 @@
 ---
 /**
- * The Track games statistics layout: the completion tile, the best, most
- * failed and weakest-three tiles over the page period, the per-target table
- * with its sort toggle, then the heatmap and the session list.
+ * The Track games statistics layout: the completion tile, the Track targets
+ * card (tiles and the sortable per-target table), then the heatmap and the
+ * session list.
  */
-import AimTable from "./AimTable.astro";
 import GameCompletionSection from "./GameCompletionSection.astro";
 import GameHeatmapSection from "./GameHeatmapSection.astro";
 import GameSessionList from "./GameSessionList.astro";
-import ErrorAlert from "@components/ui/ErrorAlert.astro";
-
-const headers = [
-  "Target",
-  "Hit",
-  "Left/Right",
-  "High/Low",
-  "In/Within/Out",
-  "Near/Loose",
-];
+import TrackTargetsCard from "./TrackTargetsCard.astro";
 ---
 
 <div class="flex flex-col gap-2">
   <div class="grid grid-cols-2 gap-2">
     <GameCompletionSection />
   </div>
-  <div
-    class="flex flex-col gap-2"
-    x-data="trackGamesCardSection()"
-  >
-    <ErrorAlert
-      showExpr="error !== null"
-      textExpr="error"
-    />
-    <div class="grid gap-2 sm:grid-cols-3">
-      <template
-        x-for="tile in tiles"
-        :key="tile.title"
-      >
-        <div class="glass flex min-w-0 flex-col gap-1.5 rounded-xl px-3 py-3.5">
-          <span
-            class="truncate font-mono text-eyebrow font-semibold text-muted-foreground"
-            x-text="tile.title"
-          >
-          </span>
-          <span class="font-display text-lg">
-            <span
-              class="inline-block h-lh w-12 animate-pulse rounded-md bg-muted-foreground/80 align-top"
-              x-show="loading"
-              x-cloak
-            >
-            </span>
-            <span
-              x-show="!loading"
-              x-cloak
-              x-text="tile.value"
-            >
-            </span>
-          </span>
-          <span
-            class="min-h-lh text-caption text-muted"
-            x-show="!loading"
-            x-cloak
-            x-text="tile.detail"
-          >
-          </span>
-        </div>
-      </template>
-    </div>
-    <div class="glass flex flex-col gap-2 rounded-xl px-3 py-3.5">
-      <div class="flex items-center gap-2">
-        <span
-          id="track-games-card-title"
-          class="truncate font-mono text-eyebrow font-semibold text-muted-foreground"
-        >
-          TARGETS
-        </span>
-        <div
-          class="ml-auto flex gap-1"
-          role="group"
-          aria-label="Sort targets"
-        >
-          <button
-            type="button"
-            class="cursor-pointer rounded-full px-3 py-1 text-caption"
-            :class="sort === 'target' ? 'glass-blue' : 'text-muted'"
-            :aria-pressed="sort === 'target'"
-            @click="setSort('target')"
-          >
-            Target
-          </button>
-          <button
-            type="button"
-            class="cursor-pointer rounded-full px-3 py-1 text-caption"
-            :class="sort === 'rate' ? 'glass-blue' : 'text-muted'"
-            :aria-pressed="sort === 'rate'"
-            @click="setSort('rate')"
-          >
-            Hit rate
-          </button>
-        </div>
-      </div>
-      <div class="overflow-x-auto">
-        <AimTable headers={headers} />
-      </div>
-      <p
-        class="text-caption text-muted"
-        x-text="footer"
-      >
-      </p>
-    </div>
-  </div>
+  <TrackTargetsCard />
   <GameHeatmapSection />
   <GameSessionList />
 </div>

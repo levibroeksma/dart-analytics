@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { GAME_TYPE_BY_RULESET } from "@lib/game/rulesets/capabilities";
 import {
+  ACE_LAYOUTS,
   DEDICATED_STATS_LAYOUTS,
   DOUBLES_TRAINING_LAYOUTS,
   HEATMAP_ONLY_LAYOUTS,
@@ -30,7 +31,6 @@ describe("HEATMAP_ONLY_LAYOUTS", () => {
     expect([...HEATMAP_ONLY_LAYOUTS].sort()).toEqual(
       [
         "121_V1",
-        "ACE_V1",
         "BASEBALL_V1",
         "BULL_500_V1",
         "CRICKET_V1",
@@ -47,6 +47,20 @@ describe("HEATMAP_ONLY_LAYOUTS", () => {
     );
     for (const key of HEATMAP_ONLY_LAYOUTS)
       expect(DEDICATED_STATS_LAYOUTS.has(key)).toBe(false);
+  });
+});
+
+describe("ACE_LAYOUTS", () => {
+  it("holds ACE_V1, outside every other layout set", () => {
+    expect([...ACE_LAYOUTS]).toEqual(["ACE_V1"]);
+    for (const other of [
+      HEATMAP_ONLY_LAYOUTS,
+      DEDICATED_STATS_LAYOUTS,
+      DOUBLES_TRAINING_LAYOUTS,
+      TRACK_LAYOUTS,
+      X01_LAYOUTS,
+    ])
+      expect(other.has("ACE_V1")).toBe(false);
   });
 });
 
