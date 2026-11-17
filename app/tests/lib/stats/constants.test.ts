@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { GAME_TYPE_BY_RULESET } from "@lib/game/rulesets/capabilities";
 import {
   DEDICATED_STATS_LAYOUTS,
+  DOUBLES_TRAINING_LAYOUTS,
   HEATMAP_ONLY_LAYOUTS,
   MAX_LANDING_DARTS,
   MIN_ROW_SAMPLE,
@@ -35,7 +36,6 @@ describe("HEATMAP_ONLY_LAYOUTS", () => {
         "BULL_500_V1",
         "CRICKET_V1",
         "CRICKET_V2",
-        "DOUBLES_TRAINING_V1",
         "FIVES_V1",
         "FOLLOW_THE_LEADER_V1",
         "KILLER_V1",
@@ -50,6 +50,17 @@ describe("HEATMAP_ONLY_LAYOUTS", () => {
     );
     for (const key of HEATMAP_ONLY_LAYOUTS)
       expect(DEDICATED_STATS_LAYOUTS.has(key)).toBe(false);
+  });
+});
+
+describe("DOUBLES_TRAINING_LAYOUTS", () => {
+  it("holds DOUBLES_TRAINING_V1, outside every other layout set", () => {
+    expect([...DOUBLES_TRAINING_LAYOUTS]).toEqual(["DOUBLES_TRAINING_V1"]);
+    for (const key of DOUBLES_TRAINING_LAYOUTS) {
+      expect(HEATMAP_ONLY_LAYOUTS.has(key)).toBe(false);
+      expect(DEDICATED_STATS_LAYOUTS.has(key)).toBe(false);
+      expect(X01_LAYOUTS.has(key)).toBe(false);
+    }
   });
 });
 
