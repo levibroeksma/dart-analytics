@@ -501,6 +501,12 @@ export type IntentCellRow = {
   darts: number;
 };
 
+/** One dart's aim, landing pair and landing point; `x`/`y` are null when the dart has no recorded position. `darts` is always 1. */
+export type AimLanding = IntentCellRow & {
+  x: number | null;
+  y: number | null;
+};
+
 /** One `findIntentMoments` row: additive position moments for an intended pair within a bucket. */
 export type IntentMomentRow = {
   bucketStart: string;
