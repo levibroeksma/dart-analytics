@@ -88,7 +88,7 @@ describe("aceComparisonSection", () => {
     const s = scope("all");
     await s.load(NOW);
     expect(loadGameSection.mock.calls).toHaveLength(3);
-    expect(s.tiles[0]!.detail).toBe("No comparison yet");
+    expect(s.tiles[0]!.detail).toBe("No earlier period");
   });
 
   it("shows the message and empty tiles when a read fails", async () => {

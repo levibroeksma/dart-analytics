@@ -47,21 +47,37 @@ describe("aceComparisonTiles", () => {
     expect(hit).toMatchObject({ value: "40.0%", detail: "No comparison yet" });
   });
 
-  it("withholds the change without a preceding period", () => {
-    const [hit] = aceComparisonTiles(
-      comparison({ hit: { current: r(16, 40), previous: null } }),
-    );
-
-    expect(hit!.detail).toBe("No comparison yet");
-  });
-
-  it("shows a dash and no darts yet when the share has no whole", () => {
+  it("shows a dash and no darts yet when the period has no darts", () => {
     const [, drift] = aceComparisonTiles(
       comparison({
+        hit: { current: r(0, 0), previous: r(10, 40) },
         drift: { direction: null, current: r(0, 0), previous: r(4, 40) },
       }),
     );
 
     expect(drift).toMatchObject({ value: "—", detail: "No darts yet" });
+  });
+
+  it("says no misses yet, not no darts yet, when every dart hit", () => {
+    const [, drift, near] = aceComparisonTiles(
+      comparison({
+        hit: { current: r(40, 40), previous: null },
+        drift: { direction: null, current: r(0, 0), previous: null },
+        near: { current: r(0, 0), previous: null },
+      }),
+    );
+
+    expect([drift!.detail, near!.detail]).toEqual([
+      "No misses yet",
+      "No misses yet",
+    ]);
+  });
+
+  it("says there is no earlier period rather than no comparison yet without one", () => {
+    const [hit] = aceComparisonTiles(
+      comparison({ hit: { current: r(16, 40), previous: null } }),
+    );
+
+    expect(hit!.detail).toBe("No earlier period");
   });
 });
