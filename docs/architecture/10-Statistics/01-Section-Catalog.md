@@ -2,12 +2,12 @@
 status: canonical
 scope: architecture/statistics/sections
 read-when: adding, changing, or choosing insight sections for a statistics game page
-updated: 2026-11-15
+updated: 2026-11-17
 -->
 
 # Statistics — Section Catalog
 
-> **Version:** 1.9.0 (2026-11-15, D558: 501 page layout; prior 1.8.0 2026-11-13, D556; prior 1.7.0 2026-11-12, D555; prior 1.6.12 2026-10-05, D414; prior 1.6.11 2026-10-04, D413; prior 1.6.10 2026-10-04, D412; prior 1.6.9 2026-10-04, D411; prior 1.6.8 2026-10-04, D410; prior 1.6.7 2026-10-04, D408; prior 1.6.6 2026-10-04, D407; prior 1.6.5 2026-10-04, D406; prior 1.6.4 2026-10-03, D402; prior 1.6.3 2026-10-03, D401; prior 1.6.2 2026-10-03, D399; prior 1.6.1 2026-10-03, D397; prior 1.6.0 2026-10-03, D396)
+> **Version:** 1.10.0 (2026-11-17, D560: near-miss distance rule; prior 1.9.0 2026-11-15, D558: 501 page layout; prior 1.8.0 2026-11-13, D556; prior 1.7.0 2026-11-12, D555; prior 1.6.12 2026-10-05, D414; prior 1.6.11 2026-10-04, D413; prior 1.6.10 2026-10-04, D412; prior 1.6.9 2026-10-04, D411; prior 1.6.8 2026-10-04, D410; prior 1.6.7 2026-10-04, D408; prior 1.6.6 2026-10-04, D407; prior 1.6.5 2026-10-04, D406; prior 1.6.4 2026-10-03, D402; prior 1.6.3 2026-10-03, D401; prior 1.6.2 2026-10-03, D399; prior 1.6.1 2026-10-03, D397; prior 1.6.0 2026-10-03, D396)
 >
 > The shared insight-section library and the section list of each game page.
 > Registry fields, tags, compute sites and the query contract are defined once in
@@ -38,7 +38,7 @@ Sections are reusable across games; a page picks them by capability tag
 | `heatmap` | `board` | sql | grid binning of coordinates collapses months of darts to a fixed grid | no | where darts land in the range; filter by target where intent exists; on Singles, Shanghai and Around the Clock a filtered request folds server-side (D408); on 501 the filter is an inferred aim key, `WIRE:a-b` included, and folds server-side over the darts resolved to it (D555) |
 | `grouping` | `board` + `intent-stored` | sql | position moment sums (Σx, Σy, Σx², Σy², Σxy) re-aggregate exactly across buckets; mean/spread/bias are derived isomorphically against `zoneCentroid` (D368) | yes | spread size and bias per target ("pulls low-left on D16") |
 | `miss-direction` | `board` + `intent-*` | sql (stored) / server (derived) | angle sectors are arithmetic against reference points TS binds as parameters (D368); derived intent needs the engine fold | no | direction of misses per target, inside/within/outside the intended ring band |
-| `loose-darts` | `board` + `intent-*` (stored: sql; derived: server) | sql (stored) / server (derived) | SQL counts intended × hit cells; TS classifies each aggregated cell with board geometry, so geometry stays single-sourced (D368) | yes | loose-dart rate per target and its trend |
+| `loose-darts` | `board` + `intent-*` (stored: sql; derived: server) | sql (stored) / server (derived) | SQL reads one row per dart with its landing point; TS classifies each by distance to the aimed bed, so geometry stays single-sourced (D368, D560) | yes | on-target, near-miss (within 20 mm) and loose share per target and its trend |
 | `target-accuracy` | `intent-*` | sql (stored) / server (derived) | hit counts per target and ring | yes | hit rate per target/ring; strongest and weakest targets |
 | `confusion` | `intent-*` | sql (stored) / server (derived) | intended × hit counts | no | where aims at a target actually land (e.g. D16 → D8/D7) |
 | `scoring-trend` | `scoring` | sql | sums and counts per bucket; first-nine is the owner's first three visits per `LEG` or `EXERCISE_BLOCK` stage (section version 2, D385); score bands are exclusive bins, not cumulative thresholds (D369) | yes | 3-dart average, first-nine average, score bands (100+/140+/180) |
@@ -86,34 +86,34 @@ planned.
 
 ## 1.1 Loose darts
 
-A dart with stored intent (Doubles Training, Bob's 27) is classified by where
-it lands relative to the intended bed (D368 decision 9):
+A dart with an aim (stored: Doubles Training, Bob's 27; derived, §1.2: Singles
+Training, Shanghai, Around the Clock) is classified by where it lands relative
+to the aimed bed (D560):
 
 | Class | Rule |
 | ----- | ---- |
-| `on-target` | the hit pair equals the intended pair |
-| `near-miss` | the same ring in either neighbouring sector (`SECTOR_ORDER`), or the neighbouring ring in the same sector. Ring order: `INNER_SINGLE`, `TREBLE`, `OUTER_SINGLE`, `DOUBLE`. For `INNER_BULL` the near-miss is `OUTER_BULL`, and the reverse |
-| `loose` | anywhere else, including `MISS` — off the board |
+| `on-target` | the dart hit the aim: the hit pair equals the aimed pair, or `isAimHit` for a `NUMBER`/`BULL` aim |
+| `near-miss` | a miss that landed within `NEAR_MISS_MM` (20 mm, inclusive) of the nearest point of the aimed bed, inside or outside it, off the board included |
+| `loose` | a miss that landed farther than that |
 
-SQL counts intended × hit cells over `v_stats_dart_facts`; TS classifies each
-**aggregated cell** against board geometry (`loose-darts.module.ts`,
-`board-geometry.module.ts`'s `SECTOR_ORDER`) — the same geometry the
-`isHitOn`/`classify` functions use, never a second copy in SQL. The adjacency
-rule is a constant in the section module; changing it bumps the section
-`version`.
+Distance is `distanceToAim` (`lib/game/board/aim-distance.module.ts`) over the
+shared board geometry, so SQL carries no second copy of it:
 
-A dart aimed at a whole number or a bull (`NUMBER`/`BULL`, §1.2) is classified
-against the same three classes, adjacency read off the number/bull instead of
-a stored zone pair (D370 decision 8):
+| Aim | Measured to |
+| --- | ----------- |
+| `DOUBLE`, `TREBLE`, `INNER_SINGLE`, `OUTER_SINGLE` | the wedge of that number between the ring's two radii |
+| `SINGLE` | the nearer of the two single bands |
+| `NUMBER:n` | the whole wedge of `n` across every ring |
+| `INNER_BULL`, `OUTER_BULL` | that bull ring |
+| `BULL:25` | the whole bull disc |
 
-| Aim | Class | Rule |
-| --- | ----- | ---- |
-| `NUMBER:n` | `on-target` | `isAimHit` — any ring of `n` except `MISS` |
-| `NUMBER:n` | `near-miss` | any ring of a neighbouring number (`SECTOR_ORDER`) |
-| `NUMBER:n` | `loose` | anywhere else, bull and `MISS` included |
-| `BULL:25` | `on-target` | either bull ring |
-| `BULL:25` | `near-miss` | `INNER_SINGLE` of any number |
-| `BULL:25` | `loose` | anywhere else |
+A hit with no recorded landing point is still `on-target`. A miss with no
+landing point cannot be measured: it counts in the bucket `sampleSize` and in
+none of the three counts. The stored-aim path reads one row per dart
+(`findIntentLandings`), so a range above `MAX_LANDING_DARTS` (50,000 darts) is
+refused as `VALIDATION_FAILED`. The derived-aim path is bounded by
+`MAX_FOLD_DARTS` as before. Changing the threshold or the rule bumps the
+section `version` (now 2).
 
 ## 1.2 Derived intent
 
