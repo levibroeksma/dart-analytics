@@ -1,11 +1,23 @@
 import { describe, it, expect } from "vitest";
 import {
+  BOARD_RADII_MM,
+  SECTOR_ORDER,
+  SECTOR_WIDTH_DEGREES,
+} from "@lib/game/board/board-geometry.module";
+import {
   classifyLanding,
   looseDartsBuckets,
 } from "@modules/stats/sections/loose-darts.module";
-import type { IntentCellRow } from "@modules/types";
+import type { IntentZoneKey } from "@lib/types";
+import type { AimLanding } from "@modules/types";
 
-function row(overrides: Partial<IntentCellRow>): IntentCellRow {
+function at(number: number, radius: number) {
+  const bearing =
+    (SECTOR_ORDER.indexOf(number) * SECTOR_WIDTH_DEGREES * Math.PI) / 180;
+  return { x: radius * Math.sin(bearing), y: -radius * Math.cos(bearing) };
+}
+
+function landing(overrides: Partial<AimLanding>): AimLanding {
   return {
     bucketStart: "2026-01-01T00:00:00.000Z",
     bucketEnd: "2026-02-01T00:00:00.000Z",
@@ -14,234 +26,242 @@ function row(overrides: Partial<IntentCellRow>): IntentCellRow {
     hitTargetNumber: 16,
     hitZoneKey: "DOUBLE",
     darts: 1,
+    x: at(16, 166).x,
+    y: at(16, 166).y,
     ...overrides,
   };
 }
 
-describe("classifyLanding", () => {
-  const cases: {
-    aimNumber: number;
-    aimZone: string;
-    hitNumber: number | null;
-    hitZone: string;
-    expected: "onTarget" | "nearMiss" | "loose";
-  }[] = [
-    {
-      aimNumber: 20,
-      aimZone: "DOUBLE",
-      hitNumber: 20,
-      hitZone: "DOUBLE",
-      expected: "onTarget",
-    },
-    {
-      aimNumber: 20,
-      aimZone: "DOUBLE",
-      hitNumber: 1,
-      hitZone: "DOUBLE",
-      expected: "nearMiss",
-    },
-    {
-      aimNumber: 20,
-      aimZone: "DOUBLE",
-      hitNumber: 5,
-      hitZone: "DOUBLE",
-      expected: "nearMiss",
-    },
-    {
-      aimNumber: 20,
-      aimZone: "DOUBLE",
-      hitNumber: 20,
-      hitZone: "OUTER_SINGLE",
-      expected: "nearMiss",
-    },
-    {
-      aimNumber: 20,
-      aimZone: "DOUBLE",
-      hitNumber: 1,
-      hitZone: "OUTER_SINGLE",
-      expected: "loose",
-    },
-    {
-      aimNumber: 20,
-      aimZone: "DOUBLE",
-      hitNumber: 20,
-      hitZone: "TREBLE",
-      expected: "loose",
-    },
-    {
-      aimNumber: 20,
-      aimZone: "DOUBLE",
-      hitNumber: null,
-      hitZone: "MISS",
-      expected: "loose",
-    },
-    {
-      aimNumber: 25,
-      aimZone: "INNER_BULL",
-      hitNumber: 25,
-      hitZone: "OUTER_BULL",
-      expected: "nearMiss",
-    },
-    {
-      aimNumber: 25,
-      aimZone: "INNER_BULL",
-      hitNumber: 20,
-      hitZone: "INNER_SINGLE",
-      expected: "loose",
-    },
-    {
-      aimNumber: 20,
-      aimZone: "NUMBER",
-      hitNumber: 20,
-      hitZone: "TREBLE",
-      expected: "onTarget",
-    },
-    {
-      aimNumber: 20,
-      aimZone: "NUMBER",
-      hitNumber: 5,
-      hitZone: "DOUBLE",
-      expected: "nearMiss",
-    },
-    {
-      aimNumber: 20,
-      aimZone: "NUMBER",
-      hitNumber: 25,
-      hitZone: "INNER_BULL",
-      expected: "loose",
-    },
-    {
-      aimNumber: 25,
-      aimZone: "BULL",
-      hitNumber: 3,
-      hitZone: "INNER_SINGLE",
-      expected: "nearMiss",
-    },
-    {
-      aimNumber: 25,
-      aimZone: "BULL",
-      hitNumber: 20,
-      hitZone: "TREBLE",
-      expected: "loose",
-    },
-    {
-      aimNumber: 1,
-      aimZone: "TREBLE",
-      hitNumber: 1,
-      hitZone: "TREBLE",
-      expected: "onTarget",
-    },
-  ];
+const MISS = { number: null, zone: "MISS" } as const;
 
-  for (const c of cases) {
-    it(`${c.aimZone}:${c.aimNumber} -> ${c.hitZone}:${c.hitNumber} is ${c.expected}`, () => {
-      expect(
-        classifyLanding(
-          { number: c.aimNumber, zone: c.aimZone as never },
-          { number: c.hitNumber, zone: c.hitZone as never },
-        ),
-      ).toBe(c.expected);
+const aimsBeyondEdge: {
+  name: string;
+  aim: { number: number; zone: IntentZoneKey };
+  edge: (offset: number) => { x: number; y: number };
+}[] = [
+  {
+    name: "DOUBLE:20",
+    aim: { number: 20, zone: "DOUBLE" },
+    edge: (d) => at(20, BOARD_RADII_MM.doubleOuter + d),
+  },
+  {
+    name: "TREBLE:20",
+    aim: { number: 20, zone: "TREBLE" },
+    edge: (d) => at(20, BOARD_RADII_MM.trebleOuter + d),
+  },
+  {
+    name: "INNER_SINGLE:20",
+    aim: { number: 20, zone: "INNER_SINGLE" },
+    edge: (d) => at(20, BOARD_RADII_MM.trebleInner + d),
+  },
+  {
+    name: "OUTER_SINGLE:20",
+    aim: { number: 20, zone: "OUTER_SINGLE" },
+    edge: (d) => at(20, BOARD_RADII_MM.doubleInner + d),
+  },
+  {
+    name: "NUMBER:20",
+    aim: { number: 20, zone: "NUMBER" },
+    edge: (d) => at(20, BOARD_RADII_MM.doubleOuter + d),
+  },
+  {
+    name: "INNER_BULL:25",
+    aim: { number: 25, zone: "INNER_BULL" },
+    edge: (d) => ({ x: BOARD_RADII_MM.innerBull + d, y: 0 }),
+  },
+  {
+    name: "OUTER_BULL:25",
+    aim: { number: 25, zone: "OUTER_BULL" },
+    edge: (d) => ({ x: BOARD_RADII_MM.outerBull + d, y: 0 }),
+  },
+  {
+    name: "BULL:25",
+    aim: { number: 25, zone: "BULL" },
+    edge: (d) => ({ x: BOARD_RADII_MM.outerBull + d, y: 0 }),
+  },
+];
+
+describe("classifyLanding", () => {
+  for (const c of aimsBeyondEdge) {
+    it(`${c.name}: 19.99 mm and 20.00 mm past the bed are near misses, 20.01 mm is loose`, () => {
+      expect(classifyLanding(c.aim, MISS, c.edge(19.99))).toBe("nearMiss");
+      expect(classifyLanding(c.aim, MISS, c.edge(20))).toBe("nearMiss");
+      expect(classifyLanding(c.aim, MISS, c.edge(20.01))).toBe("loose");
     });
   }
 
-  it("BULL:25 -> INNER_BULL:25 is onTarget (parity: the classifyBullAim branch)", () => {
+  it("counts a dart 15 mm beyond the double as a near miss and 40 mm beyond as loose", () => {
+    const aim = { number: 20, zone: "DOUBLE" } as const;
+    expect(
+      classifyLanding(aim, MISS, at(20, BOARD_RADII_MM.doubleOuter + 15)),
+    ).toBe("nearMiss");
+    expect(
+      classifyLanding(aim, MISS, at(20, BOARD_RADII_MM.doubleOuter + 40)),
+    ).toBe("loose");
+  });
+
+  it("counts a neighbouring double centre as loose when it lies more than 20 mm from the aimed double", () => {
+    const aim = { number: 20, zone: "DOUBLE" } as const;
+    expect(
+      classifyLanding(aim, { number: 1, zone: "DOUBLE" }, at(1, 166)),
+    ).toBe("loose");
+  });
+
+  it("counts a dart inside the neighbouring sector within 20 mm of the aimed double as a near miss", () => {
+    const aim = { number: 20, zone: "DOUBLE" } as const;
+    const bearing = (SECTOR_WIDTH_DEGREES / 2 + 2) * (Math.PI / 180);
+    const justPast = {
+      x: 166 * Math.sin(bearing),
+      y: -166 * Math.cos(bearing),
+    };
+    expect(classifyLanding(aim, { number: 1, zone: "DOUBLE" }, justPast)).toBe(
+      "nearMiss",
+    );
+  });
+
+  it("counts a dart in the inner single within 20 mm of the outer bull as a near miss under a bull aim", () => {
     expect(
       classifyLanding(
-        { number: 25, zone: "BULL" as never },
-        { number: 25, zone: "INNER_BULL" as never },
+        { number: 25, zone: "BULL" },
+        { number: 20, zone: "INNER_SINGLE" },
+        { x: BOARD_RADII_MM.outerBull + 5, y: 0 },
+      ),
+    ).toBe("nearMiss");
+  });
+
+  it("counts either bull ring as on target for a BULL aim and a hit pair as on target for a stored aim", () => {
+    expect(
+      classifyLanding(
+        { number: 25, zone: "BULL" },
+        { number: 25, zone: "INNER_BULL" },
+        { x: 1, y: 1 },
+      ),
+    ).toBe("onTarget");
+    expect(
+      classifyLanding(
+        { number: 16, zone: "DOUBLE" },
+        { number: 16, zone: "DOUBLE" },
+        at(16, 166),
       ),
     ).toBe("onTarget");
   });
 
-  it("OUTER_BULL:25 -> INNER_SINGLE:20 is loose (parity: the stored-bull branch's non-adjacent case)", () => {
+  it("keeps a hit with no landing point on target", () => {
     expect(
       classifyLanding(
-        { number: 25, zone: "OUTER_BULL" as never },
-        { number: 20, zone: "INNER_SINGLE" as never },
+        { number: 16, zone: "DOUBLE" },
+        { number: 16, zone: "DOUBLE" },
+        null,
       ),
-    ).toBe("loose");
+    ).toBe("onTarget");
+  });
+
+  it("marks a miss with no landing point unmeasured", () => {
+    expect(classifyLanding({ number: 16, zone: "DOUBLE" }, MISS, null)).toBe(
+      "unmeasured",
+    );
   });
 });
 
 describe("looseDartsBuckets", () => {
-  it("partitions exactly: onTarget + nearMiss + loose === attempts", () => {
+  const ctx = {
+    to: "2026-02-01T00:00:00.000Z",
+    now: new Date("2026-03-01T00:00:00.000Z"),
+  };
+
+  it("partitions hit, near miss and loose darts per intended target", () => {
     const rows = [
-      row({ hitTargetNumber: 16, hitZoneKey: "DOUBLE", darts: 9 }),
-      row({ hitTargetNumber: 8, hitZoneKey: "DOUBLE", darts: 12 }),
-      row({ hitTargetNumber: null, hitZoneKey: "MISS", darts: 9 }),
-    ];
-
-    const [bucket] = looseDartsBuckets(rows, {
-      to: "2026-02-01T00:00:00.000Z",
-      now: new Date("2026-03-01T00:00:00.000Z"),
-    });
-
-    const entry = bucket.metrics["DOUBLE:16"];
-    expect(entry.onTarget + entry.nearMiss + entry.loose).toBe(30);
-    expect(entry).toEqual({ onTarget: 9, nearMiss: 12, loose: 9 });
-  });
-
-  it("keeps one entry per intended target and sums every row's darts into sampleSize", () => {
-    const rows = [
-      row({ darts: 4 }),
-      row({
-        intendedTargetNumber: 20,
-        intendedZoneKey: "TREBLE",
-        hitTargetNumber: 1,
-        hitZoneKey: "TREBLE",
-        darts: 6,
+      landing({}),
+      landing({
+        hitTargetNumber: null,
+        hitZoneKey: "MISS",
+        ...at(16, BOARD_RADII_MM.doubleOuter + 10),
+      }),
+      landing({
+        hitTargetNumber: null,
+        hitZoneKey: "MISS",
+        ...at(16, BOARD_RADII_MM.doubleOuter + 40),
       }),
     ];
 
-    const [bucket] = looseDartsBuckets(rows, {
-      to: "2026-02-01T00:00:00.000Z",
-      now: new Date("2026-03-01T00:00:00.000Z"),
-    });
+    const [bucket] = looseDartsBuckets(rows, ctx);
 
-    expect(bucket!.sampleSize).toBe(10);
-    expect(bucket!.metrics).toEqual({
-      "DOUBLE:16": { onTarget: 4, nearMiss: 0, loose: 0 },
-      "TREBLE:20": { onTarget: 0, nearMiss: 6, loose: 0 },
+    expect(bucket!.metrics["DOUBLE:16"]).toEqual({
+      onTarget: 1,
+      nearMiss: 1,
+      loose: 1,
     });
+    expect(bucket!.sampleSize).toBe(3);
+  });
+
+  it("counts an unmeasured miss in sampleSize but in none of the three counts", () => {
+    const rows = [
+      landing({}),
+      landing({
+        hitTargetNumber: null,
+        hitZoneKey: "MISS",
+        ...at(16, BOARD_RADII_MM.doubleOuter + 10),
+      }),
+      landing({
+        hitTargetNumber: null,
+        hitZoneKey: "MISS",
+        x: null,
+        y: null,
+      }),
+    ];
+
+    const [bucket] = looseDartsBuckets(rows, ctx);
+
+    expect(bucket!.metrics["DOUBLE:16"]).toEqual({
+      onTarget: 1,
+      nearMiss: 1,
+      loose: 0,
+    });
+    expect(bucket!.sampleSize).toBe(3);
+  });
+
+  it("keeps one entry per intended target", () => {
+    const rows = [
+      landing({}),
+      landing({
+        intendedTargetNumber: 20,
+        intendedZoneKey: "TREBLE",
+        hitTargetNumber: 20,
+        hitZoneKey: "TREBLE",
+        ...at(20, 103),
+      }),
+    ];
+
+    const [bucket] = looseDartsBuckets(rows, ctx);
+
+    expect(Object.keys(bucket!.metrics).sort()).toEqual([
+      "DOUBLE:16",
+      "TREBLE:20",
+    ]);
   });
 
   it("returns no buckets for an empty row set", () => {
-    expect(
-      looseDartsBuckets([], {
-        to: "2026-02-01T00:00:00.000Z",
-        now: new Date(),
-      }),
-    ).toEqual([]);
-  });
-});
-
-describe("looseDartsBuckets bucket series", () => {
-  const ctx = {
-    to: "2026-03-01T00:00:00.000Z",
-    now: new Date("2026-02-15T00:00:00.000Z"),
-  };
-
-  it("returns an empty series for no rows", () => {
     expect(looseDartsBuckets([], ctx)).toEqual([]);
   });
 
   it("orders buckets by start ascending, folds a repeated start, and stamps closure", () => {
+    const open = {
+      to: "2026-03-01T00:00:00.000Z",
+      now: new Date("2026-02-15T00:00:00.000Z"),
+    };
     const series = looseDartsBuckets(
       [
-        row({
+        landing({
           bucketStart: "2026-02-01T00:00:00.000Z",
           bucketEnd: "2026-03-01T00:00:00.000Z",
         }),
-        row({
-          bucketStart: "2026-01-01T00:00:00.000Z",
-          bucketEnd: "2026-02-01T00:00:00.000Z",
-        }),
-        row({
+        landing({}),
+        landing({
           bucketStart: "2026-02-01T00:00:00.000Z",
           bucketEnd: "2026-03-01T00:00:00.000Z",
         }),
       ],
-      ctx,
+      open,
     );
     expect(
       series.map(({ start, end, closed }) => ({ start, end, closed })),

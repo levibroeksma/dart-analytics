@@ -331,4 +331,23 @@ describe("intentCellBuckets", () => {
       },
     ]);
   });
+
+  it("hands a row with extra fields to add unchanged", () => {
+    const extended = { ...row({}), x: 12.5, y: -3 };
+    const seen: number[] = [];
+
+    intentCellBuckets(
+      [extended],
+      {
+        to: "2026-02-01T00:00:00.000Z",
+        now: new Date("2026-03-01T00:00:00.000Z"),
+      },
+      () => ({}),
+      (_entry, r) => {
+        seen.push(r.x);
+      },
+    );
+
+    expect(seen).toEqual([12.5]);
+  });
 });

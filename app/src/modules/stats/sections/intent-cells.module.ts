@@ -59,11 +59,11 @@ export function isHit(
  * entries: each row counts its `darts` as samples, gets-or-creates the entry
  * at `intendedKey(row)` from `empty()`, and is passed to `add`.
  */
-export function intentCellBuckets<M>(
-  rows: readonly IntentCellRow[],
+export function intentCellBuckets<M, R extends IntentCellRow = IntentCellRow>(
+  rows: readonly R[],
   ctx: { to: string; now: Date },
   empty: () => M,
-  add: (entry: M, row: IntentCellRow) => void,
+  add: (entry: M, row: R) => void,
 ): SeriesBucket<Record<string, M>>[] {
   const buckets = new Map<
     string,

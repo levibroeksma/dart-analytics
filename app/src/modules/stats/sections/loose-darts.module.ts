@@ -1,132 +1,41 @@
-import { SECTOR_ORDER } from "@lib/game/board/board-geometry.module";
+import { distanceToAim } from "@lib/game/board/aim-distance.module";
+import { NEAR_MISS_MM } from "@lib/stats/constants";
 import { isAimHit } from "@lib/stats/target-key";
 import { intentCellBuckets } from "./intent-cells.module";
 import type { IntentZoneKey, SeriesBucket } from "@lib/types";
 import type {
+  AimLanding,
   DartZoneKey,
-  IntentCellRow,
   LooseDartsMetrics,
 } from "@modules/types";
 
-/**
- * Ring adjacency for the "neighbouring ring, same sector" near-miss case
- * (phase-2 decision 9). `INNER_BULL`/`OUTER_BULL` are handled separately —
- * they have no sector.
- */
-const RING_ORDER: readonly DartZoneKey[] = [
-  "INNER_SINGLE",
-  "TREBLE",
-  "OUTER_SINGLE",
-  "DOUBLE",
-];
-
-function neighborSectors(number: number): readonly number[] {
-  const index = SECTOR_ORDER.indexOf(number);
-  const n = SECTOR_ORDER.length;
-  return [SECTOR_ORDER[(index - 1 + n) % n]!, SECTOR_ORDER[(index + 1) % n]!];
-}
-
-function ringAdjacent(a: DartZoneKey, b: DartZoneKey): boolean {
-  const ia = RING_ORDER.indexOf(a);
-  const ib = RING_ORDER.indexOf(b);
-  if (ia < 0 || ib < 0) return false;
-  return Math.abs(ia - ib) === 1;
-}
-
-/** `classifyLanding` under a `NUMBER:n` aim (phase-4 decision 8). */
-function classifyNumberAim(
-  intended: { number: number; zone: IntentZoneKey },
-  hit: { number: number | null; zone: DartZoneKey },
-): "onTarget" | "nearMiss" | "loose" {
-  if (isAimHit(intended, hit)) return "onTarget";
-  return hit.number !== null &&
-    neighborSectors(intended.number).includes(hit.number)
-    ? "nearMiss"
-    : "loose";
-}
-
-/** `classifyLanding` under a `BULL:25` aim (phase-4 decision 8). */
-function classifyBullAim(hit: {
-  number: number | null;
-  zone: DartZoneKey;
-}): "onTarget" | "nearMiss" | "loose" {
-  if (hit.zone === "OUTER_BULL" || hit.zone === "INNER_BULL") {
-    return "onTarget";
-  }
-  return hit.zone === "INNER_SINGLE" ? "nearMiss" : "loose";
-}
-
-/** `intended.zone` once `NUMBER`/`BULL` are ruled out — every stored aim is a real `DartZoneKey`. */
-type StoredZone = Exclude<IntentZoneKey, "NUMBER" | "BULL">;
-
-/** Near-miss check for a stored bull aim (`INNER_BULL`/`OUTER_BULL`): the other bull ring, same number. */
-function nearMissOnStoredBull(
-  intended: { number: number; zone: StoredZone },
-  hit: { number: number | null; zone: DartZoneKey },
-): "nearMiss" | "loose" {
-  const bullNear: DartZoneKey =
-    intended.zone === "INNER_BULL" ? "OUTER_BULL" : "INNER_BULL";
-  return hit.zone === bullNear && hit.number === intended.number
-    ? "nearMiss"
-    : "loose";
-}
-
-/** Near-miss check for a stored numbered-ring aim (phase-2 decision 9): neighbouring sector same ring, or neighbouring ring same sector. */
-function nearMissOnStoredRing(
-  intended: { number: number; zone: StoredZone },
-  hit: { number: number | null; zone: DartZoneKey },
-): "nearMiss" | "loose" {
-  if (hit.number === null) return "loose";
-
-  const sameRingNeighborSector =
-    hit.zone === intended.zone &&
-    neighborSectors(intended.number).includes(hit.number);
-  const sameSectorNeighborRing =
-    hit.number === intended.number && ringAdjacent(intended.zone, hit.zone);
-
-  return sameRingNeighborSector || sameSectorNeighborRing
-    ? "nearMiss"
-    : "loose";
-}
-
-/** `classifyLanding` under a stored-zone aim: exact pair, else phase-2 decision 9's adjacency. */
-function classifyStoredAim(
-  intended: { number: number; zone: StoredZone },
-  hit: { number: number | null; zone: DartZoneKey },
-): "onTarget" | "nearMiss" | "loose" {
-  if (hit.number === intended.number && hit.zone === intended.zone) {
-    return "onTarget";
-  }
-
-  if (intended.zone === "INNER_BULL" || intended.zone === "OUTER_BULL") {
-    return nearMissOnStoredBull(intended, hit);
-  }
-
-  return nearMissOnStoredRing(intended, hit);
-}
+const DISTANCE_TOLERANCE_MM = 1e-9;
 
 /**
- * Classifies a landing against its intended target: `onTarget` (exact pair
- * on a stored zone, or `isAimHit` on a derived one), `nearMiss` (phase-2
- * decision 9's ring/sector adjacency for a stored zone; phase-4 decision 8's
- * neighbouring-number or `INNER_SINGLE`-of-any-number for `NUMBER`/`BULL`),
- * else `loose` — which includes every `MISS`.
+ * Classifies a landing against its aim: `onTarget` when the dart hit the aim
+ * (with or without a landing point), `nearMiss` when a miss lies within
+ * `NEAR_MISS_MM` of the aimed bed, `loose` when farther, and `unmeasured`
+ * for a miss with no landing point.
  */
 export function classifyLanding(
-  intended: { number: number; zone: IntentZoneKey },
+  aim: { number: number; zone: IntentZoneKey },
   hit: { number: number | null; zone: DartZoneKey },
-): "onTarget" | "nearMiss" | "loose" {
-  if (intended.zone === "NUMBER") return classifyNumberAim(intended, hit);
-  if (intended.zone === "BULL") return classifyBullAim(hit);
-  return classifyStoredAim(
-    { number: intended.number, zone: intended.zone },
-    hit,
-  );
+  point: { x: number; y: number } | null,
+): "onTarget" | "nearMiss" | "loose" | "unmeasured" {
+  if (isAimHit(aim, hit)) return "onTarget";
+  if (point === null) return "unmeasured";
+  return distanceToAim(point, aim) <= NEAR_MISS_MM + DISTANCE_TOLERANCE_MM
+    ? "nearMiss"
+    : "loose";
 }
 
-/** Folds `findIntentCells` rows into `loose-darts` buckets: on/near/loose shares per intended target. */
+function pointOf(row: AimLanding): { x: number; y: number } | null {
+  return row.x === null || row.y === null ? null : { x: row.x, y: row.y };
+}
+
+/** Folds per-dart landings into `loose-darts` buckets: on/near/loose counts per intended target; an unmeasured miss counts in `sampleSize` only. */
 export function looseDartsBuckets(
-  rows: readonly IntentCellRow[],
+  rows: readonly AimLanding[],
   ctx: { to: string; now: Date },
 ): SeriesBucket<LooseDartsMetrics>[] {
   return intentCellBuckets(
@@ -140,10 +49,9 @@ export function looseDartsBuckets(
           zone: row.intendedZoneKey as IntentZoneKey,
         },
         { number: row.hitTargetNumber, zone: row.hitZoneKey as DartZoneKey },
+        pointOf(row),
       );
-      if (landing === "onTarget") entry.onTarget += row.darts;
-      else if (landing === "nearMiss") entry.nearMiss += row.darts;
-      else entry.loose += row.darts;
+      if (landing !== "unmeasured") entry[landing] += row.darts;
     },
   );
 }
