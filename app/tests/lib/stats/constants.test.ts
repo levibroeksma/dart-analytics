@@ -8,6 +8,7 @@ import {
   MIN_ROW_SAMPLE,
   MIN_TARGET_SAMPLE,
   NEAR_MISS_MM,
+  TRACK_LAYOUTS,
   X01_LAYOUTS,
 } from "@lib/stats/constants";
 
@@ -30,9 +31,7 @@ describe("HEATMAP_ONLY_LAYOUTS", () => {
       [
         "121_V1",
         "ACE_V1",
-        "AROUND_THE_CLOCK_V1",
         "BASEBALL_V1",
-        "BOBS27_V1",
         "BULL_500_V1",
         "CRICKET_V1",
         "CRICKET_V2",
@@ -41,8 +40,6 @@ describe("HEATMAP_ONLY_LAYOUTS", () => {
         "KILLER_V1",
         "MICKEY_MOUSE_V1",
         "PRISONER_V1",
-        "SHANGHAI_V1",
-        "SINGLES_V1",
         "TACTICS_V1",
         "TACTICS_V2",
         "TUOD_V1",
@@ -50,6 +47,24 @@ describe("HEATMAP_ONLY_LAYOUTS", () => {
     );
     for (const key of HEATMAP_ONLY_LAYOUTS)
       expect(DEDICATED_STATS_LAYOUTS.has(key)).toBe(false);
+  });
+});
+
+describe("TRACK_LAYOUTS", () => {
+  it("holds the four per-target Track games, outside every other layout set", () => {
+    expect([...TRACK_LAYOUTS].sort()).toEqual([
+      "AROUND_THE_CLOCK_V1",
+      "BOBS27_V1",
+      "SHANGHAI_V1",
+      "SINGLES_V1",
+    ]);
+    for (const key of TRACK_LAYOUTS) {
+      expect(HEATMAP_ONLY_LAYOUTS.has(key)).toBe(false);
+      expect(DEDICATED_STATS_LAYOUTS.has(key)).toBe(false);
+      expect(DOUBLES_TRAINING_LAYOUTS.has(key)).toBe(false);
+      expect(X01_LAYOUTS.has(key)).toBe(false);
+    }
+    expect(HEATMAP_ONLY_LAYOUTS.has("BASEBALL_V1")).toBe(true);
   });
 });
 
