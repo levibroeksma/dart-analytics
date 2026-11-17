@@ -3,6 +3,7 @@ import {
   doublesTrainingCaption,
   doublesTrainingHeadline,
   doublesTrainingTable,
+  doublesTrainingTableRow,
 } from "@lib/stats/doubles/doubles-training-lines";
 import type { DoublesTrainingCard, DoublesTrainingRow } from "@lib/types";
 
@@ -65,5 +66,13 @@ describe("doubles training lines", () => {
         cells: ["50.0%", "6/4", "5/5", "6/10/4", "12/6"],
       },
     ]);
+  });
+
+  it("formats one row on its own as a table line", () => {
+    expect(doublesTrainingTableRow(row)).toEqual({
+      label: "D16",
+      count: 40,
+      cells: ["50.0%", "6/4", "5/5", "6/10/4", "12/6"],
+    });
   });
 });
