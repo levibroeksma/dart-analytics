@@ -9,6 +9,12 @@ export const DEDICATED_STATS_LAYOUTS: ReadonlySet<string> = new Set([
 /** The minimum attempt count before one row of a card's breakdown shows a rate; smaller rows show their count only. */
 export const MIN_ROW_SAMPLE = 10;
 
+/** The distance in millimetres from the aimed bed within which a missed dart is a near miss; exactly this far still counts. */
+export const NEAR_MISS_MM = 20;
+
+/** The most darts a per-dart landing read serves before the request is refused as too wide. */
+export const MAX_LANDING_DARTS = 50_000;
+
 /** Ruleset versions whose `/statistics` view is the 501 layout (`X01StatsOverview.astro`): averages, tiles, aim cards, heatmap and session list. */
 export const X01_LAYOUTS: ReadonlySet<string> = new Set(["501_V1", "501_V2"]);
 

@@ -3,8 +3,10 @@ import { GAME_TYPE_BY_RULESET } from "@lib/game/rulesets/capabilities";
 import {
   DEDICATED_STATS_LAYOUTS,
   HEATMAP_ONLY_LAYOUTS,
+  MAX_LANDING_DARTS,
   MIN_ROW_SAMPLE,
   MIN_TARGET_SAMPLE,
+  NEAR_MISS_MM,
   X01_LAYOUTS,
 } from "@lib/stats/constants";
 
@@ -76,5 +78,15 @@ describe("MIN_ROW_SAMPLE", () => {
     expect(Number.isInteger(MIN_ROW_SAMPLE)).toBe(true);
     expect(MIN_ROW_SAMPLE).toBeGreaterThan(0);
     expect(MIN_ROW_SAMPLE).toBeLessThan(MIN_TARGET_SAMPLE);
+  });
+});
+
+describe("near-miss constants", () => {
+  it("sets the near-miss threshold at 20 mm", () => {
+    expect(NEAR_MISS_MM).toBe(20);
+  });
+
+  it("caps a per-dart landing read at 50,000 darts", () => {
+    expect(MAX_LANDING_DARTS).toBe(50_000);
   });
 });
