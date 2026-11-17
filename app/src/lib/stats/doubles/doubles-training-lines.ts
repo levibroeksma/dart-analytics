@@ -15,7 +15,8 @@ export function doublesTrainingCaption(card: DoublesTrainingCard): string {
     : `Favourite ${favourite.label}, ${favourite.darts} darts`;
 }
 
-function tableRow(row: DoublesTrainingRow): AimTableRow {
+/** One table line of a card row: hit rate, left/right, high/low, wire bands, near/loose. */
+export function doublesTrainingTableRow(row: DoublesTrainingRow): AimTableRow {
   return {
     label: row.label,
     count: row.darts,
@@ -31,5 +32,5 @@ function tableRow(row: DoublesTrainingRow): AimTableRow {
 
 /** The card's overlay table lines, one per double: hit rate, left/right, high/low, wire bands, near/loose. */
 export function doublesTrainingTable(card: DoublesTrainingCard): AimTableRow[] {
-  return card.rows.map(tableRow);
+  return card.rows.map(doublesTrainingTableRow);
 }

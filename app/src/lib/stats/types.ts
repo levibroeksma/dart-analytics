@@ -417,3 +417,4 @@ export type RoutinesLocation = { routineKey: string; stepKey: string | null };
 
 /** One entry of the heatmap target picker; `null` is "All targets" (or "All aims" on 501). */
 export type HeatmapTargetOption = { value: AimKey | null; label: string };
+export * from "./track/types";

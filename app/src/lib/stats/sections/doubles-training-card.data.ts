@@ -7,23 +7,14 @@ import {
   EMPTY_CARD,
   loadDoublesTrainingCard,
 } from "@lib/stats/doubles/doubles-training-fetch";
-import { reloadOnPageFilters } from "@lib/stats/sections/period-section";
-import type {
-  AimTableRow,
-  DoublesTrainingCard,
-  TrendRangeKey,
-} from "@lib/types";
-
-type CardScope = {
-  $data: { rangeKey: TrendRangeKey };
-  loading: boolean;
-  error: string | null;
-  card: DoublesTrainingCard;
-};
+import {
+  latestCardLoad,
+  reloadOnPageFilters,
+} from "@lib/stats/sections/period-section";
+import type { AimTableRow } from "@lib/types";
 
 /** Alpine scope of the Doubles Training card: `target-accuracy`, `miss-direction` and `loose-darts` over the page period, joined into one card. */
 export function doublesTrainingCardSection() {
-  let ticket = 0;
   return {
     loading: true,
     error: null as string | null,
@@ -34,16 +25,9 @@ export function doublesTrainingCardSection() {
       void this.load();
     },
 
-    async load(this: CardScope, now: Date = new Date()) {
-      const mine = ++ticket;
-      this.loading = true;
-      this.error = null;
-      const result = await loadDoublesTrainingCard(this.$data.rangeKey, now);
-      if (mine !== ticket) return;
-      this.card = result.card;
-      this.error = result.error;
-      this.loading = false;
-    },
+    load: latestCardLoad((_game, rangeKey, now) =>
+      loadDoublesTrainingCard(rangeKey, now),
+    ),
 
     get headline(): string {
       return doublesTrainingHeadline(this.card);
