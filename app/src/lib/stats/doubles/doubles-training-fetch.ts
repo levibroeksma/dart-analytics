@@ -1,10 +1,6 @@
 import { loadGameSection } from "@lib/stats/load-game-section";
 import { heatmapWindow } from "@lib/stats/sections/score-trend-window";
-import type {
-  DoublesTrainingCard,
-  RulesetVersionKey,
-  TrendRangeKey,
-} from "@lib/types";
+import type { DoublesTrainingCard, TrendRangeKey } from "@lib/types";
 import type {
   LooseDartsMetrics,
   MissDirectionMetrics,
