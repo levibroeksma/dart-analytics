@@ -102,23 +102,30 @@ export function parseRecord(text) {
     }
   }
   const sections = new Map();
+  const dupes = [];
+  const stray = [];
   let current = null;
   let buf = [];
   const flush = () => {
-    if (current !== null) sections.set(current, trimBlank(buf));
+    if (current === null) return;
+    const body = trimBlank(buf);
+    sections.set(current, sections.has(current) ? `${sections.get(current)}\n${body}` : body);
   };
   for (; i < lines.length; i++) {
     const m = /^(?:##|###) (.+?)\s*$/.exec(lines[i]);
     if (m && HEADINGS.includes(m[1])) {
       flush();
       current = m[1];
+      if (sections.has(current)) dupes.push(current);
       buf = [];
     } else if (current !== null) {
       buf.push(lines[i]);
+    } else {
+      stray.push(lines[i]);
     }
   }
   flush();
-  return { fm, title, sections, thin };
+  return { fm, title, sections, thin, extra: trimBlank(stray), dupes };
 }
 
 function renderValue(v) {
@@ -180,6 +187,8 @@ export function validateRecord(r, path, opts) {
     err("date must be YYYY-MM-DD");
   }
   if (!r.title) err("missing level-1 title");
+  if (r.extra) err("text between the title and the first heading is not allowed");
+  for (const h of r.dupes ?? []) err(`duplicate heading "${h}"`);
   const present = HEADINGS.filter((h) => r.sections.has(h));
   for (const h of HEADINGS) {
     if (!r.sections.has(h)) err(`missing heading "${h}"`);

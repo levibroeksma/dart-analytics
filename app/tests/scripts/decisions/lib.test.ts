@@ -131,6 +131,24 @@ describe("validateRecord", () => {
       validateRecord(rec({ id: "pending", date: "" }), "x/pending-a.md", OPTS),
     ).toHaveLength(1);
   });
+  it("rejects stray text between the title and the first heading", () => {
+    const text = renderRecord(rec()).replace(
+      "# Some title\n",
+      "# Some title\n\nstray words\n",
+    );
+    const e = validateRecord(parseRecord(text), p("D0020"), OPTS);
+    expect(e).toHaveLength(1);
+    expect(e[0]).toContain("between the title");
+  });
+  it("rejects a duplicate heading and keeps both bodies", () => {
+    const base = renderRecord(rec());
+    const text = `${base}\n## Decision Drivers\nsecond body\n`;
+    const r = parseRecord(text);
+    expect(r.sections.get("Decision Drivers")).toContain("second body");
+    const e = validateRecord(r, p("D0020"), OPTS);
+    expect(e).toHaveLength(1);
+    expect(e[0]).toContain('duplicate heading "Decision Drivers"');
+  });
   it("rejects an empty section", () => {
     const r = rec();
     r.sections.set("Decision Drivers", "");
