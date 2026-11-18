@@ -1,0 +1,43 @@
+---
+/**
+ * A row of summary tiles read from the enclosing Alpine scope's `tiles`
+ * (`{ title, value, detail }`) and `loading`: one glass tile each, with a
+ * pulse placeholder while loading.
+ */
+---
+
+<div class="grid gap-2 sm:grid-cols-3">
+  <template
+    x-for="tile in tiles"
+    :key="tile.title"
+  >
+    <div class="glass flex min-w-0 flex-col gap-1.5 rounded-xl px-3 py-3.5">
+      <span
+        class="truncate font-mono text-eyebrow font-semibold text-muted-foreground"
+        x-text="tile.title"
+      >
+      </span>
+      <span class="font-display text-lg">
+        <span
+          class="inline-block h-lh w-12 animate-pulse rounded-md bg-muted-foreground/80 align-top"
+          x-show="loading"
+          x-cloak
+        >
+        </span>
+        <span
+          x-show="!loading"
+          x-cloak
+          x-text="tile.value"
+        >
+        </span>
+      </span>
+      <span
+        class="min-h-lh text-caption text-muted"
+        x-show="!loading"
+        x-cloak
+        x-text="tile.detail"
+      >
+      </span>
+    </div>
+  </template>
+</div>

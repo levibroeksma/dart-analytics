@@ -108,7 +108,7 @@ export const STATS_TAGS: Readonly<
   BASEBALL_V1: ["board"],
   KILLER_V1: ["board"],
   FIVES_V1: ["board"],
-  ACE_V1: ["board"],
+  ACE_V1: ["board", "intent-derived"],
   BULL_500_V1: ["board"],
   FOLLOW_THE_LEADER_V1: ["board"],
   PRISONER_V1: ["board"],

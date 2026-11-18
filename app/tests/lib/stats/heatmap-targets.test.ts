@@ -17,6 +17,7 @@ describe("heatmap-targets", () => {
 
   it("offers a picker for exactly the stored-intent and derived-intent games", () => {
     expect([...HEATMAP_TARGET_GAMES].sort()).toEqual([
+      "ACE",
       "AROUND_THE_CLOCK",
       "BOBS27",
       "DOUBLES_TRAINING",
@@ -49,7 +50,15 @@ describe("heatmap-targets", () => {
     expect(trackRowKeys("SINGLES_TRAINING").has("BULL:25")).toBe(true);
     expect([...trackRowKeys("BOBS27")]).toEqual([...DOUBLES_PATH_KEYS]);
     expect(trackRowKeys("AROUND_THE_CLOCK").size).toBe(41);
+    expect(trackRowKeys("ACE").size).toBe(21);
+    expect(trackRowKeys("ACE").has("BULL:25")).toBe(true);
     expect(trackRowKeys("501").size).toBe(0);
     expect(trackRowKeys(undefined).size).toBe(0);
+  });
+
+  it("offers Ace a picker of all targets, 1 to 20 and the bull", () => {
+    const options = heatmapTargetOptions("ACE");
+    expect(options).toHaveLength(22);
+    expect(options[0]!.label).toBe("All targets");
   });
 });

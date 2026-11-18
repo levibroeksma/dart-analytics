@@ -430,9 +430,23 @@ describe("statistics section registry", () => {
     expect(tagsForGameType("BASEBALL")).toEqual(new Set(["board"]));
   });
 
-  it("gives Ace no result direction and only the board tag", () => {
+  it("gives Ace no result direction and the board and derived-intent tags", () => {
     expect(RESULT_DIRECTION.ACE).toBeNull();
-    expect(tagsForGameType("ACE")).toEqual(new Set(["board"]));
+    expect(tagsForGameType("ACE")).toEqual(
+      new Set(["board", "intent-derived"]),
+    );
+  });
+
+  it("offers Ace the per-target sections its derived aim serves, computed on the server", () => {
+    const sections = sectionsForGame("ACE");
+    for (const id of [
+      "target-accuracy",
+      "miss-direction",
+      "loose-darts",
+    ] as const) {
+      expect(sections).toContain(id);
+      expect(sectionSite(SECTIONS[id], "ACE")).toBe("server");
+    }
   });
 
   it("gives Bull 500 no result direction and only the board tag", () => {

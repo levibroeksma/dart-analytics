@@ -452,9 +452,9 @@ describe("ACE_V1", () => {
     expect(supportsMode("ACE_V1", "RECREATIONAL", "QUICK_SCORE")).toBe(false);
   });
 
-  it("belongs to the ACE game type with the board tag", () => {
+  it("belongs to the ACE game type with the board and derived-intent tags", () => {
     expect(GAME_TYPE_BY_RULESET.ACE_V1).toBe("ACE");
-    expect(STATS_TAGS.ACE_V1).toEqual(["board"]);
+    expect(STATS_TAGS.ACE_V1).toEqual(["board", "intent-derived"]);
   });
 
   it("has no dartbot", () => {

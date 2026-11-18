@@ -4,6 +4,7 @@ import {
   bestSessionAverage,
   formatShortDate,
   personalBestWindow,
+  precedingWindow,
 } from "@lib/stats/sections/score-trend-window";
 import {
   TREND_RANGE_OPTIONS,
@@ -52,6 +53,22 @@ describe("TREND_RANGE_OPTIONS", () => {
       { value: "1y", label: "Last Year" },
       { value: "all", label: "All Time" },
     ]);
+  });
+});
+
+describe("precedingWindow", () => {
+  it("spans the equal period before the heatmap window, ending at its start", () => {
+    for (const key of ["30d", "90d", "1y"] as const) {
+      const trend = trendWindow(key, NOW, "UTC");
+      expect(precedingWindow(key, NOW)).toEqual({
+        from: trend.from,
+        to: heatmapWindow(key, NOW).from,
+      });
+    }
+  });
+
+  it("has no preceding period for all time", () => {
+    expect(precedingWindow("all", NOW)).toBeNull();
   });
 });
 

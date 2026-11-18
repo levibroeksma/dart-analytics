@@ -5,8 +5,12 @@ vi.mock("@lib/stats/load-game-section", () => ({
   loadGameSection: (...args: unknown[]) => loadGameSection(...args),
 }));
 
-const { EMPTY_CARD, loadDoublesTrainingCard, loadTargetInputs } =
-  await import("@lib/stats/doubles/doubles-training-fetch");
+const {
+  EMPTY_CARD,
+  loadDoublesTrainingCard,
+  loadTargetInputs,
+  loadTargetInputsOver,
+} = await import("@lib/stats/doubles/doubles-training-fetch");
 
 const NOW = new Date("2026-11-17T12:00:00Z");
 function series<M>(metrics: M) {
@@ -76,5 +80,23 @@ describe("loadTargetInputs", () => {
     await expect(loadTargetInputs("SHANGHAI", "30d", NOW)).rejects.toThrow(
       "range too wide",
     );
+  });
+});
+
+describe("loadTargetInputsOver", () => {
+  beforeEach(() => loadGameSection.mockReset());
+
+  it("reads the three sections un-bucketed over the given span", async () => {
+    loadGameSection.mockImplementation(() => series({}));
+    const span = {
+      from: "2026-09-01T00:00:00.000Z",
+      to: "2026-10-01T00:00:00.000Z",
+    };
+    await loadTargetInputsOver("ACE", span);
+    expect(loadGameSection.mock.calls).toHaveLength(3);
+    for (const call of loadGameSection.mock.calls) {
+      expect(call[0]).toBe("ACE");
+      expect(call[2]).toEqual({ ...span, bucket: "none" });
+    }
   });
 });

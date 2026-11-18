@@ -1,0 +1,72 @@
+---
+/**
+ * The Track targets card: its own `trackGamesCardSection()` scope with the
+ * best, most failed and weakest-three tiles, the per-target table with its
+ * sort toggle, and the footer.
+ */
+import AimTable from "./AimTable.astro";
+import StatTileRow from "./StatTileRow.astro";
+import ErrorAlert from "@components/ui/ErrorAlert.astro";
+
+const headers = [
+  "Target",
+  "Hit",
+  "Left/Right",
+  "High/Low",
+  "In/Within/Out",
+  "Near/Loose",
+];
+---
+
+<div
+  class="flex flex-col gap-2"
+  x-data="trackGamesCardSection()"
+>
+  <ErrorAlert
+    showExpr="error !== null"
+    textExpr="error"
+  />
+  <StatTileRow />
+  <div class="glass flex flex-col gap-2 rounded-xl px-3 py-3.5">
+    <div class="flex items-center gap-2">
+      <span
+        id="track-games-card-title"
+        class="truncate font-mono text-eyebrow font-semibold text-muted-foreground"
+      >
+        TARGETS
+      </span>
+      <div
+        class="ml-auto flex gap-1"
+        role="group"
+        aria-label="Sort targets"
+      >
+        <button
+          type="button"
+          class="cursor-pointer rounded-full px-3 py-1 text-caption"
+          :class="sort === 'target' ? 'glass-blue' : 'text-muted'"
+          :aria-pressed="sort === 'target'"
+          @click="setSort('target')"
+        >
+          Target
+        </button>
+        <button
+          type="button"
+          class="cursor-pointer rounded-full px-3 py-1 text-caption"
+          :class="sort === 'rate' ? 'glass-blue' : 'text-muted'"
+          :aria-pressed="sort === 'rate'"
+          @click="setSort('rate')"
+        >
+          Hit rate
+        </button>
+      </div>
+    </div>
+    <div class="overflow-x-auto">
+      <AimTable headers={headers} />
+    </div>
+    <p
+      class="text-caption text-muted"
+      x-text="footer"
+    >
+    </p>
+  </div>
+</div>

@@ -89,6 +89,17 @@ export function trendWindow(
   }
 }
 
+/** The period of equal length before `heatmapWindow`, ending where it starts; `null` for all time, which has none. */
+export function precedingWindow(
+  key: TrendRangeKey,
+  now: Date,
+): { from: string; to: string } | null {
+  const window = trendWindow(key, now, "UTC");
+  return window.boundary === null
+    ? null
+    : { from: window.from, to: window.boundary };
+}
+
 /**
  * The heatmap's request window: the score trend's *current* period only —
  * from the range's boundary (its full span for all time) up to now. Not

@@ -238,7 +238,10 @@ that split (2026-09-19, closes issue #423).
 
 | Component | Purpose | Key props |
 | --------- | ------- | --------- |
-| `TrackGamesStatsOverview.astro` | Track games (Singles, Shanghai, Around the Clock, Bob's 27) `/statistics` layout: completion tile, best/most-failed/weakest-three tiles and the sortable targets table over the page Period, the heatmap and the replay list (D562) | none |
+| `TrackGamesStatsOverview.astro` | Track games (Singles, Shanghai, Around the Clock, Bob's 27) `/statistics` layout: completion tile, `TrackTargetsCard`, the heatmap and the replay list (D562) | none |
+| `TrackTargetsCard.astro` | The Track targets card: best/most-failed/weakest-three tiles and the sortable targets table over the page Period, with its own `trackGamesCardSection()` scope; used by the Track and Ace layouts (D562, D563) | none |
+| `StatTileRow.astro` | A row of glass summary tiles (`title`, `value`, `detail`) from the enclosing scope's `tiles`, with a pulse placeholder while `loading` (D563) | none |
+| `AceStatsOverview.astro` | Ace `/statistics` layout: completion tile, target hit rate / drift / near miss tiles against the preceding period, `TrackTargetsCard`, the heatmap and the replay list (D563) | none |
 | `DoublesTrainingStatsOverview.astro` | Doubles Training `/statistics` layout: completion tile, a DOUBLES `AimCardSection` over the page Period, the heatmap and the replay list (D561) | none |
 | `ReplayCard.astro` | Session replay card for any statistics page: a `GrowingCard` row with a play icon that grows into the session's replay (`SessionReplay.astro`), opening it on `$store.replay`; for use inside an Alpine `x-for` (2026-10-03, D401; grows in place 2026-10-05, D414) | `sessionIdExpr`, `titleExpr`, `captionExpr` |
 | `SessionReplay.astro` | One session's replay read from `$store.replay`: header, result, score curve, board with the selected turn's darts, turns by stage, Load more; rendered inside an open `ReplayCard` (2026-10-05, D414) | — |

@@ -6,10 +6,12 @@ import Toggle from "@components/layout/games/setup/Toggle.astro";
 import ScoreTrainingStatsOverview from "@components/layout/games/statistics/ScoreTrainingStatsOverview.astro";
 import X01StatsOverview from "@components/layout/games/statistics/X01StatsOverview.astro";
 import DoublesTrainingStatsOverview from "@components/layout/games/statistics/DoublesTrainingStatsOverview.astro";
+import AceStatsOverview from "@components/layout/games/statistics/AceStatsOverview.astro";
 import TrackGamesStatsOverview from "@components/layout/games/statistics/TrackGamesStatsOverview.astro";
 import HeatmapStatsOverview from "@components/layout/games/statistics/HeatmapStatsOverview.astro";
 import GameVariationSelect from "@components/layout/games/statistics/GameVariationSelect.astro";
 import {
+  ACE_LAYOUTS,
   DOUBLES_TRAINING_LAYOUTS,
   HEATMAP_ONLY_LAYOUTS,
   TRACK_LAYOUTS,
@@ -26,6 +28,7 @@ const gameOptions = primaryCards().map((game) => ({
   value: game.rulesetVersionKey,
   label: game.title,
 }));
+const aceRulesets = JSON.stringify([...ACE_LAYOUTS]);
 const trackRulesets = JSON.stringify([...TRACK_LAYOUTS]);
 const heatmapOnly = JSON.stringify([...HEATMAP_ONLY_LAYOUTS]);
 const doublesTrainingRulesets = JSON.stringify([...DOUBLES_TRAINING_LAYOUTS]);
@@ -79,11 +82,14 @@ const scope = `{ tab: $store.routineStats.initialTab, game: ${JSON.stringify(gam
         <template x-if={`${trackRulesets}.includes(game)`}>
           <TrackGamesStatsOverview />
         </template>
+        <template x-if={`${aceRulesets}.includes(game)`}>
+          <AceStatsOverview />
+        </template>
         <template x-if={`${heatmapOnly}.includes(game)`}>
           <HeatmapStatsOverview />
         </template>
         <template
-          x-if={`game !== 'SCORE_TRAINING_V1' && !${x01Rulesets}.includes(game) && !${doublesTrainingRulesets}.includes(game) && !${trackRulesets}.includes(game) && !${heatmapOnly}.includes(game)`}
+          x-if={`game !== 'SCORE_TRAINING_V1' && !${x01Rulesets}.includes(game) && !${doublesTrainingRulesets}.includes(game) && !${trackRulesets}.includes(game) && !${aceRulesets}.includes(game) && !${heatmapOnly}.includes(game)`}
         >
           <p class="glass rounded-2xl p-4 text-sm text-muted-foreground">
             Statistics for this game are being rebuilt.
