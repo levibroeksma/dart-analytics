@@ -37,3 +37,11 @@ Reason: First paragraph of the reason, about the Neon branch.
 Second paragraph of the reason, after a blank line.
 Consequences: The second run proves idempotency.
 Supersedes: none (extends D41)
+
+### D103 — Seed list narrows to once on dev
+
+Status: Accepted · Date: 2026-09-20 · Refines: D100
+Decision: `db:seed` on `dev` runs the seed list once.
+Reason: Dev is rebuilt often.
+Consequences: Prod keeps two runs.
+Supersedes: D102 (in part).

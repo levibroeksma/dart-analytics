@@ -35,6 +35,7 @@ describe("splitDomainFile", () => {
       "D0100",
       "D0101",
       "D0102",
+      "D0103",
     ]);
   });
 
@@ -102,7 +103,9 @@ describe("splitDomainFile", () => {
   });
 
   it("loses no line of a multi-paragraph block", () => {
-    const src = fixture.split("### D102 — ")[1] as string;
+    const src = (fixture.split("### D102 — ")[1] as string).split(
+      "### D103",
+    )[0] as string;
     const out = renderRecord(get("D0102"));
     const missing = [...lines(src)].filter(
       (l) =>
@@ -127,7 +130,7 @@ describe("splitDomainFile", () => {
 
   it("warns on prose outside header, table and blocks", () => {
     const warnings: string[] = [];
-    const prose = fixture.replace("| # |", "Loose prose.\n\n| # |");
+    const prose = fixture.replace(/^\| # /m, "Loose prose.\n\n| # ");
     splitDomainFile(prose, "database", {
       file: "x.md",
       warn: (w: string) => warnings.push(w),
@@ -135,6 +138,39 @@ describe("splitDomainFile", () => {
     expect(warnings).toEqual([
       expect.stringMatching(/^x\.md:\d+: prose outside/),
     ]);
+  });
+});
+
+describe("partial supersession and titles", () => {
+  it("keeps a Supersedes line with extra words in Evidence only", () => {
+    expect(get("D0103").fm.supersedes).toBe("");
+    expect(sec("D0103", "Evidence / More Information")).toContain(
+      "Supersedes: D102 (in part).",
+    );
+  });
+
+  it("keeps status-line extras verbatim in Evidence", () => {
+    expect(sec("D0103", "Evidence / More Information")).toContain(
+      "Refines: D100",
+    );
+    expect(get("D0103").fm.date).toBe("2026-09-20");
+  });
+
+  it("does not supersede the target; it gets a reference line", () => {
+    const fresh = splitDomainFile(fixture, "database");
+    linkSupersedes(fresh);
+    const t = fresh.find((r: { fm: { id: string } }) => r.fm.id === "D0102");
+    expect(t.fm.status).toBe("accepted");
+    expect(t.fm["superseded-by"]).toBe("");
+    expect(t.fm.date).toBe("2026-09-10");
+    expect(t.sections.get("Evidence / More Information")).toContain(
+      "Referenced by D0103's `Supersedes:` line.",
+    );
+  });
+
+  it("derives a table-row title from the first clause of Decision", () => {
+    expect(get("D0020").title).toBe("CQRS-lite");
+    expect(get("D0023").title).toBe("dbmate owns migrations");
   });
 });
 
@@ -150,6 +186,15 @@ describe("linkSupersedes", () => {
       (r: { fm: { id: string } }) => r.fm.id === "D0101",
     );
     expect(newer.fm.status).toBe("accepted");
+  });
+
+  it("leaves the older date when the superseder has none", () => {
+    const fresh = splitDomainFile(fixture, "database");
+    fresh.find((r: { fm: { id: string } }) => r.fm.id === "D0101").fm.date = "";
+    linkSupersedes(fresh);
+    const old = fresh.find((r: { fm: { id: string } }) => r.fm.id === "D0100");
+    expect(old.fm.status).toBe("superseded");
+    expect(old.fm.date).toBe("2026-08-05");
   });
 
   it("fails on an unknown superseded id", () => {

@@ -63,27 +63,32 @@ function titleFromDecision(text) {
   return t.replace(/[.,:]+$/, "");
 }
 
-// Supersedes body -> { ids, evidence[] }. Spec § 5.
+const idsIn = (line) => [
+  ...new Set([...line.matchAll(/\bD(\d+)\b/g)].map((m) => pad(Number(m[1])))),
+];
+const onlyIds = (line) =>
+  line.replace(/\bD\d+\b/g, "").replace(/[\s,.;]+/g, "") === "";
+
+// Supersedes body -> { ids, refs, evidence[] }. A purely-ids line links
+// (ids); a line with extra words is partial: Evidence verbatim, ids go to refs.
 function parseSupersedes(body) {
-  if (body === null || body.trim() === "") return { ids: [], evidence: [] };
+  if (body === null || body.trim() === "")
+    return { ids: [], refs: [], evidence: [] };
   const lines = body.split("\n");
   const first = lines[0].trim();
   const evidence = [];
   let ids = [];
+  let refs = [];
   if (/^none/i.test(first)) {
-    if (!/^none\.?$/i.test(first))
-      evidence.push(`Supersedes: ${lines[0].trim()}`);
+    if (!/^none\.?$/i.test(first)) evidence.push(`Supersedes: ${first}`);
+  } else if (onlyIds(first)) {
+    ids = idsIn(first);
   } else {
-    ids = [
-      ...new Set(
-        [...first.matchAll(/\bD(\d+)\b/g)].map((m) => pad(Number(m[1]))),
-      ),
-    ];
-    const rest = first.replace(/\bD\d+\b/g, "").replace(/[\s,.;]+/g, "");
-    if (rest !== "") evidence.push(`Supersedes: ${lines[0].trim()}`);
+    refs = idsIn(first);
+    evidence.push(`Supersedes: ${first}`);
   }
   for (const l of lines.slice(1)) if (l.trim() !== "") evidence.push(l);
-  return { ids, evidence };
+  return { ids, refs, evidence };
 }
 
 function build({
@@ -101,11 +106,13 @@ function build({
 }) {
   const sup = parseSupersedes(supersedes);
   const ids = [...sup.ids];
+  const refs = [...sup.refs];
   for (const x of extras) {
     const m = /^Supersedes:(.*)$/.exec(x);
-    if (m)
-      for (const d of m[1].matchAll(/\bD(\d+)\b/g))
-        if (!ids.includes(pad(Number(d[1])))) ids.push(pad(Number(d[1])));
+    if (!m) continue;
+    const found = idsIn(m[1]);
+    const target = onlyIds(m[1]) ? ids : refs;
+    for (const d of found) if (!target.includes(d)) target.push(d);
   }
   const text = [title, decision, reason, consequences, supersedes, ...extras]
     .filter(Boolean)
@@ -145,6 +152,7 @@ function build({
     thin: true,
     extra: "",
     dupes: [],
+    refs,
   };
 }
 
@@ -326,8 +334,19 @@ export function linkSupersedes(records) {
         : [];
       if (!by.includes(r.fm.id)) by.push(r.fm.id);
       old.fm["superseded-by"] = by.join(", ");
-      if (r.fm.date && r.fm.date > old.fm.date) old.fm.date = r.fm.date;
-      else if (r.fm.date && old.fm.date === "") old.fm.date = r.fm.date;
+      // spec § 5: the older record takes the superseder's date; an empty
+      // superseder date leaves the older date as it was.
+      if (r.fm.date) old.fm.date = r.fm.date;
+    }
+    for (const id of r.refs ?? []) {
+      const old = byId.get(id);
+      if (!old)
+        throw new Error(`${r.fm.id} names ${id}, which is not in the ledger`);
+      const ev = "Evidence / More Information";
+      old.sections.set(
+        ev,
+        `${old.sections.get(ev)}\nReferenced by ${r.fm.id}'s \`Supersedes:\` line.`,
+      );
     }
   }
 }
@@ -387,9 +406,7 @@ function main() {
     }
   }
   console.log(`wrote ${all.length} records`);
-  console.log(
-    `warnings: ${warnings.length}, slug clashes: 0, validation errors: 0`,
-  );
+  console.log(`warnings: ${warnings.length}`);
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {

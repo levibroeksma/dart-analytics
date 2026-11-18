@@ -47,7 +47,13 @@ const SECTIONS = [
 
 export const HEADINGS = SECTIONS.map(([name]) => name);
 
-const STATUSES = ["proposed", "accepted", "rejected", "deprecated", "superseded"];
+const STATUSES = [
+  "proposed",
+  "accepted",
+  "rejected",
+  "deprecated",
+  "superseded",
+];
 const ORIGINS = ["contemporaneous", "backfilled"];
 
 export function slugify(title) {
@@ -109,7 +115,10 @@ export function parseRecord(text) {
   const flush = () => {
     if (current === null) return;
     const body = trimBlank(buf);
-    sections.set(current, sections.has(current) ? `${sections.get(current)}\n${body}` : body);
+    sections.set(
+      current,
+      sections.has(current) ? `${sections.get(current)}\n${body}` : body,
+    );
   };
   for (; i < lines.length; i++) {
     const m = /^(?:##|###) (.+?)\s*$/.exec(lines[i]);
@@ -179,7 +188,10 @@ export function validateRecord(r, path, opts) {
   }
   const date = r.fm.date;
   if (date === "" || date === undefined) {
-    const n = typeof id === "string" && /^D\d{4}$/.test(id) ? Number(id.slice(1)) : Infinity;
+    const n =
+      typeof id === "string" && /^D\d{4}$/.test(id)
+        ? Number(id.slice(1))
+        : Infinity;
     if (n > opts.maxBaselineId) {
       err(`date may be empty only for ids up to D${opts.maxBaselineId}`);
     }
@@ -187,7 +199,8 @@ export function validateRecord(r, path, opts) {
     err("date must be YYYY-MM-DD");
   }
   if (!r.title) err("missing level-1 title");
-  if (r.extra) err("text between the title and the first heading is not allowed");
+  if (r.extra)
+    err("text between the title and the first heading is not allowed");
   for (const h of r.dupes ?? []) err(`duplicate heading "${h}"`);
   const present = HEADINGS.filter((h) => r.sections.has(h));
   for (const h of HEADINGS) {
