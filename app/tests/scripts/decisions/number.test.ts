@@ -101,6 +101,7 @@ describe("numberPending", () => {
   it("renumbers a branch id that collides with main and rewrites its citations", () => {
     const root = makeTree({
       "api/D0564-main.md": recordText({ id: "D0564" }),
+      "api/D0565-theirs.md": recordText({ id: "D0565" }),
       "api/D0565-mine.md": recordText({ id: "D0565" }),
     });
     const f = note(root, "see D0565 and D565, not D5650 or D0564");
@@ -132,5 +133,19 @@ describe("numberPending", () => {
       changedFiles: [],
     });
     expect(out.renames).toEqual([]);
+  });
+
+  it("does not renumber a main file the branch moved to another domain", () => {
+    const root = makeTree({ "api/D0565-a.md": recordText({ id: "D0565" }) });
+    const f = note(root, "see D0565");
+    const out = numberPending({
+      root,
+      mainMaxId: 565,
+      mainFiles: ["database/D0565-a.md"],
+      changedFiles: [f, `${root}/api/D0565-a.md`],
+    });
+    expect(out.renames).toEqual([]);
+    expect(out.rewrites).toEqual([]);
+    expect(readFileSync(f, "utf8")).toBe("see D0565");
   });
 });

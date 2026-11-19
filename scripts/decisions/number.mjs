@@ -35,31 +35,31 @@ export function numberPending({
 }) {
   const records = listRecords(root);
   const mainSet = new Set(mainFiles ?? []);
-  const mainIds = new Set(
-    [...mainSet]
-      .map((f) => /^D(\d{4})-/.exec(basename(f))?.[1])
-      .filter(Boolean),
-  );
   let max = mainMaxId;
   const pending = [];
+  const byId = new Map();
   const clashes = [];
   for (const { path, record } of records) {
     const m = /^D(\d{4})$/.exec(String(record.fm.id));
     if (m) {
       max = Math.max(max, Number(m[1]));
-      if (
-        mainFiles &&
-        !mainSet.has(relative(root, path)) &&
-        mainIds.has(m[1])
-      ) {
-        clashes.push({ path, from: Number(m[1]) });
-      }
+      byId.set(m[1], [...(byId.get(m[1]) ?? []), path]);
     } else if (/^pending-[a-z0-9-]+\.md$/.test(basename(path))) {
       pending.push({
         path,
         domain: dirname(relative(root, path)),
         slug: basename(path).slice("pending-".length, -".md".length),
       });
+    }
+  }
+  if (mainFiles) {
+    for (const [id, paths] of byId) {
+      if (paths.length < 2) continue;
+      const fresh = paths.filter((p) => !mainSet.has(relative(root, p))).sort();
+      const keep = fresh.length === paths.length ? 1 : 0;
+      for (const path of fresh.slice(keep)) {
+        clashes.push({ path, from: Number(id) });
+      }
     }
   }
   const byPath = (a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0);

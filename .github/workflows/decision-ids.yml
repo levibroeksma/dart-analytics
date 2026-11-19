@@ -20,7 +20,6 @@ jobs:
       pull-requests: write
       actions: write
     env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       PR_NUMBER: ${{ github.event.pull_request.number }}
       HEAD_REF: ${{ github.event.pull_request.head.ref }}
       HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -42,7 +41,10 @@ jobs:
       # bot is unsigned and main requires verified signatures (D289).
       - name: Commit through the API
         id: commit
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -o pipefail
           : > adds.ndjson
           : > dels.ndjson
           while IFS= read -r -d '' entry; do
@@ -78,11 +80,14 @@ jobs:
           bash scripts/check-decision-ids.sh
           bash scripts/check-decision-pending.sh
       - name: Dispatch checks on the new commit
-        if: steps.commit.outputs.changed == 'true'
+        if: always() && steps.commit.outcome == 'success' && steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh workflow run checks.yml --ref "$HEAD_REF"
       - name: Post decision-ledger status
         if: always()
         env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NUMBER: ${{ steps.number.outcome }}
           COMMIT: ${{ steps.commit.outcome }}
           GATES: ${{ steps.gates.outcome }}
@@ -100,4 +105,6 @@ jobs:
             -f target_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
       - name: Remove label
         if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh pr edit "$PR_NUMBER" --remove-label ready-to-merge

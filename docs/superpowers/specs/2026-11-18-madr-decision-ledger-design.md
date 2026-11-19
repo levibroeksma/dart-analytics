@@ -185,7 +185,7 @@ New or changed:
 | `scripts/check-decision-pending.sh` | Fails if any `pending-*.md` file or `[pending:<slug>]` citation exists. Required on PRs, so a pending PR cannot merge. |
 | `scripts/decision-index.sh` | Prints the index on demand, filtered by tag, status or domain. Its output is never committed. |
 | `scripts/number-decisions.sh` | Run by the bot. Takes the next id from `origin/main`, renames each pending file, sets `id`, rewrites `[pending:<slug>]` citations in files the PR changed. |
-| `.github/workflows/decision-ids.yml` | Runs on the `ready-to-merge` label. Runs `number-decisions.sh`, commits, pushes, removes the label. |
+| `.github/workflows/decision-ids.yml` | Runs on the `ready-to-merge` label. Runs `number-decisions.sh`, commits through the API, dispatches `checks.yml`, removes the label. |
 
 Retired: `next-decision-id.sh`, `renumber-decision.sh`, `decision-row-hashes.tsv`, `decision-map.txt`. Plans that reserve ids stop doing so.
 
