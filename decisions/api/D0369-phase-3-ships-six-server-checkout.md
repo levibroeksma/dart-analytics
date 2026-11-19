@@ -12,7 +12,6 @@ informed: []
 supersedes:
 superseded-by:
 ---
-<!-- backfill: pending -->
 
 # Phase 3 ships six server checkout folds and two SQL sections behind a measured dart cap, exact-value metrics, and a pooled ruleset-version fact
 
@@ -20,10 +19,13 @@ superseded-by:
 the plan's own placeholder for `MAX_FOLD_DARTS` (20,000) was explicitly provisional — "Task 8 Step 4 measures it" — because TUOD's per-visit refold within a session is quadratic in darts, the one server fold whose cost is not bounded by session count. Measuring before shipping, rather than trusting the placeholder, is what the compute-site rule's "bounded input only" hard constraint (`00-Overview.md` §4) actually requires; publishing an unverified cap would have been the same mistake in the other direction. Folding `leg-stats` and the ladder/bust/double sections through the one `checkoutDarts` walk (decision 5) is what keeps "remaining before dart" and "is this a finish" defined exactly once across six sections that each need it, instead of six near-identical loops drifting apart the way the pre-D330/D338 checkout code once did. Grouping all twelve into one decision follows D367/D368's own precedent: they are one build's worth of related calls, not independent choices worth separately numbering.
 
 ## Decision Drivers
-Rationale unknown — backfill pending.
+* Server folds need a bound on input size, and the plan makes that bound mechanical with a dart cap.
+* TUOD's per-visit refold is quadratic within a session, so it is the worst case for the cap.
+* The plan sets a target of under 50 ms and says to lower the cap if the measurement is slower.
 
 ## Considered Options
-Rationale unknown — backfill pending.
+* Ship the plan's placeholder cap of 20,000 darts.
+* Ship a cap measured in Task 8 Step 3.
 
 ## Decision Outcome
 Chosen option: "twelve decisions for the phase 3 build (`docs/superpowers/plans/2026-09-26-statistics-phase-3-checkout-sections.md`):
@@ -44,17 +46,21 @@ Chosen option: "twelve decisions for the phase 3 build (`docs/superpowers/plans/
 `10-Statistics/00-Overview.md` §4 (dart cap + client month-chunking as the `server` bound mechanism), §7 (chunked cache reads) and §12 (phase 3 done) are corrected/extended to match this block (version bump 1.3.0). `01-Section-Catalog.md` gains rows/notes for `leg-stats`, `checkout-rate`, `double-performance`, `bust-rate`, `treble-rate` and `scoring-trend`, and its status line now lists seventeen sections built. `06-API/04-Endpoint-Contracts.md` gains the eight section ids' metric shapes and the fold-bound `VALIDATION_FAILED` reason text (`"range holds N darts; server sections fold at most 5000 — request a shorter range"`). `merge-metrics.ts`'s exhaustive `Record<ServerSectionId, merger>` is what makes a future ninth server section a compile error if its merger is forgotten, rather than a silently-wrong chunk merge. Task 3 Step 4's `EXPLAIN` measurement (this plan's own repository-reader query plans) needed `DATABASE_URL`, unavailable in the implementing session's container, for the same reason D368's Consequences record — logged as a known limitation in the PR rather than skipped silently; this phase adds no migration, so the D344 carve-out does not apply. Filed as `discovered-work`: issue #620, a pre-existing phase-2 bug where `game-stats.store.ts`'s generic chunk-load loop sends `bucket=month` to `bucketable: false` sections (`heatmap`/`confusion`/`miss-direction`), which always reject a non-`none` bucket — found incidentally while wiring phase 3's own chunked reads, not fixed here.
 
 ### Confidence
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Revisit When
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Confirmation
-Rationale unknown — backfill pending.
+`app/tests/lib/stats/section-registry.test.ts` asserts `MAX_FOLD_DARTS` equals 5,000.
 
 ## Pros and Cons of the Options
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ## Evidence / More Information
 Decided: 2026-09-26
 Refines: D368
+
+* `docs/superpowers/plans/2026-09-26-statistics-phase-3-checkout-sections.md` (Plan-level decisions 1, Task 8 Step 3): rebuilt Decision Drivers and Considered Options.
+* Commit `cc115513` (2026-09-26; adds the D369 row to `decisions/api.md`): rebuilt Confirmation; source of the split-copied Context and Consequences.
+* Applied in: `docs/superpowers/plans/2026-09-26-statistics-phase-4-derived-intent-sections.md`, `docs/superpowers/specs/2026-11-11-x01-inferred-aim-statistics-design.md`.

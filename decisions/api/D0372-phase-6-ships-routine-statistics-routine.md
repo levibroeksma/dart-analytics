@@ -12,7 +12,6 @@ informed: []
 supersedes:
 superseded-by:
 ---
-<!-- backfill: pending -->
 
 # Phase 6 ships routine statistics: routine and step identity read from the snapshot, a route-fixed routine context, run- and step-level sections, training-step replay, and one cache scope key
 
@@ -20,10 +19,19 @@ superseded-by:
 keying routines and steps off the snapshot (decisions 1–2) is the Template → Snapshot rule applied to statistics — a completed run must not depend on a mutable routine, so neither may its statistics, and a fingerprint is the only index that cannot silently blend two versions of "step 3". Fixing the context in the route and threading one predicate through the existing scope builders (decisions 4–5), instead of editing each game handler, lets every phase 1–4 section serve a GAME step unchanged while the client has no way to widen the scope. A second registry (decision 6) keeps the game registry's `SectionId` and `mergeMetrics` exhaustive, so neither can be handed a routine section by mistake. One metric spec feeding the fold, the chunk merge, the presenters and the summary modal (decisions 7, 11) is what keeps four views of one session from disagreeing, and folding on the server through the phase 5 helpers (decision 8) reuses a bounded, tested path rather than a second one. Whole seconds and a shared routine `versionKey` (decisions 6, 12) keep the phase 1 promise that closed buckets re-aggregate exactly and stale only when the population changes.
 
 ## Decision Drivers
-Rationale unknown — backfill pending.
+* A completed run must not depend on a mutable routine, so a deleted routine keeps its statistics and a renamed routine keeps its history.
+* A routine is editable: step 3 today may not be step 3 last month, and index alone blends unlike steps.
+* `v_stats_session_facts` stays game-only, because non-game steps have no game pair and every game section filters on `game_type_key`.
+* The client has no way to widen the routine context or the step scope.
+* A parameter is never silently ignored (`00-Overview.md` § 5).
+* Closed buckets must re-aggregate exactly (phase 1 contract).
 
 ## Considered Options
-Rationale unknown — backfill pending.
+* Identify a routine through a template foreign key.
+* Identify a step by its index alone.
+* Widen `v_stats_session_facts` to cover non-game steps.
+* Send step and routine durations in minutes, as the plan's section table listed them.
+* Read identity from the snapshot, with two new views and a second registry (chosen).
 
 ## Decision Outcome
 Chosen option: "thirteen decisions for the phase 6 build (`docs/superpowers/plans/2026-09-26-statistics-phase-6b-routine-statistics.md`; its database half, migration `0045`, shipped as phase 6a), recorded as built — where review changed the plan's contract, the built form is the one stated:
@@ -45,17 +53,36 @@ Chosen option: "thirteen decisions for the phase 6 build (`docs/superpowers/plan
 `10-Statistics/00-Overview.md` (version 1.6.0, status **built** — every §12 phase has landed) gains the Routines tab in §1, the five routes and their fixed parameters in §6, the scope key, shared routine `versionKey`, `noteDataVersion` and the `STATS_SCHEMA_VERSION` 3 bump in §7, the identity rules and fixed context in §8, and phase 6 done in §12. `01-Section-Catalog.md` (1.5.0) gains §3 Routine Sections (the four sections, page lists, §3.1 step metrics and fold); Deferred moves to §4, drops "Routine pages" and adds decision 13's deferrals. `02-Replay.md` (1.2.0) documents the gate fallback, the four header fields and the two nullable ones, the exercise fold, `STEP_REPLAY_PRESENTERS`, `NO_EXERCISE_ENGINE` and the `NO_SNAPSHOT`/`ENGINE_THREW` split. `06-API/04-Endpoint-Contracts.md` (1.16.0) gains a "Statistics Routines" section and widens "Statistics Replay"; `06-API/00-Overview.md` (1.16.0) routes the five endpoints; `09-Training/01-Routines.md` §18 notes that routine statistics read the snapshot's identity. The Routines tab loads on its first activation (`routineStats.activate()` from the tab's `x-effect`; the store's `init()` fetches nothing), and `routine-options.ts` is deleted with its test, since the tab no longer lists `GET /api/routines`. Root `CLAUDE.md`'s applied-migration range extends to `0045`, citing the green `deploy` run 36467604857 for PR #641's merge (a07b472f). No index migration was added: the step readers' `EXPLAIN (ANALYZE, BUFFERS)` measurement needed `DATABASE_URL`, unavailable in the implementing session, so no measured plan is claimed and the owner runs those statements before merge, as for D369–D371. The Routines tab was not exercised in a browser in the implementing session (astro build/workerd did not run locally). Known limitation (decision 9): a step edited in the latest run but not yet reached shows its old key as current until it is reached. Filed as `discovered-work`, not fixed here: #642 (the statistics routes repeat their parse/envelope/cache-header boilerplate) and #643 (the `gameStats` store fetches statistics on every app page).
 
 ### Confidence
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Revisit When
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Confirmation
-Rationale unknown — backfill pending.
+`app/tests/modules/stats/routine-scope.module.test.ts`, `app/tests/modules/stats/step-metrics.module.test.ts` and the `routine section registry` block in `app/tests/lib/stats/section-registry.test.ts` cover the scope, the step metrics and the second registry. `app/tests/pages/api/statistics/routines-*.test.ts` cover the routes, including the `.strict()` queries and `private, no-store`. `app/tests/lib/stats/replay-fold-steps.test.ts` covers the exercise fold.
 
 ## Pros and Cons of the Options
-Rationale unknown — backfill pending.
+### Template foreign key
+* Bad, because a deleted routine would lose its statistics.
+
+### Step index alone
+* Bad, because an edited routine puts unlike steps under one index.
+
+### Widen `v_stats_session_facts`
+* Bad, because non-game steps have no game pair and every game section filters on `game_type_key`.
+
+### Durations in minutes
+* Bad, because a minutes float does not re-add exactly across chunks.
+
+### Snapshot identity, two views, second registry
+* Good, because a step key never mixes configurations, so no step section needs `configGroupKey`.
+* Good, because the game registry's `SectionId` and `mergeMetrics` stay exhaustive over game sections.
+* Bad, because any change to a step's exercise, ruleset, duration or configuration starts a new key, and earlier keys stay listed as earlier versions of that index.
 
 ## Evidence / More Information
 Decided: 2026-09-29
 Refines: D365
+
+* `docs/superpowers/plans/2026-09-26-statistics-phase-6b-routine-statistics.md` (Plan-level decisions 1 to 13, Task 10, Out of scope): rebuilt Decision Drivers, Considered Options, Confirmation and Pros and Cons.
+* Commit `b4dde416` (PR #649, 2026-09-29; adds the D372 row): its row records where the built form differs from the plan (decisions 5, 6, 9 and 12), which rebuilt the minutes option and its Pros and Cons.
+* Applied in: `docs/superpowers/plans/2026-10-21-track-t2-halve-it.md`.
