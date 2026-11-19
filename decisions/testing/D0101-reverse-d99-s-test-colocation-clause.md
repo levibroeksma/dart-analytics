@@ -32,7 +32,7 @@ Chosen option: "Reverse D99's test-colocation clause and the Frontend Agent Guid
 ### Consequences
 * Good, because tests move to a mirrored `app/tests/` tree that matches conventional test layouts.
 * Bad, because Vitest no longer covers the `Button.astro` variant logic. The project has no Astro-component test runner. The spec calls this an accepted trade-off.
-* Neutral, because 10 test files relocate with import rewrites to aliases, and `button-variants.test.ts` is deleted (35 → 34 tests). `vitest.config.ts` includes `tests/**/*.test.ts` and gains an `@components` alias.
+* Neutral, because 10 test files relocate with import rewrites: 9 to alias imports, and `seed-dev-auth.test.ts` to a relative path because `scripts/` has no alias. Also `button-variants.test.ts` is deleted (35 → 34 tests). `vitest.config.ts` includes `tests/**/*.test.ts` and gains an `@components` alias.
 
 ### Confidence
 Rationale unknown — no source found.

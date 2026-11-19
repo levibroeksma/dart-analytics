@@ -40,7 +40,7 @@ Rationale unknown — no source found.
 Rationale unknown — no source found.
 
 ### Confirmation
-The 2 rules derive from a live `pg_get_viewdef`, which returns `0041`'s views in the normalized shapes. A third echo artifact is confirmed against the database the same way before it is normalized away.
+The 2 rules derive from a live `pg_get_viewdef`, which returns `0041`'s views in the normalized shapes. A third echo artifact should be confirmed against the database the same way before it is normalized away.
 
 ## Pros and Cons of the Options
 ### Normalize, with the qualifier strip limited to JOIN-less bodies

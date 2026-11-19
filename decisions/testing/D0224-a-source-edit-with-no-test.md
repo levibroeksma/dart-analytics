@@ -43,7 +43,6 @@ Rationale unknown — no source found.
 
 ## Pros and Cons of the Options
 ### Gate with no silencer
-* Good, because writing the gate found an untested schema at once: `ParticipantInput` had no test parsing it, and `app/tests/pages/api/sessions/types.test.ts` was written in the same pass.
 * Bad, because a change that needs no new assertion still costs opening the covering test to confirm the existing assertions describe the behaviour.
 
 ### Gate with a per-file silencer

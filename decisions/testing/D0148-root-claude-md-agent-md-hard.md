@@ -29,7 +29,7 @@ Chosen option: "Root `CLAUDE.md`/`AGENT.md` Hard Invariants gain a test-repointi
 
 ### Consequences
 * Neutral, because the rule enters the root `CLAUDE.md` and `AGENT.md` Hard Invariants, dated 2026-07-26.
-* Bad, because the rule is prose. The 2026-07-28 spec lists it among rules that nothing enforces, and proposes only a non-blocking CI heuristic, since legitimate test updates also trip it.
+* Neutral, because the 2026-07-28 spec keeps the heuristic non-blocking: legitimate test updates also trip it, so it is a nudge for human review.
 
 ### Confidence
 Rationale unknown — no source found.
@@ -38,7 +38,7 @@ Rationale unknown — no source found.
 Rationale unknown — no source found.
 
 ### Confirmation
-Review applies the Hard Invariant. The 2026-07-28 spec (§ 6.2) proposes a flag-only CI job that diffs `app/tests/**`, flags changed assertion literals under an unchanged test title, and posts a non-blocking PR comment. The spec is a proposed design; this record does not show the job exists.
+Review applies the Hard Invariant. The non-blocking `test-repointing-heuristic` job in `.github/workflows/pr-gates.yml` flags changed test files where an assertion literal changed and no `describe`/`it` title did. It posts a PR comment and never fails the build.
 
 ## Pros and Cons of the Options
 Rationale unknown — no source found.
@@ -47,4 +47,6 @@ Rationale unknown — no source found.
 Decided: 2026-07-26
 
 * Commit `cd464a3f` (2026-07-26; `DECISIONS.md` row D148 and the root `CLAUDE.md` diff): rebuilt Context and Consequences.
-* `docs/superpowers/specs/2026-07-28-claude-md-skills-automation-design.md` (§ 1, § 2, § 3, § 6.2): rebuilt Consequences and Confirmation.
+* `docs/superpowers/specs/2026-07-28-claude-md-skills-automation-design.md` (§ 1, § 2, § 3, § 6.2): rebuilt Consequences.
+* `docs/superpowers/plans/2026-07-28-claude-md-skills-automation.md` (Task 8): rebuilt Confirmation.
+* Commit `1351996f` (PR #56, 2026-07-28; adds `.github/workflows/pr-gates.yml`): rebuilt Confirmation.
