@@ -18,7 +18,6 @@ jobs:
       contents: write
       statuses: write
       pull-requests: write
-      actions: write
     env:
       PR_NUMBER: ${{ github.event.pull_request.number }}
       HEAD_REF: ${{ github.event.pull_request.head.ref }}
@@ -80,11 +79,6 @@ jobs:
           git add -A
           bash scripts/check-decision-ids.sh
           bash scripts/check-decision-pending.sh
-      - name: Dispatch checks on the new commit
-        if: always() && steps.commit.outcome == 'success' && steps.commit.outputs.changed == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh workflow run checks.yml --ref "$HEAD_REF"
       - name: Post decision-numbering status
         if: always()
         env:
