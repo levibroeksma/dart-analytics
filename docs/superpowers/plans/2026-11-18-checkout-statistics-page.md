@@ -215,7 +215,7 @@
 ### Task 6: Docs, decision, gates
 
 **Files:**
-- Modify: `decisions/api.md`. Add D564, "Checkout statistics page", in the D563 format:
+- Create: `decisions/api/pending-checkout-statistics-page.md` from `decisions/TEMPLATE.md` (`id: pending`; cite it as `[pending:checkout-statistics-page]`; run `bash scripts/check-decision-ids.sh`). Content:
   - The rulesets.
   - The four tiles and their denominators.
   - The 30 floor.
@@ -230,5 +230,5 @@
 - [ ] **Step 1:** Make the doc edits. Use targeted edits; never regenerate a doc.
 - [ ] **Step 2:** `cd app && npm run format && npm run format:check`. Expect clean.
 - [ ] **Step 3:** Run the gates per the `run-all-gates` skill: `npm test`, `npx astro check`, `scripts/check-test-coverage.sh`, `check-type-barrels.sh`, `check-dupes.sh`, `check-doc-sync.sh`, `check-context-budget.sh`, `check-quality-benchmarks.sh`. Expect every one to print OK or pass.
-- [ ] **Step 4: Commit** `docs(stats): checkout statistics page (D564)`
+- [ ] **Step 4: Commit** `docs(stats): checkout statistics page`
 - [ ] **Step 5:** Ask the owner about the design sync (D524). Then open a PR via `finishing-a-dart-branch` and `subscribe_pr_activity`.
