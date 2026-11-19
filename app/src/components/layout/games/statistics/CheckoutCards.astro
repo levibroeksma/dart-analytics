@@ -1,0 +1,58 @@
+---
+/**
+ * The Checkout cards: finish rate by target range, double hit rate and the
+ * routes thrown at a chosen target, from the enclosing page period (its own
+ * `checkoutCardsSection()` scope).
+ */
+import AimTable from "./AimTable.astro";
+import Select from "@components/forms/Select.astro";
+import ErrorAlert from "@components/ui/ErrorAlert.astro";
+---
+
+<div
+  class="flex flex-col gap-2"
+  x-data="checkoutCardsSection()"
+>
+  <ErrorAlert
+    showExpr="error !== null"
+    textExpr="error"
+  />
+  <div
+    class="glass flex flex-col gap-2 rounded-xl px-3 py-3.5"
+    x-data="{ get table() { return card.ranges } }"
+  >
+    <span class="font-mono text-eyebrow font-semibold text-muted-foreground">
+      TARGET RANGES
+    </span>
+    <div class="overflow-x-auto">
+      <AimTable headers={["Range", "Finished", "Rate"]} />
+    </div>
+  </div>
+  <div
+    class="glass flex flex-col gap-2 rounded-xl px-3 py-3.5"
+    x-data="{ get table() { return card.doubles } }"
+  >
+    <span class="font-mono text-eyebrow font-semibold text-muted-foreground">
+      DOUBLES
+    </span>
+    <div class="overflow-x-auto">
+      <AimTable headers={["Double", "Hit rate"]} />
+    </div>
+  </div>
+  <div
+    class="glass flex flex-col gap-2 rounded-xl px-3 py-3.5"
+    x-data="{ get table() { return routes } }"
+  >
+    <span class="font-mono text-eyebrow font-semibold text-muted-foreground">
+      ROUTES
+    </span>
+    <Select
+      optionsExpr="targets"
+      model="remaining"
+      ariaLabel="Target"
+    />
+    <div class="overflow-x-auto">
+      <AimTable headers={["Route", "Finished", "Rate"]} />
+    </div>
+  </div>
+</div>
