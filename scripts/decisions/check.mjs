@@ -79,9 +79,11 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   };
   const root = opt("--root", "decisions");
   const baselinePath = opt("--baseline", "scripts/decisions/baseline-ids.txt");
-  const baseline = existsSync(baselinePath)
-    ? parseBaseline(readFileSync(baselinePath, "utf8"))
-    : [];
+  if (!existsSync(baselinePath)) {
+    console.error(`FAIL: baseline file not found: ${baselinePath}`);
+    process.exit(1);
+  }
+  const baseline = parseBaseline(readFileSync(baselinePath, "utf8"));
   const errs = checkLedger(root, baseline);
   if (errs.length) {
     console.error(errs.join("\n"));

@@ -13,7 +13,7 @@ if [ -n "$files" ]; then
 fi
 hits=$(git grep -n '\[pending:' -- . \
   ':!decisions/TEMPLATE.md' ':!DECISIONS.md' ':!docs/superpowers/' \
-  ':!app/tests/scripts/decisions/' ':!scripts/check-decision-pending.sh' || true)
+  ':!app/tests/scripts/decisions/pending.test.ts' ':!scripts/check-decision-pending.sh' || true)
 if [ -n "$hits" ]; then
   echo "FAIL: [pending:...] citations:" >&2
   echo "$hits" >&2

@@ -1,5 +1,9 @@
+import { spawnSync } from "node:child_process";
+import { writeFileSync } from "node:fs";
+import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { checkLedger } from "../../../../scripts/decisions/check.mjs";
+const cli = resolve(__dirname, "../../../../scripts/decisions/check.mjs");
 import { makeTree, recordText } from "./support";
 
 describe("checkLedger", () => {
@@ -92,5 +96,33 @@ describe("checkLedger", () => {
     const errs = checkLedger(root, []);
     expect(errs).toHaveLength(1);
     expect(errs[0]).toContain("status must be one of");
+  });
+});
+
+describe("check.mjs CLI", () => {
+  it("exits 1 when the baseline file is missing", () => {
+    const root = makeTree({
+      "database/D0001-a.md": recordText({ id: "D0001" }),
+    });
+    const r = spawnSync(
+      "node",
+      [cli, "--root", root, "--baseline", join(root, "nope.txt")],
+      { encoding: "utf8" },
+    );
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain("FAIL: baseline file not found:");
+  });
+
+  it("passes with a present baseline", () => {
+    const root = makeTree({
+      "database/D0001-a.md": recordText({ id: "D0001" }),
+    });
+    const base = join(root, "..", "base.txt");
+    writeFileSync(base, "D0001\n");
+    const r = spawnSync("node", [cli, "--root", root, "--baseline", base], {
+      encoding: "utf8",
+    });
+    expect(r.status).toBe(0);
+    expect(r.stdout).toContain("PASS: 1 records");
   });
 });
