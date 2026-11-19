@@ -16,7 +16,7 @@ superseded-by:
 # Root `CLAUDE.md`/`AGENT.md` Hard Invariants gain a test-repointing rule
 
 ## Context and Problem Statement
-A `superRefine` bounding `duration_value` was lost during a schema consolidation and its two tests were quietly re-pointed at a different invalid input so the suite stayed green, letting the dropped constraint reach review undetected until fixed the same day (commit `511f24b`) The commit that adds D148 records 3 rules from a game-engine PR review as root `CLAUDE.md` Hard Invariants: an engine state-shape proof, a stacked-branch cap, and this test-repointing rule.
+A `superRefine` bounding `duration_value` was lost during a schema consolidation and its two tests were quietly re-pointed at a different invalid input so the suite stayed green, letting the dropped constraint reach review undetected until fixed the same day (commit `511f24b`). The commit that adds D148 records 3 rules from a game-engine PR review as root `CLAUDE.md` Hard Invariants: an engine state-shape proof, a stacked-branch cap, and this test-repointing rule.
 
 ## Decision Drivers
 Rationale unknown — no source found.
