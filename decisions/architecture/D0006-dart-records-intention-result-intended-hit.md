@@ -12,36 +12,37 @@ informed: []
 supersedes:
 superseded-by:
 ---
-<!-- backfill: pending -->
 
 # Dart records intention + result (`intended_*` + `hit_*` target/zone)
 
 ## Context and Problem Statement
-Multiplier derivable; intention enables accuracy analytics
+Multiplier derivable; intention enables accuracy analytics. The ledger row cites design conversation prompts P67–71 and carries no further reasoning.
 
 ## Decision Drivers
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ## Considered Options
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ## Decision Outcome
 Chosen option: "Dart records intention + result (`intended_*` + `hit_*` target/zone); no multiplier column; `dart_zones` lookup (6 zones)", because Multiplier derivable; intention enables accuracy analytics.
 
 ### Consequences
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Confidence
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Revisit When
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Confirmation
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ## Pros and Cons of the Options
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ## Evidence / More Information
 Source: P67–71
+
+* Commit `8b23f90e` (2026-07-11; adds `architecture/DECISIONS.md`, a one-line-per-decision ledger distilled from design prompts 1–85 and dated sessions): rebuilt Context.
