@@ -84,4 +84,53 @@ describe("numberPending", () => {
     numberPending({ root, mainMaxId: 1, changedFiles: [f] });
     expect(readFileSync(f, "utf8")).toBe("D0002");
   });
+  it("skips an excluded changed file, even with an unresolved citation", () => {
+    const root = makeTree({ "api/pending-a.md": pend() });
+    const f = note(root, "[pending:nope]");
+    expect(() =>
+      numberPending({
+        root,
+        mainMaxId: 1,
+        changedFiles: [f],
+        exclusions: [f],
+      }),
+    ).not.toThrow();
+    expect(readFileSync(f, "utf8")).toBe("[pending:nope]");
+  });
+
+  it("renumbers a branch id that collides with main and rewrites its citations", () => {
+    const root = makeTree({
+      "api/D0564-main.md": recordText({ id: "D0564" }),
+      "api/D0565-mine.md": recordText({ id: "D0565" }),
+    });
+    const f = note(root, "see D0565 and D565, not D5650 or D0564");
+    const out = numberPending({
+      root,
+      mainMaxId: 565,
+      mainFiles: ["api/D0564-main.md", "api/D0565-theirs.md"],
+      changedFiles: [f, `${root}/api/D0565-mine.md`],
+    });
+    expect(out.renames).toEqual([
+      [`${root}/api/D0565-mine.md`, `${root}/api/D0566-mine.md`],
+    ]);
+    expect(readFileSync(f, "utf8")).toBe(
+      "see D0566 and D0566, not D5650 or D0564",
+    );
+    expect(readFileSync(`${root}/api/D0566-mine.md`, "utf8")).toMatch(
+      /^id: D0566$/m,
+    );
+  });
+
+  it("leaves a file that exists on main alone", () => {
+    const root = makeTree({
+      "api/D0565-theirs.md": recordText({ id: "D0565" }),
+    });
+    const out = numberPending({
+      root,
+      mainMaxId: 565,
+      mainFiles: ["api/D0565-theirs.md"],
+      changedFiles: [],
+    });
+    expect(out.renames).toEqual([]);
+  });
 });

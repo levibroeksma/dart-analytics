@@ -1,0 +1,9 @@
+# Paths exempt from the pending-citation gate and from bot citation rewrites.
+# A trailing / marks a directory prefix. Read by scripts/check-decision-pending.sh and scripts/decisions/number.mjs.
+decisions/TEMPLATE.md
+DECISIONS.md
+docs/superpowers/
+app/tests/scripts/decisions/pending.test.ts
+app/tests/scripts/decisions/number.test.ts
+scripts/check-decision-pending.sh
+scripts/decisions/number.mjs

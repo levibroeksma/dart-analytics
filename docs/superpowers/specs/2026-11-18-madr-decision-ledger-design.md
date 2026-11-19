@@ -195,11 +195,11 @@ Bot flow:
 
 1. The author writes `decisions/<domain>/pending-<slug>.md` and cites it as `[pending:<slug>]`.
 2. The author adds the `ready-to-merge` label.
-3. The workflow numbers the decisions, commits to the PR branch and removes the label.
+3. The workflow numbers the decisions, commits to the PR branch through the GraphQL `createCommitOnBranch` API (GitHub signs the commit), dispatches `checks.yml` on the new commit and removes the label.
 4. The checks run on the new commit. `check-decision-pending.sh` passes.
 5. The owner squash-merges.
 
-A race between 2 PRs ends with 2 equal ids. The uniqueness check fails on whichever PR is checked against the newer `main`. The owner re-adds the label to that PR.
+A race between 2 PRs ends with 2 equal ids. The uniqueness check fails on whichever PR is checked against the newer `main`. The owner re-adds the label to that PR; the bot renumbers the branch's own colliding ids and rewrites their citations in the files the PR changed.
 
 ### Loading decisions (designer's call)
 
@@ -244,6 +244,6 @@ The plan for PR 1 does not cover these. Each enrichment PR gets its own short pl
 
 - **Race guard.** `main`'s branch protection requires branches to be up to date before merge. The uniqueness check then runs against the newest `main`.
 - **Merge method.** The repo allows squash merge only. Merge commits and rebase merge are switched off.
-- **Bot token.** The bot uses the default `GITHUB_TOKEN`. After its push, it runs `check-decision-ids.sh` and `check-decision-pending.sh` itself and posts the result as a commit status on its own commit. That status is a required check. Other required checks keep their result from before the push, because the bot changes only `decisions/**` and the citation lines.
+- **Bot token.** The bot uses the default `GITHUB_TOKEN`. It commits through the API, so the commit is signed and passes the verified-signature rule; a CLI push would be unsigned. A push by `GITHUB_TOKEN` starts no `pull_request` run, so the bot dispatches `checks.yml` (which has `workflow_dispatch`) on the branch. It then runs `check-decision-ids.sh` and `check-decision-pending.sh` itself and posts the result as the `decision-ledger` commit status on its own commit. That status is a required check, and it is posted on failure paths too.
 
 The owner changes these settings by hand in GitHub. The plan lists them as a manual step before PR 1 merges. A human must check them: branch protection is a security setting.
