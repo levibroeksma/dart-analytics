@@ -12,7 +12,6 @@ informed: []
 supersedes:
 superseded-by:
 ---
-<!-- backfill: pending -->
 
 # Unify the dart-preview reveal timer across input modes
 
@@ -22,13 +21,15 @@ tick the 3rd dart was recorded, before Alpine's reactive effects repaint —
 so tap/keypad input (the recreational entry path for Bob's 27, Singles
 Training, Doubles Training, Shanghai, and Around the Clock) never actually
 rendered the 3rd dart's preview. This was an accidental divergence between
-input modes, not a deliberate design choice.
+input modes, not a deliberate design choice. The commit that adds D233 also adds Pattern 19, Shared Reveal-Then-Clear Preview, to `docs/architecture/04-Architecture-patterns.md`.
 
 ## Decision Drivers
-Rationale unknown — backfill pending.
+* Tap and keypad input never rendered the 3rd dart's preview, because the non-`VISUAL_BOARD` path set `hiddenTurnKey` before Alpine repainted.
+* Bob's 27 kept its own hand-rolled copy of the timer, separate from `play-lifecycle.ts`.
+* The divergence between input modes was accidental, not a deliberate design choice.
 
 ## Considered Options
-Rationale unknown — backfill pending.
+Rationale unknown — no source found. The commit records no alternatives.
 
 ## Decision Outcome
 Chosen option: "`play-lifecycle.ts`'s reveal-then-clear timer (`playCommitDart`) no
@@ -46,16 +47,19 @@ helper onto the same gate. See Pattern 19,
 `docs/architecture/04-Architecture-patterns.md`.
 
 ### Confidence
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Revisit When
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Confirmation
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ## Pros and Cons of the Options
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ## Evidence / More Information
 Decided: 2026-08-26
+
+* Commit `ec30760b` (2026-08-26; `decisions/frontend/alpine.md` row D233 and Pattern 19 in `docs/architecture/04-Architecture-patterns.md`): rebuilt Context and Decision Drivers.
+* Applied in: `docs/superpowers/specs/2026-08-26-board-marker-clear-remaining-games-design.md` (Problem, Design § 2), `docs/superpowers/plans/2026-08-26-board-marker-clear-remaining-games.md`.
