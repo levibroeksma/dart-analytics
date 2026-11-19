@@ -17,6 +17,8 @@ updated: 2026-11-13
 
 # Version History
 
+> **Version:** 1.240.0 (2026-11-19 — Checkout statistics page ([pending:checkout-statistics-page]): layout `CheckoutStatsOverview.astro` and `CheckoutCards.astro`, `CHECKOUT_LAYOUTS` for `121_V1`, `121_V2` and `TUOD_V1`; new `lib/stats/checkout/` ladder totals, routes, comparison and card rows, `checkoutComparisonSection()` and `checkoutCardsSection()`; the store's ladder and route helpers move there and `ratioTile` is shared with Ace; `01-Section-Catalog.md` 1.14.0.)
+
 > **Version:** 1.239.0 (2026-11-19 — Decision bot no longer dispatches `checks.yml` (D564): a throwaway PR showed the dispatched run does not count toward the PR's required checks; the owner approves the held `pull_request` run instead. `decision-ids.yml` drops the dispatch step and `actions: write`; `checks.yml` drops `workflow_dispatch`; `DECISIONS.md` step 8 and the `decision-ids.yml` inventory row updated.)
 
 > **Version:** 1.238.0 (2026-11-19 — Decision ledger is one MADR record file per decision (D564): `decisions/<domain>/` directories replace the 10 domain files; `DECISIONS.md` routes to directories and gains find/add steps (`pending-<slug>.md`, `[pending:<slug>]` citations, `ready-to-merge` bot numbering); the "Why was X decided?" pack loads decisions through `scripts/decision-index.sh`; File Inventory gets 1 row per domain directory and the new decision scripts, workflow and template; `next-decision-id.sh`, `renumber-decision.sh`, `decision-row-hashes.tsv`, `decision-map.txt` rows retired.)

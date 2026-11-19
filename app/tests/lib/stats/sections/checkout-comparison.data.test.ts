@@ -134,4 +134,16 @@ describe("checkoutComparisonSection", () => {
       "Bust rate",
     ]);
   });
+
+  it("watches the page filters and loads on init", async () => {
+    loadGameSection.mockResolvedValue(series({}));
+    const watched: string[] = [];
+    const s = Object.assign(checkoutComparisonSection(), {
+      $data: { rangeKey: "30d" as const, game: "TUOD_V1", variation: 0 },
+      $watch: (key: string) => void watched.push(key),
+    });
+    s.init();
+    expect(watched).toEqual(["rangeKey", "game", "variation"]);
+    await vi.waitFor(() => expect(s.loading).toBe(false));
+  });
 });

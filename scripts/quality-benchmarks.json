@@ -3,7 +3,7 @@
   "rows": {
     "health_score": {
       "dir": "min",
-      "now": 92.0,
+      "now": 92.5,
       "target": 95.0
     },
     "mi_average": {
@@ -33,12 +33,12 @@
     },
     "dup_pct_weak": {
       "dir": "max",
-      "now": 1.8,
+      "now": 1.7,
       "target": 1.0
     },
     "dup_pct_semantic": {
       "dir": "max",
-      "now": 17.8,
+      "now": 17.2,
       "target": 12.0
     }
   }

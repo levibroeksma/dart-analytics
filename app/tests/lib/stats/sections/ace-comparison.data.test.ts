@@ -131,4 +131,16 @@ describe("aceComparisonSection", () => {
     await first;
     expect(s.tiles[0]!.value).toBe("40.0%");
   });
+
+  it("watches the page filters and loads on init", async () => {
+    loadGameSection.mockResolvedValue(series({}));
+    const watched: string[] = [];
+    const s = Object.assign(aceComparisonSection(), {
+      $data: { rangeKey: "30d" as const, game: "ACE_V1", variation: 0 },
+      $watch: (key: string) => void watched.push(key),
+    });
+    s.init();
+    expect(watched).toEqual(["rangeKey", "game", "variation"]);
+    await vi.waitFor(() => expect(s.loading).toBe(false));
+  });
 });
