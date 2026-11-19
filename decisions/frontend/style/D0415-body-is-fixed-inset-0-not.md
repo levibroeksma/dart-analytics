@@ -12,7 +12,6 @@ informed: []
 supersedes:
 superseded-by:
 ---
-<!-- backfill: pending -->
 
 # `body` is `fixed inset-0`, not `h-dvh`
 
@@ -20,10 +19,12 @@ superseded-by:
 in an iOS standalone web app `dvh` stopped short of the screen bottom, leaving a dead band under the bottom nav. Pinning `body` to the viewport edges fills it; the top inset is untouched.
 
 ## Decision Drivers
-Rationale unknown — backfill pending.
+* In an iOS standalone web app `dvh` stopped short of the screen bottom, leaving a dead band under the bottom nav.
+* The top inset stays untouched.
 
 ## Considered Options
-Rationale unknown — backfill pending.
+* `body` is `fixed inset-0` (chosen).
+* `body` stays `relative h-dvh max-h-dvh`.
 
 ## Decision Outcome
 Chosen option: "`global.css` `body` uses `fixed inset-0 overflow-hidden` in place of `relative h-dvh max-h-dvh overflow-hidden`; `padding-top: env(safe-area-inset-top)` is unchanged. `html` keeps `h-dvh max-h-dvh`.", because in an iOS standalone web app `dvh` stopped short of the screen bottom, leaving a dead band under the bottom nav. Pinning `body` to the viewport edges fills it; the top inset is untouched.
@@ -32,18 +33,24 @@ Chosen option: "`global.css` `body` uses `fixed inset-0 overflow-hidden` in plac
 bottom nav sits flush with the screen edge, under the home indicator. `.astro`/CSS carry no unit test (D101); the proof is the rule in `global.css`.
 
 ### Confidence
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Revisit When
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Confirmation
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ## Pros and Cons of the Options
-Rationale unknown — backfill pending.
+### `body` is `fixed inset-0`
+* Good, because pinning `body` to the viewport edges fills the band under the nav.
+
+### `body` is `relative h-dvh max-h-dvh`
+* Bad, because in an iOS standalone web app `dvh` stops short of the screen bottom.
 
 ## Evidence / More Information
 Decided: 2026-10-05
 Supersedes: none (amends the sizing clause of D174).
 Referenced by D0417's `Supersedes:` line.
+
+* Commit `81e6caa0` (PR #788, 2026-10-05; `global.css` `body` rule): rebuilt Decision Drivers, Considered Options, Consequences, Confirmation and Pros and Cons.
