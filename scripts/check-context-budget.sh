@@ -9,12 +9,17 @@
 #     rows within tolerance and every Context Map pack total stay untouched
 #     (D559). CONTEXT_BUDGET_ROOT=<dir> replaces the repo root (fixtures).
 set -euo pipefail
+# The decision index script lives in the real repo even when a fixture root
+# replaces it, so remember it before the cd.
+export BUDGET_REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${CONTEXT_BUDGET_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || echo .)}"
 
 python3 - "$@" <<'PY'
 from __future__ import annotations
 
+import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -42,6 +47,28 @@ def err(msg: str) -> None:
 
 def chars4_k(path: Path) -> float:
     return len(path.read_text(encoding="utf-8")) / 4 / 1000
+
+
+def decision_domain(ref: str) -> str | None:
+    """`decisions/<domain>/` (or `decisions/frontend/<sub>/`) -> domain, else None.
+
+    A decision domain directory is 1 unit; it is priced by the output of
+    scripts/decision-index.sh --domain <d>, which is what an agent loads."""
+    norm = ref.rstrip("/")
+    if not norm.startswith("decisions/") or norm == "decisions":
+        return None
+    if not (ROOT / norm).is_dir():
+        return None
+    return norm[len("decisions/"):]
+
+
+def decision_index_k(domain: str) -> float:
+    script = Path(os.environ["BUDGET_REPO"]) / "scripts" / "decisions" / "index.mjs"
+    out = subprocess.run(
+        ["node", str(script), "--root", "decisions", "--domain", domain],
+        capture_output=True, text=True, cwd=ROOT, check=True,
+    ).stdout
+    return len(out) / 4 / 1000
 
 
 def parse_claimed(token: str) -> float:
@@ -106,11 +133,17 @@ def check_files(text: str) -> str:
     edits: list[tuple[int, int, str]] = []
     for m in FILE_ROW.finditer(inv):
         ref, claimed_s = m.group(1), m.group(2)
-        path = resolve_inventory_path(ref)
-        if path is None:
+        domain = decision_domain(ref)
+        if domain is not None:
+            path = None
+            computed = decision_index_k(domain)
+        else:
+            path = resolve_inventory_path(ref)
+        if domain is None and path is None:
             err(f"inventory path not found: `{ref}` claimed={claimed_s}")
             continue
-        computed = chars4_k(path)
+        if domain is None:
+            computed = chars4_k(path)
         claimed = parse_claimed(claimed_s)
         if computed <= 0:
             err(f"{ref}: computed token estimate is 0")
@@ -144,6 +177,10 @@ def check_packs(text: str) -> None:
         total = 0.0
         skipped: list[str] = []
         for ref in refs:
+            domain = decision_domain(ref)
+            if domain is not None:
+                total += decision_index_k(domain)
+                continue
             path = resolve_pack_md(ref)
             if path is None:
                 skipped.append(ref)

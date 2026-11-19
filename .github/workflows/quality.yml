@@ -12,6 +12,9 @@ jobs:
           # check-test-coverage.sh diffs against the merge base with the base
           # branch; a shallow clone has no such commit.
           fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
       - name: Context-map consistency
         run: bash scripts/check-context-map.sh
       - name: File-location gate
