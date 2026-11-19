@@ -12,7 +12,6 @@ informed: []
 supersedes:
 superseded-by:
 ---
-<!-- backfill: pending -->
 
 # Phase 5 ships the per-session replay: one gate on every page, whole-turn pages behind a stage-and-sequence cursor, a forever client cache, and per-turn values folded on the client by the engine
 
@@ -20,10 +19,16 @@ superseded-by:
 a gate on every page, not only the first, is what stops an opaque cursor from becoming a way to read another player's turns, and reading it from `v_stats_session_facts` gives one "not yours, not terminal or not a game" answer that leaks nothing. Counting turns, not rows, keeps a visit whole across a page boundary and makes the default page about one leg. Completed gameplay is already immutable by invariant, so the client keeps a page forever with no version token; the HTTP cache is left out because sign-out cannot wipe it (decision 7). Folding on the client through the play pages' own rehydrate path keeps one rule per game — the replay cannot disagree with the play page about a remaining score, and the server stays free of game rules (`10-Statistics/00-Overview.md` §4). Skipping rather than guessing follows D370 decision 4.
 
 ## Decision Drivers
-Rationale unknown — backfill pending.
+* A cursor is not a credential, so the gate runs on every page.
+* Completed gameplay is immutable.
+* The sign-out wipe (`10-Statistics/00-Overview.md` § 7) outranks a redundant HTTP cache.
+* The server stays free of game rules, so per-turn values come from the engine on the client (`00-Overview.md` § 4).
+* A derived value is skipped, never guessed.
 
 ## Considered Options
-Rationale unknown — backfill pending.
+* A sibling replay view next to `v_game_replay` (the plan chose to widen the view).
+* Send successful pages with `Cache-Control: private, max-age=31536000, immutable` (the plan's decision 7 before the pre-merge amendment).
+* Widen `v_game_replay`, send `no-store`, and fold on the client (chosen).
 
 ## Decision Outcome
 Chosen option: "twelve decisions for the phase 5 build (`docs/superpowers/plans/2026-09-26-statistics-phase-5b-replay.md`; its database half, migration `0044`, shipped as phase 5a):
@@ -44,18 +49,33 @@ Chosen option: "twelve decisions for the phase 5 build (`docs/superpowers/plans/
 `10-Statistics/02-Replay.md` now states what was built (§1 route and links, §2 endpoint, §3 cost, new §4 client derivation; version 1.1.0, status built) and `00-Overview.md` §6/§7/§12 mark the replay built (version 1.5.0). `06-API/04-Endpoint-Contracts.md` gains a "Statistics Replay" section, `06-API/00-Overview.md` moves the route from planned to built, and `07-Frontend/01-Rendering-Strategy.md` classifies `/statistics/replay`. `VALIDATION_FAILED` answers HTTP 422, per the frozen `ERROR_HTTP` registry. Known limitations: 501's bust flag is set only for board-captured turns — a keypad bust stores no darts and reads as a 0 visit; an abandoned session's unfinished last visit replays as closed (decision 8a); the header's stage tree holds only stages with at least one turn, since it is read through `v_game_replay`. The page query relies on the existing `idx_stages_session_sequence`, `idx_turns_stage_sequence` (`0008`) and `uq_darts_turn_number` (`0011`); its `EXPLAIN` measurement did not run, because the implementing session was denied loading database credentials, so no measured plan is claimed and no index was added — the owner runs it. Root `CLAUDE.md`'s applied-migration range extends to `0044`, citing the green `deploy` run (36351454413) for PR #632's merge. Filed as `discovered-work`, not fixed here: #633 (the derived-aims synthetic solo seat uses `sideKey: "SOLO"` where real solo seats use `"A"`), #634 (the statistics heatmap board blocks touch scrolling), #635 (statistics cards show raw target keys such as `TREBLE:20` where the replay shows `T20`) and #636 (decision 11). The replay page was not exercised in a browser in the implementing session.
 
 ### Confidence
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Revisit When
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Confirmation
-Rationale unknown — backfill pending.
+`app/tests/pages/api/statistics/session-replay.test.ts` covers the `private, no-store` header on responses, including the `NOT_FOUND` answer. `app/tests/modules/stats/replay.module.test.ts` and `app/tests/lib/stats/replay-fold.test.ts` cover play order and the client fold.
 
 ## Pros and Cons of the Options
-Rationale unknown — backfill pending.
+
+### Sibling replay view
+Rationale unknown — no source found.
+
+### Immutable HTTP cache
+* Bad, because the replay already has a client cache that sign-out wipes, so an HTTP cache adds a redundant copy.
+
+### Widen the view, `no-store`, client fold
+* Good, because appended columns break no existing reader of `v_game_replay`: no `app/` code reads it, and the `0023` check script and the unbuilt `ReplayEntry` contract survive.
+* Good, because each presenter reads state the way that game's play page does, so the replay does not re-derive a rule.
 
 ## Evidence / More Information
 Decided: 2026-09-28
 Refines: D365
 Referenced by D0414's `Supersedes:` line.
+
+* `docs/superpowers/plans/2026-09-26-statistics-phase-5b-replay.md` (Plan-level decisions 1 to 8, Task 8): rebuilt Decision Drivers, Considered Options and Pros and Cons.
+* Commit `f747c496` (2026-09-28; adds the D371 row with the replay contract docs).
+* Commit `f0327109` (2026-09-28; "replay review fixes"): amended decision 7 to `no-store` on every response before merge, rebuilt Considered Options and Pros and Cons.
+* Commit `e6585cdc` (2026-09-28; "replay review fixes"): changed the replay route to `private, no-store` on every response.
+* Partly reversed by D414 (`docs/superpowers/specs/2026-10-05-replay-in-card-design.md`, decisions 9 and 12). Decision 11 was settled by commit `194d02a4` (PR #763, D403), which dropped the frozen route unbuilt.

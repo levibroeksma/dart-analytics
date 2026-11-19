@@ -12,7 +12,6 @@ informed: []
 supersedes:
 superseded-by:
 ---
-<!-- backfill: pending -->
 
 # Batch route amended to `POST /api/sessions/:sessionId/events/batch`
 
@@ -20,28 +19,34 @@ superseded-by:
 Astro file routing serves it natively; `:batch` spelling was unservable
 
 ## Decision Drivers
-Rationale unknown — backfill pending.
+* The frozen API docs contradicted themselves on the batch URL (hardening spec, Problem).
 
 ## Considered Options
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ## Decision Outcome
 Chosen option: "Batch route amended to `POST /api/sessions/:sessionId/events/batch`", because Astro file routing serves it natively; `:batch` spelling was unservable.
 
 ### Consequences
-Rationale unknown — backfill pending.
+* Neutral, because the route is served by Astro file routing at `events/batch.ts`.
+* Neutral, because the `events:batch` custom-method spelling is removed from all docs.
 
 ### Confidence
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Revisit When
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Confirmation
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ## Pros and Cons of the Options
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ## Evidence / More Information
 Decided: 2026-07-13
+
+* `docs/superpowers/specs/2026-07-13-architecture-hardening-design.md` (Problem, Decision 6a): rebuilt Decision Drivers and Consequences.
+* `docs/superpowers/plans/2026-07-13-architecture-hardening.md` (Task 11): appends the ledger row D72.
+* Commit `7c49f6d5` (2026-07-14; records D67 to D78): adds the ledger row D72.
+* Amends D32, which spelled the route `events:batch`.
