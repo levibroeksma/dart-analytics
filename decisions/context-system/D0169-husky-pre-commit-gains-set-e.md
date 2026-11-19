@@ -12,7 +12,6 @@ informed: []
 supersedes:
 superseded-by:
 ---
-<!-- backfill: pending -->
 
 # `.husky/pre-commit` gains `set -e`
 
@@ -20,28 +19,30 @@ superseded-by:
 Prettier failures no longer blocked commits, silently regressing D136's "catch format issues at commit" guarantee (final whole-branch review)
 
 ## Decision Drivers
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ## Considered Options
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ## Decision Outcome
 Chosen option: "`.husky/pre-commit` gains `set -e`; previously its two top-level statements were not `&&`-joined, so a failing `npx lint-staged` did not stop the hook and the hook's exit code was only the final structural-gate chain's", because Prettier failures no longer blocked commits, silently regressing D136's "catch format issues at commit" guarantee (final whole-branch review).
 
 ### Consequences
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Confidence
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Revisit When
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Confirmation
-Rationale unknown — backfill pending.
+`.husky/pre-commit` line 2 holds `set -e` today.
 
 ## Pros and Cons of the Options
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ## Evidence / More Information
 Decided: 2026-07-28
+
+* Commit `1351996f` (PR #56, 2026-07-28; adds `set -e` to `.husky/pre-commit`): rebuilt Confirmation.
