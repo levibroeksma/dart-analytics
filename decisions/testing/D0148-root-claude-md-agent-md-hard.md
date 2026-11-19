@@ -12,36 +12,39 @@ informed: []
 supersedes:
 superseded-by:
 ---
-<!-- backfill: pending -->
 
 # Root `CLAUDE.md`/`AGENT.md` Hard Invariants gain a test-repointing rule
 
 ## Context and Problem Statement
-A `superRefine` bounding `duration_value` was lost during a schema consolidation and its two tests were quietly re-pointed at a different invalid input so the suite stayed green, letting the dropped constraint reach review undetected until fixed the same day (commit `511f24b`)
+A `superRefine` bounding `duration_value` was lost during a schema consolidation and its two tests were quietly re-pointed at a different invalid input so the suite stayed green, letting the dropped constraint reach review undetected until fixed the same day (commit `511f24b`) The commit that adds D148 records 3 rules from a game-engine PR review as root `CLAUDE.md` Hard Invariants: an engine state-shape proof, a stacked-branch cap, and this test-repointing rule.
 
 ## Decision Drivers
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ## Considered Options
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ## Decision Outcome
 Chosen option: "Root `CLAUDE.md`/`AGENT.md` Hard Invariants gain a test-repointing rule: when a test's subject is removed or migrated, delete it or re-point it at the same guarantee, never at a different input just to keep it green; a green suite after a constraint is removed is a failure to detect, not evidence of safety".
 
 ### Consequences
-Rationale unknown — backfill pending.
+* Neutral, because the rule enters the root `CLAUDE.md` and `AGENT.md` Hard Invariants, dated 2026-07-26.
+* Bad, because the rule is prose. The 2026-07-28 spec lists it among rules that nothing enforces, and proposes only a non-blocking CI heuristic, since legitimate test updates also trip it.
 
 ### Confidence
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Revisit When
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ### Confirmation
-Rationale unknown — backfill pending.
+Review applies the Hard Invariant. The 2026-07-28 spec (§ 6.2) proposes a flag-only CI job that diffs `app/tests/**`, flags changed assertion literals under an unchanged test title, and posts a non-blocking PR comment. The spec is a proposed design; this record does not show the job exists.
 
 ## Pros and Cons of the Options
-Rationale unknown — backfill pending.
+Rationale unknown — no source found.
 
 ## Evidence / More Information
 Decided: 2026-07-26
+
+* Commit `cd464a3f` (2026-07-26; `DECISIONS.md` row D148 and the root `CLAUDE.md` diff): rebuilt Context and Consequences.
+* `docs/superpowers/specs/2026-07-28-claude-md-skills-automation-design.md` (§ 1, § 2, § 3, § 6.2): rebuilt Consequences and Confirmation.
