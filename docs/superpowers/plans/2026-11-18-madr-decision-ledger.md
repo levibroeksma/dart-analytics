@@ -202,6 +202,6 @@ it("allows empty date only at or below maxBaselineId", () => {
 - [ ] **Step 3:** Run `superpowers:finishing-a-development-branch` with `finishing-a-dart-branch`: push and open the PR. The PR body lists these manual owner steps before merge:
   1. Turn on "Require branches to be up to date before merging" for `main`.
   2. Allow squash merge only.
-  3. Add `decision-ledger` as a required status check (a job in `quality.yml`, called by `checks.yml`).
+  3. Add `quality / decision-ledger` as a required status check (a job in `quality.yml`, called by `checks.yml`).
   4. Create the `ready-to-merge` label.
   5. Check open PRs that append to an old domain file; they convert to `pending-<slug>.md` at rebase.

@@ -6,6 +6,7 @@ import { UNKNOWN, renderRecord } from "../../../../scripts/decisions/lib.mjs";
 import {
   linkSupersedes,
   splitDomainFile,
+  type SplitRecord,
 } from "../../../../scripts/decisions/split.mjs";
 
 const fixture = readFileSync(
@@ -13,11 +14,12 @@ const fixture = readFileSync(
   "utf8",
 );
 const recs = splitDomainFile(fixture, "database");
-const get = (id: string) => {
-  const r = recs.find((x: { fm: { id: string } }) => x.fm.id === id);
+const pick = (rs: SplitRecord[], id: string): SplitRecord => {
+  const r = rs.find((x) => x.fm.id === id);
   if (!r) throw new Error(`no ${id}`);
   return r;
 };
+const get = (id: string) => pick(recs, id);
 const sec = (id: string, h: string) => get(id).sections.get(h) as string;
 const lines = (t: string) =>
   new Set(
@@ -29,7 +31,7 @@ const lines = (t: string) =>
 
 describe("splitDomainFile", () => {
   it("yields one record per row and block", () => {
-    expect(recs.map((r: { fm: { id: string } }) => r.fm.id)).toEqual([
+    expect(recs.map((r) => r.fm.id)).toEqual([
       "D0020",
       "D0023",
       "D0100",
@@ -159,7 +161,7 @@ describe("partial supersession and titles", () => {
   it("does not supersede the target; it gets a reference line", () => {
     const fresh = splitDomainFile(fixture, "database");
     linkSupersedes(fresh);
-    const t = fresh.find((r: { fm: { id: string } }) => r.fm.id === "D0102");
+    const t = pick(fresh, "D0102");
     expect(t.fm.status).toBe("accepted");
     expect(t.fm["superseded-by"]).toBe("");
     expect(t.fm.date).toBe("2026-09-10");
@@ -178,25 +180,21 @@ describe("linkSupersedes", () => {
   it("marks the older record superseded and takes the newer date", () => {
     const fresh = splitDomainFile(fixture, "database");
     linkSupersedes(fresh);
-    const old = fresh.find((r: { fm: { id: string } }) => r.fm.id === "D0100");
+    const old = pick(fresh, "D0100");
     expect(old.fm.status).toBe("superseded");
     expect(old.fm["superseded-by"]).toBe("D0101");
     expect(old.fm.date).toBe("2026-09-01");
-    const newer = fresh.find(
-      (r: { fm: { id: string } }) => r.fm.id === "D0101",
-    );
+    const newer = pick(fresh, "D0101");
     expect(newer.fm.status).toBe("accepted");
   });
 
   it("lists several superseders as a YAML list the checker reads", () => {
     const fresh = splitDomainFile(fixture, "database");
-    const second = structuredClone(
-      fresh.find((r: { fm: { id: string } }) => r.fm.id === "D0101"),
-    );
+    const second = structuredClone(pick(fresh, "D0101"));
     second.fm.id = "D0110";
     fresh.push(second);
     linkSupersedes(fresh);
-    const old = fresh.find((r: { fm: { id: string } }) => r.fm.id === "D0100");
+    const old = pick(fresh, "D0100");
     expect(old.fm["superseded-by"]).toEqual(["D0101", "D0110"]);
     const line = /^superseded-by:.*$/m.exec(renderRecord(old))?.[0];
     expect(line).toBe("superseded-by: [D0101, D0110]");
@@ -204,16 +202,16 @@ describe("linkSupersedes", () => {
 
   it("leaves the older date when the superseder has none", () => {
     const fresh = splitDomainFile(fixture, "database");
-    fresh.find((r: { fm: { id: string } }) => r.fm.id === "D0101").fm.date = "";
+    pick(fresh, "D0101").fm.date = "";
     linkSupersedes(fresh);
-    const old = fresh.find((r: { fm: { id: string } }) => r.fm.id === "D0100");
+    const old = pick(fresh, "D0100");
     expect(old.fm.status).toBe("superseded");
     expect(old.fm.date).toBe("2026-08-05");
   });
 
   it("fails on an unknown superseded id", () => {
     const fresh = splitDomainFile(fixture, "database").filter(
-      (r: { fm: { id: string } }) => r.fm.id !== "D0100",
+      (r) => r.fm.id !== "D0100",
     );
     expect(() => linkSupersedes(fresh)).toThrow(/D0100/);
   });
